@@ -386,7 +386,12 @@ begin
   if cs_link_extern in aktglobalswitches then
    begin
      if showinfo then
-      AsmRes.AddLinkCommand(Command,Para,current_module^.exefilename^)
+       begin
+         if DLLsource then
+           AsmRes.AddLinkCommand(Command,Para,current_module^.sharedlibfilename^)
+         else
+           AsmRes.AddLinkCommand(Command,Para,current_module^.exefilename^);
+       end
      else
       AsmRes.AddLinkCommand(Command,Para,'');
    end;
@@ -525,7 +530,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.77  1999-11-12 11:03:50  peter
+  Revision 1.78  1999-11-22 22:22:30  pierre
+   * Give better info in script
+
+  Revision 1.77  1999/11/12 11:03:50  peter
     * searchpaths changed to stringqueue object
 
   Revision 1.76  1999/11/06 14:34:21  peter
