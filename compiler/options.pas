@@ -1079,8 +1079,8 @@ end;
 
 procedure toption.parsecmd(cmd:string);
 var
-  i    : longint;
-  opts : string;
+  i,ps  : longint;
+  opts  : string;
 begin
   while (cmd<>'') do
    begin
@@ -1088,7 +1088,7 @@ begin
       delete(cmd,1,1);
      i:=pos(' ',cmd);
      if i=0 then
-      i:=255;
+      i:=256;
      opts:=Copy(cmd,1,i-1);
      Delete(cmd,1,i);
      case opts[1] of
@@ -1105,6 +1105,17 @@ begin
            if not firstpass then
             Message1(option_reading_further_from,'(env) '+opts);
            interpret_envvar(opts);
+         end;
+       '"' :
+         begin
+           Delete(opts,1,1);
+           ps:=pos('"',cmd);
+           if (i<>256) and (ps>0) then
+             begin
+               opts:=opts + ' '+ copy(cmd,1,ps-1);
+               cmd:=copy(cmd,ps+1,255);
+             end;
+           interpret_option(opts,true);
          end;
        else
          interpret_option(opts,true);
@@ -1387,7 +1398,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.50  2000-01-14 14:33:54  pierre
+  Revision 1.51  2000-01-14 15:33:15  pierre
+   + parsecmd supports "filename with spaces" for IDE
+
+  Revision 1.50  2000/01/14 14:33:54  pierre
    + some warnings for wrong lines inside config files
 
   Revision 1.49  2000/01/10 11:14:19  peter
