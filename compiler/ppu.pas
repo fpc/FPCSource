@@ -40,7 +40,9 @@ const
   subentryid          = 2;
   {special}
   iberror             = 0;
-  ibenddefs           = 250;
+  ibstartdefs         = 248;
+  ibenddefs           = 249;
+  ibstartsyms         = 250;
   ibendsyms           = 251;
   ibendinterface      = 252;
   ibendimplementation = 253;
@@ -774,7 +776,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1998-09-21 08:45:18  pierre
+  Revision 1.14  1998-09-21 10:00:07  peter
+    * store number of defs in ppu file
+
+  Revision 1.13  1998/09/21 08:45:18  pierre
     + added vmt_offset in tobjectdef.write for fututre use
       (first steps to have objects without vmt if no virtual !!)
     + added fpu_used field for tabstractprocdef  :
