@@ -528,16 +528,16 @@ begin
 end;
 
 
-{$ifdef SYSTEMDEBUG}
 
    { Keep Track of open files }
    const
       max_files = 50;
-      free_closed_names : boolean = true;
    var
-      opennames : array [0..max_files-1] of pchar;
       openfiles : array [0..max_files-1] of boolean;
-
+{$ifdef SYSTEMDEBUG}
+      opennames : array [0..max_files-1] of pchar;
+   const
+      free_closed_names : boolean = true;
 {$endif SYSTEMDEBUG}
 
 {*****************************************************************************
@@ -546,17 +546,21 @@ end;
 
 procedure ___exit(exitcode:byte);cdecl;external name '___exit';
 
+procedure do_close(handle : longint);forward;
+
 Procedure system_exit;
-{$ifdef SYSTEMDEBUG}
 var
   h : byte;
-{$endif SYSTEMDEBUG}
 begin
-{$ifdef SYSTEMDEBUG}
   for h:=0 to max_files-1 do
     if openfiles[h] then
-      writeln(stderr,'file ',opennames[h],' not closed at exit');
+      begin
+{$ifdef SYSTEMDEBUG}
+         writeln(stderr,'file ',opennames[h],' not closed at exit');
 {$endif SYSTEMDEBUG}
+         if h>=5 then
+           do_close(h);
+      end;
   { halt is not allways called !! }
   { not on normal exit !! PM }
   set_pm_interrupt($00,old_int00);
@@ -1250,7 +1254,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.12  1999-05-17 21:52:33  florian
+  Revision 1.13  1999-05-19 16:54:21  pierre
+   * closes all handles >+ 5
+
+  Revision 1.12  1999/05/17 21:52:33  florian
     * most of the Object Pascal stuff moved to the system unit
 
   Revision 1.11  1999/05/04 23:28:40  pierre
