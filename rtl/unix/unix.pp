@@ -20,7 +20,9 @@ Uses UnixUtil,BaseUnix;
 
 { Get Types and Constants }
 {$i sysconst.inc}
+{$ifndef FPC_USE_LIBC}
 {$i systypes.inc}
+{$endif not FPC_USE_LIBC}
 
 {Get error numbers, some more signal definitions and other OS dependant
  types (that are not POSIX) }
@@ -1408,7 +1410,10 @@ End.
 
 {
   $Log$
-  Revision 1.56  2004-01-04 16:24:05  jonas
+  Revision 1.57  2004-01-04 20:53:02  jonas
+    * don't use systypes if FPC_USE_LIBC is defined
+
+  Revision 1.56  2004/01/04 16:24:05  jonas
     * fixed WaitProcess in case of SysEintr
 
   Revision 1.55  2003/12/31 20:24:25  marco
