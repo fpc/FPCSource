@@ -611,7 +611,7 @@ unit files;
          { lib and exe could be loaded with a file specified with -o }
          if AllowOutput and (OutputFile<>'') then
           n:=OutputFile;
-         staticlibfilename:=stringdup(p+target_os.libprefix+n+target_os.staticlibext);
+         staticlibfilename:=stringdup(target_os.libprefix+n+target_os.staticlibext);
          sharedlibfilename:=stringdup(p+target_os.libprefix+n+target_os.sharedlibext);
          { output dir of exe can be specified separatly }
          if AllowOutput and (OutputExeDir<>'') then
@@ -1021,7 +1021,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.61  1998-10-14 10:57:25  daniel
+  Revision 1.62  1998-10-14 10:59:37  daniel
+  * Staticlibfilename now doesn't include path.
+
+  Revision 1.61  1998/10/14 10:57:25  daniel
   * Dirstr, namestr, extstr.
   * $V+ to prevent Peter from forgetting this.
   * OS/2 compiler uses 8.3 filenames to support running the compiler on an old
