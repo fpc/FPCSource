@@ -29,7 +29,7 @@ interface
 {$ifdef PREPROCWRITE}
     procedure preprocess(const filename:string);
 {$endif PREPROCWRITE}
-    procedure compile(const filename:string;compile_system:boolean);
+    procedure compile(const filename:string);
     procedure initparser;
     procedure doneparser;
 
@@ -38,7 +38,7 @@ implementation
     uses
       cutils,cclasses,
       globtype,version,tokens,systems,globals,verbose,
-      symbase,symtable,symsym,fmodule,aasm,
+      symbase,symtable,symsym,fmodule,fppu,aasm,
       hcodegen,
       script,gendef,
 {$ifdef BrowserLog}
@@ -224,7 +224,7 @@ implementation
 {$endif PREPROCWRITE}
 
 
-    procedure compile(const filename:string;compile_system:boolean);
+    procedure compile(const filename:string);
       var
        { scanner }
          oldidtoken,
@@ -383,7 +383,7 @@ implementation
            end
          else
           begin
-            current_module:=tmodule.create(filename,false);
+            current_module:=tppumodule.create(filename,false);
             main_module:=current_module;
           end;
 
@@ -410,9 +410,6 @@ implementation
          aktspecificoptprocessor:=initspecificoptprocessor;
          aktasmmode:=initasmmode;
          aktinterfacetype:=initinterfacetype;
-         { we need this to make the system unit }
-         if compile_system then
-          aktmoduleswitches:=aktmoduleswitches+[cs_compilesystem];
 
        { startup scanner, and save in current_module }
          current_scanner:=tscannerfile.Create(filename);
@@ -482,10 +479,10 @@ implementation
 {$endif newcg}
 
        { free ppu }
-         if assigned(current_module.ppufile) then
+         if assigned(tppumodule(current_module).ppufile) then
           begin
-            dispose(current_module.ppufile,done);
-            current_module.ppufile:=nil;
+            tppumodule(current_module).ppufile.free;
+            tppumodule(current_module).ppufile:=nil;
           end;
        { free scanner }
          current_scanner.free;
@@ -620,7 +617,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2001-04-18 22:01:54  peter
+  Revision 1.18  2001-05-06 14:49:17  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.17  2001/04/18 22:01:54  peter
     * registration of targets and assemblers
 
   Revision 1.16  2001/04/15 09:48:30  peter

@@ -25,23 +25,23 @@ unit fmodule;
 {$i defines.inc}
 
 {$ifdef go32v1}
-  {$define SHORTASMprefix}
+  {$define shortasmprefix}
 {$endif}
 {$ifdef go32v2}
-  {$define SHORTASMprefix}
+  {$define shortasmprefix}
 {$endif}
 {$ifdef OS2}
   { Allthough OS/2 supports long filenames I play it safe and
     use 8.3 filenames, because this allows the compiler to run
     on a FAT partition. (DM) }
-  {$define SHORTASMprefix}
+  {$define shortasmprefix}
 {$endif}
 
 interface
 
     uses
        cutils,cclasses,
-       globals,ppu,finput,
+       globals,finput,
        symbase;
 
     const
@@ -84,11 +84,6 @@ interface
 {$endif NEWMAP}
 
        tmodule = class(tmodulebase)
-          ppufile       : pppufile; { the PPU file }
-          crc,
-          interface_crc,
-          flags         : longint;  { the PPU flags }
-
           compiled,                 { unit is already compiled }
           do_reload,                { force reloading of the unit }
           do_compile,               { need to compile the sources }
@@ -101,7 +96,9 @@ interface
           in_implementation,        { processing the implementation part? }
           in_global     : boolean;  { allow global settings }
           recompile_reason : trecompile_reason;  { the reason why the unit should be recompiled }
-
+          crc,
+          interface_crc : cardinal;
+          flags         : cardinal;  { the PPU flags }
           islibrary     : boolean;  { if it is a library (win32 dll) }
           map           : punitmap; { mapping of all used units }
           unitcount     : longint;  { local unit counter }
@@ -131,18 +128,11 @@ interface
           locallibrarysearchpath : TSearchPathList;
 
           asmprefix     : pstring;  { prefix for the smartlink asmfiles }
-{$ifdef Test_Double_checksum}
-          crc_array : pointer;
-          crc_size : longint;
-          crc_array2 : pointer;
-          crc_size2 : longint;
-{$endif def Test_Double_checksum}
           constructor create(const s:string;_is_unit:boolean);
           destructor destroy;override;
-          procedure reset;
+          procedure reset;virtual;
+          procedure numberunits;
           procedure setfilename(const fn:string;allowoutput:boolean);
-          function  openppu:boolean;
-          function  search_unit(const n : string;onlysource:boolean):boolean;
        end;
 
        tused_unit = class(tlinkedlistitem)
@@ -312,331 +302,57 @@ uses
 
 
 {****************************************************************************
-                                  TMODULE
+                              TUSED_UNIT
  ****************************************************************************}
 
-    procedure tmodule.setfilename(const fn:string;allowoutput:boolean);
-      var
-        p : dirstr;
-        n : NameStr;
-        e : ExtStr;
+    constructor tused_unit.create(_u : tmodule;intface:boolean);
       begin
-         stringdispose(objfilename);
-         stringdispose(asmfilename);
-         stringdispose(ppufilename);
-         stringdispose(staticlibfilename);
-         stringdispose(sharedlibfilename);
-         stringdispose(exefilename);
-         stringdispose(outputpath);
-         stringdispose(path);
-         { Create names }
-         fsplit(fn,p,n,e);
-         n:=FixFileName(n);
-         { set path }
-         path:=stringdup(FixPath(p,false));
-         { obj,asm,ppu names }
-         p:=path^;
-         if AllowOutput then
-          begin
-            if (OutputUnitDir<>'') then
-             p:=OutputUnitDir
-            else
-             if (OutputExeDir<>'') then
-              p:=OutputExeDir;
-          end;
-         outputpath:=stringdup(p);
-         objfilename:=stringdup(p+n+target_info.objext);
-         asmfilename:=stringdup(p+n+target_info.asmext);
-         ppufilename:=stringdup(p+n+target_info.unitext);
-         { lib and exe could be loaded with a file specified with -o }
-         if AllowOutput and (OutputFile<>'') and (compile_level=1) then
-          n:=OutputFile;
-         staticlibfilename:=stringdup(p+target_info.libprefix+n+target_info.staticlibext);
-         if target_info.target=target_i386_WIN32 then
-           sharedlibfilename:=stringdup(p+n+target_info.sharedlibext)
-         else
-           sharedlibfilename:=stringdup(p+target_info.libprefix+n+target_info.sharedlibext);
-         { output dir of exe can be specified separatly }
-         if AllowOutput and (OutputExeDir<>'') then
-          p:=OutputExeDir
-         else
-          p:=path^;
-         exefilename:=stringdup(p+n+target_info.exeext);
+        u:=_u;
+        in_interface:=intface;
+        in_uses:=false;
+        is_stab_written:=false;
+        loaded:=true;
+        name:=stringdup(_u.modulename^);
+        checksum:=_u.crc;
+        interface_checksum:=_u.interface_crc;
+        unitid:=0;
       end;
 
 
-    function tmodule.openppu:boolean;
-      var
-        ppufiletime : longint;
+    constructor tused_unit.create_to_load(const n:string;c,intfc:longint;intface:boolean);
       begin
-        openppu:=false;
-        Message1(unit_t_ppu_loading,ppufilename^);
-      { Get ppufile time (also check if the file exists) }
-        ppufiletime:=getnamedfiletime(ppufilename^);
-        if ppufiletime=-1 then
-         exit;
-      { Open the ppufile }
-        Message1(unit_u_ppu_name,ppufilename^);
-        ppufile:=new(pppufile,init(ppufilename^));
-        ppufile^.change_endian:=source_info.endian<>target_info.endian;
-        if not ppufile^.open then
-         begin
-           dispose(ppufile,done);
-           Message(unit_u_ppu_file_too_short);
-           exit;
-         end;
-      { check for a valid PPU file }
-        if not ppufile^.CheckPPUId then
-         begin
-           dispose(ppufile,done);
-           Message(unit_u_ppu_invalid_header);
-           exit;
-         end;
-      { check for allowed PPU versions }
-        if not (ppufile^.GetPPUVersion = CurrentPPUVersion) then
-         begin
-           dispose(ppufile,done);
-           Message1(unit_u_ppu_invalid_version,tostr(ppufile^.GetPPUVersion));
-           exit;
-         end;
-      { check the target processor }
-        if ttargetcpu(ppufile^.header.cpu)<>target_cpu then
-         begin
-           dispose(ppufile,done);
-           Message(unit_u_ppu_invalid_processor);
-           exit;
-         end;
-      { check target }
-        if ttarget(ppufile^.header.target)<>target_info.target then
-         begin
-           dispose(ppufile,done);
-           Message(unit_u_ppu_invalid_target);
-           exit;
-         end;
-      { Load values to be access easier }
-        flags:=ppufile^.header.flags;
-        crc:=ppufile^.header.checksum;
-        interface_crc:=ppufile^.header.interface_checksum;
-      { Show Debug info }
-        Message1(unit_u_ppu_time,filetimestring(ppufiletime));
-        Message1(unit_u_ppu_flags,tostr(flags));
-        Message1(unit_u_ppu_crc,tostr(ppufile^.header.checksum));
-        Message1(unit_u_ppu_crc,tostr(ppufile^.header.interface_checksum)+' (intfc)');
-        do_compile:=false;
-        openppu:=true;
+        u:=nil;
+        in_interface:=intface;
+        in_uses:=false;
+        is_stab_written:=false;
+        loaded:=false;
+        name:=stringdup(n);
+        checksum:=c;
+        interface_checksum:=intfc;
+        unitid:=0;
       end;
 
 
-    function tmodule.search_unit(const n : string;onlysource:boolean):boolean;
-      var
-         singlepathstring,
-         filename : string;
-
-         Function UnitExists(const ext:string;var foundfile:string):boolean;
-         begin
-           Message1(unit_t_unitsearch,Singlepathstring+filename+ext);
-           UnitExists:=FindFile(FileName+ext,Singlepathstring,foundfile);
-         end;
-
-         Function PPUSearchPath(const s:string):boolean;
-         var
-           found : boolean;
-           hs    : string;
-         begin
-           Found:=false;
-           singlepathstring:=FixPath(s,false);
-         { Check for PPU file }
-           Found:=UnitExists(target_info.unitext,hs);
-           if Found then
-            Begin
-              SetFileName(hs,false);
-              Found:=OpenPPU;
-            End;
-           PPUSearchPath:=Found;
-         end;
-
-         Function SourceSearchPath(const s:string):boolean;
-         var
-           found   : boolean;
-           hs      : string;
-         begin
-           Found:=false;
-           singlepathstring:=FixPath(s,false);
-         { Check for Sources }
-           ppufile:=nil;
-           do_compile:=true;
-           recompile_reason:=rr_noppu;
-         {Check for .pp file}
-           Found:=UnitExists(target_info.sourceext,hs);
-           if not Found then
-            begin
-              { Check for .pas }
-              Found:=UnitExists(target_info.pasext,hs);
-            end;
-           stringdispose(mainsource);
-           if Found then
-            begin
-              sources_avail:=true;
-              { Load Filenames when found }
-              mainsource:=StringDup(hs);
-              SetFileName(hs,false);
-            end
-           else
-            sources_avail:=false;
-           SourceSearchPath:=Found;
-         end;
-
-         Function SearchPath(const s:string):boolean;
-         var
-           found : boolean;
-         begin
-           { First check for a ppu, then for the source }
-           found:=false;
-           if not onlysource then
-            found:=PPUSearchPath(s);
-           if not found then
-            found:=SourceSearchPath(s);
-           SearchPath:=found;
-         end;
-
-         Function SearchPathList(list:TSearchPathList):boolean;
-         var
-           hp : TStringListItem;
-           found : boolean;
-         begin
-           found:=false;
-           hp:=TStringListItem(list.First);
-           while assigned(hp) do
-            begin
-              found:=SearchPath(hp.Str);
-              if found then
-               break;
-              hp:=TStringListItem(hp.next);
-            end;
-           SearchPathList:=found;
-         end;
-
-       var
-         fnd : boolean;
-       begin
-         filename:=FixFileName(n);
-         { try to find unit
-            1. look for ppu in cwd
-            2. look for ppu in outputpath if set, this is tp7 compatible (PFV)
-            3. look for source in cwd
-            4. local unit pathlist
-            5. global unit pathlist }
-         fnd:=false;
-         if not onlysource then
-          begin
-            fnd:=PPUSearchPath('.');
-            if (not fnd) and (current_module.outputpath^<>'') then
-             fnd:=PPUSearchPath(current_module.outputpath^);
-           end;
-         if (not fnd) then
-          fnd:=SourceSearchPath('.');
-         if (not fnd) then
-          fnd:=SearchPathList(current_module.LocalUnitSearchPath);
-         if (not fnd) then
-          fnd:=SearchPathList(UnitSearchPath);
-
-         { try to find a file with the first 8 chars of the modulename, like
-           dos }
-         if (not fnd) and (length(filename)>8) then
-          begin
-            filename:=copy(filename,1,8);
-            fnd:=SearchPath('.');
-            if (not fnd) then
-             fnd:=SearchPathList(current_module.LocalUnitSearchPath);
-            if not fnd then
-             fnd:=SearchPathList(UnitSearchPath);
-          end;
-         search_unit:=fnd;
-      end;
-
-
-
-    procedure tmodule.reset;
-      var
-         pm : tdependent_unit;
+    destructor tused_unit.destroy;
       begin
-        if assigned(scanner) then
-          tscannerfile(scanner).invalid:=true;
-        if assigned(globalsymtable) then
-          begin
-            globalsymtable.free;
-            globalsymtable:=nil;
-          end;
-        if assigned(localsymtable) then
-          begin
-            localsymtable.free;
-            localsymtable:=nil;
-          end;
-        if assigned(map) then
-         begin
-           dispose(map);
-           map:=nil;
-         end;
-        if assigned(ppufile) then
-         begin
-           dispose(ppufile,done);
-           ppufile:=nil;
-         end;
-        sourcefiles.free;
-        sourcefiles:=tinputfilemanager.create;
-        imports.free;
-        imports:=tlinkedlist.create;
-        _exports.free;
-        _exports:=tlinkedlist.create;
-        externals.free;
-        externals:=tlinkedlist.create;
-        used_units.free;
-        used_units:=TLinkedList.Create;
-        { all units that depend on this one must be recompiled ! }
-        pm:=tdependent_unit(dependent_units.first);
-        while assigned(pm) do
-          begin
-            if pm.u.in_second_compile then
-             Comment(v_debug,'No reload already in second compile: '+pm.u.modulename^)
-            else
-             begin
-               pm.u.do_reload:=true;
-               Comment(v_debug,'Reloading '+pm.u.modulename^+' needed because '+modulename^+' is reloaded');
-             end;
-            pm:=tdependent_unit(pm.next);
-          end;
-        dependent_units.free;
-        dependent_units:=TLinkedList.Create;
-        resourcefiles.Free;
-        resourcefiles:=TStringList.Create;
-        linkunitofiles.Free;
-        linkunitofiles:=TLinkContainer.Create;
-        linkunitstaticlibs.Free;
-        linkunitstaticlibs:=TLinkContainer.Create;
-        linkunitsharedlibs.Free;
-        linkunitsharedlibs:=TLinkContainer.Create;
-        linkotherofiles.Free;
-        linkotherofiles:=TLinkContainer.Create;
-        linkotherstaticlibs.Free;
-        linkotherstaticlibs:=TLinkContainer.Create;
-        linkothersharedlibs.Free;
-        linkothersharedlibs:=TLinkContainer.Create;
-        uses_imports:=false;
-        do_compile:=false;
-        { sources_avail:=true;
-        should not be changed PM }
-        compiled:=false;
-        in_implementation:=false;
-        in_global:=true;
-        {loaded_from:=nil;
-        should not be changed PFV }
-        flags:=0;
-        crc:=0;
-        interface_crc:=0;
-        unitcount:=1;
-        recompile_reason:=rr_unknown;
+        stringdispose(name);
+        inherited destroy;
       end;
 
+
+{****************************************************************************
+                            TDENPENDENT_UNIT
+ ****************************************************************************}
+
+    constructor tdependent_unit.create(_u : tmodule);
+      begin
+         u:=_u;
+      end;
+
+
+{****************************************************************************
+                                  TMODULE
+ ****************************************************************************}
 
     constructor tmodule.create(const s:string;_is_unit:boolean);
       var
@@ -652,7 +368,7 @@ uses
          inherited create('Program');
         mainsource:=stringdup(s);
         { Dos has the famous 8.3 limit :( }
-{$ifdef SHORTASMprefix}
+{$ifdef shortasmprefix}
         asmprefix:=stringdup(FixFileName('as'));
 {$else}
         asmprefix:=stringdup(FixFileName(n));
@@ -671,15 +387,14 @@ uses
         linkotherofiles:=TLinkContainer.Create;
         linkotherstaticlibs:=TLinkContainer.Create;
         linkothersharedlibs:=TLinkContainer.Create;
-        ppufile:=nil;
+        crc:=0;
+        interface_crc:=0;
+        flags:=0;
         scanner:=nil;
         map:=nil;
         globalsymtable:=nil;
         localsymtable:=nil;
         loaded_from:=nil;
-        flags:=0;
-        crc:=0;
-        interface_crc:=0;
         do_reload:=false;
         unitcount:=1;
         do_compile:=false;
@@ -698,17 +413,6 @@ uses
         imports:=TLinkedList.Create;
         _exports:=TLinkedList.Create;
         externals:=TLinkedList.Create;
-      { search the PPU file if it is an unit }
-        if is_unit then
-         begin
-           { use the realmodulename so we can also find a case sensitive
-             source filename }
-           search_unit(realmodulename^,false);
-           { it the sources_available is changed then we know that
-             the sources aren't available }
-           if not sources_avail then
-            sources_checked:=true;
-         end;
       end;
 
 
@@ -720,9 +424,6 @@ uses
       begin
         if assigned(map) then
          dispose(map);
-        if assigned(ppufile) then
-         dispose(ppufile,done);
-        ppufile:=nil;
         if assigned(imports) then
          imports.free;
         imports:=nil;
@@ -775,58 +476,171 @@ uses
       end;
 
 
-{****************************************************************************
-                              TUSED_UNIT
- ****************************************************************************}
-
-    constructor tused_unit.create(_u : tmodule;intface:boolean);
+    procedure tmodule.reset;
+      var
+         pm : tdependent_unit;
       begin
-        u:=_u;
-        in_interface:=intface;
-        in_uses:=false;
-        is_stab_written:=false;
-        loaded:=true;
-        name:=stringdup(_u.modulename^);
-        checksum:=_u.crc;
-        interface_checksum:=_u.interface_crc;
-        unitid:=0;
+        if assigned(scanner) then
+          tscannerfile(scanner).invalid:=true;
+        if assigned(globalsymtable) then
+          begin
+            globalsymtable.free;
+            globalsymtable:=nil;
+          end;
+        if assigned(localsymtable) then
+          begin
+            localsymtable.free;
+            localsymtable:=nil;
+          end;
+        if assigned(map) then
+         begin
+           dispose(map);
+           map:=nil;
+         end;
+        sourcefiles.free;
+        sourcefiles:=tinputfilemanager.create;
+        imports.free;
+        imports:=tlinkedlist.create;
+        _exports.free;
+        _exports:=tlinkedlist.create;
+        externals.free;
+        externals:=tlinkedlist.create;
+        used_units.free;
+        used_units:=TLinkedList.Create;
+        { all units that depend on this one must be recompiled ! }
+        pm:=tdependent_unit(dependent_units.first);
+        while assigned(pm) do
+          begin
+            if pm.u.in_second_compile then
+             Comment(v_debug,'No reload already in second compile: '+pm.u.modulename^)
+            else
+             begin
+               pm.u.do_reload:=true;
+               Comment(v_debug,'Reloading '+pm.u.modulename^+' needed because '+modulename^+' is reloaded');
+             end;
+            pm:=tdependent_unit(pm.next);
+          end;
+        dependent_units.free;
+        dependent_units:=TLinkedList.Create;
+        resourcefiles.Free;
+        resourcefiles:=TStringList.Create;
+        linkunitofiles.Free;
+        linkunitofiles:=TLinkContainer.Create;
+        linkunitstaticlibs.Free;
+        linkunitstaticlibs:=TLinkContainer.Create;
+        linkunitsharedlibs.Free;
+        linkunitsharedlibs:=TLinkContainer.Create;
+        linkotherofiles.Free;
+        linkotherofiles:=TLinkContainer.Create;
+        linkotherstaticlibs.Free;
+        linkotherstaticlibs:=TLinkContainer.Create;
+        linkothersharedlibs.Free;
+        linkothersharedlibs:=TLinkContainer.Create;
+        uses_imports:=false;
+        do_compile:=false;
+        { sources_avail:=true;
+        should not be changed PM }
+        compiled:=false;
+        in_implementation:=false;
+        in_global:=true;
+        crc:=0;
+        interface_crc:=0;
+        flags:=0;
+        {loaded_from:=nil;
+        should not be changed PFV }
+        unitcount:=1;
+        recompile_reason:=rr_unknown;
       end;
 
 
-    constructor tused_unit.create_to_load(const n:string;c,intfc:longint;intface:boolean);
+    procedure tmodule.setfilename(const fn:string;allowoutput:boolean);
+      var
+        p : dirstr;
+        n : NameStr;
+        e : ExtStr;
       begin
-        u:=nil;
-        in_interface:=intface;
-        in_uses:=false;
-        is_stab_written:=false;
-        loaded:=false;
-        name:=stringdup(n);
-        checksum:=c;
-        interface_checksum:=intfc;
-        unitid:=0;
+         stringdispose(objfilename);
+         stringdispose(asmfilename);
+         stringdispose(ppufilename);
+         stringdispose(staticlibfilename);
+         stringdispose(sharedlibfilename);
+         stringdispose(exefilename);
+         stringdispose(outputpath);
+         stringdispose(path);
+         { Create names }
+         fsplit(fn,p,n,e);
+         n:=FixFileName(n);
+         { set path }
+         path:=stringdup(FixPath(p,false));
+         { obj,asm,ppu names }
+         p:=path^;
+         if AllowOutput then
+          begin
+            if (OutputUnitDir<>'') then
+             p:=OutputUnitDir
+            else
+             if (OutputExeDir<>'') then
+              p:=OutputExeDir;
+          end;
+         outputpath:=stringdup(p);
+         objfilename:=stringdup(p+n+target_info.objext);
+         asmfilename:=stringdup(p+n+target_info.asmext);
+         ppufilename:=stringdup(p+n+target_info.unitext);
+         { lib and exe could be loaded with a file specified with -o }
+         if AllowOutput and (OutputFile<>'') and (compile_level=1) then
+          n:=OutputFile;
+         staticlibfilename:=stringdup(p+target_info.libprefix+n+target_info.staticlibext);
+         if target_info.target=target_i386_WIN32 then
+           sharedlibfilename:=stringdup(p+n+target_info.sharedlibext)
+         else
+           sharedlibfilename:=stringdup(p+target_info.libprefix+n+target_info.sharedlibext);
+         { output dir of exe can be specified separatly }
+         if AllowOutput and (OutputExeDir<>'') then
+          p:=OutputExeDir
+         else
+          p:=path^;
+         exefilename:=stringdup(p+n+target_info.exeext);
       end;
 
 
-    destructor tused_unit.destroy;
+    procedure tmodule.numberunits;
+      var
+        counter : longint;
+        hp      : tused_unit;
+        hp1     : tmodule;
       begin
-        stringdispose(name);
-        inherited destroy;
+        { Reset all numbers to -1 }
+        hp1:=tmodule(loaded_units.first);
+        while assigned(hp1) do
+         begin
+           if assigned(hp1.globalsymtable) then
+             hp1.globalsymtable.unitid:=$ffff;
+           hp1:=tmodule(hp1.next);
+         end;
+        { Our own symtable gets unitid 0, for a program there is
+          no globalsymtable }
+        if assigned(globalsymtable) then
+          globalsymtable.unitid:=0;
+        { number units }
+        counter:=1;
+        hp:=tused_unit(used_units.first);
+        while assigned(hp) do
+         begin
+           tsymtable(hp.u.globalsymtable).unitid:=counter;
+           inc(counter);
+           hp:=tused_unit(hp.next);
+         end;
       end;
 
-
-{****************************************************************************
-                            TDENPENDENT_UNIT
- ****************************************************************************}
-
-    constructor tdependent_unit.create(_u : tmodule);
-      begin
-         u:=_u;
-      end;
 
 end.
 {
   $Log$
-  Revision 1.13  2001-04-18 22:01:53  peter
+  Revision 1.14  2001-05-06 14:49:16  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.13  2001/04/18 22:01:53  peter
     * registration of targets and assemblers
 
   Revision 1.12  2001/04/13 18:08:37  peter

@@ -283,7 +283,7 @@ begin
       parser.preprocess(inputdir+inputfile+inputextension)
      else
 {$endif PREPROCWRITE}
-      parser.compile(inputdir+inputfile+inputextension,false);
+      parser.compile(inputdir+inputfile+inputextension);
      if status.errorcount=0 then
       begin
         starttime:=getrealtime-starttime;
@@ -328,7 +328,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2001-04-21 13:37:16  peter
+  Revision 1.21  2001-05-06 14:49:16  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.20  2001/04/21 13:37:16  peter
     * made tclassheader using class of to implement cpu dependent code
 
   Revision 1.19  2001/04/18 22:01:53  peter

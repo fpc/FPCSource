@@ -20,39 +20,30 @@
  ****************************************************************************
 }
 unit symppu;
+
+{$i defines.inc}
+
 interface
 
     uses
        globtype,globals,
-       symbase,
+       symbase,symtype,
        ppu;
 
-    var
-       current_ppu       : pppufile;    { Current ppufile which is read }
-
-    procedure writebyte(b:byte);
-    procedure writeword(w:word);
-    procedure writelong(l:longint);
-    procedure writereal(d:bestreal);
-    procedure writestring(const s:string);
-    procedure writenormalset(var s); {You cannot pass an array[0..31] of byte!}
-    procedure writesmallset(var s);
-    procedure writeguid(var g: tguid);
-    procedure writeposinfo(const p:tfileposinfo);
-    procedure writederef(p : tsymtableentry);
-
-    function readbyte:byte;
-    function readword:word;
-    function readlong:longint;
-    function readreal : bestreal;
-    function readstring : string;
-    procedure readnormalset(var s);   {You cannot pass an array [0..31] of byte.}
-    procedure readsmallset(var s);
-    procedure readguid(var g: tguid);
-    procedure readposinfo(var p:tfileposinfo);
-    function readderef : tsymtableentry;
-
-    procedure closecurrentppu;
+    type
+       tcompilerppufile=class(tppufile)
+         procedure checkerror;
+         procedure getguid(var g: tguid);
+         procedure getposinfo(var p:tfileposinfo);
+         function  getderef : tsymtableentry;
+         function  getsymlist:tsymlist;
+         procedure gettype(var t:ttype);
+         procedure putguid(const g: tguid);
+         procedure putposinfo(const p:tfileposinfo);
+         procedure putderef(p : tsymtableentry);
+         procedure putsymlist(p:tsymlist);
+         procedure puttype(const t:ttype);
+       end;
 
 
 implementation
@@ -62,99 +53,138 @@ implementation
        verbose;
 
 {*****************************************************************************
-                                 PPU Writing
+                            TCompilerPPUFile
 *****************************************************************************}
 
-    procedure writebyte(b:byte);
+    procedure tcompilerppufile.checkerror;
       begin
-        current_ppu^.putbyte(b);
+        if error then
+         Message(unit_f_ppu_read_error);
       end;
 
 
-    procedure writeword(w:word);
+    procedure tcompilerppufile.getguid(var g: tguid);
       begin
-        current_ppu^.putword(w);
+        getdata(g,sizeof(g));
       end;
 
 
-    procedure writelong(l:longint);
+    procedure tcompilerppufile.getposinfo(var p:tfileposinfo);
       begin
-        current_ppu^.putlongint(l);
+        p.fileindex:=getword;
+        p.line:=getlongint;
+        p.column:=getword;
       end;
 
 
-    procedure writereal(d:bestreal);
+    function tcompilerppufile.getderef : tsymtableentry;
+      var
+        hp,p : tderef;
+        b : tdereftype;
       begin
-        current_ppu^.putreal(d);
+        p:=nil;
+        repeat
+          hp:=p;
+          b:=tdereftype(getbyte);
+          case b of
+            derefnil :
+              break;
+            derefunit,
+            derefaktrecordindex,
+            derefaktlocal,
+            derefaktstaticindex :
+              begin
+                p:=tderef.create(b,getword);
+                p.next:=hp;
+                break;
+              end;
+            derefindex,
+            dereflocal,
+            derefpara,
+            derefrecord :
+              begin
+                p:=tderef.create(b,getword);
+                p.next:=hp;
+              end;
+          end;
+        until false;
+        getderef:=tsymtableentry(p);
       end;
 
 
-    procedure writestring(const s:string);
+    function tcompilerppufile.getsymlist:tsymlist;
+      var
+        sym : tsym;
+        p   : tsymlist;
       begin
-        current_ppu^.putstring(s);
+        p:=tsymlist.create;
+        p.def:=tdef(getderef);
+        repeat
+          sym:=tsym(getderef);
+          if sym=nil then
+           break;
+          p.addsym(sym);
+        until false;
+        getsymlist:=tsymlist(p);
       end;
 
 
-    procedure writenormalset(var s); {You cannot pass an array[0..31] of byte!}
+    procedure tcompilerppufile.gettype(var t:ttype);
       begin
-        current_ppu^.putdata(s,sizeof(tnormalset));
+        t.def:=tdef(getderef);
+        t.sym:=tsym(getderef);
       end;
 
 
-    procedure writesmallset(var s);
-      begin
-        current_ppu^.putdata(s,4);
-      end;
-
-
-    { posinfo is not relevant for changes in PPU }
-    procedure writeposinfo(const p:tfileposinfo);
+    procedure tcompilerppufile.putposinfo(const p:tfileposinfo);
       var
         oldcrc : boolean;
       begin
-        oldcrc:=current_ppu^.do_crc;
-        current_ppu^.do_crc:=false;
-        current_ppu^.putword(p.fileindex);
-        current_ppu^.putlongint(p.line);
-        current_ppu^.putword(p.column);
-        current_ppu^.do_crc:=oldcrc;
+        { posinfo is not relevant for changes in PPU }
+        oldcrc:=do_crc;
+        do_crc:=false;
+        putword(p.fileindex);
+        putlongint(p.line);
+        putword(p.column);
+        do_crc:=oldcrc;
       end;
 
 
-    procedure writeguid(var g: tguid);
+    procedure tcompilerppufile.putguid(const g: tguid);
       begin
-        current_ppu^.putdata(g,sizeof(g));
+        putdata(g,sizeof(g));
       end;
 
-    procedure writederef(p : tsymtableentry);
+
+    procedure tcompilerppufile.putderef(p : tsymtableentry);
       begin
         if p=nil then
-         current_ppu^.putbyte(ord(derefnil))
+         putbyte(ord(derefnil))
         else
          begin
            { Static symtable ? }
            if p.owner.symtabletype=staticsymtable then
             begin
-              current_ppu^.putbyte(ord(derefaktstaticindex));
-              current_ppu^.putword(p.indexnr);
+              putbyte(ord(derefaktstaticindex));
+              putword(p.indexnr);
             end
            { Local record/object symtable ? }
            else if (p.owner=aktrecordsymtable) then
             begin
-              current_ppu^.putbyte(ord(derefaktrecordindex));
-              current_ppu^.putword(p.indexnr);
+              putbyte(ord(derefaktrecordindex));
+              putword(p.indexnr);
             end
            { Local local/para symtable ? }
            else if (p.owner=aktlocalsymtable) then
             begin
-              current_ppu^.putbyte(ord(derefaktlocal));
-              current_ppu^.putword(p.indexnr);
+              putbyte(ord(derefaktlocal));
+              putword(p.indexnr);
             end
            else
             begin
-              current_ppu^.putbyte(ord(derefindex));
-              current_ppu^.putword(p.indexnr);
-           { Current unit symtable ? }
+              putbyte(ord(derefindex));
+              putword(p.indexnr);
+              { Current unit symtable ? }
               repeat
                 if not assigned(p) then
                  internalerror(556655);
@@ -168,34 +198,34 @@ implementation
                         clause, else it's an error }
                       if p.owner.unitid=$ffff then
                        internalerror(55665566);
-                      current_ppu^.putbyte(ord(derefunit));
-                      current_ppu^.putword(p.owner.unitid);
+                      putbyte(ord(derefunit));
+                      putword(p.owner.unitid);
                       break;
                     end;
                   staticsymtable :
                     begin
-                      current_ppu^.putbyte(ord(derefaktstaticindex));
-                      current_ppu^.putword(p.indexnr);
+                      putbyte(ord(derefaktstaticindex));
+                      putword(p.indexnr);
                       break;
                     end;
                   localsymtable :
                     begin
                       p:=p.owner.defowner;
-                      current_ppu^.putbyte(ord(dereflocal));
-                      current_ppu^.putword(p.indexnr);
+                      putbyte(ord(dereflocal));
+                      putword(p.indexnr);
                     end;
                   parasymtable :
                     begin
                       p:=p.owner.defowner;
-                      current_ppu^.putbyte(ord(derefpara));
-                      current_ppu^.putword(p.indexnr);
+                      putbyte(ord(derefpara));
+                      putword(p.indexnr);
                     end;
                   objectsymtable,
                   recordsymtable :
                     begin
                       p:=p.owner.defowner;
-                      current_ppu^.putbyte(ord(derefrecord));
-                      current_ppu^.putword(p.indexnr);
+                      putbyte(ord(derefrecord));
+                      putword(p.indexnr);
                     end;
                   else
                     internalerror(556656);
@@ -205,134 +235,48 @@ implementation
          end;
       end;
 
-    procedure closecurrentppu;
-      begin
-{$ifdef Test_Double_checksum}
-         if assigned(current_ppu^.crc_test) then
-           dispose(current_ppu^.crc_test);
-         if assigned(current_ppu^.crc_test2) then
-           dispose(current_ppu^.crc_test2);
-{$endif Test_Double_checksum}
-       { close }
-         current_ppu^.close;
-         dispose(current_ppu,done);
-         current_ppu:=nil;
-      end;
 
-
-{*****************************************************************************
-                                 PPU Reading
-*****************************************************************************}
-
-    function readbyte:byte;
-      begin
-        readbyte:=current_ppu^.getbyte;
-        if current_ppu^.error then
-         Message(unit_f_ppu_read_error);
-      end;
-
-
-    function readword:word;
-      begin
-        readword:=current_ppu^.getword;
-        if current_ppu^.error then
-         Message(unit_f_ppu_read_error);
-      end;
-
-
-    function readlong:longint;
-      begin
-        readlong:=current_ppu^.getlongint;
-        if current_ppu^.error then
-         Message(unit_f_ppu_read_error);
-      end;
-
-
-    function readreal : bestreal;
-      begin
-        readreal:=current_ppu^.getreal;
-        if current_ppu^.error then
-         Message(unit_f_ppu_read_error);
-      end;
-
-
-    function readstring : string;
-      begin
-        readstring:=current_ppu^.getstring;
-        if current_ppu^.error then
-         Message(unit_f_ppu_read_error);
-      end;
-
-
-    procedure readnormalset(var s);   {You cannot pass an array [0..31] of byte.}
-      begin
-        current_ppu^.getdata(s,sizeof(tnormalset));
-        if current_ppu^.error then
-         Message(unit_f_ppu_read_error);
-      end;
-
-
-    procedure readsmallset(var s);
-      begin
-        current_ppu^.getdata(s,4);
-        if current_ppu^.error then
-         Message(unit_f_ppu_read_error);
-      end;
-
-
-    procedure readguid(var g: tguid);
-      begin
-        current_ppu^.getdata(g,sizeof(g));
-        if current_ppu^.error then
-         Message(unit_f_ppu_read_error);
-      end;
-
-    procedure readposinfo(var p:tfileposinfo);
-      begin
-        p.fileindex:=current_ppu^.getword;
-        p.line:=current_ppu^.getlongint;
-        p.column:=current_ppu^.getword;
-      end;
-
-
-    function readderef : tsymtableentry;
+    procedure tcompilerppufile.putsymlist(p:tsymlist);
       var
-        hp,p : tderef;
-        b : tdereftype;
+        hp : psymlistitem;
       begin
-        p:=nil;
-        repeat
-          hp:=p;
-          b:=tdereftype(current_ppu^.getbyte);
-          case b of
-            derefnil :
-              break;
-            derefunit,
-            derefaktrecordindex,
-            derefaktlocal,
-            derefaktstaticindex :
-              begin
-                p:=tderef.create(b,current_ppu^.getword);
-                p.next:=hp;
-                break;
-              end;
-            derefindex,
-            dereflocal,
-            derefpara,
-            derefrecord :
-              begin
-                p:=tderef.create(b,current_ppu^.getword);
-                p.next:=hp;
-              end;
-          end;
-        until false;
-        readderef:=tsymtableentry(p);
+        putderef(p.def);
+        hp:=p.firstsym;
+        while assigned(hp) do
+         begin
+           putderef(hp^.sym);
+           hp:=hp^.next;
+         end;
+        putderef(nil);
+      end;
+
+
+    procedure tcompilerppufile.puttype(const t:ttype);
+      begin
+        { Don't write symbol references for the current unit
+          and for the system unit }
+        if assigned(t.sym) and
+           (t.sym.owner.unitid<>0) and
+           (t.sym.owner.unitid<>1) then
+         begin
+           putderef(nil);
+           putderef(t.sym);
+         end
+        else
+         begin
+           putderef(t.def);
+           putderef(nil);
+         end;
       end;
 
 end.
 {
   $Log$
-  Revision 1.5  2001-04-13 01:22:16  peter
+  Revision 1.6  2001-05-06 14:49:17  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.5  2001/04/13 01:22:16  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

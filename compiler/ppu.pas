@@ -41,11 +41,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-{$ifdef newcg}
-  CurrentPPUVersion=102;
-{$else newcg}
   CurrentPPUVersion=22;
-{$endif newcg}
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -129,13 +125,10 @@ const
   uf_no_link       = $400; { unit has no .o generated, but can still have
                              external linking! }
   uf_has_resources = $800; { unit has resource section }
+  uf_little_endian = $1000;
 
 type
-{$ifdef m68k}
-  ppureal=single;
-{$else}
   ppureal=extended;
-{$endif}
 
   tppuerror=(ppuentrytoobig,ppuentryerror);
 
@@ -147,8 +140,8 @@ type
     target   : word;
     flags    : longint;
     size     : longint; { size of the ppufile without header }
-    checksum : longint; { checksum for this ppufile }
-    interface_checksum : longint;
+    checksum : cardinal; { checksum for this ppufile }
+    interface_checksum : cardinal;
     future   : array[0..2] of longint;
   end;
 
@@ -158,59 +151,59 @@ type
     size : longint;
   end;
 
-  pppufile=^tppufile;
-  tppufile=object
+  tppufile=class
+  private
     f        : file;
     mode     : byte; {0 - Closed, 1 - Reading, 2 - Writing}
-    error    : boolean;
     fname    : string;
-    fsize    : longint;
-
-    header   : tppuheader;
-    size,crc : longint;
+    fsize    : integer;
 {$ifdef Test_Double_checksum}
-    crcindex : longint;
-    crc_index : longint;
-    crcindex2 : longint;
-    crc_index2 : longint;
-    crc_test,crc_test2 : pcrc_array;
-
+    crcindex,
+    crc_index,
+    crcindex2,
+    crc_index2 : cardinal;
+    crc_test,
+    crc_test2  : pcrc_array;
 {$endif def Test_Double_checksum}
-    interface_crc : longint;
-    do_interface_crc : boolean;
-    crc_only : boolean;    { used to calculate interface_crc before implementation }
-    do_crc,
     change_endian : boolean;
-
     buf      : pchar;
     bufstart,
     bufsize,
-    bufidx   : longint;
+    bufidx   : integer;
     entrybufstart,
     entrystart,
-    entryidx : longint;
+    entryidx : integer;
     entry    : tppuentry;
-    entrytyp : byte;
     closed,
     tempclosed : boolean;
-    closepos : longint;
-    constructor init(fn:string);
-    destructor  done;
+    closepos : integer;
+  public
+    entrytyp : byte;
+    header           : tppuheader;
+    size             : integer;
+    crc,
+    interface_crc    : cardinal;
+    error,
+    do_crc,
+    do_interface_crc : boolean;
+    crc_only         : boolean;    { used to calculate interface_crc before implementation }
+    constructor Create(const fn:string);
+    destructor  Destroy;override;
     procedure flush;
-    procedure close;
+    procedure closefile;
     function  CheckPPUId:boolean;
-    function  GetPPUVersion:longint;
+    function  GetPPUVersion:integer;
     procedure NewHeader;
     procedure NewEntry;
   {read}
-    function  open:boolean;
+    function  openfile:boolean;
     procedure reloadbuf;
-    procedure readdata(var b;len:longint);
-    procedure skipdata(len:longint);
+    procedure readdata(var b;len:integer);
+    procedure skipdata(len:integer);
     function  readentry:byte;
     function  EndOfEntry:boolean;
-    procedure getdatabuf(var b;len:longint;var result:longint);
-    procedure getdata(var b;len:longint);
+    procedure getdatabuf(var b;len:integer;var res:integer);
+    procedure getdata(var b;len:integer);
     function  getbyte:byte;
     function  getword:word;
     function  getlongint:longint;
@@ -220,19 +213,19 @@ type
     procedure getsmallset(var b);
     function  skipuntilentry(untilb:byte):boolean;
   {write}
-    function  create:boolean;
+    function  createfile:boolean;
     procedure writeheader;
     procedure writebuf;
-    procedure writedata(var b;len:longint);
+    procedure writedata(const b;len:integer);
     procedure writeentry(ibnr:byte);
-    procedure putdata(var b;len:longint);
+    procedure putdata(const b;len:integer);
     procedure putbyte(b:byte);
     procedure putword(w:word);
     procedure putlongint(l:longint);
     procedure putreal(d:ppureal);
     procedure putstring(s:string);
-    procedure putnormalset(var b);
-    procedure putsmallset(var b);
+    procedure putnormalset(const b);
+    procedure putsmallset(const b);
     procedure tempclose;
     function  tempopen:boolean;
   end;
@@ -246,10 +239,38 @@ implementation
     crc;
 
 {*****************************************************************************
+                             Endian Handling
+*****************************************************************************}
+
+Function SwapLong(var x : longint): longint;
+var
+  y : word;
+  z : word;
+Begin
+  y := (x shr 16) and $FFFF;
+  y := (y shl 8) or ((y shr 8) and $ff);
+  z := x and $FFFF;
+  z := (z shl 8) or ((z shr 8) and $ff);
+  SwapLong := (longint(z) shl 16) or longint(y);
+End;
+
+
+Function SwapWord(var x : word): word;
+var
+  z : byte;
+Begin
+  z := (x shr 8) and $ff;
+  x := x and $ff;
+  x := (x shl 8);
+  SwapWord := x or z;
+End;
+
+
+{*****************************************************************************
                                   TPPUFile
 *****************************************************************************}
 
-constructor tppufile.init(fn:string);
+constructor tppufile.Create(const fn:string);
 begin
   fname:=fn;
   change_endian:=false;
@@ -263,9 +284,9 @@ begin
 end;
 
 
-destructor tppufile.done;
+destructor tppufile.destroy;
 begin
-  close;
+  closefile;
   if assigned(buf) then
     freemem(buf,ppubufsize);
 end;
@@ -278,8 +299,17 @@ begin
 end;
 
 
-procedure tppufile.close;
+procedure tppufile.closefile;
 begin
+{$ifdef Test_Double_checksum}
+  if mode=2 then
+   begin
+     if assigned(crc_test) then
+      dispose(crc_test);
+     if assigned(crc_test2) then
+      dispose(crc_test2);
+   end;
+{$endif Test_Double_checksum}
   if Mode<>0 then
    begin
      Flush;
@@ -299,9 +329,9 @@ begin
 end;
 
 
-function tppufile.GetPPUVersion:longint;
+function tppufile.GetPPUVersion:integer;
 var
-  l    : longint;
+  l    : integer;
   code : integer;
 begin
   Val(header.ver[1]+header.ver[2]+header.ver[3],l,code);
@@ -336,12 +366,12 @@ end;
                                 TPPUFile Reading
 *****************************************************************************}
 
-function tppufile.open:boolean;
+function tppufile.openfile:boolean;
 var
   ofmode : byte;
-  i      : longint;
+  i      : integer;
 begin
-  open:=false;
+  openfile:=false;
   assign(f,fname);
   ofmode:=filemode;
   filemode:=$0;
@@ -357,6 +387,34 @@ begin
   if fsize<sizeof(tppuheader) then
    exit;
   blockread(f,header,sizeof(tppuheader),i);
+  { The header is always stored in little endian order }
+  { therefore swap if on a big endian machine          }
+{$IFDEF SOURCE_BIG_ENDIAN}
+  header.compiler := SwapWord(header.compiler);
+  header.cpu := SwapWord(header.cpu);
+  header.target := SwapWord(header.target);
+  header.flags := SwapLong(header.flags);
+  header.size := SwapLong(header.size);
+  header.checksum := SwapLong(header.checksum);
+  header.interface_checksum := SwapLong(header.interface_checksum);
+{$ENDIF}
+  { the PPU DATA is stored in native order }
+  if (header.flags and uf_big_endian) = uf_big_endian then
+   Begin
+{$IFDEF SOURCE_LITTLE_ENDIAN}
+     change_endian := TRUE;
+{$ELSE}
+     change_endian := FALSE;
+{$ENDIF}
+   End
+  else if (header.flags and uf_little_endian) = uf_little_endian then
+   Begin
+{$IFDEF SOURCE_BIG_ENDIAN}
+     change_endian := TRUE;
+{$ELSE}
+     change_endian := FALSE;
+{$ENDIF}
+   End;
 {reset buffer}
   bufstart:=i;
   bufsize:=0;
@@ -367,7 +425,7 @@ begin
   entrystart:=0;
   entrybufstart:=0;
   Error:=false;
-  open:=true;
+  openfile:=true;
 end;
 
 
@@ -379,11 +437,11 @@ begin
 end;
 
 
-procedure tppufile.readdata(var b;len:longint);
+procedure tppufile.readdata(var b;len:integer);
 var
   p   : pchar;
   left,
-  idx : longint;
+  idx : integer;
 begin
   p:=pchar(@b);
   idx:=0;
@@ -409,9 +467,9 @@ begin
 end;
 
 
-procedure tppufile.skipdata(len:longint);
+procedure tppufile.skipdata(len:integer);
 var
-  left : longint;
+  left : integer;
 begin
   while len>0 do
    begin
@@ -455,18 +513,18 @@ begin
 end;
 
 
-procedure tppufile.getdatabuf(var b;len:longint;var result:longint);
+procedure tppufile.getdatabuf(var b;len:integer;var res:integer);
 begin
   if entryidx+len>entry.size then
-   result:=entry.size-entryidx
+   res:=entry.size-entryidx
   else
-   result:=len;
-  readdata(b,result);
-  inc(entryidx,result);
+   res:=len;
+  readdata(b,res);
+  inc(entryidx,res);
 end;
 
 
-procedure tppufile.getdata(var b;len:longint);
+procedure tppufile.getdata(var b;len:integer);
 begin
   if entryidx+len>entry.size then
    begin
@@ -508,7 +566,7 @@ begin
    end;
   readdata(w,2);
   if change_endian then
-   getword:=swap(w)
+   getword:=swapword(w)
   else
    getword:=w;
   inc(entryidx,2);
@@ -529,9 +587,7 @@ begin
    end;
   readdata(l,4);
   if change_endian then
-  { someone added swap(l : longint) in system unit
-   this broke the following code !! }
-   getlongint:=swap(word(l shr 16)) or (longint(swap(word(l and $ffff))) shl 16)
+   getlongint:=swaplong(l)
   else
    getlongint:=l;
   inc(entryidx,4);
@@ -599,9 +655,9 @@ end;
                                 TPPUFile Writing
 *****************************************************************************}
 
-function tppufile.create:boolean;
+function tppufile.createfile:boolean;
 begin
-  create:=false;
+  createfile:=false;
 {$ifdef INTFPPU}
   if crc_only then
    begin
@@ -625,8 +681,8 @@ begin
   bufstart:=sizeof(tppuheader);
   bufidx:=0;
 {reset}
-  crc:=longint($ffffffff);
-  interface_crc:=longint($ffffffff);
+  crc:=cardinal($ffffffff);
+  interface_crc:=cardinal($ffffffff);
   do_interface_crc:=true;
   Error:=false;
   do_crc:=true;
@@ -634,18 +690,35 @@ begin
   entrytyp:=mainentryid;
 {start}
   NewEntry;
-  create:=true;
+  createfile:=true;
 end;
 
 
 procedure tppufile.writeheader;
 var
-  opos : longint;
+  opos : integer;
 begin
-{ flush buffer }
+  { flush buffer }
   writebuf;
-{ update size (w/o header!) in the header }
+  { update size (w/o header!) in the header }
   header.size:=bufstart-sizeof(tppuheader);
+  { set the endian flag }
+{$IFDEF SOURCE_BIG_ENDIAN}
+  header.flags := header.flags or uf_big_endian;
+{$ENDIF}
+{$IFDEF SOURCE_LITTLE_ENDIAN}
+  header.flags := header.flags or uf_little_endian;
+{$ENDIF}
+  { Now swap the header in the correct endian (always little endian) }
+{$IFDEF SOURCE_BIG_ENDIAN}
+  header.compiler := SwapWord(header.compiler);
+  header.cpu := SwapWord(header.cpu);
+  header.target := SwapWord(header.target);
+  header.flags := SwapLong(header.flags);
+  header.size := SwapLong(header.size);
+  header.checksum := SwapLong(header.checksum);
+  header.interface_checksum := SwapLong(header.interface_checksum);
+{$ENDIF}
 { write header and restore filepos after it }
   opos:=filepos(f);
   seek(f,0);
@@ -663,11 +736,11 @@ begin
 end;
 
 
-procedure tppufile.writedata(var b;len:longint);
+procedure tppufile.writedata(const b;len:integer);
 var
   p   : pchar;
   left,
-  idx : longint;
+  idx : integer;
 begin
   if crc_only then
     exit;
@@ -713,7 +786,7 @@ end;
 
 procedure tppufile.writeentry(ibnr:byte);
 var
-  opos : longint;
+  opos : integer;
 begin
 {create entry}
   entry.id:=entrytyp;
@@ -742,7 +815,7 @@ begin
 end;
 
 
-procedure tppufile.putdata(var b;len:longint);
+procedure tppufile.putdata(const b;len:integer);
 begin
   if do_crc then
    begin
@@ -803,24 +876,17 @@ end;
 procedure tppufile.putbyte(b:byte);
 begin
   putdata(b,1);
-{  inc(entryidx);}
 end;
 
 
 procedure tppufile.putword(w:word);
 begin
-  if change_endian then
-   w:=swap(w);
   putdata(w,2);
 end;
 
 
 procedure tppufile.putlongint(l:longint);
 begin
-  if change_endian then
-  { someone added swap(l : longint) in system unit
-   this broke the following code !! }
-   l:=swap(word(l shr 16)) or (longint(swap(word(l and $ffff))) shl 16);
   putdata(l,4);
 end;
 
@@ -837,13 +903,13 @@ begin
 end;
 
 
-procedure tppufile.putsmallset(var b);
+procedure tppufile.putsmallset(const b);
 begin
   putdata(b,4);
 end;
 
 
-procedure tppufile.putnormalset(var b);
+procedure tppufile.putnormalset(const b);
 begin
   putdata(b,32);
 end;
@@ -853,7 +919,7 @@ end;
       begin
         if not closed then
          begin
-            closepos:=filepos(f);
+           closepos:=filepos(f);
            {$I-}
             system.close(f);
            {$I+}
@@ -890,7 +956,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2001-03-22 00:10:58  florian
+  Revision 1.8  2001-05-06 14:49:17  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.7  2001/03/22 00:10:58  florian
     + basic variant type support in the compiler
 
   Revision 1.6  2000/12/07 17:19:43  jonas

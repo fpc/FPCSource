@@ -82,6 +82,8 @@ interface
         pbase_old_do_stop: tstopprocedure;
 {$endif fixLeaksOnError}
 
+    procedure identifier_not_found(const s:string);
+
     function tokenstring(i : ttoken):string;
 
     { consumes token i, if the current token is unequal i }
@@ -113,7 +115,7 @@ interface
 implementation
 
     uses
-       scanner,systems,verbose;
+       globtype,scanner,systems,verbose;
 
 {****************************************************************************
                            TIdStringlistItem
@@ -186,10 +188,23 @@ implementation
                                Token Parsing
 ****************************************************************************}
 
+     procedure identifier_not_found(const s:string);
+       begin
+         Message1(sym_e_id_not_found,s);
+         { show a fatal that you need -S2 or -Sd, but only
+           if we just parsed the a token that has m_class }
+         if not(m_class in aktmodeswitches) and
+            (Upper(s)=pattern) and
+            (tokeninfo^[idtoken].keyword=m_class) then
+           Message(parser_f_need_objfpc_or_delphi_mode);
+       end;
+
+
     function tokenstring(i : ttoken):string;
       begin
         tokenstring:=tokeninfo^[i].str;
       end;
+
 
     { consumes token i, write error if token is different }
     procedure consume(i : ttoken);
@@ -207,19 +222,19 @@ implementation
           end;
       end;
 
+
     function try_to_consume(i:Ttoken):boolean;
-
-
-    begin
+      begin
         try_to_consume:=false;
         if (token=i) or (idtoken=i) then
-            begin
-                try_to_consume:=true;
-                if token=_END then
-                    last_endtoken_filepos:=akttokenpos;
-                current_scanner.readtoken;
-            end;
-    end;
+         begin
+           try_to_consume:=true;
+           if token=_END then
+            last_endtoken_filepos:=akttokenpos;
+           current_scanner.readtoken;
+         end;
+      end;
+
 
     procedure consume_all_until(atoken : ttoken);
       begin
@@ -322,7 +337,11 @@ end.
 
 {
   $Log$
-  Revision 1.11  2001-04-13 18:08:37  peter
+  Revision 1.12  2001-05-06 14:49:17  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.11  2001/04/13 18:08:37  peter
     * scanner object to class
 
   Revision 1.10  2001/04/13 01:22:11  peter

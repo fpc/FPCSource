@@ -45,7 +45,7 @@ const
   v_all            = $ff;
 
 var
-  ppufile     : pppufile;
+  ppufile     : tppufile;
   space       : string;
   read_member : boolean;
   verbose     : longint;
@@ -189,10 +189,10 @@ var
   s : string;
   m : longint;
 begin
-  while not ppufile^.endofentry do
+  while not ppufile.endofentry do
    begin
-     s:=ppufile^.getstring;
-     m:=ppufile^.getlongint;
+     s:=ppufile.getstring;
+     m:=ppufile.getlongint;
      WriteLn(prefix,s,' (',maskstr(m),')');
    end;
 end;
@@ -204,8 +204,8 @@ Procedure ReadContainer(const prefix:string);
   with prefix
 }
 begin
-  while not ppufile^.endofentry do
-   WriteLn(prefix,ppufile^.getstring);
+  while not ppufile.endofentry do
+   WriteLn(prefix,ppufile.getstring);
 end;
 
 
@@ -213,14 +213,14 @@ Procedure ReadRef;
 begin
   if (verbose and v_browser)=0 then
    exit;
-  while (not ppufile^.endofentry) and (not ppufile^.error) do
-   Writeln(space,'        - Refered : ',ppufile^.getword,', (',ppufile^.getlongint,',',ppufile^.getword,')');
+  while (not ppufile.endofentry) and (not ppufile.error) do
+   Writeln(space,'        - Refered : ',ppufile.getword,', (',ppufile.getlongint,',',ppufile.getword,')');
 end;
 
 
 Procedure ReadPosInfo;
 begin
-  Writeln(ppufile^.getword,' (',ppufile^.getlongint,',',ppufile^.getword,')');
+  Writeln(ppufile.getword,' (',ppufile.getlongint,',',ppufile.getword,')');
 end;
 
 
@@ -234,7 +234,7 @@ var
 begin
   readderef:=true;
   repeat
-    b:=tdereftype(ppufile^.getbyte);
+    b:=tdereftype(ppufile.getbyte);
     case b of
       derefnil :
         begin
@@ -245,39 +245,39 @@ begin
         end;
       derefaktrecordindex :
         begin
-          writeln('AktRecord ',s,' ',ppufile^.getword);
+          writeln('AktRecord ',s,' ',ppufile.getword);
           break;
         end;
       derefaktstaticindex :
         begin
-          writeln('AktStatic ',s,' ',ppufile^.getword);
+          writeln('AktStatic ',s,' ',ppufile.getword);
           break;
         end;
       derefaktlocalindex :
         begin
-          writeln('AktLocal ',s,' ',ppufile^.getword);
+          writeln('AktLocal ',s,' ',ppufile.getword);
           break;
         end;
       derefunit :
         begin
-          writeln('Unit ',ppufile^.getword);
+          writeln('Unit ',ppufile.getword);
           break;
         end;
       derefrecord :
         begin
-          write('RecordDef ',ppufile^.getword,', ');
+          write('RecordDef ',ppufile.getword,', ');
         end;
       derefpara :
         begin
-          write('Parameter of procdef ',ppufile^.getword,', ');
+          write('Parameter of procdef ',ppufile.getword,', ');
         end;
       dereflocal :
         begin
-          write('Local of procdef ',ppufile^.getword,', ');
+          write('Local of procdef ',ppufile.getword,', ');
         end;
       derefindex :
         begin
-          write(s,' ',ppufile^.getword,', ');
+          write(s,' ',ppufile.getword,', ');
         end;
       else
         begin
@@ -437,8 +437,8 @@ var
 begin
   write(space,'      Return type : ');
   readtype;
-  writeln(space,'         Fpu used : ',ppufile^.getbyte);
-  proctypeoption:=tproctypeoption(ppufile^.getlongint);
+  writeln(space,'         Fpu used : ',ppufile.getbyte);
+  proctypeoption:=tproctypeoption(ppufile.getlongint);
   if proctypeoption<>potype_none then
    begin
      write(space,'       TypeOption : ');
@@ -454,7 +454,7 @@ begin
        end;
      writeln;
    end;
-  ppufile^.getsmallset(proccalloptions);
+  ppufile.getsmallset(proccalloptions);
   if proccalloptions<>[] then
    begin
      write(space,'      CallOptions : ');
@@ -470,7 +470,7 @@ begin
        end;
      writeln;
    end;
-  ppufile^.getsmallset(procoptions);
+  ppufile.getsmallset(procoptions);
   if procoptions<>[] then
    begin
      write(space,'          Options : ');
@@ -486,12 +486,12 @@ begin
        end;
      writeln;
    end;
-  params:=ppufile^.getword;
+  params:=ppufile.getword;
   writeln(space,' Nr of parameters : ',params);
   if params>0 then
    begin
      repeat
-       write(space,'  - ',tvarspez[ppufile^.getbyte],' : ');
+       write(space,'  - ',tvarspez[ppufile.getbyte],' : ');
        readtype;
        write(space,'    Default : ');
        readsymref;
@@ -533,9 +533,9 @@ var
   i      : longint;
   first  : boolean;
 begin
-  writeln(space,'** Symbol Nr. ',ppufile^.getword,' **');
-  writeln(space,s,ppufile^.getstring);
-  ppufile^.getsmallset(symoptions);
+  writeln(space,'** Symbol Nr. ',ppufile.getword,' **');
+  writeln(space,s,ppufile.getstring);
+  ppufile.getsmallset(symoptions);
   if symoptions<>[] then
    begin
      write(space,'    File Pos: ');
@@ -558,7 +558,7 @@ end;
 
 procedure readcommondef(const s:string);
 begin
-  writeln(space,'** Definition Nr. ',ppufile^.getword,' **');
+  writeln(space,'** Definition Nr. ',ppufile.getword,' **');
   writeln(space,s);
   write  (space,'      Type symbol : ');
   readsymref;
@@ -588,7 +588,7 @@ var
   l1,l2 : longint;
 begin
   symcnt:=1;
-  with ppufile^ do
+  with ppufile do
    begin
      if space<>'' then
       Writeln(space,'-----------------------------');
@@ -842,7 +842,7 @@ var
   defcnt : longint;
 begin
   defcnt:=0;
-  with ppufile^ do
+  with ppufile do
    begin
      if space<>'' then
       Writeln(space,'-----------------------------');
@@ -1121,7 +1121,7 @@ var
   unitnumber : word;
   ucrc,uintfcrc : longint;
 begin
-  with ppufile^ do
+  with ppufile do
    begin
      repeat
        b:=readentry;
@@ -1218,7 +1218,7 @@ procedure readimplementation;
 var
   b : byte;
 begin
-  with ppufile^ do
+  with ppufile do
    begin
      repeat
        b:=readentry;
@@ -1249,7 +1249,7 @@ const indent : string = '';
 begin
   Writeln(indent,'Start of symtable browser');
   indent:=indent+'**';
-  with ppufile^ do
+  with ppufile do
    begin
      repeat
        b:=readentry;
@@ -1269,20 +1269,20 @@ begin
             ibdefref : begin
                          readdefref;
                          readref;
-                         if (ppufile^.header.flags and uf_local_browser)<>0 then
+                         if (ppufile.header.flags and uf_local_browser)<>0 then
                            begin
                              { parast and localst }
                              indent:=indent+'  ';
                              Writeln(indent,'Parasymtable for function');
                              readdefinitions(false);
                              readsymbols;
-                             b:=ppufile^.readentry;
+                             b:=ppufile.readentry;
                              if b=ibbeginsymtablebrowser then
                                readbrowser;
                              Writeln(indent,'Localsymtable for function');
                              readdefinitions(false);
                              readsymbols;
-                             b:=ppufile^.readentry;
+                             b:=ppufile.readentry;
                              if b=ibbeginsymtablebrowser then
                                readbrowser;
                              Indent:=Copy(Indent,1,Length(Indent)-2);
@@ -1317,21 +1317,21 @@ begin
 { fix filename }
   if pos('.',filename)=0 then
    filename:=filename+'.ppu';
-  ppufile:=new(pppufile,Init(filename));
-  if not ppufile^.open then
+  ppufile:=tppufile.create(filename);
+  if not ppufile.openfile then
    begin
      writeln ('IO-Error when opening : ',filename,', Skipping');
      exit;
    end;
 { PPU File is open, check for PPU Id }
-  if not ppufile^.CheckPPUID then
+  if not ppufile.CheckPPUID then
    begin
      writeln(Filename,' : Not a valid PPU file, Skipping');
      exit;
    end;
 { Check PPU Version }
-  Writeln('Analyzing ',filename,' (v',ppufile^.GetPPUVersion,')');
-  if ppufile^.GetPPUVersion<16 then
+  Writeln('Analyzing ',filename,' (v',ppufile.GetPPUVersion,')');
+  if ppufile.GetPPUVersion<16 then
    begin
      writeln(Filename,' : Old PPU Formats (<v16) are not supported, Skipping');
      exit;
@@ -1342,9 +1342,9 @@ begin
      Writeln;
      Writeln('Header');
      Writeln('-------');
-     with ppufile^.header do
+     with ppufile.header do
       begin
-        Writeln('Compiler version        : ',hi(ppufile^.header.compiler and $ff),'.',lo(ppufile^.header.compiler));
+        Writeln('Compiler version        : ',hi(ppufile.header.compiler and $ff),'.',lo(ppufile.header.compiler));
         WriteLn('Target processor        : ',Cpu2Str(cpu));
         WriteLn('Target operating system : ',Target2Str(target));
         Writeln('Unit flags              : ',PPUFlags2Str(flags));
@@ -1362,7 +1362,7 @@ begin
      readinterface;
    end
   else
-   ppufile^.skipuntilentry(ibendinterface);
+   ppufile.skipuntilentry(ibendinterface);
 {read the definitions}
   if (verbose and v_defs)<>0 then
    begin
@@ -1372,7 +1372,7 @@ begin
      readdefinitions(false);
    end
   else
-   ppufile^.skipuntilentry(ibenddefs);
+   ppufile.skipuntilentry(ibenddefs);
 {read the symbols}
   if (verbose and v_syms)<>0 then
    begin
@@ -1382,7 +1382,7 @@ begin
      readsymbols;
    end
   else
-   ppufile^.skipuntilentry(ibendsyms);
+   ppufile.skipuntilentry(ibendsyms);
 {read the implementation stuff}
 { Not used at the moment (PFV)
   if (verbose and v_implementation)<>0 then
@@ -1393,9 +1393,9 @@ begin
      readimplementation;
    end
   else}
-   ppufile^.skipuntilentry(ibendimplementation);
+   ppufile.skipuntilentry(ibendimplementation);
 {read the static browser units stuff}
-  if (ppufile^.header.flags and uf_local_browser)<>0 then
+  if (ppufile.header.flags and uf_local_browser)<>0 then
    begin
      if (verbose and v_defs)<>0 then
       begin
@@ -1405,7 +1405,7 @@ begin
         readdefinitions(false);
       end
      else
-      ppufile^.skipuntilentry(ibenddefs);
+      ppufile.skipuntilentry(ibenddefs);
    {read the symbols}
      if (verbose and v_syms)<>0 then
       begin
@@ -1416,7 +1416,7 @@ begin
       end;
    end;
 {read the browser units stuff}
-  if (ppufile^.header.flags and uf_has_browser)<>0 then
+  if (ppufile.header.flags and uf_has_browser)<>0 then
    begin
      if (verbose and v_browser)<>0 then
       begin
@@ -1425,7 +1425,7 @@ begin
         Writeln('---------------');
         UnitIndex:=0;
         repeat
-          b:=ppufile^.readentry;
+          b:=ppufile.readentry;
           if b = ibendbrowser then break;
           if b=ibbeginsymtablebrowser then
             begin
@@ -1439,14 +1439,14 @@ begin
       end;
    end;
 {read the static browser units stuff}
-  if (ppufile^.header.flags and uf_local_browser)<>0 then
+  if (ppufile.header.flags and uf_local_browser)<>0 then
    begin
      if (verbose and v_browser)<>0 then
       begin
         Writeln;
         Writeln('Static browser section');
         Writeln('---------------');
-        b:=ppufile^.readentry;
+        b:=ppufile.readentry;
         if b=ibbeginsymtablebrowser then
           begin
              Writeln('Unit ',UnitIndex);
@@ -1458,8 +1458,8 @@ begin
       end;
    end;
 {shutdown ppufile}
-  ppufile^.close;
-  dispose(ppufile,done);
+  ppufile.closefile;
+  ppufile.free;
   Writeln;
 end;
 
@@ -1528,7 +1528,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2001-04-25 22:40:07  peter
+  Revision 1.2  2001-05-06 14:49:19  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.1  2001/04/25 22:40:07  peter
     * compiler dependent utils in utils/ subdir
 
   Revision 1.5  2001/04/10 21:21:41  peter

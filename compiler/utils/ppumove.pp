@@ -25,7 +25,11 @@
 Program ppumove;
 uses
 {$ifdef unix}
+  {$ifdef ver1_0}
+  linux,
+  {$else}
   unix,
+  {$endif}
 {$else unix}
   dos,
 {$endif unix}
@@ -109,7 +113,7 @@ begin
      exit;
    end;
 {$ifdef unix}
-  Shell:=unix.shell(s);
+  Shell:={$ifdef ver1_0}linux{$else}unix{$endif}.shell(s);
 {$else}
   exec(getenv('COMSPEC'),'/C '+s);
   Shell:=DosExitCode;
@@ -230,7 +234,7 @@ Function DoPPU(const PPUFn,PPLFn:String):Boolean;
 }
 Var
   inppu,
-  outppu : pppufile;
+  outppu : tppufile;
   b,
   untilb : byte;
   l,m    : longint;
@@ -240,80 +244,80 @@ begin
   DoPPU:=false;
   If Not Quiet then
    Write ('Processing ',PPUFn,'...');
-  inppu:=new(pppufile,init(PPUFn));
-  if not inppu^.open then
+  inppu:=tppufile.create(PPUFn);
+  if not inppu.openfile then
    begin
-     dispose(inppu,done);
+     inppu.free;
      Error('Error: Could not open : '+PPUFn,false);
      Exit;
    end;
 { Check the ppufile }
-  if not inppu^.CheckPPUId then
+  if not inppu.CheckPPUId then
    begin
-     dispose(inppu,done);
+     inppu.free;
      Error('Error: Not a PPU File : '+PPUFn,false);
      Exit;
    end;
-  if inppu^.GetPPUVersion<CurrentPPUVersion then
+  if inppu.GetPPUVersion<CurrentPPUVersion then
    begin
-     dispose(inppu,done);
+     inppu.free;
      Error('Error: Wrong PPU Version : '+PPUFn,false);
      Exit;
    end;
 { No .o file generated for this ppu, just skip }
-  if (inppu^.header.flags and uf_no_link)<>0 then
+  if (inppu.header.flags and uf_no_link)<>0 then
    begin
-     dispose(inppu,done);
+     inppu.free;
      If Not Quiet then
       Writeln (' No files.');
      DoPPU:=true;
      Exit;
    end;
 { Already a lib? }
-  if (inppu^.header.flags and uf_in_library)<>0 then
+  if (inppu.header.flags and uf_in_library)<>0 then
    begin
-     dispose(inppu,done);
+     inppu.free;
      Error('Error: PPU is already in a library : '+PPUFn,false);
      Exit;
    end;
 { We need a static linked unit }
-  if (inppu^.header.flags and uf_static_linked)=0 then
+  if (inppu.header.flags and uf_static_linked)=0 then
    begin
-     dispose(inppu,done);
+     inppu.free;
      Error('Error: PPU is not static linked : '+PPUFn,false);
      Exit;
    end;
 { Create the new ppu }
   if PPUFn=PPLFn then
-   outppu:=new(pppufile,init('ppumove.$$$'))
+   outppu:=tppufile.create('ppumove.$$$')
   else
-   outppu:=new(pppufile,init(PPLFn));
-  outppu^.create;
+   outppu:=tppufile.create(PPLFn);
+  outppu.createfile;
 { Create new header, with the new flags }
-  outppu^.header:=inppu^.header;
-  outppu^.header.flags:=outppu^.header.flags or uf_in_library;
+  outppu.header:=inppu.header;
+  outppu.header.flags:=outppu.header.flags or uf_in_library;
   if MakeStatic then
-   outppu^.header.flags:=outppu^.header.flags or uf_static_linked
+   outppu.header.flags:=outppu.header.flags or uf_static_linked
   else
-   outppu^.header.flags:=outppu^.header.flags or uf_shared_linked;
+   outppu.header.flags:=outppu.header.flags or uf_shared_linked;
 { read until the object files are found }
   untilb:=iblinkunitofiles;
   repeat
-    b:=inppu^.readentry;
+    b:=inppu.readentry;
     if b in [ibendinterface,ibend] then
      begin
-       dispose(inppu,done);
-       dispose(outppu,done);
+       inppu.free;
+       outppu.free;
        Error('Error: No files to be linked found : '+PPUFn,false);
        Exit;
      end;
     if b<>untilb then
      begin
        repeat
-         inppu^.getdatabuf(buffer^,bufsize,l);
-         outppu^.putdata(buffer^,l);
+         inppu.getdatabuf(buffer^,bufsize,l);
+         outppu.putdata(buffer^,l);
        until l<bufsize;
-       outppu^.writeentry(b);
+       outppu.writeentry(b);
      end;
   until (b=untilb);
 { we have now reached the section for the files which need to be added,
@@ -323,64 +327,64 @@ begin
       begin
         { add all o files, and save the entry when not creating a static
           library to keep staticlinking possible }
-        while not inppu^.endofentry do
+        while not inppu.endofentry do
          begin
-           s:=inppu^.getstring;
-           m:=inppu^.getlongint;
+           s:=inppu.getstring;
+           m:=inppu.getlongint;
            if not MakeStatic then
             begin
-              outppu^.putstring(s);
-              outppu^.putlongint(m);
+              outppu.putstring(s);
+              outppu.putlongint(m);
             end;
            AddToLinkFiles(s);
          end;
         if not MakeStatic then
-         outppu^.writeentry(b);
+         outppu.writeentry(b);
       end;
 {    iblinkunitstaticlibs :
       begin
-        AddToLinkFiles(ExtractLib(inppu^.getstring));
-        if not inppu^.endofentry then
+        AddToLinkFiles(ExtractLib(inppu.getstring));
+        if not inppu.endofentry then
          begin
            repeat
-             inppu^.getdatabuf(buffer^,bufsize,l);
-             outppu^.putdata(buffer^,l);
+             inppu.getdatabuf(buffer^,bufsize,l);
+             outppu.putdata(buffer^,l);
            until l<bufsize;
-           outppu^.writeentry(b);
+           outppu.writeentry(b);
          end;
        end; }
   end;
 { just add a new entry with the new lib }
   if MakeStatic then
    begin
-     outppu^.putstring(outputfileforlink);
-     outppu^.putlongint(link_static);
-     outppu^.writeentry(iblinkunitstaticlibs)
+     outppu.putstring(outputfileforlink);
+     outppu.putlongint(link_static);
+     outppu.writeentry(iblinkunitstaticlibs)
    end
   else
    begin
-     outppu^.putstring(outputfileforlink);
-     outppu^.putlongint(link_shared);
-     outppu^.writeentry(iblinkunitsharedlibs);
+     outppu.putstring(outputfileforlink);
+     outppu.putlongint(link_shared);
+     outppu.writeentry(iblinkunitsharedlibs);
    end;
 { read all entries until the end and write them also to the new ppu }
   repeat
-    b:=inppu^.readentry;
+    b:=inppu.readentry;
   { don't write ibend, that's written automaticly }
     if b<>ibend then
      begin
        repeat
-         inppu^.getdatabuf(buffer^,bufsize,l);
-         outppu^.putdata(buffer^,l);
+         inppu.getdatabuf(buffer^,bufsize,l);
+         outppu.putdata(buffer^,l);
        until l<bufsize;
-       outppu^.writeentry(b);
+       outppu.writeentry(b);
      end;
   until b=ibend;
 { write the last stuff and close }
-  outppu^.flush;
-  outppu^.writeheader;
-  dispose(outppu,done);
-  dispose(inppu,done);
+  outppu.flush;
+  outppu.writeheader;
+  outppu.free;
+  inppu.free;
 { rename }
   if PPUFn=PPLFn then
    begin
@@ -610,7 +614,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2001-04-25 22:40:07  peter
+  Revision 1.2  2001-05-06 14:49:19  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.1  2001/04/25 22:40:07  peter
     * compiler dependent utils in utils/ subdir
 
   Revision 1.2  2001/01/29 21:48:26  peter

@@ -353,24 +353,15 @@ implementation
      convert dos datetime t to a string YY/MM/DD HH:MM:SS
    }
      var
-     {$ifndef unix}
        DT : DateTime;
-     {$endif}
-       Year,Month,Day,Hour,Min,Sec : Word;
      begin
        if t=-1 then
         begin
           FileTimeString:='Not Found';
           exit;
         end;
-     {$ifndef unix}
        unpacktime(t,DT);
-       Year:=dT.year;month:=dt.month;day:=dt.day;
-       Hour:=dt.hour;min:=dt.min;sec:=dt.sec;
-     {$else}
-       EpochToLocal (t,year,month,day,hour,min,sec);
-     {$endif}
-       filetimestring:=L0(Year)+'/'+L0(Month)+'/'+L0(Day)+' '+L0(Hour)+':'+L0(min)+':'+L0(sec);
+       filetimestring:=L0(dt.Year)+'/'+L0(dt.Month)+'/'+L0(dt.Day)+' '+L0(dt.Hour)+':'+L0(dt.min)+':'+L0(dt.sec);
      end;
 
 
@@ -1282,7 +1273,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2001-04-18 22:01:53  peter
+  Revision 1.33  2001-05-06 14:49:17  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.32  2001/04/18 22:01:53  peter
     * registration of targets and assemblers
 
   Revision 1.31  2001/04/15 09:48:29  peter

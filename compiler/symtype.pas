@@ -104,8 +104,6 @@ interface
         procedure reset;
         procedure setdef(p:tdef);
         procedure setsym(p:tsym);
-        procedure load;
-        procedure write;
         procedure resolve;
       end;
 
@@ -124,7 +122,6 @@ interface
         firstsym,
         lastsym  : psymlistitem;
         constructor create;
-        constructor load;
         destructor  destroy;override;
         function  empty:boolean;
         procedure setdef(p:tdef);
@@ -132,7 +129,6 @@ interface
         procedure clear;
         function  getcopy:tsymlist;
         procedure resolve;
-        procedure write;
       end;
 
 
@@ -145,7 +141,6 @@ implementation
 
     uses
        verbose,
-       symppu,
        fmodule;
 
 {****************************************************************************
@@ -300,32 +295,6 @@ implementation
       end;
 
 
-    procedure ttype.load;
-      begin
-        def:=tdef(readderef);
-        sym:=tsym(readderef);
-      end;
-
-
-    procedure ttype.write;
-      begin
-        { Don't write symbol references for the current unit
-          and for the system unit }
-        if assigned(sym) and
-           (sym.owner.unitid<>0) and
-           (sym.owner.unitid<>1) then
-         begin
-           writederef(nil);
-           writederef(sym);
-         end
-        else
-         begin
-           writederef(def);
-           writederef(nil);
-         end;
-      end;
-
-
     procedure ttype.resolve;
       begin
         if assigned(sym) then
@@ -346,22 +315,6 @@ implementation
         def:=nil; { needed for procedures }
         firstsym:=nil;
         lastsym:=nil;
-      end;
-
-
-    constructor tsymlist.load;
-      var
-        sym : tsym;
-      begin
-        def:=tdef(readderef);
-        firstsym:=nil;
-        lastsym:=nil;
-        repeat
-          sym:=tsym(readderef);
-          if sym=nil then
-           break;
-          addsym(sym);
-        until false;
       end;
 
 
@@ -430,21 +383,6 @@ implementation
            hp2:=hp2^.next;
          end;
         getcopy:=hp;
-      end;
-
-
-    procedure tsymlist.write;
-      var
-        hp : psymlistitem;
-      begin
-        writederef(def);
-        hp:=firstsym;
-        while assigned(hp) do
-         begin
-           writederef(hp^.sym);
-           hp:=hp^.next;
-         end;
-        writederef(nil);
       end;
 
 
@@ -562,7 +500,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2001-04-13 01:22:17  peter
+  Revision 1.7  2001-05-06 14:49:19  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.6  2001/04/13 01:22:17  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

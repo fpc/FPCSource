@@ -127,43 +127,43 @@ Function DoPPU(const PPUFn:String):Boolean;
   Return true if successful, false otherwise.
 }
 Var
-  inppu  : pppufile;
+  inppu  : tppufile;
   b      : byte;
 
   procedure showfiles;
   begin
-    while not inppu^.endofentry do
+    while not inppu.endofentry do
      begin
-       AddFile(inppu^.getstring);
-       inppu^.getlongint;
+       AddFile(inppu.getstring);
+       inppu.getlongint;
      end;
   end;
 
 begin
   DoPPU:=false;
-  inppu:=new(pppufile,init(PPUFn));
-  if not inppu^.open then
+  inppu:=tppufile.create(PPUFn);
+  if not inppu.openfile then
    begin
-     dispose(inppu,done);
+     inppu.free;
      Error('Error: Could not open : '+PPUFn,false);
      Exit;
    end;
 { Check the ppufile }
-  if not inppu^.CheckPPUId then
+  if not inppu.CheckPPUId then
    begin
-     dispose(inppu,done);
+     inppu.free;
      Error('Error: Not a PPU File : '+PPUFn,false);
      Exit;
    end;
-  if inppu^.GetPPUVersion<CurrentPPUVersion then
+  if inppu.GetPPUVersion<CurrentPPUVersion then
    begin
-     dispose(inppu,done);
+     inppu.free;
      Error('Error: Wrong PPU Version : '+PPUFn,false);
      Exit;
    end;
 { read until the object files are found }
   repeat
-    b:=inppu^.readentry;
+    b:=inppu.readentry;
     case b of
       ibendinterface,
       ibend :
@@ -179,7 +179,7 @@ begin
          showfiles;
     end;
   until false;
-  dispose(inppu,done);
+  inppu.free;
   DoPPU:=True;
 end;
 
@@ -253,7 +253,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2001-04-25 22:40:07  peter
+  Revision 1.2  2001-05-06 14:49:19  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.1  2001/04/25 22:40:07  peter
     * compiler dependent utils in utils/ subdir
 
   Revision 1.2  2000/11/06 13:16:19  michael

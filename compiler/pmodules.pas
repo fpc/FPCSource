@@ -24,15 +24,6 @@ unit pmodules;
 
 {$i defines.inc}
 
-{ close old_current_ppu on system that are
-  short on file handles like DOS system PM }
-{$ifdef GO32V1}
-  {$define SHORT_ON_FILE_HANDLES}
-{$endif GO32V1}
-{$ifdef GO32V2}
-  {$define SHORT_ON_FILE_HANDLES}
-{$endif GO32V2}
-
 {$define New_GDB}
 
 interface
@@ -46,7 +37,7 @@ implementation
     uses
        globtype,version,systems,tokens,
        cutils,comphook,
-       globals,verbose,fmodule,finput,
+       globals,verbose,fmodule,finput,fppu,
        symconst,symbase,symppu,symdef,symsym,symtable,aasm,
 {$ifdef newcg}
        cgbase,
@@ -340,306 +331,6 @@ implementation
       end;
 
 
-    function loadunit(const s : string;compile_system:boolean) : tmodule;forward;
-
-
-    procedure load_usedunits(compile_system:boolean);
-      var
-        pu           : tused_unit;
-        loaded_unit  : tmodule;
-        load_refs    : boolean;
-        nextmapentry : longint;
-      begin
-        load_refs:=true;
-      { init the map }
-        new(current_module.map);
-        fillchar(current_module.map^,sizeof(tunitmap),#0);
-{$ifdef NEWMAP}
-        current_module.map^[0]:=current_module;
-{$endif NEWMAP}
-        nextmapentry:=1;
-      { load the used units from interface }
-        current_module.in_implementation:=false;
-        pu:=tused_unit(current_module.used_units.first);
-        while assigned(pu) do
-         begin
-           if (not pu.loaded) and (pu.in_interface) then
-            begin
-              loaded_unit:=loadunit(pu.name^,false);
-              if current_module.compiled then
-               exit;
-            { register unit in used units }
-              pu.u:=loaded_unit;
-              pu.loaded:=true;
-            { doubles are not important for that list PM }
-              pu.u.dependent_units.concat(tdependent_unit.create(current_module));
-            { need to recompile the current unit ? }
-              if loaded_unit.crc<>pu.checksum then
-               begin
-                 Message2(unit_u_recompile_crc_change,current_module.modulename^,pu.name^);
-                 current_module.recompile_reason:=rr_crcchanged;
-                 current_module.do_compile:=true;
-                 dispose(current_module.map);
-                 current_module.map:=nil;
-                 exit;
-               end;
-            { setup the map entry for deref }
-{$ifndef NEWMAP}
-              current_module.map^[nextmapentry]:=loaded_unit.globalsymtable;
-{$else NEWMAP}
-              current_module.map^[nextmapentry]:=loaded_unit;
-{$endif NEWMAP}
-              inc(nextmapentry);
-              if nextmapentry>maxunits then
-               Message(unit_f_too_much_units);
-            end;
-           pu:=tused_unit(pu.next);
-         end;
-      { ok, now load the unit }
-        current_module.globalsymtable:=tglobalsymtable.create(current_module.modulename^);
-        tglobalsymtable(current_module.globalsymtable).load;
-      { now only read the implementation part }
-        current_module.in_implementation:=true;
-      { load the used units from implementation }
-        pu:=tused_unit(current_module.used_units.first);
-        while assigned(pu) do
-         begin
-           if (not pu.loaded) and (not pu.in_interface) then
-            begin
-              loaded_unit:=loadunit(pu.name^,false);
-              if current_module.compiled then
-               exit;
-            { register unit in used units }
-              pu.u:=loaded_unit;
-              pu.loaded:=true;
-            { need to recompile the current unit ? }
-              if (loaded_unit.interface_crc<>pu.interface_checksum) {and
-                 not(current_module.in_second_compile) } then
-                begin
-                  Message2(unit_u_recompile_crc_change,current_module.modulename^,pu.name^+' {impl}');
-                  current_module.recompile_reason:=rr_crcchanged;
-                  current_module.do_compile:=true;
-                  dispose(current_module.map);
-                  current_module.map:=nil;
-                  exit;
-                end;
-            { setup the map entry for deref }
-{$ifndef NEWMAP}
-              current_module.map^[nextmapentry]:=loaded_unit.globalsymtable;
-{$else NEWMAP}
-              current_module.map^[nextmapentry]:=loaded_unit;
-{$endif NEWMAP}
-              inc(nextmapentry);
-              if nextmapentry>maxunits then
-               Message(unit_f_too_much_units);
-            end;
-           pu:=tused_unit(pu.next);
-         end;
-        { load browser info if stored }
-        if ((current_module.flags and uf_has_browser)<>0) and load_refs then
-          tglobalsymtable(current_module.globalsymtable).load_symtable_refs;
-        { remove the map, it's not needed anymore }
-        dispose(current_module.map);
-        current_module.map:=nil;
-      end;
-
-
-    function loadunit(const s : string;compile_system:boolean) : tmodule;
-      const
-        ImplIntf : array[boolean] of string[15]=('interface','implementation');
-      var
-        st : tglobalsymtable;
-        second_time : boolean;
-        old_current_ppu : pppufile;
-        old_current_module,hp,hp2 : tmodule;
-        name : string;{ necessary because current_module.mainsource^ is reset in compile !! }
-        scanner : tscannerfile;
-
-        procedure loadppufile;
-        begin
-        { load interface section }
-          if not current_module.do_compile then
-           load_interface;
-        { only load units when we don't recompile }
-          if not current_module.do_compile then
-           load_usedunits(compile_system);
-        { recompile if set }
-          if current_module.do_compile then
-           begin
-           { we don't need the ppufile anymore }
-             if assigned(current_module.ppufile) then
-              begin
-                dispose(current_module.ppufile,done);
-                current_module.ppufile:=nil;
-                current_ppu:=nil;
-              end;
-           { recompile the unit or give a fatal error if sources not available }
-             if not(current_module.sources_avail) and
-                not(current_module.sources_checked) then
-               if (not current_module.search_unit(current_module.modulename^,true))
-                  and (length(current_module.modulename^)>8) then
-                 current_module.search_unit(copy(current_module.modulename^,1,8),true);
-             if not(current_module.sources_avail) then
-               begin
-                  hp:=current_module;
-                  current_module:=old_current_module;
-                  if hp.recompile_reason=rr_noppu then
-                    Message1(unit_f_cant_find_ppu,hp.modulename^)
-                  else
-                    Message1(unit_f_cant_compile_unit,hp.modulename^);
-                  current_module:=hp;
-               end
-             else
-              begin
-                if current_module.in_compile then
-                  begin
-                    current_module.in_second_compile:=true;
-                    Message1(parser_d_compiling_second_time,current_module.modulename^);
-                  end;
-                current_scanner.tempcloseinputfile;
-                name:=current_module.mainsource^;
-                if assigned(scanner) then
-                  scanner.invalid:=true;
-                compile(name,compile_system);
-                current_module.in_second_compile:=false;
-                if (not current_scanner.invalid) then
-                  current_scanner.tempopeninputfile;
-              end;
-           end;
-         if assigned(current_module.ppufile) then
-           begin
-              dispose(current_module.ppufile,done);
-              current_module.ppufile:=nil;
-              current_ppu:=nil;
-           end;
-        end;
-
-      var
-         dummy : tmodule;
-
-      begin
-         old_current_module:=current_module;
-         old_current_ppu:=current_ppu;
-         { Info }
-         Message3(unit_u_load_unit,current_module.modulename^,ImplIntf[current_module.in_implementation],s);
-         { unit not found }
-         st:=nil;
-         dummy:=nil;
-         { search all loaded units }
-         hp:=tmodule(loaded_units.first);
-         while assigned(hp) do
-           begin
-              if hp.modulename^=s then
-                begin
-                   { forced to reload ? }
-                   if hp.do_reload then
-                    begin
-                      hp.do_reload:=false;
-                      break;
-                    end;
-                   { the unit is already registered   }
-                   { and this means that the unit     }
-                   { is already compiled              }
-                   { else there is a cyclic unit use  }
-                   if assigned(hp.globalsymtable) then
-                     st:=tglobalsymtable(hp.globalsymtable)
-                   else
-                    begin
-                    { both units in interface ? }
-                      if (not current_module.in_implementation) and (not hp.in_implementation) then
-                       begin
-                       { check for a cycle }
-                         hp2:=current_module.loaded_from;
-                         while assigned(hp2) and (hp2<>hp) do
-                          begin
-                            if hp2.in_implementation then
-                             hp2:=nil
-                            else
-                             hp2:=hp2.loaded_from;
-                          end;
-                         if assigned(hp2) then
-                          Message2(unit_f_circular_unit_reference,current_module.modulename^,hp.modulename^);
-                       end;
-                    end;
-                   break;
-                end
-              else if copy(hp.modulename^,1,8)=s then
-                dummy:=hp;
-              { the next unit }
-              hp:=tmodule(hp.next);
-           end;
-         if assigned(dummy) and not assigned(hp) then
-           Message2(unit_w_unit_name_error,s,dummy.modulename^);
-       { the unit is not in the symtable stack }
-         if (not assigned(st)) then
-          begin
-            if assigned(hp) then
-             begin
-               { remove the old unit }
-               loaded_units.remove(hp);
-               scanner:=tscannerfile(hp.scanner);
-               hp.reset;
-               hp.scanner:=scanner;
-               { try to reopen ppu }
-               hp.search_unit(s,false);
-               { try to load the unit a second time first }
-               current_module:=hp;
-               current_module.in_second_load:=true;
-               Message1(unit_u_second_load_unit,current_module.modulename^);
-               second_time:=true;
-             end
-            else
-          { generates a new unit info record }
-             begin
-                current_module:=tmodule.create(s,true);
-                scanner:=nil;
-                second_time:=false;
-             end;
-            current_ppu:=current_module.ppufile;
-            { close old_current_ppu on system that are
-              short on file handles like DOS PM }
-{$ifdef SHORT_ON_FILE_HANDLES}
-            if assigned(old_current_ppu) then
-              old_current_ppu^.tempclose;
-{$endif SHORT_ON_FILE_HANDLES}
-          { now we can register the unit }
-            current_module.loaded_from:=old_current_module;
-            loaded_units.insert(current_module);
-          { now realy load the ppu }
-            loadppufile;
-          { set compiled flag }
-            current_module.compiled:=true;
-          { load return pointer }
-            hp:=current_module;
-          { for a second_time recompile reload all dependent units,
-            for a first time compile register the unit _once_ }
-            if second_time then
-             begin
-               { now reload all dependent units }
-               hp2:=tmodule(loaded_units.first);
-               while assigned(hp2) do
-                begin
-                  if hp2.do_reload then
-                   dummy:=loadunit(hp2.modulename^,false);
-                  hp2:=tmodule(hp2.next);
-                end;
-             end
-            else
-             usedunits.concat(tused_unit.create(current_module,true));
-          end;
-         { set the old module }
-{$ifdef SHORT_ON_FILE_HANDLES}
-         if assigned(old_current_ppu) then
-           old_current_ppu^.tempopen;
-{$endif SHORT_ON_FILE_HANDLES}
-         current_ppu:=old_current_ppu;
-         current_module:=old_current_module;
-         { we are back }
-         SetCompileModule(current_module);
-         loadunit:=hp;
-      end;
-
-
     procedure loaddefaultunits;
       var
         hp : tmodule;
@@ -654,7 +345,7 @@ implementation
            exit;
          end;
      { insert the system unit, it is allways the first }
-        hp:=loadunit('SYSTEM',true);
+        hp:=loadunit('System');
         systemunit:=tglobalsymtable(hp.globalsymtable);
         { it's always the first unit }
         systemunit.next:=nil;
@@ -671,7 +362,7 @@ implementation
       { Objpas unit? }
         if m_objpas in aktmodeswitches then
          begin
-           hp:=loadunit('ObjPas',false);
+           hp:=loadunit('ObjPas');
            tsymtable(hp.globalsymtable).next:=symtablestack;
            symtablestack:=hp.globalsymtable;
            { add to the used units }
@@ -683,7 +374,7 @@ implementation
       { Profile unit? Needed for go32v2 only }
         if (cs_profile in aktmoduleswitches) and (target_info.target=target_i386_go32v2) then
          begin
-           hp:=loadunit('Profile',false);
+           hp:=loadunit('Profile');
            tsymtable(hp.globalsymtable).next:=symtablestack;
            symtablestack:=hp.globalsymtable;
            { add to the used units }
@@ -698,7 +389,7 @@ implementation
            { Heaptrc unit }
            if (cs_gdb_heaptrc in aktglobalswitches) then
             begin
-              hp:=loadunit('HeapTrc',false);
+              hp:=loadunit('HeapTrc');
               tsymtable(hp.globalsymtable).next:=symtablestack;
               symtablestack:=hp.globalsymtable;
               { add to the used units }
@@ -710,7 +401,7 @@ implementation
            { Lineinfo unit }
            if (cs_gdb_lineinfo in aktglobalswitches) then
             begin
-              hp:=loadunit('LineInfo',false);
+              hp:=loadunit('LineInfo');
               tsymtable(hp.globalsymtable).next:=symtablestack;
               symtablestack:=hp.globalsymtable;
               { add to the used units }
@@ -759,7 +450,7 @@ implementation
            if not assigned(pu) and (s<>current_module.modulename^) then
             begin
             { load the unit }
-              hp2:=loadunit(s,false);
+              hp2:=loadunit(sorg);
             { the current module uses the unit hp2 }
               current_module.used_units.concat(tused_unit.create(hp2,not current_module.in_implementation));
               tused_unit(current_module.used_units.last).in_uses:=true;
@@ -1000,23 +691,13 @@ implementation
           { check for system unit }
              new(s2);
              s2^:=upper(SplitName(main_file.name^));
-             if (cs_compilesystem in aktmoduleswitches) then
-              begin
-                if ((length(current_module.modulename^)>8) or
-                   (current_module.modulename^<>'SYSTEM') or
-                   (current_module.modulename^<>s2^)) then
-                  Message1(unit_e_illegal_unit_name,current_module.realmodulename^);
-              end
-             else
-              begin
-                if (cs_check_unit_name in aktglobalswitches) and
-                   not((current_module.modulename^=s2^) or
-                       ((length(current_module.modulename^)>8) and
-                        (copy(current_module.modulename^,1,8)=s2^))) then
-                 Message1(unit_e_illegal_unit_name,current_module.realmodulename^);
-                if (current_module.modulename^='SYSTEM') then
-                 Message(unit_w_switch_us_missed);
-              end;
+             if (cs_check_unit_name in aktglobalswitches) and
+                not((current_module.modulename^=s2^) or
+                    ((length(current_module.modulename^)>8) and
+                     (copy(current_module.modulename^,1,8)=s2^))) then
+              Message1(unit_e_illegal_unit_name,current_module.realmodulename^);
+             if (current_module.modulename^='SYSTEM') then
+              include(aktmoduleswitches,cs_compilesystem);
              dispose(s2);
           end;
 
@@ -1036,7 +717,7 @@ implementation
 
          { maybe turn off m_objpas if we are compiling objpas }
          if (current_module.modulename^='OBJPAS') then
-           aktmodeswitches:=aktmodeswitches-[m_objpas];
+           exclude(aktmodeswitches,m_objpas);
 
          { this should be placed after uses !!}
 {$ifndef UseNiceNames}
@@ -1106,7 +787,7 @@ implementation
 
          { number all units, so we know if a unit is used by this unit or
            needs to be added implicitly }
-         numberunits;
+         current_module.numberunits;
 
          { ... parse the declarations }
          Message1(parser_u_parsing_interface,current_module.realmodulename^);
@@ -1128,7 +809,7 @@ implementation
 
          if not(cs_compilesystem in aktmoduleswitches) then
            if (Errorcount=0) then
-             writeunitas(current_module.ppufilename^,tglobalsymtable(symtablestack),true);
+             tppumodule(current_module).getppucrc;
 
          { Parse the implementation section }
          consume(_IMPLEMENTATION);
@@ -1161,7 +842,7 @@ implementation
          reset_global_defs;
 
          { All units are read, now give them a number }
-         numberunits;
+         current_module.numberunits;
 
          { now we can change refsymtable }
          refsymtable:=st;
@@ -1307,7 +988,6 @@ implementation
           begin
             Message1(unit_f_errors_in_unit,tostr(Errorcount));
             status.skip_error:=true;
-            closecurrentppu;
             exit;
           end;
 
@@ -1346,7 +1026,7 @@ implementation
          store_interface_crc:=current_module.interface_crc;
          store_crc:=current_module.crc;
          if (Errorcount=0) then
-           writeunitas(current_module.ppufilename^,tglobalsymtable(symtablestack),false);
+           tppumodule(current_module).writeppu;
 
          if not(cs_compilesystem in aktmoduleswitches) then
            if store_interface_crc<>current_module.interface_crc then
@@ -1358,9 +1038,6 @@ implementation
              Comment(V_Warning,current_module.ppufilename^+' implementation CRC changed '+
                tostr(store_crc)+'<>'+tostr(current_module.interface_crc));
 {$endif EXTDEBUG}
-
-         { must be done only after local symtable ref stores !! }
-         closecurrentppu;
 
          { remove static symtable (=refsymtable) here to save some mem }
          if not (cs_local_browser in aktmoduleswitches) then
@@ -1397,13 +1074,13 @@ implementation
             (target_info.target=target_i386_win32) and
             (target_info.assem<>as_i386_pecoff) then
            begin
-              aktglobalswitches:=aktglobalswitches+[cs_link_strip];
+              include(aktglobalswitches,cs_link_strip);
               { Warning stabs info does not work with reloc section !! }
               if cs_debuginfo in aktmoduleswitches then
                 begin
                   Message1(parser_w_parser_reloc_no_debug,current_module.mainsource^);
                   Message(parser_w_parser_win32_debug_needs_WN);
-                  aktmoduleswitches:=aktmoduleswitches-[cs_debuginfo];
+                  exclude(aktmoduleswitches,cs_debuginfo);
                 end;
            end;
 
@@ -1478,7 +1155,7 @@ implementation
          reset_global_defs;
 
          { All units are read, now give them a number }
-         numberunits;
+         current_module.numberunits;
 
          {Insert the name of the main program into the symbol table.}
          if current_module.realmodulename^<>'' then
@@ -1623,7 +1300,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2001-04-18 22:01:57  peter
+  Revision 1.30  2001-05-06 14:49:17  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.29  2001/04/18 22:01:57  peter
     * registration of targets and assemblers
 
   Revision 1.28  2001/04/13 18:08:37  peter

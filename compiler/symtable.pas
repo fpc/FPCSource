@@ -32,6 +32,8 @@ interface
        globtype,tokens,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,
+       { ppu }
+       ppu,symppu,
        { assembler }
        aasm
        ;
@@ -60,16 +62,16 @@ interface
           procedure concattypestab(p : TNamedIndexItem);
 {$endif}
           procedure order_overloads(p : TNamedIndexItem);
-          procedure loaddefs;
-          procedure loadsyms;
-          procedure writedefs;
-          procedure writesyms;
+          procedure loaddefs(ppufile:tcompilerppufile);
+          procedure loadsyms(ppufile:tcompilerppufile);
+          procedure writedefs(ppufile:tcompilerppufile);
+          procedure writesyms(ppufile:tcompilerppufile);
        public
           { load/write }
-          procedure load;virtual;
-          procedure write;virtual;
-          procedure load_browser;virtual;
-          procedure write_browser;virtual;
+          procedure load(ppufile:tcompilerppufile);virtual;
+          procedure write(ppufile:tcompilerppufile);virtual;
+          procedure load_browser(ppufile:tcompilerppufile);virtual;
+          procedure write_browser(ppufile:tcompilerppufile);virtual;
           procedure deref;virtual;
           procedure insert(sym : tsymentry);override;
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;override;
@@ -94,10 +96,10 @@ interface
 
        tabstractrecordsymtable = class(tstoredsymtable)
        public
-          procedure load;override;
-          procedure write;override;
-          procedure load_browser;override;
-          procedure write_browser;override;
+          procedure load(ppufile:tcompilerppufile);override;
+          procedure write(ppufile:tcompilerppufile);override;
+          procedure load_browser(ppufile:tcompilerppufile);override;
+          procedure write_browser(ppufile:tcompilerppufile);override;
        end;
 
        trecordsymtable = class(tabstractrecordsymtable)
@@ -114,10 +116,10 @@ interface
 
        tabstractlocalsymtable = class(tstoredsymtable)
        public
-          procedure load;override;
-          procedure write;override;
-          procedure load_browser;override;
-          procedure write_browser;override;
+          procedure load(ppufile:tcompilerppufile);override;
+          procedure write(ppufile:tcompilerppufile);override;
+          procedure load_browser(ppufile:tcompilerppufile);override;
+          procedure write_browser(ppufile:tcompilerppufile);override;
        end;
 
        tlocalsymtable = class(tabstractlocalsymtable)
@@ -147,29 +149,25 @@ interface
        end;
 
        tglobalsymtable = class(tabstractunitsymtable)
-       private
-          procedure writeusedmacro(p:TNamedIndexItem);
        public
           unittypecount : word;
           unitsym       : tunitsym;
           constructor create(const n : string);
           destructor  destroy;
-          procedure load;override;
-          procedure write;override;
-          procedure load_symtable_refs;
+          procedure load(ppufile:tcompilerppufile);override;
+          procedure write(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
           function getnewtypecount : word; override;
 {$endif}
-          procedure writeusedmacros;
        end;
 
        tstaticsymtable = class(tabstractunitsymtable)
        public
           constructor create(const n : string);
-          procedure load;override;
-          procedure write;override;
-          procedure load_browser;override;
-          procedure write_browser;override;
+          procedure load(ppufile:tcompilerppufile);override;
+          procedure write(ppufile:tcompilerppufile);override;
+          procedure load_browser(ppufile:tcompilerppufile);override;
+          procedure write_browser(ppufile:tcompilerppufile);override;
           procedure insert(sym : tsymentry);override;
        end;
 
@@ -210,17 +208,11 @@ interface
     procedure globaldef(const s : string;var t:ttype);
     function  findunitsymtable(st:tsymtable):tsymtable;
     procedure duplicatesym(sym:tsym);
-    procedure identifier_not_found(const s:string);
 
 {*** Search ***}
     function  searchsym(const s : stringid;var srsym:tsym;var srsymtable:tsymtable):boolean;
     function  searchsymonlyin(p : tsymtable;const s : stringid):tsym;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
-
-{*** PPU Write/Loading ***}
-    procedure writeunitas(const s : string;unittable : tglobalsymtable;only_crc : boolean);
-    procedure numberunits;
-    procedure load_interface;
 
 {*** Object Helpers ***}
     function search_default_property(pd : tobjectdef) : tpropertysym;
@@ -283,15 +275,11 @@ implementation
       version,verbose,globals,
       { target }
       systems,
-      { ppu }
-      symppu,ppu,
       { module }
       finput,fmodule,
 {$ifdef GDB}
       gdb,
 {$endif GDB}
-      { scanner }
-      scanner,
       { codegen }
       hcodegen
       ;
@@ -305,57 +293,57 @@ implementation
                              TStoredSymtable
 *****************************************************************************}
 
-    procedure tstoredsymtable.load;
+    procedure tstoredsymtable.load(ppufile:tcompilerppufile);
       begin
         { load definitions }
-        loaddefs;
+        loaddefs(ppufile);
 
         { load symbols }
-        loadsyms;
+        loadsyms(ppufile);
       end;
 
 
-    procedure tstoredsymtable.write;
+    procedure tstoredsymtable.write(ppufile:tcompilerppufile);
       begin
          { write definitions }
-         writedefs;
+         writedefs(ppufile);
 
          { write symbols }
-         writesyms;
+         writesyms(ppufile);
       end;
 
 
-    procedure tstoredsymtable.loaddefs;
+    procedure tstoredsymtable.loaddefs(ppufile:tcompilerppufile);
       var
         hp : tdef;
         b  : byte;
       begin
       { load start of definition section, which holds the amount of defs }
-         if current_ppu^.readentry<>ibstartdefs then
+         if ppufile.readentry<>ibstartdefs then
           Message(unit_f_ppu_read_error);
-         current_ppu^.getlongint;
+         ppufile.getlongint;
       { read definitions }
          repeat
-           b:=current_ppu^.readentry;
+           b:=ppufile.readentry;
            case b of
-              ibpointerdef : hp:=tpointerdef.load;
-                ibarraydef : hp:=tarraydef.load;
-                  iborddef : hp:=torddef.load;
-                ibfloatdef : hp:=tfloatdef.load;
-                 ibprocdef : hp:=tprocdef.load;
-          ibshortstringdef : hp:=tstringdef.loadshort;
-           iblongstringdef : hp:=tstringdef.loadlong;
-           ibansistringdef : hp:=tstringdef.loadansi;
-           ibwidestringdef : hp:=tstringdef.loadwide;
-               ibrecorddef : hp:=trecorddef.load;
-               ibobjectdef : hp:=tobjectdef.load;
-                 ibenumdef : hp:=tenumdef.load;
-                  ibsetdef : hp:=tsetdef.load;
-              ibprocvardef : hp:=tprocvardef.load;
-                 ibfiledef : hp:=tfiledef.load;
-             ibclassrefdef : hp:=tclassrefdef.load;
-               ibformaldef : hp:=tformaldef.load;
-              ibvariantdef : hp:=tvariantdef.load;
+              ibpointerdef : hp:=tpointerdef.load(ppufile);
+                ibarraydef : hp:=tarraydef.load(ppufile);
+                  iborddef : hp:=torddef.load(ppufile);
+                ibfloatdef : hp:=tfloatdef.load(ppufile);
+                 ibprocdef : hp:=tprocdef.load(ppufile);
+          ibshortstringdef : hp:=tstringdef.loadshort(ppufile);
+           iblongstringdef : hp:=tstringdef.loadlong(ppufile);
+           ibansistringdef : hp:=tstringdef.loadansi(ppufile);
+           ibwidestringdef : hp:=tstringdef.loadwide(ppufile);
+               ibrecorddef : hp:=trecorddef.load(ppufile);
+               ibobjectdef : hp:=tobjectdef.load(ppufile);
+                 ibenumdef : hp:=tenumdef.load(ppufile);
+                  ibsetdef : hp:=tsetdef.load(ppufile);
+              ibprocvardef : hp:=tprocvardef.load(ppufile);
+                 ibfiledef : hp:=tfiledef.load(ppufile);
+             ibclassrefdef : hp:=tclassrefdef.load(ppufile);
+               ibformaldef : hp:=tformaldef.load(ppufile);
+              ibvariantdef : hp:=tvariantdef.load(ppufile);
                  ibenddefs : break;
                      ibend : Message(unit_f_ppu_read_error);
            else
@@ -367,35 +355,35 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.loadsyms;
+    procedure tstoredsymtable.loadsyms(ppufile:tcompilerppufile);
       var
         b   : byte;
         sym : tsym;
       begin
       { load start of definition section, which holds the amount of defs }
-         if current_ppu^.readentry<>ibstartsyms then
+         if ppufile.readentry<>ibstartsyms then
           Message(unit_f_ppu_read_error);
          { skip amount of symbols, not used currently }
-         current_ppu^.getlongint;
+         ppufile.getlongint;
          { load datasize,dataalignment of this symboltable }
-         datasize:=current_ppu^.getlongint;
-         dataalignment:=current_ppu^.getlongint;
+         datasize:=ppufile.getlongint;
+         dataalignment:=ppufile.getlongint;
       { now read the symbols }
          repeat
-           b:=current_ppu^.readentry;
+           b:=ppufile.readentry;
            case b of
-                ibtypesym : sym:=ttypesym.load;
-                ibprocsym : sym:=tprocsym.load;
-               ibconstsym : sym:=tconstsym.load;
-                 ibvarsym : sym:=tvarsym.load;
-             ibfuncretsym : sym:=tfuncretsym.load;
-            ibabsolutesym : sym:=tabsolutesym.load;
-                ibenumsym : sym:=tenumsym.load;
-          ibtypedconstsym : sym:=ttypedconstsym.load;
-            ibpropertysym : sym:=tpropertysym.load;
-                ibunitsym : sym:=tunitsym.load;
-               iblabelsym : sym:=tlabelsym.load;
-                 ibsyssym : sym:=tsyssym.load;
+                ibtypesym : sym:=ttypesym.load(ppufile);
+                ibprocsym : sym:=tprocsym.load(ppufile);
+               ibconstsym : sym:=tconstsym.load(ppufile);
+                 ibvarsym : sym:=tvarsym.load(ppufile);
+             ibfuncretsym : sym:=tfuncretsym.load(ppufile);
+            ibabsolutesym : sym:=tabsolutesym.load(ppufile);
+                ibenumsym : sym:=tenumsym.load(ppufile);
+          ibtypedconstsym : sym:=ttypedconstsym.load(ppufile);
+            ibpropertysym : sym:=tpropertysym.load(ppufile);
+                ibunitsym : sym:=tunitsym.load(ppufile);
+               iblabelsym : sym:=tlabelsym.load(ppufile);
+                 ibsyssym : sym:=tsyssym.load(ppufile);
                 ibendsyms : break;
                     ibend : Message(unit_f_ppu_read_error);
            else
@@ -408,76 +396,76 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.writedefs;
+    procedure tstoredsymtable.writedefs(ppufile:tcompilerppufile);
       var
          pd : tstoreddef;
       begin
       { each definition get a number, write then the amount of defs to the
          ibstartdef entry }
-         current_ppu^.putlongint(defindex.count);
-         current_ppu^.writeentry(ibstartdefs);
+         ppufile.putlongint(defindex.count);
+         ppufile.writeentry(ibstartdefs);
       { now write the definition }
          pd:=tstoreddef(defindex.first);
          while assigned(pd) do
            begin
-              pd.write;
+              pd.write(ppufile);
               pd:=tstoreddef(pd.indexnext);
            end;
       { write end of definitions }
-         current_ppu^.writeentry(ibenddefs);
+         ppufile.writeentry(ibenddefs);
       end;
 
 
-    procedure tstoredsymtable.writesyms;
+    procedure tstoredsymtable.writesyms(ppufile:tcompilerppufile);
       var
         pd : tstoredsym;
       begin
        { each definition get a number, write then the amount of syms and the
          datasize to the ibsymdef entry }
-         current_ppu^.putlongint(symindex.count);
-         current_ppu^.putlongint(datasize);
-         current_ppu^.putlongint(dataalignment);
-         current_ppu^.writeentry(ibstartsyms);
+         ppufile.putlongint(symindex.count);
+         ppufile.putlongint(datasize);
+         ppufile.putlongint(dataalignment);
+         ppufile.writeentry(ibstartsyms);
        { foreach is used to write all symbols }
          pd:=tstoredsym(symindex.first);
          while assigned(pd) do
            begin
-              pd.write;
+              pd.write(ppufile);
               pd:=tstoredsym(pd.indexnext);
            end;
        { end of symbols }
-         current_ppu^.writeentry(ibendsyms);
+         ppufile.writeentry(ibendsyms);
       end;
 
 
-    procedure tstoredsymtable.load_browser;
+    procedure tstoredsymtable.load_browser(ppufile:tcompilerppufile);
       var
         b     : byte;
         sym   : tstoredsym;
         prdef : tstoreddef;
       begin
-         b:=current_ppu^.readentry;
+         b:=ppufile.readentry;
          if b <> ibbeginsymtablebrowser then
            Message1(unit_f_ppu_invalid_entry,tostr(b));
          repeat
-           b:=current_ppu^.readentry;
+           b:=ppufile.readentry;
            case b of
              ibsymref :
                begin
-                 sym:=tstoredsym(readderef);
+                 sym:=tstoredsym(ppufile.getderef);
                  resolvesym(tsym(sym));
                  if assigned(sym) then
-                   sym.load_references;
+                   sym.load_references(ppufile);
                end;
              ibdefref :
                begin
-                 prdef:=tstoreddef(readderef);
+                 prdef:=tstoreddef(ppufile.getderef);
                  resolvedef(tdef(prdef));
                  if assigned(prdef) then
                    begin
                      if prdef.deftype<>procdef then
                        Message(unit_f_ppu_read_error);
-                     tprocdef(prdef).load_references;
+                     tprocdef(prdef).load_references(ppufile);
                    end;
                end;
              ibendsymtablebrowser :
@@ -489,19 +477,19 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.write_browser;
+    procedure tstoredsymtable.write_browser(ppufile:tcompilerppufile);
       var
         pd : tstoredsym;
       begin
-         current_ppu^.writeentry(ibbeginsymtablebrowser);
+         ppufile.writeentry(ibbeginsymtablebrowser);
        { foreach is used to write all symbols }
          pd:=tstoredsym(symindex.first);
          while assigned(pd) do
            begin
-              pd.write_references;
+              pd.write_references(ppufile);
               pd:=tstoredsym(pd.indexnext);
            end;
-         current_ppu^.writeentry(ibendsymtablebrowser);
+         ppufile.writeentry(ibendsymtablebrowser);
       end;
 
 
@@ -1006,437 +994,63 @@ implementation
 
 
 {****************************************************************************
-                            PPU Writing Helpers
-****************************************************************************}
-
-    procedure writesourcefiles;
-      var
-        hp  : tinputfile;
-        i,j : longint;
-      begin
-      { second write the used source files }
-        current_ppu^.do_crc:=false;
-        hp:=current_module.sourcefiles.files;
-      { write source files directly in good order }
-        j:=0;
-        while assigned(hp) do
-          begin
-            inc(j);
-            hp:=hp.ref_next;
-          end;
-        while j>0 do
-          begin
-            hp:=current_module.sourcefiles.files;
-            for i:=1 to j-1 do
-              hp:=hp.ref_next;
-            current_ppu^.putstring(hp.name^);
-            dec(j);
-         end;
-        current_ppu^.writeentry(ibsourcefiles);
-        current_ppu^.do_crc:=true;
-      end;
-
-    procedure writeusedunit;
-      var
-        hp : tused_unit;
-      begin
-        numberunits;
-        hp:=tused_unit(current_module.used_units.first);
-        while assigned(hp) do
-         begin
-           { implementation units should not change
-             the CRC PM }
-           current_ppu^.do_crc:=hp.in_interface;
-           current_ppu^.putstring(hp.name^);
-           { the checksum should not affect the crc of this unit ! (PFV) }
-           current_ppu^.do_crc:=false;
-           current_ppu^.putlongint(hp.checksum);
-           current_ppu^.putlongint(hp.interface_checksum);
-           current_ppu^.putbyte(byte(hp.in_interface));
-           current_ppu^.do_crc:=true;
-           hp:=tused_unit(hp.next);
-         end;
-        current_ppu^.do_interface_crc:=true;
-        current_ppu^.writeentry(ibloadunit);
-      end;
-
-
-    procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
-      var
-        hcontainer : tlinkcontainer;
-        s : string;
-        mask : cardinal;
-      begin
-        hcontainer:=TLinkContainer.Create;
-        while not p.empty do
-         begin
-           s:=p.get(mask);
-           if strippath then
-            current_ppu^.putstring(SplitFileName(s))
-           else
-            current_ppu^.putstring(s);
-           current_ppu^.putlongint(mask);
-           hcontainer.add(s,mask);
-         end;
-        current_ppu^.writeentry(id);
-        p.Free;
-        p:=hcontainer;
-      end;
-
-
-    procedure writeunitas(const s : string;unittable : tglobalsymtable;only_crc : boolean);
-      begin
-         Message1(unit_u_ppu_write,s);
-
-       { create unit flags }
-         with Current_Module do
-          begin
-{$ifdef GDB}
-            if cs_gdb_dbx in aktglobalswitches then
-             flags:=flags or uf_has_dbx;
-{$endif GDB}
-            if target_info.endian=endian_big then
-             flags:=flags or uf_big_endian;
-            if cs_browser in aktmoduleswitches then
-             flags:=flags or uf_has_browser;
-            if cs_local_browser in aktmoduleswitches then
-             flags:=flags or uf_local_browser;
-          end;
-
-{$ifdef Test_Double_checksum_write}
-        If only_crc then
-          Assign(CRCFile,s+'.INT')
-        else
-          Assign(CRCFile,s+'.IMP');
-        Rewrite(CRCFile);
-{$endif def Test_Double_checksum_write}
-       { open ppufile }
-         current_ppu:=new(pppufile,init(s));
-         current_ppu^.crc_only:=only_crc;
-         if not current_ppu^.create then
-           Message(unit_f_ppu_cannot_write);
-
-{$ifdef Test_Double_checksum}
-         if only_crc then
-           begin
-              new(current_ppu^.crc_test);
-              new(current_ppu^.crc_test2);
-           end
-         else
-           begin
-             current_ppu^.crc_test:=current_module.crc_array;
-             current_ppu^.crc_index:=current_module.crc_size;
-             current_ppu^.crc_test2:=current_module.crc_array2;
-             current_ppu^.crc_index2:=current_module.crc_size2;
-           end;
-{$endif def Test_Double_checksum}
-
-         current_ppu^.change_endian:=source_info.endian<>target_info.endian;
-       { write symbols and definitions }
-         unittable.write;
-
-       { flush to be sure }
-         current_ppu^.flush;
-       { create and write header }
-         current_ppu^.header.size:=current_ppu^.size;
-         current_ppu^.header.checksum:=current_ppu^.crc;
-         current_ppu^.header.interface_checksum:=current_ppu^.interface_crc;
-         current_ppu^.header.compiler:=wordversion;
-         current_ppu^.header.cpu:=word(target_cpu);
-         current_ppu^.header.target:=word(target_info.target);
-         current_ppu^.header.flags:=current_module.flags;
-         If not only_crc then
-           current_ppu^.writeheader;
-       { save crc in current_module also }
-         current_module.crc:=current_ppu^.crc;
-         current_module.interface_crc:=current_ppu^.interface_crc;
-         if only_crc then
-          begin
-{$ifdef Test_Double_checksum}
-            current_module.crc_array:=current_ppu^.crc_test;
-            current_ppu^.crc_test:=nil;
-            current_module.crc_size:=current_ppu^.crc_index2;
-            current_module.crc_array2:=current_ppu^.crc_test2;
-            current_ppu^.crc_test2:=nil;
-            current_module.crc_size2:=current_ppu^.crc_index2;
-{$endif def Test_Double_checksum}
-            closecurrentppu;
-          end;
-{$ifdef Test_Double_checksum_write}
-        close(CRCFile);
-{$endif Test_Double_checksum_write}
-      end;
-
-
-    procedure readusedmacros;
-      var
-        hs : string;
-        mac : tmacro;
-        was_defined_at_startup,
-        was_used : boolean;
-      begin
-        while not current_ppu^.endofentry do
-         begin
-           hs:=current_ppu^.getstring;
-           was_defined_at_startup:=boolean(current_ppu^.getbyte);
-           was_used:=boolean(current_ppu^.getbyte);
-           mac:=tmacro(current_scanner.macros.search(hs));
-           if assigned(mac) then
-             begin
-{$ifndef EXTDEBUG}
-           { if we don't have the sources why tell }
-              if current_module.sources_avail then
-{$endif ndef EXTDEBUG}
-               if (not was_defined_at_startup) and
-                  was_used and
-                  mac.defined_at_startup then
-                Message2(unit_h_cond_not_set_in_last_compile,hs,current_module.mainsource^);
-             end
-           else { not assigned }
-             if was_defined_at_startup and
-                was_used then
-              Message2(unit_h_cond_not_set_in_last_compile,hs,current_module.mainsource^);
-         end;
-      end;
-
-    procedure readsourcefiles;
-      var
-        temp,hs       : string;
-        temp_dir      : string;
-        main_dir      : string;
-        incfile_found,
-        main_found,
-        is_main       : boolean;
-        ppufiletime,
-        source_time   : longint;
-        hp            : tinputfile;
-      begin
-        ppufiletime:=getnamedfiletime(current_module.ppufilename^);
-        current_module.sources_avail:=true;
-        is_main:=true;
-        main_dir:='';
-        while not current_ppu^.endofentry do
-         begin
-           hs:=current_ppu^.getstring;
-           temp_dir:='';
-           if (current_module.flags and uf_in_library)<>0 then
-            begin
-              current_module.sources_avail:=false;
-              temp:=' library';
-            end
-           else if pos('Macro ',hs)=1 then
-            begin
-              { we don't want to find this file }
-              { but there is a problem with file indexing !! }
-              temp:='';
-            end
-           else
-            begin
-              { check the date of the source files }
-              Source_Time:=GetNamedFileTime(current_module.path^+hs);
-              incfile_found:=false;
-              main_found:=false;
-              if Source_Time<>-1 then
-                hs:=current_module.path^+hs
-              else
-               if not(is_main) then
-                begin
-                  Source_Time:=GetNamedFileTime(main_dir+hs);
-                  if Source_Time<>-1 then
-                    hs:=main_dir+hs;
-                end;
-              if (Source_Time=-1) then
-                begin
-                  if is_main then
-                    main_found:=unitsearchpath.FindFile(hs,temp_dir)
-                  else
-                    incfile_found:=includesearchpath.FindFile(hs,temp_dir);
-                  if incfile_found or main_found then
-                    Source_Time:=GetNamedFileTime(temp_dir);
-                end;
-              if Source_Time=-1 then
-               begin
-                 current_module.sources_avail:=false;
-                 temp:=' not found';
-               end
-              else
-               begin
-                 if main_found then
-                   main_dir:=temp_dir;
-                 { time newer? But only allow if the file is not searched
-                   in the include path (PFV), else you've problems with
-                   units which use the same includefile names }
-                 if incfile_found then
-                  temp:=' found'
-                 else
-                  begin
-                    temp:=' time '+filetimestring(source_time);
-                    if (source_time>ppufiletime) then
-                     begin
-                       current_module.do_compile:=true;
-                       current_module.recompile_reason:=rr_sourcenewer;
-                       temp:=temp+' *'
-                     end;
-                  end;
-               end;
-              hp:=tinputfile.create(hs);
-              { the indexing is wrong here PM }
-              current_module.sourcefiles.register_file(hp);
-            end;
-           if is_main then
-             begin
-               stringdispose(current_module.mainsource);
-               current_module.mainsource:=stringdup(hs);
-             end;
-           Message1(unit_u_ppu_source,hs+temp);
-           is_main:=false;
-         end;
-      { check if we want to rebuild every unit, only if the sources are
-        available }
-        if do_build and current_module.sources_avail then
-          begin
-             current_module.do_compile:=true;
-             current_module.recompile_reason:=rr_build;
-          end;
-      end;
-
-
-    procedure readloadunit;
-      var
-        hs : string;
-        intfchecksum,
-        checksum : longint;
-        in_interface : boolean;
-      begin
-        while not current_ppu^.endofentry do
-         begin
-           hs:=current_ppu^.getstring;
-           checksum:=current_ppu^.getlongint;
-           intfchecksum:=current_ppu^.getlongint;
-           in_interface:=(current_ppu^.getbyte<>0);
-           current_module.used_units.concat(tused_unit.create_to_load(hs,checksum,intfchecksum,in_interface));
-         end;
-      end;
-
-
-    procedure readlinkcontainer(var p:tlinkcontainer);
-      var
-        s : string;
-        m : longint;
-      begin
-        while not current_ppu^.endofentry do
-         begin
-           s:=current_ppu^.getstring;
-           m:=current_ppu^.getlongint;
-           p.add(s,m);
-         end;
-      end;
-
-
-    procedure load_interface;
-      var
-        b : byte;
-        newmodulename : string;
-      begin
-       { read interface part }
-         repeat
-           b:=current_ppu^.readentry;
-           case b of
-             ibmodulename :
-               begin
-                 newmodulename:=current_ppu^.getstring;
-                 if upper(newmodulename)<>current_module.modulename^ then
-                   Message2(unit_f_unit_name_error,current_module.realmodulename^,newmodulename);
-                 stringdispose(current_module.modulename);
-                 stringdispose(current_module.realmodulename);
-                 current_module.modulename:=stringdup(upper(newmodulename));
-                 current_module.realmodulename:=stringdup(newmodulename);
-               end;
-             ibsourcefiles :
-               readsourcefiles;
-             ibusedmacros :
-               readusedmacros;
-             ibloadunit :
-               readloadunit;
-             iblinkunitofiles :
-               readlinkcontainer(current_module.LinkUnitOFiles);
-             iblinkunitstaticlibs :
-               readlinkcontainer(current_module.LinkUnitStaticLibs);
-             iblinkunitsharedlibs :
-               readlinkcontainer(current_module.LinkUnitSharedLibs);
-             iblinkotherofiles :
-               readlinkcontainer(current_module.LinkotherOFiles);
-             iblinkotherstaticlibs :
-               readlinkcontainer(current_module.LinkotherStaticLibs);
-             iblinkothersharedlibs :
-               readlinkcontainer(current_module.LinkotherSharedLibs);
-             ibendinterface :
-               break;
-           else
-             Message1(unit_f_ppu_invalid_entry,tostr(b));
-           end;
-         until false;
-      end;
-
-
-{****************************************************************************
                           TAbstractRecordSymtable
 ****************************************************************************}
 
-    procedure tabstractrecordsymtable.load;
+    procedure tabstractrecordsymtable.load(ppufile:tcompilerppufile);
       var
         storesymtable : tsymtable;
       begin
         storesymtable:=aktrecordsymtable;
         aktrecordsymtable:=self;
 
-        inherited load;
+        inherited load(ppufile);
 
         aktrecordsymtable:=storesymtable;
       end;
 
 
-    procedure tabstractrecordsymtable.write;
+    procedure tabstractrecordsymtable.write(ppufile:tcompilerppufile);
       var
         oldtyp : byte;
         storesymtable : tsymtable;
       begin
          storesymtable:=aktrecordsymtable;
          aktrecordsymtable:=self;
-         oldtyp:=current_ppu^.entrytyp;
-         current_ppu^.entrytyp:=subentryid;
+         oldtyp:=ppufile.entrytyp;
+         ppufile.entrytyp:=subentryid;
 
          { order procsym overloads }
          foreach({$ifdef FPCPROCVAR}@{$endif}Order_overloads);
 
-         inherited write;
+         inherited write(ppufile);
 
-         current_ppu^.entrytyp:=oldtyp;
+         ppufile.entrytyp:=oldtyp;
          aktrecordsymtable:=storesymtable;
       end;
 
 
-    procedure tabstractrecordsymtable.load_browser;
+    procedure tabstractrecordsymtable.load_browser(ppufile:tcompilerppufile);
       var
         storesymtable : tsymtable;
       begin
         storesymtable:=aktrecordsymtable;
         aktrecordsymtable:=self;
 
-        inherited load_browser;
+        inherited load_browser(ppufile);
 
         aktrecordsymtable:=storesymtable;
       end;
 
 
-    procedure tabstractrecordsymtable.write_browser;
+    procedure tabstractrecordsymtable.write_browser(ppufile:tcompilerppufile);
       var
         storesymtable : tsymtable;
       begin
         storesymtable:=aktrecordsymtable;
         aktrecordsymtable:=self;
 
-        inherited write_browser;
+        inherited write_browser(ppufile);
 
         aktrecordsymtable:=storesymtable;
       end;
@@ -1557,63 +1171,63 @@ implementation
                           TAbstractLocalSymtable
 ****************************************************************************}
 
-    procedure tabstractlocalsymtable.load;
+    procedure tabstractlocalsymtable.load(ppufile:tcompilerppufile);
       var
         storesymtable : tsymtable;
       begin
         storesymtable:=aktlocalsymtable;
         aktlocalsymtable:=self;
 
-        inherited load;
+        inherited load(ppufile);
 
         aktlocalsymtable:=storesymtable;
       end;
 
 
-   procedure tabstractlocalsymtable.write;
+   procedure tabstractlocalsymtable.write(ppufile:tcompilerppufile);
       var
         oldtyp : byte;
         storesymtable : tsymtable;
       begin
          storesymtable:=aktlocalsymtable;
          aktlocalsymtable:=self;
-         oldtyp:=current_ppu^.entrytyp;
-         current_ppu^.entrytyp:=subentryid;
+         oldtyp:=ppufile.entrytyp;
+         ppufile.entrytyp:=subentryid;
 
          { order procsym overloads }
          foreach({$ifdef FPCPROCVAR}@{$endif}Order_overloads);
 
          { write definitions }
-         writedefs;
+         writedefs(ppufile);
          { write symbols }
-         writesyms;
+         writesyms(ppufile);
 
-         current_ppu^.entrytyp:=oldtyp;
+         ppufile.entrytyp:=oldtyp;
          aktlocalsymtable:=storesymtable;
       end;
 
 
-    procedure tabstractlocalsymtable.load_browser;
+    procedure tabstractlocalsymtable.load_browser(ppufile:tcompilerppufile);
       var
         storesymtable : tsymtable;
       begin
         storesymtable:=aktlocalsymtable;
         aktlocalsymtable:=self;
 
-        inherited load_browser;
+        inherited load_browser(ppufile);
 
         aktlocalsymtable:=storesymtable;
       end;
 
 
-    procedure tabstractlocalsymtable.write_browser;
+    procedure tabstractlocalsymtable.write_browser(ppufile:tcompilerppufile);
       var
         storesymtable : tsymtable;
       begin
         storesymtable:=aktlocalsymtable;
         aktlocalsymtable:=self;
 
-        inherited load_browser;
+        inherited load_browser(ppufile);
 
         aktlocalsymtable:=storesymtable;
       end;
@@ -1654,9 +1268,7 @@ implementation
                      exit;
                    end;
                 end;
-             end
-            else if (current_module.flags and uf_local_browser)=0 then
-             internalerror(43789);
+             end;
 
             { check for duplicate id in local symtable of methods }
             if assigned(next.next) and
@@ -1751,6 +1363,7 @@ implementation
       end;
 
 
+{$ifdef GDB}
       procedure tabstractunitsymtable.concattypestabto(asmlist : taasmoutput);
         var prev_dbx_count : plongint;
         begin
@@ -1805,6 +1418,7 @@ implementation
              end;
            is_stab_written:=true;
         end;
+{$endif GDB}
 
 
 {****************************************************************************
@@ -1818,14 +1432,14 @@ implementation
       end;
 
 
-    procedure tstaticsymtable.load;
+    procedure tstaticsymtable.load(ppufile:tcompilerppufile);
       begin
         aktstaticsymtable:=self;
 
         next:=symtablestack;
         symtablestack:=self;
 
-        inherited load;
+        inherited load(ppufile);
 
         { now we can deref the syms and defs }
         deref;
@@ -1835,30 +1449,30 @@ implementation
       end;
 
 
-    procedure tstaticsymtable.write;
+    procedure tstaticsymtable.write(ppufile:tcompilerppufile);
       begin
         aktstaticsymtable:=self;
 
         { order procsym overloads }
         foreach({$ifdef FPCPROCVAR}@{$endif}Order_overloads);
 
-        inherited write;
+        inherited write(ppufile);
       end;
 
 
-    procedure tstaticsymtable.load_browser;
+    procedure tstaticsymtable.load_browser(ppufile:tcompilerppufile);
       begin
         aktstaticsymtable:=self;
 
-        inherited load_browser;
+        inherited load_browser(ppufile);
       end;
 
 
-    procedure tstaticsymtable.write_browser;
+    procedure tstaticsymtable.write_browser(ppufile:tcompilerppufile);
       begin
         aktstaticsymtable:=self;
 
-        inherited write_browser;
+        inherited write_browser(ppufile);
       end;
 
 
@@ -1926,12 +1540,11 @@ implementation
        end;
 
 
-    procedure tglobalsymtable.load;
-      var
+    procedure tglobalsymtable.load(ppufile:tcompilerppufile);
 {$ifdef GDB}
+      var
         storeGlobalTypeCount : pword;
 {$endif GDB}
-        b : byte;
       begin
 {$ifdef GDB}
          if cs_gdb_dbx in aktglobalswitches then
@@ -1952,7 +1565,7 @@ implementation
          next:=symtablestack;
          symtablestack:=self;
 
-         inherited load;
+         inherited load(ppufile);
 
          { now we can deref the syms and defs }
          deref;
@@ -1964,162 +1577,30 @@ implementation
          { necessary for dependencies }
          current_module.globalsymtable:=nil;
 {$endif NEWMAP}
-
-         { dbx count }
-{$ifdef GDB}
-         if (current_module.flags and uf_has_dbx)<>0 then
-           begin
-              b := current_ppu^.readentry;
-              if b <> ibdbxcount then
-               Message(unit_f_ppu_dbx_count_problem)
-              else
-               dbx_count := readlong;
-              dbx_count_ok := {true}false;
-           end
-         else
-           begin
-             dbx_count := -1;
-             dbx_count_ok:=false;
-           end;
-         if cs_gdb_dbx in aktglobalswitches then
-           PGlobalTypeCount:=storeGlobalTypeCount;
-         is_stab_written:=false;
-{$endif GDB}
-
-         b:=current_ppu^.readentry;
-         if b<>ibendimplementation then
-           Message1(unit_f_ppu_invalid_entry,tostr(b));
       end;
 
 
-    procedure tglobalsymtable.write;
-      var
-         pu : tused_unit;
+    procedure tglobalsymtable.write(ppufile:tcompilerppufile);
       begin
-      { first the unitname }
-        current_ppu^.putstring(current_module.realmodulename^);
-        current_ppu^.writeentry(ibmodulename);
-
-        writesourcefiles;
-        writeusedmacros;
-
-        writeusedunit;
-
-      { write the objectfiles and libraries that come for this unit,
-        preserve the containers becuase they are still needed to load
-        the link.res. All doesn't depend on the crc! It doesn't matter
-        if a unit is in a .o or .a file }
-        current_ppu^.do_crc:=false;
-        writelinkcontainer(current_module.linkunitofiles,iblinkunitofiles,true);
-        writelinkcontainer(current_module.linkunitstaticlibs,iblinkunitstaticlibs,true);
-        writelinkcontainer(current_module.linkunitsharedlibs,iblinkunitsharedlibs,true);
-        writelinkcontainer(current_module.linkotherofiles,iblinkotherofiles,false);
-        writelinkcontainer(current_module.linkotherstaticlibs,iblinkotherstaticlibs,true);
-        writelinkcontainer(current_module.linkothersharedlibs,iblinkothersharedlibs,true);
-        current_ppu^.do_crc:=true;
-
-        current_ppu^.writeentry(ibendinterface);
-
         { order procsym overloads }
         foreach({$ifdef FPCPROCVAR}@{$endif}Order_overloads);
 
         { write the symtable entries }
-        inherited write;
+        inherited write(ppufile);
 
-      { all after doesn't affect crc }
-        current_ppu^.do_crc:=false;
-
-      { write dbx count }
+        { write dbx count }
 {$ifdef GDB}
         if cs_gdb_dbx in aktglobalswitches then
          begin
 {$IfDef EXTDEBUG}
            writeln('Writing dbx_count ',dbx_count,' in unit ',name^,'.ppu');
 {$ENDIF EXTDEBUG}
-           current_ppu^.putlongint(dbx_count);
-           current_ppu^.writeentry(ibdbxcount);
+           ppufile.do_crc:=false;
+           ppufile.putlongint(dbx_count);
+           ppufile.writeentry(ibdbxcount);
+           ppufile.do_crc:=true;
          end;
 {$endif GDB}
-
-        current_ppu^.writeentry(ibendimplementation);
-
-         { write static symtable
-           needed for local debugging of unit functions }
-        if ((current_module.flags and uf_local_browser)<>0) and
-           assigned(current_module.localsymtable) then
-          tstaticsymtable(current_module.localsymtable).write;
-      { write all browser section }
-        if (current_module.flags and uf_has_browser)<>0 then
-         begin
-           write_browser;
-           pu:=tused_unit(current_module.used_units.first);
-           while assigned(pu) do
-            begin
-              tstoredsymtable(pu.u.globalsymtable).write_browser;
-              pu:=tused_unit(pu.next);
-            end;
-           current_ppu^.writeentry(ibendbrowser);
-         end;
-        if ((current_module.flags and uf_local_browser)<>0) and
-           assigned(current_module.localsymtable) then
-          tstaticsymtable(current_module.localsymtable).write_browser;
-
-      { the last entry ibend is written automaticly }
-      end;
-
-
-    procedure tglobalsymtable.load_symtable_refs;
-      var
-         b : byte;
-         unitindex : word;
-      begin
-        if ((current_module.flags and uf_local_browser)<>0) then
-          begin
-             current_module.localsymtable:=tstaticsymtable.create(current_module.modulename^);
-             tstaticsymtable(current_module.localsymtable).load;
-          end;
-        { load browser }
-        if (current_module.flags and uf_has_browser)<>0 then
-          begin
-             {if not (cs_browser in aktmoduleswitches) then
-               current_ppu^.skipuntilentry(ibendbrowser)
-             else }
-               begin
-                  load_browser;
-                  unitindex:=1;
-                  while assigned(current_module.map^[unitindex]) do
-                    begin
-                       {each unit wrote one browser entry }
-                       load_browser;
-                       inc(unitindex);
-                    end;
-                  b:=current_ppu^.readentry;
-                  if b<>ibendbrowser then
-                    Message1(unit_f_ppu_invalid_entry,tostr(b));
-               end;
-          end;
-        if ((current_module.flags and uf_local_browser)<>0) then
-          tstaticsymtable(current_module.localsymtable).load_browser;
-      end;
-
-
-    procedure tglobalsymtable.writeusedmacro(p:TNamedIndexItem);
-      begin
-        if tmacro(p).is_used or tmacro(p).defined_at_startup then
-          begin
-            current_ppu^.putstring(p.name);
-            current_ppu^.putbyte(byte(tmacro(p).defined_at_startup));
-            current_ppu^.putbyte(byte(tmacro(p).is_used));
-          end;
-      end;
-
-
-    procedure tglobalsymtable.writeusedmacros;
-      begin
-        current_ppu^.do_crc:=false;
-        current_scanner.macros.foreach({$ifdef FPCPROCVAR}@{$endif}writeusedmacro);
-        current_ppu^.writeentry(ibusedmacros);
-        current_ppu^.do_crc:=true;
       end;
 
 
@@ -2162,6 +1643,7 @@ implementation
         inherited destroy;
       end;
 
+
     procedure twithsymtable.clear;
       begin
          { remove no entry from a withsymtable as it is only a pointer to the
@@ -2183,36 +1665,6 @@ implementation
 {*****************************************************************************
                              Helper Routines
 *****************************************************************************}
-
-    procedure numberunits;
-      var
-        counter : longint;
-        hp      : tused_unit;
-        hp1     : tmodule;
-      begin
-        { Reset all numbers to -1 }
-        hp1:=tmodule(loaded_units.first);
-        while assigned(hp1) do
-         begin
-           if assigned(hp1.globalsymtable) then
-             tsymtable(hp1.globalsymtable).unitid:=$ffff;
-           hp1:=tmodule(hp1.next);
-         end;
-        { Our own symtable gets unitid 0, for a program there is
-          no globalsymtable }
-        if assigned(current_module.globalsymtable) then
-          tsymtable(current_module.globalsymtable).unitid:=0;
-        { number units }
-        counter:=1;
-        hp:=tused_unit(current_module.used_units.first);
-        while assigned(hp) do
-         begin
-           tsymtable(hp.u.globalsymtable).unitid:=counter;
-           inc(counter);
-           hp:=tused_unit(hp.next);
-         end;
-      end;
-
 
     function findunitsymtable(st:tsymtable):tsymtable;
       begin
@@ -2254,19 +1706,6 @@ implementation
                Message2(sym_h_duplicate_id_where,current_module.sourcefiles.get_file_name(fileindex),tostr(line));
            end;
        end;
-
-
-     procedure identifier_not_found(const s:string);
-       begin
-         Message1(sym_e_id_not_found,s);
-         { show a fatal that you need -S2 or -Sd, but only
-           if we just parsed the a token that has m_class }
-         if not(m_class in aktmodeswitches) and
-            (Upper(s)=pattern) and
-            (tokeninfo^[idtoken].keyword=m_class) then
-           Message(parser_f_need_objfpc_or_delphi_mode);
-       end;
-
 
 
 {*****************************************************************************
@@ -2567,7 +2006,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2001-04-18 22:01:59  peter
+  Revision 1.35  2001-05-06 14:49:18  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.34  2001/04/18 22:01:59  peter
     * registration of targets and assemblers
 
   Revision 1.33  2001/04/13 20:05:15  peter

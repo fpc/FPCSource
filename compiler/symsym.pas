@@ -32,6 +32,8 @@ interface
        cpuinfo,
        { symtable }
        symconst,symbase,symtype,symdef,
+       { ppu }
+       ppu,symppu,
        { aasm }
        aasm,cpubase
        ;
@@ -52,18 +54,18 @@ interface
           lastwritten : tref;
           refcount    : longint;
           constructor create(const n : string);
-          constructor loadsym;
+          constructor loadsym(ppufile:tcompilerppufile);
           destructor destroy;override;
-          procedure write;virtual;abstract;
-          procedure writesym;
+          procedure write(ppufile:tcompilerppufile);virtual;abstract;
+          procedure writesym(ppufile:tcompilerppufile);
           function  mangledname : string;override;
           procedure insert_in_data;virtual;
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : taasmoutput);virtual;
 {$endif GDB}
-          procedure load_references;virtual;
-          function  write_references : boolean;virtual;
+          procedure load_references(ppufile:tcompilerppufile);virtual;
+          function  write_references(ppufile:tcompilerppufile) : boolean;virtual;
        end;
 
        tlabelsym = class(tstoredsym)
@@ -73,18 +75,18 @@ interface
           code : pointer; { should be ptree! }
           constructor create(const n : string; l : tasmlabel);
           destructor destroy;override;
-          constructor load;
+          constructor load(ppufile:tcompilerppufile);
           function mangledname : string;override;
-          procedure write;override;
+          procedure write(ppufile:tcompilerppufile);override;
        end;
 
        tunitsym = class(tstoredsym)
           unitsymtable : tsymtable;
           prevsym      : tunitsym;
           constructor create(const n : string;ref : tsymtable);
-          constructor load;
+          constructor load(ppufile:tcompilerppufile);
           destructor destroy;override;
-          procedure write;override;
+          procedure write(ppufile:tcompilerppufile);override;
           procedure restoreunitsym;
 {$ifdef GDB}
           procedure concatstabto(asmlist : taasmoutput);override;
@@ -102,7 +104,7 @@ interface
 {$endif CHAINPROCSYMS}
           is_global   : boolean;
           constructor create(const n : string);
-          constructor load;
+          constructor load(ppufile:tcompilerppufile);
           destructor destroy;override;
           function mangledname : string;override;
           { writes all declarations except the specified one }
@@ -111,10 +113,10 @@ interface
           { only forward                                             }
           procedure check_forward;
           procedure order_overloaded;
-          procedure write;override;
+          procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
-          procedure load_references;override;
-          function  write_references : boolean;override;
+          procedure load_references(ppufile:tcompilerppufile);override;
+          function  write_references(ppufile:tcompilerppufile) : boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
@@ -127,12 +129,12 @@ interface
           isusedinstab : boolean;
 {$endif GDB}
           constructor create(const n : string;const tt : ttype);
-          constructor load;
-          procedure write;override;
+          constructor load(ppufile:tcompilerppufile);
+          procedure write(ppufile:tcompilerppufile);override;
           function  gettypedef:tdef;override;
           procedure prederef;override;
-          procedure load_references;override;
-          function  write_references : boolean;override;
+          procedure load_references(ppufile:tcompilerppufile);override;
+          function  write_references(ppufile:tcompilerppufile) : boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
@@ -150,9 +152,9 @@ interface
           constructor create(const n : string;const tt : ttype);
           constructor create_dll(const n : string;const tt : ttype);
           constructor create_C(const n,mangled : string;const tt : ttype);
-          constructor load;
+          constructor load(ppufile:tcompilerppufile);
           destructor  destroy;override;
-          procedure write;override;
+          procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure setmangledname(const s : string);
           function  mangledname : string;override;
@@ -180,9 +182,9 @@ interface
           storedaccess  : tsymlist;
           constructor create(const n : string);
           destructor  destroy;override;
-          constructor load;
+          constructor load(ppufile:tcompilerppufile);
           function  getsize : longint;
-          procedure write;override;
+          procedure write(ppufile:tcompilerppufile);override;
           function  gettypedef:tdef;override;
           procedure deref;override;
           procedure dooverride(overriden:tpropertysym);
@@ -197,9 +199,9 @@ interface
           rettype  : ttype;
           address  : longint;
           constructor create(const n : string;approcinfo : pointer{pprocinfo});
-          constructor load;
+          constructor load(ppufile:tcompilerppufile);
           destructor  destroy;override;
-          procedure write;override;
+          procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure insert_in_data;override;
 {$ifdef GDB}
@@ -213,10 +215,10 @@ interface
           ref     : tstoredsym;
           asmname : pstring;
           constructor create(const n : string;const tt : ttype);
-          constructor load;
+          constructor load(ppufile:tcompilerppufile);
           procedure deref;override;
           function  mangledname : string;override;
-          procedure write;override;
+          procedure write(ppufile:tcompilerppufile);override;
           procedure insert_in_data;override;
 {$ifdef GDB}
           procedure concatstabto(asmlist : taasmoutput);override;
@@ -229,10 +231,10 @@ interface
           is_really_const : boolean;
           constructor create(const n : string;p : tdef;really_const : boolean);
           constructor createtype(const n : string;const tt : ttype;really_const : boolean);
-          constructor load;
+          constructor load(ppufile:tcompilerppufile);
           destructor destroy;override;
           function  mangledname : string;override;
-          procedure write;override;
+          procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
           function  getsize:longint;
           procedure insert_in_data;override;
@@ -250,11 +252,11 @@ interface
           constructor create(const n : string;t : tconsttyp;v : tconstexprint);
           constructor create_typed(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
           constructor create_string(const n : string;t : tconsttyp;str:pchar;l:longint);
-          constructor load;
+          constructor load(ppufile:tcompilerppufile);
           destructor  destroy;override;
           function  mangledname : string;override;
           procedure deref;override;
-          procedure write;override;
+          procedure write(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
           function  stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
@@ -266,8 +268,8 @@ interface
           definition : tenumdef;
           nextenum   : tenumsym;
           constructor create(const n : string;def : tenumdef;v : longint);
-          constructor load;
-          procedure write;override;
+          constructor load(ppufile:tcompilerppufile);
+          procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure order;
 {$ifdef GDB}
@@ -278,9 +280,9 @@ interface
        tsyssym = class(tstoredsym)
           number : longint;
           constructor create(const n : string;l : longint);
-          constructor load;
+          constructor load(ppufile:tcompilerppufile);
           destructor  destroy;override;
-          procedure write;override;
+          procedure write(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
           procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
@@ -340,8 +342,6 @@ implementation
        cpuasm,
        { module }
        fmodule,
-       { ppu }
-       symppu,ppu,
        { codegen }
        hcodegen,cresstr
        ;
@@ -371,18 +371,18 @@ implementation
       end;
 
 
-    constructor tstoredsym.loadsym;
+    constructor tstoredsym.loadsym(ppufile:tcompilerppufile);
       var
         s  : string;
         nr : word;
       begin
-         nr:=readword;
-         s:=readstring;
+         nr:=ppufile.getword;
+         s:=ppufile.getstring;
          inherited create(s);
          { force the correct indexnr. must be after create! }
          indexnr:=nr;
-         readsmallset(symoptions);
-         readposinfo(fileinfo);
+         ppufile.getsmallset(symoptions);
+         ppufile.getposinfo(fileinfo);
          lastref:=nil;
          defref:=nil;
          refs:=0;
@@ -394,15 +394,15 @@ implementation
       end;
 
 
-    procedure tstoredsym.load_references;
+    procedure tstoredsym.load_references(ppufile:tcompilerppufile);
       var
         pos : tfileposinfo;
         move_last : boolean;
       begin
         move_last:=lastwritten=lastref;
-        while (not current_ppu^.endofentry) do
+        while (not ppufile.endofentry) do
          begin
-           readposinfo(pos);
+           ppufile.getposinfo(pos);
            inc(refcount);
            lastref:=tref.create(lastref,@pos);
            lastref.is_written:=true;
@@ -418,7 +418,7 @@ implementation
       interface parsing of other units PM
       moduleindex must be checked !! }
 
-    function tstoredsym.write_references : boolean;
+    function tstoredsym.write_references(ppufile:tcompilerppufile) : boolean;
       var
         ref   : tref;
         symref_written,move_last : boolean;
@@ -441,10 +441,10 @@ implementation
               { write address to this symbol }
                 if not symref_written then
                   begin
-                     writederef(self);
+                     ppufile.putderef(self);
                      symref_written:=true;
                   end;
-                writeposinfo(ref.posinfo);
+                ppufile.putposinfo(ref.posinfo);
                 ref.is_written:=true;
                 if move_last then
                   lastwritten:=ref;
@@ -456,7 +456,7 @@ implementation
            ref:=ref.nextref;
          end;
         if symref_written then
-          current_ppu^.writeentry(ibsymref);
+          ppufile.writeentry(ibsymref);
         write_references:=symref_written;
       end;
 
@@ -472,12 +472,12 @@ implementation
       end;
 
 
-    procedure tstoredsym.writesym;
+    procedure tstoredsym.writesym(ppufile:tcompilerppufile);
       begin
-         writeword(indexnr);
-         writestring(_realname^);
-         writesmallset(symoptions);
-         writeposinfo(fileinfo);
+         ppufile.putword(indexnr);
+         ppufile.putstring(_realname^);
+         ppufile.putsmallset(symoptions);
+         ppufile.putposinfo(fileinfo);
       end;
 
 
@@ -531,10 +531,10 @@ implementation
          code:=nil;
       end;
 
-    constructor tlabelsym.load;
+    constructor tlabelsym.load(ppufile:tcompilerppufile);
 
       begin
-         inherited loadsym;
+         inherited loadsym(ppufile);
          typ:=labelsym;
          { this is all dummy
            it is only used for local browsing }
@@ -557,14 +557,14 @@ implementation
       end;
 
 
-    procedure tlabelsym.write;
+    procedure tlabelsym.write(ppufile:tcompilerppufile);
       begin
          if owner.symtabletype=globalsymtable then
            Message(sym_e_ill_label_decl)
          else
            begin
-              inherited writesym;
-              current_ppu^.writeentry(iblabelsym);
+              inherited writesym(ppufile);
+              ppufile.writeentry(iblabelsym);
            end;
       end;
 
@@ -588,10 +588,10 @@ implementation
          refs:=0;
       end;
 
-    constructor tunitsym.load;
+    constructor tunitsym.load(ppufile:tcompilerppufile);
 
       begin
-         inherited loadsym;
+         inherited loadsym(ppufile);
          typ:=unitsym;
          unitsymtable:=nil;
          prevsym:=nil;
@@ -633,10 +633,10 @@ implementation
          inherited destroy;
       end;
 
-    procedure tunitsym.write;
+    procedure tunitsym.write(ppufile:tcompilerppufile);
       begin
-         inherited writesym;
-         current_ppu^.writeentry(ibunitsym);
+         inherited writesym(ppufile);
+         ppufile.writeentry(ibunitsym);
       end;
 
 {$ifdef GDB}
@@ -661,11 +661,11 @@ implementation
       end;
 
 
-    constructor tprocsym.load;
+    constructor tprocsym.load(ppufile:tcompilerppufile);
       begin
-         inherited loadsym;
+         inherited loadsym(ppufile);
          typ:=procsym;
-         definition:=tprocdef(readderef);
+         definition:=tprocdef(ppufile.getderef);
          is_global := false;
       end;
 
@@ -775,50 +775,50 @@ implementation
          lastdef.nextoverloaded:=nextotdef;
       end;
 
-    procedure tprocsym.write;
+    procedure tprocsym.write(ppufile:tcompilerppufile);
       begin
-         inherited writesym;
-         writederef(definition);
-         current_ppu^.writeentry(ibprocsym);
+         inherited writesym(ppufile);
+         ppufile.putderef(definition);
+         ppufile.writeentry(ibprocsym);
       end;
 
 
-    procedure tprocsym.load_references;
+    procedure tprocsym.load_references(ppufile:tcompilerppufile);
       (*var
         prdef,prdef2 : tprocdef;
         b : byte; *)
       begin
-         inherited load_references;
+         inherited load_references(ppufile);
          (*prdef:=definition;
            done in tsymtable.load_browser (PM)
          { take care about operators !!  }
          if (current_module^.flags and uf_has_browser) <>0 then
            while assigned(prdef) and (prdef.owner=definition.owner) do
              begin
-                b:=current_ppu^.readentry;
+                b:=ppufile.readentry;
                 if b<>ibdefref then
                   Message(unit_f_ppu_read_error);
                 prdef2:=tprocdef(readdefref);
                 resolvedef(prdef2);
                 if prdef<>prdef2 then
                   Message(unit_f_ppu_read_error);
-                prdef.load_references;
+                prdef.load_references(ppufile);
                 prdef:=prdef.nextoverloaded;
              end; *)
       end;
 
-    function tprocsym.write_references : boolean;
+    function tprocsym.write_references(ppufile:tcompilerppufile) : boolean;
       var
         prdef : tprocdef;
       begin
          write_references:=false;
-         if not inherited write_references then
+         if not inherited write_references(ppufile) then
            exit;
          write_references:=true;
          prdef:=definition;
          while assigned(prdef) and (prdef.owner=definition.owner) do
           begin
-            prdef.write_references;
+            prdef.write_references(ppufile);
             prdef:=prdef.nextoverloaded;
           end;
       end;
@@ -909,14 +909,14 @@ implementation
       end;
 
 
-    constructor tpropertysym.load;
+    constructor tpropertysym.load(ppufile:tcompilerppufile);
       begin
-         inherited loadsym;
+         inherited loadsym(ppufile);
          typ:=propertysym;
-         readsmallset(propoptions);
+         ppufile.getsmallset(propoptions);
          if (ppo_is_override in propoptions) then
           begin
-            propoverriden:=tpropertysym(readderef);
+            propoverriden:=tpropertysym(ppufile.getderef);
             { we need to have these objects initialized }
             readaccess:=tsymlist.create;
             writeaccess:=tsymlist.create;
@@ -924,13 +924,13 @@ implementation
           end
          else
           begin
-            proptype.load;
-            index:=readlong;
-            default:=readlong;
-            indextype.load;
-            readaccess:=tsymlist.load;
-            writeaccess:=tsymlist.load;
-            storedaccess:=tsymlist.load;
+            ppufile.gettype(proptype);
+            index:=ppufile.getlongint;
+            default:=ppufile.getlongint;
+            ppufile.gettype(indextype);
+            readaccess:=ppufile.getsymlist;
+            writeaccess:=ppufile.getsymlist;
+            storedaccess:=ppufile.getsymlist;
           end;
       end;
 
@@ -972,23 +972,23 @@ implementation
       end;
 
 
-    procedure tpropertysym.write;
+    procedure tpropertysym.write(ppufile:tcompilerppufile);
       begin
-        inherited writesym;
-        writesmallset(propoptions);
+        inherited writesym(ppufile);
+        ppufile.putsmallset(propoptions);
         if (ppo_is_override in propoptions) then
-         writederef(propoverriden)
+         ppufile.putderef(propoverriden)
         else
          begin
-           proptype.write;
-           writelong(index);
-           writelong(default);
-           indextype.write;
-           readaccess.write;
-           writeaccess.write;
-           storedaccess.write;
+           ppufile.puttype(proptype);
+           ppufile.putlongint(index);
+           ppufile.putlongint(default);
+           ppufile.puttype(indextype);
+           ppufile.putsymlist(readaccess);
+           ppufile.putsymlist(writeaccess);
+           ppufile.putsymlist(storedaccess);
          end;
-        current_ppu^.writeentry(ibpropertysym);
+        ppufile.writeentry(ibpropertysym);
       end;
 
 
@@ -1038,11 +1038,11 @@ implementation
          address:=pprocinfo(approcinfo)^.return_offset;
       end;
 
-    constructor tfuncretsym.load;
+    constructor tfuncretsym.load(ppufile:tcompilerppufile);
       begin
-         inherited loadsym;
-         rettype.load;
-         address:=readlong;
+         inherited loadsym(ppufile);
+         ppufile.gettype(rettype);
+         address:=ppufile.getlongint;
          funcretprocinfo:=nil;
          typ:=funcretsym;
       end;
@@ -1052,12 +1052,12 @@ implementation
         inherited destroy;
       end;
 
-    procedure tfuncretsym.write;
+    procedure tfuncretsym.write(ppufile:tcompilerppufile);
       begin
-         inherited writesym;
-         rettype.write;
-         writelong(address);
-         current_ppu^.writeentry(ibfuncretsym);
+         inherited writesym(ppufile);
+         ppufile.puttype(rettype);
+         ppufile.putlongint(address);
+         ppufile.writeentry(ibfuncretsym);
       end;
 
     procedure tfuncretsym.deref;
@@ -1115,57 +1115,57 @@ implementation
       end;
 
 
-    constructor tabsolutesym.load;
+    constructor tabsolutesym.load(ppufile:tcompilerppufile);
       begin
          { Note: This needs to load everything of tvarsym.write }
-         inherited load;
+         inherited load(ppufile);
          { load absolute }
          typ:=absolutesym;
          ref:=nil;
          address:=0;
          asmname:=nil;
-         abstyp:=absolutetyp(readbyte);
+         abstyp:=absolutetyp(ppufile.getbyte);
          absseg:=false;
          case abstyp of
            tovar :
-             asmname:=stringdup(readstring);
+             asmname:=stringdup(ppufile.getstring);
            toasm :
-             asmname:=stringdup(readstring);
+             asmname:=stringdup(ppufile.getstring);
            toaddr :
              begin
-               address:=readlong;
-               absseg:=boolean(readbyte);
+               address:=ppufile.getlongint;
+               absseg:=boolean(ppufile.getbyte);
              end;
          end;
       end;
 
 
-    procedure tabsolutesym.write;
+    procedure tabsolutesym.write(ppufile:tcompilerppufile);
       var
         hvo : tvaroptions;
       begin
          { Note: This needs to write everything of tvarsym.write }
-         inherited writesym;
-         writebyte(byte(varspez));
+         inherited writesym(ppufile);
+         ppufile.putbyte(byte(varspez));
          if read_member then
-           writelong(address);
+           ppufile.putlongint(address);
          { write only definition or definitionsym }
-         vartype.write;
+         ppufile.puttype(vartype);
          hvo:=varoptions-[vo_regable];
-         writesmallset(hvo);
-         writebyte(byte(abstyp));
+         ppufile.putsmallset(hvo);
+         ppufile.putbyte(byte(abstyp));
          case abstyp of
            tovar :
-             writestring(ref.name);
+             ppufile.putstring(ref.name);
            toasm :
-             writestring(asmname^);
+             ppufile.putstring(asmname^);
            toaddr :
              begin
-               writelong(address);
-               writebyte(byte(absseg));
+               ppufile.putlongint(address);
+               ppufile.putbyte(byte(absseg));
              end;
          end;
-        current_ppu^.writeentry(ibabsolutesym);
+        ppufile.writeentry(ibabsolutesym);
       end;
 
 
@@ -1264,24 +1264,24 @@ implementation
       end;
 
 
-    constructor tvarsym.load;
+    constructor tvarsym.load(ppufile:tcompilerppufile);
       begin
-         inherited loadsym;
+         inherited loadsym(ppufile);
          typ:=varsym;
          _mangledname:=nil;
          reg:=R_NO;
          refs := 0;
          varstate:=vs_used;
-         varspez:=tvarspez(readbyte);
+         varspez:=tvarspez(ppufile.getbyte);
          if read_member then
-           address:=readlong
+           address:=ppufile.getlongint
          else
            address:=0;
          localvarsym:=nil;
-         vartype.load;
-         readsmallset(varoptions);
+         ppufile.gettype(vartype);
+         ppufile.getsmallset(varoptions);
          if (vo_is_C_var in varoptions) then
-           setmangledname(readstring);
+           setmangledname(ppufile.getstring);
       end;
 
 
@@ -1298,22 +1298,22 @@ implementation
       end;
 
 
-    procedure tvarsym.write;
+    procedure tvarsym.write(ppufile:tcompilerppufile);
       var
         hvo : tvaroptions;
       begin
-         inherited writesym;
-         writebyte(byte(varspez));
+         inherited writesym(ppufile);
+         ppufile.putbyte(byte(varspez));
          if read_member then
-          writelong(address);
-         vartype.write;
+          ppufile.putlongint(address);
+         ppufile.puttype(vartype);
          { symbols which are load are never candidates for a register,
            turn off the regable }
          hvo:=varoptions-[vo_regable];
-         writesmallset(hvo);
+         ppufile.putsmallset(hvo);
          if (vo_is_C_var in varoptions) then
-           writestring(mangledname);
-         current_ppu^.writeentry(ibvarsym);
+           ppufile.putstring(mangledname);
+         ppufile.writeentry(ibvarsym);
       end;
 
 
@@ -1752,13 +1752,13 @@ implementation
       end;
 
 
-    constructor ttypedconstsym.load;
+    constructor ttypedconstsym.load(ppufile:tcompilerppufile);
       begin
-         inherited loadsym;
+         inherited loadsym(ppufile);
          typ:=typedconstsym;
-         typedconsttype.load;
-         prefix:=stringdup(readstring);
-         is_really_const:=boolean(readbyte);
+         ppufile.gettype(typedconsttype);
+         prefix:=stringdup(ppufile.getstring);
+         is_really_const:=boolean(ppufile.getbyte);
       end;
 
 
@@ -1790,13 +1790,13 @@ implementation
       end;
 
 
-    procedure ttypedconstsym.write;
+    procedure ttypedconstsym.write(ppufile:tcompilerppufile);
       begin
-         inherited writesym;
-         typedconsttype.write;
-         writestring(prefix^);
-         writebyte(byte(is_really_const));
-         current_ppu^.writeentry(ibtypedconstsym);
+         inherited writesym(ppufile);
+         ppufile.puttype(typedconsttype);
+         ppufile.putstring(prefix^);
+         ppufile.putbyte(byte(is_really_const));
+         ppufile.writeentry(ibtypedconstsym);
       end;
 
 
@@ -1901,7 +1901,7 @@ implementation
            ResStrIndex:=ResourceStrings.Register(name,pchar(tpointerord(value)),len);
       end;
 
-    constructor tconstsym.load;
+    constructor tconstsym.load(ppufile:tcompilerppufile);
       var
          pd : pbestreal;
          ps : pnormalset;
@@ -1909,16 +1909,16 @@ implementation
          l1,l2 : longint;
 
       begin
-         inherited loadsym;
+         inherited loadsym(ppufile);
          typ:=constsym;
          consttype.reset;
-         consttyp:=tconsttyp(readbyte);
+         consttyp:=tconsttyp(ppufile.getbyte);
          case consttyp of
            constint:
              if sizeof(tconstexprint)=8 then
                begin
-                  l1:=readlong;
-                  l2:=readlong;
+                  l1:=ppufile.getlongint;
+                  l2:=ppufile.getlongint;
 {$ifopt R+}
   {$define Range_check_on}
 {$endif opt R+}
@@ -1930,18 +1930,18 @@ implementation
 {$endif Range_check_on}
                end
              else
-               value:=readlong;
+               value:=ppufile.getlongint;
            constbool,
            constchar :
-             value:=readlong;
+             value:=ppufile.getlongint;
            constpointer,
            constord :
              begin
-               consttype.load;
+               ppufile.gettype(consttype);
                if sizeof(TConstExprInt)=8 then
                  begin
-                    l1:=readlong;
-                    l2:=readlong;
+                    l1:=ppufile.getlongint;
+                    l2:=ppufile.getlongint;
 {$ifopt R+}
   {$define Range_check_on}
 {$endif opt R+}
@@ -1953,28 +1953,28 @@ implementation
 {$endif Range_check_on}
                  end
                else
-                 value:=readlong;
+                 value:=ppufile.getlongint;
              end;
            conststring,constresourcestring :
              begin
-               len:=readlong;
+               len:=ppufile.getlongint;
                getmem(pc,len+1);
-               current_ppu^.getdata(pc^,len);
+               ppufile.getdata(pc^,len);
                if consttyp=constresourcestring then
-                 ResStrIndex:=readlong;
+                 ResStrIndex:=ppufile.getlongint;
                value:=tpointerord(pc);
              end;
            constreal :
              begin
                new(pd);
-               pd^:=readreal;
+               pd^:=ppufile.getreal;
                value:=tpointerord(pd);
              end;
            constset :
              begin
-               consttype.load;
+               ppufile.gettype(consttype);
                new(ps);
-               readnormalset(ps^);
+               ppufile.getnormalset(ps^);
                value:=tpointerord(ps);
              end;
            constnil : ;
@@ -2011,54 +2011,54 @@ implementation
       end;
 
 
-    procedure tconstsym.write;
+    procedure tconstsym.write(ppufile:tcompilerppufile);
       begin
-         inherited writesym;
-         writebyte(byte(consttyp));
+         inherited writesym(ppufile);
+         ppufile.putbyte(byte(consttyp));
          case consttyp of
            constnil : ;
            constint:
              if sizeof(TConstExprInt)=8 then
                begin
-                  writelong(longint(lo(value)));
-                  writelong(longint(hi(value)));
+                  ppufile.putlongint(longint(lo(value)));
+                  ppufile.putlongint(longint(hi(value)));
                end
              else
-               writelong(value);
+               ppufile.putlongint(value);
 
            constbool,
            constchar :
-             writelong(value);
+             ppufile.putlongint(value);
            constpointer,
            constord :
              begin
-               consttype.write;
+               ppufile.puttype(consttype);
                if sizeof(TConstExprInt)=8 then
                  begin
-                    writelong(longint(lo(value)));
-                    writelong(longint(hi(value)));
+                    ppufile.putlongint(longint(lo(value)));
+                    ppufile.putlongint(longint(hi(value)));
                  end
                else
-                 writelong(value);
+                 ppufile.putlongint(value);
              end;
            conststring,constresourcestring :
              begin
-               writelong(len);
-               current_ppu^.putdata(pchar(TPointerOrd(value))^,len);
+               ppufile.putlongint(len);
+               ppufile.putdata(pchar(TPointerOrd(value))^,len);
                if consttyp=constresourcestring then
-                 writelong(ResStrIndex);
+                 ppufile.putlongint(ResStrIndex);
              end;
            constreal :
-             writereal(pbestreal(TPointerOrd(value))^);
+             ppufile.putreal(pbestreal(TPointerOrd(value))^);
            constset :
              begin
-               consttype.write;
-               writenormalset(pointer(TPointerOrd(value))^);
+               ppufile.puttype(consttype);
+               ppufile.putnormalset(pointer(TPointerOrd(value))^);
              end;
          else
            internalerror(13);
          end;
-        current_ppu^.writeentry(ibconstsym);
+        ppufile.writeentry(ibconstsym);
       end;
 
 {$ifdef GDB}
@@ -2119,12 +2119,12 @@ implementation
       end;
 
 
-    constructor tenumsym.load;
+    constructor tenumsym.load(ppufile:tcompilerppufile);
       begin
-         inherited loadsym;
+         inherited loadsym(ppufile);
          typ:=enumsym;
-         definition:=tenumdef(readderef);
-         value:=readlong;
+         definition:=tenumdef(ppufile.getderef);
+         value:=ppufile.getlongint;
          nextenum := Nil;
       end;
 
@@ -2163,12 +2163,12 @@ implementation
       end;
 
 
-    procedure tenumsym.write;
+    procedure tenumsym.write(ppufile:tcompilerppufile);
       begin
-         inherited writesym;
-         writederef(definition);
-         writelong(value);
-         current_ppu^.writeentry(ibenumsym);
+         inherited writesym(ppufile);
+         ppufile.putderef(definition);
+         ppufile.putlongint(value);
+         ppufile.writeentry(ibenumsym);
       end;
 
 
@@ -2200,14 +2200,14 @@ implementation
       end;
 
 
-    constructor ttypesym.load;
+    constructor ttypesym.load(ppufile:tcompilerppufile);
       begin
-         inherited loadsym;
+         inherited loadsym(ppufile);
          typ:=typesym;
 {$ifdef GDB}
          isusedinstab := false;
 {$endif GDB}
-         restype.load;
+         ppufile.gettype(restype);
       end;
 
 
@@ -2223,41 +2223,41 @@ implementation
       end;
 
 
-    procedure ttypesym.write;
+    procedure ttypesym.write(ppufile:tcompilerppufile);
       begin
-         inherited writesym;
-         restype.write;
-         current_ppu^.writeentry(ibtypesym);
+         inherited writesym(ppufile);
+         ppufile.puttype(restype);
+         ppufile.writeentry(ibtypesym);
       end;
 
 
-    procedure ttypesym.load_references;
+    procedure ttypesym.load_references(ppufile:tcompilerppufile);
       begin
-         inherited load_references;
+         inherited load_references(ppufile);
          if (restype.def.deftype=recorddef) then
-           tstoredsymtable(trecorddef(restype.def).symtable).load_browser;
+           tstoredsymtable(trecorddef(restype.def).symtable).load_browser(ppufile);
          if (restype.def.deftype=objectdef) then
-           tstoredsymtable(tobjectdef(restype.def).symtable).load_browser;
+           tstoredsymtable(tobjectdef(restype.def).symtable).load_browser(ppufile);
       end;
 
 
-    function ttypesym.write_references : boolean;
+    function ttypesym.write_references(ppufile:tcompilerppufile) : boolean;
       begin
-        if not inherited write_references then
+        if not inherited write_references(ppufile) then
          { write address of this symbol if record or object
            even if no real refs are there
            because we need it for the symtable }
          if (restype.def.deftype=recorddef) or
             (restype.def.deftype=objectdef) then
           begin
-            writederef(self);
-            current_ppu^.writeentry(ibsymref);
+            ppufile.putderef(self);
+            ppufile.writeentry(ibsymref);
           end;
          write_references:=true;
          if (restype.def.deftype=recorddef) then
-           tstoredsymtable(trecorddef(restype.def).symtable).write_browser;
+           tstoredsymtable(trecorddef(restype.def).symtable).write_browser(ppufile);
          if (restype.def.deftype=objectdef) then
-           tstoredsymtable(tobjectdef(restype.def).symtable).write_browser;
+           tstoredsymtable(tobjectdef(restype.def).symtable).write_browser(ppufile);
       end;
 
 
@@ -2299,11 +2299,11 @@ implementation
          number:=l;
       end;
 
-    constructor tsyssym.load;
+    constructor tsyssym.load(ppufile:tcompilerppufile);
       begin
-         inherited loadsym;
+         inherited loadsym(ppufile);
          typ:=syssym;
-         number:=readlong;
+         number:=ppufile.getlongint;
       end;
 
     destructor tsyssym.destroy;
@@ -2311,11 +2311,11 @@ implementation
         inherited destroy;
       end;
 
-    procedure tsyssym.write;
+    procedure tsyssym.write(ppufile:tcompilerppufile);
       begin
-         inherited writesym;
-         writelong(number);
-         current_ppu^.writeentry(ibsyssym);
+         inherited writesym(ppufile);
+         ppufile.putlongint(number);
+         ppufile.writeentry(ibsyssym);
       end;
 
 {$ifdef GDB}
@@ -2328,7 +2328,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2001-04-18 22:01:59  peter
+  Revision 1.12  2001-05-06 14:49:17  peter
+    * ppu object to class rewrite
+    * move ppu read and write stuff to fppu
+
+  Revision 1.11  2001/04/18 22:01:59  peter
     * registration of targets and assemblers
 
   Revision 1.10  2001/04/13 01:22:16  peter
