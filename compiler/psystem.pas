@@ -103,7 +103,9 @@ begin
   p^.insert(new(ptypesym,initdef('s32real',s32floatdef)));
   p^.insert(new(ptypesym,initdef('s64real',s64floatdef)));
   p^.insert(new(ptypesym,initdef('s80real',s80floatdef)));
+{$ifdef SUPPORT_FIXED}
   p^.insert(new(ptypesym,initdef('s32fixed',s32fixeddef)));
+{$endif SUPPORT_FIXED}
   { Add a type for virtual method tables in lowercase }
   { so it isn't reachable!                            }
   vmtsymtable:=new(psymtable,init(recordsymtable));
@@ -143,8 +145,10 @@ begin
   p^.insert(new(ptypesym,initdef('WIDECHAR',cwidechardef)));
   p^.insert(new(ptypesym,initdef('TEXT',new(pfiledef,inittext))));
   p^.insert(new(ptypesym,initdef('CARDINAL',u32bitdef)));
+{$ifdef SUPPORT_FIXED}
   p^.insert(new(ptypesym,initdef('FIXED',new(pfloatdef,init(f32bit)))));
   p^.insert(new(ptypesym,initdef('FIXED16',new(pfloatdef,init(f16bit)))));
+{$endif SUPPORT_FIXED}
   p^.insert(new(ptypesym,initdef('QWORD',cu64bitdef)));
   p^.insert(new(ptypesym,initdef('INT64',cs64bitdef)));
   p^.insert(new(ptypesym,initdef('TYPEDFILE',new(pfiledef,inittypeddef(voiddef)))));
@@ -175,7 +179,9 @@ begin
   s32floatdef:=pfloatdef(globaldef('s32real'));
   s64floatdef:=pfloatdef(globaldef('s64real'));
   s80floatdef:=pfloatdef(globaldef('s80real'));
+{$ifdef SUPPORT_FIXED}
   s32fixeddef:=pfloatdef(globaldef('s32fixed'));
+{$endif SUPPORT_FIXED}
   booldef:=porddef(globaldef('boolean'));
   voidpointerdef:=ppointerdef(globaldef('void_pointer'));
   charpointerdef:=ppointerdef(globaldef('char_pointer'));
@@ -228,7 +234,9 @@ begin
   else
    s80floatdef:=new(pfloatdef,init(s80real));
 {$endif}
+{$ifdef SUPPORT_FIXED}
   s32fixeddef:=new(pfloatdef,init(f32bit));
+{$endif SUPPORT_FIXED}
   { some other definitions }
   voidpointerdef:=new(ppointerdef,initdef(voiddef));
   charpointerdef:=new(ppointerdef,initdef(cchardef));
@@ -241,7 +249,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  2000-02-09 13:23:00  peter
+  Revision 1.34  2000-02-15 14:36:45  florian
+    * disable FIXED data type per default
+
+  Revision 1.33  2000/02/09 13:23:00  peter
     * log truncated
 
   Revision 1.32  2000/01/07 01:14:33  peter

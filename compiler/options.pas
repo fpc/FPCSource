@@ -1205,6 +1205,10 @@ begin
   def_symbol('INCLUDEOK');
   def_symbol('NEWMM');
   def_symbol('HASWIDECHAR');
+
+{$ifdef SUPPORT_FIXED}
+  def_symbol('HASFIXED');
+{$endif SUPPORT_FIXED}
 {$ifdef cardinalmulfix}
 { for the compiler }
   def_symbol('CARDINALMULFIX');
@@ -1431,7 +1435,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.60  2000-02-10 11:45:48  peter
+  Revision 1.61  2000-02-15 14:36:45  florian
+    * disable FIXED data type per default
+
+  Revision 1.60  2000/02/10 11:45:48  peter
     * addpath fixed with list of paths when inserting at the beginning
     * if exepath=currentdir then it's not inserted in path list
     * searchpaths in ppc386.cfg are now added at the beginning of the

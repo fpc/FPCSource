@@ -72,4 +72,13 @@ Changes in the syntax or semantic of FPC:
   14/11/99   makefile.fpc is not available anymore. You must now use fpcmake
              which is available from the utils/. There is also an example
              Makefile.fpc
+  15/02/00   The support of the fixed data type has been removed from the
+             compiler because
+                1. it is buggy
+                2. it is very seldom used
+                3. the single data type is faster on modern cpus (Pentium+)
 
+             If still want to use it, you have to recompile the compiler
+             with -dSUPPORT_FIXED and recompile the rtl with that compiler.
+             To find out if the used compiler supports the fixed data
+             type, check the directive HASFIXED  (FK)
