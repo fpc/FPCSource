@@ -1,10 +1,12 @@
 #
+#   $Id$
+#
 #   Makefile.fpc for FP IDE
 #
 
 [package]
 name=ide
-version=1.0.8
+version=1.0.10
 
 [target]
 dirs=compiler fakegdb
@@ -221,3 +223,11 @@ endif
 clean_compiler:
         $(MAKE) -C compiler clean
         $(MAKE) -C ../compiler ppuclean
+
+#
+# $Log$
+# Revision 1.17  2003-10-03 17:29:13  florian
+#   + id and log added
+#
+#
+
