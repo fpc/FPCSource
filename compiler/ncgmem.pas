@@ -38,6 +38,10 @@ interface
           procedure pass_2;override;
        end;
 
+       tcgloadparentfpnode = class(tloadparentfpnode)
+          procedure pass_2;override;
+       end;
+
        tcgaddrnode = class(taddrnode)
           procedure pass_2;override;
        end;
@@ -72,6 +76,7 @@ interface
          procedure pass_2;override;
        end;
 
+
 implementation
 
     uses
@@ -94,7 +99,7 @@ implementation
 
 
 {*****************************************************************************
-                            TCGLOADNODE
+                              TCGLOADVMTADDRNODE
 *****************************************************************************}
 
     procedure tcgloadvmtaddrnode.pass_2;
@@ -158,6 +163,55 @@ implementation
               objectlibrary.newasmsymboldata(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),0);
             location.register:=rg.getaddressregister(exprasmlist);
             cg.a_loadaddr_ref_reg(exprasmlist,href,location.register);
+          end;
+      end;
+
+
+{*****************************************************************************
+                        TCGLOADPARENTFPNODE
+*****************************************************************************}
+
+    procedure tcgloadparentfpnode.pass_2;
+      var
+        currpi : tprocinfo;
+        hsym   : tvarsym;
+        href   : treference;
+      begin
+        if (current_procinfo.procdef.parast.symtablelevel=parentpd.parast.symtablelevel) then
+          begin
+            location_reset(location,LOC_REGISTER,OS_ADDR);
+            location.register:=current_procinfo.framepointer;
+          end
+        else
+          begin
+            currpi:=current_procinfo;
+            location_reset(location,LOC_REGISTER,OS_ADDR);
+            location.register:=rg.getaddressregister(exprasmlist);
+            { load framepointer of current proc }
+            hsym:=tvarsym(currpi.procdef.parast.search('parentfp'));
+            if not assigned(hsym) then
+              internalerror(200309281);
+            case hsym.localloc.loc of
+              LOC_REFERENCE :
+                begin
+                  reference_reset_base(href,hsym.localloc.reference.index,hsym.localloc.reference.offset);
+                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,location.register);
+                end;
+              LOC_REGISTER :
+                cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,hsym.localloc.register,location.register);
+            end;
+            { walk parents }
+            while (currpi.procdef.owner.symtablelevel>parentpd.parast.symtablelevel) do
+              begin
+                hsym:=tvarsym(currpi.procdef.parast.search('parentfp'));
+                if not assigned(hsym) then
+                  internalerror(200309282);
+                if hsym.localloc.loc<>LOC_REFERENCE then
+                  internalerror(200309283);
+                reference_reset_base(href,location.register,hsym.localloc.reference.offset);
+                cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,location.register);
+                currpi:=currpi.parent;
+              end;
           end;
       end;
 
@@ -803,6 +857,7 @@ implementation
 
 begin
    cloadvmtaddrnode:=tcgloadvmtaddrnode;
+   cloadparentfpnode:=tcgloadparentfpnode;
    caddrnode:=tcgaddrnode;
    cderefnode:=tcgderefnode;
    csubscriptnode:=tcgsubscriptnode;
@@ -811,7 +866,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2003-09-23 17:56:05  peter
+  Revision 1.74  2003-09-28 17:55:03  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.73  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

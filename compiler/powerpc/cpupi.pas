@@ -34,6 +34,8 @@ unit cpupi;
 
     type
        tppcprocinfo = class(tcgprocinfo)
+          { offset where the frame pointer from the outer procedure is stored. }
+          parent_framepointer_offset : longint;
           { max. of space need for parameters, currently used by the PowerPC port only }
           maxpushedparasize : aword;
           constructor create(aparent:tprocinfo);override;
@@ -124,7 +126,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2003-08-18 11:51:19  olle
+  Revision 1.28  2003-09-28 17:55:04  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.27  2003/08/18 11:51:19  olle
     + cleaning up in proc entry and exit, now calc_stack_frame always is used.
 
   Revision 1.26  2003/08/16 14:26:44  jonas

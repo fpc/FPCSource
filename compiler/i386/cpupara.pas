@@ -252,9 +252,6 @@ unit cpupara;
         parasize : longint;
       begin
         parasize:=0;
-{$warning HACK: framepointer reg shall be a normal parameter}
-        if p.parast.symtablelevel>normal_function_level then
-          inc(parasize,POINTER_SIZE);
         { we push Flags and CS as long
           to cope with the IRETD
           and we save 6 register + 4 selectors }
@@ -303,9 +300,6 @@ unit cpupara;
       begin
         parareg:=0;
         parasize:=0;
-{$warning HACK: framepointer reg shall be a normal parameter}
-        if p.parast.symtablelevel>normal_function_level then
-          inc(parareg);
         hp:=tparaitem(p.para.first);
         while assigned(hp) do
           begin
@@ -387,7 +381,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2003-09-28 13:35:24  peter
+  Revision 1.33  2003-09-28 17:55:04  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.32  2003/09/28 13:35:24  peter
     * register calling updates
 
   Revision 1.31  2003/09/25 21:30:11  peter

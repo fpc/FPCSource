@@ -1524,10 +1524,6 @@ implementation
         if assigned(current_procinfo.procdef.parast) and
            not (po_assembler in current_procinfo.procdef.procoptions) then
           begin
-            { save framepointer in memory }
-            if current_procinfo.procdef.parast.symtablelevel>normal_function_level then
-              cg.g_save_parent_framepointer_param(list);
-
             { move register parameters which aren't regable into memory                               }
             { we do this before init_paras because that one calls routines which may overwrite these  }
             { registers and it also expects the values to be in memory                                }
@@ -1635,11 +1631,11 @@ implementation
           begin
             { define calling EBP as pseudo local var PM }
             { this enables test if the function is a local one !! }
-            if  assigned(current_procinfo.parent) and
+            {if  assigned(current_procinfo.parent) and
                 (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
               list.concat(Tai_stabs.Create(strpnew(
                '"parent_ebp:'+tstoreddef(voidpointertype.def).numberstring+'",'+
-               tostr(N_LSYM)+',0,0,'+tostr(current_procinfo.parent_framepointer_offset))));
+               tostr(N_LSYM)+',0,0,'+tostr(current_procinfo.parent_framepointer_offset)))); }
 
             if (not is_void(current_procinfo.procdef.rettype.def)) and
                (tvarsym(current_procinfo.procdef.funcretsym).refs>0) then
@@ -2071,7 +2067,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.149  2003-09-28 13:39:38  peter
+  Revision 1.150  2003-09-28 17:55:03  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.149  2003/09/28 13:39:38  peter
     * optimized releasing of registers
 
   Revision 1.148  2003/09/25 21:28:00  peter

@@ -59,8 +59,6 @@ interface
           }
           function  align_parasize:longint;virtual;
           procedure pop_parasize(pop_size:longint);virtual;
-          procedure push_framepointer;virtual;
-          procedure free_pushed_framepointer;virtual;
           procedure extra_interrupt_code;virtual;
        public
           procedure pass_2;override;
@@ -258,43 +256,6 @@ implementation
 
     procedure tcgcallnode.pop_parasize(pop_size:longint);
       begin
-      end;
-
-
-    procedure tcgcallnode.push_framepointer;
-      var
-        href : treference;
-        hregister : tregister;
-      begin
-        framepointer_paraloc:=paramanager.getintparaloc(procdefinition.proccalloption,1);
-        paramanager.allocparaloc(exprasmlist,framepointer_paraloc);
-        { this routine is itself not nested }
-        if current_procinfo.procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel) then
-          begin
-            reference_reset_base(href,current_procinfo.framepointer,current_procinfo.parent_framepointer_offset);
-            cg.a_param_ref(exprasmlist,OS_ADDR,href,framepointer_paraloc);
-          end
-        { one nesting level }
-        else if (current_procinfo.procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
-          begin
-            cg.a_param_reg(exprasmlist,OS_ADDR,current_procinfo.framepointer,framepointer_paraloc);
-          end
-        { very complex nesting level ... }
-       else if (current_procinfo.procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
-          begin
-            hregister:=rg.getaddressregister(exprasmlist);
-            { we need to push the framepointer of the owner of the called
-              nested procedure }
-            cg.g_load_parent_framepointer(exprasmlist,procdefinition.owner,hregister);
-            cg.a_param_reg(exprasmlist,OS_ADDR,hregister,framepointer_paraloc);
-            rg.ungetaddressregister(exprasmlist,hregister);
-          end;
-      end;
-
-
-    procedure tcgcallnode.free_pushed_framepointer;
-      begin
-        paramanager.freeparaloc(exprasmlist,framepointer_paraloc);
       end;
 
 
@@ -525,12 +486,6 @@ implementation
                paramanager.freeparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
                ppn:=tcgcallparanode(ppn.right);
              end;
-           { free pushed base pointer }
-           if (right=nil) and
-              (current_procinfo.procdef.parast.symtablelevel>=normal_function_level) and
-              assigned(tprocdef(procdefinition).parast) and
-              ((tprocdef(procdefinition).parast.symtablelevel)>normal_function_level) then
-             free_pushed_framepointer;
          end;
 
       begin
@@ -631,12 +586,6 @@ implementation
                     not(is_cppclass(tprocdef(procdefinition)._class)) then
                    cg.g_maybe_testvmt(exprasmlist,methodpointer.location.register,tprocdef(procdefinition)._class);
                end;
-
-              { push base pointer ?}
-              if (current_procinfo.procdef.parast.symtablelevel>=normal_function_level) and
-                 assigned(tprocdef(procdefinition).parast) and
-                 ((tprocdef(procdefinition).parast.symtablelevel)>normal_function_level) then
-                push_framepointer;
 
               rg.saveotherregvars(exprasmlist,regs_to_push_other);
 
@@ -1162,7 +1111,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.118  2003-09-28 13:54:43  peter
+  Revision 1.119  2003-09-28 17:55:03  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.118  2003/09/28 13:54:43  peter
     * removed a_call_ref
 
   Revision 1.117  2003/09/25 21:28:00  peter

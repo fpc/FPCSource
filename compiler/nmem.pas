@@ -39,6 +39,15 @@ interface
        end;
        tloadvmtaddrnodeclass = class of tloadvmtaddrnode;
 
+       tloadparentfpnode = class(tunarynode)
+          parentpd : tprocdef;
+          constructor create(pd:tprocdef);virtual;
+          function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
+          function getcopy : tnode;override;
+       end;
+       tloadparentfpnodeclass = class of tloadparentfpnode;
+
        taddrnode = class(tunarynode)
           getprocvardef : tprocvardef;
           getprocvardefderef : tderef;
@@ -101,6 +110,7 @@ interface
 
     var
        cloadvmtaddrnode : tloadvmtaddrnodeclass;
+       cloadparentfpnode : tloadparentfpnodeclass;
        caddrnode : taddrnodeclass;
        cderefnode : tderefnodeclass;
        csubscriptnode : tsubscriptnodeclass;
@@ -152,6 +162,46 @@ implementation
            end;
          if registers32<1 then
            registers32:=1;
+      end;
+
+
+{*****************************************************************************
+                        TLOADPARENTFPNODE
+*****************************************************************************}
+
+    constructor tloadparentfpnode.create(pd:tprocdef);
+      begin
+        inherited create(loadparentfpn,nil);
+        if not assigned(pd) then
+          internalerror(200309288);
+        if (pd.parast.symtablelevel>current_procinfo.procdef.parast.symtablelevel) then
+          internalerror(200309284);
+        parentpd:=pd;
+      end;
+
+
+    function tloadparentfpnode.getcopy : tnode;
+      var
+         p : tloadparentfpnode;
+      begin
+         p:=tloadparentfpnode(inherited getcopy);
+         p.parentpd:=parentpd;
+         getcopy:=p;
+      end;
+
+
+    function tloadparentfpnode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype:=voidpointertype;
+      end;
+
+
+    function tloadparentfpnode.pass_1 : tnode;
+      begin
+        result:=nil;
+        expectloc:=LOC_REGISTER;
+        registers32:=1;
       end;
 
 
@@ -854,7 +904,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2003-09-06 22:27:08  florian
+  Revision 1.63  2003-09-28 17:55:04  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.62  2003/09/06 22:27:08  florian
     * fixed web bug 2669
     * cosmetic fix in printnode
     * tobjectdef.gettypename implemented

@@ -444,6 +444,7 @@ implementation
         nodeclass[loadvmtaddrn]:=cloadvmtaddrnode;
         nodeclass[guidconstn]:=cguidconstnode;
         nodeclass[rttin]:=crttinode;
+        nodeclass[loadparentfpn]:=cloadparentfpnode;
       end;
 
 
@@ -504,7 +505,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2003-09-23 17:56:06  peter
+  Revision 1.56  2003-09-28 17:55:04  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.55  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

@@ -111,11 +111,12 @@ interface
           nothingn,         {NOP, Do nothing}
           loadvmtaddrn,         {Load the address of the VMT of a class/object}
           guidconstn,       {A GUID COM Interface constant }
-          rttin             {Rtti information so they can be accessed in result/firstpass}
+          rttin,             {Rtti information so they can be accessed in result/firstpass}
+          loadparentfpn  { Load the framepointer of the parent for nested procedures }
        );
 
       const
-        nodetype2str : array[tnodetype] of string[20] = (
+        nodetype2str : array[tnodetype] of string[24] = (
           '<emptynode>',
           'addn',
           'muln',
@@ -188,7 +189,8 @@ interface
           'nothingn',
           'loadvmtaddrn',
           'guidconstn',
-          'rttin');
+          'rttin',
+          'loadparentfpn');
 
     type
        { all boolean field of ttree are now collected in flags }
@@ -975,7 +977,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2003-09-06 22:27:08  florian
+  Revision 1.67  2003-09-28 17:55:04  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.66  2003/09/06 22:27:08  florian
     * fixed web bug 2669
     * cosmetic fix in printnode
     * tobjectdef.gettypename implemented

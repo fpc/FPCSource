@@ -142,7 +142,8 @@ implementation
              'nothing-nothg',     {nothingn}
              'loadvmt',      {loadvmtn}
              'guidconstn',
-             'rttin'
+             'rttin',
+             'loadparentfpn'
              );
       var
         p: pchar;
@@ -248,6 +249,10 @@ implementation
       end;
 
     procedure generatecode(var p : tnode);
+{$ifdef EXTDEBUG}
+      var
+        sr : tsuperregister;
+{$endif EXTDEBUG}
       begin
          flowcontrol:=[];
          { when size optimization only count occurrence }
@@ -291,6 +296,12 @@ implementation
 
               do_secondpass(p);
 
+{$ifdef EXTDEBUG}
+              for sr:=first_int_imreg to last_int_imreg do
+                if not(sr in rg.unusedregsint) then
+                  Comment(V_Warning,'Register '+std_regname(newreg(R_INTREGISTER,sr,R_SUBWHOLE))+' not released');
+{$endif EXTDEBUG}
+
               if assigned(current_procinfo.procdef) then
                 current_procinfo.procdef.fpu_used:=p.registersfpu;
 
@@ -301,7 +312,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2003-09-03 15:55:01  peter
+  Revision 1.65  2003-09-28 17:55:04  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.64  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.63.2.3  2003/08/31 15:46:26  peter

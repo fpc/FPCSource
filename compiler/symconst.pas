@@ -257,7 +257,8 @@ type
     vo_is_self,
     vo_is_vmt,
     vo_is_result,  { special result variable }
-    vo_is_reg_para  { register parameter, no space allocation in parast, but in localst }
+    vo_is_reg_para, { register parameter, no space allocation in parast, but in localst }
+    vo_is_parentfp
   );
   tvaroptions=set of tvaroption;
 
@@ -374,7 +375,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2003-09-23 17:56:06  peter
+  Revision 1.65  2003-09-28 17:55:04  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.64  2003/09/23 17:56:06  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

@@ -123,6 +123,28 @@ implementation
       end;
 
 
+    procedure insert_parentfp_para(pd:tabstractprocdef);
+      var
+        storepos : tfileposinfo;
+        vs       : tvarsym;
+      begin
+        if pd.parast.symtablelevel>normal_function_level then
+          begin
+            storepos:=akttokenpos;
+            if pd.deftype=procdef then
+             akttokenpos:=tprocdef(pd).fileinfo;
+
+            { Generate result variable accessing function result }
+            vs:=tvarsym.create('$parentfp',vs_var,pd.rettype);
+            include(vs.varoptions,vo_is_parentfp);
+            pd.parast.insert(vs);
+            pd.insertpara(vs.vartype,vs,nil,true);
+
+            akttokenpos:=storepos;
+          end;
+      end;
+
+
     procedure insert_self_and_vmt_para(pd:tabstractprocdef);
       var
         storepos : tfileposinfo;
@@ -1740,6 +1762,8 @@ const
         insert_self_and_vmt_para(pd);
         { insert funcret parameter if required }
         insert_funcret_para(pd);
+        { insert parentfp parameter if required }
+        insert_parentfp_para(pd);
 
         currpara:=tparaitem(pd.para.first);
         while assigned(currpara) do
@@ -2117,7 +2141,11 @@ const
 end.
 {
   $Log$
-  Revision 1.137  2003-09-25 21:24:09  peter
+  Revision 1.138  2003-09-28 17:55:04  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.137  2003/09/25 21:24:09  peter
     * don't include vo_has_local_copy for open array/array of const
 
   Revision 1.136  2003/09/23 20:36:47  peter

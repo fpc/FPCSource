@@ -172,6 +172,18 @@ implementation
                        cg.a_label(exprasmlist,endrelocatelab);
                        location.reference.base:=hregister;
                     end
+                  { nested variable }
+                  else if assigned(left) then
+                    begin
+                      if not(symtabletype in [localsymtable,parasymtable]) then
+                        internalerror(200309285);
+                      secondpass(left);
+                      if left.location.loc<>LOC_REGISTER then
+                        internalerror(200309286);
+                      hregister:=left.location.register;
+                      location.reference.base:=hregister;
+                      location.reference.offset:=tvarsym(symtableentry).localloc.reference.offset;
+                    end
                   { normal variable }
                   else
                     begin
@@ -211,13 +223,6 @@ implementation
                                     internalerror(2003091816);
                                   location.reference.base:=tvarsym(symtableentry).localloc.reference.index;
                                   location.reference.offset:=tvarsym(symtableentry).localloc.reference.offset;
-
-                                  if (current_procinfo.procdef.parast.symtablelevel>symtable.symtablelevel) then
-                                    begin
-                                       hregister:=rg.getaddressregister(exprasmlist);
-                                       cg.g_load_parent_framepointer(exprasmlist,symtable,hregister);
-                                       location.reference.base:=hregister;
-                                    end;
                                 end;
                               globalsymtable,
                               staticsymtable :
@@ -916,7 +921,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2003-09-28 13:39:38  peter
+  Revision 1.86  2003-09-28 17:55:03  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.85  2003/09/28 13:39:38  peter
     * optimized releasing of registers
 
   Revision 1.84  2003/09/25 21:27:31  peter

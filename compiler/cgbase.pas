@@ -72,14 +72,6 @@ unit cgbase;
           entryswitches : tlocalswitches;
           { local switches at end of procedure }
           exitswitches  : tlocalswitches;
-          {# offset from frame pointer to get parent frame pointer reference
-             (used in nested routines only)
-             On the PowerPC, this is used to store the offset where the
-             frame pointer from the outer procedure is stored.
-          }
-          parent_framepointer_offset : longint;
-          {# firsttemp position }
-          firsttemp_offset : longint;
 
           { Size of the parameters on the stack }
           para_stack_size : longint;
@@ -107,8 +99,6 @@ unit cgbase;
 
           constructor create(aparent:tprocinfo);virtual;
           destructor destroy;override;
-
-          procedure allocate_parent_framepointer_parameter;virtual;
 
           { Allocate framepointer so it can not be used by the
             register allocator }
@@ -310,9 +300,6 @@ implementation
         parent:=aparent;
         procdef:=nil;
         para_stack_size:=0;
-{$warning TODO maybe remove parent_framepointer_offset for i386}
-        parent_framepointer_offset:=0;
-        firsttemp_offset:=0;
         flags:=[];
         framepointer:=NR_FRAME_POINTER_REG;
         { asmlists }
@@ -328,12 +315,6 @@ implementation
       begin
          aktproccode.free;
          aktlocaldata.free;
-      end;
-
-
-    procedure tprocinfo.allocate_parent_framepointer_parameter;
-      begin
-        parent_framepointer_offset:=target_info.first_parm_offset;
       end;
 
 
@@ -369,13 +350,6 @@ implementation
 
     procedure tprocinfo.handle_body_start;
       begin
-(*
-         { temporary space is set, while the BEGIN of the procedure }
-         if (symtablestack.symtabletype=localsymtable) then
-           current_procinfo.firsttemp_offset := tg.direction*symtablestack.datasize
-         else
-           current_procinfo.firsttemp_offset := 0;
-*)
       end;
 
 
@@ -546,7 +520,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  2003-09-25 21:25:13  peter
+  Revision 1.66  2003-09-28 17:55:03  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.65  2003/09/25 21:25:13  peter
     * remove allocate_intterupt_parameter, allocation is platform
       dependent and needs to be done in create_paraloc_info
 

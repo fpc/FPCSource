@@ -285,9 +285,6 @@ unit cgobj;
           }
          procedure g_exception_reason_load(list : taasmoutput; const href : treference);virtual;
 
-          procedure g_load_parent_framepointer(list:taasmoutput;parentsymtable:tsymtable;reg:tregister);
-          procedure g_save_parent_framepointer_param(list:taasmoutput);virtual;
-
           procedure g_maybe_testself(list : taasmoutput;reg:tregister);
           procedure g_maybe_testvmt(list : taasmoutput;reg:tregister;objdef:tobjectdef);
           {# This should emit the opcode to copy len bytes from the source
@@ -1079,31 +1076,6 @@ unit cgobj;
       end;
 
 
-    procedure tcg.g_load_parent_framepointer(list:taasmoutput;parentsymtable:tsymtable;reg:tregister);
-      var
-        href : treference;
-        i : integer;
-      begin
-        { make a reference }
-        reference_reset_base(href,current_procinfo.framepointer,PARENT_FRAMEPOINTER_OFFSET);
-        cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,reg);
-        { walk parents }
-        i:=current_procinfo.procdef.parast.symtablelevel-1;
-        while (i>parentsymtable.symtablelevel) do
-          begin
-             { make a reference }
-             reference_reset_base(href,reg,PARENT_FRAMEPOINTER_OFFSET);
-             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,reg);
-             dec(i);
-          end;
-      end;
-
-
-    procedure tcg.g_save_parent_framepointer_param(list:taasmoutput);
-      begin
-      end;
-
-
     procedure tcg.g_copyshortstring(list : taasmoutput;const source,dest : treference;len:byte;delsource,loadref : boolean);
       var
         paraloc1,paraloc2,paraloc3 : tparalocation;
@@ -1552,7 +1524,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.124  2003-09-28 13:40:13  peter
+  Revision 1.125  2003-09-28 17:55:03  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.124  2003/09/28 13:40:13  peter
     * a_call_ref removed
 
   Revision 1.123  2003/09/25 21:26:24  peter

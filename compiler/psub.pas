@@ -1114,19 +1114,10 @@ implementation
              { Insert result variables in the localst }
              insert_funcret_local(pd);
 
-(*
-             { Insert local copies for value para }
-             pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}insert_local_value_para,nil);
-*)
-
              { check if there are para's which require initing -> set }
              { pi_do_call (if not yet set)                            }
              if not(pi_do_call in current_procinfo.flags) then
                pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_init_paras,nil);
-
-             { Update parameter information }
-             if (current_procinfo.procdef.parast.symtablelevel>normal_function_level) then
-               current_procinfo.allocate_parent_framepointer_parameter;
 
              { set _FAIL as keyword if constructor }
              if (pd.proctypeoption=potype_constructor) then
@@ -1297,7 +1288,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.152  2003-09-27 13:29:43  peter
+  Revision 1.153  2003-09-28 17:55:04  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.152  2003/09/27 13:29:43  peter
     * fix reported file position for not matched forwards
 
   Revision 1.151  2003/09/25 21:25:13  peter

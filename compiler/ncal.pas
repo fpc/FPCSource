@@ -1853,6 +1853,13 @@ type
                if vo_is_vmt in tvarsym(currpara.parasym).varoptions then
                  begin
                    hiddentree:=gen_vmt_tree;
+                 end
+              else
+               if vo_is_parentfp in tvarsym(currpara.parasym).varoptions then
+                 begin
+                   if not(assigned(procdefinition.owner.defowner)) then
+                     internalerror(200309287);
+                   hiddentree:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner));
                  end;
               { add the hidden parameter }
               if not assigned(hiddentree) then
@@ -2513,7 +2520,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.182  2003-09-25 21:28:00  peter
+  Revision 1.183  2003-09-28 17:55:03  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.182  2003/09/25 21:28:00  peter
     * parameter fixes
 
   Revision 1.181  2003/09/23 17:56:05  peter

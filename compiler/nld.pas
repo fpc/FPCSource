@@ -383,6 +383,15 @@ implementation
             varsym :
               begin
                 inc(tvarsym(symtableentry).refs);
+                { Nested variable? The we need to load the framepointer of
+                  the parent procedure }
+                if (symtable.symtabletype in [localsymtable,parasymtable]) and
+                   (symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel) then
+                  begin
+                    if assigned(left) then
+                      internalerror(200309289);
+                    left:=cloadparentfpnode.create(tprocdef(symtable.defowner));
+                  end;
                 { if it's refered by absolute then it's used }
                 if nf_absolute in flags then
                   tvarsym(symtableentry).varstate:=vs_used
@@ -463,19 +472,8 @@ implementation
               end;
             varsym :
               begin
-                if (symtable.symtabletype in [parasymtable,localsymtable]) and
-                   (current_procinfo.procdef.parast.symtablelevel>symtable.symtablelevel) then
-                  begin
-                    { if the variable is in an other stackframe then we need
-                      a register to dereference }
-                    if symtable.symtablelevel>normal_function_level then
-                     begin
-                       registers32:=1;
-                       { further, the variable can't be put into a register }
-                       tvarsym(symtableentry).varoptions:=
-                         tvarsym(symtableentry).varoptions-[vo_fpuregable,vo_regable];
-                     end;
-                  end;
+                if assigned(left) then
+                  firstpass(left);
                 if (tvarsym(symtableentry).varspez=vs_const) then
                   expectloc:=LOC_CREFERENCE;
                 { we need a register for call by reference parameters }
@@ -1275,7 +1273,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.106  2003-09-23 17:56:05  peter
+  Revision 1.107  2003-09-28 17:55:03  peter
+    * parent framepointer changed to hidden parameter
+    * tloadparentfpnode added
+
+  Revision 1.106  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure
