@@ -378,12 +378,14 @@ begin
          else
            begin
               aktprocsym:=tprocsym(procinfo^._class.implementedinterfaces.interfaces(i).symtable.search(sp));
-              if not(assigned(aktprocsym)) then
-                Message(parser_e_methode_id_expected);
+              { the method can be declared after the mapping FK
+                if not(assigned(aktprocsym)) then
+                  Message(parser_e_methode_id_expected);
+              }
            end;
          consume(_ID);
          consume(_EQUAL);
-         if (token=_ID) and assigned(aktprocsym) then
+         if (token=_ID) { and assigned(aktprocsym) } then
            procinfo^._class.implementedinterfaces.addmappings(i,sp,pattern);
          consume(_ID);
          exit;
@@ -663,7 +665,8 @@ begin
                    parse_proc_head(potype_none);
                    if token<>_COLON then
                     begin
-                       if not(is_interface(aktprocsym.definition._class)) and
+                       if assigned(aktprocsym) and
+                          not(is_interface(aktprocsym.definition._class)) and
                           not(aktprocsym.definition.forwarddef) or
                          (m_repeat_forward in aktmodeswitches) then
                        begin
@@ -683,7 +686,8 @@ begin
     _PROCEDURE : begin
                    consume(_PROCEDURE);
                    parse_proc_head(potype_none);
-                   aktprocsym.definition.rettype:=voidtype;
+                   if assigned(aktprocsym) then
+                     aktprocsym.definition.rettype:=voidtype;
                  end;
   _CONSTRUCTOR : begin
                    consume(_CONSTRUCTOR);
@@ -1914,7 +1918,11 @@ const
 end.
 {
   $Log$
-  Revision 1.33  2001-08-19 21:11:20  florian
+  Revision 1.34  2001-08-22 21:16:21  florian
+    * some interfaces related problems regarding
+      mapping of interface implementions fixed
+
+  Revision 1.33  2001/08/19 21:11:20  florian
     * some bugs fix:
       - overload; with external procedures fixed
       - better selection of routine to do an overloaded

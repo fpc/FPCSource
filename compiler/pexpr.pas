@@ -870,7 +870,7 @@ implementation
                 end;
 
               { we assume, that only procsyms and varsyms are in an object }
-              { symbol table, for classes, properties are allowed         }
+              { symbol table, for classes, properties are allowed          }
               case sym.typ of
                  procsym:
                    begin
@@ -2324,7 +2324,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2001-08-06 21:40:47  peter
+  Revision 1.40  2001-08-22 21:16:21  florian
+    * some interfaces related problems regarding
+      mapping of interface implementions fixed
+
+  Revision 1.39  2001/08/06 21:40:47  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.38  2001/07/09 21:15:41  peter

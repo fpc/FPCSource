@@ -119,10 +119,10 @@ interface
 
       tclassheaderclass=class of tclassheader;
 
-    var     
+    var
       cclassheader : tclassheaderclass;
 
-      
+
 implementation
 
     uses
@@ -630,8 +630,8 @@ implementation
                                        if (procdefcoll^.data.proccalloptions<>hp.proccalloptions) or
                                           (procdefcoll^.data.proctypeoption<>hp.proctypeoption) or
                                           ((procdefcoll^.data.procoptions-
-                                              [po_abstractmethod,po_overridingmethod,po_assembler])<>
-                                           (hp.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler])) then
+                                              [po_abstractmethod,po_overridingmethod,po_assembler,po_overload])<>
+                                           (hp.procoptions-[po_abstractmethod,po_overridingmethod,po_assembler,po_overload])) then
                                          Message1(parser_e_header_dont_match_forward,hp.fullprocname);
 
                                        { check, if the overridden directive is set }
@@ -1021,11 +1021,11 @@ implementation
       begin
         implprocdef:=nil;
         sym:=tprocsym(search_class_member(_class,name));
-        if assigned(sym) and (sym.typ=procsym) and not (sp_private in sym.symoptions) then
+        if assigned(sym) and (sym.typ=procsym) then
           begin
             implprocdef:=sym.definition;
             while assigned(implprocdef) and not equal_paras(proc.para,implprocdef.para,cp_none) and
-                  (proc.proccalloptions<>implprocdef.proccalloptions) do
+              (proc.proccalloptions<>implprocdef.proccalloptions) do
               implprocdef:=implprocdef.nextoverloaded;
           end;
         gintfgetcprocdef:=implprocdef;
@@ -1052,7 +1052,8 @@ implementation
                 repeat
                   mappedname:=_class.implementedinterfaces.getmappings(intfindex,proc.procsym.name,nextexist);
                   if procname='' then
-                    procname:=mappedname; { for error messages }
+                    procname:=proc.procsym.name;
+                    //mappedname; { for error messages }
                   if mappedname<>'' then
                     implprocdef:=gintfgetcprocdef(proc,mappedname);
                 until assigned(implprocdef) or not assigned(nextexist);
@@ -1272,7 +1273,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2001-04-21 13:37:16  peter
+  Revision 1.2  2001-08-22 21:16:20  florian
+    * some interfaces related problems regarding
+      mapping of interface implementions fixed
+
+  Revision 1.1  2001/04/21 13:37:16  peter
     * made tclassheader using class of to implement cpu dependent code
 
   Revision 1.20  2001/04/18 22:01:54  peter

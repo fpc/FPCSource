@@ -934,21 +934,27 @@ implementation
                       oldparse_only:=parse_only;
                       parse_only:=true;
                       parse_proc_dec;
+                      { this is for error recovery as well as forward }
+                      { interface mappings, i.e. mapping to a method  }
+                      { which isn't declared yet                      }
+                      if assigned(aktprocsym) then
+                        begin
 {$ifndef newcg}
-                      parse_object_proc_directives(aktprocsym);
+                            parse_object_proc_directives(aktprocsym);
 {$endif newcg}
-                      { check if there are duplicates }
-                      check_identical_proc(temppd);
-                      if (po_msgint in aktprocsym.definition.procoptions) then
-                        include(aktclass.objectoptions,oo_has_msgint);
+                            { check if there are duplicates }
+                            check_identical_proc(temppd);
+                            if (po_msgint in aktprocsym.definition.procoptions) then
+                             include(aktclass.objectoptions,oo_has_msgint);
 
-                      if (po_msgstr in aktprocsym.definition.procoptions) then
-                        include(aktclass.objectoptions,oo_has_msgstr);
+                            if (po_msgstr in aktprocsym.definition.procoptions) then
+                              include(aktclass.objectoptions,oo_has_msgstr);
 
-                      if (po_virtualmethod in aktprocsym.definition.procoptions) then
-                        include(aktclass.objectoptions,oo_has_virtual);
+                            if (po_virtualmethod in aktprocsym.definition.procoptions) then
+                              include(aktclass.objectoptions,oo_has_virtual);
 
-                      chkcpp;
+                            chkcpp;
+                         end;
 
                       parse_only:=oldparse_only;
                     end;
@@ -1039,7 +1045,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2001-06-03 21:57:36  peter
+  Revision 1.27  2001-08-22 21:16:20  florian
+    * some interfaces related problems regarding
+      mapping of interface implementions fixed
+
+  Revision 1.26  2001/06/03 21:57:36  peter
     + hint directive parsing support
 
   Revision 1.25  2001/05/04 15:52:03  florian

@@ -3258,7 +3258,7 @@ implementation
       begin
         s:='';
         first:=true;
-        for i:=1to proccallopts do
+        for i:=1 to proccallopts do
          if (proccallopt[i].mask in proccalloptions) then
           begin
             if first then
@@ -5489,7 +5489,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2001-08-19 09:39:27  peter
+  Revision 1.44  2001-08-22 21:16:22  florian
+    * some interfaces related problems regarding
+      mapping of interface implementions fixed
+
+  Revision 1.43  2001/08/19 09:39:27  peter
     * local browser support fixed
 
   Revision 1.41  2001/08/12 20:04:33  peter
