@@ -993,12 +993,15 @@ END;
 {  Prev -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB              }
 {---------------------------------------------------------------------------}
 FUNCTION TView.Prev: PView;
-VAR P: PView;
+VAR NP : PView;
 BEGIN
-   P := @Self;                                        { Start with self }
-   While (P^.Next <> Nil) AND (P^.Next <> @Self)
-     Do P := P^.Next;                                 { Locate next view }
-   Prev := P;                                         { Return result }
+   Prev := @Self;
+   NP := Next;
+   While (NP <> Nil) AND (NP <> @Self) Do
+     Begin
+       Prev := NP;                                       { Locate next view }
+       NP := NP^.Next;
+     End;
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -2528,7 +2531,9 @@ BEGIN
    { redraw this }
    inherited RedrawArea(X1,Y1,X2,Y2);
    { redraw group members }
-   If (DrawMask AND vdNoChild = 0) Then Begin         { No draw child clear }
+   If (DrawMask AND vdNoChild = 0) and
+      (X1<RawOrigin.X+RawSize.X) and                  { No need to parse childs for Shadows }
+      (Y1<RawOrigin.Y+RawSize.Y) Then Begin           { No draw child clear }
      P := Last;                                       { Start on Last }
      While (P <> Nil) Do Begin
        P^.ReDrawArea(X1, Y1, X2, Y2);                 { Redraw each subview }
@@ -5521,7 +5526,10 @@ END.
 
 {
  $Log$
- Revision 1.18  2001-10-02 16:35:51  pierre
+ Revision 1.19  2002-05-16 21:23:34  pierre
+  * fix some display problems
+
+ Revision 1.18  2001/10/02 16:35:51  pierre
   * fix several problems, try to get the graph version to compile
 
  Revision 1.17  2001/08/05 23:54:33  pierre
