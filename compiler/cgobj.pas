@@ -348,7 +348,8 @@ unit cgobj;
           {# Generates overflow checking code for a node }
           procedure g_overflowcheck(list: taasmoutput; const p: tnode); virtual; abstract;
 
-          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer); virtual; abstract;
+          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);virtual;abstract;
+          procedure g_removevaluepara_openarray(list : taasmoutput;const ref:treference;elesize:integer);virtual;abstract;
           {# Emits instructions which should be emitted when entering
              a routine declared as @var(interrupt). The default
              behavior does nothing, should be overriden as required.
@@ -1584,7 +1585,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.54  2002-09-01 12:09:27  peter
+  Revision 1.55  2002-09-01 17:05:43  florian
+    + added abstract tcg.g_removevaluepara_openarray
+
+  Revision 1.54  2002/09/01 12:09:27  peter
     + a_call_reg, a_call_loc added
     * removed exprasmlist references
 
