@@ -191,23 +191,61 @@ unit tree;
           error : boolean;
           constructor init;
           destructor done;virtual;
+          { runs det_resulttype and det_temp }
+          procedure pass_1;
+          { dermines the resulttype of the node }
+          procedure det_resulttype;virtual;
+          { dermines the number of necessary temp. locations to evalute
+            the node }
+          procedure det_temp;virtual;
+          procedure secondpass;virtual;
        end;
 
-       ploadnode = object(tnode)
+       ploadnode = ^tloadnode;
+
+       tloadnode = object(tnode)
           symtableentry : psym;
           symtable : psymtable;
           is_absolute,is_first,is_methodpointer : boolean;
-          constructor init;
+          constructor init(v : pvarsym;st : psymtable);
           destructor done;virtual;
        end;
 
-          left,right : ptree;
-          { is true, if the right and left operand are swaped }
+{$ifndef nooldtree}
+       { allows to determine which elementes are to be replaced }
+       tdisposetyp = (dt_nothing,dt_leftright,dt_left,
+                      dt_mbleft,dt_typeconv,dt_inlinen,
+                      dt_mbleft_and_method,dt_loop,dt_case,dt_with,dt_onn);
+
+       ptree = ^ttree;
+       ttree = record
+          error : boolean;
+          disposetyp : tdisposetyp;
+          { is true, if the
+           right and left operand are swaped }
           swaped : boolean;
+
+          { the location of the result of this node }
+          location : tlocation;
+
+          { the number of registers needed to evalute the node }
+          registers32,registersfpu : longint;  { must be longint !!!! }
+{$ifdef SUPPORT_MMX}
+          registersmmx : longint;
+{$endif SUPPORT_MMX}
+          left,right : ptree;
+          resulttype : pdef;
+          fileinfo : tfileposinfo;
+          localswitches : tlocalswitches;
+{$ifdef extdebug}
+          firstpasscount : longint;
+{$endif extdebug}
           case treetype : ttreetyp of
              addn : (use_strconcat : boolean;string_typ : tstringtype);
              callparan : (is_colon_para : boolean;exact_match_found : boolean);
              assignn : (assigntyp : tassigntyp;concat_string : boolean);
+             loadn : (symtableentry : psym;symtable : psymtable;
+                      is_absolute,is_first,is_methodpointer : boolean);
              calln : (symtableprocentry : psym;
                       symtableproc : psymtable;procdefinition : pprocdef;
                       methodpointer : ptree;
@@ -232,6 +270,54 @@ unit tree;
              withn : (withsymtable : psymtable;tablecount : longint);
              onn : (exceptsymtable : psymtable;excepttype : pobjectdef);
              arrayconstructn : (cargs,cargswap: boolean);
+           end;
+{$endif}
+          punarynode = ^tunarynode;
+          tunarynode = object(tnode)
+             left : pnode;
+          end;
+
+          pbinarynode = ^tbinarynode;
+          tbinarynode = object(tunarynode)
+             right : pnode;
+          end;
+
+          pbinopnode = ^tbinopnode;
+          tbinopnode = object(tbinarynode)
+             { is true, if the right and left operand are swaped }
+             { against the original order                        }
+             swaped : boolean;
+          end;
+
+{$ifdef dummy}
+          case treetype : ttreetyp of
+             addn : (use_strconcat : boolean;string_typ : tstringtype);
+             callparan : (is_colon_para : boolean;exact_match_found : boolean);
+             assignn : (assigntyp : tassigntyp;concat_string : boolean);
+             calln : (symtableprocentry : psym;
+                      symtableproc : psymtable;procdefinition : pprocdef;
+                      methodpointer : ptree;
+                      no_check,unit_specific,return_value_used : boolean);
+             ordconstn : (value : longint);
+             realconstn : (value_real : bestreal;lab_real : plabel;realtyp : tait);
+             fixconstn : (value_fix: longint);
+             funcretn : (funcretprocinfo : pointer;retdef : pdef);
+             subscriptn : (vs : pvarsym);
+             vecn : (memindex,memseg:boolean;callunique : boolean);
+             stringconstn : (value_str : pchar;length : longint; lab_str : plabel;stringtype : tstringtype);
+             typeconvn : (convtyp : tconverttype;explizit : boolean);
+             typen : (typenodetype : pdef);
+             inlinen : (inlinenumber : byte;inlineconst:boolean);
+             procinlinen : (inlineprocdef : pprocdef;
+                            retoffset,para_offset,para_size : longint);
+             setconstn : (value_set : pconstset;lab_set:plabel);
+             loopn : (t1,t2 : ptree;backward : boolean);
+             casen : (nodes : pcaserecord;elseblock : ptree);
+             labeln,goton : (labelnr : plabel);
+             withn : (withsymtable : psymtable;tablecount : longint);
+             onn : (exceptsymtable : psymtable;excepttype : pobjectdef);
+             arrayconstructn : (cargs,cargswap: boolean);
+{$endif dummy}
 
     function gennode(t : ttreetyp;l,r : ptree) : ptree;
     function genlabelnode(t : ttreetyp;nr : plabel) : ptree;
@@ -342,11 +428,36 @@ unit tree;
 {$endif extdebug}
       end;
 
+    procedure tnode.pass_1;
+
+      begin
+         det_resulttype;
+         det_temp;
+      end;
+
+    procedure tnode.det_resulttype;
+
+      begin
+         abstract;
+      end;
+
+    procedure tnode.det_temp;
+
+      begin
+         abstract;
+      end;
+
+    procedure tnode.secondpass;
+
+      begin
+         abstract;
+      end;
+
 {****************************************************************************
                                  TLOADNODE
  ****************************************************************************}
 
-    constructor tloadnode.init(v : pvarsym;st : psymtable) : ptree;
+    constructor tloadnode.init(v : pvarsym;st : psymtable);
 
       var
          p : ptree;
@@ -373,7 +484,6 @@ unit tree;
       end;
 
 {$ifdef dummy}
-
          { clean up the contents of a node }
          case p^.treetype of
           asmn : if assigned(p^.p_asm) then
@@ -386,7 +496,7 @@ unit tree;
                      dispose(p^.value_set);
                  end;
          end;
-
+{$endif dummy}
 
     procedure deletecaselabels(p : pcaserecord);
 
@@ -412,6 +522,27 @@ unit tree;
         p^.swaped:=not(p^.swaped);
     end;
 
+    function gennode(t : ttreetyp;l,r : ptree) : ptree;
+
+      var
+         p : ptree;
+
+      begin
+         p:=getnode;
+         p^.disposetyp:=dt_leftright;
+         p^.treetype:=t;
+         p^.left:=l;
+         p^.right:=r;
+         p^.registers32:=0;
+         { p^.registers16:=0;
+         p^.registers8:=0; }
+         p^.registersfpu:=0;
+{$ifdef SUPPORT_MMX}
+         p^.registersmmx:=0;
+{$endif SUPPORT_MMX}
+         p^.resulttype:=nil;
+         gennode:=p;
+      end;
 
     procedure disposetree(p : ptree);
 
@@ -511,6 +642,137 @@ unit tree;
         p^.fileinfo:=filepos;
      end;
 
+    function getnode : ptree;
+
+      var
+         hp : ptree;
+
+      begin
+         new(hp);
+         { makes error tracking easier }
+         fillchar(hp^,sizeof(ttree),0);
+         { reset }
+         hp^.location.loc:=LOC_INVALID;
+         { save local info }
+         hp^.fileinfo:=aktfilepos;
+         hp^.localswitches:=aktlocalswitches;
+         getnode:=hp;
+      end;
+
+
+    procedure putnode(p : ptree);
+      begin
+         { clean up the contents of a node }
+         case p^.treetype of
+          asmn : if assigned(p^.p_asm) then
+                  dispose(p^.p_asm,done);
+  stringconstn : begin
+                   ansistringdispose(p^.value_str,p^.length);
+                 end;
+     setconstn : begin
+                   if assigned(p^.value_set) then
+                     dispose(p^.value_set);
+                 end;
+         end;
+         { reference info }
+         if (p^.location.loc in [LOC_MEM,LOC_REFERENCE]) and
+            assigned(p^.location.reference.symbol) then
+           stringdispose(p^.location.reference.symbol);
+{$ifdef extdebug}
+         if p^.firstpasscount>maxfirstpasscount then
+            maxfirstpasscount:=p^.firstpasscount;
+{$endif extdebug}
+         dispose(p);
+      end;
+
+    function getcopy(p : ptree) : ptree;
+
+      var
+         hp : ptree;
+
+      begin
+         hp:=getnode;
+         hp^:=p^;
+         if assigned(p^.location.reference.symbol) then
+           hp^.location.reference.symbol:=stringdup(p^.location.reference.symbol^);
+         case p^.disposetyp of
+            dt_leftright :
+              begin
+                 if assigned(p^.left) then
+                   hp^.left:=getcopy(p^.left);
+                 if assigned(p^.right) then
+                   hp^.right:=getcopy(p^.right);
+              end;
+            dt_nothing : ;
+            dt_left    :
+              if assigned(p^.left) then
+                hp^.left:=getcopy(p^.left);
+            dt_mbleft :
+              if assigned(p^.left) then
+                hp^.left:=getcopy(p^.left);
+            dt_mbleft_and_method :
+              begin
+                 if assigned(p^.left) then
+                   hp^.left:=getcopy(p^.left);
+                 hp^.methodpointer:=getcopy(p^.methodpointer);
+              end;
+            dt_loop :
+              begin
+                 if assigned(p^.left) then
+                   hp^.left:=getcopy(p^.left);
+                 if assigned(p^.right) then
+                   hp^.right:=getcopy(p^.right);
+                 if assigned(p^.t1) then
+                   hp^.t1:=getcopy(p^.t1);
+                 if assigned(p^.t2) then
+                   hp^.t2:=getcopy(p^.t2);
+              end;
+            dt_typeconv : hp^.left:=getcopy(p^.left);
+            dt_inlinen :
+              if assigned(p^.left) then
+                hp^.left:=getcopy(p^.left);
+            else internalerror(11);
+         end;
+       { now check treetype }
+         case p^.treetype of
+  stringconstn : begin
+                   hp^.value_str:=getpcharcopy(p);
+                   hp^.length:=p^.length;
+                 end;
+     setconstn : begin
+                   new(hp^.value_set);
+                   hp^.value_set:=p^.value_set;
+                 end;
+         end;
+         getcopy:=hp;
+      end;
+
+    function genloadnode(v : pvarsym;st : psymtable) : ptree;
+
+      var
+         p : ptree;
+
+      begin
+         p:=getnode;
+         p^.registers32:=0;
+{         p^.registers16:=0;
+         p^.registers8:=0; }
+         p^.registersfpu:=0;
+{$ifdef SUPPORT_MMX}
+         p^.registersmmx:=0;
+{$endif SUPPORT_MMX}
+         p^.treetype:=loadn;
+         p^.resulttype:=v^.definition;
+         p^.symtableentry:=v;
+         p^.symtable:=st;
+         p^.is_first := False;
+         p^.is_methodpointer:=false;
+         { method pointer load nodes can use the left subtree }
+         p^.disposetyp:=dt_left;
+         p^.left:=nil;
+         genloadnode:=p;
+      end;
+
    function genwithnode(symtable : psymtable;l,r : ptree;count : longint) : ptree;
 
       var
@@ -580,28 +842,6 @@ unit tree;
          p^.is_colon_para:=false;
          set_file_line(expr,p);
          gencallparanode:=p;
-      end;
-
-    function gennode(t : ttreetyp;l,r : ptree) : ptree;
-
-      var
-         p : ptree;
-
-      begin
-         p:=getnode;
-         p^.disposetyp:=dt_leftright;
-         p^.treetype:=t;
-         p^.left:=l;
-         p^.right:=r;
-         p^.registers32:=0;
-         { p^.registers16:=0;
-         p^.registers8:=0; }
-         p^.registersfpu:=0;
-{$ifdef SUPPORT_MMX}
-         p^.registersmmx:=0;
-{$endif SUPPORT_MMX}
-         p^.resulttype:=nil;
-         gennode:=p;
       end;
 
     function gencasenode(l,r : ptree;nodes : pcaserecord) : ptree;
@@ -1532,74 +1772,13 @@ unit tree;
         is_emptyset:=(i=32);
       end;
 
-    function getcopy(p : ptree) : ptree;
-
-      var
-         hp : ptree;
-
-      begin
-         hp:=getnode;
-         hp^:=p^;
-         if assigned(p^.location.reference.symbol) then
-           hp^.location.reference.symbol:=stringdup(p^.location.reference.symbol^);
-         case p^.disposetyp of
-            dt_leftright :
-              begin
-                 if assigned(p^.left) then
-                   hp^.left:=getcopy(p^.left);
-                 if assigned(p^.right) then
-                   hp^.right:=getcopy(p^.right);
-              end;
-            dt_nothing : ;
-            dt_left    :
-              if assigned(p^.left) then
-                hp^.left:=getcopy(p^.left);
-            dt_mbleft :
-              if assigned(p^.left) then
-                hp^.left:=getcopy(p^.left);
-            dt_mbleft_and_method :
-              begin
-                 if assigned(p^.left) then
-                   hp^.left:=getcopy(p^.left);
-                 hp^.methodpointer:=getcopy(p^.methodpointer);
-              end;
-            dt_loop :
-              begin
-                 if assigned(p^.left) then
-                   hp^.left:=getcopy(p^.left);
-                 if assigned(p^.right) then
-                   hp^.right:=getcopy(p^.right);
-                 if assigned(p^.t1) then
-                   hp^.t1:=getcopy(p^.t1);
-                 if assigned(p^.t2) then
-                   hp^.t2:=getcopy(p^.t2);
-              end;
-            dt_typeconv : hp^.left:=getcopy(p^.left);
-            dt_inlinen :
-              if assigned(p^.left) then
-                hp^.left:=getcopy(p^.left);
-            else internalerror(11);
-         end;
-       { now check treetype }
-         case p^.treetype of
-  stringconstn : begin
-                   hp^.value_str:=getpcharcopy(p);
-                   hp^.length:=p^.length;
-                 end;
-     setconstn : begin
-                   new(hp^.value_set);
-                   hp^.value_set:=p^.value_set;
-                 end;
-         end;
-         getcopy:=hp;
-      end;
-
-{$endif dummy}
-
 end.
 {
   $Log$
-  Revision 1.1  1998-12-15 22:21:53  florian
+  Revision 1.2  1998-12-26 15:20:32  florian
+    + more changes for the new version
+
+  Revision 1.1  1998/12/15 22:21:53  florian
     * first rough conversion
 
 }

@@ -181,7 +181,7 @@ unit systems;
           heapsize,
           maxheapsize,
           stacksize   : longint;
-          flags       : ttargetflags;
+          flags       : set of ttargetflags;
        end;
 
        tasmmodeinfo=packed record
@@ -1227,7 +1227,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1998-12-15 22:18:58  florian
+  Revision 1.3  1998-12-26 15:20:31  florian
+    + more changes for the new version
+
+  Revision 1.2  1998/12/15 22:18:58  florian
     * some code added
 
   Revision 1.1  1998/12/15 16:32:59  florian
