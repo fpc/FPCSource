@@ -204,27 +204,32 @@ begin
   S1:=Temp;
 end;
 
-Procedure Ansi_String_Concat (Var S1 : Pointer; Var S2 : Pointer);
+function Ansi_String_Concat (S1 : Pointer;S2 : Pointer) : pointer;
+  [Public, alias: 'FPC_ANSICAT'];
 {
   Concatenates 2 AnsiStrings : S1+S2.
-  Result Goes to S1;
+  Result Goes to S3;
 }
-Var Size,Location : Longint;
+  Var
+     Size,Location : Longint;
+     S3 : pointer;
 
 begin
   if S2=Nil then exit;
   if (S1=Nil) then
-     AssignAnsiString(S1,S2)
+     AssignAnsiString(S3,S2)
   else
     begin
-    Size:=PAnsiRec(Pointer(S2)-FirstOff)^.Len;
-    Location:=Length(AnsiString(S1));
-    { Setlength takes case of uniqueness
-      and allocated memory. We need to use length,
-      to take into account possibility of S1=Nil }
-//!!    SetLength (S1,Size+Location);
-    Move (Pointer(S2)^,Pointer(Pointer(S1)+location)^,Size+1);
+       Size:=PAnsiRec(S2-FirstOff)^.Len;
+       Location:=Length(AnsiString(S1));
+       { Setlength takes case of uniqueness
+         and allocated memory. We need to use length,
+         to take into account possibility of S1=Nil }
+       SetLength (S3,Size+Location);
+       Move (S1^,S3^,PAnsiRec(S1-FirstOff)^.Len);
+       Move (S2^,(S3+location)^,Size+1);
     end;
+  Ansi_String_Concat:=S3;
 end;
 
 
@@ -708,7 +713,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  1998-10-20 12:46:11  florian
+  Revision 1.20  1998-10-21 08:38:46  florian
+    * ansistringconcat fixed
+
+  Revision 1.19  1998/10/20 12:46:11  florian
     * small fixes to ansicompare
 
   Revision 1.18  1998/09/28 14:02:34  michael
