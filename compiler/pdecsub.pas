@@ -1206,7 +1206,6 @@ var
   import_dll,
   import_name : string;
   import_nr   : word;
-  hpd         : tprocdef;
 begin
   if pd.deftype<>procdef then
     internalerror(2003042615);
@@ -1243,17 +1242,7 @@ begin
          current_module.uses_imports:=true;
          importlib.preparelib(current_module.modulename^);
        end;
-      if not(m_repeat_forward in aktmodeswitches) then
-       begin
-         { we can only have one overloaded here ! }
-         if tprocsym(tprocdef(pd).procsym).procdef_count>1 then
-          hpd:=tprocsym(tprocdef(pd).procsym).procdef[2]
-         else
-          hpd:=tprocdef(pd);
-       end
-      else
-       hpd:=tprocdef(pd);
-      importlib.importprocedure(hpd,import_dll,import_nr,import_name);
+      importlib.importprocedure(tprocdef(pd),import_dll,import_nr,import_name);
     end
   else
     begin
@@ -2275,7 +2264,10 @@ const
 end.
 {
   $Log$
-  Revision 1.188  2004-08-22 20:11:38  florian
+  Revision 1.189  2004-08-25 15:57:19  peter
+    * fix for tw3261
+
+  Revision 1.188  2004/08/22 20:11:38  florian
     * morphos now takes any pointer var. as libbase
     * alignment for sparc fixed
     * int -> double conversion on sparc fixed
