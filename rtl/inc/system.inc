@@ -169,6 +169,10 @@ End;
 
 {$i sstrings.inc}
 
+{ requires sstrings.inc for initval }
+{$I int64.inc}
+
+{Requires int64.inc, since that contains the VAL functions for int64 and qword}
 {$i astrings.inc}
 
 {$ifdef haswidechar}
@@ -180,9 +184,6 @@ End;
 ****************************************************************************}
 
 {$i rtti.inc}
-
-{ requires sstrings.inc for initval }
-{$I int64.inc}
 
 
 {****************************************************************************
@@ -638,7 +639,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-07-14 10:33:10  michael
+  Revision 1.4  2000-08-09 19:31:18  marco
+   * fixes for val(int64 or qword) to ansistring
+
+  Revision 1.3  2000/07/14 10:33:10  michael
   + Conditionals fixed
 
   Revision 1.2  2000/07/13 11:33:45  michael

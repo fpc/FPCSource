@@ -536,6 +536,22 @@ begin
   ValAnsiSignedInt := ValSignedInt(DestSize,SS,Code);
 end;
 
+Function ValAnsiUnsignedint64 (Const S : AnsiString; Var Code : ValSInt): qword; [public, alias:'FPC_VAL_UINT64_ANSISTR'];
+Var
+  SS : ShortString;
+begin
+  AnsiStr_To_ShortStr(SS,Pointer(S));
+  ValAnsiUnsignedInt64 := ValQWord(SS,Code);
+end;
+
+
+Function ValAnsiSignedInt64 (DestSize: longint; Const S : AnsiString; Var Code : ValSInt): Int64; [public, alias:'FPC_VAL_INT64_ANSISTR'];
+Var
+  SS : ShortString;
+begin
+  AnsiStr_To_ShortStr (SS,Pointer(S));
+  ValAnsiSignedInt64 := valInt64(SS,Code);
+end;
 
 {$IfDef SUPPORT_FIXED}
 Function ValAnsiFixed(Const S : AnsiString; Var Code : ValSint): ValReal; [public, alias:'FPC_VAL_FIXED_ANSISTR'];
@@ -642,7 +658,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:42  michael
+  Revision 1.3  2000-08-09 19:31:18  marco
+   * fixes for val(int64 or qword) to ansistring
+
+  Revision 1.2  2000/07/13 11:33:42  michael
   + removed logs
  
 }
