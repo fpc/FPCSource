@@ -84,7 +84,7 @@ begin
 { create argv[0] which is the started filename }
   s:=paramstr(0);
   arglen:=length(s);
-  getmem(argsbuf[0],arglen);
+  getmem(argsbuf[0],arglen + 1);
   strpcopy(argsbuf[0],s);
 { create commandline }
   s:='';
@@ -506,7 +506,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-03-28 20:54:25  carl
+  Revision 1.5  2002-11-20 14:31:22  jonas
+    * applied fix from Maxim Artemev (bert_raccoon@freemail.ru)
+
+  Revision 1.4  2002/03/28 20:54:25  carl
   * merged fixes from version 1.0.x branch
 
 
