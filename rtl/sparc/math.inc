@@ -15,6 +15,8 @@
 
  **********************************************************************}
 
+{$ifdef unused}
+
 {****************************************************************************
                          Int to real helpers
  ****************************************************************************}
@@ -75,7 +77,7 @@ const
 
 
     }
-    {$define FPC_SYSTEM_HAS_INT}
+    { define FPC_SYSTEM_HAS_INT}
     {$warning FIX ME}
     function int(d : extended) : extended;[internconst:in_const_int];
       begin
@@ -83,7 +85,7 @@ const
       end;
 
 
-    {$define FPC_SYSTEM_HAS_TRUNC}
+    { define FPC_SYSTEM_HAS_TRUNC}
     {$warning FIX ME}
     function trunc(d : extended) : int64;{assembler;}[internconst:in_const_trunc];
       { input: d in fr1      }
@@ -103,118 +105,21 @@ const
       end{ ['R3','F1']};
 
 
-    {$define FPC_SYSTEM_HAS_ROUND}
-{$ifdef hascompilerproc}
+    { define FPC_SYSTEM_HAS_ROUND}
     function round(d : extended) : int64;[internconst:in_const_round, external name 'FPC_ROUND'];
 
-    function fpc_round(d : extended) : int64;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
-{$else}
-    function round(d : extended) : int64;[internconst:in_const_round];
-{$endif hascompilerproc}
-      { input: d in fr1      }
-      { output: result in r3 }
-      {assembler;}
-      var
-        temp : packed record
-            case byte of
-              0: (l1,l2: longint);
-              1: (d: double);
-          end;
-      begin{asm}
-  {      fctiw    f1,f1
-        stfd     f1,temp
-        lwz      r3,temp
-        lwz      r4,4+temp}
-      end{ ['R3','F1']};
-
-
-   {$define FPC_SYSTEM_HAS_POWER}
-   function power(bas,expo : extended) : extended;
-     begin
-        if bas=0 then
-          begin
-            if expo<>0 then
-              power:=0.0
-            else
-              HandleError(207);
-          end
-        else if expo=0 then
-         power:=1
-        else
-        { bas < 0 is not allowed }
-         if bas<0 then
-          handleerror(207)
-         else
-          power:=exp(ln(bas)*expo);
-     end;
-
-
-{****************************************************************************
-                       Longint data type routines
- ****************************************************************************}
-  {$define FPC_SYSTEM_HAS_POWER_INT64}
-   function power(bas,expo : Int64) : Int64;
-     begin
-        if bas=0 then
-          begin
-            if expo<>0 then
-              power:=0
-            else
-              HandleError(207);
-          end
-        else if expo=0 then
-         power:=1
-        else
-         begin
-           if bas<0 then
-            begin
-              if odd(expo) then
-                power:=-round(exp(ln(-bas)*expo))
-              else
-                power:=round(exp(ln(-bas)*expo));
-            end
-           else
-            power:=round(exp(ln(bas)*expo));
-         end;
-     end;
-
-{****************************************************************************
-                    Helper routines to support old TP styled reals
- ****************************************************************************}
-
-    { warning: the following converts a little-endian TP-style real }
-    { to a big-endian double. So don't byte-swap the TP real!       }
-    {$define FPC_SYSTEM_HAS_REAL2DOUBLE}
-    function real2double(r : real48) : double;
-
-      var
-         res : array[0..7] of byte;
-         exponent : word;
-
+    function fpc_round(d : extended) : int64;[public, alias:'FPC_ROUND'];compilerproc;
       begin
-         { copy mantissa }
-         res[6]:=0;
-         res[5]:=r[1] shl 5;
-         res[4]:=(r[1] shr 3) or (r[2] shl 5);
-         res[3]:=(r[2] shr 3) or (r[3] shl 5);
-         res[2]:=(r[3] shr 3) or (r[4] shl 5);
-         res[1]:=(r[4] shr 3) or (r[5] and $7f) shl 5;
-         res[0]:=(r[5] and $7f) shr 3;
-
-         { copy exponent }
-         { correct exponent: }
-         exponent:=(word(r[0])+(1023-129));
-         res[1]:=res[1] or ((exponent and $f) shl 4);
-         res[0]:=exponent shr 4;
-
-         { set sign }
-         res[0]:=res[0] or (r[5] and $80);
-         real2double:=double(res);
       end;
+
+{$endif}
 
 {
   $Log$
-  Revision 1.7  2003-09-14 15:02:24  peter
+  Revision 1.8  2004-01-06 21:33:38  peter
+    * remove generic functions
+
+  Revision 1.7  2003/09/14 15:02:24  peter
     * remove int64 to double helpers
 
   Revision 1.6  2003/09/02 17:41:49  peter
