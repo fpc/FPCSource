@@ -217,7 +217,14 @@
 
    function power(bas,expo : extended) : extended;
      begin
-        power:=exp(ln(bas)*expo);
+        if expo=0 then
+         power:=1
+        else
+        { bas < 0 is not allowed }
+         if bas<0 then
+          handleerror(207)
+         else
+          power:=exp(ln(bas)*expo);
      end;
 
 
@@ -227,7 +234,20 @@
 
    function power(bas,expo : longint) : longint;
      begin
-        power:=round(exp(ln(bas)*expo));
+        if expo=0 then
+         power:=1
+        else
+         begin
+           if bas<0 then
+            begin
+              if odd(expo) then
+               power:=-round(exp(ln(-bas)*expo))
+              else
+               power:=round(exp(ln(-bas)*expo));
+            end
+           else
+            power:=round(exp(ln(bas)*expo));
+         end;
      end;
 
 
@@ -350,7 +370,11 @@
 
 {
   $Log$
-  Revision 1.16  1999-09-15 20:24:11  florian
+  Revision 1.17  1999-10-06 17:44:43  peter
+    * fixed power(int,int) with negative base
+    * power(ext,ext) with negative base gives rte 207
+
+  Revision 1.16  1999/09/15 20:24:11  florian
     * some math functions are now coded inline by the compiler
 
   Revision 1.15  1999/07/06 15:35:59  peter
