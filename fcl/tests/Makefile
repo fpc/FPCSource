@@ -212,7 +212,7 @@ else
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
-override TARGET_PROGRAMS+=stringl dparser fstream mstream list threads testrtf cfgtest xmldump htdump testcgi tidea b64test b64test2 b64enc b64dec restest testz testz2 istream doecho testol testcont txmlreg testreg tstelcmd testapp
+override TARGET_PROGRAMS+=stringl dparser fstream mstream list threads testrtf cfgtest xmldump htdump testez tidea b64test b64test2 b64enc b64dec restest testz testz2 istream doecho testol testcont txmlreg testreg tstelcmd testapp testcgi
 ifeq ($(OS_TARGET),linux)
 override TARGET_PROGRAMS+=sockcli isockcli dsockcli socksvr isocksvr dsocksvr testhres testnres testsres testrhre testrnre testrsre testur
 endif

@@ -26,7 +26,7 @@ testrtf.pp   TRTFParser object from rtfpars (MVC)
 cfgtest.pp   Example for using XML read/write as cfg file (SG)
 xmldump.pp   xml dump program (SG)
 htdump.pp    htdump dumps XL IDL definition as ObjectPascal classes (MVC)
-testcgi.pp   test program for ezcgi class (MH)
+testez.pp   test program for ezcgi class (MH)
 tidea.pp     test program for IDEA encryption/decryption streams (MVC)
 b64test.pp   test program for base64 encoding streams (SG)
 b64test2.pp  test program for base64 encoding streams (SG)
@@ -56,5 +56,6 @@ txmlreg.pp   Test of xmlreg unit (xml-like registry) (MVC)
 testreg.pp   Test of registry unit. (MVC)
 tstelcmd.pp  Test of eventlog unit, command-line version.
 tstelgtk.pp  Test of eventlog unit, FPGTK version. Not built by default. (MVC)
-testur.pp    Test of TURIParser class
-testapp.pp   Test of TCustomApplication
+testur.pp    Test of TURIParser class. (MVC)
+testapp.pp   Test of TCustomApplication. (MVC)
+testcgi.pp   Test of TCGIApplication class. (MVC)
