@@ -106,6 +106,8 @@ Type
   {$define SUPPORT_COMP}
 
   ValReal = Extended;
+
+  FarPointer = Pointer;
 {$endif CPUX86_64}
 
 {$ifdef CPUM68K}
@@ -124,6 +126,8 @@ Type
   { Comp type does not exist on fpu }
   Comp    = int64;
   PComp = ^Comp;
+
+  FarPointer = Pointer;
 {$endif CPUM68K}
 
 {$ifdef CPUPOWERPC}
@@ -139,6 +143,8 @@ Type
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
   PComp = ^Comp;
+
+  FarPointer = Pointer;
 {$endif CPUPOWERPC}
 
 {$ifdef CPUSPARC}
@@ -154,6 +160,8 @@ Type
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
   PComp = ^Comp;
+
+  FarPointer = Pointer;
 {$endif CPUSPARC}
 
 {$ifdef CPUARM}
@@ -171,6 +179,8 @@ Type
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
   PComp = ^Comp;
+
+  FarPointer = Pointer;
 {$endif CPUARM}
 
 {$ifdef CPU64}
@@ -737,7 +747,10 @@ const
 
 {
   $Log$
-  Revision 1.113  2005-02-01 20:22:49  florian
+  Revision 1.114  2005-02-05 10:07:21  florian
+    * map farpointer to pointer on platforms not having farpointers
+
+  Revision 1.113  2005/02/01 20:22:49  florian
     * improved widestring infrastructure manager
 
   Revision 1.112  2005/01/24 18:03:19  peter
