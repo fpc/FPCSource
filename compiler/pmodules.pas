@@ -868,34 +868,29 @@ unit pmodules;
          { of the program                                              }
          st:=new(punitsymtable,init(staticsymtable,current_module^.modulename^));
          current_module^.symtable:=st;
+         symtablestack:=st;
+         refsymtable:=st;
 
          { necessary for browser }
          loaded_units.insert(current_module);
 
-         {Generate a procsym.}
+         { load standard units (system,objpas unit) }
+         loaddefaultunits;
+
+         {Generate a procsym for main}
          make_ref:=false;
-         { this was missing !!
-           the procdef was registered to systemunit
-           after the defhasharray was set !!
-           so the defhasharray became wrong !! PM }
-         symtablestack:=st;
          aktprocsym:=new(Pprocsym,init('main'));
          aktprocsym^.definition:=new(Pprocdef,init);
          aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poproginit;
          aktprocsym^.definition^.setmangledname(target_os.Cprefix+'main');
          make_ref:=true;
+
          {The localst is a local symtable. Change it into the static
           symtable.}
          dispose(aktprocsym^.definition^.localst,done);
          aktprocsym^.definition^.localst:=st;
 
-         refsymtable:=st;
-
-         { load standard units (system,objpas unit) }
-         loaddefaultunits;
-
          { reset }
-         make_ref:=true;
          lexlevel:=0;
 
          {Load the units used by the program we compile.}
@@ -984,7 +979,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.54  1998-09-24 23:49:12  peter
+  Revision 1.55  1998-09-28 11:04:03  peter
+    * fixed loaddefaultunits which was at the wrong place for programs, so
+      the default defs were not loaded when main was initialized
+
+  Revision 1.54  1998/09/24 23:49:12  peter
     + aktmodeswitches
 
   Revision 1.53  1998/09/23 12:20:50  pierre
