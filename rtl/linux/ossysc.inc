@@ -278,7 +278,11 @@ function Fpwaitpid(pid : pid_t; stat_loc : pcint; options: cint): pid_t; [public
 }
 
 begin
+{$ifdef CPUARM}
+ FpWaitPID:=do_syscall(syscall_nr_Wait4,PID,TSysParam(Stat_loc),options,0);
+{$else CPUARM}
  FpWaitPID:=do_syscall(syscall_nr_WaitPID,PID,TSysParam(Stat_loc),options);
+{$endif CPUARM}
 end;
 
 function Fpaccess(pathname : pchar; amode : cint): cint; [public, alias : 'FPC_SYSC_ACCESS'];
@@ -471,7 +475,10 @@ end;
 
 {
  $Log$
- Revision 1.13  2004-01-23 00:00:06  florian
+ Revision 1.14  2004-01-31 16:25:48  florian
+   * use wait4 instead of waitpid on arm
+
+ Revision 1.13  2004/01/23 00:00:06  florian
    * arm requires oldmmap call as well
 
  Revision 1.12  2003/12/30 16:26:10  marco
