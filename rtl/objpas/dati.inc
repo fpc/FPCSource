@@ -74,15 +74,16 @@ end ;
 
 function MSecsToTimeStamp(MSecs: comp): TTimeStamp;
 begin
-result.Time := Trunc(MSecs);
-result.Date := 0;
+  result.Date := trunc(msecs / msecsperday);
+  msecs:= msecs - result.date * msecsperday;
+  result.Time := Trunc(MSecs);
 end ;
 
 {   TimeStampToMSecs   }
 
 function TimeStampToMSecs(const TimeStamp: TTimeStamp): comp;
 begin
-result := TimeStamp.Time;
+  result := TimeStamp.Time + timestamp.date*msecsperday;
 end ;
 
 {   EncodeDate packs three variables Year, Month and Day into a
@@ -217,14 +218,16 @@ end ;
 
 function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer): TDateTime;
 var Year, Month, Day: word;
+    S : Integer;
+    
 begin
+If NumberOfMonths>=0 then s:=1 else s:=-1;
 DecodeDate(DateTime, Year, Month, Day);
-Month := Month - 1 + NumberOfMonths;      {   Months from 0 to 11   }
 Year := Year + (NumberOfMonths div 12);
-Month := Month mod 12;
-if Month < 0 then begin
-   Inc(Month, 12);
-   Inc(Year, 1);
+Month := Month + (NumberOfMonths mod 12)-1 ; // Mod result always positive
+if Month>11 then begin
+   Dec(Month, S*12);
+   Inc(Year, S);
    end ;
 Inc(Month, 1);                            {   Months from 1 to 12   }
 if (Month = 2) and (IsLeapYear(Year)) and (Day > 28) then
@@ -265,15 +268,31 @@ end ;
     an EConvertError will be raised   }
 
 function StrToDate(const S: string): TDateTime;
+
 var
    df:string;
-   d,m,y:word;n,i:longint;c:word;
+   d,m,y:word;
+   n,i:longint;
+   c:word;
+   dp,mp,yp,which : Byte;
    s1:string[4];
    values:array[0..2] of longint;
    LocalTime:tsystemtime;
+   
 begin
 df := UpperCase(ShortDateFormat);
-d := 0;m := 0;y := 0;
+{ Determine order of D,M,Y }
+Which:=0;
+For I:=1 to Length(df) do
+  Case df[i] of
+    'Y' : yp:=which;
+    'M' : mp:=which;
+    'D' : dp:=which;
+  else
+    If df[i]=DateSeparator then 
+     Inc(Which);
+  end;
+{ Get actual values }
 for i := 0 to 2 do values[i] := 0;
 s1 := '';
 n := 0;
@@ -281,43 +300,40 @@ for i := 1 to length(s) do begin
    if (s[i] in ['0'..'9']) then s1 := s1 + s[i];
    if (s[i] in [dateseparator,' ']) or (i = length(s)) then begin
       val(s1, values[n], c);
+      if c<>0 then
+        Raise EConvertError.Create('Invalid date format');
       s1 := '';
       inc(n);
       end ;
    end ;
-if (df = 'D/M/Y') then begin
-   d := values[0];
-   m := values[1];
-   y := values[2];
-   end
-else if (df = 'M/D/Y') then begin
-   if (n > 1) then begin
-      m := values[0];
-      d := values[1];
-      y := values[2];
+// Fill in values.
+If N=3 then
+  begin
+  y:=values[yp];
+  m:=values[mp];
+  d:=values[dp];
+  end
+Else 
+  begin
+  getLocalTime(LocalTime);
+  y := LocalTime.Year;
+  If n<2 then
+    begin
+    d:=values[0];
+    m := LocalTime.Month;
+    end
+  else
+    If dp<mp then 
+      begin
+      d:=values[0];
+      m:=values[1];
       end
-   else { if there is just one value, it is the day of the month }
-      d := values[0];
-   end
-else if (df = 'Y/M/D') then begin
-   if (n = 3) then begin
-      y := values[0];
-        m := values[1];
-      d := values[2];
-      end
-   else if (n = 2) then begin
-      m := values[0];
-      d := values[1];
-      end
-   else if (n = 1) then
-      d := values[0];
-   end ;
-if (n < 3) then begin
-   getLocalTime(LocalTime);
-   y := LocalTime.Year;
-   if (n < 2) then
-      m := LocalTime.Month;
-   end ;
+    else
+      begin
+      d:=values[1];
+      m:=values[0];
+      end;
+  end;
 if (y >= 0) and (y < 100) then y := 1900 + y;
 Result := DoEncodeDate(y, m, d);
 end ;
@@ -606,7 +622,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1999-04-18 19:03:03  michael
+  Revision 1.11  1999-05-11 09:05:13  michael
+  * SMall fixes to date/time routines
+
+  Revision 1.10  1999/04/18 19:03:03  michael
   + Now EConvertError is used everywhere in conversions
 
   Revision 1.9  1999/04/08 11:31:02  peter
