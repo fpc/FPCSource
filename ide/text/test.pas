@@ -27,6 +27,15 @@ type
         procedure Proc; virtual;
       end;
 
+      TObj3  = object(TObj)
+      end;
+
+      TObj32 = object(TObj3)
+      end;
+
+      TObj4 = object(TObj)
+      end;
+
       TClass = class
         constructor Create;
       end;

@@ -72,6 +72,7 @@ end;
 function WriteOpenWindows(F: PResourceFile): boolean;
 var S: PMemoryStream;
 begin
+  WriteOpenWindows:=true;
   {$ifndef DEV}Exit;{$endif}
 
   New(S, Init(1024*1024,4096));
@@ -80,7 +81,6 @@ begin
   F^.CreateResource(resDesktop,rcBinary,0);
   F^.AddResourceEntryFromStream(resDesktop,langDefault,0,S^,S^.GetSize);
   Dispose(S, Done);
-  WriteOpenWindows:=true;
 end;
 
 function WriteSymbols(F: PResourceFile): boolean;
@@ -118,7 +118,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  1999-04-07 21:55:45  peter
+  Revision 1.4  1999-04-15 08:58:05  peter
+    * syntax highlight fixes
+    * browser updates
+
+  Revision 1.3  1999/04/07 21:55:45  peter
     + object support for browser
     * html help fixes
     * more desktop saving things

@@ -337,8 +337,10 @@ const
      FindFlags          : word = ffPromptOnReplace;
      WhiteSpaceChars    : set of char = [#0,#32,#255];
      TabChars           : set of char = [#9];
+     HashChars          : set of char = ['#'];
      AlphaChars         : set of char = ['A'..'Z','a'..'z','_'];
      NumberChars        : set of char = ['0'..'9'];
+     RealNumberChars    : set of char = ['E','e','.','+','-'];
      DefaultSaveExt     : string[12] = '.pas';
 
      UseSyntaxHighlight : function(Editor: PFileEditor): boolean = DefUseSyntaxHighlight;
@@ -1594,7 +1596,8 @@ begin
       if DT[p]=#9 then
        begin
          PAdd:=TabSize-((p-1) mod TabSize);
-         DF:=copy(DF,1,P-1)+CharStr(DF[p],PAdd)+copy(DF,P+1,255);
+         if DF<>'' then
+          DF:=copy(DF,1,P-1)+CharStr(DF[p],PAdd)+copy(DF,P+1,255);
          DT:=copy(DT,1,P-1)+CharStr(' ',PAdd)+copy(DT,P+1,255);
          inc(P,PAdd-1);
        end;
@@ -2573,7 +2576,7 @@ end;
 
 function TCodeEditor.UpdateAttrs(FromLine: integer; Attrs: byte): integer;
 type
-    TCharClass = (ccWhiteSpace,ccTab,ccAlpha,ccNumber,ccSymbol);
+    TCharClass = (ccWhiteSpace,ccTab,ccAlpha,ccNumber,ccRealNumber,ccHash,ccSymbol);
 var
   SymbolIndex: Sw_integer;
   CurrentCommentType : Byte;
@@ -2666,8 +2669,10 @@ var
   begin
     if C in WhiteSpaceChars then CC:=ccWhiteSpace else
     if C in TabChars then CC:=ccTab else
-    if C in AlphaChars      then CC:=ccAlpha else
-    if C in NumberChars     then CC:=ccNumber else
+    if C in HashChars then CC:=ccHash else
+    if C in AlphaChars then CC:=ccAlpha else
+    if C in NumberChars then CC:=ccNumber else
+    if (LastCC=ccNumber) and (C in RealNumberChars) then CC:=ccRealNumber else
     CC:=ccSymbol;
     GetCharClass:=CC;
   end;
@@ -2688,18 +2693,22 @@ var
     case SClass of
       ccWhiteSpace : C:=coWhiteSpaceColor;
       ccTab : C:=coTabColor;
-      ccNumber     : if copy(WordS,1,1)='$' then
-             C:=coHexNumberColor
-           else
-             C:=coNumberColor;
-      ccSymbol     : C:=coSymbolColor;
-      ccAlpha      :
-   begin
-     if IsReservedWord(WordS) then
-       C:=coReservedWordColor
-     else
-       C:=coIdentifierColor;
-   end;
+      ccNumber :
+        if copy(WordS,1,1)='$' then
+          C:=coHexNumberColor
+        else
+          C:=coNumberColor;
+      ccHash :
+        C:=coStringColor;
+      ccSymbol :
+        C:=coSymbolColor;
+      ccAlpha :
+        begin
+          if IsReservedWord(WordS) then
+            C:=coReservedWordColor
+          else
+            C:=coIdentifierColor;
+        end;
     end;
     if EndX+1>=StartX then
       FillChar(Format[StartX],EndX+1-StartX,C);
@@ -2715,7 +2724,9 @@ var
     CC:=GetCharClass(C);
     if ( (CC<>LastCC) and
          ( (CC<>ccAlpha) or (LastCC<>ccNumber) ) and
-         ( (CC<>ccNumber) or (LastCC<>ccAlpha) )
+         ( (CC<>ccNumber) or (LastCC<>ccAlpha) ) and
+         ( (CC<>ccNumber) or (LastCC<>ccHash) ) and
+         ( (CC<>ccRealNumber) or (LastCC<>ccNumber) )
        ) or
        (X>length(LineText)) or (CC=ccSymbol) then
     begin
@@ -3207,9 +3218,9 @@ begin
        SH:=UseSyntaxHighlight(@Self);
        if SH<>B then
          if SH then
-      SetFlags(Flags or efSyntaxHighlight)
+           SetFlags(Flags or efSyntaxHighlight)
          else
-      SetFlags(Flags and not efSyntaxHighlight);
+           SetFlags(Flags and not efSyntaxHighlight);
        if UseTabsPattern(@Self) then
          SetFlags(Flags or efUseTabCharacters);
      end;
@@ -3502,7 +3513,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.29  1999-04-07 21:55:59  peter
+  Revision 1.30  1999-04-15 08:58:10  peter
+    * syntax highlight fixes
+    * browser updates
+
+  Revision 1.29  1999/04/07 21:55:59  peter
     + object support for browser
     * html help fixes
     * more desktop saving things

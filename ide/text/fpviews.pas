@@ -2258,7 +2258,7 @@ var D : DirStr;
             SName:=PSourceWindow(W)^.Editor^.FileName;
           SName:=UpcaseStr(SName);
 
-          if E<>'' then
+          if (E<>'') or (not tryexts) then
             begin
               if D<>'' then
                 Found:=SName=UpcaseStr(D+N+E)
@@ -2606,7 +2606,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.28  1999-04-07 21:55:56  peter
+  Revision 1.29  1999-04-15 08:58:08  peter
+    * syntax highlight fixes
+    * browser updates
+
+  Revision 1.28  1999/04/07 21:55:56  peter
     + object support for browser
     * html help fixes
     * more desktop saving things

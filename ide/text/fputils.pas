@@ -406,32 +406,33 @@ function MatchesMask(What, Mask: string): boolean;
     i1:=0;
     i2:=0;
     found:=true;
-    repeat
-      if found then
-       inc(i2);
-      inc(i1);
-      case hstr1[i1] of
-        '?' :
-          found:=true;
-        '*' :
-          begin
-            found:=true;
-            if (i1=length(hstr1)) then
-             i2:=length(hstr2)
-            else
-             if (i1<length(hstr1)) and (hstr1[i1+1]<>hstr2[i2]) then
-              begin
-                if i2<length(hstr2) then
-                 dec(i1)
-              end
-            else
-             if i2>1 then
-              dec(i2);
-          end;
-        else
-          found:=(hstr1[i1]=hstr2[i2]) or (hstr2[i2]='?');
-      end;
-    until (i1>=length(hstr1)) or (i2>length(hstr2)) or (not found);
+    while found and (i1<length(hstr1)) and (i2<=length(hstr2)) do
+     begin
+       if found then
+        inc(i2);
+       inc(i1);
+       case hstr1[i1] of
+         '?' :
+           found:=true;
+         '*' :
+           begin
+             found:=true;
+             if (i1=length(hstr1)) then
+              i2:=length(hstr2)
+             else
+              if (i1<length(hstr1)) and (hstr1[i1+1]<>hstr2[i2]) then
+               begin
+                 if i2<length(hstr2) then
+                  dec(i1)
+               end
+             else
+              if i2>1 then
+               dec(i2);
+           end;
+         else
+           found:=(hstr1[i1]=hstr2[i2]) or (hstr2[i2]='?');
+       end;
+     end;
     if found then
       found:=(i1>=length(hstr1)) and (i2>=length(hstr2));
     CmpStr:=found;
@@ -646,7 +647,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  1999-04-07 21:55:55  peter
+  Revision 1.13  1999-04-15 08:58:07  peter
+    * syntax highlight fixes
+    * browser updates
+
+  Revision 1.12  1999/04/07 21:55:55  peter
     + object support for browser
     * html help fixes
     * more desktop saving things

@@ -911,13 +911,13 @@ begin
               MakeGlobal(ScopeView^.Origin,P);
               Desktop^.MakeLocal(P,P); Inc(P.Y,ScopeView^.Focused-ScopeView^.TopItem);
               Inc(P.Y);
-              if (S^.GetReferenceCount>0) or (S^.GetItemCount>0) then
               if S^.Ancestor=nil then Anc:=nil else
                 Anc:=SearchObjectForSymbol(S^.Ancestor);
-              OpenSymbolBrowser(Origin.X-1,P.Y,
-                S^.GetName,
-                ScopeView^.GetText(ScopeView^.Focused,255),S,
-                S^.Items,S^.References,Anc,S^.MemInfo);
+              if (S^.GetReferenceCount>0) or (S^.GetItemCount>0) or (Anc<>nil) then
+               OpenSymbolBrowser(Origin.X-1,P.Y,
+                 S^.GetName,
+                 ScopeView^.GetText(ScopeView^.Focused,255),S,
+                 S^.Items,S^.References,Anc,S^.MemInfo);
             end;
       end;
 {    evCommand :
@@ -1078,7 +1078,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  1999-04-07 21:55:53  peter
+  Revision 1.15  1999-04-15 08:58:06  peter
+    * syntax highlight fixes
+    * browser updates
+
+  Revision 1.14  1999/04/07 21:55:53  peter
     + object support for browser
     * html help fixes
     * more desktop saving things
