@@ -1200,6 +1200,7 @@ implementation
          emitcall('FPC_DO_IS',true);
          exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_B,R_AL,R_AL)));
          popusedregisters(pushed);
+         maybe_loadesi;
       end;
 
 
@@ -1256,7 +1257,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  1999-03-05 16:14:20  peter
+  Revision 1.62  1999-04-13 18:51:47  florian
+    * esi wasn't reloaded after a call to the esi helper procedure, fixed
+
+  Revision 1.61  1999/03/05 16:14:20  peter
     * fixed boolean() typecast
 
   Revision 1.60  1999/03/02 18:24:19  peter
