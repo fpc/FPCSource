@@ -175,7 +175,7 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$ENDIF UseAPI}
 
 {$ifdef GRAPH_API}
-{$undef Use_Video_API}
+{undef Use_Video_API}
 {$endif GRAPH_API}
 
 {---------------------------------------------------------------------------}
@@ -192,6 +192,7 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {---------------------------------------------------------------------------}
 {$IFDEF GO32V2}
   {$DEFINE OS_GO32}
+  {$DEFINE HasSysMsgUnit}
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
@@ -203,6 +204,7 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$ENDIF}
   {$UNDEF BIT_16}
   {$DEFINE BIT_32}
+  {$DEFINE HasSysMsgUnit}
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
@@ -374,7 +376,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 {
  $Log$
- Revision 1.6  2001-10-02 16:35:51  pierre
+ Revision 1.7  2002-05-21 12:02:02  pierre
+  define HASSYSMSGUNIT for go32v2 and win32
+
+ Revision 1.6  2001/10/02 16:35:51  pierre
   * fix several problems, try to get the graph version to compile
 
  Revision 1.5  2001/05/03 22:32:52  pierre
