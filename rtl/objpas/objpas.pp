@@ -1,8 +1,9 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1997,98 by Florian Klaempfl
-    member of the Free Pascal development team
+    Copyright (c) 1998 by the Free Pascal development team
+
+    This unit makes Free Pascal as much as possible Delphi compatible
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -12,19 +13,15 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{ this unit makes Free Pascal as much as possible Delphi compatible }
-
 unit objpas;
 
-{$ifdef VER0_99_5}
-  {$warning objpas can't be compiled with FPC 0.99.5}
-  interface
-  implementation
-  end.
-{$else}
+{$I-,S-}
 
+interface
 
-  interface
+{*****************************************************************************
+                            Basic Types/constants
+*****************************************************************************}
 
     const
        // vmtSelfPtr           = -36;  { not implemented yet }
@@ -47,25 +44,22 @@ unit objpas;
     type
        { first, in object pascal, the types must be redefined }
        smallint = system.integer;
-       integer = system.longint;
-
-       { define some more types }
-       shortstring = string;
+       integer  = system.longint;
 
        { some pointer definitions }
        pshortstring = ^shortstring;
-       plongstring = ^longstring;
-       pansistring = ^ansistring;
-       pwidestring = ^widestring;
-       // pstring = pansistring;
-       pextended = ^extended;
-       ppointer = ^pointer;
+       plongstring  = ^longstring;
+       pansistring  = ^ansistring;
+       pwidestring  = ^widestring;
+       // pstring   = pansistring;
+       pextended    = ^extended;
+       ppointer     = ^pointer;
 
        { now the let's declare the base classes for the class object }
        { model                                                       }
        tobject = class;
-       tclass = class of tobject;
-       pclass = ^tclass;
+       tclass  = class of tobject;
+       pclass  = ^tclass;
 
        tobject = class
           { please don't change the order of virtual methods, because      }
@@ -113,19 +107,92 @@ unit objpas;
        Const
           ExceptProc : Pointer {TExceptProc} = Nil;
 
+
+{*****************************************************************************
+                              Variant Type
+*****************************************************************************}
+
+    Const
+       varEmpty     = $0000;
+       varNull      = $0001;
+       varSmallint  = $0002;
+       varInteger   = $0003;
+       varSingle    = $0004;
+       varDouble    = $0005;
+       varCurrency  = $0006;
+       varDate      = $0007;
+       varOleStr    = $0008;
+       varDispatch  = $0009;
+       varError     = $000A;
+       varBoolean   = $000B;
+       varVariant   = $000C;
+       varUnknown   = $000D;
+       varByte      = $0011;
+       varString    = $0100;
+       varAny       = $0101;
+       varTypeMask  = $0FFF;
+       varArray     = $2000;
+       varByRef     = $4000;
+
+       vtInteger    = 0;
+       vtBoolean    = 1;
+       vtChar       = 2;
+       vtExtended   = 3;
+       vtString     = 4;
+       vtPointer    = 5;
+       vtPChar      = 6;
+       vtObject     = 7;
+       vtClass      = 8;
+       vtWideChar   = 9;
+       vtPWideChar  = 10;
+       vtAnsiString = 11;
+       vtCurrency   = 12;
+       vtVariant    = 13;
+       vtInterface  = 14;
+       vtWideString = 15;
+       vtInt64      = 16;
+
+    Type
+       PVarRec = ^TVarRec;
+       TVarRec = record
+         case Byte of
+           vtInteger    : (VInteger: Integer; VType: Byte);
+           vtBoolean    : (VBoolean: Boolean);
+           vtChar       : (VChar: Char);
+           vtExtended   : (VExtended: PExtended);
+           vtString     : (VString: PShortString);
+           vtPointer    : (VPointer: Pointer);
+           vtPChar      : (VPChar: PChar);
+           vtObject     : (VObject: TObject);
+           vtClass      : (VClass: TClass);
+//           vtWideChar   : (VWideChar: WideChar);
+//           vtPWideChar  : (VPWideChar: PWideChar);
+           vtAnsiString : (VAnsiString: Pointer);
+//           vtCurrency   : (VCurrency: PCurrency);
+//           vtVariant    : (VVariant: PVariant);
+//           vtInterface  : (VInterface: Pointer);
+           vtWideString : (VWideString: Pointer);
+//           vtInt64      : (VInt64: PInt64);
+       end;
+
+
   implementation
+
+{****************************************************************************
+                  Internal Routines called from the Compiler
+****************************************************************************}
 
     procedure finalize(data,typeinfo : pointer);external name 'FPC_FINALIZE';
 
     { the reverse order of the parameters make code generation easier }
-    function _is(aclass : tclass;aobject : tobject) : boolean;[public,alias: 'FPC_DO_IS'];
+    function int_do_is(aclass : tclass;aobject : tobject) : boolean;[public,alias: 'FPC_DO_IS'];
 
       begin
-         _is:=aobject.inheritsfrom(aclass);
+         int_do_is:=aobject.inheritsfrom(aclass);
       end;
 
     { the reverse order of the parameters make code generation easier }
-    procedure _as(aclass : tclass;aobject : tobject);[public,alias: 'FPC_DO_AS'];
+    procedure int_do_as(aclass : tclass;aobject : tobject);[public,alias: 'FPC_DO_AS'];
 
       begin
          if assigned(aobject) and not(aobject.inheritsfrom(aclass)) then
@@ -144,9 +211,10 @@ unit objpas;
            runerror(211);
       end;
 
-  {************************************************************************}
-  {                               TOBJECT                                  }
-  {************************************************************************}
+
+{****************************************************************************
+                               TOBJECT
+****************************************************************************}
 
       constructor TObject.Create;
 
@@ -312,17 +380,26 @@ unit objpas;
              end;
         end;
 
+
+{****************************************************************************
+                             Exception Support
+****************************************************************************}
+
 {$i except.inc}
+
+
+{****************************************************************************
+                                Initialize
+****************************************************************************}
 
 begin
   InitExceptions;
   AbstractErrorHandler:=@AbstractError;
 end.
-{$endif VER0_99_5}
 {
   $Log$
-  Revision 1.10  1998-09-17 13:01:15  michael
-  Naming scheme changed, FPC_ prefix added.
+  Revision 1.11  1998-09-22 15:30:07  peter
+    * array of const update
 
   Revision 1.9  1998/09/16 13:08:19  michael
   Added AbstractErrorHandler
