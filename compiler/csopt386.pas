@@ -109,7 +109,12 @@ Begin {CheckSequence}
           GetNextInstruction(hp3, hp3);
           Inc(Found)
         End;
-      If (Found <> OldNrOfMods) Then
+      If (Found <> OldNrOfMods) or
+ { the following is to avoid problems with rangecheck code (see testcse2) }
+         (assigned(hp3) and
+          ((reg in regInfo.regsLoadedForRef) and
+           (reg in PPaiProp(hp3^.optInfo)^.usedRegs) and
+           not regLoadedWithNewValue(reg,false,hp3))) then
         Begin
           TmpResult := False;
           If (found > 0) then
@@ -1176,7 +1181,11 @@ End.
 
 {
  $Log$
- Revision 1.57  2000-04-10 12:45:57  jonas
+ Revision 1.58  2000-04-29 16:57:44  jonas
+   * fixed incompatibility with range chcking code, -O2 and higher
+     now work correctly together with -Cr
+
+ Revision 1.57  2000/04/10 12:45:57  jonas
    * fixed a serious bug in the CSE which (I think) only showed with
      -dnewoptimizations when using multi-dimensional arrays with
      elements of a size different from 1, 2 or 4 (especially strings).
