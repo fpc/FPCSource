@@ -2874,6 +2874,7 @@ end;
   procedure InitGraph(var GraphDriver:Integer;var GraphMode:Integer;
     const PathToDriver:String);
   begin
+    InitVars;
     { path to the fonts (where they will be searched)...}
     bgipath:=PathToDriver;
     if bgipath[length(bgipath)]<>'\' then
@@ -2891,7 +2892,6 @@ end;
         { _GraphResult is now already set to grOK by DetectGraph }
         IntCurrentDriver := GraphDriver;
         SaveVideoState;
-        InitVars;
 { Actually set the graph mode...}
         SetGraphMode(GraphMode);
       end
@@ -2908,7 +2908,10 @@ end;
            _GraphResult := grOK;
            IntCurrentDriver := GraphDriver;
            SaveVideoState;
-           InitVars;
+{$ifdef logging}
+           If _GraphResult <> grOK then
+             LogLn('Mode setting failed after savevideostate');
+{$endif logging}
            SetGraphMode(GraphMode);
          end;
       end;
@@ -3006,7 +3009,11 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.42  1999-11-28 12:19:59  jonas
+  Revision 1.43  1999-11-28 16:13:55  jonas
+    * corrected misplacement of call to initvars in initgraph
+    + some extra debugging commands (for -dlogging) in the mode functions
+
+  Revision 1.42  1999/11/28 12:19:59  jonas
     * _GraphResult is now properly set to grOK by DetectGraph and
       InitGraph if there are no errors
 

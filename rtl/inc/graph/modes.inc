@@ -71,17 +71,30 @@
     var
      list: PModeInfo;
     begin
+{$ifdef logging}
+      LogLn('Searching for driver '+strf(reqdriver)+' and mode '+strf(reqmode));
+{$endif logging}
         searchmode := nil;
         list := ModeList;
         { go to the end of the list }
         while assigned(list) do
           begin
+{$ifdef logging}
+           Log('Found driver '+strf(list^.DriverNumber)+
+               ' and mode $'+hexstr(list^.ModeNumber,4)+'... ');
+{$endif logging}
              if (list^.DriverNumber = ReqDriver) and
                (list^.ModeNumber = ReqMode) then
                begin
+{$ifdef logging}
+                 LogLn('Accepted!');
+{$endif logging}
                  searchmode := list;
                  exit;
                end;
+{$ifdef logging}
+                 LogLn('Rejected.');
+{$endif logging}
              list:=list^.next;
           end;
     end;
@@ -173,6 +186,9 @@
       modeinfo := searchmode(IntcurrentDriver,mode);
       if not assigned(modeinfo) then
         begin
+{$ifdef logging}
+          LogLn('Mode setting failed in setgraphmode pos 1');
+{$endif logging}
           _GraphResult := grInvalidMode;
           exit;
        end;
@@ -187,6 +203,9 @@
          DirectPutPixel := modeinfo^.DirectPutPixel
       else
         begin
+{$ifdef logging}
+          LogLn('Mode setting failed in setgraphmode pos 2');
+{$endif logging}
          _Graphresult := grInvalidMode;
          exit;
        end;
@@ -195,6 +214,9 @@
          PutPixel := modeinfo^.PutPixel
       else
         begin
+{$ifdef logging}
+          LogLn('Mode setting failed in setgraphmode pos 3');
+{$endif logging}
          _Graphresult := grInvalidMode;
          exit;
        end;
@@ -203,6 +225,9 @@
          GetPixel := modeinfo^.GetPixel
       else
         begin
+{$ifdef logging}
+          LogLn('Mode setting failed in setgraphmode pos 4');
+{$endif logging}
          _Graphresult := grInvalidMode;
          exit;
        end;
@@ -211,6 +236,9 @@
          SetRGBPalette := modeinfo^.SetRGBPalette
      else
         begin
+{$ifdef logging}
+          LogLn('Mode setting failed in setgraphmode pos 5');
+{$endif logging}
          _Graphresult := grInvalidMode;
          exit;
        end;
@@ -219,6 +247,9 @@
          GetRGBPalette := modeinfo^.GetRGBPalette
      else
         begin
+{$ifdef logging}
+          LogLn('Mode setting failed in setgraphmode pos 6');
+{$endif logging}
          _Graphresult := grInvalidMode;
          exit;
        end;
@@ -265,6 +296,9 @@
       { check first if the routine exists        }
       if not assigned(modeinfo^.InitMode) then
         begin
+{$ifdef logging}
+          LogLn('Mode setting failed in setgraphmode pos 7');
+{$endif logging}
           _GraphResult := grInvalidMode;
           exit;
         end;
@@ -298,7 +332,11 @@
 
 {
 $Log$
-Revision 1.12  1999-09-28 13:56:31  jonas
+Revision 1.13  1999-11-28 16:13:55  jonas
+  * corrected misplacement of call to initvars in initgraph
+  + some extra debugging commands (for -dlogging) in the mode functions
+
+Revision 1.12  1999/09/28 13:56:31  jonas
   * reordered some local variables (first 4 byte vars, then 2 byte vars
     etc)
   * font data is now disposed in exitproc, exitproc is now called
