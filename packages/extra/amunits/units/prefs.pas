@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -289,7 +289,7 @@ Type
     pg_Reserved     : Array[0..3] of Longint;
     pg_Aspect,
     pg_Shade,
-    pg_Image        : Word
+    pg_Image        : Word;
     pg_Threshold    : Integer;
     pg_ColorCorrect,
     pg_Dimensions,
@@ -680,7 +680,14 @@ IMPLEMENTATION
 
 END.
 
+{
+  $Log$
+  Revision 1.2  2002-11-19 18:48:39  nils
+    * missing semicolon
 
+}
+
+  
 
 
 
