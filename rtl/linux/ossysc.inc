@@ -45,7 +45,7 @@ Begin
  Fpopen:=do_syscall(syscall_nr_open,TSysParam(path),TSysParam(flags),TSysParam(mode));
 End;
 
-function Fpclose(fd : cint): cint;
+function Fpclose(fd : cint): cint; [public, alias : 'FPC_SYSC_CLOSE'];
 
 begin
  Fpclose:=do_syscall(syscall_nr_close,fd);
@@ -431,7 +431,10 @@ end;
 
 {
  $Log$
- Revision 1.1  2002-12-18 16:43:26  marco
+ Revision 1.2  2002-12-18 17:38:01  marco
+  * small fix, new rtl now cycles
+
+ Revision 1.1  2002/12/18 16:43:26  marco
   * new unix rtl, linux part.....
 
  Revision 1.1  2002/11/12 14:40:18  marco
