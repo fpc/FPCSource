@@ -77,12 +77,14 @@ Type
 {$i filerec.inc}
 {$i textrec.inc}
 
+{$ifdef i386}
   Registers = packed record
     case i : integer of
      0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
      1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
      2 : (eax, ebx, ecx, edx, ebp, esi, edi : longint);
     End;
+{$endif i386}
 
   DateTime = packed record
     Year,
@@ -135,12 +137,15 @@ Function  EnvStr(index: integer): string;
 Function  GetEnv (envvar: string): string;
 
 {Do Nothing Functions, no Linux version}
+{$ifdef i386}
 Procedure Intr(intno: byte; var regs: registers);
 Procedure MSDos(var regs: registers);
 Procedure SwapVectors;
 Procedure GetIntVec(intno: byte; var vector: pointer);
 Procedure SetIntVec(intno: byte; vector: pointer);
-Procedure Keep(exitcode: word);
+Procedure Keep(exitcode: Word);
+{$endif i386}
+
 Procedure SetFAttr(var f; attr: word);
 Procedure SetFTime(var f; time: longint);
 Procedure GetCBreak(var breakvalue: boolean);
@@ -788,6 +793,7 @@ End;
                       --- Do Nothing Procedures/Functions ---
 ******************************************************************************}
 
+{$ifdef i386}
 Procedure Intr (intno: byte; var regs: registers);
 Begin
   {! No Linux equivalent !}
@@ -827,7 +833,7 @@ Procedure keep(exitcode : word);
 Begin
   {! No Linux equivalent !}
 End;
-
+{$endif i386}
 
 
 Procedure setftime(var f; time : longint);
@@ -903,7 +909,10 @@ End.
 
 {
   $Log$
-  Revision 1.13  2002-12-08 16:05:34  peter
+  Revision 1.14  2003-05-14 13:51:03  florian
+    * ifdef'd code which i386 specific
+
+  Revision 1.13  2002/12/08 16:05:34  peter
     * small error code fixes so tdos2 passes
 
   Revision 1.12  2002/09/07 16:01:27  peter
