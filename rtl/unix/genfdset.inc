@@ -18,18 +18,18 @@
 function fpFD_SET(fdno:cint;var nset : TFDSet): cint;
 
 Begin
-   if (fdno<=0) or (fdno > FD_MAXFDSET) Then
+   if (fdno<0) or (fdno > FD_MAXFDSET) Then
        exit(-1);
-   nset[(fdno-1) shr ln2bitsinword]:=nset[(fdno-1) shr ln2bitsinword] OR (1 shl ((fdno-1) and ln2bitmask));
+   nset[fdno shr ln2bitsinword]:=nset[(fdno) shr ln2bitsinword] OR (1 shl ((fdno) and ln2bitmask));
    fpFD_SET:=0;
 End;   
 
 function fpFD_CLR(fdno:cint;var nset : TFDSet): cint;
 
 Begin
-   if (fdno<=0) or (fdno >  FD_MAXFDSET) Then
+   if (fdno<0) or (fdno >  FD_MAXFDSET) Then
        exit(-1);
-   nset[(fdno-1) shr ln2bitsinword]:=nset[(fdno-1) shr ln2bitsinword] AND Cardinal(NOT (1 shl ((fdno-1) and ln2bitmask)));
+   nset[(fdno) shr ln2bitsinword]:=nset[(fdno) shr ln2bitsinword] AND Cardinal(NOT (1 shl ((fdno) and ln2bitmask)));
    fpFD_CLR:=0;
 End;
 
@@ -54,9 +54,9 @@ End;
 function fpFD_ISSET(fdno:cint;const nset : TFDSet): cint;
 
 Begin
-   if (fdno<=0) or (fdno >  FD_MAXFDSET) Then
+   if (fdno<0) or (fdno >  FD_MAXFDSET) Then
        exit(-1);
-    if ((nset[(fdno-1) shr ln2bitsinword]) and (1 shl ((fdno-1) and ln2bitmask)))>0 Then
+    if ((nset[(fdno) shr ln2bitsinword]) and (1 shl ((fdno) and ln2bitmask)))>0 Then
      fpFD_ISSET:=1
     else 
      fpFD_ISSET:=0;
@@ -64,7 +64,10 @@ End;
 
 {
    $Log$
-   Revision 1.3  2003-09-22 19:43:22  peter
+   Revision 1.4  2003-10-23 12:06:14  marco
+    * fd's now walk from 0..maxset again. IDE/unit kbd works again.
+
+   Revision 1.3  2003/09/22 19:43:22  peter
      * Fix range check error for Not 0
      * Fix loop in fdfillfdset
 
