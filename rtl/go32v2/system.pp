@@ -961,6 +961,24 @@ begin
    GetInOutRes;
 end;
 
+{$ifndef RTLLITE}
+const
+  FileHandleCount : longint = 20;
+
+function Increase_file_handle_count : boolean;
+var
+  regs : trealregs;
+begin
+  Inc(FileHandleCount,10);
+  regs.realebx:=FileHandleCount;
+  regs.realeax:=$6700;
+  sysrealintr($21,regs);
+  if (regs.realflags and carryflag) <> 0 then
+    Increase_file_handle_count:=false
+  else
+    Increase_file_handle_count:=true;
+end;
+{$endif not RTLLITE}
 
 procedure do_open(var f;p:pchar;flags:longint);
 {
@@ -1026,13 +1044,38 @@ begin
   regs.realebx:=$2000+(flags and $ff);
   regs.realecx:=$20;
   sysrealintr($21,regs);
+{$ifndef RTLLITE}
   if (regs.realflags and carryflag) <> 0 then
-   begin
-     GetInOutRes;
-     exit;
-   end
+    if (regs.realeax and $ffff)=4 then
+      if Increase_file_handle_count then
+        begin
+          { Try again }
+            if LFNSupport then
+             regs.realeax:=$716c
+            else
+             regs.realeax:=$6c00;
+          regs.realedx:=action;
+          regs.realds:=tb_segment;
+          regs.realesi:=tb_offset;
+          regs.realebx:=$2000+(flags and $ff);
+          regs.realecx:=$20;
+          sysrealintr($21,regs);
+        end;
+{$endif RTLLITE}
+  if (regs.realflags and carryflag) <> 0 then
+    begin
+      GetInOutRes;
+      exit;
+    end
   else
-   filerec(f).handle:=regs.realeax;
+    begin
+      filerec(f).handle:=regs.realeax;
+{$ifndef RTLLITE}
+      { for systems that have more then 20 by default ! }
+      if regs.realeax>FileHandleCount then
+        FileHandleCount:=regs.realeax;
+{$endif RTLLITE}
+    end;
 {$ifdef SYSTEMDEBUG}
   if regs.realeax<max_files then
     begin
@@ -1292,7 +1335,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.24  1999-12-01 22:57:30  peter
+  Revision 1.25  1999-12-17 23:11:48  pierre
+   * fix for bug754 : increase now dynamically max open handles
+
+  Revision 1.24  1999/12/01 22:57:30  peter
     * cmdline support
 
   Revision 1.23  1999/11/25 16:24:56  pierre
