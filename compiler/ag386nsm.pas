@@ -52,11 +52,34 @@ unit ag386nsm;
     const
       line_length = 64;
 
+    var
+      lastfileinfo : tfileposinfo;
+      infile,
+      lastinfile   : pinputfile;
 {$ifdef EXTTYPE}
       extstr : array[EXT_NEAR..EXT_ABS] of String[8] =
              ('NEAR','FAR','PROC','BYTE','WORD','DWORD',
               'CODEPTR','DATAPTR','FWORD','PWORD','QWORD','TBYTE','ABS');
 {$endif}
+
+   function fixline(s:string):string;
+   {
+     return s with all leading and ending spaces and tabs removed
+   }
+     var
+       i,j,k : longint;
+     begin
+       i:=length(s);
+       while (i>0) and (s[i] in [#9,' ']) do
+        dec(i);
+       j:=1;
+       while (j<i) and (s[j] in [#9,' ']) do
+        inc(j);
+       for k:=j to i do
+        if s[k] in [#0..#31,#127..#255] then
+         s[k]:='.';
+       fixline:=Copy(s,j,i-j+1);
+     end;
 
     function single2str(d : single) : string;
       var
@@ -124,7 +147,7 @@ unit ag386nsm;
       end;
 
 
-    function getreferencestring(const ref : treference) : string;
+    function getreferencestring(var ref : treference) : string;
     var
       s     : string;
       first : boolean;
@@ -138,6 +161,8 @@ unit ag386nsm;
       with ref do
         begin
           first:=true;
+          inc(offset,offsetfixup);
+          offsetfixup:=0;
           if ref.segment<>R_NO then
            s:='['+int_reg2str[segment]+':'
           else
@@ -198,6 +223,8 @@ unit ag386nsm;
                sizestr:='dword '
              else
                sizestr:='word ';
+          else { S_NO }
+            sizestr:='';
         end;
       end;
 
@@ -251,7 +278,7 @@ unit ag386nsm;
         end;
       end;
 
-    function getopstr_jmp(const o:toper) : string;
+    function getopstr_jmp(const o:toper; op : tasmop) : string;
       var
         hs : string;
       begin
@@ -270,7 +297,13 @@ unit ag386nsm;
               else
                if o.symofs<0 then
                 hs:=hs+tostr(o.symofs);
-              getopstr_jmp:='NEAR '+hs;
+              if (op=A_JCXZ) or (op=A_JECXZ) or
+                 (op=A_LOOP) or (op=A_LOOPE) or
+                 (op=A_LOOPNE) or (op=A_LOOPNZ) or
+                 (op=A_LOOPZ) then
+                getopstr_jmp:=hs
+              else
+                getopstr_jmp:='NEAR '+hs;
             end;
           else
             internalerror(10001);
@@ -312,24 +345,83 @@ unit ag386nsm;
     procedure ti386nasmasmlist.WriteTree(p:paasmoutput);
     const
       allocstr : array[boolean] of string[10]=(' released',' allocated');
+      nolinetai =[ait_label,
+                  ait_regalloc,ait_tempalloc,
+                  ait_stabn,ait_stabs,ait_section,
+                  ait_cut,ait_marker,ait_align,ait_stab_function_name];
     var
-      s,
-      prefix,
-      suffix   : string;
+      s : string;
+      {prefix,
+      suffix   : string; no need here }
       hp       : pai;
       counter,
       lines,
       i,j,l    : longint;
+      InlineLevel : longint;
       consttyp : tait;
       found,
+      do_line,
       quoted   : boolean;
       sep      : char;
     begin
       if not assigned(p) then
        exit;
+      InlineLevel:=0;
+      { lineinfo is only needed for codesegment (PFV) }
+      do_line:=(cs_asm_source in aktglobalswitches) or
+               ((cs_lineinfo in aktmoduleswitches)
+                 and (p=codesegment));
       hp:=pai(p^.first);
       while assigned(hp) do
        begin
+         aktfilepos:=hp^.fileinfo;
+
+         if not(hp^.typ in nolinetai) then
+           begin
+             if do_line then
+              begin
+              { load infile }
+                if lastfileinfo.fileindex<>hp^.fileinfo.fileindex then
+                 begin
+                   infile:=current_module^.sourcefiles^.get_file(hp^.fileinfo.fileindex);
+                   if assigned(infile) then
+                    begin
+                      { open only if needed !! }
+                      if (cs_asm_source in aktglobalswitches) then
+                       infile^.open;
+                    end;
+                   { avoid unnecessary reopens of the same file !! }
+                   lastfileinfo.fileindex:=hp^.fileinfo.fileindex;
+                   { be sure to change line !! }
+                   lastfileinfo.line:=-1;
+                 end;
+              { write source }
+                if (cs_asm_source in aktglobalswitches) and
+                   assigned(infile) then
+                 begin
+                   if (infile<>lastinfile) then
+                     begin
+                       AsmWriteLn(target_asm.comment+'['+infile^.name^+']');
+                       if assigned(lastinfile) then
+                         lastinfile^.close;
+                     end;
+                   if (hp^.fileinfo.line<>lastfileinfo.line) and
+                      ((hp^.fileinfo.line<infile^.maxlinebuf) or (InlineLevel>0)) then
+                     begin
+                       if (hp^.fileinfo.line<>0) and
+                          ((infile^.linebuf^[hp^.fileinfo.line]>=0) or (InlineLevel>0)) then
+                         AsmWriteLn(target_asm.comment+'['+tostr(hp^.fileinfo.line)+'] '+
+                           fixline(infile^.GetLineStr(hp^.fileinfo.line)));
+                       { set it to a negative value !
+                       to make that is has been read already !! PM }
+                       if (infile^.linebuf^[hp^.fileinfo.line]>=0) then
+                         infile^.linebuf^[hp^.fileinfo.line]:=-infile^.linebuf^[hp^.fileinfo.line]-1;
+                     end;
+                 end;
+                lastfileinfo:=hp^.fileinfo;
+                lastinfile:=infile;
+              end;
+           end;
          case hp^.typ of
            ait_comment :
              Begin
@@ -467,7 +559,8 @@ unit ag386nsm;
                      inc(counter,line_length);
                   end; { end for j:=0 ... }
                 { do last line of lines }
-                AsmWrite(#9#9'DB'#9);
+                if counter<pai_string(hp)^.len then
+                  AsmWrite(#9#9'DB'#9);
                 quoted:=false;
                 for i:=counter to pai_string(hp)^.len-1 do
                   begin
@@ -536,14 +629,14 @@ unit ag386nsm;
              begin
              { We need intel order, no At&t }
                paicpu(hp)^.SwapOperands;
-             { Reset }
+             { Reset
                suffix:='';
-               prefix:='';
+               prefix:='';}
                s:='';
                if paicpu(hp)^.ops<>0 then
                 begin
                   if is_calljmp(paicpu(hp)^.opcode) then
-                   s:=#9+getopstr_jmp(paicpu(hp)^.oper[0])
+                   s:=#9+getopstr_jmp(paicpu(hp)^.oper[0],paicpu(hp)^.opcode)
                   else
                    begin
                      for i:=0to paicpu(hp)^.ops-1 do
@@ -560,8 +653,8 @@ unit ag386nsm;
                if paicpu(hp)^.opcode=A_FWAIT then
                 AsmWriteln(#9#9'DB'#9'09bh')
                else
-                AsmWriteLn(#9#9+prefix+int_op2str[paicpu(hp)^.opcode]+
-                  cond2str[paicpu(hp)^.condition]+suffix+s);
+                AsmWriteLn(#9#9+{prefix+}int_op2str[paicpu(hp)^.opcode]+
+                  cond2str[paicpu(hp)^.condition]+{suffix+}s);
              end;
 {$ifdef GDB}
            ait_stabn,
@@ -593,7 +686,11 @@ unit ag386nsm;
                AsmStartSize:=AsmSize;
              end;
 
-           ait_marker : ;
+           ait_marker :
+             if pai_marker(hp)^.kind=InlineStart then
+               inc(InlineLevel)
+             else if pai_marker(hp)^.kind=InlineEnd then
+               dec(InlineLevel);
 
            else
              internalerror(10000);
@@ -630,6 +727,9 @@ unit ag386nsm;
       AsmLn;
 
       countlabelref:=false;
+      lastfileinfo.line:=-1;
+      lastfileinfo.fileindex:=0;
+      lastinfile:=nil;
 
       WriteExternals;
 
@@ -654,7 +754,12 @@ unit ag386nsm;
 end.
 {
   $Log$
-  Revision 1.56  2000-02-09 13:22:43  peter
+  Revision 1.57  2000-04-06 07:09:15  pierre
+    * handle offset fixup
+    + add source lines
+    * no NEAR for opcodes that only support short jumps
+
+  Revision 1.56  2000/02/09 13:22:43  peter
     * log truncated
 
   Revision 1.55  2000/01/07 01:14:18  peter
