@@ -66,6 +66,33 @@ begin
  i:= j - i - k;
  if i <> 800 then
   result := false;
+ j := 900 - i;
+ if (j <> 100) then
+   result := false;
+
+ i := 1000000000;
+ k := i;
+ i := i * 10;
+ j := 1000000000 - i;
+ k := k - i;
+ if j <> k then
+   result := false;
+ if j <> (1000000000-(int64(1000000000) * 10)) then
+   result := false;
+ j := (int64(1) shl 33);
+ i := (int64(1) shl 34) - j;
+ if (i <> (int64(1) shl 33)) then
+   result := false;
+
+ i := 1 - j;
+ if (i <> (1-(int64(1) shl 33))) then
+   result := false;
+
+ i := 100000;
+ i := i - 90000;
+ if (i <> 10000) then
+   result := false;
+
  if not result then
   Fail
  else
@@ -339,7 +366,10 @@ end.
 
 {
  $Log$
- Revision 1.5  2002-09-07 15:40:49  peter
+ Revision 1.6  2002-09-08 20:29:36  jonas
+   * some extra int64 - int64 tests for RISC processors
+
+ Revision 1.5  2002/09/07 15:40:49  peter
    * old logs removed and tabs fixed
 
  Revision 1.4  2002/04/13 21:02:48  carl
@@ -347,5 +377,8 @@ end.
 
  Revision 1.3  2002/03/05 21:55:11  carl
  * Adapted for automated testing
+
+ Revision 1.2  2001/06/24 23:58:14  carl
+ * fixed problem with log
 
 }
