@@ -1,8 +1,8 @@
 
-/usr/lib/fpc/0.99.12/units/classes.ppu 
-/usr/lib/fpc/0.99.12/units/inifiles.ppu 
-/usr/lib/fpc/0.99.12/units/ezcgi.ppu
+/usr/lib/fpc/0.99.12/units/linux/classes.ppu 
+/usr/lib/fpc/0.99.12/units/linux/inifiles.ppu 
+/usr/lib/fpc/0.99.12/units/linux/ezcgi.ppu
 
-/usr/lib/fpc/0.99.12/units/classes.o 
-/usr/lib/fpc/0.99.12/units/inifiles.o 
-/usr/lib/fpc/0.99.12/units/ezcgi.o
+/usr/lib/fpc/0.99.12/units/linux/classes.o 
+/usr/lib/fpc/0.99.12/units/linux/inifiles.o 
+/usr/lib/fpc/0.99.12/units/linux/ezcgi.o

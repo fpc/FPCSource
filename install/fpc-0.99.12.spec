@@ -1,16 +1,16 @@
 Name: fpc
-Version: 0.99.12
+Version: 0.99.12a
 Release: 1
 ExclusiveArch: i386
 Copyright: GPL
 Group: Development/Languages
-Source: fpc-0.99.12-src.tar.gz
+Source: fpc-0.99.12a-src.tar.gz
 Summary: Free Pascal Compiler
 Packager: Michael Van Canneyt (michael@tfdec1.fys.kuleuven.ac.be)
 URL: http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/fpc.html
 
-%define fpcdir /usr/lib/fpc/%{PACKAGE_VERSION}
-%define docdir /usr/doc/fpc-%{PACKAGE_VERSION}
+%define fpcdir /usr/lib/fpc/0.99.12
+%define docdir /usr/doc/fpc-0.99.12
 
 %description	
 The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit

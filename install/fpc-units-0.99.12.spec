@@ -1,11 +1,11 @@
 Name: fpc-units
-Version: 0.99.12
+Version: 0.99.12a
 Release: 1
 ExclusiveArch: i386
 Copyright: GPL
 Group: Development/Languages
-Source: fpc-units-0.99.12-src.tar.gz
-Requires: fpc = 0.99.12
+Source: fpc-units-0.99.12a-src.tar.gz
+Requires: fpc = 0.99.12a
 Summary: Free Pascal Compiler Extra Units
 Packager: Michael Van Canneyt (michael@tfdec1.fys.kuleuven.ac.be)
 URL: http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/fpc.html
@@ -15,10 +15,14 @@ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
 Pascal Compiler. It comes with fully TP 7.0 compatible run-time library.
 Some extensions are added to the language, like function overloading. Shared
 libraries can be linked and created. Basic Delphi support is already
-implemented (classes,exceptions,ansistrings). This package contains
-the FCL (Free Component Library), API/Free Vision and GTK 1.2.x interface.
+implemented (classes,exceptions,ansistrings).
+This package contains:
+ - FCL (Free Component Library)
+ - API/Free Vision
+ - GTK 1.2.x interface
 
-%define unitdir /usr/lib/fpc/0.99.12/rtl
+%define rtldir /usr/lib/fpc/0.99.12/rtl/linux
+%define unitdir /usr/lib/fpc/0.99.12/units/linux
 
 %prep
 %setup -c
@@ -28,10 +32,10 @@ the FCL (Free Component Library), API/Free Vision and GTK 1.2.x interface.
 export FPCMAKE=
 export FPCDIR=
 NEWPP=/usr/bin/ppc386
-	make -C fcl all PP=${NEWPP} RELEASE=1 UNITDIR=%{unitdir}
-	make -C gtk all PP=${NEWPP} RELEASE=1 UNITDIR=%{unitdir}
-	make -C api all PP=${NEWPP} RELEASE=1 UNITDIR=%{unitdir}
-	make -C fv all PP=${NEWPP} RELEASE=1 UNITDIR=%{unitdir}
+	make -C fcl all PP=${NEWPP} RELEASE=1 UNITDIR=%{rtldir}
+	make -C gtk all PP=${NEWPP} RELEASE=1 UNITDIR=%{rtldir}
+	make -C api all PP=${NEWPP} RELEASE=1 UNITDIR=%{rtldir}
+	make -C fv all PP=${NEWPP} RELEASE=1 UNITDIR=%{rtldir}
 
 %install
 # Don't load the system makefile.fpc
@@ -51,88 +55,88 @@ NEWPP=/usr/bin/ppc386
 
 %files
 
-/usr/lib/fpc/0.99.12/units/common.ppu 
-/usr/lib/fpc/0.99.12/units/callspec.ppu 
-/usr/lib/fpc/0.99.12/units/video.ppu 
-/usr/lib/fpc/0.99.12/units/keyboard.ppu 
-/usr/lib/fpc/0.99.12/units/mouse.ppu 
-/usr/lib/fpc/0.99.12/units/filectrl.ppu 
-/usr/lib/fpc/0.99.12/units/filesys.ppu
+%{unitdir}/common.ppu 
+%{unitdir}/callspec.ppu 
+%{unitdir}/video.ppu 
+%{unitdir}/keyboard.ppu 
+%{unitdir}/mouse.ppu 
+%{unitdir}/filectrl.ppu 
+%{unitdir}/filesys.ppu
 
-/usr/lib/fpc/0.99.12/units/common.o 
-/usr/lib/fpc/0.99.12/units/callspec.o 
-/usr/lib/fpc/0.99.12/units/video.o 
-/usr/lib/fpc/0.99.12/units/keyboard.o 
-/usr/lib/fpc/0.99.12/units/mouse.o 
-/usr/lib/fpc/0.99.12/units/filectrl.o 
-/usr/lib/fpc/0.99.12/units/filesys.o
+%{unitdir}/common.o 
+%{unitdir}/callspec.o 
+%{unitdir}/video.o 
+%{unitdir}/keyboard.o 
+%{unitdir}/mouse.o 
+%{unitdir}/filectrl.o 
+%{unitdir}/filesys.o
 
-/usr/lib/fpc/0.99.12/units/validate.ppu 
-/usr/lib/fpc/0.99.12/units/history.ppu 
-/usr/lib/fpc/0.99.12/units/commands.ppu 
-/usr/lib/fpc/0.99.12/units/drivers.ppu 
-/usr/lib/fpc/0.99.12/units/helpctx.ppu 
-/usr/lib/fpc/0.99.12/units/memory.ppu 
-/usr/lib/fpc/0.99.12/units/objtypes.ppu 
-/usr/lib/fpc/0.99.12/units/views.ppu 
-/usr/lib/fpc/0.99.12/units/resource.ppu 
-/usr/lib/fpc/0.99.12/units/msgbox.ppu 
-/usr/lib/fpc/0.99.12/units/dialogs.ppu 
-/usr/lib/fpc/0.99.12/units/menus.ppu 
-/usr/lib/fpc/0.99.12/units/app.ppu 
-/usr/lib/fpc/0.99.12/units/histlist.ppu 
-/usr/lib/fpc/0.99.12/units/colortxt.ppu 
-/usr/lib/fpc/0.99.12/units/gadgets.ppu 
-/usr/lib/fpc/0.99.12/units/colorsel.ppu 
-/usr/lib/fpc/0.99.12/units/inplong.ppu 
-/usr/lib/fpc/0.99.12/units/stddlg.ppu 
-/usr/lib/fpc/0.99.12/units/mousedlg.ppu 
-/usr/lib/fpc/0.99.12/units/outline.ppu 
-/usr/lib/fpc/0.99.12/units/textview.ppu 
-/usr/lib/fpc/0.99.12/units/calc.ppu 
-/usr/lib/fpc/0.99.12/units/asciitab.ppu 
-/usr/lib/fpc/0.99.12/units/calendar.ppu 
-/usr/lib/fpc/0.99.12/units/helpfile.ppu 
-/usr/lib/fpc/0.99.12/units/editors.ppu
+%{unitdir}/validate.ppu 
+%{unitdir}/history.ppu 
+%{unitdir}/commands.ppu 
+%{unitdir}/drivers.ppu 
+%{unitdir}/helpctx.ppu 
+%{unitdir}/memory.ppu 
+%{unitdir}/objtypes.ppu 
+%{unitdir}/views.ppu 
+%{unitdir}/resource.ppu 
+%{unitdir}/msgbox.ppu 
+%{unitdir}/dialogs.ppu 
+%{unitdir}/menus.ppu 
+%{unitdir}/app.ppu 
+%{unitdir}/histlist.ppu 
+%{unitdir}/colortxt.ppu 
+%{unitdir}/gadgets.ppu 
+%{unitdir}/colorsel.ppu 
+%{unitdir}/inplong.ppu 
+%{unitdir}/stddlg.ppu 
+%{unitdir}/mousedlg.ppu 
+%{unitdir}/outline.ppu 
+%{unitdir}/textview.ppu 
+%{unitdir}/calc.ppu 
+%{unitdir}/asciitab.ppu 
+%{unitdir}/calendar.ppu 
+%{unitdir}/helpfile.ppu 
+%{unitdir}/editors.ppu
 
-/usr/lib/fpc/0.99.12/units/validate.o 
-/usr/lib/fpc/0.99.12/units/drivers.o 
-/usr/lib/fpc/0.99.12/units/helpctx.o 
-/usr/lib/fpc/0.99.12/units/memory.o 
-/usr/lib/fpc/0.99.12/units/views.o 
-/usr/lib/fpc/0.99.12/units/resource.o 
-/usr/lib/fpc/0.99.12/units/msgbox.o 
-/usr/lib/fpc/0.99.12/units/dialogs.o 
-/usr/lib/fpc/0.99.12/units/menus.o 
-/usr/lib/fpc/0.99.12/units/app.o 
-/usr/lib/fpc/0.99.12/units/histlist.o 
-/usr/lib/fpc/0.99.12/units/colortxt.o 
-/usr/lib/fpc/0.99.12/units/gadgets.o 
-/usr/lib/fpc/0.99.12/units/colorsel.o 
-/usr/lib/fpc/0.99.12/units/inplong.o 
-/usr/lib/fpc/0.99.12/units/stddlg.o 
-/usr/lib/fpc/0.99.12/units/mousedlg.o 
-/usr/lib/fpc/0.99.12/units/outline.o 
-/usr/lib/fpc/0.99.12/units/textview.o 
-/usr/lib/fpc/0.99.12/units/calc.o 
-/usr/lib/fpc/0.99.12/units/asciitab.o 
-/usr/lib/fpc/0.99.12/units/calendar.o 
-/usr/lib/fpc/0.99.12/units/helpfile.o 
-/usr/lib/fpc/0.99.12/units/editors.o
+%{unitdir}/validate.o 
+%{unitdir}/drivers.o 
+%{unitdir}/helpctx.o 
+%{unitdir}/memory.o 
+%{unitdir}/views.o 
+%{unitdir}/resource.o 
+%{unitdir}/msgbox.o 
+%{unitdir}/dialogs.o 
+%{unitdir}/menus.o 
+%{unitdir}/app.o 
+%{unitdir}/histlist.o 
+%{unitdir}/colortxt.o 
+%{unitdir}/gadgets.o 
+%{unitdir}/colorsel.o 
+%{unitdir}/inplong.o 
+%{unitdir}/stddlg.o 
+%{unitdir}/mousedlg.o 
+%{unitdir}/outline.o 
+%{unitdir}/textview.o 
+%{unitdir}/calc.o 
+%{unitdir}/asciitab.o 
+%{unitdir}/calendar.o 
+%{unitdir}/helpfile.o 
+%{unitdir}/editors.o
 
-/usr/lib/fpc/0.99.12/units/classes.ppu 
-/usr/lib/fpc/0.99.12/units/inifiles.ppu 
-/usr/lib/fpc/0.99.12/units/ezcgi.ppu
+%{unitdir}/classes.ppu 
+%{unitdir}/inifiles.ppu 
+%{unitdir}/ezcgi.ppu
 
-/usr/lib/fpc/0.99.12/units/classes.o 
-/usr/lib/fpc/0.99.12/units/inifiles.o 
-/usr/lib/fpc/0.99.12/units/ezcgi.o
+%{unitdir}/classes.o 
+%{unitdir}/inifiles.o 
+%{unitdir}/ezcgi.o
 
-/usr/lib/fpc/0.99.12/units/glib.ppu 
-/usr/lib/fpc/0.99.12/units/gmodule.ppu 
-/usr/lib/fpc/0.99.12/units/gdk.ppu 
-/usr/lib/fpc/0.99.12/units/gtk.ppu
+%{unitdir}/glib.ppu 
+%{unitdir}/gmodule.ppu 
+%{unitdir}/gdk.ppu 
+%{unitdir}/gtk.ppu
 
-/usr/lib/fpc/0.99.12/units/glib.o 
-/usr/lib/fpc/0.99.12/units/gdk.o 
-/usr/lib/fpc/0.99.12/units/gtk.o
+%{unitdir}/glib.o 
+%{unitdir}/gdk.o 
+%{unitdir}/gtk.o

@@ -1,11 +1,11 @@
 Name: fpc-extra
-Version: 0.99.12
+Version: 0.99.12a
 Release: 1
 ExclusiveArch: i386
 Copyright: GPL
 Group: Development/Languages
-Source: fpc-extra-0.99.12-src.tar.gz
-Requires: fpc = 0.99.12
+Source: fpc-extra-0.99.12a-src.tar.gz
+Requires: fpc = 0.99.12a
 Summary: Free Pascal Compiler Extra Packages
 Packager: Michael Van Canneyt (michael@tfdec1.fys.kuleuven.ac.be)
 URL: http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/fpc.html
@@ -18,7 +18,8 @@ libraries can be linked and created. Basic Delphi support is already
 implemented (classes,exceptions,ansistrings). This package contains some
 extra units: ncurses,inet,mysql,ibase,postgres,uncgi
 
-%define unitdir /usr/lib/fpc/0.99.12/rtl
+%define rtldir /usr/lib/fpc/0.99.12/rtl/linux
+%define unitdir /usr/lib/fpc/0.99.12/units/linux
 
 %prep
 %setup -c
@@ -28,7 +29,7 @@ extra units: ncurses,inet,mysql,ibase,postgres,uncgi
 export FPCMAKE=
 export FPCDIR=
 NEWPP=/usr/bin/ppc386
-	make -C packages all PP=${NEWPP} RELEASE=1 UNITDIR=%{unitdir}
+	make -C packages all PP=${NEWPP} RELEASE=1 UNITDIR=%{rtldir}
 
 %install
 # Don't load the system makefile.fpc
@@ -41,33 +42,33 @@ NEWPP=/usr/bin/ppc386
 	make -C packages clean
 
 %files
-/usr/lib/fpc/0.99.12/units/ibase.ppu
-/usr/lib/fpc/0.99.12/units/ibase.o
-/usr/lib/fpc/0.99.12/units/mysql_com.ppu
-/usr/lib/fpc/0.99.12/units/mysql_version.ppu
-/usr/lib/fpc/0.99.12/units/mysql.ppu
-/usr/lib/fpc/0.99.12/units/mysql_com.o
-/usr/lib/fpc/0.99.12/units/mysql_version.o
-/usr/lib/fpc/0.99.12/units/mysql.o
-/usr/lib/fpc/0.99.12/units/uncgi.ppu
-/usr/lib/fpc/0.99.12/units/uncgi.o
-/usr/lib/fpc/0.99.12/units/utmp.ppu
-/usr/lib/fpc/0.99.12/units/utmp.o
-/usr/lib/fpc/0.99.12/units/inet.ppu
-/usr/lib/fpc/0.99.12/units/inet.o
-/usr/lib/fpc/0.99.12/units/dllist.ppu
-/usr/lib/fpc/0.99.12/units/postgres.ppu
-/usr/lib/fpc/0.99.12/units/dllist.o
-/usr/lib/fpc/0.99.12/units/postgres.o
-/usr/lib/fpc/0.99.12/units/ncurses.ppu
-/usr/lib/fpc/0.99.12/units/ncurses.o
-/usr/lib/fpc/0.99.12/units/x.ppu
-/usr/lib/fpc/0.99.12/units/xresource.ppu
-/usr/lib/fpc/0.99.12/units/xlib.ppu
-/usr/lib/fpc/0.99.12/units/xutil.ppu
-/usr/lib/fpc/0.99.12/units/forms.ppu
-/usr/lib/fpc/0.99.12/units/xlib.o
-/usr/lib/fpc/0.99.12/units/forms.o
-/usr/lib/fpc/0.99.12/units/svgalib.ppu
-/usr/lib/fpc/0.99.12/units/vgamouse.ppu
-/usr/lib/fpc/0.99.12/units/svgalib.o
+%{unitdir}/ibase.ppu
+%{unitdir}/ibase.o
+%{unitdir}/mysql_com.ppu
+%{unitdir}/mysql_version.ppu
+%{unitdir}/mysql.ppu
+%{unitdir}/mysql_com.o
+%{unitdir}/mysql_version.o
+%{unitdir}/mysql.o
+%{unitdir}/uncgi.ppu
+%{unitdir}/uncgi.o
+%{unitdir}/utmp.ppu
+%{unitdir}/utmp.o
+%{unitdir}/inet.ppu
+%{unitdir}/inet.o
+%{unitdir}/dllist.ppu
+%{unitdir}/postgres.ppu
+%{unitdir}/dllist.o
+%{unitdir}/postgres.o
+%{unitdir}/ncurses.ppu
+%{unitdir}/ncurses.o
+%{unitdir}/x.ppu
+%{unitdir}/xresource.ppu
+%{unitdir}/xlib.ppu
+%{unitdir}/xutil.ppu
+%{unitdir}/forms.ppu
+%{unitdir}/xlib.o
+%{unitdir}/forms.o
+%{unitdir}/svgalib.ppu
+%{unitdir}/vgamouse.ppu
+%{unitdir}/svgalib.o

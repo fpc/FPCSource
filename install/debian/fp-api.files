@@ -1,16 +1,16 @@
 
-/usr/lib/fpc/0.99.12/units/common.ppu 
-/usr/lib/fpc/0.99.12/units/callspec.ppu 
-/usr/lib/fpc/0.99.12/units/video.ppu 
-/usr/lib/fpc/0.99.12/units/keyboard.ppu 
-/usr/lib/fpc/0.99.12/units/mouse.ppu 
-/usr/lib/fpc/0.99.12/units/filectrl.ppu 
-/usr/lib/fpc/0.99.12/units/filesys.ppu
+/usr/lib/fpc/0.99.12/units/linux/common.ppu 
+/usr/lib/fpc/0.99.12/units/linux/callspec.ppu 
+/usr/lib/fpc/0.99.12/units/linux/video.ppu 
+/usr/lib/fpc/0.99.12/units/linux/keyboard.ppu 
+/usr/lib/fpc/0.99.12/units/linux/mouse.ppu 
+/usr/lib/fpc/0.99.12/units/linux/filectrl.ppu 
+/usr/lib/fpc/0.99.12/units/linux/filesys.ppu
 
-/usr/lib/fpc/0.99.12/units/common.o 
-/usr/lib/fpc/0.99.12/units/callspec.o 
-/usr/lib/fpc/0.99.12/units/video.o 
-/usr/lib/fpc/0.99.12/units/keyboard.o 
-/usr/lib/fpc/0.99.12/units/mouse.o 
-/usr/lib/fpc/0.99.12/units/filectrl.o 
-/usr/lib/fpc/0.99.12/units/filesys.o
+/usr/lib/fpc/0.99.12/units/linux/common.o 
+/usr/lib/fpc/0.99.12/units/linux/callspec.o 
+/usr/lib/fpc/0.99.12/units/linux/video.o 
+/usr/lib/fpc/0.99.12/units/linux/keyboard.o 
+/usr/lib/fpc/0.99.12/units/linux/mouse.o 
+/usr/lib/fpc/0.99.12/units/linux/filectrl.o 
+/usr/lib/fpc/0.99.12/units/linux/filesys.o

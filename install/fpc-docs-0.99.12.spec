@@ -1,10 +1,10 @@
 Name: fpc-docs
-Version: 0.99.12
+Version: 0.99.12a
 Release: 1
 ExclusiveArch: i386
 Copyright: GPL
 Group: Development/Languages
-Source: fpc-docs-0.99.12-src.tar.gz
+Source: fpc-docs-0.99.12a-src.tar.gz
 Summary: Free Pascal Compiler Documentation
 Packager: Michael Van Canneyt (michael@tfdec1.fys.kuleuven.ac.be)
 URL: http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/fpc.html
@@ -16,6 +16,8 @@ Some extensions are added to the language, like function overloading. Shared
 libraries can be linked and created. Basic Delphi support is already
 implemented (classes,exceptions,ansistrings). This package contains
 the documentation in HTML format
+
+%define docdir /usr/doc/fpc-0.99.12
 
 %prep
 %setup -c
@@ -30,10 +32,11 @@ the documentation in HTML format
 	make -C docs clean
 
 %files
-/usr/doc/fpc-0.99.12/prog
-/usr/doc/fpc-0.99.12/user
-/usr/doc/fpc-0.99.12/ref
-/usr/doc/fpc-0.99.12/units
-/usr/doc/fpc-0.99.12/buttons
-/usr/doc/fpc-0.99.12/fpctoc.html
+%{docdir}/prog
+%{docdir}/user
+%{docdir}/ref
+%{docdir}/units
+%{docdir}/buttons
+%{docdir}/search
+%{docdir}/fpctoc.html
 
