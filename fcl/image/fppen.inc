@@ -20,7 +20,7 @@ begin
   FMode := AValue;
 end;
 
-procedure TFPCustomPen.SetWidth (AValue : byte);
+procedure TFPCustomPen.SetWidth (AValue : Integer);
 begin
   if AValue < 1 then
     FWidth := 1

@@ -32,7 +32,7 @@ type
 
   TFPCustomCanvas = class;
 
-  TFPCanvasHelper = class
+  TFPCanvasHelper = class(TPersistent)
   private
     FColor : TFPColor;
     FAllocated,
@@ -98,26 +98,26 @@ type
   TFPCustomPen = class (TFPCanvasHelper)
   private
     FStyle : TFPPenStyle;
-    FWidth : byte;
+    FWidth : Integer;
     FMode : TFPPenMode;
     FPattern : longword;
   protected
     procedure DoCopyProps (From:TFPCanvasHelper); override;
     procedure SetMode (AValue : TFPPenMode); virtual;
-    procedure SetWidth (AValue : byte); virtual;
+    procedure SetWidth (AValue : Integer); virtual;
     procedure SetStyle (AValue : TFPPenStyle); virtual;
     procedure SetPattern (AValue : longword); virtual;
   public
     function CopyPen : TFPCustomPen;
     // Creates a copy of the pen with all properties the same, but not allocated
     property Style : TFPPenStyle read FStyle write SetStyle;
-    property Width : byte read FWidth write SetWidth;
+    property Width : Integer read FWidth write SetWidth;
     property Mode : TFPPenMode read FMode write SetMode;
     property Pattern : longword read FPattern write SetPattern;
   end;
   TFPCustomPenClass = class of TFPCustomPen;
 
-  TFPBrushStyle = (bsClear, bsSolid, bsDiagonal, bsFDiagonal, bsCross, bsDiagCross,
+  TFPBrushStyle = (bsClear, bsSolid, bsBDiagonal, bsFDiagonal, bsCross, bsDiagCross,
                    bsHorizontal, bsVertical, bsImage, bsPattern);
   TBrushPattern = array[0..PatternBitCount-1] of TPenPattern;
   PBrushPattern = ^TBrushPattern;
@@ -199,8 +199,8 @@ type
     procedure DoMoveTo (x,y:integer); virtual;
     procedure DoLineTo (x,y:integer); virtual;
     procedure DoLine (x1,y1,x2,y2:integer); virtual; abstract;
-    procedure DoCopyRect (x,y:integer; canvas:TFPCustomCanvas; SourceRect:TRect); virtual; abstract;
-    procedure DoDraw (x,y:integer; image:TFPCustomImage); virtual; abstract;
+    procedure DoCopyRect (x,y:integer; canvas:TFPCustomCanvas; Const SourceRect:TRect); virtual; abstract;
+    procedure DoDraw (x,y:integer; Const image:TFPCustomImage); virtual; abstract;
     procedure CheckHelper (AHelper:TFPCanvasHelper); virtual;
     procedure AddHelper (AHelper:TFPCanvasHelper);
   public

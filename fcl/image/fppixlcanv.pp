@@ -205,7 +205,7 @@ begin
             FillRectangleImage (self, left,top, right,bottom, brush.image)
         else
           raise PixelCanvasException.Create (sErrNoImage);
-      bsDiagonal : FillRectangleHashDiagonal (self, b, FHashWidth);
+      bsBDiagonal : FillRectangleHashDiagonal (self, b, FHashWidth);
       bsFDiagonal : FillRectangleHashBackDiagonal (self, b, FHashWidth);
       bsCross :
         begin
@@ -235,7 +235,7 @@ begin
           FillEllipseImage (self, Bounds, brush.image)
       else
         raise PixelCanvasException.Create (sErrNoImage);
-    bsDiagonal : FillEllipseHashDiagonal (self, Bounds, FHashWidth, brush.color);
+    bsBDiagonal : FillEllipseHashDiagonal (self, Bounds, FHashWidth, brush.color);
     bsFDiagonal : FillEllipseHashBackDiagonal (self, Bounds, FHashWidth, brush.color);
     bsCross : FillEllipseHashCross (self, Bounds, FHashWidth, brush.color);
     bsDiagCross : FillEllipseHashDiagCross (self, Bounds, FHashWidth, brush.color);
@@ -277,7 +277,7 @@ begin
           FillFloodImage (self, x,y, brush.image)
       else
         raise PixelCanvasException.Create (sErrNoImage);
-    bsDiagonal : FillFloodHashDiagonal (self, x,y, FHashWidth);
+    bsBDiagonal : FillFloodHashDiagonal (self, x,y, FHashWidth);
     bsFDiagonal : FillFloodHashBackDiagonal (self, x,y, FHashWidth);
     bsCross : FillFloodHashCross (self, x,y, FHashWidth);
     bsDiagCross : FillFloodHashDiagCross (self, x,y, FHashWidth);
