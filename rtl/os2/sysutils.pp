@@ -909,7 +909,7 @@ const
 begin
  ObjName := '';
  GetMem (ObjNameBuf, ObjBufSize);
- FillChar (ObjNameBuf, ObjBufSize, 0);
+ FillChar (ObjNameBuf^, ObjBufSize, 0);
  if ComLine = '' then
   Args := nil
  else
@@ -1017,7 +1017,10 @@ end.
 
 {
   $Log$
-  Revision 1.44  2004-12-05 19:33:08  hajny
+  Revision 1.45  2004-12-06 18:50:21  hajny
+    * fix for ExecuteProcess
+
+  Revision 1.44  2004/12/05 19:33:08  hajny
     * ExecuteProcess update - run VIO apps in the same window
 
   Revision 1.43  2004/02/22 15:01:49  hajny
