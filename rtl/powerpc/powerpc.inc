@@ -925,40 +925,32 @@ function declocked(var l : longint) : boolean;assembler;
 { input:  address of l in r3                                      }
 { output: boolean indicating whether l is zero after decrementing }
 asm
-{$ifdef MT}
 LDecLockedLoop:
     lwarx   r10,0,r3
     subi    r10,r10,1
     stwcx.  r10,0,r3
     bne-    LDecLockedLoop
-{$else MT}
-    lwzx    r10,0,r3
-    subi    r10,r10,1
-    stw     r10,0(r3)
-{$endif MT}
     cntlzw  r3,r10
     srwi    r3,r3,5
 end ['R3','R10'];
 
 procedure inclocked(var l : longint);assembler;
 asm
-{$ifdef MT}
 LIncLockedLoop:
     lwarx   r10,0,r3
     addi    r10,r10,1
     stwcx.  r10,0,r3
     bne-    LDecLockedLoop
-{$else MT}
-    lwzx    r10,0,r3
-    addi    r10,r10,1
-    stw     r10,0(r3)
-{$endif MT}
 end ['R3','R10'];
 
 
 {
   $Log$
-  Revision 1.26  2002-11-01 13:27:55  jonas
+  Revision 1.27  2002-11-07 15:23:13  jonas
+    * always use code that was between 'ifdef mt', since that define is
+      deprecated now
+
+  Revision 1.26  2002/11/01 13:27:55  jonas
     * changed "dcbtst r0,x" to "dcbtst 0,x"
 
   Revision 1.25  2002/10/23 15:26:00  olle
