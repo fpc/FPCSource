@@ -826,7 +826,7 @@ begin
     else
 *)
 asm
-    pushl %ebx
+    push ebx
     mov ebx, Handle
     mov eax, 4400h
     call syscall
@@ -836,7 +836,7 @@ asm
     jnz @IsDevEnd
     dec eax                 { nope, so result is zero }
 @IsDevEnd:
-    popl %ebx
+    pop ebx
 end;
 {$ASMMODE ATT}
 
@@ -1426,7 +1426,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2003-10-03 21:46:41  peter
+  Revision 1.37  2003-10-04 08:30:59  yuri
+  * at&t syntax instead of intel syntax was used
+
+  Revision 1.36  2003/10/03 21:46:41  peter
     * stdcall fixes
 
   Revision 1.35  2003/10/01 18:42:49  yuri
