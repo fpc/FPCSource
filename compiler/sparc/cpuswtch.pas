@@ -107,10 +107,10 @@ begin
              end;
          end;
    'R' : begin
-           if More='ATT' then
+           if More='GAS' then
             initasmmode:=asmmode_i386_att
            else
-            if More='INTEL' then
+            if More='STANDARD' then
              initasmmode:=asmmode_i386_intel
            else
             IllegalPara(opt);
@@ -126,7 +126,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2004-01-12 16:39:41  peter
+  Revision 1.6  2004-01-26 14:41:24  mazen
+  * Supported assembler modes are GAS and STANDARD
+
+  Revision 1.5  2004/01/12 16:39:41  peter
     * sparc updates, mostly float related
 
   Revision 1.4  2003/08/09 18:56:54  daniel
