@@ -33,3 +33,10 @@
 {$ifdef x86_64}
   {$define x86}
 {$endif x86_64}
+
+{
+  $Log$
+  Revision 1.3  2002-07-04 18:56:50  florian
+    + log added
+
+}
