@@ -412,6 +412,7 @@ begin
   if FileName<>'' then
     Add('Echo Assembling '+ScriptFixFileName(FileName));
   Add(maybequoted(command)+' '+Options);
+  Add('Exit If "{Status}" != 0');
 end;
 
 
@@ -420,10 +421,14 @@ begin
   if FileName<>'' then
     Add('Echo Linking '+ScriptFixFileName(FileName));
   Add(maybequoted(command)+' '+Options);
+  Add('Exit If "{Status}" != 0');
 
   {Add resources}
-  if true then {If SIOW}
-    Add('Rez -append "{RIncludes}"SIOW.r -o '+ ScriptFixFileName(FileName));
+  if apptype <> app_tool then {If SIOW}
+    begin
+      Add('Rez -append "{RIncludes}"SIOW.r -o '+ ScriptFixFileName(FileName));
+      Add('Exit If "{Status}" != 0');
+    end;
 end;
 
 
@@ -498,7 +503,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2004-02-24 00:53:48  olle
+  Revision 1.28  2004-04-06 22:44:16  olle
+    + Status checks in scripts
+    + Scripts support apptype tool
+    + Added some ScriptFixFileName
+
+  Revision 1.27  2004/02/24 00:53:48  olle
     * increased maxsize of link.res file name
     * fixed a 255-limit in TScript.WriteToDisk
 

@@ -152,9 +152,9 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',current_module.exefilename^);
+  Replace(cmdstr,'$EXE',ScriptFixFileName(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+  Replace(cmdstr,'$RES',ScriptFixFileName(outputexedir+Info.ResName));
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
@@ -166,7 +166,7 @@ begin
       Add('PPCLink '#182);
 
       { Add MPW standard libraries}
-      if true then // if not MPWTool
+      if apptype <> app_tool then
         begin
           Add('"{PPCLibraries}PPCSIOW.o" '#182);
           Add('"{PPCLibraries}PPCToolLibs.o" '#182);
@@ -185,17 +185,24 @@ begin
           if s<>'' then
             Add(s+' '#182);
         end;
-
+		
 	  {Add last lines of the link command}
-      if true then //If SIOW, to avoid some warnings.
+      if apptype = app_tool then
+        Add('-t "MPST" -c "MPS " '#182);
+
+      if apptype <> app_tool then //If SIOW, to avoid some warnings.
         Add('-ignoredups __start -ignoredups .__start -ignoredups main -ignoredups .main '#182); 
 
-      Add('-tocdataref off -sym on -dead on -o '+ current_module.exefilename^); 
+      Add('-tocdataref off -sym on -dead on -o '+ ScriptFixFileName(current_module.exefilename^)); 
+
+      Add('Exit If "{Status}" != 0');
 
       {Add mac resources}
-      if true then //If SIOW
-        Add('Rez -append "{RIncludes}"SIOW.r -o ' + current_module.exefilename^);
-
+      if apptype <> app_tool then //If SIOW
+        begin
+          Add('Rez -append "{RIncludes}"SIOW.r -o ' + ScriptFixFileName(current_module.exefilename^));
+          Add('Exit If "{Status}" != 0');
+        end;
       success:= true;
     end;
 
@@ -221,7 +228,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2004-02-19 20:40:20  olle
+  Revision 1.8  2004-04-06 22:44:22  olle
+    + Status checks in scripts
+    + Scripts support apptype tool
+    + Added some ScriptFixFileName
+
+  Revision 1.7  2004/02/19 20:40:20  olle
     + Support for Link on target especially for MacOS
     + TLinkerMPW
     + TAsmScriptMPW
