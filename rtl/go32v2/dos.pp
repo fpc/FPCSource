@@ -103,8 +103,8 @@ Procedure Exec(const path: pathstr; const comline: comstr);
 Function  DosExitCode: word;
 
 {Disk}
- Function  DiskFree(drive: byte) : int64;
- Function  DiskSize(drive: byte) : int64;
+Function  DiskFree(drive: byte) : int64;
+Function  DiskSize(drive: byte) : int64;
 Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
 Procedure FindNext(var f: searchRec);
 Procedure FindClose(Var f: SearchRec);
@@ -458,14 +458,12 @@ TYPE  ExtendedFat32FreeSpaceRec=packed Record
          END;
 
 function do_diskdata(drive : byte; Free : BOOLEAN) : Int64;
-
-VAR S    : String;
-    Rec  : ExtendedFat32FreeSpaceRec;
-
+VAR
+  S    : String;
+  Rec  : ExtendedFat32FreeSpaceRec;
 BEGIN
  if (swap(dosversion)>=$070A) AND LFNSupport then
   begin
-   DosError:=0;
    S:='C:\'#0;
    if Drive=0 then
     begin
@@ -485,7 +483,6 @@ BEGIN
    dosregs.cx:=Sizeof(ExtendedFat32FreeSpaceRec);
    dosregs.ax:=$7303;
    msdos(dosregs);
-   LoadDosError;
    copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
    if Free then
     Do_DiskData:=int64(rec.AvailAllocUnits)*rec.SecPerClus*rec.BytePerSec
@@ -496,7 +493,6 @@ BEGIN
   end
  else
   begin
-   DosError:=0;
    dosregs.dl:=drive;
    dosregs.ah:=$36;
    msdos(dosregs);
@@ -512,8 +508,8 @@ BEGIN
   end;
 end;
 
-function diskfree(drive : byte) : int64;
 
+function diskfree(drive : byte) : int64;
 begin
    diskfree:=Do_DiskData(drive,TRUE);
 end;
@@ -725,7 +721,6 @@ var
 
 procedure swapvectors;
 begin
-  { DosError:=0; Who added this !!!!! }
   if _exception_exit<>nil then
     if _v2prt0_exceptions_on then
       _swap_in()
@@ -1110,7 +1105,7 @@ begin
    begin
      hs:=strpas(hp^);
      eqpos:=pos('=',hs);
-     if copy(hs,1,eqpos-1)=envvar then
+     if upcase(copy(hs,1,eqpos-1))=envvar then
       begin
         getenv:=copy(hs,eqpos+1,255);
         exit;
@@ -1140,8 +1135,8 @@ End;
 end.
 {
   $Log$
-  Revision 1.5  2000-07-30 17:09:55  peter
-    * merged fixes
+  Revision 1.6  2000-08-04 21:45:39  peter
+    * getenv case insensitive (merged)
 
   Revision 1.4  2000/07/22 12:24:55  jonas
     * merged dossearchrec2searchrec() fix from fixes branch
