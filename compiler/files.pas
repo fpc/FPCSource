@@ -125,6 +125,10 @@ unit files;
        tmodule = object(tlinkedlist_item)
           ppufile       : pppufile; { the PPU file }
           crc,
+{$ifdef Double_checksum}
+          interface_crc : longint;
+          do_reload_ppu : boolean;
+{$endif def Double_checksum}
           flags         : longint;  { the PPU flags }
 
           compiled,                 { unit is already compiled }
@@ -154,7 +158,7 @@ unit files;
           linkunitfiles,
           linkofiles    : tstringcontainer;
           used_units    : tlinkedlist;
-
+          dependent_units : tlinkedlist;
           localunitsearchpath,           { local searchpaths }
           localobjectsearchpath,
           localincludesearchpath,
@@ -171,6 +175,10 @@ unit files;
           exefilename,              { fullname of the exefile }
           asmprefix,                { prefix for the smartlink asmfiles }
           mainsource    : pstring;  { name of the main sourcefile }
+{$ifdef Test_Double_checksum}
+          crc_array : pointer;
+          crc_size : longint;
+{$endif def Test_Double_checksum}
 
           constructor init(const s:string;_is_unit:boolean);
           destructor done;virtual;
@@ -185,6 +193,9 @@ unit files;
           unitid          : word;
           name            : pstring;
           checksum        : longint;
+{$ifdef Double_checksum}
+          interface_checksum : longint;
+{$endif def Double_checksum}
           loaded          : boolean;
           in_uses,
           in_interface,
@@ -195,6 +206,12 @@ unit files;
           destructor done;virtual;
        end;
 
+       pdependent_unit = ^tdependent_unit;
+       tdependent_unit = object(tlinkedlist_item)
+          u : pmodule;
+          constructor init(_u : pmodule);
+       end;
+       
     var
        main_module    : pmodule;     { Main module of the program }
        current_module : pmodule;     { Current module which is compiled }
@@ -209,6 +226,9 @@ unit files;
 implementation
 
 uses
+{$ifdef Double_checksum}
+  comphook,
+{$endif Double_checksum}
   dos,verbose,systems,
   symtable,scanner;
 
@@ -713,7 +733,7 @@ uses
            exit;
          end;
       { check for allowed PPU versions }
-        if not (ppufile^.GetPPUVersion = 15) then
+        if not (ppufile^.GetPPUVersion = CurrentPPUVersion) then
          begin
            dispose(ppufile,done);
            Message1(unit_u_ppu_invalid_version,tostr(ppufile^.GetPPUVersion));
@@ -736,6 +756,9 @@ uses
       { Load values to be access easier }
         flags:=ppufile^.header.flags;
         crc:=ppufile^.header.checksum;
+{$ifdef Double_checksum}
+        interface_crc:=ppufile^.header.interface_checksum;
+{$endif def Double_checksum}
       { Show Debug info }
         Message1(unit_u_ppu_time,filetimestring(ppufiletime));
         Message1(unit_u_ppu_flags,tostr(flags));
@@ -898,6 +921,10 @@ uses
       end;
 
     procedure tmodule.reset;
+
+      var
+         pm : pdependent_unit;
+         
       begin
         if assigned(scanner) then
           pscannerfile(scanner)^.invalid:=true;
@@ -929,6 +956,19 @@ uses
         _exports^.init;
         used_units.done;
         used_units.init;
+        { all units that depend on this one must be recompiled ! }
+{$ifdef Double_checksum}
+        pm:=pdependent_unit(dependent_units.first);
+        while assigned(pm) do
+          begin
+            pm^.u^.do_reload_ppu:=true;
+            def_comment(v_warning,'Reloading '+pm^.u^.mainsource^+' needed because '+
+              mainsource^+' is reloaded');
+            pm:=pdependent_unit(pm^.next);
+          end;
+{$endif Double_checksum}
+        dependent_units.done;
+        dependent_units.init;
         resourcefiles.done;
         resourcefiles.init_no_double;
         linkunitfiles.done;
@@ -950,6 +990,9 @@ uses
         loaded_from:=nil;
         flags:=0;
         crc:=0;
+{$ifdef Double_checksum}
+        interface_crc:=0;
+{$endif def Double_checksum}
         unitcount:=1;
       end;
 
@@ -998,6 +1041,7 @@ uses
          localincludesearchpath:=nil;
          locallibrarysearchpath:=nil;
          used_units.init;
+         dependent_units.init;
          new(sourcefiles,init);
          resourcefiles.init_no_double;
          linkunitfiles.init_no_double;
@@ -1012,6 +1056,10 @@ uses
          loaded_from:=nil;
          flags:=0;
          crc:=0;
+{$ifdef Double_checksum}
+        interface_crc:=0;
+        do_reload_ppu:=false;
+{$endif def Double_checksum}
          unitcount:=1;
          inc(global_unit_count);
          unit_index:=global_unit_count;
@@ -1055,6 +1103,7 @@ uses
          dispose(sourcefiles,done);
         sourcefiles:=nil;
         used_units.done;
+        dependent_units.done;
         resourcefiles.done;
         linkunitfiles.done;
         linkofiles.done;
@@ -1098,6 +1147,9 @@ uses
         loaded:=true;
         name:=stringdup(_u^.modulename^);
         checksum:=_u^.crc;
+{$ifdef Double_checksum}
+        interface_checksum:=_u^.interface_crc;
+{$endif def Double_checksum}
         unitid:=0;
       end;
 
@@ -1111,6 +1163,13 @@ uses
         loaded:=false;
         name:=stringdup(n);
         checksum:=c;
+{$ifdef Double_checksum}
+        if not in_interface then
+          begin
+             interface_checksum:=c;
+             checksum:=0;
+          end;
+{$endif def Double_checksum}
         unitid:=0;
       end;
 
@@ -1121,10 +1180,22 @@ uses
         inherited done;
       end;
 
+{****************************************************************************
+                            TDENPENDENT_UNIT
+ ****************************************************************************}
+
+    constructor tdependent_unit.init(_u : pmodule);
+      begin
+         u:=_u;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.88  1999-03-25 16:55:29  peter
+  Revision 1.89  1999-04-07 15:39:29  pierre
+    + double_checksum code added
+
+  Revision 1.88  1999/03/25 16:55:29  peter
     + unitpath,librarypath,includepath,objectpath directives
 
   Revision 1.87  1999/02/16 00:48:23  peter

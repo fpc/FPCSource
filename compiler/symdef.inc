@@ -1521,9 +1521,11 @@
          deftype:=formaldef;
          registerdef:=stregdef;
          { formaldef must be registered at unit level !! }
-         if registerdef and assigned(current_module) and
-            assigned(current_module^.globalsymtable) then
-           psymtable(current_module^.globalsymtable)^.registerdef(@self);
+         if registerdef and assigned(current_module) then
+            if assigned(current_module^.localsymtable) then
+              psymtable(current_module^.localsymtable)^.registerdef(@self)
+            else if assigned(current_module^.globalsymtable) then
+              psymtable(current_module^.globalsymtable)^.registerdef(@self);
          savesize:=target_os.size_of_pointer;
       end;
 
@@ -2103,8 +2105,14 @@
       begin
          inherited write;
          writedefref(retdef);
+{$ifdef Double_checksum}
+        current_ppu^.do_interface_crc:=false;
+{$endif def Double_checksum}
          writebyte(fpu_used);
          writelong(options);
+{$ifdef Double_checksum}
+        current_ppu^.do_interface_crc:=true;
+{$endif def Double_checksum}
          hp:=para1;
          count:=0;
          while assigned(hp) do
@@ -2453,6 +2461,9 @@ Const local_symtable_index : longint = $8001;
     procedure tprocdef.write;
       begin
          inherited write;
+{$ifdef Double_checksum}
+        current_ppu^.do_interface_crc:=false;
+{$endif def Double_checksum}
 {$ifdef i386}
          writebyte(usedregisters);
 {$endif i386}
@@ -2465,6 +2476,9 @@ Const local_symtable_index : longint = $8001;
 {$endif alpha}
          writestring(mangledname);
          writelong(extnumber);
+{$ifdef Double_checksum}
+        current_ppu^.do_interface_crc:=true;
+{$endif def Double_checksum}
          if (options and pooperator) = 0 then
            writedefref(nextoverloaded)
          else
@@ -3409,7 +3423,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.98  1999-03-06 17:24:16  peter
+  Revision 1.99  1999-04-07 15:39:32  pierre
+    + double_checksum code added
+
+  Revision 1.98  1999/03/06 17:24:16  peter
     * reset savesize in tdef.init
 
   Revision 1.97  1999/03/01 13:45:04  pierre

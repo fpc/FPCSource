@@ -26,7 +26,23 @@
 unit ppu;
 interface
 
+{$ifdef Test_Double_checksum}
+var
+  CRCFile : text;
 const
+  CRC_array_Size = 20000;
+type
+  tcrc_array = array[0..crc_array_size] of longint;
+  pcrc_array = ^tcrc_array;
+{$endif Test_Double_checksum}
+
+const
+{$ifndef Double_checksum}
+  CurrentPPUVersion=15;
+{$else Double_checksum}
+  CurrentPPUVersion=16;
+{$endif def Double_checksum}
+
 { buffer sizes }
   maxentrysize = 1024;
 {$ifdef TP}
@@ -126,6 +142,9 @@ type
     flags    : longint;
     size     : longint; { size of the ppufile without header }
     checksum : longint; { checksum for this ppufile }
+{$ifdef Double_checksum}
+    interface_checksum : longint;
+{$endif def Double_checksum}
   end;
 
   tppuentry=packed record
@@ -144,6 +163,18 @@ type
 
     header   : tppuheader;
     size,crc : longint;
+{$ifdef Double_checksum}
+{$ifdef Test_Double_checksum}
+    crcindex : longint;
+    crc_index : longint;
+    crc_test : pcrc_array;
+{$endif def Test_Double_checksum}
+    interface_crc : longint;
+    do_interface_crc : boolean;
+    { used to calculate interface_crc
+      before implementation }
+    crc_only : boolean;
+{$endif def Double_checksum}
     do_crc,
     change_endian : boolean;
 
@@ -196,6 +227,11 @@ type
 
 implementation
 
+{$ifdef Test_Double_checksum}
+  uses
+    comphook;
+    
+{$endif def Test_Double_checksum}
 {*****************************************************************************
                                    Crc 32
 *****************************************************************************}
@@ -279,6 +315,9 @@ constructor tppufile.init(fn:string);
 begin
   fname:=fn;
   change_endian:=false;
+{$ifdef Double_checksum}
+  crc_only:=false;
+{$endif Double_checksum}
   Mode:=0;
   NewHeader;
   Error:=false;
@@ -345,7 +384,11 @@ begin
      Id[3]:='U';
      Ver[1]:='0';
      Ver[2]:='1';
+{$ifndef Double_checksum}
      Ver[3]:='5';
+{$else Double_checksum}
+     Ver[3]:='6';
+{$endif def Double_checksum}
    end;
 end;
 
@@ -638,6 +681,10 @@ begin
   bufidx:=0;
 {reset}
   crc:=$ffffffff;
+{$ifdef Double_checksum}
+  interface_crc:=$ffffffff;
+  do_interface_crc:=true;
+{$endif def Double_checksum}
   Error:=false;
   do_crc:=true;
   size:=0;
@@ -749,8 +796,40 @@ end;
 procedure tppufile.putdata(var b;len:longint);
 begin
   if do_crc then
-   crc:=UpdateCrc32(crc,b,len);
-  writedata(b,len);
+   begin
+     crc:=UpdateCrc32(crc,b,len);
+{$ifdef Double_checksum}
+     if do_interface_crc then
+       begin
+         interface_crc:=UpdateCrc32(interface_crc,b,len);
+{$ifdef Test_Double_checksum}
+        if crc_only then
+          begin
+            crc_test^[crc_index]:=interface_crc;
+{$ifdef Test_Double_checksum_write}
+            Writeln(CRCFile,interface_crc);
+{$endif Test_Double_checksum_write}
+            if crc_index<crc_array_size then
+             inc(crc_index);
+          end
+        else
+          begin
+            if (crcindex<crc_array_size) and (crcindex<crc_index) and
+               (crc_test^[crcindex]<>interface_crc) then
+              Def_comment(V_Warning,'CRC changed');
+{$ifdef Test_Double_checksum_write}
+            Writeln(CRCFile,interface_crc);
+{$endif Test_Double_checksum_write}
+            inc(crcindex);
+          end;
+{$endif def Test_Double_checksum}
+       end;
+    end;
+  if not crc_only then
+{$else not def Double_checksum}
+    end;
+{$endif def Double_checksum}
+    writedata(b,len);
   inc(entryidx,len);
 end;
 
@@ -795,7 +874,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  1999-03-02 13:49:18  peter
+  Revision 1.26  1999-04-07 15:39:31  pierre
+    + double_checksum code added
+
+  Revision 1.25  1999/03/02 13:49:18  peter
     * renamed loadunit_int -> loadunit
 
   Revision 1.24  1999/02/22 13:07:00  pierre

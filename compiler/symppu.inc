@@ -167,19 +167,32 @@
         hp:=pused_unit(current_module^.used_units.first);
         while assigned(hp) do
          begin
+{$ifdef Double_checksum}
+           current_ppu^.do_interface_crc:=hp^.in_interface;
+{$endif Double_checksum}
            current_ppu^.putstring(hp^.name^);
-           { the checksum should not affect the crc of this unit ! (PFV) }
            current_ppu^.do_crc:=false;
+{$ifndef Double_checksum}
+           { the checksum should not affect the crc of this unit ! (PFV) }
            current_ppu^.putlongint(hp^.checksum);
+{$else Double_checksum}
+           if hp^.in_interface then
+             current_ppu^.putlongint(hp^.checksum)
+           else
+             current_ppu^.putlongint(hp^.interface_checksum);
+{$endif def Double_checksum}
            current_ppu^.do_crc:=true;
            current_ppu^.putbyte(byte(hp^.in_interface));
            hp:=pused_unit(hp^.next);
          end;
+{$ifdef Double_checksum}
+        current_ppu^.do_interface_crc:=true;
+{$endif Double_checksum}
         current_ppu^.writeentry(ibloadunit);
       end;
 
 
-    procedure writeunitas(const s : string;unittable : punitsymtable);
+    procedure writeunitas(const s : string;unittable : punitsymtable;only_crc : boolean);
       begin
          Message1(unit_u_ppu_write,s);
 
@@ -207,11 +220,33 @@
              flags:=flags or uf_local_browser;
           end;
 
+{$ifdef Test_Double_checksum_write}
+        If only_crc then
+          Assign(CRCFile,s+'.INT')
+        else
+          Assign(CRCFile,s+'.IMP');
+        Rewrite(CRCFile);
+{$endif def Test_Double_checksum_write}
        { open ppufile }
          current_ppu:=new(pppufile,init(s));
          if not current_ppu^.create then
           Message(unit_f_ppu_cannot_write);
 
+{$ifdef Double_checksum}
+         current_ppu^.crc_only:=only_crc;
+{$ifdef Test_Double_checksum}
+         if only_crc then
+           begin
+              new(current_ppu^.crc_test);
+           end
+         else
+           begin
+             current_ppu^.crc_test:=Current_Module^.crc_array;
+             current_ppu^.crc_index:=Current_Module^.crc_size;
+           end;
+{$endif def Test_Double_checksum}
+{$endif Double_checksum}
+         
          current_ppu^.change_endian:=source_os.endian<>target_os.endian;
        { write symbols and definitions }
          unittable^.writeasunit;
@@ -221,6 +256,9 @@
        { create and write header }
          current_ppu^.header.size:=current_ppu^.size;
          current_ppu^.header.checksum:=current_ppu^.crc;
+{$ifdef Double_checksum}
+        current_module^.interface_crc:=current_ppu^.interface_crc;
+{$endif def Double_checksum}
          current_ppu^.header.compiler:=wordversion;
          current_ppu^.header.cpu:=word(target_cpu);
          current_ppu^.header.target:=word(target_info.target);
@@ -228,10 +266,29 @@
          current_ppu^.writeheader;
        { save crc in current_module also }
          current_module^.crc:=current_ppu^.crc;
+{$ifdef Double_checksum}
+        current_module^.interface_crc:=current_ppu^.interface_crc;
+        if only_crc then
+          begin
+{$ifdef Test_Double_checksum}
+            Current_Module^.crc_array:=current_ppu^.crc_test;
+            current_ppu^.crc_test:=nil;
+            Current_Module^.crc_size:=current_ppu^.crc_index;
+{$endif def Test_Double_checksum}
+            closecurrentppu;
+          end;
+{$ifdef Test_Double_checksum_write}
+        close(CRCFile);
+{$endif Test_Double_checksum_write}
+{$endif def Double_checksum}
       end;
 
     procedure closecurrentppu;
       begin
+{$ifdef Test_Double_checksum}
+         if assigned(current_ppu^.crc_test) then
+           dispose(current_ppu^.crc_test);
+{$endif Test_Double_checksum}
        { close }
          current_ppu^.close;
          dispose(current_ppu,done);
@@ -451,7 +508,10 @@
 
 {
   $Log$
-  Revision 1.34  1999-03-02 13:49:19  peter
+  Revision 1.35  1999-04-07 15:39:35  pierre
+    + double_checksum code added
+
+  Revision 1.34  1999/03/02 13:49:19  peter
     * renamed loadunit_int -> loadunit
 
   Revision 1.33  1999/02/23 18:29:25  pierre
