@@ -85,7 +85,7 @@ implementation
          begin
            location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
            secondpass(left);
-           location_force_fpureg(exprasmlist,location,true);
+           location_force_fpureg(exprasmlist,left.location,true);
            location_copy(location,left.location);
            if (location.loc = LOC_CFPUREGISTER) then
              begin
@@ -115,7 +115,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2003-06-13 17:03:38  jonas
+  Revision 1.9  2003-08-08 19:01:02  jonas
+    * fixed bug in load_fpu_location found by Olle
+
+  Revision 1.8  2003/06/13 17:03:38  jonas
     * fixed bugs in case the left node was a LOC_(C)REFERENCE
 
   Revision 1.7  2003/06/01 21:38:06  peter
