@@ -88,13 +88,6 @@ begin
   WriteLN('Import: f:',func,' m:',module,' n:',name);
 {$EndIf}
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
-  { do nothing with the procedure, only set the mangledname }
-  if name<>'' then
-   begin
-     aprocdef.setmangledname(name);
-   end
-  else
-    message(parser_e_empty_import_name);
 end;
 
 
@@ -498,7 +491,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2004-11-08 22:09:59  peter
+  Revision 1.15  2004-11-19 16:30:24  peter
+    * fixed setting of mangledname when importing
+
+  Revision 1.14  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.13  2004/11/03 12:04:03  florian

@@ -150,13 +150,6 @@ procedure timportlibnetwlibc.importprocedure(aprocdef:tprocdef;const module:stri
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
-  { do nothing with the procedure, only set the mangledname }
-  if name<>'' then
-   begin
-     aprocdef.setmangledname(name);
-   end
-  else
-    message(parser_e_empty_import_name);
 end;
 
 
@@ -653,7 +646,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2004-11-08 22:09:59  peter
+  Revision 1.10  2004-11-19 16:30:24  peter
+    * fixed setting of mangledname when importing
+
+  Revision 1.9  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.8  2004/10/25 15:38:41  peter

@@ -66,13 +66,6 @@ procedure timportlibmacos.importprocedure(aprocdef:tprocdef;const module:string;
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
-  { do nothing with the procedure, only set the mangledname }
-  if name<>'' then
-   begin
-     aprocdef.setmangledname(name);
-   end
-  else
-    message(parser_e_empty_import_name);
 end;
 
 
@@ -252,7 +245,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2004-11-11 19:31:33  peter
+  Revision 1.15  2004-11-19 16:30:24  peter
+    * fixed setting of mangledname when importing
+
+  Revision 1.14  2004/11/11 19:31:33  peter
     * fixed compile of powerpc,sparc,arm
 
   Revision 1.13  2004/10/25 15:38:41  peter
