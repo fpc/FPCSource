@@ -1339,15 +1339,6 @@ END;
 {  DrawBorder -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17May98 LdB        }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.DrawBorder;
-VAR I : sw_integer;
-    LeftUpCorner,
-    RightUpCorner,
-    HorizontalBar,
-    VerticalBar,
-    LeftLowCorner,
-    RightLowCorner : Char;
-    Color : Byte;
-    Focused : Boolean;
 BEGIN
    If (TextModeGFV = FALSE) Then Begin                { GRAPHICS GFV MODE }
      BiColorRectangle(0, 0, RawSize.X, RawSize.Y,
@@ -1360,44 +1351,8 @@ BEGIN
        BiColorRectangle(3, 3, RawSize.X-3, RawSize.Y-3,
          White, DarkGray, True);                      { Draw highlights }
      End;
-   End Else Begin                                     { TEXT GFV MODE }
-     Focused:=(State AND (sfSelected + sfModal)<>0);
-     if Assigned(Owner) then
-       Focused := Focused AND (@Self = Owner^.First);
-     If not Focused or (GOptions AND goThickFramed = 0) then
-       begin
-         LeftUpCorner:='Ú';
-         RightUpCorner:='¿';
-         HorizontalBar:='Ä';
-         VerticalBar:='³';
-         LeftLowCorner:='À';
-         RightLowCorner:='Ù';
-       end
-     else
-       begin
-         LeftUpCorner:='É';
-         RightUpCorner:='»';
-         HorizontalBar:='Í';
-         VerticalBar:='º';
-         LeftLowCorner:='È';
-         RightLowCorner:='¼';
-       end;
-     if Focused then
-       Color := 2
-     else
-       Color := 1;
-     WriteChar(0,0,LeftUpCorner,Color,1);
-     WriteChar(1,0,HorizontalBar,Color,Size.X-2);
-     WriteChar(Size.X-1,0,RightUpcorner,Color,1);
-     For i:=1 to Size.Y -1 do
-       begin
-         WriteChar(0,i,VerticalBar,Color,1);
-         WriteChar(Size.X-1,i,VerticalBar,Color,1);
-       end;
-     WriteChar(0,Size.Y-1,LeftLowCorner,Color,1);
-     WriteChar(1,Size.Y-1,HorizontalBar,Color,Size.X-2);
-     WriteChar(Size.X-1,Size.Y-1,RightLowCorner,Color,1);
    End;
+   { TView DrawBorder is empty for TextModeGFV }
 END;
 
 PROCEDURE TView.DrawShadow;
@@ -4990,6 +4945,15 @@ END;
 PROCEDURE TWindow.DrawBorder;
 VAR Fc, Bc: Byte; X, Y: Integer; S: String;
     ViewPort: ViewPortType;
+    I : sw_integer;
+    LeftUpCorner,
+    RightUpCorner,
+    HorizontalBar,
+    VerticalBar,
+    LeftLowCorner,
+    RightLowCorner : Char;
+    Color : Byte;
+    Focused : Boolean;
 BEGIN
    Fc := GetColor(2) AND $0F;                        { Foreground colour }
    Bc := (GetColor(2) AND $70) SHR 4;                { Background colour }
@@ -5001,7 +4965,46 @@ BEGIN
        If (GOptions AND goThickFramed<>0) Then Inc(Y, 3); { Adjust position }
      end;
    ClearArea(0, Y, RawSize.X, Y+FontHeight, Bc);      { Clear background }
-   Inherited DrawBorder;
+   If not TextModeGFV then
+     Inherited DrawBorder
+   Else Begin                                     { TEXT GFV MODE }
+     Focused:=(State AND (sfSelected + sfModal)<>0);
+     if Assigned(Owner) then
+       Focused := Focused AND (@Self = Owner^.First);
+     If not Focused or (GOptions AND goThickFramed = 0) then
+       begin
+         LeftUpCorner:='Ú';
+         RightUpCorner:='¿';
+         HorizontalBar:='Ä';
+         VerticalBar:='³';
+         LeftLowCorner:='À';
+         RightLowCorner:='Ù';
+       end
+     else
+       begin
+         LeftUpCorner:='É';
+         RightUpCorner:='»';
+         HorizontalBar:='Í';
+         VerticalBar:='º';
+         LeftLowCorner:='È';
+         RightLowCorner:='¼';
+       end;
+     if Focused then
+       Color := 2
+     else
+       Color := 1;
+     WriteChar(0,0,LeftUpCorner,Color,1);
+     WriteChar(1,0,HorizontalBar,Color,Size.X-2);
+     WriteChar(Size.X-1,0,RightUpcorner,Color,1);
+     For i:=1 to Size.Y -1 do
+       begin
+         WriteChar(0,i,VerticalBar,Color,1);
+         WriteChar(Size.X-1,i,VerticalBar,Color,1);
+       end;
+     WriteChar(0,Size.Y-1,LeftLowCorner,Color,1);
+     WriteChar(1,Size.Y-1,HorizontalBar,Color,Size.X-2);
+     WriteChar(Size.X-1,Size.Y-1,RightLowCorner,Color,1);
+   End;
    If (Title<>Nil) AND (GOptions AND goTitled<>0)
    Then Begin                                         { View has a title }
      GetViewSettings(ViewPort, TextModeGFV);
@@ -5143,7 +5146,10 @@ END.
 
 {
  $Log$
- Revision 1.11  2001-05-30 10:22:25  pierre
+ Revision 1.12  2001-05-30 13:26:18  pierre
+  * fix border problems for views and menus
+
+ Revision 1.11  2001/05/30 10:22:25  pierre
   * fix Shadow bugs
 
  Revision 1.10  2001/05/10 16:46:28  pierre

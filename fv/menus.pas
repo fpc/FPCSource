@@ -1048,12 +1048,33 @@ END;
 {  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB              }
 {---------------------------------------------------------------------------}
 PROCEDURE TMenuBox.Draw;
-VAR CNormal, CSelect, CDisabled, Color: Word; Tx, Ty, Y: Integer;
+VAR CNormal, CSelect, CDisabled, Color: Word; Index, Tx, Ty, Y: Integer;
     S: String; P: PMenuItem; B: TDrawBuffer;
+Type
+   FrameLineType = (UpperLine,NormalLine,SeparationLine,LowerLine);
+   FrameLineChars = Array[0..2] of char;
+Const
+   FrameLines : Array[FrameLineType] of FrameLineChars =
+     ('ÚÄ¿','³ ³','ÃÄ´','ÀÄÙ');
+  Procedure CreateBorder(LineType : FrameLineType);
+  Begin
+    MoveChar(B, ' ', CNormal, 1);
+    MoveChar(B[1], FrameLines[LineType][0], CNormal, 1);
+    MoveChar(B[2], FrameLines[LineType][1], Color, Size.X-4);
+    MoveChar(B[Size.X-2], FrameLines[LineType][2], CNormal, 1);
+    MoveChar(B[Size.X-1], ' ', CNormal, 1);
+  End;
+
+
 BEGIN
    CNormal := GetColor($0301);                        { Normal colour }
    CSelect := GetColor($0604);                        { Selected colour }
    CDisabled := GetColor($0202);                      { Disabled colour }
+   If TextModeGFV then
+     Begin
+       CreateBorder(UpperLine);
+       WriteBuf(0, 0, Size.X, 1, B);                  { Write the line }
+     End;
    Y := 1;
    If (Menu <> Nil) Then Begin                        { We have a menu }
      P := Menu^.Items;                                { Start on first }
@@ -1062,18 +1083,30 @@ BEGIN
        If (P^.Name <> Nil) Then Begin                 { Item has text }
          If P^.Disabled Then Color := CDisabled       { Is item disabled }
          Else If (P = Current) Then Color := CSelect; { Select colour }
-         MoveChar(B, ' ', Color, Size.X-4);           { Clear buffer }
+         If TextModeGFV then
+           Begin
+             CreateBorder(NormalLine);
+             Index:=2;
+           End
+         Else
+           Begin
+             MoveChar(B, ' ', Color, Size.X-4);    { Clear buffer }
+             Index:=0;
+           End;
          S := ' ' + P^.Name^ + ' ';                   { Menu string }
-         MoveCStr(B[0], S, Color);                    { Transfer string }
+         MoveCStr(B[Index], S, Color);                { Transfer string }
          If (P^.Command <> 0) AND(P^.Param <> Nil)
          Then Begin
-           MoveCStr(B[CStrLen(S)], ' - ' + P^.Param^,
+           MoveCStr(B[CStrLen(S)+Index], ' - ' + P^.Param^,
              Color);                                  { Add param chars }
            S := S + ' - ' + P^.Param^;                { Add to string }
          End;
          If (OldItem = Nil) OR (OldItem = P) OR
          (Current = P) Then Begin                     { We need to fix draw }
-           WriteBuf(2, Y, CStrLen(S), 1, B);          { Write the line }
+           If TextModeGFV then
+             WriteBuf(0, Y, Size.X, 1, B)             { Write the whole line }
+           Else
+             WriteBuf(2, Y, CStrLen(S), 1, B);          { Write the line }
            If (P = Current) Then Begin                { Selected item }
              Tx := 2 * FontWidth;                     { X offset }
              Ty := Y * FontHeight;                    { Y offset }
@@ -1083,15 +1116,20 @@ BEGIN
            End;
          End;
        End Else Begin { no text NewLine }
-         MoveChar(B, 'Ã', Color, 1);
-         MoveChar(B[1], 'Ä', Color, Size.X-2);
-         MoveChar(B[Size.X-1], '´', Color, 1);
+         Color := CNormal;                              { Normal colour }
+         CreateBorder(SeparationLine);
          WriteBuf(0, Y, Size.X, 1, B);                { Write the line }
        End;
        Inc(Y);                                        { Next line down }
        P := P^.Next;                                  { fetch next item }
      End;
    End;
+   If TextModeGFV then
+     Begin
+       Color := CNormal;                              { Normal colour }
+       CreateBorder(LowerLine);
+       WriteBuf(0, Size.Y-1, Size.X, 1, B);                  { Write the line }
+     End;
 END;
 
 {--TMenuBox-----------------------------------------------------------------}
@@ -1673,7 +1711,10 @@ END;
 END.
 {
  $Log$
- Revision 1.7  2001-05-07 22:22:03  pierre
+ Revision 1.8  2001-05-30 13:26:17  pierre
+  * fix border problems for views and menus
+
+ Revision 1.7  2001/05/07 22:22:03  pierre
   * removed NO_WINDOW cond, added GRAPH_API
 
  Revision 1.6  2001/05/04 15:43:45  pierre
