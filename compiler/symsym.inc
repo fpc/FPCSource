@@ -1268,6 +1268,7 @@
 
                    if (cs_create_smart in aktmoduleswitches) or
                       DLLSource or
+                      (vo_is_exported in varoptions) or
                       (vo_is_C_var in varoptions) then
                      bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)))
                    else
@@ -2162,7 +2163,10 @@
 
 {
   $Log$
-  Revision 1.147  2000-06-01 19:09:56  peter
+  Revision 1.148  2000-06-02 21:16:42  pierre
+   * vo_is_exported needs init_global also
+
+  Revision 1.147  2000/06/01 19:09:56  peter
     * made resourcestrings OOP so it's easier to handle it per module
 
   Revision 1.146  2000/05/18 17:05:17  peter
