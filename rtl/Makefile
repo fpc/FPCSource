@@ -197,7 +197,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=rtl
-override PACKAGE_VERSION=1.0.5
+override PACKAGE_VERSION=1.0.6
 ifeq ($(OS_TARGET),linux)
 override TARGET_DIRS+=linux
 endif

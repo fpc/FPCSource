@@ -197,7 +197,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fcl
-override PACKAGE_VERSION=1.0.5
+override PACKAGE_VERSION=1.0.6
 override TARGET_DIRS+=xml db shedit
 override TARGET_UNITS+=classes inifiles registry ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls
 ifeq ($(OS_TARGET),linux)

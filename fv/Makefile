@@ -197,7 +197,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fv
-override PACKAGE_VERSION=1.0.5
+override PACKAGE_VERSION=1.0.6
 override TARGET_UNITS+=buildfv
 override TARGET_IMPLICITUNITS+=app callspec colortxt dialogs drivers editors fileio fvcommon fvconsts gadgets histlist inplong memory menus msgbox resource statuses stddlg tabs time validate views gfvgraph
 override TARGET_EXAMPLEDIRS+=test
