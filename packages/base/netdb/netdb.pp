@@ -897,13 +897,13 @@ begin
         If (N<>'') then
           Result:=MatchNameOrAlias(N,HE.Name,HE.Aliases)
         else
-          Result:=Cardinal(Addr)=Cardinal(HE.Addr);
+          Result:=Cardinal(hosttonet(Addr))=Cardinal(HE.Addr);
         end; 
       Close(f);
       If Result then
         begin
         H.Name:=HE.Name;
-        H.Addr:=HE.Addr;
+        H.Addr:=nettohost(HE.Addr);
         H.Aliases:=HE.Aliases;
         end;
       end;  
@@ -1146,7 +1146,11 @@ end.
 
 {
   $Log$
-  Revision 1.15  2005-03-22 13:39:11  marco
+  Revision 1.16  2005-03-27 16:09:47  marco
+   * some order fixes to the hosts file functions. Also tested on OS X, but
+     no changes necessary on Mac.
+
+  Revision 1.15  2005/03/22 13:39:11  marco
    * support for BSD style network files
 
   Revision 1.14  2005/03/18 10:58:16  marco
