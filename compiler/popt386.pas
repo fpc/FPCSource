@@ -1047,11 +1047,13 @@ Begin
                                             Paicpu(hp2)^.LoadReg(0,Paicpu(hp1)^.Oper[0].reg);
                                             allocRegBetween(asmL,paicpu(p)^.oper[1].reg,p,hp2);
                                           end
-                                        Else
-                                          Begin
-                                            AsmL^.Remove(hp2);
-                                            Dispose(hp2, Done);
-                                          End
+                                        else
+                                          if not(regInRef(paicpu(hp2)^.oper[1].reg,
+                                                          paicpu(hp2)^.oper[0].ref^)) then
+                                            begin
+                                              asmL^.Remove(hp2);
+                                              dispose(hp2, done);
+                                            end
                                 End;
                             End
                           Else
@@ -1931,7 +1933,10 @@ End.
 
 {
  $Log$
- Revision 1.95  2000-07-06 12:30:31  jonas
+ Revision 1.96  2000-07-10 07:14:41  jonas
+   * fixed web bug 1032
+
+ Revision 1.95  2000/07/06 12:30:31  jonas
    * moved "<flag setting operation>; test/or reg,reg" to "<flag setting
      operation>" optimization to pass 2 because it caused problems
      with -dnewoptimizations
