@@ -421,12 +421,6 @@ const
 type
   TResFlags = (F_E,F_NE,F_G,F_L,F_GE,F_LE,F_C,F_NC,F_A,F_AE,F_B,F_BE);
 
-const
-  { arrays for boolean location conversions }
-  flag_2_cond : array[TResFlags] of TAsmCond =
-     (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE);
-
-
 {*****************************************************************************
                                 Reference
 *****************************************************************************}
@@ -707,6 +701,7 @@ const
     procedure swap_location(var destloc,sourceloc : tlocation);
 
     procedure inverse_flags(var f: TResFlags);
+    function flags_to_cond(const f: TResFlags) : TAsmCond;
 
 implementation
 
@@ -943,6 +938,13 @@ end;
         f := flagsinvers[f];
       end;
 
+    function flags_to_cond(const f: TResFlags) : TAsmCond;
+      const
+        flags_2_cond : array[TResFlags] of TAsmCond =
+          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE);
+      begin
+        result := flags_2_cond[f];
+      end;
 
 procedure InitCpu;
 begin
@@ -955,7 +957,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2001-12-29 15:29:59  jonas
+  Revision 1.9  2001-12-30 17:24:46  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+
+  Revision 1.8  2001/12/29 15:29:59  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

@@ -72,9 +72,7 @@ implementation
       cpubase,cpuasm,cpuinfo,
       nld,ncon,
       cga,tgcpu,
-{$ifdef i386}
-      n386util,
-{$endif}
+      ncgutil,
       tainst,regvars,cgobj,cgcpu;
 
 {*****************************************************************************
@@ -651,7 +649,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2001-12-29 15:28:57  jonas
+  Revision 1.7  2001-12-30 17:24:48  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+
+  Revision 1.6  2001/12/29 15:28:57  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

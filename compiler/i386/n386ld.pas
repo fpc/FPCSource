@@ -111,7 +111,7 @@ implementation
                     { DLL variable }
                     else if (vo_is_dll_var in tvarsym(symtableentry).varoptions) then
                       begin
-                         hregister:=getregister32;
+                         hregister:=getregisterint;
                          location.reference.symbol:=newasmsymbol(tvarsym(symtableentry).mangledname);
                          emit_ref_reg(A_MOV,S_L,newreference(location.reference),hregister);
                          location.reference.symbol:=nil;
@@ -135,7 +135,7 @@ implementation
                          emitcall('FPC_RELOCATE_THREADVAR');
 
                          reset_reference(location.reference);
-                         location.reference.base:=getregister32;
+                         location.reference.base:=getregisterint;
                          emit_reg_reg(A_MOV,S_L,R_EAX,location.reference.base);
                          if popeax then
                            emit_reg(A_POP,S_L,R_EAX);
@@ -194,7 +194,7 @@ implementation
                                      end;
                                    if (lexlevel>(symtable.symtablelevel)) then
                                      begin
-                                        hregister:=getregister32;
+                                        hregister:=getregisterint;
 
                                         { make a reference }
                                         hp:=new_reference(procinfo^.framepointer,
@@ -256,7 +256,7 @@ implementation
                                          end
                                         else
                                          begin
-                                           hregister:=getregister32;
+                                           hregister:=getregisterint;
                                            location.reference.base:=hregister;
                                            emit_ref_reg(A_MOV,S_L,
                                              newreference(twithnode(twithsymtable(symtable).withnode).withreference^),
@@ -276,7 +276,7 @@ implementation
                            begin
                               simple_loadn:=false;
                               if hregister=R_NO then
-                                hregister:=getregister32;
+                                hregister:=getregisterint;
                               if location.loc=LOC_CREGISTER then
                                 begin
                                    emit_reg_reg(A_MOV,S_L,
@@ -812,7 +812,7 @@ implementation
                               else
                                 begin
                                   ai:=Taicpu.Op_ref(A_Setcc,S_B,newreference(left.location.reference));
-                                  ai.SetCondition(flag_2_cond[right.location.resflags]);
+                                  ai.SetCondition(flags_to_cond(right.location.resflags));
                                   exprasmList.concat(ai);
                                 end;
 {$IfDef regallocfix}
@@ -842,7 +842,7 @@ implementation
          if (not inlining_procedure) and
             (lexlevel<>funcretsym.owner.symtablelevel) then
            begin
-              hr:=getregister32;
+              hr:=getregisterint;
               hr_valid:=true;
               hp:=new_reference(procinfo^.framepointer,procinfo^.framepointer_offset);
               emit_ref_reg(A_MOV,S_L,hp,hr);
@@ -868,7 +868,7 @@ implementation
          if ret_in_param(resulttype.def) then
            begin
               if not hr_valid then
-                hr:=getregister32;
+                hr:=getregisterint;
               emit_ref_reg(A_MOV,S_L,newreference(location.reference),hr);
               location.reference.base:=hr;
               location.reference.offset:=0;
@@ -1091,7 +1091,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2001-12-17 23:16:05  florian
+  Revision 1.28  2001-12-30 17:24:46  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+
+  Revision 1.27  2001/12/17 23:16:05  florian
     * array of const can now take widestring parameters as well
 
   Revision 1.26  2001/11/02 22:58:11  peter

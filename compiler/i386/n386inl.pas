@@ -43,7 +43,7 @@ implementation
       cgbase,temp_gen,pass_1,pass_2,
       cpubase,
       nbas,ncon,ncal,ncnv,nld,
-      cga,tgcpu,n386util;
+      cgobj,cga,tgcpu,n386util,ncgutil;
 
 
 {*****************************************************************************
@@ -126,7 +126,7 @@ implementation
                  { for both cases load vmt }
                  if left.nodetype=typen then
                    begin
-                      location.register:=getregister32;
+                      location.register:=getregisterint;
                       emit_sym_ofs_reg(A_MOV,
                         S_L,newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),0,
                         location.register);
@@ -136,7 +136,7 @@ implementation
                       secondpass(left);
                       del_reference(left.location.reference);
                       location.loc:=LOC_REGISTER;
-                      location.register:=getregister32;
+                      location.register:=getregisterint;
                       { load VMT pointer }
                       inc(left.location.reference.offset,
                         tobjectdef(left.resulttype.def).vmt_offset);
@@ -165,7 +165,7 @@ implementation
                     if left.location.loc<>LOC_REGISTER then
                      begin
                        del_location(left.location);
-                       hregister:=getregister32;
+                       hregister:=getregisterint;
                        emit_mov_loc_reg(left.location,hregister);
                      end
                     else
@@ -211,8 +211,8 @@ implementation
                         begin
                            if left.location.loc=LOC_CREGISTER then
                              begin
-                                location.registerlow:=getregister32;
-                                location.registerhigh:=getregister32;
+                                location.registerlow:=getregisterint;
+                                location.registerhigh:=getregisterint;
                                 emit_reg_reg(A_MOV,opsize,left.location.registerlow,
                                   location.registerlow);
                                 emit_reg_reg(A_MOV,opsize,left.location.registerhigh,
@@ -221,8 +221,8 @@ implementation
                            else
                              begin
                                 del_reference(left.location.reference);
-                                location.registerlow:=getregister32;
-                                location.registerhigh:=getregister32;
+                                location.registerlow:=getregisterint;
+                                location.registerhigh:=getregisterint;
                                 emit_ref_reg(A_MOV,opsize,newreference(left.location.reference),
                                   location.registerlow);
                                 r:=newreference(left.location.reference);
@@ -259,7 +259,7 @@ implementation
                            if left.location.loc in [LOC_MEM,LOC_REFERENCE] then
                              del_reference(left.location.reference);
 
-                           location.register:=getregister32;
+                           location.register:=getregisterint;
                            if (resulttype.def.size=2) then
                              location.register:=reg32toreg16(location.register);
                            if (resulttype.def.size=1) then
@@ -283,7 +283,7 @@ implementation
                         location.register);
                    end;
                  emitoverflowcheck(self);
-                 emitrangecheck(self,resulttype.def);
+                 cg.g_rangecheck(exprasmlist,self,resulttype.def);
               end;
             in_dec_x,
             in_inc_x :
@@ -332,7 +332,7 @@ implementation
                         LOC_MEM,
                   LOC_REFERENCE : begin
                                     del_reference(tcallparanode(tcallparanode(left).right).left.location.reference);
-                                    hregister:=getregister32;
+                                    hregister:=getregisterint;
                                     emit_ref_reg(A_MOV,S_L,
                                       newreference(tcallparanode(tcallparanode(left).right).left.location.reference),hregister);
                                   end;
@@ -393,12 +393,12 @@ implementation
                    ungetregister32(hregister);
                  end;
                 emitoverflowcheck(tcallparanode(left).left);
-                emitrangecheck(tcallparanode(left).left,tcallparanode(left).left.resulttype.def);
+                cg.g_rangecheck(exprasmlist,tcallparanode(left).left,tcallparanode(left).left.resulttype.def);
               end;
 
             in_typeinfo_x:
                begin
-                  location.register:=getregister32;
+                  location.register:=getregisterint;
                   new(r);
                   reset_reference(r^);
                   r^.symbol:=tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).get_rtti_label(fullrtti);
@@ -729,7 +729,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2001-12-10 14:34:04  jonas
+  Revision 1.31  2001-12-30 17:24:46  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+
+  Revision 1.30  2001/12/10 14:34:04  jonas
     * fixed type conversions from dynamic arrays to open arrays
 
   Revision 1.29  2001/12/04 15:59:03  jonas

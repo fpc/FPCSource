@@ -56,7 +56,7 @@ implementation
       cgbase,temp_gen,pass_1,pass_2,
       ncon,
       cpubase,
-      cga,tgcpu,n386util;
+      cga,tgcpu,n386util,ncgutil;
 
 {*****************************************************************************
                              TI386MODDIVNODE
@@ -97,13 +97,13 @@ implementation
                 begin
                    if left.location.loc=LOC_CREGISTER then
                      begin
-                       hreg1:=getregister32;
+                       hreg1:=getregisterint;
                        emit_reg_reg(A_MOV,S_L,left.location.register,hreg1);
                      end
                    else
                      begin
                        del_reference(left.location.reference);
-                       hreg1:=getregister32;
+                       hreg1:=getregisterint;
                        emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
                          hreg1);
                      end;
@@ -329,8 +329,8 @@ implementation
                 begin
                    if left.location.loc=LOC_CREGISTER then
                      begin
-                        hregisterlow:=getregister32;
-                        hregisterhigh:=getregister32;
+                        hregisterlow:=getregisterint;
+                        hregisterhigh:=getregisterint;
                         emit_reg_reg(A_MOV,S_L,left.location.registerlow,
                           hregisterlow);
                         emit_reg_reg(A_MOV,S_L,left.location.registerhigh,
@@ -339,8 +339,8 @@ implementation
                    else
                      begin
                         del_reference(left.location.reference);
-                        hregisterlow:=getregister32;
-                        hregisterhigh:=getregister32;
+                        hregisterlow:=getregisterint;
+                        hregisterhigh:=getregisterint;
                         emit_mov_ref_reg64(left.location.reference,
                           hregisterlow,
                           hregisterhigh);
@@ -529,14 +529,14 @@ implementation
                 begin
                    if left.location.loc=LOC_CREGISTER then
                      begin
-                        hregister1:=getregister32;
+                        hregister1:=getregisterint;
                         emit_reg_reg(A_MOV,S_L,left.location.register,
                           hregister1);
                      end
                    else
                      begin
                         del_reference(left.location.reference);
-                        hregister1:=getregister32;
+                        hregister1:=getregisterint;
                         emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
                           hregister1);
                      end;
@@ -715,16 +715,16 @@ implementation
                   end;
                 LOC_CREGISTER :
                   begin
-                     location.registerlow:=getregister32;
-                     location.registerhigh:=getregister32;
+                     location.registerlow:=getregisterint;
+                     location.registerhigh:=getregisterint;
                      emit_reg_reg(A_MOV,S_L,left.location.registerlow,location.registerlow);
                      emit_reg_reg(A_MOV,S_L,left.location.registerhigh,location.registerhigh);
                   end;
                 LOC_REFERENCE,LOC_MEM :
                   begin
                      del_reference(left.location.reference);
-                     location.registerlow:=getregister32;
-                     location.registerhigh:=getregister32;
+                     location.registerlow:=getregisterint;
+                     location.registerhigh:=getregisterint;
                      emit_mov_ref_reg64(left.location.reference,
                        location.registerlow,
                        location.registerhigh);
@@ -751,7 +751,7 @@ implementation
                    end;
                  LOC_CREGISTER:
                    begin
-                      location.register:=getregister32;
+                      location.register:=getregisterint;
                       emit_reg_reg(A_MOV,S_L,location.register,
                         location.register);
                       emit_reg(A_NEG,S_L,location.register);
@@ -795,7 +795,7 @@ implementation
 {$endif SUPPORT_MMX}
                                    else
                                      begin
-                                        location.register:=getregister32;
+                                        location.register:=getregisterint;
                                         emit_ref_reg(A_MOV,S_L,
                                           newreference(left.location.reference),
                                           location.register);
@@ -940,8 +940,8 @@ implementation
                   end;
                 LOC_CREGISTER :
                   begin
-                     location.registerlow:=getregister32;
-                     location.registerhigh:=getregister32;
+                     location.registerlow:=getregisterint;
+                     location.registerhigh:=getregisterint;
                      emit_reg_reg(A_MOV,S_L,left.location.registerlow,location.registerlow);
                      emit_reg_reg(A_MOV,S_L,left.location.registerhigh,location.registerhigh);
                      emit_reg(A_NOT,S_L,location.registerlow);
@@ -950,8 +950,8 @@ implementation
                 LOC_REFERENCE,LOC_MEM :
                   begin
                      del_reference(left.location.reference);
-                     location.registerlow:=getregister32;
-                     location.registerhigh:=getregister32;
+                     location.registerlow:=getregisterint;
+                     location.registerhigh:=getregisterint;
                      emit_mov_ref_reg64(left.location.reference,
                        location.registerlow,
                        location.registerhigh);
@@ -999,7 +999,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2001-12-29 15:27:24  jonas
+  Revision 1.22  2001-12-30 17:24:47  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+
+  Revision 1.21  2001/12/29 15:27:24  jonas
     * made 'mod powerof2' -> 'and' optimization processor independent
 
   Revision 1.20  2001/12/27 15:33:58  jonas

@@ -62,7 +62,7 @@ implementation
       cgbase,temp_gen,pass_2,
       pass_1,nld,ncon,nadd,
       cpubase,cpuasm,
-      cga,tgcpu,n386util;
+      cgobj,cga,tgcpu,n386util;
 
 {*****************************************************************************
                             TI386NEWNODE
@@ -293,7 +293,7 @@ implementation
               else
                 begin
                    del_reference(left.location.reference);
-                   location.reference.base:=getregister32;
+                   location.reference.base:=getregisterint;
                    emit_ref_reg(A_MOV,S_L,
                      newreference(left.location.reference),
                      location.reference.base);
@@ -338,7 +338,7 @@ implementation
               else
                 begin
                    del_reference(left.location.reference);
-                   location.reference.base:=getregister32;
+                   location.reference.base:=getregisterint;
                    emit_ref_reg(A_MOV,S_L,
                      newreference(left.location.reference),
                      location.reference.base);
@@ -544,7 +544,7 @@ implementation
                         hightree.free;
                         hightree:=nil;
                       end;
-                     emitrangecheck(right,left.resulttype.def);
+                     cg.g_rangecheck(exprasmlist,right,left.resulttype.def);
                    end;
                end;
 
@@ -569,7 +569,7 @@ implementation
                    end;
                  LOC_CREGISTER:
                    begin
-                      ind:=getregister32;
+                      ind:=getregisterint;
                       case right.resulttype.def.size of
                          1:
                            emit_reg_reg(A_MOVZX,S_BL,right.location.register,ind);
@@ -581,13 +581,13 @@ implementation
                    end;
                  LOC_FLAGS:
                    begin
-                      ind:=getregister32;
+                      ind:=getregisterint;
                       emit_flag2reg(right.location.resflags,reg32toreg8(ind));
                       emit_reg_reg(A_MOVZX,S_BL,reg32toreg8(ind),ind);
                    end;
                  LOC_JUMP :
                    begin
-                     ind:=getregister32;
+                     ind:=getregisterint;
                      emitlab(truelabel);
                      truelabel:=otl;
                      emit_const_reg(A_MOV,S_L,1,ind);
@@ -601,7 +601,7 @@ implementation
                  LOC_REFERENCE,LOC_MEM :
                    begin
                       del_reference(right.location.reference);
-                      ind:=getregister32;
+                      ind:=getregisterint;
                       { Booleans are stored in an 8 bit memory location, so
                         the use of MOVL is not correct }
                       case right.resulttype.def.size of
@@ -701,7 +701,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-12-03 21:48:43  peter
+  Revision 1.19  2001-12-30 17:24:47  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+
+  Revision 1.18  2001/12/03 21:48:43  peter
     * freemem change to value parameter
     * torddef low/high range changed to int64
 

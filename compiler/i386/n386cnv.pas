@@ -63,7 +63,7 @@ implementation
       cgbase,temp_gen,pass_2,
       ncon,ncal,
       cpubase,
-      cga,tgcpu,n386util;
+      cgobj,cga,tgcpu,n386util;
 
 
 {*****************************************************************************
@@ -80,7 +80,7 @@ implementation
       begin
         { insert range check if not explicit conversion }
         if not(nf_explizit in flags) then
-          emitrangecheck(left,resulttype.def);
+          cg.g_rangecheck(exprasmlist,left,resulttype.def);
 
         { is the result size smaller ? }
         if resulttype.def.size<left.resulttype.def.size then
@@ -133,7 +133,7 @@ implementation
              end;
             { load the register we need }
             if left.location.loc<>LOC_REGISTER then
-              hregister:=getregister32
+              hregister:=getregisterint
             else
               hregister:=left.location.register;
 
@@ -144,7 +144,7 @@ implementation
             { do we need a second register for a 64 bit type ? }
             if is_64bitint(resulttype.def) then
               begin
-                 hregister2:=getregister32;
+                 hregister2:=getregisterint;
                  location.registerhigh:=hregister2;
               end;
             case resulttype.def.size of
@@ -331,7 +331,7 @@ implementation
               begin
                 if is_64bitint(left.resulttype.def) then
                  begin
-                   hregister:=getregister32;
+                   hregister:=getregisterint;
                    emit_ref_reg(A_MOV,opsize,
                      newreference(left.location.reference),hregister);
                    pref:=newreference(left.location.reference);
@@ -350,7 +350,7 @@ implementation
               end;
             LOC_FLAGS :
               begin
-                hregister:=getregister32;
+                hregister:=getregisterint;
                 resflags:=left.location.resflags;
               end;
             LOC_REGISTER,LOC_CREGISTER :
@@ -492,7 +492,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2001-12-11 08:14:17  jonas
+  Revision 1.29  2001-12-30 17:24:46  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+
+  Revision 1.28  2001/12/11 08:14:17  jonas
     * part of my fix for dynarray -> open array conversion, forgot to
       commit yesterday :(
 

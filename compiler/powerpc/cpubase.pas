@@ -209,8 +209,10 @@ type
 {$ifndef tp}
 {$minenumsize 1}
 {$endif tp}
-  TAsmCondFlag = (C_None { unconditional junps },
+  TAsmCondFlag = (C_None { unconditional jumps },
     { conditions when not using ctr decrement etc }
+    { TO DO: OV and CA. They're somewhere in bits 0:3 of XER, but can be }
+    { brought to CRx with the mcrxr instruction                          }
     C_LT,C_LE,C_EQ,C_GE,C_GT,C_NL,C_NE,C_NG,C_SO,C_NS,C_UN,C_NU,
     { conditions when using ctr decrement etc }
     C_T,C_F,C_DNZ,C_DNZT,C_DNZF,C_DZ,C_DZT,C_DZF);
@@ -262,7 +264,7 @@ const
 type
   TResFlagsEnum = (F_EQ,F_NE,F_LT,F_LE,F_GT,F_GE,F_SO,F_FX,F_FEX,F_VX,F_OX);
   TResFlags = record
-    cr: byte;
+    cr: R_CR0..R_CR7;
     flag: TResFlagsEnum;
   end;
 
@@ -462,6 +464,7 @@ const
 
     procedure inverse_flags(var f: TResFlags);
     procedure inverse_cond(c: TAsmCond;var r : TAsmCond);
+    function flags_to_cond(const f: TResFlags) : TAsmCond;
     procedure create_cond_imm(BO,BI:byte;var r : TAsmCond);
     procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
 
@@ -479,11 +482,12 @@ const
 
 implementation
 
-{$ifdef heaptrc}
   uses
-      ppheap;
+      verbose
+{$ifdef heaptrc}
+      ,ppheap
 {$endif heaptrc}
-
+      ;
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
@@ -543,6 +547,7 @@ implementation
         f.flag := flagsinvers[f.flag];
       end;
 
+
     procedure inverse_cond(c: TAsmCond;var r : TAsmCond);
     const
       inv_condflags:array[TAsmCondFlag] of TAsmCondFlag=(C_None,
@@ -552,6 +557,18 @@ implementation
       c.cond := inv_condflags[c.cond];
       r := c;
     end;
+
+    function flags_to_cond(const f: TResFlags) : TAsmCond;
+      const
+        flag_2_cond: array[F_EQ..F_SO] of TAsmCondFlag =
+          (C_EQ,C_NE,C_LT,C_LE,C_GT,C_GE,C_SO);
+      begin
+        if f.flag > high(flag_2_cond) then
+          internalerror(200112301);
+        result.simple := true;
+        result.cr := f.cr;
+        result.cond := flag_2_cond[f.flag];
+      end;
 
     procedure create_cond_imm(BO,BI:byte;var r : TAsmCond);
     begin
@@ -612,7 +629,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2001-12-29 15:28:58  jonas
+  Revision 1.6  2001-12-30 17:24:48  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+
+  Revision 1.5  2001/12/29 15:28:58  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

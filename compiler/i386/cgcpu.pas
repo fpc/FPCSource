@@ -27,10 +27,10 @@ unit cgcpu;
   interface
 
     uses
-       cgbase,cgobj,aasm,cpuasm,cpubase,cpuinfo;
+       cgbase,cgobj,cg64f32,aasm,cpuasm,cpubase,cpuinfo;
 
     type
-      tcg386 = class(tcg)
+      tcg386 = class(tcg64f32)
 
         { passing parameters, per default the parameter is pushed }
         { nr gives the number of the parameter (enumerated from   }
@@ -53,6 +53,11 @@ unit cgcpu;
         procedure a_op_ref_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister); override;
         procedure a_op_reg_ref(list : taasmoutput; Op: TOpCG; size: TCGSize;reg: TRegister; const ref: TReference); override;
 
+        procedure a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
+          size: tcgsize; a: aword; src, dst: tregister); override;
+        procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
+          size: tcgsize; src1, src2, dst: tregister); override;
+
         { move instructions }
         procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);override;
         procedure a_load_const_ref(list : taasmoutput; size: tcgsize; a : aword;const ref : treference);override;
@@ -70,6 +75,8 @@ unit cgcpu;
         procedure a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;const ref: treference; reg : tregister; l : tasmlabel); override;
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel); override;
+        procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); override;
+
         procedure g_flags2reg(list: taasmoutput; const f: tresflags; reg: TRegister); override;
 
 
@@ -85,6 +92,8 @@ unit cgcpu;
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
 
         function makeregsize(var reg: tregister; size: tcgsize): topsize; override;
+
+        class function reg_cgsize(const reg: tregister): tcgsize; override;
 
        private
 
@@ -307,6 +316,11 @@ unit cgcpu;
                 list.concat(taicpu.op_reg(A_INC,regsize(reg),reg))
               else
                 list.concat(taicpu.op_reg(A_DEC,regsize(reg),reg))
+            else if (a = 0) then
+              if (op <> OP_AND) then
+                exit
+              else
+                list.concat(taicpu.op_const_reg(A_MOV,regsize(reg),0,reg))
             else
               list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],regsize(reg),
                 longint(a),reg));
@@ -376,6 +390,11 @@ unit cgcpu;
               else
                 list.concat(taicpu.op_ref(A_DEC,TCgSize2OpSize[size],
                   newreference(ref)))
+            else if (a = 0) then
+              if (op <> OP_AND) then
+                exit
+              else
+                a_load_const_ref(list,size,0,ref)
             else
               list.concat(taicpu.op_const_ref(TOpCG2AsmOp[op],
                 TCgSize2OpSize[size],longint(a),newreference(ref)));
@@ -535,6 +554,88 @@ unit cgcpu;
          end;
        end;
 
+
+    procedure tcg386.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
+        size: tcgsize; a: aword; src, dst: tregister);
+      var
+        tmpref: treference;
+        power: longint;
+        opsize: topsize;
+      begin
+        opsize := regsize(src);
+        if (opsize <> S_L) or
+           not (size in [OS_32,OS_S32]) then
+          begin
+            inherited a_op_const_reg_reg(list,op,size,a,src,dst);
+            exit;
+          end;
+        { if we get here, we have to do a 32 bit calculation, guaranteed }
+        Case Op of
+          OP_DIV, OP_IDIV, OP_MUL, OP_AND, OP_OR, OP_XOR, OP_SHL, OP_SHR,
+          OP_SAR:
+            { can't do anything special for these }
+            inherited a_op_const_reg_reg(list,op,size,a,src,dst);
+          OP_IMUL:
+            begin
+              if not(cs_check_overflow in aktlocalswitches) and
+                 ispowerof2(longint(a),power) then
+                { can be done with a shift }
+                inherited a_op_const_reg_reg(list,op,size,a,src,dst);
+              list.concat(taicpu.op_const_reg_reg(A_IMUL,S_L,longint(a),src,dst));
+            end;
+          OP_ADD, OP_SUB:
+            if (a = 0) then
+              a_load_reg_reg(list,size,src,dst)
+            else
+              begin
+                reset_reference(tmpref);
+                tmpref.base := src;
+                tmpref.offset := longint(a);
+                if op = OP_SUB then
+                  tmpref.offset := -tmpref.offset;
+                list.concat(taicpu.op_ref_reg(A_LEA,S_L,newreference(tmpref),
+                  dst));
+              end
+          else internalerror(200112302);
+        end;
+      end;
+
+    procedure tcg386.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
+        size: tcgsize; src1, src2, dst: tregister);
+      var
+        tmpref: treference;
+        power: longint;
+        opsize: topsize;
+      begin
+        opsize := regsize(src1);
+        if (opsize <> S_L) or
+           (regsize(src2) <> S_L) or
+           not (size in [OS_32,OS_S32]) then
+          begin
+            inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
+            exit;
+          end;
+        { if we get here, we have to do a 32 bit calculation, guaranteed }
+        Case Op of
+          OP_DIV, OP_IDIV, OP_MUL, OP_AND, OP_OR, OP_XOR, OP_SHL, OP_SHR,
+          OP_SAR,OP_SUB,OP_NOT,OP_NEG:
+            { can't do anything special for these }
+            inherited a_op_reg_reg_reg(list,op,size,src1,src2,dst);
+          OP_IMUL:
+            list.concat(taicpu.op_reg_reg_reg(A_IMUL,S_L,src1,src2,dst));
+          OP_ADD:
+            begin
+              reset_reference(tmpref);
+              tmpref.base := src1;
+              tmpref.index := src2;
+              tmpref.scalefactor := 1;
+              list.concat(taicpu.op_ref_reg(A_LEA,S_L,newreference(tmpref),
+                dst));
+            end
+          else internalerror(200112303);
+        end;
+      end;
+
 {*************** compare instructructions ****************}
 
       procedure tcg386.a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
@@ -596,6 +697,15 @@ unit cgcpu;
          list.concat(ai);
        end;
 
+     procedure tcg386.a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel);
+       var
+         ai : taicpu;
+       begin
+         ai := Taicpu.op_sym(A_Jcc,S_NO,l);
+         ai.SetCondition(flags_to_cond(f));
+         ai.is_jmp := true;
+         list.concat(ai);
+       end;
 
      procedure tcg386.g_flags2reg(list: taasmoutput; const f: tresflags; reg: TRegister);
 
@@ -605,7 +715,7 @@ unit cgcpu;
        begin
           hreg := makereg8(reg);
           ai:=Taicpu.Op_reg(A_Setcc,S_B,hreg);
-          ai.SetCondition(flag_2_cond[f]);
+          ai.SetCondition(flags_to_cond(f));
           list.concat(ai);
           if hreg<>reg then
            begin
@@ -718,6 +828,14 @@ unit cgcpu;
       end;
 
 
+    function tcg386.reg_cgsize(const reg: tregister): tcgsize;
+      const
+        regsize_2_cgsize: array[S_B..S_L] of tcgsize = (OS_8,OS_16,OS_32);
+      begin
+        result := regsize_2_cgsize[regsize(reg)];
+      end;
+
+
 {***************** This is private property, keep out! :) *****************}
 
     procedure tcg386.sizes2load(s1: tcgsize; s2: topsize; var op: tasmop; var s3: topsize);
@@ -762,7 +880,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2001-12-29 15:29:59  jonas
+  Revision 1.6  2001-12-30 17:24:46  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+
+  Revision 1.5  2001/12/29 15:29:59  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

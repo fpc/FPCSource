@@ -230,9 +230,9 @@ implementation
     function def_getreg(p1:tdef):tregister;
       begin
         case p1.size of
-         1 : def_getreg:=reg32toreg8(getregister32);
-         2 : def_getreg:=reg32toreg16(getregister32);
-         4 : def_getreg:=getregister32;
+         1 : def_getreg:=reg32toreg8(getregisterint);
+         2 : def_getreg:=reg32toreg16(getregisterint);
+         4 : def_getreg:=getregisterint;
         else
          internalerror(130820003);
         end;
@@ -284,7 +284,7 @@ implementation
       begin
         if (l.loc=LOC_FLAGS) then
          begin
-           hregister:=getregister32;
+           hregister:=getregisterint;
            case opsize of
             S_W : hregister:=reg32toreg16(hregister);
             S_B : hregister:=reg32toreg8(hregister);
@@ -304,7 +304,7 @@ implementation
       begin
          if l.loc = LOC_JUMP then
            begin
-             hregister:=getregister32;
+             hregister:=getregisterint;
              case opsize of
                S_W : hregister:=reg32toreg16(hregister);
                S_B : hregister:=reg32toreg8(hregister);
@@ -361,7 +361,7 @@ implementation
       begin
          hreg:=makereg8(hregister);
          ai:=Taicpu.Op_reg(A_Setcc,S_B,hreg);
-         ai.SetCondition(flag_2_cond[flag]);
+         ai.SetCondition(flags_to_cond(flag));
          exprasmList.concat(ai);
          if hreg<>hregister then
           begin
@@ -487,7 +487,7 @@ implementation
                                           { we can't do a getregister in the code generator }
                                           { without problems!!!                             }
                                           if usablereg32>0 then
-                                            hreg:=reg32toreg8(getregister32)
+                                            hreg:=reg32toreg8(getregisterint)
                                           else
                                             begin
                                                emit_reg(A_PUSH,S_L,R_EAX);
@@ -2976,7 +2976,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2001-12-29 15:28:58  jonas
+  Revision 1.13  2001-12-30 17:24:45  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+
+  Revision 1.12  2001/12/29 15:28:58  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

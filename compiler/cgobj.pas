@@ -29,7 +29,7 @@ unit cgobj;
 
     uses
        cclasses,aasm,symtable,cpuasm,cpubase,cgbase,cpuinfo,
-       symconst,symbase,symtype;
+       symconst,symbase,symtype,node;
 
     type
        talignment = (AM_NATURAL,AM_NONE,AM_2BYTE,AM_4BYTE,AM_8BYTE);
@@ -146,19 +146,28 @@ unit cgobj;
           procedure a_op_reg_loc(list : taasmoutput; Op: TOpCG; size: TCGSize; reg: tregister; const loc: tlocation);
           procedure a_op_ref_loc(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; const loc: tlocation);
 
+          { trinary operations for processors that support them, 'emulated' }
+          { on others. None with "ref" arguments since I don't think there  }
+          { are any processors that support it (JM)                         }
+          procedure a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
+            size: tcgsize; a: aword; src, dst: tregister); virtual;
+          procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
+            size: tcgsize; src1, src2, dst: tregister); virtual;
+
           {  comparison operations }
           procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
             l : tasmlabel);virtual; abstract;
           procedure a_cmp_const_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const ref : treference;
             l : tasmlabel); virtual;
           procedure a_cmp_const_loc_label(list: taasmoutput; size: tcgsize;cmp_op: topcmp; a: aword; const loc: tlocation;
-            l : tasmlabel); virtual;
+            l : tasmlabel);
           procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); virtual; abstract;
           procedure a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp; const ref: treference; reg : tregister; l : tasmlabel); virtual;
           procedure a_cmp_ref_loc_label(list: taasmoutput; size: tcgsize;cmp_op: topcmp; const ref: treference; const loc: tlocation;
             l : tasmlabel);
 
           procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel); virtual; abstract;
+          procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); virtual; abstract;
 
           procedure g_flags2reg(list: taasmoutput; const f: tresflags; reg: TRegister); virtual; abstract;
 
@@ -195,6 +204,13 @@ unit cgobj;
           { source points to                                    }
           procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword;delsource,loadref : boolean);virtual; abstract;
 
+          { generates rangechecking code for a node }
+          procedure g_rangecheck(list: taasmoutput; const p: tnode;
+            const todef: tdef); virtual;
+
+          { returns the tcgsize corresponding with the size of reg }
+          class function reg_cgsize(const reg: tregister) : tcgsize; virtual;
+
 {$ifdef i386}
          { this one is only necessary due the the restrictions of the 80x86, }
          { so make it a special case (JM)                                    }
@@ -208,7 +224,7 @@ unit cgobj;
   implementation
 
     uses
-       strings,globals,globtype,options,{files,}gdb,systems,
+       strings,globals,globtype,options,gdb,systems,
        ppu,verbose,types,{tgobj,}tgcpu,symdef,symsym,cga,tainst;
 
     const
@@ -1071,7 +1087,7 @@ unit cgobj;
 {$ifdef i386}
               case size of
                 OS_8,OS_S8:
-                  tmpreg := reg32toreg8(getregister32);
+                  tmpreg := reg32toreg8(getregisterint);
                 OS_16,OS_S16:
                   tmpreg := reg32toreg16(get_scratch_reg(list));
                 else
@@ -1201,6 +1217,21 @@ unit cgobj;
         end;
       end;
 
+    procedure tcg.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
+        size: tcgsize; a: aword; src, dst: tregister);
+      begin
+        a_load_reg_reg(list,size,src,dst);
+        a_op_const_reg(list,op,a,dst);
+      end;
+
+    procedure tcg.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
+        size: tcgsize; src1, src2, dst: tregister);
+      begin
+        a_load_reg_reg(list,size,src2,dst);
+        a_op_reg_reg(list,op,size,src1,dst);
+      end;
+
+
 
     procedure tcg.a_cmp_const_ref_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;const ref : treference;
      l : tasmlabel);
@@ -1258,7 +1289,7 @@ unit cgobj;
               { since all this is only necessary for the 80x86 (because EDI   }
               { doesn't have an 8bit component which is directly addressable) }
               if size in [OS_8,OS_S8] then
-                tmpreg := getregister32
+                tmpreg := getregisterint
               else
 {$endif i386}
               tmpreg := get_scratch_reg(list);
@@ -1279,12 +1310,134 @@ unit cgobj;
         end;
       end;
 
+
+    procedure tcg.g_rangecheck(list: taasmoutput; const p: tnode;
+        const todef: tdef);
+    { generate range checking code for the value at location p. The type     }
+    { type used is checked against todefs ranges. fromdef (p.resulttype.def) }
+    { is the original type used at that location. When both defs are equal   }
+    { the check is also insert (needed for succ,pref,inc,dec)                }
+      var
+        neglabel : tasmlabel;
+        hreg : tregister;
+        fromdef : tdef;
+        lto,hto,
+        lfrom,hfrom : TConstExprInt;
+        from_signed: boolean;
+      begin
+        { range checking on and range checkable value? }
+        if not(cs_check_range in aktlocalswitches) or
+           not(todef.deftype in [orddef,enumdef,arraydef]) then
+          exit;
+        { only check when assigning to scalar, subranges are different, }
+        { when todef=fromdef then the check is always generated         }
+        fromdef:=p.resulttype.def;
+        getrange(p.resulttype.def,lfrom,hfrom);
+        getrange(todef,lto,hto);
+        { no range check if from and to are equal and are both longint/dword }
+        { (if we have a 32bit processor) or int64/qword, since such          }
+        { operations can at most cause overflows (JM)                        }
+        { Note that these checks are mostly processor independent, they only }
+        { have to be changed once we introduce 64bit subrange types          }
+        if (fromdef = todef) and
+          { then fromdef and todef can only be orddefs }
+           (((sizeof(aword) = 4) and
+             (((torddef(fromdef).typ = s32bit) and
+               (lfrom = low(longint)) and
+               (hfrom = high(longint))) or
+              ((torddef(fromdef).typ = u32bit) and
+               (lfrom = low(cardinal)) and
+               (hfrom = high(cardinal))))) or
+            is_64bitint(fromdef)) then
+          exit;
+        if todef<>fromdef then
+         begin
+           { if the from-range falls completely in the to-range, no check }
+           { is necessary                                                 }
+           if (lto<=lfrom) and (hto>=hfrom) then
+            exit;
+         end;
+        { generate the rangecheck code for the def where we are going to }
+        { store the result                                               }
+
+        { use the trick that                                                 }
+        { a <= x <= b <=> 0 <= x-a <= b-a <=> cardinal(x-a) <= cardinal(b-a) }
+
+        { To be able to do that, we have to make sure however that either    }
+        { fromdef and todef are both signed or unsigned, or that we leave    }
+        { the parts < 0 and > maxlongint out                                 }
+
+        { is_signed now also works for arrays (it checks the rangetype) (JM) }
+        from_signed := is_signed(fromdef);
+        if from_signed xor is_signed(todef) then
+          if from_signed then
+            { from is signed, to is unsigned }
+            begin
+              { if high(from) < 0 -> always range error }
+              if (hfrom < 0) or
+                 { if low(to) > maxlongint also range error }
+                 (lto > (high(aword) div 2)) then
+                begin
+                  a_call_name(list,'FPC_RANGEERROR',0);
+                  exit
+                end;
+              { from is signed and to is unsigned -> when looking at from }
+              { as an unsigned value, it must be < maxlongint (otherwise  }
+              { it's negative, which is invalid since "to" is unsigned)   }
+              if hto > (high(aword) div 2) then
+                hto := (high(aword) div 2);
+            end
+          else
+            { from is unsigned, to is signed }
+            begin
+              if (lfrom > (high(aword) div 2)) or
+                 (hto < 0) then
+                begin
+                  a_call_name(list,'FPC_RANGEERROR',0);
+                  exit
+                end;
+              { from is unsigned and to is signed -> when looking at to }
+              { as an unsigned value, it must be >= 0 (since negative   }
+              { values are the same as values > maxlongint)             }
+              if lto < 0 then
+                lto := 0;
+            end;
+
+        hreg := get_scratch_reg(list);
+        if (p.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          a_op_const_reg_reg(list,OP_SUB,def_cgsize(p.resulttype.def),
+           aword(lto),p.location.register,hreg)
+        else
+          begin
+            a_load_ref_reg(list,def_cgsize(p.resulttype.def),
+              p.location.reference,hreg);
+            a_op_const_reg(list,OP_SUB,aword(lto),hreg);
+          end;
+        getlabel(neglabel);
+        a_cmp_const_reg_label(list,OS_INT,OC_BE,aword(hto-lto),hreg,neglabel);
+        { !!! should happen right after the compare (JM) }
+        free_scratch_reg(list,hreg);
+        a_call_name(list,'FPC_RANGEERROR',0);
+        a_label(list,neglabel);
+      end;
+
+
+    function tcg.reg_cgsize(const reg: tregister) : tcgsize;
+      begin
+        reg_cgsize := OS_INT;
+      end;
+
+
+
 finalization
   cg.free;
 end.
 {
   $Log$
-  Revision 1.5  2001-12-29 15:28:58  jonas
+  Revision 1.6  2001-12-30 17:24:48  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+
+  Revision 1.5  2001/12/29 15:28:58  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

@@ -34,7 +34,7 @@ unit cgbase;
       { symtable }
       symconst,symtype,symdef,symsym,
       { aasm }
-      aasm,cpubase
+      aasm,cpubase, cpuinfo
       ;
 
     type
@@ -185,6 +185,7 @@ unit cgbase;
 
 
     function def_cgsize(const p1: tdef): tcgsize;
+    function int_cgsize(const l: aword): tcgsize;
 
     { return the inverse condition of opcmp }
     function inverse_opcmp(opcmp: topcmp): topcmp;
@@ -445,7 +446,14 @@ implementation
 
     function def_cgsize(const p1: tdef): tcgsize;
       begin
-        case p1.size of
+        result := int_cgsize(p1.size);
+        if is_signed(p1) then
+          result := tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
+      end;
+
+    function int_cgsize(const l: aword): tcgsize;
+      begin
+        case l of
           1: result := OS_8;
           2: result := OS_16;
           4: result := OS_32;
@@ -453,8 +461,6 @@ implementation
           else
             internalerror(2001092311);
         end;
-        if is_signed(p1) then
-          result := tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
       end;
 
 
@@ -501,7 +507,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2001-11-06 14:53:48  jonas
+  Revision 1.5  2001-12-30 17:24:48  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+
+  Revision 1.4  2001/11/06 14:53:48  jonas
     * compiles again with -dmemdebug
 
   Revision 1.3  2001/09/29 21:33:47  jonas

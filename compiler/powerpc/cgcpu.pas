@@ -48,6 +48,11 @@ unit cgcpu;
         procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister); override;
         procedure a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister); override;
 
+        procedure a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
+          size: tcgsize; a: aword; src, dst: tregister); override;
+        procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
+          size: tcgsize; src1, src2, dst: tregister); override;
+
         { move instructions }
         procedure a_load_const_reg(list : taasmoutput; size: tcgsize; a : aword;reg : tregister);override;
         procedure a_load_reg_ref(list : taasmoutput; size: tcgsize; reg : tregister;const ref : treference);override;
@@ -61,6 +66,8 @@ unit cgcpu;
         procedure a_cmp_reg_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;reg1,reg2 : tregister;l : tasmlabel); override;
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel); override;
+        procedure a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel); override;
+
         procedure g_flags2reg(list: taasmoutput; const f: TResFlags; reg: TRegister); override;
 
 
@@ -77,12 +84,6 @@ unit cgcpu;
         { find out whether a is of the form 11..00..11b or 00..11...00. If }
         { that's the case, we can use rlwinm to do an AND operation        }
         function get_rlwi_const(a: longint; var l1, l2: longint): boolean;
-
-        procedure a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
-          a: aword; src, dst: tregister);
-
-        procedure a_op_reg_reg_reg(list: taasmoutput; op: TOpCg; src1, src2,
-          dst: tregister);
 
         private
 
@@ -101,7 +102,7 @@ unit cgcpu;
         { creates the correct branch instruction for a given combination }
         { of asmcondflags and destination addressing mode                }
         procedure a_jmp(list: taasmoutput; op: tasmop;
-                        c: tasmcondflag; l: tasmlabel);
+                        c: tasmcondflag; crval: longint; l: tasmlabel);
 
      end;
 
@@ -332,30 +333,19 @@ const
          scratch_register: TRegister;
 
        begin
-         Case Op of
-           OP_DIV, OP_IDIV, OP_IMUL, OP_MUL:
-             If (Op = OP_IMUL) And (longint(a) >= -32768) And
-                (longint(a) <= 32767) Then
-               list.concat(taicpu.op_reg_reg_const(A_MULLI,reg,reg,a))
-             Else
-               Begin
-                 scratch_register := get_scratch_reg(list);
-                 a_load_const_reg(list,OS_32,a,scratch_register);
-                 list.concat(taicpu.op_reg_reg_reg(TOpCG2AsmOpConstLo[Op],
-                   reg,scratch_register,reg));
-                 free_scratch_reg(list,scratch_register);
-               End;
-           OP_ADD, OP_AND, OP_OR, OP_SUB,OP_XOR:
-             a_op_const_reg_reg(list,op,a,reg,reg);
+         case op of
+           OP_DIV, OP_IDIV, OP_IMUL, OP_MUL, OP_ADD, OP_AND, OP_OR, OP_SUB,
+           OP_XOR:
+             a_op_const_reg_reg(list,op,OS_32,a,reg,reg);
            OP_SHL,OP_SHR,OP_SAR:
-             Begin
-               if (a and 31) <> 0 Then
+             begin
+               if (a and 31) <> 0 then
                  list.concat(taicpu.op_reg_reg_const(
-                   TOpCG2AsmOpConstLo[Op],reg,reg,a and 31));
-               If (a shr 5) <> 0 Then
-                 InternalError(68991);
-             End
-           Else InternalError(68992);
+                   TOpCG2AsmOpConstLo[op],reg,reg,a and 31));
+               if (a shr 5) <> 0 then
+                 internalError(68991);
+             end
+           else internalError(68992);
          end;
        end;
 
@@ -363,8 +353,122 @@ const
       procedure tcgppc.a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; src, dst: TRegister);
 
          begin
-           a_op_reg_reg_reg(list,op,src,dst,dst);
+           a_op_reg_reg_reg(list,op,OS_32,src,dst,dst);
          end;
+
+
+    procedure tcgppc.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
+                       size: tcgsize; a: aword; src, dst: tregister);
+      var
+        l1,l2: longint;
+
+      var
+        oplo, ophi: tasmop;
+        scratchreg: tregister;
+        useReg: boolean;
+
+      begin
+        ophi := TOpCG2AsmOpConstHi[op];
+        oplo := TOpCG2AsmOpConstLo[op];
+        { constants in a PPC instruction are always interpreted as signed }
+        { 16bit values, so if the value is between low(smallint) and      }
+        { high(smallint), it's easy                                       }
+        if (op in [OP_ADD,OP_SUB,OP_AND,OP_OR,OP_XOR]) then
+          begin
+            if (longint(a) >= low(smallint)) and
+               (longint(a) <= high(smallint)) then
+              begin
+                list.concat(taicpu.op_reg_reg_const(oplo,dst,src,a));
+                exit;
+              end;
+            { all basic constant instructions also have a shifted form that }
+            { works only on the highest 16bits, so if low(a) is 0, we can   }
+            { use that one                                                  }
+            if (lo(a) = 0) then
+              begin
+                list.concat(taicpu.op_reg_reg_const(ophi,dst,src,hi(a)));
+                exit;
+              end;
+          end;
+        { otherwise, the instructions we can generate depend on the }
+        { operation                                                 }
+        useReg := false;
+        case op of
+           OP_DIV, OP_IDIV, OP_IMUL, OP_MUL:
+             if (Op = OP_IMUL) and (longint(a) >= -32768) and
+                (longint(a) <= 32767) then
+               list.concat(taicpu.op_reg_reg_const(A_MULLI,dst,src,a))
+             else
+               usereg := true;
+          OP_ADD,OP_SUB:
+            begin
+              list.concat(taicpu.op_reg_reg_const(oplo,dst,src,low(a)));
+              list.concat(taicpu.op_reg_reg_const(ophi,dst,dst,
+                high(a) + ord(smallint(a) < 0)));
+            end;
+          OP_OR:
+            { try to use rlwimi }
+            if get_rlwi_const(a,l1,l2) then
+              begin
+                if src <> dst then
+                  list.concat(taicpu.op_reg_reg(A_MR,dst,src));
+                scratchreg := get_scratch_reg(list);
+                list.concat(taicpu.op_reg_const(A_LI,scratchreg,-1));
+                list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,dst,
+                  scratchreg,0,l1,l2));
+                free_scratch_reg(list,scratchreg);
+              end
+            else
+              useReg := true;
+          OP_AND:
+            { try to use rlwinm }
+            if get_rlwi_const(a,l1,l2) then
+              list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,dst,
+                src,0,l1,l2))
+            else
+              useReg := true;
+          OP_XOR:
+            useReg := true;
+          OP_SHL,OP_SHR,OP_SAR:
+            begin
+              if (a and 31) <> 0 Then
+                list.concat(taicpu.op_reg_reg_const(
+                  TOpCG2AsmOpConstLo[Op],dst,src,a and 31));
+              if (a shr 5) <> 0 then
+                internalError(68991);
+            end
+          else
+            internalerror(200109091);
+        end;
+        { if all else failed, load the constant in a register and then }
+        { perform the operation                                        }
+        if useReg then
+          begin
+            scratchreg := get_scratch_reg(list);
+            a_load_const_reg(list,OS_32,a,scratchreg);
+            a_op_reg_reg_reg(list,op,OS_32,scratchreg,src,dst);
+            free_scratch_reg(list,scratchreg);
+          end;
+      end;
+
+
+    procedure tcgppc.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
+      size: tcgsize; src1, src2, dst: tregister);
+
+      const
+        op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
+          (A_ADD,A_AND,A_DIVWU,A_DIVW,A_MULLW,A_MULLW,A_NEG,A_NOT,A_OR,
+           A_SRAW,A_SLW,A_SRW,A_SUB,A_XOR);
+
+       begin
+         case op of
+           OP_NEG,OP_NOT:
+             list.concat(taicpu.op_reg_reg(op_reg_reg_opcg2asmop[op],dst,dst));
+           else
+             list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1));
+         end;
+       end;
+
 
 {*************** compare instructructions ****************}
 
@@ -398,7 +502,7 @@ const
                 list.concat(taicpu.op_reg_reg_reg(A_CMPL,R_CR0,reg,scratch_register));
                 free_scratch_reg(list,scratch_register);
               end;
-          a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],l);
+          a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],0,l);
         end;
 
 
@@ -414,16 +518,24 @@ const
             op := A_CMP
           else op := A_CMPL;
           list.concat(taicpu.op_reg_reg_reg(op,R_CR0,reg1,reg2));
-          a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],l);
+          a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],0,l);
         end;
 
 
      procedure tcgppc.a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
        begin
-         a_jmp(list,A_BC,TOpCmp2AsmCond[cond],l);
+         a_jmp(list,A_BC,TOpCmp2AsmCond[cond],0,l);
        end;
 
+     procedure tcgppc.a_jmp_flags(list : taasmoutput;const f : TResFlags;l: tasmlabel);
+
+       var
+         c: tasmcond;
+       begin
+         c := flags_to_cond(f);
+         a_jmp(list,A_BC,c.cond,longint(c.cr),l);
+       end;
 
      procedure tcgppc.g_flags2reg(list: taasmoutput; const f: TResFlags; reg: TRegister);
 
@@ -434,7 +546,7 @@ const
        begin
          { get the bit to extract from the conditional register + its }
          { requested value (0 or 1)                                   }
-         testbit := (f.cr * 4);
+         testbit := (longint(f.cr) * 4);
          case f.flag of
            F_EQ,F_NE:
              bitvalue := f.flag = F_EQ;
@@ -465,7 +577,7 @@ const
        end;
 
 (*
-     procedure tcgppc.g_flags2reg(list: taasmoutput; const f: TAsmCond; reg: TRegister);
+     procedure tcgppc.g_cond2reg(list: taasmoutput; const f: TAsmCond; reg: TRegister);
 
        var
          testbit: byte;
@@ -696,7 +808,7 @@ const
            end;
          if ref.offset <> 0 Then
            if ref.base <> R_NO then
-             a_op_const_reg_reg(list,OP_ADD,ref.offset,ref.base,r)
+             a_op_const_reg_reg(list,OP_ADD,OS_32,ref.offset,ref.base,r)
   { FixRef makes sure that "(ref.index <> R_NO) and (ref.offset <> 0)" never}
   { occurs, so now only ref.offset has to be loaded                         }
            else a_load_const_reg(list, OS_32, ref.offset, r)
@@ -764,7 +876,7 @@ const
             list.concat(taicpu.op_reg_reg_const(A_CMPI,R_CR0,countreg,0));
             list.concat(taicpu.op_reg_ref(A_STWU,tempreg,newreference(dst)));
             list.concat(taicpu.op_reg_reg_const(A_SUBI,countreg,countreg,1));
-            a_jmp(list,A_BC,C_NE,lab);
+            a_jmp(list,A_BC,C_NE,0,lab);
             free_scratch_reg(list,countreg);
           end
         else
@@ -939,102 +1051,6 @@ const
         get_rlwi_const := true;
       end;
 
-    procedure tcgppc.a_op_const_reg_reg(list: taasmoutput; op: TOpCg;
-                       a: aword; src, dst: tregister);
-      var
-        l1,l2: longint;
-
-      var
-        oplo, ophi: tasmop;
-        scratchreg: tregister;
-        useReg: boolean;
-
-      begin
-        ophi := TOpCG2AsmOpConstHi[op];
-        oplo := TOpCG2AsmOpConstLo[op];
-        { constants in a PPC instruction are always interpreted as signed }
-        { 16bit values, so if the value is between low(smallint) and      }
-        { high(smallint), it's easy                                       }
-        if (longint(a) >= low(smallint)) and
-           (longint(a) <= high(smallint)) then
-          begin
-            list.concat(taicpu.op_reg_reg_const(oplo,dst,src,a));
-            exit;
-          end;
-        { all basic constant instructions also have a shifted form that }
-        { works only on the highest 16bits, so if low(a) is 0, we can   }
-        { use that one                                                  }
-        if (lo(a) = 0) then
-          begin
-            list.concat(taicpu.op_reg_reg_const(ophi,dst,src,hi(a)));
-            exit;
-          end;
-        { otherwise, the instructions we can generate depend on the }
-        { operation                                                 }
-        useReg := false;
-        case op of
-          OP_ADD,OP_SUB:
-            begin
-              list.concat(taicpu.op_reg_reg_const(oplo,dst,src,low(a)));
-              list.concat(taicpu.op_reg_reg_const(ophi,dst,dst,
-                high(a) + ord(smallint(a) < 0)));
-            end;
-          OP_OR:
-            { try to use rlwimi }
-            if get_rlwi_const(a,l1,l2) then
-              begin
-                if src <> dst then
-                  list.concat(taicpu.op_reg_reg(A_MR,dst,src));
-                scratchreg := get_scratch_reg(list);
-                list.concat(taicpu.op_reg_const(A_LI,scratchreg,-1));
-                list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,dst,
-                  scratchreg,0,l1,l2));
-                free_scratch_reg(list,scratchreg);
-              end
-            else
-              useReg := true;
-          OP_AND:
-            { try to use rlwinm }
-            if get_rlwi_const(a,l1,l2) then
-              list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM,dst,
-                src,0,l1,l2))
-            else
-              useReg := true;
-          OP_XOR:
-            useReg := true;
-          else
-            internalerror(200109091);
-        end;
-        { if all else failed, load the constant in a register and then }
-        { perform the operation                                        }
-        if useReg then
-          begin
-            scratchreg := get_scratch_reg(list);
-            a_load_const_reg(list,OS_32,a,scratchreg);
-            a_op_reg_reg_reg(list,op,scratchreg,src,dst);
-            free_scratch_reg(list,scratchreg);
-          end;
-      end;
-
-
-    procedure tcgppc.a_op_reg_reg_reg(list: taasmoutput; op: TOpCg;
-      src1, src2, dst: tregister);
-
-      const
-        op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
-          (A_ADD,A_AND,A_DIVWU,A_DIVW,A_MULLW,A_MULLW,A_NEG,A_NOT,A_OR,
-           A_SRAW,A_SLW,A_SRW,A_SUB,A_XOR);
-
-       begin
-         case op of
-           OP_NEG,OP_NOT:
-             list.concat(taicpu.op_reg_reg(op_reg_reg_opcg2asmop[op],dst,dst));
-           else
-             list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1));
-         end;
-       end;
-
-
     procedure tcgppc.a_load_store(list:taasmoutput;op: tasmop;reg:tregister;
        ref: treference);
 
@@ -1066,13 +1082,14 @@ const
 
 
     procedure tcgppc.a_jmp(list: taasmoutput; op: tasmop; c: tasmcondflag;
-                l: tasmlabel);
+                crval: longint; l: tasmlabel);
       var
         p: taicpu;
 
       begin
         p := taicpu.op_sym(op,newasmsymbol(l.name));
-        create_cond_norm(c,0,p.condition);
+        create_cond_norm(c,crval,p.condition);
+        p.is_jmp := true;
         list.concat(p)
       end;
 
@@ -1081,7 +1098,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2001-12-29 15:28:58  jonas
+  Revision 1.10  2001-12-30 17:24:48  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+
+  Revision 1.9  2001/12/29 15:28:58  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

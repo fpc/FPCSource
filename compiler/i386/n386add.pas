@@ -49,7 +49,7 @@ interface
       cgbase,temp_gen,pass_2,regvars,
       cpuasm,
       ncon,nset,
-      tainst,cga,n386util,tgcpu;
+      tainst,cga,ncgutil,n386util,tgcpu;
 
     function ti386addnode.getresflags(unsigned : boolean) : tresflags;
 
@@ -305,10 +305,10 @@ interface
            case nodetype of
               ltn,gtn:
                 begin
-                   emitjmp(flag_2_cond[getresflags(unsigned)],truelabel);
+                   emitjmp(flags_to_cond(getresflags(unsigned)),truelabel);
                    { cheat a little bit for the negative test }
                    toggleflag(nf_swaped);
-                   emitjmp(flag_2_cond[getresflags(unsigned)],falselabel);
+                   emitjmp(flags_to_cond(getresflags(unsigned)),falselabel);
                    toggleflag(nf_swaped);
                 end;
               lten,gten:
@@ -318,13 +318,13 @@ interface
                      nodetype:=ltn
                    else
                      nodetype:=gtn;
-                   emitjmp(flag_2_cond[getresflags(unsigned)],truelabel);
+                   emitjmp(flags_to_cond(getresflags(unsigned)),truelabel);
                    { cheat for the negative test }
                    if nodetype=ltn then
                      nodetype:=gtn
                    else
                      nodetype:=ltn;
-                   emitjmp(flag_2_cond[getresflags(unsigned)],falselabel);
+                   emitjmp(flags_to_cond(getresflags(unsigned)),falselabel);
                    nodetype:=oldnodetype;
                 end;
               equaln:
@@ -343,7 +343,7 @@ interface
                 begin
                    { the comparisaion of the low dword have to be }
                    {  always unsigned!                            }
-                   emitjmp(flag_2_cond[getresflags(true)],truelabel);
+                   emitjmp(flags_to_cond(getresflags(true)),truelabel);
                    emitjmp(C_None,falselabel);
                 end;
               equaln:
@@ -573,7 +573,7 @@ interface
                                         ungetiftemp(left.location.reference);
                                         del_location(left.location);
 {!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!}
-                                        hregister:=getregister32;
+                                        hregister:=getregisterint;
                                         emit_ref_reg(A_MOV,opsize,
                                           newreference(left.location.reference),hregister);
                                         clear_location(left.location);
@@ -585,7 +585,7 @@ interface
                                       begin
                                         ungetiftemp(right.location.reference);
                                         del_location(right.location);
-                                        hregister:=getregister32;
+                                        hregister:=getregisterint;
                                         emit_ref_reg(A_MOV,opsize,
                                           newreference(right.location.reference),hregister);
                                         clear_location(right.location);
@@ -667,7 +667,7 @@ interface
                                         begin
                                          ungetiftemp(left.location.reference);
                                          del_reference(left.location.reference);
-                                         hregister:=getregister32;
+                                         hregister:=getregisterint;
                                          emit_ref_reg(A_MOV,opsize,
                                            newreference(left.location.reference),hregister);
                                          clear_location(left.location);
@@ -680,7 +680,7 @@ interface
                                         {save the register var in a temp register, because
                                           its value is going to be modified}
                                           begin
-                                            hregister := getregister32;
+                                            hregister := getregisterint;
                                             emit_reg_reg(A_MOV,opsize,
                                               left.location.register,hregister);
                                              clear_location(left.location);
@@ -738,7 +738,7 @@ interface
                            { release left.location, since it's a   }
                            { constant (JM)                             }
                            release_loc(right.location);
-                           location.register := getregister32;
+                           location.register := getregisterint;
                            emitloadord2reg(right.location,torddef(u32bittype.def),location.register,false);
                            emit_const_reg(A_SHL,S_L,power,location.register)
                          End
@@ -786,7 +786,7 @@ interface
                            exprasmList.concat(Tairegalloc.DeAlloc(R_EDX));
                          if R_EAX in unused then
                            exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
-                         location.register := getregister32;
+                         location.register := getregisterint;
                          emit_reg_reg(A_MOV,S_L,R_EAX,location.register);
                          if popedx then
                           emit_reg(A_POP,S_L,R_EDX);
@@ -829,8 +829,8 @@ interface
                              else
                                begin
                                   case opsize of
-                                     S_L : hregister:=getregister32;
-                                     S_B : hregister:=reg32toreg8(getregister32);
+                                     S_L : hregister:=getregisterint;
+                                     S_B : hregister:=reg32toreg8(getregisterint);
                                   end;
                                   emit_reg_reg(A_MOV,opsize,left.location.register,
                                     hregister);
@@ -850,9 +850,9 @@ interface
                                begin
                                   { first give free, then demand new register }
                                   case opsize of
-                                     S_L : hregister:=getregister32;
-                                     S_W : hregister:=reg32toreg16(getregister32);
-                                     S_B : hregister:=reg32toreg8(getregister32);
+                                     S_L : hregister:=getregisterint;
+                                     S_W : hregister:=reg32toreg16(getregisterint);
+                                     S_B : hregister:=reg32toreg8(getregisterint);
                                   end;
                                   emit_ref_reg(A_MOV,opsize,
                                     newreference(left.location.reference),hregister);
@@ -1059,7 +1059,7 @@ interface
                                hregister:=location.register
                              else
                                begin
-                                  hregister:=reg32toreg8(getregister32);
+                                  hregister:=reg32toreg8(getregisterint);
                                   emit_reg_reg(A_MOV,S_B,location.register,
                                     hregister);
                                end;
@@ -1069,7 +1069,7 @@ interface
                              del_reference(location.reference);
 
                              { first give free then demand new register }
-                             hregister:=reg32toreg8(getregister32);
+                             hregister:=reg32toreg8(getregisterint);
                              emit_ref_reg(A_MOV,S_B,newreference(location.reference),
                                hregister);
                           end;
@@ -1134,7 +1134,7 @@ interface
                                hregister:=location.register
                              else
                                begin
-                                  hregister:=reg32toreg16(getregister32);
+                                  hregister:=reg32toreg16(getregisterint);
                                   emit_reg_reg(A_MOV,S_W,location.register,
                                     hregister);
                                end;
@@ -1144,7 +1144,7 @@ interface
                              del_reference(location.reference);
 
                              { first give free then demand new register }
-                             hregister:=reg32toreg16(getregister32);
+                             hregister:=reg32toreg16(getregisterint);
                              emit_ref_reg(A_MOV,S_W,newreference(location.reference),
                                hregister);
                           end;
@@ -1274,8 +1274,8 @@ interface
                                     end
                                   else
                                     begin
-                                       hregister:=getregister32;
-                                       hregister2:=getregister32;
+                                       hregister:=getregisterint;
+                                       hregister2:=getregisterint;
                                        emit_reg_reg(A_MOV,S_L,left.location.registerlow,
                                          hregister);
                                        emit_reg_reg(A_MOV,S_L,left.location.registerhigh,
@@ -1294,8 +1294,8 @@ interface
                                     end
                                   else
                                     begin
-                                       hregister:=getregister32;
-                                       hregister2:=getregister32;
+                                       hregister:=getregisterint;
+                                       hregister2:=getregisterint;
                                        emit_mov_ref_reg64(left.location.reference,hregister,hregister2);
                                     end;
                                end;
@@ -1863,7 +1863,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2001-12-29 15:29:58  jonas
+  Revision 1.28  2001-12-30 17:24:46  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+
+  Revision 1.27  2001/12/29 15:29:58  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

@@ -29,9 +29,6 @@ interface
     uses
       symtype,node;
 
-    type
-      tloadregvars = (lr_dont_load_regvars, lr_load_regvars);
-
     function maybe_push(needed : byte;p : tnode;isint64 : boolean) : boolean;
     function maybe_pushfpu(needed : byte;p : tnode) : boolean;
 {$ifdef TEMPS_NOT_PUSH}
@@ -50,9 +47,7 @@ interface
     procedure loadwide2short(source,dest : tnode);
     procedure loadinterfacecom(p: tbinarynode);
 
-    procedure maketojumpbool(p : tnode; loadregvars: tloadregvars);
     procedure emitoverflowcheck(p:tnode);
-    procedure emitrangecheck(p:tnode;todef:tdef);
     procedure firstcomplex(p : tbinarynode);
 
 implementation
@@ -229,7 +224,7 @@ implementation
              load_regvar_reg(exprasmlist,p.location.register);
              exit;
            end;
-         hregister:=getregister32;
+         hregister:=getregisterint;
 {$ifdef TEMPS_NOT_PUSH}
          reset_reference(href);
          href.base:=procinfo^.frame_pointer;
@@ -243,7 +238,7 @@ implementation
               p.location.register:=hregister;
               if isint64 then
                 begin
-                   p.location.registerhigh:=getregister32;
+                   p.location.registerhigh:=getregisterint;
 {$ifdef TEMPS_NOT_PUSH}
                    href.offset:=p.temp_offset+4;
                    emit_ref_reg(A_MOV,S_L,p.location.registerhigh);
@@ -277,7 +272,7 @@ implementation
          href : treference;
 
       begin
-         hregister:=getregister32;
+         hregister:=getregisterint;
          reset_reference(href);
          href.base:=procinfo^.frame_pointer;
          href.offset:=p.temp_offset;
@@ -287,7 +282,7 @@ implementation
               p.location.register:=hregister;
               if isint64 then
                 begin
-                   p.location.registerhigh:=getregister32;
+                   p.location.registerhigh:=getregisterint;
                    href.offset:=p.temp_offset+4;
                    emit_ref_reg(A_MOV,S_L,p.location.registerhigh);
                    { set correctly for release ! }
@@ -872,67 +867,6 @@ implementation
                            Emit Functions
 *****************************************************************************}
 
-    procedure maketojumpbool(p : tnode; loadregvars: tloadregvars);
-    {
-      produces jumps to true respectively false labels using boolean expressions
-
-      depending on whether the loading of regvars is currently being
-      synchronized manually (such as in an if-node) or automatically (most of
-      the other cases where this procedure is called), loadregvars can be
-      "lr_load_regvars" or "lr_dont_load_regvars"
-    }
-      var
-        opsize : topsize;
-        storepos : tfileposinfo;
-      begin
-         if nf_error in p.flags then
-           exit;
-         storepos:=aktfilepos;
-         aktfilepos:=p.fileinfo;
-         if is_boolean(p.resulttype.def) then
-           begin
-              if loadregvars = lr_load_regvars then
-                load_all_regvars(exprasmlist);
-              if is_constboolnode(p) then
-                begin
-                   if tordconstnode(p).value<>0 then
-                     emitjmp(C_None,truelabel)
-                   else
-                     emitjmp(C_None,falselabel);
-                end
-              else
-                begin
-                   opsize:=def_opsize(p.resulttype.def);
-                   case p.location.loc of
-                      LOC_CREGISTER,LOC_REGISTER : begin
-                                        if (p.location.loc = LOC_CREGISTER) then
-                                          load_regvar_reg(exprasmlist,p.location.register);
-                                        emit_reg_reg(A_OR,opsize,p.location.register,
-                                          p.location.register);
-                                        ungetregister(p.location.register);
-                                        emitjmp(C_NZ,truelabel);
-                                        emitjmp(C_None,falselabel);
-                                     end;
-                      LOC_MEM,LOC_REFERENCE : begin
-                                        emit_const_ref(
-                                          A_CMP,opsize,0,newreference(p.location.reference));
-                                        del_reference(p.location.reference);
-                                        emitjmp(C_NZ,truelabel);
-                                        emitjmp(C_None,falselabel);
-                                     end;
-                      LOC_FLAGS : begin
-                                     emitjmp(flag_2_cond[p.location.resflags],truelabel);
-                                     emitjmp(C_None,falselabel);
-                                  end;
-                   end;
-                end;
-           end
-         else
-           CGMessage(type_e_mismatch);
-         aktfilepos:=storepos;
-      end;
-
-
     { produces if necessary overflowcode }
     procedure emitoverflowcheck(p:tnode);
       var
@@ -951,285 +885,6 @@ implementation
          emitcall('FPC_OVERFLOW');
          emitlab(hl);
       end;
-
-    { produces range check code, while one of the operands is a 64 bit
-      integer }
-    procedure emitrangecheck64(p : tnode;todef : tdef);
-
-      var
-        neglabel,
-        poslabel,
-        endlabel: tasmlabel;
-        href   : preference;
-        hreg   : tregister;
-        hdef   :  torddef;
-        fromdef : tdef;
-        opcode : tasmop;
-        opsize   : topsize;
-        oldregisterdef: boolean;
-        from_signed,to_signed: boolean;
-
-      begin
-         fromdef:=p.resulttype.def;
-         from_signed := is_signed(fromdef);
-         to_signed := is_signed(todef);
-
-         if not is_64bitint(todef) then
-           begin
-             oldregisterdef := registerdef;
-             registerdef := false;
-
-             { get the high dword in a register }
-             if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-               hreg := p.location.registerhigh
-             else
-               begin
-                 hreg := getexplicitregister32(R_EDI);
-                 href := newreference(p.location.reference);
-                 inc(href^.offset,4);
-                 emit_ref_reg(A_MOV,S_L,href,hreg);
-               end;
-             getlabel(poslabel);
-
-             { check high dword, must be 0 (for positive numbers) }
-             emit_reg_reg(A_TEST,S_L,hreg,hreg);
-             emitjmp(C_E,poslabel);
-
-             { It can also be $ffffffff, but only for negative numbers }
-             if from_signed and to_signed then
-               begin
-                 getlabel(neglabel);
-                 emit_const_reg(A_CMP,S_L,longint($ffffffff),hreg);
-                 emitjmp(C_E,neglabel);
-               end;
-             if hreg = R_EDI then
-               ungetregister32(hreg);
-             { For all other values we have a range check error }
-             emitcall('FPC_RANGEERROR');
-
-             { if the high dword = 0, the low dword can be considered a }
-             { simple cardinal                                          }
-             emitlab(poslabel);
-             hdef:=torddef.create(u32bit,0,longint($ffffffff));
-             { the real p.resulttype.def is already saved in fromdef }
-             p.resulttype.def := hdef;
-             emitrangecheck(p,todef);
-             hdef.free;
-             { restore original resulttype.def }
-             p.resulttype.def := todef;
-
-             if from_signed and to_signed then
-               begin
-                 getlabel(endlabel);
-                 emitjmp(C_None,endlabel);
-                 { if the high dword = $ffffffff, then the low dword (when }
-                 { considered as a longint) must be < 0                    }
-                 emitlab(neglabel);
-                 if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                   hreg := p.location.registerlow
-                 else
-                   begin
-                     hreg := getexplicitregister32(R_EDI);
-                     emit_ref_reg(A_MOV,S_L,
-                       newreference(p.location.reference),hreg);
-                   end;
-                 { get a new neglabel (JM) }
-                 getlabel(neglabel);
-                 emit_reg_reg(A_TEST,S_L,hreg,hreg);
-                 if hreg = R_EDI then
-                   ungetregister32(hreg);
-                 emitjmp(C_L,neglabel);
-
-                 emitcall('FPC_RANGEERROR');
-
-                 { if we get here, the 64bit value lies between }
-                 { longint($80000000) and -1 (JM)               }
-                 emitlab(neglabel);
-                 hdef:=torddef.create(s32bit,longint($80000000),-1);
-                 p.resulttype.def := hdef;
-                 emitrangecheck(p,todef);
-                 hdef.free;
-                 emitlab(endlabel);
-               end;
-             registerdef := oldregisterdef;
-             p.resulttype.def := fromdef;
-             { restore p's resulttype.def }
-           end
-         else
-           { todef = 64bit int }
-           { no 64bit subranges supported, so only a small check is necessary }
-
-           { if both are signed or both are unsigned, no problem! }
-           if (from_signed xor to_signed) and
-              { also not if the fromdef is unsigned and < 64bit, since that will }
-              { always fit in a 64bit int (todef is 64bit)                       }
-              (from_signed or
-               (torddef(fromdef).typ = u64bit)) then
-             begin
-               { in all cases, there is only a problem if the higest bit is set }
-               if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                 if is_64bitint(fromdef) then
-                   hreg := p.location.registerhigh
-                 else
-                   hreg := p.location.register
-               else
-                 begin
-                   hreg := getexplicitregister32(R_EDI);
-                   case p.resulttype.def.size of
-                     1: opsize := S_BL;
-                     2: opsize := S_WL;
-                     4,8: opsize := S_L;
-                   end;
-                   if opsize in [S_BL,S_WL] then
-                     if from_signed then
-                       opcode := A_MOVSX
-                     else opcode := A_MOVZX
-                   else
-                     opcode := A_MOV;
-                   href := newreference(p.location.reference);
-                   if p.resulttype.def.size = 8 then
-                     inc(href^.offset,4);
-                   emit_ref_reg(opcode,opsize,href,hreg);
-                 end;
-               getlabel(poslabel);
-               emit_reg_reg(A_TEST,regsize(hreg),hreg,hreg);
-               if hreg = R_EDI then
-                 ungetregister32(hreg);
-               emitjmp(C_GE,poslabel);
-               emitcall('FPC_RANGEERROR');
-               emitlab(poslabel);
-             end;
-      end;
-
-     { produces if necessary rangecheckcode }
-     procedure emitrangecheck(p:tnode;todef:tdef);
-     {
-       generate range checking code for the value at location t. The
-       type used is the checked against todefs ranges. fromdef (p.resulttype.def)
-       is the original type used at that location, when both defs are
-       equal the check is also insert (needed for succ,pref,inc,dec)
-     }
-      var
-        neglabel : tasmlabel;
-        opsize : topsize;
-        op     : tasmop;
-        fromdef : tdef;
-        lto,hto,
-        lfrom,hfrom : TConstExprInt;
-        is_reg : boolean;
-      begin
-        { range checking on and range checkable value? }
-        if not(cs_check_range in aktlocalswitches) or
-           not(todef.deftype in [orddef,enumdef,arraydef]) then
-          exit;
-        { only check when assigning to scalar, subranges are different,
-          when todef=fromdef then the check is always generated }
-        fromdef:=p.resulttype.def;
-        { no range check if from and to are equal and are both longint/dword or }
-        { int64/qword, since such operations can at most cause overflows (JM)   }
-        if (fromdef = todef) and
-          { then fromdef and todef can only be orddefs }
-           (((torddef(fromdef).typ = s32bit) and
-             (torddef(fromdef).low = longint($80000000)) and
-             (torddef(fromdef).high = $7fffffff)) or
-            ((torddef(fromdef).typ = u32bit) and
-             (torddef(fromdef).low = 0) and
-             (torddef(fromdef).high = longint($ffffffff))) or
-            is_64bitint(fromdef)) then
-          exit;
-        if is_64bitint(fromdef) or is_64bitint(todef) then
-          begin
-             emitrangecheck64(p,todef);
-             exit;
-          end;
-        {we also need lto and hto when checking if we need to use doublebound!
-        (JM)}
-        getrange(todef,lto,hto);
-        if todef<>fromdef then
-         begin
-           getrange(p.resulttype.def,lfrom,hfrom);
-           { first check for not being u32bit, then if the to is bigger than
-             from }
-           if (lto<hto) and (lfrom<hfrom) and
-              (lto<=lfrom) and (hto>=hfrom) then
-            exit;
-         end;
-        { generate the rangecheck code for the def where we are going to
-          store the result }
-      { get op and opsize }
-        opsize:=def2def_opsize(fromdef,u32bittype.def);
-        if opsize in [S_B,S_W,S_L] then
-         op:=A_MOV
-        else
-         if is_signed(fromdef) then
-          op:=A_MOVSX
-         else
-          op:=A_MOVZX;
-        is_reg:=(p.location.loc in [LOC_REGISTER,LOC_CREGISTER]);
-        { use the trick that                                                 }
-        { a <= x <= b <=> 0 <= x-a <= b-a <=> cardinal(x-a) <= cardinal(b-a) }
-
-        { To be able to do that, we have to make sure however that either    }
-        { fromdef and todef are both signed or unsigned, or that we leave    }
-        { the parts < 0 and > maxlongint out                                 }
-
-        { is_signed now also works for arrays (it checks the rangetype) (JM) }
-        if is_signed(fromdef) xor is_signed(todef) then
-          if is_signed(fromdef) then
-            { from is signed, to is unsigned }
-            begin
-              { if high(from) < 0 -> always range error }
-              if (hfrom < 0) or
-                 { if low(to) > maxlongint (== < 0, since we only have }
-                 { longints here), also range error                    }
-                 (lto < 0) then
-                begin
-                  emitcall('FPC_RANGEERROR');
-                  exit
-                end;
-              { to is unsigned -> hto < 0 == hto > maxlongint              }
-              { since from is signed, values > maxlongint are < 0 and must }
-              { be rejected                                                }
-              if hto < 0 then
-                hto := maxlongint;
-            end
-          else
-            { from is unsigned, to is signed }
-            begin
-              if (lfrom < 0) or
-                 (hto < 0) then
-                begin
-                  emitcall('FPC_RANGEERROR');
-                  exit
-                end;
-              { since from is unsigned, values > maxlongint are < 0 and must }
-              { be rejected                                                  }
-              if lto < 0 then
-                lto := 0;
-            end;
-
-        getexplicitregister32(R_EDI);
-        if is_reg and
-           (opsize = S_L) then
-          emit_ref_reg(A_LEA,opsize,new_reference(p.location.register,-lto),
-            R_EDI)
-        else
-          begin
-            if is_reg then
-              emit_reg_reg(op,opsize,p.location.register,R_EDI)
-            else
-              emit_ref_reg(op,opsize,newreference(p.location.reference),R_EDI);
-            if lto <> 0 then
-              emit_const_reg(A_SUB,S_L,lto,R_EDI);
-          end;
-        emit_const_reg(A_CMP,S_L,hto-lto,R_EDI);
-        ungetregister32(R_EDI);
-        getlabel(neglabel);
-        emitjmp(C_BE,neglabel);
-        emitcall('FPC_RANGEERROR');
-        emitlab(neglabel);
-      end;
-
 
    { DO NOT RELY on the fact that the tnode is not yet swaped
      because of inlining code PM }
@@ -1544,7 +1199,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2001-12-03 21:48:43  peter
+  Revision 1.25  2001-12-30 17:24:47  jonas
+    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+
+  Revision 1.24  2001/12/03 21:48:43  peter
     * freemem change to value parameter
     * torddef low/high range changed to int64
 
