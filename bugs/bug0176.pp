@@ -1,4 +1,4 @@
-unit u;
+unit bug0176;
 interface
 
 var
@@ -10,6 +10,6 @@ var
   l2 : longint;
   
 begin
-  u.l1:=1;
-  u.l2:=1;
+  bug0176.l1:=1;
+  bug0176.l2:=1;
 end.  

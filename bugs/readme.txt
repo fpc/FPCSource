@@ -167,6 +167,7 @@ Fixed bugs:
   bug0139.pp   Cannot access protected method of ancestor class from other unit. OK 0.99.6
   bug0140.pp   Shows that interdependent units still are not OK.     OK 0.99.6 (PFV)
   bug0141.pp   Wrong Class sizes when using forwardly defined classes. OK 0.99.6
+  bug0142.pp   sizeof(object) is not tp7 compatible when no constructor is used OK 0.99.9 (PM)
   bug0143.pp   cannot concat string and array of char in $X+ mode    OK 0.99.7 (PFV)
   bug0144.pp   problem with 'with object do'                         OK 0.99.7 (PFV)
   bug0145.pp   typed files with huges records (needs filerec.size:longint) OK 0.99.7 (PFV)
@@ -183,6 +184,7 @@ Fixed bugs:
   bug0157.pp   Invalid compilation and also crashes                  OK 0.99.7 (PFV)
   bug0158.pp   Invalid boolean typecast                              OK 0.99.7 (PFV)
   bug0159.pp   Invalid virtual functions - should compile            OK 0.99.7 (FK)
+  bug0160.pp   Incompatibility with BP: Self shouldn't be a reserved word. OK 0.99.9 (PM)
   bug0161.pp   internal error when trying to create a set with another OK 0.99.9 (PFV)
   bug0162.pp   continue in repeat ... until loop doesn't work correct OK 0.99.8 (PFV)
   bug0164.pp   crash when using undeclared array index in with statement OK 0.99.8 (PFV)
@@ -195,6 +197,11 @@ Fixed bugs:
   bug0174.pp   Asm, offsets of fields are not possible yet           OK 0.99.9 (PFV)
   bug0176.pp   unit.symbol not allowed for implementation vars         OK 0.99.9 (PM)
   bug0177.pp   program.symbol not allowed (almost the same as bug 176) OK 0.99.9 (PM)
+  bug0178.pp   problems with undefined labels and fail outside constructor OK 0.99.9 (PM)
+  bug0180.pp   problem for units with names different from file name
+                 should be accepted with -Un !!
+               Solved, but you still need to use the file name from other
+               units  OK 0.99.9 (PM) 
 
 Unproducable bugs:
 ------------------
@@ -202,14 +209,10 @@ bug0048.pp   shows a problem with putimage on some computers
              (I can't reproduce the bug neither with a Millenium II
               nor a Trio64 card (FK)  )
 
-
 Unfixed not important bugs (mostly incompatibilities):
 ------------------------------------------------------
 bug0111.pp   blockread(typedfile,...) is not allowed in TP7
 bug0133.pp   object type declaration not 100% compatibile with TP7
-bug0142.pp   sizeof(object) is not tp7 compatible when no constructor is used
-bug0160.pp   Incompatibility with BP: Self shouldn't be a reserved word.
-
 
 Unfixed bugs:
 -------------
@@ -228,4 +231,4 @@ bug0163.pp   missing <= and >= operators for sets.
 bug0169.pp   missing new(type) support for not object/class
 bug0171.pp   missing typecasting in constant expressions
 bug0172.pp   with with absolute seg:ofs should not be possible
-
+bug0179.pp   show a problem for -So mode 
