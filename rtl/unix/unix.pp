@@ -185,19 +185,41 @@ const
   MAP_FIXED     = $10;         { Interpret addr exactly }
 //  MAP_ANONYMOUS = $20;         { don't use a file }
 
+{$ifdef Linux}
   MAP_GROWSDOWN  = $100;       { stack-like segment }
   MAP_DENYWRITE  = $800;       { ETXTBSY }
   MAP_EXECUTABLE = $1000;      { mark it as an executable }
   MAP_LOCKED     = $2000;      { pages are locked }
   MAP_NORESERVE  = $4000;      { don't check for reservations }
+{$else}
+  {$ifdef FreeBSD}
+  // FreeBSD defines MAP_COPY=MAP_PRIVATE=$2;
+  MAP_FILE         = $0000;  { map from file (default) }
+  MAP_ANON         = $1000;  { allocated from memory, swap space }
 
+  MAP_RENAME       = $0020; { Sun: rename private pages to file }
+  MAP_NORESERVE    = $0040; { Sun: don't reserve needed swap area }
+  MAP_INHERIT      = $0080; { region is retained after exec }
+  MAP_NOEXTEND     = $0100; { for MAP_FILE, don't change file size }
+  MAP_HASSEMAPHORE = $0200; { region may contain semaphores }
+  MAP_STACK        = $0400; { region grows down, like a stack }
+  MAP_NOSYNC       = $0800; { page to but do not sync underlying file}
+  MAP_NOCORE       = $20000;{ dont include these pages in a coredump}
+  {$endif}
+{$endif}
 {**************************
     Utility functions
 ***************************}
 
+Type
+	TFSearchOptions = (NoCurrentDirectory,
+		           CurrentDirectoryFirst,
+	                   CurrentDirectoryLast);
+
 Function  FExpand  (Const Path: PathStr):PathStr;
 Function  FSearch  (const path:pathstr;dirlist:string):pathstr;
-Function  FSearch  (const path:AnsiString;dirlist:Ansistring;AddCurrentPath:Boolean):AnsiString;
+
+Function  FSearch  (const path:AnsiString;dirlist:Ansistring;AddCurrentPath:TFSearchOptions):AnsiString;
 Function  FSearch  (const path:AnsiString;dirlist:AnsiString):AnsiString;
 Function  Glob     (Const path:pathstr):pglob;
 Procedure Globfree (var p:pglob);
@@ -539,7 +561,7 @@ Begin
 			  // but a quick check showed that _PATH_DEFPATH 
 			  // varied from OS to OS
 			
-      newcmd:=FSearch(pathname,thepath,false);
+      newcmd:=FSearch(pathname,thepath,NoCurrentDirectory);
       // FreeBSD libc keeps on trying till a file is successfully run.
       // Stevens says "try each path prefix"
 	
@@ -702,7 +724,7 @@ begin { Changes as above }
    Shell:=WaitProcess(pid)
   else // no success
    Shell:=-1;
- {$ifndef FPC_USE_FPXEC}
+ {$ifndef FPC_USE_FPEXEC}
   FreeShellArgV(p);
  {$ENDIF}
 end;
@@ -1491,7 +1513,7 @@ Begin
    End;
 End;
 
-Function FSearch(const path:AnsiString;dirlist:Ansistring;AddCurrentPath:Boolean):AnsiString;
+Function FSearch(const path:AnsiString;dirlist:Ansistring;AddCurrentPath:TFSearchOptions):AnsiString;
 {
   Searches for a file 'path' in the list of direcories in 'dirlist'.
   returns an empty string if not found. Wildcards are NOT allowed.
@@ -1509,9 +1531,10 @@ Var
   p      : pchar;
 Begin
 
-//    If this is done then here.
- if AddCurrentPath Then
-     Dirlist:=dirlist+':.';{Make sure current dir is first to be searched.}
+ if AddCurrentPath=CurrentDirectoryFirst Then
+     Dirlist:='.:'+dirlist;		{Make sure current dir is first to be searched.}
+ if AddCurrentPath=CurrentDirectoryLast Then
+     Dirlist:=dirlist+':.';		{Make sure current dir is last to be searched.}
 
 {Replace ':' and ';' with #0}
 
@@ -1548,7 +1571,7 @@ End;
 Function FSearch(const path:AnsiString;dirlist:Ansistring):AnsiString;
 
 Begin
- FSearch:=FSearch(path,dirlist,True);
+ FSearch:=FSearch(path,dirlist,CurrentDirectoryFirst);
 End;
 
 Procedure Globfree(var p : pglob);
@@ -1650,7 +1673,10 @@ End.
 
 {
   $Log$
-  Revision 1.61  2004-02-12 15:31:06  marco
+  Revision 1.62  2004-02-12 16:20:58  marco
+   * currentpath stuff fixed for fsearch
+
+  Revision 1.61  2004/02/12 15:31:06  marco
    * First version of fpexec change. Still under ifdef or silently overloaded
 
   Revision 1.60  2004/01/23 08:11:18  jonas
