@@ -811,14 +811,14 @@ begin
               end;
         'X' : begin
               Checkarg(vtinteger,true);
-              If Prec>32 then
-                ToAdd:=HexStr(Args[Doarg].VInteger,32)
+              If Prec>15 then
+                ToAdd:=HexStr(Args[Doarg].VInteger,15)
               else
                 begin
                 // determine minimum needed number of hex digits.
                 Index:=1;
-                While ((1 shl (Index*4))<Args[DoArg].VInteger) and (index<8) do
-                    inc(Index);
+                While (DWord(1 shl (Index*4))<DWord(Args[DoArg].VInteger)) and (index<8) do
+                 inc(Index);
                 If Index>Prec then
                   Prec:=Index;
                 ToAdd:=HexStr(Args[DoArg].VInteger,Prec);
@@ -1137,7 +1137,11 @@ const
 
 {
   $Log$
-  Revision 1.27  1999-10-03 19:42:40  peter
+  Revision 1.28  1999-10-12 19:16:27  florian
+    * bug 645 fixed: format('%x',...) should writes unsigned hexadecimals, also
+      prec fixed: max. value in delphi is 15 (and not 32)
+
+  Revision 1.27  1999/10/03 19:42:40  peter
     * fixed comparetext
 
   Revision 1.26  1999/09/04 20:48:34  florian
