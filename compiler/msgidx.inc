@@ -426,6 +426,8 @@ type tmsgconst=(
   assem_e_cannot_index_relative_var,
   assem_h_direct_global_to_mangled,
   assem_w_direct_global_is_overloaded_func,
+  assem_d_arg_offset,
+  assem_d_arg_unfound_offset,
   exec_w_source_os_redefined,
   exec_i_assembling_pipe,
   exec_d_cant_create_asmfile,
