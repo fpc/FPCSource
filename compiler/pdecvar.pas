@@ -1088,8 +1088,10 @@ implementation
                          is_dll:=true;
                          dll_name:=get_stringconst;
                        end;
-                      consume(_NAME);
-                      C_name:=get_stringconst;
+                      if try_to_consume(_NAME) then
+                        C_name:=get_stringconst
+                      else
+                        C_name:=sorg;
                     end;
                    { consume the ; when export or external is used }
                    if semicolonatend then
@@ -1318,7 +1320,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2005-02-14 17:13:07  peter
+  Revision 1.98  2005-03-09 23:44:18  peter
+  support external <dllname>; also for variables
+
+  Revision 1.97  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.96  2005/02/03 17:11:40  peter
