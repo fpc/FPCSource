@@ -445,7 +445,11 @@ implementation
                         if source_info.endian = target_info.endian then
                           begin
                             for l:=0 to p.resulttype.def.size-1 do
+			    {$ifdef oldset}
+			       curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[l]));
+			    {$else}
                                curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[l]));
+			    {$endif}
                           end
                         else
                           begin
@@ -453,10 +457,17 @@ implementation
                             j:=0;
                             for l:=0 to ((p.resulttype.def.size-1) div 4) do
                               begin
+			{$ifdef oldset}
+                		curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+3]));
+                		curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+2]));
+                		curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+1]));
+                		curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j]));
+			{$else}
                                 curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+3]));
                                 curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+2]));
                                 curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+1]));
                                 curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j]));
+			{$endif}
                                 Inc(j,4);
                               end;
                           end;
@@ -975,7 +986,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2002-07-22 11:48:04  daniel
+  Revision 1.53  2002-07-23 12:34:30  daniel
+  * Readded old set code. To use it define 'oldset'. Activated by default
+    for ppc.
+
+  Revision 1.52  2002/07/22 11:48:04  daniel
   * Sets are now internally sets.
 
   Revision 1.51  2002/07/20 11:57:56  florian

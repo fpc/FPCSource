@@ -35,9 +35,13 @@ interface
 
     type
        pconstset = ^tconstset;
-       tconstset = set of 0..255;
+    {$ifdef oldset}
+       tconstset = array[0..31] of byte;
        pconst32bitset = ^tconst32bitset;
        tconst32bitset = array[0..7] of longint;
+    {$else}
+       tconstset = set of 0..255;
+    {$endif}
 
        tnodetype = (
           addn,     {Represents the + operator.}
@@ -823,7 +827,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2002-07-22 11:48:04  daniel
+  Revision 1.33  2002-07-23 12:34:30  daniel
+  * Readded old set code. To use it define 'oldset'. Activated by default
+    for ppc.
+
+  Revision 1.32  2002/07/22 11:48:04  daniel
   * Sets are now internally sets.
 
   Revision 1.31  2002/07/21 06:58:49  daniel

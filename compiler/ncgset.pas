@@ -137,10 +137,15 @@ implementation
          pushedregs : tmaybesave;
          l,l2,l3       : tasmlabel;
 
+{$ifdef oldset}
+         function analizeset(Aset:Pconstset;is_small:boolean):boolean;
+	   type
+             byteset=set of byte;
+{$else}
          function analizeset(const Aset:Tconstset;is_small:boolean):boolean;
+{$endif}
            var
              compares,maxcompares:word;
-	     
              i:byte;
            begin
              analizeset:=false;
@@ -159,7 +164,11 @@ implementation
              if is_small then
               maxcompares:=3;
              for i:=0 to 255 do
+	     {$ifdef oldset}
+              if i in byteset(Aset^) then
+	     {$else}
               if i in Aset then
+	     {$endif}
                begin
                  if (numparts=0) or (i<>setparts[numparts].stop+1) then
                   begin
@@ -207,8 +216,13 @@ implementation
                      (left.resulttype.def.deftype=enumdef) and (tenumdef(left.resulttype.def).max<=32));
 
          { Can we generate jumps? Possible for all types of sets }
+{$ifdef oldset}
+         genjumps:=(right.nodetype=setconstn) and
+                   analizeset(Tsetconstnode(right).value_set,use_small);
+{$else}
          genjumps:=(right.nodetype=setconstn) and
                    analizeset(Tsetconstnode(right).value_set^,use_small);
+{$endif}
          { calculate both operators }
          { the complex one first }
          firstcomplex(self);
@@ -570,7 +584,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-07-22 11:48:04  daniel
+  Revision 1.9  2002-07-23 12:34:30  daniel
+  * Readded old set code. To use it define 'oldset'. Activated by default
+    for ppc.
+
+  Revision 1.8  2002/07/22 11:48:04  daniel
   * Sets are now internally sets.
 
   Revision 1.7  2002/07/21 16:58:20  jonas

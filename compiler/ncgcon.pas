@@ -423,7 +423,11 @@ implementation
                              i:=0;
                              while assigned(hp1) and (i<32) do
                               begin
+			    {$ifdef oldset}
+                                if tai_const(hp1).value<>value_set^[i] then
+			    {$else}
                                 if tai_const(hp1).value<>Psetbytes(value_set)^[i] then
+			    {$endif}
                                  break;
                                 inc(i);
                                 hp1:=tai(hp1.next);
@@ -522,7 +526,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2002-07-22 11:48:04  daniel
+  Revision 1.15  2002-07-23 12:34:30  daniel
+  * Readded old set code. To use it define 'oldset'. Activated by default
+    for ppc.
+
+  Revision 1.14  2002/07/22 11:48:04  daniel
   * Sets are now internally sets.
 
   Revision 1.13  2002/07/20 11:57:53  florian

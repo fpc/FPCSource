@@ -177,6 +177,10 @@ implementation
 
     function tinnode.det_resulttype:tnode;
 
+{$ifdef oldset}
+      type
+        byteset = set of byte;
+{$endif}
       var
         t : tnode;
         pst : pconstset;
@@ -194,14 +198,22 @@ implementation
                 pes:=tenumsym(tenumdef(psd.elementtype.def).firstenum);
                 while assigned(pes) do
                   begin
+		{$ifdef oldset}
+		    pcs^[pes.value div 8]:=pcs^[pes.value div 8] or (1 shl (pes.value mod 8));
+		{$else}
 		    include(pcs^,pes.value);
+		{$endif}
                     pes:=pes.nextenum;
                   end;
               end;
             orddef :
               begin
                 for i:=torddef(psd.elementtype.def).low to torddef(psd.elementtype.def).high do
+		{$ifdef oldset}
+                    pcs^[i div 8]:=pcs^[i div 8] or (1 shl (i mod 8));
+		{$else}
 		    include(pcs^,i);
+		{$endif}
               end;
           end;
           createsetconst:=pcs;
@@ -255,10 +267,14 @@ implementation
             exit;
           end;
 
-         { constant evaulation }
+         { constant evaluation }
          if (left.nodetype=ordconstn) and (right.nodetype=setconstn) then
           begin
+	{$ifdef oldset}
+	    t:=cordconstnode.create(byte(tordconstnode(left).value in byteset(tsetconstnode(right).value_set^)),booltype);
+	{$else}
             t:=cordconstnode.create(byte(tordconstnode(left).value in Tsetconstnode(right).value_set^),booltype);
+	{$endif}
             resulttypepass(t);
             result:=t;
             exit;
@@ -575,7 +591,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-07-22 11:48:04  daniel
+  Revision 1.29  2002-07-23 12:34:30  daniel
+  * Readded old set code. To use it define 'oldset'. Activated by default
+    for ppc.
+
+  Revision 1.28  2002/07/22 11:48:04  daniel
   * Sets are now internally sets.
 
   Revision 1.27  2002/07/20 11:57:55  florian
