@@ -66,6 +66,7 @@ function GetMsgLine(var p:pchar):string;
 implementation
 
 uses
+  cutils,
   globals,
 {$ifdef DELPHI}
   sysutils;
@@ -394,54 +395,44 @@ end;
 
 function TMessage.Get3(nr:longint;const s1,s2,s3:string):string;
 var
-  i : longint;
   s : string;
 begin
   s:=Get(nr);
-{ $1 -> s1 }
-  i:=pos('$1',s);
-  while (i>0) do
-   begin
-     Delete(s,i,2);
-     Insert(s1,s,i);
-     i := pos('$1',s);
-   end;
-{ $2 -> s2 }
-  i:=pos('$2',s);
-  while (i>0) do
-   begin
-     Delete(s,i,2);
-     Insert(s2,s,i);
-     i := pos('$2',s);
-   end;
-{ $3 -> s3 }
-  i:=pos('$3',s);
-  while (i>0) do
-   begin
-     Delete(s,i,2);
-     Insert(s3,s,i);
-     i := pos('$3',s);
-   end;
+  Replace(s,'$1',s1);
+  Replace(s,'$2',s2);
+  Replace(s,'$3',s3);
   Get3:=s;
 end;
 
 
 function TMessage.Get2(nr:longint;const s1,s2:string):string;
+var
+  s : string;
 begin
-  Get2:=Get3(nr,s1,s2,'');
+  s:=Get(nr);
+  Replace(s,'$1',s1);
+  Replace(s,'$2',s2);
+  Get2:=s;
 end;
 
 
 function TMessage.Get1(nr:longint;const s1:string):string;
+var
+  s : string;
 begin
-  Get1:=Get3(nr,s1,'','');
+  s:=Get(nr);
+  Replace(s,'$1',s1);
+  Get1:=s;
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.7  2001-04-14 16:05:41  jonas
+  Revision 1.8  2001-04-21 13:32:07  peter
+    * remove endless loop with replacements (merged)
+
+  Revision 1.7  2001/04/14 16:05:41  jonas
     * allow a single replacement string to be substituted more than once per
       message (already used in assembler reader messages for "fsub x" etc.
       transformations) (merged)
