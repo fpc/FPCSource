@@ -1,0 +1,55 @@
+#
+#   Makefile.fpc for Free Pascal GDB Interface
+#
+
+[targets]
+units=gdbint gdbcon
+programs=symify
+examples=testgdb
+
+[defaults]
+defaultunits=1
+
+[dirs]
+fpcdir=..
+targetdir=.
+objdir=libgdb/$(OS_TARGET)
+libdir=libgdb/$(OS_TARGET)
+
+[libs]
+libgcc=1
+
+
+[rules]
+gdbint$(PPUEXT): gdbint$(PASEXT)
+
+gdbcon$(PPUEXT): gdbcon$(PASEXT) gdbint$(PPUEXT)
+
+ifeq ($(OS_TARGET),go32v2)
+DBGCOM=dbgcom$(OEXT)
+else
+DBGCOM=
+endif
+
+ifdef $(COMPILEDBGCOM)
+# FPC conditionnal remove the file watching mecanism introduced
+# in v2.02 of dbgcom.c because it relies
+# on the fact that all files are opened via C lib calls
+# which is wrong for FPC !!
+$(DBGCOM): ../v4.16/dbgcom.c
+        gcc -c -DFPC -Dother_sel -gstabs -o dbgcom.o -I../v4.16 ../v4.16/dbgcom.c
+else
+$(DBGCOM):
+endif
+
+simple: $(DBGCOM)
+        -rm gdbint.ppu
+        ppc386 -dUSE_LIBGDB gdbint
+        ppc386 testgdb
+
+testgdb$(EXEEXT): testgdb.pp gdbint$(PPUEXT) gdbcon$(PPUEXT) $(DBGCOM)
+
+# Allow test for example
+.PHONY: test
+
+test: examples

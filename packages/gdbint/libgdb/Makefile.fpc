@@ -1,0 +1,10 @@
+#
+#   Makefile.fpc for Free Component Library
+#
+
+[sections]
+none=1
+
+[rules]
+all:
+        $(MAKE) -C $(OS_TARGET) all

@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for Free Pascal GTK 1.2.x Examples
+#
+
+[targets]
+programs=entry notebook scribble-simple clist ttt_test pixmap list progressbar
+
+[clean]
+units=tictactoe
+
+[dirs]
+fpcdir=../..
+unitdir=..
+targetdir=.
+
+[libs]
+libgcc=1
+libother=1

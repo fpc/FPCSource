@@ -1,0 +1,38 @@
+#
+#   Makefile.fpc for Free Pascal GTK 1.2.x Bindings
+#
+
+[targets]
+units=glib gmodule gdk gtk
+
+[dirs]
+fpcdir=..
+sourcesdir=glib gdk gtk
+targetdir=.
+
+[libs]
+libname=fpgtk
+
+[defaults]
+defaultunits=1
+
+
+[rules]
+clean: fpc_clean
+        $(MAKE) -C examples clean
+        $(MAKE) -C tutorial clean
+
+glib$(PPUEXT): $(wildcard glib/glib*$(PASEXT))
+
+gmodule$(PPUEXT): $(wildcard glib/gmodule*$(PASEXT)) glib$(PPUEXT)
+
+gdk$(PPUEXT): $(wildcard gdk/gdk*$(PASEXT)) glib$(PPUEXT)
+
+gtk$(PPUEXT): $(wildcard gtk/gtk*$(PASEXT)) gdk$(PPUEXT)
+
+# Examples, tutorial
+examples: all
+        $(MAKE) -C examples
+
+tutorial: all
+        $(MAKE) -C tutorial

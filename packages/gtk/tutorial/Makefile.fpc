@@ -1,0 +1,15 @@
+#
+#   Makefile.fpc for Free Pascal GTK 1.2.x Tutorial
+#
+
+[targets]
+programs=$(subst $(PASEXT),,$(wildcard tut*$(PASEXT)))
+
+[dirs]
+fpcdir=../..
+unitdir=..
+targetdir=.
+
+[libs]
+libgcc=1
+libother=1
