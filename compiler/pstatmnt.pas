@@ -1083,13 +1083,10 @@ unit pstatmnt;
 
     function block(islibrary : boolean) : ptree;
 
-{$ifdef TEST_FUNCRET }
       var
          funcretsym : pfuncretsym;
-{$endif TEST_FUNCRET }
 
       begin
-{$ifdef TEST_FUNCRET }
          if procinfo.retdef<>pdef(voiddef) then
            begin
               { if the current is a function aktprocsym is non nil }
@@ -1101,7 +1098,6 @@ unit pstatmnt;
                 procinfo.retoffset:=-funcretsym^.address;
               procinfo.funcretsym:=funcretsym;
            end;
-{$endif TEST_FUNCRET }
          read_declarations(islibrary);
 
          { temporary space is set, while the BEGIN of the procedure }
@@ -1126,15 +1122,8 @@ unit pstatmnt;
                    (psetdef(procinfo.retdef)^.settype=smallset)
                  ) then  }
                 begin
-{$ifdef TEST_FUNCRET }
                    { the space has been set in the local symtable }
                    procinfo.retoffset:=-funcretsym^.address;
-{$else  TEST_FUNCRET }
-                   { align func result at 4 byte }
-                   procinfo.retoffset:=
-                     -((-procinfo.firsttemp+(procinfo.retdef^.size+3)) div 4)*4;
-                   procinfo.firsttemp:=procinfo.retoffset;
-{$endif TEST_FUNCRET }
                    if (procinfo.flags and pi_operator)<>0 then
                      {opsym^.address:=procinfo.call_offset; is wrong PM }
                      opsym^.address:=-procinfo.retoffset;
@@ -1238,7 +1227,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.36  1998-08-20 21:36:41  peter
+  Revision 1.37  1998-08-21 14:08:52  pierre
+    + TEST_FUNCRET now default (old code removed)
+      works also for m68k (at least compiles)
+
+  Revision 1.36  1998/08/20 21:36:41  peter
     * fixed 'with object do' bug
 
   Revision 1.35  1998/08/20 09:26:42  pierre

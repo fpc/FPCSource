@@ -595,7 +595,6 @@
                                   TFUNCRETSYM
 ****************************************************************************}
 
-{$ifdef TEST_FUNCRET}
     constructor tfuncretsym.init(const n : string;approcinfo : pointer{pprocinfo});
 
       begin
@@ -615,7 +614,6 @@
       end;
 {$endif GDB}
 
-{$endif TEST_FUNCRET}
 
 {****************************************************************************
                                   TABSOLUTESYM
@@ -1554,7 +1552,11 @@
 
 {
   $Log$
-  Revision 1.33  1998-08-20 12:53:27  peter
+  Revision 1.34  1998-08-21 14:08:53  pierre
+    + TEST_FUNCRET now default (old code removed)
+      works also for m68k (at least compiles)
+
+  Revision 1.33  1998/08/20 12:53:27  peter
     * object_options are always written for object syms
 
   Revision 1.32  1998/08/20 09:26:46  pierre

@@ -196,6 +196,7 @@ COMPILER=$(PP) $(PPOPTS)
 
 PPEXENAME=pp$(EXEEXT)
 EXENAME=ppc386$(EXEEXT)
+M68KEXENAME=ppc68k$(EXEEXT)
 TEMPNAME=ppc$(EXEEXT)
 TEMPNAME1=ppc1$(EXEEXT)
 TEMPNAME2=ppc2$(EXEEXT)
@@ -441,10 +442,20 @@ rtl :
 rtlclean :
 	make -C $(UNITDIR) clean
 
+# just a quick way to get ppc68k
+$(M68KEXENAME):
+	make clean
+	$(PP) -uI386 -uSUPPORT_MMX -dm68k -o$(M68KEXENAME) pp
+	make clean
+
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.25  1998-08-18 09:24:41  pierre
+# Revision 1.26  1998-08-21 14:08:46  pierre
+#   + TEST_FUNCRET now default (old code removed)
+#     works also for m68k (at least compiles)
+#
+# Revision 1.25  1998/08/18 09:24:41  pierre
 #   * small warning position bug fixed
 #   * support_mmx switches splitting was missing
 #   * rhide error and warning output corrected

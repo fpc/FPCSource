@@ -585,7 +585,6 @@ unit pass_1;
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
          clear_reference(p^.location.reference);
-{$ifdef TEST_FUNCRET}
          if p^.symtableentry^.typ=funcretsym then
            begin
               putnode(p);
@@ -595,7 +594,6 @@ unit pass_1;
               firstpass(p);
               exit;
            end;
-{$endif TEST_FUNCRET}
          if p^.symtableentry^.typ=absolutesym then
            begin
               p^.resulttype:=pabsolutesym(p^.symtableentry)^.definition;
@@ -3619,7 +3617,6 @@ unit pass_1;
     procedure firstfuncret(var p : ptree);
 
       begin
-{$ifdef TEST_FUNCRET}
          p^.resulttype:=p^.retdef;
          p^.location.loc:=LOC_REFERENCE;
          if ret_in_param(p^.retdef) or
@@ -3632,17 +3629,6 @@ unit pass_1;
            Message(sym_w_function_result_not_set);
          if count_ref then
            pprocinfo(p^.funcretprocinfo)^.funcret_is_valid:=true;
-{$else TEST_FUNCRET}
-         p^.resulttype:=procinfo.retdef;
-         p^.location.loc:=LOC_REFERENCE;
-         if ret_in_param(procinfo.retdef) then
-           p^.registers32:=1;
-         if must_be_valid and
-           not(procinfo.funcret_is_valid) {and
-           ((procinfo.flags and pi_uses_asm)=0)} then
-           Message(sym_w_function_result_not_set);
-         if count_ref then procinfo.funcret_is_valid:=true;
-{$endif TEST_FUNCRET}
           end;
 
 
@@ -5248,7 +5234,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.60  1998-08-20 12:59:57  peter
+  Revision 1.61  1998-08-21 14:08:47  pierre
+    + TEST_FUNCRET now default (old code removed)
+      works also for m68k (at least compiles)
+
+  Revision 1.60  1998/08/20 12:59:57  peter
     - removed obsolete in_*
 
   Revision 1.59  1998/08/20 09:26:39  pierre

@@ -1182,7 +1182,7 @@ end;
 
            { the following check is appropriate, because all }
            { 4 registers are rarely used and it is thereby   }
-           { achieved that the extra code is being dropped   }
+                      { achieved that the extra code is being dropped   }
            { by exchanging not commutative operators         }
            and (p^.right^.registers32<=4) then
            begin
@@ -1195,19 +1195,41 @@ end;
       end;
 
     procedure secondfuncret(var p : ptree);
-
       var
-         hregister : tregister;
-
+         hr : tregister;
+         hp : preference;
+         pp : pprocinfo;
+         hr_valid : boolean;
       begin
          clear_reference(p^.location.reference);
-         p^.location.reference.base:=procinfo.framepointer;
-         p^.location.reference.offset:=procinfo.retoffset;
-         if ret_in_param(procinfo.retdef) then
+         hr_valid:=false;
+         if @procinfo<>pprocinfo(p^.funcretprocinfo) then
            begin
-              hregister:=getaddressreg;
-              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVEA,S_L,newreference(p^.location.reference),hregister)));
-              p^.location.reference.base:=hregister;
+              hr:=getaddressreg;
+              hr_valid:=true;
+              hp:=new_reference(procinfo.framepointer,
+                procinfo.framepointer_offset);
+              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVEA,S_L,hp,hr)));
+              pp:=procinfo.parent;
+              { walk up the stack frame }
+              while pp<>pprocinfo(p^.funcretprocinfo) do
+                begin
+                   hp:=new_reference(hr,
+                     pp^.framepointer_offset);
+                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVEA,S_L,hp,hr)));
+                   pp:=pp^.parent;
+                end;
+              p^.location.reference.base:=hr;
+           end
+         else
+           p^.location.reference.base:=procinfo.framepointer;
+         p^.location.reference.offset:=procinfo.retoffset;
+         if ret_in_param(p^.retdef) then
+           begin
+              if not hr_valid then
+                hr:=getaddressreg;
+              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVEA,S_L,newreference(p^.location.reference),hr)));
+              p^.location.reference.base:=hr;
               p^.location.reference.offset:=0;
            end;
       end;
@@ -1215,7 +1237,11 @@ end;
   end.
 {
   $Log$
-  Revision 1.9  1998-08-17 10:10:04  peter
+  Revision 1.10  1998-08-21 14:08:41  pierre
+    + TEST_FUNCRET now default (old code removed)
+      works also for m68k (at least compiles)
+
+  Revision 1.9  1998/08/17 10:10:04  peter
     - removed OLDPPU
 
   Revision 1.8  1998/08/10 14:43:16  peter

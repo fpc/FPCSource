@@ -54,10 +54,8 @@ unit hcodegen;
           retdef : pdef;
           { return type }
           sym : pprocsym;
-{$ifdef TEST_FUNCRET }
           { symbol of the function }
           funcretsym : pfuncretsym;
-{$endif TEST_FUNCRET }
           { the definition of the proc itself }
           { why was this a pdef only ?? PM    }
           def : pprocdef;
@@ -409,7 +407,11 @@ end.
 
 {
   $Log$
-  Revision 1.13  1998-08-20 09:26:38  pierre
+  Revision 1.14  1998-08-21 14:08:43  pierre
+    + TEST_FUNCRET now default (old code removed)
+      works also for m68k (at least compiles)
+
+  Revision 1.13  1998/08/20 09:26:38  pierre
     + funcret setting in underproc testing
       compile with _dTEST_FUNCRET
 

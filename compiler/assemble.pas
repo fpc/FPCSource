@@ -390,7 +390,7 @@ begin
   case aktoutputformat of
 {$ifdef i386}
   {$ifndef NoAg386Att}
-        as_o : a:=new(pi386attasmlist,Init);
+        as_o,as_o_aout,as_asw : a:=new(pi386attasmlist,Init);
   {$endif NoAg386Att}
   {$ifndef NoAg386Nsm}
  as_nasmcoff,
@@ -437,7 +437,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  1998-08-17 09:17:43  peter
+  Revision 1.18  1998-08-21 14:08:39  pierre
+    + TEST_FUNCRET now default (old code removed)
+      works also for m68k (at least compiles)
+
+  Revision 1.17  1998/08/17 09:17:43  peter
     * static/shared linking updates
 
   Revision 1.16  1998/08/14 21:56:30  peter

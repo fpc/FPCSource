@@ -668,6 +668,53 @@ unit pexpr;
          filepos  : tfileposinfo;
 
          {---------------------------------------------
+                         Is_func_ret
+         ---------------------------------------------}
+
+        function is_func_ret(sym : psym) : boolean;
+        var
+           p : pprocinfo;
+           storesymtablestack : psymtable;
+
+        begin
+          is_func_ret:=false;
+          if (sym^.typ<>funcretsym) and ((procinfo.flags and pi_operator)=0) then
+            exit;
+          p:=@procinfo;
+          while assigned(p) do
+            begin
+               { is this an access to a function result ? }
+               if assigned(p^.funcretsym) and
+                  ((sym=p^.funcretsym) or
+                  ((pvarsym(sym)=opsym) and
+                  ((p^.flags and pi_operator)<>0))) and
+                  (p^.retdef<>pdef(voiddef)) and
+                  (token<>LKLAMMER) and
+                  (not ((cs_tp_compatible in aktmoduleswitches) and
+                  (afterassignment or in_args))) then
+                 begin
+                    p1:=genzeronode(funcretn);
+                    pd:=p^.retdef;
+                    p1^.funcretprocinfo:=p;
+                    p1^.retdef:=pd;
+                    is_func_ret:=true;
+                    exit;
+                 end;
+               p:=p^.parent;
+            end;
+          { we must use the function call }
+          if(sym^.typ=funcretsym) then
+            begin
+               storesymtablestack:=symtablestack;
+               symtablestack:=srsymtable^.next;
+               getsym(sym^.name,true);
+               if srsym^.typ<>procsym then
+                 Message(cg_e_illegal_expression);
+               symtablestack:=storesymtablestack;
+            end;
+        end;
+
+         {---------------------------------------------
                          Factor_read_id
          ---------------------------------------------}
 
@@ -683,10 +730,8 @@ unit pexpr;
               consume(ID);
               p1:=genzeronode(funcretn);
               pd:=procinfo.retdef;
-    {$ifdef TEST_FUNCRET}
               p1^.funcretprocinfo:=pointer(@procinfo);
               p1^.retdef:=pd;
-    {$endif TEST_FUNCRET}
             end
            else
             begin
@@ -699,24 +744,7 @@ unit pexpr;
               else
                getsym(pattern,true);
               consume(ID);
-    {$ifndef TEST_FUNCRET}
-              { is this an access to a function result ? }
-              if assigned(aktprocsym) and
-                 ((srsym^.name=aktprocsym^.name){ or
-                 ((pvarsym(srsym)=opsym) and
-                  ((procinfo.flags and pi_operator)<>0))}) and
-                 (procinfo.retdef<>pdef(voiddef)) and
-                 (token<>LKLAMMER) and
-                 (not ((cs_tp_compatible in aktmoduleswitches) and
-                 (afterassignment or in_args))) then
-               begin
-                 p1:=genzeronode(funcretn);
-                 pd:=procinfo.retdef;
-               end
-              else
-    {$else TEST_FUNCRET}
                if not is_func_ret(srsym) then
-    {$endif TEST_FUNCRET}
               { else it's a normal symbol }
                 begin
                 { is it defined like UNIT.SYMBOL ? }
@@ -1111,51 +1139,6 @@ unit pexpr;
            end;
         end;
 
-
-{$ifdef TEST_FUNCRET}
-        function is_func_ret(sym : psym) : boolean;
-        var
-           p : pprocinfo;
-           storesymtablestack : psymtable;
-
-        begin
-          is_func_ret:=false;
-          if (sym^.typ<>funcretsym) and ((procinfo.flags and pi_operator)=0) then
-            exit;
-          p:=@procinfo;
-          while assigned(p) do
-            begin
-               { is this an access to a function result ? }
-               if assigned(p^.funcretsym) and
-                  ((sym=p^.funcretsym) or
-                  ((pvarsym(sym)=opsym) and
-                  ((p^.flags and pi_operator)<>0))) and
-                  (p^.retdef<>pdef(voiddef)) and
-                  (token<>LKLAMMER) and
-                  (not ((cs_tp_compatible in aktmoduleswitches) and
-                  (afterassignment or in_args))) then
-                 begin
-                    p1:=genzeronode(funcretn);
-                    pd:=p^.retdef;
-                    p1^.funcretprocinfo:=p;
-                    p1^.retdef:=pd;
-                    is_func_ret:=true;
-                    exit;
-                 end;
-               p:=p^.parent;
-            end;
-          { we must use the function call }
-          if(sym^.typ=funcretsym) then
-            begin
-               storesymtablestack:=symtablestack;
-               symtablestack:=srsymtable^.next;
-               getsym(sym^.name,true);
-               if srsym^.typ<>procsym then
-                 Message(cg_e_illegal_expression);
-               symtablestack:=storesymtablestack;
-            end;
-        end;
-{$endif TEST_FUNCRET}
 
 
          {---------------------------------------------
@@ -1873,7 +1856,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.41  1998-08-20 21:36:39  peter
+  Revision 1.42  1998-08-21 14:08:50  pierre
+    + TEST_FUNCRET now default (old code removed)
+      works also for m68k (at least compiles)
+
+  Revision 1.41  1998/08/20 21:36:39  peter
     * fixed 'with object do' bug
 
   Revision 1.40  1998/08/20 09:26:41  pierre

@@ -359,6 +359,8 @@ type
 
     function newreference(const r : treference) : preference;
 
+    function new_reference(base : tregister;offset : longint) : preference;
+    
     function reg2str(r : tregister) : string;
 
     { generates an help record for constants }
@@ -896,6 +898,18 @@ type
           direction := dir_none;
         end;
       end;
+
+      function new_reference(base : tregister;offset : longint) : preference;
+
+        var
+           r : preference;
+        begin
+           new(r);
+           reset_reference(r^);
+           r^.base:=base;
+           r^.offset:=offset;
+           new_reference:=r;
+        end;
 
     procedure clear_reference(var ref : treference);
 
@@ -1565,7 +1579,11 @@ type
 end.
 {
   $Log$
-  Revision 1.5  1998-06-04 23:51:45  peter
+  Revision 1.6  1998-08-21 14:08:44  pierre
+    + TEST_FUNCRET now default (old code removed)
+      works also for m68k (at least compiles)
+
+  Revision 1.5  1998/06/04 23:51:45  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32

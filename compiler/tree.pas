@@ -211,9 +211,7 @@ unit tree;
              ordconstn : (value : longint);
              realconstn : (valued : bestreal;labnumber : longint;realtyp : tait);
              fixconstn : (valuef: longint);
-{$ifdef TEST_FUNCRET}
              funcretn : (funcretprocinfo : pointer;retdef : pdef);
-{$endif TEST_FUNCRET}
              subscriptn : (vs : pvarsym);
              vecn : (memindex,memseg:boolean);
              { stringconstn : (length : longint; values : pstring;labstrnumber : longint); }
@@ -1385,9 +1383,7 @@ unit tree;
                end;
              (*realconstn : (valued : bestreal;labnumber : longint;realtyp : tait);
              fixconstn : (valuef: longint);
-{$ifdef TEST_FUNCRET}
              funcretn : (funcretprocinfo : pointer;retdef : pdef);
-{$endif TEST_FUNCRET}
              subscriptn : (vs : pvarsym);
              vecn : (memindex,memseg:boolean);
              { stringconstn : (length : longint; values : pstring;labstrnumber : longint); }
@@ -1557,7 +1553,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.30  1998-08-18 09:24:47  pierre
+  Revision 1.31  1998-08-21 14:08:58  pierre
+    + TEST_FUNCRET now default (old code removed)
+      works also for m68k (at least compiles)
+
+  Revision 1.30  1998/08/18 09:24:47  pierre
     * small warning position bug fixed
     * support_mmx switches splitting was missing
     * rhide error and warning output corrected

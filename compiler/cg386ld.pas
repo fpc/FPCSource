@@ -514,18 +514,11 @@ implementation
     procedure secondfuncret(var p : ptree);
       var
          hr : tregister;
-{$ifdef TEST_FUNCRET}
          hp : preference;
          pp : pprocinfo;
          hr_valid : boolean;
-{$endif TEST_FUNCRET}
       begin
          clear_reference(p^.location.reference);
-{$ifndef TEST_FUNCRET}
-         p^.location.reference.base:=procinfo.framepointer;
-         p^.location.reference.offset:=procinfo.retoffset;
-         if ret_in_param(procinfo.retdef) then
-{$else TEST_FUNCRET}
          hr_valid:=false;
          if @procinfo<>pprocinfo(p^.funcretprocinfo) then
            begin
@@ -549,11 +542,8 @@ implementation
            p^.location.reference.base:=procinfo.framepointer;
          p^.location.reference.offset:=procinfo.retoffset;
          if ret_in_param(p^.retdef) then
-{$endif TEST_FUNCRET}
            begin
-{$ifdef TEST_FUNCRET}
               if not hr_valid then
-{$endif TEST_FUNCRET}
                 hr:=getregister32;
               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.location.reference),hr)));
               p^.location.reference.base:=hr;
@@ -565,7 +555,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-08-20 09:26:37  pierre
+  Revision 1.10  1998-08-21 14:08:40  pierre
+    + TEST_FUNCRET now default (old code removed)
+      works also for m68k (at least compiles)
+
+  Revision 1.9  1998/08/20 09:26:37  pierre
     + funcret setting in underproc testing
       compile with _dTEST_FUNCRET
 
