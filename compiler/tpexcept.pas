@@ -42,8 +42,8 @@ type
 
    pjmp_buf = ^jmp_buf;
 
-  function setjmp(var rec : jmp_buf) : longint;{$ifdef Delphi}stdcall;{$endif}
-  procedure longjmp(const rec : jmp_buf;return_value : longint);{$ifdef Delphi}stdcall;{$endif}
+  function setjmp(var rec : jmp_buf) : longint;{$ifdef Delphi}stdcall;{$else}{$ifndef ver1_0}oldfpccall;{$endif}{$endif}
+  procedure longjmp(const rec : jmp_buf;return_value : longint);{$ifdef Delphi}stdcall;{$else}{$ifndef ver1_0}oldfpccall;{$endif}{$endif}
 
   const
      recoverpospointer : pjmp_buf = nil;
@@ -99,7 +99,7 @@ implementation
 
 {$asmmode ATT}
 
-    function setjmp(var rec : jmp_buf) : longint;
+    function setjmp(var rec : jmp_buf) : longint; {$ifndef ver1_0}oldfpccall;{$endif}
       begin
          asm
             pushl %edi
@@ -154,7 +154,7 @@ implementation
       end;
 
 
-    procedure longjmp(const rec : jmp_buf;return_value : longint);
+    procedure longjmp(const rec : jmp_buf;return_value : longint); {$ifndef ver1_0}oldfpccall;{$endif}
       begin
          asm
             { restore compiler shit }
@@ -243,7 +243,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2002-05-18 13:34:21  peter
+  Revision 1.9  2003-11-23 17:03:05  peter
+    * use oldfpccall
+
+  Revision 1.8  2002/05/18 13:34:21  peter
     * readded missing revisions
 
   Revision 1.7  2002/05/16 19:46:46  carl
