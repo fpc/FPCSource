@@ -1,0 +1,22 @@
+#
+# Makefile.fpc for SQL IBConnection
+#
+
+[package]
+main=fcl
+
+[target]
+units=mysql4conn
+
+[require]
+packages=mysql
+
+[compiler]
+options=-S2 
+targetdir=../../../$(OS_TARGET)
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
