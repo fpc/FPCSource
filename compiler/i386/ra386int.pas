@@ -1009,7 +1009,7 @@ type
 Procedure T386IntelOperand.BuildReference;
 
 var
-  k,l : longint;
+  k,l,scale : longint;
   tempstr2,
   tempstr,hs : string;
   code : integer;
@@ -1024,6 +1024,7 @@ Begin
   GotPlus:=true;
   GotOffset:=false;
   Negative:=false;
+  Scale:=0;
   repeat
     if GotOffset and (actasmtoken<>AS_ID) then
       Message(asmr_e_invalid_reference_syntax);
@@ -1137,6 +1138,7 @@ Begin
           Negative:=false;
           GotPlus:=true;
           GotStar:=false;
+          Scale:=0;
         end;
 
       AS_MINUS :
@@ -1145,6 +1147,7 @@ Begin
           Negative:=true;
           GotPlus:=true;
           GotStar:=false;
+          Scale:=0;
         end;
 
       AS_STAR : { Scaling, with eax*4 order }
@@ -1163,6 +1166,12 @@ Begin
             AS_REGISTER :
               begin
                 if opr.ref.scalefactor=0 then
+                if scale<>0 then
+                  begin
+                    opr.ref.scalefactor:=scale;
+                    scale:=0;
+                  end
+                else
                  Message(asmr_e_wrong_scale_factor);
               end;
             else
@@ -1173,7 +1182,7 @@ Begin
              if hs<>'' then
               val(hs,l,code);
              opr.ref.scalefactor:=l;
-             if l>8 then
+             if l>9 then
               Message(asmr_e_wrong_scale_factor);
            end;
           GotPlus:=false;
@@ -1198,6 +1207,11 @@ Begin
              if (opr.ref.index<>R_NO) then
               Message(asmr_e_multiple_index);
              opr.ref.index:=hreg;
+             if scale<>0 then
+               begin
+                 opr.ref.scalefactor:=scale;
+                 scale:=0;
+               end;
            end
           else
            opr.ref.base:=hreg;
@@ -1216,9 +1230,10 @@ Begin
       AS_INTNUM,
       AS_LPAREN : { Constant reference expression }
         begin
-          if not GotPlus then
+          if not GotPlus and not GotStar then
             Message(asmr_e_invalid_reference_syntax);
           BuildConstSymbolExpression(true,true,l,tempstr);
+
           if tempstr<>'' then
            begin
              if GotStar then
@@ -1230,6 +1245,13 @@ Begin
            end;
           if GotStar then
            opr.ref.scalefactor:=l
+          else if (prevasmtoken = AS_STAR) then
+           begin
+             if scale<>0 then
+               scale:=l*scale
+             else
+               scale:=l;
+           end
           else
            begin
              if negative then
@@ -1246,7 +1268,7 @@ Begin
 
       AS_RBRACKET :
         begin
-          if GotPlus then
+          if GotPlus or GotStar then
             Message(asmr_e_invalid_reference_syntax);
           Consume(AS_RBRACKET);
           break;
@@ -1921,7 +1943,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2001-01-05 17:36:58  florian
+  Revision 1.8  2001-02-09 23:42:49  peter
+    * merged fix for bug 1327
+
+  Revision 1.7  2001/01/05 17:36:58  florian
   * the info about exception frames is stored now on the stack
   instead on the heap
 
