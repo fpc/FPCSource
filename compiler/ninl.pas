@@ -516,7 +516,10 @@ implementation
                 { assign the result to a temp and pass this temp as parameter }
                 { This is not very efficient, but write(typedfile,x) is       }
                 { already slow by itself anyway (no buffering) (JM)           }
-                if (para.left.nodetype = calln) then
+                { Actually, thge same goes for every non-simple expression    }
+                { (such as an addition, ...) -> put everything but load nodes }
+                { into temps (JM)                                             }
+                if (para.left.nodetype <> loadn) then
                   begin
                     { create temp for result }
                     temp := ctempcreatenode.create(para.left.resulttype,
@@ -2349,7 +2352,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.103  2002-12-17 22:19:33  peter
+  Revision 1.104  2002-12-30 12:48:07  jonas
+    * fixed web bug 2296
+
+  Revision 1.103  2002/12/17 22:19:33  peter
     * fixed pushing of records>8 bytes with stdcall
     * simplified hightree loading
 
