@@ -9,13 +9,14 @@ main=rtl
 loaders=wprt0 wdllprt0 gprt0 wcygprt0
 units=$(SYSTEMUNIT) systhrds objpas macpas strings \
       lineinfo heaptrc matrix \
-      windows ole2 activex shellapi shlobj winsock initc cmem \
+      windows winsock initc cmem dynlibs signals \
       dos crt objects graph messages \
-      sysutils classes typinfo math varutils variants \
+      rtlconst sysconst sysutils typinfo math types \
+      strutils convutils dateutils varutils variants classes \
       cpu mmx charset ucomplex getopts \
-      wincrt winmouse winevent sockets printer dynlibs signals \
-      video mouse keyboard types comobj dateutils rtlconst sysconst winsysut \
-      strutils convutils
+      wincrt winmouse winevent sockets printer \
+      video mouse keyboard \
+      comobj winsysut ole2 activex shellapi shlobj
 
 rsts=math varutils typinfo variants classes dateutils sysconst
 
