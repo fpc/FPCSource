@@ -13,14 +13,13 @@
 #
 #**********************************************************************}
 #
-# Linux ELF startup code with profiling support for Free Pascal
-# Note: Needs linking with -lgmon and -lc
+# Linux ELF startup code for Free Pascal
 #
 
-        .file   "gprt1.as"
+        .file   "prt1.as"
         .text
-        .globl _start
-        .type _start,@function
+        .globl  _start
+        .type   _start,@function
 _start:
         /* First locate the start of the environment variables */
         popl    %ecx
@@ -35,20 +34,27 @@ _start:
         movl    %ecx,U_SYSLINUX_ARGC    /* Move the argument counter    */
         movl    %ebx,U_SYSLINUX_ARGV    /* Move the argument pointer    */
 
-        finit                           /* initialize fpu */
-        fwait
-        fldcw   ___fpucw
+        movl    %eax,__environ          /* libc environ */
 
-        pushl   $_etext                 /* Initialize gmon */
-        pushl   $_start
-        call    monstartup
-        addl    $8,%esp
-        pushl   $_mcleanup
+        pushl   %eax
+        pushl   %ebx
+        pushl   %ecx
+
+        call    __libc_init             /* init libc */
+        movzwl  __fpu_control,%eax
+        pushl   %eax
+        call    __setfpucw
+        addl    $4,%esp
+        pushl   $_fini
         call    atexit
         addl    $4,%esp
+        call    _init
+
+        popl    %eax
+        popl    %eax
 
         xorl    %ebp,%ebp
-        call    PASCALMAIN
+        call    PASCALMAIN              /* start the program */
 
         .globl _haltproc
         .type _haltproc,@function
@@ -67,8 +73,6 @@ _haltproc:
 
 .data
         .align  4
-___fpucw:
-        .long   0x1332
 
         .globl  ___fpc_brk_addr         /* heap management */
         .type   ___fpc_brk_addr,@object
@@ -82,15 +86,24 @@ ___fpc_brk_addr:
 __curbrk:
         .long   0
 
+        .globl  __environ
+        .type   __environ,@object
+        .size   __environ,4
+__environ:
+        .long   0
+
 #
 # $Log$
-# Revision 1.5  1998-11-04 10:16:27  peter
+# Revision 1.1  1999-11-08 23:07:48  peter
+#   * removed aout entries
+#
+# Revision 1.3  1998/11/04 10:16:25  peter
 #   + xorl ebp,ebp to indicate end of backtrace
 #
-# Revision 1.4  1998/10/14 21:28:48  peter
+# Revision 1.2  1998/10/14 21:28:46  peter
 #   * initialize fpu so sigfpe is finally generated for fpu errors
 #
-# Revision 1.3  1998/08/08 14:42:10  peter
-#   * added missing ___fpc_sbrk and logs
+# Revision 1.1  1998/08/12 19:16:09  peter
+#   + loader including libc init and exit
 #
 #
