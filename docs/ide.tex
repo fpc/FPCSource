@@ -893,14 +893,79 @@ with the usual commands.
 % Running programs
 \section{Running programs}
 \label{se:running}
-%%%!!!!!!!!!!!!!!
+A compiled program can be run straight from the IDE. This can be done
+in one of several ways:
+\begin{enumerate}
+\item select the "Run|Run" menu, or
+\item press \key{Ctrl-F9}.
+\end{enumerate}
+If command-line parameters should be passed to the program, then these
+can be set through the "Run|Parameters" menu. 
+\begin{htmlonly}
+The Parameters dialog.
+\htmladdimg{../pics/ide/params.png}
+\end{htmlonly}
+\begin{latexonly}
+\begin{figure}[h]
+\caption{The program parameters dialog.}
+\label{fig:ides}
+\ifpdf
+\epsfig{file=pics/ide/params.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/params.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+
+Once the program started, it will continue to run, until 
+\begin{enumerate}
+\item the program quits normally,
+\item an error happens,
+\item A breakpoint is encountered.
+\end{enumerate}
+The last alternative is only possible if the program is compiled
+with debug information.
+
+Alternatively, it is possible to position the cursor somewhere in a
+source file, and run the program till the execution reaches the
+source-line where the cursor is located. This can be done by
+\begin{enumerate}
+\item selecting "Run|Goto Cursor" in the menu,
+\item pressing \key{F4}.
+\end{enumerate}
+Again, this is only possible if the program was compiled with debug
+information.
+
+The program can also executed line by line. Pressing \key{F8} will 
+execute the next line of the program. If the program wasn't started
+yet, it is started. Repeatedly pressing \key{F8} will execute line 
+by line of the program, and the IDE will show the line to be executed 
+in an editor window. If somewhere in the code a call occurs to a subroutine,
+then pressing \key{F8} will cause the whole routine to be executed before
+control returns to the IDE. If the code of the subroutine should be stepped
+through as well, then \key{F7} should be used instead. Using \key{F7} will
+cause the IDE to execute line by line of any subroutine that is encountered.
+
+If a subroutine is being stepped through, then the "Run|Until return" menu
+will execute the program till the current subroutine ends. 
+
+If the program should be stopped before it quits by itself, then this can be
+done by
+\begin{enumerate}
+\item selecting "Run|Program reset" from the menu, or
+\item pressing \key{Ctrl-F2}.
+\end{enumerate}
+The running program will then be aborted.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Debugging programs
 \section{Debugging programs}
 \label{se:debugging}
-%%%!!!!!!!!!!!!!!
-
+To debug a program, it must be compiled with debug information. Compiling a
+program with debug information allows to
+\begin{enumerate}
+\item Execute the program line by line.
+\end{enumerate}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The tools menu
 \section{The tools menu}
@@ -1295,7 +1360,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.2  2000-11-13 23:46:03  michael
+%  Revision 1.1.2.3  2000-11-14 23:24:09  michael
+%  + Documented run menu
+%
+%  Revision 1.1.2.2  2000/11/13 23:46:03  michael
 %  + documented blocks, search, and the browser
 %
 %  Revision 1.1.2.1  2000/11/12 23:40:32  michael
