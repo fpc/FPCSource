@@ -138,15 +138,18 @@ defaultcfg=
 #-Rdirect
 
 # Semantic checking
-# -S2   switch some Delphi 2 extension on
-# -Sc   supports operators like C (*=,+=,/= and -=)
-# -Sg   allows LABEL and GOTO
-# -Si   support C++ stlyed INLINE
-# -Sm   support macros like C (global)
-# -So   tries to be TP/BP 7.0 compatible
-# -Ss   constructor name must be init (destructor must be done)
-# -St   allows static keyword in objects
-
+#  -S2        switch some Delphi 2 extensions on
+#  -Sc        supports operators like C (*=,+=,/= and -=)
+#  -Sd        tries to be Delphi compatible
+#  -Se<x>     compiler stops after the <x> errors (default is 1)
+#  -Sg        allow LABEL and GOTO
+#  -Sh        Use ansistrings
+#  -Si        support C++ styled INLINE
+#  -Sm        support macros like C (global)
+#  -So        tries to be TP/BP 7.0 compatible
+#  -Sp        tries to be gpc compatible
+#  -Ss        constructor name must be init (destructor must be done)
+#  -St        allow static keyword in objects
 # Allow goto, inline, C-operators
 -Sgic
 
