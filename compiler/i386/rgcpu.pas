@@ -36,6 +36,7 @@ unit rgcpu;
 
     type
        trgcpu = class(trgobj)
+         fpuvaroffset : byte;
 
           { to keep the same allocation order as with the old routines }
           function getregisterint(list: taasmoutput): tregister; override;
@@ -70,7 +71,6 @@ unit rgcpu;
          { corrects the fpu stack register by ofs }
          function correct_fpuregister(r : tregister;ofs : byte) : tregister;
 
-         fpuvaroffset : byte;
        end;
 
 
@@ -429,7 +429,11 @@ end.
 
 {
   $Log$
-  Revision 1.9  2002-08-17 09:23:48  florian
+  Revision 1.10  2002-10-05 12:43:29  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.9  2002/08/17 09:23:48  florian
     * first part of procinfo rewrite
 
   Revision 1.8  2002/07/01 18:46:34  peter

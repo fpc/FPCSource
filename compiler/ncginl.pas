@@ -194,8 +194,8 @@ implementation
        cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,paramanager.getintparaloc(3));
        { filename string }
        hp2:=cstringconstnode.createstr(current_module.sourcefiles.get_file_name(aktfilepos.fileindex),st_shortstring);
-       firstpass(hp2);
-       secondpass(hp2);
+       firstpass(tnode(hp2));
+       secondpass(tnode(hp2));
        if codegenerror then
           exit;
        cg.a_paramaddr_ref(exprasmlist,hp2.location.reference,paramanager.getintparaloc(2));
@@ -610,7 +610,11 @@ end.
 
 {
   $Log$
-  Revision 1.15  2002-09-30 07:00:46  florian
+  Revision 1.16  2002-10-05 12:43:25  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.15  2002/09/30 07:00:46  florian
     * fixes to common code to get the alpha compiler compiled applied
 
   Revision 1.14  2002/09/17 18:54:02  jonas

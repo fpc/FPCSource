@@ -316,7 +316,9 @@ implementation
       begin
         if startmem<>0 then
          begin
+{$ifndef Delphi}
            inc(TotalMem,memavail-startmem);
+{$endif}           
            startmem:=0;
          end;
       end;
@@ -862,8 +864,9 @@ end;
 
     function counttree(p: tnamedindexitem): longint;
       begin
+        counttree:=0;
         if not assigned(p) then
-          exit(0);
+          exit;
         result := 1;
         inc(result,counttree(p.fleft));
         inc(result,counttree(p.fright));
@@ -1844,7 +1847,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2002-09-09 17:34:14  peter
+  Revision 1.20  2002-10-05 12:43:23  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.19  2002/09/09 17:34:14  peter
     * tdicationary.replace added to replace and item in a dictionary. This
       is only allowed for the same name
     * varsyms are inserted in symtable before the types are parsed. This

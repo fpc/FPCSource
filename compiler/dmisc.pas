@@ -38,9 +38,6 @@ uses
 {$endif}
   sysutils;
 
-{$ifdef VER100}
-   type int64 = longint;
-{$endif}
 
 Const
   Max_Path = 255;
@@ -71,6 +68,9 @@ Const
 
 Type
   DWord   = Cardinal;
+  qword = int64;
+  tlongint = array[0..65535] of longint;
+  plongintarray = ^tlongint;
 
 { Needed for Win95 LFN Support }
   ComStr  = String[255];
@@ -144,6 +144,9 @@ Procedure SetCBreak(breakvalue: boolean);
 Procedure GetVerify(var verify: boolean);
 Procedure SetVerify(verify: boolean);
 
+{Memory}
+function  CompareByte(const buf1,buf2;len:longint):longint;
+
 {Do Nothing Functions}
 Procedure SwapVectors;
 Procedure GetIntVec(intno: byte; var vector: pointer);
@@ -151,6 +154,16 @@ Procedure SetIntVec(intno: byte; vector: pointer);
 Procedure Keep(exitcode: word);
 
 implementation
+
+    function  CompareByte(const buf1,buf2;len:longint):longint;
+      begin
+         { Both buffers are similar }
+         if comparemem(@buf1, @buf2, len) then
+            CompareByte := 0
+         else
+            CompareByte := 1; 
+      end;
+
 
     function upper(const s : string) : string;
     {
@@ -840,7 +853,11 @@ End;
 end.
 {
   $Log$
-  Revision 1.10  2002-08-12 15:08:39  carl
+  Revision 1.11  2002-10-05 12:43:24  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.10  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

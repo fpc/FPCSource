@@ -143,6 +143,7 @@ interface
          pocall_system         { system call }
        );
        tproccalloptions = set of tproccalloption;
+       
 
      const
        proccalloptionStr : array[tproccalloption] of string[14]=('',
@@ -166,12 +167,15 @@ interface
 
        tnormalset = set of byte; { 256 elements set }
        pnormalset = ^tnormalset;
+       
+       
 
        pboolean   = ^boolean;
        pdouble    = ^double;
        pbyte      = ^byte;
        pword      = ^word;
        plongint   = ^longint;
+       plongintarray = plongint;
 
        Tconstant=record
             case signed:boolean of
@@ -207,7 +211,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2002-08-19 19:36:42  peter
+  Revision 1.32  2002-10-05 12:43:24  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.31  2002/08/19 19:36:42  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small

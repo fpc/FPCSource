@@ -327,13 +327,19 @@ unit paramgr;
            end;
       end;
 
+initialization
+  ;      
 finalization
   paramanager.free;
 end.
 
 {
    $Log$
-   Revision 1.20  2002-09-30 07:07:25  florian
+   Revision 1.21  2002-10-05 12:43:25  carl
+     * fixes for Delphi 6 compilation
+      (warning : Some features do not work under Delphi)
+
+   Revision 1.20  2002/09/30 07:07:25  florian
      * fixes to common code to get the alpha compiler compiled applied
 
    Revision 1.19  2002/09/30 07:00:47  florian

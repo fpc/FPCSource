@@ -373,7 +373,7 @@ implementation
       begin
         inherited derefimpl;
         restype.resolve;
-        objectlibrary.derefasmsymbol(lab_real);
+        objectlibrary.derefasmsymbol(tasmsymbol(lab_real));
       end;
 
 
@@ -656,7 +656,7 @@ implementation
     procedure tstringconstnode.derefimpl;
       begin
         inherited derefimpl;
-        objectlibrary.derefasmsymbol(lab_str);
+        objectlibrary.derefasmsymbol(tasmsymbol(lab_str));
       end;
 
 
@@ -924,7 +924,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2002-09-07 15:25:03  peter
+  Revision 1.43  2002-10-05 12:43:25  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.42  2002/09/07 15:25:03  peter
     * old logs removed and tabs fixed
 
   Revision 1.41  2002/09/07 12:16:04  carl

@@ -30,11 +30,6 @@ unit cutils;
 
 interface
 
-{$ifdef delphi}
-    type
-       dword = cardinal;
-       qword = int64;
-{$endif}
 
     type
        pstring = ^string;
@@ -426,9 +421,13 @@ uses
 
 
     function space (b : longint): string;
+      var
+       s: string;
       begin
         space[0] := chr(b);
-        FillChar (Space[1],b,' ');
+        s[0] := chr(b);
+        FillChar (S[1],b,' ');
+        space:=s;
       end;
 
 
@@ -821,7 +820,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2002-09-05 19:29:42  peter
+  Revision 1.23  2002-10-05 12:43:24  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.22  2002/09/05 19:29:42  peter
     * memdebug enhancements
 
   Revision 1.21  2002/07/26 11:16:35  jonas

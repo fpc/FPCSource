@@ -90,7 +90,11 @@ implementation
   {$define Range_check_on}
 {$endif opt R+}
 {$R- needed here }
+{$ifdef Delphi}
+            result:=int64(l1)+(int64(l2) shl 32);
+{$else}
             result:=qword(l1)+(int64(l2) shl 32);
+{$endif}
 {$ifdef Range_check_on}
   {$R+}
   {$undef Range_check_on}
@@ -113,7 +117,11 @@ implementation
   {$define Range_check_on}
 {$endif opt R+}
 {$R- needed here }
+{$ifdef Delphi}
+            result:=int64(l1)+(int64(l2) shl 32);
+{$else}
             result:=qword(l1)+(int64(l2) shl 32);
+{$endif}
 {$ifdef Range_check_on}
   {$R+}
   {$undef Range_check_on}
@@ -494,7 +502,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2002-08-26 14:05:57  pierre
+  Revision 1.17  2002-10-05 12:43:29  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.16  2002/08/26 14:05:57  pierre
    * fixed compilation cycle with -Cr option by adding explicit
      longint typecast in PutPtrUInt and putexprint methods.
    + added checks for sizeof and internalerros if size is not handled.

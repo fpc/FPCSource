@@ -85,9 +85,10 @@ implementation
     uses
 {$ifdef delphi}
       sysutils,
+{$else}
+      strings,
 {$endif}
 {$ifdef GDB}
-      strings,
       gdb,
 {$endif GDB}
       globtype,systems,
@@ -608,8 +609,9 @@ implementation
                 else
                   internalerror(2002032219);
               end;
-
+{$ifdef fpc}
 {$warning FIXME}
+{$endif}
               { check for a zero length string,
                 we can use the ansistring routine here }
               if (cs_check_range in aktlocalswitches) then
@@ -653,7 +655,9 @@ implementation
                      else
                        begin
                           { range checking for open and dynamic arrays !!!! }
+{$ifdef fpc}
 {$warning FIXME}
+{$endif}
                           {!!!!!!!!!!!!!!!!!}
                        end;
                   end;
@@ -864,7 +868,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-09-17 18:54:02  jonas
+  Revision 1.29  2002-10-05 12:43:25  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.28  2002/09/17 18:54:02  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.

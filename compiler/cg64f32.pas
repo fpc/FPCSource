@@ -35,7 +35,11 @@ unit cg64f32;
        aasmbase,aasmtai,aasmcpu,
        cpuinfo, cpubase,
        cginfo, cgobj,
-       node,symtype;
+       node,symtype
+{$ifdef delphi}
+       ,dmisc
+{$endif}
+       ;
 
     type
       {# Defines all the methods required on 32-bit processors
@@ -415,7 +419,9 @@ unit cg64f32;
 
     procedure tcg64f32.a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);
       begin
+{$ifdef FPC}
 {$warning FIX ME}
+{$endif}
          cg.a_param_reg(list,OS_32,reg.reghi,locpara);
          { the nr+1 needs definitivly a fix FK }
          { maybe the parameter numbering needs }
@@ -427,7 +433,9 @@ unit cg64f32;
 
     procedure tcg64f32.a_param64_const(list : taasmoutput;value : qword;const locpara : tparalocation);
       begin
+{$ifdef fpc}
 {$warning FIX ME}
+{$endif}
         if target_info.endian = endian_big then
           swap_qword(value);
          cg.a_param_const(list,OS_32,hi(value),locpara);
@@ -463,7 +471,9 @@ unit cg64f32;
 
     procedure tcg64f32.a_param64_loc(list : taasmoutput;const l:tlocation;const locpara : tparalocation);
       begin
+{$ifdef fpc}
 {$warning FIX ME}
+{$endif}
         case l.loc of
           LOC_REGISTER,
           LOC_CREGISTER :
@@ -738,7 +748,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-09-17 18:54:01  jonas
+  Revision 1.31  2002-10-05 12:43:23  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.30  2002/09/17 18:54:01  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.

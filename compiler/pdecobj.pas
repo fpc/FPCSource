@@ -41,7 +41,12 @@ implementation
       cgbase,
       node,nld,nmem,ncon,ncnv,ncal,pass_1,
       scanner,
-      pbase,pexpr,pdecsub,pdecvar,ptype;
+      pbase,pexpr,pdecsub,pdecvar,ptype
+{$ifdef delphi}
+      ,dmisc
+      ,sysutils
+{$endif}
+      ;
 
     function object_dec(const n : stringid;fd : tobjectdef) : tdef;
     { this function parses an object or class declaration }
@@ -1156,7 +1161,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2002-10-02 18:20:20  peter
+  Revision 1.55  2002-10-05 12:43:25  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.54  2002/10/02 18:20:20  peter
     * don't allow interface without m_class mode
 
   Revision 1.53  2002/09/27 21:13:28  carl

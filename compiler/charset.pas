@@ -14,7 +14,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$ifndef delphi}
 {$mode objfpc}
+{$endif}
 unit charset;
 
   interface
@@ -69,7 +71,7 @@ unit charset;
          t : text;
          s,hs : string;
          scanpos,charpos,unicodevalue : longint;
-         code : word;
+         code : integer;
          flag : tunicodecharmappingflag;
          p : punicodemap;
          lastchar : longint;
@@ -146,8 +148,13 @@ unit charset;
                           end;
                         flag:=umf_noinfo;
                      end;
+{$ifdef delphi}
+                   data^.flag:=flag;
+                   data^.unicode:=unicodevalue;
+{$else}
                    data[charpos].flag:=flag;
                    data[charpos].unicode:=unicodevalue;
+{$endif delphi}
                    if charpos>lastchar then
                      lastchar:=charpos;
                 end;
@@ -209,7 +216,11 @@ unit charset;
 
       begin
          if ord(c)<=p^.lastchar then
+{$ifdef Delphi}
+           getunicode:=p^.map.unicode
+{$else}
            getunicode:=p^.map[ord(c)].unicode
+{$endif}
          else
            getunicode:=0;
       end;
@@ -223,7 +234,11 @@ unit charset;
          { at least map to space }
          getascii:=#32;
          for i:=0 to p^.lastchar do
+{$ifdef Delphi}
+           if p^.map.unicode=c then
+{$else}
            if p^.map[i].unicode=c then
+{$endif}
              begin
                 if i<256 then
                   getascii:=chr(i)
@@ -252,7 +267,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:25:02  peter
+  Revision 1.3  2002-10-05 12:43:24  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.2  2002/09/07 15:25:02  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/07/20 17:11:48  florian

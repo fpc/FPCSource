@@ -322,37 +322,38 @@ implementation
 
 
     procedure ti386typeconvnode.second_call_helper(c : tconverttype);
+{$ifdef fpc}    
       const
          secondconvert : array[tconverttype] of pointer = (
-           @second_nothing, {equal}
-           @second_nothing, {not_possible}
-           @second_nothing, {second_string_to_string, handled in resulttype pass }
-           @second_char_to_string,
-           @second_nothing, {char_to_charray}
-           @second_nothing, { pchar_to_string, handled in resulttype pass }
-           @second_nothing, {cchar_to_pchar}
-           @second_cstring_to_pchar,
-           @second_ansistring_to_pchar,
-           @second_string_to_chararray,
-           @second_nothing, { chararray_to_string, handled in resulttype pass }
-           @second_array_to_pointer,
-           @second_pointer_to_array,
-           @second_int_to_int,
-           @second_int_to_bool,
-           @second_bool_to_bool,
-           @second_bool_to_int,
-           @second_real_to_real,
-           @second_int_to_real,
-           @second_proc_to_procvar,
-           @second_nothing, { arrayconstructor_to_set }
-           @second_nothing, { second_load_smallset, handled in first pass }
-           @second_cord_to_pointer,
-           @second_nothing, { interface 2 string }
-           @second_nothing, { interface 2 guid   }
-           @second_class_to_intf,
-           @second_char_to_char,
-           @second_nothing,  { normal_2_smallset }
-           @second_nothing   { dynarray_2_openarray }
+           {$ifdef fpc}@{$endif}second_nothing, {equal}
+           {$ifdef fpc}@{$endif}second_nothing, {not_possible}
+           {$ifdef fpc}@{$endif}second_nothing, {second_string_to_string, handled in resulttype pass }
+           {$ifdef fpc}@{$endif}second_char_to_string,
+           {$ifdef fpc}@{$endif}second_nothing, {char_to_charray}
+           {$ifdef fpc}@{$endif}second_nothing, { pchar_to_string, handled in resulttype pass }
+           {$ifdef fpc}@{$endif}second_nothing, {cchar_to_pchar}
+           {$ifdef fpc}@{$endif}second_cstring_to_pchar,
+           {$ifdef fpc}@{$endif}second_ansistring_to_pchar,
+           {$ifdef fpc}@{$endif}second_string_to_chararray,
+           {$ifdef fpc}@{$endif}second_nothing, { chararray_to_string, handled in resulttype pass }
+           {$ifdef fpc}@{$endif}second_array_to_pointer,
+           {$ifdef fpc}@{$endif}second_pointer_to_array,
+           {$ifdef fpc}@{$endif}second_int_to_int,
+           {$ifdef fpc}@{$endif}second_int_to_bool,
+           {$ifdef fpc}@{$endif}second_bool_to_bool,
+           {$ifdef fpc}@{$endif}second_bool_to_int,
+           {$ifdef fpc}@{$endif}second_real_to_real,
+           {$ifdef fpc}@{$endif}second_int_to_real,
+           {$ifdef fpc}@{$endif}second_proc_to_procvar,
+           {$ifdef fpc}@{$endif}second_nothing, { arrayconstructor_to_set }
+           {$ifdef fpc}@{$endif}second_nothing, { second_load_smallset, handled in first pass }
+           {$ifdef fpc}@{$endif}second_cord_to_pointer,
+           {$ifdef fpc}@{$endif}second_nothing, { interface 2 string }
+           {$ifdef fpc}@{$endif}second_nothing, { interface 2 guid   }
+           {$ifdef fpc}@{$endif}second_class_to_intf,
+           {$ifdef fpc}@{$endif}second_char_to_char,
+           {$ifdef fpc}@{$endif}second_nothing,  { normal_2_smallset }
+           {$ifdef fpc}@{$endif}second_nothing   { dynarray_2_openarray }
          );
       type
          tprocedureofobject = procedure of object;
@@ -370,13 +371,52 @@ implementation
          r.obj:=self;
          tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
       end;
+{$else}
+     begin
+        case c of 
+          tc_equal,
+          tc_not_possible,
+          tc_string_2_string : second_nothing;
+          tc_char_2_string : second_char_to_string;
+          tc_char_2_chararray : second_nothing;
+          tc_pchar_2_string : second_nothing;
+          tc_cchar_2_pchar : second_nothing;
+          tc_cstring_2_pchar : second_cstring_to_pchar;
+          tc_ansistring_2_pchar : second_ansistring_to_pchar;
+          tc_string_2_chararray : second_string_to_chararray;
+          tc_chararray_2_string : second_nothing;
+          tc_array_2_pointer : second_array_to_pointer;
+          tc_pointer_2_array : second_pointer_to_array;
+          tc_int_2_int : second_int_to_int;
+          tc_int_2_bool : second_int_to_bool;
+          tc_bool_2_bool : second_bool_to_bool;
+          tc_bool_2_int : second_bool_to_int;
+          tc_real_2_real : second_real_to_real;
+          tc_int_2_real : second_int_to_real;
+          tc_proc_2_procvar : second_proc_to_procvar;
+          tc_arrayconstructor_2_set : second_nothing;
+          tc_load_smallset : second_nothing;
+          tc_cord_2_pointer : second_cord_to_pointer;
+          tc_intf_2_string : second_nothing;
+          tc_intf_2_guid : second_nothing;
+          tc_class_2_intf : second_class_to_intf;
+          tc_char_2_char : second_char_to_char;
+          tc_normal_2_smallset : second_nothing;
+          tc_dynarray_2_openarray : second_nothing;
+        end;
+     end;
+{$endif}
 
 begin
    ctypeconvnode:=ti386typeconvnode;
 end.
 {
   $Log$
-  Revision 1.49  2002-09-17 18:54:03  jonas
+  Revision 1.50  2002-10-05 12:43:29  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.49  2002/09/17 18:54:03  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.

@@ -27,13 +27,18 @@ unit widestr;
   interface
 
     uses
-       charset;
+       charset
+{$ifdef delphi}
+       ,sysutils
+{$endif}
+       ;
 
 
     type
        tcompilerwidechar = word;
        tcompilerwidecharptr = ^tcompilerwidechar;
 {$ifdef delphi}
+       strlenint = integer;
        { delphi doesn't allow pointer accessing as array }
        tcompilerwidechararray = array[0..0] of tcompilerwidechar;
        pcompilerwidechar = ^tcompilerwidechararray;
@@ -147,7 +152,11 @@ unit widestr;
          temp:=s2^.len;
          if maxi>temp then
            maxi:=Temp;
+{$ifdef Delphi}
+         temp:=strlenint(comparemem(@s1^.data,@s2^.data,maxi));
+{$else}
          temp:=compareword(s1^.data^,s2^.data^,maxi);
+{$endif}
          if temp=0 then
            temp:=s1^.len-s2^.len;
          comparewidestrings:=temp;
@@ -231,7 +240,11 @@ unit widestr;
 end.
 {
   $Log$
-  Revision 1.11  2002-07-20 17:16:03  florian
+  Revision 1.12  2002-10-05 12:43:29  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.11  2002/07/20 17:16:03  florian
     + source code page support
 
   Revision 1.10  2002/05/18 13:34:21  peter

@@ -69,7 +69,7 @@ var
   impname:string;
   TheWord:array[0..1]of char;
   PEoffset:cardinal;
-  loaded:{$ifdef fpc}longint{$else}integer{$endif};
+  loaded:longint;
 
 function DOSstubOK(var x:longint):longbool;
 begin
@@ -479,7 +479,11 @@ end.
 
 {
   $Log$
-  Revision 1.9  2002-05-18 13:34:08  peter
+  Revision 1.10  2002-10-05 12:43:24  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.9  2002/05/18 13:34:08  peter
     * readded missing revisions
 
   Revision 1.8  2002/05/16 19:46:37  carl

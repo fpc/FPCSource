@@ -38,6 +38,9 @@ interface
        node,
        { aasm }
        aasmbase,aasmtai,cpubase,cpuinfo
+{$ifdef Delphi}
+       ,dmisc
+{$endif}
        ;
 
 
@@ -5556,7 +5559,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2002-09-27 21:13:29  carl
+  Revision 1.97  2002-10-05 12:43:28  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.96  2002/09/27 21:13:29  carl
     * low-highval always checked if limit ober 2GB is reached (to avoid overflow)
 
   Revision 1.95  2002/09/16 09:31:10  florian

@@ -990,7 +990,7 @@ implementation
                 { inlined code is in inlinecode }
                 begin
                    { process the inlinecode }
-                   secondpass(inlinecode);
+                   secondpass(tnode(inlinecode));
                    { free the args }
                    if tprocdef(procdefinition).parast.datasize>0 then
                      tg.UnGetTemp(exprasmlist,pararef);
@@ -1492,7 +1492,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-09-30 07:00:45  florian
+  Revision 1.25  2002-10-05 12:43:25  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.24  2002/09/30 07:00:45  florian
     * fixes to common code to get the alpha compiler compiled applied
 
   Revision 1.23  2002/09/17 18:54:02  jonas

@@ -160,7 +160,9 @@ interface
                else
                 begin
                   location.register:=rg.getregisterint(exprasmlist);
+{$ifdef fpc}
 {$warning Todo: convert widestrings to ascii when typecasting them to pchars}
+{$endif}
                   cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,
                     location.register);
                 end;
@@ -433,7 +435,9 @@ interface
 
     procedure tcgtypeconvnode.second_char_to_char;
       begin
+{$ifdef fpc}
         {$warning todo: add RTL routine for widechar-char conversion }
+{$endif}        
         { Quick hack to atleast generate 'working' code (PFV) }
         second_int_to_int;
       end;
@@ -503,7 +507,11 @@ end.
 
 {
   $Log$
-  Revision 1.32  2002-09-17 18:54:02  jonas
+  Revision 1.33  2002-10-05 12:43:25  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.32  2002/09/17 18:54:02  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.

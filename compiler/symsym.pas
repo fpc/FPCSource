@@ -1020,28 +1020,28 @@ implementation
         search_procdef_bypara:=nil;
         pd:=defs;
         while assigned(pd) do
-          begin
-            if equal_paras(pd^.def.para,params,cp_value_equal_const,allowdefault) or
-               (allowconvert and
-                convertable_paras(pd^.def.para,params,cp_value_equal_const)) then
-              begin
-                search_procdef_bypara:=pd^.def;
-                break;
-              end;
-            pd:=pd^.next;
-          end;
-      end;
-
+            begin
+                if equal_paras(pd^.def.para,params,cp_value_equal_const,allowdefault) or
+                   (allowconvert and convertable_paras(pd^.def.para,params,
+                                                       cp_value_equal_const)) then
+                    begin
+                        search_procdef_bypara:=pd^.def;
+                        break;
+                    end;
+                pd:=pd^.next;
+            end;
+    end;
 
     function Tprocsym.search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
-      var
-        pd:Pprocdeflist;
-      begin
+    var pd:Pprocdeflist;
+        _result : tprocdef;
+    begin
         {This function will return the pprocdef of pprocsym that
          is the best match for procvardef. When there are multiple
          matches it returns nil.}
         {Try to find an exact match first.}
         search_procdef_byprocvardef:=nil;
+        _result := nil;
         pd:=defs;
         while assigned(pd) do
           begin
@@ -1058,25 +1058,27 @@ implementation
             pd:=pd^.next;
           end;
         {Try a convertable match, if no exact match was found.}
-        if not assigned(search_procdef_byprocvardef) and not assigned(pd) then
-          begin
-            pd:=defs;
-            while assigned(pd) do
-              begin
-                if proc_to_procvar_equal(pd^.def,d,false) then
-                  begin
-                    { already found a match ? Then stop and return nil }
-                    if assigned(search_procdef_byprocvardef) then
-                      begin
-                        search_procdef_byprocvardef:=nil;
-                        break;
-                      end;
-                    search_procdef_byprocvardef:=pd^.def;
-                  end;
-                pd:=pd^.next;
-              end;
-          end;
-      end;
+        if not assigned(_result) and not assigned(pd) then
+            begin
+                pd:=defs;
+                while assigned(pd) do
+                    begin
+                        if proc_to_procvar_equal(pd^.def,d,false) then
+                            begin
+                                { already found a match ? Then stop and return nil }
+                                if assigned(_result) then
+                                    begin
+                                        search_procdef_byprocvardef:=nil;
+                                        _result := nil;
+                                        break;
+                                    end;
+                                search_procdef_byprocvardef:=pd^.def;
+                                _result:=pd^.def;
+                            end;
+                        pd:=pd^.next;
+                    end;
+            end;
+    end;
 
     function Tprocsym.search_procdef_by1paradef(firstpara:Tdef):Tprocdef;
       var
@@ -2502,7 +2504,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2002-10-05 00:52:20  peter
+  Revision 1.69  2002-10-05 12:43:29  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.68  2002/10/05 00:52:20  peter
     * split boolean check in two lines for easier debugging
 
   Revision 1.67  2002/09/26 12:04:53  florian

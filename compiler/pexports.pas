@@ -48,6 +48,10 @@ implementation
        pbase,pexpr,
        { link }
        gendef,export
+{$ifdef Delphi}
+       ,dmisc
+       ,sysutils
+{$endif}
        ;
 
 
@@ -165,7 +169,11 @@ end.
 
 {
   $Log$
-  Revision 1.23  2002-09-03 16:26:27  daniel
+  Revision 1.24  2002-10-05 12:43:26  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.23  2002/09/03 16:26:27  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.22  2002/07/26 21:15:41  florian

@@ -502,8 +502,8 @@ implementation
 
     procedure ppuderefcaserecord(p : pcaserecord);
       begin
-         objectlibrary.derefasmsymbol(p^._at);
-         objectlibrary.derefasmsymbol(p^.statement);
+         objectlibrary.derefasmsymbol(tasmsymbol(p^._at));
+         objectlibrary.derefasmsymbol(tasmsymbol(p^.statement));
          if assigned(p^.greater) then
            ppuderefcaserecord(p^.greater);
          if assigned(p^.less) then
@@ -691,7 +691,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-09-07 12:16:03  carl
+  Revision 1.34  2002-10-05 12:43:25  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.33  2002/09/07 12:16:03  carl
     * second part bug report 1996 fix, testrange in cordconstnode
       only called if option is set (also make parsing a tiny faster)
 

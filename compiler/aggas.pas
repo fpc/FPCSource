@@ -317,6 +317,9 @@ var
       e        : extended;
       do_line  : boolean;
       sep      : char;
+{$ifdef delphi}
+      _64bitarray : t64bitarray;
+{$endif}
     begin
       if not assigned(p) then
        exit;
@@ -493,8 +496,10 @@ var
                 AsmWriteLn(target_asm.comment+target_asm.comment+double2str(tai_real_64bit(hp).value));
                d:=tai_real_64bit(hp).value;
                { swap the values to correct endian if required }
+{$ifdef fpc}               
                if source_info.endian <> target_info.endian then
                  swap64bitarray(t64bitarray(d));
+{$endif}
                AsmWrite(#9'.byte'#9);
                for i:=0 to 7 do
                 begin
@@ -510,9 +515,11 @@ var
                if do_line then
                 AsmWriteLn(target_asm.comment+target_asm.comment+single2str(tai_real_32bit(hp).value));
                sin:=tai_real_32bit(hp).value;
+{$ifdef fpc}
                { swap the values to correct endian if required }
                if source_info.endian <> target_info.endian then
                  swap32bitarray(t32bitarray(sin));
+{$endif}                 
                AsmWrite(#9'.byte'#9);
                for i:=0 to 3 do
                 begin
@@ -533,9 +540,11 @@ var
 {$else}
                co:=tai_comp_64bit(hp).value;
 {$endif}
+{$ifdef fpc}
                { swap the values to correct endian if required }
                if source_info.endian <> target_info.endian then
                  swap64bitarray(t64bitarray(co));
+{$endif}                 
                for i:=0 to 7 do
                 begin
                   if i<>0 then
@@ -800,7 +809,11 @@ var
 end.
 {
   $Log$
-  Revision 1.12  2002-08-31 16:05:17  florian
+  Revision 1.13  2002-10-05 12:43:23  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.12  2002/08/31 16:05:17  florian
     * write double # before float constants when -al is turned on
       else some gas versions interpret it as line number
 

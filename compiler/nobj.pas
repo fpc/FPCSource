@@ -29,7 +29,11 @@ interface
 
     uses
        cutils,cclasses,cpuinfo,
-       symdef,aasmbase,aasmtai,aasmcpu;
+       symdef,aasmbase,aasmtai,aasmcpu,globtype
+{$ifdef Delphi}
+       ,dmisc
+{$endif}
+       ;
 
     type
       pprocdeftree = ^tprocdeftree;
@@ -93,7 +97,7 @@ interface
         function  gintfgetvtbllabelname(intfindex: integer): string;
         procedure gintfcreatevtbl(intfindex: integer; rawdata,rawcode: TAAsmoutput);
         procedure gintfgenentry(intfindex, contintfindex: integer; rawdata: TAAsmoutput);
-        procedure gintfoptimizevtbls(implvtbl : plongint);
+        procedure gintfoptimizevtbls(implvtbl : plongintarray);
         procedure gintfwritedata;
         function  gintfgetcprocdef(proc: tprocdef;const name: string): tprocdef;
         procedure gintfdoonintf(intf: tobjectdef; intfindex: longint);
@@ -139,7 +143,7 @@ implementation
 {$else}
        strings,
 {$endif}
-       globtype,globals,verbose,
+       globals,verbose,
        symtable,symconst,symtype,symsym,defbase,paramgr,
 {$ifdef GDB}
        gdb,
@@ -860,7 +864,7 @@ implementation
       end;
 
 
-    procedure tclassheader.gintfoptimizevtbls(implvtbl : plongint);
+    procedure tclassheader.gintfoptimizevtbls(implvtbl : plongintarray);
       type
         tcompintfentry = record
           weight: longint;
@@ -943,7 +947,7 @@ implementation
     procedure tclassheader.gintfwritedata;
       var
         rawdata,rawcode: taasmoutput;
-        impintfindexes: plongint;
+        impintfindexes: plongintarray;
         max: longint;
         i: longint;
       begin
@@ -1301,7 +1305,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.28  2002-09-16 14:11:13  peter
+  Revision 1.29  2002-10-05 12:43:25  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.28  2002/09/16 14:11:13  peter
     * add argument to equal_paras() to support default values or not
 
   Revision 1.27  2002/09/03 16:26:26  daniel

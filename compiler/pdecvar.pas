@@ -47,7 +47,12 @@ implementation
        scanner,
        pbase,pexpr,ptype,ptconst,pdecsub,
        { link }
-       import;
+       import
+{$ifdef Delphi}
+       ,dmisc
+       ,sysutils
+{$endif}
+       ;
 
     const
        variantrecordlevel : longint = 0;
@@ -306,7 +311,9 @@ implementation
                   symdone:=true;
                end;
              { hint directive }
+{$ifdef fpc}
              {$warning hintdirective not stored in syms}
+{$endif}             
              dummysymoptions:=[];
              try_consume_hintdirective(dummysymoptions);
              { for a record there doesn't need to be a ; before the END or ) }
@@ -567,7 +574,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2002-10-04 20:53:05  carl
+  Revision 1.36  2002-10-05 12:43:26  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.35  2002/10/04 20:53:05  carl
     * bugfix of crash
 
   Revision 1.34  2002/10/03 21:22:01  carl

@@ -67,7 +67,11 @@ implementation
       verbose,globals,
       symconst,symdef,aasmbase,aasmtai,defbase,
       cpuinfo,cpubase,
-      cginfo,cgbase,tgobj,rgobj;
+      cginfo,cgbase,tgobj,rgobj
+{$ifdef delphi}
+      ,dmisc
+{$endif}
+      ;
 
 
 {*****************************************************************************
@@ -77,11 +81,9 @@ implementation
     procedure tcgrealconstnode.pass_2;
       { I suppose the parser/pass_1 must make sure the generated real  }
       { constants are actually supported by the target processor? (JM) }
-
       const
         floattype2ait:array[tfloattype] of taitype=
           (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit);
-
       var
          hp1 : tai;
          lastlabel : tasmlabel;
@@ -152,7 +154,12 @@ implementation
     procedure tcgordconstnode.pass_2;
       begin
          location_reset(location,LOC_CONSTANT,def_cgsize(resulttype.def));
+{$ifdef delphi}
+   { Delphi crashes on this statement }
+         location.valueqword:=value;
+{$else}         
          location.valueqword:=qword(value);
+{$endif}
       end;
 
 
@@ -525,7 +532,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-08-18 20:06:23  peter
+  Revision 1.20  2002-10-05 12:43:25  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.19  2002/08/18 20:06:23  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu
@@ -614,3 +625,10 @@ end.
       when used with int64's under Delphi)
 
 }
+
+
+
+
+
+
+

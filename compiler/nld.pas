@@ -186,7 +186,9 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         symtableentry:=tsym(ppufile.getderef);
+{$ifdef fpc}
 {$warning FIXME: No withsymtable support}
+{$endif}
         symtable:=nil;
         procdef:=tprocdef(ppufile.getderef);
       end;
@@ -832,7 +834,7 @@ implementation
         if not allow_array_constructor then
          begin
            hp:=tarrayconstructornode(getcopy);
-           arrayconstructor_to_set(hp);
+           arrayconstructor_to_set(tnode(hp));
            result:=hp;
            exit;
          end;
@@ -1152,7 +1154,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2002-10-03 21:26:08  carl
+  Revision 1.62  2002-10-05 12:43:25  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.61  2002/10/03 21:26:08  carl
     + compile-time range checking for strings
 
   Revision 1.60  2002/09/27 21:13:28  carl

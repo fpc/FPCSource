@@ -2044,7 +2044,7 @@ implementation
         if not(cs_compilesystem in aktmoduleswitches) then
           srsym := ttypesym(searchsymonlyin(systemunit,s))
         else
-          searchsym(s,srsym,symowner);
+          searchsym(s,tsym(srsym),symowner);
         searchsystype :=
           assigned(srsym) and
           (srsym.typ = typesym);
@@ -2059,7 +2059,7 @@ implementation
             symowner := systemunit;
           end
         else
-          searchsym(s,srsym,symowner);
+          searchsym(s,tsym(srsym),symowner);
         searchsysvar :=
           assigned(srsym) and
           (srsym.typ = varsym);
@@ -2311,7 +2311,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2002-09-09 19:41:46  peter
+  Revision 1.73  2002-10-05 12:43:29  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.72  2002/09/09 19:41:46  peter
     * real fix internalerror for dup ids in union sym
 
   Revision 1.71  2002/09/09 17:34:16  peter

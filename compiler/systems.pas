@@ -631,14 +631,14 @@ begin
   {$ifdef cpu86}
     default_target(source_info.system);
   {$else cpu86}
-    default_target(target_i386_linux);
+    default_target(system_i386_linux);
   {$endif cpu86}
 {$endif i386}
 {$ifdef x86_64}
   {$ifdef cpu86_64}
     default_target(source_info.system);
   {$else cpu86_64}
-    default_target(target_x86_64_linux);
+    default_target(system_x86_64_linux);
   {$endif cpu86_64}
 {$endif x86_64}
 {$ifdef m68k}
@@ -675,7 +675,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.56  2002-10-03 21:18:29  carl
+  Revision 1.57  2002-10-05 12:43:29  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.56  2002/10/03 21:18:29  carl
    * correct tsystem enumeration
 
   Revision 1.55  2002/09/07 18:05:51  florian

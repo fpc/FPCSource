@@ -60,7 +60,11 @@ interface
 implementation
 
   uses
+{$ifdef delphi}
+    dmisc,
+{$else}
     dos,
+{$endif}
     cutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
@@ -466,7 +470,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-09-09 17:34:17  peter
+  Revision 1.3  2002-10-05 12:43:29  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.2  2002/09/09 17:34:17  peter
     * tdicationary.replace added to replace and item in a dictionary. This
       is only allowed for the same name
     * varsyms are inserted in symtable before the types are parsed. This

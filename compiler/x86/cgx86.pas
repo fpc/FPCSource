@@ -295,7 +295,7 @@ unit cgx86;
                               Assembler code
 ****************************************************************************}
 
-    function tcgx86.reg_cgsize(const reg: tregister): tcgsize;
+    class function tcgx86.reg_cgsize(const reg: tregister): tcgsize;
       const
         regsize_2_cgsize: array[S_B..S_L] of tcgsize = (OS_8,OS_16,OS_32);
       begin
@@ -1681,7 +1681,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.17  2002-09-17 18:54:06  jonas
+  Revision 1.18  2002-10-05 12:43:30  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.17  2002/09/17 18:54:06  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.

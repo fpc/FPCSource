@@ -1294,6 +1294,7 @@ implementation
         var overload_procs : pprocdeflist) : tprocdef;
      var
        p :pprocdeflist;
+       _result : tprocdef;
      begin
           internal_assignment_overloaded:=nil;
           p := nil;
@@ -1301,18 +1302,24 @@ implementation
             exit;
 
           { look for an exact match first, from start of list }
-          internal_assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
+          _result:=overloaded_operators[_ASSIGNMENT].
              search_procdef_byretdef_by1paradef(to_def,from_def,dm_exact,
                p);
-          if assigned(internal_assignment_overloaded) then
-            exit;
+          if assigned(_result) then
+            begin
+              internal_assignment_overloaded := _result;
+              exit;
+            end;
 
           { .... then look for an equal match, from start of list }
-          internal_assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
+          _result:=overloaded_operators[_ASSIGNMENT].
            search_procdef_byretdef_by1paradef(to_def,from_def,dm_equal,
                 p);
-          if assigned(internal_assignment_overloaded) then
-            exit;
+          if assigned(_result) then
+            begin
+              internal_assignment_overloaded := _result;
+              exit;
+            end;
 
           {  .... then for convert level 1, continue from where we were at }
           internal_assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
@@ -1962,7 +1969,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2002-10-05 00:50:01  peter
+  Revision 1.16  2002-10-05 12:43:24  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.15  2002/10/05 00:50:01  peter
     * check parameters from left to right in equal_paras, so default
       parameters are checked at the end
 

@@ -39,7 +39,11 @@ uses
   globals,
   cpuinfo,
   aasmbase,
-  cginfo;
+  cginfo
+{$ifdef delphi}
+  ,dmisc
+{$endif}
+  ;
 
 
 {*****************************************************************************
@@ -521,7 +525,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2002-08-14 18:41:48  jonas
+  Revision 1.32  2002-10-05 12:43:29  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.31  2002/08/14 18:41:48  jonas
     - remove valuelow/valuehigh fields from tlocation, because they depend
       on the endianess of the host operating system -> difficult to get
       right. Use lo/hi(location.valueqword) instead (remember to use

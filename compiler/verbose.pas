@@ -25,7 +25,9 @@ unit verbose;
 {$i fpcdefs.inc}
 
 { Don't include messages in the executable }
-{.$define EXTERN_MSG}
+{$ifdef Delphi}
+{$define EXTERN_MSG}
+{$endif}
 
 interface
 
@@ -680,7 +682,11 @@ var
 end.
 {
   $Log$
-  Revision 1.20  2002-08-18 19:59:03  peter
+  Revision 1.21  2002-10-05 12:43:29  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.20  2002/08/18 19:59:03  peter
     * renamed local current_module to compiling_module because it
       confused a lot in gdb
 

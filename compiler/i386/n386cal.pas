@@ -1001,7 +1001,7 @@ implementation
                 { inlined code is in inlinecode }
                 begin
                    { process the inlinecode }
-                   secondpass(inlinecode);
+                   secondpass(tnode(inlinecode));
                    { free the args }
                    if tprocdef(procdefinition).parast.datasize>0 then
                      tg.UnGetTemp(exprasmlist,pararef);
@@ -1311,7 +1311,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2002-09-17 18:54:03  jonas
+  Revision 1.73  2002-10-05 12:43:29  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.72  2002/09/17 18:54:03  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.

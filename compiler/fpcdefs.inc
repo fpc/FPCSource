@@ -24,7 +24,6 @@
   {$Z1}
 
   {$undef FPCPROCVAR}
-  {$define USEEXCEPT}
 {$endif}
 
 
@@ -32,6 +31,9 @@
 {$define cpuflags}
 
 {$ifdef i386}
+  {$ifdef delphi}
+  {$define oldset}
+  {$endif}
   {$define x86}
 {$else}
   {$define oldset}
@@ -46,7 +48,11 @@
 {$endif alpha}
 {
   $Log$
-  Revision 1.11  2002-09-30 07:00:45  florian
+  Revision 1.12  2002-10-05 12:43:24  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.11  2002/09/30 07:00:45  florian
     * fixes to common code to get the alpha compiler compiled applied
 
   Revision 1.10  2002/09/29 23:19:05  florian

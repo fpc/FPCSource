@@ -36,7 +36,11 @@ unit rgobj;
       cpubase,
       cpuinfo,
       aasmbase,aasmtai,aasmcpu,
-      cclasses,globtype,cginfo,cgbase,node;
+      cclasses,globtype,cginfo,cgbase,node
+{$ifdef delphi}
+      ,dmisc
+{$endif}
+      ;
 
     type
        regvar_longintarray = array[firstreg..lastreg] of longint;
@@ -986,14 +990,19 @@ unit rgobj;
       end;
 
 
-
+initialization
+   ;
 finalization
   rg.free;
 end.
 
 {
   $Log$
-  Revision 1.19  2002-08-23 16:14:49  peter
+  Revision 1.20  2002-10-05 12:43:28  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.19  2002/08/23 16:14:49  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 

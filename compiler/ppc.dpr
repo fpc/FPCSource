@@ -32,7 +32,6 @@ program ppc;
   -----------------------------------------------------------------
   USE_RHIDE           generates errors and warning in an format recognized
                       by rhide
-  TP                  to compile the compiler with Turbo or Borland Pascal
   GDB*                support of the GNU Debugger
   I386                generate a compiler for the Intel i386+
   M68K                generate a compiler for the M68000
@@ -158,7 +157,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-09-07 15:25:07  peter
+  Revision 1.6  2002-10-05 12:43:27  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.5  2002/09/07 15:25:07  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/08/12 15:08:40  carl

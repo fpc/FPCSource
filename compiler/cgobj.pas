@@ -41,7 +41,11 @@ unit cgobj;
        cclasses,aasmbase,aasmtai,aasmcpu,symtable,
        cpubase,cpuinfo,cpupara,
        cginfo,
-       symconst,symbase,symtype,node;
+       symconst,symbase,symtype,node
+{$ifdef delphi}
+       ,dmisc
+{$endif}
+       ;
 
     type
        talignment = (AM_NATURAL,AM_NONE,AM_2BYTE,AM_4BYTE,AM_8BYTE);
@@ -1081,7 +1085,7 @@ unit cgobj;
       end;
 
 
-    function tcg.reg_cgsize(const reg: tregister) : tcgsize;
+    class function tcg.reg_cgsize(const reg: tregister) : tcgsize;
       begin
         reg_cgsize := OS_INT;
       end;
@@ -1089,7 +1093,9 @@ unit cgobj;
 
     procedure tcg.g_copyshortstring(list : taasmoutput;const source,dest : treference;len:byte;delsource,loadref : boolean);
       begin
+{$ifdef FPC}
         {$warning FIX ME!}
+{$endif}        
         a_paramaddr_ref(list,dest,paramanager.getintparaloc(3));
         if loadref then
           a_param_ref(list,OS_ADDR,source,paramanager.getintparaloc(2))
@@ -1573,7 +1579,8 @@ unit cgobj;
      end;
 
 
-    procedure tcg64.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);
+    procedure tcg64.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;
+       regsrc,regdst : tregister64);
       begin
         a_load64_reg_reg(list,regsrc,regdst);
         a_op64_const_reg(list,op,value,regdst);
@@ -1588,14 +1595,19 @@ unit cgobj;
 
 
 
-
+initialization
+    ;
 finalization
   cg.free;
   cg64.free;
 end.
 {
   $Log$
-  Revision 1.60  2002-10-02 18:20:52  peter
+  Revision 1.61  2002-10-05 12:43:23  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.60  2002/10/02 18:20:52  peter
     * Copy() is now internal syssym that calls compilerprocs
 
   Revision 1.59  2002/09/17 18:54:02  jonas

@@ -355,8 +355,13 @@ implementation
                 left:=Tunarynode(left).left;
                 t.left:=nil;
                 t.destroy;
+{$ifdef Delphi}
+                { How can this be handled in Delphi ? }
+                RunError(255);
+{$else}
                 {Symdif operator, in case you are wondering:}
                 flags:=flags >< [nf_checknegate];
+{$endif}
             end;
          { loop instruction }
          if assigned(right) then
@@ -1025,7 +1030,7 @@ implementation
       begin
         inherited derefimpl;
         resolvesym(pointer(labsym));
-        objectlibrary.derefasmsymbol(labelnr);
+        objectlibrary.derefasmsymbol(tasmsymbol(labelnr));
       end;
 
 
@@ -1405,7 +1410,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2002-09-07 15:25:03  peter
+  Revision 1.53  2002-10-05 12:43:25  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.52  2002/09/07 15:25:03  peter
     * old logs removed and tabs fixed
 
   Revision 1.51  2002/09/07 12:16:04  carl

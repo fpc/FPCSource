@@ -48,7 +48,12 @@ implementation
 {$ifdef GDB}
       gdb,
 {$endif GDB}
-      node,nbas,nflw,nset,ncon,ncnv,nld,nmem,ncal,nmat,nadd,ninl,nopt;
+      node,nbas,nflw,nset,ncon,ncnv,nld,nmem,ncal,nmat,nadd,ninl,nopt
+{$ifdef Delphi}
+      ,dmisc
+      ,sysutils
+{$endif}
+      ;
 
 
     procedure insertinternsyms(p : tsymtable);
@@ -470,7 +475,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2002-10-02 18:20:53  peter
+  Revision 1.42  2002-10-05 12:43:27  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.41  2002/10/02 18:20:53  peter
     * Copy() is now internal syssym that calls compilerprocs
 
   Revision 1.40  2002/09/27 21:13:29  carl

@@ -29,7 +29,11 @@ interface
     uses
        node,
        symtype,symppu,defbase,
-       nld;
+       nld
+{$ifdef Delphi}
+       ,dmisc
+{$endif}
+       ;
 
     type
        ttypeconvnode = class(tunarynode)
@@ -874,7 +878,7 @@ implementation
 
 
     function ttypeconvnode.resulttype_call_helper(c : tconverttype) : tnode;
-
+{$ifdef fpc}
       const
          resulttypeconvert : array[tconverttype] of pointer = (
           {equal} nil,
@@ -923,6 +927,27 @@ implementation
          if assigned(r.proc) then
           result:=tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
       end;
+{$else}
+      begin
+        case c of
+          tc_string_2_string: resulttype_string_to_string;
+          tc_char_2_string : resulttype_char_to_string;
+          tc_char_2_chararray: resulttype_char_to_chararray;
+          tc_pchar_2_string : resulttype_pchar_to_string;
+          tc_cchar_2_pchar : resulttype_cchar_to_pchar;
+          tc_cstring_2_pchar : resulttype_cstring_to_pchar;
+          tc_string_2_chararray : resulttype_string_to_chararray;
+          tc_chararray_2_string : resulttype_chararray_to_string;
+          tc_real_2_real : resulttype_real_to_real;
+          tc_int_2_real : resulttype_int_to_real;
+          tc_arrayconstructor_2_set : resulttype_arrayconstructor_to_set;
+          tc_cord_2_pointer : resulttype_cord_to_pointer;
+          tc_intf_2_guid : resulttype_interface_to_guid;
+          tc_char_2_char : resulttype_char_to_char;
+          tc_dynarray_2_openarray : resulttype_dynarray_to_openarray;
+        end;
+      end;
+{$Endif fpc}
 
 
     function ttypeconvnode.det_resulttype:tnode;
@@ -2059,7 +2084,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2002-10-02 20:23:50  florian
+  Revision 1.85  2002-10-05 12:43:25  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.84  2002/10/02 20:23:50  florian
     - removed the relation check for <class> as <interface> because we don't
       know the runtime type of <class>! It could be a child class of the given type
       which implements additional interfaces

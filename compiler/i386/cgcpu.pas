@@ -32,7 +32,11 @@ unit cgcpu;
        cginfo,cgbase,cgobj,cg64f32,cgx86,
        aasmbase,aasmtai,aasmcpu,
        cpubase,cpuinfo,cpupara,
-       node,symconst;
+       node,symconst
+{$ifdef delphi}
+       ,dmisc
+{$endif}
+       ;
 
     type
       tcg386 = class(tcgx86)
@@ -170,7 +174,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-09-07 15:25:10  peter
+  Revision 1.31  2002-10-05 12:43:29  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.30  2002/09/07 15:25:10  peter
     * old logs removed and tabs fixed
 
   Revision 1.29  2002/07/20 19:28:47  florian

@@ -742,7 +742,9 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         symtableprocentry:=tprocsym(ppufile.getderef);
+{$ifdef fpc}
 {$warning FIXME: No withsymtable support}
+{$endif}
         symtableproc:=nil;
         procdefinition:=tprocdef(ppufile.getderef);
         restypeset:=boolean(ppufile.getbyte);
@@ -2628,7 +2630,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.102  2002-10-05 00:48:57  peter
+  Revision 1.103  2002-10-05 12:43:25  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.102  2002/10/05 00:48:57  peter
     * support inherited; support for overload as it is handled by
       delphi. This is only for delphi mode as it is working is
       undocumented and hard to predict what is done

@@ -59,14 +59,6 @@ interface
           procedure pass_2;override;
 
         protected
-
-          procedure optimizevalues(var max_linear_list:longint;var max_dist:cardinal);virtual;
-          function  has_jumptable : boolean;virtual;
-          procedure genjumptable(hp : pcaserecord;min_,max_ : longint); virtual;
-          procedure genlinearlist(hp : pcaserecord); virtual;
-          procedure genlinearcmplist(hp : pcaserecord); virtual;
-          procedure gentreejmp(p : pcaserecord);
-
           with_sign : boolean;
           opsize : tcgsize;
           jmp_gt,jmp_lt,jmp_le : topcmp;
@@ -78,6 +70,14 @@ interface
           jumptable_no_range : boolean;
           { has the implementation jumptable support }
           min_label : tconstexprint;
+
+          procedure optimizevalues(var max_linear_list:longint;var max_dist:cardinal);virtual;
+          function  has_jumptable : boolean;virtual;
+          procedure genjumptable(hp : pcaserecord;min_,max_ : longint); virtual;
+          procedure genlinearlist(hp : pcaserecord); virtual;
+          procedure genlinearcmplist(hp : pcaserecord); virtual;
+          procedure gentreejmp(p : pcaserecord);
+
 
        end;
 
@@ -708,8 +708,13 @@ implementation
                 if opsize in [OS_S64,OS_64] then
                   begin
                      objectlibrary.getlabel(l1);
+{$ifdef Delphi}
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_NE, hi((t^._low)),hregister2,l1);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ, lo((t^._low)),hregister, t^.statement);
+{$else}
                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_NE, aword(hi(int64(t^._low))),hregister2,l1);
                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ, aword(lo(int64(t^._low))),hregister, t^.statement);
+{$endif}
                      cg.a_label(exprasmlist,l1);
                   end
                 else
@@ -728,12 +733,21 @@ implementation
                      if opsize in [OS_64,OS_S64] then
                        begin
                           objectlibrary.getlabel(l1);
+{$ifdef Delphi}
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, aword(hi((t^._low))),
+                               hregister2, elselabel);
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, aword(hi((t^._low))),
+                               hregister2, l1);
+                          { the comparisation of the low dword must be always unsigned! }
+                          cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_B, aword(lo((t^._low))), hregister, elselabel);
+{$else}
                           cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, aword(hi(int64(t^._low))),
                                hregister2, elselabel);
                           cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, aword(hi(int64(t^._low))),
                                hregister2, l1);
                           { the comparisation of the low dword must be always unsigned! }
                           cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_B, aword(lo(int64(t^._low))), hregister, elselabel);
+{$endif}                          
                           cg.a_label(exprasmlist,l1);
                        end
                      else
@@ -746,11 +760,19 @@ implementation
                 if opsize in [OS_S64,OS_64] then
                   begin
                      objectlibrary.getlabel(l1);
+{$ifdef Delphi}
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, aword(hi(t^._high)), hregister2,
+                           t^.statement);
+                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, aword(hi(t^._high)), hregister2,
+                           l1);
+                    cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_BE, aword(lo(t^._high)), hregister, t^.statement);
+{$else}
                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_lt, aword(hi(int64(t^._high))), hregister2,
                            t^.statement);
                      cg.a_cmp_const_reg_label(exprasmlist, OS_INT, jmp_gt, aword(hi(int64(t^._high))), hregister2,
                            l1);
                     cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_BE, aword(lo(int64(t^._high))), hregister, t^.statement);
+{$endif}                    
                     cg.a_label(exprasmlist,l1);
                   end
                 else
@@ -993,7 +1015,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-10-03 21:31:10  carl
+  Revision 1.22  2002-10-05 12:43:25  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.21  2002/10/03 21:31:10  carl
     * range check error fixes
 
   Revision 1.20  2002/09/17 18:54:03  jonas
@@ -1077,3 +1103,5 @@ end.
   + generic sets
 
 }
+
+

@@ -181,12 +181,13 @@ unit cgbase;
           fpuregvars_refs : array[1..maxfpuvarregs] of longint;
        end;
 
+       tcprocinfo = class of tprocinfo;
 
     var
        {# information about the current sub routine being parsed (@var(pprocinfo))}
        procinfo : tprocinfo;
 
-       cprocinfo : class of tprocinfo;
+       cprocinfo : tcprocinfo;
 
        { labels for BREAK and CONTINUE }
        aktbreaklabel,aktcontinuelabel : tasmlabel;
@@ -657,7 +658,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-10-03 21:20:19  carl
+  Revision 1.32  2002-10-05 12:43:23  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.31  2002/10/03 21:20:19  carl
     * range check error fix
 
   Revision 1.30  2002/09/30 07:00:44  florian

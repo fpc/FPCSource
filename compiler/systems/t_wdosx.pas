@@ -68,10 +68,13 @@ const
                              TLINKERWDOSX
 *****************************************************************************}
 function TLinkerWdosx.MakeExecutable:boolean;
+var
+ b: boolean;
 begin
- Result:=inherited;
- if Result then
+ b := Inherited MakeExecutable;
+ if b then
   DoExec(FindUtil('stubit'),current_module.exefilename^,false,false);
+ Result := b; 
 end;
 
 {****************************************************************************
@@ -99,7 +102,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-09-06 15:03:50  carl
+  Revision 1.2  2002-10-05 12:43:29  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.1  2002/09/06 15:03:50  carl
     * moved files to systems directory
 
   Revision 1.10  2002/08/12 15:08:44  carl

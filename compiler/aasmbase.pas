@@ -161,7 +161,11 @@ interface
          procedure fixuprelocs;virtual;
        end;
 
-       tasmsymbolidxarr = array[0..$7fffffff div sizeof(pointer)] of tasmsymbol;
+{$ifndef delphi}
+       tasmsymbolidxarr = array[0..($7fffffff div sizeof(pointer))] of tasmsymbol;
+{$else}
+       tasmsymbolidxarr = array[0..high(word)] of tasmsymbol;
+{$endif}
        pasmsymbolidxarr = ^tasmsymbolidxarr;
 
        TAsmLibraryData = class(TLinkedListItem)
@@ -859,7 +863,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2002-08-19 19:36:42  peter
+  Revision 1.9  2002-10-05 12:43:23  carl
+    * fixes for Delphi 6 compilation
+     (warning : Some features do not work under Delphi)
+
+  Revision 1.8  2002/08/19 19:36:42  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small
