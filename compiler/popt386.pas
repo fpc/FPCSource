@@ -1061,15 +1061,6 @@ Begin
                                   Paicpu(p)^.LoadReg(1,Paicpu(hp1)^.oper[0].reg);
                                 End
                       End;
-                       {changes "mov $0, %reg" into "xor %reg, %reg"}
-                  If (Paicpu(p)^.oper[0].typ = Top_Const) And
-                     (Paicpu(p)^.oper[0].val = 0) And
-                     (Paicpu(p)^.oper[1].typ = Top_Reg)
-                    Then
-                      Begin
-                        Paicpu(p)^.opcode := A_XOR;
-                        Paicpu(p)^.LoadReg(0,Paicpu(p)^.oper[1].reg);
-                      End;
                 End;
               A_MOVZX:
                 Begin
@@ -1545,9 +1536,17 @@ Begin
                          End
                      End
                     Else
-
-
                  End;
+               A_XOR:
+                 If (Paicpu(p)^.oper[0].typ = top_reg) And
+                    (Paicpu(p)^.oper[1].typ = top_reg) And
+                    (Paicpu(p)^.oper[0].reg = Paicpu(p)^.oper[1].reg) then
+                  { temporarily change this to 'mov reg,0' to make it easier }
+                  { for the CSE. Will be changed back in pass 2              }
+                   begin
+                     paicpu(p)^.opcode := A_MOV;
+                     paicpu(p)^.loadconst(0,0);
+                   end;
             End;
             end; { if is_jmp }
           End;
@@ -1674,8 +1673,16 @@ Begin
                        Dispose(hp2,Done);
                        p := hp1
                      End;
-                   End;
+                   End
 {$endif foldArithOps}
+                  else if (Paicpu(p)^.oper[0].typ = Top_Const) And
+                     (Paicpu(p)^.oper[0].val = 0) And
+                     (Paicpu(p)^.oper[1].typ = Top_Reg) Then
+                    { change "mov $0, %reg" into "xor %reg, %reg" }
+                    Begin
+                      Paicpu(p)^.opcode := A_XOR;
+                      Paicpu(p)^.LoadReg(0,Paicpu(p)^.oper[1].reg);
+                    End
                 End;
               A_MOVZX:
                 Begin
@@ -1735,7 +1742,13 @@ End.
 
 {
  $Log$
- Revision 1.73  1999-12-02 11:26:41  peter
+ Revision 1.74  1999-12-05 16:48:43  jonas
+   * CSE of constant loading in regs works properly again
+   + if a constant is stored into memory using "mov const, ref" and
+     there is a reg that contains this const, it is changed into
+     "mov reg, ref"
+
+ Revision 1.73  1999/12/02 11:26:41  peter
    * newoptimizations define added
 
  Revision 1.72  1999/11/30 10:40:45  peter

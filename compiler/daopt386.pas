@@ -115,8 +115,7 @@ type
 
   TContent = Packed Record
       {start and end of block instructions that defines the
-       content of this register. If Typ = con_const, then
-       Longint(StartMod) = value of the constant)}
+       content of this register.}
                StartMod: pai;
       {starts at 0, gets increased everytime the register is written to}
                WState: Byte;
@@ -817,23 +816,6 @@ Begin
          Not((p^.typ = ait_label) And
             Not(Pai_Label(p)^.l^.is_used)));
 End;
-
-
-(*Function FindZeroreg(p: Pai; Var Result: TRegister): Boolean;
-{Finds a register which contains the constant zero}
-Var Counter: TRegister;
-Begin
-  Counter := R_EAX;
-  FindZeroReg := True;
-  While (Counter <= R_EDI) And
-        ((PPaiProp(p^.OptInfo)^.Regs[Counter].Typ <> Con_Const) or
-         (PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod <> Pointer(0))) Do
-    Inc(Byte(Counter));
-  If (PPaiProp(p^.OptInfo)^.Regs[Counter].Typ = Con_Const) And
-     (PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod = Pointer(0))
-    Then Result := Counter
-    Else FindZeroReg := False;
-End;*)
 
 Procedure IncState(Var S: Byte);
 {Increases S by 1, wraps around at $ffff to 0 (so we won't get overflow
@@ -1744,22 +1726,15 @@ Begin
                     DestroyOp(p, Paicpu(p)^.oper[2]);
             {$endif arithopt}
                 End;
-              A_XOR:
-                Begin
-                  ReadOp(CurProp, Paicpu(p)^.oper[0]);
-                  ReadOp(CurProp, Paicpu(p)^.oper[1]);
-                  If (Paicpu(p)^.oper[0].typ = top_reg) And
-                     (Paicpu(p)^.oper[1].typ = top_reg) And
-                     (Paicpu(p)^.oper[0].reg = Paicpu(p)^.oper[1].reg)
-                    Then
-                      Begin
-                        DestroyReg(CurProp, Paicpu(p)^.oper[0].reg, true);
-                        CurProp^.Regs[Reg32(Paicpu(p)^.oper[0].reg)].typ := Con_Const;
-                        CurProp^.Regs[Reg32(Paicpu(p)^.oper[0].reg)].StartMod := Pointer(0)
-                      End
-                    Else
-                      DestroyOp(p, Paicpu(p)^.oper[1]);
-                End
+{$ifdef arithopt}
+              A_LEA:
+                begin
+                  readop(curprop,paicpu(p)^.oper[0]);
+                  if reginref(paicpu(p)^.oper[1].reg,paicpu(p)^.oper[0].ref^) then
+                    AddInstr2RegContents(paicpu(p), paicpu(p)^.oper[1].reg)
+                  else destroyreg(curprop,paicpu(p)^.oper[1].reg,true);
+                end;
+{$endif arithopt}
               Else
                 Begin
                   Cnt := 1;
@@ -1943,7 +1918,13 @@ End.
 
 {
  $Log$
- Revision 1.74  1999-12-02 11:26:41  peter
+ Revision 1.75  1999-12-05 16:48:43  jonas
+   * CSE of constant loading in regs works properly again
+   + if a constant is stored into memory using "mov const, ref" and
+     there is a reg that contains this const, it is changed into
+     "mov reg, ref"
+
+ Revision 1.74  1999/12/02 11:26:41  peter
    * newoptimizations define added
 
  Revision 1.73  1999/11/27 23:45:43  jonas

@@ -486,7 +486,10 @@ begin
 end;
 
 Procedure ClearRegContentsFrom(reg: TRegister; p: pai);
-var hp: pai;
+var
+{$ifdef replaceregdebug}
+    hp: pai;
+{$endif replaceregdebug}
     tmpState: byte;
 begin
   tmpState := PPaiProp(p^.optInfo)^.Regs[reg].wState;
@@ -756,6 +759,39 @@ begin
 End;
 {$endif replacereg}
 
+{$ifdef arithopt}
+Function FindRegWithConst(p: Pai; size: topsize; l: longint; Var Res: TRegister): Boolean;
+{Finds a register which contains the constant l}
+Var Counter: TRegister;
+{$ifdef testing}
+    hp: pai;
+{$endif testing}
+    tmpresult: boolean;
+Begin
+  Counter := R_NO;
+  repeat
+     inc(counter);
+     tmpresult := (PPaiProp(p^.OptInfo)^.Regs[Counter].Typ = Con_Const) and
+       (paicpu(PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod)^.opsize = size) and
+       (paicpu(PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod)^.oper[0].val = l);
+{$ifdef testing}
+     if (PPaiProp(p^.OptInfo)^.Regs[Counter].Typ = Con_Const) then
+       begin
+         hp := new(pai_asm_comment,init(strpnew(
+           'checking const load of '+tostr(l)+' here...')));
+         hp^.next := PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod;
+         hp^.previous := PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod^.previous;
+         PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod^.previous := hp;
+         if assigned(hp^.previous) then
+           hp^.previous^.next := hp;
+       end;
+{$endif testing}
+  until tmpresult or (Counter = R_EDI);
+  res := counter;
+  FindRegWithConst := tmpResult;
+End;
+{$endif arithopt}
+
 Procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai);
 {marks the instructions that can be removed by RemoveInstructs. They're not
  removed immediately because sometimes an instruction needs to be checked in
@@ -980,10 +1016,16 @@ Begin
                               If GetLastInstruction(p, hp1) Then
                                 With PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Paicpu(p)^.oper[1].reg)] Do
                                   If (Typ = Con_Const) And
-                                     (StartMod = p) Then
+                                     (paicpu(startMod)^.opsize >= paicpu(p)^.opsize) and
+                                     (paicpu(StartMod)^.oper[0].val = paicpu(p)^.oper[0].val) Then
                                     PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
                             End;
-{                          Top_Ref:;}
+{$ifdef arithopt}
+                          Top_Ref:
+                            if getLastInstruction(p,hp1) and
+                               findRegWithConst(hp1,paicpu(p)^.opsize,paicpu(p)^.oper[0].val,regCounter) then
+                              paicpu(p)^.loadreg(0,regCounter);
+{$endif arithopt}
                         End;
                       End;
                   End;
@@ -991,16 +1033,6 @@ Begin
               A_STD: If GetLastInstruction(p, hp1) And
                         (PPaiProp(hp1^.OptInfo)^.DirFlag = F_Set) Then
                         PPaiProp(Pai(p)^.OptInfo)^.CanBeRemoved := True;
-              A_XOR:
-                Begin
-                  If (Paicpu(p)^.oper[0].typ = top_reg) And
-                     (Paicpu(p)^.oper[0].typ = top_reg) And
-                     (Paicpu(p)^.oper[1].reg = Paicpu(p)^.oper[1].reg) And
-                     GetLastInstruction(p, hp1) And
-                     (PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Paicpu(p)^.oper[1].reg)].typ = con_const) And
-                     (PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Paicpu(p)^.oper[1].reg)].StartMod = nil)
-                    Then PPaiProp(p^.OptInfo)^.CanBeRemoved := True
-                End
             End
           End;
       End;
@@ -1061,7 +1093,13 @@ End.
 
 {
  $Log$
- Revision 1.35  1999-12-02 11:26:41  peter
+ Revision 1.36  1999-12-05 16:48:43  jonas
+   * CSE of constant loading in regs works properly again
+   + if a constant is stored into memory using "mov const, ref" and
+     there is a reg that contains this const, it is changed into
+     "mov reg, ref"
+
+ Revision 1.35  1999/12/02 11:26:41  peter
    * newoptimizations define added
 
  Revision 1.34  1999/11/21 13:09:41  jonas
