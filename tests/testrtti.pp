@@ -32,6 +32,7 @@ Type
        FExtended : Extended;
        FMyEnum   : TMyEnum;
        FAnsiString   : AnsiSTring;
+       FStored   : Boolean; 
        Function GetBoolean : Boolean;
        Function GetByte : Byte;
        Function GetChar : Char;
@@ -76,6 +77,8 @@ Type
        Procedure SetVirtualExtended ( Value : Extended ); virtual;
        Procedure SetVirtualAnsiString ( Value : AnsiString ); virtual;
        Procedure SetVirtualMyEnum ( Value : TMyEnum ); virtual;
+       Function GetStaticStored : Boolean;
+       Function GetVirtualStored : Boolean;
        Public
        Constructor Create;
        Destructor Destroy;override;       
@@ -113,6 +116,11 @@ Type
        Property ExtendedVirtualMethod : Extended Read GetVirtualExtended Write SetVirtualExtended;       
        Property AnsiStringVirtualMethod : AnsiString Read GetVirtualAnsiString Write SetVirtualAnsiString;       
        Property MyEnumVirtualMethod : TMyEnum Read GetVirtualMyEnum Write SetVirtualMyEnum;
+       Property StoredIntegerConstFalse : Longint Read FLongint Stored False;
+       Property StoredIntegerConstTrue : Longint Read FLongint Stored True;
+       Property StoredIntegerField : Longint Read FLongint Stored FStored;
+       Property StoredIntegerMethod : Longint Read Flongint Stored GetStaticStored;
+       Property StoredIntegerVirtualMethod : Longint Read Flongint Stored GetStaticStored;
        end;
 
 Constructor TMyTestObject.Create;
@@ -361,6 +369,18 @@ end;
 Procedure TMyTestObject.SetVirtualMyEnum ( Value : TMyEnum );
 begin
   FMyEnum:=Value;
+end;
+
+Function TMyTestObject.GetStaticStored : Boolean;
+
+begin
+  Result:=False;
+end;
+
+Function TMyTestObject.GetVirtualStored : Boolean;
+
+begin
+  Result:=False;
 end;
 
 Procedure DumpMem ( PL : PByte );
