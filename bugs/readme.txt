@@ -258,6 +258,7 @@ Fixed bugs:
                (problem created while solving bug205 ! PM)          OK 0.99.11 (PM)
   bug0210.pp   fillchar should accept boolean value also !!         OK 0.99.11 (PM)
   bug0211.pp   a and not a is true !!! (if a:=boolean(5))           OK 0.99.11 (PM)
+  bug0212.pp   problem with properties                              OK 0.99.11 (PFV)
   bug0213.pp   name mangling problem with nested procedures in overloaded
                procedure                                            OK 0.99.11 (PM)
   bug0214.pp   bug for static methods                               OK 0.99.11 (PM)
@@ -270,8 +271,14 @@ Fixed bugs:
                in str and val FK)
   bug0219.pp   wrong error message                                  OK 0.99.11 (PFV)
   bug0220.pp   array of char overloading problem with strings        OK 0.99.11 (PFV)
+  bug0222.pp   an record field can't be the counter index (compiles with TP) OK 0.99.11 (PFV)
   bug0223.pp   wrong boolean evaluation in writeln                  OK 0.99.11 (PFV)
   bug0224.pp   I/O-Error generation in readln can't be switched off OK 0.99.11 (PFV)
+  bug0225.pp   Sigsegv when run with range checks on open arrays    OK 0.99.11 (PFV)
+  bug0227.pp   external var does strange things when declared in localsymtable OK 0.99.11 (PFV)
+  bug0229.pp   consts > 255 are truncated (should work in -S2,-Sd)  OK 0.99.11 (PFV)
+  bug0231.pp   Problem with comments                                OK 0.99.11 (PFV)
+  bug0233.pp   Problem with enum sets in args                       OK 0.99.11 (PFV)
 
 
 Unproducable bugs:
@@ -304,19 +311,11 @@ bug0226.pp   Asm, offset of var is not allowed as constant
 bug0228.pp   Asm, wrong warning for size
 
 bug0185.pp   missing range checking for Val and subrange types
-bug0212.pp   problem with properties
 bug0217.pp   in tp mode can't use the procvar in writeln
 bug0221.pp   syntax parsing incompatibilities with tp7
-bug0222.pp   an record field can't be the counter index (compiles with TP)
-bug0225.pp   Sigsegv when run with range checks on open arrays
-bug0227.pp   external var does strange things when declared in localsymtable
-bug0229.pp   consts > 255 are truncated (should work in -S2,-Sd)
 bug0230.pp   several strange happen on the ln function: ln(0): no
              FPE and writeln can't write non numeric values
-bug0231.pp   Problem with comments
 bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
-bug0233.pp   Problem with enum sets in args
 bug0234.pp   New with void pointer
 bug0235.pp   Val(cardinal) bug
-
