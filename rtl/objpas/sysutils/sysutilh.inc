@@ -152,7 +152,7 @@ type
 
    EOSError = class(Exception)
    public
-     ErrorCode: DWORD;
+     ErrorCode: Longint;
    end;
    
    ESafecallException = class(Exception);
@@ -231,7 +231,11 @@ Type
 
 {
   $Log$
-  Revision 1.6  2004-01-05 22:37:24  florian
+  Revision 1.7  2004-01-28 22:09:52  peter
+    * EOSError.errorcode change to Longint which is more compatible
+      with unix platforms
+
+  Revision 1.6  2004/01/05 22:37:24  florian
     * changed sysutils.exec to ExecuteProcess
 
   Revision 1.5  2003/11/26 22:17:42  michael
