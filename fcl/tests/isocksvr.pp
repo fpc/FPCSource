@@ -19,7 +19,9 @@ Program server;
   'dsockcli -i' programs in another terminal.
 }
 
+{$mode objfpc}{$H+}
 uses ssockets;
+
 
 const
   ThePort=4100;
@@ -81,7 +83,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2005-02-14 17:13:18  peter
+  Revision 1.5  2005-03-16 13:35:59  marco
+   * some fixes for objfpc mode
+
+  Revision 1.4  2005/02/14 17:13:18  peter
     * truncate log
 
 }
