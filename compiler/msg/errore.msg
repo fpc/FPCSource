@@ -137,9 +137,9 @@ scan_f_end_of_file=02000_F_Unexpected end of file
 scan_f_string_exceeds_line=02001_F_String exceeds line
 % You forgot probably to include the closing ' in a string, so it occupies
 % multiple lines.
-scan_f_illegal_char=02002_F_illegal character $1 ($2)
+scan_f_illegal_char=02002_F_illegal character "$1" ($2)
 % An illegal character was encountered in the input file.
-scan_f_syn_expected=02003_F_Syntax error, $1 expected but $2 found
+scan_f_syn_expected=02003_F_Syntax error, "$1" expected but "$2" found
 % This indicates that the compiler expected a different token than
 % the one you typed. It can occur almost everywhere where you make a
 % mistake against the pascal language.
@@ -167,10 +167,10 @@ scan_e_illegal_char_const=02011_E_Illegal char constant
 % This happens when you specify a character with its ASCII code, as in
 % \var{\#96}, but the number is either illegal, or out of range. The range
 % is 1-255.
-scan_f_cannot_open_input=02012_F_Can't open file $1
+scan_f_cannot_open_input=02012_F_Can't open file "$1"
 % \fpc cannot find the program or unit source file you specified on the
 % command line.
-scan_f_cannot_open_includefile=02013_F_Can't open include file $1
+scan_f_cannot_open_includefile=02013_F_Can't open include file "$1"
 % \fpc cannot find the source file you specified in a \var{\{\$include ..\}}
 % statement.
 scan_e_too_much_endifs=02014_E_Too many $ENDIFs or $ELSEs
@@ -282,7 +282,7 @@ scan_e_wrong_switch_toggle=02052_E_Wrong switch toggle, use ON/OFF or +/-
 scan_e_resourcefiles_not_supported=02053_E_Resource files are not supported for this target
 % The target you are compiling for doesn't support resource files. The
 % only targets which can use resource files are Win32 and OS/2 (EMX) currently
-scan_w_include_env_not_found=02054_W_Include environment $1 not found in environment
+scan_w_include_env_not_found=02054_W_Include environment "$1" not found in environment
 % The included environment variable can't be found in the environment, it'll
 % be replaced by an empty string instead.
 scan_e_invalid_maxfpureg_value=02055_E_Illegal value for FPU register limit
@@ -299,6 +299,8 @@ scan_e_invalid_interface_type=02058_E_Illegal interface type specified. Valids a
 % \end{description}
 #
 # Parser
+#
+# 03174 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -879,7 +881,7 @@ parser_e_no_export_of_variables_for_target=03164_E_Exporting of variables is not
 parser_e_improper_guid_syntax=03165_E_Improper GUID syntax
 parser_f_interface_cant_have_variables=03166_F_An interface can't have variables
 parser_f_interface_cant_have_constr_or_destr=03167_F_An interface can't have constructor or destructor
-parser_w_interface_mapping_notfound=03168_W_Procedure named $1 not found that is suitable for implementing the $2.$3
+parser_w_interface_mapping_notfound=03168_W_Procedure named "$1" not found that is suitable for implementing the $2.$3
 parser_e_interface_id_expected=03169_E_interface identifier expected
 % This happens when the compiler scans a \var{class} declaration that contains
 % \var{interface} function name mapping code like this:
@@ -903,6 +905,9 @@ parser_e_no_access_specifier_in_interfaces=03172_E_Access specifiers can't be us
 parser_e_no_vars_in_interfaces=03173_E_An interface can't contain fields
 % Declarations of fields aren't allowed in interfaces. An interface
 % can contain only methods
+parser_e_no_local_external=03174_E_Can't declare local procedure as EXTERNAL
+% Declaring local procedures as external is not possible. Local procedures
+% get hidden parameters that will make the chance on errors very high
 % \end{description}
 #
 # Type Checking

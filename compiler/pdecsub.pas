@@ -1014,6 +1014,9 @@ var
   import_nr   : word;
 begin
   aktprocsym.definition.forwarddef:=false;
+{ forbid local external procedures }
+  if lexlevel>normal_function_level then
+   Message(parser_e_no_local_external);
 { If the procedure should be imported from a DLL, a constant string follows.
   This isn't really correct, an contant string expression follows
   so we check if an semicolon follows, else a string constant have to
@@ -1842,7 +1845,10 @@ const
 end.
 {
   $Log$
-  Revision 1.18  2001-04-13 01:22:11  peter
+  Revision 1.19  2001-04-13 18:03:16  peter
+    * give error with local external procedure
+
+  Revision 1.18  2001/04/13 01:22:11  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
