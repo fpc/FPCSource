@@ -118,6 +118,7 @@ unit cgx86;
 
         { entry/exit code helpers }
         procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);override;
+        procedure g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);override;
         procedure g_interrupt_stackframe_entry(list : taasmoutput);override;
         procedure g_interrupt_stackframe_exit(list : taasmoutput;accused,acchiused:boolean);override;
         procedure g_profilecode(list : taasmoutput);override;
@@ -1605,6 +1606,12 @@ unit cgx86;
       end;
 
 
+    procedure tcgx86.g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);
+      begin
+        { Nothing to release }
+      end;
+
+
     procedure tcgx86.g_interrupt_stackframe_entry(list : taasmoutput);
 
     begin
@@ -1920,7 +1927,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.100  2003-12-26 14:02:30  peter
+  Revision 1.101  2004-01-14 21:43:54  peter
+    * add release_openarrayvalue
+
+  Revision 1.100  2003/12/26 14:02:30  peter
     * sparc updates
     * use registertype in spill_register
 
