@@ -543,7 +543,7 @@ const
 {$q-}
 {$define overflowon}
 {$endif}
-            a_op_const_reg_reg(list,OP_ADD,size,aword(-a),src,dst);
+            a_op_const_reg_reg(list,OP_ADD,size,aword(-longint(a)),src,dst);
 {$ifdef overflowon}
 {$q+}
 {$undef overflowon}
@@ -1639,7 +1639,7 @@ const
            end
          else if ref2.offset <> 0 Then
            if ref2.base.number <> NR_NO then
-             a_op_const_reg_reg(list,OP_ADD,OS_32,ref2.offset,ref2.base,r)
+             a_op_const_reg_reg(list,OP_ADD,OS_32,aword(ref2.offset),ref2.base,r)
            { FixRef makes sure that "(ref.index <> R_NO) and (ref.offset <> 0)" never}
            { occurs, so now only ref.offset has to be loaded                         }
            else
@@ -2337,7 +2337,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.79  2003-04-23 12:35:35  florian
+  Revision 1.80  2003-04-23 22:18:01  peter
+    * fixes to get rtl compiled
+
+  Revision 1.79  2003/04/23 12:35:35  florian
     * fixed several issues with powerpc
     + applied a patch from Jonas for nested function calls (PowerPC only)
     * ...

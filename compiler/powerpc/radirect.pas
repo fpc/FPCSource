@@ -215,6 +215,18 @@ interface
                                                if assigned(sym) and (sym.owner.symtabletype in [globalsymtable,staticsymtable]) then
                                                  begin
                                                    case sym.typ of
+                                                     constsym :
+                                                       begin
+                                                         inc(tconstsym(sym).refs);
+                                                         case tconstsym(sym).consttyp of
+                                                           constint,constchar,constbool :
+                                                             hs:=tostr(tconstsym(sym).value.valueord);
+                                                           constpointer :
+                                                             hs:=tostr(tconstsym(sym).value.valueordptr);
+                                                           else
+                                                             Message(asmr_e_wrong_sym_type);
+                                                         end;
+                                                       end;
                                                      varsym :
                                                        begin
                                                          Message2(asmr_h_direct_global_to_mangled,hs,tvarsym(sym).mangledname);
@@ -318,7 +330,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2003-03-22 18:00:27  jonas
+  Revision 1.9  2003-04-23 22:18:01  peter
+    * fixes to get rtl compiled
+
+  Revision 1.8  2003/03/22 18:00:27  jonas
     * fixes for new regallocator
 
   Revision 1.7  2003/01/08 18:43:58  daniel
