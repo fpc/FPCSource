@@ -19,7 +19,7 @@
 
 Type
   // CARL, CHANGE THESE TO THE NEEDED VALUES !  (MVC)
-  jmp_buf = record
+  jmp_buf = packed record
     ebx,esi,edi : Longint;
     bp,sp,pc : Pointer;
     end;
@@ -28,7 +28,10 @@ Type
 Function Setjmp (Var S : Jmp_buf) : longint;
 Procedure longjmp (Var S : Jmp_buf; value : longint);
   $Log$
-  Revision 1.3  2002-09-07 16:01:20  peter
+  Revision 1.4  2002-10-20 11:53:14  carl
+    * make the jmp_buf record packed, just in case
+
+  Revision 1.3  2002/09/07 16:01:20  peter
     * old logs removed and tabs fixed
 
 }
