@@ -214,7 +214,19 @@ implementation
 Resourcestring
   SErrNoStreamAssigned = 'Invalid operation: No stream assigned';
   SErrDocumentAlreadyStarted = 'Cannot start document twice.';
-  
+
+{$ifdef ver1_0}
+const   lineending=#10;
+
+procedure freeandnil(var o:Tobject);
+
+begin
+  o.destroy;
+  o:=nil;
+end;
+
+{$endif}
+
 { TPostScriptCanvas ----------------------------------------------------------}
 
 Procedure TPostScriptCanvas.WritePS(const Cmd : String);
