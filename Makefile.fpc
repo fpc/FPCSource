@@ -55,7 +55,11 @@ else
 ifeq ($(OS_TARGET),go32v2)
 ALLTARGET=smart
 else
+ifeq ($(OS_TARGET),linux)
+ALLTARGET=smart
+else
 ALLTARGET=all
+endif
 endif
 endif
 endif

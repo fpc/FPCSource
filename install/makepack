@@ -10,6 +10,9 @@ RELEASE=ELF
 
 unset FPCDIR
 
+# Goto the toplevel if necessary
+[ -d install ] || cd ..
+
 make linux
 make source
 make docs
@@ -23,6 +26,9 @@ echo Creating binary.tar
 tar cf binary.tar $FILES
 echo Creating sources.tar
 tar cf sources.tar $SOURCES
+echo Copying install.sh
+cp install/install.sh .
+chmod 755 install.sh
 
 echo Creating fpc-$VERSION.$RELEASE.tar
 tar cf fpc-$VERSION.$RELEASE.tar $RELFILES
