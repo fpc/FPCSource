@@ -69,6 +69,8 @@ interface
     procedure gen_load_para_value(list:TAAsmoutput);
     procedure gen_load_return_value(list:TAAsmoutput);
 
+    procedure gen_external_stub(list:taasmoutput;pd:tprocdef;const externalname:string);
+
    {#
       Allocate the buffers for exception management and setjmp environment.
       Return a pointer to these buffers, send them to the utility routine
@@ -1847,6 +1849,23 @@ implementation
 
 
 {****************************************************************************
+                           External handling
+****************************************************************************}
+
+    procedure gen_external_stub(list:taasmoutput;pd:tprocdef;const externalname:string);
+      begin
+        { add the procedure to the codesegment }
+        maybe_new_object_file(list);
+        new_section(list,sec_code,lower(pd.mangledname),aktalignment.procalign);
+        list.concat(Tai_align.create(aktalignment.procalign));
+        if (po_global in pd.procoptions) then
+          list.concat(Tai_symbol.createname_global(pd.mangledname,AT_FUNCTION,0))
+        else
+          list.concat(Tai_symbol.createname(pd.mangledname,AT_FUNCTION,0));
+        cg.a_jmp_name(list,externalname);
+      end;
+
+{****************************************************************************
                                Const Data
 ****************************************************************************}
 
@@ -2307,7 +2326,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.249  2004-12-11 12:42:28  jonas
+  Revision 1.250  2004-12-15 16:00:16  peter
+    * external is again allowed in implementation
+
+  Revision 1.249  2004/12/11 12:42:28  jonas
     * fixed synchronising 64bit regvars on 32bit systems at the start and
       end of procedures
     * hack for ppc for loading of paras from their callee location to local

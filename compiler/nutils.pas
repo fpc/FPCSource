@@ -493,10 +493,16 @@ implementation
               subscriptn,
               blockn:
                 p := tunarynode(p).left;
-              derefn,
-              { may be more complex in some cases }
+              derefn :
+                begin
+                  inc(result);
+                  if (result = NODE_COMPLEXITY_INF) then
+                    exit;
+                  p := tunarynode(p).left;
+                end;
               typeconvn:
                 begin
+                  { may be more complex in some cases }
                   if not(ttypeconvnode(p).convtype in [tc_equal,tc_int_2_int,tc_bool_2_bool,tc_real_2_real,tc_cord_2_pointer]) then
                     inc(result);
                   if (result = NODE_COMPLEXITY_INF) then
@@ -545,7 +551,10 @@ end.
 
 {
   $Log$
-  Revision 1.26  2004-12-15 15:27:03  jonas
+  Revision 1.27  2004-12-15 16:00:16  peter
+    * external is again allowed in implementation
+
+  Revision 1.26  2004/12/15 15:27:03  jonas
     * fixed foreachnode(static) for case nodes (fixes inlining of case
       statements)
 

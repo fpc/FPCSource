@@ -1074,6 +1074,7 @@ implementation
                         PROCEDURE/FUNCTION PARSING
 ****************************************************************************}
 
+
     procedure check_init_paras(p:tnamedindexitem;arg:pointer);
       begin
         if tsym(p).typ<>paravarsym then
@@ -1115,6 +1116,7 @@ implementation
         pdflags          : tpdflags;
         pd               : tprocdef;
         isnestedproc     : boolean;
+        s                : string;
       begin
          { save old state }
          oldconstsymtable:=constsymtable;
@@ -1271,6 +1273,22 @@ implementation
              { Handle imports }
              if (po_external in pd.procoptions) then
                begin
+                 { External declared in implementation, and there was already a
+                   forward (or interface) declaration then we need to generate
+                   a stub that calls the external routine }
+                 if (not pd.forwarddef) and
+                    (pd.hasforward) and
+                    not(
+                        assigned(pd.import_dll) and
+                        (target_info.system in [system_i386_win32,system_i386_wdosx,
+                                                system_i386_emx,system_i386_os2])
+                       ) then
+                   begin
+                     s:=proc_get_importname(pd);
+                     if s<>'' then
+                       gen_external_stub(codesegment,pd,s);
+                   end;
+
                  { Import DLL specified? }
                  if assigned(pd.import_dll) then
                    begin
@@ -1288,9 +1306,9 @@ implementation
                    end
                  else
                    begin
-                     { add mangledname to external list for DLL scanning }
+                     { add import name to external list for DLL scanning }
                      if target_info.DllScanSupported then
-                       current_module.externals.insert(tExternalsItem.create(pd.mangledname));
+                       current_module.externals.insert(tExternalsItem.create(proc_get_importname(pd)));
                    end;
                end;
            end;
@@ -1427,7 +1445,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.222  2004-12-05 12:28:11  peter
+  Revision 1.223  2004-12-15 16:00:16  peter
+    * external is again allowed in implementation
+
+  Revision 1.222  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that

@@ -47,6 +47,7 @@ interface
     procedure insert_funcret_local(pd:tprocdef);
 
     function  proc_add_definition(var pd:tprocdef):boolean;
+    function  proc_get_importname(pd:tprocdef):string;
     procedure proc_set_mangledname(pd:tprocdef);
 
     procedure handle_calling_convention(pd:tabstractprocdef);
@@ -1384,7 +1385,7 @@ const
       pooption : [po_external];
       mutexclpocall : [pocall_internproc,pocall_inline,pocall_syscall];
       mutexclpotype : [potype_constructor,potype_destructor];
-      mutexclpo     : [po_exports,po_interrupt,po_assembler]
+      mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler]
     ),(
       idtok:_FAR;
       pd_flags : [pd_implemen,pd_body,pd_interface,pd_procvar,pd_notobject,pd_notobjintf];
@@ -1798,61 +1799,78 @@ const
 
 
 
+    function proc_get_importname(pd:tprocdef):string;
+      begin
+        result:='';
+        if not(po_external in pd.procoptions) then
+          internalerror(200412151);
+        { import by number? }
+        if pd.import_nr<>0 then
+          begin
+            { Nothing to do }
+          end
+        else
+        { external name specified }
+          if assigned(pd.import_name) then
+            begin
+              { Win32 imports need to use the normal name since to functions
+                can refer to the same DLL function. This is also needed for compatability
+                with Delphi and TP7 }
+              if not(
+                     assigned(pd.import_dll) and
+                     (target_info.system in [system_i386_win32,system_i386_wdosx,
+                                             system_i386_emx,system_i386_os2])
+                    ) then
+                begin
+                  if not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+                    result:=pd.import_name^
+                  else
+                    result:=target_info.Cprefix+pd.import_name^;
+                end;
+            end
+        else
+          begin
+            { Default names when importing variables }
+            case pd.proccalloption of
+              pocall_cdecl :
+                begin
+                  if assigned(pd._class) then
+                    result:=target_info.Cprefix+pd._class.objrealname^+'_'+pd.procsym.realname
+                  else
+                    result:=target_info.Cprefix+pd.procsym.realname;
+                end;
+              pocall_cppdecl :
+                begin
+                  result:=target_info.Cprefix+pd.cplusplusmangledname;
+                end;
+              else
+                begin
+                  {In MacPas a single "external" has the same effect as "external name 'xxx'" }
+                  if (m_mac in aktmodeswitches) then
+                    result:=tprocdef(pd).procsym.realname;
+                end;
+            end;
+          end;
+      end;
+
+
     procedure proc_set_mangledname(pd:tprocdef);
+      var
+        s : string;
       begin
         { When the mangledname is already set we aren't allowed to change
           it because it can already be used somewhere (PFV) }
         if not(po_has_mangledname in pd.procoptions) then
           begin
-            { External Procedures }
             if (po_external in pd.procoptions) then
               begin
-                { import by number? }
-                if pd.import_nr<>0 then
+                { External Procedures are only allowed to change the mangledname
+                  in their first declaration }
+                if (pd.forwarddef or (not pd.hasforward)) then
                   begin
-                    { Nothing to do }
-                  end
-                else
-                { external name specified }
-                  if assigned(pd.import_name) then
-                    begin
-                      { Win32 imports need to use the normal name since to functions
-                        can refer to the same DLL function. This is also needed for compatability
-                        with Delphi and TP7 }
-                      if not(
-                             assigned(pd.import_dll) and
-                             (target_info.system in [system_i386_win32,system_i386_wdosx,
-                                                     system_i386_emx,system_i386_os2])
-                            ) then
-                        begin
-                          if not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
-                            pd.setmangledname(pd.import_name^)
-                          else
-                            pd.setmangledname(target_info.Cprefix+pd.import_name^);
-                        end;
-                    end
-                else
-                  begin
-                    { Default names when importing variables }
-                    case pd.proccalloption of
-                      pocall_cdecl :
-                        begin
-                          if assigned(pd._class) then
-                           pd.setmangledname(target_info.Cprefix+pd._class.objrealname^+'_'+pd.procsym.realname)
-                          else
-                           pd.setmangledname(target_info.Cprefix+pd.procsym.realname);
-                        end;
-                      pocall_cppdecl :
-                        begin
-                          pd.setmangledname(target_info.Cprefix+pd.cplusplusmangledname);
-                        end;
-                      else
-                        begin
-                          {In MacPas a single "external" has the same effect as "external name 'xxx'" }
-                          if (m_mac in aktmodeswitches) then
-                            tprocdef(pd).setmangledname(tprocdef(pd).procsym.realname);
-                        end;
-                    end;
+                    s:=proc_get_importname(pd);
+                    if s<>'' then
+                      pd.setmangledname(s);
                   end;
               end
             else
@@ -2188,21 +2206,7 @@ const
 
                    { Forward declaration is external? }
                    if (po_external in hd.procoptions) then
-                     MessagePos(pd.fileinfo,parser_e_proc_already_external)
-                   else
-                     { Body declaration is external? }
-                     if (po_external in pd.procoptions) then
-                       begin
-                         { Win32 supports declaration in interface and external in
-                           implementation for dll imports. Support this for backwards
-                           compatibility with Tp7 and Delphi }
-                         if not(
-                                (target_info.system in [system_i386_win32,system_i386_wdosx,
-                                                        system_i386_emx,system_i386_os2]) and
-                                assigned(pd.import_dll)
-                               ) then
-                           MessagePos(pd.fileinfo,parser_e_proc_no_external_allowed);
-                       end;
+                     MessagePos(pd.fileinfo,parser_e_proc_already_external);
 
                    { Check parameters }
                    if (m_repeat_forward in aktmodeswitches) or
@@ -2344,7 +2348,10 @@ const
 end.
 {
   $Log$
-  Revision 1.218  2004-12-07 16:11:52  peter
+  Revision 1.219  2004-12-15 16:00:16  peter
+    * external is again allowed in implementation
+
+  Revision 1.218  2004/12/07 16:11:52  peter
     * set vo_explicit_paraloc flag
 
   Revision 1.217  2004/12/05 12:28:11  peter
