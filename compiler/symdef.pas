@@ -4599,20 +4599,29 @@ implementation
               pdc:=TParaItem(Para.last);
              while assigned(pdc) do
                begin
-                 case pdc.paratyp of
-                   vs_value: paraspec := 0;
-                   vs_const: paraspec := pfConst;
-                   vs_var  : paraspec := pfVar;
-                   vs_out  : paraspec := pfOut;
-                 end;
-                 { write flags for current parameter }
-                 rttiList.concat(Tai_const.Create_8bit(paraspec));
-                 { write name of current parameter ### how can I get this??? (sg)}
-                 rttiList.concat(Tai_const.Create_8bit(0));
+                 { only store user visible parameters }
+                 if not pdc.is_hidden then
+                   begin
+                     case pdc.paratyp of
+                       vs_value: paraspec := 0;
+                       vs_const: paraspec := pfConst;
+                       vs_var  : paraspec := pfVar;
+                       vs_out  : paraspec := pfOut;
+                     end;
+                     { write flags for current parameter }
+                     rttiList.concat(Tai_const.Create_8bit(paraspec));
+                     { write name of current parameter }
+                     if assigned(pdc.parasym) then
+                       begin
+                         rttiList.concat(Tai_const.Create_8bit(length(pdc.parasym.realname)));
+                         rttiList.concat(Tai_string.Create(pdc.parasym.realname));
+                       end
+                     else
+                       rttiList.concat(Tai_const.Create_8bit(0));
 
-                 { write name of type of current parameter }
-                 tstoreddef(pdc.paratype.def).write_rtti_name;
-
+                     { write name of type of current parameter }
+                     tstoreddef(pdc.paratype.def).write_rtti_name;
+                   end;
                  if proccalloption in pushleftright_pocalls then
                   pdc:=TParaItem(pdc.next)
                  else
@@ -6167,7 +6176,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.201  2004-01-22 16:33:22  peter
+  Revision 1.202  2004-01-22 21:33:54  peter
+    * procvardef rtti fixed
+
+  Revision 1.201  2004/01/22 16:33:22  peter
     * enum value rtti is now in orginal case
 
   Revision 1.200  2004/01/20 12:59:37  florian
