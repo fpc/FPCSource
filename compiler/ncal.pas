@@ -607,9 +607,6 @@ type
       begin
          inc(parsing_para_level);
 
-         if not assigned(paraitem) then
-           internalerror(200104261);
-
 {$ifdef extdebug}
          if do_count then
            begin
@@ -623,19 +620,21 @@ type
 
          { Handle varargs and hidden paras directly, no typeconvs or }
          { typechecking needed                                       }
-         if (nf_varargs_para in flags) or
-             (paraitem.paratyp = vs_hidden) then
+         if (nf_varargs_para in flags) then
            begin
-             if (paraitem.paratyp <> vs_hidden) then
-               begin
-                 { convert pascal to C types }
-                 case left.resulttype.def.deftype of
-                   stringdef :
-                     inserttypeconv(left,charpointertype);
-                   floatdef :
-                     inserttypeconv(left,s64floattype);
-                 end;
-               end;
+             { convert pascal to C types }
+             case left.resulttype.def.deftype of
+               stringdef :
+                 inserttypeconv(left,charpointertype);
+               floatdef :
+                 inserttypeconv(left,s64floattype);
+             end;
+             set_varstate(left,true);
+             resulttype:=left.resulttype;
+           end
+         else
+          if (paraitem.paratyp = vs_hidden) then
+           begin
              set_varstate(left,true);
              resulttype:=left.resulttype;
            end
@@ -1681,6 +1680,7 @@ type
                    if assigned(pt) then
                      aktfilepos:=pt.fileinfo;
                    CGMessage(parser_e_wrong_parameter_size);
+                   goto errorexit;
                 end;
            end
          else
@@ -2372,7 +2372,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.137  2003-04-11 16:02:05  peter
+  Revision 1.138  2003-04-22 09:53:33  peter
+    * fix insert_typeconv to handle new varargs which don't have a
+      paraitem set
+
+  Revision 1.137  2003/04/11 16:02:05  peter
     * don't firstpass typen
 
   Revision 1.136  2003/04/11 15:51:04  peter
