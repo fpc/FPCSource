@@ -421,7 +421,7 @@ program install;
   procedure tunzipdialog.do_unzip(s,topath : string);
     var
       again : boolean;
-      s,fn,dir,wild : string;
+      fn,dir,wild : string;
     begin
        Disposestr(filetext^.text);
        filetext^.Text:=NewStr('File: '+s);
@@ -729,12 +729,12 @@ program install;
                   S := FExpand (Data.BasePath);
                   if S [Length (S)] = DirSep then
                    Dec (S [0]);
-                  Space := DiskFree (byte (Upper(S [1])) - 64) shr 10;
+                  Space := DiskFree (byte (Upcase(S [1])) - 64) shr 10;
                   if Space < DSize then
                    S := 'is not'
                   else
                    S := '';
-                  if true or (Space < DSize + 500) then
+                  if (Space < DSize + 500) then
                    begin
                      if S = '' then
                       S := 'might not be';
@@ -1112,7 +1112,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2000-02-02 17:19:10  pierre
+  Revision 1.16  2000-02-06 12:59:39  peter
+    * change upper -> upcase
+    * fixed stupid debugging leftover with diskspace check
+
+  Revision 1.15  2000/02/02 17:19:10  pierre
    * avoid diskfree problem and get mouse visible
 
   Revision 1.14  2000/02/02 15:21:31  peter
