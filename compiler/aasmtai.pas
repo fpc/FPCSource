@@ -210,7 +210,7 @@ interface
                   ait_stabn,ait_stabs,ait_stab_function_name,
 {$endif GDB}
                   ait_cut,ait_marker,ait_align,ait_section,ait_comment,
-                  ait_const_8bit,ait_const_16bit,ait_const_32bit,
+                  ait_const_8bit,ait_const_16bit,ait_const_32bit,ait_const_64bit,
                   ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit,
                   ait_non_lazy_symbol_pointer
                   ];
@@ -2009,7 +2009,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2004-03-16 22:12:10  florian
+  Revision 1.82  2004-04-12 18:59:32  florian
+    * small x86_64 fixes
+
+  Revision 1.81  2004/03/16 22:12:10  florian
     * some alignment issues resolved
     * compiler doesn't generate anymore instructions not supported by the linux fpe
 

@@ -199,8 +199,8 @@ var
 
 
     const
-      ait_const2str : array[ait_const_32bit..ait_const_8bit] of string[8]=
-       (#9'.long'#9,#9'.short'#9,#9'.byte'#9);
+      ait_const2str : array[ait_const_64bit..ait_const_8bit] of string[8]=
+       (#9'.quad'#9,#9'.long'#9,#9'.short'#9,#9'.byte'#9);
 
 
     function ait_section2str(s:TSection):string;
@@ -321,7 +321,6 @@ var
       hp:=tai(p.first);
       while assigned(hp) do
        begin
-
          if not(hp.typ in SkipLineInfo) then
           begin
             hp1 := hp as tailineinfo;
@@ -461,6 +460,7 @@ var
                AsmWriteln('');
              end;
 
+           ait_const_64bit,
            ait_const_32bit,
            ait_const_16bit,
            ait_const_8bit :
@@ -882,7 +882,10 @@ var
 end.
 {
   $Log$
-  Revision 1.48  2004-03-17 22:27:41  florian
+  Revision 1.49  2004-04-12 18:59:32  florian
+    * small x86_64 fixes
+
+  Revision 1.48  2004/03/17 22:27:41  florian
     * fixed handling of doubles in a native arm compiler
     * fixed handling of typed double constants on arm
 

@@ -1888,7 +1888,7 @@ implementation
                if code=0 then
                  begin
                     consume(_INTCONST);
-                    int_to_type(card,htype);
+                    int_to_type(ic,htype);
                     p1:=cordconstnode.create(ic,htype,true);
                  end;
 {$else cpu64bit}
@@ -2399,7 +2399,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.152  2004-03-29 14:42:52  peter
+  Revision 1.153  2004-04-12 18:59:32  florian
+    * small x86_64 fixes
+
+  Revision 1.152  2004/03/29 14:42:52  peter
     * variant array support
 
   Revision 1.151  2004/03/23 22:34:49  peter
