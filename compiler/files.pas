@@ -852,11 +852,11 @@ unit files;
         used_units.done;
         used_units.init;
         linkofiles.done;
-        linkofiles.init;
+        linkofiles.init_no_double;
         linkstaticlibs.done;
-        linkstaticlibs.init;
+        linkstaticlibs.init_no_double;
         linksharedlibs.done;
-        linksharedlibs.init;
+        linksharedlibs.init_no_double;
         uses_imports:=false;
         do_assemble:=false;
         do_compile:=false;
@@ -912,9 +912,9 @@ unit files;
          setfilename(p+n,true);
          used_units.init;
          new(sourcefiles,init);
-         linkofiles.init;
-         linkstaticlibs.init;
-         linksharedlibs.init;
+         linkofiles.init_no_double;
+         linkstaticlibs.init_no_double;
+         linksharedlibs.init_no_double;
          ppufile:=nil;
          scanner:=nil;
          map:=nil;
@@ -1022,7 +1022,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.65  1998-10-15 12:22:25  pierre
+  Revision 1.66  1998-10-19 18:07:11  peter
+    + external dll_name name func support for linux
+
+  Revision 1.65  1998/10/15 12:22:25  pierre
     * close include files immediately after end reading
       instead of waiting until unit compilation ended !
 

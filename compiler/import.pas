@@ -66,6 +66,7 @@ uses
   ,os2_targ
   ,win_targ
 {$endif}
+  ,lin_targ
   ;
 
 {****************************************************************************
@@ -80,6 +81,7 @@ begin
   ordnr:=o;
   lab:=nil;
 end;
+
 
 destructor timported_procedure.done;
 begin
@@ -98,6 +100,7 @@ begin
   dllname:=stringdup(n);
   imported_procedures:=new(plinkedlist,init);
 end;
+
 
 destructor timportlist.done;
 begin
@@ -147,24 +150,32 @@ end;
 
 procedure InitImport;
 begin
-{$ifdef i386}
   case target_info.target of
+{$ifdef i386}
+    target_i386_Linux :
+      importlib:=new(pimportliblinux,Init);
     target_i386_Win32 :
       importlib:=new(pimportlibwin32,Init);
     target_i386_OS2 :
       importlib:=new(pimportlibos2,Init);
+{$endif i386}
+{$ifdef m68k}
+    target_m68k_Linux :
+      importlib:=new(pimportliblinux,Init);
+{$endif m68k}
     else
       importlib:=new(pimportlib,Init);
   end;
-{$else i386}
-  importlib:=new(pimportlib,Init);
-{$endif i386}
 end;
+
 
 end.
 {
   $Log$
-  Revision 1.7  1998-10-19 15:41:02  peter
+  Revision 1.8  1998-10-19 18:07:12  peter
+    + external dll_name name func support for linux
+
+  Revision 1.7  1998/10/19 15:41:02  peter
     * better splitname to support glib-1.1.dll alike names
 
   Revision 1.6  1998/10/13 13:10:17  peter
