@@ -59,8 +59,6 @@ interface
          s:='';
          with ref do
            begin
-             inc(offset,offsetfixup);
-             offsetfixup:=0;
              basestr:=gas_reg2str[base.enum];
              indexstr:=gas_reg2str[index.enum];
              if assigned(symbol) then
@@ -354,7 +352,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2004-04-25 21:26:16  florian
+  Revision 1.9  2004-04-27 15:00:37  florian
+    - removed offsetfixup reference
+
+  Revision 1.8  2004/04/25 21:26:16  florian
     * some m68k stuff fixed
 
   Revision 1.7  2003/02/19 22:00:16  daniel
