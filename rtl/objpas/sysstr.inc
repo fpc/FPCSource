@@ -476,7 +476,7 @@ j := 0;
 count := Length(S);
 while i < count do begin
    i := i + 1;
-{$ifndef linux}
+{$ifndef unix}
    if (S[i] = #13) and ((i = count) or (S[i + 1] <> #10)) then
      begin
      result := result + Copy(S, 1 + j, i - j) + #10;
@@ -1232,7 +1232,10 @@ const
 
 {
   $Log$
-  Revision 1.1.2.7  2001-08-01 21:45:22  peter
+  Revision 1.1.2.8  2001-08-14 20:06:23  carl
+  -* replace ifdef linux -> ifdef unix
+
+  Revision 1.1.2.7  2001/08/01 21:45:22  peter
     * fix thousend separator when no decimal separator is available
     * allow precision to be left away like %10.n
 
