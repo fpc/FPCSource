@@ -1956,7 +1956,7 @@ end;
 Procedure DefaultPutImage(X,Y: Integer; var Bitmap; BitBlt: Word); {$ifndef fpc}far;{$endif fpc}
 type
   pt = array[0..$fffffff] of word;
-  ptw = array[0..3] of longint;
+  ptw = array[0..2] of longint;
 var
   color: word;
   i,j: Integer;
@@ -1965,7 +1965,7 @@ var
 Begin
   X1:= ptw(Bitmap)[0]+X; { get width and adjust end coordinate accordingly }
   Y1:= ptw(Bitmap)[1]+Y; { get height and adjust end coordinate accordingly }
-  k:= 12; { Three reserved longs at start of bitmap }
+  k:= 3 * Sizeof(longint) div Sizeof(word); { Three reserved longs at start of bitmap }
   for j:=Y to Y1 do
    Begin
      for i:=X to X1 do
@@ -1991,12 +1991,12 @@ end;
 Procedure DefaultGetImage(X1,Y1,X2,Y2: Integer; Var Bitmap); {$ifndef fpc}far;{$endif fpc}
 type
   pt = array[0..$fffffff] of word;
-  ptw = array[0..3] of longint;
+  ptw = array[0..2] of longint;
 var
   i,j: integer;
   k: longint;
 Begin
-  k:= 12; { Three reserved longs at start of bitmap }
+  k:= 3 * Sizeof(longint) div Sizeof(word); { Three reserved longs at start of bitmap }
   for j:=Y1 to Y2 do
    Begin
      for i:=X1 to X2 do
@@ -3002,7 +3002,10 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.39  1999-11-24 23:42:31  pierre
+  Revision 1.40  1999-11-25 17:44:14  pierre
+   * memory corruption within GetImage removed
+
+  Revision 1.39  1999/11/24 23:42:31  pierre
     * PutImage used an integer index that became negative !!!!
     * Default needed procedure now genrate a RTE 218 instead of a
       GPF by call to nil pointer !
