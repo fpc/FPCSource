@@ -202,31 +202,33 @@ type
 
       { functions and properties to match TBits class }
       procedure SetBit(bit : longint; value : Boolean);
-      function getSize : longint;
-      procedure setSize(value : longint);
+      function GetSize : longint;
+      procedure SetSize(value : longint);
+      procedure CheckBitIndex (Bit : longint;CurrentSize : Boolean);
+
    public
       { Public declarations }
-      constructor Create(theSize : longint); virtual;
+      constructor Create(TheSize : longint); virtual;
       destructor Destroy; override;
-      function  getFSize : longint;
-      procedure seton(bit : longint);
-      procedure clear(bit : longint);
-      procedure clearall;
-      procedure andbits(bitset : TBits);
-      procedure orbits(bitset : TBits);
-      procedure xorbits(bitset : TBits);
-      procedure notbits(bitset : TBits);
-      function  get(bit : longint) : boolean;
-      procedure grow(nbit : longint);
-      function  equals(bitset : TBits) : Boolean;
-      procedure SetIndex(index : longint);
-      function  FindFirstBit(state : boolean) : longint;
+      function  GetFSize : longint;
+      procedure SetOn(Bit : longint);
+      procedure Clear(Bit : longint);
+      procedure Clearall;
+      procedure AndBits(BitSet : TBits);
+      procedure OrBits(BitSet : TBits);
+      procedure XorBits(BitSet : TBits);
+      procedure NotBits(BitSet : TBits);
+      function  Get(Bit : longint) : boolean;
+      procedure Grow(NBit : longint);
+      function  Equals(BitSet : TBits) : Boolean;
+      procedure SetIndex(Index : longint);
+      function  FindFirstBit(State : boolean) : longint;
       function  FindNextBit : longint;
       function  FindPrevBit : longint;
 
       { functions and properties to match TBits class }
       function OpenBit: longint;
-      property Bits[bit: longint]: Boolean read get write SetBit; default;
+      property Bits[Bit: longint]: Boolean read get write SetBit; default;
       property Size: longint read getSize write setSize;
    end;
 
@@ -1234,7 +1236,11 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.3  2000-08-15 04:10:38  peter
+  Revision 1.4  2000-10-15 10:04:39  peter
+    + Capitalization of TBits interface fixed; CheckBitIndex now checks for
+      size (merged)
+
+  Revision 1.3  2000/08/15 04:10:38  peter
     * delphi compatibility fix
 
   Revision 1.2  2000/07/13 11:32:59  michael
