@@ -54,7 +54,7 @@ End;
 
 Function  FpExecv (path : AnsiString; argv : ppchar): cInt;
 Begin
-  FpExecv:=FpExecv (pchar(path),argv);
+  FpExecv:=FpExecve (pchar(path),argv,envp);
 End;
 
 
@@ -331,7 +331,10 @@ end;
 
 {
  $Log$
- Revision 1.9  2004-01-04 21:04:08  jonas
+ Revision 1.10  2004-03-28 19:36:19  marco
+  * fix for recursive fpc.exe ?
+
+ Revision 1.9  2004/01/04 21:04:08  jonas
    * declare C-library routines as external in libc for Darwin (so we
      generate proper import entries)
 
