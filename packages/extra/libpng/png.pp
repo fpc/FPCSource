@@ -79,13 +79,13 @@ type
 
 
 var
-  png_libpng_ver : array[0..11] of char;   cvar;
-  png_pass_start : array[0..6] of longint; cvar;
-  png_pass_inc : array[0..6] of longint;   cvar; 
-  png_pass_ystart : array[0..6] of longint;cvar;
-  png_pass_yinc : array[0..6] of longint;  cvar; 
-  png_pass_mask : array[0..6] of longint;  cvar;
-  png_pass_dsp_mask : array[0..6] of longint; cvar;
+  png_libpng_ver : array[0..11] of char;   cvar; external;
+  png_pass_start : array[0..6] of longint; cvar; external;
+  png_pass_inc : array[0..6] of longint;   cvar; external; 
+  png_pass_ystart : array[0..6] of longint;cvar; external;
+  png_pass_yinc : array[0..6] of longint;  cvar; external; 
+  png_pass_mask : array[0..6] of longint;  cvar; external;
+  png_pass_dsp_mask : array[0..6] of longint; cvar; external;
 
 Type
   png_color = record
