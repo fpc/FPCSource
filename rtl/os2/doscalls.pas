@@ -54,6 +54,11 @@ unit DosCalls;
  Daniel Mantione,
  June 1997
 
+ Please, note, that all calls of the original functions from DOSCALLS.DLL must
+ be declared using cdecl (C calling convention)! This doesn't apply to wrapped
+ around functions, of course (like equivalents of some functions with string
+ instead of PChar).
+
 Changelog:
 
     People:
@@ -132,7 +137,7 @@ type    TByteArray=array[0..$fff0] of byte;
 
 ****************************************************************************}
 
-type    TThreadEntry=procedure(Param:pointer);
+type    TThreadEntry=procedure(Param:pointer); cdecl;
         ThreadEntry=TThreadEntry;
 
 
@@ -158,37 +163,37 @@ const   dtSuspended         =1; {Thread is started suspended instead of
  Flags      = Flags. Either dtsuspended or dt_stackcommited.
  StackSize  = Size of the stack of the new thread.}
 function DosCreateThread(var TID:longint;Address:TThreadEntry;
-                          AParam:pointer;Flags,StackSize:longint):longint;
+                        AParam:pointer;Flags,StackSize:longint):longint; cdecl;
 
 {Suspend a running thread.}
-function DosSuspendThread(TID:longint):longint;
+function DosSuspendThread(TID:longint):longint; cdecl;
 
 {Resume a suspended thread.}
-function DosResumeThread(TID:longint):longint;
+function DosResumeThread(TID:longint):longint; cdecl;
 
 {Terminate a specific thread.}
-function DosKillThread(TID:longint):longint;
+function DosKillThread(TID:longint):longint; cdecl;
 
 {Wait until a specific thread has ended.
  TID            = Thread to terminate. Can also be zero. In that case we
                   wait until the next thread terminates. Its thread ID is
                   returned back.
  Option         = Flags. Either dtWait or dtNoWait.}
-function DosWaitThread(var TID:longint;Option:longint):longint;
+function DosWaitThread(var TID:longint;Option:longint):longint; cdecl;
 
 {All other threads in the same process are suspended until a
 DosExitCritSec.}
-function DosEnterCritSec:longint;
+function DosEnterCritSec:longint; cdecl;
 
 {Resume the other threads again.}
-function DosExitCritSec:longint;
+function DosExitCritSec:longint; cdecl;
 
 const   deThread=0;         {Terminate thread only.}
         deProcess=1;        {Terminate the whole process.}
 
 {Terminate the thread or the program. Never returns, so it's defined as
  procedure.}
-procedure DosExit(Action,Result:longint);
+procedure DosExit(Action,Result:longint); cdecl;
 
 type    PThreadInfoBlock=^TThreadInfoBlock;
         PSysThreadIB=^TSysThreadIB;
@@ -243,7 +248,7 @@ type    PThreadInfoBlock=^TThreadInfoBlock;
  address. The service cannot fail, so it is defined as procedure.}
 
 procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
-                           var APIB:PProcessInfoBlock);
+                           var APIB:PProcessInfoBlock); cdecl;
 
 {Wait a number of microseconds. Cannot fail, so it is defined as procedure.}
 procedure DosSleep(MSec:longint); cdecl;
@@ -260,7 +265,7 @@ function DosBeep(Freq,MS:longint):longint; cdecl;
 
 {You need a heavy manual if you want to know how this procedure works. Used
 for writing debuggers.}
-function DosDebug(DebugBuf:pointer):longint;
+function DosDebug(DebugBuf:pointer):longint; cdecl;
 
 const   TC_exit         = 0;
         TC_harderror    = 1;
@@ -272,7 +277,7 @@ const   TC_exit         = 0;
         ExLst_Remove    = 2;
         ExLst_Exit      = 3;
 
-type    TExitProc=procedure(Reason:longint);
+type    TExitProc=procedure(Reason:longint); cdecl;
 
 {Add/remove an exitprocedure to the exit list. Also used to terminate an
  exit procedure. An exit procedure will be called on exiting of the program.
@@ -284,7 +289,7 @@ An exit procedure is called with one of the TC_XXXX constants. When it is
 done it must call DosExitList with ExLst_Exit.
 
 Exit procedures are called in random order.}
-function DosExitList(OrderCode:longint;Proc:TExitProc):longint;
+function DosExitList(OrderCode:longint;Proc:TExitProc):longint; cdecl;
 
 const   deSync          = 0;    {Wait until program terminates.}
         deAsync         = 1;    {Do not wait.}
@@ -323,7 +328,7 @@ type    TResultCodes=record
                   for the PATH environment variable.}
 function DosExecPgm(ObjName:PChar;ObjLen,ExecFlag:longint;
                     Args,Env:PByteArray;var Res:TResultCodes;
-                    FileName:PChar):longint;
+                    FileName:PChar):longint; cdecl;
 function DosExecPgm(var ObjName:string;ExecFlag:longint;
                     Args,Env:PByteArray;var Res:TResultCodes;
                     const FileName:string):longint;
@@ -339,7 +344,7 @@ TermPID             = Process ID that has been terminated. Usefull when
 PID                 = Process ID of process to terminate. Use a zero to
                       terminate a random process.}
 function DosWaitChild(Action,Option:longint;var Res:TResultCodes;
-                      var TermPID:longint;PID:longint):longint;
+                      var TermPID:longint;PID:longint):longint; cdecl;
 
 const   dpProcess       = 0;
         dpProcessChilds = 1;
@@ -362,7 +367,7 @@ const   dpProcess       = 0;
  Delta              = Value to add to priority. Resulting priority must be in
                       the range 0..31.
  PortID             = Process ID when Scope=0 or 1, thread ID when Scope=2.}
-function DosSetPriority(Scope,TrClass,Delta,PortID:longint):longint;
+function DosSetPriority(Scope,TrClass,Delta,PortID:longint):longint; cdecl;
 
 {Terminate a process. If the process isn't a child process, it can refuse
  to terminate.
@@ -370,7 +375,7 @@ function DosSetPriority(Scope,TrClass,Delta,PortID:longint):longint;
  Action             = 0 = Terminate process and all its childs.
                       1 = Terminate process only.
  PID                = Process ID of process to terminate.}
-function DosKillProcess(Action,PID:longint):longint;
+function DosKillProcess(Action,PID:longint):longint; cdecl;
 
 const   AppTyp_NotSpec          = $0000; {Apptype is unknown.}
         AppTyp_NotWindowCompat  = $0001; {App cannot run in a window.}
@@ -389,7 +394,7 @@ const   AppTyp_NotSpec          = $0000; {Apptype is unknown.}
 {Get the application type of an executable file on disk.
  FileName           = Name of file to get type from.
  Flags              = Receives a bitfield using the AppTyp constants.}
-function DosQueryAppType(FileName:PChar;var Flags:longint):longint;
+function DosQueryAppType(FileName:PChar;var Flags:longint):longint; cdecl;
 
 const   diPrinter   = 0;    {Get number of printer (parallel) ports.}
         diRS232     = 1;    {Get number of serial ports.}
@@ -403,7 +408,7 @@ const   diPrinter   = 0;    {Get number of printer (parallel) ports.}
 {Get information about attached devices.
  DevInfo            = Receives requested information.
  Item               = One of the dixxxx constants.}
-function DosDevConfig(var DevInfo:byte;Item:longint):longint;
+function DosDevConfig(var DevInfo:byte;Item:longint):longint; cdecl;
 
 {****************************************************************************
 
@@ -433,13 +438,14 @@ type    TFileLock=record
                   Bit 1:    0 = Normal locking mode.
                             1 = Atomic mode. Refer IBM's documentation.}
 function DosSetFileLocks(Handle:longint;var Unlock,Lock:TFileLock;
-                         Timeout,Flags:longint):longint;
+                         Timeout,Flags:longint):longint; cdecl;
 
 {Cancel a filelock area.
 
 Handle  = File handle.
 Lock    = Area that is locked now.}
 function DosCancelLockRequest(Handle:longint;var Lock:TFileLock):longint;
+                                                                         cdecl;
 
 {Data structures for extended attributes. Reading IBM's documentation is
  highly recommended before experimenting with EAs.}
@@ -620,7 +626,7 @@ file starts with 512 bytes of bootsector, then 512 bytes of the second sector et
 The filename must consist of the driveletter followed by a semicolon.}
 function DosOpen(FileName:PChar;var Handle,Action:longint;
                  InitSize:longint;Attrib,OpenFlags,FileMode:longint;
-                 EA:PEAOp2):longint;
+                 EA:PEAOp2):longint; cdecl;
 {This variant of DosOpen always creates or overwrites a file.}
 function DosCreate(FileName:PChar;var Handle:longint;
                    Attrib,OpenMode:longint):longint;
@@ -639,7 +645,7 @@ function DosOpen(const FileName:string;var Handle:longint;
 
 {Close a file.
 Cannot fail if handle does exist.}
-function DosClose(Handle:longint):longint;
+function DosClose(Handle:longint):longint; cdecl;
 
 {Read from a file or other type of handle.
 
@@ -648,7 +654,7 @@ function DosClose(Handle:longint):longint;
     Count       = Number of bytes to read.
     ActCount    = Number of bytes actually read.}
 function DosRead(Handle:longint;var Buffer;Count:longint;
-                 var ActCount:longint):longint;
+                 var ActCount:longint):longint; cdecl;
 
 {Write to a file or other type of handle.
 
@@ -657,7 +663,7 @@ function DosRead(Handle:longint;var Buffer;Count:longint;
     Count       = Number of bytes to write.
     ActCount    = Number of bytes actually written.}
 function DosWrite(Handle:longint;var Buffer;Count:longint;
-                  var ActCount:longint):longint;
+                  var ActCount:longint):longint; cdecl;
 
 const   dsZeroBased=0;      {Set filepointer from begin of file.}
         dsRelative=1;       {Set filepointer relative to the current one.}
@@ -665,20 +671,20 @@ const   dsZeroBased=0;      {Set filepointer from begin of file.}
 
 {Change the filepointer of a file.}
 function DosSetFilePtr(Handle:Longint;Pos,Method:longint;
-                       var PosActual:longint):Longint;
+                       var PosActual:longint):Longint; cdecl;
 {This variant seeks always from begin of file and does not return the
  actual position.}
-function DosSetFilePtr(Handle:longint;Pos:longint):longint;
+function DosSetFilePtr(Handle:longint;Pos:longint):longint; cdecl;
 {This variant returns the current filepointer.}
 function DosGetFilePtr(Handle:longint;var PosActual:longint):longint;
 
 {Use DosQueryFileInfo or DosQueryPathInfo to get the size of a file.}
 
 {Change the size of a file.}
-function DosSetFileSize(Handle,Size:longint):longint;
+function DosSetFileSize(Handle,Size:longint):longint; cdecl;
 
 {Flush update the changes to a file to disk.}
-function DosResetBuffer(Handle:longint):longint;
+function DosResetBuffer(Handle:longint):longint; cdecl;
 
 {Duplicate or redirect a handle.
 To duplicate a handle: Fill handle with source handle and duplicate with -1.
@@ -686,15 +692,15 @@ To duplicate a handle: Fill handle with source handle and duplicate with -1.
 To redirect a handle:  Fill handle with handle to which the handle to
                        redirect will be redirected. The handle that will be
                        redirected should be placed in duplicate.}
-function DosDupHandle(Handle:longint;var Duplicate:longint):longint;
+function DosDupHandle(Handle:longint;var Duplicate:longint):longint; cdecl;
 
 {Return information about a specific handle. See DosOpen for a
  description of FileMode.}
-function DosQueryFHState(Handle:longint;var FileMode:longint):longint;
+function DosQueryFHState(Handle:longint;var FileMode:longint):longint; cdecl;
 
 {Set information about a specific handle. See DosOpen for a description
  of FileMode.}
-function DosSetFHState(Handle,FileMode:longint):longint;
+function DosSetFHState(Handle,FileMode:longint):longint; cdecl;
 
 {Usefull constants for the handle type.}
 const   dhFile      =    0;
@@ -710,7 +716,7 @@ const   dhFile      =    0;
                       Bit 15:     0 = Local.
                                   1 = On network.}
 function DosQueryHType(Handle:longint;var HandType:longint;
-                       var Attr:longint):longint;
+                       var Attr:longint):longint; cdecl;
 
 {****************************************************************************
 
@@ -732,14 +738,14 @@ Edit            = editstring
 Target          = destination buffer
 TargetLen       = size of the destination buffer}
 function DosEditName(MetaLevel:longint;Source,Edit:PChar;
-                     Target:PChar;TargetLen:longint):longint;
+                     Target:PChar;TargetLen:longint):longint; cdecl;
 function DosEditName(MetaLevel:longint;const Source,Edit:string;
                      var Target:string):longint;
 
 {Move or rename a file.
  OldFile    = old name of file
  NewFile    = new name of file}
-function DosMove(OldFile,NewFile:PChar):longint;
+function DosMove(OldFile,NewFile:PChar):longint; cdecl;
 function DosMove(const OldFile,NewFile:string):longint;
 
 
@@ -750,16 +756,16 @@ const   dcExisting=1;           {Overwrite existing files.}
 {Copy a file.
  OldFile    = source file
  NewFile    = destination file}
-function DosCopy(OldFile,NewFile:PChar;Option:longint):longint;
+function DosCopy(OldFile,NewFile:PChar;Option:longint):longint; cdecl;
 function DosCopy(const OldFile,NewFile:string;Option:longint):longint;
 
 {Delete a file from disk.}
-function DosDelete(FileName:PChar):longint;
+function DosDelete(FileName:PChar):longint; cdecl;
 function DosDelete(const FileName:string):longint;
 
 {Destroy a file on disk. DosForceDelete makes sure that the file cannot
  be unerased anymore.}
-function DosForceDelete(FileName:PChar):longint;
+function DosForceDelete(FileName:PChar):longint; cdecl;
 function DosForceDelete(const FileName:string):longint;
 
 {Create a new directory.
@@ -768,29 +774,29 @@ Name            = Name of directory to create.
 EA              = Extented attributes to give the directory. Use nil if you
                   do not want do give it extented attributes. Only the FEA
                   list is used.}
-function DosCreateDir(Name:PChar;EA:PEAOp2):longint;
+function DosCreateDir(Name:PChar;EA:PEAOp2):longint; cdecl;
 function DosCreateDir(const Name:string;EA:PEAOp2):longint;
 {Variants without the EA parameter (nil is used).}
 function DosCreateDir(Name:PChar):longint;
 function DosCreateDir(const Name:string):longint;
 
 {Remove a directory.}
-function DosDeleteDir(Name:PChar):longint;
+function DosDeleteDir(Name:PChar):longint; cdecl;
 function DosDeleteDir(const Name:string):longint;
 
 {Set the current drive. Cannot fail if the driveletter is correct.}
-function DosSetDefaultDisk(DiskNum:longint):longint;
+function DosSetDefaultDisk(DiskNum:longint):longint; cdecl;
 
 {Get the current drive. Because it cannot fail, it is declared as procedure.}
-procedure DosQueryCurrentDisk(var DiskNum:longint;var Logical:longint);
+procedure DosQueryCurrentDisk(var DiskNum:longint;var Logical:longint); cdecl;
 
 {Set the current directory.}
-function DosSetCurrentDir(Name:PChar):longint;
+function DosSetCurrentDir(Name:PChar):longint; cdecl;
 function DosSetCurrentDir(const Name:string):longint;
 
 {Get the current directory.}
 function DosQueryCurrentDir(DiskNum:longint;var Buffer;
-                            var BufLen:longint):longint;
+                            var BufLen:longint):longint; cdecl;
 function DosQueryCurrentDir(DiskNum:longint;var Buffer:string):longint;
 
 {Send/receive information to a device.
@@ -809,7 +815,7 @@ function DosQueryCurrentDir(DiskNum:longint;var Buffer:string):longint;
 function DosDevIOCtl(Handle,Category,Func:longint;var Params;
                      ParamLen:longint;var ParamSize:longint;
                      var Data;var DataLen:longint;var DataSize:
-                     longint):longint;
+                     longint):longint; cdecl;
 
 {****************************************************************************
 
@@ -949,7 +955,7 @@ type
                   use PFileFindBuf3 for AFileStatus.}
 function DosFindFirst(FileMask:PChar;var Handle:longint;Attrib:longint;
                       AFileStatus:PFileStatus;FileStatusLen:longint;
-                      var Count:longint;InfoLevel:longint):longint;
+                      var Count:longint;InfoLevel:longint):longint; cdecl;
 function DosFindFirst(const FileMask:string;var Handle:longint;
                       Attrib:longint;AFileStatus:PFileStatus;
                       FileStatusLen:longint;var Count:longint;
@@ -957,10 +963,10 @@ function DosFindFirst(const FileMask:string;var Handle:longint;
 
 {Find next matching file.}
 function DosFindNext(Handle:longint;AFileStatus:PFileStatus;
-                     FileStatusLen:longint;var Count:longint):longint;
+                     FileStatusLen:longint;var Count:longint):longint; cdecl;
 
 {Close a search handle. Cannot fail if handle does exist.}
-function DosFindClose(Handle:longint):longint;
+function DosFindClose(Handle:longint):longint; cdecl;
 
 {Get info about a file.
 
@@ -971,24 +977,24 @@ function DosFindClose(Handle:longint):longint;
  AFileStatus    = An info return buffer.
  FileStatusLen  = Size of info buffer.}
 function DosQueryFileInfo(Handle,InfoLevel:longint;AFileStatus:PFileStatus;
-                          FileStatusLen:longint):longint;
+                          FileStatusLen:longint):longint; cdecl;
 
 {Set info about a file. File must be opened with write permissions. See
  above fo the parameters.}
 function DosSetFileInfo(Handle,InfoLevel:longint;AFileStatus:PFileStatus;
-                        FileStatusLen:longint):longint;
+                        FileStatusLen:longint):longint; cdecl;
 
 {Return info about a file. In contradiction to the above functions, the
  file does not have to be open.}
 function DosQueryPathInfo(FileName:PChar;InfoLevel:longint;
-                          AFileStatus:PFileStatus;FileStatusLen:longint):longint;
+                 AFileStatus:PFileStatus;FileStatusLen:longint):longint; cdecl;
 function DosQueryPathInfo(const FileName:string;InfoLevel:longint;
-                          AFileStatus:PFileStatus;FileStatusLen:longint):longint;
+                        AFileStatus:PFileStatus;FileStatusLen:longint):longint;
 
 {Set information about a file.}
 function DosSetPathInfo(FileName:PChar;InfoLevel:longint;
                         AFileStatus:PFileStatus;FileStatusLen,
-                        Options:longint):longint;
+                        Options:longint):longint; cdecl;
 
 {Get info about the names and lengths of the EA's for a file or directory.
 
@@ -1006,7 +1012,7 @@ function DosSetPathInfo(FileName:PChar;InfoLevel:longint;
 
 function DosEnumAttribute(RefType:longint;AFile:pointer;
                           Entry:longint;var Buf;BufSize:longint;
-                          var Count:longint;InfoLevel:longint):longint;
+                          var Count:longint;InfoLevel:longint):longint; cdecl;
 function DosEnumAttribute(Handle,Entry:longint;var Buf;BufSize:longint;
                           var Count:longint;InfoLevel:longint):longint;
 function DosEnumAttribute(const FileName:string;
@@ -1016,7 +1022,7 @@ function DosEnumAttribute(const FileName:string;
 {Get an environment variable.
  Name               = Name of environment variable to get.
  Value              = Receives pointer to environment string.}
-function DosScanEnv(Name:PChar;var Value:PChar):longint;
+function DosScanEnv(Name:PChar;var Value:PChar):longint; cdecl;
 {There is, of course a string variant.}
 function DosScanEnv(const Name:string;var Value:string):longint;
 
@@ -1037,7 +1043,7 @@ const   dsPathOnly      = 0;    {Do not search current dir. (Unless it is
  FullName       = Receives filename found, including path.
  FullLen        = Length of your fullname buffer.}
 function DosSearchPath(Flag:longint;DirList,FileName:PChar;
-                       FullName:PChar;FullLen:longint):longint;
+                       FullName:PChar;FullLen:longint):longint; cdecl;
 function DosSearchPath(Flag:longint;const DirList,FileName:string;
                        var FullName:string):longint;
 
@@ -1118,7 +1124,7 @@ const   fsAttach        = 0;    {Attach a drive.}
  DataLen            = Number of bytes in data parameter.
  Flag               = One of the dsXXXX constants. See above}
 function DosFSAttach(DevName,FileSystem:PChar;var Data:TAttachData;
-                     DataLen,Flag:longint):longint;
+                     DataLen,Flag:longint):longint; cdecl;
 function DosFSAttach(const DevName,FileSystem:string;var Data:TAttachData;
                      DataLen,Flag:longint):longint;
 
@@ -1140,7 +1146,7 @@ function DosFSAttach(const DevName,FileSystem:string;var Data:TAttachData;
  BufLen             = Size of your buffer in bytes. Number of bytes filled
                       in your buffer is returned here.}
 function DosQueryFSAttach(DevName:PChar;Ordinal,InfoLevel:longint;
-                          var Buffer:TFSQBuffer2;var BufLen:longint):longint;
+                     var Buffer:TFSQBuffer2;var BufLen:longint):longint; cdecl;
 function DosQueryFSAttach(const DevName:string;Ordinal,InfoLevel:longint;
                           var Buffer:TFSQBuffer2;var BufLen:longint):longint;
 
@@ -1157,7 +1163,7 @@ const   FSCtl_Handle=1;
 function DosFSCtl(Data:pointer;DataLen:longint;var ResDataLen:longint;
                   Parms:pointer;ParmsLen:longint;var ResParmsLen:longint;
                   _Function:longint;Route:PChar;
-                  Handle,Method:longint):longint;
+                  Handle,Method:longint):longint; cdecl;
 function DosFSCtl(Data:pointer;DataLen:longint;var ResDataLen:longint;
                   Parms:pointer;ParmsLen:longint;var ResParmsLen:longint;
                   _Function:longint;const Route:string;
@@ -1168,28 +1174,28 @@ InfoLevels:
  1              Get total/free space etc.
  2              Get volumelabel.}
 function DosQueryFSInfo(DiskNum,InfoLevel:longint;var Buffer:TFSInfo;
-                        BufLen:longint):longint;
+                        BufLen:longint):longint; cdecl;
 
 {Set information about a drive.}
 function DosSetFSInfo(DiskNum,InfoLevel:longint;var Buffer:TFSinfo;
-                      BufLen:longint):longint;
+                      BufLen:longint):longint; cdecl;
 
 {Check if verify mode is enabled.}
-function DosQueryVerify(var Enabled:longint):longint;
+function DosQueryVerify(var Enabled:longint):longint; cdecl;
 
 {Turn the verify mode on or off.}
-function DosSetVerify(Enable:longint):longint;
+function DosSetVerify(Enable:longint):longint; cdecl;
 
 {Change the number of filehandles our program can open. (Default=50). It
  won't hurt if there are files open when you are calling this.}
-function DosSetMaxFH(Count:longint):longint;
+function DosSetMaxFH(Count:longint):longint; cdecl;
 
 {Ask for more filehandles (or dump filehandles). It won't hurt if there are
  files open when you are calling this.
  ReqCount       = Number of filehandles to ask for. (Negative to dump them.)
  CurMaxFH       = Receives the total number of filehandles your program has
                   access to.}
-function DosSetRelMaxFH(var ReqCount,CurMaxFH:longint):longint;
+function DosSetRelMaxFH(var ReqCount,CurMaxFH:longint):longint; cdecl;
 
 const   dsFull=0;       {IBM DOCS: "Perform full system shutdown and
                          file-system lock."}
@@ -1197,7 +1203,7 @@ const   dsFull=0;       {IBM DOCS: "Perform full system shutdown and
                          make system quiescent."}
 
 {Prepare the system for shutdown.}
-function DosShutdown(Flags:longint):longint;
+function DosShutdown(Flags:longint):longint; cdecl;
 
 
 {Usefull constants fo DosQuerySysInfo.}
@@ -1252,10 +1258,11 @@ const   svMaxPathLength     = 1;        {Maximum length of a pathname.}
  Buf            = Receives variables.
  BufSize        - Size of the buffer/}
 function DosQuerySysInfo(First,Last:longint;var Buf;BufSize:longint):longint;
+                                                                         cdecl;
 
 {Return information about a partitionable disk.}
 function DosPhysicalDisk(Func:longint;Buf:pointer;BufSize:longint;
-                         Params:pointer;ParamSize:longint):longint;
+                         Params:pointer;ParamSize:longint):longint; cdecl;
 
 {****************************************************************************
 
@@ -1297,10 +1304,10 @@ const   mfPag_Read      = $00001;   {Give read access to memory.}
               of 4096. This is probably not the case on non-intel 386
               versions of OS/2.
  Flags      = One or more of the mfXXXX constants.}
-function DosAllocMem(var P:pointer;Size,Flag:longint):longint;
+function DosAllocMem(var P:pointer;Size,Flag:longint):longint; cdecl;
 
 {Free a memory block.}
-function DosFreeMem(P:pointer):longint;
+function DosFreeMem(P:pointer):longint; cdecl;
 
 {Set settings for a block of memory.
  P          = Pointer to the memory. Doesn't need to be the start of the
@@ -1309,20 +1316,20 @@ function DosFreeMem(P:pointer):longint;
  Size       = Number of bytes to change settings for. Is rounded up to a
               multile of 4096.
  Flags      = New flags for the memory.}
-function DosSetMem(P:pointer;Size,Flag:longint):longint;
+function DosSetMem(P:pointer;Size,Flag:longint):longint; cdecl;
 
 {Give another process access to a shared memory block.
 
  P          = Pointer to the shared memory object.
  PID        = Process of destination process.
  Flag       = Permissions the the destination process gets.}
-function DosGiveSharedMem(P:pointer;PID,Flag:longint):longint;
+function DosGiveSharedMem(P:pointer;PID,Flag:longint):longint; cdecl;
 
 {Get access to a shared memory object.
 
  P          = Pointer to shared memory object.
  Flag       = Permissions to ask.}
-function DosGetSharedMem(P:pointer;Flag:longint):longint;
+function DosGetSharedMem(P:pointer;Flag:longint):longint; cdecl;
 
 {Get access to a shared memory object that has a name.
 
@@ -1330,6 +1337,7 @@ function DosGetSharedMem(P:pointer;Flag:longint):longint;
  Name       = Name of the memory object. (Starting with '\SHAREMEM\'.
  Flag       = Permissions to ask.}
 function DosGetNamedSharedMem(var P:pointer;Name:PChar;Flag:longint):longint;
+                                                                         cdecl;
 function DosGetNamedSharedMem(var P:pointer;const Name:string;
                               Flag:longint):longint;
 
@@ -1339,6 +1347,7 @@ function DosGetNamedSharedMem(var P:pointer;const Name:string;
               Use nil for the PChar or '' for the string variant for no name.
  Size       = Number of bytes to allocate.}
 function DosAllocSharedMem(var P:pointer;Name:PChar;Size,Flag:longint):longint;
+                                                                         cdecl;
 function DosAllocSharedMem(var P:pointer;const Name:string;Size,
                                                             Flag:longint):longint;
 
@@ -1347,31 +1356,32 @@ function DosAllocSharedMem(var P:pointer;const Name:string;Size,
  P          = Pointer to the block of memory.
  Size       = Receives block size.
  Flag       = Receives the flags.}
-function DosQueryMem(P:pointer;var Size,Flag:longint):longint;
+function DosQueryMem(P:pointer;var Size,Flag:longint):longint; cdecl;
 
 {Allocate a block of memory in a heap.
  Base       = Pointer to the start of the heap.
  P          = Receives pointer to the memory bock.
  Size       = Number of bytes to allocate.}
 function DosSubAllocMem(Base:pointer;var P:pointer;Size:longint):longint;
+                                                                         cdecl;
 
 {Free a block of memory in a heap.
  Base       = Pointer to the start of the heap.
  P          = Pointer to memory block to free.
  Size       = Number of bytes to free.}
-function DosSubFreeMem(Base,P:pointer;Size:longint):longint;
+function DosSubFreeMem(Base,P:pointer;Size:longint):longint; cdecl;
 
 {Turn a block of memory into a heap.
 
 Base        = Pointer to memory block to turn into a heap.
 Flag        = One or more of the mfSub_XXXX flags.
 Size        = Size of the requested heap.}
-function DosSubSetMem(Base:pointer;Flag,Size:longint):longint;
+function DosSubSetMem(Base:pointer;Flag,Size:longint):longint; cdecl;
 
 {Destroy a heap. (Memory remains allocated).
 
 Base        = Pointer to the heap to destroy.}
-function DosSubUnsetMem(Base:pointer):longint;
+function DosSubUnsetMem(Base:pointer):longint; cdecl;
 
 {****************************************************************************
 
@@ -1403,7 +1413,7 @@ type   PSemRecord=^TSemRecord;
  Attr       = One or more of the smXXXX constants.
  State      = Initial state: 0 = Reset (false), 1 = Posted (true).}
 function DosCreateEventSem(Name:PChar;var Handle:longint;
-                           Attr,State:longint):longint;
+                           Attr,State:longint):longint; cdecl;
 function DosCreateEventSem(const Name:string;var Handle:longint;
                            Attr,State:longint):longint;
 
@@ -1411,12 +1421,12 @@ function DosCreateEventSem(const Name:string;var Handle:longint;
 
  Name       = Name of semaphore.
  Handle     = Receives handle of semaphore.}
-function DosOpenEventSem(Name:PChar;var Handle:longint):longint;
+function DosOpenEventSem(Name:PChar;var Handle:longint):longint; cdecl;
 function DosOpenEventSem(const Name:string;var Handle:longint):longint;
 
 {Close an event semaphore.
  Handle     = Handle of a semaphore to close.}
-function DosCloseEventSem(Handle:longint):longint;
+function DosCloseEventSem(Handle:longint):longint; cdecl;
 
 {Reset an event semaphore: *** probeer *** operation.
  Handle     = Handle of semaphore.
@@ -1424,26 +1434,26 @@ function DosCloseEventSem(Handle:longint):longint;
               reset.
 
  Note:      Returns errorcode 300 if semaphore is already reset.}
-function DosResetEventSem(Handle:longint;var PostCount:longint):longint;
+function DosResetEventSem(Handle:longint;var PostCount:longint):longint; cdecl;
 
 {Post an event semaphore: *** verhoog *** operation.
  Handle     = Handle of semaphore.
 
 Note:       Returns errorcode 299 if semaphore is already posted.}
-function DosPostEventSem(Handle:longint):longint;
+function DosPostEventSem(Handle:longint):longint; cdecl;
 
 {Wait until an event semaphore is posted (wait until *** verhoog *** operation).
  Handle     = Handle of semaphore.
  Timeout    = Return with errorcode if timeout milliseconds have past and the
               semaphore is still reset. To return immediately use 0,
               to wait forever use -1.}
-function DosWaitEventSem(Handle,Timeout:longint):longint;
+function DosWaitEventSem(Handle,Timeout:longint):longint; cdecl;
 
 {Check if an event semaphore is posted (if a *** verhoog *** operation has been done).
  Handle     = Handle of semaphore.
  Posted     = Receives number of times DosPostEventSem was called since
               the last reset.}
-function DosQueryEventSem(Handle:longint;var Posted:longint):longint;
+function DosQueryEventSem(Handle:longint;var Posted:longint):longint; cdecl;
 
 {Create a Mutual Exclusion semaphore (mutex).
  Name       = Optional: Name to give to semaphore. Must start with '\SEM32\'.
@@ -1453,30 +1463,30 @@ function DosQueryEventSem(Handle:longint;var Posted:longint):longint;
  Attr       = One or more of the smXXXX constants.
  State      = Initial state: (0=Unowned, 1=Owned.)}
 function DosCreateMutExSem(Name:PChar;var Handle:longint;
-                           Attr,State:longint):longint;
+                           Attr,State:longint):longint; cdecl;
 function DosCreateMutExSem(const Name:string;var Handle:longint;
                            Attr,State:longint):longint;
 
 {Open a shared mutex semaphore.
  Name       = Name of semaphore to open, always starts with '\SEM32\'.
  Handle     = Receives handle to semaphore.}
-function DosOpenMutExSem(Name:PChar;var Handle:longint):longint;
+function DosOpenMutExSem(Name:PChar;var Handle:longint):longint; cdecl;
 function DosOpenMutExSem(const Name:string;var Handle:longint):longint;
 
 {Close a mutex semaphore.
  handle     = Handle of semaphore to close.}
-function DosCloseMutExSem(Handle:longint):longint;
+function DosCloseMutExSem(Handle:longint):longint; cdecl;
 
 {Request ownership of a mutex semaphore. If the semaphore is already owned the
  process is halted until the semaphore is released.
  Handle     = Handle of semaphore.
  Timeout    = Return with errorcode if the semaphore is still owned after
               timeout milliseconds.}
-function DosRequestMutExSem(Handle,Timeout:longint):longint;
+function DosRequestMutExSem(Handle,Timeout:longint):longint; cdecl;
 
 {Release the ownership of a mutex semaphore.
  Handle     = Handle of semaphore to release.}
-function DosReleaseMutExSem(Handle:longint):longint;
+function DosReleaseMutExSem(Handle:longint):longint; cdecl;
 
 {Query the PID and TIB of the owner of a mutex semaphore.
  Handle     = Handle of semaphore.
@@ -1485,6 +1495,7 @@ function DosReleaseMutExSem(Handle:longint):longint;
  Count      = Number of threads (within and outside current process) waiting
               for ownership of semaphore.}
 function DosQueryMutExSem(Handle:longint;var PID,TID,Count:longint):longint;
+                                                                         cdecl;
 
 {Create a Multiple Wait (MuxWait) semaphore.
  Name       = Optional: Name to give semaphore. Must start with '\SEM32\'.
@@ -1495,7 +1506,7 @@ function DosQueryMutExSem(Handle:longint;var PID,TID,Count:longint):longint;
  SemArray   = Array of semaphore records to link with muxwait semaphore.
  Attr       = One or more of the smXXXX constants.}
 function DosCreateMuxWaitSem(Name:PChar;var Handle:longint;CSemRec:longint;
-                             var SemArray:TSemArray;Attr:longint):longint;
+                           var SemArray:TSemArray;Attr:longint):longint; cdecl;
 function DosCreateMuxWaitSem(const Name:string;var Handle:longint;
                              CSemRec:longint;var SemArray:TSemArray;
                              Attr:longint):longint;
@@ -1503,11 +1514,11 @@ function DosCreateMuxWaitSem(const Name:string;var Handle:longint;
 {Open a MuxWait semaphore.
  Name       = Name of semaphore to open.
  Handle     = Receives handle of semaphore.}
-function DosOpenMuxWaitSem(Name:PChar;var Handle:longint):longint;
+function DosOpenMuxWaitSem(Name:PChar;var Handle:longint):longint; cdecl;
 function DosOpenMuxWaitSem(const Name:string;var Handle:longint):longint;
 
 {Close a MuxWait semaphore.}
-function DosCloseMuxWaitSem(Handle:longint):longint;
+function DosCloseMuxWaitSem(Handle:longint):longint; cdecl;
 
 {Wait for the MuxWait semaphore to be cleared.
  Handle     = Handle of semaphore.
@@ -1515,17 +1526,18 @@ function DosCloseMuxWaitSem(Handle:longint):longint;
  User       = Receives user value of the semaphore that caused the muxwait
               semaphore to be cleared.}
 function DosWaitMuxWaitSem(Handle,Timeout:longint;var User:longint):longint;
+                                                                         cdecl;
 
 {Add a semaphore to the MuxWait semaphore.
 
  Handle     = Handle of semaphore.
  SemRec     = The semaphore to add.}
-function DosAddMuxWaitSem(Handle:longint;var SemRec:TSemRecord):longint;
+function DosAddMuxWaitSem(Handle:longint;var SemRec:TSemRecord):longint; cdecl;
 
 {Remove a semaphore from the MuxWait semaphore.
  Handle     = Handle of muxwait semaphore.
  Sem        = Handle of semaphore to remove.}
-function DosDeleteMuxWaitSem(Handle,Sem:longint):longint;
+function DosDeleteMuxWaitSem(Handle,Sem:longint):longint; cdecl;
 
 {Query the semaphores from a MuxWait semaphore.
  Handle     = Handle of semaphore.
@@ -1533,7 +1545,7 @@ function DosDeleteMuxWaitSem(Handle,Sem:longint):longint;
  SemRecs    = Array where TSemRecords are stored.
  Attr       = Flags used by creation of semaphore.}
 function DosQueryMuxWaitSem(Handle:longint;var CSemRec:longint;
-                            var SemRecs:TSemArray;var Attr:longint):longint;
+                        var SemRecs:TSemArray;var Attr:longint):longint; cdecl;
 
 {****************************************************************************
 
@@ -1557,34 +1569,34 @@ type    TDateTime=record
 
 
 {Get the date and time.}
-function DosGetDateTime(var Buf:TDateTime):longint;
+function DosGetDateTime(var Buf:TDateTime):longint; cdecl;
 
 {Set the date and time.}
-function DosSetDateTime(var Buf:TDateTime):longint;
+function DosSetDateTime(var Buf:TDateTime):longint; cdecl;
 
 {Start a one shot timer.
  MSec       = Number of miliseconds the timer will run.
  HSem       = Handle of event semaphore that is posted when time has expired.
  TimHandle  = Receives timer handle.}
 function DosAsyncTimer(MSec,HSem:longint;
-                       var TimHandle:longint):longint;
+                       var TimHandle:longint):longint; cdecl;
 
 {Start a cyclic timer.
  MSec       = Number of miliseconds the timer will run.
  HSem       = Handle of event semaphore that is posted when time has expired.
  TimHandle  = Receives timer handle.}
 function DosStartTimer(MSec,HSem:longint;
-                       var TimHandle:longint):longint;
+                       var TimHandle:longint):longint; cdecl;
 
 {Stop a timer and destroy its handle. There is no need to check for an
  error code if you know your timer handle is correct.}
-function DosStopTimer(TimHandle:longint):longint;
+function DosStopTimer(TimHandle:longint):longint; cdecl;
 
 {Get the frequency of the high resolution timer.}
-function DosTmrQueryFreq(var Freq:longint):longint;
+function DosTmrQueryFreq(var Freq:longint):longint; cdecl;
 
 {Get the current value of the high resolution timer.}
-function DosTmrQueryTime(var Time:comp):longint;
+function DosTmrQueryTime(var Time:comp):longint; cdecl;
 
 {****************************************************************************
 
@@ -1601,13 +1613,13 @@ function DosTmrQueryTime(var Time:comp):longint;
                   LIBPATH for the DLL.
  Handle         = Receives DLL handle.}
 function DosLoadModule(ObjName:PChar;ObjLen:longint;DLLName:PChar;
-                       var Handle:longint):longint;
+                       var Handle:longint):longint; cdecl;
 function DosLoadModule(var ObjName:string;ObjLen:longint;
                        const DLLName:string;var Handle:longint):longint;
 
 {Let OS/2 know that we do not need a DLL anymore. If we were the only process
  using the DLL, it is unloaded.}
-function DosFreeModule(Handle:longint):longint;
+function DosFreeModule(Handle:longint):longint; cdecl;
 
 {Get the address of a procedure.
  Handle         = DLL handle,
@@ -1616,14 +1628,14 @@ function DosFreeModule(Handle:longint):longint;
                   for PChar or '' for string variant if Ordinal is nonzero.
  Address        = Receives address of procedure.}
 function DosQueryProcAddr(Handle,Ordinal:longint;ProcName:PChar;
-                                                     var Address:pointer):longint;
+                                           var Address:pointer):longint; cdecl;
 function DosQueryProcAddr(Handle,Ordinal:longint;const ProcName:string;
                                                      var Address:pointer):longint;
 
 {Get the handle of a loaded DLL or a loaded executable.
  DLLName        = Name of DLL.
  Handle         = Receives DLL handle if present.}
-function DosQueryModuleHandle(DLLName:PChar;var Handle:longint):longint;
+function DosQueryModuleHandle(DLLName:PChar;var Handle:longint):longint; cdecl;
 function DosQueryModuleHandle(const DLLName:string;var Handle:longint):longint;
 
 {Get the pathname of a loaded DLL or a loaded executable.
@@ -1631,7 +1643,7 @@ function DosQueryModuleHandle(const DLLName:string;var Handle:longint):longint;
  Handle         = Handle of DLL.
  NameLen        = Maximum length of char array.
  Name           = PChar (or string) where name is returned.}
-function DosQueryModuleName(Handle,NameLen:longint;Name:Pchar):longint;
+function DosQueryModuleName(Handle,NameLen:longint;Name:Pchar):longint; cdecl;
 {function DosQueryModuleName(Handle:longint;var Name:OpenString):longint;}
 
 const   pt16bit=0;
@@ -1644,7 +1656,7 @@ const   pt16bit=0;
                   is zero. Otherwise it contains the procedure name.
  ProcType       = One of the ptXXXX constants.}
 function DosQueryProcType(Handle,Ordinal:longint;Name:PChar;
-                          var ProcType:longint):longint;
+                          var ProcType:longint):longint; cdecl;
 function DosQueryProcType(Handle,Ordinal:longint;const Name:string;
                           var ProcType:longint):longint;
 
@@ -1683,10 +1695,11 @@ const   rtPointer       =  1;       {Mouse pointer.}
  ResType        = One of the rtXXXX constants.
  ResName        = Number associated to resource object by resource compiler.}
 function DosGetResource(Handle,ResType,ResName:longint;var P:pointer):longint;
+                                                                         cdecl;
 
 {Remove a resource object from memory.
  P              = Pointer to resource.}
-function DosFreeResource(P:pointer):longint;
+function DosFreeResource(P:pointer):longint; cdecl;
 
 {Get the size of a resource object.
  Handle         = Handle to DLL (or executable).
@@ -1694,6 +1707,7 @@ function DosFreeResource(P:pointer):longint;
  IDN            = Number associated to resource object by resource compiler.
  Size           = Receives resource size.}
 function DosQueryResourceSize(Handle,IDT,IDN:longint;var Size:longint):longint;
+                                                                         cdecl;
 
 
 {****************************************************************************
@@ -1783,17 +1797,18 @@ const   CurrentCountry:TCountryCode=(Country:0;CodePage:0);
     ActualSize  = Size of OS/2's datastructure. ActualSize bytes of
                   our TCountryInfo have been filled.}
 function DosQueryCtryInfo(Size:longint;var Country:TCountryCode;
-                          var Res:TCountryInfo;var ActualSize:longint):longint;
+                   var Res:TCountryInfo;var ActualSize:longint):longint; cdecl;
 
 {Get info about a code page with a DBCS character set.}
-function DosQueryDBCSEnv(Size:longint;var Country:TCountryCode;Buf:Pchar):longint;
+function DosQueryDBCSEnv(Size:longint;var Country:TCountryCode;
+                                                     Buf:PChar):longint; cdecl;
 
 {Convert a string to uppercase.
     Size        = Length of string.
     Country     = Country and codepage for converting.
     AString     = String to convert.}
 function DosMapCase(Size:longint;var Country:TCountryCode;
-                    AString:PChar):longint;
+                    AString:PChar):longint; cdecl;
 function DosMapCase(var Country:TCountryCode;
                     var AString:string):longint;
 
@@ -1807,15 +1822,15 @@ function DosMapCase(var Country:TCountryCode;
                   contains the weight for ascii code 128.
     TableLen    = Length of collating table.}
 function DosQueryCollate(Size:longint;var Country:TCountryCode;
-                         Buf:PByteArray;var TableLen:longint):longint;
+                           Buf:PByteArray;var TableLen:longint):longint; cdecl;
 
 {Get the current codepage. The PWordArray is filled with the current code
  page followed by alternative codepages.}
 function DosQueryCP(Size:longint;CodePages:PWordArray;
-                                                     var ActSize:longint):longint;
+                                           var ActSize:longint):longint; cdecl;
 
 {Change the codepage, but only for the current process.}
-function DosSetProcessCP(CP:longint):longint;
+function DosSetProcessCP(CP:longint):longint; cdecl;
 
 {****************************************************************************
 
@@ -1883,7 +1898,7 @@ type        PExceptionRegistrationRecord=^TExceptionRegistrationRecord;
             TExceptionHandler=procedure(Report:PExceptionReportRecord;
                                         RegRec:PExceptionRegistrationRecord;
                                         Context:PContextRecord;
-                                        DispContext:pointer);
+                                        DispContext:pointer); cdecl;
 
             TExceptionRegistrationRecord=record
                 Prev_Structure:PExceptionRegistrationRecord;
@@ -1921,28 +1936,29 @@ type        PExceptionRegistrationRecord=^TExceptionRegistrationRecord;
                 Reg_SS:longint;
             end;
 
-{Warning!!! Never use presentation manager functions from exception
+{Warning!!! Never use Presentation Manager functions from exception
  handlers!}
 
 {Install an exceptionhandler. The Prev_Structure field of RegRec should be
 nil, it will be filled in be OS/2. RegRec must be on the stack: It must be a
 local variable.}
 function DosSetExceptionHandler(var RegRec:TExceptionRegistrationRecord):longint;
+                                                                         cdecl;
 
 {Uninstall an exception handler.}
 function DosUnSetExceptionHandler(var RegRec:TExceptionRegistrationRecord
-                                  ):longint;
+                                  ):longint; cdecl;
 
 {Trigger an exception.}
-function DosRaiseException(var Excpt:TExceptionReportRecord):longint;
+function DosRaiseException(var Excpt:TExceptionReportRecord):longint; cdecl;
 
 {Send a signal to a process.}
-function DosSendSignalException(PID,Exception:longint):longint;
+function DosSendSignalException(PID,Exception:longint):longint; cdecl;
 
 {Call and remove a set of exceptionhandlers}
 function DosUnwindException(var Handler:TExceptionRegistrationRecord;
                             TargetIP:pointer;
-                            var RepRec:TExceptionReportRecord):longint;
+                            var RepRec:TExceptionReportRecord):longint; cdecl;
 
 {Full screen applications can get Ctrl-C and Ctrl-Break focus. For all
  processes sharing one screen, only one can have Ctrl-C focus.
@@ -1950,6 +1966,7 @@ function DosUnwindException(var Handler:TExceptionRegistrationRecord;
  Times      = Number of times focus has been get minus number of times it
               has been released.}
 function DosSetSignalExceptionFocus(Enable:longint;var Times:longint):longint;
+                                                                         cdecl;
 
 {Tell OS/2 that if an exception occurs, it must queue it up, until a
  DosExitMustComplete follows. Urgent exceptions still occur. The only
@@ -1957,14 +1974,14 @@ function DosSetSignalExceptionFocus(Enable:longint;var Times:longint):longint;
  is only needed in seldom cases.
  Nesting    = Number of DosEnterMustComplete calls minus number of
               DosExitMustComplete calls.}
-function DosEnterMustComplete(var Nesting:longint):longint;
+function DosEnterMustComplete(var Nesting:longint):longint; cdecl;
 
 {Tell OS/2 that it can send exceptions again. See above}
-function DosExitMustComplete(var Nesting:longint):longint;
+function DosExitMustComplete(var Nesting:longint):longint; cdecl;
 
 {Tell we want further signal exceptions.
  SignalNum  = Signal nummer to acknowlegde.}
-function DosAcknowledgeSignalException(SignalNum:longint):longint;
+function DosAcknowledgeSignalException(SignalNum:longint):longint; cdecl;
 
 
 {****************************************************************************
@@ -1989,7 +2006,7 @@ const   quFIFO=0;
 {Close a queue. If the calling process has created the queue, it is
  destroyed. If you can guarantee the handle is correct, there is no need
  to check for error codes.}
-function DosCloseQueue(Handle:longint):longint;
+function DosCloseQueue(Handle:longint):longint; cdecl;
 
 {Create a queue. The process that creates a queue, owns that queue, and is
  the only one who can read from that queue. Other processes can only write
@@ -2003,14 +2020,14 @@ function DosCloseQueue(Handle:longint):longint;
                   processes to 32 bit pointers.
  Name           = Name of queue to create.}
 function DosCreateQueue(var Handle:longint;Priority:longint;
-                        Name:PChar):longint;
+                        Name:PChar):longint; cdecl;
 function DosCreateQueue(var Handle:longint;Priority:longint;
                         const Name:string):longint;
 
 {Open an existing queue. You cannot read from the queue unless you are the
  process that created it. The name must have the format '\QUEUES\name.ext'}
 function DosOpenQueue(var Parent_PID:longint;var Handle:longint;
-                      Name:PChar):longint;
+                      Name:PChar):longint; cdecl;
 function DosOpenQueue(var Parent_PID:longint;var Handle:longint;
                       const Name:string):longint;
 
@@ -2033,13 +2050,13 @@ function DosOpenQueue(var Parent_PID:longint;var Handle:longint;
 function DosPeekQueue(Handle:longint;var ReqBuffer:TRequestData;
                       var DataLen:longint;var DataPtr:pointer;
                       var Element:longint;Wait:longint;
-                      var Priority:byte;ASem:longint):longint;
+                      var Priority:byte;ASem:longint):longint; cdecl;
 
 {Empty a queue. You must be the process the created the queue.}
-function DosPurgeQueue(Handle:longint):longint;
+function DosPurgeQueue(Handle:longint):longint; cdecl;
 
 {Return the number of elements in the queue.}
-function DosQueryQueue(Handle:longint;var Count:longint):longint;
+function DosQueryQueue(Handle:longint;var Count:longint):longint; cdecl;
 
 {Read a record from a queue, but do not remove it from the queue.
  Handle         = Handle of queue to read from.
@@ -2058,7 +2075,7 @@ function DosQueryQueue(Handle:longint;var Count:longint):longint;
 function DosReadQueue(Handle:longint;var ReqBuffer:TRequestData;
                       var DataLen:longint;var DataPtr:pointer;
                       Element,Wait:longint;var Priority:byte;
-                      ASem:longint):longint;
+                      ASem:longint):longint; cdecl;
 
 {Write a data record to a queue.
  Handle         = Handle of queue to write to.
@@ -2069,7 +2086,7 @@ function DosReadQueue(Handle:longint;var ReqBuffer:TRequestData;
  Priority       = Priority of data in buffer. Only relevant when queue is
                   created with priority support.}
 function DosWriteQueue(Handle,Request,Datalen:longint;var DataBuf;
-                       Priority:longint):longint;
+                       Priority:longint):longint; cdecl;
 
 const   deHardErr           = 1;    {Hard errors are enabled, to disable
                                      do not give this switch.}
@@ -2086,7 +2103,7 @@ const   deHardErr           = 1;    {Hard errors are enabled, to disable
  can overide this in config.sys. By default, notification is enabled.
  There is no need for error checking if you can guarantee the parameter is
  correct.}
-function DosError(Error:longint):longint;
+function DosError(Error:longint):longint; cdecl;
 
 {Get information about an error code.
  It cannot fail, so it is written as procedure.
@@ -2095,7 +2112,7 @@ Code            = Error code to get info about.
 _Class          = Receives the error class.
 Action          = Receives the recommended action you should take.
 Locus           = Receives what could have caused the error.}
-procedure DosErrClass(Code:longint;var _Class,Action,Locus:longint);
+procedure DosErrClass(Code:longint;var _Class,Action,Locus:longint); cdecl;
 
 
 {****************************************************************************
@@ -2142,7 +2159,7 @@ function DosGetMessage(const Table:array of PString;Buf:PChar;
 function DosInsertMessage(Table:PInsertTable;TableSize:longint;
                           Message:PChar;SrcMessageSize:longint;
                           Buf:PChar;BufSize:longint;
-                          var DstMessageSize:longint):longint;
+                          var DstMessageSize:longint):longint; cdecl;
 {And a variant using strings and open arrays.
 function DosInsertMessage(Table:array of PString;
                           const Message:string;
@@ -2159,7 +2176,7 @@ function DosInsertMessage(Table:array of PString;
  Handle         = Handle of file.
  Size           = Size of message.
  Buf            = Buffer where message is located.}
-function DosPutMessage(Handle,Size:longint;Buf:PChar):longint;
+function DosPutMessage(Handle,Size:longint;Buf:PChar):longint; cdecl;
 function DosPutMessage(Handle:longint;const Buf:string):longint;
 
 {Get info about which codepages and languages a messagefile supports.
@@ -2230,23 +2247,23 @@ type    TStartData=record
  SesID              = Receives session ID of session created.
  PID                = Receives process ID of process created.}
 function DosStartSession(const AStartData:TStartData;
-                         var SesID,PID:longint):longint;
+                         var SesID,PID:longint):longint; cdecl;
 
 {Set the status of a child session.
  SesID              = ID of session.
  AStatus            = Status to set.}
-function DosSetSession(SesID:longint;const AStatus:TStatusData):longint;
+function DosSetSession(SesID:longint;const AStatus:TStatusData):longint; cdecl;
 
 {Bring a child session to the foreground.
  SesID              = ID of session.}
-function DosSelectSession(SesID:longint):longint;
+function DosSelectSession(SesID:longint):longint; cdecl;
 
 {Terminate (a) child session(s).
  Scope              = 0 = Terminate specified session.
                       1 = Terminate all child sessions.
  SesID              = ID of session to terminate (ignored when terminating
                       all).}
-function DosStopSession(Scope,SesID:longint):longint;
+function DosStopSession(Scope,SesID:longint):longint; cdecl;
 
 {****************************************************************************
 
@@ -2284,7 +2301,7 @@ type    TAvailData=record
                   writing thread is suspended until the data has been read
                   from the pipe, thus making room for more data to send.}
 function DosCreatePipe(var ReadHandle,WriteHandle:longint;
-                       Size:longint):longint;
+                       Size:longint):longint; cdecl;
 
 const   {np_XXXX constants for openmode.}
         np_Access_Inbound       = $0000;    {Client to server connection.}
@@ -2323,7 +2340,7 @@ const   {np_XXXX constants for openmode.}
  InBufSize      = The number of bytes to allocate for the input buffer.
  MSec           = The maximum time to wait for an available instance.}
 function DosCreateNPipe(Name:PChar;var Handle:longint;OpenMode,PipeMode,
-                        OutBufSize,InBufSize,MSec:longint):longint;
+                        OutBufSize,InBufSize,MSec:longint):longint; cdecl;
 function DosCreateNPipe(const Name:string;var Handle:longint;OpenMode,
                         PipeMode,OutBufSize,InBufSize,MSec:longint):longint;
 
@@ -2337,18 +2354,18 @@ function DosCreateNPipe(const Name:string;var Handle:longint;OpenMode,
  MSec           = The maximum time to wait for an available instance.}
 function DosCallNPipe(Name:PChar;var Input;InputSize:longint;
                       var Output;OutputSize:longint;var ReadBytes:longint;
-                      MSec:longint):longint;
+                      MSec:longint):longint; cdecl;
 function DosCallNPipe(const Name:string;var Input;InputSize:longint;
                       var Output;OutputSize:longint;var ReadBytes:longint;
                       MSec:longint):longint;
 
 {Prepare a named pipe for a client process.
  Handle         = Handle that was returned when pipe was created.}
-function DosConnectNPipe(Handle:longint):longint;
+function DosConnectNPipe(Handle:longint):longint; cdecl;
 
 {Acknowledges that a client process has closed a named pipe.
  Handle         = Handle that was returned when pipe was created.}
-function DosDisconnectNPipe(Handle:longint):longint;
+function DosDisconnectNPipe(Handle:longint):longint; cdecl;
 
 const   np_State_Disconnected   = 1;    {Pipe is disconnected.}
         np_State_Listening      = 2;    {Pipe is listening.}
@@ -2364,12 +2381,12 @@ const   np_State_Disconnected   = 1;    {Pipe is disconnected.}
  State          = One of the np_xxxx constants for states.}
 function DosPeekNPipe(Handle:longint;var Buffer;BufSize:longint;
                       var ReadBytes:longint;var Avail:TAvailData;
-                      var State:longint):longint;
+                      var State:longint):longint; cdecl;
 
 {Get information about a named pipe handle.
  Handle         = Handle to pipe.
  State          = A combination of np_XXXX constants for (!!!) pipemode.}
-function DosQueryNPHState(Handle:longint;var State:longint):longint;
+function DosQueryNPHState(Handle:longint;var State:longint):longint; cdecl;
 
 {Return information about a named pipe.
  Handle         = Handle to pipe.
@@ -2378,7 +2395,7 @@ function DosQueryNPHState(Handle:longint;var State:longint):longint;
                   Unique 4 byte identifier of the client for level 2. Only
                   used for LAN based pipe servers.}
 function DosQueryNPipeInfo(Handle,InfoLevel:longint;var Buffer;
-                           BufSize:longint):longint;
+                           BufSize:longint):longint; cdecl;
 
 {Return information of local named pipes that are attached to a semaphore.
  SemHandle      = Handle to a shared event or MuxWait semaphore that is
@@ -2386,19 +2403,19 @@ function DosQueryNPipeInfo(Handle,InfoLevel:longint;var Buffer;
  SemArray       = Array in which for each pipe attached to the semaphore.
  BufSize        = Size of SemArray, in bytes.}
 function DosQueryNPipeSemState(Semhandle:longint;var SemArray;
-                               BufSize:longint):longint;
+                               BufSize:longint):longint; cdecl;
 
 {Resets the blocking mode and state of a named pipe.
  Handle         = Handle to named pipe.
  State          = One of the np_XXXX constants for pipemode.}
-function DosSetNPHState(Handle,State:longint):longint;
+function DosSetNPHState(Handle,State:longint):longint; cdecl;
 
 {Attach a shared event semaphore to a local named pipe.
  PipeHandle     = Handle to named pipe.
  SemHandle      = Handle to semaphore.
  Key            = A key that must be different for each named pipe that is
                   attached to the semaphore.}
-function DosSetNPipeSem(PipeHandle,SemHandle,Key:longint):longint;
+function DosSetNPipeSem(PipeHandle,SemHandle,Key:longint):longint; cdecl;
 
 {Write to a duplex named pipe; then read from it.
  Handle         = Handle to named pipe.
@@ -2409,12 +2426,12 @@ function DosSetNPipeSem(PipeHandle,SemHandle,Key:longint):longint;
  ReadBytes      = Number of bytes read from the pipe.}
 function DosTransactNPipe(Handle:longint;var OutBuf;OutSize:longint;
                           var InBuf;InSize:longint;
-                          var ReadBytes:longint):longint;
+                          var ReadBytes:longint):longint; cdecl;
 
 {Waits until an instance of a named pipe becomes available.
  Name           = Name of named pipe (always starts with '\PIPE\').
  MSec           = Return with an error code if this time has elapsed.}
-function DosWaitNPipe(Name:PChar;MSec:longint):longint;
+function DosWaitNPipe(Name:PChar;MSec:longint):longint; cdecl;
 function DosWaitNPipe(const Name:string;MSec:longint):longint;
 
 {****************************************************************************
@@ -2426,7 +2443,7 @@ function DosWaitNPipe(const Name:string;MSec:longint):longint;
 {Open a virtual device driver.
  Name           = Name of virtual device driver.
  Handle         = Receives handle to virtual device driver.}
-function DosOpenVDD(Name:PChar;var Handle:longint):longint;
+function DosOpenVDD(Name:PChar;var Handle:longint):longint; cdecl;
 
 {Request to talk with a virtual device driver.
  Handle         = Handle to virtual device driver.
@@ -2438,10 +2455,10 @@ function DosOpenVDD(Name:PChar;var Handle:longint):longint;
  OutBuffer      = Receives the data that the VDD returns.}
 function DosRequestVDD(Handle,SGroup,Cmd:longint;
                        InSize:longint;var InBuffer;
-                       OutSize:longint;var OutBuffer):longint;
+                       OutSize:longint;var OutBuffer):longint; cdecl;
 
 {Close a virtual device driver.}
-function DosCloseVDD(Handle:longint):longint;
+function DosCloseVDD(Handle:longint):longint; cdecl;
 
 {****************************************************************************
 
@@ -2459,7 +2476,14 @@ In:
 
 Out:
   eax           Returned 32 bit near pointer.}
-procedure SelToFlat;
+procedure DosSelToFlat; cdecl;
+
+type
+ TFarPtr = record
+  Sel, Offset: word;
+ end;
+
+function SelToFlat (AFarPtr: TFarPtr): pointer; cdecl;
 
 {Convert a 32 bit near pointer to a 16 bit far pointer.
  This procedure needs to be called from assembler.
@@ -2471,7 +2495,10 @@ In:
 
 Out:
   eax           Returned 16 bit far pointer in selector:offset format.}
-procedure FlatToSel;
+procedure DosFlatToSel; cdecl;
+
+{typecast result to TFarPtr}
+function FlatToSel (APtr: pointer): cardinal; cdecl;
 
 {***************************************************************************}
 implementation
@@ -2482,44 +2509,44 @@ implementation
 
 function DosCreateThread(var TID:longint;Address:TThreadEntry;
                           aParam:pointer;Flags:longint;
-                          StackSize:longint):longint;
+                          StackSize:longint):longint; cdecl;
 
 external 'DOSCALLS' index 311;
 
-function DosSuspendThread(TID:longint):longint;
+function DosSuspendThread(TID:longint):longint; cdecl;
 
 external 'DOSCALLS' index 238;
 
-function DosResumeThread(TID:longint):longint;
+function DosResumeThread(TID:longint):longint; cdecl;
 
 external 'DOSCALLS' index 237;
 
-function DosKillThread(TID:longint):longint;
+function DosKillThread(TID:longint):longint; cdecl;
 
 external 'DOSCALLS' index 111;
 
-function DosWaitThread(var TID:longint;Option:longint):longint;
+function DosWaitThread(var TID:longint;Option:longint):longint; cdecl;
 
 external 'DOSCALLS' index 349;
 
-function DosEnterCritSec:longint;
+function DosEnterCritSec:longint; cdecl;
 
 external 'DOSCALLS' index 232;
 
-function DosExitCritSec:longint;
+function DosExitCritSec:longint; cdecl;
 
 external 'DOSCALLS' index 233;
 
-procedure DosExit(Action,Result:longint);
+procedure DosExit(Action,Result:longint); cdecl;
 
 external 'DOSCALLS' index 233;
 
 procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
-                           var APIB:PProcessInfoBlock);
+                           var APIB:PProcessInfoBlock); cdecl;
 
 external 'DOSCALLS' index 312;
 
-procedure DosSleep(MSec:longint); cdecl;
+procedure DosSleep (MSec:longint); cdecl;
 
 external 'DOSCALLS' index 229;
 
@@ -2527,17 +2554,17 @@ function DosBeep(Freq,MS:longint):longint; cdecl;
 
 external 'DOSCALLS' index 286;
 
-function DosDebug(DebugBuf:pointer):longint;
+function DosDebug(DebugBuf:pointer):longint; cdecl;
 
 external 'DOSCALLS' index 317;
 
-function DosExitList(OrderCode:longint;Proc:TExitProc):longint;
+function DosExitList(OrderCode:longint;Proc:TExitProc):longint; cdecl;
 
 external 'DOSCALLS' index 296;
 
 function DosExecPgm(ObjName:PChar;ObjLen,ExecFlag:longint;
                     Args,Env:PByteArray;var Res:TResultCodes;
-                    FileName:PChar):longint;
+                    FileName:PChar):longint; cdecl;
 
 external 'DOSCALLS' index 283;
 
@@ -2554,38 +2581,39 @@ begin
 end;
 
 function DosWaitChild(Action,Option:longint;var Res:TResultCodes;
-                      var TermPID:longint;PID:longint):longint;
+                      var TermPID:longint;PID:longint):longint; cdecl;
 
 external 'DOSCALLS' index 280;
 
-function DosSetPriority(Scope,TrClass,Delta,PortID:longint):longint;
+function DosSetPriority(Scope,TrClass,Delta,PortID:longint):longint; cdecl;
 
 external 'DOSCALLS' index 236;
 
-function DosKillProcess(Action,PID:longint):longint;
+function DosKillProcess(Action,PID:longint):longint; cdecl;
 
 external 'DOSCALLS' index 235;
 
-function DosQueryAppType(FileName:PChar;var Flags:longint):longint;
+function DosQueryAppType(FileName:PChar;var Flags:longint):longint; cdecl;
 
 external 'DOSCALLS' index 323;
 
-function DosDevConfig(var DevInfo:byte;Item:longint):longint;
+function DosDevConfig(var DevInfo:byte;Item:longint):longint; cdecl;
 
 external 'DOSCALLS' index 231;
 
 function DosSetFileLocks(Handle:longint;var Unlock,Lock:TFileLock;
-                         Timeout,Flags:longint):longint;
+                         Timeout,Flags:longint):longint; cdecl;
 
 external 'DOSCALLS' index 428;
 
 function DosCancelLockRequest(Handle:longint;var Lock:TFileLock):longint;
+                                                                         cdecl;
 
 external 'DOSCALLS' index 429;
 
 function DosOpen(FileName:PChar;var Handle,Action:longint;
                  InitSize,Attrib,OpenFlags,FileMode:longint;
-                 EA:PEAOp2):longint;
+                 EA:PEAOp2):longint; cdecl;
 
 external 'DOSCALLS' index 273;
 
@@ -2640,26 +2668,26 @@ begin
     DosOpen:=DosOpen(@T,Handle,Action,0,Attrib,1,OpenMode,nil);
 end;
 
-function DosClose(Handle:longint):longint;
+function DosClose(Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 257;
 
 function DosRead(Handle:longint;var Buffer;Count:longint;
-                 var ActCount:longint):longint;
+                 var ActCount:longint):longint; cdecl;
 
 external 'DOSCALLS' index 281;
 
 function DosWrite(Handle:longint;var Buffer;Count:longint;
-                  var ActCount:longint):longint;
+                  var ActCount:longint):longint; cdecl;
 
 external 'DOSCALLS' index 282;
 
 function DosSetFilePtr(Handle:longint;Pos,Method:longint;
-                       var PosActual:longint):longint;
+                       var PosActual:longint):longint; cdecl;
 
 external 'DOSCALLS' index 256;
 
-function DosSetFilePtr(Handle:longint;Pos:longint):longint;
+function DosSetFilePtr(Handle:longint;Pos:longint):longint; cdecl;
 
 var PosActual:longint;
 
@@ -2673,33 +2701,33 @@ begin
     DosGetFilePtr:=DosSetFilePtr(Handle,0,1,PosActual);
 end;
 
-function DosSetFileSize(Handle,Size:longint):longint;
+function DosSetFileSize(Handle,Size:longint):longint; cdecl;
 
 external 'DOSCALLS' index 272;
 
-function DosResetBuffer(Handle:longint):longint;
+function DosResetBuffer(Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 254;
 
-function DosDupHandle(Handle:longint;var Duplicate:longint):longint;
+function DosDupHandle(Handle:longint;var Duplicate:longint):longint; cdecl;
 
 external 'DOSCALLS' index 260;
 
-function DosQueryFHState(Handle:longint;var FileMode:longint):longint;
+function DosQueryFHState(Handle:longint;var FileMode:longint):longint; cdecl;
 
 external 'DOSCALLS' index 276;
 
-function DosSetFHState(Handle,FileMode:longint):longint;
+function DosSetFHState(Handle,FileMode:longint):longint; cdecl;
 
 external 'DOSCALLS' index 221;
 
 function DosQueryHType(Handle:longint;var HandType:longint;
-                       var Attr:longint):longint;
+                       var Attr:longint):longint; cdecl;
 
 external 'DOSCALLS' index 224;
 
 function DosEditName(MetaLevel:longint;Source,Edit:PChar;
-                     Target:PChar;TargetLen:longint):longint;
+                     Target:PChar;TargetLen:longint):longint; cdecl;
 
 external 'DOSCALLS' index 261;
 
@@ -2715,7 +2743,7 @@ begin
     Target:=StrPas(@T3);
 end;
 
-function DosMove(OldFile,NewFile:PChar):longint;
+function DosMove(OldFile,NewFile:PChar):longint; cdecl;
 
 external 'DOSCALLS' index 271;
 
@@ -2729,7 +2757,7 @@ begin
     DosMove:=DosMove(@T,@T2);
 end;
 
-function DosCopy(OldFile,NewFile:PChar;Option:longint):longint;
+function DosCopy(OldFile,NewFile:PChar;Option:longint):longint; cdecl;
 
 external 'DOSCALLS' index 258;
 
@@ -2743,7 +2771,7 @@ begin
     DosCopy:=DosCopy(@T,@T2,Option);
 end;
 
-function DosDelete(FileName:PChar):longint;
+function DosDelete(FileName:PChar):longint; cdecl;
 
 external 'DOSCALLS' index 259;
 
@@ -2756,7 +2784,7 @@ begin
     DosDelete:=DosDelete(@T);
 end;
 
-function DosForceDelete(FileName:PChar):longint;
+function DosForceDelete(FileName:PChar):longint; cdecl;
 
 external 'DOSCALLS' index 110;
 
@@ -2769,7 +2797,7 @@ begin
     DosForceDelete:=DosForceDelete(@T);
 end;
 
-function DosCreateDir(Name:PChar;EA:PEAOp2):longint;
+function DosCreateDir(Name:PChar;EA:PEAOp2):longint; cdecl;
 
 external 'DOSCALLS' index 270;
 
@@ -2797,7 +2825,7 @@ begin
     DosCreateDir:=DosCreateDir(@T,nil);
 end;
 
-function DosDeleteDir(Name:PChar):longint;
+function DosDeleteDir(Name:PChar):longint; cdecl;
 
 external 'DOSCALLS' index 226;
 
@@ -2810,15 +2838,15 @@ begin
     DosDeleteDir:=DosDeleteDir(@T);
 end;
 
-function DosSetDefaultDisk(DiskNum:longint):longint;
+function DosSetDefaultDisk(DiskNum:longint):longint; cdecl;
 
 external 'DOSCALLS' index 220;
 
-procedure DosQueryCurrentDisk(var DiskNum:longint;var Logical:longint);
+procedure DosQueryCurrentDisk(var DiskNum:longint;var Logical:longint); cdecl;
 
 external 'DOSCALLS' index 275;
 
-function DosSetCurrentDir(Name:PChar):longint;
+function DosSetCurrentDir(Name:PChar):longint; cdecl;
 
 external 'DOSCALLS' index 255;
 
@@ -2832,7 +2860,7 @@ begin
 end;
 
 function DosQueryCurrentDir(DiskNum:longint;var Buffer;
-                            var BufLen:longint):longint;
+                            var BufLen:longint):longint; cdecl;
 
 external 'DOSCALLS' index 274;
 
@@ -2849,13 +2877,13 @@ end;
 
 function DosDevIOCtl(Handle,Category,Func:longint;var Params;
                      ParamLen:longint;var ParamSize:longint;
-                     var Data;var DataLen:longint;var DataSize:longint):longint;
+             var Data;var DataLen:longint;var DataSize:longint):longint; cdecl;
 
 external 'DOSCALLS' index 284;
 
 function DosFindFirst(FileMask:PChar;var Handle:longint;Attrib:longint;
                       AFileStatus:PFileStatus;FileStatusLen:longint;
-                      var Count:longint;InfoLevel:longint):longint;
+                      var Count:longint;InfoLevel:longint):longint; cdecl;
 
 external 'DOSCALLS' index 264;
 
@@ -2873,31 +2901,31 @@ begin
 end;
 
 function DosFindNext(Handle:longint;AFileStatus:PFileStatus;
-                     FileStatusLen:longint;var Count:longint):longint;
+                     FileStatusLen:longint;var Count:longint):longint; cdecl;
 
 external 'DOSCALLS' index 265;
 
-function DosFindClose(Handle:longint):longint;
+function DosFindClose(Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 263;
 
 function DosQueryFileInfo(Handle,InfoLevel:longint;AFileStatus:PFileStatus;
-                          FileStatusLen:longint):longint;
+                          FileStatusLen:longint):longint; cdecl;
 
 external 'DOSCALLS' index 279;
 
 function DosSetFileInfo(Handle,InfoLevel:longint;AFileStatus:PFileStatus;
-                        FileStatusLen:longint):longint;
+                        FileStatusLen:longint):longint; cdecl;
 
 external 'DOSCALLS' index 218;
 
 function DosQueryPathInfo(FileName:PChar;InfoLevel:longint;
-                          AFileStatus:PFileStatus;FileStatusLen:longint):longint;
+                 AFileStatus:PFileStatus;FileStatusLen:longint):longint; cdecl;
 
 external 'DOSCALLS' index 223;
 
 function DosQueryPathInfo(const FileName:string;InfoLevel:longint;
-                          AFileStatus:PFileStatus;FileStatusLen:longint):longint;
+                 AFileStatus:PFileStatus;FileStatusLen:longint):longint;
 
 var T:array[0..255] of char;
 
@@ -2909,13 +2937,13 @@ end;
 
 function DosSetPathInfo(FileName:PChar;InfoLevel:longint;
                         AFileStatus:PFileStatus;FileStatusLen,
-                        Options:longint):longint;
+                        Options:longint):longint; cdecl;
 
 external 'DOSCALLS' index 219;
 
 function DosEnumAttribute(RefType:longint;AFile:pointer;
                           Entry:longint;var Buf;BufSize:longint;
-                          var Count:longint;InfoLevel:longint):longint;
+                          var Count:longint;InfoLevel:longint):longint; cdecl;
 
 external 'DOSCALLS' index 372;
 
@@ -2939,7 +2967,7 @@ begin
      InfoLevel);
 end;
 
-function DosScanEnv(Name:PChar;var Value:PChar):longint;
+function DosScanEnv(Name:PChar;var Value:PChar):longint; cdecl;
 
 external 'DOSCALLS' index 227;
 
@@ -2955,7 +2983,7 @@ begin
 end;
 
 function DosSearchPath(Flag:longint;DirList,FileName:PChar;
-                       FullName:PChar;FullLen:longint):longint;
+                       FullName:PChar;FullLen:longint):longint; cdecl;
 
 external 'DOSCALLS' index 228;
 
@@ -2972,7 +3000,7 @@ begin
 end;
 
 function DosFSAttach(DevName,FileSystem:PChar;var Data:TAttachData;
-                     DataLen,Flag:longint):longint;
+                     DataLen,Flag:longint):longint; cdecl;
 
 external 'DOSCALLS' index 269;
 
@@ -2988,7 +3016,7 @@ begin
 end;
 
 function DosQueryFSAttach(DevName:PChar;Ordinal,InfoLevel:longint;
-                          var Buffer:TFSQBuffer2;var BufLen:longint):longint;
+                     var Buffer:TFSQBuffer2;var BufLen:longint):longint; cdecl;
 
 external 'DOSCALLS' index 277;
 
@@ -3005,7 +3033,7 @@ end;
 function DosFSCtl(Data:pointer;DataLen:longint;var ResDataLen:longint;
                   Parms:pointer;ParmsLen:longint;var ResParmsLen:longint;
                   _Function:longint;Route:PChar;
-                  Handle,Method:longint):longint;
+                  Handle,Method:longint):longint; cdecl;
 
 external 'DOSCALLS' index 285;
 
@@ -3023,65 +3051,67 @@ begin
 end;
 
 function DosQueryFSInfo(DiskNum,InfoLevel:longint;var Buffer:TFSInfo;
-                        BufLen:longint):longint;
+                        BufLen:longint):longint; cdecl;
 
 external 'DOSCALLS' index 278;
 
 function DosSetFSInfo(DiskNum,InfoLevel:longint;var Buffer:TFSInfo;
-                      BufLen:longint):longint;
+                      BufLen:longint):longint; cdecl;
 
 external 'DOSCALLS' index 222;
 
-function DosQueryVerify(var Enabled:longint):longint;
+function DosQueryVerify(var Enabled:longint):longint; cdecl;
 
 external 'DOSCALLS' index 225;
 
-function DosSetVerify(Enable:longint):longint;
+function DosSetVerify(Enable:longint):longint; cdecl;
 
 external 'DOSCALLS' index 210;
 
-function DosSetMaxFH(Count:longint):longint;
+function DosSetMaxFH(Count:longint):longint; cdecl;
 
 external 'DOSCALLS' index 209;
 
-function DosSetRelMaxFH(var ReqCount,CurMaxFH:longint):longint;
+function DosSetRelMaxFH(var ReqCount,CurMaxFH:longint):longint; cdecl;
 
 external 'DOSCALLS' index 382;
 
-function DosShutDown(Flags:longint):longint;
+function DosShutDown(Flags:longint):longint; cdecl;
 
 external 'DOSCALLS' index 415;
 
 function DosQuerySysInfo(First,Last:longint;var Buf;BufSize:longint):longint;
+                                                                         cdecl;
 
 external 'DOSCALLS' index 348;
 
 function DosPhysicalDisk(Func:longint;Buf:pointer;BufSize:longint;
-                         Params:pointer;ParamSize:longint):longint;
+                         Params:pointer;ParamSize:longint):longint; cdecl;
 
 external 'DOSCALLS' index 287;
 
-function DosAllocMem(var P:pointer;Size,Flag:longint):longint;
+function DosAllocMem(var P:pointer;Size,Flag:longint):longint; cdecl;
 
 external 'DOSCALLS' index 299;
 
-function DosFreeMem(P:pointer):longint;
+function DosFreeMem(P:pointer):longint; cdecl;
 
 external 'DOSCALLS' index 304;
 
-function DosSetMem(P:pointer;Size,Flag:longint):longint;
+function DosSetMem(P:pointer;Size,Flag:longint):longint; cdecl;
 
 external 'DOSCALLS' index 305;
 
-function DosGiveSharedMem(P:pointer;PID,Flag:longint):longint;
+function DosGiveSharedMem(P:pointer;PID,Flag:longint):longint; cdecl;
 
 external 'DOSCALLS' index 303;
 
-function DosGetSharedMem(P:pointer;Flag:longint):longint;
+function DosGetSharedMem(P:pointer;Flag:longint):longint; cdecl;
 
 external 'DOSCALLS' index 302;
 
 function DosGetNamedSharedMem(var P:pointer;Name:PChar;Flag:longint):longint;
+                                                                         cdecl;
 
 external 'DOSCALLS' index 301;
 
@@ -3096,6 +3126,7 @@ begin
 end;
 
 function DosAllocSharedMem(var P:pointer;Name:PChar;Size,Flag:longint):longint;
+                                                                         cdecl;
 
 external 'DOSCALLS' index 300;
 
@@ -3114,28 +3145,29 @@ begin
         DosAllocSharedMem:=DosAllocSharedMem(P,nil,Size,Flag);
 end;
 
-function DosQueryMem(P:pointer;var Size,Flag:longint):longint;
+function DosQueryMem(P:pointer;var Size,Flag:longint):longint; cdecl;
 
 external 'DOSCALLS' index 306;
 
 function DosSubAllocMem(Base:pointer;var P:pointer;Size:longint):longint;
+                                                                         cdecl;
 
 external 'DOSCALLS' index 345;
 
-function DosSubFreeMem(Base,P:pointer;Size:longint):longint;
+function DosSubFreeMem(Base,P:pointer;Size:longint):longint; cdecl;
 
 external 'DOSCALLS' index 346;
 
-function DosSubSetMem(Base:pointer;Flag,Size:longint):longint;
+function DosSubSetMem(Base:pointer;Flag,Size:longint):longint; cdecl;
 
 external 'DOSCALLS' index 344;
 
-function DosSubUnSetMem(Base:pointer):longint;
+function DosSubUnSetMem(Base:pointer):longint; cdecl;
 
 external 'DOSCALLS' index 347;
 
 function DosCreateEventSem(Name:PChar;var Handle:longint;
-                           Attr,State:longint):longint;
+                           Attr,State:longint):longint; cdecl;
 
 external 'DOSCALLS' index 324;
 
@@ -3154,7 +3186,7 @@ begin
         DosCreateEventSem:=DosCreateEventSem(nil,Handle,Attr,State);
 end;
 
-function DosOpenEventSem(Name:PChar;var Handle:longint):longint;
+function DosOpenEventSem(Name:PChar;var Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 325;
 
@@ -3167,28 +3199,28 @@ begin
     DosOpenEventSem:=DosOpenEventSem(@T,Handle);
 end;
 
-function DosCloseEventSem(Handle:longint):longint;
+function DosCloseEventSem(Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 326;
 
-function DosResetEventSem(Handle:longint;var PostCount:longint):longint;
+function DosResetEventSem(Handle:longint;var PostCount:longint):longint; cdecl;
 
 external 'DOSCALLS' index 327;
 
-function DosPostEventSem(Handle:longint):longint;
+function DosPostEventSem(Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 328;
 
-function DosWaitEventSem(Handle,Timeout:longint):longint;
+function DosWaitEventSem(Handle,Timeout:longint):longint; cdecl;
 
 external 'DOSCALLS' index 329;
 
-function DosQueryEventSem(Handle:longint;var Posted:longint):longint;
+function DosQueryEventSem(Handle:longint;var Posted:longint):longint; cdecl;
 
 external 'DOSCALLS' index 330;
 
 function DosCreateMutExSem(Name:PChar;var Handle:longint;
-                           Attr,State:longint):longint;
+                           Attr,State:longint):longint; cdecl;
 
 external 'DOSCALLS' index 331;
 
@@ -3207,7 +3239,7 @@ begin
         DosCreateMutExSem:=DosCreateMutExSem(nil,Handle,Attr,State);
 end;
 
-function DosOpenMutExSem(Name:PChar;var Handle:longint):longint;
+function DosOpenMutExSem(Name:PChar;var Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 332;
 
@@ -3220,24 +3252,25 @@ begin
     DosOpenMutExSem:=DosOpenMutExSem(@T,Handle);
 end;
 
-function DosCloseMutExSem(handle:longint):longint;
+function DosCloseMutExSem(handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 333;
 
-function DosRequestMutExSem(Handle,Timeout:longint):longint;
+function DosRequestMutExSem(Handle,Timeout:longint):longint; cdecl;
 
 external 'DOSCALLS' index 334;
 
-function DosReleaseMutExSem(Handle:longint):longint;
+function DosReleaseMutExSem(Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 335;
 
 function DosQueryMutExSem(Handle:longint;var PID,TID,Count:longint):longint;
+                                                                         cdecl;
 
 external 'DOSCALLS' index 336;
 
 function DosCreateMuxWaitSem(Name:PChar;var Handle:longint;CSemRec:longint;
-                             var SemArray:TSemArray;Attr:longint):longint;
+                           var SemArray:TSemArray;Attr:longint):longint; cdecl;
 
 external 'DOSCALLS' index 337;
 
@@ -3259,7 +3292,7 @@ begin
          Attr);
 end;
 
-function DosOpenMuxWaitSem(Name:PChar;var Handle:longint):longint;
+function DosOpenMuxWaitSem(Name:PChar;var Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 338;
 
@@ -3272,59 +3305,60 @@ begin
     DosOpenMuxWaitSem:=DosOpenMuxWaitSem(@T,Handle);
 end;
 
-function DosCloseMuxWaitSem(Handle:longint):longint;
+function DosCloseMuxWaitSem(Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 339;
 
 function DosWaitMuxWaitSem(Handle,Timeout:longint;var User:longint):longint;
+                                                                         cdecl;
 
 external 'DOSCALLS' index 340;
 
-function DosAddMuxWaitSem(Handle:longint;var SemRec:TSemRecord):longint;
+function DosAddMuxWaitSem(Handle:longint;var SemRec:TSemRecord):longint; cdecl;
 
 external 'DOSCALLS' index 341;
 
-function DosDeleteMuxWaitSem(Handle,Sem:longint):longint;
+function DosDeleteMuxWaitSem(Handle,Sem:longint):longint; cdecl;
 
 external 'DOSCALLS' index 342;
 
 function DosQueryMuxWaitSem(Handle:longint;var CSemRec:longint;
-                            var SemRecs:TSemArray;var Attr:longint):longint;
+                        var SemRecs:TSemArray;var Attr:longint):longint; cdecl;
 
 external 'DOSCALLS' index 343;
 
-function DosGetDateTime(var Buf:TDateTime):longint;
+function DosGetDateTime(var Buf:TDateTime):longint; cdecl;
 
 external 'DOSCALLS' index 230;
 
-function DosSetDateTime(var Buf:TDateTime):longint;
+function DosSetDateTime(var Buf:TDateTime):longint; cdecl;
 
 external 'DOSCALLS' index 292;
 
 function DosAsyncTimer(MSec,HSem:longint;
-                       var TimHandle:longint):longint;
+                       var TimHandle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 350;
 
 function DosStartTimer(MSec,HSem:longint;
-                       var TimHandle:longint):longint;
+                       var TimHandle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 351;
 
-function DosStopTimer(TimHandle:longint):longint;
+function DosStopTimer(TimHandle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 290;
 
-function DosTmrQueryFreq(var Freq:longint):longint;
+function DosTmrQueryFreq(var Freq:longint):longint; cdecl;
 
 external 'DOSCALLS' index 362;
 
-function DosTmrQueryTime(var Time:comp):longint;
+function DosTmrQueryTime(var Time:comp):longint; cdecl;
 
 external 'DOSCALLS' index 363;
 
 function DosLoadModule(ObjName:PChar;ObjLen:longint;DLLName:PChar;
-                       var Handle:longint):longint;
+                       var Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 318;
 
@@ -3339,17 +3373,17 @@ begin
     ObjName:=StrPas(@T1);
 end;
 
-function DosFreeModule(Handle:longint):longint;
+function DosFreeModule(Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 322;
 
 function DosQueryProcAddr(Handle,Ordinal:longint;ProcName:PChar;
-                          var Address:pointer):longint;
+                          var Address:pointer):longint; cdecl;
 
 external 'DOSCALLS' index 321;
 
 function DosQueryProcAddr(Handle,Ordinal:longint;
-                          const ProcName:string;var Address:pointer):longint;
+                      const ProcName:string;var Address:pointer):longint;
 
 var T1:array[0..255] of char;
 
@@ -3363,7 +3397,7 @@ begin
         DosQueryProcAddr:=DosQueryProcAddr(Handle,Ordinal,nil,Address);
 end;
 
-function DosQueryModuleHandle(DLLName:PChar;var Handle:longint):longint;
+function DosQueryModuleHandle(DLLName:PChar;var Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 319;
 
@@ -3376,7 +3410,7 @@ begin
     DosQueryModuleHandle:=DosQueryModuleHandle(@T1,Handle);
 end;
 
-function DosQueryModuleName(Handle,NameLen:longint;Name:PChar):longint;
+function DosQueryModuleName(Handle,NameLen:longint;Name:PChar):longint; cdecl;
 
 external 'DOSCALLS' index 320;
 
@@ -3390,7 +3424,7 @@ begin
 end;}
 
 function DosQueryProcType(Handle,Ordinal:longint;Name:PChar;
-                          var ProcType:longint):longint;
+                          var ProcType:longint):longint; cdecl;
 
 external 'DOSCALLS' index 586;
 
@@ -3410,28 +3444,31 @@ begin
 end;
 
 function DosGetResource(Handle,ResType,ResName:longint;var P:pointer):longint;
+                                                                         cdecl;
 
 external 'DOSCALLS' index 352;
 
-function DosFreeResource(P:pointer):longint;
+function DosFreeResource(P:pointer):longint; cdecl;
 
 external 'DOSCALLS' index 353;
 
 function DosQueryResourceSize(Handle,IDT,IDN:longint;var Size:longint):longint;
+                                                                         cdecl;
 
 external 'DOSCALLS' index 572;
 
 function DosQueryCtryInfo(Size:longint;var Country:TCountryCode;
-                          var Res:TCountryInfo;var ActualSize:longint):longint;
+                   var Res:TCountryInfo;var ActualSize:longint):longint; cdecl;
 
 external 'NLS' index 5;
 
-function DosQueryDBCSEnv(Size:longint;var Country:TCountryCode;Buf:PChar):longint;
+function DosQueryDBCSEnv(Size:longint;var Country:TCountryCode;
+                                                     Buf:PChar):longint; cdecl;
 
 external 'NLS' index 6;
 
 function DosMapCase(Size:longint;var Country:TCountryCode;
-                    AString:PChar):longint;
+                    AString:PChar):longint; cdecl;
 
 external 'NLS' index 7;
 
@@ -3446,65 +3483,66 @@ begin
 end;
 
 function DosQueryCollate(Size:longint;var Country:TCountryCode;
-                         buf:PByteArray;var TableLen:longint):longint;
+                         buf:PByteArray;var TableLen:longint):longint; cdecl;
 
 external 'NLS' index 8;
 
 function DosQueryCP(Size:longint;CodePages:PWordArray;
-                                                     var ActSize:longint):longint;
+                                           var ActSize:longint):longint; cdecl;
 
 external 'DOSCALLS' index 291;
 
-function DosSetProcessCP(CP:longint):longint;
+function DosSetProcessCP(CP:longint):longint; cdecl;
 
 external 'DOSCALLS' index 289;
 
 function DosSetExceptionHandler(var RegRec:TExceptionRegistrationRecord
-                                ):longint;
+                                ):longint; cdecl;
 
 external 'DOSCALLS' index 354;
 
 function DosUnsetExceptionHandler(var RegRec:TExceptionRegistrationRecord
-                                  ):longint;
+                                  ):longint; cdecl;
 
 external 'DOSCALLS' index 355;
 
-function DosRaiseException(var Excpt:TExceptionReportRecord):longint;
+function DosRaiseException(var Excpt:TExceptionReportRecord):longint; cdecl;
 
 external 'DOSCALLS' index 356;
 
-function DosSendSignalException(PID,Exception:longint):longint;
+function DosSendSignalException(PID,Exception:longint):longint; cdecl;
 
 external 'DOSCALLS' index 379;
 
 function DosUnwindException(var Handler:TExceptionRegistrationRecord;
                             TargetIP:pointer;
-                            var RepRec:TExceptionReportRecord):longint;
+                            var RepRec:TExceptionReportRecord):longint; cdecl;
 
 external 'DOSCALLS' index 357;
 
 function DosSetSignalExceptionFocus(Enable:longint;var Times:longint):longint;
+                                                                         cdecl;
 
 external 'DOSCALLS' index 378;
 
-function DosEnterMustComplete(var Nesting:longint):longint;
+function DosEnterMustComplete(var Nesting:longint):longint; cdecl;
 
 external 'DOSCALLS' index 380;
 
-function DosExitMustComplete(var Nesting:longint):longint;
+function DosExitMustComplete(var Nesting:longint):longint; cdecl;
 
 external 'DOSCALLS' index 381;
 
-function DosAcknowledgeSignalException(SignalNum:longint):longint;
+function DosAcknowledgeSignalException(SignalNum:longint):longint; cdecl;
 
 external 'DOSCALLS' index 418;
 
-function DosCloseQueue(Handle:longint):longint;
+function DosCloseQueue(Handle:longint):longint; cdecl;
 
 external 'QUECALLS' index 11;
 
 function DosCreateQueue(var Handle:longint;Priority:longint;
-                        Name:PChar):longint;
+                        Name:PChar):longint; cdecl;
 
 external 'QUECALLS' index 16;
 
@@ -3519,7 +3557,7 @@ begin
 end;
 
 function DosOpenQueue(var Parent_PID:longint;var Handle:longint;
-                      Name:PChar):longint;
+                      Name:PChar):longint; cdecl;
 
 external 'QUECALLS' index 15;
 
@@ -3536,42 +3574,42 @@ end;
 function DosPeekQueue(Handle:longint;var ReqBuffer:TRequestData;
                       var DataLen:longint;var DataPtr:pointer;
                       var Element:longint;Wait:longint;
-                      var Priority:byte;ASem:longint):longint;
+                      var Priority:byte;ASem:longint):longint; cdecl;
 
 external 'QUECALLS' index 13;
 
-function DosPurgeQueue(Handle:longint):longint;
+function DosPurgeQueue(Handle:longint):longint; cdecl;
 
 external 'QUECALLS' index 10;
 
-function DosQueryQueue(Handle:longint;var Count:longint):longint;
+function DosQueryQueue(Handle:longint;var Count:longint):longint; cdecl;
 
 external 'QUECALLS' index 12;
 
 function DosReadQueue(Handle:longint;var ReqBuffer:TRequestData;
                       var DataLen:longint;var DataPtr:pointer;
                       Element,Wait:longint;var Priority:byte;
-                      ASem:longint):longint;
+                      ASem:longint):longint; cdecl;
 
 external 'QUECALLS' index 9;
 
 function DosWriteQueue(Handle,Request,DataLen:longint;var DataBuf;
-                       Priority:longint):longint;
+                       Priority:longint):longint; cdecl;
 
 external 'QUECALLS' index 14;
 
-function DosError(Error:longint):longint;
+function DosError(Error:longint):longint; cdecl;
 
 external 'DOSCALLS' index 212;
 
-procedure DosErrClass(Code:longint;var _Class,Action,Locus:longint);
+procedure DosErrClass(Code:longint;var _Class,Action,Locus:longint); cdecl;
 
 external 'DOSCALLS' index 211;
 
 function DosTrueGetMessage(MsgSeg:pointer;Table:PInsertTable;
                            TableSize:longint;Buf:PChar;BufSize,
                            MsgNumber:longint;FileName:PChar;
-                           var MsgSize:longint):longint;
+                           var MsgSize:longint):longint; {cdecl;}
 
 external 'MSG' index 6;
 
@@ -3644,7 +3682,7 @@ end;*)
 function DosInsertMessage(Table:PInsertTable;TableSize:longint;
                           Message:PChar;SrcMessageSize:longint;
                           Buf:PChar;BufSize:longint;
-                          var DstMessageSize:longint):longint;
+                          var DstMessageSize:longint):longint; cdecl;
 
 external 'MSG' index 4;
 
@@ -3657,7 +3695,7 @@ function DosInsertMessage(Table:array of PString;
                           Buf:PChar;BufSize:longint;
                           var DstMessageSize:longint):longint;}
 
-function DosPutMessage(Handle,Size:longint;Buf:PChar):longint;
+function DosPutMessage(Handle,Size:longint;Buf:PChar):longint; cdecl;
 
 external 'MSG' index 5;
 
@@ -3668,7 +3706,7 @@ begin
 end;
 
 function DosIQueryMessageCP(var Buf;BufSize:longint;FileName:PChar;
-                            var InfoSize:longint;MesSeg:pointer):longint;
+                           var InfoSize:longint;MesSeg:pointer):longint; {cdecl;}
 
 external 'MSG' index 8;
 
@@ -3688,29 +3726,29 @@ begin
 end;
 
 function DosStartSession(const AStartData:TStartData;
-                         var SesID,PID:longint):longint;
+                         var SesID,PID:longint):longint; cdecl;
 
 external 'SESMGR' index 37;
 
-function DosSetSession(SesID:longint;const AStatus:TStatusData):longint;
+function DosSetSession(SesID:longint;const AStatus:TStatusData):longint; cdecl;
 
 external 'SESMGR' index 39;
 
-function DosSelectSession(SesID:longint):longint;
+function DosSelectSession(SesID:longint):longint; cdecl;
 
 external 'SESMGR' index 38;
 
-function DosStopSession(Scope,SesID:longint):longint;
+function DosStopSession(Scope,SesID:longint):longint; cdecl;
 
 external 'SESMGR' index 40;
 
 function DosCreatePipe(var ReadHandle,WriteHandle:longint;
-                       Size:longint):longint;
+                       Size:longint):longint; cdecl;
 
 external 'DOSCALLS' index 239;
 
 function DosCreateNPipe(Name:PChar;var Handle:longint;OpenMode,PipeMode,
-                        OutBufSize,InBufSize,MSec:longint):longint;
+                        OutBufSize,InBufSize,MSec:longint):longint; cdecl;
 
 external 'DOSCALLS' index 243;
 
@@ -3727,7 +3765,7 @@ end;
 
 function DosCallNPipe(Name:PChar;var Input;InputSize:longint;
                       var Output;OutputSize:longint;var ReadBytes:longint;
-                      MSec:longint):longint;
+                      MSec:longint):longint; cdecl;
 
 external 'DOSCALLS' index 240;
 
@@ -3743,49 +3781,49 @@ begin
      ReadBytes,MSec);
 end;
 
-function DosConnectNPipe(Handle:longint):longint;
+function DosConnectNPipe(Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 241;
 
-function DosDisconnectNPipe(Handle:longint):longint;
+function DosDisconnectNPipe(Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 242;
 
 function DosPeekNPipe(Handle:longint;var Buffer;BufSize:longint;
                       var ReadBytes:longint;var Avail:TAvailData;
-                      var State:longint):longint;
+                      var State:longint):longint; cdecl;
 
 external 'DOSCALLS' index 244;
 
-function DosQueryNPHState(Handle:longint;var State:longint):longint;
+function DosQueryNPHState(Handle:longint;var State:longint):longint; cdecl;
 
 external 'DOSCALLS' index 245;
 
 function DosQueryNPipeInfo(Handle,InfoLevel:longint;var Buffer;
-                           BufSize:longint):longint;
+                           BufSize:longint):longint; cdecl;
 
 external 'DOSCALLS' index 248;
 
 function DosQueryNPipeSemState(SemHandle:longint;var SemArray;
-                               BufSize:longint):longint;
+                               BufSize:longint):longint; cdecl;
 
 external 'DOSCALLS' index 249;
 
-function DosSetNPHState(Handle,State:longint):longint;
+function DosSetNPHState(Handle,State:longint):longint; cdecl;
 
 external 'DOSCALLS' index 250;
 
-function DosSetNPipeSem(PipeHandle,SemHandle,Key:longint):longint;
+function DosSetNPipeSem(PipeHandle,SemHandle,Key:longint):longint; cdecl;
 
 external 'DOSCALLS' index 251;
 
 function DosTransactNPipe(Handle:longint;var OutBuf;OutSize:longint;
                           var InBuf;InSize:longint;
-                          var ReadBytes:longint):longint;
+                          var ReadBytes:longint):longint; cdecl;
 
 external 'DOSCALLS' index 252;
 
-function DosWaitNPipe(Name:PChar;MSec:longint):longint;
+function DosWaitNPipe(Name:PChar;MSec:longint):longint; cdecl;
 
 external 'DOSCALLS' index 253;
 
@@ -3798,32 +3836,117 @@ begin
     DosWaitNPipe:=DosWaitNPipe(@T,MSec);
 end;
 
-function DosOpenVDD(Name:PChar;var Handle:longint):longint;
+function DosOpenVDD(Name:PChar;var Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 308;
 
 function DosRequestVDD(Handle,SGroup,Cmd:longint;
                        InSize:longint;var InBuffer;
-                       OutSize:longint;var OutBuffer):longint;
+                       OutSize:longint;var OutBuffer):longint; cdecl;
 
 external 'DOSCALLS' index 309;
 
-function DosCloseVDD(Handle:longint):longint;
+function DosCloseVDD(Handle:longint):longint; cdecl;
 
 external 'DOSCALLS' index 310;
 
-procedure SelToFlat;
+procedure DosSelToFlat; cdecl;
 
 external 'DOSCALLS' index 425;
 
-procedure FlatToSel;
+procedure DosFlatToSel; cdecl;
 
 external 'DOSCALLS' index 426;
+
+{$ASMMODE INTEL}
+function SelToFlat (AFarPtr: TFarPtr): pointer; cdecl;
+begin
+ asm
+  mov eax, AFarPtr
+  call DosSelToFlat
+ end;
+end;
+
+function FlatToSel (APtr: pointer): cardinal; cdecl;
+begin
+ asm
+  mov eax, APtr
+  call DosFlatToSel
+ end;
+end;
+
+(* Todo:
+
+function DosRawReadNPipe ...; cdecl;
+
+external 'DOSCALLS' index 246;
+
+function DosRawWriteNPipe ...; cdecl;
+
+external 'DOSCALLS' index 247;
+
+function DosSetCP ...; cdecl;
+
+external 'DOSCALLS' index 288;
+
+function DosDynamicTrace ...; cdecl;
+
+external 'DOSCALLS' index 316;
+
+function DosRegisterPerfCtrs ...; cdecl;
+
+external 'DOSCALLS' index 367;
+
+function DosQueryDOSProperty ...; cdecl;
+
+external 'DOSCALLS' index 373;
+
+function DosSetDOSProperty ...; cdecl;
+
+external 'DOSCALLS' index 374;
+
+function DosProfile ...; cdecl;
+
+external 'DOSCALLS' index 377;
+
+function DosReplaceModule ...; cdecl;
+
+external 'DOSCALLS' index 417;
+
+function DosTIB ...; cdecl;
+
+external 'DOSCALLS' index 419;
+
+function DosOpenChangeNotify ...; cdecl;
+
+external 'DOSCALLS' index 440;
+
+function DosResetChangeNotify ...; cdecl;
+
+external 'DOSCALLS' index 441;
+
+function DosCloseChangeNotify ...; cdecl;
+
+external 'DOSCALLS' index 442;
+
+function DosInitializePorthole ...; cdecl;
+
+external 'DOSCALLS' index 580;
+
+function DosQueryHeaderInfo ...; cdecl;
+
+external 'DOSCALLS' index 582;
+
+*)
+
 
 end.
 {
   $Log$
-  Revision 1.7  1999-12-18 18:32:38  hajny
+  Revision 1.8  1999-12-26 19:30:18  hajny
+    * cdecl modifications
+
+  Revision 1.7  1999/12/18 18:32:38  hajny
     + Starting cdecl additions
 
   Revision 1.6  1999/08/10 14:18:40  hajny
