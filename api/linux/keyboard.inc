@@ -274,6 +274,7 @@ Begin
                #13 : PushKey(#10);
               #127 : PushKey(#8);
                '[' : State:=2;
+               'O' : State:=6;
                else
                 begin
                   PushKey(ch);
@@ -336,6 +337,20 @@ Begin
               end;
               if (Ch<>'~') then
                State:=255;
+            end;
+        6 : begin {Esc0 Function keys in vt100 mode PM }
+              case ch of
+               'P' : {F1}PushExt(59);
+               'Q' : {F2}PushExt(60);
+               'R' : {F3}PushExt(61);
+               'S' : {F4}PushExt(62);
+               't' : {F5}PushExt(63);
+               'u' : {F6}PushExt(64);
+               'v' : {F7}PushExt(65);
+               'l' : {F8}PushExt(66);
+               'w' : {F9}PushExt(67);
+               'x' : {F10}PushExt(68);
+              end;
             end;
       255 : ;
         end;
@@ -573,7 +588,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-10-04 11:53:31  pierre
+  Revision 1.4  2000-10-15 09:18:22  peter
+    * vt100 keys support merged
+
+  Revision 1.3  2000/10/04 11:53:31  pierre
    Add TargetEntry and TargetExit (merged)
 
   Revision 1.2  2000/07/13 11:32:25  michael
