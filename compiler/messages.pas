@@ -267,35 +267,26 @@ var
 begin
   s:=Get(nr);
 { $1 -> s1 }
-  if s1<>'$1' then
-   repeat
-     i:=pos('$1',s);
-     if i>0 then
-      begin
-        Delete(s,i,2);
-        Insert(s1,s,i);
-      end;
-   until i=0;
+  i:=pos('$1',s);
+  if i>0 then
+   begin
+     Delete(s,i,2);
+     Insert(s1,s,i);
+   end;
 { $2 -> s2 }
-  if s1<>'$2' then
-   repeat
-     i:=pos('$2',s);
-     if i>0 then
-      begin
-        Delete(s,i,2);
-        Insert(s2,s,i);
-      end;
-   until i=0;
+  i:=pos('$2',s);
+  if i>0 then
+   begin
+     Delete(s,i,2);
+     Insert(s2,s,i);
+   end;
 { $3 -> s3 }
-  if s1<>'S3' then
-   repeat
-     i:=pos('$3',s);
-     if i>0 then
-      begin
-        Delete(s,i,2);
-        Insert(s3,s,i);
-      end;
-   until i=0;
+  i:=pos('$3',s);
+  if i>0 then
+   begin
+     Delete(s,i,2);
+     Insert(s3,s,i);
+   end;
   Get3:=s;
 end;
 
@@ -315,7 +306,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2000-05-23 20:32:11  peter
+  Revision 1.15  2000-06-18 18:14:21  peter
+    * only replace the $1,$2,$3 once, so it doesn't loop when the
+      value to replace with contains $1,$2 or $3
+
+  Revision 1.14  2000/05/23 20:32:11  peter
     * fixed wrong code not detected due a bug in FPC
 
   Revision 1.13  2000/05/15 14:07:33  pierre
