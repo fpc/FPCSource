@@ -376,7 +376,8 @@ Destructor TComponent.Destroy;
 
 Var
   I : Integer;
-
+  C : TComponent;
+  
 begin
   Destroying;
   If Assigned(FFreeNotifies) then
@@ -384,7 +385,10 @@ begin
     I:=FFreeNotifies.Count-1;
     While (I>=0) do
       begin
-      TComponent(FFreeNotifies.Items[I]).Notification (self,opRemove);
+      C:=TComponent(FFreeNotifies.Items[I]);
+      // Delete, so one component is not notified twice, if it is owned.
+      FFreeNotifies.Delete(I);
+      C.Notification (self,opRemove);
       If (FFreeNotifies=Nil) then
         I:=0
       else if (I>FFreeNotifies.Count) then
@@ -465,13 +469,18 @@ Procedure TComponent.FreeNotification(AComponent: TComponent);
 
 begin
   If (Owner<>Nil) and (AComponent=Owner) then exit;
-  If not (Assigned(FFreeNotifies)) then
-    FFreeNotifies:=TList.Create;
-  If FFreeNotifies.IndexOf(AComponent)=-1 then
+  if csDestroying in ComponentState then 
+    AComponent.Notification(Self,opRemove)
+  else
     begin
-    FFreeNotifies.Add(AComponent);
-    AComponent.FreeNotification (self);
-    end;
+    If not (Assigned(FFreeNotifies)) then
+      FFreeNotifies:=TList.Create;
+    If FFreeNotifies.IndexOf(AComponent)=-1 then
+      begin
+      FFreeNotifies.Add(AComponent);
+      AComponent.FreeNotification (self);
+      end;
+    end;  
 end;
 
 
@@ -548,7 +557,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2004-09-22 18:48:31  michael
+  Revision 1.5  2004-09-22 19:57:45  michael
+  + More optimal FreeNotification when destroying
+
+  Revision 1.4  2004/09/22 18:48:31  michael
   +  Fix in TComponent destroy FreeNotifications.
 
   Revision 1.3  2004/08/07 16:44:35  florian
