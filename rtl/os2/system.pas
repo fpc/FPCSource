@@ -140,13 +140,13 @@ const   UnusedHandle=$ffff;
         FileNameCaseSensitive: boolean = false;
 
         sLineBreak : string[2] = LineEnding;
+        DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
 var
 { C-compatible arguments and environment }
   argc  : longint;external name '_argc';
   argv  : ppchar;external name '_argv';
   envp  : ppchar;external name '_environ';
-  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
 implementation
 
@@ -1066,7 +1066,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2001-10-23 21:51:03  peter
+  Revision 1.17  2001-11-15 18:49:43  hajny
+    * DefaultTextLineBreakStyle misplacing corrected
+
+  Revision 1.16  2001/10/23 21:51:03  peter
     * criticalsection renamed to rtlcriticalsection for kylix compatibility
 
   Revision 1.15  2001/06/19 20:46:07  hajny
