@@ -369,7 +369,7 @@ interface
                      begin
                        cmpop := true;
                      {$ifndef newra}
-                       rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
+                       rg.saveusedintregisters(exprasmlist,pushed,VOLATILE_INTREGISTERS);
                      {$endif newra}
                        secondpass(left);
                        location_release(exprasmlist,left.location);
@@ -1380,7 +1380,7 @@ interface
       { the location.register will be filled in later (JM) }
       location_reset(location,LOC_REGISTER,OS_INT);
 
-      regstopush := all_intregisters;
+      regstopush := VOLATILE_INTREGISTERS;
       remove_non_regvars_from_loc(right.location,regstopush);
       remove_non_regvars_from_loc(left.location,regstopush);
       { now, regstopush does NOT contain EAX and/or EDX if they are }
@@ -1644,7 +1644,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2003-06-07 18:57:04  jonas
+  Revision 1.72  2003-06-17 16:51:30  peter
+    * cycle fixes
+
+  Revision 1.71  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)

@@ -51,8 +51,6 @@ unit rgcpu;
           function getregisterfpu(list: taasmoutput;size:TCGSize) : tregister; override;
           procedure ungetregisterfpu(list: taasmoutput; r : tregister;size:TCGSize); override;
 
-          procedure ungetreference(list: taasmoutput; const ref : treference); override;
-
           {# Returns a subset register of the register r with the specified size.
              WARNING: There is no clearing of the upper parts of the register,
              if a 8-bit / 16-bit register is converted to a 32-bit register.
@@ -508,7 +506,10 @@ end.
 
 {
   $Log$
-  Revision 1.28  2003-06-17 16:34:44  jonas
+  Revision 1.29  2003-06-17 16:51:30  peter
+    * cycle fixes
+
+  Revision 1.28  2003/06/17 16:34:44  jonas
     * lots of newra fixes (need getfuncretparaloc implementation for i386)!
     * renamed all_intregisters to volatile_intregisters and made it
       processor dependent
