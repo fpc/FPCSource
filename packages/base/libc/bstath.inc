@@ -16,14 +16,15 @@ type
    _stat = packed record
         st_dev : __dev_t;
         __pad1 : word;
+        __align_pad1 : word;
         st_ino : __ino_t;
-        __st_ino : __ino_t;
         st_mode : __mode_t;
         st_nlink : __nlink_t;
         st_uid : __uid_t;
         st_gid : __gid_t;
         st_rdev : __dev_t;
         __pad2 : word;
+        __align_pad2 : word;
         st_size : __off_t;
         st_blksize : __blksize_t;
         st_blocks : __blkcnt_t;
