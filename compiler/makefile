@@ -99,9 +99,9 @@ endif
 # Where to install the _real_executable and support files
 ifndef LIBINSTALLDIR
 ifdef inlinux
-LIBINSTALLDIR=/usr/lib/fpc/0.99.6
+LIBINSTALLDIR=/usr/lib/fpc/0.99.7
 # for a.out
-# LIBINSTALLDIR=/usr/lib/ppc/aout/0.99.6
+# LIBINSTALLDIR=/usr/lib/ppc/aout/0.99.7
 else
 LIBINSTALLDIR=$(PROGINSTALLDIR)
 endif
@@ -440,7 +440,10 @@ rtlclean :
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.23  1998-08-06 10:42:56  pierre
+# Revision 1.24  1998-08-14 09:29:53  michael
+# Updated compiler number
+#
+# Revision 1.23  1998/08/06 10:42:56  pierre
 #   + faster remake3 :
 #     stops when two executables are equal
 #
