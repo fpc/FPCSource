@@ -3957,7 +3957,7 @@ Const local_symtable_index : longint = $8001;
              hp:=searchclasstablelist(pobjectdef(pvarsym(sym)^.vartype.def));
              if not(assigned(hp)) then
                internalerror(0206002);
-             rttilist^.concat(new(pai_const,init_32bit(hp^.index)));
+             rttilist^.concat(new(pai_const,init_16bit(hp^.index)));
              rttilist^.concat(new(pai_const,init_8bit(length(pvarsym(sym)^.name))));
              rttilist^.concat(new(pai_string,init(pvarsym(sym)^.name)));
           end;
@@ -4130,7 +4130,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.203  2000-06-25 09:25:29  peter
+  Revision 1.204  2000-06-29 08:42:47  sg
+  * Fix for class field table writing
+
+  Revision 1.203  2000/06/25 09:25:29  peter
     * setdef.typename, show Empty Set if elementtype is not set
 
   Revision 1.202  2000/06/22 20:01:57  peter
