@@ -1,3 +1,5 @@
+{ %result=217 }
+
 { Source provided for Free Pascal Bug Report 2229 }
 { Submitted by "Vincent Snijders" on  2002-11-14 }
 { e-mail: vslist@zonnet.nl }
