@@ -270,7 +270,7 @@ const
         list.concat(taicpu.op_reg_ref(A_STW,R_TOC,href));
         tmpreg := get_scratch_reg_int(list);
         a_load_ref_reg(list,OS_ADDR,ref,tmpreg);
-        list.concat(taicpu.op_reg(A_MTLR,tmpreg));
+        list.concat(taicpu.op_reg_reg(A_MTSPR,R_CTR,tmpreg));
         free_scratch_reg(list,tmpreg);
         a_reg_dealloc(list,R_0);
         list.concat(taicpu.op_none(A_BCCTRL));
@@ -1688,7 +1688,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2002-08-31 21:30:45  florian
+  Revision 1.48  2002-08-31 21:38:02  jonas
+    * fixed a_call_ref (it should load ctr, not lr)
+
+  Revision 1.47  2002/08/31 21:30:45  florian
     * fixed several problems caused by Jonas' commit :)
 
   Revision 1.46  2002/08/31 19:25:50  jonas
