@@ -5299,8 +5299,9 @@ implementation
              end
            else
              begin
+                { When there was an error then procdef is not assigned }
                 if not assigned(proc.procdef) then
-                  internalerror(200310074);
+                  exit;
                 if not(po_virtualmethod in tprocdef(proc.procdef).procoptions) then
                   begin
                      rttiList.concat(Tai_const_symbol.Createname(tprocdef(proc.procdef).mangledname));
@@ -6107,7 +6108,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.186  2003-10-29 21:56:28  peter
+  Revision 1.187  2003-11-01 15:50:03  peter
+    * fix check for valid procdef in property rtti
+
+  Revision 1.186  2003/10/29 21:56:28  peter
     * procsym.deref derefs only own procdefs
     * reset paracount in procdef.deref so a second deref doesn't increase
       the paracounts to invalid values
