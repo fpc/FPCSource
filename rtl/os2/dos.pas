@@ -62,55 +62,46 @@ Type
 
         {Flags for the exec procedure:
 
-        Starting the program:
-        efwait:        Wait until program terminates.
-        efno_wait:     Don't wait until the program terminates. Does not work
-                       in dos, as DOS cannot multitask.
-        efoverlay:     Terminate this program, then execute the requested
-                       program. WARNING: Exit-procedures are not called!
-        efdebug:       Debug program. Details are unknown.
-        efsession:     Do not execute as child of this program. Use a seperate
-                       session instead.
-        efdetach:      Detached. Function unknown. Info wanted!
-        efpm:          Run as presentation manager program.
+        }
 
- Not found info about execwinflags
-
-        Determining the window state of the program:
-        efdefault:     Run the pm program in it's default situation.
-        efminimize:    Run the pm program minimized.
-        efmaximize:    Run the pm program maximized.
-        effullscreen:  Run the non-pm program fullscreen.
-        efwindowed:    Run the non-pm program in a window.
-
-}
-        type    execrunflags=(efwait,efno_wait,efoverlay,efdebug,efsession,
-                              efdetach,efpm);
-                execwinflags=(efdefault,efminimize,efmaximize,effullscreen,
-                              efwindowed);
-
-const
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
+var
+{$endif HASTHREADVAR}
 (* For compatibility with VP/2, used for runflags in Exec procedure. *)
-    ExecFlags: cardinal = ord (efwait);
+    ExecFlags: cardinal;
 
 {$i dosh.inc}
 
 {OS/2 specific functions}
 
-function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
-              const comline:comstr):longint;
-
 function GetEnvPChar (EnvVar: string): PChar;
+
+function DosErrorModuleName: string;
+(* In case of an error in Dos.Exec returns the name of the module *)
+(* causing the problem - e.g. name of a missing or corrupted DLL. *)
+
+
 
 implementation
 
-var     LastSR: SearchRec;
+
+{$ifdef HASTHREADVAR}
+threadvar
+{$else HASTHREADVAR}
+var
+{$endif HASTHREADVAR}
+  LastDosExitCode: longint;
+  LastDosErrorModuleName: string;
+
 
 type    TBA = array [1..SizeOf (SearchRec)] of byte;
         PBA = ^TBA;
 
 const   FindResvdMask = $00003737; {Allowed bits in attribute
                                     specification for DosFindFirst call.}
+
 
 
 function fsearch(path:pathstr;dirlist:string):pathstr;
@@ -123,6 +114,7 @@ begin
   DosError:=DosSearchPath(0, PChar(D), PChar(P), @A, 255);
   fsearch := StrPas (@A);
 end;
+
 
 procedure getftime(var f;var time:longint);
 var
@@ -138,6 +130,7 @@ begin
   end else
     Time:=0;
 end;
+
 
 procedure SetFTime (var F; Time: longint);
 var FStat: TFileStatus3;
@@ -157,114 +150,53 @@ begin
   DosError := integer (RC);
 end;
 
-{$ifdef HASTHREADVAR}
-threadvar
-{$else HASTHREADVAR}
-var
-{$endif HASTHREADVAR}
-  LastDosExitCode: longint;
 
-procedure exec (const path:pathstr;const comline:comstr);
+procedure Exec (const Path: PathStr; const ComLine: ComStr);
 {Execute a program.}
-begin
-  LastDosExitCode := Exec (Path, ExecRunFlags (ExecFlags), efDefault, ComLine);
-end;
-
-function Exec (path:pathstr;runflags:execrunflags;winflags:execwinflags;
-               const comline:comstr): longint;
-{Execute a program. More suitable for OS/2 than the exec above.}
-var args:Pbytearray;
-    env:Pbytearray;
-    i,argsize:word;
-    esadr:pointer;
-    d:dirstr;
-    n:namestr;
-    e:extstr;
-    p : ppchar;
-    j : integer;
-    res: TResultCodes;
-    ObjName: String;
+var Args: PByteArray;
+    ArgSize: word;
+    Res: TResultCodes;
+    ObjName: string;
 const
-    ArgsSize = 2048; (* Amount of memory reserved for arguments in bytes. *)
+    MaxArgsSize = 2048; (* Amount of memory reserved for arguments in bytes. *)
 begin
-    getmem(args,ArgsSize);
-    GetMem(env, envc*sizeof(pchar)+16384);
-    {Now setup the arguments. The first argument should be the program
-     name without directory and extension.}
-    fsplit(path,d,n,e);
-//    args^[0]:=$80;
-    argsize:=0;
-    for i:=1 to length(n) do
-        begin
-            args^[argsize]:=byte(n[i]);
-            inc(argsize);
-        end;
-    args^[argsize]:=0;
-    inc(argsize);
+{  LastDosExitCode := Exec (Path, ExecRunFlags (ExecFlags), efDefault, ComLine);}
+    GetMem (Args, MaxArgsSize);
+    ArgSize := 0;
+    Move (Path [1], Args^ [ArgSize], Length (Path));
+    Inc (ArgSize, Length (Path));
+    Args^ [ArgSize] := 0;
+    Inc (ArgSize);
     {Now do the real arguments.}
-    i:=1;
-    while i<=length(comline) do
-        begin
-            if comline[i]<>' ' then
-                begin
-                    {Commandline argument found. Copy it.}
-//                    args^[argsize]:=$80;
-//                    inc(argsize);
-                    while (i<=length(comline)) and (comline[i]<>' ') do
-                        begin
-                            args^[argsize]:=byte(comline[i]);
-                            inc(argsize);
-                            inc(i);
-                        end;
-                    args^[argsize]:=32;//0;
-                    inc(argsize);
-                end;
-            inc(i);
-        end;
-    args^[argsize]:=0;
-    inc(argsize);
-
-    {Commandline ready, now build the environment.
-
-     Oh boy, I always had the opinion that executing a program under Dos
-     was a hard job!}
-
-    asm
-        movl env,%edi       {Setup destination pointer.}
-        movl envc,%ecx      {Load number of arguments in edx.}
-        movl envp,%esi      {Load env. strings.}
-        xorl %edx,%edx      {Count environment size.}
-.Lexa1:
-        lodsl               {Load a Pchar.}
-        xchgl %eax,%ebx
-.Lexa2:
-        movb (%ebx),%al     {Load a byte.}
-        incl %ebx           {Point to next byte.}
-        stosb               {Store it.}
-        incl %edx           {Increase counter.}
-        cmpb $0,%al         {Ready ?.}
-        jne .Lexa2
-        loop .Lexa1           {Next argument.}
-        stosb               {Store an extra 0 to finish. (AL is now 0).}
-        incl %edx
-//        movw %dx,ES.SizeEnv    {Store environment size.}
-    end ['eax','ebx','ecx','edx','esi','edi'];
-
-    //Not clear how to use
-    DosError:=DosExecPgm(ObjName, cardinal (RunFlags), Args, Env, Res, Path);
-
-    exec:=Res.ExitCode;
-
-    freemem(args,ArgsSize);
-    FreeMem(env, envc*sizeof(pchar)+16384);
-    {Phew! That's it. This was the most sophisticated procedure to call
-     a system function I ever wrote!}
+    Move (ComLine [1], Args^ [ArgSize], Length (ComLine));
+    Inc (ArgSize, Length (ComLine));
+    Args^ [ArgSize] := 0;
+    Inc (ArgSize);
+    Args^ [ArgSize] := 0;
+    DosError := DosExecPgm (ObjName, cardinal (ExecFlags), Args, nil, Res, Path);
+    if DosError = 0 then
+      begin
+        LastDosExitCode := Res.ExitCode;
+        LastDosErrorModuleName := '';
+      end
+    else
+      begin
+        LastDosErrorModuleName := ObjName;
+        LastDosExitCode := 0; (* Needed for TP/BP compatibility *)
+      end;
+    FreeMem (Args, MaxArgsSize);
 end;
 
 
 function DosExitCode: word;
 begin
   DosExitCode := LastDosExitCode and $FFFF;
+end;
+
+
+function DosErrorModuleName: string;
+begin
+  DosErrorModuleName := LastDosErrorModuleName;
 end;
 
 
@@ -278,6 +210,7 @@ begin
   DosVersion:=Major or Minor shl 8;
 end;
 
+
 procedure GetDate (var Year, Month, MDay, WDay: word);
 Var
   dt: TDateTime;
@@ -288,6 +221,7 @@ begin
   MDay:=dt.Day;
   WDay:=dt.Weekday;
 end;
+
 
 procedure SetDate (Year, Month, Day: word);
 var
@@ -300,6 +234,7 @@ begin
   DosSetDateTime (DT);
 end;
 
+
 procedure GetTime (var Hour, Minute, Second, Sec100: word);
 var
   dt: TDateTime;
@@ -310,6 +245,7 @@ begin
   Second:=dt.Second;
   Sec100:=dt.Hundredths;
 end;
+
 
 procedure SetTime (Hour, Minute, Second, Sec100: word);
 var
@@ -323,19 +259,23 @@ begin
   DosSetDateTime (DT);
 end;
 
+
 procedure getcbreak(var breakvalue:boolean);
 begin
   breakvalue := True;
 end;
 
+
 procedure setcbreak(breakvalue:boolean);
 begin
 end;
+
 
 procedure getverify(var verify:boolean);
 begin
   verify := true;
 end;
+
 
 procedure setverify(verify:boolean);
 begin
@@ -355,6 +295,7 @@ begin
       DiskFree := -1;
 end;
 
+
 function DiskSize (Drive: byte): int64;
 var FI: TFSinfo;
     RC: cardinal;
@@ -372,6 +313,7 @@ procedure SearchRec2DosSearchRec (var F: SearchRec);
 begin
 end;
 
+
 procedure DosSearchRec2SearchRec (var F: SearchRec);
 type
   TRec = record
@@ -387,6 +329,7 @@ begin
         TRec (Time).D := FStat^.DateLastWrite;
     end;
 end;
+
 
 procedure FindFirst (const Path: PathStr; Attr: word; var F: SearchRec);
 
@@ -682,10 +625,16 @@ end;
 
 begin
  LastDosExitCode := 0;
+ LastDosErrorModuleName := '';
+ ExecFlags := 0;
 end.
+
 {
   $Log$
-  Revision 1.39  2004-02-22 15:01:49  hajny
+  Revision 1.40  2004-03-21 20:22:20  hajny
+    * Exec cleanup
+
+  Revision 1.39  2004/02/22 15:01:49  hajny
     * lots of fixes (regcall, THandle, string operations in sysutils, longint2cardinal according to OS/2 docs, dosh.inc, ...)
 
   Revision 1.38  2004/02/17 17:37:26  daniel
