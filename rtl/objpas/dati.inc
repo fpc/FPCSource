@@ -44,7 +44,7 @@ end ;
 
 function DoEncodeTime(Hour, Minute, Second, MilliSecond: word): longint;
 begin
-If ((hour>=0) and (Hour<24)) and 
+If ((hour>=0) and (Hour<24)) and
    ((Minute>=0) and (Minute<60)) and
    ((Second>=0) and (Second<60)) and
    ((MilliSecond>=0) and (Millisecond<1000)) then
@@ -81,7 +81,7 @@ end ;
 function MSecsToTimeStamp(MSecs: comp): TTimeStamp;
 begin
   result.Date := trunc(msecs / msecsperday);
-  msecs:= msecs - result.date * msecsperday;
+  msecs:= msecs - comp(result.date * msecsperday);
   result.Time := Trunc(MSecs);
 end ;
 
@@ -225,7 +225,7 @@ end ;
 function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer): TDateTime;
 var Year, Month, Day: word;
     S : Integer;
-    
+
 begin
 If NumberOfMonths>=0 then s:=1 else s:=-1;
 DecodeDate(DateTime, Year, Month, Day);
@@ -284,7 +284,7 @@ var
    s1:string[4];
    values:array[0..2] of longint;
    LocalTime:tsystemtime;
-   
+
 begin
 df := UpperCase(ShortDateFormat);
 { Determine order of D,M,Y }
@@ -295,7 +295,7 @@ For I:=1 to Length(df) do
     'M' : mp:=which;
     'D' : dp:=which;
   else
-    If df[i]=DateSeparator then 
+    If df[i]=DateSeparator then
      Inc(Which);
   end;
 { Get actual values }
@@ -319,7 +319,7 @@ If N=3 then
   m:=values[mp];
   d:=values[dp];
   end
-Else 
+Else
   begin
   getLocalTime(LocalTime);
   y := LocalTime.Year;
@@ -329,7 +329,7 @@ Else
     m := LocalTime.Month;
     end
   else
-    If dp<mp then 
+    If dp<mp then
       begin
       d:=values[0];
       m:=values[1];
@@ -374,7 +374,7 @@ var
          end
       else if (S[Current] = TimeSeparator) or (S[Current] = ' ') then
          Inc(Current)
-      else 
+      else
         raise EConvertError.Create('Invalid Time format');
       end ;
    end ;
@@ -387,7 +387,7 @@ begin
 Current := 0;
 Len := length(s);
 PM := False;
-for i:=0 to 4 do 
+for i:=0 to 4 do
   timevalues[i]:=0;
 i := 0;
 TimeValues[i] := GetElement;
@@ -395,7 +395,7 @@ while (i < 5) and (TimeValues[i] <> -1) do begin
    i := i + 1;
    TimeValues[i] := GetElement;
    end ;
-If (i<5) and (TimeValues[I]=-1) then 
+If (i<5) and (TimeValues[I]=-1) then
   TimeValues[I]:=0;
 if PM then Inc(TimeValues[0], 12);
 result := EncodeTime(TimeValues[0], TimeValues[1], TimeValues[2], TimeValues[3]);
@@ -515,7 +515,7 @@ var
                   if Hour < 12 then StoreStr('a', 1)
                   else StoreStr('p', 1);
                   end
-               else 
+               else
                  Raise EConvertError.Create('Illegal character in format string');
                end ;
             '/': StoreStr(@DateSeparator, 1);
@@ -576,7 +576,7 @@ var
                      'C': StoreFormat(ShortDateFormat + ' ' + ShortTimeFormat);
                   end ;
                end ;
-            else 
+            else
               Raise EConvertError.Create('Illegal character in format string');
          end ;
       FormatCurrent := FormatCurrent + Count;
@@ -632,7 +632,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  1999-05-13 21:51:41  michael
+  Revision 1.13  1999-05-31 20:50:44  peter
+    * removed warnings
+
+  Revision 1.12  1999/05/13 21:51:41  michael
   * several fixes
 
   Revision 1.11  1999/05/11 09:05:13  michael

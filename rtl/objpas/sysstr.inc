@@ -26,7 +26,7 @@
 
 function NewStr(const S: string): PString;
 
-Type 
+Type
   PPointer = ^pointer;
 
 begin
@@ -461,7 +461,7 @@ count := Length(S);
 while i < count do begin
    i := i + 1;
 {$ifndef linux}
-   if (S[i] = #13) and ((i = count) or (S[i + 1] <> #10)) then 
+   if (S[i] = #13) and ((i = count) or (S[i + 1] <> #10)) then
      begin
      result := result + Copy(S, 1 + j, i - j) + #10;
      j := i;
@@ -470,11 +470,11 @@ while i < count do begin
    If S[i]=#13 then
      begin
      Result:= Result+Copy(S,J+1,i-j-1)+#10;
-     If I<>Count Then 
+     If I<>Count Then
        If S[I+1]=#10 then inc(i);
      J :=I;
      end;
-{$endif}      
+{$endif}
    end ;
 if j <> i then
    result := result + copy(S, 1 + j, i - j);
@@ -592,7 +592,6 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
     Hs,ToAdd : String;
     Index,Width,Prec : Longint;
     Left : Boolean;
-    ExtVal: Extended;
     Fchar : char;
 
   {
@@ -894,14 +893,14 @@ Begin
   Result := Length(Tmp);
   Move(Tmp[1], Buffer[0], Result);
 End;
-        
+
 
 Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
 Var
   P: Integer;
   Negative, TooSmall, TooLarge: Boolean;
-  
-    
+
+
 Begin
   Case format Of
 
@@ -948,7 +947,7 @@ Begin
         P:=4;
         While (P>0) and (Digits < P) And (Result[Precision + 5] = '0') do
           Begin
-          If P<>1 then 
+          If P<>1 then
             system.Delete(Result, Precision + 5, 1)
           else
             system.Delete(Result, Precision + 3, 3);
@@ -1129,7 +1128,10 @@ const
 
 {
   $Log$
-  Revision 1.19  1999-05-30 07:53:15  michael
+  Revision 1.20  1999-05-31 20:50:45  peter
+    * removed warnings
+
+  Revision 1.19  1999/05/30 07:53:15  michael
   + Small fix. Delete not recognised without system in front of it  ?
 
   Revision 1.18  1999/05/28 20:08:20  michael
