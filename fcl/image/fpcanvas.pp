@@ -229,6 +229,7 @@ type
     // other procedures
     procedure CopyRect (x,y:integer; canvas:TFPCustomCanvas; SourceRect:TRect);
     procedure Draw (x,y:integer; image:TFPCustomImage);
+    procedure Erase;virtual;
     // properties
     property Font : TFPCustomFont read GetFont write SetFont;
     property Pen : TFPCustomPen read GetPen write SetPen;

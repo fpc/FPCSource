@@ -372,6 +372,15 @@ begin
     end;
 end;
 
+procedure TFPCustomCanvas.Erase;
+var
+  x,y:Integer;
+begin
+  for x:=0 to Width-1 do
+    for y:=0 to Height-1 do
+      Colors[x,y]:=colTransparent;
+end;
+
 procedure TFPCustomCanvas.DoRectangleAndFill (const Bounds:TRect);
 begin
   DoRectangleFill (Bounds);
