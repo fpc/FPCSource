@@ -76,7 +76,9 @@ interface
           tc_variant_2_dynarray,
           tc_dynarray_2_variant,
           tc_variant_2_enum,
-          tc_enum_2_variant
+          tc_enum_2_variant,
+          tc_interface_2_variant,
+          tc_variant_2_interface
        );
 
     function compare_defs_ext(def_from,def_to : tdef;
@@ -661,6 +663,14 @@ implementation
                                eq:=te_convert_l1;
                             end;
                        end;
+                     objectdef :
+                       begin
+                          if is_interface(def_from) then
+                            begin
+                               doconv:=tc_interface_2_variant;
+                               eq:=te_convert_l1;
+                            end;
+                       end;
                    end;
                  end;
              end;
@@ -965,6 +975,11 @@ implementation
                      begin
                        eq:=te_convert_l1;
                        doconv:=tc_equal;
+                     end
+                   else if (def_from.deftype=variantdef) and is_interface(def_to) then
+                     begin
+                       doconv:=tc_variant_2_interface;
+                       eq:=te_convert_l1;
                      end;
                  end;
              end;
@@ -1334,7 +1349,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2005-01-06 13:30:40  florian
+  Revision 1.65  2005-01-07 21:14:21  florian
+    + compiler side of variant<->interface implemented
+
+  Revision 1.64  2005/01/06 13:30:40  florian
     * widechararray patch from Peter
 
   Revision 1.63  2005/01/03 17:55:57  florian

@@ -78,6 +78,8 @@ interface
           function resulttype_variant_to_enum : tnode;
           function resulttype_enum_to_variant : tnode;
           function resulttype_proc_to_procvar : tnode;
+          function resulttype_variant_to_interface : tnode;
+          function resulttype_interface_to_variant : tnode;
        protected
           function first_int_to_int : tnode;virtual;
           function first_cstring_to_pchar : tnode;virtual;
@@ -615,7 +617,9 @@ implementation
           'tc_variant_2_dynarray',
           'tc_dynarray_2_variant',
           'tc_variant_2_enum',
-          'tc_enum_2_variant'
+          'tc_enum_2_variant',
+          'tc_interface_2_variant',
+          'tc_variant_2_interface'
         );
       begin
         inherited printnodeinfo(t);
@@ -1113,6 +1117,28 @@ implementation
       end;
 
 
+    function ttypeconvnode.resulttype_variant_to_interface : tnode;
+      begin
+        result := ccallnode.createinternres(
+          'fpc_variant_to_interface',
+            ccallparanode.create(left,nil)
+          ,resulttype);
+        resulttypepass(result);
+        left:=nil;
+      end;
+
+
+    function ttypeconvnode.resulttype_interface_to_variant : tnode;
+      begin
+        result := ccallnode.createinternres(
+          'fpc_interface_to_variant',
+            ccallparanode.create(left,nil)
+          ,resulttype);
+        resulttypepass(result);
+        left:=nil;
+      end;
+
+
     function ttypeconvnode.resulttype_variant_to_enum : tnode;
 
       begin
@@ -1223,7 +1249,9 @@ implementation
           { variant_2_dynarray} @ttypeconvnode.resulttype_variant_to_dynarray,
           { dynarray_2_variant} @ttypeconvnode.resulttype_dynarray_to_variant,
           { variant_2_enum} @ttypeconvnode.resulttype_variant_to_enum,
-          { enum_2_variant} @ttypeconvnode.resulttype_enum_to_variant
+          { enum_2_variant} @ttypeconvnode.resulttype_enum_to_variant,
+          { variant_2_interface} @ttypeconvnode.resulttype_interface_to_variant,
+          { interface_2_variant} @ttypeconvnode.resulttype_variant_to_interface
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -2053,6 +2081,8 @@ implementation
            nil,
            nil,
            nil,
+           nil,
+           nil,
            nil
          );
       type
@@ -2287,7 +2317,9 @@ implementation
            @ttypeconvnode._second_nothing,  { variant_2_dynarray }
            @ttypeconvnode._second_nothing,  { dynarray_2_variant}
            @ttypeconvnode._second_nothing,  { variant_2_enum }
-           @ttypeconvnode._second_nothing   { enum_2_variant }
+           @ttypeconvnode._second_nothing,  { enum_2_variant }
+           @ttypeconvnode._second_nothing,  { variant_2_interface }
+           @ttypeconvnode._second_nothing   { interface_2_variant }
          );
       type
          tprocedureofobject = procedure of object;
@@ -2546,7 +2578,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.172  2005-01-06 13:40:41  florian
+  Revision 1.173  2005-01-07 21:14:21  florian
+    + compiler side of variant<->interface implemented
+
+  Revision 1.172  2005/01/06 13:40:41  florian
     * 1.0.10 starting patch from Peter
 
   Revision 1.171  2005/01/06 13:30:41  florian
