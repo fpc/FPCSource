@@ -24,6 +24,9 @@ uses
 {$ifdef amiga}
   {$define EOL_ONE_CHAR}
 {$endif amiga}
+{$ifdef morphos}
+  {$define EOL_ONE_CHAR}
+{$endif}
 
 const
   version='1.00';
@@ -812,7 +815,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-03-16 23:10:04  pierre
+  Revision 1.12  2004-06-06 15:39:49  karoly
+    * added support for morphos
+
+  Revision 1.11  2003/03/16 23:10:04  pierre
    * merge from fixes branch
 
   Revision 1.1.2.6  2003/02/03 16:34:57  pierre
