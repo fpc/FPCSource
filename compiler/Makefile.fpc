@@ -24,19 +24,6 @@ toolupx=1
 
 
 [presettings]
-# Define Unix also for Linux
-ifeq ($(OS_TARGET),linux)
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-override FPCOPT+=-dUNIX
-endif
-endif
-
-ifeq ($(OS_TARGET),freebsd)
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-override FPCOPT+=-dUNIX
-endif
-endif
-
 # Don't export OS_SOURCE because it can change after the first compile
 unexport OS_SOURCE FPC_VERSION
 
@@ -83,6 +70,19 @@ endif
 # Message files
 MSGFILES=$(wildcard error*.msg)
 
+# Define Unix also for Linux
+ifeq ($(OS_TARGET),linux)
+ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
+override LOCALDEF+=-dUNIX
+endif
+endif
+
+ifeq ($(OS_TARGET),freebsd)
+ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
+override LOCALDEF+=-dUNIX
+endif
+endif
+
 
 [postsettings]
 # Default message file
@@ -99,7 +99,7 @@ endif
 
 override LOCALOPT+=$(LOCALDEF)
 
-override FPCOPT+=$(LOCALOPT)
+override FPCOPT:=$(LOCALOPT)
 
 
 [rules]
