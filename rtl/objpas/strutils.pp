@@ -253,7 +253,11 @@ var
   counter: integer;
 begin
   counter := 0;
+{$ifdef INTERNLENGTH}
   while(counter < length(AValues)) do
+{$else}
+  while(counter < high(AValues)+1) do
+{$endif}
   begin
     if(AText = AValues[counter]) then
     begin
@@ -272,7 +276,11 @@ var
   counter: integer;
 begin
   counter := 0;
+{$ifdef INTERNLENGTH}
   while(counter < length(AValues)) do
+{$else}
+  while(counter < high(AValues)+1) do
+{$endif}
   begin
     if(AText = AValues[counter]) then
     begin
@@ -680,7 +688,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-06-29 19:37:17  marco
+  Revision 1.7  2004-07-01 15:42:18  peter
+    * fix 1.0.x compile
+
+  Revision 1.6  2004/06/29 19:37:17  marco
    * updates from B. Tierens
 
   Revision 1.5  2004/05/17 07:33:01  marco
