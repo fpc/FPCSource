@@ -42,6 +42,10 @@ const ClipboardWindow  : PClipboardWindow = nil;
       HighlightExts    : string{$ifdef GABOR}[40]{$endif} = '*.pas;*.pp;*.inc';
       TabsPattern      : string{$ifdef GABOR}[40]{$endif} = 'make*;make*.*';
       SourceDirs       : string{$ifdef GABOR}[40]{$endif} = '';
+      StandardUnits    : string{$ifdef GABOR}[40]{$endif} = '';
+      UseStandardUnitsInCodeComplete : boolean = true;
+      UseAllUnitsInCodeComplete : boolean = true;
+      ShowOnlyUnique   : boolean = true;
       PrimaryFile      : string{$ifdef GABOR}[60]{$endif} = '';
       PrimaryFileMain  : string{$ifdef GABOR}[60]{$endif} = '';
       PrimaryFileSwitches : string{$ifdef GABOR}[80]{$endif} = '';
@@ -112,7 +116,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.3  2002-05-29 22:33:23  pierre
+  Revision 1.4  2002-09-04 14:06:36  pierre
+   + new variables for Unit symbols code complete
+
+  Revision 1.3  2002/05/29 22:33:23  pierre
    Asciitab now in fvision
 
   Revision 1.2  2001/08/05 12:23:01  peter
