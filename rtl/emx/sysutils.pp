@@ -338,7 +338,7 @@ end;
 
 procedure FileClose (Handle: longint);
 begin
-    if (Handle > 4) or (os_mode = osOS2) and (Handle > 2) then
+    if (Handle > 4) or ((os_mode = osOS2) and (Handle > 2)) then
         asm
             mov eax, 3E00h
             mov ebx, Handle
@@ -983,7 +983,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-03-29 15:01:20  hajny
+  Revision 1.4  2003-04-02 21:06:41  hajny
+    * Yuri's fix merged from os2
+
+  Revision 1.3  2003/03/29 15:01:20  hajny
     + DirectoryExists added for main branch OS/2 too
 
   Revision 1.2  2003/03/23 23:11:17  hajny
