@@ -48,6 +48,11 @@ type
 
 Var
   Win32Platform : Longint;
+  Win32MajorVersion,
+  Win32MinorVersion,
+  Win32BuildNumber   : dword;
+  Win32CSDVersion    : ShortString;   // CSD record is 128 bytes only?
+  
 
 implementation
 
@@ -669,8 +674,39 @@ end;
 ****************************************************************************}
 
 var
-   versioninfo : TOSVERSIONINFO;
    kernel32dll : THandle;
+
+Procedure LoadVersionInfo;
+// and getfreespaceex
+Var
+   versioninfo : TOSVERSIONINFO;
+   i 	       : Integer;
+
+begin
+   kernel32dll:=0;
+  GetDiskFreeSpaceEx:=nil;
+  versioninfo.dwOSVersionInfoSize:=sizeof(versioninfo);
+  GetVersionEx(versioninfo);
+  Win32Platform:=versionInfo.dwPlatformId;
+  Win32MajorVersion:=versionInfo.dwMajorVersion;
+  Win32MinorVersion:=versionInfo.dwMinorVersion;
+  Win32BuildNumber:=versionInfo.dwBuildNumber;
+  Move (versioninfo.szCSDVersion ,Win32CSDVersion[1],128);
+  win32CSDVersion[0]:=chr(strlen(pchar(@versioninfo.szCSDVersion)));
+  if ((versioninfo.dwPlatformId=VER_PLATFORM_WIN32_WINDOWS) and
+    (versioninfo.dwBuildNUmber>=1000)) or
+    (versioninfo.dwPlatformId=VER_PLATFORM_WIN32_NT) then
+    begin
+       kernel32dll:=LoadLibrary('kernel32');
+       if kernel32dll<>0 then
+	{$IFDEF VIRTUALPASCAL}
+         @GetDiskFreeSpaceEx:=GetProcAddress(0,'GetDiskFreeSpaceExA');
+        {$ELSE}
+         GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
+        {$ENDIF}
+    end;
+end;
+
 
 function FreeLibrary(hLibModule : THANDLE) : longbool;
   stdcall;external 'kernel32' name 'FreeLibrary';
@@ -685,23 +721,7 @@ function GetProcAddress(hModule : THandle;lpProcName : pchar) : pointer;
 Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
-  versioninfo.dwOSVersionInfoSize:=sizeof(versioninfo);
-  GetVersionEx(versioninfo);
-  kernel32dll:=0;
-  GetDiskFreeSpaceEx:=nil;
-  Win32Platform:=versionInfo.dwPlatformId;
-  if ((versioninfo.dwPlatformId=VER_PLATFORM_WIN32_WINDOWS) and
-    (versioninfo.dwBuildNUmber>=1000)) or
-    (versioninfo.dwPlatformId=VER_PLATFORM_WIN32_NT) then
-    begin
-       kernel32dll:=LoadLibrary('kernel32');
-       if kernel32dll<>0 then
-	{$IFDEF VIRTUALPASCAL}
-         @GetDiskFreeSpaceEx:=GetProcAddress(0,'GetDiskFreeSpaceExA');
-        {$ELSE}
-         GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
-        {$ENDIF}
-    end;
+  LoadVersionInfo;
 
 Finalization
   DoneExceptions;
@@ -710,7 +730,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.25  2003-10-25 23:44:33  hajny
+  Revision 1.26  2003-11-06 22:25:10  marco
+   * added some more of win32* delphi pseudo constants
+
+  Revision 1.25  2003/10/25 23:44:33  hajny
     * THandle in sysutils common using System.THandle
 
   Revision 1.24  2003/09/17 15:06:36  peter
