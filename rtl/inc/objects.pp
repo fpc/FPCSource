@@ -1,3 +1,6 @@
+{
+  $Id$
+}
 {************[ SOURCE FILE OF FREE VISION ]****************}
 {                                                          }
 {    System independent clone of objects.pas               }
@@ -85,16 +88,20 @@ UNIT Objects;
 
 
 {==== Compiler directives ===========================================}
+{$IFNDEF FPC}
+{ FPC doesn't support these switches in 0.99.5 }
+  {$F+} { Force far calls }
+  {$A+} { Word Align Data }
+  {$B-} { Allow short circuit boolean evaluations }
+{$ENDIF}
+
 {$E+} {  Emulation is on }
 {$X+} { Extended syntax is ok }
-{$F+} { Force far calls }
-{$A+} { Word Align Data }
 {$R-} { Disable range checking }
 {$S-} { Disable Stack Checking }
 {$I-} { Disable IO Checking }
 {$Q-} { Disable Overflow Checking }
 {$V-} { Turn off strict VAR strings }
-{$B-} { Allow short circuit boolean evaluations }
 {====================================================================}
 
 {***************************************************************************}
@@ -1586,7 +1593,7 @@ END;
 {  ChangeListSize -> Platforms DOS/DPMI/WIN/OS2 - Checked 19May96 LdB       }
 {---------------------------------------------------------------------------}
 FUNCTION TMemoryStream.ChangeListSize (ALimit: Sw_Word): Boolean;
-VAR I, W: Word; Li, Ti: LongInt; P: PPointerArray;
+VAR I, W: Word; Li: LongInt; P: PPointerArray;
 BEGIN
    If (ALimit <> BlkCount) Then Begin                 { Change is needed }
      ChangeListSize := False;                         { Preset failure }
@@ -1946,7 +1953,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TCollection.Store (Var S: TStream);
 
-   PROCEDURE DoPutItem (P: Pointer); FAR;
+   PROCEDURE DoPutItem (P: Pointer);{$IFNDEF FPC}FAR;{$ENDIF}
    BEGIN
      PutItem(S, P);                                   { Put item on stream }
    END;
@@ -2018,6 +2025,7 @@ END;
 FUNCTION TSortedCollection.Compare (Key1, Key2: Pointer): Sw_Integer;
 BEGIN
    Abstract;                                          { Abstract method }
+   Compare:=0;
 END;
 
 {--TSortedCollection--------------------------------------------------------}
@@ -2409,7 +2417,7 @@ END;
 FUNCTION TResourceFile.SwitchTo (AStream: PStream; Pack: Boolean): PStream;
 VAR NewBasePos: LongInt;
 
-   PROCEDURE DoCopyResource (Item: PResourceItem); FAR;
+   PROCEDURE DoCopyResource (Item: PResourceItem);{$IFNDEF FPC}FAR;{$ENDIF}
    BEGIN
      Stream^.Seek(BasePos + Item^.Posn);              { Move stream position }
      Item^.Posn := AStream^.GetPos - NewBasePos;      { Hold new position }
@@ -2719,3 +2727,12 @@ END;
 
 
 END.
+{
+  $Log$
+  Revision 1.2  1998-05-21 19:30:58  peter
+    * objects compiles for linux
+    + assign(pchar), assign(char), rename(pchar), rename(char)
+    * fixed read_text_as_array
+    + read_text_as_pchar which was not yet in the rtl
+
+}

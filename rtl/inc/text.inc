@@ -77,6 +77,18 @@ Begin
 End;
 
 
+Procedure assign(var t:Text;p:pchar);
+begin
+  Assign(t,StrPas(p));
+end;
+
+
+Procedure assign(var t:Text;c:char);
+begin
+  Assign(t,string(c));
+end;
+
+
 Procedure Close(var t : Text);[Public,Alias: 'CLOSE_TEXT',IOCheck];
 Begin
   If (TextRec(t).mode<>fmClosed) Then
@@ -149,17 +161,33 @@ Begin
 End;
 
 
-Procedure Rename(var t:Text;const s:String);[IOCheck];
-var
-  p : array[0..255] Of Char;
+Procedure Rename(var t : text;p:pchar);[IOCheck];
 Begin
   If TextRec(t).mode=fmClosed Then
    Begin
-     Move(s[1],p,Length(s));
-     p[Length(s)]:=#0;
-     Do_Rename(PChar(@TextRec(t).Name),PChar(@p));
-     Move(p,TextRec(t).Name,Length(s)+1);
+     Do_Rename(PChar(@TextRec(t).Name),p);
+     Move(p,TextRec(t).Name,StrLen(p)+1);
    End;
+End;
+
+
+Procedure Rename(var t : Text;const s : string);[IOCheck];
+var
+  p : array[0..255] Of Char;
+Begin
+  Move(s[1],p,Length(s));
+  p[Length(s)]:=#0;
+  Rename(t,Pchar(@p));
+End;
+
+
+Procedure Rename(var t : Text;c : char);[IOCheck];
+var
+  p : array[0..1] Of Char;
+Begin
+  p[0]:=c;
+  p[1]:=#0;
+  Rename(t,Pchar(@p));
 End;
 
 
@@ -678,8 +706,41 @@ Begin
      { copy string. }
      Move (f.Bufptr^[f.BufPos],p^,Temp-f.BufPos);
      Inc(Longint(p),Temp-f.BufPos);
-     If p^=#13 Then
-      dec(Longint(p));
+     If pchar(p-1)^=#13 Then
+      dec(p);
+     { update f.BufPos }
+     f.BufPos:=Temp;
+     If Temp>=f.BufEnd Then
+      Begin
+        FileFunc(f.InOutFunc)(f);
+        Temp:=f.BufPos;
+      End
+   End;
+  p^:=#0;
+End;
+
+
+Procedure r(var f : TextRec;var s : array00);[Public,Alias:'READ_TEXT_PCHAR_AS_ARRAY'];
+var
+  p    : PChar;
+  Temp : byte;
+Begin
+{ Delete the string }
+  s[0]:=#0;
+  p:=pchar(@s);
+  if not OpenInput(f) then
+   exit;
+  Temp:=f.BufPos;
+  while (f.BufPos<f.BufEnd) and (f.Bufptr^[Temp]<>#10) Do
+   Begin
+     { search linefeed }
+     while (f.Bufptr^[Temp]<>#10) and (Temp<f.BufEnd) Do
+      inc(Temp);
+     { copy string. }
+     Move (f.Bufptr^[f.BufPos],p^,Temp-f.BufPos);
+     Inc(Longint(p),Temp-f.BufPos);
+     If pchar(p-1)^=#13 Then
+      dec(p);
      { update f.BufPos }
      f.BufPos:=Temp;
      If Temp>=f.BufEnd Then
@@ -887,7 +948,13 @@ Begin
 End;
 {
   $Log$
-  Revision 1.5  1998-05-12 10:42:45  peter
+  Revision 1.6  1998-05-21 19:31:01  peter
+    * objects compiles for linux
+    + assign(pchar), assign(char), rename(pchar), rename(char)
+    * fixed read_text_as_array
+    + read_text_as_pchar which was not yet in the rtl
+
+  Revision 1.5  1998/05/12 10:42:45  peter
     * moved getopts to inc/, all supported OS's need argc,argv exported
     + strpas, strlen are now exported in the systemunit
     * removed logs

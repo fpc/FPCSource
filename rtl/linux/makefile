@@ -232,8 +232,10 @@ crt$(PPUEXT) : crt.pp $(INC)/textrec.inc $(INC)/filerec.inc linux$(PPUEXT)\
 	       $(SYSTEMPPU)
 	$(PP) $(OPT) crt $(REDIR)
 
-objects$(PPUEXT) : objects.pp $(SYSTEMPPU)
+objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
+	$(COPY) $(INC)/objects.pp .
 	$(PP) $(OPT) objects $(REDIR)
+	$(DEL) objects.pp
 
 printer$(PPUEXT) : printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
 	$(PP) $(OPT) printer $(REDIR)

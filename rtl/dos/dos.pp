@@ -11,292 +11,187 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
-{ to be able to cross compile from v1 to v2 }
+unit dos;
 
 {$I os.inc}
 
+interface
+Uses Go32;
+
+Const
+  {Bitmasks for CPU Flags}
+  fcarry     = $0001;
+  fparity    = $0004;
+  fauxiliary = $0010;
+  fzero      = $0040;
+  fsign      = $0080;
+  foverflow  = $0800;
+
+  {Bitmasks for file attribute}
+  readonly  = $01;
+  hidden    = $02;
+  sysfile   = $04;
+  volumeid  = $08;
+  directory = $10;
+  archive   = $20;
+  anyfile   = $3F;
+
+  {File Status}
+  fmclosed = $D7B0;
+  fminput  = $D7B1;
+  fmoutput = $D7B2;
+  fminout  = $D7B3;
+
+
+Type
+{$IFDEF GO32V2}
+{ Needed for Win95 LFN Support }
+  ComStr  = String[255];
+  PathStr = String[255];
+  DirStr  = String[255];
+  NameStr = String[255];
+  ExtStr  = String[255];
+{$ELSE}
+  comstr  = string[127];        { command line string }
+  pathstr = string[79];         { string for a file path }
+  dirstr  = string[67];         { string for a directory }
+  namestr = string[8];          { string for a file name }
+  extstr  = string[4];          { string for an extension }
+{$ENDIF}
+
 {
-  History:
-  2.7.1994: Version 0.2
-            Datenstrukturen sind deklariert sowie
-            50 % der Unterprogramme sind implementiert
-  12.8.1994: exec implemented
-  14.8.1994: findfirst and findnext implemented
-  24.8.1994: Version 0.3
-  28.2.1995: Version 0.31
-             some parameter lists with const optimized
-   3.7.1996: bug in fsplit removed (dir and ext were not intializised)
-   7.7.1996: packtime and unpacktime implemented
-  20.9.1996: Version 0.5
-             setftime and getftime implemented
-             some optimizations done (integer -> longint)
-             procedure fsearch from the LINUX version ported
-             msdos call implemented
-  26th november 1996:
-             better fexpand
-  29th january 1997:
-             bug in getftime and setftime removed
-             setfattr and getfattr added
-   2th february 1997: Version 0.9
-             bug of searchrec corrected
-  30th may 1997:
-             bug in fsplit fixed (thanks to Pierre Muller):
-               If you have a relative path as argument
-               fsplit gives a wrong result because it
-               first tries to find the extension by searching the first
-               occurence of '.'.
-
-               The file extension should be tested last !!
-  15th june 1997:
-             versions for go32v1 and go32v2 merged
-  september 1997:
-             removed some bugs for go32v2
-             - searchrec structure is different (direct dos call !!)
-  27th november 1997:
-             bug in findfirst fixed esp was instead of ebp used
+  filerec.inc contains the definition of the filerec.
+  textrec.inc contains the definition of the textrec.
+  It is in a separate file to make it available in other units without
+  having to use the DOS unit for it.
 }
+{$i filerec.inc}
+{$i textrec.inc}
 
-{$ifndef GO32V2}
-{$ifdef DOS}
-{$define GO32V1}
-{$endif DOS}
-{$endif not GO32V2}
-
-unit dos;
-
-  interface
-
-    uses
-       strings
-{$ifdef GO32V2}
-       ,go32
-{$endif GO32V2}
-       ;
-
-    const
-       { bit masks for CPU flags}
-       fcarry = $0001;
-       fparity = $0004;
-       fauxiliary = $0010;
-       fzero = $0040;
-       fsign = $0080;
-       foverflow  = $0800;
-
-       { bit masks for file attributes }
-       readonly = $01;
-       hidden = $02;
-       sysfile = $04;
-       volumeid = $08;
-       directory = $10;
-       archive = $20;
-       anyfile = $3F;
-       fmclosed = $D7B0;
-       fminput = $D7B1;
-       fmoutput = $D7B2;
-       fminout = $D7B3;
-
-    type
-       { some string types }
-       comstr = string[127];        { command line string }
-       pathstr = string[79];        { string for a file path }
-       dirstr = string[67];         { string for a directory }
-       namestr = string[8];         { string for a file name }
-       extstr = string[4];          { string for an extension }
-
-       { search record which is used by findfirst and findnext }
-{$ifndef GO32V2}
 {$PACKRECORDS 1}
-       searchrec = record
-          fill : array[1..21] of byte;
-          attr : byte;
-          time : longint;
-          reserved : word; { requires the DOS extender (DJ GNU-C) }
-          size : longint;
-          name : string[15]; { the same size as declared by (DJ GNU C) }
-       end;
-{$else GO32V2}
-{$PACKRECORDS 1}
-       searchrec = record
-          fill : array[1..21] of byte;
-          attr : byte;
-          time : longint;
-          { reserved : word; not in DJGPP V2 }
-          size : longint;
-          name : string[12]; { the same size as declared by (DJ GNU C) }
-       end;
-{$endif GO32V2}
-{$PACKRECORDS 2}
 
-       { file record for untyped files comes from filerec.inc}
-       {$i filerec.inc}
+  DateTime = record
+    Year,
+    Month,
+    Day,
+    Hour,
+    Min,
+    Sec   : word;
+  End;
 
-       { file record for text files  comes from textrec.inc}
-       {$i textrec.inc}
+{$IFDEF GO32V2}
+  searchrec = record
+     fill : array[1..21] of byte;
+     attr : byte;
+     time : longint;
+     { reserved : word; not in DJGPP V2 }
+     size : longint;
+     name : string[12]; { the same size as declared by (DJ GNU C) }
+  end;
 
-{$ifdef GO32V1}
-       { data structure for the registers needed by msdos and intr }
-       { Go32 V2 follows trealregs of go32 }
+  Registers = Go32.Registers;
 
-       registers = record
-         case i : integer of
-            0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
-            1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
-            2 : (eax,  ebx,  ecx,  edx,  ebp,  esi,  edi : longint);
-       end;
+{$ELSE}
+  searchrec = record
+     fill     : array[1..21] of byte;
+     attr     : byte;
+     time     : longint;
+     reserved : word; { requires the DOS extender (DJ GNU-C) }
+     size     : longint;
+     name     : string[15]; { the same size as declared by (DJ GNU C) }
+  end;
+
+  registers = record
+    case i : integer of
+     0 : (ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,f8,flags,fs,gs : word);
+     1 : (al,ah,f9,f10,bl,bh,f11,f12,cl,ch,f13,f14,dl,dh : byte);
+     2 : (eax,  ebx,  ecx,  edx,  ebp,  esi,  edi : longint);
+    end;
 {$endif GO32V1}
 
+{$PACKRECORDS 2}
+
+Var
+  DosError : integer;
+
+{Interrupt}
+Procedure Intr(intno: byte; var regs: registers);
+Procedure MSDos(var regs: registers);
+
+{Info/Date/Time}
+Function  DosVersion: Word;
+Procedure GetDate(var year, month, mday, wday: word);
+Procedure GetTime(var hour, minute, second, sec100: word);
+procedure SetDate(year,month,day: word);
+Procedure SetTime(hour,minute,second,sec100: word);
+Procedure UnpackTime(p: longint; var t: datetime);
+Procedure PackTime(var t: datetime; var p: longint);
+
+{Exec}
+Procedure Exec(const path: pathstr; const comline: comstr);
+Function  DosExitCode: word;
+
+{Disk}
+Function  DiskFree(drive: byte) : longint;
+Function  DiskSize(drive: byte) : longint;
+Procedure FindFirst(const path: pathstr; attr: word; var f: searchRec);
+Procedure FindNext(var f: searchRec);
+Procedure FindClose(Var f: SearchRec);
+
+{File}
+Procedure GetFAttr(var f; var attr: word);
+Procedure GetFTime(var f; var time: longint);
+Function  FSearch(path: pathstr; dirlist: string): pathstr;
+Function  FExpand(const path: pathstr): pathstr;
+Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
+
+{Environment}
+Function  EnvCount: longint;
+Function  EnvStr(index: integer): string;
+Function  GetEnv(envvar: string): string;
+
+{Misc}
+Procedure SetFAttr(var f; attr: word);
+Procedure SetFTime(var f; time: longint);
+Procedure GetCBreak(var breakvalue: boolean);
+Procedure SetCBreak(breakvalue: boolean);
+Procedure GetVerify(var verify: boolean);
+Procedure SetVerify(verify: boolean);
+
+{Do Nothing Functions}
+Procedure SwapVectors;
+Procedure GetIntVec(intno: byte; var vector: pointer);
+Procedure SetIntVec(intno: byte; vector: pointer);
+Procedure Keep(exitcode: word);
+
+implementation
+
+uses
+
+  strings;
+
+{******************************************************************************
+                           --- Dos Interrupt ---
+******************************************************************************}
+
+var
+  dosregs : registers;
+
+    procedure LoadDosError;
+      begin
+        if (dosregs.flags and carryflag) <> 0 then
+         doserror:=dosregs.ax
+        else
+         doserror:=0;
+      end;
+
 {$ifdef GO32V2}
-       { data structure for the registers needed by msdos and intr }
-       { Go32 V2 follows trealregs of go32 }
 
-       registers = go32.registers;
-
-{$endif GO32V2}
-
-{$PACKRECORDS 1}
-       { record for date and time }
-       datetime = record
-          year,month,day,hour,min,sec : word;
-       end;
-
-    var
-       { error variable }
-       doserror : integer;
-
-    procedure getdate(var year,month,day,dayofweek : word);
-    procedure gettime(var hour,minute,second,sec100 : word);
-    function dosversion : word;
-    procedure setdate(year,month,day : word);
-    procedure settime(hour,minute,second,sec100 : word);
-    procedure getcbreak(var breakvalue : boolean);
-    procedure setcbreak(breakvalue : boolean);
-    procedure getverify(var verify : boolean);
-    procedure setverify(verify : boolean);
-    function diskfree(drive : byte) : longint;
-    function disksize(drive : byte) : longint;
-    procedure findfirst(const path : pathstr;attr : word;var f : searchRec);
-    procedure findnext(var f : searchRec);
-
-    { is a dummy for go32v1 not for go32v2 }
-    procedure swapvectors;
-
-{   not supported:
-    procedure getintvec(intno : byte;var vector : pointer);
-    procedure setintvec(intno : byte;vector : pointer);
-    procedure keep(exitcode : word);
-}
-    procedure msdos(var regs : registers);
     procedure intr(intno : byte;var regs : registers);
-
-    procedure getfattr(var f;var attr : word);
-    procedure setfattr(var f;attr : word);
-
-    function fsearch(const path : pathstr;dirlist : string) : pathstr;
-    procedure getftime(var f;var time : longint);
-    procedure setftime(var f;time : longint);
-    procedure packtime (var d: datetime; var time: longint);
-    procedure unpacktime (time: longint; var d: datetime);
-    function fexpand(const path : pathstr) : pathstr;
-    procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;
-      var ext : extstr);
-    procedure exec(const path : pathstr;const comline : comstr);
-    function dosexitcode : word;
-    function envcount : longint;
-    function envstr(index : longint) : string;
-    function getenv(const envvar : string): string;
-
-  implementation
-
-    var
-       dosregs : registers;
-
-    { this was first written for the LINUX version,    }
-    { by Michael Van Canneyt but it works also         }
-    { for the DOS version (I hope so)                  }
-    function fsearch(const path : pathstr;dirlist : string) : pathstr;
-
-      var
-         newdir : pathstr;
-         i,p1 : byte;
-         s : searchrec;
-
-      begin
-         if (pos('?',path)<>0) or (pos('*',path)<>0) then
-           { No wildcards allowed in these things }
-           fsearch:=''
-         else
-           begin
-              { allow slash as backslash }
-              for i:=1 to length(dirlist) do
-                if dirlist[i]='/' then dirlist[i]:='\';
-
-              repeat
-                { get first path }
-                p1:=pos(';',dirlist);
-                if p1>0 then
-                  begin
-                     newdir:=copy(dirlist,1,p1-1);
-                     delete(dirlist,1,p1)
-                  end
-                else
-                  begin
-                     newdir:=dirlist;
-                     dirlist:=''
-                  end;
-                if (newdir[length(newdir)]<>'\') and
-                   (newdir[length(newdir)]<>':') then
-                   newdir:=newdir+'\';
-                findfirst(newdir+path,anyfile,s);
-                if doserror=0 then
-                  begin
-                     { this should be newdir:=newdir+path
-                     because path can contain a path part !! }
-                     {newdir:=newdir+s.name;}
-                     newdir:=newdir+path;
-                     { this was for LINUX:
-                     if pos('.\',newdir)=1 then
-                       delete(newdir, 1, 2)
-                      DOS strips off an initial .\
-                     }
-                  end
-                else newdir:='';
-              until(dirlist='') or (length(newdir)>0);
-              fsearch:=newdir;
-           end;
-      end;
-
-    procedure getftime(var f;var time : longint);
-
-      begin
-         dosregs.bx:=textrec(f).handle;
-         dosregs.ax:=$5700;
-         msdos(dosregs);
-         time:=(dosregs.dx shl 16)+dosregs.cx;
-         doserror:=dosregs.al;
-      end;
-
-   procedure setftime(var f;time : longint);
-
-      begin
-         dosregs.bx:=textrec(f).handle;
-         dosregs.ecx:=time;
-         dosregs.ax:=$5701;
-         msdos(dosregs);
-         doserror:=dosregs.al;
-      end;
-
-    procedure msdos(var regs : registers);
-
-      begin
-         intr($21,regs);
-      end;
-{$ifdef GO32V2}
-    procedure intr(intno : byte;var regs : registers);
-
       begin
          realintr(intno,regs);
       end;
+
 {$else GO32V2}
     procedure intr(intno : byte;var regs : registers);
 
@@ -353,8 +248,86 @@ unit dos;
          end;
       end;
 {$endif GO32V2}
+
+    procedure msdos(var regs : registers);
+      begin
+         intr($21,regs);
+      end;
+
+{******************************************************************************
+                        --- Info / Date / Time ---
+******************************************************************************}
+
+    function dosversion : word;
+      begin
+         dosregs.ax:=$3000;
+         msdos(dosregs);
+         dosversion:=dosregs.ax;
+      end;
+
+    procedure getdate(var year,month,mday,wday : word);
+      begin
+         dosregs.ax:=$2a00;
+         msdos(dosregs);
+         wday:=dosregs.al;
+         year:=dosregs.cx;
+         month:=dosregs.dh;
+         mday:=dosregs.dl;
+      end;
+
+    procedure setdate(year,month,day : word);
+      begin
+         dosregs.cx:=year;
+         dosregs.dh:=month;
+         dosregs.dl:=day;
+         dosregs.ah:=$2b;
+         msdos(dosregs);
+         LoadDosError;
+      end;
+
+    procedure gettime(var hour,minute,second,sec100 : word);
+      begin
+         dosregs.ah:=$2c;
+         msdos(dosregs);
+         hour:=dosregs.ch;
+         minute:=dosregs.cl;
+         second:=dosregs.dh;
+         sec100:=dosregs.dl;
+      end;
+
+    procedure settime(hour,minute,second,sec100 : word);
+      begin
+         dosregs.ch:=hour;
+         dosregs.cl:=minute;
+         dosregs.dh:=second;
+         dosregs.dl:=sec100;
+         dosregs.ah:=$2d;
+         msdos(dosregs);
+         LoadDosError;
+      end;
+
+   Procedure packtime(var t : datetime;var p : longint);
+       Begin
+         p:=(t.sec shr 1)+(t.min shl 5)+(t.hour shl 11)+(t.day shl 16)+(t.month shl 21)+((t.year-1980) shl 25);
+       End;
+
+   Procedure unpacktime(p : longint;var t : datetime);
+       Begin
+         t.sec:=(p and 31) shl 1;
+         t.min:=(p shr 5) and 63;
+         t.hour:=(p shr 11) and 31;
+         t.day:=(p shr 16) and 31;
+         t.month:=(p shr 21) and 15;
+         t.year:=(p shr 25)+1980;
+       End;
+
+{******************************************************************************
+                               --- Exec ---
+******************************************************************************}
+
     var
        lastdosexitcode : word;
+
 {$ifdef GO32V2}
 
     { this code is just the most basic part of dosexec.c from
@@ -377,8 +350,6 @@ unit dos;
          0Eh    DWORD   (AL=01h) will hold subprogram's initial SS:SP on return
          12h    DWORD   (AL=01h) will hold entry point (CS:IP) on return
         INT 21 4B--
-
-        Copied from Ralf Brown's Interrupt List
       }
 
       type
@@ -401,10 +372,7 @@ unit dos;
         begin
            paste_to_dos:=false;
            if current_dos_buffer_pos+length(src)+1>transfer_buffer+tb_size then
-             begin
-              doserror:=200;{ what value should we use here ? }
-              exit;
-             end;
+            RunError(217);
            move(src[1],c[0],length(src));
            c[length(src)]:=#0;
            seg_move(get_ds,longint(@c),dosmemselector,current_dos_buffer_pos,length(src)+1);
@@ -480,18 +448,15 @@ unit dos;
          dosregs.es:=la_e div 16;
          dosregs.ax:=$4b00;
          msdos(dosregs);
-         if (dosregs.flags and 1) <> 0 then
-           begin
-              doserror:=dosregs.ax;
-                lastdosexitcode:=0;
-              exit;
-           end
+         LoadDosError;
+         if DosError=0 then
+          begin
+            dosregs.ax:=$4d00;
+            msdos(dosregs);
+            LastDosExitCode:=DosRegs.al
+          end
          else
-           begin
-              dosregs.ax:=$4d00;
-              msdos(dosregs);
-              lastdosexitcode:=dosregs.al;
-           end;
+          LastDosExitCode:=0;
         end;
 
       { var
@@ -540,63 +505,11 @@ unit dos;
 {$endif GO32V2}
 
     function dosexitcode : word;
-
       begin
          dosexitcode:=lastdosexitcode;
       end;
 
-    function dosversion : word;
-
-      begin
-         dosregs.ax:=$3000;
-         msdos(dosregs);
-         dosversion:=dosregs.ax;
-      end;
-
-    procedure getdate(var year,month,day,dayofweek : word);
-
-      begin
-         dosregs.ax:=$2a00;
-         msdos(dosregs);
-         dayofweek:=dosregs.al;
-         year:=dosregs.cx;
-         month:=dosregs.dh;
-         day:=dosregs.dl;
-      end;
-
-    procedure setdate(year,month,day : word);
-
-      begin
-         dosregs.cx:=year;
-         dosregs.dx:=month*$100+day;
-         dosregs.ah:=$2b;
-         msdos(dosregs);
-         doserror:=dosregs.al;
-      end;
-
-    procedure gettime(var hour,minute,second,sec100 : word);
-
-      begin
-         dosregs.ah:=$2c;
-         msdos(dosregs);
-         hour:=dosregs.ch;
-         minute:=dosregs.cl;
-         second:=dosregs.dh;
-         sec100:=dosregs.dl;
-      end;
-
-    procedure settime(hour,minute,second,sec100 : word);
-
-      begin
-         dosregs.cx:=hour*$100+minute;
-         dosregs.dx:=second*$100+sec100;
-         dosregs.ah:=$2d;
-         msdos(dosregs);
-         doserror:=dosregs.al;
-      end;
-
     procedure getcbreak(var breakvalue : boolean);
-
       begin
          dosregs.ax:=$3300;
          msdos(dosregs);
@@ -604,7 +517,6 @@ unit dos;
       end;
 
     procedure setcbreak(breakvalue : boolean);
-
       begin
          dosregs.ax:=$3301;
          dosregs.dl:=ord(breakvalue);
@@ -612,7 +524,6 @@ unit dos;
       end;
 
     procedure getverify(var verify : boolean);
-
       begin
          dosregs.ah:=$54;
          msdos(dosregs);
@@ -620,27 +531,25 @@ unit dos;
       end;
 
     procedure setverify(verify : boolean);
-
       begin
          dosregs.ah:=$2e;
          dosregs.al:=ord(verify);
          msdos(dosregs);
       end;
 
-    function diskfree(drive : byte) : longint;
+{******************************************************************************
+                               --- Disk ---
+******************************************************************************}
 
+    function diskfree(drive : byte) : longint;
       begin
          dosregs.dl:=drive;
          dosregs.ah:=$36;
          msdos(dosregs);
          if dosregs.ax<>$FFFF then
-           begin
-              diskfree:=dosregs.ax;
-              diskfree:=diskfree*dosregs.bx;
-              diskfree:=diskfree*dosregs.cx;
-           end
+          diskfree:=dosregs.ax*dosregs.bx*dosregs.cx
          else
-           diskfree:=-1;
+          diskfree:=-1;
       end;
 
     function disksize(drive : byte) : longint;
@@ -650,20 +559,18 @@ unit dos;
          dosregs.ah:=$36;
          msdos(dosregs);
          if dosregs.ax<>$FFFF then
-           begin
-              disksize:=dosregs.ax;
-              disksize:=disksize*dosregs.cx;
-              disksize:=disksize*dosregs.dx;
-           end
+          disksize:=dosregs.ax*dosregs.cx*dosregs.dx
          else
-           disksize:=-1;
+          disksize:=-1;
       end;
 
-    procedure searchrec2dossearchrec(var f : searchrec);
+{******************************************************************************
+                       --- Findfirst FindNext ---
+******************************************************************************}
 
+    procedure searchrec2dossearchrec(var f : searchrec);
       var
          l,i : longint;
-
       begin
          l:=length(f.name);
          for i:=1 to 12 do
@@ -672,10 +579,8 @@ unit dos;
       end;
 
     procedure dossearchrec2searchrec(var f : searchrec);
-
       var
          l,i : longint;
-
       begin
          l:=12;
          for i:=0 to 12 do
@@ -714,8 +619,7 @@ unit dos;
            dosregs.ah:=$4e;
            msdos(dosregs);
            copyfromdos(f,sizeof(searchrec));
-           if dosregs.flags and carryflag<>0 then
-             doserror:=dosregs.ax;
+           LoadDosError;
         end;
 
 {$else GO32V2}
@@ -765,13 +669,12 @@ unit dos;
            copytodos(f,sizeof(searchrec));
            dosregs.edx:=transfer_buffer mod 16;
            dosregs.ds:=transfer_buffer div 16;
-                dosregs.ah:=$1a;
+           dosregs.ah:=$1a;
            msdos(dosregs);
-                dosregs.ah:=$4f;
+           dosregs.ah:=$4f;
            msdos(dosregs);
            copyfromdos(f,sizeof(searchrec));
-           if dosregs.flags and carryflag <> 0 then
-             doserror:=dosregs.ax;
+           LoadDosError;
         end;
 
 {$else GO32V2}
@@ -830,68 +733,22 @@ unit dos;
       end;
 {$endif go32v2}
 
-    function envcount : longint;
 
-      var
-         hp : ppchar;
-
+    Procedure FindClose(Var f: SearchRec);
       begin
-         hp:=environ;
-         envcount:=0;
-         while assigned(hp^) do
-           begin
-              { not the best solution, but quite understandable }
-              inc(envcount);
-              hp:=hp+4;
-           end;
       end;
 
-    function envstr(index : longint) : string;
+{******************************************************************************
+                               --- File ---
+******************************************************************************}
 
+    procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;var ext : extstr);
       var
-         hp : ppchar;
-
-      begin
-         if (index<=0) or (index>envcount) then
-           begin
-              envstr:='';
-              exit;
-           end;
-         hp:=environ+4*(index-1);
-         envstr:=strpas(hp^);
-      end;
-
-    function getenv(const envvar : string) : string;
-
-      var
-         hs,_envvar : string;
-         eqpos,i : longint;
-
-      begin
-         _envvar:=upcase(envvar);
-         getenv:='';
-         for i:=1 to envcount do
-           begin
-              hs:=envstr(i);
-              eqpos:=pos('=',hs);
-              if copy(hs,1,eqpos-1)=_envvar then
-                begin
-                   getenv:=copy(hs,eqpos+1,length(hs)-eqpos);
-                   exit;
-                end;
-           end;
-      end;
-
-    procedure fsplit(path : pathstr;var dir : dirstr;var name : namestr;
-      var ext : extstr);
-
-      var
-         p1 : byte;
-         i : longint;
+         p1,i : longint;
       begin
          { allow slash as backslash }
          for i:=1 to length(path) do
-             if path[i]='/' then path[i]:='\';
+          if path[i]='/' then path[i]:='\';
          { get drive name }
          p1:=pos(':',path);
          if p1>0 then
@@ -924,18 +781,17 @@ unit dos;
       end;
 
     function fexpand(const path : pathstr) : pathstr;
-
        var
-          s,pa : string[79];
-          i,j : byte;
-
+         s,pa : string[79];
+         i,j  : longint;
        begin
           getdir(0,s);
           pa:=upcase(path);
           { allow slash as backslash }
           for i:=1 to length(pa) do
-             if pa[i]='/' then pa[i]:='\';
-          if (ord(pa[0])>1) and (((pa[1]>='A') and (pa[1]<='Z')) and (pa[2]=':')) then
+           if pa[i]='/' then
+            pa[i]:='\';
+          if (length(pa)>1) and (pa[1] in ['A'..'Z']) and (pa[2]=':') then
             begin
                { we must get the right directory }
                getdir(ord(pa[1])-ord('A')+1,s);
@@ -971,169 +827,195 @@ unit dos;
           fexpand:=pa;
        end;
 
-     procedure packtime(var d : datetime;var time : longint);
 
-       var
-          zs : longint;
-
-       begin
-          time:=-1980;
-          time:=time+d.year and 127;
-          time:=time shl 4;
-          time:=time+d.month;
-          time:=time shl 5;
-          time:=time+d.day;
-          time:=time shl 16;
-          zs:=d.hour;
-          zs:=zs shl 6;
-          zs:=zs+d.min;
-          zs:=zs shl 5;
-          zs:=zs+d.sec div 2;
-          time:=time+(zs and $ffff);
-       end;
-
-     procedure unpacktime (time: longint; var d: datetime);
-
-       begin
-          d.sec:=(time and 31) * 2;
-          time:=time shr 5;
-          d.min:=time and 63;
-          time:=time shr 6;
-          d.hour:=time and 31;
-          time:=time shr 5;
-          d.day:=time and 31;
-          time:=time shr 5;
-          d.month:=time and 15;
-          time:=time shr 4;
-          d.year:=time + 1980;
-       end;
+    Function FSearch(path: pathstr; dirlist: string): pathstr;
+      var
+         i,p1   : longint;
+         s      : searchrec;
+         newdir : pathstr;
+      begin
+      { No wildcards allowed in these things }
+         if (pos('?',path)<>0) or (pos('*',path)<>0) then
+           fsearch:=''
+         else
+           begin
+              { allow slash as backslash }
+              for i:=1 to length(dirlist) do
+                if dirlist[i]='/' then dirlist[i]:='\';
+              repeat
+                p1:=pos(';',dirlist);
+                if p1=0 then
+                 begin
+                   newdir:=copy(dirlist,1,p1-1);
+                   delete(dirlist,1,p1);
+                 end
+                else
+                 begin
+                   newdir:=dirlist;
+                   dirlist:='';
+                 end;
+                if (newdir<>'') and (not (newdir[length(newdir)] in ['\',':'])) then
+                 newdir:=newdir+'\';
+                findfirst(newdir+path,anyfile,s);
+                if doserror=0 then
+                 newdir:=newdir+path
+                else
+                 newdir:='';
+              until (dirlist='') or (newdir<>'');
+              fsearch:=newdir;
+           end;
+      end;
 
 {$ifdef GO32V2}
 
+    procedure getftime(var f;var time : longint);
+      begin
+         dosregs.bx:=textrec(f).handle;
+         dosregs.ax:=$5700;
+         msdos(dosregs);
+         time:=(dosregs.dx shl 16)+dosregs.cx;
+         doserror:=dosregs.al;
+      end;
+
+   procedure setftime(var f;time : longint);
+      begin
+         dosregs.bx:=textrec(f).handle;
+         dosregs.cx:=time and $ffff;
+         dosregs.dx:=time shr 16;
+         dosregs.ax:=$5701;
+         msdos(dosregs);
+         doserror:=dosregs.al;
+      end;
+
     procedure getfattr(var f;var attr : word);
-
-      var
-         r : registers;
-
       begin
          copytodos(filerec(f).name,strlen(filerec(f).name)+1);
-         r.ax:=$4300;
-         r.edx:=transfer_buffer mod 16;
-         r.ds:=transfer_buffer div 16;
-         msdos(r);
-         if (r.flags and carryflag) <> 0 then
-           doserror:=r.ax;
-         attr:=r.cx;
+         dosregs.ax:=$4300;
+         dosregs.edx:=transfer_buffer and 15;
+         dosregs.ds:=transfer_buffer shr 4;
+         msdos(dosregs);
+         LoadDosError;
+         Attr:=dosregs.cx;
       end;
 
     procedure setfattr(var f;attr : word);
-
-      var
-         r : registers;
-
       begin
          copytodos(filerec(f).name,strlen(filerec(f).name)+1);
-         r.ax:=$4301;
-         r.edx:=transfer_buffer mod 16;
-         r.ds:=transfer_buffer div 16;
-         r.cx:=attr;
-         msdos(r);
-         if (r.flags and carryflag) <> 0 then
-           doserror:=r.ax;
+         dosregs.ax:=$4301;
+         dosregs.edx:=transfer_buffer mod 16;
+         dosregs.ds:=transfer_buffer div 16;
+         dosregs.cx:=attr;
+         msdos(dosregs);
+         LoadDosError;
       end;
 
 {$else GO32V2}
 
     procedure getfattr(var f;var attr : word);
-
       var
-         { to avoid problems }
          n : array[0..255] of char;
          r : registers;
-
       begin
          strpcopy(n,filerec(f).name);
-         r.ax:=$4300;
-         r.edx:=longint(@n);
-         msdos(r);
-         attr:=r.cx;
+         dosregs.ax:=$4300;
+         dosregs.edx:=longint(@n);
+         msdos(dosregs);
+         LoadDosError;
+         attr:=dosregs.cx;
       end;
 
     procedure setfattr(var f;attr : word);
-
       var
-         { to avoid problems }
          n : array[0..255] of char;
          r : registers;
-
       begin
          strpcopy(n,filerec(f).name);
-         r.ax:=$4301;
-         r.edx:=longint(@n);
-         r.cx:=attr;
-         msdos(r);
+         dosregs.ax:=$4301;
+         dosregs.edx:=longint(@n);
+         dosregs.cx:=attr;
+         msdos(dosregs);
+         LoadDosError;
       end;
 
 {$endif GO32V2}
 
-end.
 
+{******************************************************************************
+                             --- Environment ---
+******************************************************************************}
+
+    function envcount : longint;
+    var
+      hp : ppchar;
+    begin
+      hp:=envp;
+      envcount:=0;
+      while assigned(hp^) do
+       begin
+         inc(envcount);
+         hp:=hp+4;
+       end;
+    end;
+
+
+    function envstr(index : integer) : string;
+    begin
+      if (index<=0) or (index>envcount) then
+       begin
+         envstr:='';
+         exit;
+       end;
+      envstr:=strpas(ppchar(envp+4*(index-1))^);
+    end;
+
+
+    Function  GetEnv(envvar: string): string;
+    var
+      hp      : ppchar;
+      hs    : string;
+      eqpos : longint;
+    begin
+      envvar:=upcase(envvar);
+      hp:=envp;
+      getenv:='';
+      while assigned(hp^) do
+       begin
+         hs:=strpas(hp^);
+         eqpos:=pos('=',hs);
+         if copy(hs,1,eqpos-1)=envvar then
+          begin
+            getenv:=copy(hs,eqpos+1,255);
+            exit;
+          end;
+         hp:=hp+4;
+       end;
+    end;
+
+{******************************************************************************
+                             --- Not Supported ---
+******************************************************************************}
+
+Procedure keep(exitcode : word);
+Begin
+End;
+
+Procedure getintvec(intno : byte;var vector : pointer);
+Begin
+End;
+
+Procedure setintvec(intno : byte;vector : pointer);
+Begin
+End;
+
+
+end.
 {
   $Log$
-  Revision 1.2  1998-03-26 12:23:49  peter
-    * envrion is now the same for go32v1 and go32v2
+  Revision 1.3  1998-05-21 19:30:47  peter
+    * objects compiles for linux
+    + assign(pchar), assign(char), rename(pchar), rename(char)
+    * fixed read_text_as_array
+    + read_text_as_pchar which was not yet in the rtl
 
-  Revision 1.1.1.1  1998/03/25 11:18:41  root
-  * Restored version
-
-  Revision 1.10  1998/03/12 04:02:32  carl
-    * bugfix of Range Check error in FExpand
-
-  Revision 1.9  1998/02/05 12:08:48  pierre
-    * added packrecords to about dword alignment
-      for structures used in dos calls
-
-  Revision 1.8  1998/02/03 15:52:41  pierre
-    * swapvectors really disable exception handling
-      and interrupt redirection with go32v2
-    * in dos.pp bug if arg path from fsearch had a directory part fixed
-
-  Revision 1.7  1998/01/26 11:56:22  michael
-  + Added log at the end
-
-
-
-  Working file: rtl/dos/dos.pp
-  description:
-  ----------------------------
-  revision 1.6
-  date: 1998/01/16 00:04:58;  author: michael;  state: Exp;  lines: +17 -18
-  Added some fixes of Peter Vreman
-  ----------------------------
-  revision 1.5
-  date: 1997/12/22 10:22:05;  author: pierre;  state: Exp;  lines: +2 -2
-    * bug in disksize corrected (thanks to Papai Andras)
-  ----------------------------
-  revision 1.4
-  date: 1997/12/12 13:17:15;  author: florian;  state: Exp;  lines: +3 -2
-  dos.doserror wasn't set to zero in dos.exec (go32v2)
-  ----------------------------
-  revision 1.3
-  date: 1997/12/01 12:15:45;  author: michael;  state: Exp;  lines: +12 -5
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.2
-  date: 1997/11/27 22:49:03;  author: florian;  state: Exp;  lines: +6 -5
-  - CPU.PP added
-  - some bugs in DOS fixed (espsecially for go32v1)
-  - the win32 system unit is now compilable
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:49;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:49;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
 }
+

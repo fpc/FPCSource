@@ -6,7 +6,6 @@
 
     Getopt implementation for Free Pascal, modeled after GNU getopt.
 
-
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -16,8 +15,6 @@
 
  **********************************************************************}
 unit getopts;
-
-{$I os.inc}
 
 { --------------------------------------------------------------------
   *NOTE*
@@ -33,16 +30,14 @@ Interface
 Const No_Argument       = 0;
       Required_Argument = 1;
       Optional_Argument = 2;
-
       EndOfOptions      = #255;
-
 
 Type TOption = Record
        Name    : String;
        Has_arg : Integer;
        Flag    : PChar;
        Value   : Char;
-      end;
+     end;
      POption  = ^TOption;
      Orderings = (require_order,permute,return_in_order);
 
@@ -51,13 +46,8 @@ Var OptArg : String;
     OptErr : Boolean;
     OptOpt : Char;
 
-
 Function GetOpt (ShortOpts : String) : char;
-Function GetLongOpts (ShortOpts : String;
-
-                      LongOpts : POption;
-
-                      var Longind : Integer) : char;
+Function GetLongOpts (ShortOpts : String;LongOpts : POption;var Longind : Integer) : char;
 
 Implementation
 
@@ -67,8 +57,6 @@ Var
   first_nonopt,
   last_nonopt   : Longint;
   Ordering      : Orderings;
-
-
 
 Procedure Exchange;
 var
@@ -120,28 +108,26 @@ begin
   OptOpt:='?';
   Nextchar:=0;
   if opts[1]='-' then
-
+   begin
+     ordering:=return_in_order;
+     delete(opts,1,1);
+   end
+  else
+   if opts[1]='+' then
     begin
-    ordering:=return_in_order;
-    delete(opts,1,1);
+      ordering:=require_order;
+      delete(opts,1,1);
     end
-  else if opts[1]='+' then
-    begin
-    ordering:=require_order;
-    delete(opts,1,1);
-    end
-  else ordering:=permute;
+  else
+   ordering:=permute;
 end;
 
 
 
-Function Internal_getopt (Var Optstring : string;
-                          LongOpts : POption;
-                          LongInd : pointer;
-                          Long_only : boolean ) : char;
+Function Internal_getopt (Var Optstring : string;LongOpts : POption;
+                          LongInd : pointer;Long_only : boolean ) : char;
 type
   pinteger=^integer;
-
 var
   temp,endopt,option_index : byte;
   indfound: integer;
@@ -149,7 +135,6 @@ var
   p,pfound : POption;
   exact,ambig : boolean;
   c : char;
-
 begin
   optarg:='';
   if optind=0 then
@@ -157,7 +142,6 @@ begin
 { Check if We need the next argument. }
   if optind<nrargs then currentarg:=strpas(argv[optind]) else currentarg:='';
   if (nextchar=0) then
-
    begin
      if ordering=permute then
       begin
@@ -183,13 +167,11 @@ begin
         if (first_nonopt<>last_nonopt) and (last_nonopt<>optind) then
          exchange
         else
-
          if first_nonopt=last_nonopt then
           first_nonopt:=optind;
         last_nonopt:=nrargs;
         optind:=nrargs;
       end;
-
    { Are we at the end of all arguments ? }
      if optind>=nrargs then
       begin
@@ -226,7 +208,6 @@ begin
    end;
 { Check if we have a long option }
   if longopts<>nil then
-
    if length(currentarg)>1 then
     if (currentarg[2]='-') or
        ((not long_only) and (pos(currentarg[2],optstring)<>0)) then
@@ -266,7 +247,6 @@ begin
           inc (option_index);
         end;
        if ambig and not exact then
-
         begin
           if opterr then
            writeln (paramstr(0),': option "',optname,'" is ambiguous');
@@ -287,16 +267,13 @@ begin
                  if currentarg[2]='-' then
                   writeln (paramstr(0),': option "--',pfound^.name,'" doesn''t allow an argument')
                  else
-
                   writeln (paramstr(0),': option "',currentarg[1],pfound^.name,'" doesn''t allow an argument');
                 nextchar:=0;
                 internal_getopt:='?';
                 exit;
               end;
            end
-
           else { argument in next paramstr...  }
-
            begin
              if pfound^.has_arg=1 then
               begin
@@ -317,13 +294,11 @@ begin
                    exit;
                  end;
               end;
-
           end; { argument in next parameter end;}
          nextchar:=0;
          if longind<>nil then
           pinteger(longind)^:=indfound+1;
             if pfound^.flag<>nil then
-
             begin
               pfound^.flag^:=pfound^.value;
               internal_getopt:=#0;
@@ -346,14 +321,12 @@ begin
            Internal_getopt:='?';
            exit;
         end;
-
      end; { Of long options.}
 { We check for a short option. }
   temp:=pos(currentarg[nextchar],optstring);
   c:=currentarg[nextchar];
   inc(nextchar);
   if nextchar>length(currentarg) then
-
    begin
      inc(optind);
      nextchar:=0;
@@ -368,7 +341,6 @@ begin
    end;
   Internal_getopt:=optstring[temp];
   if optstring[temp+1]=':' then
-
    if currentarg[temp+2]=':' then
     begin { optional argument }
       optarg:=copy (currentarg,nextchar,length(currentarg)-nextchar+1);
@@ -377,7 +349,6 @@ begin
    else
     begin { required argument }
       if nextchar>0 then
-
        begin
          optarg:=copy (currentarg,nextchar,length(currentarg)-nextchar+1);
          inc(optind)
@@ -389,11 +360,9 @@ begin
            writeln (paramstr(0),': option requires an argument -- ',optstring[temp]);
           optopt:=optstring[temp];
           if optstring[1]=':' then
-
            Internal_getopt:=':'
           else
            Internal_Getopt:='?'
-
         end
        else
         begin
@@ -411,31 +380,28 @@ begin
 end;
 
 
-Function GetLongOpts(ShortOpts : String;
-
-                     LongOpts : POption;
-
-                     var Longind : Integer) : char;
+Function GetLongOpts (ShortOpts : String;LongOpts : POption;var Longind : Integer) : char;
 begin
   getlongopts:=internal_getopt ( shortopts,longopts,@longind,true);
 end;
 
 
-
-
 begin
 { Needed to detect startup }
-
   Opterr:=true;
   Optind:=0;
   nrargs:=paramcount+1;
 end.
 
-
-
 {
   $Log$
-  Revision 1.1  1998-05-12 10:42:45  peter
+  Revision 1.2  1998-05-21 19:30:57  peter
+    * objects compiles for linux
+    + assign(pchar), assign(char), rename(pchar), rename(char)
+    * fixed read_text_as_array
+    + read_text_as_pchar which was not yet in the rtl
+
+  Revision 1.1  1998/05/12 10:42:45  peter
     * moved getopts to inc/, all supported OS's need argc,argv exported
     + strpas, strlen are now exported in the systemunit
     * removed logs

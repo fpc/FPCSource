@@ -32,7 +32,8 @@ Type
   shortint = -128..127;
   byte     = 0..255;
   Word     = 0..65535;
-  
+
+
 { at least declare Turbo Pascal real types }
 {$IFDEF i386}
   Double = real;
@@ -53,7 +54,8 @@ const
 { max. values for longint and int}
   maxLongint = $7fffffff;
   maxint = 32767;
-  
+
+
 { Compatibility With  TP }
 {$ifdef i386}
   Test8086 : byte = 2;       { Always i386 or newer }
@@ -236,6 +238,8 @@ Procedure Val(const s:string;Var v:cardinal);
 ****************************************************************************}
 
 Procedure Assign(Var f:File;const Name:string);
+Procedure Assign(Var f:File;p:pchar);
+Procedure Assign(Var f:File;c:char);
 Procedure Rewrite(Var f:File;l:Word);
 Procedure Rewrite(Var f:File);
 Procedure Reset(Var f:File;l:Word);
@@ -255,6 +259,8 @@ Procedure Seek(Var f:File;Pos:Longint);
 Function  EOF(Var f:File):Boolean;
 Procedure Erase(Var f:File);
 Procedure Rename(Var f:File;const s:string);
+Procedure Rename(Var f:File;p:pchar);
+Procedure Rename(Var f:File;c:char);
 Procedure Truncate (Var F:File);
 
 {****************************************************************************
@@ -262,6 +268,8 @@ Procedure Truncate (Var F:File);
 ****************************************************************************}
 
 Procedure Assign(Var f:TypedFile;const Name:string);
+Procedure Assign(Var f:TypedFile;p:pchar);
+Procedure Assign(Var f:TypedFile;c:char);
 Procedure Rewrite(Var f:TypedFile);
 Procedure Reset(Var f:TypedFile);
 
@@ -270,6 +278,8 @@ Procedure Reset(Var f:TypedFile);
 ****************************************************************************}
 
 Procedure Assign(Var t:Text;const s:string);
+Procedure Assign(Var t:Text;p:pchar);
+Procedure Assign(Var t:Text;c:char);
 Procedure Close(Var t:Text);
 Procedure Rewrite(Var t:Text);
 Procedure Reset(Var t:Text);
@@ -277,6 +287,8 @@ Procedure Append(Var t:Text);
 Procedure Flush(Var t:Text);
 Procedure Erase(Var t:Text);
 Procedure Rename(Var t:Text;const s:string);
+Procedure Rename(Var t:Text;p:pchar);
+Procedure Rename(Var t:Text;c:char);
 Function  EOF(Var t:Text):Boolean;
 Function  EOF:Boolean;
 Function  EOLn(Var t:Text):Boolean;
@@ -320,7 +332,13 @@ Procedure AddExitProc(Proc:TProcedure);
 
 {
   $Log$
-  Revision 1.5  1998-05-12 10:42:45  peter
+  Revision 1.6  1998-05-21 19:31:00  peter
+    * objects compiles for linux
+    + assign(pchar), assign(char), rename(pchar), rename(char)
+    * fixed read_text_as_array
+    + read_text_as_pchar which was not yet in the rtl
+
+  Revision 1.5  1998/05/12 10:42:45  peter
     * moved getopts to inc/, all supported OS's need argc,argv exported
     + strpas, strlen are now exported in the systemunit
     * removed logs

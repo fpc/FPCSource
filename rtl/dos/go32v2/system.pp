@@ -17,33 +17,46 @@ unit system;
 
 {$I os.inc}
 
-  interface
+interface
 
-    { include system-independent routine headers }
+{ include system-independent routine headers }
 
-    {$I systemh.inc}
+{$I systemh.inc}
 
-    {$I heaph.inc}
+{ include heap support headers }
 
-    const 
-       seg0040 = $0040;
-       segA000 = $A000;
-       segB000 = $B000;
-       segB800 = $B800;
-
-    var
-       mem  : array[0..$7fffffff] of byte absolute $0;
-       memw : array[0..$7fffffff] of word absolute $0;
-       meml : array[0..$7fffffff] of longint absolute $0;
+{$I heaph.inc}
 
 const
-  UnusedHandle=$ffff;
-  StdInputHandle=0;
-  StdOutputHandle=1;
-  StdErrorHandle=2;
+{ Default filehandles }
+  UnusedHandle    = $ffff;
+  StdInputHandle  = 0;
+  StdOutputHandle = 1;
+  StdErrorHandle  = 2;
+
+{ Default memory segments (Tp7 compatibility) }
+  seg0040 = $0040;
+  segA000 = $A000;
+  segB000 = $B000;
+  segB800 = $B800;
+
+var
+{ Mem[] support }
+  mem  : array[0..$7fffffff] of byte absolute $0;
+  memw : array[0..$7fffffff] of word absolute $0;
+  meml : array[0..$7fffffff] of longint absolute $0;
+{ C-compatible arguments and environment }
+  argc  : longint;
+  argv  : ppchar;
+  envp  : ppchar;
+  dos_argv0 : pchar;
+{ System info }
+  Win95 : boolean;
 
 type
-       t_stub_info   = record
+{ Dos Extender info }
+  p_stub_info = ^t_stub_info;
+  t_stub_info = packed record
        magic         : array[0..15] of char;
        size          : longint;
        minstack      : longint;
@@ -58,146 +71,125 @@ type
        basename      : array[0..7] of char;
        argv0         : array [0..15] of char;
        dpmi_server   : array [0..15] of char;
-       end;
-       p_stub_info   = ^t_stub_info;
+  end;
 
-    var    stub_info : p_stub_info;
-
-{$PACKRECORDS 1}
-type
-       t_go32_info_block = record
-       size_of_this_structure_in_bytes : longint; {offset 0}
-       linear_address_of_primary_screen : longint; {offset 4}
+  p_go32_info_block = ^t_go32_info_block;
+  t_go32_info_block = packed record
+       size_of_this_structure_in_bytes    : longint; {offset 0}
+       linear_address_of_primary_screen   : longint; {offset 4}
        linear_address_of_secondary_screen : longint; {offset 8}
-       linear_address_of_transfer_buffer : longint; {offset 12}
-       size_of_transfer_buffer : longint; {offset 16}
-       pid : longint; {offset 20}
-       master_interrupt_controller_base : byte; {offset 24}
-       slave_interrupt_controller_base : byte; {offset 25}
-       selector_for_linear_memory : word; {offset 26}
+       linear_address_of_transfer_buffer  : longint; {offset 12}
+       size_of_transfer_buffer            : longint; {offset 16}
+       pid                                : longint; {offset 20}
+       master_interrupt_controller_base   : byte; {offset 24}
+       slave_interrupt_controller_base    : byte; {offset 25}
+       selector_for_linear_memory         : word; {offset 26}
        linear_address_of_stub_info_structure : longint; {offset 28}
-       linear_address_of_original_psp : longint; {offset 32}
-       run_mode : word; {offset 36}
-       run_mode_info : word; {offset 38}
-       end;
+       linear_address_of_original_psp     : longint; {offset 32}
+       run_mode                           : word; {offset 36}
+       run_mode_info                      : word; {offset 38}
+  end;
 
-var go32_info_block : t_go32_info_block;
+var
+  stub_info       : p_stub_info;
+  go32_info_block : t_go32_info_block;
 
-    type
-       trealregs=record
-          realedi,realesi,realebp,realres,
-          realebx,realedx,realecx,realeax : longint;
-          realflags,
-          reales,realds,realfs,realgs,
-          realip,realcs,realsp,realss : word;
-       end;
-    var
-       dos_argv0 : pchar;
-       environ : ppchar;
-       { Running under Win95 ? }
-       Win95 : boolean;
 
-    function do_write(h,addr,len : longint) : longint;
-    function do_read(h,addr,len : longint) : longint;
-    procedure syscopyfromdos(addr : longint; len : longint);
-    procedure syscopytodos(addr : longint; len : longint);
-    function tb : longint;
-    procedure sysrealintr(intnr : word;var regs : trealregs);
+{
+  necessary for objects.pas, should be removed (at least from the interface
+  to the implementation)
+}
+  type
+    trealregs=record
+      realedi,realesi,realebp,realres,
+      realebx,realedx,realecx,realeax : longint;
+      realflags,
+      reales,realds,realfs,realgs,
+      realip,realcs,realsp,realss  : word;
+    end;
+  function  do_write(h,addr,len : longint) : longint;
+  function  do_read(h,addr,len : longint) : longint;
+  procedure syscopyfromdos(addr : longint; len : longint);
+  procedure syscopytodos(addr : longint; len : longint);
+  procedure sysrealintr(intnr : word;var regs : trealregs);
+  function  tb : longint;
 
-  implementation
 
-    { include system independent routines }
 
-    {$I system.inc}
+implementation
 
-    type
-       plongint = ^longint;
+{ include system independent routines }
 
-    const carryflag = 1;
+{$I system.inc}
 
-{$S-}
-    procedure st1(stack_size : longint);[public,alias: 'STACKCHECK'];
+const
+  carryflag = 1;
 
-      begin
-         { called when trying to get local stack }
-         { if the compiler directive $S is set   }
-         { this function must preserve esi !!!!  }
-         { because esi is set by the calling     }
-         { proc for methods                      }
-         { it must preserve all registers !!     }
+type
+  plongint = ^longint;
 
-         asm
-            pushl %eax
-            pushl %ebx
-            movl stack_size,%ebx
-            movl %esp,%eax
-            subl %ebx,%eax
+var
+  doscmd : string[128];  { Dos commandline copied from PSP, max is 128 chars }
+
+
+procedure int_stackcheck(stack_size:longint);[public,alias: 'STACKCHECK'];
+{
+  called when trying to get local stack if the compiler directive $S
+  is set this function must preserve esi !!!! because esi is set by
+  the calling proc for methods it must preserve all registers !!
+}
+begin
+  asm
+        pushl   %eax
+        pushl   %ebx
+        movl    stack_size,%ebx
+        movl    %esp,%eax
+        subl    %ebx,%eax
 {$ifdef SYSTEMDEBUG}
-            movl U_SYSTEM_LOWESTSTACK,%ebx
-            cmpl %eax,%ebx
-            jb   _is_not_lowest
-            movl %eax,U_SYSTEM_LOWESTSTACK
-            _is_not_lowest:
+        movl    U_SYSTEM_LOWESTSTACK,%ebx
+        cmpl    %eax,%ebx
+        jb      _is_not_lowest
+        movl    %eax,U_SYSTEM_LOWESTSTACK
+_is_not_lowest:
 {$endif SYSTEMDEBUG}
-            movl __stkbottom,%ebx
-            cmpl %eax,%ebx
-            jae  __short_on_stack
-            popl %ebx
-            popl %eax
-            leave
-            ret  $4
-            __short_on_stack:
-            { can be usefull for error recovery !! }
-            popl %ebx
-            popl %eax
-         end['EAX','EBX'];
-         RunError(202);
-         { this needs a local variable }
-         { so the function called itself !! }
-         { Writeln('low in stack ');
-         RunError(202);             }
-      end;
+        movl    __stkbottom,%ebx
+        cmpl    %eax,%ebx
+        jae     __short_on_stack
+        popl    %ebx
+        popl    %eax
+        leave
+        ret     $4
+__short_on_stack:
+        { can be usefull for error recovery !! }
+        popl    %ebx
+        popl    %eax
+  end['EAX','EBX'];
+  RunError(202);
+end;
 
-    function tb : longint;
-    begin
-    tb := go32_info_block.linear_address_of_transfer_buffer;
-    {   asm
-       leal __go32_info_block,%ebx
-       movl 12(%ebx),%eax
-       leave
-       ret
-       end ['EAX','EBX'];}
-    end;
 
-    function tb_size : longint;
-    begin
-    tb_size := go32_info_block.size_of_transfer_buffer;
-{       asm
-       leal __go32_info_block,%ebx
-       movl 16(%ebx),%eax
-       leave
-       ret
-       end ['EAX','EBX'];}
-    end;
+function tb : longint;
+begin
+  tb:=go32_info_block.linear_address_of_transfer_buffer;
+end;
 
-    function dos_selector : word;
-    begin
-       dos_selector:=go32_info_block.selector_for_linear_memory;
-{       asm
-       leal __go32_info_block,%ebx
-       movw 26(%ebx),%ax
-       movw %ax,__RESULT
-       end ['EAX','EBX'];}
-    end;
 
-    function get_ds : word;
+function tb_size : longint;
+begin
+  tb_size:=go32_info_block.size_of_transfer_buffer;
+end;
 
-      begin
-         asm
-            movw %ds,%ax
-            movw %ax,__RESULT;
-         end;
-      end;
+
+function dos_selector : word;
+begin
+  dos_selector:=go32_info_block.selector_for_linear_memory;
+end;
+
+
+function get_ds : word;assembler;
+asm
+        movw    %ds,%ax
+end;
 
 
     procedure sysseg_move(sseg : word;source : longint;dseg : word;dest : longint;count : longint);
@@ -268,13 +260,6 @@ var go32_info_block : t_go32_info_block;
            end ['ESI','EDI','ECX'];
       end;
 
-
-{ included directly old file sargs.inc }
-
-var argc : longint;
-    doscmd : string;
-    args : ppchar;
-
 function far_strlen(selector : word;linear_address : longint) : longint;
 begin
 asm
@@ -293,6 +278,7 @@ asm
         movl %eax,__RESULT
 end;
 end;
+
 
 function atohex(s : pchar) : longint;
 var rv : longint;
@@ -316,7 +302,7 @@ var psp : word;
     i,j : byte;
     quote : char;
     proxy_s : string[7];
-    tempargs : ppchar;
+    tempargv : ppchar;
     al,proxy_argc,proxy_seg,proxy_ofs,lin : longint;
     largs : array[0..127] of pchar;
     rm_argv : ^arrayword;
@@ -394,15 +380,16 @@ if (argc > 1) and (far_strlen(get_ds,longint(largs[1])) = 6)  then
     argc := proxy_argc;
     end;
   end;
-getmem(args,argc*SizeOf(pchar));
+getmem(argv,argc shl 2);
 for i := 0 to argc-1  do
-   args[i] := largs[i];
-  tempargs:=args;
+   argv[i] := largs[i];
+  tempargv:=argv;
   asm
-     movl tempargs,%eax
+     movl tempargv,%eax
      movl %eax,_args
   end;
 end;
+
 
 function strcopy(dest,source : pchar) : pchar;
 
@@ -454,36 +441,37 @@ begin
     while (cp^ <> #0) do inc(longint(cp)); { skip to NUL }
     inc(longint(cp)); { skip to next character }
     end;
-  getmem(environ,(env_count+1) * sizeof(pchar));
-  if (environ = nil) then exit;
+  getmem(envp,(env_count+1) * sizeof(pchar));
+  if (envp = nil) then exit;
   cp:=dos_env;
   env_count:=0;
   while cp^ <> #0 do
     begin
-    getmem(environ[env_count],strlen(cp)+1);
-    strcopy(environ[env_count], cp);
+    getmem(envp[env_count],strlen(cp)+1);
+    strcopy(envp[env_count], cp);
 {$IfDef SYSTEMDEBUG}
-      Writeln('env ',env_count,' = "',environ[env_count],'"');
+      Writeln('env ',env_count,' = "',envp[env_count],'"');
 {$EndIf SYSTEMDEBUG}
     inc(env_count);
     while (cp^ <> #0) do inc(longint(cp)); { skip to NUL }
     inc(longint(cp)); { skip to next character }
     end;
-  environ[env_count]:=nil;
+  envp[env_count]:=nil;
   inc(longint(cp),3);
   getmem(dos_argv0,strlen(cp)+1);
   if (dos_argv0 = nil) then halt;
   strcopy(dos_argv0, cp);
 end;
+
      procedure syscopytodos(addr : longint; len : longint);
      begin
-        if len > tb_size then runerror(200);
+        if len > tb_size then runerror(217);
         sysseg_move(get_ds,addr,dos_selector,tb,len);
      end;
 
      procedure syscopyfromdos(addr : longint; len : longint);
      begin
-        if len > tb_size then runerror(200);
+        if len > tb_size then runerror(217);
         sysseg_move(dos_selector,tb,get_ds,addr,len);
      end;
 
@@ -496,8 +484,6 @@ end;
             movw  intnr,%bx
             xorl  %ecx,%ecx
             movl  regs,%edi
-
-            // es is always equal ds
             movw  $0x300,%ax
             int   $0x31
          end;
@@ -519,60 +505,47 @@ end;
          end;
       end;
 
-    function paramcount : longint;
+function paramcount : longint;
+begin
+  paramcount := argc - 1;
+end;
 
-      begin
-      paramcount := argc - 1;
-      {   asm
-            movl _argc,%eax
-            decl %eax
-            leave
-            ret
-         end ['EAX'];}
-      end;
 
-    function paramstr(l : longint) : string;
+function paramstr(l : longint) : string;
+begin
+  if (l>=0) and (l+1<=argc) then
+   paramstr:=strpas(argv[l])
+  else
+   paramstr:='';
+end;
 
-      var
-         p : ^pchar;
 
-      begin
-         if (l>=0) and (l<=paramcount) then
-           begin
-              p:=args;
-              paramstr:=strpas(p[l]);
-           end
-         else paramstr:='';
-      end;
+procedure randomize;
+var
+  hl   : longint;
+  regs : trealregs;
+begin
+  regs.realeax:=$2c00;
+  sysrealintr($21,regs);
+  hl:=regs.realedx and $ffff;
+  randseed:=hl*$10000+ (regs.realecx and $ffff);
+end;
 
-    procedure randomize;
+{*****************************************************************************
+                              Heap Management
+*****************************************************************************}
 
-      var
-         hl : longint;
-         regs : trealregs;
+function Sbrk(size : longint):longint;assembler;
+asm
+        movl    size,%eax
+        pushl   %eax
+        call    ___sbrk
+        addl    $4,%esp
+end;
 
-      begin
-         regs.realeax:=$2c00;
-         sysrealintr($21,regs);
-         hl:=regs.realedx and $ffff;
-         randseed:=hl*$10000+ (regs.realecx and $ffff);
-      end;
+{ include standard heap management }
+{$I heap.inc}
 
-{ use standard heap management }
-
-  function Sbrk(size : longint) : longint;
-
-    begin
-       asm
-         movl size,%eax
-         pushl %eax
-         call ___sbrk
-         addl $4,%esp
-         movl %eax,__RESULT
-       end;
-    end;
-
-{$i heap.inc}
 
 {****************************************************************************
                         Low level File Routines
@@ -768,7 +741,6 @@ begin
 end;
 
 
-
 function do_filesize(handle : longint) : longint;
 var
   aktfilepos : longint;
@@ -960,7 +932,7 @@ begin
    end
   else
    syscopyfromdos(longint(@temp),251);
-{ conversation to Pascal string }
+{ conversation to Pascal string including slash conversion }
   i:=0;
   while (temp[i]<>#0) do
    begin
@@ -972,7 +944,7 @@ begin
   dir[2]:=':';
   dir[3]:='\';
   dir[0]:=chr(i+3);
-{ upcase the string (FPKPascal function) }
+{ upcase the string }
   dir:=upcase(dir);
   if drivenr<>0 then   { Drive was supplied. We know it }
    dir[1]:=chr(65+drivenr-1)
@@ -999,7 +971,7 @@ begin
   regs.realeax:=$160a;
   sysrealintr($2f,regs);
   CheckWin95:=(regs.realeax=0) and ((regs.realebx and $ff00)=$400);
-end;  
+end;
 
 
 procedure OpenStdIO(var f:text;mode:word;hdl:longint);
@@ -1012,7 +984,7 @@ begin
   TextRec(f).Closefunc:=@fileclosefunc;
 end;
 
-     
+
 Begin
 { Initialize ExitProc }
   ExitProc:=Nil;
@@ -1029,12 +1001,18 @@ Begin
   Setup_Arguments;
 { Use Win95 LFN }
   Win95:=CheckWin95;
-{ Reset IO Error }  
+{ Reset IO Error }
   InOutRes:=0;
 End.
 {
   $Log$
-  Revision 1.4  1998-05-04 17:58:41  peter
+  Revision 1.5  1998-05-21 19:30:52  peter
+    * objects compiles for linux
+    + assign(pchar), assign(char), rename(pchar), rename(char)
+    * fixed read_text_as_array
+    + read_text_as_pchar which was not yet in the rtl
+
+  Revision 1.4  1998/05/04 17:58:41  peter
     * fix for smartlinking with _ARGS
 
   Revision 1.3  1998/05/04 16:21:54  florian

@@ -1,4 +1,5 @@
 {*****************************************************************************
+    $Id$
    Include file to sort out compilers/platforms/targets
 
    Copyright (c) 1997 Balazs Scheidler (bazsi@tas.vein.hu)
@@ -7,7 +8,6 @@
    modify it under the terms of the GNU Library General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-
 
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -120,3 +120,12 @@
 Requires Free Pascal (FPK) v0.9.2 or higher
 {$ENDIF}
 
+{
+  $Log$
+  Revision 1.2  1998-05-21 19:30:59  peter
+    * objects compiles for linux
+    + assign(pchar), assign(char), rename(pchar), rename(char)
+    * fixed read_text_as_array
+    + read_text_as_pchar which was not yet in the rtl
+
+}

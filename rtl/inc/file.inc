@@ -31,6 +31,24 @@ Begin
 End;
 
 
+Procedure assign(var f:File;p:pchar);
+{
+  Assign Name to file f so it can be used with the file routines
+}
+begin
+  Assign(f,StrPas(p));
+end;
+
+
+Procedure assign(var f:File;c:char);
+{
+  Assign Name to file f so it can be used with the file routines
+}
+begin
+  Assign(f,string(c));
+end;
+
+
 Procedure Rewrite(var f:File;l:Word);[IOCheck];
 {
   Create file f with recordsize of l
@@ -242,22 +260,44 @@ Begin
 End;
 
 
+Procedure Rename(var f : File;p:pchar);[IOCheck];
+Begin
+  If FileRec(f).mode=fmClosed Then
+   Begin
+     Do_Rename(PChar(@FileRec(f).Name),p);
+     Move(p,FileRec(f).Name,StrLen(p)+1);
+   End;
+End;
+
+
 Procedure Rename(var f : File;const s : string);[IOCheck];
 var
   p : array[0..255] Of Char;
 Begin
-  If FileRec(f).mode=fmClosed Then
-   Begin
-     Move(s[1],p,Length(s));
-     p[Length(s)]:=#0;
-     Do_Rename(PChar(@FileRec(f).Name),PChar(@p));
-     Move(p,FileRec(f).Name,Length(s)+1);
-   End;
+  Move(s[1],p,Length(s));
+  p[Length(s)]:=#0;
+  Rename(f,Pchar(@p));
+End;
+
+
+Procedure Rename(var f : File;c : char);[IOCheck];
+var
+  p : array[0..1] Of Char;
+Begin
+  p[0]:=c;
+  p[1]:=#0;
+  Rename(f,Pchar(@p));
 End;
 
 {
   $Log$
-  Revision 1.2  1998-05-12 10:42:44  peter
+  Revision 1.3  1998-05-21 19:30:56  peter
+    * objects compiles for linux
+    + assign(pchar), assign(char), rename(pchar), rename(char)
+    * fixed read_text_as_array
+    + read_text_as_pchar which was not yet in the rtl
+
+  Revision 1.2  1998/05/12 10:42:44  peter
     * moved getopts to inc/, all supported OS's need argc,argv exported
     + strpas, strlen are now exported in the systemunit
     * removed logs

@@ -29,7 +29,7 @@ unit emu387;
 
   implementation
 
-    uses dxeload, dpmiexcp, strings;
+    uses dxeload, dpmiexcp;
 
   type
      emu_entry_type = function(exc : pexception_state) : longint;
@@ -123,10 +123,10 @@ unit emu387;
       hp      : ppchar;
       hs,
       _envvar : string;
-      eqpos,i : longint;
+      eqpos   : longint;
     begin
       _envvar:=upcase(envvar);
-      hp:=environ;
+      hp:=envp;
       getenv:='';
       while assigned(hp^) do
        begin
@@ -147,7 +147,7 @@ unit emu387;
        cp : string;
        i : byte;
        have_80387 : boolean;
-       emu_p : pointer; 
+       emu_p : pointer;
     const
        veryfirst : boolean = True;
 
@@ -217,7 +217,13 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-03-31 10:18:55  florian
+  Revision 1.4  1998-05-21 19:30:51  peter
+    * objects compiles for linux
+    + assign(pchar), assign(char), rename(pchar), rename(char)
+    * fixed read_text_as_array
+    + read_text_as_pchar which was not yet in the rtl
+
+  Revision 1.3  1998/03/31 10:18:55  florian
     * exit message removed
 
   Revision 1.2  1998/03/26 12:23:17  peter
@@ -254,7 +260,13 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-03-31 10:18:55  florian
+  Revision 1.4  1998-05-21 19:30:51  peter
+    * objects compiles for linux
+    + assign(pchar), assign(char), rename(pchar), rename(char)
+    * fixed read_text_as_array
+    + read_text_as_pchar which was not yet in the rtl
+
+  Revision 1.3  1998/03/31 10:18:55  florian
     * exit message removed
 
   Revision 1.2  1998/03/26 12:23:17  peter

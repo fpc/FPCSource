@@ -56,12 +56,20 @@ BEGIN
 END;
 
 FUNCTION SetFileSize (Handle: THandle; FileSize: LongInt): Word;
+{$IFDEF DOSSETFILE1}  
 VAR Actual, Buf: LongInt;
+{$ENDIF}   
 BEGIN
+  if Sys_Truncate(Handle,FileSize)=0 then
+   SetFileSize:=0
+  else
+   SetFileSize:=103;
+{$IFDEF DOSSETFILE1}  
    If (Actual = FileSize) Then Begin                  { No position error }
      Actual := FileWrite(Handle, Pointer(@Buf), 0,Actual);   { Truncate the file }
      If (Actual <> -1) Then SetFileSize := 0 Else     { No truncate error }
        SetFileSize := 103;                            { File truncate error }
    End Else SetFileSize := 103;                       { File truncate error }
+{$ENDIF}   
 END;
 
