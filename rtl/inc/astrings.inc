@@ -510,10 +510,13 @@ end;
 {$endif INTERNLENGTH}
 
 
+{$ifdef HASCOMPILERPROC}
 { overloaded version of UniqueString for interface }
 Procedure UniqueString(Var S : AnsiString); [external name 'FPC_ANSISTR_UNIQUE'];
-
 Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSISTR_UNIQUE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+{$else}
+Procedure UniqueString(Var S : AnsiString); [Public,Alias : 'FPC_ANSISTR_UNIQUE']; 
+{$endif}
 {
   Make sure reference count of S is 1,
   using copy-on-write semantics.
@@ -522,7 +525,9 @@ Var
   SNew : Pointer;
   L    : SizeInt;
 begin
+{$ifdef HASCOMPILERPROC}
   pointer(result) := pointer(s);
+{$endif}  
   If Pointer(S)=Nil then
     exit;
   if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
@@ -533,7 +538,9 @@ begin
      PAnsiRec(SNew-FirstOff)^.len:=L;
      fpc_ansistr_decr_ref (Pointer(S));  { Thread safe }
      pointer(S):=SNew;
+{$ifdef HASCOMPILERPROC}
      pointer(result):=SNew;
+{$endif}     
    end;
 end;
 
@@ -871,7 +878,10 @@ end;
 
 {
   $Log$
-  Revision 1.43  2004-05-01 23:55:18  peter
+  Revision 1.44  2004-05-16 16:52:28  peter
+    * small fix for 1.0.x
+
+  Revision 1.43  2004/05/01 23:55:18  peter
     * replace strlenint with sizeint
 
   Revision 1.42  2004/04/29 18:59:43  peter
