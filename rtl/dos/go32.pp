@@ -185,6 +185,7 @@ procedure outportb(port : word;data : byte);
 procedure outportw(port : word;data : word);
 procedure outportl(port : word;data : longint);
 
+{$IFDEF HAS_PROPERTY}
 type
    tport = class
       procedure writeport(p : word;data : byte);
@@ -210,6 +211,7 @@ var
    portb : tport;
    portw : tportw;
    portl : tportl;
+{$ENDIF HAS_PROPERTY}
 
 
 implementation
@@ -1144,6 +1146,8 @@ asm
         inl %dx,%eax
 end ['EAX','EDX'];
 
+{$IFDEF HAS_PROPERTY}
+
 { to give easy port access like tp with port[] }
 
 procedure tport.writeport(p : word;data : byte);assembler;
@@ -1190,6 +1194,8 @@ asm
         inl     %dx,%eax
 end ['EAX','EDX'];
 
+{$ENDIF HAS_PROPERTY}
+
 
 {*****************************************************************************
                                Initialization
@@ -1214,7 +1220,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-05-31 14:16:49  peter
+  Revision 1.6  1998-07-04 10:04:41  peter
+    + ifdef has_property for 0.99.5 backward support
+
+  Revision 1.5  1998/05/31 14:16:49  peter
     + released port[] and made them assembler procedures
 
   Revision 1.4  1998/04/24 08:26:50  pierre
