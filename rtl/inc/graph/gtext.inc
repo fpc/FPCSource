@@ -48,9 +48,9 @@
         First_char: byte;     { first character in file               }
         cdefs :     integer;  { offset to character definitions       }
         scan_flag:  byte;     { TRUE if char is scanable              }
-        org_to_cap: byte;     { Height from origin to top of capitol  }
-        org_to_base:byte;     { Height from origin to baseline        }
-        org_to_dec: byte;     { Height from origin to bot of decender }
+        org_to_cap: shortint; { Height from origin to top of capitol}
+        org_to_base:shortint; { Height from origin to baseline        }
+        org_to_dec: shortint; { Height from origin to bot of decender }
         _reserved: array[1..4] of char;
         Unused: byte;
       end;
@@ -324,7 +324,7 @@
             then TextHeight:=8*CurrentTextInfo.CharSize
             else
               TextHeight:=Trunc((fonts[Currenttextinfo.font].header.org_to_cap-
-                fonts[Currenttextinfo.font].header.org_to_base) * CurrentYRatio);
+                fonts[Currenttextinfo.font].header.org_to_dec) * CurrentYRatio);
       end;
 
     function TextWidth(const TextString : string) : word;
@@ -617,8 +617,8 @@
          { This is only valid for stroked fonts }
          if (charsize <> usercharsize) then
          begin
-            CurrentXRatio := charsize div 4;
-            CurrentYRatio := charsize div 4;
+            CurrentXRatio := charsize / 4.0;
+            CurrentYRatio := charsize / 4.0;
          end;
          { if this is a stroked font then load it if not already loaded }
          { into memory...                                               }
@@ -691,7 +691,13 @@
 
 {
 $Log$
-Revision 1.1  1999-09-22 13:13:36  jonas
+Revision 1.2  1999-09-22 13:30:52  jonas
+  * changed org_to_cap, org_to_dec and org_to_base to shortints (from
+    Michael Knapp's gxtext unit, part of the GraphiX package)
+  * in settextstyle, the calculation of the ratios must be done with /,
+    not DIV!!
+
+Revision 1.1  1999/09/22 13:13:36  jonas
   * renamed text.inc -> gtext.inc to avoid conflict with system unit
   * fixed textwidth
   * isgraphmode now gets properly updated, so mode restoring works
