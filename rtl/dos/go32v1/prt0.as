@@ -86,10 +86,10 @@ Lcopy_done:
         movw    U_SYSTEM_GO32_INFO_BLOCK+36,%ax
         movw    %ax,_run_mode
 # I need a value for the stack bottom,
-# but I don't know how to get it from go32
-# I suppose the stack is 4Ko long, is this true ?
+# According to Pierre, from the source code of go32v1
+# the stack is 256Kb in length
         movl    %esp,%eax
-        subl    $0x4000,%eax
+        subl    $0x40000,%eax
         movl    %eax,__stkbottom
 
         movw    U_SYSTEM_GO32_INFO_BLOCK+26,%ax
@@ -177,7 +177,10 @@ __core_select:
         .short  0
 #
 # $Log$
-# Revision 1.3  1998-05-22 00:39:32  peter
+# Revision 1.4  1998-08-04 13:35:34  carl
+#   * stack size default is 256Kb! not 16K! as information stated by Pierre
+#
+# Revision 1.3  1998/05/22 00:39:32  peter
 #   * go32v1, go32v2 recompiles with the new objects
 #   * remake3 works again with go32v2
 #   - removed some "optimizes" from daniel which were wrong
