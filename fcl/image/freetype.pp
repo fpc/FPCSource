@@ -147,7 +147,7 @@ type
 const
   sErrErrorsInCleanup : string = '%d errors detected while freeing a Font Manager object';
   sErrFontFileNotFound : string = 'Font file "%s" not found';
-  sErrFreeType : string = 'Error %s while %d';
+  sErrFreeType : string = 'Error %d while %s';
   sInitializing : string = 'initializing font engine';
   sDestroying : string = 'destroying font engine';
   sErrErrorInCleanup : string = 'freeing Font Manager object';
@@ -155,7 +155,10 @@ const
   sErrSetCharSize : string = 'setting char size %d (resolution %d)';
   sErrLoadingGlyph : string = 'loading glyph';
   sErrKerning : string = 'determining kerning distance';
-  sErrMakingString : string = 'making string bitmaps';
+  sErrMakingString1 : string = 'making string bitmaps step 1';
+  sErrMakingString2 : string = 'making string bitmaps step 2';
+  sErrMakingString3 : string = 'making string bitmaps step 3';
+  sErrMakingString4 : string = 'making string bitmaps step 4';
   sErrLoadFont : string = 'loading font %d from file %s';
   sErrInitializing : string = 'initializing FreeType';
   sErrDestroying : string = 'finalizing FreeType';
@@ -174,25 +177,33 @@ implementation
 
 procedure FTError (Event:string; Err:integer);
 begin
-  raise FreeTypeException.CreateFmt (sErrFreeType, [Event,Err]);
+  raise FreeTypeException.CreateFmt (sErrFreeType, [Err,Event]);
+end;
+
+Function CheckFT (Res: Integer; Msg:string) : Integer;
+
+begin
+  Result:=Res;
+  If (Result<>0) then
+    FTError(Msg,Result);
 end;
 
 { TMgrFont }
 
 constructor TMgrFont.Create (aMgr:TFontManager; afilename:string; anindex:integer);
-var e : integer;
+
 begin
   inherited create;
   Filename := afilename;
   Mgr := aMgr;
   FSizes := TList.create;
   LastSize := nil;
-  e := FT_New_Face (aMgr.FTLib, pchar(afilename), anindex, font);
-  if e <> 0 then
-    begin
-    Font := nil;
-    FTError (format (sErrLoadFont,[anindex,afilename]), e);
-    end;
+  Try 
+    CheckFt(FT_New_Face (aMgr.FTLib, pchar(afilename), anindex, font),format (sErrLoadFont,[anindex,afilename]));
+  except
+    Font:=Nil;
+    Raise;
+  end;
 end;
 
 destructor TMgrFont.destroy;
@@ -541,28 +552,19 @@ begin
       if UseKerning and (g^.glyphindex <>0) and (PrevIndex <> 0) then
         begin
         prevx := pre.x;
-        e := FT_Get_Kerning (Curfont.Font, prevIndex, g^.GlyphIndex, ft_kerning_default, kern);
-        if e <> 0 then
-          FTError (sErrKerning, e);
+        FTCheck(FT_Get_Kerning (Curfont.Font, prevIndex, g^.GlyphIndex, ft_kerning_default, kern),sErrKerning);
         pre.x := pre.x + kern.x;
         end;
       // render the glyph
-      e := FT_Glyph_Copy (g^.glyph, gl);
-      if e <> 0 then
-        FTError (sErrMakingString, e);
+      Gl:=Nil;
+      FTCheck(FT_Glyph_Copy (g^.glyph, gl),sErrMakingString1);
       //    placing the glyph
-      e := FT_Glyph_Transform (gl, nil, @pre);
-      if e <> 0 then
-        FTError (sErrMakingString, e);
+      FTCheck(FT_Glyph_Transform (gl, nil, @pre),sErrMakingString2);
       adv := gl^.advance;
       //    rotating the glyph
-      e := FT_Glyph_Transform (gl, @trans, nil);
-      if e <> 0 then
-        FTError (sErrMakingString, e);
+      FTCheck(FT_Glyph_Transform (gl, @trans, nil),sErrMakingString3);
       //    rendering the glyph
-      e := FT_Glyph_To_Bitmap (gl, CurRenderMode, nil, true);
-      if e <> 0 then
-        FTError (sErrMakingString, e);
+      FTCheck(FT_Glyph_To_Bitmap (gl, CurRenderMode, nil, true),sErrMakingString4);
       // Copy what is needed to record
       bm := PFT_BitmapGlyph(gl);
       with result.Bitmaps[r]^ do
