@@ -2,46 +2,46 @@
 #   Makefile.fpc for Free Pascal Packages
 #
 [target]
-dirs_linux=unzip \
+dirs_linux=unzip zlib \
            x11 opengl gtk syslog \
            forms svgalib ggi libpng libgd \
-           utmp bfd zlib gdbm ncurses tcl cdrom \
+           utmp bfd gdbm ncurses tcl cdrom \
            imlib gnome1 fpgtk unixutil
-dirs_netbsd=unzip \
+dirs_netbsd=unzip zlib \
             x11 opengl gtk syslog \
             forms svgalib ggi libpng libgd \
-            utmp bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
-dirs_freebsd=unzip \
+            utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
+dirs_freebsd=unzip zlib \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
-             utmp bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
-dirs_openbsd=unzip  \
+             utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
+dirs_openbsd=unzip zlib \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
-             utmp bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
+             utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 dirs_win32=unzip opengl gtk zlib mmsystem tcl cdrom fpgtk winver
 dirs_os2=os2units \
          rexx \
-         unzip \
+         unzip zlib \
          x11 gtk \
          libpng \
-         zlib tcl \
+         tcl \
          imlib fpgtk
 dirs_emx=os2units \
          rexx \
-         unzip \
+         unzip zlib \
          x11 gtk \
          libpng \
-         zlib tcl \
+         tcl \
          imlib fpgtk
 dirs_go32v2=unzip
 dirs_amiga=amunits
 dirs_palmos=palmunits
 dirs_netware=unzip zlib
-dirs_darwin= unzip \
+dirs_darwin= unzip zlib \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
-             utmp bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
+             utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 
 [install]
 fpcpackage=y

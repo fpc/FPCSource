@@ -220,7 +220,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(OS_TARGET),linux)
-override TARGET_DIRS+=unzip x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd zlib gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil
+override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses tcl cdrom imlib gnome1 fpgtk unixutil
 endif
 ifeq ($(OS_TARGET),go32v2)
 override TARGET_DIRS+=unzip
@@ -229,13 +229,13 @@ ifeq ($(OS_TARGET),win32)
 override TARGET_DIRS+=unzip opengl gtk zlib mmsystem tcl cdrom fpgtk winver
 endif
 ifeq ($(OS_TARGET),os2)
-override TARGET_DIRS+=os2units rexx unzip x11 gtk libpng zlib tcl imlib fpgtk
+override TARGET_DIRS+=os2units rexx unzip zlib x11 gtk libpng tcl imlib fpgtk
 endif
 ifeq ($(OS_TARGET),freebsd)
-override TARGET_DIRS+=unzip x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
+override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(OS_TARGET),netbsd)
-override TARGET_DIRS+=unzip x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
+override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(OS_TARGET),amiga)
 override TARGET_DIRS+=amunits
@@ -244,16 +244,16 @@ ifeq ($(OS_TARGET),netware)
 override TARGET_DIRS+=unzip zlib
 endif
 ifeq ($(OS_TARGET),openbsd)
-override TARGET_DIRS+=unzip  x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
+override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(OS_TARGET),palmos)
 override TARGET_DIRS+=palmunits
 endif
 ifeq ($(OS_TARGET),darwin)
-override TARGET_DIRS+=unzip x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd zlib gdbm ncurses fpgtk tcl imlib gnome1
+override TARGET_DIRS+=unzip zlib x11 opengl gtk syslog forms svgalib ggi libpng libgd utmp bfd gdbm ncurses fpgtk tcl imlib gnome1
 endif
 ifeq ($(OS_TARGET),emx)
-override TARGET_DIRS+=os2units rexx unzip x11 gtk libpng zlib tcl imlib fpgtk
+override TARGET_DIRS+=os2units rexx unzip zlib x11 gtk libpng tcl imlib fpgtk
 endif
 override INSTALL_FPCPACKAGE=y
 override INSTALL_FPCSUBDIR=packages/extra
@@ -1490,6 +1490,7 @@ fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
 ifeq ($(OS_TARGET),linux)
 TARGET_DIRS_UNZIP=1
+TARGET_DIRS_ZLIB=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1501,7 +1502,6 @@ TARGET_DIRS_LIBPNG=1
 TARGET_DIRS_LIBGD=1
 TARGET_DIRS_UTMP=1
 TARGET_DIRS_BFD=1
-TARGET_DIRS_ZLIB=1
 TARGET_DIRS_GDBM=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_TCL=1
@@ -1529,16 +1529,17 @@ ifeq ($(OS_TARGET),os2)
 TARGET_DIRS_OS2UNITS=1
 TARGET_DIRS_REXX=1
 TARGET_DIRS_UNZIP=1
+TARGET_DIRS_ZLIB=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_GTK=1
 TARGET_DIRS_LIBPNG=1
-TARGET_DIRS_ZLIB=1
 TARGET_DIRS_TCL=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_FPGTK=1
 endif
 ifeq ($(OS_TARGET),freebsd)
 TARGET_DIRS_UNZIP=1
+TARGET_DIRS_ZLIB=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1550,7 +1551,6 @@ TARGET_DIRS_LIBPNG=1
 TARGET_DIRS_LIBGD=1
 TARGET_DIRS_UTMP=1
 TARGET_DIRS_BFD=1
-TARGET_DIRS_ZLIB=1
 TARGET_DIRS_GDBM=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_FPGTK=1
@@ -1560,6 +1560,7 @@ TARGET_DIRS_GNOME1=1
 endif
 ifeq ($(OS_TARGET),netbsd)
 TARGET_DIRS_UNZIP=1
+TARGET_DIRS_ZLIB=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1571,7 +1572,6 @@ TARGET_DIRS_LIBPNG=1
 TARGET_DIRS_LIBGD=1
 TARGET_DIRS_UTMP=1
 TARGET_DIRS_BFD=1
-TARGET_DIRS_ZLIB=1
 TARGET_DIRS_GDBM=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_FPGTK=1
@@ -1588,6 +1588,7 @@ TARGET_DIRS_ZLIB=1
 endif
 ifeq ($(OS_TARGET),openbsd)
 TARGET_DIRS_UNZIP=1
+TARGET_DIRS_ZLIB=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1599,7 +1600,6 @@ TARGET_DIRS_LIBPNG=1
 TARGET_DIRS_LIBGD=1
 TARGET_DIRS_UTMP=1
 TARGET_DIRS_BFD=1
-TARGET_DIRS_ZLIB=1
 TARGET_DIRS_GDBM=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_FPGTK=1
@@ -1612,6 +1612,7 @@ TARGET_DIRS_PALMUNITS=1
 endif
 ifeq ($(OS_TARGET),darwin)
 TARGET_DIRS_UNZIP=1
+TARGET_DIRS_ZLIB=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_OPENGL=1
 TARGET_DIRS_GTK=1
@@ -1623,7 +1624,6 @@ TARGET_DIRS_LIBPNG=1
 TARGET_DIRS_LIBGD=1
 TARGET_DIRS_UTMP=1
 TARGET_DIRS_BFD=1
-TARGET_DIRS_ZLIB=1
 TARGET_DIRS_GDBM=1
 TARGET_DIRS_NCURSES=1
 TARGET_DIRS_FPGTK=1
@@ -1635,10 +1635,10 @@ ifeq ($(OS_TARGET),emx)
 TARGET_DIRS_OS2UNITS=1
 TARGET_DIRS_REXX=1
 TARGET_DIRS_UNZIP=1
+TARGET_DIRS_ZLIB=1
 TARGET_DIRS_X11=1
 TARGET_DIRS_GTK=1
 TARGET_DIRS_LIBPNG=1
-TARGET_DIRS_ZLIB=1
 TARGET_DIRS_TCL=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_FPGTK=1
@@ -1687,6 +1687,51 @@ unzip_makefiles:
 unzip:
 	$(MAKE) -C unzip all
 .PHONY: unzip_all unzip_debug unzip_smart unzip_release unzip_units unzip_examples unzip_shared unzip_install unzip_sourceinstall unzip_exampleinstall unzip_distinstall unzip_zipinstall unzip_zipsourceinstall unzip_zipexampleinstall unzip_zipdistinstall unzip_clean unzip_distclean unzip_cleanall unzip_info unzip_makefiles unzip
+endif
+ifdef TARGET_DIRS_ZLIB
+zlib_all:
+	$(MAKE) -C zlib all
+zlib_debug:
+	$(MAKE) -C zlib debug
+zlib_smart:
+	$(MAKE) -C zlib smart
+zlib_release:
+	$(MAKE) -C zlib release
+zlib_units:
+	$(MAKE) -C zlib units
+zlib_examples:
+	$(MAKE) -C zlib examples
+zlib_shared:
+	$(MAKE) -C zlib shared
+zlib_install:
+	$(MAKE) -C zlib install
+zlib_sourceinstall:
+	$(MAKE) -C zlib sourceinstall
+zlib_exampleinstall:
+	$(MAKE) -C zlib exampleinstall
+zlib_distinstall:
+	$(MAKE) -C zlib distinstall
+zlib_zipinstall:
+	$(MAKE) -C zlib zipinstall
+zlib_zipsourceinstall:
+	$(MAKE) -C zlib zipsourceinstall
+zlib_zipexampleinstall:
+	$(MAKE) -C zlib zipexampleinstall
+zlib_zipdistinstall:
+	$(MAKE) -C zlib zipdistinstall
+zlib_clean:
+	$(MAKE) -C zlib clean
+zlib_distclean:
+	$(MAKE) -C zlib distclean
+zlib_cleanall:
+	$(MAKE) -C zlib cleanall
+zlib_info:
+	$(MAKE) -C zlib info
+zlib_makefiles:
+	$(MAKE) -C zlib makefiles
+zlib:
+	$(MAKE) -C zlib all
+.PHONY: zlib_all zlib_debug zlib_smart zlib_release zlib_units zlib_examples zlib_shared zlib_install zlib_sourceinstall zlib_exampleinstall zlib_distinstall zlib_zipinstall zlib_zipsourceinstall zlib_zipexampleinstall zlib_zipdistinstall zlib_clean zlib_distclean zlib_cleanall zlib_info zlib_makefiles zlib
 endif
 ifdef TARGET_DIRS_X11
 x11_all:
@@ -2182,51 +2227,6 @@ bfd_makefiles:
 bfd:
 	$(MAKE) -C bfd all
 .PHONY: bfd_all bfd_debug bfd_smart bfd_release bfd_units bfd_examples bfd_shared bfd_install bfd_sourceinstall bfd_exampleinstall bfd_distinstall bfd_zipinstall bfd_zipsourceinstall bfd_zipexampleinstall bfd_zipdistinstall bfd_clean bfd_distclean bfd_cleanall bfd_info bfd_makefiles bfd
-endif
-ifdef TARGET_DIRS_ZLIB
-zlib_all:
-	$(MAKE) -C zlib all
-zlib_debug:
-	$(MAKE) -C zlib debug
-zlib_smart:
-	$(MAKE) -C zlib smart
-zlib_release:
-	$(MAKE) -C zlib release
-zlib_units:
-	$(MAKE) -C zlib units
-zlib_examples:
-	$(MAKE) -C zlib examples
-zlib_shared:
-	$(MAKE) -C zlib shared
-zlib_install:
-	$(MAKE) -C zlib install
-zlib_sourceinstall:
-	$(MAKE) -C zlib sourceinstall
-zlib_exampleinstall:
-	$(MAKE) -C zlib exampleinstall
-zlib_distinstall:
-	$(MAKE) -C zlib distinstall
-zlib_zipinstall:
-	$(MAKE) -C zlib zipinstall
-zlib_zipsourceinstall:
-	$(MAKE) -C zlib zipsourceinstall
-zlib_zipexampleinstall:
-	$(MAKE) -C zlib zipexampleinstall
-zlib_zipdistinstall:
-	$(MAKE) -C zlib zipdistinstall
-zlib_clean:
-	$(MAKE) -C zlib clean
-zlib_distclean:
-	$(MAKE) -C zlib distclean
-zlib_cleanall:
-	$(MAKE) -C zlib cleanall
-zlib_info:
-	$(MAKE) -C zlib info
-zlib_makefiles:
-	$(MAKE) -C zlib makefiles
-zlib:
-	$(MAKE) -C zlib all
-.PHONY: zlib_all zlib_debug zlib_smart zlib_release zlib_units zlib_examples zlib_shared zlib_install zlib_sourceinstall zlib_exampleinstall zlib_distinstall zlib_zipinstall zlib_zipsourceinstall zlib_zipexampleinstall zlib_zipdistinstall zlib_clean zlib_distclean zlib_cleanall zlib_info zlib_makefiles zlib
 endif
 ifdef TARGET_DIRS_GDBM
 gdbm_all:
