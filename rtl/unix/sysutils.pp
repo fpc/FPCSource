@@ -147,7 +147,7 @@ Function DirectoryExists (Const Directory : String) : Boolean;
 Var Info : Stat;
 
 begin
-  DirectoryExists:=fstat(dirname,Info) and
+  DirectoryExists:=fstat(Directory,Info) and
                    ((info.mode and STAT_IFMT)=STAT_IFDIR);
 end;
 
@@ -491,7 +491,10 @@ end.
 {
 
   $Log$
-  Revision 1.16  2003-03-29 18:21:42  hajny
+  Revision 1.17  2003-03-30 10:38:00  armin
+  * corrected typo in DirectoryExists
+
+  Revision 1.16  2003/03/29 18:21:42  hajny
     * DirectoryExists declaration changed to that one from fixes branch
 
   Revision 1.15  2003/03/28 19:06:59  peter
