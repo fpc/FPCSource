@@ -110,8 +110,6 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
                                Math Routines
 ****************************************************************************}
 
-{$ifndef RTLLITE}
-
 function Hi(b : byte): byte;
 begin
    Hi := b shr 4
@@ -152,7 +150,6 @@ Begin
   Swap:=(X and $ffffffff) shl 32 + (X shr 32);
 End;
 
-{$endif RTLLITE}
 
 { Include processor specific routines }
 {$I math.inc}
@@ -278,8 +275,6 @@ end;
                             Memory Management
 ****************************************************************************}
 
-{$ifndef RTLLITE}
-
 Function Ptr(sel,off : Longint) : farpointer;[internconst:in_const_ptr];
 Begin
   ptr:=farpointer((sel shl 4)+off);
@@ -299,8 +294,6 @@ Function SSeg : Word;
 Begin
   Sseg:=0;
 End;
-
-{$endif RTLLITE}
 
 
 {*****************************************************************************
@@ -643,7 +636,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2000-12-16 15:56:19  jonas
+  Revision 1.12  2001-04-13 18:06:28  peter
+    * removed rtllite define
+
+  Revision 1.11  2000/12/16 15:56:19  jonas
     - removed all ifdef cardinalmulfix code
 
   Revision 1.10  2000/11/13 14:47:46  jonas

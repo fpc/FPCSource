@@ -66,8 +66,6 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_FILLCHAR}
 
 
-{$ifndef RTLLITE}
-
 {$ifndef FPC_SYSTEM_HAS_FILLBYTE}
 procedure FillByte (var x;count : longint;value : byte );
 begin
@@ -313,8 +311,6 @@ begin
   CompareChar0:=I;
 end;
 {$endif ndef FPC_SYSTEM_HAS_COMPARECHAR0}
-
-{$endif ndef RTLLITE}
 
 
 {****************************************************************************
@@ -777,7 +773,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2001-03-05 17:10:40  jonas
+  Revision 1.8  2001-04-13 18:06:28  peter
+    * removed rtllite define
+
+  Revision 1.7  2001/03/05 17:10:40  jonas
     * changed typecast in FPC_STR_TO_CHARARRAY so that no temp ansistring is
       generated anymore (merged)
 

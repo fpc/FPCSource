@@ -208,8 +208,6 @@ begin
 end;
 
 
-{$ifndef RTLLITE}
-
 function lowercase(c : char) : char;
 {$IFDEF IBM_CHAR_SET}
 var
@@ -269,8 +267,6 @@ begin
      val:=val shr 1;
    end;
 end;
-
-{$endif RTLLITE}
 
 
 function space (b : byte): shortstring;
@@ -550,7 +546,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2001-03-03 12:38:53  jonas
+  Revision 1.10  2001-04-13 18:06:28  peter
+    * removed rtllite define
+
+  Revision 1.9  2001/03/03 12:38:53  jonas
     * made val for longints a bit faster
 
   Revision 1.8  2000/12/09 20:52:41  florian
