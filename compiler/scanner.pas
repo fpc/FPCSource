@@ -66,9 +66,9 @@ unit scanner;
           lastlinepos  : longint;
 
           lasttokenpos : longint;     { token }
-          lasttoken    : ttoken;
+          lasttoken,
+          nexttoken    : ttoken;
 
-          do_special,                 { 1=point after nr, 2=caret after id }
           comment_level,
           yylexcount     : longint;
           lastasmgetchar : char;
@@ -216,13 +216,13 @@ implementation
       { reset scanner }
         preprocstack:=nil;
         comment_level:=0;
-        do_special:=0;
         yylexcount:=0;
         block_type:=bt_general;
         line_no:=0;
         lastlinepos:=0;
         lasttokenpos:=0;
-        lasttoken:=_END;
+        lasttoken:=NOTOKEN;
+        nexttoken:=NOTOKEN;
         lastasmgetchar:=#0;
         invalid:=false;
       { load block }
@@ -995,52 +995,34 @@ implementation
          end;
       end;
 
+
     procedure tscannerfile.readtoken;
       var
         code    : integer;
-        low,high,mid,
-        l       : {$ifdef TP} word; {$else} longint; {$endif}
+        low,high,mid : longint;
         m       : longint;
         mac     : pmacrosym;
         asciinr : string[3];
       label
          exit_label;
       begin
-        { was the last character a point ? }
-        { this code is needed because the scanner if there is a 1. found if  }
-        { this is a floating point number or range like 1..3                 }
-        if do_special>0 then
-          begin
-             gettokenpos;
-             l:=do_special;
-             do_special:=0;
-             case l of
-              1 : begin { first char was a point }
-                    case c of
-                     '.' : begin
-                             readchar;
-                             token:=POINTPOINT;
-                             goto exit_label;
-                           end;
-                     ')' : begin
-                             readchar;
-                             token:=RECKKLAMMER;
-                             goto exit_label;
-                           end;
-                    end;
-                    token:=POINT;
-                    goto exit_label;
-                  end;
-             end;
-          end;
+      { was there already a token read, then return that token }
+        if nexttoken<>NOTOKEN then
+         begin
+           token:=nexttoken;
+           nexttoken:=NOTOKEN;
+           goto exit_label;
+         end;
 
       { Skip all spaces and comments }
         repeat
           case c of
-           '{' : skipcomment;
-   ' ',#9..#13 : skipspace;
-          else
-           break;
+            '{' :
+              skipcomment;
+            ' ',#9..#13 :
+              skipspace;
+            else
+              break;
           end;
         until false;
 
@@ -1105,350 +1087,423 @@ implementation
          begin
            idtoken:=NOID;
            case c of
-                '$' : begin
-                         readnumber;
-                         token:=INTCONST;
-                         goto exit_label;
+
+             '$' :
+               begin
+                 readnumber;
+                 token:=INTCONST;
+                 goto exit_label;
+               end;
+
+             '%' :
+               begin
+                 readnumber;
+                 token:=INTCONST;
+                 goto exit_label;
+               end;
+
+             '0'..'9' :
+               begin
+                 readnumber;
+                 if (c in ['.','e','E']) then
+                  begin
+                  { first check for a . }
+                    if c='.' then
+                     begin
+                       readchar;
+                       { is it a .. from a range? }
+                       case c of
+                         '.' :
+                           begin
+                             readchar;
+                             token:=INTCONST;
+                             nexttoken:=POINTPOINT;
+                             goto exit_label;
+                           end;
+                         ')' :
+                           begin
+                             readchar;
+                             token:=INTCONST;
+                             nexttoken:=RECKKLAMMER;
+                             goto exit_label;
+                           end;
+                       end;
+                       { insert the number after the . }
+                       pattern:=pattern+'.';
+                       while c in ['0'..'9'] do
+                        begin
+                          pattern:=pattern+c;
+                          readchar;
+                        end;
                       end;
-                '%' : begin
-                         readnumber;
-                         token:=INTCONST;
-                         goto exit_label;
-                      end;
-           '0'..'9' : begin
-                        readnumber;
-                        if (c in ['.','e','E']) then
-                         begin
-                         { first check for a . }
-                           if c='.' then
-                            begin
-                              readchar;
-                              if not(c in ['0'..'9']) then
+                  { E can also follow after a point is scanned }
+                    if c in ['e','E'] then
+                     begin
+                       pattern:=pattern+'E';
+                       readchar;
+                       if c in ['-','+'] then
+                        begin
+                          pattern:=pattern+c;
+                          readchar;
+                        end;
+                       if not(c in ['0'..'9']) then
+                        Message(scan_f_illegal_char);
+                       while c in ['0'..'9'] do
+                        begin
+                          pattern:=pattern+c;
+                          readchar;
+                        end;
+                     end;
+                    token:=REALNUMBER;
+                    goto exit_label;
+                  end;
+                 token:=INTCONST;
+                 goto exit_label;
+               end;
+
+             ';' :
+               begin
+                 readchar;
+                 token:=SEMICOLON;
+                 goto exit_label;
+               end;
+
+             '[' :
+               begin
+                 readchar;
+                 token:=LECKKLAMMER;
+                 goto exit_label;
+               end;
+
+             ']' :
+               begin
+                 readchar;
+                 token:=RECKKLAMMER;
+                 goto exit_label;
+               end;
+
+             '(' :
+               begin
+                 readchar;
+                 case c of
+                   '*' :
+                     begin
+                       skipoldtpcomment;
+                       readtoken;
+                       exit;
+                     end;
+                   '.' :
+                     begin
+                       readchar;
+                       token:=LECKKLAMMER;
+                       goto exit_label;
+                     end;
+                 end;
+                 token:=LKLAMMER;
+                 goto exit_label;
+               end;
+
+             ')' :
+               begin
+                 readchar;
+                 token:=RKLAMMER;
+                 goto exit_label;
+               end;
+
+             '+' :
+               begin
+                 readchar;
+                 if (c='=') and (cs_support_c_operators in aktmoduleswitches) then
+                  begin
+                    readchar;
+                    token:=_PLUSASN;
+                    goto exit_label;
+                  end;
+                 token:=PLUS;
+                 goto exit_label;
+               end;
+
+             '-' :
+               begin
+                 readchar;
+                 if (c='=') and (cs_support_c_operators in aktmoduleswitches) then
+                  begin
+                    readchar;
+                    token:=_MINUSASN;
+                    goto exit_label;
+                  end;
+                 token:=MINUS;
+                 goto exit_label;
+               end;
+
+             ':' :
+               begin
+                 readchar;
+                 if c='=' then
+                  begin
+                    readchar;
+                    token:=ASSIGNMENT;
+                    goto exit_label;
+                  end;
+                 token:=COLON;
+                 goto exit_label;
+               end;
+
+             '*' :
+               begin
+                 readchar;
+                 if (c='=') and (cs_support_c_operators in aktmoduleswitches) then
+                  begin
+                    readchar;
+                    token:=_STARASN;
+                  end
+                 else
+                  if c='*' then
+                   begin
+                     readchar;
+                     token:=STARSTAR;
+                   end
+                 else
+                  token:=STAR;
+                 goto exit_label;
+               end;
+
+             '/' :
+               begin
+                 readchar;
+                 case c of
+                   '=' :
+                     begin
+                       if (cs_support_c_operators in aktmoduleswitches) then
+                        begin
+                          readchar;
+                          token:=_SLASHASN;
+                          goto exit_label;
+                        end;
+                     end;
+                   '/' :
+                     begin
+                       skipdelphicomment;
+                       readtoken;
+                       exit;
+                     end;
+                  '*' :
+                    begin
+                      skipccomment;
+                      readtoken;
+                      exit;
+                    end;
+                 end;
+                 token:=SLASH;
+                 goto exit_label;
+               end;
+
+             '=' :
+               begin
+                 readchar;
+                 token:=EQUAL;
+                 goto exit_label;
+               end;
+
+             '.' :
+               begin
+                 readchar;
+                 case c of
+                   '.' :
+                     begin
+                       readchar;
+                       token:=POINTPOINT;
+                       goto exit_label;
+                     end;
+                   ')' :
+                     begin
+                       readchar;
+                       token:=RECKKLAMMER;
+                       goto exit_label;
+                     end;
+                 end;
+                 token:=POINT;
+                 goto exit_label;
+               end;
+
+             '@' :
+               begin
+                 readchar;
+                 if c='@' then
+                  begin
+                    readchar;
+                    token:=DOUBLEADDR;
+                  end
+                 else
+                  token:=KLAMMERAFFE;
+                 goto exit_label;
+               end;
+
+             ',' :
+               begin
+                 readchar;
+                 token:=COMMA;
+                 goto exit_label;
+               end;
+
+             '''','#','^' :
+               begin
+                 if c='^' then
+                  begin
+                    readchar;
+                    c:=upcase(c);
+                    if (block_type=bt_type) or
+                       (lasttoken=ID) or
+                       (lasttoken=RKLAMMER) or (lasttoken=RECKKLAMMER) or (lasttoken=CARET) then
+                     begin
+                       token:=CARET;
+                       goto exit_label;
+                     end
+                    else
+                     begin
+                       if c<#64 then
+                        pattern:=chr(ord(c)+64)
+                       else
+                        pattern:=chr(ord(c)-64);
+                       readchar;
+                     end;
+                  end
+                 else
+                  pattern:='';
+                 repeat
+                   case c of
+                     '#' :
+                       begin
+                         readchar; { read # }
+                         if c='$' then
+                           begin
+                              readchar; { read leading $ }
+                              asciinr:='$';
+                              while (upcase(c) in ['A'..'F','0'..'9']) and (length(asciinr)<3) do
                                begin
-                                 do_special:=1;
-                                 token:=INTCONST;
-                                 goto exit_label;
+                                 asciinr:=asciinr+c;
+                                 readchar;
                                end;
-                              pattern:=pattern+'.';
-                              while c in ['0'..'9'] do
+                           end
+                         else
+                           begin
+                              asciinr:='';
+                              while (c in ['0'..'9']) and (length(asciinr)<3) do
                                begin
-                                 pattern:=pattern+c;
+                                 asciinr:=asciinr+c;
                                  readchar;
                                end;
-                            end;
-                         { E can also follow after a point is scanned }
-                           if c in ['e','E'] then
-                            begin
-                              pattern:=pattern+'E';
-                              readchar;
-                              if c in ['-','+'] then
+                           end;
+                         valint(asciinr,m,code);
+                         if (asciinr='') or (code<>0) or
+                            (m<0) or (m>255) then
+                          Message(scan_e_illegal_char_const);
+                         pattern:=pattern+chr(m);
+                       end;
+                     '''' :
+                       begin
+                         repeat
+                           readchar;
+                           case c of
+                             #26 :
+                               Message(scan_f_end_of_file);
+                             newline :
+                               Message(scan_f_string_exceeds_line);
+                             '''' :
                                begin
-                                 pattern:=pattern+c;
                                  readchar;
+                                 if c<>'''' then
+                                  break;
                                end;
-                              if not(c in ['0'..'9']) then
-                               Message(scan_f_illegal_char);
-                              while c in ['0'..'9'] do
-                               begin
-                                 pattern:=pattern+c;
-                                 readchar;
-                               end;
-                            end;
-                           token:=REALNUMBER;
-                           goto exit_label;
-                         end;
-                        token:=INTCONST;
-                        goto exit_label;
-                      end;
-                ';' : begin
-                        readchar;
-                        token:=SEMICOLON;
-                        goto exit_label;
-                      end;
-                '[' : begin
-                        readchar;
-                        token:=LECKKLAMMER;
-                        goto exit_label;
-                      end;
-                ']' : begin
-                        readchar;
-                        token:=RECKKLAMMER;
-                        goto exit_label;
-                      end;
-                '(' : begin
-                        readchar;
-                        case c of
-                         '*' : begin
-                                 skipoldtpcomment;
-                                 readtoken;
-                                 exit;
-                               end;
-                         '.' : begin
-                                 readchar;
-                                 token:=LECKKLAMMER;
-                                 goto exit_label;
-                               end;
-                        end;
-                        token:=LKLAMMER;
-                        goto exit_label;
-                      end;
-                ')' : begin
-                        readchar;
-                        token:=RKLAMMER;
-                        goto exit_label;
-                      end;
-                '+' : begin
-                        readchar;
-                        if (c='=') and (cs_support_c_operators in aktmoduleswitches) then
-                         begin
-                           readchar;
-                           token:=_PLUSASN;
-                           goto exit_label;
-                         end;
-                        token:=PLUS;
-                        goto exit_label;
-                      end;
-                '-' : begin
-                        readchar;
-                        if (c='=') and (cs_support_c_operators in aktmoduleswitches) then
-                         begin
-                           readchar;
-                           token:=_MINUSASN;
-                           goto exit_label;
-                         end;
-                        token:=MINUS;
-                        goto exit_label;
-                      end;
-                ':' : begin
-                        readchar;
-                        if c='=' then
-                         begin
-                           readchar;
-                           token:=ASSIGNMENT;
-                           goto exit_label;
-                         end;
-                        token:=COLON;
-                        goto exit_label;
-                      end;
-                '*' : begin
-                        readchar;
-                        if (c='=') and (cs_support_c_operators in aktmoduleswitches) then
-                         begin
-                           readchar;
-                           token:=_STARASN;
-                         end
-                        else
-                         if c='*' then
-                          begin
-                            readchar;
-                            token:=STARSTAR;
-                          end
-                        else
-                         token:=STAR;
-                        goto exit_label;
-                      end;
-                '/' : begin
-                        readchar;
-                        case c of
-                         '=' : begin
-                                 if (cs_support_c_operators in aktmoduleswitches) then
-                                  begin
-                                    readchar;
-                                    token:=_SLASHASN;
-                                    goto exit_label;
-                                  end;
-                               end;
-                         '/' : begin
-                                 skipdelphicomment;
-                                 readtoken;
-                                 exit;
-                               end;
-                         '*' : begin
-                                 skipccomment;
-                                 readtoken;
-                                 exit;
-                               end;
-                        end;
-                        token:=SLASH;
-                        goto exit_label;
-                      end;
-                '=' : begin
-                        readchar;
-                        token:=EQUAL;
-                        goto exit_label;
-                      end;
-                '.' : begin
-                        readchar;
-                        case c of
-                         '.' : begin
-                                 readchar;
-                                 token:=POINTPOINT;
-                                 goto exit_label;
-                               end;
-                         ')' : begin
-                                 readchar;
-                                 token:=RECKKLAMMER;
-                                 goto exit_label;
-                               end;
-                        end;
-                        token:=POINT;
-                        goto exit_label;
-                      end;
-                '@' : begin
-                        readchar;
-                        if c='@' then
-                         begin
-                           readchar;
-                           token:=DOUBLEADDR;
-                         end
-                        else
-                         token:=KLAMMERAFFE;
-                        goto exit_label;
-                      end;
-                ',' : begin
-                        readchar;
-                        token:=COMMA;
-                        goto exit_label;
-                      end;
-      '''','#','^' :  begin
-                        if c='^' then
-                         begin
-                           readchar;
-                           c:=upcase(c);
-                           if (block_type=bt_type) or
-                              (lasttoken=ID) or
-                              (lasttoken=RKLAMMER) or (lasttoken=RECKKLAMMER) or (lasttoken=CARET) then
-                            begin
-                              token:=CARET;
-                              goto exit_label;
-                            end
-                           else
-                            begin
-                              if c<#64 then
-                               pattern:=chr(ord(c)+64)
-                              else
-                               pattern:=chr(ord(c)-64);
-                              readchar;
-                            end;
-                         end
-                        else
-                         pattern:='';
-                        repeat
-                          case c of
-                           '#' : begin
-                                   readchar; { read # }
-                                   if c='$' then
-                                     begin
-                                        readchar; { read leading $ }
-                                        asciinr:='$';
-                                        while (upcase(c) in ['A'..'F','0'..'9']) and (length(asciinr)<3) do
-                                         begin
-                                           asciinr:=asciinr+c;
-                                           readchar;
-                                         end;
-                                     end
-                                   else
-                                     begin
-                                        asciinr:='';
-                                        while (c in ['0'..'9']) and (length(asciinr)<3) do
-                                         begin
-                                           asciinr:=asciinr+c;
-                                           readchar;
-                                         end;
-                                     end;
-                                   valint(asciinr,m,code);
-                                   if (asciinr='') or (code<>0) or
-                                      (m<0) or (m>255) then
-                                    Message(scan_e_illegal_char_const);
-                                   pattern:=pattern+chr(m);
-                                 end;
-                          '''' : begin
-                                   repeat
-                                     readchar;
-                                     case c of
-                                    #26 : Message(scan_f_end_of_file);
-                                newline : Message(scan_f_string_exceeds_line);
-                                   '''' : begin
-                                            readchar;
-                                            if c<>'''' then
-                                             break;
-                                          end;
-                                     end;
-                                     pattern:=pattern+c;
-                                   until false;
-                                 end;
-                           '^' : begin
-                                   readchar;
-                                   if c<#64 then
-                                    c:=chr(ord(c)+64)
-                                   else
-                                    c:=chr(ord(c)-64);
-                                   pattern:=pattern+c;
-                                   readchar;
-                                 end;
-                          else
-                           break;
-                          end;
-                        until false;
-                      { strings with length 1 become const chars }
-                        if length(pattern)=1 then
-                         token:=CCHAR
-                        else
-                         token:=CSTRING;
-                        goto exit_label;
-                      end;
-                '>' : begin
-                        readchar;
-                        case c of
-                         '=' : begin
-                                 readchar;
-                                 token:=GTE;
-                                 goto exit_label;
-                               end;
-                         '>' : begin
-                                 readchar;
-                                 token:=_SHR;
-                                 goto exit_label;
-                               end;
-                         '<' : begin { >< is for a symetric diff for sets }
-                                 readchar;
-                                 token:=SYMDIF;
-                                 goto exit_label;
-                               end;
-                        end;
-                        token:=GT;
-                        goto exit_label;
-                      end;
-                '<' : begin
-                        readchar;
-                        case c of
-                         '>' : begin
-                                 readchar;
-                                 token:=UNEQUAL;
-                                 goto exit_label;
-                               end;
-                         '=' : begin
-                                 readchar;
-                                 token:=LTE;
-                                 goto exit_label;
-                               end;
-                         '<' : begin
-                                 readchar;
-                                 token:=_SHL;
-                                 goto exit_label;
-                               end;
-                        end;
-                        token:=LT;
-                        goto exit_label;
-                      end;
-                #26 : begin
-                        token:=_EOF;
-                        goto exit_label;
-                      end;
-           else
-            begin
-              Message(scan_f_illegal_char);
-            end;
+                           end;
+                           pattern:=pattern+c;
+                         until false;
+                       end;
+                     '^' :
+                       begin
+                         readchar;
+                         if c<#64 then
+                          c:=chr(ord(c)+64)
+                         else
+                          c:=chr(ord(c)-64);
+                         pattern:=pattern+c;
+                         readchar;
+                       end;
+                     else
+                      break;
+                   end;
+                 until false;
+               { strings with length 1 become const chars }
+                 if length(pattern)=1 then
+                  token:=CCHAR
+                 else
+                  token:=CSTRING;
+                 goto exit_label;
+               end;
+
+             '>' :
+               begin
+                 readchar;
+                 case c of
+                   '=' :
+                     begin
+                       readchar;
+                       token:=GTE;
+                       goto exit_label;
+                     end;
+                   '>' :
+                     begin
+                       readchar;
+                       token:=_SHR;
+                       goto exit_label;
+                     end;
+                   '<' :
+                     begin { >< is for a symetric diff for sets }
+                       readchar;
+                       token:=SYMDIF;
+                       goto exit_label;
+                     end;
+                 end;
+                 token:=GT;
+                 goto exit_label;
+               end;
+
+             '<' :
+               begin
+                 readchar;
+                 case c of
+                   '>' :
+                     begin
+                       readchar;
+                       token:=UNEQUAL;
+                       goto exit_label;
+                     end;
+                   '=' :
+                     begin
+                       readchar;
+                       token:=LTE;
+                       goto exit_label;
+                     end;
+                   '<' :
+                     begin
+                       readchar;
+                       token:=_SHL;
+                       goto exit_label;
+                     end;
+                 end;
+                 token:=LT;
+                 goto exit_label;
+               end;
+
+             #26 :
+               begin
+                 token:=_EOF;
+                 goto exit_label;
+               end;
+             else
+               begin
+                 Message(scan_f_illegal_char);
+               end;
            end;
         end;
 exit_label:
@@ -1582,7 +1637,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  1999-03-26 19:10:06  peter
+  Revision 1.79  1999-04-01 22:05:59  peter
+    * '1.' is now parsed as a real
+
+  Revision 1.78  1999/03/26 19:10:06  peter
     * support also ^^
 
   Revision 1.77  1999/03/26 00:05:45  peter
