@@ -24,49 +24,32 @@
 %
 % Preamble
 %
-\usepackage{ifthen}
-\usepackage{xspace}
-\usepackage{a4}
-\usepackage{makeidx}
-\usepackage{syntax}
-\usepackage{fancyhdr}
 \ifx\pdfoutput\undefined
   \usepackage{html}
   \usepackage{htmllist}
+  \latex{\usepackage{fpc}}
+\else
+  \usepackage{fpc}
 \fi
-\latex{\usepackage{multicol}}
-\latex{%
-  \ifpdf
-  \pdfcompresslevel=9
-  \pdfpagewidth=210mm
-  \pdfpageheight=297mm
+%
+\html{\input{fpc-html.tex}}
+%
+\ifpdf
   \pdfinfo{/Author(Michael Van Canneyt)
            /Title(Standard units Reference Guide)
            /Subject(Free Pascal Standard units reference guide)
            /Keywords(Free Pascal, Units, RTL)
            }
-  \fi
-}
-%
-\latex{\usepackage{fpc}}
-\html{\input{fpc-html.tex}}
+\fi
 %
 % Settings
 %
-\pagestyle{fancy}
-\fancyhead[LO,RE]{}
 \makeindex
 %
 % Syntax style
 %
 \usepackage{syntax}
 \input{syntax/diagram.tex}
-\latex{
-\usepackage{listings}%
-\lstset{language=Delphi}%
-\lstset{pre=\sffamily}%
-\lstset{keywordstyle=\bfseries}%
-}
 %
 % Start of document.
 %

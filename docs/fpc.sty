@@ -20,6 +20,8 @@
 %
 \ProvidesPackage{fpc}[1996/12/09]
 \NeedsTeXFormat{LaTeX2e}
+\RequirePackage{multicol}
+\RequirePackage{epsfig}
 \RequirePackage{xspace}
 \RequirePackage{ifthen}
 \RequirePackage{listings}
@@ -183,7 +185,7 @@
 %
 % Some versions
 %
-\newcommand{\fpcversion}{1.0.0}
+\newcommand{\fpcversion}{1.0.2}
 %
 % PDF support
 %
@@ -194,18 +196,33 @@
   \pdfoutput=1
   \pdftrue
 \fi
-
+%
+% PDF stuff
+%
+\ifpdf
+  \usepackage[pdftex,bookmarks=true]{hyperref}
+  \usepackage{times}
+  \usepackage[T1]{fontenc}
+  \setcounter{secnumdepth}{1}
+  \pdfcompresslevel=9
+  \pdfpagewidth=210mm
+  \pdfpageheight=297mm
+\fi
+\usepackage{html}
+\usepackage{htmllist}
 %
 % For examples
 %
-\newcommand{\FPCexample}[1]{%
-\latex{\par \file{\textbf{Listing:} \exampledir/#1.pp}%
-\lstinputlisting{\exampledir/#1.pp}}%
-\html{\input{\exampledir/#1.tex}}}
-\newcommand{\Cexample}[1]{%
-\latex{\par \file{\textbf{Listing:} \exampledir/#1.c}%
-\lstinputlisting[language=c]{\exampledir/#1.c}}%
-\html{\input{\exampledir/#1.tex}}}
+\latex{%
+  \newcommand{\FPCexample}[1]{%
+    \par \file{\textbf{Listing:} \exampledir/#1.pp}%
+    \lstinputlisting{\exampledir/#1.pp}%
+  }
+  \newcommand{\Cexample}[1]{%
+    \par \file{\textbf{Listing:} \exampledir/#1.c}%
+    \lstinputlisting[language=c]{\exampledir/#1.c}%
+  }
+}
 \newcommand{\exampledir}{.}
 \newcommand{\FPCexampledir}[1]{\renewcommand{\exampledir}{#1}}
 %
@@ -230,12 +247,14 @@
 %
 % Set some listings options.
 %
-\usepackage{listings}%
-\lstset{language=Delphi}%
-\lstset{basicstyle=\sffamily\small}%
-\lstset{commentstyle=\itshape}%
-\lstset{keywordstyle=\bfseries}%
-\lstset{frame=tb}%
+\latex{%
+  \usepackage{listings}%
+  \lstset{language=Delphi}%
+  \lstset{basicstyle=\sffamily\small}%
+  \lstset{commentstyle=\itshape}%
+  \lstset{keywordstyle=\bfseries}%
+  \lstset{frame=tb}%
+}
 %
 % Page settings
 \setlength{\oddsidemargin}{20pt}
@@ -248,19 +267,5 @@
 \addtolength{\headwidth}{\marginparsep}
 \addtolength{\headwidth}{\marginparwidth}
 \addtolength{\headwidth}{-59pt}
-%
-% PDF stuff
-%
-\ifpdf
-\usepackage[pdftex,bookmarks=true]{hyperref}
-\usepackage{times}
-\usepackage[T1]{fontenc}
-\setcounter{secnumdepth}{1}
-\pdfcompresslevel=9
-\pdfpagewidth=210mm
-\pdfpageheight=297mm
-\fi
-\usepackage{html}
-\usepackage{htmllist}
 %
 % end of fpc.sty

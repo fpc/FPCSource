@@ -19,16 +19,33 @@
 %   Boston, MA 02111-1307, USA.
 %
 \documentclass{report}
-\usepackage{a4}
-\usepackage{makeidx}
-\usepackage{times}
+%
+% Preamble
+%
 \ifx\pdfoutput\undefined
   \usepackage{html}
   \usepackage{htmllist}
+  \latex{\usepackage{fpc}}
+\else
+  \usepackage{fpc}
 \fi
-\latex{\usepackage{listings}\lstset{language=delphi}}
-\latex{\usepackage{fpc}}
+%
 \html{\input{fpc-html.tex}}
+%
+\ifpdf
+  \pdfinfo{/Author(Michael Van Canneyt)
+           /Title(Programmers' Guide)
+           /Subject(Free Pascal Programmers' guide)
+           /Keywords(Free Pascal)
+           }
+\fi
+%
+% Settings
+%
+\makeindex
+%
+% Start document
+%
 \begin{document}
 \input{crt.tex}
 %\input{dos.tex}

@@ -22,25 +22,30 @@
 %
 % Preamble
 %
+% Don't know why it's needed, but latex2html will else core dump
+% when trying to create an image
 \usepackage{epsfig}
 \usepackage{multicol}
 \ifx\pdfoutput\undefined
   \usepackage{html}
   \usepackage{htmllist}
+  \latex{\usepackage{fpc}}
+\else
+  \usepackage{fpc}
 \fi
-\latex{%
-  \usepackage{times}
-  \ifpdf
+%
+\html{\input{fpc-html.tex}}
+%
+\ifpdf
   \pdfinfo{/Author(Michael Van Canneyt)
            /Title(Users' Guide)
            /Subject(Free Pascal Users' guide)
            /Keywords(Free Pascal)
            }
-  \fi
-}
+\fi
 %
-\latex{\usepackage{fpc}}
-\html{\input{fpc-html.tex}}
+% Settings
+%
 \makeindex
 %
 % Start of document.

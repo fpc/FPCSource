@@ -22,24 +22,26 @@
 %
 % Preamble
 %
-\usepackage{epsfig}
-\usepackage{multicol}
 \ifx\pdfoutput\undefined
   \usepackage{html}
   \usepackage{htmllist}
+  \latex{\usepackage{fpc}}
+\else
+  \usepackage{fpc}
 \fi
-\latex{%
-  \ifpdf
+%
+\html{\input{fpc-html.tex}}
+%
+\ifpdf
   \pdfinfo{/Author(Michael Van Canneyt)
            /Title(Standard units Reference Guide)
            /Subject(Free Pascal Reference guide)
            /Keywords(Free Pascal, Language, System Unit)
            }
-  \fi
-}
+\fi
 %
-\latex{\usepackage{fpc}}
-\html{\input{fpc-html.tex}}
+% Settings
+%
 \makeindex
 %
 % Syntax style

@@ -93,10 +93,10 @@ export TMP=/tmp
 # End of configurable section. Do not edit after this line.
 #######################################################################
 
-PS = $(addsuffix .ps, $(HTML) onechap)
-DVI = $(addsuffix .dvi, $(HTML) onechap)
-TXT = $(addsuffix .txt, $(HTML) onechap)
-PDF = $(addsuffix .pdf, $(HTML) onechap)
+PS = $(addsuffix .ps, $(HTML))
+DVI = $(addsuffix .dvi, $(HTML))
+TXT = $(addsuffix .txt, $(HTML))
+PDF = $(addsuffix .pdf, $(HTML))
 TOC = $(addsuffix .toc, $(HTML) onechap)
 AUX = $(addsuffix .aux, $(HTML) onechap)
 LOG = $(addsuffix .log, $(HTML) onechap)
@@ -470,8 +470,11 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.2  2000-09-02 17:36:02  peter
-#   * merged
+# Revision 1.3  2000-09-02 21:51:36  peter
+#   * fixed pdf creating (merged)
+#
+# Revision 1.1.2.1  2000/09/02 17:29:51  peter
+#   * example including for html docs
 #
 # Revision 1.1  2000/07/13 09:10:03  michael
 # + Initial import
