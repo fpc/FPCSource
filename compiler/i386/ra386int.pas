@@ -1430,7 +1430,6 @@ Begin
            Begin
              if actasmpattern = '@RESULT' then
               Begin
-                InitRef;
                 SetupResult;
                 Consume(AS_ID);
               end
@@ -1454,7 +1453,6 @@ Begin
           { support result for delphi modes }
            if (m_objpas in aktmodeswitches) and (actasmpattern='RESULT') then
             begin
-              InitRef;
               SetUpResult;
               Consume(AS_ID);
             end
@@ -1506,7 +1504,6 @@ Begin
                   end
                  else
                   begin
-                    InitRef;
                     if not SetupVar(expr,false) then
                       Begin
                         { not a variable, check special variables.. }
@@ -1924,7 +1921,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.61  2003-10-29 15:40:20  peter
+  Revision 1.62  2003-10-29 16:47:18  peter
+    * fix field offset in reference
+
+  Revision 1.61  2003/10/29 15:40:20  peter
     * support indexing and offset retrieval for locals
 
   Revision 1.60  2003/10/27 15:29:43  peter

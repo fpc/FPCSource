@@ -1478,7 +1478,6 @@ Begin
             end
            else
             begin
-              InitRef;
               expr:=actasmpattern;
               Consume(AS_ID);
               { typecasting? }
@@ -1526,6 +1525,7 @@ Begin
                           Begin
                             { not found, finally ... add it anyways ... }
                             Message1(asmr_w_id_supposed_external,expr);
+                            InitRef;
                             opr.ref.symbol:=objectlibrary.newasmsymbol(expr);
                           end;
                        end
@@ -2119,7 +2119,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.55  2003-10-26 13:37:22  florian
+  Revision 1.56  2003-10-29 16:47:18  peter
+    * fix field offset in reference
+
+  Revision 1.55  2003/10/26 13:37:22  florian
     * fixed web bug 2128
 
   Revision 1.54  2003/10/24 17:39:03  peter

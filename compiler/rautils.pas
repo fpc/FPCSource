@@ -787,6 +787,27 @@ Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
       end;
   end;
 
+  procedure setconst(l:longint);
+  begin
+    { We return the address of the field, just like Delphi/TP }
+    case opr.typ of
+      OPR_NONE :
+        begin
+          opr.typ:=OPR_CONSTANT;
+          opr.val:=l;
+        end;
+      OPR_CONSTANT :
+        inc(opr.val,l);
+      OPR_REFERENCE :
+        inc(opr.ref.offset,l);
+      OPR_LOCAL :
+        inc(opr.localsymofs,l);
+      else
+        Message(asmr_e_invalid_operand_type);
+    end;
+  end;
+
+
 { search and sets up the correct fields in the Instr record }
 { for the NON-constant identifier passed to the routine.    }
 { if not found returns FALSE.                               }
@@ -812,10 +833,16 @@ Begin
              (plist^.sltype=sl_load) then
             sym:=plist^.sym
           else
-            Message(asmr_e_unsupported_symbol_type);
+            begin
+              Message(asmr_e_unsupported_symbol_type);
+              exit;
+            end;
         end
       else
-        Message(asmr_e_unsupported_symbol_type);
+        begin
+          Message(asmr_e_unsupported_symbol_type);
+          exit;
+        end;
     end;
   case sym.typ of
     varsym :
@@ -827,31 +854,40 @@ Begin
         case tvarsym(sym).owner.symtabletype of
           objectsymtable :
             begin
-              { We return the address of the field, just like Delphi/TP }
-              opr.typ:=OPR_CONSTANT;
-              opr.val:=tvarsym(sym).fieldoffset;
+              setconst(tvarsym(sym).fieldoffset);
               hasvar:=true;
               SetupVar:=true;
               Exit;
             end;
           globalsymtable,
           staticsymtable :
-            opr.ref.symbol:=objectlibrary.newasmsymboldata(tvarsym(sym).mangledname);
+            begin
+              initref;
+              opr.ref.symbol:=objectlibrary.newasmsymboldata(tvarsym(sym).mangledname);
+            end;
           parasymtable,
           localsymtable :
             begin
-              indexreg:=opr.ref.base;
-              if opr.ref.index<>NR_NO then
-                begin
-                  if indexreg=NR_NO then
-                    indexreg:=opr.ref.index
-                  else
-                    Message(asmr_e_multiple_index);
-                end;
               if (vo_is_external in tvarsym(sym).varoptions) then
-                opr.ref.symbol:=objectlibrary.newasmsymboldata(tvarsym(sym).mangledname)
+                begin
+                  initref;
+                  opr.ref.symbol:=objectlibrary.newasmsymboldata(tvarsym(sym).mangledname)
+                end
               else
                 begin
+                  if opr.typ=OPR_REFERENCE then
+                    begin
+                      indexreg:=opr.ref.base;
+                      if opr.ref.index<>NR_NO then
+                        begin
+                          if indexreg=NR_NO then
+                            indexreg:=opr.ref.index
+                          else
+                            Message(asmr_e_multiple_index);
+                        end;
+                    end
+                  else
+                    indexreg:=NR_NO;
                   opr.typ:=OPR_LOCAL;
                   if assigned(current_procinfo.parent) and
                      (current_procinfo.procdef.proccalloption<>pocall_inline) and
@@ -892,6 +928,7 @@ Begin
       end;
     typedconstsym :
       begin
+        initref;
         opr.ref.symbol:=objectlibrary.newasmsymboldata(ttypedconstsym(sym).mangledname);
         case ttypedconstsym(sym).typedconsttype.def.deftype of
           orddef,
@@ -918,8 +955,7 @@ Begin
       begin
         if tconstsym(sym).consttyp in [constint,constchar,constbool] then
          begin
-           opr.typ:=OPR_CONSTANT;
-           opr.val:=tconstsym(sym).value.valueord;
+           setconst(tconstsym(sym).value.valueord);
            SetupVar:=true;
            Exit;
          end;
@@ -928,14 +964,15 @@ Begin
       begin
         if ttypesym(sym).restype.def.deftype in [recorddef,objectdef] then
          begin
-           opr.typ:=OPR_CONSTANT;
-           opr.val:=0;
+           setconst(0);
            SetupVar:=TRUE;
            Exit;
          end;
       end;
     procsym :
       begin
+        if opr.typ<>OPR_NONE then
+          Message(asmr_e_invalid_operand_type);
         if Tprocsym(sym).procdef_count>1 then
           Message(asmr_w_calling_overload_func);
         l:=opr.ref.offset;
@@ -964,6 +1001,7 @@ begin
   p:=objectlibrary.getasmsymbol(hs);
   if assigned(p) then
    begin
+     InitRef;
      opr.ref.symbol:=p;
      hasvar:=true;
      SetupDirectVar:=true;
@@ -1564,7 +1602,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.74  2003-10-29 15:40:20  peter
+  Revision 1.75  2003-10-29 16:47:18  peter
+    * fix field offset in reference
+
+  Revision 1.74  2003/10/29 15:40:20  peter
     * support indexing and offset retrieval for locals
 
   Revision 1.73  2003/10/28 15:36:01  peter
