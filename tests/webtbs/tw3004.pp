@@ -18,12 +18,12 @@ procedure p1;
 var
   i : sizeint;
 begin
- i:=memavail; 
+ i:=heapsize-memavail; 
  try
   P;
  except
  end;
- if i<>memavail then
+ if i<>heapsize-memavail then
    begin
      writeln('Memleak');
      halt(1);
