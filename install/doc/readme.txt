@@ -81,6 +81,9 @@ OS/2 and DOS (extender EMX):
  - 3 MB RAM (8+ MB recommended) for DOS
   or 8 MB (12 or more MB recommended depending on OS version) for OS/2
  - EMX or RSX (for DPMI) runtime package (part of OS/2 distribution)
+ - TZ variable in your environment (in your CONFIG.SYS at best);
+  you should normally have it there anyway, it may only be missing
+  on older OS/2 versions (<= 3.0)
 BeOS:
  - GNU Utilities and development tools pre-installed (as and ld)
  - BeOS 4.5 or later

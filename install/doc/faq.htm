@@ -35,6 +35,9 @@
 <LI><A HREF="#ImusingOS2">I'm using OS/2</A></LI>
 <LI><A HREF="#dpmi">INSTALL.EXE of Dos version 0.99.10 reports "Load error: no DPMI"</A></LI>
 <LI><A HREF="#instal10NT">INSTALL.EXE of version 1.0 for Dos returns an error (-2) in Windows NT 4.0</A></LI>
+<LI><A HREF="#instal106os2">INSTALL.EXE of version 1.0.6 or below returns an unknown error (-1) under OS/2</A>
+<BR>or<BR>
+<A HREF="#instal106os2">INSTALL.EXE of version 1.0.6 or above complains about missing TZ variable under OS/2</A></LI>
 <LI><A HREF="#snapshot">I want a new version NOW</A></LI>
 <LI><A HREF="#ideinst">Where can I find a text mode IDE?</A></LI>
 <LI><A HREF="#ideconfig">How do I configure the Dos IDE?</A></LI>
@@ -457,6 +460,21 @@ is not necessary, just download a new installer:<ul>
 <li>If you downloaded an OS/2 version, and experience problems, you can try to download the new dos installer</lI>
 </ul>
 </P>
+<LI><A NAME="instal106os2"></A><H3>INSTALL.EXE of version 1.0.6 or below fails with an unknown error (-1) under OS/2</H3>
+<P>
+or
+</P>
+<H3>INSTALL.EXE of version 1.0.6 or above complains about missing TZ variable under OS/2</H3>
+<P>
+You are most probably using an older version of OS/2 (like OS/2 Warp 3.0)
+and don't have TZ variable in your environment. The easiest solution is to add
+"SET TZ=..." (e.g. "SET TZ=CET-1CEST,3,-1,0,7200,10,-1,0,10800,3600" for most
+of western and central Europe) line to your CONFIG.SYS, and restart OS/2.
+The proper setting for you can be found e.g. using the TZCALC tool from
+<A HREF="http://hobbes.nmsu.edu/pub/os2/apps/internet/time/time868f.zip">TIME868</A>
+package.
+</P>
+</LI>
 <LI><A NAME="snapshot"></A><H3>I want a new version NOW</H3>
 <P>
 In the time between the release of new official versions, you
@@ -609,7 +627,7 @@ for 0.99.14 and later) using
 <pre>gdb(pas)(w) --directory=&LT;src dirs&GT; myprog.exe</pre>
 Notes:
 <UL>
-<LI>Under Linux, don't add the ".exe" after myprog</LI>
+<LI>Under Linux/Unix, don't add the ".exe" after myprog</LI>
 <LI>"<TT>src dirs</TT>" is a list of directories containing the source code
 files of myprog and the units it uses seperated by semi-colons (";").
 The current directory is automatically included.</LI>

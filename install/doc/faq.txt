@@ -26,13 +26,18 @@
        DPMI"
    24. [24]INSTALL.EXE of version 1.0 for Dos returns an error (-2) in
        Windows NT 4.0
-   25. [25]I want a new version NOW
-   26. [26]Where can I find a text mode IDE?
-   27. [27]How do I configure the Dos IDE?
-   28. [28]Why are the generated binaries so big?
-   29. [29]Unit system, syslinux, sysos2 or syswin32 not found errors
-   30. [30]Known bugs
-   31. [31]How can I find where an error occurred using the addresses a
+   25. [25]INSTALL.EXE of version 1.0.6 or below returns an unknown error (-1)
+       under OS/2
+       or
+       [25]INSTALL.EXE of version 1.0.6 or above complains about missing
+       TZ variable under OS/2
+   26. [26]I want a new version NOW
+   27. [27]Where can I find a text mode IDE?
+   28. [28]How do I configure the Dos IDE?
+   29. [29]Why are the generated binaries so big?
+   30. [30]Unit system, syslinux, sysos2 or syswin32 not found errors
+   31. [31]Known bugs
+   32. [32]How can I find where an error occurred using the addresses a
        crashed program prints?
        
     1. What is Free Pascal (FPC)?
@@ -163,7 +168,7 @@
                 Jukka Virtanen, Finland (jtv@hut.fi).
                 
     4. Where can I get the compiler ?
-       Free Pascal is available for download from all [32]official
+       Free Pascal is available for download from all [33]official
        mirrors
     5. What are the considerations in porting code to other processors?
        Because the compiler now supports processors other than the Intel,
@@ -214,7 +219,7 @@
        lately. It's already very usable, we are even writing an IDE in
        it. Due to copyrights problem the FreeVision source code is not
        available at the moment. You can download the IDE from the
-       [33]development page. and get an idea of the look and feel though.
+       [34]development page. and get an idea of the look and feel though.
    10. How can I compile the system unit?
        To recompile the system unit, it is recommended to have GNU make
        installed. typing 'make' in the rtl source directory will then
@@ -227,7 +232,7 @@
        The latest versions of the Free Pascal Compiler come with an error
        handling routine which catches the segmentation fault and lets the
        compiler to exit gracefully. This is reported as an internal error
-       9999. Please try to reproduce the error and send [34]us a bug
+       9999. Please try to reproduce the error and send [35]us a bug
        report.
        (For the curious, IE 9999 is not a specific bug. It is a safety
        measure which terminates if during compiling a certain condition
@@ -308,13 +313,13 @@ Since 0.99.5, the older [C]; won't work!
        assembly syntax. See the documentation for more info on how to use
        different assembler styles.
        A description of the AT&T syntax can be found in the DJGPP FAQ
-       [35]http://www.delorie.com/djgpp/v2faq/faq102.html#Syntax or in
+       [36]http://www.delorie.com/djgpp/v2faq/faq102.html#Syntax or in
        Brennan's Guide to Inline Assembly
-       [36]http://www.rt66.com/%7Ebrennan/djgpp/djgpp asm.html. The
+       [37]http://www.rt66.com/%7Ebrennan/djgpp/djgpp asm.html. The
        documentation also contains a chapter where the difference between
        the Intel and AT&T style assembly is explained.
        Or you can use the convertor program at
-       [37]http://rcs.urz.tu-dresden.de/schoenfu/zip/asmtrans.zip .
+       [38]http://rcs.urz.tu-dresden.de/schoenfu/zip/asmtrans.zip .
    17. How can I access DOS memory / How can I do graphics programming?
        You can do like in TP, via absolute or mem[]. For larger memory
        blocks use the dosmemput/dosmemget routines in Go32 unit.
@@ -371,7 +376,7 @@ SET EMU386=C:\PP\BIN\GO32V2\WEMU387.DXE
        available. Such services are for example available in a Dos window
        of Windows. You can either extract that file from basego32.zip or
        download it from
-       [38]http://www.brain.uni-freiburg.de/%7Eklaus/cwsdpmi.exe. Put it
+       [39]http://www.brain.uni-freiburg.de/%7Eklaus/cwsdpmi.exe. Put it
        into the same directory as install.exe and run install again.
    24. INSTALL.EXE of version 1.0 for Dos returns an error (-2) in
        Windows NT 4.0
@@ -390,13 +395,25 @@ SET EMU386=C:\PP\BIN\GO32V2\WEMU387.DXE
             go32v2 installer packaged as installd.exe.
           + If you already downloaded one of the large Dos zips, repeated
             downloading is not necessary, just download a new installer:
-               o [39]Plain dos installer. For dos without a 32-bit
+               o [40]Plain dos installer. For dos without a 32-bit
                  windows loaded or OS/2
-               o [40]Win32 installer, for all win32 targets (win 95,98,NT
+               o [41]Win32 installer, for all win32 targets (win 95,98,NT
                  en 2000) including their dosboxes
           + If you downloaded an OS/2 version, and experience problems,
             you can try to download the new dos installer
-   25. I want a new version NOW
+   25. INSTALL.EXE of version 1.0.6 or below fails with an unknown
+       error (-1) under OS/2
+       or
+       INSTALL.EXE of version 1.0.6 or above complains about missing
+       TZ variable under OS/2
+       You are most probably using an older version of OS/2 (like
+       OS/2 Warp 3.0) and don't have TZ variable in your environment.
+       The easiest solution is to add "SET TZ=..."
+       (e.g. "SET TZ=CET-1CEST,3,-1,0,7200,10,-1,0,10800,3600" for most
+       of western and central Europe) line to your CONFIG.SYS, and restart
+       OS/2. The proper setting for you can be found e.g. using the TZCALC
+       tool from [51]TIME868 package.
+   26. I want a new version NOW
        In the time between the release of new official versions, you can
        have a look at and test developer versions (so-called
        "snapshots"). Be warned though: this is work under progress, so in
@@ -408,7 +425,7 @@ SET EMU386=C:\PP\BIN\GO32V2\WEMU387.DXE
        try again one or two days later. You're advised not to download
        the GO32v1 version for Dos, since it's not supported any more.
        The latest snapshot can always be downloaded from the
-       [41]development web page.
+       [42]development web page.
        To install a snapshot, extract the zip archive into the existing
        program directory of the last official version of Free Pascal
        (after making a backup of the original of course). You can also
@@ -419,7 +436,7 @@ SET EMU386=C:\PP\BIN\GO32V2\WEMU387.DXE
        instead of just "pkunzip". Note that snpashots also contain a new
        RTL which most likely can't be used with the previous release
        version, so backup your old RTL as well.
-   26. Where can I find a text mode IDE?
+   27. Where can I find a text mode IDE?
        The development of the IDE (integrated development environment) is
        not yet finished. However a working test version of the IDE is
        available as snapshot. It requires the latest compiler snapshot be
@@ -427,14 +444,14 @@ SET EMU386=C:\PP\BIN\GO32V2\WEMU387.DXE
        particular platform (1.00 for GO32v2 or Win32). So if you have not
        already done that, first install the latest official version (e.g.
        file dos100.zip or dos100full.zip, you find these in the
-       [42]download section).
+       [43]download section).
        Then get and extract the latest snapshot for your platform (e.g.
        snapshot.zip) into the directory containing the official version.
        Next, do the same with one of the IDE snapshots. For more details
        on where to find and how to install a snapshot, please see the
        previous FAQ item. For additional instructions for required IDE
        configuration please also read the next FAQ item.
-   27. How do I configure the Dos IDE?
+   28. How do I configure the Dos IDE?
        Once you have installed the IDE (see the previous FAQ item), it
        requires two configuration changes before it can compile. This is
        due to the fact that the IDE includes its own compiler; it does
@@ -446,15 +463,15 @@ SET EMU386=C:\PP\BIN\GO32V2\WEMU387.DXE
        directory, usually c:\pp\rtl\go32v2. If you have done everything
        correct and it still doesn't work, you may have grabbed a snapshot
        that has a bug; in this case try again one or two days later or
-       ask for help on one of the [43]mailing lists.
-   28. Why are the generated binaries so big?
+       ask for help on one of the [44]mailing lists.
+   29. Why are the generated binaries so big?
        There are several reasons and remedies for this:
          1. If you are using 0.99.12: Due to some problems with the
             binary writer, 0.99.12 wasn't released with smartlinkable
             RTLs. Smartlinking causes only actually used procedures,
             functions and constants to be linked in.
             You can remedy this by using a development version and
-            creating a smartlinking RTL. See the [44]make cycle faq or
+            creating a smartlinking RTL. See the [45]make cycle faq or
             use a later release if available (0.99.14 and later do
             include a smartlinkable RTL). To turn on the generation of
             smartlinkable units, use the -Cx command line option when
@@ -466,17 +483,17 @@ SET EMU386=C:\PP\BIN\GO32V2\WEMU387.DXE
             the -Xs command line option when compiling your program (it
             won't do anything when compiling units)
          3. You can use UPX to pack the .EXEs (just like e.g. pklite) for
-            Dos (GO32v2) and Windows targets. Look [45]here for more
+            Dos (GO32v2) and Windows targets. Look [46]here for more
             info.
          4. You can use LXLITE for packing EMX binaries, but you won't be
             able to run them under DOS (with extender) any more then. It
             might even not be possible to use them on lower OS/2 versions
             (like 2.x) depending on chosen type of compression. LXLITE
-            can be found e.g. on [46]Hobbes, search for LXLITE.
+            can be found e.g. on [47]Hobbes, search for LXLITE.
          5. Turn on optimalisations, both for supplied packages (RTL,
             API, FV, FCL) and for your own code, this will also decrease
             the code size.
-   29. Unit system, syslinux, sysos2 or syswin32 not found errors
+   30. Unit system, syslinux, sysos2 or syswin32 not found errors
        System (syslinux, sysos2 or syswin32, depending on platform) is
        Pascal's base unit which is implicitely used in all programs. This
        unit defines several standard procedures and structures, and must
@@ -491,12 +508,12 @@ SET EMU386=C:\PP\BIN\GO32V2\WEMU387.DXE
             "/etc/ppc386.cfg" or ".ppc386.cfg" in your homedirectory
             (Linux).
          2. The ppc386.cfg doesn't contain the -Fu line, or a wrong one.
-            See the [47]make cycle faq, especially the chapters about the
+            See the [48]make cycle faq, especially the chapters about the
             ppc386.cfg and the directory structure.
          3. The files ARE found but the wrong version or platform.
             Correct ppc386.cfg to point to the right versions or
             reinstall the right versions (this can happen if you try to
-            use a [48]snapshot compiler while the -Fu statemnt in the
+            use a [49]snapshot compiler while the -Fu statemnt in the
             used ppc386.cfg still points to the RTL that came with the
             official release compiler).
        A handy trick can be executing "ppc386 programname -vt", this
@@ -510,9 +527,9 @@ ppc386 programname -vt |more
 Linux:
 ppc386 programname -vt |less
 
-   30. Known bugs
-       Go to the [49]bugs page
-   31. How can I find where an error occurred using the addresses a
+   31. Known bugs
+       Go to the [50]bugs page
+   32. How can I find where an error occurred using the addresses a
        crashed program prints?
          1. Starting with version 1.00, the easiest possibility is to
             recompile your program with -gl debugging option. This way
@@ -528,7 +545,7 @@ ppc386 programname -vt |less
             earlier, gdbpas(w) for 0.99.14 and later) using
 gdb(pas)(w) --directory=&LT;src dirs&GT; myprog.exe
             Notes:
-               o Under Linux, don't add the ".exe" after myprog
+               o Under Linux/Unix, don't add the ".exe" after myprog
                o "src dirs" is a list of directories containing the
                  source code files of myprog and the units it uses
                  seperated by semi-colons (";"). The current directory is
@@ -554,52 +571,54 @@ info line *0x05bd8
 
 References
 
-   1. file://localhost/home/pfv/html/faq.htm#WhatIsFP
-   2. file://localhost/home/pfv/html/faq.htm#versions
-   3. file://localhost/home/pfv/html/faq.htm#FPandGNUPascal
-   4. file://localhost/home/pfv/html/faq.htm#WhereToGetFP
-   5. file://localhost/home/pfv/html/faq.htm#PortabilityTips
-   6. file://localhost/home/pfv/html/faq.htm#OOP
-   7. file://localhost/home/pfv/html/faq.htm#HOMEWORK
-   8. file://localhost/home/pfv/html/faq.htm#HowcanIbuildaunit
-   9. file://localhost/home/pfv/html/faq.htm#TurboVision
-  10. file://localhost/home/pfv/html/faq.htm#CompileSystemUnit
-  11. file://localhost/home/pfv/html/faq.htm#Internalerror9999
-  12. file://localhost/home/pfv/html/faq.htm#Howdoesfunctionoverloadingwork
-  13. file://localhost/home/pfv/html/faq.htm#HowToCallCFuncuntions
-  14. file://localhost/home/pfv/html/faq.htm#HowToUseGraph
-  15. file://localhost/home/pfv/html/faq.htm#WrongColors
-  16. file://localhost/home/pfv/html/faq.htm#IntegratedAssemblerSyntax
-  17. file://localhost/home/pfv/html/faq.htm#HowToAccessDosMemory
-  18. file://localhost/home/pfv/html/faq.htm#FPwithoutfpu
-  19. file://localhost/home/pfv/html/faq.htm#AccessingMoreThan4MB
-  20. file://localhost/home/pfv/html/faq.htm#accessioports
-  21. file://localhost/home/pfv/html/faq.htm#ImusingWin95
-  22. file://localhost/home/pfv/html/faq.htm#ImusingOS2
-  23. file://localhost/home/pfv/html/faq.htm#dpmi
-  24. file://localhost/home/pfv/html/faq.htm#instal10NT
-  25. file://localhost/home/pfv/html/faq.htm#snapshot
-  26. file://localhost/home/pfv/html/faq.htm#ideinst
-  27. file://localhost/home/pfv/html/faq.htm#ideconfig
-  28. file://localhost/home/pfv/html/faq.htm#binariesbig
-  29. file://localhost/home/pfv/html/faq.htm#systemnotfound
-  30. file://localhost/home/pfv/html/faq.htm#KnownBugs
-  31. file://localhost/home/pfv/html/faq.htm#ErrorPos
-  32. file://localhost/home/pfv/html/download.html
-  33. file://localhost/home/pfv/html/develop.html#snapshot
-  34. file://localhost/home/pfv/html/bugs.html
-  35. http://www.delorie.com/djgpp/v2faq/faq102.html#Syntax
-  36. http://www.rt66.com/%7Ebrennan/djgpp/djgpp%A0asm.html
-  37. http://rcs.urz.tu-dresden.de/schoenfu/zip/asmtrans.zip
-  38. http://www.brain.uni-freiburg.de/%7Eklaus/cwsdpmi.exe
-  39. ftp://ftp.freepascal.org/pub/fpc/dist/dos-1.00/separate/install.exe
-  40. ftp://ftp.freepascal.org/pub/fpc/dist/win32-1.00/separate/install.exe
-  41. file://localhost/home/pfv/html/develop.html#snapshot
-  42. file://localhost/home/pfv/html/download.html
-  43. file://localhost/home/pfv/html/maillist.html
-  44. file://localhost/home/pfv/html/makecyc.html
-  45. http://wildsau.idv.uni-linz.ac.at/mfx/upx.html
-  46. http://hobbes.nmsu.edu/
-  47. file://localhost/home/pfv/html/makecyc.html
-  48. file://localhost/home/pfv/html/faq.htm#snapshot
-  49. file://localhost/home/pfv/html/bugs.html
+   1. http://www.freepascal.org/faq.htm#WhatIsFP
+   2. http://www.freepascal.org/faq.htm#versions
+   3. http://www.freepascal.org/faq.htm#FPandGNUPascal
+   4. http://www.freepascal.org/faq.htm#WhereToGetFP
+   5. http://www.freepascal.org/faq.htm#PortabilityTips
+   6. http://www.freepascal.org/faq.htm#OOP
+   7. http://www.freepascal.org/faq.htm#HOMEWORK
+   8. http://www.freepascal.org/faq.htm#HowcanIbuildaunit
+   9. http://www.freepascal.org/faq.htm#TurboVision
+  10. http://www.freepascal.org/faq.htm#CompileSystemUnit
+  11. http://www.freepascal.org/faq.htm#Internalerror9999
+  12. http://www.freepascal.org/faq.htm#Howdoesfunctionoverloadingwork
+  13. http://www.freepascal.org/faq.htm#HowToCallCFuncuntions
+  14. http://www.freepascal.org/faq.htm#HowToUseGraph
+  15. http://www.freepascal.org/faq.htm#WrongColors
+  16. http://www.freepascal.org/faq.htm#IntegratedAssemblerSyntax
+  17. http://www.freepascal.org/faq.htm#HowToAccessDosMemory
+  18. http://www.freepascal.org/faq.htm#FPwithoutfpu
+  19. http://www.freepascal.org/faq.htm#AccessingMoreThan4MB
+  20. http://www.freepascal.org/faq.htm#accessioports
+  21. http://www.freepascal.org/faq.htm#ImusingWin95
+  22. http://www.freepascal.org/faq.htm#ImusingOS2
+  23. http://www.freepascal.org/faq.htm#dpmi
+  24. http://www.freepascal.org/faq.htm#instal10NT
+  25. http://www.freepascal.org/faq.htm#instal106os2
+  26. http://www.freepascal.org/faq.htm#snapshot
+  27. http://www.freepascal.org/faq.htm#ideinst
+  28. http://www.freepascal.org/faq.htm#ideconfig
+  29. http://www.freepascal.org/faq.htm#binariesbig
+  30. http://www.freepascal.org/faq.htm#systemnotfound
+  31. http://www.freepascal.org/faq.htm#KnownBugs
+  32. http://www.freepascal.org/faq.htm#ErrorPos
+  33. http://www.freepascal.org/download.html
+  34. http://www.freepascal.org/develop.html#snapshot
+  35. http://www.freepascal.org/bugs.html
+  36. http://www.delorie.com/djgpp/v2faq/faq102.html#Syntax
+  37. http://www.rt66.com/%7Ebrennan/djgpp/djgpp%A0asm.html
+  38. http://rcs.urz.tu-dresden.de/schoenfu/zip/asmtrans.zip
+  39. http://www.brain.uni-freiburg.de/%7Eklaus/cwsdpmi.exe
+  40. ftp://ftp.freepascal.org/pub/fpc/dist/dos-1.00/separate/install.exe
+  41. ftp://ftp.freepascal.org/pub/fpc/dist/win32-1.00/separate/install.exe
+  42. http://www.freepascal.org/develop.html#snapshot
+  43. http://www.freepascal.org/download.html
+  44. http://www.freepascal.org/maillist.html
+  45. http://www.freepascal.org/makecyc.html
+  46. http://wildsau.idv.uni-linz.ac.at/mfx/upx.html
+  47. http://hobbes.nmsu.edu/
+  48. http://www.freepascal.org/makecyc.html
+  49. http://www.freepascal.org/faq.htm#snapshot
+  50. http://www.freepascal.org/bugs.html
+  51. http://hobbes.nmsu.edu/pub/os2/apps/internet/time/time868f.zip
