@@ -75,11 +75,7 @@ unit ag386nsm;
          hs : string;
          p : byte;
       begin
-{$ifdef VER0_99_5}
-         str(double(e),hs);
-{$else}
          str(e,hs);
-{$endif}
       { nasm expects a lowercase e }
          p:=pos('E',hs);
          if p>0 then
@@ -584,7 +580,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.15  1998-12-01 11:19:39  peter
+  Revision 1.16  1998-12-16 00:27:18  peter
+    * removed some obsolete version checks
+
+  Revision 1.15  1998/12/01 11:19:39  peter
     * fixed range problem with in [tasmop]
 
   Revision 1.14  1998/11/30 09:42:56  pierre

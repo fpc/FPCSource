@@ -29,11 +29,7 @@ unit aasm;
 
     type
 {$ifdef i386}
-     {$ifndef VER0_99_5}
        bestreal = extended;
-     {$else}
-       bestreal = double;
-     {$endif}
 {$endif}
 {$ifdef m68k}
        bestreal = real;
@@ -916,7 +912,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.27  1998-12-11 00:02:37  peter
+  Revision 1.28  1998-12-16 00:27:16  peter
+    * removed some obsolete version checks
+
+  Revision 1.27  1998/12/11 00:02:37  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.26  1998/12/01 23:36:31  pierre

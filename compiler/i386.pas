@@ -1142,15 +1142,6 @@ unit i386;
     procedure reset_reference(var ref : treference);
 
       begin
-{$ifdef ver0_6}
-         ref.index:=R_NO;
-         ref.base:=R_NO;
-         ref.segment:=R_DEFAULT_SEG;
-         ref.offset:=0;
-         ref.scalefactor:=1;
-         ref.isintvalue:=false;
-         ref.symbol:=nil;
-{$else}
          with ref do
            begin
               index:=R_NO;
@@ -1161,7 +1152,6 @@ unit i386;
               isintvalue:=false;
               symbol:=nil;
            end;
-{$endif}
       end;
 
       function new_reference(base : tregister;offset : longint) : preference;
@@ -1751,7 +1741,10 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.20  1998-12-11 16:10:09  florian
+  Revision 1.21  1998-12-16 00:27:20  peter
+    * removed some obsolete version checks
+
+  Revision 1.20  1998/12/11 16:10:09  florian
     + shifting for 64 bit ints added
     * bug in getexplicitregister32 fixed: usableregs wasn't decremented !!
 

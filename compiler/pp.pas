@@ -113,7 +113,7 @@ uses
 {$endif heaptrc}
 {$ifdef linux}
   catch,
-{$endif}  
+{$endif}
 {$endif FPC}
   globals,compiler
   ;
@@ -254,9 +254,7 @@ begin
   oldexit:=exitproc;
   exitproc:=@myexit;
 {$ifdef fpc}
-  {$ifndef autoobjpas}
-    heapblocks:=true;
-  {$endif}
+  heapblocks:=true;
 {$endif}
 {$ifdef UseOverlay}
   InitOverlay;
@@ -267,7 +265,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  1998-11-27 22:54:52  michael
+  Revision 1.37  1998-12-16 00:27:21  peter
+    * removed some obsolete version checks
+
+  Revision 1.36  1998/11/27 22:54:52  michael
   + Added catch unit again
 
   Revision 1.35  1998/11/05 12:02:53  peter

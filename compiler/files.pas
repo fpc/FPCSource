@@ -199,11 +199,8 @@ unit files;
   implementation
 
   uses
-    dos,verbose,systems
-{$ifndef VER0_99_8}
-    ,symtable,scanner
-{$endif}
-    ;
+    dos,verbose,systems,
+    symtable,scanner;
 
 {****************************************************************************
                                   TINPUTFILE
@@ -840,7 +837,6 @@ unit files;
 
     procedure tmodule.reset;
       begin
-{$ifndef VER0_99_8}
         if assigned(scanner) then
           pscannerfile(scanner)^.invalid:=true;
         if assigned(globalsymtable) then
@@ -853,7 +849,6 @@ unit files;
             dispose(punitsymtable(localsymtable),done);
             localsymtable:=nil;
           end;
-{$endif}
         if assigned(map) then
          begin
            dispose(map);
@@ -982,10 +977,8 @@ unit files;
         if assigned(_exports) then
          dispose(_exports,done);
         _exports:=nil;
-{$ifndef VER0_99_8}
         if assigned(scanner) then
           pscannerfile(scanner)^.invalid:=true;
-{$endif}
         if assigned(sourcefiles) then
          dispose(sourcefiles,done);
         sourcefiles:=nil;
@@ -1004,14 +997,12 @@ unit files;
         stringdispose(modulename);
         stringdispose(mainsource);
         stringdispose(asmprefix);
-{$ifndef VER0_99_8}
         if assigned(globalsymtable) then
           dispose(punitsymtable(globalsymtable),done);
         globalsymtable:=nil;
         if assigned(localsymtable) then
           dispose(punitsymtable(localsymtable),done);
         localsymtable:=nil;
-{$endif}
         inherited done;
       end;
 
@@ -1055,7 +1046,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.79  1998-12-11 00:03:14  peter
+  Revision 1.80  1998-12-16 00:27:19  peter
+    * removed some obsolete version checks
+
+  Revision 1.79  1998/12/11 00:03:14  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.78  1998/12/04 10:18:07  florian
