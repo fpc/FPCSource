@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Preamble for report output
 %
-\documentclass{report}
+\documentclass[a4paper]{report}
 \usepackage[html,4,png,sections+]{tex4ht}
 %
 % FPC package

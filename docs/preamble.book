@@ -2,7 +2,7 @@
 % Preamble for book output
 
 %
-\documentclass{book}
+\documentclass[a4paper]{book}
 
 %
 \usepackage{fpcbook}
