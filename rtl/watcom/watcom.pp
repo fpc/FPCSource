@@ -1,4 +1,7 @@
+{
+    $Id$
 
+}
 //  this is generally go32 unit from go32v2 target.
 //  maybe these units should be merged into one ( uses dpmi ? )
 
@@ -1056,3 +1059,11 @@ begin
    int31error:=0;
    dosmemselector:=get_ds;
 end.
+
+{
+  $Log$
+  Revision 1.2  2003-09-07 22:29:26  hajny
+    * syswat renamed to system, CVS log added
+
+
+}

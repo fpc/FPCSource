@@ -1,3 +1,8 @@
+{
+    $Id$
+
+}
+
 unit crt;
 interface
 
@@ -813,3 +818,11 @@ begin
 { Enable ctrl-c input (JM) }
 //  __djgpp_set_ctrl_c(0);
 end.
+
+{
+  $Log$
+  Revision 1.2  2003-09-07 22:29:26  hajny
+    * syswat renamed to system, CVS log added
+
+
+}

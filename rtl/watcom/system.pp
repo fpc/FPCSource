@@ -1,4 +1,5 @@
 {
+    $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
  
@@ -13,7 +14,7 @@
 
  **********************************************************************}
 
-unit syswat;
+unit system;
 
 INTERFACE
 
@@ -1175,3 +1176,11 @@ Begin
 End.
 
 END.
+
+{
+  $Log$
+  Revision 1.2  2003-09-07 22:29:26  hajny
+    * syswat renamed to system, CVS log added
+
+
+}

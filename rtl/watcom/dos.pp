@@ -1047,114 +1047,13 @@ End;
 
 
 end.
+
 {
   $Log$
-  Revision 1.1  2003-09-05 18:09:35  florian
+  Revision 1.2  2003-09-07 22:29:26  hajny
+    * syswat renamed to system, CVS log added
+
+  Revision 1.1  2003/09/05 18:09:35  florian
     * added initial watcom extender files; they need to be cleaned up
-
-  Revision 1.1.2.16  2001/11/23 00:17:42  carl
-  * Compatible with documentation
-  - remove int64
-
-  Revision 1.1.2.15  2001/10/04 11:23:22  pierre
-   * fix failure check for do_diskdata with LFN support
-
-  Revision 1.1.2.14  2001/06/13 22:13:15  hajny
-    * universal FExpand merged
-
-  Revision 1.1.2.13  2001/06/06 11:05:27  pierre
-   * correct SwapVectors behavior
-
-  Revision 1.1.2.12  2000/12/16 15:34:28  peter
-    * fixed disksize return -1 for error
-
-  Revision 1.1.2.11  2000/10/11 15:38:17  peter
-    * diskfree doserror fix
-
-  Revision 1.1.2.10  2000/09/22 10:09:42  pierre
-   * fix LFN handle problem if FindFirst fails
-
-  Revision 1.1.2.9  2000/09/22 08:42:51  pierre
-   * fix wrong DiskSize report
-
-  Revision 1.1.2.8  2000/09/06 20:46:18  peter
-    * removed previous fsplit() patch as it's not the correct behaviour for
-      LFNs. The code showing the bug could easily be adapted
-
-  Revision 1.1.2.7  2000/09/04 20:15:22  peter
-    * fixed previous commit
-
-  Revision 1.1.2.6  2000/09/04 19:36:24  peter
-    * fsplit with .. fix from Thomas
-
-  Revision 1.1.2.5  2000/08/04 21:40:25  peter
-    * getenv is case insentive, needed for windir and winbootdir envs
-
-  Revision 1.1.2.4  2000/08/02 19:34:14  peter
-    * more doserror fixes
-
-  Revision 1.1.2.3  2000/07/30 17:06:23  peter
-    * removed dos lf
-
-  Revision 1.1.2.2  2000/07/30 16:35:44  peter
-    * don't set doserror in gettime/settime/getdate/setdate, tp compatible
-
-  Revision 1.1.2.1  2000/07/22 12:21:30  jonas
-    * fixed buffer overrun error in dossearchrec2searchrec when a file
-      is not found (at least it happened in OS/2's VDM)
-
-  Revision 1.1  2000/07/13 06:30:35  michael
-  + Initial import
-
-  Revision 1.24  2000/05/30 04:41:05  jonas
-    * fixed compiling problem with formal expression passed as var
-      parameter
-
-  Revision 1.23  2000/03/22 08:00:42  pierre
-   + allow double backslash for network drives
-
-  Revision 1.22  2000/02/09 16:59:28  peter
-    * truncated log
-
-  Revision 1.21  2000/02/09 13:00:32  peter
-    + getlongname
-
-  Revision 1.20  2000/02/02 17:34:49  pierre
-   * use int64 typecast to avoid overflows in diskfree and disksize
-
-  Revision 1.19  2000/01/23 16:31:23  peter
-    * hasint64diskspace define changed to int64 so it's default now
-
-  Revision 1.18  2000/01/23 12:28:38  marco
-   * Added diskfree and disksize with AH=71 dos functions (LFN/Fat32)
-
-  Revision 1.17  2000/01/07 16:41:30  daniel
-    * copyright 2000
-
-  Revision 1.16  2000/01/07 16:32:23  daniel
-    * copyright 2000 added
-
-  Revision 1.15  1999/12/06 18:26:49  peter
-    * fpcmake updated for win32 commandline
-
-  Revision 1.14  1999/11/09 11:07:50  pierre
-    * SwapVectors does not reset DosError anymore
-    + DosError is set to ax regsiter value if extended doserror function
-      retruns zero.
-    + Support for LFN in EXEC function using
-      function 7160 to get short filename counterpart
-
-  Revision 1.13  1999/11/06 14:38:23  peter
-    * truncated log
-
-  Revision 1.12  1999/09/10 17:14:09  peter
-    * better errorcode returning using int21h,5900
-
-  Revision 1.11  1999/09/08 18:55:49  peter
-    * pointer fixes
-
-  Revision 1.10  1999/08/13 21:23:15  peter
-    * fsearch checks first if the specified file exists and returns that
-      if it was found
 
 }
