@@ -397,7 +397,7 @@ function arctan2(y,x : float) : float;
           arctan2:=-pi/2;
       end
     else
-      ArcTan2:=ArcTan(y,x);
+      ArcTan2:=ArcTan(y/x);
   end;
 {$endif FPC_MATH_HAS_ARCTAN2}
 
@@ -1019,7 +1019,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2003-10-26 15:58:05  florian
+  Revision 1.14  2003-10-29 19:10:07  jonas
+    * fixed arctan2
+
+  Revision 1.13  2003/10/26 15:58:05  florian
     * fixed arctan2 to handle x=0 correctly as well
 
   Revision 1.12  2003/09/01 20:46:59  peter
