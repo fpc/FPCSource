@@ -39,7 +39,12 @@ begin
          end;
        { close all left open files }
        for i:=count downto 1 do
-         close(f[i]);
+         begin
+           close(f[i]);
+           str(i,s);
+           s:='file'+s+'.tmp';
+           erase(s);
+         end;
     end;
 end;
 
@@ -68,5 +73,10 @@ begin
     end;
 
   for i:=Max downto 1 do
-    close(f[i]);
+    begin
+      close(f[i]);
+      str(i,s);
+      s:='file'+s+'.tmp';
+      erase(s);
+    end;
 end.
