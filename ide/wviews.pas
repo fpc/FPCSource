@@ -231,7 +231,7 @@ procedure NotImplemented;
 
 function ColorIndex(Color: byte): word;
 
-var  FormatParams     : array[1..20] of longint;
+var  FormatParams     : array[1..20] of ptrint;
      FormatParamCount : integer;
      FormatParamStrs  : array[1..10] of string;
      FormatParamStrCount: integer;
@@ -2327,7 +2327,7 @@ end;
 
 procedure AddFormatParam(P: pointer);
 begin
-  AddFormatParamInt(longint(P));
+  AddFormatParamInt(ptrint(P));
 end;
 
 procedure AddFormatParamInt(L: longint);
@@ -2343,7 +2343,8 @@ end;
 
 procedure AddFormatParamStr(const S: string);
 begin
-  Inc(FormatParamStrCount); FormatParamStrs[FormatParamStrCount]:=S;
+  Inc(FormatParamStrCount); 
+  FormatParamStrs[FormatParamStrCount]:=S;
   AddFormatParam(@FormatParamStrs[FormatParamStrCount]);
 end;
 
@@ -2377,7 +2378,9 @@ function FormatStrStr3(const Format, Param1,Param2,Param3: string): string;
 var S: string;
     P: array[1..3] of pointer;
 begin
-  P[1]:=@Param1; P[2]:=@Param2; P[3]:=@Param3;
+  P[1]:=@Param1; 
+  P[2]:=@Param2; 
+  P[3]:=@Param3;
   FormatStr(S,Format,P);
   FormatStrStr3:=S;
 end;
@@ -2549,7 +2552,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  2004-12-06 20:53:55  peter
+  Revision 1.13  2004-12-19 19:11:11  florian
+    * fixed 64 bit issues
+
+  Revision 1.12  2004/12/06 20:53:55  peter
   Handle cmUpdate for all DlgWindows
 
   Revision 1.11  2004/12/06 19:23:30  peter
