@@ -399,7 +399,7 @@ begin
      pp^.calls[i]:=get_caller_addr(bp);
      oldbp:=bp;
      bp:=get_caller_frame(bp);
-     if bp<oldbp then
+     if (bp<oldbp) or (bp>(StackBottom + StackLength)) then
        bp:=nil;
    end;
   { insert in the linked list }
@@ -1156,7 +1156,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.28  2004-04-28 20:48:20  peter
+  Revision 1.29  2004-05-22 20:35:52  peter
+  check whether bp is in the stack value allocated by the main program
+
+  Revision 1.28  2004/04/28 20:48:20  peter
     * ordinal-pointer conversions fixed
 
   Revision 1.27  2004/03/15 21:48:26  peter
