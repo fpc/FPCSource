@@ -190,7 +190,8 @@ begin
 
     hcOptionsMenu   : S:=hint_optionsmenu;
     hcSwitchesMode  : S:=hint_switchesmode;
-    hcCompiler      : S:=hint_compiler;
+    hcCompiler,
+    hcCompilerNoAltX  : S:=hint_compiler;
     hcMemorySizes   : S:=hint_memorysizes;
     hcLinker        : S:=hint_linkeroptions;
     hcDebugger      : S:=hint_debugoptions;
@@ -505,7 +506,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2001-10-01 00:24:09  pierre
+  Revision 1.5  2002-01-24 09:21:41  pierre
+   * only disable Alt-X in Options|Compiler dialog
+
+  Revision 1.4  2001/10/01 00:24:09  pierre
    * fix several help problems
 
   Revision 1.3  2001/09/10 10:52:59  pierre

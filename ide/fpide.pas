@@ -475,13 +475,13 @@ begin
     NewStatusDef(hcStackWindow, hcStackWindow,
       NewStatusKey(status_help, kbF1, cmHelp,
       NewStatusKey(status_disassemble, kbAltI, cmDisassemble,
-      NewStatusKey('', kbAltF3, cmClose,
-      NewStatusKey('', kbF5, cmZoom,
-      NewStatusKey('', kbCtrlF5, cmResize,
-      NewStatusKey('', kbF6, cmNext,
-      NewStatusKey('', kbShiftF6, cmPrev,
-      nil))))))),
-    NewStatusDef(hcFirstCommand, hcLastCommand,
+      StdStatusKeys(
+      nil))),
+    NewStatusDef(hcFirstCommand, hcLastNormalCommand,
+      NewStatusKey(status_help, kbF1, cmHelp,
+      StdStatusKeys(
+      nil)),
+    NewStatusDef(hcFirstNoAltXCommand, hcLastCommand,
       NewStatusKey(status_help, kbF1, cmHelp,
       NewStatusKey('', kbF10, cmMenu,
       NewStatusKey('', kbAltF3, cmClose,
@@ -504,7 +504,8 @@ begin
       NewStatusKey(status_compile, kbAltF9, cmCompile,
       NewStatusKey(status_make, kbF9, cmMake,
       NewStatusKey(status_localmenu, kbAltF10, cmLocalMenu,
-      StdStatusKeys(
+      StdStatusKeys
+      (
       nil))))))),
     NewStatusDef(hcASCIITableWindow, hcASCIITableWindow,
       NewStatusKey(status_help, kbF1, cmHelp,
@@ -533,7 +534,7 @@ begin
       NewStatusKey(status_localmenu, kbAltF10, cmLocalMenu,
       StdStatusKeys(
       nil)))))),
-    nil)))))))))));
+    nil))))))))))));
 end;
 
 procedure TIDEApp.Idle;
@@ -1176,7 +1177,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  2001-11-07 00:28:53  pierre
+  Revision 1.8  2002-01-24 09:21:42  pierre
+   * only disable Alt-X in Options|Compiler dialog
+
+  Revision 1.7  2001/11/07 00:28:53  pierre
    + Disassembly window made public
 
   Revision 1.6  2001/10/24 14:17:27  pierre

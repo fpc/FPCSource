@@ -255,6 +255,7 @@ const
      hcDisassemblyWindow = 8011;
 
      hcShift             = 10000;
+     hcNoAltXShift       = 20000;
 
      hcUsingHelp         = 2;
      hcContents          = 3;
@@ -273,6 +274,7 @@ const
      hcRecentFileBase    = hcShift+cmRecentFileBase;
 
      hcCompiler          = hcShift+cmCompiler;
+     hcCompilerNoAltX    = hcNoAltXShift+cmCompiler;
      hcMemorySizes       = hcShift+cmMemorySizes;
      hcLinker            = hcShift+cmLinker;
      hcDebugger          = hcShift+cmDebugger;
@@ -312,6 +314,8 @@ const
      hcHelpMenu          = 9011;
 
      hcFirstCommand      = hcSystemMenu;
+     hcLastNormalCommand = hcNoAltXShift - 1;
+     hcFirstNoAltXCommand = hcNoAltXShift;
      hcLastCommand       = 65535;
 
      hcShowClipboard     = hcShift+cmShowClipboard;
@@ -434,7 +438,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.4  2002-01-22 16:33:51  pierre
+  Revision 1.5  2002-01-24 09:21:41  pierre
+   * only disable Alt-X in Options|Compiler dialog
+
+  Revision 1.4  2002/01/22 16:33:51  pierre
    Change IDE version to 0.9.2
 
   Revision 1.3  2001/11/07 00:28:52  pierre

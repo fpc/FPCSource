@@ -79,7 +79,7 @@ begin
   New(D, Init(R, dialog_compilerswitches));
   with D^ do
   begin
-    HelpCtx:=hcCompiler;
+    HelpCtx:=hcCompilerNoAltX;
     GetExtent(R);
     R.Grow(-2,-1);
     Dec(R.B.Y,2);
@@ -1285,7 +1285,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-11-09 11:14:40  pierre
+  Revision 1.6  2002-01-24 09:21:42  pierre
+   * only disable Alt-X in Options|Compiler dialog
+
+  Revision 1.5  2001/11/09 11:14:40  pierre
    * fix the bug about smaller optimization not recorded
 
   Revision 1.4  2001/10/12 14:21:47  pierre
