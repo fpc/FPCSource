@@ -208,9 +208,9 @@ begin
                                                                SizeOf (FStat));
   if DosError=0 then
   begin
-    Time := FStat.TimeLastWrite + longint (FStat.DateLastWrite) * 256;
+    Time := FStat.TimeLastWrite + longint (FStat.DateLastWrite) shl 16;
     if Time = 0 then
-      Time := FStat.TimeCreation + longint (FStat.DateCreation) * 256;
+      Time := FStat.TimeCreation + longint (FStat.DateCreation) shl 16;
   end else
     Time:=0;
 end;
@@ -702,7 +702,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  2003-11-01 18:35:12  hajny
+  Revision 1.32  2003-11-02 09:45:32  hajny
+  SetFTime fix
+
+  Revision 1.31  2003/11/01 18:35:12  hajny
     * GetFTime correction for case of no previous write access
 
   Revision 1.30  2003/10/25 23:55:22  hajny
