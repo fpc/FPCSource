@@ -1235,15 +1235,15 @@ function IsNan(const d : Double): Boolean;
   var
     fraczero, expMaximal: boolean;
   begin
-{$if defined(BIG_ENDIAN) or (defined(CPUARM) and defined(FPUFPA))}
+{$if defined(FPC_BIG_ENDIAN) or (defined(CPUARM) and defined(FPUFPA))}
     expMaximal := ((TSplitDouble(d).cards[0] shr 20) and $7ff) = 2047;
     fraczero:= (TSplitDouble(d).cards[0] and $fffff = 0) and
                 (TSplitDouble(d).cards[1] = 0);
-{$else BIG_ENDIAN}
+{$else FPC_BIG_ENDIAN}
     expMaximal := ((TSplitDouble(d).cards[1] shr 20) and $7ff) = 2047;
     fraczero := (TSplitDouble(d).cards[1] and $fffff = 0) and
                 (TSplitDouble(d).cards[0] = 0);
-{$endif BIG_ENDIAN}
+{$endif FPC_BIG_ENDIAN}
     Result:=expMaximal and not(fraczero);
   end;
 
@@ -1252,15 +1252,15 @@ function IsInfinite(const d : Double): Boolean;
   var
     fraczero, expMaximal: boolean;
   begin
-{$if defined(BIG_ENDIAN) or (defined(CPUARM) and defined(FPUFPA))}
+{$if defined(FPC_BIG_ENDIAN) or (defined(CPUARM) and defined(FPUFPA))}
     expMaximal := ((TSplitDouble(d).cards[0] shr 20) and $7ff) = 2047;
     fraczero:= (TSplitDouble(d).cards[0] and $fffff = 0) and
                 (TSplitDouble(d).cards[1] = 0);
-{$else BIG_ENDIAN}
+{$else FPC_BIG_ENDIAN}
     expMaximal := ((TSplitDouble(d).cards[1] shr 20) and $7ff) = 2047;
     fraczero := (TSplitDouble(d).cards[1] and $fffff = 0) and
                 (TSplitDouble(d).cards[0] = 0);
-{$endif BIG_ENDIAN}
+{$endif FPC_BIG_ENDIAN}
     Result:=expMaximal and fraczero;
   end;
 
@@ -1325,7 +1325,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2004-04-08 16:37:08  peter
+  Revision 1.22  2004-05-29 12:28:59  florian
+    * fixed IsNan and IsInf for big endian systems
+
+  Revision 1.21  2004/04/08 16:37:08  peter
     * disable range,overflow check when generating Nan/Inf
 
   Revision 1.20  2004/02/20 20:10:44  florian
