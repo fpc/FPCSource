@@ -4,7 +4,7 @@
     Copyright (c) 1998 by the Free Pascal development team
 
     File utility calls
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -18,7 +18,7 @@
 Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
 
 Var LinuxFlags : longint;
-    
+
 BEGIN
   LinuxFlags:=0;
   Case (Mode and 3) of
@@ -27,7 +27,7 @@ BEGIN
     2 : LinuxFlags:=LinuxFlags or Open_RdWr;
   end;
   FileOpen:=fdOpen (FileName,LinuxFlags);
-  //!! We need to set locking based on Mode !! 
+  //!! We need to set locking based on Mode !!
 end;
 
 
@@ -89,18 +89,18 @@ end;
 Function LinuxToWinAttr (FN : Char; Const Info : Stat) : Longint;
 
 begin
-  Result:=0;  
-  If FN='.' then 
+  Result:=0;
+  If FN='.' then
     Result:=Result or faHidden;
-  If (Info.Mode and STAT_IFDIR)=STAT_IFDIR then 
+  If (Info.Mode and STAT_IFDIR)=STAT_IFDIR then
     Result:=Result or faDirectory;
-  If (Info.Mode and STAT_IWUSR)=0 Then 
+  If (Info.Mode and STAT_IWUSR)=0 Then
      Result:=Result or faReadOnly;
 end;
 
 {
  GlobToSearch takes a glob entry, stats the file.
- The glob entry is removed. 
+ The glob entry is removed.
  If FileAttributes match, the entry is reused
 }
 
@@ -109,10 +109,14 @@ Function GlobToTSearchRec (Info : TSearchRec) : Boolean;
 Var SInfo : Stat;
     p     : Pglob;
     TAttr : Longint;
-    
+
 begin
   P:=pglob(Info.FindHandle);
+{$ifdef AUTOOBJPAS}
   Result:=Fstat(p^.name,SInfo);
+{$else}
+  Result:=Fstat(StrPas(p^.name),SInfo);
+{$endif}
   Info.FindHandle:=Longint(P^.Next);
   P^.Next:=Nil;
   GlobFree(P);
@@ -136,7 +140,7 @@ Function DoFind(Var Rslt : TSearchRec) : Longint;
 begin
   If Rslt.FindHandle<>0 then
     While (Rslt.FindHandle<>0) and GlobToTSearchRec(Rslt) do;
-  If Rslt.FindHandle=0 Then 
+  If Rslt.FindHandle=0 Then
     Result:=-1
   else
     Result:=0;
@@ -195,7 +199,7 @@ begin
   If Not FStat (FileName,Info) then
     Result:=-1
   Else
-    Result:=LinuxToWinAttr(FileName[1],Info);    
+    Result:=LinuxToWinAttr(FileName[1],Info);
 end;
 
 
@@ -216,7 +220,7 @@ end;
 Function RenameFile (Const OldName, NewName : String) : Boolean;
 
 Var P1,P2 : String;
-     
+
 begin
   RenameFile:=Linux.Rename(OldNAme,NewName);
 end;
@@ -231,7 +235,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-10-11 12:21:01  michael
+  Revision 1.2  1998-10-13 10:20:07  peter
+    * fix for 0.99.8 which has no auto pchar-string ;)
+
+  Revision 1.1  1998/10/11 12:21:01  michael
   Added file calls. Implemented for linux only
 
 }
