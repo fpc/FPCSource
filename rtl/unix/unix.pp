@@ -1937,7 +1937,7 @@ end;
 
 Function TCFlush(fd,qsel:longint):boolean;
 
-var com:longint;
+{var com:longint;}
 
 begin
  {$ifndef BSD}
@@ -2841,7 +2841,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  2001-03-27 11:47:25  michael
+  Revision 1.6  2001-04-13 22:37:21  peter
+    * remove warning
+
+  Revision 1.5  2001/03/27 11:47:25  michael
   + Fixed F_[G,S]etOwn constants. By Alexander Sychev
 
   Revision 1.4  2001/03/17 16:04:37  hajny
