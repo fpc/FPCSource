@@ -280,6 +280,15 @@ interface
     procedure tcgtypeconvnode.second_real_to_real;
       begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+{$ifdef x86}
+         { extended types in memory which should be loaded into the sse unit
+           must be converted by the fpu first, so force them to be loaded into
+           the fpu }
+         if (expectloc=LOC_MMREGISTER) and
+           (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) and
+           (left.location.size=OS_F80) then
+           location_force_fpureg(exprasmlist,left.location,false);
+{$endif x86}
          case left.location.loc of
             LOC_FPUREGISTER,
             LOC_CFPUREGISTER:
@@ -298,12 +307,12 @@ interface
               end;
             LOC_CREFERENCE,
             LOC_REFERENCE:
-              begin                 
+              begin
                  if expectloc=LOC_MMREGISTER then
                    begin
                      location_reset(location,LOC_MMREGISTER,def_cgsize(resulttype.def));
-                     location.register:=cg.getmmregister(exprasmlist,left.location.size);
-                     cg.a_loadmm_loc_reg(exprasmlist,def_cgsize(resulttype.def),left.location,location.register,mms_movescalar)
+                     location.register:=cg.getmmregister(exprasmlist,location.size);
+                     cg.a_loadmm_loc_reg(exprasmlist,location.size,left.location,location.register,mms_movescalar)
                    end
                   else
                     begin
@@ -550,7 +559,10 @@ end.
 
 {
   $Log$
-  Revision 1.69  2004-12-25 10:48:17  florian
+  Revision 1.70  2004-12-25 12:29:08  florian
+    * fixed extended->double/single conversion when using sse
+
+  Revision 1.69  2004/12/25 10:48:17  florian
     * optimized float to float conversion
 
   Revision 1.68  2004/12/11 15:25:40  jonas
