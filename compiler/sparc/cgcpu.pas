@@ -478,23 +478,23 @@ implementation
     procedure TCgSparc.a_loadaddr_ref_reg(list : TAasmOutput;const ref : TReference;r : tregister);
       var
          tmpref : treference;
+         zeroreg,
          hreg : tregister;
       begin
-        if (r.number=ref.index.number) or (r.number=ref.base.number) then
+        if (ref.base.number=NR_NO) and (ref.index.number<>NR_NO) then
+          internalerror(200306171);
+        zeroreg.enum:=R_INTREGISTER;
+        zeroreg.number:=NR_G0;
+        { At least big offset (need SETHI), maybe base and maybe index }
+        if assigned(ref.symbol) or
+           (ref.offset<simm13lo) or
+           (ref.offset>simm13hi) then
           begin
           {$ifdef newra}
             hreg:=rg.getaddressregister(list);
           {$else}
             hreg:=get_scratch_reg_address(list);
           {$endif}
-          end
-        else
-          hreg:=r;
-        { Need to use SETHI? }
-        if assigned(ref.symbol) or
-           (ref.offset<simm13lo) or
-           (ref.offset>simm13hi) then
-          begin
             reference_reset(tmpref);
             tmpref.symbol := ref.symbol;
             tmpref.offset := ref.offset;
@@ -503,20 +503,59 @@ implementation
             { Only the low part is left }
             tmpref.symaddr:=refs_lo;
             list.concat(taicpu.op_reg_ref_reg(A_OR,hreg,tmpref,hreg));
-          end;
-        if ref.base.number<>NR_NO then
-          list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,ref.base,hreg));
-        if ref.index.number<>NR_NO then
-          list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,ref.base,hreg));
-        if hreg.number<>r.number then
-          begin
-             a_load_reg_reg(list,OS_INT,OS_INT,hreg,r);
+            if ref.base.number<>NR_NO then
+              begin
+                if ref.index.number<>NR_NO then
+                  begin
+                    list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,ref.base,hreg));
+                    list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,ref.index,r));
+                  end
+                else
+                  list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,ref.base,r));
+              end;
            {$ifdef newra}
              rg.ungetaddressregister(list,hreg);
            {$else}
              free_scratch_reg(list,hreg);
            {$endif}
-          end;
+          end
+        else
+        { At least small offset, maybe base and maybe index }
+          if ref.offset<>0 then
+            begin
+              if ref.base.number<>NR_NO then
+                begin
+                  if ref.index.number<>NR_NO then
+                    begin
+                    {$ifdef newra}
+                      hreg:=rg.getaddressregister(list);
+                    {$else}
+                      hreg:=get_scratch_reg_address(list);
+                    {$endif}
+                      list.concat(taicpu.op_reg_const_reg(A_ADD,ref.base,aword(ref.offset),hreg));
+                      list.concat(taicpu.op_reg_reg_reg(A_ADD,hreg,ref.index,r));
+                    {$ifdef newra}
+                      rg.ungetaddressregister(list,hreg);
+                    {$else}
+                      free_scratch_reg(list,hreg);
+                    {$endif}
+                    end
+                  else
+                    list.concat(taicpu.op_reg_const_reg(A_ADD,ref.base,ref.offset,r));
+                end
+              else
+                list.concat(taicpu.op_reg_const_reg(A_ADD,zeroreg,ref.offset,r));
+            end
+        else
+        { Both base and index }
+          if ref.index.number<>NR_NO then
+            list.concat(taicpu.op_reg_reg_reg(A_ADD,ref.base,ref.index,r))
+        else
+        { Only base }
+          if ref.base.number<>NR_NO then
+            a_load_reg_reg(list,OS_INT,OS_INT,ref.base,r)
+        else
+          internalerror(200306172);
       end;
 
 
@@ -697,7 +736,6 @@ implementation
     procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const Loc:TLocation;def:TDef);
       var
         hl : tasmlabel;
-        r  : Tregister;
       begin
         if not(cs_check_overflow in aktlocalswitches) then
           exit;
@@ -1092,7 +1130,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2003-06-13 21:19:32  peter
+  Revision 1.60  2003-06-17 16:35:56  peter
+    * a_loadaddr_ref_reg fixed
+
+  Revision 1.59  2003/06/13 21:19:32  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.58  2003/06/12 16:43:07  peter
