@@ -73,6 +73,7 @@ interface
           procedure load_browser(ppufile:tcompilerppufile);virtual;
           procedure write_browser(ppufile:tcompilerppufile);virtual;
           procedure deref;virtual;
+          procedure derefimpl;virtual;
           procedure insert(sym : tsymentry);override;
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;override;
           procedure allsymbolsused;
@@ -153,7 +154,7 @@ interface
           unittypecount : word;
           unitsym       : tunitsym;
           constructor create(const n : string);
-          destructor  destroy;
+          destructor  destroy;override;
           procedure load(ppufile:tcompilerppufile);override;
           procedure write(ppufile:tcompilerppufile);override;
           procedure insert(sym : tsymentry);override;
@@ -494,26 +495,42 @@ implementation
         hp : tdef;
         hs : tsym;
       begin
-        { deref the definitions }
+        { deref the interface definitions }
         hp:=tdef(defindex.first);
         while assigned(hp) do
          begin
            hp.deref;
            hp:=tdef(hp.indexnext);
          end;
-        { first deref the ttypesyms }
+        { first deref the interface ttype symbols }
         hs:=tsym(symindex.first);
         while assigned(hs) do
          begin
-           hs.prederef;
+           if hs.typ=typesym then
+             hs.deref;
            hs:=tsym(hs.indexnext);
          end;
-        { deref the symbols }
+        { deref the interface symbols }
         hs:=tsym(symindex.first);
         while assigned(hs) do
          begin
-           hs.deref;
+           if hs.typ<>typesym then
+             hs.deref;
            hs:=tsym(hs.indexnext);
+         end;
+      end;
+
+
+    procedure tstoredsymtable.derefimpl;
+      var
+        hp : tdef;
+      begin
+        { deref the implementation part of definitions }
+        hp:=tdef(defindex.first);
+        while assigned(hp) do
+         begin
+           hp.derefimpl;
+           hp:=tdef(hp.indexnext);
          end;
       end;
 
@@ -2055,7 +2072,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2001-07-29 22:12:58  peter
+  Revision 1.40  2001-08-06 21:40:49  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.39  2001/07/29 22:12:58  peter
     * skip private symbols when found in withsymtable
 
   Revision 1.38  2001/07/01 20:16:18  peter

@@ -66,6 +66,7 @@ interface
          typesym    : tsym;  { which type the definition was generated this def }
          constructor create;
          procedure deref;virtual;
+         procedure derefimpl;virtual;
          function  typename:string;
          function  gettypename:string;virtual;
          function  size:longint;virtual;abstract;
@@ -88,7 +89,6 @@ interface
          constructor create(const n : string);
          destructor destroy;override;
          function  realname:string;
-         procedure prederef;virtual; { needed for ttypesym to be deref'd first }
          procedure deref;virtual;
          function  gettypedef:tdef;virtual;
          function  mangledname : string;virtual;abstract;
@@ -180,6 +180,11 @@ implementation
       end;
 
 
+    procedure tdef.derefimpl;
+      begin
+      end;
+
+
     function tdef.getsymtable(t:tgetsymtable):tsymtable;
       begin
         getsymtable:=nil;
@@ -208,14 +213,10 @@ implementation
       end;
 
 
-    procedure tsym.prederef;
-      begin
-      end;
-
-
     procedure tsym.deref;
       begin
       end;
+
 
     function tsym.realname : string;
       begin
@@ -500,7 +501,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2001-05-06 14:49:19  peter
+  Revision 1.8  2001-08-06 21:40:49  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.7  2001/05/06 14:49:19  peter
     * ppu object to class rewrite
     * move ppu read and write stuff to fppu
 

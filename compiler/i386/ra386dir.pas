@@ -78,20 +78,19 @@ interface
            if s<>'' then
             code.concat(Tai_direct.Create(strpnew(s)));
             { consider it set function set if the offset was loaded }
-           if assigned(procinfo^.returntype.def) and
+           if assigned(aktprocsym.definition.funcretsym) and
               (pos(retstr,upper(s))>0) then
-              procinfo^.funcret_state:=vs_assigned;
+             tfuncretsym(aktprocsym.definition.funcretsym).funcretstate:=vs_assigned;
            s:='';
          end;
 
      begin
        ende:=false;
        s:='';
-       if assigned(procinfo^.returntype.def) and
-          is_fpu(procinfo^.returntype.def) then
-         procinfo^.funcret_state:=vs_assigned;
-       if assigned(procinfo^.returntype.def) and
-          (not is_void(procinfo^.returntype.def)) then
+       if assigned(aktprocsym.definition.funcretsym) and
+          is_fpu(aktprocsym.definition.rettype.def) then
+         tfuncretsym(aktprocsym.definition.funcretsym).funcretstate:=vs_assigned;
+       if (not is_void(aktprocsym.definition.rettype.def)) then
          retstr:=upper(tostr(procinfo^.return_offset)+'('+att_reg2str[procinfo^.framepointer]+')')
        else
          retstr:='';
@@ -141,10 +140,10 @@ interface
                                  { is the last written character an special }
                                  { char ?                                   }
                                  if (s[length(s)]='%') and
-                                    ret_in_acc(procinfo^.returntype.def) and
+                                    ret_in_acc(aktprocsym.definition.rettype.def) and
                                     ((pos('AX',upper(hs))>0) or
                                     (pos('AL',upper(hs))>0)) then
-                                   procinfo^.funcret_state:=vs_assigned;
+                                   tfuncretsym(aktprocsym.definition.funcretsym).funcretstate:=vs_assigned;
                                  if (s[length(s)]<>'%') and
                                    (s[length(s)]<>'$') and
                                    ((s[length(s)]<>'0') or (hs[1]<>'x')) then
@@ -241,8 +240,7 @@ interface
                                              end
                                            else if upper(hs)='__RESULT' then
                                              begin
-                                                if assigned(procinfo^.returntype.def) and
-                                                  (not is_void(procinfo^.returntype.def)) then
+                                                if (not is_void(aktprocsym.definition.rettype.def)) then
                                                   hs:=retstr
                                                 else
                                                   Message(asmr_e_void_function);
@@ -266,7 +264,7 @@ interface
                    end;
  '{',';',#10,#13 : begin
                       if pos(retstr,s) > 0 then
-                        procinfo^.funcret_state:=vs_assigned;
+                        tfuncretsym(aktprocsym.definition.funcretsym).funcretstate:=vs_assigned;
                      writeasmline;
                      c:=current_scanner.asmgetchar;
                    end;
@@ -301,7 +299,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2001-04-18 22:02:03  peter
+  Revision 1.10  2001-08-06 21:40:51  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.9  2001/04/18 22:02:03  peter
     * registration of targets and assemblers
 
   Revision 1.8  2001/04/13 18:20:21  peter

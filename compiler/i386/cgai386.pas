@@ -2296,14 +2296,14 @@ implementation
           generate_interrupt_stackframe_entry;
 
       { initialize return value }
-      if (not is_void(procinfo^.returntype.def)) and
-         (procinfo^.returntype.def.needs_inittable) then
+      if (not is_void(aktprocsym.definition.rettype.def)) and
+         (aktprocsym.definition.rettype.def.needs_inittable) then
         begin
            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
            reset_reference(r);
            r.offset:=procinfo^.return_offset;
            r.base:=procinfo^.framepointer;
-           initialize(procinfo^.returntype.def,r,ret_in_param(procinfo^.returntype.def));
+           initialize(aktprocsym.definition.rettype.def,r,ret_in_param(aktprocsym.definition.rettype.def));
         end;
 
       { initialisize local data like ansistrings }
@@ -2426,21 +2426,21 @@ implementation
        op : Tasmop;
        s : Topsize;
   begin
-      if not is_void(procinfo^.returntype.def) then
+      if not is_void(aktprocsym.definition.rettype.def) then
           begin
               {if ((procinfo^.flags and pi_operator)<>0) and
                  assigned(otsym) then
                 procinfo^.funcret_is_valid:=
                   procinfo^.funcret_is_valid or (otsym.refs>0);}
-              if (procinfo^.funcret_state<>vs_assigned) and not inlined { and
+              if (tfuncretsym(aktprocsym.definition.funcretsym).funcretstate<>vs_assigned) and not inlined { and
                 ((procinfo^.flags and pi_uses_asm)=0)} then
                CGMessage(sym_w_function_result_not_set);
               hr:=new_reference(procinfo^.framepointer,procinfo^.return_offset);
-              if (procinfo^.returntype.def.deftype in [orddef,enumdef]) then
+              if (aktprocsym.definition.rettype.def.deftype in [orddef,enumdef]) then
                 begin
                   uses_eax:=true;
                   exprasmList.concat(Tairegalloc.Alloc(R_EAX));
-                  case procinfo^.returntype.def.size of
+                  case aktprocsym.definition.rettype.def.size of
                    8:
                      begin
                         emit_ref_reg(A_MOV,S_L,hr,R_EAX);
@@ -2461,16 +2461,16 @@ implementation
                   end;
                 end
               else
-                if ret_in_acc(procinfo^.returntype.def) then
+                if ret_in_acc(aktprocsym.definition.rettype.def) then
                   begin
                     uses_eax:=true;
                     exprasmList.concat(Tairegalloc.Alloc(R_EAX));
                     emit_ref_reg(A_MOV,S_L,hr,R_EAX);
                   end
               else
-                 if (procinfo^.returntype.def.deftype=floatdef) then
+                 if (aktprocsym.definition.rettype.def.deftype=floatdef) then
                    begin
-                      floatloadops(tfloatdef(procinfo^.returntype.def).typ,op,s);
+                      floatloadops(tfloatdef(aktprocsym.definition.rettype.def).typ,op,s);
                       exprasmList.concat(Taicpu.Op_ref(op,s,hr));
                    end
               else
@@ -2485,12 +2485,12 @@ implementation
        op : Tasmop;
        s : Topsize;
     begin
-      if not is_void(procinfo^.returntype.def) then
+      if not is_void(aktprocsym.definition.rettype.def) then
           begin
               hr:=new_reference(procinfo^.framepointer,procinfo^.return_offset);
-              if (procinfo^.returntype.def.deftype in [orddef,enumdef]) then
+              if (aktprocsym.definition.rettype.def.deftype in [orddef,enumdef]) then
                 begin
-                  case procinfo^.returntype.def.size of
+                  case aktprocsym.definition.rettype.def.size of
                    8:
                      begin
                         emit_reg_ref(A_MOV,S_L,R_EAX,hr);
@@ -2509,14 +2509,14 @@ implementation
                   end;
                 end
               else
-                if ret_in_acc(procinfo^.returntype.def) then
+                if ret_in_acc(aktprocsym.definition.rettype.def) then
                   begin
                     emit_reg_ref(A_MOV,S_L,R_EAX,hr);
                   end
               else
-                 if (procinfo^.returntype.def.deftype=floatdef) then
+                 if (aktprocsym.definition.rettype.def.deftype=floatdef) then
                    begin
-                      floatstoreops(tfloatdef(procinfo^.returntype.def).typ,op,s);
+                      floatstoreops(tfloatdef(aktprocsym.definition.rettype.def).typ,op,s);
                       exprasmlist.concat(taicpu.op_ref(op,s,hr));
                    end
               else
@@ -2674,15 +2674,15 @@ implementation
              end
            else
            { must be the return value finalized before reraising the exception? }
-           if (not is_void(procinfo^.returntype.def)) and
-             (procinfo^.returntype.def.needs_inittable) and
-             ((procinfo^.returntype.def.deftype<>objectdef) or
-              not is_class(procinfo^.returntype.def)) then
+           if (not is_void(aktprocsym.definition.rettype.def)) and
+             (aktprocsym.definition.rettype.def.needs_inittable) and
+             ((aktprocsym.definition.rettype.def.deftype<>objectdef) or
+              not is_class(aktprocsym.definition.rettype.def)) then
              begin
                 reset_reference(hr);
                 hr.offset:=procinfo^.return_offset;
                 hr.base:=procinfo^.framepointer;
-                finalize(procinfo^.returntype.def,hr,ret_in_param(procinfo^.returntype.def));
+                finalize(aktprocsym.definition.rettype.def,hr,ret_in_param(aktprocsym.definition.rettype.def));
              end;
 
            emitcall('FPC_RERAISE');
@@ -3000,7 +3000,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2001-07-30 20:59:28  peter
+  Revision 1.27  2001-08-06 21:40:49  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.26  2001/07/30 20:59:28  peter
     * m68k updates from v10 merged
 
   Revision 1.25  2001/07/01 20:16:18  peter

@@ -631,20 +631,23 @@ implementation
       begin
         result:=nil;
         { Check the 2 types }
-        if assigned(left) then
+        if not inlining_procedure then
          begin
-           inserttypeconv(left,procinfo^.returntype);
-           if ret_in_param(procinfo^.returntype.def) or procinfo^.no_fast_exit then
+           if assigned(left) then
             begin
-              pt:=cfuncretnode.create(procinfo);
-              left:=cassignmentnode.create(pt,left);
+              inserttypeconv(left,aktprocsym.definition.rettype);
+              if ret_in_param(aktprocsym.definition.rettype.def) or
+                 (procinfo^.no_fast_exit) then
+               begin
+                 pt:=cfuncretnode.create(aktprocsym.definition.funcretsym);
+                 left:=cassignmentnode.create(pt,left);
+               end;
             end;
          end;
         if assigned(left) then
          begin
            resulttypepass(left);
            set_varstate(left,true);
-           procinfo^.funcret_state:=vs_assigned;
          end;
         resulttype:=voidtype;
       end;
@@ -1168,7 +1171,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2001-04-26 21:56:08  peter
+  Revision 1.21  2001-08-06 21:40:47  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.20  2001/04/26 21:56:08  peter
     * moved some code from exitnode.create to det_resulttype
 
   Revision 1.19  2001/04/21 15:36:29  peter

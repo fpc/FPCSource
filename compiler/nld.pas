@@ -55,8 +55,8 @@ interface
        end;
 
        tfuncretnode = class(tnode)
-          funcretprocinfo : pointer;
-          constructor create(p:pointer);virtual;
+          funcretsym : tfuncretsym;
+          constructor create(v:tsym);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -177,14 +177,14 @@ implementation
          case symtableentry.typ of
             funcretsym :
               begin
-                p1:=cfuncretnode.create(tfuncretsym(symtableentry).funcretprocinfo);
+                p1:=cfuncretnode.create(symtableentry);
                 resulttypepass(p1);
                 { if it's refered as absolute then we need to have the
                   type of the absolute instead of the function return,
                   the function return is then also assigned }
                 if nf_absolute in flags then
                  begin
-                   pprocinfo(tfuncretnode(p1).funcretprocinfo)^.funcret_state:=vs_assigned;
+                   tfuncretsym(symtableentry).funcretstate:=vs_assigned;
                    p1.resulttype:=resulttype;
                  end;
                 left:=nil;
@@ -471,11 +471,11 @@ implementation
                                  TFUNCRETNODE
 *****************************************************************************}
 
-    constructor tfuncretnode.create(p:pointer);
+    constructor tfuncretnode.create(v:tsym);
 
       begin
          inherited create(funcretn);
-         funcretprocinfo:=p;
+         funcretsym:=tfuncretsym(v);
       end;
 
 
@@ -484,7 +484,7 @@ implementation
          n : tfuncretnode;
       begin
          n:=tfuncretnode(inherited getcopy);
-         n.funcretprocinfo:=funcretprocinfo;
+         n.funcretsym:=funcretsym;
          getcopy:=n;
       end;
 
@@ -492,7 +492,7 @@ implementation
     function tfuncretnode.det_resulttype:tnode;
       begin
         result:=nil;
-        resulttype:=pprocinfo(funcretprocinfo)^.returntype;
+        resulttype:=funcretsym.returntype;
       end;
 
 
@@ -501,7 +501,7 @@ implementation
          result:=nil;
          location.loc:=LOC_REFERENCE;
          if ret_in_param(resulttype.def) or
-            (procinfo<>pprocinfo(funcretprocinfo)) then
+            (lexlevel<>funcretsym.owner.symtablelevel) then
            registers32:=1;
       end;
 
@@ -510,7 +510,7 @@ implementation
       begin
         docompare :=
           inherited docompare(p) and
-          (funcretprocinfo = tfuncretnode(p).funcretprocinfo);
+          (funcretsym = tfuncretnode(p).funcretsym);
       end;
 
 
@@ -783,7 +783,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2001-07-30 20:52:25  peter
+  Revision 1.21  2001-08-06 21:40:47  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.20  2001/07/30 20:52:25  peter
     * fixed array constructor passing with type conversions
 
   Revision 1.19  2001/06/04 18:07:47  peter

@@ -625,17 +625,17 @@ implementation
                begin
                  { no claim if setting higher return value_str }
                  if must_be_valid and
-                    (procinfo=pprocinfo(tfuncretnode(p).funcretprocinfo)) and
-                    ((procinfo^.funcret_state=vs_declared) or
+                    (lexlevel=tfuncretnode(p).funcretsym.owner.symtablelevel) and
+                    ((tfuncretnode(p).funcretsym.funcretstate=vs_declared) or
                     ((nf_is_first_funcret in p.flags) and
-                     (procinfo^.funcret_state=vs_declared_and_first_found))) then
+                     (tfuncretnode(p).funcretsym.funcretstate=vs_declared_and_first_found))) then
                    begin
                      CGMessage(sym_w_function_result_not_set);
                      { avoid multiple warnings }
-                     procinfo^.funcret_state:=vs_assigned;
+                     tfuncretnode(p).funcretsym.funcretstate:=vs_assigned;
                    end;
                  if (nf_is_first_funcret in p.flags) and not must_be_valid then
-                   pprocinfo(tfuncretnode(p).funcretprocinfo)^.funcret_state:=vs_assigned;
+                   tfuncretnode(p).funcretsym.funcretstate:=vs_assigned;
                  break;
                end;
              else
@@ -691,7 +691,7 @@ implementation
              funcretn:
                begin
                  if (nf_is_first_funcret in p.flags) then
-                   pprocinfo(tfuncretnode(p).funcretprocinfo)^.funcret_state:=vs_assigned;
+                   tfuncretnode(p).funcretsym.funcretstate:=vs_assigned;
                  break;
                end;
              vecn,
@@ -937,7 +937,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2001-06-04 18:04:36  peter
+  Revision 1.30  2001-08-06 21:40:46  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.29  2001/06/04 18:04:36  peter
     * fixes to valid_for_assign for properties
 
   Revision 1.28  2001/06/04 11:48:02  peter

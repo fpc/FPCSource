@@ -654,11 +654,11 @@ implementation
         { set some informations about the main program }
         with procinfo^ do
          begin
-           returntype:=voidtype;
            _class:=nil;
            para_offset:=8;
            framepointer:=frame_pointer;
            flags:=0;
+           procdef:=aktprocsym.definition;
          end;
       end;
 
@@ -1339,7 +1339,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2001-08-05 12:26:52  peter
+  Revision 1.42  2001-08-06 21:40:47  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.41  2001/08/05 12:26:52  peter
     * beos fix (merged)
 
   Revision 1.40  2001/08/04 10:23:54  peter

@@ -79,7 +79,7 @@ implementation
     uses
       cutils,
       verbose,globals,globtype,systems,
-      symconst,symdef,types,
+      symconst,symdef,symsym,types,
       pass_1,
       ncal,nflw,tgcpu,hcodegen
 {$ifdef newcg}
@@ -266,9 +266,9 @@ implementation
                    { concat function result to exit }
                    { this is wrong for string or other complex
                      result types !!! }
-                   if {ret_in_acc(procinfo^.returntype.def) and }
-                      (is_ordinal(procinfo^.returntype.def) or
-                       is_smallset(procinfo^.returntype.def)) and
+                   if {ret_in_acc(aktprocsym.definition.rettype.def) and }
+                      (is_ordinal(aktprocsym.definition.rettype.def) or
+                       is_smallset(aktprocsym.definition.rettype.def)) and
                       assigned(hp.left) and
                       assigned(tstatementnode(hp.left).right) and
                       (tstatementnode(hp.left).right.nodetype=exitn) and
@@ -396,7 +396,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2001-06-11 17:41:12  jonas
+  Revision 1.13  2001-08-06 21:40:46  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.12  2001/06/11 17:41:12  jonas
     * fixed web bug 1501 in conjunction with -Or
 
   Revision 1.11  2001/05/18 22:31:06  peter

@@ -56,12 +56,14 @@ type
 implementation
 
 uses
+  globtype,globals,systems,verbose,
+  symconst,symdef,symsym,
 {$ifdef NEWCG}
   cgbase,
 {$else}
   hcodegen,
 {$endif}
-  globtype,symconst,symdef,systems,types,globals,verbose,cpuasm;
+  types,cpuasm;
 
 {$define ATTOP}
 {$define INTELOP}
@@ -197,10 +199,10 @@ Begin
   if res and (procinfo^.return_offset=0) then
    begin
      opr.typ:=OPR_REGISTER;
-     if is_fpu(procinfo^.returntype.def) then
+     if is_fpu(aktprocsym.definition.rettype.def) then
        begin
          opr.reg:=R_ST0;
-         case tfloatdef(procinfo^.returntype.def).typ of
+         case tfloatdef(aktprocsym.definition.rettype.def).typ of
            s32real : size:=S_FS;
            s64real : size:=S_FL;
            s80real : size:=S_FX;
@@ -212,8 +214,8 @@ Begin
            end;
          end;
        end
-     else if ret_in_acc(procinfo^.returntype.def) then
-       case procinfo^.returntype.def.size of
+     else if ret_in_acc(aktprocsym.definition.rettype.def) then
+       case aktprocsym.definition.rettype.def.size of
        1 : begin
              opr.reg:=R_AL;
              size:=S_B;
@@ -686,7 +688,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2001-04-13 01:22:19  peter
+  Revision 1.10  2001-08-06 21:40:50  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.9  2001/04/13 01:22:19  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

@@ -1892,10 +1892,10 @@ Var
 Begin
   Message1(asmr_d_start_reading,'AT&T');
   firsttoken:=TRUE;
-  if assigned(procinfo^.returntype.def) and
-     (is_fpu(procinfo^.returntype.def) or
-     ret_in_acc(procinfo^.returntype.def)) then
-    procinfo^.funcret_state:=vs_assigned;
+  if assigned(aktprocsym.definition.funcretsym) and
+     (is_fpu(aktprocsym.definition.rettype.def) or
+     ret_in_acc(aktprocsym.definition.rettype.def)) then
+    tfuncretsym(aktprocsym.definition.funcretsym).funcretstate:=vs_assigned;
   { sets up all opcode and register tables in uppercase }
   if not _asmsorted then
    Begin
@@ -2139,7 +2139,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.12  2001-04-18 22:02:03  peter
+  Revision 1.13  2001-08-06 21:40:50  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.12  2001/04/18 22:02:03  peter
     * registration of targets and assemblers
 
   Revision 1.11  2001/04/13 20:06:05  peter

@@ -220,7 +220,7 @@ Var
 Implementation
 
 Uses
-  globals, systems, verbose, hcodegen, symconst, tgcpu;
+  globals, systems, verbose, hcodegen, symconst, symsym, tgcpu;
 
 Type
   TRefCompare = function(const r1, r2: TReference): Boolean;
@@ -387,19 +387,18 @@ Procedure RemoveLastDeallocForFuncRes(asmL: TAAsmOutput; p: Tai);
   end;
 
 begin
-  if assigned(procinfo^.returntype.def) then
-    case procinfo^.returntype.def.deftype of
+    case aktprocsym.definition.rettype.def.deftype of
       arraydef,recorddef,pointerdef,
          stringdef,enumdef,procdef,objectdef,errordef,
          filedef,setdef,procvardef,
          classrefdef,forwarddef:
         DoRemoveLastDeallocForFuncRes(asmL,R_EAX);
       orddef:
-        if procinfo^.returntype.def.size <> 0 then
+        if aktprocsym.definition.rettype.def.size <> 0 then
           begin
             DoRemoveLastDeallocForFuncRes(asmL,R_EAX);
             { for int64/qword }
-            if procinfo^.returntype.def.size = 8 then
+            if aktprocsym.definition.rettype.def.size = 8 then
               DoRemoveLastDeallocForFuncRes(asmL,R_EDX);
           end;
     end;
@@ -409,19 +408,18 @@ procedure getNoDeallocRegs(var regs: TRegSet);
 var regCounter: TRegister;
 begin
   regs := [];
-  if assigned(procinfo^.returntype.def) then
-    case procinfo^.returntype.def.deftype of
+    case aktprocsym.definition.rettype.def.deftype of
       arraydef,recorddef,pointerdef,
          stringdef,enumdef,procdef,objectdef,errordef,
          filedef,setdef,procvardef,
          classrefdef,forwarddef:
        regs := [R_EAX];
       orddef:
-        if procinfo^.returntype.def.size <> 0 then
+        if aktprocsym.definition.rettype.def.size <> 0 then
           begin
             regs := [R_EAX];
             { for int64/qword }
-            if procinfo^.returntype.def.size = 8 then
+            if aktprocsym.definition.rettype.def.size = 8 then
               regs := regs + [R_EDX];
           end;
     end;
@@ -2454,7 +2452,10 @@ End.
 
 {
   $Log$
-  Revision 1.17  2001-04-13 01:22:18  peter
+  Revision 1.18  2001-08-06 21:40:50  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.17  2001/04/13 01:22:18  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

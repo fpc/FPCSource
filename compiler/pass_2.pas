@@ -295,8 +295,8 @@ implementation
                 make_const_global:=true;
               do_secondpass(p);
 
-              if assigned(procinfo^.def) then
-                procinfo^.def.fpu_used:=p.registersfpu;
+              if assigned(procinfo^.procdef) then
+                procinfo^.procdef.fpu_used:=p.registersfpu;
 
            end;
          procinfo^.aktproccode.concatlist(exprasmlist);
@@ -306,7 +306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2001-05-09 19:57:07  peter
+  Revision 1.17  2001-08-06 21:40:47  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.16  2001/05/09 19:57:07  peter
     * check for errorcount after firstpass
 
   Revision 1.15  2001/04/15 09:48:30  peter

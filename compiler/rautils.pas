@@ -730,8 +730,7 @@ Function TOperand.SetupResult:boolean;
 Begin
   SetupResult:=false;
   { replace by correct offset. }
-  if assigned(procinfo^.returntype.def) and
-     (not is_void(procinfo^.returntype.def)) then
+  if (not is_void(aktprocsym.definition.rettype.def)) then
    begin
      if (procinfo^.return_offset=0) and ((m_tp in aktmodeswitches) or
         (m_delphi in aktmodeswitches)) then
@@ -743,7 +742,7 @@ Begin
      opr.ref.base:= procinfo^.framepointer;
      opr.ref.options:=ref_parafixup;
      { always assume that the result is valid. }
-     procinfo^.funcret_state:=vs_assigned;
+     tfuncretsym(aktprocsym.definition.funcretsym).funcretstate:=vs_assigned;
      SetupResult:=true;
    end
   else
@@ -1583,7 +1582,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2001-04-18 22:01:58  peter
+  Revision 1.21  2001-08-06 21:40:48  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.20  2001/04/18 22:01:58  peter
     * registration of targets and assemblers
 
   Revision 1.19  2001/04/13 20:06:05  peter

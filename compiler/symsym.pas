@@ -131,8 +131,8 @@ interface
           constructor create(const n : string;const tt : ttype);
           constructor load(ppufile:tcompilerppufile);
           procedure write(ppufile:tcompilerppufile);override;
+          procedure deref;override;
           function  gettypedef:tdef;override;
-          procedure prederef;override;
           procedure load_references(ppufile:tcompilerppufile);override;
           function  write_references(ppufile:tcompilerppufile) : boolean;override;
 {$ifdef GDB}
@@ -195,10 +195,10 @@ interface
        end;
 
        tfuncretsym = class(tstoredsym)
-          funcretprocinfo : pointer{ should be pprocinfo};
-          rettype  : ttype;
-          address  : longint;
-          constructor create(const n : string;approcinfo : pointer{pprocinfo});
+          returntype    : ttype;
+          address       : longint;
+          funcretstate  : tvarstate;
+          constructor create(const n : string;const tt : ttype);
           constructor load(ppufile:tcompilerppufile);
           destructor  destroy;override;
           procedure write(ppufile:tcompilerppufile);override;
@@ -1026,24 +1026,23 @@ implementation
                                   TFUNCRETSYM
 ****************************************************************************}
 
-    constructor tfuncretsym.create(const n : string;approcinfo : pointer{pprocinfo});
+    constructor tfuncretsym.create(const n : string;const tt:ttype);
 
       begin
          inherited create(n);
          typ:=funcretsym;
-         funcretprocinfo:=approcinfo;
-         rettype:=pprocinfo(approcinfo)^.returntype;
+         returntype:=tt;
+         funcretstate:=vs_declared;
          { address valid for ret in param only }
          { otherwise set by insert             }
-         address:=pprocinfo(approcinfo)^.return_offset;
+         address:=pprocinfo(procinfo)^.return_offset;
       end;
 
     constructor tfuncretsym.load(ppufile:tcompilerppufile);
       begin
          inherited loadsym(ppufile);
-         ppufile.gettype(rettype);
+         ppufile.gettype(returntype);
          address:=ppufile.getlongint;
-         funcretprocinfo:=nil;
          typ:=funcretsym;
       end;
 
@@ -1055,14 +1054,15 @@ implementation
     procedure tfuncretsym.write(ppufile:tcompilerppufile);
       begin
          inherited writesym(ppufile);
-         ppufile.puttype(rettype);
+         ppufile.puttype(returntype);
          ppufile.putlongint(address);
          ppufile.writeentry(ibfuncretsym);
+         funcretstate:=vs_used;
       end;
 
     procedure tfuncretsym.deref;
       begin
-         rettype.resolve;
+         returntype.resolve;
       end;
 
 {$ifdef GDB}
@@ -1074,7 +1074,7 @@ implementation
 
     procedure tfuncretsym.insert_in_data;
       var
-        l : longint;
+        varalign,l : longint;
       begin
         { if retoffset is already set then reuse it, this is needed
           when inserting the result variable }
@@ -1083,22 +1083,15 @@ implementation
         else
          begin
            { allocate space in local if ret in acc or in fpu }
-           if ret_in_acc(procinfo^.returntype.def) or (procinfo^.returntype.def.deftype=floatdef) then
+           if ret_in_acc(returntype.def) or
+              (returntype.def.deftype=floatdef) then
             begin
-              l:=rettype.def.size;
-              inc(owner.datasize,l);
-{$ifdef m68k}
-              { word alignment required for motorola }
-              if (l=1) then
-               inc(owner.datasize,1)
-              else
-{$endif}
-              if (l>=4) and ((owner.datasize and 3)<>0) then
-                inc(owner.datasize,4-(owner.datasize and 3))
-              else if (l>=2) and ((owner.datasize and 1)<>0) then
-                inc(owner.datasize,2-(owner.datasize and 1));
-              address:=owner.datasize;
-              procinfo^.return_offset:=-owner.datasize;
+              l:=returntype.def.size;
+              varalign:=size_2_align(l);
+              varalign:=used_align(varalign,aktalignment.localalignmin,owner.dataalignment);
+              address:=align(owner.datasize+l,varalign);
+              owner.datasize:=address;
+              procinfo^.return_offset:=-address;
             end;
          end;
       end;
@@ -2134,7 +2127,7 @@ implementation
       end;
 
 
-    procedure ttypesym.prederef;
+    procedure ttypesym.deref;
       begin
          restype.resolve;
       end;
@@ -2245,7 +2238,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2001-07-01 20:16:17  peter
+  Revision 1.15  2001-08-06 21:40:48  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.14  2001/07/01 20:16:17  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

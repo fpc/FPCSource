@@ -1451,17 +1451,17 @@ implementation
           oldquickexitlabel:=quickexitlabel;
           getlabel(aktexitlabel);
           getlabel(aktexit2label);
-          oldprocsym:=aktprocsym;
           { we're inlining a procedure }
           inlining_procedure:=true;
           { save old procinfo }
+          oldprocsym:=aktprocsym;
           getmem(oldprocinfo,sizeof(tprocinfo));
           move(procinfo^,oldprocinfo^,sizeof(tprocinfo));
-          { set the return value }
+          { set new procinfo }
           aktprocsym:=inlineprocsym;
-          procinfo^.returntype:=aktprocsym.definition.rettype;
           procinfo^.return_offset:=retoffset;
           procinfo^.para_offset:=para_offset;
+          procinfo^.no_fast_exit:=false;
           { arg space has been filled by the parent secondcall }
           st:=aktprocsym.definition.localst;
           { set it to the same lexical level }
@@ -1584,7 +1584,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2001-07-08 21:00:16  peter
+  Revision 1.28  2001-08-06 21:40:50  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.27  2001/07/08 21:00:16  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

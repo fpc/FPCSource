@@ -516,7 +516,7 @@ implementation
               else
                 internalerror(2001);
               end;
-              case procinfo^.returntype.def.deftype of
+              case aktprocsym.definition.rettype.def.deftype of
            pointerdef,
            procvardef : begin
                           cleanleft;
@@ -532,7 +532,7 @@ implementation
              floatdef : begin
                           cleanleft;
                           if is_mem then
-                           floatload(tfloatdef(procinfo^.returntype.def).typ,left.location.reference);
+                           floatload(tfloatdef(aktprocsym.definition.rettype.def).typ,left.location.reference);
                         end;
               { orddef,
               enumdef : }
@@ -543,7 +543,7 @@ implementation
                           cleanleft;
                           exprasmlist.concat(tairegalloc.alloc(R_EAX));
                           allocated_eax := true;
-                          case procinfo^.returntype.def.size of
+                          case aktprocsym.definition.rettype.def.size of
                            { it can be a qword/int64 too ... }
                            8 : if is_mem then
                                  begin
@@ -1340,7 +1340,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-07-01 20:16:20  peter
+  Revision 1.14  2001-08-06 21:40:50  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.13  2001/07/01 20:16:20  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN

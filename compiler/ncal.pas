@@ -184,7 +184,6 @@ implementation
     procedure tcallparanode.insert_typeconv(defcoll : tparaitem;do_count : boolean);
       var
         oldtype     : ttype;
-        old_array_constructor : boolean;
 {$ifdef extdebug}
         store_count_ref : boolean;
 {$endif def extdebug}
@@ -1326,8 +1325,8 @@ implementation
                if is_widestring(resulttype.def) or
                   is_ansistring(resulttype.def) then
                  begin
-                    { we use ansistrings so no fast exit here }
-                    procinfo^.no_fast_exit:=true;
+                   { we use ansistrings so no fast exit here }
+                   procinfo^.no_fast_exit:=true;
                  end;
              end;
           end;
@@ -1681,7 +1680,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2001-08-01 15:07:29  jonas
+  Revision 1.40  2001-08-06 21:40:46  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.39  2001/08/01 15:07:29  jonas
     + "compilerproc" directive support, which turns both the public and mangled
       name to lowercase(declaration_name). This prevents a normal user from
       accessing the routine, but they can still be easily looked up within

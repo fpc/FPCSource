@@ -48,7 +48,7 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,widestr,
-      symconst,symtype,symdef,types,
+      symconst,symtype,symdef,symsym,types,
       cpuinfo,
 {$ifdef newcg}
       cgbase,
@@ -1287,7 +1287,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2001-07-08 21:00:14  peter
+  Revision 1.32  2001-08-06 21:40:46  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.31  2001/07/08 21:00:14  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

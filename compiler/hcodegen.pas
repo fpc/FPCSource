@@ -56,15 +56,8 @@ unit hcodegen;
           parent : pprocinfo;
           { current class, if we are in a method }
           _class : tobjectdef;
-          { return type }
-          returntype : ttype;
-          { symbol of the function, and the sym for result variable }
-          resultfuncretsym,
-          funcretsym : tfuncretsym;
-          funcret_state : tvarstate;
           { the definition of the proc itself }
-          def : tprocdef;
-          sym : tprocsym;
+          procdef : tprocdef;
 
           { frame pointer offset }
           framepointer_offset : longint;
@@ -287,12 +280,7 @@ implementation
       begin
         parent:=nil;
         _class:=nil;
-        returntype.reset;
-        resultfuncretsym:=nil;
-        funcretsym:=nil;
-        funcret_state:=vs_none;
-        def:=nil;
-        sym:=nil;
+        procdef:=nil;
         framepointer_offset:=0;
         selfpointer_offset:=0;
         return_offset:=0;
@@ -437,7 +425,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2001-04-13 01:22:07  peter
+  Revision 1.11  2001-08-06 21:40:46  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.10  2001/04/13 01:22:07  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

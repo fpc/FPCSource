@@ -948,11 +948,11 @@ implementation
             begin
                { is this an access to a function result? Accessing _RESULT is
                  always allowed and funcretn is generated }
-               if assigned(p^.funcretsym) and
-                  ((tfuncretsym(sym)=p^.resultfuncretsym) or
-                   ((tfuncretsym(sym)=p^.funcretsym) or
+               if assigned(p^.procdef.funcretsym) and
+                  ((tfuncretsym(sym)=p^.procdef.resultfuncretsym) or
+                   ((tfuncretsym(sym)=p^.procdef.funcretsym) or
                     ((tvarsym(sym)=otsym) and ((p^.flags and pi_operator)<>0))) and
-                   (not is_void(p^.returntype.def)) and
+                   (not is_void(p^.procdef.rettype.def)) and
                    (token<>_LKLAMMER) and
                    (not ((m_tp in aktmodeswitches) and (afterassignment or in_args)))
                   ) then
@@ -960,11 +960,11 @@ implementation
                     if ((tvarsym(sym)=otsym) and
                        ((p^.flags and pi_operator)<>0)) then
                        inc(otsym.refs);
-                    p1:=cfuncretnode.create(p);
+                    p1:=cfuncretnode.create(p^.procdef.funcretsym);
                     is_func_ret:=true;
-                    if p^.funcret_state=vs_declared then
+                    if tfuncretsym(p^.procdef.funcretsym).funcretstate=vs_declared then
                       begin
-                        p^.funcret_state:=vs_declared_and_first_found;
+                        tfuncretsym(p^.procdef.funcretsym).funcretstate:=vs_declared_and_first_found;
                         include(p1.flags,nf_is_first_funcret);
                       end;
                     exit;
@@ -2324,7 +2324,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2001-07-09 21:15:41  peter
+  Revision 1.39  2001-08-06 21:40:47  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.38  2001/07/09 21:15:41  peter
     * Length made internal
     * Add array support for Length
 

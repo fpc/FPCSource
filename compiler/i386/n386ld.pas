@@ -838,26 +838,28 @@ implementation
          hp : preference;
          pp : pprocinfo;
          hr_valid : boolean;
+         i : integer;
       begin
          reset_reference(location.reference);
          hr_valid:=false;
          if (not inlining_procedure) and
-            (procinfo<>pprocinfo(funcretprocinfo)) then
+            (lexlevel<>funcretsym.owner.symtablelevel) then
            begin
               hr:=getregister32;
               hr_valid:=true;
-              hp:=new_reference(procinfo^.framepointer,
-                procinfo^.framepointer_offset);
+              hp:=new_reference(procinfo^.framepointer,procinfo^.framepointer_offset);
               emit_ref_reg(A_MOV,S_L,hp,hr);
-              pp:=procinfo^.parent;
+
               { walk up the stack frame }
-              while pp<>pprocinfo(funcretprocinfo) do
-                begin
-                   hp:=new_reference(hr,
-                     pp^.framepointer_offset);
-                   emit_ref_reg(A_MOV,S_L,hp,hr);
-                   pp:=pp^.parent;
-                end;
+              pp:=procinfo^.parent;
+              i:=lexlevel-1;
+              while i>funcretsym.owner.symtablelevel do
+               begin
+                 hp:=new_reference(hr,pp^.framepointer_offset);
+                 emit_ref_reg(A_MOV,S_L,hp,hr);
+                 pp:=pp^.parent;
+                 dec(i);
+               end;
               location.reference.base:=hr;
               location.reference.offset:=pp^.return_offset;
            end
@@ -1086,7 +1088,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-08-05 13:19:51  peter
+  Revision 1.18  2001-08-06 21:40:50  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.17  2001/08/05 13:19:51  peter
     * partly fix for proc of obj=nil
 
   Revision 1.15  2001/07/28 15:13:17  peter

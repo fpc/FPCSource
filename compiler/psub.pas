@@ -84,7 +84,6 @@ implementation
 
     function block(islibrary : boolean) : tnode;
       var
-         funcretsym : tfuncretsym;
          storepos : tfileposinfo;
       begin
          { do we have an assembler block without the po_assembler?
@@ -100,24 +99,24 @@ implementation
             exit;
           end;
 
-         if not is_void(procinfo^.returntype.def) then
+         if not is_void(aktprocsym.definition.rettype.def) then
            begin
               { if the current is a function aktprocsym is non nil }
               { and there is a local symtable set }
               storepos:=akttokenpos;
               akttokenpos:=aktprocsym.fileinfo;
-              funcretsym:=tfuncretsym.create(aktprocsym.name,procinfo);
+              aktprocsym.definition.funcretsym:=tfuncretsym.create(aktprocsym.name,aktprocsym.definition.rettype);
               { insert in local symtable }
-              symtablestack.insert(funcretsym);
+              symtablestack.insert(aktprocsym.definition.funcretsym);
               akttokenpos:=storepos;
-              if ret_in_acc(procinfo^.returntype.def) or (procinfo^.returntype.def.deftype=floatdef) then
-                procinfo^.return_offset:=-funcretsym.address;
-              procinfo^.funcretsym:=funcretsym;
+              if ret_in_acc(aktprocsym.definition.rettype.def) or
+                 (aktprocsym.definition.rettype.def.deftype=floatdef) then
+                procinfo^.return_offset:=-tfuncretsym(aktprocsym.definition.funcretsym).address;
               { insert result also if support is on }
               if (m_result in aktmodeswitches) then
                begin
-                 procinfo^.resultfuncretsym:=tfuncretsym.create('RESULT',procinfo);
-                 symtablestack.insert(procinfo^.resultfuncretsym);
+                 aktprocsym.definition.resultfuncretsym:=tfuncretsym.create('RESULT',aktprocsym.definition.rettype);
+                 symtablestack.insert(aktprocsym.definition.resultfuncretsym);
                end;
            end;
          read_declarations(islibrary);
@@ -132,12 +131,12 @@ implementation
          { !!!!!   this means that we can not set the return value
          in a subfunction !!!!! }
          { because we don't know yet where the address is }
-         if not is_void(procinfo^.returntype.def) then
+         if not is_void(aktprocsym.definition.rettype.def) then
            begin
-              if ret_in_acc(procinfo^.returntype.def) or (procinfo^.returntype.def.deftype=floatdef) then
+              if ret_in_acc(aktprocsym.definition.rettype.def) or (aktprocsym.definition.rettype.def.deftype=floatdef) then
                 begin
                    { the space has been set in the local symtable }
-                   procinfo^.return_offset:=-funcretsym.address;
+                   procinfo^.return_offset:=-tfuncretsym(aktprocsym.definition.funcretsym).address;
                    if ((procinfo^.flags and pi_operator)<>0) and
                       assigned(otsym) then
                      otsym.address:=-procinfo^.return_offset;
@@ -146,13 +145,13 @@ implementation
 {$ifdef i386}
                    usedinproc:=usedinproc or ($80 shr byte(R_EAX));
 
-                   if is_64bitint(procinfo^.returntype.def) then
+                   if is_64bitint(aktprocsym.definition.rettype.def) then
                      usedinproc:=usedinproc or ($80 shr byte(R_EDX))
 {$endif}
 {$ifdef m68k}
                    usedinproc:=usedinproc + [accumulator];
 
-                   if is_64bitint(procinfo^.returntype.def) then
+                   if is_64bitint(aktprocsym.definition.rettype.def) then
                      usedinproc:=usedinproc  + [scratch_reg];
 {$endif}
 {$endif newcg}
@@ -566,8 +565,6 @@ implementation
             flags:=0;
           { standard frame pointer }
             framepointer:=frame_pointer;
-            { funcret_is_valid:=false; }
-            funcret_state:=vs_declared;
           { is this a nested function of a method ? }
             if assigned(oldprocinfo) then
               _class:=oldprocinfo^._class;
@@ -575,8 +572,7 @@ implementation
 
          parse_proc_dec;
 
-         procinfo^.sym:=aktprocsym;
-         procinfo^.def:=aktprocsym.definition;
+         procinfo^.procdef:=aktprocsym.definition;
 
       { set the default function options }
          if parse_only then
@@ -667,11 +663,12 @@ implementation
               end;
            end;
 
-         { set return type here, becuase the aktprocsym.definition can be
+         { update procinfo, because the aktprocsym.definition can be
            changed by check_identical_proc (PFV) }
-         procinfo^.returntype.def:=aktprocsym.definition.rettype.def;
+         procinfo^.procdef:=aktprocsym.definition;
 
 {$ifdef i386}
+         { add implicit pushes for interrupt routines }
          if (po_interrupt in aktprocsym.definition.procoptions) then
            begin
              { we push Flags and CS as long
@@ -682,7 +679,7 @@ implementation
 {$endif i386}
 
          { pointer to the return value ? }
-         if ret_in_param(procinfo^.returntype.def) then
+         if ret_in_param(aktprocsym.definition.rettype.def) then
           begin
             procinfo^.return_offset:=procinfo^.para_offset;
             inc(procinfo^.para_offset,target_info.size_of_pointer);
@@ -840,7 +837,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2001-06-04 11:53:13  peter
+  Revision 1.35  2001-08-06 21:40:47  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.34  2001/06/04 11:53:13  peter
     + varargs directive
 
   Revision 1.33  2001/06/03 21:57:37  peter

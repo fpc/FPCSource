@@ -1847,10 +1847,10 @@ Begin
   Message1(asmr_d_start_reading,'intel');
   inexpression:=FALSE;
   firsttoken:=TRUE;
-  if assigned(procinfo^.returntype.def) and
-     (is_fpu(procinfo^.returntype.def) or
-     ret_in_acc(procinfo^.returntype.def)) then
-    procinfo^.funcret_state:=vs_assigned;
+  if assigned(aktprocsym.definition.funcretsym) and
+     (is_fpu(aktprocsym.definition.rettype.def) or
+     ret_in_acc(aktprocsym.definition.rettype.def)) then
+    tfuncretsym(aktprocsym.definition.funcretsym).funcretstate:=vs_assigned;
  { sets up all opcode and register tables in uppercase }
   if not _asmsorted then
    Begin
@@ -1968,7 +1968,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.15  2001-04-18 22:02:03  peter
+  Revision 1.16  2001-08-06 21:40:51  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.15  2001/04/18 22:02:03  peter
     * registration of targets and assemblers
 
   Revision 1.14  2001/04/13 20:06:05  peter

@@ -494,6 +494,10 @@ interface
           { symtables }
           parast,
           localst : tsymtable;
+          funcretsym : tsym;
+          { next is only used to check if RESULT is accessed,
+            not stored in a tnode }
+          resultfuncretsym : tsym;
           { browser info }
           lastref,
           defref,
@@ -531,6 +535,7 @@ interface
           destructor  destroy;override;
           procedure write(ppufile:tcompilerppufile);override;
           procedure deref;override;
+          procedure derefimpl;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
           function  haspara:boolean;
           function  mangledname : string;
@@ -3323,6 +3328,7 @@ implementation
          aliasnames:=tstringlist.create;
          localst:=tlocalsymtable.create;
          parast:=tparasymtable.create;
+         funcretsym:=nil;
          localst.defowner:=self;
          parast.defowner:=self;
          { this is used by insert
@@ -3379,23 +3385,29 @@ implementation
          nextoverloaded:=tprocdef(ppufile.getderef);
          _class := tobjectdef(ppufile.getderef);
          ppufile.getposinfo(fileinfo);
-
+         { inline stuff }
+         if (pocall_inline in proccalloptions) then
+           funcretsym:=tsym(ppufile.getderef)
+         else
+           funcretsym:=nil;
+         { load para and local symtables }
+         parast:=tparasymtable.create;
+         tparasymtable(parast).load(ppufile);
+         parast.defowner:=self;
+         if (pocall_inline in proccalloptions) then
+          begin
+            localst:=tlocalsymtable.create;
+            tlocalsymtable(localst).load(ppufile);
+            localst.defowner:=self;
+          end
+         else
+          localst:=nil;
+         { default values for no persistent data }
          if (cs_link_deffile in aktglobalswitches) and
             (tf_need_export in target_info.flags) and
             (po_exports in procoptions) then
            deffile.AddExport(mangledname);
-
          aliasnames:=tstringlist.create;
-
-         parast:=tparasymtable.create;
-         tparasymtable(parast).load(ppufile);
-         parast.defowner:=self;
-         localst:=nil;
-         {new(localst,loadas(localsymtable));
-         localst.defowner:=self;
-         parast.next:=localst;
-         localst.next:=owner;}
-
          forwarddef:=false;
          interfacedef:=false;
          hasforward:=false;
@@ -3480,16 +3492,15 @@ implementation
            end;
          ppufile.putderef(_class);
          ppufile.putposinfo(fileinfo);
+
+         { inline stuff }
+         oldintfcrc:=ppufile.do_interface_crc;
+         ppufile.do_interface_crc:=false;
          if (pocall_inline in proccalloptions) then
-           begin
-              { we need to save
-                - the para and the local symtable
-                - the code ptree !! PM
-               writesymtable(parast);
-               writesymtable(localst);
-               writeptree(ptree(code));
-               }
-           end;
+           ppufile.putderef(funcretsym);
+         ppufile.do_interface_crc:=oldintfcrc;
+
+         { write this entry }
          ppufile.writeentry(ibprocdef);
 
          { Save the para and local symtable, for easier reading
@@ -3502,12 +3513,15 @@ implementation
             parast.defowner:=self;
           end;
          tparasymtable(parast).write(ppufile);
-         {if not assigned(localst) then
+         if (pocall_inline in proccalloptions) then
           begin
-            localst:=new(tstoredsymtable.create(localsymtable));
-            localst.defowner:=self;
+            if not assigned(localst) then
+             begin
+               localst:=tlocalsymtable.create;
+               localst.defowner:=self;
+             end;
+            tlocalsymtable(localst).write(ppufile);
           end;
-         localst.writeas;}
          ppufile.do_interface_crc:=oldintfcrc;
       end;
 
@@ -3737,24 +3751,43 @@ Const local_symtable_index : longint = $8001;
       end;
 {$endif GDB}
 
+
     procedure tprocdef.deref;
       var
-        oldsymtablestack,
         oldlocalsymtable : tsymtable;
       begin
          inherited deref;
          resolvedef(tdef(nextoverloaded));
          resolvedef(tdef(_class));
          { parast }
-         oldsymtablestack:=symtablestack;
          oldlocalsymtable:=aktlocalsymtable;
          aktlocalsymtable:=parast;
          tparasymtable(parast).deref;
-         {symtablestack:=parast;
-         aktlocalsymtable:=localst;
-         localst.deref;}
          aktlocalsymtable:=oldlocalsymtable;
-         symtablestack:=oldsymtablestack;
+      end;
+
+
+    procedure tprocdef.derefimpl;
+      var
+        oldlocalsymtable : tsymtable;
+      begin
+         if assigned(localst) then
+          begin
+            { localst }
+            oldlocalsymtable:=aktlocalsymtable;
+            aktlocalsymtable:=localst;
+            { we can deref both interface and implementation parts }
+            tlocalsymtable(localst).deref;
+            tlocalsymtable(localst).derefimpl;
+            aktlocalsymtable:=oldlocalsymtable;
+            { funcretsym, this is always located in the localst }
+            resolvesym(funcretsym);
+          end
+         else
+          begin
+            { safety }
+            funcretsym:=nil;
+          end;
       end;
 
 
@@ -4070,7 +4103,7 @@ Const local_symtable_index : longint = $8001;
         fillchar(iidguid,sizeof(iidguid),0); { default null guid }
         iidstr:=stringdup(''); { default is empty string }
 
-        { set£p implemented interfaces }
+        { setup implemented interfaces }
         if objecttype in [odt_class,odt_interfacecorba] then
           implementedinterfaces:=timplementedinterfaces.create
         else
@@ -5507,7 +5540,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.39  2001-08-01 21:47:48  peter
+  Revision 1.40  2001-08-06 21:40:48  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.39  2001/08/01 21:47:48  peter
     * fixed passing of array of record or shortstring to open array
 
   Revision 1.38  2001/07/30 20:59:27  peter

@@ -705,7 +705,7 @@ implementation
               consume(_RKLAMMER);
               if (block_type=bt_except) then
                 Message(parser_e_exit_with_argument_not__possible);
-              if is_void(procinfo^.returntype.def) then
+              if is_void(aktprocsym.definition.rettype.def) then
                 Message(parser_e_void_function);
            end
          else
@@ -1169,9 +1169,9 @@ implementation
 
          { assembler code does not allocate }
          { space for the return value       }
-          if not is_void(procinfo^.returntype.def) then
+          if not is_void(aktprocsym.definition.rettype.def) then
            begin
-              if ret_in_acc(procinfo^.returntype.def) then
+              if ret_in_acc(aktprocsym.definition.rettype.def) then
                 begin
                    { in assembler code the result should be directly in %eax
                    procinfo^.retoffset:=procinfo^.firsttemp-procinfo^.retdef.size;
@@ -1222,7 +1222,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2001-06-03 21:57:37  peter
+  Revision 1.32  2001-08-06 21:40:47  peter
+    * funcret moved from tprocinfo to tprocdef
+
+  Revision 1.31  2001/06/03 21:57:37  peter
     + hint directive parsing support
 
   Revision 1.30  2001/05/17 13:25:24  jonas
