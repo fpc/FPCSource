@@ -310,7 +310,9 @@ begin
   if Len<>0 then
    begin
      I:=IndexByte(Buf,Len,0);
-     IndexChar0:=IndexByte(Buf,I,0);
+     If (I=-1) then
+       I:=Len;
+     IndexChar0:=IndexByte(Buf,I,b);
    end
   else
    IndexChar0:=0;
@@ -1235,7 +1237,10 @@ end;
 
 {
   $Log$
-  Revision 1.87  2004-11-17 22:19:04  peter
+  Revision 1.88  2004-12-05 12:41:00  michael
+  + Fixed IndexChar0
+
+  Revision 1.87  2004/11/17 22:19:04  peter
   internconst, internproc and some external declarations moved to interface
 
   Revision 1.86  2004/11/06 13:36:42  florian
