@@ -287,10 +287,12 @@ asm
         subi    r3,r3,1
 LStrScanLoop:
         lbzu    r30,1(r3)
-        cmpl    r30,r4
+        cmpl    cr1,r30,r4
+        cmpli   r30,0
+        beq     cr1,LStrScanDone
         bne     LStrScanLoop
 LStrScanDone:
-end ['r3','r4','r30','cr0'];
+end ['r3','r4','r30','cr0','cr1'];
 
 
 function strrscan(p : pchar;c : char) : pchar;assembler;
@@ -365,7 +367,10 @@ end ['r28','r29','r30','cr0','cr1'];
 
 {
   $Log$
-  Revision 1.4  2001-02-11 12:15:03  jonas
+  Revision 1.5  2001-02-11 17:59:14  jonas
+    * fixed bug in strscan
+
+  Revision 1.4  2001/02/11 12:15:03  jonas
     * some small optimizations and bugfixes
 
   Revision 1.3  2001/02/10 16:09:43  jonas
