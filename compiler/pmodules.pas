@@ -471,6 +471,8 @@ unit pmodules;
                 { set compiled flag }
                   current_module^.compiled:=true;
                 end;
+{$else Double_Checksum}
+               ;               
 {$endif Double_checksum}
               { the next unit }
               hp:=pmodule(hp^.next);
@@ -1339,7 +1341,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.106  1999-04-07 15:39:30  pierre
+  Revision 1.107  1999-04-08 10:53:54  michael
+  * Fixed forgotten ;
+
+  Revision 1.106  1999/04/07 15:39:30  pierre
     + double_checksum code added
 
   Revision 1.105  1999/03/26 00:05:38  peter
