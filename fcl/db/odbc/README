@@ -1,0 +1,181 @@
+fpODBC - a OOP wrapper around the ODBC driver.
+
+This is a simple OOP wrapper around teh ODBC data calls.
+
+There are basically 3 classes:
+
+TODBCEnvironment
+----------------
+  A global object the contains the connection to the ODBC driver. Each
+  connection should have an environment assigned to it. If not, a
+  default environment will be used.
+
+  It has the following methods:
+  
+  Function GetDriverNames(List : Tstrings) : Integer;
+    Fills list with the available drivers. Returns the number of
+    drivers.
+  
+  Function GetDataSourceNames(List : Tstrings; Types : TDSNTypes;Descriptions : Boolean) : Integer;
+    Fills list with the available datasources.
+    Types is one of
+      dtUser   : Return only user DSNs
+      dtSystem : Return system DSNs
+      dtBoth   : Return both
+    The function returns the number of returned drivers.
+    
+  function GetDriverOptions(Driver: String; Options: TStrings): Integer;
+    Returns a list of options for the driver.
+
+TODBCConnection
+
+  Represents a connection to a ODBC datasource.
+  The connection is established according to the following rules:
+   - If OnBrowseConnection is assigned, SQLBrowseConnect is used. At
+     each browse step, the handler is called with the in and out
+     parameter lists filled.
+     TConnectionBrowseEvent = Procedure (Sender : TObject;InParams,OutParams : Tstrings) of Object;
+
+     This is as yet untested, since I have no driver which supports it.
+
+   - If the DSN property is assigned, this is used. Password and Username are also used.
+
+   - If The drivername is assigned, that is used, together with the
+     DriverParams. This should be a list name=value pairs which will be
+     passed to the driver.
+
+   - If none of the above conditions is fullfilled, an error is raised.
+ 
+   - To connect, set the Active property to 'True' or call connect.
+   
+   - To Disconnect, set the active property to false or call disconnect
+
+   The following methods exist:
+   
+    Procedure Connect;
+      Connects to the DSN/Driver
+      
+    Procedure Disconnect;
+      Disconnects from the DSN/Driver
+      
+    Procedure GetTableNames(S : TStrings; SystemTables : Boolean);
+    
+      returns a list of tables. If systemtables is true, then system
+      table names are also returned.
+      
+    Procedure GetFieldNames(TableName : String; S : TStrings);
+      returns a list of fieldnames for table 'tablename'
+    Procedure GetPrimaryKeyFields(TableName : String; S : TStrings);
+      returns a list of primary key fieldnames for table 'tablename'
+    procedure GetProcedureNames(S : TStrings);
+      returns a list of stored procedure names
+    procedure GetProcedureParams(ProcName : String;ParamTypes : TODBCParamTypes; S : TStrings);
+      returns a list of parameters for the stored procedure. ParamTypes is a set of 
+      ptUnknown,ptInput,ptInputOutput,ptResult,ptOutput,ptRetVal
+      
+
+TODBCStatement / TODBCSQLStatement.
+
+  TODBCStatement is an abstract class which encapsulates an ODBC Statement
+  handle. TODBCSQLStatement accepts an SQL Query which it can execute.
+
+  TODBCStatement has the following methods:
+   
+    Procedure BindFields(RestrictList : TStrings);virtual;
+      Binds fields. If restrictlist is assigned, then only fields whose
+      name appears in the list are bound.
+    Procedure ClearFields;virtual;
+      clears the field definitions.
+    Function Fetch : Boolean;
+      fetches the next row. Is false if there was no more data.
+    Property Connection : TODBCConnection Read FConnection Write SetConnection;
+      The connection object to use.
+    Property BOF : Boolean read FBOF;
+      True if at beginning of data
+    Property EOF : Boolean read FEOF;
+      True if at end of data
+    Property Fields : TODBCFieldList Read FFields;
+      Collection of fields in result set (if any)
+
+  TODBCSQLStatement has the following extra methods/properties:
+  
+    procedure Prepare;
+      prepares the query. After this, Bindfields may be called.
+    procedure Unprepare;
+      unprepares the query. After this, Bindfields nor execute may be called.
+    procedure ExecSQL;
+      executes the SQL query. If it was not prepared it is executed
+      directly.
+    Procedure Open;
+      prepares the query, binds all fields, allocates buffers and
+      fetches the first row of the result set.
+    Procedure Close;
+      Undoes the 'Open'
+    procedure GetFieldList(List: TStrings);
+      Retsurns a list of field names in the result set. Can only be
+      called after Prepare/Open and before close.
+    Property Active : Boolean Read GetActive Write SetActive;
+      Setting Active to true is the same as calling open.
+      Setting it to false is the same as calling close.
+    Property SQL : TStrings
+      The SQL statement to be executed.
+
+
+  A query result is returned in a collection of TODBCField objects:
+
+TODBCField :
+    Property Position : SQLSmallint Read FPosition;
+       (position in the query)
+    Property Name : String read FName;
+       (name of the field)
+    Property DataType : SQLSmallInt read FDatatype;
+       (original SQL data type)
+    Property Size : SQLUinteger read FSize;
+       (Original SQL data size)
+    property DecimalDigits : SQLSmallInt read FDecimalDigits;
+       (Original SQL digits after decimal point)
+    Property Nullable : Boolean Read FNullable;
+       (Field is nullable ?)
+    Property Data : Pchar Read GetData;
+       (pointer to raw data)    
+    Property BufType : SQLSmallInt Read FBufType;
+       (SQL type of the allocated data buffer)
+    Property BufSize : SQLInteger Read FBufSize;
+       (Allocated size of the buffer)
+    Property IsNull : Boolean Read GetIsNull;
+       (Was the returned field value null ?)
+       
+    Property AsString : String Read GetAsString;
+       Field value as string.  
+    Property AsInteger : Integer Read GetAsInteger;
+       Field value as integer.  
+    Property AsBoolean : Boolean Read GetAsBoolean;
+       Field value as boolean.  
+    Property AsDouble : Double Read GetAsDouble;
+       Field value as DOUBLE
+    Property AsDateTime : TDateTime Read GetAsDateTime;
+       Field value as TDateTime
+       
+    The latter properties do some basic conversion i.e. 
+    if the result is an integer, the AsString will return
+    the integer value converted to a string.
+
+    Blob is not yet supported, but should be soon.
+
+List of examples:
+
+Program       test functionality 
+-------       -----------------
+
+testbcon.pp   tests browseconnect.
+testcon.pp    tests DSN connect.
+testdrcon.pp  tests driverconnect. 
+testenv.pp    test ennvironment functions.
+testfl.pp     test fieldlist.
+testodbc.pp   test raw odbc.
+testpa.pp     test procedure arguments.
+testpk.pp     test primary key lists.   
+testpr.pp     test procedure list.
+testsql.pp    test execution of SQL and retrieval of results.
+testst.pp     test preparing of a statement.
+testtl.pp     test table list.

@@ -1,0 +1,28 @@
+#
+# Makefile.fpc for fpODBC db units
+#
+
+[package]
+main=fcl
+
+[target]
+units=fpodbc
+examples=testbcon testcon testdrcon testenv testfl testpa testpk\
+         testpr testsql testst testtl
+
+
+[clean]
+units=
+
+[require]
+packages=odbc
+
+[compiler]
+options=-S2 
+targetdir=../../$(OS_TARGET)
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
