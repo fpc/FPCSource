@@ -754,9 +754,9 @@ ___prt1_startup:
         .comm ___dos_argv0,4
         .comm ___crt0_argc,4
         .comm ___crt0_argv,4
-        .globl ___environ_changed
-___environ_changed:
-        .long  0
+        .comm ___environ_changed,4
+/* ___environ_changed: not in data because it is defined in putenv.c */
+/*        .long  0 */
         .globl _exception_exit
 _exception_exit:
         .long  0
@@ -901,7 +901,10 @@ ___PROXY_LEN:
 
 /*
   $Log$
-  Revision 1.5  1999-03-01 15:40:53  peter
+  Revision 1.5.2.1  1999-07-10 23:15:02  pierre
+   * fixes problem with putenv.c
+
+  Revision 1.5  1999/03/01 15:40:53  peter
     * use external names
     * removed all direct assembler modes
 
