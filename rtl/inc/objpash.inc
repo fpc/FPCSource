@@ -271,9 +271,11 @@
 {$ifdef ENDIAN_BIG}
            vtBoolean    : (booldummy1,booldummy2,booldummy3: byte; VBoolean: Boolean);
            vtChar       : (chardummy1,chardummy2,chardummy3: byte; VChar: Char);
+           vtWideChar   : (wchardummy1,VWideChar: WideChar);
 {$else ENDIAN_BIG}
            vtBoolean    : (VBoolean: Boolean);
            vtChar       : (VChar: Char);
+           vtWideChar   : (VWideChar: WideChar);
 {$endif ENDIAN_BIG}
            vtExtended   : (VExtended: PExtended);
            vtString     : (VString: PShortString);
@@ -281,7 +283,6 @@
            vtPChar      : (VPChar: PChar);
            vtObject     : (VObject: TObject);
            vtClass      : (VClass: TClass);
-           vtWideChar   : (VWideChar: WideChar);
            vtPWideChar  : (VPWideChar: PWideChar);
            vtAnsiString : (VAnsiString: Pointer);
 {$ifdef HASCURRENCY}
@@ -298,7 +299,10 @@
 
 {
   $Log$
-  Revision 1.20  2003-12-05 23:54:04  jonas
+  Revision 1.21  2003-12-06 00:02:34  florian
+    * widechars in tvarrec fixed for big endian machines as well
+
+  Revision 1.20  2003/12/05 23:54:04  jonas
     * changed tvarrec so chars and booleans work on big endian machines
 
   Revision 1.19  2003/11/30 19:48:20  florian
