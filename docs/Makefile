@@ -460,7 +460,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.40  2000-07-11 18:07:26  peter
+# Revision 1.1  2000-07-13 09:10:03  michael
+# + Initial import
+#
+# Revision 1.40  2000/07/11 18:07:26  peter
 #   * fixes for latex2html 0.99b2
 #
 # Revision 1.39  2000/07/09 15:44:15  peter
