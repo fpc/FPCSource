@@ -42,7 +42,7 @@ unit i_macos;
             defext       : '';
             scriptext    : '';
             smartext     : '.sl';
-            unitext      : '.pput';
+            unitext      : '.ppu';
             unitlibext   : '.ppl';
             asmext       : '.s';
             objext       : '.o';
@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2003-01-13 17:16:44  olle
+  Revision 1.8  2003-01-13 22:15:58  florian
+    * changed ppu extentions from pput to ppu
+
+  Revision 1.7  2003/01/13 17:16:44  olle
     * Fixed typo
 
   Revision 1.6  2003/01/13 13:03:56  florian
