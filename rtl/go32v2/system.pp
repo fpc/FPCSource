@@ -1370,7 +1370,7 @@ begin
 end;
 
 
-function do_isdevice(handle:longint):boolean;
+function do_isdevice(handle:THandle):boolean;
 var
   regs : trealregs;
 begin
@@ -1623,7 +1623,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.38  2004-09-03 19:25:49  olle
+  Revision 1.39  2004-09-18 11:17:17  hajny
+    * handle type changed to thandle in do_isdevice
+
+  Revision 1.38  2004/09/03 19:25:49  olle
     + added maxExitCode to all System.pp
     * constrained error code to be below maxExitCode in RunError et. al.
 

@@ -906,7 +906,7 @@ begin
 {$endif}
 end;
 
-function do_isdevice (Handle: longint): boolean;
+function do_isdevice (Handle: THandle): boolean;
 var
   HT, Attr: cardinal;
 begin
@@ -1621,7 +1621,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2004-09-11 19:43:11  hajny
+  Revision 1.74  2004-09-18 11:12:09  hajny
+    * handle type changed to thandle in do_isdevice
+
+  Revision 1.73  2004/09/11 19:43:11  hajny
     * missing MaxExitCode added
 
   Revision 1.72  2004/07/18 15:20:38  hajny

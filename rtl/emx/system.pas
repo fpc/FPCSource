@@ -705,7 +705,7 @@ begin
 end;
 
 {$ASMMODE INTEL}
-function do_isdevice (Handle: longint): boolean; assembler;
+function do_isdevice (Handle: THandle): boolean; assembler;
 (*
 var HT, Attr: longint;
 begin
@@ -1333,7 +1333,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2004-09-03 19:25:41  olle
+  Revision 1.28  2004-09-18 11:12:49  hajny
+    * handle type changed to thandle in do_isdevice
+
+  Revision 1.27  2004/09/03 19:25:41  olle
     + added maxExitCode to all System.pp
     * constrained error code to be below maxExitCode in RunError et. al.
 
