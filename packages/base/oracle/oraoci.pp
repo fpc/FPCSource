@@ -20,7 +20,9 @@ unit OraOCI;
 {$linklib common}
 {$linklib core4}
 {$linklib nlsrtl3}
+{$ifndef BSD}
 {$linklib dl}
+{$ENDIF}
 {$linklib c}
 
 interface
@@ -1954,7 +1956,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:42:53  peter
+  Revision 1.3  2003-08-09 15:19:01  marco
+   * dl linking killed
+
+  Revision 1.2  2002/09/07 15:42:53  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:54:54  peter
