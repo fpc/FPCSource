@@ -200,7 +200,10 @@ end;
 
 procedure TFPDocWriter.Warning(AContext: TPasElement; const AMsg: String);
 begin
-  WriteLn('[', AContext.PathName, '] ', AMsg);
+  if (AContext<>nil) then
+    WriteLn('[', AContext.PathName, '] ', AMsg)
+  else  
+    WriteLn('[<no context>] ', AMsg);
 end;
 
 procedure TFPDocWriter.Warning(AContext: TPasElement; const AMsg: String;
@@ -815,7 +818,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-06-06 10:53:02  michael
+  Revision 1.3  2004-08-28 18:05:17  michael
+  + Check for non-nil context
+
+  Revision 1.2  2004/06/06 10:53:02  michael
   + Added Topic support
 
   Revision 1.1  2003/03/17 23:03:20  michael
