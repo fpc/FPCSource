@@ -266,7 +266,7 @@ const
 
 procedure InterceptExit;
 begin
-{$IFDEF HasSignal}  
+{$IFDEF HasSignal}
   if StopJmpValid then
     begin
       ExitIntercepted:=true;
@@ -278,7 +278,12 @@ begin
 end;
 
 BEGIN
-  {$ifdef DEV}HeapLimit:=4096;{$endif}
+{$IFDEF HasSignal}
+  EnableCatchSignals;
+{$ENDIF}
+{$ifdef DEV}
+  HeapLimit:=4096;
+{$endif}
   writeln('þ Free Pascal IDE  Version '+VersionStr);
 {$ifdef win32}
   Win32ShowMouse;
@@ -341,9 +346,6 @@ BEGIN
     from command line PM }
   ParseUserScreen;
 
-{$IFDEF HasSignal}
-  EnableCatchSignals;
-{$ENDIF}
   { Update IDE }
   IDEApp.Update;
   IDEApp.UpdateMode;
@@ -361,10 +363,10 @@ BEGIN
   ExitProc:=@InterceptExit;
 
   repeat
-{$IFDEF HasSignal}  
+{$IFDEF HasSignal}
      SetJmpRes:=setjmp(StopJmp);
      StopJmpValid:=true;
-{$ENDIF}    
+{$ENDIF}
     UserWantsToGoOn:=false;
 
     if SetJmpRes=0 then
@@ -410,9 +412,9 @@ BEGIN
       CanExit:=IDEApp.AskSaveAll
     else
       CanExit:=IDEApp.SaveAll;
-{$IFDEF HasSignal}      
+{$IFDEF HasSignal}
      StopJmpValid:=false;
-{$ENDIF}    
+{$ENDIF}
     if (SetJmpRes<>0) then
       begin
         if (not CanExit) or UserWantsToGoOn then
@@ -441,7 +443,7 @@ BEGIN
 
 {$IFDEF HasSignal}
    DisableCatchSignals;
-{$ENDIF}  
+{$ENDIF}
 
   DoneCodeComplete;
   DoneCodeTemplates;
@@ -480,7 +482,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.15  2002-10-30 22:12:13  pierre
+  Revision 1.16  2002-11-28 12:49:20  pierre
+   * enable signals catching earlier
+
+  Revision 1.15  2002/10/30 22:12:13  pierre
    * use ppheap with IDEHEAPTRC conditional
 
   Revision 1.14  2002/10/12 19:43:07  hajny
