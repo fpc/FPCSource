@@ -3967,8 +3967,13 @@ end.
 
 {
   $Log$
-  Revision 1.37  1999-04-21 16:31:41  pierre
-  ra386att.pas
+  Revision 1.38  1999-04-21 21:42:22  pierre
+   * wrong log for v1.37 corrected
+
+  Revision 1.37  1999/04/21 16:31:41  pierre
+  + support for call *%eax and jmp *%eax
+  + support for movw L+2,%eax (to get second word of a record or array !)
+  + added -vz warnings about 8(%ebp) is L arg
 
   Revision 1.36  1999/04/18 00:32:22  pierre
    * fix for bug0124 and better error position info
