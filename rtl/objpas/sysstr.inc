@@ -433,10 +433,263 @@ function FmtLoadStr(Ident: integer; const Args: array of const): string;
 begin
 end;
 
+Const
+  feInvalidFormat   = 1;
+  feMissingArgument = 2;
+  feInvalidArgIndex = 3;
 
-Function Format (Const Fmt : String; Const Args: Array of const) : string;
+Procedure Log (Const S: String);
 
 begin
+ {$ifdef debug}
+ Writeln (S);
+ {$endif}
+end;
+   
+Procedure DoFormatError (ErrCode : Longint);
+
+begin
+  Writeln ('Error in format : ',Errcode);
+  Halt(1);
+end;
+
+
+Function Format (Const Fmt : String; const Args : Array of const) : String;
+
+Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
+    ToAdd : String;
+    Index,Width,Prec : Longint;
+    Left : Boolean;
+    ExtVal: Extended;
+    Fchar : char;
+
+  {
+    ReadFormat reads the format string. It returns the type character in
+    uppercase, and sets index, Width, Prec to their correct values, 
+    or -1 if not set. It sets Left to true if left alignment was requested. 
+    In case of an error, DoFormatError is called.
+  }
+      
+  Function ReadFormat : Char;
+
+  Var Value : longint;
+
+    Procedure ReadInteger;	
+
+    Var Code : Word;
+
+    begin
+      If Value<>-1 then exit; // Was already read.
+      OldPos:=chPos;
+      While (Chpos<Len) and 
+            (Pos(Fmt[chpos],'1234567890')<>0) do inc(chpos);
+      If Chpos=len then DoFormatError(feInvalidFormat);
+      If Fmt[Chpos]='*' then 
+        begin
+        If (Chpos>OldPos) or (ArgPos>High(Args)) 
+           or (Args[ArgPos].Vtype<>vtInteger) then
+          DoFormatError(feInvalidFormat);
+        Value:=Args[ArgPos].VInteger;
+        Inc(ArgPos);
+        Inc(chPos);
+        end
+      else
+        begin
+        If (OldPos<chPos) Then
+          begin
+          Val (Copy(Fmt,OldPos,ChPos-OldPos),value,code);
+          // This should never happen !!
+          If Code>0 then DoFormatError (feInvalidFormat);
+          end
+        else
+          Value:=-1;
+        end;
+    end;
+
+    Procedure ReadIndex;
+
+    begin
+      ReadInteger;
+      If Fmt[ChPos]=':' then
+        begin
+        If Value=-1 then DoFormatError(feMissingArgument);
+        Index:=Value;
+        Value:=-1;
+        Inc(Chpos);
+        end;
+      Log ('Read index');
+    end;
+
+    Procedure ReadLeft;
+
+    begin
+      If Fmt[chpos]='-' then 
+        begin
+        left:=True;
+        Inc(chpos);
+        end
+      else
+        Left:=False;
+      Log ('Read Left');
+    end;
+
+    Procedure ReadWidth;
+
+    begin
+      ReadInteger;
+      If Value<>-1 then
+        begin
+        Width:=Value;
+        Value:=-1;	
+        end;
+      Log ('Read width');
+    end;
+
+    Procedure ReadPrec;
+
+    begin
+      If Fmt[chpos]='.' then
+        begin
+        inc(chpos);
+        ReadInteger;
+        If Value=-1 then DoFormaterror(feMissingArgument);
+        prec:=Value;
+        end;
+      Log ('Read precision');
+    end;
+
+  begin
+    Log ('Start format');
+    Index:=-1;
+    Width:=-1;
+    Prec:=-1;
+    Value:=-1;
+    inc(chpos);
+    If Fmt[Chpos]='%' then exit('%');
+    ReadIndex;
+    ReadLeft;
+    ReadWidth;
+    ReadPrec;
+    ReadFormat:=Upcase(Fmt[ChPos]);
+    Log ('End format');
+end;
+
+Procedure DumpFormat (C : char);
+
+begin
+  Write ('Fmt : ',fmt:10);
+  Write (' Index : ',Index:3);
+  Write (' Left  : ',left:5);
+  Write (' Width : ',Width:3);
+  Write (' Prec  : ',prec:3);
+  Writeln (' Type  : ',C);
+end;
+
+Procedure Checkarg (AT : Longint);
+{
+  Check if argument INDEX is of correct type (AT)
+  If Index=-1, ArgPos is used, and argpos is augmented with 1
+  DoArg is set to the argument that must be used.
+}
+begin
+  If Index=-1 then 
+    begin
+    DoArg:=Argpos;
+    inc(ArgPos);
+    end
+  else
+    DoArg:=Index;
+  If (Doarg>High(Args)) or (Args[Doarg].Vtype<>AT) then
+    DoFormatError(feInvalidArgindex);
+end;
+
+Const Zero = '000000000000000000000000000000000000000000000000000000000000000';
+    
+begin
+  Result:='';
+  Len:=Length(Fmt)+1;
+  Chpos:=1;
+  OldPos:=1;
+  ArgPos:=0;
+  While chpos<len do
+    begin
+    // uses shortcut evaluation !!
+    While (ChPos<=Len) and (Fmt[chpos]<>'%') do inc(chpos);
+    If ChPos>OldPos Then 
+      Result:=Result+Copy(Fmt,OldPos,Chpos-Oldpos);
+    If ChPos<Len then
+      begin
+      FChar:=ReadFormat;
+      {$ifdef debug}
+      DumpFormat(FCHar);
+      {$endif}
+      Case FChar of
+        'D' : begin
+              Checkarg(vtinteger);
+              Width:=Abs(width);
+              Str(Args[Doarg].VInteger,ToAdd);
+              While Length(ToAdd)<Prec do
+                begin
+                Index:=Prec-Length(ToAdd);
+                If Index>64 then Index:=64;
+                ToAdd:=Copy(Zero,1,Index)+ToAdd;
+                end;
+              end;
+        'E' : begin
+              CheckArg(vtExtended);
+              If Prec=-1 then prec:=15;
+              ExtVal:=Args[doarg].VExtended^;
+              Prec:=Prec+5;   // correct dot, eXXX
+              If ExtVal<0 then Inc(Prec); // Corect for minus sign
+              If Abs(Extval)<1 then Inc(Prec); // correct for - in E
+              Writeln('STRING ',prec); 
+              Str(Args[doarg].VExtended^:prec,ToAdd);
+              WRITELN('DID');
+              end;
+        'F' : begin
+              end;
+        'S' : begin
+              CheckArg(vtString);
+              Index:=Length(Args[doarg].VString^);
+              If (Prec<>-1) and (Index>Prec) then
+                Index:=Prec;
+              ToAdd:=Copy(Args[DoArg].VString^,1,Index);
+              end;
+        'P' : Begin
+              CheckArg(vtpointer);
+              ToAdd:=HexStr(Longint(Args[DoArg].VPointer),8);
+              // Insert ':'. Is this needed in 32 bit ? No it isn't.
+              // Insert(':',ToAdd,5);
+              end;
+        'X' : begin
+              Checkarg(vtinteger);
+              If Prec>32 then 
+                ToAdd:=HexStr(Args[Doarg].VInteger,Prec)
+              else
+                begin
+                // determine minimum needed number of hex digits.
+                Index:=1;
+                While (1 shl (Index*4))<Args[DoArg].VInteger do 
+                  inc(Index);
+                If Index>Prec then 
+                  Prec:=Index;
+                ToAdd:=HexStr(Args[DoArg].VInteger,Prec);
+                end;
+              end;
+
+        '%': ToAdd:='%';
+      end;
+      If Width<>-1 then
+        If Length(ToAdd)<Width then
+          If not Left then 
+            ToAdd:=Space(Width-Length(ToAdd))+ToAdd
+          else
+            ToAdd:=ToAdd+space(Width-Length(ToAdd));
+      Result:=Result+ToAdd; 
+      end;
+    inc(chpos);
+    Oldpos:=chpos;
+    end;
 end;
 
 
@@ -634,7 +887,10 @@ end ;
 
 {
   $Log$
-  Revision 1.5  1998-10-01 16:05:37  michael
+  Revision 1.6  1998-10-02 10:42:17  michael
+  + Initial implementation of format
+
+  Revision 1.5  1998/10/01 16:05:37  michael
   Added (empty) format function
 
   Revision 1.4  1998/09/17 12:39:52  michael
@@ -648,7 +904,10 @@ end ;
   Update from gertjan Schouten, plus small fix for linux
 
   $Log$
-  Revision 1.5  1998-10-01 16:05:37  michael
+  Revision 1.6  1998-10-02 10:42:17  michael
+  + Initial implementation of format
+
+  Revision 1.5  1998/10/01 16:05:37  michael
   Added (empty) format function
 
   Revision 1.4  1998/09/17 12:39:52  michael
