@@ -1045,21 +1045,21 @@ end;
 function regval(r:tregister):byte;
 begin
   case r of
-    R_EAX,R_AX,R_AL,R_ES,R_CR0,R_DR0,R_ST,R_ST0,R_MM0 :
+    R_EAX,R_AX,R_AL,R_ES,R_CR0,R_DR0,R_ST,R_ST0,R_MM0,R_XMM0 :
       regval:=0;
-    R_ECX,R_CX,R_CL,R_CS,R_DR1,R_ST1,R_MM1 :
+    R_ECX,R_CX,R_CL,R_CS,R_DR1,R_ST1,R_MM1,R_XMM1 :
       regval:=1;
-    R_EDX,R_DX,R_DL,R_SS,R_CR2,R_DR2,R_ST2,R_MM2 :
+    R_EDX,R_DX,R_DL,R_SS,R_CR2,R_DR2,R_ST2,R_MM2,R_XMM2 :
       regval:=2;
-    R_EBX,R_BX,R_BL,R_DS,R_CR3,R_DR3,R_TR3,R_ST3,R_MM3 :
+    R_EBX,R_BX,R_BL,R_DS,R_CR3,R_DR3,R_TR3,R_ST3,R_MM3,R_XMM3 :
       regval:=3;
-    R_ESP,R_SP,R_AH,R_FS,R_CR4,R_TR4,R_ST4,R_MM4 :
+    R_ESP,R_SP,R_AH,R_FS,R_CR4,R_TR4,R_ST4,R_MM4,R_XMM4 :
       regval:=4;
-    R_EBP,R_BP,R_CH,R_GS,R_TR5,R_ST5,R_MM5 :
+    R_EBP,R_BP,R_CH,R_GS,R_TR5,R_ST5,R_MM5,R_XMM5 :
       regval:=5;
-    R_ESI,R_SI,R_DH,R_DR6,R_TR6,R_ST6,R_MM6 :
+    R_ESI,R_SI,R_DH,R_DR6,R_TR6,R_ST6,R_MM6,R_XMM6 :
       regval:=6;
-    R_EDI,R_DI,R_BH,R_DR7,R_TR7,R_ST7,R_MM7 :
+    R_EDI,R_DI,R_BH,R_DR7,R_TR7,R_ST7,R_MM7,R_XMM7 :
       regval:=7;
     else
       begin
@@ -1072,11 +1072,15 @@ end;
 
 function process_ea(const input:toper;var output:ea;rfield:longint):boolean;
 const
-  regs : array[0..31] of tregister=(
-    R_MM0, R_EAX, R_AX, R_AL, R_MM1, R_ECX, R_CX, R_CL,
-    R_MM2, R_EDX, R_DX, R_DL, R_MM3, R_EBX, R_BX, R_BL,
-    R_MM4, R_ESP, R_SP, R_AH, R_MM5, R_EBP, R_BP, R_CH,
-    R_MM6, R_ESI, R_SI, R_DH, R_MM7, R_EDI, R_DI, R_BH
+  regs : array[0..63] of tregister=(
+    R_MM0, R_EAX, R_AX, R_AL, R_XMM0, R_NO, R_NO, R_NO,
+    R_MM1, R_ECX, R_CX, R_CL, R_XMM1, R_NO, R_NO, R_NO,
+    R_MM2, R_EDX, R_DX, R_DL, R_XMM2, R_NO, R_NO, R_NO,
+    R_MM3, R_EBX, R_BX, R_BL, R_XMM3, R_NO, R_NO, R_NO,
+    R_MM4, R_ESP, R_SP, R_AH, R_XMM4, R_NO, R_NO, R_NO,
+    R_MM5, R_EBP, R_BP, R_CH, R_XMM5, R_NO, R_NO, R_NO,
+    R_MM6, R_ESI, R_SI, R_DH, R_XMM6, R_NO, R_NO, R_NO,
+    R_MM7, R_EDI, R_DI, R_BH, R_XMM7, R_NO, R_NO, R_NO
   );
 var
   j     : longint;
@@ -1101,7 +1105,7 @@ begin
       begin
         output.sib_present:=false;
         output.bytes:=0;
-        output.modrm:=$c0 or (rfield shl 3) or (j shr 2);
+        output.modrm:=$c0 or (rfield shl 3) or (j shr 3);
         output.size:=1;
         process_ea:=true;
       end;
@@ -1665,7 +1669,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:39:37  peter
+  Revision 1.2  2000-10-15 10:50:46  florian
+   * fixed xmm register access
+
+  Revision 1.1  2000/10/15 09:39:37  peter
     * moved cpu*.pas to i386/
     * renamed n386 to common cpunode
 
