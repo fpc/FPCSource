@@ -592,7 +592,7 @@ Var
 begin
   hs:='';
   for i:=1 to length(s) do
-    if S[i]='$' then
+    if (S[i]='$') and (s[i+1] in ['0'..'9']) then
       hs:=hs+'arg'
     else
       hs:=hs+s[i];
@@ -790,7 +790,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-07-09 16:30:59  peter
+  Revision 1.11  2000-07-09 17:01:26  peter
+    * replace only $ with arg if next char is a number
+
+  Revision 1.10  2000/07/09 16:30:59  peter
     * fixed tex writign
 
   Revision 1.9  2000/07/04 19:05:53  peter
