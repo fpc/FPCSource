@@ -173,7 +173,8 @@ implementation
                         maybe_loadesi;
                         ungetiftemp(p^.left^.location.reference);
                         ungetiftemp(p^.right^.location.reference);
-                        gettempofsizereference(4,p^.location.reference);
+                        reset_reference(hr);
+                        gettempofsizereference(4,hr);
                         temptoremove^.concat(new(ptemptodestroy,init(hr,p^.resulttype)));
                         exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,p^.location.register,
                           newreference(hr))));
@@ -1405,7 +1406,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1998-11-16 15:35:35  peter
+  Revision 1.26  1998-11-16 16:17:16  peter
+    * fixed ansistring temp which forgot a reset
+
+  Revision 1.25  1998/11/16 15:35:35  peter
     * rename laod/copystring -> load/copyshortstring
     * fixed int-bool cnv bug
     + char-ansistring conversion
