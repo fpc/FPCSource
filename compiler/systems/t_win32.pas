@@ -245,8 +245,7 @@ const
              hp2:=twin32imported_item(hp1.imported_items.first);
              while assigned(hp2) do
                begin
-                 if (aktoutputformat=as_i386_tasm) or
-                    (aktoutputformat=as_i386_masm) then
+                 if (aktoutputformat in [as_i386_tasm,as_i386_masm]) then
                    p:=strpnew(#9+'EXTRN '+hp2.func^)
                  else
                    p:=strpnew(#9+'EXTERN '+hp2.func^);
@@ -259,9 +258,6 @@ const
            end;
       end;
 
-
-    const
-     MainAsmFormats=[as_i386_pecoff,as_i386_pecoffwdosx];
 
     procedure timportlibwin32.generatesmartlib;
       var
@@ -276,7 +272,7 @@ const
          lidata4,lidata5 : tasmlabel;
          href : treference;
       begin
-         if not(aktoutputformat in MainAsmFormats)then
+         if (aktoutputformat in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
           begin
             generatenasmlib;
             exit;
@@ -425,7 +421,7 @@ const
 {$endif GDB}
          href : treference;
       begin
-         if not(aktoutputformat in MainAsmFormats)then
+         if (aktoutputformat in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
           begin
             generatenasmlib;
             exit;
@@ -654,11 +650,11 @@ const
          address_table,name_table_pointers,
          name_table,ordinal_table : TAAsmoutput;
       begin
-        if not (aktoutputformat in MainAsmFormats)then
-         begin
-           generatenasmlib;
-           exit;
-         end;
+         if (aktoutputformat in [as_i386_masm,as_i386_tasm,as_i386_nasmwin32]) then
+          begin
+            generatenasmlib;
+            exit;
+          end;
 
          hp:=texported_item(current_module._exports.first);
          if not assigned(hp) then
@@ -1626,7 +1622,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2003-10-03 14:16:48  marco
+  Revision 1.22  2003-10-09 16:14:49  peter
+    * fix check for generatenasmlib
+
+  Revision 1.21  2003/10/03 14:16:48  marco
    * -XP<prefix> support
 
   Revision 1.20  2003/10/02 21:17:08  peter
