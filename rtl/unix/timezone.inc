@@ -264,9 +264,9 @@ begin
   else If fpstat(AltTimeZoneFile,{$ifdef oldlinuxstat}baseunix.stat(info){$else}info{$endif})>=0 then
       GetTimeZoneFile:=AltTimeZoneFile
 {$ifdef BSD}
-  else
-       If fpstat(BSDTimeZoneFile,{$ifdef oldlinuxstat}baseunix.stat(info){$else}info{$endif})>=0 then  
-            GetTimeZoneFile:=BSDTimeZoneFile
+//  else
+//       If fpstat(BSDTimeZoneFile,{$ifdef oldlinuxstat}baseunix.stat(info){$else}info{$endif})>=0 then             
+// GetTimeZoneFile:=BSDTimeZoneFile
 {$ENDIF}
 end;
 
@@ -297,7 +297,11 @@ end;
 
 {
   $Log$
-  Revision 1.6  2003-09-17 18:49:16  marco
+  Revision 1.7  2003-11-01 17:10:21  marco
+   * Show stopping bug. Had to comment out lines around 279 to get 1.9
+   to build
+
+  Revision 1.6  2003/09/17 18:49:16  marco
    * small *BSD fix
 
   Revision 1.5  2003/09/16 16:06:02  peter
