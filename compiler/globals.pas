@@ -84,11 +84,19 @@ interface
        MathNegInf : tdoublearray = (0,0,240,255,0,0,0,0);
        MathPi : tdoublearray =  (251,33,9,64,24,45,68,84);
 {$else}
+{$ifdef CPU_LITTLE_ENDIAN}
        MathQNaN : tdoublearray = (0,0,0,0,0,0,252,255);
        MathInf : tdoublearray = (0,0,0,0,0,0,240,127);
        MathNegInf : tdoublearray = (0,0,0,0,0,0,240,255);
        MathPi : tdoublearray =  (24,45,68,84,251,33,9,64);
        MathPiExtended : textendedarray = (53,194,104,33,162,218,15,201,0,64);
+{$else CPU_LITTLE_ENDIAN}       
+       MathQNaN : tdoublearray = (255,252,0,0,0,0,0,0);
+       MathInf : tdoublearray = (127,240,0,0,0,0,0,0);
+       MathNegInf : tdoublearray = (255,240,0,0,0,0,0,0);
+       MathPi : tdoublearray =  (64,9,33,251,84,68,45,24);
+       MathPiExtended : textendedarray = (64,0,201,15,218,162,33,104,194,53);
+{$endif CPU_LITTLE_ENDIAN}
 {$endif}
 
     type
@@ -2183,7 +2191,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.162  2005-01-23 21:09:11  florian
+  Revision 1.163  2005-01-23 22:13:50  florian
+    * fixed math constants for big endian cpus
+
+  Revision 1.162  2005/01/23 21:09:11  florian
     + added pi bit pattern to the compiler, so pi should always be correct
 
   Revision 1.161  2005/01/20 16:38:45  peter
