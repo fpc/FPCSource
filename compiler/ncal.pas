@@ -29,7 +29,7 @@ interface
 
     uses
        node,
-       symbase,symsym,symdef,symtable;
+       symbase,symtype,symsym,symdef,symtable;
 
     type
        tcallnode = class(tbinarynode)
@@ -41,10 +41,16 @@ interface
           { the definition of the procedure to call }
           procdefinition : tabstractprocdef;
           methodpointer  : tnode;
+          { separately specified resulttype for some compilerprocs (e.g. }
+          { you can't have a function with an "array of char" resulttype }
+          { the RTL) (JM)                                                }
+          restype: ttype;
+          restypeset: boolean;
           { only the processor specific nodes need to override this }
           { constructor                                             }
           constructor create(l:tnode; v : tprocsym;st : tsymtable; mp : tnode);virtual;
           constructor createintern(const name: string; params: tnode);
+          constructor createinternres(const name: string; params: tnode; const res: ttype);
           destructor destroy;override;
           function  getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
@@ -107,7 +113,7 @@ implementation
     uses
       cutils,globtype,systems,
       verbose,globals,
-      symconst,symtype,types,
+      symconst,types,
       htypechk,pass_1,cpubase,
       ncnv,nld,ninl,nadd,ncon,
       tgcpu,cgbase
@@ -558,6 +564,7 @@ implementation
          include(flags,nf_return_value_used);
          methodpointer:=mp;
          procdefinition:=nil;
+         restypeset := false;
       end;
 
      constructor tcallnode.createintern(const name: string; params: tnode);
@@ -584,6 +591,18 @@ implementation
            end;
          self.create(params,tprocsym(srsym),symowner,nil);
        end;
+
+    constructor tcallnode.createinternres(const name: string; params: tnode; const res: ttype);
+      begin
+        self.createintern(name,params);
+        restype := res;
+        restypeset := true;
+        { both the normal and specified resulttype either have to be returned via a }
+        { parameter or not, but no mixing (JM)                                      }
+        if ret_in_param(restype.def) xor ret_in_param(symtableprocentry.definition.rettype.def) then
+          internalerror(200108291);
+      end;
+
 
     destructor tcallnode.destroy;
       begin
@@ -1346,7 +1365,10 @@ implementation
            message(cg_e_cannot_call_message_direct);
 
          { ensure that the result type is set }
-         resulttype:=procdefinition.rettype;
+         if not restypeset then
+           resulttype:=procdefinition.rettype
+         else
+           resulttype:=restype;
 
          { get a register for the return value }
          if (not is_void(resulttype.def)) then
@@ -1716,7 +1738,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2001-08-28 13:24:46  jonas
+  Revision 1.47  2001-08-29 12:18:07  jonas
+    + new createinternres() constructor for tcallnode to support setting a
+      custom resulttype
+    * compilerproc typeconversions now set the resulttype from the type
+      conversion for the generated call node, because the resulttype of
+      of the compilerproc helper isn't always exact (e.g. the ones that
+      return shortstrings, actually return a shortstring[x], where x is
+      specified by the typeconversion node)
+    * ti386callnode.pass_2 now always uses resulttype instead of
+      procsym.definition.rettype (so the custom resulttype, if any, is
+      always used). Note that this "rettype" stuff is only for use with
+      compilerprocs.
+
+  Revision 1.46  2001/08/28 13:24:46  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
       compilerproc implementations (using {$ifdef hascompilerproc} is not

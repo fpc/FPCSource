@@ -458,11 +458,11 @@ implementation
                 if inlined then
                   begin
                      reset_reference(funcretref);
-                     funcretref.offset:=gettempofsizepersistant(procdefinition.rettype.def.size);
+                     funcretref.offset:=gettempofsizepersistant(resulttype.def.size);
                      funcretref.base:=procinfo^.framepointer;
                   end
                 else
-                  gettempofsizereference(procdefinition.rettype.def.size,funcretref);
+                  gettempofsizereference(resulttype.def.size,funcretref);
            end;
          if assigned(params) then
            begin
@@ -1088,7 +1088,7 @@ implementation
                        ungetregister32(R_EDI);
                        exprasmList.concat(Tairegalloc.Alloc(R_ESI));
                        emit_reg(A_POP,S_L,R_ESI);
-                       exprasmList.concat(Tairegalloc.Alloc(R_ESI));
+                       exprasmList.concat(Tairegalloc.DeAlloc(R_ESI));
                     end
                 else if pushedparasize<>0 then
                   emit_const_reg(A_ADD,S_L,pushedparasize,R_ESP);
@@ -1584,7 +1584,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2001-08-26 13:36:56  florian
+  Revision 1.31  2001-08-29 12:18:08  jonas
+    + new createinternres() constructor for tcallnode to support setting a
+      custom resulttype
+    * compilerproc typeconversions now set the resulttype from the type
+      conversion for the generated call node, because the resulttype of
+      of the compilerproc helper isn't always exact (e.g. the ones that
+      return shortstrings, actually return a shortstring[x], where x is
+      specified by the typeconversion node)
+    * ti386callnode.pass_2 now always uses resulttype instead of
+      procsym.definition.rettype (so the custom resulttype, if any, is
+      always used). Note that this "rettype" stuff is only for use with
+      compilerprocs.
+
+  Revision 1.30  2001/08/26 13:36:56  florian
     * some cg reorganisation
     * some PPC updates
 

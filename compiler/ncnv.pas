@@ -423,9 +423,9 @@ implementation
 
     function ttypeconvnode.resulttype_chararray_to_string : tnode;
       begin
-        result := ccallnode.createintern(
+        result := ccallnode.createinternres(
           'fpc_chararray_to_'+lower(tstringdef(resulttype.def).stringtypname),
-          ccallparanode.create(left,nil));
+          ccallparanode.create(left,nil),resulttype);
         left := nil;
         resulttypepass(result);
       end;
@@ -485,7 +485,7 @@ implementation
                  in_high_x,false,self.getcopy),nil);
                  
              { and create the callnode }
-             result := ccallnode.createintern(procname,stringpara);
+             result := ccallnode.createinternres(procname,stringpara,resulttype);
              resulttypepass(result);
            end;
       end;
@@ -526,7 +526,7 @@ implementation
                  lower(tstringdef(resulttype.def).stringtypname);
 
                { and finally the call }
-               result := ccallnode.createintern(procname,para);
+               result := ccallnode.createinternres(procname,para,resulttype);
                resulttypepass(result);
              end;
       end;
@@ -633,9 +633,9 @@ implementation
 
     function ttypeconvnode.resulttype_pchar_to_string : tnode;
       begin
-        result := ccallnode.createintern(
+        result := ccallnode.createinternres(
           'fpc_pchar_to_'+lower(tstringdef(resulttype.def).stringtypname),
-          ccallparanode.create(left,nil));
+          ccallparanode.create(left,nil),resulttype);
         left := nil;
         resulttypepass(result);
       end;
@@ -1477,7 +1477,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2001-08-28 13:24:46  jonas
+  Revision 1.34  2001-08-29 12:18:07  jonas
+    + new createinternres() constructor for tcallnode to support setting a
+      custom resulttype
+    * compilerproc typeconversions now set the resulttype from the type
+      conversion for the generated call node, because the resulttype of
+      of the compilerproc helper isn't always exact (e.g. the ones that
+      return shortstrings, actually return a shortstring[x], where x is
+      specified by the typeconversion node)
+    * ti386callnode.pass_2 now always uses resulttype instead of
+      procsym.definition.rettype (so the custom resulttype, if any, is
+      always used). Note that this "rettype" stuff is only for use with
+      compilerprocs.
+
+  Revision 1.33  2001/08/28 13:24:46  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
       compilerproc implementations (using {$ifdef hascompilerproc} is not
