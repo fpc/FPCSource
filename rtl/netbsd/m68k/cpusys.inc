@@ -145,29 +145,38 @@ asm
    move.l d1,Errno
 end;
 
+procedure minimalsyscall; assembler;{$ifdef TEST_INLINE}inline;{$endif TEST_INLINE}
+   asm
+         trap  #0
+   end;
+
 Function Sys_Lseek(F:longint;Off:longint;Whence:longint): int64; assembler;
 {this one is special for the return value being 64-bit..}
 { syscall: "lseek" ret: "off_t" args: "int" "int" "off_t" "int"  }
  asm
   move.l Whence,-(sp)
-  pea    (0)         // high word of offset
   move.l Off,-(sp)   //low word of offset
+  pea    (0)         // high word of offset
   pea    (0)
   move.l F,-(sp)
   move.l #syscall_nr_lseek,d0
-  trap  #0
+  bsr    minimalsyscall
   add.l  #20,sp
   bcs   @LLseekErrorcode
-  rts         // return value is in d1/d0
+  bsr   @LLseekEnd
 @LLseekErrorcode:
   move.l d0,Errno
   move.l #-1,d0  // set d0 and d1 to -1
   move.l #-1,d1
+@LLseekend:
  end;
 
 {
  $Log$
- Revision 1.1.2.1  2001-08-10 11:00:59  pierre
+ Revision 1.1.2.2  2001-09-12 23:26:14  pierre
+  * lseek code hopefully fixed
+
+ Revision 1.1.2.1  2001/08/10 11:00:59  pierre
   first m68k netbsd files
 
 }
