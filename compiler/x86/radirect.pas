@@ -142,7 +142,7 @@ interface
                                  { is the last written character an special }
                                  { char ?                                   }
                                  if (s[length(s)]='%') and
-                                    paramanager.ret_in_acc(current_procdef.rettype.def,current_procdef.proccalloption) and
+                                    (not paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption)) and
                                     ((pos('AX',upper(hs))>0) or
                                     (pos('AL',upper(hs))>0)) then
                                    tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
@@ -320,7 +320,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2003-05-01 07:59:43  florian
+  Revision 1.3  2003-05-13 19:15:28  peter
+    * removed radirect
+
+  Revision 1.2  2003/05/01 07:59:43  florian
     * introduced defaultordconsttype to decribe the default size of ordinal constants
       on 64 bit CPUs it's equal to cs64bitdef while on 32 bit CPUs it's equal to s32bitdef
     + added defines CPU32 and CPU64 for 32 bit and 64 bit CPUs
