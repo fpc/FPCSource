@@ -803,6 +803,8 @@ procedure testmodqword;
        do_error(2302);
      if (q1 mod q3) mod q2<>q5 then
        do_error(2303);
+     if q1 mod q2<>q1 then
+       do_error(2308);
 
      { a more complex expression }
      if (q2 mod q4) mod (q1 mod q3)<>(q1 mod q3) mod (q2 mod q4) then
@@ -1029,7 +1031,7 @@ procedure testcritical;
   var
      a : array[0..10,0..10,0..10] of qword;
      i,j,k : longint;
-     d1,d2 : double;
+     d1,d2 : extended;
      q1,q2 : qword;
      i1,i2 : int64;
 
