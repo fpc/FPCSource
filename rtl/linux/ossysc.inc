@@ -398,6 +398,12 @@ type
 {$define OLDMMAP}
 {$endif cpuarm}
 
+const
+  { Constansts for MMAP }
+  MAP_PRIVATE   =2;
+  MAP_ANONYMOUS =$20;
+
+
 Function Fpmmap(adr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;off:off_t):pointer;  [public, alias : 'FPC_SYSC_MMAP'];
 // OFF_T procedure, and returns a pointer, NOT cint.
 
@@ -493,11 +499,6 @@ end;
 {$ENDIF}
 
 CONST
-
-  { Constansts for MMAP }
-  MAP_PRIVATE   =2;
-  MAP_ANONYMOUS =$20;
-
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
   {$ifdef PowerPC}
   IOCtl_TCGETS=$402c7413;
@@ -505,15 +506,6 @@ CONST
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
   {$endif}
 
-
-Function sbrk(size : longint) : pointer;
-begin
-  sbrk:=Fpmmap(nil,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
-  if sbrk=pointer(-1) then
-    sbrk:=nil
-  else
-    seterrno(0);
-end;
 
 Function Do_IsDevice(Handle:THandle):boolean;
 {
@@ -533,7 +525,10 @@ end;
 
 {
  $Log$
- Revision 1.32  2005-01-31 20:13:24  peter
+ Revision 1.33  2005-02-06 12:16:52  peter
+   * bsd thread updates
+
+ Revision 1.32  2005/01/31 20:13:24  peter
    * rt_sigaction for all cpus
 
  Revision 1.31  2005/01/31 19:22:48  peter

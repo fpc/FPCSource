@@ -600,7 +600,7 @@ begin
   if SynchronizeMethodProc = nil then
     { raise some error? }
     exit;
-  rtleventsync(systhrds.trtlmethod(method),synchronizemethodproc);
+  rtleventsync(trtlmethod(method),synchronizemethodproc);
 {
   EnterCriticalSection(SynchronizeCritSect);
   SynchronizeMethod := Method;
@@ -624,7 +624,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2004-12-23 15:08:58  marco
+  Revision 1.12  2005-02-06 12:16:52  peter
+    * bsd thread updates
+
+  Revision 1.11  2004/12/23 15:08:58  marco
    * 2nd synchronize attempt. cthreads<->systhrds difference was not ok, but
      only showed on make install should be fixed now.
 

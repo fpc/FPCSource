@@ -16,38 +16,29 @@
 
  **********************************************************************}
 
-
-{*****************************************************************************
-      OS Memory allocation / deallocation
- ****************************************************************************}
-
-function SysOSAlloc(size: ptrint): pointer;
-begin
-  result:=Fpmmap(nil,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
-  if result=pointer(-1) then
-    result:=nil
-  else
-    seterrno(0);
-end;
-
-{$define HAS_SYSOSFREE}
-
-procedure SysOSFree(p: pointer; size: ptrint);
-begin
-  fpmunmap(p, size);
-end;
-
-
+{Platform specific information}
+type
+  { fd are int in C also for 64bit targets (x86_64) }
+  THandle = Longint;
+  
+  { pthread_mutex_t }
+  PRTLCriticalSection = ^TRTLCriticalSection;
+  TRTLCriticalSection = record
+    __m_reserved: longint;
+    __m_count: longint;
+    __m_owner: pointer;
+    __m_kind:  longint;
+    __m_lock:  record
+       __status: sizeint;
+      __spinlock: longint;
+    end;  
+  end;
 
 
 {
    $Log$
-   Revision 1.2  2005-02-06 12:16:52  peter
+   Revision 1.1  2005-02-06 12:16:52  peter
      * bsd thread updates
-
-   Revision 1.1  2005/02/06 11:20:52  peter
-     * threading in system unit
-     * removed systhrds unit
 
 }
 

@@ -85,10 +85,6 @@ Const
   fs_proc     = $9fa0;
   fs_xia      = $012FD16D;
 
-  { Constansts for MMAP }
-  MAP_PRIVATE   =2;
-  MAP_ANONYMOUS =$1000;
-
   {Constansts Termios/Ioctl (used in Do_IsDevice) }
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
 
@@ -111,7 +107,10 @@ type
 
 {
   $Log$
-  Revision 1.1  2003-05-20 23:56:40  florian
+  Revision 1.2  2005-02-06 12:16:52  peter
+    * bsd thread updates
+
+  Revision 1.1  2003/05/20 23:56:40  florian
     * basic setup; derived from FreeBSD and Linux
 
   Revision 1.7  2002/09/07 16:01:17  peter

@@ -23,7 +23,7 @@
 
 function SysOSAlloc(size: ptrint): pointer;
 begin
-  result:=Fpmmap(nil,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
+  result:=Fpmmap(nil,cardinal(Size),3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
   if result=pointer(-1) then
     result:=nil
   else
@@ -42,12 +42,8 @@ end;
 
 {
    $Log$
-   Revision 1.2  2005-02-06 12:16:52  peter
+   Revision 1.1  2005-02-06 12:16:52  peter
      * bsd thread updates
-
-   Revision 1.1  2005/02/06 11:20:52  peter
-     * threading in system unit
-     * removed systhrds unit
 
 }
 

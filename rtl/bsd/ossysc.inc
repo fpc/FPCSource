@@ -146,6 +146,7 @@ end;
  {$DEFINE FPC_LITTLE_ENDIAN}
 {$endif}
 
+
 Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer; [public, alias:  'FPC_SYSC_MMAP'];
 
 begin
@@ -612,32 +613,20 @@ begin
 end;
 
 
-CONST
- { Constansts for MMAP }
-  MAP_PRIVATE   =2;
-  MAP_ANONYMOUS =$1000;
-
-Function sbrk(size : cint) : pointer;
-begin
-  sbrk:=Fpmmap(nil,cardinal(Size),3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
-  if sbrk=pointer(-1) then
-    sbrk:=nil
-  else
-    seterrno(0);
-end;
-
-
 
 {
  $Log$
- Revision 1.20  2004-11-14 12:21:08  marco
+ Revision 1.21  2005-02-06 12:16:52  peter
+   * bsd thread updates
+
+ Revision 1.20  2004/11/14 12:21:08  marco
   * moved some calls from unix to baseunix. Darwin untested.
 
  Revision 1.19  2004/07/18 11:32:24  marco
   * small 1.0.x fix to earlier patch
 
  Revision 1.18  2004/07/17 16:02:58  marco
-  * generalised the {$ifdef cpu_i386} ..powerpc stuff to FPC_BIG_ENDIAN and
+  * generalised the $ifdef cpu_i386 ..powerpc stuff to FPC_BIG_ENDIAN and
  FPC_LITTLE_ENDIAN
 
  Revision 1.17  2004/02/06 20:47:00  jonas

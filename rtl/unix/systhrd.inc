@@ -25,7 +25,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2005-02-06 11:20:52  peter
+  Revision 1.1  2005-02-06 12:16:52  peter
+    * bsd thread updates
+
+  Revision 1.1  2005/02/06 11:20:52  peter
     * threading in system unit
     * removed systhrds unit
 

@@ -64,10 +64,19 @@ Const
   S_IFWHT = 57344;
   S_ISVTX = 512;
 
+CONST
+ { Constansts for MMAP }
+  MAP_PRIVATE   =2;
+  MAP_ANONYMOUS =$1000;
+
+
 
 {
  $Log$
- Revision 1.6  2004-12-02 11:22:11  marco
+ Revision 1.7  2005-02-06 12:16:52  peter
+   * bsd thread updates
+
+ Revision 1.6  2004/12/02 11:22:11  marco
   * tz_ prefixed for timezone
 
  Revision 1.5  2003/09/27 13:45:58  peter

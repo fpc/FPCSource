@@ -48,114 +48,7 @@ CONST SIGSTKSZ = 40960;
 
 Implementation
 
-{$ifdef FPC_USE_LIBC}
-
-const clib = 'c';
-
-type libcint=longint;
-     plibcint=^libcint;
-
-{$ifdef FreeBSD} // tested on x86
-function geterrnolocation: Plibcint; cdecl;external clib name '__error';
-{$else}
-{$ifdef NetBSD} // from a sparc dump.
-function geterrnolocation: Plibcint; cdecl;external clib name '__errno';
-{$else}
-{$ifdef Darwin}
-function geterrnolocation: Plibcint; cdecl;external clib name '__error';
-{$else}
-{$ifdef OpenBSD}
-
-var libcerrno : libcint; cvar;
-
-function geterrnolocation: Plibcint; cdecl;
-
-begin
- geterrnolocation:=@libcerrno;
-end;
-
-{$else}
-{$endif}
-{$endif}
-{$endif}
-{$endif}
-
-function geterrno:libcint; [public, alias: 'FPC_SYS_GETERRNO'];
-
-begin
- geterrno:=geterrnolocation^;
-end;
-
-procedure seterrno(err:libcint); [public, alias: 'FPC_SYS_SETERRNO'];
-begin
-  geterrnolocation^:=err;
-end;
-
-{$else}
-{$ifdef ver1_0}
-Var
-{$else}
-threadvar
-{$endif}
-      Errno : longint;
-
-function geterrno:longint; [public, alias: 'FPC_SYS_GETERRNO'];
-
-begin
- GetErrno:=Errno;
-end;
-
-procedure seterrno(err:longint); [public, alias: 'FPC_SYS_SETERRNO'];
-
-begin
- Errno:=err;
-end;
-{$endif}
-
-{ OS independant parts}
-
 {$I system.inc}
-
-{*****************************************************************************
-      OS Memory allocation / deallocation
- ****************************************************************************}
-
-{ OS dependant parts  }
-
-{$I errno.inc}
-{$I bunxtype.inc}
-{$I ossysc.inc}
-{$I osmain.inc}
-
-function SysOSAlloc(size: ptrint): pointer;
-begin
-  result := sbrk(size);
-end;
-
-{$define HAS_SYSOSFREE}
-
-procedure SysOSFree(p: pointer; size: ptrint);
-begin
-  fpmunmap(p, size);
-end;
-
-
-{$I text.inc}
-{$I heap.inc}
-
-
-{*****************************************************************************
-                           UnTyped File Handling
-*****************************************************************************}
-
-
-{$i file.inc}
-
-{*****************************************************************************
-                           Typed File Handling
-*****************************************************************************}
-
-{$i typefile.inc}
 
 procedure SysInitStdIO;
 begin
@@ -197,20 +90,19 @@ Begin
   IsLibrary := FALSE;
   StackLength := InitialStkLen;
   StackBottom := Sptr - StackLength;
-{ Set up signals handlers }
+  { Set up signals handlers }
   InstallSignals;
-{ Setup heap }
+  { Setup heap }
   InitHeap;
   SysInitExceptions;
-{ Arguments }
+  { Arguments }
   SetupCmdLine;
-{ Setup stdin, stdout and stderr }
+  { Setup stdin, stdout and stderr }
   SysInitStdIO;
-{ Reset IO Error }
+  { Reset IO Error }
   InOutRes:=0;
-(* This should be changed to a real value during *)
-(* thread driver initialization if appropriate.  *)
-  ThreadID := 1;
+  { threading }
+  InitSystemThreads;
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
@@ -221,7 +113,10 @@ End.
 
 {
   $Log$
-  Revision 1.22  2005-02-01 20:22:49  florian
+  Revision 1.23  2005-02-06 12:16:52  peter
+    * bsd thread updates
+
+  Revision 1.22  2005/02/01 20:22:49  florian
     * improved widestring infrastructure manager
 
   Revision 1.21  2004/12/05 14:36:37  hajny
