@@ -166,6 +166,7 @@ function ChangeRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
 {$endif UseDUP}
       ChangeRedir:=True;
 {$endif}
+     RedirChanged:=True;
   end;
 
 function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
@@ -201,6 +202,7 @@ function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolea
 {$endif UseDUP}
       ChangeErrorRedir:=True;
 {$endif}
+     RedirErrorChanged:=True;
   end;
 
 {............................................................................}
@@ -300,7 +302,7 @@ Begin
   IOStatus:=0;
 {$ifdef in_dos}
   if RedirStdOut<>'' then
-    RedirChanged:=ChangeRedir(RedirStdOut,false);
+    ChangeRedir(RedirStdOut,false);
   if RedirStdErr<>'stderr' then
     RedirErrorChanged:=ChangeErrorRedir(RedirStdErr,false);
   DosExecute(ProgName,ComLine);
