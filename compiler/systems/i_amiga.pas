@@ -90,18 +90,88 @@ unit i_amiga;
             use_function_relative_addresses : true
           );
 
+       system_powerpc_amiga_info : tsysteminfo =
+          (
+            system       : system_powerpc_Amiga;
+            name         : 'AmigaOS for PowerPC';
+            shortname    : 'amigappc';
+            flags        : [];
+            cpu          : cpu_powerpc;
+            unit_env     : '';
+            extradefines : '';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.library';
+            staticlibext : '.a';
+            staticlibprefix : 'lib';
+            sharedlibprefix : '';
+            sharedClibext : '.library';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : '';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            script       : script_amiga;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                recordalignmin  : 0;
+                recordalignmax  : 4;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 262144;
+            DllScanSupported:false;
+            use_function_relative_addresses : true
+          );
+
   implementation
 
 initialization
-{$ifdef cpu68}
+{$ifdef CPU68}
   {$ifdef AMIGA}
     set_source_info(system_m68k_Amiga_info);
-  {$endif amiga}
-{$endif cpu68}
+  {$endif AMIGA}
+{$endif CPU68}
+{$ifdef CPUPOWERPC}
+  {$ifdef AMIGA}
+//    set_source_info(system_powerpc_Amiga_info);
+  {$endif AMIGA}
+{$endif CPUPOWERPC}
 end.
 {
   $Log$
-  Revision 1.6  2004-10-25 15:38:41  peter
+  Revision 1.7  2005-02-03 03:54:06  karoly
+  t_morph.pas
+
+  Revision 1.6  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

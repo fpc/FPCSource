@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 2004 by Free Pascal Development Team
 
-    This unit implements support import,export,link routines
+    This unit implements support import, export, link routines
     for the MorphOS (PowerPC) target
 
     This program is free software; you can redistribute it and/or modify
@@ -46,6 +46,16 @@ implementation
           function  MakeExecutable:boolean; override;
        end;
 
+{$IFDEF MORPHOS}
+{ * PathConv is implemented in the system unit! * }
+function PathConv(path: string): string; external name 'PATHCONV';
+{$ELSE}
+function PathConv(path: string): string;
+begin
+  PathConv:=path;
+end;
+{$ENDIF}
+
 {****************************************************************************
                                TLinkerMorphOS
 ****************************************************************************}
@@ -64,11 +74,10 @@ begin
   with Info do
    begin
      if (cs_link_on_target in aktglobalswitches) then begin
-        ExeCmd[1]:='ld $OPT -o $EXE --script $RES';
-        ExeCmd[2]:='strip --strip-unneeded --remove-section .comment $EXE';
-     end else begin
         ExeCmd[1]:='ld $OPT -o $EXE $RES';
         ExeCmd[2]:='strip --strip-unneeded --remove-section .comment $EXE';
+     end else begin
+        ExeCmd[1]:='fpcvlink -b elf32amiga $OPT $STRIP -o $EXE -F $RES';
      end;
    end;
 end;
@@ -86,49 +95,79 @@ begin
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  
+  if (cs_link_on_target in aktglobalswitches) then begin
 
-  { Write path to search libraries }
-  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
-  while assigned(HPath) do
-   begin
-     s:=HPath.Str;
-     if (cs_link_on_target in aktglobalswitches) then
+    { Write path to search libraries }
+    HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
+    while assigned(HPath) do
+     begin
+       s:=HPath.Str;
+       if (cs_link_on_target in aktglobalswitches) then
        s:=ScriptFixFileName(s);
      LinkRes.Add('-L'+s);
      HPath:=TStringListItem(HPath.Next);
-   end;
-  HPath:=TStringListItem(LibrarySearchPath.First);
-  while assigned(HPath) do
-   begin
-     s:=HPath.Str;
-     if s<>'' then
-       LinkRes.Add('SEARCH_DIR('+maybequoted(s)+')');
-     HPath:=TStringListItem(HPath.Next);
-   end;
+    end;
+    HPath:=TStringListItem(LibrarySearchPath.First);
+    while assigned(HPath) do
+     begin
+       s:=HPath.Str;
+       if s<>'' then
+         LinkRes.Add('SEARCH_DIR('+maybequoted(s)+')');
+       HPath:=TStringListItem(HPath.Next);
+     end;
 
-  LinkRes.Add('INPUT (');
-  { add objectfiles, start with prt0 always }
-  s:=FindObjectFile('prt0','',false);
-  LinkRes.AddFileName(s);
-  while not ObjectFiles.Empty do
-   begin
-     s:=ObjectFiles.GetFirst;
-     if s<>'' then
-      LinkRes.AddFileName(maybequoted(s));
-   end;
-  LinkRes.Add(')');
+    LinkRes.Add('INPUT (');
+    { add objectfiles, start with prt0 always }
+    s:=FindObjectFile('prt0','',false);
+    LinkRes.AddFileName(s);
+    while not ObjectFiles.Empty do
+     begin
+       s:=ObjectFiles.GetFirst;
+       if s<>'' then 
+        begin
+         LinkRes.AddFileName(maybequoted(s));
+        end;
+     end;
+    LinkRes.Add(')');
 
-  { Write staticlibraries }
-  if not StaticLibFiles.Empty then
-   begin
-     LinkRes.Add('GROUP(');
-     While not StaticLibFiles.Empty do
-      begin
-        S:=StaticLibFiles.GetFirst;
-        LinkRes.AddFileName(maybequoted(s));
-      end;
-     LinkRes.Add(')');
-   end;
+    { Write staticlibraries }
+    if not StaticLibFiles.Empty then
+     begin
+       LinkRes.Add('GROUP(');
+       While not StaticLibFiles.Empty do
+       begin
+         S:=StaticLibFiles.GetFirst;
+         LinkRes.AddFileName(maybequoted(s));
+       end;
+       LinkRes.Add(')');
+     end;
+
+  end else begin
+
+    { add objectfiles, start with prt0 always }
+    s:=FindObjectFile('prt0','',false);
+    LinkRes.AddFileName(s);
+    while not ObjectFiles.Empty do
+     begin
+       s:=ObjectFiles.GetFirst;
+       if s<>'' then 
+        begin
+         s:=FindObjectFile(s,'',false);
+         LinkRes.AddFileName(maybequoted(s));
+        end;
+     end;
+
+    if not StaticLibFiles.Empty then
+     begin
+       While not StaticLibFiles.Empty do
+       begin
+         S:=StaticLibFiles.GetFirst;
+         LinkRes.AddFileName(maybequoted(s));
+       end;
+     end;
+
+  end;
 
   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
     here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
@@ -170,31 +209,46 @@ var
   binstr,
   cmdstr  : string;
   success : boolean;
+  StripStr: string[40];
 begin
 
   if not(cs_link_extern in aktglobalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
+
+  if not (cs_link_on_target in aktglobalswitches) then begin
+    StripStr:='';
+    if (cs_link_strip in aktglobalswitches) then
+     StripStr:='-s -P __abox__';
+  end;
 
 { Write used files and libraries }
   WriteResponseFile(false);
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename^)));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
+  if not(cs_link_on_target in aktglobalswitches) then begin
+    Replace(cmdstr,'$EXE',PathConv(maybequoted(ScriptFixFileName(current_module.exefilename^))));
+    Replace(cmdstr,'$RES',PathConv(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+    Replace(cmdstr,'$STRIP',StripStr);
+  end else begin
+    Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename^)));
+    Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
+  end;
   success:=DoExec(FindUtil(BinStr),cmdstr,true,false);
 
 { Stripping Enabled? }
-  { Under MorphOS a separate strip command is needed, to avoid stripping }
+  { For MorphOS a separate strip command is needed, to avoid stripping }
   { __abox__ symbol, which is required to be present in current MorphOS }
   { executables. }
-  if success and (cs_link_strip in aktglobalswitches) then
-    begin
-      SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
-      Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
-      success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
-    end;
+  if (cs_link_on_target in aktglobalswitches) then begin
+    if success and (cs_link_strip in aktglobalswitches) then
+      begin
+        SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
+        Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
+        success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+      end;
+  end;
 
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
@@ -215,7 +269,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2004-12-23 18:45:23  jonas
+  Revision 1.11  2005-02-03 03:54:07  karoly
+  t_morph.pas
+
+  Revision 1.10  2004/12/23 18:45:23  jonas
     * fixed typo
 
   Revision 1.9  2004/12/22 16:32:46  peter

@@ -3,7 +3,7 @@
     Copyright (c) 2001-2002 by Peter Vreman
 
     This unit implements support import,export,link routines
-    for the (i386) Amiga target
+    for the (m68k/powerpc) Amiga target
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,7 +44,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2004-06-20 08:55:32  florian
+  Revision 1.3  2005-02-03 03:54:07  karoly
+  t_morph.pas
+
+  Revision 1.2  2004/06/20 08:55:32  florian
     * logs truncated
 
 }
