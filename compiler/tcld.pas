@@ -427,6 +427,9 @@ implementation
             end;
          end;
         calcregisters(p,0,0,0);
+        { looks a little bit dangerous to me                }
+        { len-1 gives problems with is_open_array if len=0, }
+        { is_open_array checks now for isconstructor (FK)   }
         p^.resulttype:=new(parraydef,init(0,len-1,s32bitdef));
         parraydef(p^.resulttype)^.definition:=pd;
         parraydef(p^.resulttype)^.IsConstructor:=true;
@@ -449,7 +452,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1999-05-17 23:51:45  peter
+  Revision 1.30  1999-05-19 10:31:55  florian
+    * two bugs reported by Romio (bugs 13) are fixed:
+        - empty array constructors are now handled correctly (e.g. for sysutils.format)
+        - comparsion of ansistrings was sometimes coded wrong
+
+  Revision 1.29  1999/05/17 23:51:45  peter
     * with temp vars now use a reference with a persistant temp instead
       of setting datasize
 

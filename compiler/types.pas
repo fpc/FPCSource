@@ -286,7 +286,8 @@ implementation
       begin
          is_open_array:=(p^.deftype=arraydef) and
                         (parraydef(p)^.lowrange=0) and
-                        (parraydef(p)^.highrange=-1);
+                        (parraydef(p)^.highrange=-1) and
+                        not(is_array_constructor(p));
       end;
 
 
@@ -810,7 +811,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  1999-05-18 14:16:01  peter
+  Revision 1.61  1999-05-19 10:31:56  florian
+    * two bugs reported by Romio (bugs 13) are fixed:
+        - empty array constructors are now handled correctly (e.g. for sysutils.format)
+        - comparsion of ansistrings was sometimes coded wrong
+
+  Revision 1.60  1999/05/18 14:16:01  peter
     * containsself fixes
     * checktypes()
 

@@ -196,6 +196,7 @@ implementation
                    ltn,lten,gtn,gten,
                    equaln,unequaln:
                      begin
+                        cmpop:=true;
                         secondpass(p^.left);
                         pushed:=maybe_push(p^.right^.registers32,p);
                         secondpass(p^.right);
@@ -2028,7 +2029,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  1999-05-18 21:58:22  florian
+  Revision 1.59  1999-05-19 10:31:53  florian
+    * two bugs reported by Romio (bugs 13) are fixed:
+        - empty array constructors are now handled correctly (e.g. for sysutils.format)
+        - comparsion of ansistrings was sometimes coded wrong
+
+  Revision 1.58  1999/05/18 21:58:22  florian
     * fixed some bugs related to temp. ansistrings and functions results
       which return records/objects/arrays which need init/final.
 

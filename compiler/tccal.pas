@@ -76,8 +76,16 @@ implementation
                  p^.hightree:=genloadnode(pvarsym(srsym),st);
                end
               else
-               len:=parraydef(p^.left^.resulttype)^.highrange-
-                    parraydef(p^.left^.resulttype)^.lowrange;
+                begin
+                   { this is an empty constructor
+                   if (parraydef(p^.left^.resulttype)^.highrange=-1)
+                     and (parraydef(p^.left^.resulttype)^.lowrange=0) then
+                     len:=0
+                   else
+                   }
+                     len:=parraydef(p^.left^.resulttype)^.highrange-
+                       parraydef(p^.left^.resulttype)^.lowrange;
+                end;
             end;
           stringdef :
             begin
@@ -113,8 +121,8 @@ implementation
         else
           len:=0;
         end;
-        if len>=0 then
-          p^.hightree:=genordinalconstnode(len,s32bitdef);
+        { if len>=0 then }
+        p^.hightree:=genordinalconstnode(len,s32bitdef);
         firstpass(p^.hightree);
       end;
 
@@ -1156,7 +1164,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  1999-05-18 21:58:33  florian
+  Revision 1.45  1999-05-19 10:31:54  florian
+    * two bugs reported by Romio (bugs 13) are fixed:
+        - empty array constructors are now handled correctly (e.g. for sysutils.format)
+        - comparsion of ansistrings was sometimes coded wrong
+
+  Revision 1.44  1999/05/18 21:58:33  florian
     * fixed some bugs related to temp. ansistrings and functions results
       which return records/objects/arrays which need init/final.
 
