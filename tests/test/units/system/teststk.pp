@@ -1,3 +1,7 @@
+{$ifdef linux}
+  {$define nocheck}
+{$endif}
+
 {$S+}
 
 { This tests the stack checking routine on those }
@@ -12,12 +16,17 @@ procedure recursive;
 
 
 Begin
+{$ifndef nocheck}
   Recursive;
+{$endif}
 end.
 
 {
   $Log$
-  Revision 1.1  2001-12-10 02:41:41  carl
+  Revision 1.2  2002-01-19 12:37:12  peter
+    * no checking for linux
+
+  Revision 1.1  2001/12/10 02:41:41  carl
   + initial version of stack checking routines
 
 }
