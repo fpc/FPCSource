@@ -62,7 +62,7 @@ Uses BaseUnix,unix;
 
 CONST PTHREAD_EXPLICIT_SCHED       = 0;
       PTHREAD_CREATE_DETACHED      = 1;
-      PTHREAD_SCOPE_PROCESS    	   = 0;
+      PTHREAD_SCOPE_PROCESS        = 0;
 
  TYPE
     pthread_t       = pointer;
@@ -87,6 +87,7 @@ function  pthread_attr_setscope      (p : ppthread_attr_t;i:cint):cint;cdecl;ext
 function  pthread_attr_setdetachstate (p : ppthread_attr_t;i:cint):cint;cdecl;external;
 function  pthread_create ( p: ppthread_t;attr : ppthread_attr_t;f:__startroutine_t;arg:pointer):cint;cdecl;external;
 procedure pthread_exit  ( p: pointer); cdecl;external;
+function  pthread_self:cint; cdecl;external;
 function  pthread_mutex_init (p:ppthread_mutex_t;o:ppthread_mutex_attr_t):cint; cdecl;external;
 function  pthread_mutex_destroy (p:ppthread_mutex_attr_t):cint; cdecl;external;
 function  pthread_mutex_lock    (p:ppthread_mutex_attr_t):cint; cdecl;external;
@@ -158,11 +159,11 @@ CONST
 
     procedure SysReleaseThreadVars;
       begin
-	{$ifdef ver1_0}
+        {$ifdef ver1_0}
         Fpmunmap(longint(pthread_getspecific(tlskey)),threadvarblocksize);
-	{$else}
+        {$else}
         Fpmunmap(pointer(pthread_getspecific(tlskey)),threadvarblocksize);
-	{$endif}
+        {$endif}
       end;
 
 { Include OS independent Threadvar initialization }
@@ -303,7 +304,7 @@ CONST
 
     function  GetCurrentThreadHandle : dword;
     begin
-      {$Warning ThreadGetPriority needs to be implemented}
+      GetCurrentThreadHandle:=dword(pthread_self);
     end;
 
 
@@ -384,7 +385,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2003-09-20 12:38:29  marco
+  Revision 1.14  2003-10-01 20:53:08  peter
+    * GetCurrentThreadId implemented
+
+  Revision 1.13  2003/09/20 12:38:29  marco
    * FCL now compiles for FreeBSD with new 1.1. Now Linux.
 
   Revision 1.12  2003/09/16 13:17:03  marco
