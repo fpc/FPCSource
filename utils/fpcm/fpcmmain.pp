@@ -56,11 +56,11 @@ interface
         c_i386,c_m68k,c_powerpc,c_sparc,c_x86_64
       );
       TCpuSet=set of TCpu;
-      
+
       TTarget=(
         t_linux,t_go32v2,t_win32,t_os2,t_freebsd,t_beos,t_netbsd,
         t_amiga,t_atari, t_sunos, t_qnx, t_netware, t_openbsd,t_wdosx,
-        t_palmos,t_macos,t_macosx,t_emx
+        t_palmos,t_macos,t_darwin,t_emx
       );
       TTargetSet=set of TTarget;
 
@@ -68,21 +68,21 @@ interface
       CpuStr : array[TCpu] of string=(
         'i386','m68k','powerpc','sparc','x86_64'
       );
-      
+
       CpuSuffix : array[TCpu] of string=(
         '_i386','_m68k','_powerpc','_sparc','_x86_64'
       );
-      
+
       TargetStr : array[TTarget] of string=(
         'linux','go32v2','win32','os2','freebsd','beos','netbsd',
         'amiga','atari','sunos', 'qnx', 'netware','openbsd','wdosx',
-        'palmos','macos','macosx','emx'
+        'palmos','macos','darwin','emx'
       );
 
       TargetSuffix : array[TTarget] of string=(
         '_linux','_go32v2','_win32','_os2','_freebsd','_beos','_netbsd',
         '_amiga','_atari','_sunos', '_qnx', '_netware','_openbsd','_wdosx',
-        '_palmos','_macos','_macosx','_emx'
+        '_palmos','_macos','_darwin','_emx'
       );
 
       TargetCpuPossible : array[TTarget,TCpu] of boolean = (
@@ -106,7 +106,7 @@ interface
         { macosx }  ( false, false, true,  false, false ),
         { emx }     ( true,  false, false, false, false )
       );
-      
+
     type
       TKeyValueItem = class(TDictionaryItem)
       private
@@ -1003,7 +1003,7 @@ implementation
                 begin
 		  result:=true;
 		  exit;
-	        end; 
+	        end;
             end;
         end;
 
@@ -1035,7 +1035,7 @@ implementation
 	    for c:=low(TCpu) to high(TCpu) do
              if (TargetCpuPossible[t,c]) and (c in FIncludeCpus) then
               LoadRequires(t,c,self);
-	  end;    
+	  end;
       end;
 
 
@@ -1112,7 +1112,7 @@ implementation
                          Result:=true;
                          exit;
                        end;
-		    end;   
+		    end;
                  end;
              end;
           end;
@@ -1554,7 +1554,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2003-04-24 23:21:01  peter
+  Revision 1.32  2003-05-20 23:54:45  florian
+    + darwin support added
+
+  Revision 1.31  2003/04/24 23:21:01  peter
     * support different cpu target
 
   Revision 1.30  2003/03/23 23:18:26  hajny
