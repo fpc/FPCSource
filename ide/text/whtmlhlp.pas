@@ -219,7 +219,7 @@ begin
   if InBody then
     begin
       if (InPreFormatted) or (C<>#32) or (LastTextChar<>C) then
-      if (C<>#32) or (AnyCharsInLine=true) then
+      if (C<>#32) or (AnyCharsInLine=true) or (InPreFormatted=true) then
         begin
           AddChar(C);
           LastTextChar:=C;
@@ -480,7 +480,7 @@ begin
   if (Topic=nil) or (TextPtr=MaxBytes) then Exit;
   Topic^.Text^[TextPtr]:=ord(C);
   Inc(TextPtr);
-  if (C>#15) and (C<>' ') then
+  if (C>#15) and ((C<>' ') or (InPreFormatted=true)) then
     AnyCharsInLine:=true;
 end;
 

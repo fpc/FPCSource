@@ -71,6 +71,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       AutoSaveOptions  : longint = asEnvironment+asDesktop;
       MiscOptions      : longint = moChangeDirOnOpen+moCloseOnGotoSource;
       EditorModified   : boolean = false;
+      SleepTimeOut     : longint = trunc(10*18.2);
 
       ActionCommands   : array[acFirstAction..acLastAction] of word =
         (cmHelpTopicSearch,cmGotoCursor,cmToggleBreakpoint,
@@ -85,7 +86,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.22  1999-08-16 18:25:25  peter
+  Revision 1.23  1999-09-13 11:44:00  peter
+    * fixes from gabor, idle event, html fix
+
+  Revision 1.22  1999/08/16 18:25:25  peter
     * Adjusting the selection when the editor didn't contain any line.
     * Reserved word recognition redesigned, but this didn't affect the overall
       syntax highlight speed remarkably (at least not on my Amd-K6/350).

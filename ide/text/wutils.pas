@@ -91,6 +91,8 @@ function DirAndNameOf(const S: string): string;
 
 function EatIO: integer;
 
+procedure GiveUpTimeSlice;
+
 const LastStrToIntResult : integer = 0;
       DirSep             : char    = {$ifdef Linux}'/'{$else}'\'{$endif};
 
@@ -417,10 +419,34 @@ begin
   S^.Write(Buf,Count);
 end;
 
+procedure GiveUpTimeSlice;
+{$ifdef GO32V2}{$define DOS}{$endif}
+{$ifdef TP}{$define DOS}{$endif}
+{$ifdef DOS}
+var r: registers;
+begin
+  r.ax:=$1680;
+  intr($2f,r);
+end;
+{$endif}
+{$ifdef Linux}
+begin
+end;
+{$endif}
+{$ifdef Win32}
+begin
+end;
+{$endif}
+{$undef DOS}
+
+
 END.
 {
   $Log$
-  Revision 1.6  1999-08-24 22:01:48  pierre
+  Revision 1.7  1999-09-13 11:44:00  peter
+    * fixes from gabor, idle event, html fix
+
+  Revision 1.6  1999/08/24 22:01:48  pierre
    * readlnfromstream length check added
 
   Revision 1.5  1999/08/03 20:22:45  peter

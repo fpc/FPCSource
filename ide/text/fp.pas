@@ -113,7 +113,9 @@ begin
   RegisterFPCompile;
   RegisterFPTools;
   RegisterFPViews;
-  RegisterFPDebugViews; 
+{$ifndef NODEBUG}
+  RegisterFPDebugViews;
+{$endif}
   RegisterMenus;
   RegisterStdDlg;
   RegisterSymbols;
@@ -196,7 +198,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.30  1999-08-22 22:24:15  pierre
+  Revision 1.31  1999-09-13 11:43:59  peter
+    * fixes from gabor, idle event, html fix
+
+  Revision 1.30  1999/08/22 22:24:15  pierre
    * avoid objpas paramstr functions
 
   Revision 1.29  1999/08/03 20:22:25  peter

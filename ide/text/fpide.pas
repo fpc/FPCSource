@@ -37,6 +37,7 @@ type
       procedure   Idle; virtual;
       procedure   Update;
       procedure   UpdateTarget;
+      procedure   GetEvent(var Event: TEvent); virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   GetTileRect(var R: TRect); virtual;
       function    GetPalette: PPalette; virtual;
@@ -116,6 +117,7 @@ type
       procedure RemoveRecentFile(Index: integer);
     private
       SaveCancelled: boolean;
+      LastEvent: longint;
       procedure CurDirChanged;
       procedure UpdatePrimaryFile;
       procedure UpdateINIFile;
@@ -400,6 +402,16 @@ procedure TIDEApp.Idle;
 begin
   inherited Idle;
   Message(Application,evIdle,0,nil);
+end;
+
+procedure TIDEApp.GetEvent(var Event: TEvent);
+begin
+  inherited GetEvent(Event);
+  if Event.What<>evNothing then
+    LastEvent:=GetDosTicks
+  else
+    if abs(GetDosTicks-LastEvent)>SleepTimeOut then
+      GiveUpTimeSlice;
 end;
 
 procedure TIDEApp.HandleEvent(var Event: TEvent);
@@ -827,7 +839,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.36  1999-09-09 14:15:27  pierre
+  Revision 1.37  1999-09-13 11:44:00  peter
+    * fixes from gabor, idle event, html fix
+
+  Revision 1.36  1999/09/09 14:15:27  pierre
    + cmCopyWin,cmPasteWin
 
   Revision 1.35  1999/08/16 18:25:19  peter
