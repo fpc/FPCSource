@@ -385,6 +385,13 @@ unit pstatmnt;
                            withsymtable^.root:=obj^.publicsyms^.root;
                            withsymtable^.defowner:=obj;
                            symtab:=withsymtable;
+{$ifndef NODIRECTWITH}
+                           if (p^.treetype=loadn) and
+                              (p^.symtable=aktprocsym^.definition^.localst) then
+                             pwithsymtable(symtab)^.direct_with:=true;
+                           {symtab^.withnode:=p; not yet allocated !! }
+                           pwithsymtable(symtab)^.withrefnode:=p;
+{$endif ndef NODIRECTWITH}
                            levelcount:=1;
                            obj:=obj^.childof;
                            while assigned(obj) do
@@ -1284,7 +1291,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.73  1999-04-06 11:21:57  peter
+  Revision 1.74  1999-04-09 12:22:06  pierre
+   * bug found by Peter for DirectWith code fixed
+
+  Revision 1.73  1999/04/06 11:21:57  peter
     * more use of ttoken
 
   Revision 1.72  1999/03/31 13:55:15  peter
