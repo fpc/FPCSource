@@ -583,6 +583,8 @@ begin
      if not FindNextFile (F.FindHandle,F.W32FindData) then
       begin
         DosError:=Last2DosError(GetLastError);
+        if DosError=2 then
+         DosError:=18;
         exit;
       end;
    end;
@@ -607,6 +609,8 @@ begin
   If longint(F.FindHandle)=Invalid_Handle_value then
    begin
      DosError:=Last2DosError(GetLastError);
+     if DosError=2 then
+      DosError:=18;
      exit;
    end;
 { Find file with correct attribute }
@@ -621,6 +625,8 @@ begin
   if not FindNextFile (F.FindHandle,F.W32FindData) then
    begin
      DosError:=Last2DosError(GetLastError);
+     if DosError=2 then
+      DosError:=18;
      exit;
    end;
 { Find file with correct attribute }
@@ -812,11 +818,15 @@ procedure getftime(var f;var time : longint);
 var
    ft : TFileTime;
 begin
+  doserror:=0;
   if GetFileTime(filerec(f).Handle,nil,nil,@ft) and
      WinToDosTime(ft,time) then
     exit
   else
-    time:=0;
+    begin
+      DosError:=Last2DosError(GetLastError);
+      time:=0;
+    end;
 end;
 
 
@@ -824,9 +834,12 @@ procedure setftime(var f;time : longint);
 var
   ft : TFileTime;
 begin
-  if DosToWinTime(time,ft) then
-   if not SetFileTime(filerec(f).Handle,nil,nil,@ft) then;
-  DosError:=Last2DosError(GetLastError);
+  doserror:=0;
+  if DosToWinTime(time,ft) and
+     SetFileTime(filerec(f).Handle,nil,nil,@ft) then
+   exit
+  else
+   DosError:=Last2DosError(GetLastError);
 end;
 
 
@@ -1037,7 +1050,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2002-12-15 20:23:53  peter
+  Revision 1.18  2002-12-24 15:35:15  peter
+    * error code fixes
+
+  Revision 1.17  2002/12/15 20:23:53  peter
     * map error 87 to 13 to be compatible with dos
 
   Revision 1.16  2002/12/04 21:35:50  carl

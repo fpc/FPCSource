@@ -161,6 +161,8 @@ CONST
 {   A pipe has been closed on the other end }
 {   Removing that error allows eof to works as on other OSes }
     ERROR_BROKEN_PIPE = 109;
+    ERROR_DIR_NOT_EMPTY = 145;
+    ERROR_ALREADY_EXISTS = 183;
 
 {$IFDEF SUPPORT_THREADVAR}
 threadvar
@@ -188,21 +190,25 @@ var
    Procedure Errno2InOutRes;
    Begin
      { DO NOT MODIFY UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING }
-     if (errno >= ERROR_WRITE_PROTECT) and (errno <= ERROR_GEN_FAILURE) THEN
-       BEGIN
-          { This is the offset to the Win32 to add to directly map  }
-          { to the DOS/TP compatible error codes when in this range }
-          InOutRes := word(errno)+131;
-       END
-     else
-     { This case is special }
-     if errno=ERROR_SHARING_VIOLATION THEN
-       BEGIN
-         InOutRes :=5;
-       END
-     else
-     { other error codes can directly be mapped }
-         InOutRes := Word(errno);
+     case Errno of
+       ERROR_WRITE_PROTECT..ERROR_GEN_FAILURE :
+         begin
+           { This is the offset to the Win32 to add to directly map  }
+           { to the DOS/TP compatible error codes when in this range }
+           InOutRes := word(errno)+131;
+         end;
+       ERROR_DIR_NOT_EMPTY,
+       ERROR_ALREADY_EXISTS,
+       ERROR_SHARING_VIOLATION :
+         begin
+           InOutRes :=5;
+         end;
+       else
+         begin
+           { other error codes can directly be mapped }
+           InOutRes := Word(errno);
+         end;
+     end;
      errno:=0;
    end;
 
@@ -307,7 +313,8 @@ end;
      external 'kernel32' name 'SetEndOfFile';
    function GetFileType(Handle:DWORD):DWord;
      external 'kernel32' name 'GetFileType';
-
+   function GetFileAttributes(p : pchar) : dword;
+     external 'kernel32' name 'GetFileAttributesA';
 
 procedure AllowSlash(p:pchar);
 var
@@ -338,6 +345,11 @@ begin
    if DeleteFile(p)=0 then
     Begin
       errno:=GetLastError;
+      if errno=5 then
+       begin
+         if (GetFileAttributes(p)=FILE_ATTRIBUTE_DIRECTORY) then
+          errno:=2;
+       end;
       Errno2InoutRes;
     end;
 end;
@@ -623,6 +635,8 @@ begin
   If (s='') or (InOutRes <> 0) then
    exit;
   dirfn(TDirFnType(@SetCurrentDirectory),s);
+  if Inoutres=2 then
+   Inoutres:=3;
 end;
 
 procedure GetDir (DriveNr: byte; var Dir: ShortString);
@@ -893,7 +907,7 @@ begin
   { call exitprocess, with cleanup as required }
   asm
     xorl %eax, %eax
-    movw exitcode,%ax    
+    movw exitcode,%ax
     call asm_exit
   end;
 end;
@@ -1505,7 +1519,10 @@ end.
 
 {
   $Log$
-  Revision 1.38  2002-12-07 13:58:45  carl
+  Revision 1.39  2002-12-24 15:35:15  peter
+    * error code fixes
+
+  Revision 1.38  2002/12/07 13:58:45  carl
     * fix warnings
 
   Revision 1.37  2002/11/30 18:17:35  carl
