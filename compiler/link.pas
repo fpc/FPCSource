@@ -232,6 +232,12 @@ begin
      i:=Pos(target_info.dllext,S);
      if i>0 then
       Delete(S,i,255);
+   {OS/2 linker supports -l, but not for import libraries.
+    For now, this fix should do it, as we don't support other libraries yet
+    but we need to think of something better.}
+   if target_info.target=target_OS2 then
+     writeln(linkresponse,s)
+   else
      Writeln (LinkResponse,'-l'+S);
    end;
 
@@ -361,7 +367,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-03-30 09:50:49  michael
+  Revision 1.3  1998-04-16 10:54:30  daniel
+  * Fixed linking for OS/2.
+
+  Revision 1.2  1998/03/30 09:50:49  michael
   + fix for library support.
 
   Revision 1.1.1.1  1998/03/25 11:18:13  root
