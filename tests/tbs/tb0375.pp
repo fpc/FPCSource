@@ -1,5 +1,5 @@
 { %VERSION=1.1 }
-{$mode objfpc}
+{$ifdef fpc}{$mode objfpc}{$endif}
 
 type
    i1 = interface

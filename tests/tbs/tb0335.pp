@@ -4,7 +4,7 @@
 var
    a : array[0..5] of byte;
 
-function f : longint;assembler;
+function f : byte;assembler;
 
   asm
     mov ebx,offset a
