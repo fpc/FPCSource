@@ -28,7 +28,13 @@ begin
   test1;
   test2(x,y);
   if (x<>1) or (y<>2) then
-    Writeln('Error with interrupt');
+    begin
+      Writeln('Error with interrupt');
+      Halt(1);
+    end;
   if test3<>55 then
-    Writeln('Error with interrupt function');
+    begin
+      Writeln('Error with interrupt function');
+      Halt(1);
+    end;
 end.
