@@ -253,9 +253,9 @@ PROCEDURE SetTime (Hour, Minute, Second, Sec100: Word);
      MOVB Minute, %CL;                                { Fetch minute }
      MOVB Second, %DH;                                { Fetch second }
      MOVB Sec100, %DL;                                { Fetch hundredths }
-     MOVW $0x2D00H, %AX;                              { Set function id }
+     MOVW $0x2D00, %AX;                               { Set function id }
      PUSHL %EBP;                                      { Save register }
-     INT $0x21H;                                      { BIOS set time }
+     INT $0x21;                                       { BIOS set time }
      POPL %EBP;                                       { Restore register }
    END;
    END;
@@ -339,9 +339,9 @@ PROCEDURE GetTime (Var Hour, Minute, Second, Sec100: Word);
    {$IFDEF ASM_FPC}                                   { FPC COMPATABLE ASM }
    BEGIN
    ASM
-     MOVW $0x2C00H, %AX;                              { Set function id }
+     MOVW $0x2C00, %AX;                               { Set function id }
      PUSHL %EBP;                                      { Save register }
-     INT $0x21H;                                      { System get time }
+     INT $0x21;                                       { System get time }
      POPL %EBP;                                       { Restore register }
      XORB %AH, %AH;                                   { Clear register }
      MOVB %DL, %AL;                                   { Transfer register }
@@ -438,7 +438,10 @@ END.
 
 {
  $Log$
- Revision 1.3  2001-05-04 08:42:56  pierre
+ Revision 1.4  2001-05-04 09:04:08  pierre
+  * fix dos assembler problem
+
+ Revision 1.3  2001/05/04 08:42:56  pierre
   * some corrections for linux
 
  Revision 1.2  2000/08/24 12:00:22  marco
