@@ -772,9 +772,8 @@ implementation
          end
         else
          begin
-           { call by value open array ? }
-           if (calloption in [pocall_cdecl,pocall_cppdecl]) and
-              paramanager.push_addr_param(p.resulttype.def,calloption) then
+           { copy the value on the stack or use normal parameter push? }
+           if paramanager.copy_value_on_stack(p.resulttype.def,calloption) then
             begin
               if not (p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                 internalerror(200204241);
@@ -1876,7 +1875,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.63  2002-11-25 17:43:18  peter
+  Revision 1.64  2002-11-27 02:33:19  peter
+    * copy_value_on_stack method added for cdecl record passing
+
+  Revision 1.63  2002/11/25 17:43:18  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -54,15 +54,19 @@ unit paramgr;
 
           function push_high_param(def : tdef;calloption : tproccalloption) : boolean;virtual;
 
-          {# Returns true if a parameter is too large to copy and only
+          { Returns true if a parameter is too large to copy and only
             the address is pushed
           }
           function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;virtual;
-          {# Returns a structure giving the information on
-             the storage of the parameter (which must be
-             an integer parameter)
+          { Returns true if a parameter needs to be copied on the stack, this
+            is required for cdecl procedures
+          }
+          function copy_value_on_stack(def : tdef;calloption : tproccalloption) : boolean;
+          { Returns a structure giving the information on
+            the storage of the parameter (which must be
+            an integer parameter)
 
-             @param(nr Parameter number of routine, starting from 1)
+            @param(nr Parameter number of routine, starting from 1)
           }
           function getintparaloc(nr : longint) : tparalocation;virtual;abstract;
           procedure create_param_loc_info(p : tabstractprocdef);virtual;abstract;
@@ -181,6 +185,42 @@ unit paramgr;
                push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tsetdef(def).settype<>smallset);
            end;
          end;
+      end;
+
+
+    { true if a parameter is too large to copy and only the address is pushed }
+    function tparamanager.copy_value_on_stack(def : tdef;calloption : tproccalloption) : boolean;
+      begin
+        copy_value_on_stack:=false;
+        { this is only for cdecl procedures }
+        if not(calloption in [pocall_cdecl,pocall_cppdecl]) then
+         exit;
+        case def.deftype of
+          variantdef,
+          formaldef :
+            copy_value_on_stack:=true;
+          recorddef :
+            copy_value_on_stack:=(def.size>pointer_size);
+          arraydef :
+            copy_value_on_stack:=(
+                              (tarraydef(def).highrange>=tarraydef(def).lowrange) and
+                               (
+                                not(target_info.system=system_i386_win32) or
+                                (def.size>pointer_size)
+                               )
+                             ) or
+                             is_open_array(def) or
+                             is_array_of_const(def) or
+                             is_array_constructor(def);
+          objectdef :
+            copy_value_on_stack:=is_object(def);
+          stringdef :
+            copy_value_on_stack:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
+          procvardef :
+            copy_value_on_stack:=(po_methodpointer in tprocvardef(def).procoptions);
+          setdef :
+            copy_value_on_stack:=(tsetdef(def).settype<>smallset);
+        end;
       end;
 
 
@@ -339,7 +379,10 @@ end.
 
 {
    $Log$
-   Revision 1.24  2002-11-25 17:43:21  peter
+   Revision 1.25  2002-11-27 02:33:19  peter
+     * copy_value_on_stack method added for cdecl record passing
+
+   Revision 1.24  2002/11/25 17:43:21  peter
      * splitted defbase in defutil,symutil,defcmp
      * merged isconvertable and is_equal into compare_defs(_ext)
      * made operator search faster by walking the list only once
