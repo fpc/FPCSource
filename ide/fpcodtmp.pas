@@ -415,7 +415,9 @@ begin
         CodeTemplates^.Lookup(AShortCut,true,StartIdx)
       else
         StartIdx:=-1;
-    end;
+    end
+  else
+    StartIdx:=-1;
   R2.Copy(R); R2.Move(0,-1); R2.B.Y:=R2.A.Y+1; Dec(R2.A.X);
   Insert(New(PLabel, Init(R2, label_codetemplate_templates, CodeTemplatesLB)));
 
@@ -642,7 +644,10 @@ END.
 
 {
  $Log$
- Revision 1.4  2002-09-09 06:23:02  pierre
+ Revision 1.5  2003-01-16 14:53:18  pierre
+  * avoid crash if opening empty Code Template dialog
+
+ Revision 1.4  2002/09/09 06:23:02  pierre
   + header and log added
 
 
