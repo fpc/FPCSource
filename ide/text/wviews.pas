@@ -781,6 +781,7 @@ begin
   while assigned(Cur) and (Cur^.Command<>cm) do
     begin
       if (Cur^.Command=0) and assigned(Cur^.SubMenu) and
+         assigned(Cur^.Name) and
          assigned(Cur^.SubMenu^.Items) then
         {subMenu}
         begin
@@ -801,13 +802,21 @@ begin
           else if assigned(Up) then
             begin
               Cur:=Up^.next;
+              NUp:=Up;
               Up:=Up^.Up;
+              Dispose(NUp);
             end
           else
             Cur:=Nil;
         end;
     end;
   GetMenuItem:=Cur;
+  While assigned(Up) do
+    begin
+      NUp:=Up;
+      Up:=Up^.up;
+      Dispose(NUp);
+    end;
 end;
 
 procedure TAdvancedMenuBar.HandleEvent(var Event: TEvent);
@@ -2060,7 +2069,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  1999-06-25 00:30:34  pierre
+  Revision 1.8  1999-06-28 12:29:56  pierre
+   *GetMenuItem fixed
+
+  Revision 1.7  1999/06/25 00:30:34  pierre
    + TAdvancedMenuBar.GetMenuItem(by command number)
 
   Revision 1.6  1999/04/07 21:56:07  peter
