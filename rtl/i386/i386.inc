@@ -425,10 +425,15 @@ asm
         movl    %esp,%esi
       { Save Register}
         pushal
+{$ifdef valuegetmem}
+        { esi can be destroyed in fpc_getmem!!! (JM) }
+        pushl   %esi
+{$endif valuegetmem}
       { Memory size }
         pushl   (%eax)
 {$ifdef valuegetmem}
         call    fpc_getmem
+        popl    %esi
         movl    %eax,(%esi)
 {$else valuegetmem}
         pushl   %esi
@@ -1170,7 +1175,10 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.22  2002-04-21 18:56:59  peter
+  Revision 1.23  2002-06-09 12:54:37  jonas
+    * fixed memory corruption bug in fpc_help_constructor
+
+  Revision 1.22  2002/04/21 18:56:59  peter
     * fpc_freemem and fpc_getmem compilerproc
 
   Revision 1.21  2002/04/01 14:23:17  carl
