@@ -277,18 +277,23 @@ end;
 procedure setftime(var f;time : longint);
 
 begin
-    asm
-        {Load handle}
-        movl f,%ebx
-        movw (%ebx),%bx
-        movl time,%ecx
-        shldl $16,%ecx,%edx
-        {Set date}
-        movw $0x5701,%ax
-        call syscall
-        xorb %ah,%ah
-        movw %ax,doserror
-    end;
+    if os_mode = osOS2 then
+        begin
+{!!! Must be done differently for OS/2 !!!}
+        end
+    else
+        asm
+            {Load handle}
+            movl f,%ebx
+            movw (%ebx),%bx
+            movl time,%ecx
+            shldl $16,%ecx,%edx
+            {Set date}
+            movw $0x5701,%ax
+            call syscall
+            xorb %ah,%ah
+            movw %ax,doserror
+        end;
 end;
 
 procedure msdos(var regs:registers);
@@ -543,18 +548,22 @@ end;
 procedure setdate(year,month,day : word);
 
 begin
-    {DOS only! You cannot change the system date in OS/2!}
-    asm
-        movw 8(%ebp),%cx
-        movb 10(%ebp),%dh
-        movb 12(%ebp),%dl
-        movb $0x2b,%ah
-        call syscall
+    if os_mode = osOS2 then
+        begin
+{TODO: !!! Must be done differently for OS/2 !!!}
+        end
+    else
+        asm
+            movw 8(%ebp),%cx
+            movb 10(%ebp),%dh
+            movb 12(%ebp),%dl
+            movb $0x2b,%ah
+            call syscall
 (* SetDate isn't supposed to change DosError!!!
-        xorb %ah,%ah
-        movw %ax,doserror
+            xorb %ah,%ah
+            movw %ax,doserror
 *)
-    end;
+        end;
 end;
 
 procedure gettime(var hour,minute,second,sec100:word);
@@ -1174,7 +1183,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2000-05-28 18:20:16  hajny
+  Revision 1.26  2000-06-01 18:38:46  hajny
+    * warning about SetDate added (TODO)
+
+  Revision 1.25  2000/05/28 18:20:16  hajny
     * DiskFree/DiskSize updated
 
   Revision 1.24  2000/05/21 16:06:38  hajny
