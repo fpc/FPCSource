@@ -2198,6 +2198,7 @@ implementation
          p1,p2 : tnode;
          oldafterassignment : boolean;
          oldp1 : tnode;
+         oldblock_type : tblock_type;
          filepos : tfileposinfo;
 
       begin
@@ -2217,7 +2218,12 @@ implementation
            _POINTPOINT :
              begin
                 consume(_POINTPOINT);
+                { we are now parsing a const so switch the
+                  blocksize. This is delphi compatible }
+                oldblock_type:=block_type;
+                block_type:=bt_const;
                 p2:=sub_expr(opcompare,true);
+                block_type:=oldblock_type;
                 p1:=crangenode.create(p1,p2);
              end;
            _ASSIGNMENT :
@@ -2260,6 +2266,9 @@ implementation
                p1:=cassignmentnode.create(p1,caddnode.create(slashn,p1.getcopy,p2));
             end;
          end;
+         { get the resulttype for this expression }
+         if not assigned(p1.resulttype.def) then
+          do_resulttypepass(p1);
          afterassignment:=oldafterassignment;
          if p1<>oldp1 then
            p1.set_tree_filepos(filepos);
@@ -2280,8 +2289,7 @@ implementation
       if not codegenerror then
        begin
          if (p.nodetype<>ordconstn) or
-            (p.resulttype.def.deftype<>orddef) or
-            (torddef(p.resulttype.def).typ in [uvoid,uchar,bool8bit,bool16bit,bool32bit]) then
+            not(is_integer(p.resulttype.def)) then
           Message(cg_e_illegal_expression)
          else
           get_intconst:=tordconstnode(p).value;
@@ -2313,7 +2321,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2001-05-19 21:15:53  peter
+  Revision 1.35  2001-06-04 11:45:35  peter
+    * parse const after .. using bt_const block to allow expressions, this
+      is Delphi compatible
+
+  Revision 1.34  2001/05/19 21:15:53  peter
     * allow typenodes for typeinfo and typeof
     * tp procvar fixes for properties
 
