@@ -413,6 +413,7 @@ const
     procedure dir_define(t:tdirectivetoken);
       var
         hs  : string;
+        bracketcount : longint;
         mac : pmacrosym;
         macropos : longint;
         macrobuffer : pmacrobuffer;
@@ -454,17 +455,27 @@ const
                     begin
                        new(macrobuffer);
                        macropos:=0;
-                       { first char }
-                       current_scanner^.readchar;
-                       while (c<>'}') do
-                         begin
-                            macrobuffer^[macropos]:=c;
-                            current_scanner^.readchar;
-                            if c=#26 then Message(scan_f_end_of_file);
-                            inc(macropos);
-                            if macropos>maxmacrolen then
-                             Message(scan_f_macro_buffer_overflow);
+                       { parse macro, brackets are counted so it's possible
+                         to have a $ifdef etc. in the macro }
+                       bracketcount:=0;
+                       repeat
+                         current_scanner^.readchar;
+                         case c of
+                           '}' :
+                             if (bracketcount=0) then
+                              break
+                             else
+                              dec(bracketcount);
+                           '{' :
+                             inc(bracketcount);
+                           #26 :
+                             current_scanner^.end_of_file;
                          end;
+                         macrobuffer^[macropos]:=c;
+                         inc(macropos);
+                         if macropos>maxmacrolen then
+                          Message(scan_f_macro_buffer_overflow);
+                       until false;
                        { free buffer of macro ?}
                        if assigned(mac^.buftext) then
                          freemem(mac^.buftext,mac^.buflen);
@@ -628,7 +639,7 @@ const
             Message1(scan_w_include_env_not_found,path);
            { make it a stringconst }
            hs:=''''+hs+'''';
-           current_scanner^.insertmacro(@hs[1],length(hs));
+           current_scanner^.insertmacro(path,@hs[1],length(hs));
          end
         else
          begin
@@ -1146,7 +1157,10 @@ const
 
 {
   $Log$
-  Revision 1.63  1999-09-20 16:39:02  peter
+  Revision 1.64  1999-09-27 23:38:17  peter
+    * bracket support for macro define
+
+  Revision 1.63  1999/09/20 16:39:02  peter
     * cs_create_smart instead of cs_smartlink
     * -CX is create smartlink
     * -CD is create dynamic, but does nothing atm.
