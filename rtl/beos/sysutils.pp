@@ -235,6 +235,7 @@ end;
 
 Procedure InitInternational;
 begin
+  InitInternationalGeneric;
   InitAnsi;
 end;
 
@@ -323,7 +324,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.11  2005-02-14 17:13:21  peter
+  Revision 1.12  2005-02-26 14:38:14  florian
+    + SysLocale
+
+  Revision 1.11  2005/02/14 17:13:21  peter
     * truncate log
 
 }

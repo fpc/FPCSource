@@ -856,6 +856,7 @@ end;
 
 Procedure InitInternational;
 begin
+  InitInternationalGeneric;
   InitAnsi;
 end;
 
@@ -1105,7 +1106,10 @@ end.
 {
 
   $Log$
-  Revision 1.57  2005-02-14 17:13:31  peter
+  Revision 1.58  2005-02-26 14:38:14  florian
+    + SysLocale
+
+  Revision 1.57  2005/02/14 17:13:31  peter
     * truncate log
 
    * getenv had ansistring as param due to {$H+} now shortstring.

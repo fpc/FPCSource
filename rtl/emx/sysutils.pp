@@ -1045,34 +1045,35 @@ var Country: TCountryCode;
     Size: cardinal;
     RC: cardinal;
 begin
-    Size := 0;
-    FillChar (Country, SizeOf (Country), 0);
-    FillChar (CtryInfo, SizeOf (CtryInfo), 0);
-    RC := DosQueryCtryInfo (SizeOf (CtryInfo), Country, CtryInfo, Size);
-    if RC = 0 then
-        begin
-            DateSeparator := CtryInfo.DateSeparator;
-            case CtryInfo.DateFormat of
-             1: begin
-                    ShortDateFormat := 'd/m/y';
-                    LongDateFormat := 'dd" "mmmm" "yyyy';
-                end;
-             2: begin
-                    ShortDateFormat := 'y/m/d';
-                    LongDateFormat := 'yyyy" "mmmm" "dd';
-                end;
-             3: begin
-                    ShortDateFormat := 'm/d/y';
-                    LongDateFormat := 'mmmm" "dd" "yyyy';
-                end;
-            end;
-            TimeSeparator := CtryInfo.TimeSeparator;
-            DecimalSeparator := CtryInfo.DecimalSeparator;
-            ThousandSeparator := CtryInfo.ThousandSeparator;
-            CurrencyFormat := CtryInfo.CurrencyFormat;
-            CurrencyString := PChar (CtryInfo.CurrencyUnit);
-        end;
-    InitAnsi;
+  Size := 0;
+  FillChar (Country, SizeOf (Country), 0);
+  FillChar (CtryInfo, SizeOf (CtryInfo), 0);
+  RC := DosQueryCtryInfo (SizeOf (CtryInfo), Country, CtryInfo, Size);
+  if RC = 0 then
+      begin
+          DateSeparator := CtryInfo.DateSeparator;
+          case CtryInfo.DateFormat of
+           1: begin
+                  ShortDateFormat := 'd/m/y';
+                  LongDateFormat := 'dd" "mmmm" "yyyy';
+              end;
+           2: begin
+                  ShortDateFormat := 'y/m/d';
+                  LongDateFormat := 'yyyy" "mmmm" "dd';
+              end;
+           3: begin
+                  ShortDateFormat := 'm/d/y';
+                  LongDateFormat := 'mmmm" "dd" "yyyy';
+              end;
+          end;
+          TimeSeparator := CtryInfo.TimeSeparator;
+          DecimalSeparator := CtryInfo.DecimalSeparator;
+          ThousandSeparator := CtryInfo.ThousandSeparator;
+          CurrencyFormat := CtryInfo.CurrencyFormat;
+          CurrencyString := PChar (CtryInfo.CurrencyUnit);
+      end;
+  InitAnsi;
+  InitInternationalGeneric;
 end;
 
 function SysErrorMessage(ErrorCode: Integer): String;
@@ -1222,7 +1223,10 @@ end.
 
 {
   $Log$
-  Revision 1.19  2005-02-14 17:13:22  peter
+  Revision 1.20  2005-02-26 14:38:14  florian
+    + SysLocale
+
+  Revision 1.19  2005/02/14 17:13:22  peter
     * truncate log
 
 }

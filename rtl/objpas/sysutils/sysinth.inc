@@ -128,9 +128,25 @@ Const
   { Currency notation. Default is $ for dollars. }
   CurrencyString : String[7] = '$';
 
+type
+  TSysLocale = record
+    case byte of
+      { win32 names }
+      1 : (FarEast: boolean; MiddleEast: Boolean);
+      { real meaning }
+      2 : (MBCS : boolean; RightToLeft: Boolean);
+  end;
+
+var
+  SysLocale : TSysLocale;
+
+
 {
   $Log$
-  Revision 1.2  2005-02-14 17:13:31  peter
+  Revision 1.3  2005-02-26 14:38:14  florian
+    + SysLocale
+
+  Revision 1.2  2005/02/14 17:13:31  peter
     * truncate log
 
 }

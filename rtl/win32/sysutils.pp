@@ -610,6 +610,9 @@ end;
 
 Procedure InitInternational;
 begin
+  InitInternationalGeneric;
+  SysLocale.MBCS:=GetSystemMetrics(SM_DBCSENABLED)<>0;
+  SysLocale.RightToLeft:=GetSystemMetrics(SM_MIDEASTENABLED)<>0;  
   InitAnsi;
   GetFormatSettings;
 end;
@@ -988,8 +991,6 @@ begin
 end;
 
 
-
-
 Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
@@ -1005,7 +1006,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.40  2005-02-14 17:13:32  peter
+  Revision 1.41  2005-02-26 14:38:14  florian
+    + SysLocale
+
+  Revision 1.40  2005/02/14 17:13:32  peter
     * truncate log
 
 }

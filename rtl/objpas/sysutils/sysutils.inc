@@ -64,6 +64,9 @@
   { Read pchar handling functions implementation }
   {$i syspch.inc}
 
+  { generic internationalisation code }
+  {$i sysint.inc}
+
   { MCBS functions }
   {$i sysansi.inc}
 
