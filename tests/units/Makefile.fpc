@@ -8,7 +8,7 @@
 fpcpackage=y
 
 [clean]
-units = erroru win32err ptest
+units = erroru popuperr ptest
 
 [compiler]
 targetdir=$(FULL_TARGET)
@@ -57,10 +57,8 @@ erroru$(PPUEXT) : erroru.pp
 ptest$(PPUEXT) : ../test/cg/ptest.pp
         $(TESTCOMPILER) ../test/cg/ptest.pp
 
-ifeq ($(OS_TARGET),win32)
-win32err$(PPUEXT) : win32err.pp
-        $(TESTCOMPILER) win32err.pp
-endif
+popuperr$(PPUEXT) : popuperr.pp
+        $(TESTCOMPILER) popuperr.pp
 
 ifdef CCOMPILER
 ../test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o : ../test/cg/obj/ctest.c
@@ -68,11 +66,8 @@ ifdef CCOMPILER
 endif
 
 
-extra : erroru$(PPUEXT) ptest$(PPUEXT) ../test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o
+extra : erroru$(PPUEXT) ptest$(PPUEXT) popuperr$(PPUEXT) ../test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o
 
-ifeq ($(OS_TARGET),win32)
-extra : win32err$(PPUEXT)
-endif
 
 
 #############################
