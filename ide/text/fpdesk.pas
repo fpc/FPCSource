@@ -18,7 +18,7 @@ unit FPDesk;
 interface
 
 const
-     DesktopVersion     = $0005; { <- if you change any Load&Store methods,
+     DesktopVersion     = $0006; { <- if you change any Load&Store methods,
                                       default object properties (Options,State)
                                       then you should also change this }
 
@@ -30,6 +30,8 @@ const
      ResBreakpoints     = 'BREAKPOINTS';
      ResDesktop         = 'DESKTOP';
      ResSymbols         = 'SYMBOLS';
+     ResCodeComplete    = 'CODECOMPLETE';
+     ResCodeTemplates   = 'CODETEMPLATES';
 
 procedure InitDesktopFile;
 function  LoadDesktop: boolean;
@@ -48,7 +50,8 @@ uses Dos,
 {$ifndef NODEBUG}
      fpdebug,
 {$endif ndef NODEBUG}
-     FPConst,FPVars,FPUtils,FPViews,FPCompile,FPTools,FPHelp;
+     FPConst,FPVars,FPUtils,FPViews,FPCompile,FPTools,FPHelp,
+     FPCodCmp,FPCodTmp;
 
 procedure InitDesktopFile;
 begin
@@ -354,6 +357,82 @@ begin
   WriteFlags:=OK;
 end;
 
+function ReadCodeComplete(F: PResourceFile): boolean;
+var S: PMemoryStream;
+    OK: boolean;
+    R: PResource;
+begin
+  PushStatus('Reading CodeComplete wordlist...');
+  New(S, Init(1024,1024));
+  OK:=F^.ReadResourceEntryToStream(resCodeComplete,langDefault,S^);
+  S^.Seek(0);
+  if OK then
+    OK:=LoadCodeComplete(S^);
+  Dispose(S, Done);
+  if OK=false then
+    ErrorBox('Error loading CodeComplete wordlist',nil);
+  PopStatus;
+  ReadCodeComplete:=OK;
+end;
+
+function WriteCodeComplete(F: PResourceFile): boolean;
+var OK: boolean;
+    S: PMemoryStream;
+begin
+  PushStatus('Writing CodeComplete wordlist...');
+  New(S, Init(1024,1024));
+  OK:=StoreCodeComplete(S^);
+  if OK then
+  begin
+    S^.Seek(0);
+    F^.CreateResource(resCodeComplete,rcBinary,0);
+    OK:=F^.AddResourceEntryFromStream(resCodeComplete,langDefault,0,S^,S^.GetSize);
+  end;
+  Dispose(S, Done);
+  if OK=false then
+    ErrorBox('Error writing CodeComplete wordlist',nil);
+  PopStatus;
+  WriteCodeComplete:=OK;
+end;
+
+function ReadCodeTemplates(F: PResourceFile): boolean;
+var S: PMemoryStream;
+    OK: boolean;
+    R: PResource;
+begin
+  PushStatus('Reading CodeTemplates...');
+  New(S, Init(1024,4096));
+  OK:=F^.ReadResourceEntryToStream(resCodeTemplates,langDefault,S^);
+  S^.Seek(0);
+  if OK then
+    OK:=LoadCodeTemplates(S^);
+  Dispose(S, Done);
+  if OK=false then
+    ErrorBox('Error loading CodeTemplates wordlist',nil);
+  PopStatus;
+  ReadCodeTemplates:=OK;
+end;
+
+function WriteCodeTemplates(F: PResourceFile): boolean;
+var OK: boolean;
+    S: PMemoryStream;
+begin
+  PushStatus('Writing CodeTemplates...');
+  New(S, Init(1024,4096));
+  OK:=StoreCodeTemplates(S^);
+  if OK then
+  begin
+    S^.Seek(0);
+    F^.CreateResource(resCodeTemplates,rcBinary,0);
+    OK:=F^.AddResourceEntryFromStream(resCodeTemplates,langDefault,0,S^,S^.GetSize);
+  end;
+  Dispose(S, Done);
+  if OK=false then
+    ErrorBox('Error writing CodeTemplates',nil);
+  PopStatus;
+  WriteCodeTemplates:=OK;
+end;
+
 function ReadFlags(F: PResourceFile): boolean;
 var
   size : sw_word;
@@ -397,9 +476,11 @@ end;
 function ReadSymbols(F: PResourceFile): boolean;
 var S: PMemoryStream;
     OK: boolean;
+    R: PResource;
 begin
   { if no symbols stored ... no problems }
-  if not Assigned(F^.FindResource(resSymbols)) then
+  R:=F^.FindResource(resSymbols);
+  if not Assigned(R) then
     exit;
   PushStatus('Reading symbol information...');
   New(S, Init(32*1024,4096));
@@ -470,6 +551,10 @@ begin
     { no errors if no browser info available PM }
     if ((DesktopFileFlags and dfSymbolInformation)<>0) then
       OK:=OK and ReadSymbols(F);
+    if ((DesktopFileFlags and dfCodeCompleteWords)<>0) then
+      OK:=OK and ReadCodeComplete(F);
+    if ((DesktopFileFlags and dfCodeTemplates)<>0) then
+      OK:=OK and ReadCodeTemplates(F);
     Dispose(F, Done);
   end;
 
@@ -508,6 +593,10 @@ begin
       { no errors if no browser info available PM }
       if ((DesktopFileFlags and dfSymbolInformation)<>0) then
         OK:=OK and (WriteSymbols(F) or not Assigned(Modules));
+      if ((DesktopFileFlags and dfCodeCompleteWords)<>0) then
+        OK:=OK and WriteCodeComplete(F);
+      if ((DesktopFileFlags and dfCodeTemplates)<>0) then
+        OK:=OK and WriteCodeTemplates(F);
       Dispose(F, Done);
     end;
   if OK then
@@ -558,7 +647,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.20  2000-02-04 00:12:57  pierre
+  Revision 1.21  2000-02-07 11:55:27  pierre
+   + Code Complete and Template saving
+
+  Revision 1.20  2000/02/04 00:12:57  pierre
    * Breakpoint are marked in source at desktop loading
 
   Revision 1.19  2000/01/25 00:26:36  pierre
