@@ -180,7 +180,7 @@ begin
            ptxt^:=#0;
            inc(ptxt);
            s1:=upper(copy(s,1,i-1));
-           crc:=UpdateCRC32(crc,@s1[1],length(s1));
+           crc:=UpdateCRC32(crc,s1[1],length(s1));
 {$ifdef DEBUGCRC}
            Writeln(f2,s1);
            Writeln(f2,crc);
@@ -315,7 +315,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2000-05-15 14:07:33  pierre
+  Revision 1.14  2000-05-23 20:32:11  peter
+    * fixed wrong code not detected due a bug in FPC
+
+  Revision 1.13  2000/05/15 14:07:33  pierre
    + calculate CRC value and check if consistant
 
   Revision 1.12  2000/03/01 22:29:18  peter
