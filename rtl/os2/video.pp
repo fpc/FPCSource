@@ -187,6 +187,14 @@ begin
 end;
 
 
+procedure SysClearScreen;
+
+begin
+  VioScrollDn (0, 0, word (-1), word (-1), word (-1), PWord (@EmptyCell)^, 0);
+  FillWord (SysVideoBuf^, VideoBufSize shr 1, PWord (@EmptyCell)^);
+end;
+
+
 procedure SysDoneVideo;
 
 var PScr: pointer;
@@ -194,7 +202,7 @@ var PScr: pointer;
 
 begin
   LastCursorType := GetCursorType;
-  ClearScreen;
+  SysClearScreen;
   {Restore original settings}
   VioSetMode (OrigVioMode, 0);
   CheckCellHeight;
@@ -253,7 +261,7 @@ begin
         SetHighBitBlink (true);
         CheckCellHeight;
         SetCursorType (LastCursorType);
-        ClearScreen;
+        SysClearScreen;
         end
       else
         begin
@@ -264,7 +272,7 @@ begin
         SetHighBitBlink (true);
         CheckCellHeight;
         SetCursorType (LastCursorType);
-        ClearScreen;
+        SysClearScreen;
         end
     else
       begin
@@ -340,14 +348,6 @@ Function SysGetVideoModeCount : Word;
 begin
   SysGetVideoModeCount:=SysVideoModeCount;
 end;
-
-procedure SysClearScreen;
-
-begin
-  VioScrollDn (0, 0, word (-1), word (-1), word (-1), PWord (@EmptyCell)^, 0);
-  Move (VideoBuf^, OldVideoBuf^, VideoBufSize);
-end;
-
 
 {$ASMMODE INTEL}
 
@@ -472,7 +472,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-09-13 20:58:58  hajny
+  Revision 1.12  2004-12-27 18:44:45  hajny
+    * fix for SIGSEGV when switching to higher resolution
+
+  Revision 1.11  2004/09/13 20:58:58  hajny
     * SysSetVideoMode corrected to reflect SysVideoModeSelector result
 
   Revision 1.10  2004/05/24 19:33:22  hajny
