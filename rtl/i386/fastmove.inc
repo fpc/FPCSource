@@ -27,7 +27,7 @@ Version: 1.40 - 16-SEP-2004
 
 {$ifndef VER1_0}
   {$if (FPC_VERSION>1) or ((FPC_RELEASE>=9) and (FPC_PATCH>6))}
-    {$define USE_FASTMOVE}
+    { $define USE_FASTMOVE}
   {$endif}
 {$endif}
 
