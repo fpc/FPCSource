@@ -27,10 +27,13 @@ uses
 
 {$i video.inc}
 
+
+Type TConsoleType = (ttyNetwork,ttyLinux,ttyFreeBSD,ttyNetBSD);
+
 var
   LastCursorType : byte;
   TtyFd: Longint;
-  Console: Boolean;
+  Console: TConsoleType;
 {$ifdef logging}
   f: file;
 
@@ -219,7 +222,7 @@ Begin
         exit;
       end;
    end;
-  if (x=1) and (oy+1=y) then
+  if ((x=1) and (oy+1=y)) and (console<>ttyfreebsd) then
    XY2Ansi:=#13#10
   else
    XY2Ansi:=#27'['+IntStr(y)+';'+IntStr(x)+'H';
@@ -310,7 +313,7 @@ var
   SpaceAttr,
   LastAttr : longint;
   p,pold   : pvideocell;
-
+  LastLineWidth : Longint;
 
 procedure TransformUsingACS(var st : string);
 var
@@ -348,6 +351,8 @@ end;
 
   procedure outdata(hstr:string);
   begin
+   If Length(HStr)>0 Then
+   Begin
     while (eol>0) do
      begin
        hstr:=#13#10+hstr;
@@ -370,6 +375,7 @@ end;
        fpWrite(TTYFd,outbuf,outptr);
        outptr:=0;
      end;
+    end;
   end;
 
   procedure OutClr(c:byte);
@@ -391,6 +397,25 @@ end;
     Spaces:=0;
   end;
 
+function GetTermString(ndx:word):String;
+var
+   P,pdelay: PChar;
+begin
+  GetTermString:='';
+  if not assigned(cur_term_Strings) then
+    exit{RunError(219)};
+  P:=cur_term_Strings^[Ndx];
+  if assigned(p) then
+   begin { Do not transmit the delays }
+     pdelay:=strpos(p,'$<');
+     if assigned(pdelay) then
+       pdelay^:=#0;
+     GetTermString:=StrPas(p);
+     if assigned(pdelay) then
+       pdelay^:='$';
+   end;
+end;
+
 begin
   OutPtr:=0;
   Eol:=0;
@@ -399,6 +424,7 @@ begin
   pold:=PVideoCell(OldVideoBuf);
 { init Attr, X,Y and set autowrap off }
   SendEscapeSeq(#27'[m'#27'[?7l'{#27'[H'} );
+//  1.0.x: SendEscapeSeq(#27'[m'{#27'[H'});
   LastAttr:=7;
   LastX:=-1;
   LastY:=-1;
@@ -406,7 +432,10 @@ begin
    begin
      SpaceAttr:=0;
      Spaces:=0;
-     for x:=1 to ScreenWidth do
+     LastLineWidth:=ScreenWidth;
+     If (y=ScreenHeight) And (Console=ttyFreeBSD) {And :am: is on} Then
+      LastLineWidth:=ScreenWidth-2;
+     for x:=1 to LastLineWidth do
       begin
         if (not force) and (p^=pold^) then
          begin
@@ -467,6 +496,27 @@ begin
       skipped:=true;
    end;
   eol:=0;
+ {if am in capabilities? Then}
+  If (Console=ttyFreeBSD) and (Plongint(p)^<>plongint(pold)^) Then
+   Begin
+    OutData(XY2Ansi(ScreenWidth,ScreenHeight,LastX,LastY));
+    OutData(#8);
+    {Output last char}
+    chattr:=tchattr(p[1]);
+    if LastAttr<>chattr.Attr then
+     OutClr(chattr.Attr);
+    OutData(chattr.ch);
+    inc(LastX);
+//    OutData(XY2Ansi(ScreenWidth-1,ScreenHeight,LastX,LastY));
+//   OutData(GetTermString(Insert_character));
+    OutData(#8+#27+'[1@');
+
+    chattr:=tchattr(p^);
+    if LastAttr<>chattr.Attr then
+     OutClr(chattr.Attr);
+    OutData(chattr.ch);
+    inc(LastX);
+   end;
   OutData(XY2Ansi(CursorX,CursorY,LastX,LastY));
 {$ifdef logging}
   blockwrite(f,logstart[1],length(logstart));
@@ -480,7 +530,7 @@ begin
   if InACS then
     SendEscapeSeqNdx(exit_alt_charset_mode);
  {turn autowrap on}
-  SendEscapeSeq(#27'[?7h');
+//  SendEscapeSeq(#27'[?7h');
 end;
 
 var
@@ -582,23 +632,31 @@ begin
      { write code to set a correct font }
      fpWrite(stdoutputhandle,fontstr[1],length(fontstr));
      { running on a tty, find out whether locally or remotely }
+     TTyfd:=-1;
+     Console:=TTyNetwork;  {Default: Network or other vtxxx tty}
      if (Copy(ThisTTY, 1, 8) = '/dev/tty') and
-        (ThisTTY[9] >= '0') and (ThisTTY[9] <= '9') then
+        not (ThisTTY[9] IN ['p'..'u','P']) then			// FreeBSD has these
       begin
         { running on the console }
-        FName:='/dev/vcsa' + ThisTTY[9];
-        TTYFd:=fpOpen(FName, Octal(666), Open_RdWr); { open console }
-      end
-     else
-      TTYFd:=-1;
-     if TTYFd<>-1 then
-      Console:=true
-     else
+        Case ThisTTY[9] of
+         '0'..'9' : begin { running Linux on native console or native-emulation }
+                     FName:='/dev/vcsa' + ThisTTY[9];
+                     TTYFd:=fpOpen(FName, Octal(666), Open_RdWr); { open console }
+                     IF TTYFd <>-1 Then
+                       Console:=ttyLinux;
+                    end;
+         'v'  :  { check for (Free?)BSD native}
+                If (ThisTTY[10]>='0') and (ThisTTY[10]<='9') Then
+                 Console:=ttyFreeBSD;   {TTYFd ?}
+         end;
+       end;
+     If (Copy(fpGetEnv('TERM'),1,4)='cons') Then		// cons<lines>
+       Console:=ttyFreeBSD;
+     If Console<>ttylinux Then
       begin
         { running on a remote terminal, no error with /dev/vcsa }
-        Console:=False;
         LowAscii:=false;
-        TTYFd:=stdoutputhandle;
+        //TTYFd:=stdoutputhandle;
       end;
      fpioctl(stdinputhandle, TIOCGWINSZ, @WS);
      if WS.ws_Col=0 then
@@ -613,9 +671,10 @@ begin
      ScreenHeight:=WS.ws_Row;
      CursorX:=1;
      CursorY:=1;
+     LastCursorType:=$ff;
      ScreenColor:=True;
      { Start with a clear screen }
-     if not Console then
+     if Console<>ttylinux then
       begin
         prev_term:=cur_term;
         setupterm(nil, stdoutputhandle, err);
@@ -625,6 +684,8 @@ begin
         SendEscapeSeqNdx(cursor_visible);
         SendEscapeSeqNdx(enter_ca_mode);
         SetCursorType(crUnderLine);
+        If Console=ttyFreeBSD Then
+	  SendEscapeSeqNdx(exit_am_mode);
       end
      else if not assigned(cur_term) then
        begin
@@ -661,7 +722,7 @@ end;
 procedure SysDoneVideo;
 begin
   prepareDoneVideo;
-  if Console then
+  if Console=ttylinux then
    SetCursorPos(1,1)
   else
    begin
@@ -675,7 +736,11 @@ begin
   ACSIn:='';
   ACSOut:='';
   doneVideoDone;
-  if can_delete_term then
+  { FreeBSD gives an error here.
+   According to Pierre this could be more a NCurses version thing that
+   a FreeBSD one. FreeBSD 4.4 has ncurses 5.
+   MvdV102003: Since I ran 1.1 with newer FreeBSD without problem, I let it be for now}
+  if can_delete_term then		
     begin
       del_curterm(cur_term);
       can_delete_term:=false;
@@ -688,7 +753,7 @@ end;
 
 procedure SysClearScreen;
 begin
-  if Console then
+  if Console=ttylinux then
     UpdateScreen(true)
   else
     begin
@@ -737,7 +802,7 @@ begin
    DoUpdate:=true;
   if not DoUpdate then
    exit;
-  if Console then
+  if Console=ttylinux then
    begin
      fplSeek(TTYFd, 4, Seek_Set);
      fpWrite(TTYFd, VideoBuf^,VideoBufSize);
@@ -761,7 +826,9 @@ procedure SysSetCursorPos(NewCursorX, NewCursorY: Word);
 var
   Pos : array [1..2] of Byte;
 begin
-  if Console then
+ if (CursorX=NewCursorX+1) and (CursorY=NewCursorY+1) then
+    exit;
+  if Console=ttylinux then
    begin
      fplSeek(TTYFd, 2, Seek_Set);
      Pos[1]:=NewCursorX;
@@ -786,22 +853,27 @@ end;
 
 procedure SysSetCursorType(NewType: Word);
 begin
+  If LastCursorType=NewType then
+   exit;
   LastCursorType:=NewType;
   case NewType of
    crBlock :
      Begin
        If not SendEscapeSeqNdx(cursor_visible) then
+        If Console<>ttyFreeBSD Then	// should be done only for linux?
          SendEscapeSeq(#27'[?17;0;64c');
      End;
    crHidden :
      Begin
        If not SendEscapeSeqNdx(cursor_invisible) then
+        If Console<>ttyFreeBSD Then
          SendEscapeSeq(#27'[?1c');
      End;
   else
     begin
       If not SendEscapeSeqNdx(cursor_normal) then
-        SendEscapeSeq(#27'[?2c');
+        If Console<>ttyFreeBSD Then
+         SendEscapeSeq(#27'[?2c');
     end;
   end;
 end;
@@ -826,7 +898,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2003-10-17 22:13:30  olle
+  Revision 1.16  2003-10-24 17:51:39  marco
+   * merged some fixes from 1.0.x
+
+  Revision 1.15  2003/10/17 22:13:30  olle
     * changed i386 to cpui386
 
   Revision 1.14  2003/09/14 20:15:01  marco
