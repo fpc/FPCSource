@@ -23,7 +23,11 @@
   {$N+,E+}
 {$endif}
 program pppdump;
-uses ppu;
+uses
+{$ifdef go32v2}
+  dpmiexcp,
+{$endif go32v2}
+  ppu;
 
 const
   Version   = 'Version 0.99.13';
@@ -224,7 +228,8 @@ end;
 
 function readderef(const s:string):boolean;
 type
-  tdereftype = (derefnil,derefaktrecordindex,derefaktstaticindex,derefunit,derefrecord,derefindex);
+  tdereftype = (derefnil,derefaktrecordindex,derefaktstaticindex,derefunit,
+               derefrecord,derefindex,dereflocal,derefpara);
 var
   b : tdereftype;
 begin
@@ -256,6 +261,14 @@ begin
       derefrecord :
         begin
           write('RecordDef ',ppufile^.getword,', ');
+        end;
+      derefpara :
+        begin
+          write('Parameter of procdef ',ppufile^.getword,', ');
+        end;
+      dereflocal :
+        begin
+          write('Local of procdef ',ppufile^.getword,', ');
         end;
       derefindex :
         begin
@@ -407,7 +420,7 @@ begin
      writeln;
    end;
   ppufile^.getsmallset(proccalloptions);
-  if procoptions<>[] then
+  if proccalloptions<>[] then
    begin
      write(space,'      CallOptions : ');
      first:=true;
@@ -1018,6 +1031,23 @@ begin
               end;
            end;
 
+         ibusedmacros :
+           begin
+             while not EndOfEntry do
+              begin
+                Write('Conditional ',getstring);
+                b:=getbyte;
+                if boolean(b)=true then
+                  write(' defined at startup')
+                else
+                  write(' not defined at startup');
+                b:=getbyte;
+                if boolean(b)=true then
+                  writeln(' was used')
+                else
+                  writeln;
+              end;
+           end;
          ibloadunit :
            begin
              unitnumber:=1;
@@ -1391,7 +1421,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1999-08-15 10:47:14  peter
+  Revision 1.9  1999-08-31 16:07:37  pierre
+   + support for writeusedmacros
+
+  Revision 1.8  1999/08/15 10:47:14  peter
     * updates for new options
 
   Revision 1.7  1999/08/13 21:25:35  peter
