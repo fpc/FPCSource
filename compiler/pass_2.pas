@@ -580,7 +580,8 @@ implementation
               { only if no asm is used }
               { and no try statement   }
               if (cs_regalloc in aktglobalswitches) and
-                ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
+                ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) and
+                not(pocall_inline in aktprocsym^.definition^.proccalloptions) then
                 begin
                    { can we omit the stack frame ? }
                    { conditions:
@@ -845,7 +846,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-21 15:14:02  jonas
+  Revision 1.4  2000-08-03 11:15:42  jonas
+    - disable regvars for inlined procedures (merged from fixes branch)
+
+  Revision 1.3  2000/07/21 15:14:02  jonas
     + added is_addr field for labels, if they are only used for getting the address
        (e.g. for io checks) and corresponding getaddrlabel() procedure
 
