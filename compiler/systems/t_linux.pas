@@ -264,6 +264,11 @@ begin
      DynamicLinker:='/lib/ld.so.1';
      libctype:=glibc2;
 {$endif powerpc}
+
+{$ifdef arm}
+     DynamicLinker:='/lib/ld-linux.so.2';
+     libctype:=glibc2;
+{$endif arm}
    end;
 end;
 
@@ -585,7 +590,10 @@ end.
 
 {
   $Log$
-  Revision 1.26  2004-10-24 13:36:26  peter
+  Revision 1.27  2004-11-05 11:04:23  florian
+    * path of dyn. linker on arm for linux fixed
+
+  Revision 1.26  2004/10/24 13:36:26  peter
     * gc-sections added when section smartlinking is used
 
   Revision 1.25  2004/10/14 18:16:17  mazen
