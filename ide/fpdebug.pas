@@ -3753,6 +3753,7 @@ begin
          TargetSwitches^.SetCurrSelParam({$ifdef COMPILER_1_0}source_os{$else}source_info{$endif}.shortname);
          If DebugInfoSwitches^.GetCurrSelParam='-' then
            DebugInfoSwitches^.SetCurrSelParam('l');
+         IDEApp.UpdateTarget;
        end;
     end;
   if not NeedRecompileExe then
@@ -3954,7 +3955,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2001-11-07 00:28:52  pierre
+  Revision 1.8  2001-11-10 00:11:45  pierre
+   * change target menu name if target changed to become debug-able
+
+  Revision 1.7  2001/11/07 00:28:52  pierre
    + Disassembly window made public
 
   Revision 1.6  2001/10/14 14:16:06  peter
