@@ -56,3 +56,5 @@ ex52.pp contains an example of the GetFS function.
 ex53.pp contains an example of the S_ISLNK and related functions.
 ex54.pp contains an example of the IOCtl function.
 ex55.pp contains an example of the TCGetAttr,TCSetAttr,CFMakeRaw functions.
+ex56.pp contains an example of the Shell function.
+ex57.pp contains an example of the SigAction function.
