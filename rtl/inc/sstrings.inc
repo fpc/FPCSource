@@ -226,11 +226,12 @@ begin
 {$endif}
 end;
 
-
+{$ifdef SUPPORT_SINGLE}
 procedure int_str_single(d : single;len,fr : longint;var s : string);[public, alias : 'STR_SINGLE'];
 begin
    str_real(len,fr,d,rt_s32real,s);
 end;
+{$endif SUPPORT_SINGLE}
 
 
 {$ifdef SUPPORT_EXTENDED}
@@ -579,6 +580,7 @@ begin
 end;
 
 
+{$ifdef SUPPORT_SINGLE}
 procedure val(const s : string;var d : single;var code : word);
 var
   e : double;
@@ -605,7 +607,7 @@ begin
   val(s,e,code);
   d:=e;
 end;
-
+{$endif SUPPORT_SINGLE}
 
 {$ifdef SUPPORT_EXTENDED}
 procedure val(const s : string;var d : extended;var code : word);
@@ -713,7 +715,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1998-06-25 09:44:19  daniel
+  Revision 1.7  1998-07-02 12:14:19  carl
+    * No SINGLE type for non-intel processors!!
+
+  Revision 1.6  1998/06/25 09:44:19  daniel
   + RTLLITE directive to compile minimal RTL.
 
   Revision 1.5  1998/06/04 23:45:59  peter
