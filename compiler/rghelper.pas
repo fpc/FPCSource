@@ -76,3 +76,9 @@ implementation
           result:=0;
       end;
 end.
+{
+  $Log$
+  Revision 1.2  2003-10-30 15:02:27  mazen
+  *** empty log message ***
+
+}
