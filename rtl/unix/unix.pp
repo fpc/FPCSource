@@ -651,7 +651,6 @@ End;
 // execvP has the searchpath as array of ansistring ( const char *search_path)
 
 {$define FPC_USE_FPEXEC}
-
 Function Shell(const Command:String):cint;
 {
   Executes the shell, and passes it the string Command. (Through /bin/sh -c)
@@ -1157,7 +1156,7 @@ begin
    end;
   if AssignPipe(pipi,pipo)=-1 Then
     Exit(-1);
-  pid:=fpfork;
+  pid:=fpfork;		// vfork in FreeBSD.
   if pid=-1 then
    begin
      close(pipi);
@@ -1183,8 +1182,12 @@ begin
         if ret=-1 then
          halt(127);
       end;
+     {$ifdef FPC_USE_FPEXEC} 
+     fpexecl('/bin/sh',['-c',Prog]);	
+     {$else}
      pp:=createshellargv(prog);
      fpExecve(pp^,pp,envp);
+     {$endif}
      halt(127);
    end
   else
@@ -1262,6 +1265,9 @@ begin
         if ret=1 then
          halt(127);
       end;
+     {$ifdef FPC_USE_FPEXEC}
+     fpexecl('/bin/sh',['-c',Prog]);	
+     {$else}
      getmem(pp,sizeof(pchar)*4);
      temp:='/bin/sh'#0'-c'#0+prog+#0;
      p:=pp;
@@ -1273,6 +1279,7 @@ begin
      inc(p);
      p^:=Nil;
      fpExecve(ansistring('/bin/sh'),pp,envp);
+     {$endif}
      halt(127);
    end
   else
@@ -1733,7 +1740,10 @@ End.
 
 {
   $Log$
-  Revision 1.65  2004-02-14 21:12:14  marco
+  Revision 1.66  2004-02-16 13:21:18  marco
+   * fpexec for popen
+
+  Revision 1.65  2004/02/14 21:12:14  marco
    * provisorische fix voor Michael's problemen
 
   Revision 1.64  2004/02/14 18:22:15  marco
