@@ -413,7 +413,7 @@ begin
       mov ecx, 260
       mov eax, 7F33h
       call syscall    { error handle already with empty string }
-    end;
+            end ['eax', 'ecx', 'edx'];
     ParamStr := StrPas (PChar (P));
     FreeMem (P, 260);
   end
@@ -433,7 +433,7 @@ asm
     call syscall
     mov word ptr [randseed], cx
     mov word ptr [randseed + 2], dx
-end;
+end ['eax', 'ecx', 'edx'];
 
 {$ASMMODE ATT}
 
@@ -461,7 +461,7 @@ begin
     movw $0x7f00,%ax
     call syscall     { result directly in EAX }
     mov  %eax,L
-  end;
+  end ['eax', 'edx'];
   WriteLn ('New heap at ', L);
   Sbrk := pointer(L);
 end;
@@ -471,7 +471,7 @@ asm
     movl size,%edx
     movw $0x7f00,%ax
     call syscall     { result directly in EAX }
-end;
+end ['eax', 'edx'];
 {$ENDIF DUMPGROW}
 
 function getheapstart:pointer;assembler;
@@ -519,7 +519,7 @@ begin
         movw  %ax, InOutRes       { yes, then set InOutRes }
      .Lnoerror:
         popl %ebx
-     end;
+     end ['eax'];
    end;
 end;
 
@@ -538,7 +538,6 @@ end;
 
 function do_read(h,addr,len:longint):longint; assembler;
 asm
-    pushl %ebx
     movl len,%ecx
     movl addr,%edx
     movl h,%ebx
@@ -548,12 +547,10 @@ asm
     movw %ax,inoutres;
     xorl %eax,%eax
 .LDOSREAD1:
-    popl %ebx
-end;
+end ['eax', 'ebx', 'ecx', 'edx'];
 
 function do_write(h,addr,len:longint) : longint; assembler;
 asm
-    pushl %ebx
     xorl %eax,%eax
     cmpl $0,len    { 0 bytes to write is undefined behavior }
     jz   .LDOSWRITE1
@@ -565,12 +562,10 @@ asm
     jnc .LDOSWRITE1
     movw %ax,inoutres;
 .LDOSWRITE1:
-    popl %ebx
-end;
+end ['eax', 'ebx', 'ecx', 'edx'];
 
 function do_filepos(handle:longint): longint; assembler;
 asm
-    pushl %ebx
     movw $0x4201,%ax
     movl handle,%ebx
     xorl %edx,%edx
@@ -579,12 +574,10 @@ asm
     movw %ax,inoutres;
     xorl %eax,%eax
 .LDOSFILEPOS:
-    popl %ebx
-end;
+end ['eax', 'ebx', 'ecx', 'edx'];
 
 procedure do_seek(handle,pos:longint); assembler;
 asm
-    pushl %ebx
     movw $0x4200,%ax
     movl handle,%ebx
     movl pos,%edx
@@ -592,12 +585,10 @@ asm
     jnc .LDOSSEEK1
     movw %ax,inoutres;
 .LDOSSEEK1:
-    popl %ebx
-end;
+end ['eax', 'ebx', 'ecx', 'edx'];
 
 function do_seekend(handle:longint):longint; assembler;
 asm
-    pushl %ebx
     movw $0x4202,%ax
     movl handle,%ebx
     xorl %edx,%edx
@@ -606,8 +597,7 @@ asm
     movw %ax,inoutres;
     xorl %eax,%eax
 .Lset_at_end1:
-    popl %ebx
-end;
+end ['eax', 'ebx', 'ecx', 'edx'];
 
 function do_filesize(handle:longint):longint;
 
@@ -621,7 +611,6 @@ end;
 
 procedure do_truncate(handle,pos:longint); assembler;
 asm
-    pushl %ebx
 (* DOS function 40h isn't safe for this according to EMX documentation *)
     movl $0x7F25,%eax
     movl Handle,%ebx
@@ -639,8 +628,7 @@ asm
 .LTruncate1:
     movw %ax,inoutres;
 .LTruncate2:
-    popl %ebx
-end;
+end ['eax', 'ebx', 'ecx', 'edx'];
 
 const
     FileHandleCount: longint = 20;
@@ -722,6 +710,7 @@ begin
     if Flags and 112 = 0 then
         Action := Action or 64;
     asm
+        pushl %ebx
         movl $0x7f2b, %eax
         movl Action, %ecx
         movl p, %edx
@@ -733,7 +722,8 @@ begin
 .LOPEN1:
         movl f,%edx         { Warning : This assumes Handle is first }
         movw %ax,(%edx)     { field of FileRec                       }
-    end;
+        popl %ebx
+    end ['eax', 'ecx', 'edx'];
     if (InOutRes = 4) and Increase_File_Handle_Count then
 (* Trying again after increasing amount of file handles *)
         asm
@@ -748,7 +738,7 @@ begin
 .LOPEN2:
             movl f,%edx
             movw %ax,(%edx)
-        end;
+        end ['eax', 'ecx', 'edx'];
       { for systems that have more handles }
     if FileRec (F).Handle > FileHandleCount then
         FileHandleCount := FileRec (F).Handle;
@@ -765,10 +755,13 @@ function do_isdevice (Handle: longint): boolean; assembler;
 (*
 var HT, Attr: longint;
 begin
+    if os_mode = osOS2 then
+        begin
   if DosQueryHType (Handle, HT, Attr) <> 0 then HT := 1;
+        end
+    else
 *)
 asm
-    push ebx
     mov ebx, Handle
     mov eax, 4400h
     call syscall
@@ -778,8 +771,7 @@ asm
     jnz @IsDevEnd
     dec eax                 { nope, so result is zero }
 @IsDevEnd:
-    pop ebx
-end;
+end ['eax', 'ebx', 'edx'];
 {$ASMMODE ATT}
 
 
@@ -1094,7 +1086,6 @@ begin
     os_mode:=OsOs2;
 {$ASMMODE INTEL}
     asm
-        push ebx
     {Enable the brk area by initializing it with the initial heap size.}
         mov eax, 7F01h
         mov edx, heap_brk
@@ -1121,7 +1112,6 @@ begin
         mov edx, 8
         call syscall
 {$ENDIF CONTHEAP}
-        pop ebx
     end;
 
     {Now request, if we are running under DOS,
@@ -1160,7 +1150,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2003-10-06 16:58:27  yuri
+  Revision 1.40  2003-10-07 21:26:35  hajny
+    * stdcall fixes and asm routines cleanup
+
+  Revision 1.39  2003/10/06 16:58:27  yuri
   * Another set of native functions.
 
   Revision 1.38  2003/10/06 14:22:40  yuri

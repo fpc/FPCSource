@@ -356,46 +356,48 @@ var SOfs, CLen: cardinal;
 begin
   if not (Force) then
     asm
-    cld
-    push esi
-    push edi
-    mov esi, VideoBuf
-    mov edi, OldVideoBuf
-    mov eax, VideoBufSize
-    mov ecx, eax
-    shr ecx, 1
-    shr ecx, 1
-    repe
-    cmpsd
-    je @no_update
-    inc ecx
-    mov edx, eax
-    mov ebx, ecx
-    shl ebx, 1
-    shl ebx, 1
-    sub edx, ebx
-    mov SOfs, edx
-    mov Force, 1
-    std
-    mov edi, eax
-    mov esi, VideoBuf
-    add eax, esi
-    sub eax, 4
-    mov esi, eax
-    mov eax, OldVideoBuf
-    add eax, edi
-    sub eax, 4
-    mov edi, eax
-    repe
-    cmpsd
-    inc ecx
-    shl ecx, 1
-    shl ecx, 1
-    mov CLen, ecx
+      push ebx
+      push esi
+      push edi
+      cld
+      mov esi, VideoBuf
+      mov edi, OldVideoBuf
+      mov eax, VideoBufSize
+      mov ecx, eax
+      shr ecx, 1
+      shr ecx, 1
+      repe
+      cmpsd
+      je @no_update
+      inc ecx
+      mov edx, eax
+      mov ebx, ecx
+      shl ebx, 1
+      shl ebx, 1
+      sub edx, ebx
+      mov SOfs, edx
+      mov Force, 1
+      std
+      mov edi, eax
+      mov esi, VideoBuf
+      add eax, esi
+      sub eax, 4
+      mov esi, eax
+      mov eax, OldVideoBuf
+      add eax, edi
+      sub eax, 4
+      mov edi, eax
+      repe
+      cmpsd
+      inc ecx
+      shl ecx, 1
+      shl ecx, 1
+      mov CLen, ecx
 @no_update:
-    pop edi
-    pop esi
-    end
+      pop edi
+      pop esi
+      pop ebx
+    end ['eax', 'ecx', 'edx']
   else
     begin
     SOfs := 0;
@@ -468,7 +470,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2003-10-03 21:46:41  peter
+  Revision 1.9  2003-10-07 21:26:35  hajny
+    * stdcall fixes and asm routines cleanup
+
+  Revision 1.8  2003/10/03 21:46:41  peter
     * stdcall fixes
 
   Revision 1.7  2002/09/07 16:01:25  peter

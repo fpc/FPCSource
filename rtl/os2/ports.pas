@@ -83,7 +83,7 @@ asm
  movw P, %dx
  movb Data, %al
  outb %al, %dx
-end;
+end ['eax', 'ecx', 'edx'];
 
 function TPort.ReadPort (P: word): byte; assembler;
 asm
@@ -94,7 +94,7 @@ asm
  call syscall
  movw P, %dx
  inb %dx, %al
-end;
+end ['eax', 'ecx', 'edx'];
 
 procedure TPortW.WritePort (P: word; Data : word); assembler;
 asm
@@ -106,7 +106,7 @@ asm
  movw P, %dx
  movw Data, %ax
  outw %ax, %dx
-end;
+end ['eax', 'ecx', 'edx'];
 
 function TPortW.ReadPort (P: word): word; assembler;
 asm
@@ -117,7 +117,7 @@ asm
  call syscall
  movw P, %dx
  inw %dx, %ax
-end;
+end ['eax', 'ecx', 'edx'];
 
 procedure TPortL.WritePort (P: word; Data: longint); assembler;
 asm
@@ -129,7 +129,7 @@ asm
  movw P, %dx
  movl Data, %eax
  outl %eax, %dx
-end;
+end ['eax', 'ecx', 'edx'];
 
 function TPortL.ReadPort (P: word): longint; assembler;
 asm
@@ -140,13 +140,16 @@ asm
  call syscall
  movw P, %dx
  inl %dx, %eax
-end;
+end ['eax', 'ecx', 'edx'];
 
 end.
 
 {
   $Log$
-  Revision 1.2  2002-09-07 16:01:25  peter
+  Revision 1.3  2003-10-07 21:26:35  hajny
+    * stdcall fixes and asm routines cleanup
+
+  Revision 1.2  2002/09/07 16:01:25  peter
     * old logs removed and tabs fixed
 
 }

@@ -189,7 +189,7 @@ begin
   mov eax, 7F2Dh
   mov edx, ThreadID
   call syscall
- end;
+ end ['eax', 'ecx', 'edx'];
 {$ASMMODE DEFAULT}
 {$ENDIF EMX}
 end;
@@ -237,7 +237,8 @@ begin
   mov eax, 7F2Ch
   mov edx, ThreadID
   call syscall
- end;
+{$warning Error checking missing!!}
+ end ['eax', 'ecx', 'edx'];
 {$ASMMODE DEFAULT}
 {$ENDIF EMX}
 end;
@@ -364,7 +365,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2003-02-20 17:09:49  hajny
+  Revision 1.11  2003-10-07 21:26:35  hajny
+    * stdcall fixes and asm routines cleanup
+
+  Revision 1.10  2003/02/20 17:09:49  hajny
     * fixes for OS/2 v2.1 incompatibility
 
   Revision 1.9  2002/09/07 16:01:25  peter
