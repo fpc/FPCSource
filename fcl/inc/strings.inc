@@ -15,24 +15,76 @@
 {*                             TStrings                                     *}
 {****************************************************************************}
 
+// Function to quote text. Should move maybe to sysutils !!
+// Also, it is not clear at this point what exactly should be done.
+
+{ //!! is used to mark unsupported things. }
+
+Function QuoteString (Const S : String; Quote : String) : String;
+
+Var I,J : Longint;
+
+begin
+  I:=0;
+  J:=0;
+  Result:=S;
+  While I<Length(S) do
+   begin
+   I:=I+1;
+   J:=J+1;
+   if S[i]=Quote then 
+     begin
+     System.Insert(Result,Quote,J);
+     J:=J+1;
+     end;
+   end;
+  Result:=Quote+Result+Quote;
+end;
 
 function TStrings.GetCommaText: string;
 
+Var I : Longint;
+
 begin
+  result:='';
+  For i:=0 to count-1 do 
+    begin
+    Result:=Result+QuoteString (Strings[I],'"');
+    if I<Count-1 then Result:=Result+',';
+    end;
+  If Length(Result)=0 then Result:='""';
 end;
 
 
 
 function TStrings.GetName(Index: Integer): string;
 
+Var L : longint;
+
 begin
+  Result:=Strings[Index];
+  L:=Pos('=',Result);
+  If L<>0 then
+    Result:=Copy(Result,1,L-1)
+  else
+    Result:='';
 end;
 
 
 
 Function TStrings.GetValue(const Name: string): string;
 
+Var L : longint;
+
 begin
+  Result:='';
+  L:=IndexOf(Name);
+  If L<>-1 then
+    begin
+    Result:=Strings[L];
+    L:=Pos('=',Result);
+    System.Delete (Result,1,L);
+    end;
 end;
 
 
@@ -42,11 +94,64 @@ Procedure TStrings.ReadData(Reader: TReader);
 begin
 end;
 
+Function GetQuotedString (Var P : Pchar) : String;
+
+Var P1,L : Pchar;
+
+begin
+  Result:='';
+  P1:=P+1;
+  While P1^<>#0 do
+    begin
+    If (P1^='"') and (P1[1]<>'"') then 
+      break;
+    P1:=P1+1;
+    If P1^='"' then P1:=P1+1;
+    end;
+  // P1 points to last quote, or to #0; 
+  P:=P+1;
+  If P1-P>0 then 
+    begin
+    //!! SetLength(Result,P1-P);
+    //!! L:=Pointer(Result);
+    Move (P^,L^,P1-P);
+    P:=P1+1;
+    end;
+end;
+
+
+Function GetNextQuotedChar (P : PChar; Var S : String): Boolean;
+
+Var PS,L : PChar;
+
+begin
+  Result:=False;
+  If P^=#0 then exit;
+  S:='';
+  While (p^<>#0) and (byte(p^)<=byte(' ')) do P:=P+1;
+  PS:=P;
+  If P^='"' then
+    S:=GetQuotedString(P)
+  else
+    begin
+    While (p^>' ') and (P^<>',') do P:=P+1;
+    //!! Setlength (S,P-PS);
+    //!! L:=Pointer(S);
+    Move (PS^,L,P-PS);
+    end;
+  Result:=True;
+end;
 
 
 Procedure TStrings.SetCommaText(const Value: string);
 
+Var P : Pointer;
+    S : String;
+
 begin
+  Self.Clear;
+  //!! P:=Pointer(Value);
+  While GetNextQuotedChar (P,S) do Add (S);
 end;
 
 
@@ -60,7 +165,14 @@ end;
 
 Procedure TStrings.SetValue(const Name, Value: string);
 
+Var L : longint;
+
 begin
+  L:=IndexOfName(Name);
+  if L=-1 then
+   Add (Name+'='+Value)
+  else
+   Strings[L]:=Name+'='+value;
 end;
 
 
@@ -89,6 +201,7 @@ end;
 Function TStrings.GetCapacity: Integer; 
 
 begin
+  Result:=Count;
 end;
 
 
@@ -96,20 +209,56 @@ end;
 Function TStrings.GetObject(Index: Integer): TObject; 
 
 begin
+  Result:=Nil;
 end;
 
 
 
 Function TStrings.GetTextStr: string; 
 
+Const
+{$ifdef linux}
+  NewLineSize=1;
+{$else}
+  NewLineSize=2;
+{$endif}
+
+Var P : Pchar;
+    I,L : Longint; 
+    S : String;
+    PS : Pointer;
+
 begin
+  // Determine needed place
+  L:=0;
+  For I:=0 to count-1 do L:=L+Length(Strings[I])+NewLineSize;
+  //!! Setlength(Result,0);
+  //!! P:=Pointer(Result); 
+  For i:=0 To count-1 do
+    begin
+    S:=Strings[I];
+    L:=Length(S);
+//!!    if L<>0 then 
+//!!      System.Move(Pointer(S)^,P^,L);
+    P:=P+L;
+    p[0]:=#10;
+{$ifndef linux}
+    p[1]:=#13;
+{$endif}
+    P:=P+NewLineSize;
+    end;
 end;
 
 
 
 Procedure TStrings.Put(Index: Integer; const S: string); 
 
+Var Obj : TObject;
+
 begin
+  Obj:=Objects[Index];
+  Delete(Index);
+  InsertObject(Index,S,Obj);
 end;
 
 
@@ -117,6 +266,7 @@ end;
 Procedure TStrings.PutObject(Index: Integer; AObject: TObject); 
 
 begin
+  // Empty.
 end;
 
 
@@ -124,13 +274,14 @@ end;
 Procedure TStrings.SetCapacity(NewCapacity: Integer); 
 
 begin
+  // Empty.
 end;
-
 
 
 Procedure TStrings.SetTextStr(const Value: string); 
 
 begin
+  //!! SetText(PChar(Value));
 end;
 
 
@@ -355,11 +506,30 @@ begin
   Stream.WriteAnsiString(Text);
 end;
 
+Function GetNextLine (P : Pchar; Var S : String) : Boolean;
+
+Var PS : PChar;
+
+begin
+  S:='';
+  Result:=False;
+  If P^=#0 then exit;
+  PS:=P;
+  While (P^<>#10) do P:=P+1;
+ //!!  SetLength (S,P-PS);
+ //!!  System.Move (PS^,Pointer(S)^,P-PS);
+  If P[1]=#13 then P:=P+1;
+  P:=P+1; // Point to character after #10(#13)
+  Result:=True;
+end;
 
 
 Procedure TStrings.SetText(TheText: PChar); 
 
+Var S : String;
+
 begin
+  While GetNextLine (TheText,S) do Add(S);
 end;
 
 
@@ -536,7 +706,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.2  1998-05-06 12:58:53  michael
+  Revision 1.3  1998-05-07 14:16:51  michael
+  + Finished TStrings implementation.
+
+  Revision 1.2  1998/05/06 12:58:53  michael
   + Initial implementation
 
   Revision 1.1  1998/05/04 14:30:12  michael
