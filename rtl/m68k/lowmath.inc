@@ -696,7 +696,7 @@ XDEF  SINGLE_CMP
    neg.l     d1               { negate                     }
    bchg      #31,d1           { toggle sign bit            }
 @cmplab2:
-   cmp.l     d1,d0            { compare...                 }
+   cmp.l     d0,d1            { compare...                 }
    rts
 end;
 
@@ -911,8 +911,11 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:44  root
-  Initial revision
+  Revision 1.2  1998-06-05 12:33:16  carl
+    * single_cmp, comparison was reversed!
+
+  Revision 1.1.1.1  1998/03/25 11:18:44  root
+  * Restored version
 
   Revision 1.5  1998/01/26 12:01:47  michael
   + Added log at the end
