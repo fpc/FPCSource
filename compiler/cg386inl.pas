@@ -1440,7 +1440,10 @@ implementation
                          inc(fpuvaroffset);
                       end;
                     LOC_REFERENCE,LOC_MEM:
-                      floatload(pfloatdef(p^.left^.resulttype)^.typ,p^.left^.location.reference);
+                      begin
+                         floatload(pfloatdef(p^.left^.resulttype)^.typ,p^.left^.location.reference);
+                         del_reference(p^.left^.location.reference);
+                      end
                     else
                       internalerror(309991);
                  end;
@@ -1510,7 +1513,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2000-01-09 23:16:05  peter
+  Revision 1.91  2000-01-24 20:11:10  florian
+    * internalerror 10 for inlined math functions fixed
+
+  Revision 1.90  2000/01/09 23:16:05  peter
     * added st_default stringtype
     * genstringconstnode extended with stringtype parameter using st_default
       will do the old behaviour
