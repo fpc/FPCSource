@@ -331,12 +331,13 @@ implementation
                 begin
                   p^.location.resflags:=F_NE;
                   case p^.right^.location.loc of
-                 LOC_REGISTER,
-                LOC_CREGISTER : begin
-                                  exprasmlist^.concat(new(pai386,op_const_reg(A_TEST,S_L,
-                                    1 shl (p^.left^.value and 31),p^.right^.location.register)));
-                                  ungetregister32(p^.right^.location.register);
-                                end
+                     LOC_REGISTER,
+                     LOC_CREGISTER:
+                      begin
+                         exprasmlist^.concat(new(pai386,op_const_reg(A_TEST,S_L,
+                           1 shl (p^.left^.value and 31),p^.right^.location.register)));
+                         ungetregister32(p^.right^.location.register);
+                       end
                   else
                    begin
                      exprasmlist^.concat(new(pai386,op_const_ref(A_TEST,S_L,1 shl (p^.left^.value and 31),
@@ -348,11 +349,12 @@ implementation
                else
                 begin
                   case p^.left^.location.loc of
-                 LOC_REGISTER,
-                LOC_CREGISTER : begin
-                                  hr:=p^.left^.location.register;
-                                  emit_to_reg32(hr);
-                                end;
+                     LOC_REGISTER,
+                     LOC_CREGISTER:
+                       begin
+                          hr:=p^.left^.location.register;
+                          emit_to_reg32(hr);
+                       end;
                   else
                     begin
                       { the set element isn't never samller than a byte  }
@@ -371,6 +373,7 @@ implementation
                                   p^.right^.location.register)));
                   else
                     begin
+                      del_reference(p^.right^.location.reference);
                       if p^.right^.location.reference.isintvalue then
                        begin
                        { We have to load the value into a register because
@@ -384,8 +387,6 @@ implementation
                       else
                         exprasmlist^.concat(new(pai386,op_reg_ref(A_BT,S_L,hr,
                           newreference(p^.right^.location.reference))));
-
-                      del_reference(p^.right^.location.reference);
                     end;
                   end;
                   ungetregister32(hr);
@@ -557,20 +558,7 @@ implementation
                genitem(t^.greater);
           end;
 
-        var
-           hr : tregister;
-
-          begin
-             { case register is modified by the list evalution }
-           if (p^.left^.location.loc=LOC_CREGISTER) then
-             begin
-                hr:=getregister32;
-                case opsize of
-                   S_B : hregister:=reg32toreg8(hr);
-                   S_W : hregister:=reg32toreg16(hr);
-                   S_L : hregister:=hr;
-                end;
-             end;
+        begin
            last:=0;
            first:=true;
            genitem(hp);
@@ -677,12 +665,21 @@ implementation
          opsize:=bytes2Sxx[p^.left^.resulttype^.size];
          { copy the case expression to a register }
          case p^.left^.location.loc of
-            LOC_REGISTER,
-            LOC_CREGISTER:
+            LOC_REGISTER:
               hregister:=p^.left^.location.register;
+            LOC_CREGISTER:
+              begin
+                 hregister:=getregister32;
+                 case opsize of
+                    S_B : hregister:=reg32toreg8(hregister);
+                    S_W : hregister:=reg32toreg16(hregister);
+                 end;
+                 exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,
+                   p^.left^.location.register,hregister)));
+              end;
             LOC_MEM,LOC_REFERENCE : begin
                                        del_reference(p^.left^.location.reference);
-                                           hregister:=getregister32;
+                                       hregister:=getregister32;
                                        case opsize of
                                           S_B : hregister:=reg32toreg8(hregister);
                                           S_W : hregister:=reg32toreg16(hregister);
@@ -778,7 +775,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-09-04 08:41:41  peter
+  Revision 1.12  1998-09-05 23:51:05  florian
+    * possible bug with too few registers in first/secondin fixed
+
+  Revision 1.11  1998/09/04 08:41:41  peter
     * updated some error messages
 
   Revision 1.10  1998/09/03 17:08:40  pierre

@@ -617,7 +617,7 @@ unit pass_1;
                       is_open_array(pvarsym(p^.symtableentry)^.definition) then
                      p^.registers32:=1;
                    if p^.symtable^.symtabletype=withsymtable then
-                     p^.registers32:=1;
+                     inc(p^.registers32);
 
                    { a class variable is a pointer !!!
                      yes, but we have to resolve the reference in an
@@ -4555,7 +4555,15 @@ unit pass_1;
          { this is not allways true due to optimization }
          { but if we don't set this we get problems with optimizing self code }
          if psetdef(p^.right^.resulttype)^.settype<>smallset then
-           procinfo.flags:=procinfo.flags or pi_do_call;
+           procinfo.flags:=procinfo.flags or pi_do_call
+         else
+           begin
+              { a smallset needs maybe an misc. register }
+              if (p^.left^.treetype<>ordconstn) and
+                not(p^.right^.location.loc in [LOC_CREGISTER,LOC_REGISTER]) and
+                (p^.right^.registers32<1) then
+                inc(p^.registers32);
+           end;
       end;
 
     procedure firststatement(var p : ptree);
@@ -5448,7 +5456,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.74  1998-09-05 23:04:00  florian
+  Revision 1.75  1998-09-05 23:51:06  florian
+    * possible bug with too few registers in first/secondin fixed
+
+  Revision 1.74  1998/09/05 23:04:00  florian
     * some fixes to get -Or work:
       - inc/dec didn't take care of CREGISTER
       - register calculcation of inc/dec was wrong
