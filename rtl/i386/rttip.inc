@@ -165,7 +165,7 @@ asm
         // Interfaces
 .LDoInterfaceFinal:
         pushl   Data
-        call    Intf_Decr_Ref
+        call    Int_Intf_Decr_Ref
         jmp     .LExitFinalize
         // Variants
 .LDoVariantFinal:
@@ -279,7 +279,7 @@ asm
         // Interfaces
 .LDoInterfaceAddRef:
         pushl   Data
-        call    INTF_INCR_REF
+        call    INT_INTF_INCR_REF
         jmp     .LExitAddRef
         // Variants
 .LDoVariantAddRef:
@@ -393,7 +393,7 @@ asm
         // Interfaces
 .LDoInterfaceDecRef:
         pushl   Data
-        call    INTF_DECR_REF
+        call    INT_INTF_DECR_REF
         jmp     .LExitDecRef
         // Variants
 .LDoVariantDecRef:
@@ -472,7 +472,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2000-11-06 21:35:59  peter
+  Revision 1.6  2000-11-06 21:52:21  florian
+    * another fix for interfaces
+
+  Revision 1.5  2000/11/06 21:35:59  peter
     * removed some warnings
 
   Revision 1.4  2000/11/04 16:30:35  florian
