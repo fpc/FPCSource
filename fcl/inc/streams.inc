@@ -19,13 +19,13 @@
   function TStream.GetPosition: Int64;
 
     begin
-       Result:=Seek(0,soFromCurrent);
+       Result:=Seek(0,soCurrent);
     end;
 
   procedure TStream.SetPosition(Pos: Int64);
 
     begin
-       Seek(pos,soFromBeginning);
+       Seek(pos,soBeginning);
     end;
 
   procedure TStream.SetSize64(NewSize: Int64);
@@ -42,8 +42,8 @@
 
     begin
        p:=GetPosition;
-       GetSize:=Seek(0,soFromEnd);
-       Seek(p,soFromBeginning);
+       GetSize:=Seek(0,soEnd);
+       Seek(p,soBeginning);
     end;
 
   procedure TStream.SetSize(NewSize: Longint);
@@ -784,7 +784,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-10-22 09:38:39  michael
+  Revision 1.9  2002-12-18 15:51:52  michael
+  + Hopefully fixed some issues with int64 seek
+
+  Revision 1.8  2002/10/22 09:38:39  michael
   + Fixed TmemoryStream.LoadFromStream, reported by Mattias Gaertner
 
   Revision 1.7  2002/09/07 15:15:25  peter
