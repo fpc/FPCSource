@@ -20,6 +20,7 @@ procedure InitInternationalGeneric;
     fillchar(SysLocale,sizeof(SysLocale),0);
     
     { keep these routines out of the executable? }
+{$ifndef VER1_0}
 {$ifndef FPC_NOGENERICANSIROUTINES}
     widestringmanager.UpperAnsiStringProc:=@GenericAnsiUpperCase;
     widestringmanager.LowerAnsiStringProc:=@GenericAnsiLowerCase;    
@@ -32,11 +33,15 @@ procedure InitInternationalGeneric;
     widestringmanager.StrLowerAnsiStringProc:=@GenericAnsiStrLower;
     widestringmanager.StrUpperAnsiStringProc:=@GenericAnsiStrUpper;
 {$endif FPC_NOGENERICANSIROUTINES}    
+{$endif}
   end;
   
 {
   $Log$
-  Revision 1.2  2005-03-12 14:56:22  florian
+  Revision 1.3  2005-03-13 14:30:24  marco
+   * some 1.0.x fixes
+
+  Revision 1.2  2005/03/12 14:56:22  florian
     + added Ansi* routines to widestring manager
     * made them using OS calls on windows
 

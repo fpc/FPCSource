@@ -409,61 +409,81 @@ end ;
 
 function AnsiUpperCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
+  {$ifndef ver1_0}
     result:=widestringmanager.UpperAnsiStringProc(s);
+  {$endif}
   end;
   
   
 function AnsiLowerCase(const s: string): string;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
+  {$ifndef ver1_0}
     result:=widestringmanager.LowerAnsiStringProc(s);
+  {$endif}
   end;
   
   
 function AnsiCompareStr(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
+  {$ifndef ver1_0}
     result:=widestringmanager.CompareStrAnsiStringProc(s1,s2);
+  {$endif}
   end;
   
   
 function AnsiCompareText(const S1, S2: string): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
+  {$ifndef ver1_0}
     result:=widestringmanager.CompareTextAnsiStringProc(s1,s2);
+  {$endif}
   end;
   
   
 function AnsiStrComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
+  {$ifndef ver1_0}
     result:=widestringmanager.StrCompAnsiStringProc(s1,s2);
+  {$endif}
   end;
 
   
 function AnsiStrIComp(S1, S2: PChar): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
-    result:=widestringmanager.StrICompAnsiStringProc(s1,s2);
+  {$ifndef ver1_0}
+    result:=widestringmanager.StrICompAnsiStringProc(s1,s2); 
+  {$endif}
   end;
 
   
 function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
+  {$ifndef ver1_0}
     result:=widestringmanager.StrLCompAnsiStringProc(s1,s2,maxlen);
+  {$endif}
   end;
 
   
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
+  {$ifndef ver1_0}
     result:=widestringmanager.StrLICompAnsiStringProc(s1,s2,maxlen);
+  {$endif}
   end;
 
   
 function AnsiStrLower(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
+  {$ifndef ver1_0}
     result:=widestringmanager.StrLowerAnsiStringProc(Str);
+  {$endif}
   end;
   
   
 function AnsiStrUpper(Str: PChar): PChar;{$ifdef SYSUTILSINLINE}inline;{$endif}
   begin
+  {$ifndef ver1_0}
     result:=widestringmanager.StrUpperAnsiStringProc(Str);
+  {$endif}
   end;
 
 
@@ -2077,7 +2097,10 @@ const
 
 {
   $Log$
-  Revision 1.33  2005-03-12 14:56:22  florian
+  Revision 1.34  2005-03-13 14:30:24  marco
+   * some 1.0.x fixes
+
+  Revision 1.33  2005/03/12 14:56:22  florian
     + added Ansi* routines to widestring manager
     * made them using OS calls on windows
 
