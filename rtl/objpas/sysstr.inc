@@ -884,6 +884,15 @@ begin
                   if CheckArg(vtPChar,false) then
                     hs:=Args[doarg].VPChar
                 else
+                  if CheckArg(vtPWideChar,false) then
+                    hs:=char(Args[doarg].VPWideChar^)
+                else
+                  if CheckArg(vtWideChar,false) then
+                    hs:=char(Args[doarg].VWideChar)
+                else
+                  if CheckArg(vtWidestring,false) then
+                    hs:=ansistring(Args[doarg].VWideString)
+                else
                   if CheckArg(vtAnsiString,true) then
                     hs:=ansistring(Args[doarg].VAnsiString);
                 Index:=Length(hs);
@@ -1329,7 +1338,10 @@ const
 
 {
   $Log$
-  Revision 1.14  2002-01-24 12:33:53  jonas
+  Revision 1.15  2002-07-06 12:14:03  daniel
+  - Changes from Strasbourg
+
+  Revision 1.14  2002/01/24 12:33:53  jonas
     * adapted ranges of native types to int64 (e.g. high cardinal is no
       longer longint($ffffffff), but just $fffffff in psystem)
     * small additional fix in 64bit rangecheck code generation for 32 bit
