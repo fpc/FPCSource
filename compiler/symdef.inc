@@ -1921,6 +1921,17 @@
 
     function tarraydef.elesize : longint;
       begin
+        if isconstructor or is_open_array(@self) then
+         begin
+           { strings are stored by address only }
+           case elementtype.def^.deftype of
+             stringdef :
+               elesize:=4;
+             else
+               elesize:=elementtype.def^.size;
+           end;
+         end
+        else
          elesize:=elementtype.def^.size;
       end;
 
@@ -1948,7 +1959,7 @@
     function tarraydef.alignment : longint;
       begin
          { alignment is the size of the elements }
-         alignment:=elementtype.def^.size;
+         alignment:=elesize;
       end;
 
 
@@ -1969,7 +1980,7 @@
          rttilist^.concat(new(pai_const,init_8bit(tkarray)));
          write_rtti_name;
          { size of elements }
-         rttilist^.concat(new(pai_const,init_32bit(elementtype.def^.size)));
+         rttilist^.concat(new(pai_const,init_32bit(elesize)));
          { count of elements }
          rttilist^.concat(new(pai_const,init_32bit(highrange-lowrange+1)));
          { element type }
@@ -3943,7 +3954,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.198  2000-04-01 11:44:56  peter
+  Revision 1.199  2000-04-01 14:17:08  peter
+    * arraydef.elesize returns 4 when strings are found in an openarray,
+      arrayconstructor. Since only the pointers to the strings are stored
+
+  Revision 1.198  2000/04/01 11:44:56  peter
     * fixed rtti info for record
 
   Revision 1.197  2000/03/01 12:35:45  pierre
