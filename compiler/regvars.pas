@@ -312,6 +312,9 @@ implementation
          ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
         begin
           regvarinfo := pregvarinfo(aktprocsym^.definition^.regvarinfo);
+          { can happen when inlining assembler procedures (JM) }
+          if not assigned(regvarinfo) then
+            exit;
           for i:=1 to maxvarregs do
             begin
               { parameter must be load }
@@ -416,6 +419,9 @@ implementation
       i: longint;
     begin
     {$ifdef i386}
+      { can happen when inlining assembler procedures (JM) }
+      if not assigned(aktprocsym^.definition^.regvarinfo) then
+        exit;
       if (cs_regalloc in aktglobalswitches) and
          ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
         with pregvarinfo(aktprocsym^.definition^.regvarinfo)^ do
@@ -435,7 +441,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-08-04 05:52:00  jonas
+  Revision 1.4  2000-08-17 11:07:51  jonas
+    * fixed crash when inlining assembler procedures with -Or
+
+  Revision 1.3  2000/08/04 05:52:00  jonas
     * correct version (I also had a regvars.pp locally, which was used
       instead of the regvars.pas on CVS, so I didn't notice the errors :( )
 
