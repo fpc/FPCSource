@@ -1574,13 +1574,17 @@ Procedure SysResetFPU;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
     fninit
     fldcw   fpucw
+    fwait
 end;
 
 
 
 {
   $Log$
-  Revision 1.68  2005-02-14 17:13:22  peter
+  Revision 1.69  2005-03-14 21:09:04  florian
+    * widestring manager can handle now ansi<->wide string conversions even if the lens don't match
+
+  Revision 1.68  2005/02/14 17:13:22  peter
     * truncate log
 
   Revision 1.67  2005/01/23 20:03:23  florian

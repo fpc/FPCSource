@@ -44,10 +44,13 @@ function WideCharLenToString(S : PWideChar;Len : SizeInt) : AnsiString;
 procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;var Dest : AnsiString);
 procedure WideCharToStrVar(S : PWideChar;var Dest : AnsiString);
 
+procedure DefaultWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
+procedure DefaultAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
+
 Type
   TWideStringManager = record
-    Wide2AnsiMoveProc : procedure(source:pwidechar;dest:pchar;len:SizeInt);
-    Ansi2WideMoveProc : procedure(source:pchar;dest:pwidechar;len:SizeInt);
+    Wide2AnsiMoveProc : procedure(source:pwidechar;var dest:ansistring;len:SizeInt);
+    Ansi2WideMoveProc : procedure(source:pchar;var dest:widestring;len:SizeInt);
 
 //    UpperUTF8 : procedure(p:PUTF8String);
 
@@ -96,7 +99,10 @@ Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideSt
 
 {
   $Log$
-  Revision 1.6  2005-03-12 14:56:22  florian
+  Revision 1.7  2005-03-14 21:09:04  florian
+    * widestring manager can handle now ansi<->wide string conversions even if the lens don't match
+
+  Revision 1.6  2005/03/12 14:56:22  florian
     + added Ansi* routines to widestring manager
     * made them using OS calls on windows
 
