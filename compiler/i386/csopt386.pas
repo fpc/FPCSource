@@ -1655,6 +1655,11 @@ begin
                     { they can be nested! }
                     noPropInfoStart: inc(nopropinfolevel);
                     noPropInfoEnd: dec(nopropinfolevel);
+                    else
+                      begin
+                        hp1 := p;
+                        continue;
+                      end;
                   end;
                   asmL.remove(hp1);
                   hp1.free;
@@ -1675,9 +1680,6 @@ begin
                   end;
               hp1 := p;
             end;
-          p := Tai(hp1.next);
-          asmL.remove(hp1);
-          hp1.free;
         end
       else
 {$ifndef noinstremove}
@@ -1714,7 +1716,10 @@ End.
 
 {
   $Log$
-  Revision 1.12  2001-01-07 15:51:17  jonas
+  Revision 1.13  2001-01-10 08:52:40  michael
+  + Patch from jonas so 1.0.2 can be used to cycle
+
+  Revision 1.12  2001/01/07 15:51:17  jonas
     * fixed crashing bug to due previous changes
 
   Revision 1.11  2001/01/06 23:35:05  jonas
