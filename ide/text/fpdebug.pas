@@ -2201,8 +2201,101 @@ begin
 end;
 
 {****************************************************************************
-                         TRegistersWindow
+                         TRegistersView
 ****************************************************************************}
+
+  type
+     TIntRegs = record
+        eax,ebx,ecx,edx,eip,esi,edi,esp,ebp : dword;
+        cs,ds,es,ss,fs,gs : word;
+        eflags : dword;
+     end;
+
+  function GetIntRegs(var rs : TIntRegs) : boolean;
+
+    var
+       p,po : pchar;
+       p1 : pchar;
+       reg,value : string;
+       buffer : array[0..255] of char;
+       v : dword;
+       code : word;
+
+    begin
+       GetIntRegs:=false;
+{$ifndef NODEBUG}
+       Debugger^.Command('info registers');
+       if Debugger^.Error then
+         exit
+       else
+         begin
+            po:=StrNew(Debugger^.GetOutput);
+            p:=po;
+            if assigned(p) then
+              begin
+                 fillchar(rs,sizeof(rs),0);
+                 p1:=strscan(p,' ');
+                 while assigned(p1) do
+                   begin
+                      strlcopy(buffer,p,p1-p);
+                      reg:=strpas(buffer);
+                      p:=strscan(p,'$');
+                      p1:=strscan(p,#9);
+                      strlcopy(buffer,p,p1-p);
+                      value:=strpas(buffer);
+                      val(value,v,code);
+                      if reg='eax' then
+                        rs.eax:=v
+                      else if reg='ebx' then
+                        rs.ebx:=v
+                      else if reg='ecx' then
+                        rs.ecx:=v
+                      else if reg='edx' then
+                        rs.edx:=v
+                      else if reg='eip' then
+                        rs.eip:=v
+                      else if reg='esi' then
+                        rs.esi:=v
+                      else if reg='edi' then
+                        rs.edi:=v
+                      else if reg='esp' then
+                        rs.esp:=v
+                      else if reg='ebp' then
+                        rs.ebp:=v
+                      else if reg='eflags' then
+                        rs.eflags:=v
+                      else if reg='cs' then
+                        rs.cs:=v
+                      else if reg='ds' then
+                        rs.ds:=v
+                      else if reg='es' then
+                        rs.es:=v
+                      else if reg='fs' then
+                        rs.fs:=v
+                      else if reg='gs' then
+                        rs.gs:=v
+                      else if reg='ss' then
+                        rs.ss:=v;
+                      p:=strscan(p1,#10);
+                      if assigned(p) then
+                        begin
+                           p1:=strscan(p,' ');
+                           inc(p);
+                        end
+                      else
+                        break;
+                   end;
+                 { free allocated memory }
+                 strdispose(po);
+              end
+            else
+              exit;
+         end;
+       { do not open a messagebox for such errors }
+       Debugger^.got_error:=false;
+       GetIntRegs:=true;
+{$endif}
+    end;
 
   constructor TRegistersView.Init(var Bounds: TRect);
 
@@ -2213,50 +2306,43 @@ end;
   procedure TRegistersView.Draw;
 
     var
-       p,po : pchar;
-       p10 : pchar;
-       i : integer;
-       s : string;
+       rs : tintregs;
 
     begin
        inherited draw;
        If not assigned(Debugger) then
          begin
-            WriteStr(0,0,'<no values available>',7);
+            WriteStr(1,0,'<no values available>',7);
             exit;
          end;
-{$ifndef NODEBUG}
-       Debugger^.Command('info registers');
-       if Debugger^.Error then
-         WriteStr(0,0,'<Debugger error>',7)
-       else
+       if GetIntRegs(rs) then
          begin
-            po:=StrNew(Debugger^.GetOutput);
-            p:=po;
-            i:=0;
-            if assigned(p) then
-              begin
-                 p10:=strpos(p,#10);
-                 while p10<>nil do
-                   begin
-                     move(p^,@s[1],dword(p10)-dword(p));
-                     s[0]:=chr(dword(p10)-dword(p));
-                     WriteStr(0,i,s,7);
-                     inc(i);
-                     p:=pchar(p10+1);
-                     p10:=strpos(p,#10);
-                     if (p10=nil) and (strlen(p)>0) then
-                       p10:=p+strlen(p);
-                   end;
-                 { free allocated memory }
-                 strdispose(po);
-              end
-            else
-              WriteStr(0,0,'<unknown values>',7);
-         end;
-       { do not open a messagebox for such errors }
-       Debugger^.got_error:=false;
-{$endif}
+            WriteStr(1,0,'EAX '+HexStr(rs.eax,8),7);
+            WriteStr(1,1,'EBX '+HexStr(rs.ebx,8),7);
+            WriteStr(1,2,'ECX '+HexStr(rs.ecx,8),7);
+            WriteStr(1,3,'EDX '+HexStr(rs.edx,8),7);
+            WriteStr(1,4,'EIP '+HexStr(rs.eip,8),7);
+            WriteStr(1,5,'ESI '+HexStr(rs.esi,8),7);
+            WriteStr(1,6,'EDI '+HexStr(rs.edi,8),7);
+            WriteStr(1,7,'ESP '+HexStr(rs.esp,8),7);
+            WriteStr(1,8,'EBP '+HexStr(rs.ebp,8),7);
+            WriteStr(14,0,'CS '+HexStr(rs.cs,4),7);
+            WriteStr(14,1,'DS '+HexStr(rs.ds,4),7);
+            WriteStr(14,2,'ES '+HexStr(rs.es,4),7);
+            WriteStr(14,3,'FS '+HexStr(rs.fs,4),7);
+            WriteStr(14,4,'GS '+HexStr(rs.gs,4),7);
+            WriteStr(14,5,'SS '+HexStr(rs.ss,4),7);
+            WriteStr(22,0,'c='+chr(byte((rs.eflags and $1)<>0)+48),7);
+            WriteStr(22,1,'z='+chr(byte((rs.eflags and $20)<>0)+48),7);
+            WriteStr(22,2,'s='+chr(byte((rs.eflags and $80)<>0)+48),7);
+            WriteStr(22,3,'o='+chr(byte((rs.eflags and $800)<>0)+48),7);
+            WriteStr(22,4,'p='+chr(byte((rs.eflags and $4)<>0)+48),7);
+            WriteStr(22,5,'i='+chr(byte((rs.eflags and $200)<>0)+48),7);
+            WriteStr(22,6,'a='+chr(byte((rs.eflags and $10)<>0)+48),7);
+            WriteStr(22,7,'d='+chr(byte((rs.eflags and $400)<>0)+48),7);
+         end
+       else
+         WriteStr(0,0,'<debugger error>',7);
     end;
 
   destructor TRegistersView.Done;
@@ -2265,6 +2351,10 @@ end;
        inherited done;
     end;
 
+{****************************************************************************
+                         TRegistersWindow
+****************************************************************************}
+
   constructor TRegistersWindow.Init;
 
     var
@@ -2272,13 +2362,13 @@ end;
 
     begin
        Desktop^.GetExtent(R);
-       R.A.X:=R.B.X-48;
-       R.B.Y:=R.A.Y+18;
+       R.A.X:=R.B.X-28;
+       R.B.Y:=R.A.Y+11;
        inherited Init(R,' Register View', wnNoNumber);
        Flags:=wfClose or wfMove;
        Palette:=wpCyanWindow;
        HelpCtx:=hcRegisters;
-       R.Assign(1,1,47,17);
+       R.Assign(1,1,26,10);
        RV:=new(PRegistersView,init(R));
        Insert(RV);
        If assigned(RegistersWindow) then
@@ -2599,7 +2689,10 @@ end.
 
 {
   $Log$
-  Revision 1.40  2000-01-10 13:20:57  pierre
+  Revision 1.41  2000-01-10 16:20:50  florian
+    * working register window
+
+  Revision 1.40  2000/01/10 13:20:57  pierre
    + debug only possible on source target
 
   Revision 1.39  2000/01/10 00:25:06  pierre
