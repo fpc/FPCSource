@@ -816,8 +816,11 @@ implementation
               firstpass(p^.right);
               calcregisters(p,1,0,0);
               case p^.treetype of
-                addn,subn : if not(cs_extsyntax in aktmoduleswitches) then
-                              CGMessage(type_e_mismatch);
+                addn,subn : begin
+                              if not(cs_extsyntax in aktmoduleswitches) or
+                                 (not(is_pchar(ld)) and (m_tp in aktmodeswitches)) then
+                               CGMessage(type_e_mismatch);
+                            end;
               else
                 CGMessage(type_e_mismatch);
               end;
@@ -951,7 +954,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1998-12-11 00:03:51  peter
+  Revision 1.18  1998-12-15 17:12:35  peter
+    * pointer+ord not allowed in tp mode
+
+  Revision 1.17  1998/12/11 00:03:51  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.16  1998/12/10 09:47:31  florian
