@@ -5,11 +5,12 @@ library bug0263;
   from the 16bit model, just like near and far.
 }
 
-procedure p;
+procedure p1;export;
 begin
 end;
 
 exports
-  p name 'p';
+  p1 name 'p1';
 
+begin
 end.

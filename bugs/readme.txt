@@ -305,6 +305,7 @@ Fixed bugs:
   bug0242.pp   Crash when passing a procedure to formal parameter   OK 0.99.11 (PM)
   bug0244.pp   nested procedures can't have same name as global ones (same as bug0237) OK 0.99.13 (PM)
   bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !) OK 0.99.13 (PFV)
+  bug0246.pp   const para can be changed without error              OK 0.99.13 (PFV)
   bug0247.pp   var with initial value not supprted (Delphi var x : integer = 5;)
                allowed in -Sd mode OK 0.99.11 (PM)
   bug0248.pp   Asm, Wrong assembler code accepted by new assembler reader OK 0.99.11 (PFV)
@@ -323,6 +324,7 @@ Fixed bugs:
   bug0260.pp   problem with VMT generation if non virtual
                method has a virtual overload                        OK 0.99.12 (PM)
   bug0261.pp   problems for assignment overloading                  OK 0.99.12a (PM)
+  bug0263.pp   export directive is not necessary in delphi anymore  OK 0.99.13 (PFV)
   bug0264.pp   methodpointer bugs                                   OK 0.99.12b (FK)
   bug0266.pp   linux crt write cuts 256 char                        OK 0.99.13 (PFV)
   bug0267.pp   parameters after methodpointer are wrong             OK 0.99.12b (FK)
@@ -352,7 +354,7 @@ Fixed bugs:
   bug0298.pp   l1+l2:=l1+l2 gives no error                          OK 0.99.13 (PFV)
   bug0300.pp   crash if method on non existing object is parsed (form bug 651) OK 0.99.13 (PFV)
   bug0301.pp   crash if destructor without object name is parsed    OK 0.99.13 (PFV)
-  
+
 
 Unproducable bugs:
 ------------------
@@ -383,9 +385,7 @@ bug0289.pp   no hint/note for unused types
 
 Unfixed bugs:
 -------------
-bug0246.pp   const para can be changed without error
 bug0262.pp   problems with virtual and overloaded methods
-bug0263.pp   export directive is not necessary in delphi anymore
 bug0265.pp   nested proc with for-counter in other lex level
 bug0281.pp   dup id checking with property is wrong
 bug0293.pp   no error with variable name = type name
