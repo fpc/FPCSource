@@ -79,7 +79,8 @@ type
     TStringItem = object(TSwitchItem)
       Str : array[TSwitchMode] of string;
       multiple : boolean;
-      constructor Init(const n,p:string;AID: TParamID; mult:boolean);
+      SeparateSpaces : boolean;
+      constructor Init(const n,p:string;AID: TParamID; mult,allowspaces:boolean);
       function  NeedParam:boolean;virtual;
       function  ParamValue:string;virtual;
       procedure Reset;virtual;
@@ -109,7 +110,7 @@ type
       procedure AddDefaultSelect(const name:string);
       procedure AddBooleanItem(const name,param:string; AID: TParamID);
       procedure AddLongintItem(const name,param:string; AID: TParamID);
-      procedure AddStringItem(const name,param:string;AID: TParamID;mult:boolean);
+      procedure AddStringItem(const name,param:string;AID: TParamID;mult,allowspaces:boolean);
       function  GetCurrSel:integer;
       function  GetCurrSelParam : String;
       function  GetBooleanItem(index:integer):boolean;
@@ -293,11 +294,12 @@ end;
             TStringItem
 *****************************************************************************}
 
-constructor TStringItem.Init(const n,p:string; AID: TParamID; mult:boolean);
+constructor TStringItem.Init(const n,p:string; AID: TParamID; mult,allowspaces:boolean);
 begin
   Inherited Init(n,p,AID);
   Typ:=ot_String;
   Multiple:=mult;
+  SeparateSpaces:=not allowspaces;
   Reset;
 end;
 
@@ -409,9 +411,9 @@ begin
 end;
 
 
-procedure TSwitches.AddStringItem(const name,param:string;AID: TParamID;mult:boolean);
+procedure TSwitches.AddStringItem(const name,param:string;AID: TParamID;mult,allowspaces:boolean);
 begin
-  Items^.Insert(New(PStringItem,Init(name,Param,AID,mult)));
+  Items^.Insert(New(PStringItem,Init(name,Param,AID,mult,allowspaces)));
 end;
 
 
@@ -596,7 +598,10 @@ var
            s:=PStringItem(P)^.Str[SwitchesMode];
            repeat
              i:=pos(';',s);
-             j:=pos(' ',s);
+             if PStringItem(P)^.SeparateSpaces then
+               j:=pos(' ',s)
+             else
+               j:=0;
              if i=0 then
               i:=256;
              if (j>0) and (j<i) then
@@ -980,7 +985,7 @@ begin
   New(ConditionalSwitches,Init('d'));
   with ConditionalSwitches^ do
    begin
-     AddStringItem(opt_conditionaldefines,'',idNone,true);
+     AddStringItem(opt_conditionaldefines,'',idNone,true,false);
    end;
   New(MemorySwitches,Init('C'));
   with MemorySwitches^ do
@@ -991,11 +996,11 @@ begin
   New(DirectorySwitches,Init('F'));
   with DirectorySwitches^ do
    begin
-     AddStringItem(opt_unitdirectories,'u',idNone,true);
-     AddStringItem(opt_includedirectories,'i',idNone,true);
-     AddStringItem(opt_librarydirectories,'l',idNone,true);
-     AddStringItem(opt_objectdirectories,'o',idNone,true);
-     AddStringItem(opt_exeppudirectories,'E',idNone,true);
+     AddStringItem(opt_unitdirectories,'u',idNone,true,true);
+     AddStringItem(opt_includedirectories,'i',idNone,true,true);
+     AddStringItem(opt_librarydirectories,'l',idNone,true,true);
+     AddStringItem(opt_objectdirectories,'o',idNone,true,true);
+     AddStringItem(opt_exeppudirectories,'E',idNone,true,true);
    end;
 
   New(LibLinkerSwitches,InitSelect('X'));
@@ -1232,7 +1237,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2002-04-10 22:41:05  pierre
+  Revision 1.8  2002-04-11 06:42:54  pierre
+   * Add allow spaces for directories entries
+
+  Revision 1.7  2002/04/10 22:41:05  pierre
    * remove switches that have no command line option
 
   Revision 1.6  2002/03/16 14:53:23  armin
