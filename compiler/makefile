@@ -290,7 +290,7 @@ cycle:
 	$(MAKE) clean
 	$(MAKE) -C $(UNITDIR) clean
 	$(MAKE) -C $(UNITDIR)
-	$(MAKE) remake
+	$(MAKE) remake3
 
 #####################################################################
 # Installation
