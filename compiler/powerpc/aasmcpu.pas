@@ -611,7 +611,10 @@ uses cutils,rgobj;
                 loadreg(0,helpreg);
                 rgunget(list,helpins,helpreg);
                 forward_allocation(tai(helpins.next));
+{
+                writeln('spilling!');
                 list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
+}
               end;
 
             { now the registers used in the reference }
@@ -633,7 +636,10 @@ uses cutils,rgobj;
                 oper[1].ref^.base:=helpreg;
                 rgunget(list,helpins,helpreg);
                 forward_allocation(Tai(helpins.next));
+{
+                writeln('spilling!');
                 list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
+}
               end;
 
             { b) index }
@@ -654,7 +660,10 @@ uses cutils,rgobj;
                 oper[1].ref^.index:=helpreg;
                 rgunget(list,helpins,helpreg);
                 forward_allocation(Tai(helpins.next));
+{
+                writeln('spilling!');
                 list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
+}
               end;
             { load/store is done }
             exit;
@@ -702,7 +711,10 @@ uses cutils,rgobj;
             loadreg(0,helpreg);
             rgunget(list,helpins,helpreg);
             forward_allocation(tai(helpins.next));
+{
+            writeln('spilling!');
             list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
+}
           end;
 
         for i := 1 to 2 do
@@ -731,7 +743,10 @@ uses cutils,rgobj;
                   loadreg(i,helpreg);
                   rgunget(list,helpins,helpreg);
                   forward_allocation(tai(helpins.next));
+{
+                  writeln('spilling!');
                   list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
+}
                 end;
             end;
       end;
@@ -750,7 +765,10 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.10  2003-07-06 21:26:06  jonas
+  Revision 1.11  2003-07-23 10:58:06  jonas
+    - disabled some debugging code
+
+  Revision 1.10  2003/07/06 21:26:06  jonas
     * committed wrong file previously :(
 
   Revision 1.8  2003/06/14 22:32:43  jonas
