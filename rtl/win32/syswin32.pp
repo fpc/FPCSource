@@ -684,10 +684,20 @@ end;
 
 
 {$ASMMODE DIRECT}
+var
+  fpucw : word;
 procedure Entry;[public,alias: '_mainCRTStartup'];
+{ Can't use here any locals, because ebp is set to zero to indicate end of
+  backtrace (PFV) }
 begin
-   { call to the pascal main }
+   { init fpu and call to the pascal main }
+   fpucw:=$1332;
    asm
+     finit
+     fwait
+     fldcw _FPUCW
+
+     xorl %ebp,%ebp
      call PASCALMAIN
    end;
    { that's all folks }
@@ -746,7 +756,11 @@ end.
 
 {
   $Log$
-  Revision 1.20  1998-09-14 10:48:33  peter
+  Revision 1.21  1998-10-15 16:26:19  peter
+    + fpuinit
+    + end of backtrace indicator
+
+  Revision 1.20  1998/09/14 10:48:33  peter
     * FPC_ names
     * Heap manager is now system independent
 
