@@ -2,31 +2,17 @@
  $Id$
  ****************************************************************************
 
-                     Free Pascal -- OS/2 runtime library
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2002 by Free Pascal development team
 
-                  Copyright (c) 1999-2000 by Florian Klaempfl
-                   Copyright (c) 1999-2000 by Daniel Mantione
+    Free Pascal - OS/2 (EMX) runtime library
 
- Free Pascal is distributed under the GNU Public License v2. So is this unit.
- The GNU Public License requires you to distribute the source code of this
- unit with any product that uses it. We grant you an exception to this, and
- that is, when you compile a program with the Free Pascal Compiler, you do not
- need to ship source code with that program, AS LONG AS YOU ARE USING
- UNMODIFIED CODE! If you modify this code, you MUST change the next line:
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
- <This an official, unmodified Free Pascal source code file.>
-
- Send us your modified files, we can work together if you want!
-
- Free Pascal is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- Library GNU General Public License for more details.
-
- You should have received a copy of the Library GNU General Public License
- along with Free Pascal; see the file COPYING.LIB.  If not, write to
- the Free Software Foundation, 59 Temple Place - Suite 330,
- Boston, MA 02111-1307, USA.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 ****************************************************************************}
 
@@ -153,6 +139,9 @@ var
     heap_base: pointer; external name '__heap_base';
     heap_brk: pointer; external name '__heap_brk';
     heap_end: pointer; external name '__heap_end';
+{$IFDEF CONTHEAP}
+    BrkLimit: cardinal;
+{$ENDIF CONTHEAP}
 
 procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                             PAPIB: PPProcessInfoBlock); cdecl;
@@ -301,12 +290,32 @@ end;
 { this function allows to extend the heap by calling
 syscall $7f00 resizes the brk area}
 
-function sbrk(size:longint):longint; assembler;
+function sbrk(size:longint):longint;
+{$IFDEF DUMPGROW}
+var
+  L: longint;
+begin
+  WriteLn ('Trying to grow heap by ', Size, ' to ', HeapSize + Size);
+{$IFDEF CONTHEAP}
+  WriteLn ('BrkLimit is ', BrkLimit);
+{$ENDIF CONTHEAP}
+  asm
+    movl size,%edx
+    movw $0x7f00,%ax
+    call syscall     { result directly in EAX }
+    mov  %eax,L
+  end;
+  WriteLn ('New heap at ', L);
+  Sbrk := L;
+end;
+{$ELSE DUMPGROW}
+                                     assembler;
 asm
     movl size,%edx
     movw $0x7f00,%ax
     call syscall     { result directly in EAX }
 end;
+{$ENDIF DUMPGROW}
 
 function getheapstart:pointer;assembler;
 
@@ -922,7 +931,7 @@ begin
 {$ASMMODE INTEL}
     asm
         mov os_mode, 0
-        mov ax, 7F0Ah
+        mov eax, 7F0Ah
         call syscall
         test bx, 512         {Bit 9 is OS/2 flag.}
         setne byte ptr os_mode
@@ -933,7 +942,7 @@ begin
 
     {Enable the brk area by initializing it with the initial heap size.}
 
-        mov ax, 7F01h
+        mov eax, 7F01h
         mov edx, heap_brk
         add edx, heap_base
         call syscall
@@ -942,7 +951,24 @@ begin
         push dword 204
         call HandleError
     @heapok:
+{$IFDEF CONTHEAP}
+{ Find out brk limit }
+        mov eax, 7F02h
+        mov ecx, 3
+        call syscall
+        jcxz @heaplimitknown
+        mov eax, 0
+    @heaplimitknown:
+        mov BrkLimit, eax
+{$ELSE CONTHEAP}
+{ Change sbrk behaviour to allocate arbitrary (non-contiguous) memory blocks }
+        mov eax, 7F0Fh
+        mov ecx, 0Ch
+        mov edx, 8
+        call syscall
+{$ENDIF CONTHEAP}
     end;
+
     { in OS/2 this will always be nil, but in DOS mode }
     { this can be changed.                             }
     first_meg := nil;
@@ -950,7 +976,7 @@ begin
      read-access to the first meg. of memory.}
     if os_mode in [osDOS,osDPMI] then
         asm
-            mov ax, 7F13h
+            mov eax, 7F13h
             xor ebx, ebx
             mov ecx, 0FFFh
             xor edx, edx
@@ -1006,10 +1032,20 @@ begin
 {$ifdef HASVARIANT}
     initvariantmanager;
 {$endif HASVARIANT}
+
+{$IFDEF DUMPGROW}
+ {$IFDEF CONTHEAP}
+    WriteLn ('Initial brk size is ', GetHeapSize);
+    WriteLn ('Brk limit is ', BrkLimit);
+ {$ENDIF CONTHEAP}
+{$ENDIF DUMPGROW}
 end.
 {
   $Log$
-  Revision 1.25  2002-10-14 19:39:17  peter
+  Revision 1.26  2002-10-27 14:29:00  hajny
+    * heap management (hopefully) fixed
+
+  Revision 1.25  2002/10/14 19:39:17  peter
     * threads unit added for thread support
 
   Revision 1.24  2002/10/13 09:28:45  florian
