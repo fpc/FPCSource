@@ -258,7 +258,7 @@ var
            getlastinstruction(p,hp) then
           stillValid := stillValid and
            not(supreg in ptaiprop(hp.optinfo)^.usedregs);
-        passedFlagsModifyingInstr :=
+        passedFlagsModifyingInstr := passedFlagsModifyingInstr or
           instrWritesFlags(currentPrev);
       end;
 
@@ -274,9 +274,9 @@ var
       for regCounter := loopstart to RS_EDI do
         with ptaiprop(p.optinfo)^.regs[regCounter] do
         if ((startmod <>
-              ptaiprop(currentPrev.optinfo)^.regs[regCounter].startmod)  or
+             ptaiprop(currentPrev.optinfo)^.regs[regCounter].startmod)  or
             (nrofMods <>
-              ptaiprop(currentPrev.optinfo)^.regs[regCounter].nrofMods)) and
+             ptaiprop(currentPrev.optinfo)^.regs[regCounter].nrofMods)) and
            (ptaiprop(p.optinfo)^.regs[regCounter].typ in [con_ref,con_noRemoveRef]) then
           begin
             findChangedRegister := regCounter;
@@ -305,7 +305,8 @@ var
       end;
 
     getPrevSequence := RS_INVALID;
-    passedFlagsModifyingInstr := instrWritesFlags(currentPrev);
+    passedFlagsModifyingInstr := passedFlagsModifyingInstr or
+      instrWritesFlags(currentPrev);
 
     if not getLastInstruction(currentPrev,hp) then
       exit;
@@ -402,7 +403,7 @@ var
   hp2, hp3{, EndMod},highPrev, orgPrev: tai;
   {Cnt,} OldNrofMods: Longint;
   startRegInfo, OrgRegInfo, HighRegInfo: toptreginfo;
-  regModified: array[RS_EAX..RS_ESP] of boolean;
+  regModified, lastregloadremoved: array[RS_EAX..RS_ESP] of boolean;
   HighFound, OrgRegFound: longint;
   regcounter, regCounter2, tmpreg, base, index: tsuperregister;
   OrgRegResult: Boolean;
@@ -434,6 +435,7 @@ begin {CheckSequence}
   while (regcounter <> RS_INVALID) do
     begin
       fillchar(regModified,sizeof(regModified),0);
+      fillchar(lastregloadremoved,sizeof(lastregloadremoved),0);
       reginfo := startRegInfo;
       Found := 0;
       hp2 := ptaiprop(prev.optinfo)^.Regs[regcounter].StartMod;
@@ -454,8 +456,8 @@ begin {CheckSequence}
           if checkingprevsequences then
             begin
               prevreginfo := reginfo;
-            end
-          else if (hp3.typ = ait_instruction) and
+            end;
+          if (hp3.typ = ait_instruction) and
              ((taicpu(hp3).opcode = A_MOV) or
               (taicpu(hp3).opcode = A_MOVZX) or
               (taicpu(hp3).opcode = A_LEA) or
@@ -464,6 +466,7 @@ begin {CheckSequence}
              not(regInOp(getsupreg(taicpu(hp3).oper[1]^.reg),taicpu(hp3).oper[0]^)) then
             begin
               tmpreg := getsupreg(taicpu(hp3).oper[1]^.reg);
+              lastregloadremoved[tmpreg] := ptaiprop(hp2.optinfo)^.canberemoved;
               reginfo.lastReload[tmpreg] := hp3;
               case taicpu(hp3).oper[0]^.typ of
                 top_ref:
@@ -481,13 +484,22 @@ begin {CheckSequence}
                         with ptaiprop(hp3.optinfo)^.regs[tmpreg] do
                           if nrofMods > (oldNrofMods - found) then
                             oldNrofMods := found + nrofMods;
+                        { next is safe because instructions are equivalent }
+                        with ptaiprop(hp2.optinfo)^.regs[getsupreg(taicpu(hp2).oper[1]^.reg)] do
+                          if nrofMods > (oldNrofMods - found) then
+                            oldNrofMods := found + nrofMods;
                       end;
                   end;
                 top_reg:
                   if regModified[getsupreg(taicpu(hp3).oper[0]^.reg)] then
-                    with ptaiprop(hp3.optinfo)^.regs[tmpreg] do
-                      if nrofMods > (oldNrofMods - found) then
-                        oldNrofMods := found + nrofMods;
+                    begin
+                      with ptaiprop(hp3.optinfo)^.regs[tmpreg] do
+                        if nrofMods > (oldNrofMods - found) then
+                          oldNrofMods := found + nrofMods;
+                      with ptaiprop(hp2.optinfo)^.regs[getsupreg(taicpu(hp2).oper[1]^.reg)] do
+                        if nrofMods > (oldNrofMods - found) then
+                          oldNrofMods := found + nrofMods;
+                    end;
               end;
             end;
           for regCounter2 := RS_EAX to RS_EDI do
@@ -505,8 +517,9 @@ begin {CheckSequence}
       for regCounter2 := RS_EAX to RS_EDI do
         if (reginfo.new2OldReg[regCounter2] <> RS_INVALID) and
            (regCounter2 in ptaiprop(hp3.optinfo)^.usedRegs) and
-           not regLoadedWithNewValue(regCounter2,false,hp3) then
-          include(reginfo.regsStillUsedAfterSeq,regCounter2);
+           not regLoadedWithNewValue(regCounter2,false,hp3) and
+           lastregloadremoved[regcounter2] then
+          found := 0;
 
       if checkingPrevSequences then
         begin
@@ -836,7 +849,7 @@ var
   l: longint;
 {$endif replaceregdebug}
   dummyregs: tregset;
-  tmpState: byte;
+  tmpState, newrstate: byte;
   prevcontenttyp: byte;
   memconflict: boolean;
   invalsmemwrite: boolean;
@@ -852,19 +865,31 @@ begin
     hp.previous.next := hp;
 {$endif replaceregdebug}
 {  ptaiprop(p.optinfo)^.Regs[reg] := c;}
+  newrstate := c.rstate;
+  incstate(newrstate,$7f);
   while (p <> endP) do
     begin
+      if not(ptaiprop(p.optinfo)^.canberemoved) and
+         regreadbyinstruction(supreg,p) then
+        incstate(newrstate,1);
       ptaiprop(p.optinfo)^.Regs[supreg] := c;
+      ptaiprop(p.optinfo)^.Regs[supreg].rstate := newrstate;
       getNextInstruction(p,p);
     end;
   tmpState := ptaiprop(p.optinfo)^.Regs[supreg].wState;
+  if (newrstate = ptaiprop(p.optinfo)^.Regs[supreg].rState) then
+    internalerror(2004101012);
   dummyregs := [supreg];
   repeat
+    newrstate := ptaiprop(p.optinfo)^.Regs[supreg].rState;
     prevcontenttyp := ptaiprop(p.optinfo)^.Regs[supreg].typ;
     // is this a write to memory that destroys the contents we are restoring?
     memconflict := modifiesConflictingMemLocation(p,supreg,ptaiprop(p.optinfo)^.regs,dummyregs,true,invalsmemwrite);
     if not memconflict and not invalsmemwrite then
-      ptaiprop(p.optinfo)^.Regs[supreg] := c;
+      begin
+        ptaiprop(p.optinfo)^.Regs[supreg] := c;
+        ptaiprop(p.optinfo)^.Regs[supreg].rstate := newrstate;
+      end;
   until invalsmemwrite or
         memconflict or
         not getNextInstruction(p,p) or
@@ -873,10 +898,13 @@ begin
         ((prevcontenttyp <> con_invalid) and
          (ptaiprop(p.optinfo)^.Regs[supreg].typ = con_invalid));
   if assigned(p) and
-     ((p.typ = ait_label) or
-      memconflict or
-      invalsmemwrite) then
-    clearRegContentsFrom(supreg,p,p);
+     (p.typ <> ait_marker) then
+    if ((p.typ = ait_label) or
+       memconflict or
+       invalsmemwrite) then
+      clearRegContentsFrom(supreg,p,p)
+    else if (ptaiprop(p.optinfo)^.Regs[supreg].rstate = newrstate) then
+      incstate(ptaiprop(p.optinfo)^.Regs[supreg].rstate,20);
 {$ifdef replaceregdebug}
   if assigned(p) then
     begin
@@ -1186,24 +1214,13 @@ begin
 end;
 
 
-function ReplaceReg(asml: TAAsmOutput; orgsupreg, newsupreg: tsuperregister; p,
-          seqstart: tai; const c: TContent; orgRegCanBeModified: Boolean;
-          var returnEndP: tai): Boolean;
-{ Tries to replace orgsupreg with newsupreg in all instructions coming after p }
-{ until orgsupreg gets loaded with a new value. Returns true if successful, }
-{ false otherwise. if successful, the contents of newsupreg are set to c,   }
-{ which should hold the contents of newsupreg before the current sequence   }
-{ started                                                                }
-{ if the function returns true, returnEndP holds the last instruction    }
-{ where newsupreg was replaced by orgsupreg                                    }
+function canreplacereg(orgsupreg, newsupreg: tsuperregister; p: tai;
+  orgRegCanBeModified: boolean; var resnewregmodified, resorgregread, resremovelast: boolean; var returnendp: tai): boolean;
 var
   endP, hp: tai;
-  removeLast, sequenceEnd, tmpResult, newRegModified, orgRegRead,
-    stateChanged, readStateChanged: Boolean;
-
-
+  removeLast, sequenceEnd, tmpResult, newRegModified, orgRegRead: boolean;
 begin
-  ReplaceReg := false;
+  canreplacereg := false;
   tmpResult := true;
   sequenceEnd := false;
   newRegModified := false;
@@ -1281,7 +1298,7 @@ begin
             not RegModifiedByInstruction(orgsupreg,endP);
         end;
     end;
-  sequenceEnd := sequenceEnd and
+  canreplacereg := sequenceEnd and
      (removeLast  or
       (orgRegCanBeModified or not(newRegModified))) and
      (not(assigned(endp)) or
@@ -1291,7 +1308,35 @@ begin
        not(newRegModified and
            (orgsupreg in ptaiprop(endp.optinfo)^.usedRegs) and
            not(RegLoadedWithNewValue(orgsupreg,true,taicpu(endP))))));
-  if SequenceEnd then
+  if canreplacereg then
+    begin
+      resnewregmodified := newregmodified;
+      resorgregread := orgregread;
+      resremovelast := removelast;
+      returnendp := endp;
+    end;
+end;
+
+
+
+function ReplaceReg(asml: TAAsmOutput; orgsupreg, newsupreg: tsuperregister; p,
+          seqstart: tai; const c: TContent; orgRegCanBeModified: Boolean;
+          var returnEndP: tai): Boolean;
+{ Tries to replace orgsupreg with newsupreg in all instructions coming after p }
+{ until orgsupreg gets loaded with a new value. Returns true if successful, }
+{ false otherwise. if successful, the contents of newsupreg are set to c,   }
+{ which should hold the contents of newsupreg before the current sequence   }
+{ started                                                                }
+{ if the function returns true, returnEndP holds the last instruction    }
+{ where newsupreg was replaced by orgsupreg                                    }
+var
+  endP, hp: tai;
+  removeLast, sequenceEnd, newRegModified, orgRegRead,
+    stateChanged, readStateChanged: Boolean;
+
+begin
+  replacereg := false;
+  if canreplacereg(orgsupreg,newsupreg,p,orgregcanbemodified,newregmodified, orgregread, removelast,endp) then
     begin
 {$ifdef replaceregdebug}
       hp := tai_comment.Create(strpnew(
@@ -1424,7 +1469,7 @@ procedure removePrevNotUsedLoad(p: tai; supreg: tsuperregister; check: boolean);
 { (e.g. when you have a "mov 8(%ebp),%eax", you can be sure the previous }
 { value of %eax isn't used anymore later on)                             }
 var
-  hp1: tai;
+  hp1, next, beforestartmod: tai;
 begin
   if getLastInstruction(p,hp1) then
     with ptaiprop(hp1.optinfo)^.regs[supreg] do
@@ -1435,7 +1480,17 @@ begin
           (not(regInInstruction(supreg,p)) and
            (not(supreg in ptaiprop(hp1.optinfo)^.usedRegs) or
             findRegDealloc(supreg,p)))) then
-        ptaiprop(startMod.optinfo)^.canBeRemoved := true;
+        begin
+          ptaiprop(startMod.optinfo)^.canBeRemoved := true;
+          getnextinstruction(p,next);
+          { give the register that was modified by this instruction again }
+          { the contents it had before this instruction                   }
+          if getlastinstruction(startmod,beforestartmod) then
+            RestoreRegContentsTo(supreg,ptaiprop(beforestartmod.optinfo)^.regs[supreg],
+             startmod,p)
+          else
+            ClearRegContentsFrom(supreg,startmod,hp1);
+        end;
 end;
 
 
@@ -2122,7 +2177,18 @@ end.
 
 {
   $Log$
-  Revision 1.69  2004-10-31 21:45:03  peter
+  Revision 1.70  2004-12-18 15:16:10  jonas
+    * fixed tracking of usage of flags register
+    * fixed destroying of "memwrite"'s
+    * fixed checking of entire sequences in all cases (previously this was
+      only guaranteed if the new sequence was longer than the old one, and
+      not if vice versa)
+    * fixed wrong removal of sequences if a register load was already
+      completely removed in the previous sequence (because in that case,
+      that register has to be removed and renamed in the new sequence as
+      well before removing the new sequence)
+
+  Revision 1.69  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

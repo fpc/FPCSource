@@ -70,7 +70,6 @@ type
   toptreginfo = Record
                 NewRegsEncountered, OldRegsEncountered: TRegSet;
                 RegsLoadedForRef: TRegSet;
-                regsStillUsedAfterSeq: TRegSet;
                 lastReload: array[RS_EAX..RS_ESP] of tai;
                 New2OldReg: TRegArray;
               end;
@@ -2574,7 +2573,8 @@ begin
 {                  DestroyReg(curprop, RS_EAX, true);}
                   AddInstr2RegContents({$ifdef statedebug}list,{$endif}
                     taicpu(p), RS_EAX);
-                  DestroyReg(curprop, RS_EDX, true)
+                  DestroyReg(curprop, RS_EDX, true);
+                  LastFlagsChangeProp := curprop;
                 end;
               A_IMUL:
                 begin
@@ -2601,6 +2601,7 @@ begin
                   else
                     AddInstr2OpContents({$ifdef statedebug}list,{$endif}
                       taicpu(p), taicpu(p).oper[2]^);
+                  LastFlagsChangeProp := curprop;
                 end;
               A_LEA:
                 begin
@@ -2791,7 +2792,18 @@ end.
 
 {
   $Log$
-  Revision 1.76  2004-12-18 14:07:35  jonas
+  Revision 1.77  2004-12-18 15:16:10  jonas
+    * fixed tracking of usage of flags register
+    * fixed destroying of "memwrite"'s
+    * fixed checking of entire sequences in all cases (previously this was
+      only guaranteed if the new sequence was longer than the old one, and
+      not if vice versa)
+    * fixed wrong removal of sequences if a register load was already
+      completely removed in the previous sequence (because in that case,
+      that register has to be removed and renamed in the new sequence as
+      well before removing the new sequence)
+
+  Revision 1.76  2004/12/18 14:07:35  jonas
     * fixed compilation with -dcsdebug -dallocregdebug
 
   Revision 1.75  2004/12/12 10:50:34  florian
