@@ -597,13 +597,18 @@ begin
 {$ifdef I386}
           fpustate:=0;
           res:=200;
-          {$ifndef BSD}
+  {$ifndef BSD}
            if assigned(SigContext.fpstate) then
              fpuState:=SigContext.fpstate^.sw;
-          {$else}
+  {$else}
             fpustate:=SigContext.en_sw;
-	   writeln('xx:',sigcontext.en_tw,' ',sigcontext.en_cw);
-          {$endif}
+    {$ifdef SYSTEM_DEBUG}
+           writeln('xx:',sigcontext.en_tw,' ',sigcontext.en_cw);
+    {$endif SYSTEM_DEBUG}
+  {$endif}
+  {$ifdef SYSTEM_DEBUG}
+          Writeln(stderr,'FpuState = ',FpuState);
+  {$endif SYSTEM_DEBUG}
           if (FpuState and $7f) <> 0 then
             begin
               { first check te more precise options }
@@ -632,7 +637,7 @@ begin
    begin
 {$ifdef I386}
      {$ifdef BSD}
-      HandleErrorAddrFrame(res,SigContext.sc_eip,SigContext.sc_ebp); 
+      HandleErrorAddrFrame(res,SigContext.sc_eip,SigContext.sc_ebp);
      {$else}
       HandleErrorAddrFrame(res,SigContext.eip,SigContext.ebp);
      {$endif}
@@ -738,7 +743,10 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-10-09 16:35:51  marco
+  Revision 1.4  2000-12-17 14:00:57  peter
+    * removed debug writelns
+
+  Revision 1.3  2000/10/09 16:35:51  marco
    * Fixed the first (of many) ioctls that make building the IDE hard.
 
   Revision 1.2  2000/09/18 13:14:51  marco
