@@ -45,6 +45,9 @@ implementation
     {$ifndef NOTARGETDARWIN}
       ,t_bsd
     {$endif}
+    {$ifndef NOTARGETMORPHOS}
+      ,t_morph
+    {$endif}
 
 {**************************************
              Assemblers
@@ -61,7 +64,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2003-05-20 23:54:00  florian
+  Revision 1.7  2004-02-24 16:06:08  karoly
+   + morphos target added
+
+  Revision 1.6  2003/05/20 23:54:00  florian
     + basic darwin support added
 
   Revision 1.5  2002/08/20 21:40:44  florian
