@@ -88,7 +88,7 @@ unit og386;
   implementation
 
     uses
-      strings,
+      strings,comphook,
       globtype,globals,verbose,files,
       assemble;
 
@@ -241,44 +241,47 @@ unit og386;
 
     procedure tobjectoutput.writesymbol(p:pasmsymbol);
       begin
-        RunError(211);
+        Do_halt(211);
       end;
 
     procedure tobjectoutput.writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);
       begin
-        RunError(211);
+        Do_halt(211);
       end;
 
     procedure tobjectoutput.writebytes(var data;len:longint);
       begin
-        RunError(211);
+        Do_halt(211);
       end;
 
     procedure tobjectoutput.writealloc(len:longint);
       begin
-        RunError(211);
+        Do_halt(211);
       end;
 
     procedure tobjectoutput.writealign(len:longint);
       begin
-        RunError(211);
+        Do_halt(211);
       end;
 
    procedure tobjectoutput.writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);
       begin
-        RunError(211);
+        Do_halt(211);
       end;
 
    procedure tobjectoutput.writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;
      nidx,nother,line:longint;reloc:boolean);
       begin
-        RunError(211);
+        Do_halt(211);
       end;
 
 end.
 {
   $Log$
-  Revision 1.11  1999-08-04 00:23:04  florian
+  Revision 1.12  1999-09-07 15:22:20  pierre
+   * runerror => do_halt
+
+  Revision 1.11  1999/08/04 00:23:04  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.10  1999/07/18 10:19:56  florian
