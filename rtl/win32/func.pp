@@ -3036,7 +3036,7 @@ ExitProcess(
 #define ListView_GetItemRect(hwnd, i, prc, code) \
 SendMessage(hwnd, LVM_GETITEMRECT, (WPARAM)(int)i, \
            ((prc) ? (((RECT *)(prc))->left = (code), \
-                     (LPARAM)(RECT *)(prc)) : (LPARAM)(RECT *)NULL))
+                     (LPARAM)(RECT *)(prc)) : (LPARAM)(RECT *)nil))
 in define line 6717 }
     { was #define dname(params) def_expr }
     function ListView_GetItemSpacing(hwndLV:HWND;fSmall : longint) : LRESULT;
@@ -5581,7 +5581,7 @@ in define line 6852 *)
   { was #define dname(params) def_expr }
   function Animate_Create(hWndP:HWND; id:HMENU;dwStyle:DWORD;hInstance:HINST):HWND;
     begin
-       Animate_Create:=CreateWindow(LPCSTR(@ANIMATE_CLASS),NULL,dwStyle,0,0,0,0,hwndP,id,hInstance,NULL);
+       Animate_Create:=CreateWindow(LPCSTR(@ANIMATE_CLASS),nil,dwStyle,0,0,0,0,hwndP,id,hInstance,nil);
     end;
 
   { was #define dname(params) def_expr }
@@ -5608,7 +5608,7 @@ in define line 6852 *)
   { was #define dname(params) def_expr }
   function Animate_Close(hwnd : HWND) : LRESULT;
     begin
-       Animate_Close:=Animate_Open(hwnd,NULL);
+       Animate_Close:=Animate_Open(hwnd,nil);
     end;
 
   { was #define dname(params) def_expr }
@@ -6176,7 +6176,7 @@ in define line 6826 *)
     { was #define dname(params) def_expr }
     function TreeView_GetFirstVisible(hwnd : HWND) : LRESULT;
       begin
-         TreeView_GetFirstVisible:=TreeView_GetNextItem(hwnd,HTREEITEM(NULL),TVGN_FIRSTVISIBLE);
+         TreeView_GetFirstVisible:=TreeView_GetNextItem(hwnd,HTREEITEM(nil),TVGN_FIRSTVISIBLE);
       end;
 
     { was #define dname(params) def_expr }
@@ -6194,19 +6194,19 @@ in define line 6826 *)
     { was #define dname(params) def_expr }
     function TreeView_GetSelection(hwnd : HWND) : LRESULT;
       begin
-         TreeView_GetSelection:=TreeView_GetNextItem(hwnd,HTREEITEM(NULL),TVGN_CARET);
+         TreeView_GetSelection:=TreeView_GetNextItem(hwnd,HTREEITEM(nil),TVGN_CARET);
       end;
 
     { was #define dname(params) def_expr }
     function TreeView_GetDropHilight(hwnd : HWND) : LRESULT;
       begin
-         TreeView_GetDropHilight:=TreeView_GetNextItem(hwnd,HTREEITEM(NULL),TVGN_DROPHILITE);
+         TreeView_GetDropHilight:=TreeView_GetNextItem(hwnd,HTREEITEM(nil),TVGN_DROPHILITE);
       end;
 
     { was #define dname(params) def_expr }
     function TreeView_GetRoot(hwnd : HWND) : LRESULT;
       begin
-         TreeView_GetRoot:=TreeView_GetNextItem(hwnd,HTREEITEM(NULL),TVGN_ROOT);
+         TreeView_GetRoot:=TreeView_GetNextItem(hwnd,HTREEITEM(nil),TVGN_ROOT);
       end;
 
     { was #define dname(params) def_expr }
@@ -6779,7 +6779,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.8  1999-01-09 07:29:48  florian
+  Revision 1.9  1999-03-30 17:00:23  peter
+    * fixes for 0.99.10
+
+  Revision 1.8  1999/01/09 07:29:48  florian
     * some updates to compile API units for win32
 
   Revision 1.7  1998/12/28 23:35:15  peter

@@ -23,9 +23,9 @@ unit ole2;
     type
        IUnknown = class
          public
-           function QueryInterface(const iid: TIID; var obj): HResult; virtual; stdcall; abstract;
-           function AddRef: Longint; virtual; stdcall; abstract;
-           function Release: Longint; virtual; stdcall; abstract;
+           function QueryInterface(const iid: TIID; var obj): HResult; virtual; {$ifndef VER0_99_10}stdcall;{$endif} abstract;
+           function AddRef: Longint; virtual; {$ifndef VER0_99_10}stdcall;{$endif} abstract;
+           function Release: Longint; virtual; {$ifndef VER0_99_10}stdcall;{$endif} abstract;
        end;
 
   implementation
@@ -33,7 +33,10 @@ unit ole2;
 end.
 {
   $Log$
-  Revision 1.1  1999-03-22 22:12:51  florian
+  Revision 1.2  1999-03-30 17:00:25  peter
+    * fixes for 0.99.10
+
+  Revision 1.1  1999/03/22 22:12:51  florian
     + addition and changes to compile the direct draw unit
       of Erik Ungerer (with -dv2com and indirect disabled)
 

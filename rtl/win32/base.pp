@@ -62,8 +62,10 @@ interface
      59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
    }
 
+{$ifndef VER0_99_10}
   const
      NULL = nil;
+{$endif}
 
   type
 
@@ -960,7 +962,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  1999-01-09 07:29:47  florian
+  Revision 1.11  1999-03-30 17:00:22  peter
+    * fixes for 0.99.10
+
+  Revision 1.10  1999/01/09 07:29:47  florian
     * some updates to compile API units for win32
 
   Revision 1.9  1998/12/28 23:35:14  peter
