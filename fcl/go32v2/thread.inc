@@ -92,7 +92,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1999-04-08 10:18:57  peter
+  Revision 1.1  1999-05-30 10:46:39  peter
+    * start of tthread for linux,win32
+
+  Revision 1.2  1999/04/08 10:18:57  peter
     * makefile updates
 
 }

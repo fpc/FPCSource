@@ -35,7 +35,7 @@ NEEDOPT=-S2
 #####################################################################
 
 UNITOBJECTS=
-EXEOBJECTS=stringl dparser fstream mstream list
+EXEOBJECTS=stringl dparser fstream mstream list threads
 
 
 #####################################################################
@@ -112,7 +112,10 @@ endif
 
 #
 # $Log$
-# Revision 1.4  1999-04-08 10:19:04  peter
+# Revision 1.5  1999-05-30 10:46:43  peter
+#   * start of tthread for linux,win32
+#
+# Revision 1.4  1999/04/08 10:19:04  peter
 #   * makefile updates
 #
 #
