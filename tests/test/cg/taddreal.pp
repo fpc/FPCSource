@@ -241,7 +241,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-05-16 15:28:40  carl
+  Revision 1.1  2001-05-19 11:51:50  peter
+    * renamed to .pp
+
+  Revision 1.2  2001/05/16 15:28:40  carl
   * corrected problem with log
 
 

@@ -395,7 +395,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-05-18 18:20:07  carl
+  Revision 1.1  2001-05-19 11:51:50  peter
+    * renamed to .pp
+
+  Revision 1.2  2001/05/18 18:20:07  carl
   + add more tests
 
   Revision 1.1  2001/05/16 15:29:00  carl
