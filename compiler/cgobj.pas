@@ -373,7 +373,8 @@ unit cgobj;
           {# Generates overflow checking code for a node }
           procedure g_overflowcheck(list: taasmoutput; const l:tlocation; def:tdef); virtual; abstract;
 
-          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:integer);virtual;abstract;
+          procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);virtual;abstract;
+          procedure g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);virtual;
           {# Emits instructions which should be emitted when entering
              a routine declared as @var(interrupt). The default
              behavior does nothing, should be overriden as required.
@@ -1655,6 +1656,11 @@ implementation
                             Entry/Exit Code Functions
 *****************************************************************************}
 
+    procedure tcg.g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);
+      begin
+      end;
+
+
     procedure tcg.g_interrupt_stackframe_entry(list : taasmoutput);
       begin
       end;
@@ -1811,7 +1817,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.133  2003-10-19 01:34:30  florian
+  Revision 1.134  2003-11-05 23:05:13  florian
+    * elesize of g_copyvaluepara_openarray changed
+    + g_releaesvaluepara_openarray added
+
+  Revision 1.133  2003/10/19 01:34:30  florian
     * some ppc stuff fixed
     * memory leak fixed
 
