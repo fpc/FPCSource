@@ -873,14 +873,14 @@ implementation
                            else
                              begin
                                 hregister:=R_EDI;
-                                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,S_L,
                                   newreference(p^.left^.right^.left^.location.reference),R_EDI)));
                              end;
                           if (p^.left^.left^.location.loc=LOC_REFERENCE) then
-                            exprasmlist^.concat(new(pai386,op_reg_ref(asmop,S_L,R_EDI,
+                            exprasmlist^.concat(new(paicpu,op_reg_ref(asmop,S_L,R_EDI,
                               newreference(p^.left^.right^.left^.location.reference))))
                           else
-                            exprasmlist^.concat(new(pai386,op_reg_reg(asmop,S_L,R_EDI,
+                            exprasmlist^.concat(new(paicpu,op_reg_reg(asmop,S_L,R_EDI,
                               p^.left^.right^.left^.location.register)));
                         end
                       else
@@ -900,7 +900,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1999-04-07 15:31:18  pierre
+  Revision 1.17  1999-08-25 11:59:50  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.16  1999/04/07 15:31:18  pierre
     * all formaldefs are now a sinlge definition
       cformaldef (this was necessary for double_checksum)
     + small part of double_checksum code

@@ -1085,9 +1085,9 @@ Begin
       Reg := Reg32(Reg);
       Counter := 0;
       Repeat
-        Case Pai386(p1)^.oper[Counter].typ Of
-          Top_Reg: TmpResult := Reg = Reg32(Pai386(p1)^.oper[Counter].reg);
-          Top_Ref: TmpResult := RegInRef(Reg, Pai386(p1)^.oper[Counter].ref^);
+        Case Paicpu(p1)^.oper[Counter].typ Of
+          Top_Reg: TmpResult := Reg = Reg32(Paicpu(p1)^.oper[Counter].reg);
+          Top_Ref: TmpResult := RegInRef(Reg, Paicpu(p1)^.oper[Counter].ref^);
         End;
         Inc(Counter)
       Until (Counter = 3) or TmpResult;
@@ -1308,19 +1308,19 @@ Begin
         (Counter <= Content.NrOfMods) Do
     Begin
       If (p^.typ = ait_instruction) and
-         ((Pai386(p)^.opcode = A_MOV) or
-          (Pai386(p)^.opcode = A_MOVZX) or
-          (Pai386(p)^.opcode = A_MOVSX))
+         ((Paicpu(p)^.opcode = A_MOV) or
+          (Paicpu(p)^.opcode = A_MOVZX) or
+          (Paicpu(p)^.opcode = A_MOVSX))
         Then
           Begin
-            If (Pai386(p)^.oper[0].typ = top_ref) Then
-              With Pai386(p)^.oper[0].ref^ Do
+            If (Paicpu(p)^.oper[0].typ = top_ref) Then
+              With Paicpu(p)^.oper[0].ref^ Do
                 If (Base = ProcInfo.FramePointer) And
                    (Index = R_NO)
                   Then
                     Begin
-                      RegsChecked := RegsChecked + [Reg32(Pai386(p)^.oper[1].reg)];
-                      If Reg = Reg32(Pai386(p)^.oper[1].reg) Then
+                      RegsChecked := RegsChecked + [Reg32(Paicpu(p)^.oper[1].reg)];
+                      If Reg = Reg32(Paicpu(p)^.oper[1].reg) Then
                         Break;
                     End
                   Else
@@ -1381,12 +1381,12 @@ End;
 Begin
   If (p^.typ = ait_instruction) Then
     Begin
-      Case Pai386(p)^.oper[0].typ Of
+      Case Paicpu(p)^.oper[0].typ Of
         top_reg:
-          If Not(Pai386(p)^.oper[0].reg in [R_NO,R_ESP,ProcInfo.FramePointer]) Then
-            RegSet := RegSet + [Pai386(p)^.oper[0].reg];
+          If Not(Paicpu(p)^.oper[0].reg in [R_NO,R_ESP,ProcInfo.FramePointer]) Then
+            RegSet := RegSet + [Paicpu(p)^.oper[0].reg];
         top_ref:
-          With TReference(Pai386(p)^.oper[0]^) Do
+          With TReference(Paicpu(p)^.oper[0]^) Do
             Begin
               If Not(Base in [ProcInfo.FramePointer,R_NO,R_ESP])
                 Then RegSet := RegSet + [Base];
@@ -1394,12 +1394,12 @@ Begin
                 Then RegSet := RegSet + [Index];
             End;
       End;
-      Case Pai386(p)^.oper[1].typ Of
+      Case Paicpu(p)^.oper[1].typ Of
         top_reg:
-          If Not(Pai386(p)^.oper[1].reg in [R_NO,R_ESP,ProcInfo.FramePointer]) Then
-            If RegSet := RegSet + [TRegister(TwoWords(Pai386(p)^.oper[1]).Word1];
+          If Not(Paicpu(p)^.oper[1].reg in [R_NO,R_ESP,ProcInfo.FramePointer]) Then
+            If RegSet := RegSet + [TRegister(TwoWords(Paicpu(p)^.oper[1]).Word1];
         top_ref:
-          With TReference(Pai386(p)^.oper[1]^) Do
+          With TReference(Paicpu(p)^.oper[1]^) Do
             Begin
               If Not(Base in [ProcInfo.FramePointer,R_NO,R_ESP])
                 Then RegSet := RegSet + [Base];
@@ -1449,31 +1449,31 @@ Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
 {$ifdef csdebug}
 var hp: pai;
 {$endif csdebug}
-Begin {checks whether two Pai386 instructions are equal}
+Begin {checks whether two Paicpu instructions are equal}
   If Assigned(p1) And Assigned(p2) And
      (Pai(p1)^.typ = ait_instruction) And
      (Pai(p1)^.typ = ait_instruction) And
-     (Pai386(p1)^.opcode = Pai386(p2)^.opcode) And
-     (Pai386(p1)^.oper[0].typ = Pai386(p2)^.oper[0].typ) And
-     (Pai386(p1)^.oper[1].typ = Pai386(p2)^.oper[1].typ) And
-     (Pai386(p1)^.oper[2].typ = Pai386(p2)^.oper[2].typ)
+     (Paicpu(p1)^.opcode = Paicpu(p2)^.opcode) And
+     (Paicpu(p1)^.oper[0].typ = Paicpu(p2)^.oper[0].typ) And
+     (Paicpu(p1)^.oper[1].typ = Paicpu(p2)^.oper[1].typ) And
+     (Paicpu(p1)^.oper[2].typ = Paicpu(p2)^.oper[2].typ)
     Then
  {both instructions have the same structure:
   "<operator> <operand of type1>, <operand of type 2>"}
-      If ((Pai386(p1)^.opcode = A_MOV) or
-          (Pai386(p1)^.opcode = A_MOVZX) or
-          (Pai386(p1)^.opcode = A_MOVSX)) And
-         (Pai386(p1)^.oper[0].typ = top_ref) {then .oper[1]t = top_reg} Then
-        If Not(RegInRef(Pai386(p1)^.oper[1].reg, Pai386(p1)^.oper[0].ref^)) Then
+      If ((Paicpu(p1)^.opcode = A_MOV) or
+          (Paicpu(p1)^.opcode = A_MOVZX) or
+          (Paicpu(p1)^.opcode = A_MOVSX)) And
+         (Paicpu(p1)^.oper[0].typ = top_ref) {then .oper[1]t = top_reg} Then
+        If Not(RegInRef(Paicpu(p1)^.oper[1].reg, Paicpu(p1)^.oper[0].ref^)) Then
  {the "old" instruction is a load of a register with a new value, not with
   a value based on the contents of this register (so no "mov (reg), reg")}
-          If Not(RegInRef(Pai386(p2)^.oper[1].reg, Pai386(p2)^.oper[0].ref^)) And
-             RefsEqual(Pai386(p1)^.oper[0].ref^, Pai386(p2)^.oper[0].ref^)
+          If Not(RegInRef(Paicpu(p2)^.oper[1].reg, Paicpu(p2)^.oper[0].ref^)) And
+             RefsEqual(Paicpu(p1)^.oper[0].ref^, Paicpu(p2)^.oper[0].ref^)
             Then
  {the "new" instruction is also a load of a register with a new value, and
   this value is fetched from the same memory location}
               Begin
-                With Pai386(p2)^.oper[0].ref^ Do
+                With Paicpu(p2)^.oper[0].ref^ Do
                   Begin
                     If Not(Base in [ProcInfo.FramePointer, R_NO, R_ESP])
        {it won't do any harm if the register is already in RegsLoadedForRef}
@@ -1484,10 +1484,10 @@ Begin {checks whether two Pai386 instructions are equal}
  {add the registers from the reference (.oper[0]) to the RegInfo, all registers
   from the reference are the same in the old and in the new instruction
   sequence}
-                AddOp2RegInfo(Pai386(p1)^.oper[0], RegInfo);
+                AddOp2RegInfo(Paicpu(p1)^.oper[0], RegInfo);
  {the registers from .oper[1] have to be equivalent, but not necessarily equal}
                 InstructionsEquivalent :=
-                  RegsEquivalent(Pai386(p1)^.oper[1].reg, Pai386(p2)^.oper[1].reg, RegInfo, OpAct_Write);
+                  RegsEquivalent(Paicpu(p1)^.oper[1].reg, Paicpu(p2)^.oper[1].reg, RegInfo, OpAct_Write);
               End
  {the registers are loaded with values from different memory locations. If
   this was allowed, the instructions "mov -4(esi),eax" and "mov -4(ebp),eax"
@@ -1496,10 +1496,10 @@ Begin {checks whether two Pai386 instructions are equal}
         Else
  {load register with a value based on the current value of this register}
           Begin
-            With Pai386(p2)^.oper[0].ref^ Do
+            With Paicpu(p2)^.oper[0].ref^ Do
               Begin
                 If Not(Base in [ProcInfo.FramePointer,
-                                Reg32(Pai386(p2)^.oper[1].reg),R_NO,R_ESP])
+                                Reg32(Paicpu(p2)^.oper[1].reg),R_NO,R_ESP])
  {it won't do any harm if the register is already in RegsLoadedForRef}
                   Then
                     Begin
@@ -1509,7 +1509,7 @@ Begin {checks whether two Pai386 instructions are equal}
 {$endif csdebug}
                     end;
                 If Not(Index in [ProcInfo.FramePointer,
-                                 Reg32(Pai386(p2)^.oper[1].reg),R_NO,R_ESP])
+                                 Reg32(Paicpu(p2)^.oper[1].reg),R_NO,R_ESP])
                   Then
                     Begin
                       RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index];
@@ -1519,18 +1519,18 @@ Begin {checks whether two Pai386 instructions are equal}
                     end;
 
               End;
-            If Not(Reg32(Pai386(p2)^.oper[1].reg) In [ProcInfo.FramePointer,R_NO,R_ESP])
+            If Not(Reg32(Paicpu(p2)^.oper[1].reg) In [ProcInfo.FramePointer,R_NO,R_ESP])
               Then
                 Begin
                   RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef -
-                                                 [Reg32(Pai386(p2)^.oper[1].reg)];
+                                                 [Reg32(Paicpu(p2)^.oper[1].reg)];
 {$ifdef csdebug}
-                  Writeln(att_reg2str[Reg32(Pai386(p2)^.oper[1].reg)], ' removed');
+                  Writeln(att_reg2str[Reg32(Paicpu(p2)^.oper[1].reg)], ' removed');
 {$endif csdebug}
                 end;
             InstructionsEquivalent :=
-               OpsEquivalent(Pai386(p1)^.oper[0], Pai386(p2)^.oper[0], RegInfo, OpAct_Read) And
-               OpsEquivalent(Pai386(p1)^.oper[1], Pai386(p2)^.oper[1], RegInfo, OpAct_Write)
+               OpsEquivalent(Paicpu(p1)^.oper[0], Paicpu(p2)^.oper[0], RegInfo, OpAct_Read) And
+               OpsEquivalent(Paicpu(p1)^.oper[1], Paicpu(p2)^.oper[1], RegInfo, OpAct_Write)
           End
       Else
  {an instruction <> mov, movzx, movsx}
@@ -1543,9 +1543,9 @@ Begin {checks whether two Pai386 instructions are equal}
          p2^.next := hp;
   {$endif csdebug}
          InstructionsEquivalent :=
-           OpsEquivalent(Pai386(p1)^.oper[0], Pai386(p2)^.oper[0], RegInfo, OpAct_Unknown) And
-           OpsEquivalent(Pai386(p1)^.oper[1], Pai386(p2)^.oper[1], RegInfo, OpAct_Unknown) And
-           OpsEquivalent(Pai386(p1)^.oper[2], Pai386(p2)^.oper[2], RegInfo, OpAct_Unknown)
+           OpsEquivalent(Paicpu(p1)^.oper[0], Paicpu(p2)^.oper[0], RegInfo, OpAct_Unknown) And
+           OpsEquivalent(Paicpu(p1)^.oper[1], Paicpu(p2)^.oper[1], RegInfo, OpAct_Unknown) And
+           OpsEquivalent(Paicpu(p1)^.oper[2], Paicpu(p2)^.oper[2], RegInfo, OpAct_Unknown)
        end
  {the instructions haven't even got the same structure, so they're certainly
   not equivalent}
@@ -1571,16 +1571,16 @@ End;
 
 (*
 Function InstructionsEqual(p1, p2: Pai): Boolean;
-Begin {checks whether two Pai386 instructions are equal}
+Begin {checks whether two Paicpu instructions are equal}
   InstructionsEqual :=
     Assigned(p1) And Assigned(p2) And
     ((Pai(p1)^.typ = ait_instruction) And
      (Pai(p1)^.typ = ait_instruction) And
-     (Pai386(p1)^.opcode = Pai386(p2)^.opcode) And
-     (Pai386(p1)^.oper[0].typ = Pai386(p2)^.oper[0].typ) And
-     (Pai386(p1)^.oper[1].typ = Pai386(p2)^.oper[1].typ) And
-     OpsEqual(Pai386(p1)^.oper[0].typ, Pai386(p1)^.oper[0], Pai386(p2)^.oper[0]) And
-     OpsEqual(Pai386(p1)^.oper[1].typ, Pai386(p1)^.oper[1], Pai386(p2)^.oper[1]))
+     (Paicpu(p1)^.opcode = Paicpu(p2)^.opcode) And
+     (Paicpu(p1)^.oper[0].typ = Paicpu(p2)^.oper[0].typ) And
+     (Paicpu(p1)^.oper[1].typ = Paicpu(p2)^.oper[1].typ) And
+     OpsEqual(Paicpu(p1)^.oper[0].typ, Paicpu(p1)^.oper[0], Paicpu(p2)^.oper[0]) And
+     OpsEqual(Paicpu(p1)^.oper[1].typ, Paicpu(p1)^.oper[1], Paicpu(p2)^.oper[1]))
 End;
 *)
 
@@ -1591,10 +1591,10 @@ Begin
   TmpResult := False;
   If (p^.typ = ait_instruction) Then
     Begin
-      If (Pai386(p)^.oper[0].typ = Top_Ref) Then
-        TmpResult := RefsEqual(Ref, Pai386(p)^.oper[0].ref^);
-      If Not(TmpResult) And (Pai386(p)^.oper[1].typ = Top_Ref) Then
-        TmpResult := RefsEqual(Ref, Pai386(p)^.oper[1].ref^);
+      If (Paicpu(p)^.oper[0].typ = Top_Ref) Then
+        TmpResult := RefsEqual(Ref, Paicpu(p)^.oper[0].ref^);
+      If Not(TmpResult) And (Paicpu(p)^.oper[1].typ = Top_Ref) Then
+        TmpResult := RefsEqual(Ref, Paicpu(p)^.oper[1].ref^);
     End;
   RefInInstruction := TmpResult;
 End;
@@ -1652,8 +1652,8 @@ Begin
                  ((Counter <> WhichReg) Or
                   ((NrOfMods <> 1) And
  {StarMod is always of the type ait_instruction}
-                   (Pai386(StartMod)^.oper[0].typ = top_ref) And
-                   RefsEqual(Pai386(StartMod)^.oper[0].ref^, Ref)
+                   (Paicpu(StartMod)^.oper[0].typ = top_ref) And
+                   RefsEqual(Paicpu(StartMod)^.oper[0].ref^, Ref)
                   )
                  )
                 )
@@ -1677,9 +1677,9 @@ Begin
             (Ref.Base = R_EDI) Or
         {don't destroy if reg contains a parameter, local or global variable}
             Not((NrOfMods = 1) And
-                (Pai386(StartMod)^.oper[0].typ = top_ref) And
-                ((Pai386(StartMod)^.oper[0].ref^.base = ProcInfo.FramePointer) Or
-                  Assigned(Pai386(StartMod)^.oper[0].ref^.Symbol)
+                (Paicpu(StartMod)^.oper[0].typ = top_ref) And
+                ((Paicpu(StartMod)^.oper[0].ref^.base = ProcInfo.FramePointer) Or
+                  Assigned(Paicpu(StartMod)^.oper[0].ref^.Symbol)
                 )
                )
            )
@@ -1739,7 +1739,7 @@ End;
 
 {$ifdef arithopt}
 Procedure AddInstr2RegContents({$ifdef statedebug} asml: paasmoutput; {$endif}
-p: pai386; reg: TRegister);
+p: paicpu; reg: TRegister);
 {$ifdef statedebug}
 var hp: pai;
 {$endif statedebug}
@@ -1773,7 +1773,7 @@ Begin
 End;
 
 Procedure AddInstr2OpContents({$ifdef statedebug} asml: paasmoutput; {$endif}
-p: pai386; const oper: TOper);
+p: paicpu; const oper: TOper);
 Begin
   If oper.typ = top_reg Then
     AddInstr2RegContents({$ifdef statedebug} asml, {$endif}p, oper.reg)
@@ -1869,7 +1869,7 @@ Begin
                       Begin
                         If (GetLastInstruction(p, hp) And
                            Not(((hp^.typ = ait_instruction)) And
-                                (pai386_labeled(hp)^.is_jmp))
+                                (paicpu_labeled(hp)^.is_jmp))
                           Then
   {previous instruction not a JMP -> the contents of the registers after the
    previous intruction has been executed have to be taken into account as well}
@@ -1886,7 +1886,7 @@ Begin
   already been processed}
                       If GetLastInstruction(p, hp) And
                          Not(hp^.typ = ait_instruction) And
-                            (pai386_labeled(hp)^.opcode = A_JMP))
+                            (paicpu_labeled(hp)^.opcode = A_JMP))
                         Then
   {previous instruction not a jmp, so keep all the registers' contents from the
    previous instruction}
@@ -1903,8 +1903,8 @@ Begin
       been processed}
                             While GetNextInstruction(hp, hp) And
                                   Not((hp^.typ = ait_instruction) And
-                                      (pai386(hp)^.is_jmp) and
-                                      (pasmlabel(pai386(hp)^.oper[0].sym)^.labelnr = Pai_Label(p)^.l^.labelnr)) And
+                                      (paicpu(hp)^.is_jmp) and
+                                      (pasmlabel(paicpu(hp)^.oper[0].sym)^.labelnr = Pai_Label(p)^.l^.labelnr)) And
                                   Not((hp^.typ = ait_label) And
                                       (LTable^[Pai_Label(hp)^.l^.labelnr-LoLab].RefsFound
                                        = Pai_Label(hp)^.l^.RefCount) And
@@ -1945,13 +1945,13 @@ Begin
 
         ait_instruction:
           Begin
-            if pai386(p)^.is_jmp then
+            if paicpu(p)^.is_jmp then
              begin
 {$IfNDef JumpAnal}
   ;
 {$Else JumpAnal}
-          With LTable^[pasmlabel(pai386(p)^.oper[0].sym)^.labelnr-LoLab] Do
-            If (RefsFound = pasmlabel(pai386(p)^.oper[0].sym)^.RefCount) Then
+          With LTable^[pasmlabel(paicpu(p)^.oper[0].sym)^.labelnr-LoLab] Do
+            If (RefsFound = pasmlabel(paicpu(p)^.oper[0].sym)^.RefCount) Then
               Begin
                 If (InstrCnt < InstrNr)
                   Then
@@ -1977,7 +1977,7 @@ Begin
 {                    If (JmpsProcessed > 0) Or
                        Not(GetLastInstruction(PaiObj, hp) And
                            (hp^.typ = ait_labeled_instruction) And
-                           (pai386_labeled(hp)^.opcode = A_JMP))
+                           (paicpu_labeled(hp)^.opcode = A_JMP))
                       Then}
 {instruction prior to label is not a jmp, or at least one jump to the label
  has yet been processed}
@@ -2035,36 +2035,36 @@ Begin
           end
           else
            begin
-            InstrProp := AsmInstr[Pai386(p)^.opcode];
-            Case Pai386(p)^.opcode Of
+            InstrProp := AsmInstr[Paicpu(p)^.opcode];
+            Case Paicpu(p)^.opcode Of
               A_MOV, A_MOVZX, A_MOVSX:
                 Begin
-                  Case Pai386(p)^.oper[0].typ Of
+                  Case Paicpu(p)^.oper[0].typ Of
                     Top_Reg:
-                      Case Pai386(p)^.oper[1].typ Of
+                      Case Paicpu(p)^.oper[1].typ Of
                         Top_Reg:
                           Begin
-                            DestroyReg(CurProp, Pai386(p)^.oper[1].reg);
-                            ReadReg(CurProp, Pai386(p)^.oper[0].reg);
-{                            CurProp^.Regs[Pai386(p)^.oper[1].reg] :=
-                              CurProp^.Regs[Pai386(p)^.oper[0].reg];
-                            If (CurProp^.Regs[Pai386(p)^.oper[1].reg].ModReg = R_NO) Then
-                              CurProp^.Regs[Pai386(p)^.oper[1].reg].ModReg :=
-                                Pai386(p)^.oper[0].reg;}
+                            DestroyReg(CurProp, Paicpu(p)^.oper[1].reg);
+                            ReadReg(CurProp, Paicpu(p)^.oper[0].reg);
+{                            CurProp^.Regs[Paicpu(p)^.oper[1].reg] :=
+                              CurProp^.Regs[Paicpu(p)^.oper[0].reg];
+                            If (CurProp^.Regs[Paicpu(p)^.oper[1].reg].ModReg = R_NO) Then
+                              CurProp^.Regs[Paicpu(p)^.oper[1].reg].ModReg :=
+                                Paicpu(p)^.oper[0].reg;}
                           End;
                         Top_Ref:
                           Begin
-                            ReadReg(CurProp, Pai386(p)^.oper[0].reg);
-                            ReadRef(CurProp, Pai386(p)^.oper[1].ref);
-                            DestroyRefs(p, Pai386(p)^.oper[1].ref^, Pai386(p)^.oper[0].reg);
+                            ReadReg(CurProp, Paicpu(p)^.oper[0].reg);
+                            ReadRef(CurProp, Paicpu(p)^.oper[1].ref);
+                            DestroyRefs(p, Paicpu(p)^.oper[1].ref^, Paicpu(p)^.oper[0].reg);
                           End;
                       End;
                     Top_Ref:
                       Begin {destination is always a register in this case}
-                        ReadRef(CurProp, Pai386(p)^.oper[0].ref);
-                        ReadReg(CurProp, Pai386(p)^.oper[1].reg);
-                        TmpReg := Reg32(Pai386(p)^.oper[1].reg);
-                        If RegInRef(TmpReg, Pai386(p)^.oper[0].ref^) And
+                        ReadRef(CurProp, Paicpu(p)^.oper[0].ref);
+                        ReadReg(CurProp, Paicpu(p)^.oper[1].reg);
+                        TmpReg := Reg32(Paicpu(p)^.oper[1].reg);
+                        If RegInRef(TmpReg, Paicpu(p)^.oper[0].ref^) And
                            (CurProp^.Regs[TmpReg].Typ = Con_Ref)
                           Then
                             Begin
@@ -2082,7 +2082,7 @@ Begin
                           Else
                             Begin
                               DestroyReg(CurProp, TmpReg);
-                              If Not(RegInRef(TmpReg, Pai386(p)^.oper[0].ref^)) Then
+                              If Not(RegInRef(TmpReg, Paicpu(p)^.oper[0].ref^)) Then
                                 With CurProp^.Regs[TmpReg] Do
                                   Begin
                                     Typ := Con_Ref;
@@ -2098,10 +2098,10 @@ Begin
                       End;
                     Top_Const:
                       Begin
-                        Case Pai386(p)^.oper[1].typ Of
+                        Case Paicpu(p)^.oper[1].typ Of
                           Top_Reg:
                             Begin
-                              TmpReg := Reg32(Pai386(p)^.oper[1].reg);
+                              TmpReg := Reg32(Paicpu(p)^.oper[1].reg);
                               With CurProp^.Regs[TmpReg] Do
                                 Begin
                                   DestroyReg(CurProp, TmpReg);
@@ -2111,8 +2111,8 @@ Begin
                             End;
                           Top_Ref:
                             Begin
-                              ReadRef(CurProp, Pai386(p)^.oper[1].ref);
-                              DestroyRefs(P, Pai386(p)^.oper[1].ref^, R_NO);
+                              ReadRef(CurProp, Paicpu(p)^.oper[1].ref);
+                              DestroyRefs(P, Paicpu(p)^.oper[1].ref^, R_NO);
                             End;
                         End;
                       End;
@@ -2120,19 +2120,19 @@ Begin
                 End;
               A_DIV, A_IDIV, A_MUL:
                 Begin
-                  ReadOp(Curprop, Pai386(p)^.oper[0]);
+                  ReadOp(Curprop, Paicpu(p)^.oper[0]);
                   ReadReg(CurProp,R_EAX);
-                  If (Pai386(p)^.OpCode = A_IDIV) or
-                     (Pai386(p)^.OpCode = A_DIV) Then
+                  If (Paicpu(p)^.OpCode = A_IDIV) or
+                     (Paicpu(p)^.OpCode = A_DIV) Then
                     ReadReg(CurProp,R_EDX);
                   DestroyReg(CurProp, R_EAX)
                 End;
               A_IMUL:
                 Begin
-                  ReadOp(CurProp,Pai386(p)^.oper[0]);
-                  ReadOp(CurProp,Pai386(p)^.oper[1]);
-                  If (Pai386(p)^.oper[2].typ = top_none) Then
-                    If (Pai386(p)^.oper[1].typ = top_none) Then
+                  ReadOp(CurProp,Paicpu(p)^.oper[0]);
+                  ReadOp(CurProp,Paicpu(p)^.oper[1]);
+                  If (Paicpu(p)^.oper[2].typ = top_none) Then
+                    If (Paicpu(p)^.oper[1].typ = top_none) Then
                       Begin
                         ReadReg(CurProp,R_EAX);
                         DestroyReg(CurProp, R_EAX);
@@ -2140,32 +2140,32 @@ Begin
                       End
                     Else
             {$ifdef arithopt}
-                      AddOp2RegContents(Pai386(p), Pai386(p)^.oper[1])
+                      AddOp2RegContents(Paicpu(p), Paicpu(p)^.oper[1])
             {$else arithopt}
-                      DestroyOp(p, Pai386(p)^.oper[1])
+                      DestroyOp(p, Paicpu(p)^.oper[1])
             {$endif arithopt}
                   Else
             {$ifdef arithopt}
-                    AddOp2RegContents(Pai386(p), Pai386(p)^.oper[2]);
+                    AddOp2RegContents(Paicpu(p), Paicpu(p)^.oper[2]);
             {$else arithopt}
-                    DestroyOp(p, Pai386(p)^.oper[2]);
+                    DestroyOp(p, Paicpu(p)^.oper[2]);
             {$endif arithopt}
                 End;
               A_XOR:
                 Begin
-                  ReadOp(CurProp, Pai386(p)^.oper[0]);
-                  ReadOp(CurProp, Pai386(p)^.oper[1]);
-                  If (Pai386(p)^.oper[0].typ = top_reg) And
-                     (Pai386(p)^.oper[1].typ = top_reg) And
-                     (Pai386(p)^.oper[0].reg = Pai386(p)^.oper[1].reg)
+                  ReadOp(CurProp, Paicpu(p)^.oper[0]);
+                  ReadOp(CurProp, Paicpu(p)^.oper[1]);
+                  If (Paicpu(p)^.oper[0].typ = top_reg) And
+                     (Paicpu(p)^.oper[1].typ = top_reg) And
+                     (Paicpu(p)^.oper[0].reg = Paicpu(p)^.oper[1].reg)
                     Then
                       Begin
-                        DestroyReg(CurProp, Pai386(p)^.oper[0].reg);
-                        CurProp^.Regs[Reg32(Pai386(p)^.oper[0].reg)].typ := Con_Const;
-                        CurProp^.Regs[Reg32(Pai386(p)^.oper[0].reg)].StartMod := Pointer(0)
+                        DestroyReg(CurProp, Paicpu(p)^.oper[0].reg);
+                        CurProp^.Regs[Reg32(Paicpu(p)^.oper[0].reg)].typ := Con_Const;
+                        CurProp^.Regs[Reg32(Paicpu(p)^.oper[0].reg)].StartMod := Pointer(0)
                       End
                     Else
-                      DestroyOp(p, Pai386(p)^.oper[1]);
+                      DestroyOp(p, Paicpu(p)^.oper[1]);
                 End
               Else
                 Begin
@@ -2184,46 +2184,46 @@ Begin
 {$ifdef arithopt}
                         C_MEAX..C_MEDI:
                           AddInstr2RegContents({$ifdef statedebug} asml, {$endif}
-                                               Pai386(p),
+                                               Paicpu(p),
                                                TCh2Reg(InstrProp.Ch[Cnt]));
 {$endif arithopt}
                         C_CDirFlag: CurProp^.DirFlag := F_NotSet;
                         C_SDirFlag: CurProp^.DirFlag := F_Set;
-                        C_Rop1: ReadOp(CurProp, Pai386(p)^.oper[0]);
-                        C_Rop2: ReadOp(CurProp, Pai386(p)^.oper[1]);
-                        C_ROp3: ReadOp(CurProp, Pai386(p)^.oper[2]);
+                        C_Rop1: ReadOp(CurProp, Paicpu(p)^.oper[0]);
+                        C_Rop2: ReadOp(CurProp, Paicpu(p)^.oper[1]);
+                        C_ROp3: ReadOp(CurProp, Paicpu(p)^.oper[2]);
                         C_Wop1..C_RWop1:
                           Begin
                             If (InstrProp.Ch[Cnt] in [C_RWop1]) Then
-                              ReadOp(CurProp, Pai386(p)^.oper[0]);
-                            DestroyOp(p, Pai386(p)^.oper[0]);
+                              ReadOp(CurProp, Paicpu(p)^.oper[0]);
+                            DestroyOp(p, Paicpu(p)^.oper[0]);
                           End;
 {$ifdef arithopt}
                         C_Mop1:
                           AddInstr2OpContents({$ifdef statedebug} asml, {$endif}
-                          Pai386(p), Pai386(p)^.oper[0]);
+                          Paicpu(p), Paicpu(p)^.oper[0]);
 {$endif arithopt}
                         C_Wop2..C_RWop2:
                           Begin
                             If (InstrProp.Ch[Cnt] = C_RWop2) Then
-                              ReadOp(CurProp, Pai386(p)^.oper[1]);
-                            DestroyOp(p, Pai386(p)^.oper[1]);
+                              ReadOp(CurProp, Paicpu(p)^.oper[1]);
+                            DestroyOp(p, Paicpu(p)^.oper[1]);
                           End;
 {$ifdef arithopt}
                         C_Mop2:
                           AddInstr2OpContents({$ifdef statedebug} asml, {$endif}
-                          Pai386(p), Pai386(p)^.oper[1]);
+                          Paicpu(p), Paicpu(p)^.oper[1]);
 {$endif arithopt}
                         C_WOp3..C_RWOp3:
                           Begin
                             If (InstrProp.Ch[Cnt] = C_RWOp3) Then
-                              ReadOp(CurProp, Pai386(p)^.oper[2]);
-                            DestroyOp(p, Pai386(p)^.oper[2]);
+                              ReadOp(CurProp, Paicpu(p)^.oper[2]);
+                            DestroyOp(p, Paicpu(p)^.oper[2]);
                           End;
 {$ifdef arithopt}
                         C_Mop3:
                           AddInstr2OpContents({$ifdef statedebug} asml, {$endif}
-                          Pai386(p), Pai386(p)^.oper[2]);
+                          Paicpu(p), Paicpu(p)^.oper[2]);
 {$endif arithopt}
                         C_WMemEDI:
                           Begin
@@ -2276,20 +2276,20 @@ Begin
           End;
         ait_instruction:
           begin
-            if pai386(p)^.is_jmp then
+            if paicpu(p)^.is_jmp then
              begin
-               If (pasmlabel(pai386(P)^.oper[0].sym)^.labelnr >= LoLab) And
-                  (pasmlabel(pai386(P)^.oper[0].sym)^.labelnr <= HiLab) Then
-                 Inc(LTable^[pasmlabel(pai386(P)^.oper[0].sym)^.labelnr-LoLab].RefsFound);
+               If (pasmlabel(paicpu(P)^.oper[0].sym)^.labelnr >= LoLab) And
+                  (pasmlabel(paicpu(P)^.oper[0].sym)^.labelnr <= HiLab) Then
+                 Inc(LTable^[pasmlabel(paicpu(P)^.oper[0].sym)^.labelnr-LoLab].RefsFound);
              end;
           end;
 {        ait_instruction:
           Begin
-           If (Pai386(p)^.opcode = A_PUSH) And
-              (Pai386(p)^.oper[0].typ = top_symbol) And
-              (PCSymbol(Pai386(p)^.oper[0])^.offset = 0) Then
+           If (Paicpu(p)^.opcode = A_PUSH) And
+              (Paicpu(p)^.oper[0].typ = top_symbol) And
+              (PCSymbol(Paicpu(p)^.oper[0])^.offset = 0) Then
              Begin
-               TmpStr := StrPas(PCSymbol(Pai386(p)^.oper[0])^.symbol);
+               TmpStr := StrPas(PCSymbol(Paicpu(p)^.oper[0])^.symbol);
                If}
       End;
 {$EndIf JumpAnal}
@@ -2350,7 +2350,10 @@ End.
 
 {
  $Log$
- Revision 1.56  1999-08-18 13:25:54  jonas
+ Revision 1.57  1999-08-25 12:00:00  jonas
+   * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+ Revision 1.56  1999/08/18 13:25:54  jonas
    * minor fixes regarding the reading of operands
 
  Revision 1.55  1999/08/12 14:36:03  peter

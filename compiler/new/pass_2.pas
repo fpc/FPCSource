@@ -416,7 +416,7 @@ implementation
                                        hr^.offset:=pvarsym(regvars[i])^.address+procinfo.call_offset;
                                        hr^.base:=procinfo.framepointer;
 {$ifdef i386}
-                                       procinfo.aktentrycode^.concat(new(pai386,op_ref_reg(A_MOV,regsize,
+                                       procinfo.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOV,regsize,
                                          hr,regvars[i]^.reg)));
 {$endif i386}
 {$ifdef m68k}
@@ -464,7 +464,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1999-08-05 14:58:15  florian
+  Revision 1.7  1999-08-25 12:00:13  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.6  1999/08/05 14:58:15  florian
     * some fixes for the floating point registers
     * more things for the new code generator
 

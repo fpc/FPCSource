@@ -792,12 +792,12 @@ Begin
                         PPaiProp(Pai(p)^.OptInfo)^.CanBeRemoved := True;
               A_XOR:
                 Begin
-                  If (Pai386(p)^.oper[0].typ = top_reg) And
-                     (Pai386(p)^.oper[0].typ = top_reg) And
-                     (Pai386(p)^.oper[1].reg = Pai386(p)^.oper[1].reg) And
+                  If (Paicpu(p)^.oper[0].typ = top_reg) And
+                     (Paicpu(p)^.oper[0].typ = top_reg) And
+                     (Paicpu(p)^.oper[1].reg = Paicpu(p)^.oper[1].reg) And
                      GetLastInstruction(p, hp1) And
-                     (PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Pai386(p)^.oper[1].reg)].typ = con_const) And
-                     (PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Pai386(p)^.oper[1].reg)].StartMod = nil)
+                     (PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Paicpu(p)^.oper[1].reg)].typ = con_const) And
+                     (PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Paicpu(p)^.oper[1].reg)].StartMod = nil)
                     Then PPaiProp(p^.OptInfo)^.CanBeRemoved := True
                 End
           End;
@@ -850,7 +850,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  1999-08-23 14:41:13  jonas
+  Revision 1.3  1999-08-25 12:00:10  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.2  1999/08/23 14:41:13  jonas
     + checksequence (processor independent)\n  + processor independent part of docse
 
   Revision 1.1  1999/08/18 14:32:21  jonas

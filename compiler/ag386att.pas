@@ -669,33 +669,33 @@ unit ag386att;
 
            ait_instruction :
              begin
-               op:=pai386(hp)^.opcode;
+               op:=paicpu(hp)^.opcode;
                calljmp:=is_calljmp(op);
              { call maybe not translated to calll }
-               s:=#9+att_op2str[op]+cond2str[pai386(hp)^.condition];
+               s:=#9+att_op2str[op]+cond2str[paicpu(hp)^.condition];
                if (not calljmp) and
                   (not att_nosuffix[op]) and
                   not(
-                   (pai386(hp)^.oper[0].typ=top_reg) and
-                   (pai386(hp)^.oper[0].reg in [R_ST..R_ST7])
+                   (paicpu(hp)^.oper[0].typ=top_reg) and
+                   (paicpu(hp)^.oper[0].reg in [R_ST..R_ST7])
                   ) then
-                s:=s+att_opsize2str[pai386(hp)^.opsize];
+                s:=s+att_opsize2str[paicpu(hp)^.opsize];
              { process operands }
-               if pai386(hp)^.ops<>0 then
+               if paicpu(hp)^.ops<>0 then
                 begin
                 { call and jmp need an extra handling                          }
                 { this code is only called if jmp isn't a labeled instruction }
                   if calljmp then
-                   s:=s+#9+getopstr_jmp(pai386(hp)^.oper[0])
+                   s:=s+#9+getopstr_jmp(paicpu(hp)^.oper[0])
                   else
                    begin
-                     for i:=0to pai386(hp)^.ops-1 do
+                     for i:=0to paicpu(hp)^.ops-1 do
                       begin
                         if i=0 then
                          sep:=#9
                         else
                          sep:=',';
-                        s:=s+sep+getopstr(pai386(hp)^.oper[i])
+                        s:=s+sep+getopstr(paicpu(hp)^.oper[i])
                       end;
                    end;
                 end;
@@ -844,7 +844,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.10  1999-08-13 15:44:57  peter
+  Revision 1.11  1999-08-25 11:59:32  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.10  1999/08/13 15:44:57  peter
     * first things to include lineinfo in the executable
 
   Revision 1.9  1999/08/10 12:26:20  pierre
@@ -980,7 +983,7 @@ end.
 
   Revision 1.78  1999/04/16 10:00:54  pierre
     + ifdef USE_OP3 code :
-      added all missing op_... constructors for tai386 needed
+      added all missing op_... constructors for taicpu needed
       for SHRD,SHLD and IMUL code in assembler readers
       (check in tests/tbs0123.pp)
 

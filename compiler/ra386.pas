@@ -295,7 +295,7 @@ procedure T386Instruction.ConcatInstruction(p : paasmoutput);
 var
   siz  : topsize;
   i    : longint;
-  ai   : pai386;
+  ai   : paicpu;
 begin
 { Get Opsize }
   if (opsize<>S_NO) or (Ops=0) then
@@ -308,7 +308,7 @@ begin
       siz:=operands[Ops]^.size;
    end;
 
-  ai:=new(pai386,op_none(opcode,siz));
+  ai:=new(paicpu,op_none(opcode,siz));
   ai^.Ops:=Ops;
   for i:=1to Ops do
    begin
@@ -338,7 +338,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1999-08-04 00:23:23  florian
+  Revision 1.9  1999-08-25 12:00:05  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.8  1999/08/04 00:23:23  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.7  1999/05/27 19:44:55  peter

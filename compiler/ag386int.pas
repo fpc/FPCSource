@@ -477,21 +477,21 @@ unit ag386int;
                      end;
    ait_instruction : begin
                      { We need intel order, no At&t }
-                       pai386(hp)^.SwapOperands;
+                       paicpu(hp)^.SwapOperands;
                      { Reset }
                        suffix:='';
                        prefix:= '';
                        s:='';
                      { added prefix instructions, must be on same line as opcode }
-                       if (pai386(hp)^.ops = 0) and
-                          ((pai386(hp)^.opcode = A_REP) or
-                           (pai386(hp)^.opcode = A_LOCK) or
-                           (pai386(hp)^.opcode =  A_REPE) or
-                           (pai386(hp)^.opcode =  A_REPNZ) or
-                           (pai386(hp)^.opcode =  A_REPZ) or
-                           (pai386(hp)^.opcode = A_REPNE)) then
+                       if (paicpu(hp)^.ops = 0) and
+                          ((paicpu(hp)^.opcode = A_REP) or
+                           (paicpu(hp)^.opcode = A_LOCK) or
+                           (paicpu(hp)^.opcode =  A_REPE) or
+                           (paicpu(hp)^.opcode =  A_REPNZ) or
+                           (paicpu(hp)^.opcode =  A_REPZ) or
+                           (paicpu(hp)^.opcode = A_REPNE)) then
                         Begin
-                          prefix:=int_op2str[pai386(hp)^.opcode]+#9;
+                          prefix:=int_op2str[paicpu(hp)^.opcode]+#9;
                           hp:=Pai(hp^.next);
                         { this is theorically impossible... }
                           if hp=nil then
@@ -506,23 +506,23 @@ unit ag386int;
                         end
                        else
                         prefix:= '';
-                       if pai386(hp)^.ops<>0 then
+                       if paicpu(hp)^.ops<>0 then
                         begin
-                          if is_calljmp(pai386(hp)^.opcode) then
-                           s:=#9+getopstr_jmp(pai386(hp)^.oper[0])
+                          if is_calljmp(paicpu(hp)^.opcode) then
+                           s:=#9+getopstr_jmp(paicpu(hp)^.oper[0])
                           else
                            begin
-                             for i:=0to pai386(hp)^.ops-1 do
+                             for i:=0to paicpu(hp)^.ops-1 do
                               begin
                                 if i=0 then
                                  sep:=#9
                                 else
                                  sep:=',';
-                                s:=s+sep+getopstr(pai386(hp)^.oper[i],pai386(hp)^.opsize,pai386(hp)^.opcode,(i=2));
+                                s:=s+sep+getopstr(paicpu(hp)^.oper[i],paicpu(hp)^.opsize,paicpu(hp)^.opcode,(i=2));
                               end;
                            end;
                         end;
-                       AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^.opcode]+cond2str[pai386(hp)^.condition]+suffix+s);
+                       AsmWriteLn(#9#9+prefix+int_op2str[paicpu(hp)^.opcode]+cond2str[paicpu(hp)^.condition]+suffix+s);
                      end;
 {$ifdef GDB}
              ait_stabn,
@@ -627,7 +627,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.51  1999-08-04 00:22:36  florian
+  Revision 1.52  1999-08-25 11:59:36  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.51  1999/08/04 00:22:36  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.50  1999/07/22 09:37:31  florian
@@ -713,7 +716,7 @@ end.
 
   Revision 1.31  1999/04/16 10:00:55  pierre
     + ifdef USE_OP3 code :
-      added all missing op_... constructors for tai386 needed
+      added all missing op_... constructors for taicpu needed
       for SHRD,SHLD and IMUL code in assembler readers
       (check in tests/tbs0123.pp)
 

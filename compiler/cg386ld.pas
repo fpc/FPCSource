@@ -377,7 +377,7 @@ implementation
          fputyp : tfloattype;
          loc : tloc;
          r : preference;
-         ai : pai386;
+         ai : paicpu;
          op : tasmop;
       begin
          otlabel:=truelabel;
@@ -740,7 +740,7 @@ implementation
                                 emit_flag2reg(p^.right^.location.resflags,p^.left^.location.register)
                               else
                                 begin
-                                  ai:=new(pai386,op_ref(A_Setcc,S_B,newreference(p^.left^.location.reference)));
+                                  ai:=new(paicpu,op_ref(A_Setcc,S_B,newreference(p^.left^.location.reference)));
                                   ai^.SetCondition(flag_2_cond[p^.right^.location.resflags]);
                                   exprasmlist^.concat(ai);
                                 end;
@@ -968,7 +968,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  1999-08-24 22:38:51  michael
+  Revision 1.78  1999-08-25 11:59:43  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.77  1999/08/24 22:38:51  michael
   * more resourcestring changes
 
   Revision 1.76  1999/08/23 11:45:39  michael

@@ -128,7 +128,7 @@ implementation
                    if not(r in unused) then
                      begin
                         { then save it }
-                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,r)));
+                        exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,r)));
 
                         { here was a big problem  !!!!!}
                         { you cannot do that for a register that is
@@ -154,12 +154,12 @@ implementation
               { if the mmx register is in use, save it }
               if not(r in unused) then
                 begin
-                   exprasmlist^.concat(new(pai386,op_const_reg(
+                   exprasmlist^.concat(new(paicpu,op_const_reg(
                      A_SUB,S_L,8,R_ESP)));
                    new(hr);
                    reset_reference(hr^);
                    hr^.base:=R_ESP;
-                   exprasmlist^.concat(new(pai386,op_reg_ref(
+                   exprasmlist^.concat(new(paicpu,op_reg_ref(
                      A_MOVQ,S_NO,r,hr)));
                    if not(is_reg_var[r]) then
                      begin
@@ -197,7 +197,7 @@ implementation
                         { then save it }
                         gettempofsizereference(4,hr);
                         saved[r]:=hr.offset;
-                        exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,r,newreference(hr))));
+                        exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,r,newreference(hr))));
                         { here was a big problem  !!!!!}
                         { you cannot do that for a register that is
                         globally assigned to a var
@@ -222,7 +222,7 @@ implementation
               if not(r in unused) then
                 begin
                    gettempofsizereference(8,hr);
-                   exprasmlist^.concat(new(pai386,op_reg_ref(
+                   exprasmlist^.concat(new(paicpu,op_reg_ref(
                      A_MOVQ,S_NO,r,newreference(hr))));
                    if not(is_reg_var[r]) then
                      begin
@@ -257,9 +257,9 @@ implementation
                    new(hr);
                    reset_reference(hr^);
                    hr^.base:=R_ESP;
-                   exprasmlist^.concat(new(pai386,op_ref_reg(
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(
                      A_MOVQ,S_NO,hr,r)));
-                   exprasmlist^.concat(new(pai386,op_const_reg(
+                   exprasmlist^.concat(new(paicpu,op_const_reg(
                      A_ADD,S_L,8,R_ESP)));
                    unused:=unused-[r];
 {$ifdef TEMPREGDEBUG}
@@ -271,7 +271,7 @@ implementation
          for r:=R_EBX downto R_EAX do
            if pushed[r] then
              begin
-                exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,r)));
+                exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,r)));
 {$ifdef TEMPREGDEBUG}
                 if not (r in unused) then
                   { internalerror(10)
@@ -303,7 +303,7 @@ implementation
                    reset_reference(hr);
                    hr.base:=frame_pointer;
                    hr.offset:=saved[r];
-                   exprasmlist^.concat(new(pai386,op_ref_reg(
+                   exprasmlist^.concat(new(paicpu,op_ref_reg(
                      A_MOVQ,S_NO,newreference(hr),r)));
                    unused:=unused-[r];
 {$ifdef TEMPREGDEBUG}
@@ -319,7 +319,7 @@ implementation
                 reset_reference(hr);
                 hr.base:=frame_pointer;
                 hr.offset:=saved[r];
-                exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(hr),r)));
+                exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,S_L,newreference(hr),r)));
 {$ifdef TEMPREGDEBUG}
                 if not (r in unused) then
                   internalerror(10)
@@ -606,7 +606,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  1999-08-23 23:25:58  pierre
+  Revision 1.33  1999-08-25 12:00:06  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.32  1999/08/23 23:25:58  pierre
     + TEMPREGDEBUG code, test of register allocation
       if a tree uses more than registers32 regs then
       internalerror(10) is issued

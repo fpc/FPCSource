@@ -620,12 +620,12 @@ do_jmp:
          getlabel(lastonlabel);
          push_int (1); { push type of exceptionframe }
          emitcall('FPC_PUSHEXCEPTADDR',true);
-         exprasmlist^.concat(new(pai386,
+         exprasmlist^.concat(new(paicpu,
            op_reg(A_PUSH,S_L,R_EAX)));
          emitcall('FPC_SETJMP',true);
-         exprasmlist^.concat(new(pai386,
+         exprasmlist^.concat(new(paicpu,
            op_reg(A_PUSH,S_L,R_EAX)));
-         exprasmlist^.concat(new(pai386,
+         exprasmlist^.concat(new(paicpu,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
          emitl(A_JNE,exceptlabel);
 
@@ -635,9 +635,9 @@ do_jmp:
            exit;
 
          emitl(A_LABEL,exceptlabel);
-         exprasmlist^.concat(new(pai386,
+         exprasmlist^.concat(new(paicpu,
            op_reg(A_POP,S_L,R_EAX)));
-         exprasmlist^.concat(new(pai386,
+         exprasmlist^.concat(new(paicpu,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
          emitl(A_JNE,doexceptlabel);
          emitcall('FPC_POPADDRSTACK',true);
@@ -678,13 +678,13 @@ do_jmp:
 { !!!!!!!!!!!!!!! }
 (*         getlabel(nextonlabel);
          { push the vmt }
-         exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,
+         exprasmlist^.concat(new(paicpu,op_csymbol(A_PUSH,S_L,
            newcsymbol(p^.excepttype^.vmt_mangledname,0))));
          maybe_concat_external(p^.excepttype^.owner,
            p^.excepttype^.vmt_mangledname);
 
          emitcall('FPC_CATCHES',true);
-         exprasmlist^.concat(new(pai386,
+         exprasmlist^.concat(new(paicpu,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
          emitl(A_JE,nextonlabel);
          ref.symbol:=nil;
@@ -694,7 +694,7 @@ do_jmp:
          if assigned(p^.exceptsymtable) then
            pvarsym(p^.exceptsymtable^.root)^.address:=ref.offset;
 
-         exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+         exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
            R_EAX,newreference(ref))));
 
          if assigned(p^.right) then
@@ -726,12 +726,12 @@ do_jmp:
          getlabel(endfinallylabel);
          push_int(1); { Type of stack-frame must be pushed}
          emitcall('FPC_PUSHEXCEPTADDR',true);
-         exprasmlist^.concat(new(pai386,
+         exprasmlist^.concat(new(paicpu,
            op_reg(A_PUSH,S_L,R_EAX)));
          emitcall('FPC_SETJMP',true);
-         exprasmlist^.concat(new(pai386,
+         exprasmlist^.concat(new(paicpu,
            op_reg(A_PUSH,S_L,R_EAX)));
-         exprasmlist^.concat(new(pai386,
+         exprasmlist^.concat(new(paicpu,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
          emitl(A_JNE,finallylabel);
 
@@ -746,9 +746,9 @@ do_jmp:
          secondpass(p^.right);
          if codegenerror then
            exit;
-         exprasmlist^.concat(new(pai386,
+         exprasmlist^.concat(new(paicpu,
            op_reg(A_POP,S_L,R_EAX)));
-         exprasmlist^.concat(new(pai386,
+         exprasmlist^.concat(new(paicpu,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
          emitl(A_JE,noreraiselabel);
          emitcall('FPC_RERAISE',true);
@@ -779,7 +779,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.8  1998-12-11 00:03:02  peter
+  Revision 1.9  1999-08-25 11:59:49  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.8  1998/12/11 00:03:02  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.7  1998/10/14 11:28:19  florian

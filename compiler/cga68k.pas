@@ -293,15 +293,15 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 (*        case hr of
       R_AX..R_DI : begin
                      hr:=reg16toreg32(hr);
-                     exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,$ffff,hr)));
+                     exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,$ffff,hr)));
                    end;
       R_AL..R_DL : begin
                      hr:=reg8toreg32(hr);
-                     exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,$ff,hr)));
+                     exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,$ff,hr)));
                    end;
       R_AH..R_DH : begin
                      hr:=reg8toreg32(hr);
-                     exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_L,$ff00,hr)));
+                     exprasmlist^.concat(new(paicpu,op_const_reg(A_AND,S_L,$ff00,hr)));
                    end;
         end; *)
       end;
@@ -1396,7 +1396,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  1998-12-11 00:03:09  peter
+  Revision 1.32  1999-08-25 11:59:54  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.31  1998/12/11 00:03:09  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.30  1998/11/30 09:43:05  pierre

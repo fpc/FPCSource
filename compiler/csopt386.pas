@@ -106,18 +106,18 @@ Begin {CheckSequence}
 (*              If ((Found+1) = OldNrOfMods) And
               Assigned(hp2) And
               (Pai(hp2)^.typ = ait_instruction) And
-              ((Pai386(hp2)^.opcode = A_MOV) or
-               (Pai386(p1)^.opcode = A_MOVZX)) And
-              (Pai386(hp2)^.oper[0].typ = top_ref) And
-              (Pai386(hp2)^.optype[1] = top_reg) And
+              ((Paicpu(hp2)^.opcode = A_MOV) or
+               (Paicpu(p1)^.opcode = A_MOVZX)) And
+              (Paicpu(hp2)^.oper[0].typ = top_ref) And
+              (Paicpu(hp2)^.optype[1] = top_reg) And
               Assigned(hp3) And
               (Pai(hp3)^.typ = ait_instruction) And
-              ((Pai386(hp3)^.opcode = A_MOV) or
-               (Pai386(hp3)^.opcode = A_MOVZX)) And
-              (Pai386(hp3)^.oper[0].typ = top_ref) And
-              (Pai386(hp3)^.optype[1] = top_reg) And
-               (Pai386(hp2)^.opcode <> Pai386(hp3)^.opcode) And
-              RefsEquivalent(TReference(Pai386(hp2)^.oper[1]^),TReference(Pai386(hp3)^.oper[1]^), RegInfo)
+              ((Paicpu(hp3)^.opcode = A_MOV) or
+               (Paicpu(hp3)^.opcode = A_MOVZX)) And
+              (Paicpu(hp3)^.oper[0].typ = top_ref) And
+              (Paicpu(hp3)^.optype[1] = top_reg) And
+               (Paicpu(hp2)^.opcode <> Paicpu(hp3)^.opcode) And
+              RefsEquivalent(TReference(Paicpu(hp2)^.oper[1]^),TReference(Paicpu(hp3)^.oper[1]^), RegInfo)
              Then
 
 {hack to be able to optimize
@@ -130,17 +130,17 @@ Begin {CheckSequence}
      mov (reg), reg
      movzx (reg), reg [*]}
 
-               If (Pai386(hp2)^.opcode = A_MOV)
+               If (Paicpu(hp2)^.opcode = A_MOV)
                  Then
                    Begin
-                    If (Pai386(hp2)^.opsize = S_B) And
-                       RegsEquivalent(Reg8toReg32(TRegister(Pai386(hp2)^.oper[1])),
-                                      TRegister(Pai386(hp3)^.oper[1]), RegInfo)
+                    If (Paicpu(hp2)^.opsize = S_B) And
+                       RegsEquivalent(Reg8toReg32(TRegister(Paicpu(hp2)^.oper[1])),
+                                      TRegister(Paicpu(hp3)^.oper[1]), RegInfo)
                        Then
                          Begin
-                           Pai386(hp2)^.opcode := A_MOVZX;
-                           Pai386(hp2)^.opsize := S_BL;
-                           Pai386(hp2)^.loadoper(1,Pai386(hp3)^.oper[1]);
+                           Paicpu(hp2)^.opcode := A_MOVZX;
+                           Paicpu(hp2)^.opsize := S_BL;
+                           Paicpu(hp2)^.loadoper(1,Paicpu(hp3)^.oper[1]);
                            Inc(Found);
                            TmpResult := True;
                          End
@@ -153,9 +153,9 @@ Begin {CheckSequence}
                    End
                  Else
                    Begin
-                     If (Pai386(hp3)^.opsize = S_B) And
-                       RegsEquivalent(TRegister(Pai386(hp2)^.oper[1]),
-                                      Reg8toReg32(TRegister(Pai386(hp3)^.oper[1])),
+                     If (Paicpu(hp3)^.opsize = S_B) And
+                       RegsEquivalent(TRegister(Paicpu(hp2)^.oper[1]),
+                                      Reg8toReg32(TRegister(Paicpu(hp3)^.oper[1])),
                                       RegInfo)
                        Then
                          Begin
@@ -245,28 +245,28 @@ Begin
       Case p^.typ Of
         ait_instruction:
           Begin
-            Case Pai386(p)^.opcode Of
+            Case Paicpu(p)^.opcode Of
               A_CLD: If GetLastInstruction(p, hp1) And
                         (PPaiProp(hp1^.OptInfo)^.DirFlag = F_NotSet) Then
                        PPaiProp(Pai(p)^.OptInfo)^.CanBeRemoved := True;
               A_MOV, A_MOVZX, A_MOVSX:
                 Begin
-                  Case Pai386(p)^.oper[0].typ Of
+                  Case Paicpu(p)^.oper[0].typ Of
 {                    Top_Reg:
-                      Case Pai386(p)^.optype[1] Of
+                      Case Paicpu(p)^.optype[1] Of
                         Top_Reg:;
                         Top_Ref:;
                       End;}
                     Top_Ref:
                       Begin {destination is always a register in this case}
-                        With PPaiProp(p^.OptInfo)^.Regs[Reg32(Pai386(p)^.oper[1].reg)] Do
+                        With PPaiProp(p^.OptInfo)^.Regs[Reg32(Paicpu(p)^.oper[1].reg)] Do
                           Begin
                             If (p = StartMod) And
                                GetLastInstruction (p, hp1) And
                                (hp1^.typ <> ait_marker)
                               Then
 {so we don't try to check a sequence when p is the first instruction of the block}
-                               If CheckSequence(p, Pai386(p)^.oper[1].reg, Cnt, RegInfo) And
+                               If CheckSequence(p, Paicpu(p)^.oper[1].reg, Cnt, RegInfo) And
                                   (Cnt > 0)
                                  Then
                                    Begin
@@ -291,12 +291,12 @@ Begin
                                      While Cnt2 <= Cnt Do
                                        Begin
                                          If (hp1 = nil) And
-                                            Not(RegInInstruction(Pai386(hp2)^.oper[1].reg, p) Or
-                                                RegInInstruction(Reg32(Pai386(hp2)^.oper[1].reg), p)) And
+                                            Not(RegInInstruction(Paicpu(hp2)^.oper[1].reg, p) Or
+                                                RegInInstruction(Reg32(Paicpu(hp2)^.oper[1].reg), p)) And
                                             Not((p^.typ = ait_instruction) And
-                                                (pai386(p)^.OpCode = A_MOV) And
-                                                (pai386(p)^.Oper[0].typ = top_ref) And
-                                                (PPaiProp(p^.OptInfo)^.Regs[Reg32(pai386(p)^.Oper[1].reg)].NrOfMods
+                                                (paicpu(p)^.OpCode = A_MOV) And
+                                                (paicpu(p)^.Oper[0].typ = top_ref) And
+                                                (PPaiProp(p^.OptInfo)^.Regs[Reg32(paicpu(p)^.Oper[1].reg)].NrOfMods
                                                    <= (Cnt - Cnt2 + 1)))
                                            Then hp1 := p;
 {$ifndef noremove}
@@ -345,7 +345,7 @@ Begin
                                               (RegInfo.New2OldReg[RegCounter] <> RegCounter) Then
 
                                              Begin
-                                               hp3 := New(Pai386,Op_Reg_Reg(A_MOV, S_L,
+                                               hp3 := New(Paicpu,Op_Reg_Reg(A_MOV, S_L,
                                                                     {old reg          new reg}
                                                       RegInfo.New2OldReg[RegCounter], RegCounter));
                                                hp3^.fileinfo := hp2^.fileinfo;
@@ -447,15 +447,15 @@ Begin
                                  Else
                                    If (Cnt > 0) And
                                       (PPaiProp(p^.OptInfo)^.
-                                        Regs[Reg32(Pai386(p)^.oper[1].reg)].Typ = Con_Ref) And
+                                        Regs[Reg32(Paicpu(p)^.oper[1].reg)].Typ = Con_Ref) And
                                       (PPaiProp(p^.OptInfo)^.CanBeRemoved) Then
                                      Begin
                                        hp2 := p;
                                        Cnt2 := 1;
                                        While Cnt2 <= Cnt Do
                                          Begin
-                                           If RegInInstruction(Pai386(hp2)^.oper[1].reg, p) Or
-                                              RegInInstruction(Reg32(Pai386(hp2)^.oper[1].reg), p) Then
+                                           If RegInInstruction(Paicpu(hp2)^.oper[1].reg, p) Or
+                                              RegInInstruction(Reg32(Paicpu(hp2)^.oper[1].reg), p) Then
                                              PPaiProp(p^.OptInfo)^.CanBeRemoved := False;
                                            Inc(Cnt2);
                                            GetNextInstruction(p, p);
@@ -466,11 +466,11 @@ Begin
                       End;
                     Top_Const:
                       Begin
-                        Case Pai386(p)^.oper[1].typ Of
+                        Case Paicpu(p)^.oper[1].typ Of
                           Top_Reg:
                             Begin
                               If GetLastInstruction(p, hp1) Then
-                                With PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Pai386(p)^.oper[1].reg)] Do
+                                With PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Paicpu(p)^.oper[1].reg)] Do
                                   If (Typ = Con_Const) And
                                      (StartMod = p) Then
                                     PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
@@ -485,12 +485,12 @@ Begin
                         PPaiProp(Pai(p)^.OptInfo)^.CanBeRemoved := True;
               A_XOR:
                 Begin
-                  If (Pai386(p)^.oper[0].typ = top_reg) And
-                     (Pai386(p)^.oper[0].typ = top_reg) And
-                     (Pai386(p)^.oper[1].reg = Pai386(p)^.oper[1].reg) And
+                  If (Paicpu(p)^.oper[0].typ = top_reg) And
+                     (Paicpu(p)^.oper[0].typ = top_reg) And
+                     (Paicpu(p)^.oper[1].reg = Paicpu(p)^.oper[1].reg) And
                      GetLastInstruction(p, hp1) And
-                     (PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Pai386(p)^.oper[1].reg)].typ = con_const) And
-                     (PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Pai386(p)^.oper[1].reg)].StartMod = nil)
+                     (PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Paicpu(p)^.oper[1].reg)].typ = con_const) And
+                     (PPaiProp(hp1^.OptInfo)^.Regs[Reg32(Paicpu(p)^.oper[1].reg)].StartMod = nil)
                     Then PPaiProp(p^.OptInfo)^.CanBeRemoved := True
                 End
             End
@@ -553,7 +553,10 @@ End.
 
 {
  $Log$
- Revision 1.23  1999-08-04 00:22:58  florian
+ Revision 1.24  1999-08-25 11:59:58  jonas
+   * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+ Revision 1.23  1999/08/04 00:22:58  florian
    * renamed i386asm and i386base to cpuasm and cpubase
 
  Revision 1.22  1999/06/03 15:45:08  jonas

@@ -48,7 +48,7 @@ Type
   TOpAction = (OpAct_Read, OpAct_Write, OpAct_Modify, OpAct_Unknown);
 
 { type of a normal instruction }
-  TInstr = Tai386;
+  TInstr = Taicpu;
   PInstr = ^TInstr;
 
   TFlag = (DirFlag);
@@ -739,7 +739,10 @@ End.
 
 {
  $Log$
- Revision 1.4  1999-08-23 14:41:14  jonas
+ Revision 1.5  1999-08-25 12:00:19  jonas
+   * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+ Revision 1.4  1999/08/23 14:41:14  jonas
    + checksequence (processor independent)\n  + processor independent part of docse
 
  Revision 1.3  1999/08/18 14:32:25  jonas

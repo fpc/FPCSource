@@ -149,7 +149,7 @@ unit nmem;
                       begin
                          hregister:=tg.getregisterint;
                          location.reference.symbol:=newasmsymbol(symtableentry^.mangledname);
-                         exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(location.reference),hregister)));
+                         exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,S_L,newreference(location.reference),hregister)));
                          location.reference.symbol:=nil;
                          location.reference.base:=hregister;
                       end
@@ -193,7 +193,7 @@ unit nmem;
                                           procinfo.framepointer_offset);
 
 
-                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
+                                        exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,S_L,hp,hregister)));
 
                                         simple_loadn:=false;
                                         i:=lexlevel-1;
@@ -201,7 +201,7 @@ unit nmem;
                                           begin
                                              { make a reference }
                                              hp:=new_reference(hregister,8);
-                                             exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
+                                             exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,S_L,hp,hregister)));
                                              dec(i);
                                           end;
                                         location.reference.base:=hregister;
@@ -241,7 +241,7 @@ unit nmem;
                                         hp:=new_reference(procinfo.framepointer,
                                           symtable^.datasize);
 
-                                        exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,hp,hregister)));
+                                        exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,S_L,hp,hregister)));
 
                                         location.reference.offset:=
                                           pvarsym(symtableentry)^.address;
@@ -270,19 +270,19 @@ unit nmem;
                                      begin
                                         highframepointer:=R_EDI;
                                         highoffset:=location.reference.offset;
-                                        exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
+                                        exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOV,S_L,
                                           location.reference.base,R_EDI)));
                                      end;
                                 end;
                               if location.loc=LOC_CREGISTER then
                                 begin
-                                   exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
+                                   exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOV,S_L,
                                      location.register,hregister)));
                                    location.loc:=LOC_REFERENCE;
                                 end
                               else
                                 begin
-                                   exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,S_L,
                                      newreference(location.reference),
                                      hregister)));
                                 end;
@@ -475,14 +475,14 @@ unit nmem;
                               end;
                               if loc=LOC_CREGISTER then
                                 begin
-                                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                                  exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,opsize,
                                     newreference(p^.right^.location.reference),
                                     p^.left^.location.register)));
                                   if is_64bitint(p^.right^.resulttype) then
                                     begin
                                        r:=newreference(p^.right^.location.reference);
                                        inc(r^.offset,4);
-                                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,r,
+                                       exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,opsize,r,
                                          p^.left^.location.registerhigh)));
                                     end;
 {$IfDef regallocfix}
@@ -491,20 +491,20 @@ unit nmem;
                                 end
                               else
                                 begin
-                                  exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,opsize,
+                                  exprasmlist^.concat(new(paicpu,op_const_ref(A_MOV,opsize,
                                     p^.right^.location.reference.offset,
                                     newreference(p^.left^.location.reference))));
                                   if is_64bitint(p^.right^.resulttype) then
                                     begin
                                        r:=newreference(p^.left^.location.reference);
                                        inc(r^.offset,4);
-                                       exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,opsize,
+                                       exprasmlist^.concat(new(paicpu,op_const_ref(A_MOV,opsize,
                                          0,r)));
                                     end;
 {$IfDef regallocfix}
                                   del_reference(p^.left^.location.reference);
 {$EndIf regallocfix}
-                                {exprasmlist^.concat(new(pai386,op_const_loc(A_MOV,opsize,
+                                {exprasmlist^.concat(new(paicpu,op_const_loc(A_MOV,opsize,
                                     p^.right^.location.reference.offset,
                                     p^.left^.location)));}
                                 end;
@@ -513,9 +513,9 @@ unit nmem;
                          else if loc=LOC_CFPUREGISTER then
                            begin
                               floatloadops(pfloatdef(p^.right^.resulttype)^.typ,op,opsize);
-                              exprasmlist^.concat(new(pai386,op_ref(op,opsize,
+                              exprasmlist^.concat(new(paicpu,op_ref(op,opsize,
                                 newreference(p^.right^.location.reference))));
-                              exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,
+                              exprasmlist^.concat(new(paicpu,op_reg(A_FSTP,S_NO,
                                 correct_fpuregister(p^.left^.location.register,fpuvaroffset+1))));
                            end
                          else
@@ -553,10 +553,10 @@ unit nmem;
             LOC_MMXREGISTER:
               begin
                  if loc=LOC_CMMXREGISTER then
-                   exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVQ,S_NO,
+                   exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVQ,S_NO,
                    p^.right^.location.register,p^.left^.location.register)))
                  else
-                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOVQ,S_NO,
+                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVQ,S_NO,
                      p^.right^.location.register,newreference(p^.left^.location.reference))));
               end;
 {$endif SUPPORT_MMX}
@@ -571,7 +571,7 @@ unit nmem;
                               { simplified with op_reg_loc       }
                               if loc=LOC_CREGISTER then
                                 begin
-                                  exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,
+                                  exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOV,opsize,
                                     p^.right^.location.register,
                                     p^.left^.location.register)));
 {$IfDef regallocfix}
@@ -580,7 +580,7 @@ unit nmem;
                                 end
                               else
                                 Begin
-                                  exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,
+                                  exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,
                                     p^.right^.location.register,
                                     newreference(p^.left^.location.reference))));
 {$IfDef regallocfix}
@@ -592,18 +592,18 @@ unit nmem;
                                 begin
                                    { simplified with op_reg_loc  }
                                    if loc=LOC_CREGISTER then
-                                     exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,opsize,
+                                     exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOV,opsize,
                                        p^.right^.location.registerhigh,
                                        p^.left^.location.registerhigh)))
                                    else
                                      begin
                                         r:=newreference(p^.left^.location.reference);
                                         inc(r^.offset,4);
-                                        exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,
+                                        exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,
                                           p^.right^.location.registerhigh,r)));
                                      end;
                                 end;
-                              {exprasmlist^.concat(new(pai386,op_reg_loc(A_MOV,opsize,
+                              {exprasmlist^.concat(new(paicpu,op_reg_loc(A_MOV,opsize,
                                   p^.right^.location.register,
                                   p^.left^.location)));      }
 
@@ -623,7 +623,7 @@ unit nmem;
                               case loc of
                                  LOC_CFPUREGISTER:
                                    begin
-                                      exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,
+                                      exprasmlist^.concat(new(paicpu,op_reg(A_FSTP,S_NO,
                                         correct_fpuregister(p^.left^.location.register,fpuvaroffset))));
                                       dec(fpuvaroffset);
                                    end;
@@ -645,13 +645,13 @@ unit nmem;
                                 fputyp:=pfloatdef(p^.right^.left^.resulttype)^.typ
                               else
                                 fputyp:=s32real;
-                              exprasmlist^.concat(new(pai386,op_reg(A_FLD,S_NO,
+                              exprasmlist^.concat(new(paicpu,op_reg(A_FLD,S_NO,
                                 correct_fpuregister(p^.right^.location.register,fpuvaroffset))));
                               inc(fpuvaroffset);
                               case loc of
                                  LOC_CFPUREGISTER:
                                    begin
-                                      exprasmlist^.concat(new(pai386,op_reg(A_FSTP,S_NO,
+                                      exprasmlist^.concat(new(paicpu,op_reg(A_FSTP,S_NO,
                                         correct_fpuregister(p^.right^.location.register,fpuvaroffset))));
                                       dec(fpuvaroffset);
                                    end;
@@ -665,22 +665,22 @@ unit nmem;
                               getlabel(hlabel);
                               emitlab(truelabel);
                               if loc=LOC_CREGISTER then
-                                exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,S_B,
+                                exprasmlist^.concat(new(paicpu,op_const_reg(A_MOV,S_B,
                                   1,p^.left^.location.register)))
                               else
-                                exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
+                                exprasmlist^.concat(new(paicpu,op_const_ref(A_MOV,S_B,
                                   1,newreference(p^.left^.location.reference))));
-                              {exprasmlist^.concat(new(pai386,op_const_loc(A_MOV,S_B,
+                              {exprasmlist^.concat(new(paicpu,op_const_loc(A_MOV,S_B,
                                   1,p^.left^.location)));}
                               emitjmp(C_None,hlabel);
                               emitlab(falselabel);
                               if loc=LOC_CREGISTER then
-                                exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_B,
+                                exprasmlist^.concat(new(paicpu,op_reg_reg(A_XOR,S_B,
                                   p^.left^.location.register,
                                   p^.left^.location.register)))
                               else
                                 begin
-                                  exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,
+                                  exprasmlist^.concat(new(paicpu,op_const_ref(A_MOV,S_B,
                                     0,newreference(p^.left^.location.reference))));
 {$IfDef regallocfix}
                                   del_reference(p^.left^.location.reference);
@@ -693,7 +693,7 @@ unit nmem;
                                 emit_flag2reg(p^.right^.location.resflags,p^.left^.location.register)
                               else
                                 begin
-                                  ai:=new(pai386,op_ref(A_Setcc,S_B,newreference(p^.left^.location.reference)));
+                                  ai:=new(paicpu,op_ref(A_Setcc,S_B,newreference(p^.left^.location.reference)));
                                   ai^.SetCondition(flag_2_cond[p^.right^.location.resflags]);
                                   exprasmlist^.concat(ai);
                                 end;
@@ -709,7 +709,10 @@ unit nmem;
 end.
 {
   $Log$
-  Revision 1.10  1999-08-18 17:05:56  florian
+  Revision 1.11  1999-08-25 12:00:12  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.10  1999/08/18 17:05:56  florian
     + implemented initilizing of data for the new code generator
       so it should compile now simple programs
 

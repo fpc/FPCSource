@@ -481,33 +481,33 @@ unit ag386nsm;
                      end;
    ait_instruction : begin
                      { We need intel order, no At&t }
-                       pai386(hp)^.SwapOperands;
+                       paicpu(hp)^.SwapOperands;
                      { Reset }
                        suffix:='';
                        prefix:='';
                        s:='';
-                       if pai386(hp)^.ops<>0 then
+                       if paicpu(hp)^.ops<>0 then
                         begin
-                          if is_calljmp(pai386(hp)^.opcode) then
-                           s:=#9+getopstr_jmp(pai386(hp)^.oper[0])
+                          if is_calljmp(paicpu(hp)^.opcode) then
+                           s:=#9+getopstr_jmp(paicpu(hp)^.oper[0])
                           else
                            begin
-                             for i:=0to pai386(hp)^.ops-1 do
+                             for i:=0to paicpu(hp)^.ops-1 do
                               begin
                                 if i=0 then
                                  sep:=#9
                                 else
                                  sep:=',';
-                                s:=s+sep+getopstr(pai386(hp)^.oper[i],pai386(hp)^.opsize,pai386(hp)^.opcode,
-                                  pai386(hp)^.ops,(i=2));
+                                s:=s+sep+getopstr(paicpu(hp)^.oper[i],paicpu(hp)^.opsize,paicpu(hp)^.opcode,
+                                  paicpu(hp)^.ops,(i=2));
                               end;
                            end;
                         end;
-                       if pai386(hp)^.opcode=A_FWAIT then
+                       if paicpu(hp)^.opcode=A_FWAIT then
                         AsmWriteln(#9#9'DB'#9'09bh')
                        else
-                        AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^.opcode]+
-                          cond2str[pai386(hp)^.condition]+suffix+s);
+                        AsmWriteLn(#9#9+prefix+int_op2str[paicpu(hp)^.opcode]+
+                          cond2str[paicpu(hp)^.condition]+suffix+s);
                      end;
 {$ifdef GDB}
              ait_stabn,
@@ -602,7 +602,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.48  1999-08-04 00:22:37  florian
+  Revision 1.49  1999-08-25 11:59:38  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.48  1999/08/04 00:22:37  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.47  1999/08/01 18:28:10  florian
@@ -694,7 +697,7 @@ end.
 
   Revision 1.26  1999/04/16 10:00:56  pierre
     + ifdef USE_OP3 code :
-      added all missing op_... constructors for tai386 needed
+      added all missing op_... constructors for taicpu needed
       for SHRD,SHLD and IMUL code in assembler readers
       (check in tests/tbs0123.pp)
 

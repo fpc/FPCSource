@@ -193,7 +193,7 @@ implementation
                      emitpushreferenceaddr(exprasmlist,r^);
                      { push pointer adress }
                      case p^.left^.location.loc of
-                        LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
+                        LOC_CREGISTER : exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,
                           p^.left^.location.register)));
                         LOC_REFERENCE:
                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
@@ -215,7 +215,7 @@ implementation
                      emitpushreferenceaddr(exprasmlist,r^);
                      { push pointer adress }
                      case p^.left^.location.loc of
-                        LOC_CREGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
+                        LOC_CREGISTER : exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,
                           p^.left^.location.register)));
                         LOC_REFERENCE:
                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
@@ -725,7 +725,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-12-11 10:48:11  pierre
+  Revision 1.12  1999-08-25 11:59:52  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.11  1998/12/11 10:48:11  pierre
    * #0 char removed
 
   Revision 1.10  1998/12/11 00:03:06  peter

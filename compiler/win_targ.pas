@@ -221,7 +221,7 @@ unit win_targ;
 {$EndIf GDB}
                      importssection^.concat(new(pai_align,init_op(4,$90)));
                      importssection^.concat(new(pai_symbol,initname_global(hp2^.func^,0)));
-                     importssection^.concat(new(pai386,op_ref(A_JMP,S_NO,r)));
+                     importssection^.concat(new(paicpu,op_ref(A_JMP,S_NO,r)));
                    end;
                   { create head link }
                   importssection^.concat(new(pai_section,init(sec_idata7)));
@@ -331,7 +331,7 @@ unit win_targ;
                       { place jump in codesegment }
                       codesegment^.concat(new(pai_align,init_op(4,$90)));
                       codesegment^.concat(new(pai_symbol,initname_global(hp2^.func^,0)));
-                      codesegment^.concat(new(pai386,op_ref(A_JMP,S_NO,r)));
+                      codesegment^.concat(new(paicpu,op_ref(A_JMP,S_NO,r)));
                       { add jump field to importsection }
                       importssection^.concat(new(pai_label,init(l4)));
                     end
@@ -799,7 +799,10 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.32  1999-08-11 17:26:38  peter
+  Revision 1.33  1999-08-25 12:00:07  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.32  1999/08/11 17:26:38  peter
     * tlinker object is now inherited for win32 and dos
     * postprocessexecutable is now a method of tlinker
 

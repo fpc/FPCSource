@@ -796,12 +796,15 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.46  1999-08-19 13:06:47  pierre
+  Revision 1.47  1999-08-25 11:59:42  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.46  1999/08/19 13:06:47  pierre
     * _FAIL will now free memory correctly
       and reset VMT field on static instances
       (not yet tested for classes, is it allowed ?)
     + emit_.... all variant defined here to avoid tons of
-      exprasmlist^.concat(new(pai386,...) in cg386***
+      exprasmlist^.concat(new(paicpu,...) in cg386***
 
   Revision 1.45  1999/08/04 00:22:46  florian
     * renamed i386asm and i386base to cpuasm and cpubase

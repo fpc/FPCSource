@@ -31,8 +31,8 @@ uses
 
 type
 
-  paippc = ^taippc;
-  taippc = object(tainstruction)
+  paicpu = ^taicpu;
+  taicpu = object(tainstruction)
 
      constructor op_none(op : tasmop);
 
@@ -80,10 +80,10 @@ type
 implementation
 
 {*****************************************************************************
-                                 taippc Constructors
+                                 taicpu Constructors
 *****************************************************************************}
 
-    procedure taippc.loadbool(opidx:longint;_b:boolean);
+    procedure taicpu.loadbool(opidx:longint;_b:boolean);
       begin
         if opidx>=ops then
          ops:=opidx+1;
@@ -97,13 +97,13 @@ implementation
       end;
 
 
-    constructor taippc.op_none(op : tasmop);
+    constructor taicpu.op_none(op : tasmop);
       begin
          inherited init(op);
       end;
 
 
-    constructor taippc.op_reg(op : tasmop;_op1 : tregister);
+    constructor taicpu.op_reg(op : tasmop;_op1 : tregister);
       begin
          inherited init(op);
          ops:=1;
@@ -111,7 +111,7 @@ implementation
       end;
 
 
-    constructor taippc.op_const(op : tasmop;_op1 : longint);
+    constructor taicpu.op_const(op : tasmop;_op1 : longint);
       begin
          inherited init(op);
          ops:=1;
@@ -119,7 +119,7 @@ implementation
       end;
 
 
-    constructor taippc.op_reg_reg(op : tasmop;_op1,_op2 : tregister);
+    constructor taicpu.op_reg_reg(op : tasmop;_op1,_op2 : tregister);
       begin
          inherited init(op);
          ops:=2;
@@ -127,7 +127,7 @@ implementation
          loadreg(1,_op2);
       end;
 
-    constructor taippc.op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
+    constructor taicpu.op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
       begin
          inherited init(op);
          ops:=2;
@@ -135,7 +135,7 @@ implementation
          loadconst(1,_op2);
       end;
 
-     constructor taippc.op_const_reg(op:tasmop; _op1: longint; _op2: tregister);
+     constructor taicpu.op_const_reg(op:tasmop; _op1: longint; _op2: tregister);
       begin
          inherited init(op);
          ops:=2;
@@ -144,7 +144,7 @@ implementation
       end;
 
 
-    constructor taippc.op_reg_ref(op : tasmop;_op1 : tregister;_op2 : preference);
+    constructor taicpu.op_reg_ref(op : tasmop;_op1 : tregister;_op2 : preference);
       begin
          inherited init(op);
          ops:=2;
@@ -153,7 +153,7 @@ implementation
       end;
 
 
-    constructor taippc.op_const_const(op : tasmop;_op1,_op2 : longint);
+    constructor taicpu.op_const_const(op : tasmop;_op1,_op2 : longint);
       begin
          inherited init(op);
          ops:=2;
@@ -162,7 +162,7 @@ implementation
       end;
 
 
-    constructor taippc.op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
+    constructor taicpu.op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
       begin
          inherited init(op);
          ops:=3;
@@ -171,7 +171,7 @@ implementation
          loadreg(2,_op3);
       end;
 
-     constructor taippc.op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
+     constructor taicpu.op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: Longint);
        begin
          inherited init(op);
          ops:=3;
@@ -180,7 +180,7 @@ implementation
          loadconst(2,_op3);
       end;
 
-     constructor taippc.op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: pasmsymbol;_op3ofs: longint);
+     constructor taicpu.op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: pasmsymbol;_op3ofs: longint);
        begin
          inherited init(op);
          ops:=3;
@@ -189,7 +189,7 @@ implementation
          loadsymbol(0,_op3,_op3ofs);
       end;
 
-     constructor taippc.op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister;  _op3: preference);
+     constructor taicpu.op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister;  _op3: preference);
        begin
          inherited init(op);
          ops:=3;
@@ -198,7 +198,7 @@ implementation
          loadref(2,_op3);
       end;
 
-    constructor taippc.op_const_reg_reg(op : tasmop;_op1 : longint;_op2, _op3 : tregister);
+    constructor taicpu.op_const_reg_reg(op : tasmop;_op1 : longint;_op2, _op3 : tregister);
       begin
          inherited init(op);
          ops:=3;
@@ -207,7 +207,7 @@ implementation
          loadreg(2,_op3);
       end;
 
-     constructor taippc.op_const_reg_const(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : longint);
+     constructor taicpu.op_const_reg_const(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : longint);
       begin
          inherited init(op);
          ops:=3;
@@ -217,7 +217,7 @@ implementation
       end;
 
 
-     constructor taippc.op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
+     constructor taicpu.op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
       begin
          inherited init(op);
          ops:=4;
@@ -227,7 +227,7 @@ implementation
          loadreg(3,_op4);
       end;
 
-     constructor taippc.op_reg_bool_reg_reg(op : tasmop;_op1: tregister;_op2:boolean;_op3,_op4:tregister);
+     constructor taicpu.op_reg_bool_reg_reg(op : tasmop;_op1: tregister;_op2:boolean;_op3,_op4:tregister);
       begin
          inherited init(op);
          ops:=4;
@@ -237,7 +237,7 @@ implementation
          loadreg(3,_op4);
       end;
 
-     constructor taippc.op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: longint);
+     constructor taicpu.op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: longint);
       begin
          inherited init(op);
          ops:=4;
@@ -247,7 +247,7 @@ implementation
          loadconst(0,_op4);
       end;
 
-     constructor taippc.op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : Longint);
+     constructor taicpu.op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : Longint);
       begin
          inherited init(op);
          ops:=5;
@@ -258,7 +258,7 @@ implementation
          loadconst(4,_op5);
       end;
 
-    constructor taippc.op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : pasmsymbol);
+    constructor taicpu.op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : pasmsymbol);
       begin
          inherited init(op);
          condition:=cond;
@@ -266,7 +266,7 @@ implementation
          loadsymbol(0,_op1,0);
       end;
 
-     constructor taippc.op_const_const_sym(op : tasmop;_op1,_op2 : longint; _op3: pasmsymbol);
+     constructor taicpu.op_const_const_sym(op : tasmop;_op1,_op2 : longint; _op3: pasmsymbol);
       begin
          inherited init(op);
          ops:=3;
@@ -276,7 +276,7 @@ implementation
       end;
 
 
-    constructor taippc.op_sym(op : tasmop;_op1 : pasmsymbol);
+    constructor taicpu.op_sym(op : tasmop;_op1 : pasmsymbol);
       begin
          inherited init(op);
          ops:=1;
@@ -284,7 +284,7 @@ implementation
       end;
 
 
-    constructor taippc.op_sym_ofs(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint);
+    constructor taicpu.op_sym_ofs(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint);
       begin
          inherited init(op);
          ops:=1;
@@ -292,7 +292,7 @@ implementation
       end;
 
 
-     constructor taippc.op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:pasmsymbol;_op2ofs : longint);
+     constructor taicpu.op_reg_sym_ofs(op : tasmop;_op1 : tregister;_op2:pasmsymbol;_op2ofs : longint);
       begin
          inherited init(op);
          ops:=2;
@@ -301,7 +301,7 @@ implementation
       end;
 
 
-    constructor taippc.op_sym_ofs_ref(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
+    constructor taicpu.op_sym_ofs_ref(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
       begin
          inherited init(op);
          ops:=2;
@@ -309,7 +309,7 @@ implementation
          loadref(1,_op2);
       end;
 
-    destructor taippc.done;
+    destructor taicpu.done;
       var
         i : longint;
       begin
@@ -322,7 +322,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1999-08-06 16:41:11  jonas
+  Revision 1.4  1999-08-25 12:00:24  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.3  1999/08/06 16:41:11  jonas
     * PowerPC compiles again, several routines implemented in cgcpu.pas
     * added constant to cpubase of alpha and powerpc for maximum
       number of operands

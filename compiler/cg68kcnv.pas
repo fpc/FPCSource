@@ -703,7 +703,7 @@ implementation
 {           for u32bit a solution would be to push $0 and to load a
 +          comp
 +           if porddef(p^.left^.resulttype)^.typ=u32bit then
-+             exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)))
++             exprasmlist^.concat(new(paicpu,op_ref(A_FILD,S_IQ,r)))
 +           else}
           clear_location(p^.location);
           p^.location.loc := LOC_FPU;
@@ -1090,9 +1090,9 @@ implementation
 { !!!!!!!!
                         case porddef(p^.resulttype)^.typ of
                   bool16bit,
-              u16bit,s16bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,hregister,p^.location.register)));
+              u16bit,s16bit : exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVZX,S_BW,hregister,p^.location.register)));
                   bool32bit,
-              u32bit,s32bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,p^.location.register)));
+              u32bit,s32bit : exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVZX,S_BL,hregister,p^.location.register)));
                         end; }
                       end;
            LOC_JUMP : begin
@@ -1144,11 +1144,11 @@ implementation
 
           bool16bit : begin
                         p^.location.register:=reg8toreg16(hregister);
-                        exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,hregister,p^.location.register)));
+                        exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVZX,S_BW,hregister,p^.location.register)));
                       end;
           bool32bit : begin
                         p^.location.register:=reg16toreg32(hregister);
-                        exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,p^.location.register)));
+                        exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVZX,S_BL,hregister,p^.location.register)));
                       end; }
          else
           internalerror(10064);
@@ -1190,11 +1190,11 @@ implementation
          getlabel(l2);
          case hp^.location.loc of
             LOC_CREGISTER,LOC_REGISTER:
-              exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,S_L,0,
+              exprasmlist^.concat(new(paicpu,op_const_reg(A_CMP,S_L,0,
                 hp^.location.register)));
             LOC_MEM,LOC_REFERENCE:
               begin
-                 exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_L,0,
+                 exprasmlist^.concat(new(paicpu,op_const_ref(A_CMP,S_L,0,
                    newreference(hp^.location.reference))));
                   del_reference(hp^.location.reference);
                   p^.location.register:=getregister32;
@@ -1202,7 +1202,7 @@ implementation
          end;
          emitl(A_JZ,l1);
          if hp^.location.loc in [LOC_MEM,LOC_REFERENCE] then
-           exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(
+           exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOV,S_L,newreference(
              hp^.location.reference),
              p^.location.register)));
          emitl(A_JMP,l2);
@@ -1210,7 +1210,7 @@ implementation
          new(hr);
          reset_reference(hr^);
          hr^.symbol:=stringdup('FPC_EMPTYCHAR');
-         exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,hr,
+         exprasmlist^.concat(new(paicpu,op_ref_reg(A_LEA,S_L,hr,
            p^.location.register)));
          emitl(A_LABEL,l2); }
       end;
@@ -1363,7 +1363,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-12-11 00:02:59  peter
+  Revision 1.13  1999-08-25 11:59:48  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.12  1998/12/11 00:02:59  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.11  1998/11/05 12:02:36  peter

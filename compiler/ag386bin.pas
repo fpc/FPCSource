@@ -433,7 +433,7 @@ unit ag386bin;
              ait_string :
                objectalloc^.sectionalloc(pai_string(hp)^.len);
              ait_instruction :
-               objectalloc^.sectionalloc(pai386(hp)^.Pass1(objectalloc^.sectionsize));
+               objectalloc^.sectionalloc(paicpu(hp)^.Pass1(objectalloc^.sectionsize));
              ait_cut :
                if SmartAsm then
                 begin
@@ -584,7 +584,7 @@ unit ag386bin;
              ait_string :
                objectalloc^.sectionalloc(pai_string(hp)^.len);
              ait_instruction :
-               objectalloc^.sectionalloc(pai386(hp)^.Pass1(objectalloc^.sectionsize));
+               objectalloc^.sectionalloc(paicpu(hp)^.Pass1(objectalloc^.sectionsize));
              ait_direct :
                Message(asmw_f_direct_not_supported);
              ait_cut :
@@ -707,7 +707,7 @@ unit ag386bin;
              ait_label :
                objectoutput^.writesymbol(pai_label(hp)^.l);
              ait_instruction :
-               pai386(hp)^.Pass2;
+               paicpu(hp)^.Pass2;
 {$ifdef GDB}
              ait_stabn :
                convertstabs(pai_stabn(hp)^.str);
@@ -905,7 +905,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.23  1999-08-10 12:26:21  pierre
+  Revision 1.24  1999-08-25 11:59:33  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.23  1999/08/10 12:26:21  pierre
    * avoid double .edata section if using DLLTOOL
 
   Revision 1.22  1999/08/04 00:22:35  florian

@@ -65,18 +65,18 @@ unit cgcpu;
          if localsize<>0 then
            begin
               if (cs_littlesize in aktglobalswitches) and (localsize<=65535) then
-                list^.insert(new(pai386,op_const_const(A_ENTER,S_NO,localsize,0)))
+                list^.insert(new(paicpu,op_const_const(A_ENTER,S_NO,localsize,0)))
               else
                 begin
-                   list^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EBP)));
-                   list^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
-                   list^.concat(new(pai386,op_const_reg(A_SUB,S_L,localsize,R_ESP)));
+                   list^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EBP)));
+                   list^.concat(new(paicpu,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
+                   list^.concat(new(paicpu,op_const_reg(A_SUB,S_L,localsize,R_ESP)));
                 end;
              end
          else
            begin
-              list^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EBP)));
-              list^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
+              list^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EBP)));
+              list^.concat(new(paicpu,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
            end;
        end;
 
@@ -84,14 +84,14 @@ unit cgcpu;
        offset : longint);
 
        begin
-          list^.concat(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol(s))));
+          list^.concat(new(paicpu,op_sym(A_CALL,S_NO,newasmsymbol(s))));
           {!!!!!!!!!1 offset is ignored }
        end;
 
      procedure tcg386.a_push_reg(list : paasmoutput;r : tregister);
 
        begin
-          list^.concat(new(pai386,op_reg(A_PUSH,regsize(r),r)));
+          list^.concat(new(paicpu,op_reg(A_PUSH,regsize(r),r)));
        end;
 
      procedure tcg386.a_load_const8_ref(list : paasmoutput;b : byte;const ref : treference);
@@ -121,7 +121,7 @@ unit cgcpu;
      procedure tcg386.g_restore_frame_pointer(list : paasmoutput);
 
        begin
-          list^.concat(new(pai386,op_none(A_LEAVE,S_NO)));
+          list^.concat(new(paicpu,op_none(A_LEAVE,S_NO)));
        end;
 
      procedure tcg386.g_ret_from_proc(list : paasmoutput;para size : aword);
@@ -134,15 +134,18 @@ unit cgcpu;
           { Routines with the poclearstack flag set use only a ret.}
           { also routines with parasize=0     }
           if (parasize=0) or (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
-            list^.concat(new(pai386,op_none(A_RET,S_NO)))
+            list^.concat(new(paicpu,op_none(A_RET,S_NO)))
           else
-            list^.concat(new(pai386,op_const(A_RET,S_NO,parasize)));
+            list^.concat(new(paicpu,op_const(A_RET,S_NO,parasize)));
        end;
 
 end.
 {
   $Log$
-  Revision 1.4  1999-08-06 14:15:56  florian
+  Revision 1.5  1999-08-25 12:00:21  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.4  1999/08/06 14:15:56  florian
     * made the alpha version compilable
 
   Revision 1.3  1999/08/06 13:26:54  florian

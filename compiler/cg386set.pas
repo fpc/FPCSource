@@ -730,7 +730,7 @@ implementation
            emit_ref(A_JMP,S_NO,hr);
            { !!!!! generate tables
              if not(cs_littlesize in aktlocalswitches) then
-             jumpsegment^.concat(new(pai386,op_const(A_ALIGN,S_NO,4)));
+             jumpsegment^.concat(new(paicpu,op_const(A_ALIGN,S_NO,4)));
            }
            jumpsegment^.concat(new(pai_label,init(table)));
              last:=min_;
@@ -919,7 +919,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  1999-08-23 23:46:42  pierre
+  Revision 1.40  1999-08-25 11:59:47  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.39  1999/08/23 23:46:42  pierre
    * del_reference moved to respect registers32 in secondin
 
   Revision 1.38  1999/08/19 13:08:53  pierre

@@ -54,8 +54,8 @@ type
   end;
 
 
-  pai386 = ^tai386;
-  tai386 = object(tai)
+  paicpu = ^taicpu;
+  taicpu = object(tai)
      is_jmp    : boolean; { is this instruction a jump? (needed for optimizer) }
      opcode    : tasmop;
      opsize    : topsize;
@@ -156,10 +156,10 @@ uses
 
 
 {*****************************************************************************
-                                 Tai386 Constructors
+                                 Taicpu Constructors
 *****************************************************************************}
 
-    procedure tai386.loadconst(opidx:longint;l:longint);
+    procedure taicpu.loadconst(opidx:longint;l:longint);
       begin
         if opidx>=ops then
          ops:=opidx+1;
@@ -172,7 +172,7 @@ uses
          end;
       end;
 
-    procedure tai386.loadsymbol(opidx:longint;s:pasmsymbol;sofs:longint);
+    procedure taicpu.loadsymbol(opidx:longint;s:pasmsymbol;sofs:longint);
       begin
         if opidx>=ops then
          ops:=opidx+1;
@@ -189,7 +189,7 @@ uses
          inc(s^.refs);
       end;
 
-    procedure tai386.loadref(opidx:longint;p:preference);
+    procedure taicpu.loadref(opidx:longint;p:preference);
       begin
         if opidx>=ops then
          ops:=opidx+1;
@@ -219,7 +219,7 @@ uses
          end;
       end;
 
-    procedure tai386.loadreg(opidx:longint;r:tregister);
+    procedure taicpu.loadreg(opidx:longint;r:tregister);
       begin
         if opidx>=ops then
          ops:=opidx+1;
@@ -232,7 +232,7 @@ uses
          end;
       end;
 
-    procedure tai386.loadoper(opidx:longint;o:toper);
+    procedure taicpu.loadoper(opidx:longint;o:toper);
       begin
         if opidx>=ops then
          ops:=opidx+1;
@@ -245,13 +245,13 @@ uses
       end;
 
 
-    procedure tai386.changeopsize(siz:topsize);
+    procedure taicpu.changeopsize(siz:topsize);
       begin
         opsize:=siz;
       end;
 
 
-    procedure tai386.init(op : tasmop;_size : topsize);
+    procedure taicpu.init(op : tasmop;_size : topsize);
       begin
          typ:=ait_instruction;
          is_jmp:=false;
@@ -268,14 +268,14 @@ uses
 {$endif}
       end;
 
-    constructor tai386.op_none(op : tasmop;_size : topsize);
+    constructor taicpu.op_none(op : tasmop;_size : topsize);
       begin
          inherited init;
          init(op,_size);
       end;
 
 
-    constructor tai386.op_reg(op : tasmop;_size : topsize;_op1 : tregister);
+    constructor taicpu.op_reg(op : tasmop;_size : topsize;_op1 : tregister);
       begin
          inherited init;
          init(op,_size);
@@ -284,7 +284,7 @@ uses
       end;
 
 
-    constructor tai386.op_const(op : tasmop;_size : topsize;_op1 : longint);
+    constructor taicpu.op_const(op : tasmop;_size : topsize;_op1 : longint);
       begin
          inherited init;
          init(op,_size);
@@ -293,7 +293,7 @@ uses
       end;
 
 
-    constructor tai386.op_ref(op : tasmop;_size : topsize;_op1 : preference);
+    constructor taicpu.op_ref(op : tasmop;_size : topsize;_op1 : preference);
       begin
          inherited init;
          init(op,_size);
@@ -302,7 +302,7 @@ uses
       end;
 
 
-    constructor tai386.op_reg_reg(op : tasmop;_size : topsize;_op1,_op2 : tregister);
+    constructor taicpu.op_reg_reg(op : tasmop;_size : topsize;_op1,_op2 : tregister);
       begin
          inherited init;
          init(op,_size);
@@ -312,7 +312,7 @@ uses
       end;
 
 
-    constructor tai386.op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: longint);
+    constructor taicpu.op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: longint);
       begin
          inherited init;
          init(op,_size);
@@ -322,7 +322,7 @@ uses
       end;
 
 
-    constructor tai386.op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : preference);
+    constructor taicpu.op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;_op2 : preference);
       begin
          inherited init;
          init(op,_size);
@@ -332,7 +332,7 @@ uses
       end;
 
 
-    constructor tai386.op_const_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister);
+    constructor taicpu.op_const_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister);
       begin
          inherited init;
          init(op,_size);
@@ -342,7 +342,7 @@ uses
       end;
 
 
-    constructor tai386.op_const_const(op : tasmop;_size : topsize;_op1,_op2 : longint);
+    constructor taicpu.op_const_const(op : tasmop;_size : topsize;_op1,_op2 : longint);
       begin
          inherited init;
          init(op,_size);
@@ -352,7 +352,7 @@ uses
       end;
 
 
-    constructor tai386.op_const_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference);
+    constructor taicpu.op_const_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference);
       begin
          inherited init;
          init(op,_size);
@@ -361,7 +361,7 @@ uses
          loadref(1,_op2);
       end;
 
-    constructor tai386.op_ref_reg(op : tasmop;_size : topsize;_op1 : preference;_op2 : tregister);
+    constructor taicpu.op_ref_reg(op : tasmop;_size : topsize;_op1 : preference;_op2 : tregister);
       begin
          inherited init;
          init(op,_size);
@@ -371,7 +371,7 @@ uses
       end;
 
 
-    constructor tai386.op_ref_ref(op : tasmop;_size : topsize;_op1,_op2 : preference);
+    constructor taicpu.op_ref_ref(op : tasmop;_size : topsize;_op1,_op2 : preference);
       begin
          inherited init;
          init(op,_size);
@@ -381,7 +381,7 @@ uses
       end;
 
 
-    constructor tai386.op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
+    constructor taicpu.op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
       begin
          inherited init;
          init(op,_size);
@@ -391,7 +391,7 @@ uses
          loadreg(2,_op3);
       end;
 
-    constructor tai386.op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : tregister);
+    constructor taicpu.op_const_reg_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : tregister);
       begin
          inherited init;
          init(op,_size);
@@ -401,7 +401,7 @@ uses
          loadreg(2,_op3);
       end;
 
-     constructor tai386.op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister;_op3 : preference);
+     constructor taicpu.op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister;_op3 : preference);
       begin
          inherited init;
          init(op,_size);
@@ -411,7 +411,7 @@ uses
          loadref(2,_op3);
       end;
 
-     constructor tai386.op_const_ref_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference;_op3 : tregister);
+     constructor taicpu.op_const_ref_reg(op : tasmop;_size : topsize;_op1 : longint;_op2 : preference;_op3 : tregister);
       begin
          inherited init;
          init(op,_size);
@@ -421,7 +421,7 @@ uses
          loadreg(2,_op3);
       end;
 
-     constructor tai386.op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : preference);
+     constructor taicpu.op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : preference);
       begin
          inherited init;
          init(op,_size);
@@ -432,7 +432,7 @@ uses
       end;
 
 
-    constructor tai386.op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : pasmsymbol);
+    constructor taicpu.op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : pasmsymbol);
       begin
          inherited init;
          init(op,_size);
@@ -442,7 +442,7 @@ uses
       end;
 
 
-    constructor tai386.op_sym(op : tasmop;_size : topsize;_op1 : pasmsymbol);
+    constructor taicpu.op_sym(op : tasmop;_size : topsize;_op1 : pasmsymbol);
       begin
          inherited init;
          init(op,_size);
@@ -451,7 +451,7 @@ uses
       end;
 
 
-    constructor tai386.op_sym_ofs(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint);
+    constructor taicpu.op_sym_ofs(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint);
       begin
          inherited init;
          init(op,_size);
@@ -460,7 +460,7 @@ uses
       end;
 
 
-    constructor tai386.op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint;_op2 : tregister);
+    constructor taicpu.op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint;_op2 : tregister);
       begin
          inherited init;
          init(op,_size);
@@ -470,7 +470,7 @@ uses
       end;
 
 
-    constructor tai386.op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
+    constructor taicpu.op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
       begin
          inherited init;
          init(op,_size);
@@ -479,7 +479,7 @@ uses
          loadref(1,_op2);
       end;
 
-    destructor tai386.done;
+    destructor taicpu.done;
       var
         i : longint;
       begin
@@ -494,7 +494,7 @@ uses
         inherited done;
       end;
 
-    function tai386.getcopy:plinkedlist_item;
+    function taicpu.getcopy:plinkedlist_item;
       var
         i : longint;
         p : plinkedlist_item;
@@ -502,22 +502,22 @@ uses
         p:=inherited getcopy;
         { make a copy of the references }
         for i:=1 to ops do
-         if (pai386(p)^.oper[i-1].typ=top_ref) then
+         if (paicpu(p)^.oper[i-1].typ=top_ref) then
           begin
-            new(pai386(p)^.oper[i-1].ref);
-            pai386(p)^.oper[i-1].ref^:=oper[i-1].ref^;
+            new(paicpu(p)^.oper[i-1].ref);
+            paicpu(p)^.oper[i-1].ref^:=oper[i-1].ref^;
           end;
         getcopy:=p;
       end;
 
 
-    procedure tai386.SetCondition(c:TAsmCond);
+    procedure taicpu.SetCondition(c:TAsmCond);
       begin
          condition:=c;
       end;
 
 
-    function tai386.GetString:string;
+    function taicpu.GetString:string;
 {$ifdef ASMDEBUG}
       var
         i : longint;
@@ -565,7 +565,7 @@ uses
       end;
 
 
-procedure tai386.SwapOperands;
+procedure taicpu.SwapOperands;
 var
   p : TOper;
 begin
@@ -602,7 +602,7 @@ type
     sib   : byte;
   end;
 
-procedure tai386.create_ot;
+procedure taicpu.create_ot;
 {
   this function will also fix some other fields which only needs to be once
 }
@@ -664,13 +664,13 @@ begin
 end;
 
 
-function tai386.InsEnd:longint;
+function taicpu.InsEnd:longint;
 begin
   InsEnd:=InsOffset+InsSize;
 end;
 
 
-function tai386.Matches(p:PInsEntry):longint;
+function taicpu.Matches(p:PInsEntry):longint;
 { * IF_SM stands for Size Match: any operand whose size is not
  * explicitly specified by the template is `really' intended to be
  * the same size as the first size-specified operand.
@@ -767,7 +767,7 @@ begin
 end;
 
 
-function tai386.Pass1(offset:longint):longint;
+function taicpu.Pass1(offset:longint):longint;
 var
   m,i,size_prob : longint;
 begin
@@ -839,7 +839,7 @@ begin
 end;
 
 
-procedure tai386.Pass2;
+procedure taicpu.Pass2;
 var
   c : longint;
 begin
@@ -867,7 +867,7 @@ begin
 end;
 
 
-function tai386.NeedAddrPrefix(opidx:byte):boolean;
+function taicpu.NeedAddrPrefix(opidx:byte):boolean;
 var
   i,b : tregister;
 begin
@@ -1066,7 +1066,7 @@ begin
 end;
 
 
-function tai386.calcsize(p:PInsEntry):longint;
+function taicpu.calcsize(p:PInsEntry):longint;
 var
   codes : pchar;
   c     : byte;
@@ -1145,7 +1145,7 @@ begin
 end;
 
 
-procedure tai386.GenCode;
+procedure taicpu.GenCode;
 {
  * the actual codes (C syntax, i.e. octal):
  * \0            - terminates the code. (Unless it's a literal of course.)
@@ -1496,7 +1496,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-08-12 14:36:01  peter
+  Revision 1.3  1999-08-25 11:59:57  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.2  1999/08/12 14:36:01  peter
     + KNI instructions
 
   Revision 1.1  1999/08/04 00:22:57  florian

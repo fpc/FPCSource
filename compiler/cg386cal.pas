@@ -221,7 +221,7 @@ implementation
          inlinecode : ptree;
          para_offset : longint;
          { instruction for alignement correction }
-{        corr : pai386;}
+{        corr : paicpu;}
          { we must pop this size also after !! }
 {        must_pop : boolean; }
          pop_size : longint;
@@ -1211,7 +1211,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  1999-08-23 23:38:18  pierre
+  Revision 1.102  1999-08-25 11:59:39  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.101  1999/08/23 23:38:18  pierre
    + TEMPREGDEBUG code added
 
   Revision 1.100  1999/08/19 13:08:45  pierre

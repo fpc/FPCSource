@@ -412,7 +412,7 @@ implementation
          t   : ptree;
          hp  : preference;
          href : treference;
-         tai : Pai386;
+         tai : Paicpu;
          pushed : tpushed;
          hightree : ptree;
 
@@ -685,9 +685,9 @@ implementation
                        { Booleans are stored in an 8 bit memory location, so
                          the use of MOVL is not correct }
                        case p^.right^.resulttype^.size of
-                        1 : tai:=new(pai386,op_ref_reg(A_MOVZX,S_BL,newreference(p^.right^.location.reference),ind));
-                        2 : tai:=new(Pai386,op_ref_reg(A_MOVZX,S_WL,newreference(p^.right^.location.reference),ind));
-                        4 : tai:=new(Pai386,op_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),ind));
+                        1 : tai:=new(paicpu,op_ref_reg(A_MOVZX,S_BL,newreference(p^.right^.location.reference),ind));
+                        2 : tai:=new(Paicpu,op_ref_reg(A_MOVZX,S_WL,newreference(p^.right^.location.reference),ind));
+                        4 : tai:=new(Paicpu,op_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),ind));
                        end;
                        exprasmlist^.concat(tai);
                     end;
@@ -851,7 +851,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  1999-08-23 23:49:21  pierre
+  Revision 1.54  1999-08-25 11:59:46  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.53  1999/08/23 23:49:21  pierre
    * hnewn location corrected
 
   Revision 1.52  1999/08/19 13:08:52  pierre

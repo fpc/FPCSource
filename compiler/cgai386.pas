@@ -271,13 +271,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$ifdef nojmpfix}
     procedure emitjmp(c : tasmcond;var l : pasmlabel);
       var
-        ai : Pai386;
+        ai : Paicpu;
       begin
         if c=C_None then
-          exprasmlist^.concat(new(pai386,op_sym(A_JMP,S_NO,l)))
+          exprasmlist^.concat(new(paicpu,op_sym(A_JMP,S_NO,l)))
         else
           begin
-            ai:=new(pai386,op_sym(A_Jcc,S_NO,l));
+            ai:=new(paicpu,op_sym(A_Jcc,S_NO,l));
             ai^.SetCondition(c);
             ai^.is_jmp:=true;
             exprasmlist^.concat(ai);
@@ -286,13 +286,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$else nojmpfix}
     procedure emitjmp(c : tasmcond;var l : pasmlabel);
       var
-        ai : Pai386;
+        ai : Paicpu;
       begin
         if c=C_None then
-          ai := new(pai386,op_sym(A_JMP,S_NO,l))
+          ai := new(paicpu,op_sym(A_JMP,S_NO,l))
         else
           begin
-            ai:=new(pai386,op_sym(A_Jcc,S_NO,l));
+            ai:=new(paicpu,op_sym(A_Jcc,S_NO,l));
             ai^.SetCondition(c);
           end;
         ai^.is_jmp:=true;
@@ -302,11 +302,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
     procedure emit_flag2reg(flag:tresflags;hregister:tregister);
       var
-        ai : pai386;
+        ai : paicpu;
         hreg : tregister;
       begin
          hreg:=makereg8(hregister);
-         ai:=new(pai386,op_reg(A_Setcc,S_B,hreg));
+         ai:=new(paicpu,op_reg(A_Setcc,S_B,hreg));
          ai^.SetCondition(flag_2_cond[flag]);
          exprasmlist^.concat(ai);
          if hreg<>hregister then
@@ -321,89 +321,89 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
     procedure emit_none(i : tasmop;s : topsize);
       begin
-         exprasmlist^.concat(new(pai386,op_none(i,s)));
+         exprasmlist^.concat(new(paicpu,op_none(i,s)));
       end;
 
     procedure emit_reg(i : tasmop;s : topsize;reg : tregister);
       begin
-         exprasmlist^.concat(new(pai386,op_reg(i,s,reg)));
+         exprasmlist^.concat(new(paicpu,op_reg(i,s,reg)));
       end;
 
     procedure emit_ref(i : tasmop;s : topsize;ref : preference);
       begin
-         exprasmlist^.concat(new(pai386,op_ref(i,s,ref)));
+         exprasmlist^.concat(new(paicpu,op_ref(i,s,ref)));
       end;
 
     procedure emit_const(i : tasmop;s : topsize;c : longint);
       begin
-         exprasmlist^.concat(new(pai386,op_const(i,s,c)));
+         exprasmlist^.concat(new(paicpu,op_const(i,s,c)));
       end;
 
     procedure emit_const_reg(i : tasmop;s : topsize;c : longint;reg : tregister);
       begin
-         exprasmlist^.concat(new(pai386,op_const_reg(i,s,c,reg)));
+         exprasmlist^.concat(new(paicpu,op_const_reg(i,s,c,reg)));
       end;
 
     procedure emit_const_ref(i : tasmop;s : topsize;c : longint;ref : preference);
       begin
-         exprasmlist^.concat(new(pai386,op_const_ref(i,s,c,ref)));
+         exprasmlist^.concat(new(paicpu,op_const_ref(i,s,c,ref)));
       end;
 
     procedure emit_ref_reg(i : tasmop;s : topsize;ref : preference;reg : tregister);
       begin
-         exprasmlist^.concat(new(pai386,op_ref_reg(i,s,ref,reg)));
+         exprasmlist^.concat(new(paicpu,op_ref_reg(i,s,ref,reg)));
       end;
 
     procedure emit_reg_ref(i : tasmop;s : topsize;reg : tregister;ref : preference);
       begin
-         exprasmlist^.concat(new(pai386,op_reg_ref(i,s,reg,ref)));
+         exprasmlist^.concat(new(paicpu,op_reg_ref(i,s,reg,ref)));
       end;
 
     procedure emit_reg_reg(i : tasmop;s : topsize;reg1,reg2 : tregister);
       begin
          if (reg1<>reg2) or (i<>A_MOV) then
-           exprasmlist^.concat(new(pai386,op_reg_reg(i,s,reg1,reg2)));
+           exprasmlist^.concat(new(paicpu,op_reg_reg(i,s,reg1,reg2)));
       end;
 
     procedure emit_const_reg_reg(i : tasmop;s : topsize;c : longint;reg1,reg2 : tregister);
       begin
-         exprasmlist^.concat(new(pai386,op_const_reg_reg(i,s,c,reg1,reg2)));
+         exprasmlist^.concat(new(paicpu,op_const_reg_reg(i,s,c,reg1,reg2)));
       end;
       
     procedure emit_reg_reg_reg(i : tasmop;s : topsize;reg1,reg2,reg3 : tregister);
       begin
-         exprasmlist^.concat(new(pai386,op_reg_reg_reg(i,s,reg1,reg2,reg3)));
+         exprasmlist^.concat(new(paicpu,op_reg_reg_reg(i,s,reg1,reg2,reg3)));
       end;
       
     procedure emit_sym(i : tasmop;s : topsize;op : pasmsymbol);
       begin
-        exprasmlist^.concat(new(pai386,op_sym(i,s,op)));
+        exprasmlist^.concat(new(paicpu,op_sym(i,s,op)));
       end;
 
     procedure emit_sym_ofs(i : tasmop;s : topsize;op : pasmsymbol;ofs : longint);
       begin
-        exprasmlist^.concat(new(pai386,op_sym_ofs(i,s,op,ofs)));
+        exprasmlist^.concat(new(paicpu,op_sym_ofs(i,s,op,ofs)));
       end;
 
     procedure emit_sym_ofs_reg(i : tasmop;s : topsize;op : pasmsymbol;ofs:longint;reg : tregister);
       begin
-        exprasmlist^.concat(new(pai386,op_sym_ofs_reg(i,s,op,ofs,reg)));
+        exprasmlist^.concat(new(paicpu,op_sym_ofs_reg(i,s,op,ofs,reg)));
       end;
 
     procedure emit_sym_ofs_ref(i : tasmop;s : topsize;op : pasmsymbol;ofs:longint;ref : preference);
       begin
-        exprasmlist^.concat(new(pai386,op_sym_ofs_ref(i,s,op,ofs,ref)));
+        exprasmlist^.concat(new(paicpu,op_sym_ofs_ref(i,s,op,ofs,ref)));
       end;
 
     procedure emitcall(const routine:string);
       begin
-        exprasmlist^.concat(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol(routine))));
+        exprasmlist^.concat(new(paicpu,op_sym(A_CALL,S_NO,newasmsymbol(routine))));
       end;
 
     { only usefull in startup code }
     procedure emitinsertcall(const routine:string);
       begin
-        exprasmlist^.insert(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol(routine))));
+        exprasmlist^.insert(new(paicpu,op_sym(A_CALL,S_NO,newasmsymbol(routine))));
       end;
 
 
@@ -414,7 +414,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         case t.loc of
           LOC_REGISTER,
          LOC_CREGISTER : begin
-                           exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,siz,
+                           exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,siz,
                              t.register,newreference(ref))));
                            ungetregister32(t.register); { the register is not needed anymore }
                          end;
@@ -432,7 +432,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                end;
                                emit_ref_reg(A_MOV,siz,
                                  newreference(t.reference),hreg);
-                               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,siz,
+                               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,siz,
                                  hreg,newreference(ref))));
                                if siz<>S_L then
                                 ungetregister(hreg);
@@ -488,7 +488,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                              internalerror(334)
                            else
                              begin
-                               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,RegSize(Reg),
+                               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,RegSize(Reg),
                                  Reg,newreference(t.reference))));
                              end;
                          end;
@@ -513,10 +513,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                              internalerror(334)
                            else
                              begin
-                               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
                                  Reglow,newreference(t.reference))));
                                inc(t.reference.offset,4);
-                               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
                                  Reghigh,newreference(t.reference))));
                              end;
                          end;
@@ -536,9 +536,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             LOC_REGISTER,
             LOC_CREGISTER:
               begin
-                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
+                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,
                    t.registerhigh)));
-                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
+                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,
                    t.registerlow)));
               end;
             LOC_MEM,
@@ -546,9 +546,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               begin
                  hr:=newreference(t.reference);
                  inc(hr^.offset,4);
-                 exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,
+                 exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,
                    hr)));
-                 exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,
+                 exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,
                    newreference(t.reference))));
                  ungetiftemp(t.reference);
               end;
@@ -594,15 +594,15 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         case t.loc of
           LOC_REGISTER,
          LOC_CREGISTER : begin
-                           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,makereg32(t.register))));
+                           exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,makereg32(t.register))));
                            ungetregister(t.register); { the register is not needed anymore }
                          end;
                LOC_MEM,
          LOC_REFERENCE : begin
                            if t.reference.is_immediate then
-                             exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,t.reference.offset)))
+                             exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,t.reference.offset)))
                            else
-                             exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(t.reference))));
+                             exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,newreference(t.reference))));
                            del_reference(t.reference);
                            ungetiftemp(t.reference);
                          end;
@@ -620,9 +620,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           LOC_REGISTER,
          LOC_CREGISTER : begin
                            if target_os.stackalignment=4 then
-                             exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,makereg32(t.register))))
+                             exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,makereg32(t.register))))
                            else
-                             exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_W,makereg16(t.register))));
+                             exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_W,makereg16(t.register))));
                            ungetregister(t.register); { the register is not needed anymore }
                          end;
                LOC_MEM,
@@ -632,9 +632,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                            else
                             opsize:=S_W;
                            if t.reference.is_immediate then
-                             exprasmlist^.concat(new(pai386,op_const(A_PUSH,opsize,t.reference.offset)))
+                             exprasmlist^.concat(new(paicpu,op_const(A_PUSH,opsize,t.reference.offset)))
                            else
-                             exprasmlist^.concat(new(pai386,op_ref(A_PUSH,opsize,newreference(t.reference))));
+                             exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,opsize,newreference(t.reference))));
                            del_reference(t.reference);
                            ungetiftemp(t.reference);
                          end;
@@ -655,7 +655,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                              begin
                                emit_ref_reg(A_LEA,S_L,
                                  newreference(t.reference),R_EDI);
-                               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
                                  R_EDI,newreference(ref))));
                              end;
                            ungetiftemp(t.reference);
@@ -677,7 +677,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                              begin
                                emit_ref_reg(A_LEA,S_L,
                                  newreference(t.reference),R_EDI);
-                               exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
+                               exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
                              end;
                            {   Wrong !!
                            ungetiftemp(t.reference);}
@@ -825,10 +825,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$IfNDef regallocfix}
                  ungetregister32(p^.right^.location.register);
                  pushusedregisters(pushed,$ff);
-                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.right^.location.register)));
+                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p^.right^.location.register)));
 {$Else regallocfix}
                  pushusedregisters(pushed, $ff xor ($80 shr byte(p^.right^.location.register)));
-                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.right^.location.register)));
+                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p^.right^.location.register)));
                  ungetregister32(p^.right^.location.register);
 {$EndIf regallocfix}
               end;
@@ -880,10 +880,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                         gettempofsizereference(href,8);
                         p^.temp_offset:=href.offset;
                         href.offset:=href.offset+4;
-                        exprasmlist^.concat(new(pai386,op_reg(A_MOV,S_L,p^.location.registerhigh,href)));
+                        exprasmlist^.concat(new(paicpu,op_reg(A_MOV,S_L,p^.location.registerhigh,href)));
                         href.offset:=href.offset-4;
 {$else TEMPS_NOT_PUSH}
-                        exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.location.registerhigh)));
+                        exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p^.location.registerhigh)));
 {$endif TEMPS_NOT_PUSH}
                         ungetregister32(p^.location.registerhigh);
                      end
@@ -897,9 +897,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                      ;
                    pushed:=true;
 {$ifdef TEMPS_NOT_PUSH}
-                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,p^.location.register,href)));
+                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,p^.location.register,href)));
 {$else TEMPS_NOT_PUSH}
-                   exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.location.register)));
+                   exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p^.location.register)));
 {$endif TEMPS_NOT_PUSH}
                    ungetregister32(p^.location.register);
                 end
@@ -913,10 +913,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                        R_EDI);
 {$ifdef TEMPS_NOT_PUSH}
                      gettempofsizereference(href,4);
-                     exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,href)));
+                     exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,href)));
                      p^.temp_offset:=href.offset;
 {$else TEMPS_NOT_PUSH}
-                     exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
+                     exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
 {$endif TEMPS_NOT_PUSH}
                      pushed:=true;
                   end
@@ -943,7 +943,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                         gettempofsizereference(href,8);
                         p^.temp_offset:=href.offset;
                         href.offset:=href.offset+4;
-                        exprasmlist^.concat(new(pai386,op_reg(A_MOV,S_L,p^.location.registerhigh,href)));
+                        exprasmlist^.concat(new(paicpu,op_reg(A_MOV,S_L,p^.location.registerhigh,href)));
                         href.offset:=href.offset-4;
                         ungetregister32(p^.location.registerhigh);
                      end
@@ -953,7 +953,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                         p^.temp_offset:=href.offset;
                      end;
                    pushed:=true;
-                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,p^.location.register,href)));
+                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,p^.location.register,href)));
                    ungetregister32(p^.location.register);
                 end
               else if (p^.location.loc in [LOC_MEM,LOC_REFERENCE]) and
@@ -965,7 +965,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                      emit_ref_reg(A_LEA,S_L,newreference(p^.location.reference),
                        R_EDI);
                      gettempofsizereference(href,4);
-                     exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,href)));
+                     exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,href)));
                      p^.temp_offset:=href.offset;
                      pushed:=true;
                   end
@@ -985,10 +985,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            Then
              begin
                emit_reg_reg(A_XOR,S_L,R_EDI,R_EDI);
-               exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
+               exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
              end
            else
-             exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,l)));
+             exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,l)));
       end;
 
     procedure emit_push_mem(const ref : treference);
@@ -1003,9 +1003,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                then
                  begin
                    emit_ref_reg(A_MOV,S_L,newreference(ref),R_EDI);
-                   exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
+                   exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
                  end
-               else exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(ref))));
+               else exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,newreference(ref))));
            end;
       end;
 
@@ -1029,17 +1029,17 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               if ref.segment<>R_NO then
                 CGMessage(cg_e_cant_use_far_pointer_there);
               if (ref.base=R_NO) and (ref.index=R_NO) then
-                exprasmlist^.concat(new(pai386,op_sym_ofs(A_PUSH,S_L,ref.symbol,ref.offset)))
+                exprasmlist^.concat(new(paicpu,op_sym_ofs(A_PUSH,S_L,ref.symbol,ref.offset)))
               else if (ref.base=R_NO) and (ref.index<>R_NO) and
                  (ref.offset=0) and (ref.scalefactor=0) and (ref.symbol=nil) then
-                exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,ref.index)))
+                exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,ref.index)))
               else if (ref.base<>R_NO) and (ref.index=R_NO) and
                  (ref.offset=0) and (ref.symbol=nil) then
-                exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,ref.base)))
+                exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,ref.base)))
               else
                 begin
                    emit_ref_reg(A_LEA,S_L,newreference(ref),R_EDI);
-                   exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
+                   exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
                 end;
            end;
         end;
@@ -1056,9 +1056,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         if p^.treetype=ordconstn then
          begin
            if target_os.stackalignment=4 then
-             exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,p^.value)))
+             exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,p^.value)))
            else
-             exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_W,p^.value)));
+             exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_W,p^.value)));
          end
         else
          begin
@@ -1085,17 +1085,17 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                      end;
                  end;
                  if target_os.stackalignment=4 then
-                   exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,hr32)))
+                   exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,hr32)))
                  else
-                   exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_W,hr16)));
+                   exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_W,hr16)));
                  ungetregister32(hr32);
                end;
            else
              begin
                if target_os.stackalignment=4 then
-                 exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(p^.location.reference))))
+                 exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,newreference(p^.location.reference))))
                else
-                 exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_W,newreference(p^.location.reference))));
+                 exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_W,newreference(p^.location.reference))));
                del_reference(p^.location.reference);
              end;
            end;
@@ -1117,7 +1117,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          href.offset:=p^.temp_offset;
          emit_ref_reg(A_MOV,S_L,href,hregister);
 {$else  TEMPS_NOT_PUSH}
-         exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,hregister)));
+         exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,hregister)));
 {$endif TEMPS_NOT_PUSH}
          if (p^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
            begin
@@ -1131,7 +1131,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    { set correctly for release ! }
                    href.offset:=p^.temp_offset;
 {$else  TEMPS_NOT_PUSH}
-                   exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,p^.location.registerhigh)));
+                   exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,p^.location.registerhigh)));
 {$endif TEMPS_NOT_PUSH}
                 end;
            end
@@ -1204,16 +1204,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                if inlined then
                                  begin
                                     r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
                                       p^.location.registerlow,r)));
                                     r:=new_reference(procinfo.framepointer,para_offset-pushedparasize+4);
-                                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
                                       p^.location.registerhigh,r)));
                                  end
                                else
-                                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.location.registerhigh)));
+                                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p^.location.registerhigh)));
                                ungetregister32(p^.location.registerhigh);
-                                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.location.registerlow)));
+                                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p^.location.registerlow)));
                                ungetregister32(p^.location.registerlow);
                             end
                           else
@@ -1222,11 +1222,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                if inlined then
                                  begin
                                     r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
+                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
                                       p^.location.register,r)));
                                  end
                                else
-                                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,p^.location.register)));
+                                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,p^.location.register)));
                                ungetregister32(p^.location.register);
                             end;
                         end;
@@ -1247,10 +1247,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                           if inlined then
                             begin
                               r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                              exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,hreg,r)));
+                              exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,hreg,r)));
                             end
                           else
-                            exprasmlist^.concat(new(pai386,op_reg(A_PUSH,opsize,hreg)));
+                            exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,opsize,hreg)));
                           ungetregister32(reg16toreg32(p^.location.register));
                         end;
                      R_AL,R_BL,R_CL,R_DL:
@@ -1271,10 +1271,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                           if inlined then
                             begin
                               r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                              exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,hreg,r)));
+                              exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,hreg,r)));
                             end
                           else
-                            exprasmlist^.concat(new(pai386,op_reg(A_PUSH,opsize,hreg)));
+                            exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,opsize,hreg)));
                           ungetregister32(reg8toreg32(p^.location.register));
                         end;
                      else internalerror(1899);
@@ -1299,12 +1299,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                        r^.base:=procinfo.framepointer;
                        r^.offset:=para_offset-pushedparasize;
                     end;
-                  exprasmlist^.concat(new(pai386,op_ref(op,opsize,r)));
+                  exprasmlist^.concat(new(paicpu,op_ref(op,opsize,r)));
                   dec(fpuvaroffset);
                end;
              LOC_CFPUREGISTER:
                begin
-                  exprasmlist^.concat(new(pai386,op_reg(A_FLD,S_NO,
+                  exprasmlist^.concat(new(paicpu,op_reg(A_FLD,S_NO,
                     correct_fpuregister(p^.location.register,fpuvaroffset))));
                   size:=align(pfloatdef(p^.resulttype)^.size,alignment);
                   inc(pushedparasize,size);
@@ -1323,7 +1323,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                        r^.base:=procinfo.framepointer;
                        r^.offset:=para_offset-pushedparasize;
                     end;
-                  exprasmlist^.concat(new(pai386,op_ref(op,opsize,r)));
+                  exprasmlist^.concat(new(paicpu,op_ref(op,opsize,r)));
                end;
              LOC_REFERENCE,LOC_MEM:
                begin
@@ -1341,12 +1341,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+                                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                    inc(tempreference.offset,4);
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize+4);
-                                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+                                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                  end
                                else
                                  begin
@@ -1363,7 +1363,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+                                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                  end
                                else
                                  emit_push_mem(tempreference);
@@ -1386,10 +1386,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                   emit_ref_reg(A_MOV,opsize,
                                     newreference(tempreference),hreg);
                                   r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                                  exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,hreg,r)));
+                                  exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,hreg,r)));
                                 end
                                else
-                                exprasmlist^.concat(new(pai386,op_ref(A_PUSH,opsize,
+                                exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,opsize,
                                   newreference(tempreference))));
                              end;
                            else
@@ -1408,7 +1408,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                     emit_ref_reg(A_MOV,S_L,
                                       newreference(tempreference),R_EDI);
                                     r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                                    exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                  end
                                else
                                  emit_push_mem(tempreference);
@@ -1423,7 +1423,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+                                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                 end
                               else
                                 emit_push_mem(tempreference);
@@ -1434,7 +1434,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+                                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                 end
                               else
                                 emit_push_mem(tempreference);
@@ -1451,7 +1451,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+                                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                 end
                               else
                                 emit_push_mem(tempreference);
@@ -1462,7 +1462,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+                                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                 end
                               else
                                 emit_push_mem(tempreference);
@@ -1485,10 +1485,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                    emit_ref_reg(A_MOV,opsize,
                                      newreference(tempreference),hreg);
                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,hreg,r)));
+                                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,hreg,r)));
                                 end
                               else
-                                exprasmlist^.concat(new(pai386,op_ref(A_PUSH,opsize,
+                                exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,opsize,
                                   newreference(tempreference))));
                           end;
                         end;
@@ -1503,7 +1503,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                               emit_ref_reg(A_MOV,S_L,
                                 newreference(tempreference),R_EDI);
                               r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                              exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,r)));
+                              exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                            end
                          else
                            emit_push_mem(tempreference);
@@ -1564,7 +1564,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                        emit_const_ref(A_MOV,opsize,1,r);
                     end
                   else
-                    exprasmlist^.concat(new(pai386,op_const(A_PUSH,opsize,1)));
+                    exprasmlist^.concat(new(paicpu,op_const(A_PUSH,opsize,1)));
                   emitjmp(C_None,hlabel);
                   emitlab(falselabel);
                   if inlined then
@@ -1573,7 +1573,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                        emit_const_ref(A_MOV,opsize,0,r);
                     end
                   else
-                    exprasmlist^.concat(new(pai386,op_const(A_PUSH,opsize,0)));
+                    exprasmlist^.concat(new(paicpu,op_const(A_PUSH,opsize,0)));
                   emitlab(hlabel);
                end;
              LOC_FLAGS:
@@ -1597,10 +1597,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   if inlined then
                     begin
                        r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                       exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,opsize,hreg,r)));
+                       exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,hreg,r)));
                     end
                   else
-                    exprasmlist^.concat(new(pai386,op_reg(A_PUSH,opsize,hreg)));
+                    exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,opsize,hreg)));
                   if not(R_EAX in unused) then
                     emit_reg_reg(A_MOV,S_L,R_EDI,R_EAX);
                end;
@@ -1619,13 +1619,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   if inlined then
                     begin
                        r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
-                       exprasmlist^.concat(new(pai386,op_reg_ref(A_MOVQ,S_NO,
+                       exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVQ,S_NO,
                          p^.location.register,r)));
                     end
                   else
                      begin
                         r:=new_reference(R_ESP,0);
-                        exprasmlist^.concat(new(pai386,op_reg_ref(
+                        exprasmlist^.concat(new(paicpu,op_reg_ref(
                           A_MOVQ,S_NO,p^.location.register,r)));
                      end;
                end;
@@ -1670,7 +1670,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          s : topsize;
       begin
          floatloadops(t,op,s);
-         exprasmlist^.concat(new(pai386,op_ref(op,s,
+         exprasmlist^.concat(new(paicpu,op_ref(op,s,
            newreference(ref))));
          inc(fpuvaroffset);
       end;
@@ -1707,7 +1707,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          s : topsize;
       begin
          floatstoreops(t,op,s);
-         exprasmlist^.concat(new(pai386,op_ref(op,s,
+         exprasmlist^.concat(new(paicpu,op_ref(op,s,
            newreference(ref))));
          dec(fpuvaroffset);
       end;
@@ -1887,7 +1887,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             begin
               if not(R_ECX in unused) then
                begin
-                 exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ECX)));
+                 exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_ECX)));
                  popecx:=true;
                end;
               if is_reg then
@@ -1903,19 +1903,19 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               emitjmp(C_L,neglabel);
             end;
            { insert bound instruction only }
-           exprasmlist^.concat(new(pai386,op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),0,R_EDI)));
+           exprasmlist^.concat(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),0,R_EDI)));
            emitcall('FPC_BOUNDCHECK');
            { u32bit needs 2 checks }
            if doublebound then
             begin
               emitjmp(C_None,poslabel);
               emitlab(neglabel);
-              exprasmlist^.concat(new(pai386,op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),8,R_EDI)));
+              exprasmlist^.concat(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,newasmsymbol(rstr),8,R_EDI)));
               emitcall('FPC_BOUNDCHECK');
               emitlab(poslabel);
             end;
            if popecx then
-            exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_ECX)));
+            exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)));
          end
         else
          begin
@@ -1946,14 +1946,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               emitjmp(C_L,neglabel);
             end;
            { insert bound instruction only }
-           exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hreg,newreference(href))));
+           exprasmlist^.concat(new(paicpu,op_reg_ref(A_BOUND,S_L,hreg,newreference(href))));
            { u32bit needs 2 checks }
            if doublebound then
             begin
               href.offset:=8;
               emitjmp(C_None,poslabel);
               emitlab(neglabel);
-              exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hreg,newreference(href))));
+              exprasmlist^.concat(new(paicpu,op_reg_ref(A_BOUND,S_L,hreg,newreference(href))));
               emitlab(poslabel);
             end;
          end;
@@ -1977,7 +1977,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          begin
            if not(R_ECX in unused) then
              begin
-               exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ECX)));
+               exprasmlist^.concat(new(paicpu,op_reg(A_PUSH,S_L,R_ECX)));
                ecxpushed:=true;
              end;
          end;
@@ -1999,7 +1999,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    If (size = 4) and delsource then
                      del_reference(source);
 {$endif regallocfix}
-                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,newreference(dest))));
+                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,newreference(dest))));
                    inc(source.offset,4);
                    inc(dest.offset,4);
                    dec(size,4);
@@ -2011,7 +2011,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    If (size = 2) and delsource then
                      del_reference(source);
 {$endif regallocfix}
-                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_W,R_DI,newreference(dest))));
+                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_W,R_DI,newreference(dest))));
                    inc(source.offset,2);
                    inc(dest.offset,2);
                    dec(size,2);
@@ -2053,7 +2053,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    If delsource then
                      del_reference(source);
 {$endif regallocfix}
-                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_B,reg8,newreference(dest))));
+                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_B,reg8,newreference(dest))));
                    if swap then
                      emit_reg_reg(A_MOV,S_L,R_EDI,reg32);
                 end;
@@ -2076,14 +2076,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$endif regallocfix}
                 end;
 
-              exprasmlist^.concat(new(pai386,op_none(A_CLD,S_NO)));
+              exprasmlist^.concat(new(paicpu,op_none(A_CLD,S_NO)));
               ecxpushed:=false;
               if cs_littlesize in aktglobalswitches  then
                 begin
                    maybepushecx;
                    emit_const_reg(A_MOV,S_L,size,R_ECX);
-                   exprasmlist^.concat(new(pai386,op_none(A_REP,S_NO)));
-                   exprasmlist^.concat(new(pai386,op_none(A_MOVSB,S_NO)));
+                   exprasmlist^.concat(new(paicpu,op_none(A_REP,S_NO)));
+                   exprasmlist^.concat(new(paicpu,op_none(A_MOVSB,S_NO)));
                 end
               else
                 begin
@@ -2093,20 +2093,20 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                     begin
                       maybepushecx;
                       emit_const_reg(A_MOV,S_L,helpsize,R_ECX);
-                      exprasmlist^.concat(new(pai386,op_none(A_REP,S_NO)));
+                      exprasmlist^.concat(new(paicpu,op_none(A_REP,S_NO)));
                     end;
                    if helpsize>0 then
-                    exprasmlist^.concat(new(pai386,op_none(A_MOVSD,S_NO)));
+                    exprasmlist^.concat(new(paicpu,op_none(A_MOVSD,S_NO)));
                    if size>1 then
                      begin
                         dec(size,2);
-                        exprasmlist^.concat(new(pai386,op_none(A_MOVSW,S_NO)));
+                        exprasmlist^.concat(new(paicpu,op_none(A_MOVSW,S_NO)));
                      end;
                    if size=1 then
-                     exprasmlist^.concat(new(pai386,op_none(A_MOVSB,S_NO)));
+                     exprasmlist^.concat(new(paicpu,op_none(A_MOVSB,S_NO)));
                 end;
               if ecxpushed then
-                exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_ECX)));
+                exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)));
 
               { loading SELF-reference again }
               maybe_loadesi;
@@ -2121,7 +2121,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
     {A lot smaller and less bug sensitive than the original unfolded loads.}
 
-    var tai:Pai386;
+    var tai:Paicpu;
         r:Preference;
 
     begin
@@ -2130,17 +2130,17 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 begin
                     case orddef^.typ of
                         u8bit:
-                            tai:=new(pai386,op_reg_reg(A_MOVZX,S_BL,location.register,destreg));
+                            tai:=new(paicpu,op_reg_reg(A_MOVZX,S_BL,location.register,destreg));
                         s8bit:
-                            tai:=new(pai386,op_reg_reg(A_MOVSX,S_BL,location.register,destreg));
+                            tai:=new(paicpu,op_reg_reg(A_MOVSX,S_BL,location.register,destreg));
                         u16bit:
-                            tai:=new(pai386,op_reg_reg(A_MOVZX,S_WL,location.register,destreg));
+                            tai:=new(paicpu,op_reg_reg(A_MOVZX,S_WL,location.register,destreg));
                         s16bit:
-                            tai:=new(pai386,op_reg_reg(A_MOVSX,S_WL,location.register,destreg));
+                            tai:=new(paicpu,op_reg_reg(A_MOVSX,S_WL,location.register,destreg));
                         u32bit:
-                            tai:=new(pai386,op_reg_reg(A_MOV,S_L,location.register,destreg));
+                            tai:=new(paicpu,op_reg_reg(A_MOV,S_L,location.register,destreg));
                         s32bit:
-                            tai:=new(pai386,op_reg_reg(A_MOV,S_L,location.register,destreg));
+                            tai:=new(paicpu,op_reg_reg(A_MOV,S_L,location.register,destreg));
                     end;
                     if delloc then
                         ungetregister(location.register);
@@ -2149,23 +2149,23 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             LOC_REFERENCE:
                 begin
                     if location.reference.is_immediate then
-                     tai:=new(pai386,op_const_reg(A_MOV,S_L,location.reference.offset,destreg))
+                     tai:=new(paicpu,op_const_reg(A_MOV,S_L,location.reference.offset,destreg))
                     else
                      begin
                        r:=newreference(location.reference);
                        case orddef^.typ of
                          u8bit:
-                            tai:=new(pai386,op_ref_reg(A_MOVZX,S_BL,r,destreg));
+                            tai:=new(paicpu,op_ref_reg(A_MOVZX,S_BL,r,destreg));
                          s8bit:
-                            tai:=new(pai386,op_ref_reg(A_MOVSX,S_BL,r,destreg));
+                            tai:=new(paicpu,op_ref_reg(A_MOVSX,S_BL,r,destreg));
                          u16bit:
-                            tai:=new(pai386,op_ref_reg(A_MOVZX,S_WL,r,destreg));
+                            tai:=new(paicpu,op_ref_reg(A_MOVZX,S_WL,r,destreg));
                          s16bit:
-                            tai:=new(pai386,op_ref_reg(A_MOVSX,S_WL,r,destreg));
+                            tai:=new(paicpu,op_ref_reg(A_MOVSX,S_WL,r,destreg));
                          u32bit:
-                            tai:=new(pai386,op_ref_reg(A_MOV,S_L,r,destreg));
+                            tai:=new(paicpu,op_ref_reg(A_MOV,S_L,r,destreg));
                          s32bit:
-                            tai:=new(pai386,op_ref_reg(A_MOV,S_L,r,destreg));
+                            tai:=new(paicpu,op_ref_reg(A_MOV,S_L,r,destreg));
                        end;
                      end;
                     if delloc then
@@ -2265,7 +2265,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            begin
               getlabel(pl);
               emitcall('mcount');
-              exprasmlist^.insert(new(pai386,op_sym_ofs_reg(A_MOV,S_L,pl,0,R_EDX)));
+              exprasmlist^.insert(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,pl,0,R_EDX)));
               exprasmlist^.insert(new(pai_section,init(sec_code)));
               exprasmlist^.insert(new(pai_const,init_32bit(0)));
               exprasmlist^.insert(new(pai_label,init(pl)));
@@ -2284,18 +2284,18 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
     procedure generate_interrupt_stackframe_entry;
       begin
          { save the registers of an interrupt procedure }
-         exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
-         exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EBX)));
-         exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_L,R_ECX)));
-         exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EDX)));
-         exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
-         exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
+         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EAX)));
+         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EBX)));
+         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_ECX)));
+         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EDX)));
+         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_ESI)));
+         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
 
          { .... also the segment registers }
-         exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_W,R_DS)));
-         exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_W,R_ES)));
-         exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_W,R_FS)));
-         exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_W,R_GS)));
+         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_W,R_DS)));
+         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_W,R_ES)));
+         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_W,R_FS)));
+         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_W,R_GS)));
       end;
 
 
@@ -2303,21 +2303,21 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       begin
          { restore the registers of an interrupt procedure }
          { this was all with entrycode instead of exitcode !!}
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_L,R_EBX)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_L,R_ECX)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_L,R_EDX)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_L,R_ESI)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
+         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EAX)));
+         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EBX)));
+         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)));
+         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EDX)));
+         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_ESI)));
+         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EDI)));
 
          { .... also the segment registers }
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_W,R_DS)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_W,R_ES)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_W,R_FS)));
-         procinfo.aktexitcode^.concat(new(pai386,op_reg(A_POP,S_W,R_GS)));
+         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_DS)));
+         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_ES)));
+         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_FS)));
+         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_GS)));
 
         { this restores the flags }
-         procinfo.aktexitcode^.concat(new(pai386,op_none(A_IRET,S_NO)));
+         procinfo.aktexitcode^.concat(new(paicpu,op_none(A_IRET,S_NO)));
       end;
 
 
@@ -2331,7 +2331,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        if (psym(p)^.typ=varsym) and
           (vo_is_thread_var in pvarsym(p)^.varoptions) then
          begin
-            exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,pvarsym(p)^.getsize)));
+            exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,pvarsym(p)^.getsize)));
             reset_reference(hr);
             hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
             emitpushreferenceaddr(hr);
@@ -2360,7 +2360,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               hr.symbol:=t^.get_inittable_label;
               emitpushreferenceaddr(hr);
               if is_already_ref then
-                exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,
+                exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,
                   newreference(ref))))
               else
                 emitpushreferenceaddr(ref);
@@ -2388,7 +2388,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               r.symbol:=t^.get_inittable_label;
               emitpushreferenceaddr(r);
               if is_already_ref then
-                exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,
+                exprasmlist^.concat(new(paicpu,op_ref(A_PUSH,S_L,
                   newreference(ref))))
               else
                 emitpushreferenceaddr(ref);
@@ -2516,13 +2516,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               reset_reference(r^);
               r^.base:=procinfo.framepointer;
               r^.offset:=pvarsym(p)^.address+4+procinfo.call_offset;
-              exprasmlist^.concat(new(pai386,
+              exprasmlist^.concat(new(paicpu,
                 op_ref_reg(A_MOV,S_L,r,R_EDI)));
 
-              exprasmlist^.concat(new(pai386,
+              exprasmlist^.concat(new(paicpu,
                 op_reg(A_INC,S_L,R_EDI)));
 
-              exprasmlist^.concat(new(pai386,
+              exprasmlist^.concat(new(paicpu,
                 op_const_reg(A_IMUL,S_L,
                 parraydef(pvarsym(p)^.definition)^.definition^.size,R_EDI)));
               { windows guards only a few pages for stack growing, }
@@ -2532,48 +2532,48 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    getlabel(again);
                    getlabel(ok);
                    emitlab(again);
-                   exprasmlist^.concat(new(pai386,
+                   exprasmlist^.concat(new(paicpu,
                      op_const_reg(A_CMP,S_L,winstackpagesize,R_EDI)));
                    emitjmp(C_C,ok);
-                   exprasmlist^.concat(new(pai386,
+                   exprasmlist^.concat(new(paicpu,
                      op_const_reg(A_SUB,S_L,winstackpagesize-4,R_ESP)));
-                   exprasmlist^.concat(new(pai386,
+                   exprasmlist^.concat(new(paicpu,
                      op_reg(A_PUSH,S_L,R_EAX)));
-                   exprasmlist^.concat(new(pai386,
+                   exprasmlist^.concat(new(paicpu,
                      op_const_reg(A_SUB,S_L,winstackpagesize,R_EDI)));
                    emitjmp(C_None,again);
 
                    emitlab(ok);
-                   exprasmlist^.concat(new(pai386,
+                   exprasmlist^.concat(new(paicpu,
                      op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
                    { now reload EDI }
                    new(r);
                    reset_reference(r^);
                    r^.base:=procinfo.framepointer;
                    r^.offset:=pvarsym(p)^.address+4+procinfo.call_offset;
-                   exprasmlist^.concat(new(pai386,
+                   exprasmlist^.concat(new(paicpu,
                      op_ref_reg(A_MOV,S_L,r,R_EDI)));
 
-                   exprasmlist^.concat(new(pai386,
+                   exprasmlist^.concat(new(paicpu,
                      op_reg(A_INC,S_L,R_EDI)));
 
-                   exprasmlist^.concat(new(pai386,
+                   exprasmlist^.concat(new(paicpu,
                      op_const_reg(A_IMUL,S_L,
                      parraydef(pvarsym(p)^.definition)^.definition^.size,R_EDI)));
                 end
               else
                 begin
-                   exprasmlist^.concat(new(pai386,
+                   exprasmlist^.concat(new(paicpu,
                      op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
                    { load destination }
-                   exprasmlist^.concat(new(pai386,
+                   exprasmlist^.concat(new(paicpu,
                      op_reg_reg(A_MOV,S_L,R_ESP,R_EDI)));
                 end;
 
               { don't destroy the registers! }
-              exprasmlist^.concat(new(pai386,
+              exprasmlist^.concat(new(paicpu,
                 op_reg(A_PUSH,S_L,R_ECX)));
-              exprasmlist^.concat(new(pai386,
+              exprasmlist^.concat(new(paicpu,
                 op_reg(A_PUSH,S_L,R_ESI)));
 
               { load count }
@@ -2581,7 +2581,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               reset_reference(r^);
               r^.base:=procinfo.framepointer;
               r^.offset:=pvarsym(p)^.address+4+procinfo.call_offset;
-              exprasmlist^.concat(new(pai386,
+              exprasmlist^.concat(new(paicpu,
                 op_ref_reg(A_MOV,S_L,r,R_ECX)));
 
               { load source }
@@ -2589,11 +2589,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               reset_reference(r^);
               r^.base:=procinfo.framepointer;
               r^.offset:=pvarsym(p)^.address+procinfo.call_offset;
-              exprasmlist^.concat(new(pai386,
+              exprasmlist^.concat(new(paicpu,
                 op_ref_reg(A_MOV,S_L,r,R_ESI)));
 
               { scheduled .... }
-              exprasmlist^.concat(new(pai386,
+              exprasmlist^.concat(new(paicpu,
                 op_reg(A_INC,S_L,R_ECX)));
 
               { calculate size }
@@ -2611,18 +2611,18 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   len:=len shr 1;
                 end;
 
-              exprasmlist^.concat(new(pai386,
+              exprasmlist^.concat(new(paicpu,
                 op_const_reg(A_IMUL,S_L,len,R_ECX)));
-              exprasmlist^.concat(new(pai386,
+              exprasmlist^.concat(new(paicpu,
                 op_none(A_REP,S_NO)));
               case opsize of
-                S_B : exprasmlist^.concat(new(pai386,op_none(A_MOVSB,S_NO)));
-                S_W : exprasmlist^.concat(new(pai386,op_none(A_MOVSW,S_NO)));
-                S_L : exprasmlist^.concat(new(pai386,op_none(A_MOVSD,S_NO)));
+                S_B : exprasmlist^.concat(new(paicpu,op_none(A_MOVSB,S_NO)));
+                S_W : exprasmlist^.concat(new(paicpu,op_none(A_MOVSW,S_NO)));
+                S_L : exprasmlist^.concat(new(paicpu,op_none(A_MOVSD,S_NO)));
               end;
-              exprasmlist^.concat(new(pai386,
+              exprasmlist^.concat(new(paicpu,
                 op_reg(A_POP,S_L,R_ESI)));
-              exprasmlist^.concat(new(pai386,
+              exprasmlist^.concat(new(paicpu,
                 op_reg(A_POP,S_L,R_ECX)));
 
               { patch the new address }
@@ -2630,7 +2630,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               reset_reference(r^);
               r^.base:=procinfo.framepointer;
               r^.offset:=pvarsym(p)^.address+procinfo.call_offset;
-              exprasmlist^.concat(new(pai386,
+              exprasmlist^.concat(new(paicpu,
                 op_reg_ref(A_MOV,S_L,R_ESP,r)));
            end
           else
@@ -2734,10 +2734,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    reset_reference(hr^);
                    hr^.symbol:=newasmsymbol('U_SYSWIN32_ISCONSOLE');
                    if apptype=at_cui then
-                     exprasmlist^.insert(new(pai386,op_const_ref(A_MOV,S_B,
+                     exprasmlist^.insert(new(paicpu,op_const_ref(A_MOV,S_B,
                        1,hr)))
                    else
-                     exprasmlist^.insert(new(pai386,op_const_ref(A_MOV,S_B,
+                     exprasmlist^.insert(new(paicpu,op_const_ref(A_MOV,S_B,
                        0,hr)));
                 end;
 
@@ -2759,14 +2759,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         begin
           if procinfo._class^.is_class then
             begin
-              exprasmlist^.insert(new(pai386,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
+              exprasmlist^.insert(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
               emitinsertcall('FPC_NEW_CLASS');
             end
           else
             begin
-              exprasmlist^.insert(new(pai386,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
+              exprasmlist^.insert(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
               emitinsertcall('FPC_HELP_CONSTRUCTOR');
-              exprasmlist^.insert(new(pai386,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
+              exprasmlist^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
             end;
         end;
 
@@ -2780,22 +2780,22 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            reset_reference(hr^);
            hr^.offset:=procinfo.ESI_offset;
            hr^.base:=procinfo.framepointer;
-           exprasmlist^.insert(new(pai386,op_ref_reg(A_MOV,S_L,hr,R_ESI)));
+           exprasmlist^.insert(new(paicpu,op_ref_reg(A_MOV,S_L,hr,R_ESI)));
         end;
       { should we save edi,esi,ebx like C ? }
       if (po_savestdregs in aktprocsym^.definition^.procoptions) then
        begin
          if (aktprocsym^.definition^.usedregisters and ($80 shr byte(R_EBX)))<>0 then
-           exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EBX)));
-         exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
-         exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
+           exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EBX)));
+         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_ESI)));
+         exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EDI)));
        end;
 
       { for the save all registers we can simply use a pusha,popa which
         push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
       if (po_saveregisters in aktprocsym^.definition^.procoptions) then
         begin
-          exprasmlist^.insert(new(pai386,op_none(A_PUSHA,S_L)));
+          exprasmlist^.insert(new(paicpu,op_none(A_PUSHA,S_L)));
         end;
 
       { omit stack frame ? }
@@ -2809,7 +2809,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               else
                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-4;
               if stackframe<>0 then
-                exprasmlist^.insert(new(pai386,
+                exprasmlist^.insert(new(paicpu,
                   op_const_reg(A_SUB,S_L,gettempsize,R_ESP)));
           end
       else
@@ -2828,7 +2828,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                  not(target_info.target in [target_i386_linux,target_i386_win32]) then
                                 begin
                                   emitinsertcall('FPC_STACKCHECK');
-                                  exprasmlist^.insert(new(pai386,op_const(A_PUSH,S_L,stackframe)));
+                                  exprasmlist^.insert(new(paicpu,op_const(A_PUSH,S_L,stackframe)));
                                 end;
                               if cs_profile in aktmoduleswitches then
                                 genprofilecode;
@@ -2836,9 +2836,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                             { %edi is already saved when pocdecl is used
                               if (target_info.target=target_linux) and
                                ((aktprocsym^.definition^.options and poexports)<>0) then
-                                  exprasmlist^.insert(new(Pai386,op_reg(A_PUSH,S_L,R_EDI))); }
+                                  exprasmlist^.insert(new(Paicpu,op_reg(A_PUSH,S_L,R_EDI))); }
 
-                              exprasmlist^.insert(new(pai386,op_const_const(A_ENTER,S_NO,stackframe,0)))
+                              exprasmlist^.insert(new(paicpu,op_const_const(A_ENTER,S_NO,stackframe,0)))
                           end
                       else
 {$endif unused}
@@ -2850,53 +2850,53 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                               begin
                                   if stackframe div winstackpagesize<=5 then
                                     begin
-                                       exprasmlist^.insert(new(pai386,op_const_reg(A_SUB,S_L,stackframe-4,R_ESP)));
+                                       exprasmlist^.insert(new(paicpu,op_const_reg(A_SUB,S_L,stackframe-4,R_ESP)));
                                        for i:=1 to stackframe div winstackpagesize do
                                          begin
                                             hr:=new_reference(R_ESP,stackframe-i*winstackpagesize);
-                                            exprasmlist^.concat(new(pai386,
+                                            exprasmlist^.concat(new(paicpu,
                                               op_const_ref(A_MOV,S_L,0,hr)));
                                          end;
-                                       exprasmlist^.concat(new(pai386,
+                                       exprasmlist^.concat(new(paicpu,
                                          op_reg(A_PUSH,S_L,R_EAX)));
                                     end
                                   else
                                     begin
                                        getlabel(again);
-                                       exprasmlist^.concat(new(pai386,
+                                       exprasmlist^.concat(new(paicpu,
                                          op_const_reg(A_MOV,S_L,stackframe div winstackpagesize,R_EDI)));
                                        emitlab(again);
-                                       exprasmlist^.concat(new(pai386,
+                                       exprasmlist^.concat(new(paicpu,
                                          op_const_reg(A_SUB,S_L,winstackpagesize-4,R_ESP)));
-                                       exprasmlist^.concat(new(pai386,
+                                       exprasmlist^.concat(new(paicpu,
                                          op_reg(A_PUSH,S_L,R_EAX)));
-                                       exprasmlist^.concat(new(pai386,
+                                       exprasmlist^.concat(new(paicpu,
                                          op_reg(A_DEC,S_L,R_EDI)));
                                        emitjmp(C_NZ,again);
-                                       exprasmlist^.concat(new(pai386,
+                                       exprasmlist^.concat(new(paicpu,
                                          op_const_reg(A_SUB,S_L,stackframe mod winstackpagesize,R_ESP)));
                                     end
                               end
                             else
-                              exprasmlist^.insert(new(pai386,op_const_reg(A_SUB,S_L,stackframe,R_ESP)));
+                              exprasmlist^.insert(new(paicpu,op_const_reg(A_SUB,S_L,stackframe,R_ESP)));
                             if (cs_check_stack in aktlocalswitches) and
                               not(target_info.target in [target_i386_linux,target_i386_win32]) then
                               begin
                                  emitinsertcall('FPC_STACKCHECK');
-                                 exprasmlist^.insert(new(pai386,op_const(A_PUSH,S_L,stackframe)));
+                                 exprasmlist^.insert(new(paicpu,op_const(A_PUSH,S_L,stackframe)));
                               end;
                             if cs_profile in aktmoduleswitches then
                               genprofilecode;
-                            exprasmlist^.insert(new(pai386,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
-                            exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EBP)));
+                            exprasmlist^.insert(new(paicpu,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
+                            exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EBP)));
                           end;
                   end { endif stackframe <> 0 }
               else
                  begin
                    if cs_profile in aktmoduleswitches then
                      genprofilecode;
-                   exprasmlist^.insert(new(pai386,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
-                   exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EBP)));
+                   exprasmlist^.insert(new(paicpu,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
+                   exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_EBP)));
                  end;
           end;
 
@@ -2934,14 +2934,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             usedinproc:=usedinproc or ($80 shr byte(R_EAX));
 
             { Type of stack-frame must be pushed}
-            exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,1)));
+            exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,1)));
             emitcall('FPC_PUSHEXCEPTADDR');
-            exprasmlist^.concat(new(pai386,
+            exprasmlist^.concat(new(paicpu,
               op_reg(A_PUSH,S_L,R_EAX)));
             emitcall('FPC_SETJMP');
-            exprasmlist^.concat(new(pai386,
+            exprasmlist^.concat(new(paicpu,
               op_reg(A_PUSH,S_L,R_EAX)));
-            exprasmlist^.concat(new(pai386,
+            exprasmlist^.concat(new(paicpu,
               op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
             emitjmp(C_NE,aktexitlabel);
         end;
@@ -3050,7 +3050,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                  if (procinfo.retdef^.deftype=floatdef) then
                    begin
                       floatloadops(pfloatdef(procinfo.retdef)^.typ,op,s);
-                      exprasmlist^.concat(new(pai386,op_ref(op,s,hr)))
+                      exprasmlist^.concat(new(paicpu,op_ref(op,s,hr)))
                    end
               else
                 dispose(hr);
@@ -3085,7 +3085,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           else
             begin
               emitinsertcall('FPC_HELP_DESTRUCTOR');
-              exprasmlist^.insert(new(pai386,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
+              exprasmlist^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
             end;
         end;
 
@@ -3104,9 +3104,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         begin
            getlabel(noreraiselabel);
            emitcall('FPC_POPADDRSTACK');
-           exprasmlist^.concat(new(pai386,
+           exprasmlist^.concat(new(paicpu,
              op_reg(A_POP,S_L,R_EAX)));
-           exprasmlist^.concat(new(pai386,
+           exprasmlist^.concat(new(paicpu,
              op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
            emitjmp(C_E,noreraiselabel);
            { must be the return value finalized before reraising the exception? }
@@ -3163,9 +3163,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       if (po_savestdregs in aktprocsym^.definition^.procoptions) then
         begin
           if (aktprocsym^.definition^.usedregisters and ($80 shr byte(R_EBX)))<>0 then
-           exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EBX)));
-          exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_ESI)));
-          exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
+           exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_EBX)));
+          exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ESI)));
+          exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_EDI)));
           { here we could reset R_EBX
             but that is risky because it only works
             if genexitcode is called after genentrycode
@@ -3179,17 +3179,17 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
       if (po_saveregisters in aktprocsym^.definition^.procoptions) then
         begin
-          exprasmlist^.concat(new(pai386,op_none(A_POPA,S_L)));
+          exprasmlist^.concat(new(paicpu,op_none(A_POPA,S_L)));
         end;
       if not(nostackframe) then
         begin
           if not inlined then
-            exprasmlist^.concat(new(pai386,op_none(A_LEAVE,S_NO)));
+            exprasmlist^.concat(new(paicpu,op_none(A_LEAVE,S_NO)));
         end
       else
         begin
           if (gettempsize<>0) and not inlined then
-            exprasmlist^.insert(new(pai386,
+            exprasmlist^.insert(new(paicpu,
               op_const_reg(A_ADD,S_L,gettempsize,R_ESP)));
         end;
 
@@ -3208,9 +3208,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        {Routines with the poclearstack flag set use only a ret.}
        { also routines with parasize=0     }
          if (parasize=0) or (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
-          exprasmlist^.concat(new(pai386,op_none(A_RET,S_NO)))
+          exprasmlist^.concat(new(paicpu,op_none(A_RET,S_NO)))
          else
-          exprasmlist^.concat(new(pai386,op_const(A_RET,S_NO,parasize)));
+          exprasmlist^.concat(new(paicpu,op_const(A_RET,S_NO,parasize)));
        end;
 
       exprasmlist^.concat(new(pai_symbol_end,initname(aktprocsym^.definition^.mangledname)));
@@ -3274,7 +3274,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             else
             if (dest_loc.loc=LOC_REFERENCE) or (dest_loc.loc=LOC_MEM) then
               begin
-                exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,s,reg,newreference(dest_loc.reference))));
+                exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,s,reg,newreference(dest_loc.reference))));
                 set_location(p^.location,dest_loc);
                 in_dest_loc:=true;
               end
@@ -3287,12 +3287,15 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.30  1999-08-19 13:06:45  pierre
+  Revision 1.31  1999-08-25 11:59:55  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.30  1999/08/19 13:06:45  pierre
     * _FAIL will now free memory correctly
       and reset VMT field on static instances
       (not yet tested for classes, is it allowed ?)
     + emit_.... all variant defined here to avoid tons of
-      exprasmlist^.concat(new(pai386,...) in cg386***
+      exprasmlist^.concat(new(paicpu,...) in cg386***
 
   Revision 1.29  1999/08/14 00:36:07  peter
     * array constructor support

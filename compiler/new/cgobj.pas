@@ -695,16 +695,16 @@ unit cgobj;
            begin
              if procinfo._class^.isclass then
                begin
-                 list^.concat(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol('FPC_NEW_CLASS'))));
-                 list^.concat(new(pai386,op_cond_sym(A_Jcc,C_Z,S_NO,quickexitlabel)));
+                 list^.concat(new(paicpu,op_sym(A_CALL,S_NO,newasmsymbol('FPC_NEW_CLASS'))));
+                 list^.concat(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,quickexitlabel)));
                end
              else
                begin
                  {
                  list^.insert(new(pai_labeled,init(A_JZ,quickexitlabel)));
-                 list^.insert(new(pai386,op_csymbol(A_CALL,S_NO,
+                 list^.insert(new(paicpu,op_csymbol(A_CALL,S_NO,
                    newcsymbol('FPC_HELP_CONSTRUCTOR',0))));
-                 list^.insert(new(pai386,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
+                 list^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
                  concat_external('FPC_HELP_CONSTRUCTOR',EXT_NEAR);
                  }
                end;
@@ -884,9 +884,9 @@ unit cgobj;
          if (po_savestdregs in aktprocsym^.definition^.procoptions) then
            begin
              if (aktprocsym^.definition^.usedregisters and ($80 shr byte(R_EBX)))<>0 then
-              exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EBX)));
-             exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_ESI)));
-             exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
+              exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_EBX)));
+             exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_ESI)));
+             exprasmlist^.concat(new(paicpu,op_reg(A_POP,S_L,R_EDI)));
              { here we could reset R_EBX
                but that is risky because it only works
                if genexitcode is called after genentrycode
@@ -1080,7 +1080,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.22  1999-08-18 17:05:55  florian
+  Revision 1.23  1999-08-25 12:00:11  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.22  1999/08/18 17:05:55  florian
     + implemented initilizing of data for the new code generator
       so it should compile now simple programs
 

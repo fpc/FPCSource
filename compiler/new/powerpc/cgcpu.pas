@@ -86,10 +86,10 @@ const
       begin
  { save our RTOC register value. Only necessary when doing pointer based    }
  { calls or cross TOC calls, but currently done always                      }
-         list^.concat(new(paippc,op_reg_ref(A_STW,R_RTOC,
+         list^.concat(new(paicpu,op_reg_ref(A_STW,R_RTOC,
            new_reference(stack_pointer,LA_RTOC))));
-         list^.concat(new(paippc,op_sym(A_BL,newasmsymbol(s))));
-         list^.concat(new(paippc,op_reg_ref(A_LWZ,R_RTOC,
+         list^.concat(new(paicpu,op_sym(A_BL,newasmsymbol(s))));
+         list^.concat(new(paicpu,op_reg_ref(A_LWZ,R_RTOC,
            new_reference(stack_pointer,LA_RTOC))));
       end;
 
@@ -100,12 +100,12 @@ const
        begin
           If (a and $ffff) <> 0 Then
             Begin
-              list^.concat(new(paippc,op_reg_const(A_LI,reg,a and $ffff)));
+              list^.concat(new(paicpu,op_reg_const(A_LI,reg,a and $ffff)));
               If (a shr 16) <> 0 Then
-                list^.concat(new(paippc,op_reg_const(A_ORIS,reg,a shr 16)))
+                list^.concat(new(paicpu,op_reg_const(A_ORIS,reg,a shr 16)))
             End
           Else
-            list^.concat(new(paippc,op_reg_const(A_LIS,reg,a shr 16)));
+            list^.concat(new(paicpu,op_reg_const(A_LIS,reg,a shr 16)));
        end;
 
        procedure tcgppc.a_load_reg_ref(list : paasmoutput; size: TCGSize; reg : tregister;const ref2 : treference);
@@ -123,7 +123,7 @@ const
              OS_32: op := A_STW;
              Else InternalError(68993)
            End;
-           list^.concat(new(paippc,op_reg_ref(op,reg,newreference(ref))));
+           list^.concat(new(paicpu,op_reg_ref(op,reg,newreference(ref))));
          End;
 
      procedure tcgppc.a_load_ref_reg(list : paasmoutput;size : tcgsize;const ref2: treference;reg : tregister);
@@ -141,13 +141,13 @@ const
            OS_32: op := A_LWZ
            Else InternalError(68994)
          End;
-         list^.concat(new(paippc,op_reg_ref(op,reg,newreference(ref))));
+         list^.concat(new(paicpu,op_reg_ref(op,reg,newreference(ref))));
        end;
 
      procedure tcgppc.a_load_reg_reg(list : paasmoutput;size : tcgsize;reg1,reg2 : tregister);
 
        begin
-         list^.concat(new(paippc,op_reg_reg(A_MR,reg2,reg1)));
+         list^.concat(new(paicpu,op_reg_reg(A_MR,reg2,reg1)));
        end;
 
      procedure tcgppc.a_op_reg_const(list : paasmoutput; Op: TOpCG; size: TCGSize; reg: TRegister; a: AWord);
@@ -159,12 +159,12 @@ const
            OP_DIV, OP_IDIV, OP_IMUL, OP_MUL:
              If (Op = OP_IMUL) And (longint(a) >= -32768) And
                 (longint(a) <= 32767) Then
-               list^.concat(new(paippc,op_reg_reg_const(A_MULLI,reg,reg,a)))
+               list^.concat(new(paicpu,op_reg_reg_const(A_MULLI,reg,reg,a)))
              Else
                Begin
                  scratch_register := get_scratch_reg(list);
                  a_load_const_reg(list, OS_32, a, scratch_register);
-                 list^.concat(new(paippc,op_reg_reg_reg(TOpCG2AsmOpLo[Op],
+                 list^.concat(new(paicpu,op_reg_reg_reg(TOpCG2AsmOpLo[Op],
                    reg,reg,scratch_register)));
                  free_scratch_reg(list,scratch_register);
                End;
@@ -174,7 +174,7 @@ const
            OP_SHL,OP_SHR,OP_SAR:
              Begin
                if (a and $ffff) <> 0 Then
-                 list^.concat(new(paippc,op_reg_reg_const(
+                 list^.concat(new(paicpu,op_reg_reg_const(
                    TOpCG2AsmOpLo[Op],reg,reg,a and $ffff)));
                If (a shr 16) <> 0 Then
                  InternalError(68991);
@@ -197,26 +197,26 @@ const
           signed := cmp_op in [OC_GT,OC_LT,OC_GTE,OC_LTE];
           If signed Then
             If (longint(a) >= -32768) and (longint(a) <= 32767) Then
-              list^.concat(new(paippc,op_const_reg_const(A_CMPI,0,reg,a)))
+              list^.concat(new(paicpu,op_const_reg_const(A_CMPI,0,reg,a)))
             else
               begin
                 scratch_register := get_scratch_reg(list);
                 a_load_const_reg(list,OS_32,a,scratch_register);
-                list^.concat(new(paippc,op_const_reg_reg(A_CMP,0,reg,scratch_register)));
+                list^.concat(new(paicpu,op_const_reg_reg(A_CMP,0,reg,scratch_register)));
                 free_scratch_reg(list,scratch_register);
              end
            else
              if (a <= $ffff) then
-              list^.concat(new(paippc,op_const_reg_const(A_CMPLI,0,reg,a)))
+              list^.concat(new(paicpu,op_const_reg_const(A_CMPLI,0,reg,a)))
             else
               begin
                 scratch_register := get_scratch_reg(list);
                 a_load_const_reg(list,OS_32,a,scratch_register);
-                list^.concat(new(paippc,op_const_reg_reg(A_CMPL,0,reg,scratch_register)));
+                list^.concat(new(paicpu,op_const_reg_reg(A_CMPL,0,reg,scratch_register)));
                 free_scratch_reg(list,scratch_register);
              end;
            AsmCond := TOpCmp2AsmCond[cmp_op];
-           list^.concat(new(paippc,op_const_const_sym(A_BC,AsmCond2BO[AsmCond],
+           list^.concat(new(paicpu,op_const_const_sym(A_BC,AsmCond2BO[AsmCond],
              AsmCond2BI[AsmCond],newasmsymbol(l^.name))));
         end;
 
@@ -227,9 +227,9 @@ const
       var AsmCond: TAsmCond;
 
       begin
-        list^.concat(new(paippc,op_const_reg_reg(A_CMPL,0,reg1,reg2)));
+        list^.concat(new(paicpu,op_const_reg_reg(A_CMPL,0,reg1,reg2)));
         AsmCond := TOpCmp2AsmCond[cmp_op];
-        list^.concat(new(paippc,op_const_const_sym(A_BC,AsmCond2BO[AsmCond],
+        list^.concat(new(paicpu,op_const_const_sym(A_BC,AsmCond2BO[AsmCond],
           AsmCond2BI[AsmCond],newasmsymbol(l^.name))));
       end;
 {
@@ -272,8 +272,8 @@ const
            else a_load_const_reg(list, OS_32, ref.offset, r)
          else
            if ref.index <> R_NO Then
-             list^.concat(new(paippc,op_reg_reg_reg(A_ADD,r,ref.base,ref.index)))
-           else list^.concat(new(paippc,op_reg_reg(A_MR,r,ref.base)))
+             list^.concat(new(paicpu,op_reg_reg_reg(A_ADD,r,ref.base,ref.index)))
+           else list^.concat(new(paicpu,op_reg_reg(A_MR,r,ref.base)))
        end;
 
 { *********** entry/exit code and address loading ************ }
@@ -290,14 +290,14 @@ const
  { CR and LR only have to be saved in case they are modified by the current }
  { procedure, but currently this isn't checked, so save them always         }
         scratch_register := get_scratch_reg(list);
-        list^.concat(new(paippc,op_reg(A_MFCR,scratch_register)));
-        list^.concat(new(paippc,op_reg_ref(A_STW,scratch_register,
+        list^.concat(new(paicpu,op_reg(A_MFCR,scratch_register)));
+        list^.concat(new(paicpu,op_reg_ref(A_STW,scratch_register,
           new_reference(stack_pointer,LA_CR))));
         free_scratch_reg(list,scratch_register);
         scratch_register := get_scratch_reg(list);
-        list^.concat(new(paippc,op_reg_reg(A_MFSPR,scratch_register,
+        list^.concat(new(paicpu,op_reg_reg(A_MFSPR,scratch_register,
           R_LR)));
-        list^.concat(new(paippc,op_reg_ref(A_STW,scratch_register,
+        list^.concat(new(paicpu,op_reg_ref(A_STW,scratch_register,
           new_reference(stack_pointer,LA_LR))));
         free_scratch_reg(list,scratch_register);
 { if the current procedure is a leaf procedure, we can use the Red Zone,    }
@@ -309,14 +309,14 @@ const
  { allocate space for the local variable, parameter and linkage area and   }
  { save the stack pointer at the end of the linkage area                   }
                  if localsize <= $ffff Then
-                   list^.concat(new(paippc,op_reg_ref
+                   list^.concat(new(paicpu,op_reg_ref
                      (A_STWU,stack_pointer, new_reference(stack_pointer,localsize+
                       LinkageAreaSize))))
                  else
                    Begin
                      scratch_register := get_scratch_reg(list);
                      a_load_const_reg(list,OS_32,localsize,scratch_register);
-                     list^.concat(new(paippc,op_reg_reg_reg(A_STWUX,stack_pointer,
+                     list^.concat(new(paicpu,op_reg_reg_reg(A_STWUX,stack_pointer,
                        stack_pointer,scratch_register)));
                      free_scratch_reg(list,scratch_register);
                   End;
@@ -358,15 +358,18 @@ const
 
      Begin
        if (a and $ffff) <> 0 Then
-         list^.concat(new(paippc,op_reg_reg_const(OpLo,reg1,reg2,a and $ffff)));
+         list^.concat(new(paicpu,op_reg_reg_const(OpLo,reg1,reg2,a and $ffff)));
        If (a shr 16) <> 0 Then
-         list^.concat(new(paippc,op_reg_reg_const(OpHi,reg1,reg2,a shr 16)))
+         list^.concat(new(paicpu,op_reg_reg_const(OpHi,reg1,reg2,a shr 16)))
      End;
 
 end.
 {
   $Log$
-  Revision 1.2  1999-08-18 17:05:57  florian
+  Revision 1.3  1999-08-25 12:00:23  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.2  1999/08/18 17:05:57  florian
     + implemented initilizing of data for the new code generator
       so it should compile now simple programs
 

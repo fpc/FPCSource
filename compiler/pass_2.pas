@@ -135,10 +135,10 @@ implementation
                   ait_instruction :
                      begin
                        { fixup the references }
-                       for i:=1 to pai386(hp2)^.ops do
-                        if pai386(hp2)^.oper[i-1].typ=top_ref then
+                       for i:=1 to paicpu(hp2)^.ops do
+                        if paicpu(hp2)^.oper[i-1].typ=top_ref then
                          begin
-                           r:=pai386(hp2)^.oper[i-1].ref;
+                           r:=paicpu(hp2)^.oper[i-1].ref;
                            case r^.options of
                              ref_parafixup :
                                r^.offsetfixup:=parafixup;
@@ -547,7 +547,7 @@ implementation
                                        hr^.offset:=pvarsym(regvars[i])^.address+procinfo.call_offset;
                                        hr^.base:=procinfo.framepointer;
 {$ifdef i386}
-                                       procinfo.aktentrycode^.concat(new(pai386,op_ref_reg(A_MOV,regsize,
+                                       procinfo.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOV,regsize,
                                          hr,regvars[i]^.reg)));
 {$endif i386}
 {$ifdef m68k}
@@ -615,7 +615,7 @@ implementation
                                        hr^.offset:=pvarsym(regvars[i])^.address+procinfo.call_offset;
                                        hr^.base:=procinfo.framepointer;
 {$ifdef i386}
-                                       procinfo.aktentrycode^.concat(new(pai386,op_ref_reg(A_MOV,regsize,
+                                       procinfo.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOV,regsize,
                                          hr,regvars[i]^.reg)));
 {$endif i386}
 {$ifdef m68k}
@@ -664,7 +664,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1999-08-24 09:07:04  pierre
+  Revision 1.34  1999-08-25 12:00:01  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.33  1999/08/24 09:07:04  pierre
    * wrong testregisters32 placement corrected
 
   Revision 1.32  1999/08/23 23:25:59  pierre

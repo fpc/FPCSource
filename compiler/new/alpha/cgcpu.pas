@@ -69,12 +69,12 @@ procedure tcgalpha.g_stackframe_entry(list : paasmoutput;localsize : longint);
 begin
   With List^ do 
     begin
-    concat(new(paialpha,op_reg_ref(A_LDGP,Global_pointer,new_reference(R_27,0))));
-    concat(new(paialpha,op_reg_ref(A_LDA,Stack_Pointer,new_reference(Stack_pointer,-LocalSize))));
+    concat(new(paicpu,op_reg_ref(A_LDGP,Global_pointer,new_reference(R_27,0))));
+    concat(new(paicpu,op_reg_ref(A_LDA,Stack_Pointer,new_reference(Stack_pointer,-LocalSize))));
     If LocalSize<>0 then
       concat(new(paiframe,Init(Global_pointer,LocalSize,R_27,0)));
     { Always generate a frame pointer. }
-    concat(new(paialpha,op_reg_reg_reg(A_BIS,Stack_pointer,Stack_pointer,Frame_pointer)))
+    concat(new(paicpu,op_reg_reg_reg(A_BIS,Stack_pointer,Stack_pointer,Frame_pointer)))
     end;
 end;
 
@@ -84,11 +84,11 @@ begin
   With List^ do
     begin
     { Restore stack pointer from frame pointer }
-    Concat (new(paialpha,op_reg_reg_reg(A_BIS,Frame_Pointer,Frame_Pointer,Stack_Pointer)));
+    Concat (new(paicpu,op_reg_reg_reg(A_BIS,Frame_Pointer,Frame_Pointer,Stack_Pointer)));
     { Restore previous stack position}
-    Concat (new(paialpha,op_reg_const_reg(A_ADDQ,Stack_Pointer,Parasize,Stack_pointer)));
+    Concat (new(paicpu,op_reg_const_reg(A_ADDQ,Stack_Pointer,Parasize,Stack_pointer)));
     { return... }
-    Concat (new(paialpha,op_reg_ref_const(A_RET,Stack_pointer,new_reference(Return_pointer,0),1)));
+    Concat (new(paicpu,op_reg_ref_const(A_RET,Stack_pointer,new_reference(Return_pointer,0),1)));
     { end directive
     Concat (new(paiend,init(''));
     }
@@ -98,7 +98,7 @@ end;
 procedure tcgalpha.a_call_name(list : paasmoutput;const s : string;  offset : longint);
 
   begin
-     { list^.concat(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol(s)))); }
+     { list^.concat(new(paicpu,op_sym(A_CALL,S_NO,newasmsymbol(s)))); }
      {!!!!!!!!!1 offset is ignored }
      abstract;
   end;
@@ -106,7 +106,7 @@ procedure tcgalpha.a_call_name(list : paasmoutput;const s : string;  offset : lo
 procedure tcgalpha.a_push_reg(list : paasmoutput;r : tregister);
 
   begin
-     { list^.concat(new(pai386,op_reg(A_PUSH,regsize(r),r))); }
+     { list^.concat(new(paicpu,op_reg(A_PUSH,regsize(r),r))); }
      abstract;
   end;
 
@@ -200,7 +200,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-08-06 18:05:57  florian
+  Revision 1.7  1999-08-25 12:00:17  jonas
+    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
+
+  Revision 1.6  1999/08/06 18:05:57  florian
     * implemented some stuff for assignments
 
   Revision 1.5  1999/08/06 14:15:53  florian
