@@ -60,8 +60,12 @@ interface
 
         protected
 
+          procedure optimizevalues(var max_linear_list:longint;var max_dist:cardinal);virtual;
+          function  has_jumptable : boolean;virtual;
+          procedure genjumptable(hp : pcaserecord;min_,max_ : longint); virtual;
           procedure genlinearlist(hp : pcaserecord); virtual;
           procedure genlinearcmplist(hp : pcaserecord); virtual;
+          procedure gentreejmp(p : pcaserecord);
 
           with_sign : boolean;
           opsize : tcgsize;
@@ -72,6 +76,7 @@ interface
 
           { true, if we can omit the range check of the jump table }
           jumptable_no_range : boolean;
+          { has the implementation jumptable support }
           min_label : tconstexprint;
 
        end;
@@ -583,6 +588,25 @@ implementation
                             TCGCASENODE
 *****************************************************************************}
 
+    procedure tcgcasenode.optimizevalues(var max_linear_list:longint;var max_dist:cardinal);
+      begin
+        { no changes by default }
+      end;
+
+
+    function tcgcasenode.has_jumptable : boolean;
+      begin
+        { No jumptable support in the default implementation }
+        has_jumptable:=false;
+      end;
+
+
+    procedure tcgcasenode.genjumptable(hp : pcaserecord;min_,max_ : longint);
+      begin
+        internalerror(200209161);
+      end;
+
+
     procedure tcgcasenode.genlinearlist(hp : pcaserecord);
 
       var
@@ -613,9 +637,7 @@ implementation
            if t^._low=t^._high then
              begin
                 if t^._low-last=0 then
-                  begin
-                    cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,0,hregister,t^.statement);
-                  end
+                  cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,0,hregister,t^.statement)
                 else
                   begin
                       gensub(longint(t^._low-last));
@@ -751,51 +773,49 @@ implementation
       end;
 
 
-    procedure tcgcasenode.pass_2;
-
-      procedure gentreejmp(p : pcaserecord);
-
-        var
-           lesslabel,greaterlabel : tasmlabel;
-
-       begin
-         cg.a_label(exprasmlist,p^._at);
-         { calculate labels for left and right }
-         if (p^.less=nil) then
-           lesslabel:=elselabel
-         else
-           lesslabel:=p^.less^._at;
-         if (p^.greater=nil) then
-           greaterlabel:=elselabel
-         else
-           greaterlabel:=p^.greater^._at;
-         { calculate labels for left and right }
-         { no range label: }
-         if p^._low=p^._high then
-           begin
-              if greaterlabel=lesslabel then
-                begin
-                  cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_NE,p^._low,hregister, lesslabel);
-                end
-              else
-                begin
-                  cg.a_cmp_const_reg_label(exprasmlist,OS_INT, jmp_lt,p^._low,hregister, lesslabel);
-                  cg.a_cmp_const_reg_label(exprasmlist,OS_INT, jmp_gt,p^._low,hregister, greaterlabel);
-                end;
-              cg.a_jmp_always(exprasmlist,p^.statement);
-           end
-         else
-           begin
-              cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,p^._low, hregister, lesslabel);
-              cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_gt,p^._high,hregister, greaterlabel);
-              cg.a_jmp_always(exprasmlist,p^.statement);
-           end;
-          if assigned(p^.less) then
-           gentreejmp(p^.less);
-          if assigned(p^.greater) then
-           gentreejmp(p^.greater);
+    procedure tcgcasenode.gentreejmp(p : pcaserecord);
+      var
+         lesslabel,greaterlabel : tasmlabel;
+      begin
+        cg.a_label(exprasmlist,p^._at);
+        { calculate labels for left and right }
+        if (p^.less=nil) then
+          lesslabel:=elselabel
+        else
+          lesslabel:=p^.less^._at;
+        if (p^.greater=nil) then
+          greaterlabel:=elselabel
+        else
+          greaterlabel:=p^.greater^._at;
+        { calculate labels for left and right }
+        { no range label: }
+        if p^._low=p^._high then
+          begin
+             if greaterlabel=lesslabel then
+               begin
+                 cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_NE,p^._low,hregister, lesslabel);
+               end
+             else
+               begin
+                 cg.a_cmp_const_reg_label(exprasmlist,OS_INT, jmp_lt,p^._low,hregister, lesslabel);
+                 cg.a_cmp_const_reg_label(exprasmlist,OS_INT, jmp_gt,p^._low,hregister, greaterlabel);
+               end;
+             cg.a_jmp_always(exprasmlist,p^.statement);
+          end
+        else
+          begin
+             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,p^._low, hregister, lesslabel);
+             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_gt,p^._high,hregister, greaterlabel);
+             cg.a_jmp_always(exprasmlist,p^.statement);
+          end;
+         if assigned(p^.less) then
+          gentreejmp(p^.less);
+         if assigned(p^.greater) then
+          gentreejmp(p^.greater);
       end;
 
+
+    procedure tcgcasenode.pass_2;
       var
          lv,hv,
          max_label: tconstexprint;
@@ -803,6 +823,7 @@ implementation
          max_linear_list : longint;
          otl, ofl: tasmlabel;
          isjump : boolean;
+         max_dist,
          dist : cardinal;
          hp : tnode;
       begin
@@ -890,23 +911,45 @@ implementation
                    { optimize for size ? }
                    if cs_littlesize in aktglobalswitches  then
                      begin
-                       { a linear list is always smaller than a jump tree }
-                          genlinearlist(nodes)
+                       if (has_jumptable) and
+                          not((labels<=2) or
+                              ((max_label-min_label)<0) or
+                              ((max_label-min_label)>3*labels)) then
+                         begin
+                           { if the labels less or more a continuum then }
+                           genjumptable(nodes,min_label,max_label);
+                         end
+                       else
+                         begin
+                           { a linear list is always smaller than a jump tree }
+                           genlinearlist(nodes);
+                         end;
                      end
                    else
                      begin
+                        max_dist:=4*cardinal(labels);
                         if jumptable_no_range then
                           max_linear_list:=4
                         else
                           max_linear_list:=2;
+
+                        { allow processor specific values }
+                        optimizevalues(max_linear_list,max_dist);
+
                         if (labels<=max_linear_list) then
                           genlinearlist(nodes)
                         else
                           begin
-                            if labels>16 then
-                               gentreejmp(nodes)
+                            if (has_jumptable) and
+                               (dist<max_dist) then
+                              genjumptable(nodes,min_label,max_label)
                             else
-                               genlinearlist(nodes);
+                              begin
+                                 if labels>16 then
+                                   gentreejmp(nodes)
+                                 else
+                                   genlinearlist(nodes);
+                              end;
                           end;
                      end;
                 end
@@ -950,7 +993,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-08-15 15:11:53  carl
+  Revision 1.19  2002-09-16 18:08:26  peter
+    * fix last optimization in genlinearlist, detected by bug tw1066
+    * use generic casenode.pass2 routine and override genlinearlist
+    * add jumptable support to generic casenode, by default there is
+      no jumptable support
+
+  Revision 1.18  2002/08/15 15:11:53  carl
     * oldset define is now correct for all cpu's except i386
     * correct compilation problems because of the above
 

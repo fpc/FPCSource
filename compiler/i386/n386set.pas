@@ -27,7 +27,7 @@ unit n386set;
 interface
 
     uses
-       node,nset,pass_1;
+       node,nset,pass_1,ncgset;
 
     type
 
@@ -35,9 +35,14 @@ interface
           procedure pass_2;override;
           function pass_1 : tnode;override;
        end;
-       ti386casenode = class(tcasenode)
-          procedure pass_2;override;
+
+       ti386casenode = class(tcgcasenode)
+          procedure optimizevalues(var max_linear_list:longint;var max_dist:cardinal);override;
+          function  has_jumptable : boolean;override;
+          procedure genjumptable(hp : pcaserecord;min_,max_ : longint);override;
+          procedure genlinearlist(hp : pcaserecord);override;
        end;
+
 
 implementation
 
@@ -49,11 +54,7 @@ implementation
       cginfo,cgbase,pass_2,
       ncon,
       cpubase,cpuinfo,
-      cga,cgobj,tgobj,ncgutil,regvars,rgobj;
-
-     const
-       bytes2Sxx:array[1..8] of Topsize=(S_B,S_W,S_NO,S_L,S_NO,S_NO,S_NO,S_Q);
-
+      cga,cgx86,cgobj,tgobj,ncgutil,regvars,rgobj;
 
 
 {*****************************************************************************
@@ -536,188 +537,106 @@ implementation
                             TI386CASENODE
 *****************************************************************************}
 
-    procedure ti386casenode.pass_2;
-      var
-         with_sign : boolean;
-         opsize : topsize;
-         jmp_gt,jmp_le,jmp_lee : tasmcond;
-         hp : tnode;
-         { register with case expression }
-         hregister,hregister2 : tregister;
-         endlabel,elselabel : tasmlabel;
-
-         { true, if we can omit the range check of the jump table }
-         jumptable_no_range : boolean;
-         { where to put the jump table }
-         jumpsegment : TAAsmoutput;
-         min_label : TConstExprInt;
-
-      procedure gentreejmp(p : pcaserecord);
-
-        var
-           lesslabel,greaterlabel : tasmlabel;
-
-       begin
-         cg.a_label(exprasmlist,p^._at);
-         { calculate labels for left and right }
-         if (p^.less=nil) then
-           lesslabel:=elselabel
-         else
-           lesslabel:=p^.less^._at;
-         if (p^.greater=nil) then
-           greaterlabel:=elselabel
-         else
-           greaterlabel:=p^.greater^._at;
-           { calculate labels for left and right }
-         { no range label: }
-         if p^._low=p^._high then
-           begin
-              emit_const_reg(A_CMP,opsize,p^._low,hregister);
-              if greaterlabel=lesslabel then
-                emitjmp(C_NE,lesslabel)
-              else
-                begin
-                   emitjmp(jmp_le,lesslabel);
-                   emitjmp(jmp_gt,greaterlabel);
-                end;
-              cg.a_jmp_always(exprasmlist,p^.statement);
-           end
-         else
-           begin
-              emit_const_reg(A_CMP,opsize,p^._low,hregister);
-              emitjmp(jmp_le,lesslabel);
-              emit_const_reg(A_CMP,opsize,p^._high,hregister);
-              emitjmp(jmp_gt,greaterlabel);
-              cg.a_jmp_always(exprasmlist,p^.statement);
-           end;
-          if assigned(p^.less) then
-           gentreejmp(p^.less);
-          if assigned(p^.greater) then
-           gentreejmp(p^.greater);
+    procedure ti386casenode.optimizevalues(var max_linear_list:longint;var max_dist:cardinal);
+      begin
+        { a jump table crashes the pipeline! }
+        if aktoptprocessor=Class386 then
+          inc(max_linear_list,3)
+        else if aktoptprocessor=ClassP5 then
+          inc(max_linear_list,6)
+        else if aktoptprocessor>=ClassP6 then
+          inc(max_linear_list,9);
       end;
 
-      procedure genlinearcmplist(hp : pcaserecord);
 
-        var
-           first : boolean;
-           last : TConstExprInt;
+    function ti386casenode.has_jumptable : boolean;
+      begin
+        has_jumptable:=true;
+      end;
+
+
+    procedure ti386casenode.genjumptable(hp : pcaserecord;min_,max_ : longint);
+      var
+        table : tasmlabel;
+        last : TConstExprInt;
+        indexreg : tregister;
+        href : treference;
+        jumpsegment : TAAsmOutput;
 
         procedure genitem(t : pcaserecord);
-
           var
-             l1 : tasmlabel;
-
+            i : longint;
           begin
-             if assigned(t^.less) then
-               genitem(t^.less);
-             if t^._low=t^._high then
-               begin
-                  if opsize=S_Q then
-                    begin
-                       objectlibrary.getlabel(l1);
-                       emit_const_reg(A_CMP,S_L,longint(hi(int64(t^._low))),hregister2);
-                       emitjmp(C_NZ,l1);
-                       emit_const_reg(A_CMP,S_L,longint(lo(int64(t^._low))),hregister);
-                       emitjmp(C_Z,t^.statement);
-                       cg.a_label(exprasmlist,l1);
-                    end
-                  else
-                    begin
-                       emit_const_reg(A_CMP,opsize,longint(t^._low),hregister);
-                       emitjmp(C_Z,t^.statement);
-                       last:=t^._low;
-                    end;
-               end
-             else
-               begin
-                  { if there is no unused label between the last and the }
-                  { present label then the lower limit can be checked    }
-                  { immediately. else check the range in between:        }
-                  if first or (t^._low-last>1) then
-                    begin
-                       if opsize=S_Q then
-                         begin
-                            objectlibrary.getlabel(l1);
-                            emit_const_reg(A_CMP,S_L,longint(hi(int64(t^._low))),hregister2);
-                            emitjmp(jmp_le,elselabel);
-                            emitjmp(jmp_gt,l1);
-                            emit_const_reg(A_CMP,S_L,longint(lo(int64(t^._low))),hregister);
-                            { the comparisation of the low dword must be always unsigned! }
-                            emitjmp(C_B,elselabel);
-                            cg.a_label(exprasmlist,l1);
-                         end
-                       else
-                         begin
-                            emit_const_reg(A_CMP,opsize,longint(t^._low),hregister);
-                            emitjmp(jmp_le,elselabel);
-                         end;
-                    end;
-
-                  if opsize=S_Q then
-                    begin
-                       objectlibrary.getlabel(l1);
-                       emit_const_reg(A_CMP,S_L,longint(hi(int64(t^._high))),hregister2);
-                       emitjmp(jmp_le,t^.statement);
-                       emitjmp(jmp_gt,l1);
-                       emit_const_reg(A_CMP,S_L,longint(lo(int64(t^._high))),hregister);
-                       { the comparisation of the low dword must be always unsigned! }
-                       emitjmp(C_BE,t^.statement);
-                       cg.a_label(exprasmlist,l1);
-                    end
-                  else
-                    begin
-                       emit_const_reg(A_CMP,opsize,longint(t^._high),hregister);
-                       emitjmp(jmp_lee,t^.statement);
-                    end;
-
-                  last:=t^._high;
-               end;
-             first:=false;
-             if assigned(t^.greater) then
-               genitem(t^.greater);
+            if assigned(t^.less) then
+              genitem(t^.less);
+            { fill possible hole }
+            for i:=last+1 to t^._low-1 do
+              jumpSegment.concat(Tai_const_symbol.Create(elselabel));
+            for i:=t^._low to t^._high do
+              jumpSegment.concat(Tai_const_symbol.Create(t^.statement));
+            last:=t^._high;
+            if assigned(t^.greater) then
+              genitem(t^.greater);
           end;
 
-        begin
-           last:=0;
-           first:=true;
-           genitem(hp);
-           cg.a_jmp_always(exprasmlist,elselabel);
-        end;
+      begin
+        if (cs_create_smart in aktmoduleswitches) then
+          jumpsegment:=procinfo.aktlocaldata
+        else
+          jumpsegment:=datasegment;
+        if not(jumptable_no_range) then
+          begin
+             { case expr less than min_ => goto elselabel }
+             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,longint(min_),hregister,elselabel);
+             { case expr greater than max_ => goto elselabel }
+             cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_gt,longint(max_),hregister,elselabel);
+          end;
+        objectlibrary.getlabel(table);
+        { make it a 32bit register }
+        indexreg:=rg.makeregsize(hregister,OS_INT);
+        cg.a_load_reg_reg(exprasmlist,opsize,hregister,indexreg);
+        { create reference }
+        reference_reset_symbol(href,table,0);
+        href.offset:=(-longint(min_))*4;
+        href.index:=indexreg;
+        href.scalefactor:=4;
+        emit_ref(A_JMP,S_NO,href);
+        { generate jump table }
+        if not(cs_littlesize in aktglobalswitches) then
+          jumpSegment.concat(Tai_Align.Create_Op(4,0));
+        jumpSegment.concat(Tai_label.Create(table));
+        last:=min_;
+        genitem(hp);
+      end;
 
-      procedure genlinearlist(hp : pcaserecord);
 
-        var
-           first : boolean;
-           last : TConstExprInt;
-           {helplabel : longint;}
+    procedure ti386casenode.genlinearlist(hp : pcaserecord);
+      var
+        first : boolean;
+        lastrange : boolean;
+        last : TConstExprInt;
+        cond_lt,cond_le : tasmcond;
 
         procedure genitem(t : pcaserecord);
-
-            procedure gensub(value:longint);
-            begin
-              if value=1 then
-                emit_reg(A_DEC,opsize,hregister)
-              else
-                emit_const_reg(A_SUB,opsize,value,hregister);
-            end;
-
           begin
              if assigned(t^.less) then
                genitem(t^.less);
              { need we to test the first value }
              if first and (t^._low>get_min_value(left.resulttype.def)) then
                begin
-                  emit_const_reg(A_CMP,opsize,longint(t^._low),hregister);
-                  emitjmp(jmp_le,elselabel);
+                 cg.a_cmp_const_reg_label(exprasmlist,OS_INT,jmp_lt,longint(t^._low),hregister,elselabel);
                end;
              if t^._low=t^._high then
                begin
                   if t^._low-last=0 then
-                    emit_reg_reg(A_OR,opsize,hregister,hregister)
+                    cg.a_cmp_const_reg_label(exprasmlist, OS_INT, OC_EQ,0,hregister,t^.statement)
                   else
-                    gensub(longint(t^._low-last));
+                    begin
+                      cg.a_op_const_reg(exprasmlist, OP_SUB, longint(t^._low-last), hregister);
+                      emitjmp(C_Z,t^.statement);
+                    end;
                   last:=t^._low;
-                  emitjmp(C_Z,t^.statement);
+                  lastrange:=false;
                end
              else
                begin
@@ -728,7 +647,7 @@ implementation
                     begin
                        { have we to ajust the first value ? }
                        if (t^._low>get_min_value(left.resulttype.def)) then
-                         gensub(longint(t^._low));
+                         cg.a_op_const_reg(exprasmlist, OP_SUB, longint(t^._low), hregister);
                     end
                   else
                     begin
@@ -736,15 +655,19 @@ implementation
                       { present label then the lower limit can be checked    }
                       { immediately. else check the range in between:       }
 
-                      gensub(longint(t^._low-last));
+                      cg.a_op_const_reg(exprasmlist, OP_SUB, longint(t^._low-last), hregister);
                       { no jump necessary here if the new range starts at }
                       { at the value following the previous one           }
-                      if (t^._low-last) <> 1 then
-                        emitjmp(jmp_le,elselabel);
+                      if ((t^._low-last) <> 1) or
+                         (not lastrange) then
+                        emitjmp(cond_lt,elselabel);
                     end;
-                  emit_const_reg(A_SUB,opsize,longint(t^._high-t^._low),hregister);
-                  emitjmp(jmp_lee,t^.statement);
+                  {we need to use A_SUB, because A_DEC does not set the correct flags, therefor
+                   using a_op_const_reg(OP_SUB) is not possible }
+                  emit_const_reg(A_SUB,TCGSize2OpSize[opsize],longint(t^._high-t^._low),hregister);
+                  emitjmp(cond_le,t^.statement);
                   last:=t^._high;
+                  lastrange:=true;
                end;
              first:=false;
              if assigned(t^.greater) then
@@ -752,269 +675,28 @@ implementation
           end;
 
         begin
+           if with_sign then
+             begin
+                cond_lt:=C_L;
+                cond_le:=C_LE;
+             end
+           else
+              begin
+                cond_lt:=C_B;
+                cond_le:=C_BE;
+             end;
            { do we need to generate cmps? }
            if (with_sign and (min_label<0)) then
              genlinearcmplist(hp)
            else
              begin
                 last:=0;
+                lastrange:=false;
                 first:=true;
                 genitem(hp);
                 cg.a_jmp_always(exprasmlist,elselabel);
              end;
         end;
-
-      procedure genjumptable(hp : pcaserecord;min_,max_ : longint);
-
-        var
-           table : tasmlabel;
-           last : TConstExprInt;
-           href : treference;
-
-        procedure genitem(t : pcaserecord);
-
-          var
-             i : longint;
-
-          begin
-             if assigned(t^.less) then
-               genitem(t^.less);
-             { fill possible hole }
-             for i:=last+1 to t^._low-1 do
-               jumpSegment.concat(Tai_const_symbol.Create(elselabel));
-             for i:=t^._low to t^._high do
-               jumpSegment.concat(Tai_const_symbol.Create(t^.statement));
-              last:=t^._high;
-             if assigned(t^.greater) then
-               genitem(t^.greater);
-            end;
-
-          begin
-           if not(jumptable_no_range) then
-             begin
-                emit_const_reg(A_CMP,opsize,longint(min_),hregister);
-                { case expr less than min_ => goto elselabel }
-                emitjmp(jmp_le,elselabel);
-                emit_const_reg(A_CMP,opsize,longint(max_),hregister);
-                emitjmp(jmp_gt,elselabel);
-             end;
-           objectlibrary.getlabel(table);
-           { extend with sign }
-           if opsize=S_W then
-             begin
-                if with_sign then
-                  emit_reg_reg(A_MOVSX,S_WL,hregister,
-                    rg.makeregsize(hregister,OS_INT))
-                else
-                  emit_reg_reg(A_MOVZX,S_WL,hregister,
-                    rg.makeregsize(hregister,OS_INT));
-                hregister:=rg.makeregsize(hregister,OS_INT);
-             end
-           else if opsize=S_B then
-             begin
-                if with_sign then
-                  emit_reg_reg(A_MOVSX,S_BL,hregister,
-                    rg.makeregsize(hregister,OS_INT))
-                else
-                  emit_reg_reg(A_MOVZX,S_BL,hregister,
-                    rg.makeregsize(hregister,OS_INT));
-                hregister:=rg.makeregsize(hregister,OS_INT);
-             end;
-           reference_reset_symbol(href,table,0);
-           href.offset:=(-longint(min_))*4;
-           href.index:=hregister;
-           href.scalefactor:=4;
-           emit_ref(A_JMP,S_NO,href);
-           { !!!!! generate tables
-             if not(cs_littlesize in aktlocalswitches) then
-             jumpSegment.concat(Taicpu.Op_const(A_ALIGN,S_NO,4));
-           }
-           jumpSegment.concat(Tai_label.Create(table));
-             last:=min_;
-           genitem(hp);
-             { !!!!!!!
-           if not(cs_littlesize in aktlocalswitches) then
-             emit_const(A_ALIGN,S_NO,4);
-           }
-        end;
-
-      var
-         lv,hv,
-         max_label: tconstexprint;
-         labels : longint;
-         max_linear_list : longint;
-         otl, ofl: tasmlabel;
-         isjump : boolean;
-{$ifdef Delphi}
-         dist : cardinal;
-{$else Delphi}
-         dist : dword;
-{$endif Delphi}
-      begin
-         objectlibrary.getlabel(endlabel);
-         objectlibrary.getlabel(elselabel);
-         if (cs_create_smart in aktmoduleswitches) then
-           jumpsegment:=procinfo.aktlocaldata
-         else
-           jumpsegment:=datasegment;
-         with_sign:=is_signed(left.resulttype.def);
-         if with_sign then
-           begin
-              jmp_gt:=C_G;
-              jmp_le:=C_L;
-              jmp_lee:=C_LE;
-           end
-         else
-            begin
-              jmp_gt:=C_A;
-              jmp_le:=C_B;
-              jmp_lee:=C_BE;
-           end;
-         rg.cleartempgen;
-         { save current truelabel and falselabel }
-         isjump:=false;
-         if left.location.loc=LOC_JUMP then
-          begin
-            otl:=truelabel;
-            objectlibrary.getlabel(truelabel);
-            ofl:=falselabel;
-            objectlibrary.getlabel(falselabel);
-            isjump:=true;
-          end;
-         secondpass(left);
-         { determines the size of the operand }
-         opsize:=bytes2Sxx[left.resulttype.def.size];
-         { copy the case expression to a register }
-         location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
-         if opsize=S_Q then
-          begin
-            hregister:=left.location.registerlow;
-            hregister2:=left.location.registerhigh;
-          end
-         else
-          hregister:=left.location.register;
-         if isjump then
-          begin
-            truelabel:=otl;
-            falselabel:=ofl;
-          end;
-
-         { we need the min_label always to choose between }
-         { cmps and subs/decs                             }
-         min_label:=case_get_min(nodes);
-
-         load_all_regvars(exprasmlist);
-         { now generate the jumps }
-         if opsize=S_Q then
-           genlinearcmplist(nodes)
-         else
-           begin
-              if cs_optimize in aktglobalswitches then
-                begin
-                   { procedures are empirically passed on }
-                   { consumption can also be calculated   }
-                   { but does it pay on the different     }
-                   { processors?                       }
-                   { moreover can the size only be appro- }
-                   { ximated as it is not known if rel8,  }
-                   { rel16 or rel32 jumps are used   }
-                   max_label:=case_get_max(nodes);
-                   labels:=case_count_labels(nodes);
-                   { can we omit the range check of the jump table ? }
-                   getrange(left.resulttype.def,lv,hv);
-                   jumptable_no_range:=(lv=min_label) and (hv=max_label);
-                   { hack a little bit, because the range can be greater }
-                   { than the positive range of a longint            }
-
-                   if (min_label<0) and (max_label>0) then
-                     begin
-{$ifdef Delphi}
-                        if min_label=longint($80000000) then
-                          dist:=Cardinal(max_label)+Cardinal($80000000)
-                        else
-                          dist:=Cardinal(max_label)+Cardinal(-min_label)
-{$else Delphi}
-                        if min_label=$80000000 then
-                          dist:=dword(max_label)+dword($80000000)
-                        else
-                          dist:=dword(max_label)+dword(-min_label)
-{$endif Delphi}
-                     end
-                   else
-                     dist:=max_label-min_label;
-
-                   { optimize for size ? }
-                   if cs_littlesize in aktglobalswitches  then
-                     begin
-                        if (labels<=2) or
-                           ((max_label-min_label)<0) or
-                           ((max_label-min_label)>3*labels) then
-                       { a linear list is always smaller than a jump tree }
-                          genlinearlist(nodes)
-                        else
-                       { if the labels less or more a continuum then }
-                          genjumptable(nodes,min_label,max_label);
-                     end
-                   else
-                     begin
-                        if jumptable_no_range then
-                          max_linear_list:=4
-                        else
-                          max_linear_list:=2;
-                        { a jump table crashes the pipeline! }
-                        if aktoptprocessor=Class386 then
-                          inc(max_linear_list,3);
-                            if aktoptprocessor=ClassP5 then
-                          inc(max_linear_list,6);
-                        if aktoptprocessor>=ClassP6 then
-                          inc(max_linear_list,9);
-
-                        if (labels<=max_linear_list) then
-                          genlinearlist(nodes)
-                        else
-                          begin
-                             if (dist>4*cardinal(labels)) then
-                               begin
-                                  if labels>16 then
-                                    gentreejmp(nodes)
-                                  else
-                                    genlinearlist(nodes);
-                               end
-                             else
-                               genjumptable(nodes,min_label,max_label);
-                          end;
-                     end;
-                end
-              else
-                { it's always not bad }
-                genlinearlist(nodes);
-           end;
-
-         rg.ungetregister(exprasmlist,hregister);
-
-         { now generate the instructions }
-         hp:=right;
-         while assigned(hp) do
-           begin
-              rg.cleartempgen;
-              secondpass(tbinarynode(hp).right);
-              { don't come back to case line }
-              aktfilepos:=exprasmList.getlasttaifilepos^;
-              load_all_regvars(exprasmlist);
-              cg.a_jmp_always(exprasmlist,endlabel);
-              hp:=tbinarynode(hp).left;
-           end;
-         cg.a_label(exprasmlist,elselabel);
-         { ...and the else block }
-         if assigned(elseblock) then
-           begin
-              rg.cleartempgen;
-              secondpass(elseblock);
-              load_all_regvars(exprasmlist);
-           end;
-         cg.a_label(exprasmlist,endlabel);
-      end;
-
 
 begin
 {$ifndef TEST_GENERIC}
@@ -1024,7 +706,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2002-09-09 13:57:45  jonas
+  Revision 1.42  2002-09-16 18:08:26  peter
+    * fix last optimization in genlinearlist, detected by bug tw1066
+    * use generic casenode.pass2 routine and override genlinearlist
+    * add jumptable support to generic casenode, by default there is
+      no jumptable support
+
+  Revision 1.41  2002/09/09 13:57:45  jonas
     * small optimization to case genlist() case statements
 
   Revision 1.40  2002/08/17 09:23:46  florian
