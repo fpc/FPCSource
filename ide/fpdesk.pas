@@ -785,7 +785,7 @@ var S: PMemoryStream;
     OK: boolean;
     R: PResource;
 begin
-  { if no symbols stored ... no problems }
+  ReadSymbols:=false;  { if no symbols stored ... no problems }
   R:=F^.FindResource(resSymbols);
   if not Assigned(R) then
     exit;
@@ -963,7 +963,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  2004-11-02 23:53:19  peter
+  Revision 1.9  2004-11-05 16:39:37  peter
+    * uninitialized var
+
+  Revision 1.8  2004/11/02 23:53:19  peter
     * fixed crashes with ide and 1.9.x
 
   Revision 1.7  2002/02/09 00:32:27  pierre
