@@ -1043,11 +1043,12 @@ implementation
                       cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,
                                         right.location.reference.base,helpref.base);
                     end;
+	          reference_release(exprasmlist,helpref);
                 end
               else
                 rg.ungetregisterint(exprasmlist,right.location.register);
 
-              reference_release(exprasmlist,helpref);
+
               location_freetemp(exprasmlist,right.location);
 {$endif newra}
 
@@ -1583,7 +1584,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.105  2003-08-11 21:18:20  peter
+  Revision 1.106  2003-08-16 18:56:40  marco
+   * fix from Jonas.
+
+  Revision 1.105  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.104  2003/08/11 14:22:06  mazen
