@@ -303,6 +303,7 @@ const
       label_breakpoint_line = '~L~ine';
       label_breakpoint_conditions = 'Conditions';
       label_breakpoint_ignorecount = '~I~gnore count';
+      label_breakpoint_type = '~T~ype';
 
       { Watches window }
       dialog_watches = 'Watches';
@@ -1026,7 +1027,10 @@ const
 
 {
   $Log$
-  Revision 1.7  2002-03-20 14:52:44  pierre
+  Revision 1.8  2002-03-27 11:23:18  pierre
+   + add a title to the Breakpoint dialog type checkbox
+
+  Revision 1.7  2002/03/20 14:52:44  pierre
    + rescue dialogs for main loop
 
   Revision 1.6  2002/02/06 14:45:00  pierre
