@@ -1270,7 +1270,7 @@ begin
   def_symbol('INT64FUNCRESOK');
   def_symbol('PACKENUMFIXED');
   def_symbol('HAS_ADDR_STACK_ON_STACK');
-  def_symbol('NOBOPUNDCHECK');
+  def_symbol('NOBOUNDCHECK');
 
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1541,7 +1541,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.44  2001-06-18 20:36:24  peter
+  Revision 1.45  2001-06-19 14:55:45  jonas
+    * fixed typo in NOBOUNDCHECK define
+
+  Revision 1.44  2001/06/18 20:36:24  peter
     * -Ur switch (merged)
     * masm fixes (merged)
     * quoted filenames for go32v2 and win32
