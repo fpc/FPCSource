@@ -26,15 +26,17 @@ Interface
 Uses Windows,types;
 
 
-{ extra types }
 type
 {$ifndef ver1_0}
+{ extra types }
    TOleChar = Types.TOleChar;
    POleStr = Types.POleStr;
    PPOleStr = Types.PPOleStr;
    TBStr = POleStr;
    PBStr = ^TBStr;
    TOleEnum = type LongWord;
+{$else ver1_0}
+   POleStr = PWideChar;
 {$endif ver1_0}
 
 {Glue types, should be linked to the proper windows unit types}
@@ -2356,19 +2358,6 @@ TYPE
      Function  SetHelpStringDll(szFileName: pOleStr):HResult;StdCall;
      End;
 
-   IDispatch = Interface (IUnknown)
-     ['{00020400-0000-0000-C000-000000000046}']
-     Function  GetTypeInfoCount(OUT pctinfo: UINT):HResult;StdCall;
-     Function  GetTypeInfo(iTInfo: UINT; lcid: LCID; OUT ppTInfo: ITypeInfo):HResult;StdCall;
-     Function  GetIDsOfNames(CONST riid: TIID; CONST rgszNames: pOleStr; cNames: UINT; lcid: LCID; OUT rgDispId: DISPID):HResult;StdCall;
-     {$ifndef Call_as}
-     Function  Invoke(dispIdMember: DISPID; CONST riid: TIID; lcid: LCID; wFlags: WORD; VAR pDispParams: DISPPARAMS; OUT pVarResult: VARIANT; OUT pExcepInfo: EXCEPINFO; OUT puArgErr: UINT):HResult;StdCall;
-     {$else}
-     Function  Invoke(dispIdMember: DISPID; CONST riid: TIID; lcid: LCID; dwFlags: DWORD; CONST pDispParams: DISPPARAMS; OUT pVarResult: VARIANT; OUT pExcepInfo: EXCEPINFO; OUT pArgErr: UINT;
-                     cVarRef: UINT; CONST rgVarRefIdx: UINT; VAR rgVarRef: VARIANTARG):HResult;StdCall;
-     {$endif}
-     End;
-
    IEnumVARIANT = Interface (IUnknown)
      ['{00020404-0000-0000-C000-000000000046}']
      {$ifndef Call_as}
@@ -2627,8 +2616,48 @@ TYPE
      Function  Write(pszPropName: pOleStr; CONST pVar: VARIANT):HResult;StdCall;
      End;
 
-{$ENDIF}
+   IEnumGUID = interface(IUnknown)
+     ['{0002E000-0000-0000-C000-000000000046}']
+     Function Next(celt: UINT; OUT rgelt: TGUID; OUT pceltFetched: UINT):HResult;StdCall;
+     Function Skip(celt:UINT):HResult;StdCall;
+     Function Reset: HResult;StdCall;
+     Function Clone(out ppenum: IEnumGUID):HResult;StdCall;
+     End;
 
+   IBindHost = interface(IUnknown)
+     ['{FC4801A1-2BA9-11CF-A229-00AA003D7352}']
+     End;
+
+   IServiceProvider = interface(IUnknown)
+     ['{6D5140C1-7436-11CE-8034-00AA006009FA}']
+     Function QueryService(CONST rsid, iid: TGuid; OUT Obj):HResult;StdCall;
+     End;
+
+   PServiceProvider = ^IServiceProvider;
+
+   IParseDisplayName = interface(IUnknown)
+     ['{0000011A-0000-0000-C000-000000000046}']
+     Function ParseDisplayName(CONST bc: IBindCtx; pszDisplayName: POleStr;OUT chEaten: Longint; OUT mkOut: IMoniker): HResult;StdCall;
+     End;
+
+   IOleContainer = interface(IParseDisplayName)
+     ['{0000011B-0000-0000-C000-000000000046}']
+     Function EnumObjects(grfFlags: Longint; OUT Enum: IEnumUnknown):HResult;StdCall;
+     Function LockContainer(fLock: BOOL):HResult;StdCall;
+     End;
+
+   IOleClientSite = interface(IUnknown)
+     ['{00000118-0000-0000-C000-000000000046}']
+     Function SaveObject: HResult;StdCall;
+     Function GetMoniker(dwAssign: Longint; dwWhichMoniker: Longint;OUT mk: IMoniker):HResult;StdCall;
+     Function GetContainer(OUT container: IOleContainer):HResult;StdCall;
+     Function ShowObject:HResult;StdCall;
+     Function OnShowWindow(fShow: BOOL):HResult;StdCall;
+     Function RequestNewObjectLayout:HResult;StdCall;
+     End;
+
+
+{$ENDIF}
 { ******************************************************************************************************************
                                                           stuff from objbase.h
   ****************************************************************************************************************** }
@@ -2655,7 +2684,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2003-10-05 19:10:31  florian
+  Revision 1.11  2003-10-05 20:30:09  florian
+    + necessary declarations for dx8 headers added
+
+  Revision 1.10  2003/10/05 19:10:31  florian
     * fixed some delphi compatibilty issues
     * improved makefile dependencies
 
