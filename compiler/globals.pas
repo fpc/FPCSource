@@ -61,7 +61,7 @@ interface
        delphimodeswitches : tmodeswitches=
          [m_delphi,m_all,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
-          m_out,m_default_para,m_hintdirective,m_duplicate_names];
+          m_out,m_default_para,m_duplicate_names,m_hintdirective];
        fpcmodeswitches    : tmodeswitches=
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support,m_initfinal,m_add_pointer,m_hintdirective];
@@ -1516,7 +1516,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2002-11-30 00:34:20  pierre
+  Revision 1.74  2002-11-30 11:08:46  carl
+    * fix bug n last commit (this bug was only detected gby 1.0.x, fixed)
+
+  Revision 1.73  2002/11/30 00:34:20  pierre
    * remove double in delphimodeswitches to allow compilation with -Cr option
 
   Revision 1.72  2002/11/29 22:31:19  carl
