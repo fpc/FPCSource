@@ -5,9 +5,6 @@ unit initc;
 
 interface
 
-{$LINKLIB cygwin}
-{$linklib kernel32}
-
 type
  libcint   = longint;
  plibcint = ^libcint;
@@ -22,7 +19,7 @@ property cerrno:libcint read fpgetCerrno write fpsetcerrno;
 
 implementation
 
-function geterrnolocation: Plibcint; cdecl;external name '___errno';
+function geterrnolocation: Plibcint; cdecl;external 'cygwin1.dll' name '__errno';
 
 function fpgetCerrno:libcint;
 begin
@@ -37,7 +34,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2004-11-04 17:15:01  peter
+  Revision 1.15  2004-12-06 12:27:48  michael
+  * fix __errno loading from cygwin1.dll (from Peter)
+
+  Revision 1.14  2004/11/04 17:15:01  peter
    * wcygprt is now used for cygwin (libc) linking, initc contains only cerrno
 
   Revision 1.13  2004/11/04 09:32:31  peter
