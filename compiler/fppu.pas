@@ -182,7 +182,7 @@ uses
            exit;
          end;
        { check if floating point emulation is on?}
-        if ((ppufile.header.flags and uf_fpu_emulation)<>0) and 
+        if ((ppufile.header.flags and uf_fpu_emulation)<>0) and
             (cs_fp_emulation in aktmoduleswitches) then
          begin
            ppufile.free;
@@ -190,7 +190,7 @@ uses
            Message(unit_u_ppu_invalid_fpumode);
            exit;
          end;
-       
+
       { Load values to be access easier }
         flags:=ppufile.header.flags;
         crc:=ppufile.header.checksum;
@@ -476,9 +476,9 @@ uses
         { write the number of symbols }
         ppufile.putlongint(librarydata.asmsymbolppuidx);
         { write the symbols from the indexed list to the ppu }
-        for i:=0 to librarydata.asmsymbolppuidx-1 do
+        for i:=1 to librarydata.asmsymbolppuidx do
          begin
-           s:=librarydata.asmsymbolidx^[i];
+           s:=librarydata.asmsymbolidx^[i-1];
            if not assigned(s) then
             internalerror(200208071);
            ppufile.putstring(s.name);
@@ -679,12 +679,12 @@ uses
         if librarydata.asmsymbolppuidx>0 then
          begin
            getmem(librarydata.asmsymbolidx,librarydata.asmsymbolppuidx*sizeof(pointer));
-           for i:=0 to librarydata.asmsymbolppuidx-1 do
+           for i:=1 to librarydata.asmsymbolppuidx do
             begin
               name:=ppufile.getstring;
               bind:=tasmsymbind(ppufile.getbyte);
               typ:=tasmsymtype(ppufile.getbyte);
-              librarydata.asmsymbolidx^[i]:=librarydata.newasmsymboltype(name,bind,typ);
+              librarydata.asmsymbolidx^[i-1]:=librarydata.newasmsymboltype(name,bind,typ);
             end;
          end;
       end;
@@ -741,7 +741,7 @@ uses
       var
         b : byte;
       begin
-       { read interface part }
+         { read implementation part }
          repeat
            b:=ppufile.readentry;
            case b of
@@ -754,10 +754,10 @@ uses
            end;
          until false;
 
-         { we can now derefence all pointers to the objectdata }
-         tstoredsymtable(globalsymtable).derefobjectdata;
+         { we can now derefence all pointers to the implementation parts }
+         tstoredsymtable(globalsymtable).derefimpl;
          if assigned(localsymtable) then
-           tstoredsymtable(localsymtable).derefobjectdata;
+           tstoredsymtable(localsymtable).derefimpl;
       end;
 
 
@@ -770,7 +770,7 @@ uses
         if ((flags and uf_local_browser)<>0) then
           begin
              localsymtable:=tstaticsymtable.create(modulename^);
-             tstaticsymtable(localsymtable).load(ppufile);
+             tstaticsymtable(localsymtable).ppuload(ppufile);
           end;
 
         { load browser }
@@ -846,7 +846,7 @@ uses
          ppufile.writeentry(ibendinterface);
 
          { write the symtable entries }
-         tstoredsymtable(globalsymtable).write(ppufile);
+         tstoredsymtable(globalsymtable).ppuwrite(ppufile);
 
          { everything after this doesn't affect the crc }
          ppufile.do_crc:=false;
@@ -861,7 +861,7 @@ uses
            needed for local debugging of unit functions }
          if ((flags and uf_local_browser)<>0) and
             assigned(localsymtable) then
-           tstoredsymtable(localsymtable).write(ppufile);
+           tstoredsymtable(localsymtable).ppuwrite(ppufile);
 
          { write all browser section }
          if (flags and uf_has_browser)<>0 then
@@ -930,7 +930,7 @@ uses
          ppufile.writeentry(ibendinterface);
 
          { write the symtable entries }
-         tstoredsymtable(globalsymtable).write(ppufile);
+         tstoredsymtable(globalsymtable).ppuwrite(ppufile);
 
          { save crc  }
          crc:=ppufile.crc;
@@ -1008,10 +1008,12 @@ uses
            pu:=tused_unit(pu.next);
          end;
         { ok, now load the interface of this unit }
-        current_module:=self;
-        SetCompileModule(current_module);
+        if current_module<>self then
+         internalerror(200208187);
+//        current_module:=self;
+//        SetCompileModule(current_module);
         globalsymtable:=tglobalsymtable.create(modulename^);
-        tstoredsymtable(globalsymtable).load(ppufile);
+        tstoredsymtable(globalsymtable).ppuload(ppufile);
         { now only read the implementation uses }
         in_implementation:=true;
         pu:=tused_unit(used_units.first);
@@ -1049,13 +1051,15 @@ uses
            pu:=tused_unit(pu.next);
          end;
 
-        { read the implementation/object part }
+        { read the implementation/objectdata part }
         load_implementation;
 
         { load browser info if stored }
         if ((flags and uf_has_browser)<>0) and load_refs then
          begin
-           current_module:=self;
+           if current_module<>self then
+            internalerror(200208188);
+//           current_module:=self;
            load_symtable_refs;
          end;
         { remove the map, it's not needed anymore }
@@ -1103,16 +1107,10 @@ uses
                     in_second_compile:=true;
                     Message1(parser_d_compiling_second_time,modulename^);
                   end;
-                if assigned(current_scanner) then
-                  current_scanner.tempcloseinputfile;
                 name:=mainsource^;
                 { compile this module }
-                current_module:=self;
                 compile(name);
                 in_second_compile:=false;
-                { the scanner can be reset }
-                if assigned(current_scanner) then
-                  current_scanner.tempopeninputfile;
               end;
            end;
          if assigned(ppufile) then
@@ -1141,8 +1139,14 @@ uses
         ups   : stringid;
       begin
          old_current_module:=current_module;
+         { we are loading a new module, save the state of the scanner
+           and reset scanner+module }
+         if assigned(current_scanner) then
+           current_scanner.tempcloseinputfile;
+         current_scanner:=nil;
+         current_module:=nil;
          { Info }
-         Message3(unit_u_load_unit,current_module.modulename^,ImplIntf[current_module.in_implementation],s);
+         Message3(unit_u_load_unit,old_current_module.modulename^,ImplIntf[old_current_module.in_implementation],s);
          ups:=upper(s);
          { unit not found }
          st:=nil;
@@ -1173,11 +1177,11 @@ uses
                       else
                        begin
                          { both units in interface ? }
-                         if (not current_module.in_implementation) and
+                         if (not old_current_module.in_implementation) and
                             (not hp.in_implementation) then
                           begin
                             { check for a cycle }
-                            hp2:=current_module.loaded_from;
+                            hp2:=old_current_module.loaded_from;
                             while assigned(hp2) and (hp2<>hp) do
                              begin
                                if hp2.in_implementation then
@@ -1186,7 +1190,7 @@ uses
                                  hp2:=hp2.loaded_from;
                              end;
                             if assigned(hp2) then
-                              Message2(unit_f_circular_unit_reference,current_module.modulename^,hp.modulename^);
+                              Message2(unit_f_circular_unit_reference,old_current_module.modulename^,hp.modulename^);
                           end;
                        end;
                       break;
@@ -1204,13 +1208,13 @@ uses
           begin
             if assigned(hp) then
              begin
-               { remove the old unit, but save the scanner }
+               current_module:=hp;
+               { remove the old unit }
                loaded_units.remove(hp);
                hp.reset;
                { try to reopen ppu }
                hp.search_unit(s,fn,false);
                { try to load the unit a second time first }
-               current_module:=hp;
                current_module.in_second_load:=true;
                Message1(unit_u_second_load_unit,current_module.modulename^);
                second_time:=true;
@@ -1259,18 +1263,22 @@ uses
             assigned(tppumodule(old_current_module).ppufile) then
            tppumodule(old_current_module).ppufile.tempopen;
 {$endif SHORT_ON_FILE_HANDLES}
-         { we are back }
+         { we are back, restore current_module and current_scanner }
          current_module:=old_current_module;
+         current_scanner:=tscannerfile(current_module.scanner);
+         if assigned(current_scanner) then
+           current_scanner.tempopeninputfile;
          SetCompileModule(current_module);
          loadunit:=hp;
       end;
 
-
-
 end.
 {
   $Log$
-  Revision 1.21  2002-08-15 15:09:41  carl
+  Revision 1.22  2002-08-18 19:58:28  peter
+    * more current_scanner fixes
+
+  Revision 1.21  2002/08/15 15:09:41  carl
     + fpu emulation helpers (ppu checking also)
 
   Revision 1.20  2002/08/12 16:46:04  peter

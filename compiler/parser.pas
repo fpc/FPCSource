@@ -95,8 +95,9 @@ implementation
          orgpattern:='';
          current_scanner:=nil;
 
-         { register all nodes }
+         { register all nodes and tais }
          registernodes;
+         registertais;
 
          { memory sizes }
          if heapsize=0 then
@@ -460,19 +461,21 @@ implementation
          it's the default to release the trees }
          codegen_donemodule;
 
-       { free ppu }
+         { free ppu }
          if assigned(tppumodule(current_module).ppufile) then
           begin
             tppumodule(current_module).ppufile.free;
             tppumodule(current_module).ppufile:=nil;
           end;
-       { free scanner }
-         if assigned(current_scanner) then
+
+         { free scanner }
+         if assigned(current_module.scanner) then
           begin
-            current_scanner.free;
-            current_scanner:=nil;
+            if current_scanner=tscannerfile(current_module.scanner) then
+              current_scanner:=nil;
+            tscannerfile(current_module.scanner).free;
+            current_module.scanner:=nil;
           end;
-         current_module.scanner:=nil;
 
          if (compile_level>1) then
            begin
@@ -487,9 +490,6 @@ implementation
               idtoken:=oldidtoken;
               akttokenpos:=oldtokenpos;
               block_type:=old_block_type;
-              current_scanner:=tscannerfile(old_compiled_module.scanner);
-              if assigned(current_scanner) then
-                parser_current_file:=current_scanner.inputfile.name^;
               { restore cg }
               parse_only:=oldparse_only;
               { restore asmlists }
@@ -508,6 +508,10 @@ implementation
               { object data }
               ResourceStrings:=OldResourceStrings;
               objectlibrary:=oldobjectlibrary;
+              { restore previous scanner }
+              current_scanner:=tscannerfile(old_compiled_module.scanner);
+              if assigned(current_scanner) then
+                parser_current_file:=current_scanner.inputfile.name^;
               { restore symtable state }
               refsymtable:=oldrefsymtable;
               symtablestack:=oldsymtablestack;
@@ -595,7 +599,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2002-08-16 15:31:08  peter
+  Revision 1.43  2002-08-18 19:58:28  peter
+    * more current_scanner fixes
+
+  Revision 1.42  2002/08/16 15:31:08  peter
     * fixed possible crashes with current_scanner
 
   Revision 1.41  2002/08/15 19:10:35  peter
