@@ -185,12 +185,16 @@ type
   SigSet  = Longint;
   PSigSet = ^SigSet;
 
-  SigActionRec = packed record
+  SigActionRec = packed record  // this is temporary for the migration
+   {$ifdef posixworkaround}
+    sa_handler : signalhandler;
+   {$else}
     Handler  : record
       case byte of
         0: (Sh: SignalHandler);
         1: (Sa: TSigAction);
       end;
+   {$endif}
     Sa_Mask     : SigSet;
     Sa_Flags    : Longint;
     Sa_restorer : SignalRestorer; { Obsolete - Don't use }
@@ -199,7 +203,10 @@ type
 
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:19  peter
+  Revision 1.7  2002-11-12 14:51:44  marco
+   * signal.
+
+  Revision 1.6  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/07/28 20:43:48  florian
