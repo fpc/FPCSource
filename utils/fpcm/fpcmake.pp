@@ -17,7 +17,7 @@
 program fpcmake;
 
     uses
-      dos,sysutils,
+      sysutils,
       fpcmmain,fpcmwr;
 
     procedure Verbose(s:string);
@@ -37,31 +37,51 @@ program fpcmake;
       var
         CurrFPCMake : TFPCMake;
         CurrMakefile : TMakefileWriter;
-        s : string;
+{$ifdef SUBDIRS}
+        s,Subdirs : string;
+        t : ttarget;
+{$endif SUBDIRS}
       begin
         CurrFPCMake:=nil;
 //        try
           writeln('Processing ',fn);
+          { Load Makefile.fpc }
           CurrFPCMake:=TFPCMake.Create(fn);
-          s:=GetEnv('FPCDIR');
-          if s<>'' then
-           CurrFPCMake.Variables.Add('FPCDIR',s)
-          else
-           CurrFPCMake.Variables.Add('FPCDIR','c:/pp');
-          CurrFPCMake.Variables.Add('UNITSDIR','$(FPCDIR)/units');
-          CurrFPCMake.Variables.Add('PACKAGESDIR','$(FPCDIR)/packages');
           CurrFPCMake.LoadMakefileFPC;
 //          CurrFPCMake.Print;
 
+{$ifdef SUBDIRS}
+          subdirs:=CurrFPCMake.GetVariable('target_dirs',true);
+          for t:=low(ttarget) to high(ttarget) do
+           subdirs:=subdirs+' '+CurrFPCMake.GetVariable('target_dirs'+targetsuffix[t],true);
+{$endif SUBDIRS}
+
+          { Write Makefile }
           CurrMakefile:=TMakefileWriter.Create(CurrFPCMake,ExtractFilePath(fn)+'Makefile');
           CurrMakefile.WriteGenericMakefile;
+          { Free }
           CurrMakefile.Free;
 
 //        except
 //          on e : exception do
-//           Error(e.message);
+//           begin
+//             Error(e.message);
+//             Subdirs:='';
+//           end;
 //        end;
         CurrFPCMake.Free;
+
+{$ifdef SUBDIRS}
+        { Process subdirs }
+        writeln('Subdirs found: ',subdirs);
+        repeat
+          s:=GetToken(subdirs);
+          if s='' then
+           break;
+          ProcessFile(ExtractFilePath(fn)+s+'/Makefile.fpc');
+        until false;
+{$endif SUBDIRS}
+
       end;
 
 
@@ -94,7 +114,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2001-01-29 21:49:10  peter
+  Revision 1.3  2001-02-22 21:11:24  peter
+    * fpcdir detection added
+    * fixed loading of variables in fpcmake itself
+
+  Revision 1.2  2001/01/29 21:49:10  peter
     * lot of updates
 
   Revision 1.1  2001/01/24 21:59:36  peter
