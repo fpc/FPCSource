@@ -1011,36 +1011,44 @@ var
 begin
   env:=GetEnvPChar(envname);
   pc:=env;
-  repeat
-    { skip leading spaces }
-    while pc^ in [' ',#9,#13] do
-     inc(pc);
-    case pc^ of
-      #0 : break;
-     '"' : begin
+  if assigned(pc) then
+   begin
+     repeat
+       { skip leading spaces }
+       while pc^ in [' ',#9,#13] do
+        inc(pc);
+       case pc^ of
+         #0 :
+           break;
+         '"' :
+           begin
              quote:=['"'];
              inc(pc);
            end;
-    '''' : begin
-             quote:=[''''];
-             inc(pc);
+         '''' :
+           begin
+              quote:=[''''];
+              inc(pc);
            end;
-    else
-     quote:=[' ',#9,#13];
-    end;
-  { scan until the end of the argument }
-    argstart:=pc;
-    while (pc^<>#0) and not(pc^ in quote) do
-     inc(pc);
-  { create argument }
-    arglen:=pc-argstart;
-    hs[0]:=chr(arglen);
-    move(argstart^,hs[1],arglen);
-    interpret_option(hs,true);
-  { skip quote }
-    if pc^ in quote then
-     inc(pc);
-  until false;
+         else
+           quote:=[' ',#9,#13];
+       end;
+     { scan until the end of the argument }
+       argstart:=pc;
+       while (pc^<>#0) and not(pc^ in quote) do
+        inc(pc);
+     { create argument }
+       arglen:=pc-argstart;
+       hs[0]:=chr(arglen);
+       move(argstart^,hs[1],arglen);
+       interpret_option(hs,true);
+     { skip quote }
+       if pc^ in quote then
+        inc(pc);
+     until false;
+   end
+  else
+   Message1(option_no_option_found,'(env) '+envname);
   FreeEnvPChar(env);
 end;
 
@@ -1398,7 +1406,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.51  2000-01-14 15:33:15  pierre
+  Revision 1.52  2000-01-17 22:50:28  peter
+    * fixed interpret_envvar whcih crashed when the envvar was not set
+    * also warn if the envvar is empty (=not set)
+
+  Revision 1.51  2000/01/14 15:33:15  pierre
    + parsecmd supports "filename with spaces" for IDE
 
   Revision 1.50  2000/01/14 14:33:54  pierre
