@@ -1659,6 +1659,10 @@
     function IDC_ICON : LPTSTR;
       { return type might be wrong }
 
+    { was #define dname def_expr }
+    function IDC_HAND : LPTSTR;
+      { return type might be wrong }
+
   { GetMapMode  }
 
   const
@@ -5606,6 +5610,13 @@ const
       end;
 
     { was #define dname def_expr }
+    function IDC_HAND : LPTSTR;
+      { return type might be wrong }
+      begin
+         IDC_HAND:=MAKEINTRESOURCE(32649);
+      end;
+
+    { was #define dname def_expr }
     function STD_INPUT_HANDLE : DWORD;
       begin
          STD_INPUT_HANDLE:=DWORD(-(10));
@@ -5933,7 +5944,10 @@ const
 
 {
   $Log$
-  Revision 1.20  2005-02-14 17:13:32  peter
+  Revision 1.21  2005-03-12 13:55:07  florian
+    + IDC_HAND
+
+  Revision 1.20  2005/02/14 17:13:32  peter
     * truncate log
 
 }
