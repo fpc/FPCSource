@@ -956,7 +956,7 @@ begin
         movl    s2,%esi
         movl    %edi,%ebx
         movzbl  (%edi),%ecx
-        movl    s1+4,%eax
+        movl    __HIGH(s1),%eax
         lea     1(%edi,%ecx),%edi
         negl    %ecx
         addl    %eax,%ecx
@@ -1319,7 +1319,10 @@ end;
 
 {
   $Log$
-  Revision 1.48  2003-10-14 00:57:48  florian
+  Revision 1.49  2003-10-16 21:28:40  peter
+    * use __HIGH()
+
+  Revision 1.48  2003/10/14 00:57:48  florian
     + some code for PIC support added
 
   Revision 1.47  2003/09/14 11:34:13  peter
