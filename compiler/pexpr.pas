@@ -449,6 +449,12 @@ implementation
                          Message(parser_e_illegal_parameter_list);
                          err:=true;
                        end;
+                   arraydef :
+                     if not is_dynamic_array(p1.resulttype.def) then
+                       begin
+                         Message(parser_e_illegal_parameter_list);
+                         err:=true;
+                       end;
                    else
                      begin
                        Message(parser_e_illegal_parameter_list);
@@ -2421,7 +2427,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.154  2004-04-29 19:56:37  daniel
+  Revision 1.155  2004-05-16 15:03:48  florian
+    + support for assigned(<dyn. array>) added
+
+  Revision 1.154  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.153  2004/04/12 18:59:32  florian
