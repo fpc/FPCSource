@@ -257,7 +257,7 @@ implementation
          unusedregisters : tregisterset;
          usablecount : byte;
          pushed : tpushed;
-         hr,funcretref : treference;
+         hr,funcretref,refcountedtemp : treference;
          hregister,hregister2 : tregister;
          oldpushedparasize : longint;
          { true if ESI must be loaded again after the subroutine }
@@ -308,6 +308,19 @@ implementation
          no_virtual_call:=false;
          unusedregisters:=unused;
          usablecount:=usablereg32;
+
+         { if we allocate the temp. location for ansi- or widestrings }
+         { already here, we avoid later a push/pop                    }
+         if is_widestring(resulttype.def) then
+           begin
+             gettempwidestringreference(refcountedtemp);
+             decrstringref(resulttype.def,refcountedtemp);
+           end
+         else if is_ansistring(resulttype.def) then
+           begin
+             gettempansistringreference(refcountedtemp);
+             decrstringref(resulttype.def,refcountedtemp);
+           end;
 
          if (procdefinition.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_stdcall]) then
           para_alignment:=4
@@ -1275,23 +1288,10 @@ implementation
               else if is_ansistring(resulttype.def) or
                 is_widestring(resulttype.def) then
                 begin
-                   hregister:=getexplicitregister32(R_EAX);
-                   emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
-                   if tstringdef(resulttype.def).string_typ=st_widestring then
-                    begin
-                      gettempwidestringreference(hr);
-                      decrstringref(resulttype.def,hr);
-                    end
-                   else
-                    begin
-                      gettempansistringreference(hr);
-                      decrstringref(resulttype.def,hr);
-                    end;
-                   emit_reg_ref(A_MOV,S_L,hregister,
-                     newreference(hr));
-                   ungetregister32(hregister);
+                   emit_reg_ref(A_MOV,S_L,R_EAX,
+                     newreference(refcountedtemp));
                    location.loc:=LOC_MEM;
-                   location.reference:=hr;
+                   location.reference:=refcountedtemp;
                 end
               else
                 begin
@@ -1593,7 +1593,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2001-11-02 23:24:40  peter
+  Revision 1.38  2001-11-18 00:00:34  florian
+    * handling of ansi- and widestring results improved
+
+  Revision 1.37  2001/11/02 23:24:40  peter
     * fixed crash with inlining after aktprocdef change
 
   Revision 1.36  2001/11/02 22:58:09  peter
