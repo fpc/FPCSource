@@ -287,7 +287,7 @@ begin
 end;
 
 
-procedure abstracterror;[public,alias : 'ABSTRACTERROR'];
+procedure abstracterror;[public,alias : 'FPC_ABSTRACTERROR'];
 
 begin
   Runerror(211);
@@ -469,7 +469,10 @@ end;
 
 {
   $Log$
-  Revision 1.31  1998-09-15 17:12:32  michael
+  Revision 1.32  1998-09-16 12:37:07  michael
+  Added FPC_ prefix to abstracterror
+
+  Revision 1.31  1998/09/15 17:12:32  michael
   + Merged changes from fixes branch
 
 

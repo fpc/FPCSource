@@ -882,7 +882,7 @@ unit types;
                                   if (procdefcoll^.data^.options and poabstractmethod)<>0 then
                                     begin
                                        _class^.options:=_class^.options or oois_abstract;
-                                       datasegment^.concat(new(pai_const,init_symbol('ABSTRACTERROR')));
+                                       datasegment^.concat(new(pai_const,init_symbol('FPC_ABSTRACTERROR')));
                                     end
                                   else
                                     begin
@@ -919,7 +919,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.28  1998-09-09 16:44:23  florian
+  Revision 1.29  1998-09-16 12:37:31  michael
+  Added FPC_ prefix to abstracterror
+
+  Revision 1.28  1998/09/09 16:44:23  florian
     * I hope, the case bug is fixed now
 
   Revision 1.27  1998/09/07 17:37:07  florian
