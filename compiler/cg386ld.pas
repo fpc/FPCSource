@@ -80,7 +80,7 @@ implementation
                      begin
                          pushusedregisters(pushed,$ff);
                          emit_const(A_PUSH,S_L,
-                           pconstsym(p^.symtableentry)^.reshash);
+                           pconstsym(p^.symtableentry)^.resstrindex);
                          emitcall('FPC_GETRESOURCESTRING');
 
                          hregister:=getexplicitregister32(R_EAX);
@@ -964,7 +964,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  1999-08-19 13:08:49  pierre
+  Revision 1.76  1999-08-23 11:45:39  michael
+  * Hopefully final attempt at resourcestrings
+
+  Revision 1.75  1999/08/19 13:08:49  pierre
    * emit_??? used
 
   Revision 1.74  1999/08/17 13:26:06  peter

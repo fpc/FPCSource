@@ -1633,7 +1633,7 @@
          typ:=constsym;
          consttype:=t;
          value:=v;
-         reshash:=0;
+         ResStrIndex:=0;
          definition:=nil;
          len:=0;
       end;
@@ -1659,7 +1659,7 @@
          definition:=nil;
          len:=l;
          if t=constresourcestring then
-           reshash:=registerresourcestring(name,pchar(value),len);
+           ResStrIndex:=registerresourcestring(name,pchar(value),len);
       end;
 
     constructor tconstsym.load;
@@ -1685,7 +1685,7 @@
                getmem(pchar(value),len+1);
                current_ppu^.getdata(pchar(value)^,len);
                if consttype=constresourcestring then
-                 reshash:=registerresourcestring(name,pchar(value),len);
+                 ResStrIndex:=readlong;
              end;
            constreal :
              begin
@@ -1753,6 +1753,7 @@
              begin
                writelong(len);
                current_ppu^.putdata(pchar(value)^,len);
+               writelong(ResStrIndex);
              end;
            constreal :
              writereal(pbestreal(value)^);
@@ -2153,7 +2154,10 @@
 
 {
   $Log$
-  Revision 1.114  1999-08-15 21:57:58  michael
+  Revision 1.115  1999-08-23 11:45:42  michael
+  * Hopefully final attempt at resourcestrings
+
+  Revision 1.114  1999/08/15 21:57:58  michael
   Changes for resource strings
 
   Revision 1.113  1999/08/14 00:39:00  peter

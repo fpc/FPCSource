@@ -286,7 +286,7 @@
        tconstsym = object(tsym)
           definition : pdef;
           consttype  : tconsttype;
-          reshash,    { needed for resource strings }
+          resstrindex,    { needed for resource strings }
           value,
           len        : longint; { len is needed for string length }
           constructor init(const n : string;t : tconsttype;v : longint);
@@ -336,7 +336,10 @@
 
 {
   $Log$
-  Revision 1.32  1999-08-14 00:39:01  peter
+  Revision 1.33  1999-08-23 11:45:45  michael
+  * Hopefully final attempt at resourcestrings
+
+  Revision 1.32  1999/08/14 00:39:01  peter
     * hack to support property with record fields
 
   Revision 1.31  1999/08/10 12:33:38  pierre
