@@ -28,7 +28,7 @@ Interface
 
 Uses
   cutils,cobjects,
-  globtype,aasm,cpubase,symconst;
+  globtype,aasm,cpubase,symconst,symdef;
 
 Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
@@ -212,7 +212,7 @@ uses
   strings,
 {$endif}
   types,systems,verbose,globals,fmodule,
-  symbase,symtype,symdef,symsym,symtable,cpuasm
+  symbase,symtype,symsym,symtable,cpuasm
 {$ifdef NEWCG}
   ,cgbase;
 {$else}
@@ -734,8 +734,8 @@ Begin
   if assigned(procinfo^.returntype.def) and
      (procinfo^.returntype.def<>pdef(voiddef)) then
    begin
-     if (m_tp in aktmodeswitches) or
-        (m_delphi in aktmodeswitches) then
+     if (procinfo^.return_offset=0) and ((m_tp in aktmodeswitches) or
+        (m_delphi in aktmodeswitches)) then
        begin
          Message(asmr_e_cannot_use_RESULT_here);
          exit;
@@ -1548,7 +1548,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-10-31 22:02:51  peter
+  Revision 1.9  2000-10-31 22:30:13  peter
+    * merged asm result patch part 2
+
+  Revision 1.8  2000/10/31 22:02:51  peter
     * symtable splitted, no real code changes
 
   Revision 1.7  2000/10/08 10:26:33  peter

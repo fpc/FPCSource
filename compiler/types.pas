@@ -458,7 +458,9 @@ implementation
     { returns true, if def uses FPU }
     function is_fpu(def : pdef) : boolean;
       begin
-         is_fpu:=(def^.deftype=floatdef) and (pfloatdef(def)^.typ<>f32bit);
+         is_fpu:=(def^.deftype=floatdef) and
+                 (pfloatdef(def)^.typ<>f32bit) and
+                 (pfloatdef(def)^.typ<>f16bit);
       end;
 
 
@@ -1684,7 +1686,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2000-10-31 22:02:55  peter
+  Revision 1.17  2000-10-31 22:30:13  peter
+    * merged asm result patch part 2
+
+  Revision 1.16  2000/10/31 22:02:55  peter
     * symtable splitted, no real code changes
 
   Revision 1.15  2000/10/21 18:16:12  florian

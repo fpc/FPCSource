@@ -515,7 +515,6 @@ implementation
       begin
          if usablereg32=0 then
            internalerror(10);
-         dec(usablereg32);
 {$ifdef TEMPREGDEBUG}
          if curptree^^.usableregs-usablereg32>curptree^^.registers32 then
            internalerror(10);
@@ -524,6 +523,7 @@ implementation
          if curptree^^.usableregs-usablereg32>curptree^^.reallyusedregs then
            curptree^^.reallyusedregs:=curptree^^.usableregs-usablereg32;
 {$endif EXTTEMPREGDEBUG}
+         dec(usablereg32);
          if R_EAX in unused then
            begin
               unused:=unused-[R_EAX];
@@ -653,7 +653,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-10-14 10:14:56  peter
+  Revision 1.9  2000-10-31 22:30:13  peter
+    * merged asm result patch part 2
+
+  Revision 1.8  2000/10/14 10:14:56  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.7  2000/09/30 16:08:46  peter

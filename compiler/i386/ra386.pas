@@ -63,7 +63,7 @@ uses
 {$else}
   hcodegen,
 {$endif}
-  globtype,systems,types,globals,verbose,cpuasm;
+  globtype,symconst,symdef,symtable,systems,types,globals,verbose,cpuasm;
 
 
 {*****************************************************************************
@@ -185,16 +185,38 @@ Begin
    begin
      opr.typ:=OPR_REGISTER;
      if is_fpu(procinfo^.returntype.def) then
-       opr.reg:=R_ST0
+       begin
+         opr.reg:=R_ST0;
+         case pfloatdef(procinfo^.returntype.def)^.typ of
+           s32real : size:=S_FS;
+           s64real : size:=S_FL;
+           s80real : size:=S_FX;
+           s64comp : size:=S_IQ;
+         else
+           begin
+             Message(asmr_e_cannot_use_RESULT_here);
+             res:=false;
+           end;
+         end;
+       end
      else if ret_in_acc(procinfo^.returntype.def) then
        case procinfo^.returntype.def^.size of
-       1 : opr.reg:=R_AL;
-       2 : opr.reg:=R_AX;
-       3,4 : opr.reg:=R_EAX;
+       1 : begin
+             opr.reg:=R_AL;
+             size:=S_B;
+           end;
+       2 : begin
+             opr.reg:=R_AX;
+             size:=S_W;
+           end;
+       3,4 : begin
+               opr.reg:=R_EAX;
+               size:=S_L;
+             end;
        else
          begin
            Message(asmr_e_cannot_use_RESULT_here);
-           exit;
+           res:=false;
          end;
        end;
      Message1(asmr_h_RESULT_is_reg,reg2str(opr.reg));
@@ -492,7 +514,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:47:43  peter
+  Revision 1.2  2000-10-31 22:30:14  peter
+    * merged asm result patch part 2
+
+  Revision 1.1  2000/10/15 09:47:43  peter
     * moved to i386/
 
   Revision 1.7  2000/10/08 10:26:33  peter
