@@ -752,6 +752,22 @@ For an example, see \seep{Nice}.
 
 \input{linuxex/ex18.tex}
 
+\function{IOperm}{(From,Num : Cadinal; Value : Longint)}{boolean}
+{\var{IOperm}
+  sets permissions on \var{Num} ports starting with port \var{From} to 
+  \var{Value}. The function returns \var{True} if the call was successfull,
+  \var{False} otherwise.  \var{Value} is as in \var{} 
+
+{\em Remark:}
+\begin{itemize}
+\item This works ONLY as root.
+\item Only the first \var{$03ff} ports can be set.
+\item When doing a \seef{Fork}, the permissions are reset. When doing a
+\seep{Execve} they are kept.
+\end{itemize}
+}
+{Errors are returned in \var{LinuxError}}{\seem{ioperm}{2}}
+
 \function{Link}{(OldPath,NewPath : pathstr)}{Boolean}
 {\var{Link} makes \var{NewPath} point to the same file als \var{OldPath}. The two files
 then have the same inode number. This is known as a 'hard' link.
