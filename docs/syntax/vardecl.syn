@@ -1,0 +1,31 @@
+\begin{diagram}{Variable declaration}{vardecl}
+\begin{mysyntdiag}
+\synt{variable\ declaration} \synt{identifier} \lit*: \synt{type} 
+\begin{stack}\\
+\lit* = \synt{expression}
+\end{stack}
+\begin{stack}\\ \synt{variable\ modifiers} \end{stack}
+\lit* ; 
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{variable\ modifiers}
+\begin{rep}[b]
+  \begin{stack}
+    \lit*{absolute} 
+    \begin{stack}
+      \synt{integer\ expression}\\
+      \synt{identifier}
+    \end{stack} \\
+    \lit*{;\ export} \\
+    \lit*{;\ cvar} \\
+    \lit*{;\ external}
+     \begin{stack} \\
+       \synt{string\ constant}
+     \end{stack} 
+     \begin{stack} \\
+       \lit*{name} \synt{string\ constant}
+     \end{stack}
+  \end{stack} 
+\end{rep}
+\end{mysyntdiag}
+\end{diagram}

@@ -1850,6 +1850,163 @@ stored in the variant \var{W}, and execute the call if the needed dispatch
 information is found.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Variables
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Variables}
+\label{ch:Variables}
+\section{Definition}
+Variables are explicitly named memory locations with a certain type. When
+assigning values to variables, the \fpc compiler generates machine code 
+to move the value to the memory location reserved for this variable. Where
+this variable is stored depends on where it is declared:
+
+\begin{itemize}
+\item Global variables are variables declared in a unit or program, but not
+inside a procedure or function. They are stored in fixed memory locations,
+and are available during the whole execution time of the program.
+\item Local variables are declared inside a procedure or function. Their
+value is stored on the program stack, i.e. not at fixed locations.
+\end{itemize}
+
+The \fpc compiler handles the allocation of these memory locations
+transparantly, although this location can be influenced in the declaration.
+
+The \fpc compiler also handles reading values from or writing values to
+the variables transparantly. But even this can be explicitly handled by the
+programmer when using properties.
+
+Variables must be explicitly declared when they are needed. No memory is
+allocated unless a variable is declared. Using an variable identifier (for
+instance, a loop variable) which is not declared first, is an error which
+will be reported by the compiler. 
+
+\section{Declaration}
+The variables must be declared in a variable declaration section of a unit
+or a procedure or function. It looks as follows:
+\input{syntax/vardecl.syn}
+
+This means that the following are valid variable declarations:
+\begin{verbatim}
+Var
+  curterm1 : integer;
+
+  curterm2 : integer; cvar;
+  curterm3 : integer; cvar; external;
+
+  curterm4 : integer; external name 'curterm3';
+  curterm5 : integer; external 'libc' name 'curterm9';
+
+  curterm6 : integer absolute curterm1;
+
+  curterm7 : integer; cvar;  export;
+  curterm8 : integer; cvar;  public;
+  curterm9 : integer; export name 'me';
+  curterm10 : integer; public name 'ma';
+
+  curterm11 : integer = 1 ;
+\end{verbatim}
+
+The difference between these declarations is as follows:
+\begin{enumerate}
+\item The first form (\var{curterm1}) defines a regular variable. The
+compiler manages everything by itself.
+\item The second form (\var{curterm2}) declares also a regular variable, 
+but specifies that the assembler name for this variable equals the name 
+of the variable as written in the source.
+\item The third form (\var{curterm3}) declares a variable which is located
+externally: the compiler will assume memory is located elsewhere, and that
+the assembler name of this location is specified by the name of the
+variable, as written in the source. The name may not be specified.
+\item The fourth form is completely equivalent to the third, it declares a
+variable which is stored externally, and explicitly gives the assembler
+name of the location. If \var{cvar} is not used, the name must be specified.
+\item The fifth form is a variant of the fourth form, only the name of the
+library in which the memory is reserved is specified as well.
+\item The sixth form declares a variable (\var{curterm6}), and tells the compiler that it is
+stored in the same location as another variable (\var{curterm1})
+\item The seventh form declares a variable (\var{curterm7}), and tells the
+compiler that the assembler label of this variable should be the name of the
+variable (case sensitive) and must be made public. (i.e. it can be
+referenced from other object files)
+\item The eight form (\var{curterm8}) is equivalent to the seventh: 'public'
+is an alias for 'export'.
+\item The ninth and tenth form are equivalent: they specify the assembler 
+name of the variable.
+\item the elevents form declares a variable (\var{curterm11}) and
+initializes it with a value (1 in the above case).
+\end{enumerate}
+Note that assembler names must be unique. It's not possible to declare or 
+export 2 variables with the same assembler name.
+
+\section{Scope}
+Variables, just as any identifier, obey the general rules of scope. 
+In addition, initialized variables are initialized when they enter scope:
+\begin{itemize}
+\item Global initialized variables are initialized once, when the program starts.
+\item Local initialized variables are initialized each time the procedure is
+entered.
+\end{itemize}
+Note that the behaviour for local initialized variables is different from
+the one of a local typed constant. A local typed constant behaves like a
+global initialized variable.
+
+\section{Properties}
+A global block can declare properties, just as they could be defined in a
+class. The difference is that the global property does not need a class
+instance: there is only 1 instance of this property. Other than that, a
+global property behaves like a class property. The read/write specifiers for
+the global property must also be regular procedures, not methods.
+The concept of a global property is specific to \fpc, and does not exist in
+Delphi.
+
+The concept of a global property can be used to 'hide' the location of the
+value, or to calculate the value on the fly, or to check the values which
+are written to the property.
+
+The declaration is as follows:
+\input{syntax/propvar.syn}
+
+The following is an example:
+\begin{verbatim}
+{$mode objfpc}
+unit testprop;
+
+Interface
+
+Function GetMyInt : Integer;
+Procedure SetMyInt(Value : Integer);
+
+Property
+  MyProp : Integer Read GetMyInt Write SetMyInt;
+  
+Implementation
+
+Uses sysutils;
+
+Var
+  FMyInt : Integer;  
+  
+Function GetMyInt : Integer;
+
+begin
+  Result:=FMyInt;
+end;
+
+Procedure SetMyInt(Value : Integer);
+
+begin
+  If ((Value mod 2)=1) then
+    Raise Exception.Create('MyProp can only contain even value');
+  FMyInt:=Value;  
+end;
+
+end.
+\end{verbatim}
+
+The read/write specifiers can be hidden by declaring them in another unit
+(which must be in the \var{uses} clause of the unit).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Objects
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Objects}
