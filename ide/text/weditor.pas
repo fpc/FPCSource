@@ -24,10 +24,8 @@ uses
 
 
 { try to only do syntax on part of file until current position
-  does not work correctly yet PM }
-{$ifdef DEBUG}
-  {$define TEST_PARTIAL_SYNTAX}
-{$endif DEBUG}
+  does work correctly now ? at least I hope so PM }
+{$define TEST_PARTIAL_SYNTAX}
 
 const
       cmFileNameChanged      = 51234;
@@ -5521,7 +5519,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.77  2000-01-27 22:30:38  florian
+  Revision 1.78  2000-01-28 22:20:04  pierre
+   * Test_partial_syntax released
+
+  Revision 1.77  2000/01/27 22:30:38  florian
     * start of FPU window
     * current executed line color has a higher priority then a breakpoint now
 
