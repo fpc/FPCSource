@@ -17,13 +17,14 @@ unit FPDebug;
 interface
 
 uses
-  Objects,GDBCon;
+  Views,Objects,GDBCon,GDBInt;
 
 type
   PDebugController=^TDebugController;
   TDebugController=object(TGDBController)
      Invalid_line : boolean;
      LastFileName : string;
+     LastSource   : PView; {PsourceWindow !! }
     constructor Init(const exefn:string);
     destructor  Done;
     procedure DoSelectSourceline(const fn:string;line:longint);virtual;
@@ -31,12 +32,14 @@ type
     procedure DoBreakSession;virtual;}
     procedure DoEndSession(code:longint);virtual;
     procedure AnnotateError;
+    procedure InsertBreakpoints;
+    procedure RemoveBreakpoints;
     procedure DoDebuggerScreen;virtual;
     procedure DoUserScreen;virtual;
   end;
 
   BreakpointType = (bt_function,bt_file_line,bt_invalid);
-  BreakpointState = (bs_enabled,bs_disabled,bs_invalid);
+  BreakpointState = (bs_enabled,bs_disabled,bs_deleted);
 
   PBreakpointCollection=^TBreakpointCollection;
 
@@ -47,8 +50,15 @@ type
      owner : PBreakpointCollection;
      Name : PString;  { either function name or file name }
      Line : Longint; { only used for bt_file_line type }
+     Conditions : PString; { conditions relative to that breakpoint }
+     GDBIndex : longint;
+     GDBState : BreakpointState;
      constructor Init_function(Const AFunc : String);
      constructor Init_file_line(Const AFile : String; ALine : longint);
+     procedure  Insert;
+     procedure  Remove;
+     procedure  Enable;
+     procedure  Disable;
      destructor Done;virtual;
   end;
 
@@ -84,13 +94,34 @@ begin
   inherited Init;
   f := exefn;
   LoadFile(f);
+  InsertBreakpoints;
 end;
 
+procedure TDebugController.InsertBreakpoints;
+  procedure DoInsert(PB : PBreakpoint);
+  begin
+    PB^.Insert;
+  end;
+    
+begin
+  BreakpointCollection^.ForEach(@DoInsert);
+end;
+
+
+procedure TDebugController.RemoveBreakpoints;
+  procedure DoDelete(PB : PBreakpoint);
+    begin
+      PB^.Remove;
+    end;
+begin
+   BreakpointCollection^.ForEach(@DoDelete);
+end;
 
 destructor TDebugController.Done;
 begin
   { kill the program if running }
   Reset;
+  RemoveBreakpoints;
   inherited Done;
 end;
 
@@ -111,22 +142,49 @@ var
 begin
   Desktop^.Lock;
   if Line>0 then
-   dec(Line);
-  W:=TryToOpenFile(nil,fn,0,Line);
-  if assigned(W) then
-   begin
-     W^.Editor^.SetHighlightRow(Line);
-     W^.Select;
-     Invalid_line:=false;
-   end
-   { only search a file once }
-  else if fn<>LastFileName then
-   begin
-     if not MyApp.OpenSearch(fn+'*') then
-       Invalid_line:=true;
-   end
+    dec(Line);
+  if (fn=LastFileName) then
+    begin
+      W:=PSourceWindow(LastSource);
+      if assigned(W) then
+        begin
+          W^.Editor^.SetCurPtr(0,Line);
+          W^.Editor^.SetHighlightRow(Line);
+          W^.Select;
+          Invalid_line:=false;
+        end
+      else
+        Invalid_line:=true;
+    end
   else
-    Invalid_line:=true;
+    begin
+      W:=TryToOpenFile(nil,fn,0,Line);
+      if assigned(W) then
+        begin
+          W^.Editor^.SetHighlightRow(Line);
+          W^.Select;
+          LastSource:=W;
+          Invalid_line:=false;
+        end
+        { only search a file once }
+      else
+       begin
+         if not MyApp.OpenSearch(fn+'*') then
+           begin
+             Invalid_line:=true;
+             LastSource:=Nil;
+           end
+         else
+           begin
+             { should now be open }
+              W:=TryToOpenFile(nil,fn,0,Line);
+              W^.Editor^.SetHighlightRow(Line);
+              W^.Select;
+              LastSource:=W;
+              Invalid_line:=false;
+           end;
+       end;
+    end;
   LastFileName:=fn;
   Desktop^.UnLock;
 end;
@@ -157,24 +215,85 @@ constructor TBreakpoint.Init_function(Const AFunc : String);
 begin
   typ:=bt_function;
   state:=bs_enabled;
+  GDBState:=bs_deleted;
   GetMem(Name,Length(AFunc)+1);
   Name^:=AFunc;
+  Conditions:=nil;
 end;
 
 constructor TBreakpoint.Init_file_line(Const AFile : String; ALine : longint);
 begin
   typ:=bt_file_line;
   state:=bs_enabled;
+  GDBState:=bs_deleted;
   GetMem(Name,Length(AFile)+1);
   Name^:=AFile;
   Line:=ALine;
+  Conditions:=nil;
 end;
 
+procedure TBreakpoint.Insert;
+begin
+  If not assigned(Debugger) then Exit;
+  
+  Debugger^.last_breakpoint_number:=0;
+  if (GDBState=bs_deleted) and (state=bs_enabled) then
+    begin
+      if (typ=bt_file_line) then
+        Debugger^.Command('break '+name^+':'+IntToStr(Line))
+      else if typ=bt_function then
+        Debugger^.Command('break '+name^);
+      if Debugger^.last_breakpoint_number<>0 then
+        begin
+          GDBIndex:=Debugger^.last_breakpoint_number;
+          GDBState:=bs_enabled;
+          if assigned(conditions) then
+            Debugger^.Command('cond '+IntToStr(GDBIndex)+' '+Conditions^);
+        end
+      else
+      { Here there was a problem !! }
+        begin
+          GDBIndex:=0;
+          state:=bs_disabled;
+        end;
+    end
+  else if (GDBState=bs_disabled) and (state=bs_enabled) then
+    Enable
+  else if (GDBState=bs_enabled) and (state=bs_disabled) then
+    Disable;
+end;
+
+procedure TBreakpoint.Remove;
+begin
+  If not assigned(Debugger) then Exit;
+  if GDBIndex>0 then
+    Debugger^.Command('delete '+IntToStr(GDBIndex));
+  GDBIndex:=0;
+  GDBState:=bs_deleted;
+end;
+
+procedure TBreakpoint.Enable;
+begin
+  If not assigned(Debugger) then Exit;
+  if GDBIndex>0 then
+    Debugger^.Command('enable '+IntToStr(GDBIndex));
+  GDBState:=bs_enabled;
+end;
+
+procedure TBreakpoint.Disable;
+begin
+  If not assigned(Debugger) then Exit;
+  if GDBIndex>0 then
+    Debugger^.Command('disable '+IntToStr(GDBIndex));
+  GDBState:=bs_disabled;
+end;
 
 destructor TBreakpoint.Done;
 begin
   if assigned(Name) then
     FreeMem(Name,Length(Name^)+1);
+  if assigned(Conditions) then
+    FreeMem(Conditions,Length(Conditions^)+1);
   inherited Done;
 end;
 
@@ -228,6 +347,9 @@ end;
 
 procedure InitDebugger;
 begin
+  Assign(gdb_file,'gdb$$$.out');
+  Rewrite(gdb_file);
+  Use_gdb_file:=true;
   if (not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) then
     DoCompile(cRun);
   if CompilationPhase<>cpDone then
@@ -248,6 +370,8 @@ procedure DoneDebugger;
 begin
   if assigned(Debugger) then
    dispose(Debugger,Done);
+   Use_gdb_file:=false;
+   Close(GDB_file);
 end;
 
 begin
@@ -256,7 +380,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1999-02-04 13:32:02  pierre
+  Revision 1.5  1999-02-04 17:54:22  pierre
+   + several commands added
+
+  Revision 1.4  1999/02/04 13:32:02  pierre
     * Several things added (I cannot commit them independently !)
     + added TBreakpoint and TBreakpointCollection
     + added cmResetDebugger,cmGrep,CmToggleBreakpoint
