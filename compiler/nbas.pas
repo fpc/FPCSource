@@ -34,7 +34,6 @@ interface
           constructor create;virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
-          procedure pass_2;override;
        end;
 
        terrornode = class(tnode)
@@ -106,12 +105,6 @@ implementation
     function tnothingnode.pass_1 : tnode;
       begin
          result:=nil;
-      end;
-
-    procedure tnothingnode.pass_2;
-
-      begin
-         { avoid an abstract rte }
       end;
 
 
@@ -401,7 +394,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2001-04-13 01:22:08  peter
+  Revision 1.11  2001-05-18 22:31:06  peter
+    * tasmnode.pass_2 is independent of cpu, moved to ncgbas
+    * include ncgbas for independent nodes
+
+  Revision 1.10  2001/04/13 01:22:08  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

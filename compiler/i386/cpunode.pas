@@ -29,7 +29,8 @@ unit cpunode;
   implementation
 
     uses
-       n386bas,n386ld,n386add,n386cal,n386con,n386flw,n386mat,n386mem,
+       ncgbas,
+       n386ld,n386add,n386cal,n386con,n386flw,n386mat,n386mem,
        n386set,n386inl,n386opt,
        { this not really a node }
        n386obj;
@@ -37,7 +38,11 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.3  2001-04-21 13:37:17  peter
+  Revision 1.4  2001-05-18 22:31:06  peter
+    * tasmnode.pass_2 is independent of cpu, moved to ncgbas
+    * include ncgbas for independent nodes
+
+  Revision 1.3  2001/04/21 13:37:17  peter
     * made tclassheader using class of to implement cpu dependent code
 
   Revision 1.2  2000/12/31 11:14:11  jonas
