@@ -106,9 +106,6 @@ procedure tarmclassheader.cgintfwrapper(asmlist: TAAsmoutput; procdef: tprocdef;
     { call/jmp  vmtoffs(%eax) ; method offs }
     reference_reset_base(href,NR_R12,procdef._class.vmtmethodoffset(procdef.extnumber));
     cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,NR_R12);
-    { using a_call here causes an internalerror because pi_do_call
-      isn't set properly }
-    exprasmlist.concat(taicpu.op_reg_reg(A_MOV,NR_R14,NR_PC));
     exprasmlist.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12));
   end;
 
@@ -165,7 +162,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2004-03-21 22:40:15  florian
+  Revision 1.2  2004-03-22 22:19:02  florian
+    * interface trampolines (hopyfully) fixed
+
+  Revision 1.1  2004/03/21 22:40:15  florian
     + added interface support for the arm
     * added  FPC_REQUIRES_PROPER_ALIGNMENT define for targets which require proper alignment
 }
