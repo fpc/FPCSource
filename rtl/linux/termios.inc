@@ -142,6 +142,11 @@ Const
 
   TIOCMIWAIT      = $545C;
   TIOCGICOUNT     = $545D;
+  TIOCGHAYESESP   = $545E;
+  TIOCSHAYESESP   = $545F;
+  FIOQSIZE        = $5460;
+
+
   TIOCPKT_DATA       = 0;
   TIOCPKT_FLUSHREAD  = 1;
   TIOCPKT_FLUSHWRITE = 2;
@@ -289,6 +294,73 @@ Const
   TIOCPKT_DOSTOP =		32;
   TIOCSER_TEMT =    $01;
 {$endif cpux86_64}
+
+{$ifdef cpuarm}
+  { For Terminal handling }
+  TCGETS          = $5401;
+  TCSETS          = $5402;
+  TCSETSW         = $5403;
+  TCSETSF         = $5404;
+  TCGETA          = $5405;
+  TCSETA          = $5406;
+  TCSETAW         = $5407;
+  TCSETAF         = $5408;
+  TCSBRK          = $5409;
+  TCXONC          = $540A;
+  TCFLSH          = $540B;
+  TIOCEXCL        = $540C;
+  TIOCNXCL        = $540D;
+  TIOCSCTTY       = $540E;
+  TIOCGPGRP       = $540F;
+  TIOCSPGRP       = $5410;
+  TIOCOUTQ        = $5411;
+  TIOCSTI         = $5412;
+  TIOCGWINSZ      = $5413;
+  TIOCSWINSZ      = $5414;
+  TIOCMGET        = $5415;
+  TIOCMBIS        = $5416;
+  TIOCMBIC        = $5417;
+  TIOCMSET        = $5418;
+  TIOCGSOFTCAR    = $5419;
+  TIOCSSOFTCAR    = $541A;
+  FIONREAD        = $541B;
+  TIOCINQ         = FIONREAD;
+  TIOCLINUX       = $541C;
+  TIOCCONS        = $541D;
+  TIOCGSERIAL     = $541E;
+  TIOCSSERIAL     = $541F;
+  TIOCPKT         = $5420;
+  FIONBIO         = $5421;
+  TIOCNOTTY       = $5422;
+  TIOCSETD        = $5423;
+  TIOCGETD        = $5424;
+  TCSBRKP         = $5425;
+  TIOCTTYGSTRUCT  = $5426;
+  FIONCLEX        = $5450;
+  FIOCLEX         = $5451;
+  FIOASYNC        = $5452;
+  TIOCSERCONFIG   = $5453;
+  TIOCSERGWILD    = $5454;
+  TIOCSERSWILD    = $5455;
+  TIOCGLCKTRMIOS  = $5456;
+  TIOCSLCKTRMIOS  = $5457;
+  TIOCSERGSTRUCT  = $5458;
+  TIOCSERGETLSR   = $5459;
+  TIOCSERGETMULTI = $545A;
+  TIOCSERSETMULTI = $545B;
+
+  TIOCMIWAIT      = $545C;
+  TIOCGICOUNT     = $545D;
+  FIOQSIZE        = $545E;
+
+  TIOCPKT_DATA       = 0;
+  TIOCPKT_FLUSHREAD  = 1;
+  TIOCPKT_FLUSHWRITE = 2;
+  TIOCPKT_STOP       = 4;
+  TIOCPKT_START      = 8;
+  TIOCPKT_NOSTOP     = 16;
+  TIOCPKT_DOSTOP     = 32;
+{$endif cpuarm}
 
 Type
   winsize = packed record
@@ -485,7 +557,10 @@ const
 
 {
   $Log$
-  Revision 1.9  2004-10-04 21:06:45  florian
+  Revision 1.10  2004-10-31 16:05:23  florian
+    + added ioctl constants for arm
+
+  Revision 1.9  2004/10/04 21:06:45  florian
     + added x84_64 ioctls
 
   Revision 1.8  2004/10/03 17:43:47  florian
@@ -493,5 +568,4 @@ const
 
   Revision 1.7  2004/02/21 16:24:47  marco
    * ppc ioctl nr fixed
-
 }
