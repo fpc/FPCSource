@@ -194,7 +194,8 @@ implementation
                 { because of secondcallparan, which otherwise attaches }
                 if ft=ft_typed then
                   { this is to avoid copy of simple const parameters }
-                  dummycoll.data:=new(pformaldef,init)
+                  {dummycoll.data:=new(pformaldef,init)}
+                  dummycoll.data:=cformaldef
                 else
                   { I think, this isn't a good solution (FK) }
                   dummycoll.data:=nil;
@@ -1277,7 +1278,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1999-04-05 11:07:26  jonas
+  Revision 1.39  1999-04-07 15:31:16  pierre
+    * all formaldefs are now a sinlge definition
+      cformaldef (this was necessary for double_checksum)
+    + small part of double_checksum code
+
+  Revision 1.38  1999/04/05 11:07:26  jonas
     * fixed some typos in the constants of the range checking for Val
 
   Revision 1.37  1999/04/01 22:07:51  peter

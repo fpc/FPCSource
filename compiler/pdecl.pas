@@ -824,7 +824,7 @@ unit pdecl;
                               hp:=single_type(s);
                          end
                        else
-                         hp:=new(pformaldef,init);
+                         hp:=cformaldef;
                        s:=sc^.get_with_tokeninfo(declarepos);
                        while s<>'' do
                          begin
@@ -1713,7 +1713,7 @@ unit pdecl;
                      p:=single_type(s);
                 end
               else
-                p:=new(pformaldef,init);
+                p:=cformaldef;
               while not sc^.empty do
                 begin
                    s:=sc^.get;
@@ -2240,7 +2240,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.105  1999-03-26 00:05:34  peter
+  Revision 1.106  1999-04-07 15:31:15  pierre
+    * all formaldefs are now a sinlge definition
+      cformaldef (this was necessary for double_checksum)
+    + small part of double_checksum code
+
+  Revision 1.105  1999/03/26 00:05:34  peter
     * released valintern
     + deffile is now removed when compiling is finished
     * ^( compiles now correct

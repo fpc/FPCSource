@@ -84,6 +84,7 @@ begin
   p^.insert(new(ptypesym,init('ulong',u32bitdef)));
   p^.insert(new(ptypesym,init('void',voiddef)));
   p^.insert(new(ptypesym,init('char',cchardef)));
+  p^.insert(new(ptypesym,init('formal',cformaldef)));
 {$ifdef INT64}
   p^.insert(new(ptypesym,init('qword',cu64bitdef)));
   p^.insert(new(ptypesym,init('int64',cs64bitintdef)));
@@ -175,6 +176,7 @@ procedure readconstdefs;
 begin
   s32bitdef:=porddef(globaldef('longint'));
   u32bitdef:=porddef(globaldef('ulong'));
+  cformaldef:=pformaldef(globaldef('formal'));
 {$ifdef INT64}
   cu64bitdef:=porddef(globaldef('qword'));
   cs64bitintdef:=porddef(globaldef('int64'));
@@ -219,6 +221,7 @@ begin
   u16bitdef:=new(porddef,init(u16bit,0,65535));
   u32bitdef:=new(porddef,init(u32bit,0,$ffffffff));
   s32bitdef:=new(porddef,init(s32bit,$80000000,$7fffffff));
+  cformaldef:=new(pformaldef,init);
 {$ifdef INT64}
   cu64bitdef:=new(porddef,init(u64bit,0,0));
   cs64bitintdef:=new(porddef,init(s64bitint,0,0));
@@ -256,7 +259,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  1999-03-26 00:05:40  peter
+  Revision 1.19  1999-04-07 15:31:12  pierre
+    * all formaldefs are now a sinlge definition
+      cformaldef (this was necessary for double_checksum)
+    + small part of double_checksum code
+
+  Revision 1.18  1999/03/26 00:05:40  peter
     * released valintern
     + deffile is now removed when compiling is finished
     * ^( compiles now correct
