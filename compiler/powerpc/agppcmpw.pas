@@ -374,11 +374,11 @@ var
         begin
           { direct BO/BI in op[0] and op[1] not supported, put them in condition! }
           case op of
-             A_B,A_BA,A_BLA:
+             A_B,A_BA:
                s:=#9+op2str[op]+#9;
              A_BCTR,A_BCTRL,A_BLR,A_BLRL:
                s:=#9+op2str[op];
-             A_BL:
+             A_BL,A_BLA:
                s:=#9+op2str[op]+#9'.';
              else
                s:=cond2str(op,taicpu(hp).condition)+',';
@@ -386,7 +386,7 @@ var
           if (taicpu(hp).oper[0].typ <> top_none) then
             s:=s+getopstr_jmp(taicpu(hp).oper[0]);
           if use_PR then
-            if op=A_BL then
+            if (op=A_BL) or (op=A_BLA) then
               s:=s+'[PR]';
         end
       else
@@ -1300,7 +1300,7 @@ var
       WriteAsmFileHeader;
       WriteExternals;
 
-    { PowerPC MPW ASM doesn't support stabs, as we now.
+    { PowerPC MPW ASM doesn't support stabs, as we know.
       WriteTree(debuglist);}
 
       WriteTree(codesegment);
@@ -1351,9 +1351,8 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2003-08-22 12:30:43  olle
-    + added xxx_regname stuff
-    * made the mpw asm writer work again
+  Revision 1.23  2003-08-24 21:40:12  olle
+    * minor adjustment
 
   Revision 1.21  2003/08/18 11:47:15  olle
     + added asm directive ALIGNING OFF to avoid unexpected aligning by the assembler
