@@ -554,6 +554,7 @@ var
       Count: integer;
       Clock12: boolean;
       P: pchar;
+      tmp:integer;
 
    begin
    FormatCurrent := Pchar(FormatStr);
@@ -643,8 +644,10 @@ var
                         end ;
                      'H': begin
                         if Clock12 then begin
-                           if Count = 1 then StoreInt(Hour mod 12, 0)
-                           else StoreInt(Hour mod 12, 2);
+			   tmp:=hour mod 12;   
+		           if tmp=0 then tmp:=12;
+                           if Count = 1 then StoreInt(tmp, 0)
+                           else StoreInt(tmp, 2);
                            end
                         else begin
                            if Count = 1 then StoreInt(Hour, 0)
@@ -734,7 +737,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-11-24 23:00:56  michael
+  Revision 1.3  2004-05-02 13:40:55  marco
+   * fix to AM/PM behaviour of formatdatetime around noon
+
+  Revision 1.2  2003/11/24 23:00:56  michael
   + Fix for bug 2476
 
   Revision 1.1  2003/10/06 21:01:06  peter
