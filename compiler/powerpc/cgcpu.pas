@@ -1768,9 +1768,6 @@ const
            begin
              if target_info.system = system_powerpc_macos then
                begin
-                 if ref2.base.number <> NR_NO then
-                   internalerror(2002103102); //TODO: Implement this if needed
-
                  if macos_direct_globals then
                    begin
                      reference_reset(tmpref);
@@ -1781,39 +1778,34 @@ const
                      r2.enum:=R_INTREGISTER;
                      r2.number:=NR_RTOC;
                      list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,r2,tmpref));
+                     if ref2.base.number <> NR_NO then
+                       list.concat(taicpu.op_reg_reg_reg(A_ADD,r,r,ref2.base));
                    end
                  else
                    begin
                      reference_reset(tmpref);
                      tmpref.symbol := ref2.symbol;
-                     tmpref.offset := 0; //ref2.offset;
+                     tmpref.offset := 0;
                      tmpref.symaddr := refs_full;
                      tmpref.base.enum := R_INTREGISTER;
                      tmpref.base.number := NR_RTOC;
-                     if ref2.offset = 0 then
-                       list.concat(taicpu.op_reg_ref(A_LWZ,r,tmpref))
-                     else
+                     list.concat(taicpu.op_reg_ref(A_LWZ,r,tmpref));
+
+                     if ref2.base.number <> NR_NO then
                        begin
-                         list.concat(taicpu.op_reg_ref(A_LWZ,r,tmpref));
+                         list.concat(taicpu.op_reg_reg_reg(A_ADD,r,r,ref2.base));
+                       end;
+                     if ref2.offset <> 0 then
+                       begin
                          reference_reset(tmpref);
                          tmpref.offset := ref2.offset;
                          tmpref.symaddr := refs_full;
                          tmpref.base:= r;
                          list.concat(taicpu.op_reg_ref(A_LA,r,tmpref));
-                         (*
-                         tmpreg := get_scratch_reg_address(list);
-                         list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
-                         reference_reset(tmpref);
-                         tmpref.offset := ref2.offset;
-                         tmpref.symaddr := refs_full;
-                         tmpref.base:= tmpreg;
-                         list.concat(taicpu.op_reg_ref(A_LA,r,tmpref));
-                         free_scratch_reg(list,tmpreg);
-                         *)
                        end;
                    end;
                  //list.concat(tai_comment.create(strpnew('*** a_loadaddr_ref_reg')));
-                 end
+               end
              else
                begin
 
@@ -1823,7 +1815,7 @@ const
                  tmpref.offset := ref2.offset;
                  tmpref.symbol := ref2.symbol;
                  tmpref.symaddr := refs_ha;
-                 if ref2.base .number<> NR_NO then
+                 if ref2.base.number<> NR_NO then
                    begin
                      list.concat(taicpu.op_reg_reg_ref(A_ADDIS,r,
                        ref2.base,tmpref));
@@ -2477,7 +2469,7 @@ const
 {$endif newra}                                                
                         reference_reset(tmpref);
                         tmpref.symbol := ref.symbol;
-                        tmpref.offset := ref.offset;
+                        tmpref.offset := 0;
                         tmpref.symaddr := refs_full;
                         tmpref.base.enum:= R_INTREGISTER;
                         tmpref.base.number:= NR_RTOC;
@@ -2486,7 +2478,7 @@ const
                             ref.base,tmpreg));
 
                         reference_reset(tmpref);
-                        tmpref.offset := 0;
+                        tmpref.offset := ref.offset;
                         tmpref.symaddr := refs_full;
                         tmpref.base:= tmpreg;
                         list.concat(taicpu.op_reg_ref(op,reg,tmpref));
@@ -2516,14 +2508,14 @@ const
 {$endif newra}                                                
                         reference_reset(tmpref);
                         tmpref.symbol := ref.symbol;
-                        tmpref.offset := ref.offset;
+                        tmpref.offset := 0;
                         tmpref.symaddr := refs_full;
                         tmpref.base.enum:= R_INTREGISTER;
                         tmpref.base.number:= NR_RTOC;
                         list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
 
                         reference_reset(tmpref);
-                        tmpref.offset := 0;
+                        tmpref.offset := ref.offset;
                         tmpref.symaddr := refs_full;
                         tmpref.base:= tmpreg;
                         list.concat(taicpu.op_reg_ref(op,reg,tmpref));
@@ -2710,7 +2702,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.109  2003-06-14 22:32:43  jonas
+  Revision 1.110  2003-06-18 10:12:36  olle
+    * macos: fixes of loading-code
+
+  Revision 1.109  2003/06/14 22:32:43  jonas
     * ppc compiles with -dnewra, haven't tried to compile anything with it
       yet though
 
