@@ -82,14 +82,9 @@ Type
   Protected
     Property Stream : TStream Read FStream;
   end;
-  
-Const
-{$ifdef linux}
-  LineFeed = #10;
-{$else}
-  LineFeed = #13#10;
-{$endif}
 
+const
+  LineFeed = LineEnding;
 
 Implementation
 
@@ -318,7 +313,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2003-10-01 21:05:39  michael
+  Revision 1.3  2003-10-04 13:33:43  florian
+    * system unit has a LineEnding
+
+  Revision 1.2  2003/10/01 21:05:39  michael
   + Stream property is now protected
 
   Revision 1.1  2003/10/01 20:49:29  michael
