@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit cg386;
+unit cgcpu;
 
   interface
 
@@ -119,7 +119,10 @@ unit cg386;
 end.
 {
   $Log$
-  Revision 1.1  1999-08-01 23:11:24  florian
+  Revision 1.2  1999-08-01 23:19:59  florian
+    + make a new makefile using the old compiler makefile
+
+  Revision 1.1  1999/08/01 23:11:24  florian
     + renamed ot tp cgcpu.pas
 
   Revision 1.1  1999/08/01 22:08:26  florian

@@ -181,7 +181,7 @@ unit tree;
           { the number of registers needed to evalute the node }
           registersint,registersfpu : longint;  { must be longint !!!! }
 {$ifdef SUPPORT_MMX}
-          registersmmx : longint;
+          registersmmx,registerskni : longint;
 {$endif SUPPORT_MMX}
           resulttype : pdef;
           fileinfo : tfileposinfo;
@@ -1895,7 +1895,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.8  1999-08-01 23:04:52  michael
+  Revision 1.9  1999-08-01 23:19:58  florian
+    + make a new makefile using the old compiler makefile
+
+  Revision 1.8  1999/08/01 23:04:52  michael
   + Changes for Alpha
 
   Revision 1.7  1999/08/01 18:22:39  florian
