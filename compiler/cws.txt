@@ -16,27 +16,26 @@ Location of the codegenerator functions
 The names are given for the i386, for the m68k rename the 386 to 68k
 
 cg386con - Constant generation
- - secondordconst
- - secondrealconst
- - secondstringconst
- - secondfixconst
- - secondsetconst
- - secondniln
-
+  - secondordconst
+  - secondrealconst
+  - secondstringconst
+  - secondfixconst
+  - secondsetconst
+  - secondniln
 
 cg386mat - Mathematic functions
- - secondmoddiv
- - secondshlshr
- - secondumminus
- - secondnot
+  - secondmoddiv
+  - secondshlshr
+  - secondumminus
+  - secondnot
 
 cg386cnv - Type conversion functions
- - secondtypeconv
-
+  - secondtypeconv
+  - secondis
+  - secondas
 
 cg386add - Add/concat functions
- - secondadd
-
+  - secondadd
 
 cg386mem - Memory functions
   - secondvecn
@@ -50,9 +49,6 @@ cg386mem - Memory functions
   - secondloadvmt
   - secondsubscriptn
   - secondderef
-  - secondis
-  - secondas
-
 
 cg386flw - Flow functions
   - secondifn
@@ -73,7 +69,6 @@ cg386ld - Load/Store functions
   - secondassignment
   - secondfuncret
 
-
 cg386set - Set functions
   - secondcase
   - secondin
@@ -87,7 +82,6 @@ cg386cal - Call/inline functions
 cgi386 - Main secondpass handling
   - secondnothing
   - seconderror
-  - secondasm,
-  - secondblockn,
-  - secondstatement,
-       
+  - secondasm
+  - secondblockn
+  - secondstatement
