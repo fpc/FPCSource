@@ -179,7 +179,7 @@ Procedure TFPReaderTarga.ReadScanLine(Row : Integer; Stream : TStream);
 Var
   P : PByte;
   B : Byte;
-  I : Integer;
+  I,J : Integer;
   
 begin
   If Not Compressed then
@@ -207,9 +207,9 @@ begin
           end;
         Stream.ReadBuffer(FlastPixel,BytesPerPixel);  
         end;
-      For I:=0 to BytesPerPixel-1 do
+      For J:=0 to BytesPerPixel-1 do
         begin
-        P[0]:=FLastPixel[i];
+        P[0]:=FLastPixel[j];
         Inc(P);
         end;
       end;
