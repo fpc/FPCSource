@@ -750,7 +750,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_ODD_LONGINT}
 
-function odd(l:longint):boolean;
+function odd(l:longint):boolean;[internconst:in_const_odd];
 begin
    odd:=boolean(l and 1);
 end;
@@ -759,7 +759,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_ODD_CARDINAL}
 
-function odd(l:cardinal):boolean;
+function odd(l:cardinal):boolean;[internconst:in_const_odd];
 begin
    odd:=boolean(l and 1);
 end;
@@ -778,7 +778,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_ODD_QWORD}
 
-function odd(l:qword):boolean;
+function odd(l:qword):boolean;[internconst:in_const_odd];
 begin
    odd:=boolean(longint(l) and 1);
 end;
@@ -797,7 +797,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_ABS_INT64}
 
-function abs(l: Int64): Int64;
+function abs(l: Int64): Int64;[internconst:in_const_abs];
 begin
   if l < 0 then
     abs := -l
@@ -810,7 +810,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_SQR_INT64}
 
-function sqr(l: Int64): Int64;
+function sqr(l: Int64): Int64;[internconst:in_const_sqr];
 begin
   sqr := l*l;
 end;
@@ -820,7 +820,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_SQR_QWORD}
 
-function sqr(l: QWord): QWord;
+function sqr(l: QWord): QWord;[internconst:in_const_sqr];
 begin
   sqr := l*l;
 end;
@@ -923,7 +923,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  2002-01-24 12:33:53  jonas
+  Revision 1.23  2002-01-25 17:38:55  peter
+    * add internconst for all overloaded types of Odd/Abs/Sqr
+
+  Revision 1.22  2002/01/24 12:33:53  jonas
     * adapted ranges of native types to int64 (e.g. high cardinal is no
       longer longint($ffffffff), but just $fffffff in psystem)
     * small additional fix in 64bit rangecheck code generation for 32 bit
