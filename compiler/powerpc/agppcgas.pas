@@ -329,12 +329,15 @@ unit agppcgas;
           { direct BO/BI in op[0] and op[1] not supported, put them in condition! }
           case op of
              A_B,A_BA,A_BL,A_BLA:
-               s:=#9+op2str[op]+#9
+               s:=#9+op2str[op]+#9;
+             A_BCTR,A_BCTRL,A_BLR,A_BLRL:
+               s:=#9+op2str[op]
              else
                s:=cond2str(op,taicpu(hp).condition)+',';
           end;
 
-          s:=s+getopstr_jmp(taicpu(hp).oper[0]);
+          if (taicpu(hp).oper[0].typ <> top_none) then
+            s:=s+getopstr_jmp(taicpu(hp).oper[0]);
         end
       else
         { process operands }
@@ -363,7 +366,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-09-08 13:03:26  jonas
+  Revision 1.19  2002-11-07 15:50:23  jonas
+    * fixed bctr(l) problems
+
+  Revision 1.18  2002/09/08 13:03:26  jonas
     * several large offset-related fixes
 
   Revision 1.17  2002/09/01 21:04:48  florian

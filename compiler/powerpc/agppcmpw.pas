@@ -333,12 +333,15 @@ function getreferencestring(var ref : treference) : string;
           case op of
              A_B,A_BA,A_BLA:
                s:=#9+op2str[op]+#9;
+             A_BCTR,A_BCTRL,A_BLR,A_BLRL:  
+               s:=#9+op2str[op];
              A_BL:
                s:=#9+op2str[op]+#9'.';
              else
                s:=cond2str(op,taicpu(hp).condition)+',';
           end;
-          s:=s+getopstr_jmp(taicpu(hp).oper[0]);
+          if (taicpu(hp).oper[0].typ <> top_none) then
+            s:=s+getopstr_jmp(taicpu(hp).oper[0]);
           if op=A_BL then
             s:=s+'[PR]';
         end
@@ -1025,7 +1028,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2002-11-04 18:24:53  olle
+  Revision 1.14  2002-11-07 15:50:23  jonas
+    * fixed bctr(l) problems
+
+  Revision 1.13  2002/11/04 18:24:53  olle
     * globals are located in TOC and relative r2, instead of absolute
     * symbols which only differs in case are treated as a single symbol
     + tai_const_symbol supported

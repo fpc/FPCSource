@@ -257,7 +257,7 @@ const
     procedure tcgppc.a_call_reg(list : taasmoutput;reg: tregister);
       begin
         list.concat(taicpu.op_reg(A_MTCTR,reg));
-        list.concat(taicpu.op_none(A_BCCTRL));
+        list.concat(taicpu.op_none(A_BCTRL));
         if target_info.system=system_powerpc_macos then
           list.concat(taicpu.op_none(A_NOP));
         procinfo.flags:=procinfo.flags or pi_do_call;
@@ -273,7 +273,7 @@ const
         a_load_ref_reg(list,OS_ADDR,ref,tmpreg);
         list.concat(taicpu.op_reg(A_MTCTR,tmpreg));
         free_scratch_reg(list,tmpreg);
-        list.concat(taicpu.op_none(A_BCCTRL));
+        list.concat(taicpu.op_none(A_BCTRL));
         if target_info.system=system_powerpc_macos then
           list.concat(taicpu.op_none(A_NOP));
         procinfo.flags:=procinfo.flags or pi_do_call;
@@ -1924,7 +1924,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2002-11-04 18:24:19  olle
+  Revision 1.65  2002-11-07 15:50:23  jonas
+    * fixed bctr(l) problems
+
+  Revision 1.64  2002/11/04 18:24:19  olle
     * macos: globals are located in TOC and relative r2, instead of absolute
 
   Revision 1.63  2002/10/28 22:24:28  olle
