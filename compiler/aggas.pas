@@ -57,17 +57,12 @@ interface
 
     const
       regname_count=45;
-      regname_count_bsstart=32;   {Largest power of 2 out of regname_count.}
+      regname_count_bsstart=32;   { Largest power of 2 out of regname_count. }
 
 
 implementation
 
     uses
-{$ifdef Delphi}
-      dmisc,
-{$else Delphi}
-      dos,
-{$endif Delphi}
       cutils,globtype,systems,
       fmodule,finput,verbose,cpubase,
       itcpugas
@@ -882,7 +877,10 @@ var
 end.
 {
   $Log$
-  Revision 1.49  2004-04-12 18:59:32  florian
+  Revision 1.50  2004-04-25 21:26:16  florian
+    * some m68k stuff fixed
+
+  Revision 1.49  2004/04/12 18:59:32  florian
     * small x86_64 fixes
 
   Revision 1.48  2004/03/17 22:27:41  florian

@@ -27,7 +27,7 @@ unit ncpuadd;
 interface
 
     uses
-       node,nadd,ncgadd,cpubase,cginfo;
+       node,nadd,ncgadd,cpubase;
 
 
     type
@@ -37,8 +37,8 @@ interface
           procedure second_cmp64bit;override;
           procedure second_cmpboolean;override;
        private
-          function getresflags(unsigned: boolean) : tresflags; 
-       end; 
+          function getresflags(unsigned: boolean) : tresflags;
+       end;
 
 
 implementation
@@ -110,7 +110,7 @@ implementation
       tmpreg : tregister;
      begin
        location_reset(location,LOC_FLAGS,OS_NO);
-          
+
        case nodetype of
           equaln,
           unequaln :
@@ -125,7 +125,7 @@ implementation
                   (nodetype = gten)) then
                 swapleftright;
               // now we have to check whether left >= right
-              tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+              tmpreg := cg.getintregister(exprasmlist,OS_INT);
               if left.location.loc = LOC_CONSTANT then
                 begin
                   cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_INT,
@@ -147,14 +147,14 @@ implementation
                     exprasmlist.concat(taicpu.op_reg_reg(A_AND,S_L,
                       right.location.register,left.location.register));
                 end;
-              cg.free_scratch_reg(exprasmlist,tmpreg);
+              cg.ungetregister(exprasmlist,tmpreg);
               location.resflags := getresflags(true);
             end;
           else
             internalerror(2002072701);
         end;
-          
-          
+
+
      end;
 
 
@@ -173,7 +173,7 @@ implementation
        location_reset(location,LOC_JUMP,OS_NO);
 
        { load values into registers (except constants) }
-       load_left_right(true, false);
+       force_reg_left_right(true, false);
 
        { determine if the comparison will be unsigned }
        unsigned:=not(is_signed(left.resulttype.def)) or
@@ -209,7 +209,7 @@ implementation
             else
               begin
                 useconst := false;
-                tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+                tmpreg := cg.getintregister(exprasmlist,OS_INT);
                 cg.a_load_const_reg(exprasmlist,OS_INT,
                   aword(right.location.value),tmpreg);
                end
@@ -227,7 +227,7 @@ implementation
             begin
               exprasmlist.concat(taicpu.op_reg_reg(op,S_L,
                 left.location.register,tmpreg));
-              cg.free_scratch_reg(exprasmlist,tmpreg);
+              cg.ungetregister(exprasmlist,tmpreg);
             end
         else
           exprasmlist.concat(taicpu.op_reg_reg(op,S_L,
@@ -244,8 +244,7 @@ implementation
         cgsize  : TCgSize;
         isjump  : boolean;
         otl,ofl : tasmlabel;
-        pushedregs : tmaybesave;
-       begin
+      begin
         if (torddef(left.resulttype.def).typ=bool8bit) or
            (torddef(right.resulttype.def).typ=bool8bit) then
          cgsize:=OS_8
@@ -279,7 +278,6 @@ implementation
                falselabel:=ofl;
              end;
 
-            maybe_save(exprasmlist,right.registersint,left.location,pushedregs);
             isjump:=(right.location.loc=LOC_JUMP);
             if isjump then
               begin
@@ -289,7 +287,6 @@ implementation
                  objectlibrary.getlabel(falselabel);
               end;
             secondpass(right);
-            maybe_restore(exprasmlist,left.location,pushedregs);
             if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
              location_force_reg(exprasmlist,right.location,cgsize,false);
             if isjump then
@@ -300,25 +297,22 @@ implementation
 
          location_reset(location,LOC_FLAGS,OS_NO);
 
-         load_left_right(true,false);
+         force_reg_left_right(true,false);
 
             if (left.location.loc = LOC_CONSTANT) then
               swapleftright;
-        
+
          if (right.location.loc <> LOC_CONSTANT) then
-                exprasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,
-                   left.location.register,right.location.register))
+           exprasmlist.concat(taicpu.op_reg_reg(A_CMP,S_L,
+             left.location.register,right.location.register))
          else
-                exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,
-                   longint(right.location.value),left.location.register));
+           exprasmlist.concat(taicpu.op_const_reg(A_CMP,S_L,
+             longint(right.location.value),left.location.register));
          location.resflags := getresflags(true);
-        
         end;
 
-        clear_left_right(true);
-
-       end; 
-
+        release_reg_left_right;
+      end;
 
 
 {*****************************************************************************
@@ -329,7 +323,7 @@ implementation
      begin
 (*        load_left_right(true,false);
 
-        case nodetype of  
+        case nodetype of
           ltn,lten,
           gtn,gten:
            begin
@@ -356,11 +350,11 @@ implementation
                       else
                         begin
                           if (aword(right.location.valueqword) <> 0) then
-                            tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist)
+                            tempreg64.reglo := cg.getintregister(exprasmlist)
                           else
                             tempreg64.reglo := left.location.registerlow;
                           if ((right.location.valueqword shr 32) <> 0) then
-                            tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist)
+                            tempreg64.reghi := cg.getintregister(exprasmlist)
                           else
                             tempreg64.reghi := left.location.registerhigh;
                         end;
@@ -391,8 +385,8 @@ implementation
                     end
                   else
                     begin
-                       tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist);
-                       tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist);
+                       tempreg64.reglo := cg.getintregister(exprasmlist);
+                       tempreg64.reghi := cg.getintregister(exprasmlist);
                        cg64.a_op64_reg_reg_reg(exprasmlist,OP_XOR,
                          left.location.register64,right.location.register64,
                          tempreg64);
@@ -403,9 +397,9 @@ implementation
                     tempreg64.reglo,tempreg64.reghi));
                   cg.a_reg_dealloc(exprasmlist,R_0);
                   if (tempreg64.reglo <> left.location.registerlow) then
-                    cg.free_scratch_reg(exprasmlist,tempreg64.reglo);
+                    cg.ungetregister(exprasmlist,tempreg64.reglo);
                   if (tempreg64.reghi <> left.location.registerhigh) then
-                    cg.free_scratch_reg(exprasmlist,tempreg64.reghi);
+                    cg.ungetregister(exprasmlist,tempreg64.reghi);
 
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags := getresflags;
@@ -432,7 +426,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-02-03 22:32:54  peter
+  Revision 1.4  2004-04-25 21:26:16  florian
+    * some m68k stuff fixed
+
+  Revision 1.3  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

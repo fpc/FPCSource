@@ -26,11 +26,10 @@ unit cpubase;
 
 {$i fpcdefs.inc}
 
-interface
+  interface
 
-uses
-  strings,cutils,cclasses,aasmbase,cpuinfo,cgbase;
-
+    uses
+      strings,cutils,cclasses,aasmbase,cpuinfo,cgbase;
 
 {*****************************************************************************
                                 Assembler Opcodes
@@ -513,7 +512,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2004-04-18 21:13:59  florian
+  Revision 1.26  2004-04-25 21:26:16  florian
+    * some m68k stuff fixed
+
+  Revision 1.25  2004/04/18 21:13:59  florian
     * more adaptions for m68k
 
   Revision 1.24  2004/01/30 12:17:18  florian

@@ -36,7 +36,6 @@ interface
           procedure second_int_to_real;override;
           procedure second_int_to_bool;override;
           procedure pass_2;override;
-          procedure second_call_helper(c : tconverttype); override;
        end;
 
 implementation
@@ -49,7 +48,7 @@ implementation
       ncon,ncal,
       ncgutil,
       cpubase,aasmcpu,
-      rgobj,tgobj,cgobj,cginfo,globtype,cgcpu;
+      rgobj,tgobj,cgobj,globtype,cgcpu;
 
 
 {*****************************************************************************
@@ -136,7 +135,7 @@ implementation
         if not signed then
            internalerror(20020814);
 
-        location.register := rg.getregisterfpu(exprasmlist);
+        location.register:=cg.getfpuregister(exprasmlist,opsize);
         case left.location.loc of
           LOC_REGISTER, LOC_CREGISTER:
             begin
@@ -184,27 +183,27 @@ implementation
                   end
                 else
                   begin
-                     hreg2:=rg.getregisterint(exprasmlist,opsize);
-                     cg.a_load_ref_reg(exprasmlist,opsize,
+                     hreg2:=cg.getintregister(exprasmlist,opsize);
+                     cg.a_load_ref_reg(exprasmlist,opsize,opsize,
                         left.location.reference,hreg2);
                      exprasmlist.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
-                     rg.ungetregister(exprasmlist,hreg2);
+                     cg.ungetregister(exprasmlist,hreg2);
                   end;
                 reference_release(exprasmlist,left.location.reference);
                 resflags:=F_NE;
-                hreg1 := rg.getregisterint(exprasmlist,opsize);
+                hreg1:=cg.getintregister(exprasmlist,opsize);
               end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
-                hreg2 := left.location.register;
+                hreg2:=left.location.register;
                 exprasmlist.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
-                rg.ungetregister(exprasmlist,hreg2);
-                hreg1 := rg.getregisterint(exprasmlist,opsize);
+                cg.ungetregister(exprasmlist,hreg2);
+                hreg1:=cg.getintregister(exprasmlist,opsize);
                 resflags:=F_NE;
               end;
             LOC_FLAGS :
               begin
-                hreg1:=rg.getregisterint(exprasmlist,opsize);
+                hreg1:=cg.getintregister(exprasmlist,opsize);
                 resflags:=left.location.resflags;
               end;
             else
@@ -212,62 +211,6 @@ implementation
          end;
          cg.g_flags2reg(exprasmlist,location.size,resflags,hreg1);
          location.register := hreg1;
-      end;
-
-
-    procedure tm68ktypeconvnode.second_call_helper(c : tconverttype);
-
-      const
-         secondconvert : array[tconverttype] of pointer = (
-           @second_nothing, {equal}
-           @second_nothing, {not_possible}
-           @second_nothing, {second_string_to_string, handled in resulttype pass }
-           @second_char_to_string,
-           @second_nothing, {char_to_charray}
-           @second_nothing, { pchar_to_string, handled in resulttype pass }
-           @second_nothing, {cchar_to_pchar}
-           @second_cstring_to_pchar,
-           @second_ansistring_to_pchar,
-           @second_string_to_chararray,
-           @second_nothing, { chararray_to_string, handled in resulttype pass }
-           @second_array_to_pointer,
-           @second_pointer_to_array,
-           @second_int_to_int,
-           @second_int_to_bool,
-           @second_bool_to_int, { bool_to_bool }
-           @second_bool_to_int,
-           @second_real_to_real,
-           @second_int_to_real,
-           @second_nothing, { currency_to_real, handled in resulttype pass }
-           @second_proc_to_procvar,
-           @second_nothing, { arrayconstructor_to_set }
-           @second_nothing, { second_load_smallset, handled in first pass }
-           @second_cord_to_pointer,
-           @second_nothing, { interface 2 string }
-           @second_nothing, { interface 2 guid   }
-           @second_class_to_intf,
-           @second_char_to_char,
-           @second_nothing,  { normal_2_smallset }
-           @second_nothing,  { dynarray_2_openarray }
-           @second_nothing,  { tc_pwchar_2_string   }
-           {$ifdef fpc}@{$endif}second_nothing,  { variant_2_dynarray }
-           {$ifdef fpc}@{$endif}second_nothing   { dynarray_2_variant}
-         );
-      type
-         tprocedureofobject = procedure of object;
-
-      var
-         r : packed record
-                proc : pointer;
-                obj : pointer;
-             end;
-
-      begin
-         { this is a little bit dirty but it works }
-         { and should be quite portable too        }
-         r.proc:=secondconvert[c];
-         r.obj:=self;
-         tprocedureofobject(r){$ifdef FPC}();{$endif FPC}
       end;
 
 
@@ -297,7 +240,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2004-02-03 22:32:54  peter
+  Revision 1.12  2004-04-25 21:26:16  florian
+    * some m68k stuff fixed
+
+  Revision 1.11  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ
@@ -336,6 +282,4 @@ end.
     + m68k type conversion nodes
     + started some mathematical nodes
     * out of bound references should now be handled correctly
-
-
 }
