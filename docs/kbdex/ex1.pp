@@ -12,6 +12,7 @@ begin
   Writeln('Press keys, press "q" to end.');
   Repeat
     K:=GetKeyEvent;
+    K:=TranslateKeyEvent(K);
     Write('Got key event with ');
     Case GetKeyEventFlags(K) of
       kbASCII    : Writeln('ASCII key');
