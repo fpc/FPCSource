@@ -590,6 +590,7 @@ var
   bp : pointer;
   pl : pdword;
   pp : pheap_mem_info;
+  oldsize,
   oldextrasize,
   oldexactsize : ptrint;
   old_fill_extra_info_proc : tfillextrainfoproc;
@@ -627,6 +628,7 @@ begin
      exit;
    end;
   { save info }
+  oldsize:=pp^.size;
   oldextrasize:=pp^.extra_info_size;
   oldexactsize:=pp^.exact_info_size;
   if pp^.extra_info_size>0 then
@@ -661,12 +663,6 @@ begin
      traceReAllocMem := newp;
      exit;
    end;
-{ adjust like a freemem and then a getmem, so you get correct
-  results in the summary display }
-  inc(freemem_size,pp^.size);
-  inc(freemem8_size,((pp^.size+7) div 8)*8);
-  inc(getmem_size,size);
-  inc(getmem8_size,((size+7) div 8)*8);
 { Recreate the info block }
   pp^.sig:=$DEADBEEF;
   pp^.size:=size;
@@ -690,6 +686,12 @@ begin
       pl:=pointer(pp)+allocsize-pp^.extra_info_size-sizeof(ptrint);
       pl^:=$DEADBEEF;
     end;
+  { adjust like a freemem and then a getmem, so you get correct
+    results in the summary display }
+  inc(freemem_size,oldsize);
+  inc(freemem8_size,((oldsize+7) div 8)*8);
+  inc(getmem_size,size);
+  inc(getmem8_size,((size+7) div 8)*8);
   { generate new backtrace }
   bp:=get_caller_frame(get_frame);
   for i:=1 to tracesize do
@@ -1195,7 +1197,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.43  2005-03-25 22:53:39  jonas
+  Revision 1.44  2005-04-04 15:16:26  peter
+    * fixed crash in tracereallocmem statictics
+
+  Revision 1.43  2005/03/25 22:53:39  jonas
     * fixed several warnings and notes about unused variables (mainly) or
       uninitialised use of variables/function results (a few)
 
