@@ -958,7 +958,7 @@ program install;
 {$ENDIF}
 
       R.Assign(2, YB - 13, 64, YB - 12);
-      P:=new(pstatictext,init(r,'To compile files enter '''+cfg.pack[1].ppc386+' [file]'''));
+      P:=new(pstatictext,init(r,'To compile files enter fpc [file]'''));
       insert(P);
 
       if haside then
@@ -1401,7 +1401,7 @@ end;
                     WriteLn (Log, 'Free space on drive '+S[1]+': ',DotStr(Space),' Kb');
 
                   if Space < DSize then
-                   S := 'is not'
+                   S := 'is not '
                   else
                    S := '';
                   if (Space < DSize + 500) then
@@ -2003,7 +2003,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2004-12-23 17:36:53  peter
+  Revision 1.25  2004-12-31 18:36:44  florian
+    * spelling fixed
+    * compiler is fpc instead ppc386
+
+  Revision 1.24  2004/12/23 17:36:53  peter
   use %token% macros instead of $1 and $2
 
   Revision 1.23  2004/12/22 15:28:48  peter
