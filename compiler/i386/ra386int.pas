@@ -1783,21 +1783,18 @@ Unit Ra386int;
 
     Procedure ti386intreader.BuildConstant(constsize: longint);
       var
-       strlength: byte;
        asmsym,
        expr: string;
        value : aint;
       Begin
-        strlength:=0; { assume it is a DB }
         Repeat
           Case actasmtoken of
             AS_STRING:
               Begin
-                strlength:=constsize;
                 { DD and DW cases }
-                if strlength <> 0 then
+                if constsize <> 1 then
                  Begin
-                   if Not PadZero(actasmpattern,strlength) then
+                   if Not PadZero(actasmpattern,constsize) then
                     Message(scan_f_string_exceeds_line);
                  end;
                 expr:=actasmpattern;
@@ -1976,7 +1973,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2004-06-23 14:54:46  peter
+  Revision 1.76  2004-07-06 19:47:19  peter
+    * fixed parsing of strings in db
+
+  Revision 1.75  2004/06/23 14:54:46  peter
     * align directive added
 
   Revision 1.74  2004/06/20 08:55:31  florian
