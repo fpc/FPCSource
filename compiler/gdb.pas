@@ -100,8 +100,8 @@ Const
 
   implementation
 
-{$IfDef DBX}
-
+  uses
+    verbose;
 { to use N_EXCL we have to count the character in the stabs for
 N_BINCL to N_EINCL
   Code comes from stabs.c for ld
@@ -161,8 +161,7 @@ N_BINCL to N_EINCL
          do_count : boolean;
      begin
      do_count := false;
-     if dbx_counter = nil then
-     else
+     if assigned(dbx_counter) then
        begin
 {$IfDef ExtDebug }
         Comment(V_Info,'Counting '+st);
@@ -190,7 +189,6 @@ N_BINCL to N_EINCL
        end;
      end;
 
-{$EndIf DBX}
 
     constructor tai_stabs.init(_str : pchar);
 
@@ -198,13 +196,10 @@ N_BINCL to N_EINCL
          inherited init;
          typ:=ait_stabs;
          str:=_str;
-{$IfDef DBX}
          if do_count_dbx then
            begin
               count_dbx(str);
-              do_count_dbx := false;
            end;
-{$EndIf DBX}
       end;
 
     destructor tai_stabs.done;
@@ -254,7 +249,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  1999-08-04 00:23:01  florian
+  Revision 1.13  1999-11-09 23:51:25  pierre
+   * some DBX work
+
+  Revision 1.12  1999/08/04 00:23:01  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.11  1999/05/27 19:44:27  peter
