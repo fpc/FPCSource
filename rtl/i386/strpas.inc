@@ -22,7 +22,7 @@ asm
 {$ifdef regcall}
         movl    p,%esi
         movl    __RESULT,%edi
-        movl    __RESULT,saveres
+        movl    %edi,saveres
 {$else}
         movl    p,%esi
 {$endif}
@@ -102,15 +102,18 @@ asm
 {$endif}
         addb    $255,%cl
         movb    %cl,(%edi)
-        movl    %esi,saveesi
-        movl    %edi,saveedi
-        movl    %ebx,saveebx
+        movl    saveesi,%esi
+        movl    saveedi,%edi
+        movl    saveebx,%ebx
 end;
 
 
 {
   $Log$
-  Revision 1.4  2003-11-19 16:58:44  peter
+  Revision 1.5  2003-11-23 16:50:49  peter
+    * register calling updates
+
+  Revision 1.4  2003/11/19 16:58:44  peter
     * make strpas assembler function
 
   Revision 1.3  2003/11/11 21:08:17  peter

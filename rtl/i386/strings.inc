@@ -25,11 +25,11 @@ asm
         movl    %edi,saveedi
         movl    %esi,saveesi
 {$ifdef REGCALL}
-	movl	%eax,saveeax
-	movl	%edx,%edi
-{$else}	
+        movl    %eax,saveeax
+        movl    %edx,%edi
+{$else}
         movl    source,%edi
-{$endif}	
+{$endif}
         testl   %edi,%edi
         jz      .LStrCopyDone
         leal    3(%edi),%ecx
@@ -37,10 +37,10 @@ asm
         movl    %edi,%esi
         subl    %edi,%ecx
 {$ifdef REGCALL}
-	movl	%eax,%edi
-{$else}		
+        movl    %eax,%edi
+{$else}
         movl    dest,%edi
-{$endif}	
+{$endif}
         jz      .LStrCopyAligned
 .LStrCopyAlignLoop:
         movb    (%esi),%al
@@ -85,10 +85,10 @@ asm
         movb    %al,(%edi)
 .LStrCopyDone:
 {$ifdef REGCALL}
-	movl	saveeax,%eax
-{$else}	
+        movl    saveeax,%eax
+{$else}
         movl    dest,%eax
-{$endif}	
+{$endif}
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
@@ -102,13 +102,14 @@ asm
         movl    %edi,saveedi
         movl    %esi,saveesi
         cld
+        movl    dest,%esi
         movl    source,%edi
         movl    $0xffffffff,%ecx
         xorl    %eax,%eax
         repne
         scasb
         not     %ecx
-        movl    dest,%edi
+        movl    %esi,%edi
         movl    source,%esi
         movl    %ecx,%eax
         shrl    $2,%ecx
@@ -118,11 +119,10 @@ asm
         andl    $3,%ecx
         rep
         movsb
-        movl    dest,%eax
         decl    %edi
         movl    %edi,%eax
-        movl    %edi,saveedi
-        movl    %esi,saveesi
+        movl    saveedi,%edi
+        movl    saveesi,%esi
 end;
 
 
@@ -169,8 +169,8 @@ var
 asm
         movl    %edi,saveedi
         cld
-        xorl    %eax,%eax
         movl    p,%edi
+        xorl    %eax,%eax
         orl     %edi,%edi
         jz      .LStrEndNil
         movl    $0xffffffff,%ecx
@@ -340,7 +340,9 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifndef REGCALL}
         movl    p,%eax
+{$endif}
         xorl    %ecx,%ecx
         testl   %eax,%eax
         jz      .LSTRSCAN
@@ -348,7 +350,7 @@ asm
         movb    c,%cl
         leal    3(%eax),%esi
         andl    $-4,%esi
-        movl    p,%edi
+        movl    %eax,%edi
         subl    %eax,%esi
         jz      .LSTRSCANALIGNED
         xorl    %eax,%eax
@@ -461,11 +463,12 @@ end;
 {$define FPC_UNIT_HAS_STRRSCAN}
 function strrscan(p : pchar;c : char) : pchar;assembler;
 var
-  saveedi : longint;
+  saveeax,saveedi : longint;
 asm
         movl    %edi,saveedi
-        xorl    %eax,%eax
+        movl    %eax,saveeax
         movl    p,%edi
+        xorl    %eax,%eax
         orl     %edi,%edi
         jz      .LSTRRSCAN
         movl    $0xffffffff,%ecx
@@ -475,7 +478,7 @@ asm
         scasb
         not     %ecx
         movb    c,%al
-        movl    p,%edi
+        movl    saveeax,%edi
         addl    %ecx,%edi
         decl    %edi
         std
@@ -494,10 +497,14 @@ end;
 {$define FPC_UNIT_HAS_STRUPPER}
 function strupper(p : pchar) : pchar;assembler;
 var
-  saveesi,saveedi : longint;
+  saveeax,saveesi,saveedi : longint;
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
+{$ifndef REGCALL}
+        movl    p,%eax
+{$endif}
+        movl    %eax,saveeax
         movl    p,%esi
         orl     %esi,%esi
         jz      .LStrUpperNil
@@ -514,7 +521,7 @@ asm
         orb     %al,%al
         jnz     .LSTRUPPER1
 .LStrUpperNil:
-        movl    p,%eax
+        movl    saveeax,%eax
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
@@ -523,10 +530,14 @@ end;
 {$define FPC_UNIT_HAS_STRLOWER}
 function strlower(p : pchar) : pchar;assembler;
 var
-  saveesi,saveedi : longint;
+  saveeax,saveesi,saveedi : longint;
 asm
         movl    %esi,saveesi
         movl    %edi,saveedi
+{$ifndef REGCALL}
+        movl    p,%eax
+{$endif}
+        movl    %eax,saveeax
         movl    p,%esi
         orl     %esi,%esi
         jz      .LStrLowerNil
@@ -543,14 +554,17 @@ asm
         orb     %al,%al
         jnz     .LSTRLOWER1
 .LStrLowerNil:
-        movl    p,%eax
+        movl    saveeax,%eax
         movl    saveedi,%edi
         movl    saveesi,%esi
 end;
 
 {
   $Log$
-  Revision 1.10  2003-11-11 21:08:17  peter
+  Revision 1.11  2003-11-23 16:50:49  peter
+    * register calling updates
+
+  Revision 1.10  2003/11/11 21:08:17  peter
     * REGCALL define added
 
   Revision 1.9  2003/09/08 18:21:37  peter

@@ -324,9 +324,9 @@ asm
         movl    %edi,saveedi
         movl    %esi,saveesi
 {$ifdef REGCALL}
-        movl    %eax,%edi
-        movl    %edx,%esi
-        movl    %ecx,%edx
+        movl    set1,%esi
+        movl    __RESULT,%edi
+        movl    set2,%edx
 {$else}
       movl set1,%esi
       movl set2,%edx
@@ -365,9 +365,9 @@ asm
         movl    %edi,saveedi
         movl    %esi,saveesi
 {$ifdef REGCALL}
-        movl    %eax,%edi
-        movl    %edx,%esi
-        movl    %ecx,%edx
+        movl    set1,%esi
+        movl    __RESULT,%edi
+        movl    set2,%edx
 {$else}
       movl set1,%esi
       movl set2,%edx
@@ -407,9 +407,9 @@ asm
         movl    %esi,saveesi
         movl    %ebx,saveebx
 {$ifdef REGCALL}
-        movl    %eax,%edi
-        movl    %edx,%esi
-        movl    %ecx,%edx
+        movl    set1,%esi
+        movl    __RESULT,%edi
+        movl    set2,%edx
 {$else}
         movl set1,%esi
         movl set2,%ebx
@@ -451,9 +451,9 @@ asm
         movl    %edi,saveedi
         movl    %esi,saveesi
 {$ifdef REGCALL}
-        movl    %eax,%edi
-        movl    %edx,%esi
-        movl    %ecx,%edx
+        movl    set1,%esi
+        movl    __RESULT,%edi
+        movl    set2,%edx
 {$else}
         movl set1,%esi
         movl set2,%edx
@@ -487,13 +487,8 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
-{$ifdef REGCALL}
-        movl    %eax,%esi
-        movl    %edx,%edi
-{$else}
         movl set1,%esi
         movl set2,%edi
-{$endif}
         movl $8,%ecx
     .LMCOMPSETS1:
         movl (%esi),%eax
@@ -526,13 +521,8 @@ var
 asm
         movl    %edi,saveedi
         movl    %esi,saveesi
-{$ifdef REGCALL}
-        movl    %eax,%esi
-        movl    %edx,%edi
-{$else}
         movl set1,%esi
         movl set2,%edi
-{$endif}
         movl $8,%ecx
     .LMCONTAINSSETS1:
         movl (%esi),%eax
@@ -720,7 +710,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2003-11-11 21:08:17  peter
+  Revision 1.13  2003-11-23 16:50:49  peter
+    * register calling updates
+
+  Revision 1.12  2003/11/11 21:08:17  peter
     * REGCALL define added
 
   Revision 1.11  2003/09/08 18:21:37  peter
