@@ -508,19 +508,6 @@ Implementation
                            if expr = '__OLDEBP' then
                             oper.SetupOldEBP
                           else
-                            { check for direct symbolic names   }
-                            { only if compiling the system unit }
-                            if (cs_compilesystem in aktmoduleswitches) then
-                             begin
-                               if not oper.SetupDirectVar(expr) then
-                                Begin
-                                  { not found, finally ... add it anyways ... }
-                                  Message1(asmr_w_id_supposed_external,expr);
-                                  oper.InitRef;
-                                  oper.opr.ref.symbol:=objectlibrary.newasmsymbol(expr,AB_EXTERNAL,AT_FUNCTION);
-                                end;
-                             end
-                          else
                             Message1(sym_e_unknown_id,expr);
                         end;
                      end;
@@ -788,7 +775,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.7  2004-11-08 22:09:59  peter
+  Revision 1.8  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.7  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.6  2004/10/31 21:45:04  peter

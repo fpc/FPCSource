@@ -35,14 +35,12 @@
  end;
 {$endif FPC_UNIT_HAS_STRPCOPY}
 
-{$ifndef FPC_UNIT_HAS_STRPAS}
-{ also add a strpas alias for internal use in the system unit (JM) }
-function strpas(p:pchar):string; [external name 'FPC_PCHAR_TO_SHORTSTR'];
-{$endif FPC_UNIT_HAS_STRPCOPY}
-
 {
   $Log$
-  Revision 1.1  2003-07-07 20:22:05  peter
+  Revision 1.2  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.1  2003/07/07 20:22:05  peter
     * generic string routines added
 
 }

@@ -239,7 +239,21 @@ function fpc_shl_int64(value,shift : int64) : int64; compilerproc;
 function fpc_shr_int64(value,shift : int64) : int64; compilerproc;
 {$endif  FPC_INCLUDE_SOFTWARE_SHIFT_INT64}
 
-function fpc_round(d : Extended) : int64;compilerproc;
+{$ifdef INTERNCONSTINTF}
+function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
+function fpc_arctan_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
+function fpc_cos_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
+function fpc_exp_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
+function fpc_frac_real(d : ValReal) : ValReal;compilerproc;
+function fpc_int_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
+function fpc_ln_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
+function fpc_pi_real : ValReal;compilerproc;
+function fpc_sin_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
+function fpc_sqr_real(d : ValReal) : ValReal;compilerproc;
+function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
+function fpc_round_real(d : ValReal) : int64;compilerproc;
+function fpc_trunc_real(d : ValReal) : int64;compilerproc;
+{$endif INTERNCONSTINTF}
 
 function fpc_do_is(aclass : tclass;aobject : tobject) : boolean; compilerproc;
 function fpc_do_as(aclass : tclass;aobject : tobject): tobject; compilerproc;
@@ -332,7 +346,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.59  2004-11-09 23:10:22  peter
+  Revision 1.60  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.59  2004/11/09 23:10:22  peter
     * use helper call to retrieve address of input/output to reduce
       code that is generated in the main program for loading the
       threadvar

@@ -49,7 +49,7 @@ Interface
       { helpers }
       cutils,
       { global }
-      globtype,globals,verbose,
+      globtype,verbose,
       systems,
       { aasm }
       cpubase,aasmbase,aasmtai,aasmcpu,
@@ -281,6 +281,7 @@ Interface
       var
         tempreg : tregister;
         tempstr : string;
+        tempsymtyp : TAsmSymType;
         hl : tasmlabel;
         gotplus,
         negative : boolean;
@@ -341,9 +342,9 @@ Interface
                   oper.opr.ref.refaddr:=addr_hi;
                 Consume(actasmtoken);
                 Consume(AS_LPAREN);
-                BuildConstSymbolExpression(false, true,false,l,tempstr);
+                BuildConstSymbolExpression(false, true,false,l,tempstr,tempsymtyp);
                 if not assigned(oper.opr.ref.symbol) then
-                  oper.opr.ref.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,AT_FUNCTION)
+                  oper.opr.ref.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp)
                 else
                   Message(asmr_e_cant_have_multiple_relocatable_symbols);
                 case oper.opr.typ of
@@ -426,19 +427,6 @@ Interface
                             else
                              if expr = '__OLDEBP' then
                               oper.SetupOldEBP
-                            else
-                              { check for direct symbolic names   }
-                              { only if compiling the system unit }
-                              if (cs_compilesystem in aktmoduleswitches) then
-                               begin
-                                 if not oper.SetupDirectVar(expr) then
-                                  Begin
-                                    { not found, finally ... add it anyways ... }
-                                    Message1(asmr_w_id_supposed_external,expr);
-                                    oper.InitRef;
-                                    oper.opr.ref.symbol:=objectlibrary.newasmsymbol(expr,AB_EXTERNAL,AT_FUNCTION);
-                                  end;
-                               end
                             else
                               Message1(sym_e_unknown_id,expr);
                           end;
@@ -684,7 +672,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2004-11-11 19:31:33  peter
+  Revision 1.12  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.11  2004/11/11 19:31:33  peter
     * fixed compile of powerpc,sparc,arm
 
   Revision 1.10  2004/06/20 08:55:32  florian

@@ -40,7 +40,7 @@ unit raatt;
       { symtable }
       symconst,
       { cg }
-      cgbase,node;
+      cgbase;
 
     type
       tasmtoken = (
@@ -88,7 +88,7 @@ unit raatt;
          procedure BuildRealConstant(typ : tfloattype);
          procedure BuildStringConstant(asciiz: boolean);
          procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint);
-         procedure BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:aint;var asmsym:string);
+         procedure BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
          function BuildConstExpression(allowref,betweenbracket:boolean): aint;
          function Assemble: tlinkedlist;override;
          procedure handleopcode;virtual;abstract;
@@ -758,6 +758,7 @@ unit raatt;
 
     Procedure tattreader.BuildConstant(constsize: longint);
       var
+       asmsymtyp : TAsmSymType;
        asmsym,
        expr: string;
        value : aint;
@@ -786,7 +787,7 @@ unit raatt;
             AS_NOT,
             AS_ID :
               Begin
-                BuildConstSymbolExpression(false,false,false,value,asmsym);
+                BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp);
                 if asmsym<>'' then
                  begin
                    if constsize<>sizeof(aint) then
@@ -1181,8 +1182,9 @@ unit raatt;
       end;
 
 
-    procedure tattreader.BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:aint;var asmsym:string);
+    procedure tattreader.BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
       var
+        hssymtyp : TAsmSymType;
         hs,tempstr,expr : string;
         parenlevel : longint;
         l,k : aint;
@@ -1193,6 +1195,7 @@ unit raatt;
         hl  : tasmlabel;
       Begin
         asmsym:='';
+        asmsymtyp:=AT_DATA;
         value:=0;
         errorflag:=FALSE;
         tempstr:='';
@@ -1356,6 +1359,7 @@ unit raatt;
             AS_ID:
               Begin
                 hs:='';
+                hssymtyp:=AT_DATA;
                 tempstr:=actasmpattern;
                 prevtok:=prevasmtoken;
                 consume(AS_ID);
@@ -1369,11 +1373,15 @@ unit raatt;
                    if is_locallabel(tempstr) then
                     begin
                       CreateLocalLabel(tempstr,hl,false);
-                      hs:=hl.name
+                      hs:=hl.name;
+                      hssymtyp:=AT_FUNCTION;
                     end
                    else
                     if SearchLabel(tempstr,hl,false) then
-                     hs:=hl.name
+                      begin
+                        hs:=hl.name;
+                        hssymtyp:=AT_FUNCTION;
+                      end
                    else
                     begin
                       searchsym(tempstr,sym,srsymtable);
@@ -1393,6 +1401,7 @@ unit raatt;
                                  if procdef_count>1 then
                                    message(asmr_w_calling_overload_func);
                                  hs:=first_procdef.mangledname;
+                                 hssymtyp:=AT_FUNCTION;
                                end;
                            typesym :
                              begin
@@ -1412,9 +1421,12 @@ unit raatt;
                       if needofs and (prevtok<>AS_DOLLAR) then
                        Message(asmr_e_need_dollar);
                       if asmsym='' then
-                       asmsym:=hs
+                        begin
+                          asmsym:=hs;
+                          asmsymtyp:=hssymtyp;
+                        end
                       else
-                       Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                        Message(asmr_e_cant_have_multiple_relocatable_symbols);
                       if (expr='') or (expr[length(expr)]='+') then
                        begin
                          { don't remove the + if there could be a record field }
@@ -1469,8 +1481,9 @@ unit raatt;
       var
         l : aint;
         hs : string;
+        hssymtyp : TAsmSymType;
       begin
-        BuildConstSymbolExpression(allowref,betweenbracket,false,l,hs);
+        BuildConstSymbolExpression(allowref,betweenbracket,false,l,hs,hssymtyp);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildConstExpression:=l;
@@ -1481,13 +1494,14 @@ unit raatt;
       var
         l : aint;
         tempstr : string;
+        tempsymtyp : TAsmSymType;
       begin
-        BuildConstSymbolExpression(false,false,true,l,tempstr);
+        BuildConstSymbolExpression(false,false,true,l,tempstr,tempsymtyp);
         if tempstr<>'' then
          begin
            oper.opr.typ:=OPR_SYMBOL;
            oper.opr.symofs:=l;
-           oper.opr.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,AT_FUNCTION);
+           oper.opr.symbol:=objectlibrary.newasmsymbol(tempstr,AB_EXTERNAL,tempsymtyp);
          end
         else
          begin
@@ -1500,7 +1514,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2004-11-08 22:09:59  peter
+  Revision 1.14  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.13  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.12  2004/06/20 08:55:30  florian

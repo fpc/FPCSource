@@ -46,61 +46,36 @@
 {$endif}
 
 {$ifdef internconstintf}
-  {$ifdef INTERNMATH}
-    {$define FPC_SYSTEM_HAS_PI}
-    function pi : extended;[internproc:fpc_in_pi];
-    {$define FPC_SYSTEM_HAS_ABS}
-    function abs(d : extended) : extended;[internproc:fpc_in_abs_extended];
-    {$define FPC_SYSTEM_HAS_SQR}
-    function sqr(d : extended) : extended;[internproc:fpc_in_sqr_extended];
-    {$define FPC_SYSTEM_HAS_SQRT}
-    function sqrt(d : extended) : extended;[internproc:fpc_in_sqrt_extended];
-    {$define FPC_SYSTEM_HAS_ARCTAN}
-    function arctan(d : extended) : extended;[internproc:fpc_in_sqr_extended];
-    {$define FPC_SYSTEM_HAS_LN}
-    function ln(d : extended) : extended;[internproc:fpc_in_ln_extended];
-    {$define FPC_SYSTEM_HAS_SIN}
-    function sin(d : extended) : extended;[internproc:fpc_in_sin_extended];
-    {$define FPC_SYSTEM_HAS_COS}
-    function cos(d : extended) : extended;[internproc:fpc_in_cos_extended];
-    function exp(d : extended) : extended;[internconst:fpc_in_const_exp];
-
-    function round(d : extended) : int64;[internconst:fpc_in_const_round];external name 'FPC_ROUND';
-    function frac(d : extended) : extended;[internconst:fpc_in_const_frac];
-    function int(d : extended) : extended;[internconst:fpc_in_const_int];
-    function trunc(d : extended) : int64;[internconst:fpc_in_const_trunc];
-  {$else}
-    function abs(d : extended) : extended;[internconst:fpc_in_abs_extended];
-    function arctan(d : extended) : extended;[internconst:fpc_in_arctan_extended];{$ifdef MATHINLINE}inline;{$endif}
-    function cos(d : extended) : extended;[internconst:fpc_in_sqr_extended];{$ifdef MATHINLINE}inline;{$endif}
-    function exp(d : extended) : extended;[internconst:fpc_in_const_exp];{$ifdef MATHINLINE}inline;{$endif}
-    function frac(d : extended) : extended;[internconst:fpc_in_const_frac];
-    function int(d : extended) : extended;[internconst:fpc_in_const_int];{$ifdef MATHINLINE}inline;{$endif}
-    function ln(d : extended) : extended;[internconst:fpc_in_ln_extended];{$ifdef MATHINLINE}inline;{$endif}
-    function pi : extended; [internconst:fpc_in_pi];
-    function sin(d : extended) : extended;[internconst:fpc_in_sin_extended];{$ifdef MATHINLINE}inline;{$endif}
-    function sqr(d : extended) : extended;[internconst:fpc_in_sqr_extended];
-    function sqrt(d : extended) : extended;[internconst:fpc_in_sqrt_extended];{$ifdef MATHINLINE}inline;{$endif}
-    function round(d : extended) : int64;[internconst:fpc_in_const_exp];
-    function trunc(d : extended) : int64;[internconst:fpc_in_const_trunc];
-  {$endif}
+    function pi : ValReal;[internproc:fpc_in_pi_real];
+    function abs(d : ValReal) : ValReal;[internproc:fpc_in_abs_real];
+    function sqr(d : ValReal) : ValReal;[internproc:fpc_in_sqr_real];
+    function sqrt(d : ValReal) : ValReal;[internproc:fpc_in_sqrt_real];
+    function arctan(d : ValReal) : ValReal;[internproc:fpc_in_sqr_real];
+    function ln(d : ValReal) : ValReal;[internproc:fpc_in_ln_real];
+    function sin(d : ValReal) : ValReal;[internproc:fpc_in_sin_real];
+    function cos(d : ValReal) : ValReal;[internproc:fpc_in_cos_real];
+    function exp(d : ValReal) : ValReal;[internproc:fpc_in_exp_real];
+    function round(d : ValReal) : int64;[internproc:fpc_in_round_real];
+    function frac(d : ValReal) : ValReal;[internproc:fpc_in_frac_real];
+    function int(d : ValReal) : ValReal;[internproc:fpc_in_int_real];
+    function trunc(d : ValReal) : int64;[internproc:fpc_in_trunc_real];
 {$else}
-    function abs(d : extended) : extended;
-    function arctan(d : extended) : extended;{$ifdef MATHINLINE}inline;{$endif}
-    function cos(d : extended) : extended;{$ifdef MATHINLINE}inline;{$endif}
-    function exp(d : extended) : extended;{$ifdef MATHINLINE}inline;{$endif}
-    function frac(d : extended) : extended;
-    function int(d : extended) : extended;{$ifdef MATHINLINE}inline;{$endif}
-    function ln(d : extended) : extended;{$ifdef MATHINLINE}inline;{$endif}
-    function pi : extended;
-    function sin(d : extended) : extended;{$ifdef MATHINLINE}inline;{$endif}
-    function sqr(d : extended) : extended;
-    function sqrt(d : extended) : extended;{$ifdef MATHINLINE}inline;{$endif}
-    function round(d : extended) : int64;
-    function trunc(d : extended) : int64;
+    function abs(d : ValReal) : ValReal;
+    function arctan(d : ValReal) : ValReal;{$ifdef MATHINLINE}inline;{$endif}
+    function cos(d : ValReal) : ValReal;{$ifdef MATHINLINE}inline;{$endif}
+    function exp(d : ValReal) : ValReal;{$ifdef MATHINLINE}inline;{$endif}
+    function frac(d : ValReal) : ValReal;
+    function int(d : ValReal) : ValReal;{$ifdef MATHINLINE}inline;{$endif}
+    function ln(d : ValReal) : ValReal;{$ifdef MATHINLINE}inline;{$endif}
+    function pi : ValReal;
+    function sin(d : ValReal) : ValReal;{$ifdef MATHINLINE}inline;{$endif}
+    function sqr(d : ValReal) : ValReal;
+    function sqrt(d : ValReal) : ValReal;{$ifdef MATHINLINE}inline;{$endif}
+    function round(d : ValReal) : int64;
+    function trunc(d : ValReal) : int64;
 {$endif internconstintf}
 
-    function power(bas,expo : extended) : extended;
+    function power(bas,expo : ValReal) : ValReal;
     function power(bas,expo : int64) : int64;
 
 {$ifdef FPC_CURRENCY_IS_INT64}
@@ -124,7 +99,10 @@
 
 {
   $Log$
-  Revision 1.18  2004-11-18 10:03:36  michael
+  Revision 1.19  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.18  2004/11/18 10:03:36  michael
   + Patch from peter to fix pasjpeg compile
 
   Revision 1.17  2004/11/17 22:19:04  peter

@@ -100,7 +100,6 @@ type
     Function  SetupSelf:boolean;
     Function  SetupOldEBP:boolean;
     Function  SetupVar(const s:string;GetOffset : boolean): Boolean;
-    Function  SetupDirectVar(const hs:string): Boolean;
     Procedure InitRef;
   end;
   TCOperand = class of TOperand;
@@ -989,23 +988,6 @@ Begin
 end;
 
 
-{ looks for internal names of variables and routines }
-Function TOperand.SetupDirectVar(const hs:string): Boolean;
-var
-  p : tasmsymbol;
-begin
-  SetupDirectVar:=false;
-  p:=objectlibrary.getasmsymbol(hs);
-  if assigned(p) then
-   begin
-     InitRef;
-     opr.ref.symbol:=p;
-     hasvar:=true;
-     SetupDirectVar:=true;
-   end;
-end;
-
-
 procedure TOperand.InitRef;
 {*********************************************************************}
 {  Description: This routine first check if the opcode is of     }
@@ -1635,7 +1617,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.95  2004-11-09 22:32:59  peter
+  Revision 1.96  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.95  2004/11/09 22:32:59  peter
     * small m68k updates to bring it up2date
     * give better error for external local variable
 

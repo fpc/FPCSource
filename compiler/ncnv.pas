@@ -910,7 +910,7 @@ implementation
         if left.nodetype=realconstn then
           result:=cordconstnode.create(round(trealconstnode(left).value_real),resulttype,false)
         else
-          result:=ccallnode.createinternres('fpc_round',
+          result:=ccallnode.createinternres('fpc_round_real',
             ccallparanode.create(left,nil),resulttype);
         left:=nil;
       end;
@@ -2482,7 +2482,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.162  2004-11-02 20:15:53  jonas
+  Revision 1.163  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.162  2004/11/02 20:15:53  jonas
     * copy totype field in ttypeconvnode.getcopy()
 
   Revision 1.161  2004/11/02 12:55:16  peter

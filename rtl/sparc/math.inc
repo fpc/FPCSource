@@ -15,6 +15,34 @@
 
  **********************************************************************}
 
+{$ifdef INTERNCONSTINTF}
+
+    {$define FPC_SYSTEM_HAS_ABS}
+    function fpc_abs_real(d : valreal) : valreal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+
+    {$define FPC_SYSTEM_HAS_SQR}
+    function fpc_sqr_real(d : valreal) : valreal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+
+    {$define FPC_SYSTEM_HAS_SQRT}
+    function fpc_sqrt_real(d : valreal) : valreal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+
+{$else}
+
     {$define FPC_SYSTEM_HAS_ABS}
     function abs(d : extended) : extended;[internproc:in_abs_extended];
 
@@ -24,9 +52,14 @@
     {$define FPC_SYSTEM_HAS_SQRT}
     function sqrt(d : extended) : extended;[internproc:in_sqrt_extended];
 
+{$endif}
+
 {
   $Log$
-  Revision 1.10  2004-10-03 12:41:30  florian
+  Revision 1.11  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.10  2004/10/03 12:41:30  florian
     * made sqrt, sqr and abs internal for the sparc
 
   Revision 1.9  2004/05/31 14:31:57  peter

@@ -111,35 +111,35 @@ implementation
               begin
                  second_IncludeExclude;
               end;
-            in_pi:
+            in_pi_real:
               begin
                 second_pi;
               end;
-            in_sin_extended:
+            in_sin_real:
               begin
                 second_sin_real;
               end;
-            in_arctan_extended:
+            in_arctan_real:
               begin
                 second_arctan_real;
               end;
-            in_abs_extended:
+            in_abs_real:
               begin
                 second_abs_real;
               end;
-            in_sqr_extended:
+            in_sqr_real:
               begin
                 second_sqr_real;
               end;
-            in_sqrt_extended:
+            in_sqrt_real:
               begin
                 second_sqrt_real;
               end;
-            in_ln_extended:
+            in_ln_real:
               begin
                 second_ln_real;
               end;
-            in_cos_extended:
+            in_cos_real:
               begin
                  second_cos_real;
               end;
@@ -679,7 +679,10 @@ end.
 
 {
   $Log$
-  Revision 1.66  2004-11-08 21:59:34  florian
+  Revision 1.67  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.66  2004/11/08 21:59:34  florian
     * include/exclude for sets in registers fixed
 
   Revision 1.65  2004/10/31 21:45:03  peter

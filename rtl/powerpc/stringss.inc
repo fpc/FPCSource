@@ -16,12 +16,6 @@
 
  **********************************************************************}
 
-{$ifndef FPC_UNIT_HAS_STRPAS}
-{$define FPC_UNIT_HAS_STRPAS}
-function strpas(p : pchar) : string; assembler;
-{$i strpas.inc}
-{$endif FPC_UNIT_HAS_STRPAS}
-
 {$ifndef FPC_UNIT_HAS_STRPCOPY}
 {$define FPC_UNIT_HAS_STRPCOPY}
 function strpcopy(d : pchar;const s : string) : pchar;assembler;
@@ -47,7 +41,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2004-05-01 17:02:37  jonas
+  Revision 1.13  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.12  2004/05/01 17:02:37  jonas
     * use some more string routines from libc if FPC_USE_LIBC is used
 
   Revision 1.11  2003/11/29 16:27:19  jonas

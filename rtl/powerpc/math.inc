@@ -26,7 +26,32 @@ const
                        EXTENDED data type routines
  ****************************************************************************}
 
-{$ifndef INTERNCONSTINTF}
+{$ifdef INTERNCONSTINTF}
+    {$define FPC_SYSTEM_HAS_PI}
+    function fpc_pi_real : valreal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+
+    {$define FPC_SYSTEM_HAS_ABS}
+    function fpc_abs_real(d : valreal) : valreal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+
+    {$define FPC_SYSTEM_HAS_SQR}
+    function fpc_sqr_real(d : valreal) : valreal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+
+{$else}
     {$define FPC_SYSTEM_HAS_PI}
     function pi : double;[internproc:fpc_in_pi];
 
@@ -43,7 +68,11 @@ const
 
 {$ifndef FPC_SYSTEM_HAS_TRUNC}
     {$define FPC_SYSTEM_HAS_TRUNC}
-    function trunc(d : extended) : int64;assembler;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_trunc];{$endif}
+    {$ifdef INTERNCONSTINTF}
+    function fpc_trunc_real(d : valreal) : int64;assembler;compilerproc;
+    {$else}
+    function trunc(d : extended) : int64;assembler;[internconst:fpc_in_const_trunc];
+    {$endif}
       { input: d in fr1      }
       { output: result in r3 }
       assembler;
@@ -320,7 +349,10 @@ end;
 
 {
   $Log$
-  Revision 1.36  2004-11-20 15:49:21  jonas
+  Revision 1.37  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.36  2004/11/20 15:49:21  jonas
     * some compilation fixes for powerpc after all the internconst and
       internproc changes, still crashes with internalerror(88) for ppc1
       on real2str.inc(193,39)

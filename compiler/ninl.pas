@@ -54,6 +54,11 @@ interface
           function first_ln_real: tnode; virtual;
           function first_cos_real: tnode; virtual;
           function first_sin_real: tnode; virtual;
+          function first_exp_real: tnode; virtual;
+          function first_frac_real: tnode; virtual;
+          function first_round_real: tnode; virtual;
+          function first_trunc_real: tnode; virtual;
+          function first_int_real: tnode; virtual;
         private
           function handle_str: tnode;
           function handle_reset_rewrite_typed: tnode;
@@ -1207,7 +1212,7 @@ implementation
             if not assigned(left) then
              begin
                case inlinenumber of
-                 in_const_pi :
+                 in_pi_real :
                    hp:=crealconstnode.create(pi,pbestrealtype^);
                  else
                    internalerror(89);
@@ -1217,13 +1222,11 @@ implementation
              begin
                vl:=0;
                vl2:=0; { second parameter Ex: ptr(vl,vl2) }
-               vr:=0;
-               isreal:=false;
                case left.nodetype of
                  realconstn :
                    begin
-                     isreal:=true;
-                     vr:=trealconstnode(left).value_real;
+                     { Real functions are all handled with internproc below }
+                     CGMessage1(type_e_integer_expr_expected,left.resulttype.def.typename)
                    end;
                  ordconstn :
                    vl:=tordconstnode(left).value;
@@ -1237,149 +1240,20 @@ implementation
                    CGMessage(parser_e_illegal_expression);
                end;
                case inlinenumber of
-                 in_const_trunc :
-                   begin
-                     if isreal then
-                       begin
-                          if (vr>=9223372036854775808.0) or (vr<=-9223372036854775809.0) then
-                            begin
-                               CGMessage(parser_e_range_check_error);
-                               hp:=cordconstnode.create(1,s64inttype,false)
-                            end
-                          else
-                            hp:=cordconstnode.create(trunc(vr),s64inttype,true)
-                       end
-                     else
-                      hp:=cordconstnode.create(trunc(vl),s64inttype,true);
-                   end;
-                 in_const_round :
-                   begin
-                     if isreal then
-                       begin
-                          if (vr>=9223372036854775807.5) or (vr<=-9223372036854775808.5) then
-                            begin
-                               CGMessage(parser_e_range_check_error);
-                               hp:=cordconstnode.create(1,s64inttype,false)
-                            end
-                          else
-                            hp:=cordconstnode.create(round(vr),s64inttype,true)
-                       end
-                     else
-                      hp:=cordconstnode.create(round(vl),s64inttype,true);
-                   end;
-                 in_const_frac :
-                   begin
-                     if isreal then
-                      hp:=crealconstnode.create(frac(vr),pbestrealtype^)
-                     else
-                      hp:=crealconstnode.create(frac(vl),pbestrealtype^);
-                   end;
-                 in_const_int :
-                   begin
-                     if isreal then
-                      hp:=crealconstnode.create(int(vr),pbestrealtype^)
-                     else
-                      hp:=crealconstnode.create(int(vl),pbestrealtype^);
-                   end;
                  in_const_abs :
-                   begin
-                     if isreal then
-                      hp:=crealconstnode.create(abs(vr),pbestrealtype^)
-                     else
-                      hp:=genintconstnode(abs(vl));
-                   end;
+                   hp:=genintconstnode(abs(vl));
                  in_const_sqr :
-                   begin
-                     if isreal then
-                      hp:=crealconstnode.create(sqr(vr),pbestrealtype^)
-                     else
-                      hp:=genintconstnode(sqr(vl));
-                   end;
+                   hp:=genintconstnode(sqr(vl));
                  in_const_odd :
-                   begin
-                     if isreal then
-                      CGMessage1(type_e_integer_expr_expected,left.resulttype.def.typename)
-                     else
-                      hp:=cordconstnode.create(byte(odd(vl)),booltype,true);
-                   end;
+                   hp:=cordconstnode.create(byte(odd(vl)),booltype,true);
                  in_const_swap_word :
-                   begin
-                     if isreal then
-                      CGMessage1(type_e_integer_expr_expected,left.resulttype.def.typename)
-                     else
-                      hp:=cordconstnode.create((vl and $ff) shl 8+(vl shr 8),left.resulttype,true);
-                   end;
+                   hp:=cordconstnode.create((vl and $ff) shl 8+(vl shr 8),left.resulttype,true);
                  in_const_swap_long :
-                   begin
-                     if isreal then
-                      CGMessage1(type_e_integer_expr_expected,left.resulttype.def.typename)
-                     else
-                      hp:=cordconstnode.create((vl and $ffff) shl 16+(vl shr 16),left.resulttype,true);
-                   end;
+                   hp:=cordconstnode.create((vl and $ffff) shl 16+(vl shr 16),left.resulttype,true);
                  in_const_swap_qword :
-                   begin
-                     if isreal then
-                      CGMessage1(type_e_integer_expr_expected,left.resulttype.def.typename)
-                     else
-                      hp:=cordconstnode.create((vl and $ffff) shl 32+(vl shr 32),left.resulttype,true);
-                   end;
+                   hp:=cordconstnode.create((vl and $ffff) shl 32+(vl shr 32),left.resulttype,true);
                  in_const_ptr :
-                   begin
-                     if isreal then
-                      CGMessage1(type_e_integer_expr_expected,left.resulttype.def.typename)
-                     else
-                      hp:=cpointerconstnode.create((vl2 shl 4)+vl,voidfarpointertype);
-                   end;
-                 in_const_sqrt :
-                   begin
-                     if isreal then
-                       hp:=handle_sqrt_const(vr)
-                     else
-                       hp:=handle_sqrt_const(vl)
-                   end;
-                 in_const_arctan :
-                   begin
-                     if isreal then
-                      hp:=crealconstnode.create(arctan(vr),pbestrealtype^)
-                     else
-                      hp:=crealconstnode.create(arctan(vl),pbestrealtype^);
-                   end;
-                 in_const_cos :
-                   begin
-                     if isreal then
-                      hp:=crealconstnode.create(cos(vr),pbestrealtype^)
-                     else
-                      hp:=crealconstnode.create(cos(vl),pbestrealtype^);
-                   end;
-                 in_const_sin :
-                   begin
-                     if isreal then
-                      hp:=crealconstnode.create(sin(vr),pbestrealtype^)
-                     else
-                      hp:=crealconstnode.create(sin(vl),pbestrealtype^);
-                   end;
-                 in_const_exp :
-                   begin
-                     if isreal then
-                       hp:=crealconstnode.create(exp(vr),pbestrealtype^)
-                     else
-                       hp:=crealconstnode.create(exp(vl),pbestrealtype^);
-
-                     if (trealconstnode(hp).value_real=double(MathInf)) and
-                        ((cs_check_range in aktlocalswitches) or
-                        (cs_check_overflow in aktlocalswitches)) then
-                       begin
-                         result:=crealconstnode.create(0,pbestrealtype^);
-                         CGMessage(parser_e_range_check_error);
-                       end;
-                   end;
-                 in_const_ln :
-                   begin
-                     if isreal then
-                       hp:=handle_ln_const(vr)
-                     else
-                       hp:=handle_ln_const(vl)
-                   end;
+                   hp:=cpointerconstnode.create((vl2 shl 4)+vl,voidfarpointertype);
                  else
                    internalerror(88);
                end;
@@ -1690,8 +1564,7 @@ implementation
               in_seg_x :
                 begin
                   set_varstate(left,vs_used,false);
-                  hp:=cordconstnode.create(0,s32inttype,false);
-                  result:=hp;
+                  result:=cordconstnode.create(0,s32inttype,false);
                   goto myexit;
                 end;
 
@@ -1719,10 +1592,9 @@ implementation
                    if left.nodetype=ordconstn then
                     begin
                       if inlinenumber=in_succ_x then
-                       hp:=cordconstnode.create(tordconstnode(left).value+1,left.resulttype,checkrange)
+                        result:=cordconstnode.create(tordconstnode(left).value+1,left.resulttype,checkrange)
                       else
-                       hp:=cordconstnode.create(tordconstnode(left).value-1,left.resulttype,checkrange);
-                      result:=hp;
+                        result:=cordconstnode.create(tordconstnode(left).value-1,left.resulttype,checkrange);
                     end;
                 end;
 
@@ -1781,9 +1653,8 @@ implementation
                   srsym:=searchsymonlyin(systemunit,'SETTEXTBUF');
                   hp:=ccallparanode.create(cordconstnode.create(
                      tcallparanode(left).left.resulttype.def.size,s32inttype,true),left);
-                  hp:=ccallnode.create(hp,tprocsym(srsym),systemunit,nil,[]);
+                  result:=ccallnode.create(hp,tprocsym(srsym),systemunit,nil,[]);
                   left:=nil;
-                  result:=hp;
                 end;
 
               { the firstpass of the arg has been done in firstcalln ? }
@@ -1890,14 +1761,102 @@ implementation
                   end;
                 end;
 
-             in_pi:
+              in_exp_real :
+                begin
+                  if left.nodetype in [ordconstn,realconstn] then
+                    begin
+                      result:=crealconstnode.create(exp(getconstrealvalue),pbestrealtype^);
+                      if (trealconstnode(result).value_real=double(MathInf)) and
+                         ((cs_check_range in aktlocalswitches) or
+                          (cs_check_overflow in aktlocalswitches)) then
+                        begin
+                          result:=crealconstnode.create(0,pbestrealtype^);
+                          CGMessage(parser_e_range_check_error);
+                        end;
+                    end
+                  else
+                    begin
+                      set_varstate(left,vs_used,true);
+                      inserttypeconv(left,pbestrealtype^);
+                      resulttype:=pbestrealtype^;
+                    end;
+                end;
+
+              in_trunc_real :
+                begin
+                  if left.nodetype in [ordconstn,realconstn] then
+                    begin
+                      vr:=getconstrealvalue;
+                      if (vr>=9223372036854775807.5) or (vr<=-9223372036854775808.5) then
+                        begin
+                          CGMessage(parser_e_range_check_error);
+                          result:=cordconstnode.create(1,s64inttype,false)
+                        end
+                      else
+                        result:=cordconstnode.create(trunc(vr),s64inttype,true)
+                    end
+                  else
+                    begin
+                      set_varstate(left,vs_used,true);
+                      inserttypeconv(left,pbestrealtype^);
+                      resulttype:=s64inttype;
+                    end;
+                end;
+
+              in_round_real :
+                begin
+                  if left.nodetype in [ordconstn,realconstn] then
+                    begin
+                      vr:=getconstrealvalue;
+                      if (vr>=9223372036854775807.5) or (vr<=-9223372036854775808.5) then
+                        begin
+                          CGMessage(parser_e_range_check_error);
+                          result:=cordconstnode.create(1,s64inttype,false)
+                        end
+                      else
+                        result:=cordconstnode.create(round(vr),s64inttype,true)
+                    end
+                  else
+                    begin
+                      set_varstate(left,vs_used,true);
+                      inserttypeconv(left,pbestrealtype^);
+                      resulttype:=s64inttype;
+                    end;
+                end;
+
+              in_frac_real :
+                begin
+                  if left.nodetype in [ordconstn,realconstn] then
+                    setconstrealvalue(frac(getconstrealvalue))
+                  else
+                    begin
+                      set_varstate(left,vs_used,true);
+                      inserttypeconv(left,pbestrealtype^);
+                      resulttype:=pbestrealtype^;
+                    end;
+                end;
+
+              in_int_real :
+                begin
+                  if left.nodetype in [ordconstn,realconstn] then
+                    setconstrealvalue(int(getconstrealvalue))
+                  else
+                    begin
+                      set_varstate(left,vs_used,true);
+                      inserttypeconv(left,pbestrealtype^);
+                      resulttype:=pbestrealtype^;
+                    end;
+                end;
+
+             in_pi_real :
                 begin
                   if block_type=bt_const then
                      setconstrealvalue(pi)
                   else
                      resulttype:=pbestrealtype^;
                 end;
-              in_cos_extended :
+
+              in_cos_real :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
                    setconstrealvalue(cos(getconstrealvalue))
@@ -1909,7 +1868,7 @@ implementation
                    end;
                 end;
 
-              in_sin_extended :
+              in_sin_real :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
                    setconstrealvalue(sin(getconstrealvalue))
@@ -1921,7 +1880,7 @@ implementation
                    end;
                 end;
 
-              in_arctan_extended :
+              in_arctan_real :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
                    setconstrealvalue(arctan(getconstrealvalue))
@@ -1933,7 +1892,7 @@ implementation
                    end;
                 end;
 
-              in_abs_extended :
+              in_abs_real :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
                    setconstrealvalue(abs(getconstrealvalue))
@@ -1945,7 +1904,7 @@ implementation
                    end;
                 end;
 
-              in_sqr_extended :
+              in_sqr_real :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
                    setconstrealvalue(sqr(getconstrealvalue))
@@ -1957,7 +1916,7 @@ implementation
                    end;
                 end;
 
-              in_sqrt_extended :
+              in_sqrt_real :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
                    begin
@@ -1975,7 +1934,7 @@ implementation
                    end;
                 end;
 
-              in_ln_extended :
+              in_ln_real :
                 begin
                   if left.nodetype in [ordconstn,realconstn] then
                    begin
@@ -2256,42 +2215,67 @@ implementation
 {$endif SUPPORT_MMX}
            end;
 
-         in_cos_extended:
+         in_exp_real:
+           begin
+             result:= first_exp_real;
+           end;
+
+         in_round_real:
+           begin
+             result:= first_round_real;
+           end;
+
+         in_trunc_real:
+           begin
+             result:= first_trunc_real;
+           end;
+
+         in_int_real:
+           begin
+             result:= first_int_real;
+           end;
+
+         in_frac_real:
+           begin
+             result:= first_frac_real;
+           end;
+
+         in_cos_real:
            begin
              result:= first_cos_real;
            end;
 
-         in_sin_extended:
+         in_sin_real:
            begin
              result := first_sin_real;
            end;
 
-         in_arctan_extended:
+         in_arctan_real:
            begin
              result := first_arctan_real;
            end;
 
-         in_pi:
+         in_pi_real :
            begin
              result := first_pi;
            end;
 
-         in_abs_extended:
+         in_abs_real:
            begin
              result := first_abs_real;
            end;
 
-         in_sqr_extended:
+         in_sqr_real:
            begin
              result := first_sqr_real;
            end;
 
-         in_sqrt_extended:
+         in_sqrt_real:
            begin
              result := first_sqrt_real;
            end;
 
-         in_ln_extended:
+         in_ln_real:
            begin
              result := first_ln_real;
            end;
@@ -2434,13 +2418,55 @@ implementation
         left := nil;
       end;
 
+     function tinlinenode.first_exp_real : tnode;
+      begin
+        { create the call to the helper }
+        { on entry left node contains the parameter }
+        result := ccallnode.createintern('fpc_exp_real',ccallparanode.create(left,nil));
+        left := nil;
+      end;
+
+     function tinlinenode.first_int_real : tnode;
+      begin
+        { create the call to the helper }
+        { on entry left node contains the parameter }
+        result := ccallnode.createintern('fpc_int_real',ccallparanode.create(left,nil));
+        left := nil;
+      end;
+
+     function tinlinenode.first_frac_real : tnode;
+      begin
+        { create the call to the helper }
+        { on entry left node contains the parameter }
+        result := ccallnode.createintern('fpc_frac_real',ccallparanode.create(left,nil));
+        left := nil;
+      end;
+
+     function tinlinenode.first_round_real : tnode;
+      begin
+        { create the call to the helper }
+        { on entry left node contains the parameter }
+        result := ccallnode.createintern('fpc_round_real',ccallparanode.create(left,nil));
+        left := nil;
+      end;
+
+     function tinlinenode.first_trunc_real : tnode;
+      begin
+        { create the call to the helper }
+        { on entry left node contains the parameter }
+        result := ccallnode.createintern('fpc_trunc_real',ccallparanode.create(left,nil));
+        left := nil;
+      end;
 
 begin
    cinlinenode:=tinlinenode;
 end.
 {
   $Log$
-  Revision 1.151  2004-11-09 23:10:22  peter
+  Revision 1.152  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.151  2004/11/09 23:10:22  peter
     * use helper call to retrieve address of input/output to reduce
       code that is generated in the main program for loading the
       threadvar

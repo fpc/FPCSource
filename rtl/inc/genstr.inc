@@ -13,19 +13,6 @@
 
  **********************************************************************}
 
-{$ifndef FPC_UNIT_HAS_STRLEN}
- function strlen(P : pchar) : SizeInt;
-  var
-   counter : SizeInt;
- Begin
-   counter := 0;
-   while P[counter] <> #0 do
-     Inc(counter);
-   strlen := counter;
- end;
-{$endif FPC_UNIT_HAS_STRLEN}
-
-
 {$ifndef FPC_UNIT_HAS_STREND}
  Function StrEnd(P: PChar): PChar;
  var
@@ -281,7 +268,10 @@
 
 {
   $Log$
-  Revision 1.3  2004-05-01 23:55:18  peter
+  Revision 1.4  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.3  2004/05/01 23:55:18  peter
     * replace strlenint with sizeint
 
   Revision 1.2  2003/07/07 20:22:05  peter

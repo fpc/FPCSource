@@ -64,38 +64,34 @@ const
    in_cycle             = 52; {macpas}
 
 { Internal constant functions }
-   in_const_trunc      = 100;
-   in_const_round      = 101;
-   in_const_frac       = 102;
-   in_const_abs        = 103;
-   in_const_int        = 104;
-   in_const_sqr        = 105;
-   in_const_odd        = 106;
-   in_const_ptr        = 107;
-   in_const_swap_word  = 108;
-   in_const_swap_long  = 109;
-   in_const_pi         = 110;
-   in_const_sqrt       = 111;
-   in_const_arctan     = 112;
-   in_const_cos        = 113;
-   in_const_exp        = 114;
-   in_const_ln         = 115;
-   in_const_sin        = 116;
-   in_lo_qword         = 117;
-   in_hi_qword         = 118;
-   in_cos_extended     = 119;
-   in_pi               = 121;
-   in_abs_extended     = 122;
-   in_sqr_extended     = 123;
-   in_sqrt_extended    = 124;
-   in_arctan_extended  = 125;
-   in_ln_extended      = 126;
-   in_sin_extended     = 127;
-   in_const_swap_qword = 128;
-   in_prefetch_var     = 129;
+   in_const_sqr        = 100;
+   in_const_abs        = 101;
+   in_const_odd        = 102;
+   in_const_ptr        = 103;
+   in_const_swap_word  = 104;
+   in_const_swap_long  = 105;
+   in_lo_qword         = 106;
+   in_hi_qword         = 107;
+   in_const_swap_qword = 108;
+   in_prefetch_var     = 109;
+
+{ FPU functions }
+   in_trunc_real       = 120;
+   in_round_real       = 121;
+   in_frac_real        = 122;
+   in_int_real         = 123;
+   in_exp_real         = 124;
+   in_cos_real         = 125;
+   in_pi_real          = 126;
+   in_abs_real         = 127;
+   in_sqr_real         = 128;
+   in_sqrt_real        = 129;
+   in_arctan_real      = 130;
+   in_ln_real          = 131;
+   in_sin_real         = 132;
 
 { MMX functions }
-{ these contants are used by the mmx unit }
+  { these contants are used by the mmx unit }
 
    { MMX }
    in_mmx_pcmpeqb      = 200;
@@ -111,7 +107,10 @@ const
 
 {
   $Log$
-  Revision 1.14  2004-07-05 21:49:43  olle
+  Revision 1.15  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.14  2004/07/05 21:49:43  olle
     + macpas style: exit, cycle, leave
     + macpas compiler directive: PUSH POP
 

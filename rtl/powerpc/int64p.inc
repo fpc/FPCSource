@@ -125,6 +125,8 @@
 
 
 {$define FPC_SYSTEM_HAS_MOD_QWORD}
+    function int_div_qword(n,z : qword) : qword;external name 'FPC_DIV_QWORD';
+    
     function fpc_mod_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_MOD_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
       assembler;
       var
@@ -132,7 +134,7 @@
       asm
         mflr r0
         stw  r0,oldlr
-        bl   FPC_DIV_QWORD
+        bl   INT_DIV_QWORD
         lwz  r0,oldlr
         mtlr r0
         mr   R3,R5
@@ -198,7 +200,10 @@
 
 {
   $Log$
-  Revision 1.5  2004-10-19 18:51:15  jonas
+  Revision 1.6  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.5  2004/10/19 18:51:15  jonas
     + "nostackframe" modifier, because the automatic detection in the
       compiler to determine that a stack frame is not needed no longer works
 

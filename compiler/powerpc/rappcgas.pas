@@ -48,16 +48,14 @@ Unit rappcgas;
       { helpers }
       cutils,
       { global }
-      globtype,globals,verbose,
+      globtype,verbose,
       systems,
       { aasm }
-      cpubase,cpuinfo,aasmbase,aasmtai,aasmcpu,
+      cpubase,aasmbase,aasmtai,aasmcpu,
       { symtable }
-      symconst,symbase,symtype,symsym,symtable,
+      symconst,symsym,
       { parser }
-      scanner,
       procinfo,
-      itcpugas,
       rabase,rautils,
       cgbase,cgobj
       ;
@@ -443,19 +441,6 @@ Unit rappcgas;
                            if expr = '__OLDEBP' then
                             oper.SetupOldEBP
                           else
-                            { check for direct symbolic names   }
-                            { only if compiling the system unit }
-                            if (cs_compilesystem in aktmoduleswitches) then
-                             begin
-                               if not oper.SetupDirectVar(expr) then
-                                Begin
-                                  { not found, finally ... add it anyways ... }
-                                  Message1(asmr_w_id_supposed_external,expr);
-                                  oper.InitRef;
-                                  oper.opr.ref.symbol:=objectlibrary.newasmsymbol(expr,AB_EXTERNAL,AT_FUNCTION);
-                                end;
-                             end
-                          else
                             Message1(sym_e_unknown_id,expr);
                         end;
                      end;
@@ -629,8 +614,6 @@ Unit rappcgas;
       var
         str2opentry: tstr2opentry;
         cond  : tasmcondflag;
-        j,
-        sufidx : longint;
         hs : string;
 
       Begin
@@ -696,8 +679,6 @@ Unit rappcgas;
       end;
 
     procedure tppcattreader.ConvertCalljmp(instr : tppcinstruction);
-      var
-        newopr : toprrec;
       begin
         if instr.Operands[1].opr.typ=OPR_REFERENCE then
           begin
@@ -753,7 +734,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2004-11-11 19:31:33  peter
+  Revision 1.18  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.17  2004/11/11 19:31:33  peter
     * fixed compile of powerpc,sparc,arm
 
   Revision 1.16  2004/06/20 08:55:32  florian

@@ -200,13 +200,6 @@ end;
 {$endif FPC_UNIT_HAS_STRLCOPY}
 
 
-{$ifndef FPC_UNIT_HAS_STRLEN}
-{$define FPC_UNIT_HAS_STRLEN}
-function strlen(p : pchar) : longint;assembler;
-{$i strlen.inc}
-{$endif FPC_UNIT_HAS_STRLEN}
-
-
 {$ifndef FPC_UNIT_HAS_STREND}
 {$define FPC_UNIT_HAS_STREND}
 function strend(p : pchar) : pchar;assembler;
@@ -512,7 +505,10 @@ end;
 
 {
   $Log$
-  Revision 1.26  2004-08-17 13:34:15  olle
+  Revision 1.27  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.26  2004/08/17 13:34:15  olle
     * bugfix
 
   Revision 1.25  2004/08/09 16:43:33  jonas

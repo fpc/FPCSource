@@ -39,27 +39,88 @@
                        EXTENDED data type routines
  ****************************************************************************}
 
-{$ifndef INTERNCONSTINTF}
+{$ifdef INTERNCONSTINTF}
     {$define FPC_SYSTEM_HAS_PI}
-    function pi : extended;[internproc:fpc_in_pi];
+    function fpc_pi_real : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
     {$define FPC_SYSTEM_HAS_ABS}
-    function abs(d : extended) : extended;[internproc:fpc_in_abs_extended];
+    function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
     {$define FPC_SYSTEM_HAS_SQR}
-    function sqr(d : extended) : extended;[internproc:fpc_in_sqr_extended];
+    function fpc_sqr_real(d : ValReal) : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
     {$define FPC_SYSTEM_HAS_SQRT}
-    function sqrt(d : extended) : extended;[internproc:fpc_in_sqrt_extended];
+    function fpc_sqrt_real(d : ValReal) : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
     {$define FPC_SYSTEM_HAS_ARCTAN}
-    function arctan(d : extended) : extended;[internproc:fpc_in_arctan_extended];
+    function fpc_arctan_real(d : ValReal) : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
     {$define FPC_SYSTEM_HAS_LN}
-    function ln(d : extended) : extended;[internproc:fpc_in_ln_extended];
+    function fpc_ln_real(d : ValReal) : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
     {$define FPC_SYSTEM_HAS_SIN}
-    function sin(d : extended) : extended;[internproc:fpc_in_sin_extended];
+    function fpc_sin_real(d : ValReal) : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
     {$define FPC_SYSTEM_HAS_COS}
-    function cos(d : extended) : extended;[internproc:fpc_in_cos_extended];
+    function fpc_cos_real(d : ValReal) : ValReal;compilerproc;
+    begin
+      { Function is handled internal in the compiler }
+      runerror(207);
+      result:=0;
+    end;
+{$else}
+    {$define FPC_SYSTEM_HAS_PI}
+    function pi : ValReal;[internproc:fpc_in_pi];
+    {$define FPC_SYSTEM_HAS_ABS}
+    function abs(d : ValReal) : ValReal;[internproc:fpc_in_abs_real];
+    {$define FPC_SYSTEM_HAS_SQR}
+    function sqr(d : ValReal) : ValReal;[internproc:fpc_in_sqr_real];
+    {$define FPC_SYSTEM_HAS_SQRT}
+    function sqrt(d : ValReal) : ValReal;[internproc:fpc_in_sqrt_real];
+    {$define FPC_SYSTEM_HAS_ARCTAN}
+    function arctan(d : ValReal) : ValReal;[internproc:fpc_in_arctan_real];
+    {$define FPC_SYSTEM_HAS_LN}
+    function ln(d : ValReal) : ValReal;[internproc:fpc_in_ln_real];
+    {$define FPC_SYSTEM_HAS_SIN}
+    function sin(d : ValReal) : ValReal;[internproc:fpc_in_sin_real];
+    {$define FPC_SYSTEM_HAS_COS}
+    function cos(d : ValReal) : ValReal;[internproc:fpc_in_cos_real];
 {$endif}
 
     {$define FPC_SYSTEM_HAS_EXP}
-    function exp(d : extended) : extended;assembler;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_exp];{$endif}
+  {$ifdef INTERNCONSTINTF}
+    function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
+  {$else}
+    function exp(d : ValReal) : ValReal;assembler;[internconst:fpc_in_const_exp];
+  {$endif}
        asm
             // comes from DJ GPP
             fldt        d
@@ -93,7 +154,11 @@
 
 
     {$define FPC_SYSTEM_HAS_FRAC}
-    function frac(d : extended) : extended;assembler;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_frac];{$endif}
+  {$ifdef INTERNCONSTINTF}
+    function fpc_frac_real(d : ValReal) : ValReal;assembler;compilerproc;
+  {$else}
+    function frac(d : ValReal) : ValReal;assembler;[internconst:fpc_in_const_frac];
+  {$endif}
       asm
             subl $16,%esp
             fnstcw -4(%ebp)
@@ -114,7 +179,11 @@
 
 
     {$define FPC_SYSTEM_HAS_INT}
-    function int(d : extended) : extended;assembler;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_int];{$endif}
+  {$ifdef INTERNCONSTINTF}
+    function fpc_int_real(d : ValReal) : ValReal;assembler;compilerproc;
+  {$else}
+    function int(d : ValReal) : ValReal;assembler;[internconst:fpc_in_const_int];
+  {$endif}
       asm
             subl $16,%esp
             fnstcw -4(%ebp)
@@ -133,7 +202,11 @@
 
 
     {$define FPC_SYSTEM_HAS_TRUNC}
-    function trunc(d : extended) : int64;assembler;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_trunc];{$endif}
+  {$ifdef INTERNCONSTINTF}
+    function fpc_trunc_real(d : ValReal) : int64;assembler;compilerproc;
+  {$else}
+    function trunc(d : ValReal) : int64;assembler;[internconst:fpc_in_const_trunc];
+  {$endif}
       var
         oldcw,
         newcw : word;
@@ -150,21 +223,22 @@
             fistpq res
             movl res,%eax
             movl res+4,%edx
-	    fclex
+            fclex
             fldcw oldcw
       end;
 
 
     {$define FPC_SYSTEM_HAS_ROUND}
-{$ifdef hascompilerproc}
-  {$ifndef internconstintf}
-    function round(d : extended) : int64;[internconst:fpc_in_const_round, external name 'FPC_ROUND'];
-  {$endif internconstintf}
-
-    function fpc_round(d : extended) : int64;assembler;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
-{$else}
-    function round(d : extended) : int64;assembler;[internconst:fpc_in_const_round];
-{$endif hascompilerproc}
+  {$ifdef internconstintf}
+    function fpc_round_real(d : ValReal) : int64;assembler;compilerproc;
+  {$else}
+    {$ifdef hascompilerproc}
+      function round(d : ValReal) : int64;[internconst:fpc_in_const_round, external name 'FPC_ROUND'];
+      function fpc_round(d : ValReal) : int64;assembler;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
+    {$else}
+      function round(d : ValReal) : int64;assembler;[internconst:fpc_in_const_round];
+    {$endif hascompilerproc}
+  {$endif}
       var
         oldcw,
         newcw : word;
@@ -173,20 +247,20 @@
             fnstcw oldcw
             fwait
             movw $0x1372,newcw
-	    fclex
+            fclex
             fldcw newcw
             fwait
             fldt d
             fistpq res
             movl res,%eax
             movl res+4,%edx
-	    fclex
+            fclex
             fldcw oldcw
       end;
 
 
     {$define FPC_SYSTEM_HAS_POWER}
-   function power(bas,expo : extended) : extended;
+   function power(bas,expo : ValReal) : ValReal;
      begin
         if bas=0 then
           begin
@@ -214,7 +288,10 @@
 
 {
   $Log$
-  Revision 1.20  2004-11-17 22:19:04  peter
+  Revision 1.21  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.20  2004/11/17 22:19:04  peter
   internconst, internproc and some external declarations moved to interface
 
   Revision 1.19  2004/07/09 23:06:11  peter

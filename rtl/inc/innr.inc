@@ -63,6 +63,34 @@ const
    fpc_in_leave             = 51; {macpas}
    fpc_in_cycle             = 52; {macpas}
 
+{$ifdef INTERNCONSTINTF}
+{ Internal constant functions }
+   fpc_in_const_sqr        = 100;
+   fpc_in_const_abs        = 101;
+   fpc_in_const_odd        = 102;
+   fpc_in_const_ptr        = 103;
+   fpc_in_const_swap_word  = 104;
+   fpc_in_const_swap_long  = 105;
+   fpc_in_lo_qword         = 106;
+   fpc_in_hi_qword         = 107;
+   fpc_in_const_swap_qword = 108;
+   fpc_in_prefetch_var     = 109;
+
+{ FPU functions }
+   fpc_in_trunc_real       = 120;
+   fpc_in_round_real       = 121;
+   fpc_in_frac_real        = 122;
+   fpc_in_int_real         = 123;
+   fpc_in_exp_real         = 124;
+   fpc_in_cos_real         = 125;
+   fpc_in_pi_real          = 126;
+   fpc_in_abs_real         = 127;
+   fpc_in_sqr_real         = 128;
+   fpc_in_sqrt_real        = 129;
+   fpc_in_arctan_real      = 130;
+   fpc_in_ln_real          = 131;
+   fpc_in_sin_real         = 132;
+{$else}
 { Internal constant functions }
    fpc_in_const_trunc      = 100;
    fpc_in_const_round      = 101;
@@ -83,16 +111,17 @@ const
    fpc_in_const_sin        = 116;
    fpc_in_lo_qword         = 117;
    fpc_in_hi_qword         = 118;
-   fpc_in_cos_extended     = 119;
+   fpc_in_cos_real     = 119;
    fpc_in_pi               = 121;
-   fpc_in_abs_extended     = 122;
-   fpc_in_sqr_extended     = 123;
-   fpc_in_sqrt_extended    = 124;
-   fpc_in_arctan_extended  = 125;
-   fpc_in_ln_extended      = 126;
-   fpc_in_sin_extended     = 127;
+   fpc_in_abs_real     = 122;
+   fpc_in_sqr_real     = 123;
+   fpc_in_sqrt_real    = 124;
+   fpc_in_arctan_real  = 125;
+   fpc_in_ln_real      = 126;
+   fpc_in_sin_real     = 127;
    fpc_in_const_swap_qword = 128;
-   fpc_in_prefetch_var      = 129;
+   fpc_in_prefetch_var     = 129;
+{$endif}
 
 { MMX functions }
 { these contants are used by the mmx unit }
@@ -111,7 +140,10 @@ const
 
 {
   $Log$
-  Revision 1.8  2004-11-17 22:19:04  peter
+  Revision 1.9  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.8  2004/11/17 22:19:04  peter
   internconst, internproc and some external declarations moved to interface
 
   Revision 1.7  2004/07/05 21:59:18  olle

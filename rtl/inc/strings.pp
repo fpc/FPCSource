@@ -17,14 +17,12 @@ unit strings;
 {$S-}
 interface
 
-    { Returns the length of a string }
-    function strlen(p : pchar) : SizeInt;
+    { Implemented in System Unit }
+    function strpas(p:pchar):shortstring;external name 'FPC_PCHAR_TO_SHORTSTR';
+    function strlen(p:pchar):sizeint;external name 'FPC_PCHAR_LENGTH';
 
     { Converts a Pascal string to a null-terminated string }
     function strpcopy(d : pchar;const s : string) : pchar;
-
-    { Converts a null-terminated string to a Pascal string }
-    function strpas(p : pchar) : string;
 
     { Copies source to dest, returns a pointer to dest }
     function strcopy(dest,source : pchar) : pchar;
@@ -148,7 +146,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-05-01 23:55:18  peter
+  Revision 1.9  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.8  2004/05/01 23:55:18  peter
     * replace strlenint with sizeint
 
   Revision 1.7  2004/05/01 15:26:33  jonas

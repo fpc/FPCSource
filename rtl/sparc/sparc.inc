@@ -286,7 +286,7 @@ procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
-function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}nostackframe;[internconst:in_const_abs];
+function abs(l:longint):longint; assembler;{$ifdef SYSTEMINLINE}inline;{$endif}nostackframe;{$ifndef INTERNCONSTINTF}[internconst:in_const_abs];{$endif}
 asm
   sra %o0,31,%g1
   add %o0,%g1,%o0
@@ -352,7 +352,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2004-11-03 20:53:58  florian
+  Revision 1.15  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.14  2004/11/03 20:53:58  florian
     * get_frame fixed
 
   Revision 1.13  2004/10/14 19:45:39  florian

@@ -22,7 +22,7 @@
 }
 
 { shared with strings unit }
-function strlen(p : pchar) : SizeInt;
+function strlen(p:pchar):sizeint;external name 'FPC_PCHAR_LENGTH';
 function strcopy(dest,source : pchar) : pchar;
 function strlcopy(dest,source : pchar;maxlen : SizeInt) : pchar;
 function strecopy(dest,source : pchar) : pchar;
@@ -51,7 +51,10 @@ procedure StrDispose(Str: PChar);
 
 {
   $Log$
-  Revision 1.3  2004-05-01 23:55:18  peter
+  Revision 1.4  2004-11-21 15:35:23  peter
+    * float routines all use internproc and compilerproc helpers
+
+  Revision 1.3  2004/05/01 23:55:18  peter
     * replace strlenint with sizeint
 
   Revision 1.2  2004/02/20 22:15:16  florian
