@@ -970,6 +970,7 @@ unit pmodules;
       end;
 
       var
+         main_file: pinputfile;
 {$ifdef fixLeaksOnError}
          names  : Pstringcontainer;
 {$else fixLeaksOnError}
@@ -994,14 +995,19 @@ unit pmodules;
          if token=_ID then
           begin
           { create filenames and unit name }
-             current_module^.SetFileName(current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^,true);
+             main_file := current_scanner^.inputfile;
+             while assigned(main_file^.next) do
+               main_file := main_file^.next;
+ 
+             current_module^.SetFileName(main_file^.path^+main_file^.name^,true);
+ 
              stringdispose(current_module^.modulename);
              current_module^.modulename:=stringdup(upper(pattern));
           { check for system unit }
              new(s1);
              new(s2);
              s1^:=upper(target_info.system_unit);
-             s2^:=upper(SplitName(current_scanner^.inputfile^.name^));
+             s2^:=upper(SplitName(main_file^.name^));
              if (cs_compilesystem in aktmoduleswitches) then
               begin
                 if ((length(current_module^.modulename^)>8) or
@@ -1427,6 +1433,7 @@ unit pmodules;
 
     procedure proc_program(islibrary : boolean);
       var
+         main_file: pinputfile;
          st    : psymtable;
          hp    : pmodule;
 {$ifdef fixLeaksOnError}
@@ -1456,7 +1463,11 @@ unit pmodules;
            end;
 
          { get correct output names }
-         current_module^.SetFileName(current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^,true);
+         main_file := current_scanner^.inputfile;
+         while assigned(main_file^.next) do
+           main_file := main_file^.next;
+ 
+         current_module^.SetFileName(main_file^.path^+main_file^.name^,true);
 
          if islibrary then
            begin
@@ -1702,7 +1713,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-21 11:27:44  pierre
+  Revision 1.5  2000-08-25 08:48:22  jonas
+    * fixed bug with include files at the very beginning of .pp/.pas files
+      (wrong name used for generating exe/checking unit name) (merged from
+      fixes branch)
+
+  Revision 1.4  2000/08/21 11:27:44  pierre
    * fix the stabs problems
 
   Revision 1.3  2000/07/13 12:08:26  michael
