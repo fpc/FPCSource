@@ -208,14 +208,15 @@ var INIFile: PINIFile;
     S,PS,S1,S2,S3: string;
     I,P: integer;
     BreakPointCount:longint;
+    OK: boolean;
     ts : TSwitchMode;
     W: word;
 begin
-  ReadINIFile:=false;
-  if not ExistsFile(INIPath) then
-   exit;
+  OK:=ExistsFile(INIPath);
+  if OK then
+ begin
   New(INIFile, Init(INIPath));
-{ Files }
+  { Files }
   OpenExts:=INIFile^.GetEntry(secFiles,ieOpenExts,OpenExts);
   RecentFileCount:=High(RecentFiles);
   for I:=Low(RecentFiles) to High(RecentFiles) do
@@ -232,15 +233,17 @@ begin
         LastPos.Y:=Max(0,StrToInt(copy(S,1,P-1))); Delete(S,1,P);
       end;
     end;
-{ Run }
+  { Run }
   SetRunParameters(INIFile^.GetEntry(secRun,ieRunParameters,GetRunParameters));
-{ Compile }
   PrimaryFile:=INIFile^.GetEntry(secCompile,iePrimaryFile,PrimaryFile);
+  { Compile }
   S:=INIFile^.GetEntry(secCompile,ieCompileMode,'');
   for ts:=low(TSwitchMode) to high(TSwitchMode) do
-   if SwitchesModeStr[ts]=S then
-     SwitchesMode:=ts;
-{ Help }
+    begin
+      if SwitchesModeStr[ts]=S then
+        SwitchesMode:=ts;
+    end;
+  { Help }
   S:=INIFile^.GetEntry(secHelp,ieHelpFiles,'');
   repeat
     P:=Pos(';',S); if P=0 then P:=length(S)+1;
@@ -248,29 +251,29 @@ begin
     if PS<>'' then HelpFiles^.Insert(NewStr(PS));
     Delete(S,1,P);
   until S='';
-{ Editor }
+  { Editor }
 {$ifndef EDITORS}
   DefaultTabSize:=INIFile^.GetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   DefaultCodeEditorFlags:=INIFile^.GetIntEntry(secEditor,ieDefaultEditorFlags,DefaultCodeEditorFlags);
   DefaultSaveExt:=INIFile^.GetEntry(secEditor,ieDefaultSaveExt,DefaultSaveExt);
 {$endif}
-{ Highlight }
+  { Highlight }
   HighlightExts:=INIFile^.GetEntry(secHighlight,ieHighlightExts,HighlightExts);
   TabsPattern:=INIFile^.GetEntry(secHighlight,ieTabsPattern,TabsPattern);
-{ SourcePath }
+  { SourcePath }
   SourceDirs:=INIFile^.GetEntry(secSourcePath,ieSourceList,SourceDirs);
-{ Mouse }
+  { Mouse }
   DoubleDelay:=INIFile^.GetIntEntry(secMouse,ieDoubleClickDelay,DoubleDelay);
   MouseReverse:=boolean(INIFile^.GetIntEntry(secMouse,ieReverseButtons,byte(MouseReverse)));
   AltMouseAction:=INIFile^.GetIntEntry(secMouse,ieAltClickAction,AltMouseAction);
   CtrlMouseAction:=INIFile^.GetIntEntry(secMouse,ieCtrlClickAction,CtrlMouseAction);
-{ Search }
+  { Search }
   FindFlags:=INIFile^.GetIntEntry(secSearch,ieFindFlags,FindFlags);
-{ Breakpoints }
+  { Breakpoints }
   BreakpointCount:=INIFile^.GetIntEntry(secBreakpoint,ieBreakpointCount,0);
   for i:=1 to BreakpointCount do
     ReadOneBreakPointEntry(i-1,INIFile);
-{ Tools }
+  { Tools }
   for I:=1 to MaxToolCount do
     begin
       S:=IntToStr(I);
@@ -281,7 +284,7 @@ begin
       W:=Max(0,Min(65535,INIFile^.GetIntEntry(secTools,ieToolHotKey+S,0)));
       AddTool(S1,S2,S3,W);
     end;
-{ Colors }
+  { Colors }
   S:=AppPalette;
   PS:=StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_1_40',PaletteToStr(copy(S,1,40))));
   PS:=PS+StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_41_80',PaletteToStr(copy(S,41,40))));
@@ -291,7 +294,8 @@ begin
   PS:=PS+StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_201_240',PaletteToStr(copy(S,201,40))));
   AppPalette:=PS;
   Dispose(INIFile, Done);
-  ReadINIFile:=true;
+ end;
+  ReadINIFile:=OK;
 end;
 
 function WriteINIFile: boolean;
@@ -309,7 +313,7 @@ begin
 end;
 begin
   New(INIFile, Init(INIPath));
-{ Files }
+  { Files }
   INIFile^.SetEntry(secFiles,ieOpenExts,'"'+OpenExts+'"');
   for I:=1 to High(RecentFiles) do
     begin
@@ -319,39 +323,39 @@ begin
          S:='';
       INIFile^.SetEntry(secFiles,ieRecentFile+IntToStr(I),S);
     end;
-{ Run }
+  { Run }
   INIFile^.SetEntry(secRun,ieRunParameters,GetRunParameters);
-{ Compile }
+  { Compile }
   INIFile^.SetEntry(secCompile,iePrimaryFile,PrimaryFile);
   INIFile^.SetEntry(secCompile,ieCompileMode,SwitchesModeStr[SwitchesMode]);
-{ Help }
+  { Help }
   S:='';
   HelpFiles^.ForEach(@ConcatName);
   INIFile^.SetEntry(secHelp,ieHelpFiles,'"'+S+'"');
-{ Editor }
+  { Editor }
 {$ifndef EDITORS}
   INIFile^.SetIntEntry(secEditor,ieDefaultTabSize,DefaultTabSize);
   INIFile^.SetIntEntry(secEditor,ieDefaultEditorFlags,DefaultCodeEditorFlags);
   INIFile^.SetEntry(secEditor,ieDefaultSaveExt,DefaultSaveExt);
 {$endif}
-{ Highlight }
+  { Highlight }
   INIFile^.SetEntry(secHighlight,ieHighlightExts,'"'+HighlightExts+'"');
   INIFile^.SetEntry(secHighlight,ieTabsPattern,'"'+TabsPattern+'"');
-{ SourcePath }
+  { SourcePath }
   INIFile^.SetEntry(secSourcePath,ieSourceList,'"'+SourceDirs+'"');
-{ Mouse }
+  { Mouse }
   INIFile^.SetIntEntry(secMouse,ieDoubleClickDelay,DoubleDelay);
   INIFile^.SetIntEntry(secMouse,ieReverseButtons,byte(MouseReverse));
   INIFile^.SetIntEntry(secMouse,ieAltClickAction,AltMouseAction);
   INIFile^.SetIntEntry(secMouse,ieCtrlClickAction,CtrlMouseAction);
-{ Search }
+  { Search }
   INIFile^.SetIntEntry(secSearch,ieFindFlags,FindFlags);
-{ Breakpoints }
+  { Breakpoints }
   BreakPointCount:=BreakpointCollection^.Count;
   INIFile^.SetIntEntry(secBreakpoint,ieBreakpointCount,BreakpointCount);
   for i:=1 to BreakpointCount do
     WriteOneBreakPointEntry(I-1,INIFile);
-{ Tools }
+  { Tools }
   INIFile^.DeleteSection(secTools);
   for I:=1 to GetToolCount do
     begin
@@ -365,7 +369,7 @@ begin
       INIFile^.SetEntry(secTools,ieToolParams+S,S3);
       INIFile^.SetIntEntry(secTools,ieToolHotKey+S,W);
     end;
-{ Colors }
+  { Colors }
   if AppPalette<>CIDEAppColor then
   begin
     { this has a bug. if a different palette has been read on startup, and
@@ -387,7 +391,24 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1999-02-22 02:15:14  peter
+  Revision 1.14  1999-03-01 15:41:55  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.13  1999/02/22 02:15:14  peter
     + default extension for save in the editor
     + Separate Text to Find for the grep dialog
     * fixed redir crash with tp7

@@ -49,12 +49,12 @@ function MakeExeName(const fn:string):string;
 function LExpand(S: string; MinLen: byte): string;
 function RExpand(S: string; MinLen: byte): string;
 function FitStr(const S: string; Len: byte): string;
-function LTrim(const S: string): string;
-function RTrim(const S: string): string;
-function Trim(const S: string): string;
+function LTrim(S: string): string;
+function RTrim(S: string): string;
+function Trim(S: string): string;
 function KillTilde(S: string): string;
-function UpcaseStr(const S: string): string;
-function LowerCaseStr(const S: string): string;
+function UpcaseStr(S: string): string;
+function LowerCaseStr(S: string): string;
 function Max(A,B: longint): longint;
 function Min(A,B: longint): longint;
 function DirOf(const S: string): string;
@@ -65,7 +65,7 @@ function StrToExtended(S: string): Extended;
 function Power(const A,B: double): double;
 function GetCurDir: string;
 function MatchesMask(What, Mask: string): boolean;
-function MatchesMaskList(const What:string;MaskList: string): boolean;
+function MatchesMaskList(What, MaskList: string): boolean;
 function MatchesFileList(What, FileList: string): boolean;
 function EatIO: integer;
 function ExistsFile(const FileName: string): boolean;
@@ -73,7 +73,8 @@ function CompleteDir(const Path: string): string;
 function LocateFile(FileList: string): string;
 function LocatePasFile(const FileName:string):string;
 function LocateExeFile(var FileName:string): boolean;
-function GetStr(P: PString): string;
+function EraseFile(FileName: string): boolean;
+function GetStr(const P: PString): string;
 procedure ReplaceStr(var S: string; const What,NewS: string);
 procedure ReplaceStrI(var S: string; What: string; const NewS: string);
 
@@ -225,28 +226,20 @@ begin
   KillTilde:=S;
 end;
 
-function UpcaseStr(const S: string): string;
-var
-  i  : Sw_word;
+function UpcaseStr(S: string): string;
+var I: Longint;
 begin
-  for i:=1 to length(s) do
-   if s[i] in ['a'..'z'] then
-    UpcaseStr[i]:=char(byte(s[i])-32)
-   else
-    UpcaseStr[i]:=s[i];
-  UpcaseStr[0]:=s[0];
+  for I:=1 to length(S) do
+      S[I]:=Upcase(S[I]);
+  UpcaseStr:=S;
 end;
 
-function LowercaseStr(const S: string): string;
-var
-  i  : Sw_word;
+function LowerCaseStr(S: string): string;
+var I: byte;
 begin
-  for i:=1 to length(s) do
-   if s[i] in ['A'..'Z'] then
-    LowercaseStr[i]:=char(byte(s[i])+32)
-   else
-    LowercaseStr[i]:=s[i];
-  LowercaseStr[0]:=s[0];
+  for I:=1 to length(S) do
+    if S[I] in ['A'..'Z'] then S[I]:=chr(ord(S[I])+32);
+  LowerCaseStr:=S;
 end;
 
 function Max(A,B: longint): longint;
@@ -314,7 +307,6 @@ begin
   GetCurDir:=S;
 end;
 
-
 function IntToHex(L: longint): string;
 const HexNums : string[16] = '0123456789ABCDEF';
 var S: string;
@@ -337,7 +329,6 @@ begin
   IntToHex:=S;
 end;
 
-
 function HexToInt(S: string): longint;
 var L,I: longint;
     C: char;
@@ -356,7 +347,6 @@ begin
   HexToInt:=L;
 end;
 
-
 function IntToHexL(L: longint; MinLen: byte): string;
 var S: string;
 begin
@@ -365,32 +355,22 @@ begin
   IntToHexL:=S;
 end;
 
-function LTrim(const S: string): string;
-var
-  i : Sw_integer;
+function LTrim(S: string): string;
 begin
-  i:=1;
-  while (i<length(S)) and (S[i]=' ') do
-   inc(i);
-  LTrim:=Copy(S,i,255);
+  while copy(S,1,1)=' ' do Delete(S,1,1);
+  LTrim:=S;
 end;
 
-
-Function RTrim(const S:string):string;
-var
-  i : Sw_integer;
+function RTrim(S: string): string;
 begin
-  i:=length(S);
-  while (i>0) and (S[i]=' ') do
-   dec(i);
-  RTrim:=Copy(S,1,i);
+  while copy(S,length(S),1)=' ' do Delete(S,length(S),1);
+  RTrim:=S;
 end;
 
-function Trim(const S: string): string;
+function Trim(S: string): string;
 begin
   Trim:=RTrim(LTrim(S));
 end;
-
 
 function MatchesMask(What, Mask: string): boolean;
 var P: integer;
@@ -411,7 +391,7 @@ begin
   MatchesMask:=Match;
 end;
 
-function MatchesMaskList(const What:string;MaskList: string): boolean;
+function MatchesMaskList(What, MaskList: string): boolean;
 var P: integer;
     Match: boolean;
 begin
@@ -538,24 +518,39 @@ begin
     end;
 
   S:=GetEnv('PATH');
-  repeat
-    i:=0;
-    While (i<=Length(S)) and not (S[i] in ListSep) do
-     Inc(i);
-    Dir:=CompleteDir(Copy(S,1,i-1));
-    Delete(S,1,i);
-    if ExistsFile(Dir+FileName) then
-     Begin
-       FileName:=Dir+FileName;
-       LocateExeFile:=true;
-       Exit;
-     End;
-  until s='';
+  While Length(S)>0 do
+    begin
+      i:=1;
+      While (i<=Length(S)) and not (S[i] in ListSep) do
+        Inc(i);
+      Dir:=CompleteDir(Copy(S,1,i-1));
+      if i<Length(S) then
+        Delete(S,1,i)
+      else
+        S:='';
+      if ExistsFile(Dir+FileName) then
+        Begin
+           FileName:=Dir+FileName;
+           LocateExeFile:=true;
+           Exit;
+        End;
+   end;
 end;
 
-function GetStr(P: PString): string;
+function GetStr(const P: PString): string;
 begin
   if P=nil then GetStr:='' else GetStr:=P^;
+end;
+
+function EraseFile(FileName: string): boolean;
+var f: file;
+begin
+  if FileName='' then Exit;
+  {$I-}
+  Assign(f,FileName);
+  Erase(f);
+  {$I+}
+  EraseFile:=(EatIO=0);
 end;
 
 procedure ReplaceStr(var S: string; const What,NewS: string);
@@ -587,11 +582,27 @@ begin
 end;
 
 
-
 END.
 {
   $Log$
-  Revision 1.8  1999-02-22 02:15:20  peter
+  Revision 1.9  1999-03-01 15:42:06  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.8  1999/02/22 02:15:20  peter
     + default extension for save in the editor
     + Separate Text to Find for the grep dialog
     * fixed redir crash with tp7

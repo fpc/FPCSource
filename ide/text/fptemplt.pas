@@ -113,22 +113,9 @@ function StartTemplate(Index: integer; Editor: PSourceEditor): boolean;
 var
     T: PTemplate;
     OK: boolean;
-    E: PFileEditor;
-    R: TRect;
 begin
   T:=Templates^.At(Index);
-  R.Assign(0,0,0,0);
-  New(E, Init(R,nil,nil,nil,T^.Path^));
-  OK:=E<>nil;
-  if OK then OK:=E^.LoadFile;
-  if OK then
-    begin
-      E^.SelectAll(true);
-      Editor^.InsertFrom(E);
-      Editor^.SetCurPtr(0,0);
-      Editor^.SelectAll(false);
-      Dispose(E, Done);
-    end;
+  OK:=StartEditor(Editor,T^.Path^);
   StartTemplate:=OK;
 end;
 
@@ -177,7 +164,24 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  1999-02-18 13:44:35  peter
+  Revision 1.6  1999-03-01 15:42:03  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.5  1999/02/18 13:44:35  peter
     * search fixed
     + backward search
     * help fixes

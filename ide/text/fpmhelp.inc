@@ -42,15 +42,30 @@ begin
 end;
 
 type
+    PHelpFileListBox = ^THelpFileListBox;
+    THelpFileListBox = object(TListBox)
+      function GetText(Item: Integer; MaxLen: Integer): String; virtual;
+    end;
+
     PHelpFilesDialog = ^THelpFilesDialog;
     THelpFilesDialog = object(TCenterDialog)
       constructor Init;
       procedure   HandleEvent(var Event: TEvent); virtual;
       destructor  Done; virtual;
     private
-      LB: PListBox;
+      LB: PHelpFileListBox;
       C : PUnsortedStringCollection;
     end;
+
+function THelpFileListBox.GetText(Item: Integer; MaxLen: Integer): String;
+var S: string;
+    P: integer;
+begin
+  S:=inherited GetText(Item,MaxLen);
+  P:=Pos('|',S);
+  if P>0 then S:=copy(S,P+1,255)+' - '+copy(S,1,P-1);
+  GetText:=copy(S,1,MaxLen);
+end;
 
 constructor THelpFilesDialog.Init;
 var R,R2: TRect;
@@ -93,6 +108,8 @@ procedure THelpFilesDialog.HandleEvent(var Event: TEvent);
 var I: integer;
     D: PFileDialog;
     FileName: string;
+    Re: word;
+    S: string;
 begin
   case Event.What of
     evKeyDown :
@@ -112,10 +129,18 @@ begin
       case Event.Command of
         cmAddItem :
           begin
-            New(D, Init('*.tph','Install a help file','*.tph',fdOpenButton,0));
-            if Desktop^.ExecView(D)<>cmCancel then
+            S:='';
+            New(D, Init(HelpFileExts,'Install a help file','~H~elp file name',fdOpenButton,0));
+            Re:=Desktop^.ExecView(D);
+            if Re<>cmCancel then
             begin
               D^.GetFileName(FileName);
+              if UpcaseStr(copy(ExtOf(FileName),1,4))='.HTM' then
+                Re:=InputBox('Topic title','Title',S,40);
+            end;
+            if Re<>cmCancel then
+            begin
+              if S<>'' then FileName:=FileName+'|'+S;
               LB^.List^.Insert(NewStr(FileName));
               LB^.SetRange(LB^.List^.Count);
               ReDraw;
@@ -153,57 +178,36 @@ begin
   if Desktop^.ExecView(New(PHelpFilesDialog, Init))=cmOK then
   begin
     DoneHelpSystem;
+    Message(Application,evBroadcast,cmHelpFilesChanged,nil);
     InitHelpSystem;
   end;
 end;
 
 procedure TIDEApp.About;
-var R,R2: TRect;
-    D: PCenterDialog;
-    OSStr: string;
 begin
-  OSStr:='';
-{$ifdef go32v2}
-  OSStr:='Dos';
-{$endif}
-{$ifdef tp}
-  OSStr:='Dos';
-{$endif}
-{$ifdef linux}
-  OSStr:='Linux';
-{$endif}
-{$ifdef win32}
-  OSStr:='Win32';
-{$endif}
-{$ifdef os2}
-  OSStr:='OS/2';
-{$endif}
-  R.Assign(0,0,46,12);
-  New(D, Init(R, 'About'));
-  with D^ do
-  begin
-    GetExtent(R); R.Grow(-3,-2);
-    R2.Copy(R); R2.B.Y:=R2.A.Y+1;
-    Insert(New(PStaticText, Init(R2, ^C'FreePascal IDE for '+OSStr+' Version '+VersionStr)));
-    R2.Move(0,1);
-    Insert(New(PStaticText, Init(R2, ^C'(Compiler Version '+Version_String+')')));
-    R2.Move(0,2);
-    Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-99 by')));
-    R2.Move(0,2);
-    Insert(New(PStaticText, Init(R2, ^C'B‚rczi G bor')));
-    R2.Move(0,1);
-    Insert(New(PStaticText, Init(R2, ^C'and')));
-    R2.Move(0,1);
-    Insert(New(PStaticText, Init(R2, ^C'Peter Vreman')));
-  end;
-  InsertOK(D);
-  Desktop^.ExecView(D);
-  Dispose(D, Done);
+  ExecuteDialog(New(PFPAboutDialog, Init), nil);
 end;
 
 {
   $Log$
-  Revision 1.5  1999-02-22 02:15:16  peter
+  Revision 1.6  1999-03-01 15:41:56  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.5  1999/02/22 02:15:16  peter
     + default extension for save in the editor
     + Separate Text to Find for the grep dialog
     * fixed redir crash with tp7

@@ -17,7 +17,8 @@ unit FPCompile;
 
 interface
 
-uses FPViews;
+uses WViews,
+     FPViews;
 
 type
     TCompileMode = (cBuild,cMake,cCompile,cRun);
@@ -140,8 +141,9 @@ begin
      ProgramInfoWindow^.AddMessage(Level,S,status.currentsourcepath+status.currentsource,
        status.currentline,status.currentcolumn);
      if SD<>nil then
-     SD^.MsgLB^.AddItem(New(PCompilerMessage, Init(Level, S, SmartPath(status.currentmodule),
-       status.currentline,status.currentcolumn)));
+     SD^.MsgLB^.AddItem(
+       New(PMessageItem, Init(Level, S, SD^.MsgLB^.AddModuleName(SmartPath(status.currentmodule)),
+         status.currentline,status.currentcolumn)));
    end;
 {$ifdef TEMPHEAP}
   switch_to_temp_heap;
@@ -229,8 +231,8 @@ begin
   { this avoids all flickers
     and allows to get assembler and linker messages
     but also forbids to use GDB inside !! }
-  ChangeRedir('fp$$$.out',false);
-  ChangeErrorRedir('fp$$$.err',false);
+  ChangeRedirOut('fp$$$.out',false);
+  ChangeRedirError('fp$$$.err',false);
 {$endif ndef debug}
 {$ifdef TEMPHEAP}
   split_heap;
@@ -240,8 +242,10 @@ begin
 {$ifdef TEMPHEAP}
   switch_to_base_heap;
 {$endif TEMPHEAP}
-  RestoreRedir;
-  RestoreErrorRedir;
+{$ifdef go32v2}
+  RestoreRedirOut;
+  RestoreRedirError;
+{$endif def go32v2}
 
   if status.errorCount=0
      then CompilationPhase:=cpDone
@@ -272,7 +276,24 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1999-02-22 12:46:56  peter
+  Revision 1.15  1999-03-01 15:41:50  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.14  1999/02/22 12:46:56  peter
     * small fixes for linux and grep
 
   Revision 1.13  1999/02/22 11:51:33  peter

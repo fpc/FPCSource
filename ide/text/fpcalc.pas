@@ -19,6 +19,7 @@ interface
 
 uses
   Drivers,Objects,Commands,Views,Dialogs,App,
+  WViews,
   FPViews;
 
 const
@@ -93,7 +94,7 @@ const
 procedure TCalcButton.HandleEvent(var Event: TEvent);
 var
   Call : boolean;
-  i : longint;
+  i : Sw_Word;
 begin
   Call:=true;
   case Event.What of
@@ -423,12 +424,22 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-02-20 15:18:27  peter
-    + ctrl-c capture with confirm dialog
-    + ascii table in the tools menu
-    + heapviewer
-    * empty file fixed
-    * fixed callback routines in fpdebug to have far for tp7
+  Revision 1.3  1999-03-01 15:41:49  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
 
   Revision 1.1  1998/12/22 14:27:54  peter
     * moved

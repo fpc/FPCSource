@@ -17,10 +17,17 @@ unit FPTools;
 
 interface
 
-uses Objects,Drivers,Dialogs,Validate,
+uses Objects,Drivers,Views,Dialogs,Validate,
+     BrowCol,
+     WViews,
      FPViews;
 
+const
+      MsgFilterSign = 'BI#PIP#OK'#0;
+
 type
+    TCaptureTarget = (capNone,capMessageWindow,capEditWindow);
+
     PTool = ^TTool;
     TTool = object(TObject)
       constructor Init(const ATitle, AProgramPath, ACommandLine: string; AHotKey: word);
@@ -42,7 +49,7 @@ type
 
     PToolListBox = ^TToolListBox;
     TToolListBox = object(TAdvancedListBox)
-      function GetText(Item,MaxLen: sw_integer): String; virtual;
+      function GetText(Item,MaxLen: Sw_Integer): String; virtual;
     end;
 
     PToolParamValidator = ^TToolParamValidator;
@@ -77,22 +84,62 @@ type
       procedure Delete;
     end;
 
+    PToolMessage = ^TToolMessage;
+    TToolMessage = object(TMessageItem)
+      constructor Init(AModule: PString; ALine: string; ARow, ACol: sw_integer);
+      function    GetText(MaxLen: Sw_integer): string; virtual;
+    end;
+
+    PToolMessageListBox = ^TToolMessageListBox;
+    TToolMessageListBox = object(TMessageListBox)
+      procedure  NewList(AList: PCollection); virtual;
+      procedure  Clear; virtual;
+      procedure  Update; virtual;
+      function   GetPalette: PPalette; virtual;
+      destructor Done; virtual;
+    end;
+
+    PMessagesWindow = ^TMessagesWindow;
+    TMessagesWindow = object(TFPWindow)
+      constructor Init;
+      procedure   Update; virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      function    GetPalette: PPalette; virtual;
+      destructor  Done; virtual;
+    private
+      MsgLB : PToolMessageListBox;
+    end;
+
 procedure InitTools;
-function  GetToolCount: Sw_integer;
-function  GetToolName(Idx: Sw_integer): string;
-function  AddTool(Title, ProgramPath, Params: string; HotKey: word): Sw_integer;
-procedure GetToolParams(Idx: Sw_integer; var Title, ProgramPath, Params: string; var HotKey: word);
-procedure SetToolParams(Idx: Sw_integer; Title, ProgramPath, Params: string; HotKey: word);
+function  GetToolCount: sw_integer;
+function  GetToolName(Idx: sw_integer): string;
+function  AddTool(Title, ProgramPath, Params: string; HotKey: word): sw_integer;
+procedure GetToolParams(Idx: sw_integer; var Title, ProgramPath, Params: string; var HotKey: word);
+procedure SetToolParams(Idx: sw_integer; Title, ProgramPath, Params: string; HotKey: word);
 procedure DoneTools;
 
 function GetHotKeyName(Key: word): string;
 
-function ParseToolParams(var Params: string; CheckOnly: boolean): Sw_integer;
+function ParseToolParams(var Params: string; CheckOnly: boolean): integer;
+
+function  ProcessMessageFile(const MsgFileName: string): boolean;
+procedure AddToolCommand(Command: string);
+procedure AddToolMessage(ModuleName, Text: string; Row, Col: longint);
+procedure ClearToolMessages;
+procedure UpdateToolMessages;
+
+const
+     ToolFilter     : string           = '';
+     CaptureToolTo  : TCaptureTarget   = capNone;
+     ToolMessages   : PCollection      = nil;
+     ToolModuleNames: PStoreCollection = nil;
+     MessagesWindow : PMessagesWindow  = nil;
+     LastToolMessageFocused : PToolMessage = nil;
 
 implementation
 
 uses Dos,
-     Commands,Views,App,MsgBox,
+     Commands,App,MsgBox,
      FPConst,FPVars,FPUtils;
 
 type
@@ -104,8 +151,7 @@ type
 const
      HotKeys : array[0..8] of THotKeyDef =
       ( (Name : '~U~nassigned' ; KeyCode : kbNoKey   ),
-{ Used for Grep, so it can't be assigned for user tools
-        (Name : 'Shift+F~2~'   ; KeyCode : kbShiftF2 ), }
+{        (Name : 'Shift+F~2~'   ; KeyCode : kbShiftF2 ), }
         (Name : 'Shift+F~3~'   ; KeyCode : kbShiftF3 ),
         (Name : 'Shift+F~4~'   ; KeyCode : kbShiftF4 ),
         (Name : 'Shift+F~5~'   ; KeyCode : kbShiftF5 ),
@@ -115,20 +161,20 @@ const
         (Name : 'Shift+F~9~'   ; KeyCode : kbShiftF9 ),
         (Name : 'Shift+F~1~0'  ; KeyCode : kbShiftF10));
 
-     Tools : PToolCollection = nil;
+     Tools     : PToolCollection = nil;
 
-function GetHotKeyCount: Sw_integer;
+function GetHotKeyCount: integer;
 begin
   GetHotKeyCount:=ord(High(HotKeys))-ord(Low(HotKeys))+1;
 end;
 
-function GetHotKeyNameByIdx(Idx: Sw_integer): string;
+function GetHotKeyNameByIdx(Idx: integer): string;
 begin
   GetHotKeyNameByIdx:=HotKeys[Idx].Name;
 end;
 
-function HotKeyToIdx(Key: word): Sw_integer;
-var Count,I: Sw_integer;
+function HotKeyToIdx(Key: word): integer;
+var Count,I: integer;
     Found: boolean;
 begin
   Count:=GetHotKeyCount; Found:=false;
@@ -143,8 +189,8 @@ begin
   HotKeyToIdx:=I;
 end;
 
-function IdxToHotKey(Idx: Sw_integer): word;
-var Count: Sw_integer;
+function IdxToHotKey(Idx: integer): word;
+var Count: integer;
     Key: word;
 begin
   Count:=GetHotKeyCount;
@@ -156,7 +202,7 @@ begin
 end;
 
 function GetHotKeyName(Key: word): string;
-var Idx: Sw_integer;
+var Idx: integer;
     S: string;
 begin
   Idx:=HotKeyToIdx(Key);
@@ -222,15 +268,15 @@ begin
   New(Tools, Init(10,20));
 end;
 
-function  GetToolCount: Sw_integer;
-var Count: Sw_integer;
+function  GetToolCount: sw_integer;
+var Count: integer;
 begin
   if Tools=nil then Count:=0 else
     Count:=Tools^.Count;
   GetToolCount:=Count;
 end;
 
-function GetToolName(Idx: Sw_integer): string;
+function GetToolName(Idx: sw_integer): string;
 var S1,S2: string;
     W: word;
 begin
@@ -238,7 +284,7 @@ begin
   GetToolName:=KillTilde(S1);
 end;
 
-function AddTool(Title, ProgramPath, Params: string; HotKey: word): Sw_integer;
+function AddTool(Title, ProgramPath, Params: string; HotKey: word): sw_integer;
 var P: PTool;
 begin
   if Tools=nil then InitTools;
@@ -247,14 +293,14 @@ begin
   AddTool:=Tools^.IndexOf(P);
 end;
 
-procedure GetToolParams(Idx: Sw_integer; var Title, ProgramPath, Params: string; var HotKey: word);
+procedure GetToolParams(Idx: sw_integer; var Title, ProgramPath, Params: string; var HotKey: word);
 var P: PTool;
 begin
   P:=Tools^.At(Idx);
   P^.GetParams(Title,ProgramPath,Params,HotKey);
 end;
 
-procedure SetToolParams(Idx: Sw_integer; Title, ProgramPath, Params: string; HotKey: word);
+procedure SetToolParams(Idx: sw_integer; Title, ProgramPath, Params: string; HotKey: word);
 var P: PTool;
 begin
   P:=Tools^.At(Idx);
@@ -283,7 +329,7 @@ end;
 constructor TToolItemDialog.Init(ATool: PTool);
 var R,R2,R3: TRect;
     Items: PSItem;
-    I,KeyCount: Sw_integer;
+    I,KeyCount: sw_integer;
 begin
   KeyCount:=GetHotKeyCount;
 
@@ -473,12 +519,39 @@ begin
   ReDraw;
 end;
 
+procedure ReplaceStr(var S: string; const What,NewS: string);
+var I : integer;
+begin
+  repeat
+    I:=Pos(What,S);
+    if I>0 then
+    begin
+      Delete(S,I,length(What));
+      Insert(NewS,S,I);
+    end;
+  until I=0;
+end;
 
-function ParseToolParams(var Params: string; CheckOnly: boolean): Sw_integer;
+procedure ReplaceStrI(var S: string; What: string; const NewS: string);
+var I : integer;
+    UpcaseS: string;
+begin
+  UpcaseS:=UpcaseStr(S); What:=UpcaseStr(What);
+  repeat
+    I:=Pos(What,UpcaseS);
+    if I>0 then
+    begin
+      Delete(S,I,length(What));
+      Insert(NewS,S,I);
+    end;
+  until I=0;
+end;
+
+function ParseToolParams(var Params: string; CheckOnly: boolean): integer;
 var Err: integer;
     W: PSourceWindow;
-procedure ParseParams(Pass: integer);
-var I: Sw_integer;
+procedure ParseParams(Pass: sw_integer);
+var I: sw_integer;
 function IsAlpha(Ch: char): boolean;
 begin
   IsAlpha:=(Upcase(Ch) in['A'..'Z','_','$']);
@@ -512,7 +585,7 @@ begin
 end;
 var C,PrevC: char;
     WordS: string;
-    LastWordStart: Sw_integer;
+    LastWordStart: sw_integer;
     L: longint;
     S: string;
     D: DirStr; N: NameStr; E: ExtStr;
@@ -532,6 +605,31 @@ begin
       begin
         WordS:=UpcaseStr(Trim(WordS));
         if WordS<>'' then
+        if (WordS='$CAP') then
+          begin
+            if (Pass=0) then
+              if (Params[I]=' ') and (I<=255) then Params[I]:='_';
+          end else
+        if (WordS='$CAP_MSG') then
+          begin
+            if (Pass=2) then
+              if Consume('(')=false then Err:=I else
+              if ReadTill(S,')')=false then Err:=I else
+              begin
+                Consume(')');
+                I:=I+ReplacePart(LastWordStart,I-1,'');
+                ToolFilter:=S;
+                CaptureToolTo:=capMessageWindow;
+              end;
+          end else
+        if (WordS='$CAP_EDIT') then
+          begin
+            if (Pass=2) then
+              begin
+                I:=I+ReplacePart(LastWordStart,I-1,'');
+                CaptureToolTo:=capEditWindow;
+              end;
+          end else
         if (WordS='$COL') then
           begin
             if (Pass=1) then
@@ -633,24 +731,47 @@ begin
               I:=I+ReplacePart(LastWordStart,I-1,'');
             end;
           end else
+        if (WordS='$DRIVE') then
+          begin
+            if (Pass=2) then
+              if Consume('(')=false then Err:=I else
+              if ReadTill(S,')')=false then Err:=I else
+              begin
+                Consume(')');
+                FSplit(S,D,N,E);
+                L:=Pos(':',D); if L=0 then L:=-1;
+                D:=copy(D,1,L+1);
+                I:=I+ReplacePart(LastWordStart,I-1,D);
+              end;
+          end else
         if (WordS='$PROMPT') then
           begin
             if (Pass=3) then
-              begin
-                I:=I+ReplacePart(LastWordStart,I-1,'');
-                if CheckOnly=false then
+              if Params[I]='(' then
+                begin
+                  if Consume('(')=false then Err:=I else
+                  if ReadTill(S,')')=false then Err:=I else
                   begin
-                    S:=copy(Params,I+1,255);
-                    if InputBox('Program Arguments', '~E~nter program argument',
-                      S,255-I+1)=cmOK then
-                      begin
-                        ReplacePart(LastWordStart,255,S);
-                        I:=255;
-                      end
-                    else
-                      Err:=-1;
+                    Consume(')');
+
                   end;
-              end;
+                end
+              else { just prompt for parms }
+                begin
+                  I:=I+ReplacePart(LastWordStart,I-1,'');
+                  if CheckOnly=false then
+                    begin
+                      S:=copy(Params,I+1,255);
+                      if InputBox('Program Arguments', '~E~nter program argument',
+                        S,255-I+1)=cmOK then
+                        begin
+                          ReplacePart(LastWordStart,255,S);
+                          I:=255;
+                        end
+                      else
+                        Err:=-1;
+                    end;
+                end;
           end else
         if (WordS='$SAVE') then
           begin
@@ -691,8 +812,10 @@ begin
     Inc(I);
   end;
 end;
-var Pass: Sw_integer;
+var Pass: sw_integer;
 begin
+  CaptureToolTo:=capNone;
+  ToolFilter:='';
   W:=FirstEditorWindow;
   Err:=0;
   for Pass:=0 to 3 do
@@ -703,10 +826,225 @@ begin
   ParseToolParams:=Err;
 end;
 
+function ProcessMessageFile(const MsgFileName: string): boolean;
+var OK,Done: boolean;
+    S: PBufStream;
+    C: char;
+    Sign: array[1..10] of char;
+    InFileName,InReference: boolean;
+    AddChar: boolean;
+    FileName,Line: string;
+    Row,Col: longint;
+procedure AddLine;
+begin
+  Row:=ord(Line[1])+ord(Line[2]) shl 8;
+  Col:=ord(Line[3])+ord(Line[4]) shl 8;
+  AddToolMessage(FileName,copy(Line,5,255),Row,Col);
+end;
+begin
+  New(S, Init(MsgFileName, stOpenRead, 4096));
+  OK:=(S<>nil) and (S^.Status=stOK);
+  if OK then S^.Read(Sign,SizeOf(Sign));
+  OK:=OK and (Sign=MsgFilterSign);
+  Done:=false; InFileName:=false; InReference:=false;
+  while OK and (Done=false) do
+    begin
+      S^.Read(C,SizeOf(C));
+      OK:=(S^.Status=stOK);
+      AddChar:=false;
+      if OK then
+      case C of
+        #0   : if InFileName then
+                 begin InFileName:=false end else
+               if InReference then
+                 begin
+                   if (length(Line)>4) then
+                     begin
+                       AddLine;
+                       InReference:=false;
+                     end
+                   else
+                     AddChar:=true;
+                 end else
+               begin InFileName:=true; FileName:=''; end;
+        #1   : if InReference then AddChar:=true else
+                 begin InReference:=true; Line:=''; end;
+        #127 : if InReference then AddChar:=true else
+                 Done:=true;
+      else AddChar:=true;
+      end;
+      if AddChar then
+        if InFileName then
+          FileName:=FileName+C else
+        if InReference then
+          Line:=Line+C;
+    end;
+  if S<>nil then Dispose(S, Done);
+  ProcessMessageFile:=OK;
+end;
+
+constructor TToolMessage.Init(AModule: PString; ALine: string; ARow, ACol: sw_integer);
+begin
+  inherited Init(0,ALine,AModule,ARow,ACol);
+end;
+
+function TToolMessage.GetText(MaxLen: Sw_integer): string;
+var S: string;
+begin
+  if Module=nil then
+    S:=GetStr(Text)
+  else
+    S:=NameAndExtOf(GetModuleName)+
+       '('+IntToStr(Row)+'): '+GetStr(Text);
+  GetText:=copy(S,1,MaxLen);
+end;
+
+procedure AddToolCommand(Command: string);
+begin
+  AddToolMessage('',Command,0,0);
+  LastToolMessageFocused:=ToolMessages^.At(ToolMessages^.Count-1);
+end;
+
+procedure AddToolMessage(ModuleName, Text: string; Row, Col: longint);
+var MN: PString;
+begin
+  if ToolMessages=nil then
+    New(ToolMessages, Init(500,1000));
+  if ToolModuleNames=nil then
+    New(ToolModuleNames, Init(50,100));
+  MN:=ToolModuleNames^.Add(ModuleName);
+  ToolMessages^.Insert(New(PToolMessage, Init(MN,Text,Row,Col)));
+end;
+
+procedure ClearToolMessages;
+begin
+  if ToolMessages<>nil then Dispose(ToolMessages,Done); ToolMessages:=nil;
+  if ToolModuleNames<>nil then Dispose(ToolModuleNames, Done); ToolModuleNames:=nil;
+  LastToolMessageFocused:=nil;
+end;
+
+procedure UpdateToolMessages;
+begin
+  if Assigned(MessagesWindow) then
+    MessagesWindow^.Update;
+end;
+
+procedure TToolMessageListBox.Update;
+var P: PMessageItem;
+    Idx: integer;
+begin
+  P:=LastToolMessageFocused;
+  NewList(ToolMessages);
+  if (Range>0) and (P<>nil) then
+    begin
+      Idx:=List^.IndexOf(P);
+      if Idx>=0 then
+        begin
+          FocusItem(Idx);
+          DrawView;
+        end;
+    end;
+  DrawView;
+end;
+
+procedure TToolMessageListBox.NewList(AList: PCollection);
+begin
+  if (List=ToolMessages) or (ToolMessages=nil) then
+    begin List:=nil; SetRange(0); end;
+  inherited NewList(AList);
+end;
+
+procedure TToolMessageListBox.Clear;
+begin
+  ClearToolMessages;
+  Update;
+end;
+
+function TToolMessageListBox.GetPalette: PPalette;
+const
+  P: string[length(CBrowserListBox)] = CBrowserListBox;
+begin
+  GetPalette:=@P;
+end;
+
+destructor TToolMessageListBox.Done;
+begin
+  HScrollBar:=nil; VScrollBar:=nil;
+  if List=ToolMessages then begin List:=nil; SetRange(0); end;
+  inherited Done;
+end;
+
+constructor TMessagesWindow.Init;
+var R: TRect;
+    HSB,VSB: PScrollBar;
+begin
+  Desktop^.GetExtent(R); R.A.Y:=R.B.Y-7;
+  inherited Init(R,'Messages',SearchFreeWindowNo);
+  HelpCtx:=hcMessagesWindow;
+
+  HSB:=StandardScrollBar(sbHorizontal+sbHandleKeyboard); Insert(HSB);
+  VSB:=StandardScrollBar(sbVertical+sbHandleKeyboard); Insert(VSB);
+
+  GetExtent(R); R.Grow(-1,-1);
+  New(MsgLB, Init(R, HSB, VSB));
+  Insert(MsgLB);
+
+  Update;
+
+  MessagesWindow:=@Self;
+end;
+
+procedure TMessagesWindow.Update;
+begin
+  MsgLB^.Update;
+end;
+
+procedure TMessagesWindow.HandleEvent(var Event: TEvent);
+begin
+  case Event.What of
+    evBroadcast :
+      case Event.Command of
+        cmListFocusChanged :
+          if Event.InfoPtr=MsgLB then
+            LastToolMessageFocused:=MsgLB^.List^.At(MsgLB^.Focused);
+      end;
+  end;
+  inherited HandleEvent(Event);
+end;
+
+function TMessagesWindow.GetPalette: PPalette;
+const S: string[length(CBrowserWindow)] = CBrowserWindow;
+begin
+  GetPalette:=@S;
+end;
+
+destructor TMessagesWindow.Done;
+begin
+  MessagesWindow:=nil;
+  inherited Done;
+end;
+
 END.
 {
   $Log$
-  Revision 1.3  1999-02-22 02:15:19  peter
+  Revision 1.4  1999-03-01 15:42:04  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.3  1999/02/22 02:15:19  peter
     + default extension for save in the editor
     + Separate Text to Find for the grep dialog
     * fixed redir crash with tp7

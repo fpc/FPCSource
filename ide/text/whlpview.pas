@@ -24,7 +24,7 @@ uses
 {$else}
   WEditor,
 {$endif}
-  WHelp;
+  WUtils,WHelp;
 
 {$IFNDEF EDITORS}
 type
@@ -37,6 +37,8 @@ const
 
      CHelpViewer         = #33#34#35#36;
      CHelpFrame          = #37#37#38#38#39;
+
+     cmHelpFilesChanged  = 57340;
 
 type
       PHelpLink = ^THelpLink;
@@ -166,10 +168,13 @@ type
 
       PHelpWindow = ^THelpWindow;
       THelpWindow = object(TWindow)
+        HSB,VSB : PScrollBar;
         HelpView: PHelpViewer;
         HideOnClose: boolean;
         constructor Init(var Bounds: TRect; ATitle: TTitleStr; ASourceFileID: word; AContext: THelpCtx; ANumber: Integer);
         procedure   InitFrame; virtual;
+        procedure   InitScrollBars; virtual;
+        procedure   InitHelpView; virtual;
         procedure   ShowIndex; virtual;
         procedure   ShowTopic(SourceFileID: word; Context: THelpCtx); virtual;
         procedure   HandleEvent(var Event: TEvent); virtual;
@@ -183,28 +188,6 @@ uses
   Video;
 
 const CommentColor = Blue;
-
-function Min(A,B: longint): longint; begin if A<B then Min:=A else Min:=B; end;
-function Max(A,B: longint): longint; begin if A>B then Max:=A else Max:=B; end;
-function CharStr(C: char; Count: byte): string;
-var S: string;
-begin S[0]:=chr(Count); if Count>0 then FillChar(S[1],Count,C); CharStr:=S; end;
-
-function Trim(S: string): string;
-const TrimChars : set of char = [#0,#9,' ',#255];
-begin
-  while (length(S)>0) and (S[1] in TrimChars) do Delete(S,1,1);
-  while (length(S)>0) and (S[length(S)] in TrimChars) do Delete(S,length(S),1);
-  Trim:=S;
-end;
-
-function UpcaseStr(S: string): string;
-var I: integer;
-begin
-  for I:=1 to length(S) do
-      S[I]:=Upcase(S[I]);
-  UpcaseStr:=S;
-end;
 
 function NewLink(FileID: longint; Topic: THelpCtx; StartP, EndP: TPoint): PHelpLink;
 var P: PHelpLink;
@@ -905,6 +888,16 @@ begin
         if CurLink<>-1 then
            SelectLink(CurLink);
       end;
+    evBroadcast :
+      case Event.Command of
+        cmHelpFilesChanged :
+          begin
+            if HelpTopic=IndexHelpTopic then HelpTopic:=nil;
+            IndexTopic:=nil;
+            if IndexHelpTopic<>nil then Dispose(IndexHelpTopic, Done);
+            IndexHelpTopic:=nil;
+          end;
+      end;
     evCommand :
       begin
         DontClear:=false;
@@ -1057,19 +1050,35 @@ end;
 
 constructor THelpWindow.Init(var Bounds: TRect; ATitle: TTitleStr; ASourceFileID: word; AContext: THelpCtx; ANumber: Integer);
 var R: TRect;
-    VSB,HSB: PScrollBar;
 begin
   inherited Init(Bounds, ATitle, ANumber);
+  InitScrollBars;
+  if Assigned(HSB) then Insert(HSB);
+  if Assigned(VSB) then Insert(VSB);
+  InitHelpView;
+  if Assigned(HelpView) then
+  begin
+    if (ASourceFileID<>0) or (AContext<>0) then
+       ShowTopic(ASourceFileID, AContext);
+    Insert(HelpView);
+  end;
+end;
+
+procedure THelpWindow.InitScrollBars;
+var R: TRect;
+begin
   GetExtent(R); R.Grow(0,-1); R.A.X:=R.B.X-1;
-  New(VSB, Init(R)); VSB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY; Insert(VSB);
+  New(VSB, Init(R)); VSB^.GrowMode:=gfGrowLoX+gfGrowHiX+gfGrowHiY;
   GetExtent(R); R.Grow(-1,0); R.A.Y:=R.B.Y-1;
-  New(HSB, Init(R)); HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY; Insert(HSB);
+  New(HSB, Init(R)); HSB^.GrowMode:=gfGrowLoY+gfGrowHiX+gfGrowHiY;
+end;
+
+procedure THelpWindow.InitHelpView;
+var R: TRect;
+begin
   GetExtent(R); R.Grow(-1,-1);
   New(HelpView, Init(R, HSB, VSB));
   HelpView^.GrowMode:=gfGrowHiX+gfGrowHiY;
-  if (ASourceFileID<>0) or (AContext<>0) then
-     ShowTopic(ASourceFileID, AContext);
-  Insert(HelpView);
 end;
 
 procedure THelpWindow.InitFrame;
@@ -1116,7 +1125,24 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  1999-02-18 13:44:38  peter
+  Revision 1.6  1999-03-01 15:42:13  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.5  1999/02/18 13:44:38  peter
     * search fixed
     + backward search
     * help fixes

@@ -117,8 +117,8 @@ procedure OpenOneSymbolBrowser(Name : String);
 implementation
 
 uses Commands,App,
-     WEditor,FPDebug,
-     FPConst,FPUtils,FPVars;
+     WEditor,WViews,
+     FPConst,FPUtils,FPVars,FPDebug;
 
 function NewBrowserTabItem(ASign: char; ALink: PView; ANext: PBrowserTabItem): PBrowserTabItem;
 var P: PBrowserTabItem;
@@ -911,7 +911,24 @@ end;
 END.
 {
   $Log$
-  Revision 1.11  1999-02-22 11:51:38  peter
+  Revision 1.12  1999-03-01 15:42:02  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.11  1999/02/22 11:51:38  peter
     * browser updates from gabor
 
   Revision 1.9  1999/02/18 13:44:34  peter

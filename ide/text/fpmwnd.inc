@@ -60,6 +60,7 @@ begin
     hcHelpWindow   : S:=PHelpWindow(P)^.GetTitle(MaxLen);
     hcCalcWindow   : S:=PCalculator(P)^.GetTitle(MaxLen);
     hcBrowserWindow: S:=PBrowserWindow(P)^.GetTitle(MaxLen);
+    hcMessagesWindow:S:=PMessagesWindow(P)^.GetTitle(MaxLen);
   else S:='???? - '+PWindow(P)^.GetTitle(MaxLen);
   end;
   GetText:=copy(S,1,MaxLen);
@@ -152,7 +153,24 @@ end;
 
 {
   $Log$
-  Revision 1.6  1999-01-21 11:54:22  peter
+  Revision 1.7  1999-03-01 15:42:00  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.6  1999/01/21 11:54:22  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command

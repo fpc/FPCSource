@@ -353,7 +353,7 @@ var R,R2: TRect;
     Items: PSItem;
 begin
   R.Assign(0,0,60,2+DebugInfoSwitches^.ItemCount+2
-      +ProfileInfoSwitches^.ItemCount+4);
+      +ProfileInfoSwitches^.ItemCount+2+2+1);
   New(D, Init(R, 'Debugging/Profiling'));
   with D^ do
   begin
@@ -378,12 +378,11 @@ begin
     If L = 1 then L:=3;
     CB^.SetData(L);
     Insert(CB);
-    R2.Copy(R); Inc(R2.A.Y,6); R2.B.Y:=R2.A.Y+1;
+    R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
     Insert(New(PLabel, Init(R2, 'Profiling Switches', CB)));
 
     {custom }
-    R2.A.Y:=R2.B.Y+2;
-    R2.B.Y:=R2.A.Y+1;
+    Inc(R2.A.Y,1+DebugInfoSwitches^.ItemCount+2); R2.B.Y:=R2.A.Y+1;
     New(IL2, Init(R2, 255));
     IL2^.Data^:=CustomArg[SwitchesMode];
     Insert(IL2);
@@ -454,6 +453,11 @@ begin
   ExecuteDialog(New(PToolsDialog, Init),nil);
 end;
 
+procedure TIDEApp.Preferences;
+begin
+  NotImplemented;
+end;
+
 procedure TIDEApp.EditorOptions(Editor: PEditor);
 var D: PCenterDialog;
     R,R2,R3: TRect;
@@ -480,7 +484,7 @@ begin
       NewSItem('~B~ackspace unindents',
       NewSItem('~P~ersistent blocks',
       NewSItem('~S~yntax highlight',
-      NewSItem('~B~lock insert cursor',
+      NewSItem('B~l~ock insert cursor',
       NewSItem('~V~ertical blocks',
       NewSItem('Highlight ~c~olumn',
       NewSItem('Highlight ~r~ow',
@@ -609,6 +613,11 @@ begin
   begin
   end;
   Dispose(D, Done);
+end;
+
+procedure TIDEApp.Startup;
+begin
+  NotImplemented;
 end;
 
 procedure TIDEApp.Mouse;
@@ -796,7 +805,24 @@ end;
 
 {
   $Log$
-  Revision 1.17  1999-02-22 11:51:37  peter
+  Revision 1.18  1999-03-01 15:41:57  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.17  1999/02/22 11:51:37  peter
     * browser updates from gabor
 
   Revision 1.16  1999/02/18 13:44:32  peter

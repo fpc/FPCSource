@@ -22,7 +22,11 @@ uses
   Dos,
   BrowCol,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPIde,FPHelp,FPSwitch,FPUsrScr,
-  FPTools,FPDebug,FPTemplt,FPCatch;
+  FPTools,FPDebug,FPTemplt,FPCatch,FPRedir
+{$ifdef TEMPHEAP}
+  ,dpmiexcp
+{$endif TEMPHEAP}
+  ;
 
 
 procedure ProcessParams(BeforeINI: boolean);
@@ -64,7 +68,6 @@ begin
   end;
 end;
 
-
 BEGIN
   {$ifdef DEV}HeapLimit:=4096;{$endif}
   writeln('þ Free Pascal IDE  Version '+VersionStr);
@@ -72,6 +75,7 @@ BEGIN
 
   ProcessParams(true);
 
+  InitRedir;
   InitBreakpoints;
   InitReservedWords;
   InitHelpFiles;
@@ -107,7 +111,24 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.12  1999-02-20 15:18:25  peter
+  Revision 1.13  1999-03-01 15:41:48  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.12  1999/02/20 15:18:25  peter
     + ctrl-c capture with confirm dialog
     + ascii table in the tools menu
     + heapviewer

@@ -14,8 +14,14 @@
 
  **********************************************************************}
 
+procedure TIDEApp.FindProcedure;
+begin
+  NotImplemented;
+end;
+
 procedure TIDEApp.Objects;
 begin
+  NotImplemented;
 end;
 
 procedure TIDEApp.Globals;
@@ -23,7 +29,7 @@ var R: TRect;
     S: PSortedSymbolCollection;
     Overflow: boolean;
     Level : longint;
-    
+
   procedure InsertInS(P: PSymbol); {$ifndef FPC}far;{$endif}
 
     procedure InsertItemsInS(P: PSymbolCollection);
@@ -76,7 +82,24 @@ end;
 
 {
   $Log$
-  Revision 1.4  1999-02-10 09:51:03  pierre
+  Revision 1.5  1999-03-01 15:41:59  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.4  1999/02/10 09:51:03  pierre
    * Adapted to TBrowserWindow changes
 
   Revision 1.3  1999/02/04 13:32:08  pierre

@@ -23,7 +23,7 @@ NEEDUNITDIR=../../api ../../fv
 # ../../fv/base ../../fv/app ../../fv/dialogs
 
 # when making a full version include the compiler
-ifdef FULL
+ifeq ($(FULL),1)
 override NEEDUNITDIR+=../../compiler
 override NEEDOPT+=-dBrowserCol -dGDB -Sg
 else
@@ -35,9 +35,9 @@ ifndef GDBINT
 GDBINT=gdbint
 endif
 
-ifdef GDB
+ifeq ($(GDB),1)
 override NEEDUNITDIR+=../../$(GDBINT)
-NEEDLIBDIR+=../../$(GDBINT)/libgdb /pp/dj/lib
+NEEDLIBDIR+=../../$(GDBINT)/libgdb
 NEEDOBJDIR+=../../$(GDBINT)/libgdb
 else
 override NEEDUNITDIR+=../fake/gdb
@@ -102,7 +102,24 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.10  1999-02-22 02:15:12  peter
+# Revision 1.11  1999-03-01 15:41:47  peter
+#   + Added dummy entries for functions not yet implemented
+#   * MenuBar didn't update itself automatically on command-set changes
+#   * Fixed Debugging/Profiling options dialog
+#   * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+#   * efBackSpaceUnindents works correctly
+#   + 'Messages' window implemented
+#   + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+#   + Added TP message-filter support (for ex. you can call GREP thru
+#     GREP2MSG and view the result in the messages window - just like in TP)
+#   * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+#     so topic search didn't work...
+#   * In FPHELP.PAS there were still context-variables defined as word instead
+#     of THelpCtx
+#   * StdStatusKeys() was missing from the statusdef for help windows
+#   + Topic-title for index-table can be specified when adding a HTML-files
+#
+# Revision 1.10  1999/02/22 02:15:12  peter
 #   + default extension for save in the editor
 #   + Separate Text to Find for the grep dialog
 #   * fixed redir crash with tp7

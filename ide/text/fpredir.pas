@@ -38,20 +38,22 @@ Interface
 {$UnDef MsDos}
 {$endif FPC}
 
-
 Var
-  IOStatus      : Integer;
-  RedirError    : Integer;
-  ExecuteResult : Word;
+  IOStatus                   : Integer;
+  RedirErrorOut,RedirErrorIn,
+  RedirErrorError            : Integer;
+  ExecuteResult              : Word;
 
 {------------------------------------------------------------------------------}
-function ExecuteRedir (Const ProgName, ComLine, RedirStdOut, RedirStdErr : String) : boolean;
+procedure InitRedir;
+function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
 
-function ChangeRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
-procedure RestoreRedir;
-
-function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
-procedure RestoreErrorRedir;
+function  ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
+procedure RestoreRedirOut;
+function  ChangeRedirIn(Const Redir : String) : Boolean;
+procedure RestoreRedirIn;
+function  ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolean;
+procedure RestoreRedirError;
 
 
 Implementation
@@ -60,10 +62,8 @@ Uses
 {$ifdef go32v2}
   go32,
 {$endif go32v2}
-{$ifdef linux}
-  linux,
-{$endif linux}
   dos;
+
 
 {*****************************************************************************
                                      Dos
@@ -90,18 +90,19 @@ Type
   PWord = ^Word;
 
 Var
-  PrefSeg      : Word;
   MinBlockSize : Word;
   MyBlockSize  : Word;
   Handles      : PHandles;
-  OldHandle,OldErrorHandle    : Byte;
+  PrefSeg      : Word;
+  OldHandleOut,OldHandleIn,OldHandleError    : Byte;
 {$endif TP}
 
-Var
-  F,FE              : File;
-  RedirChanged      : Boolean;
-  RedirErrorChanged : Boolean;
-  TempH, TempErrorH : longint;
+var
+  FIN,FOUT,FERR     : File;
+  RedirChangedOut,
+  RedirChangedIn    : Boolean;
+  RedirChangedError : Boolean;
+  TempHOut, TempHIn,TempHError : longint;
 
 { For linux the following functions exist
 Function  Dup(oldfile:longint;var newfile:longint):Boolean;
@@ -155,60 +156,84 @@ end;
 
 {............................................................................}
 
-function ChangeRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
+function ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
+  var temp : byte;
   begin
-    ChangeRedir:=False;
+    ChangeRedirOut:=False;
     If Redir = '' then Exit;
-    Assign (F, Redir);
+    Assign (FOUT, Redir);
     If AppendToFile and FileExist(Redir) then
       Begin
-      Reset(F,1);
-      Seek(F,FileSize(F));
-      End else Rewrite (F);
+      Reset(FOUT,1);
+      Seek(FOUT,FileSize(FOUT));
+      End else Rewrite (FOUT);
 
-    RedirError:=IOResult;
-    IOStatus:=RedirError;
+    RedirErrorOut:=IOResult;
+    IOStatus:=RedirErrorOut;
     If IOStatus <> 0 then Exit;
 {$ifndef FPC}
     Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
-    OldHandle:=Handles^[1];
-    Handles^[1]:=Handles^[FileRec (F).Handle];
-    ChangeRedir:=True;
+    OldHandleOut:=Handles^[StdOutputHandle];
+    Handles^[StdOutputHandle]:=Handles^[FileRec (FOUT).Handle];
+    ChangeRedirOut:=True;
 {$else}
-    if dup(StdOutputHandle,TempH) and
-       dup2(FileRec(F).Handle,StdOutputHandle) then
-      ChangeRedir:=True;
+    if dup(StdOutputHandle,TempHOut) and
+       dup2(FileRec(FOUT).Handle,StdOutputHandle) then
+      ChangeRedirOut:=True;
 {$endif def FPC}
-     RedirChanged:=True;
+     RedirChangedOut:=True;
   end;
 
-function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
+function ChangeRedirIn(Const Redir : String) : Boolean;
+  var temp : byte;
   begin
-    ChangeErrorRedir:=False;
+    ChangeRedirIn:=False;
     If Redir = '' then Exit;
-    Assign (FE, Redir);
-    If AppendToFile and FileExist(Redir) then
-      Begin
-      Reset(FE,1);
-      Seek(FE,FileSize(FE));
-      End
-    else
-      Rewrite (FE);
+    Assign (FIN, Redir);
+    Reset(FIN,1);
 
-    RedirError:=IOResult;
-    IOStatus:=RedirError;
+    RedirErrorIn:=IOResult;
+    IOStatus:=RedirErrorIn;
     If IOStatus <> 0 then Exit;
 {$ifndef FPC}
     Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
-    OldErrorHandle:=Handles^[2];
-    Handles^[2]:=Handles^[FileRec (FE).Handle];
-    ChangeErrorRedir:=True;
+    OldHandleIn:=Handles^[StdInputHandle];
+    Handles^[StdInputHandle]:=Handles^[FileRec (FIN).Handle];
+    ChangeRedirIn:=True;
 {$else}
-    if dup(StdErrorHandle,TempErrorH) and
-       dup2(FileRec(FE).Handle,StdErrorHandle) then
-      ChangeErrorRedir:=True;
+    if dup(StdInputHandle,TempHIn) and
+       dup2(FileRec(FIN).Handle,StdInputHandle) then
+      ChangeRedirIn:=True;
+{$endif def FPC}
+     RedirChangedIn:=True;
+  end;
+
+function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolean;
+  var temp : byte;
+  begin
+    ChangeRedirError:=False;
+    If Redir = '' then Exit;
+    Assign (FERR, Redir);
+    If AppendToFile and FileExist(Redir) then
+      Begin
+      Reset(FERR,1);
+      Seek(FERR,FileSize(FERR));
+      End else Rewrite (FERR);
+
+    RedirErrorError:=IOResult;
+    IOStatus:=RedirErrorError;
+    If IOStatus <> 0 then Exit;
+{$ifndef FPC}
+    Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
+    OldHandleError:=Handles^[StdErrorHandle];
+    Handles^[StdErrorHandle]:=Handles^[FileRec (FERR).Handle];
+    ChangeRedirError:=True;
+{$else}
+    if dup(StdErrorHandle,TempHError) and
+       dup2(FileRec(FERR).Handle,StdErrorHandle) then
+      ChangeRedirError:=True;
 {$endif}
-    RedirErrorChanged:=True;
+     RedirChangedError:=True;
   end;
 
 
@@ -246,34 +271,50 @@ end;
 {$EndIf MsDos}
 
 
-  procedure RestoreRedir;
+  procedure RestoreRedirOut;
 
   begin
-    If not RedirChanged then Exit;
+    If not RedirChangedOut then Exit;
 {$ifndef FPC}
-    Handles^[1]:=OldHandle;
-    OldHandle:=StdOutputHandle;
+    Handles^[StdOutputHandle]:=OldHandleOut;
+    OldHandleOut:=StdOutputHandle;
 {$else}
-    dup2(TempH,StdOutputHandle);
+    dup2(TempHOut,StdOutputHandle);
 {$endif}
-    Close (F);
-    RedirChanged:=false;
+    Close (FOUT);
+    RedirChangedOut:=false;
   end;
 
   {............................................................................}
 
-  procedure RestoreErrorRedir;
+  procedure RestoreRedirIn;
 
   begin
-    If not RedirErrorChanged then Exit;
+    If not RedirChangedIn then Exit;
 {$ifndef FPC}
-    Handles^[2]:=OldErrorHandle;
-    OldErrorHandle:=StdErrorHandle;
+    Handles^[StdInputHandle]:=OldHandleIn;
+    OldHandleIn:=StdInputHandle;
 {$else}
-    dup2(TempErrorH,StdErrorHandle);
+    dup2(TempHIn,StdInputHandle);
 {$endif}
-    Close (FE);
-    RedirErrorChanged:=false;
+    Close (FIn);
+    RedirChangedIn:=false;
+  end;
+
+  {............................................................................}
+
+  procedure RestoreRedirError;
+
+  begin
+    If not RedirChangedError then Exit;
+{$ifndef FPC}
+    Handles^[StdErrorHandle]:=OldHandleError;
+    OldHandleError:=StdErrorHandle;
+{$else}
+    dup2(TempHError,StdErrorHandle);
+{$endif}
+    Close (FERR);
+    RedirChangedError:=false;
   end;
 
 {............................................................................}
@@ -282,7 +323,7 @@ end;
 
   Begin
 {$IfDef MsDos}
-    SmallHeap;
+  SmallHeap;
 {$EndIf MsDos}
     SwapVectors;
     { Must use shell() for linux for the wildcard expansion (PFV) }
@@ -295,35 +336,45 @@ end;
     ExecuteResult:=DosExitCode;
     SwapVectors;
 {$IfDef MsDos}
-    Fullheap;
+  Fullheap;
 {$EndIf MsDos}
   End;
 
 {............................................................................}
 
-function ExecuteRedir (Const ProgName, ComLine, RedirStdOut, RedirStdErr : String) : boolean;
+function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
 Begin
-  RedirError:=0;
+  RedirErrorOut:=0; RedirErrorIn:=0; RedirErrorError:=0;
   ExecuteResult:=0;
   IOStatus:=0;
+  if RedirStdIn<>'' then
+    ChangeRedirIn(RedirStdIn);
   if RedirStdOut<>'' then
-    ChangeRedir(RedirStdOut,false);
+    ChangeRedirOut(RedirStdOut,false);
   if RedirStdErr<>'stderr' then
-    RedirErrorChanged:=ChangeErrorRedir(RedirStdErr,false);
+    ChangeRedirError(RedirStdErr,false);
   DosExecute(ProgName,ComLine);
-  RestoreRedir;
-  RestoreErrorRedir;
-  ExecuteRedir:=(IOStatus=0) and (RedirError=0) and (ExecuteResult=0);
+  RestoreRedirOut;
+  RestoreRedirIn;
+  RestoreRedirError;
+  ExecuteRedir:=(IOStatus=0) and (RedirErrorOut=0) and
+                (RedirErrorIn=0) and (RedirErrorError=0) and
+                (ExecuteResult=0);
 End;
 
 
-{$else not  implemented}
+procedure InitRedir;
+begin
+{$ifndef FPC}
+  PrefSeg:=PrefixSeg;
+{$endif FPC}
+end;
 
+{$else not  implemented}
 
 {*****************************************************************************
                                  Linux
 *****************************************************************************}
-
 
 function ExecuteRedir (Const ProgName, ComLine, RedirStdOut, RedirStdErr : String) : boolean;
 begin
@@ -362,7 +413,24 @@ end;
 End.
 {
   $Log$
-  Revision 1.10  1999-02-22 12:46:58  peter
+  Revision 1.11  1999-03-01 15:42:01  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.10  1999/02/22 12:46:58  peter
     * small fixes for linux and grep
 
   Revision 1.9  1999/02/22 11:12:33  pierre

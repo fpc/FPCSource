@@ -17,7 +17,8 @@ unit FPConst;
 
 interface
 
-uses Views,App,Commands;
+uses Views,App,Commands,
+     WViews;
 
 const
      VersionStr           = '0.9';
@@ -27,6 +28,13 @@ const
 
      ININame              = 'fp.ini';
      SwitchesName         = 'fp.cfg';
+
+     ToolCaptureName      = '$$TOOL$$.OUT';
+     FilterCaptureName    = '$FILTER$.OUT';
+
+     HelpFileExts         = '*.tph;*.htm*';
+
+     EnterSign            = #17#196#217;
 
      { Strings/Messages }
      strLoadingHelp       = 'Loading help files...';
@@ -78,18 +86,19 @@ const
      cmResetDebugger     = 228;
      cmContToCursor      = 229;
      cmOpenGDBWindow     = 230;
+     cmToolsMsgNext      = 231;
+     cmToolsMsgPrev      = 232;
+     cmGrep              = 233;
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
 
      cmSearchWindow      = 1500;
-     cmUpdate            = 1600;
      cmSourceWndClosing  = 1601;
-     cmLocalMenu         = 1602;
      cmCalculatorPaste   = 1603;
      cmMsgClear          = 1604;
      cmUpdateTools       = 1605;
-     cmGrep              = 1606;
+{     cmGrep              = 160?;}
 
      cmAddItem           = 1620;
      cmEditItem          = 1621;
@@ -99,7 +108,7 @@ const
      cmUserScreenWindow  = 1651;
      cmEvaluate          = 1652;
      cmCalculator        = 1653;
-     cmAsciiTable        = 1654;
+     cmASCIITable        = 1654;
 
      cmToolsMessages     = 1700;
      cmToolsBase         = 1800;
@@ -144,6 +153,7 @@ const
      hcCalcWindow        = 8003;
      hcInfoWindow        = 8004;
      hcBrowserWindow     = 8005;
+     hcMessagesWindow    = 8006;
 
      hcShift             = 10000;
 
@@ -179,9 +189,9 @@ const
      hcSaveAsINI         = hcShift+cmSaveAsINI;
      hcCalculator        = hcShift+cmCalculator;
      hcAsciiTable        = hcShift+cmAsciiTable;
-     hcGrep              = hcShift+cmGrep;
-     hcBrowser           = hcShift+cmBrowser;
+{     hcGrep              = hcShift+cmGrep;}
      hcSwitchesMode      = hcShift+cmSwitchesMode;
+     hcBrowser           = hcShift+cmBrowser;
      hcAbout             = hcShift+cmAbout;
 
      hcSystemMenu        = 9000;
@@ -210,6 +220,8 @@ const
      hcResetDebugger     = hcShift+cmResetDebugger;
      hcContToCursor      = hcShift+cmContToCursor;
      hcOpenGDBWindow     = hcShift+cmOpenGDBWindow;
+     hcToolsMsgNext      = hcShift+cmToolsMsgNext;
+     hcToolsMsgPrev      = hcShift+cmToolsMsgPrev;
      hcCompile           = hcShift+cmCompile;
      hcMake              = hcShift+cmMake;
      hcBuild             = hcShift+cmBuild;
@@ -233,6 +245,7 @@ const
      hcToggleBreakpoint  = hcShift+cmToggleBreakpoint;
      hcEvaluate          = hcShift+cmEvaluate;
      hcAddWatch          = hcShift+cmAddWatch;
+     hcGrep              = hcShift+cmGrep;
 
      hcOpenAtCursor      = hcShift+cmOpenAtCursor;
      hcBrowseAtCursor    = hcShift+cmBrowseAtCursor;
@@ -281,7 +294,24 @@ implementation
 END.
 {
   $Log$
-  Revision 1.12  1999-02-22 11:51:34  peter
+  Revision 1.13  1999-03-01 15:41:51  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.12  1999/02/22 11:51:34  peter
     * browser updates from gabor
 
   Revision 1.11  1999/02/20 15:18:28  peter

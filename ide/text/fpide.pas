@@ -17,20 +17,21 @@ unit fpide;
 interface
 
 uses
-  Drivers,Views,App,Gadgets,
+  Drivers,Views,App,Gadgets,MsgBox,
   {$ifdef EDITORS}Editors,{$else}WEditor,{$endif}
   Comphook,
   FPViews,FPSymbol;
 
 type
+    TExecType = (exNormal,exNoSwap,exDosShell);
+
     TIDEApp = object(TApplication)
-      Heap : PHeapView;
       constructor Init;
-      procedure   Idle;virtual;
       procedure   InitMenuBar; virtual;
       procedure   InitStatusLine; virtual;
       procedure   Open(FileName: string);
       function    OpenSearch(FileName: string) : boolean;
+      procedure   Idle; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetPalette: PPalette; virtual;
       procedure   DosShell; virtual;
@@ -39,12 +40,14 @@ type
       procedure ShowUserScreen;
       procedure ShowIDEScreen;
     private
+      Heap: PFPHeapView;
       procedure NewEditor;
       procedure NewFromTemplate;
       procedure OpenRecentFile(RecentIndex: integer);
       procedure SaveAll;
       procedure ChangeDir;
       procedure ShowClipboard;
+      procedure FindProcedure;
       procedure Objects;
       procedure Modules;
       procedure Globals;
@@ -62,8 +65,9 @@ type
       procedure DoOpenGDBWindow;
       procedure DoToggleBreak;
       procedure Information;
-      procedure DoAsciiTable;
+      procedure Messages;
       procedure Calculator;
+      procedure DoAsciiTable;
       procedure ExecuteTool(Idx: integer);
       procedure SetSwitchesMode;
       procedure DoCompilerSwitch;
@@ -72,10 +76,12 @@ type
       procedure DoDebuggerSwitch;
       procedure Directories;
       procedure Tools;
-      procedure Grep;
+      procedure DoGrep;
+      procedure Preferences;
       procedure EditorOptions(Editor: PEditor);
       procedure BrowserOptions(Browser: PBrowserWindow);
       procedure Mouse;
+      procedure StartUp;
       procedure Colors;
       procedure OpenINI;
       procedure SaveINI;
@@ -90,7 +96,7 @@ type
       procedure HelpFiles;
       procedure About;
     private
-      procedure DoExecute(ProgramPath, Params: string; IsDOSShell: boolean);
+      procedure DoExecute(ProgramPath, Params, InFile, OutFile: string; ExecType: TExecType);
     private
       procedure AddRecentFile(AFileName: string; CurX, CurY: integer);
       function  SearchRecentFile(AFileName: string): integer;
@@ -117,8 +123,8 @@ uses
   Video,Mouse,Keyboard,
   Dos,Objects,Memory,Menus,Dialogs,StdDlg,ColorSel,Commands,HelpCtx,
   AsciiTab,
-  Systems,BrowCol,Version,
-  WHelp,WHlpView,WINI,
+  Systems,BrowCol,
+  WUtils,WHelp,WHlpView,WINI,WViews,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompile,FPHelp,
   FPTemplt,FPCalc,FPUsrScr,FPTools,FPDebug,FPRedir;
 
@@ -134,8 +140,7 @@ begin
 end;
 
 constructor TIDEApp.Init;
-var
-  R : TRect;
+var R: TRect;
 begin
   {$ifndef EDITORS}
   UseSyntaxHighlight:=IDEUseSyntaxHighlight;
@@ -151,18 +156,10 @@ begin
   Desktop^.Insert(ProgramInfoWindow);
   Message(@Self,evBroadcast,cmUpdate,nil);
   CurDirChanged;
-{ heap viewer }
-  GetExtent(R);
-  Dec(R.B.X);
-  R.A.X := R.B.X - 9; R.A.Y := R.B.Y - 1;
-  Heap := New(PHeapView, InitKb(R));
+  { heap viewer }
+  GetExtent(R); Dec(R.B.X); R.A.X:=R.B.X-9; R.A.Y:=R.B.Y-1;
+  New(Heap, InitKb(R));
   Insert(Heap);
-end;
-
-procedure TIDEApp.Idle;
-begin
-  inherited Idle;
-  Heap^.Update;
 end;
 
 procedure TIDEApp.InitMenuBar;
@@ -232,11 +229,13 @@ begin
       nil))))),
     NewSubMenu('~T~ools', hcToolsMenu, NewMenu(
       NewItem('~M~essages', '', kbNoKey, cmToolsMessages, hcToolsMessages,
+      NewItem('Goto ~n~ext','Alt+F8', kbAltF8, cmToolsMsgNext, hcToolsMsgNext,
+      NewItem('Goto ~p~revious','Alt+F7', kbAltF7, cmToolsMsgPrev, hcToolsMsgPrev,
       NewLine(
       NewItem('~G~rep', 'Shift+F2', kbShiftF2, cmGrep, hcGrep,
       NewItem('~C~alculator', '', kbNoKey, cmCalculator, hcCalculator,
       NewItem('Ascii ~t~able', '', kbNoKey, cmAsciiTable, hcAsciiTable,
-      nil)))))),
+      nil)))))))),
     NewSubMenu('~O~ptions', hcOptionsMenu, NewMenu(
       NewItem('Mode~.~..','', kbNoKey, cmSwitchesMode, hcSwitchesMode,
       NewItem('~C~ompiler...','', kbNoKey, cmCompiler, hcCompiler,
@@ -304,7 +303,8 @@ begin
       NewStatusKey('~Alt+F1~ Previous topic', kbAltF1, cmHelpPrevTopic,
       NewStatusKey('~Shift+F1~ Help index', kbShiftF1, cmHelpIndex,
       NewStatusKey('~Esc~ Close help', kbEsc, cmClose,
-      nil)))),
+      StdStatusKeys(
+      nil))))),
     NewStatusDef(hcSourceWindow, hcSourceWindow,
       NewStatusKey('~F1~ Help', kbF1, cmHelp,
       NewStatusKey('~F2~ Save', kbF2, cmSave,
@@ -314,6 +314,13 @@ begin
       NewStatusKey('~Alt+F10~ Local menu', kbAltF10, cmLocalMenu,
       StdStatusKeys(
       nil))))))),
+    NewStatusDef(hcMessagesWindow, hcMessagesWindow,
+      NewStatusKey('~F1~ Help', kbF1, cmHelp,
+      NewStatusKey('~'+EnterSign+'~ Goto source', kbEnter, cmMsgGotoSource,
+      NewStatusKey('~Space~ Track source', kbNoKey, cmMsgTrackSource,
+      NewStatusKey('~Alt+F10~ Local menu', kbAltF10, cmLocalMenu,
+      StdStatusKeys(
+      nil))))),
     NewStatusDef(hcCalcWindow, hcCalcWindow,
       NewStatusKey('~F1~ Help', kbF1, cmHelp,
       NewStatusKey('~Esc~ Close', kbEsc, cmClose,
@@ -328,7 +335,13 @@ begin
       NewStatusKey('~Alt+F10~ Local menu', kbAltF10, cmLocalMenu,
       StdStatusKeys(
       nil)))))),
-    nil)))))));
+    nil))))))));
+end;
+
+procedure TIDEApp.Idle;
+begin
+  inherited Idle;
+  Message(Application,evIdle,0,nil);
 end;
 
 procedure TIDEApp.HandleEvent(var Event: TEvent);
@@ -358,6 +371,7 @@ begin
            { -- Edit menu -- }
              cmShowClipboard : ShowClipboard;
            { -- Search menu -- }
+             cmFindProcedure : FindProcedure;
              cmObjects       : Objects;
              cmModules       : Modules;
              cmGlobals       : Globals;
@@ -388,19 +402,22 @@ begin
              cmDebugger      : DoDebuggerSwitch;
              cmDirectories   : Directories;
              cmTools         : Tools;
+             cmPreferences   : Preferences;
              cmEditor        : EditorOptions(nil);
              cmEditorOptions : EditorOptions(Event.InfoPtr);
              cmBrowser       : BrowserOptions(nil);
              cmBrowserOptions : BrowserOptions(Event.InfoPtr);
              cmMouse         : Mouse;
+             cmStartup       : StartUp;
              cmColors        : Colors;
              cmOpenINI       : OpenINI;
              cmSaveINI       : SaveINI;
              cmSaveAsINI     : SaveAsINI;
            { -- Tools menu -- }
-             cmAsciiTable    : DoAsciiTable;
+             cmToolsMessages : Messages;
              cmCalculator    : Calculator;
-             cmGrep          : Grep;
+             cmAsciiTable    : DoAsciiTable;
+             cmGrep          : DoGrep;
              cmToolsBase+1..
              cmToolsBase+MaxToolCount
                              : ExecuteTool(Event.Command-cmToolsBase);
@@ -475,7 +492,7 @@ begin
 end;
 
 
-procedure TIDEApp.DoExecute(ProgramPath, Params: string; IsDosShell: boolean);
+procedure TIDEApp.DoExecute(ProgramPath, Params, InFile,OutFile: string; ExecType: TExecType);
 begin
   if UserScreen=nil then
    begin
@@ -483,20 +500,23 @@ begin
      Exit;
    end;
 
-  ShowUserScreen;
+  if ExecType<>exNoSwap then
+    ShowUserScreen;
 
-  if IsDOSShell then
+  if ExecType=exDosShell then
     WriteShellMsg;
 
-  SwapVectors;
 {$ifdef linux}
   Shell(ProgramPath+' '+Params);
 {$else}
-  Dos.Exec(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params);
+  if (InFile='') and (OutFile='') then
+    Dos.Exec(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params)
+  else
+    ExecuteRedir(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params,InFile,OutFile,'stderr');
 {$endif}
-  SwapVectors;
 
-  ShowIDEScreen;
+  if ExecType<>exNoSwap then
+    ShowIDEScreen;
 end;
 
 
@@ -506,11 +526,11 @@ begin
   SetCmdState([cmCloseAll,cmTile,cmCascade,cmWindowList],IsThereAnyWindow);
   SetCmdState([cmFindProcedure,cmObjects,cmModules,cmGlobals{,cmInformation}],IsSymbolInfoAvailable);
   SetCmdState([cmResetDebugger],assigned(debugger) and debugger^.debugger_started);
+  SetCmdState([cmToolsMsgNext,cmToolsMsgPrev],MessagesWindow<>nil);
+  UpdateTools;
+  UpdateRecentFileList;
   UpdatePrimaryFile;
   UpdateINIFile;
-  Message(MenuBar,evBroadcast,cmUpdate,nil);
-  UpdateRecentFileList;
-  UpdateTools;
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
 end;
 
@@ -616,7 +636,7 @@ end;
 
 procedure TIDEApp.DosShell;
 begin
-  DoExecute(GetEnv('COMSPEC'), '', true);
+  DoExecute(GetEnv('COMSPEC'), '', '', '', exDosShell);
 end;
 
 {$I FPMFILE.INC}
@@ -686,7 +706,24 @@ end;
 END.
 {
   $Log$
-  Revision 1.19  1999-02-22 11:51:36  peter
+  Revision 1.20  1999-03-01 15:41:54  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.19  1999/02/22 11:51:36  peter
     * browser updates from gabor
 
   Revision 1.18  1999/02/22 02:15:13  peter

@@ -74,7 +74,7 @@ type
       THLPFileHeader = packed record
         Options         : word;
         MainIndexScreen : word;
-        Maxscreensize   : word;
+        MaxScreenSize   : word;
         Height          : byte;
         Width           : byte;
         LeftMargin      : byte;
@@ -130,29 +130,24 @@ type
       TKeywordDescriptors = array[0..10900] of TKeywordDescriptor;
 
       PTopic = ^TTopic;
-      TTopic = packed record
+      TTopic = object
         HelpCtx       : THelpCtx;
         FileOfs       : longint;
         TextSize      : word;
         Text          : PByteArray;
         LinkCount     : word;
-        LinkSize      : word;
         Links         : PKeywordDescriptors;
         LastAccess    : longint;
         FileID        : word;
         Param         : PString;
-      end;
-
-      PUnsortedStringCollection = ^TUnsortedStringCollection;
-      TUnsortedStringCollection = object(TCollection)
-        function   At(Index: Sw_Integer): PString;
-        procedure FreeItem(Item: Pointer); virtual;
+        function LinkSize: word;
       end;
 
       PTopicCollection = ^TTopicCollection;
-      TTopicCollection = object(TCollection)
-        function   At(Index: Sw_Integer): PTopic;
+      TTopicCollection = object(TSortedCollection)
+        function   At(Index: sw_Integer): PTopic;
         procedure  FreeItem(Item: Pointer); virtual;
+        function   Compare(Key1, Key2: Pointer): Sw_Integer; virtual;
         function   SearchTopic(AHelpCtx: THelpCtx): PTopic;
       end;
 
@@ -189,7 +184,7 @@ type
       public
         function    LoadIndex: boolean; virtual;
         function    ReadTopic(T: PTopic): boolean; virtual;
-      private
+      public { protected }
         F: PBufStream;
         TopicsRead     : boolean;
         IndexTableRead : boolean;
@@ -210,12 +205,12 @@ type
       PHelpFacility = ^THelpFacility;
       THelpFacility = object(TObject)
         HelpFiles: PHelpFileCollection;
-        IndexTabSize: Sw_integer;
+        IndexTabSize: sw_integer;
         constructor Init;
         function    AddOAHelpFile(FileName: string): boolean;
         function    AddHTMLHelpFile(FileName, TOCEntry: string): boolean;
         function    LoadTopic(SourceFileID: word; Context: THelpCtx): PTopic; virtual;
-        function    TopicSearch(Keyword: string; var FileID: word; Context: THelpCtx): boolean; virtual;
+        function    TopicSearch(Keyword: string; var FileID: word; var Context: THelpCtx): boolean; virtual;
         function    BuildIndexTopic: PTopic; virtual;
         destructor  Done; virtual;
       private
@@ -226,8 +221,8 @@ type
         function  AddFile(H: PHelpFile): boolean;
       end;
 
-const TopicCacheSize    : Sw_integer = 10;
-      HelpStreamBufSize : Sw_integer = 4096;
+const TopicCacheSize    : sw_integer = 10;
+      HelpStreamBufSize : sw_integer = 4096;
       HelpFacility      : PHelpFacility = nil;
       MaxHelpTopicSize  : word = 65520;
 
@@ -241,35 +236,8 @@ implementation
 
 uses
   Dos,
-  WHTMLHlp,
+  WUtils,WHTMLHlp,
   Drivers;
-
-type
-     PByteArray = ^TByteArray;
-     TByteArray = array[0..65520] of byte;
-
-function CharStr(C: char; Count: byte): string;
-var S: string;
-begin
-  S[0]:=chr(Count);
-  FillChar(S[1],Count,C);
-  CharStr:=S;
-end;
-
-function RExpand(S: string; MinLen: byte): string;
-begin
-  if length(S)<MinLen then
-     S:=S+CharStr(' ',MinLen-length(S));
-  RExpand:=S;
-end;
-
-function UpcaseStr(S: string): string;
-var I: Sw_integer;
-begin
-  for I:=1 to length(S) do
-      S[I]:=Upcase(S[I]);
-  UpcaseStr:=S;
-end;
 
 procedure DisposeRecord(var R: TRecord);
 begin
@@ -318,11 +286,8 @@ end;
 function NewIndexEntry(Tag: string; FileID: word; HelpCtx: THelpCtx): PIndexEntry;
 var P: PIndexEntry;
 begin
-  New(P);
-  FillChar(P^,SizeOf(P^), 0);
-  P^.Tag:=NewStr(Tag);
-  P^.FileID:=FileID;
-  P^.HelpCtx:=HelpCtx;
+  New(P); FillChar(P^,SizeOf(P^), 0);
+  P^.Tag:=NewStr(Tag); P^.FileID:=FileID; P^.HelpCtx:=HelpCtx;
   NewIndexEntry:=P;
 end;
 
@@ -335,17 +300,12 @@ begin
   end;
 end;
 
-function TUnsortedStringCollection.At(Index: Sw_Integer): PString;
+function TTopic.LinkSize: word;
 begin
-  At:=inherited At(Index);
+  LinkSize:=LinkCount*SizeOf(Links^[0]);
 end;
 
-procedure TUnsortedStringCollection.FreeItem(Item: Pointer);
-begin
-  if Item<>nil then DisposeStr(Item);
-end;
-
-function TTopicCollection.At(Index: Sw_Integer): PTopic;
+function TTopicCollection.At(Index: sw_Integer): PTopic;
 begin
   At:=inherited At(Index);
 end;
@@ -355,11 +315,28 @@ begin
   if Item<>nil then DisposeTopic(Item);
 end;
 
-function TTopicCollection.SearchTopic(AHelpCtx: THelpCtx): PTopic;
-function Match(P: PTopic): boolean;{$ifndef FPC}far;{$endif}
-begin Match:=(P^.HelpCtx=AHelpCtx); end;
+function TTopicCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
+var K1: PTopic absolute Key1;
+    K2: PTopic absolute Key2;
+    R: Sw_integer;
 begin
-  SearchTopic:=FirstThat(@Match);
+  if K1^.HelpCtx<K2^.HelpCtx then R:=-1 else
+  if K1^.HelpCtx>K2^.HelpCtx then R:= 1 else
+  R:=0;
+  Compare:=R;
+end;
+
+function TTopicCollection.SearchTopic(AHelpCtx: THelpCtx): PTopic;
+var T: TTopic;
+    P: PTopic;
+    Index: sw_integer;
+begin
+  T.HelpCtx:=AHelpCtx;
+  if Search(@T,Index) then
+    P:=At(Index)
+  else
+    P:=nil;
+  SearchTopic:=P;
 end;
 
 function TIndexEntryCollection.At(Index: Sw_Integer): PIndexEntry;
@@ -412,7 +389,6 @@ end;
 function THelpFile.LoadIndex: boolean;
 begin
   Abstract;
-  LoadIndex:=false;
 end;
 
 function THelpFile.SearchTopic(HelpCtx: THelpCtx): PTopic;
@@ -425,11 +401,10 @@ end;
 function THelpFile.ReadTopic(T: PTopic): boolean;
 begin
   Abstract;
-  ReadTopic:=false;
 end;
 
 procedure THelpFile.MaintainTopicCache;
-var Count: Sw_integer;
+var Count: sw_integer;
     MinP: PTopic;
     MinLRU: longint;
 procedure CountThem(P: PTopic); {$ifndef FPC}far;{$endif}
@@ -445,7 +420,7 @@ begin
     if P<>nil then
     begin
       FreeMem(P^.Text,P^.TextSize); P^.TextSize:=0; P^.Text:=nil;
-      FreeMem(P^.Links,P^.LinkSize); P^.LinkSize:=0; P^.LinkCount:=0; P^.Links:=nil;
+      FreeMem(P^.Links,P^.LinkSize); P^.LinkCount:=0; P^.Links:=nil;
     end;
   end;
 end;
@@ -466,14 +441,7 @@ begin
   New(F, Init(AFileName, stOpenRead, HelpStreamBufSize));
   OK:=F<>nil;
   if OK then OK:=(F^.Status=stOK);
-  if OK then
-    begin
-{$ifdef FPC}
-      F^.TPCompatible:=true;
-{$endif}
-      FS:=F^.GetSize;
-      OK:=ReadHeader;
-    end;
+  if OK then begin FS:=F^.GetSize; OK:=ReadHeader; end;
   while OK do
   begin
     L:=F^.GetPos;
@@ -570,10 +538,8 @@ begin
   for I:=0 to IndexCount-1 do
   begin
     LenCode:=PByteArray(@Entries)^[CurPtr];
-    AddLen:=LenCode and $1f;
-    CopyCnt:=LenCode shr 5;
-    S[0]:=chr(AddLen);
-    Move(PByteArray(@Entries)^[CurPtr+1],S[1],AddLen);
+    AddLen:=LenCode and $1f; CopyCnt:=LenCode shr 5;
+    S[0]:=chr(AddLen); Move(PByteArray(@Entries)^[CurPtr+1],S[1],AddLen);
     LastTag:=copy(LastTag,1,CopyCnt)+S;
     Move(PByteArray(@Entries)^[CurPtr+1+AddLen],HelpCtx,2);
     IndexEntries^.Insert(NewIndexEntry(LastTag,ID,HelpCtx));
@@ -654,7 +620,7 @@ begin
   case N of
     $00       : C:=#0;
     $01..$0D  : C:=chr(Compression.CharTable[N]);
-    ncRawChar : C:=chr(GetNextNibble+GetNextNibble shl 4);
+    ncRawChar : C:=chr(GetNextNibble*16+GetNextNibble);
     ncRepChar : begin
                   Cnt:=2+GetNextNibble;
                   C:=GetNextChar{$ifdef FPC}(){$endif};
@@ -715,8 +681,7 @@ begin
       with THLPKeywordRecord(KeyWR.Data^) do
       begin
         T^.LinkCount:=KeywordCount;
-        W:=T^.LinkCount*SizeOf(T^.Links^[0]);
-        T^.LinkSize:=W; GetMem(T^.Links,T^.LinkSize);
+        GetMem(T^.Links,T^.LinkSize);
         if KeywordCount>0 then
         for I:=0 to KeywordCount-1 do
         begin
@@ -803,7 +768,7 @@ begin
   LoadTopic:=P;
 end;
 
-function THelpFacility.TopicSearch(Keyword: string; var FileID: word; Context: THelpCtx): boolean;
+function THelpFacility.TopicSearch(Keyword: string; var FileID: word; var Context: THelpCtx): boolean;
 function ScanHelpFile(H: PHelpFile): boolean; {$ifndef FPC}far;{$endif}
 function Search(P: PIndexEntry): boolean; {$ifndef FPC}far;{$endif}
 begin
@@ -821,72 +786,50 @@ begin
   TopicSearch:=HelpFiles^.FirstThat(@ScanHelpFile)<>nil;
 end;
 
-
 function THelpFacility.BuildIndexTopic: PTopic;
-var
-  T        : PTopic;
-  Keywords : PIndexEntryCollection;
-  Lines    : PUnsortedStringCollection;
-
-  procedure InsertKeywordsOfFile(H: PHelpFile); {$ifndef FPC}far;{$endif}
-
-    function InsertKeywords(P: PIndexEntry): boolean; {$ifndef FPC}far;{$endif}
-    begin
-      Keywords^.Insert(P);
-      InsertKeywords:=Keywords^.Count>=MaxCollectionSize;
-    end;
-
-  begin
-    H^.LoadIndex;
-    if Keywords^.Count<MaxCollectionSize then
-      H^.IndexEntries^.FirstThat(@InsertKeywords);
-  end;
-
-  procedure AddLine(S: string);
-  begin
-    if S='' then S:=' ';
-    Lines^.Insert(NewStr(S));
-  end;
-
-procedure RenderTopic;
-var
-  Size,CurPtr,I: word;
-  S: string;
-
-  function CountSize(P: PString): boolean; {$ifndef FPC}far;{$endif}
-  begin
-    Inc(Size, length(P^)+1);
-    CountSize:=Size>65200;
-  end;
-
+var T: PTopic;
+    Keywords: PIndexEntryCollection;
+    Lines: PUnsortedStringCollection;
+procedure InsertKeywordsOfFile(H: PHelpFile); {$ifndef FPC}far;{$endif}
+function InsertKeywords(P: PIndexEntry): boolean; {$ifndef FPC}far;{$endif}
 begin
-  Size:=0;
-  Lines^.FirstThat(@CountSize);
-  T^.TextSize:=Size;
-  GetMem(T^.Text,T^.TextSize);
+  Keywords^.Insert(P);
+  InsertKeywords:=Keywords^.Count>=MaxCollectionSize;
+end;
+begin
+  H^.LoadIndex;
+  if Keywords^.Count<MaxCollectionSize then
+  H^.IndexEntries^.FirstThat(@InsertKeywords);
+end;
+procedure AddLine(S: string);
+begin
+  if S='' then S:=' ';
+  Lines^.Insert(NewStr(S));
+end;
+procedure RenderTopic;
+var Size,CurPtr,I: word;
+    S: string;
+function CountSize(P: PString): boolean; {$ifndef FPC}far;{$endif} begin Inc(Size, length(P^)+1); CountSize:=Size>65200; end;
+begin
+  Size:=0; Lines^.FirstThat(@CountSize);
+  T^.TextSize:=Size; GetMem(T^.Text,T^.TextSize);
   CurPtr:=0;
   for I:=0 to Lines^.Count-1 do
   begin
     S:=Lines^.At(I)^;
-    Size:=length(S)+1;
-    S[Size]:=hscLineBreak;
+    Size:=length(S)+1; S[Size]:=hscLineBreak;
     Move(S[1],PByteArray(T^.Text)^[CurPtr],Size);
     Inc(CurPtr,Size);
-    if CurPtr>=T^.TextSize then
-     Break;
+    if CurPtr>=T^.TextSize then Break;
   end;
 end;
-
 var Line: string;
 procedure FlushLine;
 begin
   if Line<>'' then AddLine(Line); Line:='';
 end;
-
-var
-  KWCount,NLFlag: Sw_integer;
-  LastFirstChar: char;
-
+var KWCount,NLFlag: sw_integer;
+    LastFirstChar: char;
 procedure NewSection(FirstChar: char);
 begin
   if FirstChar<=#64 then FirstChar:=#32;
@@ -897,7 +840,6 @@ begin
   LastFirstChar:=FirstChar;
   NLFlag:=0;
 end;
-
 procedure AddKeyword(KWS: string);
 begin
   Inc(KWCount); if KWCount=1 then NLFlag:=0;
@@ -912,10 +854,8 @@ begin
           end;
   Inc(NLFlag);
 end;
-
-var
-  KW : PIndexEntry;
-  I  : Sw_integer;
+var KW: PIndexEntry;
+    I: sw_integer;
 begin
   New(Keywords, Init(5000,1000));
   HelpFiles^.ForEach(@InsertKeywordsOfFile);
@@ -925,31 +865,27 @@ begin
     begin
       AddLine('');
       AddLine(' No help files installed.')
-    end
-  else
+    end else
+  begin
+    AddLine(' Help index');
+    KWCount:=0; Line:='';
+    T^.LinkCount:=Keywords^.Count;
+    GetMem(T^.Links,T^.LinkSize);
+
+    for I:=0 to Keywords^.Count-1 do
     begin
-      AddLine(' Help index');
-      KWCount:=0; Line:='';
-      T^.LinkCount:=Keywords^.Count;
-      T^.LinkSize:=T^.LinkCount*SizeOf(T^.Links^[0]);
-      GetMem(T^.Links,T^.LinkSize);
-      for I:=0 to Keywords^.Count-1 do
-       begin
-         KW:=Keywords^.At(I);
-         AddKeyword(KW^.Tag^);
-         T^.Links^[I].Context:=KW^.HelpCtx;
-         T^.Links^[I].FileID:=KW^.FileID;
-       end;
-      FlushLine;
-      AddLine('');
+      KW:=Keywords^.At(I);
+      AddKeyword(KW^.Tag^);
+      T^.Links^[I].Context:=KW^.HelpCtx; T^.Links^[I].FileID:=KW^.FileID;
     end;
+    FlushLine;
+    AddLine('');
+  end;
   RenderTopic;
   Dispose(Lines, Done);
-  Keywords^.DeleteAll;
-  Dispose(Keywords, Done);
+  Keywords^.DeleteAll; Dispose(Keywords, Done);
   BuildIndexTopic:=T;
 end;
-
 
 function THelpFacility.SearchFile(ID: byte): PHelpFile;
 function Match(P: PHelpFile): boolean; {$ifndef FPC}far;{$endif}
@@ -977,8 +913,22 @@ end;
 END.
 {
   $Log$
-  Revision 1.7  1999-02-22 15:04:31  peter
-    * helpfiles fixed
+  Revision 1.8  1999-03-01 15:42:11  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
 
   Revision 1.6  1999/02/20 15:18:35  peter
     + ctrl-c capture with confirm dialog

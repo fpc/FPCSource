@@ -18,13 +18,14 @@ unit FPHelp;
 interface
 
 uses
-  Drivers,HelpCtx,WHlpView,WHTML,
+  Drivers,HelpCtx,
+  WHelp,WHlpView,WHTML,
 {$ifdef EDITORS}
   Editors,
 {$else}
   WEditor,
 {$endif}
-  FPViews;
+  WViews,FPViews;
 
 type
     PIDEStatusLine = ^TIDEStatusLine;
@@ -33,8 +34,8 @@ type
       procedure HandleEvent(var Event: TEvent); virtual;
     end;
 
-procedure Help(FileID, Context: word; Modal: boolean);
-procedure HelpIndex(const Keyword: string);
+procedure Help(FileID, Context: THelpCtx; Modal: boolean);
+procedure HelpIndex(Keyword: string);
 procedure HelpTopicSearch(Editor: PEditor);
 procedure HelpTopic(const S: string);
 
@@ -44,23 +45,23 @@ procedure DoneHelpSystem;
 procedure InitHelpFiles;
 procedure DoneHelpFiles;
 
-procedure PushStatus(const S: string);
-procedure SetStatus(const S: string);
+procedure PushStatus(S: string);
+procedure SetStatus(S: string);
 procedure ClearStatus;
 procedure PopStatus;
 
 const
-      HelpWindow     : PIDEHelpWindow = nil;
+      HelpWindow     : PFPHelpWindow = nil;
       HelpInited     : boolean = false;
 
 implementation
 
 uses Objects,Views,App,MsgBox,
-     WHelp,WHTMLHlp,
+     WHTMLHlp,
      FPConst,FPVars,FPUtils;
 
 const
-    MaxStatusLevel = 10;
+    MaxStatusLevel = 5;
 
 var StatusStack : array[0..MaxStatusLevel] of string[MaxViewWidth];
 
@@ -89,6 +90,8 @@ begin
     hcCalcWindow    : S:='';
     hcInfoWindow    : S:='';
     hcClipboardWindow:S:='';
+    hcBrowserWindow : S:='';
+    hcMessagesWindow: S:='';
 
     hcSystemMenu    : S:='System menu';
     hcUpdate        : S:='Refresh and redraw display';
@@ -146,8 +149,9 @@ begin
     hcOpenGDBWindow : S:='Open direct window to GDB';
     hcToolsMenu     : S:='User installed tools';
     hcCalculator    : S:='Show calculator';
-    hcGrep          : S:='Run grep';
+{    hcGrep          : S:='Run grep';}
 
+    hcToolsMessages : S:='Open the message window';
     hcToolsBase..
     hcToolsBase+MaxToolCount
                     : S:='User installed tool';
@@ -216,18 +220,22 @@ procedure InitHelpSystem;
     {$IFDEF DEBUG}SetStatus(strLoadingHelp);{$ENDIF}
   end;
 
-var
-  I: Sw_integer;
-  S: string;
+var I,P: sw_integer;
+    S: string;
+    TopicTitle: string;
 begin
   New(HelpFacility, Init);
   PushStatus(strLoadingHelp);
 {  AddHTMLFile('User''s guide','C:\FP\USER\USER.HTM');}
   for I:=0 to HelpFiles^.Count-1 do
     begin
-      S:=HelpFiles^.At(I)^;
-      if (copy(UpcaseStr(ExtOf(S)),1,4)='.HTM') then
-        AddHTMLFile(S,S)
+      S:=HelpFiles^.At(I)^; TopicTitle:='';
+      P:=Pos('|',S);
+      if P>0 then
+        begin TopicTitle:=copy(S,P+1,255); S:=copy(S,1,P-1); end;
+      if TopicTitle='' then TopicTitle:=S;
+      if copy(UpcaseStr(ExtOf(S)),1,4)='.HTM' then { this recognizes both .htm and .html }
+          AddHTMLFile(TopicTitle,S)
       else
         AddOAFile(S);
     end;
@@ -244,10 +252,10 @@ end;
 procedure DoneHelpSystem;
 begin
   if assigned(HelpFacility) then
-   begin
-     Dispose(HelpFacility, Done);
-     HelpFacility:=nil;
-   end;
+    begin
+      Dispose(HelpFacility, Done);
+      HelpFacility:=nil;
+    end;
   HelpInited:=false;
 end;
 
@@ -258,18 +266,16 @@ begin
   if HelpWindow=nil then
   begin
      Desktop^.GetExtent(R); R.Grow(-15,-3); Dec(R.A.Y);
-     New(HelpWindow, Init(R, 'Help', 0, 0, wnNoNumber));
+     New(HelpWindow, Init(R, 'Help', 0, 0, SearchFreeWindowNo));
      if HelpWindow<>nil then
      begin
-       HelpWindow^.HelpCtx:=hcHelpWindow;
-       HelpWindow^.HideOnClose:=true;
        HelpWindow^.Hide;
        Desktop^.Insert(HelpWindow);
      end;
   end;
 end;
 
-procedure Help(FileID, Context: word; Modal: boolean);
+procedure Help(FileID, Context: THelpCtx; Modal: boolean);
 begin
   if Modal then
      begin MessageBox('Sorry, modal help not yet implemented.',nil,mfInformation+mfInsertInApp+mfOKButton); Exit; end;
@@ -292,21 +298,21 @@ begin
 end;
 
 procedure HelpTopic(const S: string);
-var
-  FileID, Ctx: word;
-  Found: boolean;
+var FileID: word;
+    Ctx   : THelpCtx;
+var Found: boolean;
 begin
   CheckHelpSystem;
   PushStatus(strLocatingTopic);
   Found:=HelpFacility^.TopicSearch(S,FileID,Ctx);
   PopStatus;
   if Found then
-    Help(FileID,Ctx,false)
+     Help(FileID,Ctx,false)
   else
-    HelpIndex(S);
+     HelpIndex(S);
 end;
 
-procedure HelpIndex(const Keyword: string);
+procedure HelpIndex(Keyword: string);
 begin
   HelpCreateWindow;
   with HelpWindow^ do
@@ -322,7 +328,7 @@ begin
   Message(Application,evCommand,cmUpdate,nil);
 end;
 
-procedure PushStatus(const S: string);
+procedure PushStatus(S: string);
 begin
   if StatusLine=nil then
     Exit;
@@ -345,7 +351,7 @@ begin
     SetStatus(StatusStack[MaxStatusLevel]);
 end;
 
-procedure SetStatus(const S: string);
+procedure SetStatus(S: string);
 begin
   if StatusLine=nil then
     Exit;
@@ -371,7 +377,24 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  1999-02-22 11:51:35  peter
+  Revision 1.11  1999-03-01 15:41:53  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.10  1999/02/22 11:51:35  peter
     * browser updates from gabor
 
   Revision 1.9  1999/02/19 18:43:45  peter

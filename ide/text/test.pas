@@ -1,9 +1,10 @@
-program TestProgram;
+program                TestProgram;
 
 uses Test2;
 
 const A =  1234;
       B =  $1234;
+      C =  #1#2#3#4;
       ConstBool1 = true;
       ConstBool2 = boolean(5);
       ConstChar = 'A';
@@ -23,7 +24,7 @@ type
       end;
 
       TObj2 = object(TObj)
-        procedure   Proc; virtual;
+        procedure Proc; virtual;
       end;
 
       TClass = class

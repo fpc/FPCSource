@@ -79,73 +79,9 @@ const MainSectionName : string[40] = 'MainSection';
 
 implementation
 
-{$ifdef FPC}uses callspec;{$endif}
-
-const LastStrToIntResult : integer = 0;
-
-function IntToStr(L: longint): string;
-var S: string;
-begin
-  Str(L,S);
-  IntToStr:=S;
-end;
-
-function StrToInt(const S: string): longint;
-var L: longint;
-    C: integer;
-begin
-  Val(S,L,C); if C<>0 then L:=-1;
-  LastStrToIntResult:=C;
-  StrToInt:=L;
-end;
-
-function UpcaseStr(const S: string): string;
-var
-  i  : Sw_word;
-begin
-  for i:=1 to length(s) do
-   if s[i] in ['a'..'z'] then
-    UpcaseStr[i]:=char(byte(s[i])-32)
-   else
-    UpcaseStr[i]:=s[i];
-  UpcaseStr[0]:=s[0];
-end;
-
-function LTrim(const S: string): string;
-var
-  i : Sw_integer;
-begin
-  i:=1;
-  while (i<length(S)) and (S[i]=' ') do
-   inc(i);
-  LTrim:=Copy(S,i,255);
-end;
-
-Function RTrim(const S:string):string;
-var
-  i : Sw_integer;
-begin
-  i:=length(S);
-  while (i>0) and (S[i]=' ') do
-   dec(i);
-  RTrim:=Copy(S,1,i);
-end;
-
-function Trim(const S: string): string;
-begin
-  Trim:=RTrim(LTrim(S));
-end;
-
-function GetStr(P: PString): string;
-begin
-  if P=nil then GetStr:='' else GetStr:=P^;
-end;
-
-function EatIO: integer;
-begin
-  EatIO:=IOResult;
-end;
-
+uses WUtils
+{$ifdef FPC},callspec{$endif}
+     ;
 
 constructor TINIEntry.Init(const ALine: string);
 begin
@@ -520,7 +456,24 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  1999-02-22 02:15:26  peter
+  Revision 1.6  1999-03-01 15:42:15  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.5  1999/02/22 02:15:26  peter
     + default extension for save in the editor
     + Separate Text to Find for the grep dialog
     * fixed redir crash with tp7

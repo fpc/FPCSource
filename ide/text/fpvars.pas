@@ -18,6 +18,7 @@ unit FPVars;
 interface
 
 uses Objects,Views,App,
+     WUtils,
      FPConst,FPUtils,FPViews,FPCalc;
 
 type
@@ -44,7 +45,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       ProgramInfoWindow: PProgramInfoWindow = nil;
       GDBWindow        : PGDBWindow = nil;
       UserScreenWindow : PScreenWindow = nil;
-      HelpFiles        : FPViews.PUnsortedStringCollection = nil;
+      HelpFiles        : WUtils.PUnsortedStringCollection = nil;
       ShowStatusOnError: boolean = true;
       StartupDir       : string = '.'+DirSep;
       INIPath          : string = ININame;
@@ -53,6 +54,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       AltMouseAction   : integer = acBrowseSymbol;
       StartupOptions   : longint = 0;
       LastExitCode     : integer = 0;
+      ASCIIChart       : PFPASCIIChart = nil;
 
       ActionCommands   : array[acFirstAction..acLastAction] of word =
         (cmHelpTopicSearch,cmGotoCursor,cmToggleBreakpoint,
@@ -67,7 +69,24 @@ implementation
 END.
 {
   $Log$
-  Revision 1.9  1999-02-19 18:43:48  peter
+  Revision 1.10  1999-03-01 15:42:07  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.9  1999/02/19 18:43:48  peter
     + open dialog supports mask list
 
   Revision 1.8  1999/02/11 13:10:04  pierre

@@ -17,8 +17,10 @@ unit FPDebug;
 interface
 
 uses
-  Views,FPViews,
-  Objects,GDBCon,GDBInt;
+  Objects,Views,
+  GDBCon,GDBInt,
+  WViews,
+  FPViews;
 
 type
   PDebugController=^TDebugController;
@@ -93,7 +95,7 @@ const
        = ( 'enabled','disabled','invalid' );
 
 var
-  Debugger : PDebugController;
+  Debugger             : PDebugController;
   BreakpointCollection : PBreakpointCollection;
 
 procedure InitDebugger;
@@ -128,8 +130,7 @@ begin
 end;
 
 procedure TDebugController.InsertBreakpoints;
-
-  procedure DoInsert(PB : PBreakpoint);{$ifndef FPC}far;{$endif}
+  procedure DoInsert(PB : PBreakpoint);
   begin
     PB^.Insert;
   end;
@@ -140,18 +141,16 @@ end;
 
 
 procedure TDebugController.RemoveBreakpoints;
-
-  procedure DoDelete(PB : PBreakpoint);{$ifndef FPC}far;{$endif}
+  procedure DoDelete(PB : PBreakpoint);
     begin
       PB^.Remove;
     end;
-
 begin
    BreakpointCollection^.ForEach(@DoDelete);
 end;
 
 procedure TDebugController.ResetBreakpointsValues;
-  procedure DoResetVal(PB : PBreakpoint);{$ifndef FPC}far;{$endif}
+  procedure DoResetVal(PB : PBreakpoint);
     begin
       PB^.ResetValues;
     end;
@@ -547,7 +546,7 @@ end;
 
 procedure TBreakpointCollection.ShowBreakpoints(W : PSourceWindow);
 
-  procedure SetInSource(P : PBreakpoint);{$ifndef FPC}far;{$endif}
+  procedure SetInSource(P : PBreakpoint);
   begin
     If assigned(P^.FileName) and (P^.FileName^=W^.Editor^.FileName) then
       W^.Editor^.SetLineBreakState(P^.Line,P^.state=bs_enabled);
@@ -559,7 +558,7 @@ end;
 
 function TBreakpointCollection.GetType(typ : BreakpointType;Const s : String) : PBreakpoint;
 
-  function IsThis(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
+  function IsThis(P : PBreakpoint) : boolean;
   begin
     IsThis:=(P^.typ=typ) and (P^.Name^=S);
   end;
@@ -572,7 +571,7 @@ function TBreakpointCollection.ToggleFileLine(Const FileName: String;LineNr : Lo
 
 var PB : PBreakpoint;
 
-  function IsThere(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
+  function IsThere(P : PBreakpoint) : boolean;
   begin
     IsThere:=(P^.typ=bt_file_line) and (P^.FileName^=FileName) and (P^.Line=LineNr);
   end;
@@ -679,7 +678,24 @@ end.
 
 {
   $Log$
-  Revision 1.15  1999-02-20 15:18:29  peter
+  Revision 1.16  1999-03-01 15:41:52  peter
+    + Added dummy entries for functions not yet implemented
+    * MenuBar didn't update itself automatically on command-set changes
+    * Fixed Debugging/Profiling options dialog
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * efBackSpaceUnindents works correctly
+    + 'Messages' window implemented
+    + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
+    + Added TP message-filter support (for ex. you can call GREP thru
+      GREP2MSG and view the result in the messages window - just like in TP)
+    * A 'var' was missing from the param-list of THelpFacility.TopicSearch,
+      so topic search didn't work...
+    * In FPHELP.PAS there were still context-variables defined as word instead
+      of THelpCtx
+    * StdStatusKeys() was missing from the statusdef for help windows
+    + Topic-title for index-table can be specified when adding a HTML-files
+
+  Revision 1.15  1999/02/20 15:18:29  peter
     + ctrl-c capture with confirm dialog
     + ascii table in the tools menu
     + heapviewer
