@@ -5,7 +5,7 @@
 [targets]
 # For linux zlib is used for others paszlib is used, can't include both
 # because of conflicting units
-dirs=ibase mysql uncgi gdbint api fv
+dirs=fcl ibase mysql uncgi gdbint api fv
 dirs_linux=gtk opengl utmp inet postgres ncurses x11 forms svgalib ggi zlib
 dirs_win32=gtk opengl paszlib
 dirs_go32v2=paszlib
