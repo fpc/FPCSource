@@ -14,16 +14,24 @@
  **********************************************************************}
 
 Const
+
+ { For getting/setting priority }
+  Prio_Process = 0;
+  Prio_PGrp    = 1;
+  Prio_User    = 2;
+
+
   { Things for LSEEK call }
   Seek_set = 0;
   Seek_Cur = 1;
   Seek_End = 2;
+
   { Things for OPEN call - after linux/fcntl.h }
   Open_Accmode   = 3;
   Open_RdOnly    = 0;
   Open_WrOnly    = 1;
   Open_RdWr      = 2;
-  Open_Creat     = 1 shl 6;
+  Open_Creat     = 1 shl 6;		// %100 etc
   Open_Excl      = 2 shl 6;
   Open_NoCtty    = 4 shl 6;
   Open_Trunc     = 1 shl 9;
@@ -35,12 +43,14 @@ Const
   Open_LargeFile = 1 shl 15;
   Open_Directory = 2 shl 15;
   Open_NoFollow  = 4 shl 15;
+
   { The waitpid uses the following options:}
   Wait_NoHang   = 1;
   Wait_UnTraced = 2;
   Wait_Any      = -1;
   Wait_MyPGRP   = 0;
   Wait_Clone    = $80000000;
+
   { Constants to check stat.mode }
   STAT_IFMT   = $f000; {00170000}
   STAT_IFSOCK = $c000; {0140000}
@@ -90,7 +100,10 @@ Const
   IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
 {
   $Log$
-  Revision 1.7  2003-11-17 11:28:08  marco
+  Revision 1.8  2003-11-19 10:56:15  marco
+   * some constants moved from System
+
+  Revision 1.7  2003/11/17 11:28:08  marco
    * Clone moved to linux, + few small unit unix changes
 
   Revision 1.6  2002/09/07 16:01:19  peter
