@@ -965,7 +965,9 @@ begin
         Add('ifeq ($(FPCDIR),wrong)');
         Add('override FPCDIR='+userini.dirfpc);
         Add('ifeq ($(wildcard $(FPCDIR)/rtl),)');
+        Add('ifeq ($(wildcard $(FPCDIR)/units),)');
         Add('override FPCDIR=wrong');
+        Add('endif');
         Add('endif');
         Add('endif');
         Add('');
@@ -1298,7 +1300,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2000-01-16 22:26:47  peter
+  Revision 1.28  2000-01-26 21:16:26  peter
+    * SMARTLINK=1 split into CREATESMART=1 and LINKSMART=1
+    * FPCDIR checks enhanced
+
+  Revision 1.27  2000/01/16 22:26:47  peter
     * use environment variable again for win32, the file writing gives to
       much trouble
 
