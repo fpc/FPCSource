@@ -31,6 +31,17 @@ unit objpas;
        { Ansistring are the default }
        PString = PAnsiString;
 
+       { array types }
+       IntegerArray  = array[0..$effffff] of Integer;
+       TIntegerArray = IntegerArray;
+       PIntegerArray = ^IntegerArray;
+       PointerArray  = array [0..512*1024*1024-2] of Pointer;
+       TPointerArray = PointerArray;
+       PPointerArray = ^PointerArray;
+{$ifdef HASINTF}
+       TBoundArray = array of integer;
+{$endif HASINTF}
+
 {****************************************************************************
                              Compatibility routines.
 ****************************************************************************}
@@ -369,7 +380,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2002-01-06 21:59:13  peter
+  Revision 1.10  2002-01-25 17:41:25  peter
+    * delphi compatible array types
+
+  Revision 1.9  2002/01/06 21:59:13  peter
     * regenerated
 
   Revision 1.8  2001/10/22 21:19:33  peter
