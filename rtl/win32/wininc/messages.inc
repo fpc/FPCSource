@@ -1156,6 +1156,33 @@
      WM_XBUTTONDBLCLK = 525;
 
 Type
+{$ifdef MESSAGESUNIT}
+
+    MSG 		= Windows.MSG;
+    TMessage 		= Windows.TMessage;
+    TWMSize 		= Windows.TWMSize;
+    TWMNoParams 	= Windows.TWMNoParams;
+    TWMScroll 		= Windows.TWMScroll;
+    TWMGetText 		= Windows.TWMGetText;
+    TWMKillFocus 	= Windows.TWMKillFocus;
+    TWMSetCursor 	= Windows.TWMSetCursor;
+    TWMSetFocus 	= Windows.TWMSetFocus;
+    TWMSetFont 		= Windows.TWMSetFont;
+    TWMShowWindow 	= Windows.TWMShowWindow;
+    TWMEraseBkgnd 	= Windows.TWMEraseBkgnd;
+    LPMSG 		= Windows.MSG;
+    tagMSG 		= Windows.tagMSG;
+    TMSG 		= Windows.TMSG;
+    PMSG 		= Windows.PMSG;
+    PMessage 		= Windows.PMessage;
+    TWMGetDlgCode 	= TWMNoParams;
+    TWMFontChange 	= TWMNoParams;
+    TWMGetFont 		= TWMNoParams;
+    TWMHScroll 		= TWMScroll;
+    TWMVScroll 		= TWMScroll;
+    TWMGetTextLength 	= TWMNoParams;
+
+{$else}
 
      MSG = record
           hwnd : HWND;
@@ -1273,11 +1300,17 @@ Type
       Result: Longint;
     end;
 
+{$endif messagesunit}
+
 {$endif read_interface}
 
 {
   $Log$
-  Revision 1.11  2003-12-06 15:56:35  marco
+  Revision 1.12  2004-08-22 11:12:24  marco
+   * including in both messages and windows caused problems (expected
+  	windows.msg, got message.msg and vice versa. Solved by aliasing
+
+  Revision 1.11  2003/12/06 15:56:35  marco
    * typo fix
 
   Revision 1.10  2003/12/06 15:53:21  marco
