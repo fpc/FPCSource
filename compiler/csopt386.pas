@@ -445,9 +445,21 @@ begin
 end;
 
 Procedure RestoreRegContentsTo(reg: TRegister; const c: TContent; p: pai);
-var hp: pai;
+var
+{$ifdef replaceregdebug}
+    hp: pai;
+{$endif replaceregdebug}
     tmpState: byte;
 begin
+{$ifdef replaceregdebug}
+  hp := new(pai_asm_comment,init(strpnew(
+          'restored '+att_reg2str[reg]+' with data from here...')));
+  hp^.next := p;
+  hp^.previous := p^.previous;
+  p^.previous := hp;
+  if assigned(hp^.previous) then
+    hp^.previous^.next := hp;
+{$endif replaceregdebug}
   tmpState := PPaiProp(p^.optInfo)^.Regs[reg].wState;
   PPaiProp(p^.optInfo)^.Regs[reg] := c;
   while getNextInstruction(p,p) and
@@ -618,23 +630,29 @@ function ReplaceReg(orgReg, newReg: TRegister; p: pai;
 { which should hold the contents of newReg before the current sequence   }
 { started                                                                }
 var endP, hp: Pai;
-    sequenceEnd, tmpResult, newRegModified, orgRegRead, orgRegModified: Boolean;
+    sequenceEnd, tmpResult, newRegModified, orgRegRead: Boolean;
 begin
-  ReplaceReg := False;
+  ReplaceReg := false;
   tmpResult := true;
   sequenceEnd := false;
   newRegModified := false;
   orgRegRead := false;
   endP := pai(p^.previous);
-  while tmpResult and not sequenceEnd Do
+  { skip over the instructions that will be removed }
+  while getNextInstruction(endP,hp) and
+        assigned(hp) and
+        PPaiProp(hp^.optInfo)^.canBeRemoved do
+    endP := hp;
+  while tmpResult and not sequenceEnd do
     begin
       tmpResult :=
         getNextInstruction(endP,endP);
-      If tmpResult then
+      If tmpResult and
+{ don't take into account instructions that will be removed }
+         Not (PPaiProp(hp^.optInfo)^.canBeRemoved) then
         begin
           sequenceEnd :=
             RegLoadedWithNewValue(newReg,paicpu(endP)) or
-{             FindRegDealloc(newReg,endP) or}
             (GetNextInstruction(endp,hp) and
              FindRegDealloc(newReg,hp));
           newRegModified :=
@@ -652,6 +670,11 @@ begin
             not RegModifiedByInstruction(orgReg,endP);
         end;
     end;
+  sequenceEnd := sequenceEnd and
+     not(newRegModified and
+         (orgReg in PPaiProp(endP^.optInfo)^.usedRegs) and
+         not(RegLoadedWithNewValue(orgReg,paicpu(endP))));
+
   if SequenceEnd then
     begin
 {$ifdef replaceregdebug}
@@ -677,17 +700,29 @@ begin
       hp := p;
       while hp <> endP do
         begin
-          if hp^.typ = ait_instruction then
+          if not(PPaiProp(hp^.optInfo)^.canBeRemoved) and
+             (hp^.typ = ait_instruction) then
             DoReplaceReg(orgReg,newReg,paicpu(hp));
           GetNextInstruction(hp,hp)
         end;
       if assigned(endp) and (endp^.typ = ait_instruction) then
         DoReplaceReadReg(orgReg,newReg,paicpu(endP));
-      if (p <> endp) then
-        if not RegModifiedByInstruction(newReg,endP) then
-          RestoreRegContentsTo(newReg, c ,p)
-        else
-          ClearRegContentsFrom(orgReg,p);
+{ the replacing stops either at the moment that                             }
+{  a) the newreg gets loaded with a new value (one not depending on the     }
+{     current value of newreg)                                              }
+{  b) newreg is completely replaced in this sequence and it's current value }
+{     isn't used anymore                                                    }
+{ In case b, the newreg was completely replaced by oldreg, so it's contents }
+{ are unchanged compared the start of this sequence, so restore them        }
+      if (p <> endp) or
+         not RegModifiedByInstruction(newReg,endP) then
+        RestoreRegContentsTo(newReg, c ,p);
+{ In both case a and b, it is possible that the new register was modified   }
+{ (e.g. an add/sub), so if it was replaced by oldreg in that instruction,   }
+{ oldreg's contents have been changed. To take this into account, we simply }
+{ set the contents of orgreg to "unknown" after this sequence               }
+      if newRegModified then
+        ClearRegContentsFrom(orgReg,p);
     end
 {$ifdef replaceregdebug}
      else
@@ -831,14 +866,6 @@ Begin
                                                  InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp3);
 {$ifdef replacereg}
                                                end
-{$ifdef replaceregdebug}
-                                                else
-                                                  begin
-                                                    hp3 := new(pai_asm_comment,init(strpnew(
-                                                               'restored '+att_reg2str[regCounter]+' with data from here...')));
-                                                    insertllitem(asml,hp4,hp4^.next,hp3);
-                                                  end;
-{$endif replaceregdebug}
 {$endif replacereg}
                                            End
                                          Else
@@ -1027,7 +1054,11 @@ End.
 
 {
  $Log$
- Revision 1.32  1999-11-14 11:26:53  jonas
+ Revision 1.33  1999-11-20 11:37:03  jonas
+   * make cycle works with -dreplacereg (register renaming)! I have not
+     tested it yet together with -darithopt, but I don't expect problems
+
+ Revision 1.32  1999/11/14 11:26:53  jonas
    + basic register renaming (not yet working completely, between
      -dreplacereg/-dreplaceregdebug)
 
