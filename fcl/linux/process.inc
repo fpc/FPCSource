@@ -3,7 +3,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt
 
-    Linux specific part of pipe stream.
+    Linux specific part of TProcess.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -106,7 +106,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-02-15 21:57:51  sg
+  Revision 1.5  2000-02-15 22:03:38  sg
+  * Inserted wrong copyright notice ;)  Fixed.
+
+  Revision 1.4  2000/02/15 21:57:51  sg
   * Added copyright notice and CVS log tags where necessary
 
 }
