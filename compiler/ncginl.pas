@@ -57,7 +57,7 @@ implementation
       symconst,symdef,defutil,symsym,
       aasmbase,aasmtai,aasmcpu,
       cginfo,cgbase,pass_1,pass_2,
-      cpubase,paramgr,
+      cpuinfo,cpubase,paramgr,
       nbas,ncon,ncal,ncnv,nld,
       tgobj,ncgutil,cgobj,rgobj,rgcpu
 {$ifndef cpu64bit}
@@ -420,7 +420,7 @@ implementation
                   addvalue,tcallparanode(left).left.location)
               else
                cg.a_op_const_loc(exprasmlist,addsubop[inlinenumber],
-                  addvalue,tcallparanode(left).left.location);
+                  aword(addvalue),tcallparanode(left).left.location);
             end
            else
              begin
@@ -682,7 +682,11 @@ end.
 
 {
   $Log$
-  Revision 1.29  2003-05-01 12:27:08  jonas
+  Revision 1.30  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.29  2003/05/01 12:27:08  jonas
     * fixed include/exclude for normalsets
 
   Revision 1.28  2003/04/27 11:21:33  peter

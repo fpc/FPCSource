@@ -40,10 +40,7 @@ interface
        end;
 
        tcgcallnode = class(tcallnode)
-       private
-          function  push_self_and_vmt(needvmtreg:boolean):tregister;
        protected
-//          funcretref : treference;
           refcountedtemp : treference;
           procedure handle_return_value(inlined:boolean);
           {# This routine is used to push the current frame pointer
@@ -148,6 +145,45 @@ implementation
              else
                push_value_para(exprasmlist,left,calloption,para_offset,para_alignment,paraitem.paraloc);
            end
+         { hidden parameters }
+         else if paraitem.is_hidden then
+           begin
+             { don't push a node that already generated a pointer type
+               by address for implicit hidden parameters }
+             if (vo_is_funcret in tvarsym(paraitem.parasym).varoptions) or
+                (not(left.resulttype.def.deftype in [pointerdef,classrefdef]) and
+                 paramanager.push_addr_param(paraitem.paratype.def,calloption)) then
+               begin
+                  if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+                    internalerror(200305071);
+
+                  inc(pushedparasize,POINTER_SIZE);
+                  if calloption=pocall_inline then
+                    begin
+                    {$ifdef newra}
+                       tmpreg:=rg.getaddressregister(exprasmlist);
+                    {$else}
+                       tmpreg:=cg.get_scratch_reg_address(exprasmlist);
+                    {$endif}
+                       cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
+                       reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
+                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
+                    {$ifdef newra}
+                       rg.ungetregisterint(exprasmlist,tmpreg);
+                    {$else}
+                       cg.free_scratch_reg(exprasmlist,tmpreg);
+                    {$endif}
+                    end
+                  else
+                    cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.paraloc);
+                  location_release(exprasmlist,left.location);
+               end
+             else
+               begin
+                  push_value_para(exprasmlist,left,calloption,
+                    para_offset,para_alignment,paraitem.paraloc);
+               end;
+           end
          { filter array of const c styled args }
          else if is_array_of_const(left.resulttype.def) and (nf_cargs in left.flags) then
            begin
@@ -210,7 +246,7 @@ implementation
                  { passing self to a var parameter is allowed in
                    TP and delphi }
                  if not((left.location.loc=LOC_CREFERENCE) and
-                        (left.nodetype=selfn)) then
+                        is_self_node(left)) then
                   internalerror(200106041);
                end;
               if (paraitem.paratyp=vs_out) and
@@ -241,16 +277,13 @@ implementation
            end
          else
            begin
-              { open array must always push the address, this is needed to
-                also push addr of small open arrays and with cdecl functions (PFV) }
-              if (
-                  assigned(paraitem.paratype.def) and
-                  (is_open_array(paraitem.paratype.def) or
-                   is_array_of_const(paraitem.paratype.def))
-                 ) or
-                 (
-                  paramanager.push_addr_param(resulttype.def,calloption)
-                 ) then
+              { don't push a node that already generated a pointer type
+                by address for implicit hidden parameters }
+              if (not(
+                      paraitem.is_hidden and
+                      (left.resulttype.def.deftype in [pointerdef,classrefdef])
+                     ) and
+                  paramanager.push_addr_param(paraitem.paratype.def,calloption)) then
                 begin
                    if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                     begin
@@ -339,328 +372,6 @@ implementation
     procedure tcgcallnode.pop_parasize(pop_size:longint);
       begin
       end;
-
-
-    function tcgcallnode.push_self_and_vmt(needvmtreg:boolean):tregister;
-      var
-         href : treference;
-         vmtloc,selfloc : tlocation;
-         self_is_vmt,
-         vmtrefaddr,
-         selfrefaddr : boolean;
-
-         procedure selfloc_to_register;
-         var
-           hregister : tregister;
-         begin
-           case selfloc.loc of
-             LOC_REGISTER :
-               hregister:=selfloc.register;
-             LOC_CREFERENCE,
-             LOC_REFERENCE :
-               begin
-                 hregister:=rg.getaddressregister(exprasmlist);
-                 if selfrefaddr then
-                   begin
-                     cg.a_loadaddr_ref_reg(exprasmlist,selfloc.reference,hregister);
-                     selfrefaddr:=false;
-                   end
-                 else
-                   cg.a_load_ref_reg(exprasmlist,OS_ADDR,selfloc.reference,hregister);
-                 reference_release(exprasmlist,selfloc.reference);
-               end;
-             else
-               internalerror(200303269);
-           end;
-           location_reset(selfloc,LOC_REGISTER,OS_ADDR);
-           selfloc.register:=hregister;
-         end;
-
-      begin
-        result.enum:=R_INTREGISTER;
-        result.number:=NR_NO;
-        location_reset(vmtloc,LOC_CONSTANT,OS_ADDR);
-        location_reset(selfloc,LOC_CONSTANT,OS_ADDR);
-        vmtrefaddr:=false;
-        selfrefaddr:=false;
-        self_is_vmt:=false;
-
-        { generate fake methodpointer node for withsymtable }
-        if (symtableproc.symtabletype=withsymtable) then
-         begin
-           methodpointer:=cnothingnode.create;
-           methodpointer.resulttype:=twithnode(twithsymtable(symtableproc).withnode).left.resulttype;
-         end;
-
-        if assigned(methodpointer) then
-          begin
-            case methodpointer.nodetype of
-              typen:
-                begin
-                   if (sp_static in symtableprocentry.symoptions) then
-                     begin
-                        self_is_vmt:=true;
-                        if (oo_has_vmt in tobjectdef(methodpointer.resulttype.def).objectoptions) then
-                          begin
-                            location_reset(vmtloc,LOC_REFERENCE,OS_NO);
-                            reference_reset_symbol(vmtloc.reference,objectlibrary.newasmsymboldata(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
-                            vmtrefaddr:=true;
-                          end;
-                     end
-                   else
-                     begin
-                       { normal member call, load self. Not for classes
-                         when we call the constructor }
-                       if not(
-                              is_class(methodpointer.resulttype.def) and
-                              (procdefinition.proctypeoption=potype_constructor) and
-                              (current_procdef.proctypeoption<>potype_constructor)
-                             ) then
-                        begin
-                          location_reset(selfloc,LOC_REGISTER,OS_ADDR);
-                          selfloc.register:=cg.g_load_self(exprasmlist);
-                        end;
-                     end;
-
-                   if (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) then
-                    begin
-                      if is_object(methodpointer.resulttype.def) then
-                       begin
-                         { reset self when calling constructor from destructor }
-                         if (procdefinition.proctypeoption=potype_constructor) and
-                            assigned(current_procdef) and
-                            (current_procdef.proctypeoption=potype_destructor) then
-                          begin
-                            location_release(exprasmlist,selfloc);
-                            location_reset(selfloc,LOC_CONSTANT,OS_ADDR);
-                          end;
-                       end;
-                    end;
-                end;
-              hnewn:
-                begin
-                   { constructor with extended syntax called from new }
-                   { vmt }
-                   location_reset(vmtloc,LOC_REFERENCE,OS_ADDR);
-                   reference_reset_symbol(vmtloc.reference,objectlibrary.newasmsymboldata(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
-                   vmtrefaddr:=true;
-                end;
-              hdisposen:
-                begin
-                   { destructor with extended syntax called from dispose }
-                   { hdisposen always deliver LOC_REFERENCE }
-                   secondpass(methodpointer);
-                   { vmt }
-                   location_reset(vmtloc,LOC_REFERENCE,OS_ADDR);
-                   reference_reset_symbol(vmtloc.reference,objectlibrary.newasmsymboldata(tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
-                   vmtrefaddr:=true;
-                   { self, load in register first when it requires a virtual call }
-                   location_reset(selfloc,LOC_REFERENCE,OS_ADDR);
-                   selfloc.reference:=methodpointer.location.reference;
-                   selfrefaddr:=true;
-                end;
-              else
-                begin
-                   { call to an instance member }
-                   if (symtableproc.symtabletype<>withsymtable) then
-                     begin
-                        secondpass(methodpointer);
-                        case methodpointer.location.loc of
-                           LOC_CREGISTER,
-                           LOC_REGISTER:
-                             begin
-                               location_reset(selfloc,LOC_REGISTER,OS_ADDR);
-                               selfloc.register:=methodpointer.location.register;
-                             end;
-                           LOC_CREFERENCE,
-                           LOC_REFERENCE :
-                             begin
-                               location_reset(selfloc,LOC_REFERENCE,OS_ADDR);
-                               selfloc.reference:=methodpointer.location.reference;
-                               if (methodpointer.resulttype.def.deftype<>classrefdef) and
-                                  not(is_class_or_interface(methodpointer.resulttype.def)) then
-                                 selfrefaddr:=true;
-                             end;
-                           else
-                             internalerror(200303212);
-                        end;
-                     end
-                   else
-                     begin
-                       location_reset(selfloc,LOC_REFERENCE,OS_ADDR);
-                       selfloc.reference:=twithnode(twithsymtable(symtableproc).withnode).withreference;
-                       if (nf_islocal in twithnode(twithsymtable(symtableproc).withnode).flags) and
-                          (twithsymtable(symtableproc).direct_with) and
-                          not(is_class_or_interface(twithnode(twithsymtable(symtableproc).withnode).left.resulttype.def)) then
-                         selfrefaddr:=true;
-                     end;
-
-                   if (po_staticmethod in procdefinition.procoptions) or
-                      (po_classmethod in procdefinition.procoptions) then
-                     begin
-                       self_is_vmt:=true;
-                       { classref are already loaded with VMT }
-                       if (methodpointer.resulttype.def.deftype=classrefdef) then
-                        location_copy(vmtloc,selfloc)
-                       else
-                        begin
-                          if (oo_has_vmt in tprocdef(procdefinition)._class.objectoptions) then
-                            begin
-                              { load VMT from passed self }
-                              selfloc_to_register;
-                              cg.g_maybe_testself(exprasmlist,selfloc.register);
-                              location_copy(vmtloc,selfloc);
-                              reference_reset_base(href,vmtloc.register,tprocdef(procdefinition)._class.vmt_offset);
-                              cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,vmtloc.register);
-                            end;
-                        end;
-                       { reset self }
-                       location_reset(selfloc,LOC_CONSTANT,OS_ADDR);
-                     end;
-
-                   if (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) then
-                    begin
-                      { constructor call via classreference => allocate memory }
-                      if (methodpointer.resulttype.def.deftype=classrefdef) then
-                        begin
-                          if (procdefinition.proctypeoption=potype_constructor) and
-                             is_class(tclassrefdef(methodpointer.resulttype.def).pointertype.def) then
-                           begin
-                             self_is_vmt:=true;
-                             { vmt load from provided methodpointer that
-                               was already loaded in selfloc }
-                             location_copy(vmtloc,selfloc);
-                             { reset self }
-                             location_reset(selfloc,LOC_CONSTANT,OS_ADDR);
-                           end;
-                       end
-                      else
-                      { class }
-                       if is_class(methodpointer.resulttype.def) then
-                        begin
-                          { destructor: release instance, flag(vmt)=1
-                            constructor: direct call, do nothing, leave vmt=0 }
-                          if (procdefinition.proctypeoption=potype_destructor) then
-                           begin
-                             { flag 1 for destructor: remove data }
-                             location_reset(vmtloc,LOC_CONSTANT,OS_ADDR);
-                             vmtloc.value:=1;
-                           end;
-                        end
-                      else
-                      { object }
-                       begin
-                         { destructor: direct call, no dispose, vmt=0
-                           constructor: initialize object, load vmt }
-                         if (procdefinition.proctypeoption=potype_constructor) then
-                          begin
-                            { vmt }
-                            location_reset(vmtloc,LOC_REFERENCE,OS_ADDR);
-                            reference_reset_symbol(vmtloc.reference,objectlibrary.newasmsymboldata(
-                               tobjectdef(methodpointer.resulttype.def).vmt_mangledname),0);
-                            vmtrefaddr:=true;
-                          end;
-                       end;
-                    end;
-                end;
-            end;
-          end
-        else
-          { No methodpointer }
-          begin
-             if (po_staticmethod in procdefinition.procoptions) or
-                (po_classmethod in procdefinition.procoptions) then
-              begin
-                self_is_vmt:=true;
-                { Load VMT from self? }
-                if (
-                    (po_classmethod in procdefinition.procoptions) and
-                    not(assigned(current_procdef) and
-                        (po_classmethod in current_procdef.procoptions))
-                   ) or
-                   (
-                    (po_staticmethod in procdefinition.procoptions) and
-                     not(assigned(current_procdef) and
-                         (po_staticmethod in current_procdef.procoptions))
-                   ) then
-                  begin
-                    if (oo_has_vmt in tprocdef(procdefinition)._class.objectoptions) then
-                     begin
-                       { load vmt from self passed to the current method }
-                       location_reset(vmtloc,LOC_REGISTER,OS_ADDR);
-                       vmtloc.register:=cg.g_load_self(exprasmlist);
-                       cg.g_maybe_testself(exprasmlist,vmtloc.register);
-                       reference_reset_base(href,vmtloc.register,tprocdef(procdefinition)._class.vmt_offset);
-                       cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,vmtloc.register);
-                     end;
-                  end
-                 else
-                  begin
-                    { self is already VMT }
-                    location_reset(vmtloc,LOC_REGISTER,OS_ADDR);
-                    vmtloc.register:=cg.g_load_self(exprasmlist);
-                  end;
-               end
-             else
-               begin
-                  { member call, load self }
-                  location_reset(selfloc,LOC_REGISTER,OS_ADDR);
-                  selfloc.register:=cg.g_load_self(exprasmlist);
-               end;
-          end;
-
-        { Do we need to push the VMT as self for
-          class methods and static methods? }
-        if self_is_vmt then
-          begin
-            location_release(exprasmlist,selfloc);
-            location_copy(selfloc,vmtloc);
-            selfrefaddr:=vmtrefaddr;
-          end;
-
-        { when we need the vmt in a register then we already
-          load self in a register so it can generate optimized code }
-        if needvmtreg then
-          selfloc_to_register;
-
-        { constructor/destructor need vmt }
-        if (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) then
-         begin
-           if vmtrefaddr then
-             cg.a_paramaddr_ref(exprasmlist,vmtloc.reference,paramanager.getintparaloc(2))
-           else
-             cg.a_param_loc(exprasmlist,vmtloc,paramanager.getintparaloc(2));
-         end;
-        if not self_is_vmt then
-          location_release(exprasmlist,vmtloc);
-
-        { push self }
-        if selfrefaddr then
-          cg.a_paramaddr_ref(exprasmlist,selfloc.reference,paramanager.getintparaloc(1))
-        else
-          cg.a_param_loc(exprasmlist,selfloc,paramanager.getintparaloc(1));
-
-        if needvmtreg then
-          begin
-            { self should already be loaded in a register }
-            if selfloc.register.number=NR_NO then
-              internalerror(2003032611);
-
-            { load vmt from self, this is already done
-              for static/class methods }
-            if not self_is_vmt then
-             begin
-               cg.g_maybe_testself(exprasmlist,selfloc.register);
-               { this is one point where we need vmt_offset (PM) }
-               reference_reset_base(href,selfloc.register,tprocdef(procdefinition)._class.vmt_offset);
-               cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,selfloc.register);
-             end;
-
-            result:=selfloc.register;
-          end
-        else
-          location_release(exprasmlist,selfloc);
-     end;
 
 
     procedure tcgcallnode.push_framepointer;
@@ -866,7 +577,6 @@ implementation
          href : treference;
          hp : tnode;
          pp : tcallparanode;
-         virtual_vmt_call,
          inlined : boolean;
          inlinecode : tprocinlinenode;
          store_parast_fixup,
@@ -875,8 +585,8 @@ implementation
          pop_size : longint;
          returnref,
          pararef : treference;
-         accreg,
-         vmtreg : tregister;
+         vmtreg,
+         accreg : tregister;
          oldaktcallnode : tcallnode;
       begin
          iolabel:=nil;
@@ -1022,18 +732,6 @@ implementation
          if inlined or
             (right=nil) then
            begin
-              { Virtual function call through VMT? }
-              vmtreg.enum:=R_INTREGISTER;
-              vmtreg.number:=NR_NO;
-              virtual_vmt_call:=(po_virtualmethod in procdefinition.procoptions) and
-                                not(assigned(methodpointer) and
-                                    (methodpointer.nodetype=typen));
-
-              { push self/vmt for methods }
-              if assigned(symtableproc) and
-                 (symtableproc.symtabletype in [withsymtable,objectsymtable]) then
-                vmtreg:=push_self_and_vmt(virtual_vmt_call);
-
               { push base pointer ?}
               { never when inlining, since if necessary, the base pointer }
               { can/will be gottten from the current procedure's symtable }
@@ -1047,8 +745,13 @@ implementation
               rg.saveintregvars(exprasmlist,regs_to_push_int);
               rg.saveotherregvars(exprasmlist,regs_to_push_other);
 
-              if virtual_vmt_call then
+              if (po_virtualmethod in procdefinition.procoptions) and
+                 assigned(methodpointer) then
                 begin
+                   secondpass(methodpointer);
+                   location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
+                   vmtreg:=methodpointer.location.register;
+
                    { virtual methods require an index }
                    if tprocdef(procdefinition).extnumber=-1 then
                      internalerror(200304021);
@@ -1067,7 +770,7 @@ implementation
                    cg.a_call_ref(exprasmlist,href);
 
                    { release self }
-                   rg.ungetregisterint(exprasmlist,vmtreg);
+                   rg.ungetaddressregister(exprasmlist,vmtreg);
                 end
               else
                 begin
@@ -1133,6 +836,11 @@ implementation
           begin
             { the old pop_size was already included in pushedparasize }
             pop_size:=pushedparasize;
+            { for Cdecl functions we don't need to pop the funcret when it
+              was pushed by para }
+            if (procdefinition.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+               paramanager.ret_in_param(procdefinition.rettype.def,procdefinition.proccalloption) then
+              dec(pop_size,POINTER_SIZE);
           end;
 
          { Remove parameters/alignment from the stack }
@@ -1437,7 +1145,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2003-05-05 14:53:16  peter
+  Revision 1.59  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.58  2003/05/05 14:53:16  peter
     * vs_hidden replaced by is_hidden boolean
 
   Revision 1.57  2003/04/30 20:53:32  florian

@@ -230,7 +230,9 @@ implementation
            oldregisterdef:=registerdef;
            registerdef:=false;
            readprocdef:=tprocvardef.create(normal_function_level);
+           include(readprocdef.procoptions,po_methodpointer);
            writeprocdef:=tprocvardef.create(normal_function_level);
+           include(writeprocdef.procoptions,po_methodpointer);
            registerdef:=oldregisterdef;
 
            if token<>_ID then
@@ -278,8 +280,7 @@ implementation
                     varspez:=vs_value;
                   sc.reset;
                   repeat
-                    readvs:=tvarsym.create(orgpattern,generrortype);
-                    readvs.varspez:=varspez;
+                    readvs:=tvarsym.create(orgpattern,varspez,generrortype);
                     readprocdef.parast.insert(readvs);
                     sc.insert(readvs);
                     consume(_ID);
@@ -307,7 +308,7 @@ implementation
                    begin
                      readprocdef.concatpara(nil,tt,readvs,nil,false);
                      { also update the writeprocdef }
-                     hvs:=tvarsym.create(readvs.realname,generrortype);
+                     hvs:=tvarsym.create(readvs.realname,vs_value,generrortype);
                      writeprocdef.parast.insert(hvs);
                      writeprocdef.concatpara(nil,tt,hvs,nil,false);
                      readvs:=tvarsym(readvs.listnext);
@@ -344,10 +345,10 @@ implementation
                      p.indextype.setdef(pt.resulttype.def);
                      include(p.propoptions,ppo_indexed);
                      { concat a longint to the para templates }
-                     hvs:=tvarsym.create('$index',p.indextype);
+                     hvs:=tvarsym.create('$index',vs_value,p.indextype);
                      readprocdef.parast.insert(hvs);
                      readprocdef.concatpara(nil,p.indextype,hvs,nil,false);
-                     hvs:=tvarsym.create('$index',p.indextype);
+                     hvs:=tvarsym.create('$index',vs_value,p.indextype);
                      writeprocdef.parast.insert(hvs);
                      writeprocdef.concatpara(nil,p.indextype,hvs,nil,false);
                      pt.free;
@@ -422,7 +423,7 @@ implementation
                        { write is a procedure with an extra value parameter
                          of the of the property }
                        writeprocdef.rettype:=voidtype;
-                       hvs:=tvarsym.create('$value',p.proptype);
+                       hvs:=tvarsym.create('$value',vs_value,p.proptype);
                        writeprocdef.parast.insert(hvs);
                        writeprocdef.concatpara(nil,p.proptype,hvs,nil,false);
                        { Insert hidden parameters }
@@ -557,7 +558,7 @@ implementation
            if (cs_constructor_name in aktglobalswitches) and
               (pd.procsym.name<>'DONE') then
              Message(parser_e_destructorname_must_be_done);
-           if not(pd.Para.empty) and
+           if not(pd.maxparacount=0) and
               (m_fpc in aktmodeswitches) then
              Message(parser_e_no_paras_for_destructor);
            consume(_SEMICOLON);
@@ -1145,7 +1146,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2003-05-05 14:53:16  peter
+  Revision 1.65  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.64  2003/05/05 14:53:16  peter
     * vs_hidden replaced by is_hidden boolean
 
   Revision 1.63  2003/04/27 11:21:33  peter

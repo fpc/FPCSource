@@ -74,6 +74,7 @@ implementation
         destructorname : stringid;
         sym      : tsym;
         classh   : tobjectdef;
+        callflag : tnodeflag;
         destructorpos,
         storepos : tfileposinfo;
       begin
@@ -140,20 +141,25 @@ implementation
               end
             else
               begin
-                if is_new then
-                 p2:=chnewnode.create(tpointerdef(p.resulttype.def).pointertype)
-                else
-                 p2:=chdisposenode.create(p);
+                p2:=cderefnode.create(p.getcopy);
                 do_resulttypepass(p2);
                 if is_new then
-                  do_member_read(false,sym,p2,again)
+                  callflag:=nf_new_call
+                else
+                  callflag:=nf_dispose_call;
+                if is_new then
+                  do_member_read(false,sym,p2,again,[callflag])
                 else
                   begin
                     if not(m_fpc in aktmodeswitches) then
-                      do_member_read(false,sym,p2,again)
+                      do_member_read(false,sym,p2,again,[callflag])
                     else
                       begin
                         p2:=ccallnode.create(nil,tprocsym(sym),sym.owner,p2);
+                        if is_new then
+                          include(p2.flags,nf_new_call)
+                        else
+                          include(p2.flags,nf_dispose_call);
                         { support dispose(p,done()); }
                         if try_to_consume(_LKLAMMER) then
                           begin
@@ -168,7 +174,6 @@ implementation
                   end;
 
                 { we need the real called method }
-                { rg.cleartempgen;}
                 do_resulttypepass(p2);
 
                 if p2.nodetype<>calln then
@@ -221,7 +226,7 @@ implementation
 
                   { create statements with call to getmem+initialize or
                     finalize+freemem }
-                  new_dispose_statement:=internalstatements(newstatement);
+                  new_dispose_statement:=internalstatements(newstatement,true);
 
                   if is_new then
                    begin
@@ -292,22 +297,31 @@ implementation
         if p1.nodetype<>typen then
          begin
            Message(type_e_type_id_expected);
+           consume_all_until(_RKLAMMER);
+           consume(_RKLAMMER);
            p1.destroy;
-           p1:=cerrornode.create;
-           do_resulttypepass(p1);
+           new_function:=cerrornode.create;
+           exit;
          end;
 
         if (p1.resulttype.def.deftype<>pointerdef) then
-          Message1(type_e_pointer_type_expected,p1.resulttype.def.typename)
-        else
-         if token=_RKLAMMER then
+         begin
+           Message1(type_e_pointer_type_expected,p1.resulttype.def.typename);
+           consume_all_until(_RKLAMMER);
+           consume(_RKLAMMER);
+           p1.destroy;
+           new_function:=cerrornode.create;
+           exit;
+         end;
+
+        if try_to_consume(_RKLAMMER) then
           begin
             if (tpointerdef(p1.resulttype.def).pointertype.def.deftype=objectdef) and
                (oo_has_vmt in tobjectdef(tpointerdef(p1.resulttype.def).pointertype.def).objectoptions)  then
               Message(parser_w_use_extended_syntax_for_objects);
 
             { create statements with call to getmem+initialize }
-            newblock:=internalstatements(newstatement);
+            newblock:=internalstatements(newstatement,true);
 
             { create temp for result }
             temp := ctempcreatenode.create(p1.resulttype,p1.resulttype.def.size,true);
@@ -339,40 +353,45 @@ implementation
 
             p1.destroy;
             p1:=newblock;
-            consume(_RKLAMMER);
           end
         else
           begin
-            p2:=chnewnode.create(tpointerdef(p1.resulttype.def).pointertype);
-            do_resulttypepass(p2);
             consume(_COMMA);
-            afterassignment:=false;
-            { determines the current object defintion }
-            classh:=tobjectdef(p2.resulttype.def);
-            if classh.deftype=objectdef then
+            if tpointerdef(p1.resulttype.def).pointertype.def.deftype<>objectdef then
              begin
-               { check for an abstract class }
-               if (oo_has_abstract in classh.objectoptions) then
-                Message(sym_e_no_instance_of_abstract_object);
-               { search the constructor also in the symbol tables of
-                 the parents }
-               sym:=searchsym_in_class(classh,pattern);
-               consume(_ID);
-               do_member_read(false,sym,p2,again);
-               { we need to know which procedure is called }
-               do_resulttypepass(p2);
-               if (p2.nodetype<>calln) or
-                  (assigned(tcallnode(p2).procdefinition) and
-                   (tcallnode(p2).procdefinition.proctypeoption<>potype_constructor)) then
-                Message(parser_e_expr_have_to_be_constructor_call);
-             end
-            else
-             Message(parser_e_pointer_to_class_expected);
+               Message(parser_e_pointer_to_class_expected);
+               consume_all_until(_RKLAMMER);
+               consume(_RKLAMMER);
+               p1.destroy;
+               new_function:=cerrornode.create;
+               exit;
+             end;
+            classh:=tobjectdef(tpointerdef(p1.resulttype.def).pointertype.def);
+            { check for an abstract class }
+            if (oo_has_abstract in classh.objectoptions) then
+              Message(sym_e_no_instance_of_abstract_object);
+            { use the objectdef for loading the VMT }
+            p2:=p1;
+            p1:=ctypenode.create(tpointerdef(p1.resulttype.def).pointertype);
+            do_resulttypepass(p1);
+            { search the constructor also in the symbol tables of
+              the parents }
+            afterassignment:=false;
+            sym:=searchsym_in_class(classh,pattern);
+            consume(_ID);
+            do_member_read(false,sym,p1,again,[nf_new_call]);
+            { we need to know which procedure is called }
+            do_resulttypepass(p1);
+            if not(
+                   (p1.nodetype=calln) and
+                   assigned(tcallnode(p1).procdefinition) and
+                   (tcallnode(p1).procdefinition.proctypeoption=potype_constructor)
+                  ) then
+              Message(parser_e_expr_have_to_be_constructor_call);
             { constructors return boolean, update resulttype to return
               the pointer to the object }
-            p2.resulttype:=p1.resulttype;
-            p1.destroy;
-            p1:=p2;
+            p1.resulttype:=p2.resulttype;
+            p2.free;
             consume(_RKLAMMER);
           end;
         new_function:=p1;
@@ -465,7 +484,7 @@ implementation
          begin
             { create statements with call initialize the arguments and
               call fpc_dynarr_setlength }
-            newblock:=internalstatements(newstatement);
+            newblock:=internalstatements(newstatement,true);
 
             { get temp for array of lengths }
             temp := ctempcreatenode.create(s32bittype,counter*s32bittype.def.size,true);
@@ -627,7 +646,7 @@ implementation
              end;
 
             { create statements with call }
-            copynode:=internalstatements(newstatement);
+            copynode:=internalstatements(newstatement,true);
 
             if (counter=3) then
              begin
@@ -680,7 +699,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2002-11-26 22:59:09  peter
+  Revision 1.13  2003-05-09 17:47:03  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.12  2002/04/25 20:15:40  florian
+    * block nodes within expressions shouldn't release the used registers,
+      fixed using a flag till the new rg is ready
+
+  Revision 1.11  2002/11/26 22:59:09  peter
     * fix Copy(array,x,y)
 
   Revision 1.10  2002/11/25 17:43:22  peter

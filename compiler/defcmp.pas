@@ -1058,84 +1058,102 @@ implementation
 
     function compare_paras(paralist1,paralist2 : TLinkedList; acp : compare_type;allowdefaults:boolean):tequaltype;
       var
-        def1,def2 : TParaItem;
+        currpara1,
+        currpara2 : TParaItem;
         eq,lowesteq : tequaltype;
-        hpd : tprocdef;
+        hpd      : tprocdef;
         convtype : tconverttype;
       begin
          compare_paras:=te_incompatible;
          { we need to parse the list from left-right so the
            not-default parameters are checked first }
          lowesteq:=high(tequaltype);
-         def1:=TParaItem(paralist1.first);
-         def2:=TParaItem(paralist2.first);
-         while (assigned(def1)) and (assigned(def2)) do
+         currpara1:=TParaItem(paralist1.first);
+         currpara2:=TParaItem(paralist2.first);
+         while (assigned(currpara1)) and (assigned(currpara2)) do
            begin
              eq:=te_incompatible;
 
              { Unique types must match exact }
-             if ((df_unique in def1.paratype.def.defoptions) or (df_unique in def2.paratype.def.defoptions)) and
-                (def1.paratype.def<>def2.paratype.def) then
+             if ((df_unique in currpara1.paratype.def.defoptions) or (df_unique in currpara2.paratype.def.defoptions)) and
+                (currpara1.paratype.def<>currpara2.paratype.def) then
                exit;
 
-             case acp of
-               cp_value_equal_const :
+             { Handle hidden parameters separately, because self is
+               defined as voidpointer for methodpointers }
+             if (currpara1.is_hidden or
+                 currpara2.is_hidden) then
+              begin
+                eq:=te_equal;
+                if not(vo_is_self in tvarsym(currpara1.parasym).varoptions) and
+                   not(vo_is_self in tvarsym(currpara2.parasym).varoptions) then
                  begin
-                    if (
-                        (def1.paratyp<>def2.paratyp) and
-                        ((def1.paratyp in [vs_var,vs_out]) or
-                         (def2.paratyp in [vs_var,vs_out]))
-                       ) then
-                      exit;
-                    eq:=compare_defs(def1.paratype.def,def2.paratype.def,nothingn);
+                   if (currpara1.paratyp<>currpara2.paratyp) then
+                    exit;
+                   eq:=compare_defs(currpara1.paratype.def,currpara2.paratype.def,nothingn);
                  end;
-               cp_all :
-                 begin
-                    if (def1.paratyp<>def2.paratyp) then
-                      exit;
-                    eq:=compare_defs(def1.paratype.def,def2.paratype.def,nothingn);
-                 end;
-               cp_procvar :
-                 begin
-                    if (def1.paratyp<>def2.paratyp) then
-                      exit;
-                    eq:=compare_defs_ext(def1.paratype.def,def2.paratype.def,nothingn,
-                                         false,true,convtype,hpd);
-                    if (eq>te_incompatible) and
-                       (eq<te_equal) and
-                       not(
-                           (convtype in [tc_equal,tc_int_2_int]) and
-                           (def1.paratype.def.size=def2.paratype.def.size)
+              end
+             else
+              begin
+                case acp of
+                  cp_value_equal_const :
+                    begin
+                       if (
+                           (currpara1.paratyp<>currpara2.paratyp) and
+                           ((currpara1.paratyp in [vs_var,vs_out]) or
+                            (currpara2.paratyp in [vs_var,vs_out]))
                           ) then
-                     begin
-                       eq:=te_incompatible;
-                     end;
+                         exit;
+                       eq:=compare_defs(currpara1.paratype.def,currpara2.paratype.def,nothingn);
+                    end;
+                  cp_all :
+                    begin
+                       if (currpara1.paratyp<>currpara2.paratyp) then
+                         exit;
+                       eq:=compare_defs(currpara1.paratype.def,currpara2.paratype.def,nothingn);
+                    end;
+                  cp_procvar :
+                    begin
+                       if (currpara1.paratyp<>currpara2.paratyp) then
+                         exit;
+                       eq:=compare_defs_ext(currpara1.paratype.def,currpara2.paratype.def,nothingn,
+                                            false,true,convtype,hpd);
+                       if (eq>te_incompatible) and
+                          (eq<te_equal) and
+                          not(
+                              (convtype in [tc_equal,tc_int_2_int]) and
+                              (currpara1.paratype.def.size=currpara2.paratype.def.size)
+                             ) then
+                        begin
+                          eq:=te_incompatible;
+                        end;
+                    end;
+                  else
+                    eq:=compare_defs(currpara1.paratype.def,currpara2.paratype.def,nothingn);
                  end;
-               else
-                 eq:=compare_defs(def1.paratype.def,def2.paratype.def,nothingn);
-              end;
+               end;
               { check type }
               if eq=te_incompatible then
                 exit;
               if eq<lowesteq then
                 lowesteq:=eq;
               { also check default value if both have it declared }
-              if assigned(def1.defaultvalue) and
-                 assigned(def2.defaultvalue) then
+              if assigned(currpara1.defaultvalue) and
+                 assigned(currpara2.defaultvalue) then
                begin
-                 if not equal_constsym(tconstsym(def1.defaultvalue),tconstsym(def2.defaultvalue)) then
+                 if not equal_constsym(tconstsym(currpara1.defaultvalue),tconstsym(currpara2.defaultvalue)) then
                    exit;
                end;
-              def1:=TParaItem(def1.next);
-              def2:=TParaItem(def2.next);
+              currpara1:=TParaItem(currpara1.next);
+              currpara2:=TParaItem(currpara2.next);
            end;
          { when both lists are empty then the parameters are equal. Also
            when one list is empty and the other has a parameter with default
            value assigned then the parameters are also equal }
-         if ((def1=nil) and (def2=nil)) or
+         if ((currpara1=nil) and (currpara2=nil)) or
             (allowdefaults and
-             ((assigned(def1) and assigned(def1.defaultvalue)) or
-              (assigned(def2) and assigned(def2.defaultvalue)))) then
+             ((assigned(currpara1) and assigned(currpara1.defaultvalue)) or
+              (assigned(currpara2) and assigned(currpara2.defaultvalue)))) then
            compare_paras:=lowesteq;
       end;
 
@@ -1193,7 +1211,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2003-04-23 20:16:04  peter
+  Revision 1.24  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.23  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors

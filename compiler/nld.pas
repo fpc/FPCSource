@@ -128,6 +128,8 @@ interface
 
     procedure load_procvar_from_calln(var p1:tnode);
     function load_high_value(vs:tvarsym):tnode;
+    function load_self:tnode;
+    function is_self_node(p:tnode):boolean;
 
 
 implementation
@@ -196,6 +198,28 @@ implementation
           result:=cloadnode.create(srsym,srsymtable)
         else
           CGMessage(cg_e_illegal_expression);
+      end;
+
+
+    function load_self:tnode;
+      var
+        srsym : tsym;
+        srsymtable : tsymtable;
+      begin
+        result:=nil;
+        searchsym('self',srsym,srsymtable);
+        if assigned(srsym) then
+          result:=cloadnode.create(srsym,srsymtable)
+        else
+          CGMessage(cg_e_illegal_expression);
+      end;
+
+
+    function is_self_node(p:tnode):boolean;
+      begin
+        is_self_node:=(p.nodetype=loadn) and
+                      (tloadnode(p).symtableentry.typ=varsym) and
+                      (vo_is_self in tvarsym(tloadnode(p).symtableentry).varoptions);
       end;
 
 
@@ -320,7 +344,23 @@ implementation
                 if nf_absolute in flags then
                   tvarsym(symtableentry).varstate:=vs_used
                 else
-                  resulttype:=tvarsym(symtableentry).vartype;
+                  begin
+                    { fix self type which is declared as voidpointer in the
+                      definition }
+                    if vo_is_self in tvarsym(symtableentry).varoptions then
+                      begin
+                        if (po_classmethod in tprocdef(symtableentry.owner.defowner).procoptions) or
+                           (po_staticmethod in tprocdef(symtableentry.owner.defowner).procoptions) then
+                          begin
+                            resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
+                            resulttype.setdef(tclassrefdef.create(resulttype));
+                          end
+                        else
+                          resulttype.setdef(tprocdef(symtableentry.owner.defowner)._class);
+                      end
+                    else
+                      resulttype:=tvarsym(symtableentry).vartype;
+                  end;
               end;
             typedconstsym :
                 if not(nf_absolute in flags) then
@@ -861,7 +901,7 @@ implementation
         hp        : tarrayconstructornode;
         dovariant : boolean;
         htype     : ttype;
-        orgflags  : tnodeflagset;
+        orgflags  : tnodeflags;
       begin
         dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
         result:=nil;
@@ -1127,7 +1167,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2003-04-27 11:21:33  peter
+  Revision 1.91  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.90  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

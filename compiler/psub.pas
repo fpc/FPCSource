@@ -542,9 +542,8 @@ implementation
            if copy(name,1,3)='val' then
             begin
               pd:=tprocdef(owner.defowner);
-              vs:=tvarsym.create(Copy(name,4,255),vartype);
+              vs:=tvarsym.create(Copy(name,4,255),varspez,vartype);
               vs.fileinfo:=fileinfo;
-              vs.varspez:=varspez;
               if not assigned(pd.localst) then
                 pd.insert_localst;
               pd.localst.insert(vs);
@@ -843,7 +842,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.107  2003-04-27 11:21:34  peter
+  Revision 1.108  2003-05-09 17:47:03  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.107  2003/04/27 11:21:34  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

@@ -1127,6 +1127,7 @@ implementation
           te_convert_operator :
             begin
               include(current_procinfo.flags,pi_do_call);
+              inc(overloaded_operators[_assignment].refs);
               hp:=ccallnode.create(ccallparanode.create(left,nil),
                                    overloaded_operators[_assignment],nil,nil);
               { tell explicitly which def we must use !! (PM) }
@@ -1177,7 +1178,7 @@ implementation
                            if assigned(tcallnode(left).methodpointer) then
                              tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy)
                            else
-                             tloadnode(hp).set_mp(cselfnode.create(tobjectdef(tcallnode(left).symtableprocentry.owner.defowner)));
+                             tloadnode(hp).set_mp(load_self);
                          end;
                         resulttypepass(hp);
                       end;
@@ -1214,7 +1215,7 @@ implementation
                          begin
                            { we can translate the typeconvnode to 'as' when
                              typecasting to a class or interface }
-                           hp:=casnode.create(left,cloadvmtnode.create(ctypenode.create(resulttype)));
+                           hp:=casnode.create(left,cloadvmtaddrnode.create(ctypenode.create(resulttype)));
                            left:=nil;
                            result:=hp;
                            exit;
@@ -1277,8 +1278,7 @@ implementation
                  (left.resulttype.def.deftype=procvardef) and
                  (not is_void(tprocvardef(left.resulttype.def).rettype.def)) then
                begin
-                 hp:=ccallnode.create(nil,nil,nil,nil);
-                 tcallnode(hp).set_procvar(left);
+                 hp:=ccallnode.create_procvar(nil,left);
                  resulttypepass(hp);
                  left:=hp;
                end;
@@ -2091,7 +2091,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.109  2003-04-27 11:21:33  peter
+  Revision 1.110  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.109  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

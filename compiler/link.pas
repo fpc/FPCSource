@@ -190,6 +190,8 @@ begin
      3. global libary dir
      4. exe path of the compiler }
   found:=FindFile(s,'.'+source_info.DirSep,foundfile);
+  if (not found) and (current_module.outputpath^<>'') then
+   found:=FindFile(s,current_module.outputpath^,foundfile);
   if (not found) then
    found:=current_module.locallibrarysearchpath.FindFile(s,foundfile);
   if (not found) then
@@ -654,7 +656,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.35  2003-04-26 09:16:07  peter
+  Revision 1.36  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.35  2003/04/26 09:16:07  peter
     * .o files belonging to the unit are first searched in the same dir
       as the .ppu
 

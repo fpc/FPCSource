@@ -784,6 +784,7 @@ begin
      readsymref;
      write  (space,'     Symbol : ');
      readsymref;
+     writeln(space,'  Is Hidden : ',(ppufile.getbyte<>0));
      write  (space,'   Location : ');
      writeln('<not yet implemented>');
      paraloclen:=ppufile.getbyte;
@@ -1937,7 +1938,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2003-04-27 07:29:52  peter
+  Revision 1.42  2003-05-09 17:47:03  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.41  2003/04/27 07:29:52  peter
     * aktprocdef cleanup, aktprocdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed

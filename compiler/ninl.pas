@@ -483,8 +483,7 @@ implementation
                 { support writeln(procvar) }
                 if (para.left.resulttype.def.deftype=procvardef) then
                   begin
-                    p1:=ccallnode.create(nil,nil,nil,nil);
-                    tcallnode(p1).set_procvar(para.left);
+                    p1:=ccallnode.create_procvar(nil,para.left);
                     resulttypepass(p1);
                     para.left:=p1;
                   end;
@@ -576,8 +575,7 @@ implementation
                 { support writeln(procvar) }
                 if (para.left.resulttype.def.deftype=procvardef) then
                   begin
-                    p1:=ccallnode.create(nil,nil,nil,nil);
-                    tcallnode(p1).set_procvar(para.left);
+                    p1:=ccallnode.create_procvar(nil,para.left);
                     resulttypepass(p1);
                     para.left:=p1;
                   end;
@@ -2351,7 +2349,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.109  2003-04-27 11:21:33  peter
+  Revision 1.110  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.109  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

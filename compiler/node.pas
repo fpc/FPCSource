@@ -81,15 +81,12 @@ interface
           vecn,             {Represents array indexing}
           pointerconstn,    {Represents a pointer constant}
           stringconstn,     {Represents a string constant}
-          selfn,            {Represents the self parameter}
           notn,             {Represents the not operator}
           inlinen,          {Internal procedures (i.e. writeln)}
           niln,             {Represents the nil pointer}
           errorn,           {This part of the tree could not be
                              parsed because of a compiler error}
           typen,            {A type name. Used for i.e. typeof(obj)}
-          hnewn,            {The new operation, constructor call}
-          hdisposen,        {The dispose operation with destructor call}
           setelementn,      {A set element(s) (i.e. [a,b] and also [a..b])}
           setconstn,        {A set constant (i.e. [1,2])}
           blockn,           {A block of statements}
@@ -121,7 +118,7 @@ interface
           tempdeleten,      { for temps in the result/firstpass }
           addoptn,          { added for optimizations where we cannot suppress }
           nothingn,         {NOP, Do nothing}
-          loadvmtn,         {Load the address of the VMT of a class/object}
+          loadvmtaddrn,         {Load the address of the VMT of a class/object}
           guidconstn,       {A GUID COM Interface constant }
           rttin             {Rtti information so they can be accessed in result/firstpass}
        );
@@ -165,14 +162,11 @@ interface
           'vecn',
           'pointerconstn',
           'stringconstn',
-          'selfn',
           'notn',
           'inlinen',
           'niln',
           'errorn',
           'typen',
-          'hnewn',
-          'hdisposen',
           'setelementn',
           'setconstn',
           'blockn',
@@ -204,13 +198,13 @@ interface
           'tempdeleten',
           'addoptn',
           'nothingn',
-          'loadvmtn',
+          'loadvmtaddrn',
           'guidconstn',
           'rttin');
 
     type
        { all boolean field of ttree are now collected in flags }
-       tnodeflags = (
+       tnodeflag = (
          nf_swapable,    { tbinop operands can be swaped }
          nf_swaped,      { tbinop operands are swaped    }
          nf_error,
@@ -223,7 +217,11 @@ interface
 
          { flags used by tcallnode }
          nf_return_value_used,
+         nf_inherited,
          nf_anon_inherited,
+         nf_new_call,
+         nf_dispose_call,
+         nf_member_call, { called with implicit methodpointer tree }
 
          { flags used by tcallparanode }
          nf_varargs_para,  { belongs this para to varargs }
@@ -265,12 +263,12 @@ interface
          nf_releasetemps
        );
 
-       tnodeflagset = set of tnodeflags;
+       tnodeflags = set of tnodeflag;
 
     const
        { contains the flags which must be equal for the equality }
        { of nodes                                                }
-       flagsequal : tnodeflagset = [nf_error];
+       flagsequal : tnodeflags = [nf_error];
 
     type
        tnodelist = class
@@ -291,7 +289,7 @@ interface
           { this field is set by concattolist  }
           parent : tnode;
           { there are some properties about the node stored }
-          flags : tnodeflagset;
+          flags : tnodeflags;
           { the number of registers needed to evalute the node }
           registers32,registersfpu : longint;  { must be longint !!!! }
 {$ifdef SUPPORT_MMX}
@@ -314,7 +312,7 @@ interface
           procedure derefimpl;virtual;
 
           { toggles the flag }
-          procedure toggleflag(f : tnodeflags);
+          procedure toggleflag(f : tnodeflag);
 
           { the 1.1 code generator may override pass_1 }
           { and it need not to implement det_* then    }
@@ -584,7 +582,7 @@ implementation
       end;
 
 
-    procedure tnode.toggleflag(f : tnodeflags);
+    procedure tnode.toggleflag(f : tnodeflag);
       begin
          if f in flags then
            exclude(flags,f)
@@ -630,7 +628,7 @@ implementation
           write(t,' ,resulttype = <nil>');
         writeln(t,', pos = (',fileinfo.line,',',fileinfo.column,')',
                   ', loc = ',tcgloc2str[location.loc],
-                  ', inttgobj:  = ',registers32,
+                  ', intregs = ',registers32,
                   ', fpuregs = ',registersfpu);
       end;
 
@@ -990,7 +988,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2003-04-25 20:59:33  peter
+  Revision 1.59  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.58  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

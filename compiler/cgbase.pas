@@ -416,6 +416,22 @@ implementation
               framepointer_offset:=procdef.parast.address_fixup;
               inc(procdef.parast.address_fixup,POINTER_SIZE);
            end;
+      end;
+
+
+    procedure tprocinfo.after_header;
+      var
+        srsym : tvarsym;
+      begin
+         { Retrieve function result offset }
+         if assigned(procdef.funcretsym) then
+           begin
+             current_procinfo.return_offset:=tvarsym(procdef.funcretsym).address+
+                                     tvarsym(procdef.funcretsym).owner.address_fixup;
+             if tvarsym(procdef.funcretsym).owner.symtabletype=localsymtable then
+              current_procinfo.return_offset:=tg.direction*current_procinfo.return_offset;
+           end;
+         { retrieve offsets of self/vmt }
          if assigned(procdef._class) then
            begin
               if (po_containsself in procdef.procoptions) then
@@ -426,47 +442,42 @@ implementation
                { self isn't pushed in nested procedure of methods }
                if (procdef.parast.symtablelevel=normal_function_level) then
                 begin
-                  selfpointer_offset:=procdef.parast.address_fixup;
-                  inc(procdef.parast.address_fixup,POINTER_SIZE);
+                  srsym:=tvarsym(procdef.parast.search('self'));
+                  if not assigned(srsym) then
+                   internalerror(200305058);
+                  selfpointer_offset:=tvarsym(srsym).address+srsym.owner.address_fixup;
                 end;
 
               { Special parameters for de-/constructors }
               case procdef.proctypeoption of
                 potype_constructor :
                   begin
-                    vmtpointer_offset:=procdef.parast.address_fixup;
-                    inc(procdef.parast.address_fixup,POINTER_SIZE);
+                    srsym:=tvarsym(procdef.parast.search('vmt'));
+                    if not assigned(srsym) then
+                     internalerror(200305058);
+                    vmtpointer_offset:=tvarsym(srsym).address+srsym.owner.address_fixup;
                   end;
                 potype_destructor :
                   begin
                     if is_object(procdef._class) then
                      begin
-                       vmtpointer_offset:=procdef.parast.address_fixup;
-                       inc(procdef.parast.address_fixup,POINTER_SIZE);
+                       srsym:=tvarsym(procdef.parast.search('vmt'));
+                       if not assigned(srsym) then
+                        internalerror(200305058);
+                       vmtpointer_offset:=tvarsym(srsym).address+srsym.owner.address_fixup;
                      end
                     else
                      if is_class(procdef._class) then
                       begin
-                        inheritedflag_offset:=procdef.parast.address_fixup;
-                        inc(procdef.parast.address_fixup,POINTER_SIZE);
+                        srsym:=tvarsym(procdef.parast.search('vmt'));
+                        if not assigned(srsym) then
+                         internalerror(200305058);
+                        inheritedflag_offset:=tvarsym(srsym).address+srsym.owner.address_fixup;
                       end
                     else
                      internalerror(200303261);
                   end;
               end;
-           end;
-      end;
-
-
-    procedure tprocinfo.after_header;
-      begin
-         { Retrieve function result offset }
-         if assigned(procdef.funcretsym) then
-           begin
-             current_procinfo.return_offset:=tvarsym(procdef.funcretsym).address+
-                                     tvarsym(procdef.funcretsym).owner.address_fixup;
-             if tvarsym(procdef.funcretsym).owner.symtabletype=localsymtable then
-              current_procinfo.return_offset:=tg.direction*current_procinfo.return_offset;
            end;
       end;
 
@@ -630,7 +641,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2003-04-27 11:21:32  peter
+  Revision 1.46  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.45  2003/04/27 11:21:32  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

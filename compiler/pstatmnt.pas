@@ -597,11 +597,11 @@ implementation
                                   is_class(ttypesym(srsym).restype.def) then
                                  begin
                                     ot:=ttypesym(srsym).restype;
-                                    sym:=tvarsym.create(objrealname,ot);
+                                    sym:=tvarsym.create(objrealname,vs_value,ot);
                                  end
                                else
                                  begin
-                                    sym:=tvarsym.create(objrealname,generrortype);
+                                    sym:=tvarsym.create(objrealname,vs_value,generrortype);
                                     if (srsym.typ=typesym) then
                                       Message1(type_e_class_type_expected,ttypesym(srsym).restype.def.typename)
                                     else
@@ -1131,7 +1131,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2003-04-30 22:15:59  florian
+  Revision 1.96  2003-05-09 17:47:03  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.95  2003/04/30 22:15:59  florian
     * some 64 bit adaptions in ncgadd
     * x86-64 now uses ncgadd
     * tparamanager.ret_in_acc doesn't return true anymore for a void-def

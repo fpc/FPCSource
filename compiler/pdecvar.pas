@@ -87,7 +87,7 @@ implementation
                 if (symtablestack.symtabletype=objectsymtable) and
                    (sp_static in current_object_option) then
                   begin
-                     vs2:=tvarsym.create('$'+lower(symtablestack.name^)+'_'+vs.name,tt);
+                     vs2:=tvarsym.create('$'+lower(symtablestack.name^)+'_'+vs.name,vs_value,tt);
                      symtablestack.defowner.owner.insert(vs2);
                      symtablestack.defowner.owner.insertvardata(vs2);
                   end
@@ -151,7 +151,7 @@ implementation
              sorg:=orgpattern;
              sc.reset;
              repeat
-               vs:=tvarsym.create(orgpattern,generrortype);
+               vs:=tvarsym.create(orgpattern,vs_value,generrortype);
                symtablestack.insert(vs);
                if assigned(vs.owner) then
                 sc.insert(vs)
@@ -507,7 +507,7 @@ implementation
                   symtablestack:=symtablestack.next;
                   read_type(casetype,'');
                   symtablestack:=oldsymtablestack;
-                  vs:=tvarsym.create(sorg,casetype);
+                  vs:=tvarsym.create(sorg,vs_value,casetype);
                   symtablestack.insert(vs);
                   symtablestack.insertvardata(vs);
                 end;
@@ -560,7 +560,7 @@ implementation
               symtablestack.dataalignment:=maxalignment;
               uniontype.def:=uniondef;
               uniontype.sym:=nil;
-              UnionSym:=tvarsym.create('case',uniontype);
+              UnionSym:=tvarsym.create('$case',vs_value,uniontype);
               symtablestack:=symtablestack.next;
               { we do NOT call symtablestack.insert
                on purpose PM }
@@ -602,7 +602,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2003-04-25 20:59:33  peter
+  Revision 1.47  2003-05-09 17:47:03  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.46  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

@@ -3334,13 +3334,16 @@ implementation
                end;
                if assigned(hp.paratype.def.typesym) then
                  begin
-                   s:=s+' ';
+                   if s<>'(' then
+                    s:=s+' ';
                    hs:=hp.paratype.def.typesym.realname;
                    if hs[1]<>'$' then
                      s:=s+hp.paratype.def.typesym.realname
                    else
                      s:=s+hp.paratype.def.gettypename;
-                 end;
+                 end
+               else
+                 s:=s+hp.paratype.def.gettypename;
                { default value }
                if assigned(hp.defaultvalue) then
                 begin
@@ -3643,6 +3646,9 @@ implementation
       var
         s : string;
       begin
+{$ifdef EXTDEBUG}
+        showhidden:=true;
+{$endif EXTDEBUG}
         s:='';
         if assigned(_class) then
          begin
@@ -3660,8 +3666,7 @@ implementation
 
     function tprocdef.is_methodpointer:boolean;
       begin
-        result:=assigned(owner) and
-                (owner.symtabletype=objectsymtable);
+        result:=assigned(_class);
       end;
 
 
@@ -4287,7 +4292,13 @@ implementation
     function tprocvardef.gettypename : string;
       var
         s: string;
+        showhidden : boolean;
       begin
+{$ifdef EXTDEBUG}
+         showhidden:=true;
+{$else EXTDEBUG}
+         showhidden:=false;
+{$endif EXTDEBUG}
          s:='<';
          if po_classmethod in procoptions then
            s := s+'class method type of'
@@ -4298,9 +4309,9 @@ implementation
              s := s+'procedure variable type of';
          if assigned(rettype.def) and
             (rettype.def<>voidtype.def) then
-           s:=s+' function'+typename_paras(false)+':'+rettype.def.gettypename
+           s:=s+' function'+typename_paras(showhidden)+':'+rettype.def.gettypename
          else
-           s:=s+' procedure'+typename_paras(false);
+           s:=s+' procedure'+typename_paras(showhidden);
          if po_methodpointer in procoptions then
            s := s+' of object';
          gettypename := s+';'+ProcCallOptionStr[proccalloption]+'>';
@@ -5751,7 +5762,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.140  2003-05-05 14:53:16  peter
+  Revision 1.141  2003-05-09 17:47:03  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.140  2003/05/05 14:53:16  peter
     * vs_hidden replaced by is_hidden boolean
 
   Revision 1.139  2003/05/01 07:59:43  florian

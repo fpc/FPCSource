@@ -109,65 +109,93 @@ implementation
             akttokenpos:=tprocdef(pd).fileinfo;
 
            { Generate result variable accessing function result }
-           vs:=tvarsym.create('$result',pd.rettype);
+           vs:=tvarsym.create('$result',vs_var,pd.rettype);
            include(vs.varoptions,vo_is_funcret);
+           pd.parast.insert(vs);
+           pd.insertpara(vs.vartype,vs,nil,true);
            { Store the this symbol as funcretsym for procedures }
            if pd.deftype=procdef then
             tprocdef(pd).funcretsym:=vs;
 
-           { Handle like a var parameter }
-           vs.varspez:=vs_var;
-           pd.parast.insert(vs);
-           { Also insert a hidden parameter as first }
-           pd.insertpara(vs.vartype,vs,nil,true);
-
            akttokenpos:=storepos;
          end;
       end;
+
 
     procedure insert_self_and_vmt_para(pd:tabstractprocdef);
       var
         storepos : tfileposinfo;
         vs       : tvarsym;
         tt       : ttype;
+        vsp      : tvarspez;
       begin
         if (pd.deftype=procvardef) and
-          pd.is_methodpointer then
+           pd.is_methodpointer then
           begin
-             internalerror(200304301);
+            if not(po_containsself in pd.procoptions) then
+             begin
+               { Generate self variable }
+               tt:=voidpointertype;
+               vs:=tvarsym.create('$self',vs_value,tt);
+               include(vs.varoptions,vo_is_self);
+               { Insert as hidden parameter }
+               pd.parast.insert(vs);
+               pd.insertpara(vs.vartype,vs,nil,true);
+             end;
           end
         else
           begin
-             if (pd is tprocdef) and
-               assigned(tprocdef(pd)._class) then
+             if (pd.deftype=procdef) and
+                assigned(tprocdef(pd)._class) and
+                (pd.parast.symtablelevel=normal_function_level) then
               begin
                 storepos:=akttokenpos;
-                if pd.deftype=procdef then
-                 akttokenpos:=tprocdef(pd).fileinfo;
+                akttokenpos:=tprocdef(pd).fileinfo;
 
-                { Generate result variable accessing function result }
-                tt.setdef(tprocdef(pd)._class);
-                { for unknwon reasons this doesn't work:
-                tt.setdef(tprocdef(pd)._class.typedef);
-                }
-                vs:=tvarsym.create('$self',tt);
-                include(vs.varoptions,vo_is_funcret);
-                { Store the this symbol as funcretsym for procedures }
-                if pd.deftype=procdef then
-                 tprocdef(pd).funcretsym:=vs;
+                { Generate VMT variable for constructor/destructor }
+                if pd.proctypeoption in [potype_constructor,potype_destructor] then
+                 begin
+                   { can't use classrefdef as type because inheriting
+                     will then always file because of a type mismatch }
+                   tt:=voidpointertype;
+                   vs:=tvarsym.create('$vmt',vs_value,tt);
+                   include(vs.varoptions,vo_is_vmt);
+                   { Insert as hidden parameter }
+                   pd.parast.insert(vs);
+                   pd.insertpara(vs.vartype,vs,nil,true);
+                 end;
 
-                { Handle self of objects like a var parameter }
-                if is_object(tprocdef(pd)._class) then
-                  vs.varspez:=vs_var;
-
-                pd.parast.insert(vs);
-                { Also insert a hidden parameter as first }
-                pd.insertpara(vs.vartype,vs,nil,true);
+                { Generate self variable, for classes we need
+                  to use the generic voidpointer to be compatible with
+                  methodpointers.
+                  Only needed when there is no explicit self para }
+                if not(po_containsself in pd.procoptions) then
+                 begin
+                   vsp:=vs_value;
+                   if (po_staticmethod in pd.procoptions) or
+                      (po_classmethod in pd.procoptions) then
+                     begin
+                       tt.setdef(tprocdef(pd)._class);
+                       tt.setdef(tclassrefdef.create(tt));
+                     end
+                   else
+                     begin
+                       if is_object(tprocdef(pd)._class) then
+                         vsp:=vs_var;
+                       tt.setdef(tprocdef(pd)._class);
+                     end;
+                   vs:=tvarsym.create('$self',vsp,tt);
+                   include(vs.varoptions,vo_is_self);
+                   { Insert as hidden parameter }
+                   pd.parast.insert(vs);
+                   pd.insertpara(vs.vartype,vs,nil,true);
+                 end;
 
                 akttokenpos:=storepos;
               end;
           end;
       end;
+
 
     procedure insert_funcret_local(pd:tprocdef);
       var
@@ -187,7 +215,7 @@ implementation
              when it is returning in a register }
            if not paramanager.ret_in_param(pd.rettype.def,pd.proccalloption) then
             begin
-              vs:=tvarsym.create('$result',pd.rettype);
+              vs:=tvarsym.create('$result',vs_value,pd.rettype);
               include(vs.varoptions,vo_is_funcret);
               pd.localst.insert(vs);
               pd.localst.insertvardata(vs);
@@ -232,8 +260,7 @@ implementation
             begin
               if assigned(currpara.parasym) then
                begin
-                 hvs:=tvarsym.create('$high'+tvarsym(currpara.parasym).name,s32bittype);
-                 hvs.varspez:=vs_const;
+                 hvs:=tvarsym.create('$high'+tvarsym(currpara.parasym).name,vs_const,s32bittype);
                  include(hvs.varoptions,vo_is_high_value);
                  tvarsym(currpara.parasym).owner.insert(hvs);
                  tvarsym(currpara.parasym).highvarsym:=hvs;
@@ -313,6 +340,7 @@ implementation
     procedure check_self_para(pd:tabstractprocdef);
       var
         hpara : tparaitem;
+        vs : tvarsym;
       begin
         hpara:=pd.selfpara;
         if assigned(hpara) and
@@ -331,6 +359,10 @@ implementation
               if compare_defs(hpara.paratype.def,tprocdef(pd)._class,nothingn)=te_incompatible then
                 CGMessage2(type_e_incompatible_types,hpara.paratype.def.typename,tprocdef(pd)._class.typename);
             end;
+           { add an alias for $self which is for internal use }
+           vs:=tabsolutesym.create_ref('$self',hpara.paratype,tstoredsym(hpara.parasym));
+           include(vs.varoptions,vo_is_self);
+           pd.parast.insert(vs);
          end;
       end;
 
@@ -389,7 +421,7 @@ implementation
           { read identifiers and insert with error type }
           sc.reset;
           repeat
-            vs:=tvarsym.create(orgpattern,generrortype);
+            vs:=tvarsym.create(orgpattern,varspez,generrortype);
             currparast.insert(vs);
             if assigned(vs.owner) then
              sc.insert(vs)
@@ -484,7 +516,6 @@ implementation
            begin
              { update varsym }
              vs.vartype:=tt;
-             vs.varspez:=varspez;
              { For proc vars we only need the definitions }
              if not is_procvar then
               begin
@@ -501,8 +532,9 @@ implementation
         until not try_to_consume(_SEMICOLON);
         { remove parasymtable from stack }
         sc.free;
-        { check for a self parameter, only for normal procedures. For
-          procvars we need to wait until the 'of object' is parsed }
+        { check for a self parameter which is needed to allow message
+          directive, only for normal procedures. For procvars we need
+          to wait until the 'of object' is parsed }
         if not is_procvar then
           check_self_para(pd);
         { reset object options }
@@ -1775,9 +1807,7 @@ const
         { insert hidden high parameters }
         insert_hidden_para(pd);
         { insert hidden self parameter }
-{$ifdef vs_hidden_self}
         insert_self_and_vmt_para(pd);
-{$endif vs_hidden_self}
         { insert funcret parameter if required }
         insert_funcret_para(pd);
 
@@ -2170,7 +2200,11 @@ const
 end.
 {
   $Log$
-  Revision 1.121  2003-05-05 14:53:16  peter
+  Revision 1.122  2003-05-09 17:47:03  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.121  2003/05/05 14:53:16  peter
     * vs_hidden replaced by is_hidden boolean
 
   Revision 1.120  2003/04/30 09:42:42  florian

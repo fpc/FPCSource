@@ -248,6 +248,8 @@ type
     vo_is_exported,
     vo_is_high_value,
     vo_is_funcret,
+    vo_is_self,
+    vo_is_vmt,
     vo_is_result  { special result variable }
   );
   tvaroptions=set of tvaroption;
@@ -350,7 +352,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2003-05-05 14:53:16  peter
+  Revision 1.54  2003-05-09 17:47:03  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.53  2003/05/05 14:53:16  peter
     * vs_hidden replaced by is_hidden boolean
 
   Revision 1.52  2003/04/27 11:21:34  peter

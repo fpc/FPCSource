@@ -46,7 +46,7 @@ interface
     function parse_paras(__colon,in_prop_paras : boolean) : tnode;
 
     { the ID token has to be consumed before calling this function }
-    procedure do_member_read(getaddr : boolean;sym : tsym;var p1 : tnode;var again : boolean);
+    procedure do_member_read(getaddr : boolean;sym : tsym;var p1 : tnode;var again : boolean;callnflags:tnodeflags);
 
 {$ifdef int64funcresok}
     function get_intconst:TConstExprInt;
@@ -239,8 +239,7 @@ implementation
                      (p.resulttype.def.deftype=procvardef) and
                      (tprocvardef(p.resulttype.def).minparacount=0) then
                     begin
-                       p1:=ccallnode.create(nil,nil,nil,nil);
-                       tcallnode(p1).set_procvar(p);
+                       p1:=ccallnode.create_procvar(nil,p);
                        resulttypepass(p1);
                        p:=p1;
                     end;
@@ -315,13 +314,11 @@ implementation
               consume(_RKLAMMER);
               if p1.nodetype=typen then
                 ttypenode(p1).allowed:=true;
-              if (p1.resulttype.def.deftype = objectdef) or
-                 ((p1.resulttype.def.deftype = classrefdef) and
-                  (p1.nodetype in [selfn,loadvmtn])) then
+              if (p1.resulttype.def.deftype = objectdef) then
                statement_syssym:=geninlinenode(in_typeof_x,false,p1)
               else
                begin
-                 Message(type_e_mismatch);
+                 Message(parser_e_class_id_expected);
                  p1.destroy;
                  statement_syssym:=cerrornode.create;
                end;
@@ -634,18 +631,48 @@ implementation
       end;
 
 
+    function maybe_load_methodpointer(st:tsymtable;var p1:tnode):boolean;
+      begin
+        maybe_load_methodpointer:=false;
+        if not assigned(p1) then
+         begin
+           case st.symtabletype of
+             withsymtable :
+               begin
+                 if (st.defowner.deftype=objectdef) then
+                  begin
+                    p1:=tnode(twithsymtable(st).withrefnode).getcopy;
+                    maybe_load_methodpointer:=true;
+                  end;
+               end;
+             objectsymtable :
+               begin
+                 p1:=load_self;
+                 maybe_load_methodpointer:=true;
+               end;
+           end;
+         end;
+      end;
+
+
     { reads the parameter for a subroutine call }
     procedure do_proc_call(sym:tsym;st:tsymtable;getaddr:boolean;var again : boolean;var p1:tnode);
       var
+         membercall,
          prevafterassn : boolean;
-         hs,hs1 : tvarsym;
+         vs : tvarsym;
          para,p2 : tnode;
-         hst : tsymtable;
+         currpara : tparaitem;
          aprocdef : tprocdef;
       begin
          prevafterassn:=afterassignment;
          afterassignment:=false;
+         membercall:=false;
          aprocdef:=nil;
+
+         { when it is a call to a member we need to load the
+           methodpointer first }
+         membercall:=maybe_load_methodpointer(st,p1);
 
          { When we are expecting a procvar we also need
            to get the address in some cases }
@@ -666,34 +693,50 @@ implementation
               end;
           end;
 
-         { want we only determine the address of }
-         { a subroutine ?                       }
-         if not(getaddr) then
+         { only need to get the address of the procedure? }
+         if getaddr then
+           begin
+             { Retrieve info which procvar to call. For tp_procvar the
+               aprocdef is already loaded above so we can reuse it }
+             if not assigned(aprocdef) and
+                assigned(getprocvardef) then
+               aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef);
+
+             { generate a methodcallnode or proccallnode }
+             { we shouldn't convert things like @tcollection.load }
+             p2:=cloadnode.create_procvar(sym,aprocdef,st);
+             if assigned(p1) then
+              begin
+                if (p1.nodetype<>typen) then
+                  tloadnode(p2).set_mp(p1)
+                else
+                  p1.free;
+              end;
+             p1:=p2;
+
+             { no postfix operators }
+             again:=false;
+           end
+         else
            begin
              para:=nil;
              if anon_inherited then
               begin
-                hst:=symtablestack;
-                while assigned(hst) and (hst.symtabletype<>parasymtable) do
-                 hst:=hst.next;
-                if assigned(hst) then
+                if not assigned(current_procdef) then
+                  internalerror(200305054);
+                currpara:=tparaitem(current_procdef.para.first);
+                while assigned(currpara) do
                  begin
-                   hs:=tvarsym(hst.symindex.first);
-                   while assigned(hs) do
+                   if not currpara.is_hidden then
                     begin
-                      if hs.typ<>varsym then
-                       internalerror(54382953);
+                      vs:=tvarsym(currpara.parasym);
                       { if there is a localcopy then use that }
-                      if assigned(hs.localvarsym) then
-                       hs1:=hs.localvarsym
-                      else
-                       hs1:=hs;
-                      para:=ccallparanode.create(cloadnode.create(hs1,hs1.owner),para);
-                      hs:=tvarsym(hs.indexnext);
+                      if assigned(vs.localvarsym) then
+                        vs:=vs.localvarsym;
+                      para:=ccallparanode.create(cloadnode.create(vs,vs.owner),para);
                     end;
-                 end
-                else
-                 internalerror(54382954);
+                   currpara:=tparaitem(currpara.next);
+                 end;
               end
              else
               begin
@@ -704,47 +747,11 @@ implementation
                  end;
               end;
              p1:=ccallnode.create(para,tprocsym(sym),st,p1);
-           end
-        else
-           begin
-              { address operator @: }
-              if not assigned(p1) then
-               begin
-                 case st.symtabletype of
-                   withsymtable :
-                     begin
-                       if (st.defowner.deftype=objectdef) then
-                         p1:=tnode(twithsymtable(st).withrefnode).getcopy;
-                     end;
-                   objectsymtable :
-                     begin
-                       { we must provide a method pointer, if it isn't given, }
-                       { it is self                                           }
-                       p1:=cselfnode.create(tobjectdef(st.defowner));
-                     end;
-                 end;
-               end;
-
-               { Retrieve info which procvar to call. For tp_procvar the
-                 aprocdef is already loaded above so we can reuse it }
-              if not assigned(aprocdef) and
-                 assigned(getprocvardef) then
-                aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef);
-
-              { generate a methodcallnode or proccallnode }
-              { we shouldn't convert things like @tcollection.load }
-              p2:=cloadnode.create_procvar(sym,aprocdef,st);
-              if assigned(p1) then
-               begin
-                 if (p1.nodetype<>typen) then
-                   tloadnode(p2).set_mp(p1)
-                 else
-                   p1.free;
-               end;
-              p1:=p2;
-
-              { no postfix operators }
-              again:=false;
+             { indicate if this call was generated by a member and
+               no explicit self is used, this is needed to determine
+               how to handle a destructor call (PFV) }
+             if membercall then
+               include(p1.flags,nf_member_call);
            end;
          afterassignment:=prevafterassn;
       end;
@@ -825,6 +832,7 @@ implementation
       var
          paras : tnode;
          p2    : tnode;
+         membercall : boolean;
       begin
          paras:=nil;
          { property parameters? read them only if the property really }
@@ -855,8 +863,11 @@ implementation
                      procsym :
                        begin
                          { generate the method call }
+                         membercall:=maybe_load_methodpointer(st,p1);
                          p1:=ccallnode.create(paras,
                                               tprocsym(tpropertysym(sym).writeaccess.firstsym^.sym),st,p1);
+                         if membercall then
+                           include(tcallnode(p1).flags,nf_member_call);
                          paras:=nil;
                          consume(_ASSIGNMENT);
                          { read the expression }
@@ -905,7 +916,10 @@ implementation
                      procsym :
                        begin
                           { generate the method call }
+                          membercall:=maybe_load_methodpointer(st,p1);
                           p1:=ccallnode.create(paras,tprocsym(tpropertysym(sym).readaccess.firstsym^.sym),st,p1);
+                          if membercall then
+                            include(tcallnode(p1).flags,nf_member_call);
                           paras:=nil;
                           include(p1.flags,nf_isproperty);
                        end
@@ -930,7 +944,7 @@ implementation
 
 
     { the ID token has to be consumed before calling this function }
-    procedure do_member_read(getaddr : boolean;sym : tsym;var p1 : tnode;var again : boolean);
+    procedure do_member_read(getaddr : boolean;sym : tsym;var p1 : tnode;var again : boolean;callnflags:tnodeflags);
 
       var
          static_name : string;
@@ -967,6 +981,9 @@ implementation
                       do_proc_call(sym,sym.owner,
                                    (getaddr and not(token in [_CARET,_POINT])),
                                    again,p1);
+                      { add provided flags }
+                      if (p1.nodetype=calln) then
+                        p1.flags:=p1.flags+callnflags;
                       { we need to know which procedure is called }
                       do_resulttypepass(p1);
                       { now we know the real method e.g. we can check for a class method }
@@ -1135,7 +1152,7 @@ implementation
                                  srsym:=searchsym_in_class(tobjectdef(htype.def),pattern);
                                  check_hints(srsym);
                                  consume(_ID);
-                                 do_member_read(false,srsym,p1,again);
+                                 do_member_read(false,srsym,p1,again,[]);
                                end
                               else
                                begin
@@ -1159,7 +1176,7 @@ implementation
                               else
                                begin
                                  consume(_ID);
-                                 do_member_read(getaddr,srsym,p1,again);
+                                 do_member_read(getaddr,srsym,p1,again,[]);
                                end;
                             end;
                          end
@@ -1183,7 +1200,7 @@ implementation
                                 else
                                  begin
                                    consume(_ID);
-                                   do_member_read(getaddr,srsym,p1,again);
+                                   do_member_read(getaddr,srsym,p1,again,[]);
                                  end;
                               end
                              else
@@ -1193,7 +1210,7 @@ implementation
                                   the type. For all other blocks we return
                                   a loadvmt node }
                                 if (block_type<>bt_type) then
-                                 p1:=cloadvmtnode.create(p1);
+                                 p1:=cloadvmtaddrnode.create(p1);
                               end;
                            end
                           else
@@ -1579,7 +1596,7 @@ implementation
                              else
                               begin
                                 consume(_ID);
-                                do_member_read(getaddr,hsym,p1,again);
+                                do_member_read(getaddr,hsym,p1,again,[]);
                               end;
                            end;
 
@@ -1602,7 +1619,7 @@ implementation
                               else
                                 begin
                                    consume(_ID);
-                                   do_member_read(getaddr,hsym,p1,again);
+                                   do_member_read(getaddr,hsym,p1,again,[]);
                                 end;
                            end;
 
@@ -1635,25 +1652,24 @@ implementation
                            again:=false
                          else
                            if (token=_LKLAMMER) or
-                              ((tprocvardef(p1.resulttype.def).para.empty) and
+                              ((tprocvardef(p1.resulttype.def).maxparacount=0) and
                                (not((token in [_ASSIGNMENT,_UNEQUAL,_EQUAL]))) and
                                (not afterassignment) and
                                (not in_args)) then
                              begin
-                                { do this in a strange way  }
-                                { it's not a clean solution }
-                                p2:=p1;
-                                p1:=ccallnode.create(nil,nil,nil,nil);
-                                tcallnode(p1).set_procvar(p2);
                                 if try_to_consume(_LKLAMMER) then
                                   begin
-                                     tcallnode(p1).left:=parse_paras(false,false);
+                                     p2:=parse_paras(false,false);
                                      consume(_RKLAMMER);
-                                  end;
+                                  end
+                                else
+                                  p2:=nil;
+                                p1:=ccallnode.create_procvar(p2,p1);
                                 { proc():= is never possible }
                                 if token=_ASSIGNMENT then
                                  begin
                                    Message(cg_e_illegal_expression);
+                                   p1.free;
                                    p1:=cerrornode.create;
                                    again:=false;
                                  end;
@@ -1738,14 +1754,7 @@ implementation
                 end
                else
                 begin
-                  if (po_classmethod in current_procdef.procoptions) then
-                   begin
-                     { self in class methods is a class reference type }
-                     htype.setdef(current_procdef._class);
-                     p1:=cselfnode.create(tclassrefdef.create(htype));
-                   end
-                  else
-                   p1:=cselfnode.create(current_procdef._class);
+                  p1:=load_self;
                   postfixoperators(p1,again);
                 end;
              end;
@@ -1784,15 +1793,14 @@ implementation
                   if assigned(sym) then
                    begin
                      check_hints(sym);
+                     { load the procdef from the inherited class and
+                       not from self }
                      if sym.typ=procsym then
                       begin
                         htype.setdef(classh);
                         p1:=ctypenode.create(htype);
                       end;
-                     do_member_read(false,sym,p1,again);
-                     { Add flag to indicate that inherited is used }
-                     if p1.nodetype=calln then
-                       include(p1.flags,nf_anon_inherited);
+                     do_member_read(false,sym,p1,again,[nf_inherited,nf_anon_inherited]);
                    end
                   else
                    begin
@@ -2314,7 +2322,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.114  2003-05-01 07:59:42  florian
+  Revision 1.115  2003-05-09 17:47:03  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.114  2003/05/01 07:59:42  florian
     * introduced defaultordconsttype to decribe the default size of ordinal constants
       on 64 bit CPUs it's equal to cs64bitdef while on 32 bit CPUs it's equal to s32bitdef
     + added defines CPU32 and CPU64 for 32 bit and 64 bit CPUs

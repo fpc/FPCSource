@@ -107,14 +107,11 @@ implementation
              'vecn',        {vecn}
              'pointerconst',{pointerconstn}
              'stringconst', {stringconstn}
-             'selfn',       {selfn}
              'not',         {notn}
              'inline',      {inlinen}
              'niln',        {niln}
              'error',       {errorn}
              'nothing-typen',     {typen}
-             'hnewn',       {hnewn}
-             'hdisposen',   {hdisposen}
              'setelement',  {setelementn}
              'setconst',    {setconstn}
              'blockn',      {blockn}
@@ -306,7 +303,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2003-04-27 11:21:33  peter
+  Revision 1.50  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.49  2003/04/27 11:21:33  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

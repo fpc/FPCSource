@@ -237,7 +237,7 @@ implementation
            begin
               p:=comp_expr(true);
               case p.nodetype of
-                 loadvmtn:
+                 loadvmtaddrn:
                    begin
                       if not(tobjectdef(tclassrefdef(p.resulttype.def).pointertype.def).is_related(
                         tobjectdef(tclassrefdef(t.def).pointertype.def))) then
@@ -1004,7 +1004,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2003-04-30 20:53:32  florian
+  Revision 1.69  2003-05-09 17:47:03  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.68  2003/04/30 20:53:32  florian
     * error when address of an abstract method is taken
     * fixed some x86-64 problems
     * merged some more x86-64 and i386 code

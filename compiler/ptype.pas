@@ -455,6 +455,7 @@ implementation
       var
         p  : tnode;
         pd : tabstractprocdef;
+        is_func,
         enumdupmsg : boolean;
       begin
          tt.reset;
@@ -593,33 +594,25 @@ implementation
               begin
                 tt.setdef(object_dec(name,nil));
               end;
-            _PROCEDURE:
-              begin
-                consume(_PROCEDURE);
-                tt.setdef(tprocvardef.create(normal_function_level));
-                if token=_LKLAMMER then
-                  parse_parameter_dec(tprocvardef(tt.def));
-                if token=_OF then
-                  begin
-                    consume(_OF);
-                    consume(_OBJECT);
-                    include(tprocvardef(tt.def).procoptions,po_methodpointer);
-                    check_self_para(tprocvardef(tt.def));
-                  end;
-              end;
+            _PROCEDURE,
             _FUNCTION:
               begin
-                consume(_FUNCTION);
+                is_func:=(token=_FUNCTION);
+                consume(token);
                 pd:=tprocvardef.create(normal_function_level);
                 if token=_LKLAMMER then
                   parse_parameter_dec(pd);
-                consume(_COLON);
-                single_type(pd.rettype,hs,false);
+                if is_func then
+                 begin
+                   consume(_COLON);
+                   single_type(pd.rettype,hs,false);
+                 end;
                 if token=_OF then
                   begin
                     consume(_OF);
                     consume(_OBJECT);
                     include(pd.procoptions,po_methodpointer);
+                    check_self_para(pd);
                   end;
                 { Add implicit hidden parameters and function result }
                 calc_parast(pd);
@@ -635,7 +628,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2003-04-27 11:21:34  peter
+  Revision 1.54  2003-05-09 17:47:03  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.53  2003/04/27 11:21:34  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

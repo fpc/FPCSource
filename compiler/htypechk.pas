@@ -440,8 +440,8 @@ implementation
 
              { the nil as symtable signs firstcalln that this is
                an overloaded operator }
+             inc(overloaded_operators[optoken].refs);
              ht:=ccallnode.create(nil,overloaded_operators[optoken],nil,nil);
-             inc(tcallnode(ht).symtableprocentry.refs);
              { we already know the procdef to use for equal, so it can
                skip the overload choosing in callnode.det_resulttype }
              if assigned(operpd) then
@@ -859,11 +859,6 @@ implementation
                   CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
                  exit;
                end;
-             selfn :
-               begin
-                 valid_for_assign:=true;
-                 exit;
-               end;
              calln :
                begin
                  { check return type }
@@ -998,7 +993,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2003-04-27 11:21:32  peter
+  Revision 1.63  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.62  2003/04/27 11:21:32  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

@@ -32,30 +32,12 @@ interface
        cpubase;
 
     type
-       tloadvmtnode = class(tunarynode)
+       tloadvmtaddrnode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
        end;
-       tloadvmtnodeclass = class of tloadvmtnode;
-
-       thnewnode = class(tnode)
-          objtype : ttype;
-          constructor create(t:ttype);virtual;
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure derefimpl;override;
-          function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
-       end;
-       thnewnodeclass = class of thnewnode;
-
-       thdisposenode = class(tunarynode)
-          constructor create(l : tnode);virtual;
-          function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
-       end;
-       thdisposenodeclass = class of thdisposenode;
+       tloadvmtaddrnodeclass = class of tloadvmtaddrnode;
 
        taddrnode = class(tunarynode)
           getprocvardef : tprocvardef;
@@ -107,17 +89,6 @@ interface
        end;
        tvecnodeclass = class of tvecnode;
 
-       tselfnode = class(tnode)
-          classdef : tdef; { objectdef or classrefdef }
-          constructor create(_class : tdef);virtual;
-          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
-          procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure derefimpl;override;
-          function pass_1 : tnode;override;
-          function det_resulttype:tnode;override;
-       end;
-       tselfnodeclass = class of tselfnode;
-
        twithnode = class(tbinarynode)
           withsymtable  : twithsymtable;
           tablecount    : longint;
@@ -134,15 +105,12 @@ interface
        twithnodeclass = class of twithnode;
 
     var
-       cloadvmtnode : tloadvmtnodeclass;
-       chnewnode : thnewnodeclass;
-       chdisposenode : thdisposenodeclass;
+       cloadvmtaddrnode : tloadvmtaddrnodeclass;
        caddrnode : taddrnodeclass;
        cdoubleaddrnode : tdoubleaddrnodeclass;
        cderefnode : tderefnodeclass;
        csubscriptnode : tsubscriptnodeclass;
        cvecnode : tvecnodeclass;
-       cselfnode : tselfnodeclass;
        cwithnode : twithnodeclass;
 
 implementation
@@ -156,118 +124,40 @@ implementation
       ;
 
 {*****************************************************************************
-                            TLOADVMTNODE
+                            TLOADVMTADDRNODE
 *****************************************************************************}
 
-    constructor tloadvmtnode.create(l : tnode);
+    constructor tloadvmtaddrnode.create(l : tnode);
       begin
-         inherited create(loadvmtn,l);
+         inherited create(loadvmtaddrn,l);
       end;
 
-    function tloadvmtnode.det_resulttype:tnode;
+
+    function tloadvmtaddrnode.det_resulttype:tnode;
       begin
         result:=nil;
         resulttypepass(left);
         if codegenerror then
          exit;
+
+        if left.resulttype.def.deftype<>objectdef then
+          Message(parser_e_pointer_to_class_expected);
 
         resulttype.setdef(tclassrefdef.create(left.resulttype));
       end;
 
-    function tloadvmtnode.pass_1 : tnode;
+
+    function tloadvmtaddrnode.pass_1 : tnode;
       begin
          result:=nil;
-         registers32:=1;
          expectloc:=LOC_REGISTER;
-      end;
-
-{*****************************************************************************
-                             THNEWNODE
-*****************************************************************************}
-
-    constructor thnewnode.create(t:ttype);
-      begin
-         inherited create(hnewn);
-         objtype:=t;
-      end;
-
-
-    constructor thnewnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
-      begin
-        inherited ppuload(t,ppufile);
-        ppufile.gettype(objtype);
-      end;
-
-
-    procedure thnewnode.ppuwrite(ppufile:tcompilerppufile);
-      begin
-        inherited ppuwrite(ppufile);
-        ppufile.puttype(objtype);
-      end;
-
-
-    procedure thnewnode.derefimpl;
-      begin
-        inherited derefimpl;
-        objtype.resolve;
-      end;
-
-
-    function thnewnode.det_resulttype:tnode;
-      begin
-        result:=nil;
-        if objtype.def.deftype<>objectdef then
-          Message(parser_e_pointer_to_class_expected);
-        resulttype:=objtype;
-      end;
-
-
-    function thnewnode.pass_1 : tnode;
-      begin
-         result:=nil;
-         expectloc:=LOC_VOID;
-      end;
-
-
-{*****************************************************************************
-                            THDISPOSENODE
-*****************************************************************************}
-
-    constructor thdisposenode.create(l : tnode);
-      begin
-         inherited create(hdisposen,l);
-      end;
-
-
-    function thdisposenode.det_resulttype:tnode;
-      begin
-        result:=nil;
-        resulttypepass(left);
-        if codegenerror then
-         exit;
-        if (left.resulttype.def.deftype<>pointerdef) then
-          CGMessage1(type_e_pointer_type_expected,left.resulttype.def.typename);
-        resulttype:=tpointerdef(left.resulttype.def).pointertype;
-      end;
-
-
-    function thdisposenode.pass_1 : tnode;
-      begin
-         result:=nil;
-         firstpass(left);
-         if codegenerror then
-           exit;
-
-         registers32:=left.registers32;
-         registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
+         if left.nodetype<>typen then
+           begin
+             firstpass(left);
+             registers32:=left.registers32;
+           end;
          if registers32<1 then
            registers32:=1;
-         if left.expectloc=LOC_CREGISTER then
-           inc(registers32);
-         expectloc:=LOC_REFERENCE;
       end;
 
 
@@ -874,56 +764,6 @@ implementation
 
 
 {*****************************************************************************
-                               TSELFNODE
-*****************************************************************************}
-
-    constructor tselfnode.create(_class : tdef);
-
-      begin
-         inherited create(selfn);
-         classdef:=_class;
-      end;
-
-    constructor tselfnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
-      begin
-        inherited ppuload(t,ppufile);
-        classdef:=tdef(ppufile.getderef);
-      end;
-
-
-    procedure tselfnode.ppuwrite(ppufile:tcompilerppufile);
-      begin
-        inherited ppuwrite(ppufile);
-        ppufile.putderef(classdef);
-      end;
-
-
-    procedure tselfnode.derefimpl;
-      begin
-        inherited derefimpl;
-        resolvedef(pointer(classdef));
-      end;
-
-
-    function tselfnode.det_resulttype:tnode;
-      begin
-        result:=nil;
-        resulttype.setdef(classdef);
-      end;
-
-    function tselfnode.pass_1 : tnode;
-      begin
-         result:=nil;
-         if (resulttype.def.deftype=classrefdef) or
-            is_class(resulttype.def) or
-            (po_staticmethod in current_procdef.procoptions) then
-           expectloc:=LOC_REGISTER
-         else
-           expectloc:=LOC_CREFERENCE;
-      end;
-
-
-{*****************************************************************************
                                TWITHNODE
 *****************************************************************************}
 
@@ -1047,20 +887,21 @@ implementation
       end;
 
 begin
-  cloadvmtnode := tloadvmtnode;
-  chnewnode := thnewnode;
-  chdisposenode := thdisposenode;
+  cloadvmtaddrnode := tloadvmtaddrnode;
   caddrnode := taddrnode;
   cdoubleaddrnode := tdoubleaddrnode;
   cderefnode := tderefnode;
   csubscriptnode := tsubscriptnode;
   cvecnode := tvecnode;
-  cselfnode := tselfnode;
   cwithnode := twithnode;
 end.
 {
   $Log$
-  Revision 1.52  2003-05-05 14:53:16  peter
+  Revision 1.53  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.52  2003/05/05 14:53:16  peter
     * vs_hidden replaced by is_hidden boolean
 
   Revision 1.51  2003/04/27 11:21:33  peter

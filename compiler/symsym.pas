@@ -184,9 +184,9 @@ interface
           varstate      : tvarstate;
           paraitem      : tparaitem;
           notifications : Tlinkedlist;
-          constructor create(const n : string;const tt : ttype);
-          constructor create_dll(const n : string;const tt : ttype);
-          constructor create_C(const n,mangled : string;const tt : ttype);
+          constructor create(const n : string;vsp:tvarspez;const tt : ttype);
+          constructor create_dll(const n : string;vsp:tvarspez;const tt : ttype);
+          constructor create_C(const n,mangled : string;vsp:tvarspez;const tt : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -981,7 +981,8 @@ implementation
         p:=pdlistfirst;
         while p<>nil do
          begin
-           if p^.def.para.empty and is_boolean(p^.def.rettype.def) then
+           if (p^.def.maxparacount=0) and
+              is_boolean(p^.def.rettype.def) then
             begin
               search_procdef_nopara_boolret:=p^.def;
               break;
@@ -1455,14 +1456,14 @@ implementation
 
     constructor tabsolutesym.create(const n : string;const tt : ttype);
       begin
-        inherited create(n,tt);
+        inherited create(n,vs_value,tt);
         typ:=absolutesym;
       end;
 
 
     constructor tabsolutesym.create_ref(const n : string;const tt : ttype;sym:tstoredsym);
       begin
-        inherited create(n,tt);
+        inherited create(n,vs_value,tt);
         typ:=absolutesym;
         ref:=sym;
       end;
@@ -1577,13 +1578,13 @@ implementation
                                   TVARSYM
 ****************************************************************************}
 
-    constructor tvarsym.create(const n : string;const tt : ttype);
+    constructor tvarsym.create(const n : string;vsp:tvarspez;const tt : ttype);
       begin
          inherited create(n);
          typ:=varsym;
          vartype:=tt;
          _mangledname:=nil;
-         varspez:=vs_value;
+         varspez:=vsp;
          address:=0;
          localvarsym:=nil;
          highvarsym:=nil;
@@ -1605,16 +1606,16 @@ implementation
       end;
 
 
-    constructor tvarsym.create_dll(const n : string;const tt : ttype);
+    constructor tvarsym.create_dll(const n : string;vsp:tvarspez;const tt : ttype);
       begin
-         tvarsym(self).create(n,tt);
+         tvarsym(self).create(n,vsp,tt);
          include(varoptions,vo_is_dll_var);
       end;
 
 
-    constructor tvarsym.create_C(const n,mangled : string;const tt : ttype);
+    constructor tvarsym.create_C(const n,mangled : string;vsp:tvarspez;const tt : ttype);
       begin
-         tvarsym(self).create(n,tt);
+         tvarsym(self).create(n,vsp,tt);
          stringdispose(_mangledname);
          _mangledname:=stringdup(mangled);
       end;
@@ -2557,7 +2558,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2003-05-05 14:53:16  peter
+  Revision 1.102  2003-05-09 17:47:03  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.101  2003/05/05 14:53:16  peter
     * vs_hidden replaced by is_hidden boolean
 
   Revision 1.100  2003/04/27 11:21:34  peter

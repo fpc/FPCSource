@@ -34,15 +34,7 @@ interface
       node,nmem;
 
     type
-       tcgloadvmtnode = class(tloadvmtnode)
-          procedure pass_2;override;
-       end;
-
-       tcghnewnode = class(thnewnode)
-          procedure pass_2;override;
-       end;
-
-       tcghdisposenode = class(thdisposenode)
+       tcgloadvmtaddrnode = class(tloadvmtaddrnode)
           procedure pass_2;override;
        end;
 
@@ -59,10 +51,6 @@ interface
        end;
 
        tcgsubscriptnode = class(tsubscriptnode)
-          procedure pass_2;override;
-       end;
-
-       tcgselfnode = class(tselfnode)
           procedure pass_2;override;
        end;
 
@@ -113,67 +101,68 @@ implementation
                             TCGLOADNODE
 *****************************************************************************}
 
-    procedure tcgloadvmtnode.pass_2;
+    procedure tcgloadvmtaddrnode.pass_2;
       var
        href : treference;
 
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
-         location.register:=rg.getaddressregister(exprasmlist);
-         { on 80386, LEA is the same as mov imm32 }
-         reference_reset_symbol(href,
-           objectlibrary.newasmsymboldata(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),0);
-         cg.a_loadaddr_ref_reg(exprasmlist,href,location.register);
-      end;
-
-
-{*****************************************************************************
-                            TCGHNEWNODE
-*****************************************************************************}
-
-    procedure tcghnewnode.pass_2;
-      begin
-         location_reset(location,LOC_VOID,OS_NO);
-         { completely resolved in first pass now }
-      end;
-
-
-{*****************************************************************************
-                         TCGHDISPOSENODE
-*****************************************************************************}
-
-    procedure tcghdisposenode.pass_2;
-      begin
-         location_reset(location,LOC_REFERENCE,def_cgsize(resulttype.def));
-
-         secondpass(left);
-         if codegenerror then
-           exit;
-
-         case left.location.loc of
-            LOC_REGISTER:
-              begin
-                if not rg.isaddressregister(left.location.register) then
-                  begin
-                    location_release(exprasmlist,left.location);
-                    location.reference.base := rg.getaddressregister(exprasmlist);
-                    cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,
-                      location.reference.base);
-                  end
-                else
-                  location.reference.base := left.location.register;
-              end;
-            LOC_CREGISTER,
-            LOC_CREFERENCE,
-            LOC_REFERENCE:
-              begin
-                 location_release(exprasmlist,left.location);
-                 location.reference.base:=rg.getaddressregister(exprasmlist);
-                 cg.a_load_loc_reg(exprasmlist,left.location,location.reference.base);
-              end;
+         if (left.nodetype<>typen) then
+          begin
+            { left contains self, load vmt from self }
+            secondpass(left);
+            if is_object(left.resulttype.def) then
+             begin
+               case left.location.loc of
+                  LOC_CREFERENCE,
+                  LOC_REFERENCE:
+                    begin
+                       location_release(exprasmlist,left.location);
+                       reference_reset_base(href,rg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
+                       cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,href.base);
+                    end;
+                  else
+                    internalerror(200305056);
+               end;
+             end
             else
-              internalerror(2002032217);
-         end;
+             begin
+               case left.location.loc of
+                  LOC_REGISTER:
+                    begin
+                      if not rg.isaddressregister(left.location.register) then
+                        begin
+                          location_release(exprasmlist,left.location);
+                          reference_reset_base(href,rg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
+                          cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,href.base);
+                        end
+                      else
+                        reference_reset_base(href,left.location.register,tobjectdef(left.resulttype.def).vmt_offset);
+                    end;
+                  LOC_CREGISTER,
+                  LOC_CREFERENCE,
+                  LOC_REFERENCE:
+                    begin
+                       location_release(exprasmlist,left.location);
+                       reference_reset_base(href,rg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
+                       cg.a_load_loc_reg(exprasmlist,left.location,href.base);
+                    end;
+                  else
+                    internalerror(200305057);
+               end;
+             end;
+            reference_release(exprasmlist,href);
+            location.register:=rg.getaddressregister(exprasmlist);
+            cg.g_maybe_testself(exprasmlist,href.base);
+            cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,location.register);
+          end
+         else
+          begin
+            reference_reset_symbol(href,
+              objectlibrary.newasmsymboldata(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),0);
+            location.register:=rg.getaddressregister(exprasmlist);
+            cg.a_loadaddr_ref_reg(exprasmlist,href,location.register);
+          end;
       end;
 
 
@@ -340,26 +329,6 @@ implementation
          inc(location.reference.offset,vs.address);
          { also update the size of the location }
          location.size:=def_cgsize(resulttype.def);
-      end;
-
-{*****************************************************************************
-                            TCGSELFNODE
-*****************************************************************************}
-
-    procedure tcgselfnode.pass_2;
-      begin
-         if (resulttype.def.deftype=classrefdef) or
-            (is_class(resulttype.def) or
-             (po_staticmethod in current_procdef.procoptions)) then
-          begin
-            location_reset(location,LOC_REGISTER,OS_ADDR);
-            location.register:=cg.g_load_self(exprasmlist);
-          end
-         else
-           begin
-             location_reset(location,LOC_CREFERENCE,OS_ADDR);
-             location.reference.base:=cg.g_load_self(exprasmlist);
-           end;
       end;
 
 
@@ -933,20 +902,21 @@ implementation
 
 
 begin
-   cloadvmtnode:=tcgloadvmtnode;
-   chnewnode:=tcghnewnode;
-   chdisposenode:=tcghdisposenode;
+   cloadvmtaddrnode:=tcgloadvmtaddrnode;
    caddrnode:=tcgaddrnode;
    cdoubleaddrnode:=tcgdoubleaddrnode;
    cderefnode:=tcgderefnode;
    csubscriptnode:=tcgsubscriptnode;
-   cselfnode:=tcgselfnode;
    cwithnode:=tcgwithnode;
    cvecnode:=tcgvecnode;
 end.
 {
   $Log$
-  Revision 1.50  2003-05-07 09:16:23  mazen
+  Revision 1.51  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.50  2003/05/07 09:16:23  mazen
   - non used units removed from uses clause
 
   Revision 1.49  2003/04/27 11:21:33  peter

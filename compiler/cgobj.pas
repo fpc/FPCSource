@@ -1333,10 +1333,8 @@ unit cgobj;
          { call the special incr function or the generic addref }
          if incrfunc<>'' then
           begin
-            if loadref then
-              a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(1))
-            else
-              a_paramaddr_ref(list,ref,paramanager.getintparaloc(1));
+            { these functions get the pointer by value }
+            a_param_ref(list,OS_ADDR,ref,paramanager.getintparaloc(1));
             a_call_name(list,incrfunc);
           end
          else
@@ -1882,7 +1880,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.94  2003-05-01 12:23:46  jonas
+  Revision 1.95  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.94  2003/05/01 12:23:46  jonas
     * fix for op_reg_reg_reg in case the destination is the same as the first
       source register
 

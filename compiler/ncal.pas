@@ -65,6 +65,8 @@ interface
 {$ifdef EXTDEBUG}
           procedure candidates_dump_info(lvl:longint;procs:pcandidate);
 {$endif EXTDEBUG}
+          function  gen_self_tree:tnode;
+          function  gen_vmt_tree:tnode;
           procedure bind_paraitem;
        public
           { the symbol containing the definition of the procedure }
@@ -89,6 +91,7 @@ interface
           { only the processor specific nodes need to override this }
           { constructor                                             }
           constructor create(l:tnode; v : tprocsym;st : tsymtable; mp : tnode);virtual;
+          constructor create_procvar(l,r:tnode);
           constructor createintern(const name: string; params: tnode);
           constructor createinternres(const name: string; params: tnode; const res: ttype);
           constructor createinternreturn(const name: string; params: tnode; returnnode : tnode);
@@ -112,7 +115,6 @@ interface
           function track_state_pass(exec_known:boolean):boolean;override;
        {$endif state_tracking}
           function  docompare(p: tnode): boolean; override;
-          procedure set_procvar(procvar:tnode);
           procedure printnodedata(var t:text);override;
        private
 {$ifdef callparatemp}
@@ -888,6 +890,20 @@ type
       end;
 
 
+    constructor tcallnode.create_procvar(l,r:tnode);
+      begin
+         inherited create(calln,l,r);
+         symtableprocentry:=nil;
+         symtableproc:=nil;
+         include(flags,nf_return_value_used);
+         methodpointer:=nil;
+         procdefinition:=nil;
+         restypeset:=false;
+         funcretnode:=nil;
+         paralength:=-1;
+      end;
+
+
      constructor tcallnode.createintern(const name: string; params: tnode);
        var
          srsym: tsym;
@@ -985,12 +1001,6 @@ type
       end;
 
 
-    procedure tcallnode.set_procvar(procvar:tnode);
-      begin
-        right:=procvar;
-      end;
-
-
     function tcallnode.getcopy : tnode;
       var
         n : tcallnode;
@@ -1070,7 +1080,7 @@ type
         }
         if assigned(methodpointer) and assigned(methodpointer.resulttype.def) then
             if (methodpointer.resulttype.def.deftype = classrefdef) and
-              (methodpointer.nodetype in [typen,loadvmtn]) then
+              (methodpointer.nodetype in [typen,loadvmtaddrn]) then
               begin
                 if (tclassrefdef(methodpointer.resulttype.def).pointertype.def.deftype = objectdef) then
                     objectdf := tobjectdef(tclassrefdef(methodpointer.resulttype.def).pointertype.def);
@@ -1573,6 +1583,131 @@ type
       end;
 
 
+    function tcallnode.gen_self_tree:tnode;
+      var
+        selftree : tnode;
+      begin
+        selftree:=nil;
+
+        { constructors }
+        if (procdefinition.proctypeoption=potype_constructor) then
+          begin
+            if not(nf_inherited in flags) then
+              begin
+                { push 0 as self when allocation is needed }
+                if (methodpointer.resulttype.def.deftype=classrefdef) or
+                   (nf_new_call in flags) then
+                  selftree:=cpointerconstnode.create(0,voidpointertype)
+                else
+                  begin
+                    if methodpointer.nodetype=typen then
+                      selftree:=load_self
+                    else
+                      selftree:=methodpointer.getcopy;
+                  end;
+              end
+            else
+              selftree:=load_self;
+          end
+        else
+          begin
+            { Calling a static/class method from a non-static/class method,
+              then we need to load self with the VMT }
+            if (
+                (po_classmethod in procdefinition.procoptions) and
+                not(assigned(current_procdef) and
+                    (po_classmethod in current_procdef.procoptions))
+               ) or
+               (
+                (po_staticmethod in procdefinition.procoptions) and
+                 not(assigned(current_procdef) and
+                     (po_staticmethod in current_procdef.procoptions))
+               ) then
+              begin
+                if (procdefinition.deftype<>procdef) then
+                  internalerror(200305062);
+                if (oo_has_vmt in tprocdef(procdefinition)._class.objectoptions) then
+                  begin
+                    if methodpointer.resulttype.def.deftype=classrefdef then
+                      selftree:=methodpointer.getcopy
+                    else
+                      selftree:=cloadvmtaddrnode.create(methodpointer.getcopy);
+                  end
+                else
+                  selftree:=cpointerconstnode.create(0,voidpointertype);
+              end
+            else
+              begin
+                if methodpointer.nodetype=typen then
+                  selftree:=load_self
+                else
+                  selftree:=methodpointer.getcopy;
+              end;
+          end;
+        result:=selftree;
+      end;
+
+
+    function tcallnode.gen_vmt_tree:tnode;
+      var
+        vmttree : tnode;
+      begin
+        vmttree:=nil;
+        if not(procdefinition.proctypeoption in [potype_constructor,potype_destructor]) then
+          internalerror(200305051);
+
+        { inherited call, no create/destroy }
+        if (nf_inherited in flags) then
+          vmttree:=cpointerconstnode.create(0,voidpointertype)
+        else
+          { constructor with extended syntax called from new }
+          if (nf_new_call in flags) then
+            vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resulttype))
+        else
+          { destructor with extended syntax called from dispose }
+          if (nf_dispose_call in flags) then
+            vmttree:=cloadvmtaddrnode.create(methodpointer.getcopy)
+        else
+         if (methodpointer.resulttype.def.deftype=classrefdef) then
+          begin
+            { constructor call via classreference => allocate memory }
+            if (procdefinition.proctypeoption=potype_constructor) and
+               is_class(tclassrefdef(methodpointer.resulttype.def).pointertype.def) then
+              vmttree:=methodpointer.getcopy
+            else
+              vmttree:=cpointerconstnode.create(0,voidpointertype);
+          end
+        else
+        { class }
+         if is_class(methodpointer.resulttype.def) then
+          begin
+            { destructor: release instance, flag(vmt)=1
+              constructor: direct call, do nothing, leave vmt=0 }
+            if (procdefinition.proctypeoption=potype_destructor) then
+             begin
+               { do not release when called from member function
+                 without specifying self explicit }
+               if (nf_member_call in flags) then
+                 vmttree:=cpointerconstnode.create(0,voidpointertype)
+               else
+                 vmttree:=cpointerconstnode.create(1,voidpointertype);
+             end
+            else
+             vmttree:=cpointerconstnode.create(0,voidpointertype);
+          end
+        else
+        { object }
+         begin
+           { destructor: direct call, no dispose, vmt=0
+             constructor: initialize object, load vmt }
+           if (procdefinition.proctypeoption=potype_constructor) then
+             vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resulttype))
+           else
+             vmttree:=cpointerconstnode.create(0,voidpointertype);
+         end;
+        result:=vmttree;
+      end;
+
 
     procedure tcallnode.bind_paraitem;
       var
@@ -1636,7 +1771,21 @@ type
                     internalerror(200304082);
                   { we need the information of the next parameter }
                   hiddentree:=gen_high_tree(pt.left,is_open_string(tparaitem(currpara.previous).paratype.def));
-                end;
+                end
+              else
+               if vo_is_self in tvarsym(currpara.parasym).varoptions then
+                 begin
+{$warning todo methodpointer}
+                   if (right=nil) then
+                     hiddentree:=gen_self_tree
+                   else
+                     hiddentree:=cnothingnode.create;
+                 end
+              else
+               if vo_is_vmt in tvarsym(currpara.parasym).varoptions then
+                 begin
+                   hiddentree:=gen_vmt_tree;
+                 end;
               { add the hidden parameter }
               if not assigned(hiddentree) then
                 internalerror(200304073);
@@ -1767,13 +1916,8 @@ type
                              (symtableprocentry.procdef_count=1) then
                             begin
                               hpt:=cloadnode.create(tprocsym(symtableprocentry),symtableproc);
-                              if (symtableprocentry.owner.symtabletype=objectsymtable) then
-                               begin
-                                 if assigned(methodpointer) then
-                                   tloadnode(hpt).set_mp(methodpointer.getcopy)
-                                 else
-                                   tloadnode(hpt).set_mp(cselfnode.create(tobjectdef(symtableprocentry.owner.defowner)));
-                               end;
+                              if assigned(methodpointer) then
+                                tloadnode(hpt).set_mp(methodpointer.getcopy);
                               resulttypepass(hpt);
                               result:=hpt;
                             end
@@ -1920,7 +2064,7 @@ type
             { direct call to inherited abstract method, then we
               can already give a error in the compiler instead
               of a runtime error }
-            if (methodpointer.nodetype=typen) and
+            if (nf_inherited in flags) and
                (po_abstractmethod in procdefinition.procoptions) then
               CGMessage(cg_e_cant_call_abstract_method);
 
@@ -1928,13 +2072,13 @@ type
             { called in a con- or destructor then a warning }
             { will be made                                  }
             { con- and destructors need a pointer to the vmt }
-            if (methodpointer.nodetype=typen) and
+            if (nf_inherited in flags) and
                (procdefinition.proctypeoption in [potype_constructor,potype_destructor]) and
                is_object(methodpointer.resulttype.def) and
                not(current_procdef.proctypeoption in [potype_constructor,potype_destructor]) then
              CGMessage(cg_w_member_cd_call_from_method);
 
-            if not(methodpointer.nodetype in [typen,hnewn]) then
+            if methodpointer.nodetype<>typen then
              begin
                hpt:=methodpointer;
                while assigned(hpt) and (hpt.nodetype in [subscriptn,vecn]) do
@@ -1968,11 +2112,38 @@ type
                   (tloadnode(hpt).symtableentry.typ=varsym) then
                  tvarsym(tloadnode(hpt).symtableentry).varstate:=vs_used;
              end;
+          end
+         else
+          begin
+            { When this is method the methodpointer must be available }
+            if procdefinition.owner.symtabletype=objectsymtable then
+              internalerror(200305061);
           end;
 
          { bind paraitems to the callparanodes and insert hidden parameters }
          aktcallprocdef:=procdefinition;
          bind_paraitem;
+
+         { methodpointer is only needed for virtual calls, and
+           it should then be loaded with the VMT }
+         if (po_virtualmethod in procdefinition.procoptions) and
+            not(assigned(methodpointer) and
+                (methodpointer.nodetype=typen)) then
+          begin
+            if not assigned(methodpointer) then
+              internalerror(200305063);
+            if (methodpointer.resulttype.def.deftype<>classrefdef) then
+             begin
+               methodpointer:=cloadvmtaddrnode.create(methodpointer);
+               resulttypepass(methodpointer);
+             end;
+          end
+         else
+          begin
+            { not needed anymore }
+            methodpointer.free;
+            methodpointer:=nil;
+          end;
 
          { insert type conversions for parameters }
          if assigned(left) then
@@ -2214,29 +2385,18 @@ type
          if (methodpointer<>nil) then
            begin
               if methodpointer.nodetype<>typen then
-                firstpass(methodpointer);
+               begin
+                 firstpass(methodpointer);
+                 registersfpu:=max(methodpointer.registersfpu,registersfpu);
+                 registers32:=max(methodpointer.registers32,registers32);
+{$ifdef SUPPORT_MMX }
+                 registersmmx:=max(methodpointer.registersmmx,registersmmx);
+{$endif SUPPORT_MMX}
+               end;
 
               { if we are calling the constructor }
-              if procdefinition.proctypeoption in [potype_constructor] then
+              if procdefinition.proctypeoption=potype_constructor then
                 verifyabstractcalls;
-
-              case methodpointer.nodetype of
-                { but only, if this is not a supporting node }
-                typen: ;
-                { we need one register for new return value PM }
-                hnewn : if registers32=0 then
-                          registers32:=1;
-                else
-                  begin
-                     { this is not a good reason to accept it in FPC if we produce
-                       wrong code for it !!! (PM) }
-                     registersfpu:=max(methodpointer.registersfpu,registersfpu);
-                     registers32:=max(methodpointer.registers32,registers32);
-{$ifdef SUPPORT_MMX }
-                     registersmmx:=max(methodpointer.registersmmx,registersmmx);
-{$endif SUPPORT_MMX}
-                  end;
-              end;
            end;
 
          if inlined then
@@ -2517,7 +2677,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.148  2003-05-05 14:53:16  peter
+  Revision 1.149  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.148  2003/05/05 14:53:16  peter
     * vs_hidden replaced by is_hidden boolean
 
   Revision 1.147  2003/04/27 11:21:33  peter

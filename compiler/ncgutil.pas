@@ -1722,7 +1722,8 @@ implementation
                        if assigned(pd) then
                          begin
                             objectlibrary.getlabel(nodestroycall);
-                            reference_reset_base(href,current_procinfo.framepointer,current_procinfo.selfpointer_offset);
+                            { check VMT pointer if this is an inherited constructor }
+                            reference_reset_base(href,current_procinfo.framepointer,current_procinfo.vmtpointer_offset);
                             cg.a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nodestroycall);
                             r:=cg.g_load_self(list);
                             if is_class(current_procdef._class) then
@@ -2006,7 +2007,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2003-04-29 07:28:52  michael
+  Revision 1.96  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.95  2003/04/29 07:28:52  michael
   + Patch from peter to fix wrong pushing of ansistring function results in open array
 
   Revision 1.94  2003/04/28 21:17:38  peter

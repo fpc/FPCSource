@@ -530,8 +530,9 @@ implementation
               minusdef:=nil;
               if assigned(overloaded_operators[_minus]) then
                 minusdef:=overloaded_operators[_minus].search_procdef_unary_operator(left.resulttype.def);
-              if minusdef<>nil then
+              if assigned(minusdef) then
                 begin
+                  inc(overloaded_operators[_minus].refs);
                   t:=ccallnode.create(ccallparanode.create(left,nil),
                                       overloaded_operators[_minus],nil,nil);
                   left:=nil;
@@ -705,6 +706,7 @@ implementation
                 notdef:=overloaded_operators[_op_not].search_procdef_unary_operator(left.resulttype.def);
               if notdef<>nil then
                 begin
+                  inc(overloaded_operators[_op_not].refs);
                   t:=ccallnode.create(ccallparanode.create(left,nil),
                                       overloaded_operators[_op_not],nil,nil);
                   left:=nil;
@@ -793,7 +795,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-04-25 20:59:33  peter
+  Revision 1.48  2003-05-09 17:47:02  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.47  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

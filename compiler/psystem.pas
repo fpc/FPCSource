@@ -198,12 +198,12 @@ implementation
         vmtsymtable:=trecordsymtable.create;
         vmttype.setdef(trecorddef.create(vmtsymtable));
         pvmttype.setdef(tpointerdef.create(vmttype));
-        vmtsymtable.insert(tvarsym.create('$parent',pvmttype));
-        vmtsymtable.insert(tvarsym.create('$length',s32bittype));
-        vmtsymtable.insert(tvarsym.create('$mlength',s32bittype));
+        vmtsymtable.insert(tvarsym.create('$parent',vs_value,pvmttype));
+        vmtsymtable.insert(tvarsym.create('$length',vs_value,s32bittype));
+        vmtsymtable.insert(tvarsym.create('$mlength',vs_value,s32bittype));
         vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
         tarraydef(vmtarraytype.def).setelementtype(voidpointertype);
-        vmtsymtable.insert(tvarsym.create('$__pfn',vmtarraytype));
+        vmtsymtable.insert(tvarsym.create('$__pfn',vs_value,vmtarraytype));
         addtype('$__vtbl_ptr_type',vmttype);
         addtype('$pvmt',pvmttype);
         vmtarraytype.setdef(tarraydef.create(0,1,s32bittype));
@@ -389,14 +389,11 @@ implementation
         nodeclass[vecn]:=cvecnode;
         nodeclass[pointerconstn]:=cpointerconstnode;
         nodeclass[stringconstn]:=cstringconstnode;
-        nodeclass[selfn]:=cselfnode;
         nodeclass[notn]:=cnotnode;
         nodeclass[inlinen]:=cinlinenode;
         nodeclass[niln]:=cnilnode;
         nodeclass[errorn]:=cerrornode;
         nodeclass[typen]:=ctypenode;
-        nodeclass[hnewn]:=chnewnode;
-        nodeclass[hdisposen]:=chdisposenode;
         nodeclass[setelementn]:=csetelementnode;
         nodeclass[setconstn]:=csetconstnode;
         nodeclass[blockn]:=cblocknode;
@@ -428,7 +425,7 @@ implementation
         nodeclass[tempdeleten]:=ctempdeletenode;
         nodeclass[addoptn]:=caddnode;
         nodeclass[nothingn]:=cnothingnode;
-        nodeclass[loadvmtn]:=cloadvmtnode;
+        nodeclass[loadvmtaddrn]:=cloadvmtaddrnode;
         nodeclass[guidconstn]:=cguidconstnode;
         nodeclass[rttin]:=crttinode;
       end;
@@ -491,7 +488,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2003-05-01 07:59:42  florian
+  Revision 1.49  2003-05-09 17:47:03  peter
+    * self moved to hidden parameter
+    * removed hdisposen,hnewn,selfn
+
+  Revision 1.48  2003/05/01 07:59:42  florian
     * introduced defaultordconsttype to decribe the default size of ordinal constants
       on 64 bit CPUs it's equal to cs64bitdef while on 32 bit CPUs it's equal to s32bitdef
     + added defines CPU32 and CPU64 for 32 bit and 64 bit CPUs
