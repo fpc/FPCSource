@@ -456,10 +456,10 @@ unit cgobj;
         procedure a_reg_dealloc(list : taasmoutput;r : tregister64);virtual;abstract;
         procedure a_load64_const_ref(list : taasmoutput;value : qword;const ref : treference);virtual;abstract;
         procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);virtual;abstract;
-        procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64;delete : boolean);virtual;abstract;
-        procedure a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64;delete : boolean);virtual;abstract;
+        procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);virtual;abstract;
+        procedure a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);virtual;abstract;
         procedure a_load64_const_reg(list : taasmoutput;value : qword;reg : tregister64);virtual;abstract;
-        procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64;delete : boolean);virtual;abstract;
+        procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64);virtual;abstract;
         procedure a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);virtual;abstract;
         procedure a_load64_const_loc(list : taasmoutput;value : qword;const l : tlocation);virtual;abstract;
         procedure a_load64_reg_loc(list : taasmoutput;reg : tregister64;const l : tlocation);virtual;abstract;
@@ -1883,14 +1883,14 @@ implementation
 
     procedure tcg64.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword; regsrc,regdst : tregister64);
       begin
-        a_load64_reg_reg(list,regsrc,regdst,false);
+        a_load64_reg_reg(list,regsrc,regdst);
         a_op64_const_reg(list,op,value,regdst);
       end;
 
 
     procedure tcg64.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);
       begin
-        a_load64_reg_reg(list,regsrc2,regdst,false);
+        a_load64_reg_reg(list,regsrc2,regdst);
         a_op64_reg_reg(list,op,regsrc1,regdst);
       end;
 
@@ -2000,7 +2000,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.143  2003-12-23 14:38:07  florian
+  Revision 1.144  2003-12-24 00:10:02  florian
+    - delete parameter in cg64 methods removed
+
+  Revision 1.143  2003/12/23 14:38:07  florian
     + second_floataddsse implemented
 
   Revision 1.142  2003/12/22 19:00:17  florian

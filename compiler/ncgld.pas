@@ -552,7 +552,7 @@ implementation
                         if cgsize in [OS_64,OS_S64] then
                           begin
                             cg64.a_load64_ref_reg(exprasmlist,
-                               right.location.reference,left.location.register64,false);
+                               right.location.reference,left.location.register64);
                             location_release(exprasmlist,right.location);
                           end
                         else
@@ -892,7 +892,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.102  2003-12-06 01:15:22  florian
+  Revision 1.103  2003-12-24 00:10:02  florian
+    - delete parameter in cg64 methods removed
+
+  Revision 1.102  2003/12/06 01:15:22  florian
     * reverted Peter's alloctemp patch; hopefully properly
 
   Revision 1.101  2003/12/03 23:13:20  peter

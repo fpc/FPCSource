@@ -29,8 +29,10 @@ unit cpupara;
   interface
 
     uses
-       cpubase,
-       symconst,symbase,symtype,symdef,paramgr;
+      globtype,
+      cpubase,
+      symconst,symbase,symtype,symdef,
+      paramgr;
 
     type
        { Returns the location for the nr-st 32 Bit int parameter
@@ -39,17 +41,19 @@ unit cpupara;
          rtl are used.
        }
        tx86_64paramanager = class(tparamanager)
-          function getintparaloc(nr : longint) : tparalocation;override;
-          procedure create_param_loc_info(p : tabstractprocdef);override;
+          function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
+          function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
        end;
 
   implementation
 
     uses
        verbose,
-       globtype,
-       cpuinfo,cginfo,cgbase,
+       cpuinfo,cgbase,
        defutil;
+
+    const
+      intreg_nr2reg : array[1..6] of tsuperregister = (RS_RDI,RS_RSI,RS_RDX,RS_RCX,RS_R8,RS_R9);
 
     function getparaloc(p : tdef) : tcgloc;
 
@@ -116,9 +120,7 @@ unit cpupara;
          end;
       end;
 
-    function tx86_64paramanager.getintparaloc(nr : longint) : tparalocation;
-      const
-         nr2reg : array[1..6] of word = (NR_RDI,NR_RSI,NR_RDX,NR_RCX,NR_R8,NR_R9);
+    function tx86_64paramanager.getintparaloc(calloption : tproccalloption; nr : longint): tparalocation;
       begin
          fillchar(result,sizeof(tparalocation),0);
          if nr<1 then
@@ -126,19 +128,18 @@ unit cpupara;
          else if nr<=6 then
            begin
               result.loc:=LOC_REGISTER;
-              result.register.enum:=R_INTREGISTER;
-              result.register.number:=nr2reg[nr];
+              result.register:=newreg(R_INTREGISTER,intreg_nr2reg[nr],R_SUBWHOLE);
            end
          else
            begin
               result.loc:=LOC_REFERENCE;
-              result.reference.index.enum:=R_INTREGISTER;
-              result.reference.index.number:=NR_STACK_POINTER_REG;
+              result.reference.index:=NR_STACK_POINTER_REG;
               result.reference.offset:=(nr-6)*8;
            end;
       end;
 
-    procedure tx86_64paramanager.create_param_loc_info(p : tabstractprocdef);
+
+    function tx86_64paramanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
       begin
          { set default para_alignment to target_info.stackalignment }
          { if para_alignment=0 then
@@ -152,7 +153,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-04-30 20:53:32  florian
+  Revision 1.5  2003-12-24 00:10:03  florian
+    - delete parameter in cg64 methods removed
+
+  Revision 1.4  2003/04/30 20:53:32  florian
     * error when address of an abstract method is taken
     * fixed some x86-64 problems
     * merged some more x86-64 and i386 code

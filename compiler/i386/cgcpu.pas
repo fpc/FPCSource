@@ -155,7 +155,7 @@ unit cgcpu;
           OP_NEG :
             begin
               if (regsrc.reglo<>regdst.reglo) then
-                a_load64_reg_reg(list,regsrc,regdst,false);
+                a_load64_reg_reg(list,regsrc,regdst);
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
               list.concat(taicpu.op_reg(A_NEG,S_L,regdst.reglo));
               list.concat(taicpu.op_const_reg(A_SBB,S_L,aword(-1),regdst.reghi));
@@ -164,7 +164,7 @@ unit cgcpu;
           OP_NOT :
             begin
               if (regsrc.reglo<>regdst.reglo) then
-                a_load64_reg_reg(list,regsrc,regdst,false);
+                a_load64_reg_reg(list,regsrc,regdst);
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reglo));
               exit;
@@ -232,7 +232,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2003-12-19 22:08:44  daniel
+  Revision 1.42  2003-12-24 00:10:02  florian
+    - delete parameter in cg64 methods removed
+
+  Revision 1.41  2003/12/19 22:08:44  daniel
     * Some work to restore the MMX capabilities
 
   Revision 1.40  2003/10/10 17:48:14  peter

@@ -31,7 +31,7 @@ unit cgx86;
     uses
        cgbase,cgobj,
        aasmbase,aasmtai,aasmcpu,
-       cpubase,cpuinfo,rgobj,rgcpu,
+       cpubase,cpuinfo,rgobj,rgx86,rgcpu,
        symconst,symtype;
 
     type
@@ -804,7 +804,7 @@ unit cgx86;
           }
           {$ifdef x86_64}
             ( { OS_F64 }
-              A_NOP,A_ADDSD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP
+              A_NOP,{!!! A_ADDSD}A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP
             )
           {$else x86_64}
             ( { OS_F64 }
@@ -1901,7 +1901,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.93  2003-12-21 19:42:43  florian
+  Revision 1.94  2003-12-24 00:10:03  florian
+    - delete parameter in cg64 methods removed
+
+  Revision 1.93  2003/12/21 19:42:43  florian
     * fixed ppc inlining stuff
     * fixed wrong unit writing
     + added some sse stuff

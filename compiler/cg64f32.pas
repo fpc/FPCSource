@@ -50,10 +50,10 @@ unit cg64f32;
         procedure a_reg_dealloc(list : taasmoutput;r : tregister64);override;
         procedure a_load64_const_ref(list : taasmoutput;value : qword;const ref : treference);override;
         procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);override;
-        procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64;delete:boolean);override;
-        procedure a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64;delete:boolean);override;
+        procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);override;
+        procedure a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);override;
         procedure a_load64_const_reg(list : taasmoutput;value: qword;reg : tregister64);override;
-        procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64;delete: boolean);override;
+        procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64);override;
         procedure a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);override;
         procedure a_load64_const_loc(list : taasmoutput;value : qword;const l : tlocation);override;
         procedure a_load64_reg_loc(list : taasmoutput;reg : tregister64;const l : tlocation);override;
@@ -157,7 +157,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64;delete:boolean);
+    procedure tcg64f32.a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);
       var
         tmpreg: tregister;
         tmpref: treference;
@@ -191,25 +191,16 @@ unit cg64f32;
           end;
         cg.a_load_ref_reg(list,OS_32,OS_32,tmpref,reg.reglo);
         inc(tmpref.offset,4);
-        if delete then
-          begin
-            tg.ungetiftemp(list,tmpref);
-            reference_release(list,tmpref);
-          end;
         cg.a_load_ref_reg(list,OS_32,OS_32,tmpref,reg.reghi);
         if got_scratch then
           cg.ungetregister(list,tmpreg);
       end;
 
 
-    procedure tcg64f32.a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64;delete:boolean);
+    procedure tcg64f32.a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);
 
       begin
-        if delete then
-          cg.ungetregister(list,regsrc.reglo);
         cg.a_load_reg_reg(list,OS_32,OS_32,regsrc.reglo,regdst.reglo);
-        if delete then
-          cg.ungetregister(list,regsrc.reghi);
         cg.a_load_reg_reg(list,OS_32,OS_32,regsrc.reghi,regdst.reghi);
       end;
 
@@ -222,14 +213,14 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64;delete :boolean);
+    procedure tcg64f32.a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64);
 
       begin
         case l.loc of
           LOC_REFERENCE, LOC_CREFERENCE:
-            a_load64_ref_reg(list,l.reference,reg,delete);
+            a_load64_ref_reg(list,l.reference,reg);
           LOC_REGISTER,LOC_CREGISTER:
-            a_load64_reg_reg(list,l.register64,reg,delete);
+            a_load64_reg_reg(list,l.register64,reg);
           LOC_CONSTANT :
             a_load64_const_reg(list,l.valueqword,reg);
           else
@@ -272,7 +263,7 @@ unit cg64f32;
           LOC_REFERENCE, LOC_CREFERENCE:
             a_load64_reg_ref(list,reg,l.reference);
           LOC_REGISTER,LOC_CREGISTER:
-            a_load64_reg_reg(list,reg,l.register64,false);
+            a_load64_reg_reg(list,reg,l.register64);
           else
             internalerror(200112293);
         end;
@@ -417,7 +408,7 @@ unit cg64f32;
       begin
         tempreg.reghi:=cg.getintregister(list,OS_INT);
         tempreg.reglo:=cg.getintregister(list,OS_INT);
-        a_load64_ref_reg(list,ref,tempreg,false);
+        a_load64_ref_reg(list,ref,tempreg);
         a_op64_reg_reg(list,op,tempreg,reg);
         cg.ungetregister(list,tempreg.reglo);
         cg.ungetregister(list,tempreg.reghi);
@@ -430,7 +421,7 @@ unit cg64f32;
       begin
         tempreg.reghi:=cg.getintregister(list,OS_INT);
         tempreg.reglo:=cg.getintregister(list,OS_INT);
-        a_load64_ref_reg(list,ref,tempreg,false);
+        a_load64_ref_reg(list,ref,tempreg);
         a_op64_reg_reg(list,op,reg,tempreg);
         a_load64_reg_ref(list,tempreg,ref);
         cg.ungetregister(list,tempreg.reglo);
@@ -444,7 +435,7 @@ unit cg64f32;
       begin
         tempreg.reghi:=cg.getintregister(list,OS_INT);
         tempreg.reglo:=cg.getintregister(list,OS_INT);
-        a_load64_ref_reg(list,ref,tempreg,false);
+        a_load64_ref_reg(list,ref,tempreg);
         a_op64_const_reg(list,op,value,tempreg);
         a_load64_reg_ref(list,tempreg,ref);
         cg.ungetregister(list,tempreg.reglo);
@@ -569,7 +560,7 @@ unit cg64f32;
              if (temploc.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
                 (target_info.endian = endian_big) then
                inc(temploc.reference.offset,4);
-            
+
              cg.g_rangecheck(list,temploc,hdef,todef);
              hdef.free;
 
@@ -765,7 +756,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2003-12-07 15:00:45  jonas
+  Revision 1.56  2003-12-24 00:10:02  florian
+    - delete parameter in cg64 methods removed
+
+  Revision 1.55  2003/12/07 15:00:45  jonas
     * fixed g_rangecheck64 so it works again for big endian
 
   Revision 1.54  2003/12/06 01:15:22  florian

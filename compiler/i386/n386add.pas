@@ -884,7 +884,7 @@ interface
         pushedfpu,
         mboverflow,
         cmpop,
-        unsigned,delete:boolean;
+        unsigned:boolean;
         r:Tregister;
 
       procedure firstjmp64bitcmp;
@@ -1010,10 +1010,9 @@ interface
               { we can reuse a CREGISTER for comparison }
               if not((left.location.loc=LOC_CREGISTER) and cmpop) then
                begin
-                 delete:=left.location.loc<>LOC_CREGISTER;
                  hregister:=cg.getintregister(exprasmlist,OS_INT);
                  hregister2:=cg.getintregister(exprasmlist,OS_INT);
-                 cg64.a_load64_loc_reg(exprasmlist,left.location,joinreg64(hregister,hregister2),delete);
+                 cg64.a_load64_loc_reg(exprasmlist,left.location,joinreg64(hregister,hregister2));
                  location_reset(left.location,LOC_REGISTER,OS_64);
                  left.location.registerlow:=hregister;
                  left.location.registerhigh:=hregister2;
@@ -1589,7 +1588,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2003-12-23 22:13:41  peter
+  Revision 1.91  2003-12-24 00:10:02  florian
+    - delete parameter in cg64 methods removed
+
+  Revision 1.90  2003/12/23 22:13:41  peter
     * overlfow support in second_mul
 
   Revision 1.89  2003/12/21 11:28:41  daniel

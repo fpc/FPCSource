@@ -414,7 +414,7 @@ implementation
               hreg64.reglo:=hregister;
               hreg64.reghi:=hregisterhi;
               { load value in new register }
-              cg64.a_load64_loc_reg(list,l,hreg64,false);
+              cg64.a_load64_loc_reg(list,l,hreg64);
               location_reset(l,LOC_REGISTER,dst_size);
               l.registerlow:=hregister;
               l.registerhigh:=hregisterhi;
@@ -1057,7 +1057,7 @@ implementation
                      cg.a_reg_alloc(list,NR_FUNCTION_RETURN64_LOW_REG);
                      cg.a_reg_alloc(list,NR_FUNCTION_RETURN64_HIGH_REG);
                      cg64.a_load64_loc_reg(list,resloc,joinreg64(NR_FUNCTION_RETURN64_LOW_REG,
-                                           NR_FUNCTION_RETURN64_HIGH_REG),false);
+                                           NR_FUNCTION_RETURN64_HIGH_REG));
                    end
                   else
     {$endif cpu64bit}
@@ -1098,7 +1098,7 @@ implementation
                         cg.a_reg_alloc(list,NR_FUNCTION_RETURN64_LOW_REG);
                         cg.a_reg_alloc(list,NR_FUNCTION_RETURN64_HIGH_REG);
                         cg64.a_load64_loc_reg(list,resloc,joinreg64(NR_FUNCTION_RETURN64_LOW_REG,
-                                              NR_FUNCTION_RETURN64_HIGH_REG),false);
+                                              NR_FUNCTION_RETURN64_HIGH_REG));
                       end
                      else
     {$endif cpu64bit}
@@ -1627,7 +1627,7 @@ implementation
                   begin
                     r:=cg.getregisterint(list,OS_INT);
                     r2:=cg.getregisterint(list,OS_INT);
-                    cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2),false);
+                    cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2));
                   end
                  else
 {$endif cpu64bit}
@@ -1656,7 +1656,7 @@ implementation
                      begin
                        r:=cg.getregisterint(list,OS_INT);
                        r2:=cg.getregisterint(list,OS_INT);
-                       cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2),false);
+                       cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2));
                      end
                     else
 {$endif cpu64bit}
@@ -2019,7 +2019,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.176  2003-12-23 14:38:07  florian
+  Revision 1.177  2003-12-24 00:10:02  florian
+    - delete parameter in cg64 methods removed
+
+  Revision 1.176  2003/12/23 14:38:07  florian
     + second_floataddsse implemented
 
   Revision 1.175  2003/12/22 19:00:17  florian

@@ -77,7 +77,7 @@ unit cg64f64;
         function optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : qword; var reg: tregister64): boolean;override;
 
         { override to catch 64bit rangechecks }
-        procedure g_rangecheck64(list: taasmoutput; const l: tlocation;fromdef,todef: tdef); override;
+        procedure g_rangecheck64(list: taasmoutput; const l:tlocation;fromdef,todef: tdef); override;
       end;
 
   implementation
@@ -89,12 +89,12 @@ unit cg64f64;
 
     procedure tcg64f64.a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);
       begin
-         cg.a_load_reg_ref(list,OS_64,reg,ref);
+         cg.a_load_reg_ref(list,OS_64,OS_64,reg,ref);
       end;
 
     procedure tcg64f64.a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);
       begin
-         cg.a_load_ref_reg(list,OS_64,ref,reg);
+         cg.a_load_ref_reg(list,OS_64,OS_64,ref,reg);
       end;
 
     procedure tcg64f64.a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);
@@ -114,7 +114,7 @@ unit cg64f64;
 
     procedure tcg64f64.a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);
       begin
-         cg.a_load_loc_ref(list,l,ref);
+         cg.a_load_loc_ref(list,l.size,l,ref);
       end;
 
     procedure tcg64f64.a_load64_const_loc(list : taasmoutput;value : qword;const l : tlocation);
@@ -197,7 +197,7 @@ unit cg64f64;
       begin
       end;
 
-    procedure tcg64f64.g_rangecheck64(list: taasmoutput; const p: tnode;def: tdef);
+    procedure tcg64f64.g_rangecheck64(list: taasmoutput; const l:tlocation;fromdef,todef: tdef);
       begin
       end;
 
@@ -223,7 +223,10 @@ unit cg64f64;
 end.
 {
   $Log$
-  Revision 1.9  2003-12-22 19:00:17  florian
+  Revision 1.10  2003-12-24 00:10:02  florian
+    - delete parameter in cg64 methods removed
+
+  Revision 1.9  2003/12/22 19:00:17  florian
     * fixed some x86-64 issues
 
   Revision 1.8  2003/06/03 21:11:09  peter
