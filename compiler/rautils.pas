@@ -93,7 +93,7 @@ type
     constructor init;
     destructor  done;virtual;
     Procedure BuildOperand;virtual;
-    Procedure SetSize(_size:longint);
+    Procedure SetSize(_size:longint;force:boolean);
     Procedure SetCorrectSize(opcode:tasmop);virtual;
     Function  SetupResult:boolean;
     Function  SetupSelf:boolean;
@@ -663,9 +663,10 @@ Procedure TOperand.SetCorrectSize(opcode:tasmop);
 begin
 end;
 
-Procedure TOperand.SetSize(_size:longint);
+Procedure TOperand.SetSize(_size:longint;force:boolean);
 begin
-  if (size = S_NO) and (_size<=extended_size) then
+  if force or
+     ((size = S_NO) and (_size<=extended_size)) then
    Begin
      case _size of
       1 : size:=S_B;
@@ -854,7 +855,7 @@ Begin
           enumdef,
           pointerdef,
           floatdef :
-            SetSize(pvarsym(sym)^.getsize);
+            SetSize(pvarsym(sym)^.getsize,false);
           arraydef :
             begin
               { for arrays try to get the element size, take care of
@@ -863,7 +864,7 @@ Begin
               while assigned(harrdef^.elementtype.def) and
                     (harrdef^.elementtype.def^.deftype=arraydef) do
                harrdef:=parraydef(harrdef^.elementtype.def);
-              SetSize(harrdef^.elesize);
+              SetSize(harrdef^.elesize,false);
             end;
         end;
         hasvar:=true;
@@ -878,7 +879,7 @@ Begin
           enumdef,
           pointerdef,
           floatdef :
-            SetSize(ptypedconstsym(sym)^.getsize);
+            SetSize(ptypedconstsym(sym)^.getsize,false);
           arraydef :
             begin
               { for arrays try to get the element size, take care of
@@ -887,7 +888,7 @@ Begin
               while assigned(harrdef^.elementtype.def) and
                     (harrdef^.elementtype.def^.deftype=arraydef) do
                harrdef:=parraydef(harrdef^.elementtype.def);
-              SetSize(harrdef^.elesize);
+              SetSize(harrdef^.elesize,false);
             end;
         end;
         hasvar:=true;
@@ -900,7 +901,6 @@ Begin
          begin
            opr.typ:=OPR_CONSTANT;
            opr.val:=pconstsym(sym)^.value;
-           hasvar:=true;
            SetupVar:=true;
            Exit;
          end;
@@ -911,7 +911,6 @@ Begin
          begin
            opr.typ:=OPR_CONSTANT;
            opr.val:=0;
-           hasvar:=true;
            SetupVar:=TRUE;
            Exit;
          end;
@@ -1513,7 +1512,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.40  2000-04-06 07:56:04  pierre
+  Revision 1.41  2000-05-08 13:23:05  peter
+    * fixed reference parsing
+
+  Revision 1.40  2000/04/06 07:56:04  pierre
    * bug in TOperand.SetSize corrected
 
   Revision 1.39  2000/04/04 13:48:45  pierre

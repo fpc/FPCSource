@@ -973,8 +973,8 @@ type
 
 Procedure T386IntelOperand.BuildReference;
 var
-  l : longint;
-  hs : string;
+  k,l : longint;
+  tempstr,hs : string;
   code : integer;
   hreg,
   oldbase : tregister;
@@ -1026,20 +1026,30 @@ Begin
                Message(asmr_e_only_add_relocatable_symbol);
              oldbase:=opr.ref.base;
              opr.ref.base:=R_NO;
-             if not SetupVar(actasmpattern,GotOffset) then
-               Message1(sym_e_unknown_id,actasmpattern);
+             tempstr:=actasmpattern;
+             if not SetupVar(tempstr,GotOffset) then
+               Message1(sym_e_unknown_id,tempstr);
+             Consume(AS_ID);
+             { record.field ? }
+             if actasmtoken=AS_DOT then
+              begin
+                BuildRecordOffsetSize(tempstr,l,k);
+                inc(opr.ref.offset,l);
+              end;
              if GotOffset then
-              if hasvar and (opr.ref.base=procinfo^.framepointer) then
-               begin
-                 opr.ref.base:=R_NO;
-                 hasvar:=hadvar;
-               end
-              else
-               begin
-                 if hasvar and hadvar then
-                   Message(asmr_e_cant_have_multiple_relocatable_symbols);
-                 { should we allow ?? }
-               end;
+              begin
+                if hasvar and (opr.ref.base=procinfo^.framepointer) then
+                 begin
+                   opr.ref.base:=R_NO;
+                   hasvar:=hadvar;
+                 end
+                else
+                 begin
+                   if hasvar and hadvar then
+                    Message(asmr_e_cant_have_multiple_relocatable_symbols);
+                   { should we allow ?? }
+                 end;
+              end;
              { is the base register loaded by the var ? }
              if (opr.ref.base<>R_NO) then
               begin
@@ -1067,7 +1077,6 @@ Begin
                 opr.typ:=OPR_REFERENCE;
                 inc(opr.ref.offset,opr.val);
               end;
-             Consume(AS_ID);
            end;
           GotOffset:=false;
         end;
@@ -1266,7 +1275,7 @@ var
          begin
            BuildRecordOffsetSize(expr,toffset,tsize);
            inc(l,toffset);
-           SetSize(tsize);
+           SetSize(tsize,true);
          end;
      end;
     if actasmtoken in [AS_PLUS,AS_MINUS] then
@@ -1816,7 +1825,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2000-04-29 12:51:34  peter
+  Revision 1.65  2000-05-08 13:23:04  peter
+    * fixed reference parsing
+
+  Revision 1.64  2000/04/29 12:51:34  peter
     * fixed offset support intel reader, the gotoffset variable was not
       always reset
     * moved check for local/para to be only used for varsym

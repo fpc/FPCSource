@@ -1229,7 +1229,7 @@ var
          begin
            BuildRecordOffsetSize(expr,toffset,tsize);
            inc(l,toffset);
-           SetSize(tsize);
+           SetSize(tsize,true);
          end;
      end;
     if actasmtoken in [AS_PLUS,AS_MINUS] then
@@ -1994,7 +1994,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2000-04-29 12:51:33  peter
+  Revision 1.75  2000-05-08 13:23:03  peter
+    * fixed reference parsing
+
+  Revision 1.74  2000/04/29 12:51:33  peter
     * fixed offset support intel reader, the gotoffset variable was not
       always reset
     * moved check for local/para to be only used for varsym
