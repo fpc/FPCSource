@@ -306,7 +306,6 @@ implementation
          end;
       end;
 
-
     procedure check_c_para(p:tnamedindexitem;arg:pointer);
       begin
         if (tsym(p).typ<>paravarsym) then
@@ -330,6 +329,23 @@ implementation
                end;
             end;
          end;
+      end;
+
+
+    procedure check_msg_para(p:tnamedindexitem;arg:pointer);
+      begin
+        if (tsym(p).typ<>paravarsym) then
+         exit;
+        with tparavarsym(p) do
+          begin
+            { Count parameters }
+            if (paranr>=10) then
+              inc(plongint(arg)^);
+            { First parameter must be var }
+            if (paranr=10) and
+               (varspez<>vs_var) then
+              Message(parser_e_ill_msg_param);
+          end;
       end;
 
 
@@ -599,7 +615,7 @@ implementation
       var
         orgsp,sp : stringid;
         sym : tsym;
-	srsym : tsym;
+        srsym : tsym;
         srsymtable : tsymtable;
         storepos,
         procstartfilepos : tfileposinfo;
@@ -743,10 +759,10 @@ implementation
 
              { Check if overloaded is a procsym }
              if assigned(srsym) then
-	       begin
-	         if srsym.typ=procsym then
-		   aprocsym:=tprocsym(srsym)
-		 else
+               begin
+                 if srsym.typ=procsym then
+                   aprocsym:=tprocsym(srsym)
+                 else
                    begin
                      { when the other symbol is a unit symbol then hide the unit
                        symbol }
@@ -766,7 +782,7 @@ implementation
                           error when inserting the symbol in the symtable }
                         orgsp:=orgsp+'$'+tostr(aktfilepos.line);
                       end;
- 	           end;
+                   end;
               end;
            until not searchagain;
          end;
@@ -1149,15 +1165,16 @@ end;
 procedure pd_message(pd:tabstractprocdef);
 var
   pt : tnode;
+  paracnt : longint;
 begin
   if pd.deftype<>procdef then
     internalerror(2003042613);
   if not is_class(tprocdef(pd)._class) then
     Message(parser_e_msg_only_for_classes);
   { check parameter type }
-  if ((pd.minparacount<>1) or
-      (pd.maxparacount<>1) or
-      (tparavarsym(pd.paras[0]).varspez<>vs_var)) then
+  paracnt:=0;
+  pd.parast.foreach_static(@check_msg_para,@paracnt);
+  if paracnt<>1 then
     Message(parser_e_ill_msg_param);
   pt:=comp_expr(true);
   if pt.nodetype=stringconstn then
@@ -1812,7 +1829,8 @@ const
                       with Delphi and TP7 }
                     if not(
                            assigned(pd.import_dll) and
-                           (target_info.system in [system_i386_win32,system_i386_wdosx])
+                           (target_info.system in [system_i386_win32,system_i386_wdosx,
+                                                   system_i386_emx,system_i386_os2])
                           ) then
                       pd.setmangledname(pd.import_name^);
                   end
@@ -2177,16 +2195,15 @@ const
                      { Body declaration is external? }
                      if (po_external in pd.procoptions) then
                        begin
-{$ifdef EXTDEBUG}
                          { Win32 supports declaration in interface and external in
                            implementation for dll imports. Support this for backwards
                            compatibility with Tp7 and Delphi }
                          if not(
-                                (target_info.system in [system_i386_win32,system_i386_wdosx]) and
+                                (target_info.system in [system_i386_win32,system_i386_wdosx,
+                                                        system_i386_emx,system_i386_os2]) and
                                 assigned(pd.import_dll)
                                ) then
                            MessagePos(pd.fileinfo,parser_e_proc_no_external_allowed);
-{$endif EXTDEBUG}
                        end;
 
                    { Check parameters }
@@ -2242,7 +2259,7 @@ const
                    if assigned(pd.import_dll) then
                      begin
                        stringdispose(hd.import_dll);
-                       hd.import_name:=stringdup(pd.import_dll^);
+                       hd.import_dll:=stringdup(pd.import_dll^);
                      end;
                    if assigned(pd.import_name) then
                      begin
@@ -2329,7 +2346,12 @@ const
 end.
 {
   $Log$
-  Revision 1.210  2004-11-19 08:17:01  michael
+  Revision 1.211  2004-11-21 16:33:19  peter
+    * fixed message methods
+    * fixed typo with win32 dll import from implementation
+    * released external check
+
+  Revision 1.210  2004/11/19 08:17:01  michael
   * Split po_public into po_public and po_global (Peter)
 
   Revision 1.209  2004/11/17 22:41:41  peter

@@ -2888,13 +2888,13 @@ implementation
         cachedelecount:=elecount;
         { prevent overflow, return -1 to indicate overflow }
         if (cachedelesize <> 0) and
-	   (
-	    (cachedelecount < 0) or
+           (
+            (cachedelecount < 0) or
             ((high(aint) div cachedelesize) < cachedelecount) or
             { also lowrange*elesize must be < high(aint) to prevent overflow when
               accessing the array, see ncgmem (PFV) }
             ((high(aint) div cachedelesize) < abs(lowrange))
- 	   ) then
+           ) then
           result:=-1
         else
           result:=cachedelesize*cachedelecount;
@@ -4368,19 +4368,11 @@ implementation
 
     procedure tprocdef.setmangledname(const s : string);
       begin
-{$ifdef EXTDEBUG}
         { This is not allowed anymore, the forward declaration
           already needs to create the correct mangledname, no changes
           afterwards are allowed (PFV) }
         if assigned(_mangledname) then
           internalerror(200411171);
-{$else}
-        if assigned(_mangledname) then
-          begin
-            objectlibrary.renameasmsymbol(_mangledname^,s);
-            stringdispose(_mangledname);
-          end;
-{$endif EXTDEBUG}
       {$ifdef compress}
         _mangledname:=stringdup(minilzw_encode(s));
       {$else}
@@ -6142,7 +6134,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.274  2004-11-17 22:41:41  peter
+  Revision 1.275  2004-11-21 16:33:19  peter
+    * fixed message methods
+    * fixed typo with win32 dll import from implementation
+    * released external check
+
+  Revision 1.274  2004/11/17 22:41:41  peter
     * make some checks EXTDEBUG only for now so linux cycles again
 
   Revision 1.273  2004/11/17 22:21:35  peter
