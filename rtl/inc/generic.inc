@@ -86,15 +86,16 @@ procedure FillDWord(var x;count : longint;value : DWord);
 type
   longintarray = array [0..maxlongint div 4] of longint;
 var
-  I : longint;
+  i : longint;
 begin
   if Count<>0 then
    begin
-     I:=Count;
-     while I<>0 do
+     i:=Count;
+     while i<>0 do
       begin
-        longintarray(X)[I-1]:=Value;
-        Dec(I);
+        { range checking must be disabled here }
+        longintarray(x)[i-1]:=value;
+        Dec(i);
       end;
    end;
 end;
@@ -945,7 +946,10 @@ end;
 
 {
   $Log$
-  Revision 1.30  2002-07-29 09:23:11  jonas
+  Revision 1.31  2002-07-29 21:28:16  florian
+    * several fixes to get further with linux/ppc system unit compilation
+
+  Revision 1.30  2002/07/29 09:23:11  jonas
     * fixed some datastructures > 2GB
 
   Revision 1.29  2002/07/28 21:39:28  florian

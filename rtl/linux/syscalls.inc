@@ -558,7 +558,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-07-28 20:43:48  florian
+  Revision 1.7  2002-07-29 21:28:17  florian
+    * several fixes to get further with linux/ppc system unit compilation
+
+  Revision 1.6  2002/07/28 20:43:48  florian
     * several fixes for linux/powerpc
     * several fixes to MT
 

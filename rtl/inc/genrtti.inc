@@ -166,7 +166,7 @@ begin
             int_AddRef (Data+Offset,Info);
       end;
     tkDynArray:
-      fpc_dynarray_incr_ref(PPointer(Data)^,TypeInfo);
+      fpc_dynarray_incr_ref(PPointer(Data)^);
 {$ifdef HASINTF}
     tkInterface:
       Intf_Incr_Ref(PPointer(Data)^);
@@ -175,6 +175,12 @@ begin
 end;
 {$endif}
 
+
+{$ifdef hascompilerproc}
+{ alias for internal use }
+{ we use another name else the compiler gets puzzled because of the wrong forward def }
+procedure fpc_systemDecRef (Data, TypeInfo : Pointer);saveregisters;[external name 'FPC_DECREF'];
+{$endif compilerproc}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_DECREF}
 
@@ -206,7 +212,7 @@ begin
          Count:=PArrayRec(Temp)^.Count;  // get element Count
          TInfo:=PArrayRec(Temp)^.Info;   // Get element info
          For I:=0 to Count-1 do
-           fpc_DecRef (Data+(I*size),TInfo);
+           fpc_systemDecRef (Data+(I*size),TInfo);
       end;
     tkrecord:
       begin
@@ -217,7 +223,7 @@ begin
       Count:=PRecRec(Temp)^.Count;  // get element Count
       For I:=1 to count do
         With PRecRec(Temp)^.elements[I] do
-          fpc_DecRef (Data+Offset,Info);
+          fpc_systemDecRef (Data+Offset,Info);
       end;
     tkDynArray:
       fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
@@ -241,7 +247,10 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
 
 {
  $Log$
- Revision 1.12  2002-04-25 20:14:57  peter
+ Revision 1.13  2002-07-29 21:28:17  florian
+   * several fixes to get further with linux/ppc system unit compilation
+
+ Revision 1.12  2002/04/25 20:14:57  peter
    * updated compilerprocs
    * incr ref count has now a value argument instead of var
 

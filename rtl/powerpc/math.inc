@@ -26,8 +26,8 @@
         pi := 3.14159265358979320;
       end;
 
-    { $define FPC_SYSTEM_HAS_ABS}
-    // function abs(d : extended) : extended;[internproc:in_abs_extended];
+    {$define FPC_SYSTEM_HAS_ABS}
+    function abs(d : extended) : extended;[internproc:in_abs_extended];
 
     {$define FPC_SYSTEM_HAS_SQR}
     function sqr(d : extended) : extended;[internproc:in_sqr_extended];
@@ -205,7 +205,7 @@
                          Int to real helpers
  ****************************************************************************}
 
-function fpc_int64_to_real(i: int64): double; compilerproc;
+function fpc_int64_to_double(i: int64): double; compilerproc;
 assembler;
 { input: high(i) in r3, low(i) in r4 }
 { output: double(i) in f0            }
@@ -267,7 +267,10 @@ end ['r0','r3','f0','f1','f2','f3'];
 
 {
   $Log$
-  Revision 1.5  2002-07-28 21:39:29  florian
+  Revision 1.6  2002-07-29 21:28:17  florian
+    * several fixes to get further with linux/ppc system unit compilation
+
+  Revision 1.5  2002/07/28 21:39:29  florian
     * made abs a compiler proc if it is generic
 
   Revision 1.4  2002/07/28 20:43:49  florian

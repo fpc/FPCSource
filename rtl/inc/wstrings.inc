@@ -203,6 +203,10 @@ Begin
   inclocked(PWideRec(S-WideFirstOff)^.Ref);
 end;
 
+{$ifdef hascompilerproc}
+{ alias for internal use }
+Procedure fpc_WideStr_Incr_Ref (S : Pointer);saveregisters;[external name 'FPC_WIDESTR_INCR_REF'];
+{$endif compilerproc}
 
 function fpc_WideStr_To_ShortStr (high_of_res: longint;const S2 : WideString): shortstring;[Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 {
@@ -849,7 +853,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2002-04-26 15:19:05  peter
+  Revision 1.18  2002-07-29 21:28:17  florian
+    * several fixes to get further with linux/ppc system unit compilation
+
+  Revision 1.17  2002/04/26 15:19:05  peter
     * use saveregisters for incr routines, saves also problems with
       the optimizer
 
