@@ -1267,6 +1267,9 @@ END;
 {                           VIDEO CONTROL ROUTINES                          }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
+const
+  VideoInitialized : boolean = false;
+
 {---------------------------------------------------------------------------}
 {  InitVideo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Nov99 LdB         }
 {---------------------------------------------------------------------------}
@@ -1285,11 +1288,18 @@ VAR
 {$ENDIF}
 {$ENDIF}
 BEGIN
+if VideoInitialized then
+  DoneVideo;
 {$ifdef GRAPH_API}
 if Not TextmodeGFV then
   begin
+{$ifdef win32}
+    I := VESA;
+    J := mLargestWindow16;
+{$else not win32}
     I := Detect;                                   { Detect video card }
     J := 0;                                        { Zero select mode }
+{$endif win32}
     InitGraph(I, J, '');                           { Initialize graphics }
     I := Graph.GetMaxX;                            { Fetch max x size }
     J := Graph.GetMaxY;                            { Fetch max y size }
@@ -1308,7 +1318,11 @@ if Not TextmodeGFV then
       SysFontHeight;                               { Calc screen height }
     UseFixedFont:=true;
 {$ifdef USE_VIDEO_API}
+    if assigned(Video.VideoBuf) then
+      FreeMem(Video.VideoBuf);
     GetMem(Video.VideoBuf,sizeof(word)*ScreenWidth*ScreenHeight);
+    if assigned(Video.OldVideoBuf) then
+      FreeMem(Video.OldVideoBuf);
     GetMem(Video.OldVideoBuf,sizeof(word)*ScreenWidth*ScreenHeight);
     FillChar(Video.VideoBuf^,sizeof(word)*ScreenWidth*ScreenHeight,#0);
     FillChar(Video.OldVideoBuf^,sizeof(word)*ScreenWidth*ScreenHeight,#0);
@@ -1317,6 +1331,8 @@ if Not TextmodeGFV then
     ScreenMode.row:=ScreenHeight;
     GfvGraph.SysFontWidth:=SysFontWidth;
     GfvGraph.SysFontHeight:=SysFontHeight;
+    GfvGraph.TextScreenWidth:=ScreenWidth;
+    GfvGraph.TextScreenHeight:=ScreenHeight;
 {$endif USE_VIDEO_API}
 {$ifdef win32}
     SetGraphHooks;
@@ -1341,6 +1357,7 @@ else
     SysFontWidth := 8;                             { Font width }
     SysFontHeight := 8;                            { Font height }
   end;
+VideoInitialized:=true;
 END;
 
 {---------------------------------------------------------------------------}
@@ -1348,12 +1365,16 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE DoneVideo;
 BEGIN
+  if not VideoInitialized then
+    exit;
 {$ifdef GRAPH_API}
   if Not TextmodeGFV then
     begin
 {$ifdef USE_VIDEO_API}
       FreeMem(Video.VideoBuf,sizeof(word)*ScreenWidth*ScreenHeight);
+      Video.VideoBuf:=nil;
       FreeMem(Video.OldVideoBuf,sizeof(word)*ScreenWidth*ScreenHeight);
+      Video.OldVideoBuf:=nil;
 {$endif USE_VIDEO_API}
       CloseGraph;
 {$ifdef win32}
@@ -1367,6 +1388,7 @@ BEGIN
 {$else not USE_video_api}
    ; { nothing to do }
 {$endif not USE_video_api}
+  VideoInitialized:=false;
 END;
 
 {---------------------------------------------------------------------------}
@@ -1599,7 +1621,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.20  2002-05-28 19:14:35  pierre
+ Revision 1.21  2002-05-29 19:36:12  pierre
+  * fix graph related problems
+
+ Revision 1.20  2002/05/28 19:14:35  pierre
   * adapt to new GraphUpdateScreen function
 
  Revision 1.19  2002/05/24 10:36:52  pierre
