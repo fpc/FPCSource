@@ -1535,7 +1535,7 @@ plex$(EXEEXT): plex.pas $(wildcard lex*.pas)
 	$(COMPILER) plex.pas
 lexlib$(PPUEXT): lexlib.pas
 yacclib$(PPUEXT): yacclib.pas
-ifdef UNIXINSTALLDIR
+ifdef UNIXHier
 CODPATH=$(INSTALL_PREFIX)/lib/fpc/lexyacc
 else
 CODPATH=$(INSTALL_BINDIR)

@@ -1914,7 +1914,7 @@ htmldocs:
 .PHONY: quickinstall install installsym
 MSGINSTALLDIR=$(INSTALL_BASEDIR)/msg
 override PPEXEFILE:=$(wildcard $(EXENAME))
-ifdef UNIXINSTALLDIR
+ifdef UNIXHier
 ifdef CROSSCOMPILE
 PPCCPULOCATION= $(INSTALL_BINDIR)
 PPCCROSSLOCATION=$(INSTALL_BASEDIR)/cross/$(FULL_TARGET)
@@ -1944,14 +1944,14 @@ ifdef CROSSCOMPILE
 endif
 endif
 install: quickinstall
-ifdef UNIXINSTALLDIR
+ifdef UNIXHier
 	$(MKDIR) $(INSTALL_BASEDIR)
 	$(INSTALLEXE) $(COMPILERUTILSDIR)/samplecfg $(INSTALL_BASEDIR)/samplecfg
 endif
 	$(MKDIR) $(MSGINSTALLDIR)
 	$(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
 installsymlink: install
-ifdef UNIXINSTALLDIR
+ifdef UNIXHier
 	$(MKDIR) $(INSTALL_BINDIR)
 	ln -sf $(INSTALL_BASEDIR)/$(EXENAME) $(INSTALL_BINDIR)/$(EXENAME)
 endif

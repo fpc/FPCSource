@@ -534,7 +534,7 @@ htmldocs:
 MSGINSTALLDIR=$(INSTALL_BASEDIR)/msg
 override PPEXEFILE:=$(wildcard $(EXENAME))
 
-ifdef UNIXINSTALLDIR
+ifdef UNIXHier
 ifdef CROSSCOMPILE
 PPCCPULOCATION= $(INSTALL_BINDIR)
 PPCCROSSLOCATION=$(INSTALL_BASEDIR)/cross/$(FULL_TARGET)
@@ -568,7 +568,7 @@ endif
 endif
 
 install: quickinstall
-ifdef UNIXINSTALLDIR
+ifdef UNIXHier
         $(MKDIR) $(INSTALL_BASEDIR)
         $(INSTALLEXE) $(COMPILERUTILSDIR)/samplecfg $(INSTALL_BASEDIR)/samplecfg
 endif
@@ -578,7 +578,7 @@ endif
 # This also installs a link from bin to the actual executable.
 # The .deb does that later.
 installsymlink: install
-ifdef UNIXINSTALLDIR
+ifdef UNIXHier
         $(MKDIR) $(INSTALL_BINDIR)
         ln -sf $(INSTALL_BASEDIR)/$(EXENAME) $(INSTALL_BINDIR)/$(EXENAME)
 endif
