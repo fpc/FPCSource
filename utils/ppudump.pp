@@ -525,14 +525,22 @@ begin
              writeln(space,'     Options: ',getlongint);
              writeln(space,'       Index: ',getlongint);
              writeln(space,'     Default: ',getlongint);
+             write(space,'   Read symbol: ');
+             readsymref;
+             write(space,'  Write symbol: ');
+             readsymref;
+             write(space,' Stored symbol: ');
+             readsymref;
+             {
              writeln(space,'   Read Name: ',getstring);
              writeln(space,'  Write Name: ',getstring);
              writeln(space,' Stored Name: ',getstring);
-             write(space,'  Read Definition: ');
+             }
+             write(space,'   Read Definition: ');
              readdefref;
-             write(space,' Write Definition: ');
+             write(space,'  Write Definition: ');
              readdefref;
-             write(space,'Stored Definition: ');
+             write(space,' Stored Definition: ');
              readdefref;
            end;
 
@@ -1225,7 +1233,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1999-07-03 00:25:44  peter
+  Revision 1.5  1999-07-05 12:32:40  florian
+    * new property ppu writing implemented
+
+  Revision 1.4  1999/07/03 00:25:44  peter
     * 0.99.13
     * new link support
 
