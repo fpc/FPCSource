@@ -241,6 +241,7 @@ begin
       end;
      FindClose(St);
 {$else m68k}
+{$ifdef i386}
      { first try glibc2 }
      DynamicLinker:='/lib/ld-linux.so.2';
      if FileExists(DynamicLinker) then
@@ -254,6 +255,10 @@ begin
       end
      else
       DynamicLinker:='/lib/ld-linux.so.1';
+{$else i386}
+     Glibc2 := true;
+     DynamicLinker:='/lib/ld.so.1';
+{$endif i386}
 {$endif m68k}
    end;
 end;
@@ -562,7 +567,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2003-10-30 18:35:30  marco
+  Revision 1.13  2004-01-01 15:34:50  jonas
+    * default linker name for non-i386 and non-m68k
+
+  Revision 1.12  2003/10/30 18:35:30  marco
    * librarysuffix + profiling
 
   Revision 1.11  2003/10/11 19:32:04  marco
