@@ -493,40 +493,65 @@ unit cg64f32;
 
 
     procedure tcg64f32.a_param64_const(list : taasmoutput;value : qword;const locpara : tparalocation);
+      var
+        tmplochi,tmploclo: tparalocation;
       begin
-{$ifdef fpc}
-{$warning FIX ME}
-{$endif}
-        if target_info.endian = endian_big then
-          swap_qword(value);
-         cg.a_param_const(list,OS_32,hi(value),locpara);
-         { the nr+1 needs definitivly a fix FK }
-         { maybe the parameter numbering needs }
-         { to take care of this on 32 Bit      }
-         { systems FK                          }
-         cg.a_param_const(list,OS_32,lo(value),locpara);
+        tmplochi:=locpara;
+        tmploclo:=locpara;
+        if locpara.size=OS_S64 then
+          tmplochi.size:=OS_S32
+        else
+          tmplochi.size:=OS_32;
+        tmploclo.size:=OS_32;
+        case locpara.loc of
+           LOC_REGISTER:
+             tmplochi.register:=tmplochi.registerhigh;
+           LOC_REFERENCE:
+             if target_info.endian=endian_big then
+               inc(tmploclo.reference.offset,4)
+             else
+               inc(tmplochi.reference.offset,4);
+           else
+             internalerror(2003042702);
+        end;
+        cg.a_param_const(list,OS_32,lo(value),tmploclo);
+        cg.a_param_const(list,OS_32,hi(value),tmplochi);
       end;
 
 
     procedure tcg64f32.a_param64_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
       var
-        tmpref: treference;
-        tmploc: tparalocation;
+        tmprefhi,tmpreflo : treference;
+        tmploclo,tmplochi : tparalocation;
       begin
-        tmpref := r;
-        inc(tmpref.offset,4);
-        tmploc := locpara;
-        tmploc.registerlow:=tmploc.registerhigh;
-        if target_info.endian = endian_big then
-          begin
-            cg.a_param_ref(list,OS_32,tmpref,tmploc);
-            cg.a_param_ref(list,OS_32,r,locpara);
-          end
+        tmprefhi:=r;
+        tmpreflo:=r;
+        tmplochi:=locpara;
+        tmploclo:=locpara;
+        if locpara.size=OS_S64 then
+          tmplochi.size:=OS_S32
         else
-          begin
-            cg.a_param_ref(list,OS_32,tmpref,locpara);
-            cg.a_param_ref(list,OS_32,r,locpara);
-          end;
+          tmplochi.size:=OS_32;
+        tmploclo.size:=OS_32;
+        case locpara.loc of
+           LOC_REGISTER:
+             begin
+                if target_info.endian=endian_big then
+                  inc(tmpreflo.offset,4)
+                else
+                  inc(tmprefhi.offset,4);
+                tmplochi.register:=tmplochi.registerhigh;
+             end;
+           LOC_REFERENCE:
+             begin
+                inc(tmprefhi.offset,4);
+                inc(tmplochi.reference.offset,4);
+             end
+           else
+             internalerror(2003042701);
+        end;
+        cg.a_param_ref(list,OS_32,tmpreflo,tmploclo);
+        cg.a_param_ref(list,OS_32,tmprefhi,tmplochi);
       end;
 
 
@@ -836,7 +861,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2003-04-23 20:16:03  peter
+  Revision 1.41  2003-04-27 08:23:51  florian
+    * fixed parameter passing for 64 bit ints
+
+  Revision 1.40  2003/04/23 20:16:03  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors
