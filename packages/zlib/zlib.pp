@@ -1,9 +1,16 @@
+{
+  $Id$
+}
 unit zlib;
 
 interface
 
 { Needed for array of const }
 {$mode objfpc}
+{ for linux for linking with libc }
+{$ifdef linux}
+  {$linklib c}
+{$endif}
 {$PACKRECORDS 4}
 
 const
@@ -168,3 +175,10 @@ function zError(err:longint):string;
   end;
 
 end.
+{
+  $Log$
+  Revision 1.6  2000-01-18 21:53:56  peter
+    * added libc
+    * added log
+
+}
