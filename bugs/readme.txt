@@ -299,4 +299,8 @@ bug0218.pp   rounding errors with write/str (the bug is fixed, but there
              value PFV)
 bug0220.pp   can't choose overload with array of char
 bug0221.pp   syntax parsing incompatibilities with tp7
-
+1.pp         produces a linker error under win32, sorry for the filename
+             but the filename is the bug :)
+bug0222.pp   an record field can't be the counter index (compiles with TP)
+bug0223.pp   wrong boolean evaluation in writeln
+bug0224.pp   I/O-Error generation in readln can't be switched off
