@@ -43,10 +43,11 @@ unit cpupara;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargspara):longint;override;
          private
-           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
-           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; firstpara: tparaitem;
-               var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
-           function parseparaloc(p : tparaitem;const s : string) : boolean;override;
+          procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
+          procedure create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
+          function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; firstpara: tparaitem;
+              var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
+          function parseparaloc(p : tparaitem;const s : string) : boolean;override;
        end;
 
   implementation
@@ -155,6 +156,7 @@ unit cpupara;
          end;
       end;
 
+
     function tppcparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         { var,out always require address }
@@ -199,24 +201,24 @@ unit cpupara;
       end;
 
 
-    function tppcparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
 
+    procedure tppcparamanager.create_funcret_paraloc_info(p : tabstractprocdef; side: tcallercallee);
       var
         paraloc : tparalocation;
-        cur_stack_offset: aword;
-        curintreg, curfloatreg, curmmreg: tsuperregister;
       begin
-        init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
-
-        result := create_paraloc_info_intern(p,side,tparaitem(p.para.first),curintreg,curfloatreg,curmmreg,cur_stack_offset);
-
-        { Function return }
         fillchar(paraloc,sizeof(tparalocation),0);
-        paraloc.alignment:= std_param_align;
         paraloc.size:=def_cgsize(p.rettype.def);
-        paraloc.lochigh:=LOC_INVALID;
-        { Return in FPU register? }
-        if p.rettype.def.deftype=floatdef then
+        paraloc.Alignment:= std_param_align;
+        { Constructors return self }
+        if (p.proctypeoption=potype_constructor) then
+          begin
+            paraloc.size:=OS_ADDR;
+            paraloc.loc:=LOC_REGISTER;
+            paraloc.register:=NR_FUNCTION_RESULT_REG;
+          end
+        else
+         { Return in FPU register? }
+         if p.rettype.def.deftype=floatdef then
           begin
             paraloc.loc:=LOC_FPUREGISTER;
             paraloc.register:=NR_FPU_RESULT_REG;
@@ -229,19 +231,36 @@ unit cpupara;
 {$ifndef cpu64bit}
             if paraloc.size in [OS_64,OS_S64] then
              begin
-               paraloc.register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
-               paraloc.register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
                paraloc.lochigh:=LOC_REGISTER;
+               paraloc.register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG;
+               paraloc.register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG
              end
             else
 {$endif cpu64bit}
-             paraloc.register:=NR_FUNCTION_RETURN_REG;
+             begin
+               paraloc.register:=NR_FUNCTION_RESULT_REG
+             end;
           end
         else
           begin
             paraloc.loc:=LOC_REFERENCE;
           end;
         p.funcret_paraloc[side]:=paraloc;
+      end;
+
+
+    function tppcparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+
+      var
+        paraloc : tparalocation;
+        cur_stack_offset: aword;
+        curintreg, curfloatreg, curmmreg: tsuperregister;
+      begin
+        init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
+
+        result := create_paraloc_info_intern(p,side,tparaitem(p.para.first),curintreg,curfloatreg,curmmreg,cur_stack_offset);
+        
+        create_funcret_paraloc_info(p,side);
       end;
 
 
@@ -514,7 +533,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2004-06-20 08:55:32  florian
+  Revision 1.64  2004-07-01 18:00:37  jonas
+    * fix for broken TP-style constructor handling in the compiler
+
+  Revision 1.63  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.62  2004/05/01 22:05:02  florian
