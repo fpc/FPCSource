@@ -23,12 +23,12 @@ readme.1th   - this file
 
 USE_DEMO.BAT |
 DEMO.RC      |
-DEMO.PAS      - demo files
+DEMO.PP      - demo files
 DEMO.H       |
 
-COMMENTS.PAS |
-PASPREP.PAS  |
+COMMENTS.PP  |
+PASPREP.PP   |
 FPRCP.PP      - source code
-EXPR.PAS     |
+EXPR.PP      |
 
 fprcp.exe     - executable
