@@ -1071,29 +1071,6 @@ implementation
       end;
 
 
-    procedure gen_exception_frame(list : taasmoutput);
-      var
-        tempbuf : treference;
-        tmpreg : tregister;
-      begin
-         include(rg.usedinproc,accumulator);
-
-         { allocate exception frame buffer }
-         { this isn't generic, several APIs doesn't }
-         { allow to change the stack pointer inside }
-         { a procedure                              }
-         { we should allocate a persistent temp.    }
-         { instead                                  }
-         cg.a_op_const_reg(list,OP_SUB,36,STACK_POINTER_REG);
-         tmpreg:=rg.getaddressregister(list);
-         cg.a_load_reg_reg(list,OS_ADDR,STACK_POINTER_REG,tmpreg);
-         reference_reset_base(tempbuf,tmpreg,0);
-         cg.g_push_exception(list,tempbuf,1,aktexitlabel);
-         reference_release(list,tempbuf);
-
-         { probably we've to reload self here }
-         cg.g_maybe_loadself(list);
-      end;
 
     procedure genentrycode(list : TAAsmoutput;
                            make_global:boolean;
@@ -1276,7 +1253,14 @@ implementation
            if ((procinfo^.flags and pi_needs_implicit_finally)<>0) and
               { but it's useless in init/final code of units }
               not(aktprocdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
-             gen_exception_frame(list);
+            begin
+              include(rg.usedinproc,accumulator);
+              cg.g_new_exception(list,procinfo^.exception_jmp_ref,
+                  procinfo^.exception_env_ref,
+                  procinfo^.exception_result_ref,1,aktexitlabel);
+              { probably we've to reload self here }
+              cg.g_maybe_loadself(list);
+            end;
 
 {$ifdef GDB}
            if (cs_debuginfo in aktmoduleswitches) then
@@ -1355,7 +1339,11 @@ implementation
              { the exception helper routines modify all registers }
              aktprocdef.usedregisters:=all_registers;
              getlabel(noreraiselabel);
-             cg.g_pop_exception(list,noreraiselabel);
+             cg.g_free_exception(list,
+                  procinfo^.exception_jmp_ref,
+                  procinfo^.exception_env_ref,
+                  procinfo^.exception_result_ref,0
+                ,noreraiselabel,false);
 
              if (aktprocdef.proctypeoption=potype_constructor) then
                begin
@@ -1638,7 +1626,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2002-07-29 21:23:42  florian
+  Revision 1.29  2002-08-04 19:09:22  carl
+    + added generic exception support (still does not work!)
+    + more documentation
+
+  Revision 1.28  2002/07/29 21:23:42  florian
     * more fixes for the ppc
     + wrappers for the tcnvnode.first_* stuff introduced
 

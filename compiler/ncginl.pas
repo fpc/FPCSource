@@ -272,9 +272,9 @@ implementation
               getlabel(lengthlab);
               cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,lengthlab);
               reference_reset_base(href,hregister,-8);
-              cg.a_load_ref_reg(exprasmlist,OS_INT,href,hregister);
+              cg.a_load_ref_reg(exprasmlist,OS_32,href,hregister);
               cg.a_label(exprasmlist,lengthlab);
-              location_reset(location,LOC_REGISTER,OS_INT);
+              location_reset(location,LOC_REGISTER,OS_32);
               location.register:=hregister;
             end
          else
@@ -441,10 +441,11 @@ implementation
           WriteLn('Exiting assigned node!');
         end;
 
-
+*)
 {*****************************************************************************
                      INCLUDE/EXCLUDE GENERIC HANDLING
 *****************************************************************************}
+(*
       procedure tcginlinenode.second_IncludeExclude;
         var
          scratch_reg : boolean;
@@ -453,6 +454,7 @@ implementation
          L : longint;
          pushedregs : TMaybesave;
          cgop : topcg;
+         addrreg, hregister2: tregister;
          {!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!}
         begin
           location_copy(location,left.location);
@@ -485,48 +487,100 @@ implementation
             end
           else
             begin
+             use_small:=
+                 { set type }
+                 (tsetdef(tcallparanode(left).left.resulttype.def).settype=smallset) 
+                  and
+                   { elemenut number between 1 and 32 } 
+                  ((tcallparanode(tcallparanode(left).right).left.resulttype.def.deftype=orddef) and 
+                   (torddef(tcallparanode(tcallparanode(left).right).left.resulttype.def).high<=32) or
+                   (tcallparanode(tcallparanode(left).right).left.resulttype.def.deftype=enumdef) and 
+                   (tenumdef(tcallparanode(tcallparanode(left).right).left.resulttype.def).max<=32));
+            
               { generate code for the element to set }
               maybe_save(exprasmlist,tcallparanode(tcallparanode(left).right).left.registers32,
                         tcallparanode(left).left.location,pushedregs);
               secondpass(tcallparanode(tcallparanode(left).right).left);
               maybe_restore(exprasmlist,tcallparanode(left).left.location,pushedregs);
-              { determine asm operator }
-              if inlinenumber=in_include_x_y then
-                 asmop:=A_BTS
-              else
-                 asmop:=A_BTR;
-
-              if tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
-                { we don't need a mod 32 because this is done automatically  }
-                { by the bts instruction. For proper checking we would       }
-
-                { note: bts doesn't do any mod'ing, that's why we can also use }
-                { it for normalsets! (JM)                                      }
-
-                { need a cmp and jmp, but this should be done by the         }
-                { type cast code which does range checking if necessary (FK) }
+              
+              { bitnumber - which must be loaded into register }
+              hregister := cg.get_scratch_reg_int(exprasmlist);
+              hregister2 := rg.getregisterint(exprasmlist);
+              
+              case tcallparanode(tcallparanode(left).right).left.location.loc of
+                 LOC_CREGISTER,
+                 LOC_REGISTER
+                   begin
+                     cg.a_load_reg_reg(exprasmlist,OS_INT,
+                       tcallparanode(tcallparanode(left).right).left.location.loc.register),hregister);
+                   end;
+                 LOC_REFERENCE:
+                   begin
+                     cgsize := def_cgsize(tcallparanode(tcallparanode(left).right).left.resulttype.def);
+                     cg.a_load_ref_reg(exprasmlist,cgsize,
+                       tcallparanode(tcallparanode(left).right).left.location.loc.reference),hregister);
+                   end;
+               else
+                 internalerror(20020727);
+               end;
+               { hregister contains the bitnumber to add }
+               cg.a_load_const_reg(exprasmlist, OS_INT, 1, hregister2);
+               cg.a_op_reg_reg(exprasmlist, OP_SHL, OS_INT, hregister, hregister2);
+              
+              
+              if use_small then
                 begin
-                  scratch_reg := FALSE;
-                  WriteLn('HELLO!');
-                  hregister := rg.makeregsize(tcallparanode(tcallparanode(left).right).left.location.register,OS_INT);
+                  { possiblities : 
+                       bitnumber : LOC_REFERENCE, LOC_REGISTER, LOC_CREGISTER
+                       set value : LOC_REFERENCE, LOC_REGISTER
+                  }
+                  { location of set }
+                  if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
+                    begin
+                     if inlinenumber=in_include_x_y then
+                       begin
+                         cg.a_op_reg_ref(exprasmlist, OP_OR, OS_32, hregister2, 
+                         tcallparanode(left).left.location.loc.reference);
+                       end
+                     else
+                       begin
+                         cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, 
+                         hregister2);
+                         cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2, 
+                         tcallparanode(left).left.location.loc.reference);
+                       end;
+                      
+                    end
+                  else
+                    internalerror(20020728);
                 end
               else
                 begin
-                  scratch_reg := TRUE;
-                  hregister:=cg.get_scratch_reg_int(exprasmlist);
-                end;
-              cg.a_load_loc_reg(exprasmlist,tcallparanode(tcallparanode(left).right).left.location,hregister);
-              if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
-                emit_reg_ref(asmop,S_L,hregister,tcallparanode(left).left.location.reference)
-              else
-                emit_reg_reg(asmop,S_L,hregister,tcallparanode(left).left.location.register);
-              if scratch_reg then
-                cg.free_scratch_reg(exprasmlist,hregister);
-            end;
-          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
-          location.register := rg.makeregsize(hreg,def_cgsize(resulttype.def));
+                  { possiblities : 
+                       bitnumber : LOC_REFERENCE, LOC_REGISTER, LOC_CREGISTER
+                       set value : LOC_REFERENCE
+                  }
+                  { hregister contains the bitnumber (div 32 to get the correct offset) }
+                  cg.a_op_const_reg(exprasmlist, OP_SHR, OS_INT, 5, hregister);
+                  { calculate the correct address of the operand }
+                  cg.a_loadaddr_ref_reg(exprasmlist, tcallparanode(left).left.location.loc.reference,addrreg);
+                  cg.a_op_reg_reg(exprasmlist, OP_ADD, OS_INT, hregister, addrreg);
+                  reference_reset_base(href,addrreg,0);
+                  
+                  if inlinenumber=in_include_x_y then
+                       begin
+                         cg.a_op_reg_ref(exprasmlist, OP_OR, OS_32, hregister2, href);
+                       end
+                     else
+                       begin
+                         cg.a_op_reg_reg(exprasmlist, OP_NOT, OS_32, hregister2, 
+                         hregister2);
+                         cg.a_op_reg_ref(exprasmlist, OP_AND, OS_32, hregister2, href);
+                       end;
+                       
+                  end;
+                  
         end;
-
 *)
 {*****************************************************************************
                             FLOAT GENERIC HANDLING
@@ -583,7 +637,11 @@ end.
 
 {
   $Log$
-  Revision 1.8  2002-07-31 07:54:59  jonas
+  Revision 1.9  2002-08-04 19:06:41  carl
+    + added generic exception support (still does not work!)
+    + more documentation
+
+  Revision 1.8  2002/07/31 07:54:59  jonas
     * re-enabled second_assigned()
 
   Revision 1.7  2002/07/30 20:50:43  florian

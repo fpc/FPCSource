@@ -1,5 +1,6 @@
 {
     $Id$
+
     Copyright (c) 1998-2002 by Florian Klaempfl
     Member of the Free Pascal development team
 
@@ -240,13 +241,54 @@ unit cgobj;
           procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); virtual; abstract;
           procedure g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref:TReference); virtual;
 
-          { some processors like the PPC doesn't allow to change the stack in }
-          { a procedure, so we need to maintain an extra stack for the        }
-          { result values of setjmp in exception code                         }
-          { this two procedures are for pushing an exception value,           }
-          { they can use the scratch registers                                }
-          procedure g_push_exception(list : taasmoutput;const exceptbuf:treference;l:AWord; exceptlabel:TAsmLabel);virtual;abstract;
-          procedure g_pop_exception(list : taasmoutput;endexceptlabel:tasmlabel);virtual;abstract;
+          {#
+              Allocate the buffers for exception management and setjmp environment.
+              Return a pointer to these buffers, send them to the utility routine
+              so they are registered, and then call setjmp.
+  
+              Then compare the result of setjmp with 0, and if not equal
+              to zero, then jump to exceptlabel.
+       
+              Also store the result of setjmp to a temporary space by calling g_save_exception_reason
+              
+              It is to note that this routine may be called *after* the stackframe of a
+              routine has been called, therefore on machines where the stack cannot
+              be modified, all temps should be allocated on the heap instead of the
+              stack.
+          }
+          procedure g_new_exception(list : taasmoutput;var jmpbuf,envbuf, href : treference;
+              a : aword; exceptlabel : tasmlabel);virtual;
+          procedure g_free_exception(list : taasmoutput;var jmpbuf, envbuf, href : treference;
+           a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);virtual;
+          
+         {#
+             This routine is used in exception management nodes. It should
+             save the exception reason currently in the accumulator. The
+             save should be done either to a temp (pointed to by href). 
+             or on the stack (pushing the value on the stack).
+             
+             The size of the value to save is OS_S32. 
+          }
+         procedure g_exception_reason_save(list : taasmoutput; const href : treference);virtual;
+         {#
+             This routine is used in exception management nodes. It should
+             save the exception reason constant. The
+             save should be done either to a temp (pointed to by href). 
+             or on the stack (pushing the value on the stack).
+             
+             The size of the value to save is OS_S32
+          }
+         procedure g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aword);virtual;
+         {#
+             This routine is used in exception management nodes. It should
+             load the exception reason to the accumulator. The saved value
+             should either be in the temp. area (pointed to by href , href should
+             *NOT* be freed) or on the stack (the value should be popped).
+             
+             The size of the value to restore is OS_S32. 
+          }
+         procedure g_exception_reason_load(list : taasmoutput; const href : treference);virtual;
+          
 
           procedure g_maybe_loadself(list : taasmoutput);virtual;
           {# This should emit the opcode to copy len bytes from the source
@@ -372,6 +414,8 @@ unit cgobj;
         procedure a_param64_const(list : taasmoutput;value : qword;const loc : tparalocation);virtual;abstract;
         procedure a_param64_ref(list : taasmoutput;const r : treference;const loc : tparalocation);virtual;abstract;
         procedure a_param64_loc(list : taasmoutput;const l : tlocation;const loc : tparalocation);virtual;abstract;
+        
+        
 
         { override to catch 64bit rangechecks }
         procedure g_rangecheck64(list: taasmoutput; const p: tnode;
@@ -1378,6 +1422,58 @@ unit cgobj;
     procedure tcg.g_profilecode(list : taasmoutput);
       begin
       end;
+      
+      
+    procedure tcg.g_exception_reason_save(list : taasmoutput; const href : treference);
+     begin
+       a_load_reg_ref(exprasmlist, OS_S32, accumulator, href);
+     end;
+     
+    procedure tcg.g_exception_reason_save_const(list : taasmoutput; const href : treference; a: aword);
+     begin
+       a_load_const_ref(list, OS_S32, a, href);
+     end;
+     
+    procedure tcg.g_exception_reason_load(list : taasmoutput; const href : treference);
+     begin
+       a_load_ref_reg(list, OS_S32, href, accumulator);
+     end;
+     
+    
+    procedure tcg.g_new_exception(list : taasmoutput;var jmpbuf,envbuf, href : treference;
+      a : aword; exceptlabel : tasmlabel);
+     begin
+       tg.gettempofsizereferencepersistant(exprasmlist,24,jmpbuf);
+       tg.gettempofsizereferencepersistant(exprasmlist,12,envbuf);
+       a_paramaddr_ref(exprasmlist,envbuf,paramanager.getintparaloc(3));
+       a_paramaddr_ref(exprasmlist,jmpbuf,paramanager.getintparaloc(2));
+       { push type of exceptionframe }
+       a_param_const(exprasmlist,OS_S32,1,paramanager.getintparaloc(1));
+       a_call_name(exprasmlist,'FPC_PUSHEXCEPTADDR');
+
+       a_param_reg(exprasmlist,OS_ADDR,accumulator,paramanager.getintparaloc(1));
+       a_call_name(exprasmlist,'FPC_SETJMP');
+         
+       tg.gettempofsizereferencepersistant(exprasmlist,sizeof(aword),href);
+       g_exception_reason_save(list, href);
+       a_cmp_const_reg_label(exprasmlist,OS_S32,OC_NE,0,accumulator,exceptlabel);
+     end;
+     
+     
+    procedure tcg.g_free_exception(list : taasmoutput;var jmpbuf, envbuf, href : treference;
+     a : aword ; endexceptlabel : tasmlabel; onlyfree : boolean);
+     begin
+         cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+         tg.ungetpersistanttempreference(exprasmlist,jmpbuf);
+         tg.ungetpersistanttempreference(exprasmlist,envbuf);
+         
+         if not onlyfree then
+          begin
+            g_exception_reason_load(list, href);
+            cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,a,accumulator,endexceptlabel);
+          end;
+     end;
+      
 
 
     procedure tcg64.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);
@@ -1392,6 +1488,8 @@ unit cgobj;
         a_load64_reg_reg(list,regsrc2,regdst);
         a_op64_reg_reg(list,op,regsrc1,regdst);
       end;
+      
+      
 
 
 finalization
@@ -1400,7 +1498,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.41  2002-07-30 20:50:43  florian
+  Revision 1.42  2002-08-04 19:08:21  carl
+    + added generic exception support (still does not work!)
+    + more documentation
+
+  Revision 1.41  2002/07/30 20:50:43  florian
     * the code generator knows now if parameters are in registers
 
   Revision 1.40  2002/07/29 21:16:02  florian

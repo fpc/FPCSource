@@ -66,6 +66,24 @@ interface
        tcgfailnode = class(tfailnode)
           procedure pass_2;override;
        end;
+       
+       tcgraisenode = class(traisenode)
+          procedure pass_2;override;
+       end;
+
+       tcgtryexceptnode = class(ttryexceptnode)
+          procedure pass_2;override;
+       end;
+
+       tcgtryfinallynode = class(ttryfinallynode)
+          procedure pass_2;override;
+       end;
+
+       tcgonnode = class(tonnode)
+          procedure pass_2;override;
+       end;
+
+       
 
 implementation
 
@@ -77,7 +95,7 @@ implementation
       nld,ncon,
       ncgutil,
       cga,
-      tgobj,rgobj,
+      tgobj,rgobj,paramgr,
       regvars,cgobj,cgcpu,cg64f32;
 
 {*****************************************************************************
@@ -612,6 +630,566 @@ do_jmp:
       end;
 
 
+{*****************************************************************************
+                             SecondRaise
+*****************************************************************************}
+
+    procedure tcgraisenode.pass_2;
+
+      var
+         a : tasmlabel;
+         href : treference;
+         href2: treference;
+      begin
+         if assigned(left) then
+           begin
+              { multiple parameters? }
+              if assigned(right) then
+                begin
+                  { push frame }
+                  if assigned(frametree) then
+                    begin
+                      secondpass(frametree);
+                      if codegenerror then
+                       exit;
+                      cg.a_param_loc(exprasmlist,frametree.location,paramanager.getintparaloc(2));
+                    end
+                  else
+                    cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(2));
+                  { push address }
+                  secondpass(right);
+                  if codegenerror then
+                   exit;
+                  cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(1));
+                end
+              else
+                begin
+                   getaddrlabel(a);
+                   cg.a_label(exprasmlist,a);
+                   reference_reset_symbol(href2,a,0);
+                   cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(2));
+                   cg.a_param_reg(exprasmlist,OS_ADDR,FRAME_POINTER_REG,paramanager.getintparaloc(3));
+                end;
+              { push object }
+              secondpass(left);
+              if codegenerror then
+                exit;
+              cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(1));
+              cg.a_call_name(exprasmlist,'FPC_RAISEEXCEPTION');
+           end
+         else
+           begin
+              cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+              cg.a_call_name(exprasmlist,'FPC_RERAISE');
+           end;
+       end;
+
+
+{*****************************************************************************
+                             SecondTryExcept
+*****************************************************************************}
+
+    var
+       endexceptlabel : tasmlabel;
+       
+       
+     
+     
+
+    { does the necessary things to clean up the object stack }
+    { in the except block                                    }
+    procedure cleanupobjectstack;
+
+      begin
+         cg.a_call_name(exprasmlist,'FPC_POPOBJECTSTACK');
+         cg.a_param_reg(exprasmlist,OS_ADDR,accumulator,paramanager.getintparaloc(1));
+         cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
+         cg.g_maybe_loadself(exprasmlist);
+      end;
+
+
+    procedure tcgtryexceptnode.pass_2;
+
+      var
+         exceptlabel,doexceptlabel,oldendexceptlabel,
+         lastonlabel,
+         exitexceptlabel,
+         continueexceptlabel,
+         breakexceptlabel,
+         exittrylabel,
+         continuetrylabel,
+         breaktrylabel,
+         doobjectdestroy,
+         doobjectdestroyandreraise,
+         oldaktexitlabel,
+         oldaktexit2label,
+         oldaktcontinuelabel,
+         oldaktbreaklabel : tasmlabel;
+         oldflowcontrol,tryflowcontrol,
+         exceptflowcontrol : tflowcontrol;
+         tempbuf,tempaddr : treference;
+         href : treference;
+
+      label
+         errorexit;
+      begin
+         oldflowcontrol:=flowcontrol;
+         flowcontrol:=[];
+         { this can be called recursivly }
+         oldendexceptlabel:=endexceptlabel;
+
+         { save the old labels for control flow statements }
+         oldaktexitlabel:=aktexitlabel;
+         oldaktexit2label:=aktexit2label;
+         if assigned(aktbreaklabel) then
+           begin
+              oldaktcontinuelabel:=aktcontinuelabel;
+              oldaktbreaklabel:=aktbreaklabel;
+           end;
+
+         { get new labels for the control flow statements }
+         getlabel(exittrylabel);
+         getlabel(exitexceptlabel);
+         if assigned(aktbreaklabel) then
+           begin
+              getlabel(breaktrylabel);
+              getlabel(continuetrylabel);
+              getlabel(breakexceptlabel);
+              getlabel(continueexceptlabel);
+           end;
+
+         getlabel(exceptlabel);
+         getlabel(doexceptlabel);
+         getlabel(endexceptlabel);
+         getlabel(lastonlabel);
+
+         cg.g_new_exception(exprasmlist,tempbuf,tempaddr,href,1,exceptlabel);
+         
+         { try block }
+         { set control flow labels for the try block }
+         aktexitlabel:=exittrylabel;
+         aktexit2label:=exittrylabel;
+         if assigned(oldaktbreaklabel) then
+          begin
+            aktcontinuelabel:=continuetrylabel;
+            aktbreaklabel:=breaktrylabel;
+          end;
+
+         flowcontrol:=[];
+         secondpass(left);
+         tryflowcontrol:=flowcontrol;
+         if codegenerror then
+           goto errorexit;
+
+         cg.a_label(exprasmlist,exceptlabel);
+
+                 
+         cg.g_free_exception(exprasmlist,tempbuf,tempaddr,href,0,endexceptlabel,false);
+         
+         
+         cg.a_label(exprasmlist,doexceptlabel);
+
+         { set control flow labels for the except block }
+         { and the on statements                        }
+         aktexitlabel:=exitexceptlabel;
+         aktexit2label:=exitexceptlabel;
+         if assigned(oldaktbreaklabel) then
+          begin
+            aktcontinuelabel:=continueexceptlabel;
+            aktbreaklabel:=breakexceptlabel;
+          end;
+
+         flowcontrol:=[];
+         { on statements }
+         if assigned(right) then
+           secondpass(right);
+
+         cg.a_label(exprasmlist,lastonlabel);
+         { default handling except handling }
+         if assigned(t1) then
+           begin
+              { FPC_CATCHES must be called with
+                'default handler' flag (=-1)
+              }
+              cg.a_param_const(exprasmlist,OS_ADDR,aword(-1),paramanager.getintparaloc(1));
+              cg.a_call_name(exprasmlist,'FPC_CATCHES');
+              cg.g_maybe_loadself(exprasmlist);
+
+              { the destruction of the exception object must be also }
+              { guarded by an exception frame                        }
+              getlabel(doobjectdestroy);
+              getlabel(doobjectdestroyandreraise);
+              
+              cg.g_new_exception(exprasmlist,tempbuf,tempaddr,href,1,exceptlabel);
+
+              { here we don't have to reset flowcontrol           }
+              { the default and on flowcontrols are handled equal }
+              secondpass(t1);
+              exceptflowcontrol:=flowcontrol;
+
+              cg.a_label(exprasmlist,doobjectdestroyandreraise);
+              
+              cg.g_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
+
+              cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
+
+              cg.a_param_reg(exprasmlist, OS_ADDR, accumulator, paramanager.getintparaloc(1));
+              cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
+              { we don't need to restore esi here because reraise never }
+              { returns                                                 }
+              cg.a_call_name(exprasmlist,'FPC_RERAISE');
+
+              cg.a_label(exprasmlist,doobjectdestroy);
+              cleanupobjectstack;
+              cg.a_jmp_always(exprasmlist,endexceptlabel);
+           end
+         else
+           begin
+              cg.a_call_name(exprasmlist,'FPC_RERAISE');
+              exceptflowcontrol:=flowcontrol;
+           end;
+
+         if fc_exit in exceptflowcontrol then
+           begin
+              { do some magic for exit in the try block }
+              cg.a_label(exprasmlist,exitexceptlabel);
+              { we must also destroy the address frame which guards }
+              { exception object                                    }
+              cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+              cg.g_exception_reason_load(exprasmlist,href);
+              cleanupobjectstack;
+              cg.a_jmp_always(exprasmlist,oldaktexitlabel);
+           end;
+
+         if fc_break in exceptflowcontrol then
+           begin
+              cg.a_label(exprasmlist,breakexceptlabel);
+              { we must also destroy the address frame which guards }
+              { exception object                                    }
+              cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+              cg.g_exception_reason_load(exprasmlist,href);
+              cleanupobjectstack;
+              cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
+           end;
+
+         if fc_continue in exceptflowcontrol then
+           begin
+              cg.a_label(exprasmlist,continueexceptlabel);
+              { we must also destroy the address frame which guards }
+              { exception object                                    }
+              cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+              cg.g_exception_reason_load(exprasmlist,href);
+              cleanupobjectstack;
+              cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
+           end;
+
+         if fc_exit in tryflowcontrol then
+           begin
+              { do some magic for exit in the try block }
+              cg.a_label(exprasmlist,exittrylabel);
+              cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+              cg.g_exception_reason_load(exprasmlist,href);
+              cg.a_jmp_always(exprasmlist,oldaktexitlabel);
+           end;
+
+         if fc_break in tryflowcontrol then
+           begin
+              cg.a_label(exprasmlist,breaktrylabel);
+              cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+              cg.g_exception_reason_load(exprasmlist,href);
+              cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
+           end;
+
+         if fc_continue in tryflowcontrol then
+           begin
+              cg.a_label(exprasmlist,continuetrylabel);
+              cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
+              cg.g_exception_reason_load(exprasmlist,href);
+              cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
+           end;
+
+         cg.a_label(exprasmlist,endexceptlabel);
+
+       errorexit:
+         { restore all saved labels }
+         endexceptlabel:=oldendexceptlabel;
+
+         { restore the control flow labels }
+         aktexitlabel:=oldaktexitlabel;
+         aktexit2label:=oldaktexit2label;
+         if assigned(oldaktbreaklabel) then
+          begin
+            aktcontinuelabel:=oldaktcontinuelabel;
+            aktbreaklabel:=oldaktbreaklabel;
+          end;
+
+         { return all used control flow statements }
+         flowcontrol:=oldflowcontrol+exceptflowcontrol+
+           tryflowcontrol;
+      end;
+
+    procedure tcgonnode.pass_2;
+      var
+         nextonlabel,
+         exitonlabel,
+         continueonlabel,
+         breakonlabel,
+         oldaktexitlabel,
+         oldaktexit2label,
+         oldaktcontinuelabel,
+         doobjectdestroyandreraise,
+         doobjectdestroy,
+         oldaktbreaklabel : tasmlabel;
+         ref : treference;
+         oldflowcontrol : tflowcontrol;
+         tempbuf,tempaddr : treference;
+         href : treference;
+         href2: treference;
+
+      begin
+         oldflowcontrol:=flowcontrol;
+         flowcontrol:=[];
+         getlabel(nextonlabel);
+
+         { send the vmt parameter }
+         reference_reset_symbol(href2,newasmsymbol(excepttype.vmt_mangledname),0);
+         cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(1));
+         cg.a_call_name(exprasmlist,'FPC_CATCHES');
+         
+         { is it this catch? No. go to next onlabel }
+         cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,accumulator,nextonlabel);
+         ref.symbol:=nil;
+         tg.gettempofsizereference(exprasmlist,pointer_size,ref);
+
+         { what a hack ! }
+         if assigned(exceptsymtable) then
+           tvarsym(exceptsymtable.symindex.first).address:=ref.offset;
+         cg.a_load_reg_ref(exprasmlist, OS_ADDR, accumulator, ref);
+         
+
+         { in the case that another exception is risen }
+         { we've to destroy the old one                }
+         getlabel(doobjectdestroyandreraise);
+         
+         { call setjmp, and jump to finally label on non-zero result }
+         cg.g_new_exception(exprasmlist,tempbuf,tempaddr,href,1,doobjectdestroyandreraise);
+         
+         if assigned(right) then
+           begin
+              oldaktexitlabel:=aktexitlabel;
+              oldaktexit2label:=aktexit2label;
+              getlabel(exitonlabel);
+              aktexitlabel:=exitonlabel;
+              aktexit2label:=exitonlabel;
+              if assigned(aktbreaklabel) then
+               begin
+                 oldaktcontinuelabel:=aktcontinuelabel;
+                 oldaktbreaklabel:=aktbreaklabel;
+                 getlabel(breakonlabel);
+                 getlabel(continueonlabel);
+                 aktcontinuelabel:=continueonlabel;
+                 aktbreaklabel:=breakonlabel;
+               end;
+
+              { esi is destroyed by FPC_CATCHES }
+              cg.g_maybe_loadself(exprasmlist);
+              secondpass(right);
+           end;
+         getlabel(doobjectdestroy);
+         cg.a_label(exprasmlist,doobjectdestroyandreraise);
+         
+         cg.g_free_exception(exprasmlist,tempbuf,tempaddr,href,0,doobjectdestroy,false);
+
+         cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
+         cg.a_param_reg(exprasmlist, OS_ADDR, accumulator, paramanager.getintparaloc(1));
+         cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
+         { we don't need to restore esi here because reraise never }
+         { returns                                                 }
+         cg.a_call_name(exprasmlist,'FPC_RERAISE');
+
+         cg.a_label(exprasmlist,doobjectdestroy);
+         cleanupobjectstack;
+         { clear some stuff }
+         tg.ungetiftemp(exprasmlist,ref);
+         cg.a_jmp_always(exprasmlist,endexceptlabel);
+
+         if assigned(right) then
+           begin
+              { special handling for control flow instructions }
+              if fc_exit in flowcontrol then
+                begin
+                   { the address and object pop does secondtryexcept }
+                   cg.a_label(exprasmlist,exitonlabel);
+                   cg.a_jmp_always(exprasmlist,oldaktexitlabel);
+                end;
+
+              if fc_break in flowcontrol then
+                begin
+                   { the address and object pop does secondtryexcept }
+                   cg.a_label(exprasmlist,breakonlabel);
+                   cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
+                end;
+
+              if fc_continue in flowcontrol then
+                begin
+                   { the address and object pop does secondtryexcept }
+                   cg.a_label(exprasmlist,continueonlabel);
+                   cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
+                end;
+
+              aktexitlabel:=oldaktexitlabel;
+              aktexit2label:=oldaktexit2label;
+              if assigned(oldaktbreaklabel) then
+               begin
+                 aktcontinuelabel:=oldaktcontinuelabel;
+                 aktbreaklabel:=oldaktbreaklabel;
+               end;
+           end;
+
+         cg.a_label(exprasmlist,nextonlabel);
+         flowcontrol:=oldflowcontrol+flowcontrol;
+         { next on node }
+         if assigned(left) then
+           begin
+              rg.cleartempgen;
+              secondpass(left);
+           end;
+      end;
+
+{*****************************************************************************
+                             SecondTryFinally
+*****************************************************************************}
+
+    procedure tcgtryfinallynode.pass_2;
+      var
+         reraiselabel,
+         finallylabel,
+         endfinallylabel,
+         exitfinallylabel,
+         continuefinallylabel,
+         breakfinallylabel,
+         oldaktexitlabel,
+         oldaktexit2label,
+         oldaktcontinuelabel,
+         oldaktbreaklabel : tasmlabel;
+         oldflowcontrol,tryflowcontrol : tflowcontrol;
+         decconst : longint;
+         tempbuf,tempaddr : treference;
+         href : treference;
+
+      begin
+         { check if child nodes do a break/continue/exit }
+         oldflowcontrol:=flowcontrol;
+         flowcontrol:=[];
+         getlabel(finallylabel);
+         getlabel(endfinallylabel);
+         getlabel(reraiselabel);
+
+         { the finally block must catch break, continue and exit }
+         { statements                                            }
+         oldaktexitlabel:=aktexitlabel;
+         oldaktexit2label:=aktexit2label;
+         getlabel(exitfinallylabel);
+         aktexitlabel:=exitfinallylabel;
+         aktexit2label:=exitfinallylabel;
+         if assigned(aktbreaklabel) then
+          begin
+            oldaktcontinuelabel:=aktcontinuelabel;
+            oldaktbreaklabel:=aktbreaklabel;
+            getlabel(breakfinallylabel);
+            getlabel(continuefinallylabel);
+            aktcontinuelabel:=continuefinallylabel;
+            aktbreaklabel:=breakfinallylabel;
+          end;
+
+         { call setjmp, and jump to finally label on non-zero result }
+         cg.g_new_exception(exprasmlist,tempbuf,tempaddr,href,1,finallylabel);
+
+         { try code }
+         if assigned(left) then
+           begin
+              secondpass(left);
+              tryflowcontrol:=flowcontrol;
+              if codegenerror then
+                exit;
+           end;
+
+         cg.a_label(exprasmlist,finallylabel);
+         { just free the frame information }
+         cg.g_free_exception(exprasmlist,tempbuf,tempaddr,href,1,finallylabel,true);
+
+         { finally code }
+         flowcontrol:=[];
+         secondpass(right);
+         if flowcontrol<>[] then
+           CGMessage(cg_e_control_flow_outside_finally);
+         if codegenerror then
+           exit;
+    
+         { the value should now be in the exception handler }
+         cg.g_exception_reason_load(exprasmlist,href);  
+         cg.a_cmp_reg_reg_label(exprasmlist,OS_S32,OC_NE,accumulator,accumulator,finallylabel);
+         cg.a_op_const_reg(exprasmlist,OP_SUB,1,accumulator);
+         cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,accumulator,reraiselabel);
+         if fc_exit in tryflowcontrol then
+           begin
+              cg.a_op_const_reg(exprasmlist,OP_SUB,1,accumulator);
+              cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,accumulator,oldaktexitlabel);
+              decconst:=1;
+           end
+         else
+           decconst:=2;
+         if fc_break in tryflowcontrol then
+           begin
+              cg.a_op_const_reg(exprasmlist,OP_SUB,decconst,accumulator);
+              cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,accumulator,oldaktbreaklabel);
+              decconst:=1;
+           end
+         else
+           inc(decconst);
+         if fc_continue in tryflowcontrol then
+           begin
+              cg.a_op_const_reg(exprasmlist,OP_SUB,decconst,accumulator);
+              cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,accumulator,oldaktcontinuelabel);
+           end;
+         cg.a_label(exprasmlist,reraiselabel);
+         cg.a_call_name(exprasmlist,'FPC_RERAISE');
+         { do some magic for exit,break,continue in the try block }
+         if fc_exit in tryflowcontrol then
+           begin
+              cg.a_label(exprasmlist,exitfinallylabel);
+              cg.g_exception_reason_load(exprasmlist,href);
+              cg.g_exception_reason_save_const(exprasmlist,href,2);
+              cg.a_jmp_always(exprasmlist,finallylabel);
+           end;
+         if fc_break in tryflowcontrol then
+          begin
+             cg.a_label(exprasmlist,breakfinallylabel);
+             cg.g_exception_reason_load(exprasmlist,href);
+             cg.g_exception_reason_save_const(exprasmlist,href,3);
+             cg.a_jmp_always(exprasmlist,finallylabel);
+           end;
+         if fc_continue in tryflowcontrol then
+           begin
+              cg.a_label(exprasmlist,continuefinallylabel);
+              cg.g_exception_reason_load(exprasmlist,href);
+              cg.g_exception_reason_save_const(exprasmlist,href,4);
+              cg.a_jmp_always(exprasmlist,finallylabel);
+           end;
+
+         cg.a_label(exprasmlist,endfinallylabel);
+
+         aktexitlabel:=oldaktexitlabel;
+         aktexit2label:=oldaktexit2label;
+         if assigned(aktbreaklabel) then
+          begin
+            aktcontinuelabel:=oldaktcontinuelabel;
+            aktbreaklabel:=oldaktbreaklabel;
+          end;
+         flowcontrol:=oldflowcontrol+tryflowcontrol;
+      end;
+
+
 
 
 begin
@@ -624,10 +1202,18 @@ begin
    cgotonode:=tcggotonode;
    clabelnode:=tcglabelnode;
    cfailnode:=tcgfailnode;
+   craisenode:=tcgraisenode;
+   ctryexceptnode:=tcgtryexceptnode;
+   ctryfinallynode:=tcgtryfinallynode;
+   connode:=tcgonnode;
 end.
 {
   $Log$
-  Revision 1.30  2002-07-27 19:53:51  jonas
+  Revision 1.31  2002-08-04 19:06:41  carl
+    + added generic exception support (still does not work!)
+    + more documentation
+
+  Revision 1.30  2002/07/27 19:53:51  jonas
     + generic implementation of tcg.g_flags2ref()
     * tcg.flags2xxx() now also needs a size parameter
 

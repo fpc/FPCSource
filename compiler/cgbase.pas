@@ -92,6 +92,31 @@ unit cgbase;
 
           {# true, if we can not use fast exit code }
           no_fast_exit : boolean;
+          
+          {# Holds the environment reference for default exceptions 
+             
+             The exception reference is created when ansistrings
+             or classes are used. It holds buffer for exception
+             frames. It is allocted by g_new_exception.
+          }
+          exception_env_ref : treference;
+          {# Holds the environment reference for default exceptions 
+             
+             The exception reference is created when ansistrings
+             or classes are used. It holds buffer for setjmp
+             It is allocted by g_new_exception.
+          }
+          exception_jmp_ref :treference;
+          {# Holds the environment reference for default exceptions 
+             
+             The exception reference is created when ansistrings
+             or classes are used. It holds the location where
+             temporary storage of the setjmp result is stored.
+             
+             This reference can be nil, if the result is instead
+             saved on the stack.
+          }
+          exception_result_ref :treference;
 
           aktproccode,aktentrycode,
           aktexitcode,aktlocaldata : taasmoutput;
@@ -172,6 +197,7 @@ implementation
      uses
         systems,
         cresstr,
+        rgobj,
         defbase
 {$ifdef fixLeaksOnError}
         ,comphook
@@ -310,6 +336,9 @@ implementation
         aktexitcode:=Taasmoutput.Create;
         aktproccode:=Taasmoutput.Create;
         aktlocaldata:=Taasmoutput.Create;
+        reference_reset(exception_env_ref);
+        reference_reset(exception_jmp_ref);
+        reference_reset(exception_result_ref);
       end;
 
 
@@ -525,7 +554,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-07-20 11:57:53  florian
+  Revision 1.20  2002-08-04 19:06:41  carl
+    + added generic exception support (still does not work!)
+    + more documentation
+
+  Revision 1.19  2002/07/20 11:57:53  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

@@ -46,6 +46,15 @@ unit rgobj;
 
        tpushedsaved = array[firstreg..lastreg] of tpushedsavedloc;
 
+       {# 
+          This class implements the abstract register allocator
+          It is used by the code generator to allocate and free
+          registers which might be valid across nodes. It also
+          contains utility routines related to registers.
+          
+          Some of the methods in this class should be overriden
+          by cpu-specific implementations.
+       }
        trgobj = class
           { The "usableregsxxx" contain all registers of type "xxx" that }
           { aren't currently allocated to a regvar. The "unusedregsxxx"  }
@@ -75,15 +84,37 @@ unit rgobj;
 
           constructor create;
 
+          {# Allocate a general purpose register 
+             
+             An internalerror will be generated if there
+             is no more free registers which can be allocated
+          }
           function getregisterint(list: taasmoutput) : tregister; virtual;
+          {# Free a general purpose register }
           procedure ungetregisterint(list: taasmoutput; r : tregister); virtual;
 
+          {# Allocate a floating point register 
+
+             An internalerror will be generated if there
+             is no more free registers which can be allocated
+          }
           function getregisterfpu(list: taasmoutput) : tregister; virtual;
+          {# Free a floating point register }
           procedure ungetregisterfpu(list: taasmoutput; r : tregister); virtual;
 
           function getregistermm(list: taasmoutput) : tregister; virtual;
           procedure ungetregistermm(list: taasmoutput; r : tregister); virtual;
 
+          {# Allocate an address register. 
+          
+             Address registers are the only registers which can
+             be used as a base register in references (treference).
+             On most cpu's this is the same as a general purpose
+             register.
+
+             An internalerror will be generated if there
+             is no more free registers which can be allocated
+          }
           function getaddressregister(list: taasmoutput): tregister; virtual;
           procedure ungetaddressregister(list: taasmoutput; r: tregister); virtual;
           { the following must only be called for address and integer }
@@ -106,10 +137,10 @@ unit rgobj;
           function makeregsize(reg: tregister; size: tcgsize): tregister; virtual;
 
 
-          { saves register variables (restoring happens automatically) }
+          {# saves register variables (restoring happens automatically) }
           procedure saveregvars(list: taasmoutput; const s: tregisterset);
 
-          { saves and restores used registers }
+          {# saves and restores used registers }
           procedure saveusedregisters(list: taasmoutput;
             var saved : tpushedsaved;const s: tregisterset);virtual;
           procedure restoreusedregisters(list: taasmoutput;
@@ -152,7 +183,12 @@ unit rgobj;
        rg: trgobj;
 
      { trerefence handling }
+     
+     {# Clear to zero a treference }
      procedure reference_reset(var ref : treference);
+     {# Clear to zero a treference, and set is base address
+        to base register.
+     }
      procedure reference_reset_base(var ref : treference;base : tregister;offset : longint);
      procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset : longint);
      procedure reference_release(list: taasmoutput; const ref : treference);
@@ -856,7 +892,11 @@ end.
 
 {
   $Log$
-  Revision 1.13  2002-07-07 09:52:32  florian
+  Revision 1.14  2002-08-04 19:06:41  carl
+    + added generic exception support (still does not work!)
+    + more documentation
+
+  Revision 1.13  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 

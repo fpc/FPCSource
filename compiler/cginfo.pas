@@ -30,7 +30,10 @@ interface
   uses cpuinfo,symconst;
 
     type
-       {# Generic opcodes, which must be supporrted by all processors }
+       {# Generic opcodes, which must be supported by all processors 
+          The order of this table should not be changed, since table
+          lookups are used in the different CPU code generators!
+       }   
        TOpCg =
        (
           OP_NONE,
@@ -106,7 +109,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2002-07-07 09:52:32  florian
+  Revision 1.14  2002-08-04 19:06:41  carl
+    + added generic exception support (still does not work!)
+    + more documentation
+
+  Revision 1.13  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled
     * some basic stuff for better callparanode handling, far from being finished
 
