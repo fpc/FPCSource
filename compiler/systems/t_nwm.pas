@@ -97,7 +97,9 @@ implementation
     verbose,systems,globtype,globals,
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmcpu,cpubase,symsym,symdef,
-    import,export,link,i_nwm;
+    import,export,link,i_nwm
+    {$ifdef netware} ,dos {$endif}
+    ;
 
   type
     timportlibnetware=class(timportlib)
@@ -269,11 +271,14 @@ procedure TLinkerNetware.SetDefaultInfo;
 begin
   with Info do
    begin
+     {$ifndef netware}
      ExeCmd[1]:= 'ld -Ur -T $RES $STRIP -o $TMPOBJ';
-     {if source_info.system<>target_info.system Then
-      ExeCmd[2]:='nlmconv -m i386nw -T$RES'
-     else}
-      ExeCmd[2]:='nlmconv -T$RES';
+     ExeCmd[2]:='nlmconv -T$RES';
+     {$else}
+     {for running on netware we need absolute pathes since ld has another working directory}
+     ExeCmd[1]:= 'ld -Ur -T '+FExpand(outputexedir+Info.ResName)+' $STRIP -o '+Fexpand(outputexedir+tmpLinkFileName);
+     ExeCmd[2]:='nlmconv -T'+FExpand(outputexedir+'n'+Info.ResName);
+     {$endif}
    end;
 end;
 
@@ -339,13 +344,17 @@ begin
   if stacksize < minStackSize then stacksize := minStackSize;
   str (stacksize, s);
   NLMConvLinkFile.Add ('STACKSIZE '+s);
-  NLMConvLinkFile.Add ('INPUT '+tmpLinkFileName);
+  {$ifndef netware}
+  NLMConvLinkFile.Add ('INPUT '+outputexedir+tmpLinkFileName);
+  {$else}
+  NLMConvLinkFile.Add ('INPUT '+FExpand(outputexedir+tmpLinkFileName));
+  {$endif}
 
   { add objectfiles, start with nwpre always }
   LinkRes.Add ('INPUT (');
   s2 := FindObjectFile('nwpre','',false);
   Comment (V_Debug,'adding Object File '+s2);
-  LinkRes.Add (s2);
+  {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
 
   { main objectfiles, add to linker input }
   while not ObjectFiles.Empty do
@@ -355,13 +364,17 @@ begin
     begin
       s2 := FindObjectFile (s,'',false);
       Comment (V_Debug,'adding Object File '+s2);
-      LinkRes.Add (s2);
+      {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
     end;
   end;
 
   { output file (nlm), add to nlmconv }
+  {$ifndef netware}
   NLMConvLinkFile.Add ('OUTPUT ' + NlmNam);
-
+  {$else}
+  NLMConvLinkFile.Add ('OUTPUT ' + FExpand(NlmNam));
+  {$endif}
+  
   { start and stop-procedures }
   NLMConvLinkFile.Add ('START _Prelude');  { defined in rtl/netware/nwpre.as }
   NLMConvLinkFile.Add ('EXIT _Stop');                             { nwpre.as }
@@ -387,7 +400,7 @@ begin
          if (pos ('.a',s) <> 0) OR (pos ('.A', s) <> 0) then
          begin
            S2 := FindObjectFile(s,'',false);
-           LinkRes.Add (S2);
+	   {$ifndef netware} LinkRes.Add (s2); {$else} LinkRes.Add (FExpand(s2)); {$endif}
            Comment(V_Debug,'adding Object File (StaticLibFiles) '+S2);
          end else
          begin
@@ -396,6 +409,10 @@ begin
              Delete(S,i,255);
            S := S + '.imp'; S2 := '';
            librarysearchpath.FindFile(S,S2);
+	   {$ifdef netware} 
+	   Comment(V_Debug,'IMPORT @'+s2);
+	   s2 := FExpand (S2); 
+	   {$endif}
            NLMConvLinkFile.Add('IMPORT @'+S2);
            Comment(V_Debug,'IMPORT @'+s2);
          end;
@@ -422,6 +439,10 @@ begin
              Delete(S,i,255);
            S := S + '.imp';
            librarysearchpath.FindFile(S,S3);
+	   {$ifdef netware} 
+	   Comment(V_Debug,'IMPORT @'+S3);
+	   S3 := FExpand (S3); 
+	   {$endif}
            NLMConvLinkFile.Add('IMPORT @'+S3);
            NLMConvLinkFile.Add('MODULE '+s2);
            Comment(V_Debug,'MODULE '+S2);
@@ -525,9 +546,10 @@ begin
     Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
     success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
     if (success) and not(cs_link_extern in aktglobalswitches) then
+    begin
       RemoveFile(outputexedir+'n'+Info.ResName);
-    {always remove the temp object file}
-    RemoveFile(outputexedir+tmpLinkFileName);
+      RemoveFile(outputexedir+tmpLinkFileName);
+    end;
   end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
@@ -547,7 +569,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2004-07-30 16:00:19  armin
+  Revision 1.13  2004-08-01 19:29:06  armin
+  * changes to compile fpc on netware
+
+  Revision 1.12  2004/07/30 16:00:19  armin
   * removed -m for nlmconv, it is only valid for ld
 
   Revision 1.11  2004/06/20 08:55:32  florian
