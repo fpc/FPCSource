@@ -544,7 +544,7 @@ uses cutils,rgobj;
                 //   st? r21d, 8(r1)
 
                 pos := get_insert_pos(Tai(previous),oper[0].reg.number shr 8,
-                                      oper[1].ref^.base.number shr 8,oper[1].ref^.index.number shr 8);
+                                      oper[1].ref^.base.number shr 8,oper[1].ref^.index.number shr 8,unusedregsint);
                 rgget(list,pos,0,helpreg);
                 spill_registers := true;
                 if wasload then
@@ -561,7 +561,7 @@ uses cutils,rgobj;
                   list.insertafter(helpins,pos.next);
                 loadreg(0,helpreg);
                 rgunget(list,helpins,helpreg);
-                forward_allocation(tai(helpins.next));
+                forward_allocation(tai(helpins.next),unusedregsint);
 {
                 writeln('spilling!');
                 list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
@@ -574,9 +574,9 @@ uses cutils,rgobj;
             if supreg in r then
               begin
                 if wasload then
-                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.index.number shr 8,oper[0].reg.number shr 8,0)
+                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.index.number shr 8,oper[0].reg.number shr 8,0,unusedregsint)
                 else
-                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.index.number shr 8,0,0);
+                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.index.number shr 8,0,0,unusedregsint);
                 rgget(list,pos,0,helpreg);
                 spill_registers:=true;
                 helpins:=Taicpu.op_reg_ref(A_LWZ,helpreg,spilltemplist[supreg]);
@@ -586,7 +586,7 @@ uses cutils,rgobj;
                   list.insertafter(helpins,pos.next);
                 oper[1].ref^.base:=helpreg;
                 rgunget(list,helpins,helpreg);
-                forward_allocation(Tai(helpins.next));
+                forward_allocation(Tai(helpins.next),unusedregsint);
 {
                 writeln('spilling!');
                 list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
@@ -598,9 +598,9 @@ uses cutils,rgobj;
             if supreg in r then
               begin
                 if wasload then
-                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.base.number shr 8,oper[0].reg.number shr 8,0)
+                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.base.number shr 8,oper[0].reg.number shr 8,0,unusedregsint)
                 else
-                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.base.number shr 8,0,0);
+                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.base.number shr 8,0,0,unusedregsint);
                 rgget(list,pos,0,helpreg);
                 spill_registers:=true;
                 helpins:=Taicpu.op_reg_ref(A_LWZ,helpreg,spilltemplist[supreg]);
@@ -610,7 +610,7 @@ uses cutils,rgobj;
                   list.insertafter(helpins,pos.next);
                 oper[1].ref^.index:=helpreg;
                 rgunget(list,helpins,helpreg);
-                forward_allocation(Tai(helpins.next));
+                forward_allocation(Tai(helpins.next),unusedregsint);
 {
                 writeln('spilling!');
                 list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
@@ -649,7 +649,7 @@ uses cutils,rgobj;
             //   add r23d, r21d, r22d
             //   stw r23d, -60(r1)
 
-            pos := get_insert_pos(Tai(previous),reg1,reg2,reg3);
+            pos := get_insert_pos(Tai(previous),reg1,reg2,reg3,unusedregsint);
             rgget(list,pos,0,helpreg);
             spill_registers := true;
             helpins := taicpu.op_reg_ref(A_STW,helpreg,spilltemplist[supreg]);
@@ -661,7 +661,7 @@ uses cutils,rgobj;
               list.insertafter(helpins,pos.next);
             loadreg(0,helpreg);
             rgunget(list,helpins,helpreg);
-            forward_allocation(tai(helpins.next));
+            forward_allocation(tai(helpins.next),unusedregsint);
 {
             writeln('spilling!');
             list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
@@ -683,7 +683,7 @@ uses cutils,rgobj;
                   //   add r23d, r21d, r22d
                   //   stw r23d, -60(r1)
 
-                  pos := get_insert_pos(Tai(previous),reg1,reg2,reg3);
+                  pos := get_insert_pos(Tai(previous),reg1,reg2,reg3,unusedregsint);
                   rgget(list,pos,0,helpreg);
                   spill_registers := true;
                   helpins := taicpu.op_reg_ref(A_LWZ,helpreg,spilltemplist[supreg]);
@@ -693,7 +693,7 @@ uses cutils,rgobj;
                     list.insertafter(helpins,pos.next);
                   loadreg(i,helpreg);
                   rgunget(list,helpins,helpreg);
-                  forward_allocation(tai(helpins.next));
+                  forward_allocation(tai(helpins.next),unusedregsint);
 {
                   writeln('spilling!');
                   list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);
@@ -717,7 +717,10 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.13  2003-08-11 21:18:20  peter
+  Revision 1.14  2003-08-17 16:53:19  jonas
+    * fixed compilation of ppc compiler with -dnewra
+
+  Revision 1.13  2003/08/11 21:18:20  peter
     * start of sparc support for newra
 
   Revision 1.12  2002/09/30 23:16:49  jonas
