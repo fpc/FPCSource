@@ -81,11 +81,17 @@ Begin
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 { Reset IO Error }
   InOutRes:=0;
+{$ifdef HASVARIANT}
+  initvariantmanager;
+{$endif HASVARIANT}  
 End.
 
 {
   $Log$
-  Revision 1.2  2002-09-07 16:01:17  peter
+  Revision 1.3  2002-10-13 09:25:39  florian
+    + call to initvariantmanager inserted
+
+  Revision 1.2  2002/09/07 16:01:17  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/08/19 12:29:11  marco

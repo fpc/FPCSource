@@ -1820,12 +1820,18 @@ begin
    argc:=GetParamCount(args);
    OrigDir := 0;
    FileList := nil;
+{$ifdef HASVARIANT}
+   initvariantmanager;
+{$endif HASVARIANT}
 end.
 
 
 {
   $Log$
-  Revision 1.4  2002-09-07 16:01:16  peter
+  Revision 1.5  2002-10-13 09:25:14  florian
+    + call to initvariantmanager inserted
+
+  Revision 1.4  2002/09/07 16:01:16  peter
     * old logs removed and tabs fixed
 
 }

@@ -519,10 +519,16 @@ begin
 
 { Reset IO Error }
   InOutRes:=0;
+{$ifdef HASVARIANT}
+  initvariantmanager;
+{$endif HASVARIANT}  
 end.
 {
   $Log$
-  Revision 1.4  2002-09-07 16:01:17  peter
+  Revision 1.5  2002-10-13 09:25:31  florian
+    + call to initvariantmanager inserted
+
+  Revision 1.4  2002/09/07 16:01:17  peter
     * old logs removed and tabs fixed
 
 }

@@ -975,7 +975,7 @@ procedure Exe_entry;[public, alias : '_FPC_EXE_Entry'];
      { This strange construction is needed to solve the _SS problem
        with a smartlinked syswin32 (PFV) }
      asm
-         { allocate space for an excption frame }
+         { allocate space for an exception frame }
         pushl $0
         pushl %fs:(0)
         { movl  %esp,%fs:(0)
@@ -1573,7 +1573,10 @@ end.
 
 {
   $Log$
-  Revision 1.32  2002-09-07 21:28:10  carl
+  Revision 1.33  2002-10-13 09:28:45  florian
+    + call to initvariantmanager inserted
+
+  Revision 1.32  2002/09/07 21:28:10  carl
     - removed os_types
     * fix range check errors
 

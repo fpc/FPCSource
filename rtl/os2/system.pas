@@ -1018,10 +1018,17 @@ begin
 
     { no I/O-Error }
     inoutres:=0;
+
+{$ifdef HASVARIANT}
+    initvariantmanager;
+{$endif HASVARIANT}
 end.
 {
   $Log$
-  Revision 1.23  2002-09-07 16:01:25  peter
+  Revision 1.24  2002-10-13 09:28:45  florian
+    + call to initvariantmanager inserted
+
+  Revision 1.23  2002/09/07 16:01:25  peter
     * old logs removed and tabs fixed
 
   Revision 1.22  2002/07/01 16:29:05  peter

@@ -1504,10 +1504,16 @@ Begin
   InitDPMIExcp;
   InstallDefaultHandlers;
 {$endif  EXCEPTIONS_IN_SYSTEM}
+{$ifdef HASVARIANT}
+  initvariantmanager;
+{$endif HASVARIANT}
 End.
 {
   $Log$
-  Revision 1.21  2002-09-07 21:32:08  carl
+  Revision 1.22  2002-10-13 09:28:44  florian
+    + call to initvariantmanager inserted
+
+  Revision 1.21  2002/09/07 21:32:08  carl
     - removed unused defines
 
   Revision 1.20  2002/09/07 16:01:19  peter
