@@ -1012,7 +1012,7 @@ begin
 {$endif}
 { Temporary defines, until things settle down }
   def_symbol('INT64');
-  def_symbol('HASRESOURCESTRINGS');
+  { not yet !!!!!!! def_symbol('HASRESOURCESTRINGS'); }
   def_symbol('HASSAVEREGISTERS');
   def_symbol('NEWVMTOFFSET');
 
@@ -1184,7 +1184,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1999-08-27 10:45:03  pierre
+  Revision 1.17  1999-08-28 15:34:19  florian
+    * bug 519 fixed
+
+  Revision 1.16  1999/08/27 10:45:03  pierre
    options -Ca sets simply_ppu to true
 
   Revision 1.15  1999/08/25 22:51:00  pierre

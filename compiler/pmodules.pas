@@ -135,7 +135,7 @@ unit pmodules;
             end;
           hp:=Pused_unit(hp^.next);
           end;
-        // Add program resources, if any
+        { Add program resources, if any }
         If ResourceStringList<>Nil then
           begin
           ResourceStringTables.concat(new(pai_const_symbol,initname(Current_Module^.modulename^+'_RESOURCESTRINGLIST')));
@@ -1449,7 +1449,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.148  1999-08-27 14:53:00  pierre
+  Revision 1.149  1999-08-28 15:34:19  florian
+    * bug 519 fixed
+
+  Revision 1.148  1999/08/27 14:53:00  pierre
    * double checksum problem solved
 
   Revision 1.147  1999/08/27 10:57:56  pierre

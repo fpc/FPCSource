@@ -1081,6 +1081,11 @@ implementation
                     CGMessage(type_e_varid_or_typeid_expected);
                end;
 
+{$ifdef SUPPORT_MMX}
+            in_mmx_pcmpeqb..in_mmx_pcmpgtw:
+              begin
+              end;
+{$endif SUPPORT_MMX}
             in_assert_x_y :
                begin
                  p^.resulttype:=voiddef;
@@ -1121,7 +1126,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  1999-08-23 23:41:04  pierre
+  Revision 1.49  1999-08-28 15:34:21  florian
+    * bug 519 fixed
+
+  Revision 1.48  1999/08/23 23:41:04  pierre
    * in_inc_x register allocation corrected
 
   Revision 1.47  1999/08/06 12:43:13  jonas

@@ -73,9 +73,28 @@ const
    in_const_sin        = 116;
    in_lo_qword         = 117;
    in_hi_qword         = 118;
+
+{ MMX functions }
+{ these contants are used by the mmx unit }
+
+   { MMX }
+   in_mmx_pcmpeqb      = 200;
+   in_mmx_pcmpeqw      = 201;
+   in_mmx_pcmpeqd      = 202;
+   in_mmx_pcmpgtb      = 203;
+   in_mmx_pcmpgtw      = 204;
+   in_mmx_pcmpgtd      = 205;
+
+   { 3DNow }
+
+   { SSE }
+
 {
   $Log$
-  Revision 1.12  1999-07-01 15:49:14  florian
+  Revision 1.13  1999-08-28 15:34:19  florian
+    * bug 519 fixed
+
+  Revision 1.12  1999/07/01 15:49:14  florian
     * int64/qword type release
     + lo/hi for int64/qword
 

@@ -1310,6 +1310,23 @@ implementation
                         end;
                    end;
               end;
+{$ifdef SUPPORT_MMX}
+            in_mmx_pcmpeqb..in_mmx_pcmpgtw:
+              begin
+                 if p^.left^.location.loc=LOC_REGISTER then
+                   begin
+                      {!!!!!!!}
+                   end
+                 else if p^.left^.left^.location.loc=LOC_REGISTER then
+                   begin
+                      {!!!!!!!}
+                   end
+                 else
+                   begin
+                      {!!!!!!!}
+                   end;
+              end;
+{$endif SUPPORT_MMX}
             else internalerror(9);
          end;
          { reset pushedparasize }
@@ -1319,7 +1336,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  1999-08-19 13:08:47  pierre
+  Revision 1.69  1999-08-28 15:34:16  florian
+    * bug 519 fixed
+
+  Revision 1.68  1999/08/19 13:08:47  pierre
    * emit_??? used
 
   Revision 1.67  1999/08/10 13:21:08  pierre

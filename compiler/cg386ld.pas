@@ -376,6 +376,8 @@ implementation
          r : preference;
          ai : paicpu;
          op : tasmop;
+         pushed : boolean;
+
       begin
          otlabel:=truelabel;
          oflabel:=falselabel;
@@ -388,6 +390,10 @@ implementation
          if codegenerror then
            exit;
 
+{$ifdef dummy}
+         { we use now the standard mechanism via maybe_push/restore
+           to do that (FK)
+         }
          case p^.left^.location.loc of
             LOC_REFERENCE : begin
                               { in case left operator uses to register }
@@ -421,6 +427,8 @@ implementation
                   exit;
                end;
          end;
+{$endif dummy}
+         loc:=p^.left^.location.loc;
          { lets try to optimize this (PM)            }
          { define a dest_loc that is the location      }
          { and a ptree to verify that it is the right }
@@ -434,7 +442,12 @@ implementation
            end;
 {$endif test_dest_loc}
 
+         { left can't be never a 64 bit LOC_REGISTER, so the 3. arg }
+         { can be false                                             }
+         pushed:=maybe_push(p^.right^.registers32,p^.left,false);
          secondpass(p^.right);
+         if pushed then restore(p^.left,false);
+
          if codegenerror then
            exit;
 
@@ -965,7 +978,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  1999-08-26 20:24:37  michael
+  Revision 1.81  1999-08-28 15:34:17  florian
+    * bug 519 fixed
+
+  Revision 1.80  1999/08/26 20:24:37  michael
   + Hopefuly last fixes for resourcestrings
 
   Revision 1.79  1999/08/25 16:41:05  peter

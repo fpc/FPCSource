@@ -1138,7 +1138,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          else
            begin
               reset_reference(p^.location.reference);
-              p^.location.reference.index:=hregister;
+              { any reasons why this was moved into the index register ? }
+              { normally usage of base register is much better (FK)      }
+              p^.location.reference.base:=hregister;
               set_location(p^.left^.location,p^.location);
            end;
 {$ifdef TEMPS_NOT_PUSH}
@@ -3287,7 +3289,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.31  1999-08-25 11:59:55  jonas
+  Revision 1.32  1999-08-28 15:34:17  florian
+    * bug 519 fixed
+
+  Revision 1.31  1999/08/25 11:59:55  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.30  1999/08/19 13:06:45  pierre

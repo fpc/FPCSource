@@ -39,6 +39,9 @@
   NOAG386INT          no Intel Assembler output
   NOAG386NSM          no NASM output
   NOAG386BIN          leaves out the binary writer
+  LOGMEMBLOCKS        adds memory manager which logs the size of
+                      each allocated memory block, the information
+                      is written to memuse.log after compiling
   -----------------------------------------------------------------
 
   Required switches for a i386 compiler be compiled by Free Pascal Compiler:
@@ -120,6 +123,11 @@ uses
 {$endif}
 {$endif FPC}
   globals,compiler
+{$ifdef logmemblocks}
+{$ifdef fpc}
+  ,memlog
+{$endif fpc}
+{$endif logmemblocks}
   ;
 
 {$ifdef useoverlay}
@@ -271,7 +279,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  1999-08-04 00:23:18  florian
+  Revision 1.46  1999-08-28 15:34:20  florian
+    * bug 519 fixed
+
+  Revision 1.45  1999/08/04 00:23:18  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.44  1999/06/02 22:44:13  pierre

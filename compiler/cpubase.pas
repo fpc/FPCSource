@@ -1045,7 +1045,7 @@ end;
                               Instruction table
 *****************************************************************************}
 
-procedure DoneCpu;{$ifndef FPC}far;{$endif}
+procedure DoneCpu;
 begin
   {exitproc:=saveexit; }
 {$ifndef NOAG386BIN}
@@ -1086,7 +1086,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1999-08-19 20:05:09  michael
+  Revision 1.10  1999-08-28 15:34:19  florian
+    * bug 519 fixed
+
+  Revision 1.9  1999/08/19 20:05:09  michael
   + Fixed ifdef NOAG386BIN bug
 
   Revision 1.8  1999/08/19 13:02:10  pierre
