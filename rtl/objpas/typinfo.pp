@@ -204,9 +204,19 @@ unit typinfo;
     procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo;
       const Value : TMethod);
 
+    function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;
+    procedure SetInt64Prop(Instance: TObject; PropInfo: PPropInfo;
+      const Value: Int64);
+
     { misc. stuff }
     function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
     function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
+
+
+  var
+    BooleanIdents: array[Boolean] of String = ('False', 'True');
+    DotSep: String = '.';
+
 
   implementation
 
@@ -777,6 +787,18 @@ unit typinfo;
          end;
       end;
 
+    function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;
+    begin
+      // !!!: Implement me!
+      Result := 0;
+    end;
+
+    procedure SetInt64Prop(Instance: TObject; PropInfo: PPropInfo;
+      const Value: Int64);
+    begin
+      // !!!: Implement me!
+    end;
+
     function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 
       Var PS : PShortString;
@@ -820,7 +842,11 @@ end.
 
 {
   $Log$
-  Revision 1.39  2000-05-18 09:42:17  michael
+  Revision 1.40  2000-06-22 15:29:31  sg
+  * Added prototypes for GetInt64Prop and SetInt64Prop
+  * Added constants "BooleanIdents" and "DotSep"
+
+  Revision 1.39  2000/05/18 09:42:17  michael
   + GetPropInfo now case insensitive
 
   Revision 1.38  2000/02/15 14:39:56  florian
