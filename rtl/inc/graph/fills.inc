@@ -31,6 +31,11 @@ end;
 
 procedure fillpoly(numpoints : Word; var polypoints);
 
+{ disable range check mode }
+{$ifopt R+}
+{$define OPT_R_WAS_ON}
+{$R-}
+{$endif}
 type
   pedge = ^tedge;
   tedge = packed record
@@ -477,9 +482,16 @@ var
     CurrentColor := BackUpColor;
   End;
 
+{ restore previous range check mode }
+{$ifdef OPT_R_WAS_ON}
+{$R+}
+{$endif}
 {
 $Log$
-Revision 1.18  2000-02-27 14:41:25  peter
+Revision 1.19  2000-05-23 20:34:26  pierre
+ * avoid problems with Range Check
+
+Revision 1.18  2000/02/27 14:41:25  peter
   * removed warnings/notes
 
 Revision 1.17  2000/02/12 13:39:19  jonas
