@@ -70,7 +70,7 @@ unit paramgr;
             Returns the location where the invisible parameter for structured
             function results will be passed.
           }
-          function getfuncretparaloc(p : tabstractprocdef) : tparalocation;virtual;abstract;
+          function getfuncretparaloc(p : tabstractprocdef) : tparalocation;virtual;
           { Returns the self pointer location for the given tabstractprocdef,
             when the stack frame is already created. This is used by the code
             generating the wrappers for implemented interfaces.
@@ -170,6 +170,16 @@ unit paramgr;
                push_addr_param:=(not is_cdecl) and (tsetdef(def).settype<>smallset);
            end;
          end;
+      end;
+
+
+    function tparamanager.getfuncretparaloc(p : tabstractprocdef) : tparalocation;
+      begin
+         result.loc:=LOC_REFERENCE;
+         result.size:=OS_ADDR;
+         result.sp_fixup:=pointer_size;
+         result.reference.index:=stack_pointer_reg;
+         result.reference.offset:=0;
       end;
 
 
@@ -292,8 +302,7 @@ unit paramgr;
                        hp.paraloc.loc := LOC_CMMREGISTER;
 {$endif}
                    end;
-                   tvarsym(hp.parasym).reg:=hp.paraloc.register;
-                   rg.regvar_loaded[hp.paraloc.register]:=true;
+                   tvarsym(hp.parasym).paraitem:=hp;
                 end;
               hp:=tparaitem(hp.next);
            end;
@@ -305,7 +314,10 @@ end.
 
 {
    $Log$
-   Revision 1.16  2002-09-01 21:04:48  florian
+   Revision 1.17  2002-09-07 19:40:39  florian
+     * tvarsym.paraitem is set now
+
+   Revision 1.16  2002/09/01 21:04:48  florian
      * several powerpc related stuff fixed
 
    Revision 1.15  2002/08/25 19:25:19  peter
@@ -373,3 +385,4 @@ end.
    Revision 1.1  2002/07/11 14:41:28  florian
      * start of the new generic parameter handling
 }
+
