@@ -105,10 +105,17 @@ type
         procedure Add(const Name: string; P: TPoint);
       end;
 
+      PLinePosCollection = ^TLinePosCollection;
+      TLinePosCollection = object(TNoDisposeCollection)
+        function At(Index: sw_Integer): sw_integer;
+        procedure Insert (Item: longint);virtual;
+      end;
+
       PHelpTopic = ^THelpTopic;
       THelpTopic = object(TObject)
         Topic: PTopic;
         Lines: PUnsortedStringCollection;
+        LinesPos: PLinePosCollection;
         Links: PLinkCollection;
         NamedMarks: PNamedMarkCollection;
         ColorAreas: PColorAreaCollection;
@@ -394,11 +401,22 @@ begin
   Insert(New(PNamedMark, Init(Name, P.X, P.Y)));
 end;
 
+function TLinePosCollection.At(Index: sw_Integer): sw_integer;
+begin
+  at := longint (inherited at(Index));
+end;
+
+procedure TLinePosCollection.Insert (Item: longint);
+begin
+  Inherited Insert(pointer(Item));
+end;
+
 constructor THelpTopic.Init(ATopic: PTopic);
 begin
   inherited Init;
   Topic:=ATopic;
   New(Lines, Init(100,100));
+  New(LinesPos, Init(100,100));
   New(Links, Init(50,50));
   New(ColorAreas, Init(50,50));
   New(NamedMarks, Init(10,10));
@@ -414,7 +432,7 @@ begin
 end;
 
 procedure THelpTopic.ReBuild;
-var TextPos,LinkNo,NamedMarkNo: sw_word;
+var TextPos,LinePos,LinkNo,NamedMarkNo: sw_word;
     Line,CurWord: string;
     C: char;
     InLink,InCodeArea,InColorArea,InImage: boolean;
@@ -468,11 +486,13 @@ begin
       Bounds.Move(Delta,0);
   if Line='' then Line:=' ';
   Lines^.Insert(NewStr(Line));
+  LinesPos^.Insert(LinePos);
   ClearLine;
   LineStart:=NextLineStart;
   CurPos.X:=Margin+LineStart; Line:=CharStr(#255,LineStart); Inc(CurPos.Y);
   if InLink then LinkStart:=CurPos;
   FirstLink:=LastLink;
+  LinePos:=TextPos;
 end;
 procedure FlushLine;
 var W: string;
@@ -512,13 +532,14 @@ begin
   InColorArea:=false; AreaColor:=0;
 end;
 begin
-  Lines^.FreeAll; Links^.FreeAll; NamedMarks^.FreeAll; ColorAreas^.FreeAll;
+  Lines^.FreeAll; LinesPos^.FreeAll;
+  Links^.FreeAll; NamedMarks^.FreeAll; ColorAreas^.FreeAll;
   if Topic=nil then Lines^.Insert(NewStr(msg_nohelpavailabelforthistopic)) else
   begin
     LineStart:=0; NextLineStart:=0;
     TextPos:=0; ClearLine; CurWord:=''; Line:='';
     CurPos.X:=Margin+LineStart; CurPos.Y:=0; LinkNo:=0;
-    NamedMarkNo:=0;
+    NamedMarkNo:=0; LinePos:=0;
     InLink:=false; InCodeArea:=false; InColorArea:=false;
     InImage:=false;
     ZeroLevel:=0;
@@ -585,7 +606,7 @@ begin
               hscCenter :
                    LineAlign:=laCenter;
               hscRight  :
-                   LineAlign:=laCenter;
+                   LineAlign:=laRight{was laCenter, typo error ? PM };
               hscNamedMark :
                    begin
                      if NamedMarkNo<Topic^.NamedMarks^.Count then
@@ -694,6 +715,7 @@ destructor THelpTopic.Done;
 begin
   inherited Done;
   Dispose(Lines, Done);
+  Dispose(LinesPos, Done);
   Dispose(Links, Done);
   Dispose(ColorAreas, Done);
   Dispose(NamedMarks, Done);
@@ -709,11 +731,26 @@ begin
 end;
 
 procedure THelpViewer.ChangeBounds(var Bounds: TRect);
+var
+  LinePos,NewLineIndex,I : longint;
 begin
   if Owner<>nil then Owner^.Lock;
   inherited ChangeBounds(Bounds);
   if (HelpTopic<>nil) and (HelpTopic^.Topic<>nil) and
-     (HelpTopic^.Topic^.FileID<>0) then RenderTopic;
+     (HelpTopic^.Topic^.FileID<>0) then
+    Begin
+      LinePos:=HelpTopic^.LinesPos^.At(CurPos.Y)+CurPos.X;
+      RenderTopic;
+      NewLineIndex:=-1;
+      For i:=0 to HelpTopic^.LinesPos^.Count-1 do
+        if LinePos<HelpTopic^.LinesPos^.At(i) then
+          begin
+            NewLineIndex:=i-1;
+            break;
+          end;
+      if NewLineIndex>=0 then
+        SetCurPtr(LinePos-HelpTopic^.LinesPos^.At(NewLineIndex),NewLineIndex);
+    End;
   if Owner<>nil then Owner^.UnLock;
 end;
 
@@ -1349,7 +1386,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:49  peter
+  Revision 1.3  2001-09-24 23:54:46  pierre
+   * save text position to allow correct cursor placement when zooming
+
+  Revision 1.2  2001/08/05 02:01:49  peter
     * FVISION define to compile with fvision units
 
   Revision 1.1  2001/08/04 11:30:25  peter
