@@ -4781,6 +4781,16 @@ The randomize function uses a seed stored in the \var{RandSeed} variable:
 \end{verbatim}
 This variable is initialized in the initialization code of the system unit.
 
+Other variables indicate the state of the application.
+\begin{verbatim}
+  IsLibrary : boolean;
+  IsMultiThread : boolean;
+\end{verbatim}
+The \var{IsLibrary} variable is set to true if this module is a
+shared library instead of an application. The \var{IsMultiThread}
+variable is set to True if the application has spawned other
+threads, otherwise, and by default, it is set to False.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Functions and Procedures by category
 \section{Function list by category}
