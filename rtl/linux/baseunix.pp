@@ -30,7 +30,9 @@ Interface
 function fpgeterrno:longint;
 procedure fpseterrno(err:longint);
 
+{$ifndef ver1_0}
 property errno : cint read fpgeterrno write fpseterrno;
+{$endif}
 
 implementation
 
@@ -44,7 +46,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-12-10 17:08:28  marco
+  Revision 1.4  2003-12-10 17:14:06  marco
+   * property support under ifndef ver1_0
+
+  Revision 1.3  2003/12/10 17:08:28  marco
    * property errno defined
 
   Revision 1.2  2003/09/14 20:15:01  marco
