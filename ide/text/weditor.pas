@@ -315,6 +315,7 @@ type
       destructor  Done; virtual;
     public
    {a}function    GetModified: boolean; virtual;
+      function    GetChangedLine: sw_integer;
    {a}procedure   SetModified(AModified: boolean); virtual;
    {a}function    GetStoreUndo: boolean; virtual;
    {a}procedure   SetStoreUndo(AStore: boolean); virtual;
@@ -1384,6 +1385,10 @@ function TCustomCodeEditorCore.GetModified: boolean;
 begin
   Abstract;
   GetModified:=true;
+end;
+function TCustomCodeEditorCore.GetChangedLine: sw_integer;
+begin
+  GetChangedLine:=ChangedLine;
 end;
 
 procedure TCustomCodeEditorCore.SetModified(AModified: boolean);
@@ -5843,7 +5848,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.93  2000-06-16 08:50:43  pierre
+  Revision 1.94  2000-06-16 21:17:39  pierre
+   + TCustoCodeEditorCore.GetChangedLine
+
+  Revision 1.93  2000/06/16 08:50:43  pierre
    + new bunch of Gabor's changes
 
   Revision 1.92  2000/06/15 20:29:45  pierre
