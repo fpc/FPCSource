@@ -96,11 +96,11 @@ type
         Entries       : record end;
       end;
 
-      THLPKeywordDescriptor = record
+      THLPKeywordDescriptor = packed record
         KwContext     : word;
       end;
 
-      THLPKeyWordRecord = record
+      THLPKeyWordRecord = packed record
         UpContext     : word;
         DownContext   : word;
         KeyWordCount  : word;
@@ -130,7 +130,7 @@ type
       TKeywordDescriptors = array[0..10900] of TKeywordDescriptor;
 
       PTopic = ^TTopic;
-      TTopic = record
+      TTopic = packed record
         HelpCtx       : THelpCtx;
         FileOfs       : longint;
         TextSize      : word;
@@ -145,13 +145,13 @@ type
 
       PUnsortedStringCollection = ^TUnsortedStringCollection;
       TUnsortedStringCollection = object(TCollection)
-        function   At(Index: Integer): PString;
+        function   At(Index: Sw_Integer): PString;
         procedure FreeItem(Item: Pointer); virtual;
       end;
 
       PTopicCollection = ^TTopicCollection;
       TTopicCollection = object(TCollection)
-        function   At(Index: Integer): PTopic;
+        function   At(Index: Sw_Integer): PTopic;
         procedure  FreeItem(Item: Pointer); virtual;
         function   SearchTopic(AHelpCtx: THelpCtx): PTopic;
       end;
@@ -210,7 +210,7 @@ type
       PHelpFacility = ^THelpFacility;
       THelpFacility = object(TObject)
         HelpFiles: PHelpFileCollection;
-        IndexTabSize: integer;
+        IndexTabSize: Sw_integer;
         constructor Init;
         function    AddOAHelpFile(FileName: string): boolean;
         function    AddHTMLHelpFile(FileName, TOCEntry: string): boolean;
@@ -226,8 +226,8 @@ type
         function  AddFile(H: PHelpFile): boolean;
       end;
 
-const TopicCacheSize    : integer = 10;
-      HelpStreamBufSize : integer = 4096;
+const TopicCacheSize    : Sw_integer = 10;
+      HelpStreamBufSize : Sw_integer = 4096;
       HelpFacility      : PHelpFacility = nil;
       MaxHelpTopicSize  : word = 65520;
 
@@ -264,7 +264,7 @@ begin
 end;
 
 function UpcaseStr(S: string): string;
-var I: integer;
+var I: Sw_integer;
 begin
   for I:=1 to length(S) do
       S[I]:=Upcase(S[I]);
@@ -332,7 +332,7 @@ begin
   end;
 end;
 
-function TUnsortedStringCollection.At(Index: Integer): PString;
+function TUnsortedStringCollection.At(Index: Sw_Integer): PString;
 begin
   At:=inherited At(Index);
 end;
@@ -342,7 +342,7 @@ begin
   if Item<>nil then DisposeStr(Item);
 end;
 
-function TTopicCollection.At(Index: Integer): PTopic;
+function TTopicCollection.At(Index: Sw_Integer): PTopic;
 begin
   At:=inherited At(Index);
 end;
@@ -424,7 +424,7 @@ begin
 end;
 
 procedure THelpFile.MaintainTopicCache;
-var Count: integer;
+var Count: Sw_integer;
     MinP: PTopic;
     MinLRU: longint;
 procedure CountThem(P: PTopic); {$ifndef FPC}far;{$endif}
@@ -811,25 +811,33 @@ function THelpFacility.BuildIndexTopic: PTopic;
 var T: PTopic;
     Keywords: PIndexEntryCollection;
     Lines: PUnsortedStringCollection;
-procedure InsertKeywordsOfFile(H: PHelpFile); {$ifndef FPC}far;{$endif}
-function InsertKeywords(P: PIndexEntry): boolean; {$ifndef FPC}far;{$endif}
-begin
-  Keywords^.Insert(P);
-  InsertKeywords:=Keywords^.Count>=MaxCollectionSize;
-end;
-begin
-  H^.LoadIndex;
-  if Keywords^.Count<MaxCollectionSize then
-  H^.IndexEntries^.FirstThat(@InsertKeywords);
-end;
-procedure AddLine(S: string);
-begin
-  if S='' then S:=' ';
-  Lines^.Insert(NewStr(S));
-end;
+
+  procedure InsertKeywordsOfFile(H: PHelpFile); {$ifndef FPC}far;{$endif}
+
+    function InsertKeywords(P: PIndexEntry): boolean; {$ifndef FPC}far;{$endif}
+    begin
+      Keywords^.Insert(P);
+      InsertKeywords:=Keywords^.Count>=MaxCollectionSize;
+    end;
+  var
+    l1,l2 : longint;
+  begin
+    H^.LoadIndex;
+    l1:=MaxCollectionSize;
+    l2:=Keywords^.count;
+    if Keywords^.Count<MaxCollectionSize then
+      H^.IndexEntries^.FirstThat(@InsertKeywords);
+  end;
+
+  procedure AddLine(S: string);
+  begin
+    if S='' then S:=' ';
+    Lines^.Insert(NewStr(S));
+  end;
+
 procedure RenderTopic;
 var Size,CurPtr,I: word;
-    S: string;
+  S: string;
 function CountSize(P: PString): boolean; {$ifndef FPC}far;{$endif} begin Inc(Size, length(P^)+1); CountSize:=Size>65200; end;
 begin
   Size:=0; Lines^.FirstThat(@CountSize);
@@ -849,7 +857,7 @@ procedure FlushLine;
 begin
   if Line<>'' then AddLine(Line); Line:='';
 end;
-var KWCount,NLFlag: integer;
+var KWCount,NLFlag: Sw_integer;
     LastFirstChar: char;
 procedure NewSection(FirstChar: char);
 begin
@@ -876,7 +884,7 @@ begin
   Inc(NLFlag);
 end;
 var KW: PIndexEntry;
-    I: integer;
+    I: Sw_integer;
 begin
   New(Keywords, Init(5000,1000));
   HelpFiles^.ForEach(@InsertKeywordsOfFile);
@@ -935,7 +943,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  1999-02-18 13:44:37  peter
+  Revision 1.5  1999-02-19 15:43:22  peter
+    * compatibility fixes for FV
+
+  Revision 1.4  1999/02/18 13:44:37  peter
     * search fixed
     + backward search
     * help fixes

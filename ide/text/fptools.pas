@@ -42,7 +42,7 @@ type
 
     PToolListBox = ^TToolListBox;
     TToolListBox = object(TAdvancedListBox)
-      function GetText(Item: sw_integer; MaxLen: Integer): String; virtual;
+      function GetText(Item,MaxLen: sw_integer): String; virtual;
     end;
 
     PToolParamValidator = ^TToolParamValidator;
@@ -78,16 +78,16 @@ type
     end;
 
 procedure InitTools;
-function  GetToolCount: integer;
-function  GetToolName(Idx: integer): string;
-function  AddTool(Title, ProgramPath, Params: string; HotKey: word): integer;
-procedure GetToolParams(Idx: integer; var Title, ProgramPath, Params: string; var HotKey: word);
-procedure SetToolParams(Idx: integer; Title, ProgramPath, Params: string; HotKey: word);
+function  GetToolCount: Sw_integer;
+function  GetToolName(Idx: Sw_integer): string;
+function  AddTool(Title, ProgramPath, Params: string; HotKey: word): Sw_integer;
+procedure GetToolParams(Idx: Sw_integer; var Title, ProgramPath, Params: string; var HotKey: word);
+procedure SetToolParams(Idx: Sw_integer; Title, ProgramPath, Params: string; HotKey: word);
 procedure DoneTools;
 
 function GetHotKeyName(Key: word): string;
 
-function ParseToolParams(var Params: string; CheckOnly: boolean): integer;
+function ParseToolParams(var Params: string; CheckOnly: boolean): Sw_integer;
 
 implementation
 
@@ -116,18 +116,18 @@ const
 
      Tools : PToolCollection = nil;
 
-function GetHotKeyCount: integer;
+function GetHotKeyCount: Sw_integer;
 begin
   GetHotKeyCount:=ord(High(HotKeys))-ord(Low(HotKeys))+1;
 end;
 
-function GetHotKeyNameByIdx(Idx: integer): string;
+function GetHotKeyNameByIdx(Idx: Sw_integer): string;
 begin
   GetHotKeyNameByIdx:=HotKeys[Idx].Name;
 end;
 
-function HotKeyToIdx(Key: word): integer;
-var Count,I: integer;
+function HotKeyToIdx(Key: word): Sw_integer;
+var Count,I: Sw_integer;
     Found: boolean;
 begin
   Count:=GetHotKeyCount; Found:=false;
@@ -142,8 +142,8 @@ begin
   HotKeyToIdx:=I;
 end;
 
-function IdxToHotKey(Idx: integer): word;
-var Count: integer;
+function IdxToHotKey(Idx: Sw_integer): word;
+var Count: Sw_integer;
     Key: word;
 begin
   Count:=GetHotKeyCount;
@@ -155,7 +155,7 @@ begin
 end;
 
 function GetHotKeyName(Key: word): string;
-var Idx: integer;
+var Idx: Sw_integer;
     S: string;
 begin
   Idx:=HotKeyToIdx(Key);
@@ -206,7 +206,7 @@ begin
   At:=inherited At(Index);
 end;
 
-function TToolListBox.GetText(Item: sw_integer; MaxLen: Integer): String;
+function TToolListBox.GetText(Item,MaxLen: sw_integer): String;
 var S: string;
     P: PTool;
 begin
@@ -221,15 +221,15 @@ begin
   New(Tools, Init(10,20));
 end;
 
-function  GetToolCount: integer;
-var Count: integer;
+function  GetToolCount: Sw_integer;
+var Count: Sw_integer;
 begin
   if Tools=nil then Count:=0 else
     Count:=Tools^.Count;
   GetToolCount:=Count;
 end;
 
-function GetToolName(Idx: integer): string;
+function GetToolName(Idx: Sw_integer): string;
 var S1,S2: string;
     W: word;
 begin
@@ -237,7 +237,7 @@ begin
   GetToolName:=KillTilde(S1);
 end;
 
-function AddTool(Title, ProgramPath, Params: string; HotKey: word): integer;
+function AddTool(Title, ProgramPath, Params: string; HotKey: word): Sw_integer;
 var P: PTool;
 begin
   if Tools=nil then InitTools;
@@ -246,14 +246,14 @@ begin
   AddTool:=Tools^.IndexOf(P);
 end;
 
-procedure GetToolParams(Idx: integer; var Title, ProgramPath, Params: string; var HotKey: word);
+procedure GetToolParams(Idx: Sw_integer; var Title, ProgramPath, Params: string; var HotKey: word);
 var P: PTool;
 begin
   P:=Tools^.At(Idx);
   P^.GetParams(Title,ProgramPath,Params,HotKey);
 end;
 
-procedure SetToolParams(Idx: integer; Title, ProgramPath, Params: string; HotKey: word);
+procedure SetToolParams(Idx: Sw_integer; Title, ProgramPath, Params: string; HotKey: word);
 var P: PTool;
 begin
   P:=Tools^.At(Idx);
@@ -282,8 +282,7 @@ end;
 constructor TToolItemDialog.Init(ATool: PTool);
 var R,R2,R3: TRect;
     Items: PSItem;
-    I: integer;
-    KeyCount: integer;
+    I,KeyCount: Sw_integer;
 begin
   KeyCount:=GetHotKeyCount;
 
@@ -474,7 +473,7 @@ begin
 end;
 
 procedure ReplaceStr(var S: string; const What,NewS: string);
-var I : integer;
+var I : Sw_integer;
 begin
   repeat
     I:=Pos(What,S);
@@ -501,11 +500,11 @@ begin
   until I=0;
 end;
 
-function ParseToolParams(var Params: string; CheckOnly: boolean): integer;
+function ParseToolParams(var Params: string; CheckOnly: boolean): Sw_integer;
 var Err: integer;
     W: PSourceWindow;
 procedure ParseParams(Pass: integer);
-var I: integer;
+var I: Sw_integer;
 function IsAlpha(Ch: char): boolean;
 begin
   IsAlpha:=(Upcase(Ch) in['A'..'Z','_','$']);
@@ -539,7 +538,7 @@ begin
 end;
 var C,PrevC: char;
     WordS: string;
-    LastWordStart: integer;
+    LastWordStart: Sw_integer;
     L: longint;
     S: string;
     D: DirStr; N: NameStr; E: ExtStr;
@@ -718,7 +717,7 @@ begin
     Inc(I);
   end;
 end;
-var Pass: integer;
+var Pass: Sw_integer;
 begin
   W:=FirstEditorWindow;
   Err:=0;
@@ -733,7 +732,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.1  1999-01-21 11:54:25  peter
+  Revision 1.2  1999-02-19 15:43:21  peter
+    * compatibility fixes for FV
+
+  Revision 1.1  1999/01/21 11:54:25  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command

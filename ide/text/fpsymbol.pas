@@ -761,9 +761,9 @@ end;
 
 procedure TBrowserWindow.SelectTab(BrowserTab: Sw_integer);
 var Tabs: Sw_integer;
-    PB : PBreakpoint;
+{    PB : PBreakpoint;
     PS :PString;
-    l : longint;
+    l : longint; }
 begin
 (*  case BrowserTab of
     btScope :
@@ -863,7 +863,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  1999-02-18 13:44:34  peter
+  Revision 1.10  1999-02-19 15:43:20  peter
+    * compatibility fixes for FV
+
+  Revision 1.9  1999/02/18 13:44:34  peter
     * search fixed
     + backward search
     * help fixes
