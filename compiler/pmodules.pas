@@ -357,10 +357,13 @@ unit pmodules;
              begin
                { remove the old unit }
                loaded_units.remove(hp);
-               dispose(hp,done);
-             end;
+               hp^.done;
+               hp^.init(s,true);
+               current_module:=hp;
+             end
+            else
           { generates a new unit info record }
-            current_module:=new(pmodule,init(s,true));
+             current_module:=new(pmodule,init(s,true));
             current_ppu:=current_module^.ppufile;
           { now we can register the unit }
             loaded_units.insert(current_module);
@@ -979,7 +982,15 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.55  1998-09-28 11:04:03  peter
+  Revision 1.56  1998-09-28 11:22:15  pierre
+   * did not compile for browser
+   * merge from fixes
+
+
+  Revision 1.48.2.1  1998/09/28 10:55:16  pierre
+  fix for current_module dispose bug
+
+  Revision 1.55  1998/09/28 11:04:03  peter
     * fixed loaddefaultunits which was at the wrong place for programs, so
       the default defs were not loaded when main was initialized
 

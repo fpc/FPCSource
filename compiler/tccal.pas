@@ -44,6 +44,9 @@ implementation
 {$ifdef m68k}
       ,m68k,tgeni386
 {$endif}
+{$ifdef UseBrowser}
+      ,browser
+{$endif UseBrowser}
       ;
 
 {*****************************************************************************
@@ -55,7 +58,7 @@ implementation
         old_array_constructor : boolean;
         store_valid : boolean;
         oldtype     : pdef;
-        convtyp     : tconverttype;
+        {convtyp     : tconverttype;}
       begin
          inc(parsing_para_level);
          if assigned(p^.right) then
@@ -910,7 +913,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-09-27 10:16:24  florian
+  Revision 1.5  1998-09-28 11:22:17  pierre
+   * did not compile for browser
+   * merge from fixes
+
+  Revision 1.4  1998/09/27 10:16:24  florian
     * type casts pchar<->ansistring fixed
     * ansistring[..] calls does now an unique call
 
