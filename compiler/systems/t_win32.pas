@@ -695,7 +695,7 @@ const
          exportsSection.concat(Tai_section.Create(sec_edata));
          { create label to reference from main so smartlink will include
            the .edata section }
-         exportsSection.concat(Tai_symbol.Create(edatalabel,0));
+         exportsSection.concat(Tai_symbol.Create_global(edatalabel,0));
          { export flags }
          exportsSection.concat(Tai_const.Create_32bit(0));
          { date/time stamp }
@@ -1627,7 +1627,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2003-08-21 14:47:41  peter
+  Revision 1.19  2003-09-30 20:10:12  peter
+    * smartlink fix for dlls from Pavel
+
+  Revision 1.18  2003/08/21 14:47:41  peter
     * remove convert_registers
 
   Revision 1.17  2003/08/20 20:50:18  daniel
