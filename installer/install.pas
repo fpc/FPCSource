@@ -127,7 +127,8 @@ program install;
        targetname : string[20];
        defidecfgfile,
        defideinifile,
-       defcfgfile : string[12];
+       defcfgfile,
+       setpathfile : string[12];
        include  : boolean;
        filechk  : string[40];
        packages : longint;
@@ -146,10 +147,12 @@ program install;
        pack     : array[1..maxpacks] of tpack;
        defideinis,
        defidecfgs,
-       defcfgs  : longint;
+       defcfgs,
+       defsetpaths : longint;
        defideini,
        defidecfg,
-       defcfg   : tcfgarray;
+       defcfg,
+       defsetpath : tcfgarray;
      end;
 
      datarec=packed record
@@ -480,6 +483,13 @@ program install;
     DirAndNameOf:=D+N;
   end;
 
+  function DirOf(const S: string): string;
+  var D: DirStr; E: ExtStr; N: NameStr;
+  begin
+    FSplit(S,D,N,E);
+    DirOf:=D;
+  end;
+
 {*****************************************************************************
                           HTML-Index Generation
 *****************************************************************************}
@@ -547,7 +557,7 @@ program install;
        indexdlg:=new(phtmlindexdialog,init(r,'Creating HTML index file, please wait ...'));
        desktop^.insert(indexdlg);
 {$warning FIXME !!!! }
-       New(LS, Init(''));
+       New(LS, Init(DirOf(FileName)));
        LS^.ProcessDocument(FileName,[soSubDocsOnly]);
        if LS^.GetDocumentCount=0 then
          begin
@@ -564,7 +574,9 @@ program install;
                 params[0]:=@filename;
                 Re:=MessageBox('Help index %s already exists, overwrite it?',@params,
                   mfinformation+mfyesbutton+mfnobutton);
-             end;
+             end
+           else
+             Re:=cmYes;
            if Re<>cmNo then
            begin
              New(BS, Init(FileName, stCreate, 4096));
@@ -753,6 +765,7 @@ program install;
       i : longint;
       S: string;
       WPath: boolean;
+      MixedCasePath: boolean;
 {$ENDIF}
 {$IFDEF OS2}
       ErrPath: array [0..259] of char;
@@ -779,10 +792,22 @@ program install;
       if Pos (Upper (S), Upper (GetEnv ('PATH'))) = 0 then
        begin
          WPath := true;
-         Inc (YB, 2);
+         Inc (YB, 3);
        end
       else
        WPath := false;
+      { look if path is set as Path,
+        this leads to problems for mingw32 make PM }
+      MixedCasePath:=false;
+      for i:=1 to EnvCount do
+        begin
+          if Pos('PATH=',Upper(EnvStr(i)))=1 then
+            if Pos('PATH=',EnvStr(i))<>1 then
+              Begin
+                MixedCasePath:=true;
+                Inc(YB, 2);
+              End;
+        end;
   {$IFDEF OS2}
       if DosLoadModule (@ErrPath, SizeOf (ErrPath), @EMXName, Handle) = 0 then
        begin
@@ -805,6 +830,13 @@ program install;
        begin
          R.Assign(2, 3, 64, 5);
          P:=new(pstatictext,init(r,'Extend your PATH variable with '''+S+''''));
+         insert(P);
+       end;
+
+      if MixedCasePath then
+       begin
+         R.Assign(2, 5, 64, 6);
+         P:=new(pstatictext,init(r,'You need to use setpath.bat file if you want to use Makefiles'));
          insert(P);
        end;
 
@@ -1099,8 +1131,12 @@ program install;
 
       begin
          for i:=1 to cfg.packs do
-           if cfg.pack[i].defcfgfile<>'' then
-             writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defcfgfile,cfg.defcfg,cfg.defcfgs,cfg.pack[i].targetname);
+           begin
+             if cfg.pack[i].defcfgfile<>'' then
+               writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defcfgfile,cfg.defcfg,cfg.defcfgs,cfg.pack[i].targetname);
+             if cfg.pack[i].setpathfile<>'' then
+               writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].setpathfile,cfg.defsetpath,cfg.defsetpaths,cfg.pack[i].targetname);
+           end;
          if haside then
            begin
               for i:=1 to cfg.packs do
@@ -1343,7 +1379,8 @@ program install;
                       end;
                    until false;
                  end
-                else if item='DEFAULTIDECFG' then
+               else
+                if item='DEFAULTIDECFG' then
                  begin
                    repeat
                      readln(t,s);
@@ -1356,7 +1393,22 @@ program install;
                       end;
                    until false;
                  end
-                else if item='DEFAULTIDEINI' then
+               else
+                if item='DEFAULTSETPATH' then
+                 begin
+                   repeat
+                     readln(t,s);
+                     if upper(s)='ENDCFG' then
+                      break;
+                     if cfg.defsetpaths<maxdefcfgs then
+                      begin
+                        inc(cfg.defsetpaths);
+                        cfg.defsetpath[cfg.defsetpaths]:=newstr(s);
+                      end;
+                   until false;
+                 end
+               else
+                if item='DEFAULTIDEINI' then
                  begin
                    repeat
                      readln(t,s);
@@ -1399,6 +1451,16 @@ program install;
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].defidecfgfile:=s
+                 end
+               else
+                if item='SETPATHFILE' then
+                 begin
+                   if cfg.packs=0 then
+                    begin
+                      writeln('No pack set');
+                      halt(1);
+                    end;
+                   cfg.pack[cfg.packs].setpathfile:=s
                  end
                else
                 if item='IDEINIFILE' then
@@ -1714,7 +1776,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-03-19 09:14:56  pierre
+  Revision 1.7  2002-04-03 12:46:02  pierre
+   + create setpath.bat file if Path is mixed
+
+  Revision 1.6  2002/03/19 09:14:56  pierre
    * fix fpctoc.html problem
 
   Revision 1.5  2002/03/13 22:27:36  pierre
