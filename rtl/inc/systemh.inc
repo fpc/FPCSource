@@ -33,7 +33,9 @@ Type
   byte     = 0..255;
   Word     = 0..65535;
 
+  { 
   Boolean = ByteBool;
+  removed because too incompatible with older versions PM }
 
 { at least declare Turbo Pascal real types }
 {$IFDEF i386}
@@ -333,7 +335,11 @@ Procedure AddExitProc(Proc:TProcedure);
 
 {
   $Log$
-  Revision 1.8  1998-06-03 23:39:53  peter
+  Revision 1.9  1998-06-04 08:26:03  pierre
+    * boolean internal definition again (needed to compile
+      older RTL's)
+
+  Revision 1.8  1998/06/03 23:39:53  peter
     + boolean=bytebool
 
   Revision 1.7  1998/05/22 12:34:11  peter
