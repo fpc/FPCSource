@@ -622,7 +622,6 @@ begin
    end
   else
   begin
-   WriteLn('Hello!');
    linker:=Tlinker.Create;
   end;
 end;
@@ -652,7 +651,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.33  2002-11-15 01:58:48  peter
+  Revision 1.34  2003-02-12 22:04:59  carl
+    - removed my stupid hello debug code
+
+  Revision 1.33  2002/11/15 01:58:48  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
