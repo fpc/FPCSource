@@ -35,6 +35,9 @@ interface
 
     type
        tcgcallparanode = class(tcallparanode)
+       private
+          tempparaloc : tparalocation;
+       public
           procedure secondcallparan(push_from_left_to_right:boolean;calloption:tproccalloption;
                 para_alignment,para_offset : longint);override;
        end;
@@ -125,19 +128,31 @@ implementation
          objectlibrary.getlabel(truelabel);
          objectlibrary.getlabel(falselabel);
          secondpass(left);
-         { allocate paraloc }
-         paramanager.allocparaloc(exprasmlist,paraitem.callerparaloc);
+
+         { Allocate (temporary) paralocation }
+{$ifdef usetempparaloc}
+         tempparaloc:=paraitem.paraloc[callerside];
+         if tempparaloc.loc=LOC_REGISTER then
+           paramanager.alloctempregs(exprasmlist,tempparaloc)
+         else
+           paramanager.allocparaloc(exprasmlist,tempparaloc);
+{$else}
+         tempparaloc:=paraitem.paraloc[callerside];
+         paramanager.allocparaloc(exprasmlist,tempparaloc);
+{$endif usetempparaloc}
+
+
          { handle varargs first, because defcoll is not valid }
          if (nf_varargs_para in flags) then
            begin
              if paramanager.push_addr_param(left.resulttype.def,calloption) then
                begin
                  inc(pushedparasize,POINTER_SIZE);
-                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.callerparaloc);
+                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
                  location_release(exprasmlist,left.location);
                end
              else
-               push_value_para(exprasmlist,left,calloption,para_offset,para_alignment,paraitem.callerparaloc);
+               push_value_para(exprasmlist,left,calloption,para_offset,para_alignment,tempparaloc);
            end
          { hidden parameters }
          else if paraitem.is_hidden then
@@ -169,13 +184,13 @@ implementation
                     {$endif}
                     end
                   else
-                    cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.callerparaloc);
+                    cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
                   location_release(exprasmlist,left.location);
                end
              else
                begin
                   push_value_para(exprasmlist,left,calloption,
-                    para_offset,para_alignment,paraitem.callerparaloc);
+                    para_offset,para_alignment,tempparaloc);
                end;
            end
          { filter array of const c styled args }
@@ -203,7 +218,7 @@ implementation
                        cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,href);
                     end
                   else
-                    cg.a_param_loc(exprasmlist,left.location,paraitem.callerparaloc);
+                    cg.a_param_loc(exprasmlist,left.location,tempparaloc);
                   location_release(exprasmlist,left.location);
                 end
               else
@@ -228,7 +243,7 @@ implementation
                      {$endif}
                      end
                    else
-                     cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.callerparaloc);
+                     cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
                    location_release(exprasmlist,left.location);
                 end;
            end
@@ -266,7 +281,7 @@ implementation
                 {$endif}
                 end
               else
-                cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.callerparaloc);
+                cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
               location_release(exprasmlist,left.location);
            end
          else
@@ -316,13 +331,13 @@ implementation
                      {$endif}
                      end
                    else
-                     cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraitem.callerparaloc);
+                     cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
                    location_release(exprasmlist,left.location);
                 end
               else
                 begin
                    push_value_para(exprasmlist,left,calloption,
-                     para_offset,para_alignment,paraitem.callerparaloc);
+                     para_offset,para_alignment,tempparaloc);
                 end;
            end;
          truelabel:=otlabel;
@@ -401,7 +416,9 @@ implementation
       var
         cgsize : tcgsize;
         r,hregister : tregister;
+{$ifndef NEWRA}
         href: treference;
+{$endif}
         tempnode: tnode;
       begin
         { structured results are easy to handle.... }
@@ -418,7 +435,7 @@ implementation
             is_widestring(resulttype.def) then
           begin
             r.enum:=R_INTREGISTER;
-            r.number:=NR_FUNCTION_RETURN_REG;
+            r.number:=NR_FUNCTION_RESULT_REG;
 {$ifdef newra}
             { the FUNCTION_RESULT_REG is already allocated }
             rg.ungetregisterint(exprasmlist,r);
@@ -648,9 +665,7 @@ implementation
          regs_to_push_other : tregisterset;
          unusedstate: pointer;
       {$ifdef newra}
-         i:Tsuperregister;
          regs_to_alloc,regs_to_free:Tsupregset;
-         funcretloc: tparalocation;
       {$else}
          regs_to_push_int : Tsupregset;
          pushedint : tpushedsavedint;
@@ -664,23 +679,62 @@ implementation
          href,helpref : treference;
          para_alignment,
          pop_size : longint;
-         r,
 {$ifdef x86}
          accreg,
 {$endif x86}
          vmtreg,vmtreg2 : tregister;
          oldaktcallnode : tcallnode;
 
+         procedure pushparas;
+         var
+           ppn : tcgcallparanode;
+         begin
+           { copy all resources to the allocated registers }
+           ppn:=tcgcallparanode(left);
+           while assigned(ppn) do
+             begin
+               if ppn.tempparaloc.loc=LOC_REGISTER then
+                 begin
+                   paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+{$ifdef sparc}
+                   case ppn.tempparaloc.size of
+                     OS_F32 :
+                       ppn.tempparaloc.size:=OS_32;
+                     OS_F64 :
+                       ppn.tempparaloc.size:=OS_64;
+                   end;
+{$endif sparc}
+{$ifndef cpu64bit}
+                   if ppn.tempparaloc.size in [OS_64,OS_S64] then
+                     begin
+                       cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerlow,
+                          ppn.paraitem.paraloc[callerside].registerlow);
+                       cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerhigh,
+                          ppn.paraitem.paraloc[callerside].registerhigh);
+                     end
+                   else
+{$endif cpu64bit}
+                     cg.a_load_reg_reg(exprasmlist,ppn.tempparaloc.size,ppn.paraitem.paraloc[callerside].size,
+                         ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register);
+                 end;
+               ppn:=tcgcallparanode(ppn.right);
+             end;
+         end;
+
          procedure freeparas;
          var
-           paraitem : tparaitem;
+           ppn : tcgcallparanode;
          begin
            { free the resources allocated for the parameters }
-           paraitem:=tparaitem(procdefinition.para.first);
-           while assigned(paraitem) do
+           ppn:=tcgcallparanode(left);
+           while assigned(ppn) do
              begin
-               paramanager.freeparaloc(exprasmlist,paraitem.callerparaloc);
-               paraitem:=tparaitem(paraitem.next);
+{$ifdef usetempparaloc}
+               if ppn.tempparaloc.loc=LOC_REGISTER then
+                 paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
+{$endif usetempparaloc}
+               paramanager.freeparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+               ppn:=tcgcallparanode(ppn.right);
              end;
            { free pushed base pointer }
            if (right=nil) and
@@ -743,44 +797,10 @@ implementation
 
 {$ifdef newra}
               regs_to_alloc:=Tprocdef(procdefinition).usedintregisters;
-              if (not is_void(resulttype.def)) and
-                 not(paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
-                begin
-                  funcretloc := paramanager.getfuncretparaloc(procdefinition);
-                  case funcretloc.loc of
-                    LOC_REGISTER,LOC_CREGISTER:
-                      begin
-{$ifndef cpu64bit}
-                        if funcretloc.size in [OS_S64,OS_64] then
-                          begin
-                            include(regs_to_alloc,funcretloc.registerlow.number shr 8);
-                            include(regs_to_alloc,funcretloc.registerhigh.number shr 8);
-                          end
-                       else
-{$endif cpu64bit}
-                         include(regs_to_alloc,funcretloc.register.number shr 8);
-                     end;
-                  end;
-                end;
 {$else}
               { save all used registers and possible registers
                 used for the return value }
               regs_to_push_int := tprocdef(procdefinition).usedintregisters;
-              if (not is_void(resulttype.def)) and
-                 (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
-               begin
-{$ifndef cpu64bit}
-                 if resulttype.def.deftype<>floatdef then
-                   if resulttype.def.size>sizeof(aword) then
-                     begin
-                       include(regs_to_push_int,RS_FUNCTION_RESULT64_LOW_REG);
-                       include(regs_to_push_int,RS_FUNCTION_RESULT64_HIGH_REG);
-                     end
-                   else
-{$endif cpu64bit}
-                    include(regs_to_push_int,RS_FUNCTION_RESULT_REG);
-               end;
-              rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
 {$endif}
 
 {$ifdef i386}
@@ -788,8 +808,6 @@ implementation
 {$else i386}
               regs_to_push_other := [];
 {$endif i386}
-              rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
-
               { on the ppc, ever procedure saves the non-volatile registers it uses itself }
               { and must make sure it saves its volatile registers before doing a call     }
 {$ifdef i386}
@@ -800,45 +818,66 @@ implementation
            end
          else
            begin
-              {No procedure is allowed to destroy ebp.}
 {$ifdef newra}
               regs_to_alloc:=VOLATILE_INTREGISTERS;
-              if (not is_void(resulttype.def)) and
-                 not(paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
-                begin
-                  funcretloc := paramanager.getfuncretparaloc(procdefinition);
-                  case funcretloc.loc of
-                    LOC_REGISTER,LOC_CREGISTER:
-                      begin
-{$ifndef cpu64bit}
-                        if funcretloc.size in [OS_S64,OS_64] then
-                          begin
-                            include(regs_to_alloc,funcretloc.registerlow.number shr 8);
-                            include(regs_to_alloc,funcretloc.registerhigh.number shr 8);
-                          end
-                       else
-{$endif cpu64bit}
-                         include(regs_to_alloc,funcretloc.register.number shr 8);
-                     end;
-                  end;
-                end;
 {$else}
               regs_to_push_int := VOLATILE_INTREGISTERS;
-              rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
 {$endif}
 {$ifdef i386}
               regs_to_push_other := all_registers;
 {$else i386}
               regs_to_push_other := [];
 {$endif i386}
-              rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
 {$ifdef i386}
+              rg.used_in_proc_int:=VOLATILE_INTREGISTERS;
               rg.used_in_proc_other:=all_registers;
 {$endif i386}
 
               { no IO check for methods and procedure variables }
               iolabel:=nil;
            end;
+
+        { Include Function result registers }
+        if (not is_void(resulttype.def)) then
+          begin
+{$ifdef NEWRA}
+            case procdefinition.funcret_paraloc[callerside].loc of
+              LOC_REGISTER,LOC_CREGISTER:
+                begin
+{$ifndef cpu64bit}
+                  if procdefinition.funcret_paraloc[callerside].size in [OS_S64,OS_64] then
+                    begin
+                      include(regs_to_alloc,procdefinition.funcret_paraloc[callerside].registerlow.number shr 8);
+                      include(regs_to_alloc,procdefinition.funcret_paraloc[callerside].registerhigh.number shr 8);
+                    end
+                 else
+{$endif cpu64bit}
+                   include(regs_to_alloc,procdefinition.funcret_paraloc[callerside].register.number shr 8);
+                end;
+            end;
+{$else NEWRA}
+            case procdefinition.funcret_paraloc[callerside].loc of
+              LOC_REGISTER,LOC_CREGISTER:
+                begin
+{$ifndef cpu64bit}
+                  if procdefinition.funcret_paraloc[callerside].size in [OS_S64,OS_64] then
+                    begin
+                      include(regs_to_push_int,procdefinition.funcret_paraloc[callerside].registerlow.number shr 8);
+                      include(regs_to_push_int,procdefinition.funcret_paraloc[callerside].registerhigh.number shr 8);
+                    end
+                 else
+{$endif cpu64bit}
+                   include(regs_to_push_int,procdefinition.funcret_paraloc[callerside].register.number shr 8);
+                end;
+            end;
+{$endif NEWRA}
+          end;
+
+         { Save registers destroyed by the call }
+{$ifndef NEWRA}
+         rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
+{$endif}
+         rg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);
 
          { Initialize for pushing the parameters }
          oldpushedparasize:=pushedparasize;
@@ -879,6 +918,7 @@ implementation
            end;
 {$endif not i386}
 
+         { Process parameters }
          if assigned(left) then
            begin
             {$ifndef newra}
@@ -899,6 +939,10 @@ implementation
                 if assigned(methodpointer) then
                   maybe_restore(exprasmlist,methodpointer.location,pushedregs);
             {$endif newra}
+
+{$ifdef usetempparaloc}
+             pushparas;
+{$endif}
            end;
          aktcallnode:=oldaktcallnode;
 
@@ -1058,22 +1102,23 @@ implementation
 {$endif TEMPREGDEBUG}
 
 {$ifdef newra}
+         { Release registers, but not the registers that contain the
+           function result }
          regs_to_free:=regs_to_alloc;
-         if (not is_void(resulttype.def)) and
-            not(paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
+         if (not is_void(resulttype.def)) then
            begin
-             case funcretloc.loc of
+             case procdefinition.funcret_paraloc[callerside].loc of
                LOC_REGISTER,LOC_CREGISTER:
                  begin
 {$ifndef cpu64bit}
-                   if funcretloc.size in [OS_S64,OS_64] then
+                   if procdefinition.funcret_paraloc[callerside].size in [OS_S64,OS_64] then
                      begin
-                       exclude(regs_to_free,funcretloc.registerlow.number shr 8);
-                       exclude(regs_to_free,funcretloc.registerhigh.number shr 8);
+                       exclude(regs_to_free,procdefinition.funcret_paraloc[callerside].registerlow.number shr 8);
+                       exclude(regs_to_free,procdefinition.funcret_paraloc[callerside].registerhigh.number shr 8);
                      end
                    else
 {$endif cpu64bit}
-                     exclude(regs_to_free,funcretloc.register.number shr 8);
+                     exclude(regs_to_free,procdefinition.funcret_paraloc[callerside].register.number shr 8);
                  end;
              end;
            end;
@@ -1147,7 +1192,6 @@ implementation
          pushedint : tpushedsavedint;
          pushedregs : tmaybesave;
       {$endif}
-         funcretloc: tparalocation;
          oldpushedparasize : longint;
          { adress returned from an I/O-error }
          iolabel : tasmlabel;
@@ -1314,22 +1358,20 @@ implementation
            used for the return value }
          regs_to_push_int := tprocdef(procdefinition).usedintregisters;
          regs_to_push_other := tprocdef(procdefinition).usedotherregisters;
-         if (not is_void(resulttype.def)) and
-            not(paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
+         if (not is_void(resulttype.def)) then
            begin
-             funcretloc := paramanager.getfuncretparaloc(procdefinition);
-             case funcretloc.loc of
+             case procdefinition.funcret_paraloc[callerside].loc of
                LOC_REGISTER,LOC_CREGISTER:
                  begin
 {$ifndef cpu64bit}
-                   if funcretloc.size in [OS_S64,OS_64] then
+                   if procdefinition.funcret_paraloc[callerside].size in [OS_S64,OS_64] then
                      begin
-                       include(regs_to_push_int,funcretloc.registerlow.number shr 8);
-                       include(regs_to_push_int,funcretloc.registerhigh.number shr 8);
+                       include(regs_to_push_int,procdefinition.funcret_paraloc[callerside].registerlow.number shr 8);
+                       include(regs_to_push_int,procdefinition.funcret_paraloc[callerside].registerhigh.number shr 8);
                      end
                    else
 {$endif cpu64bit}
-                    include(regs_to_push_int,funcretloc.register.number shr 8);
+                    include(regs_to_push_int,procdefinition.funcret_paraloc[callerside].register.number shr 8);
                  end;
              end;
            end;
@@ -1541,7 +1583,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.104  2003-08-11 14:22:06  mazen
+  Revision 1.105  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.104  2003/08/11 14:22:06  mazen
   - dupplicated code removed
 
   Revision 1.103  2003/07/23 11:01:14  jonas
@@ -1573,7 +1618,7 @@ end.
      * fixed ppc cycle
 
   Revision 1.96  2003/07/02 22:18:04  peter
-    * paraloc splitted in callerparaloc,calleeparaloc
+    * paraloc splitted in paraloc[callerside],calleeparaloc
     * sparc calling convention updates
 
   Revision 1.95  2003/06/17 16:34:44  jonas

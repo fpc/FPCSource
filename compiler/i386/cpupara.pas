@@ -33,7 +33,7 @@ unit cpupara;
        cpubase,
        globtype,
        cginfo,
-       symtype,symdef,paramgr;
+       symconst,symtype,symdef,paramgr;
 
     type
        { Returns the location for the nr-st 32 Bit int parameter
@@ -55,7 +55,7 @@ unit cpupara;
 
     uses
        systems,verbose,
-       symconst,symsym,
+       symsym,
        cpuinfo,
        cgbase;
 
@@ -153,13 +153,45 @@ unit cpupara;
                 paraloc.reference.index.number:=NR_FRAME_POINTER_REG;
               end;
             paraloc.reference.offset:=tvarsym(hp.parasym).adjusted_address;
-            if side = callerside then
-              hp.callerparaloc:=paraloc
+            hp.paraloc[side]:=paraloc;
 {$warning callerparaloc shall not be the same as calleeparaloc}
-            else
-              hp.calleeparaloc:=paraloc;
             hp:=tparaitem(hp.next);
           end;
+
+        { Function return }
+        fillchar(paraloc,sizeof(tparalocation),0);
+        paraloc.size:=def_cgsize(p.rettype.def);
+        { Return in FPU register? }
+        if p.rettype.def.deftype=floatdef then
+          begin
+            paraloc.loc:=LOC_FPUREGISTER;
+            paraloc.register.enum:=FPU_RESULT_REG;
+          end
+        else
+         { Return in register? }
+         if not ret_in_param(p.rettype.def,p.proccalloption) then
+          begin
+            paraloc.loc:=LOC_REGISTER;
+{$ifndef cpu64bit}
+            if paraloc.size in [OS_64,OS_S64] then
+             begin
+               paraloc.register64.reglo.enum:=R_INTREGISTER;
+               paraloc.register64.reglo.number:=NR_FUNCTION_RETURN64_LOW_REG;
+               paraloc.register64.reghi.enum:=R_INTREGISTER;
+               paraloc.register64.reghi.number:=NR_FUNCTION_RETURN64_HIGH_REG;
+             end
+            else
+{$endif cpu64bit}
+             begin
+               paraloc.register.enum:=R_INTREGISTER;
+               paraloc.register.number:=NR_FUNCTION_RETURN_REG;
+             end;
+          end
+        else
+          begin
+            paraloc.loc:=LOC_REFERENCE;
+          end;
+        p.funcret_paraloc[side]:=paraloc;
       end;
 
 
@@ -182,7 +214,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2003-07-05 20:11:41  jonas
+  Revision 1.22  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.21  2003/07/05 20:11:41  jonas
     * create_paraloc_info() is now called separately for the caller and
       callee info
     * fixed ppc cycle

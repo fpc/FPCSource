@@ -35,7 +35,6 @@ unit paramgr;
        symconst,symtype,symdef;
 
     type
-       tcallercallee = (callerside,calleeside);
        {# This class defines some methods to take care of routine
           parameters. It should be overriden for each new processor
        }
@@ -100,33 +99,18 @@ unit paramgr;
           }
           procedure create_paraloc_info(p : tabstractprocdef; side: tcallercallee);virtual;abstract;
 
-          {
-            Returns the location where the invisible parameter for structured
-            function results will be passed.
-          }
-          function getfuncretparaloc(p : tabstractprocdef) : tparalocation;virtual;
-
-          {
-            Returns the location where the invisible parameter for nested
-            subroutines is passed.
-          }
-          function getframepointerloc(p : tabstractprocdef) : tparalocation;virtual;
-
           { Returns the self pointer location for the given tabstractprocdef,
             when the stack frame is already created. This is used by the code
             generating the wrappers for implemented interfaces.
           }
           function getselflocation(p : tabstractprocdef) : tparalocation;virtual;abstract;
 
-          {
-            Returns the location of the result if the result is in
-            a register, the register(s) return depend on the type of
-            the result.
-
-            @param(def The definition of the result type of the function)
-          }
-          function getfuncresultloc(def : tdef;calloption:tproccalloption): tparalocation;virtual;
+          { Return the location of the low and high part of a 64bit parameter }
           procedure splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);virtual;
+
+{$ifdef usetempparaloc}
+          procedure alloctempregs(list: taasmoutput;var locpara:tparalocation);virtual;
+{$endif usetempparaloc}
        end;
 
 
@@ -312,97 +296,6 @@ implementation
       end;
 
 
-    function tparamanager.getfuncretparaloc(p : tabstractprocdef) : tparalocation;
-      begin
-         result.loc:=LOC_REFERENCE;
-         result.size:=OS_ADDR;
-         result.sp_fixup:=pointer_size;
-         result.reference.index.enum:=R_INTREGISTER;
-         result.reference.index.number:=NR_STACK_POINTER_REG;
-         result.reference.offset:=0;
-      end;
-
-
-    function tparamanager.getframepointerloc(p : tabstractprocdef) : tparalocation;
-      begin
-         result.loc:=LOC_REFERENCE;
-         result.size:=OS_ADDR;
-         result.sp_fixup:=pointer_size;
-         result.reference.index.enum:=R_INTREGISTER;
-         result.reference.index.number:=NR_STACK_POINTER_REG;
-         result.reference.offset:=0;
-      end;
-
-
-    function tparamanager.getfuncresultloc(def : tdef;calloption:tproccalloption): tparalocation;
-      begin
-         fillchar(result,sizeof(tparalocation),0);
-         if is_void(def) then exit;
-
-         result.size := def_cgsize(def);
-         case def.deftype of
-           orddef,
-           enumdef :
-             begin
-               result.loc := LOC_REGISTER;
-{$ifndef cpu64bit}
-               if result.size in [OS_64,OS_S64] then
-                begin
-                  result.register64.reglo.enum:=R_INTREGISTER;
-                  result.register64.reglo.number:=NR_FUNCTION_RETURN64_LOW_REG;
-                  result.register64.reghi.enum:=R_INTREGISTER;
-                  result.register64.reghi.number:=NR_FUNCTION_RETURN64_HIGH_REG;
-                end
-               else
-{$endif cpu64bit}
-                begin
-                  result.register.enum:=R_INTREGISTER;
-                  result.register.number:=NR_FUNCTION_RETURN_REG;
-                end;
-             end;
-           floatdef :
-             begin
-               result.loc := LOC_FPUREGISTER;
-{$ifdef cpufpemu}
-               if cs_fp_emulation in aktmoduleswitches then
-                 begin
-                   result.register.enum:=R_INTREGISTER;
-                   result.register.number:=FUNCTION_RETURN_REG;
-                 end
-               else
-{$endif cpufpemu}
-                 result.register.enum := FPU_RESULT_REG;
-             end;
-          else
-             begin
-                if not ret_in_param(def,calloption) then
-                  begin
-                    result.loc := LOC_REGISTER;
-                    result.register.enum:=R_INTREGISTER;
-                    result.register.number:=NR_FUNCTION_RETURN_REG;
-                  end
-                else
-                   begin
-                     result.loc := LOC_REFERENCE;
-                     internalerror(2002081602);
-(*
-{$ifdef EXTDEBUG}
-                     { it is impossible to have the
-                       return value with an index register
-                       and a symbol!
-                     }
-                     if (ref.index <> R_NO) or (assigned(ref.symbol)) then
-                        internalerror(2002081602);
-{$endif}
-                     result.reference.index := ref.base;
-                     result.reference.offset := ref.offset;
-*)
-                   end;
-             end;
-          end;
-      end;
-
-
     procedure tparamanager.splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);
       begin
         if not(locpara.size in [OS_64,OS_S64]) then
@@ -433,6 +326,22 @@ implementation
       end;
 
 
+{$ifdef usetempparaloc}
+    procedure tparamanager.alloctempregs(list: taasmoutput;var locpara:tparalocation);
+      begin
+        if locpara.loc<>LOC_REGISTER then
+          internalerror(200308123);
+{$ifndef cpu64bit}
+        if locpara.size in [OS_64,OS_S64] then
+          begin
+            locpara.registerlow:=rg.getregisterint(list,OS_32);
+            locpara.registerhigh:=rg.getregisterint(list,OS_32);
+          end
+        else
+{$endif cpu64bit}
+          locpara.register:=rg.getregisterint(list,locpara.size);
+      end;
+{$endif usetempparaloc}
 
 
 initialization
@@ -443,7 +352,10 @@ end.
 
 {
    $Log$
-   Revision 1.49  2003-07-08 21:24:59  peter
+   Revision 1.50  2003-08-11 21:18:20  peter
+     * start of sparc support for newra
+
+   Revision 1.49  2003/07/08 21:24:59  peter
      * sparc fixes
 
    Revision 1.48  2003/07/05 20:11:41  jonas

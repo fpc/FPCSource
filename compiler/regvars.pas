@@ -183,15 +183,15 @@ implementation
                   hp:=tparaitem(current_procinfo.procdef.para.first);
                   while assigned(hp) do
                     begin
-                      if (hp.calleeparaloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,
+                      if (hp.paraloc[calleeside].loc in [LOC_REGISTER,LOC_FPUREGISTER,
                             LOC_CREGISTER,LOC_CFPUREGISTER]) and
-                         (TCGSize2Size[hp.calleeparaloc.size] <= sizeof(aword)) then
+                         (TCGSize2Size[hp.paraloc[calleeside].size] <= sizeof(aword)) then
                         begin
-                          tvarsym(hp.parasym).reg := hp.calleeparaloc.register;
-                          if (hp.calleeparaloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                            rg.makeregvarint(hp.calleeparaloc.register.number shr 8)
+                          tvarsym(hp.parasym).reg := hp.paraloc[calleeside].register;
+                          if (hp.paraloc[calleeside].loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                            rg.makeregvarint(hp.paraloc[calleeside].register.number shr 8)
                           else
-                            rg.makeregvarother(hp.calleeparaloc.register);
+                            rg.makeregvarother(hp.paraloc[calleeside].register);
                         end
                       else
                         begin
@@ -616,7 +616,10 @@ end.
 
 {
   $Log$
-  Revision 1.59  2003-08-09 18:56:54  daniel
+  Revision 1.60  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.59  2003/08/09 18:56:54  daniel
     * cs_regalloc renamed to cs_regvars to avoid confusion with register
       allocator
     * Some preventive changes to i386 spillinh code

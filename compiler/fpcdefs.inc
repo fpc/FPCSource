@@ -60,7 +60,8 @@
 {$endif alpha}
 
 {$ifdef sparc}
-  {$define callparatemp}
+  {$define usetempparaloc}
+  { define callparatemp}
 {$endif sparc}
 
 {$ifdef powerpc}
@@ -83,7 +84,10 @@
 
 {
   $Log$
-  Revision 1.21  2003-07-21 11:52:57  florian
+  Revision 1.22  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.21  2003/07/21 11:52:57  florian
     * very basic stuff for the arm
 
   Revision 1.20  2003/05/24 21:12:57  florian

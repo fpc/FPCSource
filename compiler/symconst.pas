@@ -165,6 +165,8 @@ type
     normset,smallset,varset
   );
 
+  tcallercallee = (callerside,calleeside);
+
   { basic type for tprocdef and tprocvardef }
   tproctypeoption=(potype_none,
     potype_proginit,     { Program initialization }
@@ -355,7 +357,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2003-08-10 17:25:23  peter
+  Revision 1.60  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.59  2003/08/10 17:25:23  peter
     * fixed some reported bugs
 
   Revision 1.58  2003/06/25 18:31:23  peter

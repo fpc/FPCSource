@@ -42,9 +42,6 @@ interface
         procedure allocparaloc(list: taasmoutput; const loc: tparalocation);override;
         procedure freeparaloc(list: taasmoutput; const loc: tparalocation);override;
         procedure create_paraloc_info(p:TAbstractProcDef; side: tcallercallee);override;
-        {Returns the location where the invisible parameter for structured function
-        results will be passed.}
-        function GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;override;
         procedure splitparaloc64(const locpara:tparalocation;var loclopara,lochipara:tparalocation);override;
       end;
 
@@ -209,75 +206,71 @@ implementation
                 else
                   inc(stack_offset,4);
               end;
-            if side = callerside then
-              hp.callerparaloc:=paraloc
-            else
+            hp.paraloc[side]:=paraloc;
+            if side = calleeside then
               begin
                 { update callee paraloc and use Ix registers instead
                   of Ox registers }
-                hp.calleeparaloc:=paraloc;
-                if hp.calleeparaloc.loc=LOC_REGISTER then
+                if hp.paraloc[calleeside].loc=LOC_REGISTER then
                   begin
                     { big endian }
                     if is_64bit then
-                      inc(hp.calleeparaloc.registerhigh.number,(RS_I0-RS_O0) shl 8);
-                    inc(hp.calleeparaloc.registerlow.number,(RS_I0-RS_O0) shl 8);
+                      inc(hp.paraloc[calleeside].registerhigh.number,(RS_I0-RS_O0) shl 8);
+                    inc(hp.paraloc[calleeside].registerlow.number,(RS_I0-RS_O0) shl 8);
                   end
                 else
                   begin
-                    if hp.calleeparaloc.low_in_reg then
-                      inc(hp.calleeparaloc.lowreg.number,(RS_I0-RS_O0) shl 8);
-                    inc(hp.calleeparaloc.reference.index.number,(RS_I0-RS_O0) shl 8);
+                    if hp.paraloc[calleeside].low_in_reg then
+                      inc(hp.paraloc[calleeside].lowreg.number,(RS_I0-RS_O0) shl 8);
+                    inc(hp.paraloc[calleeside].reference.index.number,(RS_I0-RS_O0) shl 8);
                   end;
               end;
             hp:=TParaItem(hp.Next);
           end;
-      end;
 
-
-    function tSparcParaManager.GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;
-      begin
-        with GetFuncRetParaLoc do
-         begin
-           case p.rettype.def.deftype of
-             orddef,enumdef:
-               begin
-                 loc:=LOC_REGISTER;
-                 register.enum:=R_INTREGISTER;
-                 register.number:=NR_FUNCTION_RETURN_REG;
-                 size:=def_cgsize(p.rettype.def);
-                 if size in [OS_S64,OS_64] then
-                   internalerror(200305309);
-               end;
-             floatdef:
-               begin
-                 loc:=LOC_FPUREGISTER;
-                 register.enum:=R_F1;
-                 size:=def_cgsize(p.rettype.def);
-               end;
-             setdef,
-             variantdef,
-             pointerdef,
-             formaldef,
-             classrefdef,
-             recorddef,
-             objectdef,
-             stringdef,
-             procvardef,
-             filedef,
-             arraydef,
-             errordef:
-               begin
-                 loc:=LOC_REFERENCE;
-                 reference.index.enum:=R_INTREGISTER;
-                 reference.index.number:=NR_FRAME_POINTER_REG;
-                 reference.offset:=64;
-                 size:=OS_ADDR;
-               end;
-             else
-               internalerror(2002090903);
-           end;
-         end;
+        { Function return }
+        fillchar(paraloc,sizeof(tparalocation),0);
+        paraloc.size:=def_cgsize(p.rettype.def);
+        { Return in FPU register? }
+        if p.rettype.def.deftype=floatdef then
+          begin
+            paraloc.loc:=LOC_FPUREGISTER;
+            paraloc.register.enum:=FPU_RESULT_REG;
+          end
+        else
+         { Return in register? }
+         if not ret_in_param(p.rettype.def,p.proccalloption) then
+          begin
+            paraloc.loc:=LOC_REGISTER;
+{$ifndef cpu64bit}
+            if paraloc.size in [OS_64,OS_S64] then
+             begin
+               paraloc.register64.reglo.enum:=R_INTREGISTER;
+               if side=callerside then
+                 paraloc.register64.reglo.number:=NR_FUNCTION_RESULT64_LOW_REG
+               else
+                 paraloc.register64.reglo.number:=NR_FUNCTION_RETURN64_LOW_REG;
+               paraloc.register64.reghi.enum:=R_INTREGISTER;
+               if side=callerside then
+                 paraloc.register64.reghi.number:=NR_FUNCTION_RESULT64_HIGH_REG
+               else
+                 paraloc.register64.reghi.number:=NR_FUNCTION_RETURN64_HIGH_REG;
+             end
+            else
+{$endif cpu64bit}
+             begin
+               paraloc.register.enum:=R_INTREGISTER;
+               if side=callerside then
+                 paraloc.register.number:=NR_FUNCTION_RESULT_REG
+               else
+                 paraloc.register.number:=NR_FUNCTION_RETURN_REG;
+             end;
+          end
+        else
+          begin
+            paraloc.loc:=LOC_REFERENCE;
+          end;
+        p.funcret_paraloc[side]:=paraloc;
       end;
 
 
@@ -308,7 +301,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2003-07-08 21:25:00  peter
+  Revision 1.27  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.26  2003/07/08 21:25:00  peter
     * sparc fixes
 
   Revision 1.25  2003/07/06 22:10:56  peter

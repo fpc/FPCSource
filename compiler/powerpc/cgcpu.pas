@@ -1212,11 +1212,11 @@ const
                 hp:=tparaitem(current_procinfo.procdef.para.first);
                 while assigned(hp) do
                   begin
-                    if (hp.calleeparaloc.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                    if (hp.paraloc[calleeside].loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                       begin
                         reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).adjusted_address);
-                        reference_reset_base(href2,r,hp.callerparaloc.reference.offset);
-                        cg.a_load_ref_ref(list,hp.calleeparaloc.size,hp.calleeparaloc.size,href2,href);
+                        reference_reset_base(href2,r,hp.paraloc[callerside].reference.offset);
+                        cg.a_load_ref_ref(list,hp.paraloc[calleeside].size,hp.paraloc[calleeside].size,href2,href);
                       end;
                     hp := tparaitem(hp.next);
                   end;
@@ -2672,7 +2672,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.118  2003-08-08 15:50:45  olle
+  Revision 1.119  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.118  2003/08/08 15:50:45  olle
     * merged macos entry/exit code generation into the general one.
 
   Revision 1.117  2002/10/01 05:24:28  olle

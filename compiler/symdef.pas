@@ -107,8 +107,7 @@ interface
           defaultvalue : tsym; { tconstsym }
           defaultvaluederef : tderef;
           paratyp       : tvarspez; { required for procvar }
-          calleeparaloc,
-          callerparaloc : tparalocation;
+          paraloc       : array[tcallercallee] of tparalocation;
           is_hidden     : boolean; { is this a hidden (implicit) parameter }
 {$ifdef EXTDEBUG}
           eqval         : tequaltype;
@@ -429,6 +428,7 @@ interface
           maxparacount,
           minparacount    : byte;
           fpu_used        : byte;    { how many stack fpu must be empty }
+          funcret_paraloc : array[tcallercallee] of tparalocation;
           has_paraloc_info : boolean; { paraloc info is available }
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -5838,7 +5838,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.157  2003-07-08 15:20:56  peter
+  Revision 1.158  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.157  2003/07/08 15:20:56  peter
     * don't allow add/assignments for formaldef
     * formaldef size changed to 0
 

@@ -201,12 +201,14 @@ interface
          procedure SetOperandOrder(order:TOperandOrder);
          function is_nop:boolean;override;
          function is_move:boolean;override;
+{$ifdef NEWRA}
          function spill_registers(list:Taasmoutput;
                                   rgget:Trggetproc;
                                   rgunget:Trgungetproc;
                                   r:Tsupregset;
                                   var unusedregsint:Tsupregset;
                                   const spilltemplist:Tspill_temp_list):boolean;override;
+{$endif}
       protected
          procedure ppuloadoper(ppufile:tcompilerppufile;var o:toper);override;
          procedure ppuwriteoper(ppufile:tcompilerppufile;const o:toper);override;
@@ -1997,6 +1999,8 @@ implementation
         ((oper[0].typ=top_reg) and (oper[1].typ=top_reg));
     end;
 
+
+{$ifdef NEWRA}
     function Taicpu.spill_registers(list:Taasmoutput;
                                     rgget:Trggetproc;
                                     rgunget:Trgungetproc;
@@ -2009,64 +2013,6 @@ implementation
      of the huge amount of situations you can have. The irregularity of the i386
      instruction set doesn't help either. (DM)}
 
-    
-      function get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister):Tai;
-
-      var back:Tsupregset;
-
-      begin
-        back:=unusedregsint;
-        get_insert_pos:=p;
-        while (p<>nil) and not (p.typ in [ait_instruction,ait_label]) do
-          begin
-            if p.typ=ait_regalloc then
-              begin
-                {Rewind the register allocation.}
-                if Tai_regalloc(p).allocation then
-                  include(unusedregsint,Tai_regalloc(p).reg.number shr 8)
-                else
-                  begin
-                    exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8);
-                    if Tai_regalloc(p).reg.number shr 8=huntfor1 then
-                      begin
-                        get_insert_pos:=Tai(p.previous);
-                        back:=unusedregsint;
-                      end;
-                    if Tai_regalloc(p).reg.number shr 8=huntfor2 then
-                      begin
-                        get_insert_pos:=Tai(p.previous);
-                        back:=unusedregsint;
-                      end;
-                    if Tai_regalloc(p).reg.number shr 8=huntfor3 then
-                      begin
-                        get_insert_pos:=Tai(p.previous);
-                        back:=unusedregsint;
-                      end;
-                end;
-            end {else writeln('!!!!'^g,byte(p.typ))};
-            p:=Tai(p.previous);
-          end;
-        unusedregsint:=back;
-      end;
-
-      procedure forward_allocation(p:Tai);
-
-      begin
-        {Forward the register allocation again.}
-        while (p<>self) do
-          begin
-            if p.typ in [ait_instruction,ait_label] then
-              internalerror(200305311);
-            if p.typ=ait_regalloc then
-              begin
-              if Tai_regalloc(p).allocation then
-                exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8)
-              else
-                include(unusedregsint,Tai_regalloc(p).reg.number shr 8);
-              end;
-            p:=Tai(p.next);
-          end;
-      end;
 
     var i:byte;
         supreg:Tsuperregister;
@@ -2212,9 +2158,9 @@ implementation
                       begin
                         {Situation example:
                          add r20d,[r21d]      ; r20d must be spilled into [ebp-12]
-  
+
                          Change into:
-  
+
                          mov r22d,[r21d]      ; Use a help register
                          add [ebp-12],r22d    ; Replace register by helpregister }
                         pos:=get_insert_pos(Tai(previous),oper[0].ref^.base.number shr 8,
@@ -2248,9 +2194,9 @@ implementation
                       begin
                         {Situation example:
                          add r20d,r21d        ; r20d must be spilled into [ebp-12]
-  
+
                          Change into:
-  
+
                          add [ebp-12],r21d    ; Replace register by reference }
                         if (opcode=A_MOVZX) or (opcode=A_MOVSX) then
                           begin
@@ -2369,6 +2315,8 @@ implementation
           end;
       end;
     end;
+{$endif NEWRA}
+
 
 {*****************************************************************************
                               Instruction table
@@ -2419,7 +2367,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2003-08-09 18:56:54  daniel
+  Revision 1.9  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.8  2003/08/09 18:56:54  daniel
     * cs_regalloc renamed to cs_regvars to avoid confusion with register
       allocator
     * Some preventive changes to i386 spillinh code

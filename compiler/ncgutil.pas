@@ -1636,14 +1636,14 @@ implementation
                   internalerror(200301081);
                 if (tvarsym(hp.parasym).reg.enum<>R_NO) then
                   begin
-                    cg.a_load_param_reg(list,hp.calleeparaloc,tvarsym(hp.parasym).reg);
+                    cg.a_load_param_reg(list,hp.paraloc[calleeside],tvarsym(hp.parasym).reg);
                   end
-                else if (hp.calleeparaloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
+                else if (hp.paraloc[calleeside].loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
                                             LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER]) and
                         (tvarsym(hp.parasym).reg.enum=R_NO) then
                   begin
                     reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).adjusted_address);
-                    cg.a_load_param_ref(list,hp.calleeparaloc,href);
+                    cg.a_load_param_ref(list,hp.paraloc[calleeside],href);
                   end;
                 hp:=tparaitem(hp.next);
               end;
@@ -2030,7 +2030,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.133  2003-08-09 18:56:54  daniel
+  Revision 1.134  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.133  2003/08/09 18:56:54  daniel
     * cs_regalloc renamed to cs_regvars to avoid confusion with register
       allocator
     * Some preventive changes to i386 spillinh code

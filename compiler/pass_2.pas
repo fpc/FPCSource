@@ -164,7 +164,9 @@ implementation
          prevp : pptree;
 {$endif TEMPREGDEBUG}
 {$ifdef EXTDEBUG}
+{$ifndef newra}
          i : longint;
+{$endif newra}
 {$endif EXTDEBUG}
       begin
          if not assigned(p) then
@@ -205,9 +207,11 @@ implementation
              end;
 
 {$ifdef newra}
+  {$ifdef i386}
             if rg.unusedregsint*([first_supreg..last_supreg] - [RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG])<>
                                 ([first_supreg..last_supreg] - [RS_FRAME_POINTER_REG,RS_STACK_POINTER_REG]) then
               internalerror(200306171);
+  {$endif}
 {$else}
             { check if all scratch registers are freed }
             for i:=1 to max_scratch_regs do
@@ -280,8 +284,6 @@ implementation
               { assign parameter locations }
               current_procinfo.after_pass1;
 
-              { callee paraloc register info is necessary for regvars }
-              paramanager.create_paraloc_info(current_procinfo.procdef,calleeside);
               { caller paraloc info is also necessary in the stackframe_entry }
               { code of the ppc (and possibly other processors)               }
               if not current_procinfo.procdef.has_paraloc_info then
@@ -315,7 +317,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2003-08-10 17:25:23  peter
+  Revision 1.63  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.62  2003/08/10 17:25:23  peter
     * fixed some reported bugs
 
   Revision 1.61  2003/07/06 17:58:22  peter

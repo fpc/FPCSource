@@ -370,43 +370,39 @@ implementation
       var
         paramloc : tparalocation;
       begin
+         { generate callee paraloc register info }
+         paramanager.create_paraloc_info(current_procinfo.procdef,calleeside);
+
          { temporary space is set, while the BEGIN of the procedure }
          if (symtablestack.symtabletype=localsymtable) then
            current_procinfo.firsttemp_offset := tg.direction*symtablestack.datasize
          else
            current_procinfo.firsttemp_offset := 0;
-         { space for the return value }
-         { !!!!!   this means that we can not set the return value
-         in a subfunction !!!!! }
-         { because we don't know yet where the address is }
+
+         { include return value registers }
          if not is_void(procdef.rettype.def) then
            begin
-              if not paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption) then
-                begin
-                  paramloc:=paramanager.getfuncresultloc(procdef,procdef.proccalloption);
-                  case paramloc.loc of
-                    LOC_FPUREGISTER,
-                    LOC_CFPUREGISTER,
-                    LOC_MMREGISTER,
-                    LOC_CMMREGISTER :
-                      begin
-                        include(rg.used_in_proc_other,paramloc.register.enum);
-                      end;
-                    LOC_REGISTER,LOC_CREGISTER :
-                      begin
-                        if ((paramloc.size in [OS_S64,OS_64]) and
-                           (sizeof(aword) < 8)) then
-                          begin
-                            include(rg.used_in_proc_int,paramloc.registerhigh.number shr 8);
-                            include(rg.used_in_proc_int,paramloc.registerlow.number shr 8);
-                          end
-                        else
-                          include(rg.used_in_proc_int,paramloc.register.number shr 8);
-                      end;
-                    else
-                      internalerror(20020816);
-                  end;
-                end;
+             paramloc:=procdef.funcret_paraloc[calleeside];
+             case paramloc.loc of
+               LOC_FPUREGISTER,
+               LOC_CFPUREGISTER,
+               LOC_MMREGISTER,
+               LOC_CMMREGISTER :
+                 begin
+                   include(rg.used_in_proc_other,paramloc.register.enum);
+                 end;
+               LOC_REGISTER,LOC_CREGISTER :
+                 begin
+                   if ((paramloc.size in [OS_S64,OS_64]) and
+                      (sizeof(aword) < 8)) then
+                     begin
+                       include(rg.used_in_proc_int,paramloc.registerhigh.number shr 8);
+                       include(rg.used_in_proc_int,paramloc.registerlow.number shr 8);
+                     end
+                   else
+                     include(rg.used_in_proc_int,paramloc.register.number shr 8);
+                 end;
+             end;
            end;
       end;
 
@@ -571,7 +567,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2003-07-06 17:58:22  peter
+  Revision 1.58  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.57  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 

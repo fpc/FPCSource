@@ -82,12 +82,14 @@ uses
 
          function is_nop: boolean; override;
          function is_move:boolean; override;
+{$ifdef newra}
          function spill_registers(list:Taasmoutput;
                                   rgget:Trggetproc;
                                   rgunget:Trgungetproc;
                                   r:Tsupregset;
                                   var unusedregsint:Tsupregset;
                                   const spilltemplist:Tspill_temp_list):boolean; override;
+{$endif}
 
 
       end;
@@ -416,7 +418,8 @@ uses cutils,rgobj;
     function taicpu.is_nop: boolean;
       begin
         { we don't insert any more nops than necessary }
-        is_nop := false;
+        is_nop :=
+          ((opcode=A_MR) and (oper[0].typ=top_reg) and (oper[1].typ=top_reg) and (oper[0].reg.number=oper[1].reg.number));
       end;
 
 
@@ -426,68 +429,16 @@ uses cutils,rgobj;
       end;
 
 
-    function taicpu.spill_registers(list:Taasmoutput; 
-                             rgget:Trggetproc; 
-                             rgunget:Trgungetproc; 
-                             r:Tsupregset; 
-                             var unusedregsint:Tsupregset; 
+{$ifdef newra}
+    function taicpu.spill_registers(list:Taasmoutput;
+                             rgget:Trggetproc;
+                             rgunget:Trgungetproc;
+                             r:Tsupregset;
+                             var unusedregsint:Tsupregset;
                               const spilltemplist:Tspill_temp_list): boolean;
 
-      function get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister):Tai;
+      function decode_loadstore(op: tasmop; var counterpart: tasmop; var wasload: boolean): boolean;
 
-      var back:Tsupregset;
-
-      begin
-        back:=unusedregsint;
-        get_insert_pos:=p;
-        while (p<>nil) and (p.typ=ait_regalloc) do
-          begin
-            {Rewind the register allocation.}
-            if Tai_regalloc(p).allocation then
-              include(unusedregsint,Tai_regalloc(p).reg.number shr 8)
-            else
-              begin
-                exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8);
-                if Tai_regalloc(p).reg.number shr 8=huntfor1 then
-                  begin
-                    get_insert_pos:=Tai(p.previous);
-                    back:=unusedregsint;
-                  end;
-                if Tai_regalloc(p).reg.number shr 8=huntfor2 then
-                  begin
-                    get_insert_pos:=Tai(p.previous);
-                    back:=unusedregsint;
-                  end;
-                if Tai_regalloc(p).reg.number shr 8=huntfor3 then
-                  begin
-                    get_insert_pos:=Tai(p.previous);
-                    back:=unusedregsint;
-                  end;
-              end;
-            p:=Tai(p.previous);
-          end;
-        unusedregsint:=back;
-      end;
-
-      procedure forward_allocation(p:Tai);
-
-      begin
-        {Forward the register allocation again.}
-        while (p<>self) do
-          begin
-            if p.typ<>ait_regalloc then
-              internalerror(200305311);
-            if Tai_regalloc(p).allocation then
-              exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8)
-            else
-              include(unusedregsint,Tai_regalloc(p).reg.number shr 8);
-            p:=Tai(p.next);
-          end;
-      end;
-
-
-      function decode_loadstore(op: tasmop; var counterpart: tasmop; wasload: boolean): boolean;
-     
         begin
           result := true;
           wasload := true;
@@ -591,7 +542,7 @@ uses cutils,rgobj;
                 //
                 //   l?? r21d, -60(r1)
                 //   st? r21d, 8(r1)
-  
+
                 pos := get_insert_pos(Tai(previous),oper[0].reg.number shr 8,
                                       oper[1].ref^.base.number shr 8,oper[1].ref^.index.number shr 8);
                 rgget(list,pos,0,helpreg);
@@ -720,7 +671,7 @@ uses cutils,rgobj;
         for i := 1 to 2 do
           if (oper[i].typ = top_reg) then
             begin
-              supreg:=oper[i].reg.number;
+              supreg:=oper[i].reg.number shr 8;
               if supreg in r then
                 begin
                   // Example:
@@ -731,7 +682,7 @@ uses cutils,rgobj;
                   //   lwz r23d, -60(r1)
                   //   add r23d, r21d, r22d
                   //   stw r23d, -60(r1)
-      
+
                   pos := get_insert_pos(Tai(previous),reg1,reg2,reg3);
                   rgget(list,pos,0,helpreg);
                   spill_registers := true;
@@ -750,6 +701,7 @@ uses cutils,rgobj;
                 end;
             end;
       end;
+{$endif newra}
 
 
 
@@ -765,7 +717,13 @@ uses cutils,rgobj;
 end.
 {
   $Log$
-  Revision 1.11  2003-07-23 10:58:06  jonas
+  Revision 1.13  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.12  2002/09/30 23:16:49  jonas
+    * is_nop() now identifies "mr rA,rA" instructions for removal
+
+  Revision 1.11  2003/07/23 10:58:06  jonas
     - disabled some debugging code
 
   Revision 1.10  2003/07/06 21:26:06  jonas

@@ -39,7 +39,6 @@ unit cpupara;
           function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;override;
           procedure freeintparaloc(list: taasmoutput; nr : longint); override;
           procedure create_paraloc_info(p : tabstractprocdef; side: tcallercallee);override;
-          function getfuncretparaloc(p : tabstractprocdef) : tparalocation;override;
        end;
 
   implementation
@@ -247,9 +246,9 @@ unit cpupara;
                       if nextintreg.number<=(NR_R10-ord(is_64bit)*(NR_R1-NR_R0))  then
                         begin
                            paraloc.loc:=LOC_REGISTER;
-		           if is_64bit then
+                           if is_64bit then
                              begin
-			       if odd((nextintreg.number-NR_R3) shr 8) and (target_info.abi=abi_powerpc_sysv) Then
+                               if odd((nextintreg.number-NR_R3) shr 8) and (target_info.abi=abi_powerpc_sysv) Then
                                 inc(nextintreg.number,NR_R1-NR_R0);
                                paraloc.registerhigh:=nextintreg;
                                inc(nextintreg.number,NR_R1-NR_R0);
@@ -312,81 +311,60 @@ unit cpupara;
                  else
                    internalerror(2002071002);
               end;
-              if side = callerside then
-                hp.callerparaloc:=paraloc
-              else
+              if side = calleeside then
                 begin
                   if (paraloc.loc = LOC_REFERENCE) then
                     paraloc.reference.offset := tvarsym(hp.parasym).adjusted_address;
-                  hp.calleeparaloc:=paraloc;
                 end;
+              hp.paraloc[side]:=paraloc;
               hp:=tparaitem(hp.next);
            end;
-      end;
 
-
-    function tppcparamanager.getfuncretparaloc(p : tabstractprocdef) : tparalocation;
-      begin
-         fillchar(result,sizeof(result),0);
-         case p.rettype.def.deftype of
-            orddef,
-            enumdef:
-              begin
-                getfuncretparaloc.loc:=LOC_REGISTER;
-                getfuncretparaloc.register.enum:=R_INTREGISTER;
-                getfuncretparaloc.register.number:=NR_R3;
-                getfuncretparaloc.size:=def_cgsize(p.rettype.def);
-                if getfuncretparaloc.size in [OS_S64,OS_64] then
-                  begin
-                    getfuncretparaloc.registerhigh.enum:=R_INTREGISTER;
-                    getfuncretparaloc.registerhigh.number:=NR_R3;
-		    getfuncretparaloc.register.number:=NR_R4;
-                  end;
-              end;
-            floatdef:
-              begin
-                getfuncretparaloc.loc:=LOC_FPUREGISTER;
-                getfuncretparaloc.register.enum:=R_F1;
-                getfuncretparaloc.size:=def_cgsize(p.rettype.def);
-              end;
-            { smallsets are OS_INT in R3, others are OS_ADDR in R3 -> the same }
-            { ugly, I know :) (JM)                                             }
-            setdef,
-            variantdef,
-            pointerdef,
-            formaldef,
-            classrefdef,
-            recorddef,
-            objectdef,
-            procvardef,
-            filedef,
-            arraydef,
-            stringdef:
-              begin
-                if (p.rettype.def.deftype <> stringdef) or
-                   (is_ansistring(p.rettype.def) or
-                    is_widestring(p.rettype.def)) then
-                  begin
-                    getfuncretparaloc.loc:=LOC_REGISTER;
-                    getfuncretparaloc.register.enum:=R_INTREGISTER;
-                    getfuncretparaloc.register.number:=NR_R3;
-                    getfuncretparaloc.size:=OS_ADDR;
-                  end
-                else
-                  internalerror(2003061601);
-              end;
+        { Function return }
+        fillchar(paraloc,sizeof(tparalocation),0);
+        paraloc.size:=def_cgsize(p.rettype.def);
+        { Return in FPU register? }
+        if p.rettype.def.deftype=floatdef then
+          begin
+            paraloc.loc:=LOC_FPUREGISTER;
+            paraloc.register.enum:=FPU_RESULT_REG;
+          end
+        else
+         { Return in register? }
+         if not ret_in_param(p.rettype.def,p.proccalloption) then
+          begin
+            paraloc.loc:=LOC_REGISTER;
+{$ifndef cpu64bit}
+            if paraloc.size in [OS_64,OS_S64] then
+             begin
+               paraloc.register64.reglo.enum:=R_INTREGISTER;
+               paraloc.register64.reglo.number:=NR_FUNCTION_RETURN64_LOW_REG;
+               paraloc.register64.reghi.enum:=R_INTREGISTER;
+               paraloc.register64.reghi.number:=NR_FUNCTION_RETURN64_HIGH_REG;
+             end
             else
-              internalerror(2002090903);
-        end;
+{$endif cpu64bit}
+             begin
+               paraloc.register.enum:=R_INTREGISTER;
+               paraloc.register.number:=NR_FUNCTION_RETURN_REG;
+             end;
+          end
+        else
+          begin
+            paraloc.loc:=LOC_REFERENCE;
+          end;
+        p.funcret_paraloc[side]:=paraloc;
       end;
-
 
 begin
    paramanager:=tppcparamanager.create;
 end.
 {
   $Log$
-  Revision 1.41  2003-07-05 20:11:41  jonas
+  Revision 1.42  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.41  2003/07/05 20:11:41  jonas
     * create_paraloc_info() is now called separately for the caller and
       callee info
     * fixed ppc cycle

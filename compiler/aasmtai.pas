@@ -444,12 +444,17 @@ interface
           procedure loadoper(opidx:longint;o:toper);
           function is_nop:boolean;virtual;abstract;
           function is_move:boolean;virtual;abstract;
+{$ifdef NEWRA}
+          { register allocator }
+          function get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister;var unusedregsint:Tsupregset):Tai;
+          procedure forward_allocation(p:Tai;var unusedregsint:Tsupregset);
           function spill_registers(list:Taasmoutput;
                                    rgget:Trggetproc;
                                    rgunget:Trgungetproc;
                                    r:Tsupregset;
                                    var unusedregsint:Tsupregset;
                                    const spilltemplist:Tspill_temp_list):boolean;virtual;abstract;
+{$endif NEWRA}
        end;
 
        { alignment for operator }
@@ -494,13 +499,13 @@ interface
 
 implementation
 
-uses
+    uses
 {$ifdef delphi}
-  sysutils,
+      sysutils,
 {$else}
-  strings,
+      strings,
 {$endif}
-  verbose;
+      verbose;
 
     const
       pputaimarker = 254;
@@ -1586,6 +1591,62 @@ uses
          end;
       end;
 
+{$ifdef NEWRA}
+{ ---------------------------------------------------------------------
+    Register allocator methods.
+  ---------------------------------------------------------------------}
+
+    function taicpu_abstract.get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister;var unusedregsint:Tsupregset):Tai;
+      var
+        back:Tsupregset;
+      begin
+        back:=unusedregsint;
+        get_insert_pos:=p;
+        while (p<>nil) and (p.typ=ait_regalloc) do
+          begin
+            {Rewind the register allocation.}
+            if Tai_regalloc(p).allocation then
+              include(unusedregsint,Tai_regalloc(p).reg.number shr 8)
+            else
+              begin
+                exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8);
+                if Tai_regalloc(p).reg.number shr 8=huntfor1 then
+                  begin
+                    get_insert_pos:=Tai(p.previous);
+                    back:=unusedregsint;
+                  end;
+                if Tai_regalloc(p).reg.number shr 8=huntfor2 then
+                  begin
+                    get_insert_pos:=Tai(p.previous);
+                    back:=unusedregsint;
+                  end;
+                if Tai_regalloc(p).reg.number shr 8=huntfor3 then
+                  begin
+                    get_insert_pos:=Tai(p.previous);
+                    back:=unusedregsint;
+                  end;
+              end;
+            p:=Tai(p.previous);
+          end;
+        unusedregsint:=back;
+      end;
+
+
+    procedure taicpu_abstract.forward_allocation(p:Tai;var unusedregsint:Tsupregset);
+      begin
+        {Forward the register allocation again.}
+        while (p<>self) do
+          begin
+            if p.typ<>ait_regalloc then
+              internalerror(200305311);
+            if Tai_regalloc(p).allocation then
+              exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8)
+            else
+              include(unusedregsint,Tai_regalloc(p).reg.number shr 8);
+            p:=Tai(p.next);
+          end;
+      end;
+{$endif NEWRA}
 
 { ---------------------------------------------------------------------
     Miscellaneous methods.
@@ -1838,7 +1899,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.30  2003-07-02 16:43:48  jonas
+  Revision 1.31  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.30  2003/07/02 16:43:48  jonas
     * always add dummy marker object at the start of an assembler list, so
       the optimizer can't remove the first object
 

@@ -36,13 +36,16 @@ interface
 
     type
       trgcpu=class(trgobj)
-        function GetRegisterFpu(list:TAasmOutput;size:Tcgsize):TRegister;override;
-        function GetExplicitRegisterInt(list:taasmoutput;Reg:Tnewregister):tregister;override;
-        procedure UngetregisterInt(list:taasmoutput;Reg:tregister);override;
-        procedure UngetRegisterFpu(list:taasmoutput;reg:tregister;size:TCGsize);override;
-        procedure ClearTempGen;override;
+{$ifndef NEWRA}
       private
         UsedParaRegs: TSupRegSet;
+      public
+        function GetExplicitRegisterInt(list:taasmoutput;Reg:Tnewregister):tregister;override;
+        procedure UngetregisterInt(list:taasmoutput;Reg:tregister);override;
+{$endif NEWRA}
+        function GetRegisterFpu(list:TAasmOutput;size:Tcgsize):TRegister;override;
+        procedure UngetRegisterFpu(list:taasmoutput;reg:tregister;size:TCGsize);override;
+        procedure ClearTempGen;override;
       end;
 
 
@@ -52,6 +55,7 @@ implementation
       cgobj,verbose;
 
 
+{$ifndef NEWRA}
     function TRgCpu.GetExplicitRegisterInt(list:TAasmOutput;reg:TNewRegister):TRegister;
       begin
         if ((reg shr 8) in [RS_O0..RS_O7,RS_I0..RS_I7]) then
@@ -84,6 +88,7 @@ implementation
         else
           inherited ungetregisterint(list,reg);
       end;
+{$endif NEWRA}
 
 
     function TRgCpu.GetRegisterFpu(list:TAasmOutput;size:Tcgsize):TRegister;
@@ -144,7 +149,9 @@ implementation
     procedure trgcpu.cleartempgen;
       begin
         inherited cleartempgen;
+{$ifndef NEWRA}
         usedpararegs:=[];
+{$endif NEWRA}
       end;
 
 begin
@@ -152,7 +159,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-07-02 22:18:04  peter
+  Revision 1.16  2003-08-11 21:18:20  peter
+    * start of sparc support for newra
+
+  Revision 1.15  2003/07/02 22:18:04  peter
     * paraloc splitted in callerparaloc,calleeparaloc
     * sparc calling convention updates
 
