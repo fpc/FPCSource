@@ -1835,18 +1835,7 @@ Function Select(N:longint;readfds,writefds,exceptfds:PFDSet;TimeOut:PTimeVal):lo
 Var
   Retval : LONGINT;
 begin
- asm
-  pushl TimeOut
-  pushl exceptfds
-  pushl writefds
-  pushl readfds
-  pushl n
-  mov   $93,%eax
-  int   $0x80
-  addl  $20,%esp
-  mov   %eax,retval
- end;
- Select:=checkreturnvalue(retval,retval);
+ Select:=do_syscall(93,n,readfds,writefds,exceptfds,timeout);
  LinuxError:=Errno;
 end;
 
@@ -2000,17 +1989,9 @@ Function AssignPipe(var pipe_in,pipe_out:longint):boolean;
 }
 var
   pip  : tpipe;
-  retval  : LONGINT;
 
 begin
- asm
-    lea pip,%ebx
-    push %ebx
-    mov  $42,%eax
-    int  $0x80
-    addl $4,%esp
-    mov %eax,retval
- end;
+ do_syscall(42,longint(@pip));
  checkreturnvalue(retval,retval);
  LinuxError:=Errno;
  pipe_in:=pip[1];
@@ -2090,19 +2071,12 @@ var
   res : longint;
 
 begin
-  res:=Textrec(F).Handle;
-  asm
-    push res
-    mov  $6,%eax
-    int  $0x80
-    add  $4,%esp
-  end;
+  do_syscall(6,Textrec(F).Handle);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(textrec(f).userdata[2]);
   waitpid(pl^,@res,0);
   pclose:=res shr 8;
 end;
-
 
 Function PClose(Var F:file) : longint;
 var
@@ -2110,13 +2084,7 @@ var
   res : longint;
 
 begin
-  res:=filerec(F).Handle;
-  asm
-    push res
-    mov  $6,%eax
-    int  $0x80
-    add  $4,%esp
-  end;
+  do_syscall(6,filerec(F).Handle);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(filerec(f).userdata[2]);
   waitpid(pl^,@res,0);
@@ -2298,21 +2266,8 @@ Function mkFifo(pathname:string;mode:longint):boolean;
 var retval : LONGINT;
 begin
   pathname:=pathname+#0;
- asm
-  lea  %ecx,pathname
-  inc  %ecx
-  push $0
-  mov  mode,%ebx
-  or   STAT_IFIFO,%ebx
-  push %ebx
-  push %ecx
-  mov  $14,%eax
-  int  $0x80
-  addl $12,%esp
-  mov  %eax,retval
- end;
- mkfifo:=checkreturnvalue(retval,retval)=0;
- LinuxError:=Errno;
+  mkfifo:=do_syscall(14,longint(@pathname[1]),mode or STAT_IFIFO,0)=0;
+  LinuxError:=Errno;
 end;
 
 Procedure AssignStream(Var StreamIn,Streamout:text;Const Prog:String);
@@ -2585,17 +2540,8 @@ Function Kill(Pid:longint;Sig:integer):integer;
   is the number of processes to which the signal was sent.
 }
 
-var retval : LONGINT;
 begin
- asm
-  push Sig
-  push Pid
-  mov  $37,%eax
-  int  $0x80
-  addl $8,%esp
-  mov  %eax,retval
- end;
- Kill:=checkreturnvalue(retval,retval);
+ kill:=do_syscall(37,pid,sig);
  if kill<0 THEN
   Kill:=0;
  LinuxError:=Errno;
@@ -2609,18 +2555,8 @@ Procedure SigAction(Signum:Integer;Var Act,OldAct:PSigActionRec );
   If OldAct is non-nil the previous action is saved there.
 }
 
-var retval : LONGINT;
 begin
- asm
-  push oldact
-  push act
-  push signum
-  mov  $46,%eax
-  int  $0x80
-  addl $12,%esp
-  mov  %eax,retval
- end;
- checkreturnvalue(retval,retval);
+ do_syscall(46,longint(signum),act,oldact);
  LinuxError:=Errno;
 end;
 
@@ -2633,18 +2569,9 @@ Procedure SigProcMask(How:Integer;SSet,OldSSet:PSigSet);
    SigSetMask : Set the list of blocked signals to SSet
   if OldSSet is non-null, the old set will be saved there.
 }
-VAR retval : LONGINT;
 
 begin
-  asm
-   push  OldSSet
-   push  SSet
-   push  How
-   mov   $48,%eax
-   int   $0x80
-   addl  $12,%esp
-   mov  %eax,retval
-  end;
+  do_syscall(48,longint(how),sset,oldsset);
  checkreturnvalue(retval,retval);
  LinuxError:=Errno;
 end;
@@ -2656,17 +2583,10 @@ Function SigPending:SigSet;
 }
 Var
   dummy : Sigset;
-  retval: LONGINT;
 begin
-  asm
-   push dummy
-   mov  $52,%eax
-   int  $0x80
-   addl $4,%esp
-   mov  %eax,retval
-  end;
-  sigpending:=checkreturnvalue(retval,dummy);
+  do_syscall(52,longint(@dummy));
   LinuxError:=Errno;
+  sigpending:=dummy;
 end;
 
 Procedure SigSuspend(Mask:Sigset);
@@ -2674,17 +2594,9 @@ Procedure SigSuspend(Mask:Sigset);
  Set the signal mask with Mask, and suspend the program until a signal
  is received.
 }
-Var
-  retval: LONGINT;
+
 begin
-  asm
-   push mask
-   mov  $111,%eax
-   int  $0x80
-   addl $4,%esp
-   mov  %eax,retval
-  end;
-  checkreturnvalue(retval,retval);
+  do_syscall(111,mask);
   LinuxError:=Errno;
 end;
 
@@ -2748,19 +2660,9 @@ Function IOCtl(Handle,Ndx: Longint;Data: Pointer):boolean;
   Data points to data needed for the Ndx function. The structure of this
   data is function-dependent.
 }
-var
-  retval  : longint;
+
 begin
-  asm
-    push data
-    push ndx
-    push handle
-    mov  $54,%eax
-    int  $0x80
-    addl $12,%esp
-    mov  %eax,retval
-  end;
- IOctl:=checkreturnvalue(retval,retval)=0;
+  IOCtl:=Do_Syscall(54,handle,ndx,data);
  LinuxError:=Errno;
 end;
 
@@ -3515,24 +3417,10 @@ end;
 --------------------------------}
 
 function MMap(const m:tmmapargs):longint;
-Var
-   Retval : longint;
+
 begin
-  asm
-   push $0
-   mov  m,%esi
-   push tmmapargs.offset(%esi)
-   push tmmapargs.fd(%esi)
-   push tmmapargs.flags(%esi)
-   push tmmapargs.prot(%esi)
-   push tmmapargs.size(%esi)
-   push tmmapargs.address(%esi)
-   mov $197,%eax
-   int $0x80
-   addl $28,%esp
-   mov %eax,retval
- end;
- checkreturnvalue(retval,retval);
+  {Last argument (offset) is actually 64-bit under BSD. Therefore extra 0}
+ do_syscall(197,m.address,m.size,m.prot,m.flags,m.fd,m.offset,0);
  LinuxError:=Errno;
 end;
 
@@ -3758,7 +3646,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  2000-03-01 17:27:46  marco
+  Revision 1.5  2000-03-01 20:04:38  marco
+   * some small fixes.
+
+  Revision 1.4  2000/03/01 17:27:46  marco
    * Fixed first half of linux unit to portable syscall struct.
 
   Revision 1.3  2000/02/04 16:53:26  marco
