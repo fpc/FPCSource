@@ -7,7 +7,7 @@ sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSUTILINC) filutil.inc disk.inc 
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/sysutils.pp $(REDIR)
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/typinfo.pp $(REDIR)
+	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
 
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
