@@ -172,6 +172,30 @@ begin
    end;
 end;
 
+
+function SysGetMouseX:word;
+begin
+  EnterCriticalSection(ChangeMouseEvents);
+  SysGetMouseX:=LastMouseEvent.x;
+  LeaveCriticalSection(ChangeMouseEvents);
+end;
+
+
+function SysGetMouseY:word;
+begin
+  EnterCriticalSection(ChangeMouseEvents);
+  SysGetMouseY:=LastMouseEvent.y;
+  LeaveCriticalSection(ChangeMouseEvents);
+end;
+
+
+function SysGetMouseButtons:word;
+begin
+  EnterCriticalSection(ChangeMouseEvents);
+  SysGetMouseButtons:=LastMouseEvent.Buttons;
+  LeaveCriticalSection(ChangeMouseEvents);
+end;
+
 Const
   SysMouseDriver : TMouseDriver = (
     UseDefaultQueue : False;
@@ -180,9 +204,9 @@ Const
     DetectMouse     : @SysDetectMouse;
     ShowMouse       : Nil;
     HideMouse       : Nil;
-    GetMouseX       : Nil;
-    GetMouseY       : Nil;
-    GetMouseButtons : Nil;
+    GetMouseX       : @SysGetMouseX;
+    GetMouseY       : @SysGetMouseY;
+    GetMouseButtons : @SysGetMouseButtons;
     SetMouseXY      : Nil;
     GetMouseEvent   : @SysGetMouseEvent;
     PollMouseEvent  : @SysPollMouseEvent;
@@ -194,7 +218,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:29  peter
+  Revision 1.7  2004-11-04 10:21:07  peter
+  GetMouse[X,Y,Buttons] based on LastMouseEvent
+
+  Revision 1.6  2002/09/07 16:01:29  peter
     * old logs removed and tabs fixed
 
 }
