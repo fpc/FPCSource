@@ -13,14 +13,6 @@
 #
 
 #####################################################################
-# Force default settings
-#####################################################################
-
-# Latest release version
-override RELEASEVER:=0.99.11
-
-
-#####################################################################
 # Autodetect OS (Linux or Dos or Windows NT)
 # define inlinux when running under linux
 # define inWinNT when running under WinNT
@@ -343,7 +335,7 @@ endif
 # set the base directory where to install everything
 ifndef BASEINSTALLDIR
 ifdef inlinux
-BASEINSTALLDIR=$(PREFIXINSTALLDIR)/lib/fpc/$(RELEASEVER)
+BASEINSTALLDIR=$(PREFIXINSTALLDIR)/lib/fpc/$(FPC_VERSION)
 else
 BASEINSTALLDIR=$(PREFIXINSTALLDIR)
 endif
@@ -399,7 +391,7 @@ endif
 # Where the doc files will be stored
 ifndef DOCINSTALLDIR
 ifdef inlinux
-DOCINSTALLDIR=$(PREFIXINSTALLDIR)/doc/fpc/$(RELEASEVER)
+DOCINSTALLDIR=$(PREFIXINSTALLDIR)/doc/fpc/$(FPC_VERSION)
 else
 DOCINSTALLDIR=$(BASEINSTALLDIR)/doc
 endif
@@ -666,7 +658,7 @@ endif
 export FPCDIR FPCMAKE
 
 # Compiler info
-export RELEASEVER FPC_VERSION OS_SOURCE OS_TARGET CPU
+export FPC_VERSION OS_SOURCE OS_TARGET CPU
 export OPT OPTDEF PP RELEASE VERBOSE SMARTLINK LIBTYPE LIBNAME
 
 # Installation
@@ -1033,7 +1025,10 @@ endif
 
 #
 # $Log$
-# Revision 1.27  1999-05-16 02:37:30  peter
+# Revision 1.28  1999-05-30 11:33:04  peter
+#   * releasever removed, fpc_version will be used
+#
+# Revision 1.27  1999/05/16 02:37:30  peter
 #   + fpc_showinstallfiles to show which files will be added to the system
 #
 # Revision 1.26  1999/05/14 22:46:21  peter
