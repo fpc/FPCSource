@@ -1,0 +1,19 @@
+#
+#   Makefile.fpc for libc binding
+#
+
+[package]
+name=libc
+version=1.0.8
+
+[target]
+units=kerneldefs kernelioctl libc
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
