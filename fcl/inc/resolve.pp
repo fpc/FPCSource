@@ -497,7 +497,7 @@ begin
   Result:=Inherited NameLookup(S);
   If Result then
     begin
-    FHostEntry:=ResolveHostByName(pchar(FName));
+    FHostEntry:=GetHostByName(pchar(FName));
     Result:=FHostEntry<>Nil;
     If Result then
       SaveHostEntry(FHostEntry)
@@ -540,7 +540,7 @@ Var
 
 begin
   ClearData;
-  FHostEntry:=ResolveHostByAddr(Pchar(@Address),SizeOf(Address),AF_INET);
+  FHostEntry:=GetHostByAddr(Pchar(@Address),SizeOf(Address),AF_INET);
   Result:=FHostEntry<>Nil;
   If Result then
     SaveHostEntry(FHostEntry)
@@ -952,7 +952,10 @@ Finalization
 end.
 {
    $Log$
-   Revision 1.8  2004-02-02 14:42:00  marco
+   Revision 1.9  2004-02-03 10:37:32  michael
+   + Fixed win32 compilation
+
+   Revision 1.8  2004/02/02 14:42:00  marco
     * more small fixes
 
    Revision 1.7  2004/01/31 19:02:50  sg
