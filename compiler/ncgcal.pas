@@ -220,10 +220,26 @@ implementation
            case left.location.loc of
              LOC_MMREGISTER,
              LOC_CMMREGISTER:
-               cg.a_parammm_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc,mms_movescalar);
+               begin
+                 if tempparaloc.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+                   begin
+                     location_force_fpureg(exprasmlist,left.location,false);
+                     cg.a_paramfpu_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc);
+                   end
+                 else
+                   cg.a_parammm_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc,mms_movescalar);
+               end;
              LOC_FPUREGISTER,
              LOC_CFPUREGISTER:
-               cg.a_paramfpu_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc);
+               begin
+                 if tempparaloc.loc in [LOC_MMREGISTER,LOC_CMMREGISTER] then
+                   begin
+                     location_force_mmregscalar(exprasmlist,left.location,false);
+                     cg.a_parammm_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc,mms_movescalar);
+                   end
+                 else
+                   cg.a_paramfpu_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc);
+               end;
              LOC_REFERENCE,
              LOC_CREFERENCE:
                case tempparaloc.loc of
@@ -1219,7 +1235,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.156  2004-02-20 22:16:35  florian
+  Revision 1.157  2004-02-22 12:04:04  florian
+    + nx86set added
+    * some more x86-64 fixes
+
+  Revision 1.156  2004/02/20 22:16:35  florian
     * handling of float parameters passed in mm registers fixed
 
   Revision 1.155  2004/02/20 21:55:59  peter

@@ -1737,7 +1737,8 @@ begin
 {$ifdef x86_64}
   def_symbol('CPUX86_64');
   def_symbol('CPU64');
-  def_symbol('FPC_HAS_TYPE_FLOAT128');
+  { not supported for now, afaik (FK)
+   def_symbol('FPC_HAS_TYPE_FLOAT128'); }
   def_symbol('FPC_HAS_TYPE_EXTENDED');
   def_symbol('FPC_HAS_TYPE_DOUBLE');
   def_symbol('FPC_HAS_TYPE_SINGLE');
@@ -1998,7 +1999,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.124  2004-02-15 16:34:18  marco
+  Revision 1.125  2004-02-22 12:04:04  florian
+    + nx86set added
+    * some more x86-64 fixes
+
+  Revision 1.124  2004/02/15 16:34:18  marco
    * pthread on -CURRENT related fixes.
 
   Revision 1.123  2004/02/03 00:42:08  florian

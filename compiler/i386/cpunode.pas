@@ -45,6 +45,8 @@ unit cpunode;
          the processor specific nodes must be included
          after the generic one (FK)
        }
+       nx86set,
+
        n386add,
        n386cal,
        n386con,
@@ -60,7 +62,11 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.19  2003-04-24 11:19:13  florian
+  Revision 1.20  2004-02-22 12:04:04  florian
+    + nx86set added
+    * some more x86-64 fixes
+
+  Revision 1.19  2003/04/24 11:19:13  florian
     * ncgopt replaces n386opt
 
   Revision 1.18  2002/08/24 18:35:42  peter

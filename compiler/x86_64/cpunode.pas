@@ -49,6 +49,7 @@ unit cpunode;
        // n386obj
        { the cpu specific node units must be used after the generic ones to
          get the correct class pointer }
+       nx86set,
        nx64add,
        nx64cnv,
        nx64mat,
@@ -58,7 +59,11 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.7  2004-02-05 01:24:08  florian
+  Revision 1.8  2004-02-22 12:04:04  florian
+    + nx86set added
+    * some more x86-64 fixes
+
+  Revision 1.7  2004/02/05 01:24:08  florian
     * several fixes to compile x86-64 system
 
   Revision 1.6  2004/01/31 17:45:17  peter
