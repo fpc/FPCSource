@@ -19,7 +19,6 @@ unit WinClip;
 interface
 
 {$i globdir.inc}
-
 {$ifdef WinClipSupported}
 
 function WinClipboardSupported : boolean;
@@ -85,7 +84,7 @@ var
   r : Registers;
 begin
   r.ax:=$1704;
-  r.dx:=1;
+  r.dx:=7 {OEM Text rather then 1 : Text };
   RealIntr($2F,r);
   InternGetDataSize:=(r.dx shl 16) + r.ax;
 end;
@@ -113,10 +112,18 @@ begin
 end;
 
 function InternGetDataSize : longint;
+var HC : Handle;
 begin
-  InternGetDataSize:=-1;
+  HC:=GetClipBoardData(CF_OEMTEXT);
+  if HC<>0 then
+    begin
+      InternGetDataSize:=strlen(pchar(GlobalLock(HC)));
+      GlobalUnlock(HC);
+    end
+  else
+    InternGetDataSize:=0;
 end;
-{$endif go32v2}
+{$endif win32}
 
 
 function GetTextWinClipboardSize : longint;
@@ -173,14 +180,14 @@ begin
       tb_sel:=0;
     end;
   r.ax:=$1705;
-  r.dx:=1;
+  r.dx:=7{ OEM Text rather then 1 : Text };
   r.es:=tb_seg;
   r.bx:=tb_ofs;
   RealIntr($2F,r);
   GetTextWinClipBoardData:=(r.ax<>0);
 {$endif go32v2}
 {$ifdef win32}
-  h:=GetClipboardData(CF_TEXT);
+  h:=GetClipboardData(CF_OEMTEXT);
   if h<>0 then
     begin
       pp:=pchar(GlobalLock(h));
@@ -238,7 +245,7 @@ begin
     end;
   DosMemPut(tb_seg,tb_ofs,p^,l);
   r.ax:=$1703;
-  r.dx:=1;
+  r.dx:=7{ OEM Text rather then 1 : Text };
   r.es:=tb_seg;
   r.bx:=tb_ofs;
   r.si:=l shr 16;
@@ -253,18 +260,22 @@ begin
   pp:=pchar(GlobalLock(h));
   move(p^,pp^,l);
   GlobalUnlock(h);
-  SetTextWinClipBoardData:=(SetClipboardData(CF_TEXT,h)=h);
+  SetTextWinClipBoardData:=(SetClipboardData(CF_OEMTEXT,h)=h);
 {$endif win32}
   CloseWinClipBoard;
 end;
 
 {$endif WinClipSupported}
-
 end.
 
 {
  $Log$
- Revision 1.3  1999-10-14 14:22:23  florian
+ Revision 1.4  1999-11-05 13:46:26  pierre
+   * Use CF_OEMTEXT under win32 and dx=7 under go32v2 to obtain
+     OEM to ANSI conversion
+   * GetClipboardDataSize for Win32
+
+ Revision 1.3  1999/10/14 14:22:23  florian
    * if no ini file is found the ide uses some useful defaults
 
 }
