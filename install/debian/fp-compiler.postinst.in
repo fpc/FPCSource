@@ -10,7 +10,7 @@ update-alternatives \
     --slave /usr/share/man/man1/fpc.1.gz fpc.1.gz /usr/share/man/man1/fpc.1.gz
 
 # create link
-ln -sf $FPCDIR/ppc386 /usr/bin/ppc386
+ln -sf $FPCDIR/%{ppcbin} /usr/bin/%{ppcbin}
 
 # Debhelper code
 #DEBHELPER#

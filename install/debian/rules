@@ -4,6 +4,36 @@
 # Documentation type to use pdf/html
 DOCTYPE=pdf
 
+# Detect name of new compiler
+CPU_SOURCE=$(shell dpkg-architecture -qDEB_BUILD_ARCH)
+CPU_TARGET=$(shell dpkg-architecture -qDEB_HOST_ARCH)
+ifeq ($(CPU_TARGET),m68k)
+PPSUF=68k
+endif
+ifeq ($(CPU_TARGET),i386)
+PPSUF=386
+endif
+ifeq ($(CPU_TARGET),x86_64)
+PPSUF=x64
+endif
+ifeq ($(CPU_TARGET),powerpc)
+PPSUF=ppc
+endif
+ifeq ($(CPU_TARGET),alpha)
+PPSUF=axp
+endif
+ifeq ($(CPU_TARGET),arm)
+PPSUF=arm
+endif
+
+ifneq ($(CPU_SOURCE),$(CPU_TARGET))
+PPPRE=ppcross
+else
+PPPRE=ppc
+endif
+
+PPNEW=$(PPPRE)$(PPSUF)
+
 # Reset FPC and FPCDIR if it was set
 FPC=
 FPCDIR=
@@ -17,7 +47,7 @@ INSTALL_DIR=$(PWD)/debian/tmp
 DOC_DIR=$(INSTALL_DIR)/usr/share/doc
 EXAMPLE_TEMP=$(DOC_DIR)/fpc-$(FPCVERSION)
 # Get utils
-NEWPP=$(PWD)/compiler/ppc386
+NEWPP=$(PWD)/compiler/$(PPNEW)
 NEWFPDOC=$(PWD)/utils/fpdoc/fpdoc
 # Create default options
 BUILDOPTS=PP=$(NEWPP)
@@ -63,7 +93,7 @@ clean:
 debian-files: debian-files-stamp
 debian-files-stamp:
 	@echo "--- Creating debian files"
-	bash debian/fixdeb debian
+	bash debian/fixdeb debian $(PPNEW)
 
 	touch debian-files-stamp
 

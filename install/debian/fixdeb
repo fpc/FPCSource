@@ -4,14 +4,15 @@
 #
 # $1 = path to debian files
 #
-if [ $# != 1 ]; then
-  echo 'Usage : fixdeb path'
+if [ $# != 2 ]; then
+  echo 'Usage : fixdeb path ppcbin'
   exit 1
 fi
 
 PACKAGEVERSION=`head -n 1 $1/changelog | awk '{ print $2 }' | tr -d '[()]'`
 FPCVERSION=`echo $PACKAGEVERSION | awk -F '-' '{ print $1 }'`
 DEBVERSION=`echo $PACKAGEVERSION | awk -F '-' '{ print $2 }'`
+PPCBIN="$2"
 
 # Snapshot ?
 if [ "$DEBVERSION" == "0" ]; then
@@ -25,9 +26,10 @@ fi
 echo 'PackageVersion: ' $PACKAGEVERSION
 echo 'FPCVersion    : ' $FPCVERSION
 echo 'DebVersion    : ' $DEBVERSION
+echo 'PPCBin        : ' $PPCBIN
 
 for i in $1/*.in
 do
   j=${i/%.in/}
-  sed -e 's/%{fpcversion}/'$FPCVERSION'/g;s/%{packageversion}/'$PACKAGEVERSION'/g' $i > $j
+  sed -e 's/%{fpcversion}/'$FPCVERSION'/g;s/%{packageversion}/'$PACKAGEVERSION'/g;s/%{ppcbin}/'$PPCBIN'/g' $i > $j
 done
