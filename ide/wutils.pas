@@ -159,6 +159,7 @@ function OptimizePath(Path: string; MaxLen: integer): string;
 function CompareText(S1, S2: string): integer;
 function ExistsDir(const DirName: string): boolean;
 function ExistsFile(const FileName: string): boolean;
+function SizeOfFile(const FileName: string): longint;
 function DeleteFile(const FileName: string): integer;
 function CopyFile(const SrcFileName, DestFileName: string): boolean;
 function GenTempFileName: string;
@@ -1146,6 +1147,22 @@ begin
 {$endif def FPC}
 end;
 
+{ returns zero for empty and non existant files }
+
+function SizeOfFile(const FileName: string): longint;
+var
+  Dir : SearchRec;
+begin
+  Dos.FindFirst(FileName,Archive+ReadOnly,Dir);
+  if (Dos.DosError=0) then
+    SizeOfFile:=Dir.Size
+  else
+    SizeOfFile:=0;
+{$ifdef FPC}
+  Dos.FindClose(Dir);
+{$endif def FPC}
+end;
+
 function ExistsDir(const DirName: string): boolean;
 var
   Dir : SearchRec;
@@ -1269,7 +1286,11 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.9  2002-05-13 13:44:33  peter
+  Revision 1.10  2002-08-29 07:59:46  pierre
+  CVS: Enter log comment for commit
+   + SizeOfFile function added
+
+  Revision 1.9  2002/05/13 13:44:33  peter
     * fixed range error
 
   Revision 1.8  2002/04/02 13:23:02  pierre
