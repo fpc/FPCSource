@@ -914,15 +914,15 @@ const msgtxt : array[0..000158,1..240] of char=(
   'P*2WG_Specify graphic type application (MacOS only)'#010+
   'P*2WT_Specify tool type application (MPW tool, MacOS only)'#010+
   '**1X_','executable options:'#010+
-  '**2Xc_link with the c library'#010+
+  '**2Xc_pass --shared to the linker (Unix only)'#010+
   '**2Xd_don'#039't use standard library search path (needed for cross com'+
   'pile)'#010+
   '**2XD_try to link units dynamic          (defines FPC_LINK_DYNAMIC)'#010+
-  '**2XP<x>_prepend the binutils names with the prefi','x <x>'#010+
+  '**2XP<x>_prepend the binutils name','s with the prefix <x>'#010+
   '**2Xr<x>_set library search path to <x> (needed for cross compile)'#010+
   '**2Xs_strip all symbols from executable'#010+
   '**2XS_try to link units static (default) (defines FPC_LINK_STATIC)'#010+
-  '**2Xt_link with static libraries (-static is passed to linke','r)'#010+
+  '**2Xt_link with static libraries (-static is',' passed to linker)'#010+
   '**2XX_try to link units smart            (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_shows this help'#010+

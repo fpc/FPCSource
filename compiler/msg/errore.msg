@@ -2332,7 +2332,7 @@ P*2WC_Specify console type application (MacOS only)
 P*2WG_Specify graphic type application (MacOS only)
 P*2WT_Specify tool type application (MPW tool, MacOS only)
 **1X_executable options:
-**2Xc_link with the c library
+**2Xc_pass --shared to the linker (Unix only)
 **2Xd_don't use standard library search path (needed for cross compile)
 **2XD_try to link units dynamic          (defines FPC_LINK_DYNAMIC)
 **2XP<x>_prepend the binutils names with the prefix <x>
