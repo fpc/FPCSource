@@ -1,4 +1,5 @@
 { %CPU=i386 }
+{ %NOTE=This test requires an installed nasm assembler }
 
 {$define dummy}
 {$ifdef win32}
