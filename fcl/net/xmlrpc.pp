@@ -158,7 +158,7 @@ uses XMLWrite, XMLRead;
 
 // Debugging stuff
 
-{$IFDEF Debug}
+{$IFDEF XMLRPCDebug}
 const
   NodeNames: array[ELEMENT_NODE..NOTATION_NODE] of String = (
     'Element',
@@ -396,7 +396,7 @@ begin
   inherited Create;
   ReadXMLFile(Doc, AStream);
   Node := Doc.DocumentElement;
-  {$IFDEF Debug}DumpNode(Node, 'Parser> ');{$ENDIF}
+  {$IFDEF XMLRPCDebug}DumpNode(Node, 'Parser> ');{$ENDIF}
   if (Node.NodeName = 'methodCall') or (Node.NodeName = 'methodResponse') then
   begin
     Node := Node.FirstChild;
@@ -462,7 +462,7 @@ end;
 procedure TXMLRPCParser.ResetValueCursor;
 begin
   CurDataNode := CurDataNode.ParentNode.FirstChild;
-  {$IFDEF Debug}DumpNode(CurDataNode, 'ResetValueCursor> ');{$ENDIF}
+  {$IFDEF XMLRPCDebug}DumpNode(CurDataNode, 'ResetValueCursor> ');{$ENDIF}
 end;
 
 function TXMLRPCParser.GetNextInt: LongInt;
@@ -609,12 +609,12 @@ end;
 
 procedure TXMLRPCParser.PrevNode;
 begin
-  {$IFDEF Debug}DumpNode(CurDataNode, 'PrevNode before> ');{$ENDIF}
+  {$IFDEF XMLRPCDebug}DumpNode(CurDataNode, 'PrevNode before> ');{$ENDIF}
   if Assigned(CurDataNode.PreviousSibling) then
     CurDataNode := CurDataNode.PreviousSibling
   else
     CurDataNode := CurDataNode.ParentNode.LastChild;
-  {$IFDEF Debug}DumpNode(CurDataNode, 'PrevNode result> ');{$ENDIF}
+  {$IFDEF XMLRPCDebug}DumpNode(CurDataNode, 'PrevNode result> ');{$ENDIF}
 end;
 
 function TXMLRPCParser.GetValue: String;
@@ -934,7 +934,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-11-22 12:10:27  sg
+  Revision 1.4  2003-11-27 11:28:44  sg
+  * Debugging output is now enabled when the symbol "XMLRPCDebug" exists,
+    and not generally when compiled in debug mode
+
+  Revision 1.3  2003/11/22 12:10:27  sg
   * Just a small adaption to chages in HTTP unit
 
   Revision 1.2  2003/06/25 08:49:21  sg
