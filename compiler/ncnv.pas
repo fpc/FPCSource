@@ -771,13 +771,28 @@ implementation
 
       var
         t : trealconstnode;
-
+        rv : bestreal;
       begin
         result:=nil;
         if left.nodetype=ordconstn then
          begin
-           t:=crealconstnode.create(tordconstnode(left).value,resulttype);
+           rv:=tordconstnode(left).value;
+           if is_currency(resulttype.def) then
+             rv:=rv*10000.0;
+           t:=crealconstnode.create(rv,resulttype);
            result:=t;
+         end
+        else
+         begin
+           { multiply by 10000 for currency. We need to use getcopy to pass
+             the argument because the current node is always disposed. Only
+             inserting the multiply in the left node is not possible because
+             it'll get in an infinite loop to convert int->currency }
+           if is_currency(resulttype.def) then
+            begin
+              result:=caddnode.create(muln,getcopy,crealconstnode.create(10000.0,resulttype));
+              include(result.flags,nf_explizit);
+            end;
          end;
       end;
 
@@ -792,12 +807,14 @@ implementation
          if is_currency(left.resulttype.def) and not(is_currency(resulttype.def)) then
            begin
              left:=caddnode.create(slashn,left,crealconstnode.create(10000.0,left.resulttype));
+             include(left.flags,nf_explizit);
              resulttypepass(left);
            end
          else
            if is_currency(resulttype.def) and not(is_currency(left.resulttype.def)) then
              begin
                left:=caddnode.create(muln,left,crealconstnode.create(10000.0,left.resulttype));
+               include(left.flags,nf_explizit);
                resulttypepass(left);
              end;
          if left.nodetype=realconstn then
@@ -1975,7 +1992,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2002-11-27 11:29:21  peter
+  Revision 1.91  2002-11-27 13:11:38  peter
+    * more currency fixes, taddcurr runs now successfull
+
+  Revision 1.90  2002/11/27 11:29:21  peter
     * when converting from and to currency divide or multiple the
       result by 10000
 

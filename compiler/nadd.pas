@@ -181,7 +181,7 @@ implementation
               floattype for results }
             if (right.resulttype.def.deftype=floatdef) and
                (left.resulttype.def.deftype=floatdef) and
-               (tfloatdef(right.resulttype.def).typ=tfloatdef(right.resulttype.def).typ) then
+               (tfloatdef(left.resulttype.def).typ=tfloatdef(right.resulttype.def).typ) then
               resultrealtype:=left.resulttype
             else
              begin
@@ -1224,6 +1224,29 @@ implementation
                   resulttype:=left.resulttype;
              end;
           end;
+
+         { when the result is currency we need some extra code for
+           multiplication and division. this should not be done when
+           the muln or slashn node is created internally }
+         if not(nf_explizit in flags) and
+            is_currency(resulttype.def) then
+          begin
+            case nodetype of
+              slashn :
+                begin
+                  hp:=caddnode.create(muln,getcopy,crealconstnode.create(10000.0,resultrealtype));
+                  include(hp.flags,nf_explizit);
+                  result:=hp;
+                end;
+              muln :
+                begin
+                  hp:=caddnode.create(slashn,getcopy,crealconstnode.create(10000.0,resultrealtype));
+                  include(hp.flags,nf_explizit);
+                  result:=hp
+                end;
+            end;
+          end;
+
       end;
 
 
@@ -1892,7 +1915,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2002-11-27 11:28:40  peter
+  Revision 1.75  2002-11-27 13:11:38  peter
+    * more currency fixes, taddcurr runs now successfull
+
+  Revision 1.74  2002/11/27 11:28:40  peter
     * when both flaottypes are the same then handle the addnode using
       that floattype instead of bestrealtype
 
