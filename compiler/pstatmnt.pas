@@ -129,12 +129,13 @@ unit pstatmnt;
       var
          { contains the label number of currently parsed case block }
          aktcaselabel : plabel;
+         firstlabel : boolean;
          root : pcaserecord;
 
          { the typ of the case expression }
          casedef : pdef;
 
-      procedure newcaselabel(l,h : longint);
+      procedure newcaselabel(l,h : longint;first:boolean);
 
         var
            hcaselabel : pcaserecord;
@@ -158,6 +159,7 @@ unit pstatmnt;
            hcaselabel^.less:=nil;
            hcaselabel^.greater:=nil;
            hcaselabel^.statement:=aktcaselabel;
+           hcaselabel^.firstlabel:=first;
            getlabel(hcaselabel^._at);
            hcaselabel^._low:=l;
            hcaselabel^._high:=h;
@@ -167,7 +169,6 @@ unit pstatmnt;
       var
          code,caseexpr,p,instruc,elseblock : ptree;
          hl1,hl2 : longint;
-         ranges : boolean;
 
       begin
          consume(_CASE);
@@ -182,11 +183,10 @@ unit pstatmnt;
          consume(_OF);
          inc(statement_level);
          root:=nil;
-         ranges:=false;
          instruc:=nil;
          repeat
            getlabel(aktcaselabel);
-           {aktcaselabel^.is_used:=true; }
+           firstlabel:=true;
 
            { may be an instruction has more case labels }
            repeat
@@ -206,21 +206,23 @@ unit pstatmnt;
                   hl2:=get_ordinal_value(p^.right);
                   testrange(casedef,hl1);
                   testrange(casedef,hl2);
-                  newcaselabel(hl1,hl2);
-                  ranges:=true;
+                  newcaselabel(hl1,hl2,firstlabel);
                end
              else
                begin
                   { type checking for case statements }
                   if not is_subequal(casedef, p^.resulttype) then
                     Message(parser_e_case_mismatch);
-                    hl1:=get_ordinal_value(p);
-                    testrange(casedef,hl1);
-                    newcaselabel(hl1,hl1);
+                  hl1:=get_ordinal_value(p);
+                  testrange(casedef,hl1);
+                  newcaselabel(hl1,hl1,firstlabel);
                end;
              disposetree(p);
-             if token=COMMA then consume(COMMA)
-               else break;
+             if token=COMMA then
+               consume(COMMA)
+             else
+               break;
+             firstlabel:=false;
            until false;
            consume(COLON);
 
@@ -1225,7 +1227,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.52  1998-12-11 00:03:37  peter
+  Revision 1.53  1998-12-15 11:52:18  peter
+    * fixed dup release of statement label in case
+
+  Revision 1.52  1998/12/11 00:03:37  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.51  1998/12/10 09:47:24  florian

@@ -203,6 +203,10 @@ unit tree;
           { label of instruction }
           statement : plabel;
 
+          { is this the first of an case entry, needed to release statement
+            label (PFV) }
+          firstlabel : boolean;
+
           { left and right tree node }
           less,greater : pcaserecord;
        end;
@@ -453,9 +457,9 @@ unit tree;
          if assigned(p^.less) then
            deletecaselabels(p^.less);
          freelabel(p^._at);
-         freelabel(p^.statement);
+         if p^.firstlabel then
+          freelabel(p^.statement);
          dispose(p);
-         p:=nil;
       end;
 
     procedure swaptree(p:Ptree);
@@ -1657,7 +1661,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.59  1998-12-15 10:23:32  peter
+  Revision 1.60  1998-12-15 11:52:19  peter
+    * fixed dup release of statement label in case
+
+  Revision 1.59  1998/12/15 10:23:32  peter
     + -iSO, -iSP, -iTO, -iTP
 
   Revision 1.58  1998/12/11 00:04:02  peter
