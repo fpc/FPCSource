@@ -335,8 +335,11 @@ implementation
     function telf32objectdata.sectionname(atype:tasmsectiontype;const aname:string):string;
       const
         secnames : array[tasmsectiontype] of string[12] = ('',
-{$warning TODO .rodata not yet working}
+{$ifdef userodata}
+          '.text','.data','.rodata','.bss',
+{$else userodata}
           '.text','.data','.data','.bss',
+{$endif userodata}
           'common',
           '.note',
           '.stab','.stabstr',
@@ -379,6 +382,10 @@ implementation
       begin
         if currsec=nil then
           internalerror(200403292);
+{$ifdef userodata}
+        if currsec.sectype in [sec_rodata,sec_bss] then
+          internalerror(200408252);
+{$endif userodata}
         if assigned(p) then
          begin
            { real address of the symbol }
@@ -524,6 +531,15 @@ implementation
       begin
         with elf32data do
          begin
+{$ifdef userodata}
+           { rodata can't have relocations }
+           if s.sectype=sec_rodata then
+             begin
+               if assigned(s.relocations.first) then
+                 internalerror(200408251);
+               exit;
+             end;
+{$endif userodata}
            { create the reloc section }
            s.relocsect:=telf32section.create_ext('.rel'+s.name,sec_custom,9,0,symtabsect.secshidx,s.secshidx,4,8);
            { add the relocations }
@@ -906,7 +922,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2004-06-20 08:55:30  florian
+  Revision 1.22  2004-08-25 15:55:10  peter
+    * .rodata section support, disabled by default since it doesn't work
+      yet
+
+  Revision 1.21  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.20  2004/06/16 20:07:09  florian
