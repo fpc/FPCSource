@@ -838,9 +838,9 @@ const
          {_DIR_SMARTLINK} dir_moduleswitch,
          {_DIR_STACKFRAMES} dir_delphiswitch,
          {_DIR_STOP} dir_message,
-         {_DIR_UNDEF} dir_undef,
          {_DIR_TYPEDADDRESS} dir_delphiswitch,
          {_DIR_TYPEINFO} dir_delphiswitch,
+         {_DIR_UNDEF} dir_undef,
          {_DIR_VARSTRINGCHECKS} dir_delphiswitch,
          {_DIR_WAIT} dir_wait,
          {_DIR_WARNING} dir_message,
@@ -916,7 +916,10 @@ const
 
 {
   $Log$
-  Revision 1.24  1998-09-01 12:52:06  peter
+  Revision 1.25  1998-09-02 15:13:31  peter
+    * fixed typo in directive table
+
+  Revision 1.24  1998/09/01 12:52:06  peter
     + a lot of delphi switches
 
   Revision 1.23  1998/08/26 15:35:34  peter
