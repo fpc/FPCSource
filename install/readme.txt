@@ -161,14 +161,11 @@ os209912.zip specific:
       Strip for EMX
   utilemx.zip     contains additional GNU utilities which might be useful to
                   compile the run time library:
-      Make 3.76.1
-      RM 3.16
-      CP 3.16
-      MV 3.16
-      PWD 3.16
-      GInstall 3.16
-      Date 3.16
-      Echo 3.16
+      ChMod 3.13
+      RM 3.13
+      CP 3.13
+      MV 3.13
+      Install 3.13
   gdbemx.zip      contains the GNU Debugger 4.16 for EMX
 
 common files in dos09912.zip, w3209912.zip and os209912.zip:
