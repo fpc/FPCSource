@@ -58,7 +58,10 @@ type
 
 {
   $Log$
-  Revision 1.2  1998-09-30 13:41:05  florian
+  Revision 1.1  1999-06-07 15:52:46  michael
+  + Renamed to syncobh
+
+  Revision 1.2  1998/09/30 13:41:05  florian
     * fixes to make it compilable
 
   Revision 1.1  1998/09/29 11:14:25  florian
