@@ -899,10 +899,7 @@ unit pstatmnt;
          consume(starttoken);
          inc(statement_level);
 
-         while not(
-             (token=_END) or
-             ((starttoken=_INITIALIZATION) and (token=_FINALIZATION))
-           ) do
+         while not(token in [_END,_FINALIZATION]) do
            begin
               if first=nil then
                 begin
@@ -914,8 +911,7 @@ unit pstatmnt;
                    last^.left:=gennode(statementn,nil,statement);
                    last:=last^.left;
                 end;
-              if (token=_END) or
-                ((starttoken=_INITIALIZATION) and (token=_FINALIZATION)) then
+              if (token in [_END,_FINALIZATION]) then
                 break
               else
                 begin
@@ -923,8 +919,6 @@ unit pstatmnt;
                    if token<>SEMICOLON then
                      begin
                         consume(SEMICOLON);
-                        { while token<>SEMICOLON do
-                          consume(token); }
                         consume_all_until(SEMICOLON);
                      end;
                    consume(SEMICOLON);
@@ -933,9 +927,9 @@ unit pstatmnt;
            end;
 
          { don't consume the finalization token, it is consumed when
-           reading the finalization block !
-         }
-         if token=_END then
+           reading the finalization block, but allow it only after
+           an initalization ! }
+         if (starttoken<>_INITIALIZATION) or (token<>_FINALIZATION) then
            consume(_END);
 
          dec(statement_level);
@@ -1010,6 +1004,9 @@ unit pstatmnt;
             _EXIT : code:=exit_statement;
             _ASM : begin
                       code:=_asm_statement;
+                   end;
+            _EOF : begin
+                     Message(scan_f_end_of_file);
                    end;
          else
            begin
@@ -1214,7 +1211,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.42  1998-09-26 17:45:38  peter
+  Revision 1.43  1998-10-08 13:46:22  peter
+    * added eof message
+    * fixed unit init section parsing with finalize
+
+  Revision 1.42  1998/09/26 17:45:38  peter
     + idtoken and only one token table
 
   Revision 1.41  1998/09/24 23:49:15  peter
