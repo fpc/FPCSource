@@ -242,6 +242,7 @@ begin
     exit;
   DisplayCompilerWindow:=false;
   PushStatus('Parsing User Screen');
+  CompilerMessageWindow^.Lock;
   for Y:=0 to UserScreen^.GetHeight do
     begin
       UserScreen^.GetLine(Y,Text,Attr);
@@ -260,6 +261,7 @@ begin
       CompilerMessageWindow^.MakeFirst;
       CompilerMessageWindow^.MsgLB^.SelectFirstError;
     end;
+  CompilerMessageWindow^.UnLock;
   PopStatus;
 end;
 
@@ -1263,7 +1265,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2002-04-10 22:37:37  pierre
+  Revision 1.9  2002-08-26 13:03:14  pierre
+   + add a lock to speed up parsing of userscreen
+
+  Revision 1.8  2002/04/10 22:37:37  pierre
    * save and restore Exitproc if LongJmp called
 
   Revision 1.7  2002/03/20 14:48:27  pierre
