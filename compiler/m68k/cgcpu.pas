@@ -446,7 +446,7 @@ Implementation
           OP_AND,
           OP_OR:
               Begin
-                 list.concat(taicpu.op_const_reg(topcg2tasmop[op],S_L,a, reg));
+                 list.concat(taicpu.op_const_reg(topcg2tasmop[op],S_L,longint(a), reg));
               end;
           OP_DIV :
               Begin
@@ -1014,7 +1014,9 @@ Implementation
                    list.concat(taicpu.op_reg_sym(A_DBRA,S_L,hregister,hl));
                 end;
 
-       { restore the registers that we have just used olny if they are used! }
+              { restore the registers that we have just used olny if they are used! }
+              free_scratch_reg(list, iregister);
+              free_scratch_reg(list, jregister);
               if jregister.enum = R_A1 then
                 hp2.base.enum := R_NO;
               if iregister.enum = R_A0 then
@@ -1335,7 +1337,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2003-02-02 19:25:54  carl
+  Revision 1.17  2003-02-12 22:11:13  carl
+    * some small m68k bugfixes
+
+  Revision 1.16  2003/02/02 19:25:54  carl
     * Several bugfixes for m68k target (register alloc., opcode emission)
     + VIS target
     + Generic add more complete (still not verified)

@@ -101,7 +101,7 @@ type
    AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,AS_APPT,AS_REALNUM,
    AS_ALIGN,
      {------------------ Assembler directives --------------------}
-   AS_DB,AS_DW,AS_DD,AS_END,
+   AS_DB,AS_DW,AS_DD,AS_XDEF,AS_END,
      {------------------ Assembler Operators  --------------------}
    AS_MOD,AS_SHL,AS_SHR,AS_NOT,AS_AND,AS_OR,AS_XOR);
 
@@ -117,7 +117,7 @@ const
    _count_asmoperators  = longint(lastoperator)-longint(firstoperator);
 
    _asmdirectives : array[0.._count_asmdirectives] of tasmkeyword =
-    ('DC.B','DC.W','DC.L','END');
+    ('DC.B','DC.W','DC.L','XDEF','END');
 
     { problems with shl,shr,not,and,or and xor, they are }
     { context sensitive.                                 }
@@ -1471,16 +1471,18 @@ type
                         end
                        else
                           Message1(sym_e_unknown_id,actasmpattern);
+                          
+                     expr := actasmpattern;
+                     Consume(AS_ID);
+                       case actasmtoken of
+                         AS_LPAREN: { indexing }
+                           BuildReference;
+                         AS_SEPARATOR,AS_COMMA: ;
+                       else
+                          Message(asmr_e_syntax_error);
+                       end;
+                          
                    end;
-                   expr := actasmpattern;
-                   Consume(AS_ID);
-                   case actasmtoken of
-                      AS_LPAREN: { indexing }
-                        BuildReference;
-                      AS_SEPARATOR,AS_COMMA: ;
-                    else
-                        Message(asmr_e_syntax_error);
-                    end;
                end;
              end;
    { // Pre-decrement mode reference or constant mem offset.   // }
@@ -2133,6 +2135,15 @@ type
                  Consume(AS_DD);
                  BuildConstant($ffffffff);
                 end;
+        AS_XDEF:
+                  Begin
+                    Consume(AS_XDEF);
+                    if actasmtoken=AS_ID then
+                      ConcatPublic(curlist,actasmpattern);
+                    Consume(AS_ID);
+                    if actasmtoken<>AS_SEPARATOR then
+                     Consume(AS_SEPARATOR);
+                   end;
         AS_ALIGN: Begin
                     Message(asmr_w_align_not_supported);
                     while actasmtoken <> AS_SEPARATOR do
@@ -2197,7 +2208,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.11  2003-01-08 18:43:57  daniel
+  Revision 1.12  2003-02-12 22:11:13  carl
+    * some small m68k bugfixes
+
+  Revision 1.11  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.10  2002/12/14 15:02:03  carl
