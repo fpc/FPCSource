@@ -131,7 +131,6 @@ install : all
 clean :
 	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) log
 	-$(DELTREE) *$(SMARTEXT)
-	-make -C $(OBJPASDIR) clean
 
 
 #####################################################################
@@ -379,7 +378,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.15  1998-12-21 13:07:07  peter
+# Revision 1.16  1999-01-04 11:57:45  peter
+#   * clean doesn't clean objpasdir anymore
+#
+# Revision 1.15  1998/12/21 13:07:07  peter
 #   * use -FE
 #
 # Revision 1.14  1998/11/30 13:13:40  pierre
