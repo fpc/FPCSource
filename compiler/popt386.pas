@@ -101,14 +101,15 @@ Procedure PeepHoleOptPass1(Asml: PAasmOutput; BlockStart, BlockEnd: Pai);
 {First pass of peepholeoptimizations}
 
 Var
-  l : longint;
+  l, l1 : longint;
   p,hp1,hp2 : pai;
   hp3,hp4: pai;
-  TmpBool1, TmpBool2: Boolean;
 
   TmpRef: TReference;
 
   UsedRegs, TmpUsedRegs: TRegSet;
+
+  TmpBool1, TmpBool2: Boolean;
 
   Function SkipLabels(hp: Pai; var hp2: pai): boolean;
   {skips all labels and returns the next "real" instruction}
@@ -279,7 +280,7 @@ Begin
                    While GetNextInstruction(p, hp1) and
                          ((hp1^.typ <> ait_label) or
                    { skip unused labels, they're not referenced anywhere }
-                          Not(Pai_Label(hp1)^.l^.is_used)) Do
+                          labelCanBeSkipped(pai_label(hp1))) Do
                      If not(hp1^.typ in ([ait_label,ait_align]+skipinstr)) Then
                        Begin
                          AsmL^.Remove(hp1);
@@ -1224,37 +1225,81 @@ Begin
                 End;
               A_POP:
                 Begin
+{$ifdef go32v2}
+                   { Transform a series of pop/pop/pop/push/push/push to }
+                   { 'movl x(%esp),%reg' for go32v2 (not for the rest,   }
+                   { because I'm not sure whether they can cope with     }
+                   { 'movl x(%esp),%reg' with x > 0, I believe we had    }
+                   { such a problem when using esp as frame pointer (JM) }
+                   if (Paicpu(p)^.oper[0].typ = top_reg) then
+                     begin
+                       hp1 := p;
+                       hp2 := p;
+                       l := 0;
+                       while getNextInstruction(hp1,hp1) and
+                             (hp1^.typ = ait_instruction) and
+                             (paicpu(hp1)^.opcode = A_POP) and
+                             (paicpu(hp1)^.oper[0].typ = top_reg) do
+                         begin
+                           hp2 := hp1;
+                           inc(l,4);
+                         end;
+                       getLastInstruction(p,hp3);
+                       l1 := 0;
+                       while (hp2 <> hp3) and
+                             assigned(hp1) and
+                             (hp1^.typ = ait_instruction) and
+                             (paicpu(hp1)^.opcode = A_PUSH) and
+                             (paicpu(hp1)^.oper[0].typ = top_reg) and
+                             (paicpu(hp1)^.oper[0].reg = paicpu(hp2)^.oper[0].reg) do
+                         begin
+                           { change it to a two op operation }
+                           paicpu(hp2)^.oper[1].typ:=top_none;
+                           paicpu(hp2)^.ops:=2;
+                           paicpu(hp2)^.opcode := A_MOV;
+                           paicpu(hp2)^.Loadoper(1,paicpu(hp1)^.oper[0]);
+                           reset_reference(tmpref);
+                           tmpRef.base := stack_pointer;
+                           tmpRef.offset := l;
+                           paicpu(hp2)^.loadRef(0,newReference(tmpRef));
+                           hp4 := hp1;
+                           getNextInstruction(hp1,hp1);
+                           asmL^.remove(hp4);
+                           dispose(hp4,done);
+                           getLastInstruction(hp2,hp2);
+                           dec(l,4);
+                           inc(l1);
+                         end;
+                       if l <> -4 then
+                         begin
+                           inc(l,4);
+                           for l1 := l1 downto 1 do
+                             begin
+                               getNextInstruction(hp2,hp2);
+                               dec(paicpu(hp2)^.oper[0].ref^.offset,l);
+                             end
+                         end
+                     end
+{$else go32v2}
                    if (Paicpu(p)^.oper[0].typ = top_reg) And
                       GetNextInstruction(p, hp1) And
                       (pai(hp1)^.typ=ait_instruction) and
                       (Paicpu(hp1)^.opcode=A_PUSH) and
                       (Paicpu(hp1)^.oper[0].typ = top_reg) And
                       (Paicpu(hp1)^.oper[0].reg=Paicpu(p)^.oper[0].reg) then
-                  { This can't be done, because the register which is popped
-                    can still be used after the push (PFV)
-                     If (Not(cs_regalloc in aktglobalswitches)) Then
-                       Begin
-                         hp2:=pai(hp1^.next);
-                         asml^.remove(p);
-                         asml^.remove(hp1);
-                         dispose(p,done);
-                         dispose(hp1,done);
-                         p:=hp2;
-                         continue
-                       End
-                     Else }
-                       Begin
-                         { change it to a two op operation }
-                         Paicpu(p)^.oper[1].typ:=top_none;
-                         Paicpu(p)^.ops:=2;
-                         Paicpu(p)^.opcode := A_MOV;
-                         Paicpu(p)^.Loadoper(1,Paicpu(p)^.oper[0]);
-                         Reset_reference(tmpref);
-                         TmpRef.base := R_ESP;
-                         Paicpu(p)^.LoadRef(0,newReference(TmpRef));
-                         AsmL^.Remove(hp1);
-                         Dispose(hp1, Done)
-                       End;
+                     Begin
+                       { change it to a two op operation }
+                       Paicpu(p)^.oper[1].typ:=top_none;
+                       Paicpu(p)^.ops:=2;
+                       Paicpu(p)^.opcode := A_MOV;
+                       Paicpu(p)^.Loadoper(1,Paicpu(p)^.oper[0]);
+                       Reset_reference(tmpref);
+                       TmpRef.base := R_ESP;
+                       Paicpu(p)^.LoadRef(0,newReference(TmpRef));
+                       AsmL^.Remove(hp1);
+                       Dispose(hp1, Done)
+                     End;
+{$endif go32v2}
                 end;
               A_PUSH:
                 Begin
@@ -1523,7 +1568,7 @@ Begin
           End;
 {        ait_label:
           Begin
-            If Not(Pai_Label(p)^.l^.is_used)
+            If labelCanBeSkipped(pai_label(p))
               Then
                 Begin
                   hp1 := Pai(p^.next);
@@ -1538,7 +1583,6 @@ Begin
     end;
 end;
 
-{$ifdef foldArithOps}
 function isFoldableArithOp(hp1: paicpu; reg: tregister): boolean;
 begin
   IsFoldableArithOp := False;
@@ -1551,12 +1595,11 @@ begin
         (paicpu(hp1)^.oper[1].typ = top_reg) and
         (paicpu(hp1)^.oper[1].reg = reg);
     A_INC,A_DEC:
-      isFoldableArithOp := 
+      isFoldableArithOp :=
         (paicpu(hp1)^.oper[0].typ = top_reg) and
         (paicpu(hp1)^.oper[0].reg = reg);
   end;
 end;
-{$endif foldArithOps}
 
 
 Procedure PeepHoleOptPass2(AsmL: PAasmOutput; BlockStart, BlockEnd: Pai);
@@ -1578,20 +1621,14 @@ var
   condition : tasmcond;
   hp3: pai;
 {$endif USECMOV}
-{$ifdef foldArithOps}
   UsedRegs, TmpUsedRegs: TRegSet;
-{$endif foldArithOps}
 
 Begin
   P := BlockStart;
-{$ifdef foldArithOps}
   UsedRegs := [];
-{$endif foldArithOps}
   While (P <> BlockEnd) Do
     Begin
-{$ifdef foldArithOps}
       UpdateUsedRegs(UsedRegs, Pai(p^.next));
-{$endif foldArithOps}
       Case P^.Typ Of
         Ait_Instruction:
           Begin
@@ -1711,7 +1748,6 @@ Begin
               A_FSTP,A_FISTP:
                 if doFpuLoadStoreOpt(asmL,p) then
                   continue;
-{$ifdef foldArithOps}
               A_IMUL:
                 begin
                   if ((paicpu(p)^.oper[0].typ = top_const) or
@@ -1735,7 +1771,6 @@ Begin
                       dispose(hp1,done);
                     end;
                 end;
-{$endif foldArithOps}
               A_MOV:
                 Begin
                   If (Paicpu(p)^.oper[0].typ = top_reg) And
@@ -1762,7 +1797,6 @@ Begin
                       p := hp1;
                       Continue;
                     End
-{$ifdef foldArithOps}
                   Else If (Paicpu(p)^.oper[0].typ = top_ref) And
                     GetNextInstruction(p,hp1) And
                     (hp1^.typ = ait_instruction) And
@@ -1787,7 +1821,7 @@ Begin
   { to       add/sub/or/... reg2/$const, (ref)    }
                      Begin
                        case paicpu(hp1)^.opcode of
-                         A_INC,A_DEC: 
+                         A_INC,A_DEC:
                            paicpu(hp1)^.LoadRef(0,newreference(Paicpu(p)^.oper[0].ref^))
                          else
                            paicpu(hp1)^.LoadRef(1,newreference(Paicpu(p)^.oper[0].ref^));
@@ -1799,7 +1833,6 @@ Begin
                        p := hp1
                      End;
                    End
-{$endif foldArithOps}
                   else if (Paicpu(p)^.oper[0].typ = Top_Const) And
                      (Paicpu(p)^.oper[0].val = 0) And
                      (Paicpu(p)^.oper[1].typ = Top_Reg) Then
@@ -1913,7 +1946,19 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-07-14 05:11:49  michael
+  Revision 1.4  2000-07-21 15:19:55  jonas
+    * daopt386: changes to getnextinstruction/getlastinstruction so they
+      ignore labels who have is_addr set
+    + daopt386/csopt386: remove loads of registers which are overwritten
+       before their contents are used (especially usefull for removing superfluous
+      maybe_loadesi outputs and push/pops transformed by below optimization
+    + popt386: transform pop/pop/pop/.../push/push/push to sequences of
+      'movl x(%esp),%reg' (only active when compiling a go32v2 compiler
+      currently because I don't know whether it's safe to do this under Win32/
+      Linux (because of problems we had when using esp as frame pointer on
+      those os'es)
+
+  Revision 1.3  2000/07/14 05:11:49  michael
   + Patch to 1.1
 
   Revision 1.2  2000/07/13 11:32:45  michael

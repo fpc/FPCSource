@@ -81,7 +81,8 @@ Begin {CheckSequence}
   RegCounter := R_EAX;
   GetLastInstruction(p, PrevNonRemovablePai);
   While (RegCounter <= R_EDI) And
-        (PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter].Typ <> Con_Ref) Do
+        not(ppaiprop(prevNonRemovablePai^.optInfo)^.regs[regCounter].typ in
+          [con_ref,con_noRemoveRef]) do
     Inc(RegCounter);
   While (RegCounter <= R_EDI) Do
     Begin
@@ -140,7 +141,8 @@ Begin {CheckSequence}
       Repeat
         Inc(RegCounter);
       Until (RegCounter > R_EDI) or
-            ((PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter].Typ = Con_Ref) {And
+            ((ppaiprop(prevNonRemovablePai^.optInfo)^.regs[regCounter].typ
+                in [con_ref,con_noRemoveRef]) {And
              ((Regcounter = Reg) Or
               Not(PaiInSequence(p, PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter]))) }
             );
@@ -385,7 +387,7 @@ begin
   while assigned(p^.previous) and
         ((Pai(p^.previous)^.typ in (skipinstr+[ait_align])) or
          ((Pai(p^.previous)^.typ = ait_label) and
-          not(Pai_Label(p^.previous)^.l^.is_used))) do
+          labelCanBeSkipped(pai_label(p^.previous)))) do
     begin
       p := pai(p^.previous);
       if (p^.typ = ait_regalloc) and
@@ -744,12 +746,13 @@ Begin
   Counter := R_NO;
   repeat
      inc(counter);
-     tmpresult := (PPaiProp(p^.OptInfo)^.Regs[Counter].Typ = Con_Const) and
+     tmpresult := (ppaiprop(p^.optInfo)^.regs[counter].typ in
+         [con_const,con_noRemoveConst]) and
        (paicpu(PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod)^.opsize = size) and
        (paicpu(PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod)^.oper[0].typ = top_const) and
        (paicpu(PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod)^.oper[0].val = l);
 {$ifdef testing}
-     if (PPaiProp(p^.OptInfo)^.Regs[Counter].Typ = Con_Const) then
+     if (ppaiprop(p^.optInfo)^.regs[counter].typ in [con_const,con_noRemoveConst]) then
        begin
          hp := new(pai_asm_comment,init(strpnew(
            'checking const load of '+tostr(l)+' here...')));
@@ -764,6 +767,34 @@ Begin
   res := counter;
   FindRegWithConst := tmpResult;
 End;
+
+procedure removePrevNotUsedLoad(p: pai; reg: tRegister; check: boolean);
+{ If check = true, it means the procedure has to check whether it isn't  }
+{ possible that the contents are still used after p (used when removing  }
+{ instructions because of a "call"), otherwise this is not necessary     }
+{ (e.g. when you have a "mov 8(%ebp),%eax", you can be sure the previous }
+{ value of %eax isn't used anymore later on)                             }
+var
+  hp1: pai;
+begin
+  if getLastInstruction(p,hp1) then
+    with ppaiprop(hp1^.optInfo)^.regs[reg] do
+      if (typ in [con_ref,con_invalid]) and
+         (nrOfMods = 1) and
+         (rState = ppaiprop(startmod^.optInfo)^.regs[reg].rState) and
+         (not(check) or
+          (not(regInInstruction(reg,p)) and
+           (not(reg in usableregs) and
+            (startmod^.typ = ait_instruction) and
+            ((paicpu(startmod)^.opcode = A_MOV) or
+             (paicpu(startmod)^.opcode = A_MOVZX) or
+             (paicpu(startmod)^.opcode = A_MOVSX)) and
+            (paicpu(startmod)^.oper[0].typ = top_ref) and
+            (paicpu(startmod)^.oper[0].ref^.base = stack_pointer)) or
+           not(reg in ppaiprop(hp1^.optInfo)^.usedRegs) or
+           findRegDealloc(reg,p))) then
+        ppaiprop(startMod^.optInfo)^.canBeRemoved := true;
+end;
 
 Procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai);
 {marks the instructions that can be removed by RemoveInstructs. They're not
@@ -789,6 +820,9 @@ Begin
         ait_instruction:
           Begin
             Case Paicpu(p)^.opcode Of
+              A_CALL:
+                for regCounter := R_EAX to R_EBX do
+                  removePrevNotUsedLoad(p,regCounter,true);
               A_CLD: If GetLastInstruction(p, hp1) And
                         (PPaiProp(hp1^.OptInfo)^.DirFlag = F_NotSet) Then
                        PPaiProp(Pai(p)^.OptInfo)^.CanBeRemoved := True;
@@ -964,7 +998,8 @@ Begin
                                  End
                                Else
                                  If (PPaiProp(p^.OptInfo)^.
-                                      Regs[Reg32(Paicpu(p)^.oper[1].reg)].Typ = Con_Ref) And
+                                      regs[reg32(paicpu(p)^.oper[1].reg)].typ
+                                        in [con_ref,con_noRemoveRef]) and
                                     (PPaiProp(p^.OptInfo)^.CanBeRemoved) Then
                                    if (cnt > 0) then
                                      begin
@@ -998,6 +1033,10 @@ Begin
                                      end;
                               End;
                           End;
+                        if not ppaiprop(p^.optinfo)^.canBeRemoved and
+                           not regInRef(reg32(paicpu(p)^.oper[1].reg),
+                                        paicpu(p)^.oper[0].ref^) then
+                          removePrevNotUsedLoad(p,reg32(paicpu(p)^.oper[1].reg),false);
                       End;
                     top_Reg:
                       { try to replace the new reg with the old reg }
@@ -1030,7 +1069,7 @@ Begin
                               regCounter := Reg32(Paicpu(p)^.oper[1].reg);
                               If GetLastInstruction(p, hp1) Then
                                 With PPaiProp(hp1^.OptInfo)^.Regs[regCounter] Do
-                                  If (Typ = Con_Const) And
+                                  if (typ in [con_const,con_noRemoveConst]) and
                                      (paicpu(startMod)^.opsize >= paicpu(p)^.opsize) and
                                      opsequal(paicpu(StartMod)^.oper[0],paicpu(p)^.oper[0]) Then
                                     begin
@@ -1116,7 +1155,19 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-07-14 05:11:48  michael
+  Revision 1.4  2000-07-21 15:19:54  jonas
+    * daopt386: changes to getnextinstruction/getlastinstruction so they
+      ignore labels who have is_addr set
+    + daopt386/csopt386: remove loads of registers which are overwritten
+       before their contents are used (especially usefull for removing superfluous
+      maybe_loadesi outputs and push/pops transformed by below optimization
+    + popt386: transform pop/pop/pop/.../push/push/push to sequences of
+      'movl x(%esp),%reg' (only active when compiling a go32v2 compiler
+      currently because I don't know whether it's safe to do this under Win32/
+      Linux (because of problems we had when using esp as frame pointer on
+      those os'es)
+
+  Revision 1.3  2000/07/14 05:11:48  michael
   + Patch to 1.1
 
   Revision 1.2  2000/07/13 11:32:39  michael

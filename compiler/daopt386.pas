@@ -65,6 +65,7 @@ function RegInOp(Reg: TRegister; const o:toper): Boolean;
 Function GetNextInstruction(Current: Pai; Var Next: Pai): Boolean;
 Function GetLastInstruction(Current: Pai; Var Last: Pai): Boolean;
 Procedure SkipHead(var P: Pai);
+function labelCanBeSkipped(p: pai_label): boolean;
 
 Procedure RemoveLastDeallocForFuncRes(asmL: PAasmOutput; p: pai);
 Function regLoadedWithNewValue(reg: tregister; canDependOnPrevValue: boolean;
@@ -94,6 +95,14 @@ Const
   con_Unknown = 0;
   con_ref = 1;
   con_const = 2;
+  { The contents aren't usable anymore for CSE, but they may still be   }
+  { usefull for detecting whether the result of a load is actually used }
+  con_invalid = 3;
+  { the reverse of the above (in case a (conditional) jump is encountered): }
+  { CSE is still possible, but the original instruction can't be removed    }
+  con_noRemoveRef = 4;
+  { same, but for constants }
+  con_noRemoveConst = 5;
 
 {********************************* Types *********************************}
 
@@ -268,7 +277,7 @@ Begin
     While Assigned(p) And
           ((p^.typ in (SkipInstr - [ait_RegAlloc])) or
            ((p^.typ = ait_label) And
-            Not(Pai_Label(p)^.l^.is_used))) Do
+            labelCanBeSkipped(pai_label(current)))) Do
          p := Pai(p^.next);
     While Assigned(p) And
           (p^.typ=ait_RegAlloc) Do
@@ -282,7 +291,7 @@ Begin
   Until Not(Assigned(p)) Or
         (Not(p^.typ in SkipInstr) And
          Not((p^.typ = ait_label) And
-            Not(Pai_Label(p)^.l^.is_used)));
+             labelCanBeSkipped(pai_label(current))));
 End;
 
 {$endif tempOpts}
@@ -302,7 +311,7 @@ Begin
   While Assigned(P) Do
     Begin
       If (Pai(p)^.typ = ait_label) Then
-        If (Pai_Label(p)^.l^.is_used)
+        If not labelCanBeSkipped(pai_label(p))
           Then
             Begin
               LabelFound := True;
@@ -332,7 +341,7 @@ Begin
     While Assigned(StartPai) And
           ((StartPai^.typ in (SkipInstr - [ait_regAlloc])) Or
            ((StartPai^.typ = ait_label) and
-            Not(Pai_Label(StartPai)^.l^.Is_Used))) Do
+            labelCanBeSkipped(pai_label(startPai)))) Do
       StartPai := Pai(StartPai^.Next);
     If Assigned(StartPai) And
        (StartPai^.typ = ait_regAlloc) and (PairegAlloc(StartPai)^.allocation = alloc) Then
@@ -474,7 +483,7 @@ Begin
     Begin
       Case p^.typ Of
         ait_Label:
-          If Pai_Label(p)^.l^.is_used Then
+          If not labelCanBeSkipped(pai_label(p)) Then
             LabelTable^[Pai_Label(p)^.l^.labelnr-LowLabel].PaiObj := p;
         ait_regAlloc:
           { ESI and EDI are (de)allocated manually, don't mess with them }
@@ -961,9 +970,9 @@ Begin
       End;
     Current := Pai(Current^.Next);
     While Assigned(Current) And
-           ((Current^.typ In SkipInstr) or
-            ((Current^.typ = ait_label) And
-             Not(Pai_Label(Current)^.l^.is_used))) Do
+          ((current^.typ In skipInstr) or
+           ((current^.typ = ait_label) and
+            labelCanBeSkipped(pai_label(current)))) do
       Current := Pai(Current^.Next);
     If Assigned(Current) And
        (Current^.typ = ait_Marker) And
@@ -981,7 +990,7 @@ Begin
   If Assigned(Current) And
      Not((Current^.typ In SkipInstr) or
          ((Current^.typ = ait_label) And
-          Not(Pai_Label(Current)^.l^.is_used)))
+          labelCanBeSkipped(pai_label(current))))
     Then
       GetNextInstruction :=
          not((current^.typ = ait_marker) and
@@ -1004,7 +1013,7 @@ Begin
             Not(Pai_Marker(Current)^.Kind in [AsmBlockEnd,NoPropInfoEnd])) or
            (Current^.typ In SkipInstr) or
            ((Current^.typ = ait_label) And
-             Not(Pai_Label(Current)^.l^.is_used))) Do
+            labelCanBeSkipped(pai_label(current)))) Do
       Current := Pai(Current^.previous);
     If Assigned(Current) And
        (Current^.typ = ait_Marker) And
@@ -1021,7 +1030,7 @@ Begin
   If Not(Assigned(Current)) or
      (Current^.typ In SkipInstr) or
      ((Current^.typ = ait_label) And
-      Not(Pai_Label(Current)^.l^.is_used)) or
+      labelCanBeSkipped(pai_label(current))) or
      ((Current^.typ = ait_Marker) And
       (Pai_Marker(Current)^.Kind = AsmBlockEnd))
     Then
@@ -1050,16 +1059,14 @@ Begin
    {a marker of the NoPropInfoStart can't be the first instruction of a
     paasmoutput list}
       GetNextInstruction(Pai(P^.Previous),P);
-{    If (P^.Typ = Ait_Marker) And
-       (Pai_Marker(P)^.Kind = AsmBlockStart) Then
-      Begin
-        P := Pai(P^.Next);
-        While (P^.typ <> Ait_Marker) Or
-              (Pai_Marker(P)^.Kind <> AsmBlockEnd) Do
-          P := Pai(P^.Next)
-      End;}
     Until P = OldP
 End;
+
+function labelCanBeSkipped(p: pai_label): boolean;
+begin
+  labelCanBeSkipped := not(p^.l^.is_used) or p^.l^.is_addr;
+end;
+
 {******************* The Data Flow Analyzer functions ********************}
 
 function regLoadedWithNewValue(reg: tregister; canDependOnPrevValue: boolean;
@@ -1091,7 +1098,7 @@ Begin
     While Assigned(p) And
           ((p^.typ in (SkipInstr - [ait_RegAlloc])) or
            ((p^.typ = ait_label) And
-            Not(Pai_Label(p)^.l^.is_used))) Do
+            labelCanBeSkipped(pai_label(p)))) Do
          p := Pai(p^.next);
     While Assigned(p) And
           (p^.typ=ait_RegAlloc) Do
@@ -1105,7 +1112,7 @@ Begin
   Until Not(Assigned(p)) Or
         (Not(p^.typ in SkipInstr) And
          Not((p^.typ = ait_label) And
-            Not(Pai_Label(p)^.l^.is_used)));
+             labelCanBeSkipped(pai_label(p))));
 End;
 
 Procedure AllocRegBetween(AsmL: PAasmOutput; Reg: TRegister; p1, p2: Pai);
@@ -1227,8 +1234,8 @@ Procedure DestroyReg(p1: PPaiProp; Reg: TRegister; doIncState:Boolean);
  contents of registers are loaded with a memory location based on Reg.
  doIncState is false when this register has to be destroyed not because
  it's contents are directly modified/overwritten, but because of an indirect
- action (ie. this register holds the contents of a variable and the value
- of the variable in memory is changed }
+ action (e.g. this register holds the contents of a variable and the value
+ of the variable in memory is changed) }
 Var TmpWState, TmpRState: Byte;
     Counter: TRegister;
 Begin
@@ -1244,26 +1251,22 @@ Begin
         With p1^.Regs[Reg] Do
           Begin
             if doIncState then
-              IncState(WState);
-            TmpWState := WState;
-            TmpRState := RState;
-            FillChar(p1^.Regs[Reg], SizeOf(TContent), 0);
-            WState := TmpWState;
-            RState := TmpRState;
+              begin
+                IncState(WState);
+                TmpWState := WState;
+                TmpRState := RState;
+                FillChar(p1^.Regs[Reg], SizeOf(TContent), 0);
+                WState := TmpWState;
+                RState := TmpRState;
+              end
+            else
+              typ := con_invalid;
           End;
         For counter := R_EAX to R_EDI Do
           With p1^.Regs[counter] Do
-            If (Typ = Con_Ref) And
+            if (typ in [con_ref,con_noRemoveRef]) and
                sequenceDependsOnReg(p1^.Regs[counter],counter,reg) Then
-              Begin
-                if doIncState then
-                  IncState(WState);
-                TmpWState := WState;
-                TmpRState := RState;
-                FillChar(p1^.Regs[Counter], SizeOf(TContent), 0);
-                WState := TmpWState;
-                RState := TmpRState;
-              End;
+              typ := con_invalid;
        End;
 End;
 
@@ -1581,7 +1584,7 @@ Begin
       For Counter := R_EAX to R_EDI Do
         With PPaiProp(p^.OptInfo)^.Regs[Counter] Do
           Begin
-            If (typ = Con_Ref) And
+            if (typ in [con_ref,con_noRemoveRef]) and
                ((Not(cs_UncertainOpts in aktglobalswitches) And
                  (NrOfMods <> 1)
                 ) Or
@@ -1609,7 +1612,7 @@ Begin
       }
     For Counter := R_EAX to R_EDI Do
       With PPaiProp(p^.OptInfo)^.Regs[Counter] Do
-      If (typ = Con_Ref) And
+      if (typ in [con_ref,con_noRemoveRef]) And
          (Not(cs_UncertainOpts in aktglobalswitches) Or
       {for movsl}
           (Ref.Base = R_EDI) Or
@@ -1681,7 +1684,7 @@ var hp: pai;
 Begin
   Reg := Reg32(Reg);
   With PPaiProp(p^.optinfo)^.Regs[reg] Do
-    If (Typ = Con_Ref)
+    if (typ in [con_ref,con_noRemoveRef])
       Then
         Begin
           IncState(WState);
@@ -1784,13 +1787,14 @@ Begin
       For TmpReg := R_EAX To R_EDI Do
         Inc(NrOfInstrSinceLastMod[TmpReg]);
       Case p^.typ Of
+        ait_marker:;
         ait_label:
 {$Ifndef JumpAnal}
-          If (Pai_label(p)^.l^.is_used) Then
+          If not labelCanBeSkipped(pai_label(p)) Then
             DestroyAllRegs(CurProp);
 {$Else JumpAnal}
           Begin
-           If (Pai_Label(p)^.is_used) Then
+           If not labelCanBeSkipped(pai_label(p)) Then
              With LTable^[Pai_Label(p)^.l^.labelnr-LoLab] Do
 {$IfDef AnalyzeLoops}
               If (RefsFound = Pai_Label(p)^.l^.RefCount)
@@ -1886,7 +1890,13 @@ Begin
             if paicpu(p)^.is_jmp then
              begin
 {$IfNDef JumpAnal}
-  ;
+                for tmpReg := R_EAX to R_EDI do
+                  with curProp^.regs[tmpReg] do
+                    case typ of
+                      con_ref: typ := con_noRemoveRef;
+                      con_const: typ := con_noRemoveConst;
+                      con_invalid: typ := con_unknown;
+                    end;
 {$Else JumpAnal}
           With LTable^[pasmlabel(paicpu(p)^.oper[0].sym)^.labelnr-LoLab] Do
             If (RefsFound = pasmlabel(paicpu(p)^.oper[0].sym)^.RefCount) Then
@@ -2007,7 +2017,7 @@ Begin
                         ReadRef(CurProp, Paicpu(p)^.oper[0].ref);
                         TmpReg := Reg32(Paicpu(p)^.oper[1].reg);
                         If RegInRef(TmpReg, Paicpu(p)^.oper[0].ref^) And
-                           (CurProp^.Regs[TmpReg].Typ = Con_Ref)
+                           (curProp^.regs[tmpReg].typ in [con_ref,con_noRemoveRef])
                           Then
                             Begin
                               With CurProp^.Regs[TmpReg] Do
@@ -2231,7 +2241,7 @@ Begin
       Case P^.Typ Of
         ait_label:
           Begin
-            If (Pai_Label(p)^.l^.is_used) Then
+            If not labelCanBeSkipped(pai_label(p)) Then
               LTable^[Pai_Label(P)^.l^.labelnr-LoLab].InstrNr := NrOfPaiObjs
           End;
         ait_instruction:
@@ -2310,7 +2320,19 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-07-14 05:11:48  michael
+  Revision 1.4  2000-07-21 15:19:54  jonas
+    * daopt386: changes to getnextinstruction/getlastinstruction so they
+      ignore labels who have is_addr set
+    + daopt386/csopt386: remove loads of registers which are overwritten
+       before their contents are used (especially usefull for removing superfluous
+      maybe_loadesi outputs and push/pops transformed by below optimization
+    + popt386: transform pop/pop/pop/.../push/push/push to sequences of
+      'movl x(%esp),%reg' (only active when compiling a go32v2 compiler
+      currently because I don't know whether it's safe to do this under Win32/
+      Linux (because of problems we had when using esp as frame pointer on
+      those os'es)
+
+  Revision 1.3  2000/07/14 05:11:48  michael
   + Patch to 1.1
 
   Revision 1.2  2000/07/13 11:32:40  michael
