@@ -1,7 +1,41 @@
 
                             Free Pascal Compiler
 
-                        Version 1.9.0 aka 2.0.0-Beta1
+                        Version 1.9.2 aka 2.0.0-Beta2
+
+******************************************************************************
+                      Whats New in 1.9.2 aka 2.0.0-Beta2
+******************************************************************************
+
+Compiler:
+  + PowerPC compiler
+  + sse/sse2 code generation support
+  + "global" property support
+  * improved inlining support
+  * optimizer enabled again
+  * uses register calling conventions by default
+  * $fputype directive
+  + properties of type single can have default values
+  + support of $IF DECLARED()
+  + support of DQWORT in inline intel assembler code
+  * lots of bug fixes
+
+RTL:
+  * more improvements for unix runtime library
+  * using FPC_USE_LIBC allows to compile an rtl which uses libc instead of syscalls
+  + System.Initialize
+  + Sysutils.ExecuteProcess
+  + System.WideStringManager
+  + System.PtrInt and System.PtrUInt
+  * ipv6 support
+  * lots of bug fixes
+
+FCL: 
+  + sqlite support
+  * bug fixes
+
+Misc:  
+  * improved docs
 
 ******************************************************************************
                       Whats New in 1.9.0 aka 2.0.0-Beta1

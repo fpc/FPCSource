@@ -1,7 +1,7 @@
 
                             Free Pascal Compiler
 
-                        Version 1.9.0 aka 2.0.0-Beta1
+                        Version 1.9.2 aka 2.0.0-Beta2
 
 
 ****************************************************************************
@@ -19,8 +19,9 @@ This package contains a freeware 32-bit pascal compiler for 386+. The language
 and the runtime library are almost compatible with TP 7.0 and recent Delphi
 releases.
 
-Free Pascal 1.9.0 is currently available for the following platforms:
-- Linux (i386), both aout and elf
+Free Pascal 1.9.2 is currently available for the following platforms:
+- Linux-i386, both aout and elf
+- Linux-powerpc
 - Dos (i386), using the Go32v2 dos extender
 - Win32 (Win32s, Win95/98/Me/XP/2000 and WinNT)
 - FreeBSD i386
@@ -68,7 +69,7 @@ targets, feel free to contact us, E-Mail addresses are listed below.
 
 
 ****************************************************************************
-* Requirements
+* Minimum requirements
 ****************************************************************************
 
 386 processor
@@ -79,7 +80,7 @@ Linux:
  - system running a 2.0.x kernel
 FreeBSD:
 - FreeBSD 4.x system or 5.x system that has COMPAT_4 system (which is 
-	default)
+  default)
 
 ****************************************************************************
 * Quick start
