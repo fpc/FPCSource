@@ -1,3 +1,5 @@
+{ %version=1.1 }
+
 {$mode objfpc}
 program test_fpu_excpetions;
 

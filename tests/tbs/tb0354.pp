@@ -1,4 +1,4 @@
-{ $VERSION=1.1}
+{ %VERSION=1.1 }
 {$mode delphi}
 type
    a = function ( ) : boolean;

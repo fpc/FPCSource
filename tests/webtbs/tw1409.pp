@@ -6,6 +6,9 @@ type
 
 procedure Test(const Args: array of TPoint);
 begin
+  writeln(Args[0].x,',',Args[0].y);
+  if (Args[0].x<>10) and (Args[0].y<>10) then
+   halt(1);
 end;
 
 const
