@@ -803,6 +803,17 @@ implementation
                    end;
                 end
 
+              { nil to ordinal node }
+              else if is_ordinal(p^.resulttype) and
+                (p^.left^.treetype=niln) then
+                begin
+                   hp:=genordinalconstnode(0,p^.resulttype);
+                   firstpass(hp);
+                   disposetree(p);
+                   p:=hp;
+                   exit;
+                end
+
               {Are we typecasting an ordconst to a char?}
               else
                 if is_char(p^.resulttype) and
@@ -964,7 +975,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  1999-12-09 23:18:04  pierre
+  Revision 1.56  1999-12-19 12:08:27  florian
+    * bug reported by Alex S. fixed: it wasn't possible to type cast nil in const
+      declarations: const l = longint(nil);
+
+  Revision 1.55  1999/12/09 23:18:04  pierre
    * no_fast_exit if procedure contains implicit termination code
 
   Revision 1.54  1999/11/30 10:40:57  peter
