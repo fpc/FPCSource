@@ -6,7 +6,7 @@ program TestFS;
 {$I platform.inc}
 
 uses
-  Common,
+  ApiComm,
   Filesys;
 
 const
@@ -129,7 +129,7 @@ begin
         end;
 
     end;
-    if (Common.GetErrorCode = errOK)
+    if (ApiComm.GetErrorCode = errOK)
       then WriteLn (' <NO ERROR>')
       else WriteLn (' <ERROR>');
     inc (i);

@@ -1,5 +1,5 @@
 uses
-  Common, Video;
+  ApiComm, Video;
 
 var
   I, J: CPUInt;
