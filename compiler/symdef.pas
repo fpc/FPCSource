@@ -640,7 +640,6 @@ interface
           constructor loadwide(ppufile:tcompilerppufile);
           function getcopy : tstoreddef;override;
           function  stringtypname:string;
-          function  size : longint;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  gettypename:string;override;
           function  getmangledparaname:string;override;
@@ -1404,12 +1403,6 @@ implementation
 {$endif}
       begin
         stringtypname:=typname[string_typ];
-      end;
-
-
-    function tstringdef.size : longint;
-      begin
-        size:=savesize;
       end;
 
 
@@ -3109,7 +3102,6 @@ implementation
       begin
          inherited ppuloaddef(ppufile);
          deftype:=recorddef;
-         savesize:=ppufile.getlongint;
          symtable:=trecordsymtable.create(0);
          trecordsymtable(symtable).datasize:=ppufile.getlongint;
          trecordsymtable(symtable).fieldalignment:=ppufile.getbyte;
@@ -3170,7 +3162,6 @@ implementation
     procedure trecorddef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwritedef(ppufile);
-         ppufile.putlongint(savesize);
          ppufile.putlongint(trecordsymtable(symtable).datasize);
          ppufile.putbyte(trecordsymtable(symtable).fieldalignment);
          ppufile.putbyte(trecordsymtable(symtable).recordalignment);
@@ -3706,8 +3697,7 @@ implementation
          tparasymtable(parast).ppuload(ppufile);
          parast.defowner:=self;
          { load local symtable }
-         if (proccalloption=pocall_inline) or
-            ((current_module.flags and uf_local_browser)<>0) then
+         if (po_haslocalst in procoptions) then
           begin
             localst:=tlocalsymtable.create(level);
             tlocalsymtable(localst).ppuload(ppufile);
@@ -3839,13 +3829,10 @@ implementation
 
          { save localsymtable for inline procedures or when local
            browser info is requested, this has no influence on the crc }
-         if (proccalloption=pocall_inline) or
-            ((current_module.flags and uf_local_browser)<>0) then
+         if (po_haslocalst in procoptions) then
           begin
             oldintfcrc:=ppufile.do_crc;
             ppufile.do_crc:=false;
-            if not assigned(localst) then
-              insert_localst;
             tlocalsymtable(localst).ppuwrite(ppufile);
             ppufile.do_crc:=oldintfcrc;
           end;
@@ -3870,6 +3857,7 @@ implementation
          { this is used by insert
            to check same names in parast and localst }
          localst.next:=parast;
+         include(procoptions,po_haslocalst);
      end;
 
 
@@ -3999,6 +3987,7 @@ implementation
         if move_last then
           lastwritten:=lastref;
         if ((current_module.flags and uf_local_browser)<>0) and
+           (po_haslocalst in procoptions) and
            locals then
           begin
              tparasymtable(parast).load_references(ppufile,locals);
@@ -4058,6 +4047,7 @@ implementation
         ppufile.writeentry(ibdefref);
         write_references:=true;
         if ((current_module.flags and uf_local_browser)<>0) and
+           (po_haslocalst in procoptions) and
            locals then
           begin
              pdo:=_class;
@@ -4205,17 +4195,18 @@ implementation
          inherited buildderefimpl;
 
          { Locals }
-         if (proccalloption=pocall_inline) or
-            ((current_module.flags and uf_local_browser)<>0) then
+         if (po_haslocalst in procoptions) then
            begin
              tlocalsymtable(localst).buildderef;
              tlocalsymtable(localst).buildderefimpl;
-             funcretsymderef.build(funcretsym);
            end;
 
          { inline tree }
          if (proccalloption=pocall_inline) then
-           inlininginfo^.code.buildderefimpl;
+           begin
+             funcretsymderef.build(funcretsym);
+             inlininginfo^.code.buildderefimpl;
+           end;
 
          aktparasymtable:=oldparasymtable;
          aktlocalsymtable:=oldlocalsymtable;
@@ -4262,24 +4253,24 @@ implementation
          aktlocalsymtable:=localst;
 
          { Locals }
-         if (proccalloption=pocall_inline) or
-            ((current_module.flags and uf_local_browser)<>0) then
+         if (po_haslocalst in procoptions) then
           begin
-            { we can deref both interface and implementation parts }
             tlocalsymtable(localst).deref;
             tlocalsymtable(localst).derefimpl;
+          end;
+
+        { Inline }
+        if (proccalloption=pocall_inline) then
+          begin
+            inlininginfo^.code.derefimpl;
             { funcretsym, this is always located in the localst }
             funcretsym:=tsym(funcretsymderef.resolve);
           end
-         else
+        else
           begin
             { safety }
             funcretsym:=nil;
           end;
-
-        { inline tree }
-        if (proccalloption=pocall_inline) then
-          inlininginfo^.code.derefimpl;
 
         aktparasymtable:=oldparasymtable;
         aktlocalsymtable:=oldlocalsymtable;
@@ -4720,10 +4711,13 @@ implementation
          inherited ppuloaddef(ppufile);
          deftype:=objectdef;
          objecttype:=tobjectdeftype(ppufile.getbyte);
-         savesize:=ppufile.getlongint;
-         vmt_offset:=ppufile.getlongint;
          objrealname:=stringdup(ppufile.getstring);
          objname:=stringdup(upper(objrealname^));
+         symtable:=tobjectsymtable.create(objrealname^,0);
+         tobjectsymtable(symtable).datasize:=ppufile.getlongint;
+         tobjectsymtable(symtable).fieldalignment:=ppufile.getbyte;
+         tobjectsymtable(symtable).recordalignment:=ppufile.getbyte;
+         vmt_offset:=ppufile.getlongint;
          ppufile.getderef(childofderef);
          ppufile.getsmallset(objectoptions);
 
@@ -4752,10 +4746,6 @@ implementation
          else
            implementedinterfaces:=nil;
 
-         symtable:=tobjectsymtable.create(objrealname^,aktpackrecords);
-         tobjectsymtable(symtable).datasize:=ppufile.getlongint;
-         tobjectsymtable(symtable).fieldalignment:=ppufile.getbyte;
-         tobjectsymtable(symtable).recordalignment:=ppufile.getbyte;
          tobjectsymtable(symtable).ppuload(ppufile);
 
          symtable.defowner:=self;
@@ -4800,9 +4790,11 @@ implementation
       begin
          inherited ppuwritedef(ppufile);
          ppufile.putbyte(byte(objecttype));
-         ppufile.putlongint(size);
-         ppufile.putlongint(vmt_offset);
          ppufile.putstring(objrealname^);
+         ppufile.putlongint(tobjectsymtable(symtable).datasize);
+         ppufile.putbyte(tobjectsymtable(symtable).fieldalignment);
+         ppufile.putbyte(tobjectsymtable(symtable).recordalignment);
+         ppufile.putlongint(vmt_offset);
          ppufile.putderef(childofderef);
          ppufile.putsmallset(objectoptions);
          if objecttype in [odt_interfacecom,odt_interfacecorba] then
@@ -4823,9 +4815,6 @@ implementation
                 end;
            end;
 
-         ppufile.putlongint(tobjectsymtable(symtable).datasize);
-         ppufile.putbyte(tobjectsymtable(symtable).fieldalignment);
-         ppufile.putbyte(tobjectsymtable(symtable).recordalignment);
          ppufile.writeentry(ibobjectdef);
 
          tobjectsymtable(symtable).ppuwrite(ppufile);
@@ -4918,7 +4907,6 @@ implementation
                     end;
                end;
           end;
-        savesize := tobjectsymtable(symtable).datasize;
       end;
 
 
@@ -6137,7 +6125,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.243  2004-06-20 08:55:30  florian
+  Revision 1.244  2004-07-06 19:52:04  peter
+    * fix storing of localst in ppu
+
+  Revision 1.243  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.242  2004/06/18 15:16:46  peter

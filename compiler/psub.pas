@@ -938,6 +938,7 @@ implementation
              if procdef.parast.symtablelevel>=normal_function_level then
                procdef.localst.free;
              procdef.localst:=nil;
+             exclude(procdef.procoptions,po_haslocalst);
            end;
 
          { remove code tree, if not inline procedure }
@@ -1383,7 +1384,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.196  2004-06-20 08:55:30  florian
+  Revision 1.197  2004-07-06 19:52:04  peter
+    * fix storing of localst in ppu
+
+  Revision 1.196  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.195  2004/06/16 20:07:09  florian

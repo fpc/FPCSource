@@ -985,9 +985,10 @@ uses
 
          { generate implementation deref data, the interface deref data is
            already generated when calculating the interface crc }
+         aktglobalsymtable:=tstoredsymtable(globalsymtable);
+         aktstaticsymtable:=tstoredsymtable(localsymtable);
          if (cs_compilesystem in aktmoduleswitches) then
            begin
-             aktglobalsymtable:=tstoredsymtable(globalsymtable);
              tstoredsymtable(globalsymtable).buildderef;
              derefdataintflen:=derefdata.size;
            end;
@@ -995,8 +996,6 @@ uses
          if ((flags and uf_local_browser)<>0) and
             assigned(localsymtable) then
            begin
-             aktglobalsymtable:=tstoredsymtable(globalsymtable);
-             aktstaticsymtable:=tstoredsymtable(localsymtable);
              tstoredsymtable(localsymtable).buildderef;
              tstoredsymtable(localsymtable).buildderefimpl;
            end;
@@ -1222,12 +1221,10 @@ uses
         oldobjectlibrary:=objectlibrary;
         objectlibrary:=librarydata;
         aktglobalsymtable:=tstoredsymtable(globalsymtable);
+        aktstaticsymtable:=tstoredsymtable(localsymtable);
         tstoredsymtable(globalsymtable).derefimpl;
         if assigned(localsymtable) then
-          begin
-            aktstaticsymtable:=tstoredsymtable(localsymtable);
-            tstoredsymtable(localsymtable).derefimpl;
-          end;
+          tstoredsymtable(localsymtable).derefimpl;
         objectlibrary:=oldobjectlibrary;
 
         { load browser info if stored }
@@ -1524,7 +1521,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.56  2004-07-05 21:26:28  olle
+  Revision 1.57  2004-07-06 19:52:04  peter
+    * fix storing of localst in ppu
+
+  Revision 1.56  2004/07/05 21:26:28  olle
     + allow fileextension .p, in mode macpas
 
   Revision 1.55  2004/06/20 08:55:29  florian

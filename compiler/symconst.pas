@@ -235,7 +235,9 @@ type
       conventions like that one of MorphOS }
     po_explicitparaloc,
     { no stackframe will be generated, used by lowlevel assembler like get_frame }
-    po_nostackframe
+    po_nostackframe,
+    { localst is valid }
+    po_haslocalst
   );
   tprocoptions=set of tprocoption;
 
@@ -409,7 +411,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.84  2004-06-20 08:55:30  florian
+  Revision 1.85  2004-07-06 19:52:04  peter
+    * fix storing of localst in ppu
+
+  Revision 1.84  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.83  2004/06/16 20:07:09  florian

@@ -299,15 +299,6 @@ end;
                              Read Routines
 ****************************************************************************}
 
-function getint64:int64;
-var
-  l1,l2 : longint;
-begin
-  l1:=ppufile.getlongint;
-  l2:=ppufile.getlongint;
-  getint64:=(int64(l2) shl 32) or qword(l1);
-end;
-
 Procedure ReadLinkContainer(const prefix:string);
 {
   Read a serie of strings and write to the screen starting every line
@@ -677,19 +668,37 @@ end;
 { Read abstract procdef and return if inline procdef }
 type
   tproccalloption=(pocall_none,
-    pocall_cdecl,         { procedure uses C styled calling }
-    pocall_cppdecl,       { C++ calling conventions }
-    pocall_compilerproc,  { Procedure is used for internal compiler calls }
-    pocall_far16,         { Far16 for OS/2 }
-    pocall_fpccall,       { FPC default calling }
-    pocall_inline,        { Procedure is an assembler macro }
-    pocall_internproc,    { Procedure has compiler magic}
-    pocall_palmossyscall, { procedure is a PalmOS system call }
-    pocall_pascal,        { pascal standard left to right }
-    pocall_register,      { procedure uses register (fastcall) calling }
-    pocall_safecall,      { safe call calling conventions }
-    pocall_stdcall,       { procedure uses stdcall call }
-    pocall_system         { system call }
+    { procedure uses C styled calling }
+    pocall_cdecl,
+    { C++ calling conventions }
+    pocall_cppdecl,
+    { Procedure is used for internal compiler calls }
+    pocall_compilerproc,
+    { Far16 for OS/2 }
+    pocall_far16,
+    { Old style FPC default calling }
+    pocall_oldfpccall,
+    { Procedure is an assembler macro }
+    pocall_inline,
+    { Procedure has compiler magic}
+    pocall_internproc,
+    { procedure is a system call, applies e.g. to MorphOS and PalmOS }
+    pocall_syscall,
+    { pascal standard left to right }
+    pocall_pascal,
+    { procedure uses register (fastcall) calling }
+    pocall_register,
+    { safe call calling conventions }
+    pocall_safecall,
+    { procedure uses stdcall call }
+    pocall_stdcall,
+    { Special calling convention for cpus without a floating point
+      unit. Floating point numbers are passed in integer registers
+      instead of floating point registers. Depending on the other
+      available calling conventions available for the cpu
+      this replaces either pocall_fastcall or pocall_stdcall.
+    }
+    pocall_softfloat
   );
   tproccalloptions=set of tproccalloption;
   tproctypeoption=(potype_none,
@@ -715,18 +724,28 @@ type
     po_msgint,            { method for int message handling }
     po_exports,           { Procedure has export directive (needed for OS/2) }
     po_external,          { Procedure is external (in other object or lib)}
-    po_savestdregs,       { save std regs cdecl and stdcall need that ! }
     po_saveregisters,     { save all registers }
     po_overload,          { procedure is declared with overload directive }
     po_varargs,           { printf like arguments }
-    po_leftright,         { push arguments from left to right }
-    po_clearstack,        { caller clears the stack }
     po_internconst,       { procedure has constant evaluator intern }
-    po_addressonly,       { flag that only the address of a method is returned and not a full methodpointer }
-    po_public             { procedure is exported }
+    { flag that only the address of a method is returned and not a full methodpointer }
+    po_addressonly,
+    { procedure is exported }
+    po_public,
+    { calling convention is specified explicitly }
+    po_hascallingconvention,
+    { reintroduce flag }
+    po_reintroduce,
+    { location of parameters is given explicitly as it is necessary for some syscall
+      conventions like that one of MorphOS }
+    po_explicitparaloc,
+    { no stackframe will be generated, used by lowlevel assembler like get_frame }
+    po_nostackframe,
+    { localst is valid }
+    po_haslocalst
   );
   tprocoptions=set of tprocoption;
-function read_abstract_proc_def:tproccalloption;
+procedure read_abstract_proc_def(var proccalloption:tproccalloption;var procoptions:tprocoptions);
 type
   tproccallopt=record
     mask : tproccalloption;
@@ -746,15 +765,15 @@ const
      'CPPDecl',
      'CompilerProc',
      'Far16',
-     'FPCCall',
+     'OldFPCCall',
      'Inline',
      'InternProc',
-     'PalmOSSysCall',
+     'SysCall',
      'Pascal',
      'Register',
      'SafeCall',
      'StdCall',
-     'System'
+     'SoftFloat'
    );
   proctypeopts=6;
   proctypeopt : array[1..proctypeopts] of tproctypeopt=(
@@ -765,7 +784,7 @@ const
      (mask:potype_destructor;  str:'Destructor'),
      (mask:potype_operator;    str:'Operator')
   );
-  procopts=22;
+  procopts=24;
   procopt : array[1..procopts] of tprocopt=(
      (mask:po_classmethod;     str:'ClassMethod'),
      (mask:po_virtualmethod;   str:'VirtualMethod'),
@@ -780,20 +799,20 @@ const
      (mask:po_msgint;          str:'MsgInt'),
      (mask:po_exports;         str:'Exports'),
      (mask:po_external;        str:'External'),
-     (mask:po_savestdregs;     str:'SaveStdRegs'),
      (mask:po_saveregisters;   str:'SaveRegisters'),
      (mask:po_overload;        str:'Overload'),
      (mask:po_varargs;         str:'VarArgs'),
-     (mask:po_leftright;       str:'LeftRight'),
-     (mask:po_clearstack;      str:'ClearStack'),
      (mask:po_internconst;     str:'InternConst'),
      (mask:po_addressonly;     str:'AddressOnly'),
-     (mask:po_public;          str:'Public')
+     (mask:po_public;          str:'Public'),
+     (mask:po_hascallingconvention;str:'HasCallingConvention'),
+     (mask:po_reintroduce;     str:'ReIntroduce'),
+     (mask:po_explicitparaloc; str:'ExplicitParaloc'),
+     (mask:po_nostackframe;    str:'NoStackFrame'),
+     (mask:po_haslocalst;      str:'HasLocalst')
   );
 var
   proctypeoption  : tproctypeoption;
-  proccalloption  : tproccalloption;
-  procoptions     : tprocoptions;
   i,params : longint;
   first    : boolean;
 begin
@@ -817,7 +836,6 @@ begin
      writeln;
    end;
   proccalloption:=tproccalloption(ppufile.getbyte);
-  read_abstract_proc_def:=proccalloption;
   writeln(space,'       CallOption : ',proccalloptionStr[proccalloption]);
   ppufile.getsmallset(procoptions);
   if procoptions<>[] then
@@ -953,9 +971,9 @@ type
 
   absolutetyp = (tovar,toasm,toaddr);
   tconsttyp = (constnone,
-    constord,conststring,constreal,constbool,
-    constint,constchar,constset,constpointer,constnil,
-    constresourcestring,constwstring,constwchar,constguid
+    constord,conststring,constreal,
+    constset,constpointer,constnil,
+    constresourcestring,constwstring,constguid
   );
 var
   b      : byte;
@@ -1020,15 +1038,15 @@ begin
              case tconsttyp(b) of
                constord :
                  begin
-                   write   (space,'OrdinalType: ');
+                   write  (space,' OrdinalType: ');
                    readtype;
-                   writeln (space,'      Value: ',getlongint)
+                   writeln(space,'       Value: ',getint64);
                  end;
                constpointer :
                  begin
-                   write (space,' Pointer Type: ');
+                   write  (space,' PointerType: ');
                    readtype;
-                   writeln (space,'      Value: ',getlongint)
+                   writeln(space,'       Value: ',getlongint)
                  end;
                conststring,
                constresourcestring :
@@ -1044,15 +1062,6 @@ begin
                  end;
                constreal :
                  writeln(space,'       Value: ',getreal);
-               constbool :
-                 if getlongint<>0 then
-                   writeln (space,'      Value : True')
-                 else
-                   writeln (space,'      Value: False');
-               constint :
-                 writeln(space,'       Value: ',getint64);
-               constchar :
-                 writeln(space,'       Value: "'+chr(getlongint)+'"');
                constset :
                  begin
                    write (space,'     Set Type: ');
@@ -1072,8 +1081,6 @@ begin
                constwstring:
                  begin
                  end;
-               constwchar:
-                 writeln(space,'       Value: #',getlongint);
                constguid:
                  begin
                     getdata(guid,sizeof(guid));
@@ -1143,13 +1150,14 @@ begin
              b:=getbyte;
              case absolutetyp(b) of
                tovar :
-                 Writeln('Name : ',getstring);
+                 readsymlist(space+'         Sym: ');
                toasm :
                  Writeln('Assembler name : ',getstring);
                toaddr :
                  begin
                    Write('Address : ',getlongint);
-                   WriteLn(' (Far: ',getbyte<>0,')');
+                   if ttargetcpu(ppufile.header.cpu)=i386 then
+                     WriteLn(' (Far: ',getbyte<>0,')');
                  end;
                else
                  Writeln ('!! Invalid unit format : Invalid absolute type encountered: ',b);
@@ -1233,6 +1241,7 @@ var
   totaldefs,l,j,
   defcnt : longint;
   calloption : tproccalloption;
+  procoptions : tprocoptions;
   procinfooptions : tprocinfoflag;
 
 begin
@@ -1312,7 +1321,7 @@ begin
          ibprocdef :
            begin
              readcommondef('Procedure definition');
-             calloption:=read_abstract_proc_def;
+             read_abstract_proc_def(calloption,procoptions);
              if (getbyte<>0) then
                writeln(space,'     Mangled name : ',getstring);
              writeln(space,'  Overload Number : ',getword);
@@ -1338,8 +1347,7 @@ begin
              readdefinitions('parast',false);
              readsymbols('parast');
              { localst }
-             if (calloption=pocall_inline) or
-                ((ppufile.header.flags and uf_local_browser) <> 0) then
+             if (po_haslocalst in procoptions) then
               begin
                 readdefinitions('localst',false);
                 readsymbols('localst');
@@ -1357,7 +1365,7 @@ begin
          ibprocvardef :
            begin
              readcommondef('Procedural type (ProcVar) definition');
-             read_abstract_proc_def;
+             read_abstract_proc_def(calloption,procoptions);
              if not EndOfEntry then
               Writeln('!! Entry has more information stored');
              space:='    '+space;
@@ -1394,7 +1402,9 @@ begin
          ibrecorddef :
            begin
              readcommondef('Record definition');
-             writeln(space,'             Size : ',getlongint);
+             writeln(space,'         DataSize : ',getlongint);
+             writeln(space,'       FieldAlign : ',getbyte);
+             writeln(space,'      RecordAlign : ',getbyte);
              if not EndOfEntry then
               Writeln('!! Entry has more information stored');
              {read the record definitions and symbols}
@@ -1417,9 +1427,11 @@ begin
                odt_cppclass       : writeln('cppclass');
                else                 writeln('!! Warning: Invalid object type ',b);
              end;
-             writeln(space,'             Size : ',getlongint);
-             writeln(space,'       Vmt offset : ',getlongint);
              writeln(space,'    Name of Class : ',getstring);
+             writeln(space,'         DataSize : ',getlongint);
+             writeln(space,'       FieldAlign : ',getbyte);
+             writeln(space,'      RecordAlign : ',getbyte);
+             writeln(space,'       Vmt offset : ',getlongint);
              write(space,  '   Ancestor Class : ');
              readderef;
              writeln(space,'          Options : ',getlongint);
@@ -1949,7 +1961,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-12-16 21:29:25  florian
+  Revision 1.51  2004-07-06 19:52:04  peter
+    * fix storing of localst in ppu
+
+  Revision 1.50  2003/12/16 21:29:25  florian
     + inlined procedures inherit procinfo flags
 
   Revision 1.49  2003/12/08 21:04:08  peter
