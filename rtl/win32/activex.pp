@@ -2293,7 +2293,7 @@ TYPE
      Function  AddRefTypeInfo(CONST pTInfo: ITypeInfo; CONST phRefType: HREFTYPE):HResult;StdCall;
      Function  AddFuncDesc(index: UINT; CONST pFuncDesc: FUNCDESC):HResult;StdCall;
      Function  AddImplType(index: UINT; hRefType: HREFTYPE):HResult;StdCall;
-     Function  SetImplTypeFlags(index: UINT; implTypeFlags: INT):HResult;StdCall;
+     Function  SetImplTypeFlags(index: UINT; implTypeFlags: WINT):HResult;StdCall;
      Function  SetAlignment(cbAlignment: WORD):HResult;StdCall;
      Function  SetSchema(pStrSchema: pOleStr):HResult;StdCall;
      Function  AddVarDesc(index: UINT; CONST pVarDesc: VARDESC):HResult;StdCall;
@@ -2405,7 +2405,7 @@ TYPE
       Function  GetNames(memid: MEMBERID; OUT rgBstrNames: WideString; cMaxNames: UINT; OUT pcNames: UINT):HResult;StdCall;
      {$endif}
      Function  GetRefTypeOfImplType(index: UINT; OUT pRefType: HREFTYPE):HResult;StdCall;
-     Function  GetImplTypeFlags(index: UINT; OUT pImplTypeFlags: INT):HResult;StdCall;
+     Function  GetImplTypeFlags(index: UINT; OUT pImplTypeFlags: WINT):HResult;StdCall;
      {$ifndef Call_as}
       Function  GetIDsOfNames(CONST rgszNames: pOleStr; cNames: UINT; OUT pMemId: MEMBERID):HResult;StdCall;
      {$else}
@@ -2506,9 +2506,9 @@ TYPE
 
      Function  GetTypeComp(OUT ppTComp: ITypeComp):HResult;StdCall;
      {$ifndef Call_as}
-     Function  GetDocumentation(index: INT; OUT pBstrName: WideString; OUT pBstrDocString: WideString; OUT pdwHelpContext: DWORD; OUT pBstrHelpFile: WideString):HResult;StdCall;
+     Function  GetDocumentation(index: WINT; OUT pBstrName: WideString; OUT pBstrDocString: WideString; OUT pdwHelpContext: DWORD; OUT pBstrHelpFile: WideString):HResult;StdCall;
      {$else}
-     Function  GetDocumentation(index: INT; refPtrFlags: DWORD; OUT pBstrName: WideString; OUT pBstrDocString: WideString; OUT pdwHelpContext: DWORD; OUT pBstrHelpFile: WideString):HResult;StdCall;
+     Function  GetDocumentation(index: WINT; refPtrFlags: DWORD; OUT pBstrName: WideString; OUT pBstrDocString: WideString; OUT pdwHelpContext: DWORD; OUT pBstrHelpFile: WideString):HResult;StdCall;
      {$endif}
 
      {$ifndef Call_as}
@@ -2537,16 +2537,16 @@ TYPE
      Function  GetLibStatistics(OUT pcUniqueNames: ULONG; OUT pcchUniqueNames: ULONG):HResult;StdCall;
      {$endif}
      {$ifndef Call_as}
-     Function  GetDocumentation2(index: INT; lcid: LCID; OUT pbstrHelpString: WideString; OUT pdwHelpStringContext: DWORD; OUT pbstrHelpStringDll: WideString):HResult;StdCall;
+     Function  GetDocumentation2(index: WINT; lcid: LCID; OUT pbstrHelpString: WideString; OUT pdwHelpStringContext: DWORD; OUT pbstrHelpStringDll: WideString):HResult;StdCall;
      {$else}
-     Function  GetDocumentation2(index: INT; lcid: LCID; refPtrFlags: DWORD; OUT pbstrHelpString: WideString; OUT pdwHelpStringContext: DWORD; OUT pbstrHelpStringDll: WideString):HResult;StdCall;
+     Function  GetDocumentation2(index: WINT; lcid: LCID; refPtrFlags: DWORD; OUT pbstrHelpString: WideString; OUT pdwHelpStringContext: DWORD; OUT pbstrHelpStringDll: WideString):HResult;StdCall;
      {$endif}
      Function  GetAllCustData(OUT pCustData: CUSTDATA):HResult;StdCall;
      End;
 
    ITypeChangeEvents= Interface (IUnknown)
      ['{00020410-0000-0000-C000-000000000046}']
-     Function  RequestTypeChange(changeKind: CHANGEKIND; CONST pTInfoBefore: ITypeInfo; pStrName: pOleStr; OUT pfCancel: INT):HResult;StdCall;
+     Function  RequestTypeChange(changeKind: CHANGEKIND; CONST pTInfoBefore: ITypeInfo; pStrName: pOleStr; OUT pfCancel: WINT):HResult;StdCall;
      Function  AfterTypeChange(changeKind: CHANGEKIND; CONST pTInfoAfter: ITypeInfo; pStrName: pOleStr):HResult;StdCall;
      End;
 
@@ -2650,7 +2650,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-10-10 16:10:45  florian
+  Revision 1.8  2002-12-12 17:52:35  peter
+    * INT renamed to WINT
+
+  Revision 1.7  2002/10/10 16:10:45  florian
     + declarations of objbase.h added
 
   Revision 1.6  2002/09/07 16:01:28  peter
