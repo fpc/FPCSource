@@ -75,7 +75,10 @@ program pmdemo1;
  end.
 {
   $Log$
-  Revision 1.6  2000-07-09 07:49:34  hajny
+  Revision 1.1  2000-07-09 10:37:50  peter
+    * renamed to lowercase names
+
+  Revision 1.6  2000/07/09 07:49:34  hajny
     * $R used now
 
   Revision 1.5  2000/06/18 18:37:17  hajny
