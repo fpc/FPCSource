@@ -25,10 +25,6 @@ unit t_win32;
 {$i defines.inc}
 
 interface
-
-
-implementation
-
     uses
 {$ifdef Delphi}
        dmisc,
@@ -43,10 +39,16 @@ implementation
 {$ifdef GDB}
        gdb,
 {$endif}
+
        import,export,link,rgobj;
 
-  type
+
+  type 
+     tStr4=array[1..1]of string[4];
+     pStr4=^tStr4;
+
     timportlibwin32=class(timportlib)
+      procedure GetDefExt(var N:longint;var P:pStr4);virtual; //PVO 26.03.02 !
       procedure preparelib(const s:string);override;
       procedure importprocedure(const func,module:string;index:longint;const name:string);override;
       procedure importvariable(const varname,module:string;const name:string);override;
@@ -81,28 +83,44 @@ implementation
       cstring : array[0..127]of char;
       function DOSstubOK(var x:cardinal):boolean;
       function FindDLL(const s:string;var founddll:string):boolean;
-      function DllName(Const Name : string) : string;
+//PVO 26.03.02 !
     public
+      procedure GetDefExt(var N:longint;var P:pStr4);virtual; //PVO 26.03.02 !
       function isSuitableFileType(x:cardinal):longbool;override;
       function GetEdata(HeaderEntry:cardinal):longbool;override;
       function Scan(const binname:string):longbool;override;
     end;
+implementation
 
-
-    function DllName(Const Name : string) : string;
+//PVO 26.03.02 <
+    function DllName(Const Name : string;NdefExt:longint;DefExt:pStr4) : string;
       var n : string;
+          i:longint;
       begin
          n:=Upper(SplitExtension(Name));
-         if (n='.DLL') or (n='.DRV') or (n='.EXE') then
-           DllName:=Name
+         for i:=1 to NdefExt do
+          if n=DefExt^[i]then
+           begin
+            DllName:=Name;
+            exit;
+           end
          else
            DllName:=Name+target_info.sharedlibext;
       end;
+
+const
+ DefaultDLLExtensions:array[1..3]of string[4]=('.DLL','.DRV','.EXE');
 
 
 {*****************************************************************************
                              TIMPORTLIBWIN32
 *****************************************************************************}
+    procedure timportlibwin32.GetDefExt(var N:longint;var P:pStr4);
+     begin
+      N:=sizeof(DefaultDLLExtensions)div sizeof(DefaultDLLExtensions[1]);
+      pointer(P):=@DefaultDLLExtensions;
+     end;
+//PVO 26.03.02 >
 
     procedure timportlibwin32.preparelib(const s : string);
       begin
@@ -116,11 +134,13 @@ implementation
          hp1 : timportlist;
          hp2 : timported_item;
          hs  : string;
+         PP:pStr4;NN:longint;//PVO 26.03.02 !
       begin
          { force the current mangledname }
          aktprocdef.has_mangledname:=true;
          { append extension if required }
-         hs:=DllName(module);
+         GetDefExt(NN,PP);//PVO 26.03.02 !
+         hs:=DllName(module,NN,PP);//PVO 26.03.02 !
          { search for the module }
          hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
@@ -156,8 +176,10 @@ implementation
          hp1 : timportlist;
          hp2 : timported_item;
          hs  : string;
+         NN:longint;PP:pStr4;//PVO 26.03.02 !
       begin
-         hs:=DllName(module);
+         GetDefExt(NN,PP);//PVO 26.03.02 !
+         hs:=DllName(module,NN,PP);//PVO 26.03.02 !
          { search for the module }
          hp1:=timportlist(current_module.imports.first);
          while assigned(hp1) do
@@ -203,7 +225,10 @@ implementation
            end;
       end;
 
-
+    //PVO 26.03.02 <
+    const
+     MainAsmFormats=[as_i386_asw,as_i386_aswdosx,as_i386_pecoff,as_i386_pecoffwdosx];
+    //PVO 26.03.02 <
     procedure timportlibwin32.generatesmartlib;
       var
          hp1 : timportlist;
@@ -216,8 +241,7 @@ implementation
          lidata4,lidata5 : tasmlabel;
          href : treference;
       begin
-         if (aktoutputformat<>as_i386_asw) and
-            (aktoutputformat<>as_i386_pecoff) then
+         if not(aktoutputformat in MainAsmFormats)then //PVO 26.03.02 !
           begin
             generatenasmlib;
             exit;
@@ -354,8 +378,7 @@ implementation
          suffix : integer;
          href : treference;
       begin
-         if (aktoutputformat<>as_i386_asw) and
-            (aktoutputformat<>as_i386_pecoff) then
+         if not(aktoutputformat in MainAsmFormats)then //PVO 26.03.02 !
           begin
             generatenasmlib;
             exit;
@@ -571,8 +594,7 @@ implementation
          address_table,name_table_pointers,
          name_table,ordinal_table : TAAsmoutput;
       begin
-        if (aktoutputformat<>as_i386_asw) and
-           (aktoutputformat<>as_i386_pecoff) then
+        if not (aktoutputformat in MainAsmFormats)then //PVO 26.03.02 !
          begin
            generatenasmlib;
            exit;
@@ -1265,7 +1287,13 @@ end;
 {****************************************************************************
                             TDLLScannerWin32
 ****************************************************************************}
-
+//PVO 26.03.02 <
+    procedure tDLLScannerWin32.GetDefExt(var N:longint;var P:pStr4);
+     begin
+      N:=sizeof(DefaultDLLExtensions)div sizeof(DefaultDLLExtensions[1]);
+      pointer(P):=@DefaultDLLExtensions;
+     end;
+//PVO 26.03.02 >
     function tDLLScannerWin32.DOSstubOK(var x:cardinal):boolean;
       begin
         blockread(f,TheWord,2,loaded);
@@ -1307,17 +1335,7 @@ end;
         FindDll:=Found;
       end;
 
-
-    function tDLLScannerWin32.DllName(Const Name : string) : string;
-      var n : string;
-      begin
-         n:=Upper(SplitExtension(Name));
-         if (n='.DLL') or (n='.DRV') or (n='.EXE') then
-           DllName:=Name
-         else
-           DllName:=Name+target_info.sharedlibext;
-      end;
-
+//PVO 26.03.02 !
 
 
 function tDLLScannerWin32.isSuitableFileType(x:cardinal):longbool;
@@ -1481,13 +1499,15 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
  var
   OldFileMode:longint;
   foundimp : string;
+  NN:longint;PP:pStr4;//PVO 26.03.02 !
  begin
    Scan:=false;
   { is there already an import library the we will use that one }
   if FindLibraryFile(binname,target_info.staticClibprefix,target_info.staticClibext,foundimp) then
    exit;
   { check if we can find the dll }
-  if not FindDll(DLLName(binname),impname) then
+  GetDefExt(NN,PP);//PVO 26.03.02 !
+  if not FindDll(DLLName(binname,NN,PP),impname) then
    exit;
   { read the dll file }
   assign(f,impname);
@@ -1604,7 +1624,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2002-04-02 17:11:39  peter
+  Revision 1.25  2002-04-04 18:25:30  carl
+  + added wdosx patch from Pavel
+
+  Revision 1.24  2002/04/02 17:11:39  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

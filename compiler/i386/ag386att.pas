@@ -933,15 +933,40 @@ interface
               '.stab','.stabstr')
           );
 
+       as_i386_aswwdosx_info : tasminfo =
+          (
+            id           : as_i386_aswdosx;
+            idtxt  : 'ASWDOSX';
+            asmbin : 'asw';
+            asmcmd : '-o $OBJ $ASM';
+            supported_target : target_i386_wdosx;
+            outputbinary: false;
+            allowdirect : true;
+            externals : false;
+            needar : true;
+            labelprefix_only_inside_procedure : false;
+            labelprefix : '.L';
+            comment : '# ';
+            secnames : ('',
+              '.text','.data','.section .bss',
+              '.section .idata$2','.section .idata$4','.section .idata$5',
+                '.section .idata$6','.section .idata$7','.section .edata',
+              '.stab','.stabstr')
+          );
+
 
 initialization
   RegisterAssembler(as_i386_as_info,T386ATTAssembler);
   RegisterAssembler(as_i386_as_aout_info,T386ATTAssembler);
   RegisterAssembler(as_i386_asw_info,T386ATTAssembler);
+  RegisterAssembler(as_i386_aswwdosx_info,T386ATTAssembler); 
 end.
 {
   $Log$
-  Revision 1.13  2002-04-02 17:11:33  peter
+  Revision 1.14  2002-04-04 18:26:55  carl
+  + added wdosx patch from Pavel
+
+  Revision 1.13  2002/04/02 17:11:33  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines
