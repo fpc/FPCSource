@@ -62,15 +62,12 @@ endif
 # Set os-dependent files and extensions
 ifdef inlinux
 EXEEXT=
-REPLACE=mv -f
-CP=cp -f
 else
 EXEEXT=.exe
-# mv -f gives problem under dos 
-# claiming source and destinaztion are the same files !
-REPLACE=copy /y
-CP=cp -f
 endif
+
+REPLACE=mv -f
+CP=cp -f
 
 COMPILERDIR=$(BASEDIR)
 RTLDIR:=$(BASEDIR)/../rtl
@@ -420,7 +417,10 @@ rtlclean :
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.20  1998-06-24 14:02:58  peter
+# Revision 1.21  1998-07-22 21:33:32  michael
+# + COPY and Replace back to mv and cp
+#
+# Revision 1.20  1998/06/24 14:02:58  peter
 #   * new depend for the new ra units
 #
 # Revision 1.19  1998/06/23 14:00:15  peter
