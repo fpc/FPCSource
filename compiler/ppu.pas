@@ -910,8 +910,8 @@ end;
 
 procedure tppufile.putbyte(b:byte);
 begin
-  writedata(b,1);
-  inc(entryidx);
+  putdata(b,1);
+{  inc(entryidx);}
 end;
 
 
@@ -1000,7 +1000,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.49  1999-11-18 15:34:48  pierre
+  Revision 1.50  1999-11-21 01:42:37  pierre
+   * Nextoverloading ordering fix
+
+  Revision 1.49  1999/11/18 15:34:48  pierre
     * Notes/Hints for local syms changed to
       Set_varstate function
 

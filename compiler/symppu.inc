@@ -129,9 +129,7 @@
                  { when writing the pseudo PPU file
                    to get CRC values the globalsymtable is not yet
                    a unitsymtable PM }
-{$ifndef Dont_use_double_checksum}
                   globalsymtable,
-{$endif Dont_use_double_checksum}
                   unitsymtable :
                     begin
                       current_ppu^.putbyte(ord(derefunit));
@@ -755,7 +753,10 @@
 
 {
   $Log$
-  Revision 1.55  1999-11-17 17:05:04  pierre
+  Revision 1.56  1999-11-21 01:42:37  pierre
+   * Nextoverloading ordering fix
+
+  Revision 1.55  1999/11/17 17:05:04  pierre
    * Notes/hints changes
 
   Revision 1.54  1999/11/12 11:03:50  peter

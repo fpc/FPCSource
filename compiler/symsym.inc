@@ -445,7 +445,7 @@
              currdef:=firstdef;
              lastdef:=definition;
              definition:=definition^.nextoverloaded;
-             if lastdef^.mangledname>currdef^.mangledname then
+             if lastdef^.mangledname<firstdef^.mangledname then
                begin
                  lastdef^.nextoverloaded:=firstdef;
                  firstdef:=lastdef;
@@ -453,7 +453,7 @@
              else
                begin
                  while assigned(currdef^.nextoverloaded) and
-                    (currdef^.mangledname>lastdef^.mangledname) do
+                    (lastdef^.mangledname>currdef^.nextoverloaded^.mangledname) do
                    currdef:=currdef^.nextoverloaded;
                  lastdef^.nextoverloaded:=currdef^.nextoverloaded;
                  currdef^.nextoverloaded:=lastdef;
@@ -2192,7 +2192,10 @@
 
 {
   $Log$
-  Revision 1.128  1999-11-20 01:22:20  pierre
+  Revision 1.129  1999-11-21 01:42:37  pierre
+   * Nextoverloading ordering fix
+
+  Revision 1.128  1999/11/20 01:22:20  pierre
     + cond FPC_USE_CPREFIX (needs also some RTL changes)
       this allows to use unit global vars as DLL exports
       (the underline prefix seems needed by dlltool)
