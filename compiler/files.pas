@@ -458,6 +458,8 @@ unit files;
              c:=p^;
              if c=#0 then
               begin
+                if endoffile then
+                 break;
                 readbuf;
                 p:=buf;
                 c:=p^;
@@ -1005,7 +1007,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.58  1998-10-12 11:59:00  peter
+  Revision 1.59  1998-10-13 14:01:07  peter
+    * fixed -al
+
+  Revision 1.58  1998/10/12 11:59:00  peter
     + show name and date of .o and .s files which the compiler checks
 
   Revision 1.57  1998/10/09 16:36:03  pierre
