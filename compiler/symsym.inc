@@ -34,7 +34,7 @@
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
-         fileinfo:=aktfilepos;
+         fileinfo:=tokenpos;
 {$ifdef UseBrowser}
          defref:=nil;
          lastwritten:=nil;
@@ -1717,7 +1717,12 @@
 
 {
   $Log$
-  Revision 1.45  1998-09-21 08:45:24  pierre
+  Revision 1.46  1998-09-23 15:39:13  pierre
+    * browser bugfixes
+      was adding a reference when looking for the symbol
+      if -bSYM_NAME was used
+
+  Revision 1.45  1998/09/21 08:45:24  pierre
     + added vmt_offset in tobjectdef.write for fututre use
       (first steps to have objects without vmt if no virtual !!)
     + added fpu_used field for tabstractprocdef  :

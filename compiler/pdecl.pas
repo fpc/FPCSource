@@ -80,6 +80,7 @@ unit pdecl;
          p : ptree;
          def : pdef;
          sym : psym;
+         storetokenpos,filepos : tfileposinfo;
          ps : pconstset;
          pd : pbestreal;
 {$ifdef USEANSISTRING}
@@ -91,6 +92,7 @@ unit pdecl;
          consume(_CONST);
          repeat
            name:=pattern;
+           filepos:=tokenpos;
            consume(ID);
            case token of
               EQUAL:
@@ -98,6 +100,8 @@ unit pdecl;
                    consume(EQUAL);
                    p:=comp_expr(true);
                    do_firstpass(p);
+                   storetokenpos:=tokenpos;
+                   tokenpos:=filepos;
                    case p^.treetype of
                       ordconstn:
                         begin
@@ -136,6 +140,7 @@ unit pdecl;
                                    end;
                       else Message(cg_e_illegal_expression);
                    end;
+                   tokenpos:=storetokenpos;
                    consume(SEMICOLON);
                    disposetree(p);
                 end;
@@ -150,7 +155,10 @@ unit pdecl;
                    def:=read_type('');
                    block_type:=bt_general;
                    ignore_equal:=false;
+                   storetokenpos:=tokenpos;
+                   tokenpos:=filepos;
                    sym:=new(ptypedconstsym,init(name,def));
+                   tokenpos:=storetokenpos;
                    symtablestack^.insert(sym);
                    consume(EQUAL);
                    readtypedconst(def,ptypedconstsym(sym));
@@ -198,7 +206,7 @@ unit pdecl;
          sc : pstringcontainer;
          s : stringid;
          old_block_type : tblock_type;
-         filepos : tfileposinfo;
+         declarepos,storetokenpos : tfileposinfo;
          symdone : boolean;
          { to handle absolute }
          abssym : pabsolutesym;
@@ -246,12 +254,13 @@ unit pdecl;
              symdone:=false;
              if is_gpc_name then
                begin
-                  s:=sc^.get_with_tokeninfo(filepos);
+                  storetokenpos:=tokenpos;
+                  s:=sc^.get_with_tokeninfo(tokenpos);
                   if not sc^.empty then
                    Message(parser_e_absolute_only_one_var);
                   dispose(sc,done);
                   Csym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,p));
-                  Csym^.fileinfo:=filepos;
+                  tokenpos:=storetokenpos;
                   Csym^.var_options:=Csym^.var_options or vo_is_external;
                   externals^.concat(new(pai_external,init(Csym^.mangledname,EXT_NEAR)));
                   symtablestack^.insert(Csym);
@@ -263,7 +272,7 @@ unit pdecl;
               begin
                 consume(ID);
               { only allowed for one var }
-                s:=sc^.get_with_tokeninfo(filepos);
+                s:=sc^.get_with_tokeninfo(declarepos);
                 if not sc^.empty then
                  Message(parser_e_absolute_only_one_var);
                 dispose(sc,done);
@@ -275,23 +284,28 @@ unit pdecl;
                    { we should check the result type of srsym }
                    if not (srsym^.typ in [varsym,typedconstsym]) then
                      Message(parser_e_absolute_only_to_var_or_const);
+
+                   storetokenpos:=tokenpos;
+                   tokenpos:=declarepos;
                    abssym:=new(pabsolutesym,init(s,p));
                    abssym^.typ:=absolutesym;
                    abssym^.abstyp:=tovar;
                    abssym^.ref:=srsym;
-                   abssym^.fileinfo:=filepos;
+                   tokenpos:=storetokenpos;
                    symtablestack^.insert(abssym);
                  end
                 else
                  if token=CSTRING then
                   begin
+                    storetokenpos:=tokenpos;
+                    tokenpos:=declarepos;
                     abssym:=new(pabsolutesym,init(s,p));
                     s:=pattern;
                     consume(CSTRING);
                     abssym^.typ:=absolutesym;
                     abssym^.abstyp:=toasm;
                     abssym^.asmname:=stringdup(s);
-                    abssym^.fileinfo:=filepos;
+                    tokenpos:=storetokenpos;
                     symtablestack^.insert(abssym);
                   end
                 else
@@ -301,11 +315,13 @@ unit pdecl;
 {$ifdef i386}
                     if (target_info.target=target_GO32V2) then
                      begin
+                       storetokenpos:=tokenpos;
+                       tokenpos:=declarepos;
                        abssym:=new(pabsolutesym,init(s,p));
                        abssym^.typ:=absolutesym;
                        abssym^.abstyp:=toaddr;
                        abssym^.absseg:=false;
-                       abssym^.fileinfo:=filepos;
+                       tokenpos:=storetokenpos;
                        s:=pattern;
                        consume(INTCONST);
                        val(s,abssym^.address,code);
@@ -351,7 +367,7 @@ unit pdecl;
                     (pattern='CVAR')) then
                  begin
                    { only allowed for one var }
-                   s:=sc^.get_with_tokeninfo(filepos);
+                   s:=sc^.get_with_tokeninfo(declarepos);
                    if not sc^.empty then
                     Message(parser_e_absolute_only_one_var);
                    dispose(sc,done);
@@ -400,8 +416,10 @@ unit pdecl;
                    if extern_csym or export_csym then
                     consume(SEMICOLON);
                    { insert in the symtable }
+                   storetokenpos:=tokenpos;
+                   tokenpos:=declarepos;
                    Csym:=new(pvarsym,init_C(s,C_name,p));
-                   Csym^.fileinfo:=filepos;
+                   tokenpos:=storetokenpos;
                    if export_Csym then
                     inc(Csym^.refs);
                    if extern_Csym then
@@ -702,7 +720,7 @@ unit pdecl;
            sc : pstringcontainer;
            hp : pdef;
            s : string;
-           filepos : tfileposinfo;
+           declarepos : tfileposinfo;
            pp : pprocdef;
            pt : ptree;
            propname : stringid;
@@ -766,7 +784,7 @@ unit pdecl;
                          end
                        else
                          hp:=new(pformaldef,init);
-                       s:=sc^.get_with_tokeninfo(filepos);
+                       s:=sc^.get_with_tokeninfo(declarepos);
                        while s<>'' do
                          begin
                             new(hp2);
@@ -774,7 +792,7 @@ unit pdecl;
                             hp2^.data:=hp;
                             hp2^.next:=propertyparas;
                             propertyparas:=hp2;
-                            s:=sc^.get_with_tokeninfo(filepos);
+                            s:=sc^.get_with_tokeninfo(declarepos);
                          end;
                        dispose(sc,done);
                        if token=SEMICOLON then consume(SEMICOLON)
@@ -2038,7 +2056,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.55  1998-09-21 13:24:44  daniel
+  Revision 1.56  1998-09-23 15:39:09  pierre
+    * browser bugfixes
+      was adding a reference when looking for the symbol
+      if -bSYM_NAME was used
+
+  Revision 1.55  1998/09/21 13:24:44  daniel
   * Memory leak fixed.
 
   Revision 1.54  1998/09/17 13:41:16  pierre

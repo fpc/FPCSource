@@ -194,7 +194,8 @@ type
 
 implementation
 
-
+uses
+  verbose;
 {*****************************************************************************
                                    Crc 32
 *****************************************************************************}
@@ -393,6 +394,8 @@ begin
   blockread(f,buf^,ppubufsize,bufsize);
 {$endif}
   bufidx:=0;
+  if bufsize=0 then
+    Message(unit_f_ppu_read_unexpected_end);
 end;
 
 
@@ -776,7 +779,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1998-09-21 10:00:07  peter
+  Revision 1.15  1998-09-23 15:39:10  pierre
+    * browser bugfixes
+      was adding a reference when looking for the symbol
+      if -bSYM_NAME was used
+
+  Revision 1.14  1998/09/21 10:00:07  peter
     * store number of defs in ppu file
 
   Revision 1.13  1998/09/21 08:45:18  pierre

@@ -180,11 +180,11 @@ unit pbase;
          filepos : tfileposinfo;
          ss : pvarsym;
       begin
+         filepos:=tokenpos;
          while not sc^.empty do
            begin
-              s:=sc^.get_with_tokeninfo(filepos);
+              s:=sc^.get_with_tokeninfo(tokenpos);
               ss:=new(pvarsym,init(s,def));
-              ss^.fileinfo:=filepos;
               st^.insert(ss);
               { static data fields are inserted in the globalsymtable }
               if (st^.symtabletype=objectsymtable) and
@@ -196,13 +196,19 @@ unit pbase;
 
            end;
          dispose(sc,done);
+         tokenpos:=filepos;
       end;
 
 end.
 
 {
   $Log$
-  Revision 1.15  1998-09-07 23:10:21  florian
+  Revision 1.16  1998-09-23 15:39:08  pierre
+    * browser bugfixes
+      was adding a reference when looking for the symbol
+      if -bSYM_NAME was used
+
+  Revision 1.15  1998/09/07 23:10:21  florian
     * a lot of stuff fixed regarding rtti and publishing of properties,
       basics should now work
 

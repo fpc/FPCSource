@@ -137,7 +137,7 @@ unit parser;
          oldaktasmmode      : tasmmode;
 
 {$ifdef usebrowser}
-{$ifdef debug}
+{$ifdef dummydebug}
          hp : pmodule;
 {$endif debug}
 {$endif usebrowser}
@@ -361,14 +361,14 @@ unit parser;
              end;
 {$ifdef UseBrowser}
           { Write Browser }
-{$ifdef debug}
+{$ifdef dummydebug}
             hp:=pmodule(loaded_units.first);
             while assigned(hp) do
               begin
                  writeln('Unit ',hp^.modulename^,' has index ',hp^.unit_index);
                  hp:=pmodule(hp^.next);
               end;
-{$endif debug}
+{$endif dummydebug}
             if cs_browser in aktmoduleswitches then
               if Browse.elements_to_list^.empty then
                 begin
@@ -386,7 +386,12 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.48  1998-09-22 17:13:48  pierre
+  Revision 1.49  1998-09-23 15:39:07  pierre
+    * browser bugfixes
+      was adding a reference when looking for the symbol
+      if -bSYM_NAME was used
+
+  Revision 1.48  1998/09/22 17:13:48  pierre
     + browsing updated and developed
       records and objects fields are also stored
 

@@ -123,15 +123,18 @@ implementation
         inputfile:=get_source_file(moduleindex,posinfo.fileindex);
         if assigned(inputfile) then
           if status.use_gccoutput then
+          { for use with rhide
+            add warning so that it does not interpret
+            this as an error !! }
             get_file_line:=lower(inputfile^.name^)
-              +':'+tostr(posinfo.line)+':'+tostr(posinfo.column)+':'
+              +':'+tostr(posinfo.line)+': warning: '+tostr(posinfo.column)+':'
           else
             get_file_line:=inputfile^.name^
               +'('+tostr(posinfo.line)+','+tostr(posinfo.column)+')'
         else
           if status.use_gccoutput then
             get_file_line:='file_unknown:'
-              +tostr(posinfo.line)+':'+tostr(posinfo.column)+':'
+              +tostr(posinfo.line)+': warning: '+tostr(posinfo.column)+':'
           else
             get_file_line:='file_unknown('
               +tostr(posinfo.line)+','+tostr(posinfo.column)+')'
@@ -153,6 +156,7 @@ implementation
       begin
         if logopen then
          closelog;
+        dispose(elements_to_list,done);
       end;
 
 
@@ -252,7 +256,7 @@ implementation
         if not logopen then
          exit;
       { add ident }
-        if identidx>0 then
+        if (identidx>0) and not stderrlog then
          begin
            if bufidx+identidx>logbufsize then
             flushlog;
@@ -314,6 +318,9 @@ implementation
               addlog('substring : '+ss);
           end;
       begin
+         { don't create a new reference when
+          looking for the symbol !! }
+         make_ref:=false;
          s:=sr;
          symt:=symtablestack;
          next_substring;
@@ -354,6 +361,7 @@ implementation
               if not assigned(symt) then
                 begin
                    addlog('!!!Symbol '+ss+' not found !!!');
+                   make_ref:=true;
                    exit;
                 end
               else
@@ -419,6 +427,7 @@ implementation
              sym^.add_to_browserlog
            else
              addlog('!!!Symbol '+ss+' not found !!!');
+           make_ref:=true;
       end;
       
     procedure tbrowser.ident;
@@ -467,7 +476,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1998-09-22 17:13:42  pierre
+  Revision 1.9  1998-09-23 15:38:59  pierre
+    * browser bugfixes
+      was adding a reference when looking for the symbol
+      if -bSYM_NAME was used
+
+  Revision 1.8  1998/09/22 17:13:42  pierre
     + browsing updated and developed
       records and objects fields are also stored
 
