@@ -35,11 +35,19 @@ const
 {$IFNDEF KYLIX}
 { Gtk version.  }
 var
-   gtk_major_version : guint;{$ifndef win32}cvar;external{$else}external gtklib name 'gtk_major_version'{$endif};
-   gtk_minor_version : guint;{$ifndef win32}cvar;external{$else}external gtklib name 'gtk_minor_version'{$endif};
-   gtk_micro_version : guint;{$ifndef win32}cvar;external{$else}external gtklib name 'gtk_micro_version'{$endif};
-   gtk_binary_age    : guint;{$ifndef win32}cvar;external{$else}external gtklib name 'gtk_binary_age'{$endif};
-   gtk_interface_age : guint;{$ifndef win32}cvar;external{$else}external gtklib name 'gtk_interface_age'{$endif};
+  {$IFDEF WIN32}
+   gtk_major_version : guint;external gtklib name 'gtk_major_version';
+   gtk_minor_version : guint;external gtklib name 'gtk_minor_version';
+   gtk_micro_version : guint;external gtklib name 'gtk_micro_version';
+   gtk_binary_age    : guint;external gtklib name 'gtk_binary_age';
+   gtk_interface_age : guint;external gtklib name 'gtk_interface_type';
+  {$ELSE}
+   gtk_major_version : guint;cvar;external;
+   gtk_minor_version : guint;cvar;external;
+   gtk_micro_version : guint;cvar;external;
+   gtk_binary_age    : guint;cvar;external;
+   gtk_interface_age : guint;cvar;external;
+  {$ENDIF}
 {$ENDIF}
 
 function gtk_check_version(required_major:guint; required_minor:guint; required_micro:guint):Pgchar; cdecl; external gtklib;
