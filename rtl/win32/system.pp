@@ -315,9 +315,10 @@ end;
      stdcall;external 'kernel32' name 'SetFilePointer';
    function GetFileSize(h:longint;p:pointer) : longint;
      stdcall;external 'kernel32' name 'GetFileSize';
-   function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD; 
+   function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                        lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
-                       dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint; external 'kernel32' name 'CreateFileA';
+                       dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):longint;
+     stdcall;external 'kernel32' name 'CreateFileA';
    function SetEndOfFile(h : longint) : longbool;
      stdcall;external 'kernel32' name 'SetEndOfFile';
    function GetFileType(Handle:DWORD):DWord;
@@ -1331,7 +1332,7 @@ begin
                 STATUS_FLOAT_UNDERFLOW :
                         res := SysHandleErrorFrame(206, frame, true);
 {excep^.ContextRecord^.FloatSave.StatusWord := excep^.ContextRecord^.FloatSave.StatusWord and $ffffff00;}
-		STATUS_FLOAT_INEXACT_RESULT,
+                STATUS_FLOAT_INEXACT_RESULT,
                 STATUS_FLOAT_INVALID_OPERATION,
                 STATUS_FLOAT_STACK_CHECK :
                         res := SysHandleErrorFrame(207, frame, true);
@@ -1340,7 +1341,7 @@ begin
                 STATUS_ILLEGAL_INSTRUCTION,
                 STATUS_ACCESS_VIOLATION:
                         res := SysHandleErrorFrame(216, frame, true);
-		STATUS_CONTROL_C_EXIT:
+                STATUS_CONTROL_C_EXIT:
                         res := SysHandleErrorFrame(217, frame, true);
                 STATUS_PRIVILEGED_INSTRUCTION:
                   res := SysHandleErrorFrame(218, frame, false);
@@ -1539,7 +1540,10 @@ end.
 
 {
   $Log$
-  Revision 1.49  2003-11-24 23:08:37  michael
+  Revision 1.50  2003-12-04 20:52:41  peter
+    * stdcall for CreateFile
+
+  Revision 1.49  2003/11/24 23:08:37  michael
   + Redefined Fileopen so it corresponds to ascdef.inc definition
 
   Revision 1.48  2003/11/03 09:42:28  marco
