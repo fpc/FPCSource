@@ -1824,9 +1824,7 @@ implementation
                  else
 {$endif __NOWINPECOFF__}
                    exprasmList.insert(Taicpu.Op_const_reg(A_SUB,S_L,stackframe,R_ESP));
-                 if (cs_check_stack in aktlocalswitches) and
-                   not(target_info.target in [target_i386_freebsd,target_i386_netbsd,
-                                              target_i386_linux,target_i386_win32,target_i386_wdosx]) then
+                 if (cs_check_stack in aktlocalswitches) then
                    begin
                       emitinsertcall('FPC_STACKCHECK');
                       exprasmList.insert(Taicpu.Op_const(A_PUSH,S_L,stackframe));
@@ -2572,7 +2570,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2002-04-04 19:06:08  peter
+  Revision 1.22  2002-04-14 20:54:17  carl
+  + stack checking enabled for all targets (it is simulated now)
+
+  Revision 1.21  2002/04/04 19:06:08  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
