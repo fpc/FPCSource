@@ -1809,7 +1809,9 @@ implementation
     procedure tscannerfile.readstring;
       var
         i : longint;
+        err : boolean;
       begin
+        err:=false;
         i:=0;
         repeat
           case c of
@@ -1822,6 +1824,14 @@ implementation
                    inc(i);
                    orgpattern[i]:=c;
                    pattern[i]:=c;
+                 end
+                else
+                 begin
+                   if not err then
+                     begin
+                       Message(scan_e_string_exceeds_255_chars);
+                       err:=true;
+                     end;
                  end;
                 c:=inputpointer^;
                 inc(inputpointer);
@@ -1833,6 +1843,14 @@ implementation
                    inc(i);
                    orgpattern[i]:=c;
                    pattern[i]:=chr(ord(c)-32)
+                 end
+                else
+                 begin
+                   if not err then
+                     begin
+                       Message(scan_e_string_exceeds_255_chars);
+                       err:=true;
+                     end;
                  end;
                 c:=inputpointer^;
                 inc(inputpointer);
@@ -3292,7 +3310,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.96  2004-11-08 22:09:59  peter
+  Revision 1.97  2005-01-04 16:34:03  peter
+    * give error when reading identifier > 255 chars
+
+  Revision 1.96  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.95  2004/10/31 21:45:03  peter
