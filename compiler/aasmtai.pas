@@ -1689,6 +1689,14 @@ implementation
            reg:=r;
            typ:=top_reg;
          end;
+{$ifdef ARM}
+        { R15 is the PC on the ARM thus moves to R15 are jumps.
+          Due to speed considerations we don't use a virtual overridden method here.
+          Because the pc/r15 isn't handled by the reg. allocator this should never cause
+          problems with iregs getting r15.
+        }
+        is_jmp:=(opcode=A_MOV) and (opidx=0) and (r=NR_R15);
+{$endif ARM}
       end;
 
 
@@ -1811,55 +1819,86 @@ implementation
         var
           wasload: boolean;
         begin
-          { oper[1] can also be ref in case of "lis r3,symbol@ha" or so }
-          if not((oper[1]^.typ=top_ref) and
-             spilling_decode_loadstore(opcode,op,wasload)) then
-            Exit;
           { the register that's being stored/loaded }
           supreg:=getsupreg(oper[0]^.reg);
           if supregset_in(r,supreg) then
             begin
-              // Example:
-              //   l?? r20d, 8(r1)   ; r20d must be spilled into -60(r1)
-              //
-              //   Change into:
-              //
-              //   l?? r21d, 8(r1)
-              //   st? r21d, -60(r1)
-              //
-              // And:
-              //
-              //   st? r20d, 8(r1)   ; r20d must be spilled into -60(r1)
-              //
-              //   Change into:
-              //
-              //   l?? r21d, -60(r1)
-              //   st? r21d, 8(r1)
-
-              pos := get_insert_pos(Tai(previous),supreg,
-                                    getsupreg(oper[1]^.ref^.base),
-                                    getsupreg(oper[1]^.ref^.index),
-                                    unusedregsint);
-              rgget(list,pos,R_SUBWHOLE,helpreg);
-              spill_registers := true;
-              if wasload then
+              if oper[1]^.typ=top_const then
                 begin
-                  helpins:=spilling_create_loadstore(opcode,helpreg,oper[1]^.ref^);
-                  loadref(1,spilltemplist[supreg]);
-                  opcode := op;
+                  // Example:
+                  //   mov r20d, 1       ; r20d must be spilled into -60(r1)
+                  //
+                  //   Change into:
+                  //
+                  //   mov r21d, 1
+                  //   st? r21d, -60(r1)
+                  //
+
+                  pos := get_insert_pos(tai(previous),supreg,
+                                        RS_INVALID,
+                                        RS_INVALID,
+                                        unusedregsint);
+                  rgget(list,pos,R_SUBWHOLE,helpreg);
+                  spill_registers := true;
+                  helpins:=spilling_create_store(helpreg,spilltemplist[supreg]);
+                  if pos=nil then
+                    list.insertafter(helpins,list.first)
+                  else
+                    list.insertafter(helpins,pos.next);
+                  loadreg(0,helpreg);
+                  rgunget(list,helpins,helpreg);
+                  forward_allocation(tai(helpins.next),unusedregsint);
+                  // list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);}
                 end
-              else
-                helpins:=spilling_create_loadstore(op,helpreg,spilltemplist[supreg]);
-              if pos=nil then
-                list.insertafter(helpins,list.first)
-              else
-                list.insertafter(helpins,pos.next);
-              loadreg(0,helpreg);
-              rgunget(list,helpins,helpreg);
-              forward_allocation(tai(helpins.next),unusedregsint);
-{             list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);}
+              else if oper[1]^.typ=top_ref then
+                begin
+
+                  // Example:
+                  //   l?? r20d, 8(r1)   ; r20d must be spilled into -60(r1)
+                  //
+                  //   Change into:
+                  //
+                  //   l?? r21d, 8(r1)
+                  //   st? r21d, -60(r1)
+                  //
+                  // And:
+                  //
+                  //   st? r20d, 8(r1)   ; r20d must be spilled into -60(r1)
+                  //
+                  //   Change into:
+                  //
+                  //   l?? r21d, -60(r1)
+                  //   st? r21d, 8(r1)
+
+                  pos := get_insert_pos(tai(previous),supreg,
+                                        getsupreg(oper[1]^.ref^.base),
+                                        getsupreg(oper[1]^.ref^.index),
+                                        unusedregsint);
+                  rgget(list,pos,R_SUBWHOLE,helpreg);
+                  spill_registers := true;
+                  if wasload then
+                    begin
+                      helpins:=spilling_create_loadstore(opcode,helpreg,oper[1]^.ref^);
+                      loadref(1,spilltemplist[supreg]);
+                      opcode := op;
+                    end
+                  else
+                    helpins:=spilling_create_loadstore(op,helpreg,spilltemplist[supreg]);
+                  if pos=nil then
+                    list.insertafter(helpins,list.first)
+                  else
+                    list.insertafter(helpins,pos.next);
+                  loadreg(0,helpreg);
+                  rgunget(list,helpins,helpreg);
+                  forward_allocation(tai(helpins.next),unusedregsint);
+                  // list.insertafter(tai_comment.Create(strpnew('Spilling!')),helpins);}
+                end;
             end;
 
+          { oper[1] can also be ref in case of "lis r3,symbol@ha" or so }
+          if not((oper[1]^.typ=top_ref) and
+             spilling_decode_loadstore(opcode,op,wasload)) then
+            Exit;
           { now the registers used in the reference }
           { a) base                                 }
           supreg := getsupreg(oper[1]^.ref^.base);
@@ -2188,8 +2227,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2003-12-01 18:43:31  peter
-    * s128real type is not compatible with s80real
+  Revision 1.57  2003-12-03 17:39:04  florian
+    * fixed several arm calling conventions issues
+    * fixed reference reading in the assembler reader
+    * fixed a_loadaddr_ref_reg
 
   Revision 1.55  2003/11/12 16:05:39  florian
     * assembler readers OOPed

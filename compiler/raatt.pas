@@ -47,7 +47,8 @@ unit raatt;
         AS_NONE,AS_LABEL,AS_LLABEL,AS_STRING,AS_INTNUM,
         AS_REALNUM,AS_COMMA,AS_LPAREN,
         AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
-        AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,AS_DOLLAR,AS_HASH,AS_LSBRACKET,AS_RSBRACKET,
+        AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,AS_DOLLAR,
+        AS_HASH,AS_LSBRACKET,AS_RSBRACKET,AS_LBRACKET,AS_RBRACKET,
         {------------------ Assembler directives --------------------}
         AS_DB,AS_DW,AS_DD,AS_DQ,AS_GLOBAL,
         AS_ALIGN,AS_BALIGN,AS_P2ALIGN,AS_ASCII,
@@ -68,7 +69,8 @@ unit raatt;
         '','Label','LLabel','string','integer',
         'float',',','(',
         ')',':','.','+','-','*',
-        ';','identifier','register','opcode','/','$','#','{','}',
+        ';','identifier','register','opcode','/','$',
+        '#','{','}','[',']',
         '.byte','.word','.long','.quad','.globl',
         '.align','.balign','.p2align','.ascii',
         '.asciz','.lcomm','.comm','.single','.double','.tfloat',
@@ -574,6 +576,19 @@ unit raatt;
                  exit;
                end;
 
+             '[' :
+               begin
+                 actasmtoken:=AS_LBRACKET;
+                 c:=current_scanner.asmgetchar;
+                 exit;
+               end;
+
+             ']' :
+               begin
+                 actasmtoken:=AS_RBRACKET;
+                 c:=current_scanner.asmgetchar;
+                 exit;
+               end;
 {$ifdef arm}
              // the arm assembler uses { ... } for register sets
              '{' :
@@ -1455,7 +1470,12 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-11-29 16:27:19  jonas
+  Revision 1.5  2003-12-03 17:39:04  florian
+    * fixed several arm calling conventions issues
+    * fixed reference reading in the assembler reader
+    * fixed a_loadaddr_ref_reg
+
+  Revision 1.4  2003/11/29 16:27:19  jonas
     * fixed several ppc assembler reader related problems
     * local vars in assembler procedures now start at offset 4
     * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)

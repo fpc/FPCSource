@@ -107,7 +107,15 @@ unit cpupi;
 
     procedure tarmprocinfo.set_first_temp_offset;
       begin
-        tg.setfirsttemp(0);
+        { We allocate enough space to save all registers because we can't determine
+          the necessary space because the used registers aren't known before
+          secondpass is run. Even worse, patching
+          the local offsets after generating the code could cause trouble because
+          "shifter" constants could change to non-"shifter" constants. This
+          is especially a problem when taking the address of a local. For now,
+          this extra memory should hurt less than generating all local contants with offsets
+          >256 as non shifter constants }
+        tg.setfirsttemp(-12-28);
       end;
 
     procedure tarmprocinfo.allocate_push_parasize(size:longint);
@@ -120,7 +128,7 @@ unit cpupi;
     function tarmprocinfo.calc_stackframe_size:longint;
       begin
         { align to 4 bytes at least }
-        result:=Align(tg.direction*tg.lasttemp,max(aktalignment.localalignmin,4));
+        result:=Align(tg.direction*tg.lasttemp+maxpushedparasize,max(aktalignment.localalignmin,4));
       end;
 
 
@@ -129,7 +137,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-11-30 19:35:29  florian
+  Revision 1.5  2003-12-03 17:39:05  florian
+    * fixed several arm calling conventions issues
+    * fixed reference reading in the assembler reader
+    * fixed a_loadaddr_ref_reg
+
+  Revision 1.4  2003/11/30 19:35:29  florian
     * fixed several arm related problems
 
   Revision 1.3  2003/11/24 15:17:37  florian

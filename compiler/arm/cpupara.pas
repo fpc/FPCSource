@@ -293,11 +293,11 @@ unit cpupara;
              end;
              if side=calleeside then
                begin
-{$warning FIXME Calleeside offset needs to be calculated}
-{!!!!!!
-                 if (paraloc.loc = LOC_REFERENCE) then
-                   paraloc.reference.offset := tvarsym(hp.parasym).adjusted_address;
-}
+                 if paraloc.loc=LOC_REFERENCE then
+                   begin
+                     paraloc.reference.index:=NR_FRAME_POINTER_REG;
+                     inc(paraloc.reference.offset,4);
+                   end;
                end;
              hp.paraloc[side]:=paraloc;
              hp:=tparaitem(hp.next);
@@ -336,7 +336,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-11-07 15:58:32  florian
+  Revision 1.10  2003-12-03 17:39:05  florian
+    * fixed several arm calling conventions issues
+    * fixed reference reading in the assembler reader
+    * fixed a_loadaddr_ref_reg
+
+  Revision 1.9  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions

@@ -309,6 +309,11 @@ implementation
             begin
               counterpart := A_STR;
             end;
+          A_STR:
+            begin
+              wasload:=false;
+              counterpart := A_LDR;
+            end;
           A_LDM:
             internalerror(2003070602);
           else
@@ -369,7 +374,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2003-11-30 19:35:29  florian
+  Revision 1.17  2003-12-03 17:39:05  florian
+    * fixed several arm calling conventions issues
+    * fixed reference reading in the assembler reader
+    * fixed a_loadaddr_ref_reg
+
+  Revision 1.16  2003/11/30 19:35:29  florian
     * fixed several arm related problems
 
   Revision 1.15  2003/11/29 17:36:56  peter

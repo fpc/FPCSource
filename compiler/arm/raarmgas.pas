@@ -150,16 +150,16 @@ Unit raarmgas;
 
     Procedure tarmattreader.BuildReference(oper : tarmoperand);
 
-      procedure Consume_RParen;
+      procedure Consume_RBracket;
         begin
-          if actasmtoken <> AS_RPAREN then
+          if actasmtoken<>AS_RBRACKET then
            Begin
              Message(asmr_e_invalid_reference_syntax);
              RecoverConsume(true);
            end
           else
            begin
-             Consume(AS_RPAREN);
+             Consume(AS_RBRACKET);
              if not (actasmtoken in [AS_COMMA,AS_SEPARATOR,AS_END]) then
               Begin
                 Message(asmr_e_invalid_reference_syntax);
@@ -168,112 +168,47 @@ Unit raarmgas;
            end;
         end;
 
-      var
-        l : longint;
+
+      procedure read_index;
+        begin
+          Consume(AS_COMMA);
+          if actasmtoken=AS_REGISTER then
+            Begin
+              oper.opr.ref.index:=actasmregister;
+              Consume(AS_REGISTER);
+            end;
+        end;
+
 
       begin
-        Consume(AS_LPAREN);
-        Case actasmtoken of
-          AS_HASH: { Constant expression  }
-            Begin
-              Consume(AS_HASH);
-              BuildConstantOperand(oper);
-            end;
-
-          AS_DOLLAR: { Constant expression  }
-            Begin
-              Consume(AS_DOLLAR);
-              BuildConstantOperand(oper);
-            end;
-
-          AS_INTNUM,
-          AS_MINUS,
-          AS_PLUS:
-            Begin
-              { offset(offset) is invalid }
-              If oper.opr.Ref.Offset <> 0 Then
-               Begin
-                 Message(asmr_e_invalid_reference_syntax);
-                 RecoverConsume(true);
-               End
-              Else
-               Begin
-                 oper.opr.Ref.Offset:=BuildConstExpression(false,true);
-                 Consume_RParen;
-               end;
-              exit;
-            End;
-          AS_REGISTER: { (reg ...  }
-            Begin
-              if ((oper.opr.typ=OPR_REFERENCE) and (oper.opr.ref.base<>NR_NO)) or
-                 ((oper.opr.typ=OPR_LOCAL) and (oper.opr.localsym.localloc.loc<>LOC_REGISTER)) then
-                message(asmr_e_cannot_index_relative_var);
-              oper.opr.ref.base:=actasmregister;
-              Consume(AS_REGISTER);
-              { can either be a register or a right parenthesis }
-              { (reg)        }
-              if actasmtoken=AS_RPAREN then
-               Begin
-                 Consume_RParen;
-                 exit;
-               end;
-              { (reg,reg ..  }
-              Consume(AS_COMMA);
-              if actasmtoken=AS_REGISTER then
-               Begin
-                 oper.opr.ref.index:=actasmregister;
-                 Consume(AS_REGISTER);
-                 Consume_RParen;
-               end
-              else
-               Begin
-                 Message(asmr_e_invalid_reference_syntax);
-                 RecoverConsume(false);
-               end;
-            end; {end case }
-          AS_ID:
-            Begin
-              ReadSym(oper);
-              { add a constant expression? }
-              if (actasmtoken=AS_PLUS) then
-               begin
-                 l:=BuildConstExpression(true,true);
-                 case oper.opr.typ of
-                   OPR_CONSTANT :
-                     inc(oper.opr.val,l);
-                   OPR_LOCAL :
-                     inc(oper.opr.localsymofs,l);
-                   OPR_REFERENCE :
-                     inc(oper.opr.ref.offset,l);
-                   else
-                     internalerror(200309202);
-                 end;
-               end;
-              Consume(AS_RPAREN);
-            End;
-          AS_COMMA: { (, ...  can either be scaling, or index }
-            Begin
-              Consume(AS_COMMA);
-              { Index }
-              if (actasmtoken=AS_REGISTER) then
-                Begin
-                  oper.opr.ref.index:=actasmregister;
-                  Consume(AS_REGISTER);
-                  { check for scaling ... }
-                  Consume_RParen;
-                end
-              else
-                begin
-                  Message(asmr_e_invalid_reference_syntax);
-                  RecoverConsume(false);
-                end;
-            end;
+        Consume(AS_LBRACKET);
+        if actasmtoken=AS_REGISTER then
+          begin
+            oper.opr.ref.base:=actasmregister;
+            Consume(AS_REGISTER);
+            { can either be a register or a right parenthesis }
+            { (reg)        }
+            if actasmtoken=AS_RBRACKET then
+             Begin
+               Consume_RBracket;
+               oper.opr.ref.addressmode:=AM_POSTINDEXED;
+               if actasmtoken=AS_COMMA then
+                 read_index;
+               exit;
+             end;
+            if actasmtoken=AS_COMMA then
+              read_index;
+            if actasmtoken=AS_NOT then
+              begin
+                consume(AS_NOT);
+                oper.opr.ref.addressmode:=AM_PREINDEXED;
+              end;
+          end {end case }
         else
           Begin
             Message(asmr_e_invalid_reference_syntax);
             RecoverConsume(false);
           end;
-        end;
       end;
 
 
@@ -391,7 +326,7 @@ Unit raarmgas;
       Begin
         expr:='';
         case actasmtoken of
-          AS_LPAREN: { Memory reference or constant expression }
+          AS_LBRACKET: { Memory reference or constant expression }
             Begin
               oper.InitRef;
               BuildReference(oper);
@@ -675,6 +610,21 @@ Unit raarmgas;
 
         actcondition:=C_None;
 
+        { first, handle B else BLS is read wrong }
+        if ((hs[1]='B') and (length(hs)=3)) then
+          begin
+            for icond:=low(tasmcond) to high(tasmcond) do
+              begin
+                if copy(hs,2,3)=uppercond2str[icond] then
+                  begin
+                    actopcode:=A_B;
+                    actasmtoken:=AS_OPCODE;
+                    actcondition:=icond;
+                    is_asmopcode:=true;
+                    exit;
+                  end;
+              end;
+          end;
         maxlen:=max(length(hs),5);
         for j:=maxlen downto 1 do
           begin
@@ -755,6 +705,7 @@ Unit raarmgas;
         }
         instr.ConcatInstruction(curlist);
         instr.Free;
+        actoppostfix:=PF_None;
       end;
 
 
@@ -783,7 +734,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-11-24 15:17:37  florian
+  Revision 1.4  2003-12-03 17:39:05  florian
+    * fixed several arm calling conventions issues
+    * fixed reference reading in the assembler reader
+    * fixed a_loadaddr_ref_reg
+
+  Revision 1.3  2003/11/24 15:17:37  florian
     * changed some types to prevend range check errors
 
   Revision 1.2  2003/11/21 16:29:26  florian

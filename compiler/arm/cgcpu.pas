@@ -43,6 +43,7 @@ unit cgcpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
+        procedure ungetreference(list:Taasmoutput;const r:Treference);override;
         function  getintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         function  getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
@@ -131,6 +132,15 @@ unit cgcpu;
        symconst,symdef,symsym,
        tgobj,
        procinfo,cpupi;
+
+
+    procedure tcgarm.ungetreference(list:Taasmoutput;const r:Treference);
+      begin
+        if r.base<>NR_NO then
+          ungetregister(list,r.base);
+        if r.index<>NR_NO then
+          ungetregister(list,r.index);
+      end;
 
 
     procedure tcgarm.init_register_allocators;
@@ -887,7 +897,7 @@ unit cgcpu;
         reference_reset(ref);
         ref.index:=NR_STACK_POINTER_REG;
         ref.addressmode:=AM_PREINDEXED;
-        list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,rgint.used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R15]),PF_FD));
+        list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,rgint.used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R12,RS_R14,RS_R15]),PF_DB));
 
         list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
 
@@ -919,7 +929,7 @@ unit cgcpu;
             { restore int registers and return }
             reference_reset(ref);
             ref.index:=NR_FRAME_POINTER_REG;
-            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rgint.used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_EA));
+            list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rgint.used_in_proc-[RS_R0..RS_R3]+[RS_R11,RS_R13,RS_R15]),PF_DB));
           end;
       end;
 
@@ -944,18 +954,34 @@ unit cgcpu;
           begin
             if tmpref.shiftmode<>SM_None then
               internalerror(200308294);
+            if tmpref.signindex<0 then
+              internalerror(200312023);
             tmpref.base:=tmpref.index;
             tmpref.index:=NR_NO;
           end;
 
         if assigned(tmpref.symbol) or
-           not(is_shifter_const(dword(tmpref.offset),b)) or
-           ((tmpref.base<>NR_NO) and (tmpref.index<>NR_NO)) then
+           not((is_shifter_const(dword(tmpref.offset),b)) or
+               (is_shifter_const(dword(-tmpref.offset),b))
+              ) then
           fixref(list,tmpref);
+
+        { expect a base here }
+        if tmpref.base=NR_NO then
+          internalerror(200312022);
 
         if tmpref.index<>NR_NO then
           begin
-            {!!!!!!!}
+            if tmpref.shiftmode<>SM_None then
+              internalerror(200312021);
+            if tmpref.signindex<0 then
+              list.concat(taicpu.op_reg_reg_reg(A_SUB,r,tmpref.base,tmpref.index))
+            else
+              list.concat(taicpu.op_reg_reg_reg(A_ADD,r,tmpref.base,tmpref.index));
+            if tmpref.offset>0 then
+              list.concat(taicpu.op_reg_reg_const(A_ADD,r,r,tmpref.offset))
+            else if tmpref.offset<0 then
+              list.concat(taicpu.op_reg_reg_const(A_SUB,r,r,-tmpref.offset));
           end
         else
           begin
@@ -1294,7 +1320,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2003-11-30 19:35:29  florian
+  Revision 1.26  2003-12-03 17:39:05  florian
+    * fixed several arm calling conventions issues
+    * fixed reference reading in the assembler reader
+    * fixed a_loadaddr_ref_reg
+
+  Revision 1.25  2003/11/30 19:35:29  florian
     * fixed several arm related problems
 
   Revision 1.24  2003/11/24 15:17:37  florian

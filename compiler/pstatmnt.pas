@@ -1061,6 +1061,7 @@ implementation
          p:=_asm_statement;
 
 {$ifndef sparc}
+{$ifndef arm}
          if (po_assembler in current_procinfo.procdef.procoptions) then
            begin
              { set the framepointer to esp for assembler functions when the
@@ -1085,6 +1086,7 @@ implementation
                  current_procinfo.framepointer:=NR_STACK_POINTER_REG;
                end;
            end;
+{$endif arm}
 {$endif sparc}
 
         { Flag the result as assigned when it is returned in a
@@ -1104,7 +1106,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.122  2003-11-12 16:05:39  florian
+  Revision 1.123  2003-12-03 17:39:04  florian
+    * fixed several arm calling conventions issues
+    * fixed reference reading in the assembler reader
+    * fixed a_loadaddr_ref_reg
+
+  Revision 1.122  2003/11/12 16:05:39  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it
