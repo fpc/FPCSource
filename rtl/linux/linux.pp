@@ -3364,11 +3364,11 @@ Procedure Globfree(var p : pglob);
 var
   temp : pglob;
 begin
-  while p<>nil do
+  while assigned(p) do
    begin
      temp:=p^.next;
-     if p^.name<>nil then
-      freemem(p^.name,strlen(p^.name)+1);
+     if assigned(p^.name) then
+      freemem(p^.name);
      dispose(p);
      p:=temp;
    end;
@@ -3383,16 +3383,17 @@ Function Glob(Const path:pathstr):pglob;
   linuxerror is set accordingly.
 }
 var
-  temp     : string[255];
-  thedir   : pdir;
-  buffer   : pdirent;
-  root,run : pglob;
+  temp,
+  temp2   : string[255];
+  thedir  : pdir;
+  buffer  : pdirent;
+  root,
+  current : pglob;
 begin
 { Get directory }
-  if dirname(path)='' then
-   temp:='.'
-  else
-   temp:=dirname(path);
+  temp:=dirname(path);
+  if temp='' then
+   temp:='.';
   temp:=temp+#0;
   thedir:=opendir(@temp[1]);
   if thedir=nil then
@@ -3401,7 +3402,7 @@ begin
      linuxerror:=errno;
      exit;
    end;
-  temp:=basename(path,'');{ get the pattern }
+  temp:=basename(path,''); { get the pattern }
   if thedir^.fd<0 then
    begin
      linuxerror:=errno;
@@ -3409,62 +3410,44 @@ begin
      exit;
    end;
 {get the entries}
-  new(root);
-  root^.next:=nil;
-  root^.name:=nil;
-  run:=root;
+  root:=nil;
+  current:=nil;
   repeat
     buffer:=Sys_readdir(thedir);
-    if buffer<>nil then
+    if buffer=nil then
+     break;
+    temp2:=strpas(@(buffer^.name[0]));
+    if fnmatch(temp,temp2) then
      begin
-       if fnmatch(temp,strpas(@(buffer^.name[0]))) then
+       if root=nil then
         begin
-        { get memory for pglob }
-          new(run^.next);
-          if run^.next=nil then
-           begin
-             linuxerror:=Sys_ENOMEM;
-             globfree(root);
-             glob:=nil;
-             exit;
-           end
-          else
-           begin
-             run:=run^.next;
-             run^.next:=nil;
-           end;
-        { Get memory for name }
-          getmem(run^.name,strlen(@(buffer^.name[0]))+1);
-          if run^.name=nil then
-           begin
-             linuxerror:=Sys_ENOMEM;
-             globfree(root);
-             glob:=nil;
-             exit;
-           end;
-          move(buffer^.name[0],run^.name^,strlen(@(buffer^.name[0]))+1);
-        end;{ if fnmatch }
-     end { buffer <> nil }
-    else
-     begin
-       run:=root;
-       if root^.next<>nil then
-        root:=root^.next;{ put root on first entry}
-       if run<>nil then
+          new(root);
+          current:=root;
+        end
+       else
         begin
-          run^.next:=nil;
-          globfree(run);
+          new(current^.next);
+          current:=current^.next;
         end;
+       if current=nil then
+        begin
+          linuxerror:=Sys_ENOMEM;
+          globfree(root);
+          break;
+        end;
+       current^.next:=nil;
+       getmem(current^.name,length(temp2)+1);
+       if current^.name=nil then
+        begin
+          linuxerror:=Sys_ENOMEM;
+          globfree(root);
+          break;
+        end;
+       move(buffer^.name[0],current^.name^,length(temp2)+1);
      end;
-  until buffer=nil;
-  if root^.name=nil then
-   begin
-     dispose(root);
-     linuxerror:=0;
-     glob:=nil;
-   end
-  else
-   glob:=root;
+  until false;
+  closedir(thedir);
+  glob:=root;
 end;
 
 
@@ -3848,7 +3831,11 @@ End.
 
 {
   $Log$
-  Revision 1.61  2000-02-09 16:59:31  peter
+  Revision 1.62  2000-02-09 23:09:13  peter
+    * rewrote glob to be much simpler and cleaner, the old code did
+      strange complex things with pointers which was unnecessary
+
+  Revision 1.61  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.60  2000/02/08 12:05:58  peter
