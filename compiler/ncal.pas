@@ -262,7 +262,7 @@ type
               < 0 when bestpd is better than currpd
               = 0 when both are equal
 
-            Too choose the best candidate we use the following order:
+            To choose the best candidate we use the following order:
             - Incompatible flag
             - (Smaller) Number of convertlevel 2 parameters (needs less).
             - (Smaller) Number of convertlevel 1 parameters.
@@ -447,7 +447,9 @@ type
 
       begin
          inherited create(callparan,expr,next);
+{$ifndef VS_HIDDEN}
          hightree:=nil;
+{$endif VS_HIDDEN}
          if assigned(expr) then
           expr.set_file_line(self);
          callparaflags:=[];
@@ -456,7 +458,9 @@ type
     destructor tcallparanode.destroy;
 
       begin
+{$ifndef VS_HIDDEN}
          hightree.free;
+{$endif VS_HIDDEN}
          inherited destroy;
       end;
 
@@ -465,7 +469,9 @@ type
       begin
         inherited ppuload(t,ppufile);
         ppufile.getsmallset(callparaflags);
+{$ifndef VS_HIDDEN}
         hightree:=ppuloadnode(ppufile);
+{$endif VS_HIDDEN}
       end;
 
 
@@ -473,15 +479,19 @@ type
       begin
         inherited ppuwrite(ppufile);
         ppufile.putsmallset(callparaflags);
+{$ifndef VS_HIDDEN}
         ppuwritenode(ppufile,hightree);
+{$endif VS_HIDDEN}
       end;
 
 
     procedure tcallparanode.derefimpl;
       begin
         inherited derefimpl;
+{$ifndef VS_HIDDEN}
         if assigned(hightree) then
           hightree.derefimpl;
+{$endif VS_HIDDEN}
       end;
 
 
@@ -493,10 +503,12 @@ type
       begin
          n:=tcallparanode(inherited getcopy);
          n.callparaflags:=callparaflags;
+{$ifndef VS_HIDDEN}
          if assigned(hightree) then
            n.hightree:=hightree.getcopy
          else
            n.hightree:=nil;
+{$endif VS_HIDDEN}
          n.paraitem:=paraitem;
          result:=n;
       end;
@@ -541,7 +553,7 @@ type
 
          paraitem:=defcoll;
 
-         if not assigned(defcoll) then
+         if not assigned(paraitem) then
            internalerror(200104261);
 
 {$ifdef extdebug}
@@ -554,13 +566,12 @@ type
          if assigned(right) then
            begin
              { if we are a para that belongs to varargs then keep
-               the current defcoll }
+               the current paraitem }
              if (nf_varargs_para in flags) then
-              tcallparanode(right).insert_typeconv(defcoll,do_count)
+               tcallparanode(right).insert_typeconv(paraitem,do_count)
              else
-              tcallparanode(right).insert_typeconv(tparaitem(defcoll.next),do_count);
+               tcallparanode(right).insert_typeconv(tparaitem(paraitem.next),do_count)
            end;
-
          { Be sure to have the resulttype }
          if not assigned(left.resulttype.def) then
            resulttypepass(left);
@@ -585,13 +596,13 @@ type
            it here before the arrayconstructor node breaks the tree
            with its conversions of enum->ord }
          if (left.nodetype=arrayconstructorn) and
-            (defcoll.paratype.def.deftype=setdef) then
-           inserttypeconv(left,defcoll.paratype);
+            (paraitem.paratype.def.deftype=setdef) then
+           inserttypeconv(left,paraitem.paratype);
 
          { set some settings needed for arrayconstructor }
          if is_array_constructor(left.resulttype.def) then
           begin
-            if is_array_of_const(defcoll.paratype.def) then
+            if is_array_of_const(paraitem.paratype.def) then
              begin
                if assigned(aktcallprocdef) and
                   (aktcallprocdef.proccalloption in [pocall_cppdecl,pocall_cdecl]) then
@@ -604,29 +615,29 @@ type
                include(left.flags,nf_novariaallowed);
                { now that the resultting type is know we can insert the required
                  typeconvs for the array constructor }
-               tarrayconstructornode(left).force_type(tarraydef(defcoll.paratype.def).elementtype);
+               tarrayconstructornode(left).force_type(tarraydef(paraitem.paratype.def).elementtype);
              end;
           end;
 
          { check if local proc/func is assigned to procvar }
          if left.resulttype.def.deftype=procvardef then
-           test_local_to_procvar(tprocvardef(left.resulttype.def),defcoll.paratype.def);
+           test_local_to_procvar(tprocvardef(left.resulttype.def),paraitem.paratype.def);
 
          { generate the high() value tree }
-         if paramanager.push_high_param(defcoll.paratype.def,aktcallprocdef.proccalloption) then
-           gen_high_tree(is_open_string(defcoll.paratype.def));
+         if paramanager.push_high_param(paraitem.paratype.def,aktcallprocdef.proccalloption) then
+           gen_high_tree(is_open_string(paraitem.paratype.def));
 
          { test conversions }
          if not(is_shortstring(left.resulttype.def) and
-                is_shortstring(defcoll.paratype.def)) and
-            (defcoll.paratype.def.deftype<>formaldef) then
+                is_shortstring(paraitem.paratype.def)) and
+            (paraitem.paratype.def.deftype<>formaldef) then
            begin
               { Process open parameters }
-              if paramanager.push_high_param(defcoll.paratype.def,aktcallprocdef.proccalloption) then
+              if paramanager.push_high_param(paraitem.paratype.def,aktcallprocdef.proccalloption) then
                begin
                  { insert type conv but hold the ranges of the array }
                  oldtype:=left.resulttype;
-                 inserttypeconv(left,defcoll.paratype);
+                 inserttypeconv(left,paraitem.paratype);
                  left.resulttype:=oldtype;
                end
               else
@@ -636,7 +647,7 @@ type
                  if (left.resulttype.def.deftype in [enumdef,orddef,floatdef]) and
                     (left.nodetype in [vecn,loadn,calln]) then
                    begin
-                      if (left.resulttype.def.size>defcoll.paratype.def.size) then
+                      if (left.resulttype.def.size>paraitem.paratype.def.size) then
                         begin
                           if (cs_check_range in aktlocalswitches) then
                              Message(type_w_smaller_possible_range_check)
@@ -644,7 +655,7 @@ type
                              Message(type_h_smaller_possible_range_check);
                         end;
                    end;
-                 inserttypeconv(left,defcoll.paratype);
+                 inserttypeconv(left,paraitem.paratype);
                end;
               if codegenerror then
                 begin
@@ -656,17 +667,17 @@ type
          { check var strings }
          if (cs_strict_var_strings in aktlocalswitches) and
             is_shortstring(left.resulttype.def) and
-            is_shortstring(defcoll.paratype.def) and
-            (defcoll.paratyp in [vs_out,vs_var]) and
-            not(is_open_string(defcoll.paratype.def)) and
-            not(equal_defs(left.resulttype.def,defcoll.paratype.def)) then
+            is_shortstring(paraitem.paratype.def) and
+            (paraitem.paratyp in [vs_out,vs_var]) and
+            not(is_open_string(paraitem.paratype.def)) and
+            not(equal_defs(left.resulttype.def,paraitem.paratype.def)) then
            begin
              aktfilepos:=left.fileinfo;
              CGMessage(type_e_strict_var_string_violation);
            end;
 
          { Handle formal parameters separate }
-         if (defcoll.paratype.def.deftype=formaldef) then
+         if (paraitem.paratype.def.deftype=formaldef) then
            begin
              { load procvar if a procedure is passed }
              if (m_tp_procvar in aktmodeswitches) and
@@ -674,7 +685,7 @@ type
                 (is_void(left.resulttype.def)) then
                load_procvar_from_calln(left);
 
-             case defcoll.paratyp of
+             case paraitem.paratyp of
                vs_var,
                vs_out :
                  begin
@@ -691,33 +702,33 @@ type
          else
            begin
              { check if the argument is allowed }
-             if (defcoll.paratyp in [vs_out,vs_var]) then
+             if (paraitem.paratyp in [vs_out,vs_var]) then
                valid_for_var(left);
            end;
 
-         if defcoll.paratyp in [vs_var,vs_const] then
+         if paraitem.paratyp in [vs_var,vs_const] then
            begin
               { Causes problems with const ansistrings if also }
               { done for vs_const (JM)                         }
-              if defcoll.paratyp = vs_var then
+              if paraitem.paratyp = vs_var then
                 set_unique(left);
               make_not_regable(left);
            end;
 
          { ansistrings out paramaters doesn't need to be  }
          { unique, they are finalized                     }
-         if defcoll.paratyp=vs_out then
+         if paraitem.paratyp=vs_out then
            make_not_regable(left);
 
          if do_count then
           begin
             { not completly proper, but avoids some warnings }
-            if (defcoll.paratyp in [vs_var,vs_out]) then
+            if (paraitem.paratyp in [vs_var,vs_out]) then
              set_funcret_is_valid(left);
-            set_varstate(left,not(defcoll.paratyp in [vs_var,vs_out]));
+            set_varstate(left,not(paraitem.paratyp in [vs_var,vs_out]));
           end;
          { must only be done after typeconv PM }
-         resulttype:=defcoll.paratype;
+         resulttype:=paraitem.paratype;
          dec(parsing_para_level);
 {$ifdef extdebug}
          if do_count then
@@ -774,7 +785,71 @@ type
         det_registers;
       end;
 
+{$ifdef VS_HIDDEN}
+    procedure tcallparanode.gen_high_tree(openstring:boolean);
+      var
+        temp: tnode;
+        len : integer;
+        loadconst : boolean;
+        hightree : tnode;
+      begin
+        if assigned(hightree) then
+          exit;
+        len:=-1;
+        loadconst:=true;
+        case left.resulttype.def.deftype of
+          arraydef :
+            begin
+              { handle via a normal inline in_high_x node }
+              loadconst := false;
+              hightree := geninlinenode(in_high_x,false,left.getcopy);
+              { only substract low(array) if it's <> 0 }
+              temp := geninlinenode(in_low_x,false,left.getcopy);
+              firstpass(temp);
+              if (temp.nodetype <> ordconstn) or
+                 (tordconstnode(temp).value <> 0) then
+                hightree := caddnode.create(subn,hightree,temp)
+              else
+                temp.free;
+            end;
+          stringdef :
+            begin
+              if openstring then
+               begin
+                 { handle via a normal inline in_high_x node }
+                 loadconst := false;
+                 hightree := geninlinenode(in_high_x,false,left.getcopy);
+               end
+              else
+             { passing a string to an array of char }
+               begin
+                 if (left.nodetype=stringconstn) then
+                   begin
+                     len:=str_length(left);
+                     if len>0 then
+                      dec(len);
+                   end
+                 else
+                   begin
+                     hightree:=caddnode.create(subn,geninlinenode(in_length_x,false,left.getcopy),
+                                               cordconstnode.create(1,s32bittype,false));
+                     loadconst:=false;
+                   end;
+               end;
+           end;
+        else
+          len:=0;
+        end;
+        if loadconst then
+          hightree:=cordconstnode.create(len,s32bittype,true)
+        else
+          hightree:=ctypeconvnode.create(hightree,s32bittype);
+        firstpass(hightree);
+        temp:=ccallparanode.create(hightree,right);
 
+        right:=temp;
+      end;
+{$else VS_HIDDEN}
     procedure tcallparanode.gen_high_tree(openstring:boolean);
       var
         temp: tnode;
@@ -834,14 +909,17 @@ type
           hightree:=ctypeconvnode.create(hightree,s32bittype);
         firstpass(hightree);
       end;
-
+{$endif VS_HIDDEN}
 
     function tcallparanode.docompare(p: tnode): boolean;
       begin
         docompare :=
           inherited docompare(p) and
-          (callparaflags = tcallparanode(p).callparaflags) and
-          hightree.isequal(tcallparanode(p).hightree);
+          (callparaflags = tcallparanode(p).callparaflags)
+{$ifndef VS_HIDDEN}
+          and hightree.isequal(tcallparanode(p).hightree)
+{$endif VS_HIDDEN}
+          ;
       end;
 
 {****************************************************************************
@@ -2198,7 +2276,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.121  2002-12-15 21:34:15  peter
+  Revision 1.122  2002-12-15 22:50:00  florian
+    + some stuff for the new hidden parameter handling added
+
+  Revision 1.121  2002/12/15 21:34:15  peter
     * give sign difference between ordinals a small penalty. This is
       needed to get word->[longword|longint] working
 

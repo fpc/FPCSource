@@ -83,6 +83,8 @@ implementation
 
     procedure tcgcallparanode.secondcallparan(push_from_left_to_right:boolean;calloption:tproccalloption;para_alignment,para_offset : longint);
 
+
+{$ifndef VS_HIDDEN}
       { goes to pass 1 }
       procedure maybe_push_high;
         begin
@@ -96,7 +98,7 @@ implementation
               push_value_para(hightree,calloption,para_offset,4,paraitem.paraloc);
             end;
         end;
-
+{$endif VS_HIDDEN}
 
       var
          otlabel,oflabel : tasmlabel;
@@ -198,7 +200,9 @@ implementation
 {$ifdef unused}
               if not push_from_left_to_right then
 {$endif unused}
+{$ifndef VS_HIDDEN}
                 maybe_push_high;
+{$endif VS_HIDDEN}
               if (paraitem.paratyp=vs_out) and
                  assigned(paraitem.paratype.def) and
                  not is_class(paraitem.paratype.def) and
@@ -261,7 +265,9 @@ implementation
 {$ifdef unused}
                    if not push_from_left_to_right then
 {$endif unused}
+{$ifndef VS_HIDDEN}
                      maybe_push_high;
+{$endif VS_HIDDEN}
                    inc(pushedparasize,4);
                    if calloption=pocall_inline then
                      begin
@@ -1549,7 +1555,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2002-12-15 21:30:12  florian
+  Revision 1.32  2002-12-15 22:50:00  florian
+    + some stuff for the new hidden parameter handling added
+
+  Revision 1.31  2002/12/15 21:30:12  florian
     * tcallnode.paraitem introduced, all references to defcoll removed
 
   Revision 1.30  2002/11/27 20:04:39  peter
