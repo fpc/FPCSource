@@ -32,14 +32,15 @@ Const
   Open_NDelay    = Open_NonBlock;
   Open_Sync      = 1 shl 12;
   Open_Direct    = 4 shl 12;
-  Open_LargeFile = 1 shl 15; 
-  Open_Directory = 2 shl 15; 
-  Open_NoFollow  = 4 shl 15; 
+  Open_LargeFile = 1 shl 15;
+  Open_Directory = 2 shl 15;
+  Open_NoFollow  = 4 shl 15;
   { The waitpid uses the following options:}
   Wait_NoHang   = 1;
   Wait_UnTraced = 2;
   Wait_Any      = -1;
   Wait_MyPGRP   = 0;
+  Wait_Clone    = $80000000;
   { Constants to check stat.mode }
   STAT_IFMT   = $f000; {00170000}
   STAT_IFSOCK = $c000; {0140000}
@@ -83,7 +84,10 @@ Const
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:49  michael
+  Revision 1.3  2000-10-26 22:55:11  peter
+    * merges from fixes
+
+  Revision 1.2  2000/07/13 11:33:49  michael
   + removed logs
- 
+
 }

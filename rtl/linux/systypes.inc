@@ -108,6 +108,10 @@ type
   ptimeval=^timeval;
   TTimeVal=timeval;
 
+  timespec = packed record
+    tv_sec,tv_nsec:longint;
+  end;
+
   timezone = packed record
     minuteswest,dsttime:longint;
   end;
@@ -127,7 +131,10 @@ type
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:49  michael
+  Revision 1.3  2000-10-26 22:55:11  peter
+    * merges from fixes
+
+  Revision 1.2  2000/07/13 11:33:49  michael
   + removed logs
- 
+
 }
