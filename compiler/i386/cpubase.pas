@@ -642,6 +642,9 @@ const
        maxfpuvarregs = 8;
        max_operands = 3;
 
+       maxintregs = maxvarregs;
+       maxfpuregs = maxfpuvarregs;
+
     function imm_2_type(l:longint):longint;
 
     { the following functions allow to convert registers }
@@ -923,7 +926,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2001-04-13 01:22:18  peter
+  Revision 1.5  2001-05-18 23:01:13  peter
+    * portable constants
+
+  Revision 1.4  2001/04/13 01:22:18  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
