@@ -18,6 +18,7 @@ var s: String;
        begin
          Writeln('Program generates a range check error correctly');
          errorcode:=0;
+         exitcode:=0;
          erroraddr:=nil;
          close(f);
          erase(f);
