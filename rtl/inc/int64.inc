@@ -232,7 +232,7 @@
            end;
       end;
 
-    procedure int_str(value : qword;var s : string);
+    procedure qword_str(value : qword;var s : string);
 
       var
          hs : string;
@@ -246,7 +246,7 @@
          s:=hs;
       end;
 
-    procedure int_str(value : int64;var s : string);
+    procedure int64_str(value : int64;var s : string);
 
       var
          hs : string;
@@ -260,12 +260,52 @@
               s:='-'+hs;
            end
          else
-           int_str(qword(value),s);
+           qword_str(qword(value),s);
       end;
+
+  procedure int_str_qword(v : qword;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_QWORD'];
+
+    begin
+       qword_str(v,s);
+        if length(s)<len then
+          s:=space(len-length(s))+s;
+    end;
+
+  procedure int_str_int64(v : int64;len : longint;var s : shortstring);[public,alias:'FPC_SHORTSTR_INT64'];
+
+    begin
+       int64_str(v,s);
+       if length(s)<len then
+         s:=space(len-length(s))+s;
+    end;
+
+  procedure int_str_qword(v : qword;len : longint;var s : ansistring);[public,alias:'FPC_ANSISTR_QWORD'];
+
+    var
+       ss : shortstring;
+
+    begin
+       int_str_qword(v,len,ss);
+       s:=ss;
+    end;
+
+  procedure int_str_int64(v : int64;len : longint;var s : ansistring);[public,alias:'FPC_ANSISTR_INT64'];
+
+    var
+       ss : shortstring;
+
+    begin
+       int_str_int64(v,len,ss);
+       s:=ss;
+    end;
+
 
 {
   $Log$
-  Revision 1.11  1999-07-02 17:01:29  florian
+  Revision 1.12  1999-07-04 16:34:45  florian
+    + str routines added
+
+  Revision 1.11  1999/07/02 17:01:29  florian
     * multiplication overflow checking fixed
 
   Revision 1.10  1999/07/01 15:39:50  florian
