@@ -192,6 +192,10 @@ function CreateBehindLayerTags(li : pLayer_Info; bm : pBitMap; x0 : LongInt; y0 
 }
 
 
+{ Helper func }
+function InitLayersLibrary : boolean;
+
+
 implementation
 
 const
@@ -229,7 +233,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-12-07 18:55:49  karoly
-    * initial revision
+  Revision 1.2  2004-12-07 20:07:25  karoly
+    + added missing InitLayersLibrary helper
 
 }
