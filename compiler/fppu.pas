@@ -1002,6 +1002,17 @@ uses
          close(CRCFile);
 {$endif Test_Double_checksum_write}
 
+         { create and write header, this will only be used
+           for debugging purposes }
+         ppufile.header.size:=ppufile.size;
+         ppufile.header.checksum:=ppufile.crc;
+         ppufile.header.interface_checksum:=ppufile.interface_crc;
+         ppufile.header.compiler:=wordversion;
+         ppufile.header.cpu:=word(target_cpu);
+         ppufile.header.target:=word(target_info.system);
+         ppufile.header.flags:=flags;
+         ppufile.writeheader;
+
          ppufile.closefile;
          ppufile.free;
          ppufile:=nil;
@@ -1035,8 +1046,14 @@ uses
                exit;
               { add this unit to the dependencies }
               pu.u.adddependency(self);
-              { need to recompile the current unit ? }
-              if pu.u.crc<>pu.checksum then
+              { need to recompile the current unit, check the interface
+                crc. And when not compiled with -Ur then check the complete
+                crc }
+              if (pu.u.interface_crc<>pu.interface_checksum) or
+                 (
+                  ((ppufile.header.flags and uf_release)=0) and
+                  (pu.u.crc<>pu.checksum)
+                 ) then
                begin
                  Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.realmodulename^);
                  recompile_reason:=rr_crcchanged;
@@ -1342,7 +1359,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.33  2003-04-27 11:21:32  peter
+  Revision 1.34  2003-05-23 17:04:37  peter
+    * write interface crc to .ppu.intf when enabled
+    * when a unit is compiled with -Ur check only interface crc
+
+  Revision 1.33  2003/04/27 11:21:32  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be
