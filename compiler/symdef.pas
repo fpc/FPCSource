@@ -1858,44 +1858,20 @@ implementation
 
 
     constructor torddef.ppuload(ppufile:tcompilerppufile);
-      var
-        l1,l2 : longint;
       begin
          inherited ppuloaddef(ppufile);
          deftype:=orddef;
          typ:=tbasetype(ppufile.getbyte);
          if sizeof(TConstExprInt)=8 then
-          begin
-            l1:=ppufile.getlongint;
-            l2:=ppufile.getlongint;
-{$ifopt R+}
-  {$define Range_check_on}
-{$endif opt R+}
-{$R- needed here }
-            low:=qword(l1)+(int64(l2) shl 32);
-{$ifdef Range_check_on}
-  {$R+}
-  {$undef Range_check_on}
-{$endif Range_check_on}
-          end
+           begin
+             low:=ppufile.getint64;
+             high:=ppufile.getint64;
+           end
          else
-          low:=ppufile.getlongint;
-         if sizeof(TConstExprInt)=8 then
-          begin
-            l1:=ppufile.getlongint;
-            l2:=ppufile.getlongint;
-{$ifopt R+}
-  {$define Range_check_on}
-{$endif opt R+}
-{$R- needed here }
-            high:=qword(l1)+(int64(l2) shl 32);
-{$ifdef Range_check_on}
-  {$R+}
-  {$undef Range_check_on}
-{$endif Range_check_on}
-          end
-         else
-          high:=ppufile.getlongint;
+           begin
+             low:=ppufile.getlongint;
+             high:=ppufile.getlongint;
+           end;
          setsize;
       end;
 
@@ -1931,18 +1907,14 @@ implementation
          ppufile.putbyte(byte(typ));
          if sizeof(TConstExprInt)=8 then
           begin
-            ppufile.putlongint(longint(lo(low)));
-            ppufile.putlongint(longint(hi(low)));
+            ppufile.putint64(low);
+            ppufile.putint64(high);
           end
          else
-          ppufile.putlongint(low);
-         if sizeof(TConstExprInt)=8 then
           begin
-            ppufile.putlongint(longint(lo(high)));
-            ppufile.putlongint(longint(hi(high)));
-          end
-         else
-          ppufile.putlongint(high);
+            ppufile.putlongint(low);
+            ppufile.putlongint(high);
+          end;
          ppufile.writeentry(iborddef);
       end;
 
@@ -6184,7 +6156,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.237  2004-05-22 23:33:18  peter
+  Revision 1.238  2004-05-23 15:23:30  peter
+    * fixed qword(longint) that removed sign from the number
+    * removed code in the compiler that relied on wrong qword(longint)
+      code generation
+
+  Revision 1.237  2004/05/22 23:33:18  peter
   fix range check error when array size > maxlongint
 
   Revision 1.236  2004/05/01 22:05:01  florian

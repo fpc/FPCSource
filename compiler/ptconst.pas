@@ -99,7 +99,6 @@ implementation
               end;
          end;
 
-{$R-}  {Range check creates problem with init_8bit(-1) !!}
       begin
          old_block_type:=block_type;
          block_type:=bt_const;
@@ -115,28 +114,28 @@ implementation
                     bool8bit :
                       begin
                          if is_constboolnode(p) then
-                           curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value))
+                           curconstSegment.concat(Tai_const.Create_8bit(byte(tordconstnode(p).value)))
                          else
                            Message(cg_e_illegal_expression);
                       end;
                     bool16bit :
                       begin
                          if is_constboolnode(p) then
-                           curconstSegment.concat(Tai_const.Create_16bit(tordconstnode(p).value))
+                           curconstSegment.concat(Tai_const.Create_16bit(word(tordconstnode(p).value)))
                          else
                            Message(cg_e_illegal_expression);
                       end;
                     bool32bit :
                       begin
                          if is_constboolnode(p) then
-                           curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value))
+                           curconstSegment.concat(Tai_const.Create_32bit(cardinal(tordconstnode(p).value)))
                          else
                            Message(cg_e_illegal_expression);
                       end;
                     uchar :
                       begin
                          if is_constcharnode(p) then
-                           curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value))
+                           curconstSegment.concat(Tai_const.Create_8bit(byte(tordconstnode(p).value)))
                          else
                            Message(cg_e_illegal_expression);
                       end;
@@ -145,7 +144,7 @@ implementation
                          if is_constcharnode(p) then
                            inserttypeconv(p,cwidechartype);
                          if is_constwidecharnode(p) then
-                           curconstSegment.concat(Tai_const.Create_16bit(tordconstnode(p).value))
+                           curconstSegment.concat(Tai_const.Create_16bit(word(tordconstnode(p).value)))
                          else
                            Message(cg_e_illegal_expression);
                       end;
@@ -154,7 +153,7 @@ implementation
                       begin
                          if is_constintnode(p) then
                            begin
-                              curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value));
+                              curconstSegment.concat(Tai_const.Create_8bit(byte(tordconstnode(p).value)));
                               check_range(torddef(t.def));
                            end
                          else
@@ -165,7 +164,7 @@ implementation
                       begin
                          if is_constintnode(p) then
                            begin
-                             curconstSegment.concat(Tai_const.Create_16bit(tordconstnode(p).value));
+                             curconstSegment.concat(Tai_const.Create_16bit(word(tordconstnode(p).value)));
                              check_range(torddef(t.def));
                            end
                          else
@@ -176,7 +175,7 @@ implementation
                       begin
                          if is_constintnode(p) then
                            begin
-                              curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value));
+                              curconstSegment.concat(Tai_const.Create_32bit(cardinal(tordconstnode(p).value)));
                               if torddef(t.def).typ<>u32bit then
                                check_range(torddef(t.def));
                            end
@@ -1090,7 +1089,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2004-04-29 19:56:37  daniel
+  Revision 1.85  2004-05-23 15:23:30  peter
+    * fixed qword(longint) that removed sign from the number
+    * removed code in the compiler that relied on wrong qword(longint)
+      code generation
+
+  Revision 1.84  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.83  2004/04/11 10:44:23  peter

@@ -1182,54 +1182,18 @@ implementation
 
 
     function tcompilerppufile.getexprint:tconstexprint;
-      var
-        l1,l2 : longint;
       begin
         if sizeof(tconstexprint)=8 then
-          begin
-            l1:=getlongint;
-            l2:=getlongint;
-{$ifopt R+}
-  {$define Range_check_on}
-{$endif opt R+}
-{$R- needed here }
-{$ifdef Delphi}
-            result:=int64(l1)+(int64(l2) shl 32);
-{$else}
-            result:=qword(l1)+(int64(l2) shl 32);
-{$endif}
-{$ifdef Range_check_on}
-  {$R+}
-  {$undef Range_check_on}
-{$endif Range_check_on}
-          end
+          result:=tconstexprint(getint64)
         else
           result:=tconstexprint(getlongint);
       end;
 
 
     function tcompilerppufile.getPtrUInt:TConstPtrUInt;
-      var
-        l1,l2 : longint;
       begin
         if sizeof(TConstPtrUInt)=8 then
-          begin
-            l1:=getlongint;
-            l2:=getlongint;
-{$ifopt R+}
-  {$define Range_check_on}
-{$endif opt R+}
-{$R- needed here }
-{$ifdef Delphi}
-            result:=int64(l1)+(int64(l2) shl 32);
-{$else}
-            result:=qword(l1)+(int64(l2) shl 32);
-{$endif}
-{$ifdef Range_check_on}
-  {$R+}
-  {$undef Range_check_on}
-{$endif Range_check_on}
-          end
+          result:=tconstptruint(getint64)
         else
           result:=TConstPtrUInt(getlongint);
       end;
@@ -1415,10 +1379,7 @@ implementation
     procedure tcompilerppufile.putexprint(v:tconstexprint);
       begin
         if sizeof(TConstExprInt)=8 then
-          begin
-             putlongint(longint(lo(v)));
-             putlongint(longint(hi(v)));
-          end
+          putint64(int64(v))
         else if sizeof(TConstExprInt)=4 then
           putlongint(longint(v))
         else
@@ -1429,10 +1390,7 @@ implementation
     procedure tcompilerppufile.PutPtrUInt(v:TConstPtrUInt);
       begin
         if sizeof(TConstPtrUInt)=8 then
-          begin
-             putlongint(longint(lo(v)));
-             putlongint(longint(hi(v)));
-          end
+          putint64(int64(v))
         else if sizeof(TConstPtrUInt)=4 then
           putlongint(longint(v))
         else
@@ -1529,7 +1487,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.40  2004-02-27 13:04:22  daniel
+  Revision 1.41  2004-05-23 15:23:30  peter
+    * fixed qword(longint) that removed sign from the number
+    * removed code in the compiler that relied on wrong qword(longint)
+      code generation
+
+  Revision 1.40  2004/02/27 13:04:22  daniel
     * Removed unused concatstabto
 
   Revision 1.39  2004/02/11 19:59:06  peter

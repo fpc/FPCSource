@@ -91,9 +91,8 @@ begin
   FreeMem(Value,Len);
 end;
 
-{$ifopt r+}
-{$define rangeon}
-{$r-}
+{$ifdef ver1_0}
+  {$R-}
 {$endif}
 
 procedure TResourceStringItem.CalcHash;
@@ -114,13 +113,9 @@ begin
       end;
    end;
   If Hash=0 then
-    Hash:=Not(0);
+    Hash:=$ffffffff;
 end;
 
-{$ifdef rangeon}
-{$r+}
-{$undef rangeon}
-{$endif}
 
 { ---------------------------------------------------------------------
                           TRESOURCESTRINGS
@@ -300,7 +295,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2004-03-02 00:36:33  olle
+  Revision 1.23  2004-05-23 15:23:30  peter
+    * fixed qword(longint) that removed sign from the number
+    * removed code in the compiler that relied on wrong qword(longint)
+      code generation
+
+  Revision 1.22  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.21  2004/02/26 16:16:38  peter

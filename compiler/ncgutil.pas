@@ -394,8 +394,7 @@ implementation
               end;
               { reset hi part, take care of the signed bit of the current value }
               hregisterhi:=cg.getintregister(list,OS_INT);
-              if (dst_size=OS_S64) and
-                 (l.size in [OS_S8,OS_S16,OS_S32]) then
+              if (l.size in [OS_S8,OS_S16,OS_S32]) then
                begin
                  if l.loc=LOC_CONSTANT then
                   begin
@@ -2134,7 +2133,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.201  2004-05-23 15:06:21  peter
+  Revision 1.202  2004-05-23 15:23:30  peter
+    * fixed qword(longint) that removed sign from the number
+    * removed code in the compiler that relied on wrong qword(longint)
+      code generation
+
+  Revision 1.201  2004/05/23 15:06:21  peter
     * implicit_finally flag must be set in pass1
     * add check whether the implicit frame is generated when expected
 
