@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for the Multimedia Toolkit (interface units for MMPM)
+#
+
+[package]
+name=mmtk
+version=1.0.6
+
+[target]
+units=mmbase sw dive mci mciapi mcidrv mmio
+
+exampledirs=tests
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
+
+[rules]
+dive$(PPUEXT) : dive.pas mmbase$(PPUEXT)
+
+mci$(PPUEXT) : mci.pas mmbase$(PPUEXT)
+
+mmio$(PPUEXT) : mmio.pas mmbase$(PPUEXT)
