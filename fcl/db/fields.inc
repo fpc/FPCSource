@@ -44,10 +44,10 @@ begin
   // Correct sizes.
   If FDataType=ftFloat then
     begin
-    If Not FSize in [4,8,10] then FSize:=10
+    If Not (FSize in [4,8,10]) then FSize:=10
     end
   else If FDataType in [ftWord,ftsmallint,ftinteger] Then
-    If Not FSize in [1,2,4] then FSize:=4;
+    If Not (FSize in [1,2,4]) then FSize:=4;
   FFieldNo:=AFieldNo;
   AOwner.FItems.Add(Self);
 end;
@@ -532,6 +532,18 @@ begin
     DatabaseErrorFmt(SInvalidFieldSize,[AValue]);
 end;
 
+// TField private methods
+
+function TField.GetDisplayText: String;
+begin
+  SetLength(Result, 0);
+  if Assigned(OnGetText) then
+    OnGetText(Self, Result, True)
+  else
+    GetText(Result, True);
+end;
+
+
 { ---------------------------------------------------------------------
     TStringField
   ---------------------------------------------------------------------}
@@ -598,7 +610,7 @@ begin
   result:=Size;
 end;
 
-Procedure TStringField.GetText(var AText: string; DisplayText: Boolean); 
+Procedure TStringField.GetText(var AText: string; ADisplayText: Boolean); 
 
 begin
     AText:=GetAsString;
@@ -700,8 +712,8 @@ constructor TLongintField.Create(AOwner: TComponent);
 begin
   Inherited Create(AOwner);
   SetDatatype(ftinteger);
-  FMinRange:=$80000000;
-  FMaxRange:=$7fffffff;
+  FMinRange:=Low(LongInt);
+  FMaxRange:=High(LongInt);
   FValidchars:=['+','-','0'..'9'];
 end;
 
@@ -735,7 +747,7 @@ begin
   Result:=SizeOf(Longint);
 end;
 
-procedure TLongintField.GetText(var AText: string; DisplayText: Boolean); 
+procedure TLongintField.GetText(var AText: string; ADisplayText: Boolean); 
 
 var l : longint;
     fmt : string;
@@ -743,7 +755,7 @@ var l : longint;
 begin
   Atext:='';
   If Not GetData(@l) then exit;
-  If DisplayText or (FEditFormat='') then
+  If ADisplayText or (FEditFormat='') then
     fmt:=FDisplayFormat
   else
     fmt:=FEditFormat;
@@ -918,7 +930,7 @@ begin
   Result:=SizeOf(Extended);
 end;
 
-procedure TFloatField.GetText(var TheText: string; DisplayText: Boolean); 
+procedure TFloatField.GetText(var TheText: string; ADisplayText: Boolean); 
 
 Var 
     fmt : string;
@@ -927,7 +939,7 @@ Var
 begin
   text:='';
   If Not GetData(@E) then exit;
-  If DisplayText or (Length(FEditFormat) = 0) Then
+  If ADisplayText or (Length(FEditFormat) = 0) Then
     Fmt:=FDisplayFormat 
   else
     Fmt:=FEditFormat;
@@ -1098,7 +1110,7 @@ begin
 end;
 
 
-procedure TDateTimeField.GetText(var TheText: string; DisplayText: Boolean); 
+procedure TDateTimeField.GetText(var TheText: string; ADisplayText: Boolean); 
 
 Var R : TDateTime;
     F : String;
@@ -1108,7 +1120,7 @@ begin
     TheText:=''
   else
     begin
-    If (DisplayText) and (Length(FDisplayFormat)<>0) then 
+    If (ADisplayText) and (Length(FDisplayFormat)<>0) then 
       F:=FDisplayFormat
     else
       Case DataType of
@@ -1209,7 +1221,7 @@ begin
 end;
 
 
-procedure TBinaryField.GetText(var TheText: string; DisplayText: Boolean); 
+procedure TBinaryField.GetText(var TheText: string; ADisplayText: Boolean); 
 
 begin
   TheText:=GetAsString;
@@ -1334,7 +1346,7 @@ begin
 end;
 
 
-procedure TBCDField.GetText(var TheText: string; DisplayText: Boolean); 
+procedure TBCDField.GetText(var TheText: string; ADisplayText: Boolean); 
 
 begin
   //!! To be implemented
@@ -1431,7 +1443,7 @@ begin
 end;
 
 
-procedure TBlobField.GetText(var TheText: string; DisplayText: Boolean); 
+procedure TBlobField.GetText(var TheText: string; ADisplayText: Boolean); 
 
 begin
   TheText:=GetAsString;
@@ -1752,7 +1764,11 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.1  2000-08-05 14:39:16  michael
+  Revision 1.1.2.2  2000-12-23 23:27:25  sg
+  * Added TField.DisplayText, and accordingly changed all arguments called
+    DisplayText to ADisplayText
+
+  Revision 1.1.2.1  2000/08/05 14:39:16  michael
   + Changes in streaming applied here too
 
   Revision 1.1  2000/07/13 06:31:27  michael

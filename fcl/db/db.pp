@@ -179,6 +179,7 @@ type
     FVisible : Boolean;
     Function GetIndex : longint;
     Procedure SetDataset(VAlue : TDataset);
+    function GetDisplayText: String;
   protected
     function AccessError(const TypeName: string): EDatabaseError;
     procedure CheckInactive;
@@ -194,7 +195,7 @@ type
     function GetCanModify: Boolean; virtual;
     function GetDataSize: Word; virtual;
     function GetDefaultWidth: Longint; virtual;
-    function GetDisplayName : String; 
+    function GetDisplayName : String;
     function GetIsNull: Boolean; virtual;
     function GetParentComponent: TComponent; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); virtual;
@@ -234,6 +235,8 @@ type
     property DataSet: TDataSet read FDataSet write SetDataSet;
     property DataSize: Word read GetDataSize;
     property DataType: TFieldType read FDataType;
+    property DisplayName: String Read GetDisplayName; 
+    property DisplayText: String read GetDisplayText;
     property FieldNo: Longint read FFieldNo;
     property IsIndexField: Boolean read FIsIndexField;
     property IsNull: Boolean read GetIsNull;
@@ -247,7 +250,6 @@ type
     property ConstraintErrorMessage: string read FConstraintErrorMessage write FConstraintErrorMessage;
     property DefaultExpression: string read FDefaultExpression write FDefaultExpression;
     property DisplayLabel : string read FDisplayLabel write FDisplayLabel;
-    property DisplayName : String Read GetDisplayName; 
     property DisplayWidth: Longint read FDisplayWidth write FDisplayWidth;
     property FieldKind: TFieldKind read FFieldKind write FFieldKind;
     property FieldName: string read FFieldName write FFieldName;
@@ -281,7 +283,7 @@ type
     function GetAsString: string; override;
     function GetDataSize: Word; override;
     function GetDefaultWidth: Longint; override;
-    procedure GetText(var AText: string; DisplayText: Boolean); override;
+    procedure GetText(var AText: string; ADisplayText: Boolean); override;
     function GetValue(var AValue: string): Boolean;
     procedure SetAsBoolean(AValue: Boolean); override;
     procedure SetAsDateTime(AValue: TDateTime); override;
@@ -326,7 +328,7 @@ type
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
     function GetDataSize: Word; override;
-    procedure GetText(var AText: string; DisplayText: Boolean); override;
+    procedure GetText(var AText: string; ADisplayText: Boolean); override;
     function GetValue(var AValue: Longint): Boolean;
     procedure SetAsFloat(AValue: Extended); override;
     procedure SetAsLongint(AValue: Longint); override;
@@ -380,7 +382,7 @@ type
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
     function GetDataSize: Word; override;
-    procedure GetText(var theText: string; DisplayText: Boolean); override;
+    procedure GetText(var theText: string; ADisplayText: Boolean); override;
     procedure SetAsFloat(AValue: Extended); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
@@ -428,7 +430,7 @@ type
     function GetAsFloat: Extended; override;
     function GetAsString: string; override;
     function GetDataSize: Word; override;
-    procedure GetText(var theText: string; DisplayText: Boolean); override;
+    procedure GetText(var theText: string; ADisplayText: Boolean); override;
     procedure SetAsDateTime(AValue: TDateTime); override;
     procedure SetAsFloat(AValue: Extended); override;
     procedure SetAsString(const AValue: string); override;
@@ -463,7 +465,7 @@ type
   protected
     class procedure CheckTypeSize(AValue: Longint); override;
     function GetAsString: string; override;
-    procedure GetText(var TheText: string; DisplayText: Boolean); override;
+    procedure GetText(var TheText: string; ADisplayText: Boolean); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetText(const AValue: string); override;
   public
@@ -501,7 +503,7 @@ type
     function GetAsString: string; override;
     function GetDataSize: Word; override;
     function GetDefaultWidth: Longint; override;
-    procedure GetText(var TheText: string; DisplayText: Boolean); override;
+    procedure GetText(var TheText: string; ADisplayText: Boolean); override;
     procedure SetAsFloat(AValue: Extended); override;
     procedure SetAsLongint(AValue: Longint); override;
     procedure SetAsString(const AValue: string); override;
@@ -528,7 +530,7 @@ type
     function GetAsString: string; override;
     function GetBlobSize: Longint; virtual;
     function GetIsNull: Boolean; override;
-    procedure GetText(var TheText: string; DisplayText: Boolean); override;
+    procedure GetText(var TheText: string; ADisplayText: Boolean); override;
     procedure SetAsString(const AValue: string); override;
     procedure SetText(const AValue: string); override;
   public
@@ -1401,7 +1403,11 @@ end.
 
 {
   $Log$
-  Revision 1.1.2.2  2000-12-23 10:10:22  michael
+  Revision 1.1.2.3  2000-12-23 23:26:45  sg
+  * Added TField.DisplayText, and accordingly changed all arguments called
+    DisplayText to ADisplayText
+
+  Revision 1.1.2.2  2000/12/23 10:10:22  michael
   + Added missing TDatasource support
 
   Revision 1.1.2.1  2000/08/05 14:39:16  michael
