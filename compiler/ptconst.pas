@@ -139,6 +139,18 @@ unit ptconst;
                                 datasegment^.concat(new(pai_const,init_16bit(p^.value)));
                                 check_range;
                             end;
+                    s64bitint,
+                    u64bit:
+                      begin
+                         if not is_constintnode(p) then
+                           Message(cg_e_illegal_expression)
+                         else
+                           begin
+                              {!!!!! hmmm, we can write yet only consts til 2^32-1 :( (FK) }
+                              datasegment^.concat(new(pai_const,init_32bit(p^.value)));
+                              datasegment^.concat(new(pai_const,init_32bit(0)));
+                           end;
+                      end;
                  end;
                  disposetree(p);
               end;
@@ -647,7 +659,12 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.31  1998-12-11 00:03:41  peter
+  Revision 1.32  1998-12-11 16:50:23  florian
+    + typed const int64 and qword
+    + unary minus-operator  q1:=-q2;
+    + not-operator
+
+  Revision 1.31  1998/12/11 00:03:41  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.30  1998/11/27 14:34:42  peter

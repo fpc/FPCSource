@@ -227,6 +227,22 @@ implementation
                }
              end
 {$endif SUPPORT_MMX}
+         else if is_64bitint(p^.left^.resulttype) then
+           begin
+              firstpass(p^.left);
+              p^.registersfpu:=p^.left^.registersfpu;
+{$ifdef SUPPORT_MMX}
+              p^.registersmmx:=p^.left^.registersmmx;
+{$endif SUPPORT_MMX}
+              p^.registers32:=p^.left^.registers32;
+              if codegenerror then
+                exit;
+              if (p^.left^.location.loc<>LOC_REGISTER) and
+                (p^.registers32<2) then
+              p^.registers32:=2;
+              p^.location.loc:=LOC_REGISTER;
+              p^.resulttype:=p^.left^.resulttype;
+           end
          else if (p^.left^.resulttype^.deftype=orddef) then
            begin
               p^.left:=gentypeconvnode(p^.left,s32bitdef);
@@ -318,6 +334,17 @@ implementation
              end
          else
 {$endif SUPPORT_MMX}
+           if is_64bitint(p^.left^.resulttype) then
+             begin
+                p^.registers32:=p^.left^.registers32;
+                if (p^.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
+                 begin
+                   p^.location.loc:=LOC_REGISTER;
+                   if (p^.registers32<2) then
+                    p^.registers32:=2;
+                 end;
+             end
+         else
            begin
               p^.left:=gentypeconvnode(p^.left,s32bitdef);
               firstpass(p^.left);
@@ -342,7 +369,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-12-11 16:10:12  florian
+  Revision 1.10  1998-12-11 16:50:24  florian
+    + typed const int64 and qword
+    + unary minus-operator  q1:=-q2;
+    + not-operator
+
+  Revision 1.9  1998/12/11 16:10:12  florian
     + shifting for 64 bit ints added
     * bug in getexplicitregister32 fixed: usableregs wasn't decremented !!
 
