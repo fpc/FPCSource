@@ -331,8 +331,10 @@ implementation
                            { remove calln node }
                            tcallnode(left).right:=nil;
                            left.free;
-                           left:=hp;
+                           { first do firstpass, then assignment in case hp }
+                           { gets changed by firstpass (JM)                 }
                            firstpass(hp);
+                           left:=hp;
                            include(flags,nf_procvarload);
                          end;
                      end;
@@ -343,6 +345,8 @@ implementation
                    derefn :
                      begin
                        firstpass(hp);
+                       { in case hp gets changed by firstpass (JM) }
+                       left := hp;
                        if codegenerror then
                         exit;
                        if hp.resulttype^.deftype=procvardef then
@@ -869,7 +873,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-11-29 00:30:34  florian
+  Revision 1.12  2000-12-05 15:19:50  jonas
+    * fixed webbug 1268 ("merged")
+
+  Revision 1.11  2000/11/29 00:30:34  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
