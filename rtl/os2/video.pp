@@ -318,10 +318,12 @@ begin
       Dec(I);
   If SysSetVideoMode then
     begin
-    SysVideoModeSelector(Mode);
-    ScreenWidth:=SysVMD[I].Col;
-    ScreenHeight:=SysVMD[I].Row;
-    ScreenColor:=SysVMD[I].Color;
+    if SysVideoModeSelector(Mode) then
+      begin;
+      ScreenWidth:=SysVMD[I].Col;
+      ScreenHeight:=SysVMD[I].Row;
+      ScreenColor:=SysVMD[I].Color;
+      end else SysSetVideoMode := false;
     end;
 end;
 
@@ -470,7 +472,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-05-24 19:33:22  hajny
+  Revision 1.11  2004-09-13 20:58:58  hajny
+    * SysSetVideoMode corrected to reflect SysVideoModeSelector result
+
+  Revision 1.10  2004/05/24 19:33:22  hajny
     * regcall update
 
   Revision 1.9  2003/10/07 21:26:35  hajny

@@ -144,7 +144,7 @@ var MI: Console_Screen_Buffer_Info;
     SR: Small_Rect;
 
 begin
-  if GetConsoleScreenBufferInfo (TextRec (Output).Handle, MI) then
+  if not (GetConsoleScreenBufferInfo (TextRec (Output).Handle, MI)) then
     SysVideoModeSelector := false
   else
     begin
@@ -207,10 +207,12 @@ begin
       Dec(I);
   If SysSetVideoMode then
     begin
-    SysVideoModeSelector(Mode);
-    ScreenWidth:=SysVMD[I].Col;
-    ScreenHeight:=SysVMD[I].Row;
-    ScreenColor:=SysVMD[I].Color;
+    if SysVideoModeSelector(Mode) then
+      begin;
+      ScreenWidth:=SysVMD[I].Col;
+      ScreenHeight:=SysVMD[I].Row;
+      ScreenColor:=SysVMD[I].Color;
+      end else SysSetVideoMode := false;
     end;
 end;
 
@@ -419,7 +421,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2004-09-11 21:45:13  hajny
+  Revision 1.13  2004-09-13 20:58:57  hajny
+    * SysSetVideoMode corrected to reflect SysVideoModeSelector result
+
+  Revision 1.12  2004/09/11 21:45:13  hajny
     + experimental patch to support more resolutions in text-mode IDE under Win32
 
   Revision 1.11  2003/09/17 15:06:36  peter
