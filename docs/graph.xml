@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="ISO8859-1"?>
 <fpdoc-descriptions>
-<!--  
+<!--
 
-   $Id$ 
-   This file is part of the FPC documentation. 
-   Copyright (C) 1997, by Michael Van Canneyt 
- 
-   The FPC documentation is free text; you can redistribute it and/or 
-   modify it under the terms of the GNU Library General Public License as 
-   published by the Free Software Foundation; either version 2 of the 
-   License, or (at your option) any later version. 
- 
-   The FPC Documentation is distributed in the hope that it will be useful, 
-   but WITHOUT ANY WARRANTY; without even the implied warranty of 
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
-   Library General Public License for more details. 
- 
-   You should have received a copy of the GNU Library General Public 
-   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
-   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
-   Boston, MA 02111-1307, USA. 
+   $Id$
+   This file is part of the FPC documentation.
+   Copyright (C) 1997, by Michael Van Canneyt
+
+   The FPC documentation is free text; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public License as
+   published by the Free Software Foundation; either version 2 of the
+   License, or (at your option) any later version.
+
+   The FPC Documentation is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public
+   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+   Boston, MA 02111-1307, USA.
  -->
 <package name="rtl">
 <module name="graph">
@@ -32,7 +32,7 @@ platforms. The unit was first written for dos by Florian kl\"ampfl, but was
 later completely rewritten by Carl-Eric Codere to be completely portable.
 The unit is provided for compatibility only: It is recommended to use more
 modern graphical systems. The graph unit will allow to recompile old
-programs, they will work to some extent, but if the application has 
+programs, they will work to some extent, but if the application has
 heavy graphical needs, it's recommended to use another set of graphical
 routines, suited to the platform the program should work on.
 </p>
@@ -45,6 +45,7 @@ routines, suited to the platform the program should work on.
 The unit Graph exports functions and procedures for graphical output.
 It requires at least a VGA-compatible Card or a VGA-Card with software-driver
 (min. <b>512Kb</b> video memory).
+</p>
 </descr>
 </topic>
 
@@ -54,7 +55,7 @@ It requires at least a VGA-compatible Card or a VGA-Card with software-driver
 <p>
 The graph unit was implemented for compatibility with the old Turbo Pascal graph
 unit. For this reason, the mode constants as they were defined in the
-Turbo Pascal graph unit are retained. 
+Turbo Pascal graph unit are retained.
 </p>
 <p>
 However, since
@@ -64,7 +65,7 @@ However, since
 <li> Free Pascal runs on multiple platforms</li>
 </ol>
 <p>
-it was decided to implement new mode and graphic driver constants, 
+it was decided to implement new mode and graphic driver constants,
 which are more independent of the specific platform the program runs on.
 </p>
 <p>
@@ -88,14 +89,14 @@ lowNewDriver = 11;
 highNewDriver = 21;
 </code>
 <p>
-Each of these drivers specifies a desired color-depth. 
+Each of these drivers specifies a desired color-depth.
 </p>
 <p>
 The following modes have been defined:
 </p>
 <code>
 detectMode = 30000;
-m320x200 = 30001;  
+m320x200 = 30001;
 m320x256 = 30002; { amiga resolution (PAL) }
 m320x400 = 30003; { amiga/atari resolution }
 m512x384 = 30004; { mac resolution }
@@ -116,7 +117,7 @@ highNewMode = 30015;
 </code>
 <p>
 These modes start at 30000 because Borland specified that the mode number
-should be ascending with increasing X resolution, and the new constants 
+should be ascending with increasing X resolution, and the new constants
 shouldn't interfere with the old ones.
 </p>
 <p>
@@ -132,28 +133,28 @@ For this reason, there is also a 'dynamic' mode number, which is assigned at
 run-time. This number increases with increasing X resolution. It can be
 queried with the <var>getmoderange</var> call. This call will return the range
 of modes which are valid for a certain graphics driver. The numbers are
-guaranteed to be consecutive, and can be used to search for a certain 
+guaranteed to be consecutive, and can be used to search for a certain
 resolution, as in the second example below.
 </p>
 <p>
-Thus, the <var>getmoderange</var> function can be used to detect all available 
+Thus, the <var>getmoderange</var> function can be used to detect all available
 modes and drivers, as in the third example below:
 </p>
 </descr>
-<example file="inigraph1"/>
-<example file="inigraph2"/>
-<example file="modrange"/>
+<example file="graphex/inigraph1"/>
+<example file="graphex/inigraph2"/>
+<example file="graphex/modrange"/>
 </topic>
 
 <topic name="TargetIssuesDos">
 <short>Target specific issues: DOS</short>
 <descr>
 <p>
-VESA modes (i.e., anything but 320x200x256 and 640x480x16) do not work 
-under most installations of Windows NT, Windows 2000 and Windows XP. 
-They also do not work for some people under Windows 98 and Windows ME, 
-depending on their graphics drivers. However, the graph unit cannot 
-detect this, because no errors are returned from the system. 
+VESA modes (i.e., anything but 320x200x256 and 640x480x16) do not work
+under most installations of Windows NT, Windows 2000 and Windows XP.
+They also do not work for some people under Windows 98 and Windows ME,
+depending on their graphics drivers. However, the graph unit cannot
+detect this, because no errors are returned from the system.
 In such cases, the screen simply turns black, or will show garbage.
 </p>
 <p>
@@ -170,10 +171,10 @@ support in the graphics drivers of the operating system.
 The windows version of the Graph units is not very performant. It works,
 thus allowing to port old TP programs to Windows, but that is all what can
 be expected from it. Further, it is windowed only: A separate window is
-opened in which the graphics are displayed. This means that the normal 
+opened in which the graphics are displayed. This means that the normal
 keyboard/mouse handling as provided by the crt and/or keyboard/mouse units
 wil not work in the graphical window. If keyboard and mouse input are needed
-the winmouse and the wincrt unit should be used instead. 
+the winmouse and the wincrt unit should be used instead.
 To hide the console window, compile with the
 </p>
 <code>
@@ -207,10 +208,10 @@ mMaximizedWindow16M = $f9;
 There are several issues on Linux that need to be taken care of:
 </p>
 <p>
-The Linux version of the <file>Graph</file> unit uses the <file>libvga</file> 
+The Linux version of the <file>Graph</file> unit uses the <file>libvga</file>
 library. This library works on the console, not under X.
 </p>
-<p> 
+<p>
 If you get an error similar to
 </p>
 <code>
@@ -218,11 +219,11 @@ If you get an error similar to
 </code>
 <p>
 This can mean one of two things: either libvga and it's development package
-is not installed properly, or the directory where it is installed is not in 
+is not installed properly, or the directory where it is installed is not in
 the linker path.
 </p>
 <p>
-To remedy the former, you should install both the libvga 
+To remedy the former, you should install both the libvga
 package and libvga-devel package (or compile and install from scratch).
 </p>
 <p>
@@ -230,7 +231,7 @@ To remedy the latter, you should add the path to the compiler command-line
 using the <var>-Fl</var> option.
 </p>
 <p>
-Programs using <file>libvga</file> need root privileges to run. 
+Programs using <file>libvga</file> need root privileges to run.
 You can make them setuid root with the following command:
 </p>
 <code>
@@ -245,20 +246,14 @@ there is an experimental version of the Graphics library available that
 uses GGI to do all the drawing, but it is not well tested. It's called
 <file>ggigraph</file> and is distributed in source form only.
 </p>
-<p> 
+<p>
 Do not use the CRT unit together with the Graph unit: the console may
-end up in an unusable state. Instead, the <file>ncurses</file> unit may function 
+end up in an unusable state. Instead, the <file>ncurses</file> unit may function
 fine.
 </p>
 </descr>
 </topic>
 
-<topic name="category">
-<short>Function list by category</short>
-<descr>
-What follows is a listing of the available functions, grouped by category.
-For each function there is a reference to the page where you can find the
-function.
 <topic name="FuncInitializion">
 <short>Categorized functions: Initialization</short>
 <descr>
@@ -283,7 +278,9 @@ Initialization of the graphics screen.
 <tr><td><link id="InstallUserDriver"/></td><td>Install a new driver</td></tr>
 <tr><td><link id="RegisterBGIDriver"/></td><td>Register a new driver</td></tr>
 <tr><td><link id="RestoreCRTMode"/></td><td>Go back to text mode</td></tr>
+<!--
 <tr><td><link id="SetGraphBufSize"/></td><td>Set buffer size for graphical operations</td></tr>
+-->
 <tr><td><link id="SetGraphMode"/></td><td>Set graphical mode</td></tr>
 </table>
 </descr>
@@ -321,7 +318,7 @@ General drawing screen management functions.
 <descr>
 <p>
 All functions related to color management.
-</p<
+</p>
 <table>
 <th><td>Name</td><td>Description</td></th>
 <tr><td><link id="GetBkColor"/></td><td>Get current background color</td></tr>
@@ -331,7 +328,7 @@ All functions related to color management.
 <tr><td><link id="GetPaletteSize"/></td><td>Get size of palette for current mode</td></tr>
 <tr><td><link id="GetPixel"/></td><td>Get color of selected pixel</td></tr>
 <tr><td><link id="GetPalette"/></td><td>Get palette entry</td></tr>
-<tr><td><link id="SetAllPallette"/></td><td>Set all colors in palette</td></tr>
+<tr><td><link id="SetAllPalette"/></td><td>Set all colors in palette</td></tr>
 <tr><td><link id="SetBkColor"/></td><td>Set background color</td></tr>
 <tr><td><link id="SetColor"/></td><td>Set foreground color</td></tr>
 <tr><td><link id="SetPalette"/></td><td>Set palette entry</td></tr>
@@ -678,14 +675,14 @@ None.
 <short>Draw a polygone</short>
 <descr>
 <var>DrawPoly</var> draws a polygone with <var>NumberOfPoints</var> corner points, using the
-current color and line-style. PolyPoints is an array of type <link id="PointType">.
+current color and line-style. PolyPoints is an array of type <link id="PointType"/>.
 </descr>
 <errors>
 None.
 </errors>
 <seealso>
 <link id="Bar"/>
-<link id="Bar3D">
+<link id="Bar3D"/>
 <link id="Rectangle"/>
 </seealso>
 </element>
@@ -710,7 +707,7 @@ None.
 </element>
 
 <element name="FillEllipse">
-<short></short>
+<short>Draw and fill an ellipse</short>
 <descr>
 <var>Ellipse</var> draws an ellipse with center at <var>(X,Y)</var>.
 <var>XRadius</var> and <var>Yradius</var> are the horizontal and vertical radii of the
@@ -740,7 +737,7 @@ None.
 </errors>
 <seealso>
 <link id="Bar"/>
-<link id="Bar3D"> 
+<link id="Bar3D"/>
 <link id="Rectangle"/>
 </seealso>
 </element>
@@ -1225,7 +1222,7 @@ end.
 None.
 </errors>
 <seealso>
-<link id="Modes">
+<link id="Modes"/>
 <link id="DetectGraph"/>
 <link id="CloseGraph"/>
 <link id="GraphResult"/>
@@ -1522,7 +1519,7 @@ None.
 </seealso>
 </element>
 
-<element name="SetAllPallette">
+<element name="SetAllPalette">
 <short>Specify a complete new palette</short>
 <descr>
 Sets the current palette to
@@ -1602,15 +1599,15 @@ None
 
 <element name="SetFillStyle">
 <short>Set drawing fill style</short>
-<p>
 <descr>
+<p>
 <var>SetFillStyle</var> sets the filling pattern and color to one of the
 predefined filling patterns. <var>Pattern</var> can be one of the following predefined
 constants :
 </p>
 <dl>
 <dt>EmptyFill</dt><dd>Uses backgroundcolor.</dd>
-<dt>SolidFill</dt> Uses filling color</dd>
+<dt>SolidFill</dt><dd> Uses filling color</dd>
 <dt>LineFill</dt><dd> Fills with horizontal lines.</dd>
 <dt>ltSlashFill</dt><dd> Fills with lines from left-under to top-right.</dd>
 <dt>SlashFill</dt><dd> Idem as previous, thick lines.</dd>
@@ -1705,7 +1702,7 @@ None.
 None.
 </errors>
 <seealso>
-<link id="SetAllPallette"/>
+<link id="SetAllPalette"/>
 <link id="SetRGBPalette"/>
 </seealso>
 </element>
@@ -1720,7 +1717,7 @@ color with RGB-values <var>Red, Green Blue</var>.
 None.
 </errors>
 <seealso>
-<link id="SetAllPallette"/>,
+<link id="SetAllPalette"/>,
 <link id="SetPalette"/>
 </seealso>
 </element>
@@ -1890,6 +1887,1430 @@ None.
 </seealso>
 </element>
 
+<!-- range type Visibility: default -->
+<element name="smallint">
+<short>Type redefinition</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="TResolutionRec">
+<short>Record describing resolution</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TResolutionRec.x">
+<short>Horizontal resolution</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TResolutionRec.y">
+<short>Vertical resolution</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="maxsmallint">
+<short>Maximum value for smallint type</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grOk">
+<short>Graphical operation went OK.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grNoInitGraph">
+<short>Error: Graphical system not initialized</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grNotDetected">
+<short>Error: Graphics device not detected.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grFileNotFound">
+<short>Error: File for driver not found.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grInvalidDriver">
+<short>Error: Invalid driver specified</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grNoLoadMem">
+<short>Error: Memory error.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grNoScanMem">
+<short>Error: Could not allocate memory for scan</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grNoFloodMem">
+<short>Error: Could not allocate memory for flood operation.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grFontNotFound">
+<short>Error: font description file not found.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grNoFontMem">
+<short>Error: Not enough memory to load font.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grInvalidMode">
+<short>Error: Invalid mode specified.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grError">
+<short>Error: Unknown error.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grIOerror">
+<short>Error: Unspecified Input/Output error.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grInvalidFont">
+<short>Error: Invalid font description</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grInvalidFontNum">
+<short>Error: Invalid font number</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="grInvalidVersion">
+<short>Error: Invalid version.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="black">
+<short>Color code: black.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="blue">
+<short>Color code: blue</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="green">
+<short>Color code: green</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="cyan">
+<short>Color code: Cyan</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="red">
+<short>Color code: Red</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="magenta">
+<short>Color code: Magenta</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="brown">
+<short>Color code: brown</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="lightgray">
+<short>Color code: Light gray</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="darkgray">
+<short>Color code: Dark gray</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="lightblue">
+<short>Color code: Light blue</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="lightgreen">
+<short>Color code: Light green</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="lightcyan">
+<short>Color code: Light cyan</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="lightred">
+<short>Color code: Light red</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="lightmagenta">
+<short>Color code: Light magenta</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="yellow">
+<short>Color code: Yellow</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="white">
+<short>Color code: White</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGABlack">
+<short>Color code: EGA Black</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGABlue">
+<short>Color code: EGA blue</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGAGreen">
+<short>Color code: EGA green</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGACyan">
+<short>Color code: EGA cyan</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGARed">
+<short>Color code: EGA red</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGAMagenta">
+<short>Color code: EGA magenta</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGALightgray">
+<short>Color code: EGA Light gray</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGABrown">
+<short>Color code: EGA brown</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGADarkgray">
+<short>Color code: EGA dark gray</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGALightblue">
+<short>Color code: EGA Light blue</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGALightgreen">
+<short>Color code: EGA Light green</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGALightcyan">
+<short>Color code: EGA Light cyan</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGALightred">
+<short>Color code: EGA light red</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGALightmagenta">
+<short>Color code: EGA light magenta</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGAYellow">
+<short>Color code: EGA yellow</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EGAWhite">
+<short>Color code: EGA white</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SolidLn">
+<short>Line style: Solid line</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="DottedLn">
+<short>Line style: Dotted line</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="CenterLn">
+<short>Line style: centered line</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="DashedLn">
+<short>Line style: dashed line</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="UserBitLn">
+<short>Line style: User defined</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="NormWidth">
+<short>Line width: Normal width</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ThickWidth">
+<short>Line width: double width</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="DefaultFont">
+<short>Font number: Normal font</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="TriplexFont">
+<short>Font number: Triplex font</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SmallFont">
+<short>Font number: Small font</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SansSerifFont">
+<short>Font number: Sans Serif font</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="GothicFont">
+<short>Font number: Gothic font</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ScriptFont">
+<short>Font number: Script font</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SimpleFont">
+<short>Font number: Simple font</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="TSCRFont">
+<short>Font number: Terminal font</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="LCOMFont">
+<short>Font number: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EuroFont">
+<short>Font number: ?</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="BoldFont">
+<short>Font number: Bold font.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="HorizDir">
+<short>Text write direction: Horizontal</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VertDir">
+<short>Text write direction: Vertical</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="UserCharSize">
+<short>User character size</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ClipOn">
+<short>Viewport clipping on</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="ClipOff">
+<short>Viewport clipping off</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="TopOn">
+<short>Top on</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="TopOff">
+<short>Top off</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="EmptyFill">
+<short>Fill style: Do not fill</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SolidFill">
+<short>Fill style: Solid fill.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="LineFill">
+<short>Fill style: Fill using horizontal lines</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="LtSlashFill">
+<short>Fill style: Light diagonal (slash) lines</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="SlashFill">
+<short>Fill style: Diagonal (slash) lines </short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="BkSlashFill">
+<short>Fill style: Diagonal (backslash) lines</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="LtBkSlashFill">
+<short>Fill style: Light diagonal (backslash) lines</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="HatchFill">
+<short>Fill style: Hatch lines</short>
+<descr>
+</descr>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="XHatchFill">
+<short>Fill style: Heavy hatch lines</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="InterleaveFill">
+<short>Fill style: Interleaving lines</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="WideDotFill">
+<short>Fill style: Widely spaced dotted lines</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="CloseDotFill">
+<short>Fill style: Closely spaced dotted lines</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="UserFill">
+<short>Fill style: User-defined fill.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="NormalPut">
+<short>Draw operation: Use Normal (copy) operation </short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="CopyPut">
+<short>Draw operation: use Copy</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="XORPut">
+<short>Draw operation: use XOR</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="OrPut">
+<short>Draw operation: use OR</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AndPut">
+<short>Draw operation: use AND</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="NotPut">
+<short>Draw operation: use NOT</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="LeftText">
+<short>Horizontal text alignment: Align text left</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="CenterText">
+<short>Horizontal text alignment: Center text</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="RightText">
+<short>Horizontal text alignment: Align text right</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="BottomText">
+<short>Vertical text alignment: Align text to bottom</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="TopText">
+<short>Vertical text alignment: Align text to top</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="CurrentDriver">
+<short>Currently used driver</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Detect">
+<short>Mode: Detect mode.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="LowRes">
+<short>Mode: Low resolution.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="HercMono">
+<short>Mode: Hercules, mono color</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VGA">
+<short>Mode: VGA graphics adaptor.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VESA">
+<short>Mode: VESA graphics adaptor.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="D1bit">
+<short>Mode: Depth 1 bit</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="D2bit">
+<short>Mode: Depth 2 bit</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="D4bit">
+<short>Mode: Depth 4 bit</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="D6bit">
+<short>Mode: Depth 6 bit</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="D8bit">
+<short>Mode: Depth 8 bit</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="D12bit">
+<short>Mode: Depth 12 bit</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="D15bit">
+<short>Mode: Depth 15 bit</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="D16bit">
+<short>Mode: Depth 16 bit</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="D24bit">
+<short>Mode: Depth 24 bit</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="D32bit">
+<short>Mode: Depth 32 bit</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="D64bit">
+<short>Mode: Depth 64 bit</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="lowNewDriver">
+<short>Mode: lowest number for new driver</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="highNewDriver">
+<short>Mode: highest number for new driver</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="Default">
+<short>Default mode</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VGALo">
+<short>Mode: VGA low resolution (640x200)</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VGAMed">
+<short>Mode: VGA medium resolution (640x350)</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="VGAHi">
+<short>Mode: VGA high resolution (640x480)</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="detectMode">
+<short>Mode: Autodetect optimal mode</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="m320x200">
+<short>Mode: Resolution 320x200</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="m320x256">
+<short>Mode: Resolution 320x256</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="m320x400">
+<short>Mode: Resolution 320x400</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="m512x384">
+<short>Mode: Resolution 512x384</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="m640x200">
+<short>Mode: Resolution 640x200</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="m640x256">
+<short>Mode: Resolution 640x256</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="m640x350">
+<short>Mode: Resolution 640x350</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="m640x400">
+<short>Mode: Resolution 640x400</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="m640x480">
+<short>Mode: Resolution 640x480</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="m800x600">
+<short>Mode: Resolution 800x600</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="m832x624">
+<short>Mode: Resolution 832x624</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="m1024x768">
+<short>Mode: Resolution 1024x768</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="m1280x1024">
+<short>Mode: Resolution 1280x1024</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="m1600x1200">
+<short>Mode: Resolution 1600x1200</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="m2048x1536">
+<short>Mode: Resolution 2048x1536</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="lowNewMode">
+<short>Mode: Lowest possible value of the new modes.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="highNewMode">
+<short>Mode: Highest possible value of the new modes.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="resolutions">
+<short>Array with actual resolutions of the new modes</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="HercMonoHi">
+<short>Mode: Hercules card, monochrome, high resolution</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="MaxColors">
+<short>Max amount of colors in a palette</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="LineSettingsType.thickness">
+<short>Thickness of the drawn lines.</short>
+</element>
+
+<!-- alias type Visibility: default -->
+<element name="graph_float">
+<short>The platform's preferred floating point size for fast graph operations</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="fillpatternTable">
+<short>Table with standard fill patterns</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="defpixelproc">
+<short>Standard pixel drawing routine prototype.</short>
+<descr>
+This is the standard putpixel routine used by all function
+drawing routines, it will use the viewport settings, as  
+well as clip, and use the current foreground color to plot the desired pixel.
+</descr>
+</element>
+
+<!-- function type Visibility: default -->
+<element name="getpixelproc">
+<short>Standard pixel fetching routine prototype</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="putpixelproc">
+<short>Standard pixel drawing routine prototype</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="clrviewproc">
+<short>Standard clearviewport routine prototype</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="putimageproc">
+<short>Standard <link id="PutImage"/> procedure prototype.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="getimageproc">
+<short>Standard <link id="GetImage"/> procedure prototype.</short>
+</element>
+
+<!-- function type Visibility: default -->
+<element name="imagesizeproc">
+<short>Standard <link id="ImageSize"/> calculation procedure prototype.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="graphfreememprc">
+<short>Procedure prototype, used when heap memory is freed by the graph routines.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="graphgetmemprc">
+<short>Procedure prototype, used when heap memory is needed by the graph routines.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="hlineproc">
+<short>Standard procedure prototype to draw a single horizontal line</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="vlineproc">
+<short>Standard procedure prototype to draw a single vertical line</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="patternlineproc">
+<short>Standard procedure prototype to draw a patterned line</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="ellipseproc">
+<short>Standard ellipse drawing routine prototype.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="lineproc">
+<short>Standard line drawing routine prototype.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="getscanlineproc">
+<short>Standard getscanline routine prototype</short>
+<descr>
+This routine is used for <link id="FloodFill"/>
+It returns an entire screen scan line with a word for each 
+pixel in the scanline. Also handy for GetImage.
+</descr>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="setactivepageproc">
+<short>Standard <link id="SetActivePage"/> procedure prototype.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="setvisualpageproc">
+<short>Standard <link id="SetVisualPage"/> procedure prototype.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="initmodeproc">
+<short>Standard routine prototype to initialize a mode.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="savestateproc">
+<short>Standard routine prototype to save the graphical state before a mode is set.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="restorestateproc">
+<short>Standard routine prototype to restore the graphical state at a closegraph call.</short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="setrgbpaletteproc">
+<short>This routine  prototype is a hook for <link id="SetRGBPalette"/></short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="getrgbpaletteproc">
+<short>This routine prototype is a hook for <link id="GetRGBPalette"/></short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="SetAllPaletteProc">
+<short>This routine prototype is a hook for <link id="SetAllPalette"/></short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="OutTextXYProc">
+<short>This routine prototype  is a hook for <link id="OutTextXY"/></short>
+</element>
+
+<!-- procedure type Visibility: default -->
+<element name="CircleProc">
+<short>Standard circle drawing routine prototype.</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PModeInfo">
+<short>Pointer to <link id="TModeInfo"/> record </short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="TModeInfo">
+<short>Record describing a graphical mode.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.DriverNumber">
+<short>Number of the driver to be used in <link id="InitGraph"/>.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.ModeNumber">
+<short>Number of the mode to be used in <link id="InitGraph"/>.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.internModeNumber">
+<short>Internal mode number. Do not use.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.MaxColor">
+<short>Max. number of colors in this mode.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.PaletteSize">
+<short>Max number of palette entries in this mode.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.XAspect">
+<short>X aspect (Aspect ratio correction factor) of mode </short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.YAspect">
+<short>Y aspect (Aspect ratio correction factor) of mode</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.MaxX">
+<short>Max number of pixels in horizontal direction (columns).</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.MaxY">
+<short>Max number of pixels in vertical direction (rows).</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.DirectColor">
+<short>Direct color mode ? (If False, uses palette)</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.Hardwarepages">
+<short>Total number of image pages - 1</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.ModeName">
+<short>Mode description.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.DirectPutPixel">
+<short>Mode Putpixel routine.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.GetPixel">
+<short>Mode Getpixel routine.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.PutPixel">
+<short>Mode Putpixel routine.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.SetRGBPalette">
+<short>Mode SetRGBPalette routine</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.GetRGBPalette">
+<short>Mode GetRGBPalette routine</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.SetAllPalette">
+<short>Mode SetAllPalette routine</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.SetVisualPage">
+<short>Mode SetVisualPage routine</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.SetActivePage">
+<short>Mode SetActivePage routine</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.ClearViewPort">
+<short>Mode Clearviewport routine.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.PutImage">
+<short>Mode PutImage routine.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.GetImage">
+<short>Mode GetImage routine.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.ImageSize">
+<short>Mode ImageSize routine.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.GetScanLine">
+<short>Mode GetScanLine routine</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.Line">
+<short>Mode Line drawing routine</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.InternalEllipse">
+<short>Mode ellipse drawing routine.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.PatternLine">
+<short>Mode PatternLine routine.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.HLine">
+<short>Mode Horizontal full line drawing routine.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.VLine">
+<short>Mode vertical full line drawing routine.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.Circle">
+<short>Mode circle drawing routine.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.InitMode">
+<short>Mode initialization routine.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.OutTextXY">
+<short>Mode OutTextXY routine.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TModeInfo.next">
+<short>Pointer to next mode in linked list.</short>
+</element>
+
+<!-- record type Visibility: default -->
+<element name="TNewModeInfo">
+<short>Mode information for new modes.a</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TNewModeInfo.modeInfo">
+<short>Mode information pointers.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="TNewModeInfo.loHiModeNr">
+<short>Array of low and high bounds for modes.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="DirectPutPixel">
+<short>Hook to directly draw a pixel on the screen.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="GetRGBPalette">
+<short>Hook to set a RGB palette entries.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="GraphFreeMemPtr">
+<short>Hook to free heap memory.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="GraphGetMemPtr">
+<short>Hook to get heap memory</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="GetScanLine">
+<short>Hook to get a scan line from the screen.</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="InternalEllipse">
+<short>Hook to draw an ellipse</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="PatternLine">
+<short>Hook to draw a patterned line</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="HLine">
+<short>Hook to draw a solid horizontal line</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="VLine">
+<short>Hook to draw a solid vertical line</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="SaveVideoState">
+<short>Hook to save the current video state</short>
+</element>
+
+<!-- variable Visibility: default -->
+<element name="RestoreVideoState">
+<short>Hook to restore a saved video mode</short>
+</element>
+
+<!-- array type Visibility: default -->
+<element name="TCharsetTransTable">
+<short>Character transliteration table, with entries for 256 characters</short>
+</element>
+
+<!-- pointer type Visibility: default -->
+<element name="PCharsetTransTable">
+<short>Pointer to <link id="TCharsetTransTable"/> array.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="AnsiToASCIITransTable">
+<short>Default ansi transliteration table.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="GraphStringTransTable">
+<short>Table used when transliterating strings.</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="DrawTextBackground">
+<short>Should the background of texts be drawn or should it be left untouched ?</short>
+</element>
+
+<!-- function Visibility: default -->
+<element name="queryadapterinfo">
+<short>Function called to retrieve the current video adapter settings.</short>
+</element>
+
+<!-- procedure Visibility: default -->
+<element name="SetDirectVideo">
+<short>Attempt to enter direct video mode.</short>
+<descr>
+<var>SetDirectVideo</var> attempts to enter direct video mode. In that mode,
+everything is drawn straight in the video buffer.
+</descr>
+</element>
+
+<!-- function Visibility: default -->
+<element name="GetDirectVideo">
+<short>Determine whether direct video mode is active.</short>
+<descr>
+</descr>
+<errors>
+</errors>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G320x200x16">
+<short>Mode: Resulution 320x200, 16 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G640x200x16">
+<short>Mode: Resolution x, colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G640x350x16">
+<short>Mode: Resolution x, colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G640x480x16">
+<short>Mode: Resolution x, colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G320x200x256">
+<short>Mode: Resolution 320x200, 256 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G320x240x256">
+<short>Mode: Resolution 320x240, 256 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G320x400x256">
+<short>Mode: Resolution 320x400, 256 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G360x480x256">
+<short>Mode: Resolution 360x480, 256 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G640x480x2">
+<short>Mode: Resolution 640x480, 2 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G640x480x256">
+<short>Mode: Resolution 640x480, 256 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G800x600x256">
+<short>Mode: Resolution 800x600, 256 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1024x768x256">
+<short>Mode: Resolution 1024x768, 256 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1280x1024x256">
+<short>Mode: Resolution 1280x1024, 256 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G320x200x32K">
+<short>Mode: Resolution 320x200, 32K colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G320x200x64K">
+<short>Mode: Resolution 320x200, 64K colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G320x200x16M">
+<short>Mode: Resolution 320x200, 16M colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G640x480x32K">
+<short>Mode: Resolution 640x480, 32K colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G640x480x64K">
+<short>Mode: Resolution 640x480, 64K colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G640x480x16M">
+<short>Mode: Resolution 640x480, 16M colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G800x600x32K">
+<short>Mode: Resolution 800x600, 32K colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G800x600x64K">
+<short>Mode: Resolution 800x600, 64K colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G800x600x16M">
+<short>Mode: Resolution 800x600, 16M colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1024x768x32K">
+<short>Mode: Resolution 1024x768, 32K colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1024x768x64K">
+<short>Mode: Resolution 1024x768, 64K colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1024x768x16M">
+<short>Mode: Resolution 1024x768, 16M colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1280x1024x32K">
+<short>Mode: Resolution 1280x1024, 32K colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1280x1024x64K">
+<short>Mode: Resolution 1280x1024, 64K colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1280x1024x16M">
+<short>Mode: Resolution 1280x1024, 16M colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G800x600x16">
+<short>Mode: Resolution 800x600, 16 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1024x768x16">
+<short>Mode: Resolution 1024x768, 16 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1280x1024x16">
+<short>Mode: Resolution 1280x1024, 16 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G720x348x2">
+<short>Mode: Resolution 720x348, 2 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G320x200x16M32">
+<short>Mode: Resolution 320x200, 16M 32-bit colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G640x480x16M32">
+<short>Mode: Resolution 640x480, 16M 32-bit colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G800x600x16M32">
+<short>Mode: Resolution 800x600, 16M 32-bit colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1024x768x16M32">
+<short>Mode: Resolution 1024x758, 16M 32-bit colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1280x1024x16M32">
+<short>Mode: Resolution 1280x1024, 16M 32-bit colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1152x864x16">
+<short>Mode: Resolution 1152x864, 16 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1152x864x256">
+<short>Mode: Resolution 1152x864, 256 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1152x864x32K">
+<short>Mode: Resolution 1152x864, 32K colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1152x864x64K">
+<short>Mode: Resolution 1152x864, 64K colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1152x864x16M">
+<short>Mode: Resolution 1152x864, 16M colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1152x864x16M32">
+<short>Mode: Resolution 1152x864, 16M 32-bitcolors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1600x1200x16">
+<short>Mode: Resolution 1600x1200, 16 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1600x1200x256">
+<short>Mode: Resolution 1600x1200, 256 colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1600x1200x32K">
+<short>Mode: Resolution 1600x1200, 32K colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1600x1200x64K">
+<short>Mode: Resolution 1600x1200, 64K colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1600x1200x16M">
+<short>Mode: Resolution 1600x1200, 16M colors</short>
+</element>
+
+<!-- constant Visibility: default -->
+<element name="G1600x1200x16M32">
+<short>Mode: Resolution 1600x1200, 16M 32-bit colors</short>
+</element>
 
 </module>
 </package>
