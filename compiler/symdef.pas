@@ -523,7 +523,6 @@ interface
 {$endif GDB}
        public
           extnumber      : word;
-          overloadnumber : word;
           messageinf : tmessageinf;
 {$ifndef EXTDEBUG}
           { where is this function defined and what were the symbol
@@ -850,8 +849,6 @@ implementation
            if st.defowner.deftype<>procdef then
             internalerror(200204173);
            s:=tprocdef(st.defowner).procsym.name;
-           if tprocdef(st.defowner).overloadnumber>0 then
-            s:=s+'$'+tostr(tprocdef(st.defowner).overloadnumber);
            prefix:=s+'$'+prefix;
            st:=st.defowner.owner;
          end;
@@ -3612,7 +3609,6 @@ implementation
 
          new(inlininginfo);
          fillchar(inlininginfo^,sizeof(tinlininginfo),0);
-         overloadnumber:=0;
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
@@ -3631,7 +3627,6 @@ implementation
           _mangledname:=stringdup(ppufile.getstring)
          else
           _mangledname:=nil;
-         overloadnumber:=ppufile.getword;
          extnumber:=ppufile.getword;
          level:=ppufile.getbyte;
          ppufile.getderef(_classderef);
@@ -3761,7 +3756,6 @@ implementation
          ppufile.putbyte(byte(has_mangledname));
          if has_mangledname then
           ppufile.putstring(_mangledname^);
-         ppufile.putword(overloadnumber);
          ppufile.putword(extnumber);
          ppufile.putbyte(parast.symtablelevel);
          ppufile.putderef(_classderef);
@@ -4270,8 +4264,6 @@ implementation
         { we need to use the symtable where the procsym is inserted,
           because that is visible to the world }
         mangledname:=make_mangledname('',procsym.owner,procsym.name);
-        if overloadnumber>0 then
-         mangledname:=mangledname+'$'+tostr(overloadnumber);
         { add parameter types }
         for i:=0 to paras.count-1 do
          begin
@@ -4279,6 +4271,10 @@ implementation
            if not(vo_is_hidden_para in hp.varoptions) then
              mangledname:=mangledname+'$'+hp.vartype.def.mangledparaname;
          end;
+        { add resulttype, add $$ as separator to make it unique from a
+          parameter separator }
+        if not is_void(rettype.def) then
+          mangledname:=mangledname+'$$'+rettype.def.mangledparaname;
         { cut off too long strings using a crc }
         if length(result)>200 then
           begin
@@ -6130,7 +6126,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.271  2004-11-15 23:35:31  peter
+  Revision 1.272  2004-11-16 22:09:57  peter
+  * _mangledname for symbols moved only to symbols that really need it
+  * overload number removed, add function result type to the mangledname fo
+    procdefs
+
+  Revision 1.271  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

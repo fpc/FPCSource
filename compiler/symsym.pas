@@ -43,8 +43,6 @@ interface
     type
        { this class is the base for all symbol objects }
        tstoredsym = class(tsym)
-       protected
-          _mangledname : pstring;
        public
           constructor create(const n : string);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -55,8 +53,7 @@ interface
           function  stabstr_evaluate(const s:string;vars:array of string):Pchar;
           procedure concatstabto(asmlist : taasmoutput);
 {$endif GDB}
-          function  mangledname : string;
-          procedure generate_mangledname;virtual;
+          function  mangledname : string; virtual;
        end;
 
        tlabelsym = class(tstoredsym)
@@ -66,7 +63,7 @@ interface
           code : pointer; { should be tnode }
           constructor create(const n : string; l : tasmlabel);
           constructor ppuload(ppufile:tcompilerppufile);
-          procedure generate_mangledname;override;
+          function mangledname:string;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
           function  stabstring : pchar;override;
@@ -98,7 +95,6 @@ interface
           is_global : boolean;
 {$endif GDB}
           overloadchecked : boolean;
-          overloadcount : word;    { amount of overloaded functions in this module }
           property procdef[nr:cardinal]:Tprocdef read getprocdef;
           constructor create(const n : string);
           constructor ppuload(ppufile:tcompilerppufile);
@@ -219,13 +215,17 @@ interface
       end;
 
       tglobalvarsym = class(tabstractnormalvarsym)
+      private
+          _mangledname : pstring;
+      public
+          has_mangledname : boolean;
           constructor create(const n : string;vsp:tvarspez;const tt : ttype);
           constructor create_dll(const n : string;vsp:tvarspez;const tt : ttype);
           constructor create_C(const n,mangled : string;vsp:tvarspez;const tt : ttype);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure generate_mangledname;override;
+          function mangledname:string;override;
           procedure set_mangledname(const s:string);
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -233,6 +233,9 @@ interface
       end;
 
       tabsolutevarsym = class(tabstractvarsym)
+      private
+          _mangledname : pstring;
+      public
          abstyp  : absolutetyp;
 {$ifdef i386}
          absseg  : boolean;
@@ -276,13 +279,16 @@ interface
        end;
 
        ttypedconstsym = class(tstoredsym)
+       private
+          _mangledname : pstring;
+       public
           typedconsttype  : ttype;
           is_writable     : boolean;
           constructor create(const n : string;p : tdef;writable : boolean);
           constructor createtype(const n : string;const tt : ttype;writable : boolean);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
-          procedure generate_mangledname;override;
+          function  mangledname : string;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
@@ -341,10 +347,14 @@ interface
 
        { compiler generated symbol to point to rtti and init/finalize tables }
        trttisym = class(tstoredsym)
+       private
+          _mangledname : pstring;
+       public
           lab     : tasmsymbol;
           rttityp : trttitype;
           constructor create(const n:string;rt:trttitype);
           constructor ppuload(ppufile:tcompilerppufile);
+          destructor destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  mangledname:string;
           function  get_label:tasmsymbol;
@@ -384,7 +394,6 @@ implementation
     constructor tstoredsym.create(const n : string);
       begin
          inherited create(n);
-         _mangledname:=nil;
       end;
 
 
@@ -393,7 +402,6 @@ implementation
         nr : word;
         s  : string;
       begin
-         _mangledname:=nil;
          nr:=ppufile.getword;
          s:=ppufile.getstring;
          if s[1]='$' then
@@ -428,16 +436,6 @@ implementation
 
     destructor tstoredsym.destroy;
       begin
-        if assigned(_mangledname) then
-         begin
-{$ifdef MEMDEBUG}
-           memmanglednames.start;
-{$endif MEMDEBUG}
-           stringdispose(_mangledname);
-{$ifdef MEMDEBUG}
-           memmanglednames.stop;
-{$endif MEMDEBUG}
-         end;
         if assigned(defref) then
          begin
 {$ifdef MEMDEBUG}
@@ -480,25 +478,9 @@ implementation
 {$endif GDB}
 
 
-    procedure tstoredsym.generate_mangledname;
-      begin
-        internalerror(200411062);
-      end;
-
-
     function tstoredsym.mangledname : string;
       begin
-        if not assigned(_mangledname) then
-          begin
-            generate_mangledname;
-            if not assigned(_mangledname) then
-              internalerror(200204171);
-          end;
-     {$ifdef compress}
-        mangledname:=minilzw_decode(_mangledname^);
-     {$else}
-        mangledname:=_mangledname^;
-     {$endif}
+        internalerror(200204171);
       end;
 
 
@@ -507,7 +489,6 @@ implementation
 ****************************************************************************}
 
     constructor tlabelsym.create(const n : string; l : tasmlabel);
-
       begin
          inherited create(n);
          typ:=labelsym;
@@ -517,8 +498,8 @@ implementation
          code:=nil;
       end;
 
-    constructor tlabelsym.ppuload(ppufile:tcompilerppufile);
 
+    constructor tlabelsym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(ppufile);
          typ:=labelsym;
@@ -530,15 +511,11 @@ implementation
          defined:=true;
       end;
 
-    procedure tlabelsym.generate_mangledname;
 
-    begin
-    {$ifdef compress}
-      _mangledname:=stringdup(minilzw_encode(lab.name));
-    {$else}
-      _mangledname:=stringdup(lab.name);
-    {$endif}
-    end;
+    function tlabelsym.mangledname:string;
+      begin
+        result:=lab.name;
+      end;
 
 
     procedure tlabelsym.ppuwrite(ppufile:tcompilerppufile);
@@ -615,7 +592,6 @@ implementation
            always visible }
          symoptions:=[sp_public];
          overloadchecked:=false;
-         overloadcount:=0;
          procdef_count:=0;
       end;
 
@@ -640,7 +616,6 @@ implementation
          is_global:=false;
 {$endif GDB}
          overloadchecked:=false;
-         overloadcount:=$ffff; { invalid, not used anymore }
       end;
 
 
@@ -1287,7 +1262,6 @@ implementation
       begin
          inherited create(n);
          vartype:=tt;
-         _mangledname:=nil;
          varspez:=vsp;
          varstate:=vs_declared;
          varoptions:=[];
@@ -1555,12 +1529,7 @@ implementation
     constructor tglobalvarsym.create_C(const n,mangled : string;vsp:tvarspez;const tt : ttype);
       begin
          tglobalvarsym(self).create(n,vsp,tt);
-         stringdispose(_mangledname);
-       {$ifdef compress}
-         _mangledname:=stringdup(minilzw_encode(mangled));
-       {$else}
-         _mangledname:=stringdup(mangled);
-       {$endif}
+         set_mangledname(mangled);
       end;
 
 
@@ -1568,14 +1537,26 @@ implementation
       begin
          inherited ppuload(ppufile);
          typ:=globalvarsym;
-         if [vo_is_C_var,vo_is_dll_var]*varoptions<>[] then
-           _mangledname:=stringdup(ppufile.getstring);
+         has_mangledname:=boolean(ppufile.getbyte);
+         if has_mangledname then
+           _mangledname:=stringdup(ppufile.getstring)
+         else
+           _mangledname:=nil;
       end;
 
 
     destructor tglobalvarsym.destroy;
       begin
-        stringdispose(_mangledname);
+        if assigned(_mangledname) then
+          begin
+{$ifdef MEMDEBUG}
+            memmanglednames.start;
+{$endif MEMDEBUG}
+            stringdispose(_mangledname);
+{$ifdef MEMDEBUG}
+            memmanglednames.stop;
+{$endif MEMDEBUG}
+          end;
         inherited destroy;
       end;
 
@@ -1583,19 +1564,24 @@ implementation
     procedure tglobalvarsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         if [vo_is_C_var,vo_is_dll_var]*varoptions<>[] then
+         ppufile.putbyte(byte(has_mangledname));
+         if has_mangledname then
            ppufile.putstring(_mangledname^);
          ppufile.writeentry(ibglobalvarsym);
       end;
 
 
-    procedure tglobalvarsym.generate_mangledname;
+    function tglobalvarsym.mangledname:string;
       begin
+        if not assigned(_mangledname) then
+          begin
       {$ifdef compress}
-        _mangledname:=stringdup(minilzw_encode(make_mangledname('U',owner,name)));
+            _mangledname:=stringdup(minilzw_encode(make_mangledname('U',owner,name)));
       {$else}
-        _mangledname:=stringdup(make_mangledname('U',owner,name));
+           _mangledname:=stringdup(make_mangledname('U',owner,name));
       {$endif}
+          end;
+        result:=_mangledname^;
       end;
 
 
@@ -1607,6 +1593,7 @@ implementation
       {$else}
         _mangledname:=stringdup(s);
       {$endif}
+        has_mangledname:=true;
       end;
 
 
@@ -1994,17 +1981,31 @@ implementation
 
     destructor ttypedconstsym.destroy;
       begin
+        if assigned(_mangledname) then
+          begin
+{$ifdef MEMDEBUG}
+            memmanglednames.start;
+{$endif MEMDEBUG}
+            stringdispose(_mangledname);
+{$ifdef MEMDEBUG}
+            memmanglednames.stop;
+{$endif MEMDEBUG}
+          end;
          inherited destroy;
       end;
 
 
-    procedure ttypedconstsym.generate_mangledname;
+    function ttypedconstsym.mangledname:string;
       begin
+        if not assigned(_mangledname) then
+          begin
       {$ifdef compress}
-        _mangledname:=stringdup(make_mangledname('TC',owner,name));
+            _mangledname:=stringdup(make_mangledname('TC',owner,name));
       {$else}
-        _mangledname:=stringdup(make_mangledname('TC',owner,name));
+            _mangledname:=stringdup(make_mangledname('TC',owner,name));
       {$endif}
+          end;
+        result:=_mangledname^;
       end;
 
 
@@ -2504,6 +2505,22 @@ implementation
       end;
 
 
+    destructor trttisym.destroy;
+      begin
+        if assigned(_mangledname) then
+          begin
+{$ifdef MEMDEBUG}
+            memmanglednames.start;
+{$endif MEMDEBUG}
+            stringdispose(_mangledname);
+{$ifdef MEMDEBUG}
+            memmanglednames.stop;
+{$endif MEMDEBUG}
+          end;
+        inherited destroy;
+      end;
+
+
     constructor trttisym.ppuload(ppufile:tcompilerppufile);
       begin
         inherited ppuload(ppufile);
@@ -2525,7 +2542,9 @@ implementation
       const
         prefix : array[trttitype] of string[5]=('RTTI_','INIT_');
       begin
-        result:=make_mangledname(prefix[rttityp],owner,Copy(name,5,255));
+        if not assigned(_mangledname) then
+          _mangledname:=stringdup(make_mangledname(prefix[rttityp],owner,Copy(name,5,255)));
+        result:=_mangledname^;
       end;
 
 
@@ -2541,7 +2560,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.192  2004-11-15 23:35:31  peter
+  Revision 1.193  2004-11-16 22:09:57  peter
+  * _mangledname for symbols moved only to symbols that really need it
+  * overload number removed, add function result type to the mangledname fo
+    procdefs
+
+  Revision 1.192  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

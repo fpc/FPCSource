@@ -2249,13 +2249,7 @@ const
         { if we didn't reuse a forwarddef then we add the procdef to the overloaded
           list }
         if not forwardfound then
-         begin
-           aprocsym.addprocdef(pd);
-           { add overloadnumber for unique naming, the overloadcount is
-             counted per module and 0 for the first procedure }
-           pd.overloadnumber:=aprocsym.overloadcount;
-           inc(aprocsym.overloadcount);
-         end;
+          aprocsym.addprocdef(pd);
 
         proc_add_definition:=forwardfound;
       end;
@@ -2263,7 +2257,12 @@ const
 end.
 {
   $Log$
-  Revision 1.206  2004-11-16 20:32:40  peter
+  Revision 1.207  2004-11-16 22:09:57  peter
+  * _mangledname for symbols moved only to symbols that really need it
+  * overload number removed, add function result type to the mangledname fo
+    procdefs
+
+  Revision 1.206  2004/11/16 20:32:40  peter
   * fixes for win32 mangledname
 
   Revision 1.205  2004/11/15 23:35:31  peter
