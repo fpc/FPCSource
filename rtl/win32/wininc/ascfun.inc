@@ -283,6 +283,8 @@ function EnumDisplaySettingsA(lpszDeviceName:LPCSTR; iModeNum:DWORD; lpDevMode:L
 function SystemParametersInfoA(uiAction:UINT; uiParam:UINT; pvParam:PVOID; fWinIni:UINT):WINBOOL; external 'user32' name 'SystemParametersInfoA';
 function AddFontResourceA(_para1:LPCSTR):longint; external 'gdi32' name 'AddFontResourceA';
 function CopyMetaFileA(_para1:HMETAFILE; _para2:LPCSTR):HMETAFILE; external 'gdi32' name 'CopyMetaFileA';
+function CreateFontA(_para1:longint; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:DWORD; _para7:DWORD; _para8:DWORD; _para9:DWORD; _para10:DWORD;_para11:DWORD; _para12:DWORD; _para13:DWORD; _para14:LPCWSTR):HFONT;
+external 'gdi32' name 'CreateFontA';
 function CreateFontIndirectA(_para1:LPLOGFONT):HFONT; external 'gdi32' name 'CreateFontIndirectA';
 function CreateICA(_para1:LPCSTR; _para2:LPCSTR; _para3:LPCSTR; _para4:LPDEVMODE):HDC; external 'gdi32' name 'CreateICA';
 function CreateMetaFileA(_para1:LPCSTR):HDC; external 'gdi32' name 'CreateMetaFileA';
@@ -489,13 +491,50 @@ end;
 
 {
   $Log$
-  Revision 1.4  2002-01-19 11:58:20  peter
-    * more functions from webbugs
+  Revision 1.5  2002-05-09 08:31:43  carl
+  * Merges from Fixes branch
 
-  Revision 1.3  2000/10/11 16:05:56  peter
-    * stdcall for callbacks (merged)
+  Revision 1.1.2.3  2002/01/19 11:48:20  peter
+    * more functions added from webbugs
 
-  Revision 1.2  2000/07/13 11:33:58  michael
-  + removed logs
- 
+  Revision 1.1.2.2  2001/04/16 23:08:21  pierre
+   * fixes for bug 1473
+
+  Revision 1.1.2.1  2000/10/02 22:15:40  pierre
+   * all callbacks are stdcall functions
+
+  Revision 1.1  2000/07/13 06:31:23  michael
+  + Initial import
+
+  Revision 1.9  2000/06/16 13:35:07  pierre
+   * GetFullPathName was wrong
+
+  Revision 1.8  2000/06/15 11:26:58  pierre
+    * avoid lines longer than 255 chars
+    + add smartlink on by default, if not version 0.99.14
+    * some functions not present in win95 DLL's are now only inserted if
+      smartlink is on.
+
+  Revision 1.7  2000/06/14 19:24:58  peter
+    * removed more var stuff which is now in redef
+
+  Revision 1.6  2000/06/11 07:04:58  peter
+    * Windows unit has now more Delphi compatibile functions
+    * placed the external functions only in the interface
+
+  Revision 1.5  2000/03/20 23:44:43  alex
+   + added overlaoded PeekMessage fundtion for delphi compatibility
+
+  Revision 1.4  2000/02/09 16:59:35  peter
+    * truncated log
+
+  Revision 1.3  2000/01/07 16:41:54  daniel
+    * copyright 2000
+
+  Revision 1.2  1999/09/28 22:30:00  peter
+    * fixed createdc to be D4 compatible
+
+  Revision 1.1  1999/09/16 13:38:22  peter
+    * windows unit include moved to wininc/
+
 }

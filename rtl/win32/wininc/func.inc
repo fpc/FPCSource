@@ -521,9 +521,9 @@ function TrackPopupMenu(hMenu:HMENU; uFlags:UINT; x:longint; y:longint; nReserve
 function GetMenuDefaultItem(hMenu:HMENU; fByPos:UINT; gmdiFlags:UINT):UINT; external 'user32' name 'GetMenuDefaultItem';
 function SetMenuDefaultItem(hMenu:HMENU; uItem:UINT; fByPos:UINT):WINBOOL; external 'user32' name 'SetMenuDefaultItem';
 function GetMenuItemRect(hWnd:HWND; hMenu:HMENU; uItem:UINT; lprcItem:LPRECT):WINBOOL; external 'user32' name 'GetMenuItemRect';
-function MenuItemFromPoint(hWnd:HWND; hMenu:HMENU; ptScreen:POINT):longint; external 'user32' name 'MenuItemFromPoint';
+function MenuItemFromPoint(hWnd:HWND; hMenu:HMENU; ptScreen:POINT):longint; {external 'user32' name 'MenuItemFromPoint';bug 1807 }
 function DragObject(_para1:HWND; _para2:HWND; _para3:UINT; _para4:DWORD; _para5:HCURSOR):DWORD; external 'user32' name 'DragObject';
-function DragDetect(hwnd:HWND; pt:POINT):WINBOOL; external 'user32' name 'DragDetect';
+function DragDetect(hwnd:HWND; pt:POINT):WINBOOL; {external 'user32' name 'DragDetect';bug 1807 }
 function DrawIcon(hDC:HDC; X:longint; Y:longint; hIcon:HICON):WINBOOL; external 'user32' name 'DrawIcon';
 function UpdateWindow(hWnd:HWND):WINBOOL; external 'user32' name 'UpdateWindow';
 function SetActiveWindow(hWnd:HWND):HWND; external 'user32' name 'SetActiveWindow';
@@ -586,8 +586,8 @@ function GetCaretPos(lpPoint:LPPOINT):WINBOOL; external 'user32' name 'GetCaretP
 function ClientToScreen(hWnd:HWND; lpPoint:LPPOINT):WINBOOL; external 'user32' name 'ClientToScreen';
 function ScreenToClient(hWnd:HWND; lpPoint:LPPOINT):WINBOOL; external 'user32' name 'ScreenToClient';
 function MapWindowPoints(hWndFrom:HWND; hWndTo:HWND; lpPoints:LPPOINT; cPoints:UINT):longint; external 'user32' name 'MapWindowPoints';
-function WindowFromPoint(Point:POINT):HWND; external 'user32' name 'WindowFromPoint';
-function ChildWindowFromPoint(hWndParent:HWND; Point:POINT):HWND; external 'user32' name 'ChildWindowFromPoint';
+function WindowFromPoint(Point:POINT):HWND; { external 'user32' name 'WindowFromPoint';bug 1807 }
+function ChildWindowFromPoint(hWndParent:HWND; Point:POINT):HWND; { external 'user32' name 'ChildWindowFromPoint';bug 1807 }
 function GetSysColor(nIndex:longint):DWORD; external 'user32' name 'GetSysColor';
 function GetSysColorBrush(nIndex:longint):HBRUSH; external 'user32' name 'GetSysColorBrush';
 function SetSysColors(cElements:longint; var lpaElements:wINT; var lpaRgbValues:COLORREF):WINBOOL; external 'user32' name 'SetSysColors';
@@ -605,7 +605,7 @@ function SubtractRect(lprcDst:LPRECT; var lprcSrc1:RECT; var lprcSrc2:RECT):WINB
 function OffsetRect(lprc:LPRECT; dx:longint; dy:longint):WINBOOL; external 'user32' name 'OffsetRect';
 function IsRectEmpty(var lprc:RECT):WINBOOL; external 'user32' name 'IsRectEmpty';
 function EqualRect(var lprc1:RECT; var lprc2:RECT):WINBOOL; external 'user32' name 'EqualRect';
-function PtInRect(var lprc:RECT; pt:POINT):WINBOOL; external 'user32' name 'PtInRect';
+function PtInRect(var lprc:RECT; pt:POINT):WINBOOL; {external 'user32' name 'PtInRect';bug 1807 }
 function GetWindowWord(hWnd:HWND; nIndex:longint):WORD; external 'user32' name 'GetWindowWord';
 function SetWindowWord(hWnd:HWND; nIndex:longint; wNewWord:WORD):WORD; external 'user32' name 'SetWindowWord';
 function GetClassWord(hWnd:HWND; nIndex:longint):WORD; external 'user32' name 'GetClassWord';
@@ -616,7 +616,7 @@ function SetParent(hWndChild:HWND; hWndNewParent:HWND):HWND; external 'user32' n
 function EnumChildWindows(hWndParent:HWND; lpEnumFunc:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external 'user32' name 'EnumChildWindows';
 function EnumWindows(lpEnumFunc:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external 'user32' name 'EnumWindows';
 function EnumThreadWindows(dwThreadId:DWORD; lpfn:ENUMWINDOWSPROC; lParam:LPARAM):WINBOOL; external 'user32' name 'EnumThreadWindows';
-function EnumTaskWindows(hTask:HWND; lpfn:FARPROC; lParam: LPARAM): BOOL;external 'user32' name 'EnumTaskWindows';
+function EnumTaskWindows(hTask:HWND; lpfn:FARPROC; lParam: LPARAM): BOOL;external 'user32' name 'EnumThreadWindows';
 function GetTopWindow(hWnd:HWND):HWND; external 'user32' name 'GetTopWindow';
 function GetWindowThreadProcessId(hWnd:HWND; lpdwProcessId:LPDWORD):DWORD; external 'user32' name 'GetWindowThreadProcessId';
 function GetLastActivePopup(hWnd:HWND):HWND; external 'user32' name 'GetLastActivePopup';
@@ -652,7 +652,7 @@ function DrawFrameControl(_para1:HDC; _para2:LPRECT; _para3:UINT; _para4:UINT):W
 function DrawCaption(_para1:HWND; _para2:HDC; var _para3:RECT; _para4:UINT):WINBOOL; external 'user32' name 'DrawCaption';
 function DrawAnimatedRects(hwnd:HWND; idAni:longint; var lprcFrom:RECT; var lprcTo:RECT):WINBOOL; external 'user32' name 'DrawAnimatedRects';
 function TrackPopupMenuEx(_para1:HMENU; _para2:UINT; _para3:longint; _para4:longint; _para5:HWND;_para6:LPTPMPARAMS):WINBOOL; external 'user32' name 'TrackPopupMenuEx';
-function ChildWindowFromPointEx(_para1:HWND; _para2:POINT; _para3:UINT):HWND; external 'user32' name 'ChildWindowFromPointEx';
+function ChildWindowFromPointEx(_para1:HWND; _para2:POINT; _para3:UINT):HWND; {external 'user32' name 'ChildWindowFromPointEx';}
 function DrawIconEx(hdc:HDC; xLeft:longint; yTop:longint; hIcon:HICON; cxWidth:longint;cyWidth:longint; istepIfAniCur:UINT; hbrFlickerFreeDraw:HBRUSH; diFlags:UINT):WINBOOL; external 'user32' name 'DrawIconEx';
 function AnimatePalette(_para1:HPALETTE; _para2:UINT; _para3:UINT; var _para4:PALETTEENTRY):WINBOOL; external 'gdi32' name 'AnimatePalette';
 function Arc(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:longint; _para7:longint; _para8:longint; _para9:longint):WINBOOL; external 'gdi32' name 'Arc';
@@ -916,7 +916,7 @@ function ShowHideMenuCtl(hWnd:HWND; uFlags:UINT; lpInfo:LPINT):WINBOOL; external
 procedure GetEffectiveClientRect(hWnd:HWND; lprc:LPRECT; lpInfo:LPINT); external 'comctl32' name 'GetEffectiveClientRect';
 function MakeDragList(hLB:HWND):WINBOOL; external 'comctl32' name 'MakeDragList';
 procedure DrawInsert(handParent:HWND; hLB:HWND; nItem:longint); external 'comctl32' name 'DrawInsert';
-function LBItemFromPt(hLB:HWND; pt:POINT; bAutoScroll:WINBOOL):longint; external 'comctl32' name 'LBItemFromPt';
+function LBItemFromPt(hLB:HWND; pt:POINT; bAutoScroll:WINBOOL):longint; { external 'comctl32' name 'LBItemFromPt';}
 function CreateUpDownControl(dwStyle:DWORD; x:longint; y:longint; cx:longint; cy:longint;hParent:HWND; nID:longint; hInst:HINST; hBuddy:HWND; nUpper:longint;nLower:longint; nPos:longint):HWND; external 'comctl32' name 'CreateUpDownControl';
 function RegCloseKey(hKey:HKEY):LONG; external 'advapi32' name 'RegCloseKey';
 function RegSetKeySecurity(hKey:HKEY; SecurityInformation:SECURITY_INFORMATION; pSecurityDescriptor:PSECURITY_DESCRIPTOR):LONG; external 'advapi32' name 'RegSetKeySecurity';
@@ -991,7 +991,8 @@ function DuplicateIcon(_para1:HINST; _para2:HICON):HICON; external 'shell32' nam
 function DdeAbandonTransaction(_para1:DWORD; _para2:HCONV; _para3:DWORD):BOOL;external 'user32' name 'DdeAbandonTransaction';
 function DdeAccessData(_para1:HDDEDATA; _para2:PDWORD):PBYTE;external 'user32' name 'DdeAccessData';
 function DdeAddData(_para1:HDDEDATA; _para2:PBYTE; _para3:DWORD; _para4:DWORD):HDDEDATA;external 'user32' name 'DdeAddData';
-function DdeCallback(_para1, _para2:UINT; _para3:HCONV; _para4, _para5:HSZ;_para6: HDDEDATA; _para7, _para8:PDWORD):HDDEDATA;external 'user32' name 'DdeCallback';
+{ This is only a prototype PM
+function DdeCallback(_para1, _para2:UINT; _para3:HCONV; _para4, _para5:HSZ;_para6: HDDEDATA; _para7, _para8:PDWORD):HDDEDATA;external 'user32' name 'DdeCallback';}
 function DdeClientTransaction(_para1:PBYTE; _para2:DWORD; _para3:HCONV; _para4:HSZ; _para5:UINT;
            _para6:UINT; _para7:DWORD; _para8:PDWORD):HDDEDATA;external 'user32' name 'DdeClientTransaction';
 function DdeCmpStringHandles(_para1:HSZ; _para2:HSZ):longint; external 'user32' name 'DdeCmpStringHandles';
@@ -1031,6 +1032,9 @@ procedure SHFreeNameMappings(_para1:HANDLE); external 'shell32' name 'SHFreeName
 function SHGetFileInfo(_para1:LPCTSTR; _para2:DWORD; var _para3:SHFILEINFO; _para4:UINT; _para5:UINT):DWORD; external 'shell32' name 'SHGetFileInfo';
 function SHGetPathFromIDList(_para1:LPCITEMIDLIST; _para2:LPTSTR):WINBOOL; external 'shell32' name 'SHGetPathFromIDList';
 function SHGetSpecialFolderLocation(_para1:HWND; _para2:longint; var _para3:LPITEMIDLIST):HRESULT; external 'shell32' name 'SHGetSpecialFolderLocation';
+
+{ was missing, bug report 1808 PM }
+function CommDlgExtendedError : DWORD; external 'comdlg32' name 'CommDlgExtendedError';
 
 { translated macro's }
 function Animate_Create(hWndP:HWND; id:HMENU;dwStyle:DWORD;hInstance:HINST):HWND;
@@ -1208,6 +1212,64 @@ function GlobalPtrHandle(lp:pointer):Pointer;
 
 
 {$ifdef read_implementation}
+
+{ Win32 API calling convention
+  pushes POINT struct passed by value directly
+  on stack instead of just pushing an address
+  to overcome this we use a internal function
+  that just pushes the two arguments.
+  Bug report 1807. PM }
+
+function Internal_MenuItemFromPoint(hWnd:HWND; hMenu:HMENU; ptScreenX, ptScreenY : LONG):longint; external 'user32' name 'MenuItemFromPoint';
+
+function MenuItemFromPoint(hWnd:HWND; hMenu:HMENU; ptScreen:POINT):longint; {external 'user32' name 'MenuItemFromPoint';}
+begin
+  MenuItemFromPoint:=Internal_MenuItemFromPoint(hWnd, hMenu, ptScreen.X, ptScreen.Y);
+end;
+
+function Internal_DragDetect(hwnd:HWND; ptX, ptY : LONG):WINBOOL; external 'user32' name 'DragDetect';
+
+function DragDetect(hwnd:HWND; pt:POINT):WINBOOL; {external 'user32' name 'DragDetect';}
+begin
+  DragDetect:=Internal_DragDetect(hWnd, pt.X, pt.Y);
+end;
+
+function Internal_WindowFromPoint(PointX,PointY : LONG):HWND; external 'user32' name 'WindowFromPoint';
+
+function WindowFromPoint(Point:POINT):HWND;
+begin
+  WindowFromPoint:=Internal_WindowFromPoint(Point.X, Point.Y);
+end;
+
+function Internal_ChildWindowFromPoint(hWndParent:HWND; PointX,PointY : LONG):HWND; external 'user32' name 'ChildWindowFromPoint';
+
+function ChildWindowFromPoint(hWndParent:HWND; Point:POINT):HWND;
+begin
+  ChildWindowFromPoint:=Internal_ChildWindowFromPoint(hWndParent, Point.X, Point.Y);
+end;
+
+function Internal_PtInRect(var lprc:RECT; ptX,ptY : LONG):WINBOOL; external 'user32' name 'PtInRect';
+
+function PtInRect(var lprc:RECT; pt:POINT):WINBOOL;
+begin
+  PtInRect:=Internal_PtInRect(lprc,pt.X,pt.Y);
+end;
+
+function Internal_ChildWindowFromPointEx(_para1:HWND; _para2X,_Para2Y : LONG; _para3:UINT):HWND; external 'user32' name 'ChildWindowFromPointEx';
+
+function ChildWindowFromPointEx(_para1:HWND; _para2:POINT; _para3:UINT):HWND;
+begin
+  ChildWindowFromPointEx:=Internal_ChildWindowFromPointEx(_para1,_para2.X,_para2.Y,_para3);
+end;
+
+function Internal_LBItemFromPt(hLB:HWND; ptX, ptY : LONG; bAutoScroll:WINBOOL):longint; external 'comctl32' name 'LBItemFromPt';
+
+function LBItemFromPt(hLB:HWND; pt:POINT; bAutoScroll:WINBOOL):longint; { external 'comctl32' name 'LBItemFromPt';}
+begin
+  LBItemFromPt:=Internal_LBItemFromPt(hLB, pt.X, pt.Y, bAutoScroll);
+end;
+
+{ End of bug fixes for bug report 1807. PM }
 
 function GlobalDiscard(hglbMem:HGLOBAL):HGLOBAL;
 begin
@@ -2226,19 +2288,71 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-01-19 11:58:20  peter
-    * more functions from webbugs
+  Revision 1.7  2002-05-09 08:31:44  carl
+  * Merges from Fixes branch
 
-  Revision 1.5  2001/06/13 18:32:55  peter
-    * fixed crash within donevideo (merged)
+  Revision 1.1.2.8  2002/02/18 23:46:21  pierre
+   * add a workaround for bug 1807
 
-  Revision 1.4  2001/02/09 23:08:31  peter
+  Revision 1.1.2.7  2002/02/15 08:42:20  pierre
+   * fix bug 1808
+
+  Revision 1.1.2.6  2002/01/21 09:02:34  pierre
+   * fix correctly bug 1398
+
+  Revision 1.1.2.5  2002/01/19 11:48:20  peter
+    * more functions added from webbugs
+
+  Revision 1.1.2.4  2001/06/12 22:27:32  pierre
+   * fix web bug 1520
+
+  Revision 1.1.2.3  2001/02/09 23:09:21  peter
     * fixed bugs 1398,1399,1400
 
-  Revision 1.3  2001/02/02 20:53:18  peter
-    * merged fix for bug 1375
+  Revision 1.1.2.2  2001/02/01 23:49:02  pierre
+   * fix for bug 1375
 
-  Revision 1.2  2000/07/13 11:33:59  michael
-  + removed logs
+  Revision 1.1.2.1  2000/07/15 21:16:38  pierre
+   * DdeCallBack is only a prototype
+
+  Revision 1.1  2000/07/13 06:31:24  michael
+  + Initial import
+
+  Revision 1.11  2000/06/29 06:46:37  michael
+  + Added ddecallack
+
+  Revision 1.10  2000/06/15 19:56:12  pierre
+   * fix for bug 969: missing DDE functions
+
+  Revision 1.9  2000/06/15 11:26:58  pierre
+    * avoid lines longer than 255 chars
+    + add smartlink on by default, if not version 0.99.14
+    * some functions not present in win95 DLL's are now only inserted if
+      smartlink is on.
+
+  Revision 1.8  2000/06/11 07:04:59  peter
+    * Windows unit has now more Delphi compatibile functions
+    * placed the external functions only in the interface
+
+  Revision 1.7  2000/05/25 12:57:22  pierre
+   + DdeFreeStringHandle was missing
+
+  Revision 1.6  2000/03/19 20:29:06  marco
+   * some stuff for JCL
+
+  Revision 1.5  2000/02/09 16:59:35  peter
+    * truncated log
+
+  Revision 1.4  2000/01/07 16:41:55  daniel
+    * copyright 2000
+
+  Revision 1.3  2000/01/07 16:32:36  daniel
+    * copyright 2000 added
+
+  Revision 1.2  1999/10/26 09:38:51  pierre
+   + some Delphi overload added
+
+  Revision 1.1  1999/09/16 13:38:22  peter
+    * windows unit include moved to wininc/
 
 }

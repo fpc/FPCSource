@@ -539,9 +539,12 @@
      DEFAULT_QUALITY = 0;
      DRAFT_QUALITY = 1;
      PROOF_QUALITY = 2;
+     NONANTIALIASED_QUALITY = 3;
+     ANTIALIASED_QUALITY = 4;
      DEFAULT_PITCH = 0;
      FIXED_PITCH = 1;
      VARIABLE_PITCH = 2;
+     MONO_FONT = 8;
      FF_DECORATIVE = 80;
      FF_DONTCARE = 0;
      FF_MODERN = 48;
@@ -710,6 +713,7 @@
      BS_TOP = $400;
      BS_USERBUTTON = $8;
      BS_VCENTER = $c00;
+     BS_FLAT = $8000;
      CBS_AUTOHSCROLL = $40;
      CBS_DISABLENOSCROLL = $800;
      CBS_DROPDOWN = $2;
@@ -4746,12 +4750,13 @@
      BI_BITFIELDS = 3;
   { Extensions to OpenGL  }
   { ChoosePixelFormat  }
+     PFD_DOUBLEBUFFER = $1;
+     PFD_STEREO = $2;
      PFD_DRAW_TO_WINDOW = $4;
      PFD_DRAW_TO_BITMAP = $8;
      PFD_SUPPORT_GDI = $10;
      PFD_SUPPORT_OPENGL = $20;
-     PFD_DOUBLEBUFFER = $1;
-     PFD_STEREO = $2;
+     PFD_DEPTH_DONTCARE = $20000000;
      PFD_DOUBLEBUFFER_DONTCARE = $40000000;
      PFD_STEREO_DONTCARE = $80000000;
      PFD_TYPE_RGBA = 0;
@@ -4767,8 +4772,11 @@
      PFD_GENERIC_FORMAT = $40;
      PFD_NEED_PALETTE = $80;
      PFD_NEED_SYSTEM_PALETTE = $100;
-     PFD_SWAP_COPY = $400;
      PFD_SWAP_EXCHANGE = $200;
+     PFD_SWAP_COPY = $400;
+     PFD_SWAP_LAYER_BUFFERS = $800;
+     PFD_GENERIC_ACCELERATED = $1000;
+     PFD_SUPPORT_DIRECTDRAW = $2000;
   { TEXTMETRIC structure  }
      TMPF_FIXED_PITCH = $1;
      TMPF_VECTOR = $2;
@@ -5723,13 +5731,44 @@ const
 
 {
   $Log$
-  Revision 1.4  2001-02-09 23:08:31  peter
+  Revision 1.5  2002-05-09 08:31:43  carl
+  * Merges from Fixes branch
+
+  Revision 1.1.2.5  2002/01/20 23:24:20  pierre
+   + add ANTIALIASED_QUALITY bug report 1695
+
+  Revision 1.1.2.4  2001/09/04 01:26:59  carl
+  + added missing PFD_ flags
+
+  Revision 1.1.2.3  2001/04/16 23:08:21  pierre
+   * fixes for bug 1473
+
+  Revision 1.1.2.2  2001/02/09 23:09:21  peter
     * fixed bugs 1398,1399,1400
 
-  Revision 1.3  2000/12/30 22:40:45  peter
+  Revision 1.1.2.1  2000/12/30 22:39:59  peter
     * added cds_fullscreen
 
-  Revision 1.2  2000/07/13 11:33:59  michael
-  + removed logs
+  Revision 1.1  2000/07/13 06:31:23  michael
+  + Initial import
+
+  Revision 1.6  2000/06/11 07:04:58  peter
+    * Windows unit has now more Delphi compatibile functions
+    * placed the external functions only in the interface
+
+  Revision 1.5  2000/03/14 10:20:19  michael
+  + Added constants and types for Delphi compatibility
+
+  Revision 1.4  2000/02/09 16:59:35  peter
+    * truncated log
+
+  Revision 1.3  2000/01/07 16:41:54  daniel
+    * copyright 2000
+
+  Revision 1.2  2000/01/07 16:32:35  daniel
+    * copyright 2000 added
+
+  Revision 1.1  1999/09/16 13:38:22  peter
+    * windows unit include moved to wininc/
 
 }

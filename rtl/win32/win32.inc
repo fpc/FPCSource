@@ -53,6 +53,12 @@ const
    FILE_BEGIN = 0;
    FILE_CURRENT = 1;
    FILE_END = 2;
+   
+   { GetFileType  }
+   FILE_TYPE_UNKNOWN = 0;
+   FILE_TYPE_DISK = 1;
+   FILE_TYPE_CHAR = 2;
+   FILE_TYPE_PIPE = 3;
 
    VER_PLATFORM_WIN32s = 0;
    VER_PLATFORM_WIN32_WINDOWS = 1;
@@ -120,7 +126,10 @@ type
 
 {
   $Log$
-  Revision 1.7  2001-12-02 17:21:25  peter
+  Revision 1.8  2002-05-09 08:28:23  carl
+  * Merges from Fixes branch
+
+  Revision 1.7  2001/12/02 17:21:25  peter
     * merged fixes from 1.0
 
   Revision 1.6  2001/07/30 14:53:17  marco

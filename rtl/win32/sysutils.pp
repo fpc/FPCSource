@@ -532,8 +532,8 @@ begin
   else
     HF:='hh';
   // No support for 12 hour stuff at the moment...
-  ShortTimeFormat := HF+':mm';
-  LongTimeFormat := HF + ':mm:ss';
+  ShortTimeFormat := HF+':nn';
+  LongTimeFormat := HF + ':nn:ss';
   { Currency stuff }
   CurrencyString:=GetLocaleStr(LID, LOCALE_SCURRENCY, '');
   CurrencyFormat:=StrToIntDef(GetLocaleStr(LID, LOCALE_ICURRENCY, '0'), 0);
@@ -655,7 +655,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.13  2002-03-24 19:26:49  marco
+  Revision 1.14  2002-05-09 08:28:23  carl
+  * Merges from Fixes branch
+
+  Revision 1.13  2002/03/24 19:26:49  marco
    * Added win32platform
 
   Revision 1.12  2002/01/25 16:23:04  peter

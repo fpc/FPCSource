@@ -1,6 +1,3 @@
-{
-  $Id$
-}
 unit signals;
 
 interface
@@ -319,6 +316,8 @@ var
          EXCEPTION_PRIV_INSTRUCTION,
          EXCEPTION_IN_PAGE_ERROR,
          EXCEPTION_SINGLE_STEP : res:=CallSignal(SIGSEGV,frame,false);
+         { Ignore EXCEPTION_INVALID_HANDLE exceptions }
+         EXCEPTION_INVALID_HANDLE : res:=0;
          end;
        Signals_exception_handler:=res;
     end;
@@ -465,9 +464,3 @@ finalization
 
   remove_exception_handler;
 end.
-{
-  $Log$
-  Revision 1.4  2002-01-25 16:23:03  peter
-    * merged filesearch() fix
-
-}
