@@ -70,7 +70,7 @@ var
   power : string[10];
   sign : boolean;
   dot : byte;
-  mantOne, expMaximal: boolean;
+  fraczero, expMaximal: boolean;
 
 
   maxlen : longint;   { Maximal length of string for float }
@@ -258,21 +258,21 @@ begin
   { extended, format (MSB): 1 Sign bit, 15 bit exponent, 64 bit mantissa }
   sign := (TSplitExtended(d).w and $8000) <> 0;
   expMaximal := (TSplitExtended(d).w and $7fff) = 32767;
-  mantOne := (TSplitExtended(d).cards[0] = 0) and
-                  (TSplitExtended(d).cards[1] = $80000000);
+  fraczero := (TSplitExtended(d).cards[0] = 0) and
+                  ((TSplitExtended(d).cards[1] and $7fffffff) = 0);
 {$else SUPPORT_EXTENDED}
 {$ifdef SUPPORT_DOUBLE}
   { double, format (MSB): 1 Sign bit, 11 bit exponent, 52 bit mantissa }
   sign := ((TSplitDouble(d).cards[1] shr 20) and $800) <> 0;
   expMaximal := ((TSplitDouble(d).cards[1] shr 20) and $7ff) = 2047;
-  mantOne := (TSplitDouble(d).cards[1] and $fffff = $80000) and
+  fraczero := (TSplitDouble(d).cards[1] and $fffff = 0) and
               (TSplitDouble(d).cards[0] = 0);
 {$else SUPPORT_DOUBLE}
 {$ifdef SUPPORT_SINGLE}
   { single, format (MSB): 1 Sign bit, 8 bit exponent, 23 bit mantissa }
   sign := ((TSplitSingle(d).words[1] shr 7) and $100) <> 0;
   expMaximal := ((TSplitSingle(d).words[1] shr 7) and $ff) = 255;
-  mantOne := (TSplitSingle(d).cards[0] and $7fffff = $400000);
+  fraczero := (TSplitSingle(d).cards[0] and $7fffff = 0);
 {$else SUPPORT_SINGLE}
   {$error No little endian floating type supported yet in real2str}
 {$endif SUPPORT_SINGLE}
@@ -285,16 +285,15 @@ begin
 {$ifdef SUPPORT_DOUBLE}
   sign := ((TSplitDouble(d).cards[0] shr 20) and $800) <> 0;
   expMaximal := ((TSplitDouble(d).cards[0] shr 20) and $7ff) = 2047;
-  mantOne:= (TSplitDouble(d).cards[0] and $fffff = $80000) and
+  fraczero:= (TSplitDouble(d).cards[0] and $fffff = 0) and
               (TSplitDouble(d).cards[1] = 0);
   { double, format (MSB): 1 Sign bit, 11 bit exponent, 52 bit mantissa }
-  {error sign/NaN/Inf not yet supported for big endian CPU's in str_real}
 {$else SUPPORT_DOUBLE}
 {$ifdef SUPPORT_SINGLE}
   { single, format (MSB): 1 Sign bit, 8 bit exponent, 23 bit mantissa }
   sign := ((TSplitSingle(d).bytes[0] and $80)) <> 0;
   expMaximal := ((TSplitSingle(d).words[0] shr 7) and $ff) = 255;
-  mantOne:= (TSplitSingle(d).cards[0] and $7fffff = $400000);
+  fraczero:= (TSplitSingle(d).cards[0] and $7fffff = 0);
 {$else SUPPORT_SINGLE}
   {$error No big endian floating type supported yet in real2str}
 {$endif SUPPORT_SINGLE}
@@ -302,7 +301,7 @@ begin
 {$endif SUPPORT_EXTENDED}
 {$endif endian}
   if expMaximal then
-    if mantOne then
+    if fraczero then
       if sign then
         temp := '-Inf'
       else temp := '+Inf'
@@ -453,7 +452,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2003-12-08 17:45:00  peter
+  Revision 1.13  2003-12-29 19:19:21  jonas
+    * fixed NaN/Inf detection for single/double
+
+  Revision 1.12  2003/12/08 17:45:00  peter
     * currency support
     * dropped fixed16/32 support
 
