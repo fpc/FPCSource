@@ -41,11 +41,11 @@ uses
   dos;
 
 const
-{$ifdef linux}
+{$ifdef Unix}
   GDBExeName = 'gdbpas';
   GDBIniName = '.gdbinit';
   DefaultCompilerName = 'ppc386';
-{$else not linux}
+{$else}
 {$ifdef win32}
   GDBExeName = 'gdbpasw.exe';
 {$else not win32}
@@ -140,7 +140,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-05-18 13:34:27  peter
+  Revision 1.4  2002-06-02 09:44:17  marco
+   * linux
+
+  Revision 1.3  2002/05/18 13:34:27  peter
     * readded missing revisions
 
 }
