@@ -54,7 +54,7 @@ begin
 end;
 
 
-procedure timportliblinux.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
+procedure timportlibmacos.importprocedure(aprocdef:tprocdef;const module:string;index:longint;const name:string);
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
@@ -99,7 +99,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2003-04-27 08:50:45  peter
+  Revision 1.6  2003-04-27 08:52:00  florian
+    * another compile fix
+
+  Revision 1.5  2003/04/27 08:50:45  peter
     * compile fix
 
   Revision 1.4  2002/11/17 16:32:04  carl
