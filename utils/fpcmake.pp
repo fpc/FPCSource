@@ -692,11 +692,10 @@ var
     packagedir:='$(PACKAGEDIR_'+VarName(s)+')';
     mf.Add('ifdef PACKAGE'+VarName(s));
     mf.Add('ifneq ($(wildcard '+packagedir+'),)');
-    mf.Add('ifeq ($(wildcard '+packagedir+'/$(FPCMADE)),)');
     mf.Add('override COMPILEPACKAGES+='+s);
-    mf.Add(s+'_package:');
+    mf.Add(s+'_package: '+packagedir+'/$(FPCMADE)');
+    mf.Add(packagedir+'/$(FPCMADE):');
     mf.Add(#9'$(MAKE) -C '+packagedir+' all');
-    mf.Add('endif');
     mf.Add('endif');
     mf.Add('endif');
     Phony:=Phony+' '+s+'_package';
@@ -955,6 +954,9 @@ begin
    { redirection }
      AddSection(true,'redir');
 
+   { shell tools like copy,del,echo }
+     AddSection(userini.section[sec_command] or userini.section[sec_tools],'shelltools');
+
    { commandline }
      if userini.section[sec_command] then
       begin
@@ -981,7 +983,6 @@ begin
    { write tools }
      if userini.section[sec_tools] then
       begin
-        AddSection(true,'shelltools');
         AddSection(true,'tool_default');
         AddSection(userini.toolsppdep,'tool_ppdep');
         AddSection(userini.toolsppumove,'tool_ppumove');
@@ -1133,7 +1134,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2000-01-10 22:55:49  peter
+  Revision 1.23  2000-01-12 23:20:37  peter
+    * gecho support
+    * use foreach to write fpcext.cmd
+    * add fpcext.cmd to clean targets
+
+  Revision 1.22  2000/01/10 22:55:49  peter
     * zipname creation from packagename
 
   Revision 1.21  2000/01/08 16:31:04  peter
