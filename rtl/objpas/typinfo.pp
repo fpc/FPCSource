@@ -353,7 +353,6 @@ unit typinfo;
          i : longint;
 
       begin
-         Result:=Nil;
          while Assigned(TypeInfo) do
            begin
               // skip the name
@@ -374,6 +373,7 @@ unit typinfo;
               // parent class
               Typeinfo:=hp^.ParentInfo;
            end;
+         Result:=Nil;
       end;
 
     function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
@@ -807,7 +807,10 @@ end.
 
 {
   $Log$
-  Revision 1.28  1999-09-15 20:27:24  florian
+  Revision 1.29  1999-09-16 08:59:48  florian
+    * GetPropInfo returns now nil if the property wasn't found
+
+  Revision 1.28  1999/09/15 20:27:24  florian
     + patch of Sebastion Guenther applied: Get/SetMethodProp implementation
 
   Revision 1.27  1999/09/08 16:14:43  peter
