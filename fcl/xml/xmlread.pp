@@ -3,7 +3,7 @@
     This file is part of the Free Component Library
 
     XML reading routines.
-    Copyright (c) 1999-2000 by Sebastian Guenther, sg@freepascal.org
+    Copyright (c) 1999-2002 by Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -32,6 +32,12 @@ procedure ReadXMLFile(var ADoc: TXMLDocument; const AFilename: String);
 procedure ReadXMLFile(var ADoc: TXMLDocument; var f: File);
 procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream);
 procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream;
+  const AFilename: String);
+
+procedure ReadXMLFragment(AParentNode: TDOMNode; const AFilename: String);
+procedure ReadXMLFragment(AParentNode: TDOMNode; var f: File);
+procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream);
+procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream;
   const AFilename: String);
 
 procedure ReadDTDFile(var ADoc: TXMLDocument; const AFilename: String);
@@ -95,6 +101,8 @@ type
     procedure ExpectEq;
     procedure ParseMisc(AOwner: TDOMNode);                              // [27]
     function  ParseMarkupDecl: Boolean;                                 // [29]
+    function  ParseCharData(AOwner: TDOMNode): Boolean;			// [14]
+    function  ParseCDSect(AOwner: TDOMNode): Boolean;    		// [18]
     function  ParseElement(AOwner: TDOMNode): Boolean;                  // [39]
     procedure ExpectElement(AOwner: TDOMNode);
     function  ParseReference(AOwner: TDOMNode): Boolean;                // [67]
@@ -106,8 +114,9 @@ type
 
     procedure ResolveEntities(RootNode: TDOMNode);
   public
-    doc: TXMLReaderDocument;
+    doc: TDOMDocument;
     procedure ProcessXML(ABuf: PChar; AFilename: String);  // [1]
+    procedure ProcessFragment(AOwner: TDOMNode; ABuf: PChar; AFilename: String);
     procedure ProcessDTD(ABuf: PChar; AFilename: String);  // ([29])
   end;
 
@@ -229,6 +238,20 @@ begin
   }
 end;
 
+procedure TXMLReader.ProcessFragment(AOwner: TDOMNode; ABuf: PChar;
+  AFilename: String);
+begin
+  buf := ABuf;
+  BufStart := ABuf;
+  Filename := AFilename;
+
+  SkipWhitespace;
+  while ParseCharData(AOwner) or ParseCDSect(AOwner) or ParsePI or
+    ParseComment(AOwner) or ParseElement(AOwner) or
+    ParseReference(AOwner) do
+    SkipWhitespace;
+end;
+
 
 function TXMLReader.GetName(var s: String): Boolean;    // [5]
 begin
@@ -343,8 +366,9 @@ procedure TXMLReader.ExpectProlog;    // [22]
 
   procedure ParseVersionNum;
   begin
-    doc.XMLVersion :=
-      GetString(['a'..'z', 'A'..'Z', '0'..'9', '_', '.', ':', '-']);
+    if doc.InheritsFrom(TXMLDocument) then
+      TXMLDocument(doc).XMLVersion :=
+        GetString(['a'..'z', 'A'..'Z', '0'..'9', '_', '.', ':', '-']);
   end;
 
   procedure ParseDoctypeDecls;
@@ -412,8 +436,9 @@ begin
   // Check for "(doctypedecl Misc*)?"    [28]
   if CheckFor('<!DOCTYPE') then
   begin
-    DocType := TXMLReaderDocumentType.Create(doc);
-    doc.SetDocType(DocType);
+    DocType := TXMLReaderDocumentType.Create(doc as TXMLReaderDocument);
+    if doc.InheritsFrom(TXMLReaderDocument) then
+      TXMLReaderDocument(doc).SetDocType(DocType);
     SkipWhitespace;
     DocType.Name := ExpectName;
     SkipWhitespace;
@@ -714,54 +739,51 @@ begin
   }
 end;
 
+function TXMLReader.ParseCharData(AOwner: TDOMNode): Boolean;    // [14]
+var
+  s: String;
+  i: Integer;
+begin
+  SetLength(s, 0);
+  while not (buf[0] in [#0, '<', '&']) do
+  begin
+    s := s + buf[0];
+    Inc(buf);
+  end;
+  if Length(s) > 0 then
+  begin
+    // Check if s has non-whitespace content
+    i := Length(s);
+    while (i > 0) and (s[i] in WhitespaceChars) do
+      Dec(i);
+    if i > 0 then
+      AOwner.AppendChild(doc.CreateTextNode(s));
+    Result := True;
+  end else
+    Result := False;
+end;
+
+function TXMLReader.ParseCDSect(AOwner: TDOMNode): Boolean;    // [18]
+var
+  cdata: String;
+begin
+  if CheckFor('<![CDATA[') then
+  begin
+    SetLength(cdata, 0);
+    while not CheckFor(']]>') do
+    begin
+      cdata := cdata + buf[0];
+      Inc(buf);
+    end;
+    AOwner.AppendChild(doc.CreateCDATASection(cdata));
+    Result := True;
+  end else
+    Result := False;
+end;
+
 function TXMLReader.ParseElement(AOwner: TDOMNode): Boolean;    // [39] [40] [44]
 var
   NewElem: TDOMElement;
-
-  function ParseCharData: Boolean;    // [14]
-  var
-    s: String;
-    i: Integer;
-  begin
-    SetLength(s, 0);
-    while not (buf[0] in [#0, '<', '&']) do
-    begin
-      s := s + buf[0];
-      Inc(buf);
-    end;
-    if Length(s) > 0 then
-    begin
-      // Check if s has non-whitespace content
-      i := Length(s);
-      while (i > 0) and (s[i] in WhitespaceChars) do
-        Dec(i);
-      if i > 0 then
-        NewElem.AppendChild(doc.CreateTextNode(s));
-      Result := True;
-    end else
-      Result := False;
-  end;
-
-  function ParseCDSect: Boolean;    // [18]
-  var
-    cdata: String;
-  begin
-    if CheckFor('<![CDATA[') then
-    begin
-      SetLength(cdata, 0);
-      while not CheckFor(']]>') do
-      begin
-        cdata := cdata + buf[0];
-        Inc(buf);
-      end;
-      NewElem.AppendChild(doc.CreateCDATASection(cdata));
-      Result := True;
-    end else
-      Result := False;
-  end;
-
-
-
 var
   IsEmpty: Boolean;
   name: String;
@@ -807,7 +829,7 @@ begin
     begin
       // Get content
       SkipWhitespace;
-      while ParseCharData or ParseCDSect or ParsePI or
+      while ParseCharData(NewElem) or ParseCDSect(NewElem) or ParsePI or
         ParseComment(NewElem) or ParseElement(NewElem) or
         ParseReference(NewElem) do;
 
@@ -998,41 +1020,43 @@ end;
 
 procedure ReadXMLFile(var ADoc: TXMLDocument; var f: File);
 var
-  reader: TXMLReader;
+  Reader: TXMLReader;
   buf: PChar;
   BufSize: LongInt;
 begin
   ADoc := nil;
   BufSize := FileSize(f) + 1;
-  if BufSize <= 1 then exit;
+  if BufSize <= 1 then
+    exit;
 
   GetMem(buf, BufSize);
   BlockRead(f, buf^, BufSize - 1);
   buf[BufSize - 1] := #0;
-  reader := TXMLReader.Create;
-  reader.ProcessXML(buf, Filerec(f).name);
+  Reader := TXMLReader.Create;
+  Reader.ProcessXML(buf, Filerec(f).name);
   FreeMem(buf, BufSize);
-  ADoc := reader.doc;
-  reader.Free;
+  ADoc := TXMLDocument(Reader.doc);
+  Reader.Free;
 end;
 
 procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream;
   const AFilename: String);
 var
-  reader: TXMLReader;
+  Reader: TXMLReader;
   buf: PChar;
 begin
   ADoc := nil;
-  if f.Size = 0 then exit;
+  if f.Size = 0 then
+    exit;
 
   GetMem(buf, f.Size + 1);
   f.Read(buf^, f.Size);
   buf[f.Size] := #0;
-  reader := TXMLReader.Create;
-  reader.ProcessXML(buf, AFilename);
+  Reader := TXMLReader.Create;
+  Reader.ProcessXML(buf, AFilename);
   FreeMem(buf, f.Size + 1);
-  ADoc := reader.doc;
-  reader.Free;
+  ADoc := TXMLDocument(Reader.doc);
+  Reader.Free;
 end;
 
 procedure ReadXMLFile(var ADoc: TXMLDocument; var f: TStream);
@@ -1042,21 +1066,78 @@ end;
 
 procedure ReadXMLFile(var ADoc: TXMLDocument; const AFilename: String);
 var
-  stream: TFileStream;
+  Stream: TFileStream;
 begin
   ADoc := nil;
-  stream := TFileStream.Create(AFilename, fmOpenRead);
+  Stream := TFileStream.Create(AFilename, fmOpenRead);
   try
-    ReadXMLFile(ADoc, stream, AFilename);
+    ReadXMLFile(ADoc, Stream, AFilename);
   finally
-    stream.Free;
+    Stream.Free;
+  end;
+end;
+
+
+procedure ReadXMLFragment(AParentNode: TDOMNode; var f: File);
+var
+  Reader: TXMLReader;
+  buf: PChar;
+  BufSize: LongInt;
+begin
+  BufSize := FileSize(f) + 1;
+  if BufSize <= 1 then
+    exit;
+
+  GetMem(buf, BufSize);
+  BlockRead(f, buf^, BufSize - 1);
+  buf[BufSize - 1] := #0;
+  Reader := TXMLReader.Create;
+  Reader.Doc := AParentNode.OwnerDocument;
+  Reader.ProcessFragment(AParentNode, buf, Filerec(f).name);
+  FreeMem(buf, BufSize);
+  Reader.Free;
+end;
+
+procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream;
+  const AFilename: String);
+var
+  Reader: TXMLReader;
+  buf: PChar;
+begin
+  if f.Size = 0 then
+    exit;
+
+  GetMem(buf, f.Size + 1);
+  f.Read(buf^, f.Size);
+  buf[f.Size] := #0;
+  Reader := TXMLReader.Create;
+  Reader.Doc := AParentNode.OwnerDocument;
+  Reader.ProcessFragment(AParentNode, buf, AFilename);
+  FreeMem(buf, f.Size + 1);
+  Reader.Free;
+end;
+
+procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream);
+begin
+  ReadXMLFragment(AParentNode, f, '<Stream>');
+end;
+
+procedure ReadXMLFragment(AParentNode: TDOMNode; const AFilename: String);
+var
+  Stream: TFileStream;
+begin
+  Stream := TFileStream.Create(AFilename, fmOpenRead);
+  try
+    ReadXMLFragment(AParentNode, Stream, AFilename);
+  finally
+    Stream.Free;
   end;
 end;
 
 
 procedure ReadDTDFile(var ADoc: TXMLDocument; var f: File);
 var
-  reader: TXMLReader;
+  Reader: TXMLReader;
   buf: PChar;
   BufSize: LongInt;
 begin
@@ -1067,17 +1148,17 @@ begin
   GetMem(buf, BufSize + 1);
   BlockRead(f, buf^, BufSize - 1);
   buf[BufSize - 1] := #0;
-  reader := TXMLReader.Create;
-  reader.ProcessDTD(buf, Filerec(f).name);
+  Reader := TXMLReader.Create;
+  Reader.ProcessDTD(buf, Filerec(f).name);
   FreeMem(buf, BufSize);
-  ADoc := reader.doc;
-  reader.Free;
+  ADoc := TXMLDocument(Reader.doc);
+  Reader.Free;
 end;
 
 procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream;
   const AFilename: String);
 var
-  reader: TXMLReader;
+  Reader: TXMLReader;
   buf: PChar;
 begin
   ADoc := nil;
@@ -1086,11 +1167,11 @@ begin
   GetMem(buf, f.Size + 1);
   f.Read(buf^, f.Size);
   buf[f.Size] := #0;
-  reader := TXMLReader.Create;
-  reader.ProcessDTD(buf, AFilename);
+  Reader := TXMLReader.Create;
+  Reader.ProcessDTD(buf, AFilename);
   FreeMem(buf, f.Size + 1);
-  ADoc := reader.doc;
-  reader.Free;
+  ADoc := TXMLDocument(Reader.doc);
+  Reader.Free;
 end;
 
 procedure ReadDTDFile(var ADoc: TXMLDocument; var f: TStream);
@@ -1117,7 +1198,11 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:15:29  peter
+  Revision 1.7  2002-09-21 19:22:38  sg
+  * Added procedures to process XML fragments only (e.g. for merging them
+    into an existing DOM document)
+
+  Revision 1.6  2002/09/07 15:15:29  peter
     * old logs removed and tabs fixed
 
 }
