@@ -450,7 +450,7 @@ begin
   readdata(entry,sizeof(tppuentry));
   entrystart:=bufstart+bufidx;
   entryidx:=0;
-  if not entry.id in [mainentryid,subentryid] then
+  if not(entry.id in [mainentryid,subentryid]) then
    begin
      readentry:=iberror;
      error:=true;
@@ -770,7 +770,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1998-08-31 12:26:30  peter
+  Revision 1.11  1998-09-11 15:16:47  peter
+    * merge fixes
+
+  Revision 1.10.2.1  1998/09/11 15:15:04  peter
+    * fixed not in [] bug
+
+  Revision 1.10  1998/08/31 12:26:30  peter
     * m68k and palmos updates from surebugfixes
 
   Revision 1.9  1998/08/17 09:17:51  peter
