@@ -1808,7 +1808,10 @@ begin
         if (block_type=bt_const) and
            (token=_EQUAL) then
          break;
-        consume(_SEMICOLON);
+        { support procedure proc;stdcall export; in Delphi mode only }
+        if not((m_delphi in aktmodeswitches) and
+               is_proc_directive(token)) then
+         consume(_SEMICOLON);
       end
      else
       break;
@@ -2080,7 +2083,10 @@ end.
 
 {
   $Log$
-  Revision 1.65  2000-06-25 20:13:51  florian
+  Revision 1.66  2000-07-06 19:04:59  peter
+    * allow in delphi mode directives without semicolons between
+
+  Revision 1.65  2000/06/25 20:13:51  florian
     * fixed a problem with forward declarations in TP mode, probably introduced by
       Pierre's last changes
 
