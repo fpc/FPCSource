@@ -112,7 +112,7 @@ begin
      FileOpen:=0;
      DosStreamError:=word(GetLastError);
      end
-   else 
+   else
      FileOpen := AHandle;
 end;
 
@@ -145,7 +145,7 @@ BEGIN
   res:=0;
   if readfile(handle,pointer(@buf),count,res,nil)=0 then
      DosStreamError:=word(GetLastError);
-  Actual:=res;    
+  Actual:=res;
   FileRead:=DosStreamError;
 end;
 
@@ -155,7 +155,7 @@ end;
 {---------------------------------------------------------------------------}
 FUNCTION FileWrite (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Word): Word;
 BEGIN
-   if writefile(handle,pointer(@buf),count,Actual,nil)=0 then
+   if writefile(handle,pointer(@buf),count,longint(Actual),nil)=0 then
     Begin
       DosStreamError:=word(GetLasterror);
     end;
@@ -167,9 +167,10 @@ end;
 {  SetFileSize -> Platforms DOS          - Not Checked                      }
 {---------------------------------------------------------------------------}
 FUNCTION SetFileSize (Handle: THandle; FileSize: LongInt): Word;
-VAR Actual, Buf: LongInt;
+VAR Actual : dword;
+    Buf: LongInt;
 BEGIN
-   SetFilePos(Handle,FileSize,0,Actual);
+   SetFilePos(Handle,FileSize,0,longint(Actual));
    If (Actual = FileSize) Then
     Begin
       Actual := FileWrite(Handle, Buf, 0,Actual);   { Truncate the file }
@@ -184,10 +185,13 @@ END;
 
 {
   $Log$
-  Revision 1.3  2000-12-18 17:28:58  jonas
+  Revision 1.4  2001-04-16 10:57:05  peter
+    * stricter compiler fixes
+
+  Revision 1.3  2000/12/18 17:28:58  jonas
     * fixed range check errors
 
   Revision 1.2  2000/07/13 11:33:57  michael
   + removed logs
- 
+
 }

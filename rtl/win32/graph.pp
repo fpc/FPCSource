@@ -1947,8 +1947,8 @@ function queryadapterinfo : pmodeinfo;
     end;
 
   begin
-     SaveVideoState:=savestate;
-     RestoreVideoState:=restorestate;
+     SaveVideoState:={$ifdef fpc}@{$endif}savestate;
+     RestoreVideoState:={$ifdef fpc}@{$endif}restorestate;
      { we must take care of the border and caption }
      ScreenWidth:=GetSystemMetrics(SM_CXSCREEN)-
        2*GetSystemMetrics(SM_CXFRAME);
@@ -2222,7 +2222,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-12-19 11:59:12  michael
+  Revision 1.6  2001-04-16 10:57:05  peter
+    * stricter compiler fixes
+
+  Revision 1.5  2000/12/19 11:59:12  michael
   * Fixes from Peter
 
   Revision 1.4  2000/11/14 19:45:08  florian

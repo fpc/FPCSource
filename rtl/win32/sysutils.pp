@@ -74,21 +74,23 @@ end;
 
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
 Var
-  res : Longint;
+  res : dword;
 begin
-  if not ReadFile(Handle, Buffer, Count, res, nil) then
-   res := -1;
-  FileRead:=Res;
+  if ReadFile(Handle, Buffer, Count, res, nil) then
+   FileRead:=Res
+  else
+   FileRead:=-1;
 end;
 
 
 Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
 Var
-  Res : longint;
+  Res : dword;
 begin
-  if not WriteFile(Handle, Buffer, Count, Res, nil) then
-   Res:= -1;
-  FileWrite:=Res;
+  if WriteFile(Handle, Buffer, Count, Res, nil) then
+   FileWrite:=Res
+  else
+   FileWrite:=-1;
 end;
 
 
@@ -672,7 +674,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.6  2001-02-20 22:14:19  peter
+  Revision 1.7  2001-04-16 10:57:05  peter
+    * stricter compiler fixes
+
+  Revision 1.6  2001/02/20 22:14:19  peter
     * merged getenvironmentvariable
 
   Revision 1.5  2000/12/18 17:28:58  jonas
