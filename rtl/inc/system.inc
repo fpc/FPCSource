@@ -29,6 +29,8 @@ type
   FileFunc = Procedure(var t : TextRec);
 
 var
+{ For Error Handling.}
+  DoError   : Boolean;
   ErrorBase : Longint;
 
 {****************************************************************************
@@ -251,6 +253,18 @@ End;
 
 {$R-}
 
+Function Random(l : Longint) : Longint;
+{
+  the problem Wwth this Function is if l is maxLongint*3/4 then the
+  probability to obtain a number in the range maxlongint*1/4 to maxlongint*1/2
+  is two times smaller than the probability for other numbers !
+}
+Begin
+  Randseed:=Randseed*134775813+1;
+  Random:=abs(Randseed mod l);
+End;
+
+
 Function Random : real;
 {
   I am not sure about the accuracy of such a value (PM)
@@ -261,6 +275,8 @@ Begin
   Randseed:=Randseed*134775813+1;
   Random:=(abs(Randseed)+Random)/(maxLongint+2.0);
 End;
+
+
 
 { Include processor specific routines }
 {$I math.inc}
@@ -424,7 +440,10 @@ End;
 
 {
   $Log$
-  Revision 1.15  1998-07-02 09:25:05  peter
+  Revision 1.16  1998-07-02 12:11:50  carl
+    * no SINGLE in m68k and other processors!
+
+  Revision 1.15  1998/07/02 09:25:05  peter
     * fixed do_error in runtimeerror
 
   Revision 1.14  1998/07/01 15:29:59  peter
