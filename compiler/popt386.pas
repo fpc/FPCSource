@@ -322,11 +322,12 @@ Begin
                       End
                     Else
 {change "and x, reg; jxx" to "test x, reg", if reg is deallocated before the
- jump}
+ jump, but only if it's a conditional jump (PFV) }
                       If (Paicpu(p)^.oper[1].typ = top_reg) And
                          GetNextInstruction(p, hp1) And
                          (hp1^.typ = ait_instruction) And
                          (Paicpu(hp1)^.is_jmp) and
+                         (Paicpu(hp1)^.opcode<>A_JMP) and
                          Not(Paicpu(p)^.oper[1].reg in UsedRegs) Then
                         Paicpu(p)^.opcode := A_TEST;
                 End;
@@ -1742,7 +1743,10 @@ End.
 
 {
  $Log$
- Revision 1.74  1999-12-05 16:48:43  jonas
+ Revision 1.75  1999-12-30 17:56:44  peter
+   * fixed and;jmp being translated into test;jmp
+
+ Revision 1.74  1999/12/05 16:48:43  jonas
    * CSE of constant loading in regs works properly again
    + if a constant is stored into memory using "mov const, ref" and
      there is a reg that contains this const, it is changed into
