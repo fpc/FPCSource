@@ -7,28 +7,12 @@
                    Copyright (c) 1999-2000 by Florian Klaempfl
                     Copyright (c) 2002 by Yuri Prokushev
 
- The Free Pascal runtime library is distributed under the Library GNU Public
- License v2. So is this unit. The Library GNU Public License requires you to
- distribute the source code of this unit with any product that uses it.
- Because the EMX library isn't under the LGPL, we grant you an exception to
- this, and that is, when you compile a program with the Free Pascal Compiler,
- you do not need to ship source code with that program, AS LONG AS YOU ARE
- USING UNMODIFIED CODE! If you modify this code, you MUST change the next
- line:
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
- <This an unofficial, modified Free Pascal source code file.>
-
- Send us your modified files, we can work together if you want!
-
- Free Pascal is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- Library GNU General Public License for more details.
-
- You should have received a copy of the Library GNU General Public License
- along with Free Pascal; see the file COPYING.LIB.  If not, write to
- the Free Software Foundation, 59 Temple Place - Suite 330,
- Boston, MA 02111-1307, USA.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  ****************************************************************************}
 
@@ -1303,7 +1287,10 @@ unit PMStdDlg;
 end.
 {
   $Log$
-  Revision 1.3  2002-10-05 18:35:05  hajny
+  Revision 1.4  2002-10-18 17:37:15  hajny
+    * headers corrected
+
+  Revision 1.3  2002/10/05 18:35:05  hajny
     * mistyping corrected
 
   Revision 1.2  2002/10/05 18:33:14  hajny
