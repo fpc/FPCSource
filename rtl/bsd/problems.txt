@@ -1,0 +1,25 @@
+FreeBSD status and notes. (kept on CVS because I work on several places)
+
+NI=not implemented yet
+req=required for compiler
+noreq? = probably not required, but not checked.
+
+syscall   status        comment
+
+------------------------------------------------------------------------         
+
+Readdir	 NI req	        Three pages code in the linux emulator which uses calls
+		 	we probably can't access :-) GetDents uses the
+		 	same calls tho.
+
+Clone()	 NI noreq	Looks awfully complicated. Should be based on RFork.
+
+Select   NI noreq?      See maillist. Doesn't seem to comply to manpage.
+
+sysinfo  NI noreq       Not supported under BSD, not even by emulator
+uname    NI noreq       "        "       "    "   "   "    "   "
+			(procedure based on this call are also commented
+		          (get* procs))
+
+signal   NI  noreq?      A *lot* of emulation code.
+alarm    NI  noreq?      Could be possible to port.
