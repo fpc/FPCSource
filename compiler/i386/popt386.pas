@@ -809,7 +809,7 @@ begin
                               fld/fst  mem1    (hp1)      fld/fst    mem1
                               fld      mem2    (p)        fxxx       mem2
                               fxxxp    st, st1 (hp2)                      }
-      
+
                                   begin
                                     case taicpu(hp2).opcode Of
                                       A_FADDP: taicpu(p).opcode := A_FADD;
@@ -1996,7 +1996,10 @@ end.
 
 {
   $Log$
-  Revision 1.51  2003-12-13 15:48:47  jonas
+  Revision 1.52  2003-12-14 22:42:14  peter
+    * fixed csdebug
+
+  Revision 1.51  2003/12/13 15:48:47  jonas
     * isgp32reg was being called with both tsuperregister and tregister
       parameters, so changed type to tsuperregister (fixes bug reported by
       Bas Steendijk)

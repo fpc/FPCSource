@@ -40,7 +40,11 @@ function RegSizesOK(oldReg,newReg: tsuperregister; p: taicpu): boolean;
 implementation
 
 uses
+{$ifdef csdebug}
+  cutils,
+{$else}
   {$ifdef replaceregdebug}cutils,{$endif}
+{$endif}
   globtype, verbose, procinfo, globals, daopt386, rgobj, rropt386;
 
 {
@@ -1692,7 +1696,7 @@ begin
                               begin
 {$ifdef csdebug}
                                hp5 := tai_comment.Create(strpnew(
-                                 'cse checking '+std_reg2str[getsupreg(taicpu(p).oper[1]^.reg)])));
+                                 'cse checking '+std_regname(taicpu(p).oper[1]^.reg)));
                                insertLLItem(asml,p,p.next,hp5);
 {$endif csdebug}
                                if CheckSequence(p,prevSeq,getsupreg(taicpu(p).oper[1]^.reg), Cnt, reginfo, findPrevSeqs) and
@@ -1736,8 +1740,8 @@ begin
                                    for regcounter := RS_EAX To RS_EDI do
                                      if (regcounter in reginfo.RegsLoadedforRef) then
                                        begin
-                                         hp5 := tai_comment.Create(strpnew('New: '+std_reg2str[regcounter]+', Old: '+
-                                           std_reg2str[reginfo.new2oldreg[regcounter]])));
+                                         hp5 := tai_comment.Create(strpnew('New: '+std_regname(newreg(R_INTREGISTER,regcounter,R_SUBNONE))+', Old: '+
+                                           std_regname(newreg(R_INTREGISTER,reginfo.new2oldreg[regcounter],R_SUBNONE))));
                                          InsertLLItem(asml, tai(hp2.previous), hp2, hp5);
                                        end;
 {$EndIf CSDebug}
@@ -2056,7 +2060,10 @@ end.
 
 {
   $Log$
-  Revision 1.55  2003-12-14 14:18:59  peter
+  Revision 1.56  2003-12-14 22:42:14  peter
+    * fixed csdebug
+
+  Revision 1.55  2003/12/14 14:18:59  peter
     * optimizer works again with 1.0.x
     * fixed wrong loop in FindRegWithConst
 

@@ -247,6 +247,9 @@ var
 Implementation
 
 Uses
+{$ifdef csdebug}
+  cutils,
+{$endif}
   globals, systems, verbose, symconst, symsym, cgobj,
    rgobj, procinfo;
 
@@ -1480,7 +1483,7 @@ begin {checks whether two taicpu instructions are equal}
                 begin
                   include(RegInfo.RegsLoadedForRef, getsupreg(base));
 {$ifdef csdebug}
-                  Writeln(std_reg2str[base], ' added');
+                  Writeln(std_regname(base), ' added');
 {$endif csdebug}
                 end;
               if (index <> NR_NO) and
@@ -1489,7 +1492,7 @@ begin {checks whether two taicpu instructions are equal}
                 begin
                   include(RegInfo.RegsLoadedForRef, getsupreg(index));
 {$ifdef csdebug}
-                  Writeln(std_reg2str[index], ' added');
+                  Writeln(std_regname(index), ' added');
 {$endif csdebug}
                 end;
 
@@ -1500,7 +1503,7 @@ begin {checks whether two taicpu instructions are equal}
               RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef -
                                               [getsupreg(taicpu(p2).oper[1]^.reg)];
 {$ifdef csdebug}
-              Writeln(std_reg2str[getsupreg(taicpu(p2).oper[1]^.reg)], ' removed');
+              Writeln(std_regname(getsupreg(taicpu(p2).oper[1]^.reg)), ' removed');
 {$endif csdebug}
             end;
           InstructionsEquivalent :=
@@ -1513,9 +1516,9 @@ begin {checks whether two taicpu instructions are equal}
   {$ifdef csdebug}
         hp := tai_comment.Create(strpnew('checking if equivalent'));
         hp.previous := p2;
-        hp.next := p2^.next;
-        p2^.next^.previous := hp;
-        p2^.next := hp;
+        hp.next := p2.next;
+        p2.next.previous := hp;
+        p2.next := hp;
   {$endif csdebug}
         InstructionsEquivalent :=
           (not(assigned(taicpu(p1).oper[0])) or
@@ -1532,18 +1535,18 @@ begin {checks whether two taicpu instructions are equal}
   {$ifdef csdebug}
         hp := tai_comment.Create(strpnew('different opcodes/format'));
         hp.previous := p2;
-        hp.next := p2^.next;
-        p2^.next^.previous := hp;
-        p2^.next := hp;
+        hp.next := p2.next;
+        p2.next.previous := hp;
+        p2.next := hp;
   {$endif csdebug}
         InstructionsEquivalent := False;
       end;
   {$ifdef csdebug}
     hp := tai_comment.Create(strpnew('instreq: '+tostr(byte(instructionsequivalent))));
     hp.previous := p2;
-    hp.next := p2^.next;
-    p2^.next^.previous := hp;
-    p2^.next := hp;
+    hp.next := p2.next;
+    p2.next.previous := hp;
+    p2.next := hp;
   {$endif csdebug}
 end;
 
@@ -2705,7 +2708,10 @@ end.
 
 {
   $Log$
-  Revision 1.58  2003-12-14 14:18:59  peter
+  Revision 1.59  2003-12-14 22:42:14  peter
+    * fixed csdebug
+
+  Revision 1.58  2003/12/14 14:18:59  peter
     * optimizer works again with 1.0.x
     * fixed wrong loop in FindRegWithConst
 
