@@ -162,8 +162,12 @@ Fixed bugs:
   bug0139.pp   Cannot access protected method of ancestor class from other unit. OK 0.99.6
   bug0140.pp   Shows that interdependent units still are not OK.     OK 0.99.6 (PFV)
   bug0141.pp   Wrong Class sizes when using forwardly defined classes. OK 0.99.6
+  bug0143.pp   cannot concat string and array of char in $X+ mode    OK 0.99.7 (PFV)
+  bug0144.pp   problem with 'with object do'                         OK 0.99.7 (PFV)
   bug0146.pp   no sizeof() for var arrays and the size is pushed incorrect OK 0.99.7 (PFV)
   bug0147.pp   function b; is not allowed in implementation          OK 0.99.7 (PFV)
+  bug0148.pp   crash when setting function result of a declared but not yet OK 0.99.7 (PFV)
+               implemented function in another function
   bug0149.pp   (a, b) compile bug0149b twice and you'll get a crash  OK 0.99.7 (PFV)
   bug0151.pp   crash when using undeclared variable in withstatement OK 0.99.7 (PFV)
   bug0154.pp   Subrange types give type mismatch when assigning to   OK 0.99.7 (PFV)
@@ -187,24 +191,22 @@ bug0142.pp   sizeof(object) is not tp7 compatible when no constructor is used
 
 Unfixed bugs:
 -------------
+bug0051.pp   Graph, shows a problem with putpixel
+bug0052.pp   Graph, collects missing graph unit routines
+bug0057.pp   Graph, shows a crash with switch graph/text/graph
+
+bug0123.pp   Asm, problem with intel assembler (shrd)
+bug0124.pp   Asm, problem with -Rintel switch and indexing (whatever the order)
+bug0153.pp   Asm, indexing a local/para var should produce an error like tp7
+             because it's doomed to crash
+bug0155.pp   Asm, Missing string return for asm functions
+
 bug0050.pp   can't set a function result in a nested procedure of a function
-bug0051.pp   shows a problem with putpixel
-bug0052.pp   collects missing graph unit routines
-bug0057.pp   shows a crash with switch graph/text/graph
 bug0091.pp   missing standard functions in constant expressions
-bug0123.pp   problem with intel assembler (shrd)
-bug0124.pp   problem with -Rintel switch and indexing (whatever the order)
 bug0127.pp   problem with cdecl in implementation part
 bug0132.pp   segmentation fault with type loop
-bug0143.pp   cannot concat string and array of char in $X+ mode
-bug0144.pp   problem with 'with object do'
 bug0145.pp   typed files with huges records (needs filerec.size:longint)
-bug0148.pp   crash when setting function result of a declared but not yet
-             implemented function in another function
 bug0150.pp   Shows that the assert() macro is missing under Delphi.
 bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
-bug0153.pp   indexing a local/para var should produce an error like tp7 because
-             it's doomed to crash
-bug0155.pp   Missing string return for asm functions
-
+bug0156.pp   (a,b) forward type def in record crashes when loading ppu
