@@ -76,9 +76,8 @@ unit aasm;
        { the short name makes typing easier }
        pai = ^tai;
        tai = object(tlinkedlist_item)
-          typ    : tait;
-          line   : longint;
-          infile : pinputfile;
+          typ      : tait;
+          fileinfo : tfileposinfo;
           constructor init;
        end;
 
@@ -309,17 +308,7 @@ uses
 
     constructor tai.init;
       begin
-{$ifdef GDB}
-  {$ifdef NEWINPUT}
-         infile:=pointer(current_module^.sourcefiles.get_file(aktfilepos.fileindex));
-         if assigned(infile) then
-           line:=aktfilepos.line;
-  {$else}
-         infile:=pointer(current_module^.current_inputfile);
-         if assigned(infile) then
-           line:=current_module^.current_inputfile^.line_no;
-  {$endif}
-{$endif GDB}
+        fileinfo:=aktfilepos;
       end;
 
 {****************************************************************************
@@ -843,7 +832,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.11  1998-07-07 11:19:50  peter
+  Revision 1.12  1998-07-14 14:46:36  peter
+    * released NEWINPUT
+
+  Revision 1.11  1998/07/07 11:19:50  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.10  1998/06/08 22:59:41  peter

@@ -2486,7 +2486,7 @@ implementation
          exprasmlist^.concat(new(pai68k,op_reg(flag_2_set[hp^.location.resflags],S_B,hregister)));
          case porddef(p^.resulttype)^.typ of
            bool8bit : p^.location.register:=hregister;
-{ !!!!!!!!!!!   
+{ !!!!!!!!!!!
 
           bool16bit : begin
                         p^.location.register:=reg8toreg16(hregister);
@@ -3563,7 +3563,7 @@ implementation
                     (S_B,S_W,S_L,S_B,S_W,S_L);
             in2instr:array[in_inc_byte..in_dec_dword] of Tasmop=
                     (A_ADDQ,A_ADDQ,A_ADDQ,A_SUBQ,A_SUBQ,A_SUBQ);
-{$endif}                
+{$endif}
 
             { tfloattype = (f32bit,s32real,s64real,s80real,s64bit); }
             float_name: array[tfloattype] of string[8]=
@@ -4190,7 +4190,7 @@ implementation
                  end;
                 emitoverflowcheck(p^.left^.left);
               end;
-{$ifdef OLDINC} 
+{$ifdef OLDINC}
 
             in_inc_byte..in_dec_dword:
                 begin
@@ -4199,7 +4199,7 @@ implementation
                      in2size[p^.inlinenumber],1,newreference(p^.left^.location.reference))));
                      emitoverflowcheck(p^.left);
                 end;
-{$endif}                
+{$endif}
             in_pred_x,
             in_succ_x:
               begin
@@ -5175,18 +5175,13 @@ end;
       begin
          oldcodegenerror:=codegenerror;
          oldswitches:=aktswitches;
-{$ifdef NEWINPUT}
          oldpos:=aktfilepos;
-         aktfilepos:=p^.fileinfo;
-{$else}
-         get_cur_file_pos(oldpos);
-         set_cur_file_pos(p^.fileinfo);
-{$endif NEWINPUT}
 
-         codegenerror:=false;
+         aktfilepos:=p^.fileinfo;
          aktswitches:=p^.pragmas;
          if not(p^.error) then
            begin
+              codegenerror:=false;
               procedures[p^.treetype](p);
               p^.error:=codegenerror;
               codegenerror:=codegenerror or oldcodegenerror;
@@ -5194,11 +5189,7 @@ end;
          else
            codegenerror:=true;
          aktswitches:=oldswitches;
-{$ifdef NEWINPUT}
          aktfilepos:=oldpos;
-{$else}
-         set_cur_file_pos(oldpos);
-{$endif NEWINPUT}
       end;
 
 
@@ -5263,26 +5254,17 @@ end;
            end;
       end;
 
+
     procedure generatecode(var p : ptree);
-
       var
-         { *pass modifies with every node aktlinenr and current_module^.current_inputfile, }
-         { to constantly contain the right line numbers             }
-         oldis : pinputfile;
-         oldnr,i : longint;
+         i       : longint;
          regsize : topsize;
-         regi : tregister;
-         hr : preference;
-
+         regi    : tregister;
+         hr      : preference;
       label
          nextreg;
-
       begin
          cleartempgen;
-{$ifndef NEWINPUT}
-         oldis:=current_module^.current_inputfile;
-         oldnr:=current_module^.current_inputfile^.line_no;
-{$endif}
          { when size optimization only count occurrence }
          if cs_littlesize in aktswitches then
            t_times:=1
@@ -5443,10 +5425,6 @@ end;
               c_usableregs:=4;
            end;
          procinfo.aktproccode^.concatlist(exprasmlist);
-{$ifndef NEWINPUT}
-         current_module^.current_inputfile:=oldis;
-         current_module^.current_inputfile^.line_no:=oldnr;
-{$endif}
       end;
 
 end.
@@ -5454,7 +5432,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  1998-07-10 10:50:57  peter
+  Revision 1.11  1998-07-14 14:46:43  peter
+    * released NEWINPUT
+
+  Revision 1.10  1998/07/10 10:50:57  peter
     * m68k updates
 
   Revision 1.9  1998/07/06 15:51:16  michael

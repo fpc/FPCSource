@@ -118,7 +118,6 @@ unit cobjects;
 
        { string container }
        pstringcontainer = ^tstringcontainer;
-
        tstringcontainer = object
           root,last : pstringitem;
 
@@ -143,11 +142,9 @@ unit cobjects;
           procedure clear;
        end;
 
-{$ifndef NEWINPUT}
-
-       pbufferedfile = ^tbufferedfile;
-
+{$ifdef BUFFEREDFILE}
        { this is implemented to allow buffered binary I/O }
+       pbufferedfile = ^tbufferedfile;
        tbufferedfile = object
            f : file;
            buf : pchar;
@@ -236,8 +233,7 @@ unit cobjects;
            { returns the crc }
            function getcrc : longint;
        end;
-
-{$endif NEWINPUT}
+{$endif BUFFEREDFILE}
 
     { releases the string p and assignes nil to p }
     { if p=nil then freemem isn't called          }
@@ -738,7 +734,7 @@ end;
       end;
 
 
-{$ifndef NEWINPUT}
+{$ifdef BUFFEREDFILE}
 
 {****************************************************************************
                                TBUFFEREDFILE
@@ -1121,12 +1117,15 @@ end;
            end;
       end;
 
-{$endif NEWINPUT}
+{$endif BUFFEREDFILE}
 
 end.
 {
   $Log$
-  Revision 1.11  1998-07-07 11:19:54  peter
+  Revision 1.12  1998-07-14 14:46:47  peter
+    * released NEWINPUT
+
+  Revision 1.11  1998/07/07 11:19:54  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.10  1998/07/01 15:26:59  peter

@@ -32,9 +32,6 @@ function  _internalerror(i : longint) : boolean;
 implementation
 uses
   verbose,globals,
-{$ifndef NEWINPUT}
-   files,
-{$endif}
   strings,dos;
 
 const
@@ -140,22 +137,17 @@ begin
             if (verbosity and Level)=V_Fatal then
               hs:=rh_errorstr;
           end;
-{$ifdef NEWINPUT}
-        if (Level<$100) and (status.currentline>0) then
+        if (Level<=V_ShowFile) and (status.currentline>0) then
          begin
            if Use_Rhide then
              hs:=lower(bstoslash(status.currentsource))+':'+tostr(status.currentline)+': '+hs
            else
              hs:=status.currentsource+'('+tostr(status.currentline)+','+tostr(status.currentcolumn)+') '+hs;
          end;
-{$else}
-        if (Level<$100) and Assigned(current_module) and Assigned(current_module^.current_inputfile) then
-          hs:=current_module^.current_inputfile^.get_file_line+' '+hs;
-{$endif NEWINPUT}
       { add the message to the text }
         hs:=hs+s;
 {$ifdef FPC}
-        if UseStdErr and (Level<$100) then
+        if UseStdErr then
          begin
            writeln(stderr,hs);
            flush(stderr);
@@ -193,7 +185,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  1998-07-07 11:20:19  peter
+  Revision 1.13  1998-07-14 14:47:12  peter
+    * released NEWINPUT
+
+  Revision 1.12  1998/07/07 11:20:19  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.11  1998/06/19 15:40:00  peter

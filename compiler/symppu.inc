@@ -132,8 +132,6 @@
       end;
 
 
-{$ifdef NEWINPUT}
-
     procedure writesourcefiles;
       var
         hp    : pinputfile;
@@ -154,29 +152,6 @@
         current_ppu^.writeentry(ibsourcefiles);
       end;
 
-{$else}
-
-    procedure writesourcefiles;
-      var
-        hp2   : pextfile;
-        index : longint;
-      begin
-      { second write the used source files }
-        hp2:=current_module^.sourcefiles.files;
-        index:=current_module^.sourcefiles.last_ref_index;
-        while assigned(hp2) do
-         begin
-         { only name and extension }
-           current_ppu^.putstring(hp2^.name^+hp2^.ext^);
-         { index in that order }
-           hp2^.ref_index:=index;
-           dec(index);
-           hp2:=hp2^._next;
-         end;
-        current_ppu^.writeentry(ibsourcefiles);
-      end;
-
-{$endif NEWINPUT}
 
     procedure writeusedunit;
       var
@@ -722,7 +697,10 @@
 
 {
   $Log$
-  Revision 1.6  1998-07-07 11:20:14  peter
+  Revision 1.7  1998-07-14 14:47:07  peter
+    * released NEWINPUT
+
+  Revision 1.6  1998/07/07 11:20:14  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.5  1998/06/24 14:48:39  peter

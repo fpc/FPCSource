@@ -188,7 +188,7 @@ unit pdecl;
          symdone : boolean;
          { to handle absolute }
          abssym : pabsolutesym;
-{$ifdef i386}   
+{$ifdef i386}
 
          l    : longint;
          code : word;
@@ -241,13 +241,7 @@ unit pdecl;
                    abssym^.typ:=absolutesym;
                    abssym^.abstyp:=tovar;
                    abssym^.ref:=srsym;
-{$ifdef NEWINPUT}
                    abssym^.fileinfo:=filepos;
-{$else}         
-
-                   abssym^.line_no:=filepos.line;
-{$endif}                
-
                    symtablestack^.insert(abssym);
                  end
                 else
@@ -259,13 +253,7 @@ unit pdecl;
                     abssym^.typ:=absolutesym;
                     abssym^.abstyp:=toasm;
                     abssym^.asmname:=stringdup(s);
-{$ifdef NEWINPUT}
                     abssym^.fileinfo:=filepos;
-{$else}         
-
-                    abssym^.line_no:=filepos.line;
-{$endif}                
-
                     symtablestack^.insert(abssym);
                   end
                 else
@@ -279,13 +267,7 @@ unit pdecl;
                        abssym^.typ:=absolutesym;
                        abssym^.abstyp:=toaddr;
                        abssym^.absseg:=false;
-{$ifdef NEWINPUT}
                        abssym^.fileinfo:=filepos;
-{$else}         
-
-                       abssym^.line_no:=filepos.line;
-{$endif}                
-
                        s:=pattern;
                        consume(INTCONST);
                        val(s,abssym^.address,code);
@@ -1882,7 +1864,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.30  1998-07-10 00:00:00  peter
+  Revision 1.31  1998-07-14 14:46:53  peter
+    * released NEWINPUT
+
+  Revision 1.30  1998/07/10 00:00:00  peter
     * fixed ttypesym bug finally
     * fileinfo in the symtable and better using for unused vars
 

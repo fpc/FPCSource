@@ -519,7 +519,7 @@ End;
                                    Then hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef, TRegister(Pai386(p)^.op2)))
                                    Else hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                     TRegister(twowords(Pai386(p)^.op2).word2)));
-                                 hp1^.line := p^.line;
+                                 hp1^.fileinfo := p^.fileinfo;
                                  InsertLLItem(p^.previous, p^.next, hp1);
                                  Dispose(p, Done);
                                  p := hp1;
@@ -536,7 +536,7 @@ End;
                                   Then hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef, TRegister(Pai386(p)^.op2)))
                                   Else hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                    TRegister(twowords(Pai386(p)^.op2).word2)));
-                                hp1^.line:= p^.line;
+                                hp1^.fileinfo:= p^.fileinfo;
                                 InsertLLItem(p^.previous, p^.next, hp1);
                                 Dispose(p, Done);
                                 p := hp1;
@@ -566,7 +566,7 @@ End;
                                             hp1 :=  New(Pai386, op_reg_reg(A_ADD, S_L,
                                               TRegister(Pai386(p)^.op2),TRegister(Pai386(p)^.op2)));
                                           End;
-                                      hp1^.line := p^.line;
+                                      hp1^.fileinfo := p^.fileinfo;
                                       InsertLLItem(p, p^.next, hp1);
                                       New(TmpRef);
                                       TmpRef^.segment := R_DEFAULT_SEG;
@@ -587,7 +587,7 @@ End;
                                             TmpRef^.base := TRegister(Pai386(p)^.op2);
                                             hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef, TRegister(Pai386(p)^.op2)));
                                           End;
-                                      hp1^.line := p^.line;
+                                      hp1^.fileinfo := p^.fileinfo;
                                       InsertLLItem(p^.previous, p^.next, hp1);
                                       Dispose(p, Done);
                                       p := Pai(hp1^.next);
@@ -606,7 +606,7 @@ End;
                                      Then hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef, TRegister(Pai386(p)^.op2)))
                                      Else hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                       TRegister(twowords(Pai386(p)^.op2).word2)));
-                                   hp1^.line := p^.line;
+                                   hp1^.fileinfo := p^.fileinfo;
                                    InsertLLItem(p^.previous, p^.next, hp1);
                                    Dispose(p, Done);
                                    p := hp1;
@@ -627,7 +627,7 @@ End;
                                             Tregister(twowords(Pai386(p)^.op2).word2)))
                                        Else hp1 := New(Pai386, op_reg_reg(A_ADD, S_L,
                                                 TRegister(Pai386(p)^.op2), TRegister(Pai386(p)^.op2)));
-                                     hp1^.line := p^.line;
+                                     hp1^.fileinfo := p^.fileinfo;
                                      InsertLLItem(p, p^.next, hp1);
                                      TmpRef^.base := TRegister(Pai386(p)^.op2);
                                      TmpRef^.Index := TRegister(Pai386(p)^.op2);
@@ -639,7 +639,7 @@ End;
                                        Else
                                            hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                              TRegister(Pai386(p)^.op2)));
-                                     hp1^.line := p^.line;
+                                     hp1^.fileinfo := p^.fileinfo;
                                      InsertLLItem(p^.previous, p^.next, hp1);
                                      Dispose(p, Done);
                                      p := Pai(hp1^.next);
@@ -672,7 +672,7 @@ End;
                                              hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                                TRegister(Pai386(p)^.op2)));
                                            End;
-                                       hp1^.line := p^.line;
+                                       hp1^.fileinfo := p^.fileinfo;
                                        InsertLLItem(p, p^.next, hp1);
                                        New(TmpRef);
                                        TmpRef^.segment := R_DEFAULT_SEG;
@@ -695,7 +695,7 @@ End;
                                              hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                                TRegister(Pai386(p)^.op2)));
                                            End;
-                                       hp1^.line := p^.line;
+                                       hp1^.fileinfo := p^.fileinfo;
                                        InsertLLItem(p^.previous, p^.next, hp1);
                                        Dispose(p, Done);
                                        p := Pai(hp1^.next);
@@ -717,7 +717,7 @@ End;
                        Begin
                          hp1 := New(Pai386, op_reg_reg(A_MOV, S_L,PReference(Pai386(p)^.op1)^.Base,
                            TRegister(Pai386(p)^.op2)));
-                         hp1^.line := p^.line;
+                         hp1^.fileinfo := p^.fileinfo;
                          InsertLLItem(p^.previous,p^.next, hp1);
                          Dispose(p, Done);
                          p := hp1;
@@ -1125,7 +1125,7 @@ End;
                                                   hp1 := New(Pai386, op_reg_reg(A_XOR, S_L,
                                                              TRegister(Pai386(p)^.op2),
                                                              TRegister(Pai386(p)^.op2)));
-                                                  hp1^.line := p^.line;
+                                                  hp1^.fileinfo := p^.fileinfo;
                                                   InsertLLItem(p^.previous, p, hp1);
                                                   Pai386(p)^._operator := A_MOV;
                                                   Pai386(p)^.size := S_B;
@@ -1181,7 +1181,7 @@ End;
                                     Begin
                                       hp1 := New(Pai386,op_reg_reg(A_XOR, S_L, TRegister(Pai386(p)^.op2),
                                         TRegister(Pai386(p)^.op2)));
-                                      hp1^.line := p^.line;
+                                      hp1^.fileinfo := p^.fileinfo;
                                       Pai386(p)^._operator := A_MOV;
                                       Pai386(p)^.size := S_B;
                                       Pai386(p)^.op2 := Pointer(Reg32ToReg8(TRegister(Pai386(p)^.op2)));
@@ -1343,7 +1343,7 @@ End;
                                            End
                                          Else hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                                          TRegister(Pai386(p)^.op2)));
-                                       hp1^.line := p^.line;
+                                       hp1^.fileinfo := p^.fileinfo;
                                        InsertLLItem(p^.previous, p^.next, hp1);
                                        Dispose(p, Done);
                                        p := hp1;
@@ -1361,7 +1361,7 @@ End;
                                    Begin
                                      hp1 := new(Pai386,op_reg_reg(A_ADD,Pai386(p)^.Size,
                                                 TRegister(Pai386(p)^.op2), TRegister(Pai386(p)^.op2)));
-                                     hp1^.line := p^.line;
+                                     hp1^.fileinfo := p^.fileinfo;
                                      InsertLLItem(p^.previous, p^.next, hp1);
                                      Dispose(p, done);
                                      p := hp1;
@@ -1380,7 +1380,7 @@ End;
                                             TmpRef^.isintvalue := false;
                                             TmpRef^.offset := 0;
                                             hp1 := new(Pai386,op_ref_reg(A_LEA,S_L,TmpRef, TRegister(Pai386(p)^.op2)));
-                                            hp1^.line := p^.line;
+                                            hp1^.fileinfo := p^.fileinfo;
                                             InsertLLItem(p^.previous, p^.next, hp1);
                                             Dispose(p, done);
                                             p := hp1;
@@ -1631,7 +1631,10 @@ end;
 End.
 {
   $Log$
-  Revision 1.15  1998-06-16 08:56:17  peter
+  Revision 1.16  1998-07-14 14:46:42  peter
+    * released NEWINPUT
+
+  Revision 1.15  1998/06/16 08:56:17  peter
     + targetcpu
     * cleaner pmodules for newppu
 

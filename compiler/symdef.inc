@@ -204,15 +204,7 @@
       if assigned(sym) then
         begin
            name := sym^.name;
-{$ifdef NEWINPUT}
-
-
            sym_line_no:=sym^.fileinfo.line;
-{$else}
-           sym_line_no:=sym^.line_no;
-{$endif}
-
-
         end
       else
         begin
@@ -1065,15 +1057,7 @@
                 if assigned(sym) then
                   begin
                      st := sym^.name;
-{$ifdef NEWINPUT}
-
-
                      sym_line_no:=sym^.fileinfo.line;
-{$else}
-                     sym_line_no:=sym^.line_no;
-{$endif}
-
-
                   end
                 else
                   begin
@@ -2674,7 +2658,10 @@
 
 {
   $Log$
-  Revision 1.18  1998-07-10 10:51:04  peter
+  Revision 1.19  1998-07-14 14:47:05  peter
+    * released NEWINPUT
+
+  Revision 1.18  1998/07/10 10:51:04  peter
     * m68k updates
 
   Revision 1.16  1998/07/07 11:20:13  peter

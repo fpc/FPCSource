@@ -4297,20 +4297,12 @@ unit pass_1;
                      (hp^.left^.treetype<>labeln) then
                      begin
                         { use correct line number }
-{$ifdef NEWINPUT}
                         aktfilepos:=hp^.left^.fileinfo;
-{$else}
-                        set_current_file_line(hp^.left);
-{$endif}
                         disposetree(hp^.left);
                         hp^.left:=nil;
                         Message(cg_w_unreachable_code);
                         { old lines }
-{$ifdef NEWINPUT}
                         aktfilepos:=hp^.right^.fileinfo;
-{$else}
-                        set_current_file_line(hp^.left);
-{$endif}
                      end;
                 end;
               if assigned(hp^.right) then
@@ -4979,14 +4971,8 @@ unit pass_1;
          if (p^.firstpasscount>0) and only_one_pass then
            exit;
 {$endif extdebug}
-         { if we save there the whole stuff, }
-         { line numbers become more correct  }
-{$ifdef NEWINPUT}
-         oldpos:=aktfilepos;
-{$else}
-         get_cur_file_pos(oldpos);
-{$endif NEWINPUT}
          oldcodegenerror:=codegenerror;
+         oldpos:=aktfilepos;
          oldswitches:=aktswitches;
 {$ifdef extdebug}
          if p^.firstpasscount>0 then
@@ -5001,13 +4987,8 @@ unit pass_1;
            not_first:=false;
 {$endif extdebug}
 
-{$ifdef NEWINPUT}
          aktfilepos:=p^.fileinfo;
-{$else}
-         set_cur_file_pos(p^.fileinfo);
-{$endif NEWINPUT}
          aktswitches:=p^.pragmas;
-
          if not p^.error then
            begin
               codegenerror:=false;
@@ -5035,11 +5016,7 @@ unit pass_1;
            inc(p^.firstpasscount);
 {$endif extdebug}
          aktswitches:=oldswitches;
-{$ifdef NEWINPUT}
          aktfilepos:=oldpos;
-{$else}
-         set_cur_file_pos(oldpos);
-{$endif NEWINPUT}
       end;
 
     function do_firstpass(var p : ptree) : boolean;
@@ -5064,7 +5041,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.37  1998-07-07 12:31:44  peter
+  Revision 1.38  1998-07-14 14:46:50  peter
+    * released NEWINPUT
+
+  Revision 1.37  1998/07/07 12:31:44  peter
     * fixed string:= which allowed almost any type
 
   Revision 1.36  1998/07/07 11:20:00  peter

@@ -91,58 +91,99 @@ unit parser;
 
     procedure compile(const filename:string;compile_system:boolean);
       var
-         { some variables to save the compiler state }
-         oldtoken : ttoken;
-         oldtokenpos : tfileposinfo;
-         oldpattern : stringid;
-
-         oldpreprocstack : ppreprocstack;
-         oldorgpattern,oldprocprefix : string;
+       { scanner }
+         oldtoken       : ttoken;
+         oldtokenpos    : tfileposinfo;
+         oldc           : char;
+         oldpattern,
+         oldorgpattern  : string;
          old_block_type : tblock_type;
-{$ifdef NEWINPUT}
          oldcurrent_scanner : pscannerfile;
-         oldaktfilepos : tfileposinfo;
-         oldlastlinepos : longint;
-{$else}
-         oldcurrlinepos,
-         oldlastlinepos,
-{$endif NEWINPUT}
-         oldinputbuffer,
-         oldinputpointer : pchar;
-         olds_point,oldparse_only : boolean;
-         oldc : char;
-         oldcomment_level : word;
+       { symtable }
+         oldmacros,
+         oldrefsymtable,
+         oldsymtablestack : psymtable;
+         oldprocprefix    : string;
+         oldaktprocsym    : pprocsym;
+       { cg }
          oldnextlabelnr : longint;
-         oldmacros,oldrefsymtable,oldsymtablestack : psymtable;
-
-         oldimports,oldexports,oldresource,oldrttilist,
-         oldbsssegment,olddatasegment,oldcodesegment,
-         oldexprasmlist,olddebuglist,
-         oldinternals,oldexternals,oldconsts : paasmoutput;
-
-         oldswitches     : tcswitches;
-         oldpackrecords  : word;
-         oldoutputformat : tasm;
-         oldoptprocessor : tprocessors;
-         oldasmmode      : tasmmode;
+         oldparse_only  : boolean;
+       { asmlists }
+         oldimports,
+         oldexports,
+         oldresource,
+         oldrttilist,
+         oldbsssegment,
+         olddatasegment,
+         oldcodesegment,
+         oldexprasmlist,
+         olddebuglist,
+         oldinternals,
+         oldexternals,
+         oldconsts     : paasmoutput;
+       { akt.. things }
+         oldaktswitches     : tcswitches;
+         oldaktfilepos      : tfileposinfo;
+         oldaktpackrecords  : word;
+         oldaktoutputformat : tasm;
+         oldaktoptprocessor : tprocessors;
+         oldaktasmmode      : tasmmode;
 
       label
          done;
 
-      begin {compile}
+      begin
          inc(compile_level);
-         { save old state }
-
-         { save symtable state }
+       { save symtable state }
          oldsymtablestack:=symtablestack;
-         symtablestack:=nil;
          oldrefsymtable:=refsymtable;
-         refsymtable:=nil;
+         oldmacros:=macros;
          oldprocprefix:=procprefix;
+         oldaktprocsym:=aktprocsym;
+       { save scanner state }
+         oldc:=c;
+         oldpattern:=pattern;
+         oldorgpattern:=orgpattern;
+         oldtoken:=token;
+         old_block_type:=block_type;
+         oldtokenpos:=tokenpos;
+         oldcurrent_scanner:=current_scanner;
+       { save cg }
+         oldnextlabelnr:=nextlabelnr;
+         oldparse_only:=parse_only;
+       { save assembler lists }
+         olddatasegment:=datasegment;
+         oldbsssegment:=bsssegment;
+         oldcodesegment:=codesegment;
+         olddebuglist:=debuglist;
+         oldexternals:=externals;
+         oldinternals:=internals;
+         oldconsts:=consts;
+         oldrttilist:=rttilist;
+         oldexprasmlist:=exprasmlist;
+         oldimports:=importssection;
+         oldexports:=exportssection;
+         oldresource:=resourcesection;
+       { save akt... state }
+         oldaktswitches:=aktswitches;
+         oldaktpackrecords:=aktpackrecords;
+         oldaktoutputformat:=aktoutputformat;
+         oldaktoptprocessor:=aktoptprocessor;
+         oldaktasmmode:=aktasmmode;
+         oldaktfilepos:=aktfilepos;
 
-         { a long time, this was only in init_parser
-           but it should be reset to zero for each module }
+       { show info }
+         Message1(parser_i_compiling,filename);
+
+       { reset symtable }
+         symtablestack:=nil;
+         refsymtable:=nil;
+         procprefix:='';
          aktprocsym:=nil;
+         { macros }
+         macros:=new(psymtable,init(macrosymtable));
+         macros^.name:=stringdup('Conditionals for '+filename);
+         default_macros;
 
        { reset the unit or create a new program }
          if assigned(current_module) then
@@ -158,80 +199,20 @@ unit parser;
             main_module:=current_module;
           end;
 
-         { save scanner state }
-{$ifdef NEWINPUT}
-         oldaktfilepos:=aktfilepos;
-         oldcurrent_scanner:=current_scanner;
-{$else}
-         oldcurrlinepos:=currlinepos;
-         oldpreprocstack:=preprocstack;
-         oldinputbuffer:=inputbuffer;
-         oldinputpointer:=inputpointer;
-         oldlastlinepos:=lastlinepos;
-         olds_point:=s_point;
-         oldcomment_level:=comment_level;
-{$endif}
-         oldc:=c;
-         oldpattern:=pattern;
-         oldtoken:=token;
-         oldtokenpos:=tokenpos;
-         oldorgpattern:=orgpattern;
-         old_block_type:=block_type;
-
-         oldmacros:=macros;
-
-         oldnextlabelnr:=nextlabelnr;
-         oldparse_only:=parse_only;
-
-         { save assembler lists }
-         olddatasegment:=datasegment;
-         oldbsssegment:=bsssegment;
-         oldcodesegment:=codesegment;
-         olddebuglist:=debuglist;
-         oldexternals:=externals;
-         oldinternals:=internals;
-         oldconsts:=consts;
-         oldrttilist:=rttilist;
-         oldexprasmlist:=exprasmlist;
-         oldimports:=importssection;
-         oldexports:=exportssection;
-         oldresource:=resourcesection;
-
-         { save the current state }
-         oldswitches:=aktswitches;
-         oldpackrecords:=aktpackrecords;
-         oldoutputformat:=aktoutputformat;
-         oldoptprocessor:=aktoptprocessor;
-         oldasmmode:=aktasmmode;
-
        { Load current state from the init values }
          aktswitches:=initswitches;
          aktpackrecords:=initpackrecords;
          aktoutputformat:=initoutputformat;
          aktoptprocessor:=initoptprocessor;
          aktasmmode:=initasmmode;
-
-       { we need this to make the system unit }
+         { we need this to make the system unit }
          if compile_system then
           aktswitches:=aktswitches+[cs_compilesystem];
 
-       { macros }
-         macros:=new(psymtable,init(macrosymtable));
-         macros^.name:=stringdup('Conditionals for '+filename);
-         default_macros;
-
        { startup scanner }
-{$ifdef NEWINPUT}
          current_scanner:=new(pscannerfile,Init(filename));
          token:=current_scanner^.yylex;
-{$else}
-         InitScanner(filename);
-         token:=yylex;
-{$endif}
-
-         Message1(parser_i_compiling,filename);
-
-       { global switches are read, so further changes aren't allowed }
+         { global switches are read, so further changes aren't allowed }
          current_module^.in_main:=true;
 
        { init code generator for a new module }
@@ -325,67 +306,30 @@ done:
          reset_gdb_info;
 {$endif GDB}
 
-         { restore symtable state }
-         if (compile_level>1) then
-           begin
-             refsymtable:=oldrefsymtable;
-             symtablestack:=oldsymtablestack;
-           end;
-
-         procprefix:=oldprocprefix;
-
-{$ifdef UseBrowser}
-       {  close input files, but dont remove if we use the browser ! }
-         if cs_browser in initswitches then
-          current_module^.sourcefiles.close_all
-         else
-          current_module^.sourcefiles.done;
-{$else UseBrowser}
-       { close the inputfiles }
-         current_module^.sourcefiles.done;
-{$endif not UseBrowser}
+       { free ppu }
          if assigned(current_module^.ppufile) then
-           begin
-              dispose(current_module^.ppufile,done);
-              current_module^.ppufile:=nil;
-           end;
-
-         { call donescanner before restoring preprocstack, because }
-         { donescanner tests for a empty preprocstack              }
-         { and can also check for unused macros                    }
-{$ifdef NEWINPUT}
+          begin
+            dispose(current_module^.ppufile,done);
+            current_module^.ppufile:=nil;
+          end;
+       { free scanner }
          dispose(current_scanner,done);
-{$else}
-         donescanner(current_module^.compiled);
-{$endif}
+       { free macros }
+{!!! No check for unused macros yet !!! }
          dispose(macros,done);
 
-         { restore scanner }
-{$ifdef NEWINPUT}
-         aktfilepos:=oldaktfilepos;
-         current_scanner:=oldcurrent_scanner;
-{$else}
-         preprocstack:=oldpreprocstack;
-         inputbuffer:=oldinputbuffer;
-         inputpointer:=oldinputpointer;
-         lastlinepos:=oldlastlinepos;
-         currlinepos:=oldcurrlinepos;
-         s_point:=olds_point;
-         comment_level:=oldcomment_level;
-{$endif}
+       { restore scanner }
          c:=oldc;
          pattern:=oldpattern;
+         orgpattern:=oldorgpattern;
          token:=oldtoken;
          tokenpos:=oldtokenpos;
-         orgpattern:=oldorgpattern;
          block_type:=old_block_type;
-
+         current_scanner:=oldcurrent_scanner;
+       { restore cg }
          nextlabelnr:=oldnextlabelnr;
          parse_only:=oldparse_only;
-
-         macros:=oldmacros;
-
-         { restore asmlists }
+       { restore asmlists }
          exprasmlist:=oldexprasmlist;
          datasegment:=olddatasegment;
          bsssegment:=oldbsssegment;
@@ -398,13 +342,22 @@ done:
          exportssection:=oldexports;
          resourcesection:=oldresource;
          rttilist:=oldrttilist;
-
-         { restore current state }
-         aktswitches:=oldswitches;
-         aktpackrecords:=oldpackrecords;
-         aktoutputformat:=oldoutputformat;
-         aktoptprocessor:=oldoptprocessor;
-         aktasmmode:=oldasmmode;
+       { restore symtable state }
+         if (compile_level>1) then
+           begin
+             refsymtable:=oldrefsymtable;
+             symtablestack:=oldsymtablestack;
+           end;
+         macros:=oldmacros;
+         aktprocsym:=oldaktprocsym;
+         procprefix:=oldprocprefix;
+       { restore current state }
+         aktswitches:=oldaktswitches;
+         aktpackrecords:=oldaktpackrecords;
+         aktoutputformat:=oldaktoutputformat;
+         aktoptprocessor:=oldaktoptprocessor;
+         aktasmmode:=oldaktasmmode;
+         aktfilepos:=oldaktfilepos;
 
        { Shut down things when the last file is compiled }
          if (compile_level=1) then
@@ -426,13 +379,17 @@ done:
              end;
 {$endif UseBrowser}
           end;
+
          dec(compile_level);
       end;
 
 end.
 {
   $Log$
-  Revision 1.29  1998-07-07 11:19:59  peter
+  Revision 1.30  1998-07-14 14:46:49  peter
+    * released NEWINPUT
+
+  Revision 1.29  1998/07/07 11:19:59  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.28  1998/06/25 11:15:33  pierre

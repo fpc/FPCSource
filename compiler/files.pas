@@ -42,7 +42,6 @@ unit files;
 {$endif}
 
     type
-{$ifdef NEWINPUT}
        pinputfile = ^tinputfile;
        tinputfile = object
           path,name    : pstring;    { path and filename }
@@ -55,12 +54,18 @@ unit files;
           saveinputbuffer,
           saveinputpointer : pchar;
 
+          linebuf      : plongint;   { line buffer to retrieve lines }
+          maxlinebuf   : longint;
+
           ref_count    : longint;    { to handle the browser refs }
           ref_index    : longint;
           ref_next     : pinputfile;
 
           constructor init(const fn:string);
           destructor done;
+{$ifdef SourceLine}
+          function  getlinestr(l:longint):string;
+{$endif SourceLine}
        end;
 
        pfilemanager = ^tfilemanager;
@@ -75,47 +80,6 @@ unit files;
           function  get_file_path(l :longint):string;
        end;
 
-
-{$else NEWINPUT}
-
-       { this isn't a text file, this is t-ext-file }
-       { which means a extended file this files can }
-       { be handled by a file manager               }
-       pextfile = ^textfile;
-       textfile = object(tbufferedfile)
-          path,name,ext : pstring;
-          _next      : pextfile; { else conflicts with tinputstack }
-          ref_index  : word;     { 65000 input files for a unit should be enough !! }
-          { p must be the complete path (with ending \ (or / for unix ...) }
-          constructor init(const p,n,e : string);
-          destructor done;virtual;
-       end;
-
-       pinputfile = ^tinputfile;
-       tinputfile = object(textfile)
-          filenotatend : boolean;
-          line_no      : longint;    { position to give out }
-          true_line    : longint;    { real line counter }
-          column       : longint;
-          next         : pinputfile; { next input file in the stack of input files }
-          ref_count    : longint;    { to handle the browser refs }
-          constructor init(const p,n,e : string);
-          procedure write_file_line(var t : text); { writes the file name and line number to t }
-          function  get_file_line : string;
-       end;
-
-       pfilemanager = ^tfilemanager;
-       tfilemanager = object
-          files : pextfile;
-          last_ref_index : word;
-          constructor init;
-          destructor done;
-          procedure close_all;
-          procedure register_file(f : pextfile);
-          function  get_file(w : word) : pextfile;
-       end;
-
-{$endif NEWINPUT}
 
     type
        tunitmap = array[0..maxunits-1] of pointer;
@@ -152,10 +116,9 @@ unit files;
           linkstaticlibs,
           linkofiles    : tstringcontainer;
           used_units    : tlinkedlist;
-{$ifndef NEWINPUT}
-          current_inputfile : pinputfile;
-{$endif}
+
           { used in firstpass for faster settings }
+          scanner       : pointer;
           current_index : word;
 
           path,                     { path where the module is find/created }
@@ -289,8 +252,6 @@ unit files;
   uses
     dos,verbose,systems;
 
-{$ifdef NEWINPUT}
-
 {****************************************************************************
                                   TINPUTFILE
  ****************************************************************************}
@@ -303,9 +264,15 @@ unit files;
         name:=stringdup(n+e);
         path:=stringdup(p);
         next:=nil;
+      { indexing refs }
         ref_next:=nil;
         ref_count:=0;
         ref_index:=0;
+{$ifdef SourceLine}
+      { line buffer }
+        linebuf:=nil;
+        maxlinebuf:=0;
+{$endif SourceLine}
       end;
 
 
@@ -313,8 +280,49 @@ unit files;
       begin
         stringdispose(path);
         stringdispose(name);
+{$ifdef SourceLine}
+      { free memory }
+        if assigned(linebuf) then
+         freemem(linebuf,maxlinebuf shl 2);
+{$endif SourceLine}
       end;
 
+
+{$ifdef SourceLine}
+    function tinputfile.getlinestr(l:longint):string;
+      var
+        c : char;
+        i,fpos : longint;
+      begin
+        getlinestr:='';
+        if l<maxlinebuf then
+         begin
+           fpos:=plongint(longint(linebuf)+line_no*2)^;
+         { in current buf ? }
+           if (fpos<bufstart) or (fpos>bufstart+bufsize) then
+            begin
+              seekbuf(fpos);
+              readbuf;
+            end;
+         { the begin is in the buf now simply read until #13,#10 }
+           i:=0;
+
+           inputpointer:=inputbuffer;
+           c:=inputpointer^;
+           while (i<255) and not(c in [#13,#10]) do
+            begin
+              inc(i);
+              getlinestr[i]:=c;
+              c:=inputpointer^;
+              if c=#0 then
+               reload
+              else
+               inc(longint(inputpointer));
+            end;
+           getlinestr[0]:=chr(i);
+         end;
+      end;
+{$endif SourceLine}
 
 {****************************************************************************
                                 TFILEMANAGER
@@ -385,114 +393,6 @@ unit files;
         get_file_path:='';
      end;
 
-{$else NEWINPUT}
-
-{****************************************************************************
-                                  TFILE
- ****************************************************************************}
-
-    constructor textfile.init(const p,n,e : string);
-      begin
-         inherited init(p+n+e,extbufsize);
-         path:=stringdup(p);
-         name:=stringdup(n);
-         ext:=stringdup(e);
-      end;
-
-    destructor textfile.done;
-      begin
-         inherited done;
-      end;
-
-
-{****************************************************************************
-                                  TINPUTFILE
- ****************************************************************************}
-
-    constructor tinputfile.init(const p,n,e : string);
-      begin
-         inherited init(p,n,e);
-         filenotatend:=true;
-         line_no:=1;
-         true_line:=1;
-         column:=1;
-         next:=nil;
-      end;
-
-    procedure tinputfile.write_file_line(var t : text);
-      begin
-         write(t,get_file_line);
-      end;
-
-
-    function tinputfile.get_file_line : string;
-      begin
-        if Use_Rhide then
-          get_file_line:=lower(bstoslash(path^)+name^+ext^)+':'+tostr(line_no)+':'
-        else
-          get_file_line:=name^+ext^+'('+tostr(line_no)+')'
-      end;
-
-
-{****************************************************************************
-                                TFILEMANAGER
- ****************************************************************************}
-
-    constructor tfilemanager.init;
-      begin
-         files:=nil;
-         last_ref_index:=0;
-      end;
-
-
-    destructor tfilemanager.done;
-      var
-         hp : pextfile;
-      begin
-         hp:=files;
-         while assigned(hp) do
-           begin
-              files:=files^._next;
-              dispose(hp,done);
-              hp:=files;
-           end;
-         last_ref_index:=0;
-      end;
-
-
-    procedure tfilemanager.close_all;
-      var
-         hp : pextfile;
-      begin
-         hp:=files;
-         while assigned(hp) do
-           begin
-              hp^.close;
-              hp:=hp^._next;
-           end;
-      end;
-
-
-    procedure tfilemanager.register_file(f : pextfile);
-      begin
-         inc(last_ref_index);
-         f^._next:=files;
-         f^.ref_index:=last_ref_index;
-         files:=f;
-      end;
-
-
-   function tfilemanager.get_file(w : word) : pextfile;
-     var
-        ff : pextfile;
-     begin
-        ff:=files;
-        while assigned(ff) and (ff^.ref_index<>w) do
-          ff:=ff^._next;
-        get_file:=ff;
-     end;
-
-{$endif NEWINPUT}
 
 {****************************************************************************
                                   TMODULE
@@ -968,9 +868,7 @@ unit files;
          linkstaticlibs.init;
          linksharedlibs.init;
          ppufile:=nil;
-{$ifndef NEWINPUT}
-         current_inputfile:=nil;
-{$endif}
+         scanner:=nil;
          map:=nil;
          symtable:=nil;
          flags:=0;
@@ -1105,7 +1003,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.30  1998-07-07 11:19:55  peter
+  Revision 1.31  1998-07-14 14:46:48  peter
+    * released NEWINPUT
+
+  Revision 1.30  1998/07/07 11:19:55  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.29  1998/06/25 10:51:00  pierre

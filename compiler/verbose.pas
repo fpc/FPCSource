@@ -33,22 +33,23 @@ uses messages;
 
 Const
   MaxErrorCount : longint = 50;
-{ <$100 can include file and linenr info }
+{ <$10000 will show file and line }
   V_Fatal       = $0;
   V_Error       = $1;
-  V_Normal      = $2;
+  V_Normal      = $2; { doesn't show a text like Error: }
   V_Warning     = $4;
   V_Note        = $8;
   V_Hint        = $10;
-  V_Info        = $100;
-  V_Status      = $200;
-  V_Used        = $400;
-  V_Tried       = $800;
-  V_Macro       = $1000;
-  V_Procedure   = $2000;
-  V_Conditional = $4000;
-  V_Debug       = $8000;
+  V_Macro       = $100;
+  V_Procedure   = $200;
+  V_Conditional = $400;
+  V_Info        = $10000;
+  V_Status      = $20000;
+  V_Used        = $40000;
+  V_Tried       = $80000;
+  V_Debug       = $100000;
 
+  V_ShowFile    = $ffff;
   V_All         = $ffffffff;
   V_Default     = V_Fatal + V_Error + V_Normal;
 
@@ -97,10 +98,7 @@ var
 
 implementation
 uses
-{$ifdef NEWINPUT}
   files,
-{$endif}
-
   globals;
 
 procedure LoadMsgFile(const fn:string);
@@ -233,11 +231,9 @@ begin
   if (l and V_Error)<>0 then
    inc(status.errorcount);
 { fix status }
-{$ifdef NEWINPUT}
   status.currentline:=aktfilepos.line;
   status.currentcolumn:=aktfilepos.column;
   if assigned(current_module) and
-
      ((current_module^.unit_index<>lastmoduleidx) or
       (current_module^.current_index<>lastfileidx)) then
    begin
@@ -245,8 +241,6 @@ begin
      lastmoduleidx:=current_module^.unit_index;
      lastfileidx:=current_module^.current_index;
    end;
-
-{$endif}
 { show comment }
   if do_comment(l,s) or dostop or (status.errorcount>=maxerrorcount) then
    stop
@@ -300,11 +294,9 @@ begin
   Replace(s,'$VER',version_string);
   Replace(s,'$TARGET',target_string);
 { fix status }
-{$ifdef NEWINPUT}
   status.currentline:=aktfilepos.line;
   status.currentcolumn:=aktfilepos.column;
   if assigned(current_module) and
-
      ((current_module^.unit_index<>lastmoduleidx) or
       (current_module^.current_index<>lastfileidx)) then
    begin
@@ -312,8 +304,6 @@ begin
      lastmoduleidx:=current_module^.unit_index;
      lastfileidx:=current_module^.current_index;
    end;
-
-{$endif}
 { show comment }
   if do_comment(v,s) or dostop or (status.errorcount>=maxerrorcount) then
    stop;
@@ -352,7 +342,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  1998-07-07 12:32:56  peter
+  Revision 1.11  1998-07-14 14:47:13  peter
+    * released NEWINPUT
+
+  Revision 1.10  1998/07/07 12:32:56  peter
     * status.currentsource is now calculated in verbose (more accurated)
 
   Revision 1.9  1998/07/07 11:20:20  peter

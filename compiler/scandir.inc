@@ -86,83 +86,11 @@ const
       preprocpat    : string;
       preproc_token : ttoken;
 
-{$ifndef NEWINPUT}
-    function readpreproc:ttoken;
-      begin
-         skipspace;
-         case c of
-        'A'..'Z',
-        'a'..'z',
-    '_','0'..'9' : begin
-                     preprocpat:=readid;
-                     readpreproc:=ID;
-                   end;
-             '(' : begin
-                     readchar;
-                     readpreproc:=LKLAMMER;
-                   end;
-             ')' : begin
-                     readchar;
-                     readpreproc:=RKLAMMER;
-                   end;
-             '+' : begin
-                     readchar;
-                     readpreproc:=PLUS;
-                   end;
-             '-' : begin
-                     readchar;
-                     readpreproc:=MINUS;
-                   end;
-             '*' : begin
-                     readchar;
-                     readpreproc:=STAR;
-                   end;
-             '/' : begin
-                     readchar;
-                     readpreproc:=SLASH;
-                   end;
-             '=' : begin
-                     readchar;
-                     readpreproc:=EQUAL;
-                   end;
-             '>' : begin
-                     readchar;
-                     if c='=' then
-                      begin
-                        readchar;
-                        readpreproc:=GTE;
-                      end
-                     else
-                      readpreproc:=GT;
-                   end;
-             '<' : begin
-                     readchar;
-                     case c of
-                      '>' : begin
-                              readchar;
-                              readpreproc:=UNEQUAL;
-                            end;
-                      '=' : begin
-                              readchar;
-                              readpreproc:=LTE;
-                            end;
-                     else   readpreproc:=LT;
-                     end;
-                   end;
-             #26 : Message(scan_f_end_of_file);
-         else
-          begin
-            readpreproc:=_EOF;
-          end;
-         end;
-      end;
-{$endif}
-
     procedure preproc_consume(t : ttoken);
       begin
         if t<>preproc_token then
          Message(scan_e_preproc_syntax_error);
-        preproc_token:={$ifdef NEWINPUT}current_scanner^.{$endif}readpreproc;
+        preproc_token:=current_scanner^.readpreproc;
       end;
 
     function read_expr : string;forward;
@@ -352,26 +280,18 @@ const
          begin
            case t of
    _DIR_ENDIF : begin
-                  {$ifdef NEWINPUT}current_scanner^.{$endif}poppreprocstack;
+                  current_scanner^.poppreprocstack;
                 end;
     _DIR_ELSE : begin
-                  {$ifdef NEWINPUT}current_scanner^.{$endif}elsepreprocstack;
+                  current_scanner^.elsepreprocstack;
                 end;
    _DIR_IFDEF : begin
-{$ifdef NEWINPUT}
                   current_scanner^.skipspace;
                   hs:=current_scanner^.readid;
                   mac:=pmacrosym(macros^.search(hs));
                   current_scanner^.addpreprocstack(assigned(mac) and mac^.defined,hs,scan_c_ifdef_found);
-{$else}
-                  skipspace;
-                  hs:=readid;
-                  mac:=pmacrosym(macros^.search(hs));
-                  addpreprocstack(assigned(mac) and mac^.defined,hs,scan_c_ifdef_found);
-{$endif}
                 end;
    _DIR_IFOPT : begin
-{$ifdef NEWINPUT}
                   current_scanner^.skipspace;
                   hs:=current_scanner^.readid;
                   if (length(hs)=1) and (c in ['-','+']) then
@@ -382,50 +302,22 @@ const
                   else
                    Message(scan_w_illegal_switch);
                   current_scanner^.addpreprocstack(found,hs,scan_c_ifopt_found);
-{$else}
-                  skipspace;
-                  hs:=readid;
-                  if (length(hs)=1) and (c in ['-','+']) then
-                   begin
-                     found:=CheckSwitch(hs[1],c);
-                     readchar; {read + or -}
-                   end
-                  else
-                   Message(scan_w_illegal_switch);
-                  addpreprocstack(found,hs,scan_c_ifopt_found);
-{$endif}
                 end;
       _DIR_IF : begin
-{$ifdef NEWINPUT}
                   current_scanner^.skipspace;
                   { start preproc expression scanner }
                   preproc_token:=current_scanner^.readpreproc;
                   hs:=read_expr;
                   current_scanner^.addpreprocstack(hs<>'0',hs,scan_c_if_found);
-{$else}
-                  skipspace;
-                  { start preproc expression scanner }
-                  preproc_token:=readpreproc;
-                  hs:=read_expr;
-                  addpreprocstack(hs<>'0',hs,scan_c_if_found);
-{$endif}
                 end;
   _DIR_IFNDEF : begin
-{$ifdef NEWINPUT}
                   current_scanner^.skipspace;
                   hs:=current_scanner^.readid;
                   mac:=pmacrosym(macros^.search(hs));
                   current_scanner^.addpreprocstack(not(assigned(mac) and mac^.defined),hs,scan_c_ifndef_found);
-{$else}
-                  skipspace;
-                  hs:=readid;
-                  mac:=pmacrosym(macros^.search(hs));
-                  addpreprocstack(not(assigned(mac) and mac^.defined),hs,scan_c_ifndef_found);
-{$endif}
                 end;
            end;
          { accept the text ? }
-{$ifdef NEWINPUT}
            if (current_scanner^.preprocstack=nil) or current_scanner^.preprocstack^.accept then
             break
            else
@@ -438,19 +330,6 @@ const
               Message1(scan_d_handling_switch,'$'+directive[t]);
             end;
          end;
-{$else}
-           if (preprocstack=nil) or preprocstack^.accept then
-            break
-           else
-            begin
-              Message(scan_c_skipping_until);
-              repeat
-                skipuntildirective;
-                t:=Get_Directive(readid);
-              until is_conditional(t);
-            end;
-         end;
-{$endif}
       end;
 
 
@@ -463,8 +342,8 @@ const
         macropos : longint;
         macrobuffer : pmacrobuffer;
       begin
-        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
-        hs:={$ifdef NEWINPUT}current_scanner^.{$endif}readid;
+        current_scanner^.skipspace;
+        hs:=current_scanner^.readid;
         mac:=pmacrosym(macros^.search(hs));
         if not assigned(mac) then
           begin
@@ -493,21 +372,21 @@ const
               Message(scan_e_keyword_cant_be_a_macro);
              pattern:=hs2;
            { !!!!!! handle macro params, need we this? }
-             {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
+             current_scanner^.skipspace;
            { may be a macro? }
              if c=':' then
                begin
-                  {$ifdef NEWINPUT}current_scanner^.{$endif}readchar;
+                  current_scanner^.readchar;
                   if c='=' then
                     begin
                        new(macrobuffer);
                        macropos:=0;
                        { first char }
-                       {$ifdef NEWINPUT}current_scanner^.{$endif}readchar;
+                       current_scanner^.readchar;
                        while (c<>'}') do
                          begin
                             macrobuffer^[macropos]:=c;
-                            {$ifdef NEWINPUT}current_scanner^.{$endif}readchar;
+                            current_scanner^.readchar;
                             if c=#26 then Message(scan_f_end_of_file);
                             inc(macropos);
                             if macropos>maxmacrolen then
@@ -533,8 +412,8 @@ const
         hs  : string;
         mac : pmacrosym;
       begin
-        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
-        hs:={$ifdef NEWINPUT}current_scanner^.{$endif}readid;
+        current_scanner^.skipspace;
+        hs:=current_scanner^.readid;
         mac:=pmacrosym(macros^.search(hs));
         if not assigned(mac) then
           begin
@@ -570,8 +449,8 @@ const
     _DIR_MESSAGE,
        _DIR_INFO : w:=scan_i_user_defined;
         end;
-        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
-        Message1(w,{$ifdef NEWINPUT}current_scanner^.{$endif}readcomment);
+        current_scanner^.skipspace;
+        Message1(w,current_scanner^.readcomment);
       end;
 
 
@@ -586,7 +465,7 @@ const
 {$endif}
    _DIR_SMARTLINK : sw:=cs_smartlink;
         end;
-        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
+        current_scanner^.skipspace;
         if c='-' then
          aktswitches:=aktswitches-[sw]
         else
@@ -603,13 +482,12 @@ const
         hp    : pinputfile;
         found : boolean;
       begin
-        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
-        hs:={$ifdef NEWINPUT}current_scanner^.{$endif}readcomment;
+        current_scanner^.skipspace;
+        hs:=current_scanner^.readcomment;
         while (hs<>'') and (hs[length(hs)]=' ') do
          dec(byte(hs[0]));
         hs:=FixFileName(hs);
         fsplit(hs,path,name,ext);
-{$ifdef NEWINPUT}
       { first look in the path of _d then currentmodule }
         path:=search(hs,path+';'+current_scanner^.inputfile^.path^+';'+includesearchpath,found);
       { shutdown current file }
@@ -619,32 +497,11 @@ const
         current_scanner^.addfile(hp);
         if not current_scanner^.open then
          Message1(scan_f_cannot_open_includefile,hs);
-{        status.currentsource:=current_scanner^.inputfile^.name^; }
         Message1(scan_u_start_include_file,current_scanner^.inputfile^.name^);
         current_scanner^.reload;
       { register for refs }
         current_module^.sourcefiles.register_file(hp);
         current_module^.current_index:=hp^.ref_index;
-{$else}
-      { first look in the path of _d then currentmodule }
-        path:=search(hs,path+';'+current_module^.current_inputfile^.path^+';'+includesearchpath,found);
-        hp:=new(pinputfile,init(path,name,ext));
-        hp^.reset;
-        if ioresult=0 then
-         begin
-           current_module^.current_inputfile^.bufpos:=longint(inputpointer)-longint(inputbuffer);
-           hp^.next:=current_module^.current_inputfile;
-           current_module^.current_inputfile:=hp;
-           status.currentsource:=current_module^.current_inputfile^.name^+current_module^.current_inputfile^.ext^;
-           current_module^.sourcefiles.register_file(hp);
-           current_module^.current_index:=hp^.ref_index;
-           inputbuffer:=current_module^.current_inputfile^.buf;
-           Message1(scan_u_start_include_file,current_module^.current_inputfile^.name^);
-           reload;
-         end
-        else
-         Message1(scan_f_cannot_open_includefile,hs);
-{$endif NEWINPUT}
       end;
 
 
@@ -655,16 +512,16 @@ const
 
     procedure dir_linkobject(t:tdirectivetoken);
       begin
-        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
-        {$ifdef NEWINPUT}current_scanner^.{$endif}readstring;
+        current_scanner^.skipspace;
+        current_scanner^.readstring;
         current_module^.linkofiles.insert(FixFileName(orgpattern));
       end;
 
 
     procedure dir_linklib(t:tdirectivetoken);
       begin
-        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
-        {$ifdef NEWINPUT}current_scanner^.{$endif}readstring;
+        current_scanner^.skipspace;
+        current_scanner^.readstring;
         current_module^.linkSharedLibs.insert(orgpattern);
       end;
 
@@ -675,8 +532,8 @@ const
          Message(scan_w_switch_is_global)
         else
           begin
-            {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
-            if set_string_asm({$ifdef NEWINPUT}current_scanner^.{$endif}readid) then
+            current_scanner^.skipspace;
+            if set_string_asm(current_scanner^.readid) then
              aktoutputformat:=target_asm.id
             else
              Message(scan_w_illegal_switch);
@@ -688,10 +545,10 @@ const
       var
         hs : string;
       begin
-        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
+        current_scanner^.skipspace;
         if upcase(c)='N' then
          begin
-           hs:={$ifdef NEWINPUT}current_scanner^.{$endif}readid;
+           hs:=current_scanner^.readid;
            if hs='NORMAL' then
             aktpackrecords:=2
            else
@@ -699,7 +556,7 @@ const
          end
         else
          begin
-           case {$ifdef NEWINPUT}current_scanner^.{$endif}readval of
+           case current_scanner^.readval of
             1 : aktpackrecords:=1;
             2 : aktpackrecords:=2;
             4 : aktpackrecords:=4;
@@ -719,8 +576,8 @@ const
       var
         s : string;
       begin
-        {$ifdef NEWINPUT}current_scanner^.{$endif}skipspace;
-        s:={$ifdef NEWINPUT}current_scanner^.{$endif}readid;
+        current_scanner^.skipspace;
+        s:=current_scanner^.readid;
         if s='DEFAULT' then
          aktasmmode:=initasmmode
         else
@@ -804,9 +661,9 @@ const
         p  : tdirectiveproc;
         hs : string;
       begin
-         {$ifdef NEWINPUT}current_scanner^.{$endif}gettokenpos;
-         {$ifdef NEWINPUT}current_scanner^.{$endif}readchar; {Remove the $}
-         hs:={$ifdef NEWINPUT}current_scanner^.{$endif}readid;
+         current_scanner^.gettokenpos;
+         current_scanner^.readchar; {Remove the $}
+         hs:=current_scanner^.readid;
          Message1(scan_d_handling_switch,'$'+hs);
          if hs='' then
           Message1(scan_w_illegal_switch,'$'+hs);
@@ -814,11 +671,11 @@ const
          while (length(hs)=1) and (c in ['-','+']) do
           begin
             HandleSwitch(hs[1],c);
-            {$ifdef NEWINPUT}current_scanner^.{$endif}readchar; {Remove + or -}
+            current_scanner^.readchar; {Remove + or -}
             if c=',' then
              begin
-               {$ifdef NEWINPUT}current_scanner^.{$endif}readchar;   {Remove , }
-               hs:={$ifdef NEWINPUT}current_scanner^.{$endif}readid; {Check for multiple switches on one line}
+               current_scanner^.readchar;   {Remove , }
+               hs:=current_scanner^.readid; {Check for multiple switches on one line}
                Message1(scan_d_handling_switch,'$'+hs);
              end
             else
@@ -841,14 +698,17 @@ const
             else
              Message1(scan_w_illegal_directive,'$'+hs);
           { conditionals already read the comment }
-            if ({$ifdef NEWINPUT}current_scanner^.{$endif}comment_level>0) then
-             {$ifdef NEWINPUT}current_scanner^.{$endif}readcomment;
+            if (current_scanner^.comment_level>0) then
+             current_scanner^.readcomment;
           end;
       end;
 
 {
   $Log$
-  Revision 1.13  1998-07-07 12:32:54  peter
+  Revision 1.14  1998-07-14 14:47:03  peter
+    * released NEWINPUT
+
+  Revision 1.13  1998/07/07 12:32:54  peter
     * status.currentsource is now calculated in verbose (more accurated)
 
   Revision 1.12  1998/07/07 11:20:10  peter

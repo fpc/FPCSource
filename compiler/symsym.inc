@@ -34,14 +34,7 @@
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
-{$ifdef NEWINPUT}
          fileinfo:=aktfilepos;
-{$else}
-         if assigned(current_module) and assigned(current_module^.current_inputfile) then
-           line_no:=current_module^.current_inputfile^.line_no
-         else
-           line_no:=0;
-{$endif NEWINPUT}
 {$ifdef UseBrowser}
          defref:=nil;
          lastwritten:=nil;
@@ -62,14 +55,7 @@
          right:=nil;
          setname(readstring);
          typ:=abstractsym;
-{$ifdef NEWINPUT}       
-
          fillchar(fileinfo,sizeof(fileinfo),0);
-{$else} 
-
-         line_no:=0;
-{$endif}        
-
          if object_options then
            properties:=symprop(readbyte)
          else
@@ -337,13 +323,8 @@
     function tsym.stabstring : pchar;
 
       begin
-         stabstring:=strpnew('"'+name+'",'+tostr(N_LSYM)+',0,'+tostr(
-{$ifdef NEWINPUT}
-           fileinfo.line
-{$else}
-           line_no
-{$endif}
-           )+',0');
+         stabstring:=strpnew('"'+name+'",'+tostr(N_LSYM)+',0,'+
+           tostr(fileinfo.line)+',0');
       end;
 
     procedure tsym.concatstabto(asmlist : paasmoutput);
@@ -557,11 +538,7 @@
      stabstring :=strpnew('"'+obj+':'+RetType
            +definition^.retdef^.numberstring+info+'",'+tostr(n_function)
            +',0,'+
-{$ifdef NEWINPUT}
            tostr(aktfilepos.line)
-{$else}
-           tostr(current_module^.current_inputfile^.line_no)
-{$endif}
            +','+definition^.mangledname);
     end;
 
@@ -1097,7 +1074,7 @@
             if use_gsym then st := 'G' else st := 'S';
             stabstring := strpnew('"'+owner^.name^+'__'+name+':'+
                      +definition^.numberstring+'",'+
-                     tostr(N_LCSYM)+',0,'+tostr({$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+','+mangledname);
+                     tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
          end
        else if (owner^.symtabletype = globalsymtable) or
           (owner^.symtabletype = unitsymtable) then
@@ -1109,13 +1086,13 @@
             if use_gsym then st := 'G' else st := 'S';
             stabstring := strpnew('"'+name+':'+st
                      +definition^.numberstring+'",'+
-                     tostr(N_LCSYM)+',0,'+tostr({$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+','+mangledname);
+                     tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
          end
        else if owner^.symtabletype = staticsymtable then
          begin
             stabstring := strpnew('"'+name+':S'
                   +definition^.numberstring+'",'+
-                  tostr(N_LCSYM)+',0,'+tostr({$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+','+mangledname);
+                  tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
          end
        else if (owner^.symtabletype=parasymtable) then
          begin
@@ -1129,8 +1106,8 @@
               end;
             stabstring := strpnew('"'+name+':'+st
                   +definition^.numberstring+'",'+
-                  tostr(N_PSYM)+',0,'+tostr({$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+','+
-                    tostr(address+owner^.call_offset))
+                  tostr(N_PSYM)+',0,'+tostr(fileinfo.line)+','+
+                  tostr(address+owner^.call_offset));
                   {offset to ebp => will not work if the framepointer is esp
                   so some optimizing will make things harder to debug }
          end
@@ -1142,15 +1119,14 @@
               { this is the register order for GDB}
               stabstring:=strpnew('"'+name+':r'
                         +definition^.numberstring+'",'+
-                        tostr(N_RSYM)+',0,'+tostr(
-              {$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+','+tostr(GDB_i386index[reg]));
+                        tostr(N_RSYM)+',0,'+
+                        tostr(fileinfo.line)+','+tostr(GDB_i386index[reg]));
            end
          else
    {$endif i386}
            stabstring := strpnew('"'+name+':'
                   +definition^.numberstring+'",'+
-                  tostr(N_LSYM)+',0,'+tostr(
-           {$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+',-'+tostr(address))
+                  tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+',-'+tostr(address))
        else
          stabstring := inherited stabstring;
   end;
@@ -1169,8 +1145,8 @@
            { this is the register order for GDB}
               stab_str:=strpnew('"'+name+':r'
                      +definition^.numberstring+'",'+
-                     tostr(N_RSYM)+',0,'+tostr(
-                     {$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+','+tostr(GDB_i386index[reg]));
+                     tostr(N_RSYM)+',0,'+
+                     tostr(fileinfo.line)+','+tostr(GDB_i386index[reg]));
               asmlist^.concat(new(pai_stabs,init(stab_str)));
            end;
 {$endif i386}
@@ -1287,9 +1263,9 @@
       st := 'G'
     else
       st := 'S';
-    stabstring := strpnew('"'+name+':'+st
-            +definition^.numberstring+'",'+tostr(n_STSYM)+',0,'+tostr(
-            {$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+','+mangledname);
+    stabstring := strpnew('"'+name+':'+st+
+            definition^.numberstring+'",'+tostr(n_STSYM)+',0,'+
+            tostr(fileinfo.line)+','+mangledname);
     end;
 {$endif GDB}
 
@@ -1413,8 +1389,8 @@
          { sets are not recognized by GDB}
             {***}
         end;
-    stabstring := strpnew('"'+name+':c='+st+'",'+tostr(N_function)+',0,'+tostr(
-    {$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+',0');
+    stabstring := strpnew('"'+name+':c='+st+'",'+tostr(N_function)+',0,'+
+                    tostr(fileinfo.line)+',0');
     end;
 
     procedure tconstsym.concatstabto(asmlist : paasmoutput);
@@ -1586,7 +1562,7 @@
       else
         stabchar := 't';
       short := '"'+name+':'+stabchar+definition^.numberstring
-               +'",'+tostr(N_LSYM)+',0,'+tostr({$ifdef NEWINPUT}fileinfo.line{$else}line_no{$endif})+',0';
+               +'",'+tostr(N_LSYM)+',0,'+tostr(fileinfo.line)+',0';
       stabstring := strpnew(short);
     end;
 
@@ -1644,7 +1620,10 @@
 
 {
   $Log$
-  Revision 1.21  1998-07-13 21:17:38  florian
+  Revision 1.22  1998-07-14 14:47:08  peter
+    * released NEWINPUT
+
+  Revision 1.21  1998/07/13 21:17:38  florian
     * changed to compile with TP
 
   Revision 1.20  1998/07/10 00:00:05  peter

@@ -97,11 +97,7 @@ unit pbase;
       procedure syntaxerror(s : string);
 
         begin
-{$ifdef NEWINPUT}
            Message2(scan_f_syn_expected,tostr(aktfilepos.column),s);
-{$else}
-           Message2(scan_f_syn_expected,tostr(get_current_col),s);
-{$endif}
         end;
 
       { This is changed since I changed the order of token
@@ -155,7 +151,7 @@ unit pbase;
            begin
              if token=_END then
                 last_endtoken_filepos:=tokenpos;
-             token:={$ifdef NEWINPUT}current_scanner^.{$endif}yylex;
+             token:=current_scanner^.yylex;
            end;
       end;
 
@@ -211,13 +207,7 @@ unit pbase;
            begin
               s:=sc^.get_with_tokeninfo(filepos);
               ss:=new(pvarsym,init(s,def));
-{$ifdef NEWINPUT}       
-
               ss^.fileinfo:=filepos;
-{$else}
-              ss^.line_no:=filepos.line;
-{$endif}        
-
               st^.insert(ss);
               { static data fields are inserted in the globalsymtable }
               if (st^.symtabletype=objectsymtable) and
@@ -234,7 +224,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  1998-07-09 23:59:59  peter
+  Revision 1.13  1998-07-14 14:46:52  peter
+    * released NEWINPUT
+
+  Revision 1.12  1998/07/09 23:59:59  peter
     * fixed ttypesym bug finally
     * fileinfo in the symtable and better using for unused vars
 

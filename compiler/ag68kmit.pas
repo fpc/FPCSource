@@ -53,18 +53,16 @@ unit ag68kmit;
     const
       line_length = 70;
 
-{$ifdef GDB}
     var
-{$ifdef NEWINPUT}
-      infile : pinputfile;
-{$else}
-
-      infile : pextfile;
+{$ifdef GDB}
+      n_line  : byte;     { different types of source lines }
+      includecount : longint;
 {$endif}
+      lastsec    : tsection; { last section type written }
+      lastsecidx,
+      lastfileindex,
+      lastline   : longint;
 
-      includecount,
-      lastline : longint;
-{$endif GDB}
 
     function double2str(d : double) : string;
       var
@@ -251,13 +249,6 @@ unit ag68kmit;
                              T68kGASASMOUTPUT
  ****************************************************************************}
 
-    var
-{$ifdef GDB}
-      n_line  : byte;     { different types of source lines }
-{$endif}
-      lastsec : tsection; { last section type written }
-      lastsecidx : longint;
-
     const
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
         (#9'.long'#9,'',#9'.short'#9,#9'.byte'#9);
@@ -274,6 +265,8 @@ unit ag68kmit;
       pos,l,i   : longint;
       found     : boolean;
 {$ifdef GDB}
+      curr_n    : byte;
+      infile    : pinputfile;
       funcname  : pchar;
       linecount : longint;
 {$endif GDB}
@@ -294,37 +287,41 @@ unit ag68kmit;
             if not (hp^.typ in  [ait_external,ait_stabn,ait_stabs,
                    ait_label,ait_cut,ait_align,ait_stab_function_name]) then
              begin
-{$ifdef NEWINPUT}
-               if assigned(hp^.infile) and (pinputfile(hp^.infile)<>infile)  then
-{$else}
-               if assigned(hp^.infile) and (pextfile(hp^.infile)<>infile)  then
-{$endif NEWINPUT}
+             { file changed ? (must be before line info) }
+               if lastfileindex<>hp^.fileinfo.fileindex then
                 begin
-                  infile:=hp^.infile;
-                  inc(includecount);
-                  if (hp^.infile^.path^<>'') then
+                  infile:=current_module^.sourcefiles.get_file(hp^.fileinfo.fileindex);
+                  if includecount=0 then
+                   curr_n:=n_sourcefile
+                  else
+                   curr_n:=n_includefile;
+                  if (infile^.path^<>'') then
                    begin
-                     AsmWriteLn(#9'.stabs "'+FixPath(hp^.infile^.path^)+'",'+tostr(n_includefile)+
-                                ',0,0,Ltext'+ToStr(IncludeCount));
+                     AsmWriteLn(#9'.stabs "'+lower(BsToSlash(FixPath(infile^.path^)))+'",'+
+                       tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
                    end;
-                  AsmWriteLn(#9'.stabs "'+FixFileName(hp^.infile^.name^+hp^.infile^.ext^)+'",'+tostr(n_includefile)+
-                             ',0,0,Ltext'+ToStr(IncludeCount));
+                  AsmWriteLn(#9'.stabs "'+lower(FixFileName(infile^.name^))+'",'+
+                    tostr(curr_n)+',0,0,'+'Ltext'+ToStr(IncludeCount));
                   AsmWriteLn('Ltext'+ToStr(IncludeCount)+':');
+                  inc(includecount);
+                  lastfileindex:=hp^.fileinfo.fileindex;
                 end;
-              { file name must be there before line number ! }
-               if (hp^.line<>lastline) and (hp^.line<>0) then
+             { line changed ? }
+               if (hp^.fileinfo.line<>lastline) and (hp^.fileinfo.line<>0) then
                 begin
-                  if (n_line = n_textline) and assigned(funcname) and
+                  if (n_line=n_textline) and assigned(funcname) and
                      (target_os.use_function_relative_addresses) then
                    begin
                      AsmWriteLn(target_asm.labelprefix+'l'+tostr(linecount)+':');
-                     AsmWriteLn(#9'.stabn '+tostr(n_line)+',0,'+tostr(hp^.line)+','+
-                                target_asm.labelprefix+'l'+tostr(linecount)+' - '+StrPas(FuncName));
+                     AsmWrite(#9'.stabn '+tostr(n_line)+',0,'+tostr(hp^.fileinfo.line)+','+
+                                target_asm.labelprefix+'l'+tostr(linecount)+' - ');
+                     AsmWritePChar(FuncName);
+                     AsmLn;
                      inc(linecount);
                    end
                   else
-                   AsmWriteLn(#9'.stabd'#9+tostr(n_line)+',0,'+tostr(hp^.line));
-                  lastline:=hp^.line;
+                   AsmWriteLn(#9'.stabd'#9+tostr(n_line)+',0,'+tostr(hp^.fileinfo.line));
+                  lastline:=hp^.fileinfo.line;
                 end;
              end;
           end;
@@ -592,20 +589,24 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
     end;
 
     procedure tm68kmitasmlist.WriteAsmList;
-{$ifdef GDB}
     var
       p:dirstr;
       n:namestr;
       e:extstr;
-{$endif}
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module^.mainsource) then
        comment(v_info,'Start writing gas-styled assembler output for '+current_module^.mainsource^);
 {$endif}
+
+      lastline:=0;
+      lastfileindex:=0;
+      LastSec:=sec_none;
 {$ifdef GDB}
-      infile:=nil;
       includecount:=0;
+      n_line:=n_bssline;
+{$endif GDB}
+
       if assigned(current_module^.mainsource) then
        fsplit(current_module^.mainsource^,p,n,e)
       else
@@ -616,26 +617,6 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
        end;
     { to get symify to work }
       AsmWriteLn(#9'.file "'+FixFileName(n+e)+'"');
-    { stabs }
-      n_line:=n_bssline;
-      if (cs_debuginfo in aktswitches) then
-       begin
-         if (p<>'') then
-          AsmWriteLn(#9'.stabs "'+FixPath(p)+'",'+tostr(n_sourcefile)+',0,0,Ltext0');
-         AsmWriteLn(#9'.stabs "'+FixFileName(n+e)+'",'+tostr(n_sourcefile)+',0,0,Ltext0');
-         AsmWriteLn('Ltext0:');
-       end;
-      infile:=current_module^.sourcefiles.files;
-    { main source file is last in list }
-{$ifdef NEWINPUT}
-      while assigned(infile^.next) do
-       infile:=infile^.next;
-{$else}
-      while assigned(infile^._next) do
-       infile:=infile^._next;
-{$endif}
-      lastline:=0;
-{$endif GDB}
 
       { there should be nothing but externals so we don't need to process
       WriteTree(externals); }
@@ -660,7 +641,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.6  1998-07-10 10:50:55  peter
+  Revision 1.7  1998-07-14 14:46:39  peter
+    * released NEWINPUT
+
+  Revision 1.6  1998/07/10 10:50:55  peter
     * m68k updates
 
   Revision 1.5  1998/06/05 17:46:05  peter

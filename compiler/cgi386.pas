@@ -235,30 +235,22 @@ implementation
       begin
          oldcodegenerror:=codegenerror;
          oldswitches:=aktswitches;
-{$ifdef NEWINPUT}
          oldpos:=aktfilepos;
-         aktfilepos:=p^.fileinfo;
-{$else}
-         get_cur_file_pos(oldpos);
-         set_cur_file_pos(p^.fileinfo);
-{$endif NEWINPUT}
 
-         codegenerror:=false;
+         aktfilepos:=p^.fileinfo;
          aktswitches:=p^.pragmas;
          if not(p^.error) then
            begin
+              codegenerror:=false;
               procedures[p^.treetype](p);
               p^.error:=codegenerror;
               codegenerror:=codegenerror or oldcodegenerror;
            end
          else
            codegenerror:=true;
+
          aktswitches:=oldswitches;
-{$ifdef NEWINPUT}
          aktfilepos:=oldpos;
-{$else}
-         set_cur_file_pos(oldpos);
-{$endif NEWINPUT}
       end;
 
 
@@ -324,26 +316,17 @@ implementation
            end;
       end;
 
+
     procedure generatecode(var p : ptree);
-
       var
-           { *pass modifies with every node aktlinenr and current_module^.current_inputfile, }
-         { to constantly contain the right line numbers             }
-           oldis : pinputfile;
-         oldnr,i : longint;
+         i       : longint;
          regsize : topsize;
-         regi : tregister;
-          hr : preference;
-
-       label
+         regi    : tregister;
+         hr      : preference;
+      label
          nextreg;
-
       begin
          cleartempgen;
-{$ifndef NEWINPUT}
-         oldis:=current_module^.current_inputfile;
-         oldnr:=current_module^.current_inputfile^.line_no;
-{$endif}
          { when size optimization only count occurrence }
          if cs_littlesize in aktswitches then
            t_times:=1
@@ -514,16 +497,15 @@ implementation
            end;
          procinfo.aktproccode^.concatlist(exprasmlist);
          make_const_global:=false;
-{$ifndef NEWINPUT}
-         current_module^.current_inputfile:=oldis;
-         current_module^.current_inputfile^.line_no:=oldnr;
-{$endif}
       end;
 
 end.
 {
   $Log$
-  Revision 1.40  1998-07-07 11:19:52  peter
+  Revision 1.41  1998-07-14 14:46:44  peter
+    * released NEWINPUT
+
+  Revision 1.40  1998/07/07 11:19:52  peter
     + NEWINPUT for a better inputfile and scanner object
 
   Revision 1.39  1998/06/12 10:32:23  pierre

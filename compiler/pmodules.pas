@@ -120,7 +120,7 @@ unit pmodules;
          datasegment^.concat(new(pai_symbol,init_global('HEAPSIZE')));
 {$endif i386}
 {$ifdef m68k}
-	 datasegment^.concat(new(pai_symbol,init_global('HEAP_SIZE')));
+         datasegment^.concat(new(pai_symbol,init_global('HEAP_SIZE')));
 {$endif m68k}
          datasegment^.concat(new(pai_const,init_32bit(heapsize)));
       end;
@@ -259,18 +259,10 @@ unit pmodules;
               Message1(unit_f_cant_compile_unit,current_module^.modulename^)
              else
               begin
-{$ifdef NEWINPUT}
                 current_scanner^.close;
                 compile(current_module^.mainsource^,compile_system);
                 if (not old_current_module^.compiled) then
                  current_scanner^.reopen;
-{$else}
-                if assigned(old_current_module^.current_inputfile) then
-                 old_current_module^.current_inputfile^.tempclose;
-                compile(current_module^.mainsource^,compile_system);
-                if (not old_current_module^.compiled) and assigned(old_current_module^.current_inputfile) then
-                 old_current_module^.current_inputfile^.tempreopen;
-{$endif}
               end;
            end
           else
@@ -767,26 +759,18 @@ unit pmodules;
          if token=ID then
           begin
           { create filenames and unit name }
-{$ifdef NEWINPUT}
              current_module^.SetFileName(current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^);
-{$else}
-             current_module^.SetFileName(current_module^.current_inputfile^.path^+current_module^.current_inputfile^.name^);
-{$endif}
              stringdispose(current_module^.modulename);
              current_module^.modulename:=stringdup(upper(pattern));
           { check for system unit }
              new(s1);
              new(s2);
              s1^:=upper(target_info.system_unit);
-{$ifdef NEWINPUT}
              s2^:=upper(current_scanner^.inputfile^.name^);
              { strip extension, there could only be one dot }
              i:=pos('.',s2^);
              if i>0 then
               s2^:=Copy(s2^,1,i-1);
-{$else}
-             s2^:=upper(current_module^.current_inputfile^.name^);
-{$endif}
              if (cs_compilesystem in aktswitches)  then
               begin
                 if (cs_check_unit_name in aktswitches) and
@@ -1182,7 +1166,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.35  1998-07-08 12:39:38  peter
+  Revision 1.36  1998-07-14 14:46:54  peter
+    * released NEWINPUT
+
+  Revision 1.35  1998/07/08 12:39:38  peter
     * heap_size for m68k
 
   Revision 1.34  1998/07/07 11:20:03  peter
