@@ -213,6 +213,9 @@ all : $(EXENAME)
 clean :
 	-rm -f *.o *.ppu *.s $(EXENAME)
 
+distclean: clean
+	-rm -f $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3)
+
 #####################################################################
 # Info
 #####################################################################
@@ -412,7 +415,10 @@ rtlclean :
 # Test of log at the end
 # does CVS add # at start of each line ??
 # $Log$
-# Revision 1.14  1998-06-03 09:27:51  michael
+# Revision 1.15  1998-06-03 09:33:39  michael
+# added distclean target to remove ppc1-ppc3 too
+#
+# Revision 1.14  1998/06/03 09:27:51  michael
 # Clean cannot remove ppc1-ppc3 : make cycle uses clean
 #
 # Revision 1.13  1998/06/02 11:29:36  peter
