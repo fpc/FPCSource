@@ -2333,6 +2333,7 @@ VAR err : integer;
 {$ifndef linux}
     buf0 : ARRAY [ 0..3 ] of char;
 {$endif}
+    storefilemode,
     timedate : longint;
     originalcrc : longint;    {crc from zip-header}
     ziptype, aResult : integer;
@@ -2360,10 +2361,12 @@ BEGIN
   getmem ( slide, wsize );
   fillchar ( slide [ 0 ], wsize, #0 );
   assign ( infile, in_name );
+  storefilemode := filemode;
   filemode := 0;
   {$I-}
   reset ( infile, 1 );
   {$I+}
+  filemode := storefilemode;
   IF ioresult <> 0 THEN BEGIN
     freemem ( slide, wsize );
     unzipfile := unzip_ReadErr;
@@ -2573,14 +2576,9 @@ BEGIN
     IF dlghandle <> 0 THEN
       sendmessage ( dlghandle, wm_command, dlgnotify, longint ( @oldpercent ) );
     {$endif}
-    {$ifdef win32}
-    { Win32 API needs GENERIC_WRITE attribute
-      to allow changing the time stamps on a file PM }
     filemode := 2;
-    {$else not win32}
-    filemode := 0;
-    {$endif not  win32}
     reset ( outfile );
+    filemode := storefilemode;
     setftime ( outfile, timedate ); {set zipped time and date of oufile}
     close ( outfile );
   END;
@@ -3338,7 +3336,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.3  2002-03-15 11:33:33  pierre
+  Revision 1.4  2002-03-19 13:03:43  pierre
+   * fix the setftime for all targets
+
+  Revision 1.3  2002/03/15 11:33:33  pierre
    * fix the win32 time stamp bug
 
   Revision 1.2  2002/03/13 17:29:50  carl
