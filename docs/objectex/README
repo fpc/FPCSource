@@ -1,0 +1,5 @@
+These are the example programs that appear in the FPC documentation.
+ 
+Units guide, chapter on Printer unit :
+
+printex.pp contains an example of the AssignLst function.

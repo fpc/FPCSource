@@ -1,0 +1,6 @@
+These are the example programs that appear in the FPC documentation.
+ 
+Units guide, chapter on heaptrc unit :
+
+heapex.pp contains an example of how to use the heaptrc unit.
+setinfo.pp contains an example of how to use the set_extra_info function.
