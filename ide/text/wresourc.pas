@@ -575,7 +575,10 @@ begin
       S^.Seek(BaseOfs+E^.DataOfs);
       OK:=(S^.Status=stOK);
       CurOfs:=0;
-
+      { this results sometimes in endless loops
+      when the resource are changed PM }
+      if E^.DataLen<0 then
+        OK:=false;
       while OK and (CurOfs<E^.DataLen) do
       begin
         CurFrag:=Min(E^.DataLen-CurOfs,TempBufSize);
@@ -780,7 +783,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  1999-08-03 20:22:44  peter
+  Revision 1.7  1999-09-07 09:26:26  pierre
+   * E^.DataLen=-1 sets OK to false in TResourceFile.ReadSourceEntryToStream
+
+  Revision 1.6  1999/08/03 20:22:44  peter
     + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
     + Desktop saving should work now
        - History saved
@@ -825,4 +831,3 @@ END.
     + first things for resource files
 
 }
-
