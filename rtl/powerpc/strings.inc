@@ -22,61 +22,47 @@ function strcopy(dest,source : pchar) : pchar;assembler;
 { in: dest in r3, source in r4 }
 { out: result (dest) in r3     }
 asm
-        { empty/invalid string? }
-        cmpli   r3,0
-        { if yes, do nothing }
-        beq     LStrCopyDone
         subi    r4,r4,1
-        subi    r9,r3,1
+        subi    r29,r3,1
 LStrCopyLoop:
-        lbzu    r10,1(r4)
-        cmpli   r10,0
-        stbu    r10,1(r9)
+        lbzu    r30,1(r4)
+        cmpli   r30,0
+        stbu    r30,1(r29)
         bne     LStrCopyLoop
-LStrCopyDone:
-end ['r4','r9','r10','cr0'];
+end ['r4','r29','r30','cr0'];
 
 
 function strecopy(dest,source : pchar) : pchar;assembler;
 { in: dest in r3, source in r4        }
 { out: result (end of new dest) in r3 }
 asm
-        { empty/invalid string? }
-        cmpli   r3,0
-        { if yes, do nothing }
-        beq     LStreCopyDone
         subi    r4,r4,1
         subi    r3,r3,1
 LStreCopyLoop:
-        lbzu    r10,1(r4)
-        cmpli   r10,0
-        stbu    r10,1(r3)
+        lbzu    r30,1(r4)
+        cmpli   r30,0
+        stbu    r30,1(r3)
         bne     LStreCopyLoop
-LStreCopyDone:
-end ['r3','r4','r10','cr0'];
+end ['r3','r4','r30','cr0'];
 
 
 function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
 { in: dest in r3, source in r4, maxlen in r5 }
 { out: result (dest) in r3                   }
 asm
-        { empty/invalid string? }
-        cmpli   r3,0
-        { if yes, do nothing }
-        beq     LStrCopyDone
         mtctr   r5
         subi    r4,r4,1
-        subi    r9,r3,1
+        subi    r29,r3,1
 LStrlCopyLoop:
-        lbzu    r10,1(r4)
-        cmpli   r10,0
-        stbu    r10,1(r9)
+        lbzu    r30,1(r4)
+        cmpli   r30,0
+        stbu    r30,1(r29)
         bdnzne  LStrlCopyLoop
         beq     LStrlCopyDone
-        li      r10,0
-        stb     r10,1(r9)
+        li      r30,0
+        stb     r30,1(r29)
 LStrlCopyDone:
-end ['r4','r9','r10','cr0'];
+end ['r4','r29','r30','cr0'];
 
 
 function strlen(p : pchar) : longint;assembler;
@@ -87,14 +73,14 @@ asm
         cmpli   r3,0
         { if yes, do nothing }
         beq     LStrLenDone
-        subi    r9,r3,1
+        subi    r29,r3,1
 LStrLenLoop:
-        lbzu    r10,1(r9)
-        cmpli   r10,0
+        lbzu    r30,1(r29)
+        cmpli   r30,0
         bne     LStrLenLoop
-        sub     r3,r9,r3
+        sub     r3,r29,r3
 LStrLenDone:
-end ['r3','r4','r9','r10','cr0'];
+end ['r3','r4','r29','r30','cr0'];
 
 
 function strend(p : pchar) : pchar;assembler;
@@ -107,11 +93,11 @@ asm
         beq     LStrEndDone
         subi    r3,r3,1
 LStrEndLoop:
-        lbzu    r10,1(r3)
-        cmpli   r10,0
+        lbzu    r30,1(r3)
+        cmpli   r30,0
         bne     LStrEndLoop
 LStrEndDone:
-end ['r3','r4','r10','cr0'];
+end ['r3','r4','r30','cr0'];
 
 
 function strcomp(str1,str2 : pchar) : longint;assembler;
@@ -119,8 +105,26 @@ function strcomp(str1,str2 : pchar) : longint;assembler;
 { out: result (= 0 if strings equal, < 0 if str1 < str2, > 0 if str1 > str2 }
 {      in r3                                                                }
 asm
-  { !!! }
-end;
+        { use r28 instead of r3 for str1 since r3 contains result }
+        subi    r28,r3,1
+        subi    r4,r4,1
+LStrCompLoop:
+        { load next chars }
+        lbzu    r29,1(r28)
+        { check if one is zero }
+        cmpli   cr1,r29,0
+        lbzu    r30,1(r4)
+        { calculate difference }
+        sub.    r3,r29,r30
+        { if chars not equal, we're ready }
+        bne     LStrCompDone
+        { if they are equal and one is zero, then the other one is zero too }
+        { and we're done as well (r3 does contain as well)                  }
+        beq     cr1,LStrCompDone
+        { otherwise loop }
+        b       LStrCompLoop
+LStrCompDone:
+end ['r3','r4','r28','r29','r30','cr0','cr1'];
 
 
 function strlcomp(str1,str2 : pchar;l : longint) : longint;assembler;
@@ -129,25 +133,143 @@ function strlcomp(str1,str2 : pchar;l : longint) : longint;assembler;
 { out: result (= 0 if strings equal, < 0 if str1 < str2, > 0 if str1 > str2 }
 {      in r3                                                                }
 asm
-  { !!! }
-end;
+        { use r28 instead of r3 for str1 since r3 contains result }
+        cmpl    r5,0
+        subi    r28,r3,1
+        li      r3,0
+        beq     LStrlCompDone
+        mtctr   r5
+        subi    r4,r4,1
+LStrlCompLoop:
+        { load next chars }
+        lbzu    r29,1(r28)
+        { check if one is zero }
+        cmpli   cr1,r29,0
+        lbzu    r30,1(r4)
+        { calculate difference }
+        sub.    r3,r29,r30
+        { if chars not equal, we're ready }
+        bne     LStrlCompDone
+        { if they are equal and one is zero, then the other one is zero too }
+        { and we're done as well (r3 does contain as well)                  }
+        beq     cr1,LStrlCompDone
+        { otherwise loop }
+        bdnz    LStrlCompLoop
+LStrlCompDone:
+end ['r3','r4','r28','r29','r30','cr0','cr1','ctr'];
 
 
 function stricomp(str1,str2 : pchar) : longint;assembler;
-{ in: str1 in r3, str2 in r4                               }
-{ out: result (= index of first differing character) in r3 }
+{ in: str1 in r3, str2 in r4                                 }
+{ out: result of case insensitive comparison (< 0, = 0, > 0) }
 asm
-  { !!! }
-end;
+        { use r28 instead of r3 for str1 since r3 contains result }
+        subi    r28,r3,1
+        subi    r4,r4,1
+LStriCompLoop:
+        { load next chars }
+        lbzu    r29,1(r28)
+        { check if one is zero }
+        cmpli   cr1,r29,0
+        lbzu    r30,1(r4)
+        { calculate difference }
+        sub.    r3,r29,r30
+        { if chars are equal, no further test is necessary }
+        beq     LStriCompEqual
+
+        li       r27,0
+        { r3 := r29 - 'A' }
+        subic    r3,r29,'A'
+        { if r29 < 'A' then r27 := 0 else r27 := $ffffffff }
+        addme    r27,r27
+        { r3 := 'Z' - r29 }
+        subfic   r3,r29,'Z'
+        { if r29 < 'A' then r27 := 0 else r27 := $20 }
+        andi     r27,r27,0x020
+        { if r29 > Z then r26 := 0 else r26 := $ffffffff
+        subfe    r26,r26,r26
+        { if (r29 in ['A'..'Z'] then r27 := $20 else r27 := 0 }
+        and      r27,r27,r26
+        { make lowercase }
+        add      r29,r29,r27
+
+        { same for r30 }
+        li       r27,0
+        subic    r3,r30,'A'
+        addme    r27,r27
+        subfic   r3,r30,'Z'
+        andi     r27,r27,0x020
+        subfe    r26,r26,r26
+        and      r27,r27,r26
+        add      r30,r30,r27
+
+        { compare again }
+        sub.     r3,r29,r30
+        bne      LStrCompDone
+LStriCompEqual:
+        { if they are equal and one is zero, then the other one is zero too }
+        { and we're done as well (r3 also contains 0 then)                  }
+        beq     cr1,LStriCompDone
+        { otherwise loop }
+        b       LStriCompLoop
+LStriCompDone:
+end ['r3','r4','r26,'r27','r28','r29','r30','cr0','cr1'];
 
 
 function strlicomp(str1,str2 : pchar;l : longint) : longint;assembler;
 { (same as stricomp, but maximally compare until l'th character) }
 { in: str1 in r3, str2 in r4, l in r5                            }
-{ out: result (= index of first differing character) in r3       }
+{ out: result of case insensitive comparison (< 0, = 0, > 0)     }
 asm
-  { !!! }
-end;
+        { use r28 instead of r3 for str1 since r3 contains result }
+        cmpl    r5,0
+        subi    r28,r3,1
+        li      r3,0
+        beq     LStrlCompDone
+        mtctr   r5
+        subi    r4,r4,1
+LStriCompLoop:
+        { load next chars }
+        lbzu    r29,1(r28)
+        { check if one is zero }
+        cmpli   cr1,r29,0
+        lbzu    r30,1(r4)
+        { calculate difference }
+        sub.    r3,r29,r30
+        { if chars are equal, no further test is necessary }
+        beq     LStriCompEqual
+
+        { see stricomp for explanation }
+        li       r27,0
+        subic    r3,r29,'A'
+        addme    r27,r27
+        subfic   r3,r29,'Z'
+        andi     r27,r27,0x020
+        subfe    r26,r26,r26
+        and      r27,r27,r26
+        add      r29,r29,r27
+
+        { same for r30 }
+        li       r27,0
+        subic    r3,r30,'A'
+        addme    r27,r27
+        subfic   r3,r30,'Z'
+        andi     r27,r27,0x020
+        subfe    r26,r26,r26
+        and      r27,r27,r26
+        add      r30,r30,r27
+
+        { compare again }
+        sub.     r3,r29,r30
+        bne      LStrCompDone
+LStriCompEqual:
+        { if they are equal and one is zero, then the other one is zero too }
+        { and we're done as well (r3 also contains 0 then)                  }
+        beq     cr1,LStriCompDone
+        { otherwise loop }
+        bdnz    LStriCompLoop
+LStriCompDone:
+end ['r3','r4','r26,'r27','r28','r29','r30','cr0','cr1','ctr'];
 
 
 function strscan(p : pchar;c : char) : pchar;assembler;
@@ -158,11 +280,11 @@ asm
         beq     LStrScanDone
         subi    r3,r3,1
 LStrScanLoop:
-        lbzu    r10,1(r3)
-        cmpl    r10,r4
+        lbzu    r30,1(r3)
+        cmpl    r30,r4
         bne     LStrScanLoop
 LStrScanDone:
-end ['r3','r4','r10','cr0'];
+end ['r3','r4','r30','cr0'];
 
 
 function strrscan(p : pchar;c : char) : pchar;assembler;
@@ -171,73 +293,76 @@ asm
         cmpli   r3,0
         { if yes, do nothing }
         beq     LStrrScanDone
-        { make r9 $ffffffff, later on we take min(r9,r3) }
-        li      r9,0x0ffff
+        { make r29 $ffffffff, later on we take min(r29,r3) }
+        li      r29,0x0ffff
         subi    r3,r3,1
 LStrrScanLoop:
-        lbzu    r10,1(r3)
-        cmpl    cr1,r10,r4
-        cmpli   cr0,r10,0
+        lbzu    r30,1(r3)
+        cmpl    cr1,r30,r4
+        cmpli   cr0,r30,0
         bne+    cr1,LStrrScanNotFound
         { store address of found position }
-        mr      r9,r3
+        mr      r29,r3
 LStrrScanNotFound:
         bne     LStrrScanLoop
-        { Select min of r3 and r9 -> end of string or found position     }
+        { Select min of r3 and r29 -> end of string or found position     }
         { From the PPC compiler writer's guide, not sure if I could ever }
         { come up with something like this :)                            }
 
-        subfc   r10,r3,r9   { r10 = r9 - r3, CA = (r9 >= r3) ? 1 : 0 }
-        subfe   r9,r9,r9    { r9' = (r9 >= r3) ? 0 : -1              }
-        and     r10,r10,r9  { r10 = (r9 >= r3) ? 0 : r9 - r3         }
-        add     r3,r10,r3   { r3  = (r9 >= r3) ?  r3 : r9            }
+        subfc   r30,r3,r29   { r30 = r29 - r3, CA = (r29 >= r3) ? 1 : 0 }
+        subfe   r29,r29,r29    { r29' = (r29 >= r3) ? 0 : -1              }
+        and     r30,r30,r29  { r30 = (r29 >= r3) ? 0 : r29 - r3         }
+        add     r3,r30,r3   { r3  = (r29 >= r3) ?  r3 : r29            }
 LStrrScanDone:
-end ['r3','r4','r9','r10','cr0','cr1'];
+end ['r3','r4','r29','r30','cr0','cr1'];
 
 
 function strupper(p : pchar) : pchar;assembler;
 asm
         cmpli   r3,0
         beq     LStrUpperNil
-        subi    r9,r3,1
+        subi    r29,r3,1
 LStrUpperLoop:
-        lbzu    r10,1(r9)
+        lbzu    r30,1(r29)
         { a <= x <= b <=> cardinal(x-a) <= cardinal(b-a) }
-        subi    r8,r10,97
-        cmpli   r8,122-97
-        cmpli   cr1,r10,0
-        subi    r10,r10,0x20
+        subi    r28,r30,97
+        cmpli   r28,122-97
+        cmpli   cr1,r30,0
+        subi    r30,r30,0x20
         bgt     LStrUpper1
-        stb     r10,0(r9)
+        stb     r30,0(r29)
 LStrUpper1:
         bne     cr1,LStrUpperLoop
 LStrUpperNil:
-end ['r8','r9','r10','cr0','cr1'];
+end ['r28','r29','r30','cr0','cr1'];
 
 
 function strlower(p : pchar) : pchar;assembler;
 asm
         cmpli   r3,0
         beq     LStrLowerNil
-        subi    r9,r3,1
+        subi    r29,r3,1
 LStrLowerLoop:
-        lbzu    r10,1(r9)
+        lbzu    r30,1(r29)
         { a <= x <= b <=> cardinal(x-a) <= cardinal(b-a) }
-        subi    r8,r10,65
-        cmpli   r8,90-65
-        cmpli   cr1,r10,0
-        addi    r10,r10,0x20
+        subi    r28,r30,65
+        cmpli   r28,90-65
+        cmpli   cr1,r30,0
+        addi    r30,r30,0x20
         bgt     LStrLower1
-        stb     r10,0(r9)
+        stb     r30,0(r29)
 LStrLower1:
         bne     cr1,LStrLowerLoop
 LStrLowerNil:
-end ['r8','r9','r10','cr0','cr1'];
+end ['r28','r29','r30','cr0','cr1'];
 
 
 {
   $Log$
-  Revision 1.2  2001-02-10 12:28:22  jonas
+  Revision 1.3  2001-02-10 16:09:43  jonas
+   + implemented all missing routines and changed reg allocation to follow ABI
+
+  Revision 1.2  2001/02/10 12:28:22  jonas
     * fixed some bugs, simplified/optimized already implemented routines and code some more
 
   Revision 1.1  2000/11/05 17:17:08  jonas
