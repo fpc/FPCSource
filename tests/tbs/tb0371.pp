@@ -1,6 +1,6 @@
 { %VERSION=1.1 }
 {$mode delphi}
-unit test;
+unit tb0371;
 
 interface
 
