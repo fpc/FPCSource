@@ -30,6 +30,13 @@ interface
       cpubase,cpuinfo,cobjects,globals,
       hcodegen,verbose,fmodule,aasm;
 
+{$ifdef newcg}
+    const
+       countusableregint : byte = c_countusableregsint;
+       countusableregfpu : byte = c_countusableregsfpu;
+       countusableregmm  : byte = c_countusableregsmm;
+{$endif newcg}
+
     type
       ttemptype = (tt_none,tt_free,tt_normal,tt_persistant,
                    tt_ansistring,tt_freeansistring,tt_widestring,tt_freewidestring,
@@ -387,7 +394,7 @@ const
            led to problems with local arrays
            with lower bound > 0 (PM) }
          istemp:=((ref.base=procinfo^.framepointer) and
-{$ifndef alpha}
+{$ifdef i386}
                   (ref.index=R_NO) and
 {$endif}
                   (ref.offset<firsttemp));
@@ -549,7 +556,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-11-29 00:30:42  florian
+  Revision 1.8  2000-11-30 22:16:50  florian
+    * moved to i386
+
+  Revision 1.7  2000/11/29 00:30:42  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

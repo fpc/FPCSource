@@ -24,12 +24,6 @@ unit hcodegen;
 
 {$i defines.inc}
 
-{$ifdef newcg}
-interface
-
-implementation
-{$else newcg}
-
   interface
 
     uses
@@ -439,7 +433,6 @@ implementation
          address:=a;
          typ:=p;
       end;
-{$endif newcg}
 
 {$ifdef fixLeaksOnError}
 procedure hcodegen_do_stop;
@@ -464,7 +457,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-10-31 22:02:47  peter
+  Revision 1.8  2000-11-30 22:16:49  florian
+    * moved to i386
+
+  Revision 1.7  2000/10/31 22:02:47  peter
     * symtable splitted, no real code changes
 
   Revision 1.6  2000/09/24 15:06:17  peter

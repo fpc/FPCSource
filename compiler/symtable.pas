@@ -218,7 +218,7 @@ implementation
       { scanner }
       scanner,
       { codegen }
-      hcodegen  { remove !!! }
+      hcodegen
       ;
 
 
@@ -2364,7 +2364,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2000-11-29 00:30:42  florian
+  Revision 1.19  2000-11-30 22:16:49  florian
+    * moved to i386
+
+  Revision 1.18  2000/11/29 00:30:42  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

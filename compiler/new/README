@@ -6,6 +6,8 @@ Module CPUBASE
    CONSTANTS used throughout the code generator
    --------------------------------------------
 
+Must of this is subject to be moved to cpuinfo
+
 frame_pointer              equals the register used as frame pointer
 stack_pointer              equals the register used as stack pointer
 self_pointer               equals the register used as self pointer
@@ -318,7 +320,10 @@ CVS Log
 -------
 
 $Log$
-Revision 1.1  2000-07-13 06:30:07  michael
+Revision 1.2  2000-11-30 22:16:51  florian
+  * moved to i386
+
+Revision 1.1  2000/07/13 06:30:07  michael
 + Initial import
 
 Revision 1.6  2000/03/02 03:22:16  carl

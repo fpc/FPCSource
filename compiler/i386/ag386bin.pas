@@ -1003,7 +1003,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.9  2000-11-12 22:20:37  peter
+  Revision 1.1  2000-11-30 22:18:48  florian
+    * moved to i386
+
+  Revision 1.9  2000/11/12 22:20:37  peter
     * create generic toutputsection for binary writers
 
   Revision 1.8  2000/09/24 15:06:10  peter
