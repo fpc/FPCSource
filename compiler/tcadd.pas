@@ -504,6 +504,10 @@ implementation
                     firstpass(p^.right);
                   end;
                  calcregisters(p,1,0,0);
+                 { for unsigned mul we need an extra register }
+                 p^.registers32:=p^.left^.registers32+p^.right^.registers32;
+                 if p^.treetype=muln then
+                  inc(p^.registers32);
                  convdone:=true;
                end;
            end
@@ -1111,7 +1115,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1999-08-04 13:03:13  jonas
+  Revision 1.41  1999-08-05 21:58:57  peter
+    * fixed register count ord*ord
+
+  Revision 1.40  1999/08/04 13:03:13  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 
