@@ -1448,7 +1448,8 @@ Unit Ra386int;
 
         procedure AddLabelOperand(hl:tasmlabel);
         begin
-          if is_calljmp(actopcode) then
+          if (oper.opr.typ=OPR_NONE) and
+             is_calljmp(actopcode) then
            begin
              oper.opr.typ:=OPR_SYMBOL;
              oper.opr.symbol:=hl;
@@ -1557,8 +1558,6 @@ Unit Ra386int;
                       CreateLocalLabel(actasmpattern,hl,false);
                       Consume(AS_ID);
                       AddLabelOperand(hl);
-                      if not (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
-                       Message(asmr_e_syntax_error);
                     end;
                  end
                 else
@@ -1593,8 +1592,6 @@ Unit Ra386int;
                      begin
                        Consume(AS_ID);
                        AddLabelOperand(hl);
-                       if not (actasmtoken in [AS_END,AS_SEPARATOR,AS_COMMA]) then
-                        Message(asmr_e_syntax_error);
                      end
                     else
                     { is it a normal variable ? }
@@ -2038,7 +2035,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2004-12-22 17:09:55  peter
+  Revision 1.84  2005-01-19 20:21:51  peter
+    * support labels in references
+
+  Revision 1.83  2004/12/22 17:09:55  peter
     * support sizeof()
     * fix typecasting a constant like dword(4)
 
