@@ -409,7 +409,7 @@ implementation
               in_args:=true;
               { the expression must be allowed to be assigned to }
               p1:=comp_expr(true);
-              p1:=geninlinenode(in_assigned_x,false,p1);
+              p1:=geninlinenode(in_seg_x,false,p1);
               do_firstpass(p1);
               consume(_RKLAMMER);
               statement_syssym:=p1;
@@ -2413,7 +2413,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.19  2000-12-07 17:19:42  jonas
+  Revision 1.20  2000-12-15 12:13:52  michael
+  + Fix from Peter
+
+  Revision 1.19  2000/12/07 17:19:42  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range
