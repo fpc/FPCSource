@@ -736,7 +736,9 @@ const
               aktmodeswitches:=objfpcmodeswitches
             else
              if pattern='GPC' then
-              aktmodeswitches:=gpcmodeswitches;
+              aktmodeswitches:=gpcmodeswitches
+            else
+             Message(scan_w_illegal_switch);
           end;
       end;
 
@@ -1088,7 +1090,10 @@ const
 
 {
   $Log$
-  Revision 1.56  1999-07-23 16:05:27  peter
+  Revision 1.57  1999-07-26 14:55:36  florian
+    * $mode gives now a warning if an unknown mode keyword follows
+
+  Revision 1.56  1999/07/23 16:05:27  peter
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs
