@@ -713,7 +713,7 @@ implementation
          if assigned(right) then
            secondpass(right);
 
-{$ifdef disabled}
+{$ifndef newra}
          if (po_virtualmethod in procdefinition.procoptions) and
             assigned(methodpointer) then
            begin
@@ -732,7 +732,7 @@ implementation
                 not(is_cppclass(tprocdef(procdefinition)._class)) then
                cg.g_maybe_testvmt(exprasmlist,methodpointer.location.register,tprocdef(procdefinition)._class);
            end;
-{$endif disabled}
+{$endif newra}
 
          if assigned(left) then
            begin
@@ -774,6 +774,7 @@ implementation
               if (po_virtualmethod in procdefinition.procoptions) and
                  assigned(methodpointer) then
                 begin
+{$ifdef newra}
                    secondpass(methodpointer);
                    location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
                    vmtreg:=methodpointer.location.register;
@@ -789,7 +790,9 @@ implementation
                    if not(is_interface(tprocdef(procdefinition)._class)) and
                       not(is_cppclass(tprocdef(procdefinition)._class)) then
                      cg.g_maybe_testvmt(exprasmlist,vmtreg,tprocdef(procdefinition)._class);
-
+{$else}
+                   vmtreg:=methodpointer.location.register;
+{$endif}
 {$ifdef newra}
                    { release self }
                    rg.ungetaddressregister(exprasmlist,vmtreg);
@@ -1375,7 +1378,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.82  2003-06-03 13:01:59  daniel
+  Revision 1.83  2003-06-03 20:27:02  daniel
+    * Restored original methodpointer code for non newra case
+
+  Revision 1.82  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.81  2003/06/01 21:38:06  peter
