@@ -8,6 +8,8 @@
 * Introduction
 ****************************************************************************
 
+Please also read the platform specific README file, if it exists.
+
 *** WARNING *** WARNING *** WARNING ***
 This a beta release and it still contains some known bugs. However, it would
 be very useful if you could test your projects with it and tell us when
