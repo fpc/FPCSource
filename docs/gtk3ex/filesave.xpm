@@ -1,0 +1,30 @@
+/* XPM */
+static char *filesave[] = {
+/* width height num_colors chars_per_pixel */
+"    16    16        7            1",
+/* colors */
+". c #ffffff",
+"# c #c3c3c3",
+"a c #666666",
+"b c #0000cc",
+"c c #000066",
+"d c #000000",
+"e c #b2c0dc",
+/* pixels */
+"eeeeeeeeeeeeeeee",
+"edddddddddddddee",
+"edb........bbdae",
+"edb.ddddd..bbdae",
+"edb........bbdae",
+"edb.ddd....bbdae",
+"edb........bbdae",
+"edb........bbdae",
+"edbbbbbbbbbbbdae",
+"edbcccccccccbdae",
+"edbcccccccccbdae",
+"edbcc#####ccbdae",
+"edbcc##cc#ccbdae",
+"edbcc##cc#ccbdae",
+"edddddddddddddae",
+"eeaaaaaaaaaaaaae"
+};
