@@ -39,6 +39,10 @@ interface
         function GetRegisterFpu(list:TAasmOutput;size:Tcgsize):TRegister;override;
         function GetExplicitRegisterInt(list:taasmoutput;Reg:Tnewregister):tregister;override;
         procedure UngetregisterInt(list:taasmoutput;Reg:tregister);override;
+        procedure UngetRegisterFpu(list:taasmoutput;reg:tregister;size:TCGsize);override;
+        procedure cleartempgen; override;
+      private
+        usedpararegs: Tsupregset;
       end;
 
 
@@ -46,6 +50,44 @@ implementation
 
     uses
       cgobj,verbose;
+
+
+    function TRgCpu.GetExplicitRegisterInt(list:TAasmOutput;reg:TNewRegister):TRegister;
+      var
+        r : TRegister;
+      begin
+        if ((reg shr 8) in [RS_O0..RS_O7,RS_I7]) and
+           not((reg shr 8) in is_reg_var_int) then
+          begin
+            if (reg shr 8) in usedpararegs then
+              internalerror(2003060701);
+            include(usedpararegs,reg shr 8);
+            r.enum:=R_INTREGISTER;
+            r.number:=reg;
+            cg.a_reg_alloc(list,r);
+            result:=r;
+          end
+        else
+          result:=inherited GetExplicitRegisterInt(list,reg);
+      end;
+
+
+    procedure trgcpu.UngetRegisterInt(list:taasmoutput;reg:tregister);
+      begin
+        if reg.enum<>R_INTREGISTER then
+          internalerror(200302191);
+        if ((reg.number shr 8) in [RS_O0..RS_O7,RS_I7]) and
+           not((reg.number shr 8) in is_reg_var_int) then
+          begin
+            if not((reg.number shr 8) in usedpararegs) then
+              internalerror(2003060702);
+            exclude(usedpararegs,reg.number shr 8);
+            cg.a_reg_dealloc(list,reg);
+          end
+        else
+          inherited ungetregisterint(list,reg);
+      end;
+
 
     function TRgCpu.GetRegisterFpu(list:TAasmOutput;size:Tcgsize):TRegister;
       var
@@ -61,12 +103,18 @@ implementation
                ) then
               begin
                  exclude(unusedregsfpu,i);
-                 include(usedinproc,i);
-                 include(usedbyproc,i);
                  dec(countunusedregsfpu);
                  r.enum:=i;
                  list.concat(tai_regalloc.alloc(r));
                  result := r;
+                 { double need 2 FPU registers }
+                 if size=OS_F64 then
+                   begin
+                     r.enum:=succ(i);
+                     exclude(unusedregsfpu,r.enum);
+                     dec(countunusedregsfpu);
+                     list.concat(tai_regalloc.alloc(r));
+                   end;
                  exit;
               end;
          end;
@@ -74,30 +122,32 @@ implementation
       end;
 
 
-    function TRgCpu.GetExplicitRegisterInt(list:TAasmOutput;reg:TNewRegister):TRegister;
+    procedure trgcpu.UngetRegisterFpu(list:taasmoutput;reg:tregister;size:TCGsize);
       var
-        r:TRegister;
+        r : tregister;
       begin
-        if (reg=NR_O7) or (reg=NR_I7) then
+        { double need 2 FPU registers }
+        if (size=OS_F64) then
           begin
-            r.enum:=R_INTREGISTER;
-            r.number:=reg;
-            cg.a_reg_alloc(list,r);
-            result:=r;
-          end
-        else
-          result:=inherited GetExplicitRegisterInt(list,reg);
+            { Only even FP registers are allowed }
+            if (odd(ord(reg.enum)-ord(R_F0))) then
+              internalerror(200306101);
+            r:=reg;
+            r.enum:=succ(r.enum);
+            inc(countunusedregsfpu);
+            include(unusedregsfpu,r.enum);
+            list.concat(tai_regalloc.dealloc(r));
+          end;
+        inc(countunusedregsfpu);
+        include(unusedregsfpu,reg.enum);
+        list.concat(tai_regalloc.dealloc(reg));
       end;
 
 
-    procedure trgcpu.UngetRegisterInt(list:taasmoutput;reg:tregister);
+    procedure trgcpu.cleartempgen;
       begin
-        if reg.enum<>R_INTREGISTER then
-          internalerror(200302191);
-        if (reg.number=RS_O7) or (reg.number=NR_I7) then
-          cg.a_reg_dealloc(list,reg)
-        else
-          inherited ungetregisterint(list,reg);
+        inherited cleartempgen;
+        usedpararegs := [];
       end;
 
 
@@ -106,7 +156,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-06-01 21:38:07  peter
+  Revision 1.12  2003-06-12 21:11:44  peter
+    * updates like the powerpc
+
+  Revision 1.11  2003/06/01 21:38:07  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates
