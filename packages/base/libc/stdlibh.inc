@@ -56,7 +56,7 @@ function __strtoull_internal(__nptr:Pchar; __endptr:PPchar; __base:longint; __gr
 function a64l(__s:Pchar):longint;cdecl;external clib name 'a64l';
 function l64a(N: longint): PChar; cdecl;external clib name 'l64a';
 
-function random:longint;cdecl;external clib name 'random';
+function __random:longint;cdecl;external clib name 'random';
 procedure srandom(__seed:dword);cdecl;external clib name 'srandom';
 function initstate(__seed:dword; __statebuf:Pchar; __statelen:size_t):Pchar;cdecl;external clib name 'initstate';
 function setstate(__statebuf:Pchar):Pchar;cdecl;external clib name 'setstate';
