@@ -81,10 +81,10 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symbase,symdef,symsym,aasm,
-      cgbase,temp_gen,pass_2,
+      cgbase,pass_2,
       nld,ncon,nadd,
       cpubase,cgobj,cgcpu,
-      cga,tgcpu;
+      cga,tgobj,rgobj;
 
 {*****************************************************************************
                             TCGLOADNODE
@@ -93,7 +93,7 @@ implementation
     procedure tcgloadvmtnode.pass_2;
 
       begin
-         location.register:=getregisterint;
+         location.register:=rg.getregisterint(exprasmlist);
          cg.a_load_sym_ofs_reg(exprasmlist,
            newasmsymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),
            0,location.register);
@@ -125,10 +125,10 @@ implementation
          case left.location.loc of
             LOC_REGISTER:
               begin
-                if not isaddressregister(left.location.register) then
+                if not rg.isaddressregister(left.location.register) then
                   begin
-                    ungetregister(left.location.register);
-                    location.reference.index := getaddressregister;
+                    rg.ungetregister(exprasmlist,left.location.register);
+                    location.reference.index := rg.getaddressregister(exprasmlist);
                     cg.a_load_reg_reg(exprasmlist,OS_ADDR,left.location.register,
                       location.reference.index);
                   end
@@ -137,8 +137,8 @@ implementation
               end;
             LOC_CREGISTER,LOC_MEM,LOC_REFERENCE:
               begin
-                 del_location(left.location);
-                 location.reference.index:=getaddressregister;
+                 rg.del_location(exprasmlist,left.location);
+                 location.reference.index:=rg.getaddressregister(exprasmlist);
                  cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,
                    location.reference.index);
               end;
@@ -163,8 +163,8 @@ implementation
           end;
 
          location.loc:=LOC_REGISTER;
-         del_reference(left.location.reference);
-         location.register:=getaddressregister;
+         rg.del_reference(exprasmlist,left.location.reference);
+         location.register:=rg.getaddressregister(exprasmlist);
          {@ on a procvar means returning an address to the procedure that
            is stored in it.}
          { yes but left.symtableentry can be nil
@@ -191,8 +191,8 @@ implementation
       begin
          secondpass(left);
          location.loc:=LOC_REGISTER;
-         del_reference(left.location.reference);
-         location.register:=getaddressregister;
+         rg.del_reference(exprasmlist,left.location.reference);
+         location.register:=rg.getaddressregister(exprasmlist);
          cg.a_loadaddress_ref_reg(exprasmlist,left.location.reference,
            location.register);
       end;
@@ -210,10 +210,10 @@ implementation
          case left.location.loc of
             LOC_REGISTER:
               begin
-                if not isaddressregister(left.location.register) then
+                if not rg.isaddressregister(left.location.register) then
                   begin
-                    ungetregister(left.location.register);
-                    location.reference.base := getaddressregister;
+                    rg.ungetregister(exprasmlist,left.location.register);
+                    location.reference.base := rg.getaddressregister(exprasmlist);
                     cg.a_load_reg_reg(exprasmlist,OS_ADDR,left.location.register,
                       location.reference.base);
                   end
@@ -222,8 +222,8 @@ implementation
               end;
             LOC_CREGISTER,LOC_MEM,LOC_REFERENCE:
               begin
-                 del_location(left.location);
-                 location.reference.base:=getaddressregister;
+                 rg.del_location(exprasmlist,left.location);
+                 location.reference.base:=rg.getaddressregister(exprasmlist);
                  cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,
                    location.reference.base);
               end;
@@ -249,10 +249,10 @@ implementation
              case left.location.loc of
                 LOC_REGISTER:
                   begin
-                    if not isaddressregister(left.location.register) then
+                    if not rg.isaddressregister(left.location.register) then
                       begin
-                        ungetregister(left.location.register);
-                        location.reference.base := getaddressregister;
+                        rg.ungetregister(exprasmlist,left.location.register);
+                        location.reference.base := rg.getaddressregister(exprasmlist);
                         cg.a_load_reg_reg(exprasmlist,OS_ADDR,
                           left.location.register,location.reference.base);
                       end
@@ -261,8 +261,8 @@ implementation
                   end;
                 LOC_CREGISTER,LOC_MEM,LOC_REFERENCE:
                   begin
-                     del_location(left.location);
-                     location.reference.base:=getaddressregister;
+                     rg.del_location(exprasmlist,left.location);
+                     location.reference.base:=rg.getaddressregister(exprasmlist);
                      cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,
                        location.reference.base);
                   end;
@@ -270,7 +270,7 @@ implementation
            end
          else if is_interfacecom(left.resulttype.def) then
            begin
-              gettempintfcomreference(location.reference);
+              tg.gettempintfcomreference(exprasmlist,location.reference);
               cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,
                 location.reference);
            end
@@ -290,7 +290,7 @@ implementation
     procedure tcgselfnode.pass_2;
       begin
          reset_reference(location.reference);
-         getexplicitregister32(SELF_POINTER);
+         rg.getexplicitregisterint(exprasmlist,SELF_POINTER);
          if (resulttype.def.deftype=classrefdef) or
            is_class(resulttype.def) then
           begin
@@ -352,15 +352,15 @@ implementation
                       left.location.reference,tmpreg);
                 end;
 
-               del_location(left.location);
+               rg.del_location(exprasmlist,left.location);
 
                { if the with expression is stored in a temp    }
                { area we must make it persistent and shouldn't }
                { release it (FK)                               }
                if (left.location.loc in [LOC_MEM,LOC_REFERENCE]) and
-                 istemp(left.location.reference) then
+                 tg.istemp(left.location.reference) then
                  begin
-                    normaltemptopersistant(left.location.reference.offset);
+                    tg.normaltemptopersistant(left.location.reference.offset);
                     with_expr_in_temp:=true;
                  end
                else
@@ -369,9 +369,9 @@ implementation
                { if usetemp is set the value must be in tmpreg }
                if usetemp then
                 begin
-                  gettempofsizereference(target_info.size_of_pointer,
+                  tg.gettempofsizereference(exprasmlist,target_info.size_of_pointer,
                     withreference^);
-                  normaltemptopersistant(withreference^.offset);
+                  tg.normaltemptopersistant(withreference^.offset);
                   { move to temp reference }
                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,withreference^);
                   cg.free_scratch_reg(exprasmlist,tmpreg);
@@ -405,7 +405,7 @@ implementation
 
                if usetemp then
                  begin
-                   ungetpersistanttemp(withreference^.offset);
+                   tg.ungetpersistanttemp(exprasmlist,withreference^.offset);
 {$ifdef GDB}
                    if (cs_debuginfo in aktmoduleswitches) then
                      begin
@@ -424,7 +424,7 @@ implementation
                  end;
 
                if with_expr_in_temp then
-                 ungetpersistanttemp(left.location.reference.offset);
+                 tg.ungetpersistanttemp(exprasmlist,left.location.reference.offset);
 
                dispose(withreference);
                withreference:=nil;
@@ -444,7 +444,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2001-12-31 09:53:15  jonas
+  Revision 1.4  2002-03-31 20:26:34  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.3  2001/12/31 09:53:15  jonas
     * changed remaining "getregister32" calls to "getregisterint"
 
   Revision 1.2  2001/11/02 22:58:02  peter

@@ -226,7 +226,7 @@ Var
 Implementation
 
 Uses
-  globals, systems, verbose, cgbase, symconst, symsym, tainst, tgcpu;
+  globals, systems, verbose, cgbase, symconst, symsym, tainst, rgobj;
 
 Type
   TRefCompare = function(const r1, r2: TReference): Boolean;
@@ -430,8 +430,8 @@ begin
           end;
     end;
   for regCounter := R_EAX to R_EBX do
-    if not(regCounter in usableregs) then
-      regs := regs + [regCounter];
+    if not(regCounter in rg.usableregsint) then
+      include(regs,regCounter);
 end;
 
 Procedure AddRegDeallocFor(asmL: TAAsmOutput; reg: TRegister; p: Tai);
@@ -439,10 +439,10 @@ var hp1: Tai;
     funcResRegs: TRegset;
     funcResReg: boolean;
 begin
-  if not(reg in usableregs) then
+  if not(reg in rg.usableregsint) then
     exit;
   getNoDeallocRegs(funcResRegs);
-  funcResRegs := funcResRegs - usableregs;
+  funcResRegs := funcResRegs - rg.usableregsint;
   funcResReg := reg in funcResRegs;
   hp1 := p;
   while not(funcResReg and
@@ -1165,7 +1165,7 @@ var
   hp, start: Tai;
   lastRemovedWasDealloc, firstRemovedWasAlloc, first: boolean;
 Begin
-  If not(reg in usableregs+[R_EDI,R_ESI]) or
+  If not(reg in rg.usableregsint+[R_EDI,R_ESI]) or
      not(assigned(p1)) then
     { this happens with registers which are loaded implicitely, outside the }
     { current block (e.g. esi with self)                                    }
@@ -1356,24 +1356,22 @@ Begin
      (reg > high(NrOfInstrSinceLastMod)) then
     exit;
   NrOfInstrSinceLastMod[Reg] := 0;
-  if (reg >= R_EAX) and (reg <= R_EDI) then
+  with p1^.regs[reg] do
     begin
-      with p1^.regs[reg] do
+      if doIncState then
         begin
-          if doIncState then
-            begin
-              incState(wstate,1);
-              typ := con_unknown;
-            end
-          else
-            if typ in [con_ref,con_invalid] then
-              typ := con_invalid
-            { con_invalid and con_noRemoveRef = con_unknown }
-            else typ := con_unknown;
-          memwrite := nil;
-        end;
-      invalidateDependingRegs(p1,reg);
+          incState(wstate,1);
+          typ := con_unknown;
+          startmod := nil;
+        end
+      else
+        if typ in [con_ref,con_const,con_invalid] then
+          typ := con_invalid
+        { con_invalid and con_noRemoveRef = con_unknown }
+        else typ := con_unknown;
+      memwrite := nil;
     end;
+  invalidateDependingRegs(p1,reg);
 End;
 
 {Procedure AddRegsToSet(p: Tai; Var RegSet: TRegSet);
@@ -1876,13 +1874,14 @@ begin
     end;
 End;
 
-Procedure DestroyAllRegs(p: PTaiProp);
+Procedure DestroyAllRegs(p: PTaiProp; read, written: boolean);
 Var Counter: TRegister;
 Begin {initializes/desrtoys all registers}
   For Counter := R_EAX To R_EDI Do
     Begin
-      ReadReg(p, Counter);
-      DestroyReg(p, Counter, true);
+      if read then
+        ReadReg(p, Counter);
+      DestroyReg(p, Counter, written);
       p^.regs[counter].MemWrite := nil;
     End;
   p^.DirFlag := F_Unknown;
@@ -2044,8 +2043,8 @@ Begin
         ait_marker:;
         ait_label:
 {$Ifndef JumpAnal}
-          If not labelCanBeSkipped(Tai_label(p)) Then
-            DestroyAllRegs(CurProp);
+          if not labelCanBeSkipped(Tai_label(p)) then
+            DestroyAllRegs(CurProp,false,false);
 {$Else JumpAnal}
           Begin
            If not labelCanBeSkipped(Tai_label(p)) Then
@@ -2120,7 +2119,7 @@ Begin
                                   GetLastInstruction(p, hp);
                                   CurProp^.regs := PTaiProp(hp.OptInfo)^.Regs;
                                   CurProp.DirFlag := PTaiProp(hp.OptInfo)^.DirFlag;
-                                  DestroyAllRegs(PTaiProp(hp.OptInfo))
+                                  DestroyAllRegs(PTaiProp(hp.OptInfo),true,true)
                                 End
                           End
 {$EndIf AnalyzeLoops}
@@ -2130,7 +2129,7 @@ Begin
                     GetLastInstruction(p, hp);
                     CurProp^.regs := PTaiProp(hp.OptInfo)^.Regs;
                     CurProp.DirFlag := PTaiProp(hp.OptInfo)^.DirFlag;
-                    DestroyAllRegs(CurProp)
+                    DestroyAllRegs(CurProp,true,true)
                   End;
           End;
 {$EndIf JumpAnal}
@@ -2141,7 +2140,8 @@ Begin
         ait_align: ; { may destroy flags !!! }
         ait_instruction:
           Begin
-            if Taicpu(p).is_jmp then
+            if Taicpu(p).is_jmp or
+               (Taicpu(p).opcode = A_JMP) then
              begin
 {$IfNDef JumpAnal}
                 for tmpReg := R_EAX to R_EDI do
@@ -2477,7 +2477,7 @@ Begin
                               'destroying all regs for prev instruction')));
                             insertllitem(asml,p, p.next,hp);
 {$endif statedebug}
-                            DestroyAllRegs(CurProp);
+                            DestroyAllRegs(CurProp,true,true);
                             LastFlagsChangeProp := CurProp;
                           End;
                       End;
@@ -2494,7 +2494,7 @@ Begin
               'destroying all regs: unknown Tai: '+tostr(ord(p.typ)))));
             insertllitem(asml,p, p.next,hp);
 {$endif statedebug}
-            DestroyAllRegs(CurProp);
+            DestroyAllRegs(CurProp,true,true);
           End;
       End;
       Inc(InstrCnt);
@@ -2592,7 +2592,24 @@ End.
 
 {
   $Log$
-  Revision 1.26  2002-03-04 19:10:13  peter
+  Revision 1.27  2002-03-31 20:26:38  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.26  2002/03/04 19:10:13  peter
     * removed compiler warnings
 
   Revision 1.25  2001/12/29 15:29:59  jonas

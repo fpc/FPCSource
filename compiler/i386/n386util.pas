@@ -63,8 +63,8 @@ implementation
        types,
        ncon,nld,
        pass_1,pass_2,
-       cgbase,tgcpu,temp_gen,
-       cga,regvars;
+       cgbase,tgobj,
+       cga,regvars,cgobj,rgobj,rgcpu;
 
 
 {*****************************************************************************
@@ -84,14 +84,14 @@ implementation
              maybe_push := true;
              exit;
            end;
-         if needed>usablereg32 then
+         if needed>rg.countunusedregsint then
            begin
               if (p.location.loc=LOC_REGISTER) then
                 begin
                    if isint64 then
                      begin
 {$ifdef TEMPS_NOT_PUSH}
-                        gettempofsizereference(href,8);
+                        tg.gettempofsizereference(exprasmlist,href,8);
                         p.temp_offset:=href.offset;
                         href.offset:=href.offset+4;
                         exprasmList.concat(Taicpu.Op_reg(A_MOV,S_L,p.location.registerhigh,href));
@@ -99,12 +99,12 @@ implementation
 {$else TEMPS_NOT_PUSH}
                         exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,p.location.registerhigh));
 {$endif TEMPS_NOT_PUSH}
-                        ungetregister32(p.location.registerhigh);
+                        rg.ungetregisterint(exprasmlist,p.location.registerhigh);
                      end
 {$ifdef TEMPS_NOT_PUSH}
                    else
                      begin
-                        gettempofsizereference(href,4);
+                        tg.gettempofsizereference(exprasmlist,href,4);
                         p.temp_offset:=href.offset;
                      end
 {$endif TEMPS_NOT_PUSH}
@@ -115,24 +115,24 @@ implementation
 {$else TEMPS_NOT_PUSH}
                    exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,p.location.register));
 {$endif TEMPS_NOT_PUSH}
-                   ungetregister32(p.location.register);
+                   rg.ungetregisterint(exprasmlist,p.location.register);
                 end
               else if (p.location.loc in [LOC_MEM,LOC_REFERENCE]) and
                       ((p.location.reference.base<>R_NO) or
                        (p.location.reference.index<>R_NO)
                       ) then
                   begin
-                     del_reference(p.location.reference);
-                     getexplicitregister32(R_EDI);
+                     rg.del_reference(exprasmlist,p.location.reference);
+                     rg.getexplicitregisterint(exprasmlist,R_EDI);
                      emit_ref_reg(A_LEA,S_L,newreference(p.location.reference),R_EDI);
 {$ifdef TEMPS_NOT_PUSH}
-                     gettempofsizereference(href,4);
+                     tg.gettempofsizereference(exprasmlist,href,4);
                      exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,href));
                      p.temp_offset:=href.offset;
 {$else TEMPS_NOT_PUSH}
                      exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,R_EDI));
 {$endif TEMPS_NOT_PUSH}
-                     ungetregister32(R_EDI);
+                     rg.ungetregisterint(exprasmlist,R_EDI);
                      pushed:=true;
                   end
               else pushed:=false;
@@ -167,40 +167,40 @@ implementation
          href : treference;
 
       begin
-         if needed>usablereg32 then
+         if needed>rg.unusedregsint then
            begin
               if (p^.location.loc=LOC_REGISTER) then
                 begin
                    if isint64(p^.resulttype.def) then
                      begin
-                        gettempofsizereference(href,8);
+                        tg.gettempofsizereference(exprasmlist,href,8);
                         p^.temp_offset:=href.offset;
                         href.offset:=href.offset+4;
                         exprasmList.concat(Taicpu.Op_reg(A_MOV,S_L,p^.location.registerhigh,href));
                         href.offset:=href.offset-4;
-                        ungetregister32(p^.location.registerhigh);
+                        rg.ungetregisterint(exprasmlist,p^.location.registerhigh);
                      end
                    else
                      begin
-                        gettempofsizereference(href,4);
+                        tg.gettempofsizereference(exprasmlist,href,4);
                         p^.temp_offset:=href.offset;
                      end;
                    pushed:=true;
                    exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,p^.location.register,href));
-                   ungetregister32(p^.location.register);
+                   rg.ungetregisterint(exprasmlist,p^.location.register);
                 end
               else if (p^.location.loc in [LOC_MEM,LOC_REFERENCE]) and
                       ((p^.location.reference.base<>R_NO) or
                        (p^.location.reference.index<>R_NO)
                       ) then
                   begin
-                     del_reference(p^.location.reference);
-                     getexplicitregister32(R_EDI);
+                     rg.del_reference(exprasmlist,p^.location.reference);
+                     rg.getexplicitregisterint(exprasmlist,R_EDI);
                      emit_ref_reg(A_LEA,S_L,newreference(p^.location.reference),
                        R_EDI);
-                     gettempofsizereference(href,4);
+                     tg.gettempofsizereference(exprasmlist,href,4);
                      exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,href));
-                     ungetregister32(R_EDI);
+                     rg.ungetregisterint(exprasmlist,R_EDI);
                      p^.temp_offset:=href.offset;
                      pushed:=true;
                   end
@@ -224,7 +224,7 @@ implementation
              load_regvar_reg(exprasmlist,p.location.register);
              exit;
            end;
-         hregister:=getregisterint;
+         hregister:=rg.getregisterint(exprasmlist);
 {$ifdef TEMPS_NOT_PUSH}
          reset_reference(href);
          href.base:=procinfo^.frame_pointer;
@@ -238,7 +238,7 @@ implementation
               p.location.register:=hregister;
               if isint64 then
                 begin
-                   p.location.registerhigh:=getregisterint;
+                   p.location.registerhigh:=rg.getregisterint(exprasmlist);
 {$ifdef TEMPS_NOT_PUSH}
                    href.offset:=p.temp_offset+4;
                    emit_ref_reg(A_MOV,S_L,p.location.registerhigh);
@@ -260,7 +260,7 @@ implementation
               set_location(p.left^.location,p.location);}
            end;
 {$ifdef TEMPS_NOT_PUSH}
-         ungetiftemp(href);
+         tg.ungetiftemp(exprasmlist,href);
 {$endif TEMPS_NOT_PUSH}
       end;
 
@@ -272,7 +272,7 @@ implementation
          href : treference;
 
       begin
-         hregister:=getregisterint;
+         hregister:=rg.getregisterint(exprasmlist);
          reset_reference(href);
          href.base:=procinfo^.frame_pointer;
          href.offset:=p.temp_offset;
@@ -282,7 +282,7 @@ implementation
               p.location.register:=hregister;
               if isint64 then
                 begin
-                   p.location.registerhigh:=getregisterint;
+                   p.location.registerhigh:=rg.getregisterint(exprasmlist);
                    href.offset:=p.temp_offset+4;
                    emit_ref_reg(A_MOV,S_L,p.location.registerhigh);
                    { set correctly for release ! }
@@ -297,7 +297,7 @@ implementation
                 because otherwise secondload fails PM
               set_location(p^.left^.location,p^.location);}
            end;
-         ungetiftemp(href);
+         tg.ungetiftemp(exprasmlist,href);
       end;
 {$endif TEMPS_NOT_PUSH}
 
@@ -342,7 +342,7 @@ implementation
                    exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,hr32))
                  else
                    exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_W,hr16));
-                 ungetregister32(hr32);
+                 rg.ungetregisterint(exprasmlist,hr32);
                end;
            else
              begin
@@ -350,7 +350,7 @@ implementation
                { because this may cross a page boundary and you'll get a }
                { sigsegv (JM)                                            }
                emit_push_mem_size(p.location.reference,1);
-               del_reference(p.location.reference);
+               rg.del_reference(exprasmlist,p.location.reference);
              end;
            end;
          end;
@@ -386,8 +386,8 @@ implementation
                            exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,p.location.registerhigh));
                            exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,p.location.registerlow));
                          end;
-                       ungetregister32(p.location.registerhigh);
-                       ungetregister32(p.location.registerlow);
+                       rg.ungetregisterint(exprasmlist,p.location.registerhigh);
+                       rg.ungetregisterint(exprasmlist,p.location.registerlow);
                     end
                   else case p.location.register of
                    R_EAX,R_EBX,R_ECX,R_EDX,R_ESI,
@@ -401,7 +401,7 @@ implementation
                          end
                         else
                          exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,p.location.register));
-                        ungetregister32(p.location.register);
+                        rg.ungetregisterint(exprasmlist,p.location.register);
                       end;
                    R_AX,R_BX,R_CX,R_DX,R_SI,R_DI:
                       begin
@@ -424,7 +424,7 @@ implementation
                           end
                         else
                           exprasmList.concat(Taicpu.Op_reg(A_PUSH,opsize,hreg));
-                        ungetregister32(reg16toreg32(p.location.register));
+                        rg.ungetregisterint(exprasmlist,reg16toreg32(p.location.register));
                       end;
                    R_AL,R_BL,R_CL,R_DL:
                       begin
@@ -448,12 +448,12 @@ implementation
                           end
                         else
                           exprasmList.concat(Taicpu.Op_reg(A_PUSH,opsize,hreg));
-                        ungetregister32(reg8toreg32(p.location.register));
+                        rg.ungetregisterint(exprasmlist,reg8toreg32(p.location.register));
                       end;
                    else internalerror(1899);
                 end;
              end;
-           LOC_FPU:
+           LOC_FPU, LOC_CFPUREGISTER:
              begin
                 size:=align(tfloatdef(p.resulttype.def).size,alignment);
                 inc(pushedparasize,size);
@@ -465,43 +465,21 @@ implementation
                   exprasmList.concat(Tai_force_line.Create);
 {$endif GDB}
                 r:=new_reference(R_ESP,0);
-                floatstoreops(tfloatdef(p.resulttype.def).typ,op,opsize);
                 { this is the easiest case for inlined !! }
                 if inlined then
                   begin
                      r^.base:=procinfo^.framepointer;
                      r^.offset:=para_offset-pushedparasize;
                   end;
-                exprasmList.concat(Taicpu.Op_ref(op,opsize,r));
-                dec(fpuvaroffset);
-             end;
-           LOC_CFPUREGISTER:
-             begin
-                exprasmList.concat(Taicpu.Op_reg(A_FLD,S_NO,
-                  correct_fpuregister(p.location.register,fpuvaroffset)));
-                size:=align(tfloatdef(p.resulttype.def).size,alignment);
-                inc(pushedparasize,size);
-                if not inlined then
-                 emit_const_reg(A_SUB,S_L,size,R_ESP);
-{$ifdef GDB}
-                if (cs_debuginfo in aktmoduleswitches) and
-                   (exprasmList.first=exprasmList.last) then
-                  exprasmList.concat(Tai_force_line.Create);
-{$endif GDB}
-                r:=new_reference(R_ESP,0);
-                floatstoreops(tfloatdef(p.resulttype.def).typ,op,opsize);
-                { this is the easiest case for inlined !! }
-                if inlined then
-                  begin
-                     r^.base:=procinfo^.framepointer;
-                     r^.offset:=para_offset-pushedparasize;
-                  end;
-                exprasmList.concat(Taicpu.Op_ref(op,opsize,r));
+
+                cg.a_loadfpu_reg_ref(exprasmlist,
+                  def_cgsize(p.resulttype.def),p.location.register,r^);
+                dispose(r);
              end;
            LOC_REFERENCE,LOC_MEM:
              begin
                 tempreference:=p.location.reference;
-                del_reference(p.location.reference);
+                rg.del_reference(exprasmlist,p.location.reference);
                 case p.resulttype.def.deftype of
                   enumdef,
                   orddef :
@@ -511,19 +489,19 @@ implementation
                              inc(pushedparasize,8);
                              if inlined then
                                begin
-                                 getexplicitregister32(R_EDI);
+                                 rg.getexplicitregisterint(exprasmlist,R_EDI);
                                  emit_ref_reg(A_MOV,S_L,
                                    newreference(tempreference),R_EDI);
                                  r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                  exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                 ungetregister32(R_EDI);
-                                 getexplicitregister32(R_EDI);
+                                 rg.ungetregisterint(exprasmlist,R_EDI);
+                                 rg.getexplicitregisterint(exprasmlist,R_EDI);
                                  inc(tempreference.offset,4);
                                  emit_ref_reg(A_MOV,S_L,
                                    newreference(tempreference),R_EDI);
                                  r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize+4);
                                  exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                 ungetregister32(R_EDI);
+                                 rg.ungetregisterint(exprasmlist,R_EDI);
                                end
                              else
                                begin
@@ -537,12 +515,12 @@ implementation
                              inc(pushedparasize,4);
                              if inlined then
                                begin
-                                 getexplicitregister32(R_EDI);
+                                 rg.getexplicitregisterint(exprasmlist,R_EDI);
                                  emit_ref_reg(A_MOV,S_L,
                                    newreference(tempreference),R_EDI);
                                  r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                  exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                 ungetregister32(R_EDI);
+                                 rg.ungetregisterint(exprasmlist,R_EDI);
                                end
                              else
                                emit_push_mem(tempreference);
@@ -562,12 +540,12 @@ implementation
                               end;
                              if inlined then
                               begin
-                                getexplicitregister32(R_EDI);
+                                rg.getexplicitregisterint(exprasmlist,R_EDI);
                                 emit_ref_reg(A_MOV,opsize,
                                   newreference(tempreference),hreg);
                                 r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                 exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,opsize,hreg,r));
-                                ungetregister32(R_EDI);
+                                rg.ungetregisterint(exprasmlist,R_EDI);
                               end
                              else
                               emit_push_mem_size(tempreference,p.resulttype.def.size);
@@ -584,12 +562,12 @@ implementation
                              inc(pushedparasize,4);
                              if inlined then
                                begin
-                                  getexplicitregister32(R_EDI);
+                                  rg.getexplicitregisterint(exprasmlist,R_EDI);
                                   emit_ref_reg(A_MOV,S_L,
                                     newreference(tempreference),R_EDI);
                                   r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                   exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                  ungetregister32(R_EDI);
+                                  rg.ungetregisterint(exprasmlist,R_EDI);
                                end
                              else
                                emit_push_mem(tempreference);
@@ -601,12 +579,12 @@ implementation
                             inc(tempreference.offset,4);
                             if inlined then
                               begin
-                                 getexplicitregister32(R_EDI);
+                                 rg.getexplicitregisterint(exprasmlist,R_EDI);
                                  emit_ref_reg(A_MOV,S_L,
                                    newreference(tempreference),R_EDI);
                                  r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                  exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                 ungetregister32(R_EDI);
+                                 rg.ungetregisterint(exprasmlist,R_EDI);
                               end
                             else
                               emit_push_mem(tempreference);
@@ -614,12 +592,12 @@ implementation
                             dec(tempreference.offset,4);
                             if inlined then
                               begin
-                                 getexplicitregister32(R_EDI);
+                                 rg.getexplicitregisterint(exprasmlist,R_EDI);
                                  emit_ref_reg(A_MOV,S_L,
                                    newreference(tempreference),R_EDI);
                                  r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                  exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                 ungetregister32(R_EDI);
+                                 rg.ungetregisterint(exprasmlist,R_EDI);
                               end
                             else
                               emit_push_mem(tempreference);
@@ -633,12 +611,12 @@ implementation
                               inc(tempreference.offset,6);
                             if inlined then
                               begin
-                                 getexplicitregister32(R_EDI);
+                                 rg.getexplicitregisterint(exprasmlist,R_EDI);
                                  emit_ref_reg(A_MOV,S_L,
                                    newreference(tempreference),R_EDI);
                                  r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                  exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                 ungetregister32(R_EDI);
+                                 rg.ungetregisterint(exprasmlist,R_EDI);
                               end
                             else
                               emit_push_mem(tempreference);
@@ -646,12 +624,12 @@ implementation
                             inc(pushedparasize,4);
                             if inlined then
                               begin
-                                 getexplicitregister32(R_EDI);
+                                 rg.getexplicitregisterint(exprasmlist,R_EDI);
                                  emit_ref_reg(A_MOV,S_L,
                                    newreference(tempreference),R_EDI);
                                  r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                  exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                                 ungetregister32(R_EDI);
+                                 rg.ungetregisterint(exprasmlist,R_EDI);
                               end
                             else
                               emit_push_mem(tempreference);
@@ -671,12 +649,12 @@ implementation
                               end;
                             if inlined then
                               begin
-                                 getexplicitregister32(R_EDI);
+                                 rg.getexplicitregisterint(exprasmlist,R_EDI);
                                  emit_ref_reg(A_MOV,opsize,
                                    newreference(tempreference),hreg);
                                  r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                  exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,opsize,hreg,r));
-                                 ungetregister32(R_EDI);
+                                 rg.ungetregisterint(exprasmlist,R_EDI);
                               end
                             else
                               exprasmList.concat(Taicpu.Op_ref(A_PUSH,opsize,
@@ -691,12 +669,12 @@ implementation
                        inc(pushedparasize,4);
                        if inlined then
                          begin
-                            getexplicitregister32(R_EDI);
+                            rg.getexplicitregisterint(exprasmlist,R_EDI);
                             emit_ref_reg(A_MOV,S_L,
                               newreference(tempreference),R_EDI);
                             r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                             exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,R_EDI,r));
-                            ungetregister32(R_EDI);
+                            rg.ungetregisterint(exprasmlist,R_EDI);
                          end
                        else
                          emit_push_mem(tempreference);
@@ -802,9 +780,9 @@ implementation
              end;
            LOC_FLAGS:
              begin
-                if not(R_EAX in unused) then
+                if not(R_EAX in rg.unusedregsint) then
                   begin
-                    getexplicitregister32(R_EDI);
+                    rg.getexplicitregisterint(exprasmlist,R_EDI);
                     emit_reg_reg(A_MOV,S_L,R_EAX,R_EDI);
                   end;
                 emit_flag2reg(p.location.resflags,R_AL);
@@ -828,10 +806,10 @@ implementation
                   end
                 else
                   exprasmList.concat(Taicpu.Op_reg(A_PUSH,opsize,hreg));
-                if not(R_EAX in unused) then
+                if not(R_EAX in rg.unusedregsint) then
                   begin
                     emit_reg_reg(A_MOV,S_L,R_EDI,R_EAX);
-                    ungetregister32(R_EDI);
+                    rg.ungetregisterint(exprasmlist,R_EDI);
                   end;
              end;
 {$ifdef SUPPORT_MMX}
@@ -992,7 +970,7 @@ implementation
                            inc(href.offset,1);
                            emit_reg_ref(A_MOV,S_B,makereg8(source.location.register),
                                         newreference(href));
-                           ungetregister(source.location.register);
+                           rg.ungetregister(exprasmlist,source.location.register);
                         end
                       else
                       { not so elegant (goes better with extra register    }
@@ -1000,13 +978,13 @@ implementation
                            { not "movl", because then we may read past the }
                            { end of the heap! "movw" would be ok too, but  }
                            { I don't think that would be faster (JM)       }
-                           getexplicitregister32(R_EDI);
+                           rg.getexplicitregisterint(exprasmlist,R_EDI);
                            emit_ref_reg(A_MOVZX,S_BL,newreference(source.location.reference),R_EDI);
-                           del_reference(source.location.reference);
+                           rg.del_reference(exprasmlist,source.location.reference);
                            emit_const_reg(A_SHL,S_L,8,R_EDI);
                            emit_const_reg(A_OR,S_L,1,R_EDI);
                            emit_reg_ref(A_MOV,S_W,R_DI,newreference(dest.location.reference));
-                           ungetregister32(R_EDI);
+                           rg.ungetregisterint(exprasmlist,R_EDI);
                         end;
                    end;
               end;
@@ -1053,18 +1031,18 @@ implementation
                          LOC_REGISTER,LOC_CREGISTER:
                            begin
                               emit_reg_ref(A_MOV,S_B,p.right.location.register,r);
-                              ungetregister(p.right.location.register);
+                              rg.ungetregister(exprasmlist,p.right.location.register);
                            end;
                          LOC_MEM,LOC_REFERENCE:
                            begin
-                              if not(R_EAX in unused) then
+                              if not(R_EAX in rg.unusedregsint) then
                                 emit_reg(A_PUSH,S_L,R_EAX);
                               emit_ref_reg(A_MOV,S_B,newreference(p.right.location.reference),R_AL);
                               emit_reg_ref(A_MOV,S_B,R_AL,r);
 
-                              if not(R_EAX in unused) then
+                              if not(R_EAX in rg.unusedregsint) then
                                 emit_reg(A_POP,S_L,R_EAX);
-                              del_reference(p.right.location.reference);
+                              rg.del_reference(exprasmlist,p.right.location.reference);
                            end
                          else
                            internalerror(20799);
@@ -1079,70 +1057,70 @@ implementation
 
     procedure loadansi2short(source,dest : tnode);
       var
-         pushed : tpushed;
-         regs_to_push: byte;
+         pushed : tpushedsaved;
+         regs_to_push: tregisterset;
       begin
          { Find out which registers have to be pushed (JM) }
-         regs_to_push := $ff;
+         regs_to_push := all_registers;
          remove_non_regvars_from_loc(source.location,regs_to_push);
          { Push them (JM) }
-         pushusedregisters(pushed,regs_to_push);
+         rg.saveusedregisters(exprasmlist,pushed,regs_to_push);
          case source.location.loc of
            LOC_REFERENCE,LOC_MEM:
              begin
                 { Now release the location and registers (see cgai386.pas: }
                 { loadansistring for more info on the order) (JM)          }
-                ungetiftemp(source.location.reference);
-                del_reference(source.location.reference);
+                tg.ungetiftemp(exprasmlist,source.location.reference);
+                rg.del_reference(exprasmlist,source.location.reference);
                 emit_push_mem(source.location.reference);
              end;
            LOC_REGISTER,LOC_CREGISTER:
              begin
                 emit_reg(A_PUSH,S_L,source.location.register);
                 { Now release the register (JM) }
-                ungetregister32(source.location.register);
+                rg.ungetregisterint(exprasmlist,source.location.register);
              end;
          end;
          push_shortstring_length(dest);
          emitpushreferenceaddr(dest.location.reference);
-         saveregvars($ff);
+         rg.saveregvars(exprasmlist,all_registers);
          emitcall('FPC_ANSISTR_TO_SHORTSTR');
-         popusedregisters(pushed);
+         rg.restoreusedregisters(exprasmlist,pushed);
          maybe_loadself;
       end;
 
 
     procedure loadwide2short(source,dest : tnode);
       var
-         pushed : tpushed;
-         regs_to_push: byte;
+         pushed : tpushedsaved;
+         regs_to_push: tregisterset;
       begin
          { Find out which registers have to be pushed (JM) }
-         regs_to_push := $ff;
+         regs_to_push := all_registers;
          remove_non_regvars_from_loc(source.location,regs_to_push);
          { Push them (JM) }
-         pushusedregisters(pushed,regs_to_push);
+         rg.saveusedregisters(exprasmlist,pushed,regs_to_push);
          case source.location.loc of
            LOC_REFERENCE,LOC_MEM:
              begin
                 { Now release the location and registers (see cgai386.pas: }
                 { loadansistring for more info on the order) (JM)          }
-                ungetiftemp(source.location.reference);
-                del_reference(source.location.reference);
+                tg.ungetiftemp(exprasmlist,source.location.reference);
+                rg.del_reference(exprasmlist,source.location.reference);
                 emit_push_mem(source.location.reference);
              end;
            LOC_REGISTER,LOC_CREGISTER:
              begin
                 emit_reg(A_PUSH,S_L,source.location.register);
                 { Now release the register (JM) }
-                ungetregister32(source.location.register);
+                rg.ungetregisterint(exprasmlist,source.location.register);
              end;
          end;
          push_shortstring_length(dest);
          emitpushreferenceaddr(dest.location.reference);
-         saveregvars($ff);
+         rg.saveregvars(exprasmlist,all_registers);
          emitcall('FPC_WIDESTR_TO_SHORTSTR');
-         popusedregisters(pushed);
+         rg.restoreusedregisters(exprasmlist,pushed);
          maybe_loadself;
       end;
 
@@ -1154,7 +1132,7 @@ implementation
       to take care of that, an com interface can't be a register variable
     }
       var
-         pushed : tpushed;
+         pushed : tpushedsaved;
          ungettemp : boolean;
       begin
          { before pushing any parameter, we have to save all used      }
@@ -1165,33 +1143,33 @@ implementation
          { nevertheless, this has to be changed, because otherwise the }
          { register is released before it's contents are pushed ->     }
          { problems with the optimizer (JM)                         }
-         del_reference(p.left.location.reference);
+         rg.del_reference(exprasmlist,p.left.location.reference);
          ungettemp:=false;
          case p.right.location.loc of
             LOC_REGISTER,LOC_CREGISTER:
               begin
-                 pushusedregisters(pushed, $ff xor ($80 shr byte(p.right.location.register)));
+                 rg.saveusedregisters(exprasmlist,pushed, all_registers - [p.right.location.register]);
                  exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,p.right.location.register));
-                 ungetregister32(p.right.location.register);
+                 rg.ungetregisterint(exprasmlist,p.right.location.register);
               end;
             LOC_REFERENCE,LOC_MEM:
               begin
-                 pushusedregisters(pushed,$ff
-                   xor ($80 shr byte(p.right.location.reference.base))
-                   xor ($80 shr byte(p.right.location.reference.index)));
+                 rg.saveusedregisters(exprasmlist,pushed, all_registers
+                   - [p.right.location.reference.base]
+                   - [p.right.location.reference.index]);
                  emit_push_mem(p.right.location.reference);
-                 del_reference(p.right.location.reference);
+                 rg.del_reference(exprasmlist,p.right.location.reference);
                  ungettemp:=true;
               end;
          end;
          emitpushreferenceaddr(p.left.location.reference);
-         del_reference(p.left.location.reference);
-         saveregvars($ff);
+         rg.del_reference(exprasmlist,p.left.location.reference);
+         rg.saveregvars(exprasmlist,all_registers);
          emitcall('FPC_INTF_ASSIGN');
          maybe_loadself;
-         popusedregisters(pushed);
+         rg.restoreusedregisters(exprasmlist,pushed);
          if ungettemp then
-           ungetiftemp(p.right.location.reference);
+           tg.ungetiftemp(exprasmlist,p.right.location.reference);
       end;
 
 
@@ -1199,7 +1177,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2002-03-04 19:10:14  peter
+  Revision 1.27  2002-03-31 20:26:40  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.26  2002/03/04 19:10:14  peter
     * removed compiler warnings
 
   Revision 1.25  2001/12/30 17:24:47  jonas

@@ -56,10 +56,10 @@ implementation
     uses
       verbose,systems,
       symsym,aasm,
-      cgbase,temp_gen,pass_2,
+      cgbase,pass_2,
       cpubase,cpuasm,
       nld,ncon,
-      tainst,cga,tgcpu;
+      tainst,cga,tgobj,rgobj;
 
 {*****************************************************************************
                              SecondRaise
@@ -176,7 +176,7 @@ implementation
          oldendexceptlabel:=endexceptlabel;
 
          { we modify EAX }
-         usedinproc:=usedinproc or ($80 shr byte(R_EAX));
+         include(rg.usedinproc,R_EAX);
 
          { save the old labels for control flow statements }
          oldaktexitlabel:=aktexitlabel;
@@ -203,8 +203,8 @@ implementation
          getlabel(endexceptlabel);
          getlabel(lastonlabel);
 
-         gettempofsizereferencepersistant(24,tempbuf);
-         gettempofsizereferencepersistant(12,tempaddr);
+         tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
+         tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
          emitpushreferenceaddr(tempaddr);
          emitpushreferenceaddr(tempbuf);
          push_int (1); { push type of exceptionframe }
@@ -238,8 +238,8 @@ implementation
 
          emitlab(exceptlabel);
          emitcall('FPC_POPADDRSTACK');
-         ungetpersistanttempreference(tempaddr);
-         ungetpersistanttempreference(tempbuf);
+         tg.ungetpersistanttempreference(exprasmlist,tempaddr);
+         tg.ungetpersistanttempreference(exprasmlist,tempbuf);
 
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_POP,S_L,R_EAX);
@@ -280,8 +280,8 @@ implementation
               getlabel(doobjectdestroy);
               getlabel(doobjectdestroyandreraise);
 
-              gettempofsizereferencepersistant(12,tempaddr);
-              gettempofsizereferencepersistant(24,tempbuf);
+              tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
+              tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
               emitpushreferenceaddr(tempaddr);
               emitpushreferenceaddr(tempbuf);
               exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,1));
@@ -304,8 +304,8 @@ implementation
 
               emitlab(doobjectdestroyandreraise);
               emitcall('FPC_POPADDRSTACK');
-              ungetpersistanttempreference(tempaddr);
-              ungetpersistanttempreference(tempbuf);
+              tg.ungetpersistanttempreference(exprasmlist,tempaddr);
+              tg.ungetpersistanttempreference(exprasmlist,tempbuf);
 
               exprasmList.concat(Tairegalloc.Alloc(R_EAX));
               exprasmList.concat(Taicpu.op_reg(A_POP,S_L,R_EAX));
@@ -434,7 +434,7 @@ implementation
          emit_reg_reg(A_TEST,S_L,R_EAX,R_EAX);
          emitjmp(C_E,nextonlabel);
          ref.symbol:=nil;
-         gettempofsizereference(4,ref);
+         tg.gettempofsizereference(exprasmlist,4,ref);
 
          { what a hack ! }
          if assigned(exceptsymtable) then
@@ -449,8 +449,8 @@ implementation
          { we've to destroy the old one                }
          getlabel(doobjectdestroyandreraise);
 
-         gettempofsizereferencepersistant(12,tempaddr);
-         gettempofsizereferencepersistant(24,tempbuf);
+         tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
+         tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
          emitpushreferenceaddr(tempaddr);
          emitpushreferenceaddr(tempbuf);
          exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,1));
@@ -490,8 +490,8 @@ implementation
          getlabel(doobjectdestroy);
          emitlab(doobjectdestroyandreraise);
          emitcall('FPC_POPADDRSTACK');
-         ungetpersistanttempreference(tempaddr);
-         ungetpersistanttempreference(tempbuf);
+         tg.ungetpersistanttempreference(exprasmlist,tempaddr);
+         tg.ungetpersistanttempreference(exprasmlist,tempbuf);
 
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          exprasmList.concat(Taicpu.op_reg(A_POP,S_L,R_EAX));
@@ -510,7 +510,7 @@ implementation
          emitlab(doobjectdestroy);
          cleanupobjectstack;
          { clear some stuff }
-         ungetiftemp(ref);
+         tg.ungetiftemp(exprasmlist,ref);
          emitjmp(C_None,endexceptlabel);
 
          if assigned(right) then
@@ -551,7 +551,7 @@ implementation
          { next on node }
          if assigned(left) then
            begin
-              cleartempgen;
+              rg.cleartempgen;
               secondpass(left);
            end;
       end;
@@ -581,7 +581,7 @@ implementation
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[];
          { we modify EAX }
-         usedinproc:=usedinproc or ($80 shr byte(R_EAX));
+         include(rg.usedinproc,R_EAX);
          getlabel(finallylabel);
          getlabel(endfinallylabel);
          getlabel(reraiselabel);
@@ -603,8 +603,8 @@ implementation
             aktbreaklabel:=breakfinallylabel;
           end;
 
-         gettempofsizereferencepersistant(12,tempaddr);
-         gettempofsizereferencepersistant(24,tempbuf);
+         tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
+         tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
          emitpushreferenceaddr(tempaddr);
          emitpushreferenceaddr(tempbuf);
          push_int(1); { Type of stack-frame must be pushed}
@@ -631,8 +631,8 @@ implementation
 
          emitlab(finallylabel);
          emitcall('FPC_POPADDRSTACK');
-         ungetpersistanttempreference(tempaddr);
-         ungetpersistanttempreference(tempbuf);
+         tg.ungetpersistanttempreference(exprasmlist,tempaddr);
+         tg.ungetpersistanttempreference(exprasmlist,tempbuf);
 
          { finally code }
          flowcontrol:=[];
@@ -737,7 +737,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2001-12-29 15:29:58  jonas
+  Revision 1.20  2002-03-31 20:26:38  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.19  2001/12/29 15:29:58  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

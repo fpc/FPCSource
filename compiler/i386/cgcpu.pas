@@ -27,7 +27,7 @@ unit cgcpu;
   interface
 
     uses
-       cgbase,cgobj,cg64f32,aasm,cpuasm,cpubase,cpuinfo;
+       cgbase,cgobj,cg64f32,aasm,cpuasm,cpubase,cpuinfo,symconst;
 
     type
       tcg386 = class(tcg64f32)
@@ -66,6 +66,16 @@ unit cgcpu;
         procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);override;
         procedure a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister); override;
 
+        { fpu move instructions }
+        procedure a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister); override;
+        procedure a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref: treference; reg: tregister); override;
+        procedure a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); override;
+
+        { vector register move instructions }
+        procedure a_loadmm_reg_reg(list: taasmoutput; reg1, reg2: tregister); override;
+        procedure a_loadmm_ref_reg(list: taasmoutput; const ref: treference; reg: tregister); override;
+        procedure a_loadmm_reg_ref(list: taasmoutput; reg: tregister; const ref: treference); override;
+
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
           l : tasmlabel);override;
@@ -99,6 +109,10 @@ unit cgcpu;
 
         procedure sizes2load(s1: tcgsize; s2: topsize; var op: tasmop; var s3: topsize);
 
+        procedure floatload(list: taasmoutput; t : tcgsize;const ref : treference);
+        procedure floatstore(list: taasmoutput; t : tcgsize;const ref : treference);
+        procedure floatloadops(t : tcgsize;var op : tasmop;var s : topsize);
+        procedure floatstoreops(t : tcgsize;var op : tasmop;var s : topsize);
 
       end;
 
@@ -111,14 +125,16 @@ unit cgcpu;
       TOpCmp2AsmCond: Array[topcmp] of TAsmCond = (C_NONE,C_E,C_G,
                            C_L,C_GE,C_LE,C_NE,C_BE,C_B,C_AE,C_A);
 
-      TCGSize2OpSize: Array[tcgsize] of topsize = (S_NO,S_B,S_W,S_L,S_L,
-                                                        S_B,S_W,S_L,S_L);
+      TCGSize2OpSize: Array[tcgsize] of topsize =
+        (S_NO,S_B,S_W,S_L,S_L,S_B,S_W,S_L,S_L,
+         S_FS,S_FL,S_FX,S_IQ,
+         S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
 
 
   implementation
 
     uses
-       globtype,globals,verbose,systems,cutils,cga,tgcpu;
+       globtype,globals,verbose,systems,cutils,cga,rgobj,rgcpu;
 
 
     { we implement the following routines because otherwise we can't }
@@ -264,6 +280,66 @@ unit cgcpu;
       begin
         list.concat(taicpu.op_sym_ofs_reg(A_MOV,S_L,sym,ofs,reg));
       end;
+
+
+    { all fpu load routines expect that R_ST[0-7] means an fpu regvar and }
+    { R_ST means "the current value at the top of the fpu stack" (JM)     }
+    procedure tcg386.a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister);
+
+       begin
+         if (reg1 <> R_ST) then
+           begin
+             list.concat(taicpu.op_reg(A_FLD,S_NO,
+               trgcpu(rg).correct_fpuregister(reg1,trgcpu(rg).fpuvaroffset)));
+             inc(trgcpu(rg).fpuvaroffset);
+           end;
+         if (reg2 <> R_ST) then
+           begin
+             list.concat(taicpu.op_reg(A_FSTP,S_NO,
+                 trgcpu(rg).correct_fpuregister(reg2,trgcpu(rg).fpuvaroffset)));
+             dec(trgcpu(rg).fpuvaroffset);
+           end;
+       end;
+
+
+    procedure tcg386.a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref: treference; reg: tregister);
+
+       begin
+         floatload(list,size,ref);
+         if (reg <> R_ST) then
+           a_loadfpu_reg_reg(list,R_ST,reg);
+       end;
+
+
+    procedure tcg386.a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference);
+
+       begin
+         if reg <> R_ST then
+           a_loadfpu_reg_reg(list,reg,R_ST);
+         floatstore(list,size,ref);
+       end;
+
+
+    procedure tcg386.a_loadmm_reg_reg(list: taasmoutput; reg1, reg2: tregister);
+
+       begin
+         list.concat(taicpu.op_reg_reg(A_MOVQ,S_NO,reg1,reg2));
+       end;
+
+
+    procedure tcg386.a_loadmm_ref_reg(list: taasmoutput; const ref: treference; reg: tregister);
+
+       begin
+         list.concat(taicpu.op_ref_reg(A_MOVQ,S_NO,newreference(ref),reg));
+       end;
+
+
+    procedure tcg386.a_loadmm_reg_ref(list: taasmoutput; reg: tregister; const ref: treference);
+
+       begin
+         list.concat(taicpu.op_reg_ref(A_MOVQ,S_NO,reg,newreference(ref)));
+       end;
+
 
     procedure tcg386.a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister);
 
@@ -450,10 +526,10 @@ unit cgcpu;
                     { is ecx still free (it's also free if it was allocated }
                     { to dst, since we've moved dst somewhere else already) }
                     if not((dst = R_ECX) or
-                           ((R_ECX in unused) and
+                           ((R_ECX in rg.unusedregsint) and
                             { this will always be true, it's just here to }
                             { allocate ecx                                }
-                            (getexplicitregister32(R_ECX) = R_ECX))) then
+                            (rg.getexplicitregisterint(list,R_ECX) = R_ECX))) then
                       begin
                         list.concat(taicpu.op_reg(A_PUSH,S_L,R_ECX));
                         popecx := true;
@@ -477,7 +553,7 @@ unit cgcpu;
                 if popecx then
                   list.concat(taicpu.op_reg(A_POP,S_L,R_ECX))
                 else if not (dst in [R_ECX,R_CX,R_CL]) then
-                  ungetregister32(R_ECX);
+                  rg.ungetregisterint(list,R_ECX);
               end;
             else
               begin
@@ -872,12 +948,107 @@ unit cgcpu;
        end;
 
 
+    procedure tcg386.floatloadops(t : tcgsize;var op : tasmop;var s : topsize);
+
+      begin
+         case t of
+            OS_F32 : begin
+                        op:=A_FLD;
+                        s:=S_FS;
+                     end;
+            OS_F64 : begin
+                        op:=A_FLD;
+                        { ???? }
+                        s:=S_FL;
+                     end;
+            OS_F80 : begin
+                        op:=A_FLD;
+                        s:=S_FX;
+                     end;
+            OS_C64 : begin
+                        op:=A_FILD;
+                        s:=S_IQ;
+                     end;
+            else internalerror(17);
+         end;
+      end;
+
+
+    procedure tcg386.floatload(list: taasmoutput; t : tcgsize;const ref : treference);
+
+      var
+         op : tasmop;
+         s : topsize;
+
+      begin
+         floatloadops(t,op,s);
+         list.concat(Taicpu.Op_ref(op,s,newreference(ref)));
+         inc(trgcpu(rg).fpuvaroffset);
+      end;
+
+
+    procedure tcg386.floatstoreops(t : tcgsize;var op : tasmop;var s : topsize);
+
+      begin
+         case t of
+            OS_F32 : begin
+                        op:=A_FSTP;
+                        s:=S_FS;
+                     end;
+            OS_F64 : begin
+                        op:=A_FSTP;
+                        s:=S_FL;
+                     end;
+            OS_F80 : begin
+                        op:=A_FSTP;
+                        s:=S_FX;
+                     end;
+            OS_C64 : begin
+                        op:=A_FISTP;
+                        s:=S_IQ;
+                     end;
+         else
+           internalerror(17);
+         end;
+      end;
+
+
+    procedure tcg386.floatstore(list: taasmoutput; t : tcgsize;const ref : treference);
+
+      var
+         op : tasmop;
+         s : topsize;
+
+      begin
+         floatstoreops(t,op,s);
+         list.concat(Taicpu.Op_ref(op,s,newreference(ref)));
+         dec(trgcpu(rg).fpuvaroffset);
+      end;
+
+
 begin
   cg := tcg386.create;
 end.
 {
   $Log$
-  Revision 1.7  2002-03-04 19:10:12  peter
+  Revision 1.8  2002-03-31 20:26:37  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.7  2002/03/04 19:10:12  peter
     * removed compiler warnings
 
   Revision 1.6  2001/12/30 17:24:46  jonas

@@ -40,10 +40,10 @@ implementation
       globtype,systems,
       cutils,verbose,globals,fmodule,
       symconst,symtype,symdef,aasm,types,
-      cgbase,temp_gen,pass_1,pass_2,
+      cgbase,pass_1,pass_2,
       cpubase,
       nbas,ncon,ncal,ncnv,nld,
-      cgobj,cga,tgcpu,n386util,ncgutil;
+      cga,tgobj,n386util,ncgutil,cgobj,rgobj,rgcpu;
 
 
 {*****************************************************************************
@@ -62,7 +62,7 @@ implementation
          opsize : topsize;
          op,
          asmop : tasmop;
-         pushed : tpushed;
+         pushed : tpushedsaved;
          {inc/dec}
          addconstant : boolean;
          addvalue : longint;
@@ -126,7 +126,7 @@ implementation
                  { for both cases load vmt }
                  if left.nodetype=typen then
                    begin
-                      location.register:=getregisterint;
+                      location.register:=rg.getregisterint(exprasmlist);
                       emit_sym_ofs_reg(A_MOV,
                         S_L,newasmsymbol(tobjectdef(left.resulttype.def).vmt_mangledname),0,
                         location.register);
@@ -134,9 +134,9 @@ implementation
                  else
                    begin
                       secondpass(left);
-                      del_reference(left.location.reference);
+                      rg.del_reference(exprasmlist,left.location.reference);
                       location.loc:=LOC_REGISTER;
-                      location.register:=getregisterint;
+                      location.register:=rg.getregisterint(exprasmlist);
                       { load VMT pointer }
                       inc(left.location.reference.offset,
                         tobjectdef(left.resulttype.def).vmt_offset);
@@ -164,8 +164,8 @@ implementation
                   begin
                     if left.location.loc<>LOC_REGISTER then
                      begin
-                       del_location(left.location);
-                       hregister:=getregisterint;
+                       rg.del_location(exprasmlist,left.location);
+                       hregister:=rg.getregisterint(exprasmlist);
                        emit_mov_loc_reg(left.location,hregister);
                      end
                     else
@@ -211,8 +211,8 @@ implementation
                         begin
                            if left.location.loc=LOC_CREGISTER then
                              begin
-                                location.registerlow:=getregisterint;
-                                location.registerhigh:=getregisterint;
+                                location.registerlow:=rg.getregisterint(exprasmlist);
+                                location.registerhigh:=rg.getregisterint(exprasmlist);
                                 emit_reg_reg(A_MOV,opsize,left.location.registerlow,
                                   location.registerlow);
                                 emit_reg_reg(A_MOV,opsize,left.location.registerhigh,
@@ -220,9 +220,9 @@ implementation
                              end
                            else
                              begin
-                                del_reference(left.location.reference);
-                                location.registerlow:=getregisterint;
-                                location.registerhigh:=getregisterint;
+                                rg.del_reference(exprasmlist,left.location.reference);
+                                location.registerlow:=rg.getregisterint(exprasmlist);
+                                location.registerhigh:=rg.getregisterint(exprasmlist);
                                 emit_ref_reg(A_MOV,opsize,newreference(left.location.reference),
                                   location.registerlow);
                                 r:=newreference(left.location.reference);
@@ -257,9 +257,9 @@ implementation
                         begin
                            { first, we've to release the source location ... }
                            if left.location.loc in [LOC_MEM,LOC_REFERENCE] then
-                             del_reference(left.location.reference);
+                             rg.del_reference(exprasmlist,left.location.reference);
 
-                           location.register:=getregisterint;
+                           location.register:=rg.getregisterint(exprasmlist);
                            if (resulttype.def.size=2) then
                              location.register:=reg32toreg16(location.register);
                            if (resulttype.def.size=1) then
@@ -331,8 +331,8 @@ implementation
                   LOC_CREGISTER : hregister:=tcallparanode(tcallparanode(left).right).left.location.register;
                         LOC_MEM,
                   LOC_REFERENCE : begin
-                                    del_reference(tcallparanode(tcallparanode(left).right).left.location.reference);
-                                    hregister:=getregisterint;
+                                    rg.del_reference(exprasmlist,tcallparanode(tcallparanode(left).right).left.location.reference);
+                                    hregister:=rg.getregisterint(exprasmlist);
                                     emit_ref_reg(A_MOV,S_L,
                                       newreference(tcallparanode(tcallparanode(left).right).left.location.reference),hregister);
                                   end;
@@ -390,7 +390,7 @@ implementation
                       S_B : hregister:=reg8toreg32(hregister);
                       S_W : hregister:=reg16toreg32(hregister);
                     end;
-                   ungetregister32(hregister);
+                   rg.ungetregisterint(exprasmlist,hregister);
                  end;
                 emitoverflowcheck(tcallparanode(left).left);
                 cg.g_rangecheck(exprasmlist,tcallparanode(left).left,tcallparanode(left).left.resulttype.def);
@@ -398,7 +398,7 @@ implementation
 
             in_typeinfo_x:
                begin
-                  location.register:=getregisterint;
+                  location.register:=rg.getregisterint(exprasmlist);
                   new(r);
                   reset_reference(r^);
                   r^.symbol:=tstoreddef(ttypenode(tcallparanode(left).left).resulttype.def).get_rtti_label(fullrtti);
@@ -407,7 +407,7 @@ implementation
 
              in_finalize_x:
                begin
-                  pushusedregisters(pushed,$ff);
+                  rg.saveusedregisters(exprasmlist,pushed,all_registers);
                   { if a count is passed, push size, typeinfo and count }
                   if assigned(tcallparanode(left).right) then
                     begin
@@ -428,12 +428,12 @@ implementation
                   if codegenerror then
                     exit;
                   emitpushreferenceaddr(tcallparanode(left).left.location.reference);
-                  saveregvars($ff);
+                  rg.saveregvars(exprasmlist,all_registers);
                   if assigned(tcallparanode(left).right) then
                     emitcall('FPC_FINALIZEARRAY')
                   else
                     emitcall('FPC_FINALIZE');
-                  popusedregisters(pushed);
+                  rg.restoreusedregisters(exprasmlist,pushed);
                end;
 
             in_assigned_x :
@@ -445,19 +445,19 @@ implementation
                       emit_reg_reg(A_OR,S_L,
                         tcallparanode(left).left.location.register,
                         tcallparanode(left).left.location.register);
-                      ungetregister32(tcallparanode(left).left.location.register);
+                      rg.ungetregisterint(exprasmlist,tcallparanode(left).left.location.register);
                    end
                  else
                    begin
                       emit_const_ref(A_CMP,S_L,0,
                         newreference(tcallparanode(left).left.location.reference));
-                      del_reference(tcallparanode(left).left.location.reference);
+                      rg.del_reference(exprasmlist,tcallparanode(left).left.location.reference);
                    end;
                  location.resflags:=F_NE;
               end;
             in_setlength_x:
                begin
-                  pushusedregisters(pushed,$ff);
+                  rg.saveusedregisters(exprasmlist,pushed,all_registers);
                   l:=0;
                   { push dimensions }
                   hp:=left;
@@ -471,7 +471,7 @@ implementation
                   if is_dynamic_array(def) then
                     begin
                        { get temp. space }
-                       gettempofsizereference(l*4,hr);
+                       tg.gettempofsizereference(exprasmlist,l*4,hr);
                        { keep data start }
                        hr2:=hr;
                        { copy dimensions }
@@ -513,9 +513,9 @@ implementation
                        hr2.symbol:=tstoreddef(def).get_rtti_label(initrtti);
                        emitpushreferenceaddr(hr2);
                        emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
-                       saveregvars($ff);
+                       rg.saveregvars(exprasmlist,all_registers);
                        emitcall('FPC_DYNARR_SETLENGTH');
-                       ungetiftemp(hr);
+                       tg.ungetiftemp(exprasmlist,hr);
                     end
                   else
                     { must be string }
@@ -524,23 +524,23 @@ implementation
                           st_widestring:
                             begin
                               emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
-                              saveregvars($ff);
+                              rg.saveregvars(exprasmlist,all_registers);
                               emitcall('FPC_WIDESTR_SETLENGTH');
                             end;
                           st_ansistring:
                             begin
                               emitpushreferenceaddr(tcallparanode(hp).left.location.reference);
-                              saveregvars($ff);
+                              rg.saveregvars(exprasmlist,all_registers);
                               emitcall('FPC_ANSISTR_SETLENGTH');
                             end;
                           st_shortstring:
                             begin
-                              saveregvars($ff);
+                              rg.saveregvars(exprasmlist,all_registers);
                               emitcall('FPC_SHORTSTR_SETLENGTH');
                             end;
                        end;
                     end;
-                  popusedregisters(pushed);
+                  rg.restoreusedregisters(exprasmlist,pushed);
                   maybe_loadself;
                end;
             in_include_x_y,
@@ -566,7 +566,7 @@ implementation
                              (tordconstnode(tcallparanode(tcallparanode(left).right).left).value div 32)*4);
                            emit_const_ref(asmop,S_L,
                              l,newreference(tcallparanode(left).left.location.reference));
-                           del_reference(tcallparanode(left).left.location.reference);
+                           rg.del_reference(exprasmlist,tcallparanode(left).left.location.reference);
                         end
                       else
                         { LOC_CREGISTER }
@@ -605,7 +605,7 @@ implementation
                         end
                       else
                         begin
-                           getexplicitregister32(R_EDI);
+                           rg.getexplicitregisterint(exprasmlist,R_EDI);
                            hregister:=R_EDI;
                            opsize:=def2def_opsize(
                              tcallparanode(tcallparanode(left).right).left.resulttype.def,u32bittype.def);
@@ -624,13 +624,14 @@ implementation
                         emit_reg_reg(asmop,S_L,hregister,
                           tcallparanode(left).left.location.register);
                       if hregister = R_EDI then
-                        ungetregister32(R_EDI);
+                        rg.ungetregisterint(exprasmlist,R_EDI);
                    end;
               end;
             in_pi:
               begin
                 emit_none(A_FLDPI,S_NO);
-                inc(fpuvaroffset);
+                inc(trgcpu(rg).fpuvaroffset);
+                location.register := R_ST;
               end;
             in_sin_extended,
             in_arctan_extended,
@@ -641,19 +642,21 @@ implementation
             in_cos_extended:
               begin
                  secondpass(left);
+                 location.register := R_ST;
                  case left.location.loc of
                     LOC_FPU:
                       ;
                     LOC_CFPUREGISTER:
                       begin
-                         emit_reg(A_FLD,S_NO,
-                           correct_fpuregister(left.location.register,fpuvaroffset));
-                         inc(fpuvaroffset);
+                         cg.a_loadfpu_reg_reg(exprasmlist,
+                           left.location.register,location.register);
                       end;
                     LOC_REFERENCE,LOC_MEM:
                       begin
-                         floatload(tfloatdef(left.resulttype.def).typ,left.location.reference);
-                         del_reference(left.location.reference);
+                         cg.a_loadfpu_ref_reg(exprasmlist,
+                           def_cgsize(left.resulttype.def),
+                           left.location.reference,location.register);
+                         rg.del_reference(exprasmlist,left.location.reference);
                       end
                     else
                       internalerror(309991);
@@ -729,7 +732,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-03-04 19:10:14  peter
+  Revision 1.33  2002-03-31 20:26:39  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.32  2002/03/04 19:10:14  peter
     * removed compiler warnings
 
   Revision 1.31  2001/12/30 17:24:46  jonas

@@ -59,10 +59,10 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symtype,symdef,symsym,symtable,aasm,types,
-      cgbase,temp_gen,pass_2,
+      cgbase,pass_2,
       pass_1,nld,ncon,nadd,
       cpubase,cpuasm,
-      cgobj,cga,tgcpu,n386util;
+      cgobj,cga,tgobj,n386util,rgobj;
 
 {*****************************************************************************
                             TI386NEWNODE
@@ -70,7 +70,8 @@ implementation
 
     procedure ti386newnode.pass_2;
       var
-         pushed : tpushed;
+         pushed : tpushedsaved;
+         regstopush: tregisterset;
          r : preference;
       begin
          if assigned(left) then
@@ -80,14 +81,16 @@ implementation
            end
          else
            begin
-              pushusedregisters(pushed,$ff);
+              regstopush := all_registers;
+              remove_non_regvars_from_loc(location,regstopush);
+              rg.saveusedregisters(exprasmlist,pushed,regstopush);
 
-              gettempofsizereference(target_info.size_of_pointer,location.reference);
+              tg.gettempofsizereference(exprasmlist,target_info.size_of_pointer,location.reference);
 
               { determines the size of the mem block }
               push_int(tpointerdef(resulttype.def).pointertype.def.size);
               emit_push_lea_loc(location,false);
-              saveregvars($ff);
+              rg.saveregvars(exprasmlist,all_registers);
               emitcall('FPC_GETMEM');
 
               if tpointerdef(resulttype.def).pointertype.def.needs_inittable then
@@ -102,7 +105,7 @@ implementation
                    emit_push_loc(location);
                    emitcall('FPC_INITIALIZE');
                 end;
-              popusedregisters(pushed);
+              rg.restoreusedregisters(exprasmlist,pushed);
               { may be load ESI }
               maybe_loadself;
            end;
@@ -131,22 +134,29 @@ implementation
     procedure ti386simplenewdisposenode.pass_2;
 
       var
-         pushed : tpushed;
+         regstopush: tregisterset;
+         pushed : tpushedsaved;
          r : preference;
-
+         oldleft: tnode;
       begin
+         oldleft := nil;
+         if tpointerdef(left.resulttype.def).pointertype.def.needs_inittable then
+           { we need to secondpass left twice in this case -> get a copy }
+           oldleft := left.getcopy;
          secondpass(left);
          if codegenerror then
            exit;
 
-         pushusedregisters(pushed,$ff);
-         saveregvars($ff);
+         regstopush := all_registers;
+         remove_non_regvars_from_loc(left.location,regstopush);
+         rg.saveusedregisters(exprasmlist,pushed,regstopush);
+         rg.saveregvars(exprasmlist,all_registers);
 
          { call the mem handling procedures }
          case nodetype of
            simpledisposen:
              begin
-                if tpointerdef(left.resulttype.def).pointertype.def.needs_inittable then
+                if assigned(oldleft) then
                   begin
                      new(r);
                      reset_reference(r^);
@@ -155,9 +165,14 @@ implementation
                      dispose(r);
                      { push pointer adress }
                      emit_push_loc(left.location);
+                     rg.del_location(exprasmlist,left.location);
                      emitcall('FPC_FINALIZE');
+                     { reload registers for left!! }
+                     secondpass(oldleft);
+                     oldleft.free;
                   end;
                 emit_push_loc(left.location);
+                rg.del_location(exprasmlist,left.location);
                 emitcall('FPC_FREEMEM');
              end;
            simplenewn:
@@ -165,20 +180,26 @@ implementation
                 { determines the size of the mem block }
                 push_int(tpointerdef(left.resulttype.def).pointertype.def.size);
                 emit_push_lea_loc(left.location,true);
+                if not assigned(oldleft) then
+                  rg.del_location(exprasmlist,left.location);
                 emitcall('FPC_GETMEM');
-                if tpointerdef(left.resulttype.def).pointertype.def.needs_inittable then
+                if assigned(oldleft) then
                   begin
+                     { reload registers for left!! }
+                     secondpass(oldleft);
+                     oldleft.free;
                      new(r);
                      reset_reference(r^);
                      r^.symbol:=tstoreddef(tpointerdef(left.resulttype.def).pointertype.def).get_rtti_label(initrtti);
                      emitpushreferenceaddr(r^);
                      dispose(r);
                      emit_push_loc(left.location);
+                     rg.del_location(exprasmlist,left.location);
                      emitcall('FPC_INITIALIZE');
                   end;
              end;
          end;
-         popusedregisters(pushed);
+         rg.restoreusedregisters(exprasmlist,pushed);
          { may be load ESI }
          maybe_loadself;
       end;
@@ -256,7 +277,7 @@ implementation
          href : treference;
          tai : Taicpu;
          srsym : tsym;
-         pushed : tpushed;
+         pushed : tpushedsaved;
          hightree : tnode;
          hl,otl,ofl : tasmlabel;
       begin
@@ -275,15 +296,15 @@ implementation
                         CGMessage(cg_e_illegal_expression);
                         exit;
                      end;
-                   pushusedregisters(pushed,$ff);
+                   rg.saveusedregisters(exprasmlist,pushed,all_registers);
                    emitpushreferenceaddr(left.location.reference);
-                   saveregvars($ff);
+                   rg.saveregvars(exprasmlist,all_registers);
                    if is_ansistring(left.resulttype.def) then
                      emitcall('FPC_ANSISTR_UNIQUE')
                    else
                      emitcall('FPC_WIDESTR_UNIQUE');
                    maybe_loadself;
-                   popusedregisters(pushed);
+                   rg.restoreusedregisters(exprasmlist,pushed);
                 end;
 
               if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
@@ -292,8 +313,8 @@ implementation
                 end
               else
                 begin
-                   del_reference(left.location.reference);
-                   location.reference.base:=getregisterint;
+                   rg.del_reference(exprasmlist,left.location.reference);
+                   location.reference.base:=rg.getregisterint(exprasmlist);
                    emit_ref_reg(A_MOV,S_L,
                      newreference(left.location.reference),
                      location.reference.base);
@@ -303,12 +324,12 @@ implementation
                 we can use the ansistring routine here }
               if (cs_check_range in aktlocalswitches) then
                 begin
-                   pushusedregisters(pushed,$ff);
+                   rg.saveusedregisters(exprasmlist,pushed,all_registers);
                    emit_reg(A_PUSH,S_L,location.reference.base);
-                   saveregvars($ff);
+                   rg.saveregvars(exprasmlist,all_registers);
                    emitcall('FPC_ANSISTR_CHECKZERO');
                    maybe_loadself;
-                   popusedregisters(pushed);
+                   rg.restoreusedregisters(exprasmlist,pushed);
                 end;
 
               if is_ansistring(left.resulttype.def) then
@@ -337,8 +358,8 @@ implementation
                 end
               else
                 begin
-                   del_reference(left.location.reference);
-                   location.reference.base:=getregisterint;
+                   rg.del_reference(exprasmlist,left.location.reference);
+                   location.reference.base:=rg.getregisterint(exprasmlist);
                    emit_ref_reg(A_MOV,S_L,
                      newreference(left.location.reference),
                      location.reference.base);
@@ -348,12 +369,12 @@ implementation
                 we can use the ansistring routine here }
               if (cs_check_range in aktlocalswitches) then
                 begin
-                   pushusedregisters(pushed,$ff);
+                   rg.saveusedregisters(exprasmlist,pushed,all_registers);
                    emit_reg(A_PUSH,S_L,location.reference.base);
-                   saveregvars($ff);
+                   rg.saveregvars(exprasmlist,all_registers);
                    emitcall('FPC_ANSISTR_CHECKZERO');
                    maybe_loadself;
-                   popusedregisters(pushed);
+                   rg.restoreusedregisters(exprasmlist,pushed);
                 end;
 
               { we've also to keep left up-to-date, because it is used   }
@@ -406,14 +427,14 @@ implementation
                         st_widestring,
                         st_ansistring:
                           begin
-                             pushusedregisters(pushed,$ff);
+                             rg.saveusedregisters(exprasmlist,pushed,all_registers);
                              push_int(tordconstnode(right).value);
                              hp:=newreference(location.reference);
                              dec(hp^.offset,7);
                              emit_ref(A_PUSH,S_L,hp);
-                             saveregvars($ff);
+                             rg.saveregvars(exprasmlist,all_registers);
                              emitcall('FPC_ANSISTR_RANGECHECK');
-                             popusedregisters(pushed);
+                             rg.restoreusedregisters(exprasmlist,pushed);
                              maybe_loadself;
                           end;
 
@@ -569,7 +590,7 @@ implementation
                    end;
                  LOC_CREGISTER:
                    begin
-                      ind:=getregisterint;
+                      ind:=rg.getregisterint(exprasmlist);
                       case right.resulttype.def.size of
                          1:
                            emit_reg_reg(A_MOVZX,S_BL,right.location.register,ind);
@@ -581,13 +602,13 @@ implementation
                    end;
                  LOC_FLAGS:
                    begin
-                      ind:=getregisterint;
+                      ind:=rg.getregisterint(exprasmlist);
                       emit_flag2reg(right.location.resflags,reg32toreg8(ind));
                       emit_reg_reg(A_MOVZX,S_BL,reg32toreg8(ind),ind);
                    end;
                  LOC_JUMP :
                    begin
-                     ind:=getregisterint;
+                     ind:=rg.getregisterint(exprasmlist);
                      emitlab(truelabel);
                      truelabel:=otl;
                      emit_const_reg(A_MOV,S_L,1,ind);
@@ -600,8 +621,8 @@ implementation
                    end;
                  LOC_REFERENCE,LOC_MEM :
                    begin
-                      del_reference(right.location.reference);
-                      ind:=getregisterint;
+                      rg.del_reference(exprasmlist,right.location.reference);
+                      ind:=rg.getregisterint(exprasmlist);
                       { Booleans are stored in an 8 bit memory location, so
                         the use of MOVL is not correct }
                       case right.resulttype.def.size of
@@ -629,14 +650,14 @@ implementation
                          st_widestring,
                          st_ansistring:
                            begin
-                              pushusedregisters(pushed,$ff);
+                              rg.saveusedregisters(exprasmlist,pushed,all_registers);
                               emit_reg(A_PUSH,S_L,ind);
                               hp:=newreference(location.reference);
                               dec(hp^.offset,7);
                               emit_ref(A_PUSH,S_L,hp);
-                              saveregvars($ff);
+                              rg.saveregvars(exprasmlist,all_registers);
                               emitcall('FPC_ANSISTR_RANGECHECK');
-                              popusedregisters(pushed);
+                              rg.restoreusedregisters(exprasmlist,pushed);
                               maybe_loadself;
                            end;
                          st_shortstring:
@@ -674,7 +695,7 @@ implementation
                     emit_ref_reg(
                       A_LEA,S_L,newreference(location.reference),
                       location.reference.index);
-                    ungetregister32(location.reference.base);
+                    rg.ungetregisterint(exprasmlist,location.reference.base);
                     { the symbol offset is loaded,             }
                     { so release the symbol name and set symbol  }
                     { to nil                                 }
@@ -701,7 +722,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2002-03-04 19:10:14  peter
+  Revision 1.21  2002-03-31 20:26:39  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.20  2002/03/04 19:10:14  peter
     * removed compiler warnings
 
   Revision 1.19  2001/12/30 17:24:47  jonas

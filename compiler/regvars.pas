@@ -30,7 +30,7 @@ interface
        aasm,
        node,
        symsym,
-       cpubase, tgcpu;
+       cpubase, tgobj, rgobj;
 
     procedure assign_regvars(p: tnode);
     procedure load_regvars(asml: TAAsmoutput; p: tnode);
@@ -49,10 +49,17 @@ implementation
       globtype,systems,comphook,
       cutils,cclasses,verbose,globals,
       symconst,symbase,symtype,symdef,types,
-      tainst,cgbase,cpuasm,cgobj,cgcpu,cga;
+      tainst,cgbase,cpuasm,cgobj,cgcpu,cga,rgcpu;
 
     var
       parasym : boolean;
+
+{$ifndef i386}
+    function makereg32(const reg: tregister): tregister;
+      begin
+        makereg32 := reg;
+      end;
+{$endif i386}
 
     procedure searchregvars(p : tnamedindexitem);
       var
@@ -163,15 +170,13 @@ implementation
               for i:=1 to maxvarregs-p.registers32 do
                 begin
                   if assigned(regvarinfo^.regvars[i]) and
-                    (reg_pushes[varregs[i]] < regvarinfo^.regvars[i].refs) then
+                    (rg.reg_pushes[varregs[i]] < regvarinfo^.regvars[i].refs) then
                     begin
                       { register is no longer available for }
                       { expressions                          }
                       { search the register which is the most }
-                      { unused                                        }
-                      usableregs:=usableregs-[varregs[i]];
-                      is_reg_var[varregs[i]]:=true;
-                      dec(c_usableregs);
+                      { unused                                }
+                      rg.makeregvar(varregs[i]);
 
                       { possibly no 32 bit register are needed }
                       { call by reference/const ? }
@@ -199,14 +204,8 @@ implementation
                         begin
                           regvarinfo^.regvars[i].reg:=varregs[i];
                         end;
-                      if regvarinfo^.regvars_para[i] then
-                        unused:=unused - [regvarinfo^.regvars[i].reg];
                       { procedure uses this register }
-{$ifdef i386}
-                      usedinproc:=usedinproc or ($80 shr byte(varregs[i]));
-{$else i386}
-                      usedinproc:=usedinproc + [varregs[i]];
-{$endif i386}
+                      include(rg.usedinproc,varregs[i]);
                     end
                   else
                     begin
@@ -253,9 +252,9 @@ implementation
                      begin
 {$ifdef i386}
                        { reserve place on the FPU stack }
-                       regvarinfo^.fpuregvars[i].reg:=correct_fpuregister(R_ST0,i-1);
+                       regvarinfo^.fpuregvars[i].reg:=trgcpu(rg).correct_fpuregister(R_ST0,i);
 {$else i386}
-                       regvarinfo^.fpuregvars[i].reg:=fpuvarregs[i];
+                       rg.makeregvar(fpuregvars[i]);
 {$endif i386}
                      end;
                   end;
@@ -278,7 +277,7 @@ implementation
         if assigned(regvarinfo^.regvars[i]) and
            (makereg32(regvarinfo^.regvars[i].reg) = reg) then
           begin
-            if regvar_loaded[makereg32(reg)] then
+            if rg.regvar_loaded[makereg32(reg)] then
               begin
                 vsym := tvarsym(regvarinfo^.regvars[i]);
                 { we only have to store the regvar back to memory if it's }
@@ -291,10 +290,9 @@ implementation
                     else hr.offset:=vsym.address+vsym.owner.address_fixup;
                     hr.base:=procinfo^.framepointer;
                     cg.a_load_reg_ref(asml,def_cgsize(vsym.vartype.def),vsym.reg,hr);
-{                    asml.concat(Taicpu.op_reg_ref(A_MOV,regsize(vsym.reg),vsym.reg,hr)); }
                   end;
                 asml.concat(Tairegalloc.dealloc(makereg32(reg)));
-                regvar_loaded[makereg32(reg)] := false;
+                rg.regvar_loaded[makereg32(reg)] := false;
               end;
             break;
           end;
@@ -305,7 +303,7 @@ implementation
       hr: treference;
       opsize: tcgsize;
     begin
-      if not regvar_loaded[makereg32(vsym.reg)] then
+      if not rg.regvar_loaded[makereg32(vsym.reg)] then
         begin
           asml.concat(Tairegalloc.alloc(makereg32(vsym.reg)));
           reset_reference(hr);
@@ -316,13 +314,11 @@ implementation
           if (vsym.varspez in [vs_var,vs_out]) or
              ((vsym.varspez=vs_const) and
                push_addr_param(vsym.vartype.def)) then
-            {FIXME!!! Needs to be OS_SIZE_OF_POINTER (JM) }
-            opsize := OS_32
+            opsize := OS_ADDR
           else
             opsize := def_cgsize(vsym.vartype.def);
           cg.a_load_ref_reg(asml,opsize,hr,makereg32(vsym.reg));
-{          asml.concat(Taicpu.op_ref_reg(opcode,opsize,hr,makereg32(vsym.reg))); }
-          regvar_loaded[makereg32(vsym.reg)] := true;
+          rg.regvar_loaded[makereg32(vsym.reg)] := true;
         end;
     end;
 
@@ -350,8 +346,8 @@ implementation
       if not assigned(regvarinfo) then
         exit;
       for i := 1 to maxvarregs do
-        if assigned(regvarinfo^.regvars[i]) and
-           (makereg32(regvarinfo^.regvars[i].reg) in [R_EAX,R_EBX,R_ECX,R_EDX]) then
+        if assigned(regvarinfo^.regvars[i]) {and
+           (makereg32(regvarinfo^.regvars[i].reg) in [R_EAX,R_EBX,R_ECX,R_EDX])} then
           load_regvar(asml,tvarsym(regvarinfo^.regvars[i]))
     end;
 
@@ -387,7 +383,7 @@ implementation
                 begin
 {$ifdef i386}
                   { reserve place on the FPU stack }
-                  regvarinfo^.fpuregvars[i].reg:=correct_fpuregister(R_ST0,i-1);
+                  regvarinfo^.fpuregvars[i].reg:=trgcpu(rg).correct_fpuregister(R_ST0,i-1);
                   asml.concat(Taicpu.op_none(A_FLDZ,S_NO));
 {$endif i386}
                 end;
@@ -422,9 +418,9 @@ implementation
     var
       counter: tregister;
     begin
-      for counter := low(regvar_loaded) to high(regvar_loaded) do
+      for counter := low(rg.regvar_loaded) to high(rg.regvar_loaded) do
         begin
-           regvar_loaded[counter] := regvarsloaded1[counter] and
+           rg.regvar_loaded[counter] := regvarsloaded1[counter] and
              regvarsloaded2[counter];
            if regvarsloaded1[counter] xor regvarsloaded2[counter] then
              if regvarsloaded1[counter] then
@@ -454,7 +450,7 @@ implementation
 {$endif i386}
             for i := 1 to maxvarregs do
               if assigned(regvars[i]) and
-                 (regvar_loaded[makereg32(regvars[i].reg)]) then
+                 (rg.regvar_loaded[makereg32(regvars[i].reg)]) then
                 asml.concat(Tairegalloc.dealloc(makereg32(regvars[i].reg)));
           end;
     end;
@@ -463,7 +459,24 @@ end.
 
 {
   $Log$
-  Revision 1.22  2001-12-29 15:32:13  jonas
+  Revision 1.23  2002-03-31 20:26:36  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.22  2001/12/29 15:32:13  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

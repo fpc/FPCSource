@@ -121,7 +121,7 @@ implementation
       symconst,types,
       htypechk,pass_1,cpubase,
       ncnv,nld,ninl,nadd,ncon,
-      tgcpu,cgbase
+      rgobj,cgbase
       ;
 
 
@@ -1555,14 +1555,7 @@ implementation
               { procedure does a call }
               if not (block_type in [bt_const,bt_type]) then
                 procinfo^.flags:=procinfo^.flags or pi_do_call;
-{$ifndef newcg}
-              { calc the correct value for the register }
-{$ifdef i386}
-              incrementregisterpushed($ff);
-{$else}
-              incrementregisterpushed(ALL_REGISTERS);
-{$endif}
-{$endif newcg}
+              rg.incrementregisterpushed(all_registers);
            end
          else
          { not a procedure variable }
@@ -1600,12 +1593,9 @@ implementation
                     procinfo^.flags:=procinfo^.flags or pi_do_call;
                 end;
 
-{$ifndef newcg}
-{$ifndef POWERPC}
              { for the PowerPC standard calling conventions this information isn't necassary (FK) }
-             incrementregisterpushed(tprocdef(procdefinition).usedregisters);
-{$endif POWERPC}
-{$endif newcg}
+             { It doesn't hurt to calculate it already though :) (JM) }
+             rg.incrementregisterpushed(tprocdef(procdefinition).usedregisters);
            end;
 
          { get a register for the return value }
@@ -1837,7 +1827,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2002-03-30 23:02:42  carl
+  Revision 1.66  2002-03-31 20:26:33  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.65  2002/03/30 23:02:42  carl
   * avoid crash with inline routines
 
   Revision 1.64  2002/01/24 18:25:48  peter

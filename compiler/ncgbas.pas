@@ -69,7 +69,7 @@ interface
       nflw,pass_2,
       cgbase,
       cga,
-      tgcpu,temp_gen
+      tgobj,rgobj
       ;
 {*****************************************************************************
                                  TNOTHING
@@ -94,7 +94,7 @@ interface
           begin
             if assigned(tstatementnode(hp).right) then
              begin
-               cleartempgen;
+               rg.cleartempgen;
                secondpass(tstatementnode(hp).right);
              end;
             hp:=tstatementnode(hp).left;
@@ -240,9 +240,9 @@ interface
 
         { get a (persistent) temp }
         if persistent then
-          gettempofsizereferencepersistant(size,tempinfo^.ref)
+          tg.gettempofsizereferencepersistant(exprasmlist,size,tempinfo^.ref)
         else
-          gettempofsizereference(size,tempinfo^.ref);
+          tg.gettempofsizereference(exprasmlist,size,tempinfo^.ref);
         tempinfo^.valid := true;
       end;
 
@@ -267,7 +267,7 @@ interface
 
     procedure tcgtempdeletenode.pass_2;
       begin
-        ungetpersistanttempreference(tempinfo^.ref);
+        tg.ungetpersistanttempreference(exprasmlist,tempinfo^.ref);
       end;
 
 
@@ -282,7 +282,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2001-12-31 16:54:14  peter
+  Revision 1.11  2002-03-31 20:26:34  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.10  2001/12/31 16:54:14  peter
     * fixed inline crash with assembler routines
 
   Revision 1.9  2001/11/02 22:58:01  peter

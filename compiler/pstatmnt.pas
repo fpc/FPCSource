@@ -54,7 +54,7 @@ implementation
        scanner,
        pbase,pexpr,
        { codegen }
-       tgcpu,cgbase
+       rgobj,cgbase
 {$ifdef i386}
   {$ifndef NoRa386Int}
        ,ra386int
@@ -194,7 +194,7 @@ implementation
          consume(_CASE);
          caseexpr:=comp_expr(true);
        { determines result type }
-         cleartempgen;
+         rg.cleartempgen;
          do_resulttypepass(caseexpr);
          casedeferror:=false;
          casedef:=caseexpr.resulttype.def;
@@ -784,7 +784,6 @@ implementation
          { Read first the _ASM statement }
          consume(_ASM);
 
-{$ifndef newcg}
          { END is read }
          if try_to_consume(_LECKKLAMMER) then
            begin
@@ -796,50 +795,50 @@ implementation
                   uppervar(pattern);
 {$ifdef i386}
                   if pattern='EAX' then
-                    usedinproc:=usedinproc or ($80 shr byte(R_EAX))
+                    include(rg.usedinproc,R_EAX)
                   else if pattern='EBX' then
-                    usedinproc:=usedinproc or ($80 shr byte(R_EBX))
+                    include(rg.usedinproc,R_EBX)
                   else if pattern='ECX' then
-                    usedinproc:=usedinproc or ($80 shr byte(R_ECX))
+                    include(rg.usedinproc,R_ECX)
                   else if pattern='EDX' then
-                    usedinproc:=usedinproc or ($80 shr byte(R_EDX))
+                    include(rg.usedinproc,R_EDX)
                   else if pattern='ESI' then
                     begin
-                       usedinproc:=usedinproc or ($80 shr byte(R_ESI));
+                       include(rg.usedinproc,R_ESI);
                        exclude(asmstat.flags,nf_object_preserved);
                     end
                   else if pattern='EDI' then
-                    usedinproc:=usedinproc or ($80 shr byte(R_EDI))
+                    include(rg.usedinproc,R_EDI)
 {$endif i386}
 {$ifdef m68k}
                   if pattern='D0' then
-                    usedinproc:=usedinproc +[R_D0]
+                    include(rg.usedinproc,R_D0)
                   else if pattern='D1' then
-                    usedinproc:=usedinproc + [R_D1]
+                    include(rg.usedinproc,R_D1)
                   else if pattern='D2' then
-                    usedinproc:=usedinproc + [R_D2]
+                    include(rg.usedinproc,R_D2)
                   else if pattern='D3' then
-                    usedinproc:=usedinproc + [R_D3]
+                    include(rg.usedinproc,R_D3)
                   else if pattern='D4' then
-                    usedinproc:=usedinproc + [R_D4]
+                    include(rg.usedinproc,R_D4)
                   else if pattern='D5' then
-                    usedinproc:=usedinproc + [R_D5]
+                    include(rg.usedinproc,R_D5)
                   else if pattern='D6' then
-                    usedinproc:=usedinproc + [R_D6]
+                    include(rg.usedinproc,R_D6)
                   else if pattern='D7' then
-                    usedinproc:=usedinproc + [R_D7]
+                    include(rg.usedinproc,R_D7)
                   else if pattern='A0' then
-                    usedinproc:=usedinproc + [R_A0]
+                    include(rg.usedinproc,R_A0)
                   else if pattern='A1' then
-                    usedinproc:=usedinproc + [R_A1]
+                    include(rg.usedinproc,R_A1)
                   else if pattern='A2' then
-                    usedinproc:=usedinproc + [R_A2]
+                    include(rg.usedinproc,R_A2)
                   else if pattern='A3' then
-                    usedinproc:=usedinproc + [R_A3]
+                    include(rg.usedinproc,R_A3)
                   else if pattern='A4' then
-                    usedinproc:=usedinproc + [R_A4]
+                    include(rg.usedinproc,R_A4)
                   else if pattern='A5' then
-                    usedinproc:=usedinproc + [R_A5]
+                    include(rg.usedinproc,R_A5)
 {$endif m68k}
 {$ifdef powerpc}
                   if pattern<>'' then
@@ -852,16 +851,7 @@ implementation
                 until false;
               consume(_RECKKLAMMER);
            end
-{$ifdef i386}
-         else usedinproc:=$ff;
-{$else}
-{$ifdef powerpc}
-         else usedinproc := 0;
-{$else powerpc}
-         else usedinproc := ALL_REGISTERS;
-{$endif powerpc}
-{$endif i386}
-{$endif newcg}
+         else rg.usedinproc := [firstreg..lastreg];
 
          { mark the start and the end of the assembler block
            this is needed for the optimizer }
@@ -1168,17 +1158,7 @@ implementation
                symtablestack.datasize:=0;
               { set the used flag for the return }
               if ret_in_acc(aktprocdef.rettype.def) then
-                begin
-{$ifdef i386}
-                   usedinproc:=usedinproc or ($80 shr byte(R_EAX))
-{$else}
-  {$ifdef POWERPC}
-                   usedinproc:=0;
-  {$else POWERPC}
-                   usedinproc:=usedinproc + [accumulator];
-  {$endif POWERPC}
-{$endif i386}
-                end;
+                 include(rg.usedinproc,accumulator);
             end;
          { force the asm statement }
          if token<>_ASM then
@@ -1222,7 +1202,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2002-03-11 19:10:28  peter
+  Revision 1.49  2002-03-31 20:26:36  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.48  2002/03/11 19:10:28  peter
     * Regenerated with updated fpcmake
 
   Revision 1.47  2002/03/04 17:54:59  peter

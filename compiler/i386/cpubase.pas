@@ -528,9 +528,38 @@ type
 const
   general_registers = [R_EAX,R_EBX,R_ECX,R_EDX];
 
-  intregs = general_registers;
-  fpuregs = [];
+  { legend:                                                                }
+  { xxxregs = set of all possibly used registers of that type in the code  }
+  {           generator                                                    }
+  { usableregsxxx = set of all 32bit components of registers that can be   }
+  {           possible allocated to a regvar or using getregisterxxx (this }
+  {           excludes registers which can be only used for parameter      }
+  {           passing on ABI's that define this)                           }
+  { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
+
+  intregs = [R_EAX..R_BL];
+  usableregsint = general_registers;
+  c_countusableregsint = 4;
+
+  fpuregs = [R_ST0..R_ST7];
+  usableregsfpu = [];
+  c_countusableregsfpu = 0;
+
   mmregs = [R_MM0..R_MM7];
+  usableregsmm = [R_MM0..R_MM7];
+  c_countusableregsmm  = 8;
+
+  firstsaveintreg = R_EAX;
+  lastsaveintreg = R_EBX;
+  firstsavefpureg = R_NO;
+  lastsavefpureg = R_NO;
+  firstsavemmreg = R_MM0;
+  lastsavemmreg = R_MM7;
+
+  lowsavereg = R_EAX;
+  highsavereg = R_MM7;
+
+  ALL_REGISTERS = [lowsavereg..highsavereg];
 
   lvaluelocations = [LOC_REFERENCE,LOC_CFPUREGISTER,
     LOC_CREGISTER,LOC_MMXREGISTER,LOC_CMMXREGISTER];
@@ -543,6 +572,10 @@ const
   self_pointer  = R_ESI;
   accumulator   = R_EAX;
   accumulatorhigh = R_EDX;
+  { WARNING: don't change to R_ST0!! See comments above implementation of }
+  { a_loadfpu* methods in rgcpu (JM)                                      }
+  fpuresultreg = R_ST;
+  mmresultreg = R_MM0;
   { the register where the vmt offset is passed to the destructor }
   { helper routine                                                }
   vmt_offset_reg = R_EDI;
@@ -564,6 +597,7 @@ const
   { sizes }
   pointersize   = 4;
   extended_size = 10;
+  mmreg_size = 8;
   sizepostfix_pointer = S_L;
 
 
@@ -957,7 +991,24 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2002-03-04 19:10:12  peter
+  Revision 1.11  2002-03-31 20:26:37  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.10  2002/03/04 19:10:12  peter
     * removed compiler warnings
 
   Revision 1.9  2001/12/30 17:24:46  jonas

@@ -39,9 +39,8 @@ implementation
 
     uses
       systems,
-      temp_gen,
       cpubase,
-      cga,tgcpu;
+      cga,rgobj,rgcpu;
 
 {*****************************************************************************
                            TI386REALCONSTNODE
@@ -66,13 +65,15 @@ implementation
            begin
               emit_none(A_FLD1,S_NO);
               location.loc:=LOC_FPU;
-              inc(fpuvaroffset);
+              location.register:=R_ST;
+              inc(trgcpu(rg).fpuvaroffset);
            end
          else if (value_real=0.0) then
            begin
               emit_none(A_FLDZ,S_NO);
               location.loc:=LOC_FPU;
-              inc(fpuvaroffset);
+              location.register:=R_ST;
+              inc(trgcpu(rg).fpuvaroffset);
            end
          else
            inherited pass_2;
@@ -84,8 +85,22 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2001-09-30 16:17:17  jonas
-    * made most constant and mem handling processor independent
+  Revision 1.12  2002-03-31 20:26:38  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
 
   Revision 1.10  2001/08/26 13:36:57  florian
     * some cg reorganisation

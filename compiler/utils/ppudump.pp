@@ -27,7 +27,7 @@ uses
 {$ifdef go32v2}
   dpmiexcp,
 {$endif go32v2}
-  ppu;
+  ppu, cpubase;
 
 const
   Version   = 'Version 1.10';
@@ -932,6 +932,46 @@ end;
                          Read defintions Part
 ****************************************************************************}
 
+procedure getusedregisters;
+var
+  regs: tregisterset;
+  r: tregister;
+  first: boolean;
+begin
+  first := true;
+  ppufile.getnormalset(regs);
+  for r := firstsaveintreg to lastsaveintreg do
+    if r in regs then
+      begin
+        if not first then
+          write(', ')
+        else
+          first := false;
+        write(att_reg2str[r])
+      end;
+  if (firstsavefpureg <> R_NO) then
+    for r := firstsavefpureg to lastsavefpureg do
+      if r in regs then
+        begin
+          if not first then
+            write(', ')
+          else
+            first := false;
+          write(att_reg2str[r])
+        end;
+  if (firstsavemmreg <> R_NO) then
+    for r := firstsavemmreg to lastsavemmreg do
+      if r in regs then
+        begin
+          if not first then
+            write(', ')
+          else
+            first := false;
+          write(att_reg2str[r])
+        end;
+  writeln;
+end;
+
 procedure readdefinitions(start_read : boolean);
 type
   tsettype  = (normset,smallset,varset);
@@ -1033,7 +1073,8 @@ begin
            begin
              readcommondef('Procedure definition');
              calloption:=read_abstract_proc_def;
-             writeln(space,'    Used Register : ',getbyte);
+             write  (space,'   Used Registers : ');
+             getusedregisters;
              writeln(space,'     Mangled name : ',getstring);
              writeln(space,'           Number : ',getlongint);
              write  (space,'            Class : ');
@@ -1647,7 +1688,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2002-03-28 20:48:52  carl
+  Revision 1.15  2002-03-31 20:26:42  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.14  2002/03/28 20:48:52  carl
   - remove go32v1 support
 
   Revision 1.13  2002/03/28 16:44:59  armin

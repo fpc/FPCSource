@@ -47,10 +47,10 @@ implementation
       globtype,systems,cpuinfo,
       verbose,globals,
       symconst,symdef,aasm,types,
-      cgbase,temp_gen,pass_2,
+      cgbase,pass_2,
       ncon,
       cpubase,
-      cga,tgcpu,n386util,regvars;
+      cga,tgobj,n386util,regvars,rgobj;
 
      const
        bytes2Sxx:array[1..8] of Topsize=(S_B,S_W,S_NO,S_L,S_NO,S_NO,S_NO,S_Q);
@@ -236,7 +236,7 @@ implementation
             else
              begin
                { load the value in a register }
-               pleftreg := getexplicitregister32(R_EDI);
+               pleftreg := rg.getexplicitregisterint(exprasmlist,R_EDI);
                opsize := S_L;
                emit_ref_reg(A_MOVZX,S_BL,newreference(left.location.reference),
                             pleftreg);
@@ -274,8 +274,8 @@ implementation
                       if (pleftreg <> R_EDI) and
                          (left.location.loc = LOC_CREGISTER) then
                         begin
-                          ungetregister(pleftreg);
-                          getexplicitregister32(R_EDI);
+                          rg.ungetregister(exprasmlist,pleftreg);
+                          rg.getexplicitregisterint(exprasmlist,R_EDI);
                           emit_ref_reg(A_LEA,S_L,
                             new_reference(pleftreg,-setparts[i].start),R_EDI);
                           { only now change pleftreg since previous value is }
@@ -338,11 +338,11 @@ implementation
              emitlab(l);
              case left.location.loc of
             LOC_REGISTER,
-           LOC_CREGISTER : ungetregister(pleftreg);
+           LOC_CREGISTER : rg.ungetregister(exprasmlist,pleftreg);
              else
                begin
-                del_reference(left.location.reference);
-                ungetregister(R_EDI);
+                rg.del_reference(exprasmlist,left.location.reference);
+                rg.ungetregister(exprasmlist,R_EDI);
                end
              end
           end
@@ -361,13 +361,13 @@ implementation
                       begin
                          emit_const_reg(A_TEST,S_L,
                            1 shl (tordconstnode(left).value and 31),right.location.register);
-                         ungetregister32(right.location.register);
+                         rg.ungetregisterint(exprasmlist,right.location.register);
                        end
                   else
                    begin
                      emit_const_ref(A_TEST,S_L,1 shl (tordconstnode(left).value and 31),
                        newreference(right.location.reference));
-                     del_reference(right.location.reference);
+                     rg.del_reference(exprasmlist,right.location.reference);
                    end;
                   end;
                 end
@@ -385,11 +385,11 @@ implementation
                       { the set element isn't never samller than a byte  }
                       { and because it's a small set we need only 5 bits }
                       { but 8 bits are easier to load               }
-                      getexplicitregister32(R_EDI);
+                      rg.getexplicitregisterint(exprasmlist,R_EDI);
                       emit_ref_reg(A_MOVZX,S_BL,
                         newreference(left.location.reference),R_EDI);
                       hr:=R_EDI;
-                      del_reference(left.location.reference);
+                      rg.del_reference(exprasmlist,left.location.reference);
                     end;
                   end;
 
@@ -399,20 +399,20 @@ implementation
                           begin
                             emit_reg_reg(A_BT,S_L,hr,
                               right.location.register);
-                            ungetregister32(right.location.register);
+                            rg.ungetregisterint(exprasmlist,right.location.register);
                           end
                   else
                     begin
-                      del_reference(right.location.reference);
+                      rg.del_reference(exprasmlist,right.location.reference);
                       if right.location.reference.is_immediate then
                        begin
                        { We have to load the value into a register because
                          btl does not accept values only refs or regs (PFV) }
-                         hr2:=getregisterint;
+                         hr2:=rg.getregisterint(exprasmlist);
                          emit_const_reg(A_MOV,S_L,
                            right.location.reference.offset,hr2);
                          emit_reg_reg(A_BT,S_L,hr,hr2);
-                         ungetregister32(hr2);
+                         rg.ungetregisterint(exprasmlist,hr2);
                        end
                       else
                         emit_reg_ref(A_BT,S_L,hr,
@@ -420,7 +420,7 @@ implementation
                     end;
                   end;
                   { simply to indicate EDI is deallocated here too (JM) }
-                  ungetregister32(hr);
+                  rg.ungetregisterint(exprasmlist,hr);
                   location.loc:=LOC_FLAGS;
                   location.resflags:=F_C;
                 end;
@@ -436,7 +436,7 @@ implementation
                   { Is this treated in firstpass ?? }
                   if left.nodetype=ordconstn then
                     begin
-                      hr:=getregisterint;
+                      hr:=rg.getregisterint(exprasmlist);
                       left.location.loc:=LOC_REGISTER;
                       left.location.register:=hr;
                       emit_const_reg(A_MOV,S_L,
@@ -456,10 +456,10 @@ implementation
                           emitlab(l);
                         { We have to load the value into a register because
                           btl does not accept values only refs or regs (PFV) }
-                          hr2:=getregisterint;
+                          hr2:=rg.getregisterint(exprasmlist);
                           emit_const_reg(A_MOV,S_L,right.location.reference.offset,hr2);
                           emit_reg_reg(A_BT,S_L,hr,hr2);
-                          ungetregister32(hr2);
+                          rg.ungetregisterint(exprasmlist,hr2);
                        end;
                   else
                     begin
@@ -482,17 +482,17 @@ implementation
                        emit_none(A_CLC,S_NO);
                        emitjmp(C_NONE,l2);
                        emitlab(l);
-                       del_reference(left.location.reference);
-                       hr:=getregisterint;
+                       rg.del_reference(exprasmlist,left.location.reference);
+                       hr:=rg.getregisterint(exprasmlist);
                        emit_ref_reg(A_MOV,S_L,
                          newreference(left.location.reference),hr);
                      { We have to load the value into a register because
                        btl does not accept values only refs or regs (PFV) }
-                       hr2:=getregisterint;
+                       hr2:=rg.getregisterint(exprasmlist);
                        emit_const_reg(A_MOV,S_L,
                          right.location.reference.offset,hr2);
                        emit_reg_reg(A_BT,S_L,hr,hr2);
-                       ungetregister32(hr2);
+                       rg.ungetregisterint(exprasmlist,hr2);
                     end;
                   end;
                   emitlab(l2);
@@ -505,20 +505,20 @@ implementation
                   inc(right.location.reference.offset,tordconstnode(left).value shr 3);
                   emit_const_ref(A_TEST,S_B,1 shl (tordconstnode(left).value and 7),
                     newreference(right.location.reference));
-                  del_reference(right.location.reference);
+                  rg.del_reference(exprasmlist,right.location.reference);
                 end
                else
                 begin
                   if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                     begin
-                      pleftreg := getexplicitregister32(R_EDI);
+                      pleftreg := rg.getexplicitregisterint(exprasmlist,R_EDI);
                       opsize := def2def_opsize(left.resulttype.def,u32bittype.def);
                       if opsize = S_L then
                         emit_ref_reg(A_MOV,opsize,newreference(left.location.reference),pleftreg)
                       else
                         emit_ref_reg(A_MOVZX,opsize,newreference(left.location.reference),pleftreg);
-                      ungetiftemp(left.location.reference);
-                      del_reference(left.location.reference);
+                      tg.ungetiftemp(exprasmlist,left.location.reference);
+                      rg.del_reference(exprasmlist,left.location.reference);
                     end
                   else
                     begin
@@ -532,16 +532,16 @@ implementation
                          emit_to_reg32(pleftreg)
                     end;
                   emit_reg_ref(A_BT,S_L,pleftreg,newreference(right.location.reference));
-                  ungetregister(pleftreg);
-                  del_reference(right.location.reference);
-                  { ungetiftemp(right.location.reference) happens below }
+                  rg.ungetregister(exprasmlist,pleftreg);
+                  rg.del_reference(exprasmlist,right.location.reference);
+                  { tg.ungetiftemp(exprasmlist,right.location.reference) happens below }
                   location.loc:=LOC_FLAGS;
                   location.resflags:=F_C;
                 end;
              end;
           end;
           if (right.location.loc in [LOC_MEM,LOC_REFERENCE]) then
-            ungetiftemp(right.location.reference);
+            tg.ungetiftemp(exprasmlist,right.location.reference);
        end;
 
 
@@ -885,7 +885,7 @@ implementation
               jmp_le:=C_B;
               jmp_lee:=C_BE;
            end;
-         cleartempgen;
+         rg.cleartempgen;
          { save current truelabel and falselabel (they are restored in }
          { locjump2reg) (JM)                                           }
          if left.location.loc=LOC_JUMP then
@@ -922,7 +922,7 @@ implementation
               end;
             LOC_CREGISTER:
               begin
-                 hregister:=getregisterint;
+                 hregister:=rg.getregisterint(exprasmlist);
                  case opsize of
                     S_B:
                       hregister:=reg32toreg8(hregister);
@@ -944,8 +944,8 @@ implementation
               end;
             LOC_MEM,LOC_REFERENCE:
               begin
-                 del_reference(left.location.reference);
-                 hregister:=getregisterint;
+                 rg.del_reference(exprasmlist,left.location.reference);
+                 hregister:=rg.getregisterint(exprasmlist);
                  case opsize of
                     S_B:
                       hregister:=reg32toreg8(hregister);
@@ -1059,13 +1059,13 @@ implementation
                 genlinearlist(nodes);
            end;
 
-         ungetregister(hregister);
+         rg.ungetregister(exprasmlist,hregister);
 
          { now generate the instructions }
          hp:=right;
          while assigned(hp) do
            begin
-              cleartempgen;
+              rg.cleartempgen;
               secondpass(tbinarynode(hp).right);
               { don't come back to case line }
               aktfilepos:=exprasmList.getlasttaifilepos^;
@@ -1077,7 +1077,7 @@ implementation
          { ...and the else block }
          if assigned(elseblock) then
            begin
-              cleartempgen;
+              rg.cleartempgen;
               secondpass(elseblock);
               load_all_regvars(exprasmlist);
            end;
@@ -1092,7 +1092,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2001-12-31 09:53:15  jonas
+  Revision 1.20  2002-03-31 20:26:39  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.19  2001/12/31 09:53:15  jonas
     * changed remaining "getregister32" calls to "getregisterint"
 
   Revision 1.18  2001/12/03 21:48:43  peter

@@ -44,9 +44,21 @@ unit cgbase;
        TOpCmp = (OC_NONE,OC_EQ,OC_GT,OC_LT,OC_GTE,OC_LTE,OC_NE,OC_BE,OC_B,
                  OC_AE,OC_A);
 
-       TCgSize = (OS_NO,OS_8,OS_16,OS_32,OS_64,OS_S8,OS_S16,OS_S32,OS_S64);
+       TCgSize = (OS_NO,OS_8,OS_16,OS_32,OS_64,OS_S8,OS_S16,OS_S32,OS_S64,
+                { single,double,extended,comp }
+                  OS_F32,OS_F64,OS_F80,OS_C64,
+                { multi-media sizes: split in byte, word, dword, ... }
+                { entities, then the signed counterparts             }
+                  OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_MS8,OS_MS16,OS_MS32,
+                  OS_MS64,OS_MS128);
 
     const
+      tfloat2tcgsize: array[tfloattype] of tcgsize =
+        (OS_F32,OS_F64,OS_F80,OS_C64);
+
+      tcgsize2tfloat: array[OS_F32..OS_C64] of tfloattype =
+        (s32real,s64real,s80real,s64comp);
+
        pi_uses_asm  = $1;       { set, if the procedure uses asm }
        pi_is_global = $2;       { set, if the procedure is exported by an unit }
        pi_do_call   = $4;       { set, if the procedure does a call }
@@ -59,23 +71,39 @@ unit cgbase;
        pi_needs_implicit_finally = $80; { set, if the procedure contains data which }
                                         { needs to be finalized              }
 
-       { defines the default address size for a processor }
-       { and defines the natural int size for a processor }
+       { defines the default address size for a processor, }
+       { the natural int size for a processor,             }
+       { the maximum float size for a processor,           }
+       { the size of a vector register for a processor     }
 {$ifdef i386}
        OS_ADDR = OS_32;
        OS_INT = OS_32;
+       OS_FLOAT = OS_F80;
+       OS_VECTOR = OS_M64;
 {$endif i386}
+{$ifdef m68k}
+       OS_ADDR = OS_32;
+       OS_INT = OS_32;
+       OS_FLOAT = OS_F??; { processor supports 64bit, but does the compiler? }
+       OS_VECTOR = OS_NO;
+{$endif m68k}
 {$ifdef alpha}
        OS_ADDR = OS_64;
        OS_INT = OS_64;
+       OS_FLOAT = OS_F??;
+       OS_VECTOR = OS_NO;
 {$endif alpha}
 {$ifdef powerpc}
        OS_ADDR = OS_32;
        OS_INT = OS_32;
+       OS_FLOAT = OS_F64;
+       OS_VECTOR = OS_M128;
 {$endif powercc}
 {$ifdef ia64}
        OS_ADDR = OS_64;
        OS_INT = OS_64;
+       OS_FLOAT = OS_F??;
+       OS_VECTOR = OS_NO; { the normal registers can also be used as vectors }
 {$endif ia64}
 
     type
@@ -445,10 +473,22 @@ implementation
 
 
     function def_cgsize(const p1: tdef): tcgsize;
+
       begin
-        result := int_cgsize(p1.size);
-        if is_signed(p1) then
-          result := tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
+        case p1.deftype of
+          orddef, enumdef, setdef:
+            begin
+              result := int_cgsize(p1.size);
+              if is_signed(p1) then
+                result := tcgsize(ord(result)+(ord(OS_S8)-ord(OS_8)));
+            end;
+          pointerdef, procvardef:
+            result := OS_ADDR;
+          floatdef:
+            result := tfloat2tcgsize[tfloatdef(p1).typ];
+          else
+            internalerror(200201131);
+        end;
       end;
 
     function int_cgsize(const l: aword): tcgsize;
@@ -507,7 +547,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-03-04 19:10:11  peter
+  Revision 1.7  2002-03-31 20:26:33  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.6  2002/03/04 19:10:11  peter
     * removed compiler warnings
 
   Revision 1.5  2001/12/30 17:24:48  jonas

@@ -36,9 +36,8 @@ uses
   symconst,symtype,symdef,symsym,
   fmodule,
   nobj,
-  temp_gen,
   cpubase,
-  cga, tgcpu;
+  cga, tgobj;
 
    type
      ti386classheader=class(tclassheader)
@@ -223,7 +222,24 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2001-10-25 21:22:41  peter
+  Revision 1.5  2002-03-31 20:26:39  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.4  2001/10/25 21:22:41  peter
     * calling convention rewrite
 
   Revision 1.3  2001/09/19 11:04:41  michael

@@ -505,13 +505,7 @@ interface
           is_used    : boolean;
           has_mangledname : boolean;
           { small set which contains the modified registers }
-{$ifdef i386}
-          usedregisters : longint;
-{$endif}
-{$ifdef POWERPC}
-          { not used, only a fake }
-          usedregisters : longint;
-{$endif}
+          usedregisters : tregisterset;
           constructor create;
           constructor load(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -3272,18 +3266,7 @@ implementation
           end;
          lastref:=defref;
        { first, we assume that all registers are used }
-{$ifdef newcg}
          usedregisters:=[firstreg..lastreg];
-{$else newcg}
-{$ifdef i386}
-         usedregisters:=$ff;
-{$endif i386}
-{$ifdef POWERPC}
-         { on the PPC, we use the OS specific standard calling conventions }
-         { so the information about the used register isn't necessary yet  }
-         usedregisters:=0;
-{$endif POWERPC}
-{$endif newcg}
          forwarddef:=true;
          interfacedef:=false;
          hasforward:=false;
@@ -3303,21 +3286,7 @@ implementation
          inherited load(ppufile);
          deftype:=procdef;
 
-{$ifdef newcg}
-         readnormalset(usedregisters);
-{$else newcg}
-{$ifdef i386}
-         usedregisters:=ppufile.getbyte;
-{$else}
-{$ifdef POWERPC}
-         { on the PPC, we use the OS specific standard calling conventions }
-         { so the information about the used register isn't necessary yet  }
-         usedregisters:=0;
-{$else POWERPC}
-         readnormalset(usedregisters);
-{$endif POWERPC}
-{$endif}
-{$endif newcg}
+         ppufile.getnormalset(usedregisters);
          has_mangledname:=true;
          _mangledname:=stringdup(ppufile.getstring);
 
@@ -3400,37 +3369,10 @@ implementation
          { set all registers to used for simplified compilation PM }
          if simplify_ppu then
            begin
-{$ifdef newcg}
              usedregisters:=[firstreg..lastreg];
-{$else newcg}
-{$ifdef i386}
-             usedregisters:=$ff;
-{$else}
-{$ifdef POWERPC}
-         { on the PPC, we use the OS specific standard calling conventions }
-         { so the information about the used register isn't necessary yet  }
-            usedregisters:=0;
-{$else POWERPC}
-            usedregisters:=[firstreg..lastreg];
-{$endif POWERPC}
-{$endif i386}
-{$endif newcg}
            end;
 
-{$ifdef newcg}
-         writenormalset(usedregisters);
-{$else newcg}
-{$ifdef i386}
-         ppufile.putbyte(usedregisters);
-{$else}
-{$ifdef POWERPC}
-         { on the PPC, we use the OS specific standard calling conventions }
-         { so the information about the used register isn't necessary yet  }
-{$else POWERPC}
-           writenormalset(usedregisters);
-{$endif POWERPC}
-{$endif i386}
-{$endif newcg}
+         ppufile.putnormalset(usedregisters);
          ppufile.do_interface_crc:=oldintfcrc;
          ppufile.putstring(mangledname);
          ppufile.putlongint(extnumber);
@@ -5478,7 +5420,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.66  2002-03-24 19:10:14  carl
+  Revision 1.67  2002-03-31 20:26:36  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.66  2002/03/24 19:10:14  carl
   + patch for SPARC from Mazen NEIFER
 
   Revision 1.65  2002/02/04 08:16:07  jonas

@@ -35,7 +35,7 @@ Implementation
 
 Uses
   {$ifdef replaceregdebug}cutils,{$endif}
-  verbose,globals,cpubase,cpuasm,daopt386,csopt386,tgcpu;
+  verbose,globals,cpubase,cpuasm,daopt386,csopt386,rgobj;
 
 function canBeFirstSwitch(p: Taicpu; reg: tregister): boolean;
 { checks whether an operation on reg can be switched to another reg without an }
@@ -319,8 +319,8 @@ begin
                      (Taicpu(p).oper[0].typ = top_reg) and
                      (Taicpu(p).oper[1].typ = top_reg) and
                      (Taicpu(p).opsize = S_L) and
-                     (Taicpu(p).oper[0].reg in (usableregs+[R_EDI])) and
-                     (Taicpu(p).oper[1].reg in (usableregs+[R_EDI])) then
+                     (Taicpu(p).oper[0].reg in (rg.usableregsint+[R_EDI])) and
+                     (Taicpu(p).oper[1].reg in (rg.usableregsint+[R_EDI])) then
                     if switchRegs(asml,Taicpu(p).oper[0].reg,
                          Taicpu(p).oper[1].reg,p) then
                       begin
@@ -344,7 +344,24 @@ End.
 
 {
   $Log$
-  Revision 1.8  2001-10-12 13:55:03  jonas
+  Revision 1.9  2002-03-31 20:26:41  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.8  2001/10/12 13:55:03  jonas
     * finer granularity for allocation of reused/replaced registers
 
   Revision 1.7  2001/08/29 14:07:43  jonas

@@ -52,10 +52,10 @@ implementation
       systems,
       verbose,globals,
       symconst,symtype,symdef,symsym,symtable,aasm,types,
-      cgbase,temp_gen,pass_2,
+      cgbase,pass_2,
       nmem,ncon,ncnv,
       cpubase,cpuasm,
-      cga,tgcpu,n386cnv,n386util,regvars;
+      cga,tgobj,n386cnv,n386util,regvars,cgobj,rgobj,rgcpu;
 
 {*****************************************************************************
                              SecondLoad
@@ -111,7 +111,7 @@ implementation
                     { DLL variable }
                     else if (vo_is_dll_var in tvarsym(symtableentry).varoptions) then
                       begin
-                         hregister:=getregisterint;
+                         hregister:=rg.getregisterint(exprasmlist);
                          location.reference.symbol:=newasmsymbol(tvarsym(symtableentry).mangledname);
                          emit_ref_reg(A_MOV,S_L,newreference(location.reference),hregister);
                          location.reference.symbol:=nil;
@@ -125,7 +125,7 @@ implementation
                     { thread variable }
                     else if (vo_is_thread_var in tvarsym(symtableentry).varoptions) then
                       begin
-                         popeax:=not(R_EAX in unused);
+                         popeax:=not(R_EAX in rg.unusedregsint);
                          if popeax then
                            emit_reg(A_PUSH,S_L,R_EAX);
                          location.reference.symbol:=newasmsymbol(tvarsym(symtableentry).mangledname);
@@ -135,7 +135,7 @@ implementation
                          emitcall('FPC_RELOCATE_THREADVAR');
 
                          reset_reference(location.reference);
-                         location.reference.base:=getregisterint;
+                         location.reference.base:=rg.getregisterint(exprasmlist);
                          emit_reg_reg(A_MOV,S_L,R_EAX,location.reference.base);
                          if popeax then
                            emit_reg(A_POP,S_L,R_EAX);
@@ -155,18 +155,18 @@ implementation
                                 end
                               else
                                 if not(makereg32(tvarsym(symtableentry).reg) in [R_EAX..R_EBX]) or
-                                   regvar_loaded[tvarsym(symtableentry).reg] then
+                                   rg.regvar_loaded[makereg32(tvarsym(symtableentry).reg)] then
                                 begin
                                    location.loc:=LOC_CREGISTER;
                                    location.register:=tvarsym(symtableentry).reg;
-                                   unused:=unused-[tvarsym(symtableentry).reg];
+                                   exclude(rg.unusedregsint,makereg32(tvarsym(symtableentry).reg));
                                 end
                               else
                                 begin
                                   load_regvar(exprasmlist,tvarsym(symtableentry));
                                   location.loc:=LOC_CREGISTER;
                                   location.register:=tvarsym(symtableentry).reg;
-                                  unused:=unused-[tvarsym(symtableentry).reg];
+                                  exclude(rg.unusedregsint,makereg32(tvarsym(symtableentry).reg));
                                 end
                            end
                          else
@@ -194,7 +194,7 @@ implementation
                                      end;
                                    if (lexlevel>(symtable.symtablelevel)) then
                                      begin
-                                        hregister:=getregisterint;
+                                        hregister:=rg.getregisterint(exprasmlist);
 
                                         { make a reference }
                                         hp:=new_reference(procinfo^.framepointer,
@@ -228,7 +228,7 @@ implementation
                                      end;
                                    objectsymtable:
                                      begin
-                                        getexplicitregister32(R_ESI);
+                                        rg.getexplicitregisterint(exprasmlist,R_ESI);
                                         if (sp_static in tvarsym(symtableentry).symoptions) then
                                           begin
                                              location.reference.symbol:=newasmsymbol(tvarsym(symtableentry).mangledname);
@@ -256,7 +256,7 @@ implementation
                                          end
                                         else
                                          begin
-                                           hregister:=getregisterint;
+                                           hregister:=rg.getregisterint(exprasmlist);
                                            location.reference.base:=hregister;
                                            emit_ref_reg(A_MOV,S_L,
                                              newreference(twithnode(twithsymtable(symtable).withnode).withreference^),
@@ -276,7 +276,7 @@ implementation
                            begin
                               simple_loadn:=false;
                               if hregister=R_NO then
-                                hregister:=getregisterint;
+                                hregister:=rg.getregisterint(exprasmlist);
                               if location.loc=LOC_CREGISTER then
                                 begin
                                    emit_reg_reg(A_MOV,S_L,
@@ -299,12 +299,12 @@ implementation
                     if assigned(left) then
                       begin
                          location.loc:=LOC_MEM;
-                         gettempofsizereference(8,location.reference);
+                         tg.gettempofsizereference(exprasmlist,8,location.reference);
                          if left.nodetype=typen then
                           begin
                             if left.resulttype.def.deftype<>objectdef then
                              internalerror(200103261);
-                            getexplicitregister32(R_EDI);
+                            rg.getexplicitregisterint(exprasmlist,R_EDI);
                             hregister:=R_EDI;
                             new(hp);
                             emit_sym_ofs_reg(A_MOV,S_L,
@@ -321,7 +321,7 @@ implementation
                                LOC_REGISTER:
                                  begin
                                     hregister:=left.location.register;
-                                    ungetregister32(left.location.register);
+                                    rg.ungetregisterint(exprasmlist,left.location.register);
                                     if is_object(left.resulttype.def) then
                                       CGMessage(cg_e_illegal_expression);
                                  end;
@@ -329,7 +329,7 @@ implementation
                                LOC_MEM,
                                LOC_REFERENCE:
                                  begin
-                                    getexplicitregister32(R_EDI);
+                                    rg.getexplicitregisterint(exprasmlist,R_EDI);
                                     hregister:=R_EDI;
                                     if is_class_or_interface(left.resulttype.def) then
                                       emit_ref_reg(A_MOV,S_L,
@@ -337,8 +337,8 @@ implementation
                                     else
                                       emit_ref_reg(A_LEA,S_L,
                                         newreference(left.location.reference),R_EDI);
-                                    del_reference(left.location.reference);
-                                    ungetiftemp(left.location.reference);
+                                    rg.del_reference(exprasmlist,left.location.reference);
+                                    tg.ungetiftemp(exprasmlist,left.location.reference);
                                  end;
                                else internalerror(26019);
                             end;
@@ -361,7 +361,7 @@ implementation
                               emit_ref_reg(A_MOV,S_L,
                                 hp,R_EDI);
 {$IfDef regallocfix}
-                              del_reference(hp^);
+                              rg.del_reference(exprasmlist,hp^);
 {$EndIf regallocfix}
                               { load method address }
                               new(hp);
@@ -374,11 +374,11 @@ implementation
                               { ... and store it }
                               emit_reg_ref(A_MOV,S_L,
                                 R_EDI,newreference(location.reference));
-                              ungetregister32(R_EDI);
+                              rg.ungetregisterint(exprasmlist,R_EDI);
                            end
                          else
                            begin
-                              ungetregister32(R_EDI);
+                              rg.ungetregisterint(exprasmlist,R_EDI);
                               s:=newasmsymbol(tprocdef(resulttype.def).mangledname);
                               emit_sym_ofs_ref(A_MOV,S_L,s,0,
                                 newreference(location.reference));
@@ -405,6 +405,7 @@ implementation
 
     procedure ti386assignmentnode.pass_2;
       var
+         regs_to_push: tregisterset;
          opsize : topsize;
          otlabel,hlabel,oflabel : tasmlabel;
          fputyp : tfloattype;
@@ -413,8 +414,7 @@ implementation
          ai : taicpu;
          op : tasmop;
          pushed : boolean;
-         regspushed : tpushed;
-         regs_to_push: byte;
+         regspushed : tpushedsaved;
          ungettemp : boolean;
 
       begin
@@ -492,39 +492,39 @@ implementation
                   { problems with the optimizer (JM)                            }
                   ungettemp:=false;
                   { Find out which registers have to be pushed (JM) }
-                  regs_to_push := $ff;
+                  regs_to_push := all_registers;
                   remove_non_regvars_from_loc(right.location,regs_to_push);
                   remove_non_regvars_from_loc(left.location,regs_to_push);
                   { And push them (JM) }
-                  pushusedregisters(regspushed,regs_to_push);
+                  rg.saveusedregisters(exprasmlist,regspushed,regs_to_push);
                   case right.location.loc of
                      LOC_REGISTER,LOC_CREGISTER:
                        begin
                           exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,right.location.register));
-                          ungetregister32(right.location.register);
+                          rg.ungetregisterint(exprasmlist,right.location.register);
                        end;
                      LOC_REFERENCE,LOC_MEM:
                        begin
                           { First release the registers because emit_push_mem may  }
                           { load the reference in edi before pushing and then the  }
                           { dealloc is too late (and optimizations are missed (JM) }
-                          del_reference(right.location.reference);
+                          rg.del_reference(exprasmlist,right.location.reference);
                           { This one doesn't need extra registers (JM) }
                           emit_push_mem(right.location.reference);
                           ungettemp:=true;
                        end;
                   end;
                   emitpushreferenceaddr(left.location.reference);
-                  del_reference(left.location.reference);
-                  saveregvars($ff);
+                  rg.del_reference(exprasmlist,left.location.reference);
+                  rg.saveregvars(exprasmlist,all_registers);
                   if is_ansistring(left.resulttype.def) then
                     emitcall('FPC_ANSISTR_ASSIGN')
                   else
                     emitcall('FPC_WIDESTR_ASSIGN');
                   maybe_loadself;
-                  popusedregisters(regspushed);
+                  rg.restoreusedregisters(exprasmlist,regspushed);
                   if ungettemp then
-                    ungetiftemp(right.location.reference);
+                    tg.ungetiftemp(exprasmlist,right.location.reference);
                 end
               else
               if is_shortstring(left.resulttype.def) and
@@ -537,7 +537,7 @@ implementation
                         begin
                           emit_const_ref(A_MOV,S_B,
                             0,newreference(left.location.reference));
-                          del_reference(left.location.reference);
+                          rg.del_reference(exprasmlist,left.location.reference);
                         end
                       else
                         loadansi2short(right,left);
@@ -545,11 +545,11 @@ implementation
                   else
                     begin
                        { we do not need destination anymore }
-                       del_reference(left.location.reference);
-                       {del_reference(right.location.reference);
+                       rg.del_reference(exprasmlist,left.location.reference);
+                       {rg.del_reference(exprasmlist,right.location.reference);
                         done in loadshortstring }
                        loadshortstring(right,left);
-                       ungetiftemp(right.location.reference);
+                       tg.ungetiftemp(exprasmlist,right.location.reference);
                     end;
                 end
               else if is_longstring(left.resulttype.def) then
@@ -559,7 +559,7 @@ implementation
               else
                 begin
                   { its the only thing we have to do }
-                  del_reference(right.location.reference);
+                  rg.del_reference(exprasmlist,right.location.reference);
                 end
            end
         else if is_interfacecom(left.resulttype.def) then
@@ -594,7 +594,7 @@ implementation
                                          left.location.registerhigh);
                                     end;
 {$IfDef regallocfix}
-                                  del_reference(right.location.reference);
+                                  rg.del_reference(exprasmlist,right.location.reference);
 {$EndIf regallocfix}
                                 end
                               else
@@ -616,7 +616,7 @@ implementation
                                          newreference(left.location.reference));
                                     end;
 {$IfDef regallocfix}
-                                  del_reference(left.location.reference);
+                                  rg.del_reference(exprasmlist,left.location.reference);
 {$EndIf regallocfix}
                                 {emit_const_loc(A_MOV,opsize,
                                     right.location.reference.offset,
@@ -626,11 +626,10 @@ implementation
                            end
                          else if loc=LOC_CFPUREGISTER then
                            begin
-                              floatloadops(tfloatdef(right.resulttype.def).typ,op,opsize);
-                              emit_ref(op,opsize,
-                                newreference(right.location.reference));
-                              emit_reg(A_FSTP,S_NO,
-                                correct_fpuregister(left.location.register,fpuvaroffset+1));
+                              cg.a_loadfpu_ref_reg(exprasmlist,
+                                def_cgsize(right.resulttype.def),
+                                right.location.reference,
+                                left.location.register);
                            end
                          else
                            begin
@@ -659,10 +658,10 @@ implementation
 
                               concatcopy(right.location.reference,
                                 left.location.reference,left.resulttype.def.size,true,false);
-                              del_reference(left.location.reference);
+                              rg.del_reference(exprasmlist,left.location.reference);
                               { done by concatcopy
-                              del_reference(right.location.reference);
-                              ungetiftemp(right.location.reference); }
+                              rg.del_reference(exprasmlist,right.location.reference);
+                              tg.ungetiftemp(exprasmlist,right.location.reference); }
                            end;
                       end;
 {$ifdef SUPPORT_MMX}
@@ -691,16 +690,16 @@ implementation
                                   emit_reg_reg(A_MOV,opsize,
                                     right.location.register,
                                     left.location.register);
-                                 ungetregister(right.location.register);
+                                 rg.ungetregister(exprasmlist,right.location.register);
                                 end
                               else
                                 Begin
                                   emit_reg_ref(A_MOV,opsize,
                                     right.location.register,
                                     newreference(left.location.reference));
-                                  ungetregister(right.location.register);
+                                  rg.ungetregister(exprasmlist,right.location.register);
 {$IfDef regallocfix}
-                                  del_reference(left.location.reference);
+                                  rg.del_reference(exprasmlist,left.location.reference);
 {$EndIf regallocfix}
                                 end;
                               if is_64bitint(right.resulttype.def) then
@@ -722,8 +721,9 @@ implementation
                                   right.location.register,
                                   left.location);      }
 
-                           end;
-            LOC_FPU : begin
+                            end;
+            LOC_FPU, LOC_CFPUREGISTER :
+                            begin
                               if (left.resulttype.def.deftype=floatdef) then
                                fputyp:=tfloatdef(left.resulttype.def).typ
                               else
@@ -735,46 +735,9 @@ implementation
                                 fputyp:=tfloatdef(ttypeconvnode(right).left.resulttype.def).typ
                               else
                                 fputyp:=s32real;
-                              case loc of
-                                 LOC_CFPUREGISTER:
-                                   begin
-                                      emit_reg(A_FSTP,S_NO,
-                                        correct_fpuregister(left.location.register,fpuvaroffset));
-                                      dec(fpuvaroffset);
-                                   end;
-                                 LOC_REFERENCE:
-                                   floatstore(fputyp,left.location.reference);
-                                 else
-                                   internalerror(48991);
-                              end;
-                           end;
-            LOC_CFPUREGISTER: begin
-                              if (left.resulttype.def.deftype=floatdef) then
-                               fputyp:=tfloatdef(left.resulttype.def).typ
-                              else
-                               if (right.resulttype.def.deftype=floatdef) then
-                                fputyp:=tfloatdef(right.resulttype.def).typ
-                              else
-                               if (right.nodetype=typeconvn) and
-                                  (ttypeconvnode(right).left.resulttype.def.deftype=floatdef) then
-                                fputyp:=tfloatdef(ttypeconvnode(right).left.resulttype.def).typ
-                              else
-                                fputyp:=s32real;
-                              emit_reg(A_FLD,S_NO,
-                                correct_fpuregister(right.location.register,fpuvaroffset));
-                              inc(fpuvaroffset);
-                              case loc of
-                                 LOC_CFPUREGISTER:
-                                   begin
-                                      emit_reg(A_FSTP,S_NO,
-                                        correct_fpuregister(right.location.register,fpuvaroffset));
-                                      dec(fpuvaroffset);
-                                   end;
-                                 LOC_REFERENCE:
-                                   floatstore(fputyp,left.location.reference);
-                                 else
-                                   internalerror(48992);
-                              end;
+                              cg.a_loadfpu_reg_loc(exprasmlist,
+                                tfloat2tcgsize[fputyp],
+                                right.location.register,left.location);
                            end;
             LOC_JUMP     : begin
                               opsize:=def_opsize(left.resulttype.def);
@@ -801,7 +764,7 @@ implementation
                                   emit_const_ref(A_MOV,opsize,
                                     0,newreference(left.location.reference));
 {$IfDef regallocfix}
-                                  del_reference(left.location.reference);
+                                  rg.del_reference(exprasmlist,left.location.reference);
 {$EndIf regallocfix}
                                  end;
                               emitlab(hlabel);
@@ -816,7 +779,7 @@ implementation
                                   exprasmList.concat(ai);
                                 end;
 {$IfDef regallocfix}
-                              del_reference(left.location.reference);
+                              rg.del_reference(exprasmlist,left.location.reference);
 {$EndIf regallocfix}
                            end;
          end;
@@ -842,7 +805,7 @@ implementation
          if (not inlining_procedure) and
             (lexlevel<>funcretsym.owner.symtablelevel) then
            begin
-              hr:=getregisterint;
+              hr:=rg.getregisterint(exprasmlist);
               hr_valid:=true;
               hp:=new_reference(procinfo^.framepointer,procinfo^.framepointer_offset);
               emit_ref_reg(A_MOV,S_L,hp,hr);
@@ -868,7 +831,7 @@ implementation
          if ret_in_param(resulttype.def) then
            begin
               if not hr_valid then
-                hr:=getregisterint;
+                hr:=rg.getregisterint(exprasmlist);
               emit_ref_reg(A_MOV,S_L,newreference(location.reference),hr);
               location.reference.base:=hr;
               location.reference.offset:=0;
@@ -922,9 +885,9 @@ implementation
            { Allocate always a temp, also if no elements are required, to
              be sure that location is valid (PFV) }
             if tarraydef(resulttype.def).highrange=-1 then
-              gettempofsizereference(elesize,location.reference)
+              tg.gettempofsizereference(exprasmlist,elesize,location.reference)
             else
-              gettempofsizereference((tarraydef(resulttype.def).highrange+1)*elesize,location.reference);
+              tg.gettempofsizereference(exprasmlist,(tarraydef(resulttype.def).highrange+1)*elesize,location.reference);
            href:=location.reference;
          end;
         hp:=self;
@@ -1018,7 +981,7 @@ implementation
                      begin
                        emit_to_mem(hp.left.location,hp.left.resulttype.def);
                        emit_push_lea_loc(hp.left.location,freetemp);
-                       del_reference(hp.left.location.reference);
+                       rg.del_reference(exprasmlist,hp.left.location.reference);
                      end
                     else
                      emit_push_loc(hp.left.location);
@@ -1091,7 +1054,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-03-04 19:10:14  peter
+  Revision 1.30  2002-03-31 20:26:39  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.29  2002/03/04 19:10:14  peter
     * removed compiler warnings
 
   Revision 1.28  2001/12/30 17:24:46  jonas

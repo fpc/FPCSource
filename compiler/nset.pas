@@ -113,7 +113,7 @@ implementation
       verbose,globals,
       symconst,symdef,symsym,types,
       htypechk,pass_1,
-      ncnv,ncon,cpubase,nld,tgcpu,cgbase;
+      ncnv,ncon,cpubase,nld,rgobj,cgbase;
 
     function gencasenode(l,r : tnode;nodes : pcaserecord) : tnode;
 
@@ -461,11 +461,7 @@ implementation
       begin
          result:=nil;
          { evalutes the case expression }
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
+         rg.cleartempgen;
          firstpass(left);
          set_varstate(left,true);
          if codegenerror then
@@ -479,22 +475,18 @@ implementation
          { walk through all instructions }
 
          {   estimates the repeat of each instruction }
-         old_t_times:=t_times;
+         old_t_times:=rg.t_times;
          if not(cs_littlesize in aktglobalswitches) then
            begin
-              t_times:=t_times div case_count_labels(nodes);
-              if t_times<1 then
-                t_times:=1;
+              rg.t_times:=rg.t_times div case_count_labels(nodes);
+              if rg.t_times<1 then
+                rg.t_times:=1;
            end;
          { first case }
          hp:=tbinarynode(right);
          while assigned(hp) do
            begin
-{$ifdef newcg}
-              tg.cleartempgen;
-{$else newcg}
-              cleartempgen;
-{$endif newcg}
+              rg.cleartempgen;
               firstpass(hp.right);
 
               { searchs max registers }
@@ -513,11 +505,7 @@ implementation
          { may be handle else tree }
          if assigned(elseblock) then
            begin
-{$ifdef newcg}
-              tg.cleartempgen;
-{$else newcg}
-              cleartempgen;
-{$endif newcg}
+              rg.cleartempgen;
               firstpass(elseblock);
               if codegenerror then
                 exit;
@@ -530,7 +518,7 @@ implementation
                 registersmmx:=elseblock.registersmmx;
 {$endif SUPPORT_MMX}
            end;
-         t_times:=old_t_times;
+         rg.t_times:=old_t_times;
 
          { there is one register required for the case expression    }
          { for 64 bit ints we cheat: the high dword is stored in EDI }
@@ -588,7 +576,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-12-06 17:57:35  florian
+  Revision 1.18  2002-03-31 20:26:35  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.17  2001/12/06 17:57:35  florian
     + parasym to tparaitem added
 
   Revision 1.16  2001/10/12 13:51:51  jonas

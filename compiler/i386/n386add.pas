@@ -46,10 +46,10 @@ interface
       globtype,systems,
       cutils,verbose,globals,widestr,
       symconst,symdef,aasm,types,htypechk,
-      cgbase,temp_gen,pass_2,regvars,
+      cgbase,pass_2,regvars,
       cpuasm,
       ncon,nset,
-      tainst,cga,ncgutil,n386util,tgcpu;
+      tainst,cga,ncgutil,n386util,tgobj,rgobj,rgcpu,cgobj;
 
     function ti386addnode.getresflags(unsigned : boolean) : tresflags;
 
@@ -104,11 +104,11 @@ interface
          if (left.resulttype.def.deftype<>stringdef) and
             ((left.resulttype.def.deftype<>setdef) or (tsetdef(left.resulttype.def).settype=smallset)) and
             (left.location.loc in [LOC_MEM,LOC_REFERENCE]) then
-           ungetiftemp(left.location.reference);
+           tg.ungetiftemp(exprasmlist,left.location.reference);
          if (right.resulttype.def.deftype<>stringdef) and
             ((right.resulttype.def.deftype<>setdef) or (tsetdef(right.resulttype.def).settype=smallset)) and
             (right.location.loc in [LOC_MEM,LOC_REFERENCE]) then
-           ungetiftemp(right.location.reference);
+           tg.ungetiftemp(exprasmlist,right.location.reference);
          { in case of comparison operation the put result in the flags }
          if cmpop then
            begin
@@ -154,10 +154,10 @@ interface
     procedure ti386addnode.second_addstring;
 
       var
-        pushedregs : tpushed;
+        regstopush : tregisterset;
+        pushedregs : tpushedsaved;
         href       : treference;
         cmpop      : boolean;
-        regstopush : byte;
       begin
         { string operations are not commutative }
         if nf_swaped in flags then
@@ -176,8 +176,8 @@ interface
                         { or a function result, so simply check for a        }
                         { temp of 256 bytes(JM)                                          }
 
-                        if not(istemp(left.location.reference) and
-                               (getsizeoftemp(left.location.reference) = 256)) and
+                        if not(tg.istemp(left.location.reference) and
+                               (tg.getsizeoftemp(left.location.reference) = 256)) and
                            not(nf_use_strconcat in flags) then
                           begin
 
@@ -185,12 +185,12 @@ interface
                              { string in register would be funny    }
                              { therefore produce a temporary string }
 
-                             gettempofsizereference(256,href);
+                             tg.gettempofsizereference(exprasmlist,256,href);
                              copyshortstring(href,left.location.reference,255,false,true);
                              { release the registers }
 {                             done by copyshortstring now (JM)           }
-{                             del_reference(left.location.reference); }
-                             ungetiftemp(left.location.reference);
+{                             rg.del_reference(exprasmlist,left.location.reference); }
+                             tg.ungetiftemp(exprasmlist,left.location.reference);
 
                              { does not hurt: }
                              clear_location(left.location);
@@ -206,41 +206,41 @@ interface
                         { push them (so the release is in the right place, }
                         { because emitpushreferenceaddr doesn't need extra }
                         { registers) (JM)                                  }
-                        regstopush := $ff;
+                        regstopush := all_registers;
                         remove_non_regvars_from_loc(right.location,
                           regstopush);
-                        pushusedregisters(pushedregs,regstopush);
+                        rg.saveusedregisters(exprasmlist,pushedregs,regstopush);
                        { push the maximum possible length of the result }
                         emitpushreferenceaddr(left.location.reference);
                        { the optimizer can more easily put the          }
                        { deallocations in the right place if it happens }
                        { too early than when it happens too late (if    }
                        { the pushref needs a "lea (..),edi; push edi")  }
-                        del_reference(right.location.reference);
+                        rg.del_reference(exprasmlist,right.location.reference);
                         emitpushreferenceaddr(right.location.reference);
-                        saveregvars(regstopush);
+                        rg.saveregvars(exprasmlist,regstopush);
                         emitcall('FPC_SHORTSTR_CONCAT');
-                        ungetiftemp(right.location.reference);
+                        tg.ungetiftemp(exprasmlist,right.location.reference);
                         maybe_loadself;
-                        popusedregisters(pushedregs);
+                        rg.restoreusedregisters(exprasmlist,pushedregs);
                         set_location(location,left.location);
                      end;
                    ltn,lten,gtn,gten,equaln,unequaln :
                      begin
                        cmpop := true;
-                       pushusedregisters(pushedregs,$ff);
+                       rg.saveusedregisters(exprasmlist,pushedregs,all_registers);
                        secondpass(left);
                        emitpushreferenceaddr(left.location.reference);
-                       del_reference(left.location.reference);
+                       rg.del_reference(exprasmlist,left.location.reference);
                        secondpass(right);
                        emitpushreferenceaddr(right.location.reference);
-                       del_reference(right.location.reference);
-                       saveregvars($ff);
+                       rg.del_reference(exprasmlist,right.location.reference);
+                       rg.saveregvars(exprasmlist,all_registers);
                        emitcall('FPC_SHORTSTR_COMPARE');
                        maybe_loadself;
-                       popusedregisters(pushedregs);
-                       ungetiftemp(left.location.reference);
-                       ungetiftemp(right.location.reference);
+                       rg.restoreusedregisters(exprasmlist,pushedregs);
+                       tg.ungetiftemp(exprasmlist,left.location.reference);
+                       tg.ungetiftemp(exprasmlist,right.location.reference);
                      end;
                 end;
                 SetResultLocation(cmpop,true);
@@ -288,7 +288,8 @@ interface
 {$ifdef SUPPORT_MMX}
          mmxbase : tmmxtype;
 {$endif SUPPORT_MMX}
-         regstopush: byte;
+         pushedreg : tpushedsaved;
+         regstopush: tregisterset;
 
       procedure firstjmp64bitcmp;
 
@@ -566,10 +567,10 @@ interface
                                    { bts requires both elements to be registers }
                                      if left.location.loc in [LOC_MEM,LOC_REFERENCE] then
                                       begin
-                                        ungetiftemp(left.location.reference);
-                                        del_location(left.location);
+                                        tg.ungetiftemp(exprasmlist,left.location.reference);
+                                        rg.del_location(exprasmlist,left.location);
 {!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!}
-                                        hregister:=getregisterint;
+                                        hregister:=rg.getregisterint(exprasmlist);
                                         emit_ref_reg(A_MOV,opsize,
                                           newreference(left.location.reference),hregister);
                                         clear_location(left.location);
@@ -579,9 +580,9 @@ interface
                                       end;
                                      if right.location.loc in [LOC_MEM,LOC_REFERENCE] then
                                       begin
-                                        ungetiftemp(right.location.reference);
-                                        del_location(right.location);
-                                        hregister:=getregisterint;
+                                        tg.ungetiftemp(exprasmlist,right.location.reference);
+                                        rg.del_location(exprasmlist,right.location);
+                                        hregister:=rg.getregisterint(exprasmlist);
                                         emit_ref_reg(A_MOV,opsize,
                                           newreference(right.location.reference),hregister);
                                         clear_location(right.location);
@@ -661,9 +662,9 @@ interface
                                         swapleftright;
                                       if left.location.loc in [LOC_MEM,LOC_REFERENCE] then
                                         begin
-                                         ungetiftemp(left.location.reference);
-                                         del_reference(left.location.reference);
-                                         hregister:=getregisterint;
+                                         tg.ungetiftemp(exprasmlist,left.location.reference);
+                                         rg.del_reference(exprasmlist,left.location.reference);
+                                         hregister:=rg.getregisterint(exprasmlist);
                                          emit_ref_reg(A_MOV,opsize,
                                            newreference(left.location.reference),hregister);
                                          clear_location(left.location);
@@ -676,7 +677,7 @@ interface
                                         {save the register var in a temp register, because
                                           its value is going to be modified}
                                           begin
-                                            hregister := getregisterint;
+                                            hregister := rg.getregisterint(exprasmlist);
                                             emit_reg_reg(A_MOV,opsize,
                                               left.location.register,hregister);
                                              clear_location(left.location);
@@ -734,55 +735,57 @@ interface
                            { release left.location, since it's a   }
                            { constant (JM)                             }
                            release_loc(right.location);
-                           location.register := getregisterint;
+                           location.register := rg.getregisterint(exprasmlist);
                            emitloadord2reg(right.location,torddef(u32bittype.def),location.register,false);
                            emit_const_reg(A_SHL,S_L,power,location.register)
                          End
                        Else
                         Begin
 {$EndIf NoShlMul}
-                         regstopush := $ff;
+                         regstopush := ALL_REGISTERS;
                          remove_non_regvars_from_loc(right.location,regstopush);
                          remove_non_regvars_from_loc(left.location,regstopush);
                          { now, regstopush does NOT contain EAX and/or EDX if they are }
                          { used in either the left or the right location, excepts if   }
                          {they are regvars. It DOES contain them if they are used in   }
                          { another location (JM)                                       }
-                         if not(R_EAX in unused) and ((regstopush and ($80 shr byte(R_EAX))) <> 0) then
+                         if not(R_EAX in rg.unusedregsint) and
+                            (R_EAX in regstopush) then
                           begin
                            emit_reg(A_PUSH,S_L,R_EAX);
                            popeax:=true;
                           end;
-                         if not(R_EDX in unused) and ((regstopush and ($80 shr byte(R_EDX))) <> 0) then
+                         if not(R_EDX in rg.unusedregsint) and
+                            (R_EDX in regstopush) then
                           begin
                            emit_reg(A_PUSH,S_L,R_EDX);
                            popedx:=true;
                           end;
                          { left.location can be R_EAX !!! }
-                         getexplicitregister32(R_EDI);
+                         rg.getexplicitregisterint(exprasmlist,R_EDI);
                          { load the left value }
                          emitloadord2reg(left.location,torddef(u32bittype.def),R_EDI,true);
                          release_loc(left.location);
                          { allocate EAX }
-                         if R_EAX in unused then
+                         if R_EAX in rg.unusedregsint then
                            exprasmList.concat(Tairegalloc.Alloc(R_EAX));
                          { load he right value }
                          emitloadord2reg(right.location,torddef(u32bittype.def),R_EAX,true);
                          release_loc(right.location);
                          { allocate EAX if it isn't yet allocated (JM) }
-                         if (R_EAX in unused) then
+                         if (R_EAX in rg.unusedregsint) then
                            exprasmList.concat(Tairegalloc.Alloc(R_EAX));
                          { also allocate EDX, since it is also modified by }
                          { a mul (JM)                                      }
-                         if R_EDX in unused then
+                         if R_EDX in rg.unusedregsint then
                            exprasmList.concat(Tairegalloc.Alloc(R_EDX));
                          emit_reg(A_MUL,S_L,R_EDI);
-                         ungetregister32(R_EDI);
-                         if R_EDX in unused then
+                         rg.ungetregisterint(exprasmlist,R_EDI);
+                         if R_EDX in rg.unusedregsint then
                            exprasmList.concat(Tairegalloc.DeAlloc(R_EDX));
-                         if R_EAX in unused then
+                         if R_EAX in rg.unusedregsint then
                            exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
-                         location.register := getregisterint;
+                         location.register := rg.getregisterint(exprasmlist);
                          emit_reg_reg(A_MOV,S_L,R_EAX,location.register);
                          if popedx then
                           emit_reg(A_POP,S_L,R_EDX);
@@ -825,8 +828,8 @@ interface
                              else
                                begin
                                   case opsize of
-                                     S_L : hregister:=getregisterint;
-                                     S_B : hregister:=reg32toreg8(getregisterint);
+                                     S_L : hregister:=rg.getregisterint(exprasmlist);
+                                     S_B : hregister:=reg32toreg8(rg.getregisterint(exprasmlist));
                                   end;
                                   emit_reg_reg(A_MOV,opsize,left.location.register,
                                     hregister);
@@ -834,8 +837,8 @@ interface
                           end
                         else
                           begin
-                             ungetiftemp(left.location.reference);
-                             del_reference(left.location.reference);
+                             tg.ungetiftemp(exprasmlist,left.location.reference);
+                             rg.del_reference(exprasmlist,left.location.reference);
                              if is_in_dest then
                                begin
                                   hregister:=location.register;
@@ -846,9 +849,9 @@ interface
                                begin
                                   { first give free, then demand new register }
                                   case opsize of
-                                     S_L : hregister:=getregisterint;
-                                     S_W : hregister:=reg32toreg16(getregisterint);
-                                     S_B : hregister:=reg32toreg8(getregisterint);
+                                     S_L : hregister:=rg.getregisterint(exprasmlist);
+                                     S_W : hregister:=reg32toreg16(rg.getregisterint(exprasmlist));
+                                     S_B : hregister:=reg32toreg8(rg.getregisterint(exprasmlist));
                                   end;
                                   emit_ref_reg(A_MOV,opsize,
                                     newreference(left.location.reference),hregister);
@@ -879,24 +882,24 @@ interface
                                begin
                                   if extra_not then
                                     emit_reg(A_NOT,opsize,location.register);
-                                  getexplicitregister32(R_EDI);
+                                  rg.getexplicitregisterint(exprasmlist,R_EDI);
                                   emit_reg_reg(A_MOV,opsize,right.location.register,R_EDI);
                                   emit_reg_reg(op,opsize,location.register,R_EDI);
                                   emit_reg_reg(A_MOV,opsize,R_EDI,location.register);
-                                  ungetregister32(R_EDI);
+                                  rg.ungetregisterint(exprasmlist,R_EDI);
                                end
                              else
                                begin
                                   if extra_not then
                                     emit_reg(A_NOT,opsize,location.register);
-                                  getexplicitregister32(R_EDI);
+                                  rg.getexplicitregisterint(exprasmlist,R_EDI);
                                   emit_ref_reg(A_MOV,opsize,
                                     newreference(right.location.reference),R_EDI);
                                   emit_reg_reg(op,opsize,location.register,R_EDI);
                                   emit_reg_reg(A_MOV,opsize,R_EDI,location.register);
-                                  ungetregister32(R_EDI);
-                                  ungetiftemp(right.location.reference);
-                                  del_reference(right.location.reference);
+                                  rg.ungetregisterint(exprasmlist,R_EDI);
+                                  tg.ungetiftemp(exprasmlist,right.location.reference);
+                                  rg.del_reference(exprasmlist,right.location.reference);
                                end;
                           end
                         else
@@ -938,12 +941,12 @@ interface
                                     begin
                                        if extra_not then
                                          begin
-                                            getexplicitregister32(R_EDI);
+                                            rg.getexplicitregisterint(exprasmlist,R_EDI);
                                             emit_reg_reg(A_MOV,S_L,right.location.register,R_EDI);
                                             emit_reg(A_NOT,S_L,R_EDI);
                                             emit_reg_reg(A_AND,S_L,R_EDI,
                                               location.register);
-                                            ungetregister32(R_EDI);
+                                            rg.ungetregisterint(exprasmlist,R_EDI);
                                          end
                                        else
                                          begin
@@ -955,21 +958,21 @@ interface
                                     begin
                                        if extra_not then
                                          begin
-                                            getexplicitregister32(R_EDI);
+                                            rg.getexplicitregisterint(exprasmlist,R_EDI);
                                             emit_ref_reg(A_MOV,S_L,newreference(
                                               right.location.reference),R_EDI);
                                             emit_reg(A_NOT,S_L,R_EDI);
                                             emit_reg_reg(A_AND,S_L,R_EDI,
                                               location.register);
-                                            ungetregister32(R_EDI);
+                                            rg.ungetregisterint(exprasmlist,R_EDI);
                                          end
                                        else
                                          begin
                                             emit_ref_reg(op,opsize,newreference(
                                               right.location.reference),location.register);
                                          end;
-                                       ungetiftemp(right.location.reference);
-                                       del_reference(right.location.reference);
+                                       tg.ungetiftemp(exprasmlist,right.location.reference);
+                                       rg.del_reference(exprasmlist,right.location.reference);
                                     end;
                                end;
                           end;
@@ -998,15 +1001,15 @@ interface
                                location.register);
                           end;
                         case opsize of
-                           S_L : ungetregister32(right.location.register);
-                           S_B : ungetregister32(reg8toreg32(right.location.register));
+                           S_L : rg.ungetregisterint(exprasmlist,right.location.register);
+                           S_B : rg.ungetregisterint(exprasmlist,reg8toreg32(right.location.register));
                         end;
                      end;
 
                    if cmpop then
                      case opsize of
-                        S_L : ungetregister32(location.register);
-                        S_B : ungetregister32(reg8toreg32(location.register));
+                        S_L : rg.ungetregisterint(exprasmlist,location.register);
+                        S_B : rg.ungetregisterint(exprasmlist,reg8toreg32(location.register));
                      end;
 
                    { only in case of overflow operations }
@@ -1055,17 +1058,17 @@ interface
                                hregister:=location.register
                              else
                                begin
-                                  hregister:=reg32toreg8(getregisterint);
+                                  hregister:=reg32toreg8(rg.getregisterint(exprasmlist));
                                   emit_reg_reg(A_MOV,S_B,location.register,
                                     hregister);
                                end;
                           end
                         else
                           begin
-                             del_reference(location.reference);
+                             rg.del_reference(exprasmlist,location.reference);
 
                              { first give free then demand new register }
-                             hregister:=reg32toreg8(getregisterint);
+                             hregister:=reg32toreg8(rg.getregisterint(exprasmlist));
                              emit_ref_reg(A_MOV,S_B,newreference(location.reference),
                                hregister);
                           end;
@@ -1095,16 +1098,16 @@ interface
                           begin
                              emit_ref_reg(A_CMP,S_B,newreference(
                                 right.location.reference),location.register);
-                             del_reference(right.location.reference);
+                             rg.del_reference(exprasmlist,right.location.reference);
                           end;
                      end
                    else
                      begin
                         emit_reg_reg(A_CMP,S_B,right.location.register,
                           location.register);
-                        ungetregister32(reg8toreg32(right.location.register));
+                        rg.ungetregisterint(exprasmlist,reg8toreg32(right.location.register));
                      end;
-                   ungetregister32(reg8toreg32(location.register));
+                   rg.ungetregisterint(exprasmlist,reg8toreg32(location.register));
                 end
               else
               { 16 bit enumeration type }
@@ -1130,17 +1133,17 @@ interface
                                hregister:=location.register
                              else
                                begin
-                                  hregister:=reg32toreg16(getregisterint);
+                                  hregister:=reg32toreg16(rg.getregisterint(exprasmlist));
                                   emit_reg_reg(A_MOV,S_W,location.register,
                                     hregister);
                                end;
                           end
                         else
                           begin
-                             del_reference(location.reference);
+                             rg.del_reference(exprasmlist,location.reference);
 
                              { first give free then demand new register }
-                             hregister:=reg32toreg16(getregisterint);
+                             hregister:=reg32toreg16(rg.getregisterint(exprasmlist));
                              emit_ref_reg(A_MOV,S_W,newreference(location.reference),
                                hregister);
                           end;
@@ -1170,16 +1173,16 @@ interface
                           begin
                              emit_ref_reg(A_CMP,S_W,newreference(
                                 right.location.reference),location.register);
-                             del_reference(right.location.reference);
+                             rg.del_reference(exprasmlist,right.location.reference);
                           end;
                      end
                    else
                      begin
                         emit_reg_reg(A_CMP,S_W,right.location.register,
                           location.register);
-                        ungetregister32(reg16toreg32(right.location.register));
+                        rg.ungetregisterint(exprasmlist,reg16toreg32(right.location.register));
                      end;
-                   ungetregister32(reg16toreg32(location.register));
+                   rg.ungetregisterint(exprasmlist,reg16toreg32(location.register));
                 end
               else
               { 64 bit types }
@@ -1270,8 +1273,8 @@ interface
                                     end
                                   else
                                     begin
-                                       hregister:=getregisterint;
-                                       hregister2:=getregisterint;
+                                       hregister:=rg.getregisterint(exprasmlist);
+                                       hregister2:=rg.getregisterint(exprasmlist);
                                        emit_reg_reg(A_MOV,S_L,left.location.registerlow,
                                          hregister);
                                        emit_reg_reg(A_MOV,S_L,left.location.registerhigh,
@@ -1280,8 +1283,8 @@ interface
                                end
                              else
                                begin
-                                  ungetiftemp(left.location.reference);
-                                  del_reference(left.location.reference);
+                                  tg.ungetiftemp(exprasmlist,left.location.reference);
+                                  rg.del_reference(exprasmlist,left.location.reference);
                                   if is_in_dest then
                                     begin
                                        hregister:=location.registerlow;
@@ -1290,8 +1293,8 @@ interface
                                     end
                                   else
                                     begin
-                                       hregister:=getregisterint;
-                                       hregister2:=getregisterint;
+                                       hregister:=rg.getregisterint(exprasmlist);
+                                       hregister2:=rg.getregisterint(exprasmlist);
                                        emit_mov_ref_reg64(left.location.reference,hregister,hregister2);
                                     end;
                                end;
@@ -1319,27 +1322,27 @@ interface
                                begin
                                   if right.location.loc=LOC_CREGISTER then
                                     begin
-                                       getexplicitregister32(R_EDI);
+                                       rg.getexplicitregisterint(exprasmlist,R_EDI);
                                        emit_reg_reg(A_MOV,opsize,right.location.register,R_EDI);
                                        emit_reg_reg(op,opsize,location.register,R_EDI);
                                        emit_reg_reg(A_MOV,opsize,R_EDI,location.register);
-                                       ungetregister32(R_EDI);
-                                       getexplicitregister32(R_EDI);
+                                       rg.ungetregisterint(exprasmlist,R_EDI);
+                                       rg.getexplicitregisterint(exprasmlist,R_EDI);
                                        emit_reg_reg(A_MOV,opsize,right.location.registerhigh,R_EDI);
                                        { the carry flag is still ok }
                                        emit_reg_reg(op2,opsize,location.registerhigh,R_EDI);
                                        emit_reg_reg(A_MOV,opsize,R_EDI,location.registerhigh);
-                                       ungetregister32(R_EDI);
+                                       rg.ungetregisterint(exprasmlist,R_EDI);
                                     end
                                   else
                                     begin
-                                       getexplicitregister32(R_EDI);
+                                       rg.getexplicitregisterint(exprasmlist,R_EDI);
                                        emit_ref_reg(A_MOV,opsize,
                                          newreference(right.location.reference),R_EDI);
                                        emit_reg_reg(op,opsize,location.registerlow,R_EDI);
                                        emit_reg_reg(A_MOV,opsize,R_EDI,location.registerlow);
-                                       ungetregister32(R_EDI);
-                                       getexplicitregister32(R_EDI);
+                                       rg.ungetregisterint(exprasmlist,R_EDI);
+                                       rg.getexplicitregisterint(exprasmlist,R_EDI);
                                        hr:=newreference(right.location.reference);
                                        inc(hr^.offset,4);
                                        emit_ref_reg(A_MOV,opsize,
@@ -1348,9 +1351,9 @@ interface
                                        emit_reg_reg(op2,opsize,location.registerhigh,R_EDI);
                                        emit_reg_reg(A_MOV,opsize,R_EDI,
                                          location.registerhigh);
-                                       ungetregister32(R_EDI);
-                                       ungetiftemp(right.location.reference);
-                                       del_reference(right.location.reference);
+                                       rg.ungetregisterint(exprasmlist,R_EDI);
+                                       tg.ungetiftemp(exprasmlist,right.location.reference);
+                                       rg.del_reference(exprasmlist,right.location.reference);
                                     end;
                                end
                              else if cmpop then
@@ -1379,8 +1382,8 @@ interface
 
                                        emitjmp(C_None,falselabel);
 
-                                       ungetiftemp(right.location.reference);
-                                       del_reference(right.location.reference);
+                                       tg.ungetiftemp(exprasmlist,right.location.reference);
+                                       rg.del_reference(exprasmlist,right.location.reference);
                                     end;
                                end
                              else
@@ -1418,8 +1421,8 @@ interface
                                             inc(hr^.offset,4);
                                             emit_ref_reg(op2,S_L,
                                               hr,location.registerhigh);
-                                            ungetiftemp(right.location.reference);
-                                            del_reference(right.location.reference);
+                                            tg.ungetiftemp(exprasmlist,right.location.reference);
+                                            rg.del_reference(exprasmlist,right.location.reference);
                                          end;
                                     end;
                                end;
@@ -1460,14 +1463,14 @@ interface
                                     right.location.registerhigh,
                                     location.registerhigh);
                                end;
-                             ungetregister32(right.location.registerlow);
-                             ungetregister32(right.location.registerhigh);
+                             rg.ungetregisterint(exprasmlist,right.location.registerlow);
+                             rg.ungetregisterint(exprasmlist,right.location.registerhigh);
                           end;
 
                         if cmpop then
                           begin
-                             ungetregister32(location.registerlow);
-                             ungetregister32(location.registerhigh);
+                             rg.ungetregisterint(exprasmlist,location.registerlow);
+                             rg.ungetregisterint(exprasmlist,location.registerhigh);
                           end;
 
                         { only in case of overflow operations }
@@ -1521,55 +1524,37 @@ interface
 
                     if (right.location.loc<>LOC_FPU) then
                       begin
-                         if right.location.loc=LOC_CFPUREGISTER then
-                           begin
-                              emit_reg( A_FLD,S_NO,
-                                correct_fpuregister(right.location.register,fpuvaroffset));
-                              inc(fpuvaroffset);
-                            end
-                         else
-                            begin
-                              floatload(tfloatdef(right.resulttype.def).typ,right.location.reference);
-                              if pushedfpu then
-                                ungetiftemp(right.location.reference);
-                            end;
+                         cg.a_loadfpu_loc_reg(exprasmlist,
+                           def_cgsize(right.resulttype.def),right.location,
+                           R_ST);
+                         if (right.location.loc <> LOC_CFPUREGISTER) and
+                            pushedfpu then
+                           tg.ungetiftemp(exprasmlist,right.location.reference);
+
                          if (left.location.loc<>LOC_FPU) then
                            begin
-                              if left.location.loc=LOC_CFPUREGISTER then
-                                begin
-                                   emit_reg( A_FLD,S_NO,
-                                     correct_fpuregister(left.location.register,fpuvaroffset));
-                                   inc(fpuvaroffset);
-                                end
-                              else
-                                begin
-                                  floatload(tfloatdef(left.resulttype.def).typ,left.location.reference);
-                                  if pushedfpu then
-                                     ungetiftemp(left.location.reference);
-                                end;
+                              cg.a_loadfpu_loc_reg(exprasmlist,
+                                def_cgsize(left.resulttype.def),
+                                left.location,R_ST);
+                              if (left.location.loc <> LOC_CFPUREGISTER) and
+                                 pushedfpu then
+                                tg.ungetiftemp(exprasmlist,left.location.reference);
                            end
                          { left was on the stack => swap }
                          else
                            toggleflag(nf_swaped);
 
                          { releases the right reference }
-                         del_reference(right.location.reference);
+                         rg.del_reference(exprasmlist,right.location.reference);
                       end
                     { the nominator in st0 }
                     else if (left.location.loc<>LOC_FPU) then
                       begin
-                         if left.location.loc=LOC_CFPUREGISTER then
-                           begin
-                              emit_reg( A_FLD,S_NO,
-                                correct_fpuregister(left.location.register,fpuvaroffset));
-                              inc(fpuvaroffset);
-                           end
-                         else
-                           begin
-                             floatload(tfloatdef(left.resulttype.def).typ,left.location.reference);
-                             if pushedfpu then
-                              ungetiftemp(left.location.reference);
-                           end;
+                         cg.a_loadfpu_loc_reg(exprasmlist,
+                           def_cgsize(left.resulttype.def),left.location,R_ST);
+                         if (left.location.loc <> LOC_CFPUREGISTER) and
+                            pushedfpu then
+                           tg.ungetiftemp(exprasmlist,left.location.reference);
                       end
                     { fpu operands are always in the wrong order on the stack }
                     else
@@ -1577,7 +1562,7 @@ interface
 
                     { releases the left reference }
                     if (left.location.loc in [LOC_MEM,LOC_REFERENCE]) then
-                      del_reference(left.location.reference);
+                      rg.del_reference(exprasmlist,left.location.reference);
 
                     { if we swaped the tree nodes, then use the reverse operator }
                     if nf_swaped in flags then
@@ -1596,28 +1581,28 @@ interface
                     if op<>A_FCOMPP then
                       begin
                          emit_reg_reg(op,S_NO,R_ST,R_ST1);
-                         dec(fpuvaroffset);
+                         dec(trgcpu(rg).fpuvaroffset);
                       end
                     else
                       begin
                          emit_none(op,S_NO);
-                         dec(fpuvaroffset,2);
+                         dec(trgcpu(rg).fpuvaroffset,2);
                       end;
 
                     { on comparison load flags }
                     if cmpop then
                      begin
-                       if not(R_EAX in unused) then
+                       if not(R_EAX in rg.unusedregsint) then
                          begin
-                           getexplicitregister32(R_EDI);
+                           rg.getexplicitregisterint(exprasmlist,R_EDI);
                            emit_reg_reg(A_MOV,S_L,R_EAX,R_EDI);
                          end;
                        emit_reg(A_FNSTSW,S_NO,R_AX);
                        emit_none(A_SAHF,S_NO);
-                       if not(R_EAX in unused) then
+                       if not(R_EAX in rg.unusedregsint) then
                          begin
                            emit_reg_reg(A_MOV,S_L,R_EDI,R_EAX);
-                           ungetregister32(R_EDI);
+                           rg.ungetregisterint(exprasmlist,R_EDI);
                          end;
                        if nf_swaped in flags then
                         begin
@@ -1650,6 +1635,7 @@ interface
                      begin
                         clear_location(location);
                         location.loc:=LOC_FPU;
+                        location.register := R_ST;
                      end;
                  end
 {$ifdef SUPPORT_MMX}
@@ -1754,14 +1740,14 @@ interface
                                end
                              else
                                begin
-                                  hregister:=getregistermmx;
+                                  hregister:=rg.getregistermm(exprasmlist);
                                   emit_reg_reg(A_MOVQ,S_NO,left.location.register,
                                     hregister);
                                end
                           end
                         else
                           begin
-                             del_reference(left.location.reference);
+                             rg.del_reference(exprasmlist,left.location.reference);
 
                              if is_in_dest then
                                begin
@@ -1771,7 +1757,7 @@ interface
                                end
                              else
                                begin
-                                  hregister:=getregistermmx;
+                                  hregister:=rg.getregistermm(exprasmlist);
                                   emit_ref_reg(A_MOVQ,S_NO,
                                     newreference(left.location.reference),hregister);
                                end;
@@ -1809,7 +1795,7 @@ interface
                                     R_MM7);
                                   emit_reg_reg(A_MOVQ,S_NO,
                                     R_MM7,location.register);
-                                  del_reference(right.location.reference);
+                                  rg.del_reference(exprasmlist,right.location.reference);
                                end;
                           end
                         else
@@ -1823,7 +1809,7 @@ interface
                                begin
                                   emit_ref_reg(op,S_NO,newreference(
                                     right.location.reference),location.register);
-                                  del_reference(right.location.reference);
+                                  rg.del_reference(exprasmlist,right.location.reference);
                                end;
                           end;
                      end
@@ -1845,7 +1831,7 @@ interface
                                right.location.register,
                                location.register);
                           end;
-                        ungetregistermmx(right.location.register);
+                        rg.ungetregistermm(exprasmlist,right.location.register);
                      end;
                 end
 {$endif SUPPORT_MMX}
@@ -1859,7 +1845,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-03-04 19:10:13  peter
+  Revision 1.30  2002-03-31 20:26:38  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.29  2002/03/04 19:10:13  peter
     * removed compiler warnings
 
   Revision 1.28  2001/12/30 17:24:46  jonas

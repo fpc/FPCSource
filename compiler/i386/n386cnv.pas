@@ -60,10 +60,10 @@ implementation
    uses
       verbose,systems,
       symconst,symdef,aasm,
-      cgbase,temp_gen,pass_2,
+      cgbase,pass_2,
       ncon,ncal,
       cpubase,
-      cgobj,cga,tgcpu,n386util;
+      cgobj,cga,tgobj,rgobj,rgcpu,n386util;
 
 
 {*****************************************************************************
@@ -95,7 +95,7 @@ implementation
                end;
                { we can release the upper register }
                if is_64bitint(left.resulttype.def) then
-                 ungetregister32(left.location.registerhigh);
+                 rg.ungetregisterint(exprasmlist,left.location.registerhigh);
              end;
           end
 
@@ -105,9 +105,9 @@ implementation
             { remove reference }
             if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
               begin
-                del_reference(left.location.reference);
+                rg.del_reference(exprasmlist,left.location.reference);
                 { we can do this here as we need no temp inside }
-                ungetiftemp(left.location.reference);
+                tg.ungetiftemp(exprasmlist,left.location.reference);
               end;
 
             { get op and opsize, handle separate for constants, because
@@ -133,7 +133,7 @@ implementation
              end;
             { load the register we need }
             if left.location.loc<>LOC_REGISTER then
-              hregister:=getregisterint
+              hregister:=rg.getregisterint(exprasmlist)
             else
               hregister:=left.location.register;
 
@@ -144,7 +144,7 @@ implementation
             { do we need a second register for a 64 bit type ? }
             if is_64bitint(resulttype.def) then
               begin
-                 hregister2:=getregisterint;
+                 hregister2:=rg.getregisterint(exprasmlist);
                  location.registerhigh:=hregister2;
               end;
             case resulttype.def.size of
@@ -205,7 +205,7 @@ implementation
             (left.location.loc=LOC_CREGISTER) then
            begin
               if not (torddef(left.resulttype.def).typ in [u32bit,s32bit,u64bit,s64bit]) then
-                getexplicitregister32(R_EDI);
+                rg.getexplicitregisterint(exprasmlist,R_EDI);
               case torddef(left.resulttype.def).typ of
                  s8bit : emit_reg_reg(A_MOVSX,S_BL,left.location.register,R_EDI);
                  u8bit : emit_reg_reg(A_MOVZX,S_BL,left.location.register,R_EDI);
@@ -219,12 +219,12 @@ implementation
                       hregister:=left.location.registerlow;
                    end;
               end;
-              ungetregister(left.location.register);
+              rg.ungetregister(exprasmlist,left.location.register);
            end
          else
            begin
               r:=newreference(left.location.reference);
-              getexplicitregister32(R_EDI);
+              rg.getexplicitregisterint(exprasmlist,R_EDI);
               case torddef(left.resulttype.def).typ of
                  s8bit:
                    emit_ref_reg(A_MOVSX,S_BL,r,R_EDI);
@@ -245,13 +245,13 @@ implementation
                       emit_ref_reg(A_MOV,S_L,r,R_EDI);
                    end;
               end;
-              del_reference(left.location.reference);
-              ungetiftemp(left.location.reference);
+              rg.del_reference(exprasmlist,left.location.reference);
+              tg.ungetiftemp(exprasmlist,left.location.reference);
            end;
          { for 64 bit integers, the high dword is already pushed }
          emit_reg(A_PUSH,S_L,hregister);
          if hregister = R_EDI then
-           ungetregister32(R_EDI);
+           rg.ungetregisterint(exprasmlist,R_EDI);
          r:=new_reference(R_ESP,0);
          case torddef(left.resulttype.def).typ of
            u32bit:
@@ -271,12 +271,12 @@ implementation
                 { if it is 1 then we add $80000000 000000000 }
                 { as double                                  }
                 inc(r^.offset,4);
-                getexplicitregister32(R_EDI);
+                rg.getexplicitregisterint(exprasmlist,R_EDI);
                 emit_ref_reg(A_MOV,S_L,r,R_EDI);
                 r:=new_reference(R_ESP,4);
                 emit_const_ref(A_AND,S_L,$7fffffff,r);
                 emit_const_reg(A_TEST,S_L,longint($80000000),R_EDI);
-                ungetregister32(R_EDI);
+                rg.ungetregisterint(exprasmlist,R_EDI);
                 r:=new_reference(R_ESP,0);
                 emit_ref(A_FILD,S_IQ,r);
                 getdatalabel(l1);
@@ -295,14 +295,15 @@ implementation
            else
              begin
                 emit_ref(A_FILD,S_IL,r);
-                getexplicitregister32(R_EDI);
+                rg.getexplicitregisterint(exprasmlist,R_EDI);
                 emit_reg(A_POP,S_L,R_EDI);
-                ungetregister32(R_EDI);
+                rg.ungetregisterint(exprasmlist,R_EDI);
              end;
          end;
-         inc(fpuvaroffset);
+         inc(trgcpu(rg).fpuvaroffset);
          clear_location(location);
          location.loc:=LOC_FPU;
+         location.register:=R_ST;
       end;
 
 
@@ -324,14 +325,14 @@ implementation
               exit;
            end;
          location.loc:=LOC_REGISTER;
-         del_location(left.location);
+         rg.del_location(exprasmlist,left.location);
          opsize:=def_opsize(left.resulttype.def);
          case left.location.loc of
             LOC_MEM,LOC_REFERENCE :
               begin
                 if is_64bitint(left.resulttype.def) then
                  begin
-                   hregister:=getregisterint;
+                   hregister:=rg.getregisterint(exprasmlist);
                    emit_ref_reg(A_MOV,opsize,
                      newreference(left.location.reference),hregister);
                    pref:=newreference(left.location.reference);
@@ -350,7 +351,7 @@ implementation
               end;
             LOC_FLAGS :
               begin
-                hregister:=getregisterint;
+                hregister:=rg.getregisterint(exprasmlist);
                 resflags:=left.location.resflags;
               end;
             LOC_REGISTER,LOC_CREGISTER :
@@ -463,23 +464,23 @@ implementation
                            r^.base:=p^.location.register
                           else
                             begin
-                               getexplicitregister32(R_EDI);
+                               rg.getexplicitregisterint(exprasmlist,R_EDI);
                                emit_mov_loc_reg(p^.location,R_EDI);
                                r^.base:=R_EDI;
                             end;
                           { NIL must be accepted !! }
                           emit_reg_reg(A_OR,S_L,r^.base,r^.base);
-                          ungetregister32(R_EDI);
+                          rg.ungetregisterint(exprasmlist,R_EDI);
                           getlabel(nillabel);
                           emitjmp(C_E,nillabel);
                           { this is one point where we need vmt_offset (PM) }
                           r^.offset:= tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_offset;
-                          getexplicitregister32(R_EDI);
+                          rg.getexplicitregisterint(exprasmlist,R_EDI);
                           emit_ref_reg(A_MOV,S_L,r,R_EDI);
                           emit_sym(A_PUSH,S_L,
                             newasmsymbol(tobjectdef(tpointerdef(p^.resulttype.def).definition).vmt_mangledname));
                           emit_reg(A_PUSH,S_L,R_EDI);
-                          ungetregister32(R_EDI);
+                          rg.ungetregister32(exprasmlist,R_EDI);
                           emitcall('FPC_CHECK_OBJECT_EXT');
                           emitlab(nillabel);
                        end;
@@ -492,7 +493,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2002-03-04 19:10:13  peter
+  Revision 1.31  2002-03-31 20:26:38  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.30  2002/03/04 19:10:13  peter
     * removed compiler warnings
 
   Revision 1.29  2001/12/30 17:24:46  jonas
@@ -541,7 +559,11 @@ end.
   Revision 1.21  2001/08/28 13:24:47  jonas
     + compilerproc implementation of most string-related type conversions
     - removed all code from the compiler which has been replaced by
+<<<<<<< n386cnv.pas
+      compilerproc implementations (using "$ifdef hascompilerproc" is not
+=======
       compilerproc implementations (using $ifdef hascompilerproc is not
+>>>>>>> 1.30
       necessary in the compiler)
 
   Revision 1.20  2001/08/26 13:36:57  florian

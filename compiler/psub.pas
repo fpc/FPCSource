@@ -47,7 +47,7 @@ implementation
        globtype,globals,tokens,verbose,comphook,
        systems,
        { aasm }
-       cpubase,aasm,
+       cpubase,cpuinfo,aasm,
        { symtable }
        symconst,symbase,symdef,symsym,symtype,symtable,types,
        ppu,fmodule,
@@ -62,8 +62,8 @@ implementation
        scanner,
        pbase,pstatmnt,pdecl,pdecsub,pexports,
        { codegen }
-       tgcpu,cgbase,
-       temp_gen,
+       tgobj,cgbase,rgobj,
+       rgcpu,
        cga
        {$ifndef NOOPT}
          {$ifdef i386}
@@ -72,9 +72,6 @@ implementation
            ,aoptcpu
          {$endif i386}
        {$endif}
-{$ifdef newcg}
-       ,cgobj
-{$endif newcg}
        ;
 
 
@@ -141,20 +138,10 @@ implementation
                       assigned(otsym) then
                      otsym.address:=-procinfo^.return_offset;
                    { eax is modified by a function }
-{$ifndef newcg}
-{$ifdef i386}
-                   usedinproc:=usedinproc or ($80 shr byte(R_EAX));
-
-                   if is_64bitint(aktprocdef.rettype.def) then
-                     usedinproc:=usedinproc or ($80 shr byte(R_EDX))
-{$endif}
-{$ifdef m68k}
-                   usedinproc:=usedinproc + [accumulator];
-
-                   if is_64bitint(aktprocdef.rettype.def) then
-                     usedinproc:=usedinproc  + [scratch_reg];
-{$endif}
-{$endif newcg}
+                   include(rg.usedinproc,accumulator);
+                   if (sizeof(aword) < 8) and
+                      (is_64bitint(aktprocdef.rettype.def)) then
+                     include(rg.usedinproc,accumulatorhigh);
                 end;
            end;
 
@@ -293,22 +280,9 @@ implementation
          constsymtable:=symtablestack;
 
          { reset the temporary memory }
-         cleartempgen;
+         rg.cleartempgen;
 
-{$ifdef newcg}
-{$ifdef POWERPC}
-         tgcpu.usedinproc:=0;
-{$else POWERPC}
-         tg.usedinproc:=[];
-{$endif POWERPC}
-{$else newcg}
-{$ifdef i386}
-        { no registers are used }
-        usedinproc:=0;
-{$else}
-        usedinproc := [];
-{$endif}
-{$endif newcg}
+         rg.usedinproc:=[];
          { save entry info }
          entrypos:=aktfilepos;
          entryswitches:=aktlocalswitches;
@@ -332,11 +306,7 @@ implementation
          { set the framepointer to esp for assembler functions }
          { but only if the are no local variables           }
          { already done in assembler_block }
-{$ifdef newcg}
-         setfirsttemp(procinfo^.firsttemp_offset);
-{$else newcg}
-         setfirsttemp(procinfo^.firsttemp_offset);
-{$endif newcg}
+         tg.setfirsttemp(procinfo^.firsttemp_offset);
 
          { ... and generate assembler }
          { but set the right switches for entry !! }
@@ -355,11 +325,7 @@ implementation
               begin
                 generatecode(code);
                 aktprocdef.code:=code;
-{$ifdef newcg}
-                stackframe:=gettempsize;
-{$else newcg}
-                stackframe:=gettempsize;
-{$endif newcg}
+                stackframe:=tg.gettempsize;
 
                 { first generate entry code with the correct position and switches }
                 aktfilepos:=entrypos;
@@ -373,11 +339,7 @@ implementation
                 { FPC_POPADDRSTACK destroys all registers (JM) }
                 if (procinfo^.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0 then
                  begin
-{$ifdef i386}
-                   usedinproc := $ff;
-{$else}
-                   usedinproc := ALL_REGISTERS;
-{$endif}
+                   rg.usedinproc := ALL_REGISTERS;
                  end;
 
                 { now generate exit code with the correct position and switches }
@@ -390,11 +352,7 @@ implementation
 {$endif newcg}
 
                 { now all the registers used are known }
-{$ifdef newcg}
-                aktprocdef.usedregisters:=tg.usedinproc;
-{$else newcg}
-                aktprocdef.usedregisters:=usedinproc;
-{$endif newcg}
+                aktprocdef.usedregisters:=rg.usedinproc;
                 procinfo^.aktproccode.insertlist(procinfo^.aktentrycode);
                 procinfo^.aktproccode.concatlist(procinfo^.aktexitcode);
 {$ifdef i386}
@@ -471,17 +429,10 @@ implementation
              aktprocdef.localst:=nil;
            end;
 
-{$ifdef newcg}
          { all registers can be used again }
-         tg.resetusableregisters;
+         rg.resetusableregisters;
          { only now we can remove the temps }
          tg.resettempgen;
-{$else newcg}
-         { all registers can be used again }
-         resetusableregisters;
-         { only now we can remove the temps }
-         resettempgen;
-{$endif newcg}
 
          { remove code tree, if not inline procedure }
          if assigned(code) and (aktprocdef.proccalloption<>pocall_inline) then
@@ -868,7 +819,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2002-01-19 15:37:24  peter
+  Revision 1.45  2002-03-31 20:26:36  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.44  2002/01/19 15:37:24  peter
     * commited the wrong file :(
 
   Revision 1.43  2002/01/19 15:20:09  peter

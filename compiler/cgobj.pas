@@ -131,6 +131,17 @@ unit cgobj;
           procedure a_load_loc_ref(list : taasmoutput;size : tcgsize;const loc: tlocation; const ref : treference);
           procedure a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister);virtual; abstract;
 
+          { fpu move instructions }
+          procedure a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister); virtual; abstract;
+          procedure a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref: treference; reg: tregister); virtual; abstract;
+          procedure a_loadfpu_reg_ref(list: taasmoutput; size: tcgsize; reg: tregister; const ref: treference); virtual; abstract;
+          procedure a_loadfpu_loc_reg(list: taasmoutput; size: tcgsize; const loc: tlocation; const reg: tregister);
+          procedure a_loadfpu_reg_loc(list: taasmoutput; size: tcgsize; const reg: tregister; const loc: tlocation);
+
+          { vector register move instructions }
+          procedure a_loadmm_reg_reg(list: taasmoutput; reg1, reg2: tregister); virtual; abstract;
+          procedure a_loadmm_ref_reg(list: taasmoutput; const ref: treference; reg: tregister); virtual; abstract;
+          procedure a_loadmm_reg_ref(list: taasmoutput; reg: tregister; const ref: treference); virtual; abstract;
 
           { basic arithmetic operations }
           { note: for operators which require only one argument (not, neg), use }
@@ -225,7 +236,7 @@ unit cgobj;
 
     uses
        strings,globals,globtype,options,gdb,systems,
-       ppu,verbose,types,{tgobj,}tgcpu,symdef,symsym,cga,tainst;
+       ppu,verbose,types,tgobj,symdef,symsym,cga,tainst,rgobj;
 
     const
       max_scratch_regs = high(scratch_regs) - low(scratch_regs) + 1;
@@ -400,7 +411,7 @@ unit cgobj;
     procedure tcg.g_decrstrref(list : taasmoutput;const ref : treference;t : tdef);
 
 {      var
-         pushedregs : tpushed; }
+         pushedregs : tpushedsaved; }
 
       begin
 (*
@@ -1087,7 +1098,7 @@ unit cgobj;
 {$ifdef i386}
               case size of
                 OS_8,OS_S8:
-                  tmpreg := reg32toreg8(getregisterint);
+                  tmpreg := reg32toreg8(rg.getregisterint(exprasmlist));
                 OS_16,OS_S16:
                   tmpreg := reg32toreg16(get_scratch_reg(list));
                 else
@@ -1100,7 +1111,7 @@ unit cgobj;
               a_load_reg_ref(list,size,tmpreg,ref);
 {$ifdef i386}
               if not (size in [OS_32,OS_S32]) then
-                ungetregister(tmpreg)
+                rg.ungetregister(exprasmlist,tmpreg)
               else
 {$endif i386}
               free_scratch_reg(list,tmpreg);
@@ -1110,6 +1121,34 @@ unit cgobj;
           else
             internalerror(200109302);
         end;
+      end;
+
+
+    procedure tcg.a_loadfpu_loc_reg(list: taasmoutput; size: tcgsize; const loc: tlocation; const reg: tregister);
+
+      begin
+        case loc.loc of
+          LOC_REFERENCE, LOC_MEM:
+            a_loadfpu_ref_reg(list,size,loc.reference,reg);
+          LOC_FPU, LOC_CFPUREGISTER:
+            a_loadfpu_reg_reg(list,loc.register,reg);
+          else
+            internalerror(200203301);
+        end;
+      end;
+
+
+    procedure tcg.a_loadfpu_reg_loc(list: taasmoutput; size: tcgsize; const reg: tregister; const loc: tlocation);
+
+      begin
+        case loc.loc of
+          LOC_REFERENCE, LOC_MEM:
+            a_loadfpu_reg_ref(list,size,reg,loc.reference);
+          LOC_FPU, LOC_CFPUREGISTER:
+            a_loadfpu_reg_reg(list,reg,loc.register);
+          else
+            internalerror(48991);
+         end;
       end;
 
 
@@ -1289,7 +1328,7 @@ unit cgobj;
               { since all this is only necessary for the 80x86 (because EDI   }
               { doesn't have an 8bit component which is directly addressable) }
               if size in [OS_8,OS_S8] then
-                tmpreg := getregisterint
+                tmpreg := rg.getregisterint(exprasmlist)
               else
 {$endif i386}
               tmpreg := get_scratch_reg(list);
@@ -1300,7 +1339,7 @@ unit cgobj;
               a_cmp_ref_reg_label(list,size,cmp_op,ref,tmpreg,l);
 {$ifdef i386}
               if makereg32(tmpreg) <> R_EDI then
-                ungetregister(tmpreg)
+                rg.ungetregister(exprasmlist,tmpreg)
               else
 {$endif i386}
               free_scratch_reg(list,tmpreg);
@@ -1434,11 +1473,32 @@ finalization
 end.
 {
   $Log$
-  Revision 1.7  2002-03-04 19:10:11  peter
+  Revision 1.8  2002-03-31 20:26:33  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.7  2002/03/04 19:10:11  peter
     * removed compiler warnings
 
   Revision 1.6  2001/12/30 17:24:48  jonas
-    * range checking is now processor independent (part in cgobj, part in    cg64f32) and should work correctly again (it needed some changes after    the changes of the low and high of tordef's to int64)  * maketojumpbool() is now processor independent (in ncgutil)  * getregister32 is now called getregisterint
+    * range checking is now processor independent (part in cgobj, part in
+      cg64f32) and should work correctly again (it needed some changes after
+      the changes of the low and high of tordef's to int64)
+    * maketojumpbool() is now processor independent (in ncgutil)
+    * getregister32 is now called getregisterint
 
   Revision 1.5  2001/12/29 15:28:58  jonas
     * powerpc/cgcpu.pas compiles :)

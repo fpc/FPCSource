@@ -149,7 +149,7 @@ implementation
       verbose,globals,globtype,systems,
       symconst,symdef,symsym,types,
       pass_1,
-      ncal,nflw,tgcpu,cgbase
+      ncal,nflw,rgobj,cgbase
       ;
 
 {*****************************************************************************
@@ -233,11 +233,7 @@ implementation
       begin
          result:=nil;
          { no temps over several statements }
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
+         rg.cleartempgen;
          { right is the statement itself calln assignn or a complex one }
          firstpass(right);
          if codegenerror then
@@ -371,11 +367,7 @@ implementation
                 end;
               if assigned(hp.right) then
                 begin
-{$ifdef newcg}
-                   tg.cleartempgen;
-{$else newcg}
-                   cleartempgen;
-{$endif newcg}
+                   rg.cleartempgen;
                    codegenerror:=false;
                    firstpass(hp.right);
 
@@ -625,7 +617,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2001-11-02 22:58:01  peter
+  Revision 1.19  2002-03-31 20:26:33  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.18  2001/11/02 22:58:01  peter
     * procsym definition rewrite
 
   Revision 1.17  2001/09/02 21:12:06  peter

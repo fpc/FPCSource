@@ -41,8 +41,8 @@ type
 
 implementation
 
-uses pass_1, types, htypechk, cgbase, temp_gen, cpubase, cga,
-     tgcpu, aasm, ncnv, ncon, pass_2, symdef;
+uses pass_1, types, htypechk, cgbase, cpubase, cga,
+     tgobj, aasm, ncnv, ncon, pass_2, symdef, rgobj;
 
 
 {*****************************************************************************
@@ -91,14 +91,14 @@ begin
   { first, we have to more or less replicate some code from }
   { ti386addnode.pass_2                                     }
   secondpass(left);
-  if not(istemp(left.location.reference) and
-         (getsizeoftemp(left.location.reference) = 256)) and
+  if not(tg.istemp(left.location.reference) and
+         (tg.getsizeoftemp(left.location.reference) = 256)) and
      not(nf_use_strconcat in flags) then
     begin
-       gettempofsizereference(256,href);
+       tg.gettempofsizereference(exprasmlist,256,href);
        copyshortstring(href,left.location.reference,255,false,true);
        { release the registers }
-       ungetiftemp(left.location.reference);
+       tg.ungetiftemp(exprasmlist,left.location.reference);
        { does not hurt: }
        clear_location(left.location);
        left.location.loc:=LOC_MEM;
@@ -117,22 +117,22 @@ begin
     if right.location.loc in [LOC_REFERENCE,LOC_MEM] then
       begin
         { free the registers of right }
-        del_reference(right.location.reference);
+        rg.del_reference(exprasmlist,right.location.reference);
         { get register for the char }
-        hreg := reg32toreg8(getregisterint);
+        hreg := reg32toreg8(rg.getregisterint(exprasmlist));
         emit_ref_reg(A_MOV,S_B,
           newreference(right.location.reference),hreg);
        { I don't think a temp char exists, but it won't hurt (JM) }
-       ungetiftemp(right.location.reference);
+       tg.ungetiftemp(exprasmlist,right.location.reference);
       end
     else hreg := right.location.register;
 
   { load the current string length }
-  lengthreg := getregisterint;
+  lengthreg := rg.getregisterint(exprasmlist);
   emit_ref_reg(A_MOVZX,S_BL,newreference(left.location.reference),lengthreg);
 
   { do we have to check the length ? }
-  if istemp(left.location.reference) then
+  if tg.istemp(left.location.reference) then
     checklength := curmaxlen = 255
   else
     checklength := curmaxlen >= tstringdef(left.resulttype.def).len;
@@ -140,7 +140,7 @@ begin
     begin
       { is it already maximal? }
       getlabel(l);
-      if istemp(left.location.reference) then
+      if tg.istemp(left.location.reference) then
         emit_const_reg(A_CMP,S_L,255,lengthreg)
       else
         emit_const_reg(A_CMP,S_L,tstringdef(left.resulttype.def).len,lengthreg);
@@ -179,7 +179,7 @@ begin
       { no new_reference(href2) because it's only }
       { used once (JM)                            }
       emit_reg_ref(A_MOV,S_B,hreg,href2);
-      ungetregister(hreg);
+      rg.ungetregister(exprasmlist,hreg);
     end
   else
     emit_const_ref(A_MOV,S_B,tordconstnode(right).value,href2);
@@ -187,7 +187,7 @@ begin
   emit_reg(A_INC,S_B,reg32toreg8(lengthreg));
   emit_reg_ref(A_MOV,S_B,reg32toreg8(lengthreg),
                  newreference(left.location.reference));
-  ungetregister32(lengthreg);
+  rg.ungetregisterint(exprasmlist,lengthreg);
   if checklength then
     emitlab(l);
   set_location(location,left.location);
@@ -196,20 +196,20 @@ end;
 procedure ti386addsstringcsstringoptnode.pass_2;
 var
   href: treference;
-  pushedregs: tpushed;
-  regstopush: byte;
+  pushedregs: tpushedsaved;
+  regstopush: tregisterset;
 begin
   { first, we have to more or less replicate some code from }
   { ti386addnode.pass_2                                     }
   secondpass(left);
-  if not(istemp(left.location.reference) and
-         (getsizeoftemp(left.location.reference) = 256)) and
+  if not(tg.istemp(left.location.reference) and
+         (tg.getsizeoftemp(left.location.reference) = 256)) and
      not(nf_use_strconcat in flags) then
     begin
-       gettempofsizereference(256,href);
+       tg.gettempofsizereference(exprasmlist,256,href);
        copyshortstring(href,left.location.reference,255,false,true);
        { release the registers }
-       ungetiftemp(left.location.reference);
+       tg.ungetiftemp(exprasmlist,left.location.reference);
        { does not hurt: }
        clear_location(left.location);
        left.location.loc:=LOC_MEM;
@@ -221,23 +221,23 @@ begin
   { push them (so the release is in the right place, }
   { because emitpushreferenceaddr doesn't need extra }
   { registers) (JM)                                  }
-  regstopush := $ff;
+  regstopush := all_registers;
   remove_non_regvars_from_loc(right.location,
     regstopush);
-  pushusedregisters(pushedregs,regstopush);
+  rg.saveusedregisters(exprasmlist,pushedregs,regstopush);
   { push the maximum possible length of the result }
   emitpushreferenceaddr(left.location.reference);
   { the optimizer can more easily put the          }
   { deallocations in the right place if it happens }
   { too early than when it happens too late (if    }
   { the pushref needs a "lea (..),edi; push edi")  }
-  del_reference(right.location.reference);
+  rg.del_reference(exprasmlist,right.location.reference);
   emitpushreferenceaddr(right.location.reference);
-  saveregvars(regstopush);
+  rg.saveregvars(exprasmlist,regstopush);
   emitcall('FPC_SHORTSTR_CONCAT');
-  ungetiftemp(right.location.reference);
+  tg.ungetiftemp(exprasmlist,right.location.reference);
   maybe_loadself;
-  popusedregisters(pushedregs);
+  rg.restoreusedregisters(exprasmlist,pushedregs);
   set_location(location,left.location);
 end;
 
@@ -248,7 +248,24 @@ end.
 
 {
   $Log$
-  Revision 1.6  2001-12-31 09:53:15  jonas
+  Revision 1.7  2002-03-31 20:26:39  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.6  2001/12/31 09:53:15  jonas
     * changed remaining "getregister32" calls to "getregisterint"
 
   Revision 1.5  2001/08/26 13:37:00  florian

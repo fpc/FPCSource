@@ -124,7 +124,7 @@ implementation
       cutils,verbose,globtype,globals,systems,
       symtable,types,
       htypechk,pass_1,
-      ncnv,nmem,ncal,cpubase,tgcpu,cgbase
+      ncnv,nmem,ncal,cpubase,rgobj,cgbase
       ;
 
 
@@ -351,10 +351,10 @@ implementation
                      if (assigned(tvarsym(symtableentry).owner) and assigned(aktprocsym)
                        and ((tvarsym(symtableentry).owner = aktprocdef.localst)
                        or (tvarsym(symtableentry).owner = aktprocdef.localst))) then }
-                   if t_times<1 then
+                   if rg.t_times<1 then
                      inc(tvarsym(symtableentry).refs)
                    else
-                     inc(tvarsym(symtableentry).refs,t_times);
+                     inc(tvarsym(symtableentry).refs,rg.t_times);
                 end;
             typedconstsym :
                 ;
@@ -911,7 +911,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-01-19 11:52:32  peter
+  Revision 1.33  2002-03-31 20:26:34  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.32  2002/01/19 11:52:32  peter
     * dynarr:=nil support added
 
   Revision 1.31  2001/12/28 15:02:00  jonas

@@ -41,7 +41,7 @@ Implementation
 
 Uses
   {$ifdef replaceregdebug}cutils,{$endif}
-  globtype, verbose, cgbase, globals, daopt386, tgcpu, rropt386;
+  globtype, verbose, cgbase, globals, daopt386, rgobj, rropt386;
 
 {
 Function TaiInSequence(P: Tai; Const Seq: TContent): Boolean;
@@ -102,7 +102,7 @@ begin
       begin
         if (p.ops = 1) then
           begin
-            if is_reg_var[R_EDX] and
+            if rg.is_reg_var[R_EDX] and
                (not getNextInstruction(p,hp) or
                 not((hp.typ = ait_instruction) and
                     (hp.opcode = A_MOV) and
@@ -122,7 +122,7 @@ begin
         else
           { only possible for imul }
           { last operand is always destination }
-          if is_reg_var[reg32(p.oper[p.ops-1].reg)] then
+          if rg.is_reg_var[reg32(p.oper[p.ops-1].reg)] then
             for regCounter := R_EAX to R_EDI do
               begin
                 if writeDestroysContents(p.oper[p.ops-1],regCounter,c[regCounter]) then
@@ -186,7 +186,7 @@ function isSimpleMemLoc(const ref: treference): boolean;
 begin
   isSimpleMemLoc :=
     (ref.index = R_NO) and
-    not(ref.base in (usableregs+[R_EDI]));
+    not(ref.base in (rg.usableregsint+[R_EDI]));
 end;
 
 {checks whether the current instruction sequence (starting with p) and the
@@ -267,7 +267,7 @@ var
        (Taicpu(currentPrev).is_jmp));
     passedFlagsModifyingInstr := instrWritesFlags(currentPrev);
 
-    if (passedJump and not(reg in (usableregs+[R_EDI]))) or
+    if (passedJump and not(reg in (rg.usableregsint+[R_EDI]))) or
        not getLastInstruction(currentPrev,hp) then
       exit;
 
@@ -294,7 +294,7 @@ var
         if { do not load the self pointer or a regvar before a (conditional)  }
            { jump with a new value, since if the jump is taken, the old value }
            { is (probably) still necessary                                    }
-           (passedJump and not(reg in (usableregs+[R_EDI]))) or
+           (passedJump and not(reg in (rg.usableregsint+[R_EDI]))) or
            not getLastInstruction(hp,hp) then
           break;
       end;
@@ -678,49 +678,6 @@ begin
   Tai_align(p).reg := lastRemoved;
 End;
 
-Procedure RestoreRegContentsTo(reg: TRegister; const c: TContent; p, endP: Tai);
-var
-{$ifdef replaceregdebug}
-    hp: Tai;
-    l: longint;
-{$endif replaceregdebug}
-    tmpState: byte;
-begin
-{$ifdef replaceregdebug}
-  l := random(1000);
-  hp := Tai_asm_comment.Create(strpnew(
-          'restored '+att_reg2str[reg]+' with data from here... '+tostr(l))));
-  hp.next := p;
-  hp.previous := p.previous;
-  p.previous := hp;
-  if assigned(hp.previous) then
-    hp.previous^.next := hp;
-{$endif replaceregdebug}
-{  PTaiProp(p.optInfo)^.Regs[reg] := c;}
-  While (p <> endP) Do
-    Begin
-      PTaiProp(p.optInfo)^.Regs[reg] := c;
-      getNextInstruction(p,p);
-    end;
-  tmpState := PTaiProp(p.optInfo)^.Regs[reg].wState;
-  repeat
-    PTaiProp(p.optInfo)^.Regs[reg] := c;
-  until not getNextInstruction(p,p) or
-        (PTaiProp(p.optInfo)^.Regs[reg].wState <> tmpState);
-{$ifdef replaceregdebug}
-  if assigned(p) then
-    begin
-      hp := Tai_asm_comment.Create(strpnew(
-        'restored '+att_reg2str[reg]+' till here... '+tostr(l))));
-      hp.next := p;
-      hp.previous := p.previous;
-      p.previous := hp;
-      if assigned(hp.previous) then
-        hp.previous^.next := hp;
-    end;
-{$endif replaceregdebug}
-end;
-
 procedure clearmemwrites(p: tai; reg: tregister);
 var
   beginmemwrite: tai;
@@ -782,6 +739,52 @@ begin
     begin
       hp := Tai_asm_comment.Create(strpnew(
         'cleared '+att_reg2str[reg]+' till here... '+tostr(l))));
+      hp.next := p;
+      hp.previous := p.previous;
+      p.previous := hp;
+      if assigned(hp.previous) then
+        hp.previous^.next := hp;
+    end;
+{$endif replaceregdebug}
+end;
+
+Procedure RestoreRegContentsTo(reg: TRegister; const c: TContent; p, endP: Tai);
+var
+{$ifdef replaceregdebug}
+    hp: Tai;
+    l: longint;
+{$endif replaceregdebug}
+    tmpState: byte;
+begin
+{$ifdef replaceregdebug}
+  l := random(1000);
+  hp := Tai_asm_comment.Create(strpnew(
+          'restored '+att_reg2str[reg]+' with data from here... '+tostr(l))));
+  hp.next := p;
+  hp.previous := p.previous;
+  p.previous := hp;
+  if assigned(hp.previous) then
+    hp.previous^.next := hp;
+{$endif replaceregdebug}
+{  PTaiProp(p.optInfo)^.Regs[reg] := c;}
+  While (p <> endP) Do
+    Begin
+      PTaiProp(p.optInfo)^.Regs[reg] := c;
+      getNextInstruction(p,p);
+    end;
+  tmpState := PTaiProp(p.optInfo)^.Regs[reg].wState;
+  repeat
+    PTaiProp(p.optInfo)^.Regs[reg] := c;
+  until not getNextInstruction(p,p) or
+        (PTaiProp(p.optInfo)^.Regs[reg].wState <> tmpState) or
+        (p.typ = ait_label);
+  if p.typ = ait_label then
+    clearRegContentsFrom(reg,p,p);
+{$ifdef replaceregdebug}
+  if assigned(p) then
+    begin
+      hp := Tai_asm_comment.Create(strpnew(
+        'restored '+att_reg2str[reg]+' till here... '+tostr(l))));
       hp.next := p;
       hp.previous := p.previous;
       p.previous := hp;
@@ -1310,7 +1313,7 @@ begin
          (rState = pTaiprop(startmod.optInfo)^.regs[reg].rState) and
          (not(check) or
           (not(regInInstruction(reg,p)) and
-           (not(reg in usableregs) and
+           (not(reg in rg.usableregsint) and
             (startmod.typ = ait_instruction) and
             ((Taicpu(startmod).opcode = A_MOV) or
              (Taicpu(startmod).opcode = A_MOVZX) or
@@ -1390,6 +1393,23 @@ begin
   memtoreg := R_NO;
 end;
 
+procedure removeLocalStores(const t1: tai);
+var
+  p: tai;
+  regcount: tregister;
+begin
+{
+  for regcount := LoGPReg to HiGPReg do
+    if assigned(pTaiProp(t1.optinfo)^.regs[regcount].memwrite) and
+       (taicpu(pTaiProp(t1.optinfo)^.regs[regcount].memwrite).oper[1].ref^.base
+         = procinfo^.framepointer) then
+      begin
+        pTaiProp(pTaiProp(t1.optinfo)^.regs[regcount].memwrite.optinfo)^.canberemoved := true;
+        clearmemwrites(pTaiProp(t1.optinfo)^.regs[regcount].memwrite,regcount);
+      end;
+}
+end;
+
 procedure DoCSE(AsmL: TAAsmOutput; First, Last: Tai; findPrevSeqs, doSubOpts: boolean);
 {marks the instructions that can be removed by RemoveInstructs. They're not
  removed immediately because sometimes an instruction needs to be checked in
@@ -1433,7 +1453,7 @@ Begin
                               orgNrOfMods := 0;
                             If (p = StartMod) And
                                GetLastInstruction (p, hp1) And
-                               (hp1.typ <> ait_marker) Then
+                               not(hp1.typ in [ait_marker,ait_label]) then
 {so we don't try to check a sequence when p is the first instruction of the block}
                               begin
 {$ifdef csdebug}
@@ -1550,7 +1570,7 @@ Begin
                                            Begin
                                              getLastInstruction(p,hp3);
                                              If (hp4 <> prevSeq) or
-                                                not(regCounter in usableRegs + [R_EDI,R_ESI]) or
+                                                not(regCounter in rg.usableregsint + [R_EDI,R_ESI]) or
                                                 not ReplaceReg(asmL,RegInfo.New2OldReg[RegCounter],
                                                       regCounter,hp3,
                                                       PTaiProp(PrevSeq.optInfo)^.Regs[regCounter],true,hp5) then
@@ -1656,7 +1676,7 @@ Begin
                         if (Taicpu(p).oper[0].typ = top_reg) and
                            (Taicpu(p).oper[1].typ = top_reg) and
                            { only remove if we're not storing something in a regvar }
-                           (Taicpu(p).oper[1].reg in (usableregs+[R_EDI])) and
+                           (Taicpu(p).oper[1].reg in (rg.usableregsint+[R_EDI])) and
                            (Taicpu(p).opcode = A_MOV) and
                            getLastInstruction(p,hp4) and
                           { we only have to start replacing from the instruction after the mov, }
@@ -1735,13 +1755,18 @@ Begin
                               begin
                                 Taicpu(p).loadreg(0,regCounter);
                                 allocRegBetween(AsmL,reg32(regCounter),
-                                  PTaiProp(hp1.optinfo)^.regs[regCounter].startMod,p);
+                                  PTaiProp(hp1.optinfo)^.regs[reg32(regCounter)].startMod,p);
                               end;
                         End;
                       End;
                   End;
 
                 End;
+              A_LEAVE:
+                begin
+                  if getlastinstruction(p,hp1) then
+                    removeLocalStores(hp1);
+                end;
               A_STD: If GetLastInstruction(p, hp1) And
                         (PTaiProp(hp1.OptInfo)^.DirFlag = F_Set) Then
                         PTaiProp(Tai(p).OptInfo)^.CanBeRemoved := True;
@@ -1956,7 +1981,24 @@ End.
 
 {
   $Log$
-  Revision 1.24  2002-03-04 19:10:12  peter
+  Revision 1.25  2002-03-31 20:26:38  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.24  2002/03/04 19:10:12  peter
     * removed compiler warnings
 
   Revision 1.23  2001/12/04 15:58:13  jonas

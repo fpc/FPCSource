@@ -53,10 +53,10 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symdef,aasm,types,
-      cgbase,temp_gen,pass_1,pass_2,
+      cgbase,pass_1,pass_2,
       ncon,
       cpubase,
-      cga,tgcpu,n386util,ncgutil;
+      cga,tgobj,n386util,ncgutil,cgobj,rgobj,rgcpu;
 
 {*****************************************************************************
                              TI386MODDIVNODE
@@ -90,13 +90,13 @@ implementation
                 begin
                    if left.location.loc=LOC_CREGISTER then
                      begin
-                       hreg1:=getregisterint;
+                       hreg1:=rg.getregisterint(exprasmlist);
                        emit_reg_reg(A_MOV,S_L,left.location.register,hreg1);
                      end
                    else
                      begin
-                       del_reference(left.location.reference);
-                       hreg1:=getregisterint;
+                       rg.del_reference(exprasmlist,left.location.reference);
+                       hreg1:=rg.getregisterint(exprasmlist);
                        emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
                          hreg1);
                      end;
@@ -122,14 +122,14 @@ implementation
                           begin
                           { no jumps, but more operations }
                             if (hreg1 = R_EAX) and
-                               (R_EDX in unused) then
+                               (R_EDX in rg.unusedregsint) then
                               begin
-                                hreg2 := getexplicitregister32(R_EDX);
+                                hreg2 := rg.getexplicitregisterint(exprasmlist,R_EDX);
                                 emit_none(A_CDQ,S_NO);
                               end
                             else
                               begin
-                                getexplicitregister32(R_EDI);
+                                rg.getexplicitregisterint(exprasmlist,R_EDI);
                                 hreg2 := R_EDI;
                                 emit_reg_reg(A_MOV,S_L,hreg1,R_EDI);
                               { if the left value is signed, R_EDI := $ffffffff,
@@ -142,7 +142,7 @@ implementation
                             emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
                           { release EDX if we used it }
                           { also releas EDI }
-                          ungetregister32(hreg2);
+                          rg.ungetregisterint(exprasmlist,hreg2);
                           { do the shift }
                             emit_const_reg(A_SAR,S_L,power,hreg1);
                           end
@@ -169,50 +169,50 @@ implementation
                       { EDI is always free, it's }
                       { only used for temporary  }
                       { purposes              }
-                   getexplicitregister32(R_EDI);
+                   rg.getexplicitregisterint(exprasmlist,R_EDI);
                    if (right.location.loc<>LOC_REGISTER) and
                       (right.location.loc<>LOC_CREGISTER) then
                      begin
-                       del_reference(right.location.reference);
+                       rg.del_reference(exprasmlist,right.location.reference);
                        left.location.loc:=LOC_REGISTER;
                        emit_ref_reg(A_MOV,S_L,newreference(right.location.reference),R_EDI);
                      end
                    else
                      begin
                         emit_reg_reg(A_MOV,S_L,right.location.register,R_EDI);
-                        ungetregister32(right.location.register);
+                        rg.ungetregisterint(exprasmlist,right.location.register);
                      end;
                    popedx:=false;
                    popeax:=false;
                    if hreg1=R_EDX then
                      begin
-                       if not(R_EAX in unused) then
+                       if not(R_EAX in rg.unusedregsint) then
                           begin
                              emit_reg(A_PUSH,S_L,R_EAX);
                              popeax:=true;
                           end
                         else
-                          getexplicitregister32(R_EAX);
+                          rg.getexplicitregisterint(exprasmlist,R_EAX);
                        emit_reg_reg(A_MOV,S_L,R_EDX,R_EAX);
                      end
                    else
                      begin
-                        if not(R_EDX in unused) then
+                        if not(R_EDX in rg.unusedregsint) then
                           begin
                              emit_reg(A_PUSH,S_L,R_EDX);
                              popedx:=true;
                           end
                         else
-                          getexplicitregister32(R_EDX);
+                          rg.getexplicitregisterint(exprasmlist,R_EDX);
                         if hreg1<>R_EAX then
                           begin
-                             if not(R_EAX in unused) then
+                             if not(R_EAX in rg.unusedregsint) then
                                begin
                                   emit_reg(A_PUSH,S_L,R_EAX);
                                   popeax:=true;
                                end
                              else
-                               getexplicitregister32(R_EAX);
+                               rg.getexplicitregisterint(exprasmlist,R_EAX);
                              emit_reg_reg(A_MOV,S_L,hreg1,R_EAX);
                           end;
                      end;
@@ -227,11 +227,11 @@ implementation
                      emit_reg(A_DIV,S_L,R_EDI)
                    else
                      emit_reg(A_IDIV,S_L,R_EDI);
-                   ungetregister32(R_EDI);
+                   rg.ungetregisterint(exprasmlist,R_EDI);
                    if nodetype=divn then
                      begin
                         if not popedx and (hreg1 <> R_EDX) then
-                          ungetregister(R_EDX);
+                          rg.ungetregister(exprasmlist,R_EDX);
                         { if result register is busy then copy }
                         if popeax then
                           begin
@@ -242,7 +242,7 @@ implementation
                         else
                           if hreg1<>R_EAX then
                             Begin
-                              ungetregister32(hreg1);
+                              rg.ungetregisterint(exprasmlist,hreg1);
                               { no need to allocate eax, that's already done before }
                               { the div (JM)                                        }
                               hreg1 := R_EAX;
@@ -251,7 +251,7 @@ implementation
                    else
                      begin
                        if not popeax and (hreg1 <> R_EAX)then
-                         ungetregister(R_EAX);
+                         rg.ungetregister(exprasmlist,R_EAX);
                        if popedx then
                         {the mod was done by an (i)div (so the result is now in
                          edx), but edx was occupied prior to the division, so
@@ -260,7 +260,7 @@ implementation
                        else
                          Begin
                            if hreg1 <> R_EDX then
-                             ungetregister32(hreg1);
+                             rg.ungetregisterint(exprasmlist,hreg1);
                            hreg1 := R_EDX
                          End;
                      end;
@@ -274,8 +274,8 @@ implementation
                { since it was acquired with getregister), the others also }
                { use both EAX and EDX (JM)                                }
                 Begin
-                  usedinproc:=usedinproc or ($80 shr byte(R_EAX));
-                  usedinproc:=usedinproc or ($80 shr byte(R_EDX));
+                  include(rg.usedinproc,R_EAX);
+                  include(rg.usedinproc,R_EDX);
                 End;
               clear_location(location);
               location.loc:=LOC_REGISTER;
@@ -318,8 +318,8 @@ implementation
                 begin
                    if left.location.loc=LOC_CREGISTER then
                      begin
-                        hregisterlow:=getregisterint;
-                        hregisterhigh:=getregisterint;
+                        hregisterlow:=rg.getregisterint(exprasmlist);
+                        hregisterhigh:=rg.getregisterint(exprasmlist);
                         emit_reg_reg(A_MOV,S_L,left.location.registerlow,
                           hregisterlow);
                         emit_reg_reg(A_MOV,S_L,left.location.registerhigh,
@@ -327,9 +327,9 @@ implementation
                      end
                    else
                      begin
-                        del_reference(left.location.reference);
-                        hregisterlow:=getregisterint;
-                        hregisterhigh:=getregisterint;
+                        rg.del_reference(exprasmlist,left.location.reference);
+                        hregisterlow:=rg.getregisterint(exprasmlist);
+                        hregisterhigh:=rg.getregisterint(exprasmlist);
                         emit_mov_ref_reg64(left.location.reference,
                           hregisterlow,
                           hregisterhigh);
@@ -394,14 +394,14 @@ implementation
                      begin
                        if right.location.loc=LOC_CREGISTER then
                           begin
-                             hregister2:=getexplicitregister32(R_ECX);
+                             hregister2:=rg.getexplicitregisterint(exprasmlist,R_ECX);
                              emit_reg_reg(A_MOV,S_L,right.location.register,
                                hregister2);
                           end
                         else
                           begin
-                             del_reference(right.location.reference);
-                             hregister2:=getexplicitregister32(R_ECX);
+                             rg.del_reference(exprasmlist,right.location.reference);
+                             hregister2:=rg.getexplicitregisterint(exprasmlist,R_ECX);
                              emit_ref_reg(A_MOV,S_L,newreference(right.location.reference),
                                hregister2);
                           end;
@@ -433,18 +433,18 @@ implementation
                    else if (hregister2<>R_ECX) then
                      begin
                         { ECX occupied then push it }
-                        if not (R_ECX in unused) then
+                        if not (R_ECX in rg.unusedregsint) then
                          begin
                            popecx:=true;
                            emit_reg(A_PUSH,S_L,R_ECX);
                          end
                         else
-                          getexplicitregister32(R_ECX);
+                          rg.getexplicitregisterint(exprasmlist,R_ECX);
                         emit_reg_reg(A_MOV,S_L,hregister2,R_ECX);
                      end;
 
                    if hregister2 <> R_ECX then
-                     ungetregister32(hregister2);
+                     rg.ungetregisterint(exprasmlist,hregister2);
 
                    { the damned shift instructions work only til a count of 32 }
                    { so we've to do some tricks here                           }
@@ -505,7 +505,7 @@ implementation
                    { maybe put ECX back }
                    if popecx then
                      emit_reg(A_POP,S_L,R_ECX)
-                   else ungetregister32(R_ECX);
+                   else rg.ungetregisterint(exprasmlist,R_ECX);
 
                    location.registerlow:=hregisterlow;
                    location.registerhigh:=hregisterhigh;
@@ -518,14 +518,14 @@ implementation
                 begin
                    if left.location.loc=LOC_CREGISTER then
                      begin
-                        hregister1:=getregisterint;
+                        hregister1:=rg.getregisterint(exprasmlist);
                         emit_reg_reg(A_MOV,S_L,left.location.register,
                           hregister1);
                      end
                    else
                      begin
-                        del_reference(left.location.reference);
-                        hregister1:=getregisterint;
+                        rg.del_reference(exprasmlist,left.location.reference);
+                        hregister1:=rg.getregisterint(exprasmlist);
                         emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
                           hregister1);
                      end;
@@ -556,14 +556,14 @@ implementation
                      begin
                        if right.location.loc=LOC_CREGISTER then
                           begin
-                             hregister2:=getexplicitregister32(R_ECX);
+                             hregister2:=rg.getexplicitregisterint(exprasmlist,R_ECX);
                              emit_reg_reg(A_MOV,S_L,right.location.register,
                                hregister2);
                           end
                         else
                           begin
-                             del_reference(right.location.reference);
-                             hregister2:=getexplicitregister32(R_ECX);
+                             rg.del_reference(exprasmlist,right.location.reference);
+                             hregister2:=rg.getexplicitregisterint(exprasmlist,R_ECX);
                              emit_ref_reg(A_MOV,S_L,newreference(right.location.reference),
                                hregister2);
                           end;
@@ -586,23 +586,23 @@ implementation
                    else if (hregister2<>R_ECX) then
                      begin
                         { ECX occupied then push it }
-                        if not (R_ECX in unused) then
+                        if not (R_ECX in rg.unusedregsint) then
                          begin
                            popecx:=true;
                            emit_reg(A_PUSH,S_L,R_ECX);
                          end
                         else
-                          getexplicitregister32(R_ECX);
+                          rg.getexplicitregisterint(exprasmlist,R_ECX);
                         emit_reg_reg(A_MOV,S_L,hregister2,R_ECX);
                      end;
-                   ungetregister32(hregister2);
+                   rg.ungetregisterint(exprasmlist,hregister2);
                    { right operand is in ECX }
                    emit_reg_reg(op,S_L,R_CL,hregister1);
                    { maybe ECX back }
                    if popecx then
                      emit_reg(A_POP,S_L,R_ECX)
                    else
-                     ungetregister32(R_ECX);
+                     rg.ungetregisterint(exprasmlist,R_ECX);
                    location.register:=hregister1;
                 end;
            end;
@@ -704,16 +704,16 @@ implementation
                   end;
                 LOC_CREGISTER :
                   begin
-                     location.registerlow:=getregisterint;
-                     location.registerhigh:=getregisterint;
+                     location.registerlow:=rg.getregisterint(exprasmlist);
+                     location.registerhigh:=rg.getregisterint(exprasmlist);
                      emit_reg_reg(A_MOV,S_L,left.location.registerlow,location.registerlow);
                      emit_reg_reg(A_MOV,S_L,left.location.registerhigh,location.registerhigh);
                   end;
                 LOC_REFERENCE,LOC_MEM :
                   begin
-                     del_reference(left.location.reference);
-                     location.registerlow:=getregisterint;
-                     location.registerhigh:=getregisterint;
+                     rg.del_reference(exprasmlist,left.location.reference);
+                     location.registerlow:=rg.getregisterint(exprasmlist);
+                     location.registerhigh:=rg.getregisterint(exprasmlist);
                      emit_mov_ref_reg64(left.location.reference,
                        location.registerlow,
                        location.registerhigh);
@@ -740,7 +740,7 @@ implementation
                    end;
                  LOC_CREGISTER:
                    begin
-                      location.register:=getregisterint;
+                      location.register:=rg.getregisterint(exprasmlist);
                       emit_reg_reg(A_MOV,S_L,location.register,
                         location.register);
                       emit_reg(A_NEG,S_L,location.register);
@@ -754,7 +754,7 @@ implementation
                    end;
                  LOC_CMMXREGISTER:
                    begin
-                      location.register:=getregistermmx;
+                      location.register:=rg.getregistermm(exprasmlist);
                       emit_reg_reg(A_PXOR,S_NO,R_MM7,R_MM7);
                       emit_reg_reg(A_MOVQ,S_NO,left.location.register,
                         location.register);
@@ -762,46 +762,45 @@ implementation
                    end;
 {$endif SUPPORT_MMX}
                  LOC_REFERENCE,LOC_MEM:
-                                begin
-                                   del_reference(left.location.reference);
-                                   if (left.resulttype.def.deftype=floatdef) then
-                                     begin
-                                        location.loc:=LOC_FPU;
-                                        floatload(tfloatdef(left.resulttype.def).typ,
-                                          left.location.reference);
-                                        emit_none(A_FCHS,S_NO);
-                                     end
+                   begin
+                      rg.del_reference(exprasmlist,left.location.reference);
+                      if (left.resulttype.def.deftype=floatdef) then
+                        begin
+                           location.loc:=LOC_FPU;
+                           location.register := R_ST;
+                           cg.a_loadfpu_ref_reg(exprasmlist,
+                             def_cgsize(left.resulttype.def),
+                             left.location.reference,
+                             R_ST);
+                           emit_none(A_FCHS,S_NO);
+                        end
 {$ifdef SUPPORT_MMX}
-                                   else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resulttype.def) then
-                                     begin
-                                        location.register:=getregistermmx;
-                                        emit_reg_reg(A_PXOR,S_NO,R_MM7,R_MM7);
-                                        emit_ref_reg(A_MOVQ,S_NO,
-                                          newreference(left.location.reference),
-                                          location.register);
-                                        do_mmx_neg;
-                                     end
+                      else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resulttype.def) then
+                        begin
+                           location.register:=rg.getregistermm(exprasmlist);
+                           emit_reg_reg(A_PXOR,S_NO,R_MM7,R_MM7);
+                           emit_ref_reg(A_MOVQ,S_NO,
+                             newreference(left.location.reference),
+                             location.register);
+                           do_mmx_neg;
+                        end
 {$endif SUPPORT_MMX}
-                                   else
-                                     begin
-                                        location.register:=getregisterint;
-                                        emit_ref_reg(A_MOV,S_L,
-                                          newreference(left.location.reference),
-                                          location.register);
-                                        emit_reg(A_NEG,S_L,location.register);
-                                     end;
-                                end;
-                 LOC_FPU:
-                   begin
-                      location.loc:=LOC_FPU;
-                      emit_none(A_FCHS,S_NO);
+                      else
+                        begin
+                           location.register:=rg.getregisterint(exprasmlist);
+                           emit_ref_reg(A_MOV,S_L,
+                             newreference(left.location.reference),
+                             location.register);
+                           emit_reg(A_NEG,S_L,location.register);
+                        end;
                    end;
-                 LOC_CFPUREGISTER:
+                 LOC_FPU,LOC_CFPUREGISTER:
                    begin
-                      emit_reg(A_FLD,S_NO,
-                        correct_fpuregister(left.location.register,fpuvaroffset));
-                      inc(fpuvaroffset);
+                      { "load st,st" is ignored by the code generator }
+                      cg.a_loadfpu_reg_reg(exprasmlist,
+                        left.location.register,R_ST);
                       location.loc:=LOC_FPU;
+                      location.register := R_ST;
                       emit_none(A_FCHS,S_NO);
                    end;
               end;
@@ -858,20 +857,20 @@ implementation
                   location.resflags:=F_E;
                   emit_reg_reg(A_TEST,opsize,
                     left.location.register,left.location.register);
-                  ungetregister(left.location.register);
+                  rg.ungetregister(exprasmlist,left.location.register);
                 end;
               LOC_REFERENCE,
               LOC_MEM :
                 begin
                   clear_location(location);
                   location.loc:=LOC_REGISTER;
-                  del_reference(left.location.reference);
+                  rg.del_reference(exprasmlist,left.location.reference);
                   { this was placed before del_ref => internaalerror(10) }
                   location.register:=def_getreg(resulttype.def);
                   emit_ref_reg(A_MOV,opsize,
                     newreference(left.location.reference),location.register);
                   emit_reg_reg(A_TEST,opsize,location.register,location.register);
-                  ungetregister(location.register);
+                  rg.ungetregister(exprasmlist,location.register);
                   location.loc:=LOC_FLAGS;
                   location.resflags:=F_E;
                 end;
@@ -884,7 +883,7 @@ implementation
              secondpass(left);
              location.loc:=LOC_MMXREGISTER;
              { prepare EDI }
-             getexplicitregister32(R_EDI);
+             rg.getexplicitregisterint(exprasmlist,R_EDI);
              emit_const_reg(A_MOV,S_L,longint($ffffffff),R_EDI);
              { load operand }
              case left.location.loc of
@@ -892,20 +891,20 @@ implementation
                  set_location(location,left.location);
                LOC_CMMXREGISTER:
                  begin
-                   location.register:=getregistermmx;
+                   location.register:=rg.getregistermm(exprasmlist);
                    emit_reg_reg(A_MOVQ,S_NO,left.location.register,location.register);
                  end;
                LOC_REFERENCE,LOC_MEM:
                  begin
-                   del_reference(left.location.reference);
-                   location.register:=getregistermmx;
+                   rg.del_reference(exprasmlist,left.location.reference);
+                   location.register:=rg.getregistermm(exprasmlist);
                    emit_ref_reg(A_MOVQ,S_NO,
                      newreference(left.location.reference),location.register);
                  end;
              end;
              { load mask }
              emit_reg_reg(A_MOVD,S_NO,R_EDI,R_MM7);
-             ungetregister32(R_EDI);
+             rg.ungetregisterint(exprasmlist,R_EDI);
              { lower 32 bit }
              emit_reg_reg(A_PXOR,S_D,R_MM7,location.register);
              { shift mask }
@@ -929,8 +928,8 @@ implementation
                   end;
                 LOC_CREGISTER :
                   begin
-                     location.registerlow:=getregisterint;
-                     location.registerhigh:=getregisterint;
+                     location.registerlow:=rg.getregisterint(exprasmlist);
+                     location.registerhigh:=rg.getregisterint(exprasmlist);
                      emit_reg_reg(A_MOV,S_L,left.location.registerlow,location.registerlow);
                      emit_reg_reg(A_MOV,S_L,left.location.registerhigh,location.registerhigh);
                      emit_reg(A_NOT,S_L,location.registerlow);
@@ -938,9 +937,9 @@ implementation
                   end;
                 LOC_REFERENCE,LOC_MEM :
                   begin
-                     del_reference(left.location.reference);
-                     location.registerlow:=getregisterint;
-                     location.registerhigh:=getregisterint;
+                     rg.del_reference(exprasmlist,left.location.reference);
+                     location.registerlow:=rg.getregisterint(exprasmlist);
+                     location.registerhigh:=rg.getregisterint(exprasmlist);
                      emit_mov_ref_reg64(left.location.reference,
                        location.registerlow,
                        location.registerhigh);
@@ -969,7 +968,7 @@ implementation
                 end;
               LOC_REFERENCE,LOC_MEM :
                 begin
-                  del_reference(left.location.reference);
+                  rg.del_reference(exprasmlist,left.location.reference);
                   location.register:=def_getreg(resulttype.def);
                   emit_ref_reg(A_MOV,opsize,
                     newreference(left.location.reference),location.register);
@@ -988,7 +987,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-03-04 19:10:14  peter
+  Revision 1.24  2002-03-31 20:26:39  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.23  2002/03/04 19:10:14  peter
     * removed compiler warnings
 
   Revision 1.22  2001/12/30 17:24:47  jonas

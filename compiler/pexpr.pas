@@ -230,7 +230,7 @@ implementation
         consume(_LKLAMMER);
         p:=comp_expr(true);
         { calc return type }
-        { cleartempgen; }
+        { rg.cleartempgen; }
         set_varstate(p,(not is_new));
         { constructor,destructor specified }
         if try_to_consume(_COMMA) then
@@ -320,7 +320,7 @@ implementation
                   end;
 
                 { we need the real called method }
-                { cleartempgen;}
+                { rg.cleartempgen;}
                 do_resulttypepass(p2);
                 if not codegenerror then
                  begin
@@ -2452,7 +2452,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2002-03-01 14:08:26  peter
+  Revision 1.59  2002-03-31 20:26:35  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.58  2002/03/01 14:08:26  peter
     * fixed sizeof(TClass) to return only 4
 
   Revision 1.57  2002/02/03 09:30:04  peter

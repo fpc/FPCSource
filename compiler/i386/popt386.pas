@@ -41,7 +41,7 @@ Uses
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
-  tainst,cpubase,cpuasm,DAOpt386,tgcpu;
+  tainst,cpubase,cpuasm,DAOpt386,rgobj;
 
 Function RegUsedAfterInstruction(Reg: TRegister; p: Tai; Var UsedRegs: TRegSet): Boolean;
 Begin
@@ -1123,9 +1123,9 @@ Begin
                                           Taicpu(hp2).LoadRef(1,newreference(Taicpu(hp2).oper[0].ref^));
                                           Taicpu(hp2).LoadReg(0,Taicpu(p).oper[1].reg);
                                           allocRegBetween(asmL,Taicpu(p).oper[1].reg,p,hp2);
-                                          if (Taicpu(p).oper[0].ref^.base in (usableregs+[R_EDI])) then
+                                          if (Taicpu(p).oper[0].ref^.base in (rg.usableregsint+[R_EDI])) then
                                             allocRegBetween(asmL,Taicpu(p).oper[0].ref^.base,p,hp2);
-                                          if (Taicpu(p).oper[0].ref^.index in (usableregs+[R_EDI])) then
+                                          if (Taicpu(p).oper[0].ref^.index in (rg.usableregsint+[R_EDI])) then
                                             allocRegBetween(asmL,Taicpu(p).oper[0].ref^.index,p,hp2);
                                         End
                                       Else
@@ -2025,7 +2025,24 @@ End.
 
 {
   $Log$
-  Revision 1.17  2001-12-29 15:29:59  jonas
+  Revision 1.18  2002-03-31 20:26:40  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.17  2001/12/29 15:29:59  jonas
     * powerpc/cgcpu.pas compiles :)
     * several powerpc-related fixes
     * cpuasm unit is now based on common tainst unit

@@ -179,8 +179,8 @@ implementation
       globtype,systems,
       cutils,verbose,globals,
       symconst,symtable,types,htypechk,pass_1,
-      ncon,nmem,nld,ncnv,nbas,tgcpu,
-      cgbase,temp_gen
+      ncon,nmem,nld,ncnv,nbas,rgobj,
+      cgbase
       ;
 
     function genloopnode(t : tnodetype;l,r,n1 : tnode;back : boolean) : tnode;
@@ -293,16 +293,12 @@ implementation
          old_t_times : longint;
       begin
          result:=nil;
-         old_t_times:=t_times;
+         old_t_times:=rg.t_times;
 
          { calc register weight }
          if not(cs_littlesize in aktglobalswitches ) then
-           t_times:=t_times*8;
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
+           rg.t_times:=rg.t_times*8;
+         rg.cleartempgen;
 
          firstpass(left);
          if codegenerror then
@@ -316,11 +312,7 @@ implementation
          { loop instruction }
          if assigned(right) then
            begin
-{$ifdef newcg}
-              tg.cleartempgen;
-{$else newcg}
-              cleartempgen;
-{$endif newcg}
+              rg.cleartempgen;
               firstpass(right);
               if codegenerror then
                 exit;
@@ -335,7 +327,7 @@ implementation
 {$endif SUPPORT_MMX}
            end;
 
-         t_times:=old_t_times;
+         rg.t_times:=old_t_times;
       end;
 
 
@@ -376,12 +368,8 @@ implementation
          hp : tnode;
       begin
          result:=nil;
-         old_t_times:=t_times;
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
+         old_t_times:=rg.t_times;
+         rg.cleartempgen;
          firstpass(left);
          registers32:=left.registers32;
          registersfpu:=left.registersfpu;
@@ -391,18 +379,14 @@ implementation
 
          { determines registers weigths }
          if not(cs_littlesize in aktglobalswitches) then
-           t_times:=t_times div 2;
-         if t_times=0 then
-           t_times:=1;
+           rg.t_times:=rg.t_times div 2;
+         if rg.t_times=0 then
+           rg.t_times:=1;
 
          { if path }
          if assigned(right) then
            begin
-{$ifdef newcg}
-              tg.cleartempgen;
-{$else newcg}
-              cleartempgen;
-{$endif newcg}
+              rg.cleartempgen;
               firstpass(right);
 
               if registers32<right.registers32 then
@@ -418,11 +402,7 @@ implementation
          { else path }
          if assigned(t1) then
            begin
-{$ifdef newcg}
-              tg.cleartempgen;
-{$else newcg}
-              cleartempgen;
-{$endif newcg}
+              rg.cleartempgen;
               firstpass(t1);
 
               if registers32<t1.registers32 then
@@ -465,7 +445,7 @@ implementation
                 end;
            end;
 
-         t_times:=old_t_times;
+         rg.t_times:=old_t_times;
       end;
 
 
@@ -547,22 +527,14 @@ implementation
      begin
          result:=nil;
          { Calc register weight }
-         old_t_times:=t_times;
+         old_t_times:=rg.t_times;
          if not(cs_littlesize in aktglobalswitches) then
-           t_times:=t_times*8;
+           rg.t_times:=rg.t_times*8;
 
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
+         rg.cleartempgen;
          firstpass(left);
 
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
+         rg.cleartempgen;
          if assigned(t1) then
           begin
             firstpass(t1);
@@ -584,11 +556,7 @@ implementation
 {$endif SUPPORT_MMX}
 
          { process count var }
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
+         rg.cleartempgen;
          firstpass(t2);
          if codegenerror then
           exit;
@@ -601,11 +569,7 @@ implementation
            registersmmx:=t2.registersmmx;
 {$endif SUPPORT_MMX}
 
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
+         rg.cleartempgen;
          firstpass(right);
          if right.registers32>registers32 then
            registers32:=right.registers32;
@@ -618,7 +582,7 @@ implementation
          { we need at least one register for comparisons PM }
          if registers32=0 then
            inc(registers32);
-         t_times:=old_t_times;
+         rg.t_times:=old_t_times;
       end;
 
 
@@ -818,11 +782,7 @@ implementation
          result:=nil;
          if assigned(left) then
           begin
-{$ifdef newcg}
-            tg.cleartempgen;
-{$else newcg}
-            cleartempgen;
-{$endif newcg}
+            rg.cleartempgen;
             firstpass(left);
             registers32:=left.registers32;
             registersfpu:=left.registersfpu;
@@ -964,20 +924,12 @@ implementation
     function ttryexceptnode.pass_1 : tnode;
       begin
          result:=nil;
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
+         rg.cleartempgen;
          firstpass(left);
          { on statements }
          if assigned(right) then
            begin
-{$ifdef newcg}
-              tg.cleartempgen;
-{$else newcg}
-              cleartempgen;
-{$endif newcg}
+              rg.cleartempgen;
               firstpass(right);
               registers32:=max(registers32,right.registers32);
               registersfpu:=max(registersfpu,right.registersfpu);
@@ -1024,18 +976,10 @@ implementation
     function ttryfinallynode.pass_1 : tnode;
       begin
          result:=nil;
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
+         rg.cleartempgen;
          firstpass(left);
 
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
+         rg.cleartempgen;
          firstpass(right);
          left_right_max;
       end;
@@ -1088,11 +1032,7 @@ implementation
     function tonnode.pass_1 : tnode;
       begin
          result:=nil;
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
+         rg.cleartempgen;
          registers32:=0;
          registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -1108,11 +1048,7 @@ implementation
 {$endif SUPPORT_MMX}
            end;
 
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
+         rg.cleartempgen;
          if assigned(right) then
            begin
               firstpass(right);
@@ -1177,7 +1113,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2001-11-19 14:21:30  jonas
+  Revision 1.28  2002-03-31 20:26:34  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.27  2001/11/19 14:21:30  jonas
     * upper constant limits for "for" loops are now also converted to the
       type of the counter var ('merged')
 

@@ -53,7 +53,7 @@ implementation
      globtype,systems,verbose,
      cclasses,globals,
      symconst,symbase,symtype,symsym,aasm,
-     pass_1,cgbase,temp_gen,regvars,nflw,tgcpu;
+     pass_1,cgbase,regvars,nflw,rgobj;
 
 {*****************************************************************************
                               SecondPass
@@ -225,16 +225,16 @@ implementation
 
     procedure generatecode(var p : tnode);
       begin
-         cleartempgen;
+         rg.cleartempgen;
          flowcontrol:=[];
          { when size optimization only count occurrence }
          if cs_littlesize in aktglobalswitches then
-           t_times:=1
+           rg.t_times:=1
          else
            { reference for repetition is 100 }
-           t_times:=100;
+           rg.t_times:=100;
          { clear register count }
-         clearregistercount;
+         rg.clearregistercount;
          use_esp_stackframe:=false;
          symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs);
          symtablestack.next.foreach_static({$ifdef FPCPROCVAR}@{$endif}clearrefs);
@@ -311,7 +311,24 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2001-11-06 16:39:02  jonas
+  Revision 1.22  2002-03-31 20:26:35  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.21  2001/11/06 16:39:02  jonas
     * moved call to "cleanup_regvars" to cga.pas for i386 because it has
       to insert "fstp %st0" instructions after the exit label
 

@@ -59,7 +59,7 @@ interface
 {$ifdef i386}
       n386util,
 {$endif i386}
-      tgcpu,temp_gen
+      tgobj,rgobj
       ;
 
 
@@ -75,8 +75,8 @@ interface
            st_shortstring :
              begin
                inc(left.location.reference.offset);
-               del_reference(left.location.reference);
-               location.register:=getregisterint;
+               rg.del_reference(exprasmlist,left.location.reference);
+               location.register:=rg.getregisterint(exprasmlist);
                cg.a_loadaddress_ref_reg(exprasmlist,left.location.reference,
                  location.register);
              end;
@@ -87,13 +87,13 @@ interface
                 begin
                   reset_reference(hr);
                   hr.symbol:=newasmsymbol('FPC_EMPTYCHAR');
-                  location.register:=getregisterint;
+                  location.register:=rg.getregisterint(exprasmlist);
                   cg.a_loadaddress_ref_reg(exprasmlist,hr,location.register);
                 end
                else
                 begin
-                  del_reference(left.location.reference);
-                  location.register:=getregisterint;
+                  rg.del_reference(exprasmlist,left.location.reference);
+                  location.register:=rg.getregisterint(exprasmlist);
                   cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
                     location.register);
                 end;
@@ -110,13 +110,13 @@ interface
                 begin
                   reset_reference(hr);
                   hr.symbol:=newasmsymbol('FPC_EMPTYCHAR');
-                  location.register:=getregisterint;
+                  location.register:=rg.getregisterint(exprasmlist);
                   cg.a_loadaddress_ref_reg(exprasmlist,hr,location.register);
                 end
                else
                 begin
-                  del_reference(left.location.reference);
-                  location.register:=getregisterint;
+                  rg.del_reference(exprasmlist,left.location.reference);
+                  location.register:=rg.getregisterint(exprasmlist);
 {$warning Todo: convert widestrings to ascii when typecasting them to pchars}
                   cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
                     location.register);
@@ -151,10 +151,10 @@ interface
     procedure tcgtypeconvnode.second_array_to_pointer;
 
       begin
-         del_reference(left.location.reference);
+         rg.del_reference(exprasmlist,left.location.reference);
          clear_location(location);
          location.loc:=LOC_REGISTER;
-         location.register:=getregisterint;
+         location.register:=rg.getregisterint(exprasmlist);
          cg.a_loadaddress_ref_reg(exprasmlist,left.location.reference,
            location.register);
       end;
@@ -171,14 +171,14 @@ interface
             location.reference.base:=left.location.register;
           LOC_CREGISTER :
             begin
-              location.reference.base:=getregisterint;
+              location.reference.base:=rg.getregisterint(exprasmlist);
               cg.a_load_reg_reg(exprasmlist,OS_32,left.location.register,
                 location.reference.base);
             end
          else
             begin
-              del_reference(left.location.reference);
-              location.reference.base:=getregisterint;
+              rg.del_reference(exprasmlist,left.location.reference);
+              location.reference.base:=rg.getregisterint(exprasmlist);
               cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
                 location.reference.base);
             end;
@@ -194,7 +194,7 @@ interface
          case tstringdef(resulttype.def).string_typ of
            st_shortstring :
              begin
-               gettempofsizereference(256,location.reference);
+               tg.gettempofsizereference(exprasmlist,256,location.reference);
                loadshortstring(left,self);
              end;
            { the rest is removed in the resulttype pass and converted to compilerprocs }
@@ -206,6 +206,8 @@ interface
 
     procedure tcgtypeconvnode.second_real_to_real;
       begin
+         clear_location(location);
+         location.loc:=LOC_FPU;
          case left.location.loc of
             LOC_FPU : ;
             LOC_CFPUREGISTER:
@@ -216,14 +218,14 @@ interface
             LOC_MEM,
             LOC_REFERENCE:
               begin
-                 floatload(tfloatdef(left.resulttype.def).typ,
-                   left.location.reference);
+                 location.register := rg.getregisterfpu(exprasmlist);
+                 cg.a_loadfpu_ref_reg(exprasmlist,
+                   def_cgsize(left.resulttype.def),
+                   left.location.reference,location.register);
                  { we have to free the reference }
-                 del_reference(left.location.reference);
+                 rg.del_reference(exprasmlist,left.location.reference);
               end;
          end;
-         clear_location(location);
-         location.loc:=LOC_FPU;
       end;
 
 
@@ -247,8 +249,8 @@ interface
           begin
              clear_location(location);
              location.loc:=LOC_REGISTER;
-             del_reference(left.location.reference);
-             location.register:=getregisterint;
+             rg.del_reference(exprasmlist,left.location.reference);
+             location.register:=rg.getregisterint(exprasmlist);
              cg.a_loadaddress_ref_reg(exprasmlist,left.location.reference,
                location.register);
           end;
@@ -281,8 +283,8 @@ interface
            end;
          clear_location(location);
          location.loc:=LOC_REGISTER;
-         del_location(left.location);
-         location.register:=getregisterint;
+         rg.del_location(exprasmlist,left.location);
+         location.register:=rg.getregisterint(exprasmlist);
          { size of the boolean we're converting }
          opsize := def_cgsize(left.resulttype.def);
          { size of the destination }
@@ -358,8 +360,8 @@ interface
               location.register:=left.location.register;
             LOC_MEM,LOC_REFERENCE:
               begin
-                del_reference(left.location.reference);
-                location.register:=getregisterint;
+                rg.del_reference(exprasmlist,left.location.reference);
+                location.register:=rg.getregisterint(exprasmlist);
                 cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
                   location.register);
               end;
@@ -382,14 +384,14 @@ interface
             LOC_MEM,
             LOC_REFERENCE:
               begin
-                 del_reference(left.location.reference);
-                 hreg:=getregisterint;
+                 rg.del_reference(exprasmlist,left.location.reference);
+                 hreg:=rg.getregisterint(exprasmlist);
                  cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,
                    hreg);
               end;
             LOC_CREGISTER:
               begin
-                 hreg:=getregisterint;
+                 hreg:=rg.getregisterint(exprasmlist);
                  cg.a_load_reg_reg(exprasmlist,OS_32,left.location.register,
                    hreg);
               end;
@@ -422,7 +424,24 @@ end.
 
 {
   $Log$
-  Revision 1.4  2001-12-31 09:53:15  jonas
+  Revision 1.5  2002-03-31 20:26:34  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.4  2001/12/31 09:53:15  jonas
     * changed remaining "getregister32" calls to "getregisterint"
 
   Revision 1.3  2001/10/04 14:33:28  jonas

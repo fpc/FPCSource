@@ -68,10 +68,10 @@ implementation
     uses
       verbose,globals,systems,globtype,
       symconst,symdef,symsym,aasm,types,
-      cgbase,temp_gen,pass_2,
+      cgbase,pass_2,
       cpubase,cpuasm,cpuinfo,
       nld,ncon,
-      cga,tgcpu,
+      cga,tgobj,rgobj,
       ncgutil,
       tainst,regvars,cgobj,cgcpu;
 
@@ -105,7 +105,7 @@ implementation
 
          aktcontinuelabel:=lcont;
          aktbreaklabel:=lbreak;
-         cleartempgen;
+         rg.cleartempgen;
          if assigned(right) then
            secondpass(right);
 
@@ -125,7 +125,7 @@ implementation
             truelabel:=lbreak;
             falselabel:=lloop;
           end;
-         cleartempgen;
+         rg.cleartempgen;
          secondpass(left);
 
          maketojumpbool(left,lr_load_regvars);
@@ -160,7 +160,7 @@ implementation
          oflabel:=falselabel;
          getlabel(truelabel);
          getlabel(falselabel);
-         cleartempgen;
+         rg.cleartempgen;
          secondpass(left);
 
 
@@ -174,12 +174,12 @@ implementation
          maketojumpbool(left,lr_dont_load_regvars);
 
          if cs_regalloc in aktglobalswitches then
-           org_regvar_loaded := regvar_loaded;
+           org_regvar_loaded := rg.regvar_loaded;
 
          if assigned(right) then
            begin
               cg.a_label(exprasmlist,truelabel);
-              cleartempgen;
+              rg.cleartempgen;
               secondpass(right);
            end;
 
@@ -187,8 +187,8 @@ implementation
          { loaded regvar state and create new clean ones                 }
          if cs_regalloc in aktglobalswitches then
            begin
-             then_regvar_loaded := regvar_loaded;
-             regvar_loaded := org_regvar_loaded;
+             then_regvar_loaded := rg.regvar_loaded;
+             rg.regvar_loaded := org_regvar_loaded;
              then_list := exprasmlist;
              exprasmlist := taasmoutput.create;
            end;
@@ -206,13 +206,13 @@ implementation
                    cg.a_jmp_cond(exprasmlist,OC_None,hl);
                 end;
               cg.a_label(exprasmlist,falselabel);
-              cleartempgen;
+              rg.cleartempgen;
               secondpass(t1);
               { save current asmlist (previous instructions + else-block) }
               { and loaded regvar state and create a new clean list       }
               if cs_regalloc in aktglobalswitches then
                 begin
-                  else_regvar_loaded := regvar_loaded;
+                  else_regvar_loaded := rg.regvar_loaded;
                   else_list := exprasmlist;
                   exprasmlist := taasmoutput.create;
                 end;
@@ -223,7 +223,7 @@ implementation
            begin
               if cs_regalloc in aktglobalswitches then
                 begin
-                  else_regvar_loaded := regvar_loaded;
+                  else_regvar_loaded := rg.regvar_loaded;
                   else_list := exprasmlist;
                   exprasmlist := taasmoutput.create;
                 end;
@@ -297,28 +297,28 @@ implementation
                   (tordconstnode(tassignmentnode(left).right).value<=tordconstnode(right).value));
 
          { only calculate reference }
-         cleartempgen;
+         rg.cleartempgen;
          secondpass(t2);
          hs := t2.resulttype.def.size;
          opsize := def_cgsize(t2.resulttype.def);
 
          { first set the to value
            because the count var can be in the expression !! }
-         cleartempgen;
+         rg.cleartempgen;
          secondpass(right);
          { calculate pointer value and check if changeable and if so }
          { load into temporary variable                       }
          if right.nodetype<>ordconstn then
            begin
               temp1.symbol:=nil;
-              gettempofsizereference(hs,temp1);
+              tg.gettempofsizereference(exprasmlist,hs,temp1);
               temptovalue:=true;
               if (right.location.loc=LOC_REGISTER) or
                  (right.location.loc=LOC_CREGISTER) then
                 begin
                    cg.a_load_reg_ref(exprasmlist,opsize,
                      right.location.register,temp1);
-                   ungetregister(right.location.register);
+                   rg.ungetregister(exprasmlist,right.location.register);
                  end
               else
                 cg.g_concatcopy(exprasmlist,right.location.reference,temp1,
@@ -328,7 +328,7 @@ implementation
            temptovalue:=false;
 
          { produce start assignment }
-         cleartempgen;
+         rg.cleartempgen;
          secondpass(left);
          count_var_is_signed:=is_signed(torddef(t2.resulttype.def));
 
@@ -365,7 +365,7 @@ implementation
          cg.a_label(exprasmlist,l3);
 
          { help register must not be in instruction block }
-         cleartempgen;
+         rg.cleartempgen;
          if assigned(t1) then
            begin
              secondpass(t1);
@@ -375,7 +375,7 @@ implementation
          cg.a_label(exprasmlist,aktcontinuelabel);
 
          { makes no problems there }
-         cleartempgen;
+         rg.cleartempgen;
 
          if nf_backward in flags then
            if count_var_is_signed then
@@ -411,7 +411,7 @@ implementation
          cg.a_jmp_cond(exprasmlist,OC_None,l3);
 
          if temptovalue then
-           ungetiftemp(temp1);
+           tg.ungetiftemp(exprasmlist,temp1);
 
          { this is the break label: }
          cg.a_label(exprasmlist,aktbreaklabel);
@@ -442,14 +442,14 @@ implementation
         begin
           if is_mem then
             begin
-              del_reference(left.location.reference);
-              ungetiftemp(left.location.reference);
+              rg.del_reference(exprasmlist,left.location.reference);
+              tg.ungetiftemp(exprasmlist,left.location.reference);
             end
           else
             begin
-              ungetregister(left.location.register);
+              rg.ungetregister(exprasmlist,left.location.register);
               if left.location.registerhigh <> R_NO then
-                ungetregister(left.location.registerhigh);
+                rg.ungetregister(exprasmlist,left.location.registerhigh);
             end;
         end;
 
@@ -487,15 +487,25 @@ implementation
                              goto do_jmp;
                            end;
                 LOC_JUMP : begin
-                             exprasmlist.concat(tairegalloc.alloc(accumulator));
+                             cg.a_reg_alloc(exprasmlist,accumulator);
                              allocated_acc := true;
                              cg.a_label(exprasmlist,truelabel);
+{$ifdef i386}
                              cg.a_load_const_reg(exprasmlist,OS_8,1,
                                makereg8(accumulator));
+{$else i386}
+                             cg.a_load_const_reg(exprasmlist,OS_8,1,
+                               accumulator);
+{$endif i386}
                              cg.a_jmp_cond(exprasmlist,OC_NONE,aktexit2label);
                              cg.a_label(exprasmlist,falselabel);
+{$ifdef i386}
                              cg.a_load_const_reg(exprasmlist,OS_8,0,
                                makereg8(accumulator));
+{$else i386}
+                             cg.a_load_const_reg(exprasmlist,OS_8,0,
+                               accumulator);
+{$endif i386}
                              goto do_jmp;
                            end;
               else
@@ -507,17 +517,17 @@ implementation
                           cleanleft;
                           cg.a_reg_alloc(exprasmlist,accumulator);
                           allocated_acc := true;
-                          if is_mem then
-                            cg.a_load_ref_reg(exprasmlist,OS_ADDR,
-                              left.location.reference,accumulator)
-                          else
-                            cg.a_load_reg_reg(exprasmlist,OS_ADDR,
-                              left.location.register,accumulator);
+                          cg.a_load_loc_reg(exprasmlist,OS_ADDR,
+                            left.location,accumulator);
                         end;
              floatdef : begin
+{$ifndef i386}
+                          cg.a_reg_alloc(exprasmlist,fpuresultreg);
+{$endif not i386}
+                          cg.a_loadfpu_loc_reg(exprasmlist,
+                            def_cgsize(aktprocdef.rettype.def),
+                            left.location,fpuresultreg);
                           cleanleft;
-                          if is_mem then
-                           floatload(tfloatdef(aktprocdef.rettype.def).typ,left.location.reference);
                         end;
               { orddef,
               enumdef : }
@@ -550,6 +560,7 @@ implementation
                         end;
                    { if its 3 bytes only we can still
                      copy one of garbage ! PM }
+{$ifdef i386}
                     4,3 :
                       cg.a_load_loc_reg(exprasmlist,OS_32,left.location,
                         accumulator);
@@ -559,6 +570,12 @@ implementation
                     1 :
                       cg.a_load_loc_reg(exprasmlist,OS_8,left.location,
                         makereg8(accumulator));
+{$else i386}
+                    4,3,2,1:
+                      cg.a_load_loc_reg(exprasmlist,
+                        def_cgsize(aktprocdef.rettype.def.size),left.location,
+                        accumulator));
+{$endif i386}
                     else internalerror(605001);
                    end;
                  end;
@@ -571,6 +588,10 @@ do_jmp:
                 cg.a_reg_dealloc(exprasmlist,accumulator);
               if allocated_acchigh then
                 cg.a_reg_dealloc(exprasmlist,accumulator);
+{$ifndef i386}
+             if (aktprocdef.rettype.def.deftype = floatdef) then
+               cg.a_reg_dealloc(exprasmlist,fpuresultreg);
+{$endif not i386}
            end
          else
             cg.a_jmp_cond(exprasmlist,OC_None,aktexitlabel);
@@ -631,7 +652,7 @@ do_jmp:
       begin
          load_all_regvars(exprasmlist);
          cg.a_label(exprasmlist,labelnr);
-         cleartempgen;
+         rg.cleartempgen;
          secondpass(left);
       end;
 
@@ -648,7 +669,24 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-03-04 19:10:11  peter
+  Revision 1.9  2002-03-31 20:26:34  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.8  2002/03/04 19:10:11  peter
     * removed compiler warnings
 
   Revision 1.7  2001/12/30 17:24:48  jonas

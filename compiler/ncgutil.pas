@@ -45,8 +45,8 @@ implementation
     globals,globtype,systems,verbose,
     types,
     aasm,cgbase,regvars,
-    temp_gen,ncon,
-    cpubase,cpuinfo,tgcpu,cgobj,cgcpu,cg64f32;
+    ncon,
+    cpubase,cpuinfo,tgobj,cgobj,cgcpu,cg64f32,rgobj;
 
 
 {$ifdef TEMPS_NOT_PUSH}
@@ -62,7 +62,7 @@ implementation
                 begin
                    if isint64 then
                      begin
-                       gettempofsizereference(8,href);
+                       tg.gettempofsizereference(8,href);
                        p.temp_offset:=href.offset;
                        { do we have a 64bit processor? }
                        if sizeof(aword) < 8 then
@@ -70,23 +70,23 @@ implementation
                            tcg64f32(cg).a_load64_reg_ref(exprasmlist,
                              p.location.registerlow,p.location.registerhigh,
                              href);
-                           ungetregister(p.location.registerhigh);
-                           ungetregister(p.location.registerlow);
+                           rg.ungetregister(exprasmlist,p.location.registerhigh);
+                           rg.ungetregister(exprasmlist,p.location.registerlow);
                          end
                        else
                          begin
                            cg.a_load_reg_ref(exprasmlist,OS_64,
                              p.location.register,href);
-                           ungetregister(p.location.register);
+                           rg.ungetregister(exprasmlist,p.location.register);
                          end;
                      end
                    else
                      begin
-                        gettempofsizereference(4,href);
+                        tg.gettempofsizereference(4,href);
                         p.temp_offset:=href.offset;
                         cg.a_load_reg_ref(exprasmlist,OS_32,
                           p.location.register,href);
-                        ungetregister(p.location.register);
+                        rg.ungetregister(exprasmlist,p.location.register);
                      end;
                    saved:=true;
                 end
@@ -99,7 +99,7 @@ implementation
                      cg.a_loadaddress_ref_reg(exprasmlist,
                        p.location.reference,scratchreg);
                      del_reference(p.location.reference);
-                     gettempofsizereference(target_info.size_of_pointer,href);
+                     tg.gettempofsizereference(target_info.size_of_pointer,href);
                      cg.a_load_reg_ref(exprasmlist,OS_ADDR,scratchreg,href);
                      cg.free_scratch_reg(exprasmlist,scratchreg);
                      p.temp_offset:=href.offset;
@@ -118,7 +118,7 @@ implementation
          href : treference;
 
       begin
-         hregister:=getregisterint;
+         hregister:=rg.getregisterint(exprasmlist);
          reset_reference(href);
          href.base:=procinfo^.framepointer;
          href.offset:=p.temp_offset;
@@ -129,7 +129,7 @@ implementation
                 begin
                   if sizeof(aword) < 8 then
                     begin
-                      p.location.registerhigh:=getregisterint;
+                      p.location.registerhigh:=rg.getregisterint(exprasmlist);
                       tcg64f32(cg).a_load64_ref_reg(exprasmlist,
                         href,p.location.registerlow,p.location.registerhigh);
                     end
@@ -148,7 +148,7 @@ implementation
                 because otherwise secondload fails PM
               set_location(p^.left^.location,p^.location);}
            end;
-         ungetiftemp(href);
+         tg.ungetiftemp(href);
       end;
 {$endif TEMPS_NOT_PUSH}
 
@@ -192,7 +192,7 @@ implementation
                          cg.a_cmp_const_loc_label(exprasmlist,opsize,OC_NE,
                            0,p.location,truelabel);
                          { !!! should happen right after cmp (JM) }
-                         del_location(p.location);
+                         rg.del_location(exprasmlist,p.location);
                          cg.a_jmp_cond(exprasmlist,OC_NONE,falselabel);
                        end;
                      LOC_FLAGS :
@@ -213,7 +213,24 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-03-04 19:10:11  peter
+  Revision 1.3  2002-03-31 20:26:34  jonas
+    + a_loadfpu_* and a_loadmm_* methods in tcg
+    * register allocation is now handled by a class and is mostly processor
+      independent (+rgobj.pas and i386/rgcpu.pas)
+    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
+    * some small improvements and fixes to the optimizer
+    * some register allocation fixes
+    * some fpuvaroffset fixes in the unary minus node
+    * push/popusedregisters is now called rg.save/restoreusedregisters and
+      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
+      also better optimizable)
+    * fixed and optimized register saving/restoring for new/dispose nodes
+    * LOC_FPU locations now also require their "register" field to be set to
+      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
+    - list field removed of the tnode class because it's not used currently
+      and can cause hard-to-find bugs
+
+  Revision 1.2  2002/03/04 19:10:11  peter
     * removed compiler warnings
 
   Revision 1.1  2001/12/30 17:24:48  jonas
