@@ -15,23 +15,6 @@ unit pmgpi;
        GPI_OK = 1;
        GPI_ALTERROR = (-1);
 
-    type
-       FIXED = LONG;
-
-       PFIXED = ^FIXED;
-
-       FIXED88 = USHORT;
-
-       FIXED114 = USHORT;
-
-       SIZEL = record
-          cx : LONG;
-          cy : LONG;
-       end;
-
-       PSIZEL = ^SIZEL;
-
-    const
        CLR_NOINDEX = (-254);
        PU_ARBITRARY = $0004;
        PU_PELS = $0008;
@@ -49,21 +32,6 @@ unit pmgpi;
        GPIA_ASSOC = $4000;
        HDC_ERROR = -1;
 
-    function GpiCreatePS(hab : HAB;hdc : HDC;psizlSize : PSIZEL;flOptions : ULONG) : HPS;
-
-    function GpiDestroyPS(hps : HPS) : BOOL;
-
-    function GpiAssociate(hps : HPS;hdc : HDC) : BOOL;
-
-    function GpiRestorePS(hps : HPS;lPSid : LONG) : BOOL;
-
-    function GpiSavePS(hps : HPS) : LONG;
-
-    function GpiErase(hps : HPS) : BOOL;
-
-    function GpiQueryDevice(hps : HPS) : HDC;
-
-    const
        GRES_ATTRS = $0001;
        GRES_SEGMENTS = $0002;
        GRES_ALL = $0004;
@@ -92,56 +60,12 @@ unit pmgpi;
        DM_RETAIN = 2;
        DM_DRAWANDRETAIN = 3;
 
-    function GpiResetPS(hps : HPS;flOptions : ULONG) : BOOL;
-
-    function GpiSetPS(hps : HPS;psizlsize : PSIZEL;flOptions : ULONG) : BOOL;
-
-    function GpiQueryPS(hps : HPS;psizlSize : PSIZEL) : ULONG;
-
-    function GpiErrorSegmentData(hps : HPS;plSegment : PLONG;plContext : PLONG) : LONG;
-
-    function GpiQueryDrawControl(hps : HPS;lControl : LONG) : LONG;
-
-    function GpiSetDrawControl(hps : HPS;lControl : LONG;lValue : LONG) : BOOL;
-
-    function GpiQueryDrawingMode(hps : HPS) : LONG;
-
-    function GpiSetDrawingMode(hps : HPS;lMode : LONG) : BOOL;
-
-    function GpiQueryStopDraw(hps : HPS) : LONG;
-
-    function GpiSetStopDraw(hps : HPS;lValue : LONG) : BOOL;
-
-    const
        PICKAP_DEFAULT = 0;
        PICKAP_REC = 2;
        PICKSEL_VISIBLE = 0;
        PICKSEL_ALL = 1;
        GPI_HITS = 2;
 
-    function GpiCorrelateChain(hps : HPS;lType : LONG;pptlPick : PPOINTL;lMaxHits : LONG;lMaxDepth : LONG;pl2 : PLONG) : LONG;
-
-    function GpiQueryTag(hps : HPS;plTag : PLONG) : BOOL;
-
-    function GpiSetTag(hps : HPS;lTag : LONG) : BOOL;
-
-    function GpiQueryPickApertureSize(hps : HPS;psizlSize : PSIZEL) : BOOL;
-
-    function GpiSetPickApertureSize(hps : HPS;lOptions : LONG;psizlSize : PSIZEL) : BOOL;
-
-    function GpiQueryPickAperturePosition(hps : HPS;pptlPoint : PPOINTL) : BOOL;
-
-    function GpiSetPickAperturePosition(hps : HPS;pptlPick : PPOINTL) : BOOL;
-
-    function GpiQueryBoundaryData(hps : HPS;prclBoundary : PRECTL) : BOOL;
-
-    function GpiResetBoundaryData(hps : HPS) : BOOL;
-
-    function GpiCorrelateFrom(hps : HPS;lFirstSegment : LONG;lLastSegment : LONG;lType : LONG;pptlPick : PPOINTL;lMaxHits : LONG;lMaxDepth : LONG;plSegTag : PLONG) : LONG;
-
-    function GpiCorrelateSegment(hps : HPS;lSegment : LONG;lType : LONG;pptlPick : PPOINTL;lMaxHits : LONG;lMaxDepth : LONG;alSegTag : PLONG) : LONG;
-
-    const
        DFORM_NOCONV = 0;
        DFORM_S370SHORT = 1;
        DFORM_PCSHORT = 2;
@@ -159,78 +83,10 @@ unit pmgpi;
        LOWER_PRI = (-1);
        HIGHER_PRI = 1;
 
-    function GpiOpenSegment(hps : HPS;lSegment : LONG) : BOOL;
-
-    function GpiCloseSegment(hps : HPS) : BOOL;
-
-    function GpiDeleteSegment(hps : HPS;lSegid : LONG) : BOOL;
-
-    function GpiQueryInitialSegmentAttrs(hps : HPS;lAttribute : LONG) : LONG;
-
-    function GpiSetInitialSegmentAttrs(hps : HPS;lAttribute : LONG;lValue : LONG) : BOOL;
-
-    function GpiQuerySegmentAttrs(hps : HPS;lSegid : LONG;lAttribute : LONG) : LONG;
-
-    function GpiSetSegmentAttrs(hps : HPS;lSegid : LONG;lAttribute : LONG;lValue : LONG) : BOOL;
-
-    function GpiQuerySegmentPriority(hps : HPS;lRefSegid : LONG;lOrder : LONG) : LONG;
-
-    function GpiSetSegmentPriority(hps : HPS;lSegid : LONG;lRefSegid : LONG;lOrder : LONG) : BOOL;
-
-    function GpiDeleteSegments(hps : HPS;lFirstSegment : LONG;lLastSegment : LONG) : BOOL;
-
-    function GpiQuerySegmentNames(hps : HPS;lFirstSegid : LONG;lLastSegid : LONG;lMax : LONG;alSegids : PLONG) : LONG;
-
-    function GpiGetData(hps : HPS;lSegid : LONG;plOffset : PLONG;lFormat : LONG;lLength : LONG;pbData : PBYTE) : LONG;
-
-    function GpiPutData(hps : HPS;lFormat : LONG;plCount : PLONG;pbData : PBYTE) : LONG;
-
-    function GpiDrawChain(hps : HPS) : BOOL;
-
-    function GpiDrawFrom(hps : HPS;lFirstSegment : LONG;lLastSegment : LONG) : BOOL;
-
-    function GpiDrawSegment(hps : HPS;lSegment : LONG) : BOOL;
-
-    function GpiDrawDynamics(hps : HPS) : BOOL;
-
-    function GpiRemoveDynamics(hps : HPS;lFirstSegid : LONG;lLastSegid : LONG) : BOOL;
-
-    const
        SEGEM_ERROR = 0;
        SEGEM_INSERT = 1;
        SEGEM_REPLACE = 2;
 
-    function GpiBeginElement(hps : HPS;lType : LONG;pszDesc : PSZ) : BOOL;
-
-    function GpiEndElement(hps : HPS) : BOOL;
-
-    function GpiLabel(hps : HPS;lLabel : LONG) : BOOL;
-
-    function GpiElement(hps : HPS;lType : LONG;pszDesc : PSZ;lLength : LONG;pbData : PBYTE) : LONG;
-
-    function GpiQueryElement(hps : HPS;lOff : LONG;lMaxLength : LONG;pbData : PBYTE) : LONG;
-
-    function GpiDeleteElement(hps : HPS) : BOOL;
-
-    function GpiDeleteElementRange(hps : HPS;lFirstElement : LONG;lLastElement : LONG) : BOOL;
-
-    function GpiDeleteElementsBetweenLabels(hps : HPS;lFirstLabel : LONG;lLastLabel : LONG) : BOOL;
-
-    function GpiQueryEditMode(hps : HPS) : LONG;
-
-    function GpiSetEditMode(hps : HPS;lMode : LONG) : BOOL;
-
-    function GpiQueryElementPointer(hps : HPS) : LONG;
-
-    function GpiSetElementPointer(hps : HPS;lElement : LONG) : BOOL;
-
-    function GpiOffsetElementPointer(hps : HPS;loffset : LONG) : BOOL;
-
-    function GpiQueryElementType(hps : HPS;plType : PLONG;lLength : LONG;pszData : PSZ) : LONG;
-
-    function GpiSetElementPointerAtLabel(hps : HPS;lLabel : LONG) : BOOL;
-
-    const
        CVTC_WORLD = 1;
        CVTC_MODEL = 2;
        CVTC_DEFAULTPAGE = 3;
@@ -240,63 +96,6 @@ unit pmgpi;
        TRANSFORM_ADD = 1;
        TRANSFORM_PREEMPT = 2;
 
-    type
-       MATRIXLF = record
-          fxM11 : FIXED;
-          fxM12 : FIXED;
-          lM13 : LONG;
-          fxM21 : FIXED;
-          fxM22 : FIXED;
-          lM23 : LONG;
-          lM31 : LONG;
-          lM32 : LONG;
-          lM33 : LONG;
-       end;
-
-       PMATRIXLF = ^MATRIXLF;
-
-
-    function GpiQuerySegmentTransformMatrix(hps : HPS;lSegid : LONG;lCount : LONG;pmatlfArray : PMATRIXLF) : BOOL;
-
-    function GpiSetSegmentTransformMatrix(hps : HPS;lSegid : LONG;lCount : LONG;pmatlfarray : PMATRIXLF;lOptions : LONG) : BOOL;
-
-    function GpiConvert(hps : HPS;lSrc : LONG;lTarg : LONG;lCount : LONG;aptlPoints : PPOINTL) : BOOL;
-
-    function GpiConvertWithMatrix(hps : HPS;lCountp : LONG;aptlPoints : PPOINTL;lCount : LONG;pmatlfArray : PMATRIXLF) : BOOL;
-
-    function GpiQueryModelTransformMatrix(hps : HPS;lCount : LONG;pmatlfArray : PMATRIXLF) : BOOL;
-
-    function GpiSetModelTransformMatrix(hps : HPS;lCount : LONG;pmatlfArray : PMATRIXLF;lOptions : LONG) : BOOL;
-
-    function GpiCallSegmentMatrix(hps : HPS;lSegment : LONG;lCount : LONG;pmatlfArray : PMATRIXLF;lOptions : LONG) : LONG;
-
-    function GpiQueryDefaultViewMatrix(hps : HPS;lCount : LONG;pmatlfArray : PMATRIXLF) : BOOL;
-
-    function GpiSetDefaultViewMatrix(hps : HPS;lCount : LONG;pmatlfarray : PMATRIXLF;lOptions : LONG) : BOOL;
-
-    function GpiQueryPageViewport(hps : HPS;prclViewport : PRECTL) : BOOL;
-
-    function GpiSetPageViewport(hps : HPS;prclViewport : PRECTL) : BOOL;
-
-    function GpiQueryViewingTransformMatrix(hps : HPS;lCount : LONG;pmatlfArray : PMATRIXLF) : BOOL;
-
-    function GpiSetViewingTransformMatrix(hps : HPS;lCount : LONG;pmatlfArray : PMATRIXLF;lOptions : LONG) : BOOL;
-
-    function GpiTranslate(hps : HPS;pmatrixlf : PMATRIXLF;long : LONG;ppointl : PPOINTL) : BOOL;
-
-    function GpiScale(hps : HPS;p1 : PMATRIXLF;p2 : LONG;p3 : PFIXED;p4 : PPOINTL) : BOOL;
-
-    function GpiRotate(p1 : HPS;p2 : PMATRIXLF;p3 : LONG;p4 : FIXED;p5 : PPOINTL) : BOOL;
-
-    function GpiSetGraphicsField(hps : HPS;prclField : PRECTL) : BOOL;
-
-    function GpiQueryGraphicsField(hps : HPS;prclField : PRECTL) : BOOL;
-
-    function GpiSetViewingLimits(hps : HPS;prclLimits : PRECTL) : BOOL;
-
-    function GpiQueryViewingLimits(hps : HPS;prclLimits : PRECTL) : BOOL;
-
-    const
        MPATH_STROKE = 6;
        FPATH_ALTERNATE = 0;
        FPATH_WINDING = 2;
@@ -309,25 +108,6 @@ unit pmgpi;
        SCP_EXCL = 0;
        SCP_INCL = 8;
 
-    function GpiBeginPath(hps : HPS;lPath : LONG) : BOOL;
-
-    function GpiEndPath(hps : HPS) : BOOL;
-
-    function GpiCloseFigure(hps : HPS) : BOOL;
-
-    function GpiModifyPath(hps : HPS;lPath : LONG;lMode : LONG) : BOOL;
-
-    function GpiFillPath(hps : HPS;lPath : LONG;lOptions : LONG) : LONG;
-
-    function GpiSetClipPath(hps : HPS;lPath : LONG;lOptions : LONG) : BOOL;
-
-    function GpiOutlinePath(hps : HPS;lPath : LONG;lOptions : LONG) : LONG;
-
-    function GpiPathToRegion(GpiH : HPS;lPath : LONG;lOptions : LONG) : HRGN;
-
-    function GpiStrokePath(hps : HPS;lPath : LONG;flOptions : ULONG) : LONG;
-
-    const
        LCOL_RESET = $0001;
        LCOL_REALIZABLE = $0002;
        LCOL_PURECOLOR = $0004;
@@ -352,35 +132,6 @@ unit pmgpi;
        PC_EXPLICIT = $02;
        PC_NOCOLLAPSE = $04;
 
-    function GpiCreateLogColorTable(hps : HPS;flOptions : ULONG;lFormat : LONG;lStart : LONG;lCount : LONG;alTable : PLONG) : BOOL;
-
-    function GpiQueryColorData(hps : HPS;lCount : LONG;alArray : PLONG) : BOOL;
-
-    function GpiQueryLogColorTable(hps : HPS;flOptions : ULONG;lStart : LONG;lCount : LONG;alArray : PLONG) : LONG;
-
-    function GpiQueryRealColors(hps : HPS;flOptions : ULONG;lStart : LONG;lCount : LONG;alColors : PLONG) : LONG;
-
-    function GpiQueryNearestColor(hps : HPS;flOptions : ULONG;lRgbIn : LONG) : LONG;
-
-    function GpiQueryColorIndex(hps : HPS;flOptions : ULONG;lRgbColor : LONG) : LONG;
-
-    function GpiQueryRGBColor(hps : HPS;flOptions : ULONG;lColorIndex : LONG) : LONG;
-
-    function GpiCreatePalette(hab : HAB;flOptions : ULONG;ulFormat : ULONG;ulCount : ULONG;aulTable : PULONG) : HPAL;
-
-    function GpiDeletePalette(hpal : HPAL) : BOOL;
-
-    function GpiSelectPalette(hps : HPS;hpal : HPAL) : HPAL;
-
-    function GpiAnimatePalette(hpal : HPAL;ulFormat : ULONG;ulStart : ULONG;ulCount : ULONG;aulTable : PULONG) : LONG;
-
-    function GpiSetPaletteEntries(hpal : HPAL;ulFormat : ULONG;ulStart : ULONG;ulCount : ULONG;aulTable : PULONG) : BOOL;
-
-    function GpiQueryPalette(hps : HPS) : HPAL;
-
-    function GpiQueryPaletteInfo(hpal : HPAL;hps : HPS;flOptions : ULONG;ulStart : ULONG;ulCount : ULONG;aulArray : PULONG) : LONG;
-
-    const
        CLR_FALSE = (-5);
        CLR_TRUE = (-4);
        CLR_ERROR = (-255);
@@ -446,33 +197,6 @@ unit pmgpi;
        LCID_ERROR = (-1);
        LCID_DEFAULT = 0;
 
-    function GpiSetColor(hps : HPS;lColor : LONG) : BOOL;
-
-    function GpiQueryColor(hps : HPS) : LONG;
-
-    function GpiBox(hps : HPS;lControl : LONG;pptlPoint : PPOINTL;lHRound : LONG;lVRound : LONG) : LONG;
-
-    function GpiMove(hps : HPS;pptlPoint : PPOINTL) : BOOL;
-
-    function GpiLine(hps : HPS;pptlEndPoint : PPOINTL) : LONG;
-
-    function GpiPolyLine(hps : HPS;lCount : LONG;aptlPoints : PPOINTL) : LONG;
-
-    function GpiPolyLineDisjoint(hps : HPS;lCount : LONG;aptlPoints : PPOINTL) : LONG;
-
-    function GpiSetPattern(hps : HPS;lPatternSymbol : LONG) : BOOL;
-
-    function GpiQueryPattern(hps : HPS) : LONG;
-
-    function GpiBeginArea(hps : HPS;flOptions : ULONG) : BOOL;
-
-    function GpiEndArea(hps : HPS) : LONG;
-
-    function GpiCharString(hps : HPS;lCount : LONG;pchString : PCH) : LONG;
-
-    function GpiCharStringAt(hps : HPS;pptlPoint : PPOINTL;lCount : LONG;pchString : PCH) : LONG;
-
-    const
        AM_ERROR = (-1);
        AM_PRESERVE = 0;
        AM_NOPRESERVE = 1;
@@ -627,99 +351,6 @@ unit pmgpi;
        IBB_MIX_MODE = $0004;
        IBB_BACK_MIX_MODE = $0008;
 
-    type
-       ARCPARAMS = record
-          lP : LONG;
-          lQ : LONG;
-          lR : LONG;
-          lS : LONG;
-       end;
-
-       PARCPARAMS = ^ARCPARAMS;
-
-       SIZEF = record
-          cx : FIXED;
-          cy : FIXED;
-       end;
-
-       PSIZEF = ^SIZEF;
-
-       GRADIENTL = record
-          x : LONG;
-          y : LONG;
-       end;
-
-       PGRADIENTL = ^GRADIENTL;
-
-       LINEBUNDLE = record
-          lColor : LONG;
-          lBackColor : LONG;
-          usMixMode : USHORT;
-          usBackMixMode : USHORT;
-          fxWidth : FIXED;
-          lGeomWidth : LONG;
-          usType : USHORT;
-          usEnd : USHORT;
-          usJoin : USHORT;
-          usReserved : USHORT;
-       end;
-
-       PLINEBUNDLE = ^LINEBUNDLE;
-
-       CHARBUNDLE = record
-          lColor : LONG;
-          lBackColor : LONG;
-          usMixMode : USHORT;
-          usBackMixMode : USHORT;
-          usSet : USHORT;
-          usPrecision : USHORT;
-          sizfxCell : SIZEF;
-          ptlAngle : POINTL;
-          ptlShear : POINTL;
-          usDirection : USHORT;
-          usTextAlign : USHORT;
-          fxExtra : FIXED;
-          fxBreakExtra : FIXED;
-       end;
-
-       PCHARBUNDLE = ^CHARBUNDLE;
-
-       MARKERBUNDLE = record
-          lColor : LONG;
-          lBackColor : LONG;
-          usMixMode : USHORT;
-          usBackMixMode : USHORT;
-          usSet : USHORT;
-          usSymbol : USHORT;
-          sizfxCell : SIZEF;
-       end;
-
-       PMARKERBUNDLE = ^MARKERBUNDLE;
-
-       AREABUNDLE = record
-          lColor : LONG;
-          lBackColor : LONG;
-          usMixMode : USHORT;
-          usBackMixMode : USHORT;
-          usSet : USHORT;
-          usSymbol : USHORT;
-          ptlRefPoint : POINTL;
-       end;
-
-       PAREABUNDLE = ^AREABUNDLE;
-
-       IMAGEBUNDLE = record
-          lColor : LONG;
-          lBackColor : LONG;
-          usMixMode : USHORT;
-          usBackMixMode : USHORT;
-       end;
-
-       PIMAGEBUNDLE = ^IMAGEBUNDLE;
-
-       PBUNDLE = PVOID;
-
-    const
        TXTBOX_TOPLEFT = 0;
        TXTBOX_BOTTOMLEFT = 1;
        TXTBOX_TOPRIGHT = 2;
@@ -734,175 +365,12 @@ unit pmgpi;
        RVIS_PARTIAL = 2;
        RVIS_VISIBLE = 3;
 
-    function GpiSetAttrMode(hps : HPS;lMode : LONG) : BOOL;
-
-    function GpiQueryAttrMode(hps : HPS) : LONG;
-
-    function GpiSetAttrs(hps : HPS;lPrimType : LONG;flAttrMask : ULONG;flDefMask : ULONG;ppbunAttrs : PBUNDLE) : BOOL;
-
-    function GpiQueryAttrs(hps : HPS;lPrimType : LONG;flAttrMask : ULONG;ppbunAttrs : PBUNDLE) : LONG;
-
-    function GpiSetBackColor(hps : HPS;lColor : LONG) : BOOL;
-
-    function GpiQueryBackColor(hps : HPS) : LONG;
-
-    function GpiSetMix(hps : HPS;lMixMode : LONG) : BOOL;
-
-    function GpiQueryMix(hps : HPS) : LONG;
-
-    function GpiSetBackMix(hps : HPS;lMixMode : LONG) : BOOL;
-
-    function GpiQueryBackMix(hps : HPS) : LONG;
-
-    function GpiSetLineType(hps : HPS;lLineType : LONG) : BOOL;
-
-    function GpiQueryLineType(hps : HPS) : LONG;
-
-    function GpiSetLineWidth(hps : HPS;fxLineWidth : FIXED) : BOOL;
-
-    function GpiQueryLineWidth(hps : HPS) : FIXED;
-
-    function GpiSetLineWidthGeom(hps : HPS;lLineWidth : LONG) : BOOL;
-
-    function GpiQueryLineWidthGeom(hps : HPS) : LONG;
-
-    function GpiSetLineEnd(hps : HPS;lLineEnd : LONG) : BOOL;
-
-    function GpiQueryLineEnd(hps : HPS) : LONG;
-
-    function GpiSetLineJoin(hps : HPS;lLineJoin : LONG) : BOOL;
-
-    function GpiQueryLineJoin(hps : HPS) : LONG;
-
-    function GpiSetCurrentPosition(hps : HPS;pptlPoint : PPOINTL) : BOOL;
-
-    function GpiQueryCurrentPosition(hps : HPS;pptlPoint : PPOINTL) : BOOL;
-
-    function GpiSetArcParams(hps : HPS;parcpArcParams : PARCPARAMS) : BOOL;
-
-    function GpiQueryArcParams(hps : HPS;parcpArcParams : PARCPARAMS) : BOOL;
-
-    function GpiPointArc(hps : HPS;pptl2 : PPOINTL) : LONG;
-
-    function GpiFullArc(hps : HPS;lControl : LONG;fxMultiplier : FIXED) : LONG;
-
-    function GpiPartialArc(hps : HPS;pptlCenter : PPOINTL;fxMultiplier : FIXED;fxStartAngle : FIXED;fxSweepAngle : FIXED) : LONG;
-
-    function GpiPolyFillet(hps : HPS;lCount : LONG;aptlPoints : PPOINTL) : LONG;
-
-    function GpiPolySpline(hps : HPS;lCount : LONG;aptlPoints : PPOINTL) : LONG;
-
-    function GpiPolyFilletSharp(hps : HPS;lCount : LONG;aptlPoints : PPOINTL;afxPoints : PFIXED) : LONG;
-
-    function GpiSetPatternSet(hps : HPS;lSet : LONG) : BOOL;
-
-    function GpiQueryPatternSet(hps : HPS) : LONG;
-
-    function GpiSetPatternRefPoint(hps : HPS;pptlRefPoint : PPOINTL) : BOOL;
-
-    function GpiQueryPatternRefPoint(hps : HPS;pptlRefPoint : PPOINTL) : BOOL;
-
-    function GpiQueryCharStringPos(hps : HPS;flOptions : ULONG;lCount : LONG;pchString : PCH;alXincrements : PLONG;aptlPositions : PPOINTL) : BOOL;
-
-    function GpiQueryCharStringPosAt(hps : HPS;pptlStart : PPOINTL;flOptions : ULONG;lCount : LONG;pchString : PCH;alXincrements : PLONG;aptlPositions : PPOINTL) : BOOL;
-
-    function GpiQueryTextBox(hps : HPS;lCount1 : LONG;pchString : PCH;lCount2 : LONG;aptlPoints : PPOINTL) : BOOL;
-
-    function GpiQueryDefCharBox(hps : HPS;psizlSize : PSIZEL) : BOOL;
-
-    function GpiSetCharSet(hps : HPS;llcid : LONG) : BOOL;
-
-    function GpiQueryCharSet(hps : HPS) : LONG;
-
-    function GpiSetCharBox(hps : HPS;psizfxBox : PSIZEF) : BOOL;
-
-    function GpiQueryCharBox(hps : HPS;psizfxSize : PSIZEF) : BOOL;
-
-    function GpiSetCharAngle(hps : HPS;pgradlAngle : PGRADIENTL) : BOOL;
-
-    function GpiQueryCharAngle(hps : HPS;pgradlAngle : PGRADIENTL) : BOOL;
-
-    function GpiSetCharShear(hps : HPS;pptlAngle : PPOINTL) : BOOL;
-
-    function GpiQueryCharShear(hps : HPS;pptlShear : PPOINTL) : BOOL;
-
-    function GpiSetCharDirection(hps : HPS;lDirection : LONG) : BOOL;
-
-    function GpiQueryCharDirection(hps : HPS) : LONG;
-
-    function GpiSetCharMode(hps : HPS;lMode : LONG) : BOOL;
-
-    function GpiQueryCharMode(hps : HPS) : LONG;
-
-    function GpiSetTextAlignment(hps : HPS;lHoriz : LONG;lVert : LONG) : BOOL;
-
-    function GpiQueryTextAlignment(hps : HPS;plHoriz : PLONG;plVert : PLONG) : BOOL;
-
-    function GpiCharStringPos(hps : HPS;prclRect : PRECTL;flOptions : ULONG;lCount : LONG;pchString : PCH;alAdx : PLONG) : LONG;
-
-    function GpiCharStringPosAt(hps : HPS;pptlStart : PPOINTL;prclRect : PRECTL;flOptions : ULONG;lCount : LONG;pchString : PCH;alAdx : PLONG) : LONG;
-
-    function GpiSetCharExtra(hps : HPS;Extra : FIXED) : BOOL;
-
-    function GpiSetCharBreakExtra(hps : HPS;BreakExtra : FIXED) : BOOL;
-
-    function GpiQueryCharExtra(hps : HPS;Extra : PFIXED) : BOOL;
-
-    function GpiQueryCharBreakExtra(hps : HPS;BreakExtra : PFIXED) : BOOL;
-
-    function GpiMarker(hps : HPS;pptlPoint : PPOINTL) : LONG;
-
-    function GpiPolyMarker(hps : HPS;lCount : LONG;aptlPoints : PPOINTL) : LONG;
-
-    function GpiSetMarker(hps : HPS;lSymbol : LONG) : BOOL;
-
-    function GpiSetMarkerBox(hps : HPS;psizfxSize : PSIZEF) : BOOL;
-
-    function GpiSetMarkerSet(hps : HPS;lSet : LONG) : BOOL;
-
-    function GpiQueryMarker(hps : HPS) : LONG;
-
-    function GpiQueryMarkerBox(hps : HPS;psizfxSize : PSIZEF) : BOOL;
-
-    function GpiQueryMarkerSet(hps : HPS) : LONG;
-
-    function GpiImage(hps : HPS;lFormat : LONG;psizlImageSize : PSIZEL;lLength : LONG;pbData : PBYTE) : LONG;
-
-    function GpiPop(hps : HPS;lCount : LONG) : BOOL;
-
-    function GpiPtVisible(hps : HPS;pptlPoint : PPOINTL) : LONG;
-
-    function GpiRectVisible(hps : HPS;prclRectangle : PRECTL) : LONG;
-
-    function GpiComment(hps : HPS;lLength : LONG;pbData : PBYTE) : BOOL;
-
-    const
        FONT_DEFAULT = 1;
        FONT_MATCH = 2;
        LCIDT_FONT = 6;
        LCIDT_BITMAP = 7;
        LCID_ALL = (-1);
 
-    type
-       KERNINGPAIRS = record
-          sFirstChar : SHORT;
-          sSecondChar : SHORT;
-          lKerningAmount : LONG;
-       end;
-
-       PKERNINGPAIRS = ^KERNINGPAIRS;
-
-       FACENAMEDESC = record
-          usSize : USHORT;
-          usWeightClass : USHORT;
-          usWidthClass : USHORT;
-          usReserved : USHORT;
-          flOptions : ULONG;
-       end;
-
-       PFACENAMEDESC = ^FACENAMEDESC;
-
-    const
        FWEIGHT_DONT_CARE = 0;
        FWEIGHT_ULTRA_LIGHT = 1;
        FWEIGHT_EXTRA_LIGHT = 2;
@@ -937,58 +405,6 @@ unit pmgpi;
        QF_NO_GENERIC = $0004;
        QF_NO_DEVICE = $0008;
 
-    type
-       FFDESCS = array[0..1,0..FACESIZE-1] of char;
-    
-       PFFDESCS = ^FFDESCS;
-
-       FFDESCS2 = record
-          cbLength : ULONG;
-          cbFacenameOffset : ULONG;
-          abFamilyName : array[0..1-1] of BYTE;
-       end;
-
-       PFFDESCS2 = ^FFDESCS2;
-
-    function GpiCreateLogFont(hps : HPS;pName : PSTR8;lLcid : LONG;pfatAttrs : PFATTRS) : LONG;
-
-    function GpiDeleteSetId(hps : HPS;lLcid : LONG) : BOOL;
-
-    function GpiLoadFonts(hab : HAB;pszFilename : PSZ) : BOOL;
-
-    function GpiUnloadFonts(hab : HAB;pszFilename : PSZ) : BOOL;
-
-    function GpiQueryFonts(hps : HPS;flOptions : ULONG;pszFacename : PSZ;plReqFonts : PLONG;lMetricsLength : LONG;afmMetrics : PFONTMETRICS) : LONG;
-
-    function GpiQueryFontMetrics(hps : HPS;lMetricsLength : LONG;pfmMetrics : PFONTMETRICS) : BOOL;
-
-    function GpiQueryKerningPairs(hps : HPS;lCount : LONG;akrnprData : PKERNINGPAIRS) : LONG;
-
-    function GpiQueryWidthTable(hps : HPS;lFirstChar : LONG;lCount : LONG;alData : PLONG) : BOOL;
-
-    function GpiQueryNumberSetIds(hps : HPS) : LONG;
-
-    function GpiQuerySetIds(hps : HPS;lCount : LONG;alTypes : PLONG;aNames : PSTR8;allcids : PLONG) : BOOL;
-
-    function GpiQueryFaceString(PS : HPS;FamilyName : PSZ;attrs : PFACENAMEDESC;length : LONG;CompoundFaceName : PSZ) : ULONG;
-
-    function GpiQueryLogicalFont(PS : HPS;lcid : LONG;name : PSTR8;attrs : PFATTRS;length : LONG) : BOOL;
-
-    function GpiQueryFontAction(anchor : HAB;options : ULONG) : ULONG;
-
-    function GpiLoadPublicFonts(p1 : HAB;p2 : PSZ) : BOOL;
-
-    function GpiUnloadPublicFonts(p1 : HAB;p2 : PSZ) : BOOL;
-
-    function GpiSetCp(hps : HPS;ulCodePage : ULONG) : BOOL;
-
-    function GpiQueryCp(hps : HPS) : ULONG;
-
-    function GpiQueryFontFileDescriptions(hab : HAB;pszFilename : PSZ;plCount : PLONG;affdescsNames : PFFDESCS) : LONG;
-
-    function GpiQueryFullFontFileDescs(hab : HAB;pszFilename : PSZ;plCount : PLONG;pNames : PVOID;plNamesBuffLength : PLONG) : LONG;
-
-    const
        ROP_SRCCOPY = $00CC;
        ROP_SRCPAINT = $00EE;
        ROP_SRCAND = $0088;
@@ -1013,49 +429,11 @@ unit pmgpi;
        FF_SURFACE = 1;
        HBM_ERROR = -1;
 
-    function GpiBitBlt(hpsTarget : HPS;hpsSource : HPS;lCount : LONG;aptlPoints : PPOINTL;lRop : LONG;flOptions : ULONG) : LONG;
-
-    function GpiDeleteBitmap(hbm : HBITMAP) : BOOL;
-
-    function GpiLoadBitmap(hps : HPS;Resource : HMODULE;idBitmap : ULONG;lWidth : LONG;lHeight : LONG) : HBITMAP;
-
-    function GpiSetBitmap(hps : HPS;hbm : HBITMAP) : HBITMAP;
-
-    function GpiWCBitBlt(hpsTarget : HPS;hbmSource : HBITMAP;lCount : LONG;aptlPoints : PPOINTL;lRop : LONG;flOptions : ULONG) : LONG;
-
-    const
+       {Bitmaps}
        CBM_INIT = $0004;
        BMB_ERROR = (-1);
 
-    function GpiCreateBitmap(hps : HPS;pbmpNew : PBITMAPINFOHEADER2;flOptions : ULONG;pbInitData : PBYTE;pbmiInfoTable : PBITMAPINFO2) : HBITMAP;
-
-    function GpiSetBitmapBits(hps : HPS;lScanStart : LONG;lScans : LONG;pbBuffer : PBYTE;pbmiInfoTable : PBITMAPINFO2) : LONG;
-
-    function GpiSetBitmapDimension(hbm : HBITMAP;psizlBitmapDimension : PSIZEL) : BOOL;
-
-    function GpiSetBitmapId(hps : HPS;hbm : HBITMAP;lLcid : LONG) : BOOL;
-
-    function GpiQueryBitmapBits(hps : HPS;lScanStart : LONG;lScans : LONG;pbBuffer : PBYTE;pbmiInfoTable : PBITMAPINFO2) : LONG;
-
-    function GpiQueryBitmapDimension(hbm : HBITMAP;psizlBitmapDimension : PSIZEL) : BOOL;
-
-    function GpiQueryBitmapHandle(hps : HPS;lLcid : LONG) : HBITMAP;
-
-    function GpiQueryBitmapParameters(hbm : HBITMAP;pbmpData : PBITMAPINFOHEADER) : BOOL;
-
-    function GpiQueryBitmapInfoHeader(hbm : HBITMAP;pbmpData : PBITMAPINFOHEADER2) : BOOL;
-
-    function GpiQueryDeviceBitmapFormats(hps : HPS;lCount : LONG;alArray : PLONG) : BOOL;
-
-    function GpiSetPel(hps : HPS;pptlPoint : PPOINTL) : LONG;
-
-    function GpiQueryPel(hps : HPS;pptlPoint : PPOINTL) : LONG;
-
-    function GpiFloodFill(hps : HPS;lOptions : LONG;lColor : LONG) : LONG;
-
-    function GpiDrawBits(hps : HPS;pBits : PVOID;pbmiInfoTable : PBITMAPINFO2;lCount : LONG;aptlPoints : PPOINTL;lRop : LONG;flOptions : ULONG) : LONG;
-
-    const
+       {Regions}                                                                                                                                          
        CRGN_OR = 1;
        CRGN_COPY = 2;
        CRGN_XOR = 4;
@@ -1065,18 +443,6 @@ unit pmgpi;
        RECTDIR_RTLF_TOPBOT = 2;
        RECTDIR_LFRT_BOTTOP = 3;
        RECTDIR_RTLF_BOTTOP = 4;
-
-    type
-       RGNRECT = record
-          ircStart : ULONG;
-          crc : ULONG;
-          crcReturned : ULONG;
-          ulDirection : ULONG;
-       end;
-
-       PRGNRECT = ^RGNRECT;
-
-    const
        RGN_ERROR = 0;
        RGN_NULL = 1;
        RGN_RECT = 2;
@@ -1092,44 +458,8 @@ unit pmgpi;
        EQRGN_NOTEQUAL = 1;
        EQRGN_EQUAL = 2;
        HRGN_ERROR = -1;
-
-    function GpiCombineRegion(hps : HPS;hrgnDest : HRGN;hrgnSrc1 : HRGN;hrgnSrc2 : HRGN;lMode : LONG) : LONG;
-
-    function GpiCreateRegion(hps : HPS;lCount : LONG;arclRectangles : PRECTL) : HRGN;
-
-    function GpiDestroyRegion(hps : HPS;hrgn : HRGN) : BOOL;
-
-    function GpiEqualRegion(hps : HPS;hrgnSrc1 : HRGN;hrgnSrc2 : HRGN) : LONG;
-
-    function GpiOffsetRegion(hps : HPS;Hrgn : HRGN;pptlOffset : PPOINTL) : BOOL;
-
-    function GpiPaintRegion(hps : HPS;hrgn : HRGN) : LONG;
-
-    function GpiFrameRegion(hps : HPS;hrgn : HRGN;thickness : PSIZEL) : LONG;
-
-    function GpiPtInRegion(hps : HPS;hrgn : HRGN;pptlPoint : PPOINTL) : LONG;
-
-    function GpiQueryRegionBox(hps : HPS;hrgn : HRGN;prclBound : PRECTL) : LONG;
-
-    function GpiQueryRegionRects(hps : HPS;hrgn : HRGN;prclBound : PRECTL;prgnrcControl : PRGNRECT;prclRect : PRECTL) : BOOL;
-
-    function GpiRectInRegion(hps : HPS;hrgn : HRGN;prclRect : PRECTL) : LONG;
-
-    function GpiSetRegion(hps : HPS;hrgn : HRGN;lcount : LONG;arclRectangles : PRECTL) : BOOL;
-
-    function GpiSetClipRegion(hps : HPS;hrgn : HRGN;phrgnOld : PHRGN) : LONG;
-
-    function GpiQueryClipRegion(hps : HPS) : HRGN;
-
-    function GpiQueryClipBox(hps : HPS;prclBound : PRECTL) : LONG;
-
-    function GpiExcludeClipRectangle(hps : HPS;prclRectangle : PRECTL) : LONG;
-
-    function GpiIntersectClipRectangle(hps : HPS;prclRectangle : PRECTL) : LONG;
-
-    function GpiOffsetClipRegion(hps : HPS;pptlPoint : PPOINTL) : LONG;
-
-    const
+       
+       {Metafiles}
        PMF_SEGBASE = 0;
        PMF_LOADTYPE = 1;
        PMF_RESOLVE = 2;
@@ -1170,326 +500,705 @@ unit pmgpi;
        DOBJ_DELETE = 2;
        RSP_DEFAULT = 0;
        RSP_NODISCARD = 1;
-
-    function GpiCopyMetaFile(hmf : HMF) : HMF;
-
-    function GpiDeleteMetaFile(hmf : HMF) : BOOL;
-
-    function GpiLoadMetaFile(hab : HAB;pszFilename : PSZ) : HMF;
-
-    function GpiPlayMetaFile(hps : HPS;hmf : HMF;lCount1 : LONG;alOptarray : PLONG;plSegCount : PLONG;lCount2 : LONG;pszDesc : PSZ) : LONG;
-
-    function GpiQueryMetaFileBits(hmf : HMF;lOffset : LONG;lLength : LONG;pbData : PBYTE) : BOOL;
-
-    function GpiQueryMetaFileLength(hmf : HMF) : LONG;
-
-    function GpiSaveMetaFile(hmf : HMF;pszFilename : PSZ) : BOOL;
-
-    function GpiSetMetaFileBits(hmf : HMF;lOffset : LONG;lLength : LONG;pbBuffer : PBYTE) : BOOL;
-
-    function GpiQueryDefArcParams(hps : HPS;parcpArcParams : PARCPARAMS) : BOOL;
-
-    function GpiQueryDefAttrs(hps : HPS;lPrimType : LONG;flAttrMask : ULONG;ppbunAttrs : PBUNDLE) : BOOL;
-
-    function GpiQueryDefTag(hps : HPS;plTag : PLONG) : BOOL;
-
-    function GpiQueryDefViewingLimits(hps : HPS;prclLimits : PRECTL) : BOOL;
-
-    function GpiSetDefArcParams(hps : HPS;parcpArcParams : PARCPARAMS) : BOOL;
-
-    function GpiSetDefAttrs(hps : HPS;lPrimType : LONG;flAttrMask : ULONG;ppbunAttrs : PBUNDLE) : BOOL;
-
-    function GpiSetDefTag(hps : HPS;lTag : LONG) : BOOL;
-
-    function GpiSetDefViewingLimits(hps : HPS;prclLimits : PRECTL) : BOOL;
-
-    type
-       POLYGON = record
-          ulPoints : ULONG;
-          aPointl : PPOINTL;
-       end;
-
-       PPOLYGON = ^POLYGON;
-
-       POLYSET = record
-          ulPolys : ULONG;
-          aPolygon : array[0..1-1] of POLYGON;
-       end;
-
-       PPOLYSET = ^POLYSET;
-
-    const
+       
+       {Polygons}
        POLYGON_NOBOUNDARY = 0;
        POLYGON_BOUNDARY = $0001;
        POLYGON_ALTERNATE = 0;
        POLYGON_WINDING = $0002;
        POLYGON_EXCL = 0;
        POLYGON_INCL = $0008;
+       
+    type
+       SIZEL = record
+          cx : longint;
+          cy : longint;
+       end;             
+       PSIZEL = ^SIZEL;
 
-    function GpiPolygons(hps : HPS;ulCount : ULONG;paplgn : PPOLYGON;flOptions : ULONG;flModel : ULONG) : LONG;
+       MATRIXLF = record
+          fxM11 : longint;
+          fxM12 : longint;
+          lM13 : longint;
+          fxM21 : longint;
+          fxM22 : longint;
+          lM23 : longint;
+          lM31 : longint;
+          lM32 : longint;
+          lM33 : longint;
+       end;
+
+       PMATRIXLF = ^MATRIXLF;
+
+       ARCPARAMS = record
+          lP : longint;
+          lQ : longint;
+          lR : longint;
+          lS : longint;
+       end;
+
+       PARCPARAMS = ^ARCPARAMS;
+
+       SIZEF = record
+          cx : longint;
+          cy : longint;
+       end;
+
+       PSIZEF = ^SIZEF;
+
+       GRADIENTL = record
+          x : longint;
+          y : longint;
+       end;
+
+       PGRADIENTL = ^GRADIENTL;
+
+       LINEBUNDLE = record
+          lColor : longint;
+          lBackColor : longint;
+          usMixMode : word;
+          usBackMixMode : word;
+          fxWidth : longint;
+          lGeomWidth : longint;
+          usType : word;
+          usEnd : word;
+          usJoin : word;
+          usReserved : word;
+       end;
+
+       PLINEBUNDLE = ^LINEBUNDLE;
+
+       CHARBUNDLE = record
+          lColor : longint;
+          lBackColor : longint;
+          usMixMode : word;
+          usBackMixMode : word;
+          usSet : word;
+          usPrecision : word;
+          sizfxCell : SIZEF;
+          ptlAngle : POINTL;
+          ptlShear : POINTL;
+          usDirection : word;
+          usTextAlign : word;
+          fxExtra : longint;
+          fxBreakExtra : longint;
+       end;
+
+       PCHARBUNDLE = ^CHARBUNDLE;
+
+       MARKERBUNDLE = record
+          lColor : longint;
+          lBackColor : longint;
+          usMixMode : word;
+          usBackMixMode : word;
+          usSet : word;
+          usSymbol : word;
+          sizfxCell : SIZEF;
+       end;
+
+       PMARKERBUNDLE = ^MARKERBUNDLE;
+
+       AREABUNDLE = record
+          lColor : longint;
+          lBackColor : longint;
+          usMixMode : word;
+          usBackMixMode : word;
+          usSet : word;
+          usSymbol : word;
+          ptlRefPoint : POINTL;
+       end;
+
+       PAREABUNDLE = ^AREABUNDLE;
+
+       IMAGEBUNDLE = record
+          lColor : longint;
+          lBackColor : longint;
+          usMixMode : word;
+          usBackMixMode : word;
+       end;
+
+       PIMAGEBUNDLE = ^IMAGEBUNDLE;
+
+       KERNINGPAIRS = record
+          sFirstChar : integer;
+          sSecondChar : integer;
+          lKerningAmount : longint;
+       end;
+
+       PKERNINGPAIRS = ^KERNINGPAIRS;
+
+       FACENAMEDESC = record
+          usSize : word;
+          usWeightClass : word;
+          usWidthClass : word;
+          usReserved : word;
+          flOptions : cardinal;
+       end;
+
+       PFACENAMEDESC = ^FACENAMEDESC;
+
+       FFDESCS = array[0..1,0..FACESIZE-1] of char;
+    
+       PFFDESCS = ^FFDESCS;
+
+       FFDESCS2 = record
+          cbLength : cardinal;
+          cbFacenameOffset : cardinal;
+          abFamilyName : array[0..1-1] of BYTE;
+       end;
+
+       PFFDESCS2 = ^FFDESCS2;
+
+       RGNRECT = record
+          ircStart : cardinal;
+          crc : cardinal;
+          crcReturned : cardinal;
+          ulDirection : cardinal;
+       end;
+
+       PRGNRECT = ^RGNRECT;
+       
+          POLYGON = record
+          ulPoints : cardinal;
+          aPointl : PPOINTL;
+       end;
+
+       PPOLYGON = ^POLYGON;
+
+       POLYSET = record
+          ulPolys : cardinal;
+          aPolygon : array[0..1-1] of POLYGON;
+       end;
+
+       PPOLYSET = ^POLYSET;
+       
+    function GpiCreatePS(hab,hdc : cardinal;psizlSize : PSIZEL;flOptions : cardinal) : cardinal;cdecl;          
+    function GpiDestroyPS(hps : cardinal) : longbool;cdecl;
+    function GpiAssociate(hps,hdc : cardinal) : longbool;cdecl;
+    function GpiRestorePS(hps : cardinal;lPSid : longint) : longbool;cdecl;
+    function GpiSavePS(hps : cardinal) : longint;cdecl;                
+    function GpiErase(hps : cardinal) : longbool;cdecl;                 
+    function GpiQueryDevice(hps : cardinal) : cardinal;cdecl;                
+    function GpiResetPS(hps,flOptions : cardinal) : longbool;cdecl; 
+    function GpiSetPS(hps : cardinal;psizlsize : PSIZEL;flOptions : cardinal) : longbool;cdecl;      
+    function GpiQueryPS(hps : cardinal;psizlSize : PSIZEL) : cardinal;cdecl;                 
+    function GpiErrorSegmentData(hps : cardinal;plSegment,plContext : plongint) : longint; cdecl;
+    function GpiQueryDrawControl(hps : cardinal;lControl : longint) : longint;cdecl;                     
+    function GpiSetDrawControl(hps : cardinal;lControl,lValue : longint) : longbool;cdecl;         
+    function GpiQueryDrawingMode(hps : cardinal) : longint;cdecl;                                     
+    function GpiSetDrawingMode(hps : cardinal;lMode : longint) : longbool;cdecl;
+    function GpiQueryStopDraw(hps : cardinal) : longint;cdecl;              
+    function GpiSetStopDraw(hps : cardinal;lValue : longint) : longbool;cdecl;                                      
+    function GpiCorrelateChain(hps : cardinal;lType : longint;pptlPick : PPOINTL;lMaxHits,lMaxDepth : longint;pl2 : plongint) : longint;cdecl;     
+    function GpiQueryTag(hps : cardinal;plTag : plongint) : longbool;cdecl;             
+    function GpiSetTag(hps : cardinal;lTag : longint) : longbool;cdecl;                 
+    function GpiQueryPickApertureSize(hps : cardinal;psizlSize : PSIZEL) : longbool; cdecl;                       
+    function GpiSetPickApertureSize(hps : cardinal;lOptions : longint;psizlSize : PSIZEL) : longbool; cdecl;         
+    function GpiQueryPickAperturePosition(hps : cardinal;pptlPoint : PPOINTL) : longbool; cdecl;                  
+    function GpiSetPickAperturePosition(hps : cardinal;pptlPick : PPOINTL) : longbool; cdecl;                     
+    function GpiQueryBoundaryData(hps : cardinal;prclBoundary : PRECTL) : longbool; cdecl;                        
+    function GpiResetBoundaryData(hps : cardinal) : longbool; cdecl;                                              
+    function GpiCorrelateFrom(hps : cardinal;lFirstSegment,lLastSegment,lType : longint;pptlPick : PPOINTL;lMaxHits,lMaxDepth : longint;plSegTag : plongint) : longint; cdecl;                
+    function GpiCorrelateSegment(hps : cardinal;lSegment,lType : longint;pptlPick : PPOINTL;lMaxHits,lMaxDepth : longint;alSegTag : plongint) : longint; cdecl;                             
+    function GpiOpenSegment(hps : cardinal;lSegment : longint) : longbool; cdecl;     
+    function GpiCloseSegment(hps : cardinal) : longbool; cdecl;                    
+    function GpiDeleteSegment(hps : cardinal;lSegid : longint) : longbool; cdecl;     
+    function GpiQueryInitialSegmentAttrs(hps : cardinal;lAttribute : longint) : longint; cdecl;      
+    function GpiSetInitialSegmentAttrs(hps : cardinal;lAttribute,lValue : longint) : longbool; cdecl;          
+    function GpiQuerySegmentAttrs(hps : cardinal;lSegid,lAttribute : longint) : longint; cdecl;               
+    function GpiSetSegmentAttrs(hps : cardinal;lSegid,lAttribute,lValue : longint) : longbool; cdecl;   
+    function GpiQuerySegmentPriority(hps : cardinal;lRefSegid,lOrder : longint) : longint; cdecl;             
+    function GpiSetSegmentPriority(hps : cardinal;lSegid,lRefSegid,lOrder : longint) : longbool; cdecl; 
+    function GpiDeleteSegments(hps : cardinal;lFirstSegment,lLastSegment : longint) : longbool; cdecl;         
+    function GpiQuerySegmentNames(hps : cardinal;lFirstSegid,lLastSegid,lMax : longint;alSegids : plongint) : longint; cdecl;        
+    function GpiGetData(hps : cardinal;lSegid : longint;plOffset : plongint;lFormat,lLength : longint;pbData : PBYTE) : longint; cdecl;        
+    function GpiPutData(hps : cardinal;lFormat : longint;plCount : plongint;pbData : PBYTE) : longint; cdecl;  
+    function GpiDrawChain(hps : cardinal) : longbool; cdecl; 
+    function GpiDrawFrom(hps : cardinal;lFirstSegment,lLastSegment : longint) : longbool; cdecl;
+    function GpiDrawSegment(hps : cardinal;lSegment : longint) : longbool; cdecl;                      
+    function GpiDrawDynamics(hps : cardinal) : longbool; cdecl;                                     
+    function GpiRemoveDynamics(hps : cardinal;lFirstSegid,lLastSegid : longint) : longbool; cdecl;
+    function GpiBeginElement(hps : cardinal;lType : longint;pszDesc : pchar) : longbool; cdecl;  
+    function GpiEndElement(hps : cardinal) : longbool; cdecl;                               
+    function GpiLabel(hps : cardinal;lLabel : longint) : longbool; cdecl;                      
+    function GpiElement(hps : cardinal;lType : longint;pszDesc : pchar;lLength : longint;pbData : PBYTE) : longint; cdecl;  
+    function GpiQueryElement(hps : cardinal;lOff,lMaxLength : longint;pbData : PBYTE) : longint; cdecl;         
+    function GpiDeleteElement(hps : cardinal) : longbool; cdecl;                                                     
+    function GpiDeleteElementRange(hps : cardinal;lFirstElement,lLastElement : longint) : longbool; cdecl;       
+    function GpiDeleteElementsBetweenLabels(hps : cardinal;lFirstLabel,lLastLabel : longint) : longbool; cdecl;  
+    function GpiQueryEditMode(hps : cardinal) : longint; cdecl;                                                    
+    function GpiSetEditMode(hps : cardinal;lMode : longint) : longbool; cdecl;                                         
+    function GpiQueryElementPointer(hps : cardinal) : longint; cdecl;                                              
+    function GpiSetElementPointer(hps : cardinal;lElement : longint) : longbool; cdecl;                                
+    function GpiOffsetElementPointer(hps : cardinal;loffset : longint) : longbool; cdecl;                              
+    function GpiQueryElementType(hps : cardinal;plType : plongint;lLength : longint;pszData : pchar) : longint; cdecl;
+    function GpiSetElementPointerAtLabel(hps : cardinal;lLabel : longint) : longbool; cdecl;
+    function GpiQuerySegmentTransformMatrix(hps : cardinal;lSegid,lCount : longint;pmatlfArray : PMATRIXLF) : longbool; cdecl;  
+    function GpiSetSegmentTransformMatrix(hps : cardinal;lSegid,lCount : longint;pmatlfarray : PMATRIXLF;lOptions : longint) : longbool; cdecl;        
+    function GpiConvert(hps : cardinal;lSrc,lTarg,lCount : longint;aptlPoints : PPOINTL) : longbool; cdecl;                                  
+    function GpiConvertWithMatrix(hps : cardinal;lCountp : longint;aptlPoints : PPOINTL;lCount : longint;pmatlfArray : PMATRIXLF) : longbool; cdecl;          
+    function GpiQueryModelTransformMatrix(hps : cardinal;lCount : longint;pmatlfArray : PMATRIXLF) : longbool; cdecl;                                      
+    function GpiSetModelTransformMatrix(hps : cardinal;lCount : longint;pmatlfArray : PMATRIXLF;lOptions : longint) : longbool; cdecl;                        
+    function GpiCallSegmentMatrix(hps : cardinal;lSegment,lCount : longint;pmatlfArray : PMATRIXLF;lOptions : longint) : longint; cdecl;              
+    function GpiQueryDefaultViewMatrix(hps : cardinal;lCount : longint;pmatlfArray : PMATRIXLF) : longbool; cdecl;                                         
+    function GpiSetDefaultViewMatrix(hps : cardinal;lCount : longint;pmatlfarray : PMATRIXLF;lOptions : longint) : longbool; cdecl;                           
+    function GpiQueryPageViewport(hps : cardinal;prclViewport : PRECTL) : longbool; cdecl;
+    function GpiSetPageViewport(hps : cardinal;prclViewport : PRECTL) : longbool; cdecl;  
+    function GpiQueryViewingTransformMatrix(hps : cardinal;lCount : longint;pmatlfArray : PMATRIXLF) : longbool; cdecl; 
+    function GpiSetViewingTransformMatrix(hps : cardinal;lCount : longint;pmatlfArray : PMATRIXLF;lOptions : longint) : longbool; cdecl;   
+    function GpiTranslate(hps : cardinal;pmatrixlf : PMATRIXLF;long : longint;ppointl : PPOINTL) : longbool; cdecl;                     
+    function GpiScale(hps : cardinal;p1 : PMATRIXLF;p2 : longint;p3 : plongint;p4 : PPOINTL) : longbool; cdecl;                           
+    function GpiRotate(p1 : cardinal;p2 : PMATRIXLF;p3,p4 : longint;p5 : PPOINTL) : longbool; cdecl;                            
+    function GpiSetGraphicsField(hps : cardinal;prclField : PRECTL) : longbool; cdecl;                                               
+    function GpiQueryGraphicsField(hps : cardinal;prclField : PRECTL) : longbool; cdecl;                                             
+    function GpiSetViewingLimits(hps : cardinal;prclLimits : PRECTL) : longbool; cdecl;                                              
+    function GpiQueryViewingLimits(hps : cardinal;prclLimits : PRECTL) : longbool; cdecl;                                            
+    function GpiBeginPath(hps : cardinal;lPath : longint) : longbool; cdecl;
+    function GpiEndPath(hps : cardinal) : longbool; cdecl;               
+    function GpiCloseFigure(hps : cardinal) : longbool; cdecl;           
+    function GpiModifyPath(hps : cardinal;lPath,lMode : longint) : longbool; cdecl; 
+    function GpiFillPath(hps : cardinal;lPath,lOptions : longint) : longint; cdecl;
+    function GpiSetClipPath(hps : cardinal;lPath,lOptions : longint) : longbool; cdecl; 
+    function GpiOutlinePath(hps : cardinal;lPath,lOptions : longint) : longint; cdecl; 
+    function GpiPathToRegion(GpiH : cardinal;lPath,lOptions : longint) : cardinal; cdecl;
+    function GpiStrokePath(hps : cardinal;lPath : longint;flOptions : cardinal) : longint; cdecl; 
+    function GpiCreateLogColorTable(hps,flOptions : cardinal;lFormat,lStart,lCount : longint;alTable : plongint) : longbool; cdecl; 
+    function GpiQueryColorData(hps : cardinal;lCount : longint;alArray : plongint) : longbool; cdecl;                                                     
+    function GpiQueryLogColorTable(hps,flOptions : cardinal;lStart,lCount : longint;alArray : plongint) : longint; cdecl;                 
+    function GpiQueryRealColors(hps,flOptions : cardinal;lStart,lCount : longint;alColors : plongint) : longint; cdecl;                   
+    function GpiQueryNearestColor(hps,flOptions : cardinal;lRgbIn : longint) : longint; cdecl;                                                
+    function GpiQueryColorIndex(hps,flOptions : cardinal;lRgbColor : longint) : longint; cdecl;                                               
+    function GpiQueryRGBColor(hps,flOptions : cardinal;lColorIndex : longint) : longint; cdecl;                                               
+    function GpiCreatePalette(hab,flOptions,ulFormat,ulCount : cardinal;aulTable : pcardinal) : cardinal; cdecl;      
+    function GpiDeletePalette(hpal : cardinal) : longbool; cdecl;                                                                         
+    function GpiSelectPalette(hps,hpal : cardinal) : cardinal; cdecl;                                                               
+    function GpiAnimatePalette(hpal,ulFormat,ulStart,ulCount : cardinal;aulTable : pcardinal) : longint; cdecl;     
+    function GpiSetPaletteEntries(hpal,ulFormat,ulStart,ulCount : cardinal;aulTable : pcardinal) : longbool; cdecl;  
+    function GpiQueryPalette(hps : cardinal) : cardinal; cdecl;        
+    function GpiQueryPaletteInfo(hpal,hps,flOptions,ulStart,ulCount : cardinal;aulArray : pcardinal) : longint; cdecl;
+    function GpiSetColor(hps : cardinal;lColor : longint) : longbool; cdecl;  
+    function GpiQueryColor(hps : cardinal) : longint; cdecl;              
+    function GpiBox(hps : cardinal;lControl : longint;pptlPoint : PPOINTL;lHRound,lVRound : longint) : longint; cdecl;
+    function GpiMove(hps : cardinal;pptlPoint : PPOINTL) : longbool; cdecl;                                             
+    function GpiLine(hps : cardinal;pptlEndPoint : PPOINTL) : longint; cdecl;                                          
+    function GpiPolyLine(hps : cardinal;lCount : longint;aptlPoints : PPOINTL) : longint; cdecl;                          
+    function GpiPolyLineDisjoint(hps : cardinal;lCount : longint;aptlPoints : PPOINTL) : longint; cdecl;                  
+    function GpiSetPattern(hps : cardinal;lPatternSymbol : longint) : longbool; cdecl;                                     
+    function GpiQueryPattern(hps : cardinal) : longint;  cdecl;                                                        
+    function GpiBeginArea(hps,flOptions : cardinal) : longbool; cdecl;                                          
+    function GpiEndArea(hps : cardinal) : longint; cdecl;                                                              
+    function GpiCharString(hps : cardinal;lCount : longint;pchString : pshortint) : longint; cdecl;                             
+    function GpiCharStringAt(hps : cardinal;pptlPoint : PPOINTL;lCount : longint;pchString : pshortint) : longint; cdecl;      
+    function GpiSetAttrMode(hps : cardinal;lMode : longint) : longbool; cdecl; 
+    function GpiQueryAttrMode(hps : cardinal) : longint; cdecl;            
+    function GpiSetAttrs(hps : cardinal;lPrimType : longint;flAttrMask,flDefMask : cardinal;ppbunAttrs : pointer) : longbool; cdecl;
+    function GpiQueryAttrs(hps : cardinal;lPrimType : longint;flAttrMask : cardinal;ppbunAttrs : pointer) : longint; cdecl;                
+    function GpiSetBackColor(hps : cardinal;lColor : longint) : longbool; cdecl;                                                         
+    function GpiQueryBackColor(hps : cardinal) : longint; cdecl;                                                                     
+    function GpiSetMix(hps : cardinal;lMixMode : longint) : longbool; cdecl;                                                             
+    function GpiQueryMix(hps : cardinal) : longint; cdecl;                                                                           
+    function GpiSetBackMix(hps : cardinal;lMixMode : longint) : longbool; cdecl;  
+    
+    function GpiQueryBackMix(hps : cardinal) : longint; cdecl;                
+    function GpiSetLineType(hps : cardinal;lLineType : longint) : longbool; cdecl; 
+    function GpiQueryLineType(hps : cardinal) : longint; cdecl;                
+    function GpiSetLineWidth(hps : cardinal;fxLineWidth : longint) : longbool; cdecl;
+    function GpiQueryLineWidth(hps : cardinal) : longint; cdecl;                 
+    function GpiSetLineWidthGeom(hps : cardinal;lLineWidth : longint) : longbool; cdecl; 
+    function GpiQueryLineWidthGeom(hps : cardinal) : longint; cdecl;                 
+    function GpiSetLineEnd(hps : cardinal;lLineEnd : longint) : longbool; cdecl;         
+    function GpiQueryLineEnd(hps : cardinal) : longint; cdecl;                       
+    function GpiSetLineJoin(hps : cardinal;lLineJoin : longint) : longbool; cdecl;       
+    function GpiQueryLineJoin(hps : cardinal) : longint; cdecl;                      
+    function GpiSetCurrentPosition(hps : cardinal;pptlPoint : PPOINTL) : longbool; cdecl; 
+    function GpiQueryCurrentPosition(hps : cardinal;pptlPoint : PPOINTL) : longbool; cdecl;
+    function GpiSetArcParams(hps : cardinal;parcpArcParams : PARCPARAMS) : longbool; cdecl;
+    function GpiQueryArcParams(hps : cardinal;parcpArcParams : PARCPARAMS) : longbool; cdecl; 
+    function GpiPointArc(hps : cardinal;pptl2 : PPOINTL) : longint; cdecl;                   
+    function GpiFullArc(hps : cardinal;lControl,fxMultiplier : longint) : longint; cdecl;  
+    function GpiPartialArc(hps : cardinal;pptlCenter : PPOINTL;fxMultiplier,fxStartAngle,fxSweepAngle : longint) : longint; cdecl;
+    function GpiPolyFillet(hps : cardinal;lCount : longint;aptlPoints : PPOINTL) : longint; cdecl;                                                 
+    function GpiPolySpline(hps : cardinal;lCount : longint;aptlPoints : PPOINTL) : longint; cdecl;                                                 
+    function GpiPolyFilletSharp(hps : cardinal;lCount : longint;aptlPoints : PPOINTL;afxPoints : plongint) : longint; cdecl;                         
+    function GpiSetPatternSet(hps : cardinal;lSet : longint) : longbool; cdecl;   
+    function GpiQueryPatternSet(hps : cardinal) : longint; cdecl;             
+    function GpiSetPatternRefPoint(hps : cardinal;pptlRefPoint : PPOINTL) : longbool; cdecl;   
+    function GpiQueryPatternRefPoint(hps : cardinal;pptlRefPoint : PPOINTL) : longbool; cdecl; 
+    function GpiQueryCharStringPos(hps,flOptions : cardinal;lCount : longint;pchString : pshortint;alXincrements : plongint;aptlPositions : PPOINTL) : longbool; cdecl;     
+    function GpiQueryCharStringPosAt(hps : cardinal;pptlStart : PPOINTL;flOptions : cardinal;lCount : longint;pchString : pshortint;alXincrements : plongint;aptlPositions : PPOINTL) : longbool; cdecl; 
+    function GpiQueryTextBox(hps : cardinal;lCount1 : longint;pchString : pshortint;lCount2 : longint;aptlPoints : PPOINTL) : longbool; cdecl;                                                        
+    function GpiQueryDefCharBox(hps : cardinal;psizlSize : PSIZEL) : longbool; cdecl;                                                                                                     
+    function GpiSetCharSet(hps : cardinal;llcid : longint) : longbool; cdecl;                                                                                                                
+    function GpiQueryCharSet(hps : cardinal) : longint; cdecl;                                    
+    function GpiSetCharBox(hps : cardinal;psizfxBox : PSIZEF) : longbool; cdecl;                   
+    function GpiQueryCharBox(hps : cardinal;psizfxSize : PSIZEF) : longbool; cdecl;                
+    function GpiSetCharAngle(hps : cardinal;pgradlAngle : PGRADIENTL) : longbool; cdecl;           
+    function GpiQueryCharAngle(hps : cardinal;pgradlAngle : PGRADIENTL) : longbool; cdecl;         
+    function GpiSetCharShear(hps : cardinal;pptlAngle : PPOINTL) : longbool; cdecl;                
+    function GpiQueryCharShear(hps : cardinal;pptlShear : PPOINTL) : longbool; cdecl;              
+    function GpiSetCharDirection(hps : cardinal;lDirection : longint) : longbool; cdecl;              
+    function GpiQueryCharDirection(hps : cardinal) : longint; cdecl;                              
+    function GpiSetCharMode(hps : cardinal;lMode : longint) : longbool; cdecl;                        
+    function GpiQueryCharMode(hps : cardinal) : longint; cdecl;                                   
+    function GpiSetTextAlignment(hps : cardinal;lHoriz,lVert : longint) : longbool; cdecl;     
+    function GpiQueryTextAlignment(hps : cardinal;plHoriz,plVert : plongint) : longbool; cdecl; 
+    function GpiCharStringPos(hps : cardinal;prclRect : PRECTL;flOptions : cardinal;lCount : longint;pchString : pshortint;alAdx : plongint) : longint; cdecl;      
+    function GpiCharStringPosAt(hps : cardinal;pptlStart : PPOINTL;prclRect : PRECTL;flOptions : cardinal;lCount : longint;pchString : pshortint;alAdx : plongint) : longint; cdecl;       
+    function GpiSetCharExtra(hps : cardinal;Extra : longint) : longbool;  cdecl;                 
+    function GpiSetCharBreakExtra(hps : cardinal;BreakExtra : longint) : longbool; cdecl;        
+    function GpiQueryCharExtra(hps : cardinal;Extra : plongint) : longbool; cdecl;               
+    function GpiQueryCharBreakExtra(hps : cardinal;BreakExtra : plongint) : longbool; cdecl;     
+    function GpiMarker(hps : cardinal;pptlPoint : PPOINTL) : longint; cdecl;                  
+    function GpiPolyMarker(hps : cardinal;lCount : longint;aptlPoints : PPOINTL) : longint; cdecl;
+    function GpiSetMarker(hps : cardinal;lSymbol : longint) : longbool; cdecl;                     
+    function GpiSetMarkerBox(hps : cardinal;psizfxSize : PSIZEF) : longbool; cdecl;             
+    function GpiSetMarkerSet(hps : cardinal;lSet : longint) : longbool; cdecl;                     
+    function GpiQueryMarker(hps : cardinal) : longint; cdecl;                                  
+    function GpiQueryMarkerBox(hps : cardinal;psizfxSize : PSIZEF) : longbool; cdecl;           
+    function GpiQueryMarkerSet(hps : cardinal) : longint; cdecl;                               
+    function GpiImage(hps : cardinal;lFormat : longint;psizlImageSize : PSIZEL;lLength : longint;pbData : PBYTE) : longint; cdecl;     
+    function GpiPop(hps : cardinal;lCount : longint) : longbool; cdecl;                                                              
+    function GpiPtVisible(hps : cardinal;pptlPoint : PPOINTL) : longint; cdecl;                                                  
+    function GpiRectVisible(hps : cardinal;prclRectangle : PRECTL) : longint; cdecl;                                             
+    function GpiComment(hps : cardinal;lLength : longint;pbData : PBYTE) : longbool; cdecl;
+    function GpiCreateLogFont(hps : cardinal;pName : PSTR8;lLcid : longint;pfatAttrs : PFATTRS) : longint; cdecl;   
+    function GpiDeleteSetId(hps : cardinal;lLcid : longint) : longbool; cdecl;                                       
+    function GpiLoadFonts(hab : cardinal;pszFilename : pchar) : longbool; cdecl;                                    
+    function GpiUnloadFonts(hab : cardinal;pszFilename : pchar) : longbool; cdecl;                                  
+    function GpiQueryFonts(hps,flOptions : cardinal;pszFacename : pchar;plReqFonts : plongint;lMetricsLength : longint;afmMetrics : PFONTMETRICS) : longint; cdecl;        
+    function GpiQueryFontMetrics(hps : cardinal;lMetricsLength : longint;pfmMetrics : PFONTMETRICS) : longbool; cdecl;                                                         
+    function GpiQueryKerningPairs(hps : cardinal;lCount : longint;akrnprData : PKERNINGPAIRS) : longint; cdecl;                                                               
+    function GpiQueryWidthTable(hps : cardinal;lFirstChar,lCount : longint;alData : plongint) : longbool; cdecl;                                                           
+    function GpiQueryNumberSetIds(hps : cardinal) : longint; cdecl;     
+    function GpiQuerySetIds(hps : cardinal;lCount : longint;alTypes : plongint;aNames : PSTR8;allcids : plongint) : longbool; cdecl;  
+    function GpiQueryFaceString(PS : cardinal;FamilyName : pchar;attrs : PFACENAMEDESC;length : longint;CompoundFaceName : pchar) : cardinal; cdecl;
+    function GpiQueryLogicalFont(PS : cardinal;lcid : longint;name : PSTR8;attrs : PFATTRS;length : longint) : longbool; cdecl; 
+    function GpiQueryFontAction(anchor,options : cardinal) : cardinal; cdecl;                                    
+    function GpiLoadPublicFonts(p1 : cardinal;p2 : pchar);longbool; cdecl;                                                
+    function GpiUnloadPublicFonts(p1 : cardinal;p2 : pchar) : longbool; cdecl;                                              
+    function GpiSetCp(hps,ulCodePage : cardinal) : longbool;  cdecl;                                              
+    function GpiQueryCp(hps : cardinal) : cardinal; cdecl;                                                               
+    function GpiQueryFontFileDescriptions(hab : cardinal;pszFilename : pchar;plCount : plongint;affdescsNames : PFFDESCS) : longint;  cdecl; 
+    function GpiQueryFullFontFileDescs(hab : cardinal;pszFilename : pchar;plCount : plongint;pNames : pointer;plNamesBuffLength : plongint) : longint; cdecl;  
+    function GpiBitBlt(hpsTarget,hpsSource : cardinal;lCount : longint;aptlPoints : PPOINTL;lRop : longint;flOptions : cardinal) : longint; cdecl;             
+    function GpiDeleteBitmap(hbm : cardinal) : longbool; cdecl;                                                                                          
+    function GpiLoadBitmap(hps,Resource,idBitmap : cardinal;lWidth,lHeight : longint) : cardinal; cdecl;                            
+    function GpiSetBitmap(hps,hbm : cardinal) : cardinal; cdecl; 
+    function GpiWCBitBlt(hpsTarget,hbmSource : cardinal;lCount : longint;aptlPoints : PPOINTL;lRop : longint;flOptions : cardinal) : longint; cdecl;
+    function GpiCreateBitmap(hps : cardinal;pbmpNew : PBITMAPINFOHEADER2;flOptions : cardinal;pbInitData : PBYTE;pbmiInfoTable : PBITMAPINFO2) : cardinal; cdecl;
+    function GpiSetBitmapBits(hps : cardinal;lScanStart,lScans : longint;pbBuffer : PBYTE;pbmiInfoTable : PBITMAPINFO2) : longint; cdecl;                   
+    function GpiSetBitmapDimension(hbm : cardinal;psizlBitmapDimension : PSIZEL) : longbool; cdecl;                                                          
+    function GpiSetBitmapId(hps,hbm : cardinal;lLcid : longint) : longbool; cdecl;                                                                        
+    function GpiQueryBitmapBits(hps : cardinal;lScanStart,lScans : longint;pbBuffer : PBYTE;pbmiInfoTable : PBITMAPINFO2) : longint; cdecl;                 
+    function GpiQueryBitmapDimension(hbm : cardinal;psizlBitmapDimension : PSIZEL) : longbool; cdecl;                                                        
+    function GpiQueryBitmapHandle(hps : cardinal;lLcid : longint) : cardinal;  cdecl;                                                                            
+    function GpiQueryBitmapParameters(hbm : cardinal;pbmpData : PBITMAPINFOHEADER) : longbool; cdecl;                                                        
+    function GpiQueryBitmapInfoHeader(hbm : cardinal;pbmpData : PBITMAPINFOHEADER2) : longbool; cdecl;                                                       
+    function GpiQueryDeviceBitmapFormats(hps : cardinal;lCount : longint;alArray : plongint) : longbool; cdecl;                                                        
+    function GpiSetPel(hps : cardinal;pptlPoint : PPOINTL) : longint; cdecl;                                                                                    
+    function GpiQueryPel(hps : cardinal;pptlPoint : PPOINTL) : longint; cdecl;                                                                                  
+    function GpiFloodFill(hps : cardinal;lOptions,lColor : longint) : longint; cdecl;                                                                       
+    function GpiDrawBits(hps : cardinal;pBits : pointer;pbmiInfoTable : PBITMAPINFO2;lCount : longint;aptlPoints : PPOINTL;lRop : longint;flOptions : cardinal) : longint; cdecl; 
+    function GpiCombineRegion(hps,hrgnDest,hrgnSrc1,hrgnSrc2 : cardinal;lMode : longint) : longint;  cdecl;
+    function GpiCreateRegion(hps : cardinal;lCount : longint;arclRectangles : PRECTL) : cardinal;  cdecl;                        
+    function GpiDestroyRegion(hps,hrgn : cardinal) : longbool;  cdecl;                                                 
+    function GpiEqualRegion(hps,hrgnSrc1,hrgnSrc2 : cardinal) : longint; cdecl;                                
+    function GpiOffsetRegion(hps,Hrgn : cardinal;pptlOffset : PPOINTL) : longbool; cdecl;                              
+    function GpiPaintRegion(hps,hrgn : cardinal) : longint; cdecl;                                                    
+    function GpiFrameRegion(hps,hrgn : cardinal;thickness : PSIZEL) : longint; cdecl;                                 
+    function GpiPtInRegion(hps,hrgn : cardinal;pptlPoint : PPOINTL) : longint; cdecl;                                 
+    function GpiQueryRegionBox(hps,hrgn : cardinal;prclBound : PRECTL) : longint; cdecl;                              
+    function GpiQueryRegionRects(hps,hrgn : cardinal;prclBound : PRECTL;prgnrcControl : PRGNRECT;prclRect : PRECTL) : longbool; cdecl;     
+    function GpiRectInRegion(hps,hrgn : cardinal;prclRect : PRECTL) : longint; cdecl;                                                     
+    function GpiSetRegion(hps,hrgn : cardinal;lcount : longint;arclRectangles : PRECTL) : longbool;cdecl;  
+    function GpiSetClipRegion(hps,hrgn : cardinal;phrgnOld : pcardinal) : longint; cdecl;                  
+    function GpiQueryClipRegion(hps : cardinal) : cardinal;  cdecl;                                            
+    function GpiQueryClipBox(hps : cardinal;prclBound : PRECTL) : longint; cdecl;                             
+    function GpiExcludeClipRectangle(hps : cardinal;prclRectangle : PRECTL) : longint; cdecl;                 
+    function GpiIntersectClipRectangle(hps : cardinal;prclRectangle : PRECTL) : longint; cdecl;               
+    function GpiOffsetClipRegion(hps : cardinal;pptlPoint : PPOINTL) : longint; cdecl;                        
+    function GpiCopyMetaFile(hmf : cardinal) : cardinal; cdecl;                       
+    function GpiDeleteMetaFile(hmf : cardinal) : longbool; cdecl;                    
+    function GpiLoadMetaFile(hab : cardinal;pszFilename : pchar) : cardinal; cdecl;     
+    function GpiPlayMetaFile(hps,hmf : cardinal;lCount1 : longint;alOptarray,plSegCount : plongint;lCount2 : longint;pszDesc : pchar) : longint;  cdecl;  
+    function GpiQueryMetaFileBits(hmf : cardinal;lOffset,lLength : longint;pbData : PBYTE) : longbool;  cdecl;                                            
+    function GpiQueryMetaFileLength(hmf : cardinal) : longint;  cdecl;                                                                                       
+    function GpiSaveMetaFile(hmf : cardinal;pszFilename : pchar) : longbool; cdecl;                                                                             
+    function GpiSetMetaFileBits(hmf : cardinal;lOffset,lLength : longint;pbBuffer : PBYTE) : longbool; cdecl;                                             
+    function GpiQueryDefArcParams(hps : cardinal;parcpArcParams : PARCPARAMS) : longbool; cdecl;                                                              
+    function GpiQueryDefAttrs(hps : cardinal;lPrimType : longint;flAttrMask : cardinal;ppbunAttrs : pointer) : longbool; cdecl;                                     
+    function GpiQueryDefTag(hps : cardinal;plTag : plongint) : longbool; cdecl;                                                                                  
+    function GpiQueryDefViewingLimits(hps : cardinal;prclLimits : PRECTL) : longbool; cdecl;                                                                  
+    function GpiSetDefArcParams(hps : cardinal;parcpArcParams : PARCPARAMS) : longbool; cdecl;                                                                
+    function GpiSetDefAttrs(hps : cardinal;lPrimType : longint;flAttrMask : cardinal;ppbunAttrs : pointer) : longbool;cdecl;                                        
+    function GpiSetDefTag(hps : cardinal;lTag : longint) : longbool; cdecl;                                                                                      
+    function GpiSetDefViewingLimits(hps : cardinal;prclLimits : PRECTL) : longbool; cdecl;                                          
+    function GpiPolygons(hps,ulCount : cardinal;paplgn : PPOLYGON;flOptions,flModel : cardinal) : longint; cdecl;
 
   implementation
 
-    function GpiCreatePS(hab : HAB;hdc : HDC;psizlSize : PSIZEL;flOptions : ULONG) : HPS;[SYSTEM];
-    function GpiDestroyPS(hps : HPS) : BOOL;[SYSTEM];
-    function GpiAssociate(hps : HPS;hdc : HDC) : BOOL;[SYSTEM];
-    function GpiRestorePS(hps : HPS;lPSid : LONG) : BOOL;[SYSTEM];
-    function GpiSavePS(hps : HPS) : LONG;[SYSTEM];
-    function GpiErase(hps : HPS) : BOOL;[SYSTEM];
-    function GpiQueryDevice(hps : HPS) : HDC;[SYSTEM];
-    function GpiResetPS(hps : HPS;flOptions : ULONG) : BOOL;[SYSTEM];
-    function GpiSetPS(hps : HPS;psizlsize : PSIZEL;flOptions : ULONG) : BOOL;[SYSTEM];
-    function GpiQueryPS(hps : HPS;psizlSize : PSIZEL) : ULONG;[SYSTEM];
-    function GpiErrorSegmentData(hps : HPS;plSegment : PLONG;plContext : PLONG) : LONG;[SYSTEM];
-    function GpiQueryDrawControl(hps : HPS;lControl : LONG) : LONG;[SYSTEM];
-    function GpiSetDrawControl(hps : HPS;lControl : LONG;lValue : LONG) : BOOL;[SYSTEM];
-    function GpiQueryDrawingMode(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetDrawingMode(hps : HPS;lMode : LONG) : BOOL;[SYSTEM];
-    function GpiQueryStopDraw(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetStopDraw(hps : HPS;lValue : LONG) : BOOL;[SYSTEM];
-    function GpiCorrelateChain(hps : HPS;lType : LONG;pptlPick : PPOINTL;lMaxHits : LONG;lMaxDepth : LONG;pl2 : PLONG) : LONG;[SYSTEM];
-    function GpiQueryTag(hps : HPS;plTag : PLONG) : BOOL;[SYSTEM];
-    function GpiSetTag(hps : HPS;lTag : LONG) : BOOL;[SYSTEM];
-    function GpiQueryPickApertureSize(hps : HPS;psizlSize : PSIZEL) : BOOL;[SYSTEM];
-    function GpiSetPickApertureSize(hps : HPS;lOptions : LONG;psizlSize : PSIZEL) : BOOL;[SYSTEM];
-    function GpiQueryPickAperturePosition(hps : HPS;pptlPoint : PPOINTL) : BOOL;[SYSTEM];
-    function GpiSetPickAperturePosition(hps : HPS;pptlPick : PPOINTL) : BOOL;[SYSTEM];
-    function GpiQueryBoundaryData(hps : HPS;prclBoundary : PRECTL) : BOOL;[SYSTEM];
-    function GpiResetBoundaryData(hps : HPS) : BOOL;[SYSTEM];
-    function GpiCorrelateFrom(hps : HPS;lFirstSegment : LONG;lLastSegment : LONG;lType : LONG;pptlPick : PPOINTL;lMaxHits : LONG;lMaxDepth : LONG;plSegTag : PLONG) : LONG;[SYSTEM];
-    function GpiCorrelateSegment(hps : HPS;lSegment : LONG;lType : LONG;pptlPick : PPOINTL;lMaxHits : LONG;lMaxDepth : LONG;alSegTag : PLONG) : LONG;[SYSTEM];
-    function GpiOpenSegment(hps : HPS;lSegment : LONG) : BOOL;[SYSTEM];
-    function GpiCloseSegment(hps : HPS) : BOOL;[SYSTEM];
-    function GpiDeleteSegment(hps : HPS;lSegid : LONG) : BOOL;[SYSTEM];
-    function GpiQueryInitialSegmentAttrs(hps : HPS;lAttribute : LONG) : LONG;[SYSTEM];
-    function GpiSetInitialSegmentAttrs(hps : HPS;lAttribute : LONG;lValue : LONG) : BOOL;[SYSTEM];
-    function GpiQuerySegmentAttrs(hps : HPS;lSegid : LONG;lAttribute : LONG) : LONG;[SYSTEM];
-    function GpiSetSegmentAttrs(hps : HPS;lSegid : LONG;lAttribute : LONG;lValue : LONG) : BOOL;[SYSTEM];
-    function GpiQuerySegmentPriority(hps : HPS;lRefSegid : LONG;lOrder : LONG) : LONG;[SYSTEM];
-    function GpiSetSegmentPriority(hps : HPS;lSegid : LONG;lRefSegid : LONG;lOrder : LONG) : BOOL;[SYSTEM];
-    function GpiDeleteSegments(hps : HPS;lFirstSegment : LONG;lLastSegment : LONG) : BOOL;[SYSTEM];
-    function GpiQuerySegmentNames(hps : HPS;lFirstSegid : LONG;lLastSegid : LONG;lMax : LONG;alSegids : PLONG) : LONG;[SYSTEM];
-    function GpiGetData(hps : HPS;lSegid : LONG;plOffset : PLONG;lFormat : LONG;lLength : LONG;pbData : PBYTE) : LONG;[SYSTEM];
-    function GpiPutData(hps : HPS;lFormat : LONG;plCount : PLONG;pbData : PBYTE) : LONG;[SYSTEM];
-    function GpiDrawChain(hps : HPS) : BOOL;[SYSTEM];
-    function GpiDrawFrom(hps : HPS;lFirstSegment : LONG;lLastSegment : LONG) : BOOL;[SYSTEM];
-    function GpiDrawSegment(hps : HPS;lSegment : LONG) : BOOL;[SYSTEM];
-    function GpiDrawDynamics(hps : HPS) : BOOL;[SYSTEM];
-    function GpiRemoveDynamics(hps : HPS;lFirstSegid : LONG;lLastSegid : LONG) : BOOL;[SYSTEM];
-    function GpiBeginElement(hps : HPS;lType : LONG;pszDesc : PSZ) : BOOL;[SYSTEM];
-    function GpiEndElement(hps : HPS) : BOOL;[SYSTEM];
-    function GpiLabel(hps : HPS;lLabel : LONG) : BOOL;[SYSTEM];
-    function GpiElement(hps : HPS;lType : LONG;pszDesc : PSZ;lLength : LONG;pbData : PBYTE) : LONG;[SYSTEM];
-    function GpiQueryElement(hps : HPS;lOff : LONG;lMaxLength : LONG;pbData : PBYTE) : LONG;[SYSTEM];
-    function GpiDeleteElement(hps : HPS) : BOOL;[SYSTEM];
-    function GpiDeleteElementRange(hps : HPS;lFirstElement : LONG;lLastElement : LONG) : BOOL;[SYSTEM];
-    function GpiDeleteElementsBetweenLabels(hps : HPS;lFirstLabel : LONG;lLastLabel : LONG) : BOOL;[SYSTEM];
-    function GpiQueryEditMode(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetEditMode(hps : HPS;lMode : LONG) : BOOL;[SYSTEM];
-    function GpiQueryElementPointer(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetElementPointer(hps : HPS;lElement : LONG) : BOOL;[SYSTEM];
-    function GpiOffsetElementPointer(hps : HPS;loffset : LONG) : BOOL;[SYSTEM];
-    function GpiQueryElementType(hps : HPS;plType : PLONG;lLength : LONG;pszData : PSZ) : LONG;[SYSTEM];
-    function GpiSetElementPointerAtLabel(hps : HPS;lLabel : LONG) : BOOL;[SYSTEM];
-    function GpiQuerySegmentTransformMatrix(hps : HPS;lSegid : LONG;lCount : LONG;pmatlfArray : PMATRIXLF) : BOOL;[SYSTEM];
-    function GpiSetSegmentTransformMatrix(hps : HPS;lSegid : LONG;lCount : LONG;pmatlfarray : PMATRIXLF;lOptions : LONG) : BOOL;[SYSTEM];
-    function GpiConvert(hps : HPS;lSrc : LONG;lTarg : LONG;lCount : LONG;aptlPoints : PPOINTL) : BOOL;[SYSTEM];
-    function GpiConvertWithMatrix(hps : HPS;lCountp : LONG;aptlPoints : PPOINTL;lCount : LONG;pmatlfArray : PMATRIXLF) : BOOL;[SYSTEM];
-    function GpiQueryModelTransformMatrix(hps : HPS;lCount : LONG;pmatlfArray : PMATRIXLF) : BOOL;[SYSTEM];
-    function GpiSetModelTransformMatrix(hps : HPS;lCount : LONG;pmatlfArray : PMATRIXLF;lOptions : LONG) : BOOL;[SYSTEM];
-    function GpiCallSegmentMatrix(hps : HPS;lSegment : LONG;lCount : LONG;pmatlfArray : PMATRIXLF;lOptions : LONG) : LONG;[SYSTEM];
-    function GpiQueryDefaultViewMatrix(hps : HPS;lCount : LONG;pmatlfArray : PMATRIXLF) : BOOL;[SYSTEM];
-    function GpiSetDefaultViewMatrix(hps : HPS;lCount : LONG;pmatlfarray : PMATRIXLF;lOptions : LONG) : BOOL;[SYSTEM];
-    function GpiQueryPageViewport(hps : HPS;prclViewport : PRECTL) : BOOL;[SYSTEM];
-    function GpiSetPageViewport(hps : HPS;prclViewport : PRECTL) : BOOL;[SYSTEM];
-    function GpiQueryViewingTransformMatrix(hps : HPS;lCount : LONG;pmatlfArray : PMATRIXLF) : BOOL;[SYSTEM];
-    function GpiSetViewingTransformMatrix(hps : HPS;lCount : LONG;pmatlfArray : PMATRIXLF;lOptions : LONG) : BOOL;[SYSTEM];
-    function GpiTranslate(hps : HPS;pmatrixlf : PMATRIXLF;long : LONG;ppointl : PPOINTL) : BOOL;[SYSTEM];
-    function GpiScale(hps : HPS;p1 : PMATRIXLF;p2 : LONG;p3 : PFIXED;p4 : PPOINTL) : BOOL;[SYSTEM];
-    function GpiRotate(p1 : HPS;p2 : PMATRIXLF;p3 : LONG;p4 : FIXED;p5 : PPOINTL) : BOOL;[SYSTEM];
-    function GpiSetGraphicsField(hps : HPS;prclField : PRECTL) : BOOL;[SYSTEM];
-    function GpiQueryGraphicsField(hps : HPS;prclField : PRECTL) : BOOL;[SYSTEM];
-    function GpiSetViewingLimits(hps : HPS;prclLimits : PRECTL) : BOOL;[SYSTEM];
-    function GpiQueryViewingLimits(hps : HPS;prclLimits : PRECTL) : BOOL;[SYSTEM];
-    function GpiBeginPath(hps : HPS;lPath : LONG) : BOOL;[SYSTEM];
-    function GpiEndPath(hps : HPS) : BOOL;[SYSTEM];
-    function GpiCloseFigure(hps : HPS) : BOOL;[SYSTEM];
-    function GpiModifyPath(hps : HPS;lPath : LONG;lMode : LONG) : BOOL;[SYSTEM];
-    function GpiFillPath(hps : HPS;lPath : LONG;lOptions : LONG) : LONG;[SYSTEM];
-    function GpiSetClipPath(hps : HPS;lPath : LONG;lOptions : LONG) : BOOL;[SYSTEM];
-    function GpiOutlinePath(hps : HPS;lPath : LONG;lOptions : LONG) : LONG;[SYSTEM];
-    function GpiPathToRegion(GpiH : HPS;lPath : LONG;lOptions : LONG) : HRGN;[SYSTEM];
-    function GpiStrokePath(hps : HPS;lPath : LONG;flOptions : ULONG) : LONG;[SYSTEM];
-    function GpiCreateLogColorTable(hps : HPS;flOptions : ULONG;lFormat : LONG;lStart : LONG;lCount : LONG;alTable : PLONG) : BOOL;[SYSTEM];
-    function GpiQueryColorData(hps : HPS;lCount : LONG;alArray : PLONG) : BOOL;[SYSTEM];
-    function GpiQueryLogColorTable(hps : HPS;flOptions : ULONG;lStart : LONG;lCount : LONG;alArray : PLONG) : LONG;[SYSTEM];
-    function GpiQueryRealColors(hps : HPS;flOptions : ULONG;lStart : LONG;lCount : LONG;alColors : PLONG) : LONG;[SYSTEM];
-    function GpiQueryNearestColor(hps : HPS;flOptions : ULONG;lRgbIn : LONG) : LONG;[SYSTEM];
-    function GpiQueryColorIndex(hps : HPS;flOptions : ULONG;lRgbColor : LONG) : LONG;[SYSTEM];
-    function GpiQueryRGBColor(hps : HPS;flOptions : ULONG;lColorIndex : LONG) : LONG;[SYSTEM];
-    function GpiCreatePalette(hab : HAB;flOptions : ULONG;ulFormat : ULONG;ulCount : ULONG;aulTable : PULONG) : HPAL;[SYSTEM];
-    function GpiDeletePalette(hpal : HPAL) : BOOL;[SYSTEM];
-    function GpiSelectPalette(hps : HPS;hpal : HPAL) : HPAL;[SYSTEM];
-    function GpiAnimatePalette(hpal : HPAL;ulFormat : ULONG;ulStart : ULONG;ulCount : ULONG;aulTable : PULONG) : LONG;[SYSTEM];
-    function GpiSetPaletteEntries(hpal : HPAL;ulFormat : ULONG;ulStart : ULONG;ulCount : ULONG;aulTable : PULONG) : BOOL;[SYSTEM];
-    function GpiQueryPalette(hps : HPS) : HPAL;[SYSTEM];
-    function GpiQueryPaletteInfo(hpal : HPAL;hps : HPS;flOptions : ULONG;ulStart : ULONG;ulCount : ULONG;aulArray : PULONG) : LONG;[SYSTEM];
-    function GpiSetColor(hps : HPS;lColor : LONG) : BOOL;[SYSTEM];
-    function GpiQueryColor(hps : HPS) : LONG;[SYSTEM];
-    function GpiBox(hps : HPS;lControl : LONG;pptlPoint : PPOINTL;lHRound : LONG;lVRound : LONG) : LONG;[SYSTEM];
-    function GpiMove(hps : HPS;pptlPoint : PPOINTL) : BOOL;[SYSTEM];
-    function GpiLine(hps : HPS;pptlEndPoint : PPOINTL) : LONG;[SYSTEM];
-    function GpiPolyLine(hps : HPS;lCount : LONG;aptlPoints : PPOINTL) : LONG;[SYSTEM];
-    function GpiPolyLineDisjoint(hps : HPS;lCount : LONG;aptlPoints : PPOINTL) : LONG;[SYSTEM];
-    function GpiSetPattern(hps : HPS;lPatternSymbol : LONG) : BOOL;[SYSTEM];
-    function GpiQueryPattern(hps : HPS) : LONG;[SYSTEM];
-    function GpiBeginArea(hps : HPS;flOptions : ULONG) : BOOL;[SYSTEM];
-    function GpiEndArea(hps : HPS) : LONG;[SYSTEM];
-    function GpiCharString(hps : HPS;lCount : LONG;pchString : PCH) : LONG;[SYSTEM];
-    function GpiCharStringAt(hps : HPS;pptlPoint : PPOINTL;lCount : LONG;pchString : PCH) : LONG;[SYSTEM];
-    function GpiSetAttrMode(hps : HPS;lMode : LONG) : BOOL;[SYSTEM];
-    function GpiQueryAttrMode(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetAttrs(hps : HPS;lPrimType : LONG;flAttrMask : ULONG;flDefMask : ULONG;ppbunAttrs : PBUNDLE) : BOOL;[SYSTEM];
-    function GpiQueryAttrs(hps : HPS;lPrimType : LONG;flAttrMask : ULONG;ppbunAttrs : PBUNDLE) : LONG;[SYSTEM];
-    function GpiSetBackColor(hps : HPS;lColor : LONG) : BOOL;[SYSTEM];
-    function GpiQueryBackColor(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetMix(hps : HPS;lMixMode : LONG) : BOOL;[SYSTEM];
-    function GpiQueryMix(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetBackMix(hps : HPS;lMixMode : LONG) : BOOL;[SYSTEM];
-    function GpiQueryBackMix(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetLineType(hps : HPS;lLineType : LONG) : BOOL;[SYSTEM];
-    function GpiQueryLineType(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetLineWidth(hps : HPS;fxLineWidth : FIXED) : BOOL;[SYSTEM];
-    function GpiQueryLineWidth(hps : HPS) : FIXED;[SYSTEM];
-    function GpiSetLineWidthGeom(hps : HPS;lLineWidth : LONG) : BOOL;[SYSTEM];
-    function GpiQueryLineWidthGeom(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetLineEnd(hps : HPS;lLineEnd : LONG) : BOOL;[SYSTEM];
-    function GpiQueryLineEnd(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetLineJoin(hps : HPS;lLineJoin : LONG) : BOOL;[SYSTEM];
-    function GpiQueryLineJoin(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetCurrentPosition(hps : HPS;pptlPoint : PPOINTL) : BOOL;[SYSTEM];
-    function GpiQueryCurrentPosition(hps : HPS;pptlPoint : PPOINTL) : BOOL;[SYSTEM];
-    function GpiSetArcParams(hps : HPS;parcpArcParams : PARCPARAMS) : BOOL;[SYSTEM];
-    function GpiQueryArcParams(hps : HPS;parcpArcParams : PARCPARAMS) : BOOL;[SYSTEM];
-    function GpiPointArc(hps : HPS;pptl2 : PPOINTL) : LONG;[SYSTEM];
-    function GpiFullArc(hps : HPS;lControl : LONG;fxMultiplier : FIXED) : LONG;[SYSTEM];
-    function GpiPartialArc(hps : HPS;pptlCenter : PPOINTL;fxMultiplier : FIXED;fxStartAngle : FIXED;fxSweepAngle : FIXED) : LONG;[SYSTEM];
-    function GpiPolyFillet(hps : HPS;lCount : LONG;aptlPoints : PPOINTL) : LONG;[SYSTEM];
-    function GpiPolySpline(hps : HPS;lCount : LONG;aptlPoints : PPOINTL) : LONG;[SYSTEM];
-    function GpiPolyFilletSharp(hps : HPS;lCount : LONG;aptlPoints : PPOINTL;afxPoints : PFIXED) : LONG;[SYSTEM];
-    function GpiSetPatternSet(hps : HPS;lSet : LONG) : BOOL;[SYSTEM];
-    function GpiQueryPatternSet(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetPatternRefPoint(hps : HPS;pptlRefPoint : PPOINTL) : BOOL;[SYSTEM];
-    function GpiQueryPatternRefPoint(hps : HPS;pptlRefPoint : PPOINTL) : BOOL;[SYSTEM];
-    function GpiQueryCharStringPos(hps : HPS;flOptions : ULONG;lCount : LONG;pchString : PCH;alXincrements : PLONG;aptlPositions : PPOINTL) : BOOL;[SYSTEM];
-    function GpiQueryCharStringPosAt(hps : HPS;pptlStart : PPOINTL;flOptions : ULONG;lCount : LONG;pchString : PCH;alXincrements : PLONG;aptlPositions : PPOINTL) : BOOL;[SYSTEM];
-    function GpiQueryTextBox(hps : HPS;lCount1 : LONG;pchString : PCH;lCount2 : LONG;aptlPoints : PPOINTL) : BOOL;[SYSTEM];
-    function GpiQueryDefCharBox(hps : HPS;psizlSize : PSIZEL) : BOOL;[SYSTEM];
-    function GpiSetCharSet(hps : HPS;llcid : LONG) : BOOL;[SYSTEM];
-    function GpiQueryCharSet(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetCharBox(hps : HPS;psizfxBox : PSIZEF) : BOOL;[SYSTEM];
-    function GpiQueryCharBox(hps : HPS;psizfxSize : PSIZEF) : BOOL;[SYSTEM];
-    function GpiSetCharAngle(hps : HPS;pgradlAngle : PGRADIENTL) : BOOL;[SYSTEM];
-    function GpiQueryCharAngle(hps : HPS;pgradlAngle : PGRADIENTL) : BOOL;[SYSTEM];
-    function GpiSetCharShear(hps : HPS;pptlAngle : PPOINTL) : BOOL;[SYSTEM];
-    function GpiQueryCharShear(hps : HPS;pptlShear : PPOINTL) : BOOL;[SYSTEM];
-    function GpiSetCharDirection(hps : HPS;lDirection : LONG) : BOOL;[SYSTEM];
-    function GpiQueryCharDirection(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetCharMode(hps : HPS;lMode : LONG) : BOOL;[SYSTEM];
-    function GpiQueryCharMode(hps : HPS) : LONG;[SYSTEM];
-    function GpiSetTextAlignment(hps : HPS;lHoriz : LONG;lVert : LONG) : BOOL;[SYSTEM];
-    function GpiQueryTextAlignment(hps : HPS;plHoriz : PLONG;plVert : PLONG) : BOOL;[SYSTEM];
-    function GpiCharStringPos(hps : HPS;prclRect : PRECTL;flOptions : ULONG;lCount : LONG;pchString : PCH;alAdx : PLONG) : LONG;[SYSTEM];
-    function GpiCharStringPosAt(hps : HPS;pptlStart : PPOINTL;prclRect : PRECTL;flOptions : ULONG;lCount : LONG;pchString : PCH;alAdx : PLONG) : LONG;[SYSTEM];
-    function GpiSetCharExtra(hps : HPS;Extra : FIXED) : BOOL;[SYSTEM];
-    function GpiSetCharBreakExtra(hps : HPS;BreakExtra : FIXED) : BOOL;[SYSTEM];
-    function GpiQueryCharExtra(hps : HPS;Extra : PFIXED) : BOOL;[SYSTEM];
-    function GpiQueryCharBreakExtra(hps : HPS;BreakExtra : PFIXED) : BOOL;[SYSTEM];
-    function GpiMarker(hps : HPS;pptlPoint : PPOINTL) : LONG;[SYSTEM];
-    function GpiPolyMarker(hps : HPS;lCount : LONG;aptlPoints : PPOINTL) : LONG;[SYSTEM];
-    function GpiSetMarker(hps : HPS;lSymbol : LONG) : BOOL;[SYSTEM];
-    function GpiSetMarkerBox(hps : HPS;psizfxSize : PSIZEF) : BOOL;[SYSTEM];
-    function GpiSetMarkerSet(hps : HPS;lSet : LONG) : BOOL;[SYSTEM];
-    function GpiQueryMarker(hps : HPS) : LONG;[SYSTEM];
-    function GpiQueryMarkerBox(hps : HPS;psizfxSize : PSIZEF) : BOOL;[SYSTEM];
-    function GpiQueryMarkerSet(hps : HPS) : LONG;[SYSTEM];
-    function GpiImage(hps : HPS;lFormat : LONG;psizlImageSize : PSIZEL;lLength : LONG;pbData : PBYTE) : LONG;[SYSTEM];
-    function GpiPop(hps : HPS;lCount : LONG) : BOOL;[SYSTEM];
-    function GpiPtVisible(hps : HPS;pptlPoint : PPOINTL) : LONG;[SYSTEM];
-    function GpiRectVisible(hps : HPS;prclRectangle : PRECTL) : LONG;[SYSTEM];
-    function GpiComment(hps : HPS;lLength : LONG;pbData : PBYTE) : BOOL;[SYSTEM];
-    function GpiCreateLogFont(hps : HPS;pName : PSTR8;lLcid : LONG;pfatAttrs : PFATTRS) : LONG;[SYSTEM];
-    function GpiDeleteSetId(hps : HPS;lLcid : LONG) : BOOL;[SYSTEM];
-    function GpiLoadFonts(hab : HAB;pszFilename : PSZ) : BOOL;[SYSTEM];
-    function GpiUnloadFonts(hab : HAB;pszFilename : PSZ) : BOOL;[SYSTEM];
-    function GpiQueryFonts(hps : HPS;flOptions : ULONG;pszFacename : PSZ;plReqFonts : PLONG;lMetricsLength : LONG;afmMetrics : PFONTMETRICS) : LONG;[SYSTEM];
-    function GpiQueryFontMetrics(hps : HPS;lMetricsLength : LONG;pfmMetrics : PFONTMETRICS) : BOOL;[SYSTEM];
-    function GpiQueryKerningPairs(hps : HPS;lCount : LONG;akrnprData : PKERNINGPAIRS) : LONG;[SYSTEM];
-    function GpiQueryWidthTable(hps : HPS;lFirstChar : LONG;lCount : LONG;alData : PLONG) : BOOL;[SYSTEM];
-    function GpiQueryNumberSetIds(hps : HPS) : LONG;[SYSTEM];
-    function GpiQuerySetIds(hps : HPS;lCount : LONG;alTypes : PLONG;aNames : PSTR8;allcids : PLONG) : BOOL;[SYSTEM];
-    function GpiQueryFaceString(PS : HPS;FamilyName : PSZ;attrs : PFACENAMEDESC;length : LONG;CompoundFaceName : PSZ) : ULONG;[SYSTEM];
-    function GpiQueryLogicalFont(PS : HPS;lcid : LONG;name : PSTR8;attrs : PFATTRS;length : LONG) : BOOL;[SYSTEM];
-    function GpiQueryFontAction(anchor : HAB;options : ULONG) : ULONG;[SYSTEM];
-    function GpiLoadPublicFonts(p1 : HAB;p2 : PSZ) : BOOL;[SYSTEM];
-    function GpiUnloadPublicFonts(p1 : HAB;p2 : PSZ) : BOOL;[SYSTEM];
-    function GpiSetCp(hps : HPS;ulCodePage : ULONG) : BOOL;[SYSTEM];
-    function GpiQueryCp(hps : HPS) : ULONG;[SYSTEM];
-    function GpiQueryFontFileDescriptions(hab : HAB;pszFilename : PSZ;plCount : PLONG;affdescsNames : PFFDESCS) : LONG;[SYSTEM];
-    function GpiQueryFullFontFileDescs(hab : HAB;pszFilename : PSZ;plCount : PLONG;pNames : PVOID;plNamesBuffLength : PLONG) : LONG;[SYSTEM];
-    function GpiBitBlt(hpsTarget : HPS;hpsSource : HPS;lCount : LONG;aptlPoints : PPOINTL;lRop : LONG;flOptions : ULONG) : LONG;[SYSTEM];
-    function GpiDeleteBitmap(hbm : HBITMAP) : BOOL;[SYSTEM];
-    function GpiLoadBitmap(hps : HPS;Resource : HMODULE;idBitmap : ULONG;lWidth : LONG;lHeight : LONG) : HBITMAP;[SYSTEM];
-    function GpiSetBitmap(hps : HPS;hbm : HBITMAP) : HBITMAP;[SYSTEM];
-    function GpiWCBitBlt(hpsTarget : HPS;hbmSource : HBITMAP;lCount : LONG;aptlPoints : PPOINTL;lRop : LONG;flOptions : ULONG) : LONG;[SYSTEM];
-    function GpiCreateBitmap(hps : HPS;pbmpNew : PBITMAPINFOHEADER2;flOptions : ULONG;pbInitData : PBYTE;pbmiInfoTable : PBITMAPINFO2) : HBITMAP;[SYSTEM];
-    function GpiSetBitmapBits(hps : HPS;lScanStart : LONG;lScans : LONG;pbBuffer : PBYTE;pbmiInfoTable : PBITMAPINFO2) : LONG;[SYSTEM];
-    function GpiSetBitmapDimension(hbm : HBITMAP;psizlBitmapDimension : PSIZEL) : BOOL;[SYSTEM];
-    function GpiSetBitmapId(hps : HPS;hbm : HBITMAP;lLcid : LONG) : BOOL;[SYSTEM];
-    function GpiQueryBitmapBits(hps : HPS;lScanStart : LONG;lScans : LONG;pbBuffer : PBYTE;pbmiInfoTable : PBITMAPINFO2) : LONG;[SYSTEM];
-    function GpiQueryBitmapDimension(hbm : HBITMAP;psizlBitmapDimension : PSIZEL) : BOOL;[SYSTEM];
-    function GpiQueryBitmapHandle(hps : HPS;lLcid : LONG) : HBITMAP;[SYSTEM];
-    function GpiQueryBitmapParameters(hbm : HBITMAP;pbmpData : PBITMAPINFOHEADER) : BOOL;[SYSTEM];
-    function GpiQueryBitmapInfoHeader(hbm : HBITMAP;pbmpData : PBITMAPINFOHEADER2) : BOOL;[SYSTEM];
-    function GpiQueryDeviceBitmapFormats(hps : HPS;lCount : LONG;alArray : PLONG) : BOOL;[SYSTEM];
-    function GpiSetPel(hps : HPS;pptlPoint : PPOINTL) : LONG;[SYSTEM];
-    function GpiQueryPel(hps : HPS;pptlPoint : PPOINTL) : LONG;[SYSTEM];
-    function GpiFloodFill(hps : HPS;lOptions : LONG;lColor : LONG) : LONG;[SYSTEM];
-    function GpiDrawBits(hps : HPS;pBits : PVOID;pbmiInfoTable : PBITMAPINFO2;lCount : LONG;aptlPoints : PPOINTL;lRop : LONG;flOptions : ULONG) : LONG;[SYSTEM];
-    function GpiCombineRegion(hps : HPS;hrgnDest : HRGN;hrgnSrc1 : HRGN;hrgnSrc2 : HRGN;lMode : LONG) : LONG;[SYSTEM];
-    function GpiCreateRegion(hps : HPS;lCount : LONG;arclRectangles : PRECTL) : HRGN;[SYSTEM];
-    function GpiDestroyRegion(hps : HPS;hrgn : HRGN) : BOOL;[SYSTEM];
-    function GpiEqualRegion(hps : HPS;hrgnSrc1 : HRGN;hrgnSrc2 : HRGN) : LONG;[SYSTEM];
-    function GpiOffsetRegion(hps : HPS;Hrgn : HRGN;pptlOffset : PPOINTL) : BOOL;[SYSTEM];
-    function GpiPaintRegion(hps : HPS;hrgn : HRGN) : LONG;[SYSTEM];
-    function GpiFrameRegion(hps : HPS;hrgn : HRGN;thickness : PSIZEL) : LONG;[SYSTEM];
-    function GpiPtInRegion(hps : HPS;hrgn : HRGN;pptlPoint : PPOINTL) : LONG;[SYSTEM];
-    function GpiQueryRegionBox(hps : HPS;hrgn : HRGN;prclBound : PRECTL) : LONG;[SYSTEM];
-    function GpiQueryRegionRects(hps : HPS;hrgn : HRGN;prclBound : PRECTL;prgnrcControl : PRGNRECT;prclRect : PRECTL) : BOOL;[SYSTEM];
-    function GpiRectInRegion(hps : HPS;hrgn : HRGN;prclRect : PRECTL) : LONG;[SYSTEM];
-    function GpiSetRegion(hps : HPS;hrgn : HRGN;lcount : LONG;arclRectangles : PRECTL) : BOOL;[SYSTEM];
-    function GpiSetClipRegion(hps : HPS;hrgn : HRGN;phrgnOld : PHRGN) : LONG;[SYSTEM];
-    function GpiQueryClipRegion(hps : HPS) : HRGN;[SYSTEM];
-    function GpiQueryClipBox(hps : HPS;prclBound : PRECTL) : LONG;[SYSTEM];
-    function GpiExcludeClipRectangle(hps : HPS;prclRectangle : PRECTL) : LONG;[SYSTEM];
-    function GpiIntersectClipRectangle(hps : HPS;prclRectangle : PRECTL) : LONG;[SYSTEM];
-    function GpiOffsetClipRegion(hps : HPS;pptlPoint : PPOINTL) : LONG;[SYSTEM];
-    function GpiCopyMetaFile(hmf : HMF) : HMF;[SYSTEM];
-    function GpiDeleteMetaFile(hmf : HMF) : BOOL;[SYSTEM];
-    function GpiLoadMetaFile(hab : HAB;pszFilename : PSZ) : HMF;[SYSTEM];
-    function GpiPlayMetaFile(hps : HPS;hmf : HMF;lCount1 : LONG;alOptarray : PLONG;plSegCount : PLONG;lCount2 : LONG;pszDesc : PSZ) : LONG;[SYSTEM];
-    function GpiQueryMetaFileBits(hmf : HMF;lOffset : LONG;lLength : LONG;pbData : PBYTE) : BOOL;[SYSTEM];
-    function GpiQueryMetaFileLength(hmf : HMF) : LONG;[SYSTEM];
-    function GpiSaveMetaFile(hmf : HMF;pszFilename : PSZ) : BOOL;[SYSTEM];
-    function GpiSetMetaFileBits(hmf : HMF;lOffset : LONG;lLength : LONG;pbBuffer : PBYTE) : BOOL;[SYSTEM];
-    function GpiQueryDefArcParams(hps : HPS;parcpArcParams : PARCPARAMS) : BOOL;[SYSTEM];
-    function GpiQueryDefAttrs(hps : HPS;lPrimType : LONG;flAttrMask : ULONG;ppbunAttrs : PBUNDLE) : BOOL;[SYSTEM];
-    function GpiQueryDefTag(hps : HPS;plTag : PLONG) : BOOL;[SYSTEM];
-    function GpiQueryDefViewingLimits(hps : HPS;prclLimits : PRECTL) : BOOL;[SYSTEM];
-    function GpiSetDefArcParams(hps : HPS;parcpArcParams : PARCPARAMS) : BOOL;[SYSTEM];
-    function GpiSetDefAttrs(hps : HPS;lPrimType : LONG;flAttrMask : ULONG;ppbunAttrs : PBUNDLE) : BOOL;[SYSTEM];
-    function GpiSetDefTag(hps : HPS;lTag : LONG) : BOOL;[SYSTEM];
-    function GpiSetDefViewingLimits(hps : HPS;prclLimits : PRECTL) : BOOL;[SYSTEM];
-    function GpiPolygons(hps : HPS;ulCount : ULONG;paplgn : PPOLYGON;flOptions : ULONG;flModel : ULONG) : LONG;[SYSTEM];
+    function GpiCreatePS(hab,hdc : cardinal;psizlSize : PSIZEL;flOptions : cardinal) : cardinal;cdecl;external;
+    function GpiDestroyPS(hps : cardinal) : longbool;cdecl;external;
+    function GpiAssociate(hps,hdc : cardinal) : longbool;cdecl;external;
+    function GpiRestorePS(hps : cardinal;lPSid : longint) : longbool;cdecl;external;
+    function GpiSavePS(hps : cardinal) : longint;cdecl;external;
+    function GpiErase(hps : cardinal) : longbool;cdecl;external;
+    function GpiQueryDevice(hps : cardinal) : cardinal;cdecl;external;
+    function GpiResetPS(hps,flOptions : cardinal) : longbool;cdecl;external;
+    function GpiSetPS(hps : cardinal;psizlsize : PSIZEL;flOptions : cardinal) : longbool;cdecl;external;
+    function GpiQueryPS(hps : cardinal;psizlSize : PSIZEL) : cardinal;cdecl;external;
+    function GpiErrorSegmentData(hps : cardinal;plSegment,plContext : plongint) : longint;cdecl;external;
+    function GpiQueryDrawControl(hps : cardinal;lControl : longint) : longint;cdecl;external;
+    function GpiSetDrawControl(hps : cardinal;lControl,lValue : longint) : longbool;cdecl;external;
+    function GpiQueryDrawingMode(hps : cardinal) : longint;cdecl;external;
+    function GpiSetDrawingMode(hps : cardinal;lMode : longint) : longbool;cdecl;external;
+    function GpiQueryStopDraw(hps : cardinal) : longint;cdecl; external;
+    function GpiSetStopDraw(hps : cardinal;lValue : longint) : longbool; cdecl; external;
+    function GpiCorrelateChain(hps : cardinal;lType : longint;pptlPick : PPOINTL;lMaxHits : longint;lMaxDepth : longint;pl2 : plongint) : longint; cdecl; external;
+    function GpiQueryTag(hps : cardinal;plTag : plongint) : longbool; cdecl; external;
+    function GpiSetTag(hps : cardinal;lTag : longint) : longbool; cdecl; external;
+    function GpiQueryPickApertureSize(hps : cardinal;psizlSize : PSIZEL) : longbool; cdecl; external;
+    function GpiSetPickApertureSize(hps : cardinal;lOptions : longint;psizlSize : PSIZEL) : longbool; cdecl; external;
+    function GpiQueryPickAperturePosition(hps : cardinal;pptlPoint : PPOINTL) : longbool; cdecl; external;
+    function GpiSetPickAperturePosition(hps : cardinal;pptlPick : PPOINTL) : longbool; cdecl; external;
+    function GpiQueryBoundaryData(hps : cardinal;prclBoundary : PRECTL) : longbool; cdecl; external;
+    function GpiResetBoundaryData(hps : cardinal) : longbool; cdecl; external;
+    function GpiCorrelateFrom(hps : cardinal;lFirstSegment,lLastSegment,lType : longint;pptlPick : PPOINTL;lMaxHits,lMaxDepth : longint;plSegTag : plongint) : longint; cdecl; external;
+    function GpiCorrelateSegment(hps : cardinal;lSegment,lType : longint;pptlPick : PPOINTL;lMaxHits,lMaxDepth : longint;alSegTag : plongint) : longint; cdecl; external;
+    function GpiOpenSegment(hps : cardinal;lSegment : longint) : longbool; cdecl; external;
+    function GpiCloseSegment(hps : cardinal) : longbool; cdecl; external;
+    function GpiDeleteSegment(hps : cardinal;lSegid : longint) : longbool; cdecl; external;
+    function GpiQueryInitialSegmentAttrs(hps : cardinal;lAttribute : longint) : longint; cdecl; external;
+    function GpiSetInitialSegmentAttrs(hps : cardinal;lAttribute,lValue : longint) : longbool; cdecl; external;
+    function GpiQuerySegmentAttrs(hps : cardinal;lSegid,lAttribute : longint) : longint; cdecl; external;
+    function GpiSetSegmentAttrs(hps : cardinal;lSegid,lAttribute,lValue : longint) : longbool; cdecl; external;
+    function GpiQuerySegmentPriority(hps : cardinal;lRefSegid,lOrder : longint) : longint; cdecl; external;
+    function GpiSetSegmentPriority(hps : cardinal;lSegid,lRefSegid,lOrder : longint) : longbool; cdecl; external;
+    function GpiDeleteSegments(hps : cardinal;lFirstSegment,lLastSegment : longint) : longbool; cdecl; external;
+    function GpiQuerySegmentNames(hps : cardinal;lFirstSegid,lLastSegid,lMax : longint;alSegids : plongint) : longint; cdecl; external;
+    function GpiGetData(hps : cardinal;lSegid : longint;plOffset : plongint;lFormat,lLength : longint;pbData : PBYTE) : longint; cdecl; external;
+    function GpiPutData(hps : cardinal;lFormat : longint;plCount : plongint;pbData : PBYTE) : longint; cdecl; external;
+    function GpiDrawChain(hps : cardinal) : longbool; cdecl; external;
+    function GpiDrawFrom(hps : cardinal;lFirstSegment,lLastSegment : longint) : longbool; cdecl; external;
+    function GpiDrawSegment(hps : cardinal;lSegment : longint) : longbool; cdecl; external;
+    function GpiDrawDynamics(hps : cardinal) : longbool; cdecl; external;
+    function GpiRemoveDynamics(hps : cardinal;lFirstSegid,lLastSegid : longint) : longbool; cdecl; external;
+    function GpiBeginElement(hps : cardinal;lType : longint;pszDesc : pchar) : longbool; cdecl; external;
+    function GpiEndElement(hps : cardinal) : longbool; cdecl; external;
+    function GpiLabel(hps : cardinal;lLabel : longint) : longbool; cdecl; external;
+    function GpiElement(hps : cardinal;lType : longint;pszDesc : pchar;lLength : longint;pbData : PBYTE) : longint; cdecl; external;
+    function GpiQueryElement(hps : cardinal;lOff,lMaxLength : longint;pbData : PBYTE) : longint; cdecl; external;
+    function GpiDeleteElement(hps : cardinal) : longbool; cdecl; external;
+    function GpiDeleteElementRange(hps : cardinal;lFirstElement,lLastElement : longint) : longbool; cdecl; external;
+    function GpiDeleteElementsBetweenLabels(hps : cardinal;lFirstLabel,lLastLabel : longint) : longbool; cdecl; external;
+    function GpiQueryEditMode(hps : cardinal) : longint; cdecl; external;
+    function GpiSetEditMode(hps : cardinal;lMode : longint) : longbool; cdecl; external;
+    function GpiQueryElementPointer(hps : cardinal) : longint; cdecl; external;
+    function GpiSetElementPointer(hps : cardinal;lElement : longint) : longbool; cdecl; external;
+    function GpiOffsetElementPointer(hps : cardinal;loffset : longint) : longbool; cdecl; external;
+    function GpiQueryElementType(hps : cardinal;plType : plongint;lLength : longint;pszData : pchar) : longint; cdecl; external;
+    function GpiSetElementPointerAtLabel(hps : cardinal;lLabel : longint) : longbool; cdecl; external;
+    function GpiQuerySegmentTransformMatrix(hps : cardinal;lSegid,lCount : longint;pmatlfArray : PMATRIXLF) : longbool; cdecl; external;
+    function GpiSetSegmentTransformMatrix(hps : cardinal;lSegid,lCount : longint;pmatlfarray : PMATRIXLF;lOptions : longint) : longbool; cdecl; external;
+    function GpiConvert(hps : cardinal;lSrc,lTarg,lCount : longint;aptlPoints : PPOINTL) : longbool; cdecl; external;
+    function GpiConvertWithMatrix(hps : cardinal;lCountp : longint;aptlPoints : PPOINTL;lCount : longint;pmatlfArray : PMATRIXLF) : longbool; cdecl; external;
+    function GpiQueryModelTransformMatrix(hps : cardinal;lCount : longint;pmatlfArray : PMATRIXLF) : longbool; cdecl; external;
+    function GpiSetModelTransformMatrix(hps : cardinal;lCount : longint;pmatlfArray : PMATRIXLF;lOptions : longint) : longbool; cdecl; external;
+    function GpiCallSegmentMatrix(hps : cardinal;lSegment,lCount : longint;pmatlfArray : PMATRIXLF;lOptions : longint) : longint; cdecl; external;
+    function GpiQueryDefaultViewMatrix(hps : cardinal;lCount : longint;pmatlfArray : PMATRIXLF) : longbool; cdecl; external;
+    function GpiSetDefaultViewMatrix(hps : cardinal;lCount : longint;pmatlfarray : PMATRIXLF;lOptions : longint) : longbool; cdecl; external;
+    function GpiQueryPageViewport(hps : cardinal;prclViewport : PRECTL) : longbool; cdecl; external;
+    function GpiSetPageViewport(hps : cardinal;prclViewport : PRECTL) : longbool; cdecl; external;
+    function GpiQueryViewingTransformMatrix(hps : cardinal;lCount : longint;pmatlfArray : PMATRIXLF) : longbool; cdecl; external;
+    function GpiSetViewingTransformMatrix(hps : cardinal;lCount : longint;pmatlfArray : PMATRIXLF;lOptions : longint) : longbool; cdecl; external;
+    function GpiTranslate(hps : cardinal;pmatrixlf : PMATRIXLF;long : longint;ppointl : PPOINTL) : longbool; cdecl; external;
+    function GpiScale(hps : cardinal;p1 : PMATRIXLF;p2 : longint;p3 : plongint;p4 : PPOINTL) : longbool; cdecl; external;
+    function GpiRotate(p1 : cardinal;p2 : PMATRIXLF;p3,p4 : longint;p5 : PPOINTL) : longbool; cdecl; external;
+    function GpiSetGraphicsField(hps : cardinal;prclField : PRECTL) : longbool; cdecl; external;
+    function GpiQueryGraphicsField(hps : cardinal;prclField : PRECTL) : longbool; cdecl; external;
+    function GpiSetViewingLimits(hps : cardinal;prclLimits : PRECTL) : longbool; cdecl; external;
+    function GpiQueryViewingLimits(hps : cardinal;prclLimits : PRECTL) : longbool; cdecl; external;
+    function GpiBeginPath(hps : cardinal;lPath : longint) : longbool; cdecl; external;
+    function GpiEndPath(hps : cardinal) : longbool; cdecl; external;
+    function GpiCloseFigure(hps : cardinal) : longbool; cdecl; external;
+    function GpiModifyPath(hps : cardinal;lPath,lMode : longint) : longbool; cdecl; external;
+    function GpiFillPath(hps : cardinal;lPath,lOptions : longint) : longint; cdecl; external;
+    function GpiSetClipPath(hps : cardinal;lPath,lOptions : longint) : longbool; cdecl; external;
+    function GpiOutlinePath(hps : cardinal;lPath,lOptions : longint) : longint; cdecl; external;
+    function GpiPathToRegion(GpiH : cardinal;lPath,lOptions : longint) : cardinal; cdecl; external;
+    function GpiStrokePath(hps : cardinal;lPath : longint;flOptions : cardinal) : longint; cdecl; external;
+    function GpiCreateLogColorTable(hps,flOptions : cardinal;lFormat,lStart,lCount : longint;alTable : plongint) : longbool; cdecl; external;
+    function GpiQueryColorData(hps : cardinal;lCount : longint;alArray : plongint) : longbool; cdecl; external;
+    function GpiQueryLogColorTable(hps,flOptions : cardinal;lStart,lCount : longint;alArray : plongint) : longint; cdecl; external;
+    function GpiQueryRealColors(hps,flOptions : cardinal;lStart,lCount : longint;alColors : plongint) : longint; cdecl; external;
+    function GpiQueryNearestColor(hps,flOptions : cardinal;lRgbIn : longint) : longint; cdecl; external;
+    function GpiQueryColorIndex(hps,flOptions : cardinal;lRgbColor : longint) : longint; cdecl; external;
+    function GpiQueryRGBColor(hps,flOptions : cardinal;lColorIndex : longint) : longint; cdecl; external;
+    function GpiCreatePalette(hab,flOptions,ulFormat,ulCount : cardinal;aulTable : pcardinal) : cardinal; cdecl; external;
+    function GpiDeletePalette(hpal : cardinal) : longbool; cdecl; external;
+    function GpiSelectPalette(hps,hpal : cardinal) : cardinal; cdecl; external;
+    function GpiAnimatePalette(hpal,ulFormat,ulStart,ulCount : cardinal;aulTable : pcardinal) : longint; cdecl; external;
+    function GpiSetPaletteEntries(hpal,ulFormat,ulStart,ulCount : cardinal;aulTable : pcardinal) : longbool; cdecl; external;
+    function GpiQueryPalette(hps : cardinal) : cardinal; cdecl; external;
+    function GpiQueryPaletteInfo(hpal,hps,flOptions,ulStart,ulCount : cardinal;aulArray : pcardinal) : longint; cdecl; external;
+    function GpiSetColor(hps : cardinal;lColor : longint) : longbool; cdecl; external;
+    function GpiQueryColor(hps : cardinal) : longint; cdecl; external;
+    function GpiBox(hps : cardinal;lControl : longint;pptlPoint : PPOINTL;lHRound,lVRound : longint) : longint; cdecl; external;
+    function GpiMove(hps : cardinal;pptlPoint : PPOINTL) : longbool; cdecl; external;
+    function GpiLine(hps : cardinal;pptlEndPoint : PPOINTL) : longint; cdecl; external;
+    function GpiPolyLine(hps : cardinal;lCount : longint;aptlPoints : PPOINTL) : longint; cdecl; external;
+    function GpiPolyLineDisjoint(hps : cardinal;lCount : longint;aptlPoints : PPOINTL) : longint; cdecl; external;
+    function GpiSetPattern(hps : cardinal;lPatternSymbol : longint) : longbool; cdecl; external;
+    function GpiQueryPattern(hps : cardinal) : longint; cdecl; external;
+    function GpiBeginArea(hps,flOptions : cardinal) : longbool; cdecl; external;
+    function GpiEndArea(hps : cardinal) : longint; cdecl; external;
+    function GpiCharString(hps : cardinal;lCount : longint;pchString : pshortint) : longint; cdecl; external;
+    function GpiCharStringAt(hps : cardinal;pptlPoint : PPOINTL;lCount : longint;pchString : pshortint) : longint; cdecl; external;
+    function GpiSetAttrMode(hps : cardinal;lMode : longint) : longbool; cdecl; external;
+    function GpiQueryAttrMode(hps : cardinal) : longint; cdecl; external;
+    function GpiSetAttrs(hps : cardinal;lPrimType : longint;flAttrMask,flDefMask : cardinal;ppbunAttrs : pointer) : longbool; cdecl; external;
+    function GpiQueryAttrs(hps : cardinal;lPrimType : longint;flAttrMask : cardinal;ppbunAttrs : pointer) : longint; cdecl; external;
+    function GpiSetBackColor(hps : cardinal;lColor : longint) : longbool; cdecl; external;
+    function GpiQueryBackColor(hps : cardinal) : longint; cdecl; external;
+    function GpiSetMix(hps : cardinal;lMixMode : longint) : longbool; cdecl; external;
+    function GpiQueryMix(hps : cardinal) : longint; cdecl; external;
+    function GpiSetBackMix(hps : cardinal;lMixMode : longint) : longbool; cdecl; external;
+    
+    function GpiQueryBackMix(hps : cardinal) : longint; cdecl; external;
+    function GpiSetLineType(hps : cardinal;lLineType : longint) : longbool; cdecl; external;
+    function GpiQueryLineType(hps : cardinal) : longint; cdecl; external;
+    function GpiSetLineWidth(hps : cardinal;fxLineWidth : longint) : longbool; cdecl; external;
+    function GpiQueryLineWidth(hps : cardinal) : longint; cdecl; external;
+    function GpiSetLineWidthGeom(hps : cardinal;lLineWidth : longint) : longbool; cdecl; external;
+    function GpiQueryLineWidthGeom(hps : cardinal) : longint; cdecl; external;
+    function GpiSetLineEnd(hps : cardinal;lLineEnd : longint) : longbool; cdecl; external;
+    function GpiQueryLineEnd(hps : cardinal) : longint; cdecl; external;
+    function GpiSetLineJoin(hps : cardinal;lLineJoin : longint) : longbool; cdecl; external;
+    function GpiQueryLineJoin(hps : cardinal) : longint; cdecl; external;
+    function GpiSetCurrentPosition(hps : cardinal;pptlPoint : PPOINTL) : longbool; cdecl; external;
+    function GpiQueryCurrentPosition(hps : cardinal;pptlPoint : PPOINTL) : longbool; cdecl; external;
+    function GpiSetArcParams(hps : cardinal;parcpArcParams : PARCPARAMS) : longbool; cdecl; external;
+    function GpiQueryArcParams(hps : cardinal;parcpArcParams : PARCPARAMS) : longbool; cdecl; external;
+    function GpiPointArc(hps : cardinal;pptl2 : PPOINTL) : longint; cdecl; external;
+    function GpiFullArc(hps : cardinal;lControl,fxMultiplier : longint) : longint; cdecl; external;
+    function GpiPartialArc(hps : cardinal;pptlCenter : PPOINTL;fxMultiplier,fxStartAngle,fxSweepAngle : longint) : longint; cdecl; external;
+    function GpiPolyFillet(hps : cardinal;lCount : longint;aptlPoints : PPOINTL) : longint; cdecl; external;
+    function GpiPolySpline(hps : cardinal;lCount : longint;aptlPoints : PPOINTL) : longint; cdecl; external;
+    function GpiPolyFilletSharp(hps : cardinal;lCount : longint;aptlPoints : PPOINTL;afxPoints : plongint) : longint; cdecl; external;
+    function GpiSetPatternSet(hps : cardinal;lSet : longint) : longbool; cdecl; external;
+    function GpiQueryPatternSet(hps : cardinal) : longint; cdecl; external;
+    function GpiSetPatternRefPoint(hps : cardinal;pptlRefPoint : PPOINTL) : longbool; cdecl; external;
+    function GpiQueryPatternRefPoint(hps : cardinal;pptlRefPoint : PPOINTL) : longbool; cdecl; external;
+    function GpiQueryCharStringPos(hps,flOptions : cardinal;lCount : longint;pchString : pshortint;alXincrements : plongint;aptlPositions : PPOINTL) : longbool; cdecl; external;
+    function GpiQueryCharStringPosAt(hps : cardinal;pptlStart : PPOINTL;flOptions : cardinal;lCount : longint;pchString : pshortint;alXincrements : plongint;aptlPositions : PPOINTL) : longbool; cdecl; external;
+    function GpiQueryTextBox(hps : cardinal;lCount1 : longint;pchString : pshortint;lCount2 : longint;aptlPoints : PPOINTL) : longbool; cdecl; external;
+    function GpiQueryDefCharBox(hps : cardinal;psizlSize : PSIZEL) : longbool; cdecl; external;
+    function GpiSetCharSet(hps : cardinal;llcid : longint) : longbool; cdecl; external;
+    function GpiQueryCharSet(hps : cardinal) : longint; cdecl; external;
+    function GpiSetCharBox(hps : cardinal;psizfxBox : PSIZEF) : longbool; cdecl; external;
+    function GpiQueryCharBox(hps : cardinal;psizfxSize : PSIZEF) : longbool; cdecl; external;
+    function GpiSetCharAngle(hps : cardinal;pgradlAngle : PGRADIENTL) : longbool; cdecl; external;
+    function GpiQueryCharAngle(hps : cardinal;pgradlAngle : PGRADIENTL) : longbool; cdecl; external;
+    function GpiSetCharShear(hps : cardinal;pptlAngle : PPOINTL) : longbool; cdecl; external;
+    function GpiQueryCharShear(hps : cardinal;pptlShear : PPOINTL) : longbool; cdecl; external;
+    function GpiSetCharDirection(hps : cardinal;lDirection : longint) : longbool; cdecl; external;
+    function GpiQueryCharDirection(hps : cardinal) : longint; cdecl; external;
+    function GpiSetCharMode(hps : cardinal;lMode : longint) : longbool; cdecl; external;
+    function GpiQueryCharMode(hps : cardinal) : longint; cdecl; external;
+    function GpiSetTextAlignment(hps : cardinal;lHoriz,lVert : longint) : longbool; cdecl; external;
+    function GpiQueryTextAlignment(hps : cardinal;plHoriz,plVert : plongint) : longbool; cdecl; external;
+    function GpiCharStringPos(hps : cardinal;prclRect : PRECTL;flOptions : cardinal;lCount : longint;pchString : pshortint;alAdx : plongint) : longint; cdecl; external;
+    function GpiCharStringPosAt(hps : cardinal;pptlStart : PPOINTL;prclRect : PRECTL;flOptions : cardinal;lCount : longint;pchString : pshortint;alAdx : plongint) : longint; cdecl; external;
+    function GpiSetCharExtra(hps : cardinal;Extra : longint) : longbool; cdecl; external;
+    function GpiSetCharBreakExtra(hps : cardinal;BreakExtra : longint) : longbool; cdecl; external;
+    function GpiQueryCharExtra(hps : cardinal;Extra : plongint) : longbool; cdecl; external;
+    function GpiQueryCharBreakExtra(hps : cardinal;BreakExtra : plongint) : longbool; cdecl; external;
+    function GpiMarker(hps : cardinal;pptlPoint : PPOINTL) : longint; cdecl; external;
+    function GpiPolyMarker(hps : cardinal;lCount : longint;aptlPoints : PPOINTL) : longint; cdecl; external;
+    function GpiSetMarker(hps : cardinal;lSymbol : longint) : longbool; cdecl; external;
+    function GpiSetMarkerBox(hps : cardinal;psizfxSize : PSIZEF) : longbool; cdecl; external;
+    function GpiSetMarkerSet(hps : cardinal;lSet : longint) : longbool; cdecl; external;
+    function GpiQueryMarker(hps : cardinal) : longint; cdecl; external;
+    function GpiQueryMarkerBox(hps : cardinal;psizfxSize : PSIZEF) : longbool; cdecl; external;
+    function GpiQueryMarkerSet(hps : cardinal) : longint; cdecl; external;
+    function GpiImage(hps : cardinal;lFormat : longint;psizlImageSize : PSIZEL;lLength : longint;pbData : PBYTE) : longint; cdecl; external;
+    function GpiPop(hps : cardinal;lCount : longint) : longbool; cdecl; external;
+    function GpiPtVisible(hps : cardinal;pptlPoint : PPOINTL) : longint; cdecl; external;
+    function GpiRectVisible(hps : cardinal;prclRectangle : PRECTL) : longint; cdecl; external;
+    function GpiComment(hps : cardinal;lLength : longint;pbData : PBYTE) : longbool; cdecl; external;
+    function GpiCreateLogFont(hps : cardinal;pName : PSTR8;lLcid : longint;pfatAttrs : PFATTRS) : longint; cdecl; external;
+    function GpiDeleteSetId(hps : cardinal;lLcid : longint) : longbool; cdecl; external;
+    function GpiLoadFonts(hab : cardinal;pszFilename : pchar) : longbool; cdecl; external;
+    function GpiUnloadFonts(hab : cardinal;pszFilename : pchar) : longbool; cdecl; external;
+    function GpiQueryFonts(hps,flOptions : cardinal;pszFacename : pchar;plReqFonts : plongint;lMetricsLength : longint;afmMetrics : PFONTMETRICS) : longint; cdecl; external;
+    function GpiQueryFontMetrics(hps : cardinal;lMetricsLength : longint;pfmMetrics : PFONTMETRICS) : longbool; cdecl; external;
+    function GpiQueryKerningPairs(hps : cardinal;lCount : longint;akrnprData : PKERNINGPAIRS) : longint; cdecl; external;
+    function GpiQueryWidthTable(hps : cardinal;lFirstChar,lCount : longint;alData : plongint) : longbool; cdecl; external;
+    function GpiQueryNumberSetIds(hps : cardinal) : longint; cdecl; external;
+    function GpiQuerySetIds(hps : cardinal;lCount : longint;alTypes : plongint;aNames : PSTR8;allcids : plongint) : longbool; cdecl; external;
+    function GpiQueryFaceString(PS : cardinal;FamilyName : pchar;attrs : PFACENAMEDESC;length : longint;CompoundFaceName : pchar) : cardinal; cdecl; external;
+    function GpiQueryLogicalFont(PS : cardinal;lcid : longint;name : PSTR8;attrs : PFATTRS;length : longint) : longbool; cdecl; external;
+    function GpiQueryFontAction(anchor,options : cardinal) : cardinal; cdecl; external;
+    function GpiLoadPublicFonts(p1 : cardinal;p2 : pchar) : longbool; cdecl; external;
+    function GpiUnloadPublicFonts(p1 : cardinal;p2 : pchar) : longbool; cdecl; external;
+    function GpiSetCp(hps,ulCodePage : cardinal) : longbool; cdecl; external;
+    function GpiQueryCp(hps : cardinal) : cardinal; cdecl; external;
+    function GpiQueryFontFileDescriptions(hab : cardinal;pszFilename : pchar;plCount : plongint;affdescsNames : PFFDESCS) : longint; cdecl; external;
+    function GpiQueryFullFontFileDescs(hab : cardinal;pszFilename : pchar;plCount : plongint;pNames : pointer;plNamesBuffLength : plongint) : longint; cdecl; external;
+    function GpiBitBlt(hpsTarget,hpsSource : cardinal;lCount : longint;aptlPoints : PPOINTL;lRop : longint;flOptions : cardinal) : longint; cdecl; external;
+    function GpiDeleteBitmap(hbm : cardinal) : longbool; cdecl; external;
+    function GpiLoadBitmap(hps,Resource,idBitmap:cardinal;lWidth,lHeight : longint) : cardinal; cdecl; external;
+    function GpiSetBitmap(hps,hbm : cardinal) : cardinal; cdecl; external;
+    function GpiWCBitBlt(hpsTarget,hbmSource : cardinal;lCount : longint;aptlPoints : PPOINTL;lRop : longint;flOptions : cardinal) : longint; cdecl; external;
+    function GpiCreateBitmap(hps : cardinal;pbmpNew : PBITMAPINFOHEADER2;flOptions : cardinal;pbInitData : PBYTE;pbmiInfoTable : PBITMAPINFO2) : cardinal; cdecl; external;
+    function GpiSetBitmapBits(hps : cardinal;lScanStart,lScans : longint;pbBuffer : PBYTE;pbmiInfoTable : PBITMAPINFO2) : longint; cdecl; external;
+    function GpiSetBitmapDimension(hbm : cardinal;psizlBitmapDimension : PSIZEL) : longbool; cdecl; external;
+    function GpiSetBitmapId(hps,hbm : cardinal;lLcid : longint) : longbool; cdecl; external;
+    function GpiQueryBitmapBits(hps : cardinal;lScanStart,lScans : longint;pbBuffer : PBYTE;pbmiInfoTable : PBITMAPINFO2) : longint; cdecl; external;
+    function GpiQueryBitmapDimension(hbm : cardinal;psizlBitmapDimension : PSIZEL) : longbool; cdecl; external;
+    function GpiQueryBitmapHandle(hps : cardinal;lLcid : longint) : cardinal; cdecl; external;
+    function GpiQueryBitmapParameters(hbm : cardinal;pbmpData : PBITMAPINFOHEADER) : longbool; cdecl; external;
+    function GpiQueryBitmapInfoHeader(hbm : cardinal;pbmpData : PBITMAPINFOHEADER2) : longbool; cdecl; external;
+    function GpiQueryDeviceBitmapFormats(hps : cardinal;lCount : longint;alArray : plongint) : longbool; cdecl; external;
+    function GpiSetPel(hps : cardinal;pptlPoint : PPOINTL) : longint; cdecl; external;
+    function GpiQueryPel(hps : cardinal;pptlPoint : PPOINTL) : longint; cdecl; external;
+    function GpiFloodFill(hps : cardinal;lOptions,lColor : longint) : longint; cdecl; external;
+    function GpiDrawBits(hps : cardinal;pBits : pointer;pbmiInfoTable : PBITMAPINFO2;lCount : longint;aptlPoints : PPOINTL;lRop : longint;flOptions : cardinal) : longint; cdecl; external;
+    function GpiCombineRegion(hps,hrgnDest,hrgnSrc1,hrgnSrc2 : cardinal;lMode : longint) : longint; cdecl; external;
+    function GpiCreateRegion(hps : cardinal;lCount : longint;arclRectangles : PRECTL) : cardinal; cdecl; external;
+    function GpiDestroyRegion(hps,hrgn : cardinal) : longbool; cdecl; external;
+    function GpiEqualRegion(hps,hrgnSrc1,hrgnSrc2 : cardinal) : longint; cdecl; external;
+    function GpiOffsetRegion(hps,Hrgn : cardinal;pptlOffset : PPOINTL) : longbool; cdecl; external;
+    function GpiPaintRegion(hps,hrgn : cardinal) : longint; cdecl; external;
+    function GpiFrameRegion(hps,hrgn : cardinal;thickness : PSIZEL) : longint; cdecl; external;
+    function GpiPtInRegion(hps,hrgn : cardinal;pptlPoint : PPOINTL) : longint; cdecl; external;
+    function GpiQueryRegionBox(hps,hrgn : cardinal;prclBound : PRECTL) : longint; cdecl; external;
+    function GpiQueryRegionRects(hps,hrgn : cardinal;prclBound : PRECTL;prgnrcControl : PRGNRECT;prclRect : PRECTL) : longbool; cdecl; external;
+    function GpiRectInRegion(hps,hrgn : cardinal;prclRect : PRECTL) : longint; cdecl; external;
+    function GpiSetRegion(hps,hrgn : cardinal;lcount : longint;arclRectangles : PRECTL) : longbool; cdecl; external;
+    function GpiSetClipRegion(hps,hrgn : cardinal;phrgnOld : pcardinal) : longint; cdecl; external;
+    function GpiQueryClipRegion(hps : cardinal) : cardinal; cdecl; external;
+    function GpiQueryClipBox(hps : cardinal;prclBound : PRECTL) : longint; cdecl; external;
+    function GpiExcludeClipRectangle(hps : cardinal;prclRectangle : PRECTL) : longint; cdecl; external;
+    function GpiIntersectClipRectangle(hps : cardinal;prclRectangle : PRECTL) : longint; cdecl; external;
+    function GpiOffsetClipRegion(hps : cardinal;pptlPoint : PPOINTL) : longint; cdecl; external;
+    function GpiCopyMetaFile(hmf : cardinal) : cardinal; cdecl; external;
+    function GpiDeleteMetaFile(hmf : cardinal) : longbool; cdecl; external;
+    function GpiLoadMetaFile(hab : cardinal;pszFilename : pchar) : cardinal; cdecl; external;
+    function GpiPlayMetaFile(hps,hmf : cardinal;lCount1 : longint;alOptarray,plSegCount : plongint;lCount2 : longint;pszDesc : pchar) : longint; cdecl; external;
+    function GpiQueryMetaFileBits(hmf : cardinal;lOffset,lLength : longint;pbData : PBYTE) : longbool; cdecl; external;
+    function GpiQueryMetaFileLength(hmf : cardinal) : longint; cdecl; external;
+    function GpiSaveMetaFile(hmf : cardinal;pszFilename : pchar) : longbool; cdecl; external;
+    function GpiSetMetaFileBits(hmf : cardinal;lOffset,lLength : longint;pbBuffer : PBYTE) : longbool; cdecl; external;
+    function GpiQueryDefArcParams(hps : cardinal;parcpArcParams : PARCPARAMS) : longbool; cdecl; external;
+    function GpiQueryDefAttrs(hps : cardinal;lPrimType : longint;flAttrMask : cardinal;ppbunAttrs : pointer) : longbool; cdecl; external;
+    function GpiQueryDefTag(hps : cardinal;plTag : plongint) : longbool; cdecl; external;
+    function GpiQueryDefViewingLimits(hps : cardinal;prclLimits : PRECTL) : longbool; cdecl; external;
+    function GpiSetDefArcParams(hps : cardinal;parcpArcParams : PARCPARAMS) : longbool; cdecl; external;
+    function GpiSetDefAttrs(hps : cardinal;lPrimType : longint;flAttrMask : cardinal;ppbunAttrs : pointer) : longbool; cdecl; external;
+    function GpiSetDefTag(hps : cardinal;lTag : longint) : longbool; cdecl; external;
+    function GpiSetDefViewingLimits(hps : cardinal;prclLimits : PRECTL) : longbool; cdecl; external;
+    function GpiPolygons(hps,ulCount : cardinal;paplgn : PPOLYGON;flOptions,flModel : cardinal) : longint; cdecl; external;
 
 end.
+

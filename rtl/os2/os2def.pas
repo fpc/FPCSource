@@ -114,15 +114,15 @@ const
        PDEVOPENDATA = pshortint;           {Initially, ^PSZ}
 
        DEVOPENSTRUC = record
-	  pszLogAddress : pshortint;
-	  pszDriverName : pshortint;
+	  pszLogAddress : pchar;
+	  pszDriverName : pchar;
 	  pdriv : PDRIVDATA;
-	  pszDataType : pshortint;
-	  pszComment : pshortint;
-	  pszQueueProcName : pshortint;
-	  pszQueueProcParams : pshortint;
-	  pszSpoolerParams : pshortint;
-	  pszNetworkParams : pshortint;
+	  pszDataType : pchar;
+	  pszComment : pchar;
+	  pszQueueProcName : pchar;
+	  pszQueueProcParams : pchar;
+	  pszSpoolerParams : pchar;
+	  pszNetworkParams : pchar;
        end;
 
        PDEVOPENSTRUC = ^DEVOPENSTRUC;
@@ -130,11 +130,11 @@ const
        PRINTDEST = record
 	  cb : cardinal;
 	  lType : longint;
-	  pszToken : pshortint;
+	  pszToken : pchar;
 	  lCount : longint;
 	  pdopData : PDEVOPENDATA;
 	  fl : cardinal;
-	  pszPrinter : pshortint;
+	  pszPrinter : pchar;
        end;
 
        PPRINTDEST = ^PRINTDEST;
