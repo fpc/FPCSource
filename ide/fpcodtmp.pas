@@ -1,3 +1,19 @@
+{
+    $Id$
+    This file is part of the Free Pascal Integrated Development Environment
+    Copyright (c) 1998 by Berczi Gabor
+
+    Code Template routines
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
 unit FPCodTmp; { Code Templates }
 
 interface
@@ -623,3 +639,11 @@ begin
 end;
 
 END.
+
+{
+ $Log$
+ Revision 1.4  2002-09-09 06:23:02  pierre
+  + header and log added
+
+
+}
