@@ -1857,7 +1857,7 @@ begin
                    GetNextInstruction(p, hp1) and
                    (hp1.typ = ait_instruction) and
                    (taicpu(hp1).opcode = A_JMP) and
-                   ((taicpu(hp1).oper[0]^.typ=top_ref) and (taicpu(p).oper[0]^.ref^.refaddr=addr_full)) then
+                   ((taicpu(hp1).oper[0]^.typ=top_ref) and (taicpu(hp1).oper[0]^.ref^.refaddr=addr_full)) then
                   begin
                     hp2 := taicpu.Op_sym(A_PUSH,S_L,taicpu(hp1).oper[0]^.ref^.symbol);
                     InsertLLItem(asml, p.previous, p, hp2);
@@ -1999,7 +1999,10 @@ end.
 
 {
   $Log$
-  Revision 1.57  2004-02-27 10:21:05  florian
+  Revision 1.58  2004-02-28 16:59:02  jonas
+    * fixed bug in ref_addr changes
+
+  Revision 1.57  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added
