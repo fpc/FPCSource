@@ -283,7 +283,7 @@ interface
     procedure DefaultReplacements(var s:string);
     {Gives the absolute path to the current directory}
     function  GetCurrentDir:string;
-    {Gives the relative path to the current directory, 
+    {Gives the relative path to the current directory,
      with a trailing dir separator. E. g. on unix ./ }
     function CurDirRelPath(systeminfo: tsysteminfo): string;
     function  path_absolute(const s : string) : boolean;
@@ -479,7 +479,7 @@ implementation
        result:=CachedCurrentDir;
      end;
 
-   {Gives the relative path to the current directory, 
+   {Gives the relative path to the current directory,
     with a trailing dir separator. E. g. on unix ./ }
    function CurDirRelPath(systeminfo: tsysteminfo): string;
 
@@ -489,7 +489,7 @@ implementation
      else
        CurDirRelPath:= ':'
    end;
-    
+
 
    function path_absolute(const s : string) : boolean;
    {
@@ -1409,7 +1409,7 @@ implementation
       { later, this should be replaced by the math unit }
       const
         Default8087CW : word = $1332;
-  
+
       procedure Set8087CW(cw:word);assembler;
         asm
           movw cw,%ax
@@ -1441,7 +1441,7 @@ implementation
       { later, this should be replaced by the math unit }
       const
         Default8087CW : word = $1332;
-  
+
       procedure Set8087CW(cw:word);assembler;
         asm
           movw cw,%ax
@@ -1980,7 +1980,7 @@ implementation
         { might be overridden later }
         initasmmode:=asmmode_standard;
 {$ifdef i386}
-        initoptprocessor:=Class386;
+        initoptprocessor:=ClassPentium3;
         initspecificoptprocessor:=Class386;
 
         initfputype:=fpu_x87;
@@ -2047,7 +2047,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.142  2004-10-09 11:27:59  olle
+  Revision 1.143  2004-10-10 15:42:22  peter
+    * default optimization cpu changed to CLassPentium3
+
+  Revision 1.142  2004/10/09 11:27:59  olle
     + Added CurDirRelPath
     * Exchanged hardcoded "./" to CurDirRelPath
 
