@@ -4,7 +4,7 @@
     Copyright (c) 1998 by the Free Pascal development team
 
     Gettext interface to resourcestrings.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -204,33 +204,45 @@ end;
 // -------------------------------------------------------
 
 type
+  PResourceStringRecord = ^TResourceStringRecord;
   TResourceStringRecord = Packed Record
-    DefaultValue, CurrentValue: AnsiString;
-    HashValue: longint;
-  end;
+     DefaultValue,
+     CurrentValue : AnsiString;
+     HashValue : longint;
+     Name : AnsiString;
+   end;
 
-  TResourceStringTable = Packed Record
-    Count : longint;
-    Resrec : Array[Word] of TResourceStringRecord;
-  end;
+   TResourceStringTable = Packed Record
+     Count : longint;
+     Resrec : Array[Word] of TResourceStringRecord;
+   end;
+   PResourceStringTable = ^TResourceStringTable;
+
+   TResourceTableList = Packed Record
+     Count : longint;
+     Tables : Array[Word] of PResourceStringTable;
+   end;
 
 Var
-  ResourceStringTable: TResourceStringTable; External Name 'RESOURCESTRINGLIST';
+  ResourceStringTable : TResourceTablelist; External Name 'FPC_RESOURCESTRINGTABLES';
 
 
 procedure TranslateResourceStrings(AFile: TMOFile);
 var
-  rst: ^TResourceStringTable;
-  i: Integer;
-  s: String;
+  i,j : Integer;
+  s : String;
 begin
-  rst := @ResourceStringTable;
-  for i := 0 to rst^.Count - 1 do begin
-    // WriteLn(i, ': ', rst^.resrec[i].DefaultValue, ' / ', rst^.resrec[i].CurrentValue, ' / ', rst^.resrec[i].HashValue);
-    s := AFile.Translate(rst^.resrec[i].DefaultValue);
-    if s <> '' then
-      rst^.resrec[i].CurrentValue := s;
-  end;
+  With ResourceStringTable do
+    For I:=0 to Count-1 do
+      With Tables[I]^ do
+         For J:=0 to Count-1 do
+           With ResRec[J] do
+            begin
+              // WriteLn(j, ': ', DefaultValue, ' / ', CurrentValue, ' / ', HashValue);
+              s := AFile.Translate(DefaultValue);
+              if s <> '' then
+               CurrentValue := s;
+            end;
 end;
 
 procedure TranslateResourceStrings(AFilename: String);
@@ -253,7 +265,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-08-04 11:31:09  michael
+  Revision 1.2  1999-08-26 11:05:15  peter
+    * updated for new resourcestrings
+
+  Revision 1.1  1999/08/04 11:31:09  michael
   * Added gettext
 
   Revision 1.1  1999/07/25 16:23:31  michael
