@@ -13,7 +13,6 @@ General remarks
 
 - All fields and descendents implemented.
 - No calculated fields.
-- No Datasource yet. (although DataEvent is implemented in TField)
 - No persistent fields; this must be added later.
 
 
@@ -38,7 +37,7 @@ The Buffers
 A buffer contains all the data for 1 record of the dataset, and also
 the bookmark information. (bookmarkinformation is REQUIRED)
 
-The dataset allocates by default 'DefultBufferCount+1' records(buffers)
+The dataset allocates by default 'DefaultBufferCount+1' records(buffers)
 This constant can be changed, at the beginning of dataset.inc;
 if you know you'll be working with big datasets, you can 
 increase this constant.
@@ -49,7 +48,7 @@ The following constants are userd when handling this array:
 FBuffercount : The number of buffers allocated, minus one.
 FRecordCount : The number of buffers that is actually filled in.
 FActiveBuffer : The index of the active record.
-FCurrentRecord : The current Buffer. Should be phased out.
+FCurrentRecord : The current record in the underlaying dataset.
 
 So the following picture follows from this:
 

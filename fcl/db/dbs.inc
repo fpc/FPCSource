@@ -39,6 +39,7 @@ Const
   SNoDatasetRegistered = 'No such dataset registered : "%s"';
   SNotConnected = 'Operation cannot be performed on an disconnected database';
   SConnected = 'Operation cannot be performed on an connected database';
+  SUniDirectional = 'Operation cannot be performed on an unidirectional dataset';
   SNoSuchRecord = 'Could not find the requested record.';
   SDatasetReadOnly = 'Dataset is read-only.';
   SNeedField = 'Field %s is required, but not supplied.';
@@ -48,7 +49,10 @@ Const
 
 {
   $Log$
-  Revision 1.5  2003-08-16 16:42:21  michael
+  Revision 1.6  2004-08-13 07:06:02  michael
+  + Rework of buffer management by Joost Van der Sluis
+
+  Revision 1.5  2003/08/16 16:42:21  michael
   + Fixes in TDBDataset etc. Changed MySQLDb to use database as well
 
   Revision 1.4  2002/09/07 15:15:23  peter

@@ -793,7 +793,6 @@ type
     FBeforePost: TDataSetNotifyEvent;
     FBeforeScroll: TDataSetNotifyEvent;
     FBlobFieldCount: Longint;
-    FBookmark: TBookmarkStr;
     FBookmarkSize: Longint;
     FBuffers : TBufferArray;
     FBufferCount: Longint;
@@ -826,23 +825,24 @@ type
     FRecNo: Longint;
     FRecordCount: Longint;
     FRecordSize: Word;
+    FIsUniDirectional: Boolean;
     FState : TDataSetState;
     Procedure DoInsertAppend(DoAppend : Boolean);
     Procedure DoInternalOpen;
     Procedure DoInternalClose;
     Function  GetBuffer (Index : longint) : Pchar;
     Function  GetField (Index : Longint) : TField;
-    procedure RecalcBufListSize;
     Procedure RegisterDataSource(ADatasource : TDataSource);
     Procedure RemoveField (Field : TField);
     Procedure SetActive (Value : Boolean);
-    procedure SetBufferCount(const AValue: Longint);
     Procedure SetField (Index : Longint;Value : TField);
-    Procedure ShiftBuffers (Offset,Distance : Longint);
+    Procedure ShiftBuffersForward;
+    Procedure ShiftBuffersBackward;
     Function  TryDoing (P : TDataOperation; Ev : TDatasetErrorEvent) : Boolean;
     Procedure UnRegisterDataSource(ADatasource : TDatasource);
     Procedure UpdateFieldDefs;
   protected
+    procedure RecalcBufListSize;
     procedure ActivateBuffers; virtual;
     procedure BindFields(Binding: Boolean);
     function  BookmarkAvailable: Boolean;
@@ -898,7 +898,6 @@ type
     procedure Loaded; override;
     procedure OpenCursor(InfoQuery: Boolean); virtual;
     procedure RefreshInternalCalcFields(Buffer: PChar); virtual;
-    Function  RequiredBuffers : longint;
     procedure RestoreState(const Value: TDataSetState);
     procedure SetBookmarkStr(const Value: TBookmarkStr); virtual;
     procedure SetBufListSize(Value: Longint);
@@ -1010,13 +1009,14 @@ type
 //    property Fields[Index: Longint]: TField read GetField write SetField;
     property Found: Boolean read FFound;
     property Modified: Boolean read FModified;
+    property IsUniDirectional: Boolean read FIsUniDirectional write FIsUniDirectional default False;
     property RecordCount: Longint read GetRecordCount;
     property RecNo: Longint read FRecNo write FRecNo;
     property RecordSize: Word read FRecordSize;
     property State: TDataSetState read FState;
     property Fields : TFields Read FFieldList;
-    property Filter: string read FFilterText write FFilterText;
-    property Filtered: Boolean read FFiltered write FFiltered default False;
+    property Filter: string read FFilterText write SetFilterText;
+    property Filtered: Boolean read FFiltered write SetFiltered default False;
     property FilterOptions: TFilterOptions read FFilterOptions write FFilterOptions;
     property Active: Boolean read FActive write SetActive default False;
     property AutoCalcFields: Boolean read FAutoCalcFields write FAutoCalcFields;
@@ -1500,7 +1500,10 @@ end.
 
 {
   $Log$
-  Revision 1.19  2004-07-25 11:32:40  michael
+  Revision 1.20  2004-08-13 07:06:02  michael
+  + Rework of buffer management by Joost Van der Sluis
+
+  Revision 1.19  2004/07/25 11:32:40  michael
   * Patches from Joost van der Sluis
     interbase.pp:
         * Removed unused Fprepared
