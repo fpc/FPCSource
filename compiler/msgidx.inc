@@ -258,6 +258,7 @@ const
   parser_e_paraloc_only_one_para=03197;
   parser_e_paraloc_all_paras=03198;
   parser_e_illegal_explicit_paraloc=03199;
+  parser_e_32bitint_or_pointer_variable_expected=03200;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -637,9 +638,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 36372;
+  MsgTxtSize = 36424;
 
   MsgIdxMax : array[1..20] of longint=(
-    17,63,200,54,57,44,99,20,35,60,
+    17,63,201,54,57,44,99,20,35,60,
     40,1,1,1,1,1,1,1,1,1
   );

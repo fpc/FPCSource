@@ -923,6 +923,8 @@ parser_e_paraloc_all_paras=03198_E_Each argument must have an explicit location
 % must have one.
 parser_e_illegal_explicit_paraloc=03199_E_Unknown argument location
 % The location specified for an argument isn't recognized by the compiler
+parser_e_32bitint_or_pointer_variable_expected=03200_E_32 Bit Integer or Pointer Variable expected
+% The libbase for MorphOS/AmigaOS can be give only as \var{longint}, \var{dword} or \var{pointer}.
 % \end{description}
 #
 # Type Checking

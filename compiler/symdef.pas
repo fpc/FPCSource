@@ -559,7 +559,11 @@ interface
           refcount : longint;
           _class : tobjectdef;
           _classderef : tderef;
-
+{$ifdef powerpc}
+          { library symbol for AmigaOS/MorphOS }
+          libsym : tsym;
+          libsymderef : tderef;
+{$endif powerpc}
           { name of the result variable to insert in the localsymtable }
           resultname : stringid;
           { true, if the procedure is only declared
@@ -3732,6 +3736,10 @@ implementation
          ppufile.getderef(procsymderef);
          ppufile.getposinfo(fileinfo);
          ppufile.getsmallset(symoptions);
+{$ifdef powerpc}
+         { library symbol for AmigaOS/MorphOS }
+         ppufile.getderef(libsymderef);
+{$endif powerpc}
          { inline stuff }
          if proccalloption=pocall_inline then
            begin
@@ -3857,7 +3865,10 @@ implementation
          ppufile.putderef(procsymderef);
          ppufile.putposinfo(fileinfo);
          ppufile.putsmallset(symoptions);
-
+{$ifdef powerpc}
+         { library symbol for AmigaOS/MorphOS }
+         ppufile.putderef(libsymderef);
+{$endif powerpc}
          { inline stuff }
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
@@ -4216,6 +4227,10 @@ implementation
          { procsym that originaly defined this definition, should be in the
            same symtable }
          procsymderef.build(procsym);
+{$ifdef powerpc}
+         { library symbol for AmigaOS/MorphOS }
+         libsymderef.build(libsym);
+{$endif powerpc}
 
          aktparasymtable:=oldparasymtable;
          aktlocalsymtable:=oldlocalsymtable;
@@ -4274,6 +4289,10 @@ implementation
          { procsym that originaly defined this definition, should be in the
            same symtable }
          procsym:=tprocsym(procsymderef.resolve);
+{$ifdef powerpc}
+         { library symbol for AmigaOS/MorphOS }
+         libsym:=tvarsym(libsymderef.resolve);
+{$endif powerpc}
 
          aktparasymtable:=oldparasymtable;
          aktlocalsymtable:=oldlocalsymtable;
@@ -6165,7 +6184,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.235  2004-04-29 19:56:37  daniel
+  Revision 1.236  2004-05-01 22:05:01  florian
+    + added lib support for Amiga/MorphOS syscalls
+
+  Revision 1.235  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.234  2004/04/18 15:22:24  florian

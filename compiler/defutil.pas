@@ -57,6 +57,9 @@ interface
     {# Returns true, if definition defines an integer type }
     function is_integer(def : tdef) : boolean;
 
+    { true if p is a 32bit int i.e. dword or longint }
+    function is_32bitint(def : tdef) : boolean;
+
     {# Returns true if definition is a boolean }
     function is_boolean(def : tdef) : boolean;
 
@@ -336,6 +339,14 @@ implementation
         is_integer:=(def.deftype=orddef) and
                     (torddef(def).typ in [u8bit,u16bit,u32bit,u64bit,
                                           s8bit,s16bit,s32bit,s64bit]);
+      end;
+
+
+    { true if p is a 32bit int i.e. dword or longint }
+    function is_32bitint(def : tdef) : boolean;
+      begin
+        is_32bitint:=(def.deftype=orddef) and
+                    (torddef(def).typ in [u32bit,s32bit]);
       end;
 
 
@@ -894,7 +905,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2004-04-29 19:56:36  daniel
+  Revision 1.14  2004-05-01 22:05:01  florian
+    + added lib support for Amiga/MorphOS syscalls
+
+  Revision 1.13  2004/04/29 19:56:36  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.12  2004/03/29 14:44:10  peter

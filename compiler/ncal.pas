@@ -1239,7 +1239,17 @@ type
                    if not(assigned(procdefinition.owner.defowner)) then
                      internalerror(200309287);
                    hiddentree:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner));
-                 end;
+                 end
+{$ifdef powerpc}
+              else
+                { lib parameter has no special type but proccalloptions must be a syscall }
+                if (target_info.system=system_powerpc_morphos) and
+                  (procdefinition.proccalloption=pocall_syscall) then
+                  begin
+                    hiddentree:=cloadnode.create(tprocdef(procdefinition).libsym,tprocdef(procdefinition).libsym.owner);
+                  end
+{$endif powerpc}
+              else
               { add the hidden parameter }
               if not assigned(hiddentree) then
                 internalerror(200304073);
@@ -2040,7 +2050,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.231  2004-03-14 20:07:13  peter
+  Revision 1.232  2004-05-01 22:05:01  florian
+    + added lib support for Amiga/MorphOS syscalls
+
+  Revision 1.231  2004/03/14 20:07:13  peter
     * removed unused paravisible
 
   Revision 1.230  2004/03/04 17:25:16  peter

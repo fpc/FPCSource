@@ -465,11 +465,11 @@ implementation
                         consume(_CSTRING);
                       end
                     else
-		             begin
+		      begin
                         if explicit_paraloc then
                           Message(parser_e_paraloc_all_paras);
       			        locationstr:='';
-       		         end;
+       		      end;
                   end
                 else
                   locationstr:='';
@@ -1148,10 +1148,31 @@ end;
 
 
 procedure pd_syscall(pd:tabstractprocdef);
+var
+  sym : tsym;
+  symtable : tsymtable;
 begin
   if pd.deftype<>procdef then
     internalerror(2003042614);
   tprocdef(pd).forwarddef:=false;
+{$ifdef powerpc}
+  if target_info.system=system_powerpc_morphos then
+    begin
+      if consume_sym(sym,symtable) then
+        begin
+          if (sym.typ=varsym) and
+            (is_voidpointer(tvarsym(sym).vartype.def) or
+             is_32bitint(tvarsym(sym).vartype.def)) then
+            begin
+              tprocdef(pd).libsym:=sym;
+              pd.concatpara(nil,tvarsym(sym).vartype,tvarsym(sym),nil,true);
+              paramanager.parseparaloc(tparaitem(pd.para.last),'A6');
+            end
+          else
+            Message(parser_e_32bitint_or_pointer_variable_expected);
+        end;
+    end;
+{$endif powerpc}
   tprocdef(pd).extnumber:=get_intconst;
 end;
 
@@ -2194,7 +2215,10 @@ const
 end.
 {
   $Log$
-  Revision 1.169  2004-04-29 21:10:13  florian
+  Revision 1.170  2004-05-01 22:05:01  florian
+    + added lib support for Amiga/MorphOS syscalls
+
+  Revision 1.169  2004/04/29 21:10:13  florian
     + locationstr always reset
 
   Revision 1.168  2004/04/28 15:19:03  florian

@@ -490,8 +490,12 @@ unit cpupara;
                 p.paraloc[callerside].reference.offset:=48
               else if s='A5' then
                 p.paraloc[callerside].reference.offset:=52
-              { 'A6' (offset 56) is used by mossyscall as libbase, so API 
-                never passes parameters in it }
+              { 'A6' (offset 56) is used by mossyscall as libbase, so API
+                never passes parameters in it,
+                Indeed, but this allows to declare libbase either explicitly
+                or let the compiler insert it }
+              else if s='A6' then
+                p.paraloc[callerside].reference.offset:=56
               { 'A7' is the stack pointer on 68k, can't be overwritten
                 by API calls, so it has no offset }
               else
@@ -510,7 +514,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2004-04-18 23:19:48  karoly
+  Revision 1.62  2004-05-01 22:05:02  florian
+    + added lib support for Amiga/MorphOS syscalls
+
+  Revision 1.61  2004/04/18 23:19:48  karoly
    * added correct offsets for PowerPC/MorphOS location support
 
   Revision 1.60  2004/04/18 15:22:24  florian
