@@ -36,7 +36,7 @@ unit i_nwm;
             flags        : [];
             cpu          : cpu_i386;
             unit_env     : 'NETWAREUNITS';
-            extradefines : '';
+            extradefines : 'NETWARE_CLIB';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '.nlm';
@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2004-07-31 22:52:58  armin
+  Revision 1.7  2004-09-26 19:51:02  armin
+  * added define netware and netware_libc for target netwlibc, netware_clib for netware
+
+  Revision 1.6  2004/07/31 22:52:58  armin
   changed path sep to /
 
   Revision 1.5  2004/07/30 19:22:14  armin
