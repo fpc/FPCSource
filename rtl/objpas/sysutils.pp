@@ -93,8 +93,9 @@ interface
        EConvertError = class(Exception);
 
        { Other errors } 
-       EAbort         = Class(Exception);
-       EAbstractError = Class(Exception);
+       EAbort           = Class(Exception);
+       EAbstractError   = Class(Exception);
+       EAssertionFailed = Class(Exception);
        
   { Read date & Time function declarations }
   {$i datih.inc}
@@ -225,6 +226,7 @@ begin
   211 : E:=EAbstractError.Create(SAbstractError);
   216 : E:=EAccessViolation.Create(SAccessViolation);
   219 : E:=EInvalidCast.Create(SInvalidCast);
+  227 : E:=EAssertionFailed.Create(SAssertionFailed);
   else
 {$ifdef autoobjpas}
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
@@ -234,6 +236,20 @@ begin
   end;
   Raise E {at Address};
 end;
+
+{$ifdef autoobjpas}
+Procedure AssertErrorHandler (Const Msg,FN : String;LineNo,TheAddr : Longint);
+
+Var S: String;
+
+begin
+  If Msg='' then 
+    S:=SAssertionFailed
+  else
+    S:=Msg;
+  Raise EAssertionFailed.Createfmt(SAssertError,[S,Fn,LineNo]); // at Pointer(theAddr);
+end;
+{$endif}
 
 Procedure InitExceptions;
 {
@@ -246,6 +262,9 @@ begin
   // Create objects that may have problems when there is no memory.
   OutOfMemory:=EOutOfMemory.Create(SOutOfMemory);
   InvalidPointer:=EInvalidPointer.Create(SInvalidPointer);
+{$ifdef autoobjpas}  
+  AssertErrorProc:=@AssertErrorHandler;
+{$endif}
   ErrorProc:=@RunErrorToExcept;
 end;
 
@@ -256,7 +275,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.14  1998-10-03 15:08:05  florian
+    Revision 1.15  1998-10-10 09:53:10  michael
+    Added assertion handling
+
+    Revision 1.14  1998/10/03 15:08:05  florian
       * EInvalidCast added (from runerror 219)
 
     Revision 1.13  1998/10/02 13:00:11  michael

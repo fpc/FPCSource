@@ -27,6 +27,8 @@ Const
    SAccessDenied = 'Access denied';
    SAccessViolation = 'Access violation';
    SArgumentMissing = 'Missing argument in format "%s"';
+   SAssertError = '%s (%s, line %d)';
+   SAssertionFailed = 'Assertion failed';
    SDiskFull = 'Disk Full';
    SDivByZero = 'Division by zero';
    SEndOfFile = 'Read past end of file'; 
@@ -49,7 +51,10 @@ Const
    SUnKnownRunTimeError = 'Unknown Run-Time error : %3.3d';
 {
   $Log$
-  Revision 1.4  1998-10-03 15:08:04  florian
+  Revision 1.5  1998-10-10 09:53:09  michael
+  Added assertion handling
+
+  Revision 1.4  1998/10/03 15:08:04  florian
     * EInvalidCast added (from runerror 219)
 
   Revision 1.3  1998/10/02 13:57:37  michael
