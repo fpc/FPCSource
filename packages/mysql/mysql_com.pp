@@ -12,56 +12,56 @@ interface
 
 {$packrecords 4}
 { Extra types introduced for pascal }
-Type
+Type 
   pbyte = ^byte;
   pcardinal = ^cardinal;
   Socket = longint;
   my_bool = byte;
 
 Const
- NAME_LEN  = 64 ;               { Field/table name length }
+ NAME_LEN  = 64 ;		{ Field/table name length }
  LOCAL_HOST : pchar = 'localhost' ;
 
- MYSQL_PORT = 3306;             { Alloced by ISI for MySQL }
+ MYSQL_PORT = 3306;		{ Alloced by ISI for MySQL }
  MYSQL_UNIX_ADDR  : pchar = '/tmp/mysql.sock';
 
 Type
  enum_server_command = ( COM_SLEEP,COM_QUIT,COM_INIT_DB,COM_QUERY,
-                          COM_FIELD_LIST,COM_CREATE_DB,COM_DROP_DB,COM_REFRESH,
-                          COM_SHUTDOWN,COM_STATISTICS,
-                          COM_PROCESS_INFO,COM_CONNECT,COM_PROCESS_KILL,
-                          COM_DEBUG);
+			  COM_FIELD_LIST,COM_CREATE_DB,COM_DROP_DB,COM_REFRESH,
+			  COM_SHUTDOWN,COM_STATISTICS,
+			  COM_PROCESS_INFO,COM_CONNECT,COM_PROCESS_KILL,
+			  COM_DEBUG);
 
 Const
- NOT_NULL_FLAG       = 1;               { Field can't be NULL }
- PRI_KEY_FLAG        = 2;               { Field is part of a primary key }
- UNIQUE_KEY_FLAG     = 4;               { Field is part of a unique key }
- MULTIPLE_KEY_FLAG   = 8;               { Field is part of a key }
- BLOB_FLAG           = 16;              { Field is a blob }
- UNSIGNED_FLAG       = 32;              { Field is unsigned }
- ZEROFILL_FLAG       = 64;              { Field is zerofill }
- BINARY_FLAG         = 128;
+ NOT_NULL_FLAG	     = 1;		{ Field can't be NULL }
+ PRI_KEY_FLAG	     = 2;		{ Field is part of a primary key }
+ UNIQUE_KEY_FLAG     = 4;		{ Field is part of a unique key }
+ MULTIPLE_KEY_FLAG   = 8;		{ Field is part of a key }
+ BLOB_FLAG	     = 16;		{ Field is a blob }
+ UNSIGNED_FLAG       = 32;		{ Field is unsigned }
+ ZEROFILL_FLAG	     = 64;		{ Field is zerofill }
+ BINARY_FLAG	     = 128;
 { The following are only sent to new clients }
- ENUM_FLAG           = 256;             { field is an enum }
- AUTO_INCREMENT_FLAG = 512;             { field is a autoincrement field }
- TIMESTAMP_FLAG      = 1024;            { Field is a timestamp }
- PART_KEY_FLAG       = 16384;           { Intern; Part of some key }
- GROUP_FLAG          = 32768;           { Intern group field }
+ ENUM_FLAG	     = 256;		{ field is an enum }
+ AUTO_INCREMENT_FLAG = 512;		{ field is a autoincrement field }
+ TIMESTAMP_FLAG	     = 1024;		{ Field is a timestamp }
+ PART_KEY_FLAG	     = 16384;		{ Intern; Part of some key }
+ GROUP_FLAG	     = 32768;		{ Intern group field }
 
- REFRESH_GRANT          = 1;    { Refresh grant tables }
- REFRESH_LOG            = 2;    { Start on new log file }
- REFRESH_TABLES         = 4;    { close all tables }
+ REFRESH_GRANT		= 1;	{ Refresh grant tables }
+ REFRESH_LOG		= 2;	{ Start on new log file }
+ REFRESH_TABLES		= 4;	{ close all tables }
 
- CLIENT_LONG_PASSWORD   = 1;    { new more secure passwords }
- CLIENT_FOUND_ROWS      = 2;    { Found instead of affected rows }
- CLIENT_LONG_FLAG       = 4;    { Get all column flags }
+ CLIENT_LONG_PASSWORD	= 1;	{ new more secure passwords }
+ CLIENT_FOUND_ROWS	= 2;	{ Found instead of affected rows }
+ CLIENT_LONG_FLAG	= 4;	{ Get all column flags }
 
 Type
 pst_used_mem = ^st_used_mem;
-st_used_mem  = record                           { struct for once_alloc }
-  next : pst_used_mem;                          { Next block in use }
-  left : cardinal;                              { memory left in block  }
-  size : cardinal;                              { size of block }
+st_used_mem  = record    			{ struct for once_alloc }
+  next : pst_used_mem;				{ Next block in use }
+  left : cardinal;				{ memory left in block  }
+  size : cardinal;				{ size of block }
 end;
 
 TUSED_MEM = st_used_mem;
@@ -83,13 +83,20 @@ Const
  MYSQL_ERRMSG_SIZE = 200;
 
 Type
+net_type = (NET_TYPE_TCPIP, NET_TYPE_SOCKET, NETTYPE_NAMEDPIPE);
 st_net  = record
+  nettype : net_type; //DT
   fd : Socket;
   fcntl : Longint;
-  buff,buff_end,write_pos : Pchar;
+  buff,buff_end,write_pos,read_pos : Pchar;//DT
   last_error : array [0..MYSQL_ERRMSG_SIZE-1] of char;
   last_errno,max_packet,timeout,pkt_nr : Cardinal;
   error,return_errno : my_bool;
+  compress : my_bool; //DT
+
+  remain_in_buf,r_length, buf_length, where_b : cardinal; //DT
+  more : my_bool;//DT
+  save_char : char; //DT
 end;
 TNET = st_net;
 PNET = ^TNET;
@@ -99,24 +106,24 @@ Const
 
 Type
  enum_field_types = ( FIELD_TYPE_DECIMAL, FIELD_TYPE_TINY,
-                        FIELD_TYPE_SHORT,  FIELD_TYPE_LONG,
-                        FIELD_TYPE_FLOAT,  FIELD_TYPE_DOUBLE,
-                        FIELD_TYPE_NULL,   FIELD_TYPE_TIMESTAMP,
-                        FIELD_TYPE_LONGLONG,FIELD_TYPE_INT24,
-                        FIELD_TYPE_DATE,   FIELD_TYPE_TIME,
-                        FIELD_TYPE_DATETIME,
-                        FIELD_TYPE_ENUM := 247,
-                        FIELD_TYPE_SET := 248,
-                        FIELD_TYPE_TINY_BLOB := 249,
-                        FIELD_TYPE_MEDIUM_BLOB := 250,
-                        FIELD_TYPE_LONG_BLOB :=251,
-                        FIELD_TYPE_BLOB :=252,
-                        FIELD_TYPE_VAR_STRING :=253,
-                        FIELD_TYPE_STRING:=254);
+			FIELD_TYPE_SHORT,  FIELD_TYPE_LONG,
+			FIELD_TYPE_FLOAT,  FIELD_TYPE_DOUBLE,
+			FIELD_TYPE_NULL,   FIELD_TYPE_TIMESTAMP,
+			FIELD_TYPE_LONGLONG,FIELD_TYPE_INT24,
+			FIELD_TYPE_DATE,   FIELD_TYPE_TIME,
+			FIELD_TYPE_DATETIME,
+			FIELD_TYPE_ENUM := 247,
+			FIELD_TYPE_SET := 248,
+			FIELD_TYPE_TINY_BLOB := 249,
+			FIELD_TYPE_MEDIUM_BLOB := 250,
+			FIELD_TYPE_LONG_BLOB :=251,
+			FIELD_TYPE_BLOB :=252,
+			FIELD_TYPE_VAR_STRING :=253,
+			FIELD_TYPE_STRING:=254);
 
 Const
-FIELD_TYPE_CHAR = FIELD_TYPE_TINY;              { For compability }
-FIELD_TYPE_INTERVAL = FIELD_TYPE_ENUM;          { For compability }
+FIELD_TYPE_CHAR = FIELD_TYPE_TINY;		{ For compability }
+FIELD_TYPE_INTERVAL = FIELD_TYPE_ENUM;  	{ For compability }
 
 Procedure sql_free (root : PMEM_ROOT);cdecl;
 Procedure init_alloc_root (root: PMEM_ROOT;block_size : Cardinal);cdecl;
@@ -155,10 +162,10 @@ PRand_struct = ^TRand_struct;
 Item_result = (STRING_RESULT,REAL_RESULT,INT_RESULT);
 
 st_udf_args = record
-  arg_count : cardinal;                 { Number of arguments }
-  arg_type : ^Item_result;              { Pointer to item_results }
-  args : ppchar;                        { Pointer to argument }
-  lengths : PCardinal;                  { Length of string arguments }
+  arg_count : cardinal; 		{ Number of arguments }
+  arg_type : ^Item_result;		{ Pointer to item_results }
+  args : ppchar;			{ Pointer to argument }
+  lengths : PCardinal;	        	{ Length of string arguments }
 end;
 TUDF_ARGS = st_udf_args;
 PUDPF_ARGS = ^TUDF_ARGS;
@@ -166,10 +173,10 @@ PUDPF_ARGS = ^TUDF_ARGS;
   { This holds information about the result }
 
 st_udf_init = record
-  maybe_null : my_bool;                 { 1 if function can return NULL }
-  decimals : cardinal;                  { for real functions }
-  max_length : Cardinal;                { For string functions }
-  ptr : PChar;                          { free pointer for function data }
+  maybe_null : my_bool;			{ 1 if function can return NULL }
+  decimals : cardinal;  		{ for real functions }
+  max_length : Cardinal;		{ For string functions }
+  ptr : PChar;				{ free pointer for function data }
 end;
 TUDF_INIT = st_udf_init;
 PUDF_INIT = TUDF_INIT;
@@ -184,6 +191,9 @@ procedure scramble(toarg,message,password : pchar; old_ver : my_bool);cdecl;
 function  check_scramble(scramble,message : pchar; salt : cardinal;old_ver:my_bool) : my_bool;cdecl;
 function  get_tty_password(opt_message:  pchar) : pchar;cdecl;
 
+{
+#define NULL_LENGTH ((unsigned long) ~0) { For net_store_length }
+}
 
 implementation
 
@@ -210,8 +220,3 @@ function  check_scramble(scramble,message : pchar; salt : cardinal;old_ver:my_bo
 function  get_tty_password(opt_message:  pchar) : pchar;cdecl;external;
 
 end.
-  $Log$
-  Revision 1.2  2000-07-13 11:33:26  michael
-  + removed logs
- 
-}
