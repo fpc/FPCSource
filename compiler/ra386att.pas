@@ -1726,10 +1726,10 @@ Var
 Begin
   Message1(asmr_d_start_reading,'AT&T');
   firsttoken:=TRUE;
-  if assigned(procinfo.retdef) and
-     (is_fpu(procinfo.retdef) or
-     ret_in_acc(procinfo.retdef)) then
-    procinfo.funcret_is_valid:=true;
+  if assigned(procinfo^.retdef) and
+     (is_fpu(procinfo^.retdef) or
+     ret_in_acc(procinfo^.retdef)) then
+    procinfo^.funcret_is_valid:=true;
   { sets up all opcode and register tables in uppercase }
   if not _asmsorted then
    Begin
@@ -1973,7 +1973,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  1999-09-08 16:04:01  peter
+  Revision 1.59  1999-09-27 23:44:57  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.58  1999/09/08 16:04:01  peter
     * better support for object fields and more error checks for
       field accesses which create buggy code
 

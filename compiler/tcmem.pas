@@ -89,7 +89,7 @@ implementation
 {$endif SUPPORT_MMX}
            end;
          { result type is already set }
-         procinfo.flags:=procinfo.flags or pi_do_call;
+         procinfo^.flags:=procinfo^.flags or pi_do_call;
          if assigned(p^.left) then
            p^.location.loc:=LOC_REGISTER
          else
@@ -155,7 +155,7 @@ implementation
          p^.registersmmx:=p^.left^.registersmmx;
 {$endif SUPPORT_MMX}
          p^.resulttype:=voiddef;
-         procinfo.flags:=procinfo.flags or pi_do_call;
+         procinfo^.flags:=procinfo^.flags or pi_do_call;
       end;
 
 
@@ -630,7 +630,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1999-09-17 17:14:12  peter
+  Revision 1.29  1999-09-27 23:45:02  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.28  1999/09/17 17:14:12  peter
     * @procvar fixes for tp mode
     * @<id>:= gives now an error
 

@@ -1534,16 +1534,16 @@ implementation
            end;
          { check for duplicate id in para symtable of methods }
          if (symtabletype=parasymtable) and
-           assigned(procinfo._class) and
+           assigned(procinfo^._class) and
          { but not in nested procedures !}
-            (not(assigned(procinfo.parent)) or
-             (assigned(procinfo.parent) and
-              not(assigned(procinfo.parent^._class)))
+            (not(assigned(procinfo^.parent)) or
+             (assigned(procinfo^.parent) and
+              not(assigned(procinfo^.parent^._class)))
             ) and
           { funcretsym is allowed !! }
            (sym^.typ <> funcretsym) then
            begin
-              hsym:=search_class_member(procinfo._class,sym^.name);
+              hsym:=search_class_member(procinfo^._class,sym^.name);
               { but private ids can be reused }
               if assigned(hsym) and
                 (not(sp_private in hsym^.symoptions) or
@@ -2410,7 +2410,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  1999-09-12 21:35:38  florian
+  Revision 1.49  1999-09-27 23:44:59  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.48  1999/09/12 21:35:38  florian
     * fixed a crash under Linux. Why doesn't have the damned Windows DPMI nil pointer
       protection???
 
@@ -2422,7 +2426,7 @@ end.
     * fixed copyright message (it is now 1993-99)
 
   Revision 1.46  1999/09/10 18:48:10  florian
-    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * some bug fixes (e.g. must_be_valid and procinfo^.funcret_is_valid)
     * most things for stored properties fixed
 
   Revision 1.45  1999/09/08 08:05:44  peter

@@ -324,7 +324,7 @@ implementation
          if assigned(p^.left) then
            begin
               firstpass(p^.left);
-              procinfo.funcret_is_valid:=true;
+              procinfo^.funcret_is_valid:=true;
               if codegenerror then
                exit;
               { Check the 2 types }
@@ -495,11 +495,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1999-09-16 23:05:56  florian
+  Revision 1.20  1999-09-27 23:45:01  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.19  1999/09/16 23:05:56  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.18  1999/09/16 10:44:30  pierre
-   * firstexit must now set procinfo.funcret_is_valid
+   * firstexit must now set procinfo^.funcret_is_valid
 
   Revision 1.17  1999/08/23 23:41:45  pierre
    * for reg allocation corrected

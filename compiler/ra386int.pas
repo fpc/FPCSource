@@ -1632,10 +1632,10 @@ Begin
   Message1(asmr_d_start_reading,'intel');
   inexpression:=FALSE;
   firsttoken:=TRUE;
-  if assigned(procinfo.retdef) and
-     (is_fpu(procinfo.retdef) or
-     ret_in_acc(procinfo.retdef)) then
-    procinfo.funcret_is_valid:=true;
+  if assigned(procinfo^.retdef) and
+     (is_fpu(procinfo^.retdef) or
+     ret_in_acc(procinfo^.retdef)) then
+    procinfo^.funcret_is_valid:=true;
  { sets up all opcode and register tables in uppercase }
   if not _asmsorted then
    Begin
@@ -1751,7 +1751,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  1999-09-20 16:39:01  peter
+  Revision 1.49  1999-09-27 23:44:58  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.48  1999/09/20 16:39:01  peter
     * cs_create_smart instead of cs_smartlink
     * -CX is create smartlink
     * -CD is create dynamic, but does nothing atm.

@@ -1169,7 +1169,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          hregister:=getregister32;
 {$ifdef TEMPS_NOT_PUSH}
          reset_reference(href);
-         href.base:=procinfo.frame_pointer;
+         href.base:=procinfo^.frame_pointer;
          href.offset:=p^.temp_offset;
          emit_ref_reg(A_MOV,S_L,href,hregister);
 {$else  TEMPS_NOT_PUSH}
@@ -1215,7 +1215,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       begin
          hregister:=getregister32;
          reset_reference(href);
-         href.base:=procinfo.frame_pointer;
+         href.base:=procinfo^.frame_pointer;
          href.offset:=p^.temp_offset;
          emit_ref_reg(A_MOV,S_L,href,hregister);
          if (p^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
@@ -1265,10 +1265,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                inc(pushedparasize,8);
                                if inlined then
                                  begin
-                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                     exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
                                       p^.location.registerlow,r)));
-                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize+4);
+                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize+4);
                                     exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
                                       p^.location.registerhigh,r)));
                                  end
@@ -1283,7 +1283,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                inc(pushedparasize,4);
                                if inlined then
                                  begin
-                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                     exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,
                                       p^.location.register,r)));
                                  end
@@ -1308,7 +1308,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                             end;
                           if inlined then
                             begin
-                              r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                              r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,hreg,r)));
                             end
                           else
@@ -1332,7 +1332,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                           { we must push always 16 bit }
                           if inlined then
                             begin
-                              r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                              r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,hreg,r)));
                             end
                           else
@@ -1358,7 +1358,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   { this is the easiest case for inlined !! }
                   if inlined then
                     begin
-                       r^.base:=procinfo.framepointer;
+                       r^.base:=procinfo^.framepointer;
                        r^.offset:=para_offset-pushedparasize;
                     end;
                   exprasmlist^.concat(new(paicpu,op_ref(op,opsize,r)));
@@ -1382,7 +1382,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   { this is the easiest case for inlined !! }
                   if inlined then
                     begin
-                       r^.base:=procinfo.framepointer;
+                       r^.base:=procinfo^.framepointer;
                        r^.offset:=para_offset-pushedparasize;
                     end;
                   exprasmlist^.concat(new(paicpu,op_ref(op,opsize,r)));
@@ -1402,12 +1402,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                  begin
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
-                                   r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                   r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                    inc(tempreference.offset,4);
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
-                                   r:=new_reference(procinfo.framepointer,para_offset-pushedparasize+4);
+                                   r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize+4);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                  end
                                else
@@ -1424,7 +1424,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                  begin
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
-                                   r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                   r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                  end
                                else
@@ -1447,7 +1447,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 begin
                                   emit_ref_reg(A_MOV,opsize,
                                     newreference(tempreference),hreg);
-                                  r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                  r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                   exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,hreg,r)));
                                 end
                                else
@@ -1469,7 +1469,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                  begin
                                     emit_ref_reg(A_MOV,S_L,
                                       newreference(tempreference),R_EDI);
-                                    r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                    r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                     exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                  end
                                else
@@ -1484,7 +1484,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 begin
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
-                                   r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                   r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                 end
                               else
@@ -1495,7 +1495,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 begin
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
-                                   r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                   r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                 end
                               else
@@ -1512,7 +1512,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 begin
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
-                                   r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                   r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                 end
                               else
@@ -1523,7 +1523,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 begin
                                    emit_ref_reg(A_MOV,S_L,
                                      newreference(tempreference),R_EDI);
-                                   r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                   r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                                 end
                               else
@@ -1546,7 +1546,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 begin
                                    emit_ref_reg(A_MOV,opsize,
                                      newreference(tempreference),hreg);
-                                   r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                   r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                    exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,hreg,r)));
                                 end
                               else
@@ -1564,7 +1564,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                            begin
                               emit_ref_reg(A_MOV,S_L,
                                 newreference(tempreference),R_EDI);
-                              r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                              r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                               exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,S_L,R_EDI,r)));
                            end
                          else
@@ -1592,7 +1592,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                               inc(pushedparasize,4);
                               if inlined then
                                 begin
-                                  r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                                  r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                                   concatcopy(tempreference,r^,4,false,false);
                                 end
                               else
@@ -1622,7 +1622,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   emitlab(truelabel);
                   if inlined then
                     begin
-                       r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                       r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                        emit_const_ref(A_MOV,opsize,1,r);
                     end
                   else
@@ -1631,7 +1631,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   emitlab(falselabel);
                   if inlined then
                     begin
-                       r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                       r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                        emit_const_ref(A_MOV,opsize,0,r);
                     end
                   else
@@ -1658,7 +1658,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    end;
                   if inlined then
                     begin
-                       r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                       r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                        exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOV,opsize,hreg,r)));
                     end
                   else
@@ -1680,7 +1680,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 {$endif GDB}
                   if inlined then
                     begin
-                       r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                       r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                        exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVQ,S_NO,
                          p^.location.register,r)));
                     end
@@ -2248,16 +2248,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          i : longint;
 
       begin
-         if assigned(procinfo._class) then
+         if assigned(procinfo^._class) then
            begin
               if lexlevel>normal_function_level then
                 begin
                    new(hp);
                    reset_reference(hp^);
-                   hp^.offset:=procinfo.framepointer_offset;
-                   hp^.base:=procinfo.framepointer;
+                   hp^.offset:=procinfo^.framepointer_offset;
+                   hp^.base:=procinfo^.framepointer;
                    emit_ref_reg(A_MOV,S_L,hp,R_ESI);
-                   p:=procinfo.parent;
+                   p:=procinfo^.parent;
                    for i:=3 to lexlevel-1 do
                      begin
                         new(hp);
@@ -2277,8 +2277,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 begin
                    new(hp);
                    reset_reference(hp^);
-                   hp^.offset:=procinfo.ESI_offset;
-                   hp^.base:=procinfo.framepointer;
+                   hp^.offset:=procinfo^.ESI_offset;
+                   hp^.base:=procinfo^.framepointer;
                    emit_ref_reg(A_MOV,S_L,hp,R_ESI);
                 end;
            end;
@@ -2365,21 +2365,21 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       begin
          { restore the registers of an interrupt procedure }
          { this was all with entrycode instead of exitcode !!}
-         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EAX)));
-         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EBX)));
-         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)));
-         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EDX)));
-         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_ESI)));
-         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EDI)));
+         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EAX)));
+         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EBX)));
+         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_ECX)));
+         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EDX)));
+         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_ESI)));
+         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_L,R_EDI)));
 
          { .... also the segment registers }
-         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_DS)));
-         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_ES)));
-         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_FS)));
-         procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_GS)));
+         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_DS)));
+         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_ES)));
+         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_FS)));
+         procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_POP,S_W,R_GS)));
 
         { this restores the flags }
-         procinfo.aktexitcode^.concat(new(paicpu,op_none(A_IRET,S_NO)));
+         procinfo^.aktexitcode^.concat(new(paicpu,op_none(A_IRET,S_NO)));
       end;
 
 
@@ -2472,11 +2472,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             pobjectdef(pvarsym(p)^.definition)^.is_class) and
           pvarsym(p)^.definition^.needs_inittable then
          begin
-            procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
             reset_reference(hr);
             if psym(p)^.owner^.symtabletype=localsymtable then
               begin
-                 hr.base:=procinfo.framepointer;
+                 hr.base:=procinfo^.framepointer;
                  hr.offset:=-pvarsym(p)^.address;
               end
             else
@@ -2502,13 +2502,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            (pvarsym(p)^.varspez=vs_const) and
            not(dont_copy_const_param(pvarsym(p)^.definition))}) then
          begin
-            procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
             reset_reference(hr);
             hr.symbol:=pvarsym(p)^.definition^.get_inittable_label;
             emitpushreferenceaddr(hr);
             reset_reference(hr);
-            hr.base:=procinfo.framepointer;
-            hr.offset:=pvarsym(p)^.address+procinfo.call_offset;
+            hr.base:=procinfo^.framepointer;
+            hr.offset:=pvarsym(p)^.address+procinfo^.call_offset;
 
             emitpushreferenceaddr(hr);
             reset_reference(hr);
@@ -2536,18 +2536,18 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                (pvarsym(p)^.varspez=vs_const) { and
                (dont_copy_const_param(pvarsym(p)^.definition)) } ) then
               exit;
-            procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
             reset_reference(hr);
             case psym(p)^.owner^.symtabletype of
                localsymtable:
                  begin
-                    hr.base:=procinfo.framepointer;
+                    hr.base:=procinfo^.framepointer;
                     hr.offset:=-pvarsym(p)^.address;
                  end;
                parasymtable:
                  begin
-                    hr.base:=procinfo.framepointer;
-                    hr.offset:=pvarsym(p)^.address+procinfo.call_offset;
+                    hr.base:=procinfo^.framepointer;
+                    hr.offset:=pvarsym(p)^.address+procinfo^.call_offset;
                  end;
                else
                  hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
@@ -2576,8 +2576,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               { get stack space }
               new(r);
               reset_reference(r^);
-              r^.base:=procinfo.framepointer;
-              r^.offset:=pvarsym(p)^.address+4+procinfo.call_offset;
+              r^.base:=procinfo^.framepointer;
+              r^.offset:=pvarsym(p)^.address+4+procinfo^.call_offset;
               exprasmlist^.concat(new(paicpu,
                 op_ref_reg(A_MOV,S_L,r,R_EDI)));
 
@@ -2611,8 +2611,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    { now reload EDI }
                    new(r);
                    reset_reference(r^);
-                   r^.base:=procinfo.framepointer;
-                   r^.offset:=pvarsym(p)^.address+4+procinfo.call_offset;
+                   r^.base:=procinfo^.framepointer;
+                   r^.offset:=pvarsym(p)^.address+4+procinfo^.call_offset;
                    exprasmlist^.concat(new(paicpu,
                      op_ref_reg(A_MOV,S_L,r,R_EDI)));
 
@@ -2641,16 +2641,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               { load count }
               new(r);
               reset_reference(r^);
-              r^.base:=procinfo.framepointer;
-              r^.offset:=pvarsym(p)^.address+4+procinfo.call_offset;
+              r^.base:=procinfo^.framepointer;
+              r^.offset:=pvarsym(p)^.address+4+procinfo^.call_offset;
               exprasmlist^.concat(new(paicpu,
                 op_ref_reg(A_MOV,S_L,r,R_ECX)));
 
               { load source }
               new(r);
               reset_reference(r^);
-              r^.base:=procinfo.framepointer;
-              r^.offset:=pvarsym(p)^.address+procinfo.call_offset;
+              r^.base:=procinfo^.framepointer;
+              r^.offset:=pvarsym(p)^.address+procinfo^.call_offset;
               exprasmlist^.concat(new(paicpu,
                 op_ref_reg(A_MOV,S_L,r,R_ESI)));
 
@@ -2690,8 +2690,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               { patch the new address }
               new(r);
               reset_reference(r^);
-              r^.base:=procinfo.framepointer;
-              r^.offset:=pvarsym(p)^.address+procinfo.call_offset;
+              r^.base:=procinfo^.framepointer;
+              r^.offset:=pvarsym(p)^.address+procinfo^.call_offset;
               exprasmlist^.concat(new(paicpu,
                 op_reg_ref(A_MOV,S_L,R_ESP,r)));
            end
@@ -2699,20 +2699,20 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            if is_shortstring(pvarsym(p)^.definition) then
             begin
               reset_reference(href1);
-              href1.base:=procinfo.framepointer;
-              href1.offset:=pvarsym(p)^.address+procinfo.call_offset;
+              href1.base:=procinfo^.framepointer;
+              href1.offset:=pvarsym(p)^.address+procinfo^.call_offset;
               reset_reference(href2);
-              href2.base:=procinfo.framepointer;
+              href2.base:=procinfo^.framepointer;
               href2.offset:=-pvarsym(p)^.localvarsym^.address;
               copyshortstring(href2,href1,pstringdef(pvarsym(p)^.definition)^.len,true);
             end
            else
             begin
               reset_reference(href1);
-              href1.base:=procinfo.framepointer;
-              href1.offset:=pvarsym(p)^.address+procinfo.call_offset;
+              href1.base:=procinfo^.framepointer;
+              href1.offset:=pvarsym(p)^.address+procinfo^.call_offset;
               reset_reference(href2);
-              href2.base:=procinfo.framepointer;
+              href2.base:=procinfo^.framepointer;
               href2.offset:=-pvarsym(p)^.localvarsym^.address;
               concatcopy(href1,href2,pvarsym(p)^.definition^.size,true,true);
             end;
@@ -2731,10 +2731,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          begin
            if hp^.temptype in [tt_ansistring,tt_freeansistring] then
             begin
-              procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+              procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
               new(r);
               reset_reference(r^);
-              r^.base:=procinfo.framepointer;
+              r^.base:=procinfo^.framepointer;
               r^.offset:=hp^.pos;
               emit_const_ref(A_MOV,S_L,0,r);
             end;
@@ -2753,9 +2753,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          begin
             if hp^.temptype in [tt_ansistring,tt_freeansistring] then
               begin
-                 procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+                 procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
                  reset_reference(hr);
-                 hr.base:=procinfo.framepointer;
+                 hr.base:=procinfo^.framepointer;
                  hr.offset:=hp^.pos;
                  emitpushreferenceaddr(hr);
                  emitcall('FPC_ANSISTR_DECR_REF');
@@ -2819,7 +2819,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       { a constructor needs a help procedure }
       if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
         begin
-          if procinfo._class^.is_class then
+          if procinfo^._class^.is_class then
             begin
               exprasmlist^.insert(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
               emitinsertcall('FPC_NEW_CLASS');
@@ -2828,7 +2828,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             begin
               exprasmlist^.insert(new(paicpu,op_cond_sym(A_Jcc,C_Z,S_NO,faillabel)));
               emitinsertcall('FPC_HELP_CONSTRUCTOR');
-              exprasmlist^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
+              exprasmlist^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI)));
             end;
         end;
 
@@ -2840,8 +2840,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         begin
            new(hr);
            reset_reference(hr^);
-           hr^.offset:=procinfo.ESI_offset;
-           hr^.base:=procinfo.framepointer;
+           hr^.offset:=procinfo^.ESI_offset;
+           hr^.base:=procinfo^.framepointer;
            exprasmlist^.insert(new(paicpu,op_ref_reg(A_MOV,S_L,hr,R_ESI)));
         end;
       { should we save edi,esi,ebx like C ? }
@@ -2862,14 +2862,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
       { omit stack frame ? }
       if not inlined then
-      if procinfo.framepointer=stack_pointer then
+      if procinfo^.framepointer=stack_pointer then
           begin
               CGMessage(cg_d_stackframe_omited);
               nostackframe:=true;
               if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
-                parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-4;
+                parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.call_offset-4;
               if stackframe<>0 then
                 exprasmlist^.insert(new(paicpu,
                   op_const_reg(A_SUB,S_L,gettempsize,R_ESP)));
@@ -2879,7 +2879,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
-                parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-8;
+                parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.call_offset-8;
               nostackframe:=false;
               if stackframe<>0 then
                   begin
@@ -2966,16 +2966,16 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
           generate_interrupt_stackframe_entry;
 
       { initialize return value }
-      if (procinfo.retdef<>pdef(voiddef)) and
-        (procinfo.retdef^.needs_inittable) and
-        ((procinfo.retdef^.deftype<>objectdef) or
-        not(pobjectdef(procinfo.retdef)^.is_class)) then
+      if (procinfo^.retdef<>pdef(voiddef)) and
+        (procinfo^.retdef^.needs_inittable) and
+        ((procinfo^.retdef^.deftype<>objectdef) or
+        not(pobjectdef(procinfo^.retdef)^.is_class)) then
         begin
-           procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+           procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
            reset_reference(r);
-           r.offset:=procinfo.retoffset;
-           r.base:=procinfo.framepointer;
-           initialize(procinfo.retdef,r,ret_in_param(procinfo.retdef));
+           r.offset:=procinfo^.retoffset;
+           r.base:=procinfo^.framepointer;
+           initialize(procinfo^.retdef,r,ret_in_param(procinfo^.retdef));
         end;
 
       { generate copies of call by value parameters }
@@ -2991,7 +2991,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       inittempansistrings;
 
       { do we need an exception frame because of ansi/widestrings ? }
-      if (procinfo.flags and pi_needs_implicit_finally)<>0 then
+      if (procinfo^.flags and pi_needs_implicit_finally)<>0 then
         begin
             usedinproc:=usedinproc or ($80 shr byte(R_EAX));
 
@@ -3011,7 +3011,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
       if (cs_profile in aktmoduleswitches) or
          (aktprocsym^.definition^.owner^.symtabletype=globalsymtable) or
-         (assigned(procinfo._class) and (procinfo._class^.owner^.symtabletype=globalsymtable)) then
+         (assigned(procinfo^._class) and (procinfo^._class^.owner^.symtabletype=globalsymtable)) then
            make_global:=true;
 
       if not inlined then
@@ -3048,7 +3048,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        begin
          if target_os.use_function_relative_addresses then
            exprasmlist^.insert(stab_function_name);
-         if make_global or ((procinfo.flags and pi_is_global) <> 0) then
+         if make_global or ((procinfo^.flags and pi_is_global) <> 0) then
            aktprocsym^.is_global := True;
          exprasmlist^.insert(new(pai_stabs,init(aktprocsym^.stabstring)));
          aktprocsym^.isstabwritten:=true;
@@ -3075,23 +3075,23 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        op : Tasmop;
        s : Topsize;
   begin
-      if procinfo.retdef<>pdef(voiddef) then
+      if procinfo^.retdef<>pdef(voiddef) then
           begin
-              if ((procinfo.flags and pi_operator)<>0) and
+              if ((procinfo^.flags and pi_operator)<>0) and
                  assigned(opsym) then
-                procinfo.funcret_is_valid:=
-                  procinfo.funcret_is_valid or (opsym^.refs>0);
-              if not(procinfo.funcret_is_valid) and not inlined { and
-                ((procinfo.flags and pi_uses_asm)=0)} then
+                procinfo^.funcret_is_valid:=
+                  procinfo^.funcret_is_valid or (opsym^.refs>0);
+              if not(procinfo^.funcret_is_valid) and not inlined { and
+                ((procinfo^.flags and pi_uses_asm)=0)} then
                CGMessage(sym_w_function_result_not_set);
-              hr:=new_reference(procinfo.framepointer,procinfo.retoffset);
-              if (procinfo.retdef^.deftype in [orddef,enumdef]) then
+              hr:=new_reference(procinfo^.framepointer,procinfo^.retoffset);
+              if (procinfo^.retdef^.deftype in [orddef,enumdef]) then
                 begin
-                  case procinfo.retdef^.size of
+                  case procinfo^.retdef^.size of
                    8:
                      begin
                         emit_ref_reg(A_MOV,S_L,hr,R_EAX);
-                        hr:=new_reference(procinfo.framepointer,procinfo.retoffset+4);
+                        hr:=new_reference(procinfo^.framepointer,procinfo^.retoffset+4);
                         emit_ref_reg(A_MOV,S_L,hr,R_EDX);
                      end;
 
@@ -3106,12 +3106,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   end;
                 end
               else
-                if ret_in_acc(procinfo.retdef) then
+                if ret_in_acc(procinfo^.retdef) then
                   emit_ref_reg(A_MOV,S_L,hr,R_EAX)
               else
-                 if (procinfo.retdef^.deftype=floatdef) then
+                 if (procinfo^.retdef^.deftype=floatdef) then
                    begin
-                      floatloadops(pfloatdef(procinfo.retdef)^.typ,op,s);
+                      floatloadops(pfloatdef(procinfo^.retdef)^.typ,op,s);
                       exprasmlist^.concat(new(paicpu,op_ref(op,s,hr)))
                    end
               else
@@ -3140,14 +3140,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       { call the destructor help procedure }
       if (aktprocsym^.definition^.proctypeoption=potype_destructor) then
         begin
-          if procinfo._class^.is_class then
+          if procinfo^._class^.is_class then
             begin
               emitinsertcall('FPC_DISPOSE_CLASS');
             end
           else
             begin
               emitinsertcall('FPC_HELP_DESTRUCTOR');
-              exprasmlist^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI)));
+              exprasmlist^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI)));
             end;
         end;
 
@@ -3162,7 +3162,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}finalize_data);
 
       { do we need to handle exceptions because of ansi/widestrings ? }
-      if (procinfo.flags and pi_needs_implicit_finally)<>0 then
+      if (procinfo^.flags and pi_needs_implicit_finally)<>0 then
         begin
            getlabel(noreraiselabel);
            emitcall('FPC_POPADDRSTACK');
@@ -3172,15 +3172,15 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
              op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
            emitjmp(C_E,noreraiselabel);
            { must be the return value finalized before reraising the exception? }
-           if (procinfo.retdef<>pdef(voiddef)) and
-             (procinfo.retdef^.needs_inittable) and
-             ((procinfo.retdef^.deftype<>objectdef) or
-             not(pobjectdef(procinfo.retdef)^.is_class)) then
+           if (procinfo^.retdef<>pdef(voiddef)) and
+             (procinfo^.retdef^.needs_inittable) and
+             ((procinfo^.retdef^.deftype<>objectdef) or
+             not(pobjectdef(procinfo^.retdef)^.is_class)) then
              begin
                 reset_reference(hr);
-                hr.offset:=procinfo.retoffset;
-                hr.base:=procinfo.framepointer;
-                finalize(procinfo.retdef,hr,ret_in_param(procinfo.retdef));
+                hr.offset:=procinfo^.retoffset;
+                hr.base:=procinfo^.framepointer;
+                finalize(procinfo^.retdef,hr,ret_in_param(procinfo^.retdef));
              end;
 
            emitcall('FPC_RERAISE');
@@ -3205,8 +3205,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   getlabel(okexitlabel);
                   emitjmp(C_NONE,okexitlabel);
                   emitlab(faillabel);
-                  emit_ref_reg(A_MOV,S_L,new_reference(procinfo.framepointer,12),R_ESI);
-                  emit_const_reg(A_MOV,S_L,procinfo._class^.vmt_offset,R_EDI);
+                  emit_ref_reg(A_MOV,S_L,new_reference(procinfo^.framepointer,12),R_ESI);
+                  emit_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI);
                   emitcall('FPC_HELP_FAIL');
                   emitlab(okexitlabel);
                   emit_reg_reg(A_MOV,S_L,R_ESI,R_EAX);
@@ -3281,15 +3281,15 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       if (cs_debuginfo in aktmoduleswitches) and not inlined  then
           begin
               aktprocsym^.concatstabto(exprasmlist);
-              if assigned(procinfo._class) then
-                if (not assigned(procinfo.parent) or
-                   not assigned(procinfo.parent^._class)) then
+              if assigned(procinfo^._class) then
+                if (not assigned(procinfo^.parent) or
+                   not assigned(procinfo^.parent^._class)) then
                   exprasmlist^.concat(new(pai_stabs,init(strpnew(
-                   '"$t:v'+procinfo._class^.numberstring+'",'+
-                   tostr(N_PSYM)+',0,0,'+tostr(procinfo.esi_offset)))))
+                   '"$t:v'+procinfo^._class^.numberstring+'",'+
+                   tostr(N_PSYM)+',0,0,'+tostr(procinfo^.esi_offset)))))
                 else
                   exprasmlist^.concat(new(pai_stabs,init(strpnew(
-                   '"$t:r'+procinfo._class^.numberstring+'",'+
+                   '"$t:r'+procinfo^._class^.numberstring+'",'+
                    tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI])))));
 
               if (pdef(aktprocsym^.definition^.retdef) <> pdef(voiddef)) then
@@ -3297,20 +3297,20 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   if ret_in_param(aktprocsym^.definition^.retdef) then
                     exprasmlist^.concat(new(pai_stabs,init(strpnew(
                      '"'+aktprocsym^.name+':X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                     tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))))
+                     tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))))
                   else
                     exprasmlist^.concat(new(pai_stabs,init(strpnew(
                      '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                     tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))));
+                     tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))));
                   if (m_result in aktmodeswitches) then
                     if ret_in_param(aktprocsym^.definition^.retdef) then
                       exprasmlist^.concat(new(pai_stabs,init(strpnew(
                        '"RESULT:X*'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                       tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))))
+                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))))
                     else
                       exprasmlist^.concat(new(pai_stabs,init(strpnew(
                        '"RESULT:X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                       tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))));
+                       tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))));
                 end;
               mangled_length:=length(aktprocsym^.definition^.mangledname);
               getmem(p,mangled_length+50);
@@ -3359,7 +3359,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.46  1999-09-26 13:26:07  florian
+  Revision 1.47  1999-09-27 23:44:50  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.46  1999/09/26 13:26:07  florian
     * exception patch of Romio nevertheless the excpetion handling
       needs some corections regarding register saving
     * gettempansistring is again a procedure

@@ -278,7 +278,7 @@ unit temp_gen;
          { do a reset, because the reference isn't used }
          reset_reference(ref);
          ref.offset:=gettempofsize(l);
-         ref.base:=procinfo.framepointer;
+         ref.base:=procinfo^.framepointer;
       end;
 
 
@@ -288,7 +288,7 @@ unit temp_gen;
       begin
          { do a reset, because the reference isn't used }
          reset_reference(ref);
-         ref.base:=procinfo.framepointer;
+         ref.base:=procinfo^.framepointer;
          { Reuse old ansi slot ? }
          foundslot:=nil;
          tl:=templist;
@@ -368,10 +368,10 @@ unit temp_gen;
          { ref.index = R_NO was missing
            led to problems with local arrays
            with lower bound > 0 (PM) }
-         istemp:=((ref.base=procinfo.framepointer) and
+         istemp:=((ref.base=procinfo^.framepointer) and
 {$ifndef alpha}
                   (ref.index=R_NO) and
-{$endif}                  
+{$endif}
                   (ref.offset<firsttemp));
       end;
 
@@ -527,7 +527,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  1999-09-26 13:26:08  florian
+  Revision 1.37  1999-09-27 23:45:02  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.36  1999/09/26 13:26:08  florian
     * exception patch of Romio nevertheless the excpetion handling
       needs some corections regarding register saving
     * gettempansistring is again a procedure

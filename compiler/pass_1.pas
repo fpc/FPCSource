@@ -121,7 +121,7 @@ implementation
                    { Funktionsresultate an exit anh„ngen }
                    { this is wrong for string or other complex
                      result types !!! }
-                   if ret_in_acc(procinfo.retdef) and
+                   if ret_in_acc(procinfo^.retdef) and
                       assigned(hp^.left) and
                       (hp^.left^.right^.treetype=exitn) and
                       (hp^.right^.treetype=assignn) and
@@ -188,7 +188,7 @@ implementation
 
     procedure firstasm(var p : ptree);
       begin
-        procinfo.flags:=procinfo.flags or pi_uses_asm;
+        procinfo^.flags:=procinfo^.flags or pi_uses_asm;
       end;
 
 
@@ -369,7 +369,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.105  1999-09-26 21:30:16  peter
+  Revision 1.106  1999-09-27 23:44:51  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.105  1999/09/26 21:30:16  peter
     + constant pointer support which can happend with typecasting like
       const p=pointer(1)
     * better procvar parsing in typed consts

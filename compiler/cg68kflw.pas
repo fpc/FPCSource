@@ -412,10 +412,10 @@ implementation
                             end;
                  else internalerror(2001);
               end;
-              case procinfo.retdef^.deftype of
+              case procinfo^.retdef^.deftype of
                orddef,
               enumdef : begin
-                          case procinfo.retdef^.size of
+                          case procinfo^.retdef^.size of
                            4 : if is_mem then
                                  exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
                                    newreference(p^.left^.location.reference),R_D0)))
@@ -444,15 +444,15 @@ implementation
              floatdef : begin
                           { floating point return values .... }
                           { single are returned in d0         }
-                          if (pfloatdef(procinfo.retdef)^.typ=f32bit) or
-                             (pfloatdef(procinfo.retdef)^.typ=s32real) then
+                          if (pfloatdef(procinfo^.retdef)^.typ=f32bit) or
+                             (pfloatdef(procinfo^.retdef)^.typ=s32real) then
                            begin
                              if is_mem then
                                exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,
                                  newreference(p^.left^.location.reference),R_D0)))
                              else
                                begin
-                                 if pfloatdef(procinfo.retdef)^.typ=f32bit then
+                                 if pfloatdef(procinfo^.retdef)^.typ=f32bit then
                                    emit_reg_reg(A_MOVE,S_L,p^.left^.location.register,R_D0)
                                  else
                                    begin
@@ -472,7 +472,7 @@ implementation
                              if is_mem then
                               begin
                                 exprasmlist^.concat(new(paicpu,op_ref_reg(A_FMOVE,
-                                  getfloatsize(pfloatdef(procinfo.retdef)^.typ),
+                                  getfloatsize(pfloatdef(procinfo^.retdef)^.typ),
                                     newreference(p^.left^.location.reference),R_FP0)));
                               end
                              else
@@ -481,7 +481,7 @@ implementation
                                 { convert from extended to correct type }
                                 { when storing                          }
                                 exprasmlist^.concat(new(paicpu,op_reg_reg(A_FMOVE,
-                                  getfloatsize(pfloatdef(procinfo.retdef)^.typ),p^.left^.location.fpureg,R_FP0)));
+                                  getfloatsize(pfloatdef(procinfo^.retdef)^.typ),p^.left^.location.fpureg,R_FP0)));
                               end;
                            end;
                         end;
@@ -770,8 +770,8 @@ do_jmp:
          { also reset to zero in the stack }
          new(hp);
          reset_reference(hp^);
-         hp^.offset:=procinfo.ESI_offset;
-         hp^.base:=procinfo.framepointer;
+         hp^.offset:=procinfo^.ESI_offset;
+         hp^.base:=procinfo^.framepointer;
          exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVE,S_L,R_A5,hp)));
          exprasmlist^.concat(new(pai_labeled,init(A_JMP,quickexitlabel)));
       end;
@@ -779,7 +779,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.10  1999-09-16 23:05:51  florian
+  Revision 1.11  1999-09-27 23:44:48  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.10  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.9  1999/08/25 11:59:49  jonas

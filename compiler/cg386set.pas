@@ -753,7 +753,7 @@ implementation
          getlabel(endlabel);
          getlabel(elselabel);
          if (cs_create_smart in aktmoduleswitches) then
-           jumpsegment:=procinfo.aktlocaldata
+           jumpsegment:=procinfo^.aktlocaldata
          else
            jumpsegment:=datasegment;
          with_sign:=is_signed(p^.left^.resulttype);
@@ -919,7 +919,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  1999-09-20 16:38:52  peter
+  Revision 1.42  1999-09-27 23:44:48  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.41  1999/09/20 16:38:52  peter
     * cs_create_smart instead of cs_smartlink
     * -CX is create smartlink
     * -CD is create dynamic, but does nothing atm.

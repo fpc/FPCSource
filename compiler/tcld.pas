@@ -195,7 +195,7 @@ implementation
                    if (m_tp_procvar in aktmodeswitches) and
                       not(assigned(p^.left)) and
                      (pprocsym(p^.symtableentry)^.owner^.symtabletype=objectsymtable) then
-                      p^.left:=genselfnode(procinfo._class);
+                      p^.left:=genselfnode(procinfo^._class);
                    { method pointer ? }
                    if assigned(p^.left) then
                      begin
@@ -291,7 +291,7 @@ implementation
                 exit;
              end;
             { we call STRCOPY }
-            procinfo.flags:=procinfo.flags or pi_do_call;
+            procinfo^.flags:=procinfo^.flags or pi_do_call;
             hp:=p^.right;
             { test for s:=s+anything ... }
             { the problem is for
@@ -350,12 +350,12 @@ implementation
          p^.resulttype:=p^.retdef;
          p^.location.loc:=LOC_REFERENCE;
          if ret_in_param(p^.retdef) or
-            (@procinfo<>pprocinfo(p^.funcretprocinfo)) then
+            (procinfo<>pprocinfo(p^.funcretprocinfo)) then
            p^.registers32:=1;
          { no claim if setting higher return value_str }
          if must_be_valid and
-            (@procinfo=pprocinfo(p^.funcretprocinfo)) and
-            not procinfo.funcret_is_valid then
+            (procinfo=pprocinfo(p^.funcretprocinfo)) and
+            not procinfo^.funcret_is_valid then
            CGMessage(sym_w_function_result_not_set);
          {
          if count_ref then
@@ -509,7 +509,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  1999-09-17 17:14:12  peter
+  Revision 1.46  1999-09-27 23:45:01  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.45  1999/09/17 17:14:12  peter
     * @procvar fixes for tp mode
     * @<id>:= gives now an error
 
@@ -523,7 +527,7 @@ end.
       it is also allowed for objects !!
 
   Revision 1.42  1999/09/10 18:48:11  florian
-    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * some bug fixes (e.g. must_be_valid and procinfo^.funcret_is_valid)
     * most things for stored properties fixed
 
   Revision 1.41  1999/08/16 23:23:41  peter

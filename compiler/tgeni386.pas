@@ -114,8 +114,9 @@ implementation
 
       var
          r : tregister;
+{$ifdef SUPPORT_MMX}
          hr : preference;
-
+{$endif}
       begin
          usedinproc:=usedinproc or b;
          for r:=R_EAX to R_EBX do
@@ -614,7 +615,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  1999-08-27 10:38:32  pierre
+  Revision 1.35  1999-09-27 23:45:02  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.34  1999/08/27 10:38:32  pierre
    + EXTTEMPREGDEBUG code added
 
   Revision 1.33  1999/08/25 12:00:06  jonas

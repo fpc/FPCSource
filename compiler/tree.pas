@@ -1644,7 +1644,7 @@ unit tree;
            begin
               case p^.treetype of
                  funcretn:
-                    procinfo.funcret_is_valid:=true;
+                    procinfo^.funcret_is_valid:=true;
                  vecn,typeconvn,subscriptn,derefn:
                     set_funcret_is_valid(p^.left);
               end;
@@ -1790,7 +1790,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.98  1999-09-26 21:30:22  peter
+  Revision 1.99  1999-09-27 23:45:03  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.98  1999/09/26 21:30:22  peter
     + constant pointer support which can happend with typecasting like
       const p=pointer(1)
     * better procvar parsing in typed consts
@@ -1803,7 +1807,7 @@ end.
    * typo correction
 
   Revision 1.95  1999/09/10 18:48:11  florian
-    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * some bug fixes (e.g. must_be_valid and procinfo^.funcret_is_valid)
     * most things for stored properties fixed
 
   Revision 1.94  1999/09/07 07:52:20  peter

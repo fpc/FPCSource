@@ -1392,6 +1392,7 @@ unit pdecl;
          hs      : string;
          pcrd       : pclassrefdef;
          hp1    : pdef;
+         oldprocinfo : pprocinfo;
          oldprocsym : pprocsym;
          oldparse_only : boolean;
          methodnametable,intmessagetable,
@@ -1591,9 +1592,15 @@ unit pdecl;
          aktobjectdef:=aktclass;
          aktclass^.symtable^.next:=symtablestack;
          symtablestack:=aktclass^.symtable;
-         procinfo._class:=aktclass;
          testcurobject:=1;
          curobjectname:=n;
+
+         { new procinfo }
+         oldprocinfo:=procinfo;
+         new(procinfo);
+         fillchar(procinfo^,sizeof(tprocinfo),0);
+         procinfo^._class:=aktclass;
+
 
        { short class declaration ? }
          if (not is_a_class) or (token<>_SEMICOLON) then
@@ -1830,8 +1837,10 @@ unit pdecl;
 
          { restore old state }
          symtablestack:=symtablestack^.next;
-         procinfo._class:=nil;
          aktobjectdef:=nil;
+         {Restore procinfo}
+         dispose(procinfo);
+         procinfo:=oldprocinfo;
          {Restore the aktprocsym.}
          aktprocsym:=oldprocsym;
 
@@ -2540,7 +2549,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.156  1999-09-26 21:30:19  peter
+  Revision 1.157  1999-09-27 23:44:53  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.156  1999/09/26 21:30:19  peter
     + constant pointer support which can happend with typecasting like
       const p=pointer(1)
     * better procvar parsing in typed consts
@@ -2571,7 +2584,7 @@ end.
     * some more fixes for stored properties
 
   Revision 1.149  1999/09/10 18:48:07  florian
-    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * some bug fixes (e.g. must_be_valid and procinfo^.funcret_is_valid)
     * most things for stored properties fixed
 
   Revision 1.148  1999/09/08 21:06:06  michael

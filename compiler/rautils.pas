@@ -672,13 +672,13 @@ Function TOperand.SetupResult:boolean;
 Begin
   SetupResult:=false;
   { replace by correct offset. }
-  if assigned(procinfo.retdef) and
-     (procinfo.retdef<>pdef(voiddef)) then
+  if assigned(procinfo^.retdef) and
+     (procinfo^.retdef<>pdef(voiddef)) then
    begin
-     opr.ref.offset:=procinfo.retoffset;
-     opr.ref.base:= procinfo.framepointer;
+     opr.ref.offset:=procinfo^.retoffset;
+     opr.ref.base:= procinfo^.framepointer;
      { always assume that the result is valid. }
-     procinfo.funcret_is_valid:=true;
+     procinfo^.funcret_is_valid:=true;
      SetupResult:=true;
    end
   else
@@ -689,11 +689,11 @@ end;
 Function TOperand.SetupSelf:boolean;
 Begin
   SetupSelf:=false;
-  if assigned(procinfo._class) then
+  if assigned(procinfo^._class) then
    Begin
      opr.typ:=OPR_REFERENCE;
-     opr.ref.offset:=procinfo.ESI_offset;
-     opr.ref.base:=procinfo.framepointer;
+     opr.ref.offset:=procinfo^.ESI_offset;
+     opr.ref.base:=procinfo^.framepointer;
      opr.ref.options:=ref_selffixup;
      SetupSelf:=true;
    end
@@ -708,8 +708,8 @@ Begin
   if lexlevel>normal_function_level then
    Begin
      opr.typ:=OPR_REFERENCE;
-     opr.ref.offset:=procinfo.framepointer_offset;
-     opr.ref.base:=procinfo.framepointer;
+     opr.ref.offset:=procinfo^.framepointer_offset;
+     opr.ref.base:=procinfo^.framepointer;
      SetupOldEBP:=true;
    end
   else
@@ -756,7 +756,7 @@ Begin
             opr.ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname);
           parasymtable :
             begin
-              opr.ref.base:=procinfo.framepointer;
+              opr.ref.base:=procinfo^.framepointer;
               opr.ref.offset:=pvarsym(sym)^.address;
               opr.ref.offsetfixup:=aktprocsym^.definition^.parast^.address_fixup;
               opr.ref.options:=ref_parafixup;
@@ -767,7 +767,7 @@ Begin
                 opr.ref.symbol:=newasmsymbol(pvarsym(sym)^.mangledname)
               else
                 begin
-                  opr.ref.base:=procinfo.framepointer;
+                  opr.ref.base:=procinfo^.framepointer;
                   opr.ref.offset:=-(pvarsym(sym)^.address);
                   opr.ref.options:=ref_localfixup;
                   opr.ref.offsetfixup:=aktprocsym^.definition^.localst^.address_fixup;
@@ -1160,7 +1160,7 @@ Begin
   base:=Copy(s,1,i-1);
   delete(s,1,i);
   if base='SELF' then
-   st:=procinfo._class^.symtable
+   st:=procinfo^._class^.symtable
   else
    begin
      getsym(base,false);
@@ -1433,7 +1433,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  1999-09-08 16:04:04  peter
+  Revision 1.27  1999-09-27 23:44:58  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.26  1999/09/08 16:04:04  peter
     * better support for object fields and more error checks for
       field accesses which create buggy code
 

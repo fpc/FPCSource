@@ -742,14 +742,9 @@
 
     procedure tfuncretsym.write;
       begin
-
-         (*
-          Normally all references are
-          transfered to the function symbol itself !! PM *)
          tsym.write;
          writedefref(funcretdef);
          writelong(address);
-
          current_ppu^.writeentry(ibfuncretsym);
       end;
 
@@ -769,24 +764,31 @@
       var
         l : longint;
       begin
-        { allocate space in local if ret in acc or in fpu }
-        if ret_in_acc(procinfo.retdef) or (procinfo.retdef^.deftype=floatdef) then
-          begin
-             l:=funcretdef^.size;
-             inc(owner^.datasize,l);
+        { if retoffset is already set then reuse it, this is needed
+          when inserting the result variable }
+        if procinfo^.retoffset<>0 then
+         address:=procinfo^.retoffset
+        else
+         begin
+           { allocate space in local if ret in acc or in fpu }
+           if ret_in_acc(procinfo^.retdef) or (procinfo^.retdef^.deftype=floatdef) then
+            begin
+              l:=funcretdef^.size;
+              inc(owner^.datasize,l);
 {$ifdef m68k}
-             { word alignment required for motorola }
-             if (l=1) then
-              inc(owner^.datasize,1)
-             else
+              { word alignment required for motorola }
+              if (l=1) then
+               inc(owner^.datasize,1)
+              else
 {$endif}
-             if (l>=4) and ((owner^.datasize and 3)<>0) then
-               inc(owner^.datasize,4-(owner^.datasize and 3))
-             else if (l>=2) and ((owner^.datasize and 1)<>0) then
-               inc(owner^.datasize,2-(owner^.datasize and 1));
-             address:=owner^.datasize;
-             procinfo.retoffset:=-owner^.datasize;
-          end;
+              if (l>=4) and ((owner^.datasize and 3)<>0) then
+                inc(owner^.datasize,4-(owner^.datasize and 3))
+              else if (l>=2) and ((owner^.datasize and 1)<>0) then
+                inc(owner^.datasize,2-(owner^.datasize and 1));
+              address:=owner^.datasize;
+              procinfo^.retoffset:=-owner^.datasize;
+            end;
+         end;
       end;
 
 
@@ -2164,7 +2166,11 @@
 
 {
   $Log$
-  Revision 1.119  1999-09-26 21:30:22  peter
+  Revision 1.120  1999-09-27 23:44:58  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.119  1999/09/26 21:30:22  peter
     + constant pointer support which can happend with typecasting like
       const p=pointer(1)
     * better procvar parsing in typed consts

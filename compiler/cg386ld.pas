@@ -165,7 +165,7 @@ implementation
                               if (symtabletype in [parasymtable,inlinelocalsymtable,
                                                    inlineparasymtable,localsymtable]) then
                                 begin
-                                   p^.location.reference.base:=procinfo.framepointer;
+                                   p^.location.reference.base:=procinfo^.framepointer;
                                    p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address+p^.symtable^.address_fixup;
 
                                    if (symtabletype in [localsymtable,inlinelocalsymtable]) then
@@ -181,8 +181,8 @@ implementation
                                         hregister:=getregister32;
 
                                         { make a reference }
-                                        hp:=new_reference(procinfo.framepointer,
-                                          procinfo.framepointer_offset);
+                                        hp:=new_reference(procinfo^.framepointer,
+                                          procinfo^.framepointer_offset);
 
                                         emit_ref_reg(A_MOV,S_L,hp,hregister);
 
@@ -207,7 +207,7 @@ implementation
                                      end;
                                    stt_exceptsymtable:
                                      begin
-                                        p^.location.reference.base:=procinfo.framepointer;
+                                        p^.location.reference.base:=procinfo^.framepointer;
                                         p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address;
                                      end;
                                    objectsymtable:
@@ -228,7 +228,7 @@ implementation
                                         { symtable datasize field
                                           contains the offset of the temp
                                           stored }
-{                                       hp:=new_reference(procinfo.framepointer,
+{                                       hp:=new_reference(procinfo^.framepointer,
                                           p^.symtable^.datasize);
 
                                         emit_ref_reg(A_MOV,S_L,hp,hregister);}
@@ -783,14 +783,14 @@ implementation
       begin
          reset_reference(p^.location.reference);
          hr_valid:=false;
-         if @procinfo<>pprocinfo(p^.funcretprocinfo) then
+         if procinfo<>pprocinfo(p^.funcretprocinfo) then
            begin
               hr:=getregister32;
               hr_valid:=true;
-              hp:=new_reference(procinfo.framepointer,
-                procinfo.framepointer_offset);
+              hp:=new_reference(procinfo^.framepointer,
+                procinfo^.framepointer_offset);
               emit_ref_reg(A_MOV,S_L,hp,hr);
-              pp:=procinfo.parent;
+              pp:=procinfo^.parent;
               { walk up the stack frame }
               while pp<>pprocinfo(p^.funcretprocinfo) do
                 begin
@@ -800,10 +800,13 @@ implementation
                    pp:=pp^.parent;
                 end;
               p^.location.reference.base:=hr;
+              p^.location.reference.offset:=pp^.retoffset;
            end
          else
-           p^.location.reference.base:=procinfo.framepointer;
-         p^.location.reference.offset:=procinfo.retoffset;
+           begin
+             p^.location.reference.base:=procinfo^.framepointer;
+             p^.location.reference.offset:=procinfo^.retoffset;
+           end;
          if ret_in_param(p^.retdef) then
            begin
               if not hr_valid then
@@ -986,7 +989,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  1999-09-26 13:26:06  florian
+  Revision 1.88  1999-09-27 23:44:47  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.87  1999/09/26 13:26:06  florian
     * exception patch of Romio nevertheless the excpetion handling
       needs some corections regarding register saving
     * gettempansistring is again a procedure

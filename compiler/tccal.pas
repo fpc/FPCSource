@@ -177,7 +177,7 @@ implementation
                begin
                  { not completly proper, but avoids some warnings }
                  if (p^.left^.treetype=funcretn) and (defcoll^.paratyp=vs_var) then
-                   procinfo.funcret_is_valid:=true;
+                   procinfo^.funcret_is_valid:=true;
 
                  store_valid:=must_be_valid;
                  { protected has nothing to do with read/write
@@ -469,7 +469,7 @@ implementation
          if assigned(p^.right) then
            begin
               { procedure does a call }
-              procinfo.flags:=procinfo.flags or pi_do_call;
+              procinfo^.flags:=procinfo^.flags or pi_do_call;
 
               { calc the correture value for the register }
 {$ifdef i386}
@@ -1043,7 +1043,7 @@ implementation
                      end;
                 end
               else
-                procinfo.flags:=procinfo.flags or pi_do_call;
+                procinfo^.flags:=procinfo^.flags or pi_do_call;
 
               { work trough all parameters to insert the type conversions }
               { !!! done now after internproc !! (PM) }
@@ -1222,7 +1222,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.65  1999-09-16 23:05:56  florian
+  Revision 1.66  1999-09-27 23:45:00  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.65  1999/09/16 23:05:56  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.64  1999/09/14 07:59:48  florian
@@ -1231,7 +1235,7 @@ end.
       My last and also Peter's fix before were wrong :(
 
   Revision 1.63  1999/09/10 18:48:11  florian
-    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * some bug fixes (e.g. must_be_valid and procinfo^.funcret_is_valid)
     * most things for stored properties fixed
 
   Revision 1.62  1999/08/23 23:42:52  pierre

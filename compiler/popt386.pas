@@ -422,8 +422,8 @@ Begin
                            (hp2^.typ = ait_instruction) And
                            ((Paicpu(hp2)^.opcode = A_LEAVE) Or
                             (Paicpu(hp2)^.opcode = A_RET)) And
-                           (Paicpu(p)^.oper[0].ref^.Base = ProcInfo.FramePointer) And
-                           (Paicpu(p)^.oper[0].ref^.Offset >= ProcInfo.RetOffset) And
+                           (Paicpu(p)^.oper[0].ref^.Base = procinfo^.FramePointer) And
+                           (Paicpu(p)^.oper[0].ref^.Offset >= procinfo^.RetOffset) And
                            (Paicpu(p)^.oper[0].ref^.Index = R_NO)
                           Then
                             Begin
@@ -813,8 +813,8 @@ Begin
                               If ((Paicpu(hp1)^.opcode = A_LEAVE) Or
                                   (Paicpu(hp1)^.opcode = A_RET)) And
                                  (Paicpu(p)^.oper[1].typ = top_ref) And
-                                 (Paicpu(p)^.oper[1].ref^.base = ProcInfo.FramePointer) And
-                                 (Paicpu(p)^.oper[1].ref^.offset >= ProcInfo.RetOffset) And
+                                 (Paicpu(p)^.oper[1].ref^.base = procinfo^.FramePointer) And
+                                 (Paicpu(p)^.oper[1].ref^.offset >= procinfo^.RetOffset) And
                                  (Paicpu(p)^.oper[1].ref^.index = R_NO) And
                                  (Paicpu(p)^.oper[0].typ = top_reg)
                                 Then
@@ -1368,9 +1368,9 @@ Begin
                      (hp2^.typ = ait_instruction) And
                      ((Paicpu(hp2)^.opcode = A_LEAVE) or
                       (Paicpu(hp2)^.opcode = A_RET)) And
-                     (Paicpu(p)^.oper[0].ref^.Base = ProcInfo.FramePointer) And
+                     (Paicpu(p)^.oper[0].ref^.Base = procinfo^.FramePointer) And
                      (Paicpu(p)^.oper[0].ref^.Index = R_NO) And
-                     (Paicpu(p)^.oper[0].ref^.Offset >= ProcInfo.RetOffset) And
+                     (Paicpu(p)^.oper[0].ref^.Offset >= procinfo^.RetOffset) And
                      (hp1^.typ = ait_instruction) And
                      (Paicpu(hp1)^.opcode = A_MOV) And
                      (Paicpu(hp1)^.opsize = S_B) And
@@ -1603,7 +1603,11 @@ End.
 
 {
  $Log$
- Revision 1.65  1999-09-05 14:27:19  florian
+ Revision 1.66  1999-09-27 23:44:55  peter
+   * procinfo is now a pointer
+   * support for result setting in sub procedure
+
+ Revision 1.65  1999/09/05 14:27:19  florian
    + fld reg;fxxx to fxxxr reg optimization
 
  Revision 1.64  1999/08/25 12:00:02  jonas

@@ -437,7 +437,7 @@ implementation
               { only if no asm is used }
               { and no try statement   }
               if (cs_regalloc in aktglobalswitches) and
-                ((procinfo.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
+                ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
                 begin
                    { can we omit the stack frame ? }
                    { conditions:
@@ -452,28 +452,28 @@ implementation
                    (*
                    if assigned(aktprocsym) then
                      begin
-                       if not(assigned(procinfo._class)) and
+                       if not(assigned(procinfo^._class)) and
                           not(aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor]) and
                           not(po_interrupt in aktprocsym^.definition^.procoptions) and
-                          ((procinfo.flags and pi_do_call)=0) and
+                          ((procinfo^.flags and pi_do_call)=0) and
                           (lexlevel>=normal_function_level) then
                        begin
                          { use ESP as frame pointer }
-                         procinfo.framepointer:=stack_pointer;
+                         procinfo^.framepointer:=stack_pointer;
                          use_esp_stackframe:=true;
 
                          { calc parameter distance new }
-                         dec(procinfo.framepointer_offset,4);
-                         dec(procinfo.ESI_offset,4);
+                         dec(procinfo^.framepointer_offset,4);
+                         dec(procinfo^.ESI_offset,4);
 
                          { is this correct ???}
                          { retoffset can be negativ for results in eax !! }
                          { the value should be decreased only if positive }
-                         if procinfo.retoffset>=0 then
-                           dec(procinfo.retoffset,4);
+                         if procinfo^.retoffset>=0 then
+                           dec(procinfo^.retoffset,4);
 
-                         dec(procinfo.call_offset,4);
-                         aktprocsym^.definition^.parast^.address_fixup:=procinfo.call_offset;
+                         dec(procinfo^.call_offset,4);
+                         aktprocsym^.definition^.parast^.address_fixup:=procinfo^.call_offset;
                        end;
                      end;
                    *)
@@ -510,7 +510,7 @@ implementation
                                   { unused                              }
                                   usableregs:=usableregs-[varregs[i]];
 {$ifdef i386}
-                                  procinfo.aktentrycode^.concat(new(pairegalloc,alloc(varregs[i])));
+                                  procinfo^.aktentrycode^.concat(new(pairegalloc,alloc(varregs[i])));
 {$endif i386}
                                   is_reg_var[varregs[i]]:=true;
                                   dec(c_usableregs);
@@ -556,14 +556,14 @@ implementation
                                        { when loading parameter to reg  }
                                        new(hr);
                                        reset_reference(hr^);
-                                       hr^.offset:=pvarsym(regvars[i])^.address+procinfo.call_offset;
-                                       hr^.base:=procinfo.framepointer;
+                                       hr^.offset:=pvarsym(regvars[i])^.address+procinfo^.call_offset;
+                                       hr^.base:=procinfo^.framepointer;
 {$ifdef i386}
-                                       procinfo.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOV,regsize,
+                                       procinfo^.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOV,regsize,
                                          hr,regvars[i]^.reg)));
 {$endif i386}
 {$ifdef m68k}
-                                       procinfo.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOVE,regsize,
+                                       procinfo^.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOVE,regsize,
                                          hr,regvars[i]^.reg)));
 {$endif m68k}
                                        unused:=unused - [regvars[i]^.reg];
@@ -585,7 +585,7 @@ implementation
                              if assigned(regvars[i]) then
                                begin
                                   if cs_asm_source in aktglobalswitches then
-                                    procinfo.aktentrycode^.insert(new(pai_asm_comment,init(strpnew(regvars[i]^.name+
+                                    procinfo^.aktentrycode^.insert(new(pai_asm_comment,init(strpnew(regvars[i]^.name+
                                       ' with weight '+tostr(regvars[i]^.refs)+' assigned to register '+
                                       reg2str(regvars[i]^.reg)))));
                                   if (status.verbosity and v_debug)=v_debug then
@@ -610,7 +610,7 @@ implementation
 
                         { in non leaf procedures we must be very careful }
                         { with assigning registers                       }
-                        if (procinfo.flags and pi_do_call)<>0 then
+                        if (procinfo^.flags and pi_do_call)<>0 then
                           begin
                              for i:=maxfpuvarregs downto 2 do
                                regvars[i]:=nil;
@@ -628,9 +628,9 @@ implementation
 {$ifdef i386}
                                   { reserve place on the FPU stack }
                                   regvars[i]^.reg:=correct_fpuregister(R_ST0,i-1);
-                                  procinfo.aktentrycode^.concat(new(paicpu,op_none(A_FLDZ,S_NO)));
+                                  procinfo^.aktentrycode^.concat(new(paicpu,op_none(A_FLDZ,S_NO)));
                                   { ... and clean it up }
-                                  procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_FSTP,S_NO,R_ST0)));
+                                  procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_FSTP,S_NO,R_ST0)));
 {$endif i386}
 {$ifdef m68k}
                                   regvars[i]^.reg:=fpuvarregs[i];
@@ -645,14 +645,14 @@ implementation
                                        { when loading parameter to reg  }
                                        new(hr);
                                        reset_reference(hr^);
-                                       hr^.offset:=pvarsym(regvars[i])^.address+procinfo.call_offset;
-                                       hr^.base:=procinfo.framepointer;
+                                       hr^.offset:=pvarsym(regvars[i])^.address+procinfo^.call_offset;
+                                       hr^.base:=procinfo^.framepointer;
 {$ifdef i386}
-                                       procinfo.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOV,regsize,
+                                       procinfo^.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOV,regsize,
                                          hr,regvars[i]^.reg)));
 {$endif i386}
 {$ifdef m68k}
-                                       procinfo.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOVE,regsize,
+                                       procinfo^.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOVE,regsize,
                                          hr,regvars[i]^.reg)));
 {$endif m68k}
                                     end;
@@ -660,14 +660,14 @@ implementation
                                end;
                           end;
                        if cs_asm_source in aktglobalswitches then
-                         procinfo.aktentrycode^.insert(new(pai_asm_comment,init(strpnew(tostr(p^.registersfpu)+
+                         procinfo^.aktentrycode^.insert(new(pai_asm_comment,init(strpnew(tostr(p^.registersfpu)+
                          ' registers on FPU stack used by temp. expressions'))));
                         for i:=1 to maxfpuvarregs do
                           begin
                              if assigned(regvars[i]) then
                                begin
                                   if cs_asm_source in aktglobalswitches then
-                                    procinfo.aktentrycode^.insert(new(pai_asm_comment,init(strpnew(regvars[i]^.name+
+                                    procinfo^.aktentrycode^.insert(new(pai_asm_comment,init(strpnew(regvars[i]^.name+
                                       ' with weight '+tostr(regvars[i]^.refs)+' assigned to register '+
                                       reg2str(regvars[i]^.reg)))));
                                   if (status.verbosity and v_debug)=v_debug then
@@ -676,7 +676,7 @@ implementation
                                end;
                           end;
                         if cs_asm_source in aktglobalswitches then
-                          procinfo.aktentrycode^.insert(new(pai_asm_comment,init(strpnew('Register variable assignment:'))));
+                          procinfo^.aktentrycode^.insert(new(pai_asm_comment,init(strpnew('Register variable assignment:'))));
                      end;
                 end;
               if assigned(aktprocsym) and
@@ -684,20 +684,24 @@ implementation
                 make_const_global:=true;
               do_secondpass(p);
 
-              if assigned(procinfo.def) then
-                procinfo.def^.fpu_used:=p^.registersfpu;
+              if assigned(procinfo^.def) then
+                procinfo^.def^.fpu_used:=p^.registersfpu;
 
               { all registers can be used again }
               resetusableregisters;
            end;
-         procinfo.aktproccode^.concatlist(exprasmlist);
+         procinfo^.aktproccode^.concatlist(exprasmlist);
          make_const_global:=false;
       end;
 
 end.
 {
   $Log$
-  Revision 1.39  1999-09-26 21:30:17  peter
+  Revision 1.40  1999-09-27 23:44:52  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.39  1999/09/26 21:30:17  peter
     + constant pointer support which can happend with typecasting like
       const p=pointer(1)
     * better procvar parsing in typed consts
@@ -840,7 +844,7 @@ end.
     * first working array of const things
 
   Revision 1.5  1998/09/21 10:01:06  peter
-    * check if procinfo.def is assigned before storing registersfpu
+    * check if procinfo^.def is assigned before storing registersfpu
 
   Revision 1.4  1998/09/21 08:45:16  pierre
     + added vmt_offset in tobjectdef.write for fututre use

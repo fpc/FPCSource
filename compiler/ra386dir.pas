@@ -65,21 +65,21 @@ unit Ra386dir;
            if s<>'' then
             code^.concat(new(pai_direct,init(strpnew(s))));
             { consider it set function set if the offset was loaded }
-           if assigned(procinfo.retdef) and
+           if assigned(procinfo^.retdef) and
               (pos(retstr,upper(s))>0) then
-              procinfo.funcret_is_valid:=true;
+              procinfo^.funcret_is_valid:=true;
            s:='';
          end;
 
      begin
        ende:=false;
        s:='';
-       if assigned(procinfo.retdef) and
-          is_fpu(procinfo.retdef) then
-         procinfo.funcret_is_valid:=true;
-       if assigned(procinfo.retdef) and
-          (procinfo.retdef<>pdef(voiddef)) then
-         retstr:=upper(tostr(procinfo.retoffset)+'('+att_reg2str[procinfo.framepointer]+')')
+       if assigned(procinfo^.retdef) and
+          is_fpu(procinfo^.retdef) then
+         procinfo^.funcret_is_valid:=true;
+       if assigned(procinfo^.retdef) and
+          (procinfo^.retdef<>pdef(voiddef)) then
+         retstr:=upper(tostr(procinfo^.retoffset)+'('+att_reg2str[procinfo^.framepointer]+')')
        else
          retstr:='';
          c:=current_scanner^.asmgetchar;
@@ -136,10 +136,10 @@ unit Ra386dir;
                                  { is the last written character an special }
                                  { char ?                                   }
                                  if (s[length(s)]='%') and
-                                    ret_in_acc(procinfo.retdef) and
+                                    ret_in_acc(procinfo^.retdef) and
                                     ((pos('AX',upper(hs))>0) or
                                     (pos('AL',upper(hs))>0)) then
-                                   procinfo.funcret_is_valid:=true;
+                                   procinfo^.funcret_is_valid:=true;
                                  if (s[length(s)]<>'%') and
                                    (s[length(s)]<>'$') and
                                    ((s[length(s)]<>'0') or (hs[1]<>'x')) then
@@ -167,7 +167,7 @@ unit Ra386dir;
                                              if (vo_is_external in pvarsym(sym)^.varoptions) then
                                                hs:=pvarsym(sym)^.mangledname
                                              else
-                                               hs:='-'+tostr(pvarsym(sym)^.address)+'('+att_reg2str[procinfo.framepointer]+')';
+                                               hs:='-'+tostr(pvarsym(sym)^.address)+'('+att_reg2str[procinfo^.framepointer]+')';
                                              end
                                            else
                                            { call to local function }
@@ -190,7 +190,7 @@ unit Ra386dir;
                                                      l:=pvarsym(sym)^.address;
                                                      { set offset }
                                                      inc(l,aktprocsym^.definition^.parast^.address_fixup);
-                                                     hs:=tostr(l)+'('+att_reg2str[procinfo.framepointer]+')';
+                                                     hs:=tostr(l)+'('+att_reg2str[procinfo^.framepointer]+')';
                                                      if pos(',',s) > 0 then
                                                        pvarsym(sym)^.varstate:=vs_used;
                                                   end;
@@ -229,15 +229,15 @@ unit Ra386dir;
 {$endif TESTGLOBALVAR}
                                            if upper(hs)='__SELF' then
                                              begin
-                                                if assigned(procinfo._class) then
-                                                  hs:=tostr(procinfo.ESI_offset)+'('+att_reg2str[procinfo.framepointer]+')'
+                                                if assigned(procinfo^._class) then
+                                                  hs:=tostr(procinfo^.ESI_offset)+'('+att_reg2str[procinfo^.framepointer]+')'
                                                 else
                                                  Message(asmr_e_cannot_use_SELF_outside_a_method);
                                              end
                                            else if upper(hs)='__RESULT' then
                                              begin
-                                                if assigned(procinfo.retdef) and
-                                                  (procinfo.retdef<>pdef(voiddef)) then
+                                                if assigned(procinfo^.retdef) and
+                                                  (procinfo^.retdef<>pdef(voiddef)) then
                                                   hs:=retstr
                                                 else
                                                   Message(asmr_e_void_function);
@@ -247,8 +247,8 @@ unit Ra386dir;
                                                 { complicate to check there }
                                                 { we do it: }
                                                 if lexlevel>normal_function_level then
-                                                  hs:=tostr(procinfo.framepointer_offset)+
-                                                    '('+att_reg2str[procinfo.framepointer]+')'
+                                                  hs:=tostr(procinfo^.framepointer_offset)+
+                                                    '('+att_reg2str[procinfo^.framepointer]+')'
                                                 else
                                                   Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
                                              end;
@@ -261,7 +261,7 @@ unit Ra386dir;
                    end;
  '{',';',#10,#13 : begin
                       if pos(retstr,s) > 0 then
-                        procinfo.funcret_is_valid:=true;
+                        procinfo^.funcret_is_valid:=true;
                      writeasmline;
                      c:=current_scanner^.asmgetchar;
                    end;
@@ -290,7 +290,11 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.23  1999-08-04 00:23:26  florian
+  Revision 1.24  1999-09-27 23:44:58  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.23  1999/08/04 00:23:26  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.22  1999/08/03 22:03:11  peter

@@ -104,7 +104,7 @@ implementation
                 { always a register }
                   if inlined then
                     begin
-                       r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                       r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                        emit_reg_ref(A_MOV,S_L,
                          p^.left^.location.register,r);
                     end
@@ -122,7 +122,7 @@ implementation
                          begin
                            emit_ref_reg(A_LEA,S_L,
                              newreference(p^.left^.location.reference),R_EDI);
-                           r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                           r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                            emit_reg_ref(A_MOV,S_L,R_EDI,r);
                          end
                       else
@@ -142,7 +142,7 @@ implementation
                 begin
                    emit_ref_reg(A_LEA,S_L,
                      newreference(p^.left^.location.reference),R_EDI);
-                   r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                   r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                    emit_reg_ref(A_MOV,S_L,R_EDI,r);
                 end
               else
@@ -167,7 +167,7 @@ implementation
                      begin
                         emit_ref_reg(A_LEA,S_L,
                           newreference(p^.left^.location.reference),R_EDI);
-                        r:=new_reference(procinfo.framepointer,para_offset-pushedparasize);
+                        r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
                         emit_reg_ref(A_MOV,S_L,
                           R_EDI,r);
                      end
@@ -365,7 +365,7 @@ implementation
                   begin
                      reset_reference(funcretref);
                      funcretref.offset:=gettempofsizepersistant(p^.procdefinition^.retdef^.size);
-                     funcretref.base:=procinfo.framepointer;
+                     funcretref.base:=procinfo^.framepointer;
                   end
                 else
                   gettempofsizereference(p^.procdefinition^.retdef^.size,funcretref);
@@ -404,7 +404,7 @@ implementation
                 begin
                    emit_ref_reg(A_LEA,S_L,
                      newreference(funcretref),R_EDI);
-                   r:=new_reference(procinfo.framepointer,inlinecode^.retoffset);
+                   r:=new_reference(procinfo^.framepointer,inlinecode^.retoffset);
                    emit_reg_ref(A_MOV,S_L,
                      R_EDI,r);
                 end
@@ -441,7 +441,7 @@ implementation
                    else
                      begin
                         r^.offset:=p^.symtable^.datasize;
-                        r^.base:=procinfo.framepointer;
+                        r^.base:=procinfo^.framepointer;
                      end; }
                    r^:=ptree(pwithsymtable(p^.symtable)^.withnode)^.withreference^;
                    if (not pwithsymtable(p^.symtable)^.direct_with) or
@@ -688,23 +688,23 @@ implementation
                      begin
                         new(r);
                         reset_reference(r^);
-                        r^.offset:=procinfo.framepointer_offset;
-                        r^.base:=procinfo.framepointer;
+                        r^.offset:=procinfo^.framepointer_offset;
+                        r^.base:=procinfo^.framepointer;
                         emit_ref(A_PUSH,S_L,r)
                      end
                      { this is only true if the difference is one !!
                        but it cannot be more !! }
                    else if (lexlevel=pprocdef(p^.procdefinition)^.parast^.symtablelevel-1) then
                      begin
-                        emit_reg(A_PUSH,S_L,procinfo.framepointer)
+                        emit_reg(A_PUSH,S_L,procinfo^.framepointer)
                      end
                    else if (lexlevel>pprocdef(p^.procdefinition)^.parast^.symtablelevel) then
                      begin
                         hregister:=getregister32;
                         new(r);
                         reset_reference(r^);
-                        r^.offset:=procinfo.framepointer_offset;
-                        r^.base:=procinfo.framepointer;
+                        r^.offset:=procinfo^.framepointer_offset;
+                        r^.base:=procinfo^.framepointer;
                         emit_ref_reg(A_MOV,S_L,r,hregister);
                         for i:=(pprocdef(p^.procdefinition)^.parast^.symtablelevel) to lexlevel-1 do
                           begin
@@ -712,7 +712,7 @@ implementation
                              reset_reference(r^);
                              {we should get the correct frame_pointer_offset at each level
                              how can we do this !!! }
-                             r^.offset:=procinfo.framepointer_offset;
+                             r^.offset:=procinfo^.framepointer_offset;
                              r^.base:=hregister;
                              emit_ref_reg(A_MOV,S_L,r,hregister);
                           end;
@@ -881,7 +881,7 @@ implementation
                 else if (pushedparasize=8) and
                   not(cs_littlesize in aktglobalswitches) and
                   (aktoptprocessor=ClassP5) and
-                  (procinfo._class=nil) then
+                  (procinfo^._class=nil) then
                     begin
                        emit_reg(A_POP,S_L,R_EDI);
                        emit_reg(A_POP,S_L,R_ESI);
@@ -1149,7 +1149,7 @@ implementation
        var st : psymtable;
            oldprocsym : pprocsym;
            para_size : longint;
-           oldprocinfo : tprocinfo;
+           oldprocinfo : pprocinfo;
            { just dummies for genentrycode }
            nostackframe,make_global : boolean;
            proc_names : tstringcontainer;
@@ -1165,8 +1165,8 @@ implementation
           oldprocinfo:=procinfo;
           { set the return value }
           aktprocsym:=p^.inlineprocsym;
-          procinfo.retdef:=aktprocsym^.definition^.retdef;
-          procinfo.retoffset:=p^.retoffset;
+          procinfo^.retdef:=aktprocsym^.definition^.retdef;
+          procinfo^.retoffset:=p^.retoffset;
           { arg space has been filled by the parent secondcall }
           st:=aktprocsym^.definition^.localst;
           { set it to the same lexical level }
@@ -1217,7 +1217,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.105  1999-09-26 13:26:02  florian
+  Revision 1.106  1999-09-27 23:44:46  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.105  1999/09/26 13:26:02  florian
     * exception patch of Romio nevertheless the excpetion handling
       needs some corections regarding register saving
     * gettempansistring is again a procedure

@@ -81,7 +81,7 @@ implementation
       var
         t : ptree;
         pst : pconstset;
-        
+
     function createsetconst(psd : psetdef) : pconstset;
       var
         pcs : pconstset;
@@ -109,7 +109,7 @@ implementation
         end;
        createsetconst:=pcs;
       end;
-      
+
       begin
          p^.location.loc:=LOC_FLAGS;
          p^.resulttype:=booldef;
@@ -131,7 +131,7 @@ implementation
          is in typenodetype PM }
          if p^.right^.treetype=typen then
            p^.right^.resulttype:=p^.right^.typenodetype;
-           
+
          if p^.right^.resulttype^.deftype<>setdef then
            CGMessage(sym_e_set_expected);
          if codegenerror then
@@ -146,7 +146,7 @@ implementation
              putnode(p^.right);
              p^.right:=t;
            end;
-           
+
          firstpass(p^.left);
          if codegenerror then
            exit;
@@ -181,7 +181,7 @@ implementation
          { this is not allways true due to optimization }
          { but if we don't set this we get problems with optimizing self code }
          if psetdef(p^.right^.resulttype)^.settype<>smallset then
-           procinfo.flags:=procinfo.flags or pi_do_call
+           procinfo^.flags:=procinfo^.flags or pi_do_call
          else
            begin
               { a smallset needs maybe an misc. register }
@@ -301,7 +301,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1999-09-07 15:01:33  pierre
+  Revision 1.14  1999-09-27 23:45:02  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.13  1999/09/07 15:01:33  pierre
    * elem in set_type did not work yet
 
   Revision 1.12  1999/08/04 00:23:45  florian

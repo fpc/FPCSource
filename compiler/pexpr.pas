@@ -565,8 +565,16 @@ unit pexpr;
                 begin
                    { we must provide a method pointer, if it isn't given, }
                    { it is self                                           }
-                   p1^.methodpointer:=genselfnode(procinfo._class);
-                   p1^.methodpointer^.resulttype:=procinfo._class;
+                   if assigned(procinfo) then
+                    begin
+                      p1^.methodpointer:=genselfnode(procinfo^._class);
+                      p1^.methodpointer^.resulttype:=procinfo^._class;
+                    end
+                   else
+                    begin
+                      p1^.methodpointer:=genselfnode(nil);
+                      p1^.methodpointer^.resulttype:=nil;
+                    end;
                 end;
               { no postfix operators }
               again:=false;
@@ -865,14 +873,16 @@ unit pexpr;
 
         begin
           is_func_ret:=false;
-          if (sym^.typ<>funcretsym) and ((procinfo.flags and pi_operator)=0) then
+          if not assigned(procinfo) or
+             ((sym^.typ<>funcretsym) and ((procinfo^.flags and pi_operator)=0)) then
             exit;
-          p:=@procinfo;
-          while system.assigned(p) do
+          p:=procinfo;
+          while assigned(p) do
             begin
                { is this an access to a function result ? }
                if assigned(p^.funcretsym) and
                   ((pfuncretsym(sym)=p^.funcretsym) or
+                   (pfuncretsym(sym)=p^.resultfuncretsym) or
                    ((pvarsym(sym)=opsym) and
                     ((p^.flags and pi_operator)<>0))) and
                   (p^.retdef<>pdef(voiddef)) and
@@ -918,18 +928,6 @@ unit pexpr;
          begin
            { allow post fix operators }
            again:=true;
-           if (m_result in aktmodeswitches) and
-              (idtoken=_RESULT) and
-              assigned(aktprocsym) and
-              (procinfo.retdef<>pdef(voiddef)) then
-            begin
-              consume(_ID);
-              p1:=genzeronode(funcretn);
-              pd:=procinfo.retdef;
-              p1^.funcretprocinfo:=pointer(@procinfo);
-              p1^.retdef:=pd;
-            end
-           else
             begin
               if lastsymknown then
                begin
@@ -1041,10 +1039,11 @@ unit pexpr;
                                         not(pobjectdef(pd)^.is_class) then
                                        begin
                                          consume(_POINT);
-                                         if assigned(procinfo._class) and
-                                           not(getaddr) then
+                                         if assigned(procinfo) and
+                                            assigned(procinfo^._class) and
+                                            not(getaddr) then
                                           begin
-                                            if procinfo._class^.is_related(pobjectdef(pd)) then
+                                            if procinfo^._class^.is_related(pobjectdef(pd)) then
                                              begin
                                                p1:=gentypenode(pd,ptypesym(srsym));
                                                p1^.resulttype:=pd;
@@ -1072,9 +1071,6 @@ unit pexpr;
                                             { also allows static methods and variables }
                                             p1:=genzeronode(typen);
                                             p1^.resulttype:=pd;
-                                            { srsymtable:=pobjectdef(pd)^.symtable;
-                                              sym:=pvarsym(srsymtable^.search(pattern)); }
-
                                             { TP allows also @TMenu.Load if Load is only }
                                             { defined in an anchestor class              }
                                             sym:=pvarsym(search_class_member(pobjectdef(pd),pattern));
@@ -1654,7 +1650,7 @@ unit pexpr;
        _SELF : begin
                  again:=true;
                  consume(_SELF);
-                 if not assigned(procinfo._class) then
+                 if not assigned(procinfo^._class) then
                   begin
                     p1:=genzeronode(errorn);
                     pd:=generrordef;
@@ -1666,14 +1662,14 @@ unit pexpr;
                     if (po_classmethod in aktprocsym^.definition^.procoptions) then
                      begin
                        { self in class methods is a class reference type }
-                       pd:=new(pclassrefdef,init(procinfo._class));
+                       pd:=new(pclassrefdef,init(procinfo^._class));
                        p1:=genselfnode(pd);
                        p1^.resulttype:=pd;
                      end
                     else
                      begin
-                       p1:=genselfnode(procinfo._class);
-                       p1^.resulttype:=procinfo._class;
+                       p1:=genselfnode(procinfo^._class);
+                       p1^.resulttype:=procinfo^._class;
                      end;
                     pd:=p1^.resulttype;
                     postfixoperators;
@@ -1682,9 +1678,9 @@ unit pexpr;
   _INHERITED : begin
                  again:=true;
                  consume(_INHERITED);
-                 if assigned(procinfo._class) then
+                 if assigned(procinfo^._class) then
                   begin
-                    classh:=procinfo._class^.childof;
+                    classh:=procinfo^._class^.childof;
                     while assigned(classh) do
                      begin
                        srsymtable:=pobjectdef(classh)^.symtable;
@@ -2108,7 +2104,11 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.145  1999-09-27 11:59:42  peter
+  Revision 1.146  1999-09-27 23:44:54  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.145  1999/09/27 11:59:42  peter
     * fix for pointer reading in const with @type.method
 
   Revision 1.144  1999/09/26 21:30:19  peter
@@ -2136,7 +2136,7 @@ end.
       it is also allowed for objects !!
 
   Revision 1.139  1999/09/10 18:48:07  florian
-    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * some bug fixes (e.g. must_be_valid and procinfo^.funcret_is_valid)
     * most things for stored properties fixed
 
   Revision 1.138  1999/09/07 08:01:20  peter

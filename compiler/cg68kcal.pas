@@ -525,7 +525,7 @@ implementation
                    new(r);
                    reset_reference(r^);
                    r^.offset:=p^.symtable^.datasize;
-                   r^.base:=procinfo.framepointer;
+                   r^.base:=procinfo^.framepointer;
                    exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,r,R_A5)));
                 end;
 
@@ -750,23 +750,23 @@ implementation
                      begin
                         new(r);
                         reset_reference(r^);
-                        r^.offset:=procinfo.framepointer_offset;
-                        r^.base:=procinfo.framepointer;
+                        r^.offset:=procinfo^.framepointer_offset;
+                        r^.base:=procinfo^.framepointer;
                         exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,r,R_SPPUSH)))
                      end
                      { this is only true if the difference is one !!
                        but it cannot be more !! }
                    else if lexlevel=(pprocdef(p^.procdefinition)^.parast^.symtablelevel)-1 then
                      begin
-                        exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,procinfo.framepointer,R_SPPUSH)))
+                        exprasmlist^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,procinfo^.framepointer,R_SPPUSH)))
                      end
                    else if lexlevel>(pprocdef(p^.procdefinition)^.parast^.symtablelevel) then
                      begin
                         hregister:=getaddressreg;
                         new(r);
                         reset_reference(r^);
-                        r^.offset:=procinfo.framepointer_offset;
-                        r^.base:=procinfo.framepointer;
+                        r^.offset:=procinfo^.framepointer_offset;
+                        r^.base:=procinfo^.framepointer;
                         exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,r,hregister)));
                         for i:=(pprocdef(p^.procdefinition)^.parast^.symtablelevel) to lexlevel-1 do
                           begin
@@ -774,7 +774,7 @@ implementation
                              reset_reference(r^);
                              {we should get the correct frame_pointer_offset at each level
                              how can we do this !!! }
-                             r^.offset:=procinfo.framepointer_offset;
+                             r^.offset:=procinfo^.framepointer_offset;
                              r^.base:=hregister;
                              exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,r,hregister)));
                           end;
@@ -1069,7 +1069,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  1999-09-16 23:05:51  florian
+  Revision 1.20  1999-09-27 23:44:48  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.19  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.18  1999/09/16 11:34:52  pierre

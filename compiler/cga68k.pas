@@ -549,7 +549,7 @@ begin
             if (cs_check_stack in aktlocalswitches) and
              (target_info.target=target_m68k_linux) then
                 begin
-                    procinfo.aktentrycode^.insert(new(paicpu,
+                    procinfo^.aktentrycode^.insert(new(paicpu,
                      op_csymbol(A_JSR,S_NO,newcsymbol('FPC_INIT_STACK_CHECK',0))));
                 end
             else
@@ -557,9 +557,9 @@ begin
             { with a value of ZERO, and the comparison will directly check!           }
             if (cs_check_stack in aktlocalswitches) then
                 begin
-                  procinfo.aktentrycode^.insert(new(paicpu,op_csymbol(A_JSR,S_NO,
+                  procinfo^.aktentrycode^.insert(new(paicpu,op_csymbol(A_JSR,S_NO,
                       newcsymbol('FPC_STACKCHECK',0))));
-                  procinfo.aktentrycode^.insert(new(paicpu,op_const_reg(A_MOVE,S_L,
+                  procinfo^.aktentrycode^.insert(new(paicpu,op_const_reg(A_MOVE,S_L,
                       0,R_D0)));
                 end;
 
@@ -577,25 +577,25 @@ begin
                         end;
                    hp:=pused_unit(hp^.next);
                 end;
-              procinfo.aktentrycode^.insertlist(@unitinits);
+              procinfo^.aktentrycode^.insertlist(@unitinits);
               unitinits.done;
         end;
 
         { a constructor needs a help procedure }
         if potype_constructor=aktprocsym^.definition^.proctypeoption then
         begin
-           if procinfo._class^.is_class then
+           if procinfo^._class^.is_class then
              begin
-              procinfo.aktentrycode^.insert(new(pai_labeled,init(A_BEQ,quickexitlabel)));
-              procinfo.aktentrycode^.insert(new(paicpu,op_csymbol(A_JSR,S_NO,
+              procinfo^.aktentrycode^.insert(new(pai_labeled,init(A_BEQ,quickexitlabel)));
+              procinfo^.aktentrycode^.insert(new(paicpu,op_csymbol(A_JSR,S_NO,
               newcsymbol('FPC_NEW_CLASS',0))));
              end
            else
              begin
-              procinfo.aktentrycode^.insert(new(pai_labeled,init(A_BEQ,quickexitlabel)));
-              procinfo.aktentrycode^.insert(new(paicpu,op_csymbol(A_JSR,S_NO,
+              procinfo^.aktentrycode^.insert(new(pai_labeled,init(A_BEQ,quickexitlabel)));
+              procinfo^.aktentrycode^.insert(new(paicpu,op_csymbol(A_JSR,S_NO,
               newcsymbol('FPC_HELP_CONSTRUCTOR',0))));
-              procinfo.aktentrycode^.insert(new(paicpu,op_const_reg(A_MOVE,S_L,procinfo._class^.vmt_offset,R_D0)));
+              procinfo^.aktentrycode^.insert(new(paicpu,op_const_reg(A_MOVE,S_L,procinfo^._class^.vmt_offset,R_D0)));
              end;
         end;
     { don't load ESI, does the caller }
@@ -606,7 +606,7 @@ begin
 {$endif GDB}
 
     { omit stack frame ? }
-    if procinfo.framepointer=stack_pointer then
+    if procinfo^.framepointer=stack_pointer then
         begin
             CGMessage(cg_d_stackframe_omited);
             nostackframe:=true;
@@ -615,7 +615,7 @@ begin
                (aktprocsym^.definition^.proctypeoption=potype_unitfinalize) then
                 parasize:=0
             else
-                parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset;
+                parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.call_offset;
         end
     else
         begin
@@ -624,7 +624,7 @@ begin
                (aktprocsym^.definition^.proctypeoption=potype_unitfinalize) then
                 parasize:=0
              else
-                parasize:=aktprocsym^.definition^.parast^.datasize+procinfo.call_offset-8;
+                parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.call_offset-8;
             nostackframe:=false;
             if stackframe<>0 then
                 begin
@@ -636,16 +636,16 @@ begin
                                   { If only not in main program, do we setup stack checking }
                                   if (aktprocsym^.definition^.proctypeoption<>potype_proginit) then
                                    Begin
-                                       procinfo.aktentrycode^.insert(new(paicpu,
+                                       procinfo^.aktentrycode^.insert(new(paicpu,
                                          op_csymbol(A_JSR,S_NO,newcsymbol('FPC_STACKCHECK',0))));
-                                       procinfo.aktentrycode^.insert(new(paicpu,op_const_reg(A_MOVE,S_L,stackframe,R_D0)));
+                                       procinfo^.aktentrycode^.insert(new(paicpu,op_const_reg(A_MOVE,S_L,stackframe,R_D0)));
                                    end;
                                 end;
                             { to allocate stack space }
                             { here we allocate space using link signed 16-bit version }
                             { -ve offset to allocate stack space! }
                             if (stackframe > -32767) and (stackframe < 32769) then
-                              procinfo.aktentrycode^.insert(new(paicpu,op_reg_const(A_LINK,S_W,R_A6,-stackframe)))
+                              procinfo^.aktentrycode^.insert(new(paicpu,op_reg_const(A_LINK,S_W,R_A6,-stackframe)))
                             else
                               CGMessage(cg_e_stacklimit_in_local_routine);
                         end
@@ -656,18 +656,18 @@ begin
                           { exceed 32K in size.                                            }
                           if (stackframe > -32767) and (stackframe < 32769) then
                             begin
-                              procinfo.aktentrycode^.insert(new(paicpu,op_const_reg(A_SUB,S_L,stackframe,R_SP)));
+                              procinfo^.aktentrycode^.insert(new(paicpu,op_const_reg(A_SUB,S_L,stackframe,R_SP)));
                               { IF only NOT in main program do we check the stack normally }
                               if (cs_check_stack in aktlocalswitches) and
                                (aktprocsym^.definition^.proctypeoption<>potype_proginit) then
                                 begin
-                                  procinfo.aktentrycode^.insert(new(paicpu,
+                                  procinfo^.aktentrycode^.insert(new(paicpu,
                                    op_csymbol(A_JSR,S_NO,newcsymbol('FPC_STACKCHECK',0))));
-                                  procinfo.aktentrycode^.insert(new(paicpu,op_const_reg(A_MOVE,S_L,
+                                  procinfo^.aktentrycode^.insert(new(paicpu,op_const_reg(A_MOVE,S_L,
                                     stackframe,R_D0)));
                                 end;
-                               procinfo.aktentrycode^.insert(new(paicpu,op_reg_reg(A_MOVE,S_L,R_SP,R_A6)));
-                               procinfo.aktentrycode^.insert(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A6,R_SPPUSH)));
+                               procinfo^.aktentrycode^.insert(new(paicpu,op_reg_reg(A_MOVE,S_L,R_SP,R_A6)));
+                               procinfo^.aktentrycode^.insert(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A6,R_SPPUSH)));
                             end
                           else
                             CGMessage(cg_e_stacklimit_in_local_routine);
@@ -675,8 +675,8 @@ begin
                 end {endif stackframe<>0 }
             else
                begin
-                 procinfo.aktentrycode^.insert(new(paicpu,op_reg_reg(A_MOVE,S_L,R_SP,R_A6)));
-                 procinfo.aktentrycode^.insert(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A6,R_SPPUSH)));
+                 procinfo^.aktentrycode^.insert(new(paicpu,op_reg_reg(A_MOVE,S_L,R_SP,R_A6)));
+                 procinfo^.aktentrycode^.insert(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A6,R_SPPUSH)));
                end;
         end;
 
@@ -687,7 +687,7 @@ begin
     {proc_names.insert(aktprocsym^.definition^.mangledname);}
 
     if (aktprocsym^.definition^.owner^.symtabletype=globalsymtable) or
-     ((procinfo._class<>nil) and (procinfo._class^.owner^.
+     ((procinfo^._class<>nil) and (procinfo^._class^.owner^.
      symtabletype=globalsymtable)) then
         make_global:=true;
     hs:=proc_names.get;
@@ -701,9 +701,9 @@ begin
     while hs<>'' do
         begin
               if make_global then
-                procinfo.aktentrycode^.insert(new(pai_symbol,initname_global(hs,0)))
+                procinfo^.aktentrycode^.insert(new(pai_symbol,initname_global(hs,0)))
               else
-                procinfo.aktentrycode^.insert(new(pai_symbol,initname(hs,0)));
+                procinfo^.aktentrycode^.insert(new(pai_symbol,initname(hs,0)));
 {$ifdef GDB}
             if (cs_debuginfo in aktmoduleswitches) then
              begin
@@ -723,14 +723,14 @@ begin
     if (cs_debuginfo in aktmoduleswitches) then
         begin
             if target_os.use_function_relative_addresses then
-                procinfo.aktentrycode^.insert(stab_function_name);
-            if make_global or ((procinfo.flags and pi_is_global) <> 0) then
+                procinfo^.aktentrycode^.insert(stab_function_name);
+            if make_global or ((procinfo^.flags and pi_is_global) <> 0) then
                 aktprocsym^.is_global := True;
             aktprocsym^.isstabwritten:=true;
         end;
 {$endif GDB}
     { Alignment required for Motorola }
-    procinfo.aktentrycode^.insert(new(pai_align,init(2)));
+    procinfo^.aktentrycode^.insert(new(pai_align,init(2)));
 end;
 
 {Generate the exit code for a procedure.}
@@ -742,21 +742,21 @@ var hr:Preference;          {This is for function results.}
 begin
     { !!!! insert there automatic destructors }
 
-    procinfo.aktexitcode^.insert(new(pai_label,init(aktexitlabel)));
+    procinfo^.aktexitcode^.insert(new(pai_label,init(aktexitlabel)));
 
     { call the destructor help procedure }
     if potype_destructor=aktprocsym^.definition^.proctypeoption then
      begin
-       if procinfo._class^.is_class then
+       if procinfo^._class^.is_class then
          begin
-           procinfo.aktexitcode^.insert(new(paicpu,op_csymbol(A_JSR,S_NO,
+           procinfo^.aktexitcode^.insert(new(paicpu,op_csymbol(A_JSR,S_NO,
              newcsymbol('FPC_DISPOSE_CLASS',0))));
          end
        else
          begin
-           procinfo.aktexitcode^.insert(new(paicpu,op_csymbol(A_JSR,S_NO,
+           procinfo^.aktexitcode^.insert(new(paicpu,op_csymbol(A_JSR,S_NO,
              newcsymbol('FPC_HELP_DESTRUCTOR',0))));
-           procinfo.aktexitcode^.insert(new(paicpu,op_const_reg(A_MOVE,S_L,procinfo._class^.vmt_offset,R_D0)));
+           procinfo^.aktexitcode^.insert(new(paicpu,op_const_reg(A_MOVE,S_L,procinfo^._class^.vmt_offset,R_D0)));
          end;
      end;
 
@@ -765,60 +765,60 @@ begin
     if (potype_proginit=aktprocsym^.definition^.proctypeoption) and
       (target_info.target<>target_m68k_PalmOS) then
      begin
-       procinfo.aktexitcode^.concat(new(paicpu,op_csymbol(A_JSR,S_NO,newcsymbol('FPC_DO_EXIT',0))));
+       procinfo^.aktexitcode^.concat(new(paicpu,op_csymbol(A_JSR,S_NO,newcsymbol('FPC_DO_EXIT',0))));
      end;
 
     { handle return value }
     if po_assembler in aktprocsym^.definition^.procoptions then
       if (aktprocsym^.definition^.proctypeoption<>potype_constructor) then
             begin
-                if procinfo.retdef<>pdef(voiddef) then
+                if procinfo^.retdef<>pdef(voiddef) then
                     begin
-                        if not procinfo.funcret_is_valid then
+                        if not procinfo^.funcret_is_valid then
                           CGMessage(sym_w_function_result_not_set);
                         new(hr);
                         reset_reference(hr^);
-                        hr^.offset:=procinfo.retoffset;
-                        hr^.base:=procinfo.framepointer;
-                        if (procinfo.retdef^.deftype in [orddef,enumdef]) then
+                        hr^.offset:=procinfo^.retoffset;
+                        hr^.base:=procinfo^.framepointer;
+                        if (procinfo^.retdef^.deftype in [orddef,enumdef]) then
                             begin
-                                case procinfo.retdef^.size of
-                                 4 : procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hr,R_D0)));
-                                 2 : procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,S_W,hr,R_D0)));
-                                 1 : procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,S_B,hr,R_D0)));
+                                case procinfo^.retdef^.size of
+                                 4 : procinfo^.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hr,R_D0)));
+                                 2 : procinfo^.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,S_W,hr,R_D0)));
+                                 1 : procinfo^.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,S_B,hr,R_D0)));
                                 end;
                             end
                         else
-                            if (procinfo.retdef^.deftype in [pointerdef,enumdef,procvardef]) or
-                             ((procinfo.retdef^.deftype=setdef) and
-                             (psetdef(procinfo.retdef)^.settype=smallset)) then
-                                procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hr,R_D0)))
+                            if (procinfo^.retdef^.deftype in [pointerdef,enumdef,procvardef]) or
+                             ((procinfo^.retdef^.deftype=setdef) and
+                             (psetdef(procinfo^.retdef)^.settype=smallset)) then
+                                procinfo^.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hr,R_D0)))
                             else
-                                if (procinfo.retdef^.deftype=floatdef) then
+                                if (procinfo^.retdef^.deftype=floatdef) then
                                     begin
-                                        if pfloatdef(procinfo.retdef)^.typ=f32bit then
+                                        if pfloatdef(procinfo^.retdef)^.typ=f32bit then
                                             begin
                                                 { Isnt this missing ? }
-                                                procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hr,R_D0)));
+                                                procinfo^.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hr,R_D0)));
                                             end
                                         else
                                             begin
                                              { how the return value is handled                          }
                                              { if single value, then return in d0, otherwise return in  }
                                              { TRUE FPU register (does not apply in emulation mode)     }
-                                             if (pfloatdef(procinfo.retdef)^.typ = s32real) then
+                                             if (pfloatdef(procinfo^.retdef)^.typ = s32real) then
                                               begin
-                                                procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,
+                                                procinfo^.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,
                                                   S_L,hr,R_D0)))
                                               end
                                              else
                                               begin
                                                if cs_fp_emulation in aktmoduleswitches then
-                                                 procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,
+                                                 procinfo^.aktexitcode^.concat(new(paicpu,op_ref_reg(A_MOVE,
                                                     S_L,hr,R_D0)))
                                                else
-                                                 procinfo.aktexitcode^.concat(new(paicpu,op_ref_reg(A_FMOVE,
-                                                 getfloatsize(pfloatdef(procinfo.retdef)^.typ),hr,R_FP0)));
+                                                 procinfo^.aktexitcode^.concat(new(paicpu,op_ref_reg(A_FMOVE,
+                                                 getfloatsize(pfloatdef(procinfo^.retdef)^.typ),hr,R_FP0)));
                                              end;
                                            end;
                                     end
@@ -830,15 +830,15 @@ begin
             begin
                 { successful constructor deletes the zero flag }
                 { and returns self in accumulator              }
-                procinfo.aktexitcode^.concat(new(pai_label,init(quickexitlabel)));
+                procinfo^.aktexitcode^.concat(new(pai_label,init(quickexitlabel)));
                 { eax must be set to zero if the allocation failed !!! }
-                procinfo.aktexitcode^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A5,R_D0)));
+                procinfo^.aktexitcode^.concat(new(paicpu,op_reg_reg(A_MOVE,S_L,R_A5,R_D0)));
                 { faster then OR on mc68000/mc68020 }
-                procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_TST,S_L,R_D0)));
+                procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_TST,S_L,R_D0)));
             end;
-    procinfo.aktexitcode^.concat(new(pai_label,init(aktexit2label)));
+    procinfo^.aktexitcode^.concat(new(pai_label,init(aktexit2label)));
     if not(nostackframe) then
-        procinfo.aktexitcode^.concat(new(paicpu,op_reg(A_UNLK,S_NO,R_A6)));
+        procinfo^.aktexitcode^.concat(new(paicpu,op_reg(A_UNLK,S_NO,R_A6)));
 
     { at last, the return is generated }
 
@@ -848,12 +848,12 @@ begin
         if (parasize=0) or (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
             {Routines with the poclearstack flag set use only a ret.}
             { also routines with parasize=0           }
-            procinfo.aktexitcode^.concat(new(paicpu,op_none(A_RTS,S_NO)))
+            procinfo^.aktexitcode^.concat(new(paicpu,op_none(A_RTS,S_NO)))
         else
             { return with immediate size possible here }
             { signed!                                  }
             if (aktoptprocessor = MC68020) and (parasize < $7FFF) then
-                procinfo.aktexitcode^.concat(new(paicpu,op_const(
+                procinfo^.aktexitcode^.concat(new(paicpu,op_const(
                  A_RTD,S_NO,parasize)))
             { manually restore the stack }
             else
@@ -863,40 +863,40 @@ begin
                     { point to nowhere!                                   }
 
                     { save the PC counter (pop it from the stack)         }
-                    procinfo.aktexitcode^.concat(new(paicpu,op_reg_reg(
+                    procinfo^.aktexitcode^.concat(new(paicpu,op_reg_reg(
                          A_MOVE,S_L,R_SPPULL,R_A0)));
                     { can we do a quick addition ... }
                     if (parasize > 0) and (parasize < 9) then
-                       procinfo.aktexitcode^.concat(new(paicpu,op_const_reg(
+                       procinfo^.aktexitcode^.concat(new(paicpu,op_const_reg(
                          A_ADD,S_L,parasize,R_SP)))
                     else { nope ... }
-                       procinfo.aktexitcode^.concat(new(paicpu,op_const_reg(
+                       procinfo^.aktexitcode^.concat(new(paicpu,op_const_reg(
                          A_ADD,S_L,parasize,R_SP)));
                     { endif }
                     { restore the PC counter (push it on the stack)       }
-                    procinfo.aktexitcode^.concat(new(paicpu,op_reg_reg(
+                    procinfo^.aktexitcode^.concat(new(paicpu,op_reg_reg(
                          A_MOVE,S_L,R_A0,R_SPPUSH)));
-                    procinfo.aktexitcode^.concat(new(paicpu,op_none(
+                    procinfo^.aktexitcode^.concat(new(paicpu,op_none(
                       A_RTS,S_NO)))
                end;
 {$ifdef GDB}
     if cs_debuginfo in aktmoduleswitches  then
         begin
-            aktprocsym^.concatstabto(procinfo.aktexitcode);
-            if assigned(procinfo._class) then
-                procinfo.aktexitcode^.concat(new(pai_stabs,init(strpnew(
-                 '"$t:v'+procinfo._class^.numberstring+'",'+
-                 tostr(N_PSYM)+',0,0,'+tostr(procinfo.esi_offset)))));
+            aktprocsym^.concatstabto(procinfo^.aktexitcode);
+            if assigned(procinfo^._class) then
+                procinfo^.aktexitcode^.concat(new(pai_stabs,init(strpnew(
+                 '"$t:v'+procinfo^._class^.numberstring+'",'+
+                 tostr(N_PSYM)+',0,0,'+tostr(procinfo^.esi_offset)))));
 
             if (porddef(aktprocsym^.definition^.retdef) <> voiddef) then
-                procinfo.aktexitcode^.concat(new(pai_stabs,init(strpnew(
+                procinfo^.aktexitcode^.concat(new(pai_stabs,init(strpnew(
                  '"'+aktprocsym^.name+':X'+aktprocsym^.definition^.retdef^.numberstring+'",'+
-                 tostr(N_PSYM)+',0,0,'+tostr(procinfo.retoffset)))));
+                 tostr(N_PSYM)+',0,0,'+tostr(procinfo^.retoffset)))));
 
-            procinfo.aktexitcode^.concat(new(pai_stabn,init(strpnew('192,0,0,'
+            procinfo^.aktexitcode^.concat(new(pai_stabn,init(strpnew('192,0,0,'
              +aktprocsym^.definition^.mangledname))));
 
-            procinfo.aktexitcode^.concat(new(pai_stabn,init(strpnew('224,0,0,'
+            procinfo^.aktexitcode^.concat(new(pai_stabn,init(strpnew('224,0,0,'
              +lab2str(aktexit2label)))));
         end;
 {$endif GDB}
@@ -1145,16 +1145,16 @@ end;
          i : longint;
 
       begin
-         if assigned(procinfo._class) then
+         if assigned(procinfo^._class) then
            begin
               if lexlevel>normal_function_level then
                 begin
                    new(hp);
                    reset_reference(hp^);
-                   hp^.offset:=procinfo.framepointer_offset;
-                   hp^.base:=procinfo.framepointer;
+                   hp^.offset:=procinfo^.framepointer_offset;
+                   hp^.base:=procinfo^.framepointer;
                    exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,R_A5)));
-                   p:=procinfo.parent;
+                   p:=procinfo^.parent;
                    for i:=3 to lexlevel-1 do
                      begin
                         new(hp);
@@ -1174,8 +1174,8 @@ end;
                 begin
                    new(hp);
                    reset_reference(hp^);
-                   hp^.offset:=procinfo.ESI_offset;
-                   hp^.base:=procinfo.framepointer;
+                   hp^.offset:=procinfo^.ESI_offset;
+                   hp^.base:=procinfo^.framepointer;
                    exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,R_A5)));
                 end;
            end;
@@ -1391,7 +1391,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  1999-09-16 23:05:51  florian
+  Revision 1.35  1999-09-27 23:44:48  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.34  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.33  1999/09/16 11:34:54  pierre

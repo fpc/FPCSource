@@ -619,7 +619,7 @@ implementation
              in_writeln_x :
                begin
                   { needs a call }
-                  procinfo.flags:=procinfo.flags or pi_do_call;
+                  procinfo^.flags:=procinfo^.flags or pi_do_call;
                   p^.resulttype:=voiddef;
                   { we must know if it is a typed file or not }
                   { but we must first do the firstpass for it }
@@ -805,7 +805,7 @@ implementation
              in_reset_typedfile,
              in_rewrite_typedfile :
                begin
-                  procinfo.flags:=procinfo.flags or pi_do_call;
+                  procinfo^.flags:=procinfo^.flags or pi_do_call;
                   { to be sure the right definition is loaded }
                   p^.left^.resulttype:=nil;
                   firstpass(p^.left);
@@ -814,7 +814,7 @@ implementation
 
              in_str_x_string :
                begin
-                  procinfo.flags:=procinfo.flags or pi_do_call;
+                  procinfo^.flags:=procinfo^.flags or pi_do_call;
                   p^.resulttype:=voiddef;
                   { check the amount of parameters }
                   if not(assigned(p^.left)) or
@@ -831,7 +831,7 @@ implementation
                   firstcallparan(p^.left,nil);
                   { remove warning when result is passed }
                   if (p^.left^.left^.treetype=funcretn) then
-                   procinfo.funcret_is_valid:=true;
+                   procinfo^.funcret_is_valid:=true;
                   must_be_valid:=true;
                   p^.left^.right:=hp;
                   firstcallparan(p^.left^.right,nil);
@@ -914,7 +914,7 @@ implementation
 
              in_val_x :
                begin
-                  procinfo.flags:=procinfo.flags or pi_do_call;
+                  procinfo^.flags:=procinfo^.flags or pi_do_call;
                   p^.resulttype:=voiddef;
                   { check the amount of parameters }
                   if not(assigned(p^.left)) or
@@ -959,7 +959,7 @@ implementation
                     exit;
                   { remove warning when result is passed }
                   if (hpp^.left^.treetype=funcretn) then
-                   procinfo.funcret_is_valid:=true;
+                   procinfo^.funcret_is_valid:=true;
                   hpp^.right := hp;
                   if (hpp^.left^.location.loc<>LOC_REFERENCE) then
                     CGMessage(type_e_variable_id_expected)
@@ -1009,7 +1009,7 @@ implementation
 {$endif SUPPORT_MMX}
                       { remove warning when result is passed }
                       if (p^.left^.left^.treetype=funcretn) then
-                       procinfo.funcret_is_valid:=true;
+                       procinfo^.funcret_is_valid:=true;
                       { first param must be var }
                       if (p^.left^.left^.location.loc<>LOC_REFERENCE) and
                          (p^.left^.left^.location.loc<>LOC_CREGISTER) then
@@ -1250,7 +1250,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  1999-09-15 20:35:46  florian
+  Revision 1.52  1999-09-27 23:45:01  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.51  1999/09/15 20:35:46  florian
     * small fix to operator overloading when in MMX mode
     + the compiler uses now fldz and fld1 if possible
     + some fixes to floating point registers

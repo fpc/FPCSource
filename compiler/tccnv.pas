@@ -276,7 +276,7 @@ implementation
                    exit;
                 end
               else
-                procinfo.flags:=procinfo.flags or pi_do_call;
+                procinfo^.flags:=procinfo^.flags or pi_do_call;
            end;
          { for simplicity lets first keep all ansistrings
            as LOC_MEM, could also become LOC_REGISTER }
@@ -648,7 +648,7 @@ implementation
        aprocdef:=assignment_overloaded(p^.left^.resulttype,p^.resulttype);
        if assigned(aprocdef) then
          begin
-            procinfo.flags:=procinfo.flags or pi_do_call;
+            procinfo^.flags:=procinfo^.flags or pi_do_call;
             hp:=gencallnode(overloaded_operators[_assignment],nil);
             { tell explicitly which def we must use !! (PM) }
             hp^.procdefinition:=aprocdef;
@@ -962,7 +962,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  1999-09-26 21:30:22  peter
+  Revision 1.50  1999-09-27 23:45:00  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.49  1999/09/26 21:30:22  peter
     + constant pointer support which can happend with typecasting like
       const p=pointer(1)
     * better procvar parsing in typed consts

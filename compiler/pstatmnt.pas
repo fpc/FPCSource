@@ -519,7 +519,7 @@ unit pstatmnt;
          objname : stringid;
 
       begin
-         procinfo.flags:=procinfo.flags or
+         procinfo^.flags:=procinfo^.flags or
            pi_uses_exceptions;
 
          p_default:=nil;
@@ -690,17 +690,17 @@ unit pstatmnt;
               consume(_RKLAMMER);
               if in_except_block then
                 Message(parser_e_exit_with_argument_not__possible);
-              if procinfo.retdef=pdef(voiddef) then
+              if procinfo^.retdef=pdef(voiddef) then
                 Message(parser_e_void_function);
               {
               else
-                procinfo.funcret_is_valid:=true;
+                procinfo^.funcret_is_valid:=true;
               }
            end
          else
            p:=nil;
          p:=gensinglenode(exitn,p);
-         p^.resulttype:=procinfo.retdef;
+         p^.resulttype:=procinfo^.retdef;
          exit_statement:=p;
       end;
 
@@ -1096,8 +1096,7 @@ unit pstatmnt;
                    end;
          else
            begin
-              if (token=_INTCONST) or
-                 ((token=_ID) and not((m_result in aktmodeswitches) and (idtoken=_RESULT))) then
+              if (token in [_INTCONST,_ID]) then
                 begin
                    getsym(pattern,true);
                    lastsymknown:=true;
@@ -1118,11 +1117,7 @@ unit pstatmnt;
                         lastsymknown:=false;
                         { the pointer to the following instruction }
                         { isn't a very clean way                   }
-{$ifdef tp}
-                        code:=gensinglenode(labeln,statement);
-{$else}
-                        code:=gensinglenode(labeln,statement());
-{$endif}
+                        code:=gensinglenode(labeln,statement{$ifndef tp}(){$endif});
                         code^.labelnr:=labelnr;
                         { sorry, but there is a jump the easiest way }
                         goto ready;
@@ -1156,62 +1151,68 @@ unit pstatmnt;
          storepos : tfileposinfo;
 
       begin
-         if procinfo.retdef<>pdef(voiddef) then
+         if procinfo^.retdef<>pdef(voiddef) then
            begin
               { if the current is a function aktprocsym is non nil }
               { and there is a local symtable set }
               storepos:=tokenpos;
               tokenpos:=aktprocsym^.fileinfo;
-              funcretsym:=new(pfuncretsym,init(aktprocsym^.name,@procinfo));
+              funcretsym:=new(pfuncretsym,init(aktprocsym^.name,procinfo));
               { insert in local symtable }
               symtablestack^.insert(funcretsym);
               tokenpos:=storepos;
-              if ret_in_acc(procinfo.retdef) or (procinfo.retdef^.deftype=floatdef) then
-                procinfo.retoffset:=-funcretsym^.address;
-              procinfo.funcretsym:=funcretsym;
+              if ret_in_acc(procinfo^.retdef) or (procinfo^.retdef^.deftype=floatdef) then
+                procinfo^.retoffset:=-funcretsym^.address;
+              procinfo^.funcretsym:=funcretsym;
+              { insert result also if support is on }
+              if (m_result in aktmodeswitches) then
+               begin
+                 procinfo^.resultfuncretsym:=new(pfuncretsym,init('RESULT',procinfo));
+                 symtablestack^.insert(procinfo^.resultfuncretsym);
+               end;
            end;
          read_declarations(islibrary);
 
          { temporary space is set, while the BEGIN of the procedure }
          if (symtablestack^.symtabletype=localsymtable) then
-           procinfo.firsttemp := -symtablestack^.datasize
-         else procinfo.firsttemp := 0;
+           procinfo^.firsttemp := -symtablestack^.datasize
+         else procinfo^.firsttemp := 0;
 
          { space for the return value }
          { !!!!!   this means that we can not set the return value
          in a subfunction !!!!! }
          { because we don't know yet where the address is }
-         if procinfo.retdef<>pdef(voiddef) then
+         if procinfo^.retdef<>pdef(voiddef) then
            begin
-              if ret_in_acc(procinfo.retdef) or (procinfo.retdef^.deftype=floatdef) then
-              { if (procinfo.retdef^.deftype=orddef) or
-                 (procinfo.retdef^.deftype=pointerdef) or
-                 (procinfo.retdef^.deftype=enumdef) or
-                 (procinfo.retdef^.deftype=procvardef) or
-                 (procinfo.retdef^.deftype=floatdef) or
+              if ret_in_acc(procinfo^.retdef) or (procinfo^.retdef^.deftype=floatdef) then
+              { if (procinfo^.retdef^.deftype=orddef) or
+                 (procinfo^.retdef^.deftype=pointerdef) or
+                 (procinfo^.retdef^.deftype=enumdef) or
+                 (procinfo^.retdef^.deftype=procvardef) or
+                 (procinfo^.retdef^.deftype=floatdef) or
                  (
-                   (procinfo.retdef^.deftype=setdef) and
-                   (psetdef(procinfo.retdef)^.settype=smallset)
+                   (procinfo^.retdef^.deftype=setdef) and
+                   (psetdef(procinfo^.retdef)^.settype=smallset)
                  ) then  }
                 begin
                    { the space has been set in the local symtable }
-                   procinfo.retoffset:=-funcretsym^.address;
-                   if ((procinfo.flags and pi_operator)<>0) and
+                   procinfo^.retoffset:=-funcretsym^.address;
+                   if ((procinfo^.flags and pi_operator)<>0) and
                      assigned(opsym) then
-                     {opsym^.address:=procinfo.call_offset; is wrong PM }
-                     opsym^.address:=-procinfo.retoffset;
+                     {opsym^.address:=procinfo^.call_offset; is wrong PM }
+                     opsym^.address:=-procinfo^.retoffset;
                    { eax is modified by a function }
 {$ifndef newcg}
 {$ifdef i386}
                    usedinproc:=usedinproc or ($80 shr byte(R_EAX));
 
-                   if is_64bitint(procinfo.retdef) then
+                   if is_64bitint(procinfo^.retdef) then
                      usedinproc:=usedinproc or ($80 shr byte(R_EDX))
 {$endif}
 {$ifdef m68k}
                    usedinproc:=usedinproc or ($800 shr word(R_D0));
 
-                   if is_64bitint(procinfo.retdef) then
+                   if is_64bitint(procinfo^.retdef) then
                      usedinproc:=usedinproc or ($800 shr byte(R_D1))
 {$endif}
 {$endif newcg}
@@ -1258,19 +1259,19 @@ unit pstatmnt;
          read_declarations(false);
          { temporary space is set, while the BEGIN of the procedure }
          if symtablestack^.symtabletype=localsymtable then
-           procinfo.firsttemp := -symtablestack^.datasize
+           procinfo^.firsttemp := -symtablestack^.datasize
          else
-           procinfo.firsttemp := 0;
+           procinfo^.firsttemp := 0;
 
          { assembler code does not allocate }
          { space for the return value       }
-          if procinfo.retdef<>pdef(voiddef) then
+          if procinfo^.retdef<>pdef(voiddef) then
            begin
-              if ret_in_acc(procinfo.retdef) then
+              if ret_in_acc(procinfo^.retdef) then
                 begin
                    { in assembler code the result should be directly in %eax
-                   procinfo.retoffset:=procinfo.firsttemp-procinfo.retdef^.size;
-                   procinfo.firsttemp:=procinfo.retoffset;                 }
+                   procinfo^.retoffset:=procinfo^.firsttemp-procinfo^.retdef^.size;
+                   procinfo^.firsttemp:=procinfo^.retoffset;                 }
 
 {$ifndef newcg}
 {$ifdef i386}
@@ -1282,7 +1283,7 @@ unit pstatmnt;
 {$endif newcg}
                 end
               {
-              else if not is_fpu(procinfo.retdef) then
+              else if not is_fpu(procinfo^.retdef) then
                should we allow assembler functions of big elements ?
                 YES (FK)!!
                Message(parser_e_asm_incomp_with_function_return);
@@ -1293,21 +1294,21 @@ unit pstatmnt;
            { added no parameter also (PM)                       }
            { disable for methods, because self pointer is expected }
            { at -8(%ebp) (JM)                                      }
-           if not(assigned(procinfo._class)) and
+           if not(assigned(procinfo^._class)) and
               (po_assembler in aktprocsym^.definition^.procoptions) and
               (aktprocsym^.definition^.localst^.datasize=0) and
               (aktprocsym^.definition^.parast^.datasize=0) and
               not(ret_in_param(aktprocsym^.definition^.retdef)) then
              begin
-               procinfo.framepointer:=stack_pointer;
+               procinfo^.framepointer:=stack_pointer;
                { set the right value for parameters }
                dec(aktprocsym^.definition^.parast^.address_fixup,target_os.size_of_pointer);
-               dec(procinfo.call_offset,target_os.size_of_pointer);
+               dec(procinfo^.call_offset,target_os.size_of_pointer);
              end;
           { force the asm statement }
             if token<>_ASM then
              consume(_ASM);
-            Procinfo.Flags := ProcInfo.Flags Or pi_is_assembler;
+            procinfo^.Flags := procinfo^.Flags Or pi_is_assembler;
             assembler_block:=_asm_statement;
           { becuase the END is already read we need to get the
             last_endtoken_filepos here (PFV) }
@@ -1317,11 +1318,15 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.102  1999-09-16 23:05:54  florian
+  Revision 1.103  1999-09-27 23:44:56  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.102  1999/09/16 23:05:54  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.101  1999/09/10 18:48:09  florian
-    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * some bug fixes (e.g. must_be_valid and procinfo^.funcret_is_valid)
     * most things for stored properties fixed
 
   Revision 1.100  1999/09/07 14:12:36  jonas

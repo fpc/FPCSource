@@ -1315,7 +1315,7 @@ Begin
           Begin
             If (Paicpu(p)^.oper[0].typ = top_ref) Then
               With Paicpu(p)^.oper[0].ref^ Do
-                If (Base = ProcInfo.FramePointer) And
+                If (Base = procinfo^.FramePointer) And
                    (Index = R_NO)
                   Then
                     Begin
@@ -1383,27 +1383,27 @@ Begin
     Begin
       Case Paicpu(p)^.oper[0].typ Of
         top_reg:
-          If Not(Paicpu(p)^.oper[0].reg in [R_NO,R_ESP,ProcInfo.FramePointer]) Then
+          If Not(Paicpu(p)^.oper[0].reg in [R_NO,R_ESP,procinfo^.FramePointer]) Then
             RegSet := RegSet + [Paicpu(p)^.oper[0].reg];
         top_ref:
           With TReference(Paicpu(p)^.oper[0]^) Do
             Begin
-              If Not(Base in [ProcInfo.FramePointer,R_NO,R_ESP])
+              If Not(Base in [procinfo^.FramePointer,R_NO,R_ESP])
                 Then RegSet := RegSet + [Base];
-              If Not(Index in [ProcInfo.FramePointer,R_NO,R_ESP])
+              If Not(Index in [procinfo^.FramePointer,R_NO,R_ESP])
                 Then RegSet := RegSet + [Index];
             End;
       End;
       Case Paicpu(p)^.oper[1].typ Of
         top_reg:
-          If Not(Paicpu(p)^.oper[1].reg in [R_NO,R_ESP,ProcInfo.FramePointer]) Then
+          If Not(Paicpu(p)^.oper[1].reg in [R_NO,R_ESP,procinfo^.FramePointer]) Then
             If RegSet := RegSet + [TRegister(TwoWords(Paicpu(p)^.oper[1]).Word1];
         top_ref:
           With TReference(Paicpu(p)^.oper[1]^) Do
             Begin
-              If Not(Base in [ProcInfo.FramePointer,R_NO,R_ESP])
+              If Not(Base in [procinfo^.FramePointer,R_NO,R_ESP])
                 Then RegSet := RegSet + [Base];
-              If Not(Index in [ProcInfo.FramePointer,R_NO,R_ESP])
+              If Not(Index in [procinfo^.FramePointer,R_NO,R_ESP])
                 Then RegSet := RegSet + [Index];
             End;
       End;
@@ -1475,10 +1475,10 @@ Begin {checks whether two Paicpu instructions are equal}
               Begin
                 With Paicpu(p2)^.oper[0].ref^ Do
                   Begin
-                    If Not(Base in [ProcInfo.FramePointer, R_NO, R_ESP])
+                    If Not(Base in [procinfo^.FramePointer, R_NO, R_ESP])
        {it won't do any harm if the register is already in RegsLoadedForRef}
                       Then RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Base];
-                    If Not(Index in [ProcInfo.FramePointer, R_NO, R_ESP])
+                    If Not(Index in [procinfo^.FramePointer, R_NO, R_ESP])
                       Then RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index];
                   End;
  {add the registers from the reference (.oper[0]) to the RegInfo, all registers
@@ -1498,7 +1498,7 @@ Begin {checks whether two Paicpu instructions are equal}
           Begin
             With Paicpu(p2)^.oper[0].ref^ Do
               Begin
-                If Not(Base in [ProcInfo.FramePointer,
+                If Not(Base in [procinfo^.FramePointer,
                                 Reg32(Paicpu(p2)^.oper[1].reg),R_NO,R_ESP])
  {it won't do any harm if the register is already in RegsLoadedForRef}
                   Then
@@ -1508,7 +1508,7 @@ Begin {checks whether two Paicpu instructions are equal}
                       Writeln(att_reg2str[base], ' added');
 {$endif csdebug}
                     end;
-                If Not(Index in [ProcInfo.FramePointer,
+                If Not(Index in [procinfo^.FramePointer,
                                  Reg32(Paicpu(p2)^.oper[1].reg),R_NO,R_ESP])
                   Then
                     Begin
@@ -1519,7 +1519,7 @@ Begin {checks whether two Paicpu instructions are equal}
                     end;
 
               End;
-            If Not(Reg32(Paicpu(p2)^.oper[1].reg) In [ProcInfo.FramePointer,R_NO,R_ESP])
+            If Not(Reg32(Paicpu(p2)^.oper[1].reg) In [procinfo^.FramePointer,R_NO,R_ESP])
               Then
                 Begin
                   RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef -
@@ -1629,7 +1629,7 @@ Var Counter: TRegister;
 Begin
   WhichReg := Reg32(WhichReg);
   If (Ref.Index = R_NO) And
-     ((Ref.base = ProcInfo.FramePointer) Or
+     ((Ref.base = procinfo^.FramePointer) Or
       (Assigned(Ref.Symbol) And
        (Ref.base = R_NO)))
     Then
@@ -1679,7 +1679,7 @@ Begin
         {don't destroy if reg contains a parameter, local or global variable}
             Not((NrOfMods = 1) And
                 (Paicpu(StartMod)^.oper[0].typ = top_ref) And
-                ((Paicpu(StartMod)^.oper[0].ref^.base = ProcInfo.FramePointer) Or
+                ((Paicpu(StartMod)^.oper[0].ref^.base = procinfo^.FramePointer) Or
                   Assigned(Paicpu(StartMod)^.oper[0].ref^.Symbol)
                 )
                )
@@ -2351,7 +2351,11 @@ End.
 
 {
  $Log$
- Revision 1.59  1999-09-21 15:46:58  jonas
+ Revision 1.60  1999-09-27 23:44:50  peter
+   * procinfo is now a pointer
+   * support for result setting in sub procedure
+
+ Revision 1.59  1999/09/21 15:46:58  jonas
    * fixed bug in destroyrefs (indexes are now handled as pointers)
 
  Revision 1.58  1999/09/05 12:37:50  jonas

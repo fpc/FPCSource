@@ -859,7 +859,7 @@ unit pmodules;
         { and insert the procsym in symtable }
         st^.insert(aktprocsym);
         { set some informations about the main program }
-        with procinfo do
+        with procinfo^ do
          begin
            retdef:=voiddef;
            _class:=nil;
@@ -1104,11 +1104,9 @@ unit pmodules;
 
          Message1(parser_u_parsing_implementation,current_module^.modulename^);
 
-         { Generate a procsym }
-         gen_main_procsym(current_module^.modulename^+'_init',potype_unitinit,st);
-
          { Compile the unit }
          codegen_newprocedure;
+         gen_main_procsym(current_module^.modulename^+'_init',potype_unitinit,st);
          names.init;
          names.insert('INIT$$'+current_module^.modulename^);
          names.insert(target_os.cprefix+current_module^.modulename^+'_init');
@@ -1125,11 +1123,9 @@ unit pmodules;
               { set module options }
               current_module^.flags:=current_module^.flags or uf_finalize;
 
-              { Generate a procsym }
-              gen_main_procsym(current_module^.modulename^+'_finalize',potype_unitfinalize,st);
-
               { Compile the finalize }
               codegen_newprocedure;
+              gen_main_procsym(current_module^.modulename^+'_finalize',potype_unitfinalize,st);
               names.init;
               names.insert('FINALIZE$$'+current_module^.modulename^);
               names.insert(target_os.cprefix+current_module^.modulename^+'_finalize');
@@ -1359,8 +1355,6 @@ unit pmodules;
          constsymtable:=st;
 
          Message1(parser_u_parsing_implementation,current_module^.mainsource^);
-         { Generate a procsym for main }
-         gen_main_procsym('main',potype_proginit,st);
 
          { reset }
          procprefix:='';
@@ -1368,6 +1362,7 @@ unit pmodules;
          {The program intialization needs an alias, so it can be called
           from the bootstrap code.}
          codegen_newprocedure;
+         gen_main_procsym('main',potype_proginit,st);
          names.init;
          names.insert('program_init');
          names.insert('PASCALMAIN');
@@ -1464,7 +1459,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.156  1999-09-20 16:39:00  peter
+  Revision 1.157  1999-09-27 23:44:54  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.156  1999/09/20 16:39:00  peter
     * cs_create_smart instead of cs_smartlink
     * -CX is create smartlink
     * -CD is create dynamic, but does nothing atm.

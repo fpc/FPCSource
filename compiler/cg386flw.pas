@@ -416,10 +416,10 @@ implementation
               else
                 internalerror(2001);
               end;
-              case procinfo.retdef^.deftype of
+              case procinfo^.retdef^.deftype of
                orddef,
               enumdef : begin
-                          case procinfo.retdef^.size of
+                          case procinfo^.retdef^.size of
                            4 : if is_mem then
                                  emit_ref_reg(A_MOV,S_L,
                                    newreference(p^.left^.location.reference),R_EAX)
@@ -447,7 +447,7 @@ implementation
                               p^.left^.location.register,R_EAX);
                         end;
              floatdef : begin
-                          if pfloatdef(procinfo.retdef)^.typ=f32bit then
+                          if pfloatdef(procinfo^.retdef)^.typ=f32bit then
                            begin
                              if is_mem then
                                emit_ref_reg(A_MOV,S_L,
@@ -457,7 +457,7 @@ implementation
                            end
                           else
                            if is_mem then
-                            floatload(pfloatdef(procinfo.retdef)^.typ,p^.left^.location.reference);
+                            floatload(pfloatdef(procinfo^.retdef)^.typ,p^.left^.location.reference);
                         end;
               end;
 do_jmp:
@@ -766,12 +766,12 @@ do_jmp:
          new(hp);
          reset_reference(hp^);
          hp^.offset:=8;
-         hp^.base:=procinfo.framepointer;
+         hp^.base:=procinfo^.framepointer;
          emit_const_ref(A_CMP,S_L,-1,hp);
          emitjmp(C_NE,nofreememcall);
          new(hp);
          reset_reference(hp^);
-         hp^.offset:=procinfo._class^.vmt_offset;
+         hp^.offset:=procinfo^._class^.vmt_offset;
          hp^.base:=R_ESI;
          emit_ref_reg(A_MOV,S_L,hp,R_EDI);
          new(hp);
@@ -781,8 +781,8 @@ do_jmp:
          emit_ref(A_PUSH,S_L,hp);
          new(hp);
          reset_reference(hp^);
-         hp^.offset:=procinfo.ESI_offset;
-         hp^.base:=procinfo.framepointer;
+         hp^.offset:=procinfo^.ESI_offset;
+         hp^.base:=procinfo^.framepointer;
          emit_ref_reg(A_LEA,S_L,hp,R_EDI);
          emit_reg(A_PUSH,S_L,R_EDI);
          emitcall('FPC_FREEMEM');
@@ -793,7 +793,7 @@ do_jmp:
          { reset VMT field for static object }
          new(hp);
          reset_reference(hp^);
-         hp^.offset:=procinfo._class^.vmt_offset;
+         hp^.offset:=procinfo^._class^.vmt_offset;
          hp^.base:=R_ESI;
          emit_const_ref(A_MOV,S_L,0,hp);
          emitlab(afterfreememcall);
@@ -801,8 +801,8 @@ do_jmp:
          { also reset to zero in the stack }
          new(hp);
          reset_reference(hp^);
-         hp^.offset:=procinfo.ESI_offset;
-         hp^.base:=procinfo.framepointer;
+         hp^.offset:=procinfo^.ESI_offset;
+         hp^.base:=procinfo^.framepointer;
          emit_reg_ref(A_MOV,S_L,R_ESI,hp); *)
          emitjmp(C_None,faillabel);
       end;
@@ -811,7 +811,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.51  1999-09-26 13:26:05  florian
+  Revision 1.52  1999-09-27 23:44:46  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.51  1999/09/26 13:26:05  florian
     * exception patch of Romio nevertheless the excpetion handling
       needs some corections regarding register saving
     * gettempansistring is again a procedure

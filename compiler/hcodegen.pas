@@ -52,7 +52,8 @@ unit hcodegen;
           retdef : pdef;
           { return type }
           sym : pprocsym;
-          { symbol of the function }
+          { symbol of the function, and the sym for result variable }
+          resultfuncretsym,
           funcretsym : pfuncretsym;
           { the definition of the proc itself }
           { why was this a pdef only ?? PM    }
@@ -103,7 +104,7 @@ unit hcodegen;
 
     var
        { info about the current sub routine }
-       procinfo : tprocinfo;
+       procinfo : pprocinfo;
 
        { labels for BREAK and CONTINUE }
        aktbreaklabel,aktcontinuelabel : pasmlabel;
@@ -216,23 +217,28 @@ implementation
          aktcontinuelabel:=nil;
          { aktexitlabel:=0; is store in oldaktexitlabel
            so it must not be reset to zero before this storage !}
+         { new procinfo }
+         new(procinfo);
+         fillchar(procinfo^,sizeof(tprocinfo),0);
          { the type of this lists isn't important }
          { because the code of this lists is      }
          { copied to the code segment        }
-         procinfo.aktentrycode:=new(paasmoutput,init);
-         procinfo.aktexitcode:=new(paasmoutput,init);
-         procinfo.aktproccode:=new(paasmoutput,init);
-         procinfo.aktlocaldata:=new(paasmoutput,init);
+         procinfo^.aktentrycode:=new(paasmoutput,init);
+         procinfo^.aktexitcode:=new(paasmoutput,init);
+         procinfo^.aktproccode:=new(paasmoutput,init);
+         procinfo^.aktlocaldata:=new(paasmoutput,init);
       end;
 
 
 
     procedure codegen_doneprocedure;
       begin
-         dispose(procinfo.aktentrycode,done);
-         dispose(procinfo.aktexitcode,done);
-         dispose(procinfo.aktproccode,done);
-         dispose(procinfo.aktlocaldata,done);
+         dispose(procinfo^.aktentrycode,done);
+         dispose(procinfo^.aktexitcode,done);
+         dispose(procinfo^.aktproccode,done);
+         dispose(procinfo^.aktlocaldata,done);
+         dispose(procinfo);
+         procinfo:=nil;
       end;
 
 
@@ -309,7 +315,11 @@ end.
 
 {
   $Log$
-  Revision 1.42  1999-08-26 20:24:40  michael
+  Revision 1.43  1999-09-27 23:44:51  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.42  1999/08/26 20:24:40  michael
   + Hopefuly last fixes for resourcestrings
 
   Revision 1.41  1999/08/24 13:14:03  peter

@@ -449,7 +449,7 @@ implementation
                      firstpass(p^.left);
                      firstpass(p^.right);
                      { here we call STRCOPY }
-                     procinfo.flags:=procinfo.flags or pi_do_call;
+                     procinfo^.flags:=procinfo^.flags or pi_do_call;
                      calcregisters(p,0,0,0);
                      p^.location.loc:=LOC_MEM;
                    end
@@ -679,7 +679,7 @@ implementation
                   begin
                      calcregisters(p,0,0,0);
                      { here we call SET... }
-                     procinfo.flags:=procinfo.flags or pi_do_call;
+                     procinfo^.flags:=procinfo^.flags or pi_do_call;
                      p^.location.loc:=LOC_MEM;
                   end;
               convdone:=true;
@@ -738,7 +738,7 @@ implementation
               if p^.right^.treetype=typeconvn then
                 firstpass(p^.right);
               { here we call STRCONCAT or STRCMP or STRCOPY }
-              procinfo.flags:=procinfo.flags or pi_do_call;
+              procinfo^.flags:=procinfo^.flags or pi_do_call;
               if p^.location.loc=LOC_MEM then
                 calcregisters(p,0,0,0)
               else
@@ -1136,7 +1136,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  1999-09-16 13:39:14  peter
+  Revision 1.50  1999-09-27 23:45:00  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.49  1999/09/16 13:39:14  peter
     * arrayconstructor 2 set conversion is now called always in the
       beginning of firstadd
 

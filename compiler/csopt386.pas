@@ -82,9 +82,9 @@ Begin {CheckSequence}
   While (RegCounter <= R_EDI) Do
     Begin
       FillChar(RegInfo, SizeOf(RegInfo), 0);
-      RegInfo.NewRegsEncountered := [ProcInfo.FramePointer, R_ESP];
+      RegInfo.NewRegsEncountered := [procinfo^.FramePointer, R_ESP];
       RegInfo.OldRegsEncountered := RegInfo.NewRegsEncountered;
-      RegInfo.New2OldReg[ProcInfo.FramePointer] := ProcInfo.FramePointer;
+      RegInfo.New2OldReg[procinfo^.FramePointer] := procinfo^.FramePointer;
       RegInfo.New2OldReg[R_ESP] := R_ESP;
       Found := 0;
       hp2 := PPaiProp(PrevNonRemovablePai^.OptInfo)^.Regs[RegCounter].StartMod;
@@ -553,7 +553,11 @@ End.
 
 {
  $Log$
- Revision 1.24  1999-08-25 11:59:58  jonas
+ Revision 1.25  1999-09-27 23:44:50  peter
+   * procinfo is now a pointer
+   * support for result setting in sub procedure
+
+ Revision 1.24  1999/08/25 11:59:58  jonas
    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
  Revision 1.23  1999/08/04 00:22:58  florian

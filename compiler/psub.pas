@@ -113,14 +113,14 @@ begin
     if idtoken=_SELF then
       begin
          { we parse the defintion in the class definition }
-         if assigned(procinfo._class) and procinfo._class^.is_class then
+         if assigned(procinfo^._class) and procinfo^._class^.is_class then
            begin
 {$ifndef UseNiceNames}
             hs2:=hs2+'$'+'self';
 {$else UseNiceNames}
             hs2:=hs2+tostr(length('self'))+'self';
 {$endif UseNiceNames}
-            vs:=new(Pvarsym,init('@',procinfo._class));
+            vs:=new(Pvarsym,init('@',procinfo^._class));
             vs^.varspez:=vs_var;
           { insert the sym in the parasymtable }
             aktprocsym^.definition^.parast^.insert(vs);
@@ -129,7 +129,7 @@ begin
 {$else}
             aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+[po_containsself];
 {$endif}
-            inc(procinfo.ESI_offset,vs^.address);
+            inc(procinfo^.ESI_offset,vs^.address);
             consume(idtoken);
             consume(_COLON);
             p:=single_type(hs1);
@@ -137,7 +137,7 @@ begin
              aktprocsym^.definition^.concattypesym(readtypesym,vs_value)
             else
              aktprocsym^.definition^.concatdef(p,vs_value);
-            CheckTypes(p,procinfo._class);
+            CheckTypes(p,procinfo^._class);
            end
          else
            consume(_ID);
@@ -241,10 +241,10 @@ begin
             { search for duplicate ids in object members/methods    }
             { but only the current class, I don't know why ...      }
             { at least TP and Delphi do it in that way   (FK) }
-            if assigned(procinfo._class) and
+            if assigned(procinfo^._class) and
                (lexlevel=normal_function_level) then
              begin
-               hsym:=procinfo._class^.symtable^.search(vs^.name);
+               hsym:=procinfo^._class^.symtable^.search(vs^.name);
                if assigned(hsym) then
                 DuplicateSym(hsym);
              end;
@@ -324,11 +324,11 @@ begin
           sp:=pattern;
           realname:=orgpattern;
           consume(_ID);
-          procinfo._class:=pobjectdef(ptypesym(sym)^.definition);
-          aktprocsym:=pprocsym(procinfo._class^.symtable^.search(sp));
+          procinfo^._class:=pobjectdef(ptypesym(sym)^.definition);
+          aktprocsym:=pprocsym(procinfo^._class^.symtable^.search(sp));
           {The procedure has been found. So it is
            a global one. Set the flags to mark this.}
-          procinfo.flags:=procinfo.flags or pi_is_global;
+          procinfo^.flags:=procinfo^.flags or pi_is_global;
           aktobjectdef:=nil;
           { we solve this below }
           if not(assigned(aktprocsym)) then
@@ -377,22 +377,22 @@ begin
                 DuplicateSym(aktprocsym);
                {The procedure has been found. So it is
                 a global one. Set the flags to mark this.}
-               procinfo.flags:=procinfo.flags or pi_is_global;
+               procinfo^.flags:=procinfo^.flags or pi_is_global;
              end;
           end;
        end;
    end;
   { problem with procedures inside methods }
 {$ifndef UseNiceNames}
-  if assigned(procinfo._class) then
+  if assigned(procinfo^._class) then
     if (pos('_$$_',procprefix)=0) then
-      hs:=procprefix+'_$$_'+procinfo._class^.objname^+'_$$_'+sp
+      hs:=procprefix+'_$$_'+procinfo^._class^.objname^+'_$$_'+sp
     else
       hs:=procprefix+'_$'+sp;
 {$else UseNiceNames}
-  if assigned(procinfo._class) then
+  if assigned(procinfo^._class) then
     if (pos('_5Class_',procprefix)=0) then
-      hs:=procprefix+'_5Class_'+procinfo._class^.name^+'_'+tostr(length(sp))+sp
+      hs:=procprefix+'_5Class_'+procinfo^._class^.name^+'_'+tostr(length(sp))+sp
     else
       hs:=procprefix+'_'+tostr(length(sp))+sp;
 {$endif UseNiceNames}
@@ -445,8 +445,8 @@ begin
   pd:=new(pprocdef,init);
   pd^.symtablelevel:=symtablestack^.symtablelevel;
 
-  if assigned(procinfo._class) then
-    pd^._class := procinfo._class;
+  if assigned(procinfo^._class) then
+    pd^._class := procinfo^._class;
 
   { set the options from the caller (podestructor or poconstructor) }
   pd^.proctypeoption:=options;
@@ -457,35 +457,35 @@ begin
   { calculate frame pointer offset }
   if lexlevel>normal_function_level then
     begin
-      procinfo.framepointer_offset:=paramoffset;
+      procinfo^.framepointer_offset:=paramoffset;
       inc(paramoffset,target_os.size_of_pointer);
       { this is needed to get correct framepointer push for local
         forward functions !! }
       pd^.parast^.symtablelevel:=lexlevel;
     end;
 
-  if assigned (Procinfo._Class)  and
-     not(Procinfo._Class^.is_class) and
+  if assigned (procinfo^._Class)  and
+     not(procinfo^._Class^.is_class) and
      (pd^.proctypeoption in [potype_constructor,potype_destructor]) then
     inc(paramoffset,target_os.size_of_pointer);
 
   { self pointer offset                       }
   { self isn't pushed in nested procedure of methods }
-  if assigned(procinfo._class) and (lexlevel=normal_function_level) then
+  if assigned(procinfo^._class) and (lexlevel=normal_function_level) then
     begin
-      procinfo.ESI_offset:=paramoffset;
+      procinfo^.ESI_offset:=paramoffset;
       if assigned(aktprocsym^.definition) and
          not(po_containsself in aktprocsym^.definition^.procoptions) then
         inc(paramoffset,target_os.size_of_pointer);
     end;
 
   { destructor flag ? }
-  if assigned (Procinfo._Class) and
-     procinfo._class^.is_class and
+  if assigned (procinfo^._Class) and
+     procinfo^._class^.is_class and
      (pd^.proctypeoption=potype_destructor) then
     inc(paramoffset,target_os.size_of_pointer);
 
-  procinfo.call_offset:=paramoffset;
+  procinfo^.call_offset:=paramoffset;
 
   pd^.parast^.datasize:=0;
 
@@ -574,11 +574,11 @@ begin
   _CONSTRUCTOR : begin
                    consume(_CONSTRUCTOR);
                    parse_proc_head(potype_constructor);
-                   if assigned(procinfo._class) and
-                      procinfo._class^.is_class then
+                   if assigned(procinfo^._class) and
+                      procinfo^._class^.is_class then
                     begin
                       { CLASS constructors return the created instance }
-                      aktprocsym^.definition^.retdef:=procinfo._class;
+                      aktprocsym^.definition^.retdef:=procinfo^._class;
                     end
                    else
                     begin
@@ -604,7 +604,7 @@ begin
                      Message(parser_e_overload_operator_failed);
                    optoken:=token;
                    consume(Token);
-                   procinfo.flags:=procinfo.flags or pi_operator;
+                   procinfo^.flags:=procinfo^.flags or pi_operator;
                    parse_proc_head(potype_operator);
                    if token<>_ID then
                      begin
@@ -674,7 +674,7 @@ end;
 
 procedure pd_export(const procnames:Tstringcontainer);
 begin
-  if assigned(procinfo._class) then
+  if assigned(procinfo^._class) then
     Message(parser_e_methods_dont_be_export);
   if lexlevel<>normal_function_level then
     Message(parser_e_dont_nest_export);
@@ -682,7 +682,7 @@ begin
   if target_info.target=target_i386_os2 then
    begin
      procnames.insert(realname);
-     procinfo.exported:=true;
+     procinfo^.exported:=true;
      if cs_link_deffile in aktglobalswitches then
        deffile.AddExport(aktprocsym^.definition^.mangledname);
    end;
@@ -1472,7 +1472,7 @@ begin
       end;
    end;
 { insert opsym only in the right symtable }
-  if ((procinfo.flags and pi_operator)<>0) and assigned(opsym)
+  if ((procinfo^.flags and pi_operator)<>0) and assigned(opsym)
      and not parse_only then
     begin
       if ret_in_param(aktprocsym^.definition^.retdef) then
@@ -1549,18 +1549,18 @@ begin
    aktcontinuelabel:=nil;
 
    { insert symtables for the class, by only if it is no nested function }
-   if assigned(procinfo._class) and not(parent_has_class) then
+   if assigned(procinfo^._class) and not(parent_has_class) then
      begin
        { insert them in the reverse order ! }
        hp:=nil;
        repeat
-         _class:=procinfo._class;
+         _class:=procinfo^._class;
          while _class^.childof<>hp do
            _class:=_class^.childof;
          hp:=_class;
          _class^.symtable^.next:=symtablestack;
          symtablestack:=_class^.symtable;
-       until hp=procinfo._class;
+       until hp=procinfo^._class;
      end;
 
    { insert parasymtable in symtablestack}
@@ -1625,9 +1625,9 @@ begin
    { but only if the are no local variables           }
    { already done in assembler_block }
 {$ifdef newcg}
-   tg.setfirsttemp(procinfo.firsttemp);
+   tg.setfirsttemp(procinfo^.firsttemp);
 {$else newcg}
-   setfirsttemp(procinfo.firsttemp);
+   setfirsttemp(procinfo^.firsttemp);
 {$endif newcg}
 
    { ... and generate assembler }
@@ -1635,7 +1635,7 @@ begin
    aktlocalswitches:=entryswitches;
 {$ifndef NOPASS2}
 {$ifdef newcg}
-   tg.setfirsttemp(procinfo.firsttemp);
+   tg.setfirsttemp(procinfo^.firsttemp);
 {$else newcg}
    if assigned(code) then
      generatecode(code);
@@ -1667,10 +1667,10 @@ begin
    aktlocalswitches:=entryswitches;
 {$ifdef newcg}
    if assigned(code) then
-     cg^.g_entrycode(procinfo.aktentrycode,proc_names,make_global,stackframe,parasize,nostackframe,false);
+     cg^.g_entrycode(procinfo^.aktentrycode,proc_names,make_global,stackframe,parasize,nostackframe,false);
 {$else newcg}
    if assigned(code) then
-     genentrycode(procinfo.aktentrycode,proc_names,make_global,stackframe,parasize,nostackframe,false);
+     genentrycode(procinfo^.aktentrycode,proc_names,make_global,stackframe,parasize,nostackframe,false);
 {$endif newcg}
 
    { now generate exit code with the correct position and switches }
@@ -1679,33 +1679,33 @@ begin
    if assigned(code) then
      begin
 {$ifdef newcg}
-       cg^.g_exitcode(procinfo.aktexitcode,parasize,nostackframe,false);
+       cg^.g_exitcode(procinfo^.aktexitcode,parasize,nostackframe,false);
 {$else newcg}
-       genexitcode(procinfo.aktexitcode,parasize,nostackframe,false);
+       genexitcode(procinfo^.aktexitcode,parasize,nostackframe,false);
 {$endif newcg}
-       procinfo.aktproccode^.insertlist(procinfo.aktentrycode);
-       procinfo.aktproccode^.concatlist(procinfo.aktexitcode);
+       procinfo^.aktproccode^.insertlist(procinfo^.aktentrycode);
+       procinfo^.aktproccode^.concatlist(procinfo^.aktexitcode);
 {$ifdef i386}
  {$ifndef NoOpt}
        if (cs_optimize in aktglobalswitches) and
        { do not optimize pure assembler procedures }
-         ((procinfo.flags and pi_is_assembler)=0)  then
-           Optimize(procinfo.aktproccode);
+         ((procinfo^.flags and pi_is_assembler)=0)  then
+           Optimize(procinfo^.aktproccode);
  {$endif NoOpt}
 {$endif}
        { save local data (casetable) also in the same file }
-       if assigned(procinfo.aktlocaldata) and
-          (not procinfo.aktlocaldata^.empty) then
+       if assigned(procinfo^.aktlocaldata) and
+          (not procinfo^.aktlocaldata^.empty) then
          begin
-            procinfo.aktproccode^.concat(new(pai_section,init(sec_data)));
-            procinfo.aktproccode^.concatlist(procinfo.aktlocaldata);
+            procinfo^.aktproccode^.concat(new(pai_section,init(sec_data)));
+            procinfo^.aktproccode^.concatlist(procinfo^.aktlocaldata);
          end;
        { now we can insert a cut }
        if (cs_create_smart in aktmoduleswitches) then
          codesegment^.concat(new(pai_cut,init));
 
        { add the procedure to the codesegment }
-       codesegment^.concatlist(procinfo.aktproccode);
+       codesegment^.concatlist(procinfo^.aktproccode);
      end;
 {$else}
    if assigned(code) then
@@ -1730,7 +1730,7 @@ begin
            aktprocsym^.definition^.localst^.check_forwards;
            aktprocsym^.definition^.localst^.checklabels;
          end;
-       if (procinfo.flags and pi_uses_asm)=0 then
+       if (procinfo^.flags and pi_uses_asm)=0 then
          begin
             { not for unit init, becuase the var can be used in finalize,
               it will be done in proc_unit }
@@ -1900,7 +1900,7 @@ procedure read_proc;
 var
   oldprefix     : string;
   oldprocsym       : Pprocsym;
-  oldprocinfo      : tprocinfo;
+  oldprocinfo      : pprocinfo;
   oldconstsymtable : Psymtable;
   oldfilepos       : tfileposinfo;
   names           : Pstringcontainer;
@@ -1915,16 +1915,17 @@ begin
 { create a new procedure }
    new(names,init);
    codegen_newprocedure;
-   with procinfo do
+   with procinfo^ do
     begin
-      parent:=@oldprocinfo;
+      parent:=oldprocinfo;
     { clear flags }
       flags:=0;
     { standard frame pointer }
       framepointer:=frame_pointer;
       funcret_is_valid:=false;
     { is this a nested function of a method ? }
-      _class:=oldprocinfo._class;
+      if assigned(oldprocinfo) then
+        _class:=oldprocinfo^._class;
     end;
 
    parse_proc_dec;
@@ -1950,7 +1951,7 @@ begin
        pdflags:=pdflags or pd_implemen;
       if (not current_module^.is_unit) or (cs_create_smart in aktmoduleswitches) then
        pdflags:=pdflags or pd_global;
-      procinfo.exported:=false;
+      procinfo^.exported:=false;
       aktprocsym^.definition^.forwarddef:=false;
     end;
 
@@ -1967,7 +1968,7 @@ begin
    if not check_identical(prevdef) then
      begin
      { A method must be forward defined (in the object declaration) }
-       if assigned(procinfo._class) and (not assigned(oldprocinfo._class)) then
+       if assigned(procinfo^._class) and (not assigned(oldprocinfo^._class)) then
          Message(parser_e_header_dont_match_any_member);
      { Give a better error if there is a forward def in the interface and only
        a single implementation }
@@ -1980,23 +1981,23 @@ begin
        else
         begin
         { check the global flag }
-          if (procinfo.flags and pi_is_global)<>0 then
+          if (procinfo^.flags and pi_is_global)<>0 then
             Message(parser_e_overloaded_must_be_all_global);
         end
      end;
 
 { set return type here, becuase the aktprocsym^.definition can be
   changed by check_identical (PFV) }
-   procinfo.retdef:=aktprocsym^.definition^.retdef;
+   procinfo^.retdef:=aktprocsym^.definition^.retdef;
 
    { pointer to the return value ? }
-   if ret_in_param(procinfo.retdef) then
+   if ret_in_param(procinfo^.retdef) then
     begin
-      procinfo.retoffset:=procinfo.call_offset;
-      inc(procinfo.call_offset,target_os.size_of_pointer);
+      procinfo^.retoffset:=procinfo^.call_offset;
+      inc(procinfo^.call_offset,target_os.size_of_pointer);
     end;
    { allows to access the parameters of main functions in nested functions }
-   aktprocsym^.definition^.parast^.address_fixup:=procinfo.call_offset;
+   aktprocsym^.definition^.parast^.address_fixup:=procinfo^.call_offset;
 
    { when it is a value para and it needs a local copy then rename
      the parameter and insert a copy in the localst. This is not done
@@ -2018,7 +2019,7 @@ begin
       if assigned(aktprocsym^.definition^._class) then
         tokeninfo^[_SELF].keyword:=m_all;
 
-       compile_proc_body(names^,((pdflags and pd_global)<>0),assigned(oldprocinfo._class));
+       compile_proc_body(names^,((pdflags and pd_global)<>0),assigned(oldprocinfo^._class));
 
       { reset _FAIL as normal }
       if (aktprocsym^.definition^.proctypeoption=potype_constructor) then
@@ -2053,7 +2054,11 @@ end.
 
 {
   $Log$
-  Revision 1.22  1999-09-20 16:39:00  peter
+  Revision 1.23  1999-09-27 23:44:56  peter
+    * procinfo is now a pointer
+    * support for result setting in sub procedure
+
+  Revision 1.22  1999/09/20 16:39:00  peter
     * cs_create_smart instead of cs_smartlink
     * -CX is create smartlink
     * -CD is create dynamic, but does nothing atm.
@@ -2066,7 +2071,7 @@ end.
     * .... ???
 
   Revision 1.20  1999/09/10 18:48:09  florian
-    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
+    * some bug fixes (e.g. must_be_valid and procinfo^.funcret_is_valid)
     * most things for stored properties fixed
 
   Revision 1.19  1999/09/07 14:59:40  pierre
