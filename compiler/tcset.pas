@@ -80,6 +80,36 @@ implementation
         byteset = set of byte;
       var
         t : ptree;
+        pst : pconstset;
+        
+    function createsetconst(psd : psetdef) : pconstset;
+      var
+        pcs : pconstset;
+        pes : penumsym;
+        i : longint;
+      begin
+        new(pcs);
+        case psd^.setof^.deftype of
+          enumdef :
+            begin
+              pes:=penumdef(psd^.setof)^.firstenum;
+              while assigned(pes) do
+                begin
+                  pcs^[pes^.value div 8]:=pcs^[pes^.value div 8] or (1 shl (pes^.value mod 8));
+                  pes:=pes^.nextenum;
+                end;
+            end;
+          orddef :
+            begin
+              for i:=porddef(psd^.setof)^.low to porddef(psd^.setof)^.high do
+                begin
+                  pcs^[i div 8]:=pcs^[i div 8] or (1 shl (i mod 8));
+                end;
+            end;
+        end;
+       createsetconst:=pcs;
+      end;
+      
       begin
          p^.location.loc:=LOC_FLAGS;
          p^.resulttype:=booldef;
@@ -97,9 +127,26 @@ implementation
              exit;
           end;
 
+         { if p^.right is a typen then the def
+         is in typenodetype PM }
+         if p^.right^.treetype=typen then
+           p^.right^.resulttype:=p^.right^.typenodetype;
+           
          if p^.right^.resulttype^.deftype<>setdef then
            CGMessage(sym_e_set_expected);
+         if codegenerror then
+           exit;
 
+         if (p^.right^.treetype=typen) then
+           begin
+             { we need to create a setconstn }
+             pst:=createsetconst(psetdef(p^.right^.typenodetype));
+             t:=gensetconstnode(pst,psetdef(p^.right^.typenodetype));
+             dispose(pst);
+             putnode(p^.right);
+             p^.right:=t;
+           end;
+           
          firstpass(p^.left);
          if codegenerror then
            exit;
@@ -254,7 +301,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1999-08-04 00:23:45  florian
+  Revision 1.13  1999-09-07 15:01:33  pierre
+   * elem in set_type did not work yet
+
+  Revision 1.12  1999/08/04 00:23:45  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.11  1999/08/03 22:03:38  peter
