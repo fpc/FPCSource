@@ -874,6 +874,11 @@ override COMPILER_UNITTARGETDIR=$(COMPILER_TARGETDIR)
 override UNITTARGETDIRPREFIX=$(TARGETDIRPREFIX)
 endif
 endif
+ifeq ($(OS_TARGET),linux)
+ifeq ($(FPC_VERSION),1.0.6)
+override FPCOPTDEF+=HASUNIX
+endif
+endif
 ifdef OPT
 override FPCOPT+=$(OPT)
 endif
