@@ -31,7 +31,7 @@ OS/2 only rtl                                 medium
 
 FCL                                           medium
           - disk.inc................................................TH
-  - filutil.inc
+          - filutil.inc.............................................TH
   - thread.inc
           - pipes.inc...............................................TH
   - ? unit SyncObjs

@@ -35,6 +35,9 @@ function FileOpen (const FileName: string; Mode: integer): longint;
 var FN: string;
 begin
     FN := FileName + #0;
+(* DenyAll if sharing not specified. *)
+    if Mode and 112 = 0 then
+        Mode := Mode or 16;
 {$ENDIF}
     asm
         mov eax, 7F2Bh
@@ -60,6 +63,9 @@ function FileCreate (const FileName: string): longint;
 var FN: string;
 begin
     FN := FileName + #0;
+(* DenyAll if sharing not specified. *)
+    if Mode and 112 = 0 then
+        Mode := Mode or 16;
 {$ENDIF}
     asm
         mov eax, 7F2Bh
@@ -191,26 +197,118 @@ end;
 end;
 
 
-Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
+type    TRec = record
+            T, D: word;
+        end;
+        PSearchRec = ^SearchRec;
+
+function FindFirst (const Path: string; Attr: longint; var Rslt: TSearchRec): longint;
+
+var SR: PSearchRec;
+    FStat: PFileFindBuf3;
+    Count: longint;
+    Err: longint;
 
 begin
-  //!! Needs implementing
+    if os_mode = osOS2 then
+        begin
+            New (FStat);
+            Rslt.FindHandle := $FFFFFFFF;
+            Count := 1;
+            Err := DosFindFirst (Path, Rslt.FindHandle, Attr, FStat,
+                                           SizeOf (FStat^), Count, ilStandard);
+            if (Err = 0) and (Count = 0) then Err := 18;
+            FindFirst := -Err;
+            if Err = 0 then
+                begin
+                    Rslt.Name := FStat^.Name;
+                    Rslt.Size := FStat^.FileSize;
+                    Rslt.Attr := FStat^.AttrFile;
+                    Rslt.ExcludeAttr := 0;
+                    TRec (Rslt.Time).T := FStat^.TimeLastWrite;
+                    TRec (Rslt.Time).D := FStat^.DateLastWrite;
+                end;
+            Dispose (FStat);
+        end
+    else
+        begin
+            GetMem (SR, SizeOf (SearchRec));
+            Rslt.FindHandle := longint(SR);
+            DOS.FindFirst (Path, Attr, SR^);
+            FindFirst := -DosError;
+            if DosError = 0 then
+                begin
+                    Rslt.Time := SR^.Time;
+                    Rslt.Size := SR^.Size;
+                    Rslt.Attr := SR^.Attr;
+                    Rslt.ExcludeAttr := 0;
+                    Rslt.Name := SR^.Name;
+                end;
+        end;
 end;
 
 
-Function FindNext (Var Rslt : TSearchRec) : Longint;
+function FindNext (var Rslt: TSearchRec): longint;
+
+var SR: PSearchRec;
+    FStat: PFileFindBuf3;
+    Count: longint;
+    Err: longint;
 
 begin
-  //!! Needs implementing
+    if os_mode = osOS2 then
+        begin
+            New (FStat);
+            Count := 1;
+            Err := DosFindNext (Rslt.FindHandle, FStat, SizeOf (FStat), Count);
+            if (Err = 0) and (Count = 0) then Err := 18;
+            FindNext := -Err;
+            if Err = 0 then
+                begin
+                    Rslt.Name := FStat^.Name;
+                    Rslt.Size := FStat^.FileSize;
+                    Rslt.Attr := FStat^.AttrFile;
+                    Rslt.ExcludeAttr := 0;
+                    TRec (Rslt.Time).T := FStat^.TimeLastWrite;
+                    TRec (Rslt.Time).D := FStat^.DateLastWrite;
+                end;
+            Dispose (FStat);
+        end
+    else
+        begin
+            SR := PSearchRec (Rslt.FindHandle);
+            if SR <> nil then
+                begin
+                    DOS.FindNext (SR^);
+                    FindNext := -DosError;
+                    if DosError = 0 then
+                        begin
+                            Rslt.Time := SR^.Time;
+                            Rslt.Size := SR^.Size;
+                            Rslt.Attr := SR^.Attr;
+                            Rslt.ExcludeAttr := 0;
+                            Rslt.Name := SR^.Name;
+                        end;
+                end;
+        end;
 end;
 
 
 procedure FindClose (var F: TSearchrec);
+
+var SR: PSearchRec;
+
 begin
     if os_mode = osOS2 then
         begin
-           DosCalls.DosFindClose (F.FindHandle);
+            DosFindClose (F.FindHandle);
+        end
+    else
+        begin
+            DOS.FindClose (SR^);
+            FreeMem (SR, SizeOf (SearchRec));
         end;
+    F.FindHandle := 0;
 end;
 
 
@@ -228,10 +326,30 @@ end;
 
 
 function FileSetDate (Handle, Age: longint): longint;
+var FStat: PFileStatus0;
+    RC: longint;
 begin
     if os_mode = osOS2 then
         begin
-{TODO: !!! Must be done differently for OS/2 !!!}
+            New (FStat);
+            RC := DosQueryFileInfo (Handle, ilStandard, FStat,
+                                                              SizeOf (FStat^));
+            if RC <> 0 then
+                FileSetDate := -1
+            else
+                begin
+                    FStat^.DateLastAccess := Hi (Age);
+                    FStat^.DateLastWrite := Hi (Age);
+                    FStat^.TimeLastAccess := Lo (Age);
+                    FStat^.TimeLastWrite := Lo (Age);
+                    RC := DosSetFileInfo (Handle, ilStandard, FStat,
+                                                              SizeOf (FStat^));
+                    if RC <> 0 then
+                        FileSetDate := -1
+                    else
+                        FileSetDate := 0;
+                end;
+            Dispose (FStat);
         end
     else
         asm
@@ -370,27 +488,99 @@ begin
 end;
 
 
-Procedure GetLocalTime(var SystemTime: TSystemTime);
-
-begin
-  //!! Needs implementing
-end ;
-
-Procedure InitAnsi;
-(* __nls_ctype ??? *)
-begin
-  //!! Needs implementing
+procedure GetLocalTime (var SystemTime: TSystemTime); assembler;
+asm
+(* Expects the default record alignment (DWord)!!! *)
+    mov ah, 2Ah
+    call syscall
+    mov edi, SystemTime
+    xor eax, eax
+    mov ax, cx
+    stosd
+    xor eax, eax
+    mov al, dh
+    stosd
+    mov al, dl
+    stosd
+    push edi
+    mov ah, 2Ch
+    call syscall
+    pop edi
+    xor eax, eax
+    mov al, ch
+    stosd
+    mov al, cl
+    stosd
+    mov al, dh
+    stosd
+    mov al, dl
+    stosd
 end;
 
-Procedure InitInternational;
+procedure InitAnsi;
+var I: byte;
+    Country: TCountryCode;
 begin
-  InitAnsi;
+    for I := 0 to 255 do
+        UpperCaseTable [I] := Chr (I);
+    Move (UpperCaseTable, LowerCaseTable, SizeOf (UpperCaseTable));
+    if os_mode = osOS2 then
+        begin
+            FillChar (Country, SizeOf (Country), 0);
+            DosMapCase (SizeOf (UpperCaseTable), Country, @UpperCaseTable);
+        end
+    else
+        begin
+(* !!! TODO: DOS/DPMI mode support!!! *)
+        end;
+    for I := 0 to 255 do
+        if UpperCaseTable [I] <> Chr (I) then
+            LowerCaseTable [Ord (UpperCaseTable [I])] := Chr (I);
+end;
+
+procedure InitInternational;
+var Country: TCountryCode;
+    CtryInfo: TCountryInfo;
+    Size: cardinal;
+    RC: longint;
+begin
+    Size := 0;
+    FillChar (Country, SizeOf (Country), 0);
+    FillChar (CtryInfo, SizeOf (CtryInfo), 0);
+    RC := DosQueryCtryInfo (SizeOf (CtryInfo), Country, CtryInfo, Size);
+    if RC = 0 then
+        begin
+            DateSeparator := CtryInfo.DateSeparator;
+            case CtryInfo.DateFormat of
+             1: begin
+                    ShortDateFormat := 'd/m/y';
+                    LongDateFormat := 'dd" "mmmm" "yyyy';
+                end;
+             2: begin
+                    ShortDateFormat := 'y/m/d';
+                    LongDateFormat := 'yyyy" "mmmm" "dd';
+                end;
+             3: begin
+                    ShortDateFormat := 'm/d/y';
+                    LongDateFormat := 'mmmm" "dd" "yyyy';
+                end;
+            end;
+            TimeSeparator := CtryInfo.TimeSeparator;
+            DecimalSeparator := CtryInfo.DecimalSeparator;
+            ThousandSeparator := CtryInfo.ThousandSeparator;
+            CurrencyFormat := CtryInfo.CurrencyFormat;
+            CurrencyString := PChar (CtryInfo.CurrencyUnit);
+        end;
+    InitAnsi;
 end;
 
 
 {
   $Log$
-  Revision 1.12  2000-06-05 18:57:38  hajny
+  Revision 1.13  2000-07-06 19:03:40  hajny
+    * filutil.inc implementation (almost) finished
+
+  Revision 1.12  2000/06/05 18:57:38  hajny
     * handle number check added to FileClose
 
   Revision 1.11  2000/06/04 15:04:22  hajny
