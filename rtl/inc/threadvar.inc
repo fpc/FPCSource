@@ -1,0 +1,95 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2000 by Michael Van Canneyt
+    member of the Free Pascal development team
+
+    Threadvar support, platform independent part
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+
+{*****************************************************************************
+                           Threadvar support
+*****************************************************************************}
+
+{$ifdef HASTHREADVAR}
+
+type
+  pltvInitEntry = ^ltvInitEntry;
+  ltvInitEntry = packed record
+     varaddr : pdword;
+     size    : longint;
+  end;
+
+  TltvInitTablesTable = record
+    count  : dword;
+    tables : array [1..32767] of pltvInitEntry;
+  end;
+
+var
+  ThreadvarTablesTable : TltvInitTablesTable; external name 'FPC_THREADVARTABLES';
+
+procedure init_unit_threadvars (tableEntry : pltvInitEntry);
+begin
+  while tableEntry^.varaddr <> nil do
+   begin
+     SysInitThreadvar (tableEntry^.varaddr^, tableEntry^.size);
+     inc (pchar (tableEntry), sizeof (tableEntry^));
+   end;
+end;
+
+
+procedure init_all_unit_threadvars;
+var
+  i : integer;
+begin
+{$ifdef DEBUG_MT}
+  WriteLn ('init_all_unit_threadvars (',ThreadvarTablesTable.count,') units');
+{$endif}
+  for i := 1 to ThreadvarTablesTable.count do
+    init_unit_threadvars (ThreadvarTablesTable.tables[i]);
+end;
+
+
+procedure copy_unit_threadvars (tableEntry : pltvInitEntry);
+var
+  oldp,
+  newp : pointer;
+begin
+  while tableEntry^.varaddr <> nil do
+   begin
+     newp:=SysRelocateThreadVar(tableEntry^.varaddr^);
+     oldp:=pointer(pchar(tableEntry^.varaddr)+4);
+     move(oldp^,newp^,tableEntry^.size);
+     inc (pchar (tableEntry), sizeof (tableEntry^));
+   end;
+end;
+
+
+procedure copy_all_unit_threadvars;
+var
+  i : integer;
+begin
+{$ifdef DEBUG_MT}
+  WriteLn ('copy_all_unit_threadvars (',ThreadvarTablesTable.count,') units');
+{$endif}
+  for i := 1 to ThreadvarTablesTable.count do
+    copy_unit_threadvars (ThreadvarTablesTable.tables[i]);
+end;
+
+{$endif HASTHREADVAR}
+
+{
+  $Log$
+  Revision 1.1  2002-10-14 19:39:17  peter
+    * threads unit added for thread support
+
+}

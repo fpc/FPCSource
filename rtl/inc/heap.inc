@@ -37,11 +37,6 @@
 {$define TestFreeLists}
 {$endif SYSTEMDEBUG}
 
-{$ifdef MT}
-var
-   cs_systemheap : TRTLCriticalSection;
-{$endif MT}
-
 const
   blocksize    = 16;  { at least size of freerecord }
   blockshr     = 4;   { shr value for blocksize=2^blockshr}
@@ -59,6 +54,12 @@ const
   {$define DUMPBLOCKS}
 {$endif}
 
+{ Forward defines }
+procedure SysHeapMutexInit;forward;
+procedure SysHeapMutexDone;forward;
+procedure SysHeapMutexLock;forward;
+procedure SysHeapMutexUnlock;forward;
+
 { Memory manager }
 const
   MemoryManager: TMemoryManager = (
@@ -71,6 +72,13 @@ const
     MemAvail: @SysMemAvail;
     MaxAvail: @SysMaxAvail;
     HeapSize: @SysHeapSize;
+  );
+
+  MemoryMutexManager: TMemoryMutexManager = (
+    MutexInit: @SysHeapMutexInit;
+    MutexDone: @SysHeapMutexDone;
+    MutexLock: @SysHeapMutexLock;
+    MutexUnlock: @SysHeapMutexUnlock;
   );
 
 type
@@ -111,20 +119,30 @@ const
                              Memory Manager
 *****************************************************************************}
 
+procedure SetMemoryMutexManager(var MutexMgr: TMemoryMutexManager);
+begin
+  { Release old mutexmanager, the default manager does nothing so
+    calling this without initializing is safe }
+  MutexMgr.MutexDone;
+  { Copy new mutexmanager }
+  MemoryMutexManager:=MutexMgr;
+  { Init new mutexmanager }
+  MutexMgr.MutexInit;
+end;
+
+
 procedure GetMemoryManager(var MemMgr:TMemoryManager);
 begin
-{$ifdef MT}
   if IsMultiThread then
    begin
      try
-       EnterCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexLock;
        MemMgr:=MemoryManager;
      finally
-       LeaveCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexUnlock;
      end;
    end
   else
-{$endif MT}
    begin
      MemMgr:=MemoryManager;
    end;
@@ -133,18 +151,16 @@ end;
 
 procedure SetMemoryManager(const MemMgr:TMemoryManager);
 begin
-{$ifdef MT}
   if IsMultiThread then
    begin
      try
-       EnterCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexLock;
        MemoryManager:=MemMgr;
      finally
-       LeaveCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexUnlock;
      end;
    end
   else
-{$endif MT}
    begin
      MemoryManager:=MemMgr;
    end;
@@ -153,19 +169,17 @@ end;
 
 function IsMemoryManagerSet:Boolean;
 begin
-{$ifdef MT}
   if IsMultiThread then
    begin
      try
-       EnterCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexLock;
        IsMemoryManagerSet:=(MemoryManager.GetMem<>@SysGetMem) or
                            (MemoryManager.FreeMem<>@SysFreeMem);
      finally
-       LeaveCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexUnlock;
      end;
    end
   else
-{$endif MT}
    begin
      IsMemoryManagerSet:=(MemoryManager.GetMem<>@SysGetMem) or
                          (MemoryManager.FreeMem<>@SysFreeMem);
@@ -175,18 +189,16 @@ end;
 
 procedure GetMem(Var p:pointer;Size:Longint);
 begin
-{$ifdef MT}
   if IsMultiThread then
    begin
      try
-       EnterCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexLock;
        p:=MemoryManager.GetMem(Size);
      finally
-       LeaveCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexUnlock;
      end;
    end
   else
-{$endif MT}
    begin
      p:=MemoryManager.GetMem(Size);
    end;
@@ -195,18 +207,16 @@ end;
 
 procedure FreeMem(p:pointer;Size:Longint);
 begin
-{$ifdef MT}
   if IsMultiThread then
    begin
      try
-       EnterCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexLock;
        MemoryManager.FreeMemSize(p,Size);
      finally
-       LeaveCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexUnlock;
      end;
    end
   else
-{$endif MT}
    begin
      MemoryManager.FreeMemSize(p,Size);
    end;
@@ -215,18 +225,16 @@ end;
 
 function MaxAvail:Longint;
 begin
-{$ifdef MT}
   if IsMultiThread then
    begin
      try
-       EnterCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexLock;
        MaxAvail:=MemoryManager.MaxAvail();
      finally
-       LeaveCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexUnlock;
      end;
    end
   else
-{$endif MT}
    begin
      MaxAvail:=MemoryManager.MaxAvail();
    end;
@@ -235,18 +243,16 @@ end;
 
 function MemAvail:Longint;
 begin
-{$ifdef MT}
   if IsMultiThread then
    begin
      try
-       EnterCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexLock;
        MemAvail:=MemoryManager.MemAvail();
      finally
-       LeaveCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexUnlock;
      end;
    end
   else
-{$endif MT}
    begin
      MemAvail:=MemoryManager.MemAvail();
    end;
@@ -256,18 +262,16 @@ end;
 { FPC Additions }
 function HeapSize:Longint;
 begin
-{$ifdef MT}
   if IsMultiThread then
    begin
      try
-       EnterCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexLock;
        HeapSize:=MemoryManager.HeapSize();
      finally
-       LeaveCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexUnlock;
      end;
    end
   else
-{$endif MT}
    begin
      HeapSize:=MemoryManager.HeapSize();
    end;
@@ -276,18 +280,16 @@ end;
 
 function MemSize(p:pointer):Longint;
 begin
-{$ifdef MT}
   if IsMultiThread then
    begin
      try
-       EnterCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexLock;
        MemSize:=MemoryManager.MemSize(p);
      finally
-       LeaveCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexUnlock;
      end;
    end
   else
-{$endif MT}
    begin
      MemSize:=MemoryManager.MemSize(p);
    end;
@@ -297,18 +299,16 @@ end;
 { Delphi style }
 function FreeMem(p:pointer):Longint;
 begin
-{$ifdef MT}
   if IsMultiThread then
    begin
      try
-       EnterCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexLock;
        Freemem:=MemoryManager.FreeMem(p);
      finally
-       LeaveCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexUnlock;
      end;
    end
   else
-{$endif MT}
    begin
      Freemem:=MemoryManager.FreeMem(p);
    end;
@@ -317,18 +317,16 @@ end;
 
 function GetMem(size:longint):pointer;
 begin
-{$ifdef MT}
   if IsMultiThread then
    begin
      try
-       EnterCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexLock;
        GetMem:=MemoryManager.GetMem(Size);
      finally
-       LeaveCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexUnlock;
      end;
    end
   else
-{$endif MT}
    begin
      GetMem:=MemoryManager.GetMem(Size);
    end;
@@ -337,18 +335,16 @@ end;
 
 function AllocMem(Size:Longint):pointer;
 begin
-{$ifdef MT}
   if IsMultiThread then
    begin
      try
-       EnterCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexLock;
        AllocMem:=MemoryManager.AllocMem(size);
      finally
-       LeaveCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexUnlock;
      end;
    end
   else
-{$endif MT}
    begin
      AllocMem:=MemoryManager.AllocMem(size);
    end;
@@ -357,18 +353,16 @@ end;
 
 function ReAllocMem(var p:pointer;Size:Longint):pointer;
 begin
-{$ifdef MT}
   if IsMultiThread then
    begin
      try
-       EnterCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexLock;
        ReAllocMem:=MemoryManager.ReAllocMem(p,size);
      finally
-       LeaveCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexUnlock;
      end;
    end
   else
-{$endif MT}
    begin
      ReAllocMem:=MemoryManager.ReAllocMem(p,size);
    end;
@@ -380,18 +374,16 @@ end;
 { Needed for calls from Assembler }
 function fpc_getmem(size:longint):pointer;compilerproc;[public,alias:'FPC_GETMEM'];
 begin
-{$ifdef MT}
   if IsMultiThread then
    begin
      try
-       EnterCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexLock;
        fpc_GetMem:=MemoryManager.GetMem(size);
      finally
-       LeaveCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexUnlock;
      end;
    end
   else
-{$endif MT}
    begin
      fpc_GetMem:=MemoryManager.GetMem(size);
    end;
@@ -411,19 +403,17 @@ end;
 
 procedure fpc_freemem(p:pointer);compilerproc;[public,alias:'FPC_FREEMEM'];
 begin
-{$ifdef MT}
   if IsMultiThread then
    begin
      try
-       EnterCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexLock;
        if p <> nil then
          MemoryManager.FreeMem(p);
      finally
-       LeaveCriticalSection(cs_systemheap);
+       MemoryMutexManager.MutexUnlock;
      end;
    end
   else
-{$endif MT}
    begin
      if p <> nil then
        MemoryManager.FreeMem(p);
@@ -914,16 +904,19 @@ end;
 
 function SysMemSize(p:pointer):longint;
 begin
-{$ifdef MT}
-  try
-    EnterCriticalSection(cs_systemheap);
-{$endif MT}
-  SysMemSize:=(pheaprecord(pointer(p)-sizeof(theaprecord))^.size and sizemask)-sizeof(theaprecord);
-{$ifdef MT}
-  finally
-    LeaveCriticalSection(cs_systemheap);
-  end;
-{$endif MT}
+  if IsMultiThread then
+   begin
+     try
+       MemoryMutexManager.MutexLock;
+       SysMemSize:=(pheaprecord(pointer(p)-sizeof(theaprecord))^.size and sizemask)-sizeof(theaprecord);
+     finally
+       MemoryMutexManager.MutexUnlock;
+     end;
+   end
+  else
+   begin
+     SysMemSize:=(pheaprecord(pointer(p)-sizeof(theaprecord))^.size and sizemask)-sizeof(theaprecord);
+   end;
 end;
 
 
@@ -1233,6 +1226,35 @@ end;
 
 
 {*****************************************************************************
+                       MemoryMutexManager default hooks
+*****************************************************************************}
+
+procedure SysHeapMutexInit;
+begin
+  { nothing todo }
+end;
+
+procedure SysHeapMutexDone;
+begin
+  { nothing todo }
+end;
+
+procedure SysHeapMutexLock;
+begin
+  { give an runtime error. the program is running multithreaded without
+    any heap protection. this will result in unpredictable errors so
+    stopping here with an error is more safe (PFV) }
+  runerror(244);
+end;
+
+procedure SysHeapMutexUnLock;
+begin
+  { see SysHeapMutexLock for comment }
+  runerror(244);
+end;
+
+
+{*****************************************************************************
                                  InitHeap
 *****************************************************************************}
 
@@ -1250,14 +1272,14 @@ begin
   HeapPtr:=HeapOrg;
   HeapEnd:=HeapOrg+internal_memavail;
   HeapError:=@GrowHeap;
-{$ifdef MT}
-  InitCriticalSection(cs_systemheap);
-{$endif MT}
 end;
 
 {
   $Log$
-  Revision 1.15  2002-09-07 15:07:45  peter
+  Revision 1.16  2002-10-14 19:39:17  peter
+    * threads unit added for thread support
+
+  Revision 1.15  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
   Revision 1.14  2002/06/17 08:33:04  jonas

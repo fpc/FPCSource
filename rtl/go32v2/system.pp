@@ -86,19 +86,6 @@ const
 {$endif RTLLITE}
 
 type
-   { the fields of this record are os dependent  }
-   { and they shouldn't be used in a program     }
-   { only the type TCriticalSection is important }
-   TRTLCriticalSection = packed record
-      DebugInfo : pointer;
-      LockCount : longint;
-      RecursionCount : longint;
-      OwningThread : DWord;
-      LockSemaphore : DWord;
-      Reserved : DWord;
-   end;
-
-type
 { Dos Extender info }
   p_stub_info = ^t_stub_info;
   t_stub_info = packed record
@@ -1450,18 +1437,24 @@ begin
   CheckLFN:=(regs.realflags and carryflag=0) and (regs.realebx and $4000=$4000);
 end;
 
-{$ifdef MT}
-{$I thread.inc}
-{$endif MT}
-
 {$ifdef  EXCEPTIONS_IN_SYSTEM}
 {$define IN_SYSTEM}
 {$i dpmiexcp.pp}
 {$endif  EXCEPTIONS_IN_SYSTEM}
 
+procedure SysInitStdIO;
+begin
+  OpenStdIO(Input,fmInput,StdInputHandle);
+  OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+end;
+
+
 var
   temp_int : tseginfo;
 Begin
+  StackLength := InitialStkLen;
   StackBottom := __stkbottom;
   { To be set if this is a GUI or console application }
   IsConsole := TRUE;
@@ -1479,18 +1472,9 @@ Begin
 {$endif EXCEPTIONS_IN_SYSTEM}
 { Setup heap }
   InitHeap;
-{$ifdef MT}
-  { before this, you can't use thread vars !!!! }
-  { threadvarblocksize is calculate before the initialization }
-  { of the system unit                                        }
-  mainprogramthreadblock :=  sysgetmem(threadvarblocksize);
-{$endif MT}
-  InitExceptions;
+  SysInitExceptions;
 { Setup stdin, stdout and stderr }
-  OpenStdIO(Input,fmInput,StdInputHandle);
-  OpenStdIO(Output,fmOutput,StdOutputHandle);
-  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  SysInitStdIO;
 { Setup environment and arguments }
   Setup_Environment;
   Setup_Arguments;
@@ -1510,7 +1494,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.22  2002-10-13 09:28:44  florian
+  Revision 1.23  2002-10-14 19:39:16  peter
+    * threads unit added for thread support
+
+  Revision 1.22  2002/10/13 09:28:44  florian
     + call to initvariantmanager inserted
 
   Revision 1.21  2002/09/07 21:32:08  carl

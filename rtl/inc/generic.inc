@@ -939,9 +939,22 @@ begin
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
+
+{$ifndef FPC_SYSTEM_HAS_SYSRESETFPU}
+
+procedure SysResetFpu;
+begin
+  { nothing todo }
+end;
+
+{$endif FPC_SYSTEM_HAS_SYSRESETFPU}
+
 {
   $Log$
-  Revision 1.41  2002-10-12 20:32:41  carl
+  Revision 1.42  2002-10-14 19:39:17  peter
+    * threads unit added for thread support
+
+  Revision 1.41  2002/10/12 20:32:41  carl
     * RunError 220 -> RunError 219 to be more consistent with as operator
 
   Revision 1.40  2002/10/10 16:08:50  florian

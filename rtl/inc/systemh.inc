@@ -28,6 +28,11 @@
   {$define SYSTEMINLINE}
 {$endif}
 
+{ Use threadvars when the compiler supports it }
+{$ifdef HASTHREADVAR}
+  {$define SUPPORT_THREADVAR}
+{$endif HASTHREADVAR}
+
 { don't use FPU registervariables on the i386 }
 {$ifdef i386}
   {$maxfpuregisters 0}
@@ -247,30 +252,35 @@ const
   Filemode : byte = 2;
   CmdLine : PChar = nil;
 
- { Delphi Compatibility }
- { assume that this program will not spawn other threads. }
+  { assume that this program will not spawn other threads, when the
+    first thread is started the following constants need to be filled }
   IsMultiThread : boolean = FALSE;
- { Indicates if there was an error }
+  { Indicates if there was an error }
   StackError : boolean = FALSE;
 
 var
-{ Standard In- and Output }
-  Output,
-  Input,
-  StdOut,
-  StdErr      : Text;
   ExitCode    : Word;
-  StackBottom,
   RandSeed    : Cardinal;
   { Delphi compatibility }
   IsLibrary : boolean;
   IsConsole : boolean;
-{$ifdef MT}
+  { Threading support }
+  fpc_threadvar_relocate_proc : pointer; public name 'FPC_THREADVAR_RELOCATE';
+
+{$ifdef SUPPORT_THREADVAR}
 ThreadVar
-{$else MT}
+{$else SUPPORT_THREADVAR}
 Var
-{$endif MT}
+{$endif SUPPORT_THREADVAR}
+  { Standard In- and Output }
+  Output,
+  Input,
+  StdOut,
+  StdErr      : Text;
   InOutRes    : Word;
+  { Stack checking }
+  StackBottom,
+  StackLength : Cardinal;
 
 {****************************************************************************
                         Processor specific routines
@@ -556,6 +566,10 @@ Procedure halt(errnum:byte);
 Procedure AddExitProc(Proc:TProcedure);
 Procedure halt;{$ifdef SYSTEMINLINE}inline;{$endif}
 
+{ Need to be exported for threads unit }
+Procedure SysInitExceptions;
+procedure SysInitStdIO;
+Procedure SysResetFPU;
 
 {*****************************************************************************
                          Abstract/Assert/Error Handling
@@ -612,7 +626,10 @@ const
 
 {
   $Log$
-  Revision 1.58  2002-10-06 13:56:47  carl
+  Revision 1.59  2002-10-14 19:39:17  peter
+    * threads unit added for thread support
+
+  Revision 1.58  2002/10/06 13:56:47  carl
     - remove stack checking for every target in system unit
 
   Revision 1.57  2002/10/02 18:21:51  peter

@@ -43,31 +43,6 @@ var
                        Misc. System Dependent Functions
 *****************************************************************************}
 
-{$ifdef I386}
-{ this should be defined in i386 directory !! PM }
-const
-  fpucw : word = $1332;
-  FPU_Invalid = 1;
-  FPU_Denormal = 2;
-  FPU_DivisionByZero = 4;
-  FPU_Overflow = 8;
-  FPU_Underflow = $10;
-  FPU_StackUnderflow = $20;
-  FPU_StackOverflow = $40;
-
-{$endif I386}
-
-Procedure ResetFPU;
-begin
-{$ifdef I386}
-  asm
-    fninit
-    fldcw   fpucw
-  end;
-{$endif I386}
-end;
-
-
 procedure prthaltproc;external name '_haltproc';
 
 Procedure System_exit;
@@ -314,6 +289,44 @@ Begin
    Do_Read:=0;
 End;
 
+
+{Function Do_Write(Handle,Addr,Len:Longint):longint;
+var
+  total,
+  res : longint;
+Begin
+  total:=0;
+  repeat
+    res:=sys_write(Handle,pchar(pchar(addr)+total),len-total);
+    if res>0 then
+     inc(total,res);
+  until ErrNo<>Sys_EINTR;
+  Errno2Inoutres;
+  if res<0 then
+   Do_Write:=0
+  else
+   Do_Write:=total;
+End;
+
+
+Function Do_Read(Handle,Addr,Len:Longint):Longint;
+var
+  total,
+  res : longint;
+Begin
+  total:=0;
+  repeat
+    res:=sys_read(Handle,pchar(pchar(addr)+total),len-total);
+    if res>0 then
+     inc(total,res);
+  until ErrNo<>Sys_EINTR;
+  Errno2Inoutres;
+  if res<0 then
+   Do_Read:=0
+  else
+   Do_Read:=total;
+End;
+}
 
 Function Do_FilePos(Handle: Longint): Longint;
 Begin
@@ -590,14 +603,6 @@ begin
   dir:=thedir
 end;
 
-{$ifdef Unix}
-{*****************************************************************************
-                             Thread Handling
-*****************************************************************************}
-
-{ include threading stuff, this is os independend part }
-{$I thread.inc}
-{$endif Unix}
 
 {*****************************************************************************
                          SystemUnit Initialization
@@ -656,7 +661,7 @@ begin
                 res:=207;  {'Coprocessor Error'}
             end;
 {$endif I386}
-          ResetFPU;
+          SysResetFPU;
         end;
    SIGILL,
    SIGBUS,
@@ -696,7 +701,7 @@ const
   oldact: PSigActionRec = Nil;          {Probably not necessary anymore, now
                                          VAR is removed}
 begin
-  ResetFPU;
+  SysResetFPU;
   SigAction(SIGFPE,@act,oldact);
 {$ifndef Solaris}
   SigAction(SIGSEGV,@act,oldact);
@@ -763,22 +768,30 @@ begin
 end;
 
 
+procedure SysInitStdIO;
+begin
+  OpenStdIO(Input,fmInput,StdInputHandle);
+  OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+end;
+
+
 Begin
   IsConsole := TRUE;
   IsLibrary := FALSE;
+{ Setup stack checking variables }
+  StackLength := InitialStkLen;
   StackBottom := Sptr - StackLength;
 { Set up signals handlers }
   InstallSignals;
 { Setup heap }
   InitHeap;
-  InitExceptions;
+  SysInitExceptions;
 { Arguments }
   SetupCmdLine;
 { Setup stdin, stdout and stderr }
-  OpenStdIO(Input,fmInput,StdInputHandle);
-  OpenStdIO(Output,fmOutput,StdOutputHandle);
-  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  SysInitStdIO;
 { Reset IO Error }
   InOutRes:=0;
 { Setup variant support }
@@ -789,7 +802,10 @@ End.
 
 {
   $Log$
-  Revision 1.30  2002-10-13 09:20:56  peter
+  Revision 1.31  2002-10-14 19:39:17  peter
+    * threads unit added for thread support
+
+  Revision 1.30  2002/10/13 09:20:56  peter
     * added initvariantmanager
 
   Revision 1.29  2002/09/07 16:01:27  peter

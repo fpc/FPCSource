@@ -28,9 +28,16 @@ type
     MaxAvail    : Function:Longint;
     HeapSize    : Function:Longint;
   end;
+  TMemoryMutexManager = record
+    MutexInit : procedure;
+    MutexDone : procedure;
+    MutexLock : procedure;
+    MutexUnlock : procedure;
+  end;
 procedure GetMemoryManager(var MemMgr: TMemoryManager);
 procedure SetMemoryManager(const MemMgr: TMemoryManager);
 function  IsMemoryManagerSet: Boolean;
+procedure SetMemoryMutexManager(var MutexMgr: TMemoryMutexManager);
 
 { Variables }
 const
@@ -82,7 +89,10 @@ Procedure AsmFreemem(var p:pointer);
 
 {
   $Log$
-  Revision 1.4  2002-09-07 15:07:45  peter
+  Revision 1.5  2002-10-14 19:39:17  peter
+    * threads unit added for thread support
+
+  Revision 1.4  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
 }

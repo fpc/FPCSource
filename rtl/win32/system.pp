@@ -41,27 +41,11 @@ const
 { FileNameCaseSensitive is defined separately below!!! }
 
 type
-   { the fields of this record are os dependent  }
-   { and they shouldn't be used in a program     }
-   { only the type TCriticalSection is important }
-   TRTLCriticalSection = packed record
-      DebugInfo : pointer;
-      LockCount : longint;
-      RecursionCount : longint;
-      OwningThread : DWord;
-      LockSemaphore : DWord;
-      Reserved : DWord;
-   end;
-
    PEXCEPTION_FRAME = ^TEXCEPTION_FRAME;
    TEXCEPTION_FRAME = record
      next : PEXCEPTION_FRAME;
      handler : pointer;
    end;
-
-
-{ include threading stuff }
-{$i threadh.inc}
 
 { include heap support headers }
 {$I heaph.inc}
@@ -178,11 +162,11 @@ CONST
 {   Removing that error allows eof to works as on other OSes }
     ERROR_BROKEN_PIPE = 109;
 
-{$IFDEF MT}
+{$IFDEF SUPPORT_THREADVAR}
 threadvar
-{$ELSE MT}
+{$ELSE SUPPORT_THREADVAR}
 var
-{$ENDIF MT}
+{$ENDIF SUPPORT_THREADVAR}
     errno : longint;
 
 {$ASMMODE ATT}
@@ -221,42 +205,6 @@ var
          InOutRes := Word(errno);
      errno:=0;
    end;
-
-
-{$ifdef dummy}
-procedure int_stackcheck(stack_size:longint);[public,alias: 'STACKCHECK'];
-{
-  called when trying to get local stack if the compiler directive $S
-  is set this function must preserve esi !!!! because esi is set by
-  the calling proc for methods it must preserve all registers !!
-
-  With a 2048 byte safe area used to write to StdIo without crossing
-  the stack boundary
-
-}
-begin
-  asm
-        pushl   %eax
-        pushl   %ebx
-        movl    stack_size,%ebx
-        addl    $2048,%ebx
-        movl    %esp,%eax
-        subl    %ebx,%eax
-        movl    stacklimit,%ebx
-        cmpl    %eax,%ebx
-        jae     .L__short_on_stack
-        popl    %ebx
-        popl    %eax
-        leave
-        ret     $4
-.L__short_on_stack:
-        { can be usefull for error recovery !! }
-        popl    %ebx
-        popl    %eax
-  end['EAX','EBX'];
-  HandleError(202);
-end;
-{$endif dummy}
 
 
 function paramcount : longint;
@@ -706,24 +654,6 @@ begin
    dir:=upcase(dir);
 end;
 
-
-{*****************************************************************************
-                             Thread Handling
-*****************************************************************************}
-
-const
-  fpucw : word = $1332;
-
-procedure InitFPU;assembler;
-
-  asm
-     fninit
-     fldcw   fpucw
-  end;
-
-{ include threading stuff, this is os independend part }
-{$I thread.inc}
-
 {*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}
@@ -1037,9 +967,7 @@ var
        DLL_THREAD_ATTACH :
          begin
            inc(Thread_count);
-{$ifdef MT}
-           AllocateThreadVars;
-{$endif MT}
+{$warning Allocate Threadvars !}
            if assigned(Dll_Thread_Attach_Hook) then
              Dll_Thread_Attach_Hook(DllParam);
            Dll_entry:=true; { return value is ignored }
@@ -1049,9 +977,7 @@ var
            dec(Thread_count);
            if assigned(Dll_Thread_Detach_Hook) then
              Dll_Thread_Detach_Hook(DllParam);
-{$ifdef MT}
-           ReleaseThreadVars;
-{$endif MT}
+{$warning Release Threadvars !}
            Dll_entry:=true; { return value is ignored }
          end;
        DLL_PROCESS_DETACH :
@@ -1079,7 +1005,7 @@ end;
 
 {$ifdef Set_i386_Exception_handler}
 
-(*
+{
   Error code definitions for the Win32 API functions
 
 
@@ -1101,7 +1027,7 @@ end;
       R - is a reserved bit
       Facility - is the facility code
       Code - is the facility's status code
-*)
+}
 
 const
         SEVERITY_SUCCESS                = $00000000;
@@ -1515,32 +1441,9 @@ begin
   Rewrite(T);
 end;
 
-const
-   Exe_entry_code : pointer = @Exe_entry;
-   Dll_entry_code : pointer = @Dll_entry;
 
+procedure SysInitStdIO;
 begin
-  StackBottom := Sptr - StackLength;
-  { get some helpful informations }
-  GetStartupInfo(@startupinfo);
-  { some misc Win32 stuff }
-  hprevinst:=0;
-  if not IsLibrary then
-    HInstance:=getmodulehandle(GetCommandFile);
-  MainInstance:=HInstance;
-  cmdshow:=startupinfo.wshowwindow;
-  { real test stack depth        }
-  {   stacklimit := setupstack;  }
-{$ifdef MT}
-  { allocate one threadvar entry from windows, we use this entry }
-  { for a pointer to our threadvars                              }
-  dataindex:=TlsAlloc;
-  { the exceptions use threadvars so do this _before_ initexceptions }
-  AllocateThreadVars;
-{$endif MT}
-  { Setup heap }
-  InitHeap;
-  InitExceptions;
   { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
     displayed in and messagebox }
   StdInputHandle:=longint(GetStdHandle(cardinal(STD_INPUT_HANDLE)));
@@ -1560,6 +1463,28 @@ begin
      OpenStdIO(StdOut,fmOutput,StdOutputHandle);
      OpenStdIO(StdErr,fmOutput,StdErrorHandle);
    end;
+end;
+
+
+const
+   Exe_entry_code : pointer = @Exe_entry;
+   Dll_entry_code : pointer = @Dll_entry;
+
+begin
+  StackLength := InitialStkLen;
+  StackBottom := Sptr - StackLength;
+  { get some helpful informations }
+  GetStartupInfo(@startupinfo);
+  { some misc Win32 stuff }
+  hprevinst:=0;
+  if not IsLibrary then
+    HInstance:=getmodulehandle(GetCommandFile);
+  MainInstance:=HInstance;
+  cmdshow:=startupinfo.wshowwindow;
+  { Setup heap }
+  InitHeap;
+  SysInitExceptions;
+  SysInitStdIO;
   { Arguments }
   setup_arguments;
   { Reset IO Error }
@@ -1573,7 +1498,10 @@ end.
 
 {
   $Log$
-  Revision 1.33  2002-10-13 09:28:45  florian
+  Revision 1.34  2002-10-14 19:39:17  peter
+    * threads unit added for thread support
+
+  Revision 1.33  2002/10/13 09:28:45  florian
     + call to initvariantmanager inserted
 
   Revision 1.32  2002/09/07 21:28:10  carl

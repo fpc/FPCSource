@@ -7,13 +7,14 @@ main=rtl
 
 [target]
 loaders=wprt0 wdllprt0
-units=$(SYSTEMUNIT) objpas strings \
+units=$(SYSTEMUNIT) threads objpas strings \
+      lineinfo heaptrc \
       windows ole2 activex opengl32 winsock initc \
       dos crt objects graph messages \
-      sysutils typinfo math varutils \
-      cpu mmx charset ucomplex getopts heaptrc lineinfo \
+      sysutils typinfo math varutils variants \
+      cpu mmx charset ucomplex getopts \
       wincrt winmouse winevent sockets printer dynlibs \
-      video mouse keyboard variants types comobj
+      video mouse keyboard types comobj
 rsts=math varutils typinfo
 
 [require]
@@ -180,10 +181,10 @@ varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
         $(COMPILER) -I$(OBJPASDIR) varutils.pp
 
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-	$(COMPILER) $(OBJPASDIR)/types.pp
+        $(COMPILER) $(OBJPASDIR)/types.pp
 
 comobj$(PPUEXT) : comobj.pp activex$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) $(OBJPASDIR)/comobjh.inc $(OBJPASDIR)/comobj.inc
-	$(COMPILER) -I$(OBJPASDIR) comobj.pp
+        $(COMPILER) -I$(OBJPASDIR) comobj.pp
 
 #
 # Other system-independent RTL Units

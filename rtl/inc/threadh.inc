@@ -15,12 +15,13 @@
 
  **********************************************************************}
 
-{$ifdef MT}
 type
    TThreadFunc = function(parameter : pointer) : longint;
+
 {*****************************************************************************
                          Multithread Handling
 *****************************************************************************}
+
 function BeginThread(sa : Pointer;stacksize : dword;
   ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword;
   var ThreadId : DWord) : DWord;
@@ -33,10 +34,8 @@ function BeginThread(sa : Pointer;stacksize : dword;
 { to other OSes too ...                                        }
 function BeginThread(ThreadFunction : tthreadfunc) : DWord;
 function BeginThread(ThreadFunction : tthreadfunc;p : pointer) : DWord;
-function BeginThread(ThreadFunction : tthreadfunc;p : pointer;
-  var ThreadId : DWord) : DWord;
-function BeginThread(ThreadFunction : tthreadfunc;p : pointer;
-  var ThreadId : Longint) : DWord;
+function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : DWord) : DWord;
+function BeginThread(ThreadFunction : tthreadfunc;p : pointer; var ThreadId : Longint) : DWord;
 
 procedure EndThread(ExitCode : DWord);
 procedure EndThread;
@@ -49,11 +48,12 @@ procedure DoneCriticalsection(var cs : TRTLCriticalSection);
 procedure EnterCriticalsection(var cs : TRTLCriticalSection);
 procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
 
-{$endif MT}
-
 {
   $Log$
-  Revision 1.7  2002-09-07 15:07:46  peter
+  Revision 1.8  2002-10-14 19:39:17  peter
+    * threads unit added for thread support
+
+  Revision 1.7  2002/09/07 15:07:46  peter
     * old logs removed and tabs fixed
 
   Revision 1.6  2002/07/28 20:43:48  florian

@@ -1139,7 +1139,6 @@ function declocked(var l : longint) : boolean;assembler;
 
   asm
      movl       l,%edi
-{$ifdef MT}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
      cmpb       $0,IsMultithread
@@ -1148,7 +1147,6 @@ function declocked(var l : longint) : boolean;assembler;
      decl       (%edi)
      jmp        .Ldeclockedend
 .Ldeclockednolock:
-{$endif MT}
      decl       (%edi);
 .Ldeclockedend:
      setzb      %al
@@ -1158,7 +1156,6 @@ procedure inclocked(var l : longint);assembler;
 
   asm
      movl       l,%edi
-{$ifdef MT}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
      cmpb       $0,IsMultithread
@@ -1167,14 +1164,41 @@ procedure inclocked(var l : longint);assembler;
      incl       (%edi)
      jmp        .Linclockedend
 .Linclockednolock:
-{$endif MT}
      incl       (%edi)
 .Linclockedend:
   end ['EDI'];
 
+{****************************************************************************
+                                  FPU
+****************************************************************************}
+
+const
+  fpucw : word = $1332;
+  { Internal constants for use in system unit }
+  FPU_Invalid = 1;
+  FPU_Denormal = 2;
+  FPU_DivisionByZero = 4;
+  FPU_Overflow = 8;
+  FPU_Underflow = $10;
+  FPU_StackUnderflow = $20;
+  FPU_StackOverflow = $40;
+  FPU_ExceptionMask = $ff;
+
+{$define FPC_SYSTEM_HAS_SYSRESETFPU}
+Procedure SysResetFPU;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+asm
+    fninit
+    fldcw   fpucw
+end;
+
+
+
 {
   $Log$
-  Revision 1.32  2002-10-05 14:20:16  peter
+  Revision 1.33  2002-10-14 19:39:16  peter
+    * threads unit added for thread support
+
+  Revision 1.32  2002/10/05 14:20:16  peter
     * fpc_pchar_length compilerproc and strlen alias
 
   Revision 1.31  2002/10/02 18:21:51  peter

@@ -1437,14 +1437,6 @@ end.
 {$else IN_SYSTEM}
 
 const
-  FPU_Invalid = 1;
-  FPU_Denormal = 2;
-  FPU_DivisionByZero = 4;
-  FPU_Overflow = 8;
-  FPU_Underflow = $10;
-  FPU_StackUnderflow = $20;
-  FPU_StackOverflow = $40;
-  FPU_ExceptionMask = $ff;
   FPU_ControlWord : word = $1332;
 
 
@@ -1545,7 +1537,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.10  2002-09-07 16:01:18  peter
+  Revision 1.11  2002-10-14 19:39:16  peter
+    * threads unit added for thread support
+
+  Revision 1.10  2002/09/07 16:01:18  peter
     * old logs removed and tabs fixed
 
   Revision 1.9  2002/02/03 09:51:41  peter

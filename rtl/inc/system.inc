@@ -47,7 +47,7 @@ const
 { Used by the ansistrings and maybe also other things in the future }
 var
   emptychar : char;public name 'FPC_EMPTYCHAR';
-  stacklength : longint;external name '__stklen';
+  initialstklen : longint;external name '__stklen';
 
 
 {****************************************************************************
@@ -454,15 +454,15 @@ End;
 {$DEFINE STACKCHECK}
 {$ENDIF}
 {$S-}
-procedure fpc_stackcheck(stack_size:longint);[saveregisters,public,alias:'FPC_STACKCHECK'];
+procedure fpc_stackcheck(stack_size:Cardinal);[saveregisters,public,alias:'FPC_STACKCHECK'];
 var
- c: cardinal;
+  c : cardinal;
 begin
   { Avoid recursive calls when called from the exit routines }
   if StackError then
    exit;
-  c := cardinal(Sptr) - cardinal(stack_size) - STACK_MARGIN;
-  if (c <= cardinal(StackBottom)) then
+  c := cardinal(Sptr) - stack_size - STACK_MARGIN;
+  if (c <= StackBottom) then
    begin
      StackError:=true;
      HandleError(202);
@@ -757,7 +757,10 @@ end;
 
 {
   $Log$
-  Revision 1.35  2002-09-18 18:32:01  carl
+  Revision 1.36  2002-10-14 19:39:17  peter
+    * threads unit added for thread support
+
+  Revision 1.35  2002/09/18 18:32:01  carl
     * assert now halts with exitcode 227 (as Delphi does)
 
   Revision 1.34  2002/09/07 15:07:46  peter

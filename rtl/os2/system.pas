@@ -76,9 +76,6 @@ type
         Reserved2: longint);
     end;
 
-{ include threading stuff }
-{$i threadh.inc}
-
 {$I heaph.inc}
 
 {Platform specific information}
@@ -893,30 +890,20 @@ begin
 end;
 
 
-{****************************************************************************
-
-                             Thread Handling
-
-*****************************************************************************}
-
-const
-    fpucw: word = $1332;
-
-procedure InitFPU; assembler;
-
-asm
-    fninit
-    fldcw fpucw
-end;
-
-{ include threading stuff, this is os independend part }
-{$I thread.inc}
-
 {*****************************************************************************
 
                         System unit initialization.
 
 ****************************************************************************}
+
+procedure SysInitStdIO;
+begin
+    OpenStdIO(Input,fmInput,StdInputHandle);
+    OpenStdIO(Output,fmOutput,StdOutputHandle);
+    OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+    OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+end;
+
 
 function GetFileHandleCount: longint;
 var L1, L2: longint;
@@ -1008,13 +995,10 @@ begin
     initheap;
 
     { ... and exceptions }
-    InitExceptions;
+    SysInitExceptions;
 
-
-    OpenStdIO(Input,fmInput,StdInputHandle);
-    OpenStdIO(Output,fmOutput,StdOutputHandle);
-    OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-    OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+    { ... and I/O }
+    SysInitStdIO;
 
     { no I/O-Error }
     inoutres:=0;
@@ -1025,7 +1009,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2002-10-13 09:28:45  florian
+  Revision 1.25  2002-10-14 19:39:17  peter
+    * threads unit added for thread support
+
+  Revision 1.24  2002/10/13 09:28:45  florian
     + call to initvariantmanager inserted
 
   Revision 1.23  2002/09/07 16:01:25  peter
