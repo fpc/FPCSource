@@ -293,17 +293,19 @@ end;
 
 function arctan2( x,y : float) : float;
 
-  begin
   {$ifndef i386}
+  begin
   ArcTan2:=ArcTan(x/y);
   {$else}
+    { without the assembler keyword, you have to store the result to }
+    { __result at the end of the assembler block (JM)                }
+    assembler;
     asm
     fldt X
     fldt Y
     fpatan
     //leave
     // ret $20 This is wrong for 4 byte aligned OS !!
-    end;
   {$endif}
   end;
 
@@ -677,7 +679,10 @@ end;
 end.
 {
     $Log$
-    Revision 1.17  2000-04-20 13:12:40  pierre
+    Revision 1.18  2000-04-29 10:10:51  jonas
+      * fixed arctan2 (tbug788 now works correctly)
+
+    Revision 1.17  2000/04/20 13:12:40  pierre
      * fix bug visible in new tests/webtbs/tbug788 file
 
     Revision 1.16  2000/04/20 08:14:27  jonas
