@@ -76,8 +76,13 @@ implementation
         fname: string[19];
       begin
         { converting a 64bit integer to a float requires a helper }
-        if is_64bitint(left.resulttype.def) then
+        if is_64bitint(left.resulttype.def) or
+                is_currency(left.resulttype.def) then
           begin
+            { hack to avoid double division by 10000, as it's       }
+            { already done by resulttypepass.resulttype_int_to_real }
+            if is_currency(left.resulttype.def) then
+              left.resulttype := cs64bittype;
             if is_signed(left.resulttype.def) then
               fname := 'fpc_int64_to_double'
             else
@@ -365,7 +370,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-12-07 11:21:05  jonas
+  Revision 1.49  2003-12-31 22:30:39  jonas
+    * fixed currency bugs. Int64 currency handling still needs to be
+      rewritten so that it doesn't include conversions to real anymore
+      though
+
+  Revision 1.48  2003/12/07 11:21:05  jonas
     * finally fixed int->bool conversion properly
 
   Revision 1.47  2003/12/04 20:37:02  jonas
