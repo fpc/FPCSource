@@ -9,7 +9,7 @@
     {$inline on}
 
     { 1Mb stack }
-    {$M 1000000}
+    {$MEMORY 1000000}
 
     { This reduces the memory requirements a lot }
     {$PACKENUM 1}
@@ -95,7 +95,10 @@
 
 {
   $Log$
-  Revision 1.33  2004-02-17 15:57:49  peter
+  Revision 1.34  2004-03-10 11:55:22  mazen
+  * $M directive renamed to $MEMORY : Long directive name
+
+  Revision 1.33  2004/02/17 15:57:49  peter
   - fix rtti generation for properties containing sl_vec
   - fix crash when overloaded operator is not available
   - fix record alignment for C style variant records
