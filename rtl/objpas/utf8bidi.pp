@@ -8,11 +8,8 @@ unit UTF8BIDI;
 
 interface
 
-uses
-  Classes, SysUtils; 
-
 type
-  TChar = WideChar;
+  TUCS32Char = Cardinal;
   TUTF8Char = String[3];
   TUTF8Str = UTF8String;
   TDirection=(
@@ -21,49 +18,51 @@ type
     drLTR
   );
 
-procedure insert(aChar:TChar;var uString:TUTF8Str; var CursorPos:Integer);
+function UnicodeToUtf8(aChar:TUCS32Char):TUTF8Char;
+function UnicodeToUtf8(aChar:WideChar):TUTF8Char;
+procedure insert(CharToInsert:TUTF8Char;var uString:TUTF8Str; var CursorPos:Integer);
 
 implementation
 
-function UnicodeToUtf8(aChar:TChar):TUTF8Char;
-var
-  w:Word;
+function UnicodeToUtf8(aChar:TUCS32Char):TUTF8Char;
 begin
-  w:= Word(aChar);
-  case w of
+  case aChar of
     0..$7f:
       begin
-        Result[1]:=char(w);
+        Result[1]:=char(aChar);
         SetLength(Result,1);
       end;
     $80..$7ff:
       begin
-        Result[1]:=char($c0 or (w shr 6));
-        Result[2]:=char($80 or (w and $3f));
+        Result[1]:=char($c0 or (aChar shr 6));
+        Result[2]:=char($80 or (aChar and $3f));
         SetLength(Result,2);
       end;
     else
       begin
-        Result[1]:=char($e0 or (w shr 12));
-        Result[2]:=char($80 or ((w shr 6)and $3f));
-        Result[3]:=char($80 or (w and $3f));
+        Result[1]:=char($e0 or (aChar shr 12));
+        Result[2]:=char($80 or ((aChar shr 6)and $3f));
+        Result[3]:=char($80 or (aChar and $3f));
         SetLength(Result,3);
       end;
   end;
 end;
 
-procedure insert(aChar:TChar;var uString:TUTF8Str; var CursorPos:Integer);
+function UnicodeToUtf8(aChar:WideChar):TUTF8Char;
+begin
+  UnicodeToUtf8(Word(aChar));
+end;
+
+procedure insert(CharToInsert:TUTF8Char;var uString:TUTF8Str; var CursorPos:Integer);
 var
 {At beginning of the line we don't know which direction, thus the first
  character usually decides of paragrph direction}
   dir:TDirection;
   LeftCursorPos, RightCursorPos, InsertPos:Integer;
-  CharToInsert:TUTF8Char;
   uLen:Integer;
 begin
   dir := drNONE;
   uLen := Length(uString);
-  CharToInsert := UnicodeToUTF8(aChar);
   LeftCursorPos := 1;
   RightCursorPos := 1;
   InsertPos := 1;
