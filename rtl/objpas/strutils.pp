@@ -135,6 +135,10 @@ function DelChars(const S: string; Chr: Char): string;
 function DelSpace1(const S: string): string;
 function Tab2Space(const S: string; Numb: Byte): string;
 function NPos(const C: string; S: string; N: Integer): Integer;
+Function RPosEX(C:char;const S : AnsiString;offs:cardinal):Integer; overload;
+Function RPosex (Const Substr : AnsiString; Const Source : AnsiString;offs:cardinal) : Integer; overload;
+Function RPos(c:char;const S : AnsiString):Integer; overload;
+Function RPos (Const Substr : AnsiString; Const Source : AnsiString) : Integer; overload;
 function AddChar(C: Char; const S: string; N: Integer): string;
 function AddCharR(C: Char; const S: string; N: Integer): string;
 function PadLeft(const S: string; N: Integer): string;
@@ -1526,11 +1530,107 @@ begin
     end;
 end;
 
+Function RPosEX(C:char;const S : AnsiString;offs:cardinal):Integer; overload;
+
+var I   : Integer;
+    p,p2: pChar;
+
+Begin
+ I:=Length(S);
+ If (I<>0) and (offs<=i) Then
+   begin
+     p:=@s[offs];
+     p2:=@s[1];
+     while (p2>=p) and (p^<>c) do dec(p);
+     RPosEx:=(p-p2)+1;
+   end
+  else
+    RPosEX:=0;
+End;
+
+Function RPos(c:char;const S : AnsiString):Integer; overload;
+
+var I   : Integer;
+    p,p2: pChar;
+
+Begin
+ I:=Length(S);
+ If I<>0 Then
+   begin
+     p:=@s[i];
+     p2:=@s[1];
+     while (p2>=p) and (p^<>c) do dec(p);
+     i:=p-p2+1;
+   end;
+  RPos:=i;
+End;
+
+Function RPos (Const Substr : AnsiString; Const Source : AnsiString) : Integer; overload;
+var
+  i,MaxLen,llen : Integer;
+  c : char;
+  pc,pc2 : pchar;
+begin
+  rPos:=0;
+  llen:=Length(SubStr);
+  maxlen:=length(source);
+  if (llen>0) and (maxlen>0) and ( llen<=maxlen) then
+   begin 
+     i:=maxlen;
+     pc:=@source[maxlen];
+     pc2:=@source[llen-1];
+     c:=substr[llen];
+     while pc>=pc2 do
+      begin
+        if (c=pc^) and
+           (CompareChar(Substr[1],pchar(pc-llen+1)^,Length(SubStr))=0) then
+         begin
+           rPos:=pchar(pc-llen+1)-pchar(@source[1])+1;
+           exit;
+         end;
+        dec(pc);
+      end;
+   end;
+end;
+
+Function RPosex (Const Substr : AnsiString; Const Source : AnsiString;offs:cardinal) : Integer; overload;
+var
+  i,MaxLen,llen : Integer;
+  c : char;
+  pc,pc2 : pchar;
+begin
+  rPosex:=0;
+  llen:=Length(SubStr);
+  maxlen:=length(source);
+  if offs<maxlen then maxlen:=offs;
+  if (llen>0) and (maxlen>0) and ( llen<=maxlen)  then
+   begin 
+     i:=maxlen;
+     pc:=@source[maxlen];
+     pc2:=@source[llen-1];
+     c:=substr[llen];
+     while pc>=pc2 do
+      begin
+        if (c=pc^) and
+           (CompareChar(Substr[1],pchar(pc-llen+1)^,Length(SubStr))=0) then
+         begin
+           rPosex:=pchar(pc-llen+1)-pchar(@source[1])+1;
+           exit;
+         end;
+        dec(pc);
+      end;
+   end;
+end;
+
+
 end.
 
 {
   $Log$
-  Revision 1.10  2004-12-30 18:12:43  michael
+  Revision 1.11  2005-01-01 18:45:25  marco
+   * rpos and rposex, both two versions
+
+  Revision 1.10  2004/12/30 18:12:43  michael
   + Fix for extractdelimited
 
   Revision 1.9  2004/07/21 20:37:03  michael
