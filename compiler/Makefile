@@ -138,7 +138,7 @@ endif
 
 ifndef UNITINSTALLDIR
 ifdef inlinux
-UNITINSTALLDIR=$(LIBINSTALLDIR)/linuxunits
+UNITINSTALLDIR=$(LIBINSTALLDIR)
 else
 UNITINSTALLDIR=$(UNITDIR)
 endif
@@ -524,7 +524,10 @@ test:
 
 #
 # $Log$
-# Revision 1.2  1998-09-11 12:27:04  pierre
+# Revision 1.3  1998-09-11 13:12:45  michael
+# + makecfg has support for different kinds of units
+#
+# Revision 1.2  1998/09/11 12:27:04  pierre
 #  added execlean target to be able to keep *.s files
 #
 # Revision 1.1.2.1  1998/09/11 12:07:51  pierre
