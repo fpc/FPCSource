@@ -72,6 +72,7 @@ begin
 {$ifdef ver1_0}  
   Result:=mysql_connect(@Connection,PChar(Host),PChar(User),PChar(Password))<>Nil;
 {$else}  
+  mysql_init(@Connection);
   Result:=mysql_real_connect(@Connection,PChar(Host),PChar(User),PChar(Password),Nil,0,Nil,0)<>Nil;
 {$endif}  
   If Not Result then
