@@ -88,7 +88,7 @@ Const
 {$i sresourceh.inc}     // sys/resource.h
 {$i argzh.inc}          // argz.h
 {$i envzh.inc}          // envz.h
-{$î ctypeh.inc}         // sys/ctype.h
+{$i ctypeh.inc}         // sys/ctype.h
 {$i wctypeh.inc}        // wctype.h
 {$i wcharh.inc}         // wchar.h
 {$i bwaitflagsh.inc}    // bits/waitflags.h
