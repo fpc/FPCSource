@@ -553,22 +553,17 @@ implementation
                        set value : LOC_REFERENCE, LOC_REGISTER
                   }
                   { location of set }
-                  if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
+                  if inlinenumber=in_include_x_y then
                     begin
-                      if inlinenumber=in_include_x_y then
-                        begin
-                          cg.a_op_reg_ref(exprasmlist, OP_OR, opsize, hregister2,
-                          tcallparanode(left).left.location.reference);
-                        end
-                      else
-                        begin
-                          cg.a_op_reg_reg(exprasmlist, OP_NOT, opsize, hregister2,hregister2);
-                          cg.a_op_reg_ref(exprasmlist, OP_AND, opsize, hregister2,
-                              tcallparanode(left).left.location.reference);
-                        end;
+                      cg.a_op_reg_loc(exprasmlist, OP_OR, hregister2,
+                      tcallparanode(left).left.location);
                     end
                   else
-                    internalerror(20020728);
+                    begin
+                      cg.a_op_reg_reg(exprasmlist, OP_NOT, opsize, hregister2,hregister2);
+                      cg.a_op_reg_loc(exprasmlist, OP_AND, hregister2,
+                          tcallparanode(left).left.location);
+                    end;
                 end
               else
                 begin
@@ -684,7 +679,10 @@ end.
 
 {
   $Log$
-  Revision 1.65  2004-10-31 21:45:03  peter
+  Revision 1.66  2004-11-08 21:59:34  florian
+    * include/exclude for sets in registers fixed
+
+  Revision 1.65  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
