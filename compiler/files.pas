@@ -421,11 +421,13 @@ unit files;
                   begin
                     Message(unit_d_obj_and_asm_are_older_than_ppu);
                     do_compile:=true;
+                    { we should try to get the source file }
+                    exit;
                   end
                  else
                   begin
                     Message(unit_d_obj_is_older_than_asm);
-                    do_assemble:=true;
+                    exit;
                   end;
                end;
             end;
@@ -642,7 +644,12 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.38  1998-08-19 10:06:12  peter
+  Revision 1.39  1998-08-25 16:44:16  pierre
+    * openppu was true even if the object file is missing
+      this lead to trying to open a filename without extension
+      and prevented the 'make cycle' to work for win32
+
+  Revision 1.38  1998/08/19 10:06:12  peter
     * fixed filenames and removedir which supports slash at the end
 
   Revision 1.37  1998/08/18 20:52:19  peter
