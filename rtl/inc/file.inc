@@ -134,7 +134,7 @@ Begin
    exit;
   case FileRec(f).Mode of
     fmInOut,fmOutput :
-      Result:=Do_Write(FileRec(f).Handle,Longint(@Buf),Count*FileRec(f).RecSize)
+      Result:=Do_Write(FileRec(f).Handle,@Buf,Count*FileRec(f).RecSize)
         div FileRec(f).RecSize;
     fmInPut: inOutRes := 105;
     else InOutRes:=103;
@@ -203,7 +203,7 @@ Begin
    exit;
   case FileRec(f).Mode of
     fmInOut,fmInput :
-      Result:=Do_Read(FileRec(f).Handle,Longint(@Buf),count*FileRec(f).RecSize)
+      Result:=Do_Read(FileRec(f).Handle,@Buf,count*FileRec(f).RecSize)
         div FileRec(f).RecSize;
     fmOutput: inOutRes := 104;
     else InOutRes:=103;
@@ -412,7 +412,10 @@ End;
 
 {
   $Log$
-  Revision 1.7  2003-11-29 14:07:52  peter
+  Revision 1.8  2004-04-22 21:10:56  peter
+    * do_read/do_write addr argument changed to pointer
+
+  Revision 1.7  2003/11/29 14:07:52  peter
     * do not overwrite Inoutres in blockwrite with 101
 
   Revision 1.6  2002/12/07 14:36:14  carl

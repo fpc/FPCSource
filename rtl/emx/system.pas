@@ -402,7 +402,7 @@ begin
     end ['eax', 'edx', 'edi'];
 end;
 
-function do_read(h,addr,len:longint):longint; assembler;
+function do_read(h:longint;addr:pointer;len:longint):longint; assembler;
 asm
     pushl %ebx
 {$IFNDEF REGCALL}
@@ -421,7 +421,7 @@ asm
     popl %ebx
 end {['eax', 'ebx', 'ecx', 'edx']};
 
-function do_write(h,addr,len:longint) : longint; assembler;
+function do_write(h:longint;addr:pointer;len:longint) : longint; assembler;
 asm
     pushl %ebx
 {$IFDEF REGCALL}
@@ -1318,7 +1318,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2004-01-20 23:05:31  hajny
+  Revision 1.24  2004-04-22 21:10:56  peter
+    * do_read/do_write addr argument changed to pointer
+
+  Revision 1.23  2004/01/20 23:05:31  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.22  2003/12/26 22:20:44  hajny

@@ -205,12 +205,12 @@ Begin
 End;
 
 
-Function Do_Write(Handle,Addr,Len:Longint):longint;
+Function Do_Write(Handle:Longint;Addr:Pointer;Len:Longint):longint;
 
 var j : cint;
 Begin
   repeat
-    Do_Write:=Fpwrite(Handle,pchar(addr),len);
+    Do_Write:=Fpwrite(Handle,addr,len);
     j:=geterrno;
   until (do_write<>-1) or ((j<>ESysEINTR) and (j<>ESysEAgain));
   If Do_Write<0 Then
@@ -223,13 +223,13 @@ Begin
 End;
 
 
-Function Do_Read(Handle,Addr,Len:Longint):Longint;
+Function Do_Read(Handle:Longint;Addr:Pointer;Len:Longint):Longint;
 
 var j:cint;
 
 Begin
   repeat
-    Do_Read:=Fpread(Handle,pchar(addr),len);
+    Do_Read:=Fpread(Handle,addr,len);
     j:=geterrno;
   until (do_read<>-1) or ((j<>ESysEINTR) and (j<>ESysEAgain));
   If Do_Read<0 Then
@@ -593,7 +593,10 @@ end;
 
 {
    $Log$
-   Revision 1.12  2004-01-06 15:42:05  marco
+   Revision 1.13  2004-04-22 21:10:56  peter
+     * do_read/do_write addr argument changed to pointer
+
+   Revision 1.12  2004/01/06 15:42:05  marco
     * o_creat added when o_append
 
    Revision 1.11  2004/01/03 14:56:10  marco

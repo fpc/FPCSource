@@ -208,7 +208,7 @@ begin
   InOutRes:=sys_rename($FF000000,p1,$FF000000,p2);
 end;
 
-function do_write(h,addr,len : longint) : longint;
+function do_write(h:longint;addr:pointer;len : longint) : longint;
 begin
 {  if h>0 then begin
     sys_write ('WRITE handle=%d ',h);
@@ -216,21 +216,21 @@ begin
     printf ('len=%d',len);
     printf ('%c',10);
   end;}
-  do_write:=sys_write (h,pointer(addr),len,zero);
+  do_write:=sys_write (h,addr,len,zero);
   if (do_write<0) then begin
     InOutRes:=do_write;
     do_write:=0;
   end else InOutRes:=0;
 end;
 
-function do_read(h,addr,len : longint) : longint;
+function do_read(h:longint;addr:pointer;len : longint) : longint;
 begin
 {  if h>2 then begin
     printf ('READ handle=%d ',h);
     printf ('addr=%x ',addr);
     printf ('len=%d',len);
   end;}
-  do_read:=sys_read (h,pointer(addr),len,zero);
+  do_read:=sys_read (h,addr,len,zero);
   if (do_read<0) then begin
     InOutRes:=do_read;
     do_read:=0;
@@ -541,7 +541,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2004-01-20 23:09:14  hajny
+  Revision 1.12  2004-04-22 21:10:56  peter
+    * do_read/do_write addr argument changed to pointer
+
+  Revision 1.11  2004/01/20 23:09:14  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.10  2003/10/25 23:42:35  hajny

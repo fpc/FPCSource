@@ -618,28 +618,28 @@ begin
   inoutres:=DosMove(p1, p2);
 end;
 
-function do_read(h,addr,len:longint):longint;
+function do_read(h:longint;addr:pointer;len:longint):longint;
 Var
   T: cardinal;
 begin
 {$ifdef IODEBUG}
-  write('do_read: handle=', h, ', addr=', addr, ', length=', len);
+  write('do_read: handle=', h, ', addr=', ptrint(addr), ', length=', len);
 {$endif}
-  InOutRes:=DosRead(H, Pointer(Addr), Len, T);
+  InOutRes:=DosRead(H, Addr, Len, T);
   do_read:= longint (T);
 {$ifdef IODEBUG}
   writeln(', actual_len=', t, ', InOutRes=', InOutRes);
 {$endif}
 end;
 
-function do_write(h,addr,len:longint) : longint;
+function do_write(h:longint;addr:pointer;len:longint) : longint;
 Var
   T: cardinal;
 begin
 {$ifdef IODEBUG}
-  write('do_write: handle=', h, ', addr=', addr, ', length=', len);
+  write('do_write: handle=', h, ', addr=', ptrint(addr), ', length=', len);
 {$endif}
-  InOutRes:=DosWrite(H, Pointer(Addr), Len, T);
+  InOutRes:=DosWrite(H, Addr, Len, T);
   do_write:= longint (T);
 {$ifdef IODEBUG}
   writeln(', actual_len=', t, ', InOutRes=', InOutRes);
@@ -1501,7 +1501,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2004-03-24 19:23:09  hajny
+  Revision 1.70  2004-04-22 21:10:56  peter
+    * do_read/do_write addr argument changed to pointer
+
+  Revision 1.69  2004/03/24 19:23:09  hajny
     * misleading warning removed
 
   Revision 1.68  2004/03/24 19:15:59  hajny

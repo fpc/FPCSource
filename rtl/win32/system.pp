@@ -377,11 +377,11 @@ begin
 end;
 
 
-function do_write(h,addr,len : longint) : longint;
+function do_write(h:longint;addr:pointer;len : longint) : longint;
 var
    size:longint;
 begin
-   if writefile(h,pointer(addr),len,size,nil)=0 then
+   if writefile(h,addr,len,size,nil)=0 then
     Begin
       errno:=GetLastError;
       Errno2InoutRes;
@@ -390,11 +390,11 @@ begin
 end;
 
 
-function do_read(h,addr,len : longint) : longint;
+function do_read(h:longint;addr:pointer;len : longint) : longint;
 var
   _result:longint;
 begin
-  if readfile(h,pointer(addr),len,_result,nil)=0 then
+  if readfile(h,addr,len,_result,nil)=0 then
     Begin
       errno:=GetLastError;
       if errno=ERROR_BROKEN_PIPE then
@@ -1608,7 +1608,10 @@ end.
 
 {
   $Log$
-  Revision 1.54  2004-02-15 21:37:18  hajny
+  Revision 1.55  2004-04-22 21:10:56  peter
+    * do_read/do_write addr argument changed to pointer
+
+  Revision 1.54  2004/02/15 21:37:18  hajny
     * ProcessID initialization added
 
   Revision 1.53  2004/02/02 17:01:47  florian

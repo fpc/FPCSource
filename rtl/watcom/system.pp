@@ -92,8 +92,8 @@ Const
       reales,realds,realfs,realgs,
       realip,realcs,realsp,realss  : word;
     end;
-  function  do_write(h,addr,len : longint) : longint;
-  function  do_read(h,addr,len : longint) : longint;
+  function  do_write(h:longint;addr:pointer;len : longint) : longint;
+  function  do_read(h:longint;addr:pointer;len : longint) : longint;
   procedure syscopyfromdos(addr : sizeuint; len : longint);
   procedure syscopytodos(addr : sizeuint; len : longint);
   procedure sysrealintr(intnr : word;var regs : trealregs);
@@ -948,7 +948,7 @@ begin
    GetInOutRes(lo(regs.realeax));
 end;
 
-function do_write(h,addr,len : longint) : longint;
+function do_write(h:longint;addr:pointer;len : longint) : longint;
 var
   regs      : trealregs;
   size,
@@ -961,7 +961,7 @@ begin
       size:=tb_size
      else
       size:=len;
-     syscopytodos(addr+writesize,size);
+     syscopytodos(ptrint(addr)+writesize,size);
      regs.realecx:=size;
      regs.realedx:=tb_offset;
      regs.realds:=tb_segment;
@@ -982,7 +982,7 @@ begin
   Do_Write:=WriteSize;
 end;
 
-function do_read(h,addr,len : longint) : longint;
+function do_read(h:longint;addr:pointer;len : longint) : longint;
 var
   regs     : trealregs;
   size,
@@ -1007,7 +1007,7 @@ begin
         do_read:=0;
         exit;
       end;
-     syscopyfromdos(addr+readsize,lo(regs.realeax));
+     syscopyfromdos(ptrint(addr)+readsize,lo(regs.realeax));
      inc(readsize,lo(regs.realeax));
      dec(len,lo(regs.realeax));
      { stop when not the specified size is read }
@@ -1537,7 +1537,10 @@ End.
 
 {
   $Log$
-  Revision 1.12  2004-01-20 23:12:49  hajny
+  Revision 1.13  2004-04-22 21:10:56  peter
+    * do_read/do_write addr argument changed to pointer
+
+  Revision 1.12  2004/01/20 23:12:49  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.11  2004/01/11 23:08:39  hajny

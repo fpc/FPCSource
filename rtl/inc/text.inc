@@ -35,7 +35,7 @@ End;
 
 Procedure FileReadFunc(var t:TextRec);
 Begin
-  t.BufEnd:=Do_Read(t.Handle,Longint(t.Bufptr),t.BufSize);
+  t.BufEnd:=Do_Read(t.Handle,t.Bufptr,t.BufSize);
   t.BufPos:=0;
 End;
 
@@ -44,7 +44,7 @@ Procedure FileWriteFunc(var t:TextRec);
 var
   i : longint;
 Begin
-  i:=Do_Write(t.Handle,Longint(t.Bufptr),t.BufPos);
+  i:=Do_Write(t.Handle,t.Bufptr,t.BufPos);
   if i<>t.BufPos then
     InOutRes:=101;
   t.BufPos:=0;
@@ -1266,7 +1266,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  2002-11-29 16:26:52  peter
+  Revision 1.21  2004-04-22 21:10:56  peter
+    * do_read/do_write addr argument changed to pointer
+
+  Revision 1.20  2002/11/29 16:26:52  peter
     * fixed ignorespaces which was broken by the previous commit
       when a line started with spaces
 

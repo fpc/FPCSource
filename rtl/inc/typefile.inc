@@ -68,7 +68,7 @@ Begin
    exit;
   case fileRec(f).mode of
     fmOutPut,fmInOut:
-      Do_Write(FileRec(f).Handle,Longint(@Buf),TypeSize);
+      Do_Write(FileRec(f).Handle,@Buf,TypeSize);
     fmInput: inOutRes := 105;
     else inOutRes := 103;
   end;
@@ -83,7 +83,7 @@ Begin
   case FileRec(f).mode of
     fmInput,fmInOut:
       begin
-        Result:=Do_Read(FileRec(f).Handle,Longint(@Buf),TypeSize);
+        Result:=Do_Read(FileRec(f).Handle,@Buf,TypeSize);
         If Result<TypeSize Then
          InOutRes:=100
       end;
@@ -94,7 +94,10 @@ End;
 
 {
   $Log$
-  Revision 1.4  2002-09-07 15:07:46  peter
+  Revision 1.5  2004-04-22 21:10:56  peter
+    * do_read/do_write addr argument changed to pointer
+
+  Revision 1.4  2002/09/07 15:07:46  peter
     * old logs removed and tabs fixed
 
 }
