@@ -53,7 +53,7 @@ Var
   IOStatus                   : Integer;
   RedirErrorOut,RedirErrorIn,
   RedirErrorError            : Integer;
-  ExecuteResult              : Word;
+  ExecuteResult              : Longint;
 
 {------------------------------------------------------------------------------}
 procedure InitRedir;
@@ -987,7 +987,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.18  2004-05-16 20:13:04  peter
+  Revision 1.19  2004-05-25 15:52:48  peter
+    * executeresult changed to longint instead of word
+
+  Revision 1.18  2004/05/16 20:13:04  peter
     * remote execute updates, see readme.txt
 
   Revision 1.17  2004/05/03 14:48:51  peter
