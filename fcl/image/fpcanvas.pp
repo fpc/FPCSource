@@ -1,3 +1,18 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2003 by the Free Pascal development team
+
+    Basic canvas definitions.
+    
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 {$mode objfpc}{$h+}
 unit FPCanvas;
 
@@ -151,7 +166,8 @@ type
     function  DoAllowPen (APen : TFPCustomPen) : boolean; virtual;
     function  DoAllowBrush (ABrush : TFPCustomBrush) : boolean; virtual;
     procedure SetColor (x,y:integer; Value:TFPColor); Virtual; abstract;
-    function  GetColor (x,y:integer) : TFPColor; Virtual; abstract;    procedure SetHeight (AValue : integer); virtual; abstract;
+    function  GetColor (x,y:integer) : TFPColor; Virtual; abstract;    
+    procedure SetHeight (AValue : integer); virtual; abstract;
     function  GetHeight : integer; virtual; abstract;
     procedure SetWidth (AValue : integer); virtual; abstract;
     function  GetWidth : integer; virtual; abstract;
@@ -161,16 +177,16 @@ type
     procedure DoGetTextSize (text:string; var w,h:integer); virtual; abstract;
     function  DoGetTextHeight (text:string) : integer; virtual; abstract;
     function  DoGetTextWidth (text:string) : integer; virtual; abstract;
-    procedure DoRectangle (Bounds:TRect); virtual; abstract;
-    procedure DoRectangleFill (Bounds:TRect); virtual; abstract;
-    procedure DoRectangleAndFill (Bounds:TRect); virtual;
-    procedure DoEllipseFill (Bounds:TRect); virtual; abstract;
-    procedure DoEllipse (Bounds:TRect); virtual; abstract;
-    procedure DoEllipseAndFill (Bounds:TRect); virtual;
-    procedure DoPolygonFill (points:array of TPoint); virtual; abstract;
-    procedure DoPolygon (points:array of TPoint); virtual; abstract;
-    procedure DoPolygonAndFill (points:array of TPoint); virtual;
-    procedure DoPolyline (points:array of TPoint); virtual; abstract;
+    procedure DoRectangle (Const Bounds:TRect); virtual; abstract;
+    procedure DoRectangleFill (Const Bounds:TRect); virtual; abstract;
+    procedure DoRectangleAndFill (Const Bounds:TRect); virtual;
+    procedure DoEllipseFill (Const Bounds:TRect); virtual; abstract;
+    procedure DoEllipse (Const Bounds:TRect); virtual; abstract;
+    procedure DoEllipseAndFill (Const Bounds:TRect); virtual;
+    procedure DoPolygonFill (const points:array of TPoint); virtual; abstract;
+    procedure DoPolygon (const points:array of TPoint); virtual; abstract;
+    procedure DoPolygonAndFill (const points:array of TPoint); virtual;
+    procedure DoPolyline (const points:array of TPoint); virtual; abstract;
     procedure DoFloodFill (x,y:integer); virtual; abstract;
     procedure DoMoveTo (x,y:integer); virtual;
     procedure DoLineTo (x,y:integer); virtual;
@@ -193,11 +209,11 @@ type
     function GetTextHeight (text:string) : integer;
     function GetTextWidth (text:string) : integer;
     // using pen and brush
-    procedure Ellipse (Bounds:TRect);
+    procedure Ellipse (Const Bounds:TRect);
     procedure Ellipse (left,top,right,bottom:integer);
-    procedure Polygon (points:array of TPoint);
-    procedure Polyline (points:array of TPoint);
-    procedure Rectangle (Bounds:TRect);
+    procedure Polygon (Const points:array of TPoint);
+    procedure Polyline (Const points:array of TPoint);
+    procedure Rectangle (Const Bounds:TRect);
     procedure Rectangle (left,top,right,bottom:integer);
     // using brush
     procedure FloodFill (x,y:integer);
@@ -209,7 +225,7 @@ type
     procedure LineTo (p:TPoint);
     procedure Line (x1,y1,x2,y2:integer);
     procedure Line (p1,p2:TPoint);
-    procedure Line (points:TRect);
+    procedure Line (const points:TRect);
     // other procedures
     procedure CopyRect (x,y:integer; canvas:TFPCustomCanvas; SourceRect:TRect);
     procedure Draw (x,y:integer; image:TFPCustomImage);

@@ -1,3 +1,18 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2003 by the Free Pascal development team
+
+    TFPCustomCanvas implementation.
+    
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 { TFPCustomCanvas }
 
 constructor TFPCustomCanvas.Create;
@@ -326,13 +341,13 @@ begin
   Line (p1.x,p1.y,p2.x,p2.y);
 end;
 
-procedure TFPCustomCanvas.Line (points:TRect);
+procedure TFPCustomCanvas.Line (const points:TRect);
 begin
   with points do
     Line (left,top, right,bottom);
 end;
 
-procedure TFPCustomCanvas.Polyline (points:array of TPoint);
+procedure TFPCustomCanvas.Polyline (Const points:array of TPoint);
 begin
   if Pen.Style <> psClear then
    if Pen is TFPCustomDrawPen then
@@ -357,25 +372,25 @@ begin
     end;
 end;
 
-procedure TFPCustomCanvas.DoRectangleAndFill (Bounds:TRect);
+procedure TFPCustomCanvas.DoRectangleAndFill (const Bounds:TRect);
 begin
   DoRectangleFill (Bounds);
   DoRectangle (Bounds);
 end;
 
-procedure TFPCustomCanvas.DoEllipseAndFill (Bounds:TRect);
+procedure TFPCustomCanvas.DoEllipseAndFill (const Bounds:TRect);
 begin
   DoEllipseFill (Bounds);
   DoEllipse (Bounds);
 end;
 
-procedure TFPCustomCanvas.DoPolygonAndFill (points:array of TPoint);
+procedure TFPCustomCanvas.DoPolygonAndFill (const points:array of TPoint);
 begin
   DoPolygonFill (points);
   DoPolygon (points);
 end;
 
-procedure TFPCustomCanvas.Ellipse (Bounds:TRect);
+procedure TFPCustomCanvas.Ellipse (const Bounds:TRect);
 var p,b,dp,db,pb : boolean;
 begin
   p := Pen.style <> psClear;
@@ -424,7 +439,7 @@ begin
   Rectangle (Rect(left,top,right,bottom));
 end;
 
-procedure TFPCustomCanvas.Rectangle (Bounds:TRect);
+procedure TFPCustomCanvas.Rectangle (const Bounds:TRect);
 var p,b,dp,db,pb : boolean;
 begin
   p := Pen.style <> psClear;
@@ -473,7 +488,7 @@ begin
     end;
 end;
 
-procedure TFPCustomCanvas.Polygon (points:array of TPoint);
+procedure TFPCustomCanvas.Polygon (const points:array of TPoint);
 var p,b,dp,db,pb : boolean;
 begin
   p := Pen.style <> psClear;
