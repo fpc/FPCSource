@@ -225,8 +225,8 @@ function _lopen(const lpPathName: LPCSTR; iReadWrite: Integer): HFILE; external 
 //function AddAuditAccessObjectAce(var pAcl: TACL; dwAceRevision: DWORD; AceFlags: DWORD; AccessMask: DWORD; ObjectTypeGuid, InheritedObjectTypeGuid: PGuid; pSid: Pointer; bAuditSuccess, bAuditFailure: BOOL): BOOL;
 //  external 'advapi32' name 'AddAuditAccessObjectAce';
 //function AdjustTokenGroups(TokenHandle: THandle; ResetToDefault: BOOL; const NewState: TTokenGroups; BufferLength: DWORD; var PreviousState: TTokenGroups; var ReturnLength: DWORD): BOOL; external 'advapi32' name 'AdjustTokenGroups';
-//function AdjustTokenPrivileges(TokenHandle: THandle; DisableAllPrivileges: BOOL; const NewState: TTokenPrivileges; BufferLength: DWORD; var PreviousState: TTokenPrivileges; var ReturnLength: DWORD): BOOL;
-//  external 'advapi32' name 'AdjustTokenPrivileges';
+function AdjustTokenPrivileges(TokenHandle: THandle; DisableAllPrivileges: BOOL; const NewState: TTokenPrivileges; BufferLength: DWORD;
+                               var PreviousState: TTokenPrivileges; var ReturnLength: DWORD): BOOL;   external 'advapi32' name 'AdjustTokenPrivileges';
 function AdjustWindowRect(var lpRect: TRect; dwStyle: DWORD; bMenu: BOOL): BOOL; external 'user32' name 'AdjustWindowRect';
 function AdjustWindowRectEx(var lpRect: TRect; dwStyle: DWORD; bMenu: BOOL; dwExStyle: DWORD): BOOL; external 'user32' name 'AdjustWindowRectEx';
 function AllocateAndInitializeSid(const pIdentifierAuthority: TSIDIdentifierAuthority; nSubAuthorityCount: Byte; nSubAuthority0, nSubAuthority1: DWORD; nSubAuthority2, nSubAuthority3, nSubAuthority4: DWORD;
@@ -1051,7 +1051,10 @@ end;
 
 {
   $Log$
-  Revision 1.17  2004-01-19 19:29:11  michael
+  Revision 1.18  2004-02-07 00:21:10  marco
+   * small fix
+
+  Revision 1.17  2004/01/19 19:29:11  michael
   + Added HFILE_ERROR
 
   Revision 1.16  2003/11/06 22:05:06  marco
