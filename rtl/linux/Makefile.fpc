@@ -28,7 +28,6 @@ fpcpackage=y
 [default]
 fpcdir=../..
 target=linux
-cpu=i386
 
 [compiler]
 includedir=$(INC) $(PROCINC) $(UNIXINC)
@@ -62,6 +61,17 @@ SYSTEMUNIT=syslinux
 LINUXUNIT=linux
 PRT0=prt0_10
 override FPCOPT+=-dUNIX
+endif
+
+# Use new feature from 1.0.5 version
+# that generates release PPU files
+# which will not be recompiled
+ifdef RELEASE
+ifneq ($(findstring 1.0.2,$(FPC_VERSION)),)
+ifneq ($(findstring 1.0.4,$(FPC_VERSION)),)
+override FPCOPT+=-Ur
+endif
+endif
 endif
 
 # Paths

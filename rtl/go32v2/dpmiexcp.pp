@@ -1032,7 +1032,10 @@ begin
   { if a subfunction calls runerror !!      }
   exceptions_on:=not exceptions_on;
   v2prt0_exceptions_on:=exceptions_on;
-  for i:=0 to EXCEPTIONCOUNT-1 do
+  { Exceptions 18 and 19 settings generates a bug in
+    the DJGPP debug code PM }
+
+  for i:=0 to 17{EXCEPTIONCOUNT-1} do
    begin
      if get_pm_exception_handler(i,_except) then
       begin
@@ -1288,7 +1291,7 @@ begin
   { the first 18 exceptions start at offset +8 since exception
     #18 and #19 had to be put in front of the table. }
   _except.offset:=@djgpp_exception_table + 8;
-  for i:=0 to ExceptionCount-3 do
+  for i:=0 to 17 do
    begin
      except_ori[i] := _except;    { New value to set }
      inc(_except.offset,4);       { This is the size of push n, jmp }
@@ -1480,7 +1483,10 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.5  2001-06-13 18:27:14  peter
+  Revision 1.6  2001-06-18 20:36:29  peter
+    * -Ur added
+
+  Revision 1.5  2001/06/13 18:27:14  peter
     * missing exceptions for restoring (merged)
 
   Revision 1.4  2000/10/05 21:56:45  pierre

@@ -25,7 +25,6 @@ fpcpackage=y
 [default]
 fpcdir=../..
 target=freebsd
-cpu=i386
 
 [compiler]
 includedir=$(INC) $(PROCINC) $(UNIXINC)
@@ -58,6 +57,17 @@ SYSTEMUNIT=sysbsd
 LINUXUNIT=linux
 override FPCOPT+=-dUNIX
 PRT0=prt0_10
+endif
+
+# Use new feature from 1.0.5 version
+# that generates release PPU files
+# which will not be recompiled
+ifdef RELEASE
+ifneq ($(findstring 1.0.2,$(FPC_VERSION)),)
+ifneq ($(findstring 1.0.4,$(FPC_VERSION)),)
+override FPCOPT+=-Ur
+endif
+endif
 endif
 
 # Paths
