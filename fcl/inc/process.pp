@@ -11,7 +11,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
 {$mode objfpc}
 {$h+}
 unit process;
@@ -20,15 +19,6 @@ interface
 
 Uses Classes,
      pipes,
-{$ifdef Unix}
-{$ifdef ver1_0}
-     Linux,
-{$else}
-     Baseunix,unix,
-{$endif}
-{$else}
-     Windows,
-{$endif}
      SysUtils;
 
 Type
@@ -50,112 +40,43 @@ Type
   TProcessOptions = Set of TPRocessOption;
   TstartUpoptions = set of TStartupOption;
 
-{$ifdef unix}
-Const
-  STARTF_USESHOWWINDOW    = 1;    // Ignored
-  STARTF_USESIZE          = 2;
-  STARTF_USEPOSITION      = 4;
-  STARTF_USECOUNTCHARS    = 8;    // Ignored
-  STARTF_USEFILLATTRIBUTE = $10;
-  STARTF_RUNFULLSCREEN    = $20;  // Ignored
-  STARTF_FORCEONFEEDBACK  = $40;  // Ignored
-  STARTF_FORCEOFFFEEDBACK = $80;  // Ignored
-  STARTF_USESTDHANDLES    = $100; // Ignored
-  STARTF_USEHOTKEY        = $200; // Ignored
 
 Type
-  PProcessInformation = ^TProcessInformation;
-  TProcessInformation = record
-    hProcess: THandle;
-    hThread: THandle;
-    dwProcessId: DWORD;
-    dwThreadId: DWORD;
-  end;
-
-  PStartupInfo = ^TStartupInfo;
-  TStartupInfo = Record
-    cb: DWORD;
-    lpReserved: Pointer;
-    lpDesktop: Pointer;
-    lpTitle: Pointer;
-    dwX: DWORD;
-    dwY: DWORD;
-    dwXSize: DWORD;
-    dwYSize: DWORD;
-    dwXCountChars: DWORD;
-    dwYCountChars: DWORD;
-    dwFillAttribute: DWORD;
-    dwFlags: DWORD;
-    wShowWindow: Word;
-    cbReserved2: Word;
-    lpReserved2: PByte;
-    hStdInput: THandle;
-    hStdOutput: THandle;
-    hStdError: THandle;
-  end;
-
-  PSecurityAttributes = ^TSecurityAttributes;
-  TSecurityAttributes = Record
-    nlength : Integer;
-    lpSecurityDescriptor : Pointer;
-    BinheritHandle : Boolean;
-  end;
-
-Const piInheritablePipe : TSecurityAttributes = (
-                           nlength:SizeOF(TSecurityAttributes);
-                           lpSecurityDescriptor:Nil;
-                           Binherithandle:True);
-      piNonInheritablePipe : TSecurityAttributes = (
-                             nlength:SizeOF(TSecurityAttributes);
-                             lpSecurityDescriptor:Nil;
-                             Binherithandle:False);
-
-{$endif}
-Type
-
   TProcess = Class (TComponent)
   Private
-{$ifndef unix}
-    FAccess : Cardinal;
-{$endif}
-    FApplicationName : string;
-    FChildErrorStream : TOutPutPipeStream;
-    FChildInputSTream : TInputPipeStream;
-    FChildOutPutStream : TOutPutPipeStream;
-    FConsoleTitle : String;
     FProcessOptions : TProcessOptions;
-    FStartUpOptions : TStartupOptions;
+    FStartupOptions : TStartupOptions;
+    FProcessID : Integer;
+    FThreadID : Integer;
+    FProcessHandle : Thandle;
+    FThreadHandle : Thandle;
+    FHandle : THandle;
+    FFillAttribute : Cardinal;
+    FApplicationName : string;
+    FConsoleTitle : String;
     FCommandLine : String;
     FCurrentDirectory : String;
     FDeskTop : String;
     FEnvironment : Tstrings;
     FExitCode : Cardinal;
-    FHandle : THandle;
     FShowWindow : TShowWindowOptions;
-    FInherithandles : LongBool;
-    FParentErrorStream : TInputPipeStream;
-    FParentInputSTream : TInputPipeStream;
-    FParentOutputStream : TOutPutPipeStream;
+    FInherithandles : Boolean;
+    FInputSTream  : TOutputPipeStream;
+    FOutputStream : TInPutPipeStream;
+    FStdErrStream : TInputPipeStream;
     FRunning : Boolean;
-    FThreadAttributes  : PSecurityAttributes;
-    FProcessAttributes : PSecurityAttributes;
-    FProcessInformation : TProcessInformation;
     FPRocessPriority : TProcessPriority;
-    FStartupInfo : TStartupInfo;
+    dwXCountchars,
+    dwXSize,
+    dwYsize,
+    dwx,
+    dwYcountChars,
+    dwy : Cardinal;
     Procedure FreeStreams;
-{$ifdef win32}
-    Procedure CloseProcessHandles;
-{$endif}
     Function  GetExitStatus : Integer;
-    Function  GetHandle : THandle;
     Function  GetRunning : Boolean;
-    Function  GetProcessAttributes : TSecurityAttributes;
-    Function  GetThreadAttributes : TSecurityAttributes;
-    Procedure SetProcessAttributes (Value : TSecurityAttributes);
-    Procedure SetThreadAttributes (Value : TSecurityAttributes);
     Function  GetWindowRect : TRect;
     Procedure SetWindowRect (Value : TRect);
-    Procedure SetFillAttribute (Value : Cardinal);
     Procedure SetShowWindow (Value : TShowWindowOptions);
     Procedure SetWindowColumns (Value : Cardinal);
     Procedure SetWindowHeight (Value : Cardinal);
@@ -163,16 +84,14 @@ Type
     Procedure SetWindowRows (Value : Cardinal);
     Procedure SetWindowTop (Value : Cardinal);
     Procedure SetWindowWidth (Value : Cardinal);
-    procedure CreateStreams;
-    function GetCreationFlags: Cardinal;
-    function GetStartupFlags: Cardinal;
+    Procedure CreateStreams(InHandle,OutHandle,Errhandle : Longint);
     procedure SetApplicationname(const Value: String);
     procedure SetPRocessOptions(const Value: TProcessOptions);
     procedure SetActive(const Value: Boolean);
     procedure SetEnvironment(const Value: TStrings);
-{$ifdef unix}
-    function PeekLinuxExitStatus: Boolean;
-{$endif}
+    function  PeekExitStatus: Boolean;
+    procedure CloseProcessHandles;
+    Function GetHandle : THandle;
   Public
     Constructor Create (AOwner : TComponent);override;
     Destructor Destroy; override;
@@ -182,17 +101,14 @@ Type
     Function Terminate (AExitCode : Integer): Boolean; virtual;
     Function WaitOnExit : DWord;
     Property WindowRect : Trect Read GetWindowRect Write SetWindowRect;
-    Property StartupInfo : TStartupInfo Read FStartupInfo;
-    Property ProcessAttributes : TSecurityAttributes  Read GetProcessAttributes  Write SetProcessAttributes;
-    Property ProcessInformation : TProcessInformation Read FPRocessInformation;
-    Property Handle : THandle Read FProcessInformation.hProcess;
-    Property ThreadHandle : THandle Read FprocessInformation.hThread;
-    Property Input  : TOutPutPipeStream Read FParentOutPutStream;
-    Property OutPut : TInputPipeStream  Read FParentInputStream;
-    Property StdErr : TinputPipeStream  Read FParentErrorStream;
+    Property Handle : THandle Read GetHandle;
+    Property ProcessHandle : THandle Read FProcessHandle;
+    Property ThreadHandle : THandle Read FThreadHandle;
+    Property Input  : TOutPutPipeStream Read FInPutStream;
+    Property OutPut : TInputPipeStream  Read FOutPutStream;
+    Property StdErr : TinputPipeStream  Read FStdErrStream;
     Property ExitStatus : Integer Read GetExitStatus;
-    Property InheritHandles : LongBool Read FInheritHandles Write FInheritHandles;
-    Property ThreadAttributes : TSecurityAttributes Read GetThreadAttributes Write SetThreadAttributes;
+    Property InheritHandles : Boolean Read FInheritHandles Write FInheritHandles;
   Published
     Property Active : Boolean Read Getrunning Write SetActive;
     Property ApplicationName : String Read FApplicationname Write SetApplicationname;
@@ -201,46 +117,29 @@ Type
     Property CurrentDirectory : String Read FCurrentDirectory Write FCurrentDirectory;
     Property DeskTop : String Read FDeskTop Write FDeskTop;
     Property Environment : TStrings Read FEnvironment Write SetEnvironment;
-    Property FillAttribute : Cardinal Read FStartupInfo.dwFillAttribute Write SetFillAttribute;
     Property Options : TProcessOptions Read FProcessOptions Write SetPRocessOptions;
     Property Priority : TProcessPriority Read FProcessPriority Write FProcessPriority;
     Property StartUpOptions : TStartUpOptions Read FStartUpOptions Write FStartupOptions;
     Property Running : Boolean Read GetRunning;
     Property ShowWindow : TShowWindowOptions Read FShowWindow Write SetShowWindow;
-    Property WindowColumns : Cardinal Read FStartupInfo.dwXCountchars Write SetWindowColumns;
-    Property WindowHeight : Cardinal Read FStartupInfo.dwYsize Write SetWindowHeight;
-    Property WindowLeft : Cardinal Read FStartupInfo.dwx Write SetWindowLeft;
-    Property WindowRows : Cardinal Read FStartupInfo.dwYcountChars Write SetWindowRows;
-    Property WindowTop : Cardinal Read FStartupInfo.dwy Write SetWindowTop ;
-    Property WindowWidth : Cardinal Read FStartupInfo.dwXsize Write SetWindowWidth;
+    Property WindowColumns : Cardinal Read dwXCountchars Write SetWindowColumns;
+    Property WindowHeight : Cardinal Read dwYsize Write SetWindowHeight;
+    Property WindowLeft : Cardinal Read dwx Write SetWindowLeft;
+    Property WindowRows : Cardinal Read dwYcountChars Write SetWindowRows;
+    Property WindowTop : Cardinal Read dwy Write SetWindowTop ;
+    Property WindowWidth : Cardinal Read dwXsize Write SetWindowWidth;
+    Property FillAttribute : Cardinal read FFillAttribute Write FFillAttribute;
   end;
 
-{$ifdef unix}
-Const
-  PriorityConstants : Array [TProcessPriority] of Integer =
-                      (20,20,0,-20);
-
-Const
-  GeometryOption : String = '-geometry';
-  TitleOption : String ='-title';
-
-{$else}
-Const
-  PriorityConstants : Array [TProcessPriority] of Cardinal =
-                      (HIGH_PRIORITY_CLASS,IDLE_PRIORITY_CLASS,
-                       NORMAL_PRIORITY_CLASS,REALTIME_PRIORITY_CLASS);
-{$endif}
 implementation
+
+{$i process.inc}
 
 Constructor TProcess.Create (AOwner : TComponent);
 begin
   Inherited;
-{$ifndef unix}
-  FAccess:=PROCESS_ALL_ACCESS;
-{$endif}
   FProcessPriority:=ppNormal;
   FShowWindow:=swoNone;
-  FStartupInfo.cb:=SizeOf(TStartupInfo);
   FInheritHandles:=True;
   FEnvironment:=TStringList.Create;
 end;
@@ -248,619 +147,67 @@ end;
 Destructor TProcess.Destroy;
 
 begin
-  If assigned (FProcessAttributes) then Dispose (FPRocessAttributes);
-  If assigned (FThreadAttributes) then Dispose (FThreadAttributes);
   FEnvironment.Free;
   FreeStreams;
-{$ifdef win32}
   CloseProcessHandles;
-{$endif}
   Inherited Destroy;
 end;
 
 Procedure TProcess.FreeStreams;
 
-var FreedStreams: TList;
-
-  procedure FreeStream(var AnObject: THandleStream);
+  procedure FreeStream(var S: THandleStream);
 
   begin
-    if (AnObject<>Nil) and (FreedStreams.IndexOf(AnObject)<0) then
+    if (S<>Nil) then
       begin
-      FileClose(AnObject.Handle);
-      FreedStreams.Add(AnObject);
-      AnObject.Free;
+      FileClose(S.Handle);
+      FreeAndNil(S);
       end;
-    AnObject:=nil;
   end;
 
 begin
-  FreedStreams:=TList.Create;
-  try
-    FreeStream(FParentErrorStream);
-    FreeStream(FParentInputStream);
-    FreeStream(FParentOutputStream);
-    FreeStream(FChildErrorStream);
-    FreeStream(FChildInputStream);
-    FreeStream(FChildOutputStream);
-  finally
-    FreedStreams.Free;
-  end;
+  If FStdErrStream<>FOutputStream then
+    FreeStream(FStdErrStream);
+  FreeStream(FOutputStream);
+  FreeStream(FInputStream);
 end;
 
-{$ifdef win32}
-procedure TProcess.CloseProcessHandles;
-begin
-  with FProcessInformation do begin
-    if (hProcess<>0) then
-      CloseHandle(hProcess);
-    if (ThreadHandle<>0) then
-      CloseHandle(hThread);
-  end;
-end;
-{$endif}
 
 Function TProcess.GetExitStatus : Integer;
 
 begin
   If FRunning then
-{$ifdef unix}
-    PeekLinuxExitStatus;
-{$else}
-    GetExitCodeProcess(Handle,FExitCode);
-{$endif}
+    PeekExitStatus;
   Result:=FExitCode;
 end;
 
-Function TProcess.GetHandle : THandle;
-
-begin
-{$ifndef unix}
-  If FHandle=0 Then
-    FHandle:=OpenProcess (FAccess,True,FProcessInformation.dwProcessId);
-{$endif}
-  Result:=FHandle
-end;
-
-Function TProcess.GetProcessAttributes : TSecurityAttributes;
-
-Var P : PSecurityAttributes;
-
-begin
-  IF not Assigned(FProcessAttributes) then
-    begin
-    // Provide empty dummy value;
-    New(p);
-    Fillchar(p^,Sizeof(TSecurityAttributes),0);
-    Result:=p^;
-    end
-  else
-    REsult:=FProcessAttributes^;
-end;
-
-{$ifdef unix}
-Function TProcess.PeekLinuxExitStatus : Boolean;
-
-begin
-  Result:={$ifdef VER1_0}WaitPID{$else}fpWaitPid{$endif}(Handle,@FExitCode,WNOHANG)=Handle;
-  If Result then
-    FExitCode:=wexitstatus(FExitCode)
-  else
-    FexitCode:=0;
-end;
-{$endif}
 
 Function TProcess.GetRunning : Boolean;
 
 begin
   IF FRunning then
-    begin
-{$ifdef unix}
-    FRunning:=Not PeekLinuxExitStatus;
-{$else}
-    Frunning:=GetExitStatus=Still_Active;
-{$endif}
-    end;
+    FRunning:=Not PeekExitStatus;
   Result:=FRunning;
 end;
 
-Function TProcess.GetThreadAttributes : TSecurityAttributes;
 
-Var P : PSecurityAttributes;
-
-begin
-  IF not Assigned(FThreadAttributes) then
-    begin
-    // Provide empty dummy value;
-    New(p);
-    Fillchar(p^,Sizeof(TSecurityAttributes),0);
-    Result:=p^;
-    end
-  else
-    Result:=FThreadAttributes^;
-end;
-
-Procedure TProcess.SetProcessAttributes (Value : TSecurityAttributes);
-
-begin
-  If not Assigned (FProcessAttributes) then
-    New(FProcessAttributes);
-  FPRocessAttributes^:=VAlue;
-end;
-
-Procedure TProcess.SetThreadAttributes (Value : TSecurityAttributes);
-
-begin
-  If not Assigned (FThreadAttributes) then
-    New(FThreadAttributes);
-  FThreadAttributes^:=VAlue;
-end;
-
-Procedure TProcess.CreateStreams;
+Procedure TProcess.CreateStreams(InHandle,OutHandle,Errhandle : Longint);
 
 begin
   FreeStreams;
-  CreatePipeStreams (FChildInputSTream,FParentOutPutStream); //,@piInheritablePipe,1024);
-  CreatePipeStreams (FParentInputStream,FChildOutPutStream); //,@piInheritablePipe,1024);
+  FInputStream:=TOutputPipeStream.Create (InHandle);
+  FOutputStream:=TInputPipeStream.Create (OutHandle);
   if Not (poStdErrToOutPut in FProcessOptions) then
-    CreatePipeStreams (FParentErrorStream,FChildErrorStream) //,@piInheritablePipe,1024)
-  else
-    begin
-    FChildErrorStream:=FChildOutPutStream;
-    FParentErrorStream:=FParentInputStream;
-    end;
-  FStartupInfo.dwFlags:=FStartupInfo.dwFlags or Startf_UseStdHandles;
-  FStartupInfo.hStdInput:=FChildInputStream.Handle;
-  FStartupInfo.hStdOutput:=FChildOutPutStream.Handle;
-  FStartupInfo.hStdError:=FChildErrorStream.Handle;
+    FStdErrStream:=TInputPipeStream.Create(ErrHandle);
 end;
 
-Function TProcess.GetCreationFlags : Cardinal;
-
-begin
-  Result:=0;
-{$ifndef unix}
-  if poNoConsole in FProcessOptions then
-    Result:=Result or Detached_Process;
-  if poNewConsole in FProcessOptions then
-    Result:=Result or Create_new_console;
-  if poNewProcessGroup in FProcessOptions then
-    Result:=Result or CREATE_NEW_PROCESS_GROUP;
-  If poRunSuspended in FProcessOptions Then
-    Result:=Result or Create_Suspended;
-  if poDebugProcess in FProcessOptions Then
-    Result:=Result or DEBUG_PROCESS;
-  if poDebugOnlyThisProcess in FProcessOptions Then
-    Result:=Result or DEBUG_ONLY_THIS_PROCESS;
-  if poDefaultErrorMode in FProcessOptions Then
-    Result:=Result or CREATE_DEFAULT_ERROR_MODE;
-  result:=result or PriorityConstants[FProcessPriority];
-{$endif}
-end;
-
-Function TProcess.GetStartupFlags : Cardinal;
-
-begin
-  Result:=0;
-  if poUsePipes in FProcessOptions then
-     Result:=Result or Startf_UseStdHandles;
-  if suoUseShowWindow in FStartupOptions then
-    Result:=Result or startf_USESHOWWINDOW;
-  if suoUSESIZE in FStartupOptions then
-    Result:=Result or startf_usesize;
-  if suoUsePosition in FStartupOptions then
-    Result:=Result or startf_USEPOSITION;
-  if suoUSECOUNTCHARS in FStartupoptions then
-    Result:=Result or startf_usecountchars;
-  if suoUsefIllAttribute in FStartupOptions then
-    Result:=Result or startf_USEFILLATTRIBUTE;
-end;
-
-{$ifdef unix}
-Type
-  TPCharArray = Array[Word] of pchar;
-  PPCharArray = ^TPcharArray;
-
-
-Function StringsToPCharList(List : TStrings) : PPChar;
-
-Var
-  I : Integer;
-  S : String;
-
-begin
-  I:=(List.Count)+1;
-  GetMem(Result,I*sizeOf(PChar));
-  PPCharArray(Result)^[List.Count]:=Nil;
-  For I:=0 to List.Count-1 do
-    begin
-    S:=List[i];
-    Result[i]:=StrNew(PChar(S));
-    end;
-end;
-
-Procedure FreePCharList(List : PPChar);
-
-Var
-  I : integer;
-
-begin
-  I:=0;
-  While List[i]<>Nil do
-    begin
-    StrDispose(List[i]);
-    Inc(I);
-    end;
-  FreeMem(List);
-end;
-
-{$else}
-
-Function StringsToPChars(List : TStrings): pointer;
-
-var
-  EnvBlock: string;
-  I: Integer;
-
-begin
-  EnvBlock := '';
-  For I:=0 to List.Count-1 do
-    EnvBlock := EnvBlock + List[i] + #0;
-  EnvBlock := EnvBlock + #0;
-  GetMem(Result, Length(EnvBlock));
-  CopyMemory(Result, @EnvBlock[1], Length(EnvBlock));
-end;
-{$endif}
-
-
-{$ifdef unix}
-Procedure CommandToList(S : String; List : TStrings);
-
-  Function GetNextWord : String;
-
-  Const
-    WhiteSpace = [' ',#8,#10];
-    Literals = ['"',''''];
-
-  Var
-    Wstart,wend : Integer;
-    InLiteral : Boolean;
-    LastLiteral : char;
-
-  begin
-    WStart:=1;
-    While (WStart<=Length(S)) and (S[WStart] in WhiteSpace) do
-      Inc(WStart);
-    WEnd:=WStart;
-    InLiteral:=False;
-    LastLiteral:=#0;
-    While (Wend<=Length(S)) and (Not (S[Wend] in WhiteSpace) or InLiteral) do
-      begin
-      if S[Wend] in Literals then
-        If InLiteral then
-          InLiteral:=Not (S[Wend]=LastLiteral)
-        else
-          begin
-          InLiteral:=True;
-          LastLiteral:=S[Wend];
-          end;
-       inc(wend);
-       end;
-     Result:=Copy(S,WStart,WEnd-WStart);
-     Result:=StringReplace(Result,'"','',[rfReplaceAll]);
-     Result:=StringReplace(Result,'''','',[rfReplaceAll]);
-     While (WEnd<=Length(S)) and (S[Wend] in WhiteSpace) do
-       inc(Wend);
-     Delete(S,1,WEnd-1);
-
-  end;
-
-Var
-  W : String;
-
-begin
-  While Length(S)>0 do
-    begin
-    W:=GetNextWord;
-    If (W<>'') then
-      List.Add(W);
-    end;
-end;
-
-
-Function MakeCommand(Var AppName,CommandLine : String;
-                     StartupOptions : TStartUpOptions;
-                     ProcessOptions : TProcessOptions;
-                     StartupInfo : TStartupInfo) : PPchar;
-Const
-  SNoCommandLine = 'Cannot execute empty command-line';
-
-Var
-  S  : TStringList;
-  G : String;
-
-begin
-  if (AppName='') then
-    begin
-    If (CommandLine='') then
-      Raise Exception.Create(SNoCommandline)
-    end
-  else
-    begin
-    If (CommandLine='') then
-      CommandLine:=AppName;
-    end;
-  S:=TStringList.Create;
-  try
-    CommandToList(CommandLine,S);
-    if poNewConsole in ProcessOptions then
-      begin
-      S.Insert(0,'-e');
-      If (AppName<>'') then
-        begin
-        S.Insert(0,AppName);
-        S.Insert(0,'-title');
-        end;
-      if suoUseCountChars in StartupOptions then
-        With StartupInfo do
-          begin
-          S.Insert(0,Format('%dx%d',[dwXCountChars,dwYCountChars]));
-          S.Insert(0,'-geometry');
-          end;
-      S.Insert(0,'xterm');
-      end;
-    if (AppName<>'') then
-      begin
-      S.Add(TitleOption);
-      S.Add(AppName);
-      end;
-    With StartupInfo do
-      begin
-      G:='';
-      if (suoUseSize in StartupOptions) then
-        g:=format('%dx%d',[dwXSize,dwYsize]);
-      if (suoUsePosition in StartupOptions) then
-        g:=g+Format('+%d+%d',[dwX,dwY]);
-      if G<>'' then
-        begin
-        S.Add(GeometryOption);
-        S.Add(g);
-        end;
-      end;
-    Result:=StringsToPcharList(S);
-    AppName:=S[0];
-  Finally
-    S.free;
-  end;
-end;
-
-Function CreateProcess (PName,PCommandLine,PDir : String;
-                        FEnv : PPChar;
-                        StartupOptions : TStartupOptions;
-                        ProcessOptions : TProcessOptions;
-                        const FStartupInfo : TStartupInfo;
-                        Var ProcessInfo : TProcessInformation)  : boolean;
-
-Var
-  PID : Longint;
-  Argv : PPChar;
-  fd : Integer;
-
-begin
-  Result:=True;
-  Argv:=MakeCommand(Pname,PCommandLine,StartupOptions,ProcessOptions,FStartupInfo);
-  if (pos('/',PName)<>1) then
-    PName:=FileSearch(Pname,{$ifdef ver1_0}GetEnv{$else}fpgetenv{$endif}('PATH'));
-  Pid:={$ifdef ver1_0}fork;{$else}fpfork;{$endif}
-  if Pid=0 then
-   begin
-   { We're in the child }
-   if (PDir<>'') then
-     ChDir(PDir);
-   if PoUsePipes in ProcessOptions then
-     begin
-     {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(FStartupInfo.hStdInput,0);
-     {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(FStartupInfo.hStdOutput,1);
-     {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(FStartupInfo.hStdError,2);
-     end
-   else if poNoConsole in ProcessOptions then
-     begin
-     fd:=FileOpen('/dev/null',fmOpenReadWrite);
-     {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(fd,0);
-     {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(fd,1);
-     {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(fd,2);
-     end;
-   if (poRunSuspended in ProcessOptions) then
-     sigraise(SIGSTOP);
-   if FEnv<>Nil then
-     {$ifdef ver1_0}execve{$else}fpexecve{$endif}(PChar(PName),Argv,Fenv)
-   else
-     {$ifdef ver1_0}execv{$else}fpexecv{$endif}(Pchar(PName),argv);
-   Halt(127);
-   end
- else
-   begin
-   FreePcharList(Argv);
-   // Copy process information.
-   ProcessInfo.hProcess:=PID;
-   ProcessInfo.hThread:=PID;
-   ProcessInfo.dwProcessId:=PID;
-   ProcessInfo.dwThreadId:=PID;
-   end;
-end;
-{$endif}
-
-{$ifdef unix}
-Function GetLastError : Integer;
-
-begin
-  Result:=-1;
-end;
-{$endif}
-
-Procedure TProcess.Execute;
-
-
-Var
-{$ifndef unix}
-  PName,PDir,PCommandLine : PChar;
-  FEnv: pointer;
-{$else}
-  FEnv : PPChar;
-{$endif}
-  FCreationFlags : Cardinal;
-
-begin
-  If poUsePipes in FProcessOptions then
-    CreateStreams;
-  FCreationFlags:=GetCreationFlags;
-  FStartupInfo.dwFlags:=GetStartupFlags;
-{$ifndef unix}
-  PName:=Nil;
-  PCommandLine:=Nil;
-  PDir:=Nil;
-  If FApplicationName<>'' then
-    PName:=Pchar(FApplicationName);
-  If FCommandLine<>'' then
-    PCommandLine:=Pchar(FCommandLine);
-  If FCurrentDirectory<>'' then
-    PDir:=Pchar(FCurrentDirectory);
-{$endif}
-  if FEnvironment.Count<>0 then
-{$ifdef unix}
-    FEnv:=StringsToPcharList(FEnvironment)
-{$else}
-    FEnv:=StringsToPChars(FEnvironment)
-{$endif}
-  else
-    FEnv:=Nil;
-  FInheritHandles:=True;
-{$ifdef unix}
-  if Not CreateProcess (FApplicationName,FCommandLine,FCurrentDirectory,FEnv,
-                        FStartupOptions,FProcessOptions,FStartupInfo,
-                        fProcessInformation) then
-{$else}
-  If Not CreateProcess (PName,PCommandLine,FProcessAttributes,FThreadAttributes,
-                 FInheritHandles,FCreationFlags,FEnv,PDir,FStartupInfo,
-                 fProcessInformation) then
-{$endif}
-    Raise Exception.CreateFmt('Failed to execute %s : %d',[FCommandLine,GetLastError]);
-  if POUsePipes in FProcessOptions then
-    begin
-    FileClose(FStartupInfo.hStdInput);
-    FileClose(FStartupInfo.hStdOutput);
-    if Not (poStdErrToOutPut in FProcessOptions) then
-      FileClose(FStartupInfo.hStdError);
-    end;
-{$ifdef unix}
-  Fhandle:=fprocessinformation.hProcess;
-{$endif}
-  FRunning:=True;
-  If FEnv<>Nil then
-{$ifdef unix}
-    FreePCharList(FEnv);
-{$else}
-    FreeMem(FEnv);
-{$endif}
-  if not (csDesigning in ComponentState) and // This would hang the IDE !
-     (poWaitOnExit in FProcessOptions) and
-      not (poRunSuspended in FProcessOptions) then
-    WaitOnExit;
-end;
-
-Function TProcess.WaitOnExit : Dword;
-
-begin
-{$ifdef unix}
-  Result:=Dword({$ifdef ver1_0}WaitPid{$else}fpWaitPid{$endif}(Handle,@FExitCode,0));
-  If Result=Handle then
-    FExitCode:=WexitStatus(FExitCode);
-{$else}
-  Result:=WaitForSingleObject (FprocessInformation.hProcess,Infinite);
-  If Result<>Wait_Failed then
-    GetExitStatus;
-{$endif}
-  FRunning:=False;
-end;
-
-Function TProcess.Suspend : Longint;
-
-begin
-{$ifdef unix}
-  If {$ifdef ver1_0}kill{$else}fpkill{$endif}(Handle,SIGSTOP)<>0 then
-    Result:=-1
-  else
-    Result:=1;
-{$else}
-  Result:=SuspendThread(ThreadHandle);
-{$endif}
-end;
-
-Function TProcess.Resume : LongInt;
-
-begin
-{$ifdef unix}
-  If {$ifdef ver1_0}kill{$else}fpkill{$endif}(Handle,SIGCONT)<>0 then
-    Result:=-1
-  else
-    Result:=0;
-{$else}
-  Result:=ResumeThread(ThreadHandle);
-{$endif}
-end;
-
-Function TProcess.Terminate(AExitCode : Integer) : Boolean;
-
-begin
-  Result:=False;
-{$ifdef unix}
-  Result:={$ifdef ver1_0}kill{$else}fpkill{$endif}(Handle,SIGTERM)=0;
-  If Result then
-    begin
-    If Running then
-      Result:={$ifdef ver1_0}kill{$else}fpkill{$endif}(Handle,SIGKILL)=0;
-    end;
-  GetExitStatus;
-{$else}
-  If ExitStatus=Still_active then
-    Result:=TerminateProcess(Handle,AexitCode);
-{$endif}
-end;
-
-Procedure TProcess.SetFillAttribute (Value : Cardinal);
-
-begin
-  FStartupInfo.dwFlags:=FStartupInfo.dwFlags or Startf_UseFillAttribute;
-  FStartupInfo.dwFillAttribute:=Value;
-end;
-
-Procedure TProcess.SetShowWindow (Value : TShowWindowOptions);
-
-{$ifndef unix}
-Const
-  SWC : Array [TShowWindowOptions] of Cardinal =
-             (0,SW_HIDE,SW_Maximize,SW_Minimize,SW_Restore,SW_Show,
-             SW_ShowDefault,SW_ShowMaximized,SW_ShowMinimized,
-               SW_showMinNOActive,SW_ShowNA,SW_ShowNoActivate,SW_ShowNormal);
-{$endif}
-
-begin
-  FShowWindow:=Value;
-  if Value<>swoNone then
-    FStartupInfo.dwFlags:=FStartupInfo.dwFlags or Startf_UseShowWindow
-  else
-    FStartupInfo.dwFlags:=FStartupInfo.dwFlags and not Startf_UseShowWindow;
-{$ifndef unix}
-  FStartupInfo.wShowWindow:=SWC[Value];
-{$endif}
-end;
 
 Procedure TProcess.SetWindowColumns (Value : Cardinal);
 
 begin
   if Value<>0 then
     Include(FStartUpOptions,suoUseCountChars);
-  FStartupInfo.dwXCountChars:=Value;
+  dwXCountChars:=Value;  
 end;
 
 
@@ -869,7 +216,7 @@ Procedure TProcess.SetWindowHeight (Value : Cardinal);
 begin
   if Value<>0 then
     include(FStartUpOptions,suoUsePosition);
-  FStartupInfo.dwYsize:=Value;
+  dwYSize:=Value;  
 end;
 
 Procedure TProcess.SetWindowLeft (Value : Cardinal);
@@ -877,7 +224,7 @@ Procedure TProcess.SetWindowLeft (Value : Cardinal);
 begin
   if Value<>0 then
     Include(FStartUpOptions,suoUseSize);
-  FStartupInfo.dwx:=Value;
+  dwx:=Value;
 end;
 
 Procedure TProcess.SetWindowTop (Value : Cardinal);
@@ -885,26 +232,25 @@ Procedure TProcess.SetWindowTop (Value : Cardinal);
 begin
   if Value<>0 then
     Include(FStartUpOptions,suoUsePosition);
-  FStartupInfo.dwy:=Value;
+  dwy:=Value;  
 end;
 
 Procedure TProcess.SetWindowWidth (Value : Cardinal);
 begin
   If (Value<>0) then
     Include(FStartUpOptions,suoUseSize);
-  FStartupInfo.dwxsize:=Value;
+  dwXSize:=Value;  
 end;
 
 Function TProcess.GetWindowRect : TRect;
 begin
   With Result do
-    With FStartupInfo do
-      begin
-      Left:=dwx;
-      Right:=dwx+dwxSize;
-      Top:=dwy;
-      Bottom:=dwy+dwysize;
-      end;
+    begin
+    Left:=dwx;
+    Right:=dwx+dwxSize;
+    Top:=dwy;
+    Bottom:=dwy+dwysize;
+    end;
 end;
 
 Procedure TProcess.SetWindowRect (Value : Trect);
@@ -912,21 +258,21 @@ begin
   Include(FStartupOptions,suouseSize);
   Include(FStartupOptions,suoUsePosition);
   With Value do
-    With FStartupInfo do
-      begin
-      dwx:=Left;
-      dwxSize:=Right-Left;
-      dwy:=Top;
-      dwySize:=Bottom-top;
-      end;
+    begin
+    dwx:=Left;
+    dwxSize:=Right-Left;
+    dwy:=Top;
+    dwySize:=Bottom-top;
+    end;
 end;
 
 
 Procedure TProcess.SetWindowRows (Value : Cardinal);
 
 begin
-  FStartupInfo.dwFlags:=FStartupInfo.dwFlags or Startf_UseCountChars;
-  FStartupInfo.dwYCountChars:=Value;
+  if Value<>0 then
+    Include(FStartUpOptions,suoUseCountChars);
+  dwYCountChars:=Value;
 end;
 
 procedure TProcess.SetApplicationname(const Value: String);
@@ -963,7 +309,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2004-07-30 12:55:42  michael
+  Revision 1.21  2004-08-12 14:33:55  michael
+  + New split of process.pp
+
+  Revision 1.20  2004/07/30 12:55:42  michael
   Closing process handles in Windows. Patch from Vincent Snijders
 
   Revision 1.19  2004/02/03 08:12:22  michael
