@@ -199,12 +199,15 @@ program fpc;
          error(ppcbin+' can''t be executed, error message: '+e.message);
      end;
      if errorvalue<>0 then
-       error(ppcbin+' can''t be executed');
+       error(ppcbin+' returned an error exitcode (normal if you did not specifiy a source file to be compiled)');
      halt(errorvalue);
   end.
 {
   $Log$
-  Revision 1.16  2004-06-16 20:07:11  florian
+  Revision 1.17  2004-09-10 21:00:53  jonas
+    * fixed wrong error message
+
+  Revision 1.16  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.15  2004/06/06 01:18:47  karoly
