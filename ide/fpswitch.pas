@@ -608,7 +608,7 @@ var
            until s='';
          end
        else
-         if P^.ParamValue<>'/' then
+         if P^.Param<>'/' then
            Writeln(CfgFile,' -'+Pref+P^.Param+P^.ParamValue);
      end;
   end;
@@ -855,9 +855,10 @@ begin
      AddBooleanItem(opt_tp7compatibility,'o',idNone);
      AddBooleanItem(opt_delphicompatibility,'d',idNone);
      AddBooleanItem(opt_allowstaticinobjects,'s',idNone);
+     { Useless as they are not passed to the compiler PM
      AddBooleanItem(opt_strictvarstrings,'/',idStrictVarStrings);
      AddBooleanItem(opt_extendedsyntax,'/',idExtendedSyntax);
-     AddBooleanItem(opt_allowmmxoperations,'/',idMMXOps);
+     AddBooleanItem(opt_allowmmxoperations,'/',idMMXOps);  }
    end;
   New(VerboseSwitches,Init('v'));
   with VerboseSwitches^ do
@@ -1231,7 +1232,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2002-03-16 14:53:23  armin
+  Revision 1.7  2002-04-10 22:41:05  pierre
+   * remove switches that have no command line option
+
+  Revision 1.6  2002/03/16 14:53:23  armin
   + add netware target
 
   Revision 1.5  2002/02/20 15:06:52  pierre
