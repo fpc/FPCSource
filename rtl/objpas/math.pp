@@ -50,7 +50,9 @@ interface
        { WARNING : changing float type will                      }
        { break all assembler code  PM                            }
        float = extended;
-
+       PFloat = ^Float;
+       PInteger = ^Integer;
+       
        tpaymenttime = (ptendofperiod,ptstartofperiod);
 
        einvalidargument = class(ematherror);
@@ -147,17 +149,28 @@ function ldexp(x : float;p : longint) : float;
 
 function mean(const data : array of float) : float;
 function sum(const data : array of float) : float;
+function mean(const data : PFloat; Const N : longint) : float;
+function sum(const data : PFloat; Const N : Longint) : float;
 function sumofsquares(const data : array of float) : float;
+function sumofsquares(const data : PFloat; Const N : Integer) : float;
 { calculates the sum and the sum of squares of data }
 procedure sumsandsquares(const data : array of float;
   var sum,sumofsquares : float);
 function minvalue(const data : array of float) : float;
+function minvalue(const data : array of integer) : Integer;
+function minvalue(const data : PFloat; Const N : Integer) : float;
+function MinValue(const Data : PInteger; Const N : Integer): Integer;
 function maxvalue(const data : array of float) : float;
+function maxvalue(const data : array of integer) : Integer;
+function maxvalue(const data : PFloat; Const N : Integer) : float;
+function maxvalue(const data : PInteger; Const N : Integer) : Integer;
 { calculates the standard deviation }
 function stddev(const data : array of float) : float;
 { calculates the mean and stddev }
 procedure meanandstddev(const data : array of float;
   var mean,stddev : float);
+procedure meanandstddev(const data : PFloat;
+  Const N : Longint;var mean,stddev : float);
 function variance(const data : array of float) : float;
 function totalvariance(const data : array of float) : float;
 { returns random values with gaussian distribution }
@@ -168,11 +181,14 @@ function popnstddev(const data : array of float) : float;
 function popnvariance(const data : array of float) : float;
 procedure momentskewkurtosis(const data : array of float;
   var m1,m2,m3,m4,skew,kurtosis : float);
+procedure momentskewkurtosis(const data : PFloat; Const N : Integer;
+  var m1,m2,m3,m4,skew,kurtosis : float);
 
 { geometrical function }
 
 { returns the euclidean L2 norm }
 function norm(const data : array of float) : float;
+function norm(const data : PFloat; Const N : Integer) : float;
 
 implementation
 
@@ -420,7 +436,15 @@ function lnxp1(x : float) : float;
 function power(base,exponent : float) : float;
 
   begin
-     Power:=exp(exponent * ln (base));
+    If Exponent=0.0 then 
+      Result:=1.0
+    else
+      If base>0.0 then
+        Power:=exp(exponent * ln (base))
+      else if base=0.0 then
+        Result:=0.0
+      else
+        InvalidArgument
   end;
 
 function intpower(base : float;exponent : longint) : float;
@@ -476,29 +500,47 @@ function ldexp(x : float;p : longint) : float;
 function mean(const data : array of float) : float;
 
   begin
-     mean:=sum(data);
-     mean:=mean/(high(data)-low(data)+1);
+     Result:=Mean(@data[0],High(Data)+1);
+  end;
+
+function mean(const data : PFloat; Const N : longint) : float;
+
+  begin
+     mean:=sum(Data,N);
+     mean:=mean/N;
   end;
 
 function sum(const data : array of float) : float;
+
+  begin
+     Result:=Sum(@Data[0],High(Data)+1);
+  end;
+
+function sum(const data : PFloat;Const N : longint) : float;
 
   var
      i : longint;
 
   begin
      sum:=0.0;
-     for i:=low(data) to high(data) do
+     for i:=0 to N-1 do
        sum:=sum+data[i];
   end;
 
-function sumofsquares(const data : array of float) : float;
+ function sumofsquares(const data : array of float) : float;
+ 
+ begin
+   Result:=sumofsquares(@data[0],High(Data)+1);
+ end;
+ 
+ function sumofsquares(const data : PFloat; Const N : Integer) : float;
 
   var
      i : longint;
 
   begin
      sumofsquares:=0.0;
-     for i:=low(data) to high(data) do
+     for i:=0 to N-1 do
        sumofsquares:=sumofsquares+sqr(data[i]);
   end;
 
@@ -520,31 +562,7 @@ procedure sumsandsquares(const data : array of float;
        end;
   end;
 
-function minvalue(const data : array of float) : float;
 
-  var
-     i : longint;
-
-  begin
-     { get an initial value }
-     minvalue:=data[low(data)];
-     for i:=low(data) to high(data) do
-       if data[i]<minvalue then
-         minvalue:=data[i];
-  end;
-
-function maxvalue(const data : array of float) : float;
-
-  var
-     i : longint;
-
-  begin
-     { get an initial value }
-     maxvalue:=data[low(data)];
-     for i:=low(data) to high(data) do
-       if data[i]>maxvalue then
-         maxvalue:=data[i];
-  end;
 
 function stddev(const data : array of float) : float;
 
@@ -555,9 +573,31 @@ function stddev(const data : array of float) : float;
 procedure meanandstddev(const data : array of float;
   var mean,stddev : float);
 
-  begin
+begin
+  Meanandstddev(@Data[0],High(Data)+1,Mean,stddev);
+end;
 
-  end;
+procedure meanandstddev(const data : PFloat;
+  Const N : Longint;var mean,stddev : float);
+
+Var I : longint;
+
+begin
+  Mean:=0;
+  StdDev:=0;
+  For I:=0 to N-1 do
+    begin
+    Mean:=Mean+Data[i];
+    StdDev:=StdDev+Sqr(Data[i]);
+    end;
+  Mean:=Mean/N;
+  StdDev:=StdDev/N-Sqr(Mean);
+  // the following depends on the definition of standard deviation...
+  If N>1 then
+    StdDev:=Sqrt(Stddev/(N-1))
+  else  
+    StdDev:=0;
+end;
 
 function variance(const data : array of float) : float;
 
@@ -601,16 +641,23 @@ function popnvariance(const data : array of float) : float;
 procedure momentskewkurtosis(const data : array of float;
   var m1,m2,m3,m4,skew,kurtosis : float);
 
+begin
+  momentskewkurtosis(@Data[0],High(Data)+1,m1,m2,m3,m4,skew,kurtosis);
+end;
+
+procedure momentskewkurtosis(const data : PFloat; Const N : Integer;
+  var m1,m2,m3,m4,skew,kurtosis : float);
+
   Var S,SS,SC,SQ,invN,Acc,M1S,S2N,S3N,temp : Float;
       I : Longint;
 
   begin
-     invN:=1.0/(High(Data)-Low(Data)+1);
+     invN:=1.0/N;
      s:=0;
      ss:=0;
      sq:=0;
      sc:=0;
-     for i:=Low(Data) to High(Data) do
+     for i:=0 to N-1 do
        begin
        temp:=Data[i];   { faster }
        S:=S+temp;
@@ -635,7 +682,13 @@ procedure momentskewkurtosis(const data : array of float;
 function norm(const data : array of float) : float;
 
   begin
-     norm:=sqrt(sumofsquares(data));
+     norm:=Norm(@data[0],High(Data)+1);
+  end;
+
+function norm(const data : PFloat; Const N : Integer) : float;
+
+  begin
+     norm:=sqrt(sumofsquares(data,N));
   end;
 
 
@@ -648,6 +701,41 @@ begin
     If Data[I] < Result Then Result := Data[I];
 end;
 
+function MinValue(const Data: array of Integer): Integer;
+
+begin
+  Result:=MinValue(Pinteger(@Data[0]),High(Data)+1)
+end;
+
+function MinValue(const Data: PInteger; Const N : Integer): Integer;
+var
+  I: Integer;
+begin
+  Result := Data[0];
+  For I := 0 To N-1 do
+    If Data[I] < Result Then Result := Data[I];
+end;
+
+
+function minvalue(const data : array of float) : float;
+
+begin
+   Result:=minvalue(PFloat(@data[0]),High(Data)+1);
+end;
+
+function minvalue(const data : PFloat; Const N : Integer) : float;
+
+var
+   i : longint;
+
+begin
+   { get an initial value }
+   minvalue:=data[0];
+   for i:=0 to N-1 do
+     if data[i]<minvalue then
+       minvalue:=data[i];
+end;
+
 function MaxIntValue(const Data: array of Integer): Integer;
 var
   I: Integer;
@@ -656,6 +744,45 @@ begin
   For I := Succ(Low(Data)) To High(Data) Do
     If Data[I] > Result Then Result := Data[I];
 end;
+
+function maxvalue(const data : array of float) : float;
+
+begin
+   Result:=maxvalue(PFloat(@data[0]),High(Data)+1);
+end;
+
+function maxvalue(const data : PFloat; Const N : Integer) : float;
+
+var
+   i : longint;
+
+begin
+   { get an initial value }
+   maxvalue:=data[0];
+   for i:=0 to N-1 do
+     if data[i]>maxvalue then
+       maxvalue:=data[i];
+end;
+
+function MaxValue(const Data: array of Integer): Integer;
+
+begin
+  Result:=MaxValue(PInteger(@Data[0]),High(Data)+1)
+end;
+
+function maxvalue(const data : PInteger; Const N : Integer) : Integer;
+
+var
+   i : longint;
+
+begin
+   { get an initial value }
+   maxvalue:=data[0];
+   for i:=0 to N-1 do
+     if data[i]>maxvalue then
+       maxvalue:=data[i];
+end;
+
 
 function Min(Int1,Int2:Integer):Integer;
 begin
@@ -685,7 +812,13 @@ end;
 end.
 {
     $Log$
-    Revision 1.21  2000-07-06 12:13:59  michael
+    Revision 1.22  2000-07-06 21:59:25  michael
+    + Added many overloaded functions with as argument pointer to
+      array and count
+    + Implemented meanandstddev
+    + Improved power
+
+    Revision 1.21  2000/07/06 12:13:59  michael
     + SOme changes in error reporting
 
     Revision 1.20  2000/07/05 13:19:59  michael
