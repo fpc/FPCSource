@@ -70,12 +70,12 @@ interface
        end;
 
        tarrayconstructornode = class(tbinarynode)
-          constructortype : ttype;
           constructor create(l,r : tnode);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
+          procedure force_type(tt:ttype);
        end;
 
        ttypenode = class(tnode)
@@ -553,7 +553,6 @@ implementation
     constructor tarrayconstructornode.create(l,r : tnode);
       begin
          inherited create(arrayconstructorn,l,r);
-         constructortype.reset;
       end;
 
 
@@ -562,7 +561,6 @@ implementation
          n : tarrayconstructornode;
       begin
          n:=tarrayconstructornode(inherited getcopy);
-         n.constructortype:=constructortype;
          result:=n;
       end;
 
@@ -587,7 +585,7 @@ implementation
          end;
 
       { only pass left tree, right tree contains next construct if any }
-        htype:=constructortype;
+        htype.reset;
         len:=0;
         varia:=false;
         if assigned(left) then
@@ -617,6 +615,25 @@ implementation
          tarraydef(resulttype.def).elementtype:=htype;
          tarraydef(resulttype.def).IsConstructor:=true;
          tarraydef(resulttype.def).IsVariant:=varia;
+      end;
+
+
+    procedure tarrayconstructornode.force_type(tt:ttype);
+      var
+        hp : tarrayconstructornode;
+      begin
+        tarraydef(resulttype.def).elementtype:=tt;
+        tarraydef(resulttype.def).IsConstructor:=true;
+        tarraydef(resulttype.def).IsVariant:=false;
+        if assigned(left) then
+         begin
+           hp:=self;
+           while assigned(hp) do
+            begin
+              inserttypeconv(hp.left,tt);
+              hp:=tarrayconstructornode(hp.right);
+            end;
+         end;
       end;
 
 
@@ -715,8 +732,7 @@ implementation
     function tarrayconstructornode.docompare(p: tnode): boolean;
       begin
         docompare :=
-          inherited docompare(p) and
-          (constructortype.def = tarrayconstructornode(p).constructortype.def);
+          inherited docompare(p);
       end;
 
 
@@ -767,7 +783,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2001-06-04 18:07:47  peter
+  Revision 1.20  2001-07-30 20:52:25  peter
+    * fixed array constructor passing with type conversions
+
+  Revision 1.19  2001/06/04 18:07:47  peter
     * remove unused typenode for procvar load. Don't know what happened why
       this code was not there already with revision 1.17.
 

@@ -181,6 +181,7 @@ implementation
     procedure tcallparanode.insert_typeconv(defcoll : tparaitem;do_count : boolean);
       var
         oldtype     : ttype;
+        old_array_constructor : boolean;
 {$ifdef extdebug}
         store_count_ref : boolean;
 {$endif def extdebug}
@@ -249,7 +250,9 @@ implementation
             else
              begin
                include(left.flags,nf_novariaallowed);
-               tarrayconstructornode(left).constructortype:=tarraydef(defcoll.paratype.def).elementtype;
+               { now that the resultting type is know we can insert the required
+                 typeconvs for the array constructor }
+               tarrayconstructornode(left).force_type(tarraydef(defcoll.paratype.def).elementtype);
              end;
           end;
 
@@ -1485,8 +1488,16 @@ implementation
                      end
                    else if (resulttype.def.deftype=floatdef) then
                      begin
-                        location.loc:=LOC_FPU;
+                       location.loc:=LOC_FPU;
+{$ifdef m68k}
+                       if (cs_fp_emulation in aktmoduleswitches) or
+                          (tfloatdef(resulttype.def).typ=s32real) then
+                         registers32:=1
+                       else
+                         registersfpu:=1;
+{$else not m68k}
                         registersfpu:=1;
+{$endif not m68k}
                      end
                    else
                      location.loc:=LOC_MEM;
@@ -1655,7 +1666,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2001-07-09 21:15:40  peter
+  Revision 1.38  2001-07-30 20:52:25  peter
+    * fixed array constructor passing with type conversions
+
+  Revision 1.37  2001/07/09 21:15:40  peter
     * Length made internal
     * Add array support for Length
 
