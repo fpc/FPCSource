@@ -56,6 +56,8 @@ begin
   waitpid(-1, nil, WNOHANG);
 end;
 
+Const sigzero : sigset_t = (0,0,0,0); //Do not block all signals ??. Don't need if SA_NOMASK in flags
+
 procedure InitThreads;
 var
   Act, OldAct: PSigActionRec;
@@ -71,10 +73,19 @@ begin
   GetMem(Act, SizeOf(SigActionRec));
   GetMem(OldAct, SizeOf(SigActionRec));
 
+  {$ifdef ver1_0}
   Act^.handler.sh := @SIGCHLDHandler;
+  {$else}
+  Act^.sa_handler := @SIGCHLDHandler;
+  {$endif}
+  
   Act^.sa_flags := SA_NOCLDSTOP {or SA_NOMASK or SA_RESTART};
-  Act^.sa_mask := 0; //Do not block all signals ??. Don't need if SA_NOMASK in flags
-
+  
+  {$ifdef VER1_0}
+   Act^.sa_mask := 0; //Do not block all signals ??. Don't need if SA_NOMASK in flags
+  {$else}
+   Act^.sa_mask := sigzero;
+  {$endif} 
   SigAction(SIGCHLD, Act, OldAct);
 
   FreeMem(Act, SizeOf(SigActionRec));
@@ -284,7 +295,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-09-07 15:15:27  peter
+  Revision 1.4  2003-01-24 21:13:31  marco
+   * More bugs, but now gmake all works.
+
+  Revision 1.3  2002/09/07 15:15:27  peter
     * old logs removed and tabs fixed
 
 }
