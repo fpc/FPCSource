@@ -430,15 +430,16 @@ function ceil(x : float) : longint;
 
   begin
     Ceil:=Trunc(x);
-    If Frac(x)>0 then
-      if x > 0 then Ceil:=Ceil+1
-      else Ceil := Ceil - 1;
+    If (x > 0) And (Frac(x) > 0) then
+      Ceil:=Ceil+1;
   end;
 
 function floor(x : float) : longint;
 
   begin
      Floor:=Trunc(x);
+     If (x < 0) And (Frac(x) > 0) then
+       Floor := Floor - 1;
   end;
 
 procedure frexp(x : float;var mantissa,exponent : float);
@@ -665,7 +666,10 @@ end;
 end.
 {
     $Log$
-    Revision 1.10  1999-06-03 16:22:57  jonas
+    Revision 1.11  1999-06-04 08:44:34  jonas
+      * Ceil and Floor are now really fixed :)
+
+    Revision 1.10  1999/06/03 16:22:57  jonas
       * fixed ceil function
 
     Revision 1.9  1999/06/03 13:37:30  jonas
