@@ -368,149 +368,44 @@ No example available yet.
 \section{Keyboard scan codes}
 Special physical keys are encoded with the DOS scan codes for these keys
 in the second byte of the \var{TKeyEvent} type.
-What follows is a list of the scan codes.
-\begin{FPCtable}{ll}{Physical keys scan codes}
-Scan code (hex) & Key \\ \hline
-00 & NoKey \\
-01 & ALT-Esc \\
-02 & ALT-Space \\
-04 & CTRL-Ins \\
-05 & SHIFT-Ins \\
-06 & CTRL-Del \\
-07 & SHIFT-Del \\
-08 & ALT-Back \\
-09 & ALT-SHIFT-Back \\
-0F & SHIFT-Tab \\
-10 & ALT-Q \\
-11 & ALT-W \\
-12 & ALT-E \\
-13 & ALT-R \\
-14 & ALT-T \\
-15 & ALT-Y \\
-16 & ALT-U \\
-17 & ALT-I \\
-18 & ALT-O \\
-19 & ALT-P \\
-1A & ALT-LftBrack \\
-1B & ALT-RgtBrack \\
-1E & ALT-A \\
-1F & ALT-S \\
-20 & ALT-D \\
-21 & ALT-F \\
-22 & ALT-G \\
-23 & ALT-H \\
-24 & ALT-J \\
-25 & ALT-K \\
-26 & ALT-L \\
-27 & ALT-SemiCol \\
-28 & ALT-Quote \\
-29 & ALT-OpQuote \\
-2B & ALT-BkSlash \\
-2C & ALT-Z \\
-2D & ALT-X \\
-2E & ALT-C \\
-2F & ALT-V \\
-30 & ALT-B \\
-31 & ALT-N \\
-32 & ALT-M \\
-33 & ALT-Comma \\
-34 & ALT-Period \\
-35 & ALT-Slash \\
-37 & ALT-GreyAst \\
-3B & F1 \\
-3C & F2 \\
-3D & F3 \\
-3E & F4 \\
-3F & F5 \\
-40 & F6 \\
-41 & F7 \\
-42 & F8 \\
-43 & F9 \\
-44 & F10 \\
-47 & Home \\
-48 & Up \\
-49 & PgUp \\
-4B & Left \\
-4C & Center \\
-4D & Right \\
-4E & ALT-GrayPlus \\
-4F & end \\
-50 & Down \\
-51 & PgDn \\
-52 & Ins \\
-53 & Del \\
-54 & SHIFT-F1 \\
-55 & SHIFT-F2 \\
-56 & SHIFT-F3 \\
-57 & SHIFT-F4 \\
-58 & SHIFT-F5 \\
-59 & SHIFT-F6 \\
-5A & SHIFT-F7 \\
-5B & SHIFT-F8 \\
-5C & SHIFT-F9 \\
-5D & SHIFT-F10 \\
-5E & CTRL-F1 \\
-5F & CTRL-F2 \\
-60 & CTRL-F3 \\
-61 & CTRL-F4 \\
-62 & CTRL-F5 \\
-63 & CTRL-F6 \\
-64 & CTRL-F7 \\
-65 & CTRL-F8 \\
-66 & CTRL-F9 \\
-67 & CTRL-F10 \\
-68 & ALT-F1 \\
-69 & ALT-F2 \\
-6A & ALT-F3 \\
-6B & ALT-F4 \\
-6C & ALT-F5 \\
-6D & ALT-F6 \\
-6E & ALT-F7 \\
-6F & ALT-F8 \\
-70 & ALT-F9 \\
-71 & ALT-F10 \\
-72 & CTRL-PrtSc \\
-73 & CTRL-Left \\
-74 & CTRL-Right \\
-75 & CTRL-end \\
-76 & CTRL-PgDn \\
-77 & CTRL-Home \\
-78 & ALT-1 \\
-79 & ALT-2 \\
-7A & ALT-3 \\
-7B & ALT-4 \\
-7C & ALT-5 \\
-7D & ALT-6 \\
-7E & ALT-7 \\
-7F & ALT-8 \\
-80 & ALT-9 \\
-81 & ALT-0 \\
-82 & ALT-Minus \\
-83 & ALT-Equal \\
-84 & CTRL-PgUp \\
-85 & F11 \\
-86 & F12 \\
-87 & SHIFT-F11 \\
-88 & SHIFT-F12 \\
-89 & CTRL-F11 \\
-8A & CTRL-F12 \\
-8B & ALT-F11 \\
-8C & ALT-F12 \\
-8D & CTRL-Up \\
-8E & CTRL-Minus \\
-8F & CTRL-Center \\
-90 & CTRL-GreyPlus \\
-91 & CTRL-Down \\
-94 & CTRL-Tab \\
-97 & ALT-Home \\
-98 & ALT-Up \\
-99 & ALT-PgUp \\
-9B & ALT-Left \\
-9D & ALT-Right \\
-9F & ALT-end \\
-A0 & ALT-Down \\
-A1 & ALT-PgDn \\
-A2 & ALT-Ins \\
-A3 & ALT-Del \\
-A5 & ALT-Tab \\ \hline
-\end{FPCtable}
+A complete list of scan codes can be found in \seet{keyscans}.
+
+A list of scan codes for special keys and combinations with the SHIFT, ALT
+and CTRl keys can be found in \seet{speckeys}.
+\begin{FPCltable}{llllll}{Physical keys scan codes}{keyscans}
+Code & Key & Code & Key & Code & Key\\ \hline
+\input{keys.tex}
+\hline
+\end{FPCltable}
+
+\begin{FPCltable}{llccc}{Special keys scan codes}{speckeys}
+Key         & Code  & SHIFT-Key & CTRL-Key & Alt-Key \\ \hline
+NoKey       &  00   &       &     &     \\
+F1          &  3B   &  54   & 5E  & 68  \\
+F2          &  3C   &  55   & 5F  & 69  \\
+F3          &  3D   &  56   & 60  & 6A  \\
+F4          &  3E   &  57   & 61  & 6B  \\
+F5          &  3F   &  58   & 62  & 6C  \\
+F6          &  40   &  59   & 63  & 6D  \\
+F7          &  41   &  5A   & 64  & 6E  \\
+F8          &  42   &  5A   & 65  & 6F  \\
+F9          &  43   &  5B   & 66  & 70  \\
+F10         &  44   &  5C   & 67  & 71  \\
+F11         &  85   &  87   & 89  & 8B  \\
+F12         &  86   &  88   & 8A  & 8C  \\
+Home        &  47   &       & 77  & 97  \\ 
+Up          &  48   &       & 8D  & 98  \\
+PgUp        &  49   &       & 84  & 99  \\
+Left        &  4B   &       & 73  & 9B  \\
+Center      &  4C   &       & 8F  &     \\
+Right       &  4D   &       & 74  & 9D  \\
+end         &  4F   &       & 75  & 9F  \\
+Down        &  50   &       & 91  & A0  \\
+PgDn        &  51   &       & 76  & A1  \\
+Ins         &  52   & 05    & 04  & A2  \\
+Del         &  53   & 07    & 06  & A3  \\
+Tab         &  8    & 0F    & 94  & A5  \\
+GreyPlus    &       &       & 90  & 4E  \\
+\hline
+\end{FPCltable}
+
