@@ -272,7 +272,10 @@ implementation
 
          if (p^.left^.treetype=ordconstn) then
            begin
-              t:=genordinalconstnode(not(p^.left^.value),p^.left^.resulttype);
+              if is_boolean(p^.left^.resulttype) then
+               t:=genordinalconstnode(byte(not(boolean(p^.left^.value))),p^.left^.resulttype)
+              else
+               t:=genordinalconstnode(not(p^.left^.value),p^.left^.resulttype);
               disposetree(p);
               firstpass(t);
               p:=t;
@@ -328,7 +331,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-11-05 14:26:01  peter
+  Revision 1.7  1998-11-13 10:16:38  peter
+    * fixed constant not(boolean)
+
+  Revision 1.6  1998/11/05 14:26:01  peter
     * fixed shlshr which would push ecx when not needed
 
   Revision 1.5  1998/10/20 13:12:39  peter
