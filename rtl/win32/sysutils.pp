@@ -213,11 +213,13 @@ var
   Handle: THandle;
   FindData: TWin32FindData;
 begin
+  Result:=False;
   Handle := FindFirstFile(Pchar(Directory), FindData);
-  Result:=(Handle <> INVALID_HANDLE_VALUE) and
-          ((FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY);
-  If Result then
+  If (Handle <> INVALID_HANDLE_VALUE) then
+    begin
+    Result:=((FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY);
     Windows.FindClose(Handle);
+    end;
 end;
 
 
@@ -788,7 +790,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.29  2004-01-10 17:40:25  michael
+  Revision 1.30  2004-01-16 20:53:33  michael
+  + DirectoryExists now closes findfirst handle
+
+  Revision 1.29  2004/01/10 17:40:25  michael
   + Added Sleep() function
 
   Revision 1.28  2004/01/05 22:56:08  florian
