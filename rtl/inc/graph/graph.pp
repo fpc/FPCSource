@@ -1177,6 +1177,7 @@ var
   { NOTE: - uses the current write mode.                   }
   {       - Angles must both be between 0 and 360          }
   {********************************************************}
+
   Procedure InternalEllipseDefault(X,Y: Integer;XRadius: word;
     YRadius:word; stAngle,EndAngle: word);
    var
@@ -1194,7 +1195,8 @@ var
     DeltaAngle: word;
   Begin
    { check if valid angles }
-   if (stAngle > 360) or (EndAngle > 360) then exit;
+   stangle := stAngle mod 361;
+   EndAngle := EndAngle mod 361;
    { if impossible angles then swap them! }
    if Endangle < StAngle then
      Begin
@@ -1225,11 +1227,10 @@ var
 	 { this used by both sin and cos }
 	 TempTerm := j*ConvFac;
 	 { Calculate points }
-  {$R-}
 	 xpt^[i]:=round(XRadius*Cos(TempTerm));
 	 { calculate the value of y }
 	 ypt^[i]:=round(YRadius*Sin(TempTerm+Pi));
-  {$R+}
+     if abs(ypt^[i]) > YRadius then ypt^[i] := 0;
 	 j:=j+Delta;
 	 inc(i);
        Until j > DeltaAngle;
@@ -1257,11 +1258,9 @@ var
 	  Repeat
 	    { this used by both sin and cos }
 	    TempTerm := j*ConvFac;
-    {$R-}
 	    xpt^[i]:=round((aval)*Cos(TempTerm));
 	    { calculate the value of y }
 	    ypt^[i]:=round(bval*Sin(TempTerm+Pi));
-    {$R+}
 	    j:=j+Delta;
 	    inc(i);
 	  Until j > DeltaAngle;
@@ -1302,6 +1301,80 @@ var
      end;
   end;
 
+
+(*
+Procedure InternalEllipseDefault (x, y : integer;
+    xradius, yradius, stAngle, EndAngle : Word);
+{ Draw an ellipse arc. Crude but it works (anyone have a better one?) }
+Var
+  aSqr, bSqr, twoaSqr, twobSqr, xa, ya, twoXbSqr, twoYaSqr, error : LongInt;
+  Alpha : Real;
+const
+  RadToDeg = 180/Pi;
+
+
+Procedure PlotPoints;
+
+Begin
+  If (Alpha>=StAngle) And (Alpha<=EndAngle) then
+      DirectPutPixel (x-xa,y-ya);
+  If (180-Alpha>=StAngle) And (180-Alpha<=EndAngle) then
+      DirectPutPixel (x-xa,y+ya);
+  If (180+Alpha>=StAngle) And (180+Alpha<=EndAngle) then
+      DirectPutPixel (x+xa,y+ya);
+  If (360-Alpha>=StAngle) And (360-Alpha<=EndAngle) then
+      DirectPutPixel (x+xa,y-ya);
+End;
+
+Begin
+  StAngle:=StAngle MOD 361;
+  EndAngle:=EndAngle MOD 361;
+  If StAngle>EndAngle then
+  Begin
+    StAngle:=StAngle Xor EndAngle; EndAngle:=EndAngle Xor StAngle; StAngle:=EndAngle Xor StAngle;
+  End;
+  { Adjust for screen aspect ratio }
+  XRadius:=(longint(XRadius)*10000) div XAspect;
+  YRadius:=(longint(YRadius)*10000) div YAspect;
+  aSqr:=LongInt (xradius)*LongInt (xradius);
+  bSqr:=LongInt (yradius)*LongInt (yradius);
+  twoaSqr:=2*aSqr;
+  twobSqr:=2*bSqr;
+  xa:=0;
+  ya:=yradius;
+  twoXbSqr:=0;
+  twoYaSqr:=ya*twoaSqr;
+  error:=-ya*aSqr;
+  While twoXbSqr<=twoYaSqr Do Begin
+    If ya=0 then Alpha:=90 Else Alpha:=RadToDeg*Arctan (xa/ya); { Crude but it works }
+    PlotPoints;
+    Inc (xa);
+    Inc (twoXbSqr,twobSqr);
+    Inc (error,twoXbSqr-bSqr);
+    If error>=0 then Begin
+      Dec (ya);
+      Dec (twoYaSqr,twoaSqr);
+      Dec (error,twoYaSqr);
+    End;
+  End;
+  xa:=xradius;
+  ya:=0;
+  twoXbSqr:=xa*twobSqr;
+  twoYaSqr:=0;
+  error:=-xa*bSqr;
+  While twoXbSqr>twoYaSqr Do Begin
+    If ya=0 then Alpha:=90 Else Alpha:=RadToDeg*Arctan (xa/ya);
+    PlotPoints;
+    Inc (ya);
+    Inc (twoYaSqr,twoaSqr);
+    Inc (error,twoYaSqr-aSqr);
+    If error>=0 then Begin
+      Dec (xa);
+      Dec (twoXbSqr,twobSqr);
+      Dec (error,twoXbSqr);
+    End;
+  End;
+End;*)
 
   procedure PatternLineDefault(x1,x2,y: integer);
   {********************************************************}
@@ -1526,8 +1599,8 @@ procedure GetViewSettings(var viewport : ViewPortType);
 begin
   ViewPort.X1 := StartXViewPort;
   ViewPort.Y1 := StartYViewPort;
-  ViewPort.X2 := ViewWidth - StartXViewPort;
-  ViewPort.Y2 := ViewHeight - StartYViewPort;
+  ViewPort.X2 := ViewWidth + StartXViewPort;
+  ViewPort.Y2 := ViewHeight + StartYViewPort;
   ViewPort.Clip := ClipPixels;
 end;
 
