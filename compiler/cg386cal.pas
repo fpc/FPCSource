@@ -895,7 +895,16 @@ implementation
 {$endif noAllocEdi}
                 end
               else if not inlined then
-                emitcall(pprocdef(p^.procdefinition)^.mangledname)
+                begin
+                  { We can call interrupts from within the smae code
+                    by just pushing the flags and CS PM }
+                  if (po_interrupt in p^.procdefinition^.procoptions) then
+                    begin
+                        emit_none(A_PUSHF,S_L);
+                        emit_reg(A_PUSH,S_L,R_CS);
+                    end;
+                  emitcall(pprocdef(p^.procdefinition)^.mangledname);
+                end
               else { inlined proc }
                 { inlined code is in inlinecode }
                 begin
@@ -1413,7 +1422,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.130  2000-03-31 22:56:45  pierre
+  Revision 1.131  2000-05-09 10:54:03  pierre
+   add code to allow calling interrupt routines
+
+  Revision 1.130  2000/03/31 22:56:45  pierre
     * fix the handling of value parameters in cdecl function
 
   Revision 1.129  2000/03/19 08:17:36  peter
