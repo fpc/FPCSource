@@ -103,10 +103,16 @@ interface
 
 implementation
 
+
+begin
 end.
 {
   $Log$
-  Revision 1.1  1998-12-11 00:05:27  peter
+  Revision 1.2  1998-12-23 12:40:48  daniel
+  * Added begin to globtype and version to avoid empty object files.
+  * Fileexists no longer finds volume labels.
+
+  Revision 1.1  1998/12/11 00:05:27  peter
     * splitted from globals.pas
 
 }

@@ -24,14 +24,24 @@ unit version;
 interface
 
     const
-       { word version for ppu file }
-       wordversion = (0 shl 11)+99;
-
        { version string }
+       wordversion = (0 shl 10)+99;
+
        version_nr = '0';
        release_nr = '99';
-       patch_nr   = '11';
+       patch_nr   = '10';
        version_string = version_nr+'.'+release_nr+'.'+patch_nr;
+
+       { target string }
+{$ifdef i386}
+       target_string = 'i386';
+{$endif}
+{$ifdef m68k}
+       target_string = 'M680x0';
+{$endif}
+{$ifdef alpha}
+       target_string = 'Alpha';
+{$endif}
 
        { date string }
 {$ifdef FPC}
@@ -40,37 +50,18 @@ interface
        date_string = 'N/A';
 {$endif}
 
-       { target cpu string }
-{$ifdef i386}
-       target_cpu_string = 'i386';
-{$endif}
-{$ifdef m68k}
-       target_cpu_string = 'm68k';
-{$endif}
-{$ifdef alpha}
-       target_cpu_string = 'alpha';
-{$endif}
-
-       { source cpu string }
-{$ifdef cpu86}
-        source_cpu_string = 'i386';
-{$endif}
-{$ifdef cpu68}
-        source_cpu_string = 'm68k';
-{$endif}
-
 
 implementation
 
+begin
 end.
 {
   $Log$
-  Revision 1.3  1998-12-15 10:23:34  peter
-    + -iSO, -iSP, -iTO, -iTP
+  Revision 1.4  1998-12-23 12:40:49  daniel
+  * Added begin to globtype and version to avoid empty object files.
+  * Fileexists no longer finds volume labels.
 
-  Revision 1.2  1998/12/14 12:58:45  peter
-    * version 0.99.11
-
+  Revision 1.1  1998/12/11 00:04:06  peter
     + globtype,tokens,version unit splitted from globals
 
 }
