@@ -204,6 +204,7 @@ implementation
       var
          hp1 : timportlist;
          importname : string;
+         suffix : integer;
          hp2 : timported_item;
          lhead,lname,lcode,
          lidata4,lidata5 : tasmlabel;
@@ -288,11 +289,23 @@ implementation
                     if assigned(hp2.name) then
                       begin
                         importname:='__imp_'+hp2.name^;
+                        suffix:=0;
+                        while assigned(getasmsymbol(importname)) do
+                         begin
+                           inc(suffix);
+                           importname:='__imp_'+hp2.name^+'_'+tostr(suffix);
+                         end;
                         importssection.concat(tai_symbol.createname(importname,4));
                       end
                     else
                       begin
                         importname:='__imp_by_ordinal'+tostr(hp2.ordnr);
+                        suffix:=0;
+                        while assigned(getasmsymbol(importname)) do
+                         begin
+                           inc(suffix);
+                           importname:='__imp_by_ordinal'+tostr(hp2.ordnr)+'_'+tostr(suffix);
+                         end;
                         importssection.concat(tai_symbol.createname(importname,4));
                       end;
                   end;
@@ -334,6 +347,7 @@ implementation
          hp2 : timported_item;
          l1,l2,l3,l4 : tasmlabel;
          importname : string;
+         suffix : integer;
          r : preference;
       begin
          if (aktoutputformat<>as_i386_asw) and
@@ -409,11 +423,23 @@ implementation
                          if assigned(hp2.name) then
                           begin
                             importname:='__imp_'+hp2.name^;
+                            suffix:=0;
+                            while assigned(getasmsymbol(importname)) do
+                             begin
+                               inc(suffix);
+                               importname:='__imp_'+hp2.name^+'_'+tostr(suffix);
+                             end;
                             importssection.concat(tai_symbol.createname(importname,4));
                           end
                          else
                           begin
                             importname:='__imp_by_ordinal'+tostr(hp2.ordnr);
+                            suffix:=0;
+                            while assigned(getasmsymbol(importname)) do
+                             begin
+                               inc(suffix);
+                               importname:='__imp_by_ordinal'+tostr(hp2.ordnr)+'_'+tostr(suffix);
+                             end;
                             importssection.concat(tai_symbol.createname(importname,4));
                           end;
                        end;
@@ -1559,7 +1585,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.19  2001-09-30 21:29:47  peter
+  Revision 1.20  2001-10-12 16:06:27  peter
+    * duplicate imports fix for gdb (merged)
+
+  Revision 1.19  2001/09/30 21:29:47  peter
     * gdb fixes merged
 
   Revision 1.18  2001/09/18 11:32:00  michael
