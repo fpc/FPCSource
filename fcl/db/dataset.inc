@@ -1375,10 +1375,27 @@ begin
   Resync([]);
 end;
 
+procedure TDataSet.RecalcBufListSize;
+var
+  i, j, MaxValue: Integer;
+  DataLink: TDataLink;
+begin
+  MaxValue := 0;
+  for i := 0 to FDataSources.Count - 1 do
+    for j := 0 to TDataSource(FDataSources[i]).DataLinks.Count - 1 do
+    begin
+      DataLink := TDataLink(TDataSource(FDataSources[i]).DataLinks[j]);
+      if DataLink.BufferCount > MaxValue then
+        MaxValue := DataLink.BufferCount;
+    end;
+  SetBufListSize(MaxValue);
+end;
+
 Procedure TDataset.RegisterDataSource(ADatasource : TDataSource);
 
 begin
   FDatasources.Add(ADataSource);
+  RecalcBufListSize;
 end;
 
 
@@ -1569,7 +1586,10 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.3  2000-12-23 23:23:49  sg
+  Revision 1.1.2.4  2001-01-11 23:46:28  sg
+  * Some bugfixes... :)
+
+  Revision 1.1.2.3  2000/12/23 23:23:49  sg
   * Fixed TDataSet.Destroy (array index was wrong)
 
   Revision 1.1.2.2  2000/12/23 10:10:21  michael

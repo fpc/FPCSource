@@ -785,6 +785,7 @@ type
     Procedure DoInternalClose;
     Function  GetBuffer (Index : longint) : Pchar;
     Function  GetField (Index : Longint) : TField;
+    procedure RecalcBufListSize;
     Procedure RegisterDataSource(ADatasource : TDataSource);
     Procedure RemoveField (Field : TField);
     Procedure SetActive (Value : Boolean);
@@ -1007,7 +1008,8 @@ type
     Function  CalcFirstRecord(Index : Integer) : Integer;
     Procedure CheckActiveAndEditing;
     Function  GetDataset : TDataset;
-    procedure SetDataSource(Value : TDatasource);
+    procedure SetActive(AActive: Boolean);
+    procedure SetDataSource(Value: TDataSource);
     Procedure SetReadOnly(Value : Boolean);
   protected
     procedure ActiveChanged; virtual;
@@ -1403,7 +1405,10 @@ end.
 
 {
   $Log$
-  Revision 1.1.2.3  2000-12-23 23:26:45  sg
+  Revision 1.1.2.4  2001-01-11 23:46:28  sg
+  * Some bugfixes... :)
+
+  Revision 1.1.2.3  2000/12/23 23:26:45  sg
   * Added TField.DisplayText, and accordingly changed all arguments called
     DisplayText to ADisplayText
 
