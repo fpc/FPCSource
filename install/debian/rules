@@ -82,6 +82,7 @@ build-arch-stamp: debian-files-stamp
 	$(MAKE) api_smart $(BUILDOPTS)
 	$(MAKE) packages_smart $(BUILDOPTS)
 	$(MAKE) utils_all $(BUILDOPTS)
+	$(MAKE) compiler_fpcexe $(BUILDOPTS)
 
 	touch build-arch-stamp
 

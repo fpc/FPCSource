@@ -37,6 +37,7 @@ NEWPP=`pwd`/compiler/ppc386
 	make api_smart PP=${NEWPP}
 	make packages_smart PP=${NEWPP}
 	make utils_all PP=${NEWPP}
+	make compiler_fpcexe PP={$NEWPP}
 
 %install
 NEWPP=`pwd`/compiler/ppc386
