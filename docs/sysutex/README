@@ -1,0 +1,5 @@
+This directory contains the examples for the Sysutils unit.
+
+ex1.pp contains an example of the Date function.
+ex2.pp contains an example of the DateTimeToFileDate function.
+ex3.pp contains an example of the DateTimeToStr function.
