@@ -149,11 +149,22 @@ var
   dosregs : registers;
 
 procedure LoadDosError;
+var
+  r : registers;
 begin
   if (dosregs.flags and carryflag) <> 0 then
-  { conversion from word to integer !!
-    gave a Bound check error if ax is $FFFF !! PM }
-    doserror:=integer(dosregs.ax)
+   begin
+     r.eax:=$5900;
+     r.ebx:=$0;
+     realintr($21,r);
+     { conversion from word to integer !!
+       gave a Bound check error if ax is $FFFF !! PM }
+     doserror:=integer(r.ax);
+     case doserror of
+      19 : DosError:=150;
+      21 : DosError:=152;
+     end;
+   end
   else
     doserror:=0;
 end;
@@ -1015,7 +1026,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.11  1999-09-08 18:55:49  peter
+  Revision 1.12  1999-09-10 17:14:09  peter
+    * better errorcode returning using int21h,5900
+
+  Revision 1.11  1999/09/08 18:55:49  peter
     * pointer fixes
 
   Revision 1.10  1999/08/13 21:23:15  peter

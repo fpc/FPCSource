@@ -534,6 +534,20 @@ begin
 end;
 
 
+procedure getinoutres;
+var
+  regs : trealregs;
+begin
+  regs.realeax:=$5900;
+  regs.realebx:=$0;
+  sysrealintr($21,regs);
+  InOutRes:=lo(regs.realeax);
+  case InOutRes of
+   19 : InOutRes:=150;
+   21 : InOutRes:=152;
+  end;
+end;
+
 
    { Keep Track of open files }
    const
@@ -741,7 +755,7 @@ begin
   regs.realeax:=$3e00;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
-   InOutRes:=lo(regs.realeax);
+   GetInOutRes;
 end;
 
 
@@ -763,7 +777,7 @@ begin
   regs.realecx:=0;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
-   InOutRes:=lo(regs.realeax);
+   GetInOutRes;
 end;
 
 
@@ -790,7 +804,7 @@ begin
   regs.realecx:=$ff;            { attribute problem here ! }
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
-   InOutRes:=lo(regs.realeax);
+   GetInOutRes;
 end;
 
 
@@ -816,7 +830,7 @@ begin
      sysrealintr($21,regs);
      if (regs.realflags and carryflag) <> 0 then
       begin
-        InOutRes:=lo(regs.realeax);
+        GetInOutRes;
         exit(writesize);
       end;
      inc(writesize,regs.realeax);
@@ -850,7 +864,7 @@ begin
      sysrealintr($21,regs);
      if (regs.realflags and carryflag) <> 0 then
       begin
-        InOutRes:=lo(regs.realeax);
+        GetInOutRes;
         do_read:=0;
         exit;
       end;
@@ -876,7 +890,7 @@ begin
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
    Begin
-     InOutRes:=lo(regs.realeax);
+     GetInOutRes;
      do_filepos:=0;
    end
   else
@@ -894,7 +908,7 @@ begin
   regs.realeax:=$4200;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
-   InOutRes:=lo(regs.realeax);
+   GetInOutRes;
 end;
 
 
@@ -910,7 +924,7 @@ begin
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
    Begin
-     InOutRes:=lo(regs.realeax);
+     GetInOutRes;
      do_seekend:=0;
    end
   else
@@ -941,7 +955,7 @@ begin
   regs.realeax:=$4000;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
-   InOutRes:=lo(regs.realeax);
+   GetInOutRes;
 end;
 
 
@@ -1014,7 +1028,7 @@ begin
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
    begin
-     InOutRes:=lo(regs.realeax);
+     GetInOutRes;
      exit;
    end
   else
@@ -1051,7 +1065,7 @@ begin
   sysrealintr($21,regs);
   do_isdevice:=(regs.realedx and $80)<>0;
   if (regs.realflags and carryflag) <> 0 then
-   InOutRes:=lo(regs.realeax);
+   GetInOutRes;
 end;
 
 
@@ -1107,7 +1121,7 @@ begin
    regs.realeax:=func shl 8;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
-   InOutRes:=lo(regs.realeax);
+   GetInOutRes;
 end;
 
 
@@ -1170,7 +1184,7 @@ begin
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
    Begin
-     InOutRes:=lo(regs.realeax);
+     GetInOutRes;
      exit;
    end
   else
@@ -1274,7 +1288,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.17  1999-09-10 15:40:33  peter
+  Revision 1.18  1999-09-10 17:14:09  peter
+    * better errorcode returning using int21h,5900
+
+  Revision 1.17  1999/09/10 15:40:33  peter
     * fixed do_open flags to be > $100, becuase filemode can be upto 255
 
   Revision 1.16  1999/09/08 16:09:18  peter
