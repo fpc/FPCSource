@@ -29,7 +29,7 @@ interface
 
     procedure gen_high_tree(p:ptree;openstring:boolean);
 
-    procedure firstcallparan(var p : ptree;defcoll : pdefcoll);
+    procedure firstcallparan(var p : ptree;defcoll : pparaitem);
     procedure firstcalln(var p : ptree);
     procedure firstprocinline(var p : ptree);
 
@@ -123,7 +123,7 @@ implementation
       end;
 
 
-    procedure firstcallparan(var p : ptree;defcoll : pdefcoll);
+    procedure firstcallparan(var p : ptree;defcoll : pparaitem);
       var
         old_get_para_resulttype : boolean;
         old_array_constructor : boolean;
@@ -137,7 +137,7 @@ implementation
               if defcoll=nil then
                 firstcallparan(p^.right,nil)
               else
-                firstcallparan(p^.right,defcoll^.next);
+                firstcallparan(p^.right,pparaitem(defcoll^.next));
               p^.registers32:=p^.right^.registers32;
               p^.registersfpu:=p^.right^.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -351,8 +351,8 @@ implementation
          pprocdefcoll = ^tprocdefcoll;
          tprocdefcoll = record
             data      : pprocdef;
-            nextpara  : pdefcoll;
-            firstpara : pdefcoll;
+            nextpara  : pparaitem;
+            firstpara : pparaitem;
             next      : pprocdefcoll;
          end;
       var
@@ -363,9 +363,9 @@ implementation
          def_from,def_to,conv_to : pdef;
          hpt,pt,inlinecode : ptree;
          exactmatch,inlined : boolean;
-         paralength,l,lastpara : longint;
+         paralength,lastpara : longint;
          lastparatype : pdef;
-         pdc : pdefcoll;
+         pdc : pparaitem;
 {$ifdef TEST_PROCSYMS}
          symt : psymtable;
 {$endif TEST_PROCSYMS}
@@ -497,12 +497,12 @@ implementation
               firstpass(p^.right);
 
               { check the parameters }
-              pdc:=pprocvardef(p^.right^.resulttype)^.para1;
+              pdc:=pparaitem(pprocvardef(p^.right^.resulttype)^.para^.first);
               pt:=p^.left;
               while assigned(pdc) and assigned(pt) do
                 begin
                    pt:=pt^.right;
-                   pdc:=pdc^.next;
+                   pdc:=pparaitem(pdc^.next);
                 end;
               if assigned(pt) or assigned(pdc) then
                 begin
@@ -515,7 +515,7 @@ implementation
                 begin
                    old_count_ref:=count_ref;
                    count_ref:=true;
-                   firstcallparan(p^.left,pprocvardef(p^.right^.resulttype)^.para1);
+                   firstcallparan(p^.left,pparaitem(pprocvardef(p^.right^.resulttype)^.para^.first));
                    count_ref:=old_count_ref;
                    if codegenerror then
                      goto errorexit;
@@ -590,21 +590,14 @@ implementation
                    pd:=aktcallprocsym^.definition;
                    while assigned(pd) do
                      begin
-                        pdc:=pd^.para1;
-                        l:=0;
-                        while assigned(pdc) do
-                          begin
-                             inc(l);
-                             pdc:=pdc^.next;
-                          end;
                         { only when the # of parameter are equal }
-                        if (l=paralength) then
+                        if (pd^.para^.count=paralength) then
                           begin
                              new(hp);
                              hp^.data:=pd;
                              hp^.next:=procs;
-                             hp^.nextpara:=pd^.para1;
-                             hp^.firstpara:=pd^.para1;
+                             hp^.nextpara:=pparaitem(pd^.para^.first);
+                             hp^.firstpara:=pparaitem(pd^.para^.first);
                              procs:=hp;
                           end;
                         pd:=pd^.nextoverloaded;
@@ -732,7 +725,7 @@ implementation
                         hp:=procs;
                         while assigned(hp) do
                           begin
-                             hp^.nextpara:=hp^.nextpara^.next;
+                             hp^.nextpara:=pparaitem(hp^.nextpara^.next);
                              hp:=hp^.next;
                           end;
                         { load next parameter or quit loop if no procs left }
@@ -843,7 +836,7 @@ implementation
                              hp:=procs;
                              while assigned(hp) do
                                begin
-                                  hp^.nextpara:=hp^.nextpara^.next;
+                                  hp^.nextpara:=pparaitem(hp^.nextpara^.next);
                                   hp:=hp^.next;
                                end;
                              pt:=pt^.right;
@@ -887,7 +880,7 @@ implementation
                              hp:=procs;
                              while assigned(hp) do
                                begin
-                                  hp^.nextpara:=hp^.nextpara^.next;
+                                  hp^.nextpara:=pparaitem(hp^.nextpara^.next);
                                   hp:=hp^.next;
                                end;
                              pt:=pt^.right;
@@ -935,7 +928,7 @@ implementation
                              hp:=procs;
                              while assigned(hp) do
                                begin
-                                  hp^.nextpara:=hp^.nextpara^.next;
+                                  hp^.nextpara:=pparaitem(hp^.nextpara^.next);
                                   hp:=hp^.next;
                                end;
                              pt:=pt^.right;
@@ -1057,7 +1050,7 @@ implementation
                 begin
                    old_count_ref:=count_ref;
                    count_ref:=true;
-                   firstcallparan(p^.left,p^.procdefinition^.para1);
+                   firstcallparan(p^.left,pparaitem(p^.procdefinition^.para^.first));
                    count_ref:=old_count_ref;
                 end;
 {$ifdef i386}
@@ -1228,7 +1221,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  1999-10-22 14:37:30  peter
+  Revision 1.70  1999-10-26 12:30:46  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.69  1999/10/22 14:37:30  peter
     * error when properties are passed to var parameters
 
   Revision 1.68  1999/10/13 10:35:27  peter

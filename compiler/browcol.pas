@@ -960,13 +960,14 @@ end;
   end;
   function GetAbsProcParmDefStr(def: pabstractprocdef): string;
   var Name: string;
-      dc: pdefcoll;
+      dc: pparaitem;
       Count: integer;
       CurName: string;
   begin
     Name:='';
-    dc:=def^.para1; Count:=0;
-    while dc<>nil do
+    dc:=pparaitem(def^.para^.first);
+    Count:=0;
+    while assigned(dc) do
      begin
        CurName:='';
        case dc^.paratyp of
@@ -979,7 +980,7 @@ end;
        if dc^.next<>nil then
          CurName:=', '+CurName;
        Name:=CurName+Name;
-       dc:=dc^.next; Inc(Count);
+       dc:=pparaitem(dc^.next); Inc(Count);
      end;
     GetAbsProcParmDefStr:=Name;
   end;
@@ -1696,7 +1697,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  1999-09-16 07:54:48  pierre
+  Revision 1.25  1999-10-26 12:30:40  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.24  1999/09/16 07:54:48  pierre
    * BuildSourceList allways called for dependency in FP
 
   Revision 1.23  1999/09/07 15:07:49  pierre

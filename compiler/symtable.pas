@@ -409,9 +409,6 @@ unit symtable;
     procedure list_symtablestack;
 {$endif DEBUG}
 
-{*** dispose of a pdefcoll (args of a function) ***}
-    procedure disposepdefcoll(var para1 : pdefcoll);
-
 {*** Init / Done ***}
     procedure InitSymtable;
     procedure DoneSymtable;
@@ -922,9 +919,9 @@ implementation
       end;
 
 {$ifdef BrowserLog}
-    procedure add_to_browserlog(p : psym);
+    procedure add_to_browserlog(sym : pnamedindexobject);
       begin
-         p^.add_to_browserlog;
+         psym(sym)^.add_to_browserlog;
       end;
 {$endif UseBrowser}
 
@@ -2349,7 +2346,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  1999-10-06 17:39:15  peter
+  Revision 1.54  1999-10-26 12:30:46  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.53  1999/10/06 17:39:15  peter
     * fixed stabs writting for forward types
 
   Revision 1.52  1999/10/03 19:44:42  peter

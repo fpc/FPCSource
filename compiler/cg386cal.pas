@@ -28,7 +28,7 @@ interface
     uses
       symtable,tree;
 
-    procedure secondcallparan(var p : ptree;defcoll : pdefcoll;
+    procedure secondcallparan(var p : ptree;defcoll : pparaitem;
                 push_from_left_to_right,inlined,dword_align : boolean;para_offset : longint);
     procedure secondcalln(var p : ptree);
     procedure secondprocinline(var p : ptree);
@@ -51,7 +51,7 @@ implementation
                              SecondCallParaN
 *****************************************************************************}
 
-    procedure secondcallparan(var p : ptree;defcoll : pdefcoll;
+    procedure secondcallparan(var p : ptree;defcoll : pparaitem;
                 push_from_left_to_right,inlined,dword_align : boolean;para_offset : longint);
 
       procedure maybe_push_high;
@@ -81,7 +81,7 @@ implementation
       begin
          { push from left to right if specified }
          if push_from_left_to_right and assigned(p^.right) then
-           secondcallparan(p^.right,defcoll^.next,push_from_left_to_right,
+           secondcallparan(p^.right,pparaitem(defcoll^.next),push_from_left_to_right,
              inlined,dword_align,para_offset);
          otlabel:=truelabel;
          oflabel:=falselabel;
@@ -189,7 +189,7 @@ implementation
          falselabel:=oflabel;
          { push from right to left }
          if not push_from_left_to_right and assigned(p^.right) then
-           secondcallparan(p^.right,defcoll^.next,push_from_left_to_right,
+           secondcallparan(p^.right,pparaitem(defcoll^.next),push_from_left_to_right,
              inlined,dword_align,para_offset);
       end;
 
@@ -379,14 +379,14 @@ implementation
               else
                 para_offset:=0;
               if assigned(p^.right) then
-                secondcallparan(p^.left,pabstractprocdef(p^.right^.resulttype)^.para1,
+                secondcallparan(p^.left,pparaitem(pabstractprocdef(p^.right^.resulttype)^.para^.first),
                   (pocall_leftright in p^.procdefinition^.proccalloptions),
                   inlined,
                   (pocall_cdecl in p^.procdefinition^.proccalloptions) or
                    (pocall_stdcall in p^.procdefinition^.proccalloptions),
                   para_offset)
               else
-                secondcallparan(p^.left,p^.procdefinition^.para1,
+                secondcallparan(p^.left,pparaitem(p^.procdefinition^.para^.first),
                   (pocall_leftright in p^.procdefinition^.proccalloptions),
                   inlined,
                   (pocall_cdecl in p^.procdefinition^.proccalloptions) or
@@ -1222,7 +1222,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.107  1999-10-08 15:40:47  pierre
+  Revision 1.108  1999-10-26 12:30:40  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.107  1999/10/08 15:40:47  pierre
    * use and remember that C functions with complex data results use ret $4
 
   Revision 1.106  1999/09/27 23:44:46  peter

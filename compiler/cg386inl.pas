@@ -201,13 +201,14 @@ implementation
            pararesult : pdef;
            orgfloattype : tfloattype;
            has_length : boolean;
-           dummycoll  : tdefcoll;
+           dummycoll  : tparaitem;
            iolabel    : pasmlabel;
            npara      : longint;
            esireloaded : boolean;
 
         begin
            { here we don't use register calling conventions }
+           dummycoll.init;
            dummycoll.register:=R_NO;
            { I/O check }
            if (cs_check_io in aktlocalswitches) and
@@ -514,12 +515,13 @@ implementation
 
         var
            hp,node : ptree;
-           dummycoll : tdefcoll;
+           dummycoll : tparaitem;
            is_real,has_length : boolean;
            realtype : tfloattype;
            procedureprefix : string;
 
           begin
+           dummycoll.init;
            dummycoll.register:=R_NO;
            pushusedregisters(pushed,$ff);
            node:=p^.left;
@@ -646,11 +648,12 @@ implementation
            hdef: POrdDef;
            procedureprefix : string;
            hr, hr2: TReference;
-           dummycoll : tdefcoll;
+           dummycoll : tparaitem;
            has_code, has_32bit_code, oldregisterdef: boolean;
            r : preference;
 
           begin
+           dummycoll.init;
            dummycoll.register:=R_NO;
            node:=p^.left;
            hp:=node;
@@ -1423,7 +1426,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  1999-10-21 16:41:38  florian
+  Revision 1.75  1999-10-26 12:30:40  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.74  1999/10/21 16:41:38  florian
     * problems with readln fixed: esi wasn't restored correctly when
       reading ordinal fields of objects futher the register allocation
       didn't take care of the extra register when reading ordinal values

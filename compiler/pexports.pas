@@ -64,7 +64,10 @@ unit pexports;
                      begin
                         hp^.sym:=srsym;
                         if ((srsym^.typ<>procsym) or
-                            not(po_exports in pprocdef(pprocsym(srsym)^.definition)^.procoptions)) and
+                            ((tf_need_export in target_info.flags) and
+                             not(po_exports in pprocdef(pprocsym(srsym)^.definition)^.procoptions)
+                            )
+                           ) and
                            (srsym^.typ<>varsym) and (srsym^.typ<>typedconstsym) then
                          Message(parser_e_illegal_symbol_exported)
                         else
@@ -72,6 +75,8 @@ unit pexports;
                           ProcName:=hp^.sym^.name;
                           InternalProcName:=hp^.sym^.mangledname;
                           delete(InternalProcName,1,1);
+                          if length(InternalProcName)<2 then
+                           Message(parser_e_procname_to_short_for_export);
                           DefString:=ProcName+'='+InternalProcName;
                          end;
                         if (idtoken=_INDEX) then
@@ -80,15 +85,17 @@ unit pexports;
                              hp^.options:=hp^.options or eo_index;
                              val(pattern,hp^.index,code);
                              consume(_INTCONST);
-                             DefString:=ProcName+'='+InternalProcName;{Index ignored!}
-                             (* DefString:=ProcName+'@'+pattern+'='+InternalProcName;{Index ignored!} *)
+                             DefString:=ProcName+'='+InternalProcName; {Index ignored!}
                           end;
                         if (idtoken=_NAME) then
                           begin
                              consume(_NAME);
                              hp^.name:=stringdup(pattern);
                              hp^.options:=hp^.options or eo_name;
-                             consume(_CSTRING); {Bug fixed?}
+                             if token=_CCHAR then
+                              consume(_CCHAR)
+                             else
+                              consume(_CSTRING);
                              DefString:=hp^.name^+'='+InternalProcName;
                           end;
                         if (idtoken=_RESIDENT) then
@@ -123,7 +130,15 @@ end.
 
 {
   $Log$
-  Revision 1.12  1999-08-10 12:51:19  pierre
+  Revision 1.13  1999-10-26 12:30:44  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.12  1999/08/10 12:51:19  pierre
     * bind_win32_dll removed (Relocsection used instead)
     * now relocsection is true by default ! (needs dlltool
       for DLL generation)

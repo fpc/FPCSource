@@ -2204,24 +2204,10 @@
                        TABSTRACTPROCDEF
 ***************************************************************************}
 
-    procedure disposepdefcoll(var para1 : pdefcoll);
-      var
-         hp : pdefcoll;
-      begin
-         hp:=para1;
-         while assigned(hp) do
-           begin
-              para1:=hp^.next;
-              dispose(hp);
-              hp:=para1;
-           end;
-      end;
-
-
     constructor tabstractprocdef.init;
       begin
          inherited init;
-         para1:=nil;
+         new(para,init);
          fpu_used:=0;
          proctypeoption:=potype_none;
          proccalloptions:=[];
@@ -2234,36 +2220,34 @@
 
     destructor tabstractprocdef.done;
       begin
-         disposepdefcoll(para1);
+         dispose(para,done);
          inherited done;
       end;
 
 
     procedure tabstractprocdef.concatdef(p : pdef;vsp : tvarspez);
       var
-         hp : pdefcoll;
+        hp : pparaitem;
       begin
-         new(hp);
-         hp^.paratyp:=vsp;
-         hp^.datasym:=nil;
-         hp^.data:=p;
-         hp^.next:=para1;
-         hp^.register:=R_NO;
-         para1:=hp;
+        new(hp,init);
+        hp^.paratyp:=vsp;
+        hp^.datasym:=nil;
+        hp^.data:=p;
+        hp^.register:=R_NO;
+        para^.insert(hp);
       end;
 
 
     procedure tabstractprocdef.concattypesym(p : ptypesym;vsp : tvarspez);
       var
-         hp : pdefcoll;
+        hp : pparaitem;
       begin
-         new(hp);
-         hp^.paratyp:=vsp;
-         hp^.datasym:=p;
-         hp^.data:=p^.definition;
-         hp^.next:=para1;
-         hp^.register:=R_NO;
-         para1:=hp;
+        new(hp,init);
+        hp^.paratyp:=vsp;
+        hp^.datasym:=p;
+        hp^.data:=p^.definition;
+        hp^.register:=R_NO;
+        para^.insert(hp);
       end;
 
 
@@ -2280,11 +2264,11 @@
 
     procedure tabstractprocdef.deref;
       var
-         hp : pdefcoll;
+         hp : pparaitem;
       begin
          inherited deref;
          resolvedef(retdef);
-         hp:=para1;
+         hp:=pparaitem(para^.first);
          while assigned(hp) do
            begin
               if assigned(hp^.datasym) then
@@ -2294,47 +2278,41 @@
                end
               else
                resolvedef(hp^.data);
-              hp:=hp^.next;
+              hp:=pparaitem(hp^.next);
            end;
       end;
 
 
     constructor tabstractprocdef.load;
       var
-         last,hp : pdefcoll;
+         hp : pparaitem;
          count,i : word;
       begin
          inherited load;
+         new(para,init);
          retdef:=readdefref;
          fpu_used:=readbyte;
          proctypeoption:=tproctypeoption(readlong);
          readsmallset(proccalloptions);
          readsmallset(procoptions);
          count:=readword;
-         para1:=nil;
          savesize:=target_os.size_of_pointer;
          for i:=1 to count do
            begin
-              new(hp);
+              new(hp,init);
               hp^.paratyp:=tvarspez(readbyte);
               { hp^.register:=tregister(readbyte); }
               hp^.register:=R_NO;
               hp^.data:=readdefref;
               hp^.datasym:=ptypesym(readsymref);
-              hp^.next:=nil;
-              if para1=nil then
-                para1:=hp
-              else
-                last^.next:=hp;
-              last:=hp;
+              para^.concat(hp);
            end;
       end;
 
 
     procedure tabstractprocdef.write;
       var
-         count : word;
-         hp : pdefcoll;
+        hp : pparaitem;
       begin
          inherited write;
          writedefref(retdef);
@@ -2343,15 +2321,8 @@
          writelong(ord(proctypeoption));
          writesmallset(proccalloptions);
          writesmallset(procoptions);
-         hp:=para1;
-         count:=0;
-         while assigned(hp) do
-           begin
-              inc(count);
-              hp:=hp^.next;
-           end;
-         writeword(count);
-         hp:=para1;
+         writeword(para^.count);
+         hp:=pparaitem(para^.first);
          while assigned(hp) do
            begin
               writebyte(byte(hp^.paratyp));
@@ -2366,18 +2337,18 @@
                  writedefref(hp^.data);
                  writesymref(nil);
                end;
-              hp:=hp^.next;
+              hp:=pparaitem(hp^.next);
            end;
       end;
 
 
     function tabstractprocdef.para_size : longint;
       var
-         pdc : pdefcoll;
+         pdc : pparaitem;
          l : longint;
       begin
          l:=0;
-         pdc:=para1;
+         pdc:=pparaitem(para^.first);
          while assigned(pdc) do
           begin
             case pdc^.paratyp of
@@ -2388,41 +2359,32 @@
                          else
                           inc(l,align(pdc^.data^.size,target_os.stackalignment));
             end;
-            pdc:=pdc^.next;
+            pdc:=pparaitem(pdc^.next);
           end;
          para_size:=l;
       end;
 
 
     function tabstractprocdef.demangled_paras : string;
-
-      var s : string;
-
-      procedure doconcat(p : pdefcoll);
-
-        begin
-           if assigned(p^.next) then
-             doconcat(p^.next)
-           else
-             s:='(';
-           if assigned(p^.data^.sym) then
-             s:=s+p^.data^.sym^.name
-           else if p^.paratyp=vs_var then
-             s:=s+'var'
-           else if p^.paratyp=vs_const then
-             s:=s+'const';
-           if p<>para1 then
-             s:=s+','
-           else
-             s:=s+')';
-        end;
-
+      var
+        s : string;
+        hp : pparaitem;
       begin
-        s:='';
-        { a recursive solution is the easiest way to inverse the parameter }
-        { collection                                                       }
-        if assigned(para1) then
-          doconcat(para1);
+        s:='(';
+        hp:=pparaitem(para^.last);
+        while assigned(hp) do
+         begin
+           if assigned(hp^.data^.sym) then
+             s:=s+hp^.data^.sym^.name
+           else if hp^.paratyp=vs_var then
+             s:=s+'var'
+           else if hp^.paratyp=vs_const then
+             s:=s+'const';
+           hp:=pparaitem(hp^.previous);
+           if assigned(hp) then
+            s:=s+',';
+         end;
+        s:=s+')';
         demangled_paras:=s;
       end;
 
@@ -2816,20 +2778,14 @@ Const local_symtable_index : longint = $8001;
 
 
     function tprocdef.stabstring : pchar;
-      var param : pdefcoll;
-          i : word;
+      var
+          i : longint;
           oldrec : pchar;
       begin
       oldrec := stabrecstring;
       getmem(StabRecString,1024);
-      param := para1;
-      i := 0;
-      while assigned(param) do
-        begin
-           inc(i);
-           param := param^.next;
-        end;
       strpcopy(StabRecString,'f'+retdef^.numberstring);
+      i:=para^.count;
       if i>0 then
         begin
         strpcopy(strend(StabRecString),','+tostr(i)+';');
@@ -2931,7 +2887,7 @@ Const local_symtable_index : longint = $8001;
     function tprocdef.cplusplusmangledname : string;
       var
          s,s2 : string;
-         param : pdefcoll;
+         param : pparaitem;
       begin
       s := sym^.name;
       if _class <> nil then
@@ -2939,12 +2895,12 @@ Const local_symtable_index : longint = $8001;
         s2 := _class^.objname^;
         s := s+'__'+tostr(length(s2))+s2;
         end else s := s + '_';
-      param := para1;
+      param := pparaitem(para^.first);
       while assigned(param) do
         begin
         s2 := param^.data^.sym^.name;
         s := s+tostr(length(s2))+s2;
-        param := param^.next;
+        param := pparaitem(param^.next);
         end;
       cplusplusmangledname:=s;
       end;
@@ -3015,22 +2971,13 @@ Const local_symtable_index : longint = $8001;
     function tprocvardef.stabstring : pchar;
       var
          nss : pchar;
-         i : word;
-         param : pdefcoll;
+         i   : longint;
       begin
-        i := 0;
-        param := para1;
-        while assigned(param) do
-          begin
-          inc(i);
-          param := param^.next;
-          end;
+        i := para^.count;
         getmem(nss,1024);
         { it is not a function but a function pointer !! (PM) }
 
         strpcopy(nss,'*f'+retdef^.numberstring{+','+tostr(i)}+';');
-        param := para1;
-        i := 0;
         { this confuses gdb !!
           we should use 'F' instead of 'f' but
           as we use c++ language mode
@@ -3038,7 +2985,10 @@ Const local_symtable_index : longint = $8001;
           Please do not remove this part
           might be used once
           gdb for pascal is ready PM }
-        (* while assigned(param) do
+        (*
+        param := para1;
+        i := 0;
+        while assigned(param) do
           begin
           inc(i);
           if param^.paratyp = vs_value then vartyp := '1' else vartyp := '0';
@@ -3066,8 +3016,8 @@ Const local_symtable_index : longint = $8001;
 
     procedure tprocvardef.write_rtti_data;
       var
-         pdc, pdc2, pdcbefore : pdefcoll;
-         methodkind, paracount, paraspec : byte;
+         pdc : pparaitem;
+         methodkind, paraspec : byte;
       begin
         if po_methodpointer in procoptions then
           begin
@@ -3083,21 +3033,14 @@ Const local_symtable_index : longint = $8001;
              rttilist^.concat(new(pai_const,init_8bit(methodkind)));
 
              { get # of parameters }
-             paracount:=0;
-             pdc:=para1;
-             while assigned(pdc) do
-               begin
-                 inc(paracount);
-                 pdc:=pdc^.next;
-               end;
-             rttilist^.concat(new(pai_const,init_8bit(paracount)));
+             rttilist^.concat(new(pai_const,init_8bit(para^.count)));
 
              { write parameter info. The parameters must be written in reverse order
                if this method uses right to left parameter pushing! }
-             pdc:=para1;
-             if assigned(pdc) and not (pocall_leftright in proccalloptions) then
-               while assigned(pdc^.next) do pdc := pdc^.next;
-
+             if (pocall_leftright in proccalloptions) then
+              pdc:=pparaitem(para^.last)
+             else
+              pdc:=pparaitem(para^.first);
              while assigned(pdc) do
                begin
                  case pdc^.paratyp of
@@ -3112,20 +3055,11 @@ Const local_symtable_index : longint = $8001;
 
                  { write name of type of current parameter }
                  pdc^.data^.write_rtti_name;
-                 if pocall_leftright in proccalloptions then
-                   pdc:=pdc^.next
+
+                 if (pocall_leftright in proccalloptions) then
+                  pdc:=pparaitem(pdc^.previous)
                  else
-                   begin
-                     { find previous argument }
-                     pdcbefore := nil;
-                     pdc2 := para1;
-                     while pdc2 <> pdc do
-                       begin
-                         pdcbefore := pdc2;
-                         pdc2 := pdc2^.next;
-                       end;
-                     pdc := pdcbefore;
-                   end;
+                  pdc:=pparaitem(pdc^.next);
                end;
 
              { write name of result type }
@@ -3427,7 +3361,7 @@ Const local_symtable_index : longint = $8001;
         news, newrec : pchar;
         pd,ipd : pprocdef;
         lindex : longint;
-        para : pdefcoll;
+        para : pparaitem;
         arglength : byte;
         sp : char;
 
@@ -3446,9 +3380,7 @@ Const local_symtable_index : longint = $8001;
                    lindex := lindex or $80000000;}
                    virtualind := '*'+tostr(lindex)+';'+ipd^._class^.numberstring+';'
                    end else virtualind := '.';
-                { arguments are not listed here }
-                {we don't need another definition}
-                 para := pd^.para1;
+
                  { used by gdbpas to recognize constructor and destructors }
                  if (pd^.proctypeoption=potype_constructor) then
                    argnames:='__ct__'
@@ -3457,6 +3389,9 @@ Const local_symtable_index : longint = $8001;
                  else
                    argnames := '';
 
+                { arguments are not listed here }
+                {we don't need another definition}
+                 para := pparaitem(pd^.para^.first);
                  while assigned(para) do
                    begin
                    if para^.data^.deftype = formaldef then
@@ -3480,7 +3415,7 @@ Const local_symtable_index : longint = $8001;
                           argnames:=argnames+'11unnamedtype';
                        end;
                      end;
-                   para := para^.next;
+                   para := pparaitem(para^.next);
                    end;
                 ipd^.is_def_stab_written := true;
                 { here 2A must be changed for private and protected }
@@ -3866,7 +3801,15 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.171  1999-10-06 17:39:15  peter
+  Revision 1.172  1999-10-26 12:30:45  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.171  1999/10/06 17:39:15  peter
     * fixed stabs writting for forward types
 
   Revision 1.170  1999/10/04 13:46:04  michael

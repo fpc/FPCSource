@@ -208,15 +208,12 @@ unit pdecl;
                while not sc^.empty do
                 begin
                   s:=sc^.get_with_tokeninfo(tokenpos);
-                  { For proc vars we only need the definitions }
-                  if is_procvar then
-                   begin
-                     if assigned(readtypesym) then
-                      aktprocdef^.concattypesym(readtypesym,varspez)
-                     else
-                      aktprocdef^.concatdef(p,varspez);
-                   end
+                  if assigned(readtypesym) then
+                   aktprocdef^.concattypesym(readtypesym,varspez)
                   else
+                   aktprocdef^.concatdef(p,varspez);
+                  { For proc vars we only need the definitions }
+                  if not is_procvar then
                    begin
 {$ifndef UseNiceNames}
                      hs2:=hs2+'$'+hs1;
@@ -224,15 +221,9 @@ unit pdecl;
                      hs2:=hs2+tostr(length(hs1))+hs1;
 {$endif UseNiceNames}
                      if assigned(readtypesym) then
-                      begin
-                        aktprocdef^.concattypesym(readtypesym,varspez);
-                        vs:=new(Pvarsym,initsym(s,readtypesym))
-                      end
+                      vs:=new(Pvarsym,initsym(s,readtypesym))
                      else
-                      begin
-                        aktprocdef^.concatdef(p,varspez);
-                        vs:=new(Pvarsym,init(s,p));
-                      end;
+                      vs:=new(Pvarsym,init(s,p));
                      vs^.varspez:=varspez;
                    { we have to add this to avoid var param to be in registers !!!}
                      if (varspez in [vs_var,vs_const]) and push_addr_param(p) then
@@ -1192,7 +1183,15 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.166  1999-10-22 10:39:34  peter
+  Revision 1.167  1999-10-26 12:30:44  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.166  1999/10/22 10:39:34  peter
     * split type reading from pdecl to ptype unit
     * parameter_dec routine is now used for procedure and procvars
 

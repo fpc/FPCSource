@@ -166,7 +166,7 @@ implementation
     procedure firstaddr(var p : ptree);
       var
          hp  : ptree;
-         hp2 : pdefcoll;
+         hp2 : pparaitem;
          store_valid : boolean;
          hp3 : pabstractprocdef;
       begin
@@ -197,6 +197,7 @@ implementation
                      end;
                    loadn,
                    subscriptn,
+                   typeconvn,
                    vecn,
                    derefn :
                      begin
@@ -269,11 +270,13 @@ implementation
 {$else}
                          pprocvardef(p^.resulttype)^.procoptions:=pprocvardef(p^.resulttype)^.procoptions+[po_methodpointer];
 {$endif}
-                       hp2:=hp3^.para1;
+                       { we need to process the parameters reverse so they are inserted
+                         in the correct right2left order (PFV) }
+                       hp2:=pparaitem(hp3^.para^.last);
                        while assigned(hp2) do
                          begin
                             pprocvardef(p^.resulttype)^.concatdef(hp2^.data,hp2^.paratyp);
-                            hp2:=hp2^.next;
+                            hp2:=pparaitem(hp2^.previous);
                          end;
                     end
                   else
@@ -286,7 +289,7 @@ implementation
                 begin
                   { what are we getting the address from an absolute sym? }
                   hp:=p^.left;
-                  while assigned(hp) and (hp^.treetype in [vecn,subscriptn]) do
+                  while assigned(hp) and (hp^.treetype in [vecn,derefn,subscriptn]) do
                    hp:=hp^.left;
                   if assigned(hp) and (hp^.treetype=loadn) and
                      ((hp^.symtableentry^.typ=absolutesym) and
@@ -409,13 +412,8 @@ implementation
              p^.resulttype:=generrordef;
              exit;
            end;
-
          p^.resulttype:=p^.vs^.definition;
-         { this must be done in the parser
-         if count_ref and not must_be_valid then
-           if (p^.vs^.properties and sp_protected)<>0 then
-             CGMessage(parser_e_cant_write_protected_member);
-         }
+
          p^.registers32:=p^.left^.registers32;
          p^.registersfpu:=p^.left^.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -631,7 +629,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1999-10-13 10:40:55  peter
+  Revision 1.31  1999-10-26 12:30:46  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.30  1999/10/13 10:40:55  peter
     * subscript support for tp_procvar
 
   Revision 1.29  1999/09/27 23:45:02  peter

@@ -266,7 +266,7 @@ uses
 
         var
            sym : psym;
-           propertyparas : pdefcoll;
+           propertyparas : plinkedlist;
 
         { returns the matching procedure to access a property }
         function get_procdef : pprocdef;
@@ -279,7 +279,7 @@ uses
              get_procdef:=nil;
              while assigned(p) do
                begin
-                  if equal_paras(p^.para1,propertyparas,true) then
+                  if equal_paras(p^.para,propertyparas,true) then
                     break;
                   p:=p^.nextoverloaded;
                end;
@@ -345,7 +345,7 @@ uses
           end;
 
         var
-           hp2,datacoll : pdefcoll;
+           hp2,datacoll : pparaitem;
            p,p2 : ppropertysym;
            overriden : psym;
            hs : string;
@@ -363,7 +363,7 @@ uses
            if not(aktclass^.is_class) then
             Message(parser_e_syntax_error);
            consume(_PROPERTY);
-           propertyparas:=nil;
+           new(propertyparas,init);
            datacoll:=nil;
            if token=_ID then
              begin
@@ -417,20 +417,17 @@ uses
                          end
                        else
                          hp:=cformaldef;
-                       s:=sc^.get_with_tokeninfo(declarepos);
-                       while s<>'' do
-                         begin
-                            new(hp2);
-                            hp2^.paratyp:=varspez;
-                            hp2^.data:=hp;
-                            hp2^.next:=propertyparas;
-                            propertyparas:=hp2;
-                            s:=sc^.get_with_tokeninfo(declarepos);
-                         end;
+                       repeat
+                         s:=sc^.get_with_tokeninfo(declarepos);
+                         if s='' then
+                          break;
+                         new(hp2,init);
+                         hp2^.paratyp:=varspez;
+                         hp2^.data:=hp;
+                         propertyparas^.insert(hp2);
+                       until false;
                        dispose(sc,done);
-                       if token=_SEMICOLON then consume(_SEMICOLON)
-                     else break;
-                     until false;
+                     until not try_to_consume(_SEMICOLON);
                      dec(testcurobject);
                      consume(_RECKKLAMMER);
                   end;
@@ -455,11 +452,10 @@ uses
                           p^.propoptions:=p^.propoptions+[ppo_indexed];
 {$endif}
                           { concat a longint to the para template }
-                          new(hp2);
+                          new(hp2,init);
                           hp2^.paratyp:=vs_value;
                           hp2^.data:=pt^.resulttype;
-                          hp2^.next:=propertyparas;
-                          propertyparas:=hp2;
+                          propertyparas^.insert(hp2);
                           disposetree(pt);
                        end;
                   end
@@ -493,10 +489,9 @@ uses
                   Message(parser_e_cant_publish_that_property);
 
                 { create data defcoll to allow correct parameter checks }
-                new(datacoll);
+                new(datacoll,init);
                 datacoll^.paratyp:=vs_value;
                 datacoll^.data:=p^.proptype;
-                datacoll^.next:=nil;
 
                 if (idtoken=_READ) then
                   begin
@@ -529,16 +524,6 @@ uses
 
                      if assigned(sym) then
                        begin
-                          { varsym aren't allowed for an indexed property
-                            or an property with parameters }
-                          if ((sym^.typ=varsym) and
-                             { not necessary, an index forces propertyparas
-                               to be assigned
-                             }
-                             { (((p^.options and ppo_indexed)<>0) or }
-                             assigned(propertyparas)) or
-                             not(sym^.typ in [varsym,procsym]) then
-                            Message(parser_e_ill_property_access_sym);
                           { search the matching definition }
                           case sym^.typ of
                             procsym :
@@ -551,9 +536,12 @@ uses
                               end;
                             varsym :
                               begin
-                                if not(is_equal(pvarsym(sym)^.definition,p^.proptype)) then
+                                if not(propertyparas^.empty) or
+                                   not(is_equal(pvarsym(sym)^.definition,p^.proptype)) then
                                   Message(parser_e_ill_property_access_sym);
                               end;
+                            else
+                              Message(parser_e_ill_property_access_sym);
                           end;
                           addpropsymlist(p^.readaccesssym,sym);
                        end;
@@ -589,30 +577,28 @@ uses
 
                      if assigned(sym) then
                        begin
-                          if ((sym^.typ=varsym) and
-                             assigned(propertyparas)) or
-                             not(sym^.typ in [varsym,procsym]) then
-                            Message(parser_e_ill_property_access_sym);
                           { search the matching definition }
-                          if sym^.typ=procsym then
-                            begin
-                               { insert data entry to check access method }
-                               datacoll^.next:=propertyparas;
-                               propertyparas:=datacoll;
-                               pp:=get_procdef;
-                               { ... and remove it }
-                               propertyparas:=propertyparas^.next;
-                               datacoll^.next:=nil;
-                               if not(assigned(pp)) then
-                                 Message(parser_e_ill_property_access_sym);
-                               p^.writeaccessdef:=pp;
-                            end
-                          else if sym^.typ=varsym then
-                            begin
-                               if not(is_equal(pvarsym(sym)^.definition,
-                                 p^.proptype)) then
-                                 Message(parser_e_ill_property_access_sym);
-                            end;
+                          case sym^.typ of
+                            procsym :
+                              begin
+                                 { insert data entry to check access method }
+                                 propertyparas^.insert(datacoll);
+                                 pp:=get_procdef;
+                                 { ... and remove it }
+                                 propertyparas^.remove(datacoll);
+                                 if not(assigned(pp)) then
+                                   Message(parser_e_ill_property_access_sym);
+                                 p^.writeaccessdef:=pp;
+                              end;
+                            varsym :
+                              begin
+                                 if not(propertyparas^.empty) or
+                                    not(is_equal(pvarsym(sym)^.definition,p^.proptype)) then
+                                   Message(parser_e_ill_property_access_sym);
+                              end
+                            else
+                              Message(parser_e_ill_property_access_sym);
+                          end;
                           addpropsymlist(p^.writeaccesssym,sym);
                        end;
                   end;
@@ -658,32 +644,32 @@ uses
                                 if assigned(sym) then
                                   begin
                                      { only non array properties can be stored }
-                                     if assigned(propertyparas) or
-                                        not(sym^.typ in [varsym,procsym]) then
-                                       Message(parser_e_ill_property_storage_sym);
-                                     { search the matching definition }
-                                     if sym^.typ=procsym then
-                                       begin
-                                          pp:=pprocsym(sym)^.definition;
-                                          while assigned(pp) do
-                                            begin
-                                               { the stored function shouldn't have any parameters }
-                                               if not(assigned(pp^.para1)) then
-                                                 break;
-                                                pp:=pp^.nextoverloaded;
-                                            end;
-                                          { found we a procedure and does it really return a bool? }
-                                          if not(assigned(pp)) or
-                                             not(is_equal(pp^.retdef,booldef)) then
-                                            Message(parser_e_ill_property_storage_sym);
-                                          p^.storeddef:=pp;
-                                       end
-                                     else if sym^.typ=varsym then
-                                       begin
-                                          if not(is_equal(pvarsym(sym)^.definition,
-                                            booldef)) then
-                                            Message(parser_e_stored_property_must_be_boolean);
-                                       end;
+                                     case sym^.typ of
+                                       procsym :
+                                         begin
+                                           pp:=pprocsym(sym)^.definition;
+                                           while assigned(pp) do
+                                             begin
+                                                { the stored function shouldn't have any parameters }
+                                                if pp^.para^.empty then
+                                                  break;
+                                                 pp:=pp^.nextoverloaded;
+                                             end;
+                                           { found we a procedure and does it really return a bool? }
+                                           if not(assigned(pp)) or
+                                              not(is_equal(pp^.retdef,booldef)) then
+                                             Message(parser_e_ill_property_storage_sym);
+                                           p^.storeddef:=pp;
+                                         end;
+                                       varsym :
+                                         begin
+                                           if not(propertyparas^.empty) or
+                                              not(is_equal(pvarsym(sym)^.definition,booldef)) then
+                                             Message(parser_e_stored_property_must_be_boolean);
+                                         end;
+                                       else
+                                         Message(parser_e_ill_property_storage_sym);
+                                     end;
                                      addpropsymlist(p^.storedsym,sym);
                                   end;
                              end;
@@ -759,15 +745,14 @@ uses
                   end;
                 { clean up }
                 if assigned(datacoll) then
-                  disposepdefcoll(datacoll);
+                  dispose(datacoll,done);
              end
            else
              begin
                 consume(_ID);
                 consume(_SEMICOLON);
              end;
-           if assigned(propertyparas) then
-             disposepdefcoll(propertyparas);
+           dispose(propertyparas,done);
         end;
 
 
@@ -785,7 +770,7 @@ uses
            aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_destructor];
 {$endif}
            consume(_SEMICOLON);
-           if assigned(aktprocsym^.definition^.para1) then
+           if not(aktprocsym^.definition^.para^.empty) then
             Message(parser_e_no_paras_for_destructor);
            { no return value }
            aktprocsym^.definition^.retdef:=voiddef;
@@ -1608,7 +1593,15 @@ uses
 end.
 {
   $Log$
-  Revision 1.2  1999-10-22 14:37:30  peter
+  Revision 1.3  1999-10-26 12:30:45  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.2  1999/10/22 14:37:30  peter
     * error when properties are passed to var parameters
 
   Revision 1.1  1999/10/22 10:39:35  peter

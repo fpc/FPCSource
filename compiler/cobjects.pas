@@ -131,6 +131,9 @@ unit cobjects;
 
           { is the linkedlist empty ? }
           function  empty:boolean;
+
+          { items in the list }
+          function  count:longint;
        end;
 
        { some help data types }
@@ -414,7 +417,7 @@ unit cobjects;
 
     uses
       comphook;
-      
+
 {*****************************************************************************
                                     Memory debug
 *****************************************************************************}
@@ -1128,9 +1131,26 @@ end;
           end;
       end;
 
+
     function tlinkedlist.empty:boolean;
       begin
         empty:=(first=nil);
+      end;
+
+
+    function tlinkedlist.count:longint;
+      var
+        i : longint;
+        hp : plinkedlist_item;
+      begin
+        hp:=first;
+        i:=0;
+        while assigned(hp) do
+         begin
+           inc(i);
+           hp:=hp^.next;
+         end;
+        count:=i;
       end;
 
 
@@ -2257,7 +2277,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.42  1999-09-07 15:08:51  pierre
+  Revision 1.43  1999-10-26 12:30:41  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.42  1999/09/07 15:08:51  pierre
    * runerror => do_internalerror
 
   Revision 1.41  1999/08/24 13:13:57  peter

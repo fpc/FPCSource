@@ -582,9 +582,7 @@ implementation
                       if codegenerror then
                        exit;
                       { first param must be var }
-                      if (p^.left^.left^.location.loc<>LOC_REFERENCE) or
-                         (p^.left^.left^.isproperty) then
-                        CGMessagePos(p^.left^.left^.fileinfo,type_e_argument_cant_be_assigned);
+                      valid_for_assign(p^.left^.left,false);
                       { check type }
                       if (p^.left^.resulttype^.deftype in [enumdef,pointerdef]) or
                          is_ordinal(p^.left^.resulttype) then
@@ -855,9 +853,7 @@ implementation
                      (hp^.right=nil) then
                     CGMessage(cg_e_illegal_expression);
                   { we need a var parameter }
-                  if (hp^.left^.location.loc<>LOC_REFERENCE) or
-                     (hp^.left^.isproperty) then
-                    CGMessagePos(p^.left^.fileinfo,type_e_argument_cant_be_assigned);
+                  valid_for_assign(hp^.left,false);
                   { generate the high() value for the shortstring }
                   if is_shortstring(hp^.left^.resulttype) then
                     gen_high_tree(hp,true);
@@ -952,14 +948,13 @@ implementation
                        if codegenerror then exit;
                        p^.left^.right := hp;
                      {code has to be a var parameter}
-                       if (p^.left^.left^.location.loc<>LOC_REFERENCE) or
-                          (p^.left^.left^.isproperty) then
-                         CGMessage(type_e_variable_id_expected)
-                       else
-                         if (p^.left^.left^.resulttype^.deftype <> orddef) or
+                       if valid_for_assign(p^.left^.left,false) then
+                        begin
+                          if (p^.left^.left^.resulttype^.deftype <> orddef) or
                             not(porddef(p^.left^.left^.resulttype)^.typ in
                                 [u16bit,s16bit,u32bit,s32bit]) then
                            CGMessage(type_e_mismatch);
+                        end;
                        hpp := p^.left^.right
                      End
                   Else hpp := p^.left;
@@ -978,16 +973,15 @@ implementation
                   if (hpp^.left^.treetype=funcretn) then
                    procinfo^.funcret_is_valid:=true;
                   hpp^.right := hp;
-                  if (hpp^.left^.location.loc<>LOC_REFERENCE) or
-                     (hpp^.left^.isproperty) then
-                    CGMessage(type_e_variable_id_expected)
-                  else
-                    If Not((hpp^.left^.resulttype^.deftype = floatdef) or
-                           ((hpp^.left^.resulttype^.deftype = orddef) And
-                            (POrdDef(hpp^.left^.resulttype)^.typ in
+                  if valid_for_assign(hpp^.left,false) then
+                   begin
+                     If Not((hpp^.left^.resulttype^.deftype = floatdef) or
+                            ((hpp^.left^.resulttype^.deftype = orddef) And
+                             (POrdDef(hpp^.left^.resulttype)^.typ in
                               [u32bit,s32bit,
-                               u8bit,s8bit,u16bit,s16bit,s64bit,u64bit])))
-                        Then CGMessage(type_e_mismatch);
+                               u8bit,s8bit,u16bit,s16bit,s64bit,u64bit]))) Then
+                       CGMessage(type_e_mismatch);
+                   end;
                   must_be_valid:=true;
                  {hp = source (String)}
                   count_ref := false;
@@ -1029,9 +1023,7 @@ implementation
                       if (p^.left^.left^.treetype=funcretn) then
                        procinfo^.funcret_is_valid:=true;
                       { first param must be var }
-                      if not(p^.left^.left^.location.loc in [LOC_REFERENCE,LOC_CREGISTER]) or
-                         (p^.left^.left^.isproperty) then
-                        CGMessagePos(p^.left^.left^.fileinfo,type_e_argument_cant_be_assigned);
+                      valid_for_assign(p^.left^.left,false);
                       { check type }
                       if (p^.left^.resulttype^.deftype=setdef) then
                         begin
@@ -1268,7 +1260,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  1999-10-22 14:37:31  peter
+  Revision 1.56  1999-10-26 12:30:46  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.55  1999/10/22 14:37:31  peter
     * error when properties are passed to var parameters
 
   Revision 1.54  1999/10/21 16:41:41  florian

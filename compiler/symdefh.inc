@@ -96,15 +96,14 @@
 
        tvarspez = (vs_value,vs_const,vs_var);
 
-       pdefcoll = ^tdefcoll;
-       tdefcoll = record
-          data    : pdef;
-          datasym : ptypesym;
-          next    : pdefcoll;
-          paratyp : tvarspez;
-          argconvtyp : targconvtyp;
+       pparaitem = ^tparaitem;
+       tparaitem = object(tlinkedlist_item)
+          data         : pdef;
+          datasym      : ptypesym;
+          paratyp      : tvarspez;
+          argconvtyp   : targconvtyp;
           convertlevel : byte;
-          register : tregister;
+          register     : tregister;
        end;
 
        tfiletype = (ft_text,ft_typed,ft_untyped);
@@ -340,7 +339,7 @@
           proctypeoption  : tproctypeoption;
           proccalloptions : tproccalloptions;
           procoptions     : tprocoptions;
-          para1           : pdefcoll;
+          para            : plinkedlist;
           symtablelevel   : byte;
           fpu_used        : byte;    { how many stack fpu must be empty }
           constructor init;
@@ -531,7 +530,15 @@
 
 {
   $Log$
-  Revision 1.43  1999-10-01 10:05:44  peter
+  Revision 1.44  1999-10-26 12:30:45  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.43  1999/10/01 10:05:44  peter
     + procedure directive support in const declarations, fixes bug 232
 
   Revision 1.42  1999/10/01 08:02:48  peter

@@ -301,8 +301,8 @@ implementation
                 minusdef:=nil;
               while assigned(minusdef) do
                 begin
-                   if (minusdef^.para1^.data=p^.left^.resulttype) and
-                     (minusdef^.para1^.next=nil) then
+                   if (pparaitem(minusdef^.para^.first)^.data=p^.left^.resulttype) and
+                      (pparaitem(minusdef^.para^.first)^.next=nil) then
                      begin
                         t:=gencallnode(overloaded_operators[_minus],nil);
                         t^.left:=gencallparanode(p^.left,nil);
@@ -408,7 +408,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  1999-08-23 23:37:01  pierre
+  Revision 1.21  1999-10-26 12:30:46  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.20  1999/08/23 23:37:01  pierre
    * firstnot register counting error corrected
 
   Revision 1.19  1999/08/04 13:03:15  jonas

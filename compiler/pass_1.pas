@@ -155,13 +155,14 @@ implementation
               if assigned(hp^.right) then
                 begin
                    cleartempgen;
+                   codegenerror:=false;
                    firstpass(hp^.right);
                    if (not (cs_extsyntax in aktmoduleswitches)) and
                       assigned(hp^.right^.resulttype) and
                       (hp^.right^.resulttype<>pdef(voiddef)) then
                      CGMessage(cg_e_illegal_expression);
-                   if codegenerror then
-                     exit;
+                   {if codegenerror then
+                     exit;}
                    hp^.registers32:=hp^.right^.registers32;
                    hp^.registersfpu:=hp^.right^.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -369,7 +370,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.106  1999-09-27 23:44:51  peter
+  Revision 1.107  1999-10-26 12:30:43  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.106  1999/09/27 23:44:51  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 

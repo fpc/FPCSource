@@ -153,7 +153,8 @@ type
     vo_is_external,
     vo_is_dll_var,
     vo_is_thread_var,
-    vo_fpuregable
+    vo_fpuregable,
+    vo_is_const  { variable is declared as const (parameter) and can't be written to }
   );
   tvaroptions=set of tvaroption;
 
@@ -179,7 +180,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1999-10-01 08:02:48  peter
+  Revision 1.4  1999-10-26 12:30:45  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.3  1999/10/01 08:02:48  peter
     * forward type declaration rewritten
 
   Revision 1.2  1999/08/04 13:45:29  florian

@@ -52,6 +52,7 @@ interface
     function  is_procsym_call(p:Ptree):boolean;
     function  assignment_overloaded(from_def,to_def : pdef) : pprocdef;
     procedure test_local_to_procvar(from_def:pprocvardef;to_def:pdef);
+    function  valid_for_assign(p:ptree;allowprop:boolean):boolean;
 
 
 implementation
@@ -699,8 +700,8 @@ implementation
           while passproc<>nil do
             begin
               if is_equal(passproc^.retdef,to_def) and
-                 (is_equal(passproc^.para1^.data,from_def) or
-                 (isconvertable(from_def,passproc^.para1^.data,convtyp,ordconstn,false)=1)) then
+                 (is_equal(pparaitem(passproc^.para^.first)^.data,from_def) or
+                 (isconvertable(from_def,pparaitem(passproc^.para^.first)^.data,convtyp,ordconstn,false)=1)) then
                 begin
                    assignment_overloaded:=passproc;
                    break;
@@ -709,6 +710,7 @@ implementation
             end;
        end;
 
+
     { local routines can't be assigned to procvars }
     procedure test_local_to_procvar(from_def:pprocvardef;to_def:pdef);
       begin
@@ -716,10 +718,111 @@ implementation
            CGMessage(type_e_cannot_local_proc_to_procvar);
       end;
 
+
+    function valid_for_assign(p:ptree;allowprop:boolean):boolean;
+      var
+        hp : ptree;
+        gotderef : boolean;
+      begin
+        valid_for_assign:=false;
+        gotderef:=false;
+        hp:=p;
+        while assigned(hp) do
+         begin
+           if (not allowprop) and
+              (hp^.isproperty) then
+            begin
+              CGMessagePos(hp^.fileinfo,type_e_argument_cant_be_assigned);
+              exit;
+            end;
+           case hp^.treetype of
+             derefn :
+               begin
+                 gotderef:=true;
+                 hp:=hp^.left;
+               end;
+             typeconvn,
+             vecn,
+             subscriptn :
+               hp:=hp^.left;
+             subn,
+             addn :
+               begin
+                 { Allow add/sub operators on a pointer }
+                 if (hp^.resulttype^.deftype=pointerdef) then
+                  valid_for_assign:=true
+                 else
+                  CGMessagePos(hp^.fileinfo,type_e_variable_id_expected);
+                 exit;
+               end;
+             addrn :
+               begin
+                 if not(gotderef) and
+                    not(hp^.procvarload) then
+                  CGMessagePos(hp^.fileinfo,type_e_no_assign_to_addr);
+                 exit;
+               end;
+             funcretn :
+               begin
+                 valid_for_assign:=true;
+                 exit;
+               end;
+             loadn :
+               begin
+                 case hp^.symtableentry^.typ of
+                   absolutesym,
+                   varsym :
+                     begin
+                       if (pvarsym(hp^.symtableentry)^.varspez=vs_const) then
+                        begin
+                          CGMessagePos(hp^.fileinfo,type_e_no_assign_to_const);
+                          exit;
+                        end;
+                       { Are we at a with symtable, then we need to process the
+                         withrefnode also to check for maybe a const load }
+                       if (hp^.symtable^.symtabletype=withsymtable) then
+                        begin
+                          { continue with processing the withref node }
+                          hp:=ptree(pwithsymtable(hp^.symtable)^.withrefnode);
+                        end
+                       else
+                        begin
+                          { set the assigned flag for varsyms }
+                          if (pvarsym(hp^.symtableentry)^.varstate=vs_declared) then
+                           pvarsym(hp^.symtableentry)^.varstate:=vs_assigned;
+                          valid_for_assign:=true;
+                          exit;
+                        end;
+                     end;
+                   funcretsym,
+                   typedconstsym :
+                     begin
+                       valid_for_assign:=true;
+                       exit;
+                     end;
+                 end;
+               end;
+             else
+               begin
+                 CGMessagePos(hp^.fileinfo,type_e_variable_id_expected);
+                 exit;
+               end;
+            end;
+         end;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.41  1999-10-14 14:57:52  florian
+  Revision 1.42  1999-10-26 12:30:41  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.41  1999/10/14 14:57:52  florian
     - removed the hcodegen use in the new cg, use cgbase instead
 
   Revision 1.40  1999/09/26 21:30:15  peter

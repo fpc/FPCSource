@@ -404,7 +404,7 @@ implementation
                              while assigned(procdefcoll) do
                                begin
                                   { compare parameters }
-                                  if equal_paras(procdefcoll^.data^.para1,hp^.para1,false) and
+                                  if equal_paras(procdefcoll^.data^.para,hp^.para,false) and
                                      (
                                        (po_virtualmethod in procdefcoll^.data^.procoptions) or
                                        (po_virtualmethod in hp^.procoptions)
@@ -614,7 +614,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1999-09-13 16:23:42  peter
+  Revision 1.18  1999-10-26 12:30:41  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.17  1999/09/13 16:23:42  peter
     * remvoed unused var
 
   Revision 1.16  1999/09/12 14:50:50  florian

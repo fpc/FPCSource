@@ -798,6 +798,12 @@ parser_e_proc_directive_expected=E_Procedure directive expected
 %   p : procedure stdcall=nil;
 % \end{verbatim}
 parser_e_invalid_property_index_value=E_The value for a property index must be of an ordinal type
+% The value you use to index a property must be of an ordinal type, for
+% example an integer or enumerated type.
+parser_e_procname_to_short_for_export=E_Procedure name to short to be exported
+% The length of the procedure/function name must be at least 2 characters
+% long. This is because of a bug in dlltool which doesn't parse the .def
+% file correct with a name of length 1.
 % \end{description}
 #
 # Type Checking
@@ -928,6 +934,10 @@ type_e_no_assign_to_addr=E_Can't assign values to an address
 % It's not allowed to assign a value to an address of a variable,constant,
 % procedure or function. You can try compiling with -So if the identifier
 % is a procedure variable.
+type_e_no_assign_to_const=E_Can't assign values to const variable
+% It's not allowed to assign a value to a variable which is declared
+% as a const. This is normally a parameter declared as const, to allow
+% changing make the parameter value or var.
 % \end{description}
 #
 # Symtable

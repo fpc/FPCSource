@@ -606,8 +606,8 @@ var
 begin
   { check parameter type }
   if not(po_containsself in aktprocsym^.definition^.procoptions) and
-     (assigned(aktprocsym^.definition^.para1^.next) or
-      (aktprocsym^.definition^.para1^.paratyp<>vs_var)) then
+     ((aktprocsym^.definition^.para^.count<>1) or
+      (pparaitem(aktprocsym^.definition^.para^.first)^.paratyp<>vs_var)) then
    Message(parser_e_ill_msg_param);
   pt:=comp_expr(true);
   do_firstpass(pt);
@@ -1162,7 +1162,7 @@ begin
         while (assigned(pd)) and (assigned(pd^.nextoverloaded)) do
          begin
            if not(m_repeat_forward in aktmodeswitches) or
-              (equal_paras(aktprocsym^.definition^.para1,pd^.nextoverloaded^.para1,false) and
+              (equal_paras(aktprocsym^.definition^.para,pd^.nextoverloaded^.para,false) and
               { for operators equal_paras is not enough !! }
               ((aktprocsym^.definition^.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
                is_equal(pd^.nextoverloaded^.retdef,aktprocsym^.definition^.retdef))) then
@@ -1902,7 +1902,15 @@ end.
 
 {
   $Log$
-  Revision 1.29  1999-10-22 10:39:35  peter
+  Revision 1.30  1999-10-26 12:30:44  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.29  1999/10/22 10:39:35  peter
     * split type reading from pdecl to ptype unit
     * parameter_dec routine is now used for procedure and procvars
 

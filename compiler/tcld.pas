@@ -238,11 +238,6 @@ implementation
          if is_open_array(p^.left^.resulttype) then
            CGMessage(type_e_mismatch);
 
-         { assignments to addr aren't allowed, but support @procvar for tp }
-         if (p^.left^.treetype=addrn) and
-            not(p^.left^.procvarload) then
-          CGMessage(type_e_no_assign_to_addr);
-
          { test if we can avoid copying string to temp
            as in s:=s+...; (PM) }
 {$ifdef dummyi386}
@@ -317,16 +312,12 @@ implementation
              exit;
           end;
 
-         { set assigned flag for varsyms }
-         if (p^.left^.treetype=loadn) and
-            (p^.left^.symtableentry^.typ=varsym) and
-            (pvarsym(p^.left^.symtableentry)^.varstate=vs_declared) then
-           pvarsym(p^.left^.symtableentry)^.varstate:=vs_assigned;
+         { test if node can be assigned, properties are allowed }
+         valid_for_assign(p^.left,true);
 
          { check if local proc/func is assigned to procvar }
          if p^.right^.resulttype^.deftype=procvardef then
            test_local_to_procvar(pprocvardef(p^.right^.resulttype),p^.left^.resulttype);
-
 
          p^.resulttype:=voiddef;
          {
@@ -511,7 +502,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  1999-10-13 10:35:27  peter
+  Revision 1.48  1999-10-26 12:30:46  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.47  1999/10/13 10:35:27  peter
     * var must match exactly error msg extended with got and expected type
     * array constructor type check now gives error on wrong types
 

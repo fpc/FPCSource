@@ -140,12 +140,12 @@ interface
     { if value_equal_const is true, call by value   }
     { and call by const parameter are assumed as    }
     { equal                                         }
-    function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
+    function equal_paras(paralist1,paralist2 : plinkedlist;value_equal_const : boolean) : boolean;
 
 
     { true if a type can be allowed for another one
       in a func var }
-    function convertable_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
+    function convertable_paras(paralist1,paralist2 : plinkedlist;value_equal_const : boolean) : boolean;
 
     { true if a function can be assigned to a procvar }
     function proc_to_procvar_equal(def1:pprocdef;def2:pprocvardef) : boolean;
@@ -179,8 +179,12 @@ implementation
          (sym^.typ in [propertysym,varsym]);
       end;
 
-    function equal_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
+    function equal_paras(paralist1,paralist2 : plinkedlist;value_equal_const : boolean) : boolean;
+      var
+        def1,def2 : pparaitem;
       begin
+         def1:=pparaitem(paralist1^.first);
+         def2:=pparaitem(paralist2^.first);
          while (assigned(def1)) and (assigned(def2)) do
            begin
               if value_equal_const then
@@ -205,8 +209,8 @@ implementation
                         exit;
                      end;
                 end;
-              def1:=def1^.next;
-              def2:=def2^.next;
+              def1:=pparaitem(def1^.next);
+              def2:=pparaitem(def2^.next);
            end;
          if (def1=nil) and (def2=nil) then
            equal_paras:=true
@@ -214,9 +218,13 @@ implementation
            equal_paras:=false;
       end;
 
-    function convertable_paras(def1,def2 : pdefcoll;value_equal_const : boolean) : boolean;
-      var doconv : tconverttype;
+    function convertable_paras(paralist1,paralist2 : plinkedlist;value_equal_const : boolean) : boolean;
+      var
+        def1,def2 : pparaitem;
+        doconv : tconverttype;
       begin
+         def1:=pparaitem(paralist1^.first);
+         def2:=pparaitem(paralist2^.first);
          while (assigned(def1)) and (assigned(def2)) do
            begin
               if value_equal_const then
@@ -241,8 +249,8 @@ implementation
                         exit;
                      end;
                 end;
-              def1:=def1^.next;
-              def2:=def2^.next;
+              def1:=pparaitem(def1^.next);
+              def2:=pparaitem(def2^.next);
            end;
          if (def1=nil) and (def2=nil) then
            convertable_paras:=true
@@ -278,8 +286,8 @@ implementation
          { check return value and para's and options, methodpointer is already checked
            parameters may also be convertable }
          if is_equal(def1^.retdef,def2^.retdef) and
-            (equal_paras(def1^.para1,def2^.para1,false) or
-             convertable_paras(def1^.para1,def2^.para1,false)) and
+            (equal_paras(def1^.para,def2^.para,false) or
+             convertable_paras(def1^.para,def2^.para,false)) and
             ((po_comp * def1^.procoptions)= (po_comp * def2^.procoptions)) then
            proc_to_procvar_equal:=true
          else
@@ -779,7 +787,6 @@ implementation
       var
          b : boolean;
          hd : pdef;
-         hp1,hp2 : pdefcoll;
       begin
          { both types must exists }
          if not (assigned(def1) and assigned(def2)) then
@@ -880,25 +887,8 @@ implementation
                    (pprocvardef(def1)^.proccalloptions=pprocvardef(def2)^.proccalloptions) and
                    ((pprocvardef(def1)^.procoptions * po_compatibility_options)=
                     (pprocvardef(def2)^.procoptions * po_compatibility_options)) and
-                   is_equal(pprocvardef(def1)^.retdef,pprocvardef(def2)^.retdef);
-                { now evalute the parameters }
-                if b then
-                  begin
-                     hp1:=pprocvardef(def1)^.para1;
-                     hp2:=pprocvardef(def1)^.para1;
-                     while assigned(hp1) and assigned(hp2) do
-                       begin
-                          if not(is_equal(hp1^.data,hp2^.data)) or
-                            not(hp1^.paratyp=hp2^.paratyp) then
-                            begin
-                               b:=false;
-                               break;
-                            end;
-                          hp1:=hp1^.next;
-                          hp2:=hp2^.next;
-                       end;
-                     b:=(hp1=nil) and (hp2=nil);
-                  end;
+                   is_equal(pprocvardef(def1)^.retdef,pprocvardef(def2)^.retdef) and
+                   equal_paras(pprocvardef(def1)^.para,pprocvardef(def2)^.para,false);
              end
          else
            if (def1^.deftype=arraydef) and (def2^.deftype=arraydef) then
@@ -995,7 +985,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  1999-10-01 10:04:07  peter
+  Revision 1.90  1999-10-26 12:30:46  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.89  1999/10/01 10:04:07  peter
     * fixed is_equal for proc -> procvar which didn't check the
       callconvention and type anymore since the splitting of procoptions
 

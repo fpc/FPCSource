@@ -1517,7 +1517,7 @@ unit pexpr;
                          again:=false
                        else
                          if (token=_LKLAMMER) or
-                            ((pprocvardef(pd)^.para1=nil) and
+                            ((pprocvardef(pd)^.para^.empty) and
                              (not((token in [_ASSIGNMENT,_UNEQUAL,_EQUAL]))) and
                              (not afterassignment) and
                              (not in_args)) then
@@ -2117,7 +2117,15 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.150  1999-10-22 14:37:30  peter
+  Revision 1.151  1999-10-26 12:30:44  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.150  1999/10/22 14:37:30  peter
     * error when properties are passed to var parameters
 
   Revision 1.149  1999/10/22 10:39:34  peter

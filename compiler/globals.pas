@@ -1270,7 +1270,7 @@ end;
 
       { Init values }
         initmodeswitches:=fpcmodeswitches;
-        initlocalswitches:=[];
+        initlocalswitches:=[cs_check_io];
         initmoduleswitches:=[cs_extsyntax,cs_browser];
         initglobalswitches:=[cs_check_unit_name,cs_link_static];
 {$ifdef i386}
@@ -1315,7 +1315,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  1999-10-21 14:29:34  peter
+  Revision 1.27  1999-10-26 12:30:41  peter
+    * const parameter is now checked
+    * better and generic check if a node can be used for assigning
+    * export fixes
+    * procvar equal works now (it never had worked at least from 0.99.8)
+    * defcoll changed to linkedlist with pparaitem so it can easily be
+      walked both directions
+
+  Revision 1.26  1999/10/21 14:29:34  peter
     * redesigned linker object
     + library support for linux (only procedures can be exported)
 
