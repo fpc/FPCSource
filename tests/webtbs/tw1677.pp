@@ -4,12 +4,11 @@
 program test;
 type trec = record i:integer; s:ansistring end;
 
-procedure RefCount(const s : ansistring;expect:longint);
+procedure RefCount(const s : ansistring;var rc:sizeint;expect:sizeint);
 type
         PLongint = ^Longint;
 var
         P : psizeint;
-        rc : longint;
 begin
         P := psizeint(s);
         rc:=0;
@@ -25,9 +24,14 @@ begin
 {$else}
          rc:=plongint(pchar(p)-8)^;
 {$endif}
-  writeln('Ref count is ',rc,' expected ',expect);
-  if rc<>expect then
-    halt(1);
+  if expect<>-1 then
+    begin
+      writeln('Ref count is ',rc,' expected ',expect);
+      if rc<>expect then
+        halt(1);
+    end
+  else  
+    writeln('Ref count is ',rc);
 end;
 
 
@@ -48,17 +52,18 @@ procedure p4(a:ansistring);
   end;
 
 var r:trec; s:ansistring;
+    hrc,rc : sizeint;
 begin
   s:=chr(ord('A')+random(26));
   r.s:=s;
   writeln('init');
-  RefCount(s,3);
+  RefCount(s,rc,-1);
   writeln('p1()');
   p1(r);
-  RefCount(s,3);
+  RefCount(s,hrc,rc);
   writeln('p2()');
   p2(r);
-  RefCount(s,3);
+  RefCount(s,hrc,rc);
   writeln('ok');
 end.
 
