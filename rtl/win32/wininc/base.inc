@@ -108,6 +108,7 @@
      HLOCAL = HANDLE;
      HMENU = HANDLE;
      HMETAFILE = HANDLE;
+     HMODULE = HANDLE;
      HPALETTE = HANDLE;
      HPEN = HANDLE;
      HRASCONN = HANDLE;
@@ -938,7 +939,10 @@ type
 
 {
   $Log$
-  Revision 1.20  2003-12-05 11:53:12  marco
+  Revision 1.21  2003-12-08 21:23:24  peter
+    * hmodule added
+
+  Revision 1.20  2003/12/05 11:53:12  marco
    * ttokeninformationclass alias for delphi compat
 
   Revision 1.19  2003/10/06 23:52:53  florian
