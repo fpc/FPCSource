@@ -213,7 +213,8 @@
          nf_inlineconst,
 
          { general }
-         nf_isproperty  { 30th }
+         nf_isproperty,  { 30th }
+         nf_varstateset
        );
 
        tnodeflagset = set of tnodeflags;
@@ -311,6 +312,7 @@
           procedure det_temp;override;
           function docompare(p : tnode) : boolean;override;
           function getcopy : tnode;override;
+          procedure left_max;
        end;
 
        pbinarynode = ^tbinarynode;
@@ -336,7 +338,10 @@
 
 {
   $Log$
-  Revision 1.9  2000-09-27 18:14:31  florian
+  Revision 1.10  2000-09-28 19:49:52  florian
+  *** empty log message ***
+
+  Revision 1.9  2000/09/27 18:14:31  florian
     * fixed a lot of syntax errors in the n*.pas stuff
 
   Revision 1.8  2000/09/26 20:06:13  florian

@@ -130,7 +130,7 @@ implementation
       globtype,systems,
       cutils,cobjects,verbose,globals,
       symconst,aasm,types,
-      htypechk,pass_1,ncal,nld
+      htypechk,pass_1,ncal,nld,ncon,ncnv
 {$ifdef newcg}
       ,cgbase
 {$else newcg}
@@ -157,7 +157,7 @@ implementation
          !!!!!!!!! fixme
          p:=getnode;
          disposetyp:=dt_with;
-         treetype:=withn;
+         nodetype:=withn;
          left:=l;
          right:=r;
          registers32:=0;
@@ -443,16 +443,16 @@ implementation
                        { we need to process the parameters reverse so they are inserted
                          in the correct right2left order (PFV) }
                        hp2:=pparaitem(hp3^.para^.last);
-                       while assigned(hp2^.) do
+                       while assigned(hp2) do
                          begin
                             pprocvardef(resulttype)^.concatpara(hp2^.paratype,hp2^.paratyp,hp2^.defaultvalue);
-                            hp2^.:=pparaitem(hp2^.previous);
+                            hp2:=pparaitem(hp2^.previous);
                          end;
                     end
                   else
                     resulttype:=voidpointerdef;
 
-                  disposetree(left);
+                  left.free;
                   left:=hp;
                 end
               else
@@ -460,11 +460,11 @@ implementation
                   firstpass(left);
                   { what are we getting the address from an absolute sym? }
                   hp:=left;
-                  while assigned(hp) and (hp.treetype in [vecn,derefn,subscriptn]) do
-                   hp:=hp.left;
-                  if assigned(hp) and (hp.treetype=loadn) and
-                     ((hp.symtableentry^.typ=absolutesym) and
-                      pabsolutesym(hp.symtableentry)^.absseg) then
+                  while assigned(hp) and (hp.nodetype in [vecn,derefn,subscriptn]) do
+                   hp:=tunarynode(hp).left;
+                  if assigned(hp) and (hp.nodetype=loadn) and
+                     ((tloadnode(hp).symtableentry^.typ=absolutesym) and
+                      pabsolutesym(tloadnode(hp).symtableentry)^.absseg) then
                    begin
                      if not(cs_typed_addresses in aktlocalswitches) then
                        resulttype:=voidfarpointerdef
@@ -483,7 +483,7 @@ implementation
          firstpass(left);
          { this is like the function addr }
          inc(parsing_para_level);
-         set_varstate(left,false);
+         left.set_varstate(false);
          dec(parsing_para_level);
          if codegenerror then
            exit;
@@ -532,7 +532,7 @@ implementation
          make_not_regable(left);
          firstpass(left);
          inc(parsing_para_level);
-         set_varstate(left,false);
+         left.set_varstate(false);
          dec(parsing_para_level);
          if resulttype=nil then
            resulttype:=voidpointerdef;
@@ -570,7 +570,7 @@ implementation
       begin
          pass_1:=nil;
          firstpass(left);
-         set_varstate(left,true);
+         left.set_varstate(true);
          if codegenerror then
            begin
              resulttype:=generrordef;
@@ -595,11 +595,12 @@ implementation
                             TSUBSCRIPTNODE
 *****************************************************************************}
 
-    constructor tsubscriptnode.create(varsym : pvarsym;l : tnode);
+    constructor tsubscriptnode.create(varsym : psym;l : tnode);
 
       begin
          inherited create(subscriptn,l);
-         vs:=varsym;
+         { vs should be changed to psym! }
+         vs:=pvarsym(varsym);
       end;
 
     function tsubscriptnode.getcopy : tnode;
@@ -728,11 +729,11 @@ implementation
              CGMessage(type_e_array_required);
 
          { the register calculation is easy if a const index is used }
-         if right.treetype=ordconstn then
+         if right.nodetype=ordconstn then
            begin
 {$ifdef consteval}
               { constant evaluation }
-              if (left.treetype=loadn) and
+              if (left.nodetype=loadn) and
                  (left.symtableentry^.typ=typedconstsym) then
                begin
                  tcsym:=ptypedconstsym(left.symtableentry);
@@ -839,7 +840,7 @@ implementation
       begin
          p:=twithnode(inherited getcopy);
          p.withsymtable:=withsymtable;
-         p.tablecount:=count;
+         p.tablecount:=tablecount;
          p.withreference:=withreference;
       end;
 
@@ -859,24 +860,23 @@ implementation
                symtable:=withsymtable;
                for i:=1 to tablecount do
                  begin
-                    if (left.treetype=loadn) and
-                       (left.symtable=aktprocsym^.definition^.localst) then
+                    if (left.nodetype=loadn) and
+                       (tloadnode(left).symtable=aktprocsym^.definition^.localst) then
                       symtable^.direct_with:=true;
-                    symtable^.withnode:=p;
+                    symtable^.withnode:=self;
                     symtable:=pwithsymtable(symtable^.next);
                   end;
                firstpass(right);
                if codegenerror then
                  exit;
 
-               left_right_max(p);
+               left_right_max;
                resulttype:=voiddef;
             end
          else
            begin
               { optimization }
-              disposetree(p);
-              p:=nil;
+              pass_1:=nil;
            end;
       end;
 
@@ -884,7 +884,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-09-25 15:37:14  florian
+  Revision 1.4  2000-09-28 19:49:52  florian
+  *** empty log message ***
+
+  Revision 1.3  2000/09/25 15:37:14  florian
     * more fixes
 
   Revision 1.2  2000/09/25 15:05:25  florian

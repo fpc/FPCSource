@@ -157,7 +157,7 @@ implementation
         if porddef(left.resulttype)^.typ>porddef(right.resulttype)^.typ then
          begin
            right:=gentypeconvnode(right,porddef(left.resulttype));
-           ttypeconvnode(right).convtyp:=tc_bool_2_int;
+           ttypeconvnode(right).convtype:=tc_bool_2_int;
            include(right.flags,nf_explizit);
            firstpass(right);
          end
@@ -165,7 +165,7 @@ implementation
          if porddef(left.resulttype)^.typ<porddef(right.resulttype)^.typ then
           begin
             left:=gentypeconvnode(left,porddef(right.resulttype));
-            ttypeconvnode(left).convtyp:=tc_bool_2_int;
+            ttypeconvnode(left).convtype:=tc_bool_2_int;
             include(left.flags,nf_explizit);
             firstpass(left);
           end;
@@ -488,14 +488,14 @@ implementation
                      if left.location.loc=LOC_FLAGS then
                        begin
                           left:=gentypeconvnode(left,porddef(left.resulttype));
-                          left.convtyp:=tc_bool_2_int;
+                          left.convtype:=tc_bool_2_int;
                           left.explizit:=true;
                           firstpass(left);
                        end;
                      if right.location.loc=LOC_FLAGS then
                        begin
                           right:=gentypeconvnode(right,porddef(right.resulttype));
-                          right.convtyp:=tc_bool_2_int;
+                          right.convtype:=tc_bool_2_int;
                           right.explizit:=true;
                           firstpass(right);
                        end;
@@ -1316,7 +1316,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-09-27 21:33:22  florian
+  Revision 1.10  2000-09-28 19:49:52  florian
+  *** empty log message ***
+
+  Revision 1.9  2000/09/27 21:33:22  florian
     * finally nadd.pas compiles
 
   Revision 1.8  2000/09/27 20:25:44  florian

@@ -599,7 +599,7 @@ implementation
       procedure postprocess(t : tnode);
 
         begin
-           calcregisters(t,0,0,0);
+           calcregisters(tbinarynode(t),0,0,0);
            { looks a little bit dangerous to me            }
            { len-1 gives problems with is_open_array if len=0, }
            { is_open_array checks now for isconstructor (FK)   }
@@ -769,7 +769,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-09-27 18:14:31  florian
+  Revision 1.4  2000-09-28 19:49:52  florian
+  *** empty log message ***
+
+  Revision 1.3  2000/09/27 18:14:31  florian
     * fixed a lot of syntax errors in the n*.pas stuff
 
   Revision 1.2  2000/09/25 15:37:14  florian

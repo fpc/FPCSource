@@ -38,7 +38,7 @@ interface
           function getcopy : tnode;override;
        end;
 
-       tlabelednode = class(tnode)
+       tlabelednode = class(tunarynode)
           labelnr : pasmlabel;
           exceptionblock : tnode;
           labsym : plabelsym;
@@ -76,7 +76,9 @@ interface
        end;
 
        traisenode = class(tbinarynode)
+          frametree : tnode;
           constructor create;virtual;
+          function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
 
@@ -95,7 +97,6 @@ interface
           excepttype : pobjectdef;
           constructor create;virtual;
           function pass_1 : tnode;override;
-          destructor destroy;override;
           function getcopy : tnode;override;
        end;
 
@@ -122,7 +123,8 @@ implementation
     uses
       globtype,systems,
       cutils,cobjects,verbose,globals,
-      symconst,types,htypechk,pass_1,ncon,nmem
+      symconst,types,htypechk,pass_1,
+      ncon,nmem,nld,ncnv
 {$ifdef newcg}
       ,tgobj
       ,tgcpu
@@ -482,26 +484,26 @@ implementation
           hp:=tsubscriptnode(hp).left;
          { we need a simple loadn, but the load must be in a global symtable or
            in the same lexlevel }
-         if (hp.treetype=funcretn) or
-            ((hp.treetype=loadn) and
-             ((hp.symtable^.symtablelevel<=1) or
-              (hp.symtable^.symtablelevel=lexlevel))) then
+         if (hp.nodetype=funcretn) or
+            ((hp.nodetype=loadn) and
+             ((tloadnode(hp).symtable^.symtablelevel<=1) or
+              (tloadnode(hp).symtable^.symtablelevel=lexlevel))) then
           begin
-            if hp.symtableentry^.typ=varsym then
-              pvarsym(hp.symtableentry)^.varstate:=vs_used;
-            if (not(is_ordinal(t2^.resulttype)) or is_64bitint(t2^.resulttype)) then
+            if tloadnode(hp).symtableentry^.typ=varsym then
+              pvarsym(tloadnode(hp).symtableentry)^.varstate:=vs_used;
+            if (not(is_ordinal(t2.resulttype)) or is_64bitint(t2.resulttype)) then
               CGMessagePos(hp.fileinfo,type_e_ordinal_expr_expected);
           end
          else
           CGMessagePos(hp.fileinfo,cg_e_illegal_count_var);
 
-         if t2^.registers32>registers32 then
-           registers32:=t2^.registers32;
-         if t2^.registersfpu>registersfpu then
-           registersfpu:=t2^.registersfpu;
+         if t2.registers32>registers32 then
+           registers32:=t2.registers32;
+         if t2.registersfpu>registersfpu then
+           registersfpu:=t2.registersfpu;
 {$ifdef SUPPORT_MMX}
-         if t2^.registersmmx>registersmmx then
-           registersmmx:=t2^.registersmmx;
+         if t2.registersmmx>registersmmx then
+           registersmmx:=t2.registersmmx;
 {$endif SUPPORT_MMX}
 
 {$ifdef newcg}
@@ -511,9 +513,9 @@ implementation
 {$endif newcg}
          firstpass(right);
          right.set_varstate(true);
-         if right.treetype<>ordconstn then
+         if right.nodetype<>ordconstn then
            begin
-              right:=gentypeconvnode(right,t2^.resulttype);
+              right:=gentypeconvnode(right,t2.resulttype);
 {$ifdef newcg}
               tg.cleartempgen;
 {$else newcg}
@@ -548,7 +550,7 @@ implementation
 
     function texitnode.pass_1 : tnode;
       var
-         pt : tnode;
+         pt : tfuncretnode;
       begin
          pass_1:=nil;
          resulttype:=voiddef;
@@ -563,10 +565,10 @@ implementation
               firstpass(left);
               if ret_in_param(procinfo^.returntype.def) or procinfo^.no_fast_exit then
                 begin
-                  pt:=genzeronode(funcretn);
-                  pt^.rettype.setdef(procinfo^.returntype.def);
-                  pt^.funcretprocinfo:=procinfo;
-                  left:=gennode(assignn,pt,left);
+                  pt:=cfuncretnode.create;
+                  pt.rettype.setdef(procinfo^.returntype.def);
+                  pt.funcretprocinfo:=procinfo;
+                  left:=cassignmentnode.create(pt,left);
                   firstpass(left);
                 end;
               registers32:=left.registers32;
@@ -629,6 +631,19 @@ implementation
     constructor traisenode.create;
 
       begin
+         inherited create(raisen,nil,nil);
+         frametree:=nil;
+      end;
+
+    function traisenode.getcopy : tnode;
+
+      var
+         n : traisenode;
+
+      begin
+         n:=traisenode(inherited getcopy);
+         n.frametree:=frametree;
+         getcopy:=n;
       end;
 
     function traisenode.pass_1 : tnode;
@@ -643,7 +658,7 @@ implementation
                  ((left.resulttype^.deftype<>objectdef) or
                   not(pobjectdef(left.resulttype)^.is_class)) then
                 CGMessage(type_e_mismatch);
-              left.set_varstate(left);
+              left.set_varstate(true);
               if codegenerror then
                exit;
               { insert needed typeconvs for addr,frame }
@@ -665,7 +680,7 @@ implementation
                      exit;
                   end;
                end;
-              left_right_max(p);
+              left_right_max;
            end;
       end;
 
@@ -720,10 +735,10 @@ implementation
               aktexceptblock:=t1;
               firstpass(t1);
               aktexceptblock:=oldexceptblock;
-              registers32:=max(registers32,t1^.registers32);
-              registersfpu:=max(registersfpu,t1^.registersfpu);
+              registers32:=max(registers32,t1.registers32);
+              registersfpu:=max(registersfpu,t1.registersfpu);
 {$ifdef SUPPORT_MMX}
-              registersmmx:=max(registersmmx,t1^.registersmmx);
+              registersmmx:=max(registersmmx,t1.registersmmx);
 {$endif SUPPORT_MMX}
            end;
       end;
@@ -768,7 +783,7 @@ implementation
          right.set_varstate(true);
          if codegenerror then
            exit;
-         left_right_max(p);
+         left_right_max;
       end;
 
 
@@ -779,6 +794,20 @@ implementation
     constructor tonnode.create;
 
       begin
+         inherited create(onn,nil,nil);
+         exceptsymtable:=nil;
+         excepttype:=nil;
+      end;
+
+    function tonnode.getcopy : tnode;
+
+      var
+         n : tonnode;
+
+      begin
+         n:=tonnode(inherited getcopy);
+         n.exceptsymtable:=exceptsymtable;
+         n.excepttype:=excepttype;
       end;
 
     function tonnode.pass_1 : tnode;
@@ -846,7 +875,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-09-24 21:15:34  florian
+  Revision 1.4  2000-09-28 19:49:52  florian
+  *** empty log message ***
+
+  Revision 1.3  2000/09/24 21:15:34  florian
     * some errors fix to get more stuff compilable
 
   Revision 1.2  2000/09/24 15:06:19  peter

@@ -36,7 +36,7 @@
          fileinfo:=aktfilepos;
          localswitches:=aktlocalswitches;
          resulttype:=nil;
-         registersint:=0;
+         registers32:=0;
          registersfpu:=0;
 {$ifdef SUPPORT_MMX}
          registersmmx:=0;
@@ -196,17 +196,16 @@
       begin
          { this is quite tricky because we need a node of the current }
          { node type and not one of tnode!                            }
-         p:=classtype.createforcopy;
+         p:=tnode(classtype).createforcopy;
          p.nodetype:=nodetype;
          p.location:=location;
-         p.varstateset:=varstateset;
          p.parent:=parent;
          p.flags:=flags;
-         p.registers32:=registers32
+         p.registers32:=registers32;
          p.registersfpu:=registersfpu;
 {$ifdef SUPPORT_MMX}
          p.registersmmx:=registersmmx;
-         p.registerskni:=registerskni
+         p.registerskni:=registerskni;
 {$endif SUPPORT_MMX}
          p.resulttype:=resulttype;
          p.fileinfo:=fileinfo;
@@ -260,7 +259,7 @@
       begin
          case nodetype of
             funcretn:
-              if is_first_funcret in flags) then
+              if nf_is_first_funcret in flags then
                 pprocinfo(tfuncretnode(self).funcretprocinfo)^.funcret_state:=vs_assigned;
             vecn,typeconvn,subscriptn{,derefn}:
               if assigned(tunarynode(self).left) then
@@ -417,7 +416,7 @@
            left.isequal(tunarynode(p).left);
       end;
 
-    function.tunarynode.getcopy : tnode;
+    function tunarynode.getcopy : tnode;
 
       var
          p : tunarynode;
@@ -438,6 +437,16 @@
          dec(byte(indention[0]),2);
       end;
 {$endif}
+
+    procedure tunarynode.left_max;
+
+      begin
+         registers32:=left.registers32;
+         registersfpu:=left.registersfpu;
+{$ifdef SUPPORT_MMX}
+         registersmmx:=left.registersmmx;
+{$endif SUPPORT_MMX}
+      end;
 
     procedure tunarynode.concattolist(l : plinkedlist);
 
@@ -515,7 +524,7 @@
            right.isequal(tbinarynode(p).right);
       end;
 
-    function.tbinarynode.getcopy : tnode;
+    function tbinarynode.getcopy : tnode;
 
       var
          p : tbinarynode;
@@ -591,6 +600,7 @@
                begin
                   CGMessage(parser_e_operator_not_overloaded);
                   t.free;
+                  t:=nil;
                end
              else
                begin
@@ -601,9 +611,6 @@
                     t:=cnotnode.create(t);
 
                   firstpass(t);
-
-                  putnode(p);
-                  p:=t;
                end;
           end;
       end;
@@ -666,7 +673,10 @@
       end;
 {
   $Log$
-  Revision 1.5  2000-09-27 18:14:31  florian
+  Revision 1.6  2000-09-28 19:49:52  florian
+  *** empty log message ***
+
+  Revision 1.5  2000/09/27 18:14:31  florian
     * fixed a lot of syntax errors in the n*.pas stuff
 
   Revision 1.4  2000/09/26 20:06:13  florian

@@ -35,14 +35,18 @@ interface
 implementation
 
     uses
-       htypechk,ncal,hcodegen,verbose,nmat,pass_1,nld;
+       htypechk,ncal,hcodegen,verbose,nmat,
+       pass_1,nld,symconst,cutils;
 
     {$I node.inc}
 
 end.
 {
   $Log$
-  Revision 1.5  2000-09-27 18:14:31  florian
+  Revision 1.6  2000-09-28 19:49:52  florian
+  *** empty log message ***
+
+  Revision 1.5  2000/09/27 18:14:31  florian
     * fixed a lot of syntax errors in the n*.pas stuff
 
   Revision 1.4  2000/09/24 15:06:19  peter

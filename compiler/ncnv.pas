@@ -31,7 +31,7 @@ interface
 
     type
        ttypeconvnode = class(tunarynode)
-          convtyp : tconverttype;
+          convtype : tconverttype;
           constructor create(node : tnode;t : pdef);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -77,7 +77,7 @@ interface
        casnode : class of tasnode;
        cisnode : class of tisnode;
 
-    function gentypeconvnode(node : tnode;t : pdef) : tnode;
+    function gentypeconvnode(node : tnode;t : pdef) : ttypeconvnode;
     procedure arrayconstructor_to_set(var p : tarrayconstructnode);
 
 implementation
@@ -94,6 +94,12 @@ implementation
 {$endif newcg}
       htypechk,pass_1,cpubase;
 
+
+    function gentypeconvnode(node : tnode;t : pdef) : ttypeconvnode;
+
+      begin
+         gentypeconvnode:=ctypeconvnode.create(node,t);
+      end;
 
 {*****************************************************************************
                     Array constructor to Set Conversion
@@ -305,7 +311,7 @@ implementation
                buildp:=caddnode.create(addn,buildp,p4);
             { load next and dispose current node }
               p2:=p;
-              p:=tarrayconstrucnode(p.right);
+              p:=tarrayconstructnode(p.right);
               tarrayconstructnode(p2).right:=nil;
               p2.free;
             end;
@@ -330,6 +336,29 @@ implementation
 {*****************************************************************************
                            TTYPECONVNODE
 *****************************************************************************}
+
+
+    constructor ttypeconvnode.create(node : tnode;t : pdef);
+
+      begin
+         inherited create(typeconvn,node);
+         convtype:=tc_not_possible;
+         resulttype:=t;
+         set_file_line(node);
+      end;
+
+
+    function ttypeconvnode.getcopy : tnode;
+
+      var
+         n : ttypeconvnode;
+
+      begin
+         n:=ttypeconvnode(inherited getcopy);
+         n.convtype:=convtype;
+         getcopy:=n;
+      end;
+
 
     function ttypeconvnode.first_int_to_int : tnode;
       begin
@@ -777,7 +806,7 @@ implementation
                  psetdef(resulttype)^.settype:=normset
                end
               else
-               convtyp:=tc_load_smallset;
+               convtype:=tc_load_smallset;
               exit;
             end
            else
@@ -802,7 +831,7 @@ implementation
             exit;
          end;
 
-       if isconvertable(left.resulttype,resulttype,convtyp,left.nodetype,nf_explizit in flags)=0 then
+       if isconvertable(left.resulttype,resulttype,convtype,left.nodetype,nf_explizit in flags)=0 then
          begin
            {Procedures have a resulttype of voiddef and functions of their
            own resulttype. They will therefore always be incompatible with
@@ -860,14 +889,14 @@ implementation
                     if (left.nodetype<>addrn) then
                       aprocdef:=pprocsym(tloadnode(left).symtableentry)^.definition;
                   end;
-                 convtyp:=tc_proc_2_procvar;
+                 convtype:=tc_proc_2_procvar;
                  { Now check if the procedure we are going to assign to
                    the procvar,  is compatible with the procvar's type }
                  if assigned(aprocdef) then
                   begin
                     if not proc_to_procvar_equal(aprocdef,pprocvardef(resulttype)) then
                      CGMessage2(type_e_incompatible_types,aprocdef^.typename,resulttype^.typename);
-                    pass_1:=call_helper(convtyp);
+                    pass_1:=call_helper(convtype);
                   end
                  else
                   CGMessage2(type_e_incompatible_types,left.resulttype^.typename,resulttype^.typename);
@@ -886,20 +915,20 @@ implementation
               if is_integer(resulttype) and
                  is_boolean(left.resulttype) then
                begin
-                  convtyp:=tc_bool_2_int;
-                  pass_1:=call_helper(convtyp);
+                  convtype:=tc_bool_2_int;
+                  pass_1:=call_helper(convtype);
                   exit;
                end;
               { ansistring to pchar }
               if is_pchar(resulttype) and
                  is_ansistring(left.resulttype) then
                begin
-                 convtyp:=tc_ansistring_2_pchar;
-                 pass_1:=call_helper(convtyp);
+                 convtype:=tc_ansistring_2_pchar;
+                 pass_1:=call_helper(convtype);
                  exit;
                end;
               { do common tc_equal cast }
-              convtyp:=tc_equal;
+              convtype:=tc_equal;
 
               { enum to ordinal will always be s32bit }
               if (left.resulttype^.deftype=enumdef) and
@@ -914,7 +943,7 @@ implementation
                   end
                  else
                   begin
-                    if isconvertable(s32bitdef,resulttype,convtyp,ordconstn,false)=0 then
+                    if isconvertable(s32bitdef,resulttype,convtype,ordconstn,false)=0 then
                       CGMessage2(type_e_incompatible_types,left.resulttype^.typename,resulttype^.typename);
                   end;
                end
@@ -933,7 +962,7 @@ implementation
                    end
                   else
                    begin
-                     if IsConvertable(left.resulttype,s32bitdef,convtyp,ordconstn,false)=0 then
+                     if IsConvertable(left.resulttype,s32bitdef,convtype,ordconstn,false)=0 then
                        CGMessage2(type_e_incompatible_types,left.resulttype^.typename,resulttype^.typename);
                    end;
                 end
@@ -962,7 +991,7 @@ implementation
                     end
                    else
                     begin
-                      if IsConvertable(left.resulttype,u8bitdef,convtyp,ordconstn,false)=0 then
+                      if IsConvertable(left.resulttype,u8bitdef,convtype,ordconstn,false)=0 then
                         CGMessage2(type_e_incompatible_types,left.resulttype^.typename,resulttype^.typename);
                     end;
                  end
@@ -981,7 +1010,7 @@ implementation
                     end
                    else
                     begin
-                      if IsConvertable(u8bitdef,resulttype,convtyp,ordconstn,false)=0 then
+                      if IsConvertable(u8bitdef,resulttype,convtype,ordconstn,false)=0 then
                         CGMessage2(type_e_incompatible_types,left.resulttype^.typename,resulttype^.typename);
                     end;
                  end
@@ -1046,8 +1075,8 @@ implementation
              pass_1:=hp;
              exit;
           end;
-        if convtyp<>tc_equal then
-          pass_1:=call_helper(convtyp);
+        if convtype<>tc_equal then
+          pass_1:=call_helper(convtype);
       end;
 
 
@@ -1142,7 +1171,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-09-27 18:14:31  florian
+  Revision 1.5  2000-09-28 19:49:52  florian
+  *** empty log message ***
+
+  Revision 1.4  2000/09/27 18:14:31  florian
     * fixed a lot of syntax errors in the n*.pas stuff
 
   Revision 1.3  2000/09/26 20:06:13  florian

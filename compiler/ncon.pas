@@ -119,6 +119,7 @@ interface
     function is_constresourcestringnode(p : tnode) : boolean;
     function str_length(p : tnode) : longint;
     function is_emptyset(p : tnode):boolean;
+    function genconstsymtree(p : pconstsym) : tnode;
 
 implementation
 
@@ -130,6 +131,7 @@ implementation
       begin
          genordinalconstnode:=cordconstnode.create(v,def);
       end;
+
 
     function genintconstnode(v : TConstExprInt) : tordconstnode;
 
@@ -145,35 +147,42 @@ implementation
            genintconstnode:=genordinalconstnode(v,cs64bitdef);
       end;
 
+
     function genpointerconstnode(v : tpointerord;def : pdef) : tpointerconstnode;
       begin
          genpointerconstnode:=cpointerconstnode.create(v,def);
       end;
+
 
     function genenumnode(v : penumsym) : tordconstnode;
       begin
          genenumnode:=cordconstnode.create(v^.value,v^.definition);
       end;
 
+
     function gensetconstnode(s : pconstset;settype : psetdef) : tsetconstnode;
       begin
          gensetconstnode:=csetconstnode.create(s,settype);
       end;
+
 
     function genrealconstnode(v : bestreal;def : pdef) : trealconstnode;
       begin
          genrealconstnode:=crealconstnode.create(v,def);
       end;
 
+
     function genfixconstnode(v : longint;def : pdef) : tfixconstnode;
       begin
          genfixconstnode:=cfixconstnode.create(v,def);
       end;
 
+
     function genstringconstnode(const s : string;st:tstringtype) : tstringconstnode;
       begin
          genstringconstnode:=cstringconstnode.createstr(s,st);
       end;
+
 
     function genpcharconstnode(s : pchar;length : longint) : tstringconstnode;
       begin
@@ -210,11 +219,13 @@ implementation
          is_constcharnode:=(p.nodetype=ordconstn) and is_char(p.resulttype);
       end;
 
+
     function is_constrealnode(p : tnode) : boolean;
 
       begin
          is_constrealnode:=(p.nodetype=realconstn);
       end;
+
 
     function is_constboolnode(p : tnode) : boolean;
 
@@ -234,8 +245,9 @@ implementation
     function str_length(p : tnode) : longint;
 
       begin
-         str_length:=tstrconstnode(p).length;
+         str_length:=tstringconstnode(p).len;
       end;
+
 
     function is_emptyset(p : tnode):boolean;
 
@@ -251,6 +263,49 @@ implementation
         is_emptyset:=(i=32);
       end;
 
+
+    function genconstsymtree(p : pconstsym) : tnode;
+      var
+        p1  : tnode;
+        len : longint;
+        pc  : pchar;
+      begin
+        p1:=nil;
+        case p^.consttyp of
+          constint :
+            p1:=genordinalconstnode(p^.value,s32bitdef);
+          conststring :
+            begin
+              len:=p^.len;
+              if not(cs_ansistrings in aktlocalswitches) and (len>255) then
+               len:=255;
+              getmem(pc,len+1);
+              move(pchar(tpointerord(p^.value))^,pc^,len);
+              pc[len]:=#0;
+              p1:=genpcharconstnode(pc,len);
+            end;
+          constchar :
+            p1:=genordinalconstnode(p^.value,cchardef);
+          constreal :
+            p1:=genrealconstnode(pbestreal(tpointerord(p^.value))^,bestrealdef^);
+          constbool :
+            p1:=genordinalconstnode(p^.value,booldef);
+          constset :
+            p1:=gensetconstnode(pconstset(tpointerord(p^.value)),psetdef(p^.consttype.def));
+          constord :
+            p1:=genordinalconstnode(p^.value,p^.consttype.def);
+          constpointer :
+            p1:=genpointerconstnode(p^.value,p^.consttype.def);
+          constnil :
+            p1:=cnilnode.create;
+          constresourcestring:
+            begin
+              p1:=genloadnode(pvarsym(p),pvarsym(p)^.owner);
+              p1.resulttype:=cansistringdef;
+            end;
+        end;
+        genconstsymtree:=p1;
+      end;
 
 {*****************************************************************************
                              TREALCONSTNODE
@@ -561,7 +616,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-09-27 20:25:44  florian
+  Revision 1.7  2000-09-28 19:49:52  florian
+  *** empty log message ***
+
+  Revision 1.6  2000/09/27 20:25:44  florian
     * more stuff fixed
 
   Revision 1.5  2000/09/27 18:14:31  florian

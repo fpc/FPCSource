@@ -561,24 +561,24 @@ implementation
                       { !!!! this tbinarynode should be tassignmentnode }
                       (tbinarynode(hp.right).left.nodetype=funcretn) then
                       begin
-                         if assigned(texitnode(tstatmentnode(hp.left).right).left) then
+                         if assigned(texitnode(tstatementnode(hp.left).right).left) then
                            CGMessage(cg_n_inefficient_code)
                          else
                            begin
-                              hp.left.right.left:=hp.right.right;
-                              hp.right.right:=nil;
+                              texitnode(tstatementnode(hp.left).right).left:=tstatementnode(hp.right).right;
+                              tstatementnode(hp.right).right:=nil;
                               hp.right.free;
                               hp.right:=nil;
                            end;
                       end
                    { warning if unreachable code occurs and elimate this }
-                   else if (hp.right.treetype in
+                   else if (hp.right.nodetype in
                      [exitn,breakn,continuen,goton]) and
                      { statement node (JM) }
                      assigned(hp.left) and
                      { kind of statement! (JM) }
-                     assigned(hp.left.right) and
-                     (hp.left.right.treetype<>labeln) then
+                     assigned(tstatementnode(hp.left).right) and
+                     (tstatementnode(hp.left).right.nodetype<>labeln) then
                      begin
                         { use correct line number }
                         aktfilepos:=hp.left.fileinfo;
@@ -613,7 +613,7 @@ implementation
               else
                 hp.registers32:=0;
 
-              if hp.registers32>p^.registers32 then
+              if hp.registers32>registers32 then
                 registers32:=hp.registers32;
               if hp.registersfpu>registersfpu then
                 registersfpu:=hp.registersfpu;
@@ -622,7 +622,7 @@ implementation
                 registersmmx:=hp.registersmmx;
 {$endif}
               inc(count);
-              hp:=hp.left;
+              hp:=tstatementnode(hp.left);
            end;
       end;
 
@@ -630,6 +630,13 @@ implementation
 {*****************************************************************************
                              TASMNODE
 *****************************************************************************}
+
+    constructor tasmnode.create;
+
+      begin
+         inherited create(asmn);
+      end;
+
 
     function tasmnode.pass_1 : tnode;
       begin
@@ -641,7 +648,7 @@ implementation
                             Global procedures
 *****************************************************************************}
 
-    procedure firstpass(var p : pnode);
+    procedure firstpass(var p : tnode);
 
       var
          oldcodegenerror  : boolean;
@@ -656,14 +663,14 @@ implementation
       begin
 {$ifdef extdebug}
          inc(total_of_firstpass);
-         if (p^.firstpasscount>0) and only_one_pass then
+         if (p.firstpasscount>0) and only_one_pass then
            exit;
 {$endif extdebug}
          oldcodegenerror:=codegenerror;
          oldpos:=aktfilepos;
          oldlocalswitches:=aktlocalswitches;
 {$ifdef extdebug}
-         if p^.firstpasscount>0 then
+         if p.firstpasscount>0 then
            begin
               move(p^,str1[1],sizeof(ttree));
               str1[0]:=char(sizeof(ttree));
@@ -705,13 +712,13 @@ implementation
               if str1<>str2 then
                 begin
                    comment(v_debug,'tree changed after first counting pass '
-                     +tostr(longint(p^.treetype)));
+                     +tostr(longint(p.treetype)));
                    compare_trees(oldp,p);
                 end;
               dispose(oldp);
            end;
          if count_ref then
-           inc(p^.firstpasscount);
+           inc(p.firstpasscount);
 {$endif extdebug}
       end;
 
@@ -734,7 +741,10 @@ end.
 {$endif cg11}
 {
   $Log$
-  Revision 1.5  2000-09-24 21:15:34  florian
+  Revision 1.6  2000-09-28 19:49:52  florian
+  *** empty log message ***
+
+  Revision 1.5  2000/09/24 21:15:34  florian
     * some errors fix to get more stuff compilable
 
   Revision 1.4  2000/09/24 15:06:21  peter

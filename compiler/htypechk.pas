@@ -108,7 +108,7 @@ interface
 
     { Register Allocation }
     procedure make_not_regable(p : tnode);
-    procedure calcregisters(p : tnode;r32,fpu,mmx : word);
+    procedure calcregisters(p : tbinarynode;r32,fpu,mmx : word);
 
     { subroutine handling }
     procedure test_protected_sym(sym : psym);
@@ -161,7 +161,8 @@ implementation
        globtype,systems,
        cutils,cobjects,verbose,globals,
        symconst,
-       types,pass_1,cpubase,
+       types,pass_1,cpubase,ncnv,nld,
+       nmem,ncal,
 {$ifdef newcg}
        cgbase
 {$else}
@@ -796,21 +797,21 @@ implementation
     { marks an lvalue as "unregable" }
     procedure make_not_regable(p : tnode);
       begin
-         case p.treetype of
+         case p.nodetype of
             typeconvn :
-              make_not_regable(p.left);
+              make_not_regable(ttypeconvnode(p).left);
             loadn :
-              if p.symtableentry^.typ=varsym then
-                pvarsym(p.symtableentry)^.varoptions:=pvarsym(p.symtableentry)^.varoptions-[vo_regable,vo_fpuregable];
+              if tloadnode(p).symtableentry^.typ=varsym then
+                pvarsym(tloadnode(p).symtableentry)^.varoptions:=pvarsym(tloadnode(p).symtableentry)^.varoptions-[vo_regable,vo_fpuregable];
          end;
       end;
 
 
     { calculates the needed registers for a binary operator }
-    procedure calcregisters(p : tnode;r32,fpu,mmx : word);
+    procedure calcregisters(p : tbinarynode;r32,fpu,mmx : word);
 
       begin
-         left_right_max(p);
+         p.left_right_max;
 
       { Only when the difference between the left and right registers < the
         wanted registers allocate the amount of registers }
@@ -819,12 +820,12 @@ implementation
          begin
            if assigned(p.right) then
             begin
-              if (abs(p.left^.registers32-p.right^.registers32)<r32) then
+              if (abs(p.left.registers32-p.right.registers32)<r32) then
                inc(p.registers32,r32);
-              if (abs(p.left^.registersfpu-p.right^.registersfpu)<fpu) then
+              if (abs(p.left.registersfpu-p.right.registersfpu)<fpu) then
                inc(p.registersfpu,fpu);
 {$ifdef SUPPORT_MMX}
-              if (abs(p.left^.registersmmx-p.right^.registersmmx)<mmx) then
+              if (abs(p.left.registersmmx-p.right.registersmmx)<mmx) then
                inc(p.registersmmx,mmx);
 {$endif SUPPORT_MMX}
               { the following is a little bit guessing but I think }
@@ -833,21 +834,21 @@ implementation
               { and return a mem location, but the current node    }
               { doesn't use an integer register we get probably    }
               { trouble when restoring a node                      }
-              if (p.left^.registers32=p.right^.registers32) and
-                 (p.registers32=p.left^.registers32) and
+              if (p.left.registers32=p.right.registers32) and
+                 (p.registers32=p.left.registers32) and
                  (p.registers32>0) and
-                (p.left^.location.loc in [LOC_REFERENCE,LOC_MEM]) and
-                (p.right^.location.loc in [LOC_REFERENCE,LOC_MEM]) then
+                (p.left.location.loc in [LOC_REFERENCE,LOC_MEM]) and
+                (p.right.location.loc in [LOC_REFERENCE,LOC_MEM]) then
                 inc(p.registers32);
             end
            else
             begin
-              if (p.left^.registers32<r32) then
+              if (p.left.registers32<r32) then
                inc(p.registers32,r32);
-              if (p.left^.registersfpu<fpu) then
+              if (p.left.registersfpu<fpu) then
                inc(p.registersfpu,fpu);
 {$ifdef SUPPORT_MMX}
-              if (p.left^.registersmmx<mmx) then
+              if (p.left.registersmmx<mmx) then
                inc(p.registersmmx,mmx);
 {$endif SUPPORT_MMX}
             end;
@@ -883,15 +884,15 @@ implementation
 
     procedure test_protected(p : tnode);
       begin
-        case p.treetype of
-         loadn : test_protected_sym(p.symtableentry);
-     typeconvn : test_protected(p.left);
-        derefn : test_protected(p.left);
+        case p.nodetype of
+         loadn : test_protected_sym(tloadnode(p).symtableentry);
+     typeconvn : test_protected(ttypeconvnode(p).left);
+        derefn : test_protected(tderefnode(p).left);
     subscriptn : begin
                  { test_protected(p.left);
                    Is a field of a protected var
                    also protected ???  PM }
-                   test_protected_sym(p.vs);
+                   test_protected_sym(tsubscriptnode(p).vs);
                  end;
         end;
       end;
@@ -900,11 +901,11 @@ implementation
      var
         v : boolean;
      begin
-        case p.treetype of
+        case p.nodetype of
          loadn :
-           v:=(p.symtableentry^.typ in [typedconstsym,varsym]);
+           v:=(tloadnode(p).symtableentry^.typ in [typedconstsym,varsym]);
          typeconvn :
-           v:=valid_for_formal_var(p.left);
+           v:=valid_for_formal_var(ttypeconvnode(p).left);
          derefn,
          subscriptn,
          vecn,
@@ -912,12 +913,12 @@ implementation
          selfn :
            v:=true;
          calln : { procvars are callnodes first }
-           v:=assigned(p.right) and not assigned(p.left);
+           v:=assigned(tcallnode(p).right) and not assigned(tcallnode(p).left);
          addrn :
            begin
              { addrn is not allowed as this generate a constant value,
                but a tp procvar are allowed (PFV) }
-             if p.procvarload then
+             if nf_procvarload in p.flags then
               v:=true
              else
               v:=false;
@@ -928,20 +929,20 @@ implementation
         valid_for_formal_var:=v;
      end;
 
-   function  valid_for_formal_const(p : ptree) : boolean;
+   function  valid_for_formal_const(p : tnode) : boolean;
      var
         v : boolean;
      begin
         { p must have been firstpass'd before }
         { accept about anything but not a statement ! }
-        case p.treetype of
+        case p.nodetype of
           calln,
           statementn,
           addrn :
            begin
              { addrn is not allowed as this generate a constant value,
                but a tp procvar are allowed (PFV) }
-             if p.procvarload then
+             if nf_procvarload in p.flags then
               v:=true
              else
               v:=false;
@@ -952,20 +953,20 @@ implementation
         valid_for_formal_const:=v;
      end;
 
-    function is_procsym_load(p:Ptree):boolean;
+    function is_procsym_load(p:tnode):boolean;
       begin
-         is_procsym_load:=((p.treetype=loadn) and (p.symtableentry^.typ=procsym)) or
-                          ((p.treetype=addrn) and (p.left^.treetype=loadn)
-                          and (p.left^.symtableentry^.typ=procsym)) ;
+         is_procsym_load:=((p.nodetype=loadn) and (tloadnode(p).symtableentry^.typ=procsym)) or
+                          ((p.nodetype=addrn) and (taddrnode(p).left.nodetype=loadn)
+                          and (tloadnode(taddrnode(p).left).symtableentry^.typ=procsym)) ;
       end;
 
    { change a proc call to a procload for assignment to a procvar }
    { this can only happen for proc/function without arguments }
-    function is_procsym_call(p:Ptree):boolean;
+    function is_procsym_call(p:tnode):boolean;
       begin
-        is_procsym_call:=(p.treetype=calln) and (p.left=nil) and
-             (((p.symtableprocentry^.typ=procsym) and (p.right=nil)) or
-             ((p.right<>nil) and (p.right^.symtableprocentry^.typ=varsym)));
+        is_procsym_call:=(p.nodetype=calln) and (tcallnode(p).left=nil) and
+             (((tcallnode(p).symtableprocentry^.typ=procsym) and (tcallnode(p).right=nil)) or
+             (assigned(tcallnode(p).right) and (tcallnode(tcallnode(p).right).symtableprocentry^.typ=varsym)));
       end;
 
 
@@ -1021,17 +1022,17 @@ implementation
          begin
            { property allowed? calln has a property check itself }
            if (not allowprop) and
-              (hp.isproperty) and
-              (hp.treetype<>calln) then
+              (nf_isproperty in hp.flags) and
+              (hp.nodetype<>calln) then
             begin
               CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
               exit;
             end;
-           case hp.treetype of
+           case hp.nodetype of
              derefn :
                begin
                  gotderef:=true;
-                 hp:=hp.left;
+                 hp:=tderefnode(hp).left;
                end;
              typeconvn :
                begin
@@ -1046,19 +1047,19 @@ implementation
                      begin
                        { pointer -> array conversion is done then we need to see it
                          as a deref, because a ^ is then not required anymore }
-                       if (hp.left^.resulttype^.deftype=pointerdef) then
+                       if (ttypeconvnode(hp).left.resulttype^.deftype=pointerdef) then
                         gotderef:=true;
                      end;
                  end;
-                 hp:=hp.left;
+                 hp:=ttypeconvnode(hp).left;
                end;
              vecn,
              asn :
-               hp:=hp.left;
+               hp:=tunarynode(hp).left;
              subscriptn :
                begin
                  gotsubscript:=true;
-                 hp:=hp.left;
+                 hp:=tsubscriptnode(hp).left;
                end;
              subn,
              addn :
@@ -1075,7 +1076,7 @@ implementation
              addrn :
                begin
                  if not(gotderef) and
-                    not(hp.procvarload) then
+                    not(nf_procvarload in hp.flags) then
                   CGMessagePos(hp.fileinfo,type_e_no_assign_to_addr);
                  exit;
                end;
@@ -1102,7 +1103,7 @@ implementation
                    3. property is allowed }
                  if (gotpointer and gotderef) or
                     (gotclass and (gotsubscript or gotwith)) or
-                    (hp.isproperty and allowprop) then
+                    ((nf_isproperty in hp.flags) and allowprop) then
                   valid_for_assign:=true
                  else
                   CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
@@ -1110,32 +1111,32 @@ implementation
                end;
              loadn :
                begin
-                 case hp.symtableentry^.typ of
+                 case tloadnode(hp).symtableentry^.typ of
                    absolutesym,
                    varsym :
                      begin
-                       if (pvarsym(hp.symtableentry)^.varspez=vs_const) then
+                       if (pvarsym(tloadnode(hp).symtableentry)^.varspez=vs_const) then
                         begin
                           { allow p^:= constructions with p is const parameter }
                           if gotderef then
                            valid_for_assign:=true
                           else
-                           CGMessagePos(hp.fileinfo,type_e_no_assign_to_const);
+                           CGMessagePos(tloadnode(hp).fileinfo,type_e_no_assign_to_const);
                           exit;
                         end;
                        { Are we at a with symtable, then we need to process the
                          withrefnode also to check for maybe a const load }
-                       if (hp.symtable^.symtabletype=withsymtable) then
+                       if (tloadnode(hp).symtable^.symtabletype=withsymtable) then
                         begin
                           { continue with processing the withref node }
-                          hp:=ptree(pwithsymtable(hp.symtable)^.withrefnode);
+                          hp:=tnode(pwithsymtable(tloadnode(hp).symtable)^.withrefnode);
                           gotwith:=true;
                         end
                        else
                         begin
                           { set the assigned flag for varsyms }
-                          if (pvarsym(hp.symtableentry)^.varstate=vs_declared) then
-                           pvarsym(hp.symtableentry)^.varstate:=vs_assigned;
+                          if (pvarsym(tloadnode(hp).symtableentry)^.varstate=vs_declared) then
+                           pvarsym(tloadnode(hp).symtableentry)^.varstate:=vs_assigned;
                           valid_for_assign:=true;
                           exit;
                         end;
@@ -2172,7 +2173,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-09-27 18:14:31  florian
+  Revision 1.9  2000-09-28 19:49:51  florian
+  *** empty log message ***
+
+  Revision 1.8  2000/09/27 18:14:31  florian
     * fixed a lot of syntax errors in the n*.pas stuff
 
   Revision 1.7  2000/09/26 20:06:13  florian

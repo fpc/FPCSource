@@ -27,7 +27,7 @@ unit ninl;
 interface
 
     uses
-       node;
+       node,htypechk;
 
     {$i innr.inc}
 
@@ -50,7 +50,7 @@ implementation
       cobjects,verbose,globals,systems,
       globtype,
       symconst,symtable,aasm,types,
-      pass_1,htypechk,
+      pass_1,
       ncal,ncon,ncnv,nadd,nld,
       cpubase
 {$ifdef newcg}
@@ -110,7 +110,7 @@ implementation
          dowrite,
          file_is_typed : boolean;
 
-      procedure do_lowhigh(adef : pdef);
+      function do_lowhigh(adef : pdef) : tnode;
 
         var
            v : longint;
@@ -126,7 +126,7 @@ implementation
                     v:=porddef(adef)^.high;
                   hp:=genordinalconstnode(v,adef);
                   firstpass(hp);
-                  pass_1:=hp;
+                  do_lowhigh:=hp;
                end;
              enumdef:
                begin
@@ -135,7 +135,7 @@ implementation
                     while enum^.nextenum<>nil do
                       enum:=enum^.nextenum;
                   hp:=genenumnode(enum);
-                  pass_1:=hp;
+                  do_lowhigh:=hp;
                end;
            else
              internalerror(87);
@@ -193,7 +193,7 @@ implementation
                 tcallparanode(left).firstcallparan(nil,false)
               else
                 firstpass(left);
-              left_right_max(self);
+              left_max;
               set_location(location,left.location);
            end;
          inc(parsing_para_level);
@@ -511,7 +511,7 @@ implementation
                                begin
                                   hp:=gentypeconvnode(left,u8bitdef);
                                   left:=nil;
-                                  ttypeconvnode(hp).convtyp:=tc_bool_2_int;
+                                  ttypeconvnode(hp).convtype:=tc_bool_2_int;
                                   include(hp.flags,nf_explizit);
                                   firstpass(hp);
                                   pass_1:=hp;
@@ -879,7 +879,7 @@ implementation
                        tcallparanode(left).firstcallparan(nil,true);
                        left.set_varstate(true);
                        { calc registers }
-                       left_right_max(self);
+                       left_max;
                        if extra_register then
                          inc(registers32);
                     end;
@@ -930,7 +930,7 @@ implementation
                   tcallparanode(left).firstcallparan(nil,true);
                   left.set_varstate(false);
                   { remove warning when result is passed }
-                  set_funcret_is_valid(tcallparanode(left).left);
+                  tcallparanode(left).left.set_funcret_is_valid;
                   tcallparanode(left).right:=hp;
                   tcallparanode(tcallparanode(left).right).firstcallparan(nil,true);
                   tcallparanode(left).right.set_varstate(true);
@@ -1015,7 +1015,7 @@ implementation
                     exit;
                   tcallparanode(left).firstcallparan(nil,true);
                   { calc registers }
-                  left_right_max(self);
+                  left_max;
                end;
 
              in_val_x :
@@ -1063,7 +1063,7 @@ implementation
                   if codegenerror then
                     exit;
                   { remove warning when result is passed }
-                  set_funcret_is_valid(tcallparanode(hpp).left);
+                  tcallparanode(hpp).left.set_funcret_is_valid;
                   tcallparanode(hpp).right := hp;
                   if valid_for_assign(tcallparanode(hpp).left,false) then
                    begin
@@ -1088,7 +1088,7 @@ implementation
                      firstpass(hp);
                    end;
                   { calc registers }
-                  left_right_max(self);
+                  left_max;
 
                   { val doesn't calculate the registers really }
                   { correct, we need one register extra   (FK) }
@@ -1112,7 +1112,7 @@ implementation
                       registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
                       { remove warning when result is passed }
-                      set_funcret_is_valid(tcallparanode(left).left);
+                      tcallparanode(left).left.set_funcret_is_valid;
                       { first param must be var }
                       valid_for_assign(tcallparanode(left).left,false);
                       { check type }
@@ -1152,13 +1152,15 @@ implementation
                        case left.resulttype^.deftype of
                           orddef,enumdef:
                             begin
-                               do_lowhigh(left.resulttype);
-                               firstpass(p);
+                               hp:=do_lowhigh(left.resulttype);
+                               firstpass(hp);
+                               pass_1:=hp;
                             end;
                           setdef:
                             begin
-                               do_lowhigh(Psetdef(left.resulttype)^.elementtype.def);
-                               firstpass(p);
+                               hp:=do_lowhigh(Psetdef(left.resulttype)^.elementtype.def);
+                               firstpass(hp);
+                               pass_1:=hp;
                             end;
                          arraydef:
                             begin
@@ -1364,7 +1366,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-09-28 16:34:47  florian
+  Revision 1.5  2000-09-28 19:49:52  florian
+  *** empty log message ***
+
+  Revision 1.4  2000/09/28 16:34:47  florian
   *** empty log message ***
 
   Revision 1.3  2000/09/27 21:33:22  florian
