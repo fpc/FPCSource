@@ -215,8 +215,15 @@ type
     FValidating : Boolean;
     FVisible : Boolean;
     Function GetIndex : longint;
+    procedure SetAlignment(const AValue: TAlignMent);
     Procedure SetDataset(VAlue : TDataset);
     function GetDisplayText: String;
+    procedure SetDisplayLabel(const AValue: string);
+    procedure SetDisplayWidth(const AValue: Longint);
+    function GetDisplayWidth: integer;
+    procedure SetReadOnly(const AValue: Boolean);
+    procedure SetVisible(const AValue: Boolean);
+    function IsDisplayStored : Boolean;
   protected
     function AccessError(const TypeName: string): EDatabaseError;
     procedure CheckInactive;
@@ -245,7 +252,7 @@ type
     procedure SetAsDateTime(AValue: TDateTime); virtual;
     procedure SetAsFloat(AValue: Double); virtual;
     procedure SetAsLongint(AValue: Longint); virtual;
-    procedure SetAsInteger(AValue: Longint); virtual;
+    procedure SetAsInteger(AValue: Integer); virtual;
     procedure SetAsString(const AValue: string); virtual;
     procedure SetDataType(AValue: TFieldType);
     procedure SetSize(AValue: Word); virtual;
@@ -285,12 +292,12 @@ type
     property Text: string read FEditText write FEditText;
     property ValidChars : TFieldChars Read FValidChars;
   published
-    property AlignMent : TAlignMent Read FAlignMent write FAlignment;
+    property AlignMent : TAlignMent Read FAlignMent write SetAlignment;
     property CustomConstraint: string read FCustomConstraint write FCustomConstraint;
     property ConstraintErrorMessage: string read FConstraintErrorMessage write FConstraintErrorMessage;
     property DefaultExpression: string read FDefaultExpression write FDefaultExpression;
-    property DisplayLabel : string read FDisplayLabel write FDisplayLabel;
-    property DisplayWidth: Longint read FDisplayWidth write FDisplayWidth;
+    property DisplayLabel : string read GetDisplayName write SetDisplayLabel stored IsDisplayStored;
+    property DisplayWidth: Longint read GetDisplayWidth write SetDisplayWidth;
     property FieldKind: TFieldKind read FFieldKind write FFieldKind;
     property FieldName: string read FFieldName write FFieldName;
     property HasConstraints: Boolean read FHasConstraints;
@@ -302,9 +309,9 @@ type
     property KeyFields: string read FKeyFields write FKeyFields;
     property LookupCache: Boolean read FLookupCache write FLookupCache;
     property Origin: string read FOrigin write FOrigin;
-    property ReadOnly: Boolean read FReadOnly write FReadOnly;
+    property ReadOnly: Boolean read FReadOnly write SetReadOnly;
     property Required: Boolean read FRequired write FRequired;
-    property Visible: Boolean read FVisible write FVisible;
+    property Visible: Boolean read FVisible write SetVisible;
     property OnChange: TFieldNotifyEvent read FOnChange write FOnChange;
     property OnGetText: TFieldGetTextEvent read FOnGetText write FOnGetText;
     property OnSetText: TFieldSetTextEvent read FOnSetText write FOnSetText;
@@ -1492,7 +1499,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2004-07-18 13:16:50  michael
+  Revision 1.18  2004-07-19 20:27:28  michael
+  + Fixes from Jesus Reyes to implement DisplayWith, DisplayLabel, Visibility
+
+  Revision 1.17  2004/07/18 13:16:50  michael
   + Changed extended to double for better Delphi compatibility
 
   Revision 1.16  2004/05/02 21:23:18  peter

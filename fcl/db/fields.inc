@@ -387,6 +387,12 @@ begin
     Result:=FFieldName;
 end;
 
+Function TField.IsDisplayStored : Boolean;
+
+begin
+  Result:=(DisplayLabel<>FieldName);
+end;
+
 function TField.getIndex : longint;
 
 begin
@@ -394,6 +400,15 @@ begin
     Result:=FDataset.FFieldList.IndexOf(Self)
   else
     Result:=-1;
+end;
+
+procedure TField.SetAlignment(const AValue: TAlignMent);
+begin
+  if FAlignment <> AValue then 
+    begin
+    FAlignment := Avalue;
+    PropertyChanged(false);
+    end;
 end;
 
 function TField.GetIsNull: Boolean;
@@ -583,6 +598,50 @@ begin
     OnGetText(Self, Result, True)
   else
     GetText(Result, True);
+end;
+
+procedure TField.SetDisplayLabel(const AValue: string);
+begin
+  if FDisplayLabel<>Avalue then 
+    begin
+    FDisplayLabel:=Avalue;
+    PropertyChanged(true);
+    end;
+end;
+
+procedure TField.SetDisplayWidth(const AValue: Longint);
+begin
+  if FDisplayWidth<>AValue then 
+    begin
+    FDisplayWidth:=AValue;
+    PropertyChanged(True);
+    end;
+end;
+
+function TField.GetDisplayWidth: integer;
+begin
+  if FDisplayWidth=0 then
+    result:=GetDefaultWidth
+  else
+    result:=FDisplayWidth;
+end;
+
+procedure TField.SetReadOnly(const AValue: Boolean);
+begin
+  if (FReadOnly<>Avalue) then 
+    begin
+    FReadOnly:=AValue;
+    PropertyChanged(True);
+    end;
+end;
+
+procedure TField.SetVisible(const AValue: Boolean);
+begin
+  if FVisible<>Avalue then 
+    begin
+    FVisible:=AValue;
+    PropertyChanged(True);
+    end;
 end;
 
 
@@ -1806,7 +1865,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2004-07-18 13:16:50  michael
+  Revision 1.13  2004-07-19 20:27:29  michael
+  + Fixes from Jesus Reyes to implement DisplayWith, DisplayLabel, Visibility
+
+  Revision 1.12  2004/07/18 13:16:50  michael
   + Changed extended to double for better Delphi compatibility
 
   Revision 1.11  2004/05/02 21:23:18  peter
