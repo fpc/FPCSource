@@ -1,4 +1,8 @@
-const msgtxt : array[0..00094,1..240] of char=(+
+{$ifdef Delphi}
+const msgtxt : array[0..000095] of string[240]=(
+{$else Delphi}
+const msgtxt : array[0..000095,1..240] of char=(
+{$endif Delphi}
   'T_Compiler: $1'#000+
   'D_Compiler OS: $1'#000+
   'I_Target OS: $1'#000+
@@ -141,7 +145,7 @@ const msgtxt : array[0..00094,1..240] of char=(+
   'E_Procedures can'#039't return a value'#000+
   'E_constructors and destructors must be methods'#000+
   'E_Operator is not overloaded'#000+
-  'E_Re-raise isn'#039't possible there'#000,+
+  'E_Re-raise isn'#039't possible there'#000,
   'E_The extended syntax of new or dispose isn'#039't allowed for a class'#000+
   'E_Assembler incompatible with function return type'#000+
   'E_Procedure overloading is switched off'#000+
@@ -474,157 +478,157 @@ const msgtxt : array[0..00094,1..240] of char=(+
   'W_Debug information generation is not supported by this executable'#000+
   'H_Try recompiling with -dGDB'#000+
   'W_You are using the obsol','ete switch $1'#000+
+  'W_You are using the obsolete switch $1, please use $2'#000+
   'Free Pascal Compiler version $FPCVER [$FPCDATE] for $FPCTARGET'#000+
   'Copyright (c) 1993-98 by Florian Klaempfl'#000+
   'Free Pascal Compiler version $FPCVER'#000+
   #000+
   'Compiler Date  : $FPCDATE'#000+
-  'Compiler Target: $FPCTARGET'#000+
+  'Com','piler Target: $FPCTARGET'#000+
   #000+
-  'This program comes under the',' GNU General Public Licence'#000+
+  'This program comes under the GNU General Public Licence'#000+
   'For more information read COPYING.FPC'#000+
   #000+
   'Report bugs,suggestions etc to:'#000+
   '                 fpc-devel@vekoll.saturnus.vein.hu'#000+
-  '**0*_put + after a boolean switch option to enable it, - to disable it'+
-  #000+
-  '**1a_the compiler d','oesn'#039't delete the generated assembler file'#000+
+  '**0*_put + after a boolean switch op','tion to enable it, - to disable '+
+  'it'#000+
+  '**1a_the compiler doesn'#039't delete the generated assembler file'#000+
   '**2al_list sourcecode lines in assembler file'#000+
+  '**2ar_list register allocation/release info in assembler file'#000+
+  '**2at_list temp allocation/release ','info in assembler file'#000+
   '**1b_generate browser info'#000+
   '**2bl_generate local symbol info'#000+
   '**1B_build all modules'#000+
   '**1C<x>_code generation options:'#000+
   '3*2CD_create dynamic library'#000+
-  '**2Ch<','n>_<n> bytes heap (between 1023 and 67107840)'#000+
+  '**2Ch<n>_<n> bytes heap (between 1023 and 67107840)'#000+
   '**2Ci_IO-checking'#000+
-  '**2Cn_omit linking stage'#000+
+  '**','2Cn_omit linking stage'#000+
   '**2Co_check overflow of integer operations'#000+
   '**2Cr_range checking'#000+
   '**2Cs<n>_set stack size to <n>'#000+
   '**2Ct_stack checking'#000+
   '3*2CS_create static library'#000+
-  '3*2Cx_u','se smartlinking'#000+
+  '3*2Cx_use smartlinking'#000+
   '**1d<x>_defines the symbol <x>'#000+
-  '*O1D_generate a DEF file'#000+
+  '*O1D_generate a DEF',' file'#000+
   '*O2Dd<x>_set description to <x>'#000+
   '*O2Dw_PM application'#000+
   '**1e<x>_set path to executable'#000+
   '**1E_same as -Cn'#000+
   '**1F<x>_set file names and paths:'#000+
-  '**2FD<x>_sets the directory where',' to search for compiler utilities'#000+
-  '**2Fe<x>_redirect error output to <x>'#000+
+  '**2FD<x>_sets the directory where to search for compiler utilities'#000+
+  '**2Fe<x>_redirect error output t','o <x>'#000+
   '**2FE<x>_set exe/unit output path to <x>'#000+
-  '*L2Fg<x>_same as -Fl'#000+
   '**2Fi<x>_adds <x> to include path'#000+
   '**2Fl<x>_adds <x> to library path'#000+
   '*L2FL<x>_uses <x> as dynamic linker'#000+
-  '**','2Fo<x>_adds <x> to object path'#000+
+  '**2Fo<x>_adds <x> to object path'#000+
   '**2Fr<x>_load error message file <x>'#000+
-  '**2Fu<x>_adds <x> to unit path'#000+
+  '**2Fu<x>_adds <x> t','o unit path'#000+
   '**2FU<x>_set unit output path to <x>, overrides -FE'#000+
   '*g1g<x>_generate debugger information:'#000+
   '*g2gg_use gsym'#000+
   '*g2gd_use dbx'#000+
-  '*g2gh_use heap trace ','unit'#000+
+  '*g2gh_use heap trace unit'#000+
   '**1i_information'#000+
   '**2iD_return compiler date'#000+
   '**2iV_return compiler version'#000+
-  '**2iSO_return compiler OS'#000+
+  '**2iSO_r','eturn compiler OS'#000+
   '**2iSP_return compiler processor'#000+
   '**2iTO_return target OS'#000+
   '**2iTP_return target processor'#000+
   '**1I<x>_adds <x> to include path'#000+
-  '**1k<x>_Pass <','x> to the linker'#000+
+  '**1k<x>_Pass <x> to the linker'#000+
   '**1l_write logo'#000+
   '**1n_don'#039't read the default config file'#000+
-  '**1o<x>_change the name of the executable produced to <x>'#000+
+  '**1o<x>_change',' the name of the executable produced to <x>'#000+
   '**1pg_generate profile code for gprof'#000+
   '*L1P_use pipes instead of creating temporary assembler files'#000+
-  '**1S<x>_sy','ntax options:'#000+
+  '**1S<x>_syntax options:'#000+
   '**2S2_switch some Delphi 2 extensions on'#000+
-  '**2Sc_supports operators like C (*=,+=,/= and -=)'#000+
+  '**2Sc_supports operators like C ','(*=,+=,/= and -=)'#000+
   '**2Sd_tries to be Delphi compatible'#000+
   '**2Se_compiler stops after the first error'#000+
   '**2Sg_allow LABEL and GOTO'#000+
   '**2Sh_Use ansistrings'#000+
-  '**2Si_s','upport C++ styled INLINE'#000+
+  '**2Si_support C++ styled INLINE'#000+
   '**2Sm_support macros like C (global)'#000+
-  '**2So_tries to be TP/BP 7.0 compatible'#000+
+  '**2So_tries to be TP/BP 7','.0 compatible'#000+
   '**2Sp_tries to be gpc compatible'#000+
   '**2Ss_constructor name must be init (destructor must be done)'#000+
   '**2St_allow static keyword in objects'#000+
-  '**1s_d','on'#039't call assembler and linker (only with -a)'#000+
+  '**1s_don'#039't call assembler and linker (only with -a)'#000+
   '**1u<x>_undefines the symbol <x>'#000+
-  '**1U_unit options:'#000+
+  '**1U_uni','t options:'#000+
   '**2Un_don'#039't check the unit name'#000+
-  '**2Up<x>_same as -Fu<x>'#000+
   '**2Us_compile a system unit'#000+
-  '**1v<x>_Be verbose. <x> is a combination of the following ','letters:'#000+
+  '**1v<x>_Be verbose. <x> is a combination of the following letters:'#000+
   '**2*_e : Show errors (default)       d : Show debug info'#000+
-  '**2*_w : Show warnings               u : Show unit info'#000+
+  '**2*_w : Show warnings               u : Show',' unit info'#000+
   '**2*_n : Show notes                  t : Show tried/used files'#000+
-  '**2*_h : Show hints                  m : Show defined m','acros'#000+
+  '**2*_h : Show hints                  m : Show defined macros'#000+
   '**2*_i : Show general info           p : Show compiled procedures'#000+
-  '**2*_l : Show linenumbers            c : Show conditionals'#000+
+  '**2*_l : Show linenumbers            c ',': Show conditionals'#000+
   '**2*_a : Show everything             0 : Show nothing (except errors)'#000+
-  '**2*_b : Show all procedure          r ',': Rhide/GCC compatibility mod'+
-  'e'#000+
+  '**2*_b : Show all procedure          r : Rhide/GCC compatibility mode'#000+
   '**2*_    declarations if an error    x : Executable info (Win32 only)'#000+
-  '**2*_    occurs'#000+
+  '**2*_    o','ccurs'#000+
   '**1X_executable options:'#000+
   '*L2Xc_link with the c library'#000+
   '**2XD_link with dynamic libraries (defines FPC_LINK_DYNAMIC)'#000+
-  '**2Xs_s','trip all symbols from executable'#000+
+  '**2Xs_strip all symbols from executable'#000+
   '**2XS_link with static libraries (defines FPC_LINK_STATIC)'#000+
-  '**0*_Processor specific options:'#000+
+  '**0*_Processor spec','ific options:'#000+
   '3*1A<x>_output format:'#000+
   '3*2Ao_coff file using GNU AS'#000+
   '3*2Anasmcoff_coff file using Nasm'#000+
-  '3*2Anasmelf_elf32 (Linux) fil','e using Nasm'#000+
+  '3*2Anasmelf_elf32 (Linux) file using Nasm'#000+
   '3*2Anasmobj_obj file using Nasm'#000+
   '3*2Amasm_obj file using Masm (Mircosoft)'#000+
-  '3*2Atasm_obj file using Tasm (Borland)'#000+
+  '3*2Atasm_obj file using T','asm (Borland)'#000+
   '3*1R<x>_assembler reading style:'#000+
   '3*2Ratt_read AT&T style assembler'#000+
   '3*2Rintel_read Intel style assembler'#000+
-  '3*2Rdirect_','copy assembler text directly to assembler file'#000+
+  '3*2Rdirect_copy assembler text directly to assembler file'#000+
   '3*1O<x>_optimizations:'#000+
   '3*2Og_generate smaller code'#000+
-  '3*2OG_generate faster code (default)'#000+
+  '3*2OG_generat','e faster code (default)'#000+
   '3*2Or_keep certain variables in registers (still BUGGY!!!)'#000+
-  '3*2Ou_enable uncertain optimizations (see docs',')'#000+
+  '3*2Ou_enable uncertain optimizations (see docs)'#000+
   '3*2O1_level 1 optimizations (quick optimizations)'#000+
   '3*2O2_level 2 optimizations (-O1 + slower optimizations)'#000+
-  '3*2O3_level 3 optimizations (same as -O2u)'#000+
+  '3*','2O3_level 3 optimizations (same as -O2u)'#000+
   '3*2Op<x>_target processor:'#000+
   '3*3Op1_set target processor to 386/486'#000+
-  '3*3Op2_set target proc','essor to Pentium/PentiumMMX (tm)'#000+
+  '3*3Op2_set target processor to Pentium/PentiumMMX (tm)'#000+
   '3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#000+
-  '3*1T<x>_Target operating system:'#000+
+  '3*1T<x>_Target operating',' system:'#000+
   '3*2TGO32V1_version 1 of DJ Delorie DOS extender'#000+
   '3*2TGO32V2_version 2 of DJ Delorie DOS extender'#000+
   '3*2TLINUX_Linux'#000+
-  '3*2TOS2_','OS/2 2.x'#000+
+  '3*2TOS2_OS/2 2.x'#000+
   '3*2TWin32_Windows 32 Bit'#000+
   '6*1A<x>_output format'#000+
   '6*2Ao_Unix o-file using GNU AS'#000+
-  '6*2Agas_GNU Motorola assembler'#000+
+  '6*2Agas_GNU Motorola ass','embler'#000+
   '6*2Amit_MIT Syntax (old GAS)'#000+
   '6*2Amot_Standard Motorola assembler'#000+
   '6*1O_optimizations:'#000+
   '6*2Oa_turn on the optimizer'#000+
-  '6*2Og_gen','erate smaller code'#000+
+  '6*2Og_generate smaller code'#000+
   '6*2OG_generate faster code (default)'#000+
   '6*2Ox_optimize maximum (still BUGGY!!!)'#000+
-  '6*2O2_set target processor to a MC68020+'#000+
+  '6*2O2_set targe','t processor to a MC68020+'#000+
   '6*1R<x>_assembler reading style:'#000+
   '6*2RMOT_read motorola style assembler'#000+
-  '6*1T<x>_Target operating system:',#000+
+  '6*1T<x>_Target operating system:'#000+
   '6*2TAMIGA_Commodore Amiga'#000+
   '6*2TATARI_Atari ST/STe/TT'#000+
   '6*2TMACOS_Macintosh m68k'#000+
   '6*2TLINUX_Linux-68k'#000+
   '**1*_'#000+
-  '**1?_shows this help'#000+
+  '**1?_sh','ows this help'#000+
   '**1h_shows this help without waiting'#000
 );

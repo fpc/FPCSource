@@ -457,6 +457,7 @@ type tmsgconst=(
   option_no_debug_support,
   option_no_debug_support_recompile_fpc,
   option_obsolete_switch,
+  option_obsolete_switch_use_new,
   option_logo_start,
   option_logo_end,
   option_info_start,
@@ -473,7 +474,6 @@ type tmsgconst=(
   ol001,
   ol002,
   ol003,
-  ol137,
   ol004,
   ol005,
   ol006,
@@ -528,7 +528,6 @@ type tmsgconst=(
   ol055,
   ol056,
   ol057,
-  ol136,
   ol058,
   ol059,
   ol060,
@@ -607,6 +606,8 @@ type tmsgconst=(
   ol133,
   ol134,
   ol135,
+  ol136,
+  ol137,
   ol_end,
 endmsgconst
 );

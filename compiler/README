@@ -44,5 +44,5 @@ Changes in the syntax or semantic of FPC:
              for compiler development to compiler/utils/
   13/05/99   Classes are now only allowed in the ObjFpc or Delphi mode. Use
              {$mode objfpc} or {$mode delphi}. Or from commandline -S2 or -Sd
-
+  16/05/99   Remove options -Up (use now -Fu) and -Fg (use now -Fl)
 

@@ -146,9 +146,6 @@ cat <<EOFCFG > /etc/ppc386.cfg
 #-Fr\$1/msg/errore.msg
 #-Fr\$1/msg/errorn.msg
 
-# path to the gcclib
--Fg\$2
-
 # searchpath for includefiles
 #-Fi/pp/inc;/pp/rtl/inc
 
@@ -170,6 +167,7 @@ cat <<EOFCFG > /etc/ppc386.cfg
 #-Fu/usr/lib/ppc/units;/usr/lib/ppc/linuxunits
 
 # searchpath for libraries
+-Fl\$2
 #-Fl/pp/lib
 #-Fl/lib;/usr/lib
 
