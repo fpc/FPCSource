@@ -253,15 +253,15 @@ implementation
 
     function range_to_basetype(l,h:TConstExprInt):tbasetype;
       begin
-        { generate a unsigned range if high<0 and low>=0 }
-        if (l>=0) and (h<=255) then
-         range_to_basetype:=u8bit
-        else if (l>=-128) and (h<=127) then
+        { prefer signed over unsigned }
+        if (l>=-128) and (h<=127) then
          range_to_basetype:=s8bit
-        else if (l>=0) and (h<=65535) then
-         range_to_basetype:=u16bit
+        else if (l>=0) and (h<=255) then
+         range_to_basetype:=u8bit
         else if (l>=-32768) and (h<=32767) then
          range_to_basetype:=s16bit
+        else if (l>=0) and (h<=65535) then
+         range_to_basetype:=u16bit
         else if (l>=low(longint)) and (h<=high(longint)) then
          range_to_basetype:=s32bit
         else if (l>=low(cardinal)) and (h<=high(cardinal)) then
@@ -273,15 +273,15 @@ implementation
 
     procedure range_to_type(l,h:TConstExprInt;var tt:ttype);
       begin
-        { generate a unsigned range if high<0 and low>=0 }
-        if (l>=0) and (h<=255) then
-         tt:=u8inttype
-        else if (l>=-128) and (h<=127) then
+        { prefer signed over unsigned }
+        if (l>=-128) and (h<=127) then
          tt:=s8inttype
-        else if (l>=0) and (h<=65535) then
-         tt:=u16inttype
+        else if (l>=0) and (h<=255) then
+         tt:=u8inttype
         else if (l>=-32768) and (h<=32767) then
          tt:=s16inttype
+        else if (l>=0) and (h<=65535) then
+         tt:=u16inttype
         else if (l>=low(longint)) and (h<=high(longint)) then
          tt:=s32inttype
         else if (l>=low(cardinal)) and (h<=high(cardinal)) then
@@ -905,7 +905,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2004-05-01 22:05:01  florian
+  Revision 1.15  2004-05-28 21:13:23  peter
+    * prefer signed constants over unsigned
+
+  Revision 1.14  2004/05/01 22:05:01  florian
     + added lib support for Amiga/MorphOS syscalls
 
   Revision 1.13  2004/04/29 19:56:36  daniel
