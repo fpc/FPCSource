@@ -91,7 +91,7 @@ implementation
         begin
            { check for a class }
            if not((is_class_or_interface(aktclass)) or
-              ((m_delphi in aktmodeswitches) and (is_object(aktclass)))) then
+              (not(m_tp7 in aktmodeswitches) and (is_object(aktclass)))) then
              Message(parser_e_syntax_error);
            consume(_PROPERTY);
            p:=read_property_dec(aktclass);
@@ -729,7 +729,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  2005-02-14 17:13:07  peter
+  Revision 1.87  2005-03-16 21:09:22  peter
+    * allow property in objects in all modes except tp
+
+  Revision 1.86  2005/02/14 17:13:07  peter
     * truncate log
 
   Revision 1.85  2005/02/01 08:46:13  michael
