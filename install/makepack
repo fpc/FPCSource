@@ -7,7 +7,7 @@
 set -e
 
 # Set this to "yes" if you want to force making the documentation.
-# if it is not equal to yes, the documentation is assumed present in a file docs.tar.gz
+# if it is not equal to yes, the documentation is assumed present in a file fpcdoc.tar.gz
 MAKEDOCS=no
 
 # Set this to "no" if you want don't want to check for libgdb.a
@@ -87,11 +87,11 @@ if [ "$CROSS" = "" ]; then
   fi
 fi
 
-# First check for docs.tar.gz before building anything
+# First check for fpcdoc.tar.gz before building anything
 if [ "$CROSS" = "" ]; then
-  if [ ! -f docs.tar.gz ]; then
+  if [ ! -f fpcdoc.tar.gz ]; then
     if [ "$MAKEDOCS" != "yes" ]; then
-      echo "No documentation available. Please copy the file docs.tar.gz to this directory."
+      echo "No documentation available. Please copy the file fpcdoc.tar.gz to this directory."
       exit 1
     else
       ${MAKE} makepackdocs
@@ -150,7 +150,7 @@ RELFILES="$RELFILES $BINARYTAR"
 if [ "$CROSS" = "" ]; then
   # no cross packing
   # demo, docs
-  RELFILES="$RELFILES demo.tar.gz docs.tar.gz"
+  RELFILES="$RELFILES demo.tar.gz fpcdoc.tar.gz"
 else
   # cross packing
   # add cross binutils 
