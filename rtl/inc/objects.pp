@@ -196,7 +196,7 @@ TYPE
    FNameStr = String[79];                             { DOS filename }
 {$ENDIF}
 {$IFDEF OS_WINDOWS}                                   { WINDOWS DEFINE }
-   FNameStr = PChar;                                  { Windows filename }
+   FNameStr = String;                                 { Windows filename }
 {$ENDIF}
 {$IFDEF OS_OS2}                                       { OS2 DEFINE }
    FNameStr = String;                                 { OS2 filename }
@@ -205,13 +205,13 @@ TYPE
    FNameStr = String;                                 { OS2 filename }
 {$ENDIF}
 {$IFDEF OS_AMIGA}
-???   FNameStr = PChar;
+   FNameStr = String;
 {$ENDIF}
 {$IFDEF OS_ATARI}
    FNameStr = String[79];                             { DOS filename }
 {$ENDIF}
 {$IFDEF OS_MAC}
-???
+    FNameStr = String;
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
@@ -790,7 +790,9 @@ CONST
 
 {$I objinc.inc}
 
-{$ASMMODE ATT}
+{$IFDEF CPU86}
+{$I386_ATT}
+{$ENDIF}
 
 {---------------------------------------------------------------------------}
 {  RegisterError -> Platforms DOS/DPMI/WINDOWS/OS2 - Checked 12Jun96 LdB    }
@@ -1183,12 +1185,8 @@ CONSTRUCTOR TDosStream.Init (FileName: FNameStr; Mode: Word);
 VAR Success: Integer;
 BEGIN
    Inherited Init;                                    { Call ancestor }
-   {$IFDEF OS_WINDOWS}                                { WIN CODE }
-   AnsiToOEM(FileName, FName);                        { Ansi to OEM }
-   {$ELSE}                                            { DOS/DPMI/OS2 CODE }
    FileName := FileName+#0;                           { Make asciiz }
    Move(FileName[1], FName, Length(FileName));        { Create asciiz name }
-   {$ENDIF}
    Handle := FileOpen(FName, Mode);                   { Open the file }
    If (Handle <> 0) Then Begin                        { Handle valid }
      Success := SetFilePos(Handle, 0, 2, StreamSize); { Locate end of file }
@@ -2731,7 +2729,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.4  1998-05-30 14:24:42  peter
+  Revision 1.5  1998-07-07 13:29:48  carl
+    * make it compiler for win32 and m68k
+
+  Revision 1.4  1998/05/30 14:24:42  peter
     * ATT asmparsing always
 
   Revision 1.3  1998/05/25 09:50:04  peter
