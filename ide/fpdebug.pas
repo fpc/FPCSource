@@ -361,10 +361,6 @@ const
      BreakpointStateStr : Array[BreakpointState] of String[8]
        = ( 'enabled','disabled','invalid' );
 
-{$ifdef CrossGDB}
-     RemoteMachine : string = '';
-{$endif CrossGDB}
-     DebuggeeTTY : string = '';
 var
   Debugger             : PDebugController;
   BreakpointsCollection : PBreakpointCollection;
@@ -605,9 +601,9 @@ end;
 procedure UpdateDebugViews;
 
   begin
-{$ifdef CrossGDB}
+{$ifdef SUPPORT_REMOTE}
      PushStatus(msg_getting_info_on+RemoteMachine);
-{$endif CrossGDB}
+{$endif SUPPORT_REMOTE}
      DeskTop^.Lock;
      If assigned(StackWindow) then
        StackWindow^.Update;
@@ -618,9 +614,9 @@ procedure UpdateDebugViews;
      If assigned(FPUWindow) then
        FPUWindow^.Update;
      DeskTop^.UnLock;
-{$ifdef CrossGDB}
+{$ifdef SUPPORT_REMOTE}
      PopStatus;
-{$endif CrossGDB}
+{$endif SUPPORT_REMOTE}
   end;
 
 constructor TDebugController.Init;
@@ -793,28 +789,41 @@ begin
   inherited Done;
 end;
 
+
 procedure TDebugController.Run;
 {$ifdef Unix}
 var
   Debuggeefile : text;
   ResetOK, TTYUsed  : boolean;
 {$endif Unix}
-{$ifdef CrossGDB}
+{$ifdef SUPPORT_REMOTE}
 var
-  ErrorStr : string;
-{$endif CrossGDB}
+  S,ErrorStr : string;
+{$endif SUPPORT_REMOTE}
 begin
   ResetBreakpointsValues;
-{$ifdef CrossGDB}
+{$ifdef SUPPORT_REMOTE}
   NoSwitch:=true;
-  Command('target remote '+RemoteMachine);
-  if Error then
+{$ifndef CROSSGDB}
+  If (RemoteMachine<>'') and (RemotePort<>'') then
+{$else CROSSGDB}
+  if true then
+{$endif CROSSGDB}
     begin
-       ErrorStr:=strpas(GetError);
-       ErrorBox(#3'Error in "target remote"'#13#3+ErrorStr,nil);
-       exit;
-    end;
-{$else CrossGDB}
+      S:=RemoteMachine;
+      If pos('@',S)>0 then
+        S:=copy(S,pos('@',S)+1,High(S));
+      Command('target remote '+S+':'+RemotePort);
+      if Error then
+        begin
+           ErrorStr:=strpas(GetError);
+           ErrorBox(#3'Error in "target remote"'#13#3+ErrorStr,nil);
+           exit;
+        end;
+    end
+  else
+    begin
+{$endif SUPPORT_REMOTE}
 {$ifdef win32}
   { Run the debugge in another console }
   if DebuggeeTTY<>'' then
@@ -855,19 +864,21 @@ begin
       NoSwitch := false;
     end;
 {$endif Unix}
-{$endif CrossGDB}
+{$ifdef SUPPORT_REMOTE}
+    end;
+{$endif SUPPORT_REMOTE}
   { Switch to user screen to get correct handles }
   UserScreen;
   { Don't try to print GDB messages while in User Screen mode }
   If assigned(GDBWindow) then
     GDBWindow^.Editor^.Lock;
-{$ifndef CrossGDB}
+{$ifndef SUPPORT_REMOTE}
   inherited Run;
-{$else CrossGDB}
+{$else SUPPORT_REMOTE}
   inc(init_count);
   { pass the stop in start code }
   Command('continue');
-{$endif CrossGDB}
+{$endif SUPPORT_REMOTE}
   DebuggerScreen;
   If assigned(GDBWindow) then
     GDBWindow^.Editor^.UnLock;
@@ -1351,15 +1362,15 @@ begin
   Inc(RunCount);
   if NoSwitch then
     begin
-{$ifdef CrossGDB}
+{$ifdef SUPPORT_REMOTE}
       PushStatus(msg_runningremotely+RemoteMachine);
-{$else not CrossGDB}
+{$else not SUPPORT_REMOTE}
 {$ifdef Unix}
       PushStatus(msg_runninginanotherwindow+DebuggeeTTY);
 {$else not Unix}
       PushStatus(msg_runninginanotherwindow);
 {$endif Unix}
-{$endif not CrossGDB}
+{$endif not SUPPORT_REMOTE}
     end
   else
     begin
@@ -4022,15 +4033,15 @@ end;
 
 function GetGDBTargetShortName : string;
 begin
-{$ifdef CROSSGDB}
+{$ifdef SUPPORT_REMOTE}
 GetGDBTargetShortName:='linux';
-{$else not CROSSGDB}
+{$else not SUPPORT_REMOTE}
 {$ifdef COMPILER_1_0}
 GetGDBTargetShortName:=source_os.shortname
 {$else}
 GetGDBTargetShortName:=source_info.shortname
 {$endif}
-{$endif not CROSSGDB}
+{$endif not SUPPORT_REMOTE}
 end;
 
 procedure InitDebugger;
@@ -4295,7 +4306,10 @@ end.
 
 {
   $Log$
-  Revision 1.36  2002-11-21 17:52:28  pierre
+  Revision 1.37  2002-11-28 13:00:25  pierre
+   + remote support
+
+  Revision 1.36  2002/11/21 17:52:28  pierre
    * some crossgdb infos added
 
   Revision 1.35  2002/11/21 15:48:39  pierre
