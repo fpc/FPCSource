@@ -803,6 +803,8 @@ unit cgobj;
                a_call_name(list,'FPC_DISPOSE_CLASS',0)
              else
                begin
+                  we must do a finalize here for objects if
+                  necessary
                   { vmt_offset_reg can be a scratch register, }
                   { but it must be always the same            }
                   a_reg_alloc(list,vmt_offset_reg);
@@ -1080,7 +1082,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.26  1999-09-14 11:16:09  florian
+  Revision 1.27  1999-09-29 11:46:20  florian
+    * fixed bug 292 from bugs directory
+
+  Revision 1.26  1999/09/14 11:16:09  florian
     * only small updates to work with the current compiler
 
   Revision 1.25  1999/09/03 13:09:09  jonas

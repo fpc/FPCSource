@@ -3127,9 +3127,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        mangled_length : longint;
        p : pchar;
 {$endif GDB}
-       okexitlabel,noreraiselabel : pasmlabel;
+       nofinal,okexitlabel,noreraiselabel : pasmlabel;
        hr : treference;
        oldexprasmlist : paasmoutput;
+       ai : paicpu;
+
   begin
       oldexprasmlist:=exprasmlist;
       exprasmlist:=alist;
@@ -3148,6 +3150,22 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             begin
               emitinsertcall('FPC_HELP_DESTRUCTOR');
               exprasmlist^.insert(new(paicpu,op_const_reg(A_MOV,S_L,procinfo^._class^.vmt_offset,R_EDI)));
+              { must the object be finalized ? }
+              if procinfo^._class^.needs_inittable then
+                begin
+                   getlabel(nofinal);
+                   exprasmlist^.insert(new(pai_label,init(nofinal)));
+                   emitinsertcall('FPC_FINALIZE');
+                   exprasmlist^.insert(new(paicpu,op_reg(A_PUSH,S_L,R_ESI)));
+                   exprasmlist^.insert(new(paicpu,op_sym(A_PUSH,S_L,procinfo^._class^.get_inittable_label)));
+                   ai:=new(paicpu,op_sym(A_Jcc,S_NO,nofinal));
+                   ai^.SetCondition(C_Z);
+                   exprasmlist^.insert(ai);
+                   reset_reference(hr);
+                   hr.base:=R_EBP;
+                   hr.offset:=8;
+                   exprasmlist^.insert(new(paicpu,op_const_ref(A_CMP,S_L,0,newreference(hr))));
+                end;
             end;
         end;
 
@@ -3359,7 +3377,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.49  1999-09-28 21:07:53  florian
+  Revision 1.50  1999-09-29 11:46:18  florian
+    * fixed bug 292 from bugs directory
+
+  Revision 1.49  1999/09/28 21:07:53  florian
     * fixed bug 608
 
   Revision 1.48  1999/09/28 19:43:47  florian
