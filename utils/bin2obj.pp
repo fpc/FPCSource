@@ -18,24 +18,7 @@ program bin2obj;
 
 {$mode objfpc}
 
-{$ifdef linux}
-  {$define unix}
-{$endif}
-{$ifdef freebsd}
-  {$define unix}
-{$endif}
-
-uses classes,getopts, iostream,zstream,idea,sysutils
-{$ifdef unix}
-  {$ifdef ver1_0}
-  ,linux
-  {$else}
-  ,unix
-  {$endif}
-{$else}
-  ,dos
-{$endif}
-  ;
+uses classes,getopts, iostream,zstream,idea,sysutils,dos;
 
 var
   ConstName,
@@ -257,11 +240,7 @@ end;
 Procedure CompileTheUNit;
 
 begin
-{$ifdef unix}
-  Shell('ppc386 -Un '+UnitName);
-{$else}
   Exec('ppc386',' -Un '+UnitName);
-{$endif}
 end;
 
 begin
@@ -274,7 +253,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-04-25 22:45:45  peter
+  Revision 1.4  2001-09-29 16:02:15  carl
+  - don't see the point of not calling dos.exec here.... so remove unix defines
+
+  Revision 1.3  2001/04/25 22:45:45  peter
     * regenerated
 
   Revision 1.2  2001/01/29 21:48:26  peter
