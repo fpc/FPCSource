@@ -214,7 +214,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=libpng
-override PACKAGE_VERSION=1.9.2
+override PACKAGE_VERSION=1.9.4
 override TARGET_UNITS+=png
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR

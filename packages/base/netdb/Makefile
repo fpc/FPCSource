@@ -214,7 +214,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=netdb
-override PACKAGE_VERSION=1.9.2
+override PACKAGE_VERSION=1.9.4
 override TARGET_UNITS+=uriparser
 ifeq ($(OS_TARGET),linux)
 override TARGET_UNITS+=netdb

@@ -214,7 +214,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fpdoc
-override PACKAGE_VERSION=1.9.2
+override PACKAGE_VERSION=1.9.4
 override TARGET_PROGRAMS+=fpdoc makeskel
 override CLEAN_UNITS+=dglobals dwriter dw_xml sh_pas dw_html dw_latex dw_ipf
 override CLEAN_FILES+=dwriter.rst fpdoc.rst dglobals.rst makeskel.rst

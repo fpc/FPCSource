@@ -214,7 +214,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=utils
-override PACKAGE_VERSION=1.9.2
+override PACKAGE_VERSION=1.9.4
 override TARGET_DIRS+=fpcm tply h2pas fprcp dxegen fpdoc
 ifeq ($(OS_TARGET),win32)
 override TARGET_DIRS+=fpmc

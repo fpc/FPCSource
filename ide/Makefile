@@ -214,7 +214,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=ide
-override PACKAGE_VERSION=1.9.2
+override PACKAGE_VERSION=1.9.4
 ifeq ($(OS_TARGET),linux)
 ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
 override FPCOPT+=-dUNIX
