@@ -555,7 +555,7 @@ end;
 Function GetLastOSError : Integer;
 
 begin
-  Result:=ErrNo;
+  Result:=fpgetErrNo;
 end;
   
 {****************************************************************************
@@ -571,7 +571,10 @@ end.
 {
 
   $Log$
-  Revision 1.33  2004-02-08 14:50:51  michael
+  Revision 1.34  2004-02-09 17:11:17  marco
+   * fixed for 1.0 errno->fpgeterrno
+
+  Revision 1.33  2004/02/08 14:50:51  michael
   + Added fileIsReadOnly
 
   Revision 1.32  2004/02/08 11:01:17  michael
