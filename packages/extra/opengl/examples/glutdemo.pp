@@ -6,6 +6,8 @@
   as Public Domain.
 }
 
+{$mode objfpc}
+
 program GLUTDemo;
 uses
   GL, GLU, GLUT;

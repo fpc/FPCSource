@@ -34,6 +34,8 @@
 }
 program morph3d;
 
+{$mode objfpc}
+
 {
 This document is VERY incomplete, but tries to describe the mathematics used
 in the program. At this moment it just describes how the polyhedra are
@@ -913,7 +915,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-10-13 14:01:45  sg
+  Revision 1.2  2002-12-18 13:33:20  pierre
+   * objfpc mode added to be able to compile the demos correctly from IDE
+
+  Revision 1.1  2002/10/13 14:01:45  sg
   * added the new, adapted OpenGL examples...
 
   Revision 1.4  2002/09/07 15:43:05  peter

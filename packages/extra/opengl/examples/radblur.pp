@@ -14,6 +14,8 @@
 //------------------------------------------------------------------------
 program RadialBlur;
 
+{$mode objfpc}
+
 uses GL, GLU, GLUT;
 
 const

@@ -8,6 +8,9 @@
   Converted to Pascal by Peter Vreman
 }
 program bounce;
+
+{$mode objfpc}
+
 uses
   gl,glut;
 
