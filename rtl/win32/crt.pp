@@ -379,7 +379,7 @@ begin
   DestCoor.X := WinMinX - 1;
   DestCoor.Y := WinMinY - 1;
 
-  ScrollConsoleScreenBuffer(OutHandle, SrcRect, @ClipRect, DestCoor, CharInfo);
+  ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect, DestCoor, CharInfo);
   Gotoxy(1,1);
 end;
 
@@ -399,7 +399,7 @@ Begin
   Coord.X := X;
   Coord.Y := Y;
 
-  FillConsoleOutputCharacter(OutHandle, CharInfo, WinMaxX - (X + 01), Coord, Temp);
+  FillConsoleOutputCharacter(OutHandle, CharInfo, WinMaxX - (X + 01), Coord, @Temp);
 end;
 
 
@@ -687,7 +687,7 @@ begin
   DestCoor.Y := Y - 2;
   ClipRect := SrcRect;
 
-  ScrollConsoleScreenBuffer(OutHandle, SrcRect, @ClipRect, DestCoor, CharInfo);
+  ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect, DestCoor, CharInfo);
 end; { proc. RemoveLine }
 
 
@@ -719,7 +719,7 @@ begin
   DestCoor.Y := Y;
   ClipRect := SrcRect;
 
-  ScrollConsoleScreenBuffer(OutHandle, SrcRect, @ClipRect, DestCoor, CharInfo);
+  ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect, DestCoor, CharInfo);
 end; { proc. InsLine }
 
 
@@ -768,7 +768,7 @@ var
 procedure WriteChar(c:char);
 var
     Cell    : TCharInfo;
-    BufSize : TCoord;                    { Column-row size of source buffer }
+    BufSize : Coord;                    { Column-row size of source buffer }
     WritePos: TCoord;                       { Upper-left cell to write from }
     DestRect: TSmallRect;
 begin
@@ -800,7 +800,7 @@ begin
             DestRect.Right := (CurrX - 01) + 01;
             DestRect.Bottom := (CurrY - 01);
 
-            WriteConsoleOutput(OutHandle, @Cell, BufSize, WritePos, DestRect);
+            WriteConsoleOutput(OutHandle, Cell, BufSize, WritePos, @DestRect);
 
             Inc(CurrX);
           end; { else }
@@ -989,7 +989,10 @@ begin
 end. { unit Crt }
 {
   $Log$
-  Revision 1.2  1999-04-20 11:34:12  peter
+  Revision 1.3  1999-04-23 09:06:17  michael
+  + now it REALLY compiles
+
+  Revision 1.2  1999/04/20 11:34:12  peter
     + crt unit that compiles
 
 }
