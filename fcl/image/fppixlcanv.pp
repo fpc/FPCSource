@@ -22,7 +22,7 @@ uses classes, FPImage, FPCanvas, PixTools;
 
 type
 
-  { need still to be implemented :
+  { need still to be implemented in descendants :
     GetColor / SetColor
     Get/Set Width/Height
   }
@@ -32,6 +32,7 @@ type
   TFPPixelCanvas = class (TFPCustomCanvas)
   private
     FHashWidth : word;
+    FRelativeBI : boolean;
   protected
     function DoCreateDefaultFont : TFPCustomFont; override;
     function DoCreateDefaultPen : TFPCustomPen; override;
@@ -52,19 +53,25 @@ type
   public
     constructor create;
     property HashWidth : word read FHashWidth write FHashWidth;
+    property RelativeBrushImage : boolean read FRelativeBI write FRelativeBI;
   end;
+
+const
+  PenPatterns : array[psDash..psDashDotDot] of TPenPattern =
+    ($EEEEEEEE, $AAAAAAAA, $E4E4E4E4, $EAEAEAEA);
+  sErrNoImage:string = 'No brush image specified';
+  sErrNotAvailable:string = 'Not availlable';
 
 implementation
 
 uses Clipping;
 
 const
-  ErrNotAvailable = 'Not availlable';
-  DefaultHashWidth = 5;
+  DefaultHashWidth = 15;
 
 procedure NotImplemented;
 begin
-  raise PixelCanvasException.Create(ErrNotAvailable);
+  raise PixelCanvasException.Create(sErrNotAvailable);
 end;
 
 constructor TFPPixelCanvas.Create;
@@ -128,83 +135,90 @@ begin
 end;
 
 procedure TFPPixelCanvas.DoRectangle (const Bounds:TRect);
+var pattern : longword;
+
+  procedure CheckLine (x1,y1, x2,y2 : integer);
+  begin
+    if clipping then
+      CheckLineClipping (ClipRect, x1,y1, x2,y2);
+    if x1 >= 0 then
+      DrawSolidLine (self, x1,y1, x2,y2, pen.color)
+  end;
+
+  procedure CheckPLine (x1,y1, x2,y2 : integer);
+  begin
+    if clipping then
+      CheckLineClipping (ClipRect, x1,y1, x2,y2);
+    if x1 >= 0 then
+      DrawPatternLine (self, x1,y1, x2,y2, pattern, pen.color)
+  end;
+
 var b : TRect;
+    r : integer;
+
 begin
   b := bounds;
-  if clipping then
-    CheckRectClipping (ClipRect, B);
-  with B do
+  if pen.style = psSolid then
+    for r := 1 to pen.width do
+      begin
+      with b do
+        begin
+        CheckLine (left,top,left,bottom);
+        CheckLine (left,bottom,right,bottom);
+        CheckLine (right,bottom,right,top);
+        CheckLine (right,top,left,top);
+        end;
+      DecRect (b);
+      end
+  else if pen.style <> psClear then
     begin
-    DoLine (left,top,left,bottom);
-    DoLine (left,bottom,right,bottom);
-    DoLine (right,bottom,right,top);
-    DoLine (right,top,left,top);
+    if pen.style = psPattern then
+      pattern := Pen.pattern
+    else
+      pattern := PenPatterns[pen.style];
+    with b do
+      begin
+      CheckPLine (left,top,left,bottom);
+      CheckPLine (left,bottom,right,bottom);
+      CheckPLine (right,bottom,right,top);
+      CheckPLine (right,top,left,top);
+      end;
     end;
 end;
 
 procedure TFPPixelCanvas.DoRectangleFill (const Bounds:TRect);
 var b : TRect;
-
-  procedure FillHorizontal;
-  var y : integer;
-  begin
-    with b do
-      begin
-      y := FHashWidth + top;
-      while y <= bottom do
-        begin
-        DrawSolidLine (self, left,y, right,y, brush.color);
-        inc (y,FHashWidth);
-        end
-      end;
-  end;
-
-  procedure FillVertical;
-  var x : integer;
-  begin
-    with b do
-      begin
-      x := FHashWidth + left;
-      while x <= right do
-        begin
-        DrawSolidLine (self, x,top, x,bottom, brush.color);
-        inc (x, FHashWidth);
-        end;
-      end;
-  end;
-
-  procedure FillDiagonal;
-  begin
-  end;
-
-  procedure FillFDiagonal;
-  begin
-  end;
-
 begin
   b := Bounds;
   SortRect (b);
   if clipping then
     CheckRectClipping (ClipRect, B);
-  with b do  // Clipping needs still to be checked !!
-    case Brush.style of  //TODO: patterns and image
+  with b do
+    case Brush.style of
       bsSolid : FillRectangleColor (self, left,top, right,bottom);
-      bsPattern : ;
-      bsImage : ;
-      bsDiagonal : FillDiagonal;
-      bsFDiagonal : FillFDiagonal;
+      bsPattern : FillRectanglePattern (self, left,top, right,bottom, brush.pattern);
+      bsImage :
+        if assigned (brush.image) then
+          if FRelativeBI then
+            FillRectangleImageRel (self, left,top, right,bottom, brush.image)
+          else
+            FillRectangleImage (self, left,top, right,bottom, brush.image)
+        else
+          raise PixelCanvasException.Create (sErrNoImage);
+      bsDiagonal : FillRectangleHashDiagonal (self, b, FHashWidth);
+      bsFDiagonal : FillRectangleHashBackDiagonal (self, b, FHashWidth);
       bsCross :
         begin
-        FillHorizontal;
-        FillVertical;
+        FillRectangleHashHorizontal (self, b, FHashWidth);
+        FillRectangleHashVertical (self, b, FHashWidth);
         end;
       bsDiagCross :
         begin
-        FillDiagonal;
-        FillFDiagonal;
+        FillRectangleHashDiagonal (self, b, FHashWidth);
+        FillRectangleHashBackDiagonal (self, b, FHashWidth);
         end;
-      bsHorizontal : FillHorizontal;
-      bsVertical : FillVertical;
+      bsHorizontal : FillRectangleHashHorizontal (self, b, FHashWidth);
+      bsVertical : FillRectangleHashVertical (self, b, FHashWidth);
     end;
 end;
 
@@ -213,11 +227,15 @@ begin  //TODO
 end;
 
 procedure TFPPixelCanvas.DoEllipse (const Bounds:TRect);
-begin  //TODO
+begin  //TODO: how to find center points and radius from bounds ?
 end;
 
 procedure TFPPixelCanvas.DoPolygonFill (const points:array of TPoint);
 begin  //TODO: how to find a point inside the polygon ?
+end;
+
+procedure TFPPixelCanvas.DoFloodFill (x,y:integer);
+begin    //TODO
 end;
 
 procedure TFPPixelCanvas.DoPolygon (const points:array of TPoint);
@@ -248,14 +266,6 @@ begin
     p := points[r];
     end;
 end;
-
-procedure TFPPixelCanvas.DoFloodFill (x,y:integer);
-begin    //TODO
-end;
-
-const
-  PenPatterns : array[psDash..psDashDotDot] of longword =
-    ($EEEEEEEE, $AAAAAAAA, $E4E4E4E4, $EAEAEAEA);
 
 procedure TFPPixelCanvas.DoLine (x1,y1,x2,y2:integer);
 
