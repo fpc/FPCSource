@@ -76,7 +76,8 @@ implementation
          { tfloattype = (f32bit,s32real,s64real,s80real,s64bit); }
          float_name: array[tfloattype] of string[8]=
            ('FIXED','SINGLE','REAL','EXTENDED','COMP','FIXED16');
-         addconstsubop:array[in_inc_x..in_dec_x] of tasmop=(A_ADDQ,A_SUBQ);
+         addqconstsubop:array[in_inc_x..in_dec_x] of tasmop=(A_ADDQ,A_SUBQ);
+         addconstsubop:array[in_inc_x..in_dec_x] of tasmop=(A_ADD,A_SUB);
          addsubop:array[in_inc_x..in_dec_x] of tasmop=(A_ADD,A_SUB);
        var
          aktfile : treference;
@@ -759,6 +760,10 @@ implementation
               { write the add instruction }
                 if addconstant then
                  begin
+                   if (addvalue > 0) and (addvalue < 9) then
+                    exprasmlist^.concat(new(pai68k,op_const_ref(addqconstsubop[p^.inlinenumber],opsize,
+                      addvalue,newreference(p^.left^.left^.location.reference))))
+                   else
                     exprasmlist^.concat(new(pai68k,op_const_ref(addconstsubop[p^.inlinenumber],opsize,
                       addvalue,newreference(p^.left^.left^.location.reference))));
                  end
@@ -890,7 +895,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-10-14 11:28:20  florian
+  Revision 1.10  1998-10-14 16:53:04  pierre
+   * bug in in_inc_x for constants out of range for A_ADDQ fixed
+
+  Revision 1.9  1998/10/14 11:28:20  florian
     * emitpushreferenceaddress gets now the asmlist as parameter
     * m68k version compiles with -duseansistrings
 
