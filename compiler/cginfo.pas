@@ -72,7 +72,7 @@ interface
        TCgSize = (OS_NO,
                  { integer registers }
                   OS_8,OS_16,OS_32,OS_64,OS_S8,OS_S16,OS_S32,OS_S64,
-                 { single,double,extended,comp }
+                 { single,double,extended,comp,float128 }
                   OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
                  { multi-media sizes: split in byte, word, dword, ... }
                  { entities, then the signed counterparts             }
@@ -107,7 +107,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2003-01-05 13:36:53  florian
+  Revision 1.18  2003-01-09 22:00:53  florian
+    * fixed some PowerPC issues
+
+  Revision 1.17  2003/01/05 13:36:53  florian
     * x86-64 compiles
     + very basic support for float128 type (x86-64 only)
 

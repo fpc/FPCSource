@@ -158,6 +158,8 @@ unit cgobj;
           }
           procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);virtual;
 
+          { Copies a whole memory block to the stack, the locpara must be a memory location }
+          procedure a_param_copy_ref(list : taasmoutput;size : qword;const r : treference;const locpara : tparalocation);
           (* Remarks:
             * If a method specifies a size you have only to take care
               of that number of bits, i.e. load_const_reg with OP_8 must
@@ -619,10 +621,8 @@ unit cgobj;
       end;
 
     procedure tcg.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);
-
       var
          hr : tregister;
-
       begin
          hr:=get_scratch_reg_int(list);
          a_load_ref_reg(list,size,r,hr);
@@ -632,7 +632,6 @@ unit cgobj;
 
 
     procedure tcg.a_param_loc(list : taasmoutput;const l:tlocation;const locpara : tparalocation);
-
       begin
         case l.loc of
           LOC_REGISTER,
@@ -650,15 +649,29 @@ unit cgobj;
 
 
     procedure tcg.a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
-
       var
          hr : tregister;
-
       begin
          hr:=get_scratch_reg_address(list);
          a_loadaddr_ref_reg(list,r,hr);
          a_param_reg(list,OS_ADDR,hr,locpara);
          free_scratch_reg(list,hr);
+      end;
+
+
+    procedure tcg.a_param_copy_ref(list : taasmoutput;size : qword;const r : treference;const locpara : tparalocation);
+      var
+        ref : treference;
+        hr : tregister;
+      begin
+         if not(locpara.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+           internalerror(2003010901);
+         if locpara.sp_fixup<>0 then
+           cg.g_stackpointer_alloc(list,locpara.sp_fixup);
+         reference_reset(ref);
+         ref.base:=locpara.reference.index;
+         ref.offset:=locpara.reference.offset;
+         cg.g_concatcopy(list,r,ref,size,false,false);
       end;
 
 
@@ -1681,7 +1694,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.71  2003-01-09 20:41:10  florian
+  Revision 1.72  2003-01-09 22:00:53  florian
+    * fixed some PowerPC issues
+
+  Revision 1.71  2003/01/09 20:41:10  florian
     * fixed broken PowerPC compiler
 
   Revision 1.70  2003/01/08 18:43:56  daniel

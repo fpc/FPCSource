@@ -805,6 +805,7 @@ implementation
            { copy the value on the stack or use normal parameter push? }
            if paramanager.copy_value_on_stack(p.resulttype.def,calloption) then
             begin
+{$ifdef i386}
               if not (p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                 internalerror(200204241);
               { push on stack }
@@ -814,6 +815,9 @@ implementation
               r.enum:=stack_pointer_reg;
               reference_reset_base(href,r,0);
               cg.g_concatcopy(exprasmlist,p.location.reference,href,size,false,false);
+{$else i386}
+              cg.a_param_copy_ref(exprasmlist,p.resulttype.def.size,p.location.reference,locpara);
+{$endif i386}
             end
            else
             begin
@@ -1960,7 +1964,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.74  2003-01-09 20:41:10  florian
+  Revision 1.75  2003-01-09 22:00:53  florian
+    * fixed some PowerPC issues
+
+  Revision 1.74  2003/01/09 20:41:10  florian
     * fixed broken PowerPC compiler
 
   Revision 1.73  2003/01/08 18:43:56  daniel

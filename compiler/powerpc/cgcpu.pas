@@ -423,7 +423,7 @@ const
           case size of
              OS_32,OS_F32:
                size:=OS_F32;
-             OS_64,OS_F64:
+             OS_64,OS_F64,OS_C64:
                size:=OS_F64;
              else
                internalerror(200201121);
@@ -2000,7 +2000,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2003-01-08 18:43:58  daniel
+  Revision 1.69  2003-01-09 22:00:53  florian
+    * fixed some PowerPC issues
+
+  Revision 1.68  2003/01/08 18:43:58  daniel
    * Tregister changed into a record
 
   Revision 1.67  2002/12/15 19:22:01  florian

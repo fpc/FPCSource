@@ -234,7 +234,10 @@ unit cpupara;
                  LOC_REFERENCE:
                    begin
                       hp.paraloc.size:=OS_ADDR;
-                      if push_addr_param(hp.paratype.def,p.proccalloption) or (hp.paratyp in [vs_var,vs_out]) then
+                      if push_addr_param(hp.paratype.def,p.proccalloption) or
+                        is_open_array(hp.paratype.def) or
+                        is_array_of_const(hp.paratype.def) or
+                        (hp.paratyp in [vs_var,vs_out]) then
                         assignintreg
                       else
                         begin
@@ -299,7 +302,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2003-01-09 20:41:10  florian
+  Revision 1.22  2003-01-09 22:00:53  florian
+    * fixed some PowerPC issues
+
+  Revision 1.21  2003/01/09 20:41:10  florian
     * fixed broken PowerPC compiler
 
   Revision 1.20  2003/01/09 11:22:14  olle
