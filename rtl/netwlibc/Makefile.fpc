@@ -41,6 +41,9 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 
 UNITPREFIX=rtl
 
+IMPFILES=nwsnut.imp ws2_32.imp ws2nlm.imp libc.imp netware.imp \
+libcclib.imp nwplibc.o
+
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
 else
@@ -88,6 +91,11 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
+copyimpfiles:
+	$(COPY) $(IMPFILES) $(COMPILER_UNITTARGETDIR)
+
+# binutils are the same for tragets netware and netwlibc
+override BINUTILSPREFIX=$(CPU_TARGET)-netware-
 
 #
 # Loaders
@@ -113,7 +121,7 @@ nwl_dlle$(OEXT) : nwl_dlle.as
 # System Units (System, Objpas, Strings)
 #
 
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp libc.pp $(SYSDEPS)
+$(SYSTEMUNIT)$(PPUEXT) : copyimpfiles $(SYSTEMUNIT).pp libc.pp $(SYSDEPS)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
@@ -250,6 +258,6 @@ aio$(PPUEXT) : aio.pp $(SYSTEMUNIT)$(PPUEXT)
 #
 # Netware-.imp files need to be installed in the unit-dir
 #
-override INSTALLPPUFILES+=nwsnut.imp ws2_32.imp ws2nlm.imp libc.imp netware.imp \
-libcclib.imp nwplibc.o
+override INSTALLPPUFILES+=$(IMPFILES)
+override CLEANPPUFILES+=$(addprefix $(COMPILER_UNITTARGETDIR)/,$(IMPFILES))
 

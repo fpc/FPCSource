@@ -15,7 +15,7 @@ units=$(SYSTEMUNIT) systhrds objpas macpas strings \
       sockets \
       video mouse keyboard types dateutils rtlconst sysconst \
       strutils convutils \
-      aio nwsnut nwserv nwnit nwprot
+      aio nwsnut nwserv nwnit nwprot netware
 rsts=math varutils typinfo classes dateutils sysconst convutils rtlconst systhrds
 
 [require]
@@ -67,6 +67,16 @@ CREATESMART=1
 # Paths
 OBJPASDIR=$(RTL)/objpas
 
+# Imp-Files
+IMPFILES=aio.imp audnlm32.imp \
+calnlm32.imp ccs.imp ccs-os.imp clibaux.imp \
+clibctx.imp clib.imp clxnlm32.imp dplsv386.imp \
+dsapi.imp dsevent.imp lib0.imp \
+locnlm32.imp ndpsrpc.imp netnlm32.imp nit.imp \
+nlmlib.imp nwpsrv3x.imp nwpsrv.imp nwsnut.imp \
+requestr.imp socklib.imp streams.imp threads.imp \
+tli.imp vollib.imp ws2_32.imp ws2nlm.imp
+
 
 [rules]
 SYSTEMPPU=$(addsuffix $(PPUEXT),$(SYSTEMUNIT))
@@ -86,6 +96,8 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
+copyimpfiles:
+	$(COPY) $(IMPFILES) $(COMPILER_UNITTARGETDIR)
 
 #
 # Loaders
@@ -101,7 +113,10 @@ prelude$(OEXT) : prelude.as
 # System Units (System, Objpas, Strings)
 #
 
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp nwsys.inc $(SYSDEPS)
+#ifdef COMPILER_UNITTARGETDIR
+#endif
+
+$(SYSTEMUNIT)$(PPUEXT) : copyimpfiles $(SYSTEMUNIT).pp nwsys.inc $(SYSDEPS)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
 
 objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMUNIT)$(PPUEXT)
@@ -215,14 +230,8 @@ aio$(PPUEXT) : aio.pp $(SYSTEMUNIT)$(PPUEXT)
 #
 # Netware-.imp files need to be installed in the unit-dir
 #
-override INSTALLPPUFILES+=aio.imp audnlm32.imp \
-calnlm32.imp ccs.imp ccs-os.imp clibaux.imp \
-clibctx.imp clib.imp clxnlm32.imp dplsv386.imp \
-dsapi.imp dsevent.imp lib0.imp \
-locnlm32.imp ndpsrpc.imp netnlm32.imp nit.imp \
-nlmlib.imp nwpsrv3x.imp nwpsrv.imp nwsnut.imp \
-requestr.imp socklib.imp streams.imp threads.imp \
-tli.imp vollib.imp ws2_32.imp ws2nlm.imp
+override INSTALLPPUFILES+=$(IMPFILES)
+override CLEANPPUFILES+=$(addprefix $(COMPILER_UNITTARGETDIR)/,$(IMPFILES))
 
 # the smartlinked objects will not be installed by the
 # standard makefile ????
