@@ -44,7 +44,7 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
   published
-    procedure TestCountTestCases;
+    procedure CheckCountTestCases;
     procedure TestExtractMethods;
   end;
 
@@ -160,7 +160,7 @@ end;
 
 
 
-procedure TTestSuiteTest.TestCountTestCases;
+procedure TTestSuiteTest.CheckCountTestCases;
 begin
   AssertTrue(FSuite.CountTestCases = 2);
 end;
@@ -173,7 +173,7 @@ begin
   s := '';
   for i := 0 to FSuite.CountTestCases - 1 do
     s := s + UpperCase(FSuite[i].TestName) + ' ';
-  AssertEquals('Failure in extracting methods:', 'TESTCOUNTTESTCASES TESTEXTRACTMETHODS ', s );
+  AssertEquals('Failure in extracting methods:', 'CHECKCOUNTTESTCASES TESTEXTRACTMETHODS ', s );
 end;
 
 procedure TAssertTest.TestEqualsInt;

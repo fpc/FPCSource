@@ -152,12 +152,12 @@ end;
 
 class function TMoneyBag.CreateWith(m1: IMoney; m2: IMoney): IMoney;
 var
-  mb: TMoneyBag;
+  mb: IMoney;
 begin
   mb := TMoneyBag.Create;
-  m1.AppendTo(mb);
-  m2.AppendTo(mb);
-  Result := mb.Simplify;
+  m1.AppendTo(TMoneyBag(mb._Self));
+  m2.AppendTo(TMoneyBag(mb._Self));
+  Result := TMoneyBag(mb._Self).Simplify;
 end;
 
 constructor TMoneyBag.Create;
@@ -166,7 +166,11 @@ begin
 end;
 
 destructor TMoneyBag.Destroy;
+var
+  i: integer;
 begin
+  for i := 0 to FMonies.Count - 1 do
+    IInterface(FMonies.items[i])._release;
   FMonies.Free;
   inherited Destroy;
 end;

@@ -121,11 +121,17 @@ begin
 end;
 
 procedure TMoneyTest.testIsZero;
+var
+  F0CHF, F12USD, F0USD, FMB0: IMoney;
 begin
-  AssertTrue('error: [0 CHF] is to be considered zero!', TMoney.Create(0, 'CHF').IsZero);
-  AssertFalse('error: [12 USD] is not to be considered zero!', TMoney.Create(12, 'USD').IsZero);
+  F0CHF := TMoney.Create(0, 'CHF');
+  F0USD := TMoney.Create(0, 'USD');
+  F12USD := TMoney.Create(12, 'USD');
+  AssertTrue('error: [0 CHF] is to be considered zero!', F0CHF.IsZero);
+  AssertFalse('error: [12 USD] is not to be considered zero!', F12USD.IsZero);
   AssertTrue(FMB1.subtract(FMB1).isZero);
-  AssertTrue(TMoneyBag.CreateWith(TMoney.Create(0, 'CHF'), TMoney.Create(0, 'USD')).isZero);
+  FMB0 :=TMoneyBag.CreateWith(F0CHF, F0USD);
+  AssertTrue(FMB0.isZero);
 end;
 
 procedure TMoneyTest.testMixedSimpleAdd;
@@ -171,10 +177,14 @@ end;
 procedure TMoneyTest.testSimplify;
 var
   money: IMoney;
+  F26CHF, F28CHF, F54CHF: IMoney;
 begin
-  money := TMoneyBag.CreateWith(TMoney.Create(26, 'CHF'), TMoney.Create(28, 'CHF'));
-  AssertTrue('Expected ' + TMoney.Create(54, 'CHF').toString + ' but was '
-    + money.toString, TMoney.Create(54, 'CHF').equals(money));
+  F26CHF := TMoney.Create(26, 'CHF');
+  F28CHF := TMoney.Create(28, 'CHF');
+  money := TMoneyBag.CreateWith(F26CHF, F28CHF);
+  F54CHF := TMoney.Create(54, 'CHF');
+  AssertTrue('Expected ' + F54CHF.toString + ' but was '
+    + money.toString, F54CHF.equals(money));
 end;
 
 procedure TMoneyTest.testNormalize2;

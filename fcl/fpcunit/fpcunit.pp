@@ -160,7 +160,6 @@ type
     FTestSuiteName: string;
     function GetTest(Index: integer): TTest;
   protected
-    function IsTestMethod(AMethodName: string): boolean; virtual;
     function GetTestName: string; override;
     function GetTestSuiteName: string; override;
     procedure SetTestSuiteName(const aName: string); override;
@@ -635,8 +634,7 @@ begin
       GetMethodList(AClass, ml);
       for i := 0 to ml.Count -1 do
       begin
-        if IsTestMethod(ml.Strings[i]) then
-          AddTest(tc.CreateWith(ml.Strings[i], tc.ClassName));
+        AddTest(tc.CreateWith(ml.Strings[i], tc.ClassName));
       end;
     finally
       ml.Free;
@@ -701,11 +699,6 @@ procedure TTestSuite.SetTestSuiteName(const aName: string);
 begin
   if FTestSuiteName <> aName then
     FTestSuiteName := aName;
-end;
-
-function TTestSuite.IsTestMethod(AMethodName: string): Boolean;
-begin
-  Result := Pos('TEST', UpperCase(AMethodName))= 1;
 end;
 
 function TTestSuite.CountTestCases: integer;
