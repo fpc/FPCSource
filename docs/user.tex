@@ -2366,53 +2366,129 @@ raise exceptions in an \var{except} block.
 \item [ Syntax error while parsing a conditional compiling expression ]
 \item [ Evaluating a conditional compiling expression ]
 \item [ Keyword redefined as macro has no effect ]
+You cannot redefine Pascal keywords with macros. If you, for instance would
+want to redefine the exit command you'd get this error. 
 \item [ compiler switches aren't allowed in (* ... *) styled comments ]
+Compiler switches should always be between \var{\{ \}} comment delimiters. 
 \item [ No DLL File specified ]
+
 \item [ Illegal open parameter ]
+You are trying to use the wrong type for an open parameter.
 \item [ Illegal floating point constant ]
+The compiler expects a floating point expression, and gets something else.
 \item [ string types doesn't match, because of \$V+ mode ]
+When compiling in \var{\{\$V+ \}} mode, the string you pass as a parameter
+should be of the exact same type as the declared parameter of the procedure.
 \item [ Only class methods can be referred with class references ]
 \item [ Only class methods can be accessed in class methods ]
 \item [ Constant and CASE types do not match ]
+One of the labels is not of the same type as the case variable.
 \item [ The symbol can't be exported from a library ]
-\item [ A virtual method must be overridden using the OVERRIDE directive:  ]
+You're trying to export something which cannot be exported.
+\item [ A virtual method must be overridden using the OVERRIDE directive: ]
+A method that is declared \var{virtual} in a parent class, should be
+overridden in the descendent class with the \var{override} directive. If you
+don't specify the \var{override} directive, you will hide the parent method;
+you will not override it.
 \item [ There is no method in an ancestor class to be overridden: ]
+You try to \var{override} a virtual method of a parent class that doesn't
+exist.
 \item [ No member is provided to access property ]
+You specified no \var{read} directive for a property. 
 \item [ Illegal symbol for property access ]
+There is an error in the \var{read} directive for a property.
 \item [ Cannot write a protected field of an object ]
+Fields that are declared in a \var{protected} section of an object or class
+declaration cannot be accessed outside that objects methods.
 \item [ range check error in set constructor or duplicate set element ]
+The declaration of a set contains an error. Either one of the elements is
+outside the range of the set type, either two of the elements are in fact
+the same.
 \item [ Pointer to class expected ]
+The compiler expects a reference to a class.
 \item [ Operator is not overloaded ]
+You're trying to use an overloaded operator when it isn't overloaded for
+this type.
 \item [ Variable or type indentifier expected ]
+
 \item [ Assembler incompatible with function return value ]
+You're trying to implement a \var{assembler} function, but the return type
+of the function doesn't allow that.
 \item [ Procedure overloading is switched off ]
+You're trying to compile overloaded procedures with the \var{-So} (Turbo Pascal
+compatibility) switch. Remove the switch. 
 \item [ Comparative operator must return a boolean value ]
+When overloading the \var{=} operator, the function must return a boolean
+value.
 \item [ Use of unsupported feature! ]
+You're trying to force the compiler into doing something it cannot do yet.
 \item [ absolute can only be associated to ONE variable ]
+You cannot specify more than one variable after the \var{absolute} directive.
 \item [ absolute can only be associated a var or const ]
+You can only specify a \var{absolute} directive after a variable or constant
+declaration.
 \item [ succ or pred on enums with assignments not possible ]
+When you declared an enumeration type which has assignments in it, as in C,
+like in the following:
+\begin{verbatim}
+  Tenum = (a,b,e:=5);
+\end{verbatim}
+you cannot use the \var{Succ} or \var{Pred} functions on them. 
 \item [ Array properties aren't allowed at this point ]
+Indexed properties are not yet implemented.
 \item [ No property found to override ]
+You want to overrride a property of a parent class, when there is, in fact,
+no such property in the parent class.
 \item [ Only one default property is allowed, found inherited default property in class ]
+You specified a property as \var{Default}, but a parent class already has a
+default property, and a class can have only one default property.
 \item [ The default property must be an array property ]
+Only array properties of classes can be made \var{default} properties. 
 \item [ Internal Error in SymTableStack() ]
-\item [ Error in type defenition ]
+An internal error occurred in the compiler; If you encounter such an error,
+please contact the developers and try to provide  an exact description of
+the circumstances in which the error occurs.
+\item [ Error in type definition ]
+There is an error in your definition of a new type.
 \item [ Only static variables can be used in static methods or outside methods ]
+A static method of an object can only access static variables.
 \item [ Invalid call to tvarsym.mangledname() ]
+An internal error occurred in the compiler; If you encounter such an error,
+please contact the developers and try to provide  an exact description of
+the circumstances in which the error occurs.
 \item [ illegal type declaration of set elements ]
+The declaration of a set contains an invalid type definition.
 \item [ Forward class definition not resolved  ]
+You declared a class, but you didn't implement it.
 \item [ identifier idents no member ]
+You specify a field of a record or object, and the record or object doesn't
+contains such a field.
 \item [ The use of a far pointer isn't allowed there ]
 \item [ procedure call with stackframe ESP/SP ]
 \item [ Abstract methods can't be called directly ]
+You cannot call an abstract method directy, instead you must call a
+overriding child method, because an abstract method isn't implemented. 
 \item [ Internal Error in getfloatreg(), allocation failure ]
+An internal error occurred in the compiler; If you encounter such an error,
+please contact the developers and try to provide  an exact description of
+the circumstances in which the error occurs.
 \item [ Unknown float type ]
+The compiler cannot determine the kind of float in an expression.
 \item [ SecondVecn() base defined twice ]
+An internal error occurred in the compiler; If you encounter such an error,
+please contact the developers and try to provide  an exact description of
+the circumstances in which the error occurs.
 \item [ Extended cg68k not supported ]
 \item [ 32-bit unsigned not supported in MC68000 mode ]
+The cardinal type isn't supported on the  MC68000 processor.
 \item [ Internal Error in secondinline() ]
+An internal error occurred in the compiler; If you encounter such an error,
+please contact the developers and try to provide  an exact description of
+the circumstances in which the error occurs.
 \item [ Stack limit excedeed in local routine ]
-
+Your code requires a too big stack. Some operating systems pose limits 
+on the stack size. You should use less variables or try ro put large
+variables on the heap. 
 \end{description}
 
 \chapter{Run time errors}
