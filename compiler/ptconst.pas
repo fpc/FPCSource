@@ -80,6 +80,7 @@ implementation
          symt      : tsymtable;
          value     : bestreal;
          strval    : pchar;
+         pw        : pcompilerwidestring;
          error     : boolean;
 
       procedure check_range(def:torddef);
@@ -283,6 +284,31 @@ implementation
                     else
                       if is_constcharnode(p) then
                         Consts.concat(Tai_string.Create(char(byte(tordconstnode(p).value))+#0))
+                    else
+                      Message(cg_e_illegal_expression);
+                end
+              { maybe pwidechar ? }
+              else
+                if is_widechar(tpointerdef(t.def).pointertype.def) and
+                   (p.nodetype<>addrn) then
+                  begin
+                    getdatalabel(ll);
+                    curconstSegment.concat(Tai_const_symbol.Create(ll));
+                    Consts.concat(Tai_label.Create(ll));
+                    if (p.nodetype in [stringconstn,ordconstn]) then
+                      begin
+                        { convert to widestring stringconstn }
+                        inserttypeconv(p,cwidestringtype);
+                        if (p.nodetype=stringconstn) and
+                           (tstringconstnode(p).st_type=st_widestring) then
+                         begin
+                           pw:=pcompilerwidestring(tstringconstnode(p).value_str);
+                           for i:=0 to tstringconstnode(p).len-1 do
+                            Consts.concat(Tai_const.Create_16bit(pw^.data[i]));
+                           { ending #0 }
+                           Consts.concat(Tai_const.Create_16bit(0))
+                         end;
+                      end
                     else
                       Message(cg_e_illegal_expression);
                 end
@@ -516,6 +542,8 @@ implementation
                             Consts.concat(Tai_label.Create(ll));
                             for i:=0 to strlength-1 do
                               Consts.concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));
+                            { ending #0 }
+                            Consts.concat(Tai_const.Create_16bit(0))
                           end;
                      end;
                    st_longstring:
@@ -891,7 +919,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2001-07-30 21:39:26  peter
+  Revision 1.30  2001-08-01 21:46:41  peter
+    * support pwidechar in typed const
+
+  Revision 1.29  2001/07/30 21:39:26  peter
     * declare fpu in rtl for m68k linux
 
   Revision 1.28  2001/07/30 20:59:27  peter
