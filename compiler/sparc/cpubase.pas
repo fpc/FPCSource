@@ -968,6 +968,8 @@ type
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
     procedure convert_register_to_enum(var r:Tregister);
     function cgsize2subreg(s:Tcgsize):Tsubregister;
+    function supreg_name(r:Tsuperregister):string;
+
 
 implementation
 
@@ -1020,10 +1022,34 @@ implementation
         cgsize2subreg:=R_SUBWHOLE;
       end;
 
+
+    function supreg_name(r:Tsuperregister):string;
+      const
+        supreg_names:array[0..last_supreg] of string[4]=
+          ('INV',
+           'g0','g1','g2','g3','g4','g5','g6','g7',
+           'o0','o1','o2','o3','o4','o5','o6','o7',
+           'l0','l1','l2','l3','l4','l5','l6','l7',
+           'i0','i1','i2','i3','i4','i5','i6','i7');
+      var
+        s : string[4];
+      begin
+        if r in [0..last_supreg] then
+          supreg_name:=supreg_names[r]
+        else
+          begin
+            str(r,s);
+            supreg_name:='reg'+s;
+          end;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.41  2003-06-12 19:11:34  jonas
+  Revision 1.42  2003-06-13 21:08:30  peter
+    * supreg_name added
+
+  Revision 1.41  2003/06/12 19:11:34  jonas
     - removed ALL_INTREGISTERS (only the one in rgobj is valid)
 
   Revision 1.40  2003/06/04 21:00:54  mazen
