@@ -140,6 +140,7 @@ procedure ReadSwitches(const fn:string);
 
 { initialize }
 procedure InitSwitches;
+procedure SetDefaultSwitches;
 procedure DoneSwitches;
 function  GetSourceDirectories : string;
 
@@ -597,7 +598,10 @@ begin
    reset(CfgFile);
   {$I+}
   if ioresult<>0 then
-   exit;
+   begin
+     SetDefaultSwitches;
+     exit;
+   end;
   OldSwitchesMode:=SwitchesMode;
   SwitchesMode:=om_Normal;
   while not eof(CfgFile) do
@@ -685,9 +689,6 @@ end;
 *****************************************************************************}
 
 procedure InitSwitches;
-
-var
-   i,OldSwitchesMode : TSwitchMode;
 
 begin
   New(SyntaxSwitches,Init('S'));
@@ -818,6 +819,13 @@ begin
     SwitchesPath:=SwitchesName;
   SwitchesPath:=FExpand(SwitchesPath);
 
+end;
+
+procedure SetDefaultSwitches;
+var
+   i,OldSwitchesMode : TSwitchMode;
+
+begin
   { setup some useful defaults }
   OldSwitchesMode:=SwitchesMode;
   for i:=low(TSwitchMode) to high(TSwitchMode) do
@@ -872,7 +880,6 @@ begin
   SwitchesMode:=OldSwitchesMode;
 end;
 
-
 procedure DoneSwitches;
 begin
   dispose(SyntaxSwitches,Done);
@@ -898,7 +905,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1999-10-14 14:22:23  florian
+  Revision 1.15  2000-01-10 15:52:53  pierre
+    * use default command line switches only if fp.cfg not found
+
+  Revision 1.14  1999/10/14 14:22:23  florian
     * if no ini file is found the ide uses some useful defaults
 
   Revision 1.13  1999/04/29 09:36:12  peter
