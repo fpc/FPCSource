@@ -721,8 +721,8 @@ var
 begin
   regs.realeax:=$2c00;
   sysrealintr($21,regs);
-  hl:=regs.realedx and $ffff;
-  randseed:=hl*$10000+ (regs.realecx and $ffff);
+  hl:=lo(regs.realedx);
+  randseed:=hl*$10000+ lo(regs.realecx);
 end;
 
 {*****************************************************************************
@@ -882,10 +882,10 @@ begin
         GetInOutRes;
         exit(writesize);
       end;
-     inc(writesize,regs.realeax);
-     dec(len,regs.realeax);
+     inc(writesize,lo(regs.realeax));
+     dec(len,lo(regs.realeax));
      { stop when not the specified size is written }
-     if regs.realeax<size then
+     if lo(regs.realeax)<size then
       break;
    end;
   Do_Write:=WriteSize;
@@ -917,11 +917,11 @@ begin
         do_read:=0;
         exit;
       end;
-     syscopyfromdos(addr+readsize,regs.realeax);
-     inc(readsize,regs.realeax);
-     dec(len,regs.realeax);
+     syscopyfromdos(addr+readsize,lo(regs.realeax));
+     inc(readsize,lo(regs.realeax));
+     dec(len,lo(regs.realeax));
      { stop when not the specified size is read }
-     if regs.realeax<size then
+     if lo(regs.realeax)<size then
       break;
    end;
   do_read:=readsize;
@@ -1096,7 +1096,7 @@ begin
   sysrealintr($21,regs);
 {$ifndef RTLLITE}
   if (regs.realflags and carryflag) <> 0 then
-    if (regs.realeax and $ffff)=4 then
+    if lo(regs.realeax)=4 then
       if Increase_file_handle_count then
         begin
           { Try again }
@@ -1119,27 +1119,27 @@ begin
     end
   else
     begin
-      filerec(f).handle:=regs.realeax;
+      filerec(f).handle:=lo(regs.realeax);
 {$ifndef RTLLITE}
       { for systems that have more then 20 by default ! }
-      if regs.realeax>FileHandleCount then
-        FileHandleCount:=regs.realeax;
+      if lo(regs.realeax)>FileHandleCount then
+        FileHandleCount:=lo(regs.realeax);
 {$endif RTLLITE}
     end;
-  if regs.realeax<max_files then
+  if lo(regs.realeax)<max_files then
     begin
 {$ifdef SYSTEMDEBUG}
-       if openfiles[regs.realeax] and
-          assigned(opennames[regs.realeax]) then
+       if openfiles[lo(regs.realeax)] and
+          assigned(opennames[lo(regs.realeax)]) then
          begin
-            Writeln(stderr,'file ',opennames[regs.realeax],'(',regs.realeax,') not closed but handle reused!');
-            sysfreememsize(opennames[regs.realeax],strlen(opennames[regs.realeax])+1);
+            Writeln(stderr,'file ',opennames[lo(regs.realeax)],'(',lo(regs.realeax),') not closed but handle reused!');
+            sysfreememsize(opennames[lo(regs.realeax)],strlen(opennames[lo(regs.realeax)])+1);
          end;
 {$endif SYSTEMDEBUG}
-       openfiles[regs.realeax]:=true;
+       openfiles[lo(regs.realeax)]:=true;
 {$ifdef SYSTEMDEBUG}
-       opennames[regs.realeax] := sysgetmem(strlen(p)+1);
-       move(p^,opennames[regs.realeax]^,strlen(p)+1);
+       opennames[lo(regs.realeax)] := sysgetmem(strlen(p)+1);
+       move(p^,opennames[lo(regs.realeax)]^,strlen(p)+1);
 {$endif SYSTEMDEBUG}
     end;
 { append mode }
@@ -1406,7 +1406,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.36  2000-03-13 19:45:21  pierre
+  Revision 1.37  2000-04-10 11:21:02  pierre
+   * use only low word of regs record after system calls
+
+  Revision 1.36  2000/03/13 19:45:21  pierre
    + exceptions in system is default now
 
   Revision 1.35  2000/03/09 09:15:10  pierre
