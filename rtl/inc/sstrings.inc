@@ -609,37 +609,72 @@ begin
 end;
 {$endif SUPPORT_SINGLE}
 
-{$ifdef SUPPORT_EXTENDED}
+{$ifdef DEFAULT_EXTENDED}
 
-{ we have to define val for reals, if extended is supported }
+  { with extended as default the valreal is extended so for real there need
+    to be a new val }
 
-procedure val(const s : string;var d : real;var code : word);
-var
-  e : valreal;
-begin
-  val(s,e,code);
-  d:=e;
-end;
-
-
-procedure val(const s : string;var d : real;var code : integer);
-var
-   e : valreal;
-begin
-  val(s,e,word(code));
-  d:=e;
-end;
+  procedure val(const s : string;var d : real;var code : word);
+  var
+    e : valreal;
+  begin
+    val(s,e,code);
+    d:=e;
+  end;
 
 
-procedure val(const s : string;var d : real);
-var
-  code : word;
-  e    : valreal;
-begin
-  val(s,e,code);
-  d:=e;
-end;
-{$endif SUPPORT_EXTENDED}
+  procedure val(const s : string;var d : real;var code : integer);
+  var
+     e : valreal;
+  begin
+    val(s,e,word(code));
+    d:=e;
+  end;
+
+
+  procedure val(const s : string;var d : real);
+  var
+    code : word;
+    e    : valreal;
+  begin
+    val(s,e,code);
+    d:=e;
+  end;
+
+{$else DEFAULT_EXTENDED}
+
+  { when extended is not the default it could still be supported }
+
+  {$ifdef SUPPORT_EXTENDED}
+
+  procedure val(const s : string;var d : extended;var code : word);
+  var
+    e : valreal;
+  begin
+    val(s,e,code);
+    d:=e;
+  end;
+
+  procedure val(const s : string;var d : extended;var code : integer);
+  var
+     e : valreal;
+  begin
+    val(s,e,word(code));
+    d:=e;
+  end;
+
+  procedure val(const s : string;var d : extended);
+  var
+    code : word;
+    e    : valreal;
+  begin
+    val(s,e,code);
+    d:=e;
+  end;
+
+  {$endif SUPPORT_EXTENDED}
+
+{$endif DEFAULT_EXTENDED}
 
 
 {$ifdef SUPPORT_COMP}
@@ -718,7 +753,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1998-08-08 12:28:13  florian
+  Revision 1.11  1998-08-11 21:39:07  peter
+    * splitted default_extended from support_extended
+
+  Revision 1.10  1998/08/08 12:28:13  florian
     * a lot small fixes to the extended data type work
 
   Revision 1.9  1998/07/18 17:14:23  florian

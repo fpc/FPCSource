@@ -18,7 +18,7 @@
    Possible defines:
    -----------------
    RTLLITE         Create a somewhat smaller RTL
-   
+
 *****************************************************************************}
 
 
@@ -42,17 +42,20 @@ Type
 { at least declare Turbo Pascal real types }
 {$ifdef i386}
   {$ifndef VER0_99_5}
-    {$define SUPPORT_EXTENDED}
-  {$endif}  
+    {$ifndef VER0_99_6}
+      {$define DEFAULT_EXTENDED}
+    {$endif}
+  {$endif}
+  {$define SUPPORT_EXTENDED}
   {$define SUPPORT_COMP}
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_FIXED}
   Double = real;
-  {$ifdef SUPPORT_EXTENDED}
+  {$ifdef DEFAULT_EXTENDED}
     ValReal = Extended;
-  {$else}    
+  {$else}
     ValReal = Double;
-  {$endif}  
+  {$endif}
 {$endif}
 
 {$ifdef m68k}
@@ -120,7 +123,7 @@ var
   LowestStack,
   RandSeed    : Longint;
 
-Const 
+Const
   ErrorProc   : Pointer = nil;
 
 {****************************************************************************
@@ -256,29 +259,33 @@ Procedure Val(const s:string;Var b:Word);
 Procedure Val(const s:string;Var b:Integer;Var code:Word);
 Procedure Val(const s:string;Var b:Integer;Var code:Integer);
 Procedure Val(const s:string;Var b:Integer);
+Procedure Val(const s:string;Var v:cardinal;Var code:Word);
+Procedure Val(const s:string;Var v:cardinal;Var code:Integer);
+Procedure Val(const s:string;Var v:cardinal);
 Procedure Val(const s:string;Var d:ValReal;Var code:Word);
 Procedure Val(const s:string;Var d:ValReal;Var code:Integer);
 Procedure Val(const s:string;Var d:ValReal);
 {$ifdef SUPPORT_SINGLE}
-Procedure Val(const s:string;Var d:single;Var code:Word);
-Procedure Val(const s:string;Var d:single;Var code:Integer);
-Procedure Val(const s:string;Var d:single);
+  Procedure Val(const s:string;Var d:single;Var code:Word);
+  Procedure Val(const s:string;Var d:single;Var code:Integer);
+  Procedure Val(const s:string;Var d:single);
 {$endif SUPPORT_SINGLE}
-{$ifdef SUPPORT_EXTENDED}
-{ if extended is supported, valreal is an extended, so we
-  have to define the real routines }
-Procedure Val(const s:string;Var d:Real;Var code:Word);
-Procedure Val(const s:string;Var d:Real;Var code:Integer);
-Procedure Val(const s:string;Var d:Real);
-{$endif SUPPORT_EXTENDED}
 {$ifdef SUPPORT_COMP}
-Procedure Val(const s:string;Var d:comp;Var code:Word);
-Procedure Val(const s:string;Var d:comp;Var code:Integer);
-Procedure Val(const s:string;Var d:comp);
+  Procedure Val(const s:string;Var d:comp;Var code:Word);
+  Procedure Val(const s:string;Var d:comp;Var code:Integer);
+  Procedure Val(const s:string;Var d:comp);
 {$endif SUPPORT_COMP}
-Procedure Val(const s:string;Var v:cardinal;Var code:Word);
-Procedure Val(const s:string;Var v:cardinal;Var code:Integer);
-Procedure Val(const s:string;Var v:cardinal);
+{$ifdef DEFAULT_EXTENDED}
+  Procedure Val(const s:string;Var d:Real;Var code:Word);
+  Procedure Val(const s:string;Var d:Real;Var code:Integer);
+  Procedure Val(const s:string;Var d:Real);
+{$else DEFAULT_EXTENDED}
+  {$ifdef SUPPORT_EXTENDED}
+    Procedure Val(const s:string;Var d:Extended;Var code:Word);
+    Procedure Val(const s:string;Var d:Extended;Var code:Integer);
+    Procedure Val(const s:string;Var d:Extended);
+  {$endif}
+{$endif DEFAULT_EXTENDED}
 
 {****************************************************************************
                              AnsiString Handling
@@ -426,7 +433,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.23  1998-08-11 00:05:27  peter
+  Revision 1.24  1998-08-11 21:39:08  peter
+    * splitted default_extended from support_extended
+
+  Revision 1.23  1998/08/11 00:05:27  peter
     * $ifdef ver0_99_5 updates
 
   Revision 1.22  1998/08/08 12:28:14  florian

@@ -19,11 +19,11 @@ type
   { corresponding to real    single     fixed   extended and comp for i386 }
 
 {$ifdef i386}
-  {$ifdef SUPPORT_EXTENDED}
-    bestreal = extended; 
+  {$ifdef DEFAULT_EXTENDED}
+    bestreal = extended;
   {$else}
     bestreal = double;
-  {$endif SUPPORT_EXTENDED}
+  {$endif DEFAULT_EXTENDED}
 {$else i386}
   bestreal = single;
 {$endif i386}
@@ -201,7 +201,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  1998-08-11 00:05:25  peter
+  Revision 1.10  1998-08-11 21:39:06  peter
+    * splitted default_extended from support_extended
+
+  Revision 1.9  1998/08/11 00:05:25  peter
     * $ifdef ver0_99_5 updates
 
   Revision 1.8  1998/08/10 15:56:30  peter

@@ -16,7 +16,7 @@
 
 {$ASMMODE DIRECT}
 
-{$ifndef SUPPORT_EXTENDED}
+{$ifndef DEFAULT_EXTENDED}
 
 {****************************************************************************
                        Real/Double data type routines
@@ -258,8 +258,8 @@
      begin
         power:=exp(ln(bas)*expo);
      end;
-     
-{$else SUPPORT_EXTENDED}
+
+{$else DEFAULT_EXTENDED}
 
 {****************************************************************************
                        EXTENDED data type routines
@@ -507,7 +507,7 @@
         power:=exp(ln(bas)*expo);
      end;
 
-{$endif SUPPORT_EXTENDED}
+{$endif DEFAULT_EXTENDED}
 
 
 {****************************************************************************
@@ -641,7 +641,10 @@
 
 {
   $Log$
-  Revision 1.5  1998-08-11 00:04:50  peter
+  Revision 1.6  1998-08-11 21:39:04  peter
+    * splitted default_extended from support_extended
+
+  Revision 1.5  1998/08/11 00:04:50  peter
     * $ifdef ver0_99_5 updates
 
   Revision 1.4  1998/08/10 15:54:50  peter

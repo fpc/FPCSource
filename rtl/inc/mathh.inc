@@ -15,7 +15,7 @@
 
    { declarations of the math routines }
 
-{$ifdef SUPPORT_EXTENDED}
+{$ifdef DEFAULT_EXTENDED}
     function abs(d : extended) : extended;
     function arctan(d : extended) : extended;
     function cos(d : extended) : extended;
@@ -30,7 +30,7 @@
     function sqrt(d : extended) : extended;
     function trunc(d : extended) : longint;
     function power(bas,expo : extended) : extended;
-{$else SUPPORT_EXTENDED}
+{$else DEFAULT_EXTENDED}
     function abs(d : real) : real;
     function arctan(d : real) : real;
     function cos(d : real) : real;
@@ -45,10 +45,10 @@
     function trunc(d : real) : longint;
     function power(bas,expo : real) : real;
     function pi : real;
-{$endif SUPPORT_EXTENDED}
+{$endif DEFAULT_EXTENDED}
 
     function power(bas,expo : longint) : longint;
-    
+
 {$ifdef _SUPPORT_FIXED}
     function sqrt(d : fixed) : fixed;
     function Round(x: fixed): longint;
@@ -61,7 +61,10 @@
 
 {
   $Log$
-  Revision 1.4  1998-08-11 00:05:24  peter
+  Revision 1.5  1998-08-11 21:39:05  peter
+    * splitted default_extended from support_extended
+
+  Revision 1.4  1998/08/11 00:05:24  peter
     * $ifdef ver0_99_5 updates
 
   Revision 1.3  1998/08/08 12:28:11  florian
