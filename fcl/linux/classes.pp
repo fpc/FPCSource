@@ -4,7 +4,7 @@
     Copyright (c) 1998 by Michael Van Canneyt and Florian Klaempfl
 
     Classes unit for linux
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -24,8 +24,8 @@ unit Classes;
 interface
 
 uses
-  strings,
-  sysutils,typinfo;
+  sysutils,
+  typinfo;
 
 {$i classesh.inc}
 
@@ -33,7 +33,7 @@ implementation
 
 uses
   linux;
-  
+
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
 
@@ -47,7 +47,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.13  2000-01-06 01:20:33  peter
+  Revision 1.14  2000-01-07 00:01:33  peter
+    * uses typinfo moved to interface
+
+  Revision 1.13  2000/01/06 01:20:33  peter
     * moved out of packages/ back to topdir
 
   Revision 1.2  2000/01/04 18:07:58  michael

@@ -24,15 +24,15 @@ unit Classes;
 interface
 
 uses
-  strings,
-  sysutils;
+  sysutils,
+  typinfo;
 
 {$i classesh.inc}
 
 implementation
 
 uses
-  windows,typinfo;
+  windows;
 
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
@@ -40,7 +40,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.11  2000-01-06 01:20:36  peter
+  Revision 1.12  2000-01-07 00:01:33  peter
+    * uses typinfo moved to interface
+
+  Revision 1.11  2000/01/06 01:20:36  peter
     * moved out of packages/ back to topdir
 
   Revision 1.2  2000/01/04 18:08:35  michael
