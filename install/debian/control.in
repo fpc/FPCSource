@@ -103,6 +103,15 @@ Description: Free Pascal -- GTK 1.2 units
  This package contains Free Pascal units and examples to create
  programs with GTK 1.2.
 
+Package: fp-units-gtk2
+Architecture: i386 powerpc sparc amd64
+Depends: fp-units-rtl (= %{packageversion}), fp-units-fcl (= %{packageversion})
+Description: Free Pascal -- GTK 2.x units 
+ The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32/64-bit
+ Pascal Compiler. It comes with a fully compatible TP 7.0 runtime library.
+ This package contains Free Pascal units and examples to create
+ programs with GTK 2.x.
+
 Package: fp-units-gnome1
 Architecture: i386 powerpc sparc amd64
 Depends: fp-units-rtl (= %{packageversion}), fp-units-gtk (= %{packageversion})
