@@ -1,9 +1,28 @@
-{ Program to test Code generator secondadd()                 }
-{ with floating point values                                 }
-{ FUNCTIONAL PRE-REQUISITES:                                 }
-{   - assignments function correctly.                        }
-{   - if statements function correctly.                      }
-{   - subroutine calls function correctly.                   }
+{****************************************************************}
+{  CODE GENERATOR TEST PROGRAM                                   }
+{****************************************************************}
+{ NODE TESTED : secondadd() FPU real type code                   }
+{****************************************************************}
+{ PRE-REQUISITES: secondload()                                   }
+{                 secondassign()                                 }
+{                 secondtypeconv()                               }
+{****************************************************************}
+{ DEFINES:                                                       }
+{            FPC     = Target is FreePascal compiler             }
+{****************************************************************}
+{ REMARKS:                                                       }
+{                                                                }
+{                                                                }
+{                                                                }
+{****************************************************************}
+
+{ Result is either LOC_FPU or LOC_REFERENCE                     }
+{ LEFT NODE (operand) (left operator)                           }
+{  LOC_REFERENCE / LOC_MEM                                      }
+{  LOC_FPU                                                      }
+{ RIGHT NODE (operand)                                          }
+{  LOC_FPU                                                      }
+{  LOC_REFERENCE / LOC_MEM                                      }
 {$E-}
 
  Procedure RealTestSub;
@@ -241,7 +260,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-05-19 11:51:50  peter
+  Revision 1.2  2001-06-12 01:12:34  carl
+  + added header
+
+  Revision 1.1  2001/05/19 11:51:50  peter
     * renamed to .pp
 
   Revision 1.2  2001/05/16 15:28:40  carl
