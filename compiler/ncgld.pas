@@ -599,9 +599,9 @@ implementation
 {$warning HACK: unaligned test, maybe remove all unaligned locations (array of char) from the compiler}
                         { Use unaligned copy when the offset is not aligned }
                         len:=left.resulttype.def.size;
-                        if ((right.location.reference.offset mod sizeof(aint)<>0) or
-                            (left.location.reference.offset mod sizeof(aint)<>0)) and
-                           (len>=sizeof(aint)) then
+                        if (right.location.reference.offset mod sizeof(aint)<>0) or
+                            (left.location.reference.offset mod sizeof(aint)<>0) or
+                            (right.resulttype.def.alignment<sizeof(aint)) then
                           cg.g_concatcopy_unaligned(exprasmlist,right.location.reference,left.location.reference,len)
                         else
                           cg.g_concatcopy(exprasmlist,right.location.reference,left.location.reference,len);
@@ -956,7 +956,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.137  2005-02-10 21:54:36  peter
+  Revision 1.138  2005-02-13 19:57:15  florian
+    * better alignment checking
+
+  Revision 1.137  2005/02/10 21:54:36  peter
     * data with inittables need to have a memory location assigned
       for incrref
 
