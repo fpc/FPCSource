@@ -1855,7 +1855,7 @@ function XkbAddGeomOverlay (section : PXkbSectionPtr; name : TAtom; sz_rows : Sm
 	cdecl; external libX11 name 'XkbAddGeomOverlay';
 
 function XkbAddGeomOverlayRow (overlay : PXkbOverlayPtr; row_under : SmallInt; 
-                               sz_keys : SmallInt)                              : PXkbOverlayRowPtr
+                               sz_keys : SmallInt)                              : PXkbOverlayRowPtr;
 	cdecl; external libX11 name 'XkbAddGeomOverlayRow';
 
 function XkbAddGeomOverlayKey (overlay : PXkbOverlayPtr; row   : PXkbOverlayRowPtr;
