@@ -61,7 +61,7 @@ interface
        delphimodeswitches : tmodeswitches=
          [m_delphi,m_all,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
-          m_out,m_default_para,m_hintdirective,m_duplicate_names,m_hintdirective];
+          m_out,m_default_para,m_hintdirective,m_duplicate_names];
        fpcmodeswitches    : tmodeswitches=
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support,m_initfinal,m_add_pointer,m_hintdirective];
@@ -1516,7 +1516,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2002-11-29 22:31:19  carl
+  Revision 1.73  2002-11-30 00:34:20  pierre
+   * remove double in delphimodeswitches to allow compilation with -Cr option
+
+  Revision 1.72  2002/11/29 22:31:19  carl
     + unimplemented hint directive added
     * hint directive parsing implemented
     * warning on these directives
