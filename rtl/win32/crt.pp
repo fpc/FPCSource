@@ -766,7 +766,7 @@ begin
 
             DestRect.Left := (CurrX - 01);
             DestRect.Top := (CurrY - 01);
-            DestRect.Right := (CurrX - 01) + 01;
+            DestRect.Right := (CurrX - 01);
             DestRect.Bottom := (CurrY - 01);
 
             WriteConsoleOutput(OutHandle, Cell, BufSize, WritePos, @DestRect);
@@ -965,9 +965,14 @@ begin
   Reset(Input);
   TextRec(Input).Handle:= InputHandle;
 end. { unit Crt }
+
 {
   $Log$
-  Revision 1.13  2000-02-09 16:59:34  peter
+  Revision 1.14  2000-02-26 14:57:17  florian
+    * writing at coloumn <screenwidth> wasn't possible in some cases,
+      fixed
+
+  Revision 1.13  2000/02/09 16:59:34  peter
     * truncated log
 
   Revision 1.12  1999/10/22 14:36:20  peter
@@ -978,5 +983,4 @@ end. { unit Crt }
 
   Revision 1.10  1999/08/24 13:15:44  peter
     * Removeline fixed
-
 }
