@@ -321,7 +321,7 @@ implementation
             newblock:=internalstatements(newstatement);
 
             { create temp for result }
-            temp := ctempcreatenode.create(p1.resulttype,p1.resulttype.def.size,tt_persistent);
+            temp := ctempcreatenode.create_reg(p1.resulttype,p1.resulttype.def.size,tt_persistent);
             addstatement(newstatement,temp);
 
             { create call to fpc_getmem }
@@ -734,7 +734,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2004-02-03 22:32:54  peter
+  Revision 1.29  2004-02-04 18:45:29  jonas
+    + some more usage of register temps
+
+  Revision 1.28  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

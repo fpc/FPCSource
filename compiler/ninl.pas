@@ -403,7 +403,7 @@ implementation
             if (filepara.left.nodetype <> loadn) then
               begin
                 { create a temp which will hold a pointer to the file }
-                filetemp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,tt_persistent);
+                filetemp := ctempcreatenode.create_reg(voidpointertype,voidpointertype.def.size,tt_persistent);
 
                 { add it to the statements }
                 addstatement(newstatement,filetemp);
@@ -2374,7 +2374,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.130  2004-02-03 22:32:54  peter
+  Revision 1.131  2004-02-04 18:45:29  jonas
+    + some more usage of register temps
+
+  Revision 1.130  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ
