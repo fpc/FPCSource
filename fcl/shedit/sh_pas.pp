@@ -47,7 +47,7 @@ const
   LF_SH_Asm      = LF_SH_Multiline3;
 
   MaxKeywordLength = 15;
-  MaxKeyword = 61;
+  MaxKeyword = 60;
 
   KeywordTable: array[0..MaxKeyword] of PChar =
     ('AND', 'ARRAY', 'ASM', 'ASSEMBLER',
@@ -58,16 +58,16 @@ const
      'FINALIZATION', 'FINALLY', 'FOR', 'FUNCTION',
      'GOTO',
      'IF', 'IMPLEMENTATION', 'IN', 'INHERITED', 'INITIALIZATION', 'INTERFACE',
-     'NOT',
+     'NIL', 'NOT',
      'OBJECT', 'OF', 'ON', 'OR', 'OVERRIDE',
      'PACKED', 'PRIVATE', 'PROCEDURE', 'PROGRAM', 'PROPERTY', 'PROTECTED',
        'PUBLIC', 'PUBLISHED',
-     'RAISE', 'READ', 'RECORD', 'REPEAT', 'RESOURCESTRING',
+     'RAISE', 'RECORD', 'REPEAT', 'RESOURCESTRING',
      'SET',
      'THEN', 'TRY', 'TYPE',
      'UNIT', 'UNTIL', 'USES',
      'VAR', 'VIRTUAL',
-     'WHILE', 'WITH', 'WRITE',
+     'WHILE', 'WITH',
      'XOR');
 
   KeywordAsmIndex = 2;
@@ -313,7 +313,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-01-07 01:24:34  peter
+  Revision 1.6  2000-02-19 19:06:47  sg
+  * Added NIL keyword, removed READ and WRITE as keywords
+
+  Revision 1.5  2000/01/07 01:24:34  peter
     * updated copyright to 2000
 
   Revision 1.4  2000/01/06 01:20:34  peter
