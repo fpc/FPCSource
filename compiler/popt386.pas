@@ -304,6 +304,41 @@ Begin
                 End;
               A_FLD:
                 Begin
+                  If (Paicpu(p)^.oper[0].typ = top_reg) And
+                     GetNextInstruction(p, hp1) And
+                     (hp1^.typ = Ait_Instruction) And
+                     (Paicpu(hp1)^.oper[0].typ = top_reg) And
+                     (Paicpu(hp1)^.oper[1].typ = top_reg) And
+                     (Paicpu(hp1)^.oper[0].reg = R_ST) And
+                     (Paicpu(hp1)^.oper[1].reg = R_ST1) Then
+                     { change                        to
+                         fld      reg               fxxx reg,st
+                         fxxxp    st, st1 (hp1)
+                       Remark: non commutative operations must be reversed!
+                     }
+                     begin
+                        Case Paicpu(hp1)^.opcode Of
+                          A_FMULP,A_FADDP,
+                          A_FSUBP,A_FDIVP,A_FSUBRP,A_FDIVRP:
+                            begin
+                               Case Paicpu(hp1)^.opcode Of
+                                 A_FADDP: Paicpu(hp1)^.opcode := A_FADD;
+                                 A_FMULP: Paicpu(hp1)^.opcode := A_FMUL;
+                                 A_FSUBP: Paicpu(hp1)^.opcode := A_FSUBR;
+                                 A_FSUBRP: Paicpu(hp1)^.opcode := A_FSUB;
+                                 A_FDIVP: Paicpu(hp1)^.opcode := A_FDIVR;
+                                 A_FDIVRP: Paicpu(hp1)^.opcode := A_FDIV;
+                               End;
+                               Paicpu(hp1)^.oper[0].reg := Paicpu(p)^.oper[0].reg;
+                               Paicpu(hp1)^.oper[1].reg := R_ST;
+                               AsmL^.Remove(p);
+                               Dispose(p, Done);
+                               p := hp1;
+                               Continue;
+                            end;
+                        end;
+                     end
+                  else
                   If (Paicpu(p)^.oper[0].typ = top_ref) And
                      GetNextInstruction(p, hp2) And
                      (hp2^.typ = Ait_Instruction) And
@@ -1568,7 +1603,10 @@ End.
 
 {
  $Log$
- Revision 1.64  1999-08-25 12:00:02  jonas
+ Revision 1.65  1999-09-05 14:27:19  florian
+   + fld reg;fxxx to fxxxr reg optimization
+
+ Revision 1.64  1999/08/25 12:00:02  jonas
    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
  Revision 1.63  1999/08/23 10:20:46  jonas
