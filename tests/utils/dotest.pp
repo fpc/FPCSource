@@ -7,7 +7,7 @@ const
 {$ifdef UNIX}
   ExeExt='';
 {$else UNIX}
-  ExeExt:='exe';
+  ExeExt='exe';
 {$endif UNIX}
 
 type
@@ -450,7 +450,10 @@ var
 
 begin
   PPFile:='';
-  CompilerBin:='ppc386';
+  if exeext<>'' then
+    CompilerBin:='ppc386.'+exeext
+  else
+    CompilerBin:='ppc386';
   for i:=1 to paramcount do
    begin
      para:=Paramstr(i);
@@ -551,3 +554,9 @@ begin
   GetArgs;
   RunTest;
 end.
+{
+  $Log$
+  Revision 1.5  2000-12-03 22:59:10  florian
+    * some problems for go32v2 fixed
+
+}
