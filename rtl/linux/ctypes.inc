@@ -56,11 +56,19 @@ Type
     cshort = integer;
     cushort= word;
 
-    pcInt  = ^cInt;
+    pcInt   = ^cInt;
+    pcUInt  = ^cUInt;
+    pcLong  = ^cLong;
+    pculong = ^cuLong;
+    pcshort = ^cshort;
+    pcushort= ^cushort;
 
 { 
    $Log$
-   Revision 1.2  2002-12-18 16:43:26  marco
+   Revision 1.3  2003-09-16 21:20:40  marco
+    * pointer's of some basetypes
+
+   Revision 1.2  2002/12/18 16:43:26  marco
     * new unix rtl, linux part.....
 
    Revision 1.1  2002/11/09 22:39:28  marco
