@@ -173,7 +173,10 @@ unit ag386bin;
                 { single asmsymbol }
                 if j=0 then
                   j:=256;
-                ps:=getasmsymbol(copy(s,1,j-1));
+                { the symbol can be external
+                  so we must use newasmsymbol and
+                  not getasmsymbol !! PM }
+                ps:=newasmsymbol(copy(s,1,j-1));
                 if not assigned(ps) then
                   internalerror(33006)
                 else
@@ -907,7 +910,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.28  1999-11-30 10:40:42  peter
+  Revision 1.29  1999-12-01 22:05:13  pierre
+   * problem with unused external symbol in stabs solved
+
+  Revision 1.28  1999/11/30 10:40:42  peter
     + ttype, tsymlist
 
   Revision 1.27  1999/11/06 14:34:16  peter
