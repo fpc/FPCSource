@@ -1227,7 +1227,7 @@ typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
 math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
 
-varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.pp $(OBJPASDIR)/varutils.inc \
+varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 		    $(OBJPASDIR)/varutilh.inc varutils.pp
 	$(COMPILER) -I$(OBJPASDIR) varutils.pp $(REDIR)
 
