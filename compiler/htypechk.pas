@@ -93,7 +93,6 @@ interface
 
     { subroutine handling }
     function  is_procsym_load(p:tnode):boolean;
-    function  is_procsym_call(p:tnode):boolean;
     procedure test_local_to_procvar(from_def:tprocvardef;to_def:tdef);
 
     {
@@ -648,16 +647,6 @@ implementation
       end;
 
 
-   { change a proc call to a procload for assignment to a procvar }
-   { this can only happen for proc/function without arguments }
-    function is_procsym_call(p:tnode):boolean;
-      begin
-        is_procsym_call:=(p.nodetype=calln) and (tcallnode(p).left=nil) and
-             (((tcallnode(p).symtableprocentry.typ=procsym) and (tcallnode(p).right=nil)) or
-             (assigned(tcallnode(p).right) and (tcallnode(tcallnode(p).right).symtableprocentry.typ=varsym)));
-      end;
-
-
     { local routines can't be assigned to procvars }
     procedure test_local_to_procvar(from_def:tprocvardef;to_def:tdef);
       begin
@@ -1128,7 +1117,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2002-12-11 22:39:24  peter
+  Revision 1.54  2002-12-22 16:34:49  peter
+    * proc-procvar crash fixed (tw2277)
+
+  Revision 1.53  2002/12/11 22:39:24  peter
     * better error message when no operator is found for equal
 
   Revision 1.52  2002/11/27 22:11:59  peter

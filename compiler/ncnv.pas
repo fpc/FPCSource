@@ -1087,41 +1087,48 @@ implementation
                 own resulttype.def. They will therefore always be incompatible with
                 a procvar. Because isconvertable cannot check for procedures we
                 use an extra check for them.}
-              if (m_tp_procvar in aktmodeswitches) then
+              if (m_tp_procvar in aktmodeswitches) and
+                 (resulttype.def.deftype=procvardef) then
                begin
-                 if (resulttype.def.deftype=procvardef) and
-                    (is_procsym_load(left) or is_procsym_call(left)) then
+                 if is_procsym_load(left) then
                   begin
-                    if is_procsym_call(left) then
+                    if (left.nodetype<>addrn) then
                      begin
-                       currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
-                       hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
-                           currprocdef,tcallnode(left).symtableproc);
-                       if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) and
-                          assigned(tcallnode(left).methodpointer) then
-                         tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy);
-                       resulttypepass(hp);
-                       left.free;
-                       left:=hp;
-                       aprocdef:=tprocdef(left.resulttype.def);
-                     end
-                    else
-                     begin
-                       if (left.nodetype<>addrn) then
-                         aprocdef:=tprocsym(tloadnode(left).symtableentry).first_procdef;
+                       convtype:=tc_proc_2_procvar;
+                       { Now check if the procedure we are going to assign to
+                         the procvar, is compatible with the procvar's type }
+                       if proc_to_procvar_equal(tprocsym(tloadnode(left).symtableentry).first_procdef,
+                                                tprocvardef(resulttype.def))=te_incompatible then
+                         CGMessage2(type_e_incompatible_types,tprocsym(tloadnode(left).symtableentry).first_procdef.typename,resulttype.def.typename);
+                       exit;
                      end;
-                    convtype:=tc_proc_2_procvar;
-                    { Now check if the procedure we are going to assign to
-                      the procvar,  is compatible with the procvar's type }
-                    if assigned(aprocdef) then
-                     begin
-                       if proc_to_procvar_equal(aprocdef,tprocvardef(resulttype.def))=te_incompatible then
-                        CGMessage2(type_e_incompatible_types,aprocdef.typename,resulttype.def.typename);
-                     end
-                    else
-                     CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
-                    exit;
-                  end;
+                  end
+                 else
+                  if (left.nodetype=calln) and
+                     not assigned(tcallnode(left).left) then
+                   begin
+                     if assigned(tcallnode(left).right) then
+                      hp:=tcallnode(left).right.getcopy
+                     else
+                      begin
+                        currprocdef:=Tprocsym(Tcallnode(left).symtableprocentry).search_procdef_byprocvardef(Tprocvardef(resulttype.def));
+                        hp:=cloadnode.create_procvar(tprocsym(tcallnode(left).symtableprocentry),
+                            currprocdef,tcallnode(left).symtableproc);
+                        if (tcallnode(left).symtableprocentry.owner.symtabletype=objectsymtable) and
+                           assigned(tcallnode(left).methodpointer) then
+                          tloadnode(hp).set_mp(tcallnode(left).methodpointer.getcopy);
+                      end;
+                     resulttypepass(hp);
+                     left.free;
+                     left:=hp;
+                     convtype:=tc_proc_2_procvar;
+                     { Now check if the procedure we are going to assign to
+                       the procvar, is compatible with the procvar's type }
+                     if proc_to_procvar_equal(tprocdef(left.resulttype.def),
+                                              tprocvardef(resulttype.def))=te_incompatible then
+                       CGMessage2(type_e_incompatible_types,tprocdef(left.resulttype.def).typename,resulttype.def.typename);
+                     exit;
+                   end;
                end;
 
               { Handle explicit type conversions }
@@ -2015,7 +2022,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.95  2002-12-20 16:01:26  peter
+  Revision 1.96  2002-12-22 16:34:49  peter
+    * proc-procvar crash fixed (tw2277)
+
+  Revision 1.95  2002/12/20 16:01:26  peter
     * don't allow class(classref) conversion
 
   Revision 1.94  2002/12/05 14:27:26  florian
