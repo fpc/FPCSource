@@ -48,7 +48,7 @@ type
     FStarted: Boolean;
     FEndOfStream: Boolean;
     FScannerContext: THTMLScannerContext;
-    FTokenText: String;
+    FTokenText: SAXString;
     FCurStringValueDelimiter: Char;
     FAttrNameRead: Boolean;
   protected
@@ -61,7 +61,7 @@ type
 
     property EndOfStream: Boolean read FEndOfStream;
     property ScannerContext: THTMLScannerContext read FScannerContext;
-    property TokenText: String read FTokenText;
+    property TokenText: SAXString read FTokenText;
   end;
 
 
@@ -421,7 +421,7 @@ end;
 procedure THTMLToDOMConverter.ReaderCharacters(Sender: TObject;
   const ch: PSAXChar; Start, Count: Integer);
 var
-  s: String;
+  s: SAXString;
   NodeInfo: THTMLNodeInfo;
 begin
   SetLength(s, Count);
@@ -436,7 +436,7 @@ end;
 procedure THTMLToDOMConverter.ReaderIgnorableWhitespace(Sender: TObject;
   const ch: PSAXChar; Start, Count: Integer);
 var
-  s: String;
+  s: SAXString;
   NodeInfo: THTMLNodeInfo;
 begin
   SetLength(s, Count);
@@ -547,7 +547,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-12-12 13:43:38  michael
+  Revision 1.3  2002-12-12 20:17:32  sg
+  * More WideString fixes
+
+  Revision 1.2  2002/12/12 13:43:38  michael
   + Patches from peter to fix 1.1 compile
 
   Revision 1.1  2002/12/11 21:06:07  sg
