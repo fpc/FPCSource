@@ -1043,20 +1043,14 @@ implementation
                    if hregister<>R_NO then
                      cg.free_scratch_reg(exprasmlist,hregister);
                    reference_release(exprasmlist,right.location.reference);
+                   tg.Ungetiftemp(exprasmlist,right.location.reference);
                 end
               else
                 begin
                    rg.saveregvars(exprasmlist,ALL_REGISTERS);
-                   case right.location.loc of
-                      LOC_REGISTER,LOC_CREGISTER:
-                        reference_reset_base(href,right.location.register,0);
-                      LOC_REFERENCE,LOC_CREFERENCE :
-                        href:=right.location.reference;
-                      else
-                        internalerror(200203311);
-                   end;
-                   cg.a_call_ref(exprasmlist,href);
+                   cg.a_call_loc(exprasmlist,right.location);
                    location_release(exprasmlist,right.location);
+                   location_freetemp(exprasmlist,right.location);
                 end;
            end;
 
@@ -1314,7 +1308,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2002-08-25 19:25:21  peter
+  Revision 1.68  2002-09-01 12:13:00  peter
+    * use a_call_reg
+    * ungetiftemp for procvar of object temp
+
+  Revision 1.67  2002/08/25 19:25:21  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be
