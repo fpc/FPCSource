@@ -385,13 +385,13 @@ Type
 
 
     ptimeval = ^ttimeval;
-    ttimeval = record
+    ttimeval = packed record
         tv_secs         : longint;
         tv_micro        : longint;
     end;
 
     ptimerequest = ^ttimerequest;
-    ttimerequest = record
+    ttimerequest = packed record
         tr_node         : tIORequest;
         tr_time         : ttimeval;
     end;
@@ -1299,7 +1299,7 @@ end;
 
 Procedure keep(exitcode : word);
   Begin
-  { ! Not implemented in Linux ! }
+  { ! Not implemented in MorphOS ! }
   End;
 
 procedure AddDevice(str : String);
@@ -1364,16 +1364,15 @@ Begin
  ver := TRUE;
  numberofdevices := 0;
  StrOfPaths := '';
- AddDevice('DF0:');
- AddDevice('DF1:');
- AddDevice('DF2:');
- AddDevice('DF3:');
  ReadInDevices;
 End.
 
 {
   $Log$
-  Revision 1.3  2004-05-13 00:48:52  karoly
+  Revision 1.4  2004-05-16 00:24:19  karoly
+    * some cleanup
+
+  Revision 1.3  2004/05/13 00:48:52  karoly
     * fixed a typo
 
   Revision 1.2  2004/05/13 00:42:29  karoly
