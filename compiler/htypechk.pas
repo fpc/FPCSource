@@ -173,7 +173,9 @@ implementation
                 is_mmx_able_array(ld)) and
             not(is_chararray(ld) and
                 (is_char(rd) or
-                is_pchar(rd) or
+                 is_pchar(rd) or
+                 { char array + int = pchar + int, fix for web bug 1377 (JM) }
+                 is_integer(rd) or
                  (rd^.deftype=stringdef) or
                  is_chararray(rd)))
            ) or
@@ -904,7 +906,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2000-12-09 13:04:05  florian
+  Revision 1.21  2001-02-04 11:12:17  jonas
+    * fixed web bug 1377 & const pointer arithmtic
+
+  Revision 1.20  2000/12/09 13:04:05  florian
     * web bug 1207 fixed: field and properties of const classes can be
       changed
 

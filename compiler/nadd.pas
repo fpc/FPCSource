@@ -160,20 +160,58 @@ implementation
            end;
 
        { both are int constants }
-         if ((lt=ordconstn) and (rt=ordconstn)) and
-            ((is_constintnode(left) and is_constintnode(right)) or
-             (is_constboolnode(left) and is_constboolnode(right) and
-              (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn]))) then
+         if (((is_constintnode(left) and is_constintnode(right)) or
+              (is_constboolnode(left) and is_constboolnode(right) and
+               (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn])))) or
+            { support pointer arithmetics on constants (JM) }
+            ((lt = pointerconstn) and is_constintnode(right) and
+             (nodetype in [addn,subn])) or
+            ((lt = pointerconstn) and (rt = pointerconstn) and
+             (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,subn])) then
            begin
+              { when comparing/substracting  pointers, make sure they are }
+              { of the same  type (JM)                                    }
+              if (lt = pointerconstn) and (rt = pointerconstn) then
+                if not(cs_extsyntax in aktmoduleswitches) and
+                   not(nodetype in [equaln,unequaln]) then
+                  CGMessage(type_e_mismatch)
+                else
+                  if (nodetype <> subn) and
+                     is_equal(right.resulttype,voidpointerdef) then
+                    begin
+                       right:=gentypeconvnode(right,ld);
+                       firstpass(right);
+                       rd := right.resulttype;
+                    end
+                  else if (nodetype <> subn) and
+                          is_equal(left.resulttype,voidpointerdef) then
+                    begin
+                       left:=gentypeconvnode(left,rd);
+                       firstpass(left);
+                       ld := left.resulttype;
+                    end
+                  else if not(is_equal(ld,rd)) then
+                    CGMessage(type_e_mismatch);
               { xor, and, or are handled different from arithmetic }
               { operations regarding the result type               }
               { return a boolean for boolean operations (and,xor,or) }
               boolres:=is_constboolnode(left);
-              lv:=tordconstnode(left).value;
-              rv:=tordconstnode(right).value;
+              if (left.nodetype = ordconstn) then
+                lv:=tordconstnode(left).value
+              else lv := tpointerconstnode(left).value;
+              if (right.nodetype = ordconstn) then
+                rv:=tordconstnode(right).value
+              else rv := tpointerconstnode(right).value;
+              if (lt = pointerconstn) and
+                 (rt <> pointerconstn) then
+                rv := rv * ppointerdef(left.resulttype)^.pointertype.def^.size;
               case nodetype of
-                addn : t:=genintconstnode(lv+rv);
-                subn : t:=genintconstnode(lv-rv);
+                addn : if (lt <> pointerconstn) then
+                         t:=genintconstnode(lv+rv)
+                       else t := genpointerconstnode(lv+rv,left.resulttype);
+                subn : if (lt <> pointerconstn) or (rt = pointerconstn) then
+                         t:=genintconstnode(lv-rv)
+                       else t := genpointerconstnode(lv-rv,left.resulttype);
                 muln : t:=genintconstnode(lv*rv);
                 xorn : if boolres then
                         t:=genordinalconstnode(lv xor rv,booldef)
@@ -1044,6 +1082,7 @@ implementation
                    resulttype:=new(ppointerdef,init(parraydef(rd)^.elementtype));
                    right:=gentypeconvnode(right,resulttype);
                    firstpass(right);
+                   rd := right.resulttype;
                 end;
               location.loc:=LOC_REGISTER;
               left:=gentypeconvnode(left,s32bitdef);
@@ -1077,6 +1116,7 @@ implementation
                    resulttype:=new(ppointerdef,init(parraydef(ld)^.elementtype));
                    left:=gentypeconvnode(left,resulttype);
                    firstpass(left);
+                   ld := left.resulttype;
                 end;
               location.loc:=LOC_REGISTER;
               right:=gentypeconvnode(right,s32bitdef);
@@ -1212,7 +1252,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2001-01-14 22:13:13  peter
+  Revision 1.22  2001-02-04 11:12:17  jonas
+    * fixed web bug 1377 & const pointer arithmtic
+
+  Revision 1.21  2001/01/14 22:13:13  peter
     * constant calculation fixed. The type of the new constant is now
       defined after the calculation is done. This should remove a lot
       of wrong warnings (and errors with -Cr).

@@ -259,8 +259,12 @@ implementation
                    p.free;
                    p:=hp;
                 end;
+              { const pointer ? }
+              if (p.nodetype = pointerconstn) then
+                curconstsegment.concat(Tai_const.Create_32bit(
+                  tpointerconstnode(p).value))
               { nil pointer ? }
-              if p.nodetype=niln then
+              else if p.nodetype=niln then
                 curconstSegment.concat(Tai_const.Create_32bit(0))
               { maybe pchar ? }
               else
@@ -860,7 +864,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2001-02-03 00:26:35  peter
+  Revision 1.17  2001-02-04 11:12:16  jonas
+    * fixed web bug 1377 & const pointer arithmtic
+
+  Revision 1.16  2001/02/03 00:26:35  peter
     * merged fix for bug 1365
 
   Revision 1.15  2000/12/25 00:07:28  peter
