@@ -57,8 +57,6 @@ Const
 
 var
   msg         : pmessage;
-  lastfileidx,
-  lastmoduleidx : longint;
 
 procedure SetRedirectFile(const fn:string);
 function  SetVerbosity(const s:string):boolean;
@@ -217,6 +215,25 @@ begin
 end;
 
 
+var
+  lastfileidx,
+  lastmoduleidx : longint;
+Procedure UpdateStatus;
+begin
+{ fix status }
+  status.currentline:=aktfilepos.line;
+  status.currentcolumn:=aktfilepos.column;
+  if assigned(current_module) and
+     ((current_module^.unit_index<>lastmoduleidx) or
+      (current_module^.current_index<>lastfileidx)) then
+   begin
+     status.currentsource:=current_module^.sourcefiles.get_file_name(current_module^.current_index);
+     lastmoduleidx:=current_module^.unit_index;
+     lastfileidx:=current_module^.current_index;
+   end;
+end;
+
+
 procedure stop;
 begin
 {$ifndef TP}
@@ -229,6 +246,7 @@ end;
 
 procedure ShowStatus;
 begin
+  UpdateStatus;
 {$ifndef TP}
   if do_status() then
    stop;
@@ -253,17 +271,8 @@ begin
   dostop:=((l and V_Fatal)<>0);
   if (l and V_Error)<>0 then
    inc(status.errorcount);
-{ fix status }
-  status.currentline:=aktfilepos.line;
-  status.currentcolumn:=aktfilepos.column;
-  if assigned(current_module) and
-     ((current_module^.unit_index<>lastmoduleidx) or
-      (current_module^.current_index<>lastfileidx)) then
-   begin
-     status.currentsource:=current_module^.sourcefiles.get_file_name(current_module^.current_index);
-     lastmoduleidx:=current_module^.unit_index;
-     lastfileidx:=current_module^.current_index;
-   end;
+{ Create status info }
+  UpdateStatus;
 { show comment }
   if do_comment(l,s) or dostop or (status.errorcount>=status.maxerrorcount) then
    stop
@@ -376,7 +385,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  1998-08-10 14:50:37  peter
+  Revision 1.14  1998-08-11 14:09:15  peter
+    * fixed some messages and smaller msgtxt.inc
+
+  Revision 1.13  1998/08/10 14:50:37  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.12  1998/08/10 10:18:37  peter

@@ -66,5 +66,5 @@ compiler version and your short cut.
 - $B
 - fix all bugs of the bug directory
 - include/exclude
-- make dec/inc internal
-	- make length internal.................................... 0.99.6 (PFV)
+        - make dec/inc internal................................... 0.99.6 (PFV)
+- make length internal

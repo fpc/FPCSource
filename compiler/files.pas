@@ -867,6 +867,7 @@ unit files;
          linkofiles.init;
          linkstaticlibs.init;
          linksharedlibs.init;
+         current_index:=0;
          ppufile:=nil;
          scanner:=nil;
          map:=nil;
@@ -1003,7 +1004,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.32  1998-08-10 14:49:58  peter
+  Revision 1.33  1998-08-11 14:09:08  peter
+    * fixed some messages and smaller msgtxt.inc
+
+  Revision 1.32  1998/08/10 14:49:58  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.31  1998/07/14 14:46:48  peter

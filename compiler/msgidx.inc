@@ -51,7 +51,7 @@
 }
 type
   tmsgconst = (
-general_i_compilername,
+general_u_compilername,
 general_d_sourceos,
 general_i_targetos,
 general_u_exepath,

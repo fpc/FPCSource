@@ -143,9 +143,9 @@ function Compile(const cmd:string):longint;
 
 var
   starttime  : real;
-{$ifdef USEEXCEPT}  
+{$ifdef USEEXCEPT}
   olddo_stop : tstopprocedure;
-{$endif}  
+{$endif}
 {$ifdef TP}
   oldfreelist,
   oldheapptr,
@@ -173,7 +173,7 @@ begin
   InitCompiler(cmd);
 
 { show some info }
-  Message1(general_i_compilername,FixFileName(paramstr(0)));
+  Message1(general_u_compilername,FixFileName(paramstr(0)));
   Message1(general_d_sourceos,source_os.name);
   Message1(general_i_targetos,target_os.name);
   Message1(general_u_exepath,exepath);
@@ -190,7 +190,7 @@ begin
   do_stop:=recoverstop;
   if setjmp(recoverpos)=0 then
    begin
-{$endif USEEXCEPT}   
+{$endif USEEXCEPT}
      starttime:=getrealtime;
      parser.compile(inputdir+inputfile+inputextension,false);
      if status.errorcount=0 then
@@ -226,7 +226,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1998-08-11 00:01:20  peter
+  Revision 1.4  1998-08-11 14:09:06  peter
+    * fixed some messages and smaller msgtxt.inc
+
+  Revision 1.3  1998/08/11 00:01:20  peter
     * -vu displays now all searchpaths
 
   Revision 1.2  1998/08/10 14:49:56  peter
