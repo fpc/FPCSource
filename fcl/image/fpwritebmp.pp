@@ -22,27 +22,6 @@ uses FPImage, classes, sysutils;
 
 type
    
-   TBitMapFileHeader = record
-      bfType:word;              // is always 19778 : 'BM'
-      bfSize:longint;           // Filesize
-      bfReserved:longint;
-      bfOffset:longint;         // Offset of image data
-   end;
-
-   TBitMapInfoHeader = record
-      Size:longint;
-      Width:longint;
-      Height:longint;
-      Planes:word;
-      BitCount:word;
-      Compression:longint;
-      SizeImage:longint;
-      XPelsPerMeter:Longint;
-      YPelsPerMeter:Longint;
-      ClrUsed:longint;
-      ClrImportant:longint;
-   end;
-  
   TFPWriterBMP = class (TFPCustomImageWriter)
     private
       BytesPerPixel:Integer;
@@ -55,6 +34,8 @@ type
 
 
 implementation
+
+uses BMPcomn;
 
 constructor TFPWriterBMP.create;
 begin
@@ -97,7 +78,7 @@ procedure TFPWriterBMP.InternalWrite (Stream:TStream; Img:TFPCustomImage);
         end;
       with BFH do
         begin
-          bfType:=19778;//'BM'
+          bfType:=BMmagic;//'BM'
           bfOffset:=sizeof(TBitMapFileHeader)+sizeof(TBitMapInfoHeader);
           bfReserved:=0;
           bfSize:=bfOffset+BFI.SizeImage*BytesPerPixel;
@@ -112,42 +93,38 @@ procedure TFPWriterBMP.InternalWrite (Stream:TStream; Img:TFPCustomImage);
         end;
       SaveHeader := true;
     end;
-  type
-    TPixel=packed record
-      B,G,R:Byte;
-    end;
   var
     Row,Coulumn,nBpLine,WriteSize:Integer;
     aColor:TFPcolor;
 {$IFDEF UseDynArray}
-    aLine:ARRAY OF TPixel;
+    aLine:ARRAY OF TColorRGB;
 {$ELSE UseDynArray}
-    aLine:^TPixel;
+    aLine:^TColorRGB;
 {$ENDIF UseDynArray}
   begin
     SaveHeader(Stream);
-    nBpLine:=Img.Width*SizeOf(TPixel);
+    nBpLine:=Img.Width*SizeOf(TColorRGB);
     WriteSize:=(nBpLine+3)AND $FFFFFFFC;//BMP needs evry line 4Bytes aligned
 {$IFDEF UseDynArray}
     SetLength(aLine,Img.Width+1);//3 extra byte for BMP 4Bytes alignement.
 {$ELSE UseDynArray}
-    GetMem(aLine,(Img.Width+1)*SizeOf(TPixel));//3 extra byte for BMP 4Bytes alignement.
+    GetMem(aLine,(Img.Width+1)*SizeOf(TColorRGB));//3 extra byte for BMP 4Bytes alignement.
 {$ENDIF UseDynArray}
     for Row:=img.Height-1 downto 0 do
       begin
         for Coulumn:=0 to img.Width-1 do
           with aLine[Coulumn],aColor do
             begin
-              //aColor:=img.Palette.Color[img.Pixels[Coulumn,Row]]; // Will raise exception when image doesn't have palette
               aColor := img.colors[Coulumn,Row];
-              R:=(Red and $FF00) shr 8;  // Use only the high byte to convert the color
+{Use only the high byte to convert the color}
+              R:=(Red and $FF00) shr 8;
               G:=(Green and $FF00) shr 8;
               B:=(Blue and $FF00) shr 8;
             end;
         Stream.Write(aLine{$IFNDEF UseDynArray}^{$ENDIF UseDynArray},WriteSize);
       end;
 {$IFNDEF UseDynArray}
-    FreeMem(aLine,(Img.Width+1)*SizeOf(TPixel));
+    FreeMem(aLine,(Img.Width+1)*SizeOf(TColorRGB));
 {$ENDIF UseDynArray}
   end;
 
@@ -156,7 +133,11 @@ initialization
 end.
 {
 $Log$
-Revision 1.3  2003-09-08 10:38:56  luk
+Revision 1.4  2003-09-08 14:08:48  mazen
+- all common defintions are now included into bmpcomn unit
+- removed erronous code (causing exception)
+
+Revision 1.3  2003/09/08 10:38:56  luk
 - removed debug info
 * prevented exceptions when using non indexed images
 
