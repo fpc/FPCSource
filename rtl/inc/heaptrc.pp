@@ -14,6 +14,9 @@
 
  **********************************************************************}
 unit heaptrc;
+
+{$mode objfpc}
+
 interface
 
 Procedure DumpHeap;
@@ -679,7 +682,6 @@ var
 
 procedure TraceExit;
 begin
-  ExitProc:=SaveExit;
   { no dump if error
     because this gives long long listings }
   if (exitcode<>0) and (erroraddr<>nil) then
@@ -740,8 +742,7 @@ procedure SetExtraInfo( size : longint;func : fillextrainfotype);
        end;
   end;
 
-
-begin
+Initialization
   MakeCRC32Tbl;
   SetMemoryManager(TraceManager);
   ptext:=@stderr;
@@ -749,13 +750,22 @@ begin
   Assign(error_file,'heap.err');
   Rewrite(error_file);
 {$endif EXTRA}
-  SaveExit:=ExitProc;
-  ExitProc:=@TraceExit;
   Heap_at_init:=HeapPtr;
+finalization
+  TraceExit;    
 end.
 {
   $Log$
-  Revision 1.16.2.1  1999-07-05 20:12:27  peter
+  Revision 1.16.2.2  1999-07-09 10:44:23  michael
+  + Merged finalize
+
+  Revision 1.18  1999/07/09 10:38:10  michael
+  + + heaptrc now uses finalize instead of exitproc
+
+  Revision 1.17  1999/07/05 20:22:08  peter
+    * merged
+
+  Revision 1.16.2.1  1999/07/05 20:12:27  peter
     * removed warning
 
   Revision 1.16  1999/05/23 00:07:17  pierre
