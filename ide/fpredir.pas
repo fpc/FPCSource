@@ -192,7 +192,7 @@ begin
     If (Regs.Flags and fCarry)=0 then
       nh:=Regs.Ax
     else
-      fpdup:=false;
+      dup:=false;
 end;
 
 function dup2(fh,nh : longint) : boolean;
@@ -229,38 +229,38 @@ end;
 {$endif ver1_0}
 
 
-Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif}( (Handle : Longint) : boolean;
+Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif} (Handle : Longint) : boolean;
 var Regs: registers;
 begin
   Regs.Eax := $3e00;
   Regs.Ebx := Handle;
   MsDos(Regs);
-  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}(:=(Regs.Flags and fCarry)=0;
+  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}:=(Regs.Flags and fCarry)=0;
 end;
 
 {$endif def go32v2}
 
 {$ifdef win32}
-Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif}( (Handle : Longint) : boolean;
+Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif} (Handle : Longint) : boolean;
 begin
   { Do we need this ?? }
-  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}(:=true;
+  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}:=true;
 end;
 {$endif}
 
 {$ifdef os2}
-Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif}( (Handle : Longint) : boolean;
+Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif} (Handle : Longint) : boolean;
 begin
   { Do we need this ?? }
-  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}(:=true;
+  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}:=true;
 end;
 {$endif}
 
 {$ifdef TP}
-Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif}( (Handle : Longint) : boolean;
+Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif} (Handle : Longint) : boolean;
 begin
   { if executed as under GO32 this hangs the DOS-prompt }
-  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}(:=true;
+  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}:=true;
 end;
 
 {$endif}
@@ -970,7 +970,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.4  2003-09-27 14:03:45  peter
+  Revision 1.5  2003-09-29 14:36:59  peter
+    * win32 fixed
+
+  Revision 1.4  2003/09/27 14:03:45  peter
     * fixed for unix
 
   Revision 1.3  2003/09/25 16:49:08  peter

@@ -868,7 +868,7 @@ begin
   Message(Application,evBroadcast,cmUpdate,nil);
 {$endif win32}
 {$ifdef win32}
-  Win32ShowMouse;
+  // Win32ShowMouse;
 {$endif win32}
 
   if Assigned(UserScreen) then
@@ -1254,7 +1254,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.25  2003-01-31 11:01:00  pierre
+  Revision 1.26  2003-09-29 14:36:59  peter
+    * win32 fixed
+
+  Revision 1.25  2003/01/31 11:01:00  pierre
    * fix a bug in cmQuitApp handling
 
   Revision 1.24  2002/12/12 00:06:41  pierre

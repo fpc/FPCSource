@@ -205,10 +205,10 @@ begin
 {$else TP}
   NewSignal:=SignalHandler(CatchSignal);
 {$endif TP}
-  OldSigSegm:={$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGSEGV,NewSignal);
-  OldSigInt:={$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGINT,NewSignal);
-  OldSigFPE:={$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGFPE,NewSignal);
-  OldSigILL:={$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGILL,NewSignal);
+  OldSigSegm:={$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGSEGV,NewSignal);
+  OldSigInt:={$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGINT,NewSignal);
+  OldSigFPE:={$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGFPE,NewSignal);
+  OldSigILL:={$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGILL,NewSignal);
   CatchSignalsEnabled:=true;
 {$endif}
 end;
@@ -218,10 +218,10 @@ begin
 {$ifdef HasSignal}
   if not CatchSignalsEnabled then
     exit;
-  {$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGSEGV,OldSigSegm);
-  {$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGINT,OldSigInt);
-  {$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGFPE,OldSigFPE);
-  {$ifdef ver1_0}signal{$else}fpsignal{$endif}(SIGILL,OldSigILL);
+  {$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGSEGV,OldSigSegm);
+  {$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGINT,OldSigInt);
+  {$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGFPE,OldSigFPE);
+  {$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGILL,OldSigILL);
   CatchSignalsEnabled:=false;
 {$endif}
 end;
@@ -230,7 +230,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2003-09-27 14:03:45  peter
+  Revision 1.9  2003-09-29 14:36:59  peter
+    * win32 fixed
+
+  Revision 1.8  2003/09/27 14:03:45  peter
     * fixed for unix
 
   Revision 1.7  2003/04/23 09:49:26  peter

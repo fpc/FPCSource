@@ -290,7 +290,7 @@ begin
 {$endif HasSignal}
     begin
 {$ifdef HasSignal}
-      StoreSigFPE:={$ifdef ver1_0}Signal{$else}fpSignal{$endif}(SIGFPE,@CalcSigFPE);
+      StoreSigFPE:={$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGFPE,@CalcSigFPE);
 {$endif HasSignal}
       if (Status = csError) and (Key <> 'C') then Key := ' ';
       if HexShown then
@@ -380,7 +380,7 @@ begin
         else CalcKey:=false;
       end;
 {$ifdef HasSignal}
-      {$ifdef ver1_0}Signal{$else}fpSignal{$endif}(SIGFPE,StoreSigFPE);
+      {$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGFPE,StoreSigFPE);
 {$endif HasSignal}
       DrawView;
 {$ifdef HasSignal}
@@ -572,7 +572,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2003-09-27 14:03:45  peter
+  Revision 1.9  2003-09-29 14:36:59  peter
+    * win32 fixed
+
+  Revision 1.8  2003/09/27 14:03:45  peter
     * fixed for unix
 
   Revision 1.7  2002/09/13 08:13:07  pierre

@@ -305,7 +305,7 @@ BEGIN
   HistorySize:=16384;
   writeln('þ Free Pascal IDE  Version '+VersionStr);
 {$ifdef win32}
-  Win32ShowMouse;
+  // Win32ShowMouse;
 {$endif win32}
 {$ifdef WITH_GDB}
 {$ifdef win32}
@@ -501,7 +501,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.22  2003-06-04 15:06:14  peter
+  Revision 1.23  2003-09-29 14:36:59  peter
+    * win32 fixed
+
+  Revision 1.22  2003/06/04 15:06:14  peter
     * histsize increased
 
   Revision 1.21  2003/01/29 00:30:53  pierre
