@@ -639,7 +639,11 @@ uses
             end
            else
             begin
-              { check the date of the source files }
+              { check the date of the source files:
+                 1 path of ppu
+                 2 path of main source
+                 3 current dir
+                 4 include/unit path }
               Source_Time:=GetNamedFileTime(path^+hs);
               found:=false;
               if Source_Time<>-1 then
@@ -651,6 +655,8 @@ uses
                   if Source_Time<>-1 then
                     hs:=main_dir+hs;
                 end;
+              if Source_Time=-1 then
+                Source_Time:=GetNamedFileTime(hs);
               if (Source_Time=-1) then
                 begin
                   if is_main then
@@ -1501,7 +1507,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.47  2003-11-28 17:23:16  peter
+  Revision 1.48  2003-12-14 18:13:18  peter
+    * also check currnet dir when searching source files
+
+  Revision 1.47  2003/11/28 17:23:16  peter
     * serach also in include path for used files
 
   Revision 1.46  2003/11/03 12:32:48  marco
