@@ -626,37 +626,74 @@ end;
     external 'kernel32' name 'GetFullPathNameA';
 
 function FExpand(const path : pathstr) : pathstr;
-var value, tmp : PChar;
+var value      : Array[0..255] of char;
+    tmp        : PChar;
     p          : string;
     i          : Longint;
 begin
   { allow slash as backslash }
   p := path;
-  for i:=1 to length(p) do 
+  for i:=1 to length(p) do
    if p[i]='/' then
     p[i]:='\';
   StringToPchar(p);
-  getmem(value, 255);
-  getmem(tmp, 255);
+  {getmem(value, 255); lets avoid slow getmem PM
+   getmem(tmp, 255); not necessary
+   tmp only points to the filename part at function exit }
   GetFullPathName(@p, 255, value, tmp);
   FExpand := strpas(value);
+  { freemem(value,255) this would be nice at least if we use getmem !! PM }
 end;
 
   function SearchPath(lpPath : PChar; lpFileName : PChar; lpExtension : PChar; nBufferLength : Longint; lpBuffer : PChar;
     var lpFilePart : PChar) : Longint; external 'kernel32' name 'SearchPathA';
 
 Function FSearch(path: pathstr; dirlist: string): pathstr;
-var temp, value : PChar;
+var temp        : PChar;
+    value       : Array [0..255] of char;
     i           : Longint;
+    dir,dir2    : dirstr;
+    name        : namestr;
+    ext         : extstr;
 begin
-  { allow slash as backslash }
+  fsearch:='';
   for i:=1 to length(path) do
    if path[i]='/' then
     path[i]:='\';
-  StringToPchar(path); 
-  StringToPchar(dirlist);
-  SearchPath(@dirlist, @path, nil, 255, value, temp);
-  fsearch := strpas(value);
+  fsplit(path,dir,name,ext);
+  for i:=1 to length(dirlist) do
+   if dirlist[i]='/' then
+    dirlist[i]:='\';
+  { allow slash as backslash }
+  repeat
+
+    i:=pos(';',dirlist);
+    while i=1 do
+      begin
+        delete(dirlist,1,1);
+        i:=pos(';',dirlist);
+      end;
+    if i=0 then
+      begin
+        dir2:=dirlist;
+        dirlist:='';
+      end
+    else
+      begin
+        dir2:=Copy(dirlist,1,i-1);
+        dirlist:=Copy(dirlist,i+1,255);
+      end;
+  dir2:=dir2+dir;
+  StringToPchar(name);
+  StringToPchar(ext);
+  StringToPchar(dir2);
+  if SearchPath(@dir2, @name, @ext, 255, @value, temp)>0 then
+    begin
+      fsearch := strpas(value);
+      exit;
+    end;
+  until dirlist='';
+
 end;
 
 { </immobilizer> }
@@ -806,7 +843,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.28  2000-01-07 16:41:52  daniel
+  Revision 1.29  2000-01-11 12:49:26  pierre
+   * fsearch bugs and fexpand memory leak fixed
+
+  Revision 1.28  2000/01/07 16:41:52  daniel
     * copyright 2000
 
   Revision 1.27  2000/01/07 16:32:34  daniel
