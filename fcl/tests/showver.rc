@@ -1,0 +1,28 @@
+LANGUAGE 1033,1252
+1 VERSIONINFO 
+FILEVERSION 4, 0, 3, 17
+PRODUCTVERSION 3, 0, 0, 0
+FILEFLAGSMASK 0
+FILEOS 0x40000
+FILETYPE 1
+{
+ BLOCK "StringFileInfo"
+ {
+  BLOCK "040904E4"
+  {
+   VALUE "CompanyName", "Borland International\000\000"
+   VALUE "FileDescription", "Delphi QuickReport Component Package\000\000"
+   VALUE "FileVersion", "4.0.3.17\000"
+   VALUE "InternalName", "QRPT30\000\000"
+   VALUE "LegalCopyright", "Copyright \251 Borland International 1997\000\000"
+   VALUE "OriginalFilename", "QRPT30.DPL\000\000"
+   VALUE "ProductName", "Borland Delphi\000\000"
+   VALUE "ProductVersion", "3.0\000\000"
+  }
+
+ }
+ BLOCK "VarFileInfo"
+ {
+  VALUE "Translation", 1033, 1252
+ }
+}
