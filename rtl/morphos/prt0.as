@@ -27,7 +27,7 @@ _start:
 
 	/* Get ExecBase */
 	li		3,4
-	lwz	3,(3)
+	lwz	3,0(3)
 	lis	4,_ExecBase@ha
 	stw	3,_ExecBase@l(4)
 
@@ -62,8 +62,8 @@ __abox__:
 
 /*
   $Log$
-  Revision 1.2  2004-04-09 02:54:25  karoly
-   * execbase loading oops fixed.
+  Revision 1.3  2004-04-09 02:58:15  karoly
+   * typo fixed.
 
   Revision 1.1  2004/03/16 10:29:22  karoly
    * first implementation of some startup code for MOS
