@@ -348,6 +348,7 @@ htmlinstall: html
 	cp -f $(DOCINSTALLDIR)/search/filelist.txt.linux $(DOCINSTALLDIR)/search/filelist.txt
 	rm -f $(DOCINSTALLDIR)/search/*.linux
 	cp -R $(HTML) $(DOCINSTALLDIR)
+	find $(DOCINSTALLDIR) -name 'CVS' | xargs -n1 rm -rf
 
 doshtmlinstall: html
 	install -d -m 755 $(DOCINSTALLDIR)
@@ -356,6 +357,7 @@ doshtmlinstall: html
 	cp -R search $(DOCINSTALLDIR)
 	rm -f $(DOCINSTALLDIR)/search/*.linux
 	cp -R $(HTML) $(DOCINSTALLDIR)
+	find $(DOCINSTALLDIR) -name 'CVS' | xargs -n1 rm -rf
 
 www-install: psdist htmlinstall
 	scp fpcdoc.zip fpcdocps.zip fpcdocps.tar.gz fpcdoc.tar.gz tfdec1:htdocs/fpk
@@ -391,7 +393,7 @@ DOCPREFIX=doc
 BASEDIR=$(shell pwd)
 
 htmltar: 
-	$(MAKE) install DOCINSTALLDIR=$(DOCPREFIX)
+	$(MAKE) htmlinstall DOCINSTALLDIR=$(DOCPREFIX)
 	cd $(DOCPREFIX) ; tar cz * > $(BASEDIR)/fpcdoc.tar.gz ; cd $(BASEDIR)
 	rm -rf $(DOCPREFIX)
 
@@ -441,8 +443,8 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.34  2000-02-20 14:31:01  peter
-#   * updated for new latex2html to create .gif
+# Revision 1.35  2000-02-20 16:27:38  peter
+#   * htmlinstall fixes
 #
 # Revision 1.33  2000/01/23 20:15:16  peter
 #   * rpm/deb target in install dir
