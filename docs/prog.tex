@@ -434,6 +434,7 @@ inline procedure from another unit, a normal procedure call will be
 performed. Only inside units, \var{Inline} procedures are really inline.
 \item You cannot make recursive inline functions. i.e. an inline function
 that calls itself is not allowed.
+\end{enumerate}
 \end{remark}
 
 \subsection{\var{\$I} or \var{\$IOCHECKS} : Input/Output checking}
@@ -714,7 +715,7 @@ will display a note message when the compiler encounters it.
 Contrary to the command-line option \var{-vn} this is a local switch, 
 this is useful for checking parts of your code.
 
-By default, \var{\{\$NOTES }} is off.
+By default, \var{\{\$NOTES \}} is off.
 
 \subsection{\var{\$OUTPUT\_FORMAT} : Specify the output format}
 \var{\{\$OUTPUT\_FORMAT format\}} has the same functionality as the \var{-A}
