@@ -345,13 +345,15 @@ implementation
          dt : tbasetype;
       begin
          case def^.deftype of
-            orddef : begin
-                       dt:=porddef(def)^.typ;
-                       is_signed:=(dt in [s8bit,s16bit,s32bit,s64bitint]);
-                     end;
-           enumdef : is_signed:=false;
-         else
-           is_signed:=false;
+           orddef :
+             begin
+               dt:=porddef(def)^.typ;
+               is_signed:=(dt in [s8bit,s16bit,s32bit,s64bitint]);
+             end;
+           enumdef :
+             is_signed:=false;
+           else
+             is_signed:=false;
          end;
       end;
 
@@ -360,8 +362,8 @@ implementation
     function is_open_string(p : pdef) : boolean;
       begin
          is_open_string:=(p^.deftype=stringdef) and
-                        (pstringdef(p)^.string_typ=st_shortstring) and
-                        (pstringdef(p)^.len=0);
+                         (pstringdef(p)^.string_typ=st_shortstring) and
+                         (pstringdef(p)^.len=0);
       end;
 
 
@@ -369,14 +371,17 @@ implementation
     function is_zero_based_array(p : pdef) : boolean;
       begin
          is_zero_based_array:=(p^.deftype=arraydef) and
-                        (parraydef(p)^.lowrange=0) and
-                        not(is_special_array(p));
+                              (parraydef(p)^.lowrange=0) and
+                              not(is_special_array(p));
       end;
 
     { true, if p points to an open array def }
     function is_open_array(p : pdef) : boolean;
       begin
+         { check for s32bitdef is needed, because for u32bit the high
+           range is also -1 ! (PFV) }
          is_open_array:=(p^.deftype=arraydef) and
+                        (parraydef(p)^.rangedef=pdef(s32bitdef)) and
                         (parraydef(p)^.lowrange=0) and
                         (parraydef(p)^.highrange=-1) and
                         not(parraydef(p)^.IsConstructor) and
@@ -952,7 +957,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  1999-07-06 21:48:29  florian
+  Revision 1.76  1999-07-27 23:39:15  peter
+    * open array checks also for s32bitdef, because u32bit also has a
+      high range of -1
+
+  Revision 1.75  1999/07/06 21:48:29  florian
     * a lot bug fixes:
        - po_external isn't any longer necessary for procedure compatibility
        - m_tp_procvar is in -Sd now available
