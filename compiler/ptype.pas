@@ -1134,10 +1134,16 @@ uses
                  else
                    datasegment^.concat(new(pai_const,init_32bit(0)));
                  { inittable for con-/destruction }
+                 {
                  if aktclass^.needs_inittable then
-                   datasegment^.concat(new(pai_const_symbol,init(aktclass^.get_inittable_label)))
+                 }
+                 { we generate the init table for classes always, because needs_inittable }
+                 { for classes is always false, it applies only for objects               }
+                 datasegment^.concat(new(pai_const_symbol,init(aktclass^.get_inittable_label)));
+                 {
                  else
                    datasegment^.concat(new(pai_const,init_32bit(0)));
+                 }
                  { auto table }
                  datasegment^.concat(new(pai_const,init_32bit(0)));
                  { interface table }
@@ -1535,7 +1541,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.16  2000-01-28 23:17:53  florian
+  Revision 1.17  2000-02-05 14:33:32  florian
+    * fixed init table generation for classes and arrays
+
+  Revision 1.16  2000/01/28 23:17:53  florian
     * virtual XXXX; support for objects, only if -dWITHDMT is defined
 
   Revision 1.15  2000/01/27 16:31:40  florian

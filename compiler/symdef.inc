@@ -1947,7 +1947,7 @@
 
     procedure tarraydef.write_rtti_data;
       begin
-         rttilist^.concat(new(pai_const,init_8bit(13)));
+         rttilist^.concat(new(pai_const,init_8bit(tkarray)));
          write_rtti_name;
          { size of elements }
          rttilist^.concat(new(pai_const,init_32bit(elementtype.def^.size)));
@@ -2169,6 +2169,7 @@
 
     var
        count : longint;
+
     procedure count_inittable_fields(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
       begin
          if ((psym(sym)^.typ=varsym) and
@@ -3623,15 +3624,20 @@ Const local_symtable_index : longint = $8001;
       var
          oldb : boolean;
       begin
-         { there are recursive calls to needs_inittable possible, }
-         { so we have to change to old value how else should      }
-         { we do that ? check_rec_rtti can't be a nested          }
-         { procedure of needs_rtti !                              }
-         oldb:=binittable;
-         binittable:=false;
-         symtable^.foreach({$ifndef TP}@{$endif}check_rec_inittable);
-         needs_inittable:=binittable;
-         binittable:=oldb;
+         if is_class then
+           needs_inittable:=false
+         else
+           begin
+              { there are recursive calls to needs_inittable possible, }
+              { so we have to change to old value how else should      }
+              { we do that ? check_rec_rtti can't be a nested          }
+              { procedure of needs_rtti !                              }
+              oldb:=binittable;
+              binittable:=false;
+              symtable^.foreach({$ifndef TP}@{$endif}check_rec_inittable);
+              needs_inittable:=binittable;
+              binittable:=oldb;
+           end;
       end;
 
 
@@ -3915,7 +3921,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.192  2000-02-04 20:00:22  florian
+  Revision 1.193  2000-02-05 14:33:32  florian
+    * fixed init table generation for classes and arrays
+
+  Revision 1.192  2000/02/04 20:00:22  florian
     * an exception in a construcor calls now the destructor (this applies only
       to classes)
 
