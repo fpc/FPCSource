@@ -150,7 +150,11 @@ var
   FreeThread: Boolean;
   Thread : TThread absolute args;
 begin
-  Thread.Execute;
+  try
+    Thread.Execute;
+  except
+    Thread.FFatalException := TObject(AcquireExceptionObject);
+  end;
   FreeThread := Thread.FFreeOnTerminate;
   Result := Thread.FReturnValue;
   Thread.FFinished := True;
@@ -179,6 +183,7 @@ begin
   if FSuspended then Suspend;
   FThreadID := FHandle;
   IsMultiThread := TRUE;
+  FFatalException := nil;
 end;
 
 
@@ -193,6 +198,8 @@ begin
     {$ifdef ver1_0}Kill{$else}fpkill{$endif}(FHandle, SIGKILL);
   dec(FStackPointer,FStackSize);
   Freemem(pointer(FStackPointer),FStackSize);
+  FFatalException.Free;
+  FFatalException := nil;
   inherited Destroy;
   RemoveThread(self);
 end;
@@ -295,7 +302,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2003-09-20 15:10:30  marco
+  Revision 1.9  2003-10-06 17:06:55  florian
+    * applied Johannes Berg's patch for exception handling in threads
+
+  Revision 1.8  2003/09/20 15:10:30  marco
    * small fixes. fcl now compiles
 
   Revision 1.7  2002/12/18 20:44:36  peter

@@ -123,7 +123,11 @@ var
   FreeThread: Boolean;
   Thread : TThread absolute args;
 begin
-  Thread.Execute;
+  try
+    Thread.Execute;
+  except
+    Thread.FFatalException := TObject(AcquireExceptionObject);
+  end;
   FreeThread := Thread.FFreeOnTerminate;
   Result := Thread.FReturnValue;
   Thread.FFinished := True;
@@ -146,6 +150,7 @@ begin
   if FSuspended then Suspend;
   FThreadID := FHandle;
   //IsMultiThread := TRUE;  {already set by systhrds}
+  FFatalException := nil;
 end;
 
 
@@ -159,6 +164,8 @@ begin
    end;
   if FHandle <> -1 then
     KillThread (FHandle);  {something went wrong, kill the thread (not possible on netware)}
+  FFatalException.Free;
+  FFatalException := nil;
   inherited Destroy;
   RemoveThread(self);
 end;
@@ -253,7 +260,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-03-27 17:14:27  armin
+  Revision 1.3  2003-10-06 17:06:55  florian
+    * applied Johannes Berg's patch for exception handling in threads
+
+  Revision 1.2  2003/03/27 17:14:27  armin
   * more platform independent thread routines, needs to be implemented for unix
 
   Revision 1.1  2003/03/25 17:56:19  armin

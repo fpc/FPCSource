@@ -166,7 +166,11 @@ var
   FreeThread: Boolean;
   Thread: TThread absolute Args;
 begin
-  Thread.Execute;
+  try
+    Thread.Execute;
+  except
+    Thread.FFatalException := TObject(AcquireExceptionObject);
+  end;
   FreeThread := Thread.FFreeOnTerminate;
   Result := Thread.FReturnValue;
   Thread.FFinished := True;
@@ -191,6 +195,7 @@ begin
    Destroy;
   end else FHandle := FThreadID;
   IsMultiThread := TRUE;
+  FFatalException := nil;
 end;
 
 
@@ -202,6 +207,8 @@ begin
   WaitFor;
  end;
  if FHandle <> -1 then DosKillThread (FHandle);
+ FFatalException.Free;
+ FFatalException := nil;
  inherited Destroy;
  RemoveThread (Self);
 end;
@@ -233,7 +240,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2003-02-20 17:12:39  hajny
+  Revision 1.8  2003-10-06 17:06:55  florian
+    * applied Johannes Berg's patch for exception handling in threads
+
+  Revision 1.7  2003/02/20 17:12:39  hajny
     * fixes for OS/2 v2.1 incompatibility
 
   Revision 1.6  2002/09/07 15:15:27  peter

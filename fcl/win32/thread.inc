@@ -99,7 +99,11 @@ function ThreadProc(Thread: TThread): Integer;
 var
   FreeThread: Boolean;
 begin
-  Thread.Execute;
+  try
+    Thread.Execute;
+  except
+    Thread.FFatalException := TObject(AcquireExceptionObject);
+  end;
   FreeThread := Thread.FFreeOnTerminate;
   Result := Thread.FReturnValue;
   Thread.FFinished := True;
@@ -119,6 +123,7 @@ begin
   if CreateSuspended then Flags := CREATE_SUSPENDED;
   IsMultiThread := TRUE;
   FHandle := CreateThread(nil, 0, @ThreadProc, Pointer(self), Flags, DWord(FThreadID));
+  FFatalException := nil;
 end;
 
 
@@ -130,6 +135,8 @@ begin
     WaitFor;
   end;
   if FHandle <> 0 then CloseHandle(FHandle);
+  FFatalException.Free;
+  FFatalException := nil;
   inherited Destroy;
   RemoveThread;
 end;
@@ -212,7 +219,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.7  2003-04-23 11:35:30  peter
+  Revision 1.8  2003-10-06 17:06:55  florian
+    * applied Johannes Berg's patch for exception handling in threads
+
+  Revision 1.7  2003/04/23 11:35:30  peter
     * wndproc definition fix
 
   Revision 1.6  2002/09/07 15:15:29  peter

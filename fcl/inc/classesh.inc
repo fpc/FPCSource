@@ -1101,6 +1101,7 @@ type
     FOnTerminate: TNotifyEvent;
     FMethod: TThreadMethod;
     FSynchronizeException: TObject;
+    FFatalException: TObject;
     procedure CallOnTerminate;
     function GetPriority: TThreadPriority;
     procedure SetPriority(Value: TThreadPriority);
@@ -1130,6 +1131,7 @@ type
     property Suspended: Boolean read FSuspended write SetSuspended;
     property ThreadID: THandle read FThreadID;
     property OnTerminate: TNotifyEvent read FOnTerminate write FOnTerminate;
+    property FatalException: TObject read FFatalException;
   end;
 
 { TComponent class }
@@ -1519,7 +1521,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.25  2003-08-16 15:50:47  michael
+  Revision 1.26  2003-10-06 17:06:55  florian
+    * applied Johannes Berg's patch for exception handling in threads
+
+  Revision 1.25  2003/08/16 15:50:47  michael
   + Fix from Mattias gaertner for IDE support
 
   Revision 1.24  2003/06/04 15:27:24  michael
