@@ -57,7 +57,7 @@ procedure Wide2AnsiMove(source:pwidechar;dest:pchar;len:longint);
 var
   i : longint;
 begin
-  for i:=1to len do
+  for i:=1 to len do
    begin
      if word(source^)<128 then
       dest^:=char(word(source^))
@@ -73,7 +73,7 @@ procedure Ansi2WideMove(source:pchar;dest:pwidechar;len:longint);
 var
   i : longint;
 begin
-  for i:=1to len do
+  for i:=1 to len do
    begin
      if byte(source^)<128 then
       dest^:=widechar(byte(source^))
@@ -549,6 +549,36 @@ end;
                      Public functions, In interface.
 *****************************************************************************}
 
+function WideCharToString(S : PWideChar) : AnsiString;
+  begin
+     result:=WideCharLenToString(s,Length(WideString(s)));
+  end;
+
+function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : LongInt) : PWideChar;
+  begin
+     if Length(Src)<DestSize then
+       Ansi2WideMoveProc(PChar(Src),Dest,Length(Src))
+     else
+       Ansi2WideMoveProc(PChar(Src),Dest,DestSize);
+  end;
+
+function WideCharLenToString(S : PWideChar;Len : LongInt) : AnsiString;
+  begin
+     SetLength(result,Len);
+     Wide2AnsiMove(S,PChar(result),Len);
+  end;
+
+procedure WideCharLenToStrVar(Src : PWideChar;Len : LongInt;var Dest : AnsiString);
+  begin
+     Dest:=WideCharLenToString(Src,Len);
+  end;
+
+procedure WideCharToStrVar(S : PWideChar;var Dest : AnsiString);
+  begin
+     Dest:=WideCharToString(S);
+  end;
+
+
 {$ifndef INTERNLENGTH}
 Function Length (Const S : WideString) : Longint;
 {
@@ -850,7 +880,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  2002-09-14 11:20:50  carl
+  Revision 1.22  2002-09-26 21:50:38  florian
+    + some WideString<->AnsiString conversion functions added
+
+  Revision 1.21  2002/09/14 11:20:50  carl
     * Delphi compatibility fix (with string routines)
 
   Revision 1.20  2002/09/07 21:16:45  carl

@@ -47,7 +47,7 @@ Type
   Longint  = +(-2147483647-1)..$7fffffff;
   Byte     = 0..255;
   Word     = 0..65535;
-{$ifndef ver1_0}  
+{$ifndef ver1_0}
   DWord    = LongWord;
   Cardinal = LongWord;
 {$else}
@@ -419,6 +419,12 @@ Function  Pos (c : Char; Const s : WideString) : Longint;
 Function  Pos (c : WideChar; Const s : WideString) : Longint;
 Procedure Insert (Const Source : WideString; Var S : WideString; Index : Longint);
 Procedure Delete (Var S : WideString; Index,Size: Longint);
+
+function WideCharToString(S : PWideChar) : AnsiString;
+function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : LongInt) : PWideChar;
+function WideCharLenToString(S : PWideChar;Len : LongInt) : AnsiString;
+procedure WideCharLenToStrVar(Src : PWideChar;Len : LongInt;var Dest : AnsiString);
+procedure WideCharToStrVar(S : PWideChar;var Dest : AnsiString);
 {$endif HASWIDESTRING}
 
 
@@ -587,7 +593,10 @@ const
 
 {
   $Log$
-  Revision 1.54  2002-09-07 21:20:50  carl
+  Revision 1.55  2002-09-26 21:50:37  florian
+    + some WideString<->AnsiString conversion functions added
+
+  Revision 1.54  2002/09/07 21:20:50  carl
     * cardinal -> longword
     - remove FPUInt64 variable
 
