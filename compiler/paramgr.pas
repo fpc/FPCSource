@@ -156,40 +156,34 @@ unit paramgr;
     function tparamanager.push_addr_param(def : tdef;calloption : tproccalloption) : boolean;
       begin
         push_addr_param:=false;
-        if never_copy_const_param then
-         push_addr_param:=true
-        else
-         begin
-           case def.deftype of
-             variantdef,
-             formaldef :
-               push_addr_param:=true;
-             recorddef :
-               push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (def.size>pointer_size);
-             arraydef :
-               push_addr_param:=(
-                                 (tarraydef(def).highrange>=tarraydef(def).lowrange) and
-                                  (
-                                   not(target_info.system=system_i386_win32) or
-                                   ((def.size>pointer_size) and
-                                    not(calloption in [pocall_cdecl,pocall_cppdecl]))
-                                  )
-                                ) or
-                                is_open_array(def) or
-                                { array of const for cdecl are only pushed values }
-                                (is_array_of_const(def) and
-                                 not(calloption in [pocall_cdecl,pocall_cppdecl])) or
-                                is_array_constructor(def);
-             objectdef :
-               push_addr_param:=is_object(def);
-             stringdef :
-               push_addr_param:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
-             procvardef :
-               push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (po_methodpointer in tprocvardef(def).procoptions);
-             setdef :
-               push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tsetdef(def).settype<>smallset);
-           end;
-         end;
+        case def.deftype of
+          variantdef,
+          formaldef :
+            push_addr_param:=true;
+          recorddef :
+            push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (def.size>pointer_size);
+          arraydef :
+            push_addr_param:=(
+                              not(calloption in [pocall_cdecl,pocall_cppdecl]) and
+                              (tarraydef(def).highrange>=tarraydef(def).lowrange) and
+                              (def.size>pointer_size)
+                             ) or
+                             is_open_array(def) or
+                             { array of const for cdecl are only pushed values }
+                             (
+                              not(calloption in [pocall_cdecl,pocall_cppdecl]) and
+                              is_array_of_const(def)
+                             ) or
+                             is_array_constructor(def);
+          objectdef :
+            push_addr_param:=is_object(def);
+          stringdef :
+            push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tstringdef(def).string_typ in [st_shortstring,st_longstring]);
+          procvardef :
+            push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (po_methodpointer in tprocvardef(def).procoptions);
+          setdef :
+            push_addr_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (tsetdef(def).settype<>smallset);
+        end;
       end;
 
 
@@ -207,16 +201,8 @@ unit paramgr;
           recorddef :
             copy_value_on_stack:=(def.size>pointer_size);
           arraydef :
-            copy_value_on_stack:=(
-                              (tarraydef(def).highrange>=tarraydef(def).lowrange) and
-                               (
-                                not(target_info.system=system_i386_win32) or
-                                (def.size>pointer_size)
-                               )
-                             ) or
-                             is_open_array(def) or
-                             is_array_of_const(def) or
-                             is_array_constructor(def);
+            copy_value_on_stack:=(tarraydef(def).highrange>=tarraydef(def).lowrange) and
+                                 (def.size>pointer_size);
           objectdef :
             copy_value_on_stack:=is_object(def);
           stringdef :
@@ -414,7 +400,10 @@ end.
 
 {
    $Log$
-   Revision 1.28  2002-12-17 22:19:33  peter
+   Revision 1.29  2002-12-23 20:58:03  peter
+     * remove unused global var
+
+   Revision 1.28  2002/12/17 22:19:33  peter
      * fixed pushing of records>8 bytes with stdcall
      * simplified hightree loading
 

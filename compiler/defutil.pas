@@ -37,9 +37,6 @@ interface
        tmmxtype = (mmxno,mmxu8bit,mmxs8bit,mmxu16bit,mmxs16bit,
                    mmxu32bit,mmxs32bit,mmxfixed16,mmxsingle);
 
-    const
-       {# true if we must never copy this parameter }
-       never_copy_const_param : boolean = false;
 
 {*****************************************************************************
                           Basic type functions
@@ -741,7 +738,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-11-25 17:43:17  peter
+  Revision 1.2  2002-12-23 20:58:03  peter
+    * remove unused global var
+
+  Revision 1.1  2002/11/25 17:43:17  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
