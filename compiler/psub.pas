@@ -24,6 +24,8 @@ unit psub;
 
 {$i fpcdefs.inc}
 
+{$define NOOPT}
+
 interface
 
     uses
@@ -1300,7 +1302,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.136  2003-08-20 09:07:00  daniel
+  Revision 1.137  2003-08-20 15:50:35  peter
+    * define NOOPT until optimizer is fixed
+
+  Revision 1.136  2003/08/20 09:07:00  daniel
     * New register coding now mandatory, some more convert_registers calls
       removed.
 
