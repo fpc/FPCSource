@@ -29,7 +29,7 @@ unit cpunode;
   implementation
 
     uses
-       ncgbas,ncgflw,
+       ncgbas,ncgflw,ncgcnv,
        n386ld,n386add,n386cal,n386con,n386flw,n386mat,n386mem,
        n386set,n386inl,n386opt,
        { this not really a node }
@@ -38,7 +38,15 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.5  2001-09-28 20:39:33  jonas
+  Revision 1.6  2001-09-29 21:32:47  jonas
+    * almost all second pass typeconvnode helpers are now processor independent
+    * fixed converting boolean to int64/qword
+    * fixed register allocation bugs which could cause internalerror 10
+    * isnode and asnode are completely processor indepent now as well
+    * fpc_do_as now returns its class argument (necessary to be able to use it
+      properly with compilerproc)
+
+  Revision 1.5  2001/09/28 20:39:33  jonas
     * changed all flow control structures (except for exception handling
       related things) to processor independent code (in new ncgflw unit)
     + generic cgobj unit which contains lots of code generator helpers with

@@ -99,7 +99,7 @@ Procedure fpc_widestr_Unique(Var S : WideString); compilerproc;
 Function fpc_Val_Real_AnsiStr(Const S : AnsiString; Var Code : ValSInt): ValReal; compilerproc;
 Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; Var Code : ValSInt): ValUInt; compilerproc;
 Function fpc_Val_SInt_AnsiStr (DestSize: longint; Const S : AnsiString; Var Code : ValSInt): ValSInt; compilerproc;
-Function fpc_Val_qword_AnsiStr (Const S : AnsiString; Var Code : ValSInt): qword;compilerproc; 
+Function fpc_Val_qword_AnsiStr (Const S : AnsiString; Var Code : ValSInt): qword;compilerproc;
 Function fpc_Val_int64_AnsiStr (Const S : AnsiString; Var Code : ValSInt): Int64; compilerproc;
 procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : longint;var s : ansistring); compilerproc;
 Procedure fpc_AnsiStr_Cardinal(C : Cardinal;Len : Longint; Var S : AnsiString); compilerproc;
@@ -165,7 +165,7 @@ function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword; compiler
 function fpc_mul_int64(f1,f2 : int64;checkoverflow : longbool) : int64; compilerproc;
 
 function fpc_do_is(aclass : tclass;aobject : tobject) : boolean; compilerproc;
-procedure fpc_do_as(aclass : tclass;aobject : tobject); compilerproc;
+function fpc_do_as(aclass : tclass;aobject : tobject): tobject; compilerproc;
 procedure fpc_intf_decr_ref(var i: pointer); compilerproc;
 procedure fpc_intf_incr_ref(const i: pointer); compilerproc;
 procedure fpc_intf_assign(var D: pointer; const S: pointer); compilerproc;
@@ -247,7 +247,15 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
 
 {
   $Log$
-  Revision 1.10  2001-09-05 15:22:09  jonas
+  Revision 1.11  2001-09-29 21:32:47  jonas
+    * almost all second pass typeconvnode helpers are now processor independent
+    * fixed converting boolean to int64/qword
+    * fixed register allocation bugs which could cause internalerror 10
+    * isnode and asnode are completely processor indepent now as well
+    * fpc_do_as now returns its class argument (necessary to be able to use it
+      properly with compilerproc)
+
+  Revision 1.10  2001/09/05 15:22:09  jonas
     * made multiplying, dividing and mod'ing of int64 and qword processor
       independent with compilerprocs (+ small optimizations by using shift/and
       where possible)

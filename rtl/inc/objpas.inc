@@ -27,10 +27,11 @@
 
 
     { the reverse order of the parameters make code generation easier }
-    procedure fpc_do_as(aclass : tclass;aobject : tobject);[public,alias: 'FPC_DO_AS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+    function fpc_do_as(aclass : tclass;aobject : tobject): tobject;[public,alias: 'FPC_DO_AS']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
          if assigned(aobject) and not(aobject.inheritsfrom(aclass)) then
-           handleerror(219);
+           handleerrorframe(219,get_frame);
+         result := aobject;
       end;
 
 {$ifndef HASINTF}
@@ -692,7 +693,15 @@
 
 {
   $Log$
-  Revision 1.16  2001-08-01 15:00:10  jonas
+  Revision 1.17  2001-09-29 21:32:47  jonas
+    * almost all second pass typeconvnode helpers are now processor independent
+    * fixed converting boolean to int64/qword
+    * fixed register allocation bugs which could cause internalerror 10
+    * isnode and asnode are completely processor indepent now as well
+    * fpc_do_as now returns its class argument (necessary to be able to use it
+      properly with compilerproc)
+
+  Revision 1.16  2001/08/01 15:00:10  jonas
     + "compproc" helpers
     * renamed several helpers so that their name is the same as their
       "public alias", which should facilitate the conversion of processor

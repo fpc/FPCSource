@@ -76,6 +76,28 @@ interface
           function first_class_to_intf : tnode;virtual;
           function first_char_to_char : tnode;virtual;
           function first_call_helper(c : tconverttype) : tnode;
+
+          procedure second_int_to_int;virtual;abstract;
+          procedure second_string_to_string;virtual;abstract;
+          procedure second_cstring_to_pchar;virtual;abstract;
+          procedure second_string_to_chararray;virtual;abstract;
+          procedure second_array_to_pointer;virtual;abstract;
+          procedure second_pointer_to_array;virtual;abstract;
+          procedure second_chararray_to_string;virtual;abstract;
+          procedure second_char_to_string;virtual;abstract;
+          procedure second_int_to_real;virtual;abstract;
+          procedure second_real_to_real;virtual;abstract;
+          procedure second_cord_to_pointer;virtual;abstract;
+          procedure second_proc_to_procvar;virtual;abstract;
+          procedure second_bool_to_int;virtual;abstract;
+          procedure second_int_to_bool;virtual;abstract;
+          procedure second_load_smallset;virtual;abstract;
+          procedure second_ansistring_to_pchar;virtual;abstract;
+          procedure second_pchar_to_string;virtual;abstract;
+          procedure second_class_to_intf;virtual;abstract;
+          procedure second_char_to_char;virtual;abstract;
+          procedure second_nothing; virtual;
+
        end;
        ttypeconvnodeclass = class of ttypeconvnode;
 
@@ -117,6 +139,7 @@ implementation
 *****************************************************************************}
 
     procedure inserttypeconv(var p:tnode;const t:ttype);
+
       begin
         if not assigned(p.resulttype.def) then
          begin
@@ -397,8 +420,10 @@ implementation
 
 
     function ttypeconvnode.resulttype_cord_to_pointer : tnode;
+
       var
         t : tnode;
+
       begin
         result:=nil;
         if left.nodetype=ordconstn then
@@ -427,6 +452,7 @@ implementation
       end;
 
     function ttypeconvnode.resulttype_chararray_to_string : tnode;
+
       begin
         result := ccallnode.createinternres(
           'fpc_chararray_to_'+lower(tstringdef(resulttype.def).stringtypname),
@@ -435,8 +461,10 @@ implementation
       end;
 
     function ttypeconvnode.resulttype_string_to_chararray : tnode;
+
       var
         arrsize: longint;
+
       begin
          with tarraydef(resulttype.def) do
           begin
@@ -460,12 +488,15 @@ implementation
         left := nil;
       end;
 
+
     function ttypeconvnode.resulttype_string_to_string : tnode;
+
       var
         procname: string[31];
         stringpara : tcallparanode;
         pw : pcompilerwidestring;
         pc : pchar;
+
       begin
          result:=nil;
          if left.nodetype=stringconstn then
@@ -520,11 +551,13 @@ implementation
 
 
     function ttypeconvnode.resulttype_char_to_string : tnode;
+
       var
          procname: string[31];
          para : tcallparanode;
          hp : tstringconstnode;
          ws : pcompilerwidestring;
+
       begin
          result:=nil;
          if left.nodetype=ordconstn then
@@ -559,8 +592,10 @@ implementation
 
 
     function ttypeconvnode.resulttype_char_to_char : tnode;
+
       var
          hp : tordconstnode;
+
       begin
          result:=nil;
          if left.nodetype=ordconstn then
@@ -587,8 +622,10 @@ implementation
 
 
     function ttypeconvnode.resulttype_int_to_real : tnode;
+
       var
         t : trealconstnode;
+
       begin
         result:=nil;
         if left.nodetype=ordconstn then
@@ -601,8 +638,10 @@ implementation
 
 
     function ttypeconvnode.resulttype_real_to_real : tnode;
+
       var
         t : tnode;
+
       begin
          result:=nil;
          if left.nodetype=realconstn then
@@ -614,6 +653,7 @@ implementation
 
 
     function ttypeconvnode.resulttype_cchar_to_pchar : tnode;
+
       begin
          result:=nil;
          if is_pwidechar(resulttype.def) then
@@ -628,6 +668,7 @@ implementation
 
 
     function ttypeconvnode.resulttype_cstring_to_pchar : tnode;
+
       begin
          result:=nil;
          if is_pwidechar(resulttype.def) then
@@ -636,8 +677,10 @@ implementation
 
 
     function ttypeconvnode.resulttype_arrayconstructor_to_set : tnode;
+
       var
         hp : tnode;
+
       begin
         result:=nil;
         if left.nodetype<>arrayconstructorn then
@@ -652,6 +695,7 @@ implementation
 
 
     function ttypeconvnode.resulttype_pchar_to_string : tnode;
+
       begin
         result := ccallnode.createinternres(
           'fpc_pchar_to_'+lower(tstringdef(resulttype.def).stringtypname),
@@ -711,9 +755,11 @@ implementation
 
 
     function ttypeconvnode.det_resulttype:tnode;
+
       var
         hp : tnode;
         aprocdef : tprocdef;
+
       begin
         result:=nil;
         resulttype:=totype;
@@ -1048,6 +1094,7 @@ implementation
 
 
     function ttypeconvnode.first_cord_to_pointer : tnode;
+
       begin
         result:=nil;
         internalerror(200104043);
@@ -1055,6 +1102,7 @@ implementation
 
 
     function ttypeconvnode.first_int_to_int : tnode;
+
       begin
         first_int_to_int:=nil;
         if (left.location.loc<>LOC_REGISTER) and
@@ -1068,6 +1116,7 @@ implementation
 
 
     function ttypeconvnode.first_cstring_to_pchar : tnode;
+
       begin
          first_cstring_to_pchar:=nil;
          registers32:=1;
@@ -1076,6 +1125,7 @@ implementation
 
 
     function ttypeconvnode.first_string_to_chararray : tnode;
+
       begin
          first_string_to_chararray:=nil;
          registers32:=1;
@@ -1084,6 +1134,7 @@ implementation
 
 
     function ttypeconvnode.first_char_to_string : tnode;
+
       begin
          first_char_to_string:=nil;
          location.loc:=LOC_MEM;
@@ -1098,6 +1149,7 @@ implementation
 
 
     function ttypeconvnode.first_array_to_pointer : tnode;
+
       begin
          first_array_to_pointer:=nil;
          if registers32<1 then
@@ -1107,6 +1159,7 @@ implementation
 
 
     function ttypeconvnode.first_int_to_real : tnode;
+
       begin
         first_int_to_real:=nil;
 {$ifdef m68k}
@@ -1144,6 +1197,7 @@ implementation
 
 
     function ttypeconvnode.first_pointer_to_array : tnode;
+
       begin
          first_pointer_to_array:=nil;
          if registers32<1 then
@@ -1153,6 +1207,7 @@ implementation
 
 
     function ttypeconvnode.first_cchar_to_pchar : tnode;
+
       begin
          first_cchar_to_pchar:=nil;
          internalerror(200104021);
@@ -1160,6 +1215,7 @@ implementation
 
 
     function ttypeconvnode.first_bool_to_int : tnode;
+
       begin
          first_bool_to_int:=nil;
          { byte(boolean) or word(wordbool) or longint(longbool) must
@@ -1168,6 +1224,17 @@ implementation
             (left.resulttype.def.size=resulttype.def.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            exit;
+         { when converting to 64bit, first convert to a 32bit int and then   }
+         { convert to a 64bit int (only necessary for 32bit processors) (JM) }
+         if resulttype.def.size > sizeof(aword) then
+           begin
+             result := ctypeconvnode.create(left,u32bittype);
+             result.toggleflag(nf_explizit);
+             result := ctypeconvnode.create(result,resulttype);
+             left := nil;
+             firstpass(result);
+             exit;
+           end;
          location.loc:=LOC_REGISTER;
          if registers32<1 then
            registers32:=1;
@@ -1175,6 +1242,7 @@ implementation
 
 
     function ttypeconvnode.first_int_to_bool : tnode;
+
       begin
          first_int_to_bool:=nil;
          { byte(boolean) or word(wordbool) or longint(longbool) must
@@ -1204,6 +1272,7 @@ implementation
 
 
     function ttypeconvnode.first_char_to_char : tnode;
+
       begin
          first_char_to_char:=nil;
          location.loc:=LOC_REGISTER;
@@ -1225,12 +1294,29 @@ implementation
 
 
     function ttypeconvnode.first_load_smallset : tnode;
+
+      var
+        srsym: ttypesym;
+        p: tcallparanode;
+
       begin
-         first_load_smallset:=nil;
+        if not searchsystype('FPC_SMALL_SET',srsym) then
+          internalerror(200108313);
+        p := ccallparanode.create(left,nil);
+        { reused }
+        left := nil;
+        { convert parameter explicitely to fpc_small_set }
+        p.left := ctypeconvnode.create(p.left,srsym.restype);
+        p.left.toggleflag(nf_explizit);
+        { create call, adjust resulttype }
+        result :=
+          ccallnode.createinternres('fpc_set_load_small',p,resulttype);
+        firstpass(result);
       end;
 
 
     function ttypeconvnode.first_ansistring_to_pchar : tnode;
+
       begin
          first_ansistring_to_pchar:=nil;
          location.loc:=LOC_REGISTER;
@@ -1253,6 +1339,7 @@ implementation
          if registers32<1 then
            registers32:=1;
       end;
+
 
     function ttypeconvnode.first_call_helper(c : tconverttype) : tnode;
 
@@ -1345,6 +1432,19 @@ implementation
       end;
 
 
+    function ttypeconvnode.docompare(p: tnode) : boolean;
+      begin
+        docompare :=
+          inherited docompare(p) and
+          (convtype = ttypeconvnode(p).convtype);
+      end;
+
+
+    procedure ttypeconvnode.second_nothing;
+      begin
+      end;
+
+
 {*****************************************************************************
                                 TISNODE
 *****************************************************************************}
@@ -1391,16 +1491,16 @@ implementation
 
 
     function tisnode.pass_1 : tnode;
+
+      var
+        paras: tcallparanode;
+
       begin
-         result:=nil;
-         firstpass(left);
-         firstpass(right);
-         if codegenerror then
-           exit;
-
-         left_right_max;
-
-         location.loc:=LOC_FLAGS;
+         paras := ccallparanode.create(left,ccallparanode.create(right,nil));
+         left := nil;
+         right := nil;
+         result := ccallnode.createintern('fpc_do_is',paras);
+         firstpass(result);
       end;
 
 
@@ -1449,25 +1549,19 @@ implementation
 
 
     function tasnode.pass_1 : tnode;
+
+      var
+        paras: tcallparanode;
+
       begin
-         result:=nil;
-         firstpass(right);
-         firstpass(left);
-         if codegenerror then
-           exit;
-
-         left_right_max;
-
-         set_location(location,left.location);
+         paras := ccallparanode.create(left,ccallparanode.create(right,nil));
+         left := nil;
+         right := nil;
+         result := ccallnode.createinternres('fpc_do_as',paras,
+           resulttype);
+         firstpass(result);
       end;
 
-
-    function ttypeconvnode.docompare(p: tnode) : boolean;
-      begin
-        docompare :=
-          inherited docompare(p) and
-          (convtype = ttypeconvnode(p).convtype);
-      end;
 
 begin
    ctypeconvnode:=ttypeconvnode;
@@ -1476,7 +1570,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2001-09-03 13:27:42  jonas
+  Revision 1.38  2001-09-29 21:32:46  jonas
+    * almost all second pass typeconvnode helpers are now processor independent
+    * fixed converting boolean to int64/qword
+    * fixed register allocation bugs which could cause internalerror 10
+    * isnode and asnode are completely processor indepent now as well
+    * fpc_do_as now returns its class argument (necessary to be able to use it
+      properly with compilerproc)
+
+  Revision 1.37  2001/09/03 13:27:42  jonas
     * compilerproc implementation of set addition/substraction/...
     * changed the declaration of some set helpers somewhat to accomodate the
       above change

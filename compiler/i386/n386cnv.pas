@@ -27,30 +27,30 @@ unit n386cnv;
 interface
 
     uses
-      node,ncnv,types;
+      node,ncnv,ncgcnv,types;
 
     type
-       ti386typeconvnode = class(ttypeconvnode)
-          procedure second_int_to_int;virtual;
-         { procedure second_string_to_string;virtual; }
-          procedure second_cstring_to_pchar;virtual;
-          procedure second_string_to_chararray;virtual;
-          procedure second_array_to_pointer;virtual;
-          procedure second_pointer_to_array;virtual;
-         { procedure second_chararray_to_string;virtual; }
-          procedure second_char_to_string;virtual;
-          procedure second_int_to_real;virtual;
-          procedure second_real_to_real;virtual;
-          procedure second_cord_to_pointer;virtual;
-          procedure second_proc_to_procvar;virtual;
-          procedure second_bool_to_int;virtual;
-          procedure second_int_to_bool;virtual;
-          procedure second_load_smallset;virtual;
-          procedure second_ansistring_to_pchar;virtual;
-         { procedure second_pchar_to_string;virtual; }
-          procedure second_class_to_intf;virtual;
-          procedure second_char_to_char;virtual;
-          procedure second_nothing;virtual;
+       ti386typeconvnode = class(tcgtypeconvnode)
+         protected
+          procedure second_int_to_int;override;
+         { procedure second_string_to_string;override; }
+         { procedure second_cstring_to_pchar;override; }
+         { procedure second_string_to_chararray;override; }
+         { procedure second_array_to_pointer;override; }
+         { procedure second_pointer_to_array;override; }
+         { procedure second_chararray_to_string;override; }
+         { procedure second_char_to_string;override; }
+          procedure second_int_to_real;override;
+         { procedure second_real_to_real;override; }
+         { procedure second_cord_to_pointer;override; }
+         { procedure second_proc_to_procvar;override; }
+         { procedure second_bool_to_int;override; }
+          procedure second_int_to_bool;override;
+         { procedure second_load_smallset;override;  }
+         { procedure second_ansistring_to_pchar;override; }
+         { procedure second_pchar_to_string;override; }
+         { procedure second_class_to_intf;override;  }
+         { procedure second_char_to_char;override; }
           procedure pass_2;override;
           procedure second_call_helper(c : tconverttype);
        end;
@@ -201,141 +201,6 @@ implementation
       end;
 
 
-    procedure ti386typeconvnode.second_cstring_to_pchar;
-      var
-        hr : preference;
-      begin
-         clear_location(location);
-         location.loc:=LOC_REGISTER;
-         case tstringdef(left.resulttype.def).string_typ of
-           st_shortstring :
-             begin
-               inc(left.location.reference.offset);
-               del_reference(left.location.reference);
-               location.register:=getregister32;
-               emit_ref_reg(A_LEA,S_L,newreference(left.location.reference),
-                 location.register);
-             end;
-           st_ansistring :
-             begin
-               if (left.nodetype=stringconstn) and
-                  (str_length(left)=0) then
-                begin
-                  new(hr);
-                  reset_reference(hr^);
-                  hr^.symbol:=newasmsymbol('FPC_EMPTYCHAR');
-                  location.register:=getregister32;
-                  emit_ref_reg(A_LEA,S_L,hr,location.register);
-                end
-               else
-                begin
-                  del_reference(left.location.reference);
-                  location.register:=getregister32;
-                  emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
-                    location.register);
-                end;
-             end;
-           st_longstring:
-             begin
-               {!!!!!!!}
-               internalerror(8888);
-             end;
-           st_widestring:
-             begin
-               if (left.nodetype=stringconstn) and
-                  (str_length(left)=0) then
-                begin
-                  new(hr);
-                  reset_reference(hr^);
-                  hr^.symbol:=newasmsymbol('FPC_EMPTYCHAR');
-                  location.register:=getregister32;
-                  emit_ref_reg(A_LEA,S_L,hr,location.register);
-                end
-               else
-                begin
-                  del_reference(left.location.reference);
-                  location.register:=getregister32;
-                  emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
-                    location.register);
-                end;
-             end;
-         end;
-      end;
-
-
-    procedure ti386typeconvnode.second_string_to_chararray;
-      var
-        arrsize: longint;
-      begin
-         with tarraydef(resulttype.def) do
-           arrsize := highrange-lowrange+1;
-         if (left.nodetype = stringconstn) and
-            { left.length+1 since there's always a terminating #0 character (JM) }
-            (tstringconstnode(left).len+1 >= arrsize) and
-            (tstringdef(left.resulttype.def).string_typ=st_shortstring) then
-           begin
-             inc(location.reference.offset);
-             exit;
-           end
-         else
-           { should be handled already in resulttype pass (JM) }
-           internalerror(200108292);
-      end;
-
-
-    procedure ti386typeconvnode.second_array_to_pointer;
-      begin
-         del_reference(left.location.reference);
-         clear_location(location);
-         location.loc:=LOC_REGISTER;
-         location.register:=getregister32;
-         emit_ref_reg(A_LEA,S_L,newreference(left.location.reference),
-           location.register);
-      end;
-
-
-    procedure ti386typeconvnode.second_pointer_to_array;
-      begin
-        clear_location(location);
-        location.loc:=LOC_REFERENCE;
-        reset_reference(location.reference);
-        case left.location.loc of
-          LOC_REGISTER :
-            location.reference.base:=left.location.register;
-          LOC_CREGISTER :
-            begin
-              location.reference.base:=getregister32;
-              emit_reg_reg(A_MOV,S_L,left.location.register,location.reference.base);
-            end
-         else
-            begin
-              del_reference(left.location.reference);
-              location.reference.base:=getregister32;
-              emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
-                location.reference.base);
-            end;
-        end;
-      end;
-
-
-    procedure ti386typeconvnode.second_char_to_string;
-
-      begin
-         clear_location(location);
-         location.loc:=LOC_MEM;
-         case tstringdef(resulttype.def).string_typ of
-           st_shortstring :
-             begin
-               gettempofsizereference(256,location.reference);
-               loadshortstring(left,self);
-             end;
-           { the rest is removed in the resulttype pass and coverted to compilerprocs }
-           else
-            internalerror(4179);
-        end;
-      end;
-
-
     procedure ti386typeconvnode.second_int_to_real;
 
       var
@@ -454,175 +319,6 @@ implementation
       end;
 
 
-    procedure ti386typeconvnode.second_real_to_real;
-      begin
-         case left.location.loc of
-            LOC_FPU : ;
-            LOC_CFPUREGISTER:
-              begin
-                 location:=left.location;
-                 exit;
-              end;
-            LOC_MEM,
-            LOC_REFERENCE:
-              begin
-                 floatload(tfloatdef(left.resulttype.def).typ,
-                   left.location.reference);
-                 { we have to free the reference }
-                 del_reference(left.location.reference);
-              end;
-         end;
-         clear_location(location);
-         location.loc:=LOC_FPU;
-      end;
-
-
-    procedure ti386typeconvnode.second_cord_to_pointer;
-      begin
-        { this can't happend, because constants are already processed in
-          pass 1 }
-        internalerror(47423985);
-      end;
-
-
-    procedure ti386typeconvnode.second_proc_to_procvar;
-      begin
-        { method pointer ? }
-        if assigned(tcallnode(left).left) then
-          begin
-             set_location(location,left.location);
-          end
-        else
-          begin
-             clear_location(location);
-             location.loc:=LOC_REGISTER;
-             location.register:=getregister32;
-             del_reference(left.location.reference);
-             emit_ref_reg(A_LEA,S_L,
-               newreference(left.location.reference),location.register);
-          end;
-      end;
-
-
-    procedure ti386typeconvnode.second_bool_to_int;
-      var
-         oldtruelabel,oldfalselabel,hlabel : tasmlabel;
-         hregister : tregister;
-         newsize,
-         opsize : topsize;
-         op     : tasmop;
-      begin
-         oldtruelabel:=truelabel;
-         oldfalselabel:=falselabel;
-         getlabel(truelabel);
-         getlabel(falselabel);
-         secondpass(left);
-         { byte(boolean) or word(wordbool) or longint(longbool) must
-         be accepted for var parameters }
-         if (nf_explizit in flags) and
-            (left.resulttype.def.size=resulttype.def.size) and
-            (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
-           begin
-              set_location(location,left.location);
-              truelabel:=oldtruelabel;
-              falselabel:=oldfalselabel;
-              exit;
-           end;
-         clear_location(location);
-         location.loc:=LOC_REGISTER;
-         del_reference(left.location.reference);
-         case left.resulttype.def.size of
-          1 : begin
-                case resulttype.def.size of
-                 1 : opsize:=S_B;
-                 2 : opsize:=S_BW;
-                 4 : opsize:=S_BL;
-                end;
-              end;
-          2 : begin
-                case resulttype.def.size of
-                 1 : begin
-                       if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                        left.location.register:=reg16toreg8(left.location.register);
-                       opsize:=S_B;
-                     end;
-                 2 : opsize:=S_W;
-                 4 : opsize:=S_WL;
-                end;
-              end;
-          4 : begin
-                case resulttype.def.size of
-                 1 : begin
-                       if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                        left.location.register:=reg32toreg8(left.location.register);
-                       opsize:=S_B;
-                     end;
-                 2 : begin
-                       if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                        left.location.register:=reg32toreg16(left.location.register);
-                       opsize:=S_W;
-                     end;
-                 4 : opsize:=S_L;
-                end;
-              end;
-         end;
-         if opsize in [S_B,S_W,S_L] then
-          op:=A_MOV
-         else
-          if is_signed(resulttype.def) then
-           op:=A_MOVSX
-          else
-           op:=A_MOVZX;
-         hregister:=getregister32;
-         case resulttype.def.size of
-          1 : begin
-                location.register:=reg32toreg8(hregister);
-                newsize:=S_B;
-              end;
-          2 : begin
-                location.register:=reg32toreg16(hregister);
-                newsize:=S_W;
-              end;
-          4 : begin
-                location.register:=hregister;
-                newsize:=S_L;
-              end;
-         else
-          internalerror(10060);
-         end;
-
-         case left.location.loc of
-            LOC_MEM,
-      LOC_REFERENCE : emit_ref_reg(op,opsize,
-                        newreference(left.location.reference),location.register);
-       LOC_REGISTER,
-      LOC_CREGISTER : begin
-                      { remove things like movb %al,%al }
-                        if left.location.register<>location.register then
-                          emit_reg_reg(op,opsize,
-                            left.location.register,location.register);
-                      end;
-          LOC_FLAGS : begin
-                        emit_flag2reg(left.location.resflags,location.register);
-                      end;
-           LOC_JUMP : begin
-                        getlabel(hlabel);
-                        emitlab(truelabel);
-                        emit_const_reg(A_MOV,newsize,1,location.register);
-                        emitjmp(C_None,hlabel);
-                        emitlab(falselabel);
-                        emit_reg_reg(A_XOR,newsize,location.register,
-                          location.register);
-                        emitlab(hlabel);
-                      end;
-         else
-           internalerror(10061);
-         end;
-         truelabel:=oldtruelabel;
-         falselabel:=oldfalselabel;
-      end;
-
-
     procedure ti386typeconvnode.second_int_to_bool;
       var
         hregister : tregister;
@@ -630,8 +326,8 @@ implementation
         opsize    : topsize;
       begin
          clear_location(location);
-         { byte(boolean) or word(wordbool) or longint(longbool) must
-         be accepted for var parameters }
+         { byte(boolean) or word(wordbool) or longint(longbool) must }
+         { be accepted for var parameters                            }
          if (nf_explizit in flags) and
             (left.resulttype.def.size=resulttype.def.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
@@ -640,7 +336,7 @@ implementation
               exit;
            end;
          location.loc:=LOC_REGISTER;
-         del_reference(left.location.reference);
+         del_location(left.location);
          opsize:=def_opsize(left.resulttype.def);
          case left.location.loc of
             LOC_MEM,LOC_REFERENCE :
@@ -676,103 +372,6 @@ implementation
       end;
 
 
-    procedure ti386typeconvnode.second_load_smallset;
-      var
-        href : treference;
-        pushedregs : tpushed;
-      begin
-        href.symbol:=nil;
-        pushusedregisters(pushedregs,$ff);
-        gettempofsizereference(32,href);
-        emit_push_mem_size(left.location.reference,4);
-        emitpushreferenceaddr(href);
-        saveregvars($ff);
-        emitcall('FPC_SET_LOAD_SMALL');
-        maybe_loadself;
-        popusedregisters(pushedregs);
-        clear_location(location);
-        location.loc:=LOC_MEM;
-        location.reference:=href;
-      end;
-
-
-    procedure ti386typeconvnode.second_ansistring_to_pchar;
-      var
-         l1 : tasmlabel;
-         hr : preference;
-      begin
-         clear_location(location);
-         location.loc:=LOC_REGISTER;
-         getlabel(l1);
-         case left.location.loc of
-            LOC_CREGISTER,LOC_REGISTER:
-              location.register:=left.location.register;
-            LOC_MEM,LOC_REFERENCE:
-              begin
-                location.register:=getregister32;
-                emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
-                  location.register);
-                del_reference(left.location.reference);
-              end;
-         end;
-         emit_const_reg(A_CMP,S_L,0,location.register);
-         emitjmp(C_NZ,l1);
-         new(hr);
-         reset_reference(hr^);
-         hr^.symbol:=newasmsymbol('FPC_EMPTYCHAR');
-         emit_ref_reg(A_LEA,S_L,hr,location.register);
-         emitlab(l1);
-      end;
-
-
-    procedure ti386typeconvnode.second_class_to_intf;
-      var
-         hreg : tregister;
-         l1 : tasmlabel;
-      begin
-         case left.location.loc of
-            LOC_MEM,
-            LOC_REFERENCE:
-              begin
-                 del_reference(left.location.reference);
-                 hreg:=getregister32;
-                 exprasmList.concat(Taicpu.Op_ref_reg(
-                   A_MOV,S_L,newreference(left.location.reference),hreg));
-              end;
-            LOC_CREGISTER:
-              begin
-                 hreg:=getregister32;
-                 exprasmList.concat(Taicpu.Op_reg_reg(
-                   A_MOV,S_L,left.location.register,hreg));
-              end;
-            LOC_REGISTER:
-              hreg:=left.location.register;
-            else internalerror(121120001);
-         end;
-         emit_reg_reg(A_TEST,S_L,hreg,hreg);
-         getlabel(l1);
-         emitjmp(C_Z,l1);
-         emit_const_reg(A_ADD,S_L,tobjectdef(left.resulttype.def).implementedinterfaces.ioffsets(
-           tobjectdef(left.resulttype.def).implementedinterfaces.searchintf(resulttype.def))^,hreg);
-         emitlab(l1);
-         location.loc:=LOC_REGISTER;
-         location.register:=hreg;
-      end;
-
-
-    procedure ti386typeconvnode.second_char_to_char;
-      begin
-        {$warning todo: add RTL routine for widechar-char conversion }
-        { Quick hack to atleast generate 'working' code (PFV) }
-        second_int_to_int;
-      end;
-
-
-    procedure ti386typeconvnode.second_nothing;
-      begin
-      end;
-
-
 {****************************************************************************
                            TI386TYPECONVNODE
 ****************************************************************************}
@@ -781,33 +380,33 @@ implementation
 
       const
          secondconvert : array[tconverttype] of pointer = (
-           @ti386typeconvnode.second_nothing, {equal}
-           @ti386typeconvnode.second_nothing, {not_possible}
-           @ti386typeconvnode.second_nothing, {second_string_to_string, handled in resulttype pass }
-           @ti386typeconvnode.second_char_to_string,
-           @ti386typeconvnode.second_nothing, { pchar_to_string, handled in resulttype pass }
-           @ti386typeconvnode.second_nothing, {cchar_to_pchar}
-           @ti386typeconvnode.second_cstring_to_pchar,
-           @ti386typeconvnode.second_ansistring_to_pchar,
-           @ti386typeconvnode.second_string_to_chararray,
-           @ti386typeconvnode.second_nothing, { chararray_to_string, handled in resulttype pass }
-           @ti386typeconvnode.second_array_to_pointer,
-           @ti386typeconvnode.second_pointer_to_array,
-           @ti386typeconvnode.second_int_to_int,
-           @ti386typeconvnode.second_int_to_bool,
-           @ti386typeconvnode.second_bool_to_int, { bool_to_bool }
-           @ti386typeconvnode.second_bool_to_int,
-           @ti386typeconvnode.second_real_to_real,
-           @ti386typeconvnode.second_int_to_real,
-           @ti386typeconvnode.second_proc_to_procvar,
-           @ti386typeconvnode.second_nothing, {arrayconstructor_to_set}
-           @ti386typeconvnode.second_load_smallset,
-           @ti386typeconvnode.second_cord_to_pointer,
-           @ti386typeconvnode.second_nothing, { interface 2 string }
-           @ti386typeconvnode.second_nothing, { interface 2 guid   }
-           @ti386typeconvnode.second_class_to_intf,
-           @ti386typeconvnode.second_char_to_char,
-           @ti386typeconvnode.second_nothing  { normal_2_smallset }
+           @second_nothing, {equal}
+           @second_nothing, {not_possible}
+           @second_nothing, {second_string_to_string, handled in resulttype pass }
+           @second_char_to_string,
+           @second_nothing, { pchar_to_string, handled in resulttype pass }
+           @second_nothing, {cchar_to_pchar}
+           @second_cstring_to_pchar,
+           @second_ansistring_to_pchar,
+           @second_string_to_chararray,
+           @second_nothing, { chararray_to_string, handled in resulttype pass }
+           @second_array_to_pointer,
+           @second_pointer_to_array,
+           @second_int_to_int,
+           @second_int_to_bool,
+           @second_bool_to_int, { bool_to_bool }
+           @second_bool_to_int,
+           @second_real_to_real,
+           @second_int_to_real,
+           @second_proc_to_procvar,
+           @second_nothing, { arrayconstructor_to_set }
+           @second_nothing, { second_load_smallset, handled in first pass }
+           @second_cord_to_pointer,
+           @second_nothing, { interface 2 string }
+           @second_nothing, { interface 2 guid   }
+           @second_class_to_intf,
+           @second_char_to_char,
+           @second_nothing  { normal_2_smallset }
          );
       type
          tprocedureofobject = procedure of object;
@@ -1001,7 +600,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2001-09-03 13:27:42  jonas
+  Revision 1.24  2001-09-29 21:32:47  jonas
+    * almost all second pass typeconvnode helpers are now processor independent
+    * fixed converting boolean to int64/qword
+    * fixed register allocation bugs which could cause internalerror 10
+    * isnode and asnode are completely processor indepent now as well
+    * fpc_do_as now returns its class argument (necessary to be able to use it
+      properly with compilerproc)
+
+  Revision 1.23  2001/09/03 13:27:42  jonas
     * compilerproc implementation of set addition/substraction/...
     * changed the declaration of some set helpers somewhat to accomodate the
       above change
