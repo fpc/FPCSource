@@ -1,0 +1,74 @@
+#!/bin/sh
+#
+# Shell script to make a FPK package for Linux
+# Michael Van Canneyt, 1996
+#
+
+# Set some environment vars to suit the setup
+
+
+LIBS=/usr/lib/fpc/0.99.8
+#LIBS=/usr/lib/ppc/aout/0.99.5
+SRC=/usr/local/fpk/dist/src
+DOCS=/usr/doc/fpc
+DEMO=/usr/local/fpk/install/demo
+PPUMOVE=`which ppumove`
+DUMPPPU=`which ppudump`
+H2PAS=`which h2pas`
+LIBGCCPATH=/usr/lib/gcc-lib/i486-linux/2.7.2.1
+VERSION=0.99.8
+FPCDIR=fpc-${VERSION}
+# the following should be ELF or aout
+RELEASE=ELF
+#RELEASE=aout
+echo Using the following params :
+echo
+echo Version is : $VERSION , system : $RELEASE
+echo Libs are in $LIBS
+echo libgcc is in $LIBGCCPATH
+echo Sources are in $SRC
+echo Documentation is in $DOCS
+echo Demos are in $DEMO 
+echo dumpppu is $DUMPPPU
+echo ppumove is $PPUMOVE
+echo h2pas is $H2PAS
+echo
+echo making in directory ${FPCDIR}
+echo
+# do what is necessary...
+# first, make all needed things
+echo Creating directory ${FPCDIR}
+mkdir ${FPCDIR}
+echo Making sources package. 
+rm -f `find $SRC -name '.#*'` 
+rm -rf `find $SRC -name CVS -type d` 
+tar -cvzf ${FPCDIR}/sources.tar.gz --exclude CVS -C $SRC rtl docs compiler >sources.list
+echo Making libs package.
+# No gzip, because then we cannot add libgcc.
+tar -cvf ${FPCDIR}/libs.tar -C $LIBS . >libs.list
+# Add libfpc.so !!
+tar -rvf ${FPCDIR}/libs.tar -C /usr/lib libfpc.so >libs.list
+# We have to add libgcc.a to this package. (not everyone has GCC installed !)
+tar -rvf ${FPCDIR}/libs.tar -C $LIBGCCPATH libgcc.a >>libs.list
+# only now we gzip the libs.tar
+gzip ${FPCDIR}/libs.tar
+echo Making bins package.
+tar -cvf ${FPCDIR}/bins.tar -C `dirname $PPUMOVE` ppumove >bins.list
+tar -rvf ${FPCDIR}/bins.tar -C `dirname $DUMPPPU` ppudump >>bins.list
+tar -rvf ${FPCDIR}/bins.tar -C `dirname $H2PAS` h2pas >>bins.list
+gzip ${FPCDIR}/bins.tar
+echo Making docs package.
+rm -f `find $DOCS -name '.#*'` 
+tar -cvzf ${FPCDIR}/docs.tar.gz --exclude CVS -C $DOCS . >docs.list
+echo Making demo package.
+tar -cvzf ${FPCDIR}/demo.tar.gz --exclude CVS -C $DEMO . >demo.list
+echo Copying install files.
+cp install.sh ${FPCDIR}
+# then, pack everything together.
+echo Putting everything together.
+tar -cf fpc-${VERSION}.${RELEASE}.tar ${FPCDIR}
+cp ${FPCDIR}/* /home/ftp/pub/fpc/dist/separate 
+echo Removing directory ${FPCDIR}.
+rm -rf ${FPCDIR}
+# that's it.
+echo Done.
