@@ -17,7 +17,7 @@
 
 type
    jmp_buf = packed record
-     {$warning FIX ME!!}
+     rbx,rbp,r12,r13,r14,r15,rsp,rip : qword;
    end;
    pjmp_buf = ^jmp_buf;
 
@@ -26,6 +26,9 @@ procedure longjmp(var S : jmp_buf;value : longint);
 
 {
   $Log$
-  Revision 1.1  2003-04-30 22:11:06  florian
+  Revision 1.2  2004-04-24 20:13:34  florian
+    * fixed x86-64 exception handling
+
+  Revision 1.1  2003/04/30 22:11:06  florian
     + for a lot of x86-64 dependend files mostly dummies added
 }

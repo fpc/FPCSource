@@ -16,17 +16,46 @@
  **********************************************************************}
 
 function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];
-{$warning FIX ME!!}
   asm
+    // Save registers.
+    movq %rbx,(%rdi)
+    movq %rbp,8(%rdi)
+    movq %r12,16(%rdi)
+    movq %r13,24(%rdi)
+    movq %r14,32(%rdi)
+    movq %r15,40(%rdi)
+    leaq 16(%rsp),%rdx      // Save SP as it will be after we return.
+    movq %rdx,48(%rdi)
+    movq 8(%rsp),%rsi       // Save PC we are returning to now.
+    movq %rsi,56(%rdi)
+    xorq %rax,%rax
   end;
 
+
 procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP'];
-{$warning FIX ME!!}
   asm
+    // Restore registers.
+    movq (%rdi),%rbx
+    movq 8(%rdi),%rbp
+    movq 16(%rdi),%r12
+    movq 24(%rdi),%r13
+    movq 32(%rdi),%r14
+    movq 40(%rdi),%r15
+    // Set return value for setjmp.
+    test %esi,%esi
+    mov $01,%eax
+    cmove %eax,%esi
+    mov %esi,%eax
+    movq 56(%rdi),%rdx
+    movq 48(%rdi),%rsp
+    jmpq *%rdx
   end;
 
 {
   $Log$
-  Revision 1.1  2003-04-30 22:11:06  florian
+  Revision 1.2  2004-04-24 20:13:34  florian
+    * fixed x86-64 exception handling
+
+  Revision 1.1  2003/04/30 22:11:06  florian
     + for a lot of x86-64 dependend files mostly dummies added
 }
