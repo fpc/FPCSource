@@ -265,7 +265,6 @@ interface
             supported_target : target_any;
             outputbinary: false;
             allowdirect : true;
-            externals : false;
             needar : true;
             labelprefix_only_inside_procedure : false;
             labelprefix : '.L';
@@ -282,7 +281,14 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-07-25 22:55:33  florian
+  Revision 1.3  2002-08-12 15:08:44  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.2  2002/07/25 22:55:33  florian
     * several fixes, small test units can be compiled
 
   Revision 1.1  2002/07/24 22:38:15  florian

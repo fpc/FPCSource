@@ -54,7 +54,7 @@ implementation
 {$endif GDB}
       comphook,
       scanner,scandir,
-      pbase,ptype,pmodules,cresstr;
+      pbase,ptype,pmodules,cresstr,cpuinfo;
 
 
     procedure initparser;
@@ -611,7 +611,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2002-08-11 14:28:19  peter
+  Revision 1.39  2002-08-12 15:08:40  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.38  2002/08/11 14:28:19  peter
     * TScannerFile.SetInvalid added that will also reset inputfile
 
   Revision 1.37  2002/08/11 13:24:12  peter

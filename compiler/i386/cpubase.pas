@@ -381,6 +381,32 @@ uses
       max_scratch_regs = 1;
       scratch_regs : array[1..max_scratch_regs] of tregister = (R_EDI);
 
+
+{*****************************************************************************
+                               GDB Information
+*****************************************************************************}
+
+      {# Register indexes for stabs information, when some
+         parameters or variables are stored in registers.
+         
+         Taken from i386.c (dbx_register_map) and i386.h
+          (FIXED_REGISTERS) from GCC 3.x source code
+         
+      }   
+          stab_regindex : array[tregister] of shortint =
+          (-1,
+          0,1,2,3,4,5,6,7,
+          0,1,2,3,4,5,6,7,
+          0,1,2,3,0,1,2,3,
+          -1,-1,-1,-1,-1,-1,
+          12,12,13,14,15,16,17,18,19,
+          -1,-1,-1,-1,-1,-1,
+          -1,-1,-1,-1,
+          -1,-1,-1,-1,-1,
+          29,30,31,32,33,34,35,36,
+          21,22,23,24,25,26,27,28
+        );
+
 {*****************************************************************************
                           Default generic sizes
 *****************************************************************************}
@@ -406,7 +432,9 @@ uses
          object or class. }
       self_pointer_reg  = R_ESI;
       {# Register for addressing absolute data in a position independant way,
-         such as in PIC code. The exact meaning is ABI specific }
+         such as in PIC code. The exact meaning is ABI specific. For
+         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
+      }
       pic_offset_reg = R_EBX;
       {# Results are returned in this register (32-bit values) }
       accumulator   = R_EAX;
@@ -490,7 +518,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2002-08-06 20:55:23  florian
+  Revision 1.29  2002-08-12 15:08:41  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.28  2002/08/06 20:55:23  florian
     * first part of ppc calling conventions fix
 
   Revision 1.27  2002/07/25 18:01:29  carl

@@ -45,7 +45,7 @@ interface
       sysutils,
 {$endif}
       cutils,globtype,globals,systems,cclasses,
-      fmodule,finput,verbose,cpubase
+      fmodule,finput,verbose,cpubase,cpuinfo
       ;
 
     const
@@ -796,7 +796,6 @@ interface
             supported_target : system_i386_go32v2;
             outputbinary: false;
             allowdirect : true;
-            externals : true;
             needar : true;
             labelprefix_only_inside_procedure: false;
             labelprefix : '..@';
@@ -816,7 +815,6 @@ interface
             supported_target : system_i386_win32;
             outputbinary: false;
             allowdirect : true;
-            externals : true;
             needar : true;
             labelprefix_only_inside_procedure: false;
             labelprefix : '..@';
@@ -836,7 +834,6 @@ interface
             supported_target : system_any; { what should I write here ?? }
             outputbinary: false;
             allowdirect : true;
-            externals : true;
             needar : true;
             labelprefix_only_inside_procedure: false;
             labelprefix : '..@';
@@ -856,7 +853,6 @@ interface
             supported_target : system_i386_wdosx;
             outputbinary: false;
             allowdirect : true;
-            externals : true;
             needar : true;
             labelprefix_only_inside_procedure: false;
             labelprefix : '..@';
@@ -877,7 +873,6 @@ interface
             supported_target : system_i386_linux;
             outputbinary: false;
             allowdirect : true;
-            externals : true;
             needar : true;
             labelprefix_only_inside_procedure: false;
             labelprefix : '..@';
@@ -898,7 +893,14 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2002-08-11 14:32:29  peter
+  Revision 1.25  2002-08-12 15:08:41  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.24  2002/08/11 14:32:29  peter
     * renamed current_library to objectlibrary
 
   Revision 1.23  2002/08/11 13:24:16  peter

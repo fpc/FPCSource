@@ -27,17 +27,18 @@ unit systems;
 
 interface
 
+
    type
        tendian = (endian_little,endian_big);
 
-     {
+     (*
        IMPORTANT NOTE:
        The value of this enumeration is stored in PPU files.
        Therefore adding new CPU targets should not change the
        values of the pre-existing targets. (CEC)
        FURTHERMORE : Make sure that this branch values, are
        consistant with the main branch version always.
-     }
+     *)
        tsystemcpu=
        (
              cpu_no,                       { 0 }
@@ -53,11 +54,6 @@ interface
              cpu_arm                       { 10 }
        );
 
-       tprocessors = (no_processor
-            ,Class386,ClassP5,ClassP6
-            ,MC68000,MC68100,MC68020
-            ,PPC601,PPC604
-       );
 
        TSection=(sec_none,
          sec_code,sec_data,sec_bss,
@@ -74,13 +70,13 @@ interface
             ,asmmode_i386_intel
        );
 
-     { IMPORTANT NOTE:
+     (* IMPORTANT NOTE:
        the integer value of this enum is stored in PPU
        files to recognize the target, so if you add new targets
        allways add them at end PM
        FURTHERMORE : Make sure that this branch values are
        consistant with the main branch version always. (CEC)
-       }
+       *)
      type
        tsystem =
        (
@@ -112,29 +108,22 @@ interface
        );
 
        tasm = (as_none
-             ,as_i386_as,as_i386_as_aout,as_i386_asw,as_i386_aswdosx,
-              as_i386_nasmcoff,as_i386_nasmwin32,as_i386_nasmwdosx,
-              as_i386_nasmelf,as_i386_nasmobj,
-              as_i386_tasm,as_i386_masm,
-              as_i386_dbg,as_i386_coff,as_i386_pecoff,as_i386_elf32,as_i386_pecoffwdosx
-            ,as_m68k_as,as_m68k_gas,as_m68k_mit,as_m68k_mot,
-              as_m68k_mpw,as_m68k_palm
-            ,as_alpha_as
-            ,as_powerpc_as,as_powerpc_mpw,
-            as_SPARC_as,as_SPARC_elf32
-       );
-
-       tld = (ld_none,
-            ld_i386_GO32V1,ld_i386_GO32V2,ld_i386_linux,
-              ld_i386_OS2,ld_i386_Win32,ld_i386_freebsd,
-              ld_i386_Netware,ld_i386_sunos,ld_i386_beos,
-              ld_i386_coff,ld_i386_pecoff,ld_i386_Wdosx,
-            ld_m68k_Amiga,ld_m68k_Atari,ld_m68k_Mac,
-              ld_m68k_linux,ld_m68k_PalmOS,ld_m68k_freebsd,
-            ld_alpha_linux,
-            ld_x86_64_linux,
-            ld_powerpc_linux,ld_powerpc_macos,
-            ld_SPARC_SunOs,ld_SPARC_linux
+             ,as_gas                   { standard gnu assembler }
+             ,as_i386_as_aout
+             ,as_i386_asw
+             ,as_i386_nasmcoff
+             ,as_i386_nasmwin32
+             ,as_i386_nasmwdosx
+             ,as_i386_nasmelf
+             ,as_i386_nasmobj
+             ,as_i386_tasm
+             ,as_i386_masm
+             ,as_i386_coff
+             ,as_i386_pecoff
+             ,as_i386_elf32
+             ,as_i386_pecoffwdosx
+             ,as_m68k_mit
+             ,as_powerpc_mpw
        );
 
        tar = (ar_none
@@ -155,6 +144,22 @@ interface
 *****************************************************************************}
 
      type
+       { Abstract linker class which is implemented in link module }
+       TAbstractLinker = class
+       end;
+     
+     
+       TAbstractLinkerClass = class of TABstractLinker;
+       
+       
+       { Abstract assembler class which is implemented in assemble module }
+       TAbstractAssembler = class
+       end;
+       
+       TAbstractAssemblerClass = class of TAbstractAssembler;
+       
+       
+       
        palignmentinfo = ^talignmentinfo;
        talignmentinfo = packed record
          procalign,
@@ -181,7 +186,6 @@ interface
           supported_target : tsystem;
           outputbinary,
           allowdirect,
-          externals,
           needar,
           labelprefix_only_inside_procedure : boolean;
           labelprefix : string[3];
@@ -243,8 +247,8 @@ interface
           files_case_relevent : boolean;
           assem        : tasm;
           assemextern  : tasm; { external assembler, used by -a }
-          link         : tld;
-          linkextern   : tld;  { external linker, used by -s }
+          link         : tabstractlinkerclass;
+          linkextern   : tabstractlinkerclass;  { external linker, used by -s }
           ar           : tar;
           res          : tres;
           script       : tscripttype;
@@ -305,6 +309,19 @@ interface
     procedure RegisterAsmMode(const r:tasmmodeinfo);
     procedure RegisterRes(const r:tresinfo);
     procedure RegisterAr(const r:tarinfo);
+    { Register the external linker. This routine is called to setup the
+      class to use for the linker. It returns the tsysteminfo structure
+      updated with the correct linker class for external linking.
+    }  
+    procedure RegisterExternalLinker(var system_info: tsysteminfo; c:TAbstractLinkerClass);
+    { Register the internal linker. This routine is called to setup the
+      class to use for the linker. It returns the tsysteminfo structure
+      updated with the correct linker class for internal linking.
+      
+      If internal linking is not supported, this class can be set
+      to nil.
+    }  
+    procedure RegisterInternalLinker(var system_info : tsysteminfo; c:TAbstractLinkerClass);
 
     procedure InitSystems;
 
@@ -313,6 +330,8 @@ implementation
 
     uses
       cutils;
+
+      
 
 {****************************************************************************
                               Target setting
@@ -357,6 +376,8 @@ begin
      exit;
    end;
 end;
+
+
 
 
 function set_target_res(t:tres):boolean;
@@ -522,6 +543,17 @@ begin
   arinfos[t]^:=r;
 end;
 
+procedure RegisterExternalLinker(var system_info: tsysteminfo; c:TAbstractLinkerClass);
+begin
+  system_info.linkextern := c;
+end;
+
+procedure RegisterInternalLinker(var system_info : tsysteminfo; c:TAbstractLinkerClass);
+begin
+  system_info.link := c;
+end;
+
+
 
 procedure DeregisterInfos;
 var
@@ -608,7 +640,7 @@ begin
   {$ifdef cpu68}
     default_target(source_info.target);
   {$else cpu68}
-    default_target(target_m68k_linux);
+    default_target(system_m68k_linux);
   {$endif cpu68}
 {$endif m68k}
 {$ifdef alpha}
@@ -638,7 +670,14 @@ finalization
 end.
 {
   $Log$
-  Revision 1.50  2002-08-10 14:46:31  carl
+  Revision 1.51  2002-08-12 15:08:40  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.50  2002/08/10 14:46:31  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's

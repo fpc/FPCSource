@@ -59,7 +59,10 @@ implementation
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,nobj,
        { parser }
        scanner,
-       pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj;
+       pbase,pexpr,ptype,ptconst,pdecsub,pdecvar,pdecobj,
+       { cpu-information }
+       cpuinfo
+       ;
 
 
     function readconstant(const orgname:string;const filepos:tfileposinfo):tconstsym;
@@ -613,7 +616,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2002-08-11 14:32:27  peter
+  Revision 1.52  2002-08-12 15:08:40  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.51  2002/08/11 14:32:27  peter
     * renamed current_library to objectlibrary
 
   Revision 1.50  2002/08/11 13:24:12  peter

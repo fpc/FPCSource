@@ -1546,7 +1546,7 @@ begin
   { Disable fpu emulation for linux and netbsd on m68k machines }
   { FIXME: this overrides possible explicit command line emulation setting,
     but this isn't supported yet anyhow PM }
-  if (target_info.target in [target_m68k_netbsd,target_m68k_linux]) then
+  if (target_info.system in [system_m68k_netbsd,system_m68k_linux]) then
    exclude(initmoduleswitches,cs_fp_emulation)
   else
    def_symbol('M68K_FPU_EMULATED');
@@ -1677,7 +1677,14 @@ finalization
 end.
 {
   $Log$
-  Revision 1.81  2002-08-10 14:46:29  carl
+  Revision 1.82  2002-08-12 15:08:40  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.81  2002/08/10 14:46:29  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's

@@ -1812,17 +1812,15 @@ implementation
                   so some optimizing will make things harder to debug }
          end
        else if (owner.symtabletype in [localsymtable,inlinelocalsymtable]) then
-   {$ifdef i386}
          if reg<>R_NO then
            begin
               { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
               { this is the register order for GDB}
               stabstring:=strpnew('"'+name+':r'+st+'",'+
                         tostr(N_RSYM)+',0,'+
-                        tostr(fileinfo.line)+','+tostr(GDB_i386index[reg]));
+                        tostr(fileinfo.line)+','+tostr(stab_regindex[reg]));
            end
          else
-   {$endif i386}
            { I don't know if this will work (PM) }
            if (vo_is_C_var in varoptions) then
             stabstring := strpnew('"'+name+':S'+st+'",'+
@@ -1835,12 +1833,9 @@ implementation
   end;
 
     procedure tvarsym.concatstabto(asmlist : taasmoutput);
-{$ifdef i386}
       var stab_str : pchar;
-{$endif i386}
       begin
          inherited concatstabto(asmlist);
-{$ifdef i386}
       if (owner.symtabletype=parasymtable) and
          (reg<>R_NO) then
            begin
@@ -1849,10 +1844,9 @@ implementation
               stab_str:=strpnew('"'+name+':r'
                      +tstoreddef(vartype.def).numberstring+'",'+
                      tostr(N_RSYM)+',0,'+
-                     tostr(fileinfo.line)+','+tostr(GDB_i386index[reg]));
+                     tostr(fileinfo.line)+','+tostr(stab_regindex[reg]));
               asmList.concat(Tai_stabs.Create(stab_str));
            end;
-{$endif i386}
       end;
 {$endif GDB}
 
@@ -2672,7 +2666,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2002-08-11 14:32:28  peter
+  Revision 1.49  2002-08-12 15:08:40  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.48  2002/08/11 14:32:28  peter
     * renamed current_library to objectlibrary
 
   Revision 1.47  2002/08/11 13:24:14  peter

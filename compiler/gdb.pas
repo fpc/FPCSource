@@ -81,78 +81,7 @@ Const
        DBX_counter : plongint = nil;
        do_count_dbx : boolean = false;
 
-{$ifdef i386}
-           { this is the register order for GDB }
-           { this is indeed the internal order of
-             registers in GDB, but as we use STABS,
-             the values are converted using
-             i386_stab_reg_to_regnum from i386_tdep.c PM }
-           { 0 "eax",   "ecx",    "edx",   "ebx",     \
-             4 "esp",   "ebp",    "esi",   "edi",        \
-             8 "eip",   "eflags", "cs",    "ss",        \
-             12 "ds",    "es",     "fs",    "gs",        \
-             16 "st0",   "st1",    "st2",   "st3",        \
-             20 "st4",   "st5",    "st6",   "st7",        \
-             24 "fctrl", "fstat",  "ftag",  "fiseg",        \
-             28 "fioff", "foseg",  "fooff", "fop",     \
-             32 "xmm0",  "xmm1",   "xmm2",  "xmm3",        \
-             36 "xmm4",  "xmm5",   "xmm6",  "xmm7",        \
-             40 "mxcsr"                                \
-           }
-  { tregister = (R_NO,
-    R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
-    R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
-    R_AL,R_CL,R_DL,R_BL,R_AH,R_CH,R_BH,R_DH,
-    R_CS,R_DS,R_ES,R_SS,R_FS,R_GS,
-    R_ST,R_ST0,R_ST1,R_ST2,R_ST3,R_ST4,R_ST5,R_ST6,R_ST7,
-    R_DR0,R_DR1,R_DR2,R_DR3,R_DR6,R_DR7,
-    R_CR0,R_CR2,R_CR3,R_CR4,
-    R_TR3,R_TR4,R_TR5,R_TR6,R_TR7,
-    R_MM0,R_MM1,R_MM2,R_MM3,R_MM4,R_MM5,R_MM6,R_MM7,
-    R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7
-  ); }
 
-    { So here we need to use the stabs numbers PM }
-           GDB_i386index : array[tregister] of shortint =(-1,
-          0,1,2,3,4,5,6,7,
-          0,1,2,3,4,5,6,7,
-          0,1,2,3,0,1,2,3,
-          -1,-1,-1,-1,-1,-1,
-          12,12,13,14,15,16,17,18,19,
-          -1,-1,-1,-1,-1,-1,
-          -1,-1,-1,-1,
-          -1,-1,-1,-1,-1,
-          { I think, GDB doesn't know MMX (FK)
-            GDB does not, but stabs does PM }
-          29,30,31,32,33,34,35,36,
-          21,22,23,24,25,26,27,28
-        );
-{$endif i386}
-{$ifdef m68k}
-           { "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
-             "a0", "a1", "a2", "a3", "a4", "a5", "fp", "sp",
-             "ps", "pc", "fp0", "fp1", "fp2", "fp3", "fp4" ,
-             "fp5", "fp6", "fp7", "fpcontrol", "fpstatus",
-             "fpiaddr","fpcode","fpflags"
-           }
-        { this is the register order for GDB }
-        GDB_m68kindex : array[tregister] of shortint =
-        (-1,                 { R_NO }
-          0,1,2,3,4,5,6,7,   { R_D0..R_D7 }
-          8,9,10,11,12,13,14,15,  { R_A0..R_A7 }
-          -1,-1,-1,                { R_SPPUSH, R_SPPULL, R_CCR }
-          18,19,20,21,22,23,24,25, { R_FP0..R_FP7    }
-          -1,-1,-1,-1,-1,-1,-1,-1
-        );
-{$endif}
-{$IFDEF SPARC}
-        GDB_SPARC_index:ARRAY[tregister]OF ShortInt=(0,0,0,0,0,0,0,0,0,0,0,0,0,
-          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-          0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
-{$ENDIF SPARC}
   implementation
 
 { to use N_EXCL we have to count the character in the stabs for
@@ -304,7 +233,14 @@ end.
 
 {
   $Log$
-  Revision 1.14  2002-07-01 18:46:22  peter
+  Revision 1.15  2002-08-12 15:08:39  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.14  2002/07/01 18:46:22  peter
     * internal linker
     * reorganized aasm layer
 

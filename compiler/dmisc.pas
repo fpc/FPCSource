@@ -38,6 +38,10 @@ uses
 {$endif}
   sysutils;
 
+{$ifdef VER100}
+   type int64 = longint;
+{$endif}
+
 Const
   Max_Path = 255;
 
@@ -836,7 +840,14 @@ End;
 end.
 {
   $Log$
-  Revision 1.9  2002-05-18 13:34:07  peter
+  Revision 1.10  2002-08-12 15:08:39  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.9  2002/05/18 13:34:07  peter
     * readded missing revisions
 
   Revision 1.8  2002/05/16 19:46:36  carl

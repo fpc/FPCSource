@@ -86,7 +86,7 @@ uses
          { (this may include 68040 mmu instructions)          }
          a_frestore,a_fsave,a_pflush,a_pflusha,a_pload,a_pmove,a_ptest,
          { useful for assembly langage output }
-         a_label,a_none);
+         a_label,a_none,a_dbxx,a_setxx,a_bxx,a_fbxx);
 
       {# This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[8];
@@ -109,9 +109,7 @@ uses
          R_SPPUSH,R_SPPULL,
          { misc. }
          R_CCR,R_FP0,R_FP1,R_FP2,R_FP3,R_FP4,R_FP5,R_FP6,
-         R_FP7,R_FPCR,R_SR,R_SSP,R_DFC,R_SFC,R_VBR,R_FPSR,
-         { other - not used in reg2str }
-         R_DEFAULT_SEG);
+         R_FP7,R_FPCR,R_SR,R_SSP,R_DFC,R_SFC,R_VBR,R_FPSR);
 
       {# Set type definition for registers }
       tregisterset = set of tregister;
@@ -150,88 +148,36 @@ uses
        'fp6','fp7','fpcr','sr','ssp','dfc',
        'sfc','vbr','fpsr');
        
-     mit_reg2str : reg2strtable =
-      ('', 'd0','d1','d2','d3','d4','d5','d6','d7',
-       'a0','a1','a2','a3','a4','a5','a6','sp',
-       'sp@-','sp@+',
-       'ccr','fp0','fp1','fp2','fp3','fp4','fp5',
-       'fp6','fp7','fpcr','sr','ssp','dfc',
-       'sfc','vbr','fpsr');
-       
+{*****************************************************************************
+                                Conditions
+*****************************************************************************}
 
 {*****************************************************************************
                                 Conditions
 *****************************************************************************}
 
     type
-      TAsmCondFlag = (C_None { unconditional jumps },
-        { conditions when not using ctr decrement etc }
-        C_LT,C_LE,C_EQ,C_GE,C_GT,C_NL,C_NE,C_NG,C_SO,C_NS,C_UN,C_NU,
-        { conditions when using ctr decrement etc }
-        C_T,C_F,C_DNZ,C_DNZT,C_DNZF,C_DZ,C_DZT,C_DZF);
+      TAsmCond=(C_None,
+         C_CC,C_LS,C_CS,C_LT,C_EQ,C_MI,C_F,C_NE,
+         C_GE,C_PL,C_GT,C_T,C_HI,C_VC,C_LE,C_VS
+      );   
+        
 
     const
-      { these are in the XER, but when moved to CR_x they correspond with the }
-      { bits below (still needs to be verified!!!)                            }
-      C_OV = C_EQ;
-      C_CA = C_GT;
-
-    type
-      TAsmCond = packed record
-                   case simple: boolean of
-                     false: (BO, BI: byte);
-                     true: (
-                       cond: TAsmCondFlag;
-                       case byte of
-                         0: ();
-                         { specifies in which part of the cr the bit has to be }
-                         { tested for blt,bgt,beq,..,bnu                       }
-                         1: (cr: R_CR0..R_CR7);
-                         { specifies the bit to test for bt,bf,bdz,..,bdzf }
-                         2: (crbit: byte)
-                       );
-                 end;
-
-    const
-      AsmCondFlag2BO: Array[C_T..C_DZF] of Byte =
-        (12,4,16,8,0,18,10,2);
-
-      AsmCondFlag2BI: Array[C_LT..C_NU] of Byte =
-        (0,1,2,0,1,0,2,1,3,3,3,3);
-
-      AsmCondFlagTF: Array[TAsmCondFlag] of Boolean =
-        (false,true,false,true,false,true,false,false,false,true,false,true,false,
-         true,false,false,true,false,false,true,false);
-
-      AsmCondFlag2Str: Array[TAsmCondFlag] of string[4] = ({cf_none}'',
-        { conditions when not using ctr decrement etc}
-        'lt','le','eq','ge','gt','nl','ne','ng','so','ns','un','nu',
-        't','f','dnz','dzt','dnzf','dz','dzt','dzf');
-
-    const
-      CondAsmOps=3;
-      CondAsmOp:array[0..CondAsmOps-1] of TasmOp=(
-         A_BC, A_TW, A_TWI
+      cond2str:array[TAsmCond] of string[3]=('',
+        'cc','ls','cs','lt','eq','mi','f','ne',
+        'ge','pl','gt','t','hi','vc','le','vs'
       );
+
 
 {*****************************************************************************
                                    Flags
 *****************************************************************************}
 
     type
-      TResFlagsEnum = (F_EQ,F_NE,F_LT,F_LE,F_GT,F_GE,F_SO,F_FX,F_FEX,F_VX,F_OX);
-      TResFlags = record
-        cr: R_CR0..R_CR7;
-        flag: TResFlagsEnum;
-      end;
-
-    (*
-    const
-      { arrays for boolean location conversions }
-
-      flag_2_cond : array[TResFlags] of TAsmCond =
-         (C_E,C_NE,C_LT,C_LE,C_GT,C_GE,???????????????);
-    *)
+      TResFlags = (
+          F_E,F_NE,
+          F_G,F_L,F_GE,F_LE,F_C,F_NC,F_A,F_AE,F_B,F_BE);
 
 {*****************************************************************************
                                 Reference
@@ -244,11 +190,9 @@ uses
       {              (An)     (An)+   -(An)  }
       tdirection = (dir_none,dir_inc,dir_dec);
       
-
       { reference record }
       preference = ^treference;
       treference = packed record
-         segment,
          base,
          index       : tregister;
          scalefactor : byte;
@@ -265,15 +209,19 @@ uses
       pparareference = ^tparareference;
       tparareference = packed record
          index       : tregister;
-         offset      : aword;
+         offset      : longint;
       end;
+      
 
+      
 {*****************************************************************************
                                 Operands
 *****************************************************************************}
 
       { Types of operand }
-      toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
+      toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_reglist);
+
+      tregisterlist = set of tregister;
 
       toper=record
         ot  : longint;
@@ -283,6 +231,8 @@ uses
          top_ref    : (ref:preference);
          top_const  : (val:aword);
          top_symbol : (sym:tasmsymbol;symofs:longint);
+         { used for pushing/popping multiple registers }
+         top_reglist : (registerlist : tregisterlist);
       end;
 
 {*****************************************************************************
@@ -300,9 +250,7 @@ uses
         LOC_REGISTER,     { in a processor register }
         LOC_CREGISTER,    { Constant register which shouldn't be modified }
         LOC_FPUREGISTER,  { FPU stack }
-        LOC_CFPUREGISTER, { if it is a FPU register variable on the fpu stack }
-        LOC_MMXREGISTER,  { MMX register }
-        LOC_CMMXREGISTER, { MMX register variable }
+        LOC_CFPUREGISTER  { if it is a FPU register variable on the fpu stack }
       );
 
       { tparamlocation describes where a parameter for a procedure is stored.
@@ -324,8 +272,6 @@ uses
                 3 : (reg64 : tregister64);
                 4 : (register64 : tregister64);
               );
-            { it's only for better handling }
-            LOC_MMXREGISTER,LOC_CMMXREGISTER : (mmxreg : tregister);
       end;
 
       tlocation = packed record
@@ -352,27 +298,8 @@ uses
                 3 : (reg64 : tregister64);
                 4 : (register64 : tregister64);
               );
-            { it's only for better handling }
-            LOC_MMXREGISTER,LOC_CMMXREGISTER : (mmxreg : tregister);
       end;
 
-{*****************************************************************************
-                                Operand
-*****************************************************************************}
-
-    type
-      toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_bool);
-
-      toper=record
-        ot  : longint;
-        case typ : toptype of
-         top_none   : ();
-         top_reg    : (reg:tregister);
-         top_ref    : (ref:^treference);
-         top_const  : (val:aword);
-         top_symbol : (sym:tasmsymbol;symofs:longint);
-         top_bool  :  (b: boolean);
-      end;
 
 {*****************************************************************************
                                 Operand Sizes
@@ -393,10 +320,10 @@ uses
 *****************************************************************************}
 
     const
-      max_operands = 5;
+      {# maximum number of operands in assembler instruction }
+      max_operands = 4;
 
-      lvaluelocations = [LOC_REFERENCE, LOC_CREGISTER, LOC_CFPUREGISTER,
-                         LOC_CMMREGISTER];
+      lvaluelocations = [LOC_REFERENCE,LOC_CFPUREGISTER,LOC_CREGISTER];
 
       {# Constant defining possibly all registers which might require saving }
       ALL_REGISTERS = [R_D1..R_FPCR];
@@ -411,7 +338,7 @@ uses
       {# low and high of every possible width general purpose register (same as }
       { above on most architctures apart from the 80x86)                        }
       LoReg = LoGPReg;
-      HiReg = HighGPReg;
+      HiReg = HiGPReg;
 
       { Table of registers which can be allocated by the code generator
          internally, when generating the code.
@@ -522,6 +449,28 @@ uses
       {# the size of a vector register for a processor     }
       OS_VECTOR = OS_M128;
 
+
+{*****************************************************************************
+                               GDB Information
+*****************************************************************************}
+
+      {# Register indexes for stabs information, when some
+         parameters or variables are stored in registers.
+         
+         Taken from m68kelf.h (DBX_REGISTER_NUMBER)
+         from GCC 3.x source code. 
+         
+         This is not compatible with the m68k-sun 
+         implementation.
+      }   
+          stab_regindex : array[tregister] of shortint =
+        (-1,                 { R_NO }
+          0,1,2,3,4,5,6,7,   { R_D0..R_D7 }
+          8,9,10,11,12,13,14,15,  { R_A0..R_A7 }
+          -1,-1,-1,                { R_SPPUSH, R_SPPULL, R_CCR }
+          18,19,20,21,22,23,24,25, { R_FP0..R_FP7    }
+          -1,-1,-1,-1,-1,-1,-1);
+
 {*****************************************************************************
                           Generic Register names
 *****************************************************************************}
@@ -534,15 +483,17 @@ uses
          object or class. }
       self_pointer_reg  = R_A5;
       {# Register for addressing absolute data in a position independant way,
-         such as in PIC code. The exact meaning is ABI specific }
+         such as in PIC code. The exact meaning is ABI specific. For
+         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
+      }
       pic_offset_reg = R_A5;
       {# Results are returned in this register (32-bit values) }
       accumulator   = R_D0;
       {# Hi-Results are returned in this register (64-bit value high register) }
       accumulatorhigh = R_D1;
-      { Floating point results will be placed into this register }
+      {# Floating point results will be placed into this register }
       FPU_RESULT_REG = R_FP0;
-      mmresultreg = R_N0;
+      mmresultreg = R_NO;
 
 {*****************************************************************************
                        GCC /ABI linking information
@@ -577,10 +528,7 @@ uses
     function  is_calljmp(o:tasmop):boolean;
 
     procedure inverse_flags(var r : TResFlags);
-    procedure inverse_cond(const c: TAsmCond;var r : TAsmCond);
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
-    procedure create_cond_imm(BO,BI:byte;var r : TAsmCond);
-    procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
 
 
 implementation
@@ -594,37 +542,33 @@ implementation
 
     function is_calljmp(o:tasmop):boolean;
       begin
+        is_calljmp := false;
+        if o in [A_BXX,A_FBXX,A_DBXX,A_BCC..A_BVS,A_DBCC..A_DBVS,A_FBEQ..A_FSNGLE,
+          A_JSR,A_BSR,A_JMP] then
+           is_calljmp := true;
       end;
-
 
     procedure inverse_flags(var r: TResFlags);
       begin
       end;
 
 
-    procedure inverse_cond(const c: TAsmCond;var r : TAsmCond);
-      begin
-      end;
-
 
     function flags_to_cond(const f: TResFlags) : TAsmCond;
-      begin
-      end;
-
-
-    procedure create_cond_imm(BO,BI:byte;var r : TAsmCond);
-      begin
-      end;
-
-
-    procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
       begin
       end;
 
 end.
 {
   $Log$
-  Revision 1.3  2002-07-29 17:51:32  carl
+  Revision 1.4  2002-08-12 15:08:44  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.3  2002/07/29 17:51:32  carl
     + restart m68k support
 
 

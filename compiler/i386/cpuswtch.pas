@@ -37,7 +37,7 @@ type
 implementation
 
 uses
-  cutils,globtype,systems,globals;
+  cutils,globtype,systems,globals,cpuinfo;
 
 procedure toption386.interpret_proc_specific_options(const opt:string);
 var
@@ -129,7 +129,14 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2002-08-10 14:47:50  carl
+  Revision 1.9  2002-08-12 15:08:42  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.8  2002/08/10 14:47:50  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's

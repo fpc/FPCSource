@@ -497,7 +497,7 @@ end;
 
 initialization
 {$ifdef i386}
-  RegisterLinker(ld_i386_freebsd,TLinkerFreeBSD);
+  RegisterExternalLinker(system_i386_FreeBSD_info,TLinkerFreeBSD);
   RegisterImport(system_i386_freebsd,timportlibfreebsd);
   RegisterExport(system_i386_freebsd,texportlibfreebsd);
   RegisterTarget(system_i386_freebsd_info);
@@ -506,7 +506,7 @@ initialization
   RegisterTarget(system_i386_netbsd_info);
 {$endif i386}
 {$ifdef m68k}
-  RegisterLinker(ld_m68k_freebsd,TLinkerFreeBSD);
+  RegisterExternalLinker(system_m68k_FreeBSD_info,TLinkerFreeBSD);
   RegisterImport(system_m68k_netbsd,timportlibfreebsd);
   RegisterExport(system_m68k_netbsd,texportlibfreebsd);
   RegisterTarget(system_m68k_netbsd_info);
@@ -514,7 +514,14 @@ initialization
 end.
 {
   $Log$
-  Revision 1.27  2002-08-11 14:32:32  peter
+  Revision 1.28  2002-08-12 15:08:44  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.27  2002/08/11 14:32:32  peter
     * renamed current_library to objectlibrary
 
   Revision 1.26  2002/08/11 13:24:19  peter

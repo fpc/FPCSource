@@ -1442,7 +1442,7 @@ implementation
         {$IFDEF testvarsets}
          initsetalloc:=0;
         {$ENDIF}
-        initasmmode:=asmmode_m68k_mot;
+        initasmmode:=asmmode_standard;
 {$endif m68k}
 {$ifdef powerpc}
         initoptprocessor:=PPC604;
@@ -1480,7 +1480,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2002-08-10 14:46:29  carl
+  Revision 1.64  2002-08-12 15:08:39  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.63  2002/08/10 14:46:29  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's

@@ -157,7 +157,12 @@ unit paramgr;
          hp:=tparaitem(p.para.first);
          while assigned(hp) do
            begin
-              if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) and
+{$ifdef SUPPORT_MMX}           
+              if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,
+                 LOC_MMREGISTER]) and
+{$else}
+              if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
+{$endif}
               { if the parameter isn't regable, we've to work with the local copy }
                 ((vo_regable in tvarsym(hp.parasym).varoptions) or
                  (vo_fpuregable in tvarsym(hp.parasym).varoptions)) then
@@ -167,8 +172,10 @@ unit paramgr;
                        hp.paraloc.loc := LOC_CREGISTER;
                      LOC_FPUREGISTER:
                        hp.paraloc.loc := LOC_CFPUREGISTER;
+{$ifdef SUPPORT_MMX}                       
                      LOC_MMREGISTER:
                        hp.paraloc.loc := LOC_CMMREGISTER;
+{$endif}                       
                    end;
                    tvarsym(hp.parasym).reg:=hp.paraloc.register;
                    rg.regvar_loaded[hp.paraloc.register]:=true;
@@ -183,7 +190,14 @@ end.
 
 {
    $Log$
-   Revision 1.10  2002-08-10 17:15:20  jonas
+   Revision 1.11  2002-08-12 15:08:40  carl
+     + stab register indexes for powerpc (moved from gdb to cpubase)
+     + tprocessor enumeration moved to cpuinfo
+     + linker in target_info is now a class
+     * many many updates for m68k (will soon start to compile)
+     - removed some ifdef or correct them for correct cpu
+
+   Revision 1.10  2002/08/10 17:15:20  jonas
      * register parameters are now LOC_CREGISTER instead of LOC_REGISTER
 
    Revision 1.9  2002/08/09 07:33:02  florian

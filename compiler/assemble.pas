@@ -52,7 +52,7 @@ interface
        AsmOutSize=32768;
 
     type
-      TAssembler=class
+      TAssembler=class(TAbstractAssembler)
       public
       {filenames}
         path     : pathstr;
@@ -259,13 +259,7 @@ Implementation
       begin
         DoPipe:=(cs_asm_pipe in aktglobalswitches) and
                 not(cs_asm_leave in aktglobalswitches)
-{$ifdef i386}
-                and ((aktoutputformat=as_i386_as));
-{$endif i386}
-{$ifdef m68k}
-                and ((aktoutputformat=as_m68k_as) or
-                     (aktoutputformat=as_m68k_asbsd));
-{$endif m68k}
+                and ((aktoutputformat=as_gas));
       end;
 
 
@@ -1598,7 +1592,14 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.41  2002-08-11 14:32:26  peter
+  Revision 1.42  2002-08-12 15:08:39  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.41  2002/08/11 14:32:26  peter
     * renamed current_library to objectlibrary
 
   Revision 1.40  2002/08/11 13:24:10  peter

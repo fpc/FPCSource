@@ -836,7 +836,6 @@ implementation
             supported_target : system_any;  //target_i386_linux;
             outputbinary : true;
             allowdirect : false;
-            externals : true;
             needar : false;
             labelprefix_only_inside_procedure: false;
             labelprefix : '.L';
@@ -853,7 +852,14 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2002-07-26 21:15:39  florian
+  Revision 1.18  2002-08-12 15:08:39  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.17  2002/07/26 21:15:39  florian
     * rewrote the system handling
 
   Revision 1.16  2002/07/01 18:46:24  peter

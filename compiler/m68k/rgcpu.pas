@@ -52,7 +52,7 @@ unit rgcpu;
   implementation
 
     uses
-      cgobj;
+      cgobj,tgobj,cpuinfo;
 
      procedure trgcpu.ungetaddressregister(list: taasmoutput; r: tregister);
        begin
@@ -74,7 +74,7 @@ unit rgcpu;
        end;
        
        
-    procedure trgobj.resetusableregisters;
+    procedure trgcpu.resetusableregisters;
 
       begin
         inherited resetusableregisters;
@@ -84,13 +84,13 @@ unit rgcpu;
       end;
        
        
-    procedure trgobj.restoreusedregisters(list : taasmoutput;
+    procedure trgcpu.restoreusedregisters(list : taasmoutput;
         const saved : tpushedsaved);
       var
          r : tregister;
          hr : treference;
      begin
-        inherited restoreusedregister(list, saved, s);
+        inherited restoreusedregisters(list, saved);
 
         for r:=lastsaveaddrreg downto firstsaveaddrreg do
           begin
@@ -111,11 +111,11 @@ unit rgcpu;
                   end;
                 tg.ungetpersistanttemp(list,hr.offset);
               end;
-        
+          end;
      end;
 
 
-     procedure trgobj.saveusedregisters(list: taasmoutput;
+     procedure trgcpu.saveusedregisters(list: taasmoutput;
         var saved : tpushedsaved; const s: tregisterset);
       var
          r : tregister;
@@ -151,7 +151,14 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-08-05 17:26:09  carl
+  Revision 1.2  2002-08-12 15:08:44  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.1  2002/08/05 17:26:09  carl
     + updated m68k
 
 }

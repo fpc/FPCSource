@@ -57,82 +57,82 @@ uses
 { For the operating system the object numbers have no special meaning.
   However, for Free Pascal generated executables, I define: (DM)}
 
-const	code_object	= 0;
-	data_object	= 1;
-	bss_object	= 2;
-	stack_object	= 3;
-	heap_object	= 4;
+const   code_object = 0;
+    data_object = 1;
+    bss_object  = 2;
+    stack_object    = 3;
+    heap_object = 4;
 
 type    Tlxheader = packed record
-	    magic:word;				{'LX'}
-	    byteorder:byte;			{0 = little 1 = big endian.}
-	    wordorder:byte;			{0 = little 1 = big endian.}
-	    format_level:cardinal;		{Nothing else than LX level
-						 0 has ever been defined.}
-	    cpu_type:word;			{1 = 286, 2 = 386, 3 = 486,
-						 4 = pentium.}
-	    os_type:word;			{1 = OS/2, 2 = Windows,
-						 3 = Siemens MS-Dos 4.0,
-						 4 = Windows 386.}
-	    module_version:cardinal;		{Version of executable,
-						 defined by user.}
-	    module_flags:cardinal;		{Flags.}
-	    module_page_count:cardinal;		{Amount of pages in module.}
-	    eip_object,eip:cardinal;		{Initial EIP, object nr and
-						 offset within object.}
-	    esp_object,esp:cardinal;		{Initial ESP, object nr and
-						 offset within object.}
-	    page_size,page_shift:cardinal;	{Page size, in bytes and
-						 1 << pageshift.}
-	    fixup_sect_size:cardinal;
-	    fixup_sect_checksum:cardinal;
-	    loader_sect_size:cardinal;
-	    loader_sect_chksum:cardinal;
-	    object_table_offset:cardinal;	{Location of object table.}
-	    object_count:cardinal;		{Amount of objects in module.}
-	    object_pagetable_ofs:cardinal;	{Location of object page
-						 table.}
-	    object_iterpages_ofs:cardinal;
-	    resource_table_ofs:cardinal;	{Location of resource table.}
-	    resource_count:cardinal;		{Amount of resources in
-						 resource table.}
-	    resid_name_tbl_ofs:cardinal;
-	    entry_table_offset:cardinal;
-	    module_dir_offset:cardinal;
-	    module_dir_count:cardinal;
-	    fixup_pagetab_ofs:cardinal;
-	    fixup_recrab_ofs:cardinal;
-	    import_modtab_ofs:cardinal;
-	    import_modtab_count:cardinal;
-	    data_pages_offset:cardinal;
-	    preload_page_count:cardinal;
-	    nonresid_table_ofs:cardinal;
-	    nonresid_table_len:cardinal;
-	    nonresid_tbl_chksum:cardinal;
-	    auto_ds_object_no:cardinal;		{Not used by OS/2.}
-	    debug_info_offset:cardinal;
-	    inst_preload_count:cardinal;
-	    inst_demand_count:cardinal;
-	    heapsize:cardinal;			{Only used for 16-bit programs.}
-	end;
-	
-	Tlxobject_flags = (ofreadable,ofwriteable,ofexecutable,ofresource,
-			   ofdiscardable,ofshared,ofpreload,ofinvalid,
-			   ofzerofilled);
-	Tlxobject_flag_set = set of Tlxobject_flags;
-	
-	Tlxobject_table_entry = packed record
-	    virtual_size:cardinal;
-	    reloc_base_addr:cardinal;
-	    object_flags:Tlxobject_flag_set;
-	    page_table_index:cardinal;
-	    page_count:cardinal;
-	    reserved:cardinal;
-	end;
+        magic:word;             {'LX'}
+        byteorder:byte;         {0 = little 1 = big endian.}
+        wordorder:byte;         {0 = little 1 = big endian.}
+        format_level:cardinal;      {Nothing else than LX level
+                         0 has ever been defined.}
+        cpu_type:word;          {1 = 286, 2 = 386, 3 = 486,
+                         4 = pentium.}
+        os_type:word;           {1 = OS/2, 2 = Windows,
+                         3 = Siemens MS-Dos 4.0,
+                         4 = Windows 386.}
+        module_version:cardinal;        {Version of executable,
+                         defined by user.}
+        module_flags:cardinal;      {Flags.}
+        module_page_count:cardinal;     {Amount of pages in module.}
+        eip_object,eip:cardinal;        {Initial EIP, object nr and
+                         offset within object.}
+        esp_object,esp:cardinal;        {Initial ESP, object nr and
+                         offset within object.}
+        page_size,page_shift:cardinal;  {Page size, in bytes and
+                         1 << pageshift.}
+        fixup_sect_size:cardinal;
+        fixup_sect_checksum:cardinal;
+        loader_sect_size:cardinal;
+        loader_sect_chksum:cardinal;
+        object_table_offset:cardinal;   {Location of object table.}
+        object_count:cardinal;      {Amount of objects in module.}
+        object_pagetable_ofs:cardinal;  {Location of object page
+                         table.}
+        object_iterpages_ofs:cardinal;
+        resource_table_ofs:cardinal;    {Location of resource table.}
+        resource_count:cardinal;        {Amount of resources in
+                         resource table.}
+        resid_name_tbl_ofs:cardinal;
+        entry_table_offset:cardinal;
+        module_dir_offset:cardinal;
+        module_dir_count:cardinal;
+        fixup_pagetab_ofs:cardinal;
+        fixup_recrab_ofs:cardinal;
+        import_modtab_ofs:cardinal;
+        import_modtab_count:cardinal;
+        data_pages_offset:cardinal;
+        preload_page_count:cardinal;
+        nonresid_table_ofs:cardinal;
+        nonresid_table_len:cardinal;
+        nonresid_tbl_chksum:cardinal;
+        auto_ds_object_no:cardinal;     {Not used by OS/2.}
+        debug_info_offset:cardinal;
+        inst_preload_count:cardinal;
+        inst_demand_count:cardinal;
+        heapsize:cardinal;          {Only used for 16-bit programs.}
+    end;
+    
+    Tlxobject_flags = (ofreadable,ofwriteable,ofexecutable,ofresource,
+               ofdiscardable,ofshared,ofpreload,ofinvalid,
+               ofzerofilled);
+    Tlxobject_flag_set = set of Tlxobject_flags;
+    
+    Tlxobject_table_entry = packed record
+        virtual_size:cardinal;
+        reloc_base_addr:cardinal;
+        object_flags:Tlxobject_flag_set;
+        page_table_index:cardinal;
+        page_count:cardinal;
+        reserved:cardinal;
+    end;
 
-	Tlxexeoutput = class(texeoutput)
-	private
-{       	FCoffsyms,
+    Tlxexeoutput = class(texeoutput)
+    private
+{           FCoffsyms,
          FCoffStrs : tdynamicarray;
          win32   : boolean;}
          nsects,
@@ -308,12 +308,12 @@ uses
       end;
 
 function gen_section_header(sec:Tsection;obj:cardinal):Tlxobject_table_entry;
-	    virtual_size:cardinal;
-	    reloc_base_addr:cardinal;
-	    object_flags:Tlxobject_flag_set;
-	    page_table_index:cardinal;
-	    page_count:cardinal;
-	    reserved:cardinal;
+        virtual_size:cardinal;
+        reloc_base_addr:cardinal;
+        object_flags:Tlxobject_flag_set;
+        page_table_index:cardinal;
+        page_count:cardinal;
+        reserved:cardinal;
 
 begin
     gen_section_header.virtual_size:=sections[sec.memsize];
@@ -331,29 +331,29 @@ var header:Tlxheader;
 begin
     result:=false;
     fillchar(header,sizeof(header),0);
-    header.magic:=$584c;		{'LX'}
-    header.cpu_type:=2;			{Intel 386}
-    header.os_type:=1;			{OS/2}
+    header.magic:=$584c;        {'LX'}
+    header.cpu_type:=2;         {Intel 386}
+    header.os_type:=1;          {OS/2}
     {Set the initial EIP.}
     header.eip_object:=code_object;
     hsym:=tasmsymbol(globalsyms.search('start'));
     if not assigned(hsym) then
-	begin
-	    comment(V_Error,'Entrypoint "start" not defined');
-	    exit;
-	end;
+    begin
+        comment(V_Error,'Entrypoint "start" not defined');
+        exit;
+    end;
     header.eip:=hsym.address-sections[sec_code].mempos;
     {Set the initial ESP.}
     header.esp_object:=stack_object;
     header.esp:=stacksize;
     Fwriter.write(header,sizeof(header));
     for sec:=low(Tsection) to high(Tsection) do
-	if sections[sec].available then
-	    if not(sec in [sec_code,sec_data,sec_bss,sec_stab,sec_stabstr]) then
-	        begin
-		    result:=false;
-		    exit;
-		end;
+    if sections[sec].available then
+        if not(sec in [sec_code,sec_data,sec_bss,sec_stab,sec_stabstr]) then
+            begin
+            result:=false;
+            exit;
+        end;
     code_object_header:=gen_section_header(sec_code,code_object);
     data_object_header:=gen_section_header(sec_data,data_object);
     bss_object_header:=gen_section_header(sec_bss,bss_object);
@@ -393,13 +393,20 @@ end;
 begin
 {  RegisterAssembler(as_i386_coff_info,TCoffAssembler);
   RegisterAssembler(as_i386_pecoff_info,TPECoffAssembler);
-  RegisterAssembler(as_i386_pecoffwdosx_info,TPECoffAssembler);}
+  RegisterAssembler(as_i386_pecoffwdosx_info,TPECoffAssembler);
 
-  RegisterLinker(ld_i386_coff,Tlxlinker);
+  RegisterLinker(ld_i386_coff,Tlxlinker);}
 end.
 {
   $Log$
-  Revision 1.3  2002-07-14 18:00:44  daniel
+  Revision 1.4  2002-08-12 15:08:40  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.3  2002/07/14 18:00:44  daniel
   + Added the beginning of a state tracker. This will track the values of
     variables through procedures and optimize things away.
 

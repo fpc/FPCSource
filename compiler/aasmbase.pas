@@ -298,6 +298,7 @@ implementation
           inherited create(target_asm.labelprefix+tostr(labelnr),AB_LOCAL,AT_DATA);
         is_set:=false;
         is_addr := false;
+        proclocal := false;
         { write it always }
         refs:=1;
       end;
@@ -839,7 +840,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-08-11 14:32:25  peter
+  Revision 1.6  2002-08-12 15:08:39  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.5  2002/08/11 14:32:25  peter
     * renamed current_library to objectlibrary
 
   Revision 1.4  2002/08/11 13:24:10  peter

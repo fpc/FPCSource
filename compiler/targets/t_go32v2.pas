@@ -33,7 +33,7 @@ implementation
     uses
        link,
        cutils,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_go32v2;
+       globtype,globals,systems,verbose,script,fmodule,i_go32v2,ogcoff;
 
   type
     tlinkergo32v2=class(texternallinker)
@@ -356,12 +356,20 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterLinker(ld_i386_go32v2,TLinkerGo32v2);
+  RegisterExternalLinker(system_i386_go32v2_info,TLinkerGo32v2);
+  RegisterInternalLinker(system_i386_go32v2_info,TCoffLinker);
   RegisterTarget(system_i386_go32v2_info);
 end.
 {
   $Log$
-  Revision 1.24  2002-07-26 21:15:46  florian
+  Revision 1.25  2002-08-12 15:08:44  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.24  2002/07/26 21:15:46  florian
     * rewrote the system handling
 
   Revision 1.23  2002/07/01 18:46:35  peter

@@ -28,7 +28,7 @@ Interface
 
 Uses
   cutils,cclasses,
-  globtype,aasmbase,aasmtai,cpubase,
+  globtype,aasmbase,aasmtai,cpubase,cpuinfo,
   symconst,symbase,symtype,symdef;
 
 Const
@@ -219,7 +219,7 @@ uses
   defbase,systems,verbose,globals,
   symsym,symtable,paramgr,
   aasmcpu,
-  cpuinfo,cgbase;
+  cgbase;
 
 {*************************************************************************
                               TExprParse
@@ -1592,7 +1592,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.40  2002-08-11 14:32:27  peter
+  Revision 1.41  2002-08-12 15:08:40  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.40  2002/08/11 14:32:27  peter
     * renamed current_library to objectlibrary
 
   Revision 1.39  2002/08/11 13:24:13  peter

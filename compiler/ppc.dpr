@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-program pp;
+program ppc;
 
 {$MINSTACKSIZE $00004000}
 {$MAXSTACKSIZE $00100000}
@@ -62,7 +62,7 @@ program pp;
   GDB;M68k;TP
 }
 
-{$i defines.inc}
+{$i fpcdefs.inc}
 
 {$ifdef FPC}
    {$ifndef GDB}
@@ -158,7 +158,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-11-13 15:43:07  marco
+  Revision 1.4  2002-08-12 15:08:40  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.3  2000/11/13 15:43:07  marco
    * Renamefest
 
   Revision 1.2  2000/09/24 15:06:24  peter

@@ -88,7 +88,7 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterLinker(ld_i386_wdosx,TLinkerWdosx);
+  RegisterExternalLinker(system_i386_wdosx_info,TLinkerWdosx);
   RegisterImport(system_i386_wdosx,TImportLibWdosx);
   RegisterExport(system_i386_wdosx,TExportLibWdosx);
   RegisterDLLScanner(system_i386_wdosx,TDLLScannerWdosx);
@@ -99,7 +99,14 @@ end.
 
 {
   $Log$
-  Revision 1.9  2002-07-26 21:15:46  florian
+  Revision 1.10  2002-08-12 15:08:44  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.9  2002/07/26 21:15:46  florian
     * rewrote the system handling
 
   Revision 1.8  2002/05/18 13:34:27  peter

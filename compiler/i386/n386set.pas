@@ -48,7 +48,7 @@ implementation
       aasmbase,aasmtai,aasmcpu,
       cginfo,cgbase,pass_2,
       ncon,
-      cpubase,
+      cpubase,cpuinfo,
       cga,cgobj,tgobj,ncgutil,regvars,rgobj;
 
      const
@@ -1023,7 +1023,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2002-08-11 14:32:30  peter
+  Revision 1.39  2002-08-12 15:08:42  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.38  2002/08/11 14:32:30  peter
     * renamed current_library to objectlibrary
 
   Revision 1.37  2002/08/11 13:24:17  peter

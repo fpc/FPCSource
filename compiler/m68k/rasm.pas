@@ -47,7 +47,7 @@ Interface
 Uses
   globtype,cpubase,tree;
 
-   function assemble: ptree;
+   function assemble: tnode;
 
 const
  { this variable is TRUE if the lookup tables have already been setup  }
@@ -636,7 +636,7 @@ var
         end;
         operands[operandnum]^.opr.ref.direction := dir_none;
         operands[operandnum]^.opr.typ := OPR_REFERENCE;
-        operands[operandnum]^.opr.ref.segment := R_DEFAULT_SEG;
+        operands[operandnum]^.opr.ref.segment := R_NO;
      end;
    end;
 
@@ -2218,7 +2218,14 @@ Begin
 end.
 {
   $Log$
-  Revision 1.3  2002-08-11 14:32:32  peter
+  Revision 1.4  2002-08-12 15:08:44  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.3  2002/08/11 14:32:32  peter
     * renamed current_library to objectlibrary
 
   Revision 1.2  2002/08/11 13:24:18  peter

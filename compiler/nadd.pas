@@ -34,9 +34,9 @@ interface
           constructor create(tt : tnodetype;l,r : tnode);override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
-	{$ifdef state_tracking}
-	  function track_state_pass(exec_known:boolean):boolean;override;
-	{$endif}
+    {$ifdef state_tracking}
+      function track_state_pass(exec_known:boolean):boolean;override;
+    {$endif}
          protected
           { override the following if you want to implement }
           { parts explicitely in the code generator (JM)    }
@@ -67,7 +67,7 @@ implementation
       {$ifdef state_tracking}
       nstate,
       {$endif}
-      cpubase;
+      cpubase,cpuinfo;
 
 
 {*****************************************************************************
@@ -101,8 +101,8 @@ implementation
          rv,lv   : tconstexprint;
          rvd,lvd : bestreal;
 {$ifdef state_tracking}
-	 factval : Tnode;
-	 change  : boolean;
+     factval : Tnode;
+     change  : boolean;
 {$endif}
 
       begin
@@ -486,120 +486,120 @@ implementation
                  exit;
                end;
 {$ifdef oldset}
-	      case nodetype of
-		addn :
-		   begin
-		      for i:=0 to 31 do
-		        resultset[i]:=tsetconstnode(right).value_set^[i] or tsetconstnode(left).value_set^[i];
-		      t:=csetconstnode.create(@resultset,left.resulttype);
-		   end;
-		muln :
-		   begin
-		      for i:=0 to 31 do
-		        resultset[i]:=tsetconstnode(right).value_set^[i] and tsetconstnode(left).value_set^[i];
-		      t:=csetconstnode.create(@resultset,left.resulttype);
-		   end;
-		subn :
-		   begin
-		      for i:=0 to 31 do
-		        resultset[i]:=tsetconstnode(left).value_set^[i] and not(tsetconstnode(right).value_set^[i]);
-		      t:=csetconstnode.create(@resultset,left.resulttype);
-		   end;
-		symdifn :
-		   begin
-		      for i:=0 to 31 do
-		        resultset[i]:=tsetconstnode(left).value_set^[i] xor tsetconstnode(right).value_set^[i];
-		      t:=csetconstnode.create(@resultset,left.resulttype);
-		   end;
-		unequaln :
-		   begin
-		      b:=true;
-		      for i:=0 to 31 do
-		       if tsetconstnode(right).value_set^[i]=tsetconstnode(left).value_set^[i] then
-		        begin
-		          b:=false;
-		          break;
-		        end;
-		      t:=cordconstnode.create(ord(b),booltype);
-		   end;
-		equaln :
-		   begin
-		      b:=true;
-		      for i:=0 to 31 do
-		       if tsetconstnode(right).value_set^[i]<>tsetconstnode(left).value_set^[i] then
-		        begin
-		          b:=false;
-		          break;
-	    		end;
-		      t:=cordconstnode.create(ord(b),booltype);
-		   end;
-		lten :
-		   begin
-		     b := true;
-		     for i := 0 to 31 Do
-		       if (tsetconstnode(right).value_set^[i] And tsetconstnode(left).value_set^[i]) <>
-		           tsetconstnode(left).value_set^[i] Then
-		         begin
-		           b := false;
-		           break
-		         end;
-		     t := cordconstnode.create(ord(b),booltype);
-		   end;
-	        gten :
+          case nodetype of
+        addn :
+           begin
+              for i:=0 to 31 do
+                resultset[i]:=tsetconstnode(right).value_set^[i] or tsetconstnode(left).value_set^[i];
+              t:=csetconstnode.create(@resultset,left.resulttype);
+           end;
+        muln :
+           begin
+              for i:=0 to 31 do
+                resultset[i]:=tsetconstnode(right).value_set^[i] and tsetconstnode(left).value_set^[i];
+              t:=csetconstnode.create(@resultset,left.resulttype);
+           end;
+        subn :
+           begin
+              for i:=0 to 31 do
+                resultset[i]:=tsetconstnode(left).value_set^[i] and not(tsetconstnode(right).value_set^[i]);
+              t:=csetconstnode.create(@resultset,left.resulttype);
+           end;
+        symdifn :
+           begin
+              for i:=0 to 31 do
+                resultset[i]:=tsetconstnode(left).value_set^[i] xor tsetconstnode(right).value_set^[i];
+              t:=csetconstnode.create(@resultset,left.resulttype);
+           end;
+        unequaln :
+           begin
+              b:=true;
+              for i:=0 to 31 do
+               if tsetconstnode(right).value_set^[i]=tsetconstnode(left).value_set^[i] then
+                begin
+                  b:=false;
+                  break;
+                end;
+              t:=cordconstnode.create(ord(b),booltype);
+           end;
+        equaln :
+           begin
+              b:=true;
+              for i:=0 to 31 do
+               if tsetconstnode(right).value_set^[i]<>tsetconstnode(left).value_set^[i] then
+                begin
+                  b:=false;
+                  break;
+                end;
+              t:=cordconstnode.create(ord(b),booltype);
+           end;
+        lten :
+           begin
+             b := true;
+             for i := 0 to 31 Do
+               if (tsetconstnode(right).value_set^[i] And tsetconstnode(left).value_set^[i]) <>
+                   tsetconstnode(left).value_set^[i] Then
+                 begin
+                   b := false;
+                   break
+                 end;
+             t := cordconstnode.create(ord(b),booltype);
+           end;
+            gten :
                    begin
-	             b := true;
-    		     for i := 0 to 31 Do
-            	       If (tsetconstnode(left).value_set^[i] And tsetconstnode(right).value_set^[i]) <>
-                	   tsetconstnode(right).value_set^[i] Then
+                 b := true;
+                 for i := 0 to 31 Do
+                       If (tsetconstnode(left).value_set^[i] And tsetconstnode(right).value_set^[i]) <>
+                       tsetconstnode(right).value_set^[i] Then
                          begin
-	                   b := false;
-    		           break
-    	                 end;
-            	     t := cordconstnode.create(ord(b),booltype);
-            	   end;
+                       b := false;
+                       break
+                         end;
+                     t := cordconstnode.create(ord(b),booltype);
+                   end;
               end;
 
 {$else}
               case nodetype of
                  addn :
-		    begin
-			resultset:=tsetconstnode(right).value_set^ + tsetconstnode(left).value_set^;
+            begin
+            resultset:=tsetconstnode(right).value_set^ + tsetconstnode(left).value_set^;
                         t:=csetconstnode.create(@resultset,left.resulttype);
-		    end;
+            end;
                  muln :
-		    begin
-			resultset:=tsetconstnode(right).value_set^ * tsetconstnode(left).value_set^;
+            begin
+            resultset:=tsetconstnode(right).value_set^ * tsetconstnode(left).value_set^;
                         t:=csetconstnode.create(@resultset,left.resulttype);
-		    end;
+            end;
                  subn :
-		    begin
-			resultset:=tsetconstnode(left).value_set^ - tsetconstnode(right).value_set^;
+            begin
+            resultset:=tsetconstnode(left).value_set^ - tsetconstnode(right).value_set^;
                         t:=csetconstnode.create(@resultset,left.resulttype);
-		    end;
+            end;
                  symdifn :
                     begin
-			resultset:=tsetconstnode(right).value_set^ >< tsetconstnode(left).value_set^;
-            		t:=csetconstnode.create(@resultset,left.resulttype);
+            resultset:=tsetconstnode(right).value_set^ >< tsetconstnode(left).value_set^;
+                    t:=csetconstnode.create(@resultset,left.resulttype);
                     end;
                  unequaln :
                     begin
-			b:=tsetconstnode(right).value_set^ <> tsetconstnode(left).value_set^;
-            		t:=cordconstnode.create(byte(b),booltype);
+            b:=tsetconstnode(right).value_set^ <> tsetconstnode(left).value_set^;
+                    t:=cordconstnode.create(byte(b),booltype);
                     end;
                  equaln :
                     begin
-			b:=tsetconstnode(right).value_set^ = tsetconstnode(left).value_set^;
-            		t:=cordconstnode.create(byte(b),booltype);
+            b:=tsetconstnode(right).value_set^ = tsetconstnode(left).value_set^;
+                    t:=cordconstnode.create(byte(b),booltype);
                     end;
                  lten :
                     begin
-			b:=tsetconstnode(left).value_set^ <= tsetconstnode(right).value_set^;
-            		t:=cordconstnode.create(byte(b),booltype);
+            b:=tsetconstnode(left).value_set^ <= tsetconstnode(right).value_set^;
+                    t:=cordconstnode.create(byte(b),booltype);
                     end;
                  gten :
                     begin
-			b:=tsetconstnode(left).value_set^ >= tsetconstnode(right).value_set^;
-            		t:=cordconstnode.create(byte(b),booltype);
+            b:=tsetconstnode(left).value_set^ >= tsetconstnode(right).value_set^;
+                    t:=cordconstnode.create(byte(b),booltype);
                     end;
               end;
 {$endif}
@@ -1426,7 +1426,7 @@ implementation
          { first do the two subtrees }
          firstpass(left);
          firstpass(right);
-	
+    
          if codegenerror then
            exit;
 
@@ -1709,33 +1709,33 @@ implementation
     var factval:Tnode;
 
     begin
-	track_state_pass:=false;
-	if left.track_state_pass(exec_known) then
-	    begin
-		track_state_pass:=true;
-		left.resulttype.def:=nil;
-		do_resulttypepass(left);
-	    end;
-	factval:=aktstate.find_fact(left);
-	if factval<>nil then
-	    begin
-		track_state_pass:=true;
-	        left.destroy;
-	        left:=factval.getcopy;
-	    end;
-	if right.track_state_pass(exec_known) then
-	    begin
-		track_state_pass:=true;
-		right.resulttype.def:=nil;
-		do_resulttypepass(right);
-	    end;
-	factval:=aktstate.find_fact(right);
-	if factval<>nil then
-	    begin
-		track_state_pass:=true;
-	        right.destroy;
-	        right:=factval.getcopy;
-	    end;
+    track_state_pass:=false;
+    if left.track_state_pass(exec_known) then
+        begin
+        track_state_pass:=true;
+        left.resulttype.def:=nil;
+        do_resulttypepass(left);
+        end;
+    factval:=aktstate.find_fact(left);
+    if factval<>nil then
+        begin
+        track_state_pass:=true;
+            left.destroy;
+            left:=factval.getcopy;
+        end;
+    if right.track_state_pass(exec_known) then
+        begin
+        track_state_pass:=true;
+        right.resulttype.def:=nil;
+        do_resulttypepass(right);
+        end;
+    factval:=aktstate.find_fact(right);
+    if factval<>nil then
+        begin
+        track_state_pass:=true;
+            right.destroy;
+            right:=factval.getcopy;
+        end;
     end;
 {$endif}
 
@@ -1744,7 +1744,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2002-08-02 07:44:30  jonas
+  Revision 1.60  2002-08-12 15:08:39  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.59  2002/08/02 07:44:30  jonas
     * made assigned() handling generic
     * add nodes now can also evaluate constant expressions at compile time
       that contain nil nodes

@@ -509,14 +509,21 @@ end;
 *****************************************************************************}
 
 initialization
-  RegisterLinker(ld_i386_os2,TLinkerOS2);
+  RegisterExternalLinker(system_i386_os2_info,TLinkerOS2);
   RegisterImport(system_i386_os2,TImportLibOS2);
   RegisterRes(res_emxbind_info);
   RegisterTarget(system_i386_os2_info);
 end.
 {
   $Log$
-  Revision 1.23  2002-07-26 21:15:46  florian
+  Revision 1.24  2002-08-12 15:08:44  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.23  2002/07/26 21:15:46  florian
     * rewrote the system handling
 
   Revision 1.22  2002/07/01 18:46:35  peter

@@ -29,52 +29,6 @@ interface
        maxidlen = 64;
 
     type
-       { System independent float names }
-{$ifdef x86}
-       bestreal = extended;
-       ts32real = single;
-       ts64real = double;
-       ts80real = extended;
-       ts64comp = extended;
-{$endif}
-{$ifdef m68k}
-       bestreal = real;
-       ts32real = single;
-       ts64real = double;
-       ts80real = extended;
-       ts64comp = extended;
-{$endif}
-{$ifdef alpha}
-       bestreal = extended;
-       ts32real = single;
-       ts64real = double;
-       ts80real = extended;
-       ts64comp = comp;
-{$endif}
-{$ifdef powerpc}
-       bestreal = double;
-       ts32real = single;
-       ts64real = double;
-       ts80real = extended;
-       ts64comp = comp;
-{$endif powerpc}
-{$ifdef ia64}
-       bestreal = extended;
-       ts32real = single;
-       ts64real = double;
-       ts80real = extended;
-       { on the ia64 comp will be mapped to int64 }
-       ts64comp = comp;
-{$endif}
-{$ifdef SPARC}
-  bestreal = real;
-  ts32real = single;
-  ts64real = double;
-  ts80real = extended;
-  ts64comp = extended;
-{$endif}
-
-       pbestreal=^bestreal;
 
        { Switches which can be changed locally }
        tlocalswitch = (cs_localnone,
@@ -255,7 +209,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2002-08-06 20:55:20  florian
+  Revision 1.30  2002-08-12 15:08:39  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.29  2002/08/06 20:55:20  florian
     * first part of ppc calling conventions fix
 
   Revision 1.28  2002/07/04 20:43:00  florian

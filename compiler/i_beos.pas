@@ -61,10 +61,10 @@ unit i_beos;
             newline      : #10;
             dirsep       : '/';
             files_case_relevent : true;
-            assem        : as_i386_as;
-            assemextern  : as_i386_as;
-            link         : ld_i386_beos;
-            linkextern   : ld_i386_beos;
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
             ar           : ar_gnu_ar;
             res          : res_none;
             script       : script_unix;
@@ -103,6 +103,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-07-26 21:15:38  florian
+  Revision 1.2  2002-08-12 15:08:39  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.1  2002/07/26 21:15:38  florian
     * rewrote the system handling
 }

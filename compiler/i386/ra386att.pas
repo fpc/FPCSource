@@ -41,7 +41,7 @@ Implementation
        globtype,globals,verbose,
        systems,
        { aasm }
-       cpubase,aasmbase,aasmtai,aasmcpu,
+       cpubase,cpuinfo,aasmbase,aasmtai,aasmcpu,
        { symtable }
        symconst,symbase,symtype,symsym,symtable,
        { pass 1 }
@@ -2129,7 +2129,14 @@ finalization
 end.
 {
   $Log$
-  Revision 1.28  2002-08-11 14:32:31  peter
+  Revision 1.29  2002-08-12 15:08:42  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.28  2002/08/11 14:32:31  peter
     * renamed current_library to objectlibrary
 
   Revision 1.27  2002/08/11 13:24:17  peter

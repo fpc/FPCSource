@@ -46,7 +46,7 @@ interface
       sysutils,
 {$endif}
       cutils,globtype,globals,systems,cclasses,
-      verbose,cpubase,finput,fmodule,script
+      verbose,cpubase,finput,fmodule,script,cpuinfo
       ;
 
     const
@@ -786,7 +786,6 @@ ait_stab_function_name : ;
             supported_target : system_any; { what should I write here ?? }
             outputbinary: false;
             allowdirect : true;
-            externals : true;
             needar : true;
             labelprefix_only_inside_procedure : true;
             labelprefix : '@@';
@@ -806,7 +805,6 @@ ait_stab_function_name : ;
             supported_target : system_any; { what should I write here ?? }
             outputbinary: false;
             allowdirect : true;
-            externals : true;
             needar : true;
             labelprefix_only_inside_procedure : false;
             labelprefix : '@@';
@@ -823,7 +821,14 @@ initialization
 end.
 {
   $Log$
-  Revision 1.25  2002-08-11 14:32:29  peter
+  Revision 1.26  2002-08-12 15:08:41  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.25  2002/08/11 14:32:29  peter
     * renamed current_library to objectlibrary
 
   Revision 1.24  2002/08/11 13:24:16  peter

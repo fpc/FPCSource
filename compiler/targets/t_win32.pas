@@ -227,7 +227,7 @@ const
 
 
     const
-     MainAsmFormats=[as_i386_asw,as_i386_aswdosx,as_i386_pecoff,as_i386_pecoffwdosx];
+     MainAsmFormats=[as_i386_asw,as_i386_pecoff,as_i386_pecoffwdosx];
     procedure timportlibwin32.generatesmartlib;
       var
          hp1 : timportlist;
@@ -1542,7 +1542,7 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
 
 initialization
 {$ifdef i386}
-  RegisterLinker(ld_i386_win32,TLinkerWin32);
+  RegisterExternalLinker(system_i386_win32_info,TLinkerWin32);
   RegisterImport(system_i386_win32,TImportLibWin32);
   RegisterExport(system_i386_win32,TExportLibWin32);
   RegisterDLLScanner(system_i386_win32,TDLLScannerWin32);
@@ -1553,7 +1553,14 @@ initialization
 end.
 {
   $Log$
-  Revision 1.38  2002-08-11 14:32:32  peter
+  Revision 1.39  2002-08-12 15:08:44  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.38  2002/08/11 14:32:32  peter
     * renamed current_library to objectlibrary
 
   Revision 1.37  2002/08/11 13:24:20  peter

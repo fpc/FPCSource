@@ -31,6 +31,21 @@ Type
    { int64 constants internally (JM)                              }
    TConstPtrUInt = Cardinal;
 
+   bestreal = double;
+   ts32real = single;
+   ts64real = double;
+   ts80real = extended;
+   ts64comp = comp;
+
+   pbestreal=^bestreal;
+   
+   { possible supported processors for this target }
+   tprocessors = 
+      (no_processor,
+       ppc601,
+       ppc604
+      );
+
 Const
    {# Size of native extended floating point type }
    extended_size = 8;
@@ -46,7 +61,14 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.8  2002-08-10 14:52:52  carl
+  Revision 1.9  2002-08-12 15:08:44  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.8  2002/08/10 14:52:52  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's

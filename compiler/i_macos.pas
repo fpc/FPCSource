@@ -26,55 +26,6 @@ unit i_macos;
 
     uses
        systems;
-
-    const
-       system_m68k_macos_info : tsysteminfo =
-          (
-            system       : system_m68k_Mac;
-            name         : 'Macintosh m68k';
-            shortname    : 'mac';
-            flags        : [];
-            cpu          : cpu_m68k;
-            short_name   : 'MACOS';
-            unit_env     : '';
-            extradefines : '';
-            sharedlibext : 'Lib';
-            staticlibext : 'Lib';
-            sourceext    : '.pp';
-            pasext       : '.pas';
-            exeext       : '';
-            defext       : '';
-            scriptext    : '';
-            smartext     : '.sl';
-            unitext      : '.ppt';
-            unitlibext   : '.ppl';
-            asmext       : '.a';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            staticlibprefix : '';
-            sharedlibprefix : '';
-            Cprefix      : '_';
-            newline      : #13;
-            dirsep       : '/';
-            files_case_relevent : true;
-            assem        : as_m68k_mpw;
-            assemextern  : as_m68k_mpw;
-            link         : ld_m68k_mac;
-            linkextern   : ld_m68k_mac;
-            ar           : ar_m68k_ar;
-            res          : res_none;
-            script       : script_unix;
-            endian       : endian_big;
-            stackalignment : 2;
-            maxCrecordalignment : 4;
-            size_of_longint : 4;
-            heapsize     : 128*1024;
-            stacksize    : 8192;
-            DllScanSupported:false;
-            use_function_relative_addresses : false
-          );
-
      const
        system_powerpc_macos_info : tsysteminfo =
           (
@@ -124,11 +75,6 @@ unit i_macos;
   implementation
 
 initialization
-{$ifdef cpu68}
-  {$ifdef macos}
-    set_source_info(system_m68k_macos_info);
-  {$endif macos}
-{$endif cpu68}
 {$ifdef cpupowerpc}
   {$ifdef macos}
     set_source_info(system_powerpc_macos_info);
@@ -137,6 +83,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-07-26 21:15:38  florian
+  Revision 1.2  2002-08-12 15:08:39  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.1  2002/07/26 21:15:38  florian
     * rewrote the system handling
 }

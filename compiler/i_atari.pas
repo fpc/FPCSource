@@ -58,8 +58,8 @@ unit i_atari;
             newline      : #10;
             dirsep       : '/';
             files_case_relevent : true;
-            assem        : as_m68k_as;
-            assemextern  : as_m68k_as;
+            assem        : as_none;
+            assemextern  : as_gas;
             link         : ld_m68k_atari;
             linkextern   : ld_m68k_atari;
             ar           : ar_m68k_ar;
@@ -85,6 +85,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-07-26 21:15:38  florian
+  Revision 1.2  2002-08-12 15:08:39  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.1  2002/07/26 21:15:38  florian
     * rewrote the system handling
 }

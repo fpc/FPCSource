@@ -34,6 +34,15 @@ Type
    { tconstsym.value                                              }
    TPointerOrd = longint;
 
+   bestreal = extended;
+   ts32real = single;
+   ts64real = double;
+   ts80real = extended;
+   { on the ia64 comp will be mapped to int64 }
+   ts64comp = comp;
+   
+   pbestreal=^bestreal;
+   
 
 Const
    { Size of native extended type }
@@ -52,7 +61,14 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-08-10 14:48:09  carl
+  Revision 1.6  2002-08-12 15:08:42  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.5  2002/08/10 14:48:09  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's

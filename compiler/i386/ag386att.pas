@@ -251,14 +251,13 @@ interface
     const
        as_i386_as_info : tasminfo =
           (
-            id     : as_i386_as;
+            id     : as_gas;
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_target : system_any;
             outputbinary: false;
             allowdirect : true;
-            externals : false;
             needar : true;
             labelprefix_only_inside_procedure : false;
             labelprefix : '.L';
@@ -278,7 +277,6 @@ interface
             supported_target : system_i386_os2;
             outputbinary: false;
             allowdirect : true;
-            externals : false;
             needar : true;
             labelprefix_only_inside_procedure : false;
             labelprefix : 'L';
@@ -298,7 +296,6 @@ interface
             supported_target : system_i386_win32;
             outputbinary: false;
             allowdirect : true;
-            externals : false;
             needar : true;
             labelprefix_only_inside_procedure : false;
             labelprefix : '.L';
@@ -309,38 +306,22 @@ interface
                 '.section .idata$6','.section .idata$7','.section .edata',
               '.stab','.stabstr','COMMON')
           );
-
-       as_i386_aswwdosx_info : tasminfo =
-          (
-            id           : as_i386_aswdosx;
-            idtxt  : 'ASWDOSX';
-            asmbin : 'asw';
-            asmcmd : '-o $OBJ $ASM';
-            supported_target : system_i386_wdosx;
-            outputbinary: false;
-            allowdirect : true;
-            externals : false;
-            needar : true;
-            labelprefix_only_inside_procedure : false;
-            labelprefix : '.L';
-            comment : '# ';
-            secnames : ('',
-              '.text','.data','.section .bss',
-              '.section .idata$2','.section .idata$4','.section .idata$5',
-                '.section .idata$6','.section .idata$7','.section .edata',
-              '.stab','.stabstr','COMMON')
-          );
-
 
 initialization
   RegisterAssembler(as_i386_as_info,T386ATTAssembler);
   RegisterAssembler(as_i386_as_aout_info,T386ATTAssembler);
   RegisterAssembler(as_i386_asw_info,T386ATTAssembler);
-  RegisterAssembler(as_i386_aswwdosx_info,T386ATTAssembler);
 end.
 {
   $Log$
-  Revision 1.25  2002-07-26 21:15:42  florian
+  Revision 1.26  2002-08-12 15:08:40  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.25  2002/07/26 21:15:42  florian
     * rewrote the system handling
 
   Revision 1.24  2002/07/07 09:52:33  florian

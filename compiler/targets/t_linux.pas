@@ -485,37 +485,37 @@ end;
 
 initialization
 {$ifdef i386}
-  RegisterLinker(ld_i386_linux,TLinkerLinux);
+  RegisterExternalLinker(system_i386_linux_info,TLinkerLinux);
   RegisterImport(system_i386_linux,timportliblinux);
   RegisterExport(system_i386_linux,texportliblinux);
   RegisterTarget(system_i386_linux_info);
 {$endif i386}
 {$ifdef m68k}
-  RegisterLinker(ld_m68k_linux,TLinkerLinux);
+  RegisterExternalLinker(system_m68k_linux_info,TLinkerLinux);
   RegisterImport(system_m68k_linux,timportliblinux);
   RegisterExport(system_m68k_linux,texportliblinux);
   RegisterTarget(system_m68k_linux_info);
 {$endif m68k}
 {$ifdef powerpc}
-  RegisterLinker(ld_powerpc_linux,TLinkerLinux);
+  RegisterExternalLinker(system_powerpc_linux_info,TLinkerLinux);
   RegisterImport(system_powerpc_linux,timportliblinux);
   RegisterExport(system_powerpc_linux,texportliblinux);
   RegisterTarget(system_powerpc_linux_info);
 {$endif powerpc}
 {$ifdef alpha}
-  RegisterLinker(ld_alpha_linux,TLinkerLinux);
+  RegisterExternalLinker(system_alpha_linux_info,TLinkerLinux);
   RegisterImport(system_alpha_linux,timportliblinux);
   RegisterExport(system_alpha_linux,texportliblinux);
   RegisterTarget(system_alpha_linux_info);
 {$endif alpha}
 {$ifdef x86_64}
-  RegisterLinker(ld_x86_64_linux,TLinkerLinux);
+  RegisterExternalLinker(system_x86_64_linux_info,TLinkerLinux);
   RegisterImport(system_x86_64_linux,timportliblinux);
   RegisterExport(system_x86_64_linux,texportliblinux);
   RegisterTarget(system_x86_64_linux_info);
 {$endif x86_64}
 {$ifdef SPARC}
-  RegisterLinker(ld_SPARC_linux,TLinkerLinux);
+  RegisterExternalLinker(system_sparc_linux_info,TLinkerLinux);
   RegisterImport(system_SPARC_linux,timportliblinux);
   RegisterExport(system_SPARC_linux,texportliblinux);
   RegisterTarget(system_SPARC_linux_info);
@@ -524,7 +524,14 @@ end.
 
 {
   $Log$
-  Revision 1.31  2002-08-11 14:32:32  peter
+  Revision 1.32  2002-08-12 15:08:44  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.31  2002/08/11 14:32:32  peter
     * renamed current_library to objectlibrary
 
   Revision 1.30  2002/08/11 13:24:19  peter

@@ -1598,13 +1598,9 @@ implementation
                     st:='*'
                   else
                     st:='';
-{$ifdef i386}
                   list.concat(Tai_stabs.Create(strpnew(
                    '"$t:r'+st+procinfo^._class.numberstring+'",'+
-                   tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[SELF_POINTER_REG]))));
-{$else}
-{$warning Missing stabs for classes!}
-{$endif}
+                   tostr(N_RSYM)+',0,0,'+tostr(stab_regindex[SELF_POINTER_REG]))));
                 end;
 
             { define calling EBP as pseudo local var PM }
@@ -1705,7 +1701,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2002-08-11 14:32:27  peter
+  Revision 1.34  2002-08-12 15:08:39  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.33  2002/08/11 14:32:27  peter
     * renamed current_library to objectlibrary
 
   Revision 1.32  2002/08/11 13:24:12  peter

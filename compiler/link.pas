@@ -47,7 +47,7 @@ Type
       DynamicLinker : string[100];
     end;
 
-    TLinker = class
+    TLinker = class(TAbstractLinker)
     public
        ObjectFiles,
        SharedLibFiles,
@@ -85,16 +85,13 @@ Type
        Function  MakeExecutable:boolean;override;
      end;
 
-     TLinkerClass = class of TLinker;
 
 var
-  CLinker : array[tld] of TLinkerClass;
   Linker  : TLinker;
 
 function FindObjectFile(s : string;const unitpath:string) : string;
 function FindLibraryFile(s:string;const prefix,ext:string;var foundfile : string) : boolean;
 
-procedure RegisterLinker(t:tld;c:TLinkerClass);
 procedure InitLinker;
 procedure DoneLinker;
 
@@ -112,6 +109,8 @@ uses
   aasmbase,aasmtai,aasmcpu,
   ogbase,ogmap;
 
+type
+ TLinkerClass = class of Tlinker;
 
 {*****************************************************************************
                                    Helpers
@@ -211,6 +210,7 @@ end;
 
 Constructor TLinker.Create;
 begin
+  Inherited Create;
   ObjectFiles:=TStringList.Create_no_double;
   SharedLibFiles:=TStringList.Create_no_double;
   StaticLibFiles:=TStringList.Create_no_double;
@@ -289,7 +289,9 @@ begin
          end;
         { unit files }
         while not linkunitofiles.empty do
-         AddObject(linkunitofiles.getusemask(mask),path^);
+        begin
+          AddObject(linkunitofiles.getusemask(mask),path^);
+        end;
         while not linkunitstaticlibs.empty do
          AddStaticLibrary(linkunitstaticlibs.getusemask(mask));
         while not linkunitsharedlibs.empty do
@@ -611,21 +613,26 @@ end;
                                  Init/Done
 *****************************************************************************}
 
-procedure RegisterLinker(t:tld;c:TLinkerClass);
-begin
-  CLinker[t]:=c;
-end;
-
-
 procedure InitLinker;
+var 
+ lk : TlinkerClass;
 begin
   if (cs_link_internal in aktglobalswitches) and
-     assigned(CLinker[target_info.link]) then
-   linker:=CLinker[target_info.link].Create
-  else if assigned(CLinker[target_info.linkextern]) then
-   linker:=CLinker[target_info.linkextern].Create
+     assigned(target_info.link) then
+   begin  
+     lk:=TLinkerClass(target_info.link);
+     linker:=lk.Create;
+   end
+  else if assigned(target_info.linkextern) then
+   begin
+     lk:=TlinkerClass(target_info.linkextern);
+     linker:=lk.Create;
+   end
   else
+  begin
+   WriteLn('Hello!');
    linker:=Tlinker.Create;
+  end;
 end;
 
 
@@ -653,7 +660,14 @@ initialization
 end.
 {
   $Log$
-  Revision 1.29  2002-07-01 18:46:22  peter
+  Revision 1.30  2002-08-12 15:08:39  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.29  2002/07/01 18:46:22  peter
     * internal linker
     * reorganized aasm layer
 

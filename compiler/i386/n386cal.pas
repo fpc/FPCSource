@@ -64,7 +64,7 @@ implementation
       cpubase,paramgr,
       aasmbase,aasmtai,aasmcpu,
       nmem,nld,ncnv,
-      ncgutil,cga,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu;
+      ncgutil,cga,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu,cpuinfo;
 
 {*****************************************************************************
                              TI386CALLPARANODE
@@ -1481,7 +1481,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2002-08-11 14:32:30  peter
+  Revision 1.63  2002-08-12 15:08:42  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.62  2002/08/11 14:32:30  peter
     * renamed current_library to objectlibrary
 
   Revision 1.61  2002/08/11 13:24:16  peter

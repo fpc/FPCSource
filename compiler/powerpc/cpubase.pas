@@ -499,6 +499,63 @@ uses
       OS_VECTOR = OS_M128;
 
 {*****************************************************************************
+                               GDB Information
+*****************************************************************************}
+
+      {# Register indexes for stabs information, when some
+         parameters or variables are stored in registers.
+         
+         Taken from rs6000.h (DBX_REGISTER_NUMBER)
+         from GCC 3.x source code. PowerPC has 1:1 mapping
+         according to the order of the registers defined
+         in GCC
+         
+      }   
+      
+          stab_regindex : array[tregister] of shortint =
+          (
+           { R_NO }
+           -1,
+           { R0..R7 }
+           0,1,2,3,4,5,6,7, 
+           { R8..R15 }
+           8,9,10,11,12,13,14,15,
+           { R16..R23 }
+           16,17,18,19,20,21,22,23,
+           { R24..R32 }
+           24,25,26,27,28,29,30,31,
+           { F0..F7 }
+           32,33,34,35,36,37,38,39,
+           { F8..F15 }
+           40,41,42,43,44,45,46,47,
+           { F16..F23 }
+           48,49,50,51,52,53,54,55,
+           { F24..F31 }
+           56,57,58,59,60,61,62,63,
+           { M0..M7 Multimedia registers are not supported by GCC }
+           -1,-1,-1,-1,-1,-1,-1,-1,
+           { M8..M15 }
+           -1,-1,-1,-1,-1,-1,-1,-1,
+           { M16..M23 }
+           -1,-1,-1,-1,-1,-1,-1,-1,
+           { M24..M31 }
+           -1,-1,-1,-1,-1,-1,-1,-1,
+           { CR }
+           -1,
+           { CR0..CR7 }
+           68,69,70,71,72,73,74,75,
+           { XER }
+           76,
+           { LR }
+           65,
+           { CTR }
+           66,
+           { FPSCR }
+           -1
+        );
+
+
+{*****************************************************************************
                           Generic Register names
 *****************************************************************************}
 
@@ -510,16 +567,19 @@ uses
          object or class. }
       self_pointer_reg  = R_9;
       {# Register for addressing absolute data in a position independant way,
-         such as in PIC code. The exact meaning is ABI specific }
-{$warning Needs checking, this is just a dummy (PFV) }
-      pic_offset_reg = R_8;
+         such as in PIC code. The exact meaning is ABI specific. For
+         further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
+         
+         Taken from GCC rs6000.h
+      }
+{$warning As indicated in rs6000.h, but can't find it anywhere else!}      
+      pic_offset_reg = R_30;
       {# Results are returned in this register (32-bit values) }
       accumulator   = R_3;
       {# Hi-Results are returned in this register (64-bit value high register) }
       accumulatorhigh = R_4;
       { WARNING: don't change to R_ST0!! See comments above implementation of }
       { a_loadfpu* methods in rgcpu (JM)                                      }
-{$warning I don't know the exact values, please check (PFV) }
       fpu_result_reg = R_F1;
       mmresultreg = R_M0;
 
@@ -646,7 +706,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2002-08-10 17:15:06  jonas
+  Revision 1.26  2002-08-12 15:08:44  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.25  2002/08/10 17:15:06  jonas
     * endianess fix
 
   Revision 1.24  2002/08/06 20:55:24  florian

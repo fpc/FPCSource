@@ -1677,7 +1677,6 @@ const go32v2stub : array[0..2047] of byte=(
             supported_target : system_i386_go32v2;
             outputbinary : true;
             allowdirect : false;
-            externals : true;
             needar : false;
             labelprefix_only_inside_procedure: false;
             labelprefix : '.L';
@@ -1698,7 +1697,6 @@ const go32v2stub : array[0..2047] of byte=(
             supported_target : system_i386_win32;
             outputbinary : true;
             allowdirect : false;
-            externals : true;
             needar : false;
             labelprefix_only_inside_procedure: false;
             labelprefix : '.L';
@@ -1718,7 +1716,6 @@ const go32v2stub : array[0..2047] of byte=(
             supported_target : system_i386_wdosx;
             outputbinary : true;
             allowdirect : false;
-            externals : true;
             needar : false;
             labelprefix_only_inside_procedure: false;
             labelprefix : '.L';
@@ -1734,12 +1731,17 @@ initialization
   RegisterAssembler(as_i386_coff_info,TCoffAssembler);
   RegisterAssembler(as_i386_pecoff_info,TPECoffAssembler);
   RegisterAssembler(as_i386_pecoffwdosx_info,TPECoffAssembler);
-
-  RegisterLinker(ld_i386_coff,TCoffLinker);
 end.
 {
   $Log$
-  Revision 1.23  2002-07-26 21:15:38  florian
+  Revision 1.24  2002-08-12 15:08:39  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.23  2002/07/26 21:15:38  florian
     * rewrote the system handling
 
   Revision 1.22  2002/07/01 18:46:24  peter

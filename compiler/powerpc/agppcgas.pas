@@ -50,14 +50,13 @@ unit agppcgas;
     const
        as_ppc_gas_info : tasminfo =
           (
-            id     : as_powerpc_as;
+            id     : as_gas;
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_target : system_any;
             outputbinary: false;
             allowdirect : true;
-            externals : false;
             needar : true;
             labelprefix_only_inside_procedure : false;
             labelprefix : '.L';
@@ -340,7 +339,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-07-27 19:57:18  jonas
+  Revision 1.10  2002-08-12 15:08:44  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.9  2002/07/27 19:57:18  jonas
     * some typo corrections in the instruction tables
     * renamed the m* registers to v*
 

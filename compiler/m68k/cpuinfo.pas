@@ -31,6 +31,22 @@ Type
    { int64 constants internally (JM)                              }
    TConstPtrUInt = Cardinal;
 
+   bestreal = real;
+   ts32real = single;
+   ts64real = double;
+   ts80real = extended;
+   ts64comp = extended;
+   
+   pbestreal=^bestreal;
+   
+   { possible supported processors for this target }
+   tprocessors = 
+      (no_processor,
+       MC68000,
+       MC68020,
+       Coldfire
+      ); 
+
 Const
    {# Size of native extended floating point type }
    extended_size = 8;
@@ -47,7 +63,14 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-08-11 08:06:09  carl
+  Revision 1.2  2002-08-12 15:08:44  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.1  2002/08/11 08:06:09  carl
     + try to commit this ** file again
 
   Revision 1.7  2002/05/18 13:34:26  peter

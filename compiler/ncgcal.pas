@@ -1086,7 +1086,9 @@ implementation
                 { but the registers must be different!        }
                 else if (pushedparasize=8) and
                   not(cs_littlesize in aktglobalswitches) and
+{$ifdef i386}                  
                   (aktoptprocessor=ClassP5) and
+{$endif}                  
                   (procinfo^._class=nil) then
                     begin
                        rg.getexplicitregisterint(exprasmlist,R_EDI);
@@ -1500,7 +1502,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-08-11 14:32:26  peter
+  Revision 1.7  2002-08-12 15:08:39  carl
+    + stab register indexes for powerpc (moved from gdb to cpubase)
+    + tprocessor enumeration moved to cpuinfo
+    + linker in target_info is now a class
+    * many many updates for m68k (will soon start to compile)
+    - removed some ifdef or correct them for correct cpu
+
+  Revision 1.6  2002/08/11 14:32:26  peter
     * renamed current_library to objectlibrary
 
   Revision 1.5  2002/08/11 13:24:11  peter
