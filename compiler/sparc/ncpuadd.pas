@@ -19,16 +19,17 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
  ****************************************************************************}
-UNIT ncpuadd;
+unit ncpuadd;
 {$INCLUDE fpcdefs.inc}
-INTERFACE
-USES
+interface
+uses
   node,nadd,cpubase,cginfo;
-TYPE
-  TSparcAddNode=CLASS(TAddNode)
+type
+  TSparcAddNode=class(TAddNode)
     procedure pass_2;override;
-  PRIVATE
-    FUNCTION GetResFlags(unsigned:Boolean):TResFlags;
+  private
+    procedure second_addboolean;
+    function GetResFlags(unsigned:Boolean):TResFlags;
     procedure left_must_be_reg(OpSize:TOpSize;NoSwap:Boolean);
     procedure emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extra_not,mboverflow:Boolean);
     procedure emit_op_right_left(op:TAsmOp);
@@ -47,6 +48,155 @@ uses
   cga,ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
 const
   opsize_2_cgSize:array[S_B..S_L]of TCgSize=(OS_8,OS_16,OS_32);
+procedure TSparcAddNode.second_addboolean;
+  var
+    cgop:TOpCg;
+    cgsize:TCgSize;
+    cmpop,isjump:boolean;
+    otl,ofl:tasmlabel;
+    pushedregs:TMaybeSave;
+  begin
+    { calculate the operator which is more difficult }
+    firstcomplex(self);
+    cmpop:=false;
+    if (torddef(left.resulttype.def).typ=bool8bit) or
+       (torddef(right.resulttype.def).typ=bool8bit)
+    then
+      cgsize:=OS_8
+    else if (torddef(left.resulttype.def).typ=bool16bit) or
+            (torddef(right.resulttype.def).typ=bool16bit)
+    then
+      cgsize:=OS_16
+    else
+      cgsize:=OS_32;
+    if (cs_full_boolean_eval in aktlocalswitches) or
+       (nodetype in [unequaln,ltn,lten,gtn,gten,equaln,xorn])
+    then
+      begin
+        if left.nodetype in [ordconstn,realconstn]
+        then
+          swapleftright;
+        isjump:=(left.location.loc=LOC_JUMP);
+        if isjump
+        then
+          begin
+            otl:=truelabel;
+            objectlibrary.getlabel(truelabel);
+            ofl:=falselabel;
+            objectlibrary.getlabel(falselabel);
+          end;
+        secondpass(left);
+        if left.location.loc in [LOC_FLAGS,LOC_JUMP]
+        then
+          location_force_reg(exprasmlist,left.location,cgsize,false);
+        if isjump
+        then
+          begin
+            truelabel:=otl;
+            falselabel:=ofl;
+          end;
+        maybe_save(exprasmlist,right.registers32,left.location,pushedregs);
+        isjump:=(right.location.loc=LOC_JUMP);
+        if isjump
+        then
+          begin
+            otl:=truelabel;
+            objectlibrary.getlabel(truelabel);
+            ofl:=falselabel;
+            objectlibrary.getlabel(falselabel);
+          end;
+        secondpass(right);
+        maybe_restore(exprasmlist,left.location,pushedregs);
+        if right.location.loc in [LOC_FLAGS,LOC_JUMP]
+        then
+          location_force_reg(exprasmlist,right.location,cgsize,false);
+        if isjump
+        then
+          begin
+            truelabel:=otl;
+            falselabel:=ofl;
+          end;
+        cmpop := nodetype in [ltn,lten,gtn,gten,equaln,unequaln];
+        { set result location }
+        if not cmpop
+        then
+          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def))
+        else
+          location_reset(location,LOC_FLAGS,OS_NO);
+        //load_left_right(cmpop,false);
+        if (left.location.loc = LOC_CONSTANT)
+        then
+          swapleftright;
+        { compare the }
+        case nodetype of
+          ltn,lten,gtn,gten,
+          equaln,unequaln :
+            begin
+              if (right.location.loc <> LOC_CONSTANT)
+              then
+                exprasmlist.concat(taicpu.op_reg_reg(A_JMPL,left.location.register,right.location.register))
+              else
+                exprasmlist.concat(taicpu.op_reg_const(A_JMPL,left.location.register,longint(right.location.value)));
+              location.resflags := GetResFlags(true);
+            end;
+          else
+            begin
+              case nodetype of
+                xorn :
+                  cgop:=OP_XOR;
+                orn :
+                  cgop:=OP_OR;
+                andn :
+                  cgop:=OP_AND;
+                else
+                  internalerror(200203247);
+              end;
+              if right.location.loc <> LOC_CONSTANT
+              then
+                cg.a_op_reg_reg_reg(exprasmlist,cgop,OS_INT,left.location.register,right.location.register,location.register)
+              else
+                cg.a_op_const_reg_reg(exprasmlist,cgop,OS_INT,right.location.value,left.location.register,location.register);
+            end;
+        end;
+      end
+    else
+      begin
+        // just to make sure we free the right registers
+        cmpop := true;
+        case nodetype of
+          andn,
+          orn :
+            begin
+              location_reset(location,LOC_JUMP,OS_NO);
+              case nodetype of
+                andn :
+                  begin
+                    otl:=truelabel;
+                    objectlibrary.getlabel(truelabel);
+                    secondpass(left);
+                    maketojumpbool(exprasmlist,left,lr_load_regvars);
+                    cg.a_label(exprasmlist,truelabel);
+                    truelabel:=otl;
+                  end;
+                orn :
+                  begin
+                    ofl:=falselabel;
+                    objectlibrary.getlabel(falselabel);
+                    secondpass(left);
+                    maketojumpbool(exprasmlist,left,lr_load_regvars);
+                    cg.a_label(exprasmlist,falselabel);
+                    falselabel:=ofl;
+                  end;
+                else
+                  CGMessage(type_e_mismatch);
+              end;
+              secondpass(right);
+              maketojumpbool(exprasmlist,right,lr_load_regvars);
+            end;
+        end;
+      end;
+//    clear_left_right(CmpOp);
+  end;
 function TSparcAddNode.GetResFlags(unsigned:Boolean):TResFlags;
   begin
     case NodeType of
@@ -280,7 +430,7 @@ procedures }
       orddef:
         if is_boolean(left.resulttype.def)and is_boolean(right.resulttype.def)
         then{handling boolean expressions}
-          InternalError(20020726)//second_addboolean;
+          second_addboolean
         else if is_64bitint(left.resulttype.def)
         then{64bit operations}
             InternalError(20020726);//second_add64bit;
@@ -408,7 +558,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.1  2002-12-21 23:21:47  mazen
+    Revision 1.2  2002-12-22 19:26:32  mazen
+    * many internal errors related to unimplemented nodes are fixed
+
+    Revision 1.1  2002/12/21 23:21:47  mazen
     + added support for the shift nodes
     + added debug output on screen with -an command line option
 

@@ -35,6 +35,7 @@ specific processor ABI. It is overriden for each CPU target.
   r       : is the register source of the operand
   LocPara : is the location where the parameter will be stored}
     procedure a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;const LocPara:TParaLocation);override;
+    {passes a parameter which is a constant to a function}
     procedure a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST LocPara:TParaLocation);override;
     procedure a_param_ref(list:TAasmOutput;sz:tcgsize;CONST r:TReference;CONST LocPara:TParaLocation);override;
     procedure a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST LocPara:TParaLocation);override;
@@ -123,17 +124,27 @@ procedure tcgSPARC.a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;CONST L
                         end;
   end;
 procedure tcgSPARC.a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST LocPara:TParaLocation);
-  BEGIN
+  var
+    Ref:TReference;
+  begin
     with List do
-      case Size of
-        OS_32,OS_S32:
-          Concat(taicpu.op_const(A_LD,a));
-        OS_64,OS_S64:
-          Concat(taicpu.op_const(A_LDD,a));
+      case locpara.loc of
+        LOC_REGISTER,LOC_CREGISTER:
+          a_load_const_reg(list,size,a,locpara.register);
+        LOC_REFERENCE:
+          begin
+            reference_reset(ref);
+            ref.base:=locpara.reference.index;
+            ref.offset:=locpara.reference.offset;
+            a_load_const_ref(list,size,a,ref);
+          end;
         else
-          InternalError(2002032213);
+          InternalError(2002122200);
       end;
-  END;
+    if locpara.sp_fixup<>0
+    then
+      InternalError(2002122201);
+  end;
 procedure tcgSPARC.a_param_ref(list:TAasmOutput;sz:TCgSize;const r:TReference;const LocPara:TParaLocation);
   var
     ref: treference;
@@ -1323,7 +1334,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.27  2002-12-21 23:21:47  mazen
+  Revision 1.28  2002-12-22 19:26:31  mazen
+  * many internal errors related to unimplemented nodes are fixed
+
+  Revision 1.27  2002/12/21 23:21:47  mazen
   + added support for the shift nodes
   + added debug output on screen with -an command line option
 
