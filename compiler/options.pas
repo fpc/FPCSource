@@ -72,12 +72,7 @@ uses
 {$ifdef BrowserLog}
   ,browlog
 {$endif BrowserLog}
-{$ifdef i386}
-  ,opts386
-{$endif}
-{$ifdef m68k}
-  ,opts68k
-{$endif}
+  ,cpuswtch
   ;
 
 const
@@ -1514,7 +1509,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2000-11-29 00:30:34  florian
+  Revision 1.19  2000-11-30 22:48:23  florian
+  * opts386 renamed
+
+  Revision 1.18  2000/11/29 00:30:34  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
