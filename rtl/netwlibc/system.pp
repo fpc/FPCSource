@@ -103,7 +103,7 @@ procedure ConsolePrintf (FormatStr : PCHAR; Param : pchar);
 procedure ConsolePrintf (FormatStr : PCHAR; P1,P2 : LONGINT);
 procedure ConsolePrintf (FormatStr : PCHAR; P1,P2,P3 : LONGINT);
 procedure ConsolePrintf (FormatStr : PCHAR);
-procedure __EnterDebugger; cdecl;
+procedure __EnterDebugger;cdecl;external '!netware' name 'EnterDebugger';
 
 function NWGetCodeStart : pointer;  // needed for Lineinfo
 function NWGetCodeLength : dword;
@@ -929,9 +929,6 @@ begin
     screenprintf (NWLoggerScreen,FormatStr,P1,P2,P3);
 end;
 
-
-procedure __EnterDebugger;cdecl;external '!netware' name 'EnterDebugger';
-
 var NWUts : Tutsname;
 
 procedure getCodeAddresses;
@@ -1187,7 +1184,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.7  2004-11-04 09:32:31  peter
+  Revision 1.8  2004-11-25 12:38:17  armin
+  * adapted to new compiler check for externals
+
+  Revision 1.7  2004/11/04 09:32:31  peter
   ErrOutput added
 
   Revision 1.6  2004/10/25 18:11:49  armin
