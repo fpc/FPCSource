@@ -14,6 +14,24 @@
 
  **********************************************************************}
 
+{****************************************************************************
+                            FPU Control word
+ ****************************************************************************}
+
+    procedure Set8087CW(cw:word);assembler;
+    asm
+      movw cw,%ax
+      movw %ax,default8087cw
+      fnclex
+      fldcw default8087cw
+    end;
+
+    function Get8087CW:word;assembler;
+    asm
+      pushl $0
+      fnstcw (%esp)
+      popl %eax
+    end;
 
 {****************************************************************************
                        EXTENDED data type routines
@@ -204,7 +222,10 @@
 
 {
   $Log$
-  Revision 1.9  2002-10-06 21:26:17  peter
+  Revision 1.10  2003-01-03 20:34:02  peter
+    * i386 fpu controlword functions added
+
+  Revision 1.9  2002/10/06 21:26:17  peter
     * round returns int64
 
   Revision 1.8  2002/09/07 16:01:19  peter

@@ -13,6 +13,16 @@
 
  **********************************************************************}
 
+   { i386 FPU Controlword }
+
+{$ifdef cpui386}
+    const
+      Default8087CW : word = $1332;
+
+    procedure Set8087CW(cw:word);
+    function Get8087CW:word;
+{$endif cpui386}
+
    { declarations of the math routines }
 
     function abs(d : extended) : extended;
@@ -44,7 +54,10 @@
 
 {
   $Log$
-  Revision 1.9  2002-10-06 21:26:18  peter
+  Revision 1.10  2003-01-03 20:34:02  peter
+    * i386 fpu controlword functions added
+
+  Revision 1.9  2002/10/06 21:26:18  peter
     * round returns int64
 
   Revision 1.8  2002/09/07 15:07:45  peter

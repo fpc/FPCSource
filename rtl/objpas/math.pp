@@ -210,6 +210,24 @@ procedure momentskewkurtosis(const data : PFloat; Const N : Integer;
 function norm(const data : array of float) : float;
 function norm(const data : PFloat; Const N : Integer) : float;
 
+{ i386 fpu control word }
+{$ifdef cpui386}
+type
+  TFPURoundingMode = (rmNearest, rmDown, rmUp, rmTruncate);
+  TFPUPrecisionMode = (pmSingle, pmReserved, pmDouble, pmExtended);
+  TFPUException = (exInvalidOp, exDenormalized, exZeroDivide,
+                   exOverflow, exUnderflow, exPrecision);
+  TFPUExceptionMask = set of TFPUException;
+
+function GetRoundMode: TFPURoundingMode;
+function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+function GetPrecisionMode: TFPUPrecisionMode;
+function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
+function GetExceptionMask: TFPUExceptionMask;
+function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+procedure ClearExceptions(RaisePending: Boolean {$ifndef VER1_0}=true{$endif});
+{$endif cpui386}
+
 implementation
 
 ResourceString
@@ -932,11 +950,68 @@ begin
     Result := b;
 end;
 
+{$ifdef cpui386}
+
+function GetRoundMode: TFPURoundingMode;
+begin
+  Result := TFPURoundingMode((Get8087CW shr 10) and 3);
+end;
+
+function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+var
+  CtlWord: Word;
+begin
+  CtlWord := Get8087CW;
+  Set8087CW((CtlWord and $F3FF) or (Ord(RoundMode) shl 10));
+  Result := TFPURoundingMode((CtlWord shr 10) and 3);
+end;
+
+function GetPrecisionMode: TFPUPrecisionMode;
+begin
+  Result := TFPUPrecisionMode((Get8087CW shr 8) and 3);
+end;
+
+function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
+var
+  CtlWord: Word;
+begin
+  CtlWord := Get8087CW;
+  Set8087CW((CtlWord and $FCFF) or (Ord(Precision) shl 8));
+  Result := TFPUPrecisionMode((CtlWord shr 8) and 3);
+end;
+
+function GetExceptionMask: TFPUExceptionMask;
+begin
+  Result := TFPUExceptionMask(Get8087CW and $3F);
+end;
+
+function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+var
+  CtlWord: Word;
+begin
+  CtlWord := Get8087CW;
+  Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
+  Result := TFPUExceptionMask(CtlWord and $3F);
+end;
+
+procedure ClearExceptions(RaisePending: Boolean);assembler;
+asm
+  cmpb $0,RaisePending
+  je .Lclear
+  fwait
+.Lclear:
+  fnclex
+end;
+
+{$endif cpui386}
 
 end.
 {
   $Log$
-  Revision 1.8  2002-09-07 21:06:12  carl
+  Revision 1.9  2003-01-03 20:34:02  peter
+    * i386 fpu controlword functions added
+
+  Revision 1.8  2002/09/07 21:06:12  carl
     * cleanup of parameters
     - remove assembler code
 
