@@ -30,35 +30,40 @@ begin
    FileClose := 0;
 end;
 
-FUNCTION FileOpen (Var FileName: AsciiZ; Mode: Word): THandle;
-var
- AMode: word;
+procedure AllowSlash (P: PChar);
+
+{Allow slash as backslash.}
+
+var I: longint;
+
 begin
-  if Mode=stCreate then
-	Begin
-	  AMode:=$8302;
-	end
-  else
-	Begin
-	  Case (Mode and 3) of
-	   0 : AMode:=$8001;
-	   1 : AMode:=$8404;
-	   2 : AMode:=$8404;
-	  end;
-	end;
-   asm
-	 xorl  %eax, %eax
-	 movw  %ax, DosStreamError
-	 movl  FileName, %ebx
-	 movw  $0xff02, %ax
-	 movw  AMode, %cx
-	 call  syscall
-	 jnc   .Lexit1
-	 movw  %ax, DosStreamError                        { Hold Error  }
-	 xorl  %eax, %eax                                 { Open Failed }
-   .Lexit1:
-	 movw  %ax, __RESULT
-   END;
+    for I := 0 to StrLen (P) do
+        if P [I] = '/' then P [I] := '\';
+end;
+
+function FileOpen (var FileName: AsciiZ; Mode: word): THandle;
+var AMode: longint;
+begin
+    if Mode = stCreate then
+        AMode := $50000    (* Create / replace *)
+    else
+        AMode := Mode and $FF;
+(* DenyAll if sharing not specified. *)
+    if AMode and 112 = 0 then AMode := AMode or 16;
+    asm
+        xorl %eax, %eax
+        movw %ax, DosStreamError
+        movl FileName, %edx
+        movw $0x7f0b, %eax
+        movw AMode, %ecx
+        call syscall
+        cmpl $0xffffffff, %eax
+        jnz .Lexit1
+        movw  %cx, DosStreamError                        { Hold Error  }
+        xorl  %eax, %eax                                 { Open Failed }
+    .Lexit1:
+        movw  %ax, __RESULT
+    end;
 end;
 
 
@@ -143,7 +148,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2000-06-12 17:26:29  hajny
+  Revision 1.9  2000-07-06 18:59:41  hajny
+    * FileOpen corrected
+
+  Revision 1.8  2000/06/12 17:26:29  hajny
     * little mistyping in SetFileSize
 
   Revision 1.7  2000/06/06 17:10:36  hajny
