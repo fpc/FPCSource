@@ -380,10 +380,13 @@ unit tgobj;
                { Update tempfreelist }
                if assigned(hprevfree) then
                 begin
-                  { Connect With previous tt_free block? }
+                  { Concat blocks when the previous block is free and
+                    there is no block assigned for a tdef }
                   if assigned(hprev) and
                      (hp^.temptype=tt_free) and
-                     (hprev^.temptype=tt_free) then
+                     not assigned(hp^.def) and
+                     (hprev^.temptype=tt_free) and
+                     not assigned(hprev^.def) then
                    begin
                      inc(hprev^.size,hp^.size);
                      if direction=1 then
@@ -401,11 +404,14 @@ unit tgobj;
 
                   tempfreelist:=hp;
                 end;
-               { Next block tt_free ? Yes, then concat }
+               { Concat blocks when the next block is free and
+                 there is no block assigned for a tdef }
                hnext:=hp^.next;
                if assigned(hnext) and
                   (hp^.temptype=tt_free) and
-                  (hnext^.temptype=tt_free) then
+                  not assigned(hp^.def) and
+                  (hnext^.temptype=tt_free) and
+                  not assigned(hnext^.def) then
                 begin
                   inc(hp^.size,hnext^.size);
                   if direction=1 then
@@ -557,7 +563,10 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.41  2003-11-04 15:35:13  peter
+  Revision 1.42  2003-11-04 19:03:54  peter
+    * fixes for temp type patch
+
+  Revision 1.41  2003/11/04 15:35:13  peter
     * fix for referencecounted temps
 
   Revision 1.40  2003/10/01 20:34:49  peter

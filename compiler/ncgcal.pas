@@ -685,7 +685,7 @@ implementation
             not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) and
             not assigned(funcretnode) then
            begin
-             tg.gettemptyped(exprasmlist,resulttype.def,tt_persistent,refcountedtemp);
+             tg.gettemptyped(exprasmlist,resulttype.def,tt_normal,refcountedtemp);
              cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
            end;
 
@@ -1008,7 +1008,7 @@ implementation
          if resulttype.def.needs_inittable and
             not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
            begin
-             tg.gettemptyped(exprasmlist,resulttype.def,tt_persistent,refcountedtemp);
+             tg.gettemptyped(exprasmlist,resulttype.def,tt_normal,refcountedtemp);
              cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
            end;
 
@@ -1133,7 +1133,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.136  2003-11-04 15:35:13  peter
+  Revision 1.137  2003-11-04 19:03:54  peter
+    * fixes for temp type patch
+
+  Revision 1.136  2003/11/04 15:35:13  peter
     * fix for referencecounted temps
 
   Revision 1.135  2003/10/30 17:12:49  peter

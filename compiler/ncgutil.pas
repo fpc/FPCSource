@@ -903,7 +903,8 @@ implementation
         hp:=tg.templist;
         while assigned(hp) do
          begin
-           if assigned(hp^.def) then
+           if assigned(hp^.def) and
+              hp^.def.needs_inittable then
             begin
               if (cs_implicit_exceptions in aktmoduleswitches) then
                 include(current_procinfo.flags,pi_needs_implicit_finally);
@@ -925,7 +926,8 @@ implementation
         hp:=tg.templist;
         while assigned(hp) do
          begin
-           if assigned(hp^.def) then
+           if assigned(hp^.def) and
+              hp^.def.needs_inittable then
             begin
               reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
               cg.g_finalize(list,hp^.def,href,false);
@@ -1943,7 +1945,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.163  2003-11-04 15:35:13  peter
+  Revision 1.164  2003-11-04 19:03:50  peter
+    * fixes for temp type patch
+
+  Revision 1.163  2003/11/04 15:35:13  peter
     * fix for referencecounted temps
 
   Revision 1.162  2003/10/25 11:34:02  florian
