@@ -924,17 +924,15 @@ Function DosExitCode: Word;
   End;
 
 
-Procedure GetCBreak(Var BreakValue: Boolean);
+  Procedure GetCBreak(Var BreakValue: Boolean);
   Begin
-   { Not implemented for Linux, but set to true as a precaution. }
    breakvalue:=breakflag;
   End;
 
 
-Procedure SetCBreak(BreakValue: Boolean);
+ Procedure SetCBreak(BreakValue: Boolean);
   Begin
    breakflag:=BreakValue;
-   { ! No Linux equivalent ! }
   End;
 
 
@@ -1187,11 +1185,12 @@ begin
   { allow backslash as slash }
   for i:=1 to length(path) do
     if path[i]='\' then path[i]:='/';
+
   I := Length(Path);
   while (I > 0) and not ((Path[I] = '/') or (Path[I] = ':'))
      do Dec(I);
   if Path[I] = '/' then
-     dir := Copy(Path, 0, I-1)
+     dir := Copy(Path, 0, I)
   else dir := Copy(Path,0,I);
 
   if Length(Path) > Length(dir) then
@@ -1246,7 +1245,7 @@ end;
                 if dirlist[i]='\' then dirlist[i]:='/';
               repeat
                 p1:=pos(';',dirlist);
-                if p1=0 then
+                if p1<>0 then
                  begin
                    newdir:=copy(dirlist,1,p1-1);
                    delete(dirlist,1,p1);
@@ -1278,10 +1277,15 @@ var
     FInfo : pFileInfoBlock;
     FTime : Longint;
     FLock : Longint;
+    Str   : String;
+    i     : integer;
 begin
     DosError:=0;
     FTime := 0;
-    FLock := Lock(StrPas(filerec(f).name), SHARED_LOCK);
+    Str := StrPas(filerec(f).name);
+    for i:=1 to length(Str) do
+     if str[i]='\' then str[i]:='/';
+    FLock := Lock(Str, SHARED_LOCK);
     IF FLock <> 0 then begin
         New(FInfo);
         if Examine(FLock, FInfo) then begin
@@ -1326,12 +1330,17 @@ end;
     info : pFileInfoBlock;
     MyLock : Longint;
     flags: word;
+    Str: String;
+    i: integer;
   Begin
     DosError:=0;
     flags:=0;
     New(info);
     { open with shared lock }
-    MyLock:=Lock(StrPas(filerec(f).name),SHARED_LOCK);
+    Str := StrPas(filerec(f).name);
+    for i:=1 to length(Str) do
+     if str[i]='\' then str[i]:='/';
+    MyLock:=Lock(Str,SHARED_LOCK);
     if MyLock <> 0 then
       Begin
         Examine(MyLock,info);
@@ -1365,11 +1374,17 @@ Procedure setfattr (var f;attr : word);
   var
    flags: longint;
    MyLock : longint;
+   str: string;
+   i: integer;
   Begin
     DosError:=0;
     flags:=FIBF_WRITE;
     { open with shared lock }
-    MyLock:=Lock(StrPas(filerec(f).name),SHARED_LOCK);
+    Str := StrPas(filerec(f).name);
+    for i:=1 to length(Str) do
+     if str[i]='\' then str[i]:='/';
+
+    MyLock:=Lock(Str,SHARED_LOCK);
 
     { By default files are read-write }
     if attr AND ReadOnly <> 0 then
@@ -1380,7 +1395,7 @@ Procedure setfattr (var f;attr : word);
     if MyLock <> 0 then
      Begin
        Unlock(MyLock);
-       if SetProtection(StrPas(filerec(f).name),flags) = 0 then
+       if SetProtection(Str,flags) = 0 then
          DosError:=5;
      end
     else
@@ -1506,7 +1521,12 @@ End.
 
 {
   $Log$
-  Revision 1.5  1998-08-04 13:37:10  carl
+  Revision 1.6  1998-08-13 13:18:45  carl
+    * FSearch bugfix
+    * FSplit bugfix
+    + GetFAttr,SetFAttr and GetFTime accept dos dir separators
+
+  Revision 1.5  1998/08/04 13:37:10  carl
     * bugfix of findfirst, was not convberting correctl backslahes
 
 
