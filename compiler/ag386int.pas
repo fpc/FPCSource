@@ -553,8 +553,29 @@ ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]
                        prefix:= '';
 {$ifdef AG386BIN}
                      { added prefix instructions, must be on same line as opcode }
-                       for i:=1to pai386(hp)^.nprefixes do
-                        prefix:=int_prefix2str[pai386(hp)^.prefixes[i-1]]+#9;
+                       if (pai386(hp)^.ops = 0) and
+                          ((pai386(hp)^.opcode = A_REP) or
+                           (pai386(hp)^.opcode = A_LOCK) or
+                           (pai386(hp)^.opcode =  A_REPE) or
+                           (pai386(hp)^.opcode =  A_REPNZ) or
+                           (pai386(hp)^.opcode =  A_REPZ) or
+                           (pai386(hp)^.opcode = A_REPNE)) then
+                        Begin
+                          prefix:=int_op2str[pai386(hp)^.opcode]+#9;
+                          hp:=Pai(hp^.next);
+                        { this is theorically impossible... }
+                          if hp=nil then
+                           begin
+                             s:=#9#9+prefix;
+                             AsmWriteLn(s);
+                             break;
+                           end;
+                          { nasm prefers prefix on a line alone }
+                          AsmWriteln(#9#9+prefix);
+                          prefix:='';
+                        end
+                       else
+                        prefix:= '';
                        if pai386(hp)^.ops<>0 then
                         begin
                           if pai386(hp)^.opcode=A_CALL then
@@ -765,7 +786,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.27  1999-02-26 00:48:13  peter
+  Revision 1.28  1999-03-01 15:46:16  peter
+    * ag386bin finally make cycles correct
+    * prefixes are now also normal opcodes
+
+  Revision 1.27  1999/02/26 00:48:13  peter
     * assembler writers fixed for ag386bin
 
   Revision 1.26  1999/02/25 21:02:18  peter

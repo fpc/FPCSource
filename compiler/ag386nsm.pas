@@ -550,8 +550,6 @@ ait_labeled_instruction :
                        suffix:='';
                        prefix:='';
 {$ifdef AG386BIN}
-                       for i:=1to pai386(hp)^.nprefixes do
-                        AsmWriteln(int_prefix2str[pai386(hp)^.prefixes[i-1]]);
                        if pai386(hp)^.ops<>0 then
                         begin
                           if pai386(hp)^.opcode=A_CALL then
@@ -596,7 +594,8 @@ ait_labeled_instruction :
                        if pai386(hp)^.opcode=A_FWAIT then
                         AsmWriteln(#9#9'DB'#9'09bh')
                        else
-                        AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^.opcode]+cond2str[pai386_labeled(hp)^.condition]+suffix+s);
+                        AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^.opcode]+
+                          cond2str[pai386_labeled(hp)^.condition]+suffix+s);
 {$else}
                      { added prefix instructions, must be on same line as opcode }
                        if (pai386(hp)^.op1t = top_none) and
@@ -749,7 +748,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.20  1999-02-26 00:48:14  peter
+  Revision 1.21  1999-03-01 15:46:17  peter
+    * ag386bin finally make cycles correct
+    * prefixes are now also normal opcodes
+
+  Revision 1.20  1999/02/26 00:48:14  peter
     * assembler writers fixed for ag386bin
 
   Revision 1.19  1999/02/25 21:02:19  peter

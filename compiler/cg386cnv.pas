@@ -1268,6 +1268,11 @@ implementation
                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                   newreference(pfrom^.location.reference),hregister)));
               end;
+            LOC_FLAGS :
+              begin
+                hregister:=getregister32;
+                emit_flag2reg(pfrom^.location.resflags,hregister);
+              end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
                 hregister:=pfrom^.location.register;
@@ -1277,7 +1282,6 @@ implementation
           end;
          exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hregister,hregister)));
          hregister:=reg32toreg8(hregister);
-         emit_flag2reg(pfrom^.location.resflags,hregister);
          case pto^.resulttype^.size of
           1 : pto^.location.register:=hregister;
           2 : begin
@@ -1620,7 +1624,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  1999-02-25 21:02:23  peter
+  Revision 1.59  1999-03-01 15:46:18  peter
+    * ag386bin finally make cycles correct
+    * prefixes are now also normal opcodes
+
+  Revision 1.58  1999/02/25 21:02:23  peter
     * ag386bin updates
     + coff writer
 
