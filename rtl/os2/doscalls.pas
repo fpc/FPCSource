@@ -137,8 +137,8 @@ type    TByteArray=array[0..$fff0] of byte;
 
 ****************************************************************************}
 
-type    TThreadEntry=procedure(Param:pointer); cdecl;
-        ThreadEntry=TThreadEntry;
+type    TThreadEntry = function (Param: pointer): longint; cdecl;
+        ThreadEntry = TThreadEntry;
 
 
 const   dtSuspended         =1; {Thread is started suspended instead of
@@ -3949,7 +3949,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.5  2000-10-26 20:07:19  hajny
+  Revision 1.6  2000-12-21 21:12:43  hajny
+    * TThreadEntry corrected (needed for FCL)
+
+  Revision 1.5  2000/10/26 20:07:19  hajny
     * DosDevIOCtl prototype fixed, cdecl removed in DosSetFilePtr helper declaration
 
   Revision 1.4  2000/10/08 18:40:18  hajny
