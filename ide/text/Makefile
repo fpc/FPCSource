@@ -60,9 +60,9 @@ EXEOBJECTS=fp
 #####################################################################
 
 .PHONY: all clean install info \
-        staticlib sharedlib libsclean \
-        staticinstall sharedinstall libinstall \
-        
+	staticlib sharedlib libsclean \
+	staticinstall sharedinstall libinstall \
+
 all: testfpcmake fpc_all
 
 info: testfpcmake fpc_info
@@ -144,7 +144,7 @@ clean : testfpcmake fpc_cleanall
 # Installation
 #
 install: fpc_install
-	$(INSTALL) $(wildcard *.pt) $(wildcard *.tdf) $(BININSTALLDIR)
+	$(INSTALL) $(wildcard *.pt) $(wildcard *.tdf) readme.txt $(BININSTALLDIR)
 
 #
 # Misc
@@ -154,7 +154,10 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.16  1999-10-08 15:34:11  pierre
+# Revision 1.17  1999-10-29 14:33:03  pierre
+#  + added readme.txt file
+#
+# Revision 1.16  1999/10/08 15:34:11  pierre
 #  * adapted to target dependent libgdb dirs
 #
 # Revision 1.15  1999/07/06 15:49:54  peter
