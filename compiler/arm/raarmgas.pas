@@ -38,6 +38,7 @@ Unit raarmgas;
         procedure handleopcode;override;
         procedure BuildReference(oper : tarmoperand);
         procedure BuildOperand(oper : tarmoperand);
+        function TryBuildShifterOp(oper : tarmoperand) : boolean;
         procedure BuildOpCode(instr : tarminstruction);
         procedure ReadSym(oper : tarmoperand);
         procedure ConvertCalljmp(instr : tarminstruction);
@@ -182,7 +183,6 @@ Unit raarmgas;
               Consume(AS_HASH);
               inc(oper.opr.ref.offset,BuildConstExpression(false,true));
             end;
-          Consume_RBracket;
         end;
 
 
@@ -203,7 +203,10 @@ Unit raarmgas;
                exit;
              end;
             if actasmtoken=AS_COMMA then
-              read_index;
+              begin
+                read_index;
+                Consume_RBracket;
+              end;
             if actasmtoken=AS_NOT then
               begin
                 consume(AS_NOT);
@@ -215,6 +218,55 @@ Unit raarmgas;
             Message(asmr_e_invalid_reference_syntax);
             RecoverConsume(false);
           end;
+      end;
+
+
+    function tarmattreader.TryBuildShifterOp(oper : tarmoperand) : boolean;
+
+      procedure handlepara(sm : tshiftmode);
+        begin
+          consume(AS_ID);
+          fillchar(oper.opr,sizeof(oper.opr),0);
+          oper.opr.typ:=OPR_SHIFTEROP;
+          oper.opr.shifterop.shiftmode:=sm;
+          if sm<>SM_RRX then
+            begin
+              case actasmtoken of
+                AS_REGISTER:
+                  begin
+                    oper.opr.shifterop.rs:=actasmregister;
+                    consume(AS_REGISTER);
+                  end;
+                AS_HASH:
+                  begin
+                    consume(AS_HASH);
+                    oper.opr.shifterop.shiftimm:=BuildConstExpression(false,false);
+                  end;
+                else
+                  Message(asmr_e_illegal_shifterop_syntax);
+              end;
+            end;
+        end;
+
+      begin
+        result:=true;
+        if (actasmtoken=AS_ID) then
+          begin
+            if (actasmpattern='LSL') then
+              handlepara(SM_LSL)
+            else if (actasmpattern='LSR') then
+              handlepara(SM_LSR)
+            else if (actasmpattern='ASR') then
+              handlepara(SM_ASR)
+            else if (actasmpattern='ROR') then
+              handlepara(SM_ROR)
+            else if (actasmpattern='RRX') then
+              handlepara(SM_ROR)
+            else
+              result:=false;
+          end
+        else
+          result:=false;
       end;
 
 
@@ -560,11 +612,22 @@ Unit raarmgas;
           case actasmtoken of
             AS_COMMA: { Operand delimiter }
               Begin
-                if operandnum>Max_Operands then
-                  Message(asmr_e_too_many_operands)
+                if ((instr.opcode=A_MOV) and (operandnum=2)) or
+                  ((operandnum=3) and not(instr.opcode in [A_UMLAL,A_UMULL,A_SMLAL,A_SMULL])) then
+                  begin
+                    Consume(AS_COMMA);
+                    if not(TryBuildShifterOp(instr.Operands[4] as tarmoperand)) then
+                      Message(asmr_e_illegal_shifterop_syntax);
+                    Inc(operandnum);
+                  end
                 else
-                  Inc(operandnum);
-                Consume(AS_COMMA);
+                  begin
+                    if operandnum>Max_Operands then
+                      Message(asmr_e_too_many_operands)
+                    else
+                      Inc(operandnum);
+                    Consume(AS_COMMA);
+                  end;
               end;
             AS_SEPARATOR,
             AS_END : { End of asm operands for this opcode  }
@@ -735,7 +798,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2004-11-24 22:03:26  florian
+  Revision 1.12  2005-01-05 15:22:58  florian
+    * added support of shifter ops in arm inline assembler
+
+  Revision 1.11  2004/11/24 22:03:26  florian
     * fixed arm compilation
 
   Revision 1.10  2004/11/11 19:31:33  peter

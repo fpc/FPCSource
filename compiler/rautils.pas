@@ -66,7 +66,7 @@ Function SearchLabel(const s: string; var hl: tasmlabel;emit:boolean): boolean;
 
 type
   TOprType=(OPR_NONE,OPR_CONSTANT,OPR_SYMBOL,OPR_LOCAL,
-            OPR_REFERENCE,OPR_REGISTER,OPR_REGLIST,OPR_COND,OPR_REGSET);
+            OPR_REFERENCE,OPR_REGISTER,OPR_REGLIST,OPR_COND,OPR_REGSET,OPR_SHIFTEROP);
 
   TOprRec = record
     case typ:TOprType of
@@ -84,6 +84,7 @@ type
 {$endif powerpc}
 {$ifdef arm}
       OPR_REGSET    : (regset : tcpuregisterset);
+      OPR_SHIFTEROP : (shifterop : tshifterop);
 {$endif arm}
   end;
 
@@ -1111,7 +1112,11 @@ end;
 {$ifdef ARM}
               OPR_REGSET:
                 ai.loadregset(i-1,regset);
+              OPR_SHIFTEROP:
+                ai.loadshifterop(i-1,shifterop);
 {$endif ARM}
+              else
+                internalerror(200501051);
             end;
           end;
      ai.SetCondition(condition);
@@ -1620,7 +1625,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.99  2004-12-22 17:09:55  peter
+  Revision 1.100  2005-01-05 15:22:39  florian
+    * added support of shifter ops in arm inline assembler
+
+  Revision 1.99  2004/12/22 17:09:55  peter
     * support sizeof()
     * fix typecasting a constant like dword(4)
 

@@ -494,6 +494,7 @@ const
   asmr_e_invalid_reg_list_for_opcode=07096;
   asmr_e_higher_cpu_mode_required=07097;
   asmr_w_unable_to_determine_reference_size_using_dword=07098;
+  asmr_e_illegal_shifterop_syntax=07099;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -650,9 +651,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 37898;
+  MsgTxtSize = 37959;
 
   MsgIdxMax : array[1..20] of longint=(
-    18,67,213,59,57,46,99,20,35,60,
+    18,67,213,59,57,46,100,20,35,60,
     40,1,1,1,1,1,1,1,1,1
   );
