@@ -40,9 +40,26 @@ unit cresstr;
     { calcs the hash value for a give resourcestring, len is }
     { necessary because the resourcestring can contain #0    }
     function calc_resstring_hashvalue(p : pchar;len : longint) : longint;
+    
+      Var hash,g,I : longint;
 
       begin
-         calc_resstring_hashvalue:=12345678;
+         hash:=len;
+         For I:=0 to Len-1 do
+           begin
+           hash:=hash shl 4;
+           inc(Hash,Ord(p[i]));
+           g:=hash and ($f shl 28);
+           if g<>0 then
+             begin
+             hash:=hash xor (g shr 24);
+             hash:=hash xor g;
+             end; 
+           end;
+         If Hash=0 then
+           Calc_resstring_hashvalue:=Not(0)
+         else
+           calc_resstring_hashvalue:=Hash;
       end;
 
     procedure insertresourcestrings;
@@ -102,7 +119,10 @@ unit cresstr;
 end.
 {
   $Log$
-  Revision 1.1  1999-07-22 09:34:04  florian
+  Revision 1.2  1999-07-22 20:04:58  michael
+  + Added computehashvalue
+
+  Revision 1.1  1999/07/22 09:34:04  florian
     + initial revision
 
 }
