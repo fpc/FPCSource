@@ -362,7 +362,8 @@ Begin
 {   registers that are completely removed from a sequence (= registers in  }
 {   RegLoadedForRef, have to be changed to their contents from before the  }
 {   sequence.                                                              }
-                                        Begin
+                                         If RegCounter in RegInfo.RegsLoadedForRef Then
+                                          Begin
 {load Cnt2 with the total number of instructions of this sequence}
                                            Cnt2 := PPaiProp(hp4^.OptInfo)^.
                                                    Regs[RegInfo.New2OldReg[RegCounter]].NrOfMods;
@@ -413,7 +414,7 @@ Begin
          hp5 := new(pai_asm_comment,init(strpnew('stopping here...')));
          InsertLLItem(AsmL, hp3, pai(hp3^.next), hp5);
 {$endif csdebug}
-                                         End;
+                                          End;
                                        End;
                                    hp3 := New(Pai_Marker,Init(NoPropInfoEnd));
                                    InsertLLItem(AsmL, Pai(hp2^.Previous), hp2, hp3);
@@ -529,7 +530,12 @@ End.
 
 {
  $Log$
- Revision 1.27  1999-10-01 13:51:40  jonas
+ Revision 1.28  1999-10-11 11:11:31  jonas
+   * fixed bug which sometimes caused a crash when optimizing blocks of code with
+     assembler blocks (didn't notice before because of lack of zero page protection
+     under Win9x :( )
+
+ Revision 1.27  1999/10/01 13:51:40  jonas
    * CSE now updates the RegAlloc's
 
  Revision 1.26  1999/09/30 14:43:13  jonas
