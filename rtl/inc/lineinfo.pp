@@ -348,7 +348,7 @@ end;
 {$ENDIF EMX}
 
 
-{$ifdef Unix}
+{$ifdef HasUnix}
 function LoadElf32:boolean;
 type
   telf32header=packed record
@@ -875,7 +875,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.11  2002-09-07 15:07:45  peter
+  Revision 1.12  2003-01-10 21:35:48  marco
+   * hasunix fix (my first commit from beos :-)
+
+  Revision 1.11  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
   Revision 1.10  2002/09/07 11:09:40  carl
