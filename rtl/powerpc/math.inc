@@ -153,7 +153,7 @@ LTruncNoAdd:
         subfic r4,r4,0
         subfze r3,r3
 LTruncPositive: 
-      end ['R3','R4','F1','F2','F3','F4'];
+      end;
 
 
     {$define FPC_SYSTEM_HAS_ROUND}
@@ -249,7 +249,7 @@ LRoundNoAdd:
         subfic r4,r4,0
         subfze r3,r3
 LRoundPositive: 
-      end ['R3','R4','F1','F2','F3','F4'];
+      end;
 
 
    {$define FPC_SYSTEM_HAS_POWER}
@@ -382,7 +382,7 @@ asm
            {$endif}
            fsub   f3,f3,f1
            fmadd  f1,f0,f2,f3
-end ['R0','R3','R4','F0','F1','F2','F3'];
+end;
 
 
 function fpc_qword_to_double(q: qword): double; compilerproc;
@@ -419,12 +419,16 @@ asm
            {$endif}
            fsub   f3,f3,f1
            fmadd  f1,f0,f2,f3
-end ['R0','R3','R4','F0','F1','F2','F3'];
+end;
 
 
 {
   $Log$
-  Revision 1.25  2003-05-31 20:22:06  jonas
+  Revision 1.26  2003-06-14 12:41:08  jonas
+    * fixed compilation problems (removed unnecessary modified registers
+      lists from procedures)
+
+  Revision 1.25  2003/05/31 20:22:06  jonas
     * fixed 64 bit results of trunc and round
 
   Revision 1.24  2003/05/30 23:56:41  florian

@@ -30,11 +30,15 @@ LStrLenLoop:
         bne     LStrLenLoop
         sub     r3,r29,r3
 LStrLenDone:
-end ['R3','R4','R29','R30','CR0'];
+end;
 
 {
   $Log$
-  Revision 1.5  2002-09-11 07:49:40  jonas
+  Revision 1.6  2003-06-14 12:41:09  jonas
+    * fixed compilation problems (removed unnecessary modified registers
+      lists from procedures)
+
+  Revision 1.5  2002/09/11 07:49:40  jonas
     * fixed assembler errors
 
   Revision 1.4  2002/09/07 16:01:26  peter

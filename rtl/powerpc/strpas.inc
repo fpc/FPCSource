@@ -51,11 +51,15 @@ LStrPasDone:
 
         { store length }
         stb     r10,0(r3)
-end ['R0','R3','R4','R10','R11','CR0','CTR'];
+end;
 
 {
   $Log$
-  Revision 1.9  2003-04-27 16:25:08  jonas
+  Revision 1.10  2003-06-14 12:41:09  jonas
+    * fixed compilation problems (removed unnecessary modified registers
+      lists from procedures)
+
+  Revision 1.9  2003/04/27 16:25:08  jonas
     * support nil as parameter and some other fixes
 
   Revision 1.8  2002/10/17 10:14:46  jonas

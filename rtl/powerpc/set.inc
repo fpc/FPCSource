@@ -32,7 +32,7 @@ asm
         stw     r0,20(r3)
         stw     r0,24(r3)
         stw     r0,28(r3)
-end ['R0'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_CREATE_ELEMENT}
@@ -66,7 +66,7 @@ asm
 
         // store the result
         stwx    r0,r3,r4
-end ['R0','R4','R10'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_SET_BYTE}
@@ -100,7 +100,7 @@ asm
        or       r5,r4,r5
        // store result
        stw      r5,0(r3)
-end ['R0','R3','R4','R5','CTR'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_UNSET_BYTE}
@@ -133,7 +133,7 @@ asm
        andc     r5,r4,r5
        // store result
        stw      r4,0(r3)
-end ['R0','R3','R4','R5','CTR'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_SET_RANGE}
@@ -196,7 +196,7 @@ Lset_range_hi:                // in all cases, r3 here contains the address of
   or     r5,r5,r10            // and combine with existing set
   stw    r5,0(r3)             // store to set
 Lset_range_exit:
-end ['R0','R3','R4','R5','R6','R9','R10','CR0','CTR'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_IN_BYTE}
@@ -218,7 +218,7 @@ asm
        subfic   r4,r4,32
        // r3 := (r3 shr (r4 mod 32)) and 1  
        rlwnm    r3,r3,r4,31,31
-end ['R0','R3','R4','CR0'];
+end;
 
 
 
@@ -242,7 +242,7 @@ asm
       or        r0,r0,r10
       stwu      r0,4(r3)
       bdnz      LMADDSETS1
-end ['R0','R3','R4','R5','R10','CTR'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_MUL_SETS}
@@ -265,7 +265,7 @@ asm
       and       r0,r0,r10
       stwu      r0,4(r3)
       bdnz      LMMULSETS1
-end ['R0','R3','R4','R5','R10','CTR'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_SUB_SETS}
@@ -288,7 +288,7 @@ asm
       andc      r0,r0,r10
       stwu      r0,4(r3)
       bdnz      LMSUBSETS1
-end ['R0','R3','R4','R5','R10','CTR'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_SYMDIF_SETS}
@@ -311,7 +311,7 @@ asm
       xor       r0,r0,r10
       stwu      r0,4(r3)
       bdnz      LMSYMDIFSETS1
-end ['R0','R3','R4','R5','R10','CTR'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_COMP_SETS}
@@ -332,7 +332,7 @@ asm
        bdnzt    cr0*4+eq,LMCOMPSETS1
        cntlzw   r3,r0
        srwi.    r3,r3,5
-end ['R0','R3','R4','R10','CR0','CTR'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SET_CONTAINS_SET}
@@ -354,7 +354,7 @@ asm
        bdnzt    cr0*4+eq,LMCONTAINSSETS1
        cntlzw   r3,r0
        srwi.    r3,r3,5
-end ['R0','R3','R4','R10','CR0','CTR'];
+end;
 
 
 
@@ -523,7 +523,11 @@ end;
 
 {
   $Log$
-  Revision 1.21  2003-05-29 14:32:54  jonas
+  Revision 1.22  2003-06-14 12:41:08  jonas
+    * fixed compilation problems (removed unnecessary modified registers
+      lists from procedures)
+
+  Revision 1.21  2003/05/29 14:32:54  jonas
     * changed dcbst to dcbtst (former means "flush cache block to memory,
       the latter means "I will soon store something to that cache block")
 

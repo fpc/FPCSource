@@ -341,7 +341,7 @@ LMoveBytesLoop:
           stbux   r0,r4,r10
           bdnz    LMoveBytesLoop
 LMoveDone:
-end ['R0','R3','R4','R5','R10','F0','F11','F12','F13','CTR','CR0','CR1','CR7'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
@@ -497,7 +497,7 @@ LFillDWordLoop:
                 stwu    r5,4(r3)
                 bdnz    LFillDWordLoop
 LFillDWordEnd:
-end ['R3','R4','R5','CTR'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_INDEXBYTE}
@@ -522,7 +522,7 @@ LIndexByteLoop:
                 bne     LIndexByteDone
                 sub     r3,r10,r0
 LIndexByteDone:
-end ['R0','R3','R9','R10','CR0','CTR'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_INDEXWORD}
@@ -547,7 +547,7 @@ LIndexWordLoop:
                 bne     LIndexWordDone
                 sub     r3,r10,r0
 LIndexWordDone:
-end ['R0','R3','R9','R10','CR0','CTR'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
@@ -572,7 +572,7 @@ LIndexDWordLoop:
                 bne     LIndexDWordDone
                 sub     r3,r10,r0
 LIndexDWordDone:
-end ['R0','R3','R9','R10','CR0','CTR'];
+end;
 
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
 function CompareByte(const buf1,buf2;len:longint):longint; assembler;
@@ -598,7 +598,7 @@ LCompByteLoop:
         { if chars not equal or at the end, we're ready }
         bdnzt   cr0*4+eq, LCompByteLoop
 LCompByteDone:
-end ['R0','R3','R4','R9','R10','R11','CR0','CTR'];
+end;
 
 {$define FPC_SYSTEM_HAS_COMPAREWORD}
 function CompareWord(const buf1,buf2;len:longint):longint; assembler;
@@ -624,7 +624,7 @@ LCompWordLoop:
         { if chars not equal or at the end, we're ready }
         bdnzt   cr0*4+eq, LCompWordLoop
 LCompWordDone:
-end ['R0','R3','R4','R9','R10','R11','CR0','CTR'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_COMPAREDWORD}
@@ -651,7 +651,7 @@ LCompDWordLoop:
         { if chars not equal or at the end, we're ready }
         bdnzt   cr0*4+eq, LCompDWordLoop
 LCompDWordDone:
-end ['R0','R3','R4','R9','R10','R11','CR0','CTR'];
+end;
 
 {$define FPC_SYSTEM_HAS_INDEXCHAR0}
 function IndexChar0(const buf;len:longint;b:Char):longint; assembler;
@@ -678,7 +678,7 @@ LIndexChar0Loop:
         bne     LIndexChar0Done
         sub     r3,r9,r0
 LIndexChar0Done:
-end ['R0','R3','R4','R9','R10','CR0','CTR'];
+end;
 
 
 {****************************************************************************
@@ -711,7 +711,7 @@ LShortStrCopyLoop:
         stbu    r0,1(r3)
         bdnz    LShortStrCopyLoop
 LShortStrCopyDone:
-end ['R0','R3','R4','R5','R6','R7','R10','CR0','CTR'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_ASSIGN}
@@ -744,7 +744,7 @@ LShortStrCopyLoop2:
         stbu    r0,1(r5)
         bdnz    LShortStrCopyLoop2
 LShortStrCopyDone2:
-end ['R0','R3','R4','R5','R10','CR0','CTR'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
@@ -785,7 +785,7 @@ LShortStrAppendLoop:
       stbu    r10,1(r3)
       bdnz    LShortStrAppendLoop
 LShortStrAppendDone:
-end ['R3','R4','R8','R9','R10','CTR'];
+end;
 
 (*
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
@@ -844,7 +844,7 @@ LShortStrCompareLen:
       { also return result in flags, maybe we can use this in the CG }
       mr.     r3,r3
 LShortStrCompareDone:
-end ['R0','R3','R4','R5','R6','R7','R8','R9','R10','CR0','CR1','CTR'];
+end;
 *)
 
 {$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
@@ -863,7 +863,7 @@ function get_frame:pointer;assembler;
 asm
   { all abi's I know use r1 as stack pointer }
   mr r3, r1
-end ['R3'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
@@ -877,7 +877,7 @@ asm
    lwz r3,4(r3)
 Lcaller_addr_frame_null:
     //     !!!!!!! depends on ABI !!!!!!!!
-end ['R3'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
@@ -887,7 +887,7 @@ asm
     beq     Lcaller_frame_null
     lwz  r3,0(r3)
 Lcaller_frame_null:
-end ['R3'];
+end;
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
 function abs(l:longint):longint; assembler;[internconst:in_const_abs];
@@ -895,7 +895,7 @@ asm
         srawi   r0,r3,31
         add     r3,r0,r3
         xor     r3,r3,r0
-end ['R0','R3'];
+end;
 
 
 {****************************************************************************
@@ -906,21 +906,21 @@ end ['R0','R3'];
 function odd(l:longint):boolean;assembler;[internconst:in_const_odd];
 asm
         rlwinm  r3,r3,0,31,31
-end ['R3'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_SQR_LONGINT}
 function sqr(l:longint):longint;assembler;[internconst:in_const_sqr];
 asm
         mullw   r3,r3,r3
-end ['R3'];
+end;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Longint;assembler;
 asm
         mr    r3,r1
-end ['R3'];
+end;
 
 
 {****************************************************************************
@@ -948,7 +948,7 @@ LDecLockedLoop:
     bne-    LDecLockedLoop
     cntlzw  r3,r10
     srwi    r3,r3,5
-end ['R3','R10'];
+end;
 
 {$define FPC_SYSTEM_HAS_INCLOCKED}
 procedure inclocked(var l : longint);assembler;
@@ -958,12 +958,16 @@ LIncLockedLoop:
     addi    r10,r10,1
     stwcx.  r10,0,r3
     bne-    LIncLockedLoop
-end ['R3','R10'];
+end;
 
 
 {
   $Log$
-  Revision 1.50  2003-06-01 14:50:17  jonas
+  Revision 1.51  2003-06-14 12:41:08  jonas
+    * fixed compilation problems (removed unnecessary modified registers
+      lists from procedures)
+
+  Revision 1.50  2003/06/01 14:50:17  jonas
     * fpc_shortstr_append_shortstr has to use high(s1) instead of 255 as
       maxlen
     + ppc version of fpc_shortstr_append_shortstr

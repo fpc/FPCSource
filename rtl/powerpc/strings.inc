@@ -81,7 +81,7 @@ LStrCopyWrapUpLoop:
         bge     LStrCopyWrapUpLoop
 LStrCopyDone:
         {  r3 still contains dest here  }
-end ['R4','R7','R8','R0','R9','R10','CR0','CTR'];
+end;
 
 
 function strecopy(dest,source : pchar) : pchar;assembler;
@@ -147,7 +147,7 @@ LStrECopyWrapUpLoop:
         bge     LStrECopyWrapUpLoop
 LStrECopyDone:
         {  r3 contains new dest here  }
-end ['R3','R4','R8','R0','R3','R9','R10','CR0','CTR'];
+end;
 
 
 function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
@@ -170,7 +170,7 @@ LStrlCopyLoop:
         li      r0,0
         stb     r0,1(r10)
 LStrlCopyDone:
-end ['R0','R4','R10','CR0'];
+end;
 
 
 function strlen(p : pchar) : longint;assembler;
@@ -192,7 +192,7 @@ LStrEndLoop:
         cmplwi  r0,0
         bne     LStrEndLoop
 LStrEndDone:
-end ['R0','R3','R4','CR0'];
+end;
 
 
 function strcomp(str1,str2 : pchar) : longint;assembler;
@@ -218,7 +218,7 @@ LStrCompLoop:
         { otherwise loop                                                    }
         bne     cr1,LStrCompLoop
 LStrCompDone:
-end ['R0','R3','R4','R9','R10','CR0','CR1'];
+end;
 
 
 function strlcomp(str1,str2 : pchar;l : longint) : longint;assembler;
@@ -251,7 +251,7 @@ LStrlCompLoop:
         { otherwise loop (if ctr <> 0)                                      }
         bdnzf  cr1*4+eq,LStrlCompLoop
 LStrlCompDone:
-end ['R0','R3','R4','R9','R10','CR0','CR1','CTR'];
+end;
 
 
 function stricomp(str1,str2 : pchar) : longint;assembler;
@@ -314,7 +314,7 @@ LStriCompEqual:
         { otherwise loop                                                    }
         bne     cr1,LStriCompLoop
 LStriCompDone:
-end ['R3','R4','R26','R27','R28','R29','R30','CR0','CR1'];
+end;
 
 
 function strlicomp(str1,str2 : pchar;l : longint) : longint;assembler;
@@ -372,7 +372,7 @@ LStrliCompEqual:
         { otherwise loop (if ctr <> 0)                                      }
         bdnzf    cr1*4+eq,LStrliCompLoop
 LStrliCompDone:
-end ['R0','R3','R4','R5','R7','R8','R9','R10','CR0','CR1','CTR'];
+end;
 
 
 function strscan(p : pchar;c : char) : pchar;assembler;
@@ -390,7 +390,7 @@ LStrScanLoop:
         beq     cr1,LStrScanDone
         li      r3, 0
 LStrScanDone:
-end ['R0','R3','R4','CR0','CR1'];
+end;
 
 
 function strrscan(p : pchar;c : char) : pchar;assembler;
@@ -413,7 +413,7 @@ LStrrScanLoop:
 LStrrScanNotFound:
         bne     LStrrScanLoop
 LStrrScanDone:
-end ['R0','R3','R4','R10','CR0','CR1'];
+end;
 
 
 function strupper(p : pchar) : pchar;assembler;
@@ -433,7 +433,7 @@ LStrUpperLoop:
 LStrUpper1:
         bne     cr1,LStrUpperLoop
 LStrUpperNil:
-end ['R0','R9','R10','CR0','CR1'];
+end;
 
 
 function strlower(p : pchar) : pchar;assembler;
@@ -453,12 +453,16 @@ LStrLowerLoop:
 LStrLower1:
         bne     cr1,LStrLowerLoop
 LStrLowerNil:
-end ['R0','R9','R10','CR0','CR1'];
+end;
 
 
 {
   $Log$
-  Revision 1.18  2003-05-28 19:18:10  jonas
+  Revision 1.19  2003-06-14 12:41:08  jonas
+    * fixed compilation problems (removed unnecessary modified registers
+      lists from procedures)
+
+  Revision 1.18  2003/05/28 19:18:10  jonas
     * fixed strcopy and strecopy if there are #1 chars right before the end
       of the string to copied
 
