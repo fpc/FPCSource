@@ -38,16 +38,19 @@ procedure EndThread;
 { this allows to do a lot of things in MT safe way }
 { it is also used to make the heap management      }
 { thread safe                                      }
-procedure InitCriticalsection(var cs : tcriticalsection);
-procedure DoneCriticalsection(var cs : tcriticalsection);
-procedure EnterCriticalsection(var cs : tcriticalsection);
-procedure LeaveCriticalsection(var cs : tcriticalsection);
+procedure InitCriticalSection(var cs : TRTLCriticalSection);
+procedure DoneCriticalsection(var cs : TRTLCriticalSection);
+procedure EnterCriticalsection(var cs : TRTLCriticalSection);
+procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
 
 {$endif MT}
 
 {
   $Log$
-  Revision 1.4  2001-01-26 16:37:54  florian
+  Revision 1.5  2001-10-23 21:51:03  peter
+    * criticalsection renamed to rtlcriticalsection for kylix compatibility
+
+  Revision 1.4  2001/01/26 16:37:54  florian
   *** empty log message ***
 
   Revision 1.3  2001/01/24 21:47:18  florian

@@ -162,20 +162,20 @@
         EndThread(0);
       end;
 
-    procedure InitCriticalSection(var cs : tcriticalsection);
+    procedure InitCriticalSection(var cs : TRTLCriticalSection);
       begin
       end;
 
-    procedure DoneCriticalSection(var cs : tcriticalsection);
+    procedure DoneCriticalSection(var cs : TRTLCriticalSection);
       begin
       end;
 
 
-    procedure EnterCriticalSection(var cs : tcriticalsection);
+    procedure EnterCriticalSection(var cs : TRTLCriticalSection);
       begin
       end;
 
-    procedure LeaveCriticalSection(var cs : tcriticalsection);
+    procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
       begin
       end;
 
@@ -183,7 +183,10 @@
 
 {
   $Log$
-  Revision 1.1  2001-10-17 10:27:47  marco
+  Revision 1.2  2001-10-23 21:51:03  peter
+    * criticalsection renamed to rtlcriticalsection for kylix compatibility
+
+  Revision 1.1  2001/10/17 10:27:47  marco
    * Moved to unix/ since there is nothing linux specific about it.
 
   Revision 1.1  2001/10/14 13:33:20  peter

@@ -35,12 +35,27 @@ type
    tintegerset = set of 0..sizeof(integer)*8-1;
 
    longrec = packed record
-      lo,hi : word;
+      case integer of
+        0 : (lo,hi : word);
+        1 : (bytes : array[0..3] of byte);
    end;
 
    wordrec = packed record
       lo,hi : byte;
    end;
+
+   int64rec = packed record
+      case integer of
+        0 : (lo,hi : cardinal);
+        1 : (words : array[0..3] of word);
+        2 : (bytes : array[0..7] of byte);
+   end;
+
+   pbytearray = ^tbytearray;
+   tbytearray = array[0..32767] of byte;
+
+   pwordarray = ^twordarray;
+   twordarray = array[0..16383] of word;
 
    TMethod = packed record
      Code, Data: Pointer;
@@ -156,7 +171,10 @@ Type
 
 {
   $Log$
-  Revision 1.13  2001-08-22 21:19:16  florian
+  Revision 1.14  2001-10-23 21:51:03  peter
+    * criticalsection renamed to rtlcriticalsection for kylix compatibility
+
+  Revision 1.13  2001/08/22 21:19:16  florian
     + some new stuff of D6/Kylix added
 
   Revision 1.12  2001/08/22 14:11:28  florian

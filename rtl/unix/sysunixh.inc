@@ -24,7 +24,7 @@ type
    { the fields of this record are os dependent  }
    { and they shouldn't be used in a program     }
    { only the type TCriticalSection is important }
-   TCriticalSection = packed record
+   TRTLCriticalSection = packed record
       DebugInfo : pointer;
       LockCount : longint;
       RecursionCount : longint;
@@ -73,7 +73,10 @@ var
 
 {
   $Log$
-  Revision 1.11  2001-10-14 13:33:21  peter
+  Revision 1.12  2001-10-23 21:51:03  peter
+    * criticalsection renamed to rtlcriticalsection for kylix compatibility
+
+  Revision 1.11  2001/10/14 13:33:21  peter
     * start of thread support for linux
 
   Revision 1.10  2001/06/27 21:37:39  peter

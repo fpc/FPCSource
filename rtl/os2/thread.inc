@@ -50,7 +50,7 @@ function DosFreeThreadLocalMemory (P: pointer): longint; cdecl;
                                                  external 'DOSCALLS' index 455;
 
 function DosCreateThread (var TID: longint; Address: pointer;
-(* TThreadFunc *) 
+(* TThreadFunc *)
         aParam: pointer; Flags: longint; StackSize: longint): longint; cdecl;
                                                  external 'DOSCALLS' index 311;
 
@@ -240,7 +240,7 @@ begin
  EndThread (0);
 end;
 
-procedure InitCriticalSection (var CS: TCriticalSection);
+procedure InitCriticalSection (var CS: TRTLCriticalSection);
 begin
  if os_mode = osOS2 then
  begin
@@ -254,12 +254,12 @@ begin
  end;
 end;
 
-procedure DoneCriticalSection (var CS: TCriticalSection);
+procedure DoneCriticalSection (var CS: TRTLCriticalSection);
 begin
  if os_mode = osOS2 then DosCloseMutExSem (CS.LockSemaphore2);
 end;
 
-procedure EnterCriticalSection (var CS: TCriticalSection);
+procedure EnterCriticalSection (var CS: TRTLCriticalSection);
 var
  P, T, Cnt: longint;
  PTIB: PThreadInfoBlock;
@@ -293,7 +293,7 @@ begin
  end;
 end;
 
-procedure LeaveCriticalSection (var CS: TCriticalSection);
+procedure LeaveCriticalSection (var CS: TRTLCriticalSection);
 var
  PTIB: PThreadInfoBlock;
  Err: boolean;
@@ -325,7 +325,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-10-09 02:42:05  carl
+  Revision 1.6  2001-10-23 21:51:03  peter
+    * criticalsection renamed to rtlcriticalsection for kylix compatibility
+
+  Revision 1.5  2001/10/09 02:42:05  carl
   * bugfix #1639 (IsMultiThread varialbe setting)
 
   Revision 1.4  2001/02/04 01:53:58  hajny

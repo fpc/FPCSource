@@ -39,7 +39,7 @@
 
 {$ifdef MT}
 var
-   cs_systemheap : TCriticalSection;
+   cs_systemheap : TRTLCriticalSection;
 {$endif MT}
 
 const
@@ -1125,7 +1125,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2001-06-06 17:20:22  jonas
+  Revision 1.7  2001-10-23 21:51:03  peter
+    * criticalsection renamed to rtlcriticalsection for kylix compatibility
+
+  Revision 1.6  2001/06/06 17:20:22  jonas
     * fixed wrong typed constant procvars in preparation of my fix which will
       disallow them in FPC mode (plus some other unmerged changes since
       LAST_MERGE)

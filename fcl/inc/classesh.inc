@@ -17,12 +17,14 @@
 
 type
    { extra types to compile with FPC }
-
-   TRTLCriticalSection = class(TObject);
    HRSRC = longint;
    THANDLE = longint;
    TComponentName = string;
 {$ifdef ver1_0}
+   // 1.0 doesn't have thread
+   TRTLCriticalSection = record
+     locked : longint;
+   end;
    // 1.1 and above has interfaces
    IUnknown = class(TObject);
    TGUID = longint;
@@ -57,13 +59,16 @@ const
   scNone = 0;
 
 { TStream seek origins }
-
+const
   soFromBeginning = 0;
   soFromCurrent = 1;
   soFromEnd = 2;
 
-{ TFileStream create mode }
+type
+  TSeekOrigin = (soBeginning, soCurrent, soEnd);
 
+{ TFileStream create mode }
+const
   fmCreate        = $FFFF;
   fmOpenRead      = 0;
   fmOpenWrite     = 1;
@@ -1284,7 +1289,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.11  2001-08-12 22:10:36  peter
+  Revision 1.12  2001-10-23 21:51:02  peter
+    * criticalsection renamed to rtlcriticalsection for kylix compatibility
+
+  Revision 1.11  2001/08/12 22:10:36  peter
     * some interface updates for 1.1
 
   Revision 1.10  2001/05/14 21:17:24  florian

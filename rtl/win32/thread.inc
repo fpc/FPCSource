@@ -197,23 +197,26 @@ procedure EndThread;
 
 { we implement these procedures for win32 by importing them }
 { directly from windows                                     }
-procedure InitCriticalSection(var cs : tcriticalsection);
+procedure InitCriticalSection(var cs : TRTLCriticalSection);
   external 'kernel32' name 'InitializeCriticalSection';
 
-procedure DoneCriticalSection(var cs : tcriticalsection);
+procedure DoneCriticalSection(var cs : TRTLCriticalSection);
   external 'kernel32' name 'DeleteCriticalSection';
 
-procedure EnterCriticalSection(var cs : tcriticalsection);
+procedure EnterCriticalSection(var cs : TRTLCriticalSection);
   external 'kernel32' name 'EnterCriticalSection';
 
-procedure LeaveCriticalSection(var cs : tcriticalsection);
+procedure LeaveCriticalSection(var cs : TRTLCriticalSection);
   external 'kernel32' name 'LeaveCriticalSection';
 
 {$endif MT}
 
 {
   $Log$
-  Revision 1.5  2001-10-09 02:38:39  carl
+  Revision 1.6  2001-10-23 21:51:03  peter
+    * criticalsection renamed to rtlcriticalsection for kylix compatibility
+
+  Revision 1.5  2001/10/09 02:38:39  carl
   * bugfix #1639 (IsMultiThread varialbe setting)
 
   Revision 1.4  2001/01/26 21:02:21  florian

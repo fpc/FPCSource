@@ -61,7 +61,7 @@ type
     (* TH: To make things easier, I copied the record definition *)
     (* from the Win32 version and just added longint variants,   *)
     (* because it seemed well suited for OS/2 too.               *)
-    TCriticalSection = packed record
+    TRTLCriticalSection = packed record
         DebugInfo: pointer;
         LockCount: longint;
         RecursionCount: longint;
@@ -1066,7 +1066,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-06-19 20:46:07  hajny
+  Revision 1.16  2001-10-23 21:51:03  peter
+    * criticalsection renamed to rtlcriticalsection for kylix compatibility
+
+  Revision 1.15  2001/06/19 20:46:07  hajny
     * platform specific constants moved after systemh.inc, BeOS omission corrected
 
   Revision 1.14  2001/06/13 22:21:53  hajny
