@@ -1472,7 +1472,7 @@ TVarSpez & Description \\
 \label{subsubsec:property}
 
 
-\begin{tabular*}{6.5in}{|l@{\extracolsep{\fill}}lp{8.5cm}|}
+\begin{tabular*}{6.25in}{|l@{\extracolsep{\fill}}lp{4cm}|}
 \hline
 \textsf{TYPE}& & \\
 \xspace pPropertySym = & \^{}  TPropertySym; & \\
@@ -1629,6 +1629,7 @@ such information.
 \hline
 \end{tabular*}
 
+\begin{center}
 \begin{figure}
 \ifpdf
 \includegraphics{arch7.pdf}
@@ -1640,6 +1641,7 @@ such information.
 \label{fig7}
 
 \end{figure}
+\end{center}
 
 \subsection{Definition types}
 
@@ -2368,7 +2370,7 @@ memory. To avoid recompilation of already compiled module, the dependencies
 of the modules is stored in a PPU file, which makes it easier to determine
 which modules to recompile.
 
-\begin{longtable}{|l@{\extracolsep{\fill}}lp{7cm}|}
+\begin{longtable}{|l@{\extracolsep{\fill}}lp{6cm}|}
 \hline
 \endhead
 \hline
@@ -3052,17 +3054,17 @@ target architecture, and a possible definition could be as follows :
 
 \begin{verbatim}
 tregister = ( { general purpose registers }
-		R_NO,R_D0,R_D1,R_D2,R_D3,R_D4,R_D5,R_D6,R_D7,
+        R_NO,R_D0,R_D1,R_D2,R_D3,R_D4,R_D5,R_D6,R_D7,
               { address registers }
-		R_A0,R_A1,R_A2,R_A3,R_A4,R_A5,R_A6,R_SP,
-	      { PUSH/PULL- quick and dirty hack }
-	        R_SPPUSH,R_SPPULL,
-	      { misc. and floating point registers }
-		R_CCR,R_FP0,R_FP1,R_FP2,R_FP3,R_FP4,R_FP5,R_FP6,
-		R_FP7,R_FPCR,R_SR,R_SSP,R_DFC,R_SFC,R_VBR,R_FPSR,
-	      { other - not used }
-		R_DEFAULT_SEG
-	     );
+        R_A0,R_A1,R_A2,R_A3,R_A4,R_A5,R_A6,R_SP,
+          { PUSH/PULL- quick and dirty hack }
+            R_SPPUSH,R_SPPULL,
+          { misc. and floating point registers }
+        R_CCR,R_FP0,R_FP1,R_FP2,R_FP3,R_FP4,R_FP5,R_FP6,
+        R_FP7,R_FPCR,R_SR,R_SSP,R_DFC,R_SFC,R_VBR,R_FPSR,
+          { other - not used }
+        R_DEFAULT_SEG
+         );
 
 \end{verbatim}
 
@@ -5630,14 +5632,10 @@ Prototype& Definition and notes \\
    Generate 2-3 instruction sequence inline \\
 \textsf{procedure dec(var X [; N:longint]);}&
    Generate 2-3 instruction sequence inline \\
-\textsf{procedure include(var s: set of T; I: T);}&
-   In the case of a small set : Generates 2-3 instruction sequence inline,
-   otherwise calls FPC{\_}SET{\_}SET{\_}BYTE \\
-\textsf{procedure exclude(var S : set of T; I: T);}&
-   In the case of a small set : Generates 2-3 instruction sequence inline,
-   otherwise calls FPC{\_}SET{\_}UNSET{\_}BYTE \\
-\textsf{procedure assert(expr : Boolean [; const msg: string]);}&
-  Calls the internal routine FPC{\_}ASSERT in the case where the assert fails.\\
+\textsf{procedure include(var s: set of T; I: T);}& \\
+\textsf{procedure exclude(var S : set of T; I: T);}& \\
+\textsf{procedure assert(expr : Boolean);}&
+  Calls routine FPC{\_}ASSERT if the assert fails.\\
 \textsf{function addr(X): pointer;}&
   Generates a TREE NODE of type addrn \\
 \textsf{function typeInfo(typeIdent): pointer;}&
