@@ -30,7 +30,7 @@
 ------------------------------------------------------------------------------
 }
 Program Daemon;
-uses linux;
+uses SysUtils,BaseUnix;
 Var
    { vars for daemonizing }
    bHup,
@@ -42,8 +42,9 @@ Var
    aHup : pSigActionRec;
    ps1  : psigset;
    sSet : cardinal;
-   pid : longint;
+   pid  : pid_t;
    secs : longint;
+   zerosigs : sigset_t;
    hr,mn,sc,sc100 : word;
 
 { handle SIGHUP & SIGTERM }
@@ -60,14 +61,14 @@ Procedure NewLog;
 Begin
    Assign(fLog,logname);
    Rewrite(fLog);
-   GetTime(hr,mn,sc,sc100);
-   Writeln(flog,'Log created at ',hr:0,':',mn:0,':',sc:0);
+   Writeln(flog,'Log created at ',formatdatetime('hh:nn:ss',now));
    Close(fLog);
 End;
 
 Begin
    logname := 'daemon.log';
    secs := 10;
+   fpsigemptyset(zerosigs);
 
    { set global daemon booleans }
    bHup := true; { to open log file }
@@ -76,29 +77,30 @@ Begin
    { block all signals except -HUP & -TERM }
    sSet := $ffffbffe;
    ps1 := @sSet;
-   sigprocmask(sig_block,ps1,nil);
+   fpsigprocmask(sig_block,ps1,nil);
 
    { setup the signal handlers }
    new(aOld);
    new(aHup);
    new(aTerm);
-   aTerm^.handler.sh := @DoSig;
-   aTerm^.sa_mask := 0;
+   aTerm^.sa_handler{.sh} := TSigAction(@DoSig);
+
+   aTerm^.sa_mask := zerosigs;
    aTerm^.sa_flags := 0;
    {$ifndef BSD}                {Linux'ism}
     aTerm^.sa_restorer := nil;
    {$endif}
-   aHup^.handler.sh := @DoSig;
-   aHup^.sa_mask := 0;
+   aHup^.sa_handler := TSigAction(@DoSig);
+   aHup^.sa_mask := zerosigs;
    aHup^.sa_flags := 0;
    {$ifndef BSD}                {Linux'ism}
     aHup^.sa_restorer := nil;
    {$endif}
-   SigAction(SIGTERM,aTerm,aOld);
-   SigAction(SIGHUP,aHup,aOld);
+   fpSigAction(SIGTERM,aTerm,aOld);
+   fpSigAction(SIGHUP,aHup,aOld);
 
    { daemonize }
-   pid := Fork;
+   pid := fpFork;
    Case pid of
       0 : Begin { we are in the child }
          Close(input);  { close standard in }
@@ -125,9 +127,8 @@ Begin
       End;
       {----------------------}
       { Do your daemon stuff }
-      GetTime(hr,mn,sc,sc100);
       Append(flog);
-      Writeln(flog,'daemon code activated at ',hr:0,':',mn:0,':',sc:0);
+      Writeln(flog,'daemon code activated at ',formatdatetime('hh:nn:ss',now));
       Close(fLog);
       { the following output goes to the bit bucket }
       Writeln('daemon code activated at ',hr:0,':',mn:0,':',sc:0);
@@ -136,12 +137,15 @@ Begin
          BREAK
       Else
          { wait a while }
-         Select(0,nil,nil,nil,secs*1000);
+         fpSelect(0,nil,nil,nil,secs*1000);
    Until bTerm;
 End.
 {
   $Log$
-  Revision 1.3  2002-09-07 15:06:35  peter
+  Revision 1.4  2004-06-04 12:37:52  marco
+   * modernized. Now only uses baseunix,sysutils
+
+  Revision 1.3  2002/09/07 15:06:35  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/02/25 12:56:43  marco
