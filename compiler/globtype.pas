@@ -99,7 +99,7 @@ interface
          { browser }
          cs_browser_log,
          { debugger }
-         cs_gdb_dbx,cs_gdb_gsym,cs_gdb_heaptrc,cs_checkpointer,
+         cs_gdb_dbx,cs_gdb_gsym,cs_gdb_heaptrc,cs_gdb_lineinfo,cs_checkpointer,
          { assembling }
          cs_asm_leave,cs_asm_extern,cs_asm_pipe,cs_asm_source,
          cs_asm_regalloc,cs_asm_tempalloc,
@@ -180,7 +180,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2000-01-07 01:14:27  peter
+  Revision 1.26  2000-02-06 17:20:52  peter
+    * -gl switch for auto lineinfo including
+
+  Revision 1.25  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.24  1999/11/12 11:03:50  peter

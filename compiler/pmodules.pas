@@ -659,19 +659,32 @@ unit pmodules;
            current_module^.used_units.concat(new(pused_unit,init(hp,true)));
            refsymtable^.insert(new(punitsym,init('PROFILE',hp^.globalsymtable)));
          end;
-      { Heaptrc unit? (not needed for units), this is here to be sure that it is really
-        loaded as first unit }
-        if (cs_gdb_heaptrc in aktglobalswitches) and not(current_module^.is_unit)then
+      { Units only required for main module }
+        if not(current_module^.is_unit) then
          begin
-           hp:=loadunit('HEAPTRC',false);
-           psymtable(hp^.globalsymtable)^.next:=symtablestack;
-           symtablestack:=hp^.globalsymtable;
-           { add to the used units }
-           current_module^.used_units.concat(new(pused_unit,init(hp,true)));
-           refsymtable^.insert(new(punitsym,init('HEAPTRC',hp^.globalsymtable)));
+           { Heaptrc unit }
+           if (cs_gdb_heaptrc in aktglobalswitches) then
+            begin
+              hp:=loadunit('HEAPTRC',false);
+              psymtable(hp^.globalsymtable)^.next:=symtablestack;
+              symtablestack:=hp^.globalsymtable;
+              { add to the used units }
+              current_module^.used_units.concat(new(pused_unit,init(hp,true)));
+              refsymtable^.insert(new(punitsym,init('HEAPTRC',hp^.globalsymtable)));
+            end;
+           { Lineinfo unit }
+           if (cs_gdb_lineinfo in aktglobalswitches) then
+            begin
+              hp:=loadunit('LINEINFO',false);
+              psymtable(hp^.globalsymtable)^.next:=symtablestack;
+              symtablestack:=hp^.globalsymtable;
+              { add to the used units }
+              current_module^.used_units.concat(new(pused_unit,init(hp,true)));
+              refsymtable^.insert(new(punitsym,init('LINEINFO',hp^.globalsymtable)));
+            end;
          end;
       { save default symtablestack }
-         defaultsymtablestack:=symtablestack;
+        defaultsymtablestack:=symtablestack;
       end;
 
 
@@ -1619,7 +1632,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.183  2000-01-16 22:17:12  peter
+  Revision 1.184  2000-02-06 17:20:53  peter
+    * -gl switch for auto lineinfo including
+
+  Revision 1.183  2000/01/16 22:17:12  peter
     * renamed call_offset to para_offset
 
   Revision 1.182  2000/01/16 14:15:33  jonas

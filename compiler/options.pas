@@ -591,6 +591,7 @@ begin
                            'd' : initglobalswitches:=initglobalswitches+[cs_gdb_dbx];
                            'g' : initglobalswitches:=initglobalswitches+[cs_gdb_gsym];
                            'h' : initglobalswitches:=initglobalswitches+[cs_gdb_heaptrc];
+                           'l' : initglobalswitches:=initglobalswitches+[cs_gdb_lineinfo];
                            'c' : initglobalswitches:=initglobalswitches+[cs_checkpointer];
 {$ifdef EXTDEBUG}
                            'p' : only_one_pass:=true;
@@ -1427,7 +1428,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.56  2000-01-31 15:55:42  peter
+  Revision 1.57  2000-02-06 17:20:52  peter
+    * -gl switch for auto lineinfo including
+
+  Revision 1.56  2000/01/31 15:55:42  peter
     * fixed default unit location for linux when fpcdir was not set
 
   Revision 1.55  2000/01/23 18:20:50  sg
