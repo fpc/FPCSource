@@ -28,7 +28,8 @@ Const
   PF_UNIX         = AF_UNIX;
   PF_INET         = AF_INET;
 
-{$ifdef linux}
+{$Ifdef Linux}
+{$ifndef BSD}
 { For setsockoptions(2) }
          SOL_SOCKET  =   1;
          SO_DEBUG    =   1;
@@ -67,7 +68,40 @@ Const
          SO_DETACH_FILTER=  27;
 
          SO_PEERNAME     =  28;
+{$ELSE}
+        SOL_SOCKET = $FFFF;
+        SO_DEBUG         =$0001;        { turn on debugging info recording }
+        SO_ACCEPTCONN    =$0002;        { socket has had listen() }
+        SO_REUSEADDR     =$0004;        { allow local address reuse }
+        SO_KEEPALIVE     =$0008;        { keep connections alive }
+        SO_DONTROUTE     =$0010;        { just use interface addresses }
+        SO_BROADCAST     =$0020;        { permit sending of broadcast msgs }
+        SO_USELOOPBACK   =$0040;        { bypass hardware when possible }
+        SO_LINGER        =$0080;        { linger on close if data present }
+        SO_OOBINLINE     =$0100;        { leave received OOB data in line }
+        SO_REUSEPORT     =$0200;        { allow local address & port reuse }
+        SO_TIMESTAMP     =$0400;        { timestamp received dgram traffic }
+
+{
+ * Additional options, not kept in so_options.
+ }
+        SO_SNDBUF        =$1001;        { send buffer size }
+        SO_RCVBUF        =$1002;        { receive buffer size }
+        SO_SNDLOWAT      =$1003;        { send low-water mark }
+        SO_RCVLOWAT      =$1004;        { receive low-water mark }
+        SO_SNDTIMEO      =$1005;        { send timeout }
+        SO_RCVTIMEO      =$1006;        { receive timeout }
+        SO_ERROR         =$1007;        { get error status and clear }
+        SO_TYPE          =$1008;        { get socket type }
+
+
+        SHUT_RD         =0;             { shut down the reading side }
+        SHUT_WR         =1;             { shut down the writing side }
+        SHUT_RDWR       =2;             { shut down both sides }
+
 {$endif}
+{$ENDIF}
+
 const
   { Two constants to determine whether part of soket is for in or output }
   S_IN = 0;
@@ -75,7 +109,12 @@ const
 
 Type
   TSockAddr = packed Record
-    family:word;  { was byte, fixed }
+    {$ifdef BSD}
+     len : byte;
+     family:byte;
+    {$ELSE}
+     family:word;  { was byte, fixed }
+    {$ENDIF}
     data  :array [0..13] of char;
     end;
 
@@ -120,7 +159,29 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:45  michael
-  + removed logs
- 
+  Revision 1.3  2000-09-11 14:53:14  marco
+   * FreeBSD adjustments patched in from fixes branch
+
+  Revision 1.1.2.1  2000/09/10 16:12:05  marco
+  BSD SO_ constants added
+
+  Revision 1.1  2000/07/13 06:30:48  michael
+  + Initial import
+
+  Revision 1.7  2000/06/19 13:31:46  michael
+  + Corrected GetSocketOptions
+
+  Revision 1.6  2000/06/02 17:30:43  marco
+   * added some constants for getsocketoptions under a linux define.
+        Allows server example to work ok.
+
+  Revision 1.5  2000/02/09 16:59:31  peter
+    * truncated log
+
+  Revision 1.4  2000/01/07 16:41:36  daniel
+    * copyright 2000
+
+  Revision 1.3  2000/01/07 16:32:25  daniel
+    * copyright 2000 added
+
 }
