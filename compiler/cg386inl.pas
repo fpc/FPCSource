@@ -1463,12 +1463,12 @@ implementation
                     in_sin_extended,
                     in_cos_extended:
                       begin
-                         getlabel(l1);
                          if p^.inlinenumber=in_sin_extended then
                            emit_none(A_FSIN,S_NO)
                          else
                            emit_none(A_FCOS,S_NO);
                          {
+			 getlabel(l1);
                          emit_reg(A_FNSTSW,S_NO,R_AX);
                          emit_none(A_SAHF,S_NO);
                          emitjmp(C_NP,l1);
@@ -1528,7 +1528,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-21 15:14:02  jonas
+  Revision 1.4  2000-07-29 18:27:53  sg
+  * Applied patch by Markus Kaemmerer which removes a tiny memory leak
+    for the generation of code for in_[sin|cos]_extended code
+    (a label has been created but never used afterwards)
+
+  Revision 1.3  2000/07/21 15:14:02  jonas
     + added is_addr field for labels, if they are only used for getting the address
        (e.g. for io checks) and corresponding getaddrlabel() procedure
 
