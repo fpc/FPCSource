@@ -1,14 +1,14 @@
 Source: fpc
 Section: devel
 Priority: optional
-Maintainer: Ulf Jaenicke-Roessler <ujr@debian.org>
+Maintainer: Carlos Laviola <claviola@debian.org>
 Standards-Version: 3.1.1
-Build-Depends: fp-compiler, debhelper, tetex-bin, tetex-extra, awk
+Build-Depends: fp-compiler, debhelper, tetex-bin, tetex-extra, awk, dvipdfm, latex2html
 
 Package: fp-compiler
 Architecture: i386
-Depends: fp-units-rtl (= 1.0.5-0)
-Suggests: fp-utils, fp-docs (>= 1.0.5)
+Depends: fp-units-rtl (= 1.0.6-1)
+Suggests: fp-utils, fp-docs (>= 1.0.6)
 Replaces: fpc
 Description: Free Pascal Compiler
  The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi compatible 32bit
@@ -21,7 +21,7 @@ Description: Free Pascal Compiler
 
 Package: fp-utils
 Architecture: i386
-Recommends: fp-compiler (= 1.0.5-0)
+Recommends: fp-compiler (= 1.0.6-1)
 Replaces: fpc
 Description: Free Pascal Utils
  This package contains some handy utils for usage with the Free Pascal
@@ -45,7 +45,7 @@ Description: Free Pascal Documentation
 
 Package: fp-units-rtl
 Architecture: i386
-Recommends: fp-compiler (= 1.0.5-0)
+Recommends: fp-compiler (= 1.0.6-1)
 Replaces: fpc, fp-rtl, fp-units-api
 Provides: fp-units-api
 Description: Free Pascal Runtime Library
@@ -53,7 +53,7 @@ Description: Free Pascal Runtime Library
 
 Package: fp-units-base
 Architecture: i386
-Depends: fp-units-rtl (= 1.0.5-0)
+Depends: fp-units-rtl (= 1.0.6-1)
 Description: Free Pascal base units
  Free Pascal units for common libraries, some of these units are also
  required by the Free Component Library :
@@ -63,21 +63,21 @@ Description: Free Pascal base units
 
 Package: fp-units-fcl
 Architecture: i386
-Depends: fp-units-rtl (= 1.0.5-0), fp-units-base (= 1.0.5-0)
+Depends: fp-units-rtl (= 1.0.6-1), fp-units-base (= 1.0.6-1)
 Replaces: fp-fcl
 Description: Free Pascal Free Component Library
  Free Component Library for the Free Pascal Compiler.
 
 Package: fp-units-gtk
 Architecture: i386
-Depends: fp-units-rtl (= 1.0.5-0)
+Depends: fp-units-rtl (= 1.0.6-1)
 Replaces: fp-gtk
 Description: Free Pascal units for GTK 1.2.x
  Free Pascal units and examples to create programs with GTK 1.2.x
 
 Package: fp-units-db
 Architecture: i386
-Depends: fp-units-rtl (= 1.0.5-0)
+Depends: fp-units-rtl (= 1.0.6-1)
 Description: Free Pascal units for some database libraries
  Free Pascal units with bindings for:
   - Mysql
@@ -87,7 +87,7 @@ Description: Free Pascal units for some database libraries
 
 Package: fp-units-gfx
 Architecture: i386
-Depends: fp-units-rtl (= 1.0.5-0), fp-units-base (= 1.0.5-0)
+Depends: fp-units-rtl (= 1.0.6-1), fp-units-base (= 1.0.6-1)
 Description: Free Pascal units for some graphics libraries
  Free Pascal units with bindings for:
   - Forms 0.88
@@ -97,7 +97,7 @@ Description: Free Pascal units for some graphics libraries
 
 Package: fp-units-net
 Architecture: i386
-Depends: fp-units-rtl (= 1.0.5-0)
+Depends: fp-units-rtl (= 1.0.6-1)
 Description: Free Pascal units for networking
  Free Pascal units for creating network tools:
   - Inet unit for easier tcp/ip handling
@@ -105,7 +105,7 @@ Description: Free Pascal units for networking
 
 Package: fp-units-misc
 Architecture: i386
-Depends: fp-units-rtl (= 1.0.5-0)
+Depends: fp-units-rtl (= 1.0.6-1)
 Description: Free Pascal miscellaneous units
  Free Pascal miscellaneous units for:
   - Utmp

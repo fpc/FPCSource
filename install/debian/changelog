@@ -4,6 +4,16 @@ fpc (1.0.6-0) unstable; urgency=low
 
  -- Peter Vreman <peter@freepascal.org>  Tue,  1 Mrt 2002 11:01:50 +0100
 
+fpc (1.0.4-2) unstable; urgency=low
+
+  * New maintainer.
+  * debian/README.Debian: Added a note on building 'pdflatex.fmt', which is
+    needed by pdflatex, in order to build the documentation in PDF format.
+  * debian/control: added latex2html, dvipdfm and tetex-extra to the
+    build-deps list.
+
+ -- Carlos Laviola <claviola@debian.org>  Wed, 29 Aug 2001 23:15:17 -0300
+
 fpc (1.0.4-1) unstable; urgency=low
 
   * New upstream version.
