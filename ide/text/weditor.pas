@@ -51,7 +51,7 @@ const
 
       EditorTextBufSize = {$ifdef FPC}32768{$else} 4096{$endif};
       MaxLineLength     = {$ifdef FPC}  255{$else}  255{$endif};
-      MaxLineCount      = {$ifdef FPC}16380{$else}16380{$endif};
+      MaxLineCount      = {$ifdef FPC}2000000{$else}16380{$endif};
 
       CodeCompleteMinLen = 4; { minimum length of text to try to complete }
 
@@ -4955,6 +4955,8 @@ begin
   LimitsChanged;
   if not AllLinesComplete then
     SetModified(true);
+  if (GetLineCount=MaxLineCount) and not eofstream(stream) then
+    EditorDialog(edTooManyLines,nil);
   if IsFlagSet(efSyntaxHighlight) then
     UpdateAttrsRange(0,Min(Delta.Y+Size.Y,GetLineCount-1),
       attrAll
@@ -5614,7 +5616,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.82  2000-03-02 22:33:36  pierre
+  Revision 1.83  2000-03-14 13:38:03  pierre
+   * max number of line changed and warning added
+
+  Revision 1.82  2000/03/02 22:33:36  pierre
    * Grep improoved
 
   Revision 1.81  2000/02/09 12:56:54  pierre
