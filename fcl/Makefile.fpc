@@ -19,7 +19,7 @@ packages_win32=netdb
 units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszlib trees zbase zcompres zdeflate zinflate zuncompr zutil
 
 [target]
-dirs=xml db shedit
+dirs=xml db shedit passrc
 units=classes contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls xmlreg registry eventlog
 units_freebsd=process asyncio ssockets http resolve http
 units_netbsd=process asyncio ssockets http resolve http
