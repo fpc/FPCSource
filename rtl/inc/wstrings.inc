@@ -135,14 +135,12 @@ Var
   P : Pointer;
   l : Longint;
 begin
-  l := Len + Len + WideRecLen;
   { request a multiple of 16 because the heap manager alloctes anyways chunks of 16 bytes }
-  if (l mod 16)<>0 then
-    inc(l,16-(l mod 16));
+  L := (Len*sizeof(WideChar)+WideRecLen+15) and (not 15);
   GetMem(P,l);
   If P<>Nil then
    begin
-     PWideRec(P)^.Maxlen:=(l-WideRecLen) div 2;    { Maximal length }
+     PWideRec(P)^.Maxlen:=(l-WideRecLen) div sizeof(WideChar);    { Maximal length }
      PWideRec(P)^.Len:=0;         { Initial length }
      PWideRec(P)^.Ref:=1;         { Set reference count }
      PWideRec(P)^.First:=#0;      { Terminating #0 }
@@ -296,37 +294,68 @@ begin
    if s2='' then
      exit;
    Size:=Length(S2);
-   Setlength (fpc_AnsiStr_To_WideStr,Size);
+   Setlength (result,Size);
    if Size>0 then
     begin
-      Ansi2WideMoveProc(PChar(S2),PWideChar(Pointer(fpc_AnsiStr_To_WideStr)),Size);
+      Ansi2WideMoveProc(PChar(S2),PWideChar(Pointer(result)),Size);
       { Terminating Zero }
-      PWideChar(Pointer(fpc_AnsiStr_To_WideStr)+Size*sizeof(WideChar))^:=#0;
+      PWideChar(Pointer(result)+Size*sizeof(WideChar))^:=#0;
     end;
 end;
 
 { compilers with widestrings should have compiler procs }
 Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
+var
+  Size : longint;
 begin
-   runerror(218);
+  if p=nil then
+   exit;
+  Size := IndexWord(p^, $7fffffff, 0);
+  Setlength (result,Size);
+  if Size>0 then
+   begin
+     Wide2AnsiMoveProc(P,PChar(Pointer(result)),Size);
+     { Terminating Zero }
+     PChar(Pointer(result)+Size)^:=#0;
+   end;
 end;
 
 
 Function fpc_PWideChar_To_WideStr(const p : pwidechar): widestring; compilerproc;
+var
+  Size : longint;
 begin
-   runerror(218);
+  if p=nil then
+   exit;
+  Size := IndexWord(p^, $7fffffff, 0);
+  Setlength (result,Size);
+  if Size>0 then
+   begin
+      Move(p^,PWideChar(Pointer(result))^,Size*sizeof(WideChar));
+      { Terminating Zero }
+      PWideChar(Pointer(result)+Size*sizeof(WideChar))^:=#0;
+   end;
 end;
 
 
 Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
+var
+  Size : longint;
 begin
-   runerror(218);
-end;
-
-
-Function fpc_PWideChar_To_LongStr(const p : pwidechar): longstring; compilerproc;
-begin
-   runerror(218);
+  if p=nil then
+   begin
+     fpc_PWideChar_To_ShortStr:='';
+     exit;
+   end;
+  Size := IndexWord(p^, $7fffffff, 0);
+  Setlength (result,Size+1);
+  if Size>0 then
+   begin
+     If Size>255 then
+      Size:=255;
+     Wide2AnsiMoveProc(p,PChar(@result[1]),Size);
+     byte(result[0]):=byte(Size);
+   end;
 end;
 
 
@@ -553,13 +582,13 @@ begin
           if (PWideRec(Pointer(S)-WideFirstOff)^.Maxlen < L) then
             begin
               Dec(Pointer(S),WideFirstOff);
-              NewLen := (L+L+WideRecLen+15) and not 15;
+              NewLen := (L*sizeof(WideChar)+WideRecLen+15) and (not 15);
               reallocmem(pointer(S), NewLen);
-              PAnsiRec(S)^.MaxLen := (NewLen - WideRecLen) div 2;
+              PAnsiRec(S)^.MaxLen := (NewLen - WideRecLen) div sizeof(WideChar);
               Inc(Pointer(S), WideFirstOff);
             end;
           PWideRec(Pointer(S)-WideFirstOff)^.Len := L;
-          PWord(Pointer(S)+L+L)^:=0;
+          PWord(Pointer(S)+L*sizeof(WideChar))^:=0;
         end
       else
         begin
@@ -577,7 +606,7 @@ begin
           Pointer(S):=Temp;
        end;
       { Force nil termination in case it gets shorter }
-      PWord(Pointer(S)+l+l)^:=0;
+      PWord(Pointer(S)+l*sizeof(WideChar))^:=0;
       PWideRec(Pointer(S)-FirstOff)^.Len:=l;
     end
   else
@@ -607,6 +636,7 @@ function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : Lon
        Ansi2WideMoveProc(PChar(Src),Dest,Length(Src))
      else
        Ansi2WideMoveProc(PChar(Src),Dest,DestSize);
+     result:=Dest;
   end;
 
 function WideCharLenToString(S : PWideChar;Len : LongInt) : AnsiString;
@@ -960,7 +990,10 @@ end;
 
 {
   $Log$
-  Revision 1.27  2002-12-15 22:33:12  peter
+  Revision 1.28  2002-12-29 16:59:17  peter
+    * implemented some more conversions
+
+  Revision 1.27  2002/12/15 22:33:12  peter
     * SetString(WideString,[PChar|PWideChar],Len) added
 
   Revision 1.26  2002/12/14 19:16:45  sg

@@ -121,7 +121,6 @@ Procedure fpc_widestr_Unique(Var S : WideString); compilerproc;
 Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
 Function fpc_PWideChar_To_WideStr(const p : pwidechar): widestring; compilerproc;
 Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
-Function fpc_PWideChar_To_LongStr(const p : pwidechar): longstring; compilerproc;
 {$endif HASWIDECHAR}
 
 Function fpc_Val_Real_AnsiStr(Const S : AnsiString; Var Code : ValSInt): ValReal; compilerproc;
@@ -284,7 +283,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.29  2002-11-26 23:02:07  peter
+  Revision 1.30  2002-12-29 16:59:17  peter
+    * implemented some more conversions
+
+  Revision 1.29  2002/11/26 23:02:07  peter
     * fixed dynarray copy
 
   Revision 1.28  2002/10/17 12:43:00  florian
