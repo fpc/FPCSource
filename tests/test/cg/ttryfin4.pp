@@ -1,0 +1,108 @@
+{ %RESULT=217 }
+{****************************************************************}
+{  CODE GENERATOR TEST PROGRAM                                   }
+{  By Carl Eric Codere                                           }
+{****************************************************************}
+{ NODE TESTED : secondtryfinally()                               }
+{               secondraise()                                    }
+{****************************************************************}
+{ PRE-REQUISITES: secondload()                                   }
+{                 secondassign()                                 }
+{                 secondtypeconv()                               }
+{                 secondtryexcept()                              }
+{                 secondcalln()                                  }
+{                 secondadd()                                    }
+{****************************************************************}
+{ DEFINES:                                                       }
+{            FPC     = Target is FreePascal compiler             }
+{****************************************************************}
+{****************************************************************}
+program ttryfin4;
+
+{$ifdef fpc}
+{$mode objfpc}
+{$endif}
+
+Type
+  TAObject = class(TObject)
+    a : longint;
+    end;
+  TBObject = Class(TObject)
+    b : longint;
+    end;
+
+
+{ The test cases were taken from the SAL internal architecture manual }
+
+    procedure fail;
+    begin
+      WriteLn('Failure.');
+      halt(1);
+    end;
+
+var
+ global_counter : integer;
+
+Procedure raiseanexception;
+
+Var A : TAObject;
+
+begin
+{  Writeln ('Creating exception object');}
+  A:=TAObject.Create;
+{  Writeln ('Raising with this object');}
+  raise A;
+  { this should never happen, if it does there is a problem! }
+  RunError(255);
+end;
+
+
+procedure IncrementCounter(x: integer);
+begin
+  Inc(global_counter);
+end;
+
+procedure DecrementCounter(x: integer);
+begin
+  Dec(global_counter);
+end;
+
+
+{  }
+Procedure DoTryFinallyOne;
+var
+ failed : boolean;
+begin
+  Write('Try..Finally nested block with exception rise in finally block...');
+  global_counter:=0;
+  failed:=true;
+  Try
+      Try
+        IncrementCounter(global_counter);
+        IncrementCounter(global_counter);
+      finally
+        RaiseAnException;
+      end;
+  finally
+    if global_counter = 2 then
+      failed :=false;
+    if failed then
+      fail
+    else
+      WriteLn('Success!');
+  end;
+end;
+
+
+
+Begin
+  DoTryFinallyOne;
+end.
+
+{
+  $Log$
+  Revision 1.1  2002-08-03 11:05:14  carl
+    + exception handling testing
+       (still missing raise / on node testing)
+
+}  
