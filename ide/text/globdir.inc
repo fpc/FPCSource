@@ -20,7 +20,7 @@
 {$endif}
 
 { --- Include VESA support --- }
-{$ifndef LINUX}
+{$ifdef GO32V2}
   {$ifndef FV20}
     {$define VESA}
   {$endif}

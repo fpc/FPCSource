@@ -536,19 +536,22 @@ end;
                                  Linux
 *****************************************************************************}
 
-function ExecuteRedir (Const ProgName, ComLine, RedirStdOut, RedirStdErr : String) : boolean;
-begin
-  ExecuteRedir:=false;
-end;
+function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
+
+  begin
+     ExecuteRedir:=false;
+  end;
 
 function ChangeRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
-begin
-  ChangeRedir:=false;
-end;
+
+  begin
+     ChangeRedir:=false;
+  end;
 
 procedure RestoreRedir;
-begin
-end;
+
+  begin
+  end;
 
 function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
 begin
@@ -556,12 +559,87 @@ begin
 end;
 
 procedure RestoreErrorRedir;
-begin
-end;
+
+  begin
+  end;
 
 procedure InitRedir;
-begin
-end;
+
+  begin
+  end;
+
+function  ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
+
+  begin
+     ChangeReDirOut:=false;
+  end;
+
+procedure RestoreRedirOut;
+
+  begin
+  end;
+
+procedure DisableRedirOut;
+
+  begin
+  end;
+
+procedure EnableRedirOut;
+
+  begin
+  end;
+
+function  ChangeRedirIn(Const Redir : String) : Boolean;
+
+  begin
+     ChangeRedirIn:=false;
+  end;
+
+procedure RestoreRedirIn;
+
+  begin
+  end;
+
+procedure DisableRedirIn;
+
+  begin
+  end;
+
+procedure EnableRedirIn;
+
+  begin
+  end;
+
+function  ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolean;
+
+  begin
+     ChangeRedirError:=false;
+  end;
+
+procedure RestoreRedirError;
+
+  begin
+  end;
+
+procedure DisableRedirError;
+
+  begin
+  end;
+
+procedure EnableRedirError;
+
+  begin
+  end;
+
+procedure RedirDisableAll;
+
+  begin
+  end;
+
+procedure RedirEnableAll;
+
+  begin
+  end;
 
 {$endif not implemented}
 
@@ -569,7 +647,7 @@ end;
 {*****************************************************************************
                                   Initialize
 *****************************************************************************}
-
+{$ifdef implemented}
 var oldexit : pointer;
 
 procedure RedirExit;
@@ -583,9 +661,15 @@ Begin
   exitproc:=@RedirExit;
   New(FIn); New(FOut); New(FErr);
 End.
+{$else implemented}
+end.
+{$endif implemented}
 {
   $Log$
-  Revision 1.17  1999-05-01 23:45:07  pierre
+  Revision 1.18  1999-07-18 16:26:39  florian
+    * IDE compiles with for Win32 and basic things are working
+
+  Revision 1.17  1999/05/01 23:45:07  pierre
    * FIn FOut FErr dispsoed at exit
 
   Revision 1.16  1999/04/29 22:57:09  pierre

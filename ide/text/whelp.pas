@@ -239,6 +239,9 @@ uses
 {$ifdef Linux}
   linux,
 {$endif Linux}
+{$ifdef Win32}
+  windows,
+{$endif Win32}
   WUtils,WHTMLHlp;
 
 
@@ -251,11 +254,17 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
     GetTimeOfDay(tv,tz);
     GetDosTicks:=((tv.Sec mod 86400) div 60)*1092+((tv.Sec mod 60)*1000000+tv.USec) div 54945;
   end;
-{$ELSE}
+{$endif Linux}
+{$ifdef Win32}
+  begin
+    GetDosTicks:=(Windows.GetTickCount*5484) div 100;
+  end;
+{$endif Win32}
+{$ifdef go32v2}
   begin
     GetDosTicks:=MemL[$40:$6c];
   end;
-{$endIF}
+{$endif go32v2}
 
 procedure DisposeRecord(var R: TRecord);
 begin
@@ -940,7 +949,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.13  1999-04-13 10:47:51  daniel
+  Revision 1.14  1999-07-18 16:26:42  florian
+    * IDE compiles with for Win32 and basic things are working
+
+  Revision 1.13  1999/04/13 10:47:51  daniel
   * Fixed for Linux
 
   Revision 1.12  1999/04/07 21:56:00  peter
