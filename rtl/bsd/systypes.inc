@@ -138,7 +138,10 @@ type
 
 {
   $Log$
-  Revision 1.3  2000-02-03 17:05:55  marco
+  Revision 1.4  2000-02-04 16:55:47  marco
+   * Fixed tdir, some params need to be 32-bit
+
+  Revision 1.3  2000/02/03 17:05:55  marco
 
    * Some types fixed/ported.
 
@@ -147,14 +150,5 @@ type
 
   Revision 1.1  2000/02/02 16:36:09  marco
    * Initial version. Copy of linux version, with BSD stat.
-
-  Revision 1.5  2000/01/07 16:41:42  daniel
-    * copyright 2000
-
-  Revision 1.4  2000/01/07 16:32:28  daniel
-    * copyright 2000 added
-
-  Revision 1.3  1998/10/15 08:31:10  peter
-    * type aliases using delphi typenaming
 
 }
