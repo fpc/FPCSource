@@ -25,5 +25,4 @@ Echo "-Fu¶'{FPCDIR}units:rtl:¶'" >> "{FPCDIR}bin:fpc.cfg"
 Echo "-l" >> "{FPCDIR}bin:fpc.cfg"
 Echo "-vi" >> "{FPCDIR}bin:fpc.cfg"
 
-Alert 'The installation was successful.'
-
+Alert 'The installation was successful.¶n¶nLicense information is located in the docs folder'
