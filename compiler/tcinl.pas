@@ -550,8 +550,17 @@ implementation
              in_pred_x,
              in_succ_x:
                begin
-                  inc(p^.registers32);
                   p^.resulttype:=p^.left^.resulttype;
+                  if is_64bitint(p^.resulttype) then
+                    begin
+                       if (p^.registers32<2) then
+                         p^.registers32:=2
+                    end
+                  else
+                    begin
+                       if (p^.registers32<1) then
+                         p^.registers32:=1;
+                    end;
                   p^.location.loc:=LOC_REGISTER;
                   set_varstate(p^.left,true);
                   if not is_ordinal(p^.resulttype) then
@@ -1272,7 +1281,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  1999-11-30 10:40:58  peter
+  Revision 1.62  1999-12-02 12:38:45  florian
+    + added support for succ/pred(<qword/int64>)
+
+  Revision 1.61  1999/11/30 10:40:58  peter
     + ttype, tsymlist
 
   Revision 1.60  1999/11/18 15:34:49  pierre

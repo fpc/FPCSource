@@ -1077,34 +1077,80 @@ implementation
                    internalerror(10080);
                  end;
                  p^.location.loc:=LOC_REGISTER;
-                 if p^.left^.location.loc<>LOC_REGISTER then
+                 if p^.resulttype^.size=8 then
                    begin
-                      p^.location.register:=getregister32;
-                      if (p^.resulttype^.size=2) then
-                        p^.location.register:=reg32toreg16(p^.location.register);
-                      if (p^.resulttype^.size=1) then
-                        p^.location.register:=reg32toreg8(p^.location.register);
-                      if p^.left^.location.loc=LOC_CREGISTER then
-                        emit_reg_reg(A_MOV,opsize,p^.left^.location.register,
-                          p^.location.register)
-                      else
-                      if p^.left^.location.loc=LOC_FLAGS then
-                        emit_flag2reg(p^.left^.location.resflags,p^.location.register)
+                      if p^.left^.location.loc<>LOC_REGISTER then
+                        begin
+                           p^.location.registerlow:=getregister32;
+                           p^.location.registerhigh:=getregister32;
+                           if p^.left^.location.loc=LOC_CREGISTER then
+                             begin
+                                emit_reg_reg(A_MOV,opsize,p^.left^.location.registerlow,
+                                  p^.location.registerlow);
+                                emit_reg_reg(A_MOV,opsize,p^.left^.location.registerhigh,
+                                  p^.location.registerhigh);
+                             end
+                           else
+                             begin
+                                del_reference(p^.left^.location.reference);
+                                emit_ref_reg(A_MOV,opsize,newreference(p^.left^.location.reference),
+                                  p^.location.registerlow);
+                                r:=newreference(p^.left^.location.reference);
+                                inc(r^.offset,4);
+                                emit_ref_reg(A_MOV,opsize,r,
+                                  p^.location.registerhigh);
+                             end;
+                        end
                       else
                         begin
-                           del_reference(p^.left^.location.reference);
-                           emit_ref_reg(A_MOV,opsize,newreference(p^.left^.location.reference),
-                             p^.location.register);
+                           p^.location.registerhigh:=p^.left^.location.registerhigh;
+                           p^.location.registerlow:=p^.left^.location.registerlow;
+                        end;
+                      if p^.inlinenumber=in_succ_x then
+                        begin
+                           emit_const_reg(A_ADD,opsize,1,
+                             p^.location.registerlow);
+                           emit_const_reg(A_ADC,opsize,0,
+                             p^.location.registerhigh);
+                        end
+                      else
+                        begin
+                           emit_const_reg(A_SUB,opsize,1,
+                             p^.location.registerlow);
+                           emit_const_reg(A_SBB,opsize,0,
+                             p^.location.registerhigh);
                         end;
                    end
-                 else p^.location.register:=p^.left^.location.register;
-
-                 if not (cs_check_overflow in aktlocalswitches) then
-                   emit_reg(asmop,opsize,
-                     p^.location.register)
                  else
-                   emit_const_reg(asmop,opsize,1,
-                     p^.location.register);
+                   begin
+                      if p^.left^.location.loc<>LOC_REGISTER then
+                        begin
+                           p^.location.register:=getregister32;
+                           if (p^.resulttype^.size=2) then
+                             p^.location.register:=reg32toreg16(p^.location.register);
+                           if (p^.resulttype^.size=1) then
+                             p^.location.register:=reg32toreg8(p^.location.register);
+                           if p^.left^.location.loc=LOC_CREGISTER then
+                             emit_reg_reg(A_MOV,opsize,p^.left^.location.register,
+                               p^.location.register)
+                           else
+                           if p^.left^.location.loc=LOC_FLAGS then
+                             emit_flag2reg(p^.left^.location.resflags,p^.location.register)
+                           else
+                             begin
+                                del_reference(p^.left^.location.reference);
+                                emit_ref_reg(A_MOV,opsize,newreference(p^.left^.location.reference),
+                                  p^.location.register);
+                             end;
+                        end
+                      else p^.location.register:=p^.left^.location.register;
+                      if not (cs_check_overflow in aktlocalswitches) then
+                        emit_reg(asmop,opsize,
+                        p^.location.register)
+                      else
+                        emit_const_reg(asmop,opsize,1,
+                        p^.location.register);
+                   end;
                  emitoverflowcheck(p);
                  emitrangecheck(p,p^.resulttype);
               end;
@@ -1435,7 +1481,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  1999-12-01 12:42:31  peter
+  Revision 1.83  1999-12-02 12:38:45  florian
+    + added support for succ/pred(<qword/int64>)
+
+  Revision 1.82  1999/12/01 12:42:31  peter
     * fixed bug 698
     * removed some notes about unused vars
 
