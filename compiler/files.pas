@@ -320,7 +320,8 @@ unit files;
       begin
         if is_macro then
          begin
-           Freemem(buf,maxbufsize);
+           if assigned(buf) then
+             Freemem(buf,maxbufsize);
            buf:=nil;
            {is_macro:=false;
            still needed for dispose in scanner PM }
@@ -1021,7 +1022,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.64  1998-10-14 13:38:19  peter
+  Revision 1.65  1998-10-15 12:22:25  pierre
+    * close include files immediately after end reading
+      instead of waiting until unit compilation ended !
+
+  Revision 1.64  1998/10/14 13:38:19  peter
     * fixed path with staticlib/objects in ppufiles
 
   Revision 1.63  1998/10/14 11:02:49  daniel

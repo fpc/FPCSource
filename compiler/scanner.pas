@@ -319,6 +319,8 @@ implementation
              to_dispose:=inputfile
            else
              to_dispose:=nil;
+           { we can allways close the file, no ? }
+           inputfile^.close;
            inputfile:=inputfile^.next;
            if assigned(to_dispose) then
              dispose(to_dispose,done);
@@ -1449,7 +1451,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  1998-10-09 11:08:15  peter
+  Revision 1.62  1998-10-15 12:22:23  pierre
+    * close include files immediately after end reading
+      instead of waiting until unit compilation ended !
+
+  Revision 1.61  1998/10/09 11:08:15  peter
     * fixed inputfile^.name^ bug
 
   Revision 1.60  1998/10/09 08:56:31  pierre
