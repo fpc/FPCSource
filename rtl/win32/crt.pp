@@ -828,8 +828,8 @@ begin
 
   TextAttr := ConsoleInfo.wAttributes;
 
-  { Load startup values }
-  TurnMouseOff;
+  { Not required, the dos crt does also not touch the mouse }
+  {TurnMouseOff;}
 
   WindMinX := (ConsoleInfo.srWindow.Left) + 1;
   WindMinY := (ConsoleInfo.srWindow.Top) + 1;
@@ -851,7 +851,11 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.15  2001-09-17 21:31:44  peter
+  Revision 1.16  2002-01-19 11:56:34  peter
+    * fixed clrscr for small windows
+    * no turnoffmouse
+
+  Revision 1.15  2001/09/17 21:31:44  peter
     * enhanced key fix (merged)
 
   Revision 1.14  2001/08/05 12:23:57  peter
