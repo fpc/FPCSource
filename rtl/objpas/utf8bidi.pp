@@ -65,7 +65,7 @@ function VisualToLogical(const UTF8String:TUTF8String; pDir:TDirection):TVisualT
 
 implementation
 
-function UTF8Str(const s:TUTF8String):String;
+function DumpStr(const s:TUTF8String):String;
 var
   i:Integer;
 begin
@@ -173,7 +173,7 @@ var
 begin
   vp := 1;
   Result := '';
-  for vp :=1 to Length(Src) do
+  for vp := 1 to Length(Src) do
     Result += UnicodeToUTF8(Src[vp]);
 end;
 
@@ -201,7 +201,7 @@ end;
 
 function UTF8ToUCS16(const UTF8Char:TUTF8Char):TUCS16Char;
 begin
-  case ComputeCharLength(@UTF8Char[1]) of
+  case Length(UTF8Char) of
     1:{regular single byte character (#0 is a normal char, this is UTF8Charascal ;)}
       Result := ord(UTF8Char[1]);
     2:
@@ -209,7 +209,7 @@ begin
                 or (ord(UTF8Char[2]) and %00111111);
   else
     Result := $FFFF;
-  end
+  end;
 end;
 
 
@@ -219,14 +219,14 @@ var
   c:TUTF8Char;
 begin
   lp := 1;
-  vp := 1;
+  vp := 0;
   SetLength(Result, Length(Src));
   while lp <= Length(Src) do
   begin
+    vp += 1;
     c := LCharOf(Src, lp);
     Result[vp] := WideChar(UTF8ToUCS16(c));
     lp += Length(c);
-    vp += 1;
   end;
   SetLength(Result, vp);
 end;
@@ -436,6 +436,7 @@ var
 begin
   temp := UTF8ToUnicode(Dest);
   c := WideChar(UTF8ToUCS16(Src));
+  WriteLn(3,HexStr(Word(c),4));
   Result := FreeBIDI.InsertChar(c, temp, vp, pDir);
   Dest := UnicodeToUTF8(temp);
 end;
@@ -470,6 +471,7 @@ begin
     if(v2l[i] < vp) and (v2l[i] > vp + len)
     then
       Delete(str, v2l[i], 1);
+WriteLn('kjjkjkjkj');
 end;
 
 end.
