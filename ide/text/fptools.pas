@@ -149,8 +149,8 @@ implementation
 
 uses Dos,
      Commands,App,MsgBox,
-     WINI,WEditor,
-     FPConst,FPVars,FPUtils;
+     WUtils,WINI,WEditor,
+     FPConst,FPString,FPVars,FPUtils,FPCodCmp,FPCodTmp;
 
 {$ifndef NOOBJREG}
 const
@@ -1507,7 +1507,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  1999-10-27 10:43:06  pierre
+  Revision 1.15  2000-02-07 12:00:41  pierre
+   Gabor's changes
+
+  Revision 1.14  1999/10/27 10:43:06  pierre
    * avoid dispose problems for ToolMessages
 
   Revision 1.13  1999/08/03 20:22:37  peter

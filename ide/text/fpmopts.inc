@@ -739,7 +739,7 @@ var D: PCenterDialog;
     IL: PIntegerLine;
     ExtIL,TabExtIL: PInputLine;
     TabSize: Integer;
-    EFlags: Longint;
+    EFlags,EFValue: Longint;
     Title: string;
 begin
   if Editor=nil then
@@ -752,11 +752,28 @@ begin
       TabSize:=Editor^.TabSize; EFlags:=Editor^.Flags;
       Title:='Editor Options';
     end;
-  R.Assign(0,0,56,18);
+
+  EFValue:=0;
+  if (EFlags and efBackupFiles       )<>0 then EFValue:=EFValue or (1 shl  0);
+  if (EFlags and efInsertMode        )<>0 then EFValue:=EFValue or (1 shl  1);
+  if (EFlags and efAutoIndent        )<>0 then EFValue:=EFValue or (1 shl  2);
+  if (EFlags and efUseTabCharacters  )<>0 then EFValue:=EFValue or (1 shl  3);
+  if (EFlags and efBackSpaceUnindents)<>0 then EFValue:=EFValue or (1 shl  4);
+  if (EFlags and efPersistentBlocks  )<>0 then EFValue:=EFValue or (1 shl  5);
+  if (EFlags and efSyntaxHighlight   )<>0 then EFValue:=EFValue or (1 shl  6);
+  if (EFlags and efBlockInsCursor    )<>0 then EFValue:=EFValue or (1 shl  7);
+  if (EFlags and efVerticalBlocks    )<>0 then EFValue:=EFValue or (1 shl  8);
+  if (EFlags and efHighlightColumn   )<>0 then EFValue:=EFValue or (1 shl  9);
+  if (EFlags and efHighlightRow      )<>0 then EFValue:=EFValue or (1 shl 10);
+  if (EFlags and efAutoBrackets      )<>0 then EFValue:=EFValue or (1 shl 11);
+  if (EFlags and efKeepTrailingSpaces)<>0 then EFValue:=EFValue or (1 shl 12);
+  if (EFlags and efCodeComplete      )<>0 then EFValue:=EFValue or (1 shl 13);
+
+  R.Assign(0,0,56,19);
   New(D, Init(R, Title));
   with D^ do
   begin
-    GetExtent(R); R.Grow(-2,-2); R.B.Y:=R.A.Y+7;
+    GetExtent(R); R.Grow(-2,-2); R.B.Y:=R.A.Y+8;
     R2.Copy(R); Inc(R2.A.Y);
     New(CB, Init(R2,
       NewSItem('Create backup ~f~iles',
@@ -771,8 +788,10 @@ begin
       NewSItem('Highlight ~c~olumn',
       NewSItem('Highlight ~r~ow',
       NewSItem('Aut~o~-closing brackets',
-      nil))))))))))))));
-    CB^.Value:=EFlags;
+      NewSItem('~K~eep trailing spaces',
+      NewSItem('Co~d~eComplete enabled',
+      nil))))))))))))))));
+    CB^.Value:=EFValue;
     Insert(CB);
     R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
     Insert(New(PLabel, Init(R2, '~E~ditor options', CB)));
@@ -806,7 +825,22 @@ begin
   CB^.Select;
   if Desktop^.ExecView(D)=cmOK then
   begin
-    TabSize:=StrToInt(IL^.Data^); EFlags:=CB^.Value;
+    EFlags:=0;
+    if (CB^.Value and (1 shl  0))<>0 then EFlags:=EFlags or efBackupFiles;
+    if (CB^.Value and (1 shl  1))<>0 then EFlags:=EFlags or efInsertMode;
+    if (CB^.Value and (1 shl  2))<>0 then EFlags:=EFlags or efAutoIndent;
+    if (CB^.Value and (1 shl  3))<>0 then EFlags:=EFlags or efUseTabCharacters;
+    if (CB^.Value and (1 shl  4))<>0 then EFlags:=EFlags or efBackSpaceUnindents;
+    if (CB^.Value and (1 shl  5))<>0 then EFlags:=EFlags or efPersistentBlocks;
+    if (CB^.Value and (1 shl  6))<>0 then EFlags:=EFlags or efSyntaxHighlight;
+    if (CB^.Value and (1 shl  7))<>0 then EFlags:=EFlags or efBlockInsCursor;
+    if (CB^.Value and (1 shl  8))<>0 then EFlags:=EFlags or efVerticalBlocks;
+    if (CB^.Value and (1 shl  9))<>0 then EFlags:=EFlags or efHighlightColumn;
+    if (CB^.Value and (1 shl 10))<>0 then EFlags:=EFlags or efHighlightRow;
+    if (CB^.Value and (1 shl 11))<>0 then EFlags:=EFlags or efAutoBrackets;
+    if (CB^.Value and (1 shl 12))<>0 then EFlags:=EFlags or efKeepTrailingSpaces;
+    if (CB^.Value and (1 shl 13))<>0 then EFlags:=EFlags or efCodeComplete;
+    TabSize:=StrToInt(IL^.Data^);
     if Editor=nil then
        begin
          DefaultTabSize:=TabSize;
@@ -821,6 +855,16 @@ begin
     TabExtIL^.GetData(TabsPattern);
   end;
   Dispose(D, Done);
+end;
+
+procedure TIDEApp.CodeComplete;
+begin
+  ExecuteDialog(New(PCodeCompleteDialog, Init),nil);
+end;
+
+procedure TIDEApp.CodeTemplates;
+begin
+  ExecuteDialog(New(PCodeTemplatesDialog, Init),nil);
 end;
 
 procedure TIDEApp.BrowserOptions(Browser: PBrowserWindow);
@@ -907,11 +951,11 @@ var R: TRect;
     D: PCenterDialog;
     CB: PCheckBoxes;
 begin
-  R.Assign(0,0,40,10);
+  R.Assign(0,0,40,12);
   New(D, Init(R, 'Desktop Preferences'));
   with D^ do
   begin
-    GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.Y:=R.A.Y+6;
+    GetExtent(R); R.Grow(-2,-2); Inc(R.A.Y); R.B.Y:=R.A.Y+8;
     New(CB, Init(R,
       NewSItem('~H~istory lists',
       NewSItem('~C~lipboard content',
@@ -919,7 +963,9 @@ begin
       NewSItem('~B~reakpoints',
       NewSItem('~O~pen windows',
       NewSItem('~S~ymbol information',
-      nil))))))));
+      NewSItem('Co~d~eComplete wordlist',
+      NewSItem('Code~T~emplates',
+      nil))))))))));
     CB^.Value:=DesktopFileFlags;
     Insert(CB);
     R.Move(0,-1); R.B.Y:=R.A.Y+1;
@@ -1122,7 +1168,10 @@ end;
 
 {
   $Log$
-  Revision 1.27  1999-11-10 17:18:17  pierre
+  Revision 1.28  2000-02-07 12:02:32  pierre
+   Gabor's changes
+
+  Revision 1.27  1999/11/10 17:18:17  pierre
    + new console for Win32 or other tty for linux
 
   Revision 1.26  1999/10/14 10:22:50  pierre

@@ -96,6 +96,8 @@ type
       procedure DoGrep;
       procedure Preferences;
       procedure EditorOptions(Editor: PEditor);
+      procedure CodeComplete;
+      procedure CodeTemplates;
       procedure BrowserOptions(Browser: PBrowserWindow);
       procedure DesktopOptions;
       procedure Mouse;
@@ -148,7 +150,7 @@ uses
   WUtils,WHelp,WHlpView,WINI,WViews,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompile,FPHelp,
   FPTemplt,FPCalc,FPUsrScr,FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPRedir,
-  FPDesk;
+  FPDesk,FPCodCmp,FPCodTmp;
 
 
 function IDEUseSyntaxHighlight(Editor: PFileEditor): boolean; {$ifndef FPC}far;{$endif}
@@ -325,11 +327,13 @@ begin
       NewSubMenu(menu_options_env, hcEnvironmentMenu, NewMenu(
         NewItem(menu_options_env_preferences,'', kbNoKey, cmPreferences, hcPreferences,
         NewItem(menu_options_env_editor,'', kbNoKey, cmEditor, hcEditor,
+        NewItem(menu_options_env_codecomplete,'', kbNoKey, cmCodeCompleteOptions, hcCodeCompleteOptions,
+        NewItem(menu_options_env_codetemplates,'', kbNoKey, cmCodeTemplateOptions, hcCodeTemplateOptions,
         NewItem(menu_options_env_desktop,'', kbNoKey, cmDesktopOptions, hcDesktopOptions,
         NewItem(menu_options_env_mouse,'', kbNoKey, cmMouse, hcMouse,
         NewItem(menu_options_env_startup,'', kbNoKey, cmStartup, hcStartup,
         NewItem(menu_options_env_colors,'', kbNoKey, cmColors, hcColors,
-        nil))))))),
+        nil))))))))),
       NewLine(
       NewItem(menu_options_open,'', kbNoKey, cmOpenINI, hcOpenINI,
       NewItem(menu_options_save,'', kbNoKey, cmSaveINI, hcSaveINI,
@@ -507,6 +511,8 @@ begin
              cmPreferences   : Preferences;
              cmEditor        : EditorOptions(nil);
              cmEditorOptions : EditorOptions(Event.InfoPtr);
+             cmCodeTemplateOptions: CodeTemplates;
+             cmCodeCompleteOptions: CodeComplete;
              cmBrowser       : BrowserOptions(nil);
              cmBrowserOptions : BrowserOptions(Event.InfoPtr);
              cmMouse         : Mouse;
@@ -871,7 +877,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.51  2000-01-23 21:25:17  florian
+  Revision 1.52  2000-02-07 12:02:32  pierre
+   Gabor's changes
+
+  Revision 1.51  2000/01/23 21:25:17  florian
     + start of internationalization support
 
   Revision 1.50  2000/01/08 18:26:20  florian
