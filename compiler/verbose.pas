@@ -48,6 +48,7 @@ Const
   V_Macro        = $100;
   V_Procedure    = $200;
   V_Conditional  = $400;
+  V_Assem        = $800;
   V_Info         = $10000;
   V_Status       = $20000;
   V_Used         = $40000;
@@ -219,6 +220,10 @@ begin
                    status.verbosity:=status.verbosity and (not V_Executable)
                  else
                    status.verbosity:=status.verbosity or V_Executable;
+           'Z' : if inverse then
+                   status.verbosity:=status.verbosity and (not V_Assem)
+                 else
+                   status.verbosity:=status.verbosity or V_Assem;
            end;
        end;
      end;
@@ -387,6 +392,7 @@ begin
           'D' : v:=v or V_Debug;
           'B' : v:=v or V_Declarations;
           'X' : v:=v or V_Executable;
+          'Z' : v:=v or V_Assem;
           'S' : dostop:=true;
           '_' : ;
          end;
@@ -459,7 +465,10 @@ end.
 
 {
   $Log$
-  Revision 1.36  1999-03-24 23:17:44  peter
+  Revision 1.37  1999-04-21 07:41:06  pierre
+   + added -vz for assembler specifc comments
+
+  Revision 1.36  1999/03/24 23:17:44  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.35  1999/02/09 17:15:53  florian
