@@ -551,6 +551,19 @@ implementation
         { set the options from the caller (podestructor or poconstructor) }
         aktprocdef.proctypeoption:=options;
 
+        { add procsym to the procdef }
+        aktprocdef.procsym:=aktprocsym;
+
+        { save file position }
+        aktprocdef.fileinfo:=procstartfilepos;
+
+        { this must also be inserted in the right symtable !! PM }
+        { otherwise we get subbtle problems with
+          definitions of args defs in staticsymtable for
+          implementation of a global method }
+        if token=_LKLAMMER then
+          parameter_dec(aktprocdef);
+
         { calculate the offset of the parameters }
         paramoffset:=target_info.first_parm_offset;
 
@@ -569,7 +582,7 @@ implementation
            (aktprocdef.proctypeoption in [potype_constructor,potype_destructor]) then
           inc(paramoffset,pointer_size);
 
-        { self pointer offset                       }
+        { self pointer offset, must be done after parsing the parameters }
         { self isn't pushed in nested procedure of methods }
         if assigned(procinfo._class) and (lexlevel=normal_function_level) then
           begin
@@ -586,21 +599,6 @@ implementation
           inc(paramoffset,pointer_size);
 
         procinfo.para_offset:=paramoffset;
-
-        aktprocdef.parast.datasize:=0;
-
-        { add procsym to the procdef }
-        aktprocdef.procsym:=aktprocsym;
-
-        { save file position }
-        aktprocdef.fileinfo:=procstartfilepos;
-
-        { this must also be inserted in the right symtable !! PM }
-        { otherwise we get subbtle problems with
-          definitions of args defs in staticsymtable for
-          implementation of a global method }
-        if token=_LKLAMMER then
-          parameter_dec(aktprocdef);
 
         { so we only restore the symtable now }
         symtablestack:=st;
@@ -1478,7 +1476,12 @@ const
               if (def.deftype=procdef) then
                begin
                  if not tprocdef(def).has_mangledname then
-                  tprocdef(def).setmangledname(target_info.Cprefix+sym.realname);
+                  begin
+                    if assigned(tprocdef(def)._class) then
+                     tprocdef(def).setmangledname(target_info.Cprefix+tprocdef(def)._class.objrealname^+'_'+sym.realname)
+                    else
+                     tprocdef(def).setmangledname(target_info.Cprefix+sym.realname);
+                  end;
                  if not assigned(tprocdef(def).parast) then
                   internalerror(200110234);
                  { do not copy on local !! }
@@ -1985,7 +1988,11 @@ const
 end.
 {
   $Log$
-  Revision 1.68  2002-08-25 19:25:20  peter
+  Revision 1.69  2002-09-01 12:11:33  peter
+    * calc param_offset after parameters are read, because the calculation
+      depends on po_containself
+
+  Revision 1.68  2002/08/25 19:25:20  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be
