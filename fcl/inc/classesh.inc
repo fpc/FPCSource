@@ -22,7 +22,7 @@ type
    HRSRC = longint;
    THANDLE = longint;
    TComponentName = string;
-   IUnKnown = class(TObject);
+   IUnknown = class(TObject);
    TGUID = longint;
    HMODULE = longint;
 
@@ -35,7 +35,9 @@ type
    end;
 
    TRect = record
-      Left,Right,Top,Bottom : Integer;
+     case Boolean of
+       False: (Left,Top,Right,Bottom : Integer);
+       True: (TopLeft,BottomRight : TPoint);
    end;
 
 const
@@ -798,6 +800,7 @@ type
     {!!!: function ReadWideString: WideString;}
     function ReadValue: TValueType;
     procedure CopyValue(Writer: TWriter);
+    property Driver: TAbstractObjectReader read FDriver;
     property Owner: TComponent read FOwner write FOwner;
     property Parent: TComponent read FParent write FParent;
     property OnError: TReaderError read FOnError write FOnError;
@@ -1166,8 +1169,8 @@ procedure RegisterClassAlias(AClass: TPersistentClass; const Alias: string);
 procedure UnRegisterClass(AClass: TPersistentClass);
 procedure UnRegisterClasses(AClasses: array of TPersistentClass);
 procedure UnRegisterModuleClasses(Module: HMODULE);
-function FindClass(const ClassName: string): TPersistentClass;
-function GetClass(const ClassName: string): TPersistentClass;
+function FindClass(const AClassName: string): TPersistentClass;
+function GetClass(const AClassName: string): TPersistentClass;
 
 { Component registration routines }
 
@@ -1239,7 +1242,11 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.1.2.3  2000-12-03 22:32:27  sg
+  Revision 1.1.2.4  2001-02-09 20:34:56  sg
+  * Extended TRect type to have TopLeft and BottomRight fields as well
+  * Added "Driver" property to TReader
+
+  Revision 1.1.2.3  2000/12/03 22:32:27  sg
   * Applied patch by Markus Kaemmerer:
     - Added support for TStringList.CustomSort
 
