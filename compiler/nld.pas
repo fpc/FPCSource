@@ -435,7 +435,6 @@ implementation
 
     begin
       include(flags,nf_write);
-      writeln('Mark ',symtableentry.name);
     end;
 {$endif}
 
@@ -1298,7 +1297,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2002-12-30 22:44:53  daniel
+  Revision 1.77  2002-12-31 09:55:58  daniel
+   + Notification implementation complete
+   + Add for loop code optimization using notifications
+     results in 1.5-1.9% speed improvement in nestloop benchmark
+     Optimization incomplete, compiler does not cycle yet with
+     notifications enabled.
+
+  Revision 1.76  2002/12/30 22:44:53  daniel
   * Some work on notifications
 
   Revision 1.75  2002/12/27 15:27:25  peter

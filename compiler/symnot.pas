@@ -30,7 +30,7 @@ interface
 
 uses  cclasses,symbase,symtype;
 
-type  Tnotification_flag=(vn_onread,vn_onwrite);
+type  Tnotification_flag=(vn_onread,vn_onwrite,vn_unknown);
       Tnotification_flags=set of Tnotification_flag;
 
       Tnotification_callback=procedure(not_type:Tnotification_flag;
@@ -65,7 +65,14 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-09-01 08:04:42  daniel
+  Revision 1.2  2002-12-31 09:55:58  daniel
+   + Notification implementation complete
+   + Add for loop code optimization using notifications
+     results in 1.5-1.9% speed improvement in nestloop benchmark
+     Optimization incomplete, compiler does not cycle yet with
+     notifications enabled.
+
+  Revision 1.1  2002/09/01 08:04:42  daniel
    + Added read/write notifications of variables. These will be usefull
      for providing information for several optimizations. For example
      the value of the loop variable of a for loop does matter is the

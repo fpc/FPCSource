@@ -198,6 +198,7 @@ interface
           procedure trigger_notifications(what:Tnotification_flag);
           function register_notification(flags:Tnotification_flags;
                                          callback:Tnotification_callback):cardinal;
+          procedure unregister_notification(id:cardinal);
 {$endif}
 {$ifdef GDB}
           function  stabstring : pchar;override;
@@ -1716,17 +1717,17 @@ implementation
 {$ifdef var_notification}
     procedure Tvarsym.trigger_notifications(what:Tnotification_flag);
     
-    var p:Tnotification;
+    var n:Tnotification;
     
     begin
         if assigned(notifications) then
           begin
-            p:=Tnotification(notifications.first);
-            while assigned(p) do
+            n:=Tnotification(notifications.first);
+            while assigned(n) do
               begin
-                if what in p.flags then
-                  p.callback(what,self);
-                p:=Tnotification(p.next);
+                if what in n.flags then
+                  n.callback(what,self);
+                n:=Tnotification(n.next);
               end;
           end;
     end;
@@ -1742,6 +1743,30 @@ implementation
       n:=Tnotification.create(flags,callback);
       register_notification:=n.id;
       notifications.concat(n);
+    end;
+
+    procedure Tvarsym.unregister_notification(id:cardinal);
+    
+    var n:Tnotification;
+
+    begin
+      if not assigned(notifications) then
+        internalerror(200212311)
+      else
+        begin
+            n:=Tnotification(notifications.first);
+            while assigned(n) do
+              begin
+                if n.id=id then
+                  begin
+                    notifications.remove(n);
+                    n.destroy;
+                    exit;
+                  end;
+                n:=Tnotification(n.next);
+              end;
+            internalerror(200212311)
+        end;
     end;
 {$endif}
 
@@ -2538,7 +2563,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.86  2002-12-30 22:44:53  daniel
+  Revision 1.87  2002-12-31 09:55:58  daniel
+   + Notification implementation complete
+   + Add for loop code optimization using notifications
+     results in 1.5-1.9% speed improvement in nestloop benchmark
+     Optimization incomplete, compiler does not cycle yet with
+     notifications enabled.
+
+  Revision 1.86  2002/12/30 22:44:53  daniel
   * Some work on notifications
 
   Revision 1.85  2002/12/27 18:07:44  peter

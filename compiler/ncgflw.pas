@@ -379,24 +379,35 @@ implementation
                    t2.location,aktbreaklabel);
                end;
            end;
-
-         if lnf_backward in loopflags then
-           hop:=OP_ADD
-         else
-           hop:=OP_SUB;
-         cg.a_op_const_loc(exprasmlist,hop,1,t2.location);
+           
+         {If the loopvar doesn't mind on exit, we avoid this ugly
+          dec instruction and do the loopvar inc/dec after the loop
+          body.}
+         if not(lnf_dont_mind_loopvar_on_exit in loopflags) then
+            begin
+              if lnf_backward in loopflags then
+                hop:=OP_ADD
+              else
+                hop:=OP_SUB;
+              cg.a_op_const_loc(exprasmlist,hop,1,t2.location);
+            end;
 
          if not(cs_littlesize in aktglobalswitches) then
             { align loop target }
             exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
          cg.a_label(exprasmlist,l3);
 
-         { according to count direction DEC or INC... }
-         if lnf_backward in loopflags then
-           hop:=OP_SUB
-         else
-           hop:=OP_ADD;
-         cg.a_op_const_loc(exprasmlist,hop,1,t2.location);
+         {If the loopvar doesn't mind on exit, we avoid the loopvar inc/dec
+          after the loop body instead of here.}
+         if not(lnf_dont_mind_loopvar_on_exit in loopflags) then
+            begin
+              { according to count direction DEC or INC... }
+              if lnf_backward in loopflags then
+                hop:=OP_SUB
+              else
+                hop:=OP_ADD;
+              cg.a_op_const_loc(exprasmlist,hop,1,t2.location);
+            end;
 
          { help register must not be in instruction block }
          rg.cleartempgen;
@@ -406,21 +417,45 @@ implementation
              load_all_regvars(exprasmlist);
            end;
 
+         {If the loopvar doesn't mind on exit, we do the loopvar inc/dec
+          after the loop body instead of here.}
+         if lnf_dont_mind_loopvar_on_exit in loopflags then
+            begin
+              { according to count direction DEC or INC... }
+              if lnf_backward in loopflags then
+                hop:=OP_SUB
+              else
+                hop:=OP_ADD;
+              cg.a_op_const_loc(exprasmlist,hop,1,t2.location);
+            end;
+
          cg.a_label(exprasmlist,aktcontinuelabel);
 
          { makes no problems there }
          rg.cleartempgen;
 
-         if lnf_backward in loopflags then
-           if count_var_is_signed then
-             hcond:=OC_GT
-           else
-             hcond:=OC_A
-          else
-            if count_var_is_signed then
-              hcond:=OC_LT
+         if lnf_dont_mind_loopvar_on_exit in loopflags then
+           if lnf_backward in loopflags then
+             if count_var_is_signed then
+               hcond:=OC_GTE
+             else
+               hcond:=OC_AE
             else
-              hcond:=OC_B;
+              if count_var_is_signed then
+                hcond:=OC_LTE
+              else
+                hcond:=OC_BE
+         else
+           if lnf_backward in loopflags then
+             if count_var_is_signed then
+               hcond:=OC_GT
+             else
+               hcond:=OC_A
+            else
+              if count_var_is_signed then
+                hcond:=OC_LT
+              else
+                hcond:=OC_B;
          load_all_regvars(exprasmlist);
 
          { produce comparison and the corresponding }
@@ -1247,7 +1282,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2002-11-28 11:17:01  florian
+  Revision 1.46  2002-12-31 09:55:58  daniel
+   + Notification implementation complete
+   + Add for loop code optimization using notifications
+     results in 1.5-1.9% speed improvement in nestloop benchmark
+     Optimization incomplete, compiler does not cycle yet with
+     notifications enabled.
+
+  Revision 1.45  2002/11/28 11:17:01  florian
     * loop node flags from node flags splitted
 
   Revision 1.44  2002/11/25 17:43:17  peter

@@ -668,11 +668,14 @@ implementation
        had in the last iteration.}
       if not_type=vn_onwrite then
         begin
-          include(loopflags,lnf_dont_mind_loopvar_on_exit);
-        writeln('Loopvar does not matter on exit');
+          writeln('Loopvar does not matter on exit');
         end
       else
-        writeln('Loopvar does matter on exit');
+        begin
+          exclude(loopflags,lnf_dont_mind_loopvar_on_exit);
+          writeln('Loopvar does matter on exit');
+        end;
+      Tvarsym(symbol).unregister_notification(loopvar_notid);
     end;
 {$endif}
 
@@ -756,6 +759,7 @@ implementation
          inserttypeconv(right,t2.resulttype);
 (*
       {$ifdef var_notification}
+         include(loopflags,lnf_dont_mind_loopvar_on_exit);
          if (hp.nodetype=loadn) and (Tloadnode(hp).symtableentry.typ=varsym) then
             loopvar_notid:=Tvarsym(Tloadnode(hp).symtableentry).
              register_notification([vn_onread,vn_onwrite],@loop_var_access);
@@ -817,6 +821,7 @@ implementation
          firstpass(right);
       {$ifdef var_notification}
          { Check count var, record fields are also allowed in tp7 }
+         include(loopflags,lnf_dont_mind_loopvar_on_exit);
          hp:=t2;
          while (hp.nodetype=subscriptn) or
                ((hp.nodetype=vecn) and
@@ -1463,7 +1468,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2002-12-30 22:44:53  daniel
+  Revision 1.60  2002-12-31 09:55:58  daniel
+   + Notification implementation complete
+   + Add for loop code optimization using notifications
+     results in 1.5-1.9% speed improvement in nestloop benchmark
+     Optimization incomplete, compiler does not cycle yet with
+     notifications enabled.
+
+  Revision 1.59  2002/12/30 22:44:53  daniel
   * Some work on notifications
 
   Revision 1.58  2002/12/27 15:25:40  peter
