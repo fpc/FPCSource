@@ -40,7 +40,6 @@ unit cgcpu;
           procedure a_load_reg_ref(list : taasmoutput;size : tcgsize;register : tregister;const ref : treference);override;
           procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);override;
           procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;register : tregister);override;
-          procedure a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister);override;
           procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
           procedure a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister); override;
           procedure a_loadfpu_ref_reg(list: taasmoutput; size: tcgsize; const ref: treference; reg: tregister); override;
@@ -273,10 +272,6 @@ Implementation
          sign_extend(list, size, register);
       end;
       
-    procedure tcg68k.a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister);
-      begin
-{$warning To complete this section}      
-      end;
       
     procedure tcg68k.a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
      var
@@ -1102,7 +1097,11 @@ end.
 
 { 
   $Log$
-  Revision 1.2  2002-08-14 19:16:34  carl
+  Revision 1.3  2002-08-15 08:13:54  carl
+    - a_load_sym_ofs_reg removed
+    * loadvmt now calls loadaddr_ref_reg instead
+
+  Revision 1.2  2002/08/14 19:16:34  carl
     + m68k type conversion nodes
     + started some mathematical nodes
     * out of bound references should now be handled correctly

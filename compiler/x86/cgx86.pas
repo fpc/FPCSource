@@ -69,7 +69,6 @@ unit cgx86;
         procedure a_load_reg_ref(list : taasmoutput; size: tcgsize; reg : tregister;const ref : treference);override;
         procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);override;
-        procedure a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister); override;
         procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
 
         { fpu move instructions }
@@ -493,12 +492,6 @@ unit cgx86;
         list.concat(taicpu.op_reg_reg(op,s,reg1,reg2));
       end;
 
-
-    procedure tcgx86.a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister);
-
-      begin
-        list.concat(taicpu.op_sym_ofs_reg(A_MOV,S_L,sym,ofs,reg));
-      end;
 
 
     procedure tcgx86.a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
@@ -1651,7 +1644,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.9  2002-08-11 14:32:33  peter
+  Revision 1.10  2002-08-15 08:13:54  carl
+    - a_load_sym_ofs_reg removed
+    * loadvmt now calls loadaddr_ref_reg instead
+
+  Revision 1.9  2002/08/11 14:32:33  peter
     * renamed current_library to objectlibrary
 
   Revision 1.8  2002/08/11 13:24:20  peter

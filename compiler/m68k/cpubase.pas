@@ -543,7 +543,15 @@ implementation
       end;
 
     procedure inverse_flags(var r: TResFlags);
+      const flagsinvers : array[F_E..F_BE] of tresflags =
+            (F_NE,F_E,
+             F_LE,F_GE,
+             F_L,F_G,
+             F_NC,F_C,
+             F_BE,F_B,
+             F_AE,F_A);
       begin
+         r:=flagsinvers[r];
       end;
 
 
@@ -555,7 +563,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2002-08-14 18:41:47  jonas
+  Revision 1.9  2002-08-15 08:13:54  carl
+    - a_load_sym_ofs_reg removed
+    * loadvmt now calls loadaddr_ref_reg instead
+
+  Revision 1.8  2002/08/14 18:41:47  jonas
     - remove valuelow/valuehigh fields from tlocation, because they depend
       on the endianess of the host operating system -> difficult to get
       right. Use lo/hi(location.valueqword) instead (remember to use

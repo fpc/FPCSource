@@ -59,7 +59,6 @@ unit cgcpu;
         procedure a_load_reg_ref(list : taasmoutput; size: tcgsize; reg : tregister;const ref : treference);override;
         procedure a_load_ref_reg(list : taasmoutput;size : tcgsize;const Ref : treference;reg : tregister);override;
         procedure a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);override;
-        procedure a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister); override;
 
         { fpu move instructions }
         procedure a_loadfpu_reg_reg(list: taasmoutput; reg1, reg2: tregister); override;
@@ -369,13 +368,6 @@ const
                  list.concat(taicpu.op_reg_reg(A_MR,reg2,reg1));
              end;
            end;
-       end;
-
-     procedure tcgppc.a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister);
-
-       begin
-         { can't use op_sym_ofs_reg because sym+ofs can be > 32767!! }
-         internalerror(200112293);
        end;
 
 
@@ -1674,7 +1666,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2002-08-11 14:32:32  peter
+  Revision 1.41  2002-08-15 08:13:54  carl
+    - a_load_sym_ofs_reg removed
+    * loadvmt now calls loadaddr_ref_reg instead
+
+  Revision 1.40  2002/08/11 14:32:32  peter
     * renamed current_library to objectlibrary
 
   Revision 1.39  2002/08/11 13:24:18  peter

@@ -192,7 +192,6 @@ unit cgobj;
           procedure a_load_ref_ref(list : taasmoutput;size : tcgsize;const sref : treference;const dref : treference);virtual;
           procedure a_load_loc_reg(list : taasmoutput;const loc: tlocation; reg : tregister);
           procedure a_load_loc_ref(list : taasmoutput;const loc: tlocation; const ref : treference);
-          procedure a_load_sym_ofs_reg(list: taasmoutput; const sym: tasmsymbol; ofs: longint; reg: tregister);virtual; abstract;
           procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);virtual; abstract;
 
           { fpu move instructions }
@@ -1534,7 +1533,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.48  2002-08-14 19:26:02  carl
+  Revision 1.49  2002-08-15 08:13:54  carl
+    - a_load_sym_ofs_reg removed
+    * loadvmt now calls loadaddr_ref_reg instead
+
+  Revision 1.48  2002/08/14 19:26:02  carl
     + routine to optimize opcodes with constants
 
   Revision 1.47  2002/08/11 14:32:26  peter

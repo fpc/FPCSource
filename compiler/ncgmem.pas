@@ -102,13 +102,16 @@ implementation
 *****************************************************************************}
 
     procedure tcgloadvmtnode.pass_2;
+      var
+       href : treference;
 
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
-         location.register:=rg.getregisterint(exprasmlist);
-         cg.a_load_sym_ofs_reg(exprasmlist,
-           objectlibrary.newasmsymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),
-           0,location.register);
+         location.register:=rg.getaddressregister(exprasmlist);
+         { on 80386, LEA is the same as mov imm32 }
+         reference_reset_symbol(href,
+           objectlibrary.newasmsymbol(tobjectdef(tclassrefdef(resulttype.def).pointertype.def).vmt_mangledname),0);
+         cg.a_loadaddr_ref_reg(exprasmlist,href,location.register);
       end;
 
 
@@ -875,7 +878,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-08-11 14:32:26  peter
+  Revision 1.24  2002-08-15 08:13:54  carl
+    - a_load_sym_ofs_reg removed
+    * loadvmt now calls loadaddr_ref_reg instead
+
+  Revision 1.23  2002/08/11 14:32:26  peter
     * renamed current_library to objectlibrary
 
   Revision 1.22  2002/08/11 13:24:12  peter
