@@ -121,6 +121,7 @@ var
 Begin
   { opcodes }
   new(iasmops,init);
+  iasmops^.delete_doubles:=true;
   for i:=firstop to lastop do
     begin
       new(str2opentry,initname(upper(att_op2str[i])));
@@ -2120,7 +2121,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2001-03-11 22:58:52  peter
+  Revision 1.8  2001-03-25 12:29:45  peter
+    * offset_fixup fixes (merged)
+
+  Revision 1.7  2001/03/11 22:58:52  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.6  2000/12/25 00:07:34  peter

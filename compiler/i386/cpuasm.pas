@@ -796,9 +796,6 @@ begin
             ot:=OT_MEMORY or opsize_2_type[i,opsize];
             if (ref^.base=R_NO) and (ref^.index=R_NO) then
               ot:=ot or OT_MEM_OFFS;
-          { handle also the offsetfixup }
-            inc(ref^.offset,ref^.offsetfixup);
-            ref^.offsetfixup:=0;
           { fix scalefactor }
             if (ref^.index=R_NO) then
              ref^.scalefactor:=0
@@ -887,7 +884,7 @@ begin
   { Check that the operand flags all match up }
   for i:=0 to p^.ops-1 do
    begin
-     if (p^.optypes[i] and (not oper[i].ot) or
+     if ((p^.optypes[i] and (not oper[i].ot)) or
          ((p^.optypes[i] and OT_SIZE_MASK) and
           ((p^.optypes[i] xor oper[i].ot) and OT_SIZE_MASK)))<>0 then
       begin
@@ -927,12 +924,14 @@ begin
    end
   else
    begin
-   {  siz[0]:=asize;
-     siz[1]:=asize;
-     siz[2]:=asize; }
    { we can leave because the size for all operands is forced to be
-     the same }
-     exit;
+     the same
+     but not if IF_SB IF_SW or IF_SD is set PM }
+     if asize= $ffffffff then
+       exit;
+     siz[0]:=asize;
+     siz[1]:=asize;
+     siz[2]:=asize;
    end;
 
   if (p^.flags and (IF_SM or IF_SM2))<>0 then
@@ -1021,6 +1020,28 @@ begin
         InsSize:=calcsize(insentry);
         if (segprefix<>R_NO) then
          inc(InsSize);
+        { For opsize if size if forced }
+        if (insentry^.flags and (IF_SB or IF_SW or IF_SD))<>0 then
+           begin
+             if (insentry^.flags and IF_ARMASK)=0 then
+               begin
+                 if (insentry^.flags and IF_SB)<>0 then
+                   begin
+                     if opsize=S_NO then
+                       opsize:=S_B;
+                   end
+                 else if (insentry^.flags and IF_SW)<>0 then
+                   begin
+                     if opsize=S_NO then
+                       opsize:=S_W;
+                   end
+                 else if (insentry^.flags and IF_SD)<>0 then
+                   begin
+                     if opsize=S_NO then
+                       opsize:=S_L;
+                   end;
+               end;
+           end;
         CheckIfValid:=true;
         exit;
       end;
@@ -1195,7 +1216,7 @@ begin
   i:=input.ref^.index;
   b:=input.ref^.base;
   s:=input.ref^.scalefactor;
-  o:=input.ref^.offset;
+  o:=input.ref^.offset+input.ref^.offsetfixup;
   sym:=input.ref^.symbol;
 { it's direct address }
   if (b=R_NO) and (i=R_NO) then
@@ -1446,7 +1467,7 @@ var
     case oper[opidx].typ of
       top_ref :
         begin
-          currval:=oper[opidx].ref^.offset;
+          currval:=oper[opidx].ref^.offset+oper[opidx].ref^.offsetfixup;
           currsym:=oper[opidx].ref^.symbol;
         end;
       top_const :
@@ -1722,17 +1743,17 @@ begin
                1 :
                  begin
                    if (oper[opidx].ot and OT_MEMORY)=OT_MEMORY then
-                    objectdata.writereloc(oper[opidx].ref^.offset,1,oper[opidx].ref^.symbol,relative_false)
+                    objectdata.writereloc(oper[opidx].ref^.offset+oper[opidx].ref^.offsetfixup,1,oper[opidx].ref^.symbol,relative_false)
                    else
                     begin
-                      bytes[0]:=oper[opidx].ref^.offset;
+                      bytes[0]:=oper[opidx].ref^.offset+oper[opidx].ref^.offsetfixup;
                       objectdata.writebytes(bytes,1);
                     end;
                    inc(s);
                  end;
                2,4 :
                  begin
-                   objectdata.writereloc(oper[opidx].ref^.offset,ea_data.bytes,
+                   objectdata.writereloc(oper[opidx].ref^.offset+oper[opidx].ref^.offsetfixup,ea_data.bytes,
                      oper[opidx].ref^.symbol,relative_false);
                    inc(s,ea_data.bytes);
                  end;
@@ -1749,7 +1770,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2001-02-20 21:51:36  peter
+  Revision 1.12  2001-03-25 12:29:45  peter
+    * offset_fixup fixes (merged)
+
+  Revision 1.11  2001/02/20 21:51:36  peter
     * fpu fixes (merged)
 
   Revision 1.10  2001/01/13 20:24:24  peter
