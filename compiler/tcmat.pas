@@ -171,11 +171,8 @@ implementation
               exit;
            end;
            { nasm can not cope with negativ reals !! }
-         if is_constrealnode(p^.left)
-{$ifdef i386}
-         and not(aktoutputformat in [as_nasmcoff,as_nasmelf,as_nasmobj])
-{$endif}
-           then
+         if is_constrealnode(p^.left) and
+            not(aktoutputformat in [as_i386_nasmcoff,as_i386_nasmelf,as_i386_nasmobj]) then
            begin
               t:=genrealconstnode(-p^.left^.value_real);
               disposetree(p);
@@ -322,7 +319,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-10-11 14:31:20  peter
+  Revision 1.3  1998-10-13 13:10:33  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.2  1998/10/11 14:31:20  peter
     + checks for division by zero
 
   Revision 1.1  1998/09/23 20:42:24  peter

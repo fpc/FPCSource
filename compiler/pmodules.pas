@@ -126,10 +126,10 @@ unit pmodules;
           not output a pointer }
          case target_info.target of
 {$ifdef i386}
-          target_OS2 : ;
+       target_i386_OS2 : ;
 {$endif i386}
 {$ifdef m68k}
-       target_Mac68K : bsssegment^.concat(new(pai_datablock,init_global('HEAP',4)));
+       target_m68k_Mac : bsssegment^.concat(new(pai_datablock,init_global('HEAP',4)));
 {$endif m68k}
          else
            bsssegment^.concat(new(pai_datablock,init_global('HEAP',heapsize)));
@@ -148,24 +148,27 @@ unit pmodules;
       begin
         case target_info.target of
 {$ifdef i386}
-       target_GO32V2 : begin
-                       { stacksize can be specified }
-                         datasegment^.concat(new(pai_symbol,init_global('__stklen')));
-                         datasegment^.concat(new(pai_const,init_32bit(stacksize)));
-                       end;
-        target_WIN32 : begin
-                       { Generate an external entry to be sure that _mainCRTStarup will be
-                         linked, can't use concat_external because those aren't written for
-                         asw (PFV) }
-                         datasegment^.concat(new(pai_const,init_symbol('_mainCRTStartup')));
-                       end;
+          target_i386_GO32V2 :
+            begin
+              { stacksize can be specified }
+              datasegment^.concat(new(pai_symbol,init_global('__stklen')));
+              datasegment^.concat(new(pai_const,init_32bit(stacksize)));
+            end;
+          target_i386_WIN32 :
+            begin
+              { Generate an external entry to be sure that _mainCRTStarup will be
+                linked, can't use concat_external because those aren't written for
+                asw (PFV) }
+              datasegment^.concat(new(pai_const,init_symbol('_mainCRTStartup')));
+            end;
 {$endif i386}
 {$ifdef m68k}
-       target_Atari : begin
-                       { stacksize can be specified }
-                         datasegment^.concat(new(pai_symbol,init_global('__stklen')));
-                         datasegment^.concat(new(pai_const,init_32bit(stacksize)));
-                       end;
+          target_m68k_Atari :
+            begin
+              { stacksize can be specified }
+              datasegment^.concat(new(pai_symbol,init_global('__stklen')));
+              datasegment^.concat(new(pai_const,init_32bit(stacksize)));
+            end;
 {$endif m68k}
         end;
       end;
@@ -1017,7 +1020,7 @@ unit pmodules;
          names.insert('PASCALMAIN');
          names.insert(target_os.cprefix+'main');
 {$ifdef m68k}
-         if target_info.target=target_PalmOS then
+         if target_info.target=target_m68k_PalmOS then
            names.insert('PilotMain');
 {$endif}
          compile_proc_body(names,true,false);
@@ -1071,7 +1074,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.66  1998-10-09 16:36:05  pierre
+  Revision 1.67  1998-10-13 13:10:25  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.66  1998/10/09 16:36:05  pierre
     * some memory leaks specific to usebrowser define fixed
     * removed tmodule.implsymtable (was like tmodule.localsymtable)
 

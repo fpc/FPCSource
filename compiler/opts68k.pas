@@ -58,7 +58,7 @@ begin
          end;
    'R' : begin
            if More='MOT' then
-            initasmmode:=M68K_MOT
+            initasmmode:=asmmode_m68k_mot
            else
             IllegalPara(opt);
          end;
@@ -71,7 +71,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1998-09-25 09:57:09  peter
+  Revision 1.6  1998-10-13 13:10:21  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.5  1998/09/25 09:57:09  peter
     * moved -A to options.pas, becuase the code is the same
 
   Revision 1.4  1998/08/19 16:07:50  jonas

@@ -723,13 +723,11 @@ const
 
     procedure dir_oldasmmode(t:tdirectivetoken);
       begin
-{$ifdef i386}
         case t of
-         _DIR_I386_ATT    : aktasmmode:=I386_ATT;
-         _DIR_I386_DIRECT : aktasmmode:=I386_DIRECT;
-         _DIR_I386_INTEL  : aktasmmode:=I386_INTEL;
+         _DIR_I386_ATT    : aktasmmode:=asmmode_i386_att;
+         _DIR_I386_DIRECT : aktasmmode:=asmmode_i386_direct;
+         _DIR_I386_INTEL  : aktasmmode:=asmmode_i386_intel;
         end;
-{$endif}
       end;
 
 
@@ -944,7 +942,10 @@ const
 
 {
   $Log$
-  Revision 1.37  1998-10-08 23:29:04  peter
+  Revision 1.38  1998-10-13 13:10:28  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.37  1998/10/08 23:29:04  peter
     * -vu shows unit info, -vt shows tried/used files
 
   Revision 1.36  1998/10/08 17:17:29  pierre

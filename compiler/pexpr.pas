@@ -1170,9 +1170,8 @@ unit pexpr;
                                  end;
                       arraydef : begin
                                    p2:=comp_expr(true);
-{$ifdef i386}
                                  { support SEG:OFS for go32v2 Mem[] }
-                                   if (target_info.target=target_GO32V2) and
+                                   if (target_info.target=target_i386_go32v2) and
                                       (p1^.treetype=loadn) and
                                       assigned(p1^.symtableentry) and
                                       assigned(p1^.symtableentry^.owner^.name) and
@@ -1198,7 +1197,6 @@ unit pexpr;
                                         end;
                                      end
                                    else
-{$endif}
                                      p1:=gennode(vecn,p1,p2);
                                    pd:=parraydef(pd)^.definition;
                                  end;
@@ -1865,7 +1863,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.64  1998-10-12 12:20:55  pierre
+  Revision 1.65  1998-10-13 13:10:24  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.64  1998/10/12 12:20:55  pierre
     + added tai_const_symbol_offset
       for r : pointer = @var.field;
     * better message for different arg names on implementation

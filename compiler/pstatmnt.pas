@@ -672,18 +672,22 @@ unit pstatmnt;
          case aktasmmode of
 {$ifdef i386}
   {$ifndef NoRA386Att}
-            I386_ATT : asmstat:=ra386att.assemble;
+           asmmode_i386_att:
+             asmstat:=ra386att.assemble;
   {$endif NoRA386Att}
   {$ifndef NoRA386Int}
-          I386_INTEL : asmstat:=ra386int.assemble;
+           asmmode_i386_intel:
+             asmstat:=ra386int.assemble;
   {$endif NoRA386Int}
   {$ifndef NoRA386Dir}
-         I386_DIRECT : asmstat:=ra386dir.assemble;
+           asmmode_i386_direct:
+             asmstat:=ra386dir.assemble;
   {$endif NoRA386Dir}
 {$endif}
 {$ifdef m68k}
   {$ifndef NoRA68kMot}
-            M68K_MOT : asmstat:=ra68kmot.assemble;
+           asmmode_m68k_mot:
+             asmstat:=ra68kmot.assemble;
   {$endif NoRA68kMot}
 {$endif}
          else
@@ -1211,7 +1215,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.43  1998-10-08 13:46:22  peter
+  Revision 1.44  1998-10-13 13:10:27  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.43  1998/10/08 13:46:22  peter
     * added eof message
     * fixed unit init section parsing with finalize
 

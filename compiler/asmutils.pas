@@ -1020,15 +1020,12 @@ end;
 
 
 {$ifdef i386}
-
   Procedure FWaitWarning;
   begin
-    if (target_info.target=target_GO32V2) and (cs_fp_emulation in aktmoduleswitches) then
+    if (target_info.target=target_i386_GO32V2) and (cs_fp_emulation in aktmoduleswitches) then
      Message(assem_w_fwait_emu_prob);
   end;
 {$endif i386}
-
-
 
 
 
@@ -1872,7 +1869,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1998-09-24 17:54:15  carl
+  Revision 1.10  1998-10-13 13:10:10  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.9  1998/09/24 17:54:15  carl
     * bugfixes from fix branch
 
   Revision 1.8.2.1  1998/09/24 17:46:25  carl

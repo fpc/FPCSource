@@ -191,7 +191,7 @@
             if use_dbx then
              flags:=flags or uf_has_dbx;
 {$endif GDB}
-            if target_os.endian=en_big_endian then
+            if target_os.endian=endian_big then
              flags:=flags or uf_big_endian;
 {$ifdef UseBrowser}
             if cs_browser in aktmoduleswitches then
@@ -443,7 +443,10 @@
 
 {
   $Log$
-  Revision 1.19  1998-10-08 23:29:07  peter
+  Revision 1.20  1998-10-13 13:10:30  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.19  1998/10/08 23:29:07  peter
     * -vu shows unit info, -vt shows tried/used files
 
   Revision 1.18  1998/09/28 16:57:27  pierre

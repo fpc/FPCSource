@@ -536,7 +536,7 @@ begin
         begin
             {Init the stack checking.}
             if (cs_check_stack in aktlocalswitches) and
-             (target_info.target=target_linux_m68k) then
+             (target_info.target=target_m68k_linux) then
                 begin
                     procinfo.aktentrycode^.insert(new(pai68k,
                      op_csymbol(A_JSR,S_NO,newcsymbol('FPC_INIT_STACK_CHECK',0))));
@@ -614,7 +614,7 @@ begin
                     if cs_littlesize in aktglobalswitches  then
                         begin
                             if (cs_check_stack in aktlocalswitches) and
-                               (target_info.target<>target_linux_m68k) then
+                               (target_info.target<>target_m68k_linux) then
                                 begin
                                   { If only not in main program, do we setup stack checking }
                                   if (aktprocsym^.definition^.options and poproginit=0) then
@@ -749,7 +749,7 @@ begin
     { call __EXIT for main program }
     { ????????? }
     if ((aktprocsym^.definition^.options and poproginit)<>0) and
-      (target_info.target<>target_PalmOS) then
+      (target_info.target<>target_m68k_PalmOS) then
      begin
        procinfo.aktexitcode^.concat(new(pai68k,op_csymbol(A_JSR,S_NO,newcsymbol('FPC_DO_EXIT',0))));
        externals^.concat(new(pai_external,init('FPC_DO_EXIT',EXT_NEAR)));
@@ -1345,7 +1345,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  1998-10-13 08:19:29  pierre
+  Revision 1.21  1998-10-13 13:10:12  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.20  1998/10/13 08:19:29  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
        we use CPU86 and CPU68 conditionnals to

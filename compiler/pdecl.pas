@@ -245,11 +245,8 @@ unit pdecl;
          symdone : boolean;
          { to handle absolute }
          abssym : pabsolutesym;
-{$ifdef i386}
-
          l    : longint;
          code : word;
-{$endif i386}
          { c var }
          Csym : pvarsym;
          newtype : ptypesym;
@@ -345,8 +342,7 @@ unit pdecl;
                 { absolute address ?!? }
                  if token=INTCONST then
                   begin
-{$ifdef i386}
-                    if (target_info.target=target_GO32V2) then
+                    if (target_info.target=target_i386_go32v2) then
                      begin
                        storetokenpos:=tokenpos;
                        tokenpos:=declarepos;
@@ -370,7 +366,6 @@ unit pdecl;
                        symtablestack^.insert(abssym);
                      end
                     else
-{$endif i386}
                      Message(parser_e_absolute_only_to_var_or_const);
                   end
                 else
@@ -2068,7 +2063,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.69  1998-10-09 12:07:49  pierre
+  Revision 1.70  1998-10-13 13:10:22  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.69  1998/10/09 12:07:49  pierre
     * typo error for propertyparas dispose corrected
 
   Revision 1.68  1998/10/09 11:47:54  pierre

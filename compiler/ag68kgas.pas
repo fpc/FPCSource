@@ -158,12 +158,12 @@ unit ag68kgas;
 
       begin
          case t of
-            top_reg : if target_info.target=target_PalmOS then
+            top_reg : if target_info.target=target_m68k_PalmOS then
                         getopstr:=gasPalmOS_reg2str[tregister(o)]
                       else
                         getopstr:=gas_reg2str[tregister(o)];
-               top_ref : getopstr:=getreferencestring(preference(o)^);
-         top_reglist: begin
+            top_ref : getopstr:=getreferencestring(preference(o)^);
+        top_reglist : begin
                       hs:='';
                       for i:=R_NO to R_FPSR do
                       begin
@@ -512,7 +512,7 @@ ait_labeled_instruction : begin
                             A_SNE,A_SPL,A_ST,A_SVC,A_SVS,A_SF]) then
                         s:=#9+mot_op2str[pai68k(hp)^._operator]
                        else
-                        if target_info.target=target_PalmOS then
+                        if target_info.target=target_m68k_PalmOS then
                           s:=#9+mot_op2str[pai68k(hp)^._operator]+gas_opsize2str[pai68k(hp)^.size]
                         else
                           s:=#9+mot_op2str[pai68k(hp)^._operator]+mit_opsize2str[pai68k(hp)^.size];
@@ -678,7 +678,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.16  1998-10-12 12:27:44  pierre
+  Revision 1.17  1998-10-13 13:10:08  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.16  1998/10/12 12:27:44  pierre
    * typo error for tai_const_symbol_offset corrected
 
   Revision 1.15  1998/10/12 12:20:43  pierre

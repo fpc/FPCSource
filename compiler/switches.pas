@@ -92,15 +92,9 @@ begin
                    else
                     aktlocalswitches:=aktlocalswitches-[tlocalswitch(setsw)];
                  { Message for linux which has global checking only }
-                   if (switch='S')
-{$ifdef i386}
-                      and (target_info.target=target_linux)
-{$endif i386}
-{$ifdef m68k}
-                      and (target_info.target=target_linux_m68k)
-{$endif m68k}
-                      then
-                    Message(scan_n_stack_check_global_under_linux);
+                   if (switch='S') and
+                      (target_info.target in [target_i386_linux,target_m68k_linux]) then
+                     Message(scan_n_stack_check_global_under_linux);
                  end;
       modulesw : begin
                    if current_module^.in_global then
@@ -161,7 +155,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1998-10-13 08:19:41  pierre
+  Revision 1.15  1998-10-13 13:10:29  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.14  1998/10/13 08:19:41  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
        we use CPU86 and CPU68 conditionnals to

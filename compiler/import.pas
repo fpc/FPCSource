@@ -140,30 +140,34 @@ end;
 
 procedure DoneImport;
 begin
-   if assigned(importlib) then
-     dispose(importlib,done);
+  if assigned(importlib) then
+    dispose(importlib,done);
 end;
+
 
 procedure InitImport;
 begin
 {$ifdef i386}
-
   case target_info.target of
- target_Win32 : importlib:=new(pimportlibwin32,Init);
-   target_OS2 : importlib:=new(pimportlibos2,Init);
-  else
-   importlib:=new(pimportlib,Init);
+    target_i386_Win32 :
+      importlib:=new(pimportlibwin32,Init);
+    target_i386_OS2 :
+      importlib:=new(pimportlibos2,Init);
+    else
+      importlib:=new(pimportlib,Init);
   end;
-{$endif i386}
-{$ifdef m68k}
+{$else i386}
   importlib:=new(pimportlib,Init);
-{$endif m68k}
+{$endif i386}
 end;
 
 end.
 {
   $Log$
-  Revision 1.5  1998-10-06 17:16:51  pierre
+  Revision 1.6  1998-10-13 13:10:17  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.5  1998/10/06 17:16:51  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.4  1998/09/30 12:16:47  peter

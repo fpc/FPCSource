@@ -274,38 +274,33 @@ Var
 begin
   WriteResponseFile:=False;
 { set special options for some targets }
-  linklibc:=SharedLibFiles.Find('c');
+  linklibc:=false;
   prtobj:='prt0';
   case target_info.target of
-{$ifdef i386}
-   target_Win32 : prtobj:='';
-   target_linux : begin
-                    if cs_profile in aktmoduleswitches then
-                     begin
-                       prtobj:='gprt0';
-                       if not glibc2 then
-                        AddSharedLibrary('gmon');
-                       AddSharedLibrary('c');
-                       linklibc:=true;
-                     end
-                    else
-                     begin
-                       if linklibc then
-                        prtobj:='cprt0';
-                     end;
-                  end;
-{$endif i386}
-{$ifdef m68k}
-  target_Palmos : prtobj:='';
-   target_linux_m68k : begin
-                    if cs_profile in aktmoduleswitches then
-                     begin
-                       prtobj:='gprt0';
-                       AddSharedLibrary('gmon');
-                       AddSharedLibrary('c');
-                     end;
-                  end;
-{$endif}
+   target_m68k_Palmos,
+   target_i386_Win32 :
+     begin
+       prtobj:='';
+     end;
+
+   target_m68k_linux,
+   target_i386_linux :
+     begin
+       linklibc:=SharedLibFiles.Find('c');
+       if cs_profile in aktmoduleswitches then
+        begin
+          prtobj:='gprt0';
+          if not glibc2 then
+           AddSharedLibrary('gmon');
+          AddSharedLibrary('c');
+          linklibc:=true;
+        end
+       else
+        begin
+          if linklibc then
+           prtobj:='cprt0';
+        end;
+     end;
   end;
 
 { Fix command line options }
@@ -343,7 +338,6 @@ begin
      WriteRes(search('crti.o',librarysearchpath,found)+'crti.o');
      WriteRes(search('crtbegin.o',librarysearchpath,found)+'crtbegin.o');
    end;
-
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.Get;
@@ -433,10 +427,13 @@ begin
       end;
      DoExec(bindbin,s,false,false);
    end;
+
+{ Post processor executable }
 {$ifdef i386}
-  if target_info.target=target_Win32 then
+  if target_info.target=target_i386_Win32 then
     win_targ.postprocessexecutable;
 {$endif}
+
 {Remove ReponseFile}
   if (success) and not(cs_link_extern in aktglobalswitches) then
    RemoveFile(LinkResName);
@@ -502,7 +499,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  1998-10-13 08:19:34  pierre
+  Revision 1.30  1998-10-13 13:10:18  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.29  1998/10/13 08:19:34  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
        we use CPU86 and CPU68 conditionnals to

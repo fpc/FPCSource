@@ -75,13 +75,13 @@ begin
          end;
    'R' : begin
            if More='ATT' then
-            initasmmode:=I386_ATT
+            initasmmode:=asmmode_i386_att
            else
             if More='INTEL' then
-             initasmmode:=I386_INTEL
+             initasmmode:=asmmode_i386_intel
            else
             if More='DIRECT' then
-             initasmmode:=I386_DIRECT
+             initasmmode:=asmmode_i386_direct
            else
             IllegalPara(opt);
          end;
@@ -93,7 +93,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  1998-09-25 09:57:08  peter
+  Revision 1.12  1998-10-13 13:10:20  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.11  1998/09/25 09:57:08  peter
     * moved -A to options.pas, becuase the code is the same
 
 }

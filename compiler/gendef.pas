@@ -88,42 +88,35 @@ begin
   if ioresult<>0 then
    exit;
 {$ifdef i386}
-
   case target_info.target of
-   target_Os2 : begin
-
-                  write(t,'NAME '+inputfile);
-                  if usewindowapi then
-                   write(t,' WINDOWAPI');
-                  writeln(t,'');
-
-                  writeln(t,'PROTMODE');
-                  writeln(t,'DESCRIPTION '+''''+description+'''');
-                  writeln(t,'DATA'#9'MULTIPLE');
-                  writeln(t,'STACKSIZE'#9+tostr(stacksize));
-                  writeln(t,'HEAPSIZE'#9+tostr(heapsize));
-                end;
-
+    target_i386_Os2 :
+      begin
+        write(t,'NAME '+inputfile);
+        if usewindowapi then
+          write(t,' WINDOWAPI');
+        writeln(t,'');
+        writeln(t,'PROTMODE');
+        writeln(t,'DESCRIPTION '+''''+description+'''');
+        writeln(t,'DATA'#9'MULTIPLE');
+        writeln(t,'STACKSIZE'#9+tostr(stacksize));
+        writeln(t,'HEAPSIZE'#9+tostr(heapsize));
+      end;
   end;
 {$endif}
 
 {write imports}
-
   if not importlist.empty then
    begin
      writeln(t,'');
-
      writeln(t,'IMPORTS');
      while not importlist.empty do
       writeln(t,#9+importlist.get);
    end;
 
 {write exports}
-
   if not exportlist.empty then
    begin
      writeln(t,'');
-
      writeln(t,'EXPORTS');
      while not exportlist.empty do
       writeln(t,#9+exportlist.get);
@@ -135,10 +128,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-06-04 23:51:39  peter
+  Revision 1.2  1998-10-13 13:10:14  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.1  1998/06/04 23:51:39  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32
 
 }
-  

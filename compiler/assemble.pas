@@ -104,7 +104,9 @@ uses
   {$ifndef NoAg68kMit}
     ,ag68kmit
   {$endif NoAg68kMit}
+  {$ifndef NoAg68kMpw}
     ,ag68kmpw
+  {$endif NoAg68kMpw}
 {$endif}
   ;
 
@@ -117,13 +119,7 @@ Function DoPipe:boolean;
 begin
   DoPipe:=(cs_asm_pipe in aktglobalswitches) and
           not(cs_asm_leave in aktglobalswitches)
-{$ifdef i386}
-          and (aktoutputformat=as_o)
-{$else}
-{$ifdef m68k}
-          and (aktoutputformat=as_m68k_o)
-{$endif m68k}
-{$endif i386}
+          and (aktoutputformat in [as_i386_o,as_m68k_o]);
 end;
 
 
@@ -416,32 +412,43 @@ begin
   case aktoutputformat of
 {$ifdef i386}
   {$ifndef NoAg386Att}
-        as_o,as_o_aout,as_asw : a:=new(pi386attasmlist,Init);
+     as_i386_o,
+     as_i386_o_aout,
+     as_i386_asw :
+       a:=new(pi386attasmlist,Init);
   {$endif NoAg386Att}
   {$ifndef NoAg386Nsm}
- as_nasmcoff,
-  as_nasmelf,
-  as_nasmobj : a:=new(pi386nasmasmlist,Init);
+     as_i386_nasmcoff,
+     as_i386_nasmelf,
+     as_i386_nasmobj :
+       a:=new(pi386nasmasmlist,Init);
   {$endif NoAg386Nsm}
   {$ifndef NoAg386Int}
-     as_tasm : a:=new(pi386intasmlist,Init);
+     as_i386_tasm :
+       a:=new(pi386intasmlist,Init);
   {$endif NoAg386Int}
 {$endif}
 {$ifdef m68k}
   {$ifndef NoAg68kGas}
      as_m68k_o,
-   as_m68k_gas : a:=new(pm68kgasasmlist,Init);
+     as_m68k_gas :
+       a:=new(pm68kgasasmlist,Init);
   {$endif NoAg86KGas}
   {$ifndef NoAg68kMot}
-   as_m68k_mot : a:=new(pm68kmotasmlist,Init);
+     as_m68k_mot :
+       a:=new(pm68kmotasmlist,Init);
   {$endif NoAg86kMot}
   {$ifndef NoAg68kMit}
-   as_m68k_mit : a:=new(pm68kmitasmlist,Init);
+     as_m68k_mit :
+       a:=new(pm68kmitasmlist,Init);
   {$endif NoAg86KMot}
-   as_m68k_mpw : a:=new(pm68kmpwasmlist,Init);
+  {$ifndef NoAg68kMpw}
+     as_m68k_mpw :
+       a:=new(pm68kmpwasmlist,Init);
+  {$endif NoAg68kMpw}
 {$endif}
   else
-   Message(assem_f_assembler_output_not_supported);
+    Message(assem_f_assembler_output_not_supported);
   end;
   a^.AsmCreate;
   a^.WriteAsmList;
@@ -464,7 +471,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  1998-10-13 08:19:24  pierre
+  Revision 1.26  1998-10-13 13:10:11  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.25  1998/10/13 08:19:24  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
        we use CPU86 and CPU68 conditionnals to

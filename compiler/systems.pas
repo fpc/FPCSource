@@ -26,91 +26,87 @@ unit systems;
   interface
 
    type
-       tendian = (endian_little,en_big_endian);
+       tendian = (endian_little,endian_big);
 
-       ttargetcpu=(dummy_cpu,i386,m68k,alpha);
+       ttargetcpu=(no_cpu
+            ,i386,m68k,alpha
+       );
 
        tprocessors = (no_processor
-       {$ifdef i386}
             ,Class386,ClassP5,ClassP6
-       {$endif}
-       {$ifdef m68k}
             ,MC68000,MC68100,MC68020
-       {$endif}
        );
 
 
+     type
        tasmmode= (
-       {$ifdef i386}
-              I386_ATT,I386_INTEL,I386_DIRECT
-          {$ifdef m68k}
-              ,
-          {$endif m68k}
-       {$endif}
-       {$ifdef m68k}
-              M68K_MOT
-       {$endif}
+            asmmode_i386_direct,asmmode_i386_att,asmmode_i386_intel,
+            asmmode_m68k_mot
        );
+     const
+       {$ifdef i386} i386asmmodecnt=3; {$else} i386asmmodecnt=0; {$endif}
+       {$ifdef m68k} m68kasmmodecnt=1; {$else} m68kasmmodecnt=0; {$endif}
 
 
+     type
        ttarget = (
-       {$ifdef i386}
-              target_GO32V1,target_GO32V2,target_LINUX,target_OS2,target_WIN32
-          {$ifdef m68k}
-              ,
-          {$endif m68k}
-       {$endif i386}
-       {$ifdef m68k}
-              target_Amiga,target_Atari,target_Mac68k,target_linux_m68k,target_PalmOS
-       {$endif}
+            target_i386_GO32V1,target_i386_GO32V2,target_i386_linux,
+            target_i386_OS2,target_i386_Win32,
+            target_m68k_Amiga,target_m68k_Atari,target_m68k_Mac,
+            target_m68k_linux,target_m68k_PalmOS
        );
+     const
+       {$ifdef i386} i386targetcnt=5; {$else} i386targetcnt=0; {$endif}
+       {$ifdef m68k} m68ktargetcnt=5; {$else} m68ktargetcnt=0; {$endif}
 
 
+     type
        tasm = (
-       {$ifdef i386}
-              as_o,as_o_aout,as_asw,as_nasmcoff, as_nasmelf, as_nasmobj,
-              as_tasm, as_masm
-          {$ifdef m68k}
-              ,
-          {$endif m68k}
-       {$endif}
-       {$ifdef m68k}
-              as_m68k_o,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw
-       {$endif}
+            as_i386_o,as_i386_o_aout,as_i386_asw,as_i386_nasmcoff,as_i386_nasmelf,as_i386_nasmobj,
+            as_i386_tasm,as_i386_masm,
+            as_m68k_o,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw
        );
+     const
+       {$ifdef i386} i386asmcnt=8; {$else} i386asmcnt=0; {$endif}
+       {$ifdef m68k} m68kasmcnt=5; {$else} m68kasmcnt=0; {$endif}
 
+
+     type
        tlink = (
-       {$ifdef i386}
-              link_ld,link_ldgo32v1, link_ldgo32v2, link_ldw, link_ldos2
-          {$ifdef m68k}
-              ,
-          {$endif m68k}
-       {$endif i386}
-       {$ifdef m68k}
-              link_m68k_ld
-       {$endif}
+            link_i386_ld,link_i386_ldgo32v1,link_i386_ldgo32v2,link_i386_ldw,
+            link_i386_ldos2,
+            link_m68k_ld
        );
+     const
+       {$ifdef i386} i386linkcnt=5; {$else} i386linkcnt=0; {$endif}
+       {$ifdef m68k} m68klinkcnt=1; {$else} m68klinkcnt=0; {$endif}
 
-      tar = (
-       {$ifdef i386}
-              ar_ar,ar_arw
-          {$ifdef m68k}
-              ,
-          {$endif m68k}
-       {$endif}
-       {$ifdef m68k}
-              ar_m68k_ar
-       {$endif}
+
+     type
+       tar = (
+            ar_i386_ar,ar_i386_arw,
+            ar_m68k_ar
        );
+     const
+       {$ifdef i386} i386arcnt=2; {$else} i386arcnt=0; {$endif}
+       {$ifdef m68k} m68karcnt=1; {$else} m68karcnt=0; {$endif}
 
 
+     type
        tos = (
-              os_GO32V1,os_GO32V2, os_Linux, os_OS2, os_WIN32,
-              os_Amiga, os_Atari, os_Mac68k, os_Linux_m68k, os_PalmOS
+            os_i386_GO32V1,os_i386_GO32V2,os_i386_Linux,os_i386_OS2,
+            os_i386_Win32,
+            os_m68k_Amiga,os_m68k_Atari,os_m68k_Mac,os_m68k_Linux,
+            os_m68k_PalmOS
        );
+     const
+       {$ifdef i386} i386oscnt=5; {$else} i386oscnt=0; {$endif}
+       {$ifdef m68k} m68koscnt=5; {$else} m68koscnt=0; {$endif}
 
 
+   type
        tosinfo = packed record
+          id        : tos;
           name      : string[30];
           sharedlibext,
           staticlibext,
@@ -125,7 +121,7 @@ unit systems;
           use_function_relative_addresses : boolean;
        end;
 
-       tasminfo = record
+       tasminfo = packed record
           id          : tasm;
           idtxt       : string[8];
           asmbin      : string[8];
@@ -135,7 +131,8 @@ unit systems;
           comment     : string[2];
        end;
 
-       tlinkinfo = record
+       tlinkinfo = packed record
+          id            : tlink;
           linkbin       : string[8];
           linkcmd       : string[50];
           bindbin       : string[8];
@@ -150,12 +147,13 @@ unit systems;
           libprefix     : string[2];
        end;
 
-       tarinfo = record
+       tarinfo = packed record
+          id      : tar;
           arbin   : string[8];
           arcmd   : string[50];
        end;
 
-       ttargetinfo = record
+       ttargetinfo = packed record
           target      : ttarget;
           cpu         : ttargetcpu;
           short_name  : string[8];
@@ -176,14 +174,13 @@ unit systems;
           stacksize   : longint;
        end;
 
-       tasmmodeinfo=record
+       tasmmodeinfo=packed record
           id    : tasmmode;
           idtxt : string[8];
        end;
 
     var
-       target_cpu : ttargetcpu;
-       
+       target_cpu  : ttargetcpu;
        target_info : ttargetinfo;
        target_os   : tosinfo;
        target_asm  : tasminfo;
@@ -195,18 +192,21 @@ unit systems;
     function set_string_asm(s : string) : boolean;
     function set_string_asmmode(s:string;var t:tasmmode):boolean;
 
+
 implementation
 
   uses
     globals,verbose;
-  
+
     const
 
 {****************************************************************************
                                  OS Info
 ****************************************************************************}
-       os_infos : array[tos] of tosinfo = (
+       os_infos : array[1..i386oscnt+m68koscnt] of tosinfo = (
+{$ifdef i386}
           (
+            id           : os_i386_go32v1;
             name         : 'GO32 V1 DOS extender';
             sharedlibext : '.dll';
             staticlibext : '.a';
@@ -221,6 +221,7 @@ implementation
             use_function_relative_addresses : true
           ),
           (
+            id           : os_i386_go32v2;
             name         : 'GO32 V2 DOS extender';
             sharedlibext : '.dll';
             staticlibext : '.a';
@@ -235,6 +236,7 @@ implementation
             use_function_relative_addresses : true
           ),
           (
+            id           : os_i386_linux;
             name         : 'Linux-i386';
             sharedlibext : '.so';
             staticlibext : '.a';
@@ -249,6 +251,7 @@ implementation
             use_function_relative_addresses : true
           ),
           (
+            id           : os_i386_os2;
             name         : 'OS/2 via EMX';
             sharedlibext : '.ao2';
             staticlibext : '.ao2';
@@ -263,6 +266,7 @@ implementation
             use_function_relative_addresses : false
           ),
           (
+            id           : os_i386_win32;
             name         : 'Win32';
             sharedlibext : '.dll';
             staticlibext : '.aw';
@@ -275,8 +279,14 @@ implementation
             newline      : #13#10;
             endian       : endian_little;
             use_function_relative_addresses : true
-          ),
+          )
+      {$ifdef m68k}
+          ,
+      {$endif m68k}
+{$endif i386}
+{$ifdef m68k}
           (
+            id           : os_m68k_amiga;
             name         : 'Commodore Amiga';
             sharedlibext : '.library';
             staticlibext : '.a';
@@ -287,10 +297,11 @@ implementation
             libprefix    : '';
             Cprefix      : '_';
             newline      : #10;
-            endian       : en_big_endian;
+            endian       : endian_big;
             use_function_relative_addresses : false
           ),
           (
+            id           : os_m68k_atari;
             name         : 'Atari ST/STE';
             sharedlibext : '.dll';
             staticlibext : '.a';
@@ -301,10 +312,11 @@ implementation
             libprefix    : '';
             Cprefix      : '_';
             newline      : #10;
-            endian       : en_big_endian;
+            endian       : endian_big;
             use_function_relative_addresses : false
           ),
           (
+            id           : os_m68k_mac;
             name         : 'Macintosh m68k';
             sharedlibext : '.dll';
             staticlibext : '.a';
@@ -315,10 +327,11 @@ implementation
             libprefix    : '';
             Cprefix      : '_';
             newline      : #13;
-            endian       : en_big_endian;
+            endian       : endian_big;
             use_function_relative_addresses : false
           ),
           (
+            id           : os_m68k_linux;
             name         : 'Linux-m68k';
             sharedlibext : '.so';
             staticlibext : '.a';
@@ -329,10 +342,11 @@ implementation
             libprefix    : 'lib';
             Cprefix      : '';
             newline      : #10;
-            endian       : en_big_endian;
+            endian       : endian_big;
             use_function_relative_addresses : true
           ),
           (
+            id           : os_m68k_palmos;
             name         : 'PalmOS';
             sharedlibext : '.so';
             staticlibext : '.a';
@@ -343,9 +357,10 @@ implementation
             libprefix    : 'lib';
             Cprefix      : '_';
             newline      : #10;
-            endian       : en_big_endian;
+            endian       : endian_big;
             use_function_relative_addresses : false
           )
+{$endif m68k}
           );
 
 
@@ -353,10 +368,10 @@ implementation
                              Assembler Info
 ****************************************************************************}
 
-       as_infos : array[tasm] of tasminfo = (
+       as_infos : array[1..i386asmcnt+m68kasmcnt] of tasminfo = (
 {$ifdef i386}
           (
-            id     : as_o;
+            id     : as_i386_o;
             idtxt  : 'O';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
@@ -365,7 +380,7 @@ implementation
             comment : '# '
           )
           ,(
-            id     : as_o_aout;
+            id     : as_i386_o_aout;
             idtxt  : 'O_AOUT';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
@@ -374,7 +389,7 @@ implementation
             comment : '# '
           )
           ,(
-            id     : as_asw;
+            id     : as_i386_asw;
             idtxt  : 'ASW';
             asmbin : 'asw';
             asmcmd : '-o $OBJ $ASM';
@@ -383,7 +398,7 @@ implementation
             comment : '# '
           )
           ,(
-            id     : as_nasmcoff;
+            id     : as_i386_nasmcoff;
             idtxt  : 'NASMCOFF';
             asmbin : 'nasm';
             asmcmd : '-f coff -o $OBJ $ASM';
@@ -392,7 +407,7 @@ implementation
             comment : '; '
           )
           ,(
-            id     : as_nasmelf;
+            id     : as_i386_nasmelf;
             idtxt  : 'NASMELF';
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
@@ -401,7 +416,7 @@ implementation
             comment : '; '
           )
           ,(
-            id     : as_nasmobj;
+            id     : as_i386_nasmobj;
             idtxt  : 'NASMOBJ';
             asmbin : 'nasm';
             asmcmd : '-f obj -o $OBJ $ASM';
@@ -410,7 +425,7 @@ implementation
             comment : '; '
           )
           ,(
-            id     : as_tasm;
+            id     : as_i386_tasm;
             idtxt  : 'TASM';
             asmbin : 'tasm';
             asmcmd : '/m2 $ASM $OBJ';
@@ -419,7 +434,7 @@ implementation
             comment : '; '
           )
           ,(
-            id     : as_tasm;
+            id     : as_i386_masm;
             idtxt  : 'MASM';
             asmbin : 'masm';
             asmcmd : '$ASM $OBJ';
@@ -483,9 +498,10 @@ implementation
 {****************************************************************************
                             Linker Info
 ****************************************************************************}
-       link_infos : array[tlink] of tlinkinfo = (
+       link_infos : array[1..i386linkcnt+m68klinkcnt] of tlinkinfo = (
 {$ifdef i386}
           (
+            id      : link_i386_ld;
             linkbin : 'ld';
             linkcmd : '$OPT -o $EXE $RES';
             bindbin : '';
@@ -500,6 +516,7 @@ implementation
             libprefix  : '-l'
           )
           ,(
+            id      : link_i386_ldgo32v1;
             linkbin : 'ld';
             linkcmd : '-oformat coff-go32 $OPT -o $EXE @$RES';
             bindbin : 'aout2exe';
@@ -514,6 +531,7 @@ implementation
             libprefix  : '-l'
           )
           ,(
+            id      : link_i386_ldgo32v2;
             linkbin : 'ld';
             linkcmd : '-oformat coff-go32-exe $OPT -o $EXE @$RES';
             bindbin : '';
@@ -528,6 +546,7 @@ implementation
             libprefix  : '-l'
           )
           ,(
+            id      : link_i386_ldw;
             linkbin : 'ldw';
             linkcmd : '$OPT -o $EXE $RES';
             bindbin : '';
@@ -542,6 +561,7 @@ implementation
             libprefix  : '-l'
           )
           ,(
+            id      : link_i386_ldos2;
             linkbin : 'ld';  { Os/2 }
             linkcmd : '-o $EXE @$RES';
             bindbin : 'emxbind';
@@ -561,6 +581,7 @@ implementation
 {$endif i386}
 {$ifdef m68k}
           (
+            id      : link_m68k_ld;
             linkbin : 'ld';
             linkcmd : '$OPT -o $EXE $RES';
             bindbin : '';
@@ -580,13 +601,15 @@ implementation
 {****************************************************************************
                                  Ar Info
 ****************************************************************************}
-           ar_infos : array[tar] of tarinfo = (
+           ar_infos : array[1..i386arcnt+m68karcnt] of tarinfo = (
 {$ifdef i386}
           (
+            id    : ar_i386_ar;
             arbin : 'ar';
             arcmd : 'rs $LIB $FILES'
           ),
           (
+            id    : ar_i386_arw;
             arbin : 'arw';
             arcmd : 'rs $LIB $FILES'
           )
@@ -596,6 +619,7 @@ implementation
 {$endif i386}
 {$ifdef m68k}
           (
+            id    : ar_m68k_ar;
             arbin : 'ar';
             arcmd : 'rs $LIB $FILES'
           )
@@ -605,10 +629,10 @@ implementation
 {****************************************************************************
                             Targets Info
 ****************************************************************************}
-       target_infos : array[ttarget] of ttargetinfo = (
+       target_infos : array[1..i386targetcnt+m68ktargetcnt] of ttargetinfo = (
 {$ifdef i386}
           (
-            target      : target_GO32V1;
+            target      : target_i386_GO32V1;
             cpu         : i386;
             short_name  : 'GO32V1';
             unit_env    : 'GO32V1UNITS';
@@ -619,16 +643,16 @@ implementation
             asmext      : '.s1';
             objext      : '.o1';
             exeext      : ''; { The linker produces a.out }
-            os          : os_GO32V1;
-            link        : link_ldgo32v1;
-            assem       : as_o;
-            ar          : ar_ar;
+            os          : os_i386_GO32V1;
+            link        : link_i386_ldgo32v1;
+            assem       : as_i386_o;
+            ar          : ar_i386_ar;
             heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 16384
           ),
           (
-            target      : target_GO32V2;
+            target      : target_i386_GO32V2;
             cpu         : i386;
             short_name  : 'GO32V2';
             unit_env    : 'GO32V2UNITS';
@@ -639,16 +663,16 @@ implementation
             asmext      : '.s';
             objext      : '.o';
             exeext      : '.exe';
-            os          : os_GO32V2;
-            link        : link_ldgo32v2;
-            assem       : as_o;
-            ar          : ar_ar;
+            os          : os_i386_GO32V2;
+            link        : link_i386_ldgo32v2;
+            assem       : as_i386_o;
+            ar          : ar_i386_ar;
             heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 16384
           ),
           (
-            target      : target_LINUX;
+            target      : target_i386_LINUX;
             cpu         : i386;
             short_name  : 'LINUX';
             unit_env    : 'LINUXUNITS';
@@ -659,16 +683,16 @@ implementation
             asmext      : '.s';
             objext      : '.o';
             exeext      : '';
-            os          : os_Linux;
-            link        : link_ld;
-            assem       : as_o;
-            ar          : ar_ar;
+            os          : os_i386_Linux;
+            link        : link_i386_ld;
+            assem       : as_i386_o;
+            ar          : ar_i386_ar;
             heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 8192
           ),
           (
-            target      : target_OS2;
+            target      : target_i386_OS2;
             cpu         : i386;
             short_name  : 'OS2';
             unit_env    : 'OS2UNITS';
@@ -679,16 +703,16 @@ implementation
             asmext      : '.so2';
             objext      : '.oo2';
             exeext      : ''; { The linker produces a.out }
-            os          : os_OS2;
-            link        : link_ldos2;
-            assem       : as_o_aout;
-            ar          : ar_ar;
+            os          : os_i386_OS2;
+            link        : link_i386_ldos2;
+            assem       : as_i386_o_aout;
+            ar          : ar_i386_ar;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
             stacksize   : 32768
           ),
           (
-            target      : target_WIN32;
+            target      : target_i386_WIN32;
             cpu         : i386;
             short_name  : 'WIN32';
             unit_env    : 'WIN32UNITS';
@@ -699,11 +723,11 @@ implementation
             asmext      : '.sw';
             objext      : '.ow';
             exeext      : '.exe';
-            os          : os_Win32;
-            link        : link_ldw;
-            assem       : as_asw;
-            ar          : ar_arw;
-            heapsize    : 8192*1024;   { Until growing heap works !! (PFV) }
+            os          : os_i386_Win32;
+            link        : link_i386_ldw;
+            assem       : as_i386_asw;
+            ar          : ar_i386_arw;
+            heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
             stacksize   : 32768
           )
@@ -713,7 +737,7 @@ implementation
 {$endif i386}
 {$ifdef m68k}
           (
-            target      : target_Amiga;
+            target      : target_m68k_Amiga;
             cpu         : m68k;
             short_name  : 'AMIGA';
             unit_env    : '';
@@ -724,7 +748,7 @@ implementation
             asmext      : '.asm';
             objext      : '.o';
             exeext      : '';
-            os          : os_Amiga;
+            os          : os_m68k_Amiga;
             link        : link_m68k_ld;
             assem       : as_m68k_o;
             ar          : ar_m68k_ar;
@@ -733,7 +757,7 @@ implementation
             stacksize   : 8192
           ),
           (
-            target      : target_Atari;
+            target      : target_m68k_Atari;
             cpu         : m68k;
             short_name  : 'ATARI';
             unit_env    : '';
@@ -744,7 +768,7 @@ implementation
             asmext      : '.s';
             objext      : '.o';
             exeext      : '.ttp';
-            os          : os_Atari;
+            os          : os_m68k_Atari;
             link        : link_m68k_ld;
             assem       : as_m68k_o;
             ar          : ar_m68k_ar;
@@ -753,7 +777,7 @@ implementation
             stacksize   : 8192
           ),
           (
-            target      : target_Mac68k;
+            target      : target_m68k_Mac;
             cpu         : m68k;
             short_name  : 'MACOS';
             unit_env    : '';
@@ -764,7 +788,7 @@ implementation
             asmext      : '.a';
             objext      : '.o';
             exeext      : '';
-            os          : os_Mac68k;
+            os          : os_m68k_Mac;
             link        : link_m68k_ld;
             assem       : as_m68k_mpw;
             ar          : ar_m68k_ar;
@@ -773,7 +797,7 @@ implementation
             stacksize   : 8192
           ),
           (
-            target      : target_linux_m68k;
+            target      : target_m68k_linux;
             cpu         : m68k;
             short_name  : 'LINUX';
             unit_env    : 'LINUXUNITS';
@@ -784,7 +808,7 @@ implementation
             asmext      : '.s';
             objext      : '.o';
             exeext      : '';
-            os          : os_Linux_m68k;
+            os          : os_m68k_Linux;
             link        : link_m68k_ld;
             assem       : as_m68k_o;
             ar          : ar_m68k_ar;
@@ -793,7 +817,7 @@ implementation
             stacksize   : 8192
           ),
           (
-            target      : target_PalmOS;
+            target      : target_m68k_PalmOS;
             cpu         : m68k;
             short_name  : 'PALMOS';
             unit_env    : 'PALMUNITS';
@@ -804,7 +828,7 @@ implementation
             asmext      : '.s';
             objext      : '.o';
             exeext      : '';
-            os          : os_PalmOS;
+            os          : os_m68k_PalmOS;
             link        : link_m68k_ld;
             assem       : as_m68k_o;
             ar          : ar_m68k_ar;
@@ -818,19 +842,19 @@ implementation
 {****************************************************************************
                              AsmModeInfo
 ****************************************************************************}
-       asmmodeinfos : array[tasmmode] of tasmmodeinfo = (
+       asmmodeinfos : array[1..i386asmmodecnt+m68kasmmodecnt] of tasmmodeinfo = (
 {$ifdef i386}
           (
-            id    : I386_DIRECT;
+            id    : asmmode_i386_direct;
             idtxt : 'DIRECT'
           ),
           (
-            id    : I386_INTEL;
-            idtxt : 'INTEL'
+            id    : asmmode_i386_att;
+            idtxt : 'ATT'
           ),
           (
-            id    : I386_ATT;
-            idtxt : 'ATT'
+            id    : asmmode_i386_intel;
+            idtxt : 'INTEL'
           )
       {$ifdef m68k}
           ,
@@ -838,7 +862,7 @@ implementation
 {$endif i386}
 {$ifdef m68k}
           (
-            id    : M68K_MOT;
+            id    : asmmode_m68k_mot;
             idtxt : 'MOT'
           )
 {$endif m68k}
@@ -848,14 +872,83 @@ implementation
                                 Helpers
 ****************************************************************************}
 
-procedure set_target(t : ttarget);
+function set_target_os(t:tos):boolean;
+var
+  i : longint;
 begin
-  target_info:=target_infos[t];
-  target_os:=os_infos[target_info.os];
-  target_asm:=as_infos[target_info.assem];
-  target_link:=link_infos[target_info.link];
-  target_ar:=ar_infos[target_info.ar];
-  target_cpu:=target_info.cpu;
+  set_target_os:=false;
+  for i:=1 to (sizeof(os_infos) div sizeof(tosinfo)) do
+   if os_infos[i].id=t then
+    begin
+      target_os:=os_infos[i];
+      set_target_os:=true;
+      exit;
+    end;
+end;
+
+
+function set_target_asm(t:tasm):boolean;
+var
+  i : longint;
+begin
+  set_target_asm:=false;
+  for i:=1 to (sizeof(as_infos) div sizeof(tasminfo)) do
+   if as_infos[i].id=t then
+    begin
+      target_asm:=as_infos[i];
+      set_target_asm:=true;
+      exit;
+    end;
+end;
+
+
+function set_target_link(t:tlink):boolean;
+var
+  i : longint;
+begin
+  set_target_link:=false;
+  for i:=1 to (sizeof(link_infos) div sizeof(tlinkinfo)) do
+   if link_infos[i].id=t then
+    begin
+      target_link:=link_infos[i];
+      set_target_link:=true;
+      exit;
+    end;
+end;
+
+
+function set_target_ar(t:tar):boolean;
+var
+  i : longint;
+begin
+  set_target_ar:=false;
+  for i:=1 to (sizeof(ar_infos) div sizeof(tarinfo)) do
+   if ar_infos[i].id=t then
+    begin
+      target_ar:=ar_infos[i];
+      set_target_ar:=true;
+      exit;
+    end;
+end;
+
+
+function set_target_info(t:ttarget):boolean;
+var
+  i : longint;
+begin
+  set_target_info:=false;
+  for i:=1 to (sizeof(target_infos) div sizeof(ttargetinfo)) do
+   if target_infos[i].target=t then
+    begin
+      target_info:=target_infos[i];
+      set_target_os(target_info.os);
+      set_target_asm(target_info.assem);
+      set_target_link(target_info.link);
+      set_target_ar(target_info.ar);
+      target_cpu:=target_info.cpu;
+      set_target_info:=true;
+      exit;
+    end;
 end;
 
 
@@ -870,11 +963,17 @@ begin
   set_string_target:=false;
   { this should be case insensitive !! PM }
   s:=upper(s);
-  for i:=0 to (sizeof(target_infos) div sizeof(ttargetinfo))-1 do
-   if target_infos[ttarget(i)].short_name=s then
+  for i:=1 to (sizeof(target_infos) div sizeof(ttargetinfo)) do
+   if target_infos[i].short_name=s then
     begin
-      set_target(ttarget(i));
+      target_info:=target_infos[i];
+      set_target_os(target_info.os);
+      set_target_asm(target_info.assem);
+      set_target_link(target_info.link);
+      set_target_ar(target_info.ar);
+      target_cpu:=target_info.cpu;
       set_string_target:=true;
+      exit;
     end;
 end;
 
@@ -886,10 +985,10 @@ begin
   set_string_asm:=false;
   { this should be case insensitive !! PM }
   s:=upper(s);
-  for i:=0 to (sizeof(as_infos) div sizeof(tasminfo))-1 do
-   if as_infos[tasm(i)].idtxt=s then
+  for i:=1 to (sizeof(as_infos) div sizeof(tasminfo)) do
+   if as_infos[i].idtxt=s then
     begin
-      target_asm:=as_infos[tasm(i)];
+      target_asm:=as_infos[i];
       set_string_asm:=true;
     end;
 end;
@@ -902,10 +1001,10 @@ begin
   set_string_asmmode:=false;
   { this should be case insensitive !! PM }
   s:=upper(s);
-  for i:=0 to (sizeof(asmmodeinfos) div sizeof(tasmmodeinfo))-1 do
-   if asmmodeinfos[tasmmode(i)].idtxt=s then
+  for i:=1 to (sizeof(asmmodeinfos) div sizeof(tasmmodeinfo)) do
+   if asmmodeinfos[i].idtxt=s then
     begin
-      t:=asmmodeinfos[tasmmode(i)].id;
+      t:=asmmodeinfos[i].id;
       set_string_asmmode:=true;
     end;
 end;
@@ -917,81 +1016,88 @@ end;
 
 procedure default_os(t:ttarget);
 begin
-  set_target(t);
+  set_target_info(t);
   if source_os.name='' then
-    source_os:=os_infos[target_info.os];
+    source_os:=target_os;
 end;
 
+
 procedure set_source_os(t:tos);
+var
+  i : longint;
 begin
   if source_os.name<>'' then
     Message(exec_w_source_os_redefined);
-  source_os:=os_infos[t];
+  for i:=1 to (sizeof(os_infos) div sizeof(tosinfo)) do
+   if os_infos[i].id=t then
+    begin
+      source_os:=os_infos[i];
+      exit;
+    end;
 end;
 
 
 begin
-
 { first get source OS }
   source_os.name:='';
-  { please note then we use cpu86 and cpu68 here on purpose !! }
+{ please note then we use cpu86 and cpu68 here on purpose !! }
 {$ifdef cpu86}
-{$ifdef GO32V1}
-  set_source_os(os_GO32V1);
+  {$ifdef GO32V1}
+    set_source_os(os_i386_GO32V1);
   {$else}
-  {$ifdef GO32V2}
-  set_source_os(os_GO32V2);
-  {$else}
-    {$ifdef OS2}
-    set_source_os(os_OS2);
+    {$ifdef GO32V2}
+      set_source_os(os_i386_GO32V2);
     {$else}
-      {$ifdef LINUX}
-      set_source_os(os_LINUX);
+      {$ifdef OS2}
+        set_source_os(os_i386_OS2);
       {$else}
-        {$ifdef WIN32}
-        set_source_os(os_WIN32);
-        {$endif win32}
-      {$endif linux}
-    {$endif os2}
-  {$endif go32v2}
-{$endif go32v1}
+        {$ifdef LINUX}
+          set_source_os(os_i386_LINUX);
+        {$else}
+          {$ifdef WIN32}
+            set_source_os(os_i386_WIN32);
+          {$endif win32}
+        {$endif linux}
+      {$endif os2}
+    {$endif go32v2}
+  {$endif go32v1}
 {$endif cpu86}
 {$ifdef cpu68}
-{$ifdef AMIGA}
-  set_source_os(os_Amiga);
-{$else}
-  {$ifdef ATARI}
-  set_source_os(os_Atari);
+  {$ifdef AMIGA}
+    set_source_os(os_m68k_Amiga);
   {$else}
-    {$ifdef MACOS}
-    set_source_os(os_MAC68k);
+    {$ifdef ATARI}
+      set_source_os(os_m68k_Atari);
     {$else}
-      {$ifdef LINUX}
-      set_source_os(os_linux_m68k);
-      {$endif linux}
-    {$endif macos}
-  {$endif atari}
-{$endif amiga}
+      {$ifdef MACOS}
+        set_source_os(os_m68k_MAC);
+      {$else}
+        {$ifdef LINUX}
+          set_source_os(os_m68k_linux);
+        {$endif linux}
+      {$endif macos}
+    {$endif atari}
+  {$endif amiga}
 {$endif cpu68}
-  
+
 { Now default target !! }
 {$ifdef i386}
   {$ifdef GO32V1}
-     default_os(target_GO32V1);
+     default_os(target_i386_GO32V1);
   {$else}
     {$ifdef GO32V2}
-      default_os(target_GO32V2);
+      default_os(target_i386_GO32V2);
     {$else}
       {$ifdef OS2}
-        default_os(target_OS2);
+        default_os(target_i386_OS2);
       {$else}
         {$ifdef LINUX}
-          default_os(target_LINUX);
+          default_os(target_i386_LINUX);
         {$else}
            {$ifdef WIN32}
-             default_os(target_WIN32);
+             default_os(target_i386_WIN32);
            {$else}
-              default_os(target_GO32V2);
+             default_os(target_i386_GO32V2);
            {$endif win32}
         {$endif linux}
       {$endif os2}
@@ -1000,18 +1106,18 @@ begin
 {$endif i386}
 {$ifdef m68k}
   {$ifdef AMIGA}
-    default_os(target_Amiga);
+    default_os(target_m68k_Amiga);
   {$else}
     {$ifdef ATARI}
-      default_os(target_Atari);
+      default_os(target_m68k_Atari);
     {$else}
       {$ifdef MACOS}
-        default_os(target_MAC68k);
+        default_os(target_m68k_Mac);
       {$else}
         {$ifdef LINUX}
-          default_os(target_linux_m68k);
+          default_os(target_m68k_linux);
         {$else}
-        default_os(target_Amiga);
+          default_os(target_m68k_Amiga);
         {$endif linux}
       {$endif macos}
     {$endif atari}
@@ -1020,7 +1126,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  1998-10-13 09:13:09  pierre
+  Revision 1.41  1998-10-13 13:10:31  peter
+    * new style for m68k/i386 infos and enums
+
+  Revision 1.40  1998/10/13 09:13:09  pierre
    * assembler type output command line was case sensitive
 
   Revision 1.39  1998/10/13 08:19:42  pierre
