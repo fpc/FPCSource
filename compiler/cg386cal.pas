@@ -873,9 +873,10 @@ implementation
                         or
                         (po_staticmethod in p^.procdefinition^.procoptions) or
                         ((p^.procdefinition^.proctypeoption=potype_constructor) and
-                        { if we call a constructor from anther constructor }
-                        { esi contains self }
-                         (assigned(p^.methodpointer))) or
+                        { esi contains the vmt if we call a constructor via a class ref }
+                         assigned(p^.methodpointer) and
+                         (p^.methodpointer^.resulttype^.deftype=classrefdef)
+                        ) or
                         { ESI is loaded earlier }
                         (po_classmethod in p^.procdefinition^.procoptions) then
                          begin
@@ -1433,7 +1434,7 @@ implementation
           secondpass(p^.inlinetree);
           genexitcode(inlineexitcode,0,false,true);
           exprasmlist^.concatlist(inlineexitcode);
-          
+
           dispose(inlineentrycode,done);
           dispose(inlineexitcode,done);
 {$ifdef extdebug}
@@ -1477,7 +1478,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.137  2000-06-29 13:50:30  jonas
+  Revision 1.138  2000-07-05 20:39:55  florian
+    * virtual contructors weren't handled properly if they were called via a class
+      variable
+
+  Revision 1.137  2000/06/29 13:50:30  jonas
     * fixed inline bugs (calling an inlined procedure more than once didn't
       work)
 
