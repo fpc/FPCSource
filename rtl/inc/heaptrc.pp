@@ -47,7 +47,7 @@ const
   exact_info_size : longint = 0;
   { function to fill this info up }
   fill_extra_info : FillExtraInfoType = nil;
-
+  error_in_heap : boolean = false;
 type
   pheap_mem_info = ^theap_mem_info;
   { warning the size of theap_mem_info
@@ -217,11 +217,13 @@ begin
     RunError(204);
   if pp^.sig=$AAAAAAAA then
     begin
+       error_in_heap:=true;
        dump_already_free(pp);
        if haltonerror then halt(1);
     end
   else if pp^.sig<>$DEADBEEF then
     begin
+       error_in_heap:=true;
        dump_error(pp);
        { don't release anything in this case !! }
        if haltonerror then halt(1);
@@ -229,6 +231,7 @@ begin
     end
   else if pp^.size<>size then
     begin
+       error_in_heap:=true;
        dump_wrong_size(pp,size);
        if haltonerror then halt(1);
        { don't release anything in this case !! }
@@ -332,7 +335,8 @@ var
 procedure TraceExit;
 begin
   ExitProc:=SaveExit;
-  Dumpheap;
+  if not error_in_heap then
+    Dumpheap;
 end;
 
 procedure SetExtraInfo( size : longint;func : fillextrainfotype);
@@ -360,7 +364,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  1999-01-22 12:39:22  pierre
+  Revision 1.10  1999-02-16 17:20:26  pierre
+   * no heap dump if program has an heap error !
+
+  Revision 1.9  1999/01/22 12:39:22  pierre
    + added text arg for dump_stack
 
   Revision 1.8  1998/12/15 23:49:51  michael
