@@ -678,6 +678,7 @@ program install;
                  Inc (DSize, DiskSpaceN(cfg.package[i].zip));
                 end;
                 S := FExpand (Data.BasePath);
+                if S [Length (S)] = DirSep then Dec (S [0]);
                 Space := DiskFree (byte (S [1]) - 64) shr 10;
                 if Space < DSize then S := 'is not' else S := '';
                 if Space < DSize + 500 then
@@ -999,7 +1000,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1999-06-29 22:20:19  peter
+  Revision 1.7  1999-07-01 07:56:58  hajny
+    * installation to root fixed
+
+  Revision 1.6  1999/06/29 22:20:19  peter
     * updated to use tab pages
 
   Revision 1.5  1999/06/25 07:06:30  hajny
