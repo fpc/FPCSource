@@ -7,6 +7,8 @@
 {$APPID FPCA}
 {$APPNAME FPC Demo}
 
+{$R pilrctst.rcp}
+
 program pilrctst;
 
   uses
@@ -37,10 +39,6 @@ program pilrctst;
   var
      kidForm : longint;
 
-{function PilotMain(_cmd : Word;_cmdPBP : Ptr;_launchFlags : Word) : DWord;cdecl;public;[alias: 'PilotMain'];}
-
-
-
   var
      b : boolean;
      e : EventType;
@@ -48,68 +46,61 @@ program pilrctst;
      pfrm : PFormType;
      ptbl : PTableType;
 
-  begin
-     {if _cmd=0 then }
-       begin
-          kidForm:=kidForm1;
-          FrmGotoForm(kidForm);
-          while true do
-            begin
-               EvtGetEvent(e,100);
-               if SysHandleEvent(e)<>0 then
-                 continue;
-               if MenuHandleEvent(nil,e,err)<>0 then
-                 continue;
-               case e.eType of
-                  ctlSelectEvent:
-                    begin
-                       if e.data.controlID=kidOk then
-                         begin
-                            inc(kidForm);
-                            if kidForm>kidFormLast then
-                              kidForm:=kidForm1;
-                             FrmGotoForm(kidForm);
-                          end;
-                        if assigned(FrmGetActiveForm) then
-                          FrmHandleEvent(FrmGetActiveForm,e);
-                    end;
-                  frmLoadEvent:
-                    begin
-                       FrmSetActiveForm(FrmInitForm(e.data.formID));
-                    end;
-                  frmOpenEvent:
-                    begin
-                       pfrm:=FrmGetActiveForm;
-                       FrmDrawForm(pfrm);
-                       if e.data.formID=kidForm12 then
-                         begin
-                            ptbl:=PTableType(FrmGetObjectPtr(pfrm, FrmGetObjectIndex(pfrm, kidTable)));
-                            TblSetColumnUsable(ptbl, 0, true);
-                            TblSetColumnUsable(ptbl, 1, true);
-                            TblSetColumnUsable(ptbl, 2, true);
-                            TblSetColumnUsable(ptbl, 3, true);
-                            TblSetColumnUsable(ptbl, 4, true);
-                            TblSetRowUsable(ptbl, 0, true);
-                            TblSetRowUsable(ptbl, 1, true);
+begin
+  kidForm:=kidForm3;
+  FrmGotoForm(kidForm);
+  while true do
+    begin
+      EvtGetEvent(e,100);
+      if SysHandleEvent(e)<>0 then
+        continue;
+      if MenuHandleEvent(nil,e,err)<>0 then
+        continue;
+      case e.eType of
+         ctlSelectEvent:
+           begin
+             if e.data.controlID=kidOk then
+               begin
+                 inc(kidForm);
+                 if kidForm>kidFormLast then
+                   kidForm:=kidForm1;
+                  FrmGotoForm(kidForm);
+                end;
+              if assigned(FrmGetActiveForm) then
+                FrmHandleEvent(FrmGetActiveForm,e);
+           end;
+         frmLoadEvent:
+           begin
+             FrmSetActiveForm(FrmInitForm(e.data.formID));
+           end;
+         frmOpenEvent:
+           begin
+             pfrm:=FrmGetActiveForm;
+             FrmDrawForm(pfrm);
+             if e.data.formID=kidForm12 then
+               begin
+                 ptbl:=PTableType(FrmGetObjectPtr(pfrm, FrmGetObjectIndex(pfrm, kidTable)));
+                 TblSetColumnUsable(ptbl, 0, true);
+                 TblSetColumnUsable(ptbl, 1, true);
+                 TblSetColumnUsable(ptbl, 2, true);
+                 TblSetColumnUsable(ptbl, 3, true);
+                 TblSetColumnUsable(ptbl, 4, true);
+                 TblSetRowUsable(ptbl, 0, true);
+                 TblSetRowUsable(ptbl, 1, true);
 
-                            TblSetItemStyle(ptbl, 0, 0, textTableItem);
-                            TblSetItemStyle(ptbl, 1, 0, textTableItem);
-                            TblSetItemStyle(ptbl, 2, 0, textTableItem);
-                            TblDrawTable(ptbl);
-                         end;
-                     end;
-                  menuEvent:
-                    FrmAlert(kidAlert1);
-                  appStopEvent:
-                    break;
-                  else
-                    if assigned(FrmGetActiveForm) then
-                      FrmHandleEvent(FrmGetActiveForm,e);
+                 TblSetItemStyle(ptbl, 0, 0, textTableItem);
+                 TblSetItemStyle(ptbl, 1, 0, textTableItem);
+                 TblSetItemStyle(ptbl, 2, 0, textTableItem);
+                 TblDrawTable(ptbl);
                end;
             end;
-       end;
-     {PilotMain:=0;
-  end;
-
-begin}
+         menuEvent:
+           FrmAlert(kidAlert1);
+         appStopEvent:
+           break;
+         else
+           if assigned(FrmGetActiveForm) then
+             FrmHandleEvent(FrmGetActiveForm,e);
+      end;
+    end;
 end.
