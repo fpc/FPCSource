@@ -243,10 +243,24 @@ end;
    { memory functions }
    function GlobalAlloc(mode,size:longint):longint;
      external 'kernel32' name 'GlobalAlloc';
+   function GlobalReAlloc(mode,size:longint):longint;
+     external 'kernel32' name 'GlobalReAlloc';
+   function GlobalHandle(p:pointer):longint;
+     external 'kernel32' name 'GlobalHandle';
    function GlobalLock(handle:longint):pointer;
      external 'kernel32' name 'GlobalLock';
+   function GlobalUnlock(h:longint):longint;
+     external 'kernel32' name 'GlobalUnlock';
+   function GlobalFree(h:longint):longint;
+     external 'kernel32' name 'GlobalFree';
    function GlobalSize(h:longint):longint;
      external 'kernel32' name 'GlobalSize';
+   procedure GlobalMemoryStatus(p:pointer);
+     external 'kernel32' name 'GlobalMemoryStatus';
+   function LocalAlloc(uFlags : UINT;uBytes :UINT) : HLOCAL;
+     external 'kernel32' name 'LocalAlloc';
+   function LocalFree(hMem:HLOCAL):HLOCAL;
+     external 'kernel32' name 'LocalFree';
 
 function Sbrk(size : longint):longint;
 var
@@ -254,13 +268,9 @@ var
 begin
   h:=GlobalAlloc(258,size);
   l:=longint(GlobalLock(h));
-{$ifdef SYSTEMDEBUG}  
+  if l=0 then l:=-1;
   Writeln('new heap part at $',hexstr(l,8), ' size = ',GlobalSize(h));
-{$endif SYSTEMDEBUG}  
-  if l=0 then
-   sbrk:=-1
-  else
-   sbrk:=l;
+  sbrk:=l;
 end;
 
 { include standard heap management }
@@ -751,8 +761,11 @@ end.
 
 {
   $Log$
-  Revision 1.17  1998-08-26 10:05:08  peter
-    * sbrk returns -1 on error
+  Revision 1.18  1998-08-31 11:54:00  pierre
+    * compilable windows.pp file
+      still to do :
+       - findout problems
+       - findout the correct DLL for each call !!
 
   Revision 1.16  1998/08/24 14:45:22  pierre
     * sbrk was wrong

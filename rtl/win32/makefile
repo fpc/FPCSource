@@ -124,7 +124,13 @@ SHAREDLIBEXT=.dll
 SYSTEMPPU=syswin32$(PPUEXT)
 OBJECTS=strings objpas \
 	dos \
-	base messages defines
+        windows
+#	base messages defines
+
+# Files used by windows.pp
+WINDOWS_FILES=base.pp errors.pp defines.pp \
+	struct.pp ascfun.pp ascdef.pp \
+	unifun.pp unidef.pp func.pp
 
 # Add Prefix and Suffixes
 PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
@@ -181,6 +187,9 @@ messages$(PPUEXT) : messages.pp $(SYSTEMPPU)
 defines$(PPUEXT) : defines.pp $(SYSTEMPPU)
 	$(PP) $(OPT) defines.pp $(REDIR)
 
+windows$(PPUEXT) : windows.pp $(WINDOWS_INCLUDE) $(SYSTEMPPU)
+	$(PP) $(OPT) windows.pp $(REDIR)
+
 #
 # TP7 Compatible RTL Units
 #
@@ -236,7 +245,13 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.7  1998-08-21 15:17:01  peter
+# Revision 1.8  1998-08-31 11:53:57  pierre
+#   * compilable windows.pp file
+#     still to do :
+#      - findout problems
+#      - findout the correct DLL for each call !!
+#
+# Revision 1.7  1998/08/21 15:17:01  peter
 #   * win32 compiles a bit better, no growheap crash
 #
 #
