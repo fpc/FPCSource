@@ -16,6 +16,9 @@
  *       Class implementations are in separate files.                 *
  **********************************************************************}
 
+{ Utility routines }
+{$i util.inc}
+
 { TBits implementation }
 {$i bits.inc}
 
@@ -322,7 +325,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-05-04 14:30:11  michael
+  Revision 1.3  1998-06-03 15:10:20  michael
+  + added include of util.inc
+
+  Revision 1.2  1998/05/04 14:30:11  michael
   * Split file according to Class; implemented dummys for all methods, so unit compiles.
 
   Revision 1.9  1998/05/04 12:16:01  florian
@@ -355,7 +361,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-05-04 14:30:11  michael
+  Revision 1.3  1998-06-03 15:10:20  michael
+  + added include of util.inc
+
+  Revision 1.2  1998/05/04 14:30:11  michael
   * Split file according to Class; implemented dummys for all methods, so unit compiles.
 
   Revision 1.1  1998/05/04 12:16:01  florian
