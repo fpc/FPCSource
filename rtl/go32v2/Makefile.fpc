@@ -9,7 +9,9 @@ units=system objpas strings \
       dos crt objects printer graph \
       sysutils math typinfo \
       cpu mmx getopts heaptrc lineinfo \
-      msmouse charset varutils
+      msmouse charset varutils \
+      video mouse keyboard vesamode
+      
 rst=math varutils
 
 [require]

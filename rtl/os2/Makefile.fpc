@@ -9,7 +9,8 @@ units=$(SYSTEMUNIT) objpas strings \
       pmbitmap pmwin pmgpi dive \
       dos crt objects printer \
       sysutils math typinfo varutils \
-      ucomplex cpu mmx getopts heaptrc lineinfo dynlibs
+      ucomplex cpu mmx getopts heaptrc lineinfo dynlibs \
+      video mouse keyboard
 rst=math
 
 [require]

@@ -9,7 +9,9 @@ units=$(SYSTEMUNIT) objpas strings \
       dos crt objects graph \
       sysutils typinfo math varutils \
       cpu mmx getopts heaptrc lineinfo \
-      wincrt winmouse sockets printer dynlibs
+      wincrt winmouse winevent sockets printer dynlibs \
+      video mouse keyboard
+
 rst=math varutils
 
 [require]

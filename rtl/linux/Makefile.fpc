@@ -9,7 +9,9 @@ units=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer graph ggigraph \
       sysutils typinfo math varutils \
       cpu mmx getopts heaptrc lineinfo \
-      errors sockets gpm ipc serial dl dynlibs
+      errors sockets gpm ipc serial terminfo dl dynlibs \
+      video mouse keyboard
+
 rst=math varutils
 
 [clean]
@@ -203,6 +205,7 @@ heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
 
 lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 
+
 #
 # Other $(SYSTEMUNIT)-dependent RTL Units
 #
@@ -213,3 +216,6 @@ sockets$(PPUEXT) : sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
 errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 ipc$(PPUEXT) : ipc.pp linux$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+terminfo$(PPUEXT) : terminfo.pp linux$(PPUEXT)
+
