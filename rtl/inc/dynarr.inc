@@ -72,7 +72,7 @@ procedure fpc_dynarray_clear(var p : pointer;ti : pointer); [Public,Alias:'FPC_D
                        pdynarraytypeinfo(ti)^.elesize);
 
      { release the data }
-     freemem(p,sizeof(tdynarray)+(pdynarray(p)^.high+1)*pdynarraytypeinfo(ti)^.elesize);
+     freemem(p);
      p:=nil;
   end;
 
@@ -302,7 +302,10 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.23  2003-10-29 21:00:34  peter
+  Revision 1.24  2004-05-02 15:15:58  peter
+    * use freemem() without size
+
+  Revision 1.23  2003/10/29 21:00:34  peter
     * fixed a:=copy(b)
 
   Revision 1.22  2003/10/25 22:52:07  florian
