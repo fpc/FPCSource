@@ -706,6 +706,10 @@ type
 const
   general_registers = [R_EAX,R_EBX,R_ECX,R_EDX];
 
+  intregs = general_registers;
+  fpuregs = [];
+  mmregs = [R_MM0..R_MM7];
+
   registers_saved_on_cdecl = [R_ESI,R_EDI,R_EBX];
 
   { generic register names }
@@ -1002,7 +1006,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1999-06-06 15:53:15  peter
+  Revision 1.7  1999-08-02 17:17:09  florian
+    * small changes for the new code generator
+
+  Revision 1.6  1999/06/06 15:53:15  peter
     * suffix adding can be turned of for some tasmops in att_nosuffix array
 
   Revision 1.5  1999/05/27 19:44:34  peter

@@ -98,7 +98,7 @@ unit pmodules;
            then
          begin
            datasegment^.insert(new(pai_align,init(4)));
-           datasegment^.insert(new(pai_string,init('FPC '+version_string+
+           datasegment^.insert(new(pai_string,init('FPC '+full_version_string+
              ' for '+target_cpu_string+' - '+target_info.short_name)));
          end;
       { Insert start and end of sections }
@@ -1352,7 +1352,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.135  1999-07-29 20:54:04  peter
+  Revision 1.136  1999-08-02 17:17:10  florian
+    * small changes for the new code generator
+
+  Revision 1.135  1999/07/29 20:54:04  peter
     * write .size also
 
   Revision 1.134  1999/07/26 09:42:11  florian

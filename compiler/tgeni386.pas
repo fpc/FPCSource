@@ -28,6 +28,9 @@ unit tgeni386;
        cobjects,globals,tree,hcodegen,verbose,files,aasm
 {$ifdef i386}
        ,i386base,i386asm
+{$ifdef dummy}
+       end
+{$endif}
 {$endif}
        ;
 
@@ -418,7 +421,6 @@ implementation
               dec(usablereg32);
               unused:=unused-[r];
               usedinproc:=usedinproc or ($80 shr byte(r));
-              getexplicitregister32:=R_ECX;
               exprasmlist^.concat(new(pairegalloc,alloc(r)));
               getexplicitregister32:=r;
            end
@@ -470,7 +472,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  1999-06-09 23:22:39  peter
+  Revision 1.28  1999-08-02 17:17:11  florian
+    * small changes for the new code generator
+
+  Revision 1.27  1999/06/09 23:22:39  peter
     + del_location
 
   Revision 1.26  1999/05/27 19:45:27  peter
