@@ -241,22 +241,23 @@ begin
 end;
 
 
-Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString;{$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Converts a ShortString to a WideString;
 }
 Var
   Size : SizeInt;
 begin
-  //Size:=Length(S2);
-  Setlength (fpc_ShortStr_To_WideStr,Size);
+  Size:=Length(S2);
+  //Setlength (fpc_ShortStr_To_WideStr,Size);
   if Size>0 then
     begin
-      widestringmanager.Ansi2WideMoveProc(PChar(@S2[1]),fpc_ShortStr_To_WideStr,Size);
+			widestringmanager.Ansi2WideMoveProc(PChar(@S2[1]),fpc_ShortStr_To_WideStr,Size);
       { Terminating Zero }
-      PWideChar(Pointer(fpc_ShortStr_To_WideStr)+Size*sizeof(WideChar))^:=#0;
+			PWideChar(Pointer(fpc_ShortStr_To_WideStr)+Size*sizeof(WideChar))^:=#0;
     end;
 end;
+
 
 { old style helper }
 {$ifndef hascompilerproc}
@@ -1478,7 +1479,10 @@ procedure initwidestringmanager;
 
 {
   $Log$
-  Revision 1.55  2005-03-14 21:32:04  florian
+  Revision 1.56  2005-03-22 10:10:54  florian
+    * shortstr_to_widestring fixed
+
+  Revision 1.55  2005/03/14 21:32:04  florian
     * utf8 to unicode (utf-16) fix from Matthias
 
   Revision 1.54  2005/03/14 21:09:04  florian
