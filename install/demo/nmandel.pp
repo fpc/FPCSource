@@ -90,7 +90,7 @@ begin
     z :=z -1;
   until (Z=0) or (Xq + Yq > 4 );
   if Z=0 Then
-    CalcMandel:=1
+    CalcMandel:=(blue and $FFFFFF)
   else if getMaxColor>255 then
     CalcMandel:=(stdcolors[(z mod 254) + 1] and $FFFFFF)
   else
@@ -276,9 +276,30 @@ end ;
 {$ifndef Linux}
   var
      error : word;
+     st : string;
 {$endif not Linux}
      
 begin
+  {$ifdef go32v2}
+  {$ifdef debug}
+  {$warning If the compilation fails, you need to recompile}
+  {$warning the graph unit with -dDEBUG option }
+  Write('Use linear ? ');
+  readln(st);
+  if st='y' then UseLinear:=true;
+  if UseLinear then
+    begin
+       Write('Switch physical address (default true) ? ');
+       readln(st);
+       if st='y' then switch_physical_address:=true
+       else if st='n' then switch_physical_address:=false;
+       Write('Split physical address (default false) ? ');
+       readln(st);
+       if st='y' then split_physical_address:=true
+       else if st='n' then split_physical_address:=false;
+    end;
+  {$endif debug}
+  {$endif go32v2}
 {$ifdef Linux}
   gm:=0;
   gd:=0;
@@ -333,7 +354,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1998-11-17 18:17:53  pierre
+  Revision 1.2  1998-11-18 11:45:06  pierre
+   * LinearFrameBuffer test added
+
+  Revision 1.1  1998/11/17 18:17:53  pierre
     + mandel changed for new graph unit (probably not very linux compatible !)
 
   Revision 1.3  1998/09/11 10:55:25  peter
