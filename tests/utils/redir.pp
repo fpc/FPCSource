@@ -19,8 +19,10 @@ Unit Redir;
 Interface
 
 {$R-}
-{$ifndef linux}
+{$ifndef Linux}
+{$ifndef Unix}
   {$S-}
+{$endif}
 {$endif}
 
 {$ifdef TP}
@@ -76,9 +78,13 @@ Uses
 {$ifdef win32}
   windows,
 {$endif win32}
-{$ifdef linux}
-  linux,
-{$endif linux}
+{$ifdef unix}
+  {$ifdef ver1_0}
+    linux,
+  {$else}
+    unix,
+  {$endif}
+{$endif unix}
   dos;
 
 var
@@ -725,7 +731,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.4  2000-12-10 12:08:11  peter
+  Revision 1.5  2001-02-03 00:13:34  peter
+    * linux -> unix for not 1.0.x compilers
+
+  Revision 1.4  2000/12/10 12:08:11  peter
     * win32 and go32v2 updates
 
   Revision 1.3  2000/11/30 22:38:22  peter
