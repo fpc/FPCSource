@@ -260,6 +260,7 @@ implementation
                    begin
                      { deref class }
                      cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,hregister);
+                     cg.g_maybe_testself(exprasmlist,hregister);
                      { load VMT pointer }
                      reference_reset_base(hrefvmt,hregister,tobjectdef(left.resulttype.def).vmt_offset);
                      cg.a_load_ref_reg(exprasmlist,OS_ADDR,hrefvmt,hregister);
@@ -275,10 +276,6 @@ implementation
               else
                 internalerror(200301301);
             end;
-
-            { load VMT pointer }
-            inc(left.location.reference.offset,tobjectdef(left.resulttype.def).vmt_offset);
-            cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,hregister);
           end;
         { in sizeof load size }
         if inlinenumber=in_sizeof_x then
@@ -652,7 +649,10 @@ end.
 
 {
   $Log$
-  Revision 1.19  2003-01-30 21:46:57  peter
+  Revision 1.20  2003-01-31 22:47:27  peter
+    * fix previous typeof change
+
+  Revision 1.19  2003/01/30 21:46:57  peter
     * self fixes for static methods (merged)
 
   Revision 1.18  2003/01/08 18:43:56  daniel
