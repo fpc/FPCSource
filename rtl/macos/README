@@ -27,10 +27,13 @@ operating systems with these options:
 If make is used, add OPT=-st OS_TARGET=macos (on foreign platforms
 CPU_TARGET=powerpc must also be added)
 
-Note that one must build the RTL by issuing make in rtl/macos, with
+Note that one must first build the RTL by issuing make in rtl/macos, with
 the above options, to be able to buld other programs. (Currently only
 system.pp and som OS independant units are available)
 
+You might also want to add option -a, then the link script will not delete
+not needed files, in particular the assembler files (*.s). This can be
+useful if there are problems with the link script and you want to rerun it.
 
 Assembling and linking on target:
 ---------------------------------
