@@ -291,8 +291,8 @@ var
   MOS_ambMsg  : PMessage; 
   MOS_ConName : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   
-  MOS_argc: LongInt;
-  MOS_argv: PPChar;
+  argc: LongInt;
+  argv: PPChar;
 
 
 {*****************************************************************************
@@ -356,7 +356,7 @@ function dos_SetFileSize(fileh: LongInt location 'd1';
 
 function dos_Read(fileh: LongInt location 'd1'; 
                   buffer: Pointer location 'd2'; 
-                  length: LongInt location 'd3'): LongInt; SysCall MOS_DOSBase 40;
+                  length: LongInt location 'd3'): LongInt; SysCall MOS_DOSBase 42;
 function dos_Write(fileh: LongInt location 'd1'; 
                    buffer: Pointer location 'd2'; 
                    length: LongInt location 'd3'): LongInt; SysCall MOS_DOSBase 48;
@@ -695,12 +695,12 @@ var
         begin
           oldargvlen:=argvlen;
           argvlen:=(idx+8) and (not 7);
-          sysreallocmem(MOS_argv,argvlen*sizeof(pointer));
+          sysreallocmem(argv,argvlen*sizeof(pointer));
           for i:=oldargvlen to argvlen-1 do
-            MOS_argv[i]:=nil;
+            argv[i]:=nil;
         end;
       { use realloc to reuse already existing memory }
-      sysreallocmem(MOS_argv[idx],len+1);
+      sysreallocmem(argv[idx],len+1);
     end;
 
 var
@@ -717,13 +717,13 @@ begin
   { Set argv[0] }
   temp:=paramstr(0);
   allocarg(0,length(temp));
-  move(temp[1],MOS_argv[0]^,length(temp));
-  MOS_argv[0][length(temp)]:=#0;
+  move(temp[1],argv[0]^,length(temp));
+  argv[0][length(temp)]:=#0;
 
   { check if we're started from Ambient }
   if MOS_ambMsg<>nil then 
     begin
-      MOS_argc:=0;
+      argc:=0;
       exit;
     end;
 
@@ -739,12 +739,12 @@ begin
       if (count-start>0) then
         begin
           allocarg(localindex,count-start);
-          move(p[start],MOS_argv[localindex]^,count-start);
-          MOS_argv[localindex][count-start]:=#0;
+          move(p[start],argv[localindex]^,count-start);
+          argv[localindex][count-start]:=#0;
           inc(localindex);
         end;
     end;
-  MOS_argc:=localindex;
+  argc:=localindex;
 end;
 
 
@@ -758,14 +758,14 @@ begin
   if MOS_ambMsg<>nil then
     paramcount:=0
   else
-    paramcount:=MOS_argc-1;
+    paramcount:=argc-1;
 end;
 
 { argument number l }
 function paramstr(l : longint) : string;
 begin
-  if (l>=0) and (l+1<=MOS_argc) then
-    paramstr:=strpas(MOS_argv[l])
+  if (l>=0) and (l+1<=argc) then
+    paramstr:=strpas(argv[l])
   else
     paramstr:='';
 end;
@@ -970,7 +970,7 @@ begin
   do_read:=0; 
   if len<=0 then exit; 
   
-  dosResult:=dos_Write(h,addr,len);
+  dosResult:=dos_Read(h,addr,len);
   if dosResult<0 then begin
     dosError2InOut(dos_IoErr);
   end else begin
@@ -1263,7 +1263,10 @@ End.
 
 {
   $Log$
-  Revision 1.8  2004-05-12 20:26:04  karoly
+  Revision 1.9  2004-05-12 23:18:54  karoly
+    * fixed do_read and dos_Read from being nonsense
+
+  Revision 1.8  2004/05/12 20:26:04  karoly
     + added syscalls and structures necessary for DOS unit
 
   Revision 1.7  2004/05/12 15:34:16  karoly
