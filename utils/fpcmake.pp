@@ -332,6 +332,13 @@ begin
      RequireOptions:=ReadString(ini_require,'options','');
      ReadTargetsString(requireComponents,ini_require,'components','');
      ReadTargetsString(requirePackages,ini_require,'packages','');
+     if userini.RequireRTL then
+      begin
+        if userini.Requirepackages[0]<>'' then
+         userini.Requirepackages[0]:='rtl '+userini.Requirepackages[0]
+        else
+         userini.Requirepackages[0]:='rtl';
+      end;
    { dirs }
      DirFpc:=ReadString(ini_dirs,'fpcdir','');
      DirPackage:=ReadString(ini_dirs,'packagedir','$(FPCDIR)/packages');
@@ -751,7 +758,7 @@ begin
      Add('ifndef COMPONENTDIR');
      Add('COMPONENTDIR='+userini.dircomponent);
      Add('endif');
-     AddSection(true,'fpcdirsubs');
+     AddSection(userini.requirertl,'fpcdirsubs');
 
    { write the default & user settings }
      AddSection(true,'defaultsettings');
@@ -829,11 +836,6 @@ begin
 
    { Packages }
      AddHead('Packages');
-     if userini.RequireRTL then
-      begin
-        Add('override PACKAGES=rtl');
-        Add('PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)');
-      end;
      AddTargets('PACKAGES',userini.Requirepackages,false);
      AddTargets('COMPONENTS',userini.Requirecomponents,false);
      AddTargetsUnitDir('$(PACKAGEDIR)',userini.Requirepackages);
@@ -891,12 +893,11 @@ begin
         Add('');
         AddSection(true,'command_begin');
         AddSection((userini.Requireoptions<>''),'command_needopt');
-        AddSection((userini.dirfpc<>''),'command_unitsdir');
-        AddSection((userini.dirfpc<>''),'command_rtldir');
         AddSection((userini.dirunit<>'') or
                    (not TargetStringEmpty(userini.Requirepackages)) or
                    (not TargetStringEmpty(userini.Requirecomponents))
                    ,'command_needunit');
+        AddSection(true,'command_unitsdir');
         AddSection((userini.dirlib<>''),'command_needlib');
         AddSection((userini.dirobj<>''),'command_needobj');
         AddSection((userini.dirinc<>''),'command_needinc');
@@ -1092,7 +1093,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2000-01-06 01:29:59  peter
+  Revision 1.19  2000-01-06 15:49:23  peter
+    * rtldir removed, it's now handled like any other package
+
+  Revision 1.18  2000/01/06 01:29:59  peter
     * FPCDIR setting/detect
     * lot of other updates to create .deb files correctly
 
