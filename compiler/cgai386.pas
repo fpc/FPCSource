@@ -791,6 +791,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
 
     procedure emit_to_mem(var p:ptree);
+
+      var
+         r : treference;
+
       begin
         case p^.location.loc of
                LOC_FPU : begin
@@ -800,6 +804,22 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                            {  This can't be never a l-value! (FK)
                               p^.location.loc:=LOC_REFERENCE; }
                          end;
+               LOC_REGISTER:
+                 begin
+                    if is_64bitint(p^.resulttype) then
+                      begin
+                         gettempofsizereference(8,r);
+                         emit_reg_ref(A_MOV,S_L,p^.location.registerlow,
+                           newreference(r));
+                         inc(r.offset,4);
+                         emit_reg_ref(A_MOV,S_L,p^.location.registerhigh,
+                           newreference(r));
+                         dec(r.offset,4);
+                         p^.location.reference:=r;
+                      end
+                    else
+                      internalerror(1405001);
+                 end;
                LOC_MEM,
          LOC_REFERENCE : ;
          LOC_CFPUREGISTER : begin
@@ -3946,7 +3966,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.101  2000-05-09 14:17:33  pierre
+  Revision 1.102  2000-05-14 18:49:04  florian
+    + Int64/QWord stuff for array of const added
+
+  Revision 1.101  2000/05/09 14:17:33  pierre
    * handle interrupt function correctly
 
   Revision 1.100  2000/05/04 09:29:31  pierre

@@ -393,7 +393,8 @@ implementation
                      end;
                    orddef :
                      begin
-                       if is_integer(hp^.left^.resulttype) then
+                       if is_integer(hp^.left^.resulttype) and
+                         not(is_64bitint(hp^.left^.resulttype)) then
                         begin
                           hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
                           firstpass(hp^.left);
@@ -496,7 +497,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2000-04-25 14:43:36  jonas
+  Revision 1.65  2000-05-14 18:48:24  florian
+    + Int64/QWord stuff for array of const added
+
+  Revision 1.64  2000/04/25 14:43:36  jonas
     - disabled "string_var := string_var + ... " and "string_var + char_var"
       optimizations (were only active with -dnewoptimizations) because of
       several internal issues

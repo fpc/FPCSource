@@ -831,6 +831,7 @@ implementation
         vtInterface  = 14;
         vtWideString = 15;
         vtInt64      = 16;
+        vtQWord      = 17;
 
     procedure secondarrayconstruct(var p : ptree);
       var
@@ -882,8 +883,19 @@ implementation
                    enumdef,
                    orddef :
                      begin
-                       if (lt^.deftype=enumdef) or
-                          is_integer(lt) then
+                       if is_64bitint(lt) then
+                         begin
+                            case porddef(lt)^.typ of
+                               s64bit:
+                                 vtype:=vtInt64;
+                               u64bit:
+                                 vtype:=vtQWord;
+                            end;
+                            freetemp:=false;
+                            vaddr:=true;
+                         end
+                       else if (lt^.deftype=enumdef) or
+                         is_integer(lt) then
                          vtype:=vtInteger
                        else
                          if is_boolean(lt) then
@@ -988,7 +1000,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.106  2000-04-03 12:23:02  pierre
+  Revision 1.107  2000-05-14 18:50:35  florian
+    + Int64/QWord stuff for array of const added
+
+  Revision 1.106  2000/04/03 12:23:02  pierre
    * fix for bug 909
 
   Revision 1.105  2000/03/19 11:55:08  peter
