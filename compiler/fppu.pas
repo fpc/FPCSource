@@ -1143,11 +1143,14 @@ uses
 end.
 {
   $Log$
-  Revision 1.2  2001-05-07 11:53:21  jonas
+  Revision 1.3  2001-05-08 21:06:30  florian
+    * some more support for widechars commited especially
+      regarding type casting and constants
+
+  Revision 1.2  2001/05/07 11:53:21  jonas
     * fix from Peter for short_on_file_handles code
 
   Revision 1.1  2001/05/06 14:49:17  peter
     * ppu object to class rewrite
     * move ppu read and write stuff to fppu
-
 }

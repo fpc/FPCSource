@@ -121,6 +121,7 @@ interface
     function is_constrealnode(p : tnode) : boolean;
     function is_constboolnode(p : tnode) : boolean;
     function is_constresourcestringnode(p : tnode) : boolean;
+    function is_constwidecharnode(p : tnode) : boolean;
     function str_length(p : tnode) : longint;
     function is_emptyset(p : tnode):boolean;
     function genconstsymtree(p : tconstsym) : tnode;
@@ -191,6 +192,13 @@ implementation
 
       begin
          is_constcharnode:=(p.nodetype=ordconstn) and is_char(p.resulttype.def);
+      end;
+
+
+    function is_constwidecharnode(p : tnode) : boolean;
+
+      begin
+         is_constwidecharnode:=(p.nodetype=ordconstn) and is_widechar(p.resulttype.def);
       end;
 
 
@@ -644,7 +652,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-04-13 01:22:09  peter
+  Revision 1.18  2001-05-08 21:06:30  florian
+    * some more support for widechars commited especially
+      regarding type casting and constants
+
+  Revision 1.17  2001/04/13 01:22:09  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

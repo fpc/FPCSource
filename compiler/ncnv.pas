@@ -47,6 +47,7 @@ interface
           function resulttype_int_to_real : tnode;
           function resulttype_real_to_real : tnode;
           function resulttype_cchar_to_pchar : tnode;
+          function resulttype_char_to_char : tnode;
           function resulttype_arrayconstructor_to_set : tnode;
           function resulttype_call_helper(c : tconverttype) : tnode;
        protected
@@ -72,6 +73,7 @@ interface
           function first_ansistring_to_pchar : tnode;virtual;
           function first_arrayconstructor_to_set : tnode;virtual;
           function first_class_to_intf : tnode;virtual;
+          function first_char_to_char : tnode;virtual;
           function first_call_helper(c : tconverttype) : tnode;
        end;
 
@@ -99,7 +101,7 @@ implementation
 
    uses
       globtype,systems,tokens,
-      cutils,verbose,globals,
+      cutils,verbose,globals,widestr,
       symconst,symdef,symsym,symtable,
       ncon,ncal,nset,nadd,
 {$ifdef newcg}
@@ -450,6 +452,28 @@ implementation
       end;
 
 
+    function ttypeconvnode.resulttype_char_to_char : tnode;
+      var
+         hp : tordconstnode;
+      begin
+         result:=nil;
+         if torddef(resulttype.def).typ=uchar then
+           begin
+              hp:=cordconstnode.create(
+                ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value))),cchartype);
+              resulttypepass(hp);
+              result:=hp;
+           end
+         else
+           begin
+              hp:=cordconstnode.create(
+                asciichar2unicode(chr(tordconstnode(left).value)),cwidechartype);
+              resulttypepass(hp);
+              result:=hp;
+           end;
+      end;
+
+
     function ttypeconvnode.resulttype_int_to_real : tnode;
       var
         t : trealconstnode;
@@ -535,7 +559,8 @@ implementation
           { cord_2_pointer } @ttypeconvnode.resulttype_cord_to_pointer,
           { intf_2_string } nil,
           { intf_2_guid } nil,
-          { class_2_intf } nil
+          { class_2_intf } nil,
+          { char_2_char } @ttypeconvnode.resulttype_char_to_char
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -750,6 +775,25 @@ implementation
                     end;
                  end
 
+              {Are we typecasting an ordconst to a wchar?}
+              else
+                if is_widechar(resulttype.def) and
+                   is_ordinal(left.resulttype.def) then
+                 begin
+                   if left.nodetype=ordconstn then
+                    begin
+                      hp:=cordconstnode.create(tordconstnode(left).value,resulttype);
+                      resulttypepass(hp);
+                      result:=hp;
+                      exit;
+                    end
+                   else
+                    begin
+                      if IsConvertable(left.resulttype.def,u16bittype.def,convtype,ordconstn,false)=0 then
+                        CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
+                    end;
+                 end
+
               { char to ordinal }
               else
                 if is_char(left.resulttype.def) and
@@ -765,6 +809,24 @@ implementation
                    else
                     begin
                       if IsConvertable(u8bittype.def,resulttype.def,convtype,ordconstn,false)=0 then
+                        CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
+                    end;
+                 end
+              { widechar to ordinal }
+              else
+                if is_widechar(left.resulttype.def) and
+                   is_ordinal(resulttype.def) then
+                 begin
+                   if left.nodetype=ordconstn then
+                    begin
+                      hp:=cordconstnode.create(tordconstnode(left).value,resulttype);
+                      resulttypepass(hp);
+                      result:=hp;
+                      exit;
+                    end
+                   else
+                    begin
+                      if IsConvertable(u16bittype.def,resulttype.def,convtype,ordconstn,false)=0 then
                         CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
                     end;
                  end
@@ -788,7 +850,7 @@ implementation
                 end;
 
                { the conversion into a strutured type is only }
-               { possible, if the source is no register    }
+               { possible, if the source is not a register    }
                if ((resulttype.def.deftype in [recorddef,stringdef,arraydef]) or
                    ((resulttype.def.deftype=objectdef) and not(is_class(resulttype.def)))
                   ) and (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) { and
@@ -1022,6 +1084,15 @@ implementation
       end;
 
 
+    function ttypeconvnode.first_char_to_char : tnode;
+      begin
+         first_char_to_char:=nil;
+         location.loc:=LOC_REGISTER;
+         if registers32<1 then
+           registers32:=1;
+      end;
+
+
     function ttypeconvnode.first_proc_to_procvar : tnode;
       begin
          first_proc_to_procvar:=nil;
@@ -1099,7 +1170,8 @@ implementation
            @ttypeconvnode.first_cord_to_pointer,
            @ttypeconvnode.first_nothing,
            @ttypeconvnode.first_nothing,
-           @ttypeconvnode.first_class_to_intf
+           @ttypeconvnode.first_class_to_intf,
+           @ttypeconvnode.first_char_to_char
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -1291,7 +1363,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2001-05-04 15:52:03  florian
+  Revision 1.27  2001-05-08 21:06:30  florian
+    * some more support for widechars commited especially
+      regarding type casting and constants
+
+  Revision 1.26  2001/05/04 15:52:03  florian
     * some Delphi incompatibilities fixed:
        - out, dispose and new can be used as idenfiers now
        - const p = apointerype(nil); is supported now

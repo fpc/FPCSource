@@ -49,6 +49,7 @@ interface
           procedure second_ansistring_to_pchar;virtual;
           procedure second_pchar_to_string;virtual;
           procedure second_class_to_intf;virtual;
+          procedure second_char_to_char;virtual;
           procedure second_nothing;virtual;
           procedure pass_2;override;
           procedure second_call_helper(c : tconverttype);
@@ -1081,6 +1082,23 @@ implementation
       end;
 
 
+    procedure ti386typeconvnode.second_char_to_char;
+      var
+         hreg : tregister;
+      begin
+         case torddef(resulttype.def).typ of
+            uwidechar:
+              begin
+                 internalerror(200105021);
+              end;
+            uchar:
+              begin
+                 internalerror(200105022);
+              end;
+         end;
+      end;
+
+
     procedure ti386typeconvnode.second_nothing;
       begin
       end;
@@ -1118,7 +1136,8 @@ implementation
            @ti386typeconvnode.second_cord_to_pointer,
            @ti386typeconvnode.second_nothing, { interface 2 string }
            @ti386typeconvnode.second_nothing, { interface 2 guid   }
-           @ti386typeconvnode.second_class_to_intf
+           @ti386typeconvnode.second_class_to_intf,
+           @ti386typeconvnode.second_char_to_char
          );
       type
          tprocedureofobject = procedure of object;
@@ -1312,7 +1331,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-04-13 01:22:18  peter
+  Revision 1.15  2001-05-08 21:06:33  florian
+    * some more support for widechars commited especially
+      regarding type casting and constants
+
+  Revision 1.14  2001/04/13 01:22:18  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

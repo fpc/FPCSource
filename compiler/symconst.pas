@@ -405,7 +405,7 @@ type
   tconsttyp = (constnone,
     constord,conststring,constreal,constbool,
     constint,constchar,constset,constpointer,constnil,
-    constresourcestring
+    constresourcestring,constwstring,constwchar
   );
 
 {$ifdef GDB}
@@ -451,7 +451,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2001-04-13 01:22:15  peter
+  Revision 1.17  2001-05-08 21:06:31  florian
+    * some more support for widechars commited especially
+      regarding type casting and constants
+
+  Revision 1.16  2001/04/13 01:22:15  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

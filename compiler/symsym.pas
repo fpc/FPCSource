@@ -1931,6 +1931,7 @@ implementation
                end
              else
                value:=ppufile.getlongint;
+           constwchar,
            constbool,
            constchar :
              value:=ppufile.getlongint;
@@ -2328,7 +2329,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2001-05-06 14:49:17  peter
+  Revision 1.13  2001-05-08 21:06:32  florian
+    * some more support for widechars commited especially
+      regarding type casting and constants
+
+  Revision 1.12  2001/05/06 14:49:17  peter
     * ppu object to class rewrite
     * move ppu read and write stuff to fppu
 

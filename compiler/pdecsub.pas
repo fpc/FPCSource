@@ -115,7 +115,7 @@ implementation
         { Delphi/Kylix supports nonsense like }
         { procedure p();                      }
         if try_to_consume(_RKLAMMER) and
-          not(m_tp in aktmodeswitches) then
+          not(m_tp7 in aktmodeswitches) then
           exit;
         inc(testcurobject);
         repeat
@@ -1851,7 +1851,11 @@ const
 end.
 {
   $Log$
-  Revision 1.23  2001-05-08 14:32:58  jonas
+  Revision 1.24  2001-05-08 21:06:31  florian
+    * some more support for widechars commited especially
+      regarding type casting and constants
+
+  Revision 1.23  2001/05/08 14:32:58  jonas
     * fixed bug for overloaded operators with a return type that has a size
       which isn't a multiple of the target_os.stackalignment (main branch
       patch from Peter)

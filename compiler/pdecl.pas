@@ -87,6 +87,8 @@ implementation
                   hp:=tconstsym.create(name,constchar,tordconstnode(p).value)
                 else if is_constboolnode(p) then
                   hp:=tconstsym.create(name,constbool,tordconstnode(p).value)
+                else if is_constwidecharnode(p) then
+                  hp:=tconstsym.create(name,constwchar,tordconstnode(p).value)
                 else if p.resulttype.def.deftype=enumdef then
                   hp:=tconstsym.create_typed(name,constord,tordconstnode(p).value,p.resulttype)
                 else if p.resulttype.def.deftype=pointerdef then
@@ -541,7 +543,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2001-04-13 01:22:11  peter
+  Revision 1.30  2001-05-08 21:06:31  florian
+    * some more support for widechars commited especially
+      regarding type casting and constants
+
+  Revision 1.29  2001/04/13 01:22:11  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

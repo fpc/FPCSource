@@ -55,6 +55,7 @@ unit widestr;
       var r : tcompilerwidestring);
     procedure copywidestring(const s : tcompilerwidestring;var d : tcompilerwidestring);
     function asciichar2unicode(c : char) : tcompilerwidechar;
+    function unicode2asciichar(c : tcompilerwidechar) : char;
     procedure ascii2unicode(const s : string;var r : tcompilerwidestring);
     function getcharwidestring(const r : tcompilerwidestring;l : longint) : tcompilerwidechar;
     function cpavailable(const s : string) : boolean;
@@ -157,6 +158,11 @@ unit widestr;
         asciichar2unicode:=0;
       end;
 
+    function unicode2asciichar(c : tcompilerwidechar) : char;
+
+      begin
+      end;
+
     procedure ascii2unicode(const s : string;var r : tcompilerwidestring);
 (*
       var
@@ -190,7 +196,11 @@ unit widestr;
 end.
 {
   $Log$
-  Revision 1.3  2001-04-13 01:22:17  peter
+  Revision 1.4  2001-05-08 21:06:33  florian
+    * some more support for widechars commited especially
+      regarding type casting and constants
+
+  Revision 1.3  2001/04/13 01:22:17  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

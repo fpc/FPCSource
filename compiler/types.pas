@@ -59,6 +59,9 @@ interface
     { true if p is a char }
     function is_char(def : tdef) : boolean;
 
+    { true if p is a widechar }
+    function is_widechar(def : tdef) : boolean;
+
     { true if p is a void}
     function is_void(def : tdef) : boolean;
 
@@ -180,7 +183,8 @@ interface
           tc_cord_2_pointer,
           tc_intf_2_string,
           tc_intf_2_guid,
-          tc_class_2_intf
+          tc_class_2_intf,
+          tc_char_2_char
        );
 
     function assignment_overloaded(from_def,to_def : tdef) : tprocdef;
@@ -513,6 +517,14 @@ implementation
       begin
         is_char:=(def.deftype=orddef) and
                  (torddef(def).typ=uchar);
+      end;
+
+
+    { true if p is a wchar }
+    function is_widechar(def : tdef) : boolean;
+      begin
+        is_widechar:=(def.deftype=orddef) and
+                 (torddef(def).typ=uwidechar);
       end;
 
 
@@ -1217,7 +1229,7 @@ implementation
                     u8bit,u16bit,u32bit,
                     s8bit,s16bit,s32,
                     bool8bit,bool16bit,bool32bit,
-                    u64bit,s64bitint }
+                    u64bit,s64bitint,uwidechar }
       type
         tbasedef=(bvoid,bchar,bint,bbool);
       const
@@ -1229,7 +1241,7 @@ implementation
 
         basedefconverts : array[tbasedef,tbasedef] of tconverttype =
          ((tc_not_possible,tc_not_possible,tc_not_possible,tc_not_possible),
-          (tc_not_possible,tc_equal,tc_not_possible,tc_not_possible),
+          (tc_not_possible,tc_char_2_char,tc_not_possible,tc_not_possible),
           (tc_not_possible,tc_not_possible,tc_int_2_int,tc_int_2_bool),
           (tc_not_possible,tc_not_possible,tc_bool_2_int,tc_bool_2_bool));
 
@@ -1733,7 +1745,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2001-04-22 22:46:49  florian
+  Revision 1.42  2001-05-08 21:06:33  florian
+    * some more support for widechars commited especially
+      regarding type casting and constants
+
+  Revision 1.41  2001/04/22 22:46:49  florian
     * more variant support
 
   Revision 1.40  2001/04/18 22:02:00  peter
