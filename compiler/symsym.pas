@@ -1335,6 +1335,7 @@ implementation
         if assigned(vartype.def) and
            (varspez=vs_value) and
            ((vartype.def.deftype<>arraydef) or
+            tarraydef(vartype.def).isDynamicArray or
             (tarraydef(vartype.def).highrange>=tarraydef(vartype.def).lowrange)) then
           getvaluesize:=vartype.def.size
         else
@@ -2439,7 +2440,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2001-11-18 18:43:16  peter
+  Revision 1.28  2001-11-30 16:25:35  jonas
+    * fixed web bug 1707:
+       * tvarsym.getvaluesize doesn't return 0 anymore for dynarrays (found
+         by Florian)
+       * in genrtti, some more ppointer(data)^ tricks were necessary
+
+  Revision 1.27  2001/11/18 18:43:16  peter
     * overloading supported in child classes
     * fixed parsing of classes with private and virtual and overloaded
       so it is compatible with delphi

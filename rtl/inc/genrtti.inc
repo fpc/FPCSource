@@ -111,10 +111,10 @@ begin
       end;
 {$ifdef HASINTF}
     tkInterface:
-      Intf_Decr_Ref(Data);
+      Intf_Decr_Ref(PPointer(Data)^);
 {$endif HASINTF}
     tkDynArray:
-      fpc_dynarray_decr_ref(Data,TypeInfo);
+      fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
 {$ifdef HASVARIANT}
     tkVariant:
       variant_clear(Variant(PVarData(Data)^))
@@ -168,6 +168,12 @@ begin
         With PRecRec(Temp)^.elements[I] do
           int_AddRef (Data+Offset,Info);
       end;
+    tkDynArray:
+      fpc_dynarray_incr_ref(PPointer(Data)^,TypeInfo);
+{$ifdef HASINTF}
+    tkInterface:
+      Intf_Incr_Ref(PPointer(Data)^);
+{$endif HASINTF}
   end;
 end;
 {$endif}
@@ -215,10 +221,10 @@ begin
           fpc_DecRef (Data+Offset,Info);
       end;
     tkDynArray:
-      fpc_dynarray_decr_ref(Data,TypeInfo);
+      fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
 {$ifdef HASINTF}
     tkInterface:
-      Intf_Decr_Ref(Data);
+      Intf_Decr_Ref(PPointer(Data)^);
 {$endif HASINTF}
   end;
 end;
@@ -236,7 +242,13 @@ procedure fpc_FinalizeArray(data,typeinfo : pointer;count,size : longint); [Publ
 
 {
  $Log$
- Revision 1.9  2001-11-22 07:33:08  michael
+ Revision 1.10  2001-11-30 16:25:35  jonas
+   * fixed web bug 1707:
+      * tvarsym.getvaluesize doesn't return 0 anymore for dynarrays (found
+        by Florian)
+      * in genrtti, some more ppointer(data)^ tricks were necessary
+
+ Revision 1.9  2001/11/22 07:33:08  michael
   * Fixed memory corruption with finalize() of ansistring in a class
 
  Revision 1.8  2001/11/17 16:56:08  florian
