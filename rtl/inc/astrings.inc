@@ -182,19 +182,21 @@ Procedure fpc_AnsiStr_Concat (const S1,S2 : ansistring;var S3 : ansistring);[Pub
 Var
   Size,Location : Longint;
 begin
-{ only assign if s1 or s2 is empty }
+  { only assign if s1 or s2 is empty }
   if (S1='') then
     s3 := s2
-  else
-    if (S2='') then
-      s3 := s1
+  else if (S2='') then
+    s3 := s1
   else
     begin
        Size:=length(S2);
        Location:=Length(S1);
        SetLength (S3,Size+Location);
-       Move (S1[1],S3[1],Location);
-       Move (S2[1],S3[location+1],Size+1);
+       { the cast to a pointer avoids the unique call }
+       { and we don't need an unique call             }
+       { because of the SetLength S3 is unique        }
+       Move (S1[1],pointer(S3)^,Location);
+       Move (S2[1],pointer(pointer(S3)+location)^,Size+1);
     end;
 end;
 
@@ -798,7 +800,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  2001-08-30 15:43:15  jonas
+  Revision 1.22  2001-11-17 23:58:12  florian
+    * code of ansitr_concat improved
+
+  Revision 1.21  2001/08/30 15:43:15  jonas
     * converted adding/comparing of strings to compileproc. Note that due
       to the way the shortstring helpers for i386 are written, they are
       still handled by the old code (reason: fpc_shortstr_compare returns
