@@ -325,7 +325,7 @@ implementation
     { true if a function can be assigned to a procvar }
     function proc_to_procvar_equal(def1:pprocdef;def2:pprocvardef) : boolean;
       const
-        po_comp = po_compatibility_options-[po_methodpointer];
+        po_comp = po_compatibility_options-[po_methodpointer,po_classmethod];
       var
         ismethod : boolean;
       begin
@@ -1085,7 +1085,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2000-06-20 12:47:53  pierre
+  Revision 1.102  2000-06-30 22:12:26  peter
+    * fix for bug 988
+
+  Revision 1.101  2000/06/20 12:47:53  pierre
     * equal_paras and convertable_paras changed by transforming third parameter
       into an enum with three possible values:
       cp_none, cp_value_equal_const and cp_all.

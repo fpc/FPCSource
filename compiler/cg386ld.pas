@@ -300,7 +300,9 @@ implementation
                               begin
                                  hregister:=p^.left^.location.register;
                                  ungetregister32(p^.left^.location.register);
-                                 if not(pobjectdef(p^.left^.resulttype)^.is_class) then
+                                 if (p^.left^.resulttype^.deftype<>classrefdef) and
+                                    (p^.left^.resulttype^.deftype<>objectdef) and
+                                    not(pobjectdef(p^.left^.resulttype)^.is_class) then
                                    CGMessage(cg_e_illegal_expression);
                               end;
 
@@ -1000,7 +1002,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.108  2000-05-18 17:05:15  peter
+  Revision 1.109  2000-06-30 22:12:26  peter
+    * fix for bug 988
+
+  Revision 1.108  2000/05/18 17:05:15  peter
     * fixed size of const parameters in asm readers
 
   Revision 1.107  2000/05/14 18:50:35  florian
