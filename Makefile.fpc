@@ -300,11 +300,11 @@ ifeq ($(OS_TARGET),win32)
 endif
 # binos2 (emx.dll,emxwrap.dll,unzip32.dll,fp2.ico)
 ifeq ($(OS_TARGET),os2)
-        $(COPY) $(addprefix $(CVSINSTALL)/binos2/,*.ico *.exe *.dll *.h) $(INSTALL_BINDIR)
+        $(COPY) $(addprefix $(CVSINSTALL)/binos2/,*.ico *.dll) $(INSTALL_BINDIR)
 endif
 # binos2 (emx.dll,emxwrap.dll,unzip32.dll,fp2.ico)
 ifeq ($(OS_TARGET),emx)
-        $(COPY) $(addprefix $(CVSINSTALL)/binos2/,*.ico *.exe *.dll *.h) $(INSTALL_BINDIR)
+        $(COPY) $(addprefix $(CVSINSTALL)/binos2/,*.ico *.dll) $(INSTALL_BINDIR)
 endif
 # manpages for UNIX systems
 ifneq ($(findstring $(OS_TARGET),linux freebsd sunos qnx),)

@@ -2406,10 +2406,10 @@ ifeq ($(OS_TARGET),win32)
 	$(COPY) $(addprefix $(CVSINSTALL)/binw32/,*.ico *.exe *.dll *.h) $(INSTALL_BINDIR)
 endif
 ifeq ($(OS_TARGET),os2)
-	$(COPY) $(addprefix $(CVSINSTALL)/binos2/,*.ico *.exe *.dll *.h) $(INSTALL_BINDIR)
+	$(COPY) $(addprefix $(CVSINSTALL)/binos2/,*.ico *.dll) $(INSTALL_BINDIR)
 endif
 ifeq ($(OS_TARGET),emx)
-	$(COPY) $(addprefix $(CVSINSTALL)/binos2/,*.ico *.exe *.dll *.h) $(INSTALL_BINDIR)
+	$(COPY) $(addprefix $(CVSINSTALL)/binos2/,*.ico *.dll) $(INSTALL_BINDIR)
 endif
 ifneq ($(findstring $(OS_TARGET),linux freebsd sunos qnx),)
 	$(MAKE) -C $(CVSINSTALL)/man installman
