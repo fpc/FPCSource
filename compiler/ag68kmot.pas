@@ -57,6 +57,7 @@ unit ag68kmot;
       end;
 
 
+(* TO SUPPORT SOONER OR LATER!!!
     function comp2str(d : bestreal) : string;
       type
         pdouble = ^double;
@@ -71,7 +72,7 @@ unit ag68kmot;
       {$endif}
          dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
          comp2str:=double2str(dd^);
-      end;
+      end; *)
 
 
     function getreferencestring(const ref : treference) : string;
@@ -539,7 +540,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.11  1998-10-12 12:20:45  pierre
+  Revision 1.12  1998-10-14 15:56:41  pierre
+    * all references to comp suppressed for m68k
+
+  Revision 1.11  1998/10/12 12:20:45  pierre
     + added tai_const_symbol_offset
       for r : pointer = @var.field;
     * better message for different arg names on implementation

@@ -224,8 +224,11 @@ unit aasm;
        tai_comp = object(tai)
           value : bestreal;
           constructor init(_value : bestreal);
+{$ifdef i386}
           { usefull for 64 bits apps, maybe later  }
+          { comp is not defined on m68k processors !! }
           constructor init_comp(_value : comp);
+{$endif i386}
        end;
 
 
@@ -566,6 +569,7 @@ uses
          value:=_value;
       end;
 
+{$ifdef i386}
     constructor tai_comp.init_comp(_value : comp);
 
       begin
@@ -573,6 +577,7 @@ uses
          typ:=ait_comp;
          value:=_value;
       end;
+{$endif i386}
 
 {****************************************************************************
                                TAI_STRING
@@ -907,7 +912,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.22  1998-10-12 12:20:38  pierre
+  Revision 1.23  1998-10-14 15:56:37  pierre
+    * all references to comp suppressed for m68k
+
+  Revision 1.22  1998/10/12 12:20:38  pierre
     + added tai_const_symbol_offset
       for r : pointer = @var.field;
     * better message for different arg names on implementation

@@ -76,6 +76,7 @@ unit ag68kmit;
       end;
 
 
+(* TO SUPPORT SOONER OR LATER!!!
     function comp2str(d : bestreal) : string;
       type
         pdouble = ^double;
@@ -90,7 +91,7 @@ unit ag68kmit;
       {$endif}
          dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
          comp2str:=double2str(dd^);
-      end;
+      end; *)
 
 
     function getreferencestring(const ref : treference) : string;
@@ -430,9 +431,10 @@ unit ag68kmit;
                        AsmWriteLn(#9'.extend'#9+double2str(pai_extended(hp)^.value));
                      { comp type is difficult to write so use double }
                      end;
+{ TO SUPPORT SOONER OR LATER!!!
           ait_comp : Begin
                        AsmWriteLn(#9'.double'#9+comp2str(pai_extended(hp)^.value));
-                     end;
+                     end; }
         ait_direct : begin
                        AsmWritePChar(pai_direct(hp)^.str);
                        AsmLn;
@@ -656,7 +658,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.13  1998-10-12 12:20:44  pierre
+  Revision 1.14  1998-10-14 15:56:40  pierre
+    * all references to comp suppressed for m68k
+
+  Revision 1.13  1998/10/12 12:20:44  pierre
     + added tai_const_symbol_offset
       for r : pointer = @var.field;
     * better message for different arg names on implementation

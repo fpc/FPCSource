@@ -53,6 +53,7 @@ unit ag68kmpw;
       end;
 
 
+(* TO SUPPORT SOONER OR LATER!!!
     function comp2str(d : bestreal) : string;
       type
         pdouble = ^double;
@@ -67,7 +68,7 @@ unit ag68kmpw;
       {$endif}
          dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
          comp2str:=double2str(dd^);
-      end;
+      end; *)
 
     const
       line_length = 70;
@@ -578,7 +579,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.3  1998-10-12 12:20:47  pierre
+  Revision 1.4  1998-10-14 15:56:42  pierre
+    * all references to comp suppressed for m68k
+
+  Revision 1.3  1998/10/12 12:20:47  pierre
     + added tai_const_symbol_offset
       for r : pointer = @var.field;
     * better message for different arg names on implementation

@@ -65,6 +65,7 @@ type
     Procedure AsmLn;
     procedure AsmCreate;
     procedure AsmClose;
+    procedure Synchronize;
     procedure WriteTree(p:paasmoutput);virtual;
     procedure WriteAsmList;virtual;
   end;
@@ -364,6 +365,54 @@ begin
    end;
 end;
 
+   {Touch Assembler and object time to ppu time is there is a ppufilename}
+procedure TAsmList.Synchronize;
+var
+  f : file;
+  l : longint;
+begin
+{$ifdef linux}
+  if not DoPipe then
+{$endif linux}
+    begin
+   {Touch Assembler time to ppu time is there is a ppufilename}
+     if Assigned(current_module^.ppufilename) then
+      begin
+        Assign(f,current_module^.ppufilename^);
+        {$I-}
+         reset(f,1);
+        {$I+}
+        if ioresult=0 then
+         begin
+           getftime(f,l);
+           close(f);
+           assign(f,asmfile);
+        {$I-}
+           reset(f,1);
+        {$I+}
+           if ioresult=0 then
+            begin
+              setftime(f,l);
+              close(f);
+            end;
+           if not(cs_asm_extern in aktglobalswitches) then
+             begin
+               assign(f,objfile);
+            {$I-}
+               reset(f,1);
+            {$I+}
+               if ioresult=0 then
+                begin
+                  setftime(f,l);
+                  close(f);
+                end;
+              end;
+         end;
+      end;
+     close(outfile);
+    end;
+end;
+
 
 procedure TAsmList.WriteTree(p:paasmoutput);
 begin
@@ -459,6 +508,7 @@ begin
   a^.WriteAsmList;
   a^.AsmClose;
   a^.DoAssemble;
+  a^.synchronize;
   dispose(a,Done);
 end;
 
@@ -476,7 +526,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  1998-10-13 16:50:01  pierre
+  Revision 1.28  1998-10-14 15:56:43  pierre
+    * all references to comp suppressed for m68k
+
+  Revision 1.27  1998/10/13 16:50:01  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k

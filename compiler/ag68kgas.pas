@@ -76,7 +76,7 @@ unit ag68kgas;
          double2str:='0d'+hs
       end;
 
-
+(* TO SUPPORT SOONER OR LATER!!!
     function comp2str(d : bestreal) : string;
       type
         pdouble = ^double;
@@ -91,7 +91,7 @@ unit ag68kgas;
       {$endif}
          dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
          comp2str:=double2str(dd^);
-      end;
+      end; *)
 
 
     function getreferencestring(const ref : treference) : string;
@@ -418,9 +418,10 @@ unit ag68kgas;
                       AsmWriteLn(#9'.extend'#9+double2str(pai_extended(hp)^.value));
                      { comp type is difficult to write so use double }
                      end;
+{ TO SUPPORT SOONER OR LATER!!!
           ait_comp : Begin
                        AsmWriteLn(#9'.double'#9+comp2str(pai_extended(hp)^.value));
-                     end;
+                     end;   }
         ait_direct : begin
                        AsmWritePChar(pai_direct(hp)^.str);
                        AsmLn;
@@ -678,7 +679,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.17  1998-10-13 13:10:08  peter
+  Revision 1.18  1998-10-14 15:56:39  pierre
+    * all references to comp suppressed for m68k
+
+  Revision 1.17  1998/10/13 13:10:08  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.16  1998/10/12 12:27:44  pierre
