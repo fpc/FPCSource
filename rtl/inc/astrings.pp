@@ -114,7 +114,8 @@ begin
 end;
 
 
-Procedure Decr_Ansi_Ref (Var P : Pointer);[Alias : 'FPC_DECR_ANSI_REF'];
+Procedure Decr_Ansi_Ref (Var P : Pointer);
+  [Public,Alias : 'FPC_DECR_ANSI_REF'];
 {
  Decreases the ReferenceCount of a non constant ansistring;
  If the reference count is zero, deallocate the string;
@@ -140,7 +141,8 @@ Begin
     end
 end;
 
-Procedure Incr_Ansi_Ref (Var S : Pointer);[Alias : 'FPC_INCR_ANSI_REF'];
+Procedure Incr_Ansi_Ref (Var S : Pointer);
+  [Public,Alias : 'FPC_INCR_ANSI_REF'];
 
 Begin
   If S=Nil then
@@ -150,7 +152,8 @@ Begin
   Inc(PAnsiRec(S-FirstOff)^.Ref);
 end;
 
-Procedure UniqueAnsiString (Var S : Pointer);
+Procedure UniqueAnsiString (Var S : AnsiString);
+  [Public,Alias : 'FPC_UNIQUE_ANSISTRING'];
 {
   Make sure reference count of S is 1,
   using copy-on-write semantics.
@@ -171,7 +174,8 @@ begin
     end;
 end;
 
-Procedure AssignAnsiString (Var S1 : Pointer;S2 : Pointer); [Public, Alias : 'FPC_ASSIGN_ANSI_STRING'];
+Procedure AssignAnsiString (Var S1 : Pointer;S2 : Pointer);
+  [Public, Alias : 'FPC_ASSIGN_ANSI_STRING'];
 
 {
  Assigns S2 to S1 (S1:=S2), taking in account reference counts.
@@ -278,13 +282,14 @@ begin
 end;
 
 
-Function PChar2Ansi(p : pchar) : pointer;[Public,Alias : 'FPC_ANSI2PCHAR'];
+Procedure PChar2Ansi(var a : ansistring;p : pchar);[Public,Alias : 'FPC_PCHAR_TO_ANSISTRING'];
 
   begin
+     //!!!!!!!!! needs to be fixed (FK)
      if p^=#0
-       PChar2Ansi:=nil
+       a:=nil
      else
-
+       a:=p;
   end;
 
 { the compiler generates inline code for that
@@ -360,7 +365,7 @@ begin
 end;
 
 
-
+{ not used
 Procedure SetCharAtIndex (Var S : AnsiString; Index : Longint; C : CHar);
 
 begin
@@ -370,6 +375,7 @@ begin
     Pbyte(Pointer(S)+index-1)^:=Byte(C);
     end;
 end;
+}
 
 { ---------------------------------------------------------------------
    Public functions, In interface.
@@ -701,7 +707,12 @@ end;
 
 {
   $Log$
-  Revision 1.16  1998-09-20 17:49:08  florian
+  Revision 1.17  1998-09-27 22:44:50  florian
+    * small fixes
+    * made UniqueAnsistring public
+    * ...
+
+  Revision 1.16  1998/09/20 17:49:08  florian
     * some ansistring fixes
 
   Revision 1.15  1998/09/19 08:33:17  florian
