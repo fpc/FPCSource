@@ -318,7 +318,7 @@ implementation
               if regvarinfo^.regvars_para[i] then
                 begin
 {$ifdef i386}
-                  asml^.concat(new(pairegalloc,alloc(reg32(regvars[i]^.reg))));
+                  asml^.concat(new(pairegalloc,alloc(reg32(regvarinfo^.regvars[i]^.reg))));
 {$endif i386}
                   { procinfo is there actual,    }
                   { because we can't never be in a }
@@ -343,7 +343,8 @@ implementation
              if assigned(regvarinfo^.regvars[i]) then
                begin
 {$ifdef i386}
-                asml^.concat(new(pairegalloc,alloc(reg32(regvars[i]^.reg))));
+                if not(regvarinfo^.regvars_para[i]) then
+                  asml^.concat(new(pairegalloc,alloc(reg32(regvarinfo^.regvars[i]^.reg))));
 {$endif i386}
                 if cs_asm_source in aktglobalswitches then
                 asml^.insert(new(pai_asm_comment,init(strpnew(regvarinfo^.regvars[i]^.name+
@@ -418,10 +419,15 @@ implementation
       if (cs_regalloc in aktglobalswitches) and
          ((procinfo^.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
         with pregvarinfo(aktprocsym^.definition^.regvarinfo)^ do
-        for i:=1 to maxfpuvarregs do
-          if assigned(fpuregvars[i]) then
-            { ... and clean it up }
-            asml^.concat(new(paicpu,op_reg(A_FSTP,S_NO,R_ST0)));
+          begin
+            for i:=1 to maxfpuvarregs do
+              if assigned(fpuregvars[i]) then
+                { ... and clean it up }
+                asml^.concat(new(paicpu,op_reg(A_FSTP,S_NO,R_ST0)));
+            for i := 1 to maxvarregs do
+              if assigned(regvars[i]) then
+                asml^.concat(new(pairegalloc,dealloc(reg32(regvars[i]^.reg))));
+          end;
     {$endif i386}
     end;
 
@@ -429,7 +435,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-08-03 14:36:47  jonas
+  Revision 1.3  2000-08-04 05:52:00  jonas
+    * correct version (I also had a regvars.pp locally, which was used
+      instead of the regvars.pas on CVS, so I didn't notice the errors :( )
+
+  Revision 1.2  2000/08/03 14:36:47  jonas
     * fixed inserting of allocated register for regvars (only those for
       parameters were done, and sometimes even the wrong ones)
 
