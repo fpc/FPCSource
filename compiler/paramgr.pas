@@ -104,7 +104,7 @@ unit paramgr;
   implementation
 
     uses
-       cpuinfo,globals,globtype,
+       cpuinfo,globals,globtype,systems,
        symconst,symbase,symsym,
        rgobj,
        defbase,cgbase,cginfo,verbose;
@@ -161,8 +161,11 @@ unit paramgr;
              arraydef :
                push_addr_param:=(
                                  (tarraydef(def).highrange>=tarraydef(def).lowrange) and
-                                 (def.size>pointer_size) and
-                                 (not is_cdecl)
+                                  (
+                                   not(target_info.system=system_i386_win32) or
+                                   ((def.size>pointer_size) and
+                                    (not is_cdecl))
+                                  )
                                 ) or
                                 is_open_array(def) or
                                 is_array_of_const(def) or
@@ -328,14 +331,17 @@ unit paramgr;
       end;
 
 initialization
-  ;      
+  ;
 finalization
   paramanager.free;
 end.
 
 {
    $Log$
-   Revision 1.21  2002-10-05 12:43:25  carl
+   Revision 1.22  2002-11-16 18:00:04  peter
+     * only push small arrays on the stack for win32
+
+   Revision 1.21  2002/10/05 12:43:25  carl
      * fixes for Delphi 6 compilation
       (warning : Some features do not work under Delphi)
 
