@@ -117,6 +117,36 @@ begin
  LinuxError:=FpGetErrno;
 end;
 
+// needs oldfpccall;
+Function intAssignPipe(var pipe_in,pipe_out:longint;var errn:cint):cint; {$ifndef ver1_0} oldfpccall;{$endif} 
+{
+  Sets up a pair of file variables, which act as a pipe. The first one can
+  be read from, the second one can be written to.
+  If the operation was unsuccesful, linuxerror is set.
+}
+
+begin
+ asm
+   mov $42,%eax
+   int $0x80
+   jb .Lerror
+   mov pipe_in,%ebx
+   mov %eax,(%ebx)
+   mov pipe_out,%ebx
+   mov $0,%eax
+   mov %edx,(%ebx)
+   mov %eax,%ebx
+   jmp .Lexit
+.Lerror:
+   mov %eax,%ebx
+   mov $-1,%eax
+.Lexit:
+   mov Errn,%edx
+   mov %ebx,(%edx)
+ end;
+end;
+
+// can't have oldfpccall here, linux doesn't need it.
 Function AssignPipe(var pipe_in,pipe_out:longint):boolean; [public, alias : 'FPC_SYSC_ASSIGNPIPE'];
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
@@ -124,16 +154,14 @@ Function AssignPipe(var pipe_in,pipe_out:longint):boolean; [public, alias : 'FPC
   If the operation was unsuccesful, linuxerror is set.
 }
 var
-  pip  : tpipe;
-
+  ret  : longint;
+  errn : cint;
 begin
- do_syscall(syscall_nr_pipe,longint(@pip));
- LinuxError:=FpGetErrno;
- pipe_in:=pip[1];
- pipe_out:=pip[2];
+ ret:=intAssignPipe(pipe_in,pipe_out,errn);
+ fpseterrno(errn);
+ LinuxError:=Errn;
  AssignPipe:=(LinuxError=0);
 end;
-
 
 Function PClose(Var F:text) :longint;
 var
@@ -168,7 +196,8 @@ begin
   LinuxError:=FpGetErrno;
 end;
 
-function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; 
+function  intClone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifndef ver1_0} oldfpccall; {$endif}
+ 
 
 var lerrno : Longint;
     errset : Boolean;
@@ -209,12 +238,22 @@ asm
 end;
   If ErrSet Then
    fpSetErrno(LErrno);
-  Clone:=Res; 
+  intClone:=Res; 
+end;
+
+function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; 
+
+begin
+  Clone:=
+	intclone(tclonefunc(func),sp,flags,args);
 end;
 
 {
   $Log$
-  Revision 1.11  2003-09-20 12:38:29  marco
+  Revision 1.12  2003-11-09 12:00:16  marco
+   * pipe fix
+
+  Revision 1.11  2003/09/20 12:38:29  marco
    * FCL now compiles for FreeBSD with new 1.1. Now Linux.
 
   Revision 1.10  2003/09/15 20:08:49  marco
