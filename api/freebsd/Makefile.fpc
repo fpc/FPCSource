@@ -34,6 +34,8 @@ include $(INC)/Makefile.api
 
 [rules]
 
+terminfo$(PPUEXT): $(UNIXINC)/terminfo.pas
+
 video$(PPUEXT): $(INC)/video.pas $(UNIXINC)/video.inc 
 
 keyboard$(PPUEXT): $(INC)/keyboard.pas $(UNIXINC)/keyboard.inc
