@@ -81,6 +81,7 @@ type
       ST    : PAdvancedStaticText;
       KeyST : PColorStaticText;
       constructor Init;
+      destructor Done;virtual;
       procedure   Update;
     end;
 
@@ -514,6 +515,12 @@ begin
   Fillchar(Status,SizeOf(Status),#0);
 end;
 
+destructor TCompilerStatusDialog.Done;
+begin
+  if @Self=CompilerStatusDialog then
+    CompilerStatusDialog:=nil;
+  Inherited Done;
+end;
 
 procedure TCompilerStatusDialog.Update;
 var
@@ -860,6 +867,8 @@ begin
   CompilationPhase:=cpCompiling;
   New(CompilerStatusDialog, Init);
   CompilerStatusDialog^.SetState(sfModal,true);
+  { disable window closing }
+  CompilerStatusDialog^.Flags:=CompilerStatusDialog^.Flags and not wfclose;
   Application^.Insert(CompilerStatusDialog);
   CompilerStatusDialog^.Update;
 { hook compiler output }
@@ -1019,16 +1028,22 @@ begin
     else
       CompilationPhase:=cpFailed;
 { Show end status }
+  { reenable window closing }
+  CompilerStatusDialog^.Flags:=CompilerStatusDialog^.Flags or wfclose;
   CompilerStatusDialog^.Update;
+  CompilerStatusDialog^.ReDraw;
   CompilerStatusDialog^.SetState(sfModal,false);
   if ((CompilationPhase in[cpAborted,cpDone,cpFailed]) or (ShowStatusOnError)) and (Mode<>cRun) then
    repeat
      CompilerStatusDialog^.GetEvent(E);
      if IsExitEvent(E)=false then
       CompilerStatusDialog^.HandleEvent(E);
-   until IsExitEvent(E);
-  Application^.Delete(CompilerStatusDialog);
-  Dispose(CompilerStatusDialog, Done);
+   until IsExitEvent(E) or not assigned(CompilerStatusDialog);
+  if assigned(CompilerStatusDialog) then
+    begin
+      Application^.Delete(CompilerStatusDialog);
+      Dispose(CompilerStatusDialog, Done);
+    end;
   CompilerStatusDialog:=nil;
 { end compilation returns true if the messagewindow should be removed }
   if CompilationPhase=cpDone then
@@ -1233,7 +1248,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2001-09-12 09:25:01  pierre
+  Revision 1.4  2001-09-18 11:33:26  pierre
+   * fix bug 1604
+
+  Revision 1.3  2001/09/12 09:25:01  pierre
    * fix bug 1585
 
   Revision 1.2  2001/08/05 02:01:47  peter
