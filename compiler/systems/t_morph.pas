@@ -63,9 +63,10 @@ procedure TLinkerMorphOS.SetDefaultInfo;
 begin
   with Info do
    begin
-     if (cs_link_on_target in aktglobalswitches) then
-        ExeCmd[1]:='ld $OPT $STRIP -o $EXE --script $RES'
-     else
+     if (cs_link_on_target in aktglobalswitches) then begin
+        ExeCmd[1]:='ld $OPT -o $EXE --script $RES';
+        ExeCmd[2]:='strip --strip-unneeded --remove-section .comment $EXE';
+     end else
         ExeCmd[1]:='ld $OPT $STRIP -o $EXE $RES'
    end;
 end;
@@ -185,11 +186,8 @@ begin
 
 { Create some replacements }
   StripStr:='';
-  { FIXME!!! - Need to add proper stripping support with }
-  { separate strip command, to avoid stripping __abox__ symbol, }
-  { which is required to be present in current MorphOS executables! }
-{  if (cs_link_strip in aktglobalswitches) then
-   StripStr:='-s';}
+  if (cs_link_strip in aktglobalswitches) then
+    StripStr:='-s';
 
 { Write used files and libraries }
   WriteResponseFile(false);
@@ -204,6 +202,17 @@ begin
   Replace(cmdstr,'$RES',ScriptFixFileName(outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
   success:=DoExec(FindUtil(BinStr),cmdstr,true,false);
+
+{ Stripping Enabled? }
+  { Under MorphOS a separate strip command is needed, to avoid stripping } 
+  { __abox__ symbol, which is required to be present in current MorphOS }
+  { executables. }
+  if success and (cs_link_strip in aktglobalswitches) then
+    begin
+      SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
+      Replace(cmdstr,'$EXE',current_module.exefilename^);
+      success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+    end;
 
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
@@ -224,7 +233,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2004-04-28 15:19:03  florian
+  Revision 1.5  2004-06-07 23:44:37  karoly
+    + fixed stripping support
+
+  Revision 1.4  2004/04/28 15:19:03  florian
     + syscall directive support for MorphOS added
 
   Revision 1.3  2004/04/09 01:32:46  karoly
