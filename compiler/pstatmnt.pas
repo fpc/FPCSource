@@ -1229,7 +1229,12 @@ unit pstatmnt;
              if (token=_END) then
                 begin
                    consume(_END);
-                   block:=nil;
+                   { We need at least a node, else the entry/exit code is not
+                     generated and thus no PASCALMAIN symbol which we need (PFV) }
+                   if islibrary then
+                    block:=genzeronode(nothingn)
+                   else
+                    block:=nil;
                 end
               else
                 begin
@@ -1326,7 +1331,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.118  2000-01-07 01:14:31  peter
+  Revision 1.119  2000-01-12 10:30:50  peter
+    * fixed library with only end.
+
+  Revision 1.118  2000/01/07 01:14:31  peter
     * updated copyright to 2000
 
   Revision 1.117  1999/12/22 01:01:52  peter
