@@ -1281,7 +1281,7 @@ implementation
             gen_main_procsym(current_module.modulename^+'_main',potype_proginit,st);
             aktprocdef.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_main');
             { Win32 startup code needs a single name }
-            if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
+//            if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
               aktprocdef.aliasnames.insert('PASCALMAIN');
             { this code is called from C so we need to save some
               registers }
@@ -1444,7 +1444,10 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.97  2003-03-17 13:36:39  peter
+  Revision 1.98  2003-03-17 22:20:08  peter
+  *** empty log message ***
+
+  Revision 1.97  2003/03/17 13:36:39  peter
     * fix import linking under linux
 
   Revision 1.96  2003/02/19 22:00:14  daniel
