@@ -191,6 +191,37 @@ begin
 end;
 
 
+procedure AddStrNoDup(var s:string;const s2:string);
+var
+  i : longint;
+  add : boolean;
+begin
+  add:=false;
+  i:=pos(s2,s);
+  if (i=0) then
+   add:=true
+  else
+   if (i=1) then
+    begin
+      if (length(s)>length(s2)) and
+         (s[length(s2)+1]<>' ') then
+       add:=true;
+    end
+  else
+   if (i>1) and
+      ((s[i-1]<>' ') or
+       ((length(s)>=i+length(s2)) and (s[i+length(s2)]<>' '))) then
+    add:=true;
+  if add then
+   begin
+     if s='' then
+      s:=s2
+     else
+      s:=s+' '+s2;
+   end;
+end;
+
+
 {*****************************************************************************
                                   TMyMemoryStream
 *****************************************************************************}
@@ -572,8 +603,7 @@ var
            i:=length(hs)+1;
           mf.Add(prefix+Uppercase(Copy(hs,1,i-1))+'=1');
           { add to the list of dirs without duplicates }
-          if pos(Copy(hs,1,i-1),hs2)=0 then
-           hs2:=hs2+Copy(hs,1,i-1)+' ';
+          AddStrNoDup(hs2,Copy(hs,1,i-1));
           system.delete(hs,1,i);
         until hs='';
         if j<>0 then
@@ -941,7 +971,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  1999-11-26 00:20:15  peter
+  Revision 1.11  1999-12-02 11:30:24  peter
+    * better dup checking
+
+  Revision 1.10  1999/11/26 00:20:15  peter
     * fpcmake updated
 
   Revision 1.9  1999/11/25 20:23:01  peter
