@@ -602,6 +602,7 @@ interface
           procedure deref;override;
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
+          procedure changesettype(s:tsettype);
           { debug }
 {$ifdef GDB}
           function  stabstring : pchar;override;
@@ -2350,6 +2351,20 @@ implementation
          if settype=varset then
            ppufile.putlongint(savesize);
          ppufile.writeentry(ibsetdef);
+      end;
+
+
+    procedure tsetdef.changesettype(s:tsettype);
+      begin
+        case s of
+          smallset :
+            savesize:=sizeof(longint);
+          normset :
+            savesize:=32;
+          varset :
+            internalerror(200110201);
+        end;
+        settype:=s;
       end;
 
 
@@ -5420,7 +5435,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2001-10-15 13:16:26  jonas
+  Revision 1.53  2001-10-20 17:21:54  peter
+    * fixed size of constset when change from small to normalset
+
+  Revision 1.52  2001/10/15 13:16:26  jonas
     * better size checking of data (now an error is returned for
       "array[longint] of longint") ("merged")
 

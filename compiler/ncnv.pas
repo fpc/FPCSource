@@ -372,11 +372,8 @@ implementation
               tarrayconstructornode(p2).right:=nil;
               p2.free;
             end;
-          if (htype.def=nil) then
-            begin
-               htype:=u8bittype;
-               constsethi:=255;
-            end;
+           if (htype.def=nil) then
+            htype:=u8bittype;
          end
         else
          begin
@@ -785,8 +782,10 @@ implementation
                   begin
                     if (left.nodetype=setconstn) then
                       begin
-                        resulttype:=left.resulttype;
-                        tsetdef(resulttype.def).settype:=normset
+                        tsetdef(left.resulttype.def).changesettype(normset);
+                        result:=left;
+                        left:=nil;
+                        exit;
                       end
                      else
                       convtype:=tc_load_smallset;
@@ -1587,7 +1586,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2001-09-30 16:12:46  jonas
+  Revision 1.40  2001-10-20 17:21:54  peter
+    * fixed size of constset when change from small to normalset
+
+  Revision 1.39  2001/09/30 16:12:46  jonas
     - removed unnecessary i386 pass_2 of as- and isnode and added dummy generic ones
 
   Revision 1.38  2001/09/29 21:32:46  jonas
