@@ -2161,12 +2161,14 @@ type
          else
          { not a procedure variable }
            begin
+	      if procdefinition.deftype<>procdef then
+	        internalerror(200411071);
               { calc the correture value for the register }
               { handle predefined procedures }
               if (procdefinition.proccalloption=pocall_inline) then
                 begin
                    { inherit flags }
-                   current_procinfo.flags := current_procinfo.flags + ((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
+                   current_procinfo.flags := current_procinfo.flags + (tprocdef(procdefinition).inlininginfo^.flags*inherited_inlining_flags);
 
                    if assigned(methodpointer) then
                      CGMessage(cg_e_unable_inline_object_methods);
@@ -2413,7 +2415,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.258  2004-11-08 22:09:58  peter
+  Revision 1.259  2004-11-09 17:26:47  peter
+    * fixed wrong typecasts
+
+  Revision 1.258  2004/11/08 22:09:58  peter
     * tvarsym splitted
 
   Revision 1.257  2004/11/02 12:55:16  peter

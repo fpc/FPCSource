@@ -2084,7 +2084,7 @@ implementation
            (po_assembler in pd.procoptions) then
           exit;
         { for localloc <> LOC_REFERENCE, we need regvar support inside inlined procedures }
-        with tlocalvarsym(pd.funcretsym) do
+        with tabstractnormalvarsym(pd.funcretsym) do
           begin
             localloc.loc:=LOC_REFERENCE;
             localloc.size:=int_cgsize(paramanager.push_size(varspez,vartype.def,pocall_inline));
@@ -2212,7 +2212,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.238  2004-11-08 22:09:59  peter
+  Revision 1.239  2004-11-09 17:26:47  peter
+    * fixed wrong typecasts
+
+  Revision 1.238  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.237  2004/11/08 20:23:29  florian

@@ -502,7 +502,7 @@ implementation
                       if assigned(defaultvalue) then
                         begin
                           include(defaultvalue.symoptions,sp_internal);
-                          tprocdef(pd).parast.insert(defaultvalue);
+                          pd.parast.insert(defaultvalue);
                         end;
                       defaultrequired:=true;
                     end
@@ -574,6 +574,7 @@ implementation
       var
         orgsp,sp : stringid;
         sym : tsym;
+	srsym : tsym;
         srsymtable : tsymtable;
         storepos,
         procstartfilepos : tfileposinfo;
@@ -697,10 +698,10 @@ implementation
            repeat
              searchagain:=false;
              akttokenpos:=procstartfilepos;
-             aprocsym:=tprocsym(symtablestack.search(sp));
+             srsym:=tsym(symtablestack.search(sp));
 
              if not(parse_only) and
-                not assigned(aprocsym) and
+                not assigned(srsym) and
                 (symtablestack.symtabletype=staticsymtable) and
                 assigned(symtablestack.next) and
                 (symtablestack.next.unitid=0) then
@@ -712,33 +713,35 @@ implementation
 
                    We need to find out if the procedure is global. If it is
                    global, it is in the global symtable.}
-                 aprocsym:=tprocsym(symtablestack.next.search(sp));
+                 srsym:=tsym(symtablestack.next.search(sp));
                end;
 
              { Check if overloaded is a procsym }
-             if assigned(aprocsym) and
-                (aprocsym.typ<>procsym) then
-              begin
-                { when the other symbol is a unit symbol then hide the unit
-                  symbol }
-                if (aprocsym.typ=unitsym) then
-                 begin
-                   aprocsym.owner.rename(aprocsym.name,'hidden'+aprocsym.name);
-                   searchagain:=true;
-                 end
-                else
-                 begin
-                   {  we use a different error message for tp7 so it looks more compatible }
-                   if (m_fpc in aktmodeswitches) then
-                    Message1(parser_e_overloaded_no_procedure,aprocsym.realname)
-                   else
-                    tstoredsymtable(symtablestack).DuplicateSym(nil,aprocsym);
-                   { rename the name to an unique name to avoid an
-                     error when inserting the symbol in the symtable }
-                   orgsp:=orgsp+'$'+tostr(aktfilepos.line);
-                   { generate a new aktprocsym }
-                   aprocsym:=nil;
-                 end;
+             if assigned(srsym) then
+	       begin
+	         if srsym.typ=procsym then
+		   aprocsym:=tprocsym(srsym)
+		 else
+                   begin
+                     { when the other symbol is a unit symbol then hide the unit
+                       symbol }
+                     if (srsym.typ=unitsym) then
+                      begin
+                        srsym.owner.rename(srsym.name,'hidden'+srsym.name);
+                        searchagain:=true;
+                      end
+                     else
+                      begin
+                        {  we use a different error message for tp7 so it looks more compatible }
+                        if (m_fpc in aktmodeswitches) then
+                         Message1(parser_e_overloaded_no_procedure,srsym.realname)
+                        else
+                         tstoredsymtable(symtablestack).DuplicateSym(nil,srsym);
+                        { rename the name to an unique name to avoid an
+                          error when inserting the symbol in the symtable }
+                        orgsp:=orgsp+'$'+tostr(aktfilepos.line);
+                      end;
+ 	           end;
               end;
            until not searchagain;
          end;
@@ -2263,7 +2266,10 @@ const
 end.
 {
   $Log$
-  Revision 1.200  2004-11-08 22:09:59  peter
+  Revision 1.201  2004-11-09 17:26:47  peter
+    * fixed wrong typecasts
+
+  Revision 1.200  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.199  2004/11/05 21:16:55  peter

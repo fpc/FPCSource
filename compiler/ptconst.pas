@@ -427,7 +427,7 @@ implementation
                                else
                                  Message(parser_e_illegal_expression);
                              end;
-                             hp:=tbinarynode(hp).left;
+                             hp:=tunarynode(hp).left;
                           end;
                         srsym:=tloadnode(hp).symtableentry;
                         case srsym.typ of
@@ -1089,7 +1089,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2004-11-08 22:09:59  peter
+  Revision 1.96  2004-11-09 17:26:47  peter
+    * fixed wrong typecasts
+
+  Revision 1.95  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.94  2004/11/01 23:30:11  peter

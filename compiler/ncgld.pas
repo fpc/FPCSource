@@ -364,7 +364,7 @@ implementation
                end;
             labelsym :
                begin
-                  location.reference.symbol:=objectlibrary.newasmsymbol(ttypedconstsym(symtableentry).mangledname,AB_EXTERNAL,AT_FUNCTION);
+                  location.reference.symbol:=objectlibrary.newasmsymbol(tlabelsym(symtableentry).mangledname,AB_EXTERNAL,AT_FUNCTION);
                end;
             else internalerror(4);
          end;
@@ -957,7 +957,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.131  2004-11-08 22:09:59  peter
+  Revision 1.132  2004-11-09 17:26:47  peter
+    * fixed wrong typecasts
+
+  Revision 1.131  2004/11/08 22:09:59  peter
     * tvarsym splitted
 
   Revision 1.130  2004/11/01 15:32:12  peter
