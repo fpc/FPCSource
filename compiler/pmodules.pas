@@ -809,7 +809,7 @@ implementation
          pu     : tused_unit;
 {$endif GDB}
          store_crc,store_interface_crc : cardinal;
-         s2  : ^string; {Saves stack space}
+         s1,s2  : ^string; {Saves stack space}
          force_init_final : boolean;
          pd : tprocdef;
       begin
@@ -824,6 +824,8 @@ implementation
              while assigned(main_file.next) do
                main_file := main_file.next;
 
+             new(s1);
+             s1^:=current_module.modulename^;
              current_module.SetFileName(main_file.path^+main_file.name^,true);
              current_module.SetModuleName(orgpattern);
 
@@ -831,13 +833,25 @@ implementation
              new(s2);
              s2^:=upper(SplitName(main_file.name^));
              if (cs_check_unit_name in aktglobalswitches) and
-                not((current_module.modulename^=s2^) or
-                    ((length(current_module.modulename^)>8) and
-                     (copy(current_module.modulename^,1,8)=s2^))) then
+                (
+                 not(
+                     (current_module.modulename^=s2^) or
+                     (
+                      (length(current_module.modulename^)>8) and
+                      (copy(current_module.modulename^,1,8)=s2^)
+                     )
+                    )
+                 or
+                 (
+                  (length(s1^)>8) and
+                  (s1^<>current_module.modulename^)
+                 )
+                ) then
               Message1(unit_e_illegal_unit_name,current_module.realmodulename^);
              if (current_module.modulename^='SYSTEM') then
               include(aktmoduleswitches,cs_compilesystem);
              dispose(s2);
+             dispose(s1);
           end;
 
          consume(_ID);
@@ -1425,7 +1439,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.134  2003-12-08 22:33:43  peter
+  Revision 1.135  2003-12-12 19:42:21  peter
+    * check unit name when expected unitname > 8 chars
+
+  Revision 1.134  2003/12/08 22:33:43  peter
     * don't allow duplicate uses
     * fix wrong circular dependency
 
