@@ -466,6 +466,7 @@ var
   Element: TDOMElement;
   i: Integer;
 begin
+  // WriteLn('Start: ', LocalName, '. Node buffer before: ', FNodeBuffer.Count, ' elements');
   Element := FDocument.CreateElement(LocalName);
   if Assigned(Attr) then
   begin
@@ -481,8 +482,9 @@ begin
   NodeInfo.NodeType := ntTag;
   NodeInfo.DOMNode := Element;
   if not Assigned(FDocument.DocumentElement) then
-    FDocument.AppendChild(NodeInfo.DOMNode);
+    FDocument.AppendChild(Element);
   FNodeBuffer.Add(NodeInfo);
+  // WriteLn('Start: ', LocalName, '. Node buffer after: ', FNodeBuffer.Count, ' elements');
 end;
 
 procedure THTMLToDOMConverter.ReaderEndElement(Sender: TObject;
@@ -491,9 +493,8 @@ var
   NodeInfo, NodeInfo2: THTMLNodeInfo;
   i, j: Integer;
   TagInfo: PHTMLElementProps;
-  IsFirst: Boolean;
 begin
-  // WriteLn('End: ', LocalName);
+  // WriteLn('End: ', LocalName, '. Node buffer: ', FNodeBuffer.Count, ' elements');
   // Find the matching start tag
   i := FNodeBuffer.Count - 1;
   while i >= 0 do
@@ -513,7 +514,6 @@ begin
 	end;
 
       Inc(i);
-      IsFirst := True;
       while i < FNodeBuffer.Count do
       begin
         NodeInfo2 := THTMLNodeInfo(FNodeBuffer.Items[i]);
@@ -529,11 +529,12 @@ begin
 	    // Character data allowed, so normalize it
 	    NodeInfo2.DOMNode.NodeValue := ' ';
             NodeInfo.DOMNode.AppendChild(NodeInfo2.DOMNode)
-	  end;
+	  end
+	else
+	  NodeInfo.DOMNode.AppendChild(NodeInfo2.DOMNode);
 
 	NodeInfo2.Free;
 	FNodeBuffer.Delete(i);
-	IsFirst := False;
       end;
       break;
     end;
@@ -547,7 +548,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-12-12 20:17:32  sg
+  Revision 1.4  2002-12-14 19:18:21  sg
+  * Improved whitespace handling (although it's still not perfect in all
+    cases)
+
+  Revision 1.3  2002/12/12 20:17:32  sg
   * More WideString fixes
 
   Revision 1.2  2002/12/12 13:43:38  michael
