@@ -333,8 +333,8 @@ interface
 
        { Generates a long integer (32 bit) }
        tai_const = class(tai)
-          value : longint;
-          constructor Create_32bit(_value : longint);
+          value : cardinal;
+          constructor Create_32bit(_value : cardinal);
           constructor Create_16bit(_value : word);
           constructor Create_8bit(_value : byte);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
@@ -881,7 +881,7 @@ implementation
                                TAI_CONST
  ****************************************************************************}
 
-    constructor tai_const.Create_32bit(_value : longint);
+    constructor tai_const.Create_32bit(_value : cardinal);
 
       begin
          inherited Create;
@@ -2188,7 +2188,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2003-12-06 22:16:12  jonas
+  Revision 1.59  2003-12-08 22:34:24  peter
+    * tai_const.create_32bit changed to cardinal
+
+  Revision 1.58  2003/12/06 22:16:12  jonas
     * completely overhauled and fixed generic spilling code. New method:
       spilling_get_operation_type(operand_number): returns the operation
       performed by the instruction on the operand: read/write/read+write.

@@ -1147,7 +1147,7 @@ implementation
           if (cs_create_smart in aktmoduleswitches) then
             dataSegment.concat(Tai_cut.Create);
           dataSegment.concat(Tai_symbol.Createname_global(make_mangledname('IID',_class.owner,_class.objname^),0));
-          dataSegment.concat(Tai_const.Create_32bit(longint(_class.iidguid^.D1)));
+          dataSegment.concat(Tai_const.Create_32bit(_class.iidguid^.D1));
           dataSegment.concat(Tai_const.Create_16bit(_class.iidguid^.D2));
           dataSegment.concat(Tai_const.Create_16bit(_class.iidguid^.D3));
           for i:=Low(_class.iidguid^.D4) to High(_class.iidguid^.D4) do
@@ -1265,7 +1265,7 @@ implementation
          { determine the size with symtable.datasize, because }
          { size gives back 4 for classes                    }
          dataSegment.concat(Tai_const.Create_32bit(tobjectsymtable(_class.symtable).datasize));
-         dataSegment.concat(Tai_const.Create_32bit(-tobjectsymtable(_class.symtable).datasize));
+         dataSegment.concat(Tai_const.Create_32bit(Cardinal(-tobjectsymtable(_class.symtable).datasize)));
 {$ifdef WITHDMT}
          if _class.classtype=ct_object then
            begin
@@ -1370,7 +1370,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.56  2003-11-28 17:24:22  peter
+  Revision 1.57  2003-12-08 22:34:24  peter
+    * tai_const.create_32bit changed to cardinal
+
+  Revision 1.56  2003/11/28 17:24:22  peter
     * reversed offset calculation for caller side so it works
       correctly for interfaces
 

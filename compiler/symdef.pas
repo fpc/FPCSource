@@ -1713,8 +1713,8 @@ implementation
             4:
               rttiList.concat(Tai_const.Create_8bit(otULong));
          end;
-         rttiList.concat(Tai_const.Create_32bit(min));
-         rttiList.concat(Tai_const.Create_32bit(max));
+         rttiList.concat(Tai_const.Create_32bit(Cardinal(min)));
+         rttiList.concat(Tai_const.Create_32bit(Cardinal(max)));
          if assigned(basedef) then
            rttiList.concat(Tai_const_symbol.Create(basedef.get_rtti_label(rt)))
          else
@@ -1886,8 +1886,8 @@ implementation
         begin
           write_rtti_name;
           rttiList.concat(Tai_const.Create_8bit(byte(trans[typ])));
-          rttiList.concat(Tai_const.Create_32bit(longint(low)));
-          rttiList.concat(Tai_const.Create_32bit(longint(high)));
+          rttiList.concat(Tai_const.Create_32bit(Cardinal(low)));
+          rttiList.concat(Tai_const.Create_32bit(Cardinal(high)));
         end;
 
       begin
@@ -1900,19 +1900,19 @@ implementation
                 begin
                   { low }
                   rttiList.concat(Tai_const.Create_32bit($0));
-                  rttiList.concat(Tai_const.Create_32bit(longint($80000000)));
+                  rttiList.concat(Tai_const.Create_32bit(cardinal($80000000)));
                   { high }
-                  rttiList.concat(Tai_const.Create_32bit(longint($ffffffff)));
-                  rttiList.concat(Tai_const.Create_32bit($7fffffff));
+                  rttiList.concat(Tai_const.Create_32bit(cardinal($ffffffff)));
+                  rttiList.concat(Tai_const.Create_32bit(cardinal($7fffffff)));
                 end
               else
                 begin
                   { low }
-                  rttiList.concat(Tai_const.Create_32bit(longint($80000000)));
+                  rttiList.concat(Tai_const.Create_32bit(cardinal($80000000)));
                   rttiList.concat(Tai_const.Create_32bit($0));
                   { high }
-                  rttiList.concat(Tai_const.Create_32bit($7fffffff));
-                  rttiList.concat(Tai_const.Create_32bit(longint($ffffffff)));
+                  rttiList.concat(Tai_const.Create_32bit(cardinal($7fffffff)));
+                  rttiList.concat(Tai_const.Create_32bit(cardinal($ffffffff)));
                 end;
             end;
           u64bit :
@@ -1923,8 +1923,8 @@ implementation
               rttiList.concat(Tai_const.Create_32bit($0));
               rttiList.concat(Tai_const.Create_32bit($0));
               { high }
-              rttiList.concat(Tai_const.Create_32bit(longint($ffffffff)));
-              rttiList.concat(Tai_const.Create_32bit(longint($ffffffff)));
+              rttiList.concat(Tai_const.Create_32bit(cardinal($ffffffff)));
+              rttiList.concat(Tai_const.Create_32bit(cardinal($ffffffff)));
             end;
           bool8bit:
             begin
@@ -6117,7 +6117,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.190  2003-11-10 22:02:52  peter
+  Revision 1.191  2003-12-08 22:34:24  peter
+    * tai_const.create_32bit changed to cardinal
+
+  Revision 1.190  2003/11/10 22:02:52  peter
     * cross unit inlining fixed
 
   Revision 1.189  2003/11/08 23:31:27  florian

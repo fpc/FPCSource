@@ -187,13 +187,13 @@ implementation
                            begin
                               if target_info.endian = endian_little then
                                 begin
-                                  curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value and $ffffffff));
-                                  curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value shr 32));
+                                  curconstSegment.concat(Tai_const.Create_32bit(Cardinal(tordconstnode(p).value and $ffffffff)));
+                                  curconstSegment.concat(Tai_const.Create_32bit(Cardinal(tordconstnode(p).value shr 32)));
                                 end
                               else
                                 begin
-                                  curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value shr 32));
-                                  curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value  and $ffffffff));
+                                  curconstSegment.concat(Tai_const.Create_32bit(Cardinal(tordconstnode(p).value shr 32)));
+                                  curconstSegment.concat(Tai_const.Create_32bit(Cardinal(tordconstnode(p).value and $ffffffff)));
                                 end;
                            end
                          else
@@ -281,9 +281,10 @@ implementation
                    p:=hp;
                 end;
               { const pointer ? }
+{$warning 32bit pointer assumption}
               if (p.nodetype = pointerconstn) then
                 curconstsegment.concat(Tai_const.Create_32bit(
-                  tpointerconstnode(p).value))
+                  Cardinal(tpointerconstnode(p).value)))
               { nil pointer ? }
               else if p.nodetype=niln then
                 curconstSegment.concat(Tai_const.Create_32bit(0))
@@ -489,9 +490,9 @@ implementation
                      is_subequal(p.resulttype.def,t.def) then
                    begin
                      case p.resulttype.def.size of
-                       1 : curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value));
-                       2 : curconstSegment.concat(Tai_const.Create_16bit(tordconstnode(p).value));
-                       4 : curconstSegment.concat(Tai_const.Create_32bit(tordconstnode(p).value));
+                       1 : curconstSegment.concat(Tai_const.Create_8bit(Byte(tordconstnode(p).value)));
+                       2 : curconstSegment.concat(Tai_const.Create_16bit(Word(tordconstnode(p).value)));
+                       4 : curconstSegment.concat(Tai_const.Create_32bit(Cardinal(tordconstnode(p).value)));
                      end;
                    end
                   else
@@ -576,7 +577,7 @@ implementation
                             Consts.concat(Tai_const.Create_32bit(strlength));
                             { redondent with maxlength but who knows ... (PM) }
                             { third write use count (set to -1 for safety ) }
-                            Consts.concat(Tai_const.Create_32bit(-1));
+                            Consts.concat(Tai_const.Create_32bit(Cardinal(-1)));
                             Consts.concat(Tai_label.Create(ll));
                             getmem(ca,strlength+2);
                             move(strval^,ca^,strlength);
@@ -601,7 +602,7 @@ implementation
                             Consts.concat(tai_align.create(const_align(pointer_size)));
                             Consts.concat(Tai_const.Create_32bit(strlength));
                             Consts.concat(Tai_const.Create_32bit(strlength));
-                            Consts.concat(Tai_const.Create_32bit(-1));
+                            Consts.concat(Tai_const.Create_32bit(Cardinal(-1)));
                             Consts.concat(Tai_label.Create(ll));
                             for i:=0 to strlength-1 do
                               Consts.concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));
@@ -1001,7 +1002,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2003-11-22 00:32:35  jonas
+  Revision 1.76  2003-12-08 22:34:24  peter
+    * tai_const.create_32bit changed to cardinal
+
+  Revision 1.75  2003/11/22 00:32:35  jonas
     * fixed reversed "got <type 1>, expected <type 1>" error message
 
   Revision 1.74  2003/11/12 16:05:39  florian

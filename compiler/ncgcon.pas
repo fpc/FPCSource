@@ -343,7 +343,7 @@ implementation
                                 Consts.concat(Tai_const_symbol.Create(l1));
                                 Consts.concat(Tai_const.Create_32bit(len));
                                 Consts.concat(Tai_const.Create_32bit(len));
-                                Consts.concat(Tai_const.Create_32bit(-1));
+                                Consts.concat(Tai_const.Create_32bit(Cardinal(-1)));
                                 Consts.concat(Tai_label.Create(l1));
                                 getmem(pc,len+2);
                                 move(value_str^,pc^,len);
@@ -372,7 +372,7 @@ implementation
                                 { Consts.concat(Tai_const.Create_8bit(2)); }
                                 Consts.concat(Tai_const.Create_32bit(len));
                                 Consts.concat(Tai_const.Create_32bit(len));
-                                Consts.concat(Tai_const.Create_32bit(-1));
+                                Consts.concat(Tai_const.Create_32bit(Cardinal(-1)));
                                 Consts.concat(Tai_label.Create(l1));
                                 for i:=0 to len-1 do
                                   Consts.concat(Tai_const.Create_16bit(pcompilerwidestring(value_str)^.data[i]));
@@ -559,7 +559,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2003-10-26 13:37:22  florian
+  Revision 1.34  2003-12-08 22:34:24  peter
+    * tai_const.create_32bit changed to cardinal
+
+  Revision 1.33  2003/10/26 13:37:22  florian
     * fixed web bug 2128
 
   Revision 1.32  2003/10/10 17:48:13  peter

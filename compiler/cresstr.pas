@@ -34,8 +34,8 @@ Type
   TResourceStringItem = class(TLinkedListItem)
     Name  : String;
     Value : Pchar;
-    Len,
-    hash  : longint;
+    Len   : Longint;
+    hash  : Cardinal;
     constructor Create(const AName:string;AValue:pchar;ALen:longint);
     destructor  Destroy;override;
     procedure CalcHash;
@@ -98,7 +98,8 @@ end;
 
 procedure TResourceStringItem.CalcHash;
 Var
-  g,I : longint;
+  g : Cardinal;
+  I : longint;
 begin
   hash:=0;
   For I:=0 to Len-1 do { 0 terminated }
@@ -161,7 +162,7 @@ procedure TResourceStrings.CreateResourceStringList;
             consts.concat(tai_align.Create(const_align(pointer_size)));
             consts.concat(tai_const.create_32bit(len));
             consts.concat(tai_const.create_32bit(len));
-            consts.concat(tai_const.create_32bit(-1));
+            consts.concat(tai_const.create_32bit(cardinal(-1)));
             consts.concat(tai_label.create(l1));
             getmem(s,len+1);
             move(Value^,s^,len);
@@ -179,7 +180,7 @@ procedure TResourceStrings.CreateResourceStringList;
        consts.concat(tai_align.Create(const_align(pointer_size)));
        consts.concat(tai_const.create_32bit(l));
        consts.concat(tai_const.create_32bit(l));
-       consts.concat(tai_const.create_32bit(-1));
+       consts.concat(tai_const.create_32bit(cardinal(-1)));
        consts.concat(tai_label.create(l1));
        getmem(s,l+1);
        move(Name[1],s^,l);
@@ -299,7 +300,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2003-10-29 19:48:50  peter
+  Revision 1.19  2003-12-08 22:34:24  peter
+    * tai_const.create_32bit changed to cardinal
+
+  Revision 1.18  2003/10/29 19:48:50  peter
     * renamed mangeldname_prefix to make_mangledname and made it more
       generic
     * make_mangledname is now also used for internal threadvar/resstring
