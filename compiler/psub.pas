@@ -669,10 +669,25 @@ begin
 end;
 
 
+procedure resetvaluepara(p:pnamedindexobject);{$ifndef FPC}far;{$endif}
+var
+  vs : pvarsym;
+  s  : string;
+begin
+  if psym(p)^.typ=varsym then
+    with pvarsym(p)^ do
+       if copy(name,1,3)='val' then
+          aktprocsym^.definition^.parast^.symsearch^.rename(name,copy(name,4,length(name)));
+end;
+
 procedure pd_cdecl(const procnames:Tstringcontainer);
 begin
   if aktprocsym^.definition^.deftype<>procvardef then
     aktprocsym^.definition^.setmangledname(target_os.Cprefix+realname);
+  { do not copy on local !! }
+  if (aktprocsym^.definition^.deftype=procdef) and
+     assigned(aktprocsym^.definition^.parast) then
+    aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}resetvaluepara);
 end;
 
 
@@ -1999,7 +2014,10 @@ end.
 
 {
   $Log$
-  Revision 1.55  2000-03-27 11:57:22  pierre
+  Revision 1.56  2000-03-31 22:56:47  pierre
+    * fix the handling of value parameters in cdecl function
+
+  Revision 1.55  2000/03/27 11:57:22  pierre
    * fix for bug 890
 
   Revision 1.54  2000/03/23 22:17:51  pierre

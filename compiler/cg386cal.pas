@@ -32,7 +32,7 @@ interface
       symtable,tree;
 
     procedure secondcallparan(var p : ptree;defcoll : pparaitem;
-                push_from_left_to_right,inlined : boolean;para_alignment,para_offset : longint);
+                push_from_left_to_right,inlined,is_cdecl : boolean;para_alignment,para_offset : longint);
     procedure secondcalln(var p : ptree);
     procedure secondprocinline(var p : ptree);
 
@@ -55,7 +55,7 @@ implementation
 *****************************************************************************}
 
     procedure secondcallparan(var p : ptree;defcoll : pparaitem;
-                push_from_left_to_right,inlined : boolean;para_alignment,para_offset : longint);
+                push_from_left_to_right,inlined,is_cdecl : boolean;para_alignment,para_offset : longint);
 
       procedure maybe_push_high;
         begin
@@ -68,7 +68,7 @@ implementation
                 begin
                   secondpass(p^.hightree);
                   { this is a longint anyway ! }
-                  push_value_para(p^.hightree,inlined,para_offset,4);
+                  push_value_para(p^.hightree,inlined,false,para_offset,4);
                 end
                else
                 internalerror(432645);
@@ -88,7 +88,7 @@ implementation
          { push from left to right if specified }
          if push_from_left_to_right and assigned(p^.right) then
            secondcallparan(p^.right,pparaitem(defcoll^.next),push_from_left_to_right,
-             inlined,para_alignment,para_offset);
+             inlined,is_cdecl,para_alignment,para_offset);
          otlabel:=truelabel;
          oflabel:=falselabel;
          getlabel(truelabel);
@@ -175,9 +175,10 @@ implementation
               { open array must always push the address, this is needed to
                 also push addr of small arrays (PFV) }
 
-              if (assigned(defcoll^.paratype.def) and
+              if ((assigned(defcoll^.paratype.def) and
                   is_open_array(defcoll^.paratype.def)) or
-                 push_addr_param(p^.resulttype) then
+                 push_addr_param(p^.resulttype)) and
+                 not is_cdecl then
                 begin
                    maybe_push_high;
                    inc(pushedparasize,4);
@@ -200,7 +201,8 @@ implementation
                 end
               else
                 begin
-                   push_value_para(p^.left,inlined,para_offset,para_alignment);
+                   push_value_para(p^.left,inlined,is_cdecl,
+                     para_offset,para_alignment);
                 end;
            end;
          truelabel:=otlabel;
@@ -208,7 +210,7 @@ implementation
          { push from right to left }
          if not push_from_left_to_right and assigned(p^.right) then
            secondcallparan(p^.right,pparaitem(defcoll^.next),push_from_left_to_right,
-             inlined,para_alignment,para_offset);
+             inlined,is_cdecl,para_alignment,para_offset);
       end;
 
 
@@ -405,12 +407,14 @@ implementation
                 para_offset:=0;
               if assigned(p^.right) then
                 secondcallparan(p^.left,pparaitem(pabstractprocdef(p^.right^.resulttype)^.para^.first),
-                  (pocall_leftright in p^.procdefinition^.proccalloptions),
-                  inlined,para_alignment,para_offset)
+                  (pocall_leftright in p^.procdefinition^.proccalloptions),inlined,
+                  (pocall_cdecl in p^.procdefinition^.proccalloptions),
+                  para_alignment,para_offset)
               else
                 secondcallparan(p^.left,pparaitem(p^.procdefinition^.para^.first),
-                  (pocall_leftright in p^.procdefinition^.proccalloptions),
-                  inlined,para_alignment,para_offset);
+                  (pocall_leftright in p^.procdefinition^.proccalloptions),inlined,
+                  (pocall_cdecl in p^.procdefinition^.proccalloptions),
+                  para_alignment,para_offset);
            end;
          params:=p^.left;
          p^.left:=nil;
@@ -1409,7 +1413,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.129  2000-03-19 08:17:36  peter
+  Revision 1.130  2000-03-31 22:56:45  pierre
+    * fix the handling of value parameters in cdecl function
+
+  Revision 1.129  2000/03/19 08:17:36  peter
     * tp7 fix
 
   Revision 1.128  2000/03/16 15:18:13  pierre

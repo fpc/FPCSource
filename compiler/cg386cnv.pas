@@ -59,7 +59,7 @@ implementation
            hightree:=genloadnode(pvarsym(srsym),p^.symtable);
            firstpass(hightree);
            secondpass(hightree);
-           push_value_para(hightree,false,0,4);
+           push_value_para(hightree,false,false,0,4);
            disposetree(hightree);
          end
         else
@@ -1536,7 +1536,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.103  2000-02-19 10:12:47  florian
+  Revision 1.104  2000-03-31 22:56:45  pierre
+    * fix the handling of value parameters in cdecl function
+
+  Revision 1.103  2000/02/19 10:12:47  florian
     * fixed one more internalerror 10
 
   Revision 1.102  2000/02/09 13:22:46  peter

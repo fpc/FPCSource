@@ -338,7 +338,7 @@ implementation
                         else
                           if (is_chararray(hp^.resulttype)) then
                             dummycoll.paratype.setdef(openchararraydef);
-                        secondcallparan(hp,@dummycoll,false,false,0,0);
+                        secondcallparan(hp,@dummycoll,false,false,false,0,0);
                         if ft=ft_typed then
                           never_copy_const_param:=false;
                       end;
@@ -382,7 +382,7 @@ implementation
                                    hp^.right:=nil;
                                    dummycoll.paratype.setdef(hp^.resulttype);
                                    dummycoll.paratyp:=vs_value;
-                                   secondcallparan(hp,@dummycoll,false,false,0,0);
+                                   secondcallparan(hp,@dummycoll,false,false,false,0,0);
                                    hp^.right:=node;
                                    if codegenerror then
                                      exit;
@@ -400,7 +400,7 @@ implementation
                                    hp^.right:=nil;
                                    dummycoll.paratype.setdef(hp^.resulttype);
                                    dummycoll.paratyp:=vs_value;
-                                   secondcallparan(hp,@dummycoll,false,false,0,0);
+                                   secondcallparan(hp,@dummycoll,false,false,false,0,0);
                                    hp^.right:=node;
                                    if pararesult^.deftype<>floatdef then
                                      CGMessage(parser_e_illegal_colon_qualifier);
@@ -562,7 +562,7 @@ implementation
            else
              dummycoll.paratype.setdef(hp^.resulttype);
            procedureprefix:='FPC_'+pstringdef(hp^.resulttype)^.stringtypname+'_';
-           secondcallparan(hp,@dummycoll,false,false,0,0);
+           secondcallparan(hp,@dummycoll,false,false,false,0,0);
            if codegenerror then
              exit;
 
@@ -584,7 +584,7 @@ implementation
              begin
                 dummycoll.paratype.setdef(hp^.resulttype);
                 dummycoll.paratyp:=vs_value;
-                secondcallparan(hp,@dummycoll,false,false,0,0);
+                secondcallparan(hp,@dummycoll,false,false,false,0,0);
                 if codegenerror then
                   exit;
                 disposetree(hp);
@@ -601,7 +601,7 @@ implementation
              begin
                 dummycoll.paratype.setdef(hp^.resulttype);
                 dummycoll.paratyp:=vs_value;
-                secondcallparan(hp,@dummycoll,false,false,0,0);
+                secondcallparan(hp,@dummycoll,false,false,false,0,0);
                 if codegenerror then
                   exit;
                 disposetree(hp);
@@ -625,7 +625,7 @@ implementation
            { last arg longint or real }
            dummycoll.paratype.setdef(hp^.resulttype);
            dummycoll.paratyp:=vs_value;
-           secondcallparan(hp,@dummycoll,false,false,0,0);
+           secondcallparan(hp,@dummycoll,false,false,false,0,0);
            if codegenerror then
              exit;
 
@@ -695,7 +695,7 @@ implementation
           {load and push the address of the destination}
            dummycoll.paratyp:=vs_var;
            dummycoll.paratype.setdef(dest_para^.resulttype);
-           secondcallparan(dest_para,@dummycoll,false,false,0,0);
+           secondcallparan(dest_para,@dummycoll,false,false,false,0,0);
            if codegenerror then
              exit;
 
@@ -709,7 +709,7 @@ implementation
              Begin
                dummycoll.paratyp:=vs_var;
                dummycoll.paratype.setdef(code_para^.resulttype);
-               secondcallparan(code_para,@dummycoll,false,false,0,0);
+               secondcallparan(code_para,@dummycoll,false,false,false,0,0);
                if codegenerror then
                  exit;
                Disposetree(code_para);
@@ -724,7 +724,7 @@ implementation
           {node = first parameter = string}
            dummycoll.paratyp:=vs_const;
            dummycoll.paratype.setdef(node^.resulttype);
-           secondcallparan(node,@dummycoll,false,false,0,0);
+           secondcallparan(node,@dummycoll,false,false,false,0,0);
            if codegenerror then
              exit;
 
@@ -1511,7 +1511,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2000-03-21 16:24:43  florian
+  Revision 1.96  2000-03-31 22:56:46  pierre
+    * fix the handling of value parameters in cdecl function
+
+  Revision 1.95  2000/03/21 16:24:43  florian
     * fixed bug 881: for the include/exclude instruction sometimes wrong
       code was generated
 

@@ -84,3 +84,4 @@ Changes in the syntax or semantic of FPC:
              type, check the directive HASFIXED  (FK)
   29/02/00   ORDERSOURCES released => PPU version change
              this allows for a more correct include file hunting order.
+  01/04/00   fix the handling of value parameters in cdecl function

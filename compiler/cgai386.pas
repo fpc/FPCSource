@@ -104,7 +104,8 @@ unit cgai386;
     procedure emitpushreferenceaddr(const ref : treference);
     procedure pushsetelement(p : ptree);
     procedure restore(p : ptree;isint64 : boolean);
-    procedure push_value_para(p:ptree;inlined:boolean;para_offset:longint;alignment : longint);
+    procedure push_value_para(p:ptree;inlined,is_cdecl:boolean;
+                              para_offset:longint;alignment : longint);
 
 {$ifdef TEMPS_NOT_PUSH}
     { does the same as restore/, but uses temp. space instead of pushing }
@@ -1371,7 +1372,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 {$endif TEMPS_NOT_PUSH}
 
-      procedure push_value_para(p:ptree;inlined:boolean;para_offset:longint;alignment : longint);
+      procedure push_value_para(p:ptree;inlined,is_cdecl:boolean;
+                                para_offset:longint;alignment : longint);
         var
           tempreference : treference;
           r : preference;
@@ -1810,6 +1812,15 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                                 end;
                            end
                          { call by value open array ? }
+                         else if is_cdecl then
+                           begin
+                             { push on stack }
+                             size:=align(p^.resulttype^.size,alignment);
+                             inc(pushedparasize,size);
+                             emit_const_reg(A_SUB,S_L,size,R_ESP);
+                             r:=new_reference(R_ESP,0);
+                             concatcopy(tempreference,r^,size,false,false);
+                           end
                          else
                            internalerror(8954);
                       end;
@@ -3327,7 +3338,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         end;
 
       { generate copies of call by value parameters }
-      if not(po_assembler in aktprocsym^.definition^.procoptions) then
+      if not(po_assembler in aktprocsym^.definition^.procoptions) and
+         not (pocall_cdecl in aktprocsym^.definition^.proccalloptions) then
         aktprocsym^.definition^.parast^.foreach({$ifndef TP}@{$endif}copyvalueparas);
 
       { initialisize local data like ansistrings }
@@ -3843,7 +3855,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.90  2000-03-28 22:31:46  pierre
+  Revision 1.91  2000-03-31 22:56:46  pierre
+    * fix the handling of value parameters in cdecl function
+
+  Revision 1.90  2000/03/28 22:31:46  pierre
    * fix for problem in tbs0299 for 4 byte stack alignment
 
   Revision 1.89  2000/03/21 23:36:46  pierre
