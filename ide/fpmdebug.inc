@@ -46,6 +46,8 @@ begin
   repeat
     repeat
       Drivers.GetKeyEvent(Event);
+      if Event.What=evNothing then
+        GiveUpTimeSlice;
     until Event.What=evKeyboard;
     Clear:=true;
     case Event.keycode of
@@ -177,7 +179,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
+  Revision 1.2  2002-09-02 09:27:35  pierre
+   * avoid 100 CPU usage when AltF5 is used
+
+  Revision 1.1  2001/08/04 11:30:23  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.3  2001/06/13 16:15:36  pierre
