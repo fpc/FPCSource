@@ -133,7 +133,11 @@ unit typinfo;
       end;
 
       // unsed, just for completeness
-      TPropData = packed record
+      TPropData =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
         PropCount : Word;
         PropList : record end;
       end;
@@ -281,6 +285,16 @@ type
   Auxiliary methods
   ---------------------------------------------------------------------}
 
+function aligntoptr(p : pointer) : pointer;
+  begin
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+    if (ptrint(p) mod sizeof(ptrint))<>0 then
+      inc(ptrint(p),sizeof(ptrint)-ptrint(p) mod sizeof(ptrint));
+    result:=p;
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+  end;
+
+
 Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 
   Var PS : PShortString;
@@ -407,7 +421,7 @@ end;
 
 Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
 begin
-  GetTypeData:=PTypeData(pointer(TypeInfo)+2+PByte(pointer(TypeInfo)+1)^);
+  GetTypeData:=PTypeData(aligntoptr(PTypeData(pointer(TypeInfo)+2+PByte(pointer(TypeInfo)+1)^)));
 end;
 
 
@@ -428,7 +442,7 @@ begin
       // skip the name
       hp:=GetTypeData(Typeinfo);
       // the class info rtti the property rtti follows immediatly
-      pd:=pointer(pointer(@hp^.UnitName)+Length(hp^.UnitName)+1);
+      pd:=aligntoptr(pointer(pointer(@hp^.UnitName)+Length(hp^.UnitName)+1));
       Result:=@pd^.PropList;
       for i:=1 to pd^.PropCount do
         begin
@@ -436,7 +450,7 @@ begin
           if Upcase(Result^.Name)=P then
             exit;
           // skip to next property
-          Result:=PPropInfo(pointer(@Result^.Name)+byte(Result^.Name[0])+1);
+          Result:=PPropInfo(aligntoptr(pointer(@Result^.Name)+byte(Result^.Name[0])+1));
         end;
       // parent class
       Typeinfo:=hp^.ParentInfo;
@@ -533,17 +547,18 @@ Var
 begin
   TD:=GetTypeData(TypeInfo);
   // Get this objects TOTAL published properties count
-  TP:=(@TD^.UnitName+Length(TD^.UnitName)+1);
+  TP:=aligntoptr(PPropInfo(aligntoptr((@TD^.UnitName+Length(TD^.UnitName)+1))));
   Count:=PWord(TP)^;
   // Now point TP to first propinfo record.
   Inc(Pointer(TP),SizeOF(Word));
+  tp:=aligntoptr(tp);
   While Count>0 do
     begin
       PropList^[0]:=TP;
       Inc(Pointer(PropList),SizeOf(Pointer));
       // Point to TP next propinfo record.
       // Located at Name[Length(Name)+1] !
-      TP:=PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+1);
+      TP:=aligntoptr(PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+1));
       Dec(Count);
     end;
   // recursive call for parent info.
@@ -1475,7 +1490,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  2004-08-16 16:12:28  peter
+  Revision 1.29  2004-10-04 21:26:16  florian
+    * rtti alignment fixed
+
+  Revision 1.28  2004/08/16 16:12:28  peter
     * patch from mattias to fix endianness and bufferoverflow with
       1 and 2 byte ordinals
 

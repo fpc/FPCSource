@@ -28,7 +28,7 @@
 
   {$define FPCPROCVAR}
   {$define USEEXCEPT}
-  
+
   {$ifdef cpuarm}
     {$packrecords c}
   {$endif cpuarm}
@@ -59,6 +59,7 @@
   {$define cpuflags}
   {$define noopt}
   {$define cputargethasfixedstack}
+  {$define cpurequiresproperalignment}
 {$endif sparc}
 
 {$ifdef powerpc}
@@ -72,6 +73,7 @@
   {$define cpuneedsdiv32helper}
   {$define cputargethasfixedstack}
   {$define noopt}
+  {$define cpurequiresproperalignment}
 {$endif arm}
 
 {$ifdef m68k}
@@ -82,7 +84,10 @@
 
 {
   $Log$
-  Revision 1.41  2004-09-21 19:59:51  peter
+  Revision 1.42  2004-10-04 21:23:15  florian
+    * rtti alignment fixed
+
+  Revision 1.41  2004/09/21 19:59:51  peter
     * x86_64 fixes
     * cleanup of fpcdefs.icn
 

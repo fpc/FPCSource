@@ -127,6 +127,16 @@
 {$endif HASINTF}
 
 
+    function aligntoptr(p : pointer) : pointer;
+      begin
+    {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+        if (ptrint(p) mod sizeof(ptrint))<>0 then
+          inc(ptrint(p),sizeof(ptrint)-ptrint(p) mod sizeof(ptrint));
+        result:=p;
+    {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      end;
+
+
 {****************************************************************************
                                TOBJECT
 ****************************************************************************}
@@ -552,6 +562,7 @@
                    inc(Temp);
                    I:=Temp^;
                    inc(temp,I+1);                // skip name string;
+                   temp:=aligntoptr(temp);
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
                    move(PRecRec(Temp)^.Count,Count,sizeof(Count));
 {$else FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -745,7 +756,10 @@
 
 {
   $Log$
-  Revision 1.38  2004-04-29 21:33:22  florian
+  Revision 1.39  2004-10-04 21:26:16  florian
+    * rtti alignment fixed
+
+  Revision 1.38  2004/04/29 21:33:22  florian
     * fixed tobject.dispatch for 64 bit cpus
 
   Revision 1.37  2004/04/28 20:48:20  peter

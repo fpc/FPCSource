@@ -80,7 +80,7 @@ PArrayRec = ^TArrayRec;
 TArrayRec = record
   Size,Count : Longint;
   Info : Pointer;
-  end;
+end;
 
 
 Procedure fpc_Initialize (Data,TypeInfo : pointer);saveregisters;[Public,Alias : 'FPC_INITIALIZE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -124,6 +124,7 @@ begin
          inc(Temp);
          I:=Temp^;
          inc(temp,I+1);             // skip name string;
+         temp:=aligntoptr(temp);
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
          move(PRecRec(Temp)^.Count,Count,sizeof(Count));  // get element Count
          For I:=1 to count Do
@@ -196,6 +197,7 @@ begin
         inc(Temp);
         I:=Temp^;
         inc(temp,I+1);                // skip name string;
+        temp:=aligntoptr(temp);
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
          move(PRecRec(Temp)^.Count,Count,sizeof(Count));  // get element Count
          For I:=1 to count Do
@@ -272,6 +274,7 @@ begin
         Inc(Temp);
         I:=Temp^;
         temp:=temp+(I+1);             // skip name string;
+        temp:=aligntoptr(temp);
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
          move(PRecRec(Temp)^.Count,Count,sizeof(Count));  // get element Count
          For I:=1 to count Do
@@ -345,6 +348,7 @@ begin
          inc(Temp);
          I:=temp^;
          inc(temp,I+1);               // skip name string;
+         temp:=aligntoptr(temp);
 {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
          move(PRecRec(Temp)^.Count,Count,sizeof(Count));  // get element Count
          For I:=1 to count Do
@@ -381,7 +385,10 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
 
 {
   $Log$
-  Revision 1.14  2004-08-18 21:03:35  florian
+  Revision 1.15  2004-10-04 21:26:16  florian
+    * rtti alignment fixed
+
+  Revision 1.14  2004/08/18 21:03:35  florian
     * sparc uses wait4 as well
 
   Revision 1.13  2004/07/02 21:21:09  peter

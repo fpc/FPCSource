@@ -3261,6 +3261,9 @@ implementation
       begin
          rttiList.concat(Tai_const.Create_8bit(tkrecord));
          write_rtti_name;
+{$ifdef cpurequiresproperalignment}
+         rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
          rttiList.concat(Tai_const.Create_32bit(size));
          Count:=0;
          FRTTIType:=rt;
@@ -5523,6 +5526,9 @@ implementation
                    rttiList.concat(Tai_const.Create_8bit(proctypesinfo));
                    rttiList.concat(Tai_const.Create_8bit(length(tpropertysym(sym).realname)));
                    rttiList.concat(Tai_string.Create(tpropertysym(sym).realname));
+{$ifdef cpurequiresproperalignment}
+                   rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
                 end;
               else internalerror(1509992);
            end;
@@ -5698,7 +5704,9 @@ implementation
          { generate the name }
          rttiList.concat(Tai_const.Create_8bit(length(objrealname^)));
          rttiList.concat(Tai_string.Create(objrealname^));
-
+{$ifdef cpurequiresproperalignment}
+         rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
          case rt of
            initrtti :
              begin
@@ -5740,10 +5748,18 @@ implementation
                rttiList.concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
                rttiList.concat(Tai_string.Create(current_module.realmodulename^));
 
+{$ifdef cpurequiresproperalignment}
+               rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
+
                { write published properties count }
                count:=0;
                symtable.foreach({$ifdef FPCPROCVAR}@{$endif}count_published_properties,nil);
                rttiList.concat(Tai_const.Create_16bit(count));
+
+{$ifdef cpurequiresproperalignment}
+               rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
 
                { count is used to write nameindex   }
 
@@ -6184,7 +6200,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.256  2004-09-21 23:36:51  hajny
+  Revision 1.257  2004-10-04 21:23:15  florian
+    * rtti alignment fixed
+
+  Revision 1.256  2004/09/21 23:36:51  hajny
     * SetTextLineEnding implemented, FileRec.Name position alignment for CPU64
 
   Revision 1.255  2004/09/21 17:25:12  peter
