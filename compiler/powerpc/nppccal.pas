@@ -92,9 +92,7 @@ implementation
               exprasmlist.concat(taicpu.op_reg_const(A_LI,NR_R3,tprocdef(procdefinition).extnumber));
               
               { prepare LR, and call function }
-              reference_reset(tmpref);
-              tmpref.base := NR_R2;
-              tmpref.offset := 100; { EmulDirectCallOS offset }
+              reference_reset_base(tmpref,NR_R2,100); { 100 ($64) is EmulDirectCallOS offset } 
               exprasmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
               exprasmlist.concat(taicpu.op_reg(A_MTLR,NR_R0));
               exprasmlist.concat(taicpu.op_none(A_BLRL));
@@ -121,7 +119,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2004-04-29 14:01:23  karoly
+  Revision 1.25  2004-04-29 14:36:42  karoly
+    * little cleanup of the previous commit
+
+  Revision 1.24  2004/04/29 14:01:23  karoly
     + first implementation of PowerPC/MorphOS do_syscall
 
   Revision 1.23  2003/12/28 22:09:12  florian
