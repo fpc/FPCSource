@@ -100,26 +100,10 @@ begin
   secondpass(right);
   { special case for string := string + char (JM) }
   hreg := R_NO;
-  getexplicitregister32(R_EDI);
-  { load the current string length }
-  lengthreg := getregister32;
-  emit_ref_reg(A_MOVZX,S_BL,newreference(left.location.reference),lengthreg);
-  { do we have to check the length ? }
-  if istemp(left.location.reference) then
-    checklength := curmaxlen = 255
-  else
-    checklength := curmaxlen >= pstringdef(left.resulttype)^.len;
-  if checklength then
-    begin
-      { is it already maximal? }
-      getlabel(l);
-      if istemp(left.location.reference) then
-        emit_const_reg(A_CMP,S_L,255,lengthreg)
-      else
-        emit_const_reg(A_CMP,S_L,pstringdef(left.resulttype)^.len,lengthreg);
-      emitjmp(C_E,l);
-    end;
-  { no, so increase the length and add the new character }
+
+  { we have to load the char before checking the length, because we }
+  { may need registers from the reference                           }
+
   { is it a constant char? }
   if not is_constcharnode(right) then
     { no, make sure it is in a register }
@@ -135,7 +119,30 @@ begin
        ungetiftemp(right.location.reference);
       end
     else hreg := right.location.register;
+
+  { load the current string length }
+  lengthreg := getregister32;
+  emit_ref_reg(A_MOVZX,S_BL,newreference(left.location.reference),lengthreg);
+
+  { do we have to check the length ? }
+  if istemp(left.location.reference) then
+    checklength := curmaxlen = 255
+  else
+    checklength := curmaxlen >= pstringdef(left.resulttype)^.len;
+  if checklength then
+    begin
+      { is it already maximal? }
+      getlabel(l);
+      if istemp(left.location.reference) then
+        emit_const_reg(A_CMP,S_L,255,lengthreg)
+      else
+        emit_const_reg(A_CMP,S_L,pstringdef(left.resulttype)^.len,lengthreg);
+      emitjmp(C_E,l);
+    end;
+
+  { no, so increase the length and add the new character }
   href2 := newreference(left.location.reference);
+
   { we need a new reference to store the character }
   { at the end of the string. Check if the base or }
   { index register is still free                   }
@@ -234,7 +241,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-01-04 11:24:19  jonas
+  Revision 1.2  2001-01-06 19:12:31  jonas
+    * fixed IE 10 (but code is less efficient now :( )
+
+  Revision 1.1  2001/01/04 11:24:19  jonas
     + initial implementation (still needs to be made more modular)
 
 }
