@@ -494,7 +494,7 @@ Function TStrings.IndexOf(const S: string): Integer;
 
 begin
   Result:=0;
-  While (Result<Count) and (Strings[Result]<>S) do Result:=Result+1;
+  While (Result<Count) and (CompareText(Strings[Result],S)<>0) do Result:=Result+1;
   if Result=Count then Result:=-1;
 end;
 
@@ -1044,7 +1044,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  2002-12-10 21:05:44  michael
+  Revision 1.15  2003-05-29 23:13:57  michael
+  fixed case insensitivity of TStrings.IndexOf
+
+  Revision 1.14  2002/12/10 21:05:44  michael
   + IndexOfName is case insensitive
 
   Revision 1.13  2002/10/10 12:50:40  michael
