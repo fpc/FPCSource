@@ -841,9 +841,8 @@ implementation
          if not assigned(procdefinition) then
           exit;
 
-         { Deciding whether we may still need the parameters happens next (JM) }
          if assigned(left) then
-           params:=left.getcopy
+           params:=left
          else
            params := nil;
 
@@ -1190,13 +1189,6 @@ implementation
               pp:=tbinarynode(pp.right);
            end;
 
-         { Parameters are not needed anymore }
-         if assigned(params) then
-          begin
-            params.free;
-            params:=nil;
-          end;
-
          if inlined then
            begin
              if (resulttype.def.size>0) then
@@ -1422,7 +1414,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2003-04-10 17:57:52  peter
+  Revision 1.45  2003-04-21 13:53:16  jonas
+    - removed copying of all paras when secondpassing a callnode (this used
+      to be necessary for inlinign support, but currently the whole inlined
+      procedure is already copied in advance). Note that the compiler crashes
+      when compiling ucomplex with -dTEST_INLINE (also after fixing the
+      syntax errors), but that was also the case before this change.
+
+  Revision 1.44  2003/04/10 17:57:52  peter
     * vs_hidden released
 
   Revision 1.43  2003/04/06 21:11:23  olle
