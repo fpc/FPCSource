@@ -64,11 +64,13 @@ begin
     //WriteLn('Loop forever inside Tester.run when compiled by FPC 1.9.8');
   end;
   thread.Terminate;
+  thread.waitfor;
 end;
 
 var
-    t: Tester;
+  t: Tester;
 begin
-    t := Tester.Create;
-    t.run;
+  t:=Tester.Create;
+  t.run;
+  t.free;
 end.
