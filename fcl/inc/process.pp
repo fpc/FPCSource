@@ -183,7 +183,9 @@ Type
     procedure SetPRocessOptions(const Value: TProcessOptions);
     procedure SetActive(const Value: Boolean);
     procedure SetEnvironment(const Value: TStrings);
+{$ifdef linux}
     function PeekLinuxExitStatus: Boolean;
+{$endif}    
   Public
     Constructor Create (AOwner : TComponent);override;
     Destructor Destroy; override;
@@ -315,6 +317,7 @@ begin
     REsult:=FProcessAttributes^;
 end;
 
+{$ifdef linux}
 Function TProcess.PeekLinuxExitStatus : Boolean;
 
 begin
@@ -324,6 +327,7 @@ begin
   else
     FexitCode:=0;
 end;
+{$endif}
 
 Function TProcess.GetRunning : Boolean;
 
@@ -911,7 +915,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2001-11-05 21:45:35  michael
+  Revision 1.6  2001-11-08 13:01:06  michael
+  + Fixed win32 compile
+
+  Revision 1.5  2001/11/05 21:45:35  michael
   + unix/linux unit name conflict
 
   Revision 1.4  2001/11/05 21:07:08  michael
