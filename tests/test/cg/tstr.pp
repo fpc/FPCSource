@@ -64,7 +64,7 @@ begin
 
   { for more in-depth tests of str_real, see ../tstreal[1,2].pp }
   f := -1.12345;
-{$IFOPT E-}  
+{$IFOPT E-}
   str(f,s);
   if (sizeof(extended) = 10) or
      (sizeof(extended) = 12) then
@@ -73,7 +73,7 @@ begin
     check('-1.12345000000000E+000')
   else
     check('error, not yet implemented!!!!');
-{$endif}  
+{$endif}
   { the number of exponents depends on the maaping of the real type }
   if sizeof(real) = 8 then
     begin
@@ -248,7 +248,7 @@ begin
 
   { for more in-depth tests of str_real, see ../tstreal[1,2].pp }
   f := -1.12345;
-{$IFOPT E-}  
+{$IFOPT E-}
   str(f,s);
   if (sizeof(extended) = 10) or
      (sizeof(extended) = 12) then
@@ -257,7 +257,7 @@ begin
     check('-1.12345000000000E+000')
   else
     check('error, not yet implemented!!!!');
-{$endif}  
+{$endif}
   { the number of exponents depends on the maaping of the real type }
   if sizeof(real) = 8 then
     begin
@@ -433,7 +433,7 @@ begin
 
   { for more in-depth tests of str_real, see ../tstreal[1,2].pp }
   f := -1.12345;
-{$IFOPT E-}  
+{$IFOPT E-}
   str(f,s);
   if sizeof(extended) = 10 then
     check('-1.123450000000000E+000')
@@ -441,7 +441,7 @@ begin
     check('-1.12345000000000E+000')
   else
     check('error, not yet implemented!!!!');
-{$endif}  
+{$endif}
   { the number of exponents depends on the maaping of the real type }
   if sizeof(real) = 8 then
     begin

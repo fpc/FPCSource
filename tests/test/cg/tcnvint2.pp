@@ -42,7 +42,7 @@ var
      begin
        getint64 := $10000000;
      end;
-     
+
    function getint64_2 : int64;
      var
       i: longint;
@@ -200,7 +200,10 @@ end.
 
 {
    $Log$
-   Revision 1.6  2002-09-29 14:37:22  carl
+   Revision 1.7  2004-05-02 12:11:44  peter
+     * fixed linefeeds
+
+   Revision 1.6  2002/09/29 14:37:22  carl
      * must more 64-bit testing (to detect endian specific problems)
 
    Revision 1.5  2002/09/27 17:46:01  carl

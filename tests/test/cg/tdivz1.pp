@@ -27,7 +27,7 @@ var
   int64res : int64;
   int64cnt : int64;
 begin
-  
+
   { RIGHT : LOC_REFERENCE }
   { LEFT : LOC_REGISTER   }
   int64res := 1;
@@ -36,7 +36,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-09-21 13:28:06  carl
+  Revision 1.2  2004-05-02 12:11:44  peter
+    * fixed linefeeds
+
+  Revision 1.1  2002/09/21 13:28:06  carl
    + division by zero testing
 
 }

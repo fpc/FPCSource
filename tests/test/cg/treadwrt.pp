@@ -10,7 +10,7 @@ var
  value : longint;
 begin
  value:=1;
- getint64_1 := int64(value) shl 40; 
+ getint64_1 := int64(value) shl 40;
 end;
 
 function getint64_2 : int64;
@@ -18,7 +18,7 @@ var
  value : longint;
 begin
  value:=65535;
- getint64_2 := value; 
+ getint64_2 := value;
 end;
 
 procedure test_rwtext;
@@ -65,7 +65,7 @@ begin
 
   a := 'this is an ansistring';
   writeln(a);
-  
+
   vl:=getint64_1;
   vl1:=getint64_2;
   writeln('int64 test : ',vl, ' ',vl1);

@@ -28,7 +28,7 @@
   {$endif}
 {$endif}
 
-{$H+}  
+{$H+}
 
 const
   { exactly 255 characters in length }
@@ -48,65 +48,65 @@ const
 ' aren''t any problems with maximum length strings. I hope you understand'+
 HUGE_STRING_END;
   EMPTY_STRING = '';
-  
+
 type
   shortstr = string[127];
 var
  s2: shortstr;
  str_ansi: ansistring;
  str_short: shortstring;
-{$ifdef haswidestring} 
+{$ifdef haswidestring}
  str_wide : widestring;
-{$endif} 
-  
-  
+{$endif}
+
+
 procedure fail;
  begin
    WriteLn('Failure!');
    Halt(1);
  end;
- 
- 
+
+
 procedure test_ansi_to_short;
 begin
- {************************************************************************}   
+ {************************************************************************}
  {                          ansistring -> shortstring                     }
- {************************************************************************}   
+ {************************************************************************}
  WriteLn('Test ansistring -> shortstring');
  { ansistring -> shortstring }
  str_short := '';
  str_ansi:='';
  str_ansi := SMALL_STRING;
  str_short:=str_ansi;
- Write('small ansistring -> shortstring...');  
+ Write('small ansistring -> shortstring...');
  if str_short = str_ansi then
    WriteLn('Success.')
  else
    fail;
-   
+
  str_short := '';
  str_ansi:='';
  str_ansi := EMPTY_STRING;
  str_short:=str_ansi;
- Write('empty ansistring -> shortstring...');  
+ Write('empty ansistring -> shortstring...');
  if str_short = str_ansi then
    WriteLn('Success.')
  else
    fail;
 
-   
+
  str_short := '';
  str_ansi:='';
  str_ansi := BIG_STRING;
  str_short:=str_ansi;
- Write('big ansistring -> shortstring...');  
+ Write('big ansistring -> shortstring...');
  if str_short = str_ansi then
    WriteLn('Success.')
  else
    fail;
 
 
- Write('huge ansistring -> shortstring...');  
+ Write('huge ansistring -> shortstring...');
  str_short := '';
  str_ansi:='';
  str_ansi := HUGE_STRING;
@@ -121,17 +121,17 @@ begin
  str_ansi:='';
  str_ansi := SMALL_STRING;
  s2:=str_ansi;
- Write('small ansistring -> shortstring...');  
+ Write('small ansistring -> shortstring...');
  if s2 = str_ansi then
    WriteLn('Success.')
  else
    fail;
-   
+
  s2 := '';
  str_ansi:='';
  str_ansi := EMPTY_STRING;
  s2:=str_ansi;
- Write('empty ansistring -> shortstring...');  
+ Write('empty ansistring -> shortstring...');
  if s2 = str_ansi then
    WriteLn('Success.')
  else
@@ -141,18 +141,18 @@ begin
  str_ansi:='';
  str_ansi := BIG_STRING;
  s2:=str_ansi;
- Write('big ansistring -> shortstring...');  
+ Write('big ansistring -> shortstring...');
  { Should fail, since comparing different string lengths }
  if s2 <> str_ansi then
    WriteLn('Success.')
  else
    fail;
-   
+
  s2 := '';
  str_ansi:='';
  str_ansi := HUGE_STRING;
  s2:=str_ansi;
- Write('huge ansistring -> shortstring...');  
+ Write('huge ansistring -> shortstring...');
  { Should fail, since comparing different string lengths }
  if s2 <> str_ansi then
    WriteLn('Success.')
@@ -163,9 +163,9 @@ end;
 
 procedure test_short_to_short;
 begin
- {************************************************************************}   
+ {************************************************************************}
  {                         shortstring -> shortstring                     }
- {************************************************************************}   
+ {************************************************************************}
  WriteLn('Test shortstring -> shortstring...');
  { shortstring -> shortstring }
  str_short := '';
@@ -177,7 +177,7 @@ begin
    WriteLn('Success.')
  else
    fail;
-   
+
  str_short := '';
  s2:='';
  s2 := EMPTY_STRING;
@@ -222,7 +222,7 @@ begin
    WriteLn('Success.')
  else
    fail;
-   
+
  s2 := '';
  str_short:='';
  str_short := EMPTY_STRING;
@@ -244,7 +244,7 @@ begin
  else
    fail;
 
-{$ifdef fpc}   
+{$ifdef fpc}
  s2 := '';
  str_short:='';
  str_short := HUGE_STRING;
@@ -255,17 +255,17 @@ begin
    WriteLn('Success.')
  else
    fail;
-{$endif}   
+{$endif}
 end;
 
 
 procedure test_short_to_ansi;
 begin
- {************************************************************************}   
+ {************************************************************************}
  {                         shortstring -> ansistring                      }
- {************************************************************************}   
+ {************************************************************************}
  WriteLn('Test shortstring -> ansistring');
- Write('small shortstring -> ansistring...');  
+ Write('small shortstring -> ansistring...');
  { shortstring -> ansistring }
  str_short := SMALL_STRING;
  str_ansi:=str_short;
@@ -273,8 +273,8 @@ begin
    WriteLn('Success.')
  else
    fail;
-   
- Write('empty shortstring -> ansistring...');  
+
+ Write('empty shortstring -> ansistring...');
  str_short := EMPTY_STRING;
  str_ansi:=str_short;
  if str_short = str_ansi then
@@ -282,7 +282,7 @@ begin
  else
    fail;
 
- Write('big shortstring -> ansistring...');  
+ Write('big shortstring -> ansistring...');
  str_short := BIG_STRING;
  str_ansi:=str_short;
  if str_short = str_ansi then
@@ -290,7 +290,7 @@ begin
  else
    fail;
 
- Write('small shortstring -> ansistring...');  
+ Write('small shortstring -> ansistring...');
  { shortstring -> ansistring }
  s2 := SMALL_STRING;
  str_ansi:=s2;
@@ -298,8 +298,8 @@ begin
    WriteLn('Success.')
  else
    fail;
-   
- Write('empty shortstring -> ansistring...');  
+
+ Write('empty shortstring -> ansistring...');
  s2 := EMPTY_STRING;
  str_ansi:=s2;
  if s2 = str_ansi then
@@ -313,11 +313,11 @@ end;
 {$ifdef haswidestring}
 procedure test_wide_to_ansi;
 begin
- {************************************************************************}   
+ {************************************************************************}
  {                         widestring -> ansistring                      }
- {************************************************************************}   
+ {************************************************************************}
  WriteLn('Test widestring -> ansistring');
- Write('small widestring -> ansistring...');  
+ Write('small widestring -> ansistring...');
  { widestring -> ansistring }
  str_wide := SMALL_STRING;
  str_ansi:=str_wide;
@@ -325,8 +325,8 @@ begin
    WriteLn('Success.')
  else
    fail;
-   
- Write('empty widestring -> ansistring...');  
+
+ Write('empty widestring -> ansistring...');
  str_wide := EMPTY_STRING;
  str_ansi:=str_wide;
  if str_wide = str_ansi then
@@ -334,7 +334,7 @@ begin
  else
    fail;
 
- Write('big widestring -> ansistring...');  
+ Write('big widestring -> ansistring...');
  str_wide := BIG_STRING;
  str_ansi:=str_wide;
  if str_wide = str_ansi then
@@ -342,7 +342,7 @@ begin
  else
    fail;
 
- Write('huge widestring -> ansistring...');  
+ Write('huge widestring -> ansistring...');
  str_wide := HUGE_STRING;
  str_ansi:=str_wide;
  if str_wide = str_ansi then
@@ -356,11 +356,11 @@ end;
 
 procedure test_short_to_wide;
 begin
- {************************************************************************}   
+ {************************************************************************}
  {                         shortstring -> widestring                      }
- {************************************************************************}   
+ {************************************************************************}
  WriteLn('Test shortstring -> widestring');
- Write('small shortstring -> widestring...');  
+ Write('small shortstring -> widestring...');
  { shortstring -> widestring }
  str_short := SMALL_STRING;
  str_wide:=str_short;
@@ -368,8 +368,8 @@ begin
    WriteLn('Success.')
  else
    fail;
-   
- Write('empty shortstring -> widestring...');  
+
+ Write('empty shortstring -> widestring...');
  str_short := EMPTY_STRING;
  str_wide:=str_short;
  if str_short = str_wide then
@@ -377,7 +377,7 @@ begin
  else
    fail;
 
- Write('big shortstring -> widestring...');  
+ Write('big shortstring -> widestring...');
  str_short := BIG_STRING;
  str_wide:=str_short;
  if str_short = str_wide then
@@ -385,7 +385,7 @@ begin
  else
    fail;
 
- Write('small shortstring -> widestring...');  
+ Write('small shortstring -> widestring...');
  { shortstring -> widestring }
  s2 := SMALL_STRING;
  str_wide:=s2;
@@ -393,8 +393,8 @@ begin
    WriteLn('Success.')
  else
    fail;
-   
- Write('empty shortstring -> widestring...');  
+
+ Write('empty shortstring -> widestring...');
  s2 := EMPTY_STRING;
  str_wide:=s2;
  if s2 = str_wide then
@@ -407,11 +407,11 @@ end;
 
 procedure test_ansi_to_wide;
 begin
- {************************************************************************}   
+ {************************************************************************}
  {                         ansistring -> widestring                      }
- {************************************************************************}   
+ {************************************************************************}
  WriteLn('Test ansistring -> widestring');
- Write('small ansistring -> widestring...');  
+ Write('small ansistring -> widestring...');
  { ansistring -> widestring }
  str_ansi := SMALL_STRING;
  str_wide:=str_ansi;
@@ -419,8 +419,8 @@ begin
    WriteLn('Success.')
  else
    fail;
-   
- Write('empty ansistring -> widestring...');  
+
+ Write('empty ansistring -> widestring...');
  str_ansi := EMPTY_STRING;
  str_wide:=str_ansi;
  if str_ansi = str_wide then
@@ -428,7 +428,7 @@ begin
  else
    fail;
 
- Write('big ansistring -> widestring...');  
+ Write('big ansistring -> widestring...');
  str_ansi := BIG_STRING;
  str_wide:=str_ansi;
  if str_ansi = str_wide then
@@ -436,7 +436,7 @@ begin
  else
    fail;
 
- Write('small ansistring -> widestring...');  
+ Write('small ansistring -> widestring...');
  { ansistring -> widestring }
  s2 := SMALL_STRING;
  str_wide:=s2;
@@ -444,8 +444,8 @@ begin
    WriteLn('Success.')
  else
    fail;
-   
- Write('empty ansistring -> widestring...');  
+
+ Write('empty ansistring -> widestring...');
  s2 := EMPTY_STRING;
  str_wide:=s2;
  if s2 = str_wide then
@@ -459,33 +459,33 @@ end;
 
 procedure test_wide_to_short;
 begin
- {************************************************************************}   
+ {************************************************************************}
  {                          widestring -> shortstring                     }
- {************************************************************************}   
+ {************************************************************************}
  WriteLn('Test widestring -> shortstring');
  { widestring -> shortstring }
  str_short := '';
  str_wide:='';
  str_wide := SMALL_STRING;
- Write('small widestring -> shortstring...');  
- str_short:=str_wide;
- if str_short = str_wide then
-   WriteLn('Success.')
- else
-   fail;
-   
- str_short := '';
- str_wide:='';
- str_wide := EMPTY_STRING;
- Write('empty widestring -> shortstring...');  
+ Write('small widestring -> shortstring...');
  str_short:=str_wide;
  if str_short = str_wide then
    WriteLn('Success.')
  else
    fail;
 
-   
- Write('big widestring -> shortstring...');  
+ str_short := '';
+ str_wide:='';
+ str_wide := EMPTY_STRING;
+ Write('empty widestring -> shortstring...');
+ str_short:=str_wide;
+ if str_short = str_wide then
+   WriteLn('Success.')
+ else
+   fail;
+
+
+ Write('big widestring -> shortstring...');
  str_short := '';
  str_wide:='';
  str_wide := BIG_STRING;
@@ -495,16 +495,16 @@ begin
  else
    fail;
 
- Write('huge widestring -> shortstring...');  
+ Write('huge widestring -> shortstring...');
  str_wide := HUGE_STRING;
  str_short:=str_wide;
  if str_short <> str_wide then
    WriteLn('Success.')
  else
    fail;
-   
+
 {}
- Write('small widestring -> shortstring...');  
+ Write('small widestring -> shortstring...');
  s2 := '';
  str_wide:='';
  str_wide := SMALL_STRING;
@@ -513,8 +513,8 @@ begin
    WriteLn('Success.')
  else
    fail;
-   
- Write('empty widestring -> shortstring...');  
+
+ Write('empty widestring -> shortstring...');
  s2 := '';
  str_wide:='';
  str_wide := EMPTY_STRING;
@@ -524,7 +524,7 @@ begin
  else
    fail;
 
- Write('big widestring -> shortstring...');  
+ Write('big widestring -> shortstring...');
  s2 := '';
  str_wide:='';
  str_wide := BIG_STRING;
@@ -533,8 +533,8 @@ begin
    WriteLn('Success.')
  else
    fail;
-   
- Write('huge widestring -> shortstring...');  
+
+ Write('huge widestring -> shortstring...');
  s2 := '';
  str_wide:='';
  str_wide := HUGE_STRING;
@@ -551,17 +551,20 @@ Begin
  test_short_to_short;
  test_short_to_ansi;
  { requires widestring support }
-{$ifdef haswidestring} 
+{$ifdef haswidestring}
  test_short_to_wide;
  test_ansi_to_wide;
  test_wide_to_short;
  test_wide_to_ansi;
-{$endif} 
+{$endif}
 End.
 
 {
   $Log$
-  Revision 1.3  2002-10-02 19:26:49  carl
+  Revision 1.4  2004-05-02 12:11:44  peter
+    * fixed linefeeds
+
+  Revision 1.3  2002/10/02 19:26:49  carl
     + added much much more testing of different string types
     * str() format depends on size of real
 

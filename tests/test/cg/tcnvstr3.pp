@@ -26,10 +26,10 @@ procedure fail;
 var
  str_ansi : ansistring;
  str_short : shortstring;
-{$ifdef haswidestring} 
+{$ifdef haswidestring}
  str_wide : widestring;
  wc : widechar;
-{$endif haswidestring} 
+{$endif haswidestring}
  c: char;
  _result : boolean;
 Begin
@@ -40,7 +40,7 @@ Begin
  { empty string -> shortstring  }
  str_short := '';
  if str_short <> '' then
-   _result := false; 
+   _result := false;
  { constant char -> shortstring }
  str_short := 'c';
  if str_short <> 'c' then
@@ -52,12 +52,12 @@ Begin
  if str_short <> 'c' then
    _result := false;
  {* wide char *}
-{$ifdef haswidestring} 
+{$ifdef haswidestring}
  { constant char -> shortstring }
  str_short := shortstring(widechar('c'));
  if str_short <> 'c' then
    _result := false;
-{$endif}   
+{$endif}
  { wide char   -> shortstring }
 { This should not compile - at least it does not compile under Delphi }
 { str_short := '';
@@ -65,8 +65,8 @@ Begin
  str_short:=wc;
  if str_short <> 'c' then
    _result := false;}
-   
-   
+
+
  if _result then
    WriteLn('Success!')
  else
@@ -78,7 +78,7 @@ Begin
  { empty string -> ansistring  }
  str_ansi := '';
  if str_ansi <> '' then
-   _result := false; 
+   _result := false;
  { constant char -> ansistring }
  str_ansi := 'c';
  if str_ansi <> 'c' then
@@ -90,7 +90,7 @@ Begin
  if str_ansi <> 'c' then
    _result := false;
  {* wide char *}
-{$ifdef haswidestring} 
+{$ifdef haswidestring}
  { constant char -> ansistring }
  str_ansi := widechar('c');
  if str_ansi <> 'c' then
@@ -101,14 +101,14 @@ Begin
  str_ansi:=wc;
  if str_ansi <> 'c' then
    _result := false;
-{$endif}   
-   
+{$endif}
+
  if _result then
    WriteLn('Success!')
  else
    fail;
 {}
-{$ifdef haswidestring} 
+{$ifdef haswidestring}
  {********************** char/widechar -> widestring *******************}
  Write('widechar/char -> widestring...');
  {* normal char *}
@@ -116,7 +116,7 @@ Begin
  { empty string -> widestring  }
  str_wide := '';
  if str_wide <> '' then
-   _result := false; 
+   _result := false;
  { constant char -> widestring }
  str_wide := 'c';
  if str_wide <> 'c' then
@@ -138,8 +138,8 @@ Begin
  str_wide:=wc;
  if str_wide <> 'c' then
    _result := false;
-   
-   
+
+
  if _result then
    WriteLn('Success!')
  else

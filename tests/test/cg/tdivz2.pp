@@ -25,14 +25,17 @@ var
   longres : longint;
   longcnt : longint;
 begin
-  
+
   longres := 1;
   longcnt := 0;
   longres := longres div longcnt;
 end.
 {
   $Log$
-  Revision 1.1  2002-09-21 13:28:06  carl
+  Revision 1.2  2004-05-02 12:11:44  peter
+    * fixed linefeeds
+
+  Revision 1.1  2002/09/21 13:28:06  carl
    + division by zero testing
 
 }

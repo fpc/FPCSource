@@ -3293,7 +3293,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-04-22 10:24:29  florian
+  Revision 1.10  2004-05-02 12:11:44  peter
+    * fixed linefeeds
+
+  Revision 1.9  2003/04/22 10:24:29  florian
     * fixed defines for powerpc
 
   Revision 1.8  2002/12/29 15:30:55  peter

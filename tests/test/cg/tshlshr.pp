@@ -251,7 +251,7 @@ Begin
    int64res := int64res shl int64cnt;
    Write('(SHL) Value should be -32768...');
    test(int64res, -32768);
-   
+
    int64res := 1;
    int64cnt := 33;
    int64res := int64res shl int64cnt;
@@ -282,7 +282,7 @@ Begin
 
    { left : LOC_REFERENCE }
    { right : LOC_REGISRER }
-{ 
+{
   WriteLn('(left) : LOC_REFERENCE; (right) : LOC_REGISTER');
    int64res := 1;
    bytecnt := -2;
@@ -317,14 +317,14 @@ Begin
    int64res := int64res shr bytecnt;
    Write('(SHR) Value should be 1...');
    test(int64res, 1);
-   
+
    int64res := 1;
    bytecnt := 33;
    int64res := int64res shl bytecnt;
    Write('(SHL) Value should be 2 in high longint (85899345)...');
    move(int64res,int64rec, sizeof(int64));
    test(int64rec.highval, 2);
-   
+
 {   int64res:=-1;
    bytecnt := 15;
    int64res := int64res shr bytecnt;
@@ -335,7 +335,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-12-07 11:59:44  jonas
+  Revision 1.8  2004-05-02 12:11:44  peter
+    * fixed linefeeds
+
+  Revision 1.7  2003/12/07 11:59:44  jonas
     * test procedure uses 64bit arguments under FPC
     - disabled tests with negative shift counts (illegal)
 
