@@ -86,6 +86,10 @@ program install;
 
      CfgExt = '.dat';
 
+     MaxStatusPos = 4;
+     StatusChars: string [MaxStatusPos] = '/-\|';
+     StatusPos: byte = 1;
+
 {$ifdef linux}
      DirSep='/';
 {$else}
@@ -184,6 +188,12 @@ program install;
      CfgName: NameStr;
      DStr: DirStr;
      EStr: ExtStr;
+     UnzDlg      : punzipdialog;
+{$IFNDEF DLL}
+
+  const
+     UnzipErr: longint = 0;
+{$ENDIF}
 
 
 {*****************************************************************************
@@ -283,8 +293,11 @@ program install;
       s : string;
     begin
       s:=zipfile+#0;
-      uncompressed:=UnzipSize(@s[1],compressed);
-      DiskSpaceN:=uncompressed shr 10;
+      if not (IsZip (@S [1])) then DiskSpaceN := -1 else
+      begin
+       Uncompressed:=UnzipSize(@s[1],compressed);
+       DiskSpaceN:=uncompressed shr 10;
+      end;
     end;
 
 
@@ -294,8 +307,11 @@ program install;
       s : string;
     begin
       uncompressed:=DiskSpaceN (zipfile);
-      str(uncompressed,s);
-      diskspace:=' ('+s+' KB)';
+      if Uncompressed = -1 then DiskSpace := ' [INVALID]' else
+      begin
+       str(uncompressed,s);
+       diskspace:=' ('+s+' KB)';
+      end;
     end;
 
 
@@ -412,41 +428,65 @@ program install;
       r : trect;
     begin
       inherited init(bounds,atitle);
-      R.Assign(11, 4, 38, 5);
-      filetext:=new(pstatictext,init(r,'File: '));
+(*      R.Assign (11, 4, 38, 6);*)
+      R.Assign (1, 4, 39, 6);
+      filetext:=new(pstatictext,init(r,#3'File: '));
       insert(filetext);
     end;
 
+{$IFNDEF DLL}
+  procedure UnzipCheckFn (Retcode: longint; Rec: pReportRec );{$ifdef Delphi32}STDCALL;{$endif}
+  {$IFNDEF BIT32} FAR;{$ENDIF BIT32}
+  begin
+    case Rec^.Status of
+     unzip_starting: UnzipErr := 0;
+     file_failure: UnzipErr := RetCode;
+     file_unzipping:
+        begin
+         with UnzDlg^.FileText^ do
+         begin
+          Inc (StatusPos);
+          if StatusPos > MaxStatusPos then StatusPos := 1;
+          Text^ [Length (Text^)] := StatusChars [StatusPos];
+          DrawView;
+         end;
+        end;
+    end;
+  end;
+{$ENDIF}
 
   procedure tunzipdialog.do_unzip(s,topath : string);
     var
       again : boolean;
       fn,dir,wild : string;
+      Cnt: integer;
     begin
        Disposestr(filetext^.text);
-       filetext^.Text:=NewStr('File: '+s);
+       filetext^.Text:=NewStr(#3'File: '+s + #13#3' ');
        filetext^.drawview;
        if not(file_exists(s,startpath)) then
          begin
-            messagebox('File: '+s+' missed for the selected installation. '+
-                       'Installation doesn''t becomes complete',nil,mferror+mfokbutton);
+            messagebox('File "'+s+'" missing for the selected installation. '+
+                       'Installation hasn''t been completed.',nil,mferror+mfokbutton);
             errorhalt;
          end;
+{$IFNDEF DLL}
+ {$IFDEF FPC}
+       SetUnzipReportProc (@UnzipCheckFn);
+ {$ELSE FPC}
+       SetUnzipReportProc (UnzipCheckFn);
+ {$ENDIF FPC}
+{$ENDIF DLL}
        repeat
          fn:=startpath+DirSep+s+#0;
          dir:=topath+#0;
          wild:=AllFiles + #0;
-         DosError := 0;
          again:=false;
-{$IFDEF DLL}
-         doserror:=FileUnzipEx(@fn[1],@dir[1],@wild[1]);
-{$ELSE}
          FileUnzipEx(@fn[1],@dir[1],@wild[1]);
-{$ENDIF}
-         if (doserror<>0) then
+         if (UnzipErr <> 0) then
            begin
-              str(doserror,s);
-              if messagebox('Error ('+s+') when extracting.  Disk full?'#13+
+              Str(UnzipErr,s);
+              if messagebox('Error (' + S + ') while extracting. Disk full?'#13+
                             #13#3'Try again?',nil,mferror+mfyesbutton+mfnobutton)=cmNo then
                errorhalt
               else
@@ -578,7 +618,7 @@ program install;
     begin
        f:=nil;
      { walk packages reverse and insert a newsitem for each, and set the mask }
-       for j:=1to cfg.packs do
+       for j:=1 to cfg.packs do
         with cfg.pack[j] do
          begin
            firstitem[j]:=0;
@@ -599,7 +639,7 @@ program install;
 
      { If no component found abort }
        found:=false;
-       for j:=1to cfg.packs do
+       for j:=1 to cfg.packs do
         if packmask[j]<>0 then
          found:=true;
        if not found then
@@ -643,7 +683,7 @@ program install;
        data.cfgval:=1;
 
        {-------- Pack Sheets ----------}
-       for j:=1to cfg.packs do
+       for j:=1 to cfg.packs do
         begin
           R.Copy(TabIR);
           new(packcbs[j],init(r,items[j]));
@@ -694,7 +734,6 @@ program install;
   procedure tapp.do_installdialog;
     var
        p    : pinstalldialog;
-       p2   : punzipdialog;
        p3   : penddialog;
        r    : trect;
        result,
@@ -702,13 +741,13 @@ program install;
        i,j  : longint;
        found : boolean;
 {$ifndef linux}
-       DSize,Space : longint;
+       DSize,Space,ASpace : longint;
        S: DirStr;
 {$endif}
     begin
       data.basepath:=cfg.basepath;
       data.cfgval:=0;
-      for j:=1to cfg.packs do
+      for j:=1 to cfg.packs do
        data.packmask[j]:=$ffff;
 
       repeat
@@ -722,7 +761,7 @@ program install;
             else
              begin
                found:=false;
-               for j:=1to cfg.packs do
+               for j:=1 to cfg.packs do
                 if data.packmask[j]>0 then
                  found:=true;
                if found then
@@ -730,13 +769,20 @@ program install;
 {$IFNDEF LINUX}
                 { TH - check the available disk space here }
                   DSize := 0;
-                  for j:=1to cfg.packs do
+                  for j:=1 to cfg.packs do
                    with cfg.pack[j] do
                     begin
                       for i:=1 to packages do
                        begin
                          if data.packmask[j] and packagemask(i)<>0 then
-                          Inc (DSize, DiskSpaceN(package[i].zip));
+                         begin
+                          ASpace := DiskSpaceN (package[i].zip);
+                          if ASpace = -1 then
+                              MessageBox ('File ' + package[i].zip +
+                                            ' is probably corrupted!', nil,
+                                                        mferror + mfokbutton)
+                              else Inc (DSize, ASpace);
+                         end;
                        end;
                     end;
                   S := FExpand (Data.BasePath);
@@ -770,7 +816,7 @@ program install;
                                                 mfinformation+mfyesbutton+mfnobutton);
                      if (result=cmYes) and createinstalldir(data.basepath) then
                       begin
-                        for i:=1to cfg.packs do
+                        for i:=1 to cfg.packs do
                          if cfg.pack[i].defcfgfile<>'' then
                           writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defcfgfile);
                       end;
@@ -795,21 +841,21 @@ program install;
        with cfg.pack[j] do
         begin
           r.assign(20,7,60,16);
-          p2:=new(punzipdialog,init(r,'Extracting Packages'));
-          desktop^.insert(p2);
+          UnzDlg:=new(punzipdialog,init(r,'Extracting Packages'));
+          desktop^.insert(UnzDlg);
           for i:=1 to packages do
            begin
              if data.packmask[j] and packagemask(i)<>0 then
-              p2^.do_unzip(package[i].zip,data.basepath);
+              UnzDlg^.do_unzip(package[i].zip,data.basepath);
            end;
-          desktop^.delete(p2);
-          dispose(p2,done);
+          desktop^.delete(UnzDlg);
+          dispose(UnzDlg,done);
         end;
 
     { write config }
       if (data.cfgval and 1)<>0 then
        begin
-         for i:=1to cfg.packs do
+         for i:=1 to cfg.packs do
           if cfg.pack[i].defcfgfile<>'' then
            writedefcfg(data.basepath+cfg.pack[i].binsub+DirSep+cfg.pack[i].defcfgfile);
        end;
@@ -1154,7 +1200,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2000-02-24 17:47:47  peter
+  Revision 1.19  2000-06-18 18:27:32  hajny
+    + archive validity checking, progress indicator, better error checking
+
+  Revision 1.18  2000/02/24 17:47:47  peter
     * last fixes for 0.99.14a release
 
   Revision 1.17  2000/02/23 17:17:56  peter

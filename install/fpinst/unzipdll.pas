@@ -19,6 +19,7 @@ const
 {$ELSE}
  AllFiles: string [3] = '*.*';
 {$ENDIF}
+ UnzipErr: longint = 0;
 
 type
  TArgV = array [0..1024] of PChar;
@@ -28,6 +29,7 @@ type
 
 function FileUnzipEx (SourceZipFile, TargetDirectory,
                                                     FileSpecs: PChar): integer;
+(* Returns non-zero result on success. *)
 
 implementation
 
@@ -186,7 +188,8 @@ begin
  ArgV [ArgC] := TargetDirectory;
  Inc (ArgC);
  ArgV [ArgC] := @ExDirOpt [3]; (* contains #0 *)
- if UzpMain (ArgC, ArgV) <> 0 then FileUnzipEx := 0 else FileUnzipEx := FCount;
+ UnzipErr := UzpMain (ArgC, ArgV);
+ if UnzipErr <> 0 then FileUnzipEx := 0 else FileUnzipEx := FCount;
  for I := 1 to FCount do FreeMem (ArgV [I + OptCount], StrLen [I + OptCount]);
 end;
 
@@ -207,7 +210,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-06-13 16:21:36  hajny
+  Revision 1.5  2000-06-18 18:27:32  hajny
+    + archive validity checking, progress indicator, better error checking
+
+  Revision 1.4  2000/06/13 16:21:36  hajny
     * Win32 support corrected/completed
 
   Revision 1.3  2000/03/05 17:57:08  hajny
