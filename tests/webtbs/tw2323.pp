@@ -6,7 +6,11 @@
 {$Mode Delphi}
 {$ASMMODE Intel}
 
+var
+  buf : array[0..255] of char;
 asm
+    lea ebx,buf
+    add ebx,'('
     mov al, [ebx - '(']
 end.
 
