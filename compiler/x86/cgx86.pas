@@ -908,7 +908,10 @@ unit cgx86;
               if not(cs_check_overflow in aktlocalswitches) and
                  ispowerof2(a,power) then
                 { can be done with a shift }
-                inherited a_op_const_reg_reg(list,op,size,a,src,dst);
+                begin
+                  inherited a_op_const_reg_reg(list,op,size,a,src,dst);
+                  exit;
+                end;
               list.concat(taicpu.op_const_reg_reg(A_IMUL,S_L,a,src,dst));
             end;
           OP_ADD, OP_SUB:
@@ -1661,7 +1664,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.1  2002-07-20 19:28:47  florian
+  Revision 1.2  2002-07-21 16:55:34  jonas
+    * fixed bug in op_const_reg_reg() for imul
+
+  Revision 1.1  2002/07/20 19:28:47  florian
     * splitting of i386\cgcpu.pas into x86\cgx86.pas and i386\cgcpu.pas
       cgx86.pas will contain the common code for i386 and x86_64
 
