@@ -46,12 +46,15 @@ function settimeofday(tp:ptimeval;tzp:ptimezone):cint;
 begin
   settimeofday:=do_SysCall(Syscal_nr_settimeofday,TSysParam(@tp),tzp);
 end;
-{$endof}
+{$endif}
 {$endif}
 
 {
   $Log$
-  Revision 1.2  2004-10-27 04:22:04  marco
+  Revision 1.3  2004-10-27 04:22:29  marco
+  *** empty log message ***
+
+  Revision 1.2  2004/10/27 04:22:04  marco
    * cvs log and extra endif
 
 }
