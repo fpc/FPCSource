@@ -146,24 +146,12 @@ implementation
 
     procedure check_finalize_locals(p : tnamedindexitem;arg:pointer);
       begin
-        case tsym(p).typ of
-          varsym :
-            begin
-              if (tvarsym(p).refs>0) and
-                 not(vo_is_funcret in tvarsym(p).varoptions) and
-                 not(is_class(tvarsym(p).vartype.def)) and
-                 tvarsym(p).vartype.def.needs_inittable then
-                include(current_procinfo.flags,pi_needs_implicit_finally);
-            end;
-{
-          must be done at the end of the program, not at the end of the procedure
-          typedconstsym :
-            begin
-              if ttypedconstsym(p).typedconsttype.def.needs_inittable then
-                include(current_procinfo.flags,pi_needs_implicit_finally);
-            end;
-}
-        end;
+        if (tsym(p).typ=varsym) and
+           (tvarsym(p).refs>0) and
+           not(vo_is_funcret in tvarsym(p).varoptions) and
+           not(is_class(tvarsym(p).vartype.def)) and
+           tvarsym(p).vartype.def.needs_inittable then
+          include(current_procinfo.flags,pi_needs_implicit_finally);
       end;
 
 
@@ -478,7 +466,6 @@ implementation
       var
         pd : tprocdef;
         newstatement : tstatementnode;
-        dummycall    : tcallnode;
       begin
         generate_except_block:=internalstatements(newstatement);
 
@@ -927,23 +914,6 @@ implementation
 
     procedure tcgprocinfo.resetprocdef;
       begin
-         { the local symtables can be deleted, but the parast   }
-         { doesn't, (checking definitons when calling a        }
-         { function                                        }
-         { not for a inline procedure !!               (PM)   }
-         { at lexlevel = 1 localst is the staticsymtable itself }
-         { so no dispose here !!                              }
-         { The localst is also needed for debuginfo }
-         if assigned(code) and
-            not(cs_debuginfo in aktmoduleswitches) and
-            not(cs_browser in aktmoduleswitches) and
-            (procdef.proccalloption<>pocall_inline) then
-           begin
-             if procdef.parast.symtablelevel>=normal_function_level then
-               procdef.localst.free;
-             procdef.localst:=nil;
-           end;
-
          { remove code tree, if not inline procedure }
          if assigned(code) then
           begin
@@ -1423,7 +1393,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.204  2004-09-04 21:18:47  armin
+  Revision 1.205  2004-09-13 20:34:28  peter
+    * keep localst in memory, it is also needed for finalizing
+      typedconst
+
+  Revision 1.204  2004/09/04 21:18:47  armin
   * target netwlibc added (libc is preferred for newer netware versions)
 
   Revision 1.203  2004/08/14 14:50:42  florian
