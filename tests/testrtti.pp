@@ -348,19 +348,28 @@ begin
       begin
       Write ('(Examining ',name,' : Type : ',TypeNames[PropType^.Kind],', ');
       If (Proptype^.kind in Ordinaltypes) Then
-        Write ('Value : ',GetOrdProp(O,pri))
-{
-      // Skipping the ord() never gives True !!! ???
-      else If ord(pri^.proptype^.kind) = ord(tkfloat) then
         begin
-        Write (', Value : ');
-        Flush(output);
-        Write(GetFloatProp(O,pri))
+        J:=GetOrdProp(O,pri);
+        Write ('Value : ',j);
+        If PropType^.Kind=tkenumeration then
+          Write ('(=',GetEnumName(Proptype,J),')')
         end
-}
-      else
-        Write ('Not of type ordinal, bool or float:',ord(pri^.proptype^.kind));
-      Writeln (')');
+      else 
+        Case pri^.proptype^.kind of
+          tkfloat :  begin
+                     Write ('Value : ');
+                     Flush(output);
+                     Write(GetFloatProp(O,pri))
+                     end;
+        tkAstring : begin
+                    Write ('value : ');
+                    flush (output);
+                    Write(GetStrProp(O,Pri));
+                    end;
+        else 
+          Write ('Untested type:',ord(pri^.proptype^.kind));
+        end;  
+          Writeln (')');
       end;
     end;
 end;
