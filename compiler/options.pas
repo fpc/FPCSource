@@ -1235,12 +1235,6 @@ begin
 {$ifdef SUPPORT_FIXED}
   def_symbol('HASFIXED');
 {$endif SUPPORT_FIXED}
-{$ifdef cardinalmulfix}
-{ for the compiler }
-  def_symbol('CARDINALMULFIX');
-{ for the RTL }
-  def_symbol('CARDINALMULFIXED');
-{$endif cardinalmulfix}
   def_symbol('PACKENUMFIXED');
 
 { some stuff for TP compatibility }
@@ -1510,7 +1504,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2000-12-15 13:26:01  jonas
+  Revision 1.21  2000-12-16 15:56:19  jonas
+    - removed all ifdef cardinalmulfix code
+
+  Revision 1.20  2000/12/15 13:26:01  jonas
     * only return int64's from functions if it int64funcresok is defined
     + added int64funcresok define to options.pas
 

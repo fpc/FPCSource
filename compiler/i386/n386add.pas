@@ -958,18 +958,8 @@ interface
           do_normal:
                    mboverflow:=false;
                    cmpop:=false;
-{$ifndef cardinalmulfix}
-                   unsigned :=
-                     (left.resulttype^.deftype=pointerdef) or
-                     (right.resulttype^.deftype=pointerdef) or
-                     ((left.resulttype^.deftype=orddef) and
-                      (porddef(left.resulttype)^.typ=u32bit)) or
-                     ((right.resulttype^.deftype=orddef) and
-                      (porddef(right.resulttype)^.typ=u32bit));
-{$else cardinalmulfix}
                    unsigned := not(is_signed(left.resulttype)) or
                                not(is_signed(right.resulttype));
-{$endif cardinalmulfix}
                    case nodetype of
                       addn : begin
                                { this is a really ugly hack!!!!!!!!!! }
@@ -2299,7 +2289,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-12-05 11:44:32  jonas
+  Revision 1.7  2000-12-16 15:56:18  jonas
+    - removed all ifdef cardinalmulfix code
+
+  Revision 1.6  2000/12/05 11:44:32  jonas
     + new integer regvar handling, should be much more efficient
 
   Revision 1.5  2000/11/29 00:30:45  florian

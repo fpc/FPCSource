@@ -236,9 +236,7 @@ Function  Swap (X:Int64):Int64;
 {$endif RTLLITE}
 
 Function  Random(l:cardinal):cardinal;
-{$ifndef cardinalmulfixed}
 Function  Random(l:longint):longint;
-{$endif cardinalmulfixed}
 Function  Random: extended;
 Procedure Randomize;
 
@@ -486,7 +484,10 @@ const
 
 {
   $Log$
-  Revision 1.14  2000-12-08 14:04:43  jonas
+  Revision 1.15  2000-12-16 15:56:19  jonas
+    - removed all ifdef cardinalmulfix code
+
+  Revision 1.14  2000/12/08 14:04:43  jonas
     + added pos(char,ansistring), because there is also a pos(char,shortstring)
       and without the ansistring version, the shortstring version is always
       called when calling pos(char,pchar), even when using $h+ (because the

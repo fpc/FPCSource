@@ -262,12 +262,10 @@ begin
   random := trunc(random()*l);
 end;
 
-{$ifndef cardinalmulfixed}
 function random(l:longint): longint;
 begin
   random := trunc(random()*l);
 end;
-{$endif cardinalmulfixed}
 
 Procedure NewSeed;
 begin
@@ -645,7 +643,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2000-11-13 14:47:46  jonas
+  Revision 1.11  2000-12-16 15:56:19  jonas
+    - removed all ifdef cardinalmulfix code
+
+  Revision 1.10  2000/11/13 14:47:46  jonas
     * support for range checking when converting from 64bit to something
       smaller (32bit, 16bit, 8bit)
     * fixed range checking between longint/cardinal and for array indexing
