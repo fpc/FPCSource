@@ -2188,6 +2188,7 @@ type
         temp: ttempcreatenode;
         curparaitem: tparaitem;
         orgtype: ^ttype;
+        temptype: ttemptype;
         foundcall: boolean;
         take_addr: boolean;
       begin
@@ -2212,9 +2213,20 @@ type
                 take_addr := (curparaitem.paratyp in [vs_var,vs_out]) or
                              ((curparaitem.paratype.def.deftype = formaldef));
                 if not(take_addr) then
-                  temp := ctempcreatenode.create(curpara.left.resulttype,curpara.left.resulttype.def.size,tt_persistent)
+                  begin
+                    if is_ansistring(curpara.left.resulttype.def) then
+                      temptype := tt_ansistring
+                    else if is_widestring(curpara.left.resulttype.def) then
+                      temptype := tt_widestring
+                    else if is_interfacecom(curpara.left.resulttype.def) then
+                      temptype := tt_interfacecom
+                    else
+                      temptype := tt_persistent;
+                    temp := ctempcreatenode.create(curpara.left.resulttype,curpara.left.resulttype.def.size,temptype)
+                  end
                 else
                   begin
+                    temptype := tt_persistent;
                     temp := ctempcreatenode.create(voidpointertype,pointer_size,tt_persistent);
                     orgtype := @curpara.left.resulttype;
                   end;
@@ -2225,7 +2237,8 @@ type
                   cassignmentnode.create(ctemprefnode.create(temp),curpara.left));
                 { after the assignment, turn the temp into a non-persistent one, so }
                 { that it will be freed once it's used as parameter                 }
-                addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
+                if (temptype = tt_persistent) then
+                  addstatement(newstatement,ctempdeletenode.create_normal_temp(temp));
                 curpara.left := ctemprefnode.create(temp);
                 if take_addr then
                   curpara.left := ctypeconvnode.create_explicit(cderefnode.create(curpara.left),orgtype^);
@@ -2712,7 +2725,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.156  2003-05-17 13:30:08  jonas
+  Revision 1.157  2003-05-17 14:05:58  jonas
+    * fixed callparatemp for ansi/widestring and interfacecoms
+
+  Revision 1.156  2003/05/17 13:30:08  jonas
     * changed tt_persistant to tt_persistent :)
     * tempcreatenode now doesn't accept a boolean anymore for persistent
       temps, but a ttemptype, so you can also create ansistring temps etc
