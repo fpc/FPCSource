@@ -547,18 +547,21 @@ unit typinfo;
         DataSize: Integer;
 
       begin
-         { cut off unnecessary stuff }
-         case GetTypeData(PropInfo^.PropType)^.OrdType of
-            otSWord,otUWord: begin
-                Value:=Value and $ffff;
-                DataSize := 2;
+         if PropInfo^.PropType^.Kind <> tkClass then
+           { cut off unnecessary stuff }
+           case GetTypeData(PropInfo^.PropType)^.OrdType of
+              otSWord,otUWord: begin
+                  Value:=Value and $ffff;
+                  DataSize := 2;
+                end;
+              otSByte,otUByte: begin
+                  Value:=Value and $ff;
+                  DataSize := 1;
               end;
-            otSByte,otUByte: begin
-                Value:=Value and $ff;
-                DataSize := 1;
-            end;
-           else DataSize := 4;
-         end;
+             else DataSize := 4;
+           end
+	 else
+	   DataSize := 4;
          SetIndexValues(PropInfo,Index,Ivalue);
          case (PropInfo^.PropProcs shr 2) and 3 of
             ptfield:
@@ -847,7 +850,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-12-13 23:28:17  sg
+  Revision 1.7  2001-02-15 22:40:22  sg
+  * Fixed SetOrdProp for class instance properties (merged from fixbranch)
+
+  Revision 1.6  2000/12/13 23:28:17  sg
   * Merged bugfix for bug 1273 from fixbranch
   * Fixed typo in SetFloatProp
   * Rewrote GetStrProp, now all AnsiString will be correctly
