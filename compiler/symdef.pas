@@ -1819,12 +1819,12 @@ implementation
             end;
           uchar:
             begin
-              rttilist^.concat(new(pai_const,init_8bit(tkWChar)));
+              rttilist^.concat(new(pai_const,init_8bit(tkChar)));
               dointeger;
             end;
           uwidechar:
             begin
-              rttilist^.concat(new(pai_const,init_8bit(tkChar)));
+              rttilist^.concat(new(pai_const,init_8bit(tkWChar)));
               dointeger;
             end;
           else
@@ -5545,7 +5545,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.12  2000-11-19 16:23:35  florian
+  Revision 1.13  2000-11-26 18:09:40  florian
+    * fixed rtti for chars
+
+  Revision 1.12  2000/11/19 16:23:35  florian
   *** empty log message ***
 
   Revision 1.11  2000/11/12 23:24:12  florian
