@@ -1378,10 +1378,10 @@ cg_e_control_flow_outside_finally=06040_E_Control flow statements aren't allowed
 % executed. If the execution reaches the exit, it's unclear what to do:
 % exiting the procedure or searching for another exception handler
 % \end{description}
-cg_w_parasize_too_big=06041_E_Parameters size exceeds limit for certain cpu's
+cg_w_parasize_too_big=06041_W_Parameters size exceeds limit for certain cpu's
 % This indicates that you are declaring more than 64K of parameters, which
 % might not be supported on other processor targets.
-cg_w_localsize_too_big=06042_E_Local variable size exceed limit for certain cpu's
+cg_w_localsize_too_big=06042_W_Local variable size exceed limit for certain cpu's
 % This indicates that you are declaring more than 32K of lcoal variables, which
 % might not be supported on other processor targets.
 cg_e_localsize_too_big=06043_E_Local variables size exceeds supported limit
