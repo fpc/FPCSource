@@ -65,18 +65,19 @@ procedure TSparcprocinfo.after_header;
     receive the return value of the called function}
     Return_Offset:=64;{16*4}
     procdef.parast.address_fixup:=(16+1)*4;
-  	{Reserve the stack for copying parameters passed into registers. By default
-    we reserve space for the 6 input registers even if the function had less
-    parameters.}
-    procdef.localst.address_fixup:=6*4+(16+1)*4;
 	end;
 procedure TSparcProcInfo.after_pass1;
 	begin
     with ProcDef do
       begin
+  	    {Reserve the stack for copying parameters passed into registers. By
+        default we reserve space for the 6 input registers if the function had
+        less parameters. Otherwise, we allocate data sizeof parameters}
         if parast.datasize>6*4
         then
-          localst.address_fixup:=parast.address_fixup+parast.datasize;
+          localst.address_fixup:=parast.address_fixup+parast.datasize
+        else
+          procdef.localst.address_fixup:=parast.address_fixup+6*4;
 		    firsttemp_offset:=localst.address_fixup+localst.datasize;
 	      WriteLn('Parameter copies start at: %i6+'+tostr(parast.address_fixup));
     		WriteLn('Locals start at: %o6+'+tostr(localst.address_fixup));
@@ -93,7 +94,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2002-11-17 17:49:09  mazen
+  Revision 1.9  2002-12-21 23:21:47  mazen
+  + added support for the shift nodes
+  + added debug output on screen with -an command line option
+
+  Revision 1.8  2002/11/17 17:49:09  mazen
   + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
 
   Revision 1.7  2002/11/14 21:42:08  mazen

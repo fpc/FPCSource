@@ -28,14 +28,18 @@ the behaviour of such a unit having just a USES clause!}
 implementation
 uses
   ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,{ncgset,}
-  naddcpu,ncpucall,{n386con,n386cnv,n386flw,n386mat,n386mem,}
+  ncpuadd,ncpucall,{n386con,n386cnv,n386flw,}ncpumat,{n386mem,}
   {n386set,}ncpuinln,{n386opt,}ncpucnv,
   { this not really a node }
-  {nSPARCobj,}rgcpu;
+  {ncpuobj,}rgcpu;
 end.
 {
     $Log$
-    Revision 1.5  2002-11-30 20:03:29  mazen
+    Revision 1.6  2002-12-21 23:21:47  mazen
+    + added support for the shift nodes
+    + added debug output on screen with -an command line option
+
+    Revision 1.5  2002/11/30 20:03:29  mazen
     + ncpuinln node
 
 }

@@ -36,10 +36,11 @@ specific processor ABI. It is overriden for each CPU target.
   LocPara : is the location where the parameter will be stored}
     procedure a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;const LocPara:TParaLocation);override;
     procedure a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST LocPara:TParaLocation);override;
-    procedure a_param_ref(list:TAasmOutput;size:tcgsize;CONST r:TReference;CONST LocPara:TParaLocation);override;
+    procedure a_param_ref(list:TAasmOutput;sz:tcgsize;CONST r:TReference;CONST LocPara:TParaLocation);override;
     procedure a_paramaddr_ref(list:TAasmOutput;CONST r:TReference;CONST LocPara:TParaLocation);override;
     procedure a_call_name(list:TAasmOutput;CONST s:string);override;
     procedure a_call_ref(list:TAasmOutput;CONST ref:TReference);override;
+    procedure a_call_reg(list:TAasmOutput;Reg:TRegister);override;
     {Branch Instruction}
     procedure a_jmp_always(List:TAasmOutput;l:TAsmLabel);override;
     {General purpose instyructions}
@@ -133,32 +134,32 @@ procedure tcgSPARC.a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST Loc
           InternalError(2002032213);
       end;
   END;
-procedure tcgSPARC.a_param_ref(list:TAasmOutput;size:tcgsize;const r:TReference;const LocPara:TParaLocation);
+procedure tcgSPARC.a_param_ref(list:TAasmOutput;sz:TCgSize;const r:TReference;const LocPara:TParaLocation);
   var
     ref: treference;
     tmpreg:TRegister;
   begin
-          with LocPara do
-            case locpara.loc of
-            LOC_REGISTER,LOC_CREGISTER:
-            a_load_ref_reg(list,size,r,Register);
+    with LocPara do
+      case locpara.loc of
+        LOC_REGISTER,LOC_CREGISTER:
+          a_load_ref_reg(list,sz,r,Register);
         LOC_REFERENCE:
-                begin
+          begin
           {Code conventions need the parameters being allocated in %o6+92. See
           comment on g_stack_frame}
-                if locpara.sp_fixup<92
-                then
-                InternalError(2002081104);
-                reference_reset(ref);
-                ref.base:=locpara.reference.index;
-                ref.offset:=locpara.reference.offset;
-                tmpreg := get_scratch_reg_int(list);
-                a_load_ref_reg(list,size,r,tmpreg);
-                a_load_reg_ref(list,size,tmpreg,ref);
-                free_scratch_reg(list,tmpreg);
-                end;
+            if locpara.sp_fixup<92
+            then
+              InternalError(2002081104);
+            reference_reset(ref);
+            ref.base:=locpara.reference.index;
+            ref.offset:=locpara.reference.offset;
+            tmpreg := get_scratch_reg_int(list);
+            a_load_ref_reg(list,sz,r,tmpreg);
+            a_load_reg_ref(list,sz,tmpreg,ref);
+            free_scratch_reg(list,tmpreg);
+          end;
         LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                case size of
+                case sz of
                 OS_32:
                 a_loadfpu_ref_reg(list,OS_F32,r,locpara.register);
                   OS_64:
@@ -205,10 +206,18 @@ procedure tcgSPARC.a_call_name(list:TAasmOutput;CONST s:string);
       END;
   END;
 procedure tcgSPARC.a_call_ref(list:TAasmOutput;CONST ref:TReference);
-  BEGIN
+  begin
     list.concat(taicpu.op_ref(A_CALL,ref));
     list.concat(taicpu.op_none(A_NOP));
-  END;
+  end;
+procedure TCgSparc.a_call_reg(list:TAasmOutput;Reg:TRegister);
+  begin
+    list.concat(taicpu.op_reg(A_JMPL,reg));
+    if target_info.system=system_sparc_linux
+    then
+      list.concat(taicpu.op_none(A_NOP));
+    procinfo.flags:=procinfo.flags or pi_do_call;
+ end;
 {********************** branch instructions ********************}
 procedure TCgSPARC.a_jmp_always(List:TAasmOutput;l:TAsmLabel);
   begin
@@ -247,13 +256,45 @@ procedure tcgSPARC.a_load_reg_ref(list:TAasmOutput;size:TCGSize;reg:tregister;CO
   BEGIN
     list.concat(taicpu.op_reg_ref(A_ST,reg,ref));
   END;
-procedure tcgSPARC.a_load_ref_reg(list:TAasmOutput;size:tcgsize;const ref:TReference;reg:tregister);
+procedure tcgSPARC.a_load_ref_reg(list:TAasmOutput;size:TCgSize;const ref:TReference;reg:tregister);
   var
     op:tasmop;
     s:topsize;
   begin
-    sizes2load(size,S_SW,op,s);
-    list.concat(taicpu.op_ref_reg(op,ref,reg));
+    case size of
+      { signed integer registers }
+      OS_S8:
+        Op:=A_LDSB;{Load Signed Byte}
+      OS_S16:
+        Op:=A_LDSH;{Load Signed Halfword}
+      OS_S32:
+        Op:=A_LD;{Load Word}
+      OS_S64:
+        Op:=A_LDD;{Load Double Word}
+      { unsigned integer registers }
+    //A_LDSTUB;{Load-Store Unsigned Byte}
+      OS_8:
+        Op:=A_LDUB;{Load Unsigned Bye}
+      OS_16:
+        Op:=A_LDUH;{Load Unsigned Halfword}
+      OS_32:
+        Op:=A_LD;{Load Word}
+      OS_64:
+        Op:=A_LDD;{Load Double Word}
+      { floating-point real registers }
+      OS_F32:
+        Op:=A_LDF;{Load Floating-point word}
+    //A_LDFSR
+      OS_F64:
+        Op:=A_LDDF;{Load Double Floating-point word}
+      //A_LDC;{Load Coprocessor}
+      //A_LDCSR;
+      //A_LDDC;{Load Double Coprocessor}
+      else
+        InternalError(2002122100);
+    end;
+    with list do
+      concat(taicpu.op_ref_reg(op,ref,reg));
   end;
 procedure tcgSPARC.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,reg2:tregister);
   var
@@ -761,18 +802,17 @@ procedure tcgSPARC.a_cmp_const_ref_label(list:TAasmOutput;size:tcgsize;cmp_op:to
           a_jmp_cond(list,cmp_op,l);}
         end;
 
-     procedure tcgSPARC.a_cmp_ref_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;CONST ref:TReference;reg:tregister;l:tasmlabel);
-
-        var
-          opsize:topsize;
-
-        begin
-          opsize := S_Q{makeregsize(reg,size)};
-          list.concat(taicpu.op_ref_reg(A_CMP,ref,reg));
-          a_jmp_cond(list,cmp_op,l);
-        end;
-
-     procedure tcgSPARC.a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:tasmlabel);
+procedure tcgSPARC.a_cmp_ref_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topcmp;CONST ref:TReference;reg:tregister;l:tasmlabel);
+  var
+    TempReg:TRegister;
+   begin
+     TempReg:=cg.get_scratch_reg_int(List);
+     a_load_ref_reg(list,OS_32,Ref,TempReg);
+     list.concat(taicpu.op_reg_reg(A_SUBcc,TempReg,Reg));
+     a_jmp_cond(list,cmp_op,l);
+     cg.free_scratch_reg(exprasmlist,TempReg);
+   end;
+procedure tcgSPARC.a_jmp_cond(list:TAasmOutput;cond:TOpCmp;l:tasmlabel);
 
        var
          ai:taicpu;
@@ -1283,7 +1323,11 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.26  2002-11-25 19:21:49  mazen
+  Revision 1.27  2002-12-21 23:21:47  mazen
+  + added support for the shift nodes
+  + added debug output on screen with -an command line option
+
+  Revision 1.26  2002/11/25 19:21:49  mazen
   * fixed support of nSparcInline
 
   Revision 1.25  2002/11/25 17:43:28  peter

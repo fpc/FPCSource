@@ -19,7 +19,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
  ****************************************************************************}
-UNIT naddcpu;
+UNIT ncpuadd;
 {$INCLUDE fpcdefs.inc}
 INTERFACE
 USES
@@ -408,7 +408,11 @@ begin
 end.
 {
     $Log$
-    Revision 1.10  2002-11-25 17:43:28  peter
+    Revision 1.1  2002-12-21 23:21:47  mazen
+    + added support for the shift nodes
+    + added debug output on screen with -an command line option
+
+    Revision 1.10  2002/11/25 17:43:28  peter
       * splitted defbase in defutil,symutil,defcmp
       * merged isconvertable and is_equal into compare_defs(_ext)
       * made operator search faster by walking the list only once

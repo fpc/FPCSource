@@ -8,8 +8,15 @@ then
   cd "$COMP_DIR"
   fpc pp -gl -oppcsparc -dExtDebug -Fu"sparc;systems" -dSPARC -dNoOpt -dGDB "$1"
 fi
-if [[ "$1" != "-B" ]] || [[ "$#" -gt "1" ]]
+if [[ "$#" -gt "0" ]] && ( [[ "$1" != "-B" ]] || [[ "$#" -gt "1" ]] )
 then
   cd "$FPC_SRC_DIR/tests/sparc"
-  "$COMP_DIR"/ppcsparc -s -al -Fi"$RTL_DIR"/{unix,linux,sparc,inc} -dSPARC "$@"
+  if [[ "$1" == "-gdb" ]]
+  then
+    shift 1
+    SRC_DIR=`echo "$COMP_DIR/"{,sparc,systems}":"`
+    gdb -d "$SRC_DIR" --args "$COMP_DIR"/ppcsparc -s -al -Fi"$RTL_DIR"/{unix,linux,sparc,inc} -dSPARC "$@"
+  else
+    "$COMP_DIR"/ppcsparc -s -al -Fi"$RTL_DIR"/{unix,linux,sparc,inc} -dSPARC "$@"
+  fi
 fi

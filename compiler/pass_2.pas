@@ -149,10 +149,11 @@ implementation
         p: pchar;
       begin
         if entry then
-          p := strpnew('second'+secondnames[ht]+' (entry)')
+          p := strpnew('second '+secondnames[ht]+' (entry)')
         else
-          p := strpnew('second'+secondnames[ht]+' (exit)');
+          p := strpnew('second '+secondnames[ht]+' (exit)');
         exprasmlist.concat(tai_comment.create(p));
+        WriteLn(p);
       end;
 {$endif EXTDEBUG}
 
@@ -332,7 +333,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2002-08-23 16:14:49  peter
+  Revision 1.40  2002-12-21 23:21:47  mazen
+  + added support for the shift nodes
+  + added debug output on screen with -an command line option
+
+  Revision 1.39  2002/08/23 16:14:49  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 
