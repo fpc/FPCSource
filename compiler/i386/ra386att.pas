@@ -1318,7 +1318,8 @@ var
             will generate buggy code. Allow it only for explicit typecasting }
           if hasdot and
              (not hastype) and
-             (tvarsym(pointer(opr.ref.symbol)).owner.symtabletype=parasymtable) then
+             (tvarsym(opr.localsym).owner.symtabletype=parasymtable) and
+             (current_procinfo.procdef.proccalloption<>pocall_register) then
             Message(asmr_e_cannot_access_field_directly_for_parameters);
           inc(opr.localsymofs,l)
         end;
@@ -2129,7 +2130,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.49  2003-10-01 20:34:49  peter
+  Revision 1.50  2003-10-07 18:21:18  peter
+    * fix crash
+    * allow parameter subscription for register parameters
+
+  Revision 1.49  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

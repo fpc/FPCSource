@@ -1363,9 +1363,11 @@ var
       OPR_LOCAL :
         begin
           { don't allow direct access to fields of parameters, becuase that
-            will generate buggy code. Allow it only for explicit typecasting }
+            will generate buggy code. Allow it only for explicit typecasting
+            and when the parameter is in a register (delphi compatible) }
           if (not hastype) and
-             (tvarsym(pointer(opr.ref.symbol)).owner.symtabletype=parasymtable) then
+             (tvarsym(opr.localsym).owner.symtabletype=parasymtable) and
+             (current_procinfo.procdef.proccalloption<>pocall_register) then
             Message(asmr_e_cannot_access_field_directly_for_parameters);
           inc(opr.localsymofs,l)
         end;
@@ -1930,7 +1932,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.54  2003-10-02 21:17:38  peter
+  Revision 1.55  2003-10-07 18:21:18  peter
+    * fix crash
+    * allow parameter subscription for register parameters
+
+  Revision 1.54  2003/10/02 21:17:38  peter
     * fix operand order when a prefix opcode is supplied
 
   Revision 1.53  2003/10/01 20:34:49  peter
