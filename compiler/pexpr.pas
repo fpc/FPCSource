@@ -1029,7 +1029,8 @@ unit pexpr;
                                      { we don't need sym reference when it's in the
                                        current unit or system unit, because those
                                        units are always loaded (PFV) }
-                                     if (pd^.owner^.unitid=0) or
+                                     if not(assigned(pd^.owner)) or
+                                        (pd^.owner^.unitid=0) or
                                         (pd^.owner^.unitid=1) then
                                       p1:=gentypenode(pd,nil)
                                      else
@@ -2113,7 +2114,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.157  1999-11-08 14:02:16  florian
+  Revision 1.158  1999-11-14 15:57:35  peter
+    * fixed crash with an errordef
+
+  Revision 1.157  1999/11/08 14:02:16  florian
     * problem with "index X"-properties solved
     * typed constants of class references are now allowed
 
