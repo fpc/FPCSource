@@ -24,22 +24,23 @@ interface
 { 6.2.x }
 {$ifdef GDB_V602}
   {$define GDB_V6}
-  {$define GDB_HAS_SYSROOT}
-  {$define GDB_SYMTAB_HAS_MACROS}
 {$endif def GDB_V602}
 
 { 6.3.x }
 {$ifdef GDB_V603}
   {$define GDB_V6}
+{$endif def GDB_V603}
+
+{$ifdef GDB_V6}
   {$define GDB_HAS_SYSROOT}
   {$define GDB_SYMTAB_HAS_MACROS}
-{$endif def GDB_V603}
+{$endif GDB_V6}
 
 { GDB has a simulator for powerpc CPU
   it is integrated into GDB by default }
-{$ifdef powerpc}
+{$ifdef cpupowerpc}
   {$define GDB_HAS_SIM}
-{$endif powerpc}
+{$endif cpupowerpc}
 
 {$ifdef go32v2}
   {$undef NotImplemented}
@@ -2463,7 +2464,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2004-12-19 21:00:00  florian
+  Revision 1.27  2005-01-02 12:40:42  florian
+    * set default GDB version to 6
+
+  Revision 1.26  2004/12/19 21:00:00  florian
     * 64 bit adaptions
 
   Revision 1.25  2004/12/19 18:35:56  florian
