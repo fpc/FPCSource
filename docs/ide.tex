@@ -19,243 +19,310 @@
 %   Boston, MA 02111-1307, USA.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Using the IDE
+% The IDE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Using the IDE}
+\chapter{The IDE}
 
 The IDE (\textbf{I}ntegrated \textbf{D}evelopment \textbf{E}nvironment)
-provides a comfortable user interface to the compiler. Moreover, it
-provides a debugger, symbol browser etc. The IDE is a textmode
-application which allows the same look and feel for all supported
-operating systems. Furthermore, it will be very familiar to all
-Turbo Pascal users.
-Currently the IDE is available for DOS, Win32 and Linux.
+provides a comfortable user interface to the compiler. It contains an 
+editor with syntax highlighting, a debugger, symbol browser etc. 
+The IDE is a textmode application which has the same look and feel 
+on all supported operating systems. It is modeled after the IDE of Turbo
+Pascal, so many people should feel comfortable using it.
 
+Currently, the IDE is available for \dos, \windows and \linux.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% First steps with the IDE
 \section{First steps with the IDE}
-
+%
+% Starting the IDE
+%
+\subsection{Starting the IDE}
 The IDE is started by entering the command:
 \begin{verbatim}
 fp
 \end{verbatim}
-at the command line. Of course, you can also start the IDE
-from a graphical user interface (under the Windows enviroment, you
-can switch between windowed mode and full screen mode by pressing
-\textsc{Alt-Enter}).
-
-\subsection{The IDE screen}
-
-\begin{htmlonly}
-After start up, the screen of the IDE looks like this:
-\htmladdimg{../pics/idestart.gif}
-\end{htmlonly}
-\begin{latexonly}
-After start up, the screen of the IDE looks like figure \ref{fig:idestart}.
-\begin{figure}
-\caption{The IDE screen immediatly after startup}
-\label{fig:idestart}
-\ifpdf
-\epsfig{file=pics/idestart.pdf,width=\textwidth}
-\else
-%%%%%%%%%% !!!!!!!! eps\epsfig{file=pics/idestart.eps,width=\textwidth}
-\fi
-\end{figure}
-\end{latexonly}
-At top of the screen you see the \emph{menu bar}, at the bottom
-the \emph{status bar}. The empty bar between them is called the
-\emph{desktop}.
-
-The statusbar allows a quick access to often used commands by
-clicking them with the mouse. Further, it reminds you about 
-keyboard shortcuts that are frequently used.
-
-In upper right corner of the IDE screen a clock is displayed to
-remind you to go to bed in time. At lower right corner you'll
-see the current amount of unsed memory. Don't worry if this value
-is low - the IDE allocates more memory from the operating system
-if it runs out of memory.
-
-You can exit from the IDE by selecting \var{File|Exit}
-\footnote{\var{File|Exit} means select the item Exit in the menu File}
-or by pressing \textsc{Alt-X}.
-
+at the command line. It can also be started from a graphical user 
+interface such as \windows. 
 \begin{remark}
-A complete reference of all keyboard shortcuts can be found in
-section \ref{ide:keyshortcuts}.
+Under \windows, it is possible to switch between windowed mode and 
+full screen mode by pressing \textsc{Alt-Enter}).
 \end{remark}
-
+%
+% IDE command-line options.
+%
 \subsection{IDE Command line options}
-
 When starting the IDE, command line options can be passed:
 \begin{verbatim}
 fp [-option] [-option] ... <file name> ...
 \end{verbatim}
-
 \var{Option} is one of the following switches (the option letters
-aren't case sensitive):
-
+are case insensitive):
 \begin{description}
-\item [-N] DOS only: Do not use long file names. Since Windows 95 an interface
-is provided to DOS applications to access long file names. The IDE uses
-this interface by default to access files. Under certain circumstances, this
-can lead to problems.
-\item [-Cfilename] This option followed by
-a filename uses the given file to read the options. The file name
-must follow the \var{C-} without spaces.
+\item [-N] (\dos only) Do not use long file names. \windows 95 and later
+versions of \windows provide an interface to DOS applications to access 
+long file names. 
+The IDE uses this interface by default to access files. Under certain 
+circumstances, this can lead to problems. This switch tells the IDE not to
+use the long filenames.
+\item [-Cfilename] This option, followed by a filename, tells the IDE to
+read its options from \file{filename}. There should be no whitespace between
+the file name and the \var{-C}.
 \item [-R] After starting the IDE, it changes automatically to the directory
-which was active when you left the IDE the last time.
+which was active when the IDE exited the last time.
 \end{description}
-
 The files given at the command line are loaded into edit
 window automatically.
 
 \begin{remark}
-Under DOS/Win32, \var{/} can be used instead of \var{-} to pass a
+Under DOS/Win32, a \var{/} can be used instead of \var{-} to pass a
 command line switch to the IDE.
 \end{remark}
 
+\subsection{The IDE screen}
+
+After start up, the screen of the IDE looks like 
+\begin{htmlonly}
+this:
+\htmladdimg{../pics/idestart.gif}
+\end{htmlonly}
+\begin{latexonly}
+figure \ref{fig:idestart}.
+\begin{figure}
+\caption{The IDE screen immediatly after startup}
+\label{fig:idestart}
+\ifpdf
+\epsfig{file=pics/idestart.png,width=\textwidth}
+\else
+\epsfig{file=pics/idestart.eps,width=\textwidth}
+\fi
+\end{figure}
+\end{latexonly}
+At top of the screen the \emph{menu bar} is visible, at the bottom
+the \emph{status bar}. The empty space between them is called the
+\emph{desktop}.
+
+The statusbar shows the keyboard shortcuts for frequently used 
+commands, and allows quick access to these commands by clicking 
+them with the mouse. 
+At the right edge of the statusbar, the current amount of unused 
+memory is displayed. This is only an indication, since the IDE 
+tries to allocate more memory from the operating system if it 
+runs out of memory.
+
+The menu provides access to all of the IDE's functionality, and
+at the right edge of the menu, a clock is displayed.
+
+The IDE can be left by selecting \var{File|Exit} in the menu
+\footnote{\var{File|Exit} means select the item Exit in the menu File}
+or by pressing \textsc{Alt-X}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Navigating in the IDE
+\section{Navigating in the IDE}
+The IDE can be navigated both with the keyboard and with a mouse, if your
+system has a mouse.
+
+\subsection{Using the keyboard} 
+All functionality of the IDE is available through use of the keyboard.
+\begin{itemize}
+\item It is used for typing and navigating through the sources.
+\item Editing commands such as copying and pasting text.
+\item Moving and resizing windows.
+\item It can be used to access the menu, by pressing \textsc{ALT} and the
+appropriate highlighted menu letter, or by pressing \textsc{F10} and
+navigating through the menu with the arrow keys.
+
+more information on the menu can be found in \sees{idemenu}
+\item Many commands in the IDE are bound to shortcuts, i.e. typing a special
+combination of keys will execute a command immediatly.
+\end{itemize}
+\begin{remark}
+A complete reference of all keyboard shortcuts can be found in
+\sees{keyshortcuts}.
+\end{remark}
+
 \subsection{Using the mouse}
-\label{ide:mouseusage}
+\label{suse:mouseusage}
 If the system is equipped with a mouse, it can be used to work with the
 IDE. The left button is used to select menu items, press buttons, select
-text blocks etc. The right mouse button is used to access the local menu.
-The local menu isn't always available. Holding down the \textsc{Ctrl} or
-\textsc{Alt} key and clicking the right button will
-execute user defined functions, see \ref{ide:prefmouse}
+text blocks etc. 
+
+The right mouse button is used to access the local menu, if
+it is available. Holding down the \textsc{Ctrl} or \textsc{Alt} key and 
+clicking the right button will execute user defined functions, 
+see \sees{prefmouse}.
 
 \begin{remark}
-Occasionally, this manual uses the term "drag the mouse". This
-means that you have to move the mouse while pressing the left
-mouse button.
-\end{remark}
-
-\begin{remark}
-When talking about left and right mouse button, it always means that the
-mouse buttons aren't reversed, if you want you can exchange the
-behavior of the left and right mouse button, see \ref{ide:prefmouse}.
-\end{remark}
-
-\begin{remark}
-Under the following circumstances you won't be able to use the mouse,
-even if your system has one:
+\begin{enumerate}
+\item Occasionally, the manual uses the term "drag the mouse". This
+means that the mouse is moved while the left mouse button is being 
+pressed.
+\item 
+The action of mouse buttens may be reversed, i.e. the actions of the left
+mouse button can be assigned to the right mouse button and vice versa  
+\footnote{See \sees{prefmouse} for more information on how to reverse the
+actions of the mouse buttons.}. Throughout the manual, it is assumed 
+that the actions of the mouse buttons are not reversed.
+\item
+The mouse is not allways available, even if a mouse is installed:
 \begin{itemize}
-\item The IDE is running under Linux throught a telnet connection
-\item The IDE is running under Linux in a window
+\item The IDE is running under \linux throught a telnet connection from 
+a \windows machine.
+\item The IDE is running under \linux in an X-term under X-windows.
 \end{itemize}
+\end{enumerate}
 \end{remark}
-
-\subsection{Accessing the menu}
-The menu (the gray bar at the top of the IDE) can be accessed by using
-the mouse to select items. If you do not use a mouse, you can use
-\textsc{F10} to switch to the menu. Use the arrow keys to navigate
-and the \textsc{Enter} key to select items.
-To access the menu very fast without leaving the
-keyboard with your hands, \textsc{Alt-<highlighted letter>}
-can be used, afterwards
-menu entries can be selected by pressing also the highlighted letter, but
-without \textsc{Alt}. E.g. \textsc{Alt-S G} is a fast way to
-display the \emph{goto line dialog}.
-
-Every menu item is explained by a short text in the status bar.
-
-In certain cases, a local menu is available. It can be accessed by pressing
-the right mouse button or \textsc{Alt-F10}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Windows
 \section{Windows}
-In our days, working with windowed applications should be familiar to
-most users. Nevertheless, the following section describes how
-the windows work in the \fpc IDE to allow an efficient work with it.
-
-\subsection{Basics}
+\label{se:windows}
+Nowadays, working with windowed applications should be no problem for
+most \windows and \linux users. Nevertheless, the following section 
+describes how the windows work in the \fpc IDE, to allow efficient 
+work with it.
+%
+% Window basics
+%
+\subsection{Window basics}
+\label{se:windowbasics}
 \begin{htmlonly}
-A common IDE window looks like:
+A common IDE window is displayed  below:
 \htmladdimg{../pics/idewin.gif}
 \end{htmlonly}
 \begin{latexonly}
-Figure \ref{fig:idewin} shows a common IDE edit window.
+A common IDE window is displayed in figure \ref{fig:idewin}.
 \begin{figure}
 \caption{A common IDE window}
 \label{fig:idewin}
 \ifpdf
-\epsfig{file=pics/idewin.pdf,width=\textwidth}
+\epsfig{file=pics/idewin.png,width=\textwidth}
 \else
-%%%%%%%%%% !!!!!!!!eps \epsfig{file=pics/idewin.eps,width=\textwidth}
+\epsfig{file=pics/idewin.eps,width=\textwidth}
 \fi
 \end{figure}
 \end{latexonly}
-The window is surround by the so called \emph{frame}, the whith double
-line around the window.
-At the top of the window you'll see the title bar, it contains the title
-of the window (what else?). To move the window click, on
-the title bar and drag the window with the mouse.
-If you do not have a mouse, see \ref{ide:keyboardwindow} how
-to use the keyboard to work with windows.
+The window is surrounded by a so-called \emph{frame}, the white double
+line around the window. 
 
-At the upper left corner you see the \emph{close icon}. If you click it the
-window will be closed, it can be also closed by pressing \textsc{Alt-F3} or
-selecting the menu item \var{Window|Close}. All open windows can be closed
-by selecting the menu item \var{Window|Close all}.
+At the top of the window 3 things are displayed:
+\begin{itemize}
+\item 
+At the upper left corner of the window, a \emph{close icon} is shown. 
+When clicked, the window will be closed. It can be also closed by
+ pressing \textsc{Alt-F3} or selecting the menu item \var{Window|Close}. 
+All open windows can be closed by selecting the menu item 
+\var{Window|Close all}.
+\item In the middle, the title of the window is displayed.
+\item At the upper right corner, a small green arrow is visible.
+Clicking this arrow zooms the window so it covers the whole desktop. 
+Clicking this arrow on a zoomed window will restore old size of the 
+window. Pressing the key \textsc{F5} has the same effect as clicking 
+that arrow. The same effect can be achieved with the menu item \var{Window|Zoom}.
+Windows and dialogs which aren't resizeable can't be zoomed, either.
+\end{itemize}
 
-To resize the window, click on the lower left corner of the window
-and drag it (move the mouse while holding the left button pressed).
-Keyboard users should look at section \ref{ide:keyboardwindow}.
+The right edge and bottom edges of a window contain scrollbars.
+They can be used to scroll the window contents with the mouse. 
+The arrows at the ends of the scrollbars can be clicked to scroll the 
+contents line by line. Clicking on the dotted area between the arrows 
+and the cyan-coloured rectangle will scroll the window's content 
+page by page. By dragging the rectangle the content can be scrolled 
+continuously.
+
+The star and the numbers in the lower left corner of the window
+display information about the contents of the window. They
+are explained in the section about the editor, see \sees{editingtext}.
+
+%
+% Sizing+moving windows
+%
+\subsection{Sizing and moving windows}
+\label{se:windowsizingmoving}
+A window can be moved and sized using the mouse and the keyboard:
+To move a window, either:
+\begin{itemize}
+\item using the mouse, click on the title bar and drag the window 
+with the mouse.
+\item using the keyboard, go into the size/move mode
+by pressing \textsc{Ctrl-F5} or selecting the menu item
+\var{Window|Size/Move}. . Using the cursor keys the window can be moved. 
+The size/move mode can be left by pressing \textsc{Enter}. 
+In this case, the window will keep its size and position. 
+Alternativly, pressing \textsc{Esc} will restore the old position.
+\end{itemize} 
+To resize a window, either:
+\begin{itemize}
+\item using the mouse, click on the lower right corner of the window
+and drag it.
+\item using the keyboard, go into the size/move mode
+by pressing \textsc{Ctrl-F5} or selecting the menu item
+\var{Window|Size/Move}. The window frame will be green to indicate that
+the IDE is in size/move mode. 
+By pressing shift and the cursor keys simultaneously, the window can 
+be resized.  The size/move mode can be left by pressing
+\textsc{Enter}. In this case, the window will keep the new size.
+Pressing \textsc{Esc} will restore the old size.
+\end{itemize}
 Not all windows can be resized. This applies, for example, to
-\emph{dialog windows} (\ref{ide:dialogwindow}).
+\emph{dialog windows} (\sees{dialogwindow}).
 
-At the upper right you'll see a green arrow. Clicking this arrow
-zooms the window to the whole desktop. If you click this arrow on
-a zoomed window, the old size of the window will be restored. Pressing
-the key \textsc{F5} has the same effect as clicking that arrow. Furthermore,
-this can be also done by selecting the menu item \var{Window|Zoom}.
-Windows which aren't resizeable can't be zoomed, either.
-
-The scrollbars at the right and bottom border can be used to scroll
-the window contents with the mouse. Click on the arrows to scroll
-line by line and on the dotted area between the arrows and the
-cyan-coloured
-rectangle to scroll page by page. By dragging the rectangle you can
-scroll continously through the window contents.
-
-The star and the numbers in the lower left corner
-are explained in the section about the editor, see \ref{ide:editingtext}.
-
+A window can also be hidden. To hide a window, the \textsc{Ctrl-F6} key
+combination can be used, or the \var{Window|Hide} menu may be selected.
+To restore a Hidden window, it is necessary to select it from the window
+list. More information about the window list can be found in the next
+section.   
+%
+% Multiple windows
+%
 \subsection{Working with multiple windows}
-When working with larger projects, you'll have multible windows on your
-desktop. An inactive window is identified by a grey frame. You can
-activate it by clicking on the window with the mouse. Or you can
-step trough all open windows by pressing \textsc{F6}
-(menu item \var{Window|Next}).
-To activate the last activated window, press \textsc{Shift-F6}
-(menu item \var{Window|Previous}).
+\label{se:multiplewindows}
+When working with larger projects, it is likely that multiple windows 
+will appear on the desktop. However, only one of these windows will be 
+the active window, all other windows will be inactive.
 
-If the window has a number in the upper
-right corner, you can activate it by pressing \textsc{Alt-<number>}.
-\textsc{Alt-0} has a special meaning,
-it shows a dialog box with all available
-windows which allows a quick activation of windows which don't have a
-number.
+An inactive window is identified by a grey frame. An inactive window can
+be made active in one of several ways:
+\begin{itemize}
+\item using the mouse, activate a window by clicking on it.
+\item using the keyboard, pressing \textsc{F6} will step trough all open 
+windows. To activate the previously activated window, \textsc{Shift-F6} can
+be used.
+\item the menu item \var{Window|Next} can be used to activate the next 
+window in the list of windows, while \var{Window|Previous} will select
+the previous window.
+\item If the window has a number in the upper right corner, it can be
+activated by pressing \textsc{Alt-<number>}.
+\item Pressing \textsc{Alt-0} will pop up a dialog with a lis  with all 
+available windows which allows a quick activation of windows which 
+don't have a number.
+\end{itemize}
 
-Of course, you can order the windows on the IDE desktop by zooming and
-resizing them with the mouse or keyboard. This is particularly difficult
-with the keyboard. Instead, you can use the menu items
-\var{Window|Tile} and \var{Window|Cascade}. Tile means that the
-whole desktop space is divided up evenly between all resizable
-windows. \emph{Cascade} brings
-all windows in a cascaded position. Just try these commands if you've
-multiple windows on the IDE desktop.
+The windows can be ordered and placed on the IDE desktop by zooming and
+resizing them with the mouse or keyboard. This is a tyime-consuming task, 
+and particularly difficult with the keyboard. Instead, the menu items
+\var{Window|Tile} and \var{Window|Cascade} can be used:
+\begin{description}
+\item[Tile] will divide whole desktop space evenly between all resizable 
+windows. 
+\item[Cascade] puts all windows in a cascaded position. 
+\end{description}
 
 In very rare cases the screen of the IDE may be mixed up. In this
-case the whole IDE screen can bebe refreshed by selecting
-the menu item \var{Window|Refresh display}.
-
+case the whole IDE screen can be refreshed by selecting the menu item 
+\var{Window|Refresh display}.
+%
+% Dialog windows
+%
 \subsection{Dialog windows}
-\label{ide:dialogwindow}
+\label{se:dialogwindow}
 In many cases the IDE displays a dialog window to get user input.
-The main difference to other windows is that you can't activate
-other windows while a dialog is active. This behavior is called
-\emph{modal}. To activate another window, you've to close
-a modal window/dialog.
+The main difference to normal windows is that other windows cannot be
+activated while a dialog is active. Also the menu is not accessible while in
+a dialog. This behavior is called \emph{modal}. To activate another window, 
+the modal window or dialog must be closed first.
 
 \begin{htmlonly}
 A typical dialog window looks like:
@@ -267,31 +334,364 @@ Figure \ref{fig:idedlg} shows a typical dialog window.
 \caption{A typical dialog window}
 \label{fig:idedlg}
 \ifpdf
-\epsfig{file=pics/idedlg.pdf,width=\textwidth}
+\epsfig{file=pics/idedlg.png,width=\textwidth}
 \else
-%%%%%%%%%% !!!!!!!!eps \epsfig{file=pics/idedlg.eps,width=\textwidth}
+\epsfig{file=pics/idedlg.eps,width=\textwidth}
 \fi
 \end{figure}
 \end{latexonly}
-%%%!!!!!!!!!!!!!!
 
-\subsection{Moving and zooming windows with the keyboard}
-\label{ide:keyboardwindow}
-To resize/move a window with the keyboard, go into the size/move mode
-by pressing \textsc{Ctrl-F5} or selecting the menu item
-\var{Window|Size/Move}. Now the window frame will be green. Using the
-cursor keys you can move the window. By pressing shift and the cursor
-keys, the window can be resized. The size/move mode can be left by pressing
-\textsc{Enter}. In this the window will keep it's size and position.
-Alternativly, you can press \textsc{Esc} and the old size will be restored.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The menu
+\section{The Menu}
+\label{se:idemenu}
+The main menu (the gray bar at the top of the IDE) provides access to all the
+functionality of the IDE. It also displays a clock, displaying the current
+time. The menu is always available, except when a dialog is opened. If a
+dialog is opened, it must be closed first in order to access the menu.
+
+In certain windows, a local menu is also available. The local menu will
+appear where the cursor is, and provides additional commands that are 
+context-sensitive.
+%
+% Accessing the menu
+%
+\subsection{Accessing the menu}
+The menu can be accessed in a number of ways:
+\begin{enumerate}
+\item By using the mouse to select items. The mouse cursor should be located
+over the desired menu item, and a left mouse click will then select it.
+\item By pressing \textsc{F10}. This will switch the IDE focus to the menu. 
+Use the arrow keys can then be used to navigate in the menu, the 
+\textsc{Enter} key should be used to select items.
+\item To access menu items directly, \textsc{Alt-<highlighted menu letter>}
+can be used to select a menu item. Afterwards submenu entries can be selected 
+by pressing the highlighted letter, but without \textsc{Alt}. 
+E.g. \textsc{Alt-S G} is a fast way to display the \emph{goto line} dialog.
+\end{enumerate}
+Every menu item is explained by a short text in the status bar.
+
+When a local menu is available, it can be accessed by pressing
+the right mouse button or \textsc{Alt-F10}. 
+
+In the subsequent, all menu entries and their actions are described.
+%
+% The file menu
+%
+\subsection{The File menu}
+\label{se:menufile}
+\begin{description}
+\item[New] Opens a new, empty editor window. 
+\item[New from template] Prompts for a template to be used, asks to fill in
+any parameters, and then starts a new editor window with the template.
+\item[Open] (\textsc{F3}) Presents a file selection dialog, and opens 
+the selected file in a new editor window. 
+\item[Save] (\textsc{F2}) Saves the contents of the current edit window 
+with the current filename. If the current edit window does not yet have
+a filename, a dialog is presented to enter a filename.
+\item[Save as] Presents a dialog in which a filename can be entered. The
+current window's contents are then saved to this new filename, and the
+filename is stored for further save actions.
+\item[Change dir] Presents a dialog in which a directory can be selected.
+The current working directory is then changed to the selected directory.
+\item[Dos shell] executes a command shell. After the shell exited, the
+IDE resumes.
+\item[Exit] (\textsc{ALT-X}) Exits the IDE. If any unsaved files are 
+in the editor, the IDE will ask if these files should be saved.
+\end{description}
+%
+% The edit menu
+%
+\subsection{The Edit menu}
+\label{se:menuedit}
+\begin{description}
+\item[Undo] (\textsc{ALT-BkSP})
+Undo the last editing action. The editing actions are stored in a buffer,
+selecting this mechanism will move backwards through this buffer, i.e.
+multiple undo levels are possible.
+\item[Redo] Redo the last action that was previously undone. Redo can redo
+multiple undone actions. 
+\item[Dump undo]
+Clears the undo buffer. After this action, the undo and redo menu will be 
+unavailable till new editing actions have taken place.
+\item[Undo all]
+Undo all actions in the undo buffer. If a new empty file was started, this
+action should clear the window contents again.
+\item[Redo all]
+Redo all editing actions that were undone.
+\item[Cut] (\textsc{Shift-DEL}) Copy the current selection to the clipboard
+and delete the selection from the text. Any previous clipboard contents is
+lost after this action. After this action, the clipboard contents can be 
+pasted elsewhere in the text.
+\item[Copy] (\textsc{Ctrl-INS}) Copy the current selection to the clipboard.
+Any previous clipboard contents is lost after this action. 
+After this action, the clipboard contents can be pasted elsewhere in the text.
+\item[Paste] (\textsc{Shift-INS}) Insert the current clipboard contents in
+the text at the cursor position. The clipboard contents remains as it was.
+\item[Clear] (\textsc{Ctrl-DEL}) clears (i.e. deletes) the current
+selection.
+\item[Show clipboard] Opens a window in which the current clipboard contents
+is shown.
+\end{description}
+%
+% The Search menu
+%
+\subsection{The Search menu}
+\label{se:menusearch}
+\begin{description}
+\item[Find] (\textsc{Ctrl-Q F}) presents the search dialog. A search text 
+can be entered, and when the dialog is closed, the entered text is searched
+in the active window. If the text is found, it will be selected. 
+\item[Replace] (\textsc{Ctrl-Q A} presents the search and replace dialog.
+After the dialog is closed, the search text will be replaced by the replace
+text in the active window.
+\item[Search again] (\textsc{CTRL-L}) repeats the last search or search and replace action,
+ using  the same parameters.
+\item[Go to line number] (\textsc{Alt-G}) prompts for a line number, and
+then jumps to this line number.
+\item[Find procedure]
+Not yet implemented.
+\item[Objects]
+Not yet implemented.
+\item[Modules]
+Not yet implemented.
+\item[Globals]
+Not yet implemented.
+\item[Symbol]
+Not yet implemented.
+\end{description}
+%
+% The Run menu
+%
+\subsection{The Run menu}
+\label{se:menurun}
+\begin{description}
+\item[Run] (\textsc{Ctrl-F9})
+If the sources were modified, compile the program. If the compile is
+successful, the program is executed. If the primary file  was set, then 
+that is used to determine which program to execute. See \sees{menucompile}
+for more information on how to set the primary file.
+\item[Step over] (\textsc{F8})
+Run the program till the next source line is reached. If any calls to 
+procedures are made, these will be executed completely as well.
+\item[Trace into] (\textsc{F7})
+Execute the current line. If the current line contains a call to another
+procedure, the process will stop at the entry point of the called procedure.
+\item[Goto cursor] (\textsc{F4})
+Runs the program till the execution point matches the line where the cursor
+is.
+\item[until return]
+Runs the current procedure till it exits.
+\item[parameters]
+This menu item allows to enter parameters that will be passed on to the
+program when it is being executed.
+\item[program reset] (\textsc{Ctrl-F2}) if the program is being run or 
+debugged, the debug session is aborted, and the running program is killed.
+\end{description}
+%
+% The compile menu
+%
+\subsection{The Compile menu}
+\label{se:menucompile}
+\begin{description}
+\item[Compile] (\textsc{Alt-F9}) Compiles the contents of the active window.  
+If the primary file was set, the primary file is compiled instead.
+\item[Make] (\textsc{F9}) Compiles the contents of the active window, and
+any files that the unit or program depends on and that were modified since
+the last compile.
+If the primary file was set, the primary file is compiled instead.
+\item[Build]
+Compiles the contents of the active window, and any files that the unit or 
+program depends on, whether they were modified or not.
+If the primary file was set, the primary file is compiled instead.
+\item[Target] Sets the target operating system for which should be compiled. 
+\item[Primary file] Sets the primary file. If set, any run or compile command 
+will act on the primary file instead of on the active window. The primary
+file need not be loaded in the IDE for this to have effect.
+\item[Clear primary file]
+Clears the primary file. After this command, any run or compile action will
+act on the active window.
+\item[Information] Displays some information about the current program.
+\item[Compiler messages] (\textsc{F12}) displays the compiler messages
+window. This window will display the messages generated by the compiler
+during the last compile.
+\end{description}
+%
+% The debug menu
+%
+\subsection{The Debug menu}
+\label{se:menudebug}
+\begin{description}
+\item[Output]
+\item[User screen] (\textsc{Alt-F5}) switches to the screen as it was last
+left by the running program.
+\item[Breakpoint] (\textsc{Ctrl-F8})
+Sets a breakpoint at the current line. When debugging, program execution
+will stop at this breakpoint.
+\item[Call stack] (\textsc{Ctrl-F3})
+Shows the call stack. The call stack is the list of addresses (and
+filenames and line numbers, if this information was compiled in) of 
+procedures that are currently being called in the running program.
+\item[Registers]
+Shows the current content of the CPU registers. 
+\item[Add watch] (\textsc{Ctrl-F7}) Add a watch. A watch is an expression
+that can be evaluated by the IDE and shown in a special window. usually this
+is the contents of some variable. 
+\item[Watches]
+Shows the current list of watches in a separate window.
+\item[Breakpoint list]
+Shows the current list of breakpoints in a separate window.
+\item[GDB window]
+Shows the GDB debugger console. This can be used to interact with the debugger
+directly.
+\end{description}
+%
+% The tools menu
+%
+\subsection{The Tools menu}
+\label{se:menutools}
+\begin{description}
+\item[Messages] (\textsc{F11}) Show the messages window. 
+This window contains the output from one of the tools. For more information,
+see \sees{toolsmessages}.
+\item[Goto next] (\textsc{Alt-F8}) goto next message.
+\item[Goto previous] (\textsc{Alt-F7}) goto previous message
+\item[Grep] (\textsc{SHIFT-F2}) Prompts for a regular expression and options
+to be given to grep, and then executes \file{grep} with the given expression and
+options. For this to work, the \file{grep} program must be installed on your
+system, and be in a directory that is in the \var{PATH}. For more
+information, see \sees{grep}.
+\item[Calculator] 
+Displays the calculator. For more information, see \sees{calculator}
+\item[Ascii table] Displays the \var{ASCII} table. For more information, see
+\sees{asciitable}
+\end{description}
+%
+% The Search menu
+%
+\subsection{The Options menu}
+\label{se:menuoptions}
+\begin{description}
+\item[Mode] Presents a dialog to set the current mode of the compiler. The
+current mode is shown at the right of the menu entry. For more information,
+see \sees{compilermode}.
+\item[Compiler] Presents a dialog that can be used to set common compiler
+options. These options will be used when compiling a program or unit.
+\item[Memory sizes]
+Presents a dialog where the stack size and the heap size for the program can
+be set. These options will be used when compiling a program.
+\item[Linker]
+Presents a dialog where some linker options can be set. These options will
+be used when a program or library is compiled.
+\item[Debugger]
+Presents a dialog where the debugging options can be stored. These options
+are used when compiling units or programs. Note that the debugger will not
+work unless debugging information is generated in the program.
+\item[Directories]
+Presents a dialog where the various directories needed by the compiler can
+be set. These directories will be used when a program or unit is compiled.
+\item[Browser]
+Presents a dialog where the browser options can be set. The browser options
+affect the behaviour of the symbol browser of the IDE. 
+\item[Tools]
+Presents a dialog to configure the tools menu. For more information, see
+\sees{addingtools}.
+\item[Environment]
+Presents a dialog to configure the behaviour of the IDE. A sub menu is
+presented with the various aspects of the IDE:
+\begin{description}
+\item[Preferences]
+General preferences, such as whether to save files or not, and which files
+should be saved. The video mode can also be set here.
+\item[Editor]
+Controls various aspects of the edit windows.
+\item[CodeComplete]
+Used to set the words which can be automatically completed when typing in
+the editor windows.
+\item[Codetemplates]
+Used to define code templates, which can be inserted in an edit window.
+\item[Desktop]
+Used to control the behaviour of the desktop, i.e. several features can be
+switched on or off.
+\item[Mouse]
+Can be used to control the actions of the mouse, and to assign commands to
+various mouse actions.
+\item[Startup]
+Not yet implemented.
+\item[Colors]
+Here the various colors used in the IDE and the editor windows can be set.
+\end{description}
+\item[Open]
+Presents a dialog in which a file with editor preferences can be selected. 
+after the dialog is closed, the preferences file will be read and the
+preferences will be applied.
+\item[Save]
+Save the current options in the default file.
+\item[Save as]
+Saves the current options in an alternate file. A file selection dialog box
+will be presented in which the alternate settings file can be entered.
+\end{description}
+%
+% The window menu
+%
+\subsection{The Window menu}
+\label{se:menuwindow}
+The Window menu provides access to some window functions. More information
+on all these functions can be found in \sees{windows}
+\begin{description}
+\item[Tile]
+Tiles all opened windows on the desktop.
+\item[Cascade]
+Cascades all opened windows on the desktop.
+\item[Close all]
+Close all opened windows.
+\item[Size/move] (\textsc{Ctrl-F5})
+Put the IDE in Size/move modus; after this command the active window can be
+moved and resized using the arrow keys.
+\item[Zoom] (\textsc{F5})
+Zooms or unzooms the current window. 
+\item[Next] (\textsc{F6})
+Activates the next window in the window list.
+\item[Previous] (\textsc{SHIFT-F6})
+Activates the previous window in the window list.
+\item[Hide] (\textsc{Ctrl-F6})
+Hides the active window. 
+\item[Close] (\textsc{ALT-F3}) closes the active window.
+\item[List] (\textsc{Alt-0}) shows the list of opened windows. From there a
+window can be activated, closed, shown and hidden.
+\item[Refresh display]
+Redraws the screen.
+\end{description}
+%
+% The Help menu
+%
+\subsection{The Help menu}
+\label{se:menuhelp}
+\begin{description}
+\item[Contents]
+Shows the help table of contents
+\item[Index] (SHIFT-F1)
+Jumps to the help Index.
+\item[Topic search]  (CTRL-F1)
+Jumps to the topic associated with the currently highlighted text.
+\item[Previous topic] (ALT-F1)
+Jumps to the previously visited topic.
+\item[Using help]
+Displays help on using the help system.
+\item[Files]
+Allows to configure the help menu. Here help files can be added to the help
+system.
+\item[About]
+Displays information about the IDE. See \sees{about} for more information.
+\end{description}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The help system
 \section{The help system}
-If you are stuck somewhere while editing files, regarding the syntax
-of a pascal statment or the behavior of a subroutine of the runtime
-library, you can use the \emph{help system} to get some information. The
-help system is called up by pressing F1.
+More information on how to handle the IDE, or about the use of various
+calls in the RTL, explanations regarding the syntax of a pascal statement,
+can be found in the \emph{help system}. The help system is activated
+ by pressing F1.
 
 \subsection{Navigating in the help system}
 The help system contains hyperlinks which can be accessed by clicking
@@ -299,64 +699,99 @@ them with the mouse. Alternativly, \textsc{Tab} and \textsc{Shift-Tab}
 can be used to move between the different hyperlinks of a page
 and the \textsc{Enter} key can be used to select them.
 
-The contents of the help system is displayed, if you press \textsc{Shift-F1}.
-To go back to the last help topic, \textsc{press Alt-F1}. This also works
-if the help window isn't displayed on the desktop.
+The contents of the help system is displayed, if \textsc{Shift-F1} is
+pressed. To go back to the last help topic, \textsc{press Alt-F1}. 
+This also works if the help window isn't displayed on the desktop.
 
 \subsection{Working with help files}
 The IDE contains a help system which can display HTML files
-as well as the TPH format known from TP. Of course, the HTML
-viewer of the help system is limited, so forget about displaying
-HTML files which use e.g. CSS \footnote{\textbf{C}ascaded
-\textbf{S}tyle \textbf{S}heets, an extension to HTML to
-get a similiar look like of a document with all browsers}. It is designed to display the FPC
-help files, but feel free to improve it and send us patches...
+as well as the TPH format known from \tp. The HTML viewer of the 
+help system is limited, it can only handle the most basic HTML files 
+not including graphics, since it is only designed to display the \fpc help 
+files \footnote{...but feel free to improve it and send patches to the 
+\fpc development team...}.
 
 The menu item \var{Help|Files} permits you to add and delete
 help files.
 
-Press the \emph{new button} to add a new file. You'll be asked to enter
-the location of the help file. If it is an
-HTML file, a dialog box will be displayed
+A new file can be added with the \emph{new} button. The IDE will display
+a prompt, in which the location of the help file should be entered.
+If it is an HTML file, a dialog box will be displayed
 which asks for a title. This title will then be included in the
 contents of help.
 
-A help file can be deleted from the help system (it ISN'T deleted from
-your hard disk) by pressing the \emph{delete button}.
+A help file can be deleted from the help system (it is \emph{not} deleted 
+from the hard disk) using the \emph{delete} button.
 
 \subsection{The about dialog}
+\label{se:about}
 The \emph{about dialog} (\var{Help|About...}) shows some information
-about the IDE, please include versions and dates of this
-dialog if you report bugs, have suggestion etc regarding the IDE.
-Furthermore, it contains copyright information.
+about the IDE, such as the version number, the date it was built, what
+compiler and debugger it uses. When reporting bugs about the IDE, please 
+It also contains copyright information.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Editing text
 \section{Editing text}
-\label{ide:editingtext}
-%%%!!!!!!!!!!!!!!
+\label{se:editingtext}
+In this section, the basics of editing (source) text are explained. The IDE
+works like many other text editors in this respect, so mainly the
+distinguishing points of the IDE will be explained.
 
-\subsection{Insertion modes}
-%%%!!!!!!!!!!!!!!
+\subsection{Insert modes}
+Standard, the IDE is in insert mode. This means that any text that is typed
+will be inserted before text that is present after the cursor. 
 
-\subsection{Setting marks}
-The IDE provides a feature which permits you to set a mark at
-the current cursor position. Later, you can return to this
-position by pressing a keyboard shortcut.
+In overwrite mode, any text that is typed will replace existing text. 
 
-You can set up to 9 marks per source file, they are set by
+When in insert mode, the cursor is a flat blinking line. If the IDE is in
+overwrite, the cursor is a cube with the height of one line.
+%
+% blocks
+%
+\subsection{Blocks}
+\label{se:blocks}
+The IDE handles selected text just as the \tp IDE handles it. This is
+slightly different from the way e.g. Windows applications handle selected
+text. 
+
+Text can be selected in 3 ways:
+\begin{enumerate}
+\item using the mouse, dragging the mouse over existing text selects it.
+\item using the keyboard, press \textsc{Ctrl-K B} to mark the beginning of
+the selected text, and \textsc{Ctrl-K K} to mark the end of the selected
+text.
+\item using the keyboard, hold the \textsc{Shift} key depressed while
+navigating with the cursor keys.
+\end{enumerate}
+
+In the \fpc IDE, selected text is persistent. After selecting a range of 
+text, the cursor can be moved, and the selection will not be destroyed.
+ 
+
+
+%
+% Bookmarks
+%
+\subsection{Setting bookmarks}
+\label{se:bookmarks}
+The IDE provides a feature which allows to set a bookmark at the current 
+cursor position. Later, the cursor can be returned to this position 
+by pressing a keyboard shortcut.
+
+Up to 9 bookmarks per source file can be set up, they are set by
 \textsc{Ctrl-K-<Number>} (where number is the number of the mark).
-To go to a previous set mark, press \textsc{Ctrl-Q-<Number}.
+To go to a previously set bookmark, press \textsc{Ctrl-Q-<Number}.
 
 \begin{remark}
-Currently, the marks aren't stored if the IDE is left. This may
+Currently, the bookmarks aren't stored if the IDE is left. This may
 change in future implementations of the IDE.
 \end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Searching in the text
 \section{Searching in the text}
-\label{ide:searching}
+\label{se:searching}
 
 
 \subsection{The symbol browser}
@@ -365,23 +800,25 @@ change in future implementations of the IDE.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Running programs
 \section{Running programs}
-\label{ide:running}
+\label{se:running}
 %%%!!!!!!!!!!!!!!
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Debugging programs
 \section{Debugging programs}
+\label{se:debugging}
 %%%!!!!!!!!!!!!!!
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The tools menu
 \section{The tools menu}
-\label{ide:toolsmenu}
+\label{se:toolsmenu}
 The tools menu allows you an easy access to external tools. Further,
 it contains two other probaly helpful tools for programmers: an
 ascii table and a calculator.
 
 \subsection{The messages window}
+\label{se:toolsmessages}
 The output of the external utilies is redirected by the IDE and it
 will be displayed in the message window. The message window is
 displayed automatically, if an external tool was run. The
@@ -400,13 +837,15 @@ the tool output is quite sophisticated, but in some cases it may
 fail. In this case, please refer the sources of the IDE.
 
 \subsection{GREP}
+\label{se:grep}
 One external tool in the Tools menu is already predefined: an
 menu item to call the \file{grep} utility (\var{Tools|Grep} or
 \textsc{Shift-F2}). \file{grep} search for a given string in files and
 returns the lines which contain the string. The search string can
-be even a regular expression (see \ref{ide:regexpr}).
+be even a regular expression (see \sees{regexpr}).
 
 \subsection{The ascii table}
+\label{se:asciitable}
 The tools menu provides also an ascii table (\var{Tools|Ascii table},
 it allows you to lookup ascii codes as well as
 inserting chars into the window which was active when calling the
@@ -416,12 +855,12 @@ char into an editor window, double click it with the mouse
 or press \textsc{Enter} while the cursor is on it.
 
 \subsection{The calculator}
+\label{se:calculator}
 The calculator allows you to do quickly some calculations. It doesn't
 take care of operator precedence, so be careful. For more information
-about the supported operations, see table \ref{ide:calculatorcommands}.
+about the supported operations, see table \seet{calculatorcommands}.
 
 \begin{FPCltable}{p{5cm}lll}{Calculator commands}{calculatorcommands}
-\label{ide:calculatorcommands}
 Operation & Button & Key \\
 \hline
 Add two numbers & \var{+} & \textsc{+} \\
@@ -446,6 +885,7 @@ Do per cent calculation & \var{\%} & \textsc{\%}
 \end{FPCltable}
 
 \subsection{Adding new tools}
+\label{se:addingtools}
 %%%!!!!!!!!!!!!!!
 
 \subsection{Meta parameters}
@@ -484,13 +924,14 @@ by it's contents before passing the command line to the tool.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Project management
 \section{Project management}
-\label{ide:projectmanagement}
-Lucily, project mangament in pascal is much easier than with C. The
+\label{se:projectmanagement}
+Luckily, project mangament in pascal is much easier than with C. The
 compiler knows from the source which units, sources etc. it needs.
-So the \fpc IDE doesn't need a full features project manager like
+So the \fpc IDE does not need a full featured project manager like
 some C development environments offer. But some things make life easier...
 
 \subsection{The primary file}
+\label{se:primaryfile}
 Without a primary file the IDE compiles/runs the source of the actived
 window when you start your program. If you have specified a primary
 file, the IDE compiles/runs always this source, no matter if another
@@ -504,6 +945,7 @@ The menu item \var{Compiler|Clear primary file} restores the default behavior
 i.e. the compile and run commands apply to the active window.
 
 \subsection{The switches mode}
+\label{se:compilermode}
 The IDE allows you to work with three different sets of compiler
 switches: Normal, Debug and Release. The different switch
 sets can be selected in the \var{Switches Mode} dialog which
@@ -521,7 +963,7 @@ directories (except for the output directory) seperated by
 semicolon.
 
 \begin{description}
-%%%!!!!!!!!!!!!!!
+\item Nothing yet !!!!!!!!!!!!!!
 \end{description}
 
 \subsection{The target operating system}
@@ -571,7 +1013,7 @@ available at the net to customize the refresh rate.
 \end{remark}
 
 \subsection{Mouse}
-\label{ide:prefmouse}
+\label{se:prefmouse}
 The \emph{mouse options dialog} is called by the menu item
 \var{Options|Environment|Mouse}. You can use the slider to adjust the
 double clock speed. If you're left handed you can exchange the
@@ -610,7 +1052,7 @@ by the browser
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Regular expressions
 \section{Regular expressions}
-\label{ide:regexpr}
+\label{se:regexpr}
 A regular expression is a string with sepcial characters which describes 
 a whole class of expressions. You may know this from the command line
 where can enter a \file{ls *.pas} (or \file{dir *.pas}) to get a list
@@ -627,10 +1069,10 @@ one or more digits (you'll understand this regular expression later).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Keyboard shortcuts
 \section{Keyboard shortcuts}
-\label{ide:keyshortcuts}
+\label{se:keyshortcuts}
 
-A lot of keyboard shortcuts used by the IDE are compatible with the
-good old WordStar and should be well known to Turbo Pascal users.
+A lot of keyboard shortcuts used by the IDE are compatible with 
+WordStar and should be well known to Turbo Pascal users.
 
 \begin{FPCltable}{p{5cm}ll}{General}{shortcutsgeneral}
 Command & Key shortcut & Alternative \\
@@ -761,7 +1203,10 @@ Undo & \textsc{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1  2000-07-13 09:10:04  michael
+%  Revision 1.1.2.1  2000-11-12 23:40:32  michael
+%  + Changes for final version
+%
+%  Revision 1.1  2000/07/13 09:10:04  michael
 %  + Initial import
 %
 %  Revision 1.5  2000/03/04 07:47:28  florian
