@@ -1260,7 +1260,7 @@ begin
      if def then
       def_symbol(Copy(s,1,i-1))
      else
-      def_symbol(Copy(s,1,i-1));
+      undef_symbol(Copy(s,1,i-1));
      delete(s,1,i);
    end;
 end;
@@ -1603,7 +1603,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.58  2001-08-30 20:57:09  peter
+  Revision 1.59  2001-09-12 12:46:54  marco
+   * fix from peter
+
+  Revision 1.58  2001/08/30 20:57:09  peter
     * asbsd merged
 
   Revision 1.57  2001/08/30 20:13:53  peter
