@@ -19,8 +19,12 @@ Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 begin
   CreatePipeHandles := DosCreatePipe (InHandle, OutHandle, PipeBufSize) = 0;
 end;
+{
   $Log$
-  Revision 1.2  2000-07-13 11:33:01  michael
+  Revision 1.3  2000-08-25 17:33:44  hajny
+    * Made compilable again (missing bracket at the begin of logs)
+
+  Revision 1.2  2000/07/13 11:33:01  michael
   + removed logs
  
 }
