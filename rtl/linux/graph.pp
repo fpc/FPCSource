@@ -512,8 +512,10 @@ end;
            ModeName:=ModeNames[i];
            // Pretend we are VGA always.
            DriverNumber := VGA;
-           MaxX:=ModeInfo.Width;
-           MaxY:=ModeInfo.height;
+           // MaxX is number of pixels in X direction - 1
+           MaxX:=ModeInfo.Width-1;
+           // same for MaxY
+           MaxY:=ModeInfo.Height-1;
            MaxColor := ModeInfo.colors;
            PaletteSize := MaxColor;
            HardwarePages := 0;
@@ -565,7 +567,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2000-03-19 11:20:14  peter
+  Revision 1.13  2000-03-25 19:12:00  florian
+    * fixed values of MaxX and MaxY
+
+  Revision 1.12  2000/03/19 11:20:14  peter
     * graph unit include is now independent and the dependent part
       is now in graph.pp
     * ggigraph unit for linux added
