@@ -320,7 +320,7 @@ begin
   If not SharedLibFiles.Empty then
    LinkOptions:='-dynamic-linker='+DynamicLinker+' '+LinkOptions;
   if Strip and not(cs_debuginfo in aktmoduleswitches) then
-   LinkOptions:=LinkOptions+target_link.stripopt;
+   LinkOptions:=LinkOptions+' '+target_link.stripopt;
 
 { Open linkresponse and write header }
   assign(linkresponse,current_module^.outpath^+LinkResName);
@@ -552,7 +552,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.46  1999-02-05 08:54:26  pierre
+  Revision 1.47  1999-02-05 16:45:47  michael
+  + Fixed gluing of options
+
+  Revision 1.46  1999/02/05 08:54:26  pierre
     + linkofiles splitted inot linkofiles and linkunitfiles
       because linkofiles must be stored with directory
       to enabled linking of different objects with same name
