@@ -421,8 +421,8 @@ const
        begin
           if not(size in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
             internalerror(2002090902);
-          if (longint(a) >= low(smallint)) and
-             (longint(a) <= high(smallint)) then
+          if (a >= low(smallint)) and
+             (a <= high(smallint)) then
             list.concat(taicpu.op_reg_const(A_LI,reg,smallint(a)))
           else if ((a and $ffff) <> 0) then
             begin
@@ -649,7 +649,7 @@ const
                   a_load_reg_reg(list,size,size,src,dst);
                 exit;
               end
-            else if (a = high(aint)) then
+            else if (a = -1) then
               begin
                 case op of
                   OP_OR:
@@ -661,7 +661,7 @@ const
                 end;
                 exit;
               end
-            else if (a <= high(word)) and
+            else if (aword(a) <= high(word)) and
                ((op <> OP_AND) or
                 not gotrlwi) then
               begin
@@ -682,8 +682,8 @@ const
         else if (op = OP_ADD) then
           if a = 0 then
             exit
-          else if (longint(a) >= low(smallint)) and
-              (longint(a) <= high(smallint)) then
+          else if (a >= low(smallint)) and
+                  (a <= high(smallint)) then
              begin
                list.concat(taicpu.op_reg_reg_const(A_ADDI,dst,src,smallint(a)));
                exit;
@@ -826,11 +826,11 @@ const
           { in the following case, we generate more efficient code when }
           { signed is true                                              }
           if (cmp_op in [OC_EQ,OC_NE]) and
-             (a > $ffff) then
+             (aword(a) > $ffff) then
             signed := true;
           if signed then
-            if (longint(a) >= low(smallint)) and (longint(a) <= high(smallint)) Then
-              list.concat(taicpu.op_reg_reg_const(A_CMPWI,NR_CR0,reg,longint(a)))
+            if (a >= low(smallint)) and (a <= high(smallint)) Then
+              list.concat(taicpu.op_reg_reg_const(A_CMPWI,NR_CR0,reg,a))
             else
               begin
                 scratch_register := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
@@ -839,8 +839,8 @@ const
                 rg[R_INTREGISTER].ungetregister(list,scratch_register);
               end
           else
-            if (a <= $ffff) then
-              list.concat(taicpu.op_reg_reg_const(A_CMPLWI,NR_CR0,reg,a))
+            if (aword(a) <= $ffff) then
+              list.concat(taicpu.op_reg_reg_const(A_CMPLWI,NR_CR0,reg,aword(a)))
             else
               begin
                 scratch_register := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
@@ -2115,7 +2115,7 @@ const
 
       begin
         get_rlwi_const := false;
-        if (a = 0) or (a = $ffffffff) then
+        if (a = 0) or (a = -1) then
           exit;
         { start with the lowest bit }
         testbit := 1;
@@ -2396,7 +2396,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.173  2004-06-20 08:55:32  florian
+  Revision 1.174  2004-07-01 18:00:00  jonas
+    * fixed several errors due to aword -> aint change
+
+  Revision 1.173  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.172  2004/06/17 16:55:46  peter
