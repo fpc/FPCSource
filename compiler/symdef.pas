@@ -4996,6 +4996,11 @@ implementation
           begin
              tobjectsymtable(symtable).datasize:=align(tobjectsymtable(symtable).datasize,
                  tobjectsymtable(symtable).fieldalignment);
+
+{$ifdef cpurequiresproperalignment}
+             tobjectsymtable(symtable).datasize:=align(tobjectsymtable(symtable).datasize,sizeof(aint));
+{$endif cpurequiresproperalignment}
+
              vmt_offset:=tobjectsymtable(symtable).datasize;
              inc(tobjectsymtable(symtable).datasize,sizeof(aint));
              include(objectoptions,oo_has_vmt);
@@ -6214,7 +6219,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.266  2004-11-04 17:58:48  peter
+  Revision 1.267  2004-11-05 21:07:13  florian
+    * vmt offset of objects is no properly aligned when necessary
+
+  Revision 1.266  2004/11/04 17:58:48  peter
   elecount also on 32bit needs the qword part to prevent overflow
 
   Revision 1.265  2004/11/04 17:09:54  peter
