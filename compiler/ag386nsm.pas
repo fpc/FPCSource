@@ -635,6 +635,14 @@ unit ag386nsm;
                suffix:='';
                prefix:='';}
                s:='';
+               if (paicpu(hp)^.opcode=A_FADDP) and (paicpu(hp)^.ops=0) then
+                 begin
+                   paicpu(hp)^.ops:=2;
+                   paicpu(hp)^.oper[0].typ:=top_reg;
+                   paicpu(hp)^.oper[0].reg:=R_ST1;
+                   paicpu(hp)^.oper[1].typ:=top_reg;
+                   paicpu(hp)^.oper[1].reg:=R_ST;
+                 end;
                if paicpu(hp)^.ops<>0 then
                 begin
                   if is_calljmp(paicpu(hp)^.opcode) then
@@ -766,7 +774,10 @@ unit ag386nsm;
 end.
 {
   $Log$
-  Revision 1.59  2000-05-12 21:26:22  pierre
+  Revision 1.60  2000-05-15 14:11:45  pierre
+   * add implicit args for FADDP
+
+  Revision 1.59  2000/05/12 21:26:22  pierre
     * fix the FDIV FDIVR FSUB FSUBR and popping equivalent
       simply by swapping from reverse to normal and vice-versa
       when passing from one syntax to the other !
