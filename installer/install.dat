@@ -510,7 +510,7 @@ endcfg
 
 defaultsetpath=
 @echo off
-echo Setting PATH for use with $TARGET Free Pascal compiler
+echo Setting PATH for use with $target Free Pascal compiler
 set A=$1\bin\$target;%PATH%
 set Path=
 set PATH=%A%
