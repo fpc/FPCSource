@@ -44,7 +44,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      globtype,systems,globals,
       tgobj,paramgr,symconst,symsym;
 
     constructor tsparcprocinfo.create(aparent:tprocinfo);
@@ -76,8 +76,11 @@ implementation
             <return pointer for calling>
             <register window save area for calling>
           %sp
+
+          Alignment must be the max available, as doubles require
+          8 byte alignment
         }
-        result:=Align(tg.direction*tg.lasttemp+savearea+target_info.first_parm_offset,4);
+        result:=Align(tg.direction*tg.lasttemp+savearea+target_info.first_parm_offset,aktalignment.localalignmax);
       end;
 
 
@@ -86,7 +89,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2003-10-01 20:34:50  peter
+  Revision 1.23  2004-01-12 22:11:39  peter
+    * use localalign info for alignment for locals and temps
+    * sparc fpu flags branching added
+    * moved powerpc copy_valye_openarray to generic
+
+  Revision 1.22  2003/10/01 20:34:50  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -62,7 +62,7 @@ unit tgobj;
        private
           { contains all free temps using nextfree links }
           tempfreelist  : ptemprecord;
-          function alloctemp(list: taasmoutput; size : longint; temptype : ttemptype; def:tdef) : longint;
+          function alloctemp(list: taasmoutput; size,alignment : longint; temptype : ttemptype; def:tdef) : longint;
           procedure freetemp(list: taasmoutput; pos:longint;temptypes:ttemptypeset);
        public
           { contains all temps }
@@ -103,7 +103,7 @@ unit tgobj;
           procedure ungetiftemp(list: taasmoutput; const ref : treference);
 
           { Allocate space for a local }
-          procedure getlocal(list: taasmoutput; size : longint;var ref : tparareference);
+          procedure getlocal(list: taasmoutput; size : longint;def:tdef;var ref : tparareference);
           procedure UnGetLocal(list: taasmoutput; const ref : tparareference);
        end;
 
@@ -198,7 +198,7 @@ unit tgobj;
       end;
 
 
-    function ttgobj.AllocTemp(list: taasmoutput; size : longint; temptype : ttemptype;def : tdef) : longint;
+    function ttgobj.AllocTemp(list: taasmoutput; size,alignment : longint; temptype : ttemptype;def : tdef) : longint;
       var
          tl,
          bestslot,bestprev,
@@ -223,14 +223,12 @@ unit tgobj;
          freetype:=Used2Free[temptype];
          if freetype=tt_none then
            internalerror(200208201);
-         { Align needed size on 4 bytes }
-         size:=align(size,4);
+         size:=align(size,alignment);
          { First check the tmpfreelist, but not when
            we don't want to reuse an already allocated block }
          if assigned(tempfreelist) and
             (temptype<>tt_noreuse) then
           begin
-            { Check for a slot with the same size first }
             hprev:=nil;
             hp:=tempfreelist;
             while assigned(hp) do
@@ -239,12 +237,18 @@ unit tgobj;
                if not(hp^.temptype in FreeTempTypes) then
                  Comment(V_Warning,'tgobj: (AllocTemp) temp at pos '+tostr(hp^.pos)+ ' in freelist is not set to tt_free !');
 {$endif}
+               { Check only slots that are
+                  - free
+                  - share the same type
+                  - contain enough space
+                  - has a correct alignment }
                if (hp^.temptype=freetype) and
                   (hp^.def=def) and
-                  (hp^.size>=size) then
+                  (hp^.size>=size) and
+                  (hp^.pos=align(hp^.pos,alignment)) then
                 begin
-                  { Slot is the same size, then leave immediatly }
-                  if hp^.size=size then
+                  { Slot is the same size then leave immediatly }
+                  if (hp^.size=size) then
                    begin
                      bestprev:=hprev;
                      bestslot:=hp;
@@ -314,17 +318,16 @@ unit tgobj;
             tl^.temptype:=temptype;
             tl^.def:=def;
 
+            { Extend the temp }
             if direction=-1 then
               begin
-                 { Extend the temp }
-                 dec(lasttemp,size);
+                 lasttemp:=(-align(-lasttemp,alignment))-size;
                  tl^.pos:=lasttemp;
               end
             else
               begin
-                 tl^.pos:=lasttemp;
-                 { Extend the temp }
-                 inc(lasttemp,size);
+                 tl^.pos:=align(lasttemp,alignment);
+                 lasttemp:=tl^.pos+size;
               end;
 
             tl^.size:=size;
@@ -432,22 +435,30 @@ unit tgobj;
 
 
     procedure ttgobj.gettemp(list: taasmoutput; size : longint;temptype:ttemptype;var ref : treference);
+      var
+        varalign : longint;
       begin
+        varalign:=size_2_align(size);
+        varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
         { can't use reference_reset_base, because that will let tgobj depend
           on cgobj (PFV) }
         fillchar(ref,sizeof(ref),0);
         ref.base:=current_procinfo.framepointer;
-        ref.offset:=alloctemp(list,size,temptype,nil);
+        ref.offset:=alloctemp(list,size,varalign,temptype,nil);
       end;
 
 
     procedure ttgobj.gettemptyped(list: taasmoutput; def:tdef;temptype:ttemptype;var ref : treference);
+      var
+        varalign : longint;
       begin
+        varalign:=def.alignment;
+        varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
         { can't use reference_reset_base, because that will let tgobj depend
           on cgobj (PFV) }
         fillchar(ref,sizeof(ref),0);
         ref.base:=current_procinfo.framepointer;
-        ref.offset:=alloctemp(list,def.size,temptype,def);
+        ref.offset:=alloctemp(list,def.size,varalign,temptype,def);
       end;
 
 
@@ -547,10 +558,14 @@ unit tgobj;
       end;
 
 
-    procedure ttgobj.getlocal(list: taasmoutput; size : longint;var ref : tparareference);
+    procedure ttgobj.getlocal(list: taasmoutput; size : longint;def:tdef;var ref : tparareference);
+      var
+        varalign : longint;
       begin
+        varalign:=def.alignment;
+        varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
         ref.index:=current_procinfo.framepointer;
-        ref.offset:=alloctemp(list,size,tt_persistent,nil);
+        ref.offset:=alloctemp(list,size,varalign,tt_persistent,nil);
       end;
 
 
@@ -563,7 +578,12 @@ unit tgobj;
 end.
 {
   $Log$
-  Revision 1.42  2003-11-04 19:03:54  peter
+  Revision 1.43  2004-01-12 22:11:38  peter
+    * use localalign info for alignment for locals and temps
+    * sparc fpu flags branching added
+    * moved powerpc copy_valye_openarray to generic
+
+  Revision 1.42  2003/11/04 19:03:54  peter
     * fixes for temp type patch
 
   Revision 1.41  2003/11/04 15:35:13  peter

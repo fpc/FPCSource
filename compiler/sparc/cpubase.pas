@@ -94,29 +94,32 @@ uses
       TAsmCond=(C_None,
         C_A,C_AE,C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_NA,C_NAE,
         C_NB,C_NBE,C_NC,C_NE,C_NG,C_NGE,C_NL,C_NLE,C_NO,C_NP,
-        C_NS,C_NZ,C_O,C_P,C_PE,C_PO,C_S,C_Z
+        C_NS,C_NZ,C_O,C_P,C_PE,C_PO,C_S,C_Z,
+        C_FE,C_FG,C_FL,C_FGE,C_FLE,C_FNE
       );
 
     const
       cond2str:array[TAsmCond] of string[3]=('',
         'gu','cc','cs','leu','cs','e','g','ge','l','le','leu','cs',
         'cc','gu','cc','ne','le','l','ge','g','vc','XX',
-        'pos','ne','vs','XX','XX','XX','vs','e'
+        'pos','ne','vs','XX','XX','XX','vs','e',
+        'e','g','l','ge','le','ne'
       );
 
       inverse_cond:array[TAsmCond] of TAsmCond=(C_None,
         C_NA,C_NAE,C_NB,C_NBE,C_NC,C_NE,C_NG,C_NGE,C_NL,C_NLE,C_A,C_AE,
         C_B,C_BE,C_C,C_E,C_G,C_GE,C_L,C_LE,C_O,C_P,
-        C_S,C_Z,C_NO,C_NP,C_NP,C_P,C_NS,C_NZ
+        C_S,C_Z,C_NO,C_NP,C_NP,C_P,C_NS,C_NZ,
+        C_FNE,C_FLE,C_FGE,C_FL,C_FG,C_FE
       );
 
     const
-      CondAsmOps=1;
+      CondAsmOps=2;
       CondAsmOp:array[0..CondAsmOps-1] of TAsmOp=(
-        A_Bxx
+        A_Bxx,A_FBxx
       );
       CondAsmOpStr:array[0..CondAsmOps-1] of string[7]=(
-        'B'
+        'B','FB'
       );
 
 {*****************************************************************************
@@ -125,18 +128,26 @@ uses
 
     type
       TResFlags=(
+        { Integer results }
         F_E,  {Equal}
         F_NE, {Not Equal}
         F_G,  {Greater}
         F_L,  {Less}
         F_GE, {Greater or Equal}
         F_LE, {Less or Equal}
-        F_C,  {Carry}
-        F_NC, {Not Carry}
         F_A,  {Above}
         F_AE, {Above or Equal}
         F_B,  {Below}
-        F_BE  {Below or Equal}
+        F_BE, {Below or Equal}
+        F_C,  {Carry}
+        F_NC, {Not Carry}
+        { Floating point results }
+        F_FE,  {Equal}
+        F_FNE, {Not Equal}
+        F_FG,  {Greater}
+        F_FL,  {Less}
+        F_FGE, {Greater or Equal}
+        F_FLE  {Less or Equal}
       );
 
 {*****************************************************************************
@@ -490,7 +501,8 @@ implementation
     procedure inverse_flags(var f: TResFlags);
       const
         inv_flags: array[TResFlags] of TResFlags =
-          (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_NC,F_C,F_BE,F_B,F_AE,F_A);
+          (F_NE,F_E,F_LE,F_GE,F_L,F_G,F_BE,F_B,F_AE,F_A,F_NC,F_C,
+           F_FNE,F_FE,F_FLE,F_FGE,F_FL,F_FG);
       begin
         f:=inv_flags[f];
       end;
@@ -499,7 +511,8 @@ implementation
    function flags_to_cond(const f:TResFlags):TAsmCond;
       const
         flags_2_cond:array[TResFlags] of TAsmCond=
-          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_C,C_NC,C_A,C_AE,C_B,C_BE);
+          (C_E,C_NE,C_G,C_L,C_GE,C_LE,C_A,C_AE,C_B,C_BE,C_C,C_NC,
+           C_FE,C_FNE,C_FG,C_FL,C_FGE,C_FLE);
       begin
         result:=flags_2_cond[f];
       end;
@@ -538,7 +551,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  2004-01-12 16:39:40  peter
+  Revision 1.60  2004-01-12 22:11:39  peter
+    * use localalign info for alignment for locals and temps
+    * sparc fpu flags branching added
+    * moved powerpc copy_valye_openarray to generic
+
+  Revision 1.59  2004/01/12 16:39:40  peter
     * sparc updates, mostly float related
 
   Revision 1.58  2003/12/19 14:38:03  mazen

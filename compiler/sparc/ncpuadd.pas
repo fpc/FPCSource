@@ -33,6 +33,7 @@ interface
        tsparcaddnode = class(tcgaddnode)
        private
           function  GetResFlags(unsigned:Boolean):TResFlags;
+          function  GetFPUResFlags:TResFlags;
        protected
           procedure second_addfloat;override;
           procedure second_cmpfloat;override;
@@ -120,6 +121,42 @@ interface
       end;
 
 
+    function TSparcAddNode.GetFPUResFlags:TResFlags;
+      begin
+        case NodeType of
+          equaln:
+            result:=F_FE;
+          unequaln:
+            result:=F_FNE;
+          else
+            begin
+              if nf_swaped in Flags then
+                case NodeType of
+                  ltn:
+                    result:=F_FG;
+                  lten:
+                    result:=F_FGE;
+                  gtn:
+                    result:=F_FL;
+                  gten:
+                    result:=F_FLE;
+                end
+              else
+                case NodeType of
+                  ltn:
+                    result:=F_FL;
+                  lten:
+                    result:=F_FLE;
+                  gtn:
+                    result:=F_FG;
+                  gten:
+                    result:=F_FGE;
+                end;
+            end;
+        end;
+      end;
+
+
     procedure tsparcaddnode.second_addfloat;
       var
         op : TAsmOp;
@@ -180,6 +217,8 @@ interface
 
 
     procedure tsparcaddnode.second_cmpfloat;
+      var
+        op : tasmop;
       begin
         pass_left_right;
         if (nf_swaped in flags) then
@@ -191,10 +230,14 @@ interface
         location_force_fpureg(exprasmlist,right.location,true);
 
         location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(true);
+        location.resflags:=getfpuresflags;
 
-        exprasmlist.concat(taicpu.op_reg_reg(A_FCMPs,
-           left.location.register,right.location.register));
+        if left.location.size=OS_F64 then
+          op:=A_FCMPd
+        else
+          op:=A_FCMPs;
+        exprasmlist.concat(taicpu.op_reg_reg(op,
+             left.location.register,right.location.register));
         { Delay slot (can only contain integer operation) }
         exprasmlist.concat(taicpu.op_none(A_NOP));
 
@@ -277,7 +320,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2004-01-12 16:39:41  peter
+  Revision 1.23  2004-01-12 22:11:39  peter
+    * use localalign info for alignment for locals and temps
+    * sparc fpu flags branching added
+    * moved powerpc copy_valye_openarray to generic
+
+  Revision 1.22  2004/01/12 16:39:41  peter
     * sparc updates, mostly float related
 
   Revision 1.21  2003/10/24 11:28:35  mazen

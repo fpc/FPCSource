@@ -788,7 +788,7 @@ implementation
               l:=tvarsym(p).getvaluesize;
               localcopyloc.loc:=LOC_REFERENCE;
               localcopyloc.size:=int_cgsize(l);
-              tg.GetLocal(list,l,localcopyloc.reference);
+              tg.GetLocal(list,l,tvarsym(p).vartype.def,localcopyloc.reference);
               { Copy data }
               reference_reset_base(href2,localcopyloc.reference.index,localcopyloc.reference.offset);
               if is_shortstring(tvarsym(p).vartype.def) then
@@ -1861,7 +1861,7 @@ implementation
                   begin
 {$warning TODO Add support for register variables}
                     localloc.loc:=LOC_REFERENCE;
-                    tg.GetLocal(list,getvaluesize,localloc.reference);
+                    tg.GetLocal(list,getvaluesize,vartype.def,localloc.reference);
                     if cs_asm_source in aktglobalswitches then
                       list.concat(Tai_comment.Create(strpnew('Local '+realname+' located at '+
                           std_regname(localloc.reference.index)+tostr_with_plus(localloc.reference.offset))));
@@ -1959,7 +1959,7 @@ implementation
                                 *)
                               localloc.loc:=LOC_REFERENCE;
                               localloc.size:=paraitem.paraloc[calleeside].size;
-                              tg.GetLocal(list,tcgsize2size[localloc.size],localloc.reference);
+                              tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
                             end
                           else
                             localloc:=paraitem.paraloc[calleeside];
@@ -1996,7 +1996,7 @@ implementation
 {$warning TODO Allocate register paras}
                     localloc.loc:=LOC_REFERENCE;
                     localloc.size:=int_cgsize(paramanager.push_size(vs_value,vartype.def,pocall_inline));
-                    tg.GetLocal(list,tcgsize2size[localloc.size],localloc.reference);
+                    tg.GetLocal(list,tcgsize2size[localloc.size],vartype.def,localloc.reference);
                     if cs_asm_source in aktglobalswitches then
                       begin
                         case localloc.loc of
@@ -2057,7 +2057,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.180  2003-12-28 21:57:43  jonas
+  Revision 1.181  2004-01-12 22:11:38  peter
+    * use localalign info for alignment for locals and temps
+    * sparc fpu flags branching added
+    * moved powerpc copy_valye_openarray to generic
+
+  Revision 1.180  2003/12/28 21:57:43  jonas
     * fixed procedures declared as "interrupt" for non-x86
 
   Revision 1.179  2003/12/26 13:19:16  florian

@@ -7,9 +7,7 @@
           'and','andcc','andn','addncc',
           'jmpl',
           'call',
-          'ba','b',
-          'fbn','fbu','fbg','fbug','fbl','fbul','fblg','fbne',
-          'fbe','fbue','fbge','fbuge','fble','fbule','fbo','fba',
+          'ba','b','fba','fb',
           'cbccc',
           'flush',
           'ldsb','ldsh','ldstub',
@@ -70,7 +68,12 @@
 	  'fmovd'
 {
         $Log$
-        Revision 1.10  2004-01-12 16:39:41  peter
+        Revision 1.11  2004-01-12 22:11:39  peter
+          * use localalign info for alignment for locals and temps
+          * sparc fpu flags branching added
+          * moved powerpc copy_valye_openarray to generic
+
+        Revision 1.10  2004/01/12 16:39:41  peter
           * sparc updates, mostly float related
 
         Revision 1.9  2003/12/08 13:02:21  mazen

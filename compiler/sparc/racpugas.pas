@@ -548,11 +548,15 @@ Interface
             is_asmopcode:=true;
           end
         { not found, check branch instructions }
-        else if Upcase(s[1])='B' then
+        else if (Upcase(s[1])='B') or
+                ((Upcase(s[1])='F') and (Upcase(s[2])='B')) then
           begin
   { we can search here without an extra table which is sorted by string length
     because we take the whole remaining string without the leading B }
-            actopcode := A_Bxx;
+            if (Upcase(s[1])='F') then
+              actopcode := A_FBxx
+            else
+              actopcode := A_Bxx;
             for cond:=low(TAsmCond) to high(TAsmCond) do
               if (Upper(copy(s,2,length(s)-1))=Upper(Cond2Str[cond])) then
                 begin
@@ -622,7 +626,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2004-01-12 16:39:41  peter
+  Revision 1.6  2004-01-12 22:11:39  peter
+    * use localalign info for alignment for locals and temps
+    * sparc fpu flags branching added
+    * moved powerpc copy_valye_openarray to generic
+
+  Revision 1.5  2004/01/12 16:39:41  peter
     * sparc updates, mostly float related
 
   Revision 1.4  2003/12/26 14:02:30  peter

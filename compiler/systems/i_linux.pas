@@ -78,7 +78,7 @@ unit i_linux;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 0;
+                localalignmin   : 4;
                 localalignmax   : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
@@ -141,7 +141,7 @@ unit i_linux;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 0;
+                localalignmin   : 4;
                 localalignmax   : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
@@ -204,7 +204,7 @@ unit i_linux;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 0;
+                localalignmin   : 4;
                 localalignmax   : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
@@ -268,7 +268,7 @@ unit i_linux;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 0;
+                localalignmin   : 4;
                 localalignmax   : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
@@ -394,7 +394,7 @@ unit i_linux;
                 constalignmax   : 8;
                 varalignmin     : 0;
                 varalignmax     : 8;
-                localalignmin   : 0;
+                localalignmin   : 4;
                 localalignmax   : 8;
                 recordalignmin  : 0;
                 recordalignmax  : 8;
@@ -457,7 +457,7 @@ unit i_linux;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 0;
+                localalignmin   : 4;
                 localalignmax   : 4;
                 recordalignmin  : 4;
                 recordalignmax  : 4;
@@ -514,7 +514,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.19  2004-01-12 16:39:41  peter
+  Revision 1.20  2004-01-12 22:11:39  peter
+    * use localalign info for alignment for locals and temps
+    * sparc fpu flags branching added
+    * moved powerpc copy_valye_openarray to generic
+
+  Revision 1.19  2004/01/12 16:39:41  peter
     * sparc updates, mostly float related
 
   Revision 1.18  2003/12/31 17:28:19  jonas

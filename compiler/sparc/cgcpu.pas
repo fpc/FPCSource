@@ -98,8 +98,8 @@ interface
       TOpCG2AsmOp : array[topcg] of TAsmOp=(
         A_NONE,A_ADD,A_AND,A_UDIV,A_SDIV,A_UMUL,A_SMUL,A_NEG,A_NOT,A_OR,A_SRA,A_SLL,A_SRL,A_SUB,A_XOR
       );
-      TOpCmp2AsmCond : array[topcmp] of TAsmCond=(
-        C_NONE,C_E,C_G,C_L,C_GE,C_LE,C_NE,C_BE,C_B,C_AE,C_A
+      TOpCmp2AsmCond : array[topcmp] of TAsmCond=(C_NONE,
+        C_E,C_G,C_L,C_GE,C_LE,C_NE,C_BE,C_B,C_AE,C_A
       );
 
 
@@ -748,9 +748,14 @@ implementation
 
     procedure TCgSparc.a_jmp_flags(list:TAasmOutput;const f:TResFlags;l:tasmlabel);
       var
-        ai:taicpu;
+        ai : taicpu;
+        op : tasmop;
       begin
-        ai := Taicpu.op_sym(A_Bxx,l);
+        if f in [F_FE,F_FNE,F_FG,F_FL,F_FGE,F_FLE] then
+          op:=A_FBxx
+        else
+          op:=A_Bxx;
+        ai := Taicpu.op_sym(op,l);
         ai.SetCondition(flags_to_cond(f));
         list.Concat(ai);
         { Delay slot }
@@ -1102,7 +1107,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2004-01-12 16:39:40  peter
+  Revision 1.77  2004-01-12 22:11:38  peter
+    * use localalign info for alignment for locals and temps
+    * sparc fpu flags branching added
+    * moved powerpc copy_valye_openarray to generic
+
+  Revision 1.76  2004/01/12 16:39:40  peter
     * sparc updates, mostly float related
 
   Revision 1.75  2003/12/26 14:02:30  peter

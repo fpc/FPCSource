@@ -191,7 +191,7 @@ interface
         shuffles : array[1..1] of byte;
       end;
 
-      Tsuperregisterarray=array[0..$ff] of Tsuperregister;
+      Tsuperregisterarray=array[0..$ffff] of Tsuperregister;
       Psuperregisterarray=^Tsuperregisterarray;
 
       Tsuperregisterworklist=object
@@ -583,7 +583,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.85  2004-01-12 16:35:05  peter
+  Revision 1.86  2004-01-12 22:11:38  peter
+    * use localalign info for alignment for locals and temps
+    * sparc fpu flags branching added
+    * moved powerpc copy_valye_openarray to generic
+
+  Revision 1.85  2004/01/12 16:35:05  peter
     * R_SUB_FS added to make a difference between double and single
       floats, required for sparc only
 

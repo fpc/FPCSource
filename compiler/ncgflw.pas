@@ -85,7 +85,7 @@ implementation
 
     uses
       verbose,globals,systems,globtype,
-      symconst,symsym,aasmbase,aasmtai,aasmcpu,defutil,
+      symconst,symdef,symsym,aasmbase,aasmtai,aasmcpu,defutil,
       procinfo,cgbase,pass_2,
       cpubase,cpuinfo,
       nld,ncon,
@@ -1200,7 +1200,8 @@ implementation
          if assigned(exceptsymtable) then
            begin
              tvarsym(exceptsymtable.symindex.first).localloc.loc:=LOC_REFERENCE;
-             tg.GetLocal(exprasmlist,POINTER_SIZE,tvarsym(exceptsymtable.symindex.first).localloc.reference);
+             tg.GetLocal(exprasmlist,POINTER_SIZE,voidpointertype.def,
+                tvarsym(exceptsymtable.symindex.first).localloc.reference);
              reference_reset_base(href,tvarsym(exceptsymtable.symindex.first).localloc.reference.index,
                 tvarsym(exceptsymtable.symindex.first).localloc.reference.offset);
              cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,href);
@@ -1480,7 +1481,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2004-01-01 17:23:16  florian
+  Revision 1.89  2004-01-12 22:11:38  peter
+    * use localalign info for alignment for locals and temps
+    * sparc fpu flags branching added
+    * moved powerpc copy_valye_openarray to generic
+
+  Revision 1.88  2004/01/01 17:23:16  florian
     * fixed wrong temp. usage in generic exception handling
 
   Revision 1.87  2003/12/06 01:15:22  florian

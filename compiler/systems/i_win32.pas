@@ -86,7 +86,7 @@ unit i_win32;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 0;
+                localalignmin   : 4;
                 localalignmax   : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
@@ -112,7 +112,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2003-10-03 22:09:49  peter
+  Revision 1.6  2004-01-12 22:11:39  peter
+    * use localalign info for alignment for locals and temps
+    * sparc fpu flags branching added
+    * moved powerpc copy_valye_openarray to generic
+
+  Revision 1.5  2003/10/03 22:09:49  peter
     * removed paraalign
 
   Revision 1.4  2003/10/02 21:17:08  peter

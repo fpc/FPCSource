@@ -8,9 +8,7 @@ A_AND,A_ANDcc,A_ANDN,A_ADDNcc,
 {Branching instructions}
 A_JMPL,
 A_CALL,
-A_BA,A_Bxx,
-A_FBN,A_FBU,A_FBG,A_FBUG,A_FBL,A_FBUL,A_FBLG,A_FBNE,
-A_FBE,A_FBUE,A_FBGE,A_FBUGE,A_FBLE,A_FBULE,A_FBO,A_FBA,
+A_BA,A_Bxx,A_FBA,A_FBxx,
 A_CBccc,
 A_FLUSH,
 {Load instructions}
@@ -73,7 +71,12 @@ A_FMOVD
 
 {
         $Log$
-        Revision 1.11  2004-01-12 16:39:41  peter
+        Revision 1.12  2004-01-12 22:11:39  peter
+          * use localalign info for alignment for locals and temps
+          * sparc fpu flags branching added
+          * moved powerpc copy_valye_openarray to generic
+
+        Revision 1.11  2004/01/12 16:39:41  peter
           * sparc updates, mostly float related
 
         Revision 1.10  2003/12/08 13:02:21  mazen

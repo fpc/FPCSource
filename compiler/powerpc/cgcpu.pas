@@ -81,9 +81,6 @@ unit cgcpu;
 
         procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: TResFlags; reg: TRegister); override;
 
-        procedure g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);override;
-        procedure g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);override;
-
         procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
         procedure g_return_from_proc(list : taasmoutput;parasize : aword); override;
         procedure g_restore_frame_pointer(list : taasmoutput);override;
@@ -1950,80 +1947,6 @@ const
       end;
 
 
-    procedure tcgppc.g_copyvaluepara_openarray(list : taasmoutput;const ref, lenref:treference;elesize:aword);
-      var
-        sizereg,sourcereg,destreg : tregister;
-        paraloc1,paraloc2,paraloc3 : tparalocation;
-      begin
-        { because ppc abi doesn't support dynamic stack allocation properly
-          open array value parameters are copied onto the heap
-        }
-        { allocate two registers for len and source }
-        sizereg:=getintregister(list,OS_INT);
-        sourcereg:=getintregister(list,OS_ADDR);
-        destreg:=getintregister(list,OS_ADDR);
-        
-        { calculate necessary memory }
-        a_load_ref_reg(list,OS_INT,OS_INT,lenref,sizereg);
-        a_op_const_reg_reg(list,OP_ADD,OS_INT,1,sizereg,sizereg);
-        a_op_const_reg_reg(list,OP_MUL,OS_INT,elesize,sizereg,sizereg);
-        { load source }
-        a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,sourcereg);
-
-        { do getmem call }
-        paraloc1:=paramanager.getintparaloc(pocall_default,1);
-        paramanager.allocparaloc(list,paraloc1);
-        a_param_reg(list,OS_INT,sizereg,paraloc1);
-        paramanager.freeparaloc(list,paraloc1);
-        allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        a_call_name(list,'FPC_GETMEM');
-        deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-	a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_R3,destreg);
-	a_load_reg_ref(list,OS_ADDR,OS_ADDR,NR_R3,ref);
-	
-        { do move call }
-        paraloc1:=paramanager.getintparaloc(pocall_default,1);
-        paraloc2:=paramanager.getintparaloc(pocall_default,2);
-        paraloc3:=paramanager.getintparaloc(pocall_default,3);
-        { load size }
-        paramanager.allocparaloc(list,paraloc3);
-        a_param_reg(list,OS_INT,sizereg,paraloc3);
-        { load destination }
-        paramanager.allocparaloc(list,paraloc2);
-        a_param_reg(list,OS_ADDR,destreg,paraloc2);
-        { load source }
-        paramanager.allocparaloc(list,paraloc1);
-        a_param_reg(list,OS_ADDR,sourcereg,paraloc1);
-        paramanager.freeparaloc(list,paraloc3);
-        paramanager.freeparaloc(list,paraloc2);
-        paramanager.freeparaloc(list,paraloc1);
-        allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        a_call_name(list,'FPC_MOVE');
-        deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-
-        { release used registers }
-        ungetregister(list,sizereg);
-        ungetregister(list,sourcereg);
-        ungetregister(list,destreg);
-      end;
-
-
-    procedure tcgppc.g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);
-      var
-        paraloc : tparalocation;
-      begin
-        { do move call }
-        paraloc:=paramanager.getintparaloc(pocall_default,1);
-        { load source }
-        paramanager.allocparaloc(list,paraloc);
-        a_param_ref(list,OS_ADDR,ref,paraloc);
-        paramanager.freeparaloc(list,paraloc);
-        allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        a_call_name(list,'FPC_FREEMEM');
-        deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-      end;
-
-
     procedure tcgppc.g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef);
       var
          hl : tasmlabel;
@@ -2381,7 +2304,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.154  2003-12-29 14:17:50  jonas
+  Revision 1.155  2004-01-12 22:11:38  peter
+    * use localalign info for alignment for locals and temps
+    * sparc fpu flags branching added
+    * moved powerpc copy_valye_openarray to generic
+
+  Revision 1.154  2003/12/29 14:17:50  jonas
     * fixed saving/restoring of volatile fpu registers under sysv
     + better provisions for abi differences regarding fpu registers that have
       to be saved

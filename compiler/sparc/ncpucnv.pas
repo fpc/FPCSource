@@ -50,7 +50,6 @@ interface
          { procedure second_pchar_to_string;override; }
          { procedure second_class_to_intf;override; }
          { procedure second_char_to_char;override; }
-          procedure pass_2;override;
        end;
 
 implementation
@@ -121,85 +120,111 @@ implementation
 
 
     procedure TSparctypeconvnode.second_real_to_real;
+      const
+        conv_op : array[tfloattype,tfloattype] of tasmop = (
+          {    from:   s32     s64     s80     c64     cur    f128 }
+          { s32 }  ( A_FMOVS,A_FDTOS,A_NONE, A_NONE, A_NONE, A_NONE ),
+          { s64 }  ( A_FSTOD,A_FMOVD,A_NONE, A_NONE, A_NONE, A_NONE ),
+          { s80 }  ( A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE ),
+          { c64 }  ( A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE ),
+          { cur }  ( A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE ),
+          { f128 } ( A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE )
+        );
+      var
+        op : tasmop;
       begin
-        inherited second_real_to_real;
+        location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
+        location_force_fpureg(exprasmlist,left.location,false);
+        { Convert value in fpu register from integer to float }
+        op:=conv_op[tfloatdef(resulttype.def).typ,tfloatdef(left.resulttype.def).typ];
+        if op=A_NONE then
+          internalerror(200401121);
+        location_release(exprasmlist,left.location);
+        location.register:=cg.getfpuregister(exprasmlist,location.size);
+        exprasmlist.concat(taicpu.op_reg_reg(A_FsTOd,left.location.register,location.register));
       end;
 
 
-procedure TSparctypeconvnode.second_int_to_bool;
-  var
-    hreg1,hreg2:tregister;
-    resflags : tresflags;
-    opsize   : tcgsize;
-  begin
-    { byte(boolean) or word(wordbool) or longint(longbool) must }
-    { be accepted for var parameters                            }
-    if(nf_explicit in flags)and
-      (left.resulttype.def.size=resulttype.def.size)and
-      (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER])
-    then
+    procedure TSparctypeconvnode.second_int_to_bool;
+      var
+        hreg1,hreg2 : tregister;
+        resflags : tresflags;
+        opsize   : tcgsize;
+        hlabel,oldtruelabel,oldfalselabel : tasmlabel;
       begin
-        location_copy(location,left.location);
-        exit;
-      end;
-    location_reset(location,LOC_REGISTER,def_cgsize(left.resulttype.def));
-    opsize := def_cgsize(left.resulttype.def);
-    case left.location.loc of
-      LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER:
-        begin
-          if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]
-          then
-            begin
-              reference_release(exprasmlist,left.location.reference);
-              hreg2:=cg.GetIntRegister(exprasmlist,opsize);
-              cg.a_load_ref_reg(exprasmlist,OpSize,OpSize,left.location.reference,hreg2);
-            end
-          else
-            hreg2 := left.location.register;
-            hreg1 := cg.GetIntRegister(exprasmlist,opsize);
-            exprasmlist.concat(taicpu.op_reg_const_reg(A_SUB,hreg1,1,hreg2));
-            exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,hreg1,hreg1,hreg2));
-            cg.UnGetRegister(exprasmlist,hreg2);
-        end;
-      LOC_FLAGS :
-        begin
-          hreg1:=cg.GetIntRegister(exprasmlist,location.size);
-          resflags:=left.location.resflags;
-          cg.g_flags2reg(exprasmlist,location.size,resflags,hreg1);
-        end;
-      else
-        internalerror(10062);
-    end;
-    location.register := hreg1;
-  end;
-
-
-procedure TSparctypeconvnode.pass_2;
-{$ifdef TESTOBJEXT2}
-  var
-    r : preference;
-    nillabel : plabel;
-{$endif TESTOBJEXT2}
-  begin
-    { this isn't good coding, I think tc_bool_2_int, shouldn't be }
-    { type conversion (FK)                                 }
-    if not(convtype in [tc_bool_2_int,tc_bool_2_bool])
-    then
-      begin
+        oldtruelabel:=truelabel;
+        oldfalselabel:=falselabel;
+        objectlibrary.getlabel(truelabel);
+        objectlibrary.getlabel(falselabel);
         secondpass(left);
-        location_copy(location,left.location);
-        if codegenerror
-        then
-          exit;
+        if codegenerror then
+         exit;
+        { byte(boolean) or word(wordbool) or longint(longbool) must }
+        { be accepted for var parameters                            }
+        if (nf_explicit in flags)and
+           (left.resulttype.def.size=resulttype.def.size)and
+           (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
+          begin
+            location_copy(location,left.location);
+            truelabel:=oldtruelabel;
+            falselabel:=oldfalselabel;
+            exit;
+          end;
+        location_reset(location,LOC_REGISTER,def_cgsize(left.resulttype.def));
+        opsize := def_cgsize(left.resulttype.def);
+        case left.location.loc of
+          LOC_CREFERENCE,LOC_REFERENCE,LOC_REGISTER,LOC_CREGISTER:
+            begin
+              if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
+                begin
+                  reference_release(exprasmlist,left.location.reference);
+                  hreg2:=cg.GetIntRegister(exprasmlist,opsize);
+                  cg.a_load_ref_reg(exprasmlist,OpSize,OpSize,left.location.reference,hreg2);
+                end
+              else
+                hreg2 := left.location.register;
+                hreg1 := cg.GetIntRegister(exprasmlist,opsize);
+                exprasmlist.concat(taicpu.op_reg_const_reg(A_SUB,hreg1,1,hreg2));
+                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,hreg1,hreg1,hreg2));
+                cg.UnGetRegister(exprasmlist,hreg2);
+            end;
+          LOC_FLAGS :
+            begin
+              hreg1:=cg.GetIntRegister(exprasmlist,location.size);
+              resflags:=left.location.resflags;
+              cg.g_flags2reg(exprasmlist,location.size,resflags,hreg1);
+            end;
+          LOC_JUMP :
+            begin
+              hreg1:=cg.getintregister(exprasmlist,OS_INT);
+              objectlibrary.getlabel(hlabel);
+              cg.a_label(exprasmlist,truelabel);
+              cg.a_load_const_reg(exprasmlist,OS_INT,1,hreg1);
+              cg.a_jmp_always(exprasmlist,hlabel);
+              cg.a_label(exprasmlist,falselabel);
+              cg.a_load_const_reg(exprasmlist,OS_INT,0,hreg1);
+              cg.a_label(exprasmlist,hlabel);
+            end;
+          else
+            internalerror(10062);
+        end;
+        location.register := hreg1;
+        truelabel:=oldtruelabel;
+        falselabel:=oldfalselabel;
       end;
-      second_call_helper(convtype);
-  end;
+
+
 begin
    ctypeconvnode:=TSparctypeconvnode;
 end.
 {
   $Log$
-  Revision 1.21  2003-11-04 22:30:15  florian
+  Revision 1.22  2004-01-12 22:11:39  peter
+    * use localalign info for alignment for locals and temps
+    * sparc fpu flags branching added
+    * moved powerpc copy_valye_openarray to generic
+
+  Revision 1.21  2003/11/04 22:30:15  florian
     + type cast variant<->enum
     * cnv. node second pass uses now as well helper wrappers
 
