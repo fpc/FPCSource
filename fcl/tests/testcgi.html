@@ -1,0 +1,26 @@
+<HTML>
+<TITLE>Test cgi form methods</TITLE>
+<BODY>
+<FORM ACTION="testcgi.cgi" METHOD="GET">
+<H2>Testcgi</H2>
+<INPUT TYPE="hidden" NAME="confirm" VALUE="yes">
+<TABLE WIDTH="100%" CELLPADDING=2 CELLSPACING=1 BORDER=1>
+<TR><TD>Title:</TD><TD><INPUT NAME="title" MAXLENGTH=128 SIZE=50></TD></TR>
+<TR><TD>name:</TD><TD><INPUT NAME="name" MAXLENGTH=128 SIZE=50></TD></TR>
+<TR><TD>Email:</TD><TD><INPUT NAME="email" MAXLENGTH=80 SIZE=50></TD></TR>
+<TR><TD>description:<BR></TD><TD><TEXTAREA NAME="descr" ROWS=10 COLS=50></TEXTAREA></TD></TR>
+</TABLE>
+Select a category:
+<SELECT NAME="category">
+<OPTION value="0" SELECTED>Category 0
+<OPTION value="1" >Category 1
+<OPTION value="2" >Category 2
+<OPTION value="3" >Category 3
+<OPTION value="4" >Category 4
+</SELECT>
+<P>
+<INPUT TYPE="submit" VALUE="Submit values">
+<INPUT TYPE="reset" VALUE="Clear values">
+</FORM>
+</BODY>
+<HTML>
