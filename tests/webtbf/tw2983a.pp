@@ -1,4 +1,6 @@
-{$mode objfpc}
+{ %fail }
+
+{$mode delphi}
 type
   ta1 = array[0..10] of longint;
 var
