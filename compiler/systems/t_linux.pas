@@ -190,7 +190,11 @@ Constructor TLinkerLinux.Create;
 begin
   Inherited Create;
   if not Dontlinkstdlibpath Then
+{$ifdef x86_64}
+   LibrarySearchPath.AddPath('/lib64;/usr/lib64;/usr/X11R6/lib64',true);
+{$else}
    LibrarySearchPath.AddPath('/lib;/usr/lib;/usr/X11R6/lib',true);
+{$endif x86_64}
 end;
 
 
@@ -579,7 +583,10 @@ end.
 
 {
   $Log$
-  Revision 1.34  2005-02-14 17:13:10  peter
+  Revision 1.35  2005-03-07 17:10:00  peter
+    * use lib64 for x86_64
+
+  Revision 1.34  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.33  2005/01/10 15:56:13  peter
