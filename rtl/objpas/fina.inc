@@ -114,7 +114,7 @@ Var Source, Dest : String;
     Sc,Dc,I,J    : Longint;
     SD,DD        : Array[1..MaxDirs] of PChar;
 
-Const OneLevelBack = '..'+OSDirSeparator;
+Const OneLevelBack = '..'+PathDelim;
 
 begin
   If Upcase(ExtractFileDrive(BaseName))<>Upcase(ExtractFileDrive(DestName)) Then
@@ -136,7 +136,7 @@ begin
     end;
   Result:='';
   For J:=I to SC-1 do Result:=Result+OneLevelBack;
-  For J:=I to DC-1 do Result:=Result+DD[J]+OsDirSeparator;
+  For J:=I to DC-1 do Result:=Result+DD[J]+PathDelim;
   Result:=Result+ExtractFileName(DestNAme);
 end;
 
@@ -147,7 +147,7 @@ VAr I : longint;
 begin
   For I:=1 to Length(FileName) do
     If FileName[I] in DirSeparators then
-      FileName[i]:=OSDirSeparator;
+      FileName[i]:=PathDelim;
 end;
 
 
@@ -163,7 +163,7 @@ end;
   Dirs is an array of pchars, pointing to these directory names.
   The function returns the number of directories found, or -1
   if none were found.
-  DirName must contain only OSDirSeparator as Directory separator chars.
+  DirName must contain only PathDelim as Directory separator chars.
 }
 
 Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint;
@@ -175,7 +175,7 @@ begin
   Result:=-1;
   While I<=Length(DirName) do
     begin
-    If DirName[i]=OsDirSeparator then
+    If DirName[i]=PathDelim then
       begin
       DirName[i]:=#0;
       Inc(Result);
@@ -188,7 +188,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-01-21 20:21:40  marco
+  Revision 1.5  2001-11-08 12:56:47  michael
+  + Replaced OSDirSeparator with PathDelim
+
+  Revision 1.4  2001/01/21 20:21:40  marco
    * Rename fest II. Rtl OK
 
   Revision 1.3  2000/11/13 14:41:20  marco

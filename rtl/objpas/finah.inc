@@ -23,7 +23,6 @@
 
 Const
   DirSeparators : set of char = ['/','\'];  
-  OSDirSeparator = system.pathdelim;
    
 
 function ChangeFileExt(const FileName, Extension: string): string;
@@ -41,7 +40,10 @@ Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint;
 
 {
   $Log$
-  Revision 1.5  2001-11-07 14:58:24  michael
+  Revision 1.6  2001-11-08 12:56:48  michael
+  + Replaced OSDirSeparator with PathDelim
+
+  Revision 1.5  2001/11/07 14:58:24  michael
   + Added PathDelim,DriveDelim,PathSep; Removed PathSeparator
 
   Revision 1.4  2001/11/07 13:57:26  michael
