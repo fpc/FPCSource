@@ -351,6 +351,7 @@ unit cpupara;
         hp : tparaitem;
         paraloc : tparalocation;
         subreg : tsubregister;
+        pushaddr,
         is_64bit : boolean;
         l,parareg,
         varalign,
@@ -360,10 +361,12 @@ unit cpupara;
         parareg:=0;
         parasize:=0;
         paraalign:=get_para_align(p.proccalloption);
+        { Register parameters are assigned from left to right }
         hp:=tparaitem(p.para.first);
         while assigned(hp) do
           begin
-            if push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption) then
+            pushaddr:=push_addr_param(hp.paratyp,hp.paratype.def,p.proccalloption);
+            if pushaddr then
               paraloc.size:=OS_ADDR
             else
               paraloc.size:=def_cgsize(hp.paratype.def);
@@ -382,7 +385,8 @@ unit cpupara;
             if (parareg<=high(parasupregs)) and
                not(
                    is_64bit or
-                   (hp.paratype.def.deftype in [floatdef,recorddef,arraydef])
+                   ((hp.paratype.def.deftype in [floatdef,recorddef,arraydef]) and
+                    (not pushaddr))
                   ) then
               begin
                 paraloc.loc:=LOC_REGISTER;
@@ -446,7 +450,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2003-10-19 01:34:30  florian
+  Revision 1.43  2003-11-11 21:11:23  peter
+    * check for push_addr
+
+  Revision 1.42  2003/10/19 01:34:30  florian
     * some ppc stuff fixed
     * memory leak fixed
 
