@@ -970,7 +970,7 @@ procedure testreqword;
 procedure testintqword;
 
   var
-     q1,q2 : qword;
+     q1,q2,q3 : qword;
 
   begin
      // lo/hi
@@ -988,6 +988,24 @@ procedure testintqword;
      assignqword($03030303,$fafafafa,q2);
      if swap(q1)<>q2 then
        do_error(2604);
+
+    // succ/pred
+    assignqword(0,$1,q1);
+    q3:=q1;
+    q1:=succ(q1);
+    q1:=succ(q1+1);
+    q2:=pred(q1-1);
+    q2:=pred(q2);
+    if q3<>q2 then
+      do_error(2605);
+    assignqword(0,$ffffffff,q1);
+    q3:=q1;
+    q1:=succ(q1);
+    q1:=succ(q1+1);
+    q2:=pred(q1-1);
+    q2:=pred(q2);
+    if q3<>q2 then
+      do_error(2606);
   end;
 
 var
