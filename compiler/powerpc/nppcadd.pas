@@ -897,7 +897,7 @@ interface
                             tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist)
                           else
                             tempreg64.reglo := left.location.registerlow;
-                          if ((right.location.valueqword shr 16) <> 0) then
+                          if ((right.location.valueqword shr 32) <> 0) then
                             tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist)
                           else
                             tempreg64.reghi := left.location.registerhigh;
@@ -909,10 +909,10 @@ interface
                             aword(right.location.valueqword),
                             left.location.registerlow,tempreg64.reglo);
                         end;
-                      if ((right.location.valueqword shr 16) <> 0) then
+                      if ((right.location.valueqword shr 32) <> 0) then
                         begin
                           cg.a_op_const_reg_reg(exprasmlist,OP_XOR,OS_INT,
-                            (right.location.valueqword shr 16),
+                            (right.location.valueqword shr 32),
                             left.location.registerhigh,tempreg64.reghi);
                         end;
                     end
@@ -1453,7 +1453,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-09-04 19:42:45  jonas
+  Revision 1.17  2002-09-07 22:15:48  jonas
+    * fixed optimized 64 compares
+
+  Revision 1.16  2002/09/04 19:42:45  jonas
     * fixed bugs in 64bit operations (registers weren't always allocated for
       the result)
     * optimized 'const64 - reg64/mem64'
