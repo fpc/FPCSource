@@ -141,7 +141,7 @@ type
       function  GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
       function  GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string; virtual;
       { CodeTemplates }
-      function    TranslateCodeTemplate(const Shortcut: string; ALines: PUnsortedStringCollection): boolean; virtual;
+      function    TranslateCodeTemplate(var Shortcut: string; ALines: PUnsortedStringCollection): boolean; virtual;
       function    SelectCodeTemplate(var ShortCut: string): boolean; virtual;
       { CodeComplete }
       function    CompleteCodeWord(const WordS: string; var Text: string): boolean; virtual;
@@ -1180,7 +1180,7 @@ begin
   IsAsmReservedWord:=IsFPAsmReservedWord(S);
 end;
 
-function TSourceEditor.TranslateCodeTemplate(const Shortcut: string; ALines: PUnsortedStringCollection): boolean;
+function TSourceEditor.TranslateCodeTemplate(var Shortcut: string; ALines: PUnsortedStringCollection): boolean;
 begin
   TranslateCodeTemplate:=FPTranslateCodeTemplate(ShortCut,ALines);
 end;
@@ -1189,7 +1189,7 @@ function TSourceEditor.SelectCodeTemplate(var ShortCut: string): boolean;
 var D: PCodeTemplatesDialog;
     OK: boolean;
 begin
-  New(D, Init(true));
+  New(D, Init(true,ShortCut));
   OK:=Desktop^.ExecView(D)=cmOK;
   if OK then ShortCut:=D^.GetSelectedShortCut;
   Dispose(D, Done);
@@ -4230,7 +4230,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.24  2002-08-26 13:00:08  pierre
+  Revision 1.25  2002-09-04 08:50:59  pierre
+   * TranslateCodeTemplate Shortcut is now a var parameter
+
+  Revision 1.24  2002/08/26 13:00:08  pierre
    * fix bug report 2094 by restoring nonamexx.pas name if file name is incorrect
 
   Revision 1.23  2002/06/13 11:52:01  pierre
