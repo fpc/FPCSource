@@ -77,7 +77,7 @@ Var
   P : Pointer;
 begin
   { Also add +1 for a terminating zero }
-  GetMem(P,Len+1+AnsiRecLen);
+  GetMem(P,Len+AnsiRecLen);
   If P<>Nil then
    begin
      PAnsiRec(P)^.Maxlen:=Len;    { Maximal length }
@@ -761,7 +761,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  1999-04-09 07:33:15  michael
+  Revision 1.21  1999-04-13 09:02:06  michael
+  + 1 byte too much allocated in new_ansiStringastrings.inc
+
+  Revision 1.20  1999/04/09 07:33:15  michael
   * More fixes and optimizing for ansistr_concat
 
   Revision 1.19  1999/04/08 15:57:53  peter
