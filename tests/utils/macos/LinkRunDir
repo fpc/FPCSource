@@ -1,0 +1,186 @@
+#Assembles, links and run tests of FreePascal
+#Param 1, the directory with the tests to perform.
+#Note versions can be either 2 or 3 fields, e g 1.1  1.0.10
+
+Export nrOfSucceded
+Export nrOfFailed
+
+#Iterate through tests
+Set Exit 0 # To handle the case, in the for stmt, when there is no match
+For sourceWithExt In {1}tÅ.log  #only test files, which begins with a 't'
+  Set Exit 1 #Revert error handling
+
+  (Evaluate "{sourceWithExt}" =~ /(([Â.])*)¨1Å/) > Dev:Null
+  Set apppath {¨1}
+
+  (Evaluate {apppath} =~ /Å:([Â:]*)¨1/) > Dev:Null
+  Set appname {¨1}
+
+  If `Exists {apppath}.elg`
+    Continue
+  End
+
+  Set testdirectives ""
+  Set testdirectives "`StreamEdit {apppath}.pp ¶
+      -d -e "/¶{[ ¶t]*(%Å*)¨1[ ¶t]*¶}/ Print ¨1"`" > Dev:Null
+  Echo "============================================================="
+
+  If {debugverbose}
+    Echo {testdirectives}
+  End
+
+  If `Evaluate "{testdirectives}" =~ /Å%CPU=([,_0-9A-Za-z]*)¨1Å/`
+    If `Evaluate "{¨1}" !~ /ÅpowerpcÅ/`
+      Echo Skipped {apppath}. Test only for CPU: "{¨1}"
+      Continue
+    End
+  End
+  
+  If `Evaluate "{testdirectives}" =~ /Å%SKIPCPU=([,_0-9A-Za-z]*)¨1Å/`
+    If `Evaluate "{¨1}" =~ /ÅpowerpcÅ/`
+      Echo Skipped {apppath}. Test not for CPU: {¨1}
+      Continue
+    End
+  End
+  
+  If `Evaluate "{testdirectives}" =~ /Å%TARGET=([,_0-9A-Za-z]*)¨1Å/`
+    If `Evaluate "{¨1}" !~ /ÅmacosÅ/`
+      Echo Skipped {apppath}. Test only for target: {¨1}
+      Continue
+    End
+  End
+  
+  If `Evaluate "{testdirectives}" =~ /Å%SKIPTARGET=([,_0-9A-Za-z]*)¨1Å/`
+    If `Evaluate "{¨1}" =~ /ÅmacosÅ/`
+      Echo Skipped {apppath}. Test not for target: {¨1}
+      Continue
+    End
+  End
+
+  If `Evaluate "{testdirectives}" =~ /Å%VERSION=([0-9.]*)¨1Å/`
+    Set minver {¨1}
+    If `Evaluate "{minver}" !~ /([0-9]*)¨1.([0-9]*)¨2.([0-9]*)¨3/`
+      If `Evaluate "{minver}" !~ /([0-9]*)¨1.([0-9]*)¨2/`
+        Echo Skipped {apppath}. Error in version no: {minver}
+        Continue
+      Else
+        Set ¨3 0
+      End
+    End
+    
+    If Â(({cv1}> {¨1}) || (({cv1}=={¨1}) && ¶
+           (({cv2}> {¨2}) || (({cv2}=={¨2}) && ¶
+           ({cv3}>={¨3})))))
+      Echo Skipped {apppath}. Compiler too old, test requires at least: {minver}
+      Continue
+    End
+  End
+  
+  If `Evaluate "{testdirectives}" =~ /Å%MAXVERSION=([0-9.]*)¨1Å/`
+    Set maxver {¨1}
+    If `Evaluate "{maxver}" !~ /([0-9]*)¨1.([0-9]*)¨2.([0-9]*)¨3/`
+      If `Evaluate "{maxver}" !~ /([0-9]*)¨1.([0-9]*)¨2/`
+        Echo Skipped {apppath}. Error in version no: {maxver}
+        Continue
+      Else
+        Set ¨3 0
+      End
+    End
+    
+    If Â(({cv1}< {¨1}) || (({cv1}=={¨1}) && ¶
+           (({cv2}< {¨2}) || (({cv2}=={¨2}) && ¶
+           ({cv3}<={¨3})))))
+      Echo Skipped {apppath}. Compiler too new, test requires no more than: {maxver}
+      Continue
+    End
+  End
+
+  If `Evaluate "{testdirectives}" =~ /Å%NOTE=([Â%]*)¨1Å/`
+    Echo Note: {¨1}
+  End
+
+  # Start compiling
+  Echo Start compiling "{apppath}"
+  
+
+  Set Exit 0
+  SetFile -c 'MPS ' -t 'TEXT' {appname}_ppas
+  
+  If {debugverbose}
+    Execute {appname}_ppas | Tee {apppath}.log
+  Else
+    Execute {appname}_ppas > {apppath}.log
+  End
+
+  If "{Status}" != 0
+    Set Exit 1
+    Echo Compiling of "{apppath}" failed
+    Set -e nrOfFailed `Evaluate {nrOfFailed}+1`
+    If {debugverbose}
+      StreamEdit  {apppath}.pp -d -e "1,15 Print"
+    End
+    Continue
+  Else
+    Set Exit 1
+    Echo Compiling of "{apppath}" succeded
+  End
+  
+  If `Evaluate "{testdirectives}" =~ /Å%NORUNÅ/`
+    Echo Skipped running of {apppath} due to option NORUN
+    Continue
+  End
+
+  If `Evaluate "{testdirectives}" =~ /Å%INTERACTIVEÅ/`
+    Echo Skipped running of {apppath} due to option INTERACTIVE
+    Continue
+  End
+
+  If Not `Exists {apppath}`
+    # Should this be counted as a failed test ?
+    # Or perhaps files is to be checked for if they are units ?
+    Echo Skipped running du to non existing executable
+    Continue
+  End
+
+  If 1
+    If `Evaluate "{testdirectives}" =~ /Å%RESULT=([0-9]*)¨1Å/`
+      Set expectedresult {¨1}
+    Else
+      Set expectedresult 0
+    End
+    
+    #Execute test program
+    Echo "Xxx" > "{apppath}.elg" #Needed, to continue if test app crashes
+    Set Exit 0
+    If {debugverbose}
+      {apppath} | Tee {apppath}.elg
+    Else
+      {apppath} > {apppath}.elg
+    End
+    Set actualresult {Status}
+    Set Exit 1
+
+    If {actualresult} != 0
+      Echo Running of "{apppath}" failed
+    Else
+      Echo Running of "{apppath}" succeded
+    End
+
+    Echo "Exit code was {actualresult}, expected {expectedresult}"
+    If "{actualresult}" != "{expectedresult}"
+      Echo -n "Failed to run {apppath}¶r" >> log #¶r gives a linefeed
+      Echo Failed test "{apppath}"
+      Set -e nrOfFailed `Evaluate {nrOfFailed}+1`
+      If {debugverbose}
+        StreamEdit  {apppath}.pp -d -e "1,15 Print"
+      End
+    Else
+      Echo -n "Successfully run {apppath}¶r" >> log #¶r gives a linefeed
+      Echo Succeded test "{apppath}"
+      Set -e nrOfSucceded `Evaluate {nrOfSucceded}+1`
+    End
+
+  End
+  Set Exit 0 # To handle the case, in the for stmt, when there is no match
+End
+Set Exit 1 #Revert error handling
