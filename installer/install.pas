@@ -694,8 +694,12 @@ program install;
        if assigned(cfgdata[i]) then
          begin
            s:=cfgdata[i]^;
-           Replace(s,'$1',data.basepath);
-           Replace(s,'$2',targetname);
+           Replace(s,'%basepath%',data.basepath);
+           Replace(s,'%targetname%',targetname);
+           if pos('-',targetname)=0 then
+             Replace(s,'%fpctargetmacro%','$FPCOS')
+           else
+             Replace(s,'%fpctargetmacro%','$FPCTARGET');
            writeln(t,s);
          end
        else
@@ -1999,7 +2003,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2004-12-22 15:28:48  peter
+  Revision 1.24  2004-12-23 17:36:53  peter
+  use %token% macros instead of $1 and $2
+
+  Revision 1.23  2004/12/22 15:28:48  peter
     * more fixes for win32 installer
 
   Revision 1.22  2004/12/21 18:52:31  peter
