@@ -16,6 +16,10 @@
 # Defaults
 #####################################################################
 
+ifdef inlinux
+LIBDIR=/usr/lib/gcc-lib/i486-linux/2.7.2.3
+endif
+
 # We always need the API and FV
 NEEDUNITDIR=../../api ../../fv
 
@@ -30,10 +34,8 @@ endif
 # when including debugger include the gdbinterface
 ifdef GDB
 override NEEDUNITDIR+=../../gdbint
-ifdef inlinux
-LIBDIR=/usr/lib/gcc-lib/i486-linux/2.7.2.3
-endif
-override LIBDIR+=../../gdbint/libgdb
+NEEDLIBDIR+=../../gdbint/libgdb
+NEEDOBJDIR+=../../gdbint/libgdb
 else
 override NEEDUNITDIR+=../fake/gdb
 endif
@@ -87,7 +89,10 @@ fullgdb:
 
 #
 # $Log$
-# Revision 1.5  1999-01-28 19:58:23  peter
+# Revision 1.6  1999-01-29 10:34:31  peter
+#   + needobjdir,needlibdir
+#
+# Revision 1.5  1999/01/28 19:58:23  peter
 #   * makefile updates
 #
 # Revision 1.4  1999/01/22 18:10:42  pierre

@@ -402,8 +402,13 @@ override PPOPT+=$(addprefix -Fu,$(NEEDUNITDIR))
 endif
 
 # Library dirs
-ifdef LIBDIR
-override PPOPT+=$(addprefix -Fl,$(LIBDIR))
+ifdef NEEDLIBDIR
+override PPOPT+=$(addprefix -Fl,$(NEEDLIBDIR))
+endif
+
+# Object dirs
+ifdef NEEDOBJDIR
+override PPOPT+=$(addprefix -Fo,$(NEEDOBJDIR))
 endif
 
 # Add include dirs INC and PROCINC and OSINC

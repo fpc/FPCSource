@@ -1325,7 +1325,7 @@ begin
   begin
     AY:=Delta.Y+Y;
     Color:=ColorTab[coTextColor];
-    FillChar(FreeFormat,SizeOf(FreeFormat),true);
+    FillChar(FreeFormat,SizeOf(FreeFormat),1);
     MoveChar(B,' ',Color,Size.X);
     if AY<LineCount then Line:=GetLine(AY) else Line:=@NulLine;
     GetDisplayTextFormat(AY,LineText,Format);
@@ -3224,7 +3224,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  1999-01-21 11:54:31  peter
+  Revision 1.9  1999-01-29 10:34:33  peter
+    + needobjdir,needlibdir
+
+  Revision 1.8  1999/01/21 11:54:31  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command
