@@ -1354,8 +1354,11 @@ begin
   def_symbol('HASWIDECHAR');
   def_symbol('HASWIDESTRING');
   def_symbol('HASOUT');
+  { for now, the PowerPC doesn't support variants and interfaces }
+{$ifndef POWERPC}
   def_symbol('HASINTF');
   def_symbol('HASVARIANT');
+{$endif POWERPC}
   def_symbol('INTERNSETLENGTH');
   def_symbol('INTERNLENGTH');
   def_symbol('INT64FUNCRESOK');
@@ -1677,7 +1680,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.78  2002-07-26 21:15:39  florian
+  Revision 1.79  2002-07-26 22:22:10  florian
+    * several PowerPC related fixes to get forward with system unit compilation
+
+  Revision 1.78  2002/07/26 21:15:39  florian
     * rewrote the system handling
 
   Revision 1.77  2002/07/20 17:16:03  florian

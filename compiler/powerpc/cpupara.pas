@@ -43,7 +43,7 @@ unit cpupara;
     uses
        verbose,
        cpuinfo,
-       symtype;
+       symtype,defbase;
 
     function tppcparamanager.getintparaloc(nr : longint) : tparalocation;
 
@@ -67,6 +67,9 @@ unit cpupara;
     function getparaloc(p : tdef) : tloc;
 
       begin
+         { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
+           if push_addr_param for the def is true
+         }
          case p.deftype of
             orddef:
               getparaloc:=LOC_REGISTER;
@@ -76,6 +79,31 @@ unit cpupara;
               getparaloc:=LOC_REGISTER;
             pointerdef:
               getparaloc:=LOC_REGISTER;
+            formaldef:
+              getparaloc:=LOC_REGISTER;
+            classrefdef:
+              getparaloc:=LOC_REGISTER;
+            recorddef:
+              getparaloc:=LOC_REFERENCE;
+            objectdef:
+              if is_object(p) then
+                getparaloc:=LOC_REFERENCE
+              else
+                getparaloc:=LOC_REGISTER;
+            stringdef:
+              if is_shortstring(p) or is_longstring(p) then
+                getparaloc:=LOC_REFERENCE
+              else
+                getparaloc:=LOC_REGISTER;
+            procvardef:
+              if (po_methodpointer in tprocvardef(p).procoptions) then
+                getparaloc:=LOC_REFERENCE
+              else
+                getparaloc:=LOC_REGISTER;
+            filedef:
+              getparaloc:=LOC_REGISTER;
+            arraydef:
+              getparaloc:=LOC_REFERENCE;
             else
               internalerror(2002071001);
          end;
@@ -116,8 +144,48 @@ unit cpupara;
                         end
                       else
                          begin
+                            hp.paraloc.loc:=LOC_REFERENCE;
+                            hp.paraloc.reference.index:=stack_pointer_reg;
+                            hp.paraloc.reference.offset:=stack_offset;
+                            inc(stack_offset,4);
+                        end;
+                   end;
+                 LOC_FPUREGISTER:
+                   begin
+                      if nextfloatreg<=R_F8 then
+                        begin
+                           hp.paraloc.loc:=LOC_FPUREGISTER;
+                           hp.paraloc.register:=nextfloatreg;
+                           inc(nextfloatreg);
+                        end
+                      else
+                         begin
                             {!!!!!!!}
-                            internalerror(2002071003);
+                            internalerror(2002071004);
+                        end;
+                   end;
+                 LOC_REFERENCE:
+                   begin
+                      if push_addr_param(hp.paratype.def) then
+                        begin
+                           if nextintreg<=R_8 then
+                             begin
+                                hp.paraloc.loc:=LOC_REGISTER;
+                                hp.paraloc.register:=nextintreg;
+                                inc(nextintreg);
+                             end
+                           else
+                              begin
+                                 {!!!!!!!}
+                                 internalerror(2002071005);
+                             end;
+                        end
+                      else
+                        begin
+                           hp.paraloc.loc:=LOC_REFERENCE;
+                           hp.paraloc.reference.index:=stack_pointer_reg;
+                           hp.paraloc.reference.offset:=stack_offset;
+                           inc(stack_offset,hp.paratype.def.size);
                         end;
                    end;
                  else
@@ -139,7 +207,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-07-11 14:41:34  florian
+  Revision 1.3  2002-07-26 22:22:10  florian
+    * several PowerPC related fixes to get forward with system unit compilation
+
+  Revision 1.2  2002/07/11 14:41:34  florian
     * start of the new generic parameter handling
 
   Revision 1.1  2002/07/07 09:44:32  florian
