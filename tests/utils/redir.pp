@@ -688,6 +688,69 @@ end;
 *****************************************************************************}
 
 {$IFDEF SHELL_IMPLEMENTED}
+{$I-}
+function FileExist(const FileName : PathStr) : Boolean;
+var
+  f : file;
+  Attr : word;
+begin
+  Assign(f, FileName);
+  GetFAttr(f, Attr);
+  FileExist := DosError = 0;
+end;
+
+function CompleteDir(const Path: string): string;
+begin
+  { keep c: untouched PM }
+  if (Path<>'') and (Path[Length(Path)]<>DirSep) and
+     (Path[Length(Path)]<>':') then
+   CompleteDir:=Path+DirSep
+  else
+   CompleteDir:=Path;
+end;
+
+
+function LocateExeFile(var FileName:string): boolean;
+var
+  dir,s,d,n,e : string;
+  i : longint;
+begin
+  LocateExeFile:=False;
+  if FileExist(FileName) then
+    begin
+      LocateExeFile:=true;
+      Exit;
+    end;
+
+  Fsplit(Filename,d,n,e);
+
+  if (e='') and FileExist(FileName+exeext) then
+    begin
+      FileName:=FileName+exeext;
+      LocateExeFile:=true;
+      Exit;
+    end;
+
+  S:=GetEnv('PATH');
+  While Length(S)>0 do
+    begin
+      i:=1;
+      While (i<=Length(S)) and not (S[i] in ListSep) do
+        Inc(i);
+      Dir:=CompleteDir(Copy(S,1,i-1));
+      if i<Length(S) then
+        Delete(S,1,i)
+      else
+        S:='';
+      if FileExist(Dir+FileName) then
+        Begin
+           FileName:=Dir+FileName;
+           LocateExeFile:=true;
+           Exit;
+        End;
+   end;
+end;
+
 function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr: String): boolean;
 var
  CmdLine2: string;
@@ -859,7 +922,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.11  2002-12-05 16:03:04  pierre
+  Revision 1.12  2003-01-12 19:46:50  hajny
+    + newer functions made available under OS/2
+
+  Revision 1.11  2002/12/05 16:03:04  pierre
    + UseComSpec boolean added to be able to not use ComSpec
 
   Revision 1.10  2002/09/07 15:40:56  peter
