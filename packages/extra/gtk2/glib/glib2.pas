@@ -206,7 +206,7 @@ end;
  *}
 function GUINT_TO_POINTER(i: guint): pointer;
 begin
-  Result:=Pointer(i);
+  Result:=Pointer(PtrInt(i));
 end;
 
 {*
@@ -1749,7 +1749,7 @@ end;
 
 function G_FLAGS_CLASS_TYPE_NAME(_class : pointer) : PGChar;
 begin
-   G_FLAGS_CLASS_TYPE_NAME:=g_type_name(G_FLAGS_TYPE(_class));
+   G_FLAGS_CLASS_TYPE_NAME:=g_type_name(G_FLAGS_TYPE(PtrInt(_class)));
 end;
 
 function G_VALUE_HOLDS_ENUM(value : pointer) : gboolean;
@@ -1776,12 +1776,12 @@ end;
 
 function GPOINTER_TO_SIZE(p: GPointer): GSize;
 begin
-  Result:=GSize(p);
+  Result:=GSize(PtrInt(p));
 end;
 
 function GSIZE_TO_POINTER(s: GSize): GPointer;
 begin
-  Result:=GPointer(s);
+  Result:=GPointer(PtrInt(s));
 end;
 
 // gvaluetypes.inc -------------------------------------------------------------

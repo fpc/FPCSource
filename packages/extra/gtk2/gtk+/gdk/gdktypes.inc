@@ -147,17 +147,17 @@ function GDK_NONE : TGdkAtom;
 {$IFDEF read_implementation}
 function GDK_ATOM_TO_POINTER(atom : TGdkAtom) : pointer;
 begin
-  GDK_ATOM_TO_POINTER:=Pointer(atom);
+  GDK_ATOM_TO_POINTER:=Pointer(PtrInt(atom));
 end;
 
 function GDK_POINTER_TO_ATOM(ptr : Pointer) : TGdkAtom;
 begin
-  GDK_POINTER_TO_ATOM:=TGdkAtom(ptr);
+  GDK_POINTER_TO_ATOM:=TGdkAtom(PtrInt(ptr));
 end;
 
 function _GDK_MAKE_ATOM(val : guint) : TGdkAtom;
 begin
-  _GDK_MAKE_ATOM:=TGdkAtom(GUINT_TO_POINTER(val));
+  _GDK_MAKE_ATOM:=TGdkAtom(PtrInt(GUINT_TO_POINTER(val)));
 end;
 
 function GDK_NONE : TGdkAtom;

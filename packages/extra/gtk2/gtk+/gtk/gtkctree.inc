@@ -111,11 +111,11 @@ function GTK_IS_CTREE(obj: pointer) : boolean;
 function GTK_IS_CTREE_CLASS(klass: pointer) : boolean;
 function GTK_CTREE_GET_CLASS(obj: pointer) : PGtkCTreeClass;
 
-function GTK_CTREE_ROW(_node_ : longint) : PGtkCTreeRow;
-function GTK_CTREE_NODE(_node_ : longint) : PGtkCTreeNode;
-function GTK_CTREE_NODE_NEXT(_nnode_ : longint) : PGtkCTreeNode;
-function GTK_CTREE_NODE_PREV(_pnode_ : longint) : PGtkCTreeNode;
-function GTK_CTREE_FUNC(_func_ : longint) : TGtkCTreeFunc;
+function GTK_CTREE_ROW(_node_ : ptrint) : PGtkCTreeRow;
+function GTK_CTREE_NODE(_node_ : ptrint) : PGtkCTreeNode;
+function GTK_CTREE_NODE_NEXT(_nnode_ : ptrint) : PGtkCTreeNode;
+function GTK_CTREE_NODE_PREV(_pnode_ : ptrint) : PGtkCTreeNode;
+function GTK_CTREE_FUNC(_func_ : ptrint) : TGtkCTreeFunc;
 function GTK_TYPE_CTREE_NODE : GType;
 
 function line_style(var a : TGtkCTree) : guint;
@@ -273,27 +273,27 @@ begin
    GTK_CTREE_GET_CLASS:=PGtkCTreeClass(GTK_CHECK_GET_CLASS(obj,GTK_TYPE_CTREE));
 end;
 
-function GTK_CTREE_ROW(_node_ : longint) : PGtkCTreeRow;
+function GTK_CTREE_ROW(_node_ : ptrint) : PGtkCTreeRow;
 begin
    GTK_CTREE_ROW:=PGtkCTreeRow((PGList(_node_))^.data);
 end;
 
-function GTK_CTREE_NODE(_node_ : longint) : PGtkCTreeNode;
+function GTK_CTREE_NODE(_node_ : ptrint) : PGtkCTreeNode;
 begin
    GTK_CTREE_NODE:=PGtkCTreeNode(_node_);
 end;
 
-function GTK_CTREE_NODE_NEXT(_nnode_ : longint) : PGtkCTreeNode;
+function GTK_CTREE_NODE_NEXT(_nnode_ : ptrint) : PGtkCTreeNode;
 begin
    GTK_CTREE_NODE_NEXT:=PGtkCTreeNode((PGList(_nnode_))^.next);
 end;
 
-function GTK_CTREE_NODE_PREV(_pnode_ : longint) : PGtkCTreeNode;
+function GTK_CTREE_NODE_PREV(_pnode_ : ptrint) : PGtkCTreeNode;
 begin
    GTK_CTREE_NODE_PREV:=PGtkCTreeNode((PGList(_pnode_))^.prev);
 end;
 
-function GTK_CTREE_FUNC(_func_ : longint) : TGtkCTreeFunc;
+function GTK_CTREE_FUNC(_func_ : ptrint) : TGtkCTreeFunc;
 begin
    GTK_CTREE_FUNC:=TGtkCTreeFunc(_func_);
 end;

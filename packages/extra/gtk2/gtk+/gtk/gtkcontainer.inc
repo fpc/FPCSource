@@ -243,7 +243,7 @@ procedure GTK_CONTAINER_WARN_INVALID_CHILD_PROPERTY_ID(
   anObject: pointer; property_id: guint; pspec : pointer);
 begin
    writeln('invalid child property id ',property_id,' ',
-     HexStr(Cardinal(anObject),8),' ',HexStr(Cardinal(pspec),8));
+     HexStr(PtrUInt(anObject),8),' ',HexStr(PtrUInt(pspec),8));
    //  G_OBJECT_WARN_INVALID_PSPEC(anObject,'child property id',property_id,pspec);
 end;
 
