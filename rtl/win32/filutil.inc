@@ -86,6 +86,9 @@ end;
 Function FileTruncate (Handle,Size: Longint) : boolean;
 
 begin
+  Result:=SetFilePointer(handle,Size,nil,FILE_BEGIN)<>-1;
+  If Result then 
+    Result:=SetEndOfFile(handle);
 end;
 
 
@@ -194,7 +197,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1999-02-03 11:41:30  michael
+  Revision 1.3  1999-02-09 12:01:03  michael
+  + Implemented filetruncate
+
+  Revision 1.2  1999/02/03 11:41:30  michael
   + Added filetruncate
 
   Revision 1.1  1998/10/11 12:21:01  michael
