@@ -74,10 +74,12 @@ program install;
 {$IFDEF DLL}
      unzipdll,
 {$ENDIF}
-     app,dialogs,views,menus,msgbox,tabs;
+     app,dialogs,views,menus,msgbox,colortxt,tabs;
 
 
   const
+     installerversion='0.99.12b';
+
      maxpackages=20;
      maxsources=20;
      maxdefcfgs=1024;
@@ -113,6 +115,7 @@ program install;
 
      datarec=packed record
        basepath : DirStr;
+       cfgval   : word;
        packmask : word;
        srcmask  : word;
      end;
@@ -226,56 +229,12 @@ program install;
        file_exists:=fsearch(f,path)<>'';
     end;
 
-
-  function DiskSpaceN(const zipfile : string) : longint;
+  function createdir(s:string):boolean;
     var
-      compressed,uncompressed : longint;
-      s : string;
-    begin
-      s:=zipfile+#0;
-      uncompressed:=UnzipSize(@s[1],compressed);
-      DiskSpaceN:=uncompressed shr 10;
-    end;
-
-
-  function diskspace(const zipfile : string) : string;
-    var
-      uncompressed : longint;
-      s : string;
-    begin
-      uncompressed:=DiskSpaceN (zipfile);
-      str(uncompressed,s);
-      diskspace:=' ('+s+' KB)';
-    end;
-
-
-  function createdir(s : string) : boolean;
-    var
-      start,
-      s1 : string;
-      i : longint;
+      s1,start : string;
       err : boolean;
-      dir : searchrec;
-      params : array[0..0] of pointer;
+      i : longint;
     begin
-       if s[length(s)]=DirSep then
-        dec(s[0]);
-       FindFirst(s,AnyFile,dir);
-       if doserror=0 then
-         begin
-(* TH - check the directory attribute! *)
-            if Dir.Attr and Directory = 0 then
-              begin
-                messagebox('A file with the name chosen as the installation '+
-                'directory exists already. Cannot create this directory!',nil,
-                mferror+mfokbutton);
-                createdir:=false;
-              end else
-                createdir:=messagebox('The installation directory exists already. '+
-                'Do you want to enter a new installation directory ?',nil,
-                mferror+mfyesbutton+mfnobutton)=cmNo;
-            exit;
-         end;
        err:=false;
        {$I-}
        getdir(0,start);
@@ -306,12 +265,61 @@ program install;
        until s='';
        chdir(start);
        {$I+}
+       createdir:=err;
+    end;
+
+  function DiskSpaceN(const zipfile : string) : longint;
+    var
+      compressed,uncompressed : longint;
+      s : string;
+    begin
+      s:=zipfile+#0;
+      uncompressed:=UnzipSize(@s[1],compressed);
+      DiskSpaceN:=uncompressed shr 10;
+    end;
+
+
+  function diskspace(const zipfile : string) : string;
+    var
+      uncompressed : longint;
+      s : string;
+    begin
+      uncompressed:=DiskSpaceN (zipfile);
+      str(uncompressed,s);
+      diskspace:=' ('+s+' KB)';
+    end;
+
+
+  function createinstalldir(s : string) : boolean;
+    var
+      err : boolean;
+      dir : searchrec;
+      params : array[0..0] of pointer;
+    begin
+       if s[length(s)]=DirSep then
+        dec(s[0]);
+       FindFirst(s,AnyFile,dir);
+       if doserror=0 then
+         begin
+            if Dir.Attr and Directory = 0 then
+              begin
+                messagebox('A file with the name chosen as the installation '+
+                'directory exists already. Cannot create this directory!',nil,
+                mferror+mfokbutton);
+                createinstalldir:=false;
+              end else
+                createinstalldir:=messagebox('The installation directory exists already. '+
+                'Do you want to continue ?',nil,
+                mferror+mfyesbutton+mfnobutton)=cmYes;
+            exit;
+         end;
+       err:=Createdir(s);
        if err then
          begin
             params[0]:=@s;
             messagebox('The installation directory %s couldn''t be created',
               @params,mferror+mfokbutton);
-            createdir:=false;
+            createinstalldir:=false;
             exit;
          end;
 {$ifndef TP}
@@ -319,8 +327,9 @@ program install;
        FindClose (dir);
  {$ENDIF}
 {$endif}
-       createdir:=true;
+       createinstalldir:=true;
     end;
+
 
   function GetProgDir: DirStr;
     var
@@ -345,14 +354,23 @@ program install;
       s      : string;
       dir    : searchrec;
       params : array[0..0] of pointer;
+      d : dirstr;
+      n : namestr;
+      e : extstr;
     begin
+    { already exists }
       findfirst(fn,AnyFile,dir);
       if doserror=0 then
        begin
          params[0]:=@fn;
-         MessageBox(#3'Default config not written.'#13#3'%s'#13#3'already exists',@params,mfinformation+mfokbutton);
-         exit;
+         if MessageBox('Config %s already exists, continue writing default config?',@params,
+                       mfinformation+mfyesbutton+mfnobutton)=cmNo then
+           exit;
        end;
+    { create directory }
+      fsplit(fn,d,n,e);
+      createdir(d);
+    { create the ppc386.cfg }
       assign(t,fn);
       {$I-}
        rewrite(t);
@@ -527,6 +545,9 @@ program install;
        labpath : plabel;
        ilpath : pinputline;
        tab : ptab;
+       titletext : pcoloredtext;
+       labcfg : plabel;
+       cfgcb : pcheckboxes;
     begin
      { walk packages reverse and insert a newsitem for each, and set the mask }
        items:=nil;
@@ -564,7 +585,7 @@ program install;
         end;
 
        r.assign(x1,y1,x2,y2);
-       inherited init(r,cfg.title+' Installation');
+       inherited init(r,'');
        GetExtent(R);
        R.Grow(-2,-1);
        Dec(R.B.Y,2);
@@ -575,13 +596,27 @@ program install;
 
        {-------- Sheet 1 ----------}
        R.Copy(TabIR);
-       r.b.x:=r.a.x+6;
-       r.b.y:=r.a.y+1;
-       new(labpath,init(r,'~P~ath',f));
-
        r.move(0,1);
        r.b.x:=r.a.x+40;
+       r.b.y:=r.a.y+1;
+       new(titletext,init(r,cfg.title,$71));
+
+       r.move(0,2);
+       r.b.x:=r.a.x+40;
+       new(labpath,init(r,'~B~ase path',f));
+       r.move(0,1);
+       r.b.x:=r.a.x+40;
+       r.b.y:=r.a.y+1;
        new(ilpath,init(r,high(DirStr)));
+
+       r.move(0,2);
+       r.b.x:=r.a.x+40;
+       new(labcfg,init(r,'Con~f~ig',f));
+       r.move(0,1);
+       r.b.x:=r.a.x+40;
+       r.b.y:=r.a.y+1;
+       new(cfgcb,init(r,newsitem('create ppc386.cfg',nil)));
+       data.cfgval:=1;
 
        {-------- Sheet 2 ----------}
        R.Copy(TabIR);
@@ -598,9 +633,12 @@ program install;
        {--------- Main ---------}
        New(Tab, Init(TabR,
          NewTabDef('~G~eneral',IlPath,
+           NewTabItem(TitleText,
            NewTabItem(LabPath,
            NewTabItem(ILPath,
-           nil)),
+           NewTabItem(LabCfg,
+           NewTabItem(CfgCB,
+           nil))))),
          NewTabDef('~P~ackages',PackCbs,
            NewTabItem(PackCbs,
            nil),
@@ -646,6 +684,7 @@ program install;
 {$endif}
     begin
       data.basepath:=cfg.basepath;
+      data.cfgval:=0;
       data.srcmask:=0;
       data.packmask:=0;
 
@@ -656,51 +695,55 @@ program install;
         if (c=cmok) then
           begin
             if Data.BasePath = '' then
-              messagebox('Please, choose the directory for installation first.',nil,
-                 mferror+mfokbutton) else
+              messagebox('Please, choose the directory for installation first.',nil,mferror+mfokbutton)
+            else
              begin
-              if (data.srcmask>0) or (data.packmask>0) then
-               begin
-(* TH - check the available disk space here *)
+               if (data.srcmask>0) or (data.packmask>0) then
+                begin
 {$IFNDEF LINUX}
-                DSize := 0;
-                for i:=1 to cfg.packages do
-                 begin
-                   if data.packmask and packagemask(i)<>0 then
-                    Inc (DSize, DiskSpaceN(cfg.package[i].zip));
-                 end;
-                for i:=1 to cfg.sources do
-                 begin
-                   if data.srcmask and packagemask(i)<>0 then
-                    Inc (DSize, DiskSpaceN(cfg.source[i].zip));
-                 end;
-                 if data.mask and packagemask(i)<>0 then
-                 Inc (DSize, DiskSpaceN(cfg.package[i].zip));
-                end;
-                S := FExpand (Data.BasePath);
-                if S [Length (S)] = DirSep then Dec (S [0]);
-                Space := DiskFree (byte (S [1]) - 64) shr 10;
-                if Space < DSize then S := 'is not' else S := '';
-                if Space < DSize + 500 then
-                 begin
-                  if S = '' then S := 'might not be';
-                  if messagebox('There ' + S + ' enough space on the target ' +
-                    'drive for all the selected components. Do you ' +
-                    'want to change the installation path?',nil,
-                    mferror+mfyesbutton+mfnobutton) = cmYes then Continue;
-                 end;
+                { TH - check the available disk space here }
+                  DSize := 0;
+                  for i:=1 to cfg.packages do
+                   begin
+                     if data.packmask and packagemask(i)<>0 then
+                      Inc (DSize, DiskSpaceN(cfg.package[i].zip));
+                   end;
+                  for i:=1 to cfg.sources do
+                   begin
+                     if data.srcmask and packagemask(i)<>0 then
+                      Inc (DSize, DiskSpaceN(cfg.source[i].zip));
+                   end;
+                  if data.packmask and packagemask(i)<>0 then
+                   Inc (DSize, DiskSpaceN(cfg.package[i].zip));
+                  S := FExpand (Data.BasePath);
+                  if S [Length (S)] = DirSep then
+                   Dec (S [0]);
+                  Space := DiskFree (byte (S [1]) - 64) shr 10;
+                  if Space < DSize then
+                   S := 'is not'
+                  else
+                   S := '';
+                  if Space < DSize + 500 then
+                   begin
+                     if S = '' then
+                      S := 'might not be';
+                     if messagebox('There ' + S + ' enough space on the target ' +
+                                   'drive for all the selected components. Do you ' +
+                                   'want to change the installation path?',nil,
+                                   mferror+mfyesbutton+mfnobutton) = cmYes then
+                      Continue;
+                   end;
 {$ENDIF}
-                if createdir(data.basepath) then
-                 break;
-              end
-             else
-              begin
-               result:=messagebox('No components selected.'#13#13'Abort installation?',nil,
-                 mferror+mfyesbutton+mfnobutton);
-               if result=cmYes then
-                exit;
-              end;
-            end;
+                  if createinstalldir(data.basepath) then
+                   break;
+                end
+               else
+                begin
+                  result:=messagebox('No components selected.'#13#13'Abort installation?',nil,mferror+mfyesbutton+mfnobutton);
+                  if result=cmYes then
+                   exit;
+                end;
+             end;
           end
         else
           exit;
@@ -731,7 +774,8 @@ program install;
       dispose(p2,done);
 
     { write config }
-      writedefcfg(data.basepath+cfg.binsub+DirSep+cfg.defcfgfile);
+      if (data.cfgval and 1)<>0 then
+       writedefcfg(data.basepath+cfg.binsub+DirSep+cfg.defcfgfile);
 
     { show end message }
       p3:=new(penddialog,init);
@@ -869,7 +913,7 @@ program install;
        getextent(r);
        r.b.y:=r.a.y+1;
        menubar:=new(pmenubar,init(r,newmenu(
-          newsubmenu('~F~ree Pascal '+cfg.version,hcnocontext,newmenu(nil
+          newsubmenu('~F~ree Pascal Installer '+installerversion,hcnocontext,newmenu(nil
           ),
        nil))));
     end;
@@ -1000,7 +1044,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1999-07-01 07:56:58  hajny
+  Revision 1.8  1999-07-17 14:24:47  peter
+    * updates for new installer
+    + checkbox if ppc386.cfg needs to be written, also createdir() is used
+      for ppc386.cfg creation
+
+  Revision 1.7  1999/07/01 07:56:58  hajny
     * installation to root fixed
 
   Revision 1.6  1999/06/29 22:20:19  peter

@@ -3,24 +3,33 @@
 #
 # Go32v2 Install file
 #
-title=Free Pascal Compiler for Go32v2
-version=0.99.12
+title=Free Pascal Compiler 0.99.12b for Go32v2
+version=0.99.12b
 
 basepath=c:\pp
 binsub=\bin\go32v2
 ppc386=ppc386
 
+#
+# Binary packages
+#
 package=basego32.zip,~B~asic system for Go32v2 (required)
 package=asldgo32.zip,GNU ~L~inker and GNU Assembler for Go32v2 (required)
 package=gdbgo32.zip,GNU ~D~ebugger for Go32v2
 package=utilgo32.zip,GNU ~U~tilities (for makefiles)
-package=doc-html.zip,Documentation (~H~TML)
+package=docs-pdf.zip,Documentation (~P~DF)
 package=demo.zip,D~e~mos
-package=fclgo32.zip,~F~ree Component Libary
-package=fvgo32.zip,Free ~V~ision and API units
-package=rl09912s.zip,~R~un time library sources
-package=pp09912s.zip,~C~ompiler sources
-package=doc160s.zip,Documentation sources (La~T~eX)
+package=fclgo32.zip,~F~ree Component Libary (FCL)
+package=fvgo32.zip,Free ~V~ision (FV) and API units
+#
+# Source packages
+#
+source=rl09912s.zip,~R~un time library sources
+source=pp09912s.zip,~C~ompiler sources
+source=fc09912s.zip,~F~ree component library (FCL) sources
+source=fv09912s.zip,Free ~V~ision (FV) and API units sources
+source=gt09912s.zip,~G~TK interface sources
+source=doc160s.zip,Documentation sources (La~T~eX)
 
 cfgfile=ppc386.cfg
 defaultcfg=

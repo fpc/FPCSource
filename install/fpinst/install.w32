@@ -3,24 +3,33 @@
 #
 # Win32 Install file
 #
-title=Free Pascal Compiler for Win32
-version=0.99.12
+title=Free Pascal Compiler 0.99.12b for Win32
+version=0.99.12b
 
 basepath=c:\pp
 binsub=\bin\win32
 ppc386=ppc386
 
+#
+# Binary packages
+#
 package=basew32.zip,~B~asic system for Win32 (required)
 package=asldw32.zip,GNU ~L~inker and GNU Assembler for Win32 (required)
 package=gdbw32.zip,GNU ~D~ebugger for Win32
 package=utilw32.zip,GNU ~U~tilities (for makefiles)
-package=doc-html.zip,Documentation (~H~TML)
+package=docs-pdf.zip,Documentation (~P~DF)
 package=demo.zip,D~e~mos
-package=fclw32.zip,~F~ree Component Libary
+package=fclw32.zip,~F~ree Component Libary (FCL)
 package=gtkw32.zip,~G~TK 1.2.x bindings for gtk/win32
-package=rl09912s.zip,~R~un time library sources
-package=pp09912s.zip,~C~ompiler sources
-package=doc160s.zip,Documentation sources (La~T~eX)
+#
+# Source packages
+#
+source=rl09912s.zip,~R~un time library sources
+source=pp09912s.zip,~C~ompiler sources
+source=fc09912s.zip,~F~ree component library (FCL) sources
+source=fv09912s.zip,Free ~V~ision (FV) and API sources
+source=gt09912s.zip,~G~TK interface sources
+source=doc160s.zip,Documentation sources (La~T~eX)
 
 cfgfile=ppc386.cfg
 defaultcfg=

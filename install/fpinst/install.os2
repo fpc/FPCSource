@@ -3,22 +3,31 @@
 #
 # EMX Install file
 #
-title=Free Pascal Compiler for OS/2 and DOS
-version=0.99.12
+title=Free Pascal Compiler 0.99.12b for OS/2 and DOS
+version=0.99.12b
 
 basepath=c:\pp
 binsub=\bin\os2
 ppc386=ppos2
 
+#
+# Binary packages
+#
 package=baseemx.zip,~B~asic system for EMX (required)
 package=asldemx.zip,GNU ~L~inker and assembler for EMX (required)
 package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
 package=utilemx.zip,GNU ~U~tilities (for makefiles)
-package=doc-htm.zip,Documentation (~H~TML)
+package=docs-pdf.zip,Documentation (~P~DF)
 package=demo.zip,D~e~mos
-package=rl09912s.zip,~R~un time library sources
-package=pp09912s.zip,~C~ompiler sources
-package=doc160s.zip,Documentation sources (La~T~eX)
+#
+# Source packages
+#
+source=rl09912s.zip,~R~un time library sources
+source=pp09912s.zip,~C~ompiler sources
+source=fc09912s.zip,~F~ree component library (FCL) sources
+source=fv09912s.zip,Free ~V~ision (FV) and API sources
+source=gt09912s.zip,~G~TK interface sources
+source=doc160s.zip,Documentation sources (La~T~eX)
 
 cfgfile=ppc386.cfg
 defaultcfg=
