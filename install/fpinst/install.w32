@@ -19,7 +19,7 @@ package=gdbw32.zip,GNU ~D~ebugger for Win32
 package=utilw32.zip,GNU ~U~tilities (for makefiles)
 package=docs-pdf.zip,Documentation (~P~DF)
 package=demo.zip,D~e~mos
-package=fclw32.zip,~F~ree Component Libary (FCL)
+package=fclw32.zip,~F~ree Component Library (FCL)
 package=gtkw32.zip,~G~TK 1.2.x bindings for gtk/win32
 #
 # Source packages

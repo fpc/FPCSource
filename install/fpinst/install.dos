@@ -19,7 +19,7 @@ package=gdbgo32.zip,GNU ~D~ebugger for Go32v2
 package=utilgo32.zip,GNU ~U~tilities (for makefiles)
 package=docs-pdf.zip,Documentation (~P~DF)
 package=demo.zip,D~e~mos
-package=fclgo32.zip,~F~ree Component Libary (FCL)
+package=fclgo32.zip,~F~ree Component Library (FCL)
 package=fvgo32.zip,Free ~V~ision (FV) and API units
 #
 # Source packages
