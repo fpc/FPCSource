@@ -24,7 +24,7 @@
    the compiler/platform/target in a consequent way.
 
     OS_XXXX         The operating system used (XXXX may be one of:
-                       DOS, OS2, Linux, Windows, Go32)
+                       DOS, OS2, Linux, Windows, Go32, FreeBSD,Linux)
     PPC_XXXX        The compiler used: BP, FPK, Virtual, Speed
     BIT_XX          The number of bits of the target platform: 16 or 32
     PROC_XXXX       The mode of the target processor (Real or Protected)
@@ -36,7 +36,7 @@
    Changelog:
 
      Date       Version        Who        Comments
-     02 Jul 97  0.1            Bazsi      Initial implementation
+     02 Jul 97  0.1            Bazsi      Initial implementation~
      28 Aug 97  0.2            LdeB       Fixed OS2 platform sort out
      29 Aug 97  0.3            LdeB       Added assembler type change
      29 Aug 97  0.4            LdeB       OS_DOS removed from Windows
@@ -48,7 +48,9 @@
      27 Aug 98  1.0            LdeB       Fixed Atari etc not $UNDEF OS_DOS.
 
      25 Oct 98  1.1            pfv        Delphi4
-
+     13 nov 00  1.2	       mvdv	  Unix renamefest Addition of FreeBSD
+					   and change of Linux conditional
+					   meaning
  ****************************************************************************
 
     This is how the IFDEF and UNDEF statements below should translate.
@@ -63,6 +65,8 @@
  DPMI     OS_DOS      BP/TP7   PPC_BP       PROC_Protected  BIT_16  ASM_BP
 
  LINUX    OS_LINUX    FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
+
+ FREEBSD  OS_FREEBSD  FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
 
  WINDOWS  OS_WINDOWS  BP/TP7   PPC_BP       PROC_Protected  BIT_16  ASM_BP
                       DELPHI   PPC_DELPHI   PROC_Protected  BIT_16  ASM_BP
@@ -90,11 +94,17 @@ FOR FPC THESE ARE THE TRANSLATIONS
   PLATFORM  SYSTEM    COMPILER  HANDLE SIZE      ASM          CPU
  --------  ------    --------  -----------      ----         ---
 
- DOS      OS_DOS,OS_GO32 FPC     32-bit           AT&T         CPU86
+ DOS      OS_DOS,
+	  OS_GO32      FPC     32-bit           AT&T         CPU86
 
  WIN32    OS_WINDOWS   FPC     32-bit           AT&T         ----
 
- LINUX    OS_LINUX     FPC     32-bit           AT&T         ----
+ LINUX    OS_LINUX,
+	  OS_UNIX      FPC     32-bit           AT&T         ----
+
+ FREEBSD  OS_FREEBSD, 
+          OS_BSD,
+	  OS_UNIX      FPC     32-bit           AT&T         ----
 
  OS2      OS_OS2       FPC     ?????            AT&T         CPU86
 
@@ -103,6 +113,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
  MACOS    OS_MAC       FPC     ?????            Internal     CPU68
 
  AMIGA    OS_AMIGA     FPC     32-bit           Internal     CPU68
+
+
+Note: All Unices have OS_UNIX in common. All BSD's (Open,Net,Free) have
+      OS_BSD in common.
 
  ****************************************************************************}
 
@@ -140,12 +154,19 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
-{  FPC LINUX COMPILER changes operating system - Updated 27Aug98 LdB        }
+{  FPC LINUX COMPILER changes operating system - Updated 12nov00 MvdV       }
 {  Note: Other linux compilers would need to change other details           }
 {---------------------------------------------------------------------------}
-{$IFDEF LINUX}
+{$IFDEF UNIX}
   {$UNDEF OS_DOS}
-  {$DEFINE OS_LINUX}
+  {$DEFINE OS_UNIX}
+  {$IFNDEF BSD}			     {Work around. BSD still defines "linux"
+						            in 1.1 for now} 
+   {$DEFINE OS_LINUX}
+  {$ELSE}
+    {$DEFINE OS_FREEBSD}
+    {$DEFINE OS_BSD}
+  {$ENDIF}
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
@@ -302,7 +323,10 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:24  michael
+  Revision 1.3  2000-11-13 14:35:57  marco
+   * Unix Renamefest for defines.
+
+  Revision 1.2  2000/07/13 11:32:24  michael
   + removed logs
  
 }

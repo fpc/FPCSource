@@ -47,7 +47,7 @@ uses
  {$endif PPC_FPC}
 {$ENDIF}
 
-{$IFDEF OS_LINUX}
+{$IFDEF OS_Unix}
   , linux
 {$ENDIF}
   ;
@@ -64,7 +64,7 @@ const
                   {$ENDIF}
 
   { Character to separate directories in a path }
-  PathSeparator = {$IFDEF OS_Linux}
+  PathSeparator = {$IFDEF OS_Unix}
                   '/';
                   {$ELSE}
                   '\';
@@ -143,10 +143,10 @@ type
     Name             : TFileName;
     Size             : TFileInt;
     { platform-specific fields }
-    {$IFDEF OS_LINUX}
+    {$IFDEF OS_Unix}
     Created          : TDateTime;
     LastAccessed     : TDateTime;
-    {$ENDIF OS_LINUX}
+    {$ENDIF OS_Unix}
   end;
 
   { Search record declaration for FPC for DOS (we're not using the DOS unit
@@ -185,11 +185,11 @@ type
 
     { OS-specific output fields }
 
-    {$IFDEF OS_Linux}
+    {$IFDEF OS_Unix}
     GL : PGlob;
-    {$ELSE OS_Linux}
+    {$ELSE OS_Unix}
     SR      : DOS.SearchRec;
-    {$ENDIF OS_Linux}
+    {$ENDIF OS_Unix}
   end;
 
 procedure CheckDateTime(var DT: TDateTime);
@@ -566,9 +566,9 @@ end;
 
 {$ENDIF} { OS_DOS }
 
-{$IFDEF OS_LINUX}
+{$IFDEF OS_UNIX}
 { Functions and procedures not decalred in interface section,
-  Linux operating system }
+  Unix operating systems }
 
 Procedure EpochToDateTime (Epoch : Longint; var DT : TDateTime);
 { Returns a Checked datetime, starting from a Unix epoch-style time }
@@ -597,7 +597,7 @@ begin
   EpochToDateTime(Info.Ctime,Fd.Created);
   Fd.Size:=Info.size;
 end;
-{$ENDIF} {OS_LINUX}
+{$ENDIF} {OS_Unix}
 
 { Functions and procedures declared in the interface section }
 
@@ -623,7 +623,7 @@ end;
 
 { Continues a file search started by StartSearch }
 procedure ContinueSearch(var FS: TFileSearch);
-{$IFDEF OS_Linux}
+{$IFDEF OS_Unix}
 Var g : PGLob;
     info : stat;
 
@@ -644,7 +644,7 @@ begin
     FS.Success:=True;
     end;
 end;
-{$ELSE OS_Linux}
+{$ELSE OS_Unix}
 begin
   if fs.Success
     then begin
@@ -654,7 +654,7 @@ begin
              then SearchRecToFileDescriptor(fs.sr, fs.fd);
          end;
 end;
-{$ENDIF OS_Linux}
+{$ENDIF OS_Unix}
 
 { Create a new subdirectory AName }
 procedure CreateDir(AName : TFileName);
@@ -689,7 +689,7 @@ end;
 { Returns the full version of AName }
 function ExpandName(AName : TFileName): TFileName;
 begin
-{$IFDEF OS_LINUX}
+{$IFDEF OS_Unix}
   ExpandName := Linux.FExpand(AName);
 {$ELSE}
   ExpandName := DOS.FExpand(AName);
@@ -717,7 +717,7 @@ begin
   FileAttrToString := S;
 end;
 {$ELSE OS_DOS}
-{$IFDEF OS_LINUX}
+{$IFDEF OS_Unix}
 var temp : string[9];
     i : longint;
 
@@ -730,11 +730,11 @@ begin
     if (AFileAttr and (1 shl i))=(1 shl I) then temp[9-i]:=full[9-i];
   FileAttrToString := Temp;
 end;
-{$ELSE OS_LINUX}
+{$ELSE OS_Unix}
 begin
   FileAttrToString:='';
 end;
-{$ENDIF OS_LINUX}
+{$ENDIF OS_Unix}
 {$ENDIF OS_DOS}
 
 { Returns a string version of the file integer value fi }
@@ -816,7 +816,7 @@ begin
   ErrorCode := DOS.DOSError;
 end;
 {$ELSE}
-{$IFDEF OS_LINUX}
+{$IFDEF OS_Unix}
 var
   info : stat;
 begin
@@ -864,7 +864,7 @@ begin
   CheckDateTime(DT);
 end;
 {$ELSE}
-{$IFDEF OS_LINUX}
+{$IFDEF OS_Unix}
 var info : Stat;
 
 begin
@@ -920,7 +920,7 @@ begin
   IsValidName := true;
 end;
 {$ELSE}
-{$IFDEF OS_LINUX}
+{$IFDEF OS_Unix}
 begin
   IsVAlidName:=((pos('?',AName)=0) and (pos('*',AName)=0))
 end;
@@ -972,7 +972,7 @@ begin
   ErrorCode := DOS.DOSError;
 end;
 {$ELSE}
-{$IFDEF OS_LINUX}
+{$IFDEF OS_Unix}
 begin
   Linux.Chmod (Aname,AFileAttr);
   ErrorCode:=LinuxError;
@@ -998,7 +998,7 @@ begin
   ErrorCode := DOS.DOSError;
 end;
 {$ELSE}
-{$IFDEF OS_LINUX}
+{$IFDEF OS_Unix}
 var
   utim : utimebuf;
 begin
@@ -1015,7 +1015,7 @@ end;
 
 { Starts a file search, using input data from fs }
 procedure StartSearch(var FS: TFileSearch);
-{$IFDEF OS_Linux}
+{$IFDEF OS_Unix}
 var
   info : stat;
 begin
@@ -1030,7 +1030,7 @@ begin
     FS.Success:=True;
     end;
 end;
-{$ELSE OS_Linux}
+{$ELSE OS_Unix}
 { this version works for every platform/os/bits combination that has a
   working DOS unit : BP/FPC/Virtual Pascal }
 begin
@@ -1039,12 +1039,12 @@ begin
   if fs.Success
     then SearchRecToFileDescriptor(FS.SR, FS.FD);
 end;
-{$ENDIF OS_Linux}
+{$ENDIF OS_Unix}
 
 { Terminates a file search }
 procedure TerminateSearch (var FS: TFileSearch);
 begin
-{$IFDEF OS_LINUX}
+{$IFDEF OS_Unix}
 GlobFree (FS.GL);
 {$ELSE}
   {$IFNDEF PPC_BP}
@@ -1060,7 +1060,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:38  michael
+  Revision 1.2  2000-11-13 14:35:57  marco
+   * Unix Renamefest for defines.
+
+  Revision 1.1  2000/07/13 06:29:38  michael
   + Initial import
 
   Revision 1.2  2000/02/29 11:43:16  pierre
