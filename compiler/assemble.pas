@@ -504,15 +504,30 @@ Implementation
       begin
         if OutCnt>=AsmOutSize-2 then
          AsmFlush;
-        OutBuf[OutCnt]:=target_info.newline[1];
-        inc(OutCnt);
-        inc(AsmSize);
-        if length(target_info.newline)>1 then
-         begin
-           OutBuf[OutCnt]:=target_info.newline[2];
-           inc(OutCnt);
-           inc(AsmSize);
-         end;
+        if (cs_link_on_target in aktglobalswitches) then
+          begin
+            OutBuf[OutCnt]:=target_info.newline[1];
+            inc(OutCnt);
+            inc(AsmSize);
+            if length(target_info.newline)>1 then
+             begin
+               OutBuf[OutCnt]:=target_info.newline[2];
+               inc(OutCnt);
+               inc(AsmSize);
+             end;
+          end
+        else
+          begin
+            OutBuf[OutCnt]:=source_info.newline[1];
+            inc(OutCnt);
+            inc(AsmSize);
+            if length(source_info.newline)>1 then
+             begin
+               OutBuf[OutCnt]:=source_info.newline[2];
+               inc(OutCnt);
+               inc(AsmSize);
+             end;
+          end;
       end;
 
 
@@ -1646,7 +1661,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.55  2003-09-23 17:56:05  peter
+  Revision 1.56  2003-09-30 19:54:23  peter
+    * better link on target support
+
+  Revision 1.55  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

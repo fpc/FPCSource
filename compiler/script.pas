@@ -130,10 +130,11 @@ end;
 
 constructor TScript.CreateExec(const s:string);
 begin
+  fn:=FixFileName(s);
   if cs_link_on_target in aktglobalswitches then
-    fn:=TargetFixFileName(s)+target_info.scriptext
+    fn:=AddExtension(fn,target_info.scriptext)
   else
-    fn:=FixFileName(s)+source_info.scriptext;
+    fn:=AddExtension(fn,source_info.scriptext);
   executable:=true;
   data:=TStringList.Create;
 end;
@@ -165,13 +166,27 @@ end;
 
 procedure TScript.WriteToDisk;
 var
-  t : Text;
+  t : file;
+  i : longint;
+  s : string;
 begin
   Assign(t,fn);
-  Rewrite(t);
+  {$I-}
+  Rewrite(t,1);
+  if ioresult<>0 then
+    exit;
   while not data.Empty do
-   Writeln(t,data.GetFirst);
+    begin
+      s:=data.GetFirst;
+      if (cs_link_on_target in aktglobalswitches) then
+        s:=s+target_info.newline
+      else
+        s:=s+source_info.newline;
+      Blockwrite(t,s[1],length(s),i);
+    end;
   Close(t);
+  {$I+}
+  i:=ioresult;
 {$ifdef hasUnix}
   if executable then
    {$ifdef VER1_0}ChMod{$else}fpchmod{$endif}(fn,493);
@@ -419,7 +434,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2003-09-16 13:42:39  marco
+  Revision 1.24  2003-09-30 19:54:23  peter
+    * better link on target support
+
+  Revision 1.23  2003/09/16 13:42:39  marco
    * Had a useless dependancy on unit unix in 1_1 mode
 
   Revision 1.22  2003/09/14 20:26:18  marco
