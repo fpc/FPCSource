@@ -462,19 +462,23 @@ procedures }
 {defaults}
     extra_not:=false;
     mboverflow:=false;
-    cmpop:=false;
+    cmpop:=nodetype in [ltn,lten,gtn,gten,equaln,unequaln];
     unsigned:=not(is_signed(left.resulttype.def))or
               not(is_signed(right.resulttype.def));
     opsize:=def_opsize(left.resulttype.def);
     pass_left_and_right;
-    if(left.resulttype.def.deftype=pointerdef)or
-      (right.resulttype.def.deftype=pointerdef)or
-      (is_class_or_interface(right.resulttype.def)and is_class_or_interface(left.resulttype.def)) or
-      (left.resulttype.def.deftype=classrefdef) or
-      (left.resulttype.def.deftype=procvardef) or
-      ((left.resulttype.def.deftype=enumdef)and(left.resulttype.def.size=4))or
-      ((left.resulttype.def.deftype=orddef)and(torddef(left.resulttype.def).typ in [s32bit,u32bit]))or
-      ((right.resulttype.def.deftype=orddef)and(torddef(right.resulttype.def).typ in [s32bit,u32bit]))
+    { set result location }
+    if not cmpop
+    then
+      location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def))
+    else
+      location_reset(location,LOC_FLAGS,OS_NO);
+    //load_left_right(cmpop, (cs_check_overflow in aktlocalswitches) and
+    //(nodetype in [addn,subn,muln]));
+    if(location.register = R_NO)and not(cmpop)
+    then
+      location.register := rg.getregisterint(exprasmlist);
+    if not(cs_check_overflow in aktlocalswitches)or cmpop or (nodetype in [orn,andn,xorn])
     then
       begin
         case NodeType of
@@ -530,8 +534,8 @@ procedures }
             location_freetemp(exprasmlist,left.location);
             location_release(exprasmlist,left.location);
           end;
-        set_result_location(cmpop,unsigned);
       end;
+      //clear_left_right(cmpop);
    end;
 procedure TSparcAddNode.pass_left_and_right;
   var
@@ -569,7 +573,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.4  2002-12-30 21:17:22  mazen
+    Revision 1.5  2003-01-07 22:03:40  mazen
+    * adding unequaln node support to sparc compiler
+
+    Revision 1.4  2002/12/30 21:17:22  mazen
     - unit cga no more used in sparc compiler.
 
     Revision 1.3  2002/12/25 20:59:49  mazen

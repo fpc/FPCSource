@@ -887,12 +887,12 @@ procedure TCgSparc.g_flags2reg(list:TAasmOutput;Size:TCgSize;CONST f:tresflags;r
     hreg:tregister;
   BEGIN
     hreg := rg.makeregsize(reg,OS_8);
-//    ai:=Taicpu.Op_reg(A_Setcc,S_B,hreg);
+    ai:=Taicpu.Op_reg_reg(A_RDPSR,R_PSR,hreg);
     ai.SetCondition(flags_to_cond(f));
     list.concat(ai);
     IF hreg<>reg
     THEN
-      a_load_reg_reg(list,OS_8,OS_8,hreg,reg);
+      a_load_reg_reg(list,OS_32,OS_32,hreg,reg);
   END;
 procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const p:TNode);
   var
@@ -1377,7 +1377,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.32  2003-01-06 22:51:47  mazen
+  Revision 1.33  2003-01-07 22:03:40  mazen
+  * adding unequaln node support to sparc compiler
+
+  Revision 1.32  2003/01/06 22:51:47  mazen
   * fixing bugs related to load_reg_ref
 
   Revision 1.31  2003/01/05 21:32:35  mazen
