@@ -208,8 +208,9 @@ procedure Bug(const S: string; Params: pointer);
 procedure ErrorBox(const S: string; Params: pointer);
 procedure WarningBox(const S: string; Params: pointer);
 procedure InformationBox(const S: string; Params: pointer);
+function  OKCancelBox(const S: string; Params: pointer): word;
 function  ConfirmBox(const S: string; Params: pointer; CanCancel: boolean): word;
-function ChoiceBox(const S: string; Params: pointer; Buttons: array of longstring; CanCancel: boolean): word;
+function  ChoiceBox(const S: string; Params: pointer; Buttons: array of longstring; CanCancel: boolean): word;
 
 procedure ShowMessage(Msg: string);
 procedure HideMessage;
@@ -1531,6 +1532,11 @@ begin
   AdvMessageBox(S,Params,mfInformation+mfInsertInApp+mfOKButton);
 end;
 
+function OKCancelBox(const S: string; Params: pointer): word;
+begin
+  OKCancelBox:=AdvMessageBox(S,Params,mfInformation+mfInsertInApp+mfOKButton+mfCancelButton);
+end;
+
 function b2i(B: boolean): longint;
 begin
   if b then b2i:=1 else b2i:=0;
@@ -2489,7 +2495,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:49  peter
+  Revision 1.3  2002-04-12 08:59:00  pierre
+   + new function OKCancelBox added
+
+  Revision 1.2  2001/08/05 02:01:49  peter
     * FVISION define to compile with fvision units
 
   Revision 1.1  2001/08/04 11:30:26  peter
