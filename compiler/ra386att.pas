@@ -71,6 +71,7 @@ type
  piasmops = ^tiasmops;
 
 var
+ previous_was_id : boolean;
  { sorted tables of opcodes }
  iasmops: piasmops;
  { uppercased tables of registers }
@@ -420,8 +421,15 @@ const
       case c of
 
          '.':   { possiblities : - local label reference , such as in jmp @local1 }
+                {                - field of object/record                         }
                 {                - directive.                                     }
                             begin
+                             if previous_was_id then
+                             begin
+                                c:=current_scanner^.asmgetchar;
+                                gettoken:=AS_DOT;
+                                exit;
+                             end;
                              actasmpattern := c;
                              c:= current_scanner^.asmgetchar;
                              while c in  ['A'..'Z','a'..'z','0'..'9','_','$'] do
@@ -3001,6 +3009,74 @@ const
   end;
 
 
+  Procedure BuildRecordOffset(const expr: string; var Instr: TInstruction);
+  {*********************************************************************}
+  { PROCEDURE BuildRecordOffset                                         }
+  {  Description: This routine builds up a record offset after a AS_DOT }
+  {  token is encountered.                                              }
+  {   On entry actasmtoken should be equal to AS_DOT                    }
+  {*********************************************************************}
+  { EXIT CONDITION:  On exit the routine should point to either the     }
+  {       AS_COMMA or AS_SEPARATOR token.                               }
+  { Warning: This is called recursively.                                }
+  {*********************************************************************}
+  var offset: longint;
+  Begin
+    Consume(AS_DOT);
+    if actasmtoken = AS_ID then
+      Begin
+        if GetTypeOffset(instr,expr,actasmpattern,offset,operandnum) then
+         begin
+          instr.operands[operandnum].ref.offset := instr.operands[operandnum].ref.offset + offset;
+          Consume(AS_ID);
+          case actasmtoken of
+            AS_SEPARATOR,AS_COMMA: exit;
+            { one level deeper }
+            AS_DOT: BuildRecordOffset(expr,instr);
+           else
+            Begin
+               Message(assem_e_syntax_error);
+               repeat
+                 consume(actasmtoken)
+               until (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA);
+               exit;
+            end;
+           end;
+         end
+        else
+        if GetVarOffset(instr,expr,actasmpattern,offset,operandnum) then
+         begin
+          instr.operands[operandnum].ref.offset := instr.operands[operandnum].ref.offset + offset;
+          Consume(AS_ID);
+          case actasmtoken of
+            AS_SEPARATOR,AS_COMMA: exit;
+            { one level deeper }
+            AS_DOT: BuildRecordOffset(expr,instr);
+           else
+            Begin
+               Message(assem_e_syntax_error);
+               repeat
+                 consume(actasmtoken)
+               until (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA);
+               exit;
+            end;
+           end;
+         end
+        else
+         Begin
+            Message(assem_e_syntax_error);
+         end;
+      end
+    else
+     Begin
+       Message(assem_e_syntax_error);
+       repeat
+         consume(actasmtoken)
+       until (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA);
+     end;
+  end;
+
+
 
   Procedure BuildOperand(var instr: TInstruction);
   {*********************************************************************}
@@ -3099,6 +3175,8 @@ const
                  else
                  { is it a normal variable ? }
                    Begin
+                     { context for scanner }
+                     previous_was_id:=TRUE;
                      initAsmRef(instr);
                      if not CreateVarInstr(instr,actasmpattern,operandnum) then
                        Begin
@@ -3151,12 +3229,20 @@ const
                      expr := actasmpattern;
                      Consume(AS_ID);
                        case actasmtoken of
-                           AS_LPAREN: { indexing }
+                           AS_LPAREN: Begin
+                                      { indexing }
+                                       previous_was_id:=FALSE;
                                         BuildReference(instr);
+                                      end;
+                           AS_DOT :  Begin
+                                      BuildRecordOffset(expr,instr);
+                                     end;
                            AS_SEPARATOR,AS_COMMA: ;
                        else
                            Message(assem_e_syntax_error);
                        end; { end case }
+                     { restore normal context }
+                     previous_was_id := FALSE;
                    end; { end if }
                end; { end if }
              end; { end this case }
@@ -3729,6 +3815,7 @@ var
 
 
 Begin
+ previous_was_id := FALSE;
  line:=''; { Initialization of line variable.
              No 255 char const string in version 0.9.1 MVC}
  old_exit := exitproc;
@@ -3737,7 +3824,13 @@ end.
 
 {
   $Log$
-  Revision 1.12  1998-09-03 17:08:46  pierre
+  Revision 1.13  1998-09-24 17:52:31  carl
+    * bugfix from fix branch
+
+  Revision 1.12.2.1  1998/09/24 17:47:16  carl
+    * bugfix with objects/records access
+
+  Revision 1.12  1998/09/03 17:08:46  pierre
     * better lines for stabs
       (no scroll back to if before else part
       no return to case line at jump outside case)
