@@ -149,6 +149,7 @@ type tmsgconst=(
   parser_w_unknown_proc_directive_ignored,
   parser_e_absolute_only_one_var,
   parser_e_absolute_only_to_var_or_const,
+  parser_e_initialized_only_one_var,
   parser_e_abstract_no_definition,
   parser_e_overloaded_must_be_all_global,
   parser_w_virtual_without_constructor,
