@@ -2281,17 +2281,26 @@ implementation
          typ:=enumsym;
          definition:=def;
          value:=v;
-         { check for jumps }
-         if v>def.max+1 then
-          def.has_jumps:=true;
-         { update low and high }
-         if def.min>v then
-           def.setmin(v);
-         if def.max<v then
-           def.setmax(v);
+         { First entry? Then we need to set the minval }
+         if def.firstenum=nil then
+           begin
+             if v>0 then
+               def.has_jumps:=true;
+             def.setmin(v);
+             def.setmax(v);
+           end
+         else
+           begin
+             { check for jumps }
+             if v>def.max+1 then
+              def.has_jumps:=true;
+             { update low and high }
+             if def.min>v then
+               def.setmin(v);
+             if def.max<v then
+               def.setmax(v);
+           end;
          order;
-{         nextenum:=Tenumsym(def.firstenum);
-         def.firstenum:=self;}
       end;
 
 
@@ -2560,7 +2569,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.197  2005-01-03 22:27:56  peter
+  Revision 1.198  2005-01-04 16:38:54  peter
+    * fix setting minval for enum with specified values
+
+  Revision 1.197  2005/01/03 22:27:56  peter
     * insert stack_check helper call before doing register allocation
       so the used registers can't be reused when parameters are loaded
       into register variables
