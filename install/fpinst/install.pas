@@ -544,8 +544,8 @@ program install;
        if LS^.GetDocumentCount=0 then
          begin
            params[0]:=@filename;
-           MessageBox('Problem creating help index %1, abording',@params,
-                  mferror+mfyesbutton+mfnobutton);
+           MessageBox('Problem creating help index %1, aborting',@params,
+                  mferror+mfokbutton);
          end
        else
          begin
@@ -1306,7 +1306,14 @@ program install;
           for i:=1 to packages do
            begin
              if data.packmask[j] and packagemask(i)<>0 then
-              UnzDlg^.do_unzip(package[i].zip,data.basepath);
+               begin
+                  UnzDlg^.do_unzip(package[i].zip,data.basepath);
+                  { gather some information about the installed files }
+                  if copy(package[i].zip,1,3)='ide' then
+                    haside:=true;
+                  if copy(package[i].zip,1,7)='doc-htm' then
+                    hashtmlhelp:=true;
+               end;
            end;
           desktop^.delete(UnzDlg);
           dispose(UnzDlg,done);
@@ -1521,10 +1528,6 @@ program install;
                       writeln('No pack set');
                       halt(1);
                     end;
-                   if copy(s,1,3)='ide' then
-                     haside:=true;
-                   if copy(s,1,7)='doc-htm' then
-                     hashtmlhelp:=true;
                    with cfg.pack[cfg.packs] do
                     begin
                       j:=pos(',',s);
@@ -1758,7 +1761,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-10-11 15:57:47  peter
+  Revision 1.11  2000-10-11 17:16:01  peter
+    * fixed a typo and the setting of haside and hashtmlhelp (merged)
+
+  Revision 1.10  2000/10/11 15:57:47  peter
     * merged ide additions
 
   Revision 1.9  2000/10/08 18:43:17  hajny
