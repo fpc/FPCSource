@@ -16,7 +16,7 @@
 
 asm
         {  load the begin of the string in the data cache }
-        dcbt    r0,r3
+        dcbt    0,r3
         { load result address in r9 }
         li      r0,__RESULT@l
         addis   r0,__RESULT@ha
@@ -34,14 +34,14 @@ LStrPasLoop:
         stbu    r10,1(r0)
         bdnzf   cr0*4+eq, LStrPasLoop
 
+        { if we stopped because of a terminating #0, decrease the length by 1 }
+        cntlzw  r4,r10
         { get remaining count for length }
         mfctr   r10
-        { if we stopped because of a terminating #0, decrease the length by 1 }
-        mfcr    r4
+        { if r10 was zero (-> stopped because of zero byte), then r4 will be 32 }
+        { (32 leading zero bits) -> shr 31 = 1, otherwise this will be zero     }
+        srwi    r4,r4,31
         subfic  r10,r10,255
-        { put "equal" condition bit of cr0 in bit position 31 (= rightmost) }
-        { and clear other bits                                              }
-        rlwinm  r4,r4,cr0*4+eq+1,31,31
         sub     r10,r10,r4
 
         { store length }
@@ -50,7 +50,10 @@ end ['r0','r3','r4','r10','cr0','ctr'];
 
 {
   $Log$
-  Revision 1.1  2001-09-27 15:30:29  jonas
+  Revision 1.2  2001-09-28 13:23:44  jonas
+    * small optimization
+
+  Revision 1.1  2001/09/27 15:30:29  jonas
     * conversion to compilerproc and to structure used by i386 rtl
     * some bugfixes
     * powerpc.inc is almost complete (only fillchar/word/dword, get_frame etc
