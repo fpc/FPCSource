@@ -42,10 +42,12 @@
           btst.l  d6,d0                { otherwise btst will be a byte  }
           { put result in carry flag } { operation.                     }
           bne    @LDOSET1
-          andi.b #$fe,ccr              { clear carry flag }
+          clr.b  d0
+{          andi.b #$fe,ccr  }            { clear carry flag }
           bra    @LDOSET2
        @LDOSET1:
-          ori.b  #$01,ccr              { set carry flag   }
+          move.b #1,d0
+{          ori.b  #$01,ccr }             { set carry flag   }
        @LDOSET2:
        end ['d0','a0','d6'];
     end;
@@ -55,6 +57,7 @@
 
   procedure do_in(p : pointer;b : byte);[public,alias: 'SET_IN_BYTE'];
   { Returns Carry set then = in set , otherwise carry is cleared }
+  {         (D0)                                                 }
     begin
       asm
           move.l  8(a6),a0
@@ -70,10 +73,14 @@
           btst.l  d6,d0                { otherwise btst will be a byte  }
           { put result in carry flag } { operation.                     }
           bne    @LDOIN1
-          andi.b #$fe,ccr              { clear carry flag }
+          clr.b  d0
+{ this does not work, because of how the stack is restored }
+{ by the routine.                                          }
+{          andi.b #$fe,ccr  }            { clear carry flag }
           bra    @LDOIN2
        @LDOIN1:
-          ori.b  #$01,ccr              { set carry flag   }
+          move.b #1,d0
+{          ori.b  #$01,ccr  }            { set carry flag   }
        @LDOIN2:
        end ['d0','a0','d6'];
     end;
@@ -363,8 +370,8 @@
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:44  root
-  Initial revision
+  Revision 1.2  1998-03-27 23:47:35  carl
+    * bugfix of FLAGS as return values for SET_IN_BYTE and SET_SET_BYTE
 
   Revision 1.4  1998/01/26 12:01:42  michael
   + Added log at the end
