@@ -745,7 +745,7 @@ begin
 	    ContentLength := RequestStream.Size;
 	  end;
           Connection.StreamToSend := RequestStream;
-	  Connection.ReceivedHeader := THttpAnswerHeader.Create;
+	  Connection.ReceivedHeader := THttpResponseHeader.Create;
 	  Connection.ReceivedStream := ResponseStream;
 	  Connection.OnStreamSent := @StreamSent;
 	  Connection.Send;
@@ -934,7 +934,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-06-25 08:49:21  sg
+  Revision 1.3  2003-11-22 12:10:27  sg
+  * Just a small adaption to chages in HTTP unit
+
+  Revision 1.2  2003/06/25 08:49:21  sg
   * Added OnException event to TXMLRPCServlet
 
   Revision 1.1  2002/04/25 19:30:29  sg
