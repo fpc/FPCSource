@@ -342,7 +342,7 @@ Function hash(Symbol: String): Byte;
     are enabled for the rest of the program.  }
   BEGIN
 {$R-}
-    hash := (ORD(Symbol[1]) * 5 + ORD(Symbol[length(Symbol)])) * 5 + length(Symbol)
+    hash := (ORD(Symbol[1]) * 5 + ORD(Symbol[length(Symbol)])) * 5 + length(Symbol);
 {$R+}
   END; { of hash }
 
@@ -1223,7 +1223,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2000-02-09 16:44:15  peter
+  Revision 1.7  2000-05-03 13:04:08  pierre
+   * avoid a problem with range check
+
+  Revision 1.6  2000/02/09 16:44:15  peter
     * log truncated
 
   Revision 1.5  2000/02/06 19:57:45  carl
