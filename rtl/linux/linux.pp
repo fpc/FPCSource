@@ -432,9 +432,10 @@ const
 ********************}
 
 Type
-  UTimeBuf = packed record
+  UTimBuf = packed record
     actime,modtime : Longint;
   end;
+  UTimeBuf=UTimBuf;
   TUTimeBuf=UTimeBuf;
   PUTimeBuf=^UTimeBuf;
 
@@ -3519,7 +3520,10 @@ End.
 
 {
   $Log$
-  Revision 1.27  1998-12-11 18:08:57  peter
+  Revision 1.28  1999-01-20 13:29:09  peter
+    * utimbuf alias added
+
+  Revision 1.27  1998/12/11 18:08:57  peter
     * fixed assignstream
 
   Revision 1.26  1998/11/24 15:30:12  michael
