@@ -767,13 +767,12 @@ var
 begin
   if not assigned(p) then
    begin
-     { only when a new block has to be allocated, the getmem_cnt increases! }
-     inc(getmem_cnt);
      p:=TraceGetMem(size);
      TraceReallocMem:=P;
      exit;
    end;
    dec(p,sizeof(theap_mem_info)+extra_info_size);
+  { remove heap_mem_info from linked list }
   pp:=pheap_mem_info(p);
   if pp^.next<>nil then
    pp^.next^.previous:=pp^.previous;
@@ -804,7 +803,10 @@ begin
       traceReAllocMem := p;
       exit;
     end;
-  { remove heap_mem_info from linked list }
+  { adjust getmem/freemem sizes }
+  if pp^.size > size then
+    inc(freemem_size,pp^.size-size)
+  else inc(getmem_size,size-pp^.size);
 { Create the info block }
   pheap_mem_info(p)^.sig:=$DEADBEEF;
   pheap_mem_info(p)^.size:=size;
@@ -966,7 +968,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.35  2000-01-20 13:17:11  jonas
+  Revision 1.36  2000-01-20 14:25:51  jonas
+    * finally fixed tracereallocmem completely
+
+  Revision 1.35  2000/01/20 13:17:11  jonas
     * another problme with realloc fixed (one left)
 
   Revision 1.34  2000/01/20 12:35:35  jonas
