@@ -725,16 +725,16 @@ implementation
          exprasmlist^.concat(new(pai386,op_ref(A_FIMUL,S_IL,newreference(ref))));
 
          ref.offset:=4;
-         exprasmlist^.concat(new(pai386,op_ref(A_FSTCW,S_L,newreference(ref))));
+         exprasmlist^.concat(new(pai386,op_ref(A_FSTCW,S_NO,newreference(ref))));
 
          ref.offset:=6;
-         exprasmlist^.concat(new(pai386,op_ref(A_FLDCW,S_L,newreference(ref))));
+         exprasmlist^.concat(new(pai386,op_ref(A_FLDCW,S_NO,newreference(ref))));
 
          ref.offset:=0;
          exprasmlist^.concat(new(pai386,op_ref(A_FISTP,S_IL,newreference(ref))));
 
          ref.offset:=4;
-         exprasmlist^.concat(new(pai386,op_ref(A_FLDCW,S_L,newreference(ref))));
+         exprasmlist^.concat(new(pai386,op_ref(A_FLDCW,S_NO,newreference(ref))));
 
          rreg:=getregister32;
          exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,rreg)));
@@ -1331,7 +1331,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1998-10-08 17:17:11  pierre
+  Revision 1.29  1998-10-26 15:18:41  peter
+    * fixed fldcw,fstcw for as 2.9.1
+
+  Revision 1.28  1998/10/08 17:17:11  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)
