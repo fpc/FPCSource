@@ -1832,7 +1832,10 @@ const
                            (target_info.system in [system_i386_win32,system_i386_wdosx,
                                                    system_i386_emx,system_i386_os2])
                           ) then
-                      pd.setmangledname(pd.import_name^);
+                      if not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+                       pd.setmangledname(pd.import_name^)
+                      else
+                       pd.setmangledname(target_info.Cprefix+pd.import_name^);
                   end
                 else
                   begin
@@ -2346,7 +2349,10 @@ const
 end.
 {
   $Log$
-  Revision 1.212  2004-11-21 17:54:59  peter
+  Revision 1.213  2004-11-22 12:22:25  jonas
+    * fixed importing of cdecl routines for OS'es which have a cprefix
+
+  Revision 1.212  2004/11/21 17:54:59  peter
     * ttempcreatenode.create_reg merged into .create with parameter
       whether a register is allowed
     * funcret_paraloc renamed to funcretloc
