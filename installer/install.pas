@@ -237,6 +237,10 @@ program install;
   const
      UnzipErr: longint = 0;
 {$ENDIF}
+{$ifdef MAYBE_LFN}
+  const
+    locallfnsupport : boolean = false;
+{$endif MAYBE_LFN}
 
 
 {*****************************************************************************
@@ -901,7 +905,7 @@ program install;
               if file_exists(package[i].zip,startpath) then
                begin
 {$ifdef MAYBE_LFN}
-                 if not(lfnsupport) then
+                 if not(locallfnsupport) then
                    begin
                       if not(haslfn(package[i].zip,startpath)) then
                         begin
@@ -1591,13 +1595,16 @@ begin
    if CheckOS2 then Halt;
 {$ENDIF}
    createlog:=false;
+{$ifdef MAYBE_LFN}
+   locallfnsupport:=system.lfnsupport;
+{$endif MAYBE_LFN}
    for i:=1 to paramcount do
      begin
         if paramstr(i)='-l' then
           createlog:=true
 {$ifdef MAYBE_LFN}
         else if paramstr(i)='--nolfn' then
-          lfnsupport:=false
+          locallfnsupport:=false
 {$endif MAYBE_LFN}
         else if paramstr(i)='-h' then
           begin
@@ -1621,8 +1628,8 @@ begin
      begin
         assign(log,'install.log');
         rewrite(log);
-{$ifdef GO32V2}
-        if not(lfnsupport) then
+{$ifdef MAYBE_LFN}
+        if not(locallfnsupport) then
           writeln(log,'OS doesn''t have LFN support');
 {$endif}
      end;
@@ -1651,7 +1658,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-01-29 22:01:17  peter
+  Revision 1.3  2002-02-28 17:02:08  pierre
+   * fix win32 compilation if DEBUG cond is set
+
+  Revision 1.2  2002/01/29 22:01:17  peter
     * support fvision
 
   Revision 1.1  2002/01/29 17:59:15  peter
