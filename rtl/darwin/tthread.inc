@@ -144,7 +144,7 @@ end;
 
 
 { TThread }
-function ThreadProc(args:pointer): Integer;cdecl;
+function ThreadProc(args:pointer): Integer; cdecl;
 var
   FreeThread: Boolean;
   Thread : TThread absolute args;
@@ -407,7 +407,7 @@ end;
 {$define WRITE_DEBUG := //}      // just comment out those lines
 {$ENDIF}
 
-function ThreadFunc(parameter: Pointer): LongInt; cdecl;
+function ThreadFunc(parameter: Pointer): LongInt;
 var
   LThread: TThread;
   c: char;
@@ -606,7 +606,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2004-01-04 20:05:38  jonas
+  Revision 1.2  2004-03-04 12:34:36  jonas
+    * fixed compilation
+
+  Revision 1.1  2004/01/04 20:05:38  jonas
     * first working version of the Darwin/Mac OS X (for PowerPC) RTL
       Several non-essential units are still missing, but make cycle works
 
