@@ -233,7 +233,7 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings dos sysutils classes math typinfo varutils charset ucomplex getopts matrix variants types rtlconst sysconst dateutil exec timer doslib utility hardware inputevent graphics layers intuition
 override TARGET_LOADERS+=prt0
 override TARGET_RSTS+=math rtlconst varutils typinfo variants classes sysconst dateutil
 override INSTALL_FPCPACKAGE=y
