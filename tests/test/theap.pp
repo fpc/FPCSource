@@ -142,7 +142,7 @@ BEGIN
    Delta := MSTimer-Start-LoopTime2;
    Inc (TotalTime, Delta);
    WriteLn (Delta:5, ' ms');
-   WriteLn ('MaxAvail: ', MaxAvail, '   MemAvail: ', MemAvail);
+   ShowHeap;
    Start := MSTimer;
    FOR L := 1 TO Blocks DO BEGIN
       MaxAvail;
