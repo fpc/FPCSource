@@ -852,23 +852,25 @@ procedure dumpheap;
 var
   pp : pheap_mem_info;
   i : ptrint;
-  ExpectedMemAvail : ptrint;
+  ExpectedHeapFree : ptrint;
+  status : THeapStatus;
 begin
   pp:=heap_mem_root;
   Writeln(ptext^,'Heap dump by heaptrc unit');
   Writeln(ptext^,getmem_cnt, ' memory blocks allocated : ',getmem_size,'/',getmem8_size);
   Writeln(ptext^,freemem_cnt,' memory blocks freed     : ',freemem_size,'/',freemem8_size);
   Writeln(ptext^,getmem_cnt-freemem_cnt,' unfreed memory blocks : ',getmem_size-freemem_size);
-  Write(ptext^,'True heap size : ',system.HeapSize);
+  SysGetHeapStatus(status);
+  Write(ptext^,'True heap size : ',status.CurrHeapSize);
   if EntryMemUsed > 0 then
     Writeln(ptext^,' (',EntryMemUsed,' used in System startup)')
   else
     Writeln(ptext^);
-  Writeln(ptext^,'True free heap : ',MemAvail);
-  ExpectedMemAvail:=system.HeapSize-(getmem8_size-freemem8_size)-
+  Writeln(ptext^,'True free heap : ',status.CurrHeapFree);
+  ExpectedHeapFree:=status.CurrHeapSize-(getmem8_size-freemem8_size)-
     (getmem_cnt-freemem_cnt)*(sizeof(theap_mem_info)+extra_info_size)-EntryMemUsed;
-  If ExpectedMemAvail<>MemAvail then
-    Writeln(ptext^,'Should be : ',ExpectedMemAvail);
+  If ExpectedHeapFree<>status.CurrHeapFree then
+    Writeln(ptext^,'Should be : ',ExpectedHeapFree);
   i:=getmem_cnt-freemem_cnt;
   while pp<>nil do
    begin
@@ -935,19 +937,9 @@ end;
                             No specific tracing calls
 *****************************************************************************}
 
-function TraceMemAvail:ptrint;
+procedure TraceGetHeapStatus(var status:THeapStatus);
 begin
-  TraceMemAvail:=SysMemAvail;
-end;
-
-function TraceMaxAvail:ptrint;
-begin
-  TraceMaxAvail:=SysMaxAvail;
-end;
-
-function TraceHeapSize:ptrint;
-begin
-  TraceHeapSize:=SysHeapSize;
+  SysGetHeapStatus(status);
 end;
 
 
@@ -999,15 +991,16 @@ const
     AllocMem : @TraceAllocMem;
     ReAllocMem : @TraceReAllocMem;
     MemSize : @TraceMemSize;
-    MemAvail : @TraceMemAvail;
-    MaxAvail : @TraceMaxAvail;
-    HeapSize : @TraceHeapsize;
+    GetHeapStatus : @TraceGetHeapStatus;
   );
 
 
 procedure TraceInit;
+var
+  initheapstatus : THeapStatus;
 begin
-  EntryMemUsed:=System.HeapSize-MemAvail;
+  SysGetHeapStatus(initheapstatus);
+  EntryMemUsed:=initheapstatus.CurrHeapUsed;
   MakeCRC32Tbl;
   SetMemoryManager(TraceManager);
   ptext:=@stderr;
@@ -1151,7 +1144,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.36  2004-10-25 17:04:07  peter
+  Revision 1.37  2004-11-22 19:34:58  peter
+    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
+
+  Revision 1.36  2004/10/25 17:04:07  peter
     * fix for non-i386
 
   Revision 1.35  2004/10/25 15:38:59  peter

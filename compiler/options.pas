@@ -1750,6 +1750,7 @@ begin
   def_symbol('STR_USES_VALINT');
   def_symbol('NOSAVEREGISTERS');
   def_symbol('SHORTSTRCOMPAREINREG');
+  def_symbol('HASGETHEAPSTATUS');
 
 { using a case is pretty useless here (FK) }
 { some stuff for TP compatibility }
@@ -2090,7 +2091,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.153  2004-11-17 22:21:35  peter
+  Revision 1.154  2004-11-22 19:34:58  peter
+    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
+
+  Revision 1.153  2004/11/17 22:21:35  peter
   mangledname setting moved to place after the complete proc declaration is read
   import generation moved to place where body is also parsed (still gives problems with win32)
 

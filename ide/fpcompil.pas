@@ -509,6 +509,9 @@ end;
 procedure TCompilerStatusDialog.Update;
 var
   StatusS,KeyS: string;
+{$ifdef HASGETHEAPSTATUS}  
+  hstatus : THeapStatus;
+{$endif HASGETHEAPSTATUS}  
 const
   MaxFileNameSize = 46;
 begin
@@ -567,8 +570,14 @@ begin
   AddFormatParamStr(KillTilde(TargetSwitches^.ItemName(TargetSwitches^.GetCurrSel)));
   AddFormatParamInt(Status.CurrentLine);
   AddFormatParamInt(Status.CompiledLines);
+{$ifdef HASGETHEAPSTATUS}  
+  GetHeapStatus(hstatus);
+  AddFormatParamInt(hstatus.CurrHeapUsed div 1024);
+  AddFormatParamInt(hstatus.CurrHeapSize div 1024);
+{$else}
   AddFormatParamInt((Heapsize-MemAvail) div 1024);
   AddFormatParamInt(Heapsize div 1024);
+{$endif}  
   AddFormatParamInt(Status.ErrorCount);
   ST^.SetText(
    FormatStrF(
@@ -1256,7 +1265,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  2004-11-20 14:21:19  florian
+  Revision 1.33  2004-11-22 19:34:58  peter
+    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
+
+  Revision 1.32  2004/11/20 14:21:19  florian
     * implemented reload menu item
     * increased file history to 9 files
 

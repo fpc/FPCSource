@@ -369,18 +369,40 @@ implementation
 
 
     procedure tmemdebug.start;
+{$ifdef HASGETHEAPSTATUS}
+      var
+        status : THeapStatus;
+{$endif HASGETHEAPSTATUS}
       begin
+{$ifdef HASGETHEAPSTATUS}
+        GetHeapStatus(status);
+        startmem:=status.CurrHeapUsed;
+{$else HASGETHEAPSTATUS}
         startmem:=memavail;
+{$endif HASGETHEAPSTATUS}
       end;
 
 
     procedure tmemdebug.stop;
+{$ifdef HASGETHEAPSTATUS}
+      var
+        status : THeapStatus;
+{$endif HASGETHEAPSTATUS}
       begin
+{$ifdef HASGETHEAPSTATUS}
+        if startmem<>0 then
+         begin
+           GetHeapStatus(status);
+           inc(TotalMem,startmem-status.CurrHeapUsed);
+           startmem:=0;
+         end;
+{$else HASGETHEAPSTATUS}
         if startmem<>0 then
          begin
            inc(TotalMem,memavail-startmem);
            startmem:=0;
          end;
+{$endif HASGETHEAPSTATUS}
       end;
 
 
@@ -2345,7 +2367,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.39  2004-11-15 23:35:30  peter
+  Revision 1.40  2004-11-22 19:34:58  peter
+    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
+
+  Revision 1.39  2004/11/15 23:35:30  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 

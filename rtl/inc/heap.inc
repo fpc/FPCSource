@@ -70,9 +70,7 @@ const
     AllocMem: @SysAllocMem;
     ReAllocMem: @SysReAllocMem;
     MemSize: @SysMemSize;
-    MemAvail: @SysMemAvail;
-    MaxAvail: @SysMaxAvail;
-    HeapSize: @SysHeapSize;
+    GetHeapStatus: @GetHeapStatus;
   );
 
   MemoryMutexManager: TMemoryMutexManager = (
@@ -130,8 +128,8 @@ type
   pfreelists   = ^tfreelists;
 
 var
-  internal_memavail  : ptrint;
-  internal_heapsize  : ptrint;
+  internal_status : THeapStatus;
+
   freelists_fixed    : tfreelists;
   freelist_var       : pmemchunk_var;
   freeoslist         : poschunk;
@@ -254,62 +252,27 @@ begin
    end;
 end;
 
+
 procedure FreeMemory(p:pointer;Size:ptrint);
 begin
   FreeMem(p,size);
 end;
 
-function MaxAvail:ptrint;
+
+procedure GetHeapStatus(var status:THeapStatus);
 begin
   if IsMultiThread and MemoryManager.NeedLock then
    begin
      try
        MemoryMutexManager.MutexLock;
-       MaxAvail := MemoryManager.MaxAvail();
+       MemoryManager.GetHeapStatus(status);
      finally
        MemoryMutexManager.MutexUnlock;
      end;
    end
   else
    begin
-     MaxAvail := MemoryManager.MaxAvail();
-   end;
-end;
-
-
-function MemAvail:ptrint;
-begin
-  if IsMultiThread and MemoryManager.NeedLock then
-   begin
-     try
-       MemoryMutexManager.MutexLock;
-       MemAvail := MemoryManager.MemAvail();
-     finally
-       MemoryMutexManager.MutexUnlock;
-     end;
-   end
-  else
-   begin
-     MemAvail := MemoryManager.MemAvail();
-   end;
-end;
-
-
-{ FPC Additions }
-function HeapSize:ptrint;
-begin
-  if IsMultiThread and MemoryManager.NeedLock then
-   begin
-     try
-       MemoryMutexManager.MutexLock;
-       HeapSize := MemoryManager.HeapSize();
-     finally
-       MemoryMutexManager.MutexUnlock;
-     end;
-   end
-  else
-   begin
-     HeapSize := MemoryManager.HeapSize();
+     MemoryManager.GetHeapStatus(status);
    end;
 end;
 
@@ -483,45 +446,32 @@ end;
 {$endif ValueFreemem}
 
 
+{ Bootstrapping }
+{$ifndef HASGETHEAPSTATUS}
+Function  Memavail:ptrint;
+begin
+  result:=0;
+end;  
+Function  Maxavail:ptrint;
+begin
+  result:=0;
+end;  
+Function  Heapsize:ptrint;
+begin
+  result:=0;
+end;  
+{$endif HASGETHEAPSTATUS}
+
 {*****************************************************************************
-                         Heapsize,Memavail,MaxAvail
+                               GetHeapStatus
 *****************************************************************************}
 
-function SysHeapsize : ptrint;
+procedure SysGetHeapStatus(var status:THeapStatus);
 begin
-  Sysheapsize := internal_heapsize;
+  internal_status.CurrHeapFree:=internal_status.CurrHeapSize-internal_status.CurrHeapUsed;
+  status:=internal_status;
 end;
 
-
-function SysMemavail : ptrint;
-begin
-  Sysmemavail := internal_memavail;
-end;
-
-
-function SysMaxavail: ptrint;
-var
-  pmc : pmemchunk_var;
-  i: longint;
-begin
-  pmc := freelist_var;
-  sysmaxavail := 0;
-  while assigned(pmc) do
-    begin
-      if pmc^.size>sysmaxavail then
-        sysmaxavail := pmc^.size;
-      pmc := pmc^.next_var;
-    end;
-  if sysmaxavail = 0 then
-    begin
-      for i := maxblockindex downto 1 do
-        if assigned(freelists_fixed[i]) then
-          begin
-            sysmaxavail := i shl blockshr;
-            exit;
-          end;
-    end;
-end;
 
 
 {$ifdef DUMPBLOCKS}   // TODO
@@ -626,8 +576,7 @@ begin
 {$ifdef HAS_SYSOSFREE}
   if freeoslistcount >= 3 then
     begin
-      dec(internal_heapsize, poc^.size);
-      dec(internal_memavail, poc^.size);
+      dec(internal_status.currheapsize, poc^.size);
       SysOSFree(poc, poc^.size);
     end
   else
@@ -841,8 +790,9 @@ begin
         end;
     end;
     { set the total new heap size }
-    inc(internal_memavail,size);
-    inc(internal_heapsize,size);
+    inc(internal_status.currheapsize,size);
+    if internal_status.currheapsize>internal_status.maxheapsize then
+      internal_status.maxheapsize:=internal_status.currheapsize;
   end;
   { initialize os-block }
   poschunk(result)^.used := 0;
@@ -1008,7 +958,9 @@ begin
       size := (size+sizeof(tmemchunk_var_hdr)+(blocksize-1)) and sizemask;
       sysgetmem := sysgetmem_var(size);
     end;
-  dec(internal_memavail,size);
+  inc(internal_status.currheapused,size);
+  if internal_status.currheapused>internal_status.maxheapused then
+    internal_status.maxheapused:=internal_status.currheapused;
 end;
 
 
@@ -1025,7 +977,7 @@ begin
   pcurrsize := pcurr^.size and fixedsizemask;
   if size<>pcurrsize then
    HandleError(204);
-  inc(internal_memavail,pcurrsize);
+  dec(internal_status.currheapused,pcurrsize);
   { insert the block in it's freelist }
   pcurr^.size := pcurr^.size and (not usedflag);
   blockindex := pcurrsize shr blockshr;
@@ -1054,7 +1006,7 @@ begin
   pcurrsize := pcurr^.size and sizemask;
   if size<>pcurrsize then
     HandleError(204);
-  inc(internal_memavail,pcurrsize);
+  inc(internal_status.currheapused,pcurrsize);
   { insert the block in it's freelist }
   pcurr^.size := pcurr^.size and (not usedflag);
   append_to_list_var(pcurr);
@@ -1226,7 +1178,7 @@ begin
     split_block(pcurr, size);
     SysTryResizeMem := true;
    end;
-  dec(internal_memavail,size-oldsize);
+  inc(internal_status.currheapused,size-oldsize);
 {$ifdef TestFreeLists}
   if test_each then
     TestFreeLists;
@@ -1274,21 +1226,6 @@ end;
 
 
 {*****************************************************************************
-                                Mark/Release
-*****************************************************************************}
-
-procedure release(var p : pointer);
-begin
-end;
-
-
-procedure mark(var p : pointer);
-begin
-end;
-
-
-
-{*****************************************************************************
                        MemoryMutexManager default hooks
 *****************************************************************************}
 
@@ -1329,13 +1266,15 @@ begin
   freelist_var := nil;
   freeoslist := nil;
   freeoslistcount := 0;
-  internal_heapsize := 0;
-  internal_memavail := 0;
+  fillchar(internal_status,sizeof(internal_status),0);
 end;
 
 {
   $Log$
-  Revision 1.37  2004-10-25 15:38:59  peter
+  Revision 1.38  2004-11-22 19:34:58  peter
+    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
+
+  Revision 1.37  2004/10/25 15:38:59  peter
     * compiler defined HEAP and HEAPSIZE removed
 
   Revision 1.36  2004/08/10 18:58:36  jonas

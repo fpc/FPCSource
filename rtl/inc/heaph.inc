@@ -16,6 +16,13 @@
 
 { Memorymanager }
 type
+  THeapStatus = record
+    MaxHeapSize,
+    MaxHeapUsed,
+    CurrHeapSize,
+    CurrHeapUsed,
+    CurrHeapFree  : ptrint;
+  end;
   PMemoryManager = ^TMemoryManager;
   TMemoryManager = record
     NeedLock    : boolean;
@@ -25,9 +32,7 @@ type
     AllocMem    : Function(Size:ptrint):Pointer;
     ReAllocMem  : Function(var p:pointer;Size:ptrint):Pointer;
     MemSize     : function(p:pointer):ptrint;
-    MemAvail    : Function:ptrint;
-    MaxAvail    : Function:ptrint;
-    HeapSize    : Function:ptrint;
+    GetHeapStatus : procedure(var status:THeapStatus);
   end;
   TMemoryMutexManager = record
     MutexInit : procedure;
@@ -56,21 +61,16 @@ Function  SysMemSize(p:pointer):ptrint;
 Function  SysAllocMem(size:ptrint):Pointer;
 function  SysTryResizeMem(var p:pointer;size : ptrint):boolean;
 Function  SysReAllocMem(var p:pointer;size:ptrint):Pointer;
-Function  Sysmemavail:ptrint;
-Function  Sysmaxavail:ptrint;
-Function  Sysheapsize:ptrint;
+procedure SysGetHeapStatus(var status:THeapStatus);
 
 { Tp7 functions }
 Procedure Getmem(Var p:pointer;Size:ptrint);
 Procedure Getmemory(Var p:pointer;Size:ptrint);
 Procedure Freemem(p:pointer;Size:ptrint);
 Procedure Freememory(p:pointer;Size:ptrint);
-Function  memavail:ptrint;
-Function  maxavail:ptrint;
 
 { FPC additions }
 Function  MemSize(p:pointer):ptrint;
-Function  heapsize:ptrint;
 
 { Delphi functions }
 function GetMem(size:ptrint):pointer;
@@ -80,10 +80,7 @@ function Freememory(p:pointer):ptrint;
 function AllocMem(Size:ptrint):pointer;
 function ReAllocMem(var p:pointer;Size:ptrint):pointer;
 function ReAllocMemory(var p:pointer;Size:ptrint):pointer;
-
-{ Do nothing functions, are only here for tp7 compat }
-Procedure mark(var p : pointer);
-Procedure release(var p : pointer);
+procedure GetHeapStatus(var status:THeapStatus);
 
 {$ifndef ValueGetmem}
 { Needed to solve overloading problem with call from assembler (PFV) }
@@ -93,9 +90,19 @@ Procedure AsmGetmem(var p:pointer;size:ptrint);
 Procedure AsmFreemem(var p:pointer);
 {$endif ValueFreemem}
 
+{ Bootstrapping }
+{$ifndef HASGETHEAPSTATUS}
+Function  Memavail:ptrint;
+Function  Maxavail:ptrint;
+Function  Heapsize:ptrint;
+{$endif HASGETHEAPSTATUS}
+
 {
   $Log$
-  Revision 1.11  2004-06-29 20:50:32  peter
+  Revision 1.12  2004-11-22 19:34:58  peter
+    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
+
+  Revision 1.11  2004/06/29 20:50:32  peter
     * readded support for ReturnIfGrowHeapFails
 
   Revision 1.10  2004/06/20 09:24:40  peter

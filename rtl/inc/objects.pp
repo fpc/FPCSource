@@ -1860,7 +1860,7 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION TMemoryStream.ChangeListSize (ALimit: Longint): Boolean;
 VAR
-  I, W: Longint;
+  W: Longint;
   Li: LongInt;
   P: PPointerArray;
 BEGIN
@@ -1869,14 +1869,8 @@ BEGIN
      If (ALimit > MaxPtrs) Then Exit;                 { To many blocks req }
      If (ALimit <> 0) Then Begin                      { Create segment list }
        Li := ALimit * SizeOf(Pointer);                { Block array size }
-       If (MaxAvail > Li) Then Begin
-         GetMem(P, Li);                               { Allocate memory }
-         FillChar(P^, Li, #0);                        { Clear the memory }
-       End Else Begin
-         GetMem(P,Li);
-         If P = Nil Then Exit;
-         FillChar(P^, Li, #0);                        { Clear the memory }
-       End;                           { Insufficient memory }
+       GetMem(P, Li);                               { Allocate memory }
+       FillChar(P^, Li, #0);                        { Clear the memory }
        If (BlkCount <> 0) AND (BlkList <> Nil) Then   { Current list valid }
          If (BlkCount <= ALimit) Then Move(BlkList^,
            P^, BlkCount * SizeOf(Pointer)) Else       { Move whole old list }
@@ -1887,15 +1881,7 @@ BEGIN
          FreeMem(BlkList^[W], BlkSize);               { Release memory block }
      If (P <> Nil) AND (ALimit > BlkCount) Then Begin { Expand stream size }
        For W := BlkCount To ALimit-1 Do Begin
-         If (MaxAvail < BlkSize) Then Begin           { Check enough memory }
-           GetMem(P^[W],BlkSize);
-           If P = Nil Then Begin
-             For I := BlkCount To W-1 Do
-               FreeMem(P^[I], BlkSize);                 { Free mem allocated }
-             FreeMem(P, Li);                            { Release memory }
-             Exit;
-           End                      { Now exit }
-         End Else GetMem(P^[W], BlkSize);             { Allocate memory }
+         GetMem(P^[W], BlkSize);             { Allocate memory }
        End;
      End;
      If (BlkCount <> 0) AND (BlkList<>Nil) Then
@@ -3019,7 +3005,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.35  2004-11-02 23:53:19  peter
+  Revision 1.36  2004-11-22 19:34:58  peter
+    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
+
+  Revision 1.35  2004/11/02 23:53:19  peter
     * fixed crashes with ide and 1.9.x
 
   Revision 1.34  2004/10/03 17:43:47  florian

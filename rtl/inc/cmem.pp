@@ -150,22 +150,10 @@ begin
   CMemSize:=pptrint(p-sizeof(ptrint))^;
 end;
 
-Function CMemAvail : ptrint;
+Procedure CGetHeapStatus(var status:THeapStatus);
 
 begin
-  CMemAvail:=0;
-end;
-
-Function CMaxAvail: ptrint;
-
-begin
-  CMaxAvail:=0;
-end;
-
-Function CHeapSize : ptrint;
-
-begin
-  CHeapSize:=0;
+  fillchar(status,sizeof(status),0);
 end;
 
 
@@ -179,9 +167,7 @@ Const
       AllocMem : @CAllocMem;
       ReallocMem : @CReAllocMem;
       MemSize : @CMemSize;
-      MemAvail : @CMemAvail;
-      MaxAvail : @CMaxAvail;
-      HeapSize : @CHeapSize;
+      GetHeapStatus : @CGetHeapStatus;
     );
 
 Var
@@ -197,7 +183,10 @@ end.
 
 {
  $Log$
- Revision 1.10  2004-11-21 21:14:14  peter
+ Revision 1.11  2004-11-22 19:34:58  peter
+   * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
+
+ Revision 1.10  2004/11/21 21:14:14  peter
    * Freemem(p,0) does nothing
 
  Revision 1.9  2004/09/19 19:04:11  olle

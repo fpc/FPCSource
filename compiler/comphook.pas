@@ -203,19 +203,27 @@ end;
 
 
 function def_status:boolean;
+{$ifdef HASGETHEAPSTATUS}
+var
+  hstatus : THeapStatus;
+{$endif HASGETHEAPSTATUS}
 begin
   def_status:=false; { never stop }
 { Status info?, Called every line }
   if ((status.verbosity and V_Status)<>0) then
    begin
-     if (status.compiledlines=1) then
-       WriteLn(memavail shr 10,' Kb Free');
-     if (status.currentline>0) and (status.currentline mod 100=0) then
-{$ifdef FPC}
-       WriteLn(status.currentline,' ',DStr(memavail shr 10),'/',DStr(system.heapsize shr 10),' Kb Free');
-{$else}
-       WriteLn(status.currentline,' ',DStr(memavail shr 10),' Kb Free');
-{$endif}
+     if (status.compiledlines=1) or
+        (status.currentline mod 100=0) then
+       begin
+         if status.currentline>0 then
+	   Write(status.currentline,' ');
+{$ifdef HASGETHEAPSTATUS}
+         GetHeapStatus(hstatus);
+         WriteLn(DStr(hstatus.CurrHeapUsed shr 10),'/',DStr(hstatus.CurrHeapSize shr 10),' Kb Used');
+{$else HASGETHEAPSTATUS}
+         WriteLn(DStr(memavail shr 10),'/',DStr(system.heapsize shr 10),' Kb Free');
+{$endif HASGETHEAPSTATUS}
+       end;
    end
 end;
 
@@ -378,7 +386,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  2004-10-15 09:14:16  mazen
+  Revision 1.32  2004-11-22 19:34:58  peter
+    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
+
+  Revision 1.31  2004/10/15 09:14:16  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

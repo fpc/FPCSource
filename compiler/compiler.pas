@@ -375,6 +375,9 @@ var
 {$ifdef USEEXCEPT}
   recoverpos : jmp_buf;
 {$endif}
+{$ifdef HASGETHEAPSTATUS}
+  hstatus : THeapStatus;
+{$endif HASGETHEAPSTATUS}
 begin
   olddo_stop:=do_stop;
   do_stop:=@minimal_stop;
@@ -430,7 +433,12 @@ begin
 
   DoneVerbose;
 {$ifdef SHOWUSEDMEM}
-  Writeln('Memory used (heapsize): ',DStr(system.Heapsize shr 10),' Kb');
+  {$ifdef HASGETHEAPSTATUS}
+    GetHeapStatus(hstatus);
+    Writeln('Max Memory used/heapsize: ',DStr(hstatus.MaxHeapUsed shr 10),'/',DStr(hstatus.MaxHeapSize shr 10),' Kb');
+  {$else HASGETHEAPSTATUS}
+    Writeln('Memory used (heapsize): ',DStr(system.Heapsize shr 10),' Kb');
+  {$endif HASGETHEAPSTATUS}
 {$endif SHOWUSEDMEM}
 {$ifdef fixLeaksOnError}
   do_stop;
@@ -440,7 +448,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.49  2004-10-15 09:14:16  mazen
+  Revision 1.50  2004-11-22 19:34:58  peter
+    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
+
+  Revision 1.49  2004/10/15 09:14:16  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 
