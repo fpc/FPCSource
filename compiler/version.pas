@@ -28,12 +28,12 @@ interface
 
     const
        { word version for ppu file }
-       wordversion = (1 shl 14)+(9 shl 7) + 5;
+       wordversion = (1 shl 14)+(9 shl 7) + 6;
 
        { version string }
        version_nr = '1';
        release_nr = '9';
-       patch_nr   = '5';
+       patch_nr   = '6';
        minorpatch = '';
 
        { date string }
@@ -93,7 +93,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2004-06-20 08:55:30  florian
+  Revision 1.27  2004-12-30 18:37:27  peter
+    * 1.9.6
+
+  Revision 1.26  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.25  2004/06/16 20:07:10  florian
