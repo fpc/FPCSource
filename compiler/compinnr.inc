@@ -58,6 +58,7 @@ const
    in_new_x             = 46;
    in_dispose_x         = 47;
    in_exit              = 48;
+   in_copy_x            = 49;
 
 { Internal constant functions }
    in_const_trunc      = 100;
@@ -105,7 +106,10 @@ const
 
 {
   $Log$
-  Revision 1.8  2002-07-16 15:34:20  florian
+  Revision 1.9  2002-10-02 18:20:52  peter
+    * Copy() is now internal syssym that calls compilerprocs
+
+  Revision 1.8  2002/07/16 15:34:20  florian
     * exit is now a syssym instead of a keyword
 
   Revision 1.7  2002/05/18 13:34:06  peter

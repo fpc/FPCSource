@@ -441,21 +441,12 @@ implementation
 
           in_finalize_x:
             begin
-{              consume(_LKLAMMER);
-              in_args:=true;
-              p1:=comp_expr(true);
-              if token=_COMMA then
-               begin
-                 consume(_COMMA);
-                 p2:=ccallparanode.create(comp_expr(true),nil);
-               end
-              else
-               p2:=nil;
-              p2:=ccallparanode.create(p1,p2);
-              statement_syssym:=geninlinenode(in_finalize_x,false,p2);
-              consume(_RKLAMMER);
-}
               statement_syssym:=inline_finalize;
+            end;
+
+          in_copy_x:
+            begin
+              statement_syssym:=inline_copy;
             end;
 
           in_concat_x :
@@ -2254,7 +2245,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2002-09-30 07:00:48  florian
+  Revision 1.83  2002-10-02 18:20:52  peter
+    * Copy() is now internal syssym that calls compilerprocs
+
+  Revision 1.82  2002/09/30 07:00:48  florian
     * fixes to common code to get the alpha compiler compiled applied
 
   Revision 1.81  2002/09/16 19:06:14  peter

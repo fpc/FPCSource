@@ -1358,6 +1358,7 @@ begin
 {$endif i386}
   def_symbol('INTERNSETLENGTH');
   def_symbol('INTERNLENGTH');
+  def_symbol('INTERNCOPY');
   def_symbol('INT64FUNCRESOK');
   def_symbol('HAS_ADDR_STACK_ON_STACK');
   def_symbol('NOBOUNDCHECK');
@@ -1550,7 +1551,7 @@ begin
    exclude(initmoduleswitches,cs_fp_emulation)
   else
    def_symbol('M68K_FPU_EMULATED');
-   
+
   if initoptprocessor=MC68020 then
     def_symbol('CPUM68020');
 {$endif m68k}
@@ -1680,7 +1681,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.83  2002-09-22 14:02:35  carl
+  Revision 1.84  2002-10-02 18:20:52  peter
+    * Copy() is now internal syssym that calls compilerprocs
+
+  Revision 1.83  2002/09/22 14:02:35  carl
     * stack checking cannot be called before system unit is initialized
     * MC68020 define
 

@@ -84,6 +84,7 @@ implementation
         p.insert(tsyssym.create('Addr',in_addr_x));
         p.insert(tsyssym.create('TypeInfo',in_typeinfo_x));
         p.insert(tsyssym.create('SetLength',in_setlength_x));
+        p.insert(tsyssym.create('Copy',in_copy_x));
         p.insert(tsyssym.create('Finalize',in_finalize_x));
         p.insert(tsyssym.create('Length',in_length_x));
         p.insert(tsyssym.create('New',in_new_x));
@@ -469,7 +470,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2002-09-27 21:13:29  carl
+  Revision 1.41  2002-10-02 18:20:53  peter
+    * Copy() is now internal syssym that calls compilerprocs
+
+  Revision 1.40  2002/09/27 21:13:29  carl
     * low-highval always checked if limit ober 2GB is reached (to avoid overflow)
 
   Revision 1.39  2002/09/07 20:46:10  carl

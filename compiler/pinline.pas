@@ -37,6 +37,7 @@ interface
 
     function inline_setlength : tnode;
     function inline_finalize : tnode;
+    function inline_copy : tnode;
 
 
 implementation
@@ -562,10 +563,95 @@ implementation
         result:=newblock;
       end;
 
+
+    function inline_copy : tnode;
+      var
+        copynode,
+        npara,
+        paras   : tnode;
+        temp    : ttempcreatenode;
+        ppn     : tcallparanode;
+        paradef : tdef;
+        newstatement : tstatementnode;
+      begin
+        { for easy exiting if something goes wrong }
+        result := cerrornode.create;
+
+        consume(_LKLAMMER);
+        paras:=parse_paras(false,false);
+        consume(_RKLAMMER);
+        if not assigned(paras) then
+         begin
+           CGMessage(parser_e_wrong_parameter_size);
+           exit;
+         end;
+
+        { determine copy function to use based on the first argument }
+        ppn:=tcallparanode(paras);
+        while assigned(ppn.right) do
+         ppn:=tcallparanode(ppn.right);
+        paradef:=ppn.left.resulttype.def;
+        if is_ansistring(paradef) then
+          copynode:=ccallnode.createintern('fpc_ansistr_copy',paras)
+        else
+         if is_widestring(paradef) then
+           copynode:=ccallnode.createintern('fpc_widestr_copy',paras)
+        else
+         if is_char(paradef) then
+           copynode:=ccallnode.createintern('fpc_char_copy',paras)
+        else
+         if is_dynamic_array(paradef) then
+          begin
+            { Copy(dynarr) has only 1 argument }
+            if assigned(tcallparanode(paras).right) then
+             begin
+               CGMessage(parser_e_wrong_parameter_size);
+               exit;
+             end;
+
+            { create statements with call }
+            copynode:=internalstatements(newstatement);
+
+            { create temp for result, we've to use a temp because a dynarray
+              type is handled differently from a pointer so we can't
+              use createinternres() and a function }
+            temp := ctempcreatenode.create(voidpointertype,voidpointertype.def.size,true);
+            addstatement(newstatement,temp);
+
+            { create call to fpc_dynarray_copy }
+            npara:=ccallparanode.create(caddrnode.create
+                      (crttinode.create(tstoreddef(ppn.left.resulttype.def),initrtti)),
+                   ccallparanode.create
+                      (ctypeconvnode.create_explicit(ppn.left,voidpointertype),
+                   ccallparanode.create
+                      (ctemprefnode.create(temp),nil)));
+            addstatement(newstatement,ccallnode.createintern('fpc_dynarray_copy',npara));
+
+            { return the reference to the created temp, and
+              convert the type of the temp to the dynarray type }
+            addstatement(newstatement,ctypeconvnode.create_explicit(ctemprefnode.create(temp),ppn.left.resulttype));
+
+            ppn.left:=nil;
+            paras.free;
+          end
+        else
+         begin
+           { generic fallback that will give an error if a wrong
+             type is passed }
+           copynode:=ccallnode.createintern('fpc_shortstr_copy',paras)
+         end;
+
+        result.free;
+        result:=copynode;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.7  2002-09-07 12:16:03  carl
+  Revision 1.8  2002-10-02 18:20:52  peter
+    * Copy() is now internal syssym that calls compilerprocs
+
+  Revision 1.7  2002/09/07 12:16:03  carl
     * second part bug report 1996 fix, testrange in cordconstnode
       only called if option is set (also make parsing a tiny faster)
 

@@ -1098,7 +1098,7 @@ unit cgobj;
         if delsource then
          reference_release(list,source);
         a_param_const(list,OS_INT,len,paramanager.getintparaloc(1));
-        a_call_name(list,'FPC_SHORTSTR_COPY');
+        a_call_name(list,'FPC_SHORTSTR_ASSIGN');
         g_maybe_loadself(list);
       end;
 
@@ -1595,7 +1595,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.59  2002-09-17 18:54:02  jonas
+  Revision 1.60  2002-10-02 18:20:52  peter
+    * Copy() is now internal syssym that calls compilerprocs
+
+  Revision 1.59  2002/09/17 18:54:02  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.
