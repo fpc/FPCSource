@@ -68,7 +68,7 @@ implementation
          usablecount, regstopush : byte;
          hreg1 : tregister;
          hreg2 : tregister;
-         shrdiv, andmod, pushed,popeax,popedx : boolean;
+         shrdiv, pushed,popeax,popedx : boolean;
 
          power : longint;
          hl : tasmlabel;
@@ -78,7 +78,6 @@ implementation
 
       begin
          shrdiv := false;
-         andmod := false;
          secondpass(left);
          pushed:=maybe_push(right.registers32,left,is_64bitint(left.resulttype.def));
          secondpass(right);
@@ -172,14 +171,6 @@ implementation
                       emit_const_reg(A_SHR,S_L,power,hreg1);
                   End
                 else
-                  if (nodetype=modn) and (right.nodetype=ordconstn) and
-                    ispowerof2(tordconstnode(right).value,power) and Not(is_signed(left.resulttype.def)) Then
-                   {is there a similar trick for MOD'ing signed numbers? (JM)}
-                   Begin
-                     emit_const_reg(A_AND,S_L,tordconstnode(right).value-1,hreg1);
-                     andmod := true;
-                   End
-                else
                   begin
                       { bring denominator to EDI }
                       { EDI is always free, it's }
@@ -265,33 +256,30 @@ implementation
                             end;
                      end
                    else
-                     {if we did the mod by an "and", the result is in hreg1 and
-                      EDX certainly hasn't been pushed (JM)}
-                     if not(andmod) Then
-                       begin
-                         if not popeax and (hreg1 <> R_EAX)then
-                           ungetregister(R_EAX);
-                         if popedx then
-                          {the mod was done by an (i)div (so the result is now in
-                           edx), but edx was occupied prior to the division, so
-                           move the result into a safe place (JM)}
-                           emit_reg_reg(A_MOV,S_L,R_EDX,hreg1)
-                         else
-                           Begin
-                             if hreg1 <> R_EDX then
-                               ungetregister32(hreg1);
-                             hreg1 := R_EDX
-                           End;
-                       end;
+                     begin
+                       if not popeax and (hreg1 <> R_EAX)then
+                         ungetregister(R_EAX);
+                       if popedx then
+                        {the mod was done by an (i)div (so the result is now in
+                         edx), but edx was occupied prior to the division, so
+                         move the result into a safe place (JM)}
+                         emit_reg_reg(A_MOV,S_L,R_EDX,hreg1)
+                       else
+                         Begin
+                           if hreg1 <> R_EDX then
+                             ungetregister32(hreg1);
+                           hreg1 := R_EDX
+                         End;
+                     end;
                    if popeax then
                      emit_reg(A_POP,S_L,R_EAX);
                    if popedx then
                      emit_reg(A_POP,S_L,R_EDX);
                   end;
-              If not(andmod or shrdiv) then
-               {andmod and shrdiv only use hreg1 (which is already in usedinproc,
-                since it was acquired with getregister), the others also use both
-                EAX and EDX (JM)}
+              If not(shrdiv) then
+               { shrdiv only use hreg1 (which is already in usedinproc,   }
+               { since it was acquired with getregister), the others also }
+               { use both EAX and EDX (JM)                                }
                 Begin
                   usedinproc:=usedinproc or ($80 shr byte(R_EAX));
                   usedinproc:=usedinproc or ($80 shr byte(R_EDX));
@@ -312,7 +300,7 @@ implementation
          hregister1,hregister2,hregister3,
          hregisterhigh,hregisterlow : tregister;
          pushed,popecx : boolean;
-         op : tasmop;
+         op,opd : tasmop;
          l1,l2,l3 : tasmlabel;
 
       begin
@@ -324,8 +312,18 @@ implementation
          if pushed then
            restore(left,is_64bitint(left.resulttype.def));
 
+         { determine operator }
+         case nodetype of
+           shln: op:=A_SHL;
+           shrn: op:=A_SHR;
+         end;
+
          if is_64bitint(left.resulttype.def) then
            begin
+              if nodetype = shln then
+                opd:=A_SHLD
+              else opd:=A_SHRD;
+
               { load left operator in a register }
               if left.location.loc<>LOC_REGISTER then
                 begin
@@ -545,12 +543,6 @@ implementation
                 end
               else
                 hregister1:=left.location.register;
-
-              { determine operator }
-              if nodetype=shln then
-                op:=A_SHL
-              else
-                op:=A_SHR;
 
               { shifting by a constant directly coded: }
               if (right.nodetype=ordconstn) then
@@ -871,26 +863,13 @@ implementation
                 end;
               LOC_FLAGS :
                 location.resflags:=flagsinvers[left.location.resflags];
-              LOC_REGISTER :
+              LOC_REGISTER, LOC_CREGISTER :
                 begin
-                  {location.register:=left.location.register;
-                  emit_const_reg(A_XOR,opsize,1,location.register);}
                   location.loc:=LOC_FLAGS;
                   location.resflags:=F_E;
                   emit_reg_reg(A_TEST,opsize,
                     left.location.register,left.location.register);
                   ungetregister(left.location.register);
-                end;
-              LOC_CREGISTER :
-                begin
-                  clear_location(location);
-                  location.loc:=LOC_REGISTER;
-                  location.register:=def_getreg(resulttype.def);
-                  emit_reg_reg(A_MOV,opsize,left.location.register,location.register);
-                  emit_reg_reg(A_TEST,opsize,location.register,location.register);
-                  ungetregister(location.register);
-                  location.loc:=LOC_FLAGS;
-                  location.resflags:=F_E;
                 end;
               LOC_REFERENCE,
               LOC_MEM :
@@ -1020,7 +999,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2001-12-27 15:33:58  jonas
+  Revision 1.21  2001-12-29 15:27:24  jonas
+    * made 'mod powerof2' -> 'and' optimization processor independent
+
+  Revision 1.20  2001/12/27 15:33:58  jonas
     * fixed fpuregister counting errors ("merged")
 
   Revision 1.19  2001/12/07 13:03:49  jonas

@@ -37,6 +37,7 @@ interface
           { override the following if you want to implement }
           { parts explicitely in the code generator (JM)    }
           function first_moddiv64bitint: tnode; virtual;
+          function firstoptimize: tnode; virtual;
        end;
        tmoddivnodeclass = class of tmoddivnode;
 
@@ -195,31 +196,8 @@ implementation
     function tmoddivnode.first_moddiv64bitint: tnode;
       var
         procname: string[31];
-        power: longint;
       begin
         result := nil;
-
-        { divide/mod an unsigned number by a constant which is a power of 2? }
-        if (right.nodetype = ordconstn) and
-           not is_signed(resulttype.def) and
-           ispowerof2(tordconstnode(right).value,power) then
-          begin
-            if nodetype = divn then
-              begin
-                tordconstnode(right).value := power;
-                result := cshlshrnode.create(shrn,left,right)
-              end
-            else
-              begin
-                dec(tordconstnode(right).value);
-                result := caddnode.create(andn,left,right);
-              end;
-            { left and right are reused }
-            left := nil;
-            right := nil;
-            firstpass(result);
-            exit;
-          end;
 
         { otherwise create a call to a helper }
         if nodetype = divn then
@@ -238,6 +216,65 @@ implementation
         firstpass(result);
       end;
 
+
+    function tmoddivnode.firstoptimize: tnode;
+      var
+        power, shiftval : longint;
+        newtype: tnodetype;
+      begin
+        result := nil;
+        { divide/mod a number by a constant which is a power of 2? }
+        if (cs_optimize in aktglobalswitches) and
+           (right.nodetype = ordconstn) and
+{           ((nodetype = divn) or
+            not is_signed(resulttype.def)) and}
+           (not is_signed(resulttype.def)) and
+           ispowerof2(tordconstnode(right).value,power) then
+          begin
+            if nodetype = divn then
+              begin
+(*
+                if is_signed(resulttype.def) then
+                  begin
+                    if is_64bitint(left.resulttype.def) then
+                      if not (cs_littlesize in aktglobalswitches) then
+                        shiftval := 63
+                      else
+                        { the shift code is a lot bigger than the call to }
+                        { the divide helper                               }
+                        exit
+                    else
+                      shiftval := 31;
+                    { we reuse left twice, so create once a copy of it     }
+                    { !!! if left is a call is -> call gets executed twice }
+                    left := caddnode.create(addn,left,
+                      caddnode.create(andn,
+                        cshlshrnode.create(sarn,left.getcopy,
+                          cordconstnode.create(shiftval,s32bittype)),
+                        cordconstnode.create(tordconstnode(right).value-1,
+                          right.resulttype)));
+                    newtype := sarn;
+                  end
+                else
+*)
+                  newtype := shrn;
+                tordconstnode(right).value := power;
+                result := cshlshrnode.create(newtype,left,right)
+              end
+            else
+              begin
+                dec(tordconstnode(right).value);
+                result := caddnode.create(andn,left,right);
+              end;
+            { left and right are reused }
+            left := nil;
+            right := nil;
+            firstpass(result);
+            exit;
+          end;
+      end;
+
+
     function tmoddivnode.pass_1 : tnode;
       begin
          result:=nil;
@@ -246,6 +283,9 @@ implementation
          if codegenerror then
            exit;
 
+         result := firstoptimize;
+         if assigned(result) then
+           exit;
          { 64bit }
          if (left.resulttype.def.deftype=orddef) and (right.resulttype.def.deftype=orddef) and
             (is_64bitint(left.resulttype.def) or is_64bitint(right.resulttype.def)) then
@@ -640,7 +680,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2001-12-27 15:33:58  jonas
+  Revision 1.27  2001-12-29 15:27:24  jonas
+    * made 'mod powerof2' -> 'and' optimization processor independent
+
+  Revision 1.26  2001/12/27 15:33:58  jonas
     * fixed fpuregister counting errors ("merged")
 
   Revision 1.25  2001/11/02 22:58:02  peter
