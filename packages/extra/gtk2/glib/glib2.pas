@@ -61,6 +61,11 @@ const
   {$endif}
 {$endif}
 
+{$ifdef FREEBSD}
+  {$linklib c}
+  {$linklib pthread}
+{$endif}
+
 {$IFNDEF KYLIX}
   {$PACKRECORDS C}
 {$ELSE}

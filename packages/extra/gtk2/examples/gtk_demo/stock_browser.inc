@@ -68,7 +68,7 @@ begin
   stock_item_info_get_type := StockItemInfoType;
 end;
 
-function STOCK_ITEM_INFO_TYPE: GType; inline;
+function STOCK_ITEM_INFO_TYPE: GType;
 begin
   STOCK_ITEM_INFO_TYPE := stock_item_info_get_type;
 end;

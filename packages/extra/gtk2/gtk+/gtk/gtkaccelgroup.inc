@@ -50,7 +50,8 @@
         accel_path_quark : TGQuark;
      end;
 
-  Tgtk_accel_group_find_func = function (key:PGtkAccelKey; closure:PGClosure; data:gpointer):gboolean;
+  Tgtk_accel_group_find_func = function (key:PGtkAccelKey; closure:PGClosure; data:gpointer):gboolean; cdecl;
+  TGtkAccelGroupFindFunc = Tgtk_accel_group_find_func;
 {$ENDIF read_interface_types}
 
 //------------------------------------------------------------------------------

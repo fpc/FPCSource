@@ -233,6 +233,14 @@ procedure gtk_window_stick(window:PGtkWindow); cdecl; external gtklib;
 procedure gtk_window_unstick(window:PGtkWindow); cdecl; external gtklib;
 procedure gtk_window_maximize(window:PGtkWindow); cdecl; external gtklib;
 procedure gtk_window_unmaximize(window:PGtkWindow); cdecl; external gtklib;
+
+{$ifdef HasGTK2_2}
+procedure gtk_window_fullscreen(window: PGtkWindow); cdecl; external gtklib;
+procedure gtk_window_unfullscreen(window: PGtkWindow); cdecl; external gtklib;
+procedure gtk_window_set_keep_above(window: PGtkWindow; setting: gboolean); cdecl; external gtklib;
+procedure gtk_window_set_keep_below(window: PGtkWindow; setting: gboolean); cdecl; external gtklib;
+{$endif HasGTK2_2}
+
 procedure gtk_window_begin_resize_drag(window:PGtkWindow; edge:TGdkWindowEdge; button:gint; root_x:gint; root_y:gint;
             timestamp:guint32); cdecl; external gtklib;
 procedure gtk_window_begin_move_drag(window:PGtkWindow; button:gint; root_x:gint; root_y:gint; timestamp:guint32); cdecl; external gtklib;

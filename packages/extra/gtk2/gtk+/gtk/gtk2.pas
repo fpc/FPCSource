@@ -18,6 +18,8 @@
   }
 unit gtk2; // keep unit name lowercase for kylix
 
+{$define GTK2_2}
+
 {$H+}
 {$IFDEF FPC}
   {$mode objfpc}
@@ -28,15 +30,18 @@ unit gtk2; // keep unit name lowercase for kylix
 
 {$IFDEF GTK2_2}
 {$DEFINE HasGTK2_0}
+{$DEFINE HasGTK2_2}
 {$ENDIF}
 
 {$IFDEF GTK2_4}
 {$DEFINE HasGTK2_0}
+{$DEFINE HasGTK2_2}
 {$DEFINE HasGTK2_4}
 {$ENDIF}
 
 {$IFDEF GTK2_6}
 {$DEFINE HasGTK2_0}
+{$DEFINE HasGTK2_2}
 {$DEFINE HasGTK2_4}
 {$DEFINE HasGTK2_6}
 {$ENDIF}
