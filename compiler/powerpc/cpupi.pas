@@ -80,8 +80,8 @@ unit cpupi;
              ofs:=align(maxpushedparasize+LinkageAreaSize,16);
              inc(procdef.parast.address_fixup,ofs);
              inc(framepointer_offset,ofs);
-             inc(selfpointer_offset,ofs);
-             inc(vmtpointer_offset,ofs);
+             // inc(selfpointer_offset,ofs);
+             // inc(vmtpointer_offset,ofs);
              if cs_asm_source in aktglobalswitches then
                aktproccode.insert(Tai_comment.Create(strpnew('Parameter copies start at: r1+'+tostr(procdef.parast.address_fixup))));
 
@@ -115,7 +115,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2003-05-10 23:57:23  florian
+  Revision 1.15  2003-05-15 19:39:09  florian
+    * fixed ppc compiler which was broken by Peter's changes
+
+  Revision 1.14  2003/05/10 23:57:23  florian
     * vmtpointer_offset must be adjusted in after_pass1 as well
 
   Revision 1.13  2003/05/09 19:00:30  jonas

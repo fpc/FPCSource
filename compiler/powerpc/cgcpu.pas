@@ -93,7 +93,7 @@ unit cgcpu;
         procedure g_save_standard_registers(list : taasmoutput; usedinproc : Tsupregset);override;
         procedure g_restore_standard_registers(list : taasmoutput; usedinproc : Tsupregset);override;
         procedure g_save_all_registers(list : taasmoutput);override;
-        procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);override;
+        procedure g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);override;
 
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
@@ -795,7 +795,7 @@ const
          {$warning FIX ME}
        end;
 
-     procedure tcgppc.g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);
+     procedure tcgppc.g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);
        begin
          {$warning FIX ME}
        end;
@@ -2392,7 +2392,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2003-05-12 18:43:50  jonas
+  Revision 1.91  2003-05-15 19:39:09  florian
+    * fixed ppc compiler which was broken by Peter's changes
+
+  Revision 1.90  2003/05/12 18:43:50  jonas
     * fixed g_concatcopy
 
   Revision 1.89  2003/05/11 20:59:23  jonas
