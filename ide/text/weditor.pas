@@ -332,10 +332,10 @@ type
       procedure ReadBlock; virtual;
       procedure PrintBlock; virtual;
       procedure AddChar(C: char); virtual;
-{$ifdef go32v2}
+{$ifdef WinClipSupported}
       function  ClipCopyWin: Boolean; virtual;
       function  ClipPasteWin: Boolean; virtual;
-{$endif go32v2}
+{$endif WinClipSupported}
       function  ClipCopy: Boolean; virtual;
       procedure ClipCut; virtual;
       procedure ClipPaste; virtual;
@@ -417,9 +417,9 @@ implementation
 
 uses
   MsgBox,Dialogs,App,StdDlg,HistList,Validate,
-{$ifdef go32v2}
+{$ifdef WinClipSupported}
   Strings,WinClip,
-{$endif go32v2}
+{$endif WinClipSupported}
   WUtils,WViews;
 
 {$ifndef NOOBJREG}
@@ -1395,10 +1395,10 @@ begin
           cmCut         : ClipCut;
           cmCopy        : ClipCopy;
           cmPaste       : ClipPaste;
-{$ifdef go32v2}
+{$ifdef WinClipSupported}
           cmCopyWin     : ClipCopyWin;
           cmPasteWin    : ClipPasteWin;
-{$endif go32v2}
+{$endif WinClipSupported}
           cmUndo        : Undo;
           cmRedo        : Redo;
           cmClear       : DelSelect;
@@ -2686,7 +2686,7 @@ begin
   DontConsiderShiftState:=false;
 end;
 
-{$ifdef go32v2}
+{$ifdef WinClipSupported}
 function TCodeEditor.ClipPasteWin: Boolean;
 var OK: boolean;
     l,i : longint;
@@ -2721,6 +2721,10 @@ begin
               s:=strpas(p2);
               if first then
                 begin
+                  { we need to cut the line in two
+                    if not at end of line PM }
+                  InsertLine;
+                  SetCurPtr(StorePos.X,StorePos.Y);
                   InsertText(s);
                   first:=false;
                 end
@@ -2804,7 +2808,7 @@ begin
   Freemem(p,PCLength);
   UnLock;
 end;
-{$endif go32v2}
+{$endif WinClipSupported}
 
 procedure TCodeEditor.Undo;
 begin
@@ -4391,7 +4395,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.46  1999-09-13 16:24:44  peter
+  Revision 1.47  1999-09-21 17:08:59  pierre
+   + Windows clipboard for win32
+
+  Revision 1.46  1999/09/13 16:24:44  peter
     + clock
     * backspace unident like tp7
 

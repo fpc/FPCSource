@@ -16,6 +16,8 @@
 unit fpide;
 interface
 
+{$i globdir.inc}
+
 uses
   Objects,Drivers,Views,App,Gadgets,MsgBox,
   {$ifdef EDITORS}Editors,{$else}WEditor,{$endif}
@@ -135,9 +137,9 @@ uses
 {$ifdef linux}
   linux,
 {$endif}
-{$ifdef go32v2}
+{$ifdef WinClipSupported}
   WinClip,
-{$endif go32v2}
+{$endif WinClipSupported}
   Video,Mouse,Keyboard,
   Dos,Memory,Menus,Dialogs,StdDlg,ColorSel,Commands,HelpCtx,
   AsciiTab,
@@ -211,13 +213,13 @@ var R: TRect;
 begin
   GetExtent(R); R.B.Y:=R.A.Y+1;
   WinPMI:=nil;
-{$ifdef go32v2}
+{$ifdef WinClipSupported}
   if WinClipboardSupported then
     WinPMI:=NewLine(
       NewItem('Cop~y~ to Windows','', kbNoKey, cmCopyWin, hcCopyWin,
       NewItem('Paste from ~W~indows','', kbNoKey, cmPasteWin, hcPasteWin,
       nil)));
-{$endif go32v2}
+{$endif WinClipSupported}
   MenuBar:=New(PAdvancedMenuBar, Init(R, NewMenu(
     NewSubMenu('~F~ile',hcFileMenu, NewMenu(
       NewItem('~N~ew','',kbNoKey,cmNew,hcNew,
@@ -842,7 +844,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.38  1999-09-13 16:24:43  peter
+  Revision 1.39  1999-09-21 17:09:00  pierre
+   + Windows clipboard for win32
+
+  Revision 1.38  1999/09/13 16:24:43  peter
     + clock
     * backspace unident like tp7
 

@@ -15,6 +15,7 @@
 {$ifdef TP}
   {$define SUPPORTVESA}
   {$define TPUNIXLF}
+  {$undef WinClipSupported}
 
   {$C FIXED PRELOAD PERMANENT}
   {
@@ -28,16 +29,19 @@
 {$ifdef Go32V2}
   {$define SUPPORTVESA}
   {$define SUPPORTREDIR}
+  {$define WinClipSupported}
 {$endif}
 
 {$ifdef Linux}
   {$undef SUPPORTVESA}
   {$define SUPPORTREDIR}
+  {$undef WinClipSupported}
 {$endif}
 
 {$ifdef Win32}
   {$undef SUPPORTVESA}
   {$define SUPPORTREDIR}
+  {$define WinClipSupported}
 {$endif}
 
 { --- Exclude debugger support --- }

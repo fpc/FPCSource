@@ -18,7 +18,9 @@ unit WinClip;
 
 interface
 
-{$ifdef go32v2}
+{$i globdir.inc}
+
+{$ifdef WinClipSupported}
 
 function WinClipboardSupported : boolean;
 function OpenWinClipboard : boolean;
@@ -26,14 +28,22 @@ function EmptyWinClipboard : boolean;
 function GetTextWinClipboardSize : longint;
 function GetTextWinClipBoardData(var p : pchar;var l : longint) : boolean;
 function SetTextWinClipBoardData(p : pchar;l : longint) : boolean;
-{$endif go32v2}
+{$endif WinClipSupported}
 
 implementation
 
+{$ifdef WinClipSupported}
 {$ifdef go32v2}
   uses
     strings,go32;
+{$endif go32v2}
 
+{$ifdef win32}
+  uses
+    strings,windows;
+{$endif win32}
+
+{$ifdef go32v2}
 function WinClipboardSupported : boolean;
 var
   r : Registers;
@@ -79,6 +89,34 @@ begin
   RealIntr($2F,r);
   InternGetDataSize:=(r.dx shl 16) + r.ax;
 end;
+{$endif go32v2}
+
+{$ifdef win32}
+function WinClipboardSupported : boolean;
+begin
+  WinClipboardSupported:=true;
+end;
+
+function OpenWinClipboard : boolean;
+begin
+  OpenWinClipboard:=OpenClipboard(0);
+end;
+
+function EmptyWinClipboard : boolean;
+begin
+  EmptyWinClipboard:=EmptyClipboard;
+end;
+
+function CloseWinClipboard : boolean;
+begin
+  CloseWinClipboard:=CloseClipboard;
+end;
+
+function InternGetDataSize : longint;
+begin
+  InternGetDataSize:=-1;
+end;
+{$endif go32v2}
 
 
 function GetTextWinClipboardSize : longint;
@@ -90,14 +128,21 @@ end;
 
 function GetTextWinClipBoardData(var p : pchar;var l : longint) : boolean;
 var
+{$ifdef go32v2}
   r : Registers;
   tb_all : longint;
   tb_seg,tb_ofs,tb_sel : word;
+{$endif go32v2}
+{$ifdef win32}
+  h : HGlobal;
+  pp : pchar;
+{$endif win32}
 begin
   p:=nil;
   GetTextWinClipBoardData:=False;
   if not OpenWinClipBoard then
     exit;
+{$ifdef go32v2}
   l:=InternGetDataSize;
   if (l=0) or (l>100000) then
     begin
@@ -133,17 +178,38 @@ begin
   r.bx:=tb_ofs;
   RealIntr($2F,r);
   GetTextWinClipBoardData:=(r.ax<>0);
+{$endif go32v2}
+{$ifdef win32}
+  h:=GetClipboardData(CF_TEXT);
+  if h<>0 then
+    begin
+      pp:=pchar(GlobalLock(h));
+      l:=strlen(pp)+1;
+      getmem(p,l);
+      move(pp^,p^,l);
+      GlobalUnlock(h);
+    end;
+  GetTextWinClipBoardData:=h<>0;
+{$endif win32}
   CloseWinClipBoard;
+{$ifdef go32v2}
   DosMemGet(tb_seg,tb_ofs,p^,l);
   if tb_sel<>0 then
     global_dos_free(tb_sel);
+{$endif go32v2}
 end;
 
 function SetTextWinClipBoardData(p : pchar;l : longint) : boolean;
 var
+{$ifdef go32v2}
   r : Registers;
   tb_all : longint;
   tb_seg,tb_ofs,tb_sel : word;
+{$endif go32v2}
+{$ifdef win32}
+  h : HGlobal;
+  pp : pchar;
+{$endif win32}
 begin
   SetTextWinClipBoardData:=False;
   if (l=0) or (l>100000) then
@@ -151,6 +217,7 @@ begin
   if not OpenWinClipBoard then
     exit;
   EmptyWinClipBoard;
+{$ifdef go32v2}
   if l>tb_size then
     begin
       tb_all:=global_dos_alloc(l);
@@ -180,10 +247,18 @@ begin
   SetTextWinClipBoardData:=(r.ax<>0);
   if tb_sel<>0 then
     global_dos_free(tb_sel);
+{$endif go32v2}
+{$ifdef win32}
+  h:=GlobalAlloc(GMEM_MOVEABLE or GMEM_DDESHARE,l);
+  pp:=pchar(GlobalLock(h));
+  move(p^,pp^,l);
+  GlobalUnlock(h);
+  SetTextWinClipBoardData:=(SetClipboardData(CF_TEXT,h)=h);
+{$endif win32}
   CloseWinClipBoard;
 end;
 
-{$endif go32v2}
+{$endif WinClipSupported}
 
 end.
 
