@@ -214,6 +214,7 @@ implementation
       var
         hregister,
         hregisterhi : tregister;
+        hreg64 : tregister64;
         hl : tasmlabel;
      begin
         { handle transformations to 64bit separate }
@@ -281,8 +282,10 @@ implementation
                  hregister:=rg.getregisterint(list);
                  hregisterhi:=rg.getregisterint(list);
                end;
+              hreg64.reglo:=hregister;
+              hreg64.reghi:=hregisterhi;
               { load value in new register }
-              tcg64f32(cg).a_load64_loc_reg(list,l,hregister,hregisterhi);
+              cg64.a_load64_loc_reg(list,l,hreg64);
               location_reset(l,LOC_REGISTER,dst_size);
               l.registerlow:=hregister;
               l.registerhigh:=hregisterhi;
@@ -464,7 +467,7 @@ implementation
             begin
               tg.gettempofsizereference(list,TCGSize2Size[l.size],r);
               if l.size in [OS_64,OS_S64] then
-               tcg64f32(cg).a_load64_loc_ref(list,l,r)
+               cg64.a_load64_loc_ref(list,l,r)
               else
                cg.a_load_loc_ref(list,l,r);
               location_reset(l,LOC_REFERENCE,l.size);
@@ -498,7 +501,7 @@ implementation
                  if l.size in [OS_64,OS_S64] then
                   begin
                     tg.gettempofsizereference(exprasmlist,8,s.ref);
-                    tcg64f32(cg).a_load64_reg_ref(exprasmlist,l.registerlow,l.registerhigh,s.ref);
+                    cg64.a_load64_reg_ref(exprasmlist,joinreg64(l.registerlow,l.registerhigh),s.ref);
                   end
                  else
                   begin
@@ -545,7 +548,7 @@ implementation
                begin
                  l.registerlow:=rg.getregisterint(exprasmlist);
                  l.registerhigh:=rg.getregisterint(exprasmlist);
-                 tcg64f32(cg).a_load64_ref_reg(exprasmlist,s.ref,l.registerlow,l.registerhigh);
+                 cg64.a_load64_ref_reg(exprasmlist,s.ref,joinreg64(l.registerlow,l.registerhigh));
                end
               else
                begin
@@ -692,10 +695,10 @@ implementation
                        if inlined then
                         begin
                           reference_reset_base(href,procinfo^.framepointer,para_offset-pushedparasize);
-                          tcg64f32(cg).a_load64_loc_ref(exprasmlist,p.location,href);
+                          cg64.a_load64_loc_ref(exprasmlist,p.location,href);
                         end
                        else
-                        tcg64f32(cg).a_param64_loc(exprasmlist,p.location,-1);
+                        cg64.a_param64_loc(exprasmlist,p.location,-1);
                      end
                     else
                      begin
@@ -878,6 +881,7 @@ implementation
                  cg.a_load_ref_reg(list,OS_ADDR,href,tmpreg);
                  reference_reset_base(href,tmpreg,0);
                  cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
+                 cg.free_scratch_reg(list,tmpreg);
                end;
            end;
          end;
@@ -988,7 +992,7 @@ implementation
                   begin
                     uses_acchi:=true;
                     cg.a_reg_alloc(list,accumulatorhigh);
-                    tcg64f32(cg).a_load64_ref_reg(list,href,accumulator,accumulatorhigh);
+                    cg64.a_load64_ref_reg(list,href,joinreg64(accumulator,accumulatorhigh));
                   end
                  else
                   begin
@@ -1029,7 +1033,7 @@ implementation
              enumdef :
                begin
                  if cgsize in [OS_64,OS_S64] then
-                  tcg64f32(cg).a_load64_reg_ref(list,accumulator,accumulatorhigh,href)
+                   cg64.a_load64_reg_ref(list,joinreg64(accumulator,accumulatorhigh),href)
                  else
                   begin
                     hreg:=rg.makeregsize(accumulator,cgsize);
@@ -1607,7 +1611,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2002-05-20 13:30:40  carl
+  Revision 1.18  2002-07-01 16:23:53  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.17  2002/05/20 13:30:40  carl
   * bugfix of hdisponen (base must be set, not index)
   * more portability fixes
 

@@ -1512,7 +1512,8 @@ implementation
                   is_ansistring(resulttype.def) then
                  begin
                    { we use ansistrings so no fast exit here }
-                   procinfo^.no_fast_exit:=true;
+                   if assigned(procinfo) then
+                    procinfo^.no_fast_exit:=true;
                  end;
              end;
           end;
@@ -1870,7 +1871,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2002-05-18 13:34:09  peter
+  Revision 1.77  2002-07-01 16:23:52  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.76  2002/05/18 13:34:09  peter
     * readded missing revisions
 
   Revision 1.75  2002/05/16 19:46:37  carl

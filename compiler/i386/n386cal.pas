@@ -176,15 +176,6 @@ implementation
          { handle call by reference parameter }
          else if (defcoll.paratyp in [vs_var,vs_out]) then
            begin
-              { get temp for constants }
-              if left.location.loc=LOC_CONSTANT then
-               begin
-                 tg.gettempofsizereference(exprasmlist,left.resulttype.def.size,href);
-                 cg.a_load_loc_ref(exprasmlist,left.location,href);
-                 location_reset(left.location,LOC_REFERENCE,def_cgsize(left.resulttype.def));
-                 left.location.reference:=href;
-               end;
-
               if (left.location.loc<>LOC_REFERENCE) then
                begin
                  { passing self to a var parameter is allowed in
@@ -1206,8 +1197,8 @@ implementation
                                  location.registerhigh:=rg.getexplicitregisterint(exprasmlist,accumulatorhigh);
                                  location.registerlow:=rg.getexplicitregisterint(exprasmlist,accumulator);
                               end;
-                            tcg64f32(cg).a_load64_reg_reg(exprasmlist,accumulator,accumulatorhigh,
-                                location.registerlow,location.registerhigh);
+                            cg64.a_load64_reg_reg(exprasmlist,joinreg64(accumulator,accumulatorhigh),
+                                location.register64);
                           end
                          else
                           begin
@@ -1484,7 +1475,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2002-05-20 13:30:40  carl
+  Revision 1.55  2002-07-01 16:23:56  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.54  2002/05/20 13:30:40  carl
   * bugfix of hdisponen (base must be set, not index)
   * more portability fixes
 

@@ -444,18 +444,40 @@ interface
       var
         pushed : tpushedsaved;
       begin
-        { instance to check }
-        secondpass(left);
-        rg.saveusedregisters(exprasmlist,pushed,all_registers);
-        cg.a_param_loc(exprasmlist,left.location,2);
-        { type information }
-        secondpass(right);
-        cg.a_param_loc(exprasmlist,right.location,1);
-        location_release(exprasmlist,right.location);
-        { call helper }
-        cg.a_call_name(exprasmlist,'FPC_DO_AS');
-        cg.g_maybe_loadself(exprasmlist);
-        rg.restoreusedregisters(exprasmlist,pushed);
+        if (right.nodetype=guidconstn) then
+         begin
+{$warning need to push a third parameter}
+           { instance to check }
+           secondpass(left);
+           rg.saveusedregisters(exprasmlist,pushed,all_registers);
+           cg.a_param_loc(exprasmlist,left.location,2);
+           { type information }
+           secondpass(right);
+           cg.a_paramaddr_ref(exprasmlist,right.location.reference,1);
+           location_release(exprasmlist,right.location);
+           { call helper }
+           if is_class(left.resulttype.def) then
+             cg.a_call_name(exprasmlist,'FPC_CLASS_AS_INTF')
+           else
+             cg.a_call_name(exprasmlist,'FPC_INTF_AS');
+           cg.g_maybe_loadself(exprasmlist);
+           rg.restoreusedregisters(exprasmlist,pushed);
+         end
+        else
+         begin
+           { instance to check }
+           secondpass(left);
+           rg.saveusedregisters(exprasmlist,pushed,all_registers);
+           cg.a_param_loc(exprasmlist,left.location,2);
+           { type information }
+           secondpass(right);
+           cg.a_param_loc(exprasmlist,right.location,1);
+           location_release(exprasmlist,right.location);
+           { call helper }
+           cg.a_call_name(exprasmlist,'FPC_DO_AS');
+           cg.g_maybe_loadself(exprasmlist);
+           rg.restoreusedregisters(exprasmlist,pushed);
+         end;
 
         location_copy(location,left.location);
       end;
@@ -468,7 +490,12 @@ end.
 
 {
   $Log$
-  Revision 1.15  2002-05-18 13:34:09  peter
+  Revision 1.16  2002-07-01 16:23:53  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.15  2002/05/18 13:34:09  peter
     * readded missing revisions
 
   Revision 1.14  2002/05/16 19:46:37  carl

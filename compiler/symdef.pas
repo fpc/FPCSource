@@ -648,6 +648,7 @@ interface
        s32floattype,              { pointer for realconstn }
        s64floattype,              { pointer for realconstn }
        s80floattype,              { pointer to type of temp. floats }
+       s64currencytype,           { pointer to a currency type }
        s32fixedtype,              { pointer to type of temp. fixed }
        cshortstringtype,          { pointer to type of short string const   }
        clongstringtype,           { pointer to type of long string const   }
@@ -1938,6 +1939,7 @@ implementation
             s64real : stabstring := strpnew('r'+
                tstoreddef(s32bittype.def).numberstring+';'+tostr(savesize)+';0;');
             { found this solution in stabsread.c from GDB v4.16 }
+            s64currency,
             s64comp : stabstring := strpnew('r'+
                tstoreddef(s32bittype.def).numberstring+';-'+tostr(savesize)+';0;');
             { under dos at least you must give a size of twelve instead of 10 !! }
@@ -1954,7 +1956,7 @@ implementation
       const
          {tfloattype = (s32real,s64real,s80real,s64bit);}
          translate : array[tfloattype] of byte =
-           (ftSingle,ftDouble,ftExtended,ftComp);
+           (ftSingle,ftDouble,ftExtended,ftComp,ftCurr);
       begin
          rttiList.concat(Tai_const.Create_8bit(tkFloat));
          write_rtti_name;
@@ -1971,7 +1973,7 @@ implementation
 
       const
         names : array[tfloattype] of string[20] = (
-          'Single','Double','Extended','Comp');
+          'Single','Double','Extended','Comp','Currency');
 
       begin
          gettypename:=names[typ];
@@ -5476,7 +5478,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2002-05-18 13:34:18  peter
+  Revision 1.80  2002-07-01 16:23:54  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.79  2002/05/18 13:34:18  peter
     * readded missing revisions
 
   Revision 1.78  2002/05/16 19:46:44  carl

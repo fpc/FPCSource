@@ -91,10 +91,18 @@ uses
         R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7
       );
 
+      {# A type to store register locations for 64 Bit values. }
+      tregister64 = packed record
+        reglo,reghi : tregister;
+      end;
+
+      {# alias for compact code }
+      treg64 = tregister64;
+
       {# Set type definition for registers }
       tregisterset = set of tregister;
 
-      {# Type definition for the array of string of register nnames }
+      {# Type definition for the array of string of register names }
       reg2strtable = array[tregister] of string[6];
 
     const
@@ -246,15 +254,20 @@ uses
               case longint of
                 1 : (value : AWord);
                 2 : (valuelow, valuehigh:AWord);
+                { overlay a complete 64 Bit value }
+                3 : (valueqword : qword);
               );
             LOC_CREFERENCE,
             LOC_REFERENCE : (reference : treference);
             { segment in reference at the same place as in loc_register }
             LOC_REGISTER,LOC_CREGISTER : (
               case longint of
-                1 : (register,segment,registerhigh : tregister);
+                1 : (register,registerhigh,segment : tregister);
                 { overlay a registerlow }
                 2 : (registerlow : tregister);
+                { overlay a 64 Bit register type }
+                3 : (reg64 : tregister64);
+                4 : (register64 : tregister64);
               );
             { it's only for better handling }
             LOC_MMXREGISTER,LOC_CMMXREGISTER : (mmxreg : tregister);
@@ -439,7 +452,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2002-05-18 13:34:22  peter
+  Revision 1.24  2002-07-01 16:23:55  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.23  2002/05/18 13:34:22  peter
     * readded missing revisions
 
   Revision 1.22  2002/05/16 19:46:50  carl

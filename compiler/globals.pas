@@ -280,6 +280,7 @@ interface
 
     function  string2guid(const s: string; var GUID: TGUID): boolean;
     function  guid2string(const GUID: TGUID): string;
+    procedure swap_qword(var q : qword);
 
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
 
@@ -1266,6 +1267,11 @@ implementation
       end;
 
 
+    procedure swap_qword(var q : qword);
+      begin
+         q:=(qword(lo(q)) shl 32) or hi(q);
+      end;
+
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
       var
         tok  : string;
@@ -1460,7 +1466,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2002-05-18 13:34:08  peter
+  Revision 1.59  2002-07-01 16:23:52  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.58  2002/05/18 13:34:08  peter
     * readded missing revisions
 
   Revision 1.57  2002/05/16 19:46:36  carl

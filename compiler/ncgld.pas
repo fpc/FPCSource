@@ -264,10 +264,10 @@ implementation
                begin
                   if assigned(left) then
                     begin
-                       { 
-                         THIS IS A TERRIBLE HACK!!!!!! WHICH WILL NOT WORK 
-                         ON 64-BIT SYSTEMS: SINCE PROCSYM FOR METHODS     
-                         CONSISTS OF TWO OS_ADDR, so you cannot set it 
+                       {
+                         THIS IS A TERRIBLE HACK!!!!!! WHICH WILL NOT WORK
+                         ON 64-BIT SYSTEMS: SINCE PROCSYM FOR METHODS
+                         CONSISTS OF TWO OS_ADDR, so you cannot set it
                          to OS_64 - how to solve?? Carl
                        }
                        if (sizeof(aword) = 4) then
@@ -529,8 +529,8 @@ implementation
               LOC_CONSTANT :
                 begin
                   if right.location.size in [OS_64,OS_S64] then
-                   tcg64f32(cg).a_load64_const_loc(exprasmlist,
-                       right.location.valuelow,right.location.valuehigh,left.location)
+                   cg64.a_load64_const_loc(exprasmlist,
+                       right.location.valueqword,left.location)
                   else
                    cg.a_load_const_loc(exprasmlist,right.location.value,left.location);
                 end;
@@ -542,8 +542,8 @@ implementation
                       begin
                         cgsize:=def_cgsize(left.resulttype.def);
                         if cgsize in [OS_64,OS_S64] then
-                         tcg64f32(cg).a_load64_ref_reg(exprasmlist,
-                             right.location.reference,left.location.registerlow,left.location.registerhigh)
+                         cg64.a_load64_ref_reg(exprasmlist,
+                             right.location.reference,left.location.register64)
                         else
                          cg.a_load_ref_reg(exprasmlist,cgsize,
                              right.location.reference,left.location.register);
@@ -583,8 +583,8 @@ implementation
                 begin
                   cgsize:=def_cgsize(left.resulttype.def);
                   if cgsize in [OS_64,OS_S64] then
-                   tcg64f32(cg).a_load64_reg_loc(exprasmlist,
-                       right.location.registerlow,right.location.registerhigh,left.location)
+                   cg64.a_load64_reg_loc(exprasmlist,
+                     right.location.register64,left.location)
                   else
                    cg.a_load_reg_loc(exprasmlist,right.location.size,right.location.register,left.location);
                 end;
@@ -893,7 +893,7 @@ implementation
                    8 :
                      begin
                        if hp.left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                        tcg64f32(cg).a_load64_loc_ref(exprasmlist,hp.left.location,href)
+                        cg64.a_load64_loc_ref(exprasmlist,hp.left.location,href)
                        else
                         cg.g_concatcopy(exprasmlist,hp.left.location.reference,href,elesize,freetemp,false);
                      end;
@@ -921,7 +921,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-05-20 13:30:40  carl
+  Revision 1.10  2002-07-01 16:23:53  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.9  2002/05/20 13:30:40  carl
   * bugfix of hdisponen (base must be set, not index)
   * more portability fixes
 

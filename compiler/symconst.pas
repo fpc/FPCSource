@@ -146,7 +146,7 @@ type
   { float types }
   tfloattype = (
     s32real,s64real,s80real,
-    s64comp
+    s64comp,s64currency
   );
 
   { string types }
@@ -334,7 +334,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2002-05-18 13:34:18  peter
+  Revision 1.33  2002-07-01 16:23:54  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.32  2002/05/18 13:34:18  peter
     * readded missing revisions
 
   Revision 1.31  2002/05/16 19:46:44  carl

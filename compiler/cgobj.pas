@@ -71,7 +71,7 @@ unit cgobj;
 
           {# @abstract(Returns an int register for use as scratch register)
              This routine returns a register which can be used by
-             the code generator as a general purpose scratch register. 
+             the code generator as a general purpose scratch register.
              Since scratch_registers are scarce resources, the register
              should be freed by calling @link(free_scratch_reg) as
              soon as it is no longer required.
@@ -79,7 +79,7 @@ unit cgobj;
           function get_scratch_reg_int(list : taasmoutput) : tregister;virtual;
           {# @abstract(Returns an address register for use as scratch register)
              This routine returns a register which can be used by
-             the code generator as a pointer scratch register. 
+             the code generator as a pointer scratch register.
              Since scratch_registers are scarce resources, the register
              should be freed by calling @link(free_scratch_reg) as
              soon as it is no longer required.
@@ -335,8 +335,52 @@ unit cgobj;
           procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);virtual;abstract;
        end;
 
+    {# @abstract(Abstract code generator for 64 Bit operations)
+       This class implements an abstract code generator class
+       for 64 Bit operations.
+    }
+    tcg64 = class
+        procedure a_load64_const_ref(list : taasmoutput;value : qword;const ref : treference);virtual;abstract;
+        procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);virtual;abstract;
+        procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);virtual;abstract;
+        procedure a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);virtual;abstract;
+        procedure a_load64_const_reg(list : taasmoutput;value : qword;reg : tregister64);virtual;abstract;
+        procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64);virtual;abstract;
+        procedure a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);virtual;abstract;
+        procedure a_load64_const_loc(list : taasmoutput;value : qword;const l : tlocation);virtual;abstract;
+        procedure a_load64_reg_loc(list : taasmoutput;reg : tregister64;const l : tlocation);virtual;abstract;
+
+        procedure a_load64high_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);virtual;abstract;
+        procedure a_load64low_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);virtual;abstract;
+        procedure a_load64high_ref_reg(list : taasmoutput;const ref : treference;reg : tregister);virtual;abstract;
+        procedure a_load64low_ref_reg(list : taasmoutput;const ref : treference;reg : tregister);virtual;abstract;
+        procedure a_load64high_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);virtual;abstract;
+        procedure a_load64low_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);virtual;abstract;
+
+        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);virtual;abstract;
+        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);virtual;abstract;
+        procedure a_op64_reg_ref(list : taasmoutput;op:TOpCG;regsrc : tregister64;const ref : treference);virtual;abstract;
+        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;regdst : tregister64);virtual;abstract;
+        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : qword;const ref : treference);virtual;abstract;
+        procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;value : qword;const l: tlocation);virtual;abstract;
+        procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;reg : tregister64;const l : tlocation);virtual;abstract;
+        procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg64 : tregister64);virtual;abstract;
+
+        procedure a_param64_reg(list : taasmoutput;reg64 : tregister64;nr : longint);virtual;abstract;
+        procedure a_param64_const(list : taasmoutput;value : qword;nr : longint);virtual;abstract;
+        procedure a_param64_ref(list : taasmoutput;const r : treference;nr : longint);virtual;abstract;
+        procedure a_param64_loc(list : taasmoutput;const l : tlocation;nr : longint);virtual;abstract;
+
+        { override to catch 64bit rangechecks }
+        procedure g_rangecheck64(list: taasmoutput; const p: tnode;
+          const todef: tdef);virtual;abstract;
+    end;
+
     var
-       cg : tcg; { this is the main code generator class }
+       {# Main code generator class }
+       cg : tcg;
+       {# Code generator class for all operations working with 64-Bit operands }
+       cg64 : tcg64;
 
   implementation
 
@@ -404,13 +448,13 @@ unit cgobj;
          a_reg_alloc(list,r);
          get_scratch_reg_int:=r;
       end;
-     
-    { the default behavior simply returns a general purpose register } 
+
+    { the default behavior simply returns a general purpose register }
     function tcg.get_scratch_reg_address(list : taasmoutput) : tregister;
      begin
        get_scratch_reg_address := get_scratch_reg_int(list);
      end;
-      
+
 
     procedure tcg.free_scratch_reg(list : taasmoutput;r : tregister);
 
@@ -992,6 +1036,11 @@ unit cgobj;
         if not(cs_check_range in aktlocalswitches) or
            not(todef.deftype in [orddef,enumdef,arraydef]) then
           exit;
+        if is_64bitint(p.resulttype.def) or is_64bitint(todef) then
+          begin
+             cg64.g_rangecheck64(list,p,todef);
+             exit;
+          end;
         { only check when assigning to scalar, subranges are different, }
         { when todef=fromdef then the check is always generated         }
         fromdef:=p.resulttype.def;
@@ -1202,7 +1251,7 @@ unit cgobj;
               g_finalize(list,procinfo^._class,href,false);
               a_label(list,nofinal);
             end;
-           { actually call destructor } 
+           { actually call destructor }
             { parameter 3 :vmt_offset     }
             a_param_const(list, OS_32, procinfo^._class.vmt_offset, 3);
             { parameter 2 : pointer to vmt }
@@ -1220,8 +1269,8 @@ unit cgobj;
         else
          internalerror(200006162);
       end;
-      
-      
+
+
     procedure tcg.g_call_fail_helper(list : taasmoutput);
       var
         href : treference;
@@ -1230,7 +1279,7 @@ unit cgobj;
         if is_class(procinfo^._class) then
           begin
 {$warning todo}
-   { Should simply casll FPC_DISPOSE_CLASS and then set the 
+   { Should simply casll FPC_DISPOSE_CLASS and then set the
      SELF_POINTER_REGISTER to NIL
    }
              internalerror(20020523);
@@ -1262,7 +1311,7 @@ unit cgobj;
         else
           internalerror(200006163);
       end;
-      
+
 
     procedure tcg.g_interrupt_stackframe_entry(list : taasmoutput);
       begin
@@ -1278,16 +1327,17 @@ unit cgobj;
       begin
       end;
 
-
-
-
-
 finalization
   cg.free;
 end.
 {
   $Log$
-  Revision 1.28  2002-06-06 18:53:17  jonas
+  Revision 1.29  2002-07-01 16:23:52  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.28  2002/06/06 18:53:17  jonas
     * fixed internalerror(10) with -Or for i386 (a_load_ref_ref now saves
       a general purpose register if it needs one but none are available)
 

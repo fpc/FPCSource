@@ -102,7 +102,6 @@ interface
           procedure second_class_to_intf;virtual;abstract;
           procedure second_char_to_char;virtual;abstract;
           procedure second_nothing; virtual;abstract;
-
        end;
        ttypeconvnodeclass = class of ttypeconvnode;
 
@@ -703,7 +702,6 @@ implementation
          begin
            t:=crealconstnode.create(tordconstnode(left).value,resulttype);
            result:=t;
-           exit;
          end;
       end;
 
@@ -715,6 +713,13 @@ implementation
 
       begin
          result:=nil;
+         if is_currency(left.resulttype.def) and not(is_currency(resulttype.def)) then
+           begin
+           end
+         else
+           if is_currency(resulttype.def) then
+             begin
+             end;
          if left.nodetype=realconstn then
            begin
              t:=crealconstnode.create(trealconstnode(left).value_real,resulttype);
@@ -1713,7 +1718,18 @@ implementation
              end
             else
              CGMessage1(type_e_class_type_expected,left.resulttype.def.typename);
+
             resulttype:=right.resulttype;
+
+            { load the GUID of the interface }
+            if (right.nodetype=typen) then
+             begin
+               if tobjectdef(left.resulttype.def).isiidguidvalid then
+                right:=cguidconstnode.create(tobjectdef(left.resulttype.def).iidguid)
+               else
+                internalerror(200206282);
+               resulttypepass(right);
+             end;
           end
          else
           CGMessage1(type_e_class_or_interface_type_expected,right.resulttype.def.typename);
@@ -1739,7 +1755,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2002-05-18 13:34:09  peter
+  Revision 1.59  2002-07-01 16:23:53  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.58  2002/05/18 13:34:09  peter
     * readded missing revisions
 
   Revision 1.57  2002/05/16 19:46:37  carl

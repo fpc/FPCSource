@@ -55,14 +55,14 @@ interface
        (
           OC_NONE,
           OC_EQ,           { equality comparison              }
-          OC_GT,           { greater than (signed)            } 
+          OC_GT,           { greater than (signed)            }
           OC_LT,           { less than (signed)               }
-          OC_GTE,          { greater or equal than (signed)   } 
+          OC_GTE,          { greater or equal than (signed)   }
           OC_LTE,          { less or equal than (signed)      }
-          OC_NE,           { not equal                        } 
+          OC_NE,           { not equal                        }
           OC_BE,           { less or equal than (unsigned)    }
           OC_B,            { less than (unsigned)             }
-          OC_AE,           { greater or equal than (unsigned) } 
+          OC_AE,           { greater or equal than (unsigned) }
           OC_A             { greater than (unsigned)          }
         );
 
@@ -88,7 +88,7 @@ interface
          1,2,4,8,16,1,2,4,8,16);
 
        tfloat2tcgsize: array[tfloattype] of tcgsize =
-         (OS_F32,OS_F64,OS_F80,OS_C64);
+         (OS_F32,OS_F64,OS_F80,OS_C64,OS_C64);
 
        tcgsize2tfloat: array[OS_F32..OS_C64] of tfloattype =
          (s32real,s64real,s80real,s64comp);
@@ -101,7 +101,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2002-05-27 19:16:08  carl
+  Revision 1.12  2002-07-01 16:23:52  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.11  2002/05/27 19:16:08  carl
   + added comments to virtual comparison flags
 
   Revision 1.10  2002/05/18 13:34:05  peter

@@ -964,7 +964,7 @@ interface
                   end;
                  hregister:=rg.getregisterint(exprasmlist);
                  hregister2:=rg.getregisterint(exprasmlist);
-                 tcg64f32(cg).a_load64_loc_reg(exprasmlist,left.location,hregister,hregister2);
+                 cg64.a_load64_loc_reg(exprasmlist,left.location,joinreg64(hregister,hregister2));
                  location_reset(left.location,LOC_REGISTER,OS_64);
                  left.location.registerlow:=hregister;
                  left.location.registerhigh:=hregister2;
@@ -983,9 +983,9 @@ interface
            { when swapped another result register }
            if (nodetype=subn) and (nf_swaped in flags) then
             begin
-              tcg64f32(cg).a_op64_reg_reg(exprasmlist,op,
-                left.location.registerlow,left.location.registerhigh,
-                right.location.registerlow,right.location.registerhigh);
+              cg64.a_op64_reg_reg(exprasmlist,op,
+                left.location.register64,
+                right.location.register64);
               location_swap(left.location,right.location);
               toggleflag(nf_swaped);
             end
@@ -998,9 +998,9 @@ interface
             end
            else
             begin
-              tcg64f32(cg).a_op64_reg_reg(exprasmlist,op,
-                right.location.registerlow,right.location.registerhigh,
-                left.location.registerlow,left.location.registerhigh);
+              cg64.a_op64_reg_reg(exprasmlist,op,
+                right.location.register64,
+                left.location.register64);
             end;
            location_release(exprasmlist,right.location);
          end
@@ -1010,10 +1010,10 @@ interface
            if (nodetype=subn) and (nf_swaped in flags) then
             begin
               rg.getexplicitregisterint(exprasmlist,R_EDI);
-              tcg64f32(cg).a_load64low_loc_reg(exprasmlist,right.location,R_EDI);
+              cg64.a_load64low_loc_reg(exprasmlist,right.location,R_EDI);
               emit_reg_reg(op1,opsize,left.location.registerlow,R_EDI);
               emit_reg_reg(A_MOV,opsize,R_EDI,left.location.registerlow);
-              tcg64f32(cg).a_load64high_loc_reg(exprasmlist,right.location,R_EDI);
+              cg64.a_load64high_loc_reg(exprasmlist,right.location,R_EDI);
               { the carry flag is still ok }
               emit_reg_reg(op2,opsize,left.location.registerhigh,R_EDI);
               emit_reg_reg(A_MOV,opsize,R_EDI,left.location.registerhigh);
@@ -1061,8 +1061,8 @@ interface
 
            else
             begin
-              tcg64f32(cg).a_op64_loc_reg(exprasmlist,op,right.location,
-                left.location.registerlow,left.location.registerhigh);
+              cg64.a_op64_loc_reg(exprasmlist,op,right.location,
+                left.location.register64);
               if (right.location.loc<>LOC_CREGISTER) then
                begin
                  location_freetemp(exprasmlist,right.location);
@@ -1572,7 +1572,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2002-05-18 13:34:22  peter
+  Revision 1.40  2002-07-01 16:23:55  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.39  2002/05/18 13:34:22  peter
     * readded missing revisions
 
   Revision 1.38  2002/05/16 19:46:51  carl

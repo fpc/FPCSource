@@ -387,7 +387,7 @@ end;
 function TCFileStream.Write(const Buffer; Count: Longint): Longint;
 begin
   CStreamError:=0;
-  BlockWrite (FHandle,Buffer,Count,Result);
+  BlockWrite (FHandle,(@Buffer)^,Count,Result);
   If Result=-1 then Result:=0;
 end;
 
@@ -610,7 +610,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2002-05-18 13:34:06  peter
+  Revision 1.6  2002-07-01 16:23:52  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.5  2002/05/18 13:34:06  peter
     * readded missing revisions
 
   Revision 1.4  2002/05/16 19:46:36  carl

@@ -515,8 +515,8 @@ implementation
                         begin
                           cg.a_reg_alloc(exprasmlist,accumulatorhigh);
                           allocated_acchigh := true;
-                          tcg64f32(cg).a_load64_loc_reg(exprasmlist,left.location,
-                              accumulator,accumulatorhigh);
+                          cg64.a_load64_loc_reg(exprasmlist,left.location,
+                              joinreg64(accumulator,accumulatorhigh));
                         end
                       else
                         begin
@@ -601,8 +601,8 @@ do_jmp:
          rg.cleartempgen;
          secondpass(left);
       end;
-      
-      
+
+
 {*****************************************************************************
                              SecondFail
 *****************************************************************************}
@@ -612,7 +612,7 @@ do_jmp:
         cg.a_jmp_always(exprasmlist,faillabel);
       end;
 
-      
+
 
 
 begin
@@ -628,7 +628,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-05-20 13:30:40  carl
+  Revision 1.20  2002-07-01 16:23:53  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.19  2002/05/20 13:30:40  carl
   * bugfix of hdisponen (base must be set, not index)
   * more portability fixes
 

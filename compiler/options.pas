@@ -1354,6 +1354,7 @@ begin
   def_symbol('HASCOMPILERPROC');
   def_symbol('VALUEGETMEM');
   def_symbol('VALUEFREEMEM');
+  def_symbol('HASCURRENCY');
 
   { some stuff for TP compatibility }
   case target_info.cpu of
@@ -1664,7 +1665,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.73  2002-05-18 13:34:11  peter
+  Revision 1.74  2002-07-01 16:23:53  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.73  2002/05/18 13:34:11  peter
     * readded missing revisions
 
   Revision 1.72  2002/05/16 19:46:41  carl

@@ -179,8 +179,8 @@ implementation
                  location_force_reg(exprasmlist,location,cgsize,false);
 
                  if cgsize in [OS_64,OS_S64] then
-                  tcg64f32(cg).a_op64_const_reg(exprasmlist,cgop,1,0,
-                      location.registerlow,location.registerhigh)
+                  cg64.a_op64_const_reg(exprasmlist,cgop,1,
+                      location.register64)
                  else
                   cg.a_op_const_reg(exprasmlist,cgop,1,location.register);
 
@@ -235,8 +235,8 @@ implementation
                 if addconstant then
                  begin
                    if cgsize in [OS_64,OS_S64] then
-                    tcg64f32(cg).a_op64_const_loc(exprasmlist,addsubop[inlinenumber],
-                       addvalue,0,tcallparanode(left).left.location)
+                    cg64.a_op64_const_loc(exprasmlist,addsubop[inlinenumber],
+                       addvalue,tcallparanode(left).left.location)
                    else
                     cg.a_op_const_loc(exprasmlist,addsubop[inlinenumber],
                        addvalue,tcallparanode(left).left.location);
@@ -244,8 +244,8 @@ implementation
                 else
                  begin
                    if cgsize in [OS_64,OS_S64] then
-                    tcg64f32(cg).a_op64_reg_loc(exprasmlist,addsubop[inlinenumber],
-                       hregister,hregisterhi,tcallparanode(left).left.location)
+                     cg64.a_op64_reg_loc(exprasmlist,addsubop[inlinenumber],
+                       joinreg64(hregister,hregisterhi),tcallparanode(left).left.location)
                    else
                     cg.a_op_reg_loc(exprasmlist,addsubop[inlinenumber],
                        hregister,tcallparanode(left).left.location);
@@ -460,7 +460,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2002-05-18 13:34:25  peter
+  Revision 1.45  2002-07-01 16:23:56  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.44  2002/05/18 13:34:25  peter
     * readded missing revisions
 
   Revision 1.43  2002/05/16 19:46:51  carl

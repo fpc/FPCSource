@@ -369,7 +369,7 @@ implementation
                       tmpreg := cg.get_scratch_reg_address(exprasmlist);
                       cg.a_loadaddr_ref_reg(exprasmlist,
                         left.location.reference,tmpreg);
-                    end;  
+                    end;
                 end;
 
                location_release(exprasmlist,left.location);
@@ -462,7 +462,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-05-20 13:30:40  carl
+  Revision 1.14  2002-07-01 16:23:53  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.13  2002/05/20 13:30:40  carl
   * bugfix of hdisponen (base must be set, not index)
   * more portability fixes
 

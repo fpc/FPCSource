@@ -972,18 +972,23 @@ implementation
                          end;
                        _PUBLISHED :
                          begin
+                           { we've to check for a pushlished section in non-  }
+                           { publishable classes later, if a real declaration }
+                           { this is the way, delphi does it                  }
                            if is_interface(aktclass) then
-                             Message(parser_e_no_access_specifier_in_interfaces)
-                           else
-                             if not(oo_can_have_published in aktclass.objectoptions) then
-                               Message(parser_e_cant_have_published);
+                             Message(parser_e_no_access_specifier_in_interfaces);
                            consume(_PUBLISHED);
                            current_object_option:=[sp_published];
                          end;
                        else
                          begin
                            if is_interface(aktclass) then
-                            Message(parser_e_no_vars_in_interfaces);
+                             Message(parser_e_no_vars_in_interfaces);
+
+                           if (sp_published in current_object_option) and
+                             not(oo_can_have_published in aktclass.objectoptions) then
+                             Message(parser_e_cant_have_published);
+
                            read_var_decs(false,true,false);
                          end;
                     end;
@@ -996,6 +1001,10 @@ implementation
                 _FUNCTION,
                 _CLASS :
                   begin
+                    if (sp_published in current_object_option) and
+                      not(oo_can_have_published in aktclass.objectoptions) then
+                      Message(parser_e_cant_have_published);
+
                     oldparse_only:=parse_only;
                     parse_only:=true;
                     parse_proc_dec;
@@ -1024,10 +1033,16 @@ implementation
                   end;
                 _CONSTRUCTOR :
                   begin
+                    if (sp_published in current_object_option) and
+                      not(oo_can_have_published in aktclass.objectoptions) then
+                      Message(parser_e_cant_have_published);
+
                     if not(sp_public in current_object_option) then
                       Message(parser_w_constructor_should_be_public);
+
                     if is_interface(aktclass) then
                       Message(parser_e_no_con_des_in_interfaces);
+
                     oldparse_only:=parse_only;
                     parse_only:=true;
                     constructor_head;
@@ -1046,13 +1061,20 @@ implementation
                   end;
                 _DESTRUCTOR :
                   begin
+                    if (sp_published in current_object_option) and
+                      not(oo_can_have_published in aktclass.objectoptions) then
+                      Message(parser_e_cant_have_published);
+
                     if there_is_a_destructor then
                       Message(parser_n_only_one_destructor);
+
                     if is_interface(aktclass) then
                       Message(parser_e_no_con_des_in_interfaces);
-                    there_is_a_destructor:=true;
+
                     if not(sp_public in current_object_option) then
                       Message(parser_w_destructor_should_be_public);
+
+                    there_is_a_destructor:=true;
                     oldparse_only:=parse_only;
                     parse_only:=true;
                     destructor_head;
@@ -1111,7 +1133,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2002-05-18 13:34:12  peter
+  Revision 1.46  2002-07-01 16:23:53  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.45  2002/05/18 13:34:12  peter
     * readded missing revisions
 
   Revision 1.44  2002/05/16 19:46:42  carl

@@ -36,16 +36,16 @@ interface
 
        tcginnode = class(tinnode)
           procedure pass_2;override;
-          {# Routine to test bitnumber in bitnumber register on value  
-             in value register. The __result register should be set 
-             to one if the bit is set, otherwise __result register 
+          {# Routine to test bitnumber in bitnumber register on value
+             in value register. The __result register should be set
+             to one if the bit is set, otherwise __result register
              should be set to zero.
-             
+
              Should be overriden on processors which have specific
              instructions to do bit tests.
           }
-          
-          procedure emit_bit_test_reg_reg(list : taasmoutput; bitnumber : tregister; 
+
+          procedure emit_bit_test_reg_reg(list : taasmoutput; bitnumber : tregister;
              value : tregister; __result :tregister);virtual;
        end;
 
@@ -287,7 +287,7 @@ implementation
             { "x in [y..z]" expression                               }
             adjustment := 0;
             hr := R_NO;
-            
+
             for i:=1 to numparts do
              if setparts[i].range then
               { use fact that a <= x <= b <=> cardinal(x-a) <= cardinal(b-a) }
@@ -301,7 +301,7 @@ implementation
                       { so in case of a LOC_CREGISTER first move the value }
                       { to edi (not done before because now we can do the  }
                       { move and substract in one instruction with LEA)    }
-                      if (left.location.loc = LOC_CREGISTER) and 
+                      if (left.location.loc = LOC_CREGISTER) and
                          (hr <> pleftreg) then
                         begin
                           hr:=cg.get_scratch_reg_int(exprasmlist);
@@ -396,13 +396,13 @@ implementation
                     else
                       internalerror(200203312);
                   end;
-                 { then do AND with constant and register }   
+                 { then do AND with constant and register }
                  cg.a_op_const_reg(exprasmlist,OP_AND,1 shl
                     (tordconstnode(left).value and 31),hr);
                  { if the value in the AND register is <> 0 then the value is equal. }
-                 cg.a_cmp_const_reg_label(exprasmlist,OS_32,OC_EQ,1 shl 
+                 cg.a_cmp_const_reg_label(exprasmlist,OS_32,OC_EQ,1 shl
                     (tordconstnode(left).value and 31),hr,l);
-                 cg.free_scratch_reg(exprasmlist,hr);  
+                 cg.free_scratch_reg(exprasmlist,hr);
                  getlabel(l3);
                  cg.a_jmp_always(exprasmlist,l3);
                  { Now place the end label if IN success }
@@ -422,7 +422,7 @@ implementation
                           hr3:=rg.makeregsize(left.location.register,OS_INT);
                           cg.a_load_reg_reg(exprasmlist,left.location.size,left.location.register,hr3);
                           hr:=cg.get_scratch_reg_int(exprasmlist);
-                          cg.a_load_reg_reg(exprasmlist,OS_INT,hr3,hr);          
+                          cg.a_load_reg_reg(exprasmlist,OS_INT,hr3,hr);
                        end;
                   else
                     begin
@@ -540,7 +540,7 @@ implementation
                   getlabel(l);
                   { use location.register as scratch register here }
                   inc(right.location.reference.offset,tordconstnode(left).value shr 3);
-                  cg.a_load_ref_reg(exprasmlist, OS_8, right.location.reference, location.register); 
+                  cg.a_load_ref_reg(exprasmlist, OS_8, right.location.reference, location.register);
                   cg.a_op_const_reg(exprasmlist, OP_AND,1 shl (tordconstnode(left).value and 7),
                      location.register);
                   cg.a_cmp_const_reg_label(exprasmlist,OS_8, OC_NE,0,location.register,l2);
@@ -580,13 +580,18 @@ implementation
 
 begin
    csetelementnode:=tcgsetelementnode;
-{$ifdef TEST_GENERIC}   
+{$ifdef TEST_GENERIC}
    cinnode:=tcginnode;
-{$endif}   
+{$endif}
 end.
 {
   $Log$
-  Revision 1.1  2002-06-16 08:14:56  carl
+  Revision 1.2  2002-07-01 16:23:53  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.1  2002/06/16 08:14:56  carl
   + generic sets
 
 }

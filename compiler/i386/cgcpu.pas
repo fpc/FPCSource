@@ -33,7 +33,7 @@ unit cgcpu;
        node,symconst;
 
     type
-      tcg386 = class(tcg64f32)
+      tcg386 = class(tcg)
 
         { passing parameters, per default the parameter is pushed }
         { nr gives the number of the parameter (enumerated from   }
@@ -95,11 +95,6 @@ unit cgcpu;
         procedure g_flags2reg(list: taasmoutput; const f: tresflags; reg: TRegister); override;
         procedure g_flags2ref(list: taasmoutput; const f: tresflags; const ref: TReference); override;
 
-        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reglo,reghi : tregister);override;
-        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;reglosrc,reghisrc,reglodst,reghidst : tregister);override;
-        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;valuelosrc,valuehisrc:AWord;reglodst,reghidst : tregister);override;
-        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;valuelosrc,valuehisrc:AWord;const ref : treference);override;
-
         procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);override;
 
         procedure g_push_exception(list : taasmoutput;const exceptbuf:treference;l:AWord; exceptlabel:TAsmLabel);override;
@@ -119,7 +114,7 @@ unit cgcpu;
         procedure g_call_constructor_helper(list : taasmoutput);override;
         procedure g_call_destructor_helper(list : taasmoutput);override;
         procedure g_call_fail_helper(list : taasmoutput);override;
-{$endif}        
+{$endif}
         procedure g_save_standard_registers(list : taasmoutput);override;
         procedure g_restore_standard_registers(list : taasmoutput);override;
         procedure g_save_all_registers(list : taasmoutput);override;
@@ -128,20 +123,25 @@ unit cgcpu;
         procedure g_overflowcheck(list: taasmoutput; const p: tnode);override;
 
       private
-
         procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
-        procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
         procedure sizes2load(s1 : tcgsize;s2 : topsize; var op: tasmop; var s3: topsize);
 
         procedure floatload(list: taasmoutput; t : tcgsize;const ref : treference);
         procedure floatstore(list: taasmoutput; t : tcgsize;const ref : treference);
         procedure floatloadops(t : tcgsize;var op : tasmop;var s : topsize);
         procedure floatstoreops(t : tcgsize;var op : tasmop;var s : topsize);
+      end;
 
+      tcg64f386 = class(tcg64f32)
+        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);override;
+        procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);override;
+        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);override;
+        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : qword;const ref : treference);override;
+      private
+        procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
 
     const
-
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_ADD,A_AND,A_DIV,
                             A_IDIV,A_MUL, A_IMUL, A_NEG,A_NOT,A_OR,
                             A_SAR,A_SHL,A_SHR,A_SUB,A_XOR);
@@ -1068,7 +1068,7 @@ unit cgcpu;
 
 { ************* 64bit operations ************ }
 
-    procedure tcg386.get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
+    procedure tcg64f386.get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       begin
         case op of
           OP_ADD :
@@ -1102,45 +1102,45 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reglo,reghi : tregister);
+    procedure tcg64f386.a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);
       var
         op1,op2 : TAsmOp;
         tempref : treference;
       begin
         get_64bit_ops(op,op1,op2);
-        list.concat(taicpu.op_ref_reg(op1,S_L,ref,reglo));
+        list.concat(taicpu.op_ref_reg(op1,S_L,ref,reg.reglo));
         tempref:=ref;
         inc(tempref.offset,4);
-        list.concat(taicpu.op_ref_reg(op2,S_L,tempref,reghi));
+        list.concat(taicpu.op_ref_reg(op2,S_L,tempref,reg.reghi));
       end;
 
 
-    procedure tcg386.a_op64_reg_reg(list : taasmoutput;op:TOpCG;reglosrc,reghisrc,reglodst,reghidst : tregister);
+    procedure tcg64f386.a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);
       var
         op1,op2 : TAsmOp;
       begin
         get_64bit_ops(op,op1,op2);
-        list.concat(taicpu.op_reg_reg(op1,S_L,reglosrc,reglodst));
-        list.concat(taicpu.op_reg_reg(op2,S_L,reghisrc,reghidst));
+        list.concat(taicpu.op_reg_reg(op1,S_L,regsrc.reglo,regdst.reglo));
+        list.concat(taicpu.op_reg_reg(op2,S_L,regsrc.reghi,regdst.reghi));
       end;
 
 
-    procedure tcg386.a_op64_const_reg(list : taasmoutput;op:TOpCG;valuelosrc,valuehisrc:AWord;reglodst,reghidst : tregister);
+    procedure tcg64f386.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;reg : tregister64);
       var
         op1,op2 : TAsmOp;
       begin
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              a_op_const_reg(list,op,valuelosrc,reglodst);
-              a_op_const_reg(list,op,valuehisrc,reghidst);
+              cg.a_op_const_reg(list,op,lo(value),reg.reglo);
+              cg.a_op_const_reg(list,op,hi(value),reg.reghi);
             end;
           OP_ADD, OP_SUB:
             begin
               // can't use a_op_const_ref because this may use dec/inc
               get_64bit_ops(op,op1,op2);
-              list.concat(taicpu.op_const_reg(op1,S_L,valuelosrc,reglodst));
-              list.concat(taicpu.op_const_reg(op2,S_L,valuehisrc,reghidst));
+              list.concat(taicpu.op_const_reg(op1,S_L,lo(value),reg.reglo));
+              list.concat(taicpu.op_const_reg(op2,S_L,hi(value),reg.reghi));
             end;
           else
             internalerror(200204021);
@@ -1148,7 +1148,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.a_op64_const_ref(list : taasmoutput;op:TOpCG;valuelosrc,valuehisrc:AWord;const ref : treference);
+    procedure tcg64f386.a_op64_const_ref(list : taasmoutput;op:TOpCG;value : qword;const ref : treference);
       var
         op1,op2 : TAsmOp;
         tempref : treference;
@@ -1156,19 +1156,19 @@ unit cgcpu;
         case op of
           OP_AND,OP_OR,OP_XOR:
             begin
-              a_op_const_ref(list,op,OS_32,valuelosrc,ref);
+              cg.a_op_const_ref(list,op,OS_32,lo(value),ref);
               tempref:=ref;
               inc(tempref.offset,4);
-              a_op_const_ref(list,op,OS_32,valuehisrc,tempref);
+              cg.a_op_const_ref(list,op,OS_32,hi(value),tempref);
             end;
           OP_ADD, OP_SUB:
             begin
               get_64bit_ops(op,op1,op2);
               // can't use a_op_const_ref because this may use dec/inc
-              list.concat(taicpu.op_const_ref(op1,S_L,valuelosrc,ref));
+              list.concat(taicpu.op_const_ref(op1,S_L,lo(value),ref));
               tempref:=ref;
               inc(tempref.offset,4);
-              list.concat(taicpu.op_const_ref(op2,S_L,valuehisrc,tempref));
+              list.concat(taicpu.op_const_ref(op2,S_L,hi(value),tempref));
             end;
           else
             internalerror(200204022);
@@ -1779,10 +1779,16 @@ unit cgcpu;
 
 begin
   cg := tcg386.create;
+  cg64 := tcg64f386.create;
 end.
 {
   $Log$
-  Revision 1.23  2002-06-16 08:16:59  carl
+  Revision 1.24  2002-07-01 16:23:55  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.23  2002/06/16 08:16:59  carl
   * bugfix of missing popecx for shift operations
 
   Revision 1.22  2002/05/22 19:02:16  carl

@@ -77,7 +77,7 @@ unit cg64f64;
 
     procedure tcg64f64.a_load64_const_ref(list : taasmoutput;value : qword;const ref : treference);
       begin
-      	 cg.a_load_const_ref(list,OS_64,value,ref);
+         cg.a_load_const_ref(list,OS_64,value,ref);
       end;
 
     procedure tcg64f64.a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);
@@ -177,7 +177,12 @@ unit cg64f64;
 end.
 {
   $Log$
-  Revision 1.1  2002-06-08 19:36:54  florian
+  Revision 1.2  2002-07-01 16:23:52  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.1  2002/06/08 19:36:54  florian
     * initial release
 
 }

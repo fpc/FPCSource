@@ -116,6 +116,7 @@ begin
   addtype('Real',s64floattype);
 {$ifdef i386}
   adddef('Comp',tfloatdef.create(s64comp));
+  addtype('Currency',s64currencytype);
 {$endif}
   addtype('Pointer',voidpointertype);
   addtype('FarPointer',voidfarpointertype);
@@ -161,6 +162,7 @@ begin
   addtype('$s32real',s32floattype);
   addtype('$s64real',s64floattype);
   addtype('$s80real',s80floattype);
+  addtype('$s64currency',s64currencytype);
 { Add a type for virtual method tables }
   vmtsymtable:=trecordsymtable.create;
   vmttype.setdef(trecorddef.create(vmtsymtable));
@@ -205,6 +207,7 @@ begin
   globaldef('s32real',s32floattype);
   globaldef('s64real',s64floattype);
   globaldef('s80real',s80floattype);
+  globaldef('s64currency',s64currencytype);
   globaldef('boolean',booltype);
   globaldef('void_pointer',voidpointertype);
   globaldef('char_pointer',charpointertype);
@@ -249,6 +252,7 @@ begin
   s32floattype.setdef(tfloatdef.create(s32real));
   s64floattype.setdef(tfloatdef.create(s64real));
   s80floattype.setdef(tfloatdef.create(s80real));
+  s64currencytype.setdef(tfloatdef.create(s64currency));
 {$endif}
 {$ifdef m68k}
   s32floattype.setdef(tfloatdef.create(s32real));
@@ -276,7 +280,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2002-05-18 13:34:16  peter
+  Revision 1.27  2002-07-01 16:23:54  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.26  2002/05/18 13:34:16  peter
     * readded missing revisions
 
   Revision 1.25  2002/05/16 19:46:44  carl

@@ -151,6 +151,9 @@ interface
     {# Returns true, if definition is float }
     function is_fpu(def : tdef) : boolean;
 
+    {# Returns true, if def is a currency type }
+    function is_currency(def : tdef) : boolean;
+
     {# Returns true if the return value can be put in accumulator }
     function ret_in_acc(def : tdef) : boolean;
 
@@ -534,7 +537,14 @@ implementation
       end;
 
 
-    function range_to_basetype(low,high:TConstExprInt):tbasetype;
+    { returns true, if def is a currency type }
+    function is_currency(def : tdef) : boolean;
+      begin
+         is_currency:=(def.deftype=floatdef) and (tfloatdef(def).typ=s64currency);
+      end;
+
+
+      function range_to_basetype(low,high:TConstExprInt):tbasetype;
       begin
         { generate a unsigned range if high<0 and low>=0 }
         if (low>=0) and (high<0) then
@@ -1970,7 +1980,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2002-05-18 13:34:21  peter
+  Revision 1.74  2002-07-01 16:23:54  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.73  2002/05/18 13:34:21  peter
     * readded missing revisions
 
   Revision 1.72  2002/05/16 19:46:47  carl

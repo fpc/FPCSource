@@ -80,7 +80,7 @@ implementation
 
       const
         floattype2ait:array[tfloattype] of tait=
-          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit);
+          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit);
 
       var
          hp1 : tai;
@@ -519,7 +519,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-05-18 13:34:09  peter
+  Revision 1.11  2002-07-01 16:23:53  peter
+    * cg64 patch
+    * basics for currency
+    * asnode updates for class and interface (not finished)
+
+  Revision 1.10  2002/05/18 13:34:09  peter
     * readded missing revisions
 
   Revision 1.9  2002/05/16 19:46:37  carl
