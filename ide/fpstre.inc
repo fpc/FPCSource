@@ -113,6 +113,7 @@ const
       menu_debug_watches     = '~W~atches';
       menu_debug_breakpointlist = 'Breakpoint ~L~ist';
       menu_debug_gdbwindow   = '~G~DB window';
+      menu_debug_disassemble = '~D~isassemble';
 
       menu_tools             = '~T~ools';
       menu_tools_messages    = '~M~essages';
@@ -1060,7 +1061,11 @@ const
 
 {
   $Log$
-  Revision 1.25  2004-12-19 20:38:35  hajny
+  Revision 1.26  2005-01-07 21:52:23  florian
+    * proper stepping in disassembler window now possible
+    + disassembler window to menu added
+
+  Revision 1.25  2004/12/19 20:38:35  hajny
     + confirmation box after video mode switch (bug 2933)
 
   Revision 1.24  2004/11/21 20:53:26  peter

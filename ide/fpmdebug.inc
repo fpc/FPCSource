@@ -133,6 +133,21 @@ begin
 {$endif NODEBUG}
 end;
 
+
+procedure TIDEApp.DoShowDisassembly;
+begin
+{$ifdef NODEBUG}
+  NoDebugger;
+{$else}
+  If not assigned(DisassemblyWindow) then
+    InitDisassemblyWindow
+  else
+    DisassemblyWindow^.MakeFirst;
+  DisassemblyWindow^.LoadFunction('');
+{$endif NODEBUG}
+end;
+
+
 procedure TIDEApp.DoShowRegisters;
 begin
 {$ifdef NODEBUG}
@@ -230,7 +245,11 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-11-28 12:57:00  pierre
+  Revision 1.7  2005-01-07 21:52:23  florian
+    * proper stepping in disassembler window now possible
+    + disassembler window to menu added
+
+  Revision 1.6  2002/11/28 12:57:00  pierre
    + TransferRemote method added
 
   Revision 1.5  2002/10/30 22:07:11  pierre

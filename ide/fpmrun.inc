@@ -132,15 +132,17 @@ begin
    end;
   { I think we should not try to go deeper !
     if the source is not found PM }
-  While (Debugger^.InvalidSourceLine and
-         Debugger^.IsRunning and
-         not Debugger^.error) do
+
+  { in disassembly windows we should FK }
+  if not(InDisassemblyWindow) then
     begin
-      Inc(Debugger^.HiddenStepsCount);
-      if InDisassemblyWindow then
-        Debugger^.TraceNextI
-      else
-        Debugger^.TraceNext;
+      While (Debugger^.InvalidSourceLine and
+             Debugger^.IsRunning and
+             not Debugger^.error) do
+        begin
+          Inc(Debugger^.HiddenStepsCount);
+          Debugger^.TraceNext;
+        end;
     end;
   Debugger^.AnnotateError;
 {$else NODEBUG}
@@ -239,7 +241,7 @@ begin
       {$I-}
        GetDir(0,oldcurrdir);
        chdir(GetRunDir);
-      {$I+}   
+      {$I+}
       EatIO;
 {$ifdef Unix}
       if (DebuggeeTTY<>'') then
@@ -249,7 +251,7 @@ begin
       DoExecute(ExeFile,GetRunParameters,'','','',exNormal);
       {$I-}
        chdir(oldcurrdir);
-      {$I+}   
+      {$I+}
       EatIO;
       { In case we have something that the compiler touched }
       AskToReloadAllModifiedFiles;
@@ -510,7 +512,11 @@ end;
 
 {
   $Log$
-  Revision 1.9  2004-11-08 20:28:26  peter
+  Revision 1.10  2005-01-07 21:52:23  florian
+    * proper stepping in disassembler window now possible
+    + disassembler window to menu added
+
+  Revision 1.9  2004/11/08 20:28:26  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new

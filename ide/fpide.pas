@@ -83,6 +83,7 @@ type
       procedure DoOpenGDBWindow;
       procedure DoToggleBreak;
       procedure DoShowCallStack;
+      procedure DoShowDisassembly;
       procedure DoShowBreakpointList;
       procedure DoShowWatches;
       procedure DoAddWatch;
@@ -383,13 +384,14 @@ begin
       NewItem(menu_debug_breakpoint,menu_key_debug_breakpoint, kbCtrlF8, cmToggleBreakpoint, hcToggleBreakpoint,
       NewItem(menu_debug_breakpointlist,'', kbNoKey, cmBreakpointList, hcBreakpointList,
       NewItem(menu_debug_callstack,menu_key_debug_callstack, kbCtrlF3, cmStack, hcStackWindow,
+      NewItem(menu_debug_disassemble,'', kbNoKey, cmDisassemble, hcStackWindow,
       NewLine(
       NewItem(menu_debug_gdbwindow,'', kbNoKey, cmOpenGDBWindow, hcOpenGDBWindow,
       nil
 {$ifdef SUPPORT_REMOTE}
       )
 {$endif SUPPORT_REMOTE}
-      ))))))))))))),
+      )))))))))))))),
     NewSubMenu(menu_tools, hcToolsMenu, NewMenu(
       NewItem(menu_tools_messages,menu_key_tools_messages, kbF11, cmToolsMessages, hcToolsMessages,
       NewItem(menu_tools_msgnext,menu_key_tools_msgnext, kbAltF8, cmToolsMsgNext, hcToolsMsgNext,
@@ -692,6 +694,7 @@ begin
              cmUserScreen    : DoUserScreen;
              cmToggleBreakpoint : DoToggleBreak;
              cmStack         : DoShowCallStack;
+             cmDisassemble   : DoShowDisassembly;
              cmBreakpointList : DoShowBreakpointList;
              cmWatches       :  DoShowWatches;
              cmAddWatch      :  DoAddWatch;
@@ -1243,7 +1246,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.35  2004-12-22 15:24:07  peter
+  Revision 1.36  2005-01-07 21:52:23  florian
+    * proper stepping in disassembler window now possible
+    + disassembler window to menu added
+
+  Revision 1.35  2004/12/22 15:24:07  peter
     * fixed NODEBUG
     * set default target to the default target of the compiler
 
