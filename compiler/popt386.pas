@@ -167,29 +167,19 @@ Begin
             else
             { All other optimizes }
              begin
-            If (Pai386(p)^.oper[0].typ = top_ref) Then
-              With Pai386(p)^.oper[0].ref^ Do
-                Begin
-                  If (base = R_NO) And
-                     (index <> R_NO) And
-                     (scalefactor = 1)
-                    Then
-                      Begin
-                        base := index;
-                        index := R_NO
-                      End
-                 End;
-            If (Pai386(p)^.oper[1].typ = top_ref) Then
-              With Pai386(p)^.oper[1].ref^ Do
-                Begin
-                  If (base = R_NO) And
-                     (index <> R_NO) And
-                     (scalefactor = 1) Then
-                    Begin
-                      base := index;
-                      index := R_NO
-                    End
-                End;
+            For l := 0 to 2 Do
+              If (Pai386(p)^.oper[l].typ = top_ref) Then
+                With Pai386(p)^.oper[l].ref^ Do
+                  Begin
+                    If (base = R_NO) And
+                       (index <> R_NO) And
+                       (scalefactor in [0,1])
+                      Then
+                        Begin
+                          base := index;
+                          index := R_NO
+                        End
+                   End;
             Case Pai386(p)^.opcode Of
               A_AND:
                 Begin
@@ -808,7 +798,7 @@ Begin
                                               Dispose(hp2,Done);
                                             End
                                           Else
-                                            If (Pai386(p)^.oper[1].reg <> Pai386(hp2)^.oper[1].reg) And 
+                                            If (Pai386(p)^.oper[1].reg <> Pai386(hp2)^.oper[1].reg) And
                                                not(RegInRef(Pai386(p)^.oper[1].reg,Pai386(p)^.oper[0].ref^)) And
                                                not(RegInRef(Pai386(hp2)^.oper[1].reg,Pai386(hp2)^.oper[0].ref^))
                                               Then
@@ -1535,7 +1525,10 @@ End.
 
 {
  $Log$
- Revision 1.57  1999-07-01 18:12:16  jonas
+ Revision 1.58  1999-07-30 18:17:55  jonas
+   * fix so (,reg) gets optimized to (reg)
+
+ Revision 1.57  1999/07/01 18:12:16  jonas
    * enabled "mov reg1,reg2;mov (reg2,..), reg2" also if the second mov is
      a movzx or movsx
 
