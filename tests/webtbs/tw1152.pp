@@ -33,7 +33,7 @@ BEGIN
   exitproc:=@my_exit;
   finally_called:=false;
 try
-  p:=$ffffffff;
+  p:=pointer(-1);
   longint(p^):=0;
 finally
   finally_called:=true;
