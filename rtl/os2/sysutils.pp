@@ -419,8 +419,9 @@ begin
             New (FStat);
             Rslt.FindHandle := $FFFFFFFF;
             Count := 1;
-            Err := DosFindFirst (Path, Rslt.FindHandle, Attr and FindResvdMask,
-                                    FStat, SizeOf (FStat^), Count, ilStandard);
+            Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
+                 Attr and FindResvdMask, FStat, SizeOf (FStat^), Count,
+                                                                   ilStandard);
             if (Err = 0) and (Count = 0) then Err := 18;
             FindFirst := -Err;
             if Err = 0 then
@@ -950,7 +951,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2002-09-07 16:01:25  peter
+  Revision 1.18  2002-09-23 17:42:37  hajny
+    * AnsiString to PChar typecast
+
+  Revision 1.17  2002/09/07 16:01:25  peter
     * old logs removed and tabs fixed
 
   Revision 1.16  2002/07/11 16:00:05  hajny
