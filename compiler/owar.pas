@@ -244,7 +244,10 @@ begin
    rewrite(arf,1);
   {$I+}
   if ioresult<>0 then
-   exit;
+    begin
+       Message1(exec_e_cant_create_archivefile,arfn);
+       exit;
+    end;
   blockwrite(arf,armagic,sizeof(armagic));
   { align first, because we need the size for the fixups of the symbol reloc }
   if lfnstr^.usedsize>0 then
@@ -279,7 +282,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-02-09 13:22:55  peter
+  Revision 1.7  2000-04-02 15:22:19  florian
+    * fixed bug 903: the compiler gives now a nice message if it can't create
+      the .o file, (same for future .ar)
+
+  Revision 1.6  2000/02/09 13:22:55  peter
     * log truncated
 
   Revision 1.5  2000/01/07 01:14:28  peter

@@ -252,19 +252,28 @@ begin
 { Show Runtime error if there was an error }
   if (erroraddr<>nil) then
    begin
+
      case exitcode of
-      101: begin
-              erroraddr:=nil;
-              writeln('Error: Disk full');
-           end;
-      202 : begin
-              erroraddr:=nil;
-              Writeln('Error: Stack Overflow');
-            end;
-      203 : begin
-              erroraddr:=nil;
-              Writeln('Error: Out of memory');
-            end;
+      100:
+        begin
+           erroraddr:=nil;
+           writeln('Error while reading file');
+        end;
+      101:
+        begin
+           erroraddr:=nil;
+           writeln('Error while writing file');
+        end;
+      202:
+        begin
+           erroraddr:=nil;
+           writeln('Error: Stack Overflow');
+        end;
+      203:
+        begin
+           erroraddr:=nil;
+           writeln('Error: Out of memory');
+        end;
      end;
      { we cannot use aktfilepos.file because all memory might have been
        freed already !
@@ -285,7 +294,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2000-03-20 09:36:23  florian
+  Revision 1.60  2000-04-02 15:22:19  florian
+    * fixed bug 903: the compiler gives now a nice message if it can't create
+      the .o file, (same for future .ar)
+
+  Revision 1.59  2000/03/20 09:36:23  florian
     * using the directive DEBUG when compiling the compiler will include now
       the lineinfo unit on all targets
 

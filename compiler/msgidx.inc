@@ -435,6 +435,8 @@ type tmsgconst=(
   exec_w_source_os_redefined,
   exec_i_assembling_pipe,
   exec_d_cant_create_asmfile,
+  exec_e_cant_create_objectfile,
+  exec_e_cant_create_archivefile,
   exec_w_assembler_not_found,
   exec_t_using_assembler,
   exec_w_error_while_assembling,

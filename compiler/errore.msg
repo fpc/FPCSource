@@ -1404,9 +1404,23 @@ asmw_e_undefined_label=E_Asm: Undefined label $1
 #
 # Executing linker/assembler
 #
+# BeginOfTeX
+%
+% \section{Errors of assembling/linking stage}
+% This section lists errors that occur when the compiler is processing the
+% command line or handling the configuration files.
+% \begin{description}
 exec_w_source_os_redefined=W_Source operating system redefined
 exec_i_assembling_pipe=I_Assembling (pipe) $1
-exec_d_cant_create_asmfile=E_Can't create assember file $1
+exec_d_cant_create_asmfile=E_Can't create assember file: $1
+% The mentioned file can't be create. Check if you've
+% permission to create this file
+exec_e_cant_create_objectfile=E_Can't create object file: $1
+% The mentioned file can't be create. Check if you've
+% permission to create this file
+exec_e_cant_create_archivefile=E_Can't create archive file: $1
+% The mentioned file can't be create. Check if you've
+% permission to create this file
 exec_w_assembler_not_found=W_Assembler $1 not found, switching to external assembling
 exec_t_using_assembler=T_Using assembler: $1
 exec_w_error_while_assembling=W_Error while assembling exitcode $1
@@ -1425,6 +1439,8 @@ exec_e_dll_not_supported=E_Creation of Dynamic/Shared Libraries not supported
 exec_i_closing_script=I_Closing script $1
 exec_w_res_not_found=W_resource compiler not found, switching to external mode
 exec_i_compilingresource=I_Compiling resource $1
+%\end{description}
+# EndOfTeX
 
 #
 # Executable information

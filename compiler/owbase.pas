@@ -44,6 +44,9 @@ type
 
 implementation
 
+uses
+   verbose;
+
 const
 {$ifdef TP}
   bufsize = 256;
@@ -76,7 +79,10 @@ begin
    rewrite(f,1);
   {$I+}
   if ioresult<>0 then
-   exit;
+    begin
+       Message1(exec_e_cant_create_objectfile,fn);
+       exit;
+    end;
   bufidx:=0;
   size:=0;
   opened:=true;
@@ -146,7 +152,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-02-24 18:41:39  peter
+  Revision 1.6  2000-04-02 15:22:19  florian
+    * fixed bug 903: the compiler gives now a nice message if it can't create
+      the .o file, (same for future .ar)
+
+  Revision 1.5  2000/02/24 18:41:39  peter
     * removed warnings/notes
 
   Revision 1.4  2000/02/09 13:22:55  peter
