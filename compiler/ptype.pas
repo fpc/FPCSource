@@ -367,7 +367,6 @@ implementation
                       setdefdecl(pt.resulttype)
                      else
                        begin
-                          do_resulttypepass(pt);
                           if (pt.nodetype=rangen) then
                            begin
                              if (trangenode(pt).left.nodetype=ordconstn) and
@@ -423,6 +422,9 @@ implementation
              ap.elementtype:=tt2;
         end;
 
+      var
+        p : tnode;
+        enumdupmsg : boolean;
       begin
          tt.reset;
          case token of
@@ -435,6 +437,7 @@ implementation
                 consume(_LKLAMMER);
                 { allow negativ value_str }
                 l:=-1;
+                enumdupmsg:=false;
                 aktenumdef:=tenumdef.create;
                 repeat
                   s:=orgpattern;
@@ -447,21 +450,31 @@ implementation
                        consume(_ASSIGNMENT);
                        v:=get_intconst;
                        { please leave that a note, allows type save }
-                       { declarations in the win32 units !       }
-                       if v<=l then
-                        Message(parser_n_duplicate_enum);
+                       { declarations in the win32 units ! }
+                       if (v<=l) and (not enumdupmsg) then
+                        begin
+                          Message(parser_n_duplicate_enum);
+                          enumdupmsg:=true;
+                        end;
                        l:=v;
                     end
                   else if (m_delphi in aktmodeswitches) and
                      (token=_EQUAL) then
                     begin
                        consume(_EQUAL);
-                       v:=get_intconst;
-                       { please leave that a note, allows type save }
-                       { declarations in the win32 units !       }
-                       if v<=l then
-                        Message(parser_n_duplicate_enum);
-                       l:=v;
+                       p:=comp_expr(true);
+                       if (p.nodetype=ordconstn) then
+                        begin
+                          { we expect an integer or an enum of the
+                            same type }
+                          if is_integer(p.resulttype.def) or
+                             is_equal(p.resulttype.def,aktenumdef) then
+                           l:=v
+                          else
+                           Message2(type_e_incompatible_types,p.resulttype.def.typename,s32bittype.def.typename);
+                        end
+                       else
+                        Message(cg_e_illegal_expression)
                     end
                   else
                     inc(l);
@@ -586,7 +599,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2001-06-03 20:16:19  peter
+  Revision 1.25  2001-06-04 11:51:59  peter
+    * enum type declarations assignments can also be of the same enum
+      type
+
+  Revision 1.24  2001/06/03 20:16:19  peter
     * allow int64 in range declaration for new types
 
   Revision 1.23  2001/04/13 01:22:13  peter
