@@ -1831,15 +1831,29 @@ begin
 end;
 
 function TFileEditor.SaveAs: Boolean;
+var
+  SavedName : String;
+  SavedDiskLoadTime : longint;
 begin
   SaveAs := False;
+  SavedName:=FileName;
+  SavedDiskLoadTime:=OnDiskLoadTime;
   if EditorDialog(edSaveAs, @FileName) <> cmCancel then
   begin
-    FileName := FExpand(FileName);
+    FileName:=FExpand(FileName);
     Message(Owner, evBroadcast, cmUpdateTitle, @Self);
     { if we rename the file the OnDiskLoadTime is wrong so we reset it }
     OnDiskLoadTime:=-1;
-    SaveAs := SaveFile;
+    if SaveFile then
+      begin
+        SaveAs := true;
+      end
+    else
+      begin
+        FileName:=SavedName;
+        OnDiskLoadTime:=SavedDiskLoadTime;
+        Message(Owner, evBroadcast, cmUpdateTitle, @Self);
+      end;
     if IsClipboard then FileName := '';
     Message(Application,evBroadcast,cmFileNameChanged,@Self);
   end;
@@ -1992,7 +2006,10 @@ end;
 END.
 {
  $Log$
- Revision 1.5  2001-09-27 22:32:24  pierre
+ Revision 1.6  2001-10-10 23:34:54  pierre
+  * fix bug 1632
+
+ Revision 1.5  2001/09/27 22:32:24  pierre
   * avoid to get unnecessary warnings about modified files if file already open
 
  Revision 1.4  2001/09/14 23:47:08  pierre
