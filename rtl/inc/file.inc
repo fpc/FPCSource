@@ -54,6 +54,7 @@ Procedure Rewrite(var f:File;l:Word);[IOCheck];
   Create file f with recordsize of l
 }
 Begin
+  If InOutRes <> 0 then exit;
   If l=0 Then
    InOutRes:=2
   else
@@ -69,6 +70,7 @@ Procedure Reset(var f:File;l:Word);[IOCheck];
   Open file f with recordsize of l and filemode
 }
 Begin
+  If InOutRes <> 0 then Exit;
   If l=0 Then
    InOutRes:=2
   else
@@ -84,6 +86,7 @@ Procedure Rewrite(Var f:File);[IOCheck];
   Create file with (default) 128 byte records
 }
 Begin
+  If InOutRes <> 0 then exit;
   Rewrite(f,128);
 End;
 
@@ -93,6 +96,7 @@ Procedure Reset(Var f:File);[IOCheck];
   Open file with (default) 128 byte records
 }
 Begin
+  If InOutRes <> 0 then exit;
   Reset(f,128);
 End;
 
@@ -102,6 +106,7 @@ Procedure BlockWrite(Var f:File;Var Buf;Count:Longint;var Result:Longint);[IOChe
   Write Count records from Buf to file f, return written records in result
 }
 Begin
+  If InOutRes <> 0 then exit;
   Result:=Do_Write(FileRec(f).Handle,Longint(@Buf),Count*FileRec(f).RecSize) div FileRec(f).RecSize;
 End;
 
@@ -113,6 +118,7 @@ Procedure BlockWrite(Var f:File;Var Buf;Count:Word;var Result:Word);[IOCheck];
 var
   l : longint;
 Begin
+  If InOutRes <> 0 then exit;
   BlockWrite(f,Buf,Count,l);
   Result:=l;
 End;
@@ -125,6 +131,7 @@ Procedure BlockWrite(Var f:File;Var Buf;Count:Word;var Result:Integer);[IOCheck]
 var
   l : longint;
 Begin
+  If InOutRes <> 0 then exit;
   BlockWrite(f,Buf,Count,l);
   Result:=l;
 End;
@@ -138,6 +145,7 @@ Procedure BlockWrite(Var f:File;Var Buf;Count:Longint);[IOCheck];
 var
   Result : Longint;
 Begin
+  If InOutRes <> 0 then exit;
   BlockWrite(f,Buf,Count,Result);
   If (Result=0) and (Count>0) Then
    InOutRes:=101;
@@ -150,6 +158,8 @@ Procedure BlockRead(var f:File;var Buf;Count:Longint;var Result:Longint);[IOChec
   Result
 }
 Begin
+  Result:=0;
+  If InOutRes <> 0 then exit;
   Result:=Do_Read(FileRec(f).Handle,Longint(@Buf),count*FileRec(f).RecSize) div FileRec(f).RecSize;
 End;
 
@@ -162,6 +172,8 @@ Procedure BlockRead(var f:File;var Buf;count:Word;var Result:Word);[IOCheck];
 var
   l : longint;
 Begin
+  Result:=0;
+  If InOutRes <> 0 then exit;
   BlockRead(f,Buf,Count,l);
   Result:=l;
 End;
@@ -175,6 +187,8 @@ Procedure BlockRead(var f:File;var Buf;count:Word;var Result:Integer);[IOCheck];
 var
   l : longint;
 Begin
+  Result:=0;
+  If InOutRes <> 0 then exit;
   BlockRead(f,Buf,Count,l);
   Result:=l;
 End;
@@ -188,6 +202,7 @@ Procedure BlockRead(Var f:File;Var Buf;Count:Longint);[IOCheck];
 var
   Result : Longint;
 Begin
+  If InOutRes <> 0 then exit;
   BlockRead(f,Buf,Count,Result);
   If (Result=0) and (Count>0) Then
    InOutRes:=100;
@@ -199,6 +214,7 @@ Function FilePos(var f:File):Longint;[IOCheck];
   Return current Position In file f in records
 }
 Begin
+  If InOutRes <> 0 then exit;
   FilePos:=Do_FilePos(FileRec(f).Handle) div FileRec(f).RecSize;
 End;
 
@@ -208,9 +224,10 @@ Function FileSize(var f:File):Longint;[IOCheck];
   Return the size of file f in records
 }
 Begin
+  If InOutRes <> 0 then exit;
   if FileRec(f).RecSize=0 then
    FileSize:=0
-  else 
+  else
    FileSize:=Do_FileSize(FileRec(f).Handle) div FileRec(f).RecSize;
 End;
 
@@ -220,6 +237,7 @@ Function Eof(var f:File):Boolean;[IOCheck];
   Return True if we're at the end of the file f, else False is returned
 }
 Begin
+  If InOutRes <> 0 then exit;
   {Can't use do_ routines because we need record support}
   Eof:=(FileSize(f)<=FilePos(f));
 End;
@@ -230,6 +248,7 @@ Procedure Seek(var f:File;Pos:Longint);[IOCheck];
   Goto record Pos in file f
 }
 Begin
+  If InOutRes <> 0 then exit;
   Do_Seek(FileRec(f).Handle,Pos*FileRec(f).RecSize);
 End;
 
@@ -239,6 +258,7 @@ Procedure Truncate(Var f:File);[IOCheck];
   Truncate/Cut file f at the current record Position
 }
 Begin
+  If InOutRes <> 0 then exit;
   Do_Truncate(FileRec(f).Handle,FilePos(f)*FileRec(f).RecSize);
 End;
 
@@ -248,6 +268,7 @@ Procedure Close(var f:File);[IOCheck];
   Close file f
 }
 Begin
+  If InOutRes <> 0 then exit;
   If (FileRec(f).mode<>fmClosed) Then
    Begin
      FileRec(f).mode:=fmClosed;
@@ -258,6 +279,7 @@ End;
 
 Procedure Erase(var f : File);[IOCheck];
 Begin
+  If InOutRes <> 0 then exit;
   If FileRec(f).mode=fmClosed Then
    Do_Erase(PChar(@FileRec(f).Name));
 End;
@@ -265,6 +287,7 @@ End;
 
 Procedure Rename(var f : File;p:pchar);[IOCheck];
 Begin
+  If InOutRes <> 0 then exit;
   If FileRec(f).mode=fmClosed Then
    Begin
      Do_Rename(PChar(@FileRec(f).Name),p);
@@ -277,6 +300,7 @@ Procedure Rename(var f : File;const s : string);[IOCheck];
 var
   p : array[0..255] Of Char;
 Begin
+  If InOutRes <> 0 then exit;
   Move(s[1],p,Length(s));
   p[Length(s)]:=#0;
   Rename(f,Pchar(@p));
@@ -287,6 +311,7 @@ Procedure Rename(var f : File;c : char);[IOCheck];
 var
   p : array[0..1] Of Char;
 Begin
+  If InOutRes <> 0 then exit;
   p[0]:=c;
   p[1]:=#0;
   Rename(f,Pchar(@p));
@@ -294,7 +319,10 @@ End;
 
 {
   $Log$
-  Revision 1.4  1998-06-23 16:57:16  peter
+  Revision 1.5  1998-07-02 12:15:39  carl
+    + Each IOCheck routine now checks for InOures before executing, like TP
+
+  Revision 1.4  1998/06/23 16:57:16  peter
     * fixed the filesize() problems under linux and filerec.size=0 error
 
   Revision 1.3  1998/05/21 19:30:56  peter
