@@ -537,8 +537,7 @@ unit pexpr;
     procedure handle_procvar(procvar : pprocvardef;var t : ptree);
 
       begin
-         if (t^.treetype=calln) and
-            ((procvar^.options and pomethodpointer)<>0) then
+         if ((procvar^.options and pomethodpointer)<>0) then
            begin
               if (t^.methodpointer^.resulttype^.deftype=objectdef) and
                  (pobjectdef(t^.methodpointer^.resulttype)^.isclass) and
@@ -1946,12 +1945,15 @@ unit pexpr;
     begin
       p:=comp_expr(true);
       do_firstpass(p);
-      if (p^.treetype<>ordconstn) and
-         (p^.resulttype^.deftype=orddef) and
-         not(Porddef(p^.resulttype)^.typ in [uvoid,uchar,bool8bit,bool16bit,bool32bit]) then
-        Message(cg_e_illegal_expression)
-      else
-        get_intconst:=p^.value;
+      if not codegenerror then
+       begin
+         if (p^.treetype<>ordconstn) and
+            (p^.resulttype^.deftype=orddef) and
+           not(Porddef(p^.resulttype)^.typ in [uvoid,uchar,bool8bit,bool16bit,bool32bit]) then
+          Message(cg_e_illegal_expression)
+         else
+          get_intconst:=p^.value;
+       end;
       disposetree(p);
     end;
 
@@ -1980,8 +1982,8 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.102  1999-05-06 10:13:20  peter
-    * check for calln in handle_procvar
+  Revision 1.103  1999-05-06 21:40:16  peter
+    * fixed crash
 
   Revision 1.101  1999/05/06 09:05:21  peter
     * generic write_float and str_float
