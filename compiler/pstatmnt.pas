@@ -1027,7 +1027,7 @@ unit pstatmnt;
            begin
               if (token=INTCONST) or
                 ((token=ID) and
-                not((cs_delphi2_compatible in aktmoduleswitches) and
+                not((m_result in aktmodeswitches) and
                 (pattern='RESULT'))) then
                 begin
                    getsym(pattern,true);
@@ -1226,7 +1226,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.40  1998-09-23 21:53:04  florian
+  Revision 1.41  1998-09-24 23:49:15  peter
+    + aktmodeswitches
+
+  Revision 1.40  1998/09/23 21:53:04  florian
     * the following doesn't work: on texception do, was a parser error, fixed
 
   Revision 1.39  1998/09/21 10:26:07  peter

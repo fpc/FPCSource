@@ -188,9 +188,13 @@ unit parser;
 
        { reset symtable }
          symtablestack:=nil;
+         defaultsymtablestack:=nil;
+         systemunit:=nil;
+         objpasunit:=nil;
          refsymtable:=nil;
-         procprefix:='';
          aktprocsym:=nil;
+         procprefix:='';
+         registerdef:=true;
          { macros }
          macros:=new(psymtable,init(macrosymtable));
          macros^.name:=stringdup('Conditionals for '+filename);
@@ -219,6 +223,7 @@ unit parser;
        { Load current state from the init values }
          aktlocalswitches:=initlocalswitches;
          aktmoduleswitches:=initmoduleswitches;
+         aktmodeswitches:=initmodeswitches;
          aktpackrecords:=initpackrecords;
          aktpackenum:=initpackenum;
          aktoutputformat:=initoutputformat;
@@ -246,18 +251,6 @@ unit parser;
             AsmRes.Init('ppas');
           end;
 
-         { load system unit always }
-         loadsystemunit;
-
-         registerdef:=true;
-         make_ref:=true;
-
-         { current return type is void }
-         procinfo.retdef:=voiddef;
-
-         { reset lexical level }
-         lexlevel:=0;
-
          { If the compile level > 1 we get a nice "unit expected" error
            message if we are trying to use a program as unit.}
          if (token=_UNIT) or (compile_level>1) then
@@ -283,15 +276,7 @@ unit parser;
 
          { restore old state, close trees, > 0.99.5 has heapblocks, so
            it's the default to release the trees }
-{$ifdef VER0_99_5}
-         if dispose_asm_lists then
-           codegen_donemodule;
-{$else}
-  {$ifdef TP}
-         if dispose_asm_lists then
-  {$endif}
-           codegen_donemodule;
-{$endif}
+         codegen_donemodule;
 
 {$ifdef GDB}
          if cs_debuginfo in aktmoduleswitches then
@@ -386,7 +371,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.49  1998-09-23 15:39:07  pierre
+  Revision 1.50  1998-09-24 23:49:08  peter
+    + aktmodeswitches
+
+  Revision 1.49  1998/09/23 15:39:07  pierre
     * browser bugfixes
       was adding a reference when looking for the symbol
       if -bSYM_NAME was used

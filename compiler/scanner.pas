@@ -523,11 +523,10 @@ implementation
 
     procedure tscannerfile.dec_comment_level;
       begin
-         if (cs_tp_compatible in aktmoduleswitches) or
-            (cs_delphi2_compatible in aktmoduleswitches) then
-           comment_level:=0
+         if (m_nested_comment in aktmodeswitches) then
+           dec(comment_level)
          else
-           dec(comment_level);
+           comment_level:=0;
       end;
 
 
@@ -1510,7 +1509,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.52  1998-09-18 16:03:45  florian
+  Revision 1.53  1998-09-24 23:49:20  peter
+    + aktmodeswitches
+
+  Revision 1.52  1998/09/18 16:03:45  florian
     * some changes to compile with Delphi
 
   Revision 1.51  1998/09/16 16:41:49  peter

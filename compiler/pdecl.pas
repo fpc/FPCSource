@@ -242,14 +242,14 @@ unit pdecl;
              C_name:=orgpattern;
              sc:=idlist;
              consume(COLON);
-             if (cs_gpc_compatible in aktmoduleswitches) and
-               not(is_record or is_object) and
-               (token=ID) and (orgpattern='__asmname__') then
-                 begin
-                    consume(ID);
-                    C_name:=get_stringconst;
-                    Is_gpc_name:=true;
-                 end;
+             if (m_gpc in aktmodeswitches) and
+                not(is_record or is_object) and
+                (token=ID) and (orgpattern='__asmname__') then
+               begin
+                 consume(ID);
+                 C_name:=get_stringconst;
+                 Is_gpc_name:=true;
+               end;
              p:=read_type('');
              symdone:=false;
              if is_gpc_name then
@@ -1029,7 +1029,7 @@ unit pdecl;
            Message(parser_e_no_local_objects);
 
          storetypeforwardsallowed:=typecanbeforward;
-         if cs_tp_compatible in aktmoduleswitches then
+         if m_tp in aktmodeswitches then
            typecanbeforward:=false;
 
          { distinguish classes and objects }
@@ -1465,7 +1465,7 @@ unit pdecl;
          symtablestack:=symtable;
          consume(_RECORD);
          storetypeforwardsallowed:=typecanbeforward;
-         if cs_tp_compatible in aktmoduleswitches then
+         if m_tp in aktmodeswitches then
            typecanbeforward:=false;
          read_var_decs(true,false);
 
@@ -1484,7 +1484,7 @@ unit pdecl;
 
       var
          recsymtable : psymtable;
-         
+
       begin
          if (p^.typ=typesym) then
          if ((p^.properties and sp_forwarddef)<>0) then
@@ -2056,7 +2056,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.56  1998-09-23 15:39:09  pierre
+  Revision 1.57  1998-09-24 23:49:09  peter
+    + aktmodeswitches
+
+  Revision 1.56  1998/09/23 15:39:09  pierre
     * browser bugfixes
       was adding a reference when looking for the symbol
       if -bSYM_NAME was used

@@ -26,7 +26,6 @@ unit pmodules;
 
   interface
 
-    procedure loadsystemunit;
     procedure proc_unit;
     procedure proc_program(islibrary : boolean);
 
@@ -381,35 +380,51 @@ unit pmodules;
       end;
 
 
-    procedure loadsystemunit;
+    procedure loaddefaultunits;
       var
         hp : pmodule;
       begin
-      { if the current file isn't a system unit the the system unit
-        will be loaded }
-        if not(cs_compilesystem in aktmoduleswitches) then
-          begin
-            hp:=loadunit(upper(target_info.system_unit),true);
-            systemunit:=hp^.symtable;
-          { add to the used units }
-            current_module^.used_units.concat(new(pused_unit,init(hp,true)));
-          { read default constant definitions }
-            make_ref:=false;
-            readconstdefs;
-          { we could try to overload caret by default }
-            symtablestack:=systemunit;
-          { if POWER is defined in the RTL then use it for starstar overloading }
-            getsym('POWER',false);
-            if assigned(srsym) and (srsym^.typ=procsym) and
-               (overloaded_operators[STARSTAR]=nil) then
-              overloaded_operators[STARSTAR]:=pprocsym(srsym);
-            make_ref:=true;
-          end
+      { are we compiling the system unit? }
+        if (cs_compilesystem in aktmoduleswitches) then
+         begin
+         { create system defines }
+           createconstdefs;
+         { we don't need to reset anything, it's already done in parser.pas }
+           exit;
+         end;
+     { insert the system unit, it is allways the first }
+        hp:=loadunit(upper(target_info.system_unit),true);
+        systemunit:=hp^.symtable;
+        { it's always the first unit }
+        systemunit^.next:=nil;
+        symtablestack:=systemunit;
+        { add to the used units }
+        current_module^.used_units.concat(new(pused_unit,init(hp,true)));
+        refsymtable^.insert(new(punitsym,init('SYSTEM',systemunit)));
+        { read default constant definitions }
+        make_ref:=false;
+        readconstdefs;
+        make_ref:=true;
+        { if POWER is defined in the RTL then use it for starstar overloading }
+        getsym('POWER',false);
+        if assigned(srsym) and (srsym^.typ=procsym) and (overloaded_operators[STARSTAR]=nil) then
+          overloaded_operators[STARSTAR]:=pprocsym(srsym);
+      { Objpas unit? }
+        if m_objpas in aktmodeswitches then
+         begin
+           hp:=loadunit('OBJPAS',false);
+           objpasunit:=hp^.symtable;
+           { insert in stack }
+           objpasunit^.next:=symtablestack;
+           symtablestack:=objpasunit;
+           { add to the used units }
+           current_module^.used_units.concat(new(pused_unit,init(hp,true)));
+           refsymtable^.insert(new(punitsym,init('OBJPAS',objpasunit)));
+         end
         else
-          begin
-             createconstdefs;
-             systemunit:=nil;
-          end;
+         objpasunit:=nil;
+      { save default symtablestack }
+        defaultsymtablestack:=symtablestack;
       end;
 
 
@@ -447,7 +462,7 @@ unit pmodules;
          consume(SEMICOLON);
 
          { set the symtable to systemunit so it gets reorderd correctly }
-         symtablestack:=systemunit;
+         symtablestack:=defaultsymtablestack;
 
          { now insert the units in the symtablestack }
          hp:=pused_unit(current_module^.used_units.first);
@@ -519,7 +534,7 @@ unit pmodules;
          if token=ID then
           begin
           { create filenames and unit name }
-             current_module^.SetFileName(current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^);
+             current_module^.SetFileName(current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^,true);
              stringdispose(current_module^.modulename);
              current_module^.modulename:=stringdup(upper(pattern));
           { check for system unit }
@@ -555,6 +570,10 @@ unit pmodules;
          { update status }
          status.currentmodule:=current_module^.modulename^;
 
+         { maybe turn off m_objpas if we are compiling objpas }
+         if (current_module^.modulename^='OBJPAS') then
+           aktmodeswitches:=aktmodeswitches-[m_objpas];
+
          { this should be placed after uses !!}
 {$ifndef UseNiceNames}
          procprefix:='_'+current_module^.modulename^+'$$';
@@ -574,23 +593,21 @@ unit pmodules;
          { this also forbids to have another symbol         }
          { with the same name as the unit                   }
          refsymtable^.insert(new(punitsym,init(current_module^.modulename^,unitst)));
-         { set the symbol table for the current unit }
-         { this must be set later for interdependency }
-         { current_module^.symtable:=psymtable(p); }
 
          { a unit compiled at command line must be inside the loaded_unit list }
          if (compile_level=1) then
            loaded_units.insert(current_module);
 
+         { load default units, like the system unit }
+         loaddefaultunits;
+
+         { reset }
+         make_ref:=true;
+         lexlevel:=0;
+
          { insert qualifier for the system unit (allows system.writeln) }
          if not(cs_compilesystem in aktmoduleswitches) then
            begin
-              { insert the system unit }
-              { it is allways the first }
-              systemunit^.next:=nil;
-              symtablestack:=systemunit;
-              refsymtable^.insert(new(punitsym,init('SYSTEM',systemunit)));
-
               if token=_USES then
                 begin
                    unitst^.symtabletype:=unitsymtable;
@@ -600,7 +617,6 @@ unit pmodules;
                      exit;
                    unitst^.symtabletype:=globalsymtable;
                 end;
-
               { ... but insert the symbol table later }
               p^.next:=symtablestack;
               symtablestack:=p;
@@ -667,6 +683,7 @@ unit pmodules;
          { Read the implementation units }
          parse_implementation_uses(unitst);
 
+         { All units are read, now give them a number }
          numberunits;
 
          { now we can change refsymtable }
@@ -739,7 +756,7 @@ unit pmodules;
 
          { avoid self recursive destructor call !! PM }
          aktprocsym^.definition^.localst:=nil;
-         
+
          { unsed static symbols ? }
          symtablestack^.allsymbolsused;
 
@@ -850,11 +867,10 @@ unit pmodules;
          { insert after the unit symbol tables the static symbol table }
          { of the program                                              }
          st:=new(punitsymtable,init(staticsymtable,current_module^.modulename^));
-
          current_module^.symtable:=st;
+
          { necessary for browser }
          loaded_units.insert(current_module);
-
 
          {Generate a procsym.}
          make_ref:=false;
@@ -875,12 +891,12 @@ unit pmodules;
 
          refsymtable:=st;
 
+         { load standard units (system,objpas unit) }
+         loaddefaultunits;
 
-         {Insert the symbols of the system unit into the stack of symbol
-          tables.}
-         symtablestack:=systemunit;
-         systemunit^.next:=nil;
-         refsymtable^.insert(new(punitsym,init('SYSTEM',systemunit)));
+         { reset }
+         make_ref:=true;
+         lexlevel:=0;
 
          {Load the units used by the program we compile.}
          if token=_USES then
@@ -926,7 +942,7 @@ unit pmodules;
 
          { avoid self recursive destructor call !! PM }
          aktprocsym^.definition^.localst:=nil;
-         
+
          codegen_doneprocedure;
 
          consume(POINT);
@@ -968,7 +984,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.53  1998-09-23 12:20:50  pierre
+  Revision 1.54  1998-09-24 23:49:12  peter
+    + aktmodeswitches
+
+  Revision 1.53  1998/09/23 12:20:50  pierre
     * main program tmodule had no symtable (crashed browser)
     * unit symbols problem fixed !!
 

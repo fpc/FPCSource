@@ -60,7 +60,7 @@ const
   ibdbxcount       = 9;
   ibsymref         = 10;
   ibdefref         = 11;
-  ibendsymtablebrowser = 12;
+  ibendsymtablebrowser   = 12;
   ibbeginsymtablebrowser = 13;
   {syms}
   ibtypesym       = 20;
@@ -112,7 +112,6 @@ type
   ppureal=extended;
 {$endif}
 
-type
   tppuerror=(ppuentrytoobig,ppuentryerror);
 
   tppuheader=packed record
@@ -194,8 +193,6 @@ type
 
 implementation
 
-uses
-  verbose;
 {*****************************************************************************
                                    Crc 32
 *****************************************************************************}
@@ -394,8 +391,6 @@ begin
   blockread(f,buf^,ppubufsize,bufsize);
 {$endif}
   bufidx:=0;
-  if bufsize=0 then
-    Message(unit_f_ppu_read_unexpected_end);
 end;
 
 
@@ -530,7 +525,6 @@ begin
   if change_endian then
    getword:=swap(w)
   else
-
    getword:=w;
   inc(entryidx,2);
 end;
@@ -552,7 +546,6 @@ begin
   if change_endian then
    getlongint:=swap(l shr 16) or (longint(swap(l and $ffff)) shl 16)
   else
-
    getlongint:=l;
   inc(entryidx,4);
 end;
@@ -601,6 +594,7 @@ begin
   until (b in [ibend,iberror]) or ((b=untilb) and (entry.id=mainentryid));
   skipuntilentry:=(b=untilb);
 end;
+
 
 {*****************************************************************************
                                 TPPUFile Writing
@@ -740,7 +734,6 @@ begin
 end;
 
 
-
 procedure tppufile.putbyte(b:byte);
 begin
   writedata(b,1);
@@ -779,7 +772,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1998-09-23 15:39:10  pierre
+  Revision 1.16  1998-09-24 23:49:14  peter
+    + aktmodeswitches
+
+  Revision 1.15  1998/09/23 15:39:10  pierre
     * browser bugfixes
       was adding a reference when looking for the symbol
       if -bSYM_NAME was used

@@ -35,7 +35,7 @@ type
      _DIR_I,_DIR_I386_ATT,_DIR_I386_DIRECT,_DIR_I386_INTEL,_DIR_IOCHECKS,
        _DIR_IF,_DIR_IFDEF,_DIR_IFNDEF,_DIR_IFOPT,_DIR_INCLUDE,_DIR_INFO,
      _DIR_L,_DIR_LINK,_DIR_LINKLIB,_DIR_LOCALSYMBOLS,_DIR_LONGSTRINGS,
-     _DIR_M,_DIR_MEMORY,_DIR_MESSAGE,_DIR_MINENUMSIZE,_DIR_MMX,
+     _DIR_M,_DIR_MEMORY,_DIR_MESSAGE,_DIR_MINENUMSIZE,_DIR_MMX,_DIR_MODE,
      _DIR_NOTE,_DIR_NOTES,
      _DIR_OPENSTRINGS,_DIR_OUTPUT_FORMAT,_DIR_OVERFLOWCHECKS,
      _DIR_PACKENUM,_DIR_PACKRECORDS,
@@ -61,7 +61,7 @@ const
      'I','I386_ATT','I386_DIRECT','I386_INTEL','IOCHECKS',
        'IF','IFDEF','IFNDEF','IFOPT','INCLUDE','INFO',
      'L','LINK','LINKLIB','LOCALSYMBOLS','LONGSTRINGS',
-     'M','MEMORY','MESSAGE','MINENUMSIZE','MMX',
+     'M','MEMORY','MESSAGE','MINENUMSIZE','MMX','MODE',
      'NOTE','NOTES',
      'OPENSTRINGS','OUTPUT_FORMAT','OVERFLOWCHECKS',
      'PACKENUM','PACKRECORDS',
@@ -603,6 +603,35 @@ const
       end;
 
 
+    procedure dir_mode(t:tdirectivetoken);
+      begin
+        if not current_module^.in_global then
+         Message(scan_w_switch_is_global)
+        else
+          begin
+            current_scanner^.skipspace;
+            current_scanner^.readstring;
+            if pattern='DEFAULT' then
+             aktmodeswitches:=initmodeswitches
+            else
+             if pattern='DELPHI' then
+              aktmodeswitches:=delphimodeswitches
+            else
+             if pattern='TP' then
+              aktmodeswitches:=tpmodeswitches
+            else
+             if pattern='FPC' then
+              aktmodeswitches:=fpcmodeswitches
+            else
+             if pattern='OBJFPC' then
+              aktmodeswitches:=objfpcmodeswitches
+            else
+             if pattern='GPC' then
+              aktmodeswitches:=gpcmodeswitches;
+          end;
+      end;
+
+
     procedure dir_packrecords(t:tdirectivetoken);
       var
         hs : string;
@@ -742,16 +771,16 @@ const
            if l>1024 then
             heapsize:=l;
          end;
-	if c=',' then
-	 begin
-	   current_scanner^.readchar;
-	   current_scanner^.skipspace;
-	   l:=current_scanner^.readval;
-	   if l>1024 then
-		maxheapsize:=l;
-	 end;
-	if heapsize>maxheapsize then
-	    message(scan_w_illegal_switch);
+        if c=',' then
+         begin
+           current_scanner^.readchar;
+           current_scanner^.skipspace;
+           l:=current_scanner^.readval;
+           if l>1024 then
+            maxheapsize:=l;
+         end;
+        if heapsize>maxheapsize then
+          message(scan_w_illegal_switch);
       end;
 
 
@@ -814,6 +843,7 @@ const
          {_DIR_MESSAGE} dir_message,
          {_DIR_MINENUMSIZE} dir_packenum,
          {_DIR_MMX} dir_localswitch,
+         {_DIR_MODE} dir_mode,
          {_DIR_NOTE} dir_message,
          {_DIR_NOTES} dir_setverbose,
          {_DIR_OPENSTRINGS} dir_delphiswitch,
@@ -867,9 +897,9 @@ const
                hs:=current_scanner^.readid;
                if (hs='') then
                 begin
-                  if (c='$') and not(cs_tp_compatible in aktmoduleswitches) then
+                  if (c='$') and (m_fpc in aktmodeswitches) then
                    begin
-                     current_scanner^.readchar; { skip $ }
+                     current_scanner^.readchar;  { skip $ }
                      hs:=current_scanner^.readid;
                    end;
                   if (hs='') then
@@ -905,7 +935,10 @@ const
 
 {
   $Log$
-  Revision 1.31  1998-09-18 16:03:44  florian
+  Revision 1.32  1998-09-24 23:49:19  peter
+    + aktmodeswitches
+
+  Revision 1.31  1998/09/18 16:03:44  florian
     * some changes to compile with Delphi
 
   Revision 1.30  1998/09/16 16:41:47  peter

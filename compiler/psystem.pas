@@ -196,8 +196,11 @@ procedure createconstdefs;
 {
   Create all default definitions for consts for the system unit
 }
+var
+  oldregisterdef : boolean;
 begin
   { create definitions for constants }
+  oldregisterdef:=registerdef;
   registerdef:=false;
   voiddef:=new(porddef,init(uvoid,0,0));
   u8bitdef:=new(porddef,init(u8bit,0,255));
@@ -226,13 +229,17 @@ begin
   { some other definitions }
   voidpointerdef:=new(ppointerdef,init(voiddef));
   cfiledef:=new(pfiledef,init(ft_untyped,nil));
+  registerdef:=oldregisterdef;
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.5  1998-08-10 14:50:19  peter
+  Revision 1.6  1998-09-24 23:49:17  peter
+    + aktmodeswitches
+
+  Revision 1.5  1998/08/10 14:50:19  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.4  1998/06/25 14:04:24  peter

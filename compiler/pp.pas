@@ -242,10 +242,8 @@ end;
 begin
   oldexit:=exitproc;
   exitproc:=@myexit;
-{$ifndef VER0_99_5}
-  {$ifndef TP}
-    heapblocks:=true;
-  {$endif}
+{$ifndef TP}
+  heapblocks:=true;
 {$endif}
 {$ifdef UseOverlay}
   InitOverlay;
@@ -256,7 +254,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  1998-09-17 09:42:41  peter
+  Revision 1.30  1998-09-24 23:49:13  peter
+    + aktmodeswitches
+
+  Revision 1.29  1998/09/17 09:42:41  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

@@ -314,7 +314,7 @@ implementation
                        procvardef : begin
                                       { procedure variable can be assigned to an void pointer }
                                       { Not anymore. Use the @ operator now.}
-                                      if not(cs_tp_compatible in aktmoduleswitches) and
+                                      if not(m_tp_procvar in aktmodeswitches) and
                                          (ppointerdef(def_to)^.definition^.deftype=orddef) and
                                          (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
                                        begin
@@ -639,7 +639,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-09-24 09:02:14  peter
+  Revision 1.3  1998-09-24 23:49:05  peter
+    + aktmodeswitches
+
+  Revision 1.2  1998/09/24 09:02:14  peter
     * rewritten isconvertable to use case
     * array of .. and single variable are compatible
 

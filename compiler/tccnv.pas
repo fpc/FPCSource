@@ -628,7 +628,7 @@ implementation
            own resulttype. They will therefore always be incompatible with
            a procvar. Because isconvertable cannot check for procedures we
            use an extra check for them.}
-           if (cs_tp_compatible in aktmoduleswitches) and
+           if (m_tp_procvar in aktmodeswitches) and
              ((is_procsym_load(p^.left) or is_procsym_call(p^.left)) and
              (p^.resulttype^.deftype=procvardef)) then
              begin
@@ -814,7 +814,7 @@ implementation
             if (p^.left^.treetype=ordconstn) and is_ordinal(p^.resulttype) then
               begin
                  { perform range checking }
-                 if not(p^.explizit and (cs_tp_compatible in aktmoduleswitches)) then
+                 if not(p^.explizit and (m_tp in aktmodeswitches)) then
                    testrange(p^.resulttype,p^.left^.value);
                  hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
                  disposetree(p);
@@ -898,7 +898,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-23 20:42:24  peter
+  Revision 1.2  1998-09-24 23:49:22  peter
+    + aktmodeswitches
+
+  Revision 1.1  1998/09/23 20:42:24  peter
     * splitted pass_1
 
 }

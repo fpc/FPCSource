@@ -178,7 +178,7 @@ implementation
                    { result is a procedure variable }
                    { No, to be TP compatible, you must return a pointer to
                      the procedure that is stored in the procvar.}
-                   if not(cs_tp_compatible in aktmoduleswitches) then
+                   if not(m_tp_procvar in aktmodeswitches) then
                      begin
                         p^.resulttype:=new(pprocvardef,init);
 
@@ -500,7 +500,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-23 20:42:24  peter
+  Revision 1.2  1998-09-24 23:49:24  peter
+    + aktmodeswitches
+
+  Revision 1.1  1998/09/23 20:42:24  peter
     * splitted pass_1
 
 }

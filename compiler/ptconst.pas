@@ -418,7 +418,7 @@ unit ptconst;
                    exit;
                 end
               else
-              if not(cs_tp_compatible in aktmoduleswitches) then
+              if not(m_tp_procvar in aktmodeswitches) then
                 if token=KLAMMERAFFE then
                   consume(KLAMMERAFFE);
               getsym(pattern,true);
@@ -511,7 +511,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.15  1998-09-07 18:46:11  peter
+  Revision 1.16  1998-09-24 23:49:18  peter
+    + aktmodeswitches
+
+  Revision 1.15  1998/09/07 18:46:11  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 

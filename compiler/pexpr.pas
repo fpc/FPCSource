@@ -683,11 +683,11 @@ unit pexpr;
                { is this an access to a function result ? }
                if assigned(p^.funcretsym) and
                   ((pfuncretsym(sym)=p^.funcretsym) or
-                  ((pvarsym(sym)=opsym) and
-                  ((p^.flags and pi_operator)<>0))) and
+                   ((pvarsym(sym)=opsym) and
+                    ((p^.flags and pi_operator)<>0))) and
                   (p^.retdef<>pdef(voiddef)) and
                   (token<>LKLAMMER) and
-                  (not ((cs_tp_compatible in aktmoduleswitches) and
+                  (not ((m_tp in aktmodeswitches) and
                   (afterassignment or in_args))) then
                  begin
                     p1:=genzeronode(funcretn);
@@ -719,7 +719,7 @@ unit pexpr;
          begin
            { allow post fix operators }
            again:=true;
-           if (cs_delphi2_compatible in aktmoduleswitches) and
+           if (m_result in aktmodeswitches) and
               (pattern='RESULT') and
               assigned(aktprocsym) and
               (procinfo.retdef<>pdef(voiddef)) then
@@ -1748,7 +1748,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.54  1998-09-23 15:46:39  florian
+  Revision 1.55  1998-09-24 23:49:10  peter
+    + aktmodeswitches
+
+  Revision 1.54  1998/09/23 15:46:39  florian
     * problem with with and classes fixed
 
   Revision 1.53  1998/09/23 09:58:54  peter
