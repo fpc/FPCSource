@@ -60,6 +60,9 @@ implementation
     {$ifndef NOTARGETBEOS}
       ,t_beos
     {$endif}
+    {$ifndef NOTARGETWDOSX}
+      ,t_wdosx
+    {$endif}
 
 {**************************************
              Assemblers
@@ -82,7 +85,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-03-28 20:48:04  carl
+  Revision 1.4  2002-04-04 18:31:37  carl
+  + added wdosx support (patch from Pavel)
+
+  Revision 1.3  2002/03/28 20:48:04  carl
   - remove go32v1 support
 
   Revision 1.2  2001/06/03 15:12:47  peter

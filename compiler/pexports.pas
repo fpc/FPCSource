@@ -96,7 +96,7 @@ implementation
                         an underline }
                       if InternalProcName[1]='_' then
                         delete(InternalProcName,1,1)
-                      else if (target_info.target=target_i386_win32) and UseDeffileForExport then
+                      else if (target_info.target in [target_i386_win32,target_i386_wdosx]) and UseDeffileForExport then
                         begin
                           Message(parser_e_dlltool_unit_var_problem);
                           Message(parser_e_dlltool_unit_var_problem2);
@@ -118,7 +118,7 @@ implementation
                        end;
                       hp.options:=hp.options or eo_index;
                       pt.free;
-                      if target_info.target=target_i386_win32 then
+                      if target_info.target in [target_i386_win32,target_i386_wdosx] then
                        DefString:=srsym.realname+'='+InternalProcName+' @ '+tostr(hp.index)
                       else
                        DefString:=srsym.realname+'='+InternalProcName; {Index ignored!}
@@ -173,7 +173,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2001-11-02 22:58:04  peter
+  Revision 1.17  2002-04-04 18:41:07  carl
+  + added wdosx support (patch from Pavel)
+
+  Revision 1.16  2001/11/02 22:58:04  peter
     * procsym definition rewrite
 
   Revision 1.15  2001/04/18 22:01:57  peter

@@ -125,7 +125,7 @@ begin
         writeln(t,'STACKSIZE'#9+tostr(stacksize));
         writeln(t,'HEAPSIZE'#9+tostr(heapsize));
       end;
-  target_i386_win32 :
+  target_i386_win32, target_i386_wdosx :
     begin
       if description<>'' then
         writeln(t,'DESCRIPTION '+''''+description+'''');
@@ -160,7 +160,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2001-04-13 01:22:07  peter
+  Revision 1.7  2002-04-04 18:36:46  carl
+  + added wdosx support (patch from Pavel)
+
+  Revision 1.6  2001/04/13 01:22:07  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

@@ -629,7 +629,7 @@ uses
          if AllowOutput and (OutputFile<>'') and (compile_level=1) then
           n:=OutputFile;
          staticlibfilename:=stringdup(p+target_info.staticlibprefix+n+target_info.staticlibext);
-         if target_info.target=target_i386_WIN32 then
+         if target_info.target in [target_i386_WIN32,target_i386_wdosx] then
            sharedlibfilename:=stringdup(p+n+target_info.sharedlibext)
          else
            sharedlibfilename:=stringdup(p+target_info.sharedlibprefix+n+target_info.sharedlibext);
@@ -687,7 +687,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.11  2001-08-04 10:23:54  peter
+  Revision 1.12  2002-04-04 18:34:00  carl
+  + added wdosx support (patch from Pavel)
+
+  Revision 1.11  2001/08/04 10:23:54  peter
     * updates so it works with the ide
 
   Revision 1.10  2001/06/03 15:15:31  peter

@@ -123,7 +123,7 @@ end;
 
 procedure set_default_link_type;
 begin
-  if (target_info.target=target_i386_win32) then
+  if (target_info.target in [target_i386_win32,target_i386_wdosx]) then
     begin
       def_symbol('FPC_LINK_SMART');
       undef_symbol('FPC_LINK_STATIC');
@@ -1646,7 +1646,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.64  2001-12-03 21:48:42  peter
+  Revision 1.65  2002-04-04 18:39:45  carl
+  + added wdosx support (patch from Pavel)
+
+  Revision 1.64  2001/12/03 21:48:42  peter
     * freemem change to value parameter
     * torddef low/high range changed to int64
 

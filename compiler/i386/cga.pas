@@ -156,10 +156,19 @@ implementation
 {$endif}
        ;
 
-{$ifndef NOTARGETWIN32}
+{$ifdef NOTARGETWIN32} 
+ {$define __NOWINPECOFF__}
+{$endif}
+
+{$ifdef NOTARGETWDOSX} 
+ {$define __NOWINPECOFF__}
+{$endif}
+
+{$ifndef __NOWINPECOFF__}
   const
      winstackpagesize = 4096;
-{$endif}
+{$endif} 
+
 
 {*****************************************************************************
                                 Helpers
@@ -1185,6 +1194,7 @@ implementation
       case target_info.target of
          target_i386_win32,
          target_i386_freebsd,
+         target_i386_wdosx,
          target_i386_linux:
            begin
               getaddrlabel(pl);
@@ -1490,9 +1500,9 @@ implementation
       r    : treference;
       power,len  : longint;
       opsize : topsize;
-{$ifndef NOTARGETWIN32}
+{$ifndef __NOWINPECOFF__} 
       again,ok : tasmlabel;
-{$endif}
+{$endif} 
     begin
        if (tsym(p).typ=varsym) and
           (tvarsym(p).varspez=vs_value) and
@@ -1749,7 +1759,7 @@ implementation
                 emitinsertcall('FPC_INITIALIZELOCALTHREADVARS');
 
               { initialize profiling for win32 }
-              if (target_info.target=target_I386_WIN32) and
+              if (target_info.target in [target_I386_WIN32,target_I386_wdosx]) and
                  (cs_profile in aktmoduleswitches) then
                 emitinsertcall('__monstartup');
            end;
@@ -1835,7 +1845,7 @@ implementation
               nostackframe:=false;
               if stackframe<>0 then
                begin
-{$ifndef NOTARGETWIN32}
+{$ifndef __NOWINPECOFF__}
                  { windows guards only a few pages for stack growing, }
                  { so we have to access every page first              }
                  if (target_info.target=target_i386_win32) and
@@ -1866,11 +1876,11 @@ implementation
                        end
                    end
                  else
-{$endif NOTARGETWIN32}
+{$endif __NOWINPECOFF__}
                    exprasmList.insert(Taicpu.Op_const_reg(A_SUB,S_L,stackframe,R_ESP));
                  if (cs_check_stack in aktlocalswitches) and
                    not(target_info.target in [target_i386_freebsd,target_i386_netbsd,
-                                              target_i386_linux,target_i386_win32]) then
+                                              target_i386_linux,target_i386_win32,target_i386_wdosx]) then
                    begin
                       emitinsertcall('FPC_STACKCHECK');
                       exprasmList.insert(Taicpu.Op_const(A_PUSH,S_L,stackframe));
@@ -2609,11 +2619,17 @@ implementation
          end;
 
 {$endif test_dest_loc}
+{$ifdef __NOWINPECOFF__}
+ {$undef __NOWINPECOFF__}
+{$endif}
 
 end.
 {
   $Log$
-  Revision 1.19  2002-04-02 17:11:33  peter
+  Revision 1.20  2002-04-04 18:30:22  carl
+  + added wdosx support (patch from Pavel)
+
+  Revision 1.19  2002/04/02 17:11:33  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines

@@ -303,9 +303,7 @@ implementation
           aktprocsym=nil. But in that case code=nil. hus we should check for
           code=nil, when we use aktprocsym.}
 
-         { set the framepointer to esp for assembler functions }
-         { but only if the are no local variables           }
-         { already done in assembler_block }
+         { set the start offset to the start of the temp area in the stack }
          tg.setfirsttemp(procinfo^.firsttemp_offset);
 
          { ... and generate assembler }
@@ -770,8 +768,8 @@ implementation
                         Message(parser_e_syntax_error);
                         consume_all_until(_SEMICOLON);
                      end
-                   else if islibrary or (target_info.target=target_i386_WIN32)
-                   or (target_info.target=target_i386_Netware) then  // AD
+                   else if islibrary or (target_info.target in [target_i386_WIN32,target_i386_wdosx,target_i386_Netware])
+                   then  // AD
                      read_exports;
                 end
               else break;
@@ -819,7 +817,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2002-03-31 20:26:36  jonas
+  Revision 1.46  2002-04-04 18:45:19  carl
+  + added wdosx support (patch from Pavel)
+
+  Revision 1.45  2002/03/31 20:26:36  jonas
     + a_loadfpu_* and a_loadmm_* methods in tcg
     * register allocation is now handled by a class and is mostly processor
       independent (+rgobj.pas and i386/rgcpu.pas)

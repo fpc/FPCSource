@@ -128,7 +128,7 @@ begin
    While not current_module.ResourceFiles.Empty do
     begin
       case target_info.target of
-        target_i386_win32:
+        target_i386_win32,target_i386_wdosx:
           hr:=new(presourcefile,init(current_module.ResourceFiles.getfirst));
         else
           Message(scan_e_resourcefiles_not_supported);
@@ -142,7 +142,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2001-08-07 18:47:12  peter
+  Revision 1.11  2002-04-04 18:32:37  carl
+  + added wdosx support (patch from Pavel)
+
+  Revision 1.10  2001/08/07 18:47:12  peter
     * merged netbsd start
     * profile for win32
 

@@ -1160,14 +1160,38 @@ implementation
               '.stab','.stabstr')
           );
 
+       as_i386_pecoffwdosx_info : tasminfo =
+          (
+            id     : as_i386_pecoffwdosx;
+            idtxt  : 'PECOFFWDOSX';
+            asmbin : '';
+            asmcmd : '';
+            supported_target : target_i386_wdosx;
+            outputbinary : true;
+            allowdirect : false;
+            externals : true;
+            needar : false;
+            labelprefix_only_inside_procedure: false;
+            labelprefix : '.L';
+            comment : '';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+              '.stab','.stabstr')
+          );
+
 
 initialization
   RegisterAssembler(as_i386_coff_info,TCoffAssembler);
   RegisterAssembler(as_i386_pecoff_info,TPECoffAssembler);
+  RegisterAssembler(as_i386_pecoffwdosx_info,TPECoffAssembler); 
 end.
 {
   $Log$
-  Revision 1.16  2001-09-17 21:29:12  peter
+  Revision 1.17  2002-04-04 18:38:30  carl
+  + added wdosx support (patch from Pavel)
+
+  Revision 1.16  2001/09/17 21:29:12  peter
     * merged netbsd, fpu-overflow from fixes branch
 
   Revision 1.15  2001/05/06 17:13:23  jonas

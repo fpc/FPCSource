@@ -73,7 +73,7 @@ implementation
             end;
            DLLscanner.Free;
            { Recreate import section }
-           if (target_info.target=target_i386_win32) then
+           if (target_info.target in [target_i386_win32,target_i386_wdosx]) then
             begin
               if assigned(importssection)then
                importssection.clear
@@ -98,7 +98,7 @@ implementation
          begin
            { regenerate the importssection for win32 }
            if assigned(importssection) and
-              (target_info.target=target_i386_win32) then
+              (target_info.target in [target_i386_win32,target_i386_wdosx]) then
             begin
               importsSection.clear;
               importlib.generatesmartlib;
@@ -1181,7 +1181,7 @@ implementation
          { internal assembler uses rva for stabs info
            so it should work with relocated DLLs }
          if RelocSection and
-            (target_info.target=target_i386_win32) and
+            (target_info.target in [target_i386_win32,target_i386_wdosx]) and
             (target_info.assem<>as_i386_pecoff) then
            begin
               include(aktglobalswitches,cs_link_strip);
@@ -1220,7 +1220,7 @@ implementation
               stringdispose(current_module.realmodulename);
               current_module.modulename:=stringdup(pattern);
               current_module.realmodulename:=stringdup(orgpattern);
-              if (target_info.target=target_i386_WIN32) then
+              if (target_info.target in [target_i386_WIN32,target_i386_wdosx]) then
                 exportlib.preparelib(pattern);
               consume(_ID);
               if token=_LKLAMMER then
@@ -1231,7 +1231,7 @@ implementation
                 end;
               consume(_SEMICOLON);
             end
-         else if (target_info.target=target_i386_WIN32) then
+         else if (target_info.target in [target_i386_WIN32,target_i386_wdosx]) then
            exportlib.preparelib(current_module.modulename^);
 
          { global switches are read, so further changes aren't allowed }
@@ -1305,7 +1305,7 @@ implementation
          { Add symbol to the exports section for win32 so smartlinking a
            DLL will include the edata section }
          if assigned(exportlib) and
-            (target_info.target=target_i386_win32) and
+            (target_info.target in [target_i386_win32,target_i386_wdosx]) and
             assigned(current_module._exports.first) then
            codesegment.concat(tai_const_symbol.create(exportlib.edatalabel));
 
@@ -1370,7 +1370,7 @@ implementation
           importlib.generatelib;
 
          if islibrary or
-            (target_info.target=target_i386_WIN32) or
+            (target_info.target in [target_i386_WIN32,target_i386_wdosx]) or
             (target_info.target=target_i386_NETWARE) then
            exportlib.generatelib;
 
@@ -1428,7 +1428,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2002-04-02 17:11:29  peter
+  Revision 1.57  2002-04-04 18:42:49  carl
+  + added wdosx support (patch from Pavel)
+
+  Revision 1.56  2002/04/02 17:11:29  peter
     * tlocation,treference update
     * LOC_CONSTANT added for better constant handling
     * secondadd splitted in multiple routines
