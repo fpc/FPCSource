@@ -72,7 +72,6 @@ unit pdecl;
        ;
 
     function read_type(const name : stringid) : pdef;forward;
-    procedure read_var_decs(is_record : boolean;do_absolute : boolean);forward;
 
     procedure const_dec;
 
@@ -171,15 +170,271 @@ unit pdecl;
          consume(SEMICOLON);
       end;
 
+
+    procedure read_var_decs(is_record,is_object:boolean);
+    { reads the filed of a record into a        }
+    { symtablestack, if record=false            }
+    { variants are forbidden, so this procedure }
+    { can be used to read object fields         }
+    { if absolute is true, ABSOLUTE and file    }
+    { types are allowed                         }
+    { => the procedure is also used to read     }
+    { a sequence of variable declaration        }
+      var
+         sc : pstringcontainer;
+         s : stringid;
+         l    : longint;
+         code : word;
+         hs : string;
+         p,casedef : pdef;
+         { maxsize contains the max. size of a variant }
+         { startvarrec contains the start of the variant part of a record }
+         maxsize,startvarrec : longint;
+         pt : ptree;
+         old_block_type : tblock_type;
+         { to handle absolute }
+         abssym : pabsolutesym;
+         filepos : tfileposinfo;
+
+         Csym : pvarsym;
+         is_cdecl,extern_Csym,export_Csym : boolean;
+         C_name : string;
+         symdone : boolean;
+      begin
+         hs:='';
+         old_block_type:=block_type;
+         block_type:=bt_type;
+       { Force an expected ID error message }
+         if not (token in [ID,_CASE,_END]) then
+          consume(ID);
+       { read vars }
+         while (token=ID) and
+           not(is_object and
+              ((pattern='PUBLIC') or (pattern='PRIVATE') or
+               (pattern='PUBLISHED') or (pattern='PROTECTED'))) do
+           begin
+             C_name:=orgpattern;
+             sc:=idlist;
+             consume(COLON);
+             p:=read_type('');
+             symdone:=false;
+           { check for absolute }
+             if (token=ID) and (pattern='ABSOLUTE') and not(is_record or is_object) then
+              begin
+                consume(ID);
+              { only allowed for one var }
+                s:=sc^.get_with_tokeninfo(filepos);
+                if not sc^.empty then
+                 Message(parser_e_absolute_only_one_var);
+                dispose(sc,done);
+              { parse the rest }
+                if token=ID then
+                 begin
+                   getsym(pattern,true);
+                   consume(ID);
+                   { we should check the result type of srsym }
+                   if not (srsym^.typ in [varsym,typedconstsym]) then
+                     Message(parser_e_absolute_only_to_var_or_const);
+                   abssym:=new(pabsolutesym,init(s,p));
+                   abssym^.typ:=absolutesym;
+                   abssym^.abstyp:=tovar;
+                   abssym^.ref:=srsym;
+                   abssym^.line_no:=filepos.line;
+                   symtablestack^.insert(abssym);
+                 end
+                else
+                 if token=CSTRING then
+                  begin
+                    abssym:=new(pabsolutesym,init(s,p));
+                    s:=pattern;
+                    consume(CSTRING);
+                    abssym^.typ:=absolutesym;
+                    abssym^.abstyp:=toasm;
+                    abssym^.asmname:=stringdup(s);
+                    abssym^.line_no:=filepos.line;
+                    symtablestack^.insert(abssym);
+                  end
+                else
+                { absolute address ?!? }
+                 if token=INTCONST then
+                  begin
+{$ifdef i386}
+                    if (target_info.target=target_GO32V2) then
+                     begin
+                       abssym:=new(pabsolutesym,init(s,p));
+                       abssym^.typ:=absolutesym;
+                       abssym^.abstyp:=toaddr;
+                       abssym^.absseg:=false;
+                       abssym^.line_no:=filepos.line;
+                       s:=pattern;
+                       consume(INTCONST);
+                       val(s,abssym^.address,code);
+                       if token=COLON then
+                        begin
+                          consume(token);
+                          s:=pattern;
+                          consume(INTCONST);
+                          val(s,l,code);
+                          abssym^.address:=abssym^.address shl 4+l;
+                          abssym^.absseg:=true;
+                        end;
+                       symtablestack^.insert(abssym);
+                     end
+                    else
+{$endif i386}
+                     Message(parser_e_absolute_only_to_var_or_const);
+                  end
+                else
+                 Message(parser_e_absolute_only_to_var_or_const);
+                symdone:=true;
+              end;
+           { for a record there doesn't need to be a ; before the END or ) }
+             if not((is_record or is_object) and (token in [_END,RKLAMMER])) then
+              consume(SEMICOLON);
+           { Check for variable directives }
+             if (token=ID) then
+              begin
+              { Check for C Variable declarations }
+                if support_c_var and
+                   not(is_record or is_object) and
+                   ((pattern='EXPORT') or
+                    (pattern='EXTERNAL') or
+                    (pattern='CDECL')) then
+                 begin
+                   { only allowed for one var }
+                   s:=sc^.get_with_tokeninfo(filepos);
+                   if not sc^.empty then
+                    Message(parser_e_absolute_only_one_var);
+                   dispose(sc,done);
+                   { defaults }
+                   is_cdecl:=false;
+                   extern_csym:=false;
+                   export_Csym:=false;
+                   { cdecl }
+                   if pattern='CDECL' then
+                    begin
+                      consume(ID);
+                      consume(SEMICOLON);
+                      is_cdecl:=true;
+                    end;
+                   { external }
+                   if pattern='EXTERNAL' then
+                    begin
+                      consume(ID);
+                      extern_csym:=true;
+                    end;
+                   { export }
+                   if pattern='EXPORT' then
+                    begin
+                      consume(ID);
+                      if extern_csym then
+                       Comment(V_Error,'can''t use both EXPORT and EXTERNAL')
+                      else
+                       export_Csym:=true;
+                    end;
+                 { external and export need a name after when no cdecl is used }
+                   if not is_cdecl then
+                    begin
+                      if (token=ID) and (pattern='NAME') then
+                       consume(ID)
+                      else
+                       Comment(V_Error,'NAME keyword expected');
+                      C_name:=pattern;
+                    { allow also char }
+                      if token=CCHAR then
+                       consume(CCHAR)
+                      else
+                       consume(CSTRING);
+                    end;
+                 { consume the ; when export or external is used }
+                   if extern_csym or export_csym then
+                    consume(SEMICOLON);
+                 { insert in the symtable }
+                   Csym:=new(pvarsym,init_C(s,C_name,p));
+                   if extern_Csym then
+                    begin
+                      Csym^.var_options:=Csym^.var_options or vo_is_external;
+                      { correct type ?? }
+                      externals^.concat(new(pai_external,init(Csym^.mangledname,EXT_NEAR)));
+                    end;
+                   symtablestack^.insert(Csym);
+                   symdone:=true;
+                 end
+                else
+                 if (is_object) and (cs_static_keyword in aktswitches) and (pattern='STATIC') then
+                  begin
+                    current_object_option:=current_object_option or sp_static;
+                    insert_syms(symtablestack,sc,p);
+                    current_object_option:=current_object_option - sp_static;
+                    consume(ID);
+                    consume(SEMICOLON);
+                    symdone:=true;
+                  end;
+              end;
+           { insert it in the symtable, if not done yet }
+             if not symdone then
+              insert_syms(symtablestack,sc,p);
+           end;
+       { Check for Case }
+         if is_record and (token=_CASE) then
+           begin
+              maxsize:=0;
+              consume(_CASE);
+              s:=pattern;
+              getsym(s,false);
+              { may be only a type: }
+              if assigned(srsym) and (srsym^.typ in [typesym,unitsym]) then
+                casedef:=read_type('')
+              else
+                begin
+                  consume(ID);
+                  consume(COLON);
+                  casedef:=read_type('');
+                  symtablestack^.insert(new(pvarsym,init(s,casedef)));
+                end;
+              if not is_ordinal(casedef) then
+               Message(parser_e_ordinal_expected);
+              consume(_OF);
+              startvarrec:=symtablestack^.datasize;
+              repeat
+                repeat
+                  pt:=comp_expr(true);
+                  do_firstpass(pt);
+                  if not(pt^.treetype=ordconstn) then
+                    Message(cg_e_illegal_expression);
+                  disposetree(pt);
+                  if token=COMMA then
+                   consume(COMMA)
+                  else
+                   break;
+                until false;
+                consume(COLON);
+              { read the vars }
+                consume(LKLAMMER);
+                if token<>RKLAMMER then
+                  read_var_decs(true,false);
+                consume(RKLAMMER);
+              { calculates maximal variant size }
+                maxsize:=max(maxsize,symtablestack^.datasize);
+              { the items of the next variant are overlayed }
+                symtablestack^.datasize:=startvarrec;
+                if token<>_END then
+                  consume(SEMICOLON);
+              until token=_END;
+            { at last set the record size to that of the biggest variant }
+              symtablestack^.datasize:=maxsize;
+           end;
+         block_type:=old_block_type;
+      end;
+
+
+    function stringtype : pdef;
     { reads a string type with optional length }
     { and returns a pointer to the string      }
     { definition                               }
-    function stringtype : pdef;
-
       var
          p : ptree;
          d : pdef;
-
       begin
          consume(_STRING);
          if token=LECKKLAMMER then
@@ -227,11 +482,11 @@ unit pdecl;
                  stringtype:=d;
           end;
 
+
+    function id_type(var s : string) : pdef;
     { reads a type definition and returns a pointer }
     { to a appropriating pdef, s gets the name of   }
     { the type to allow name mangling               }
-    function id_type(var s : string) : pdef;
-
       begin
          s:=pattern;
          consume(ID);
@@ -269,13 +524,12 @@ unit pdecl;
          id_type:=ptypesym(srsym)^.definition;
       end;
 
+
+    function single_type(var s : string) : pdef;
     { reads a string, file type or a type id and returns a name and }
     { pdef                                                          }
-    function single_type(var s : string) : pdef;
-
        var
           hs : string;
-
        begin
           case token of
             _STRING:
@@ -305,9 +559,9 @@ unit pdecl;
          end;
       end;
 
-    { this function parses an object or class declaration }
-    function object_dec(const n : stringid;fd : pobjectdef) : pdef;
 
+    function object_dec(const n : stringid;fd : pobjectdef) : pdef;
+    { this function parses an object or class declaration }
       var
          actmembertype : symprop;
          there_is_a_destructor : boolean;
@@ -623,7 +877,6 @@ unit pdecl;
         end;
 
       procedure destructor_head;
-
         begin
            consume(_DESTRUCTOR);
            _proc_head(podestructor);
@@ -636,158 +889,12 @@ unit pdecl;
            aktprocsym^.definition^.retdef:=voiddef;
         end;
 
-      procedure object_komponenten;
-
-        var
-           oldparse_only : boolean;
-
-        begin
-           repeat
-             if actmembertype=sp_private then
-               aktclass^.options:=aktclass^.options or oo_hasprivate;
-             if actmembertype=sp_protected then
-               aktclass^.options:=aktclass^.options or oo_hasprotected;
-
-             case token of
-                ID:
-                  begin
-                     if (pattern='PUBLIC') or
-                       (pattern='PUBLISHED') or
-                       (pattern='PROTECTED') or
-                       (pattern='PRIVATE') then
-                       exit;
-                     read_var_decs(false,false);
-                  end;
-                _PROPERTY:
-                  property_dec;
-                _PROCEDURE,_FUNCTION,_CLASS:
-                  begin
-                     oldparse_only:=parse_only;
-                     parse_only:=true;
-                     proc_head;
-                     parse_only:=oldparse_only;
-                     if (token=ID) and
-                       ((pattern='VIRTUAL') or (pattern='DYNAMIC')) then
-                       begin
-                          if actmembertype=sp_private then
-                           Message(parser_w_priv_meth_not_virtual);
-                          consume(ID);
-                          consume(SEMICOLON);
-                          aktprocsym^.definition^.options:=
-                            aktprocsym^.definition^.options or povirtualmethod;
-                          aktclass^.options:=aktclass^.options or oo_hasvirtual;
-                       end
-                     else if (token=ID) and (pattern='OVERRIDE') then
-                       begin
-                          consume(ID);
-                          consume(SEMICOLON);
-                          aktprocsym^.definition^.options:=
-                            aktprocsym^.definition^.options or pooverridingmethod or povirtualmethod;
-                       end;
-                     { Delphi II extension }
-                     if (token=ID) and (pattern='ABSTRACT') then
-                       begin
-                          consume(ID);
-                          consume(SEMICOLON);
-                          if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
-                            begin
-                               aktprocsym^.definition^.options:=
-                                aktprocsym^.definition^.options or
-                                  poabstractmethod;
-                            end
-                          else
-                            Message(parser_e_only_virtual_methods_abstract);
-                          { the method is defined }
-                          aktprocsym^.definition^.forwarddef:=false;
-                       end;
-                     if (token=ID) and (pattern='STATIC') and
-                        (cs_static_keyword in aktswitches) then
-                       begin
-                          consume(ID);
-                          consume(SEMICOLON);
-                          aktprocsym^.properties:=
-                            aktprocsym^.properties or
-                              sp_static;
-                          aktprocsym^.definition^.options:=
-                            aktprocsym^.definition^.options or
-                               postaticmethod;
-                       end;
-                  end;
-                _CONSTRUCTOR:
-                  begin
-                     if actmembertype<>sp_public then
-                       Message(parser_w_constructor_should_be_public);
-                     oldparse_only:=parse_only;
-                     parse_only:=true;
-                     constructor_head;
-                     parse_only:=oldparse_only;
-                     if (token=ID) and
-                       ((pattern='VIRTUAL') or (pattern='DYNAMIC')) then
-                       begin
-                          consume(ID);
-                          consume(SEMICOLON);
-                          if not(aktclass^.isclass) then
-                            Message(parser_e_constructor_cannot_be_not_virtual)
-                          else
-                            begin
-                               aktprocsym^.definition^.options:=
-                                 aktprocsym^.definition^.options or povirtualmethod;
-                               aktclass^.options:=aktclass^.options or oo_hasvirtual;
-                            end
-                       end
-                     else if (token=ID) and (pattern='OVERRIDE') then
-                       begin
-                          consume(ID);
-                          consume(SEMICOLON);
-                          if (aktclass^.options and oois_class=0) then
-                            Message(parser_e_constructor_cannot_be_not_virtual)
-                          else
-                            begin
-                               aktprocsym^.definition^.options:=
-                                 aktprocsym^.definition^.options or pooverridingmethod or povirtualmethod;
-                            end;
-                       end;
-                  end;
-                _DESTRUCTOR:
-                  begin
-                     if there_is_a_destructor then
-                      Message(parser_n_only_one_destructor);
-                     there_is_a_destructor:=true;
-
-                     if actmembertype<>sp_public then
-                      Message(parser_w_destructor_should_be_public);
-                     oldparse_only:=parse_only;
-                     parse_only:=true;
-                     destructor_head;
-                     parse_only:=oldparse_only;
-                     if (token=ID) and
-                       ((pattern='VIRTUAL') or (pattern='DYNAMIC')) then
-                       begin
-                          consume(ID);
-                          consume(SEMICOLON);
-                          aktprocsym^.definition^.options:=
-                            aktprocsym^.definition^.options or povirtualmethod;
-                       end
-                     else if (token=ID) and (pattern='OVERRIDE') then
-                       begin
-                          consume(ID);
-                          consume(SEMICOLON);
-                          aktprocsym^.definition^.options:=
-                            aktprocsym^.definition^.options or pooverridingmethod or povirtualmethod;
-                       end;
-                  end;
-                _END : exit;
-                else Message(parser_e_syntax_error);
-             end;
-           until false;
-        end;
-
       var
-         hs : string;
-         pcrd : pclassrefdef;
-         hp1 : pdef;
-         oldprocsym:Pprocsym;
-
+         hs         : string;
+         pcrd       : pclassrefdef;
+         hp1        : pdef;
+         oldprocsym : Pprocsym;
+         oldparse_only : boolean;
       begin
          {Nowadays aktprocsym may already have a value, so we need to save
           it.}
@@ -976,42 +1083,169 @@ unit pdecl;
          testcurobject:=1;
          curobjectname:=n;
 
-         { short class declaration ? }
-         if token<>SEMICOLON then
-           begin
-              while token<>_END do
-                begin
-                   if (token=ID) and (pattern='PRIVATE') then
-                     begin
-                        consume(ID);
-                        actmembertype:=sp_private;
-                        current_object_option:=sp_private;
-                     end;
-                   if (token=ID) and (pattern='PROTECTED') then
-                     begin
-                        consume(ID);
-                        current_object_option:=sp_protected;
-                        actmembertype:=sp_protected;
-                     end;
-                   if (token=ID) and (pattern='PUBLIC') then
-                     begin
-                        consume(ID);
-                        current_object_option:=sp_public;
-                        actmembertype:=sp_public;
-                     end;
-                   if (token=ID) and (pattern='PUBLISHED') then
-                     begin
-                        if (aktclass^.options and oo_can_have_published)=0 then
-                          Message(parser_e_cant_have_published);
-                        consume(ID);
-                        current_object_option:=sp_published;
-                        actmembertype:=sp_published;
-                     end;
-                   object_komponenten;
-                end;
-              current_object_option:=sp_public;
-              consume(_END);
-           end;
+       { short class declaration ? }
+         if (not is_a_class) or (token<>SEMICOLON) then
+          begin
+          { Parse componenten }
+            repeat
+              if actmembertype=sp_private then
+                aktclass^.options:=aktclass^.options or oo_hasprivate;
+              if actmembertype=sp_protected then
+                aktclass^.options:=aktclass^.options or oo_hasprotected;
+              case token of
+               ID : begin
+                      if (pattern='PRIVATE') then
+                       begin
+                         consume(ID);
+                         actmembertype:=sp_private;
+                         current_object_option:=sp_private;
+                       end
+                      else
+                       if (pattern='PROTECTED') then
+                        begin
+                          consume(ID);
+                          current_object_option:=sp_protected;
+                          actmembertype:=sp_protected;
+                        end
+                      else
+                       if (pattern='PUBLIC') then
+                        begin
+                          consume(ID);
+                          current_object_option:=sp_public;
+                          actmembertype:=sp_public;
+                        end
+                      else
+                       if (pattern='PUBLISHED') then
+                        begin
+                          if (aktclass^.options and oo_can_have_published)=0 then
+                           Message(parser_e_cant_have_published);
+                          consume(ID);
+                          current_object_option:=sp_published;
+                          actmembertype:=sp_published;
+                        end
+                      else
+                       read_var_decs(false,true);
+                    end;
+        _PROPERTY : property_dec;
+       _PROCEDURE,
+        _FUNCTION,
+           _CLASS : begin
+                      oldparse_only:=parse_only;
+                      parse_only:=true;
+                      proc_head;
+                      parse_only:=oldparse_only;
+                      if (token=ID) then
+                       begin
+                         if (pattern='VIRTUAL') or (pattern='DYNAMIC') then
+                          begin
+                            if actmembertype=sp_private then
+                             Message(parser_w_priv_meth_not_virtual);
+                            consume(ID);
+                            consume(SEMICOLON);
+                            aktprocsym^.definition^.options:=aktprocsym^.definition^.options or povirtualmethod;
+                            aktclass^.options:=aktclass^.options or oo_hasvirtual;
+                          end
+                         else
+                          if (pattern='OVERRIDE') then
+                           begin
+                             consume(ID);
+                             consume(SEMICOLON);
+                             aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
+                               pooverridingmethod or povirtualmethod;
+                           end;
+                      { Delphi II extension }
+                         if (pattern='ABSTRACT') then
+                          begin
+                            consume(ID);
+                            consume(SEMICOLON);
+                            if (aktprocsym^.definition^.options and povirtualmethod)<>0 then
+                             aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poabstractmethod
+                            else
+                             Message(parser_e_only_virtual_methods_abstract);
+                          { the method is defined }
+                            aktprocsym^.definition^.forwarddef:=false;
+                          end;
+                         if (cs_static_keyword in aktswitches) and (pattern='STATIC') then
+                          begin
+                            consume(ID);
+                            consume(SEMICOLON);
+                            aktprocsym^.properties:=aktprocsym^.properties or sp_static;
+                            aktprocsym^.definition^.options:=aktprocsym^.definition^.options or postaticmethod;
+                          end;
+                       end;
+                    end;
+     _CONSTRUCTOR : begin
+                      if actmembertype<>sp_public then
+                        Message(parser_w_constructor_should_be_public);
+                      oldparse_only:=parse_only;
+                      parse_only:=true;
+                      constructor_head;
+                      parse_only:=oldparse_only;
+                      if (token=ID) then
+                       begin
+                         if (pattern='VIRTUAL') or (pattern='DYNAMIC') then
+                          begin
+                            consume(ID);
+                            consume(SEMICOLON);
+                            if not(aktclass^.isclass) then
+                             Message(parser_e_constructor_cannot_be_not_virtual)
+                            else
+                             begin
+                               aktprocsym^.definition^.options:=aktprocsym^.definition^.options or povirtualmethod;
+                               aktclass^.options:=aktclass^.options or oo_hasvirtual;
+                             end;
+                          end
+                         else
+                          if (pattern='OVERRIDE') then
+                           begin
+                             consume(ID);
+                             consume(SEMICOLON);
+                             if (aktclass^.options and oois_class=0) then
+                              Message(parser_e_constructor_cannot_be_not_virtual)
+                             else
+                              aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
+                                pooverridingmethod or povirtualmethod;
+                          end;
+                       end;
+                    end;
+      _DESTRUCTOR : begin
+                      if there_is_a_destructor then
+                       Message(parser_n_only_one_destructor);
+                      there_is_a_destructor:=true;
+                      if actmembertype<>sp_public then
+                       Message(parser_w_destructor_should_be_public);
+                      oldparse_only:=parse_only;
+                      parse_only:=true;
+                      destructor_head;
+                      parse_only:=oldparse_only;
+                      if (token=ID) then
+                       begin
+                         if (pattern='VIRTUAL') or (pattern='DYNAMIC') then
+                          begin
+                            consume(ID);
+                            consume(SEMICOLON);
+                            aktprocsym^.definition^.options:=aktprocsym^.definition^.options or povirtualmethod;
+                          end
+                         else
+                          if (pattern='OVERRIDE') then
+                           begin
+                             consume(ID);
+                             consume(SEMICOLON);
+                             aktprocsym^.definition^.options:=aktprocsym^.definition^.options or
+                               pooverridingmethod or povirtualmethod;
+                           end;
+                       end;
+                    end;
+             _END : begin
+                      consume(_END);
+                      break;
+                    end;
+              else
+               consume(ID); { Give a ident expected message, like tp7 }
+              end;
+            until false;
+            current_object_option:=sp_public;
+          end;
          testcurobject:=0;
          curobjectname:='';
 
@@ -1078,6 +1312,14 @@ unit pdecl;
          consume(_END);
          symtablestack:=symtable^.next;
          record_dec:=new(precdef,init(symtable));
+      end;
+
+    { search in symtablestack used, but not defined type }
+    procedure testforward_types(p : psym);{$ifndef FPC}far;{$endif}
+
+      begin
+         if (p^.typ=typesym) and ((p^.properties and sp_forwarddef)<>0) then
+           Message(sym_e_type_id_not_defined);
       end;
 
     { reads a type definition and returns a pointer to it }
@@ -1454,13 +1696,6 @@ unit pdecl;
          read_type:=p;
       end;
 
-    { search in symtablestack used, but not defined type }
-    procedure testforward_types(p : psym);{$ifndef FPC}far;{$endif}
-
-      begin
-         if (p^.typ=typesym) and ((p^.properties and sp_forwarddef)<>0) then
-           Message(sym_e_type_id_not_defined);
-      end;
 
     { reads a type declaration to the symbol table }
     procedure type_dec;
@@ -1535,272 +1770,15 @@ unit pdecl;
          block_type:=bt_general;
       end;
 
+
+    procedure var_dec;
     { parses varaible declarations and inserts them in }
     { the top symbol table of symtablestack            }
-    procedure var_dec;
-
-      {var
-         p : pdef;
-         sc : pstringcontainer;      }
-
       begin
-         consume(_VAR);
-         read_var_decs(false,true);
+        consume(_VAR);
+        read_var_decs(false,false);
       end;
 
-    { reads the filed of a record into a        }
-    { symtablestack, if record=false            }
-    { variants are forbidden, so this procedure }
-    { can be used to read object fields         }
-    { if absolute is true, ABSOLUTE and file    }
-    { types are allowed                         }
-    { => the procedure is also used to read     }
-    { a sequence of variable declaration        }
-    procedure read_var_decs(is_record : boolean;do_absolute : boolean);
-
-      var
-         sc : pstringcontainer;
-         s : stringid;
-         l    : longint;
-         code : word;
-         hs : string;
-         p,casedef : pdef;
-         { maxsize contains the max. size of a variant }
-         { startvarrec contains the start of the variant part of a record }
-         maxsize,startvarrec : longint;
-         pt : ptree;
-         old_block_type : tblock_type;
-         { to handle absolute }
-         abssym : pabsolutesym;
-         filepos : tfileposinfo;
-
-         Csym : pvarsym;
-         is_cdecl,extern_Csym,export_Csym : boolean;
-         C_name : string;
-
-      begin
-         hs:='';
-         old_block_type:=block_type;
-         block_type:=bt_type;
-       { Force an expected ID error message }
-         if not (token in [ID,_CASE,_END]) then
-          consume(ID);
-       { read vars }
-         while (token=ID) and
-           (pattern<>'PUBLIC') and
-           (pattern<>'PRIVATE') and
-           (pattern<>'PUBLISHED') and
-           (pattern<>'PROTECTED') do
-           begin
-              C_name:=orgpattern;
-              sc:=idlist;
-              consume(COLON);
-              p:=read_type('');
-              if do_absolute and (token=ID) and (pattern='ABSOLUTE') then
-                begin
-                   s:=sc^.get_with_tokeninfo(filepos);
-                   if sc^.get<>'' then
-                    Message(parser_e_absolute_only_one_var);
-                   dispose(sc,done);
-                   consume(ID);
-                   if token=ID then
-                     begin
-                        getsym(pattern,true);
-                        consume(ID);
-                        { we should check the result type of srsym }
-                        if not (srsym^.typ in [varsym,typedconstsym]) then
-                         Message(parser_e_absolute_only_to_var_or_const);
-                        abssym:=new(pabsolutesym,init(s,p));
-                        abssym^.typ:=absolutesym;
-                        abssym^.abstyp:=tovar;
-                        abssym^.ref:=srsym;
-                        abssym^.line_no:=filepos.line;
-                        symtablestack^.insert(abssym);
-                     end
-                   else
-                   if token=CSTRING then
-                     begin
-                        abssym:=new(pabsolutesym,init(s,p));
-                        s:=pattern;
-                        consume(CSTRING);
-                        abssym^.typ:=absolutesym;
-                        abssym^.abstyp:=toasm;
-                        abssym^.asmname:=stringdup(s);
-                        abssym^.line_no:=filepos.line;
-                        symtablestack^.insert(abssym);
-                     end
-                   else
-                   { absolute address ?!? }
-                   if token=INTCONST then
-                     begin
-{$ifdef i386}           
-
-                       if (target_info.target=target_GO32V2) then
-                        begin
-                          abssym:=new(pabsolutesym,init(s,p));
-                          abssym^.typ:=absolutesym;
-                          abssym^.abstyp:=toaddr;
-                          abssym^.absseg:=false;
-                          abssym^.line_no:=filepos.line;
-                          s:=pattern;
-                          consume(INTCONST);
-                          val(s,abssym^.address,code);
-                          if token=COLON then
-                           begin
-                             consume(token);
-                             s:=pattern;
-                             consume(INTCONST);
-                             val(s,l,code);
-                             abssym^.address:=abssym^.address shl 4+l;
-                             abssym^.absseg:=true;
-                           end;
-                          symtablestack^.insert(abssym);
-                        end
-                       else
-{$endif i386}
-
-                        Message(parser_e_absolute_only_to_var_or_const);
-                     end
-                   else
-                     Message(parser_e_absolute_only_to_var_or_const);
-                end
-              else
-                begin
-                   if not(is_record) then
-                     consume(token);
-                   if support_c_var and do_absolute and (token=ID) and
-                      ((pattern='EXPORT') or (pattern='EXTERNAL')
-                      or (pattern='CDECL')) then
-                     begin
-                        if pattern='CDECL' then
-                          begin
-                             consume(ID);
-                             consume(SEMICOLON);
-                             is_cdecl:=true;
-                          end
-                        else
-                          is_cdecl:=false;
-                          
-                        extern_Csym:=(pattern='EXTERNAL');
-                        if not is_cdecl then
-                          export_Csym:=(pattern='EXPORT')
-                        else
-                          export_Csym:=false;
-                        s:=sc^.get_with_tokeninfo(filepos);
-                        if sc^.get<>'' then
-                          Message(parser_e_absolute_only_one_var);
-                        dispose(sc,done);
-                        if extern_Csym or export_Csym then
-                          consume(ID);
-                        { external and export need a name after }
-                        if not is_cdecl then
-                          begin
-                             if (token=ID) and (pattern='NAME') then
-                               consume(ID)
-                             else
-                               Comment(V_error,' name keyword expected here ');
-                             if (token<>CCHAR) and (token<>CSTRING) then
-                               consume(CSTRING);
-                             C_name:=pattern;
-                             consume(token);
-                             consume(SEMICOLON);
-                          end;
-                        if is_cdecl and extern_Csym then
-                          consume(SEMICOLON);
-                        Csym:=new(pvarsym,init_C(s,C_name,p));
-                        if extern_Csym then
-                          begin
-                             Csym^.var_options:=Csym^.var_options or vo_is_external;
-                             { correct type ?? }
-                             externals^.concat(new(pai_external,init(Csym^.mangledname,EXT_NEAR)));
-                          end;
-                        symtablestack^.insert(Csym);
-                     end
-                   else
-                     if (symtablestack^.symtabletype=objectsymtable) then
-                       begin
-                         if (token=ID) and (pattern='STATIC') and
-                                (cs_static_keyword in aktswitches) then
-                               begin
-                                  current_object_option:=current_object_option or sp_static;
-                                  insert_syms(symtablestack,sc,p);
-                                  current_object_option:=current_object_option - sp_static;
-                                  consume(ID);
-                                  consume(SEMICOLON);
-                               end
-                             else
-                               { this will still be a the wrong line !! }
-                               insert_syms(symtablestack,sc,p);
-                          end
-                        else
-                          begin
-                             { at the right line }
-                             insert_syms(symtablestack,sc,p);
-                          end;
-                end;
-              while token=SEMICOLON do
-                consume(SEMICOLON);
-           end;
-         if (token=_CASE) and is_record then
-           begin
-              maxsize:=0;
-              consume(_CASE);
-              s:=pattern;
-              getsym(s,false);
-              { may be only a type: }
-              if assigned(srsym) and ((srsym^.typ=typesym) or
-              { and with unit qualifier: }
-                (srsym^.typ=unitsym)) then
-                begin
-                   casedef:=read_type('');
-                end
-              else
-                begin
-                   consume(ID);
-                   consume(COLON);
-
-                   casedef:=read_type('');
-                   symtablestack^.insert(new(pvarsym,init(s,casedef)));
-                end;
-              if not is_ordinal(casedef) then
-               Message(parser_e_ordinal_expected);
-
-              consume(_OF);
-              startvarrec:=symtablestack^.datasize;
-              repeat
-                repeat
-                  pt:=comp_expr(true);
-                  do_firstpass(pt);
-                  if not(pt^.treetype=ordconstn) then
-                    Message(cg_e_illegal_expression);
-                  disposetree(pt);
-                  if token=COMMA then consume(COMMA)
-                    else break;
-                until false;
-                consume(COLON);
-                consume(LKLAMMER);
-                if token<>RKLAMMER then
-                  read_var_decs(true,false);
-
-                { calculates maximal variant size }
-                maxsize:=max(maxsize,symtablestack^.datasize);
-
-                { the items of the next variant are overlayed }
-                symtablestack^.datasize:=startvarrec;
-                consume(RKLAMMER);
-                if token<>SEMICOLON then
-                  break
-                else
-                  consume(SEMICOLON);
-                while token=SEMICOLON do
-                  consume(SEMICOLON);
-              until (token=_END) or (token=RKLAMMER);
-
-              { at last set the record size to that of the biggest variant }
-              symtablestack^.datasize:=maxsize;
-           end;
-         block_type:=old_block_type;
-      end;
 
     procedure Not_supported_for_inline(t : ttoken);
 
@@ -1813,7 +1791,8 @@ unit pdecl;
               aktprocsym^.definition^.options:= aktprocsym^.definition^.options and not poinline;
            End;
       end;
-      
+
+
     procedure read_declarations(islibrary : boolean);
 
       begin
@@ -1856,32 +1835,35 @@ unit pdecl;
          until false;
       end;
 
-    procedure read_interface_declarations;
 
+    procedure read_interface_declarations;
       begin
          {Since the body is now parsed at lexlevel 1, and the declarations
           must be parsed at the same lexlevel we increase the lexlevel.}
          inc(lexlevel);
          repeat
            case token of
-              _CONST : const_dec;
-              _TYPE : type_dec;
+            _CONST : const_dec;
+             _TYPE : type_dec;
               _VAR : var_dec;
-              { should we allow operator in interface ? }
-              { of course otherwise you cannot          }
-              { declare an operator usable by other     }
-              { units or progs                       PM }
-              _FUNCTION,_PROCEDURE,_OPERATOR : unter_dec;
-              else
-                 break;
+         _FUNCTION,
+        _PROCEDURE,
+         _OPERATOR : unter_dec;
+           else
+             break;
            end;
          until false;
          dec(lexlevel);
       end;
+
 end.
 {
   $Log$
-  Revision 1.27  1998-06-12 16:15:34  pierre
+  Revision 1.28  1998-06-24 12:26:45  peter
+    * stricter var parsing like tp7 and some optimizes with directive
+      parsing
+
+  Revision 1.27  1998/06/12 16:15:34  pierre
     * external name 'C_var';
       export name 'intern_C_var';
       cdecl;
