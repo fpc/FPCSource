@@ -89,10 +89,8 @@ implementation
                   disposetree(p);
                   p:=hp;
                end;
-             arraydef:
-               begin
-                  halt;
-               end;
+           else
+             internalerror(87);
            end;
         end;
 
@@ -1126,7 +1124,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  1999-08-28 15:34:21  florian
+  Revision 1.50  1999-09-07 14:05:11  pierre
+   * halt removed in do_lowhigh
+
+  Revision 1.49  1999/08/28 15:34:21  florian
     * bug 519 fixed
 
   Revision 1.48  1999/08/23 23:41:04  pierre
@@ -1324,4 +1325,3 @@ end.
     * splitted pass_1
 
 }
-
