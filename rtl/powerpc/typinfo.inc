@@ -28,16 +28,20 @@ Function CallIntegerFunc(s: Pointer; Address: Pointer; Index, IValue: LongInt): 
   {     r6: ivalue     }
   { output:            }
   {     r3-r4: result  }
+  var
+    oldlr: pointer;
   asm
      { save current return address }
-     mflr      r30
+     mflr      r0
+     stw       r0,oldlr
      mtctr     r4
      { always pass ivalue as second parameter, it doesn't matter if it }
      { isn't used                                                      }
      mr        r4,r6
      bctrl
      { restore return address }
-     mtlr      r30
+     lwz       r0,oldlr
+     mtlr      r0
   end;
 
 Function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; Index,IValue : Longint) : Integer;assembler;
@@ -48,16 +52,20 @@ Function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; Index,IV
   {     r6: ivalue     }
   { output:            }
   {     r3: result     }
+  var
+    oldlr: pointer;
   asm
      { save current return address }
-     mflr      r30
+     mflr      r0 
+     stw       r0,oldlr
      mtctr     r4
      { always pass ivalue as second parameter, it doesn't matter if it }
      { isn't used                                                      }
      mr        r4,r6
      bctrl
      { restore return address }
-     mtlr      r30
+     lwz       r0,oldlr
+     mtlr      r0
   end;
 
 Function CallSingleFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Single;assembler;
@@ -68,16 +76,20 @@ Function CallSingleFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) :
   {     r6: ivalue     }
   { output:            }
   {     fr1: result    }
+  var
+    oldlr: pointer;
   asm
      { save current return address }
-     mflr      r30
+     mflr      r0 
+     stw       r0,oldlr
      mtctr     r4
      { always pass ivalue as second parameter, it doesn't matter if it }
      { isn't used                                                      }
      mr        r4,r6
      bctrl
      { restore return address }
-     mtlr      r30
+     lwz       r0,oldlr
+     mtlr      r0
   end;
 
 Function CallDoubleFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Double;assembler;
@@ -88,16 +100,20 @@ Function CallDoubleFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) :
   {     r6: ivalue     }
   { output:            }
   {     fr1: result    }
+  var
+    oldlr: pointer;
   asm
      { save current return address }
-     mflr      r30
+     mflr      r0 
+     stw       r0,oldlr
      mtctr     r4
      { always pass ivalue as second parameter, it doesn't matter if it }
      { isn't used                                                      }
      mr        r4,r6
      bctrl
      { restore return address }
-     mtlr      r30
+     lwz       r0,oldlr
+     mtlr      r0
   end;
 
 Function CallExtendedFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Extended;assembler;
@@ -108,37 +124,20 @@ Function CallExtendedFunc(s : Pointer;Address : Pointer; Index,IValue : Longint)
   {     r6: ivalue     }
   { output:            }
   {     fr1: result    }
+  var
+    oldlr: pointer;
   asm
      { save current return address }
-     mflr      r30
+     mflr      r0 
+     stw       r0,oldlr
      mtctr     r4
      { always pass ivalue as second parameter, it doesn't matter if it }
      { isn't used                                                      }
      mr        r4,r6
      bctrl
      { restore return address }
-     mtlr      r30
-  end;
-
-Function CallExtendedProc(s : Pointer;Address : Pointer;Value : Extended; Index,IVAlue : Longint) : Integer;assembler;
-  { input:              }
-  {     r3:  s          }
-  {     r4:  address    }
-  {     fr3: value      }
-  {     r7:  index      }
-  {     r8:  ivalue     }
-  { output:             }
-  {     r3: result      }
-  asm
-     { save current return address }
-     mflr      r30
-     mtctr     r4
-     { always pass ivalue as second parameter, it doesn't matter if it }
-     { isn't used                                                      }
-     mr        r4,r8
-     bctrl
-     { restore return address }
-     mtlr      r30
+     lwz       r0,oldlr
+     mtlr      r0
   end;
 
 Function CallBooleanFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Boolean;assembler;
@@ -149,16 +148,20 @@ Function CallBooleanFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) 
   {     r6: ivalue     }
   { output:            }
   {     r3: result     }
+  var
+    oldlr: pointer;
   asm
      { save current return address }
-     mflr      r30
+     mflr      r0 
+     stw       r0,oldlr
      mtctr     r4
      { always pass ivalue as second parameter, it doesn't matter if it }
      { isn't used                                                       }
      mr        r4,r6
      bctrl
      { restore return address }
-     mtlr      r30
+     lwz       r0, oldlr
+     mtlr      r0
   end;
 
 Procedure CallSStringFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint;
@@ -172,17 +175,22 @@ Procedure CallSStringFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint;
   {     r8: res                                  }
   { output:                                      }
   {     none                                     }
+  var
+    oldlr: pointer;
   asm
      { save current return address }
-     mflr      r30
+     mflr      r0 
+     stw       r0,oldlr
      mtctr     r5
      { always pass ivalue as second parameter, it doesn't matter if it }
      { isn't used                                                       }
      mr        r5,r7
      bctrl
      { restore return address }
-     mtlr      r30
+     lwz       r0,oldlr
+     mtlr      r0
   end;
+
 
 Procedure CallSStringProc(s : Pointer;Address : Pointer;Const Value : ShortString; INdex,IVAlue : Longint);assembler;
   { input:                                 }
@@ -193,21 +201,29 @@ Procedure CallSStringProc(s : Pointer;Address : Pointer;Const Value : ShortStrin
   {     r7: ivalue                         }
   { output:                                }
   {     none                               }
+  var
+    oldlr: pointer;
   asm
      { save current return address }
-     mflr      r30
+     mflr      r0 
+     stw       r0,oldlr
      mtctr     r4
      { always pass ivalue as second parameter, it doesn't matter if it }
      { isn't used                                                       }
      mr        r4,r6
      bctrl
      { restore return address }
-     mtlr      r30
+     lwz       r0,oldlr
+     mtlr      r0
   end;
 
 {
   $Log$
-  Revision 1.6  2003-04-24 11:50:50  florian
+  Revision 1.7  2003-04-24 12:28:47  jonas
+    * fixeed saving/restoring of return address
+    * synchronized with i386 version
+
+  Revision 1.6  2003/04/24 11:50:50  florian
     * fixed assembling
 
   Revision 1.5  2003/04/24 11:47:21  florian
