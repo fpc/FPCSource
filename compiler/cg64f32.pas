@@ -62,6 +62,8 @@ unit cg64f32;
         procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;value : qword;const l: tlocation);override;
         procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;reg : tregister64;const l : tlocation);override;
         procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg : tregister64);override;
+        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);override;
+        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : qword;const ref : treference);override;
 
         procedure a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);override;
         procedure a_param64_const(list : taasmoutput;value : qword;const locpara : tparalocation);override;
@@ -364,6 +366,33 @@ unit cg64f32;
       end;
 
 
+    procedure tcg64f32.a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);
+      var
+        tempreg: tregister64;
+      begin
+        tempreg.reghi := cg.get_scratch_reg_int(list);
+        tempreg.reglo := cg.get_scratch_reg_int(list);
+        a_load64_ref_reg(list,ref,tempreg);
+        a_op64_reg_reg(list,op,tempreg,reg);
+        cg.free_scratch_reg(list,tempreg.reglo);
+        cg.free_scratch_reg(list,tempreg.reghi);
+      end;
+
+
+    procedure tcg64f32.a_op64_const_ref(list : taasmoutput;op:TOpCG;value : qword;const ref : treference);
+      var
+        tempreg: tregister64;
+      begin
+        tempreg.reghi := cg.get_scratch_reg_int(list);
+        tempreg.reglo := cg.get_scratch_reg_int(list);
+        a_load64_ref_reg(list,ref,tempreg);
+        a_op64_const_reg(list,op,value,tempreg);
+        a_load64_reg_ref(list,tempreg,ref);
+        cg.free_scratch_reg(list,tempreg.reglo);
+        cg.free_scratch_reg(list,tempreg.reghi);
+      end;
+
+
     procedure tcg64f32.a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);
       begin
 {$warning FIX ME}
@@ -591,7 +620,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-07-10 11:12:44  jonas
+  Revision 1.19  2002-07-11 07:23:17  jonas
+    + generic implementations of a_op64_ref_reg() and a_op64_const_ref()
+      (only works for processors with >2 scratch registers)
+
+  Revision 1.18  2002/07/10 11:12:44  jonas
     * fixed a_op64_const_loc()
 
   Revision 1.17  2002/07/07 09:52:32  florian
