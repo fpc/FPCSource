@@ -919,6 +919,7 @@ end;
 
 procedure pd_overload;
 begin
+   include(aktprocsym.symoptions,sp_has_overloaded);
 end;
 
 procedure pd_message;
@@ -1073,7 +1074,10 @@ begin
          current_module.uses_imports:=true;
          importlib.preparelib(current_module.modulename^);
        end;
-      if not(m_repeat_forward in aktmodeswitches) then
+      if not(m_repeat_forward in aktmodeswitches) and
+        { if the procedure is declared with the overload option     }
+        { it requires a full declaration in the implementation part }
+        not(sp_has_overloaded in aktprocsym.symoptions) then
         begin
           { we can only have one overloaded here ! }
           if assigned(aktprocsym.definition.nextoverloaded) then
@@ -1910,7 +1914,14 @@ const
 end.
 {
   $Log$
-  Revision 1.32  2001-08-19 11:22:23  peter
+  Revision 1.33  2001-08-19 21:11:20  florian
+    * some bugs fix:
+      - overload; with external procedures fixed
+      - better selection of routine to do an overloaded
+        type case
+      - ... some more
+
+  Revision 1.32  2001/08/19 11:22:23  peter
     * palmos support from v10 merged
 
   Revision 1.31  2001/08/05 13:18:50  peter

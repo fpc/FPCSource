@@ -970,13 +970,13 @@ implementation
                     end;
 
                    { if there are several choices left then for orddef }
-                   { if a type is totally included in the other }
+                   { if a type is totally included in the other        }
                    { we don't fear an overflow ,                       }
-                   { so we can do as if it is an exact match       }
-                   { this will convert integer to longint             }
-                   { rather than to words                             }
-                   { conversion of byte to integer or longint     }
-                   {would still not be solved                     }
+                   { so we can do as if it is an exact match           }
+                   { this will convert integer to longint              }
+                   { rather than to words                              }
+                   { conversion of byte to integer or longint          }
+                   { would still not be solved                         }
                    if assigned(procs) and assigned(procs^.next) then
                      begin
                         hp:=procs;
@@ -1687,7 +1687,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2001-08-13 12:41:56  jonas
+  Revision 1.42  2001-08-19 21:11:20  florian
+    * some bugs fix:
+      - overload; with external procedures fixed
+      - better selection of routine to do an overloaded
+        type case
+      - ... some more
+
+  Revision 1.41  2001/08/13 12:41:56  jonas
     * made code for str(x,y) completely processor independent
 
   Revision 1.40  2001/08/06 21:40:46  peter

@@ -510,7 +510,7 @@ implementation
          if inlined or
            (right=nil) then
            begin
-              { overloaded operator have no symtable }
+              { overloaded operator has no symtable }
               { push self }
               if assigned(symtableproc) and
                 (symtableproc.symtabletype=withsymtable) then
@@ -1584,7 +1584,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2001-08-06 21:40:50  peter
+  Revision 1.29  2001-08-19 21:11:21  florian
+    * some bugs fix:
+      - overload; with external procedures fixed
+      - better selection of routine to do an overloaded
+        type case
+      - ... some more
+
+  Revision 1.28  2001/08/06 21:40:50  peter
     * funcret moved from tprocinfo to tprocdef
 
   Revision 1.27  2001/07/08 21:00:16  peter

@@ -824,7 +824,10 @@ implementation
                 begin
                    if not explicit then
                     begin
-                      if (def.deftype=enumdef) or
+                      if ((def.deftype=enumdef) and
+                          { delphi allows range check errors in
+                           enumeration type casts FK }
+                          not(m_delphi in aktmodeswitches)) or
                          (cs_check_range in aktlocalswitches) then
                         Message(parser_e_range_check_error)
                       else
@@ -1202,14 +1205,41 @@ implementation
             passproc:=overloaded_operators[_ASSIGNMENT].definition
           else
             exit;
+
+          { look for an exact match first }
           while passproc<>nil do
             begin
               if is_equal(passproc.rettype.def,to_def) and
-                 (is_equal(TParaItem(passproc.Para.first).paratype.def,from_def) or
-                 (isconvertable(from_def,TParaItem(passproc.Para.first).paratype.def,convtyp,ordconstn,false)=1)) then
+                (TParaItem(passproc.Para.first).paratype.def=from_def) then
                 begin
                    assignment_overloaded:=passproc;
-                   break;
+                   exit;
+                end;
+              passproc:=passproc.nextoverloaded;
+            end;
+
+          passproc:=overloaded_operators[_ASSIGNMENT].definition;
+          { .... then look for an equal match }
+          while passproc<>nil do
+            begin
+              if is_equal(passproc.rettype.def,to_def) and
+                 is_equal(TParaItem(passproc.Para.first).paratype.def,from_def) then
+                begin
+                   assignment_overloaded:=passproc;
+                   exit;
+                end;
+              passproc:=passproc.nextoverloaded;
+            end;
+
+          passproc:=overloaded_operators[_ASSIGNMENT].definition;
+          {  .... then for convert level 1 }
+          while passproc<>nil do
+            begin
+              if is_equal(passproc.rettype.def,to_def) and
+               (isconvertable(from_def,TParaItem(passproc.Para.first).paratype.def,convtyp,ordconstn,false)=1) then
+                begin
+                   assignment_overloaded:=passproc;
+                   exit;
                 end;
               passproc:=passproc.nextoverloaded;
             end;
@@ -1747,7 +1777,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2001-07-08 21:00:16  peter
+  Revision 1.45  2001-08-19 21:11:21  florian
+    * some bugs fix:
+      - overload; with external procedures fixed
+      - better selection of routine to do an overloaded
+        type case
+      - ... some more
+
+  Revision 1.44  2001/07/08 21:00:16  peter
     * various widestring updates, it works now mostly without charset
       mapping supported
 

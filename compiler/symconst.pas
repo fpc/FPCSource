@@ -111,6 +111,8 @@ type
     sp_hint_deprecated,
     sp_hint_platform,
     sp_hint_library
+    { is there any use for this constants        }
+    { else sp_has_overloaded can be moved up  FK }
     ,sp_7
     ,sp_8
     ,sp_9
@@ -129,6 +131,7 @@ type
     ,sp_22
     ,sp_23
     ,sp_24
+    ,sp_has_overloaded
   );
   tsymoptions=set of tsymoption;
 
@@ -450,7 +453,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2001-08-01 15:07:29  jonas
+  Revision 1.22  2001-08-19 21:11:21  florian
+    * some bugs fix:
+      - overload; with external procedures fixed
+      - better selection of routine to do an overloaded
+        type case
+      - ... some more
+
+  Revision 1.21  2001/08/01 15:07:29  jonas
     + "compilerproc" directive support, which turns both the public and mangled
       name to lowercase(declaration_name). This prevents a normal user from
       accessing the routine, but they can still be easily looked up within
