@@ -740,6 +740,7 @@ implementation
         else
          begin
            case def.deftype of
+             variantdef,
              formaldef :
                push_addr_param:=true;
              recorddef :
@@ -1732,7 +1733,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2001-04-18 22:02:00  peter
+  Revision 1.41  2001-04-22 22:46:49  florian
+    * more variant support
+
+  Revision 1.40  2001/04/18 22:02:00  peter
     * registration of targets and assemblers
 
   Revision 1.39  2001/04/13 01:22:17  peter
@@ -1868,5 +1872,4 @@ end.
 
   Revision 1.2  2000/07/13 11:32:53  michael
   + removed logs
-
 }

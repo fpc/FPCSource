@@ -140,6 +140,7 @@ interface
        tvariantdef = class(tstoreddef)
           constructor create;
           constructor load;
+          function gettypename:string;override;
           procedure write;override;
           procedure setsize;
           function needs_inittable : boolean;override;
@@ -2139,6 +2140,12 @@ implementation
     procedure tvariantdef.setsize;
       begin
          savesize:=16;
+      end;
+
+
+    function tvariantdef.gettypename : string;
+      begin
+         gettypename:='Variant';
       end;
 
 
@@ -5515,7 +5522,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.29  2001-04-21 12:03:12  peter
+  Revision 1.30  2001-04-22 22:46:49  florian
+    * more variant support
+
+  Revision 1.29  2001/04/21 12:03:12  peter
     * m68k updates merged from fixes branch
 
   Revision 1.28  2001/04/18 22:01:58  peter

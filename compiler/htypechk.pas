@@ -145,6 +145,8 @@ implementation
            (treetyp=starstarn) or
            (ld.deftype=recorddef) or
            (rd.deftype=recorddef) or
+           (ld.deftype=variantdef) or
+           (rd.deftype=variantdef) or
            ((rd.deftype=pointerdef) and
             not(is_pchar(rd) and
                 (is_chararray(ld) or
@@ -921,7 +923,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2001-04-13 01:22:08  peter
+  Revision 1.25  2001-04-22 22:46:49  florian
+    * more variant support
+
+  Revision 1.24  2001/04/13 01:22:08  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
