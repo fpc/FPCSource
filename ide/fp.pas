@@ -38,6 +38,11 @@ uses
 {$endif HasSignal}
   Dos,Objects,
   BrowCol,
+{$ifdef FVISION}
+  FVConsts,
+{$else}
+  Commands,
+{$endif}
   Drivers,Views,App,Dialogs,
   Menus,StdDlg,Validate,
   {$ifdef EDITORS}Editors{$else}WEditor,WCEdit{$endif},
@@ -231,6 +236,8 @@ const
   ExitIntercepted : boolean = false;
   SeenExitCode : longint =0;
   SeenErrorAddr : pointer = nil;
+  UserWantsToGoOn: boolean = false;
+
 
 procedure InterceptExit;
 begin
@@ -306,6 +313,8 @@ BEGIN
   repeat
     SetJmpRes:=setjmp(StopJmp);
     StopJmpValid:=true;
+    UserWantsToGoOn:=false;
+
     if SetJmpRes=0 then
       IDEApp.Run
     else
@@ -320,7 +329,8 @@ BEGIN
                 P.l1:=SeenExitCode;
                 ErrS:=hexstr(longint(SeenErrorAddr),8);
                 P.s:=@ErrS;
-                WarningBox(error_programexitedwitherror,@P);
+                if OKCancelBox(error_programexitedwitherror,@P)=cmCancel then
+                  UserWantsToGoOn:=true;
               end
             else
               writeln('Abnormal exit error: ',ErrS);
@@ -332,7 +342,8 @@ BEGIN
             if Assigned(Application) then
               begin
                 P.l1:=SetJmpRes;
-                WarningBox(error_programexitedwithsignal,@P);
+                if OKCancelBox(error_programexitedwithsignal,@P)=cmCancel then
+                  UserWantsToGoOn:=true;
               end
             else
               writeln('Signal error: ',ErrS);
@@ -343,6 +354,20 @@ BEGIN
     else
       CanExit:=IDEApp.SaveAll;
     StopJmpValid:=false;
+    if (SetJmpRes<>0) then
+      begin
+        if (not CanExit) or UserWantsToGoOn then
+          begin
+            if ConfirmBox(continue_despite_error,nil,false)=cmNo then
+              CanExit:=true
+            else
+              CanExit:=false;
+          end
+        else
+          begin
+            ErrorBox(leaving_after_error,nil);
+          end;
+      end;
   until CanExit;
 
   If ExitProc=pointer(@InterceptExit) then
@@ -387,7 +412,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.6  2002-03-28 16:32:48  pierre
+  Revision 1.7  2002-04-12 09:00:01  pierre
+   * enhance internal error handling
+
+  Revision 1.6  2002/03/28 16:32:48  pierre
    * clearscrenn at exit for unix
 
   Revision 1.5  2002/03/20 14:56:41  pierre
