@@ -1,3 +1,4 @@
+{ %KNOWNRUNERROR=2 On some OS invalid date are converted to valid ones, thus test fails}
 uses Dos;
 var
   f : file;
@@ -20,7 +21,10 @@ begin
   if doserror<>13 then
    begin
      Writeln('Wrong doserror');
-     halt(1);
+     if doserror=0 then
+       runerror(2)
+     else
+       halt(1);
    end;
 
 end.
