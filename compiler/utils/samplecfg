@@ -1,3 +1,4 @@
+#!/bin/sh
 #
 #  $Id$
 #
@@ -9,12 +10,22 @@ if [ $# != 1 ]; then
   echo 'fpcdir = Path where FPC is installed'
   exit 1
 fi
-if [ -f /etc/ppc386.cfg ] ; then
-  mv /etc/ppc386.cfg /etc/ppc386.orig  >/dev/null 2>&1
+# Detect if we have write permission in root.
+if [ -w /etc ] ; then
+  echo Write permission in /etc.
+  thefile=/etc/ppc386.cfg
+else
+  echo No write premission in /etc.
+  thefile=$HOME/.ppc386.cfg
+fi
+#
+if [ -f $thefile ] ; then
+  mv $thefile $thefile.orig  >/dev/null 2>&1
   if [ $? == 0 ]; then
-    echo Saved old config to /etc/ppc386.orig
+    echo Saved old config to $thefile.orig
   else
     echo Could not save old config. Bailing out...
+    exit 
   fi
 fi
 
@@ -24,8 +35,8 @@ GCCDIR=`dirname $GCCSPEC`
 echo Found libgcc.a in $GCCDIR
 
 # Write the file
-echo Writing sample configuration file to /etc/ppc386.cfg
-cat <<EOFCFG > /etc/ppc386.cfg
+echo Writing sample configuration file to $thefile
+cat <<EOFCFG > $thefile
 #
 # Example ppc386.cfg for Free Pascal Compiler Version 0.99.12
 #
