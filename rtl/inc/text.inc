@@ -499,7 +499,10 @@ Procedure wc(Len : Longint;var t : TextRec;b : Boolean);[Public,Alias: 'WRITE_TE
 const
   BoolString:array[0..1] Of String[5]=('False','True');
 Begin
-   w(Len,t,String(BoolString[byte(b)]));
+   if b then
+     w(Len,t,String(BoolString[1]))
+   else
+     w(Len,t,String(BoolString[0]));
 End;
 
 
@@ -948,7 +951,10 @@ Begin
 End;
 {
   $Log$
-  Revision 1.8  1998-05-31 14:14:54  peter
+  Revision 1.9  1998-06-02 16:47:56  pierre
+    * bug for boolean values greater than one fixed
+
+  Revision 1.8  1998/05/31 14:14:54  peter
     * removed warnings using comp()
 
   Revision 1.7  1998/05/27 00:19:21  peter
