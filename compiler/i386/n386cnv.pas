@@ -174,20 +174,30 @@ implementation
 
             { do we need a sign extension for int64? }
             if is_64bitint(resulttype) then
-              begin
-                 emit_reg_reg(A_XOR,S_L,
-                   hregister2,hregister2);
-                 if (porddef(resulttype)^.typ=s64bit) and
-                   is_signed(left.resulttype) then
-                   begin
-                      getlabel(l);
-                      emit_const_reg(A_TEST,S_L,$80000000,makereg32(hregister));
-                      emitjmp(C_Z,l);
-                      emit_reg(A_NOT,S_L,
-                        hregister2);
-                      emitlab(l);
-                   end;
-              end;
+              { special case for constants (JM) }
+              if is_constintnode(left) then
+                begin
+                  if tordconstnode(left).value >= 0 then
+                    emit_reg_reg(A_XOR,S_L,
+                      hregister2,hregister2)
+                  else
+                    emit_const_reg(A_MOV,S_L,$ffffffff,hregister2);
+                end
+              else
+                begin
+                  emit_reg_reg(A_XOR,S_L,
+                    hregister2,hregister2);
+                  if (porddef(resulttype)^.typ=s64bit) and
+                    is_signed(left.resulttype) then
+                    begin
+                       getlabel(l);
+                       emit_const_reg(A_TEST,S_L,$80000000,makereg32(hregister));
+                       emitjmp(C_Z,l);
+                       emit_reg(A_NOT,S_L,
+                         hregister2);
+                       emitlab(l);
+                    end;
+                end;
           end;
       end;
 
@@ -1436,7 +1446,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-11-04 14:25:23  florian
+  Revision 1.4  2000-11-11 16:00:10  jonas
+    * optimize converting of 8/16/32 bit constants to 64bit ones
+
+  Revision 1.3  2000/11/04 14:25:23  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.2  2000/10/31 22:02:56  peter
