@@ -29,7 +29,7 @@ Type
   {Fill : array[1..21] of byte;  Fill replaced with below}
     SearchNum  : LongInt;     {to track which search this is}
     SearchPos  : LongInt;     {directory position}
-    DirPtr     : LongInt;     {directory pointer for reading directory}
+    DirPtr     : Pointer;     {directory pointer for reading directory}
     SearchType : Byte;        {0=normal, 1=open will close, 2=only 1 file}
     SearchAttr : Byte;        {attribute we are searching for}
     Fill       : Array[1..07] of Byte; {future use}
@@ -347,8 +347,8 @@ Const
   RtlFindSize = 15;
 Type
   RtlFindRecType = Record
+    DirPtr   : Pointer;
     SearchNum,
-    DirPtr,
     LastUsed : LongInt;
   End;
 Var
@@ -374,11 +374,11 @@ Begin
      If i<=RtlFindSize Then
       Begin
         RtlFindRecs[i].SearchNum:=0;
-        if f.dirptr<>0 then
+        if f.dirptr<>nil then
          fpclosedir(pdir(f.dirptr)^);
       End;
    end;
-  f.dirptr:=0;
+  f.dirptr:=nil;
 End;
 
 
@@ -480,8 +480,8 @@ Begin
            Move(f.SearchSpec[1], DirName[0], f.NamePos);
            DirName[f.NamePos] := #0;
          End;
-        f.DirPtr := longint(fpopendir(@(DirName)));
-        If f.DirPtr <> 0 Then
+        f.DirPtr := fpopendir(@(DirName));
+        If f.DirPtr <> nil Then
          begin
            ArrayPos:=FindLastUsed;
            If RtlFindRecs[ArrayPos].SearchNum > 0 Then
@@ -498,7 +498,7 @@ Begin
 {Main loop}
   SName:=Copy(f.SearchSpec,f.NamePos+1,255);
   Found:=False;
-  Finished:=(f.dirptr=0);
+  Finished:=(f.dirptr=nil);
   While Not Finished Do
    Begin
      p:=fpreaddir(pdir(f.dirptr)^);
@@ -563,7 +563,7 @@ Begin
         else }
          DosError:=18;
       end;
-     f.DirPtr:=0;
+     f.DirPtr:=nil;
      f.SearchType:=1;
      f.searchnum:=-1;
    end
@@ -832,7 +832,10 @@ End.
 
 {
   $Log$
-  Revision 1.29  2004-02-18 19:08:27  florian
+  Revision 1.30  2004-02-18 22:00:45  peter
+    * dirptr changed to pointer
+
+  Revision 1.29  2004/02/18 19:08:27  florian
     * fixed bootstrapping with 1.9.2
 
   Revision 1.28  2004/02/17 17:37:26  daniel
