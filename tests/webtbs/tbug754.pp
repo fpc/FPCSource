@@ -41,9 +41,7 @@ begin
        for i:=count downto 1 do
          begin
            close(f[i]);
-           str(i,s);
-           s:='file'+s+'.tmp';
-           erase(s);
+           erase(f[i]);
          end;
     end;
 end;
@@ -75,8 +73,6 @@ begin
   for i:=Max downto 1 do
     begin
       close(f[i]);
-      str(i,s);
-      s:='file'+s+'.tmp';
-      erase(s);
+      erase(f[i]);
     end;
 end.
