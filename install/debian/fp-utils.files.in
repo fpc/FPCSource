@@ -3,8 +3,8 @@
 /usr/bin/ppdep
 /usr/bin/h2pas
 /usr/bin/ptop
-/usr/man/man1/ptop.1
-/usr/man/man1/ppudump.1
-/usr/man/man1/ppumove.1
-/usr/man/man1/ppdep.1
-/usr/man/man5/ptop.cfg.5
+/usr/share/man/man1/ptop.1
+/usr/share/man/man1/ppudump.1
+/usr/share/man/man1/ppumove.1
+/usr/share/man/man1/ppdep.1
+/usr/share/man/man5/ptop.cfg.5

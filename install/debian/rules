@@ -16,6 +16,7 @@ BUILD_DIR=$(PWD)/debian/build
 INSTALL_DIR=$(PWD)/debian/tmp
 NEWPP=$(PWD)/compiler/ppc386
 
+export DH_COMPAT=2
 #export DH_VERBOSE=1
 
 
@@ -29,9 +30,9 @@ clean:
 	dh_testroot
 	rm -f build-arch-stamp install-arch-stamp
 	rm -f build-indep-stamp install-indep-stamp
-	
+
 	rm -f debian-files-stamp
-	rm -f debian/*.files debian/*.docs
+	rm -f debian/*.files debian/*.docs debian/*.examples debian/*.postinst
 	
 	$(MAKE) compiler_clean
 	$(MAKE) rtl_clean
@@ -45,14 +46,17 @@ clean:
 
 	dh_clean
 
+	rm -f debian/control
+
+
 ###################
 # Debian files
 #
 
 debian-files: debian-files-stamp
-debian-files-stamp:    
+debian-files-stamp:
 	@echo "--- Creating debian files"
-	debian/fixdeb debian $(INSTALL_VERSION)
+	debian/fixdeb debian
 
 	touch debian-files-stamp
 
@@ -62,7 +66,7 @@ debian-files-stamp:
 #
 
 build-arch: build-arch-stamp
-build-arch-stamp:
+build-arch-stamp: debian-files
 	@echo "--- Building"
 	dh_testdir
 
@@ -75,12 +79,12 @@ build-arch-stamp:
 	$(MAKE) api_all PP=$(NEWPP)
 	$(MAKE) fv_all PP=$(NEWPP)
 	$(MAKE) -C packages all PP=$(NEWPP) RELEASE=1
-	
+
 	touch build-arch-stamp
 
 
 install-arch: install-arch-stamp
-install-arch-stamp: build-arch
+install-arch-stamp: build-arch debian-files
 	@echo "--- Installing"
 	dh_testdir
 	dh_testroot
@@ -92,7 +96,7 @@ install-arch-stamp: build-arch
 	$(MAKE) utils_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
 
 	$(MAKE) base_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
-	$(MAKE) man_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
+	$(MAKE) man_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr/share
 	$(MAKE) demo_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
 
 	$(MAKE) fcl_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
@@ -100,7 +104,7 @@ install-arch-stamp: build-arch
 	$(MAKE) api_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
 	$(MAKE) fv_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
 	$(MAKE) -C packages install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
-	
+
 	touch install-arch-stamp
 
 ###################
@@ -108,7 +112,7 @@ install-arch-stamp: build-arch
 #
 
 build-indep: build-indep-stamp
-build-indep-stamp:
+build-indep-stamp: debian-files
 	@echo "--- Building Documentation"
 	dh_testdir
 
@@ -117,14 +121,14 @@ build-indep-stamp:
 	touch build-indep-stamp
 
 install-indep: install-indep-stamp
-install-indep-stamp: build-indep
+install-indep-stamp: debian-files build-indep
 	@echo "--- Installing Documentation"
 	dh_testdir
 	dh_testroot
 	dh_clean
 
 	$(MAKE) -C docs $(DOCTYPE)install DOCINSTALLDIR=$(INSTALL_DIR)/usr/doc/fpc/$(INSTALL_VERSION)/
-	
+
 	touch install-indep-stamp
 
 
@@ -177,5 +181,5 @@ binary-arch: build-arch install-arch debian-files
 	dh_builddeb -a
 
 
-binary: binary-indep binary-arch  
+binary: binary-indep binary-arch
 .PHONY: build clean binary-indep binary-arch binary

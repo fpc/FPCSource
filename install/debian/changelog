@@ -1,4 +1,4 @@
-fpc (0.99.13.19990730-1) unstable; urgency=low
+fpc (0.99.13-19991001-1) unstable; urgency=low
 
   * New maintainer
   * Updated to policy 3.0.1
@@ -10,7 +10,7 @@ fpc (0.99.12b-1) unstable; urgency=low
   * New Upstream Release
 
  -- Peter Vreman <pfv@cooldown.demon.nl>  Thu, 10 Jun 1999 12:00:00 +0200
-  
+
 fpc (0.99.12a-1) unstable; urgency=low
 
   * Initial Release

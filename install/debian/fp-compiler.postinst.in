@@ -1,6 +1,6 @@
 #! /bin/sh
 
-FPCDIR=/usr/lib/fpc/0.99.12
+FPCDIR=/usr/lib/fpc/#FPCVERSION#
 
 # create link
 ln -sf $FPCDIR/ppc386 /usr/bin/ppc386
@@ -8,5 +8,5 @@ ln -sf $FPCDIR/ppc386 /usr/bin/ppc386
 # create /etc/ppc386.cfg
 $FPCDIR/samplecfg $FPCDIR
 
-# update ld.so cache
-# ldconfig
+# Debhelper code
+#DEBHELPER#
