@@ -1747,7 +1747,7 @@ VAR I: LongInt;
 BEGIN
    For I := Count DownTo 1 Do
      Begin                   { Down from last item }
-       IF Boolean(Longint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1]))) THEN
+       IF Boolean(Byte(Longint(CallPointerLocal(Test,PreviousFramePointer,Items^[I-1])))) THEN
        Begin          { Test each item }
          LastThat := Items^[I-1];                     { Return item }
          Exit;                                        { Now exit }
@@ -2757,7 +2757,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.28  1999-02-25 21:25:26  peter
+  Revision 1.28.2.1  1999-06-14 17:43:20  peter
+    * fixed lastthat
+
+  Revision 1.28  1999/02/25 21:25:26  peter
     + SetStr() function
 
   Revision 1.27  1999/02/22 15:04:45  peter
