@@ -80,6 +80,10 @@ implementation
          strval    : pchar;
          pw        : pcompilerwidestring;
          error     : boolean;
+	 
+      type
+         setbytes = array[0..31] of byte;
+	 Psetbytes = ^setbytes;
 
       procedure check_range(def:torddef);
         begin
@@ -440,8 +444,8 @@ implementation
 
                         if source_info.endian = target_info.endian then
                           begin
-                            for l:= 0 to p.resulttype.def.size-1 do
-                               curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[l]));
+                            for l:=0 to p.resulttype.def.size-1 do
+                               curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[l]));
                           end
                         else
                           begin
@@ -449,10 +453,10 @@ implementation
                             j:=0;
                             for l:=0 to ((p.resulttype.def.size-1) div 4) do
                               begin
-                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+3]));
-                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+2]));
-                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+1]));
-                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j]));
+                                curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+3]));
+                                curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+2]));
+                                curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j+1]));
+                                curconstsegment.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[j]));
                                 Inc(j,4);
                               end;
                           end;
@@ -971,7 +975,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2002-07-20 11:57:56  florian
+  Revision 1.52  2002-07-22 11:48:04  daniel
+  * Sets are now internally sets.
+
+  Revision 1.51  2002/07/20 11:57:56  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

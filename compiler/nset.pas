@@ -176,8 +176,7 @@ implementation
 
 
     function tinnode.det_resulttype:tnode;
-      type
-        byteset = set of byte;
+
       var
         t : tnode;
         pst : pconstset;
@@ -195,16 +194,14 @@ implementation
                 pes:=tenumsym(tenumdef(psd.elementtype.def).firstenum);
                 while assigned(pes) do
                   begin
-                    pcs^[pes.value div 8]:=pcs^[pes.value div 8] or (1 shl (pes.value mod 8));
+		    include(pcs^,pes.value);
                     pes:=pes.nextenum;
                   end;
               end;
             orddef :
               begin
                 for i:=torddef(psd.elementtype.def).low to torddef(psd.elementtype.def).high do
-                  begin
-                    pcs^[i div 8]:=pcs^[i div 8] or (1 shl (i mod 8));
-                  end;
+		    include(pcs^,i);
               end;
           end;
           createsetconst:=pcs;
@@ -261,7 +258,7 @@ implementation
          { constant evaulation }
          if (left.nodetype=ordconstn) and (right.nodetype=setconstn) then
           begin
-            t:=cordconstnode.create(byte(tordconstnode(left).value in byteset(tsetconstnode(right).value_set^)),booltype);
+            t:=cordconstnode.create(byte(tordconstnode(left).value in Tsetconstnode(right).value_set^),booltype);
             resulttypepass(t);
             result:=t;
             exit;
@@ -578,7 +575,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-07-20 11:57:55  florian
+  Revision 1.28  2002-07-22 11:48:04  daniel
+  * Sets are now internally sets.
+
+  Revision 1.27  2002/07/20 11:57:55  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

@@ -253,17 +253,10 @@ implementation
 
     function is_emptyset(p : tnode):boolean;
 
-      var
-        i : longint;
-      begin
-        i:=0;
-        if p.nodetype=setconstn then
-         begin
-           while (i<32) and (tsetconstnode(p).value_set^[i]=0) do
-            inc(i);
-         end;
-        is_emptyset:=(i=32);
-      end;
+    begin
+        is_emptyset:=(p.nodetype=setconstn) and 
+	 (Tsetconstnode(p).value_set^=[]);
+    end;
 
 
     function genconstsymtree(p : tconstsym) : tnode;
@@ -641,22 +634,11 @@ implementation
       end;
 
     function tsetconstnode.docompare(p: tnode): boolean;
-      var
-        i: 0..31;
-      begin
-        if inherited docompare(p) then
-          begin
-            for i := 0 to 31 do
-              if (value_set^[i] <> tsetconstnode(p).value_set^[i]) then
-                begin
-                  docompare := false;
-                  exit
-                end;
-            docompare := true;
-          end
-        else
-          docompare := false;
-      end;
+
+    begin
+	docompare:=(inherited docompare(p))
+	 and (value_set^=Tsetconstnode(p).value_set^);
+    end;
 
 {*****************************************************************************
                                TNILNODE
@@ -733,7 +715,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-07-20 11:57:54  florian
+  Revision 1.36  2002-07-22 11:48:04  daniel
+  * Sets are now internally sets.
+
+  Revision 1.35  2002/07/20 11:57:54  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

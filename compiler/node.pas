@@ -35,7 +35,7 @@ interface
 
     type
        pconstset = ^tconstset;
-       tconstset = array[0..31] of byte;
+       tconstset = set of 0..255;
        pconst32bitset = ^tconst32bitset;
        tconst32bitset = array[0..7] of longint;
 
@@ -823,7 +823,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2002-07-21 06:58:49  daniel
+  Revision 1.32  2002-07-22 11:48:04  daniel
+  * Sets are now internally sets.
+
+  Revision 1.31  2002/07/21 06:58:49  daniel
   * Changed booleans into flags
 
   Revision 1.30  2002/07/19 11:41:36  daniel

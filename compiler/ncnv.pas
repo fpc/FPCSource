@@ -207,7 +207,7 @@ implementation
         buildp,
         p2,p3,p4    : tnode;
         htype       : ttype;
-        constset    : pconstset;
+        constset    : Pconstset;
         constsetlo,
         constsethi  : longint;
 
@@ -238,22 +238,15 @@ implementation
         end;
 
         procedure do_set(pos : longint);
-        var
-          mask,l : longint;
+
         begin
-          if (pos>255) or (pos<0) then
+          if (pos and not $ff)<>0 then
            Message(parser_e_illegal_set_expr);
           if pos>constsethi then
            constsethi:=pos;
           if pos<constsetlo then
            constsetlo:=pos;
-          { to do this correctly we use the 32bit array }
-          l:=pos shr 5;
-          mask:=1 shl (pos mod 32);
-          { do we allow the same twice }
-          if (pconst32bitset(constset)^[l] and mask)<>0 then
-           Message(parser_e_illegal_set_expr);
-          pconst32bitset(constset)^[l]:=pconst32bitset(constset)^[l] or mask;
+	  include(constset^,pos);
         end;
 
       var
@@ -263,8 +256,8 @@ implementation
       begin
         if p.nodetype<>arrayconstructorn then
          internalerror(200205105);
-        new(constset);
-        FillChar(constset^,sizeof(constset^),0);
+	new(constset);
+	constset^:=[];
         htype.reset;
         constsetlo:=0;
         constsethi:=0;
@@ -1758,7 +1751,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2002-07-20 17:16:02  florian
+  Revision 1.62  2002-07-22 11:48:04  daniel
+  * Sets are now internally sets.
+
+  Revision 1.61  2002/07/20 17:16:02  florian
     + source code page support
 
   Revision 1.60  2002/07/20 11:57:54  florian

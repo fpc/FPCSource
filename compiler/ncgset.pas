@@ -137,11 +137,10 @@ implementation
          pushedregs : tmaybesave;
          l,l2,l3       : tasmlabel;
 
-         function analizeset(Aset:pconstset;is_small:boolean):boolean;
-           type
-             byteset=set of byte;
+         function analizeset(const Aset:Tconstset;is_small:boolean):boolean;
            var
              compares,maxcompares:word;
+	     
              i:byte;
            begin
              analizeset:=false;
@@ -160,7 +159,7 @@ implementation
              if is_small then
               maxcompares:=3;
              for i:=0 to 255 do
-              if i in byteset(Aset^) then
+              if i in Aset then
                begin
                  if (numparts=0) or (i<>setparts[numparts].stop+1) then
                   begin
@@ -209,7 +208,7 @@ implementation
 
          { Can we generate jumps? Possible for all types of sets }
          genjumps:=(right.nodetype=setconstn) and
-                   analizeset(tsetconstnode(right).value_set,use_small);
+                   analizeset(Tsetconstnode(right).value_set^,use_small);
          { calculate both operators }
          { the complex one first }
          firstcomplex(self);
@@ -571,7 +570,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-07-21 16:58:20  jonas
+  Revision 1.8  2002-07-22 11:48:04  daniel
+  * Sets are now internally sets.
+
+  Revision 1.7  2002/07/21 16:58:20  jonas
     * fixed some bugs in tcginnode.pass_2() and optimized the bit test
 
   Revision 1.6  2002/07/20 11:57:54  florian

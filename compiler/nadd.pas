@@ -92,7 +92,7 @@ implementation
          htype   : ttype;
          ot      : tnodetype;
          concatstrings : boolean;
-         resultset : pconstset;
+         resultset : Tconstset;
          i       : longint;
          b       : boolean;
          s1,s2   : pchar;
@@ -472,80 +472,48 @@ implementation
                  left:=nil;
                  exit;
                end;
-              new(resultset);
               case nodetype of
                  addn :
-                   begin
-                      for i:=0 to 31 do
-                        resultset^[i]:=tsetconstnode(right).value_set^[i] or tsetconstnode(left).value_set^[i];
-                      t:=csetconstnode.create(resultset,left.resulttype);
-                   end;
+		    begin
+			resultset:=tsetconstnode(right).value_set^ + tsetconstnode(left).value_set^;
+                        t:=csetconstnode.create(@resultset,left.resulttype);
+		    end;
                  muln :
-                   begin
-                      for i:=0 to 31 do
-                        resultset^[i]:=tsetconstnode(right).value_set^[i] and tsetconstnode(left).value_set^[i];
-                      t:=csetconstnode.create(resultset,left.resulttype);
-                   end;
+		    begin
+			resultset:=tsetconstnode(right).value_set^ * tsetconstnode(left).value_set^;
+                        t:=csetconstnode.create(@resultset,left.resulttype);
+		    end;
                  subn :
-                   begin
-                      for i:=0 to 31 do
-                        resultset^[i]:=tsetconstnode(left).value_set^[i] and not(tsetconstnode(right).value_set^[i]);
-                      t:=csetconstnode.create(resultset,left.resulttype);
-                   end;
+		    begin
+			resultset:=tsetconstnode(right).value_set^ - tsetconstnode(left).value_set^;
+                        t:=csetconstnode.create(@resultset,left.resulttype);
+		    end;
                  symdifn :
-                   begin
-                      for i:=0 to 31 do
-                        resultset^[i]:=tsetconstnode(left).value_set^[i] xor tsetconstnode(right).value_set^[i];
-                      t:=csetconstnode.create(resultset,left.resulttype);
-                   end;
+                    begin
+			resultset:=tsetconstnode(right).value_set^ >< tsetconstnode(left).value_set^;
+            		t:=csetconstnode.create(@resultset,left.resulttype);
+                    end;
                  unequaln :
-                   begin
-                      b:=true;
-                      for i:=0 to 31 do
-                       if tsetconstnode(right).value_set^[i]=tsetconstnode(left).value_set^[i] then
-                        begin
-                          b:=false;
-                          break;
-                        end;
-                      t:=cordconstnode.create(ord(b),booltype);
-                   end;
+                    begin
+			b:=tsetconstnode(right).value_set^ <> tsetconstnode(left).value_set^;
+            		t:=cordconstnode.create(byte(b),booltype);
+                    end;
                  equaln :
-                   begin
-                      b:=true;
-                      for i:=0 to 31 do
-                       if tsetconstnode(right).value_set^[i]<>tsetconstnode(left).value_set^[i] then
-                        begin
-                          b:=false;
-                          break;
-                        end;
-                      t:=cordconstnode.create(ord(b),booltype);
-                   end;
+                    begin
+			b:=tsetconstnode(right).value_set^ = tsetconstnode(left).value_set^;
+            		t:=cordconstnode.create(byte(b),booltype);
+                    end;
                  lten :
-                   begin
-                     b := true;
-                     For i := 0 to 31 Do
-                       If (tsetconstnode(right).value_set^[i] And tsetconstnode(left).value_set^[i]) <>
-                           tsetconstnode(left).value_set^[i] Then
-                         Begin
-                           b := false;
-                           Break
-                         End;
-                     t := cordconstnode.create(ord(b),booltype);
-                   End;
+                    begin
+			b:=tsetconstnode(right).value_set^ <= tsetconstnode(left).value_set^;
+            		t:=cordconstnode.create(byte(b),booltype);
+                    end;
                  gten :
-                   Begin
-                     b := true;
-                     For i := 0 to 31 Do
-                       If (tsetconstnode(left).value_set^[i] And tsetconstnode(right).value_set^[i]) <>
-                           tsetconstnode(right).value_set^[i] Then
-                         Begin
-                           b := false;
-                           Break
-                         End;
-                     t := cordconstnode.create(ord(b),booltype);
-                   End;
+                    begin
+			b:=tsetconstnode(right).value_set^ >= tsetconstnode(left).value_set^;
+            		t:=cordconstnode.create(byte(b),booltype);
+                    end;
               end;
-              dispose(resultset);
               result:=t;
               exit;
            end;
@@ -1664,7 +1632,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2002-07-20 11:57:53  florian
+  Revision 1.55  2002-07-22 11:48:04  daniel
+  * Sets are now internally sets.
+
+  Revision 1.54  2002/07/20 11:57:53  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

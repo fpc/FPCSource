@@ -390,6 +390,9 @@ implementation
          lastlabel   : tasmlabel;
          i         : longint;
          neededtyp   : tait;
+      type
+         setbytes=array[0..31] of byte;
+	 Psetbytes=^setbytes;
       begin
         { small sets are loaded as constants }
         if tsetdef(resulttype.def).settype=smallset then
@@ -420,7 +423,7 @@ implementation
                              i:=0;
                              while assigned(hp1) and (i<32) do
                               begin
-                                if tai_const(hp1).value<>value_set^[i] then
+                                if tai_const(hp1).value<>Psetbytes(value_set)^[i] then
                                  break;
                                 inc(i);
                                 hp1:=tai(hp1.next);
@@ -467,7 +470,7 @@ implementation
                  else
                   begin
                     for i:=0 to 31 do
-                      Consts.concat(Tai_const.Create_8bit(value_set^[i]));
+                      Consts.concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i]));
                   end;
                end;
           end;
@@ -519,7 +522,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-07-20 11:57:53  florian
+  Revision 1.14  2002-07-22 11:48:04  daniel
+  * Sets are now internally sets.
+
+  Revision 1.13  2002/07/20 11:57:53  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
