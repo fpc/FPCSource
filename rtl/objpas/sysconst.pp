@@ -34,6 +34,12 @@ resourcestring
   SDispatchError         = 'No variant method call dispatch';
   SDivByZero             = 'Division by zero';
   SEndOfFile             = 'Read past end of file';
+  SErrInvalidDateMonthWeek = 'Year %d, month %d, Week %d and day %d is not a valid date.';
+  SErrInvalidDateWeek    = '%d %d %d is not a valid dateweek';
+  SErrInvalidDayOfWeek   = '%d is not a valid day of the week';
+  SErrInvalidDayOfWeekInMonth = 'Year %d Month %d NDow %d DOW %d is not a valid date';
+  SErrInvalidDayOfYear   = 'Year %d does not have a day number %d';
+  SErrInvalidTimeStamp   = 'Invalid date/timestamp : "%s"';
   SExceptionErrorMessage = 'exception at %p';
   SExceptionStack        = 'Exception stack error';
   SExternalException     = 'External exception %x';
@@ -199,7 +205,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2004-01-10 17:55:45  michael
+  Revision 1.7  2004-01-10 19:35:17  michael
+  + Moved all resource strings to rtlconst/sysconst
+
+  Revision 1.6  2004/01/10 17:55:45  michael
   + Changed lookup table with Case: Array of resourcestring is not translated
 
   Revision 1.5  2003/11/30 15:04:56  michael

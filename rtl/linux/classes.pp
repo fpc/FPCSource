@@ -30,7 +30,8 @@ interface
 
 uses
   sysutils,
-  typinfo;
+  typinfo,
+  rtlconst;
 
 {$i classesh.inc}
 
@@ -58,7 +59,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2003-11-19 15:51:54  peter
+  Revision 1.4  2004-01-10 19:35:52  michael
+  + Moved all resource strings to rtlconst/sysconst
+
+  Revision 1.3  2003/11/19 15:51:54  peter
     * tthread disabled for 1.0.x
 
   Revision 1.2  2003/11/10 16:54:28  marco

@@ -401,13 +401,7 @@ Function UnixToDateTime(const AValue: Int64): TDateTime;
 
 implementation
 
-Resourcestring
-  SErrInvalidTimeStamp = 'Invalid date/timestamp : "%s"';
-  SErrInvalidDateWeek = '%d %d %d is not a valid dateweek';
-  SErrInvalidDayOfYear = 'Year %d does not have a day number %d';
-  SErrInvalidDateMonthWeek = 'Year %d, month %d, Week %d and day %d is not a valid date.';
-  SErrInvalidDayOfWeekInMonth = 'Year %d Month %d NDow %d DOW %d is not a valid date';
-  SErrInvalidDayOfWeek = '%d is not a valid day of the week';
+uses sysconst;
 
 { ---------------------------------------------------------------------
     Auxiliary routines
@@ -1958,7 +1952,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-12-06 18:03:46  hajny
+  Revision 1.2  2004-01-10 19:35:17  michael
+  + Moved all resource strings to rtlconst/sysconst
+
+  Revision 1.1  2003/12/06 18:03:46  hajny
     * include file for dateutil(s)
 
   Revision 1.2  2003/01/19 14:37:06  michael

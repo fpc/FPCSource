@@ -15,11 +15,6 @@
 {*                               TBits                                      *}
 {****************************************************************************}
 
-ResourceString
-  SErrInvalidBitIndex = 'Invalid bit index : %d';
-  SErrindexTooLarge   = 'Bit index exceeds array limit: %d';
-  SErrOutOfMemory     = 'Out of memory';
-
 Procedure BitsError (Msg : string);
 
 begin
@@ -380,7 +375,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-10-30 16:25:07  peter
+  Revision 1.3  2004-01-10 19:35:17  michael
+  + Moved all resource strings to rtlconst/sysconst
+
+  Revision 1.2  2003/10/30 16:25:07  peter
     * tbits.create is now supported
 
   Revision 1.1  2003/10/06 21:01:06  peter

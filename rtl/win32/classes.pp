@@ -29,6 +29,7 @@ unit Classes;
 interface
 
 uses
+  rtlconst,
   sysutils,
   typinfo,
   windows;
@@ -49,7 +50,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2003-10-07 16:20:21  florian
+  Revision 1.3  2004-01-10 19:35:18  michael
+  + Moved all resource strings to rtlconst/sysconst
+
+  Revision 1.2  2003/10/07 16:20:21  florian
     * win32 now uses aliases from the windows unit for types like trect
 
   Revision 1.1  2003/10/06 21:01:07  peter

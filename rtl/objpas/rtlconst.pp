@@ -57,6 +57,9 @@ ResourceString
   SDuplicateItem                = 'Duplicates not allowed in this list ($0%x)';
   SDuplicateName                = 'Duplcate name: A component named "%s" already exists';
   SDuplicateString              = 'String list does not allow duplicates';
+  SErrOutOfMemory               = 'Out of memory';
+  SErrInvalidBitIndex           = 'Invalid bit index : %d';
+  SErrindexTooLarge             = 'Bit index exceeds array limit: %d';
   SFCreateError                 = 'Unable to create file "%s"';
   SFCreateErrorEx               = 'Unable to create file "%s": %s';
   SFOpenError                   = 'Unable to open file "%s"';
@@ -329,7 +332,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2004-01-10 17:30:32  michael
+  Revision 1.3  2004-01-10 19:35:17  michael
+  + Moved all resource strings to rtlconst/sysconst
+
+  Revision 1.2  2004/01/10 17:30:32  michael
   + Implemented all constants for compatibility
 
   Revision 1.1  2003/09/03 14:09:37  florian
