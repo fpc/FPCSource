@@ -4,7 +4,9 @@
 # make all test
 # and printout errors
 
-all : clean all_compilations
+all : info
+
+tests : clean all_compilations
 
 ifdef DJGPP
 
@@ -47,7 +49,7 @@ else
 testsuccess:
 	@echo Test for $(FILE) fails (does not compile) error $(RETVAL)
 	@echo Test for $(FILE) fails (does not compile) error $(RETVAL)>>log
-	@echo $(FILE) >> ts_list
+	@echo $(FILE) >> ts_fail
 	@echo $(FILE) >> faillist
 endif
 	
@@ -100,7 +102,7 @@ else
 testfail:
 	@echo Test for $(FILE) fails (does compile and should not)
 	@echo Test for $(FILE) fails (does compile and should not) >> log
-	@echo $(FILE) >> tf_list
+	@echo $(FILE) >> tf_fail
 	@echo $(FILE) >> faillist
 endif
 	
@@ -180,7 +182,7 @@ endif
 clean_fail :
 	-rm $(addsuffix .res,$(TS_FAIL_LIST)) 
 	-rm $(addsuffix .ref,$(TF_FAIL_LIST)) 
-	-rm log
+	-rm log 
 
 again : clean_fail $(addsuffix .res,$(TS_FAIL_LIST)) \
 	$(addsuffix .ref,$(TF_FAIL_LIST)) 
@@ -190,6 +192,7 @@ all_compilations : allts alltbs alltf alltbf allto alltest alltesi alltis
 	grep fails log
 
 allexec : alltsexec alltbsexec alltestexec
+	grep "fails exec" log
 
 alltestexec: $(patsubst %.pp,%.elg,$(wildcard test*.pp)) 
 
@@ -204,7 +207,7 @@ alltbsexec: $(patsubst %.pp,%.elg,$(wildcard tbs*.pp))
 alltisexec: $(patsubst %.pp,%.eli,$(wildcard tis*.pp)) 
 
 clean :
-	-rm *.re* *.o *.ppu *.elg ts*.exe tf*.exe log faillist ts_fail tf_fail
+	-rm *.re* *.o *.ppu *.log *.elg *.exc t*.exe log faillist ts_fail tf_fail
 
 info :
 	@echo This Makefile allows to test the compiler
@@ -212,16 +215,16 @@ info :
 	@echo compilation of 'tf*.pp' should fail
 	@echo compilation of 'test*.pp' should succeed
 	@echo 'to*.pp' files should also compile
-	@echo simply run \'make\' to test all compilation
+	@echo simply run \'make tests\' to test all compilation
 	@echo run \'make allexec\' to test also if the executables
 	@echo created behave like the should
 	@echo run \'make tesiexec\' to test executables 
 	@echo that require interactive mode
-	@echo To add a test file
-	@echo for 'ts*.pp' the created program should call halt or runerror
-	@echo if the code is wrong
 # $Log$
-# Revision 1.8  1998-10-28 09:52:26  pierre
+# Revision 1.9  1998-11-10 11:13:07  pierre
+#  * more tests
+#
+# Revision 1.8  1998/10/28 09:52:26  pierre
 #  * see readme.txt
 #
 # Revision 1.7  1998/10/22 16:41:11  pierre

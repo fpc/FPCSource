@@ -1,4 +1,4 @@
-{ $OPT=-S2 -Tos2 }
+{ $OPT= -Twin32 }
 library test;
 
   procedure exporttest;export;
