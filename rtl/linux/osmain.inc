@@ -212,7 +212,7 @@ Function Do_Write(Handle,Addr,Len:SizeInt):longint;
 Begin
   repeat
     Do_Write:=Fpwrite(Handle,pchar(addr),len);
-  until ErrNo<>ESysEINTR;
+  until (Do_Write>=0) or (ErrNo<>ESysEINTR);
   If Do_Write<0 Then
    Begin
     Errno2InOutRes;
@@ -227,7 +227,7 @@ Function Do_Read(Handle,Addr,Len:SizeInt):Longint;
 Begin
   repeat
     Do_Read:=Fpread(Handle,pchar(addr),len);
-  until ErrNo<>ESysEINTR;
+  until (Do_Read>=0) or (ErrNo<>ESysEINTR);
   If Do_Read<0 Then
    Begin
     Errno2InOutRes;
@@ -344,7 +344,9 @@ Begin
    end;
 { real open call }
   FileRec(f).Handle:=Fpopen(p,oflags,MODE_OPEN);
-  if (ErrNo=ESysEROFS) and ((OFlags and O_RDWR)<>0) then
+  if (FileRec(f).Handle<0) and
+     (ErrNo=ESysEROFS) and
+     ((OFlags and O_RDWR)<>0) then
    begin
      Oflags:=Oflags and not(O_RDWR);
      FileRec(f).Handle:=Fpopen(p,oflags,MODE_OPEN);
@@ -499,7 +501,7 @@ end;
 // signal handler is arch dependant due to processorexception to language
 // exception translation
 
-{$i sighnd.inc}  
+{$i sighnd.inc}
 
 var
   act: SigActionRec;
@@ -598,12 +600,15 @@ End.
 *)
 {
  $Log$
- Revision 1.8  2003-11-01 01:58:11  marco
+ Revision 1.9  2003-12-14 14:28:36  peter
+   * only check errno if the syscall failed
+
+ Revision 1.8  2003/11/01 01:58:11  marco
   * more small fixes.
 
  Revision 1.7  2003/10/31 20:36:01  marco
   * i386 specific fixes that hopefully fix texception4.
- 	Only the "generic" signal handler was ported to the unix rtl.
+        Only the "generic" signal handler was ported to the unix rtl.
 
  Revision 1.6  2003/09/27 12:51:33  peter
    * fpISxxx macros renamed to C compliant fpS_ISxxx
