@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit resource;
+unit comprscr;
 interface
 
 procedure CompileResourceFiles;
@@ -102,7 +102,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-12-28 23:26:25  peter
+  Revision 1.1  1999-01-06 12:39:46  peter
+    * renamed resource -> comprsrc (conflicted with FV)
+
+  Revision 1.1  1998/12/28 23:26:25  peter
     + resource file handling ($R directive) for Win32
 
 }

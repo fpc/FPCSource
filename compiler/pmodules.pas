@@ -39,7 +39,7 @@ unit pmodules;
        globtype,version,systems,tokens,
        cobjects,comphook,globals,verbose,files,
        symtable,aasm,hcodegen,
-       link,assemble,import,export,gendef,ppu,resource
+       link,assemble,import,export,gendef,ppu,comprsrc
 {$ifdef i386}
        ,i386
 {$endif}
@@ -1232,7 +1232,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.92  1998-12-28 23:26:23  peter
+  Revision 1.93  1999-01-06 12:39:46  peter
+    * renamed resource -> comprsrc (conflicted with FV)
+
+  Revision 1.92  1998/12/28 23:26:23  peter
     + resource file handling ($R directive) for Win32
 
   Revision 1.91  1998/12/15 17:14:17  peter
