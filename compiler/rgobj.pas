@@ -387,6 +387,8 @@ implementation
          spillworklist.init;
          coalescednodes.init;
          selectstack.init;
+         for i:=0 to maxreg-1 do
+           reginfo[i].alias:=RS_INVALID;
       end;
 
     destructor trgobj.destroy;
@@ -547,15 +549,9 @@ implementation
           ibitmap[u,v]:=true;
           {Precoloured nodes are not stored in the interference graph.}
           if (u>=first_imaginary) then
-            begin
-              addadj(u,v);
-              inc(reginfo[u].degree);
-            end;
+            addadj(u,v);
           if (v>=first_imaginary) then
-            begin
-              addadj(v,u);
-              inc(reginfo[v].degree);
-            end;
+            addadj(v,u);
         end;
     end;
 
@@ -567,7 +563,7 @@ implementation
     begin
       if live_registers.length>0 then
         for i:=0 to live_registers.length-1 do
-          add_edge(u,live_registers.buf[i]);
+          add_edge(u,live_registers.buf^[i]);
     end;
 
 {$ifdef EXTDEBUG}
@@ -702,8 +698,8 @@ implementation
               i:=h;
               repeat
                 j:=i+p;
-                adji:=reginfo[simplifyworklist.buf[i]].adjlist;
-                adjj:=reginfo[simplifyworklist.buf[j]].adjlist;
+                adji:=reginfo[simplifyworklist.buf^[i]].adjlist;
+                adjj:=reginfo[simplifyworklist.buf^[j]].adjlist;
                 if adji=nil then
                   leni:=0
                 else
@@ -714,9 +710,9 @@ implementation
                   lenj:=adjj^.length;
                 if lenj>=leni then
                   break;
-                t:=simplifyworklist.buf[i];
-                simplifyworklist.buf[i]:=simplifyworklist.buf[j];
-                simplifyworklist.buf[j]:=t;
+                t:=simplifyworklist.buf^[i];
+                simplifyworklist.buf^[i]:=simplifyworklist.buf^[j];
+                simplifyworklist.buf^[j]:=t;
                 if i<p then
                   break;
                 dec(i,p)
@@ -734,12 +730,18 @@ implementation
       {If we have 7 cpu registers, and the degree of a node is 7, we cannot
        assign it to any of the registers, thus it is significant.}
       for n:=first_imaginary to maxreg-1 do
+        begin
+        if reginfo[n].adjlist=nil then
+          reginfo[n].degree:=0
+        else
+          reginfo[n].degree:=reginfo[n].adjlist^.length;
         if reginfo[n].degree>=usable_registers_cnt then
           spillworklist.add(n)
         else if move_related(n) then
           freezeworklist.add(n)
         else
           simplifyworklist.add(n);
+        end;
       sort_simplify_worklist;
     end;
 
@@ -753,9 +755,6 @@ implementation
       frozen_moves:=Tlinkedlist.create;
       coalesced_moves:=Tlinkedlist.create;
       constrained_moves:=Tlinkedlist.create;
-      for i:=0 to maxreg-1 do
-        reginfo[i].alias:=RS_INVALID;
-      coalescednodes.clear;
       selectstack.clear;
     end;
 
@@ -788,11 +787,9 @@ implementation
 
     begin
       d:=reginfo[m].degree;
-//      if reginfo[m].degree=0 then
-//        internalerror(200312151);
-
-      if reginfo[m].degree>0 then
-        dec(reginfo[m].degree);
+      if d=0 then
+        internalerror(200312151);
+      dec(reginfo[m].degree);
       if d=usable_registers_cnt then
         begin
           {Enable moves for m.}
@@ -802,7 +799,7 @@ implementation
           if adj<>nil then
             for i:=1 to adj^.length do
               begin
-                n:=adj^.buf[i-1];
+                n:=adj^.buf^[i-1];
                 if reginfo[n].flags*[ri_selected,ri_coalesced]<>[] then
                   enable_moves(n);
               end;
@@ -835,7 +832,7 @@ implementation
       if adj<>nil then
         for i:=1 to adj^.length do
           begin
-            n:=adj^.buf[i-1];
+            n:=adj^.buf^[i-1];
             if (n>=first_imaginary) and
                (reginfo[n].flags*[ri_selected,ri_coalesced]=[]) then
               decrement_degree(n);
@@ -885,7 +882,7 @@ implementation
       if adj<>nil then
         for i:=1 to adj^.length do
           begin
-            n:=adj^.buf[i-1];
+            n:=adj^.buf^[i-1];
             if (reginfo[v].flags*[ri_coalesced,ri_selected]=[]) and
                not ok(n,u) then
               begin
@@ -909,7 +906,7 @@ implementation
       if adj<>nil then
         for i:=1 to adj^.length do
           begin
-            n:=adj^.buf[i-1];
+            n:=adj^.buf^[i-1];
             if reginfo[u].flags*[ri_coalesced,ri_selected]=[] then
               begin
                 supregset_include(done,n);
@@ -921,7 +918,7 @@ implementation
       if adj<>nil then
         for i:=1 to adj^.length do
           begin
-            n:=adj^.buf[i-1];
+            n:=adj^.buf^[i-1];
             if not supregset_in(done,n) and
                (reginfo[n].degree>=usable_registers_cnt) and
                (reginfo[u].flags*[ri_coalesced,ri_selected]=[]) then
@@ -967,19 +964,26 @@ implementation
       if adj<>nil then
         for i:=1 to adj^.length do
           begin
-            t:=adj^.buf[i-1];
+            t:=adj^.buf^[i-1];
             if reginfo[t].flags*[ri_coalesced,ri_selected]=[] then
               begin
-                decrement:=(t<>u) and not(ibitmap[u,t]);
-                add_edge(t,u);
-                { Do not call decrement_degree because it might move nodes between
-                  lists while the degree does not change (add_edge will increase it).
-                  Instead, we will decrement manually. (Only if the degree has been
-                  increased.) }
-                if decrement and
-                   (t>=first_imaginary) and
-                   (reginfo[t].degree>0) then
-                  dec(reginfo[t].degree);
+                {t has a connection to v. Since we are adding v to u, we
+                 need to connect t to u. However, beware if t was already
+                 connected to u...}
+                if ibitmap[t,u] then
+                  {... because in that case, we are actually removing an edge
+                   and the degree of t decreases.}
+                  decrement_degree(t)
+                else
+                  begin
+                    add_edge(t,u);
+                    {We have added an edge to t and u. So their degree increases.
+                     However, v is added to u. That means its neighbours will
+                     no longer point to v, but to u instead. Therefore, only the
+                     degree of u increases.}
+                    if u>=first_imaginary then
+                      inc(reginfo[u].degree);
+                  end;
               end;
           end;
       if (reginfo[u].degree>=usable_registers_cnt) and
@@ -1108,14 +1112,14 @@ implementation
       {Safe: This procedure is only called if length<>0}
       for i:=0 to spillworklist.length-1 do
         begin
-          adj:=reginfo[spillworklist.buf[i]].adjlist;
+          adj:=reginfo[spillworklist.buf^[i]].adjlist;
           if assigned(adj) and (adj^.length>max) then
             begin
               p:=i;
               max:=adj^.length;
             end;
         end;
-      n:=spillworklist.buf[p];
+      n:=spillworklist.buf^[p];
       spillworklist.deleteidx(p);
 
       simplifyworklist.add(n);
@@ -1145,14 +1149,14 @@ implementation
       {Now colour the imaginary registers on the select-stack.}
       for i:=selectstack.length downto 1 do
         begin
-          n:=selectstack.buf[i-1];
+          n:=selectstack.buf^[i-1];
           {Create a list of colours that we cannot assign to n.}
           supregset_reset(adj_colours,false);
           adj:=reginfo[n].adjlist;
           if adj<>nil then
             for j:=0 to adj^.length-1 do
               begin
-                a:=get_alias(adj^.buf[j]);
+                a:=get_alias(adj^.buf^[j]);
                 if supregset_in(colourednodes,a) then
                   supregset_include(adj_colours,reginfo[a].colour);
               end;
@@ -1178,7 +1182,7 @@ implementation
       {Finally colour the nodes that were coalesced.}
       for i:=1 to coalescednodes.length do
         begin
-          n:=coalescednodes.buf[i-1];
+          n:=coalescednodes.buf^[i-1];
           k:=get_alias(n);
           reginfo[n].colour:=reginfo[k].colour;
           if reginfo[k].colour<maxcpuregister then
@@ -1215,33 +1219,10 @@ implementation
 
     procedure trgobj.epilogue_colouring;
 
-{
-      procedure move_to_worklist_moves(list:Tlinkedlist);
-
-      var p:Tlinkedlistitem;
-
-      begin
-        p:=list.first;
-        while p<>nil do
-          begin
-            Tmoveins(p).moveset:=ms_worklist_moves;
-            p:=p.next;
-          end;
-        worklist_moves.concatlist(list);
-      end;
-}
-
     var i:Tsuperregister;
 
     begin
       worklist_moves.clear;
-{$ifdef Principle_wrong_by_definition}
-      {Move everything back to worklist_moves.}
-      move_to_worklist_moves(active_moves);
-      move_to_worklist_moves(frozen_moves);
-      move_to_worklist_moves(coalesced_moves);
-      move_to_worklist_moves(constrained_moves);
-{$endif Principle_wrong_by_definition}
       active_moves.destroy;
       active_moves:=nil;
       frozen_moves.destroy;
@@ -1267,10 +1248,6 @@ implementation
     var i : word;
         v : Tsuperregister;
         adj,adj2 : Psuperregisterworklist;
-{$ifdef Principle_wrong_by_definition}
-        k,j,count : cardinal;
-        m,n : Tmoveins;
-{$endif Principle_wrong_by_definition}
 
     begin
       adj:=reginfo[u].adjlist;
@@ -1278,7 +1255,7 @@ implementation
         begin
           for i:=1 to adj^.length do
             begin
-              v:=adj^.buf[i-1];
+              v:=adj^.buf^[i-1];
               {Remove (u,v) and (v,u) from bitmap.}
               ibitmap[u,v]:=false;
               ibitmap[v,u]:=false;
@@ -1286,7 +1263,7 @@ implementation
               adj2:=reginfo[v].adjlist;
               if adj2<>nil then
                 begin
-                  adj2^.delete(v);
+                  adj2^.delete(u);
                   if adj2^.length=0 then
                     begin
                       dispose(adj2,done);
@@ -1298,63 +1275,6 @@ implementation
           dispose(adj,done);
           reginfo[u].adjlist:=nil;
         end;
-{$ifdef Principle_wrong_by_definition}
-      {Now remove the moves.}
-      if movelist[u]<>nil then
-        begin
-          for j:=0 to movelist[u]^.count-1 do
-            begin
-              m:=Tmoveins(movelist[u]^.data[j]);
-              {Get the other register of the move instruction.}
-              v:=m.instruction.oper[0]^.reg.number shr 8;
-              if v=u then
-                v:=m.instruction.oper[1]^.reg.number shr 8;
-              repeat
-                repeat
-                  if (u<>v) and (movelist[v]<>nil) then
-                    begin
-                      {Remove the move from it's movelist.}
-                      count:=movelist[v]^.count-1;
-                      for k:=0 to count do
-                        if m=movelist[v]^.data[k] then
-                          begin
-                            if k<>count then
-                              movelist[v]^.data[k]:=movelist[v]^.data[count];
-                            dec(movelist[v]^.count);
-                            if count=0 then
-                              begin
-                                dispose(movelist[v]);
-                                movelist[v]:=nil;
-                              end;
-                            break;
-                          end;
-                    end;
-                  {The complexity is enourmous: the register might have been
-                   coalesced. In that case it's movelists have been added to
-                   it's coalescing alias. (DM)}
-                  v:=alias[v];
-                until v=0;
-                {And also register u might have been coalesced.}
-                u:=alias[u];
-              until u=0;
-
-              case m.moveset of
-                ms_coalesced_moves:
-                  coalesced_moves.remove(m);
-                ms_constrained_moves:
-                  constrained_moves.remove(m);
-                ms_frozen_moves:
-                  frozen_moves.remove(m);
-                ms_worklist_moves:
-                  worklist_moves.remove(m);
-                ms_active_moves:
-                  active_moves.remove(m);
-              end;
-            end;
-          dispose(movelist[u]);
-          movelist[u]:=nil;
-        end;
-{$endif Principle_wrong_by_definition}
     end;
 
     procedure trgobj.getregisterinline(list:Taasmoutput;
@@ -1486,8 +1406,8 @@ implementation
             for i:=0 to live_registers.length-1 do
               begin
                 { Only report for imaginary registers }
-                if live_registers.buf[i]>=first_imaginary then
-                  Comment(V_Warning,'Register '+std_regname(newreg(R_INTREGISTER,live_registers.buf[i],defaultsub))+' not released');
+                if live_registers.buf^[i]>=first_imaginary then
+                  Comment(V_Warning,'Register '+std_regname(newreg(R_INTREGISTER,live_registers.buf^[i],defaultsub))+' not released');
               end;
           end;
 {$endif}
@@ -1509,15 +1429,8 @@ implementation
     begin
       spill_registers:=false;
       live_registers.clear;
-      {Precoloured nodes should have an infinite degree, which we can approach
-       by 255.}
-      for i:=0 to first_imaginary-1 do
-        reginfo[i].degree:=high(tsuperregister);
       for i:=first_imaginary to maxreg-1 do
-        begin
-          reginfo[i].degree:=0;
-          reginfo[i].flags:=[];
-        end;
+        exclude(reginfo[i].flags,ri_selected);
       spill_temps:=allocmem(sizeof(treference)*maxreg);
       supregset_reset(regs_to_spill_set,false);
       { Allocate temps and insert in front of the list }
@@ -1525,7 +1438,7 @@ implementation
       {Safe: this procedure is only called if there are spilled nodes.}
       for i:=0 to spillednodes.length-1 do
         begin
-          t:=spillednodes.buf[i];
+          t:=spillednodes.buf^[i];
           {Alternative representation.}
           supregset_include(regs_to_spill_set,t);
           {Clear all interferences of the spilled register.}
@@ -1582,7 +1495,7 @@ implementation
       aktfilepos:=current_procinfo.exitpos;
       {Safe: this procedure is only called if there are spilled nodes.}
       for i:=0 to spillednodes.length-1 do
-        tg.ungettemp(list,spill_temps^[spillednodes.buf[i]]);
+        tg.ungettemp(list,spill_temps^[spillednodes.buf^[i]]);
       freemem(spill_temps);
     end;
 
@@ -1681,7 +1594,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.109  2003-12-26 14:02:30  peter
+  Revision 1.110  2004-01-09 22:02:29  daniel
+    * Degree=0 problem fixed
+    * Degree to high problem fixed
+
+  Revision 1.109  2003/12/26 14:02:30  peter
     * sparc updates
     * use registertype in spill_register
 

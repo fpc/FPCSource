@@ -189,11 +189,14 @@ interface
         shuffles : array[1..1] of byte;
       end;
 
+      Tsuperregisterarray=array[0..$ff] of Tsuperregister;
+      Psuperregisterarray=^Tsuperregisterarray;
+
       Tsuperregisterworklist=object
         buflength,
         buflengthinc,
         length:word;
-        buf    : ^tsuperregister;
+        buf:Psuperregisterarray;
         constructor init;
         constructor copyfrom(const x:Tsuperregisterworklist);
         destructor  done;
@@ -307,8 +310,6 @@ implementation
       length:=0;
       buflength:=0;
       buflengthinc:=16;
-{        head:=0;
-        tail:=0;}
       buf:=nil;
     end;
 
@@ -344,7 +345,7 @@ implementation
              buflengthinc:=256;
           reallocmem(buf,buflength*sizeof(Tsuperregister));
         end;
-      buf[length-1]:=s;
+      buf^[length-1]:=s;
     end;
 
 
@@ -360,7 +361,7 @@ implementation
     begin
       if length=0 then
         internalerror(200310144);
-      buf[i]:=buf[length-1];
+      buf^[i]:=buf^[length-1];
       dec(length);
     end;
 
@@ -370,8 +371,8 @@ implementation
     begin
       if length=0 then
         internalerror(200310142);
-      get:=buf[0];
-      buf[0]:=buf[length-1];
+      get:=buf^[0];
+      buf^[0]:=buf^[length-1];
       dec(length);
     end;
 
@@ -383,7 +384,7 @@ implementation
     begin
       delete:=false;
       for i:=1 to length do
-        if buf[i-1]=s then
+        if buf^[i-1]=s then
           begin
             deleteidx(i-1);
             delete:=true;
@@ -583,7 +584,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.83  2003-12-25 01:07:09  florian
+  Revision 1.84  2004-01-09 22:02:29  daniel
+    * Degree=0 problem fixed
+    * Degree to high problem fixed
+
+  Revision 1.83  2003/12/25 01:07:09  florian
     + $fputype directive support
     + single data type operations with sse unit
     * fixed more x86-64 stuff
