@@ -2086,16 +2086,18 @@ type
               begin
                 { create temps for value parameters, function result and also for    }
                 { const parameters which are passed by value instead of by reference }
+                { we need to take care that we use the type of the defined parameter and not of the
+                  passed parameter, because these can be different in case of a formaldef (PFV) }
                 if (vo_is_funcret in tparavarsym(para.parasym).varoptions) or
                    (para.parasym.varspez = vs_value) or
                    ((para.parasym.varspez = vs_const) and
-                    (not paramanager.push_addr_param(vs_const,para.left.resulttype.def,procdefinition.proccalloption) or
+                    (not paramanager.push_addr_param(vs_const,para.parasym.vartype.def,procdefinition.proccalloption) or
                     { the problem is that we can't take the address of a function result :( }
                      (node_complexity(para.left) >= NODE_COMPLEXITY_INF))) then
                   begin
                     { in theory, this is always regable, but ncgcall can't }
                     { handle it yet in all situations (JM)                 }
-                    tempnode := ctempcreatenode.create(para.left.resulttype,para.left.resulttype.def.size,tt_persistent,tparavarsym(para.parasym).varregable <> vr_none);
+                    tempnode := ctempcreatenode.create(para.parasym.vartype,para.parasym.vartype.def.size,tt_persistent,tparavarsym(para.parasym).varregable <> vr_none);
                     addstatement(createstatement,tempnode);
                     { assign the value of the parameter to the temp, except in case of the function result }
                     { (in that case, para.left is a block containing the creation of a new temp, while we  }
@@ -2518,7 +2520,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.281  2005-03-25 22:20:18  peter
+  Revision 1.282  2005-03-28 15:05:17  peter
+  fix type of temps generated for parameters during inlining
+
+  Revision 1.281  2005/03/25 22:20:18  peter
     * add hint when passing an uninitialized variable to a var parameter
 
   Revision 1.280  2005/03/14 20:18:46  peter
