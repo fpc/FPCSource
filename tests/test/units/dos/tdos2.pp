@@ -977,7 +977,10 @@ GetEnv      | Func | Returns the value of a specified environment variable.
 
 {
   $Log$
-  Revision 1.1  2001-04-02 02:34:13  carl
+  Revision 1.1  2001-05-19 12:10:02  peter
+    * renamed to .pp
+
+  Revision 1.1  2001/04/02 02:34:13  carl
   + initial version of complete test for dos unit
 
 
