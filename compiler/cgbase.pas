@@ -379,6 +379,8 @@ implementation
             sub:='d';
           R_SUBQ:
             sub:='q';
+          R_SUBFD:
+            sub:='f';
           else
             internalerror(200308252);
         end;
@@ -467,7 +469,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.73  2003-10-29 15:07:01  mazen
+  Revision 1.74  2003-10-30 14:56:40  mazen
+  + add support for double float register vars
+
+  Revision 1.73  2003/10/29 15:07:01  mazen
   * 32 registers are available
 
   Revision 1.72  2003/10/24 15:21:31  peter
