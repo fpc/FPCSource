@@ -1,3 +1,6 @@
+
+{ this program shows a possible problem 
+  of name mangling in FPC  (PM) }
   procedure test;
 
     function a : longint;
