@@ -305,6 +305,9 @@ implementation
       var
         s : string;
         T : TTarget;
+        C : TCpu;
+        firsttarget,
+        firstcpu : boolean;
       begin
         s:=FInput.GetVariable(IniVar,false);
         if s<>'' then
@@ -312,13 +315,41 @@ implementation
         for t:=low(TTarget) to high(TTarget) do
          if t in FInput.IncludeTargets then
           begin
+            firsttarget:=true;
+            firstcpu:=true;
             s:=FInput.GetVariable(IniVar+TargetSuffix[t],false);
             if s<>'' then
              begin
-               FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
+               if firsttarget then
+                begin
+                  firsttarget:=false;
+                  FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
+                end;
                FOutput.Add('override '+FixVariable(IniVar)+'+='+s);
-               FOutput.Add('endif');
              end;
+            for c:=low(TCpu) to high(TCpu) do
+             if (TargetCpuPossible[t,c]) and (c in FInput.IncludeCpus) then
+              begin
+                s:=FInput.GetVariable(IniVar+TargetSuffix[t]+CpuSuffix[c],false);
+                if s<>'' then
+                 begin
+                   if firsttarget then
+                    begin
+                      firsttarget:=false;
+                      FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
+                    end;
+                   if firstcpu then
+                    begin
+                      firstcpu:=false;
+                      FOutput.Add('ifeq ($(CPU_TARGET),'+CpuStr[c]+')');
+                    end;
+                   FOutput.Add('override '+FixVariable(IniVar)+'+='+s);
+                 end;
+              end;
+            if not firstcpu then
+             FOutput.Add('endif');
+            if not firsttarget then
+             FOutput.Add('endif');
           end;
       end;
 
@@ -591,6 +622,7 @@ implementation
         i  : integer;
         reqs,req,prefix : string;
         t : Ttarget;
+	c : TCpu;
         sl : TStringList;
       begin
         prefix:='REQUIRE_PACKAGES_';
@@ -599,20 +631,26 @@ implementation
         for t:=low(ttarget) to high(ttarget) do
          if t in FInput.IncludeTargets then
           begin
-            sl:=FInput.GetTargetRequires(t);
-            { show info }
-            FInput.Verbose(FPCMakeInfo,TargetStr[t]+' requires: '+sl.CommaText);
-            if sl.count>0 then
-             begin
-               FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
-               for i:=0 to sl.count-1 do
-                begin
-                  FOutput.Add(prefix+VarName(sl[i])+'=1');
-                  AddTokenNoDup(reqs,sl[i],' ');
-                end;
-               FOutput.Add('endif');
-             end;
-            sl.Free;
+            for c:=low(tcpu) to high(tcpu) do
+             if (TargetCpuPossible[t,c]) and (c in FInput.IncludeCpus) then
+              begin
+                sl:=FInput.GetTargetRequires(t,c);
+                { show info }
+                FInput.Verbose(FPCMakeInfo,TargetStr[t]+'-'+CpuStr[c]+' requires: '+sl.CommaText);
+                if sl.count>0 then
+                 begin
+                   FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
+                   FOutput.Add('ifeq ($(CPU_TARGET),'+CpuStr[c]+')');
+                   for i:=0 to sl.count-1 do
+                    begin
+                      FOutput.Add(prefix+VarName(sl[i])+'=1');
+                      AddTokenNoDup(reqs,sl[i],' ');
+                    end;
+                   FOutput.Add('endif');
+                   FOutput.Add('endif');
+		 end;  
+                sl.Free;
+              end;
           end;
         { Add all require packages }
         repeat
@@ -867,7 +905,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2003-03-24 10:56:02  marco
+  Revision 1.27  2003-04-24 23:21:01  peter
+    * support different cpu target
+
+  Revision 1.26  2003/03/24 10:56:02  marco
    * fix recursive zip making that corrupted utilsxxx.zip
 
   Revision 1.25  2002/09/27 06:54:54  pierre
