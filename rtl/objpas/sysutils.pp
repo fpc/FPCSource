@@ -201,7 +201,7 @@ begin
   else
    Writeln(stdout,'Exception object ',Obj.ClassName,' is not of class Exception.');
   Writeln(stdout,'');
-  Halt(217);
+  Runerror(217);
 end;
 
 
@@ -296,7 +296,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.41  2000-02-09 16:59:33  peter
+    Revision 1.42  2000-02-10 22:56:43  florian
+      * quick hack for stack trace in the case of an unhandled exception
+
+    Revision 1.41  2000/02/09 16:59:33  peter
       * truncated log
 
     Revision 1.40  2000/01/16 19:10:25  hajny
