@@ -38,7 +38,7 @@ unit aasm;
 {$ifdef m68k}
        bestreal = real;
 {$endif}
-
+       pbestreal=^bestreal;
 
        tait = (
           ait_string,
@@ -836,7 +836,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.14  1998-08-10 23:56:03  peter
+  Revision 1.15  1998-08-11 15:31:36  peter
+    * write extended to ppu file
+    * new version 0.99.7
+
+  Revision 1.14  1998/08/10 23:56:03  peter
     * fixed extended writing
 
   Revision 1.13  1998/08/10 14:49:33  peter

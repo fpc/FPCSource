@@ -1337,7 +1337,7 @@
     constructor tconstsym.load;
 
       var
-         pd : pdouble;
+         pd : pbestreal;
          ps : pointer;  {***SETCONST}
 
       begin
@@ -1355,7 +1355,7 @@
             conststring : value:=longint(stringdup(readstring));
             constreal : begin
                            new(pd);
-                           pd^:=readdouble;
+                           pd^:=readreal;
                            value:=longint(pd);
                         end;
 {***SETCONST}
@@ -1405,7 +1405,7 @@
                           writelong(value);
                        end;
             conststring : writestring(pstring(value)^);
-            constreal : writedouble(pdouble(value)^);
+            constreal : writereal(pbestreal(value)^);
 {***SETCONST}
             constseta: writeset(pointer(value)^);
 {***}
@@ -1430,7 +1430,7 @@
                           end;
             constbool, constint, constord, constchar : st := 'i'+tostr(value);
             constreal : begin
-                        system.str(pdouble(value)^,st);
+                        system.str(pbestreal(value)^,st);
                         st := 'r'+st;
                         end;
          { if we don't know just put zero !! }
@@ -1671,7 +1671,11 @@
 
 {
   $Log$
-  Revision 1.28  1998-08-11 14:07:27  peter
+  Revision 1.29  1998-08-11 15:31:42  peter
+    * write extended to ppu file
+    * new version 0.99.7
+
+  Revision 1.28  1998/08/11 14:07:27  peter
     * fixed pushing of high value for openarray
 
   Revision 1.27  1998/08/10 14:50:31  peter

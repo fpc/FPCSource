@@ -97,6 +97,12 @@ const
   uf_smartlink      = $40;
   uf_finalize       = $80;
 
+type
+{$ifdef m68k}
+  ppureal=single;
+{$else}
+  ppureal=extended;
+{$endif}
 
 type
   tppuerror=(ppuentrytoobig,ppuentryerror);
@@ -161,7 +167,7 @@ type
     function  getbyte:byte;
     function  getword:word;
     function  getlongint:longint;
-    function  getdouble:double;
+    function  getreal:ppureal;
     function  getstring:string;
     function  skipuntilentry(untilb:byte):boolean;
   {write}
@@ -174,7 +180,7 @@ type
     procedure putbyte(b:byte);
     procedure putword(w:word);
     procedure putlongint(l:longint);
-    procedure putdouble(d:double);
+    procedure putreal(d:ppureal);
     procedure putstring(s:string);
   end;
 
@@ -488,6 +494,7 @@ begin
   if entryidx+1>entry.size then
    begin
      error:=true;
+     getbyte:=0;
      exit;
    end;
   readdata(b,1);
@@ -505,6 +512,7 @@ begin
   if entryidx+2>entry.size then
    begin
      error:=true;
+     getword:=0;
      exit;
    end;
   readdata(w,2);
@@ -522,6 +530,7 @@ begin
   if entryidx+4>entry.size then
    begin
      error:=true;
+     getlongint:=0;
      exit;
    end;
   readdata(l,4);
@@ -530,20 +539,21 @@ begin
 end;
 
 
-function tppufile.getdouble:double;
+function tppufile.getreal:ppureal;
 type
-  pdouble = ^double;
+  pppureal = ^ppureal;
 var
-  d : double;
+  d : ppureal;
 begin
-  if entryidx+sizeof(double)>entry.size then
+  if entryidx+sizeof(ppureal)>entry.size then
    begin
      error:=true;
+     getreal:=0;
      exit;
    end;
-  readdata(d,sizeof(double));
-  getdouble:=d;
-  inc(entryidx,sizeof(double));
+  readdata(d,sizeof(ppureal));
+  getreal:=d;
+  inc(entryidx,sizeof(ppureal));
 end;
 
 
@@ -735,9 +745,9 @@ begin
 end;
 
 
-procedure tppufile.putdouble(d:double);
+procedure tppufile.putreal(d:ppureal);
 begin
-  putdata(d,sizeof(double));
+  putdata(d,sizeof(ppureal));
 end;
 
 
@@ -750,7 +760,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1998-06-25 10:51:01  pierre
+  Revision 1.8  1998-08-11 15:31:40  peter
+    * write extended to ppu file
+    * new version 0.99.7
+
+  Revision 1.7  1998/06/25 10:51:01  pierre
     * removed a remaining ifndef NEWPPU
       replaced by ifdef OLDPPU
     * added uf_finalize to ppu unit

@@ -56,9 +56,9 @@
       end;
 
 
-    procedure writedouble(d:double);
+    procedure writereal(d:bestreal);
       begin
-        current_ppu^.putdata(d,sizeof(double));
+        current_ppu^.putreal(d);
       end;
 
 
@@ -248,14 +248,11 @@
       end;
 
 
-    function readdouble : double;
-      var
-         d : double;
+    function readreal : bestreal;
       begin
-        current_ppu^.getdata(d,sizeof(double));
+        readreal:=current_ppu^.getreal;
         if current_ppu^.error then
          Message(unit_f_ppu_read_error);
-        readdouble:=d;
       end;
 
 
@@ -697,7 +694,11 @@
 
 {
   $Log$
-  Revision 1.8  1998-08-10 14:50:29  peter
+  Revision 1.9  1998-08-11 15:31:41  peter
+    * write extended to ppu file
+    * new version 0.99.7
+
+  Revision 1.8  1998/08/10 14:50:29  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.7  1998/07/14 14:47:07  peter

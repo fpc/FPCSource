@@ -1179,7 +1179,7 @@ unit pexpr;
                                       constchar:
                                         p1:=genordinalconstnode(pconstsym(srsym)^.value,cchardef);
                                       constreal:
-                                        p1:=genrealconstnode(pdouble(pconstsym(srsym)^.value)^);
+                                        p1:=genrealconstnode(pbestreal(pconstsym(srsym)^.value)^);
                                       constbool:
                                         p1:=genordinalconstnode(pconstsym(srsym)^.value,booldef);
                                       constseta:
@@ -1786,7 +1786,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.32  1998-08-11 14:05:32  peter
+  Revision 1.33  1998-08-11 15:31:39  peter
+    * write extended to ppu file
+    * new version 0.99.7
+
+  Revision 1.32  1998/08/11 14:05:32  peter
     * fixed sizeof(array of char)
 
   Revision 1.31  1998/08/10 14:50:11  peter

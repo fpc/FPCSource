@@ -81,7 +81,7 @@ unit pdecl;
          def : pdef;
          sym : psym;
          ps : pconstset;
-         pd : pdouble;
+         pd : pbestreal;
          sp : pstring;
 
       begin
@@ -1881,7 +1881,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.36  1998-08-10 14:50:09  peter
+  Revision 1.37  1998-08-11 15:31:38  peter
+    * write extended to ppu file
+    * new version 0.99.7
+
+  Revision 1.36  1998/08/10 14:50:09  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.35  1998/07/26 21:59:00  florian

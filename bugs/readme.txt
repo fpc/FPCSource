@@ -55,6 +55,7 @@ Fixed bugs:
   bug0039.pp    shows the else-else problem                         OK 0.9.9 (FK)
   bug0040.pp    shows the if b1 xor b2 problem where b1,b2 :boolean OK 0.9.9 (FK)
   bug0041.pp    shows the if then end. problem                      OK 0.9.9 (FK)
+  bug0043.pp    shows assembler nasm output fpu opcodes problem     OK 0.99.6 (PFV)
   bug0044.pp    shows $ifdef and comment nesting/directive problem  OK 0.99.1 (PFV)
   bug0045.pp    shows problem with virtual private methods          OK 0.9.9 (FK)
                 (might not be a true bug but more of an incompatiblity?)
@@ -157,6 +158,7 @@ Fixed bugs:
   bug0139.pp   Cannot access protected method of ancestor class from other unit. OK 0.99.6
   bug0140.pp   Shows that interdependent units still are not OK.     OK 0.99.6 (PFV)
   bug0141.pp   Wrong Class sizes when using forwardly defined classes. OK 0.99.6
+  bug0146.pp   no sizeof() for var arrays and the size is pushed incorrect OK 0.99.7 (PFV)
   bug0147.pp   function b; is not allowed in implementation          OK 0.99.7 (PFV)
 
 Unproducable bugs:
@@ -177,8 +179,7 @@ bug0133.pp   object type declaration not 100% compatibile with TP7
 Unfixed bugs:
 -------------
 bug0042.pp   shows assembler double operator expression problem
-bug0043.pp   shows assembler nasm output with fpu opcodes problem
-bug0049.pp    shows an error while defining subrange types
+bug0049.pp   shows an error while defining subrange types
 bug0050.pp   can't set a function result in a nested procedure of a function
 bug0051.pp   shows a problem with putpixel
 bug0052.pp   collects missing graph unit routines
@@ -195,7 +196,6 @@ bug0142.pp   sizeof(object) is not tp7 compatible when no constructor is used
 bug0143.pp   cannot concat string and array of char in $X+ mode
 bug0144.pp   problem with 'with object do'
 bug0145.pp   typed files with huges records (needs filerec.size:longint)
-bug0146.pp   no sizeof() for var arrays and the size is pushed incorrect
 bug0148.pp   crash when setting function result of a declared but not yet
              implemented function in another function
 bug0149.pp   (a, b) compile bug0149b twice and you'll get a crash
