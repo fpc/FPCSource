@@ -46,6 +46,7 @@ type
     asmfile,         { current .s and .o file }
     objfile,
     as_bin   : string;
+    SmartAsm : boolean;
     IsEndFile : boolean;  { special 'end' file for import dir ? }
   {outfile}
     AsmSize,
@@ -53,7 +54,7 @@ type
     outcnt   : longint;
     outbuf   : array[0..AsmOutSize-1] of char;
     outfile  : file;
-    Constructor Init;
+    Constructor Init(smart:boolean);
     Destructor Done;
     Function  FindAssembler:string;
     Function  CallAssembler(const command,para:string):Boolean;
@@ -73,7 +74,7 @@ type
     procedure WriteAsmList;virtual;
   end;
 
-Procedure GenerateAsm;
+Procedure GenerateAsm(smart:boolean);
 Procedure OnlyAsm;
 
 var
@@ -329,7 +330,7 @@ end;
 
 procedure TAsmList.AsmCreate;
 begin
-  if (cs_smartlink in aktmoduleswitches) then
+  if SmartAsm then
    NextSmartName;
 {$ifdef linux}
   if DoPipe then
@@ -408,7 +409,7 @@ begin
 end;
 
 
-Constructor TAsmList.Init;
+Constructor TAsmList.Init(smart:boolean);
 var
   i : word;
 begin
@@ -419,8 +420,9 @@ begin
   OutCnt:=0;
   SmartLinkFilesCnt:=0;
   IsEndFile:=false;
+  SmartAsm:=smart;
 { Which path will be used ? }
-  if (cs_smartlink in aktmoduleswitches) then
+  if SmartAsm then
    begin
      path:=current_module^.path^+FixFileName(current_module^.modulename^)+target_info.smartext;
      {$I-}
@@ -443,7 +445,7 @@ end;
                      Generate Assembler Files Main Procedure
 *****************************************************************************}
 
-Procedure GenerateAsm;
+Procedure GenerateAsm(smart:boolean);
 var
   a : PAsmList;
 {$ifdef i386}
@@ -462,23 +464,21 @@ begin
        begin
          case aktoutputformat of
            as_i386_dbg :
-             b:=new(pi386binasmlist,Init(og_dbg));
+             b:=new(pi386binasmlist,Init(og_dbg,smart));
            as_i386_coff :
-             b:=new(pi386binasmlist,Init(og_coff));
+             b:=new(pi386binasmlist,Init(og_coff,smart));
            as_i386_pecoff :
-             b:=new(pi386binasmlist,Init(og_pecoff));
+             b:=new(pi386binasmlist,Init(og_pecoff,smart));
          end;
          b^.WriteBin;
          dispose(b,done);
          if assigned(current_module^.ppufilename) then
           begin
-            if (cs_smartlink in aktmoduleswitches) then
+            if smart then
               SynchronizeFileTime(current_module^.ppufilename^,current_module^.staticlibfilename^)
             else
               SynchronizeFileTime(current_module^.ppufilename^,current_module^.objfilename^);
           end;
-         if assigned(current_module^.ppufilename) then
-           SynchronizeFileTime(current_module^.ppufilename^,current_module^.objfilename^);
          exit;
        end;
   {$endif NoAg386Bin}
@@ -486,36 +486,36 @@ begin
      as_i386_as,
      as_i386_as_aout,
      as_i386_asw :
-       a:=new(pi386attasmlist,Init);
+       a:=new(pi386attasmlist,Init(smart));
   {$endif NoAg386Att}
   {$ifndef NoAg386Nsm}
      as_i386_nasmcoff,
      as_i386_nasmelf,
      as_i386_nasmobj :
-       a:=new(pi386nasmasmlist,Init);
+       a:=new(pi386nasmasmlist,Init(smart));
   {$endif NoAg386Nsm}
   {$ifndef NoAg386Int}
      as_i386_tasm :
-       a:=new(pi386intasmlist,Init);
+       a:=new(pi386intasmlist,Init(smart));
   {$endif NoAg386Int}
 {$endif}
 {$ifdef m68k}
   {$ifndef NoAg68kGas}
      as_m68k_as,
      as_m68k_gas :
-       a:=new(pm68kgasasmlist,Init);
+       a:=new(pm68kgasasmlist,Init(smart));
   {$endif NoAg86KGas}
   {$ifndef NoAg68kMot}
      as_m68k_mot :
-       a:=new(pm68kmotasmlist,Init);
+       a:=new(pm68kmotasmlist,Init(smart));
   {$endif NoAg86kMot}
   {$ifndef NoAg68kMit}
      as_m68k_mit :
-       a:=new(pm68kmitasmlist,Init);
+       a:=new(pm68kmitasmlist,Init(smart));
   {$endif NoAg86KMot}
   {$ifndef NoAg68kMpw}
      as_m68k_mpw :
-       a:=new(pm68kmpwasmlist,Init);
+       a:=new(pm68kmpwasmlist,Init(smart));
   {$endif NoAg68kMpw}
 {$endif}
   else
@@ -538,7 +538,7 @@ Procedure OnlyAsm;
 var
   a : PAsmList;
 begin
-  a:=new(pasmlist,Init);
+  a:=new(pasmlist,Init(false));
   a^.DoAssemble;
   dispose(a,Done);
 end;
@@ -547,7 +547,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.49  1999-06-28 16:02:29  peter
+  Revision 1.50  1999-07-03 00:27:05  peter
+    * better smartlinking support
+
+  Revision 1.49  1999/06/28 16:02:29  peter
     * merged
 
   Revision 1.48.2.1  1999/06/28 15:55:39  peter

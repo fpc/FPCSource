@@ -56,12 +56,13 @@ unit og386;
 
        pobjectoutput = ^tobjectoutput;
        tobjectoutput = object
+         objsmart  : boolean;
          writer    : pobjectwriter;
          path      : pathstr;
          ObjFile   : string;
          IsEndFile : boolean;  { special 'end' file for import dir ? }
          currsec   : tsection;
-         constructor init;
+         constructor init(smart:boolean);
          destructor  done;virtual;
          { Writing }
          procedure NextSmartName;
@@ -149,13 +150,14 @@ unit og386;
                                 tobjectoutput
 ****************************************************************************}
 
-    constructor tobjectoutput.init;
+    constructor tobjectoutput.init(smart:boolean);
       var
         i : longint;
       begin
+        objsmart:=smart;
         objfile:=current_module^.objfilename^;
       { Which path will be used ? }
-        if (cs_smartlink in aktmoduleswitches) and
+        if objsmart and
            (cs_asm_leave in aktglobalswitches) then
          begin
            path:=current_module^.path^+FixFileName(current_module^.modulename^)+target_info.smartext;
@@ -168,7 +170,7 @@ unit og386;
         else
          path:=current_module^.path^;
       { init writer }
-        if (cs_smartlink in aktmoduleswitches) and
+        if objsmart and
            not(cs_asm_leave in aktglobalswitches) then
           writer:=New(parobjectwriter,Init(current_module^.staticlibfilename^))
         else
@@ -216,7 +218,7 @@ unit og386;
 
     procedure tobjectoutput.initwriting;
       begin
-        if (cs_smartlink in aktmoduleswitches) then
+        if objsmart then
          NextSmartName;
         writer^.create(objfile);
       end;
@@ -275,7 +277,10 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.8  1999-05-19 12:41:48  florian
+  Revision 1.9  1999-07-03 00:27:03  peter
+    * better smartlinking support
+
+  Revision 1.8  1999/05/19 12:41:48  florian
     * made source compilable with TP (too long line)
     * default values for set properties fixed
 

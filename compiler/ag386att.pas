@@ -701,34 +701,37 @@ unit ag386att;
 
            ait_cut :
              begin
-             { only reset buffer if nothing has changed }
-               if AsmSize=AsmStartSize then
-                AsmClear
-               else
+               if SmartAsm then
                 begin
-                  AsmClose;
-                  DoAssemble;
-                  if pai_cut(hp)^.EndName then
-                   IsEndFile:=true;
-                  AsmCreate;
-                end;
-             { avoid empty files }
-               while assigned(hp^.next) and (pai(hp^.next)^.typ in [ait_cut,ait_section,ait_comment]) do
-                begin
-                  if pai(hp^.next)^.typ=ait_section then
-                    lastsec:=pai_section(hp^.next)^.sec;
-                  hp:=pai(hp^.next);
-                end;
+                { only reset buffer if nothing has changed }
+                  if AsmSize=AsmStartSize then
+                   AsmClear
+                  else
+                   begin
+                     AsmClose;
+                     DoAssemble;
+                     if pai_cut(hp)^.EndName then
+                      IsEndFile:=true;
+                     AsmCreate;
+                   end;
+                { avoid empty files }
+                  while assigned(hp^.next) and (pai(hp^.next)^.typ in [ait_cut,ait_section,ait_comment]) do
+                   begin
+                     if pai(hp^.next)^.typ=ait_section then
+                       lastsec:=pai_section(hp^.next)^.sec;
+                     hp:=pai(hp^.next);
+                   end;
 {$ifdef GDB}
-               { force write of filename }
-               FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
-               includecount:=0;
-               funcname:=nil;
-               WriteFileLineInfo(hp^.fileinfo);
+                  { force write of filename }
+                  FillChar(stabslastfileinfo,sizeof(stabslastfileinfo),0);
+                  includecount:=0;
+                  funcname:=nil;
+                  WriteFileLineInfo(hp^.fileinfo);
 {$endif GDB}
-               if lastsec<>sec_none then
-                 AsmWriteLn(ait_section2str(lastsec));
-               AsmStartSize:=AsmSize;
+                  if lastsec<>sec_none then
+                    AsmWriteLn(ait_section2str(lastsec));
+                  AsmStartSize:=AsmSize;
+                end;
              end;
 
            ait_marker :
@@ -811,7 +814,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.2  1999-06-22 15:25:14  peter
+  Revision 1.3  1999-07-03 00:27:04  peter
+    * better smartlinking support
+
+  Revision 1.2  1999/06/22 15:25:14  peter
     * merged
 
   Revision 1.1.2.1  1999/06/22 15:23:08  peter

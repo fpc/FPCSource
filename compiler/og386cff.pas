@@ -121,7 +121,7 @@ unit og386cff;
          strs,
          syms    : Pdynamicarray;
          initsym : longint;
-         constructor init;
+         constructor init(smart:boolean);
          destructor  done;virtual;
          procedure initwriting;virtual;
          procedure donewriting;virtual;
@@ -133,7 +133,7 @@ unit og386cff;
          procedure writesymbol(p:pasmsymbol);virtual;
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;
          procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;
-	   nidx,nother,line:longint;reloc:boolean);virtual;
+           nidx,nother,line:longint;reloc:boolean);virtual;
          function  text_flags : longint;virtual;
          function  data_flags : longint;virtual;
          function  bss_flags : longint;virtual;
@@ -148,7 +148,7 @@ unit og386cff;
 
        pdjgppcoffoutput = ^tdjgppcoffoutput;
        tdjgppcoffoutput = object(tgenericcoffoutput)
-         constructor init;
+         constructor init(smart:boolean);
          function text_flags : longint;virtual;
          function data_flags : longint;virtual;
          function bss_flags : longint;virtual;
@@ -157,7 +157,7 @@ unit og386cff;
 
        pwin32coffoutput = ^twin32coffoutput;
        twin32coffoutput = object(tgenericcoffoutput)
-         constructor init;
+         constructor init(smart:boolean);
          function text_flags : longint;virtual;
          function data_flags : longint;virtual;
          function bss_flags : longint;virtual;
@@ -316,9 +316,9 @@ unit og386cff;
       strsresize   = 8192;
 {$endif}
 
-    constructor tgenericcoffoutput.init;
+    constructor tgenericcoffoutput.init(smart:boolean);
       begin
-        inherited init;
+        inherited init(smart);
       end;
 
 
@@ -884,9 +884,9 @@ unit og386cff;
                             DJGppcoffoutput
 ****************************************************************************}
 
-    constructor tdjgppcoffoutput.init;
+    constructor tdjgppcoffoutput.init(smart:boolean);
       begin
-        inherited init;
+        inherited init(smart);
         win32:=false;
       end;
 
@@ -916,9 +916,9 @@ unit og386cff;
                             Win32coffoutput
 ****************************************************************************}
 
-    constructor twin32coffoutput.init;
+    constructor twin32coffoutput.init(smart:boolean);
       begin
-        inherited init;
+        inherited init(smart);
         win32:=true;
       end;
 
@@ -946,7 +946,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.8  1999-06-03 16:39:09  pierre
+  Revision 1.9  1999-07-03 00:27:02  peter
+    * better smartlinking support
+
+  Revision 1.8  1999/06/03 16:39:09  pierre
    * EXTERNALBSS fixed for stabs and default again
 
   Revision 1.7  1999/05/21 13:55:03  peter
