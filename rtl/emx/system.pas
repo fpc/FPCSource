@@ -509,6 +509,7 @@ function Increase_File_Handle_Count: boolean;
 var Err: word;
     L1: longint;
     L2: cardinal;
+begin
     if os_mode = osOS2 then
         begin
             L1 := 10;
@@ -1265,7 +1266,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2003-10-25 22:45:37  hajny
+  Revision 1.19  2003-11-01 19:25:50  hajny
+    * fix of previous mistyping
+
+  Revision 1.18  2003/10/25 22:45:37  hajny
     * file handling related fixes
 
   Revision 1.17  2003/10/19 12:13:41  hajny
