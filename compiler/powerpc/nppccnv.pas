@@ -32,7 +32,7 @@ interface
     type
        tppctypeconvnode = class(tcgtypeconvnode)
          protected
-         { procedure second_int_to_int;override; }
+          procedure second_int_to_int;override;
          { procedure second_string_to_string;override; }
          { procedure second_cstring_to_pchar;override; }
          { procedure second_string_to_chararray;override; }
@@ -63,6 +63,7 @@ implementation
       symconst,symdef,aasmbase,aasmtai,
       cgbase,pass_1,pass_2,
       ncon,ncal,
+      ncgutil,
       cpubase,aasmcpu,
       rgobj,tgobj,cgobj,cginfo;
 
@@ -103,6 +104,37 @@ implementation
 {*****************************************************************************
                              SecondTypeConv
 *****************************************************************************}
+
+    procedure tppctypeconvnode.second_int_to_int;
+      var
+        newsize : tcgsize;
+        size, leftsize : cardinal;
+      begin
+        newsize:=def_cgsize(resulttype.def);
+
+        { insert range check if not explicit conversion }
+        if not(nf_explizit in flags) then
+          cg.g_rangecheck(exprasmlist,left,resulttype.def);
+
+        { is the result size smaller ? }
+        size := resulttype.def.size;
+        leftsize := left.resulttype.def.size;
+        if (size < leftsize) or
+           ((left.location.loc <> LOC_REGISTER) and
+            (size > leftsize)) then
+          begin
+            { reuse the left location by default }
+            location_copy(location,left.location);
+            location_force_reg(exprasmlist,location,newsize,false);
+          end
+        else
+          begin
+            { no special loading is required, reuse current location }
+            location_copy(location,left.location);
+            location.size:=newsize;
+          end;
+      end;
+
 
     procedure tppctypeconvnode.second_int_to_real;
 
@@ -384,7 +416,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2002-07-27 19:55:15  jonas
+  Revision 1.18  2002-07-29 09:20:20  jonas
+    + second_int_to_int implementation which is almost the same as the
+      generic implementation, but it avoids some unnecessary type conversions
+
+  Revision 1.17  2002/07/27 19:55:15  jonas
     + generic implementation of tcg.g_flags2ref()
     * tcg.flags2xxx() now also needs a size parameter
 
