@@ -907,6 +907,8 @@ procedure TraceExit;
 begin
   { no dump if error
     because this gives long long listings }
+  { clear inoutres, in case the program that quit didn't }
+  ioresult;
   if (exitcode<>0) and (erroraddr<>nil) then
     begin
        Writeln(ptext^,'No heap dump by heaptrc unit');
@@ -990,7 +992,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:44  michael
+  Revision 1.3  2000-08-24 09:01:07  jonas
+    * clear inoutres in traceexit before writing anything (to avoid an RTE
+      when writing the heaptrc output when a program didn't handle ioresult)
+      (merged from fixes branch)
+
+  Revision 1.2  2000/07/13 11:33:44  michael
   + removed logs
  
 }
