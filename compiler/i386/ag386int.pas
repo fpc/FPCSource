@@ -456,7 +456,7 @@ implementation
    ait_const_32bit,
     ait_const_8bit,
    ait_const_16bit : begin
-                       AsmWrite(ait_const2str[hp.typ]+tostr(tai_const(hp).value));
+                       AsmWrite(ait_const2str[hp.typ]+tostru(tai_const(hp).value));
                        consttyp:=hp.typ;
                        l:=0;
                        repeat
@@ -464,7 +464,7 @@ implementation
                          if found then
                           begin
                             hp:=tai(hp.next);
-                            s:=','+tostr(tai_const(hp).value);
+                            s:=','+tostru(tai_const(hp).value);
                             AsmWrite(s);
                             inc(l,length(s));
                           end;
@@ -875,7 +875,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.43  2003-10-21 15:15:36  peter
+  Revision 1.44  2003-12-14 22:42:39  peter
+    * fixed range check errors
+
+  Revision 1.43  2003/10/21 15:15:36  peter
     * taicpu_abstract.oper[] changed to pointers
 
   Revision 1.42  2003/10/19 01:34:30  florian

@@ -486,7 +486,7 @@ interface
            ait_const_16bit,
            ait_const_8bit :
              begin
-               AsmWrite(ait_const2str[hp.typ]+tostr(tai_const(hp).value));
+               AsmWrite(ait_const2str[hp.typ]+tostru(tai_const(hp).value));
                consttyp:=hp.typ;
                l:=0;
                repeat
@@ -494,7 +494,7 @@ interface
                  if found then
                   begin
                     hp:=tai(hp.next);
-                    s:=','+tostr(tai_const(hp).value);
+                    s:=','+tostru(tai_const(hp).value);
                     AsmWrite(s);
                     inc(l,length(s));
                   end;
@@ -920,7 +920,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.42  2003-11-29 15:53:06  florian
+  Revision 1.43  2003-12-14 22:42:39  peter
+    * fixed range check errors
+
+  Revision 1.42  2003/11/29 15:53:06  florian
     + nasmelf mode for BeOS
     + DQWORD directive in intel assembler mode
 
