@@ -155,7 +155,10 @@ type
          VideoIndex   : word;
          Next         : PVesaVideoMode;
        end;
-
+       CursorBitMap = Record
+        width,height,size : longint;
+        colors : array[0..8*8-1] of word;
+       end;
 const
   VesaVideoModeHead : PVesaVideoMode = nil;
   VesaRegisteredModes : word = 0;
@@ -163,6 +166,15 @@ const
   IsGraphicMode : boolean = false;
   GraphDriver   : integer = 0;
   GraphMode     : Integer = 0;
+  FirstCallAfterSetVesaMode : boolean = false;
+  LastCursorX : word = $ffff;
+  LastCursorY : word = $ffff;
+  LastCursorType : word = crHidden;
+
+var
+  UnderLineImage : CursorBitMap;
+  BlockImage : CursorBitMap;
+  HalfBlockImage : CursorBitMap;
 {$endif TESTGRAPHIC}
 
 Var
@@ -172,6 +184,8 @@ Var
   SysUpdateScreen      : procedure(Force : Boolean);
   SysDoneVideo         : procedure;
   SysInitVideo         : procedure;
+  SysSetCursorPos      : procedure(NewCursorX, NewCursorY: Word);
+  SysSetCursorType     : procedure(NewCurosrType : word);
 
 
 function VESAGetInfo(var B: TVESAInfoBlock): boolean;
@@ -399,12 +413,19 @@ function SetVESAMode(const VideoMode: TVideoMode): Boolean;
                  GraphDriver:=Graph.Vesa;
                  if (VideoMode.col = 100) and (VideoMode.row = 75) then
                    GraphMode:=m800x600x256
+                 else if (VideoMode.col = 80) and (VideoMode.row = 60) then
+                   GraphMode:=m640x480x256
                  else if (VideoMode.col = 128) and (VideoMode.row = 96) then
                    GraphMode:=m1024x768x256
                  else
                    GraphMode:=Graph.Detect;
                  InitGraph(GraphDriver,GraphMode,'');
                  res:=(GraphResult=grOK);
+                 if not res then
+                   begin
+                     SetVesaMode:=false;
+                     exit;
+                   end;
                end
              else
 {$endif TESTGRAPHIC}
@@ -416,18 +437,22 @@ function SetVESAMode(const VideoMode: TVideoMode): Boolean;
                   ScreenColor:=VideoMode.Color;
 {$ifdef TESTGRAPHIC}
                   IsGraphicMode:=VH^.IsGraphic;
+                  FirstCallAfterSetVesaMode:=true;
+                  LastCursorX:=$ffff;
+                  LastCursorY:=$ffff;
+                  LastCursorType:=crHidden;
+                  if IsGraphicMode then
+                    DoCustomMouse(false)
+                  else
 {$endif TESTGRAPHIC}
-                  // cheat to get a correct mouse
-                  {
-                  mem[$40:$84]:=ScreenHeight-1;
-                  mem[$40:$4a]:=ScreenWidth;
-                  memw[$40:$4c]:=ScreenHeight*((ScreenWidth shl 1)-1);
-                  }
-                  DoCustomMouse(true);
+                    DoCustomMouse(true);
                end;
            end;
          if res then
-           exit;
+           begin
+             SetVesaMode:=true;
+             exit;
+           end;
          VH:=VH^.next;
        end;
      SetVESAMode:=SysSetVideoMode(VideoMode);
@@ -439,8 +464,8 @@ var
   StoreDrawTextBackground,
   MustUpdate : boolean;
   x,y : longint;
-  w : word;
-  Color : byte;
+  w, prevcolor, prevbkcolor : word;
+  Color,BkCol,Col : byte;
   Ch : char;
 {$endif TESTGRAPHIC}
 begin
@@ -452,6 +477,12 @@ begin
       exit;
     end;
 {$ifdef TESTGRAPHIC}
+  if FirstCallAfterSetVesaMode then
+    begin
+      { Make sure to redraw all }
+      Fillchar(OldVideoBuf^,VideoBufSize,#0);
+      FirstCallAfterSetVesaMode:=false;
+    end;
   if not force then
    begin
      MustUpdate:=false;
@@ -469,8 +500,11 @@ begin
   DrawTextBackground:=true;
   if Force or MustUpdate then
    begin
-     for x:=0 to Screenwidth-1 do
-       for y:=0 to ScreenHeight-1 do
+     PrevColor:=GetColor;
+     PrevBkColor:=GetBkColor;
+
+     for y:=0 to ScreenHeight-1 do
+       for x:=0 to Screenwidth-1 do
          begin
            w:=VideoBuf^[x+y*ScreenWidth];
            if Force or
@@ -478,8 +512,14 @@ begin
              Begin
                Color:=w shr 8;
                Ch:=chr(w and $ff);
-               SetColor(Color and $f);
-               SetBkColor((Color shr 4) and 7);
+               Col:=Color and $f;
+               if (Col = 0) and (GetMaxColor=255) then
+                 Col:=255;
+               SetColor(Col);
+               BkCol:=(Color shr 4) and 7;
+               if (BkCol = 0) and (GetMaxColor=255) then
+                 BkCol:=255;
+               SetBkColor(BkCol);
                OutTextXY(x*8,y*8,Ch);
                if not force then
                  OldVideoBuf^[x+y*ScreenWidth]:=w;
@@ -487,9 +527,95 @@ begin
          end;
      if Force then
        move(videobuf^,oldvideobuf^,
-         ScreenWidth*ScreenHeight*SizeOf(TVideoCell));
+         VideoBufSize);
+     SetColor(PrevColor);
+     SetBkColor(GetBkColor);
    end;
   DrawTextBackground:=StoreDrawTextBackground;
+{$endif TESTGRAPHIC}
+end;
+
+procedure VesaSetCursorPos(NewCursorX, NewCursorY: Word);
+begin
+{$ifdef TESTGRAPHIC}
+  if not IsGraphicMode then
+{$endif TESTGRAPHIC}
+    begin
+      SysSetCursorPos(NewCursorX,NewCursorY);
+      exit;
+    end;
+{$ifdef TESTGRAPHIC}
+  if (NewCursorX<>LastCursorX) or (NewCursorY<>LastCursorY) then
+    begin
+      Case GetCursorType of
+        crHidden  : ;
+        crUnderLine :
+          Begin
+            PutImage(LastCursorX*8,LastCursorY*8+7,UnderLineImage,XORPut);
+            PutImage(NewCursorX*8,NewCursorY*8+7,UnderLineImage,XORPut);
+          End;
+        crBlock     :
+          Begin
+            PutImage(LastCursorX*8,LastCursorY*8,BlockImage,XORPut);
+            PutImage(NewCursorX*8,NewCursorY*8,BlockImage,XORPut);
+          End;
+        crHalfBlock :
+          Begin
+            PutImage(LastCursorX*8,LastCursorY*8+4,HalfBlockImage,XORPut);
+            PutImage(NewCursorX*8,NewCursorY*8+4,HalfBlockImage,XORPut);
+          End;
+      end;
+      LastCursorX:=NewCursorX;
+      LastCursorY:=NewCursorY;
+    end;
+{$endif TESTGRAPHIC}
+end;
+
+procedure VesaSetCursorType(NewType : Word);
+begin
+{$ifdef TESTGRAPHIC}
+  if not IsGraphicMode then
+{$endif TESTGRAPHIC}
+    begin
+      SysSetCursorType(NewType);
+      exit;
+    end;
+{$ifdef TESTGRAPHIC}
+  if (NewType<>LastCursorType) then
+    begin
+      Case LastCursorType of
+        crHidden  : ;
+        crUnderLine :
+          Begin
+            PutImage(LastCursorX*8,LastCursorY*8+7,UnderLineImage,XORPut);
+          End;
+        crBlock     :
+          Begin
+            PutImage(LastCursorX*8,LastCursorY*8,BlockImage,XORPut);
+          End;
+        crHalfBlock :
+          Begin
+            PutImage(LastCursorX*8,LastCursorY*8+4,HalfBlockImage,XORPut);
+          End;
+      end;
+      SysSetCursorType(NewType);
+      Case NewType of
+        crHidden  : ;
+        crUnderLine :
+          Begin
+            PutImage(LastCursorX*8,LastCursorY*8+7,UnderLineImage,XORPut);
+          End;
+        crBlock     :
+          Begin
+            PutImage(LastCursorX*8,LastCursorY*8,BlockImage,XORPut);
+          End;
+        crHalfBlock :
+          Begin
+            PutImage(LastCursorX*8,LastCursorY*8+4,HalfBlockImage,XORPut);
+          End;
+      end;
+      LastCursorType:=NewType;
+    end;
 {$endif TESTGRAPHIC}
 end;
 
@@ -527,6 +653,9 @@ end;
 
 Var
   Driver : TVideoDriver;
+{$ifdef TESTGRAPHIC}
+  i : longint;
+{$endif TESTGRAPHIC}
 
 BEGIN
 { Get the videodriver to be used }
@@ -538,6 +667,10 @@ BEGIN
   Driver.GetVideoModeData:=@VesaGetVideoModeData;
   SysSetVideoMode:=Driver.SetVideoMode;
   Driver.SetVideoMode:=@SetVESAMode;
+  SysSetCursorPos:=Driver.SetCursorPos;
+  Driver.SetCursorPos:=@VESASetCursorPos;
+  SysSetCursorType:=Driver.SetCursorType;
+  Driver.SetCursorType:=@VESASetCursorType;
   SysUpdateScreen:=Driver.UpdateScreen;
   Driver.UpdateScreen:=@VesaUpdateScreen;
   SysDoneVideo:=Driver.DoneDriver;
@@ -545,12 +678,26 @@ BEGIN
   SysInitVideo:=Driver.InitDriver;
   Driver.InitDriver:=@VesaInitVideo;
 
+{$ifdef TESTGRAPHIC}
+  BlockImage.width:=7;
+  BlockImage.height:=7;
+  For i:=0 to 8*8-1 do
+    BlockImage.colors[i]:=White;
+  HalfBlockImage:=BlockImage;
+  HalfBlockImage.height:=3;
+  UnderLineImage:=BlockImage;
+  UnderLineImage.height:=0;
+{$endif TESTGRAPHIC}
+
   SetVideoDriver (Driver);
 {$endif FPC}
 END.
 {
   $Log$
-  Revision 1.4  2001-10-12 00:04:17  pierre
+  Revision 1.5  2001-10-12 14:22:45  pierre
+   + graphic modes support enhanced
+
+  Revision 1.4  2001/10/12 00:04:17  pierre
    * fix color computation for graphic mode
 
   Revision 1.3  2001/10/11 23:45:27  pierre
