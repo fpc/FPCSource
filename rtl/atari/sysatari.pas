@@ -1,7 +1,8 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by the Free Pascal development team.
+    Copyright (c) 1993,98 by Carl Eric Codere
+    member of the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -14,9 +15,14 @@
 {$define ATARI}
 unit sysatari;
 
+{--------------------------------------------------------------------}
+{ LEFT TO DO:                                                        }
+{--------------------------------------------------------------------}
+{ o SBrk                                                             }
+{ o Implement truncate                                               }
+{ o Implement paramcount and paramstr                                }
+{--------------------------------------------------------------------}
 
-{ Left to do :                                                    }
-{    - Fix DOSError codes to conform to those of DOS (TP)         }
 
 {$I os.inc}
 
@@ -33,13 +39,15 @@ const
   UnusedHandle    = $ffff; 
   StdInputHandle  = 0;
   StdOutputHandle = 1;
-  StdErrorHandle  = $ffff; 
+  StdErrorHandle  = $ffff;
 
   implementation
 
     {$I system.inc}
     {$I lowmath.inc}
 
+    var
+      errno : integer;
     type
        plongint = ^longint;
 
@@ -57,6 +65,34 @@ const
            jsr      HALT_ERROR
          @st1nosweat:
          end;
+
+
+    Procedure Error2InOut;
+    Begin
+     if (errno <= -2) and (errno >= -11) then
+       InOutRes:=150-errno  { 150+errno }
+     else
+      Begin
+        case errno of
+          -32 : InOutRes:=1;
+          -33 : InOutRes:=2;
+          -34 : InOutRes:=3;
+          -35 : InOutRes:=4;
+          -36 : InOutRes:=5;
+          -37 : InOutRes:=8;
+          -39 : InOutRes:=8;
+          -40 : InOutRes:=9;
+          -46 : InOutRes:=15;
+          -67..-64 : InOutRes:=153;
+          -15 : InOutRes:=151;
+          -13 : InOutRes:=150;
+        else
+           InOutres := word(errno);
+         end;
+     end;
+     errno:=0;
+    end;
+
 
 
     procedure halt(errnum : byte);
@@ -146,7 +182,8 @@ procedure do_close(h : longint);
 begin
   asm
         movem.l d2/d3/a2/a3,-(sp)
-        move.l  h,-(sp)
+        move.l  h,d0
+        move.w  d0,-(sp)
         move.w  #$3e,-(sp)
         trap    #1
         add.l   #4,sp      { restore stack ... }
@@ -169,9 +206,11 @@ begin
         movem.l (sp)+,d3/a2/a3
         tst.w  d0
         beq    @doserend
-        move.w d0,InOutRes
+        move.w d0,errno
         @doserend:
   end;
+  if errno <> 0 then
+     Error2InOut;
 end;
 
 
@@ -192,16 +231,18 @@ begin
             movem.l (sp)+,d3/a2/a3
             tst.w   d0
             beq     @dosreend
-            move.w  d0,InOutRes    { error ... }
+            move.w  d0,errno    { error ... }
          @dosreend:
   end;
+  if errno <> 0 then
+     Error2InOut;
 end;
 
-function do_isdevice(handle:longint):boolean;
+function do_isdevice(handle:word):boolean;
 begin
   if (handle=stdoutputhandle) or (handle=stdinputhandle) or
   (handle=stderrorhandle) then
-    do_isdevice:=FALSE;
+    do_isdevice:=FALSE
   else
     do_isdevice:=TRUE;
 end;
@@ -214,7 +255,8 @@ begin
             movem.l d3/a2/a3,-(sp)
             move.l  addr,-(sp)
             move.l  len,-(sp)
-            move.w  h,-(sp)
+            move.l  h,d0
+            move.w  d0,-(sp)
             move.w  #$40,-(sp)
             trap    #1
             lea     12(sp),sp
@@ -222,10 +264,12 @@ begin
             movem.l (sp)+,d3/a2/a3
             tst.l   d0
             bpl     @doswrend
-            move.w  d0,InOutRes    { error ... }
+            move.w  d0,errno    { error ... }
           @doswrend:
             move.l  d0,@RESULT
   end;
+  if errno <> 0 then
+     Error2InOut;
 end;
 
 
@@ -236,18 +280,21 @@ begin
             movem.l d3/a2/a3,-(sp)
             move.l addr,-(sp)
             move.l len,-(sp)
-            move.w h,-(sp)
-            move.w #$40,-(sp)
+            move.l h,d0
+            move.w d0,-(sp)
+            move.w #$3f,-(sp)
             trap   #1
             lea    12(sp),sp
             move.l d6,d2       { restore d2 }
             movem.l (sp)+,d3/a2/a3
             tst.l   d0
             bpl     @dosrdend
-            move.w  d0,InOutRes    { error ... }
+            move.w  d0,errno    { error ... }
           @dosrdend:
             move.l  d0,@Result
   end;
+  if errno <> 0 then
+     Error2InOut;
 end;
 
 
@@ -257,7 +304,8 @@ begin
             move.l  d2,d6      { save d2 }
             movem.l d3/a2/a3,-(sp)
             move.w #1,-(sp)     { seek from current position }
-            move.w handle,-(sp)
+            move.l handle,d0
+            move.w d0,-(sp)
             move.l #0,-(sp)     { with a seek offset of zero }
             move.w #$42,-(sp)
             trap   #1
@@ -275,7 +323,8 @@ begin
             move.l  d2,d6      { save d2 }
             movem.l d3/a2/a3,-(sp)
             move.w #0,-(sp)     { seek from start of file    }
-            move.w handle,-(sp)
+            move.l handle,d0
+            move.w d0,-(sp)
             move.l pos,-(sp)
             move.w #$42,-(sp)
             trap   #1
@@ -294,7 +343,8 @@ begin
             move.l  d2,d6      { save d2 }
             movem.l d3/a2/a3,-(sp)
             move.w #2,-(sp)     { seek from end of file        }
-            move.w handle,-(sp)
+            move.l handle,d0
+            move.w d0,-(sp)
             move.l #0,-(sp)     { with an offset of 0 from end }
             move.w #$42,-(sp)
             trap   #1
@@ -333,7 +383,7 @@ procedure do_open(var f;p:pchar;flags:longint);
   when (flags and $1000) there is no check for close (needed for textfiles)
 }
 var
-  i : longint;
+  i : word;
   oflags: longint;
 begin
   AllowSlash(p);
@@ -352,12 +402,12 @@ begin
    end;
 { reset file handle }
   filerec(f).handle:=UnusedHandle;
-  oflags:=$04;
+  oflags:=$02; { read/write mode }
 { convert filemode to filerec modes }
   case (flags and 3) of
    0 : begin
          filerec(f).mode:=fminput;
-         oflags:=$01;
+         oflags:=$00; { read mode only }
        end;
    1 : filerec(f).mode:=fmoutput;
    2 : filerec(f).mode:=fminout;
@@ -365,13 +415,13 @@ begin
   if (flags and $100)<>0 then
    begin
      filerec(f).mode:=fmoutput;
-     oflags:=$02;
+     oflags:=$04;  { read/write with create }
    end
   else
    if (flags and $10)<>0 then
     begin
       filerec(f).mode:=fmoutput;
-      oflags:=$04;
+      oflags:=$02;  { read/write             }
     end;
 { empty name is special }
   if p[0]=#0 then
@@ -389,28 +439,42 @@ begin
    asm
       movem.l d2/d3/a2/a3,-(sp)    { save used registers }
 
-      cmp.l   #4,oflags    { check if append mode ... }
+      cmp.l   #4,oflags    { check if rewrite mode ... }
       bne     @opencont2
-      move.w  #2,d0        { append mode... r/w open   }
-      bra     @opencont1
+      { rewrite mode - create new file }
+      move.w  #0,-(sp)
+      move.l  p,-(sp)
+      move.w  #$3c,-(sp)
+      trap    #1
+      add.l   #8,sp       { restore stack of os call }
+      bra     @end
+      { reset - open existing files     }
     @opencont2:
       move.l  oflags,d0    { use flag as source  ...    }
     @opencont1:
       move.w  d0,-(sp)
-      pea     p
+      move.l  p,-(sp)
       move.w  #$3d,-(sp)
       trap    #1
       add.l   #8,sp       { restore stack of os call }
-
+   @end:
       movem.l (sp)+,d2/d3/a2/a3
 
-      tst.l   d0
-      bpl     @opennoerr
-      move.w  d0,InOutRes
+      tst.w   d0
+      bpl     @opennoerr  { if positive return values then ok }
+      cmp.w   #-1,d0      { if handle is -1 CON:              }
+      beq     @opennoerr
+      cmp.w   #-2,d0      { if handle is -2 AUX:              }
+      beq     @opennoerr
+      cmp.w   #-3,d0      { if handle is -3 PRN:              }
+      beq     @opennoerr
+      move.w  d0,errno    { otherwise normal error            }
     @opennoerr:
-      move.l  d0,i        { get handle ... }
+      move.w  d0,i        { get handle as SIGNED VALUE...     }
     end;
-    filerec(f).handle:=i;
+  if errno <> 0 then
+     Error2InOut;
+  filerec(f).handle:=i;
   if (flags and $10)<>0 then
    do_seekend(filerec(f).handle);
 end;
@@ -440,24 +504,28 @@ end;
 procedure DosDir(func:byte;const s:string);
 var
   buffer : array[0..255] of char;
+  c : word;
 begin
   move(s[1],buffer,length(s));
   buffer[length(s)]:=#0;
   AllowSlash(pchar(@buffer));
+  c:=word(func);
   asm
         move.l  d2,d6      { save d2 }
         movem.l d3/a2/a3,-(sp)
         pea     buffer
-        move.b  func,-(sp)
+        move.w  c,-(sp)
         trap    #1
         add.l   #6,sp
         move.l  d6,d2       { restore d2 }
         movem.l (sp)+,d3/a2/a3
         tst.w   d0
         beq     @dosdirend
-        move.w  d0,InOutRes
+        move.w  d0,errno
      @dosdirend:
   end;
+  if errno <> 0 then
+     Error2InOut;
 end;
 
 
@@ -485,19 +553,21 @@ end;
 procedure getdir(drivenr : byte;var dir : string);
 var
   temp : array[0..255] of char;
-  sof  : pchar;
   i    : longint;
+  j: byte;
+  drv: word;
 begin
-  sof:=pchar(@dir[4]);
+  drv:=word(drivenr);
   asm
             move.l  d2,d6      { save d2 }
             movem.l d3/a2/a3,-(sp)
 
             { Get dir from drivenr : 0=default, 1=A etc... }
-            move.w drivenr,-(sp)
+            move.w drv,-(sp)
 
             { put (previously saved) offset in si }
-            pea    dir
+{            move.l temp,-(sp)}
+             pea   temp
 
             { call attos function 47H : Get dir }
             move.w #$47,-(sp)
@@ -509,21 +579,18 @@ begin
             move.l d6,d2         { restore d2 }
             movem.l (sp)+,d3/a2/a3
   end;
-{ Now Dir should be filled with directory in ASCIIZ, }
-{ starting from dir[4]                               }
-  dir[0]:=#3;
-  dir[2]:=':';
-  dir[3]:='\';
-  i:=4;
-{ conversation to Pascal string }
-  while (dir[i]<>#0) do
+  { conversion to pascal string }
+  i:=0;
+  while (temp[i]<>#0) do
    begin
-   { convert path name to DOS }
-     if dir[i]='/' then
-      dir[i]:='\';
-     dir[0]:=chr(i);
+     if temp[i]='/' then
+      temp[i]:='\';
+     dir[i+3]:=temp[i];
      inc(i);
    end;
+  dir[2]:=':';
+  dir[3]:='\';
+  dir[0]:=char(i+2);
 { upcase the string (FPKPascal function) }
   dir:=upcase(dir);
   if drivenr<>0 then   { Drive was supplied. We know it }
@@ -536,14 +603,15 @@ begin
         move.w #$19,-(sp)
         trap   #1
         add.l  #2,sp
+        move.w d0,drv
         move.l d6,d2        { restore d2 }
         movem.l (sp)+,d3/a2/a3
      end;
-     dir[1]:=chr(i);
+     dir[1]:=chr(byte(drv)+ord('A'));
    end;
 end;
 
-      
+
 {*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}
@@ -562,11 +630,19 @@ begin
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 { Reset IO Error }
   InOutRes:=0;
+  errno := 0;
 end.
 
 {
   $Log$
-  Revision 1.4  1998-07-02 12:39:27  carl
+  Revision 1.5  1998-07-13 12:34:13  carl
+    + Error2InoutRes implemented
+    * do_read was doing a wrong os call!
+    * do_open was not pushing the right values
+    * DosDir was pushing the wrong params on the stack
+    * do_close would never works, was pushing a longint instead of word
+
+  Revision 1.4  1998/07/02 12:39:27  carl
     * IOCheck for mkdir,chdir and rmdir, just like in TP
 
   Revision 1.3  1998/07/01 14:40:20  carl
