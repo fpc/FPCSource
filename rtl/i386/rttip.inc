@@ -241,12 +241,12 @@ asm
 .LMyRecordAddRefLoop:
         decl    %edx
         jl      .LExitAddRef
+// Push type
+        pushl    (%ebx)
+        addl     $4,%ebx
 // Calculate data
         movl    Data,%eax
         addl    (%ebx),%eax
-        addl     $4,%ebx
-// Push type
-        pushl    (%ebx)
         addl     $4,%ebx
 // push data
         pushl    %eax
@@ -327,12 +327,12 @@ asm
 .LMyRecordDecRefLoop:
         decl    %edx
         jl      .LExitDecRef
+// Push type
+        pushl    (%ebx)
+        addl     $4,%ebx
 // Calculate data
         movl    Data,%eax
         addl    (%ebx),%eax
-        addl     $4,%ebx
-// Push type
-        pushl    (%ebx)
         addl     $4,%ebx
 // push data
         pushl    %eax
@@ -375,7 +375,11 @@ end;
 
 {
   $Log$
-  Revision 1.21  2000-02-18 15:23:01  florian
+  Revision 1.22  2000-04-01 11:45:34  peter
+    * fixed addref/decref for records, the data/type was read in the
+      wrong order
+
+  Revision 1.21  2000/02/18 15:23:01  florian
     * fixed constants in rtti
     * longjmp does now a finit
 
