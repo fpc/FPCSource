@@ -157,6 +157,9 @@ interface
     {# Returns true, if def is a currency type }
     function is_currency(def : tdef) : boolean;
 
+    {# Returns true, if def is a single type }
+    function is_single(def : tdef) : boolean;
+
     {# Returns true, if def is a 64 bit integer type }
     function is_64bitint(def : tdef) : boolean;
 
@@ -209,6 +212,14 @@ implementation
            else
              internalerror(200304222);
          end;
+      end;
+
+
+    { returns true, if def is a currency type }
+    function is_single(def : tdef) : boolean;
+      begin
+        result:=(def.deftype=floatdef) and
+          (tfloatdef(def).typ=s32real);
       end;
 
 
@@ -822,7 +833,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2003-10-01 20:34:48  peter
+  Revision 1.7  2003-11-10 18:05:16  florian
+    + is_single added
+
+  Revision 1.6  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
