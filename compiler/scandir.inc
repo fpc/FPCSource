@@ -307,7 +307,7 @@ const
                   current_scanner^.skipspace;
                   hs:=current_scanner^.readid;
                   mac:=pmacrosym(macros^.search(hs));
-                  current_scanner^.addpreprocstack(assigned(mac) and mac^.defined,hs,scan_c_ifdef_found);
+                  current_scanner^.addpreprocstack(pp_ifdef,assigned(mac) and mac^.defined,hs,scan_c_ifdef_found);
                 end;
    _DIR_IFOPT : begin
                   current_scanner^.skipspace;
@@ -320,20 +320,20 @@ const
                      if state in ['-','+'] then
                       found:=CheckSwitch(hs[1],state);
                    end;
-                  current_scanner^.addpreprocstack(found,hs,scan_c_ifopt_found);
+                  current_scanner^.addpreprocstack(pp_ifopt,found,hs,scan_c_ifopt_found);
                 end;
       _DIR_IF : begin
                   current_scanner^.skipspace;
                   { start preproc expression scanner }
                   preproc_token:=current_scanner^.readpreproc;
                   hs:=read_expr;
-                  current_scanner^.addpreprocstack(hs<>'0',hs,scan_c_if_found);
+                  current_scanner^.addpreprocstack(pp_if,hs<>'0',hs,scan_c_if_found);
                 end;
   _DIR_IFNDEF : begin
                   current_scanner^.skipspace;
                   hs:=current_scanner^.readid;
                   mac:=pmacrosym(macros^.search(hs));
-                  current_scanner^.addpreprocstack(not(assigned(mac) and mac^.defined),hs,scan_c_ifndef_found);
+                  current_scanner^.addpreprocstack(pp_ifndef,not(assigned(mac) and mac^.defined),hs,scan_c_ifndef_found);
                 end;
            end;
          { accept the text ? }
@@ -1087,7 +1087,10 @@ const
 
 {
   $Log$
-  Revision 1.50  1999-03-31 13:55:20  peter
+  Revision 1.51  1999-04-07 14:36:45  pierre
+   + better preproc stack checking and report
+
+  Revision 1.50  1999/03/31 13:55:20  peter
     * assembler inlining working for ag386bin
 
   Revision 1.49  1999/03/26 00:05:44  peter

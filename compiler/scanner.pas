@@ -44,13 +44,15 @@ unit scanner;
        pmacrobuffer = ^tmacrobuffer;
        tmacrobuffer = array[0..maxmacrolen-1] of char;
 
+       preproctyp = (pp_ifdef,pp_ifndef,pp_if,pp_ifopt,pp_else);
        ppreprocstack = ^tpreprocstack;
        tpreprocstack = object
+          typ     : preproctyp;
           accept  : boolean;
           next    : ppreprocstack;
           name    : stringid;
           line_nb : longint;
-          constructor init(a:boolean;n:ppreprocstack);
+          constructor init(atyp:preproctyp;a:boolean;n:ppreprocstack);
           destructor done;
        end;
 
@@ -94,7 +96,7 @@ unit scanner;
           procedure dec_comment_level;
           procedure checkpreprocstack;
           procedure poppreprocstack;
-          procedure addpreprocstack(a:boolean;const s:string;w:tmsgconst);
+          procedure addpreprocstack(atyp : preproctyp;a:boolean;const s:string;w:tmsgconst);
           procedure elsepreprocstack;
           procedure linebreak;
           procedure readchar;
@@ -141,6 +143,8 @@ implementation
     const
       { use any special name that is an invalid file name to avoid problems }
       macro_special_name = '____Macro____';
+      preprocstring : array [preproctyp] of string[7]
+        = ('$IFDEF','$IFNDEF','$IF','$IFOPT','$ELSE');
 
 
     procedure create_tokenidx;
@@ -190,9 +194,10 @@ implementation
                               TPreProcStack
 *****************************************************************************}
 
-    constructor tpreprocstack.init(a:boolean;n:ppreprocstack);
+    constructor tpreprocstack.init(atyp : preproctyp;a:boolean;n:ppreprocstack);
       begin
         accept:=a;
+        typ:=atyp;
         next:=n;
       end;
 
@@ -515,7 +520,7 @@ implementation
       { check for missing ifdefs }
         while assigned(preprocstack) do
          begin
-           Message3(scan_e_endif_expected,'$IF(N)(DEF)',preprocstack^.name,tostr(preprocstack^.line_nb));
+           Message3(scan_e_endif_expected,preprocstring[preprocstack^.typ],preprocstack^.name,tostr(preprocstack^.line_nb));
            poppreprocstack;
          end;
       end;
@@ -537,9 +542,9 @@ implementation
       end;
 
 
-    procedure tscannerfile.addpreprocstack(a:boolean;const s:string;w:tmsgconst);
+    procedure tscannerfile.addpreprocstack(atyp : preproctyp;a:boolean;const s:string;w:tmsgconst);
       begin
-        preprocstack:=new(ppreprocstack,init(((preprocstack=nil) or preprocstack^.accept) and a,preprocstack));
+        preprocstack:=new(ppreprocstack,init(atyp,((preprocstack=nil) or preprocstack^.accept) and a,preprocstack));
         preprocstack^.name:=s;
         preprocstack^.line_nb:=line_no;
         if preprocstack^.accept then
@@ -553,6 +558,8 @@ implementation
       begin
         if assigned(preprocstack) then
          begin
+           preprocstack^.typ:=pp_else;
+           preprocstack^.line_nb:=line_no;
            if not(assigned(preprocstack^.next)) or (preprocstack^.next^.accept) then
             preprocstack^.accept:=not preprocstack^.accept;
            if preprocstack^.accept then
@@ -1500,6 +1507,7 @@ implementation
              #26 :
                begin
                  token:=_EOF;
+                 checkpreprocstack;
                  goto exit_label;
                end;
              else
@@ -1575,10 +1583,14 @@ exit_label:
                      else   readpreproc:=LT;
                      end;
                    end;
-             #26 : Message(scan_f_end_of_file);
+             #26 : begin
+                     checkpreprocstack;
+                     Message(scan_f_end_of_file);
+                   end;
          else
           begin
             readpreproc:=_EOF;
+            checkpreprocstack;
           end;
          end;
       end;
@@ -1639,7 +1651,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  1999-04-06 11:20:59  peter
+  Revision 1.81  1999-04-07 14:36:44  pierre
+   + better preproc stack checking and report
+
+  Revision 1.80  1999/04/06 11:20:59  peter
     * more hashing for keyword table
 
   Revision 1.79  1999/04/01 22:05:59  peter
