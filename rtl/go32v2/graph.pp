@@ -349,8 +349,6 @@ var    { X/Y Verhaeltnis des Bildschirm }
        GranShift    : byte;
        Granular     : longint;
        Granularity  : longint;
-       graphgetmemptr,
-       graphfreememptr,
        bankswitchptr :pointer;
        isDPMI        :Boolean;
        SwitchCS,SwitchIP : word;
@@ -410,27 +408,6 @@ begin
     sti
   end;
 end;
-
-(*     Unused, commented 20/11/98 PM
-procedure getmem(var p : pointer;size : longint);
-begin
-  asm
-    pushl 12(%ebp)
-    pushl 8(%ebp)
-    movl _GRAPHGETMEMPTR,%eax
-    call %eax
-  end;
-end;
-
-procedure freemem(var p : pointer;size : longint);
-begin
-  asm
-    pushl 12(%ebp)
-    pushl 8(%ebp)
-    movl _GRAPHFREEMEMPTR,%eax
-    call %eax
-  end;
-end; *)
 
 
 {$I COLORS.PPI}
@@ -996,8 +973,6 @@ begin
   PrevExitProc:=ExitProc;
   ExitProc:=@GraphExit;
   bankswitchptr:=@switchbank;
-  GraphGetMemPtr:=@system.getmem;
-  GraphFreeMemPtr:=@system.freemem;
   Getdefaultfont;
   if not isDPMI then begin
    wrbuffer:=pointer($D0000000);
@@ -1015,7 +990,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1999-05-04 17:17:31  florian
+  Revision 1.6  1999-09-08 18:55:29  peter
+    - graphget/freememptr
+
+  Revision 1.5  1999/05/04 17:17:31  florian
     * some explicit language removed
 
   Revision 1.4  1999/04/08 12:23:00  peter
