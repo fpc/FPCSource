@@ -107,6 +107,7 @@ Procedure Addref (Data,TypeInfo : Pointer);saveregisters; [Public,alias : 'FPC_A
   already defined or not so define it locally to avoid problems PM }
 Type
     Pbyte = ^Byte;
+    PPointer = ^Pointer;
 Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
@@ -115,7 +116,13 @@ Var Temp       : PByte;
 begin
   Temp:=PByte(TypeInfo);
   case temp^ of
-    tkAstring,tkWstring : AnsiStr_Incr_Ref(Data);
+    { In case of an ansistring, data is pushed as a var parameter.   }
+    { This means that if you look at data as a value parameter, it   }
+    { containst the address of the ansistring. AnsiStr_Incr_Ref also }
+    { expects a var parameter, so to pass the address of the         }
+    { ansistring and not that of the data parameter on the stack,    }
+    { you have to dereference data (JM)                              }
+    tkAstring,tkWstring : AnsiStr_Incr_Ref(PPointer(Data)^);
     tkArray :
       begin
       Temp:=Temp+1;
@@ -148,6 +155,7 @@ Procedure DecRef (Data, TypeInfo : Pointer);saveregisters;[Public,alias : 'FPC_D
   already defined or not so define it locally to avoid problems PM }
 Type
     Pbyte = ^Byte;
+    PPointer = ^Pointer;
 Var Temp       : PByte;
     I          : longint;
     Size,Count : longint;
@@ -156,7 +164,8 @@ Var Temp       : PByte;
 begin
   Temp:=PByte(TypeInfo);
   case temp^ of
-    tkAstring,tkWstring : AnsiStr_Decr_Ref(Data);
+    { see AddRef for comment about below construct (JM) }
+    tkAstring,tkWstring : AnsiStr_Decr_Ref(PPointer(Data)^);
     tkArray :
       begin
       Temp:=Temp+1;
@@ -195,7 +204,10 @@ procedure FinalizeArray(data,typeinfo : pointer;count,size : longint); [Public,A
 
 {
  $Log$
- Revision 1.3  2001-05-28 20:43:17  peter
+ Revision 1.4  2001-06-28 19:18:57  peter
+   * ansistr fix merged
+
+ Revision 1.3  2001/05/28 20:43:17  peter
    * more saveregisters added (merged)
 
  Revision 1.2  2001/04/23 18:25:44  peter
