@@ -7,7 +7,7 @@ foreach f ( *.png )
   else 
      test $f -nt $s
      if ( $? == 0 ) then 
-       echo $f newer than $f...
+       echo $f newer than $s...
        convert $f $s
      endif
   endif
