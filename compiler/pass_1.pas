@@ -335,8 +335,8 @@ unit pass_1;
               b:=true;
            end
          { object pascal objects }
-         else if (def_from^.deftype=objectdef) and (def_to^.deftype=objectdef) and
-           pobjectdef(def_from)^.isclass and pobjectdef(def_to)^.isclass then
+         else if (def_from^.deftype=objectdef) and (def_to^.deftype=objectdef) {and
+           pobjectdef(def_from)^.isclass and pobjectdef(def_to)^.isclass }then
            begin
               doconv:=tc_equal;
               b:=pobjectdef(def_from)^.isrelated(
@@ -2686,6 +2686,13 @@ unit pass_1;
                         (p^.left^.resulttype^.deftype=pointerdef) and
                         (defcoll^.data^.deftype=pointerdef)
                          ) and
+                   { child classes can be also passed }
+                     not(
+                        (p^.left^.resulttype^.deftype=objectdef) and
+                        (defcoll^.data^.deftype=objectdef) and
+                        pobjectdef(p^.left^.resulttype)^.isrelated(pobjectdef(defcoll^.data))
+                        ) and
+
                    { an implicit file conversion is also allowed }
                    { from a typed file to an untyped one           }
                      not(
@@ -4996,7 +5003,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.26  1998-06-04 09:55:39  pierre
+  Revision 1.27  1998-06-05 00:01:06  florian
+    * bugs with assigning related objects and passing objects by reference
+      to a procedure
+
+  Revision 1.26  1998/06/04 09:55:39  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
 
   Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
