@@ -446,7 +446,7 @@ begin
   if sbrk=pointer(-1) then
     sbrk:=nil
   else
-    errno:=0;
+    seterrno(0);
 end;
 
 Function Do_IsDevice(Handle:cint):boolean;
@@ -467,7 +467,10 @@ end;
 
 {
  $Log$
- Revision 1.11  2003-12-30 15:43:20  marco
+ Revision 1.12  2003-12-30 16:26:10  marco
+  * some more fixes. Testing on idefix
+
+ Revision 1.11  2003/12/30 15:43:20  marco
   * linux now compiles with FPC_USE_LIBC
 
  Revision 1.10  2003/12/16 09:43:04  daniel

@@ -154,7 +154,7 @@ end;
 Function Errno2InoutRes : longint;
 
 begin
-  Errno2InoutRes:=PosixToRunError(Errno);
+  Errno2InoutRes:=PosixToRunError(getErrno);
   InoutRes:=Errno2InoutRes;
 end;
 
@@ -212,7 +212,7 @@ Function Do_Write(Handle,Addr,Len:SizeInt):longint;
 Begin
   repeat
     Do_Write:=Fpwrite(Handle,pchar(addr),len);
-  until (Do_Write>=0) or (ErrNo<>ESysEINTR);
+  until (Do_Write>=0) or (getErrNo<>ESysEINTR);
   If Do_Write<0 Then
    Begin
     Errno2InOutRes;
@@ -227,7 +227,7 @@ Function Do_Read(Handle,Addr,Len:SizeInt):Longint;
 Begin
   repeat
     Do_Read:=Fpread(Handle,pchar(addr),len);
-  until (Do_Read>=0) or (ErrNo<>ESysEINTR);
+  until (Do_Read>=0) or (getErrNo<>ESysEINTR);
   If Do_Read<0 Then
    Begin
     Errno2InOutRes;
@@ -345,7 +345,7 @@ Begin
 { real open call }
   FileRec(f).Handle:=Fpopen(p,oflags,MODE_OPEN);
   if (FileRec(f).Handle<0) and
-     (ErrNo=ESysEROFS) and
+     (getErrNo=ESysEROFS) and
      ((OFlags and O_RDWR)<>0) then
    begin
      Oflags:=Oflags and not(O_RDWR);
@@ -594,7 +594,10 @@ End.
 *)
 {
  $Log$
- Revision 1.10  2003-12-21 20:30:49  peter
+ Revision 1.11  2003-12-30 16:26:10  marco
+  * some more fixes. Testing on idefix
+
+ Revision 1.10  2003/12/21 20:30:49  peter
    * don't exit in getdir when fpstat gives a failure
 
  Revision 1.9  2003/12/14 14:28:36  peter

@@ -34,6 +34,29 @@ Interface
 
 Implementation
 
+
+{$ifdef FPC_USE_LIBC}
+
+const clib = 'c';
+
+type libcint=longint;
+     plibcint=^libcint;
+
+function geterrnolocation: Plibcint; cdecl;external clib name'__errno_location';
+
+function geterrno:libcint; [public, alias: 'FPC_SYS_GETERRNO'];
+
+begin
+ geterrno:=geterrnolocation^;
+end;
+
+procedure seterrno(err:libcint); [public, alias: 'FPC_SYS_SETERRNO'];
+begin
+  geterrnolocation^:=err;
+end;
+
+{$else}
+
 {$ifdef ver1_0}
 Var
 {$else}
@@ -52,7 +75,7 @@ procedure seterrno(err:longint); [public, alias: 'FPC_SYS_SETERRNO'];
 begin
  Errno:=err;
 end;
-
+{$endif}
 
 {$I system.inc}
 
@@ -141,7 +164,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  2003-12-30 15:43:20  marco
+  Revision 1.11  2003-12-30 16:26:10  marco
+   * some more fixes. Testing on idefix
+
+  Revision 1.10  2003/12/30 15:43:20  marco
    * linux now compiles with FPC_USE_LIBC
 
   Revision 1.9  2003/12/30 12:36:56  marco
