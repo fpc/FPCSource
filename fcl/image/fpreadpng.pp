@@ -182,10 +182,10 @@ procedure TFPReaderPNG.HandleAlpha;
   procedure TransparentGray;
     var a : word;
     begin
-    move (chunk.data^[0], a, 2);
-    a := swap (a);
-    TransparentDataValue := a;
-    UseTransparent := True;
+      move (chunk.data^[0], a, 2);
+      a := swap (a);
+      TransparentDataValue := a;
+      UseTransparent := True;
     end;
   procedure TransparentColor;
     var d : byte;
@@ -198,9 +198,12 @@ procedure TFPReaderPNG.HandleAlpha;
         move (data^[2], g, 2);
         move (data^[4], b, 2);
         end;
+      r := swap (r);
+      g := swap (g);
+      b := swap (b);
       d := header.bitdepth;
-      a := (b shl d) shl d;
-      a := a + (g shl d) + r;
+      a := (TColorData(b) shl d) shl d;
+      a := a + (TColorData(g) shl d) + r;
       TransparentDataValue := a;
       UseTransparent := True;
     end;
@@ -261,10 +264,9 @@ end;
 procedure TFPReaderPNG.SetColorTrPixel (x,y:integer; CD : TColordata);
 var c : TFPColor;
 begin  // both PNG and Img work without palette, and there is a transparency colordata
+  c := ConvertColor (CD,CFmt);
   if TransparentDataValue = CD then
-    c := colTransparent
-  else
-    c := ConvertColor (CD,CFmt);
+    c.alpha := alphaTransparent;
   TheImage.Colors[x,y] := c;
 end;
 
@@ -560,7 +562,6 @@ procedure TFPReaderPNG.HandleUnknown;
 begin
   if (chunk.readtype[0] in ['A'..'Z']) then
     raise PNGImageException.Create('Critical chunk '+chunk.readtype+' not recognized');
-  //writeln ('Unhandled chunk ',chunk.readtype);
 end;
 
 procedure TFPReaderPNG.InternalRead (Str:TStream; Img:TFPCustomImage);
@@ -616,12 +617,11 @@ begin
                 and (filter = 0) and (Interlace in [0,1]);
       end;
   except
-    on e : exception do
-      begin
-      result := false;
-      end;
+    result := false;
   end;
 end;
 
+initialization
+  ImageHandlers.RegisterImageReader ('Portable Network Graphics', 'png', TFPReaderPNG);
 end.
 
