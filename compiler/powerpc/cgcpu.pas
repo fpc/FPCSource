@@ -97,9 +97,10 @@ unit cgcpu;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);override;
 
+        procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
+
       private
 
-        procedure a_jmp_cond(list : taasmoutput;cond : TOpCmp;l: tasmlabel);
 
         procedure g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
         procedure g_return_from_proc_mac(list : taasmoutput;parasize : aword);
@@ -1673,7 +1674,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2002-08-10 17:15:31  jonas
+  Revision 1.38  2002-08-11 11:39:31  jonas
+    + powerpc-specific genlinearlist
+
+  Revision 1.37  2002/08/10 17:15:31  jonas
     * various fixes and optimizations
 
   Revision 1.36  2002/08/06 20:55:23  florian
