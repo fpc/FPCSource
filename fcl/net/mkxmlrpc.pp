@@ -27,13 +27,16 @@ resourcestring
 type
   TParserEngine = class(TPasTreeContainer)
   protected
+    Modules, UsedModules: TList;
     CurModule: TPasModule;
   public
+    constructor Create;
+    destructor Destroy; override;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility): TPasElement;
       override;
     function FindElement(const AName: String): TPasElement; override;
-{    function FindModule(const AName: String): TPasModule; override;}
+    function FindModule(const AName: String): TPasModule; override;
   end;
 
   TServerClass = class
@@ -53,13 +56,30 @@ var
   Engine: TParserEngine;
 
 
+constructor TParserEngine.Create;
+begin
+  inherited Create;
+  Modules := TList.Create;
+  UsedModules := TList.Create;
+end;
+
+destructor TParserEngine.Destroy;
+begin
+  UsedModules.Free;
+  Modules.Free;
+  inherited Destroy;
+end;
+
 function TParserEngine.CreateElement(AClass: TPTreeElement; const AName: String;
   AParent: TPasElement; AVisibility: TPasMemberVisibility): TPasElement;
 begin
   Result := AClass.Create(AName, AParent);
   Result.Visibility := AVisibility;
   if AClass.InheritsFrom(TPasModule) then
+  begin
+    Modules.Add(Result);
     CurModule := TPasModule(Result);
+  end;
 end;
 
 function TParserEngine.FindElement(const AName: String): TPasElement;
@@ -67,14 +87,26 @@ function TParserEngine.FindElement(const AName: String): TPasElement;
   function FindInModule(AModule: TPasModule; const LocalName: String): TPasElement;
   var
     l: TList;
-    i: Integer;
+    i, j: Integer;
+    Found: Boolean;
   begin
     l := AModule.InterfaceSection.Declarations;
     for i := 0 to l.Count - 1 do
     begin
       Result := TPasElement(l[i]);
       if CompareText(Result.Name, LocalName) = 0 then
+      begin
+        Found := False;
+        for j := 0 to UsedModules.Count - 1 do
+	  if CompareText(TPasModule(UsedModules[j]).Name, AModule.Name) = 0 then
+	  begin
+	    Found := True;
+	    break;
+	  end;
+	if not Found then
+	  UsedModules.Add(AModule);
         exit;
+      end;
     end;
     Result := nil;
  end;
@@ -105,6 +137,19 @@ begin
 	end;
       end;
   {end;}
+end;
+
+function TParserEngine.FindModule(const AName: String): TPasModule;
+var
+  i: Integer;
+begin
+  for i := Modules.Count - 1 downto 0 do
+  begin
+    Result := TPasModule(Modules[i]);
+    if CompareText(Result.Name, AName) = 0 then
+      exit;
+  end;
+  Result := nil;
 end;
 
 
@@ -279,7 +324,10 @@ type
 	begin
 	  // Move existing converter to the top and exit
 	  Method.Locals.Delete(i);
-	  Method.Locals.Insert(Method.Locals.IndexOf(ProcImpl), Result);
+	  j := Method.Locals.IndexOf(ProcImpl);
+	  if j < 0 then
+	    j := 0;
+	  Method.Locals.Insert(j, Result);
 	end;
         exit;
       end;
@@ -302,7 +350,10 @@ type
       exit;
 
     Result := TPasProcedureImpl.Create(ConverterName, Method);
-    Method.Locals.Insert(Method.Locals.IndexOf(Referrer), Result);
+    i := Method.Locals.IndexOf(Referrer);
+    if i < 0 then
+      i := 0;
+    Method.Locals.Insert(i, Result);
     Result.ProcType := TPasFunctionType.Create('', Result);
     Result.ProcType.CreateArgument('Inst', AClass.Name);
     TPasFunctionType(Result.ProcType).ResultEl :=
@@ -607,7 +658,7 @@ end;
 
 procedure WriteFPCServerSource;
 var
-  i: Integer;
+  i, j: Integer;
   Module: TPasModule;
   InterfaceSection, ImplementationSection: TPasSection;
   VarMember: TPasVariable;
@@ -617,6 +668,7 @@ var
   ServerClass: TPasClassType;
   Stream: TStream;
   ProcImpl: TPasProcedureImpl;
+  Found: Boolean;
 begin
   Module := TPasModule.Create(UnitName, nil);
   try
@@ -676,6 +728,21 @@ begin
         WriteClassServerSource(Element, ImplementationSection, ProcImpl,
 	  ProcImpl, ImplName + '.', 0);
       end;
+
+    for i := 0 to Engine.UsedModules.Count - 1 do
+    begin
+      Found := False;
+      for j := 0 to RPCList.UsedModules.Count - 1 do
+        if CompareText(RPCList.UsedModules[j],
+	  TPasModule(Engine.UsedModules[i]).Name) = 0 then
+	begin
+	  Found := True;
+	  break;
+	end;
+      if not Found then
+        ImplementationSection.AddUnitToUsesList(
+          TPasModule(Engine.UsedModules[i]).Name);
+    end;
 
     Stream := THandleStream.Create(StdOutputHandle);
     try
@@ -767,7 +834,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-04-26 16:42:10  sg
+  Revision 1.2  2003-06-12 19:00:53  michael
+  * Supports usage of declarations from other units (as long as mkxmlrpc
+     parsed these units due to a --input=unitname command)
+
+  Revision 1.1  2003/04/26 16:42:10  sg
   * Added mkxmlrpc
 
 }
