@@ -15,9 +15,11 @@
  **********************************************************************}
 program FP;
 
+{$ifdef IncRes}
 {$ifdef win32}
 {$R fpw32.rc}
 {$endif win32}
+{$endif IncRes}
 
 {$I globdir.inc}
 (**********************************************************************)
@@ -494,7 +496,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.18  2003-01-07 00:29:13  pierre
+  Revision 1.19  2003-01-14 16:24:52  pierre
+   * only insert win32 resource if IncRes is defined
+
+  Revision 1.18  2003/01/07 00:29:13  pierre
    + win32 version infos
 
   Revision 1.17  2002/12/12 00:08:09  pierre
