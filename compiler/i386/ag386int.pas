@@ -789,13 +789,16 @@ ait_stab_function_name : ;
               '','')
           );
 
-finalization
+initialization
   RegisterAssembler(as_i386_tasm_info,T386IntelAssembler);
   RegisterAssembler(as_i386_masm_info,T386IntelAssembler);
 end.
 {
   $Log$
-  Revision 1.11  2001-04-21 12:09:00  peter
+  Revision 1.12  2001-04-21 15:33:03  peter
+    * stupid bug, finalization to initialization renaming
+
+  Revision 1.11  2001/04/21 12:09:00  peter
     * fixed bug 1472 (merged)
 
   Revision 1.10  2001/04/18 22:02:00  peter

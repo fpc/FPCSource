@@ -952,14 +952,17 @@ interface
           );
 
 
-finalization
+initialization
   RegisterAssembler(as_i386_as_info,T386ATTAssembler);
   RegisterAssembler(as_i386_as_aout_info,T386ATTAssembler);
   RegisterAssembler(as_i386_asw_info,T386ATTAssembler);
 end.
 {
   $Log$
-  Revision 1.7  2001-04-21 12:09:00  peter
+  Revision 1.8  2001-04-21 15:33:03  peter
+    * stupid bug, finalization to initialization renaming
+
+  Revision 1.7  2001/04/21 12:09:00  peter
     * fixed bug 1472 (merged)
 
   Revision 1.6  2001/04/18 22:02:00  peter

@@ -851,7 +851,7 @@ interface
           );
 
 
-finalization
+initialization
   RegisterAssembler(as_i386_nasmcoff_info,T386NasmAssembler);
   RegisterAssembler(as_i386_nasmwin32_info,T386NasmAssembler);
   RegisterAssembler(as_i386_nasmobj_info,T386NasmAssembler);
@@ -859,7 +859,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.9  2001-04-21 12:09:00  peter
+  Revision 1.10  2001-04-21 15:33:03  peter
+    * stupid bug, finalization to initialization renaming
+
+  Revision 1.9  2001/04/21 12:09:00  peter
     * fixed bug 1472 (merged)
 
   Revision 1.8  2001/04/18 22:02:00  peter
