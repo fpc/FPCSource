@@ -1,8 +1,8 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 2002 by Florian Klaempfl
 
-    Helper routines for the i386 code generator
+    PowerPC specific calling conventions
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,36 +17,33 @@
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
  ****************************************************************************
 }
+{ PowerPC specific calling conventions are handled by this unit
+}
+unit cpupara;
 
-unit cga;
-
-{$i fpcdefs.inc}
-
-interface
+  interface
 
     uses
-       aasmbase,aasmcpu,
-       cpubase,
-       symconst,symtype,symdef;
+       cpubase;
 
-implementation
+    var
+       paralocdummy : tparalocation;
+
+    function getintparaloc(nr : longint) : tparalocation;
+
+  implementation
+
+    function getintparaloc(nr : longint) : tparalocation;
+
+      begin
+      end;
 
 end.
 {
   $Log$
-  Revision 1.5  2002-07-07 09:44:31  florian
+  Revision 1.1  2002-07-07 09:44:32  florian
     * powerpc target fixed, very simple units can be compiled
-
-  Revision 1.4  2002/05/18 13:34:26  peter
-    * readded missing revisions
-
-  Revision 1.3  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 
 }

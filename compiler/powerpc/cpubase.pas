@@ -20,6 +20,8 @@
 
  ****************************************************************************
 }
+{ This Unit contains the base types for the PowerPC
+}
 unit cpubase;
 
 {$i fpcdefs.inc}
@@ -27,7 +29,7 @@ unit cpubase;
 interface
 
 uses
-  strings,cutils,cclasses,aasm,cpuinfo,cginfo;
+  strings,cutils,cclasses,aasmbase,cpuinfo,cginfo;
 
 
 {*****************************************************************************
@@ -113,6 +115,14 @@ uses
       {# Set type definition for registers }
       tregisterset = set of tregister;
 
+      { A type to store register locations for 64 Bit values. }
+      tregister64 = packed record
+        reglo,reghi : tregister;
+      end;
+
+      { alias for compact code }
+      treg64 = tregister64;
+
       {# Type definition for the array of string of register nnames }
       reg2strtable = array[tregister] of string[5];
 
@@ -142,19 +152,6 @@ uses
       FEX = 5;
       VX = 6;
       OX = 7;}
-
-      att_reg2str : reg2strtable = ('',
-        '0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16',
-        '17','18','19','20','21','22','23','24','25','26','27','28','29','30','31',
-        'F0','F1','F2','F3','F4','F5','F6','F7', 'F8','F9','F10','F11','F12',
-        'F13','F14','F15','F16','F17', 'F18','F19','F20','F21','F22', 'F23','F24',
-        'F25','F26','F27','F28','F29','F30','F31',
-        'M0','M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11','M12',
-        'M13','M14','M15','M16','M17','M18','M19','M20','M21','M22', 'M23','M24',
-        'M25','M26','M27','M28','M29','M30','M31',
-        'CR','CR0','CR1','CR2','CR3','CR4','CR5','CR6','CR7',
-        'XER','LR','CTR','FPSCR'
-      );
 
       mot_reg2str : reg2strtable = ('',
         'r0','r1','r2','r3','r4','r5','r6','r7','r8','r9','r10','r11','r12','r13',
@@ -282,6 +279,13 @@ uses
          alignment   : byte;
       end;
 
+      { reference record }
+      pparareference = ^tparareference;
+      tparareference = packed record
+         index       : tregister;
+         offset      : longint;
+      end;
+
     const
       symaddr2str: array[trefsymaddr] of string[3] = ('','@ha','@l');
 
@@ -327,25 +331,50 @@ uses
         LOC_FLAGS        { boolean results only, flags are set }
       );
 
+      { tparamlocation describes where a parameter for a procedure is stored.
+        References are given from the caller's point of view. The usual
+        TLocation isn't used, because contains a lot of unnessary fields.
+      }
+      tparalocation = packed record
+         loc  : TLoc;
+         sp_fixup : longint;
+         case TLoc of
+            LOC_REFERENCE : (reference : tparareference);
+            { segment in reference at the same place as in loc_register }
+            LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
+              LOC_REGISTER,LOC_CREGISTER : (
+              case longint of
+                1 : (register,registerhigh : tregister);
+                { overlay a registerlow }
+                2 : (registerlow : tregister);
+                { overlay a 64 Bit register type }
+                3 : (reg64 : tregister64);
+                4 : (register64 : tregister64);
+              );
+      end;
+
       tlocation = packed record
          size : TCGSize;
-         case loc : tloc of
+         loc : tloc;
+         case tloc of
             LOC_CREFERENCE,LOC_REFERENCE : (reference : treference);
             LOC_CONSTANT : (
               case longint of
                 1 : (value : AWord);
                 2 : (valuelow, valuehigh:AWord);
+                { overlay a complete 64 Bit value }
+                3 : (valueqword : qword);
               );
             LOC_FPUREGISTER, LOC_CFPUREGISTER, LOC_MMREGISTER, LOC_CMMREGISTER,
               LOC_REGISTER,LOC_CREGISTER : (
                 case longint of
                   1 : (registerlow,registerhigh : tregister);
                   2 : (register : tregister);
+                  { overlay a 64 Bit register type }
+                  3 : (reg64 : tregister64);
+                  4 : (register64 : tregister64);
                 );
-
-            LOC_JUMP : ();
             LOC_FLAGS : (resflags : tresflags);
-            LOC_INVALID : ();
       end;
 
 {*****************************************************************************
@@ -588,7 +617,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2002-05-18 13:34:26  peter
+  Revision 1.15  2002-07-07 09:44:31  florian
+    * powerpc target fixed, very simple units can be compiled
+
+  Revision 1.14  2002/05/18 13:34:26  peter
     * readded missing revisions
 
   Revision 1.12  2002/05/14 19:35:01  peter

@@ -20,15 +20,15 @@
 
  ****************************************************************************
 }
-unit cpuasm;
+unit aasmcpu;
 
 {$i fpcdefs.inc}
 
 interface
 
 uses
-  cclasses,tainst,
-  aasm,globals,verbose,
+  cclasses,aasmtai,
+  aasmbase,globals,verbose,
   cpubase;
 
     type
@@ -337,7 +337,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2002-05-18 13:34:26  peter
+  Revision 1.1  2002-07-07 09:44:31  florian
+    * powerpc target fixed, very simple units can be compiled
+
+  Revision 1.8  2002/05/18 13:34:26  peter
     * readded missing revisions
 
   Revision 1.7  2002/05/16 19:46:53  carl

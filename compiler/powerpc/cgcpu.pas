@@ -27,19 +27,21 @@ unit cgcpu;
   interface
 
     uses
-       cgbase,cgobj,aasm,cpuasm,cpubase,cpuinfo,node,cg64f32,cginfo;
+       cgbase,cgobj,
+       aasmbase,aasmcpu,aasmtai,
+       cpubase,cpuinfo,node,cg64f32,cginfo;
 
     type
-      tcgppc = class(tcg64f32)
+      tcgppc = class(tcg)
         { passing parameters, per default the parameter is pushed }
         { nr gives the number of the parameter (enumerated from   }
         { left to right), this allows to move the parameter to    }
         { register, if the cpu supports register calling          }
         { conventions                                             }
-        procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);override;
-        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);override;
-        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);override;
-        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);override;
+        procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);override;
+        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);override;
+        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);override;
+        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
 
 
         procedure a_call_name(list : taasmoutput;const s : string);override;
@@ -137,7 +139,7 @@ const
 { parameter passing... Still needs extra support from the processor }
 { independent code generator                                        }
 
-    procedure tcgppc.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);
+    procedure tcgppc.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);
 
       var
         ref: treference;
@@ -157,7 +159,7 @@ const
       end;
 
 
-    procedure tcgppc.a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);
+    procedure tcgppc.a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);
 
       var
         ref: treference;
@@ -177,7 +179,7 @@ const
       end;
 
 
-    procedure tcgppc.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);
+    procedure tcgppc.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);
 
       var
         ref: treference;
@@ -201,7 +203,7 @@ const
       end;
 
 
-    procedure tcgppc.a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);
+    procedure tcgppc.a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
 
       var
         ref: treference;
@@ -279,7 +281,7 @@ const
          { 64 bit stuff should be handled separately }
          if size in [OS_64,OS_S64] then
            internalerror(200109236);
-         op := storeinstr[size,ref2.index<>R_NO,false];
+         op := storeinstr[tcgsize2unsigned[size],ref2.index<>R_NO,false];
          a_load_store(list,op,reg,ref2);
        End;
 
@@ -1173,7 +1175,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-05-20 13:30:41  carl
+  Revision 1.20  2002-07-07 09:44:31  florian
+    * powerpc target fixed, very simple units can be compiled
+
+  Revision 1.19  2002/05/20 13:30:41  carl
   * bugfix of hdisponen (base must be set, not index)
   * more portability fixes
 

@@ -51,10 +51,12 @@ implementation
     uses
       globtype,systems,
       cutils,verbose,globals,
-      symconst,symdef,aasm,types,
+      symconst,symdef,
+      aasmbase,aasmcpu,aasmtai,
+      types,
       cgbase,cgobj,pass_1,pass_2,
       ncon,
-      cpubase,cpuinfo,cpuasm,cginfo,
+      cpubase,cpuinfo,cginfo,
       ncgutil,cga,cgcpu,cg64f32,rgobj;
 
 {*****************************************************************************
@@ -205,7 +207,7 @@ implementation
                    hregisterlow := rg.getregisterint(exprasmlist);
                    location.registerlow := hregisterlow;
                    tcg64f32(cg).a_load64_ref_reg(exprasmlist,
-                     left.location.reference,hregisterlow,hregisterhigh);
+                     left.location.reference,joinreg64(hregisterlow,hregisterhigh));
                  end;
              end;
              if (right.nodetype = ordconstn) then
@@ -547,7 +549,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-05-20 13:30:42  carl
+  Revision 1.11  2002-07-07 09:44:32  florian
+    * powerpc target fixed, very simple units can be compiled
+
+  Revision 1.10  2002/05/20 13:30:42  carl
   * bugfix of hdisponen (base must be set, not index)
   * more portability fixes
 

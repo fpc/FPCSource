@@ -41,7 +41,7 @@ Unit aoptcpub; { Assembler OPTimizer CPU specific Base }
 Interface
 
 Uses
-  CPUAsm,AOptBase;
+  aasmcpu,AOptBase;
 
 Type
 
@@ -117,7 +117,10 @@ End.
 
 {
  $Log$
- Revision 1.4  2002-05-18 13:34:26  peter
+ Revision 1.5  2002-07-07 09:44:31  florian
+   * powerpc target fixed, very simple units can be compiled
+
+ Revision 1.4  2002/05/18 13:34:26  peter
    * readded missing revisions
 
  Revision 1.3  2002/05/16 19:46:52  carl

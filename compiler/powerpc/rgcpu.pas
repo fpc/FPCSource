@@ -29,7 +29,7 @@ unit rgcpu;
   interface
 
      uses
-       aasm,
+       aasmbase,aasmtai,
        cpubase,
        rgobj;
 
@@ -71,7 +71,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-05-16 19:46:53  carl
+  Revision 1.3  2002-07-07 09:44:32  florian
+    * powerpc target fixed, very simple units can be compiled
+
+  Revision 1.2  2002/05/16 19:46:53  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
