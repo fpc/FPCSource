@@ -205,7 +205,7 @@
          { only used or init defined macros are stored }
            if hp^.is_used or hp^.defined_at_startup then
              begin
-               current_ppu^.putstring(hp^._name^);
+               current_ppu^.putstring(hp^.name);
                current_ppu^.putbyte(byte(hp^.defined_at_startup));
                current_ppu^.putbyte(byte(hp^.is_used));
              end;
@@ -689,7 +689,11 @@
 
 {
   $Log$
-  Revision 1.49  1999-09-03 10:54:22  pierre
+  Revision 1.50  1999-09-12 15:45:11  florian
+    * tnamedindexobject._name should be never accessed direct! Use the
+      function name instead
+
+  Revision 1.49  1999/09/03 10:54:22  pierre
    * message about conditionals changed to Hint
 
   Revision 1.48  1999/08/31 15:47:56  pierre
