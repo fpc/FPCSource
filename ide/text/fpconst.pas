@@ -204,6 +204,8 @@ const
      cmUndoAll           = 2501;
      cmRedoAll           = 2502;
 
+     cmDebuggerStopped   = 2600;
+
      { Help constants }
      hcSourceWindow      = 8000;
      hcHelpWindow        = 8001;
@@ -384,7 +386,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.34  2000-02-07 11:51:40  pierre
+  Revision 1.35  2000-03-14 14:16:13  pierre
+   + cmDebuggerStopped
+
+  Revision 1.34  2000/02/07 11:51:40  pierre
    + TFPCodeMemo consts from Gabor
 
   Revision 1.33  2000/01/25 00:26:36  pierre
