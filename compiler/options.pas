@@ -1266,7 +1266,7 @@ begin
    Message(option_too_many_cfg_files);
 { open file }
   Message1(option_using_file,filename);
-  assign(f,filename);
+  assign(f,FExpand(filename));
   {$I-}
   reset(f);
   {$I+}
@@ -2102,7 +2102,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.159  2005-01-04 16:19:52  florian
+  Revision 1.160  2005-01-08 23:14:50  peter
+    * Allow #include ~/.fpc.cfg
+
+  Revision 1.159  2005/01/04 16:19:52  florian
     * arm sets FPUFPA by default for now
 
   Revision 1.158  2005/01/03 20:27:47  peter
