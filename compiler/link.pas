@@ -35,8 +35,8 @@ Type
     TLinkerInfo=record
       ExeCmd,
       DllCmd        : array[1..3] of string[100];
-      ResName       : string[12];
-      ScriptName    : string[12];
+      ResName       : string[100];
+      ScriptName    : string[100];
       ExtraOptions  : string;
       DynamicLinker : string[100];
     end;
@@ -676,7 +676,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.40  2004-02-19 20:40:15  olle
+  Revision 1.41  2004-02-24 00:53:49  olle
+    * increased maxsize of link.res file name
+    * fixed a 255-limit in TScript.WriteToDisk
+
+  Revision 1.40  2004/02/19 20:40:15  olle
     + Support for Link on target especially for MacOS
     + TLinkerMPW
     + TAsmScriptMPW

@@ -31,7 +31,7 @@ uses
 
 type
   TScript=class
-    fn   : string[80];
+    fn   : string[100];
     data : TStringList;
     executable : boolean;
     constructor Create(const s:string);
@@ -172,43 +172,20 @@ begin
   Empty:=Data.Empty;
 end;
 
-(*
-procedure TScript.WriteToDisk;
-var
-  t : file;
-  s : string;
-  le: string[2];
-begin
-  if cs_link_on_target in aktglobalswitches then
-    le:= target_info.newline
-  else
-    le:= source_info.newline;
-
-  Assign(t,fn);
-  Rewrite(t,1);
-
-  while not data.Empty do
-    begin
-      s:= data.GetFirst;
-      BlockWrite(t, s[1] ,Length(s));
-      BlockWrite(t, le[1], Length(le));
-    end;
-
-  Close(t);
-{$ifdef hasUnix}
-  if executable then
-   {$ifdef VER1_0}ChMod{$else}fpchmod{$endif}(fn,493);
-{$endif}
-end;
-*)
-
 procedure TScript.WriteToDisk;
 var
   t : file;
   i : longint;
   s : string;
+  le: string[2];
+
 begin
   Assign(t,fn);
+  if cs_link_on_target in aktglobalswitches then
+    le:= target_info.newline
+  else
+    le:= source_info.newline;
+
   {$I-}
   Rewrite(t,1);
   if ioresult<>0 then
@@ -216,11 +193,8 @@ begin
   while not data.Empty do
     begin
       s:=data.GetFirst;
-      if (cs_link_on_target in aktglobalswitches) then
-        s:=s+target_info.newline
-      else
-        s:=s+source_info.newline;
       Blockwrite(t,s[1],length(s),i);
+      Blockwrite(t,le[1],length(le),i);
     end;
   Close(t);
   {$I+}
@@ -524,7 +498,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.26  2004-02-19 20:40:15  olle
+  Revision 1.27  2004-02-24 00:53:48  olle
+    * increased maxsize of link.res file name
+    * fixed a 255-limit in TScript.WriteToDisk
+
+  Revision 1.26  2004/02/19 20:40:15  olle
     + Support for Link on target especially for MacOS
     + TLinkerMPW
     + TAsmScriptMPW
