@@ -48,6 +48,7 @@ if %FPCDIR%. == . goto ErrorDir
 if exist %FPCDIR% goto DirOK
 if exist %FPCDIR%\. goto DirOK
 if exist %FPCDIR%\makefile goto DirOK
+if exist %FPCDIR%\COMPILER\pp.pas goto DirOK
 if exist %FPCDIR%\SOURCE\makefile goto DirOK
 if exist %FPCDIR%\SOURCE\COMPILER\pp.pas goto DirOK
 goto ErrorDir
@@ -262,6 +263,7 @@ echo %OS2UNITT% >> %OS2OPTF%
 echo -FD%REALTOOLS% >> %OS2OPTF%
 if not .%CURRENTOPT1% == . echo %CURRENTOPT1% >> %OS2OPTF%
 if not .%CURRENTOPT2% == . echo %CURRENTOPT2% >> %OS2OPTF%
+if not .%FPCERRLOG% == . echo -Fe%FPCERRLOG% >> %OS2OPTF%
 echo *Assembling the helpers ...
 %REALTOOLS%\as -o %OS2RTL%\prt0.oo2 %OS2RTL%\prt0.as
 %REALTOOLS%\as -o %OS2RTL%\prt1.oo2 %OS2RTL%\prt1.as
@@ -333,6 +335,7 @@ echo %STACKOPT% >> %OS2OPTF%
 echo %OS2EXET% >> %OS2OPTF%
 if not .%CURRENTOPT1% == . echo %CURRENTOPT1% >> %OS2OPTF%
 if not .%CURRENTOPT2% == . echo %CURRENTOPT2% >> %OS2OPTF%
+if not .%FPCERRLOG% == . echo -Fe%FPCERRLOG% >> %OS2OPTF%
 echo *Compiling the compiler ...
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %COMPSPATH%\PP.PAS
 :Comp2
@@ -410,7 +413,10 @@ goto End
 
 
   $Log$
-  Revision 1.6  2000-01-16 18:44:21  hajny
+  Revision 1.7  2000-01-26 22:34:36  hajny
+    * support for error logging added
+
+  Revision 1.6  2000/01/16 18:44:21  hajny
     * got rid of PPC386.CFG dependency
 
   Revision 1.3  1999/10/01 09:00:21  hajny
