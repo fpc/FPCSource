@@ -998,3 +998,9 @@ implementation
 
 
 end.
+{
+  $Log$
+  Revision 1.2  1998-04-27 09:09:49  michael
+  + Added log at the end
+
+}
