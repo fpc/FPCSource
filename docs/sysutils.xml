@@ -3252,22 +3252,67 @@ None.
 
 <element name="GetLastOSError">
 <short>Return the last code from the OS.</short>
+<descr>
+<p>
+<var>GetLastOSError</var> returns the error code from the last operating
+system call. It does not reset this code. In general, it should be called
+when an operating system call reported an error condition. In that case,
+<var>GetLastOSError</var> gives extended information about the error.
+</p>
+<p>
+No assumptions should be made about the resetting of the error code by
+subsequent OS calls. This may be platform dependent.
+</p>
+</descr>
+<seealso>
+<link id="RaiseLastOSError"/>
+</seealso>
 </element>
 
 <!-- procedure Visibility: default -->
 <element name="RaiseLastOSError">
-<short>Raise an exception if the last OS error was nonzero.</short>
+<short>Raise an exception with the last Operating System error code.</short>
+<descr>
+<var>RaiseLastOSError</var> raises an <link id="EOSError"/> exception with
+the error code returned by <var>GetLastOSError</var>. If the Error code is
+nonzero, then the corresponding error message will be returned. If the error
+code is zero, a standard message will be returned.
+</descr>
+<errors>
+This procedure may not be implemented on all platforms. If it is not, then a
+normal <link id="Exception"/> will be raised.
+</errors>
+<seealso>
+<link id="EOSError"/>
+<link id="GetLastOSError"/>
+<link id="Exception"/>
+</seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="GetEnvironmentVariable">
 <short>Return the value of an environment variable.</short>
+<descr>
+<p>
+<var>GetEnvironmentVariable</var> returns the value of the <var>EnvVar</var>
+environment variable. If the specified variable does not exist or
+<var>EnvVar</var> is empty, an empty string is returned.
+</p>
+</descr>
 </element>
 
 <!-- procedure Visibility: default -->
 <element name="Sleep">
 <short>Suspend execution of a program for a certain time.</short>
 <descr>
+<p>
+<var>Sleep</var> suspends the execution of the program for
+the specified number of milliseconds (<var>milliseconds</var>). 
+After the specified period has expired, program execution resumes.
+</p>
+<remark>The indicated time is not exact, i.e. it is a minimum time. No
+guarantees are made as to the exact duration of the suspension. 
+</remark>
 </descr>
 <errors>
 </errors>
@@ -3279,10 +3324,19 @@ None.
 <element name="ExecuteProcess">
 <short>Execute another process (program).</short>
 <descr>
+<var>ExecuteProcess</var> will execute the program in <var>Path</var>,
+passing it the arguments in <var>ComLine</var>. <var>ExecuteProcess</var>
+will then wait for the program to finish, and will return the exit code of
+the executed program. In case <var>ComLine</var> is a single string, it will
+be split out in an array of strings, taking into account common whitespace
+and quote rules.
 </descr>
 <errors>
+In case the program could not be executed or an other error occurs, 
+an <link id="EOSError"/> exception  will be raised.
 </errors>
 <seealso>
+<link id="EOSError"/>
 </seealso>
 </element>
 
@@ -3290,10 +3344,42 @@ None.
 <element name="GetAppConfigDir">
 <short>Return the appropriate directory for the application's configuration files.</short>
 <descr>
+<p>
+<var>GetAppConfigDir</var> returns the name of a directory in which the
+application should store its configuration files on the current OS. 
+If the parameter <var>Global</var> is <var>True</var> then the directory 
+returned is a global
+directory, i.e. valid for all users on the system. If the parameter
+<var>Global</var> is false, then the directory is specific for the user who
+is executing the program. On systems that do not support multi-user
+environments, these two directories may be the same.
+</p>
+<p>
+The directory which is returned is the name of the directory where the application is
+supposed to store files. This does not mean that the directory exists, or
+that the user can write in this directory (especially if
+<var>Global</var>=<var>True</var>). It just returns the  name of the
+appropriate location.
+</p>
+<p>
+On systems where the operating system provides a call to determine this
+location, this call will be used. On systems where there is no such call, 
+an algorithm is used which reflects common practice on that system.
+</p>
+<p>
+The application name is deduced from the binary name via the <link id="ApplicationName"/>
+call, but can be configured by means of the <link id="OnGetApplicationName"/> callback.
+</p>
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="GetAppConfigFile"/>
+<link id="ApplicationName"/>
+<link id="OnGetApplicationName"/>
+<link id="CreateDir"/>
+<link id="SysConfigDir"/>
 </seealso>
 </element>
 
@@ -3301,10 +3387,42 @@ None.
 <element name="GetAppConfigFile">
 <short>Return an appropriate name for an application configuration file.</short>
 <descr>
+<p>
+<var>GetAppConfigFile</var> returns the name of a file in which the
+application can store its configuration parameters. The <var>Global</var>
+parameter determines whether it is a global configuration file
+(value <var>True</var>) or a personal configuration file (value
+<var>False</var>). The parameter <var>SubDir</var>, in case it is set to
+<var>True</var>, will insert the name of a
+directory before the filename. This can be used in case the application
+needs to store other data than configuration data in an application-specific
+directory. Default behaviour is to set this to <var>False</var>.
+</p>
+<p>
+No assumptions should be made about the existence or writeability of this 
+file, or the directory where the file should reside. 
+</p>
+<p>
+On systems where the operating system provides a call to determine the
+location of configuration files, this call will be used. On systems 
+where there is no such call, an algorithm is used which reflects common 
+practice on that system.
+</p>
+<p>
+The application name is deduced from the binary name via the <link id="ApplicationName"/>
+call, but can be configured by means of the <link id="OnGetApplicationName"/> callback.
+</p>
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="GetAppConfigDir"/>
+<link id="OnGetApplicationName"/>
+<link id="ApplicationName"/>
+<link id="CreateDir"/>
+<link id="ConfigExtension"/>
+<link id="SysConfigDir"/>
 </seealso>
 </element>
 
@@ -3312,10 +3430,18 @@ None.
 <element name="ApplicationName">
 <short>Return a default application name</short>
 <descr>
+<var>ApplicationName</var> returns the name of the current application.
+Standard this is equal to the result of <var>ParamStr(0)</var>, but it can 
+be customized by setting the <link id="OnGetApplicationName"/> callback.
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="GetAppConfigDir"/>
+<link id="OnGetApplicationName"/>
+<link id="GetAppConfigFile"/>
+<link id="ConfigExtension"/>
 </seealso>
 </element>
 
@@ -3323,6 +3449,9 @@ None.
 <element name="ConfigExtension">
 <short>Default application configuration file extension.</short>
 <descr>
+<var>ConfigExtension</var> is the default extension used by the
+<link id="GetAppConfigFile"/> call. It can be set to any valid extension for
+the current OS.
 </descr>
 <errors>
 </errors>
@@ -3334,10 +3463,20 @@ None.
 <element name="SysConfigDir">
 <short>System configuration directory.</short>
 <descr>
+<p>
+<var>SysConfigDir</var> is the default system configuration directory. It is
+set at application startup by the <file>sysutils</file> initialization
+routines.
+</p>
+<p>
+This directory may be returned by the <link id="GetAppConfigDir"/> call on
+some systems.
+</p>
 </descr>
 <errors>
 </errors>
 <seealso>
+<link id="GetAppConfigDir"/>
 </seealso>
 </element>
 
@@ -3345,6 +3484,8 @@ None.
 <element name="TGetAppNameEvent">
 <short>Callback type to get customized application name.</short>
 <descr>
+This callback type is used by the <link id="OnGetApplicationName"/> to
+return an alternative application name.
 </descr>
 <errors>
 </errors>
@@ -3356,33 +3497,36 @@ None.
 <element name="OnGetApplicationName">
 <short>Callback to get a customized application name.</short>
 <descr>
+<p>
+By default, the configuration file routines <link id="GetAppConfigDir"/> and
+<link id="GetAppConfigFile"/> use a default application name to construct a
+directory or filename. This callback can be used to provide an alternative
+application name.
+</p>
+<p>
+Since the result of this callback will be used to construct a filename, care 
+should be taken that the returned name does not contain directory separator
+characters or characters that cannot appear in a filename.
+</p>
 </descr>
 <errors>
 </errors>
 <seealso>
+<link id="TGetAppNameEvent"/>
+<link id="ApplicationName"/>
+<link id="GetAppConfigDir"/>
+<link id="GetAppConfigFile"/>
 </seealso>
 </element>
 
 <!-- pointer type Visibility: default -->
 <element name="PDayTable">
 <short>Pointer to TDayTable type.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- array type Visibility: default -->
 <element name="TDayTable">
 <short>Array of day names.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- constant Visibility: default -->
@@ -3443,6 +3587,9 @@ None.
 <!-- record type Visibility: default -->
 <element name="TSystemTime">
 <short>System time structure</short>
+<descr>The System time structure contains the date/time in a
+human-understandable format.
+</descr>
 </element>
 
 <!-- variable Visibility: default -->
@@ -3483,6 +3630,10 @@ None.
 <!-- record type Visibility: default -->
 <element name="TTimeStamp">
 <short>TimeStamp structure</short>
+<descr>
+<var>TTimeStamp</var> contains a timestamp, with the date and time parts
+specified as separate <var>TDateTime</var> values.
+</descr>
 </element>
 
 <!-- variable Visibility: default -->
@@ -3498,21 +3649,60 @@ None.
 <!-- function Visibility: default -->
 <element name="TryEncodeDate">
 <short>Try to encode a date, and indicate success.</short>
+<descr>
+<var>TryEncodeDate</var> will check the validity of the <var>Year</var>,
+<var>Month</var> and <var>Day</var> arguments, and if they are all valid,
+then they will be encoded as a <var>TDateTime</var> value and returned in
+<var>D</var>. The function will return <var>True</var> in this case. If an
+inbvalid argument is passed, then <var>False</var> will be returned.
+</descr>
+<errors>
+None. If an error occurs during the encoding, <var>False</var> is returned.
+</errors>
+<seealso>
+<link id="EncodeDate"/>
+<link id="DecodeDateFully"/>
+<link id="DecodeDate"/>
+<link id="TryEncodeTime"/>
+</seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="TryEncodeTime">
 <short>Try to encode a time, and indicate success.</short>
+<descr>
+<var>TryEncodeTime</var> will check the validity of the <var>Hour</var>,
+<var>Min</var>, <var>Sec</var> and <var>MSec</var> arguments, and will
+encode them in a <var>TDateTime</var> value which is returned in
+<var>T</var>. If the arguments are valid, then <var>True</var> is returned,
+otherwise <var>False</var> is returned.
+</descr>
+<errors>
+None. If an error occurs during the encoding, <var>False</var> is returned.
+</errors>
+<seealso>
+<link id="EncodeTime"/>
+<link id="DecodeTime"/>
+<link id="TryEncodeDate"/>
+</seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="DecodeDateFully">
 <short>Decode a date with additional date of the week.</short>
 <descr>
+<var>DecodeDateFully</var>, like <link id="DecodeDate"/>, decodes 
+<var>DateTime</var> in its parts and returns these in <var>Year</var>, 
+<var>Month</var>, <var>Day</var> but in addition returns the day of 
+the week in <var>DOW</var>.
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="EncodeDate"/>
+<link id="TryEncodeDate"/>
+<link id="DecodeDate"/>
 </seealso>
 </element>
 
@@ -3520,10 +3710,17 @@ None.
 <element name="GetLocalTime">
 <short>Get the local time.</short>
 <descr>
+<var>GetLocalTime</var> returns the system time in a <link id="TSystemTime"/>
+format.
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="Now"/>
+<link id="Date"/>
+<link id="Time"/>
+<link id="TSystemTime"/>
 </seealso>
 </element>
 
@@ -3534,12 +3731,14 @@ None.
 
 <!-- enumeration type Visibility: default -->
 <element name="TFloatFormat">
-<short>Formats for the FloatToStr function.</short>
+<short>Formats for the FloatToText function.</short>
 <descr>
+<var>TFloatFormat</var> is used to determine how a float value should be
+formatted in the <link id="FloatToText"/> function.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="FloatToText"/>
+<link id="FloatToStrF"/>
 </seealso>
 </element>
 
@@ -3570,7 +3769,14 @@ None.
 
 <!-- enumeration type Visibility: default -->
 <element name="TFloatValue">
-<short>Type of float in the buffer for FloatToText.</short>
+<short>Type of float to return in the buffer for TextToFloat.</short>
+<descr>
+<var>TFloatValue</var> determines which kind of value should be returned in
+the (untyped) buffer used by the <link id="TextToFloat"/> function.
+</descr>
+<seealso>
+<link id="TextToFloat"/>
+</seealso>
 </element>
 
 <!-- enumeration value Visibility: default -->
@@ -3606,21 +3812,35 @@ None.
 <!-- set type Visibility: default -->
 <element name="TReplaceFlags">
 <short>Flags for StringReplace function</short>
+<descr>
+<var>TReplaceFlags</var> determines the behaviour of the 
+<link id="StringReplace"/> function.
+</descr>
+<seealso>
+<link id="StringReplace"/>.
+</seealso>
 </element>
 
 <!-- enumeration value Visibility: default -->
 <element name="TReplaceFlags.rfReplaceAll">
-<short>Replace all occurrences of the search string</short>
+<short>Replace all occurrences of the search string with the replacement string.</short>
 </element>
 
 <!-- enumeration value Visibility: default -->
 <element name="TReplaceFlags.rfIgnoreCase">
-<short>Search case insensitive</short>
+<short>Search case insensitive.</short>
 </element>
 
 <!-- record type Visibility: default -->
 <element name="TFloatRec">
 <short>Record descriing a float value</short>
+<descr>
+<var>TFloatRec</var> is used to descibe a floating point value by the
+<link id="FloatToDecimal"/> function.
+</descr>
+<seealso>
+<link id="FloatToDecimal"/>
+</seealso>
 </element>
 
 <!-- variable Visibility: default -->
@@ -3661,11 +3881,21 @@ None.
 <!-- enumeration type Visibility: default -->
 <element name="TTextLineBreakStyle">
 <short>Line break style</short>
+<descr>
+<var>TTextLineBreakStyle</var> describes the style of linebreaks to be used
+in the <link id="AdjustLineBreaks"/> function.
+</descr>
+<seealso>
+<link id="AdjustLineBreaks"/>
+</seealso>
 </element>
 
 <!-- enumeration value Visibility: default -->
 <element name="TTextLineBreakStyle.tlbsLF">
 <short>Linefeed only</short>
+</element>
+<element name="TTextLineBreakStyle.tlbsCR">
+<short>Carriage-return only</short>
 </element>
 
 <!-- enumeration value Visibility: default -->
@@ -3680,7 +3910,11 @@ None.
 
 <!-- constant Visibility: default -->
 <element name="LeadBytes">
-<short>Lead bytes in Bulti-Byte character sets</short>
+<short>Lead bytes in Multi-Byte character sets</short>
+<descr>
+<var>LeadBytes</var> contains the set of bytes that serve as lead byte in a
+MBCS string.
+</descr>
 </element>
 
 <!-- constant Visibility: default -->
@@ -3690,7 +3924,7 @@ None.
 
 <!-- constant Visibility: default -->
 <element name="NullStr">
-<short>Null string</short>
+<short>Pointer to an empty string</short>
 </element>
 
 <!-- constant Visibility: default -->
@@ -3702,10 +3936,26 @@ None.
 <element name="CompareMemRange">
 <short>Compare 2 memory locations</short>
 <descr>
+<p>
+<var>CompareMemRange</var> compares the 2 memory locations pointed to by
+<var>P1</var> and <var>P2</var> byte per byte. It stops comparing after
+<var>Length</var> bytes have been compared, or when it has encountered 2
+different bytes. The result is then
+</p>
+<dl>
+<dt>&gt;0</dt><dd> if a byte in range <var>P1</var> was found that is bigger than the
+corresponding byte in range <var>P2</var>.</dd>
+<dt>0</dt><dd> if all bytes in range <var>P1</var> are the same as the corresponding 
+bytes in range <var>P2</var>.</dd>
+<dt>&lt;0</dt><dd> if a byte in range <var>P1</var> was found that is less than the
+corresponding byte in range <var>P2</var>.</dd>
+</dl>
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="SameText"/>
 </seealso>
 </element>
 
@@ -3713,10 +3963,17 @@ None.
 <element name="SameText">
 <short>Checks whether 2 strings are the same (case insensitive)</short>
 <descr>
+<var>SameText</var> calls <link id="CompareText"/> with <var>S1</var> and
+<var>S2</var> as parameters and returns <var>True</var> if the result of
+that call is zero, or <var>False</var> otherwise.
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="CompareText"/>
+<link id="AnsiSameText"/>
+<link id="AnsiSameStr"/>
 </seealso>
 </element>
 
@@ -3724,10 +3981,16 @@ None.
 <element name="AnsiSameText">
 <short>Checks whether 2 strings are the same (case insensitive)</short>
 <descr>
+<var>SameText</var> calls <link id="AnsiCompareText"/> with <var>S1</var> and
+<var>S2</var> as parameters and returns <var>True</var> if the result of
+that call is zero, or <var>False</var> otherwise.
 </descr>
 <errors>
 </errors>
 <seealso>
+<link id="AnsiCompareText"/>
+<link id="SameText"/>
+<link id="AnsiSameStr"/>
 </seealso>
 </element>
 
@@ -3735,10 +3998,17 @@ None.
 <element name="AnsiSameStr">
 <short>Checks whether 2 strings are the same (case sensitive)</short>
 <descr>
+<var>SameText</var> calls <link id="AnsiCompareStr"/> with <var>S1</var> and
+<var>S2</var> as parameters and returns <var>True</var> if the result of
+that call is zero, or <var>False</var> otherwise.
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="AnsiCompareStr"/>
+<link id="SameText"/>
+<link id="AnsiSameText"/>
 </seealso>
 </element>
 
@@ -3746,10 +4016,18 @@ None.
 <element name="AnsiStrLComp">
 <short>Compare a limited number of characters of 2 strings</short>
 <descr>
+<var>AnsiStrLComp</var> functions the same as <link id="AnsiStrComp"/>, but
+compares at most <var>MaxLen</var> characters, if this is less than one of
+the lengths of the passed strings. If the first <var>MaxLen</var> characters
+in both strings are the same, then zero is returned.
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="AnsiStrComp"/>
+<link id="AnsiStrIComp"/>
+<link id="AnsiStrLIComp"/>
 </seealso>
 </element>
 
@@ -3757,10 +4035,20 @@ None.
 <element name="TryStrToInt">
 <short>Try to convert a string to an integer, and report on success.</short>
 <descr>
+<var>TryStrToInt</var> tries to convert the string <var>S</var> to an
+integer, and returns <var>True</var> if this was succesful. In that case the
+converted integer is returned in <var>I</var>. If the conversion failed,
+(an invalid string, or the value is out of range) then <var>False</var> is returned.
 </descr>
 <errors>
+None. On error, <var>False</var> is returned.
 </errors>
 <seealso>
+<link id="StrToInt"/>
+<link id="TryStrToInt64"/>
+<link id="StrToIntDef"/>
+<link id="StrToInt64"/>
+<link id="StrToInt64Def"/>
 </seealso>
 </element>
 
@@ -3768,10 +4056,24 @@ None.
 <element name="StrToInt64">
 <short>Convert a string to an Int64 value.</short>
 <descr>
+<p>
+<var>StrToInt64</var> converts the string <var>S</var> to a Int64 value, and
+returns this value. The string can only contain numerical characters, and
+optionally a minus sign as the first character. Whitespace is not allowed.
+</p>
+<p>
+Hexadecimal values (starting with the $ character) are supported.
+</p>
 </descr>
 <errors>
+On error, a <link id="EConvertError"/> exception is raised.
 </errors>
 <seealso>
+<link id="TryStrToInt64"/>
+<link id="StrToInt64Def"/>
+<link id="StrToInt"/>
+<link id="TryStrToInt"/>
+<link id="StrToIntDef"/>
 </seealso>
 </element>
 
@@ -3779,10 +4081,27 @@ None.
 <element name="TryStrToInt64">
 <short>Try to convert a string to an int64 value, and report on success.</short>
 <descr>
+<p>
+<var>TryStrToInt64</var> tries to convert the string <var>S</var> to a Int64 value, and
+returns this value in <var>I</var> if successful. If the conversion was
+succesful, the function result is <var>True</var>, or <var>False</var>
+otherwise.
+The string can only contain numerical characters, and
+optionally a minus sign as the first character. Whitespace is not allowed.
+</p>
+<p>
+Hexadecimal values (starting with the $ character) are supported.
+</p>
 </descr>
 <errors>
+None. On error, <var>False</var> is returned.
 </errors>
 <seealso>
+<link id="StrToInt64"/>
+<link id="StrToInt64Def"/>
+<link id="StrToInt"/>
+<link id="TryStrToInt"/>
+<link id="StrToIntDef"/>
 </seealso>
 </element>
 
@@ -3790,10 +4109,19 @@ None.
 <element name="StrToInt64Def">
 <short>Convert a string to an Int64 value, with a default value</short>
 <descr>
+<var>StrToInt64Def</var> tries to convert the string <var>S</var> to a Int64
+value, and returns this value. If the conversion fails for some reason, the
+value <var>Default</var> is returned instead.
 </descr>
 <errors>
+None. On error, the <var>Default</var> value is returned.
 </errors>
 <seealso>
+<link id="StrToInt64"/>
+<link id="TryStrToInt64"/>
+<link id="StrToInt"/>
+<link id="TryStrToInt"/>
+<link id="StrToIntDef"/>
 </seealso>
 </element>
 
@@ -3801,8 +4129,12 @@ None.
 <element name="StrToFloatDef">
 <short>Convert a string to a float, with a default value.</short>
 <descr>
+<var>StrToFloatDef</var> tries to convert the string <var>S</var> to a
+floating point value, and returns this value. If the conversion fails for
+some reason, the value <var>Default</var> is returned instead.
 </descr>
 <errors>
+None. On error, the <var>Default</var> value is returned.
 </errors>
 <seealso>
 </seealso>
@@ -3812,10 +4144,20 @@ None.
 <element name="FloatToDateTime">
 <short>Convert a float to a <var>TDateTime</var> value.</short>
 <descr>
+<var>FloatToDateTime</var> converts the <var>Value</var> floating point
+value to a <var>TDateTime</var> value. It checks whether <var>Value</var> is
+in the valid range of dates (determined by <link id="MinDateTime"/> and
+<link id="MaxDateTime"/>). If not, an <link id="EConvertError"/> exception
+is raised.
 </descr>
 <errors>
+If <var>Value</var> is out of range, an <link id="EConvertError"/> exception
+is raised.
 </errors>
 <seealso>
+<link id="EConvertError"/>
+<link id="MinDateTime"/>
+<link id="MaxDateTime"/>
 </seealso>
 </element>
 
@@ -3823,10 +4165,21 @@ None.
 <element name="FloattoCurr">
 <short>Convert a float to a Currency value.</short>
 <descr>
+<var>FloatToCurr</var> converts the <var>Value</var> floating point
+value to a <var>Currency</var> value. It checks whether <var>Value</var> is
+in the valid range of currencies (determined by <link id="MinCurrency"/> and
+<link id="MaxCurrency"/>). If not, an <link id="EConvertError"/> exception
+is raised.
 </descr>
 <errors>
+If <var>Value</var> is out of range, an <link id="EConvertError"/> exception
+is raised.
 </errors>
 <seealso>
+<link id="EConvertError"/>
+<link id="TryFloatToCurr"/>
+<link id="MinCurrency"/>
+<link id="MaxCurrency"/>
 </seealso>
 </element>
 
@@ -3834,10 +4187,20 @@ None.
 <element name="TryFloatToCurr">
 <short>Try to convert a float value to a currency value and report on success.</short>
 <descr>
+<var>TryFloatToCurr</var> tries convert the <var>Value</var> floating point
+value to a <var>Currency</var> value. If successful, the function returns
+<var>True</var> and the resulting currency value is returned in
+<var>AResult</var>. It checks whether <var>Value</var> is
+in the valid range of currencies (determined by <link id="MinCurrency"/> and
+<link id="MaxCurrency"/>). If not, <var>False</var> is returned.
 </descr>
 <errors>
+If <var>Value</var> is out of range, <var>False</var> is returned.
 </errors>
 <seealso>
+<link id="FloatToCurr"/>
+<link id="MinCurrency"/>
+<link id="MaxCurrency"/>
 </seealso>
 </element>
 
@@ -3845,10 +4208,21 @@ None.
 <element name="CurrToStr">
 <short>Convert a currency value to a string.</short>
 <descr>
+<p>
+<var>CurrToStr</var> will convert a currency value to a string with a
+maximum of 15 digits, and precision 2. Calling <var>CurrToStr</var> 
+is equivalent to calling <link id="FloatToStrF"/>:
+</p>
+<code>
+  FloatToStrF(Value,ffNumber,15,2);
+</code>
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="FloatToStrF"/>
+<link id="StrToCurr"/>
 </seealso>
 </element>
 
@@ -3856,10 +4230,17 @@ None.
 <element name="StrToCurr">
 <short>Convert a string to a currency value</short>
 <descr>
+<var>StrToCurr</var> converts a string to a currency value and returns the
+value. The string
+should contain a valid currency amount, without currency symbol. If the
+conversion fails, an <link id="EConvertError"/> exception is raised.
 </descr>
 <errors>
+On error, an <link id="EConvertError"/> exception is raised.
 </errors>
 <seealso>
+<link id="CurrToStr"/>
+<link id="StrToCurrDef"/>
 </seealso>
 </element>
 
@@ -3867,10 +4248,16 @@ None.
 <element name="StrToCurrDef">
 <short>Convert a string to a currency value, using a default value</short>
 <descr>
+<var>StrToCurrDef</var> converts a string to a currency value and returns the
+value. The string should contain a valid currency amount, without currency 
+symbol. If the conversion fails, the fallback <var>Default</var> value is returned.
 </descr>
 <errors>
+On error, the <var>Default</var> value is returned.
 </errors>
 <seealso>
+<link id="CurrToStr"/>
+<link id="StrToCurr"/>
 </seealso>
 </element>
 
@@ -3878,10 +4265,18 @@ None.
 <element name="StrToBool">
 <short>Convert a string to a boolean value</short>
 <descr>
+<var>StrToBool</var> will convert the string <var>S</var> to a boolean
+value. The string <var>S</var> can contain one of <var>'True'</var>,
+<var>'False'</var> (case is ignored) or a numerical value. If it contains a
+numerical value, 0 is converted to <var>False</var>, all other values result
+in <var>True</var>. If the string <var>S</var> contains no valid boolean,
+then  an <link id="EConvertError"/> exception is raised.
 </descr>
 <errors>
+On error, an <link id="EConvertError"/> exception is raised.
 </errors>
 <seealso>
+<link id="BoolToStr"/>
 </seealso>
 </element>
 
@@ -3889,10 +4284,14 @@ None.
 <element name="BoolToStr">
 <short>Convert a boolean value to a string.</short>
 <descr>
+<var>BoolToStr</var> converts the boolean <var>B</var> to one of
+the strings <var>'TRUE'</var> or <var>'FALSE'</var>
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="StrToBool"/>
 </seealso>
 </element>
 
@@ -3900,10 +4299,19 @@ None.
 <element name="StringReplace">
 <short>Replace occurrences of one substring with another in a string.</short>
 <descr>
+<var>StringReplace</var> searches the string <var>S</var> for
+occurrences of the string <var>OldPattern</var> and, if it is found,
+replaces it with <var>NewPattern</var>. It returns the resulting string. The
+behaviour of <var>StringReplace</var> can be runed with <var>Flags</var>,
+which is of type <link id="TReplaceFlags"/>. Standard behaviour is to
+replace only the first occurrence of <var>OldPattern</var>, and to search
+case sensitively.
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="TReplaceFlags"/>
 </seealso>
 </element>
 
@@ -3911,21 +4319,40 @@ None.
 <element name="FloatToTextFmt">
 <short>Convert a float value to a string using a given mask.</short>
 <descr>
+<p>
+<var>FloatToTextFmt</var> returns a textual representation of
+<var>Value</var> in the memory location pointed to by <var>Buffer</var>. it
+uses the formatting specification in <var>Format</var> to do this. The
+return value is the number of characters that were written in the buffer.
+</p>
+<p>
+For a list of valid formatting characters, see <link id="FormatFloat"/>
+</p>
 </descr>
 <errors>
+No length checking is performed on the buffer. The buffer should point to
+enough memory to hold the complete string. If this is not the case, an
+access violation may occur.
 </errors>
 <seealso>
+<link id="FormatFloat"/>
 </seealso>
 </element>
 
 <!-- procedure Visibility: default -->
 <element name="FloatToDecimal">
-<short>Convert a float value to a decimal value</short>
+<short>Convert a float value to a <var>TFloatRec</var> value.</short>
 <descr>
+<var>FloatToDecimal</var> converts the float <var>Value</var> to a
+float description in the <var>Result</var> <link id="TFloatRec"/> format.
+It will store <var>Precision</var> digits in the <var>Digits</var> field, of
+which at most <var>Decimal</var> decimals.
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="TFloatRec"/>
 </seealso>
 </element>
 
@@ -3933,10 +4360,16 @@ None.
 <element name="IsDelimiter">
 <short>Check whether a given string is a delimiter character.</short>
 <descr>
+<var>IsDelimiter</var> checks whether the <var>Index</var>-th character in the
+string <var>S</var> is a delimiter character as passed in
+<var>Delimiters</var>. If <var>Index</var> is out of range, <var>False</var>
+is returned.
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="LastDelimiter"/>
 </seealso>
 </element>
 
@@ -3969,16 +4402,33 @@ None.
 <!-- function Visibility: default -->
 <element name="ByteType">
 <short>Return the type of byte in an ansistring for a multi-byte character set</short>
+<descr>
+<var>ByteType</var> returns the type of byte in the ansistring <var>S</var>
+at (1-based) position <var>Index</var>. 
+</descr>
+<errors>
+No checking on the index is performed.
+</errors>
+<seealso>
+<link id="TMbcsByteType"/>
+<link id="StrByteType"/>
+</seealso>
+
 </element>
 
 <!-- function Visibility: default -->
 <element name="StrByteType">
 <short>Return the type of byte in a null-terminated string for a multi-byte character set</short>
 <descr>
+<var>StrByteType</var> returns the type of byte in the null-terminated
+string <var>Str</var> at (0-based) position <var>Index</var>. 
 </descr>
 <errors>
+No checking on the index is performed.
 </errors>
 <seealso>
+<link id="TMbcsByteType"/>
+<link id="ByteType"/>
 </seealso>
 </element>
 
@@ -3986,10 +4436,15 @@ None.
 <element name="ByteToCharLen">
 <short>Convert a length in bytes to a length in characters.</short>
 <descr>
+<var>ByteToCharLen</var> returns the number of bytes in <var>S</var>, but
+limits the result to <var>MaxLen</var>
 </descr>
 <errors>
+This function does not take into account MBCS yet.
 </errors>
 <seealso>
+<link id="CharToByteLen"/>
+<link id="ByteToCharIndex"/>
 </seealso>
 </element>
 
@@ -3997,10 +4452,15 @@ None.
 <element name="CharToByteLen">
 <short>Convert a length in characters to a length in bytes.</short>
 <descr>
+<var>CharToByteLen</var> returns the number of bytes in <var>S</var>, but
+limits the result to <var>MaxLen</var>
 </descr>
 <errors>
+This function does not take into account MBCS yet.
 </errors>
 <seealso>
+<link id="ByteToCharLen"/>
+<link id="ByteToCharIndex"/>
 </seealso>
 </element>
 
@@ -4008,10 +4468,15 @@ None.
 <element name="ByteToCharIndex">
 <short>Convert a character index in Bytes to an Index in characters</short>
 <descr>
+<var>ByteToCharIndex</var> returns the index (in characters) of the
+<var>Index</var>-th byte in <var>S</var>.
 </descr>
 <errors>
+This function does not take into account MBCS yet.
 </errors>
 <seealso>
+<link id="CharToByteLen"/>
+<link id="ByteToCharLen"/>
 </seealso>
 </element>
 
@@ -4019,10 +4484,16 @@ None.
 <element name="SwitchChars">
 <short>Characters which start a command-line switch</short>
 <descr>
+The characters in this set will be used by the <link id="FindCmdLineSwitch"/> 
+function to determine whether a command-line
+argument is a switch (an option) or a value. If the first character of an
+argument is in <var>SwitchChars</var>, it will be considered an option or
+switch.
 </descr>
 <errors>
 </errors>
 <seealso>
+<link id="FindCmdLineSwitch"/>
 </seealso>
 </element>
 
@@ -4030,6 +4501,7 @@ None.
 <element name="TSysCharSet">
 <short>Set of characters.</short>
 <descr>
+Generic set of characters type.
 </descr>
 <errors>
 </errors>
@@ -4041,10 +4513,19 @@ None.
 <element name="FindCmdLineSwitch">
 <short>Check whether a certain switch is present on the command-line.</short>
 <descr>
+<var>FindCmdLineSwitch</var> will check all command-line arguments for the
+presence of the option <var>Switch</var>. It will return <var>True</var> if
+it was found, <var>False</var> otherwise. Characters that appear in
+<var>Chars</var> (default is <link id="SwitchChars"/>) are assumed to
+indicate an option (switch). If the parameter <var>IgnoreCase</var> is
+<var>True</var>, case will be ignored when looking for the switch. Default
+is to search case sensitive.
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="SwitchChars"/>
 </seealso>
 </element>
 
@@ -4052,130 +4533,147 @@ None.
 <element name="THandle">
 <short>File Handle type.</short>
 <descr>
+<var>THandle</var> refers to the definition of <var>THandle</var> in the
+system unit, and is provided for backward compatibility only.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- procedure type Visibility: default -->
-<element name="tprocedure">
+<element name="TProcedure">
 <short>Procedural type</short>
 <descr>
+<var>TProcedure</var> is a general definition of a procedural callback.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- alias type Visibility: default -->
-<element name="tfilename">
+<element name="TFileName">
 <short>Filename type</short>
 <descr>
+<var>TFileName</var> is used in the <link id="TSearchRec"/> definition.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="TSearchRec"/>
 </seealso>
 </element>
 
 <!-- set type Visibility: default -->
-<element name="tintegerset">
+<element name="TIntegerSet">
 <short>Set with size of integer.</short>
 <descr>
+<var>TIntegerSet</var> is a generic integer subrange set definition whose
+size fits in a single integer.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- record type Visibility: default -->
-<element name="longrec">
+<element name="LongRec">
 <short>Record describing a longint value</short>
 <descr>
+<var>LongRec</var> can be used to extract the parts of an long Integer: the
+high and low word, or the 4 separate bytes as a zero-based array of bytes.
+Note that the meaning of High and Low parts are different on various CPUs.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="WordRec"/>
+<link id="Int64Rec"/>
 </seealso>
 </element>
 
 <!-- record type Visibility: default -->
-<element name="wordrec">
+<element name="WordRec">
 <short>Record describing a word value.</short>
 <descr>
+<var>LongRec</var> can be used to extract the parts of a word: the
+high and low byte. Note that the meaning of the High and Low parts
+are different on various CPUs.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="LongRec"/>
+<link id="Int64Rec"/>
 </seealso>
 </element>
 
 <!-- variable Visibility: default -->
-<element name="wordrec.lo">
+<element name="WordRec.Lo">
 <short>Low byte of the word.</short>
 </element>
 
 <!-- variable Visibility: default -->
-<element name="wordrec.hi">
+<element name="WordRec.Hi">
 <short>High byte of the word</short>
 </element>
 
 <!-- record type Visibility: default -->
-<element name="int64rec">
+<element name="Int64Rec">
 <short>Record describing an Int64 value</short>
 <descr>
+<var>Int64Rec</var> can be used to extract the parts of a Int64: the
+high and low cardinal, or a zero-based array of 4 words, or a zero based
+array of 8 bytes. Note that the meaning of the High and Low parts
+are different on various CPUs.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="LongRec"/>
+<link id="WordRec"/>
 </seealso>
 </element>
 
 <!-- pointer type Visibility: default -->
-<element name="pbytearray">
+<element name="PByteArray">
 <short>Pointer to an array of byte.</short>
 <descr>
+Generic pointer to <link id="TByteArray"/>. Use to access memory regions as
+a byte array.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="TByteArray"/>
+<link id="PWordArray"/>
+<link id="TWordArray"/>
 </seealso>
 </element>
 
 <!-- array type Visibility: default -->
-<element name="tbytearray">
+<element name="TByteArray">
 <short>Array of bytes</short>
 <descr>
+<var>TByteArray</var> is a generic array definition, mostly for use as a
+base type of the <link id="PByteArray"/> type.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="PByteArray"/>
+<link id="PWordArray"/>
+<link id="TWordArray"/>
 </seealso>
 </element>
 
 <!-- pointer type Visibility: default -->
-<element name="pwordarray">
-<short>Array of word.</short>
+<element name="PWordArray">
+<short>Pointer to an array of word.</short>
 <descr>
+Generic pointer to <link id="TWordArray"/>. Use to access memory regions as
+a word array.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="TWordArray"/>
+<link id="PByteArray"/>
+<link id="TByteArray"/>
 </seealso>
 </element>
 
 <!-- array type Visibility: default -->
-<element name="twordarray">
+<element name="TWordArray">
 <short></short>
 <descr>
+<var>TWordArray</var> is a generic array definition, mostly for use as a
+base type of the <link id="PWordArray"/> type.
 </descr>
 <errors>
 </errors>
 <seealso>
+<link id="PWordArray"/>
+<link id="PByteArray"/>
+<link id="TByteArray"/>
 </seealso>
 </element>
 
@@ -4183,70 +4681,99 @@ None.
 <element name="TMethod">
 <short>Record describing a method.</short>
 <descr>
+<var>TMethod</var> describes a general method pointer, and is used in
+Run-Time Type Information handling.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TMethod.Code">
 <short>Pointer to method code.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TMethod.Data">
 <short>Pointer to object instance.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- object Visibility: default -->
 <element name="Exception">
 <short>Base class of all exceptions.</short>
 <descr>
+<var>Exception</var> is the base class for all exception handling routines
+in the RTL and FCL. While it is possible to raise an exception with any
+class descending from <var>TObject</var>, it is recommended to use
+<var>Exception</var> as the basis of exception class objects:
+the <var>Exception</var> class introduces properties to associate a message
+and a help context with the exception being raised. What is more, the
+<file>SysUtils</file> unit sets the necessary hooks to catch and display
+unhandled exceptions: in such cases, the message displayed to the end user, 
+will be the message stored in the exception class.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="ExceptObject"/>
+<link id="ExceptAddr"/>
+<link id="ExceptionErrorMessage"/>
+<link id="ShowException"/>
+<link id="Abort"/>
 </seealso>
 </element>
 
 <!-- constructor Visibility: public -->
 <element name="Exception.Create">
 <short>Constructs a new exception object with a given message.</short>
+<var>Create</var> allocates a new exception object on the heap, and stores
+<var>Msg</var> in the <link id="Exception.Message">Message</link> property.
+<errors>
+Construction may fail if there is not enough memory on the heap.
+</errors>
+<seealso>
+<link id="Exception.CreateFmt"/>
+<link id="Exception.Message"/>
+</seealso>
 </element>
 
 <!-- constructor Visibility: public -->
 <element name="Exception.CreateFmt">
 <short>Constructs a new exception object and formats a new message.</short>
-<descr>
-</descr>
+<p>
+<var>CreateFmt</var> allocates a new exception object on the heap, and
+fills the  <link id="Exception.Message">Message</link> property with the result of a call to <link
+id="Format"/> with <var>Msg</var> and <var>Args</var> as arguments.
+</p>
+<p>Using <var>CreateFmt</var> is equivalent to using the following code:</p>
+<code>
+  Exception.Create(Format(Msg,Args));
+</code>
 <errors>
+Construction may fail if there is not enough memory on the heap.
 </errors>
 <seealso>
+<link id="Exception.Create"/>
+<link id="Exception.Message"/>
+<link id="Format"/>
 </seealso>
 </element>
 
 <!-- constructor Visibility: public -->
 <element name="Exception.CreateRes">
-<short>Constructs a new exception object and gets the message from a reasource.</short>
-<descr>
-</descr>
+<short>Constructs a new exception object and gets the message from a resource.</short>
+<p>
+<var>CreateRes</var> allocates a new exception object on the heap, and stores
+fetches the resource string <var>ResString</var> from the resources and
+stores it in the <link id="Exception.Message">Message</link> property.
+</p>
+<remark>
+Resources are not yet implemented in Free Pascal.
+</remark>
 <errors>
+Construction may fail if there is not enough memory on the heap.
 </errors>
 <seealso>
+<link id="Exception.Create"/>
+<link id="Exception.CreateFmt"/>
+<link id="Exception.CreateResFmt"/>
+<link id="Exception.Message"/>
 </seealso>
 </element>
 
@@ -4255,10 +4782,18 @@ None.
 <short>Constructs a new exception object and formats the message from a
 reasource.</short>
 <descr>
+<var>CreateResFmt</var> does the same as <link
+id="Exception.CreateFmt">CreateFmt</link>, but fetches
+the message from the resource string <var>ResString</var>.
 </descr>
 <errors>
+Construction may fail if there is not enough memory on the heap.
 </errors>
 <seealso>
+<link id="Exception.Create"/>
+<link id="Exception.CreateFmt"/>
+<link id="Exception.CreateRes"/>
+<link id="Exception.Message"/>
 </seealso>
 </element>
 
@@ -4266,10 +4801,13 @@ reasource.</short>
 <element name="Exception.CreateHelp">
 <short>Constructs a new exception object and sets the help context.</short>
 <descr>
+<var>CreateHelp</var> does the same as the <link
+id="Exception.Create">Create</link> constructor,
+but additionally stores <var>AHelpContext</var> in the <link
+id="Exception.HelpContext">HelpContext</link> property.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="Exception.Create"/>
 </seealso>
 </element>
 
@@ -4278,10 +4816,13 @@ reasource.</short>
 <short>Constructs a new exception object and sets the help context and
 formats the message</short>
 <descr>
+<var>CreateFmtHelp</var> does the same as the <link
+id="Exception.CreateFmt">CreateFmt</link> constructor,
+but additionally stores <var>AHelpContext</var> in the <link
+id="Exception.HelpContext">HelpContext</link> property.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="Exception.CreateFmt"/>
 </seealso>
 </element>
 
@@ -4290,10 +4831,13 @@ formats the message</short>
 <short>Constructs a new exception object and sets the help context and
 gets the message from a resource</short>
 <descr>
+<var>CreateResHelp</var> does the same as the <link
+id="Exception.CreateRes">CreateRes</link> constructor,
+but additionally stores <var>AHelpContext</var> in the <link
+id="Exception.HelpContext">HelpContext</link> property.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="Exception.CreateRes"/>
 </seealso>
 </element>
 
@@ -4302,10 +4846,13 @@ gets the message from a resource</short>
 <short>Constructs a new exception object and sets the help context and
 formats the message from a resource</short>
 <descr>
+<var>CreateResFmtHelp</var> does the same as the <link
+id="Exception.CreateResFmt">CreateResFmt</link> constructor,
+but additionally stores <var>AHelpContext</var> in the <link
+id="Exception.HelpContext">HelpContext</link> property.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="Exception.CreateResFmt"/>
 </seealso>
 </element>
 
@@ -4313,10 +4860,13 @@ formats the message from a resource</short>
 <element name="Exception.helpcontext">
 <short>Help context associated with the exception.</short>
 <descr>
+<var>HelpContext</var> is the help context associated with the exception,
+and can be used to provide context-sensitive help when the exception error
+message is displayed. It should be set in the exception constructor.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="Exception.CreateHelp"/>
+<link id="Exception.Message"/>
 </seealso>
 </element>
 
@@ -4324,10 +4874,13 @@ formats the message from a resource</short>
 <element name="Exception.message">
 <short>Message associated with the exception.</short>
 <descr>
+<var>Message</var> provides additional information about the exception. It
+is shown to the user in e.g. the <link id="ShowException"/> routine, and
+should be set in the constructor when the exception is raised.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="Exception.Create"/>
+<link id="Exception.HelpContext"/>
 </seealso>
 </element>
 
@@ -4335,10 +4888,10 @@ formats the message from a resource</short>
 <element name="ExceptClass">
 <short>Exception Class reference</short>
 <descr>
+<var>ExceptClass</var> is a <link id="Exception"/> class reference.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="Exception"/>
 </seealso>
 </element>
 
@@ -4346,43 +4899,55 @@ formats the message from a resource</short>
 <element name="EExternal">
 <short>External Exception.</short>
 <descr>
+<var>EExternal</var> is the base exception for all external exceptions, as
+reported by the CPU or operating system, as opposed to internal exceptions,
+which are raised by the program itself. The <file>SysUtils</file> unit
+converts all operating system errors to descendents of <var>EExternal</var>.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EInterror"/>
+<link id="EExternal"/>
+<link id="EMathError"/>
+<link id="EExternalException"/>
+<link id="EAccessViolation"/>
+<link id="EPrivilege"/>
+<link id="EStackOverflow"/>
+<link id="EControlC"/>
 </seealso>
 </element>
 
 <!-- object Visibility: default -->
-<element name="EInterror">
+<element name="EIntError">
 <short>Integer operation error.</short>
 <descr>
+<var>EInterror</var> is used when the operating system or CPU signals an
+integer operation error, e.g.,  an overflow.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- object Visibility: default -->
 <element name="EDivByZero">
 <short>Division by zero error.</short>
 <descr>
+<var>EDivByZero</var> is used when the operating system or CPU signals a
+division by zero error.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
+<link id="EIntError"/>
+<link id="ERangeError"/>
+<link id="EIntOverflow"/>
 </element>
 
 <!-- object Visibility: default -->
 <element name="ERangeError">
 <short>Range check error.</short>
 <descr>
+<var>ERangeError</var> is raised by the Free Pascal runtime library if
+range checking is on, and a range check error occurs.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EIntError"/>
+<link id="EDivByZero"/>
+<link id="EIntOverflow"/>
 </seealso>
 </element>
 
@@ -4390,10 +4955,13 @@ formats the message from a resource</short>
 <element name="EIntOverflow">
 <short>Integer overflow error.</short>
 <descr>
+<var>EIntOverflow</var> is used when the operating system or CPU signals a
+integer overflow error.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EIntError"/>
+<link id="EDivByZero"/>
+<link id="ERangeError"/>
 </seealso>
 </element>
 
@@ -4401,10 +4969,14 @@ formats the message from a resource</short>
 <element name="EMathError">
 <short>Mathematical error</short>
 <descr>
+<var>EMathError</var> is used when the operating system or CPU signals a
+floating point overflow error.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EIntError"/>
+<link id="EIntOverflow"/>
+<link id="EDivByZero"/>
+<link id="ERangeError"/>
 </seealso>
 </element>
 
@@ -4412,21 +4984,21 @@ formats the message from a resource</short>
 <element name="EInvalidOp">
 <short>Invalid operation.</short>
 <descr>
+<var>EInvalidOp</var> is raised when an invalid operation is encountered.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- object Visibility: default -->
 <element name="EZeroDivide">
 <short>Division by zero error.</short>
 <descr>
+<var>EZeroDivide</var> occurs when a float division by zero occurs.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EIntError"/>
+<link id="EIntOverflow"/>
+<link id="EDivByZero"/>
+<link id="ERangeError"/>
 </seealso>
 </element>
 
@@ -4434,10 +5006,15 @@ formats the message from a resource</short>
 <element name="EOverflow">
 <short>Float overflow error.</short>
 <descr>
+<var>EOverflow</var> occurs when a float operation overflows. (i.e. result
+is too big to represent).
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EIntError"/>
+<link id="EIntOverflow"/>
+<link id="EDivByZero"/>
+<link id="ERangeError"/>
+<link id="EUnderFlow"/>
 </seealso>
 </element>
 
@@ -4445,10 +5022,15 @@ formats the message from a resource</short>
 <element name="EUnderflow">
 <short>Float underflow error</short>
 <descr>
+<var>EOverflow</var> occurs when a float operation underflows (i.e. result
+is too small to represent).
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EIntError"/>
+<link id="EIntOverflow"/>
+<link id="EDivByZero"/>
+<link id="ERangeError"/>
+<link id="EOverFlow"/>
 </seealso>
 </element>
 
@@ -4456,10 +5038,14 @@ formats the message from a resource</short>
 <element name="EInOutError">
 <short>Input/Output error</short>
 <descr>
+<var>EInOutError</var> is raised when a IO routine of Free Pascal returns an
+error. The error is converted to an <var>EInOutError</var> only if the
+input/output checking feature of FPC is turned on. The error code of the
+input/output operation is returned in <link
+id="EInOutError.ErrorCode">ErrorCode</link>.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EInOutError.ErrorCode"/>
 </seealso>
 </element>
 
@@ -4467,21 +5053,23 @@ formats the message from a resource</short>
 <element name="EInOutError.ErrorCode">
 <short>Error code for Input/Output operation.</short>
 <descr>
+<var>ErrorCode</var> contains the error code from the I/O operation which
+raised the <link id="EInoutError"/> exception. An explanation of the error
+codes can be found in the user's manual.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- object Visibility: default -->
 <element name="EHeapMemoryError">
 <short>Heap memory error</short>
 <descr>
+<var>EHeapMemoryError</var> is raised when an error occurs in heap
+(dynamically allocated) memory.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EHeapException"/>
+<link id="EoutOfMemory"/>
+<link id="EInvalidPointer"/>
 </seealso>
 </element>
 
@@ -4489,10 +5077,13 @@ formats the message from a resource</short>
 <element name="EHeapException">
 <short>Heap exception</short>
 <descr>
+<var>EHeapMemoryError</var> is raised when an error occurs in the heap
+management routines.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EHeapMemoryError"/>
+<link id="EoutOfMemory"/>
+<link id="EInvalidPointer"/>
 </seealso>
 </element>
 
@@ -4500,10 +5091,11 @@ formats the message from a resource</short>
 <element name="EExternalException">
 <short>External exception</short>
 <descr>
+<var>EExternalException</var> is raised when an external routine raises an
+exception.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EExternal"/>
 </seealso>
 </element>
 
@@ -4511,10 +5103,12 @@ formats the message from a resource</short>
 <element name="EInvalidPointer">
 <short>Invalid pointer operation</short>
 <descr>
+<var>EInvalidPointer</var> is raised when an invalid heap pointer is used.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EHeapException"/>
+<link id="EHeapMemoryError"/>
+<link id="EOutOfMemory"/>
 </seealso>
 </element>
 
@@ -4522,10 +5116,14 @@ formats the message from a resource</short>
 <element name="EOutOfMemory">
 <short>Out of memory error.</short>
 <descr>
+<var>EOutOfMemory</var> occurs when memory can no longer be allocated on the
+heap. An instance of <var>EOutOfMemory</var> is allocated on the heap at
+program startup, so it is available when needed.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EHeapException"/>
+<link id="EHeapMemoryError"/>
+<link id="EInvalidPointer"/>
 </seealso>
 </element>
 
@@ -4533,10 +5131,11 @@ formats the message from a resource</short>
 <element name="EInvalidCast">
 <short>Invalid typecast error.</short>
 <descr>
+<var>EInvalidCast</var> is raised when an invalid typecast error (using the
+<var>as</var> operator) is encountered.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EIntfCastError"/>
 </seealso>
 </element>
 
@@ -4544,76 +5143,66 @@ formats the message from a resource</short>
 <element name="EVariantError">
 <short>Variant error.</short>
 <descr>
+<var>EVariantError</var> is raised by the internal variant routines.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- object Visibility: default -->
 <element name="EAccessViolation">
 <short>Access Violation error</short>
 <descr>
+<var>EAccessViolation</var> is raised when the OS reports an Access
+Violation, i.e. when invalid memory is accessed.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- object Visibility: default -->
 <element name="EPrivilege">
 <short>Privileged instruction error.</short>
 <descr>
+<var>EPrivilege</var> is raised when the OS reports that an invalid
+instruction was executed.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- object Visibility: default -->
 <element name="EStackOverflow">
 <short>Stack overflow error.</short>
 <descr>
+<var>EStackOverflow</var> occurs when the stack has grown too big (e.g. by
+infinite recursion).
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- object Visibility: default -->
 <element name="EControlC">
 <short>Control-C (abort) was pressed on the console.</short>
 <descr>
+<var>EControlC</var> is raised when the user has pressed CTRL-C in a
+console application.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- object Visibility: default -->
 <element name="EConvertError">
 <short>Conversion error.</short>
 <descr>
+<var>EConvertError</var> is raised by the various conversion routines in the
+<file>SysUtils</file> unit. The message will contain more specific error
+information.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- object Visibility: default -->
 <element name="EAbort">
 <short>Abort error.</short>
 <descr>
+<var>Abort</var> is raised by the <link id="Abort"/> procedure. It is not
+displayed in GUI applications, and serves only to immediatly abort the current
+procedure, and return control to the main program loop. 
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="Abort"/>
 </seealso>
 </element>
 
@@ -4621,17 +5210,17 @@ formats the message from a resource</short>
 <element name="EAbstractError">
 <short>Abstract error.</short>
 <descr>
+<var>EAbstractError</var> is raised when an abstract error occurs, i.e. when
+an unimplemented abstract method is called.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- object Visibility: default -->
 <element name="EAssertionFailed">
 <short>Assertion failed error.</short>
 <descr>
+<var>EAssertionFailed</var> is raised when an application that is compiled
+with assertions, encounters an invalid assertion. 
 </descr>
 <errors>
 </errors>
@@ -4643,21 +5232,21 @@ formats the message from a resource</short>
 <element name="EPropReadOnly">
 <short>Read-only property error.</short>
 <descr>
+<var>EPropReadOnly</var> is raised when an attempt is made to write to a
+read-only property.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
+<link id="EPropWriteOnly"/>
 </element>
 
 <!-- object Visibility: default -->
 <element name="EPropWriteOnly">
 <short>Write-only property error.</short>
 <descr>
+<var>EPropWriteOnly</var> is raised when an attempt is made to read from a
+write-only property.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EPropReadOnly"/>
 </seealso>
 </element>
 
@@ -4665,10 +5254,11 @@ formats the message from a resource</short>
 <element name="EIntfCastError">
 <short>Invalid interface cast error.</short>
 <descr>
+<var>EIntfCastError</var> is raised when an invalid interface cast is
+encountered.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EInvalidCast"/>
 </seealso>
 </element>
 
@@ -4676,43 +5266,39 @@ formats the message from a resource</short>
 <element name="EInvalidContainer">
 <short>Invalid container error.</short>
 <descr>
+<var>EInvalidContainer</var> is not yet used by Free Pascal, and is provided
+for Delphi compatibility only.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- object Visibility: default -->
 <element name="EInvalidInsert">
 <short>Invalid insert error.</short>
 <descr>
+<var>EInvalidInsert</var> is not yet used by Free Pascal, and is provided
+for Delphi compatibility only.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- object Visibility: default -->
 <element name="EPackageError">
 <short>Package error.</short>
 <descr>
+<var>EPackageError</var> is not yet used by Free Pascal, and is provided
+for Delphi compatibility only.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- object Visibility: default -->
 <element name="EOSError">
 <short>Operating system error.</short>
 <descr>
+<var>EOSError</var> is raised when some Operating System call fails. The
+<link id="EOSError.ErrorCode">ErrorCode</link> property contains the
+operating system error code.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EOSError.ErrorCode"/>
 </seealso>
 </element>
 
@@ -4720,10 +5306,11 @@ formats the message from a resource</short>
 <element name="EOSError.ErrorCode">
 <short>Operating system error code.</short>
 <descr>
+<var>ErrorCode</var> contains the error code reported by the operating
+system for the call which caused the <link id="EOSError"/> to be raised.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EOSError"/>
 </seealso>
 </element>
 
@@ -4731,32 +5318,34 @@ formats the message from a resource</short>
 <element name="ESafecallException">
 <short>SafeCall exception.</short>
 <descr>
+<var>ESafecallException</var> is not yet used by Free Pascal, and is provided
+for Delphi compatibility only.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- object Visibility: default -->
 <element name="ENoThreadSupport">
 <short>No Thread support error.</short>
 <descr>
+<var>ENoThreadSupport</var> is raised when some thread routines are invoked,
+and thread support was not enabled when the program was compiled. 
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="ExceptObject">
 <short>Current Exception object.</short>
 <descr>
+<var>ExceptObject</var> returns the currently treated exception object when
+an exception is raised, and the stack is unwound.
 </descr>
 <errors>
+If there is no exception, the function returns <var>Nil</var>
 </errors>
 <seealso>
+<link id="ExceptAddr"/>
+<link id="ExceptionErrorMessage"/>
+<link id="ShowException"/>
 </seealso>
 </element>
 
@@ -4764,10 +5353,13 @@ formats the message from a resource</short>
 <element name="ExceptAddr">
 <short>Current exception address.</short>
 <descr>
+<var>ExceptAddr</var> returns the address from the currently treated
+exception object when an exception is raised, and the stack is unwound.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="ExceptObject"/>
+<link id="ExceptionErrorMessage"/>
+<link id="ShowException"/>
 </seealso>
 </element>
 
@@ -4775,10 +5367,22 @@ formats the message from a resource</short>
 <element name="ExceptionErrorMessage">
 <short>Return a message describing the exception.</short>
 <descr>
+<p>
+<var>ExceptionErrorMessage</var> creates a string that describes the
+exception object <var>ExceptObject</var> at address <var>ExceptAddr</var>.
+It can be used to display exception messages. The string will be stored in
+the memory pointed to by <var>Buffer</var>, and will at most have
+<var>Size</var> characters.
+</p>
+<p>
+The routine checks whether <var>ExceptObject</var> is a <link
+id="Exception"/> object or not, and adapts the output accordingly.
+</p>
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="ExceptObject"/>
+<link id="ExceptAddr"/>
+<link id="ShowException"/>
 </seealso>
 </element>
 
@@ -4786,10 +5390,30 @@ formats the message from a resource</short>
 <element name="ShowException">
 <short>Show the current exception to the user.</short>
 <descr>
+<p>
+<var>ShowException</var> shows a message stating that a <var>ExceptObject</var>
+was raised at address <var>ExceptAddr</var>. It uses <link
+id="ExceptionErrorMessage"/> to create the message, and is aware of the fact
+whether the application is a console application or a GUI application. For a
+console application, the message is written to standard error output. For a
+GUI application, <link id="OnShowException"/> is executed.
+</p>
 </descr>
 <errors>
+<p>
+If, for a GUI application, <link id="OnShowException"/> is not set, no
+message will be displayed to the user.
+</p>
+<p>
+The exception message can be at most 255 characters long: It is possible
+that no memory can be allocated on the heap, so ansistrings are not
+available, so a shortstring is used to display the message.
+</p>
 </errors>
 <seealso>
+<link id="ExceptObject"/>
+<link id="ExceptAddr"/>
+<link id="ExceptionErrorMessage"/>
 </seealso>
 </element>
 
@@ -4797,10 +5421,10 @@ formats the message from a resource</short>
 <element name="Abort">
 <short>Abort program execution.</short>
 <descr>
+<var>Abort</var> raises an <link id="EAbort"/> exception.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="Abort"/>
 </seealso>
 </element>
 
@@ -4808,10 +5432,13 @@ formats the message from a resource</short>
 <element name="OutOfMemoryError">
 <short>Raise an <var>EOutOfMemory</var> exception</short>
 <descr>
+<var>OutOfMemoryError</var> raises an <link id="EOutOfMemory"/> exception,
+with an exception object that has been allocated on the heap at program
+startup. The program should neved create an <link id="EOutOfMemory"/>
+exception, but always call this routine.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="EOutOfMemory"/>
 </seealso>
 </element>
 
@@ -4819,21 +5446,25 @@ formats the message from a resource</short>
 <element name="Beep">
 <short>Sound the system bell.</short>
 <descr>
+<var>Beep</var> sounds the system bell, if one is available.
 </descr>
 <errors>
+This routine may not be implemented on all platforms.
 </errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="SysErrorMessage">
 <short>Format a system error message.</short>
 <descr>
+<var>SysErrorMessage</var> returns a string that describes the operating
+system error code <var>ErrorCode</var>.
 </descr>
 <errors>
+This routine may not be implemented on all platforms.
 </errors>
 <seealso>
+<link id="EOSError"/>
 </seealso>
 </element>
 
@@ -4841,10 +5472,11 @@ formats the message from a resource</short>
 <element name="TTerminateProc">
 <short>Terminate procedure procedural variable.</short>
 <descr>
+<var>TTerminateProc</var> is the procedural type which should be used when
+adding exit procedures. 
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="AddTerminateProc"/>
 </seealso>
 </element>
 
@@ -4852,10 +5484,17 @@ formats the message from a resource</short>
 <element name="AddTerminateProc">
 <short>Add a procedure to the exit chain.</short>
 <descr>
+<var>AddTerminateProc</var> adds <var>TermProc</var> to the list of exit
+procedures. When the program exits, the list of exit procedures is run over,
+and all procedures are called one by one, in the reverse order that they
+were added to the exit chain.
 </descr>
 <errors>
+If no memory is available on the heap, an exception may be raised.
 </errors>
 <seealso>
+<link id="TTerminateProc"/>
+<link id="CallTerminateProcs"/>
 </seealso>
 </element>
 
@@ -4863,10 +5502,17 @@ formats the message from a resource</short>
 <element name="CallTerminateProcs">
 <short>Call the exit chain procedures.</short>
 <descr>
+<var>CallTerminateProcs</var> is run on program exit. It executes all
+terminate procedures that were added to the exit chain with <link
+id="AddTerminateProc"/>, and does this in reverse order. 
 </descr>
 <errors>
+If one of the exit procedure raises an exception, it is <em>not</em> caught, 
+and the remaining exit procedures will not be executed.
 </errors>
 <seealso>
+<link id="TTerminateProc"/>
+<link id="AddTerminateProc"/>
 </seealso>
 </element>
 
@@ -4874,10 +5520,15 @@ formats the message from a resource</short>
 <element name="OnShowException">
 <short>Callback to show unhandled exceptions.</short>
 <descr>
+<var>OnShowException</var> is the callback that <link id="ShowException"/>
+uses to display a message in a GUI application. For GUI applications, this
+variable should always be set. Note that no memory may be available when
+this callback is called, so the callback should already have all resources 
+it needs, when the callback is set.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="ShowException"/>
+<link id="ExceptionErrorMessage"/>
 </seealso>
 </element>
 
@@ -4885,307 +5536,195 @@ formats the message from a resource</short>
 <element name="filerecnamelength">
 <short>Length of filerec filename field.</short>
 <descr>
+<var>filerecnamelength</var> describes the length of the <link
+id="FileRec"/> filename field.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- record type Visibility: default -->
 <element name="FileRec">
 <short>Record describing an untyped file.</short>
 <descr>
+<p>
+<var>FileRec</var> describes a untyped file. This record is made available
+so it can be used to implement drivers for other than the normal file system
+file records.
+</p>
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="TFileRec"/>
+<link id="TextRec"/>
+<link id="TTextRec"/>
 </seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="FileRec.Handle">
 <short>Operating system file handle.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="FileRec.Mode">
-<short>Open mode.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
+<short>Current file mode.</short>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="FileRec.RecSize">
 <short>Record data size</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="FileRec._private">
 <short>Private data. Do not use</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="FileRec.UserData">
 <short>User data. Only use when implementing new type.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="FileRec.name">
 <short>File name</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="TextRecNameLength">
 <short>Length of text file record filename field </short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="TextRecBufSize">
 <short>Buffer size of text file record.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
+<var>TextRecBufSize</var> is the size of the default buffer in <link
+id="TextRec"/>
 </element>
 
 <!-- array type Visibility: default -->
 <element name="TextBuf">
 <short>Text record buffer array type</short>
 <descr>
+<var>TextBuf</var> is the type for the default buffer in <link
+id="TextRec"/>
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- record type Visibility: default -->
 <element name="TextRec">
 <short>Record describing a text file type</short>
 <descr>
+<p>
+<var>TextRec</var> describes a text file. This record is made available
+so it can be used to implement drivers for other than the normal file system
+file records.
+</p>
+<p>
+To implement a driver, an <var>Assign</var> procedure must be implemented,
+which fills in the various fields of the record. Most notably, the callback
+functions must be filled in appropriately. 
+After this, the normal file operations will handle all necessary calls to the
+various callbacks.
+</p>
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="TTextRec"/>
+<link id="TFileRec"/>
+<link id="FileRec"/>
 </seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TextRec.Handle">
 <short>Operating system handle for file.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TextRec.Mode">
 <short>Open mode</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TextRec.bufsize">
 <short>Size of buffer.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TextRec._private">
 <short>Private data. Do not use.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TextRec.bufpos">
 <short>Current buffer position.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TextRec.bufend">
 <short>Current buffer end.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TextRec.bufptr">
 <short>Pointer to current buffer.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TextRec.openfunc">
 <short>File open function. Allocates handle.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TextRec.inoutfunc">
 <short>Read/write function</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TextRec.flushfunc">
 <short>Flush buffer function</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TextRec.closefunc">
 <short>Close handle function.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TextRec.UserData">
 <short>User data for text rec.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TextRec.name">
 <short>File name</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TextRec.buffer">
 <short>Default buffer.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="HexDisplayPrefix">
 <short>String to prepend to hexadecimal values</short>
 <descr>
+<var>HexDisplayPrefix</var> is used by the formatting routines to indicate
+that the number which follows the prefix is in Hexadecimal notation.
 </descr>
 <errors>
+Currently unused in Free Pascal.
 </errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="PathDelim">
 <short>Path (directory) delimiter.</short>
 <descr>
+<var>PathDelim</var> refers to the system unit's <var>DirectorySeparator</var>
+constant, it is for Delphi compatibility only.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="DriveDelim"/>
+<link id="PathSep"/>
 </seealso>
 </element>
 
@@ -5193,21 +5732,25 @@ formats the message from a resource</short>
 <element name="DriveDelim">
 <short>Drive letter delimiter</short>
 <descr>
+<var>DriveDelim</var> refers to the system unit's <var>DriveSeparator</var>
+constant, it is for Delphi compatibility only.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="PathDelim"/>
+<link id="PathSep"/>
 </seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="PathSep">
-<short>Path separator. (Separates items in search paths)</short>
+<short>Path separator. (Separates paths in search path lists)</short>
 <descr>
+<var>PathSep</var> refers to the system unit's <var>PathSeparator</var>
+constant, it is for Delphi compatibility only.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="PathDelim"/>
+<link id="DriveDelim"/>
 </seealso>
 </element>
 
@@ -5215,32 +5758,28 @@ formats the message from a resource</short>
 <element name="TFileRec">
 <short>Record describing an untyped file.</short>
 <descr>
+Alias for <link id="FileRec"/> for Delphi compatibility.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- alias type Visibility: default -->
 <element name="TTextRec">
 <short>Record describing a text file.</short>
 <descr>
+Alias for <link id="TextRec"/> for Delphi compatibility.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- array type Visibility: default -->
 <element name="TCaseTranslationTable">
 <short>Type for case conversion tables.</short>
 <descr>
+<var>TCaseTranslationTable</var> is the type for a lookup table that can
+convert 255 ascii characters.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="UpperCaseTable"/>
+<link id="LowerCaseTable"/>
 </seealso>
 </element>
 
@@ -5248,10 +5787,14 @@ formats the message from a resource</short>
 <element name="UpperCaseTable">
 <short>Table for conversion of characters to uppercase.</short>
 <descr>
+<var>UpperCaseTable</var> is used by the <link id="UpperCase"/> routine (and
+friends) to convert a string to all-uppercase characters. It is filled with
+the appropriate entries by the <file>SysUtils</file> unit initialization routines.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="TCaseTranslationTable"/>
+<link id="LowerCaseTable"/>
+<link id="UpperCase"/>
 </seealso>
 </element>
 
@@ -5259,10 +5802,15 @@ formats the message from a resource</short>
 <element name="LowerCaseTable">
 <short>Table for conversion of characters to lowercase.</short>
 <descr>
+<var>LowerCaseTable</var> is used by the <link id="LowerCase"/> routine (and
+friends) to convert a string to all-lowercase characters. It is filled with
+the appropriate entries by the <file>SysUtils</file> unit initialization
+routines.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="TCaseTranslationTable"/>
+<link id="UpperCaseTable"/>
+<link id="LowerCase"/>
 </seealso>
 </element>
 
@@ -5270,10 +5818,16 @@ formats the message from a resource</short>
 <element name="DateSeparator">
 <short>Date separator character (subject to locale).</short>
 <descr>
+<var>DateSeparator</var> is the character used by various date/time
+conversion routines as the character that separates the day from the month
+and the month from the year in a date notation. It is used by the date
+formatting routines. This constant is initialized by the
+initialization routines of the <file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="LongDateFormat"/>
+<link id="FormatDateTime"/>
+<link id="DateSeparator"/>
 </seealso>
 </element>
 
@@ -5281,10 +5835,14 @@ formats the message from a resource</short>
 <element name="ShortDateFormat">
 <short>Short Date Format string (subject to locale).</short>
 <descr>
+<var>ShortDateFormat</var> contains a template to format a date in a short
+format. It is used by the date formatting routines.
+This constant is initialized by the initialization routines of the <file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="LongDateFormat"/>
+<link id="FormatDateTime"/>
+<link id="DateSeparator"/>
 </seealso>
 </element>
 
@@ -5292,10 +5850,14 @@ formats the message from a resource</short>
 <element name="LongDateFormat">
 <short>Long date format string (subject to locale).</short>
 <descr>
+<var>LongDateFormat</var> contains a template to format a date in a long
+format. It is used by the date formatting routines.
+This constant is initialized by the initialization routines of the <file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="ShortDateFormat"/>
+<link id="FormatDateTime"/>
+<link id="DateSeparator"/>
 </seealso>
 </element>
 
@@ -5303,10 +5865,15 @@ formats the message from a resource</short>
 <element name="ShortMonthNames">
 <short>Names of months, abbreviated form.</short>
 <descr>
+<var>ShortMonthNames</var> is an array with the abbreviated names of months.
+It is used by the date formatting routines.
+This constant is initialized by the initialization routines of the <file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="ShortDateFormat"/>
+<link id="FormatDateTime"/>
+<link id="LongMonthNames"/>
+<link id="ShortDayNames"/>
 </seealso>
 </element>
 
@@ -5314,10 +5881,14 @@ formats the message from a resource</short>
 <element name="LongMonthNames">
 <short>Full names of months.</short>
 <descr>
+<var>LongMonthNames</var> is an array with the full names of months.
+It is used by the date formatting routines.
+This constant is initialized by the initialization routines of the <file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="ShortDateFormat"/>
+<link id="FormatDateTime"/>
+<link id="ShortMonthNames"/>
 </seealso>
 </element>
 
@@ -5325,10 +5896,15 @@ formats the message from a resource</short>
 <element name="ShortDayNames">
 <short>Names of days, abbreviated form.</short>
 <descr>
+<var>ShortDayNames</var> is an array with the abbreviated names of days.
+It is used by the date formatting routines.
+This constant is initialized by the initialization routines of the <file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="ShortDateFormat"/>
+<link id="FormatDateTime"/>
+<link id="LongDayNames"/>
+<link id="ShortMonthNames"/>
 </seealso>
 </element>
 
@@ -5336,10 +5912,15 @@ formats the message from a resource</short>
 <element name="LongDayNames">
 <short>Full names of days.</short>
 <descr>
+<var>LongDayNames</var> is an array with the full names of days.
+It is used by the date formatting routines.
+This constant is initialized by the initialization routines of the <file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="ShortDateFormat"/>
+<link id="FormatDateTime"/>
+<link id="ShortDayNames"/>
+<link id="ShortMonthNames"/>
 </seealso>
 </element>
 
@@ -5347,10 +5928,14 @@ formats the message from a resource</short>
 <element name="ShortTimeFormat">
 <short>Short time format string (subject to locale).</short>
 <descr>
+<var>ShortTimeFormat</var> contains a template to format a time in a short
+notation. It is used by the time formatting routines.
+This constant is initialized by the initialization routines of the <file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="LongTimeFormat"/>
+<link id="FormatDateTime"/>
+<link id="TimeSeparator"/>
 </seealso>
 </element>
 
@@ -5358,10 +5943,14 @@ formats the message from a resource</short>
 <element name="LongTimeFormat">
 <short>Long time format string (subject to locale)</short>
 <descr>
+<var>LongTimeFormat</var> contains a template to format a time in full
+notation. It is used by the time formatting routines.
+This constant is initialized by the initialization routines of the <file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="ShortTimeFormat"/>
+<link id="FormatDateTime"/>
+<link id="TimeSeparator"/>
 </seealso>
 </element>
 
@@ -5369,10 +5958,17 @@ formats the message from a resource</short>
 <element name="TimeSeparator">
 <short>Time separator character.</short>
 <descr>
+<var>TimeSeparator</var> is used by the time formatting routines to separate
+the hours from the minutes and the minutes from the seconds.
+It is used by the time formatting routines.
+This constant is initialized by the initialization routines of the <file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="ShortTimeFormat"/>
+<link id="FormatDateTime"/>
+<link id="LongTimeFormat"/>
+<link id="TimeAMString"/>
+<link id="TimePMString"/>
 </seealso>
 </element>
 
@@ -5380,10 +5976,17 @@ formats the message from a resource</short>
 <element name="TimeAMString">
 <short>AM indicator string.</short>
 <descr>
-</descr>
+<var>TimeAMString</var> is used to display the AM symbol in the time
+formatting routines.
+It is used by the time formatting routines.
+This constant is initialized by the initialization routines of the <file>SysUtils</file> unit.</descr>
 <errors>
 </errors>
 <seealso>
+<link id="ShortTimeFormat"/>
+<link id="FormatDateTime"/>
+<link id="LongTimeFormat"/>
+<link id="TimePMString"/>
 </seealso>
 </element>
 
@@ -5391,10 +5994,16 @@ formats the message from a resource</short>
 <element name="TimePMString">
 <short>PM indicator string.</short>
 <descr>
+<var>TimePMString</var> is used to display the PM symbol in the time
+formatting routines.
+It is used by the time formatting routines.
+This constant is initialized by the initialization routines of the <file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="ShortTimeFormat"/>
+<link id="FormatDateTime"/>
+<link id="LongTimeFormat"/>
+<link id="TimeAMString"/>
 </seealso>
 </element>
 
@@ -5402,10 +6011,17 @@ formats the message from a resource</short>
 <element name="DecimalSeparator">
 <short>Decimal point separator.</short>
 <descr>
+<var>DecimalSeparator</var> is used to display the decimal symbol in
+floating point numbers or currencies.
+It is used by the float formatting routines.
+This constant is initialized by the initialization routines of the
+<file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="ThousandSeparator"/>
+<link id="Format"/>
+<link id="FormatFloat"/>
+<link id="FloatToStr"/>
 </seealso>
 </element>
 
@@ -5413,10 +6029,16 @@ formats the message from a resource</short>
 <element name="ThousandSeparator">
 <short>Thousand grouping character.</short>
 <descr>
+<var>ThousandSeparator</var> is used to separate groups of thousands in 
+floating point numbers or currencies. It is used by the float formatting routines.
+This constant is initialized by the initialization routines of the
+<file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="DecimalSeparator"/>
+<link id="Format"/>
+<link id="FormatFloat"/>
+<link id="FloatToStr"/>
 </seealso>
 </element>
 
@@ -5424,10 +6046,14 @@ formats the message from a resource</short>
 <element name="CurrencyDecimals">
 <short>Number of decimals in currency amounts.</short>
 <descr>
+<var>CurrencyDecimals</var> is the number of decimals to be used when
+formatting a currency. It is used by the float formatting routines.
+This constant is initialized by the initialization routines of the
+<file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="Format"/>
+<link id="DecimalSeparator"/>
 </seealso>
 </element>
 
@@ -5435,10 +6061,17 @@ formats the message from a resource</short>
 <element name="CurrencyFormat">
 <short>Format string for currencies.</short>
 <descr>
+<var>CurrencyFormat</var> is the default format string for positive currencies.
+It is used by the float formatting routines.
+This constant is initialized by the initialization routines of the
+<file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="CurrencyDecimals"/>
+<link id="NegCurrFormat"/>
+<link id="CurrencyString"/>
+<link id="Format"/>
+<link id="FloatToText"/>
 </seealso>
 </element>
 
@@ -5446,10 +6079,17 @@ formats the message from a resource</short>
 <element name="NegCurrFormat">
 <short>Format string for negative currencies.</short>
 <descr>
+<var>CurrencyFormat</var> is the default format string for negative currencies.
+It is used by the float formatting routines.
+This constant is initialized by the initialization routines of the
+<file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="CurrencyDecimals"/>
+<link id="CurrencyFormat"/>
+<link id="CurrencyString"/>
+<link id="Format"/>
+<link id="FloatToText"/>
 </seealso>
 </element>
 
@@ -5457,10 +6097,17 @@ formats the message from a resource</short>
 <element name="CurrencyString">
 <short>Name of currency.</short>
 <descr>
+<var>CurrencyString</var> is the currency symbol for the current locale.
+It is used by the float formatting routines.
+This constant is initialized by the initialization routines of the
+<file>SysUtils</file> unit.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="CurrencyDecimals"/>
+<link id="NegCurrFormat"/>
+<link id="CurrencyFormat"/>
+<link id="Format"/>
+<link id="FloatToText"/>
 </seealso>
 </element>
 
@@ -5667,10 +6314,31 @@ ignoring case.</short>
 <element name="AnsiCompareFileName">
 <short>Compare 2 filenames.</short>
 <descr>
+<p>
+<var>AnsiCompareFileName</var> compares 2 filenames <var>S1</var> and
+<var>S2</var>, and returns
+</p>
+<dl>
+<dt>&lt; 0</dt>
+<dd>if <var>S1</var>&lt;<var>S2</var>. </dd>
+<dt>= 0</dt> <dd>if <var>S1=S2</var>. </dd>
+<dt>&gt; 0</dt>
+<dd>if <var>S1</var>&gt;<var>S2</var>. </dd>
+</dl>
+<p>
+The function actually checks <var>FileNameCaseSensitive</var> and returns
+the result of <link id="AnsiCompareStr"/> or <link id="AnsiCompareText"/> 
+depending on whether <var>FileNameCaseSensitive</var> is <var>True</var> or
+<var>False</var>
+</p>
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="AnsiCompareStr"/>
+<link id="AnsiCompareText"/>
+<link id="AnsiLowerCaseFileName"/>
 </seealso>
 </element>
 
@@ -5678,10 +6346,17 @@ ignoring case.</short>
 <element name="AnsiLowerCaseFileName">
 <short>Convert filename to lowercase.</short>
 <descr>
+<p>
+<var>AnsiLowerCaseFileName</var> simply returns the result of 
+</p>
+<code>
+AnsiLowerCase(S);
+</code>
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="AnsiLowerCase"/>
+<link id="AnsiCompareFileName"/>
+<link id="AnsiUpperCaseFileName"/>
 </seealso>
 </element>
 
@@ -5689,10 +6364,17 @@ ignoring case.</short>
 <element name="AnsiUpperCaseFileName">
 <short>Convert filename to uppercase.</short>
 <descr>
+<p>
+<var>AnsiUpperCaseFileName</var> simply returns the result of
+</p>
+<code>
+AnsiUpperCase(S);
+</code>
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="AnsiUpperCase"/>
+<link id="AnsiCompareFileName"/>
+<link id="AnsiLowerCaseFileName"/>
 </seealso>
 </element>
 
@@ -5700,10 +6382,12 @@ ignoring case.</short>
 <element name="AnsiPos">
 <short>Return Position of one ansistring in another.</short>
 <descr>
+<var>AnsiPos</var> does the same as the standard <var>Pos</var> function.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="AnsiStrPos"/>
+<link id="AnsiStrScan"/>
+<link id="AnsiStrRScan"/>
 </seealso>
 </element>
 
@@ -5711,10 +6395,18 @@ ignoring case.</short>
 <element name="AnsiStrPos">
 <short>Return position of one null-terminated substring in another</short>
 <descr>
+<var>AnsiStrPos</var> returns a pointer to the first occurrence of
+<var>SubStr</var> in <var>Str</var>. If <var>SubStr</var> does not occur in
+<var>Str</var> then <var>Nil</var> is returned.
 </descr>
 <errors>
+An access violation may occur if either <var>Str</var> or <var>SubStr</var>
+point to invalid memory.
 </errors>
 <seealso>
+<link id="AnsiPos"/>
+<link id="AnsiStrScan"/>
+<link id="AnsiStrRScan"/>
 </seealso>
 </element>
 
@@ -5722,10 +6414,17 @@ ignoring case.</short>
 <element name="AnsiStrRScan">
 <short>Find last occurrence of a character in a null-terminated string.</short>
 <descr>
+<var>AnsiStrPos</var> returns a pointer to the <em>last</em> occurrence of
+the character <var>Chr</var> in <var>Str</var>. If <var>Chr</var> does not occur in
+<var>Str</var> then <var>Nil</var> is returned.
 </descr>
 <errors>
+An access violation may occur if <var>Str</var> points to invalid memory.
 </errors>
 <seealso>
+<link id="AnsiPos"/>
+<link id="AnsiStrScan"/>
+<link id="AnsiStrPos"/>
 </seealso>
 </element>
 
@@ -5733,10 +6432,17 @@ ignoring case.</short>
 <element name="AnsiStrScan">
 <short>Find first occurrence of a character in a null-terminated string.</short>
 <descr>
+<var>AnsiStrPos</var> returns a pointer to the <em>first</em> occurrence of
+the character <var>Chr</var> in <var>Str</var>. If <var>Chr</var> does not occur in
+<var>Str</var> then <var>Nil</var> is returned.
 </descr>
 <errors>
+An access violation may occur if <var>Str</var> points to invalid memory.
 </errors>
 <seealso>
+<link id="AnsiPos"/>
+<link id="AnsiStrScan"/>
+<link id="AnsiStrPos"/>
 </seealso>
 </element>
 
@@ -5744,10 +6450,14 @@ ignoring case.</short>
 <element name="DirSeparators">
 <short>Characters that are known directory separators.</short>
 <descr>
+<var>DirSeparators</var> is a set of characters which are known directory
+separator characters on all supported platforms. This set is used by the
+<link id="SetDirSeparators"/> call to correct pathnames for the current
+platform.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="DoDirSeparators"/>
+<link id="SetDirSeparators"/>
 </seealso>
 </element>
 
@@ -5755,10 +6465,15 @@ ignoring case.</short>
 <element name="IncludeTrailingPathDelimiter">
 <short>Add trailing directory separator to a pathname, if needed.</short>
 <descr>
+<var>IncludeTrailingPathDelimiter</var> adds a trailing path delimiter
+character (<link id="PathDelim"/>) to <var>Path</var> if none is present
+yet, and returns the result. If <var>Path</var> is empty, nothing is added.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="IncludeTrailingBackslash"/>
+<link id="ExcludeTrailingPathDelimiter"/>
+<link id="PathDelim"/>
+<link id="IsPathDelimiter"/>
 </seealso>
 </element>
 
@@ -5766,21 +6481,14 @@ ignoring case.</short>
 <element name="IncludeTrailingBackslash">
 <short>Add trailing directory separator to a pathname, if needed.</short>
 <descr>
+<var>IncludeTrailingBackslash</var> is provided for backwards compatibility
+with Delphi. Use <link id="IncludeTrailingPathDelimiter"/> instead.
 </descr>
-<errors>
-</errors>
 <seealso>
-</seealso>
-</element>
-
-<!-- function Visibility: default -->
-<element name="ExcludeTrailingBackslash">
-<short>Strip trailing directory separator from a pathname, if needed.</short>
-<descr>
-</descr>
-<errors>
-</errors>
-<seealso>
+<link id="IncludeTrailingPathDelimiter"/>
+<link id="ExcludeTrailingPathDelimiter"/>
+<link id="PathDelim"/>
+<link id="IsPathDelimiter"/>
 </seealso>
 </element>
 
@@ -5788,10 +6496,30 @@ ignoring case.</short>
 <element name="ExcludeTrailingPathDelimiter">
 <short>Strip trailing directory separator from a pathname, if needed.</short>
 <descr>
+<var>ExcludeTrailingPathDelimiter</var> removes the trailing path delimiter
+character (<link id="PathDelim"/>) from <var>Path</var> if it is present,
+and returns the result. 
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="ExcludeTrailingBackslash"/>
+<link id="IncludeTrailingPathDelimiter"/>
+<link id="PathDelim"/>
+<link id="IsPathDelimiter"/>
+</seealso>
+</element>
+
+<!-- function Visibility: default -->
+<element name="ExcludeTrailingBackSlash">
+<short>Strip trailing directory separator from a pathname, if needed.</short>
+<descr>
+<var>ExcludeTrailingBackslash</var> is provided for backwards compatibility
+with Delphi. Use <link id="ExcludeTrailingPathDelimiter"/> instead.
+</descr>
+<seealso>
+<link id="IncludeTrailingPathDelimiter"/>
+<link id="ExcludeTrailingPathDelimiter"/>
+<link id="PathDelim"/>
+<link id="IsPathDelimiter"/>
 </seealso>
 </element>
 
@@ -5799,8 +6527,14 @@ ignoring case.</short>
 <element name="IsPathDelimiter">
 <short>Is the character at the given position a pathdelimiter ?</short>
 <descr>
+<var>IsPathDelimiter</var> returns <var>True</var> if the character at
+position <var>Index</var> equals <link id="PathDelim"/>, i.e. if it is a
+path delimiter character for the current platform.
 </descr>
 <errors>
+<link id="IncludeTrailingPathDelimiter"/>
+<link id="ExcludeTrailingPathDelimiter"/>
+<link id="PathDelim"/>
 </errors>
 <seealso>
 </seealso>
@@ -5810,10 +6544,15 @@ ignoring case.</short>
 <element name="SameFileName">
 <short>Are two filenames referring to the same file ?</short>
 <descr>
+<var>SameFileName</var> returns <var>True</var> if calling <link
+id="AnsiCompareFileName"/> with arguments <var>S1</var> and <var>S2</var>
+returns 0, and returns <var>False</var> otherwise.
 </descr>
 <errors>
+None.
 </errors>
 <seealso>
+<link id="AnsiCompareFileName"/>
 </seealso>
 </element>
 
@@ -5821,10 +6560,22 @@ ignoring case.</short>
 <element name="TSearchRec">
 <short>Record describing a search handle or result </short>
 <descr>
+<p>
+<var>TSearchRec</var> is a search handle description record. It is
+initialized by a call to <link id="FindFirst"/> and can be used to do
+subsequent calls to <link id="FindNext"/>. It contains the result of these
+function calls. It must be used to close the search sequence with a call to
+<link id="FindClose"/>. 
+</p>
+<remark>
+Not all fields of this record should be used. Some of the fields are for
+internal use only.
+</remark>
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="FindFirst"/>
+<link id="FindNext"/>
+<link id="FindClose"/>
 </seealso>
 </element>
 
@@ -5850,112 +6601,258 @@ ignoring case.</short>
 
 <!-- variable Visibility: default -->
 <element name="TSearchRec.ExcludeAttr">
-<short>Attributes to exclude from search (do not use)</short>
+<short>Attributes to exclude from search (do not use).</short>
 </element>
 
 <!-- variable Visibility: default -->
 <element name="TSearchRec.FindHandle">
-<short>Internal OS handle. Do not use.</short>
+<short>Internal OS handle (do not use).</short>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="faReadOnly">
 <short>Read-Only file.</short>
+<descr>
+Attribute of a file, meaning the file is read-only. 
+Used in <link id="TSearchRec"/> and <link id="FindFirst"/>
+</descr>
+<seealso>
+<link id="TSearchRec"/>
+<link id="FindFirst"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="faHidden">
 <short>Hidden file.</short>
+<descr>Attribute of a file, meaning the file is hidden. On unix, this means
+the filename starts with a dot character.</descr>
+<descr>
+Attribute of a file, meaning the file is read-only. 
+Used in <link id="TSearchRec"/> and <link id="FindFirst"/>
+</descr>
+<seealso>
+<link id="TSearchRec"/>
+<link id="FindFirst"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="faSysFile">
 <short>System file (Dos/Windows only)</short>
+<descr>
+Attribute of a file, meaning the file is a system file. 
+Used in <link id="TSearchRec"/> and <link id="FindFirst"/>
+</descr>
+<seealso>
+<link id="TSearchRec"/>
+<link id="FindFirst"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="faVolumeId">
 <short>Volume id (Dos/Windows only)</short>
+<descr>
+Attribute of a file, meaning the file contains the volume ID. 
+Used in <link id="TSearchRec"/> and <link id="FindFirst"/>
+</descr>
+<seealso>
+<link id="TSearchRec"/>
+<link id="FindFirst"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="faDirectory">
 <short>File is a directory</short>
+<descr>
+Attribute of a file, meaning the file is a directory. 
+Used in <link id="TSearchRec"/> and <link id="FindFirst"/>
+</descr>
+<seealso>
+<link id="TSearchRec"/>
+<link id="FindFirst"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="faArchive">
 <short>Archive bit is set</short>
+<descr>
+Attribute of a file, meaning the file has the archive bit set.
+Used in <link id="TSearchRec"/> and <link id="FindFirst"/>
+</descr>
+<seealso>
+<link id="TSearchRec"/>
+<link id="FindFirst"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="faAnyFile">
 <short>Match any file</short>
+<descr>
+Use this attribute in the <link id="FindFirst"/> call to find all matching
+files.
+</descr>
+<seealso>
+<link id="FindFirst"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="fmOpenRead">
 <short>Open file in read-only mode</short>
+<descr>
+<var>fmOpenRead</var> is used in the <link id="FileOpen"/> call to open a
+file in read-only mode.
+</descr>
+<seealso>
+<link id="FileOpen"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="fmOpenWrite">
 <short>Open file in write-only mode</short>
+<descr>
+<var>fmOpenWrite</var> is used in the <link id="FileOpen"/> call to open a
+file in write-only mode.
+</descr>
+<seealso>
+<link id="FileOpen"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="fmOpenReadWrite">
 <short>Open file in read/write mode.</short>
+<descr>
+<var>fmOpenReadWrite</var> is used in the <link id="FileOpen"/> call to open a
+file in read-write mode.
+</descr>
+<seealso>
+<link id="FileOpen"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="fmShareCompat">
 <short>Open file in DOS share-compatibility mode</short>
+<descr>
+<var>fmOpenShareCompat</var> is used in the <link id="FileOpen"/> call
+OR-ed together with one of <link id="fmOpenReadWrite"/>, <link
+id="fmOpenRead"/> or <link id="fmOpenWrite"/>,to open a
+file in a sharing modus that is equivalent to sharing implemented in MS-DOS.
+</descr>
+<seealso>
+<link id="FileOpen"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="fmShareExclusive">
 <short>Lock file for exclusive use</short>
+<descr>
+<var>fmOpenShareExclusive</var> is used in the <link id="FileOpen"/> call
+OR-ed together with one of <link id="fmOpenReadWrite"/>, <link
+id="fmOpenRead"/> or <link id="fmOpenWrite"/>, to open a
+file exclusively.
+</descr>
+<seealso>
+<link id="FileOpen"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="fmShareDenyWrite">
 <short>Lock file so other processes can only read.</short>
+<descr>
+<var>fmOpenShareExclusive</var> is used in the <link id="FileOpen"/> call
+OR-ed together with one of <link id="fmOpenReadWrite"/>, <link
+id="fmOpenRead"/> or <link id="fmOpenWrite"/>, to open a
+file exclusively.
+</descr>
+<seealso>
+<link id="FileOpen"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="fmShareDenyRead">
 <short>Lock file so other processes cannot read.</short>
+<descr>
+<var>fmOpenShareExclusive</var> is used in the <link id="FileOpen"/> call
+OR-ed together with one of <link id="fmOpenReadWrite"/>, <link
+id="fmOpenRead"/> or <link id="fmOpenWrite"/>, to open a
+file so other processes cannot read from it.
+</descr>
+<seealso>
+<link id="FileOpen"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="fmShareDenyNone">
 <short>Do not lock file.</short>
+<descr>
+<var>fmOpenShareExclusive</var> is used in the <link id="FileOpen"/> call
+OR-ed together with one of <link id="fmOpenReadWrite"/>, <link
+id="fmOpenRead"/> or <link id="fmOpenWrite"/>, to open a
+file so other processes can read/write the file as well.
+</descr>
+<seealso>
+<link id="FileOpen"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="fsFromBeginning">
 <short>Start seek operation from beginning of file.</short>
+<descr>
+<var>fsFromBeginning</var> is used to indicate in the <link id="FileSeek"/>
+call that a seek operation should be started at the start of the file.
+</descr>
+<seealso>
+<link id="FileSeek"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="fsFromCurrent">
 <short>Start seek operation from current position in file.</short>
+<descr>
+<var>fsFromBeginning</var> is used to indicate in the <link id="FileSeek"/>
+call that a seek operation should be started at the current position in the file.
+</descr>
+<seealso>
+<link id="FileSeek"/>
+</seealso>
 </element>
 
 <!-- constant Visibility: default -->
 <element name="fsFromEnd">
 <short>Start seek operation from end of file.</short>
+<descr>
+<var>fsFromBeginning</var> is used to indicate in the <link id="FileSeek"/>
+call that a seek operation should be started at the last position in the file.
+</descr>
+<seealso>
+<link id="FileSeek"/>
+</seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="DirectoryExists">
 <short>Check whether a directory exists in the file system.</short>
 <descr>
+<var>DirectoryExists</var> checks whether <var>Directory</var> exists in the
+filesystem and is actually a directory. If this is the case, the function
+returns <var>True</var>, otherwise <var>False</var> is returned.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="FileExists"/>
 </seealso>
 </element>
 
@@ -5963,10 +6860,12 @@ ignoring case.</short>
 <element name="FileIsReadOnly">
 <short>Check whether a file is read-only.</short>
 <descr>
+<var>FileIsReadOnly</var> checks whether <var>FileName</var> exists in the
+filesystem and is a read-only file. If this is the case, the function
+returns <var>True</var>, otherwise <var>False</var> is returned.
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="FileExists"/>
 </seealso>
 </element>
 
@@ -5974,21 +6873,23 @@ ignoring case.</short>
 <element name="GetFileHandle">
 <short>Extract OS handle from an untyped file or text file.</short>
 <descr>
+<var>GetFileHandle</var> returns the operating system handle for the file
+descriptor <var>F</var>. It can be used in various file operations which are
+not directly supported by the pascal language.
 </descr>
-<errors>
-</errors>
-<seealso>
-</seealso>
 </element>
 
 <!-- function Visibility: default -->
 <element name="InterLockedIncrement">
 <short>Thread-safe integer increment.</short>
 <descr>
+<var>InterlockedIncrement</var> increments <var>Target</var> in a
+thread-safe way, and returns the new value of <var>Target</var>
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="InterlockedDecrement"/>
+<link id="InterlockedExchange"/>
+<link id="InterlockedExchangeAdd"/>
 </seealso>
 </element>
 
@@ -5996,10 +6897,13 @@ ignoring case.</short>
 <element name="InterLockedDecrement">
 <short>Thread-safe integer decrement</short>
 <descr>
+<var>InterlockedDecrement</var> decrements <var>Target</var> in a
+thread-safe way, and returns the new value of <var>Target</var>
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="InterlockedIncrement"/>
+<link id="InterlockedExchange"/>
+<link id="InterlockedExchangeAdd"/>
 </seealso>
 </element>
 
@@ -6007,10 +6911,15 @@ ignoring case.</short>
 <element name="InterLockedExchange">
 <short>Thread-safe exchange of 2 values.</short>
 <descr>
+<var>InterlockedDecrement</var> replaces <var>Target</var> with
+<var>Source</var> in a thread-safe way, and returns the old value 
+of <var>Target</var>
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="InterlockedIncrement"/>
+<link id="InterlockedDecrement"/>
+<link id="InterlockedExchange"/>
+<link id="InterlockedExchangeAdd"/>
 </seealso>
 </element>
 
@@ -6018,10 +6927,14 @@ ignoring case.</short>
 <element name="InterLockedExchangeAdd">
 <short>Thread-safe exchange of 2 values</short>
 <descr>
+<var>InterlockedDecrement</var> adds to <var>Target</var> the value of 
+<var>Source</var> in a thread-safe way, and returns the old value 
+of <var>Target</var>
 </descr>
-<errors>
-</errors>
 <seealso>
+<link id="InterlockedIncrement"/>
+<link id="InterlockedDecrement"/>
+<link id="InterlockedExchange"/>
 </seealso>
 </element>
 
@@ -6029,13 +6942,16 @@ ignoring case.</short>
 <element name="FreeAndNil">
 <short>Free object if needed, and set object reference to <var>Nil</var></short>
 <descr>
+<var>FreeAndNil</var> will free the object in <var>Obj</var> and will
+set the reference in <var>Obj</var> to <var>Nil</var>. The reference is set
+to <var>Nil</var> first, so if an exception occurs in the destructor of the
+object, the reference will be <var>Nil</var> anyway.
 </descr>
 <errors>
+Exceptions that occur during the destruction of <var>Obj</var> are not
+caught.
 </errors>
-<seealso>
-</seealso>
 </element>
-
 </module>
 </package>
 </fpdoc-descriptions>
