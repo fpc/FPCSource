@@ -28,7 +28,7 @@
 unit GL;
 
 interface
-uses XLib;
+uses X,XLib,XUtil;
 
 // ===================================================================
 //   Unit specific extensions
@@ -1617,14 +1617,14 @@ const
 
 type
   // From XLib:
-  XPixmap = XID;
-  XFont = XID;
-  XColormap = XID;
+  XPixmap = TXID;
+  XFont = TXID;
+  XColormap = TXID;
 
   GLXContext = Pointer;
-  GLXPixmap = XID;
-  GLXDrawable = XID;
-  GLXContextID = XID;
+  GLXPixmap = TXID;
+  GLXDrawable = TXID;
+  GLXContextID = TXID;
 
 var
   glXChooseVisual: function(dpy: PDisplay; screen: Integer; var attribList: Integer): PXVisualInfo; cdecl; cdecl;
@@ -2141,7 +2141,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-12-23 13:51:50  peter
-    * reorganized, it now doesn't depend on fcl anymore by default
+  Revision 1.2  1999-12-23 19:41:28  peter
+    * use new x11 package
 
 }

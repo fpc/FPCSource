@@ -2,8 +2,14 @@
 #   Makefile.fpc for Linux dynamic GL units
 #
 
+[defaults]
+defaulttarget=linux
+
 [targets]
-units=xlib gl glut
+units=gl glut
+
+[packages]
+packages=x11
 
 [dirs]
 fpcdir=../../..

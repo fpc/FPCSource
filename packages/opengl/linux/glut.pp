@@ -396,7 +396,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-12-23 13:51:50  peter
-    * reorganized, it now doesn't depend on fcl anymore by default
+  Revision 1.2  1999-12-23 19:41:28  peter
+    * use new x11 package
 
 }

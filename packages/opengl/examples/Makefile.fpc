@@ -5,9 +5,11 @@
 [targets]
 programs=glutdemo
 
+[packages]
+packages=opengl x11
+
 [dirs]
 fpcdir=../../..
-unitdir=../$(OS_TARGET)
 
 [libs]
 libother=1

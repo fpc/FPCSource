@@ -28,7 +28,7 @@
 unit GL;
 
 interface
-uses XLib;
+uses X,XLib,XUtil;
 
 // ===================================================================
 //   Unit specific extensions

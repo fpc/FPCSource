@@ -62,14 +62,14 @@ const
 
 type
   // From XLib:
-  XPixmap = XID;
-  XFont = XID;
-  XColormap = XID;
+  XPixmap = TXID;
+  XFont = TXID;
+  XColormap = TXID;
 
   GLXContext = Pointer;
-  GLXPixmap = XID;
-  GLXDrawable = XID;
-  GLXContextID = XID;
+  GLXPixmap = TXID;
+  GLXDrawable = TXID;
+  GLXContextID = TXID;
 
 var
 %END
