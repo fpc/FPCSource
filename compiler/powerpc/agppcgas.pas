@@ -211,12 +211,25 @@ unit agppcgas;
     function cond2str(op: tasmop; c: tasmcond): string;
     { note: no checking is performed whether the given combination of }
     { conditions is valid                                             }
-    var tempstr: string;
+    var
+      tempstr: string;
     begin
       tempstr:=#9;
       case c.simple of
-        false: cond2str := tempstr+gas_op2str[op]+#9+tostr(c.bo)+','+
-                           tostr(c.bi);
+        false:
+          begin
+            cond2str := tempstr+gas_op2str[op];
+            case c.dirhint of
+              DH_None:;
+              DH_Minus:
+                cond2str:=cond2str+'-';
+              DH_Plus:
+                cond2str:=cond2str+'+';
+              else
+                internalerror(2003112901);
+            end;
+            cond2str:=cond2str++#9+tostr(c.bo)+','+tostr(c.bi);
+          end;
         true:
           if (op >= A_B) and (op <= A_BCLRL) then
             case c.cond of
@@ -227,7 +240,17 @@ unit agppcgas;
               else
                 begin
                   tempstr := tempstr+'b'+asmcondflag2str[c.cond]+
-                              branchmode(op)+#9;
+                              branchmode(op);
+                  case c.dirhint of
+                    DH_None:
+                      tempstr:=tempstr+#9;
+                    DH_Minus:
+                      tempstr:=cond2str+('-'+#9);
+                    DH_Plus:
+                      tempstr:=tempstr+('+'+#9);
+                    else
+                      internalerror(2003112901);
+                  end;
                   case c.cond of
                     C_LT..C_NU:
                       cond2str := tempstr+gas_regname(newreg(R_SPECIALREGISTER,c.cr,R_SUBWHOLE));
@@ -243,10 +266,6 @@ unit agppcgas;
               { not yet implemented !!!!!!!!!!!!!!!!!!!!! }
               { case tempstr := 'tw';}
             end;
-      end;
-      case c.dirhint of
-        DH_Minus:
-          cond2str:=cond2str+'-';
       end;
     end;
 
@@ -302,7 +321,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2003-11-15 19:00:10  florian
+  Revision 1.35  2003-11-29 16:27:19  jonas
+    * fixed several ppc assembler reader related problems
+    * local vars in assembler procedures now start at offset 4
+    * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
+
+  Revision 1.34  2003/11/15 19:00:10  florian
     * fixed ppc assembler reader
 
   Revision 1.33  2003/11/12 16:05:40  florian

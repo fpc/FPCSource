@@ -75,7 +75,10 @@ unit cpupi;
                 ofs:=align(maxpushedparasize+LinkageAreaSizeSYSV,16);
             end;
             tg.setfirsttemp(ofs);
-          end;
+          end
+        else
+          { at 0(r1), the previous value of r1 will be stored }
+          tg.setfirsttemp(4);
       end;
 
 
@@ -124,7 +127,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2003-10-01 20:34:49  peter
+  Revision 1.30  2003-11-29 16:27:19  jonas
+    * fixed several ppc assembler reader related problems
+    * local vars in assembler procedures now start at offset 4
+    * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
+
+  Revision 1.29  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

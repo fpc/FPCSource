@@ -260,20 +260,17 @@ unit raatt;
               exit;
             end;
 {$ifdef POWERPC}
-           { some PowerPC instructions can have the prefix - or .
+           { some PowerPC instructions can have the postfix -, + or .
              this code could be moved to is_asmopcode but I think
              it's better to ifdef it here (FK)
            }
-           if c='.' then
-             begin
-               actasmpattern:=actasmpattern+'.';
-               c:=current_scanner.asmgetchar;
-             end
-           else if c='-' then
-             begin
-               actasmpattern:=actasmpattern+'-';
-               c:=current_scanner.asmgetchar;
-             end;
+           case c of
+             '.', '-', '+':
+               begin
+                 actasmpattern:=actasmpattern+c;
+                 c:=current_scanner.asmgetchar;
+               end
+           end;
 {$endif POWERPC}
            { Opcode ? }
            If is_asmopcode(upper(actasmpattern)) then
@@ -1458,7 +1455,12 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-11-17 23:23:47  florian
+  Revision 1.4  2003-11-29 16:27:19  jonas
+    * fixed several ppc assembler reader related problems
+    * local vars in assembler procedures now start at offset 4
+    * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
+
+  Revision 1.3  2003/11/17 23:23:47  florian
     + first part of arm assembler reader
 
   Revision 1.2  2003/11/15 19:00:10  florian

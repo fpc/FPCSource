@@ -29,21 +29,26 @@ asm
         cmplwi  r0,0
         mtctr   r0
         subi    r10,r3,1
-        beq     LStrPCopyEmpty
-LStrPCopyLoop:
+        beq     .LStrPCopyEmpty
+.LStrPCopyLoop:
         { copy everything }
         lbzu    r0,1(r4)
         stbu    r0,1(r10)
-        bdnz    LStrPCopyLoop
+        bdnz    .LStrPCopyLoop
         { add terminating #0 }
         li      r0,0
-LStrPCopyEmpty:
+.LStrPCopyEmpty:
         stb     r0,1(r10)
 end;
 
 {
   $Log$
-  Revision 1.10  2003-07-07 20:23:46  peter
+  Revision 1.11  2003-11-29 16:27:19  jonas
+    * fixed several ppc assembler reader related problems
+    * local vars in assembler procedures now start at offset 4
+    * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
+
+  Revision 1.10  2003/07/07 20:23:46  peter
     * added defines to override generic implementations
 
   Revision 1.9  2003/06/14 12:41:09  jonas

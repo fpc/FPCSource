@@ -154,7 +154,7 @@ uses
         { conditions when using ctr decrement etc }
         C_T,C_F,C_DNZ,C_DNZT,C_DNZF,C_DZ,C_DZT,C_DZF);
 
-      TDirHint = (DH_None,DH_Minus);
+      TDirHint = (DH_None,DH_Minus,DH_Plus);
 
     const
       { these are in the XER, but when moved to CR_x they correspond with the }
@@ -164,10 +164,10 @@ uses
 
     type
       TAsmCond = packed record
+                   dirhint : tdirhint;
                    case simple: boolean of
                      false: (BO, BI: byte);
                      true: (
-                       dirhint : tdirhint;
                        cond: TAsmCondFlag;
                        case byte of
                          0: ();
@@ -692,7 +692,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2003-11-23 20:00:39  jonas
+  Revision 1.79  2003-11-29 16:27:19  jonas
+    * fixed several ppc assembler reader related problems
+    * local vars in assembler procedures now start at offset 4
+    * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
+
+  Revision 1.78  2003/11/23 20:00:39  jonas
   * fixed is_condreg
   * fixed branch condition parsing in assembler reader
 

@@ -97,7 +97,8 @@ Unit rappcgas;
         { check for ...@ }
         if actasmtoken=AS_AT then
           begin
-            if oper.opr.ref.symbol=nil then
+            if (oper.opr.ref.symbol=nil) and
+               (oper.opr.ref.offset = 0) then
               Message(asmr_e_invalid_reference_syntax);
             Consume(AS_AT);
             if actasmtoken=AS_ID then
@@ -155,7 +156,9 @@ Unit rappcgas;
               Else
                Begin
                  oper.opr.Ref.Offset:=BuildConstExpression(false,true);
-                 Consume_RParen;
+                 Consume(AS_RPAREN);
+                 if actasmtoken=AS_AT then
+                   ReadAt(oper);
                end;
               exit;
             End;
@@ -175,7 +178,8 @@ Unit rappcgas;
                end;
               { (reg,reg ..  }
               Consume(AS_COMMA);
-              if actasmtoken=AS_REGISTER then
+              if (actasmtoken=AS_REGISTER) and
+                 (oper.opr.Ref.Offset = 0) then
                Begin
                  oper.opr.ref.index:=actasmregister;
                  Consume(AS_REGISTER);
@@ -644,6 +648,11 @@ Unit rappcgas;
           begin
             dec(ord(hs[0]));
             actcondition.dirhint:=DH_Minus;
+          end
+        else if hs[length(s)]='+' then
+          begin
+            dec(ord(hs[0]));
+            actcondition.dirhint:=DH_Plus;
           end;
         str2opentry:=tstr2opentry(iasmops.search(hs));
         if assigned(str2opentry) then
@@ -751,7 +760,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2003-11-23 20:00:39  jonas
+  Revision 1.7  2003-11-29 16:27:19  jonas
+    * fixed several ppc assembler reader related problems
+    * local vars in assembler procedures now start at offset 4
+    * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
+
+  Revision 1.6  2003/11/23 20:00:39  jonas
   * fixed is_condreg
   * fixed branch condition parsing in assembler reader
 

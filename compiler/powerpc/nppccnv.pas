@@ -271,13 +271,21 @@ implementation
         href     : treference;
         resflags : tresflags;
         opsize   : tcgsize;
+        hlabel, oldtruelabel, oldfalselabel : tasmlabel;
       begin
+         oldtruelabel:=truelabel;
+         oldfalselabel:=falselabel;
+         objectlibrary.getlabel(truelabel);
+         objectlibrary.getlabel(falselabel);
+         secondpass(left);
+         if codegenerror then
+          exit;
 (*
          !!!!!!!!!!!!!!!!!!
          Causes problems with "boolvar := boolean(bytevar)" on the ppc
          (the conversion isn't done in that case), don't know why it works
          on the 80x86 (JM)
-
+*)
          { byte(boolean) or word(wordbool) or longint(longbool) must }
          { be accepted for var parameters                            }
          if (nf_explicit in flags) and
@@ -287,9 +295,9 @@ implementation
               location_copy(location,left.location);
               exit;
            end;
-*)
-{        Already done in tppctypeconvnode.pass_2! (JM)
-         secondpass(left); }
+
+{        Already done in tppctypeconvnode.pass_2! (JM) }
+         secondpass(left);
          if codegenerror then
            exit;
          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
@@ -341,10 +349,24 @@ implementation
                 resflags:=left.location.resflags;
                 cg.g_flags2reg(exprasmlist,location.size,resflags,hreg1);
               end;
+            LOC_JUMP :
+              begin
+                hreg1:=cg.getintregister(exprasmlist,OS_INT);
+                objectlibrary.getlabel(hlabel);
+                cg.a_label(exprasmlist,truelabel);
+                cg.a_load_const_reg(exprasmlist,OS_INT,1,hreg1);
+                cg.a_jmp_always(exprasmlist,hlabel);
+                cg.a_label(exprasmlist,falselabel);
+                cg.a_load_const_reg(exprasmlist,OS_INT,0,hreg1);
+                cg.a_label(exprasmlist,hlabel);
+                cg.ungetregister(exprasmlist,hreg1);
+              end;
             else
               internalerror(10062);
          end;
          location.register := hreg1;
+         truelabel:=oldtruelabel;
+         falselabel:=oldfalselabel;
       end;
 
 
@@ -374,7 +396,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-11-04 22:30:15  florian
+  Revision 1.46  2003-11-29 16:27:19  jonas
+    * fixed several ppc assembler reader related problems
+    * local vars in assembler procedures now start at offset 4
+    * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
+
+  Revision 1.45  2003/11/04 22:30:15  florian
     + type cast variant<->enum
     * cnv. node second pass uses now as well helper wrappers
 

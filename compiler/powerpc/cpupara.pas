@@ -46,7 +46,7 @@ unit cpupara;
 
     uses
        verbose,systems,
-       cpuinfo,
+       cpuinfo,procinfo,
        rgobj,
        defutil,symsym;
 
@@ -56,13 +56,14 @@ unit cpupara;
         result := [RS_R3..RS_R12];
       end;
 
+
     function tppcparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         case target_info.abi of
           abi_powerpc_aix:
             result := [RS_F0..RS_F13];
           abi_powerpc_sysv:
-            { warning: the 64bit sysv abi also uses RS_F0..RS_F13 like the aix abi above }
+            {$warning: the 64bit sysv abi also uses RS_F0..RS_F13 like the aix abi above }
             result := [RS_F0..RS_F8];
           else
             internalerror(2003091401);
@@ -314,9 +315,12 @@ unit cpupara;
               end;
               if side = calleeside then
                 begin
-{$warning FIXME Calleeside offset needs to be calculated}
-                  {if (paraloc.loc = LOC_REFERENCE) then
-                    paraloc.reference.offset := tvarsym(hp.parasym).adjusted_address;}
+                  if (paraloc.loc = LOC_REFERENCE) then
+                    begin
+                      if (current_procinfo.procdef <> p) then
+                        internalerror(2003112201);
+                      inc(paraloc.reference.offset,current_procinfo.calc_stackframe_size);
+                    end;
                 end;
               hp.paraloc[side]:=paraloc;
               hp:=tparaitem(hp.next);
@@ -359,7 +363,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-10-17 14:52:07  peter
+  Revision 1.51  2003-11-29 16:27:19  jonas
+    * fixed several ppc assembler reader related problems
+    * local vars in assembler procedures now start at offset 4
+    * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
+
+  Revision 1.50  2003/10/17 14:52:07  peter
     * fixed ppc build
 
   Revision 1.49  2003/10/08 21:15:27  olle
