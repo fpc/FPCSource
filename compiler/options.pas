@@ -661,10 +661,7 @@ begin
               'l' : DoWriteLogo:=not UnSetBool(more,0);
               'm' : parapreprocess:=not UnSetBool(more,0);
               'n' : if More='' then
-                     begin
-                       read_configfile:=false;
-                       disable_configfile:=true;
-                     end
+                     disable_configfile:=true
                     else
                      IllegalPara(opt);
               'o' : if More<>'' then
@@ -1486,7 +1483,8 @@ begin
    option.firstpass:=false;
 
   { read configuration file }
-  if ppccfg<>'' then
+  if (not disable_configfile) and
+     (ppccfg<>'') then
     begin
       read_configfile:=check_configfile(ppccfg,ppccfg);
       { Maybe alternative configfile ? }
@@ -1582,11 +1580,14 @@ begin
   if inputdir<>'' then
    Unitsearchpath.AddPath(inputdir,true);
   if not disable_configfile then
+   begin
 {$ifdef Delphi}
-  UnitSearchPath.AddPath(dmisc.getenv(target_info.unit_env),false);
+     UnitSearchPath.AddPath(dmisc.getenv(target_info.unit_env),false);
 {$else}
-  UnitSearchPath.AddPath(dos.getenv(target_info.unit_env),false);
+     UnitSearchPath.AddPath(dos.getenv(target_info.unit_env),false);
 {$endif Delphi}
+   end;
+
 {$ifdef Unix}
   fpcdir:=FixPath(getenv('FPCDIR'),false);
   if fpcdir='' then
@@ -1674,7 +1675,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.86  2002-10-23 16:57:16  peter
+  Revision 1.87  2002-10-23 17:07:40  peter
+    * fix -n that was broken in the previous commit
+
+  Revision 1.86  2002/10/23 16:57:16  peter
     * first search for fpc.cfg instead of deprecated ppc386.cfg
     * parse commandline options first before searching configfile so -vt
       can be used to display the searched files
