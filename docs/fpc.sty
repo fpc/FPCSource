@@ -230,7 +230,13 @@
   \pdfpagewidth=210mm
   \pdfpageheight=297mm
 \else
+\makeatletter
+\@ifpackageloaded{tex4ht}{%
+  \usepackage[tex4ht,bookmarks=true,colorlinks=true,linkcolor=blue]{hyperref}
+}{%
   \usepackage[dvips,bookmarks=true,colorlinks=true,linkcolor=blue]{hyperref}
+}%
+\makeatother
 \fi
 %
 % Fake Latex2Html support, so latex2html is not required
