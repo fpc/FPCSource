@@ -464,7 +464,9 @@ begin
       else
         Line[P]:=#32;
   until P=0;
-  while copy(Line,length(Line),1)=' ' do Delete(Line,length(Line),1);
+  if Not InImage then
+    while copy(Line,length(Line),1)=' ' do
+      Delete(Line,length(Line),1);
   Delta:=0;
   if Line<>'' then
   case LineAlign of
@@ -1402,7 +1404,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  2002-03-20 11:15:51  pierre
+  Revision 1.7  2002-03-20 17:10:04  pierre
+   * avoid to cut a part of an image
+
+  Revision 1.6  2002/03/20 11:15:51  pierre
    * possible fix for the IDE prerelease crash
 
   Revision 1.5  2001/09/30 22:18:57  pierre
