@@ -355,7 +355,7 @@ begin
 {$ifndef UseNiceNames}
   if assigned(procinfo._class) then
     if (pos('_$$_',procprefix)=0) then
-      hs:=procprefix+'_$$_'+procinfo._class^.objname^+'_'+sp
+      hs:=procprefix+'_$$_'+procinfo._class^.objname^+'_$$_'+sp
     else
       hs:=procprefix+'_$'+sp;
 {$else UseNiceNames}
@@ -582,7 +582,11 @@ begin
                    procinfo.flags:=procinfo.flags or pi_operator;
                    parse_proc_head(pooperator);
                    if token<>ID then
-                     consume(ID)
+                     begin
+                        opsym:=nil;
+                        if not(m_result in aktmodeswitches) then
+                          consume(ID);
+                     end
                    else
                      begin
                        opsym:=new(pvarsym,init(pattern,voiddef));
@@ -604,7 +608,12 @@ begin
                          orddef) or (porddef(aktprocsym^.definition^.
                          retdef)^.typ<>bool8bit)) then
                         Message(parser_e_comparative_operator_return_boolean);
-                       opsym^.definition:=aktprocsym^.definition^.retdef;
+                       if assigned(opsym) then
+                         opsym^.definition:=aktprocsym^.definition^.retdef;
+                       { We need to add the retrun type in the mangledname
+                         to allow overloading with just different results !! (PM) }
+                       aktprocsym^.definition^.setmangledname(
+                         aktprocsym^.definition^.mangledname+'$$'+hs);
                      end;
                  end;
   end;
@@ -1131,7 +1140,10 @@ begin
         while (assigned(pd)) and (assigned(pd^.nextoverloaded)) do
          begin
            if not(m_repeat_forward in aktmodeswitches) or
-              equal_paras(aktprocsym^.definition^.para1,pd^.nextoverloaded^.para1,false) then
+              (equal_paras(aktprocsym^.definition^.para1,pd^.nextoverloaded^.para1,false) and
+              { for operators equal_paras is not enough !! }
+              (((aktprocsym^.definition^.options and pooperator)=0) or (optoken<>ASSIGNMENT) or
+               is_equal(pd^.nextoverloaded^.retdef,aktprocsym^.definition^.retdef))) then
              begin
                if pd^.nextoverloaded^.forwarddef then
                { remove the forward definition  but don't delete it,      }
@@ -1265,7 +1277,8 @@ begin
       end;
    end;
 { insert opsym only in the right symtable }
-  if ((procinfo.flags and pi_operator)<>0) and not parse_only then
+  if ((procinfo.flags and pi_operator)<>0) and assigned(opsym)
+     and not parse_only then
     begin
       if ret_in_param(aktprocsym^.definition^.retdef) then
         begin
@@ -1779,7 +1792,12 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-06-11 13:21:37  peter
+  Revision 1.1.2.1  1999-06-17 12:44:47  pierre
+    * solve problems related to assignment overloading
+    * support Delphi syntax for operator
+    * avoid problems if local procedure in operator
+
+  Revision 1.1  1999/06/11 13:21:37  peter
     * reinserted
 
   Revision 1.153  1999/06/02 22:44:14  pierre
