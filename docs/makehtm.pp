@@ -20,8 +20,9 @@ program makehtm;
 uses sysutils;
 
 Var
-  Verbose : Boolean;
-  FileCount : Boolean;
+  Verbose    : Boolean;
+  FileCount  : Boolean;
+  DeleteHtml : Boolean;
   
 Procedure ConvertFile (FileName : String);
 
@@ -55,6 +56,12 @@ begin
     finally
       Close(InFile);
     end;  
+    If DeleteHtml then
+      begin
+      If Verbose then
+        Writeln('Deleting input file : ',FileName);
+      DeleteFile(FileName);
+      end;
   except
     On E : Exception do
       Writeln('Error converting ',FileName,' to ',OFileName,' : ',E.Message);
@@ -121,9 +128,13 @@ Var
   I : integer;
 
 begin
+  Verbose:=False;
+  DeleteHtml:=False;
   For I:=1 to ParamCount do
     If paramstr(i)='-v' then
-      Verbose:=True;
+      Verbose:=True
+    else if paramstr(i)='-r' then
+      DeleteHtml:=True;
 end;
 
 begin
