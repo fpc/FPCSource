@@ -220,10 +220,10 @@ Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
 
 function fpc_help_constructor(_self:pointer;var _vmt:pointer;_vmt_pos:cardinal):pointer;compilerproc;
 procedure fpc_help_destructor(_self,_vmt:pointer;vmt_pos:cardinal);compilerproc;
+procedure fpc_help_fail(_self:pointer;var _vmt:pointer;vmt_pos:cardinal);compilerproc;
 
 {$ifdef dummy}
 Procedure fpc_DestroyException(o : TObject); compilerproc;
-procedure fpc_help_fail(var _self:pointer;var vmt:pointer;vmt_pos:cardinal);compilerproc;
 procedure fpc_check_object(obj:pointer); compilerproc;
 procedure fpc_check_object_ext(vmt,expvmt:pointer);compilerproc;
 {$endif dummy}
@@ -290,7 +290,11 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.40  2003-05-11 21:39:14  peter
+  Revision 1.41  2003-05-13 19:18:08  peter
+    * fpc_help_fail compilerproc
+    * fpc_new_class, fpc_dispose_class not needed by latest compiler
+
+  Revision 1.40  2003/05/11 21:39:14  peter
     * constructor helper added
 
   Revision 1.39  2003/04/25 21:15:20  peter

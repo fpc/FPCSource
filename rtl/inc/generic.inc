@@ -370,7 +370,9 @@ type
     parent : pointer;
   end;
 begin
-   if (_self=nil) then
+   { already released? }
+   if (_self=nil) or
+      (ppointer(_self+vmt_pos)^=nil) then
      exit;
    if (pvmt(ppointer(_self+vmt_pos)^)^.size=0) or
       (pvmt(ppointer(_self+vmt_pos)^)^.size+pvmt(ppointer(_self+vmt_pos)^)^.msize<>0) then
@@ -417,6 +419,8 @@ end;
 {$endif FPC_SYSTEM_HAS_FPC_HELP_FAIL}
 
 
+{$ifndef NOCLASSHELPERS}
+
 {$ifndef FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 function fpc_new_class(_self,_vmt:pointer):pointer;[public,alias:'FPC_NEW_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
@@ -441,6 +445,8 @@ begin
     tobject(_self).FreeInstance;
 end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
+
+{$endif NOCLASSHELPERS}
 
 
 {$ifndef FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
@@ -959,7 +965,11 @@ end;
 
 {
   $Log$
-  Revision 1.54  2003-04-23 13:10:09  peter
+  Revision 1.55  2003-05-13 19:18:08  peter
+    * fpc_help_fail compilerproc
+    * fpc_new_class, fpc_dispose_class not needed by latest compiler
+
+  Revision 1.54  2003/04/23 13:10:09  peter
     * remvoe objectsize loading from help_destructor
     * implement fpc_check_object
     * saveregistrers for check_object
