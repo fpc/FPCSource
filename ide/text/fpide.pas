@@ -71,6 +71,7 @@ type
       procedure DoPrimaryFile;
       procedure DoClearPrimary;
       procedure DoUserScreenWindow;
+      procedure DoCloseUserScreenWindow;
       procedure DoUserScreen;
       procedure DoOpenGDBWindow;
       procedure DoToggleBreak;
@@ -608,6 +609,8 @@ begin
   if (AutoSaveOptions and asDesktop)<>0 then
     begin
       { destory all help & browser windows - we don't want to store them }
+      { UserScreenWindow is also not registered PM }
+      DoCloseUserScreenWindow;
       CloseHelpWindows;
       CloseAllBrowsers;
       DOK:=SaveDesktop;
@@ -844,7 +847,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.39  1999-09-21 17:09:00  pierre
+  Revision 1.40  1999-09-22 13:04:31  pierre
+   + Close UserScreen to avoid store crash
+
+  Revision 1.39  1999/09/21 17:09:00  pierre
    + Windows clipboard for win32
 
   Revision 1.38  1999/09/13 16:24:43  peter
