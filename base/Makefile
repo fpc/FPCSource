@@ -281,7 +281,10 @@ idezips: clean
 
 #
 # $Log$
-# Revision 1.5  1999-02-19 16:46:07  peter
+# Revision 1.6  1999-02-22 02:17:36  peter
+#   * fixed dos linebreaks
+#
+# Revision 1.5  1999/02/19 16:46:07  peter
 #   + fpinst_ targets for the isntaller
 #
 # Revision 1.4  1999/02/19 15:33:01  peter
