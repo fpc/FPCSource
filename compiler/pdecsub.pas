@@ -1962,7 +1962,7 @@ const
 
                    { Check procedure options, Delphi requires that class is
                      repeated in the implementation for class methods }
-                   po_comp:=po_compatibility_options-[po_iocheck,po_staticmethod];
+                   po_comp:=po_compatibility_options-[po_iocheck,po_staticmethod,po_exports];
                    if (m_delphi in aktmodeswitches) then
                      include(po_comp,po_classmethod);
                    if ((po_comp * hd.procoptions)<>(po_comp * aprocdef.procoptions)) then
@@ -2129,7 +2129,10 @@ const
 end.
 {
   $Log$
-  Revision 1.97  2002-12-29 18:16:06  peter
+  Revision 1.98  2003-01-01 14:35:33  peter
+    * don't check for export directive repeat
+
+  Revision 1.97  2002/12/29 18:16:06  peter
     * delphi allows setting calling convention in interface or
       implementation
 
