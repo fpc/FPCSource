@@ -210,6 +210,7 @@ unit ptconst;
                    curconstsegment^.concat(new(pai_const,init_32bit(0)));
                  else Message(cg_e_illegal_expression);
               end;
+              disposetree(p);
            end;
          pointerdef:
            begin
@@ -764,7 +765,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.57  1999-11-08 16:24:28  pierre
+  Revision 1.58  1999-11-08 18:50:11  florian
+    * disposetree for classrefdef added
+
+  Revision 1.57  1999/11/08 16:24:28  pierre
    * missing disposetree added to avoid memory loss
 
   Revision 1.56  1999/11/08 14:02:16  florian
