@@ -18,7 +18,8 @@ type
     SkipCPU,
     NeedTarget,
     SkipTarget,
-    NeedVersion,
+    MinVersion,
+    MaxVersion,
     KnownRunNote,
     KnownCompileNote,
     KnownCompile10Note    : string;
@@ -180,7 +181,10 @@ begin
                 r.SkipCPU:=res
               else
                if GetEntry('VERSION') then
-                r.NeedVersion:=res
+                r.MinVersion:=res
+              else
+               if GetEntry('MAXVERSION') then
+                r.MaxVersion:=res
               else
                if GetEntry('RESULT') then
                 Val(res,r.ResultCode,code)

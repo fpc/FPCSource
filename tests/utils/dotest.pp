@@ -657,16 +657,33 @@ begin
 
   if Res then
    begin
-     if (Config.NeedVersion<>'') and not DoAll then
+     if (Config.MinVersion<>'') and not DoAll then
       begin
-        Verbose(V_Debug,'Required compiler version: '+Config.NeedVersion);
+        Verbose(V_Debug,'Required compiler version: '+Config.MinVersion);
         Res:=GetCompilerVersion;
-        if CompilerVersion<Config.NeedVersion then
+        if CompilerVersion<Config.MinVersion then
          begin
            { avoid a second attempt by writing to elg file }
            AddLog(OutName,skipping_compiler_version_too_low+PPFileInfo);
            AddLog(ResLogFile,skipping_compiler_version_too_low+PPFileInfo);
-           Verbose(V_Abort,'Compiler version too low '+CompilerVersion+' < '+Config.NeedVersion);
+           Verbose(V_Abort,'Compiler version too low '+CompilerVersion+' < '+Config.MinVersion);
+           Res:=false;
+         end;
+      end;
+   end;
+
+  if Res then
+   begin
+     if (Config.MaxVersion<>'') and not DoAll then
+      begin
+        Verbose(V_Debug,'Highest compiler version: '+Config.MaxVersion);
+        Res:=GetCompilerVersion;
+        if CompilerVersion>Config.MaxVersion then
+         begin
+           { avoid a second attempt by writing to elg file }
+           AddLog(OutName,skipping_compiler_version_too_high+PPFileInfo);
+           AddLog(ResLogFile,skipping_compiler_version_too_high+PPFileInfo);
+           Verbose(V_Abort,'Compiler version too high '+CompilerVersion+' > '+Config.MaxVersion);
            Res:=false;
          end;
       end;
@@ -782,7 +799,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2003-06-13 08:16:34  pierre
+  Revision 1.28  2003-10-13 14:19:02  peter
+    * digest updated for max version limit
+
+  Revision 1.27  2003/06/13 08:16:34  pierre
    * fix a problem with KNOWNCOMPILE10ERROR
 
   Revision 1.26  2003/02/20 12:41:15  pierre

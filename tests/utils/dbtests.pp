@@ -293,7 +293,7 @@ begin
     Source:=', T_SOURCE="'+Source+'"';
     end;
   With Info do
-    Qry:=Format(SUpdateTest,[EscapeSQL(NeedCPU),'',EscapeSQL(NeedVersion),
+    Qry:=Format(SUpdateTest,[EscapeSQL(NeedCPU),'',EscapeSQL(MinVersion),
                              B[usesGraph],B[IsInteractive],ResultCode,
                              B[ShouldFail],B[NeedRecompile],B[NoRun],
                              B[NeedLibrary],KnownRunError,

@@ -32,7 +32,7 @@ const
   skipping_graph_test_count : longint = 0;
   skipping_interactive_test_count : longint = 0;
   skipping_known_bug_count : longint = 0;
-  skipping_compiler_version_too_low_count : longint = 0;
+  skipping_other_version_count : longint = 0;
   skipping_other_cpu_count : longint = 0;
   skipping_other_target_count : longint = 0;
   skipping_run_unit_count : longint = 0;
@@ -106,7 +106,11 @@ begin
     end
   else if pos(skipping_compiler_version_too_low,st)=1 then
     begin
-      inc(skipping_compiler_version_too_low_count);
+      inc(skipping_other_version_count);
+    end
+  else if pos(skipping_compiler_version_too_high,st)=1 then
+    begin
+      inc(skipping_other_version_count);
     end
   else if pos(skipping_other_cpu,st)=1 then
     begin
@@ -184,7 +188,7 @@ begin
   number_skipped:= skipping_graph_test_count
     +skipping_interactive_test_count
     +skipping_known_bug_count
-    +skipping_compiler_version_too_low_count
+    +skipping_other_version_count
     +skipping_other_cpu_count
     +skipping_other_target_count;
   { don't count these ones ...
@@ -194,7 +198,7 @@ begin
   Writeln('Number of skipped graph tests = ',skipping_graph_test_count);
   Writeln('Number of skipped interactive tests = ',skipping_interactive_test_count);
   Writeln('Number of skipped known bug tests = ',skipping_known_bug_count);
-  Writeln('Number of skipped compiler version too low tests = ',skipping_compiler_version_too_low_count);
+  Writeln('Number of skipped tests for other versions = ',skipping_other_version_count);
   Writeln('Number of skipped tests for other cpus = ',skipping_other_cpu_count);
   Writeln('Number of skipped tests for other targets = ',skipping_other_target_count);
   if unknown_lines>0 then
@@ -235,7 +239,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-12-24 21:47:49  peter
+  Revision 1.4  2003-10-13 14:19:02  peter
+    * digest updated for max version limit
+
+  Revision 1.3  2002/12/24 21:47:49  peter
     * NeedTarget, SkipTarget, SkipCPU added
     * Retrieve compiler info in a single call for 1.1 compiler
 

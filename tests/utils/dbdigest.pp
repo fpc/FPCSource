@@ -37,6 +37,7 @@ Type
   stSkippingInteractiveTest,
   stSkippingKnownBug,
   stSkippingCompilerVersionTooLow,
+  stSkippingCompilerVersionTooHigh,
   stSkippingOtherCpu,
   stSkippingOtherTarget,
   stskippingRunUnit,
@@ -60,6 +61,7 @@ Const
     False, // stSkippingInteractiveTest,
     False, // stSkippingKnownBug,
     False, // stSkippingCompilerVersionTooLow,
+    False, // stSkippingCompilerVersionTooHigh,
     False, // stSkippingOtherCpu,
     False, // stSkippingOtherTarget,
     False, // stskippingRunUnit,
@@ -78,6 +80,7 @@ Const
     True,   // stSkippingInteractiveTest,
     True,   // stSkippingKnownBug,
     True,   // stSkippingCompilerVersionTooLow,
+    True,   // stSkippingCompilerVersionTooHigh,
     True,   // stSkippingOtherCpu,
     True,   // stSkippingOtherTarget,
     True,   // stskippingRunUnit,
@@ -96,6 +99,7 @@ Const
     False,  // stSkippingInteractiveTest,
     False,  // stSkippingKnownBug,
     False,  // stSkippingCompilerVersionTooLow,
+    False,  // stSkippingCompilerVersionTooHigh,
     False,  // stSkippingOtherCpu,
     False,  // stSkippingOtherTarget,
     False,  // stskippingRunUnit,
@@ -113,7 +117,8 @@ Const
     skipping_graph_test ,
     skipping_interactive_test ,
     skipping_known_bug ,
-    skipping_compiler_version_too_low ,
+    skipping_compiler_version_too_low,
+    skipping_compiler_version_too_high,
     skipping_other_cpu ,
     skipping_other_target ,
     skipping_run_unit ,
@@ -422,7 +427,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-10-06 16:53:04  fpc
+  Revision 1.8  2003-10-13 14:19:02  peter
+    * digest updated for max version limit
+
+  Revision 1.7  2003/10/06 16:53:04  fpc
     * allow digest programs on commandline
 
   Revision 1.6  2003/10/04 21:30:21  florian

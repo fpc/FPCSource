@@ -31,6 +31,7 @@ const
   skipping_interactive_test = 'Skipping test because it is interactive ';
   skipping_known_bug = 'Skipping test because it is a known bug ';
   skipping_compiler_version_too_low = 'Skipping test because compiler version too low ';
+  skipping_compiler_version_too_high = 'Skipping test because compiler version too high ';
   skipping_other_cpu = 'Skipping test because for other cpu ';
   skipping_other_target = 'Skipping test because for other target ';
   skipping_run_unit = 'Skipping test run because it is a unit ';
@@ -46,7 +47,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-12-24 21:47:49  peter
+  Revision 1.5  2003-10-13 14:19:02  peter
+    * digest updated for max version limit
+
+  Revision 1.4  2002/12/24 21:47:49  peter
     * NeedTarget, SkipTarget, SkipCPU added
     * Retrieve compiler info in a single call for 1.1 compiler
 
