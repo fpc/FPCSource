@@ -668,27 +668,30 @@ Begin
  Float32TestLT;
  Float32TestSub;
  Float32TestAdd;
-{ Float32TestDiv;}
+ Float32TestDiv;
  Float32TestMul;
-{ Float32TestInt;
- IntTestFloat32;}
+ Float32TestInt;
+ IntTestFloat32;
  
  float64TestEqual;
  float64TestLE;
  float64TestLT;
  float64TestSub;
  float64TestAdd;
-{ float64TestDiv;}
+ float64TestDiv;
  float64TestMul;
  float64TestInt;
  IntTestfloat64;
- 
+
 end.
 
 
 {
   $Log$
-  Revision 1.1  2002-09-16 19:08:30  carl
+  Revision 1.2  2002-10-08 20:09:46  carl
+    + reinstated all tests, as they all work correctly now
+
+  Revision 1.1  2002/09/16 19:08:30  carl
     * softfpu tests (some of them still fail!)
 
 }
