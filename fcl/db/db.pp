@@ -801,6 +801,7 @@ type
     Procedure RegisterDataSource(ADatasource : TDataSource);
     Procedure RemoveField (Field : TField);
     Procedure SetActive (Value : Boolean);
+    procedure SetBufferCount(const AValue: Longint);
     Procedure SetField (Index : Longint;Value : TField);
     Procedure ShiftBuffers (Offset,Distance : Longint);
     Function  TryDoing (P : TDataOperation; Ev : TDatasetErrorEvent) : Boolean;
@@ -1457,7 +1458,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:15:23  peter
+  Revision 1.7  2003-02-20 19:30:28  michael
+  + Fixes from Jesus Reyes
+
+  Revision 1.6  2002/09/07 15:15:23  peter
     * old logs removed and tabs fixed
 
 }
