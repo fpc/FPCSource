@@ -479,7 +479,7 @@ begin
 
       if GetEnv <> '' then GetEnv := GetEnv + ';';
 
-      GetEnv := GetEnv + envvar0;
+      GetEnv := GetEnv + strpas(envvar0);
 
       inc (i);
 
@@ -519,7 +519,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.13  2004-12-07 11:03:44  armin
+  Revision 1.14  2005-01-11 11:32:33  armin
+  * fixed compile error in getenv
+
+  Revision 1.13  2004/12/07 11:03:44  armin
   * fixed typo's
 
   Revision 1.12  2004/12/05 16:44:43  hajny
