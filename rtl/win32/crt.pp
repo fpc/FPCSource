@@ -379,7 +379,7 @@ begin
   DestCoor.X := WinMinX - 1;
   DestCoor.Y := WinMinY - 1;
 
-  ScrollConsoleScreenBuffer(OutHandle, SrcRect, @ClipRect, DestCoor, CharInfo);
+  ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect, DestCoor, CharInfo);
   Gotoxy(1,1);
 end;
 
@@ -388,7 +388,7 @@ Procedure ClrEol;
 {
   Clear from current position to end of line.
 }
-var Temp: DWORD;
+var Temp: Dword;
     CharInfo: Char;
     Coord: TCoord;
     X,Y: Longint;
@@ -399,7 +399,7 @@ Begin
   Coord.X := X;
   Coord.Y := Y;
 
-  FillConsoleOutputCharacter(OutHandle, CharInfo, WinMaxX - (X + 01), Coord, Temp);
+  FillConsoleOutputCharacter(OutHandle, CharInfo, WinMaxX - (X + 01), Coord, @Temp);
 end;
 
 
@@ -687,7 +687,7 @@ begin
   DestCoor.Y := Y - 2;
   ClipRect := SrcRect;
 
-  ScrollConsoleScreenBuffer(OutHandle, SrcRect, @ClipRect, DestCoor, CharInfo);
+  ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect, DestCoor, CharInfo);
 end; { proc. RemoveLine }
 
 
@@ -719,7 +719,7 @@ begin
   DestCoor.Y := Y;
   ClipRect := SrcRect;
 
-  ScrollConsoleScreenBuffer(OutHandle, SrcRect, @ClipRect, DestCoor, CharInfo);
+  ScrollConsoleScreenBuffer(OutHandle, SrcRect, ClipRect, DestCoor, CharInfo);
 end; { proc. InsLine }
 
 
@@ -989,7 +989,10 @@ begin
 end. { unit Crt }
 {
   $Log$
-  Revision 1.4  1999-04-30 11:34:27  michael
+  Revision 1.5  1999-05-01 13:18:26  peter
+    * changed back fixes
+
+  Revision 1.4  1999/04/30 11:34:27  michael
   + Fixed some compiling errors
 
   Revision 1.3  1999/04/23 09:06:17  michael
