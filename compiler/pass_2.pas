@@ -578,7 +578,7 @@ implementation
                         symtablestack^.next^.foreach({$ifndef TP}@{$endif}searchregvars);
 {$endif dummy}
                         { hold needed registers free }
-                        for i:=maxvarregs downto maxvarregs-p^.registersfpu+1 do
+                        for i:=maxfpuvarregs downto maxfpuvarregs-p^.registersfpu+1 do
                           regvars[i]:=nil;
                         { now assign register }
                         for i:=1 to maxfpuvarregs-p^.registersfpu do
@@ -610,6 +610,9 @@ implementation
 {$endif dummy}
                                end;
                           end;
+                       if cs_asm_source in aktglobalswitches then
+                         procinfo.aktentrycode^.insert(new(pai_asm_comment,init(strpnew(tostr(p^.registersfpu)+
+                         ' registers on FPU stack used by temp. expressions'))));
                         for i:=1 to maxfpuvarregs do
                           begin
                              if assigned(regvars[i]) then
@@ -645,7 +648,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1999-08-04 13:45:28  florian
+  Revision 1.30  1999-08-04 14:21:07  florian
+    * now every available fpu register is used for
+      fpu register variables
+
+  Revision 1.29  1999/08/04 13:45:28  florian
     + floating point register variables !!
     * pairegalloc is now generated for register variables
 
