@@ -62,6 +62,7 @@ var
 
   MOS_heapPool : Pointer; { pointer for the OS pool for growing the heap }
   MOS_origDir  : LongInt; { original directory on startup }
+  MOS_currDir  : LongInt; { current directory handle }
   MOS_ambMsg   : Pointer;
   MOS_ConName  : PChar ='CON:10/30/620/100/FPC Console Output/AUTO/CLOSE/WAIT';
   MOS_ConHandle: LongInt;
@@ -204,7 +205,7 @@ procedure haltproc(e:longint);cdecl;external name '_haltproc';
 
 procedure System_exit;
 begin
-  { We must remove the CTRL-C FALG here because halt }
+  { We must remove the CTRL-C FLAG here because halt }
   { may call I/O routines, which in turn might call  }
   { halt, so a recursive stack crash                 }
   if BreakOn then begin
@@ -399,9 +400,9 @@ var tmppos: longint;
 begin
   { check for short paths }
   if length(path)<=2 then begin
-    if (path='.') or (path='./') then begin path:=''; exit; end;
-    if path='..' then begin path:='/'; exit; end;
-    if path='*' then begin path:='#?'; exit; end;
+    if (path='.') or (path='./') then path:='' else
+    if path='..' then path:='/' else
+    if path='*' then path:='#?';
   end else begin
     { convert parent directories }
     tmppos:=pos('../',path);
@@ -533,6 +534,7 @@ begin
   { Changing the directory is a pretty complicated affair }
   {   1) Obtain a lock on the directory                   }
   {   2) CurrentDir the lock                              }
+  writeln('locking: >>',tmpStr,'<<');
   tmpLock:=Lock(@tmpStr,SHARED_LOCK);
   if tmpLock=0 then begin
     dosError2InOut(IoErr);
@@ -543,7 +545,7 @@ begin
   new(FIB);
 
   if (Examine(tmpLock,FIB)=True) and (FIB^.fib_DirEntryType>0) then begin
-    tmpLock := CurrentDir(tmpLock);
+    tmpLock:=CurrentDir(tmpLock);
     if MOS_OrigDir=0 then begin
       MOS_OrigDir:=tmpLock;
       tmpLock:=0;
@@ -869,7 +871,10 @@ end.
 
 {
   $Log$
-  Revision 1.24  2004-12-06 20:09:55  karoly
+  Revision 1.25  2004-12-07 09:55:46  karoly
+    * previous change broke PathConv, fixed
+
+  Revision 1.24  2004/12/06 20:09:55  karoly
     * added a public alias to PathConv for use in DOS unit
 
   Revision 1.23  2004/12/05 14:36:37  hajny
