@@ -2,10 +2,10 @@
 \begin{mysyntdiag}
 \synt{enumerated\ type} \lit* ( 
 \begin{rep}[b]
-\(
+\begin{stack}
 \synt{identifier\ list} \\
 \synt{assigned\ enum\ list}
-\) \\
+\end{stack} \\
 \lit*,
 \end{rep} \lit )
 \end{mysyntdiag}

@@ -1,11 +1,11 @@
 \begin{psyntax}{Types}{type}
 \synt{type}
-\(
+\begin{stack}
 \synt{simple\ type} \\
 \synt{string\ type} \\
 \synt{structured\ type} \\
 \synt{pointer\ type} \\
 \synt{procedural\ type}\\
 \synt{type\ identifier}
-\)
+\end{stack}
 \end{psyntax}

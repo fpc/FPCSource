@@ -1,15 +1,15 @@
 \begin{psyntax}{Assignments}{assignments}
 \synt{assignment\ statement}
-\(
+\begin{stack}
 \synt{variable\ reference} \\
 \synt{function\ identifier}
-\)
-\( 
+\end{stack}
+\begin{stack} 
 \lit*{:=} \\
 \lit*{+=} \\
 \lit*{-=} \\
 \lit*{*=} \\
 \lit*{/=}
-\)
+\end{stack}
 \synt{expression}
 \end{psyntax}

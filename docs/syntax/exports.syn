@@ -7,12 +7,12 @@
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{exports\ list}
-\<[b] \synt{exports\ entry} \\ \lit* , \>
+\begin{rep}[b] \synt{exports\ entry} \\ \lit* , \end{rep}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{exports\ entry}
 \synt{identifier} 
-\[ \lit*{index} \synt{integer\ constant} \]
-\[ \lit*{name} \synt{string\ constant} \]
+\begin{stack}\\ \lit*{index} \synt{integer\ constant} \end{stack}
+\begin{stack}\\ \lit*{name} \synt{string\ constant} \end{stack}
 \end{mysyntdiag}
 \end{diagram}

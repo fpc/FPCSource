@@ -7,12 +7,12 @@
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{typed\ constant}
-\(
+\begin{stack}
 \synt{constant} \\
 \synt{address\ constant} \\
 \synt{array\ constant} \\
 \synt{record\ constant} \\
 \synt{procedural\ constant}
-\)
+\end{stack}
 \end{mysyntdiag}
 \end{diagram}

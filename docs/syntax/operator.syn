@@ -2,14 +2,14 @@
 \begin{mysyntdiag}
 \synt{operator\ definition} 
 \lit*{operator}
-\(
+\begin{stack}
 \synt{assignment\ operator\ definition} \\
 \synt{arithmetic\ operator\ definition} \\
 \synt{comparision\ operator\ definition}
-\)
-\(
+\end{stack}
+\begin{stack}
 \synt{result\ identifier} \\
-\)
+\end{stack}
 \lit*{:}
 \synt{result\ type}
 \lit*{;}
@@ -24,26 +24,26 @@
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{arithmetic\ operator\ definition}
-\(
+\begin{stack}
 \lit*{+}\\
 \lit*{-}\\
 \lit*{*}\\
 \lit*{/}\\
 \lit*{**}
-\)
+\end{stack}
 \lit*{(}
 \synt{parameter\ list}
 \lit*{)}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{comparision\ operator\ definition}
-\(
+\begin{stack}
 \verb+ = + \\
 \verb+ < + \\
 \verb+ <= + \\
 \verb+ > + \\
 \verb+ >= +
-\)
+\end{stack}
 \lit*{(}
 \synt{parameter\ list}
 \lit*{)}

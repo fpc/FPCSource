@@ -4,67 +4,67 @@
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{declaration\ part}
-\<[b]
-\[
+\begin{rep}[b]
+\begin{stack}\\
 \synt{label\ declaration\ part}\\
 \synt{constant\ declaration\ part}\\
 \synt{resourcestring\ declaration\ part}\\
 \synt{type\ declaration\ part}\\
 \synt{variable\ declaration\ part}\\
 \synt{procedure/function\ declaration\ part}
-\]
-\>
+\end{stack}
+\end{rep}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{label\ declaration\ part}
 \lit*{label}
-\<[b]
+\begin{rep}[b]
 \synt{label}\\
 \lit* ,
-\>
+\end{rep}
 \lit* ;
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{constant\ declaration\ part}
 \lit*{const}
-\<[b]
-  \(
+\begin{rep}[b]
+  \begin{stack}
     \synt{constant\ declaration}\\
     \synt{typed\ constant\ declaration}
-  \)
-\>
+  \end{stack}
+\end{rep}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{resourcestring\ declaration\ part}
 \lit*{resourcestring}
-\<[b]
+\begin{rep}[b]
  \synt{string\ constant\ declaration}\\
-\>
+\end{rep}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{type\ declaration\ part}
 \lit*{type}
-\<[b]
+\begin{rep}[b]
     \synt{type\ declaration}\\
-\>
+\end{rep}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{variable\ declaration\ part}
 \lit*{var}
-\<[b]
+\begin{rep}[b]
     \synt{variable\ declaration}\\
-\>
+\end{rep}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{procedure/function\ declaration\ part}
-\<[b]
-\(
+\begin{rep}[b]
+\begin{stack}
     \synt{procedure\ declaration}\\
     \synt{function\ declaration}\\
     \synt{constructor\ declaration}\\
     \synt{destructor\ declaration}\\
-\)
-\>
+\end{stack}
+\end{rep}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{statement\ part}

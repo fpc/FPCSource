@@ -1,11 +1,11 @@
 \begin{diagram}{Procedural types}{proceduraltypes}
 \begin{mysyntdiag}
 \synt{procedural\ type} 
-\( \synt{function\ header} \\ 
+\begin{stack} \synt{function\ header} \\ 
    \synt{procedure\ header}
-\)
-\[ \lit*{of} \lit*{object} \]
-\[ \lit* ; \synt{call\ modifiers} \] 
+\end{stack}
+\begin{stack}\\ \lit*{of} \lit*{object} \end{stack}
+\begin{stack}\\ \lit* ; \synt{call\ modifiers} \end{stack} 
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{function\ header} \lit*{function} \synt{formal\ parameter\ list}
@@ -16,7 +16,7 @@
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{call\ modifiers} 
-\( 
+\begin{stack} 
 \lit*{register} \\
 \lit*{cdecl}    \\
 \lit*{pascal}   \\
@@ -24,6 +24,6 @@
 \lit*{safecall} \\
 \lit*{saveregisters} \\
 \lit*{popstack}
-\)
+\end{stack}
 \end{mysyntdiag}
 \end{diagram}

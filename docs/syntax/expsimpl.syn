@@ -2,8 +2,8 @@
 \begin{mysyntdiag}
 \synt{expression}
 \synt{simple\ expression}
-\[ 
-\(
+\begin{stack}\\ 
+\begin{stack}
  \verb+ * +  \\
  \verb+ <= + \\
  \verb+ > +  \\
@@ -12,19 +12,19 @@
  \verb+ <> + \\
  \verb+ in + \\
  \verb+ is + 
-\)
+\end{stack}
 \synt{simple\ expression}
-\]
+\end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{simple\ expression} 
-\<[b] \synt{term} \\
-\( 
+\begin{rep}[b] \synt{term} \\
+\begin{stack} 
  \lit* + \\
  \lit* - \\
  \lit*{or} \\
  \lit*{xor} 
-\)
-\>
+\end{stack}
+\end{rep}
 \end{mysyntdiag}
 \end{diagram}

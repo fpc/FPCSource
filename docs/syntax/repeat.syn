@@ -1,7 +1,7 @@
 \begin{psyntax}{Repeat statement}{repeatstatement}
 \synt{repeat\ statement}
 \lit*{repeat}
-\<[b] \synt{statement} \\ \lit* ; \>
+\begin{rep}[b] \synt{statement} \\ \lit* ; \end{rep}
 \lit*{until}
 \synt{expression}
 \end{psyntax}

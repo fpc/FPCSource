@@ -1,12 +1,12 @@
 \begin{psyntax}{Variable parameters}{varparameters}
 \synt{variable\ parameter}
 \lit*{var} \synt{identifier\ list} 
-\[
-\lit* :
-\[
+\begin{stack}\\
+\lit* :{}
+\begin{stack}\\
 \lit*{array}
 \lit*{of}
-\]
+\end{stack}
 \synt{parameter\ type}
-\]
+\end{stack}
 \end{psyntax}

@@ -4,9 +4,9 @@
 \synt{unit\ header}
 \synt{interface\ part}
 \synt{implementation\ part}
-\[ \synt{initialization\ part} \[ \synt{finalization\ part} \] \\
-    \lit*{begin} \<[b] \synt{statement} \\ \lit* ; \>
-\]
+\begin{stack}\\ \synt{initialization\ part} \begin{stack}\\ \synt{finalization\ part} \end{stack} \\
+    \lit*{begin} \begin{rep}[b] \synt{statement} \\ \lit* ; \end{rep}
+\end{stack}
 \lit*{end} \lit* .
 \end{mysyntdiag}
 \begin{mysyntdiag}
@@ -17,33 +17,33 @@
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{interface\ part} \lit*{interface}
-\[ \synt{uses\ clause} \]
-\<[b]
-  \[  \synt{constant\ declaration\ part} \\
+\begin{stack}\\ \synt{uses\ clause} \end{stack}
+\begin{rep}[b]
+  \begin{stack}\\  \synt{constant\ declaration\ part} \\
       \synt{type\ declaration\ part}\\
       \synt{procedure\ headers\ part}
-  \]
-\>
+  \end{stack}
+\end{rep}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{procedure\ headers\ part}
-\( \synt{procedure\ header} \\ \synt{function\ header}\) \lit* ;
-\[ \synt{call\ modifiers} \lit* ; \]
+\begin{stack} \synt{procedure\ header} \\ \synt{function\ header}\end{stack} \lit* ;
+\begin{stack}\\ \synt{call\ modifiers} \lit* ; \end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{implementation\ part}
 \lit*{implementation}
-\[ \synt{uses\ clause} \]
+\begin{stack}\\ \synt{uses\ clause} \end{stack}
 \synt{declaration\ part}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{initialization\ part}
   \lit*{initialization} 
-  \<[b] \synt{statement} \\ \lit* ; \>
+  \begin{rep}[b] \synt{statement} \\ \lit* ; \end{rep}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{finalization\ part}
   \lit*{finalization} 
-  \<[b] \synt{statement} \\ \lit* ; \>
+  \begin{rep}[b] \synt{statement} \\ \lit* ; \end{rep}
 \end{mysyntdiag}
 \end{diagram}

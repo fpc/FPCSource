@@ -1,29 +1,29 @@
 \begin{diagram}{Record types}{recordtypes}
 \begin{mysyntdiag}
-\synt{record\ type} \[ \lit*{packed} \] \lit*{record}
-\[ \synt{field\ list} \] \lit*{end}
+\synt{record\ type} \begin{stack}\\ \lit*{packed} \end{stack} \lit*{record}
+\begin{stack}\\ \synt{field\ list} \end{stack} \lit*{end}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{field\ list} 
-\( 
+\begin{stack} 
 \synt{fixed\ fields} \\
-\[ \synt{fixed\ fields} \lit*; \]  \synt{variant\ part}
-\)
-\[ \lit*; \]
+\begin{stack}\\ \synt{fixed\ fields} \lit*; \end{stack}  \synt{variant\ part}
+\end{stack}
+\begin{stack}\\ \lit*; \end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{fixed\ fields} 
-\<[b] \synt{identifier\ list} \lit*: \synt{type} \\ \lit*; \>
+\begin{rep}[b] \synt{identifier\ list} \lit*: \synt{type} \\ \lit*; \end{rep}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{variant\ part} 
 \lit*{case}
-\[ \synt{identifier} \lit*: \] 
+\begin{stack}\\ \synt{identifier} \lit*: \end{stack} 
 \synt{ordinal\ type\ identifier} 
-\lit*{of} \<[b] \synt{variant} \\ \lit*; \>
+\lit*{of} \begin{rep}[b] \synt{variant} \\ \lit*; \end{rep}
 \end{mysyntdiag}
 \begin{mysyntdiag}
-\synt{variant} \<[b] \synt{constant} \lit*, \> 
-\lit*: \lit*( \[ \synt{field\ list} \] \lit*)
+\synt{variant} \begin{rep}[b] \synt{constant} \lit*, \end{rep} 
+\lit*: \lit*( \begin{stack}\\ \synt{field\ list} \end{stack} \lit*)
 \end{mysyntdiag}
 \end{diagram}

@@ -1,7 +1,7 @@
 \begin{diagram}{Character strings}{characterstrings}
 \begin{mysyntdiag}
 \synt{character\ string} 
-\begin{rep}[b] \( \synt{quoted\ string} \\ \synt{control\ string} \) \end{rep}
+\begin{rep}[b] \begin{stack} \synt{quoted\ string} \\ \synt{control\ string} \end{stack} \end{rep}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{quoted\ string} 
@@ -11,10 +11,10 @@
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{string\ character} 
-\(
+\begin{stack}
 \tok{ Any character except ' or CR} \\
 \lit*{''}
-\)
+\end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{control\ string} 

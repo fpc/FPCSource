@@ -1,10 +1,10 @@
 \begin{diagram}{Simple types}{simpletypes}
 \begin{mysyntdiag}
 \synt{simple\ type}
-\(
+\begin{stack}
 \synt{ordinal\ type} \\
 \synt{real\ type}
-\)
+\end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{real\ type} \synt{real\ type\ identifier}

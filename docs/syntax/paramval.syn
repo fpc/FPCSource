@@ -1,6 +1,6 @@
 \begin{psyntax}{Value parameters}{valueparameters}
 \synt{value\ parameter}
 \synt{identifier\ list} \lit*: 
-\[ \lit*{array} \lit*{of} \]
+\begin{stack}\\ \lit*{array} \lit*{of} \end{stack}
 \synt{parameter\ type}
 \end{psyntax}

@@ -1,19 +1,19 @@
 \begin{diagram}{Modifiers}{modifiers}
 \begin{mysyntdiag}
 \synt{modifiers}
-\<[b]
+\begin{rep}[b]
 ; 
- \( 
+ \begin{stack} 
  \lit*{public} \\
  \lit*{alias} \lit* : \synt{string\ constant}\\
  \lit*{interrupt} \\
  \lit*{call\ modifiers}
-\)
-\>
+\end{stack}
+\end{rep}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{call\ modifiers}
-\(
+\begin{stack}
 \lit*{register}\\
 \lit*{pascal}\\
 \lit*{cdecl}\\
@@ -22,6 +22,6 @@
 \lit*{saveregisters}\\
 \lit*{inline}\\
 \lit*{safecall}
-\)
+\end{stack}
 \end{mysyntdiag}
 \end{diagram}

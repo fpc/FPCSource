@@ -3,7 +3,7 @@
 \lit*{if}
 \synt{expression}
 \lit*{then} \synt{statement}
-\[
+\begin{stack}\\
 \lit*{else} \synt{statement}
-\]
+\end{stack}
 \end{psyntax}

@@ -5,10 +5,10 @@
 \synt{control\ variable}
 \lit*{:=}
 \synt{initial\ value}
-\( 
+\begin{stack} 
   \lit*{to} \\
   \lit*{downto}
-\)
+\end{stack}
 \synt{final\ value}
 \lit*{do}
 \synt{statement}

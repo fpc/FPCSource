@@ -1,7 +1,7 @@
 \begin{psyntax}{ShortString}{sstring}
 \synt{string\ type} 
 \lit*{string} 
-  \[ 
+  \begin{stack}\\ 
     \lit*[ \synt{unsigned\ integer} \lit*] 
-  \]
+  \end{stack}
 \end{psyntax}

@@ -1,7 +1,7 @@
 \begin{psyntax}{Conditional statements}{conditionalstatements}
 \synt{conditional\ statement}
-\(
+\begin{stack}
 \synt{if\ statement}\\
 \synt{case\ statement}
-\)
+\end{stack}
 \end{psyntax}

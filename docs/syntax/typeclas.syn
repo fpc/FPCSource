@@ -1,14 +1,14 @@
 \begin{diagram}{Class types}{classtype}
 \begin{mysyntdiag}
-\[ \lit*{packed} \]
+\begin{stack}\\ \lit*{packed} \end{stack}
 \lit*{class} 
-\[ heritage \]
-\[ 
+\begin{stack}\\ heritage \end{stack}
+\begin{stack}\\ 
 \begin{rep}[b]
   \synt{component\ list} \\ 
   \synt{class\ visibility\ specifier} 
 \end{rep}
-\]
+\end{stack}
 \lit*{end} 
 \end{mysyntdiag}
 \begin{mysyntdiag}
@@ -16,51 +16,51 @@
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{component\ list} 
-\[ \<[b] \synt{field\ definition} \\ \> \]
-\[ 
-  \<[b] 
-    \( 
+\begin{stack}\\ \begin{rep}[b] \synt{field\ definition} \\ \end{rep} \end{stack}
+\begin{stack}\\ 
+  \begin{rep}[b] 
+    \begin{stack} 
       \synt{method\ definition} \\
       \synt{property\ definition}
-    \) \\ 
-  \> 
-\]
+    \end{stack} \\ 
+  \end{rep} 
+\end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{field\ definition} \synt{identifier\ list} \lit*: \synt{type} \lit*;
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{method\ definition} 
-\( 
-\[
+\begin{stack} 
+\begin{stack}\\
 \lit*{class}
-\]
-\(
+\end{stack}
+\begin{stack}
 \synt{function\ header} \\
 \synt{procedure\ header}
-\) \\
+\end{stack} \\
 \synt{constructor\ header} \\
 \synt{desctuctor\ header}
-\)
+\end{stack}
 \lit*;
-\[
-  \( \lit*{virtual} \[ \lit*; \lit*{abstract} \]  \\
+\begin{stack}\\
+  \begin{stack} \lit*{virtual} \begin{stack}\\ \lit*; \lit*{abstract} \end{stack}  \\
      \lit*{override} \\
      \lit*{message} 
-      \( \synt{integer\ constant} \\
-         \synt{string\ constant} \)
-  \) 
+      \begin{stack} \synt{integer\ constant} \\
+         \synt{string\ constant} \end{stack}
+  \end{stack} 
 \lit*;
-\]
-\[ \synt{call\ modifiers} \lit*; \]
+\end{stack}
+\begin{stack}\\ \synt{call\ modifiers} \lit*; \end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{class\ visibility\ specifier}
-\( 
+\begin{stack} 
 \lit*{private}\\
 \lit*{protected}\\
 \lit*{public}\\
 \lit*{published}
-\)
+\end{stack}
 \end{mysyntdiag}
 \end{diagram}

@@ -3,7 +3,7 @@
 \synt{library}
 \synt{library\ header} 
 \lit* ; 
-\[ \synt{uses\ clause} \]
+\begin{stack}\\ \synt{uses\ clause} \end{stack}
 \synt{block}
 \lit* .
 \end{mysyntdiag}

@@ -1,6 +1,6 @@
 \begin{psyntax}{Array types}{arraytypes}
 \synt{array\ type}
-\[ \lit*{packed} \] \lit*{array}\lit*[ 
-\<[b] \synt{ordinal\ type} \\ \lit*, \> 
+\begin{stack}\\ \lit*{packed} \end{stack} \lit*{array}\lit*[ 
+\begin{rep}[b] \synt{ordinal\ type} \\ \lit*, \end{rep} 
 \lit*] \lit*{of} \synt{type}
 \end{psyntax}

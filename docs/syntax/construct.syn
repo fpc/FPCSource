@@ -10,13 +10,13 @@
 \begin{mysyntdiag}
 \synt{constructor\ header}
 \lit*{constructor} 
-\( \synt{identifier} \\ \synt{qualified\ method\ identifier} \)
+\begin{stack} \synt{identifier} \\ \synt{qualified\ method\ identifier} \end{stack}
  \synt{formal\ parameter\ list}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{desctructor\ header}
 \lit*{destructor} 
-\( \synt{identifier} \\ \synt{qualified\ method\ identifier} \)
+\begin{stack} \synt{identifier} \\ \synt{qualified\ method\ identifier} \end{stack}
  \synt{formal\ parameter\ list}
 \end{mysyntdiag}
 \end{diagram}

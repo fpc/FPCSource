@@ -9,19 +9,19 @@
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{statement\ list} 
-\<[b] \synt{statement} \\ \lit*; \>
+\begin{rep}[b] \synt{statement} \\ \lit*; \end{rep}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{exceptionhandlers}
-\[
-   \<[b] \synt{exception\ handler} \\ \lit*; \>
-   \[ \lit*{else} \synt{statement\ list} \] \\
+\begin{stack}\\
+   \begin{rep}[b] \synt{exception\ handler} \\ \lit*; \end{rep}
+   \begin{stack}\\ \lit*{else} \synt{statement\ list} \end{stack} \\
    \synt{statement\ list}
-\]
+\end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{exception\ handler}
-\lit*{on} \[ \synt{identifier} \lit* : \] 
+\lit*{on} \begin{stack}\\ \synt{identifier} \lit* : \end{stack} 
 \synt{class\ type\ identifier}
 \lit*{do}
 \synt{statement}

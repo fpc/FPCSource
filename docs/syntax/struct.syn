@@ -1,10 +1,10 @@
 \begin{psyntax}{Structured statements}{stucturedstatements}
 \synt{structured\ statement}
-\(
+\begin{stack}
 \synt{compound\ statement}\\
 \synt{repetitive\ statement}\\
 \synt{conditional\ statement}\\
 \synt{exception\ statement}\\
 \synt{with\ statement}
-\)
+\end{stack}
 \end{psyntax}

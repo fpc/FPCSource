@@ -1,26 +1,26 @@
 \begin{diagram}{Properties}{properties}
 \begin{mysyntdiag}
 \synt{property\ definition}
-\lit*{property} \synt{identifier} \[ \synt{property\ interface} \]
+\lit*{property} \synt{identifier} \begin{stack}\\ \synt{property\ interface} \end{stack}
 \synt{property\ specifiers}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{property\ interface}
-\[ \synt{property\ parameter\ list}\] \lit*: \synt{type\ identifier}
-\[
+\begin{stack}\\ \synt{property\ parameter\ list}\end{stack} \lit*: \synt{type\ identifier}
+\begin{stack}\\
 \lit*{index} \synt{integer constant}
-\]
+\end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{property\ parameter\ list} \lit*[
-\<[b] \synt{parameter\ declaration} \\ \lit; \> 
+\begin{rep}[b] \synt{parameter\ declaration} \\ \lit; \end{rep} 
 \lit*]
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{property\ specifiers}
-\[ \synt{read\ specifier} \]
-\[ \synt{write\ specifier} \]
-\[ \synt{default\ specifier} \]
+\begin{stack}\\ \synt{read\ specifier} \end{stack}
+\begin{stack}\\ \synt{write\ specifier} \end{stack}
+\begin{stack}\\ \synt{default\ specifier} \end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{read\ specifier} \lit*{read} \synt{field\ or\ method}
@@ -30,16 +30,16 @@
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{default\ specifier}
-\( 
-\lit*{default} \[ \synt{constant} \] \\
+\begin{stack} 
+\lit*{default} \begin{stack}\\ \synt{constant} \end{stack} \\
 \lit*{nodefault}
-\)
+\end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{field\ or\ method}
-\(
+\begin{stack}
 \synt{field\ identifier} \\
 \synt{method\ identifier}
-\)
+\end{stack}
 \end{mysyntdiag}
 \end{diagram}

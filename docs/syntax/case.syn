@@ -2,16 +2,16 @@
 \begin{mysyntdiag}
 \synt{case\ statement}
 \lit*{case} \synt{expression} \lit*{of}
-\<[b] case \\ \lit* ; \>
-\[ \synt{else\ part} \] \[ \lit* ; \] 
+\begin{rep}[b] case \\ \lit* ; \end{rep}
+\begin{stack}\\ \synt{else\ part} \end{stack} \begin{stack}\\ \lit* ; \end{stack} 
 \lit*{end}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{case} 
-\<[b] 
-  \synt{constant} \[ \lit*{..} \synt{constant} \] \\
+\begin{rep}[b] 
+  \synt{constant} \begin{stack}\\ \lit*{..} \synt{constant} \end{stack} \\
 \lit* ,
-\>
+\end{rep}
 \lit* :
 \synt{statement}
 \end{mysyntdiag}

@@ -3,20 +3,20 @@
 \synt{program}
 \synt{program\ header} 
 \lit* ; 
-\[ \synt{uses\ clause} \]
+\begin{stack}\\ \synt{uses\ clause} \end{stack}
 \synt{block}
 \lit* .
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{program\ header}
 \lit*{program} \synt{identifier}
-\[ \lit* ( \synt{program\ parameters} \lit* )\]
+\begin{stack}\\ \lit* ( \synt{program\ parameters} \lit* )\end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{program\ parameters} \synt{identifier\ list}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{uses\ clause}
-\lit*{uses} \<[b] \synt{identifier} \\ \lit* , \> \lit* ;
+\lit*{uses} \begin{rep}[b] \synt{identifier} \\ \lit* , \end{rep} \lit* ;
 \end{mysyntdiag}
 \end{diagram}

@@ -1,11 +1,11 @@
 \begin{psyntax}{Statements}{statements}
 \synt{statement}
-\[
+\begin{stack}\\
 \synt{label} \lit*:
-\]
-\[
+\end{stack}
+\begin{stack}\\
 \synt{simple\ statement}\\
 \synt{structured\ statement}\\
 \synt{asm\ statement}
-\]
+\end{stack}
 \end{psyntax}

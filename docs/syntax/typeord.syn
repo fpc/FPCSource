@@ -1,8 +1,8 @@
 \begin{psyntax}{Ordinal types}{ordinaltypes}
 \synt{ordinal\ type}
-\(
+\begin{stack}
 \synt{subrange\ type} \\
 \synt{enumerated\ type} \\
 \synt{ordinal\ type\ identifier}\\
-\)
+\end{stack}
 \end{psyntax}

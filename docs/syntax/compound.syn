@@ -1,6 +1,6 @@
 \begin{psyntax}{Compound statements}{compoundstatements}
 \synt{compound\ statement} 
 \lit*{begin}
-\<[b] \synt{statement} \\ \lit* ; \>
+\begin{rep}[b] \synt{statement} \\ \lit* ; \end{rep}
 \lit*{end}
 \end{psyntax}

@@ -1,25 +1,25 @@
 \begin{diagram}{Function calls}{functioncalls}
 \begin{mysyntdiag}
 \synt{function\ call}
-\( 
+\begin{stack} 
 \synt{function\ identifier} \\
 \synt{method\ designator} \\
 \synt{qualified\ method\ designator}\\
 \synt{variable\ reference}
-\)
-\[
+\end{stack}
+\begin{stack}\\
 \synt{actual\ parameter\ list}
-\]
+\end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{actual\ parameter\ list}
 \lit* ( 
-\[
-\<[b] 
+\begin{stack}\\
+\begin{rep}[b] 
 \synt{expression} \\ 
 \lit* , 
-\> 
-\]
+\end{rep} 
+\end{stack}
 \lit* )
 \end{mysyntdiag}
 \end{diagram}

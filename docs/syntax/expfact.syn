@@ -1,7 +1,7 @@
 \begin{diagram}{Factors}{factors}
 \begin{mysyntdiag}
 \synt{factor}
-\( \lit* ( \synt{expression} \lit*) \\
+\begin{stack} \lit* ( \synt{expression} \lit*) \\
 \synt{variable\ reference} \\
 \synt{function\ call} \\
 \synt{unsigned\ constant}\\
@@ -10,14 +10,14 @@
 \synt{set\ constructor}\\
 \synt{value\ typecast}\\
 \synt{address\ factor}
-\)
+\end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{unsigned\ constant} 
-\( \synt{unsigned\ number} \\
+\begin{stack} \synt{unsigned\ number} \\
    \synt{character\ string} \\
    \synt{constant\ identifier} \\
    \lit*{Nil}
-\)
+\end{stack}
 \end{mysyntdiag}
 \end{diagram}

@@ -1,11 +1,11 @@
 \begin{psyntax}{External directive}{externaldirective}
 \synt{external\ directive}
 \lit*{external}
-\[
+\begin{stack}\\
   \synt{string\ constant}
-  \[
+  \begin{stack}\\
     \lit*{name} \synt{string\ constant}\\
     \lit*{index} \synt{integer\ constant}
-  \]
-\]
+  \end{stack}
+\end{stack}
 \end{psyntax}

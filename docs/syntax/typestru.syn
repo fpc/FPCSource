@@ -1,6 +1,6 @@
 \begin{psyntax}{Structured Types}{typestructured}
 \synt{structured\ type} 
-\(
+\begin{stack}
 \synt{array\ type} \\
 \synt{record\ type} \\
 \synt{object\ type} \\
@@ -8,5 +8,5 @@
 \synt{class\ reference\ type}\\
 \synt{set\ type}\\
 \synt{file\ type}
-\)
+\end{stack}
 \end{psyntax}

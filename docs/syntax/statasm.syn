@@ -4,14 +4,14 @@
 \lit*{asm}
 \synt{assembler\ code}
 \lit{end}
-\[
+\begin{stack}\\
 \synt{registerlist}
-\]
+\end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{registerlist}
 \lit*[
-\<[b] \synt{string constant} \\ \lit*, \>
+\begin{rep}[b] \synt{string constant} \\ \lit*, \end{rep}
 \lit*]
 \end{mysyntdiag}
 \end{diagram}

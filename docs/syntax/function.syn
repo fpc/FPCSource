@@ -7,21 +7,21 @@
 \begin{mysyntdiag}
 \synt{function\ header}
 \lit*{function} 
-\(
+\begin{stack}
 \synt{identifier}\\
 \synt{qualified\ method\ identifier}
-\)
+\end{stack}
 \synt{formal\ parameter\ list}
 \lit* : \synt{result\ type} 
-\[ \synt{modifiers} \]
+\begin{stack}\\ \synt{modifiers} \end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{subroutine\ block}
-\(
+\begin{stack}
 \synt{block}\\
 \synt{external\ directive}\\
 \synt{asm\ block}\\
 \lit*{forward}
-\)
+\end{stack}
 \end{mysyntdiag}
 \end{diagram}

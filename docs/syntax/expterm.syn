@@ -1,7 +1,7 @@
 \begin{psyntax}{Terms}{terms}
 \synt{term}
-\<[b] \synt{factor} \\
-\(
+\begin{rep}[b] \synt{factor} \\
+\begin{stack}
 \verb+ * + \\
 \verb+ / + \\
 \lit*{div} \\
@@ -10,6 +10,6 @@
 \lit*{shl} \\
 \lit*{shr} \\
 \lit*{as} 
-\)
-\>
+\end{stack}
+\end{rep}
 \end{psyntax}

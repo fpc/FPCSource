@@ -1,14 +1,14 @@
 \begin{diagram}{object types}{objecttype}
 \begin{mysyntdiag}
-\[ \lit*{packed} \]
+\begin{stack}\\ \lit*{packed} \end{stack}
 \lit*{object} 
-\[ heritage \]
-\[ 
+\begin{stack}\\ heritage \end{stack}
+\begin{stack}\\ 
 \begin{rep}[b]
   \synt{component\ list} \\ 
   \synt{object\ visibility\ specifier} 
 \end{rep}
-\]
+\end{stack}
 \lit*{end}
 \end{mysyntdiag}
 \begin{mysyntdiag}
@@ -16,36 +16,34 @@
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{component\ list} 
-\[ \<[b] \synt{field\ definition} \\ \> \]
-\[ \<[b] \synt{method\ definition} \\ \> \]
+\begin{stack}\\ \begin{rep}[b] \synt{field\ definition} \\ \end{rep} \end{stack}
+\begin{stack}\\ \begin{rep}[b] \synt{method\ definition} \\ \end{rep} \end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{field\ definition} \synt{identifier\ list} \lit*: \synt{type} \lit*;
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{method\ definition} 
-\( 
+\begin{stack} 
 \synt{function\ header} \\
 \synt{procedure\ header} \\
 \synt{constructor\ header} \\
 \synt{desctuctor\ header}
-\)
-\lit*; \synt{method\ directives} 
+\end{stack}
+\lit*{;} \synt{method\ directives} 
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{method\ directives}
-\[
-\lit*{virtual} \lit*; 
-\[ \lit*{abstract} \lit*; \]
-\]
-\[ \synt{call\ modifiers} \lit*; \]
+\begin{stack}\\ \lit*{virtual} \lit*{;} \end{stack}
+\begin{stack}\\ \lit*{abstract} \lit*{;} \end{stack}
+\begin{stack}\\ \synt{call\ modifiers} \lit*{;} \end{stack}
 \end{mysyntdiag}
 \begin{mysyntdiag}
 \synt{object\ visibility\ specifier}
-\( 
+\begin{stack} 
 \lit*{private} \\
 \lit*{protected} \\
 \lit*{public}
-\)
+\end{stack}
 \end{mysyntdiag}
 \end{diagram}

@@ -1,12 +1,12 @@
 \begin{psyntax}{Procedure statements}{proecedurestatements}
 \synt{procedure\ statement}
-\(
+\begin{stack}
 \synt{procedure\ identifier} \\
 \synt{method\ identifier} \\
 \synt{qualified\ method\ identifier} \\
 \synt{variable\ reference}
-\)
-\[
+\end{stack}
+\begin{stack}\\
 \synt{actual\ parameter\ list}
-\]
+\end{stack}
 \end{psyntax}
