@@ -174,64 +174,45 @@
     function fpc_mul_qword(f1,f2 : qword;checkoverflow : longbool) : qword;[public,alias: 'FPC_MUL_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 
       var
-         _f1,bitpos : qword;
-         l : longint;
+         _f1 : qword;
          r : qword;
-
       begin
-         if not(checkoverflow) then
-           begin
-              { the following piece of code is taken from the     }
-              { AMD Athlon Processor x86 Code Optimization manual }
-              asm
-                 movl f1+4,%edx
-                 movl f2+4,%ecx
-                 orl %ecx,%edx
-                 movl f2,%edx
-                 movl f1,%eax
-                 jnz .Lqwordmultwomul
-                 mull %edx
-                 jmp .Lqwordmulready
-              .Lqwordmultwomul:
-                 imul f1+4,%edx
-                 imul %eax,%ecx
-                 addl %edx,%ecx
-                 mull f2
-                 add %ecx,%edx
-              .Lqwordmulready:
-                 movl %eax,r
-                 movl %edx,r+4
-              end [ 'eax','edx','ecx' ];
-              fpc_mul_qword:=r;
-           end
-         else
-           begin
-              fpc_mul_qword:=0;
-              bitpos:=1;
-
-              // store f1 for overflow checking
-              _f1:=f1;
-
-              for l:=0 to 63 do
-                begin
-                   if (f2 and bitpos)<>0 then
-                     fpc_mul_qword:=fpc_mul_qword+f1;
-
-                   f1:=f1 shl 1;
-                   bitpos:=bitpos shl 1;
-                end;
-
-              { if one of the operands is greater than the result an }
-              { overflow occurs                                      }
-              if checkoverflow and (_f1 <> 0) and (f2 <>0) and
-                 ((_f1>fpc_mul_qword) or (f2>fpc_mul_qword)) then
-                HandleErrorFrame(215,get_frame);
-           end;
+        _f1:=f1;
+        { the following piece of code is taken from the
+          AMD Athlon Processor x86 Code Optimization manual }
+        asm
+           movl f1+4,%edx
+           movl f2+4,%ecx
+           orl %ecx,%edx
+           movl f2,%edx
+           movl f1,%eax
+           jnz .Lqwordmultwomul
+           mull %edx
+           jmp .Lqwordmulready
+        .Lqwordmultwomul:
+           imul f1+4,%edx
+           imul %eax,%ecx
+           addl %edx,%ecx
+           mull f2
+           add %ecx,%edx
+        .Lqwordmulready:
+           movl %eax,r
+           movl %edx,r+4
+        end [ 'eax','edx','ecx' ];
+        fpc_mul_qword:=r;
+        { if one of the operands is greater than the result an
+          overflow occurs                                      }
+        if checkoverflow and (_f1<>0) and (f2<>0) and
+           ((_f1>fpc_mul_qword) or (f2>fpc_mul_qword)) then
+          HandleErrorFrame(215,get_frame);
       end;
 
 {
   $Log$
-  Revision 1.2  2003-12-23 23:09:43  peter
+  Revision 1.3  2004-05-10 20:58:20  florian
+    * fpc_mul_qword uses always the assembler implementation
+
+  Revision 1.2  2003/12/23 23:09:43  peter
     * fix call to handleerror for regcall
 
   Revision 1.1  2003/09/14 11:34:13  peter
