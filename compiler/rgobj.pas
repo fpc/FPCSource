@@ -566,7 +566,11 @@ unit rgobj;
             exit;
           end;
       until i=lastintreg;
+{$ifdef ALLOWEDUPREG}
+      result:=newreg(R_INTREGISTER,RS_INVALID,subreg);
+{$else}
       internalerror(10);
+{$endif}
     end;
 
 
@@ -1316,6 +1320,10 @@ unit rgobj;
         n:char;
 
     begin
+{$ifdef ALLOWDUPREG}
+      if m=RS_INVALID then
+        exit;
+{$endif}
       d:=degree[m];
       if degree[m]>0 then
         dec(degree[m]);
@@ -1933,7 +1941,14 @@ unit rgobj;
         end;
 
        if min=$ff then
-         internalerror(10);
+         begin
+{$ifdef ALLOWDUPREG}
+           result:=newreg(R_INTREGISTER,RS_INVALID,subreg);
+           exit;
+{$else}
+           internalerror(10);
+{$endif}
+         end;
 
        exclude(unusedregsint,p);
        include(used_in_proc_int,p);
@@ -2016,7 +2031,13 @@ unit rgobj;
             abtlist:=abtlist+char(i);
         end
       else
-        internalerror(10);
+        begin
+{$ifdef ALLOWDUPREG}
+          result:=newreg(R_INTREGISTER,RS_INVALID,cgsize2subreg(size));
+{$else}
+          internalerror(10)
+{$endif}
+        end;
     end;
 
     procedure Trgobj.ungetregisterintinline(list:Taasmoutput;position:Tai;r:Tregister);
@@ -2236,7 +2257,10 @@ end.
 
 {
   $Log$
-  Revision 1.77  2003-09-25 16:19:32  peter
+  Revision 1.78  2003-09-28 13:41:12  peter
+    * return reg 255 when allowdupreg is defined
+
+  Revision 1.77  2003/09/25 16:19:32  peter
     * fix filepositions
     * insert spill temp allocations at the start of the proc
 
