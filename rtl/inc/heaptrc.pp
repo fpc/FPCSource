@@ -490,6 +490,9 @@ begin
   { allow all between start of code and end of data }
   if cardinal(p)<=data_end then
     goto _exit;
+  { .bss section }
+  if cardinal(p)<=cardinal(heaporg) then
+    goto _exit;
   { stack can be above heap !! }
 
   if (cardinal(p)>=get_ebp) and (cardinal(p)<=stack_top) then
@@ -691,7 +694,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  1999-05-16 23:56:09  pierre
+  Revision 1.15  1999-05-18 22:15:55  pierre
+   * allow for .bss section below heaporg in go32v2 code
+
+  Revision 1.14  1999/05/16 23:56:09  pierre
    * allow nil pointer in FPC_CHECKPOINTER !!
 
   Revision 1.13  1999/05/12 16:49:29  pierre
