@@ -1571,6 +1571,7 @@ These programs have no other purpose than demonstrating the capabilities of
 All example programs of the documentation are available. Check out the
 directories that end on \file{ex} in the documentation sources. There you
 will find all example sources.
+
 \subsection{ppumove program}
 
 \file{ppumove} is a program to make shared or static libraries from
@@ -1647,6 +1648,213 @@ for the timer code in the library.
 \end{enumerate}
 You could then use or distribute the files \file{libboth.so}, \file{timer.ppl}
 and \file{ppu.ppl}.
+
+\subsection{ptop - Pascal source beautifier}
+
+\subsubsection{ptop program}
+% This section was supplied by Marco Van de voort, for which my thanks.
+% I did some cleaning, and added the subsubsection with help on on the 
+% object. MVC.
+
+\file{ptop} is a source beautifier written by Peter Grogono based on the ancient pretty-printer
+by Ledgard, Hueras, and Singer, modernized by the \fpc team (objects, streams, configurability etc)
+
+This configurability, and the thorough bottom-up design are the advantages of this program over
+the diverse TurboPascal sourcebeautifiers on e.g. SIMTEL.
+
+The program is quite simple to operate:
+
+ptop "[-v] [-i indent] [-b bufsize ][-c \file{optsfile}] \file{infile} \file{outfile}"
+
+The \file{Infile} parameter is the pascal file to be processed, and will be written
+to \file{outfile}, overwriting an existing \file{outfile} if it exists.
+
+Some options modify the behaviour of ptop:
+
+\begin{description}
+\item[-h] Writes an overview of the possible parameters and commandline syntax.
+\item[-c \file{ptop.cfg}] Read some configuration data from configuration file instead of using
+  the internal defaults then. A config file is not required, the program can
+  operate without one. See also -g.
+\item[-i ident] Sets the number of indent spaces used for BEGIN END; and other blocks.
+\item[-b bufsize] Sets the streaming buffersize to bufsize. Default 255, 0 is considered non-valid and ignored.
+\item[-v] be verbose. Currently only outputs the number of lines read/written and some error messages.
+\item[-g \file{ptop.cfg}] Writes a default configuration file to be edited to the file "ptop.cfg"
+\end{description}
+
+\subsubsection{The ptop configuration file}
+
+Creating and distributing a configuration file for ptop is not necesarry, 
+unless you want to modify the standard behaviour of \file{ptop}. The configuration 
+file is never preloaded, so if you want to use it you should always specify
+it with a \var{-c ptop.cfg} parameter.
+
+The structure of a ptop configuration file is a simple buildingblock repeated 
+several (20-30) times, for each pascal keyword known to the \file{ptop} program. 
+(see the default configuration file or \file{ptopu.pp} source to
+find out which keywords are known)
+
+The basic building block of the configuration file consists out of one or two 
+lines, describing how \file{ptop} should react on a certain keyword.
+First a line without square brackets with the following format:
+
+keyword=option1,option2,option3,...
+
+If one of the options is "dindonkey" (see further below), a second line
+(with square brackets) is needed like this:
+
+[keyword]=otherkeyword1,otherkeyword2,otherkeyword3,...
+
+As you can see the block contains two types of identifiers, keywords(keyword and otherkeyword1..3 in above example)
+and options, (option1..3 above).
+
+\var{Keywords} are the built-in valid Pascal structure-identifiers like BEGIN, END, CASE, IF,
+THEN, ELSE, IMPLEMENTATION. The default configuration file lists most of these.
+
+Besides the real Pascal keywords, some other codewords are used for operators
+and comment expressions. \seet{keywords}
+
+\begin{FPCltable}{lll}{keywords for operators}{keywords}
+Name of codeword       &     operator \\  \hline
+casevar                &     : in a case label ( unequal 'colon') \\
+becomes                &     := \\
+delphicomment          &     // \\
+opencomment            &       \{ or (* \\
+closecomment           &     \} or *) \\
+semicolon              &     ; \\
+colon                  &     : \\
+equals                 &     = \\
+openparen              &     [ \\
+closeparen             &     ] \\
+period                 &     . \\
+\end{FPCltable}
+
+The \textbf{Options} codewords define actions to be taken when the keyword before
+the equal sign is found, \seet{options}
+
+\begin{FPCltable}{lll}{Possible options}{options}
+Option         &     does what \\ \hline
+crsupp         &     suppress CR before the keyword.\\
+crbefore       &     force CR before keyword\\
+               &     (doesn't go with crsupp :) )\\
+blinbefore     &     blank line before keyword.\\
+dindonkey      &     de-indent on associated keywords\\
+               &     (see below)\\
+dindent        &     deindent (always)\\
+spbef          &     space before\\
+spaft          &     space after\\
+gobsym         &     Print symbols which follow a\\
+               &     keyword but which do not\\
+               &     affect layout. prints until\\
+               &     terminators occur.\\
+               &     (terminators are hard-coded in pptop,\\
+               &     still needs changing)\\
+inbytab        &     indent by tab.\\
+crafter        &     force CR after keyword.\\
+upper          &     prints keyword all uppercase\\
+lower          &     prints keyword all lowercase\\
+capital        &     capitalizes keyword: 1st letter\\
+               &     uppercase, rest lowercase.\\
+\end{FPCltable}
+
+The option "dindonkey" requires some extra parameters, which are
+set by a second line for that option (the one with the square brackets), which is
+therefore is only needed if the options contain "dinkdonkey" (contraction of
+de-indent on assiociated keyword).
+
+"dinkdonkey" deindents if any of the keywords specified by the extra options of the
+square-bracket line is found.
+
+Example: The lines
+
+\begin{verbatim}
+else=crbefore,dindonkey,inbytab,upper
+[else]=if,then,else
+\end{verbatim}
+
+mean the following:
+
+\begin{itemize}
+\item The keyword this block is about is \textbf{else} because it's on the LEFT side
+of both equal signs.
+\item The option \var{crbefore} signals not to allow other code (so just spaces) 
+before the ELSE keyword on the same line.
+\item The option \var{dindonkey} de-indents if the parser finds any of the keywords
+ in the square brackets line (if,then,else)
+\item The option \var{inbytab} means indent by a tab.
+\item The option \var{upper} uppercase the keyword (else or Else becomes ELSE)
+\end{itemize}
+
+Try to play with the configfile step by step until you find the effect you desire. 
+The configurability and possibilities of ptop are quite large. E.g. I like all
+keywords uppercased instead of capitalized, so I replaced all capital keywords in
+the default file by upper.
+
+\file{ptop} is still development software, so it is wise to visually check the generated
+source and try to compile it, to see if \file{ptop} hasn't made any errors.
+
+\subsubsection{ptopu unit}
+
+The source of the \file{PtoP} program is conveniently split in two files:
+One is a unit containing an object that does the actual beautifying of the
+source, the other is a shell built around this object so it can be used 
+from the command line. This design makes it possible to include the object
+in some program (e.g. an IDE) and use it's features to format code.
+
+The object resided in the \file{PtoPU} unit, and is declared as follows
+\begin{verbatim}
+  TPrettyPrinter=Object(TObject)
+      Indent : Integer;    { How many characters to indent ? }
+      InS    : PStream;
+      OutS   : PStream;
+      DiagS  : PStream;
+      CfgS : PStream;
+      Constructor Create;
+      Function PrettyPrint : Boolean;
+    end;
+\end{verbatim}
+
+Using this object is very simple. The procedure is as follows:
+\begin{enumerate}
+\item Create the object, using it's constructor.
+\item Set the \var{Ins} stream. This is an open stream, from which pascal source will be 
+read. This is a mandatory step.
+\item Set the \var{OutS} stream. This is an open stream, to which the
+beautified pascal source will be written. This is a mandatory step.
+\item Set the \var{DiagS} stream. Any diagnostics will be written to this
+stream. This step is optional. If you don't set this, no diagnostics are
+written.
+\item Set the \var{Cfgs} stream. A configuration is read from this stream.
+(see the previous section for more information about configuration). This
+step is optional. If you don't set this, a default configuration is used.
+\item Set the \var{Indent} variable. This is the number of spaces to use
+when indenting. Tab characters are not used in the program. This step is
+optional. The indent variable is initialized to 2.
+\item Call \var{PrettyPrint}. This will pretty-print the source in \var{Ins}
+and write the result to \var{OutS}. The function returns \var{True} if no 
+errors occurred, \var{False} otherwise.
+\end{enumerate}
+
+So, a minimal procedure would be:
+\begin{verbatim}
+Procedure CleanUpCode;
+
+var
+  Ins,OutS : PBufStream;
+  PPRinter : TPrettyPrinter;
+
+begin
+  Ins:=New(PBufStream,Init('ugly.pp',StopenRead,TheBufSize));
+  OutS:=New(PBufStream,Init('beauty.pp',StCreate,TheBufSize));
+  PPrinter.Create;
+  PPrinter.Ins:=Ins;
+  PPrinter.outS:=OutS;
+  PPrinter.PrettyPrint;
+end;
+\end{verbatim}
+
+Using memory streams allows very fast formatting of code, and is perfectly
+suitable for editors.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Supplied units
