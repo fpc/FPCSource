@@ -1,42 +1,22 @@
-    News
-    ====
-
-    2004/08/01 armin:
-     - lot of fixes, compiler can compile itself on a netware server
-    2003/02/16 armin:
-     - added nwconio, nwthreads, nwsnut
-    2003/02/15 armin:
-     - changes for new threadvars
-    2002/02/27 armin:
-     - changes for current fpc 1.1
-    2001/04/16 armin:
-     - implemented CRT and SYSUTILS
-     - nwimp/convertimp to convert .imp files to unix
-    2001/05/26 armin:
-     - successfuly compiled binutils for win32 under linux. Patched nlmconv
-       for win32 available. This makes it possible to use FPC to create NLM's
-       unter win32.
-
-
 
     General
     =======
 
-    Currently generating NetWare-NLM's only work under Linux and win32. (may be under bsd also)
-    For Win32 you need a win32 compiled binutils with netware target enabled. Because nlmconv
-    only works with elf objects, elf support in binutils is also needed.
+    Currently generating NetWare-NLM's only work under Linux and win32. (may work under other
+    unix versions also but this is not tested yet)
 
 
     Binutils with netware-support needed
     ====================================
 
-    You need a version of binutils compiled with netware-support. (nlmconv has to be present)
+    You need a version of binutils compiled with netware-support. As of FreePascal 1.9.5 Nov 2004
+    binutils needs to be named i386-netware-* (i.e. i386-netware-ld, i386-netware-nlmconv).
     Unfortunately in the Linux distibutions this component of the binutils is not included
     so you have to compile it. So download the latest stable binutils package from your
     favourite GNU mirror, decompress it ('tar xfz binutils-x.yy.z.tar.gz' on unices
     with GNU tar), change to the binutils-x.yy.z directory and configure:
 
-      ./configure --prefix=/usr --enable-shared --enable-targets=i386-netware,i386-linux
+      ./configure --prefix=/usr --enable-shared --enable-target=i386-netware
 
     I used the prefix /usr because thats the default location on redhat (thats what I'm using)
 
@@ -46,29 +26,38 @@
       make install
 
     to build and install binutils. To check that netware is supported by the version of binutils
-    installed, use ld --version. The emulation 'i386nw' must be present. Also check that nlmconv
-    is present and can be started without specifying the complete path of nlmconv.
+    installed, use i386-netware-ld --version. The emulation 'i386nw' must be present. Also check that 
+    i386-netware-nlmconv
+    is present and can be started without specifying the complete path of i386-netware-nlmconv.
 
     You can find more information and a binary version of binutils with netware-support for
     linux on:
            http://home.sch.bme.hu/~keresztg/novell/howto/NLM-Linux-HOWTO.html.
 
-    Binutils-2.11 for win32 and RedHat 7.2 with netware support and a patched nlmconv
-    that supports "copyright" are available from:
-           http://home.arcor.de/armin.diehl/fpcnw
+    Binutils for win32 and Fedora Core 2 are available from:
+           ftp://ftp.freepascal.org/pub/fpc/contrib/cross
 	  
-    The copyright-patch is included in newer versions of binutils (2.13)
-
 
     Building the freepascal runtime-library for netware
     ===================================================
 
     Install the current fpc sources from ftp.freepascal.org and change to the directory
     rtl/netware under the freepascal sourcetree. Verify the path of your units in
-    Makefile. The default is /usr/lib/fpc/1.9.5/units/netware/rtl.
+    Makefile. The default is /usr/lib/fpc/1.9.5/units/i386-netware/*.
     Compile and install the rtl with
 
       make install
+      
+    This will install the basic rtl files. To install all (packages,fcl and nlm's) do a
+    
+    make OS_TARGET=netware build
+    
+    and
+    
+    make OS_TARGET=netware install
+    
+    at the fpc source root dir.
+    
 
     Settings and needed files to compile for netware
     ================================================
@@ -76,9 +65,15 @@
     Edit your /etc/fpc.cfg and add the rtl source path for netware. This are my settings,
     you may paste it to your fpc.cfg:
 
-#IFDEF Netware
-  -Fu/usr/lib/fpc/1.9.5/units/netware/rtl
-  -Fl/usr/lib/fpc/1.9.5/units/netware/rtl
+#IFDEF Netware_clib
+  -Fu/usr/lib/fpc/1.9.5/units/i386-netware/*
+  -Fl/usr/lib/fpc/1.9.5/units/i386-netware/rtl
+#ENDIF
+
+#IFDEF Netware_libc
+  -Fu/usr/lib/fpc/1.9.5/units/i386-netwlibc/*
+  -Fl/usr/lib/fpc/1.9.5/units/i386-netwlibc/rtl
+  -XPi386-netware-
 #ENDIF
 
     This adds the search path for the rtl-units as well as for the needed import-files.
@@ -98,10 +93,10 @@
     {$Description The FreePascal HelloWorld for Netware}
     {$Version 1.0.0}
     {$Copyright Copyright (c) 2001 The FreePascal Development Team}
-    {$Screenname The Pascal Hello World for Netware}
+    {$Screenname FPC Hello World for Netware}
 
     BEGIN
-      WriteLn ('This is open source ! FreePascal for netware');
+      WriteLn ('This is open source, FreePascal for netware');
     END.
 
     Hints on using freepascal for nlm's
@@ -118,7 +113,8 @@
                         above.
       $SCREENNAME     : Sets the screen-name (i.e. shown in ctrl-esc screen)
                         $SCREENNAME DEFAULT : output to logger screen
-			$SCREENNAME NONE    : no output at all
+			$SCREENNAME NONE    : no output at all (do not use this, writeln,
+			                      even from a runtime error may crash the sever)
 			$SCREENNAME MyScreen: Name the screen "MyScreen"
       $THREADNAME     : Sets the thread name (dont use names that are to long
                         for netware, that will prevent your nlm from loading)
@@ -179,32 +175,5 @@
        has to be changed to
 
         function NWAbortServicingQueueJob2;  CDecl; external 'calwin32.nlm';
-
-    - FreePascal RTL
-      --------------
-
-      Currently the following units are available for netware:
-
-        - SYSTEM
-        - CRT
-        - DOS
-        - SYSUTILS
-        - STRINGS
-        - KEYBOARD
-        - VIDEO
-        - MATH
-        - TYPINFO
-        - OBJECTS
-        - GETOPTS
-        - HEAPTRC
-        - VARUTILS
-        - CPU
-        - MMX
-	- WinSock2
-	- SYSTHRDS
-	- nwconio
-	- nwthreads
-	- nwsnut
-
 
 armin@freepascal.org

@@ -41,7 +41,7 @@ Type
   void      = pointer;
   cint      = longint;
   TNLMHandle = Pointer;
-  
+
 const
   NullNlmHandle = nil;
 
@@ -4523,22 +4523,28 @@ function RegisterCommand(NLMHandle:TNLMHandle; rTag:rtag_t; keywordFlags:dword; 
 { legacy command parsing; uses ConsoleCommandSignature...  }
 
 type
-   Parser_t = function (scrID:scr_t; commandline:Pchar):longint;cdecl;
+   TCommandParserFunc = function (scrID:scr_t; commandline:Pchar):longint;cdecl;
+
 { allocate with ConsoleCommandSignature  }
 
-   PCommandParser_t = ^TCommandParser;
-   TCommandParser = record
+   PCommandParserStructure = ^TCommandParserStructure;
+   TCommandParserStructure = record
         link   : pointer;
-        parser : Parser_t;
-        rTag   : rtag_t;
+        case longint of
+          0 : (parser : TCommandParserFunc; rTag : rtag_t);
+          1 : (parseRoutine : TCommandParserFunc; rTag2 : rtag_t);
      end;
-   PCommandParser = PCommandParser_t;
+   TCommandParser = TCommandParserStructure;
+   PCommandParser = PCommandParserStructure;
 
+const
+  HANDLEDCOMMAND  = 0;
+  NOTMYCOMMAND    = 1;
 
 function ParseCommand(commandLine:Pchar):longint;cdecl;external system_nlm name 'ParseCommand';
-function RegisterConsoleCommand(cmdParser:PCommandParser_t):longint;cdecl;external system_nlm name 'RegisterConsoleCommand';
+function RegisterConsoleCommand(cmdParser:PCommandParser):longint;cdecl;external system_nlm name 'RegisterConsoleCommand';
 function RegisterConsoleCommand(var cmdParser:TCommandParser):longint;cdecl;external system_nlm name 'RegisterConsoleCommand';
-function UnRegisterConsoleCommand(cmdParser:PCommandParser_t):longint;cdecl;external libc_nlm name 'UnRegisterConsoleCommand';
+function UnRegisterConsoleCommand(cmdParser:PCommandParser):longint;cdecl;external libc_nlm name 'UnRegisterConsoleCommand';
 function UnRegisterConsoleCommand(var cmdParser:TCommandParser):longint;cdecl;external libc_nlm name 'UnRegisterConsoleCommand';
 
     const
@@ -9111,7 +9117,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-12-16 12:42:55  armin
+  Revision 1.8  2004-12-29 13:01:43  armin
+  * made commandParser more compatible between clib and libc
+
+  Revision 1.7  2004/12/16 12:42:55  armin
   * added NetWare Alert
   * added sysutils.sleep
 

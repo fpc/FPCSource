@@ -1509,25 +1509,24 @@ type
 { Resource tag signatures for AllocateResourceTag  }
 
 const
-   AllocSignature = $54524C41;
-   AESProcessSignature = $50534541;
+   AllocSignature                 = $54524C41;
+   AESProcessSignature            = $50534541;
    CacheNonMovableMemorySignature = $544D4E43;
-   ConsoleCommandSignature = $4D4F4343;
-   HardwareInterruptSignature = $50544E49;
+   ConsoleCommandSignature        = $4D4F4343;
+   HardwareInterruptSignature     = $50544E49;
    InterruptTimeCallBackSignature = $524D4954;
-   SemiPermMemorySignature = $454D5053;
-   DebuggerSignature = $47554244;
-   BreakpointSignature = $54504B42;
-{ Data structure for RegisterConsoleCommand  }
-{ set by RegisterConsoleCommand  }
-{ parsing routing (user defined)  }
-{ set to resource tag  }
+   SemiPermMemorySignature        = $454D5053;
+   DebuggerSignature              = $47554244;
+   BreakpointSignature            = $54504B42;
+
 type
+   TCommandParserFunc = function (screenID    : scr_t;
+                                  commandLine : PChar):longint;cdecl;
    PcommandParserStructure = ^TcommandParserStructure;
-   TcommandParserStructure = record
-        Link : PcommandParserStructure;
-        parseRoutine : function (screenID:longint; commandLine:PBYTE):longint;cdecl;
-        RTag : longint;
+   TcommandParserStructure = record                 // Data structure for RegisterConsoleCommand
+        Link         : PcommandParserStructure;     // set by RegisterConsoleCommand
+        parseRoutine : TCommandParserFunc;          // parsing routing (user defined)
+        RTag         : longint;                     // set to resource tag
      end;
 
 {
@@ -1962,6 +1961,8 @@ const
    ECDetachedBit = $00000008;
    ECDirectFileSystemBit = $00000020;
    ECFileWriteThroughBit = $00000040;
+   HANDLEDCOMMAND  = 0;
+   NOTMYCOMMAND    = 1;
 {$include npackoff.inc}
 
 function AllocateResourceTag (NLMHandle:TNlmHandle;
@@ -2000,6 +2001,7 @@ function NWGetSearchPathElement (searchPathNumber:longint;
                                  searchPath:PChar):longint;cdecl;external 'clib' name 'NWGetSearchPathElement';
 function NWInsertSearchPath(searchPathNumber:longint; path:PChar):longint;cdecl;external 'clib' name 'NWInsertSearchPath';
 function RegisterConsoleCommand(newCommandParser:PcommandParserStructure):longint;cdecl;external 'clib' name 'RegisterConsoleCommand';
+function RegisterConsoleCommand(var newCommandParser:TcommandParserStructure):longint;cdecl;external 'clib' name 'RegisterConsoleCommand';
 function RegisterForEvent (eventType:longint;
                            reportProcedure:TreportProcedure;
                            warnProcedure:TwarnProcedure):longint;cdecl;external 'clib' name 'RegisterForEvent';
@@ -2032,6 +2034,7 @@ procedure SynchronizeStart;cdecl;external 'clib' name 'SynchronizeStart';
 function UnimportSymbol (NLMHandle:TNlmHandle;
                          symbolName:Pchar):longint;cdecl;external 'clib' name 'UnimportSymbol';
 function UnRegisterConsoleCommand (commandParserToDelete:PcommandParserStructure):longint;cdecl;external 'clib' name 'UnRegisterConsoleCommand';
+function UnRegisterConsoleCommand (var commandParserToDelete:TcommandParserStructure):longint;cdecl;external 'clib' name 'UnRegisterConsoleCommand';
 function UnregisterForEvent (eventHandle:longint):longint;cdecl;external 'clib' name 'UnregisterForEvent';
 {-nwfileio.h-------------------------------------------------------------------}
 type
@@ -5374,7 +5377,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-12-16 12:42:55  armin
+  Revision 1.6  2004-12-29 13:01:42  armin
+  * made commandParser more compatible between clib and libc
+
+  Revision 1.5  2004/12/16 12:42:55  armin
   * added NetWare Alert
   * added sysutils.sleep
 
