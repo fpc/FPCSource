@@ -173,12 +173,10 @@ cat <<EOFCFG > $thefile
 #-Fi/pp/inc;/pp/rtl/inc
 
 # searchpath for units and other system dependent things
--Fu$1/units/\$target
--Fu$1/units/\$target/*
--Fu$1/units/\$target/rtl
-# search path for cross compiled units
--Fu$1/cross/\$fpccpu-\$target/units/*
-#-Fu~/fpc/packages/*;~/fpc/rtl/linux
+-Fu$1/units/\$fpctarget
+-Fu$1/units/\$fpctarget/*
+-Fu$1/units/\$fpctarget/rtl
+#-Fu~/fpc/packages/base/*/units/$fpctarget;~/fpc/fcll/units/$fpctarget;~/fpc/rtl/units/$fpctarget
 
 # searchpath for libraries
 $GCCDIR
