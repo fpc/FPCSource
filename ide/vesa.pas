@@ -458,83 +458,6 @@ function SetVESAMode(const VideoMode: TVideoMode): Boolean;
      SetVESAMode:=SysSetVideoMode(VideoMode);
   end;
 
-procedure VesaUpdateScreen(Force: Boolean);
-{$ifdef TESTGRAPHIC}
-var
-  StoreDrawTextBackground,
-  MustUpdate : boolean;
-  x,y : longint;
-  w, prevcolor, prevbkcolor : word;
-  Color,BkCol,Col : byte;
-  Ch : char;
-{$endif TESTGRAPHIC}
-begin
-{$ifdef TESTGRAPHIC}
-  if not IsGraphicMode then
-{$endif TESTGRAPHIC}
-    begin
-      SysUpdateScreen(Force);
-      exit;
-    end;
-{$ifdef TESTGRAPHIC}
-  if FirstCallAfterSetVesaMode then
-    begin
-      { Make sure to redraw all }
-      Fillchar(OldVideoBuf^,VideoBufSize,#0);
-      FirstCallAfterSetVesaMode:=false;
-    end;
-  if not force then
-   begin
-     MustUpdate:=false;
-     asm
-        movl    VideoBuf,%esi
-        movl    OldVideoBuf,%edi
-        movl    VideoBufSize,%ecx
-        shrl    $2,%ecx
-        repe
-        cmpsl
-        setne   MustUpdate
-     end;
-   end;
-  StoreDrawTextBackground:=DrawTextBackground;
-  DrawTextBackground:=true;
-  if Force or MustUpdate then
-   begin
-     PrevColor:=GetColor;
-     PrevBkColor:=GetBkColor;
-
-     for y:=0 to ScreenHeight-1 do
-       for x:=0 to Screenwidth-1 do
-         begin
-           w:=VideoBuf^[x+y*ScreenWidth];
-           if Force or
-              (w<>OldVideoBuf^[x+y*ScreenWidth]) then
-             Begin
-               Color:=w shr 8;
-               Ch:=chr(w and $ff);
-               Col:=Color and $f;
-               if (Col = 0) and (GetMaxColor=255) then
-                 Col:=255;
-               SetColor(Col);
-               BkCol:=(Color shr 4) and 7;
-               if (BkCol = 0) and (GetMaxColor=255) then
-                 BkCol:=255;
-               SetBkColor(BkCol);
-               OutTextXY(x*8,y*8,Ch);
-               if not force then
-                 OldVideoBuf^[x+y*ScreenWidth]:=w;
-             End;
-         end;
-     if Force then
-       move(videobuf^,oldvideobuf^,
-         VideoBufSize);
-     SetColor(PrevColor);
-     SetBkColor(GetBkColor);
-   end;
-  DrawTextBackground:=StoreDrawTextBackground;
-{$endif TESTGRAPHIC}
-end;
-
 procedure VesaSetCursorPos(NewCursorX, NewCursorY: Word);
 begin
 {$ifdef TESTGRAPHIC}
@@ -619,6 +542,91 @@ begin
 {$endif TESTGRAPHIC}
 end;
 
+procedure VesaUpdateScreen(Force: Boolean);
+{$ifdef TESTGRAPHIC}
+var
+  StoreDrawTextBackground,
+  MustUpdate : boolean;
+  x,y : longint;
+  w, prevcolor,
+  prevbkcolor, StoreCursorType : word;
+  Color,BkCol,Col : byte;
+  Ch : char;
+{$endif TESTGRAPHIC}
+begin
+{$ifdef TESTGRAPHIC}
+  if not IsGraphicMode then
+{$endif TESTGRAPHIC}
+    begin
+      SysUpdateScreen(Force);
+      exit;
+    end;
+{$ifdef TESTGRAPHIC}
+  if FirstCallAfterSetVesaMode then
+    begin
+      { Make sure to redraw all }
+      Fillchar(OldVideoBuf^,VideoBufSize,#0);
+      FirstCallAfterSetVesaMode:=false;
+    end;
+  if not force then
+   begin
+     MustUpdate:=false;
+     asm
+        movl    VideoBuf,%esi
+        movl    OldVideoBuf,%edi
+        movl    VideoBufSize,%ecx
+        shrl    $2,%ecx
+        repe
+        cmpsl
+        setne   MustUpdate
+     end;
+   end;
+  StoreDrawTextBackground:=DrawTextBackground;
+  DrawTextBackground:=true;
+  if Force or MustUpdate then
+   begin
+     PrevColor:=GetColor;
+     PrevBkColor:=GetBkColor;
+
+     for y:=0 to ScreenHeight-1 do
+       for x:=0 to Screenwidth-1 do
+         begin
+           w:=VideoBuf^[x+y*ScreenWidth];
+           if Force or
+              (w<>OldVideoBuf^[x+y*ScreenWidth]) then
+             Begin
+               Color:=w shr 8;
+               Ch:=chr(w and $ff);
+               Col:=Color and $f;
+               if (Col = 0) and (GetMaxColor=255) then
+                 Col:=255;
+               SetColor(Col);
+               BkCol:=(Color shr 4) and 7;
+               if (BkCol = 0) and (GetMaxColor=255) then
+                 BkCol:=255;
+               SetBkColor(BkCol);
+               if (x=LastCursorX) and (Y=LastCursorY) then
+                 begin
+                   StoreCursorType:=LastCursorType;
+                   VesaSetCursorType(crHidden);
+                 end;
+               OutTextXY(x*8,y*8,Ch);
+               if (x=LastCursorX) and (Y=LastCursorY) then
+                 VesaSetCursorType(StoreCursorType);
+               if not force then
+                 OldVideoBuf^[x+y*ScreenWidth]:=w;
+             End;
+         end;
+     if Force then
+       move(videobuf^,oldvideobuf^,
+         VideoBufSize);
+     SetColor(PrevColor);
+     SetBkColor(GetBkColor);
+   end;
+  DrawTextBackground:=StoreDrawTextBackground;
+{$endif TESTGRAPHIC}
+end;
+
 procedure VesaDoneVideo;
 begin
 {$ifdef TESTGRAPHIC}
@@ -694,7 +702,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.5  2001-10-12 14:22:45  pierre
+  Revision 1.6  2001-10-12 21:50:15  pierre
+   * always remove cursor before updating the cursor cell
+
+  Revision 1.5  2001/10/12 14:22:45  pierre
    + graphic modes support enhanced
 
   Revision 1.4  2001/10/12 00:04:17  pierre
