@@ -1,6 +1,0 @@
-#
-#   Makefile.fpc for Fake compiler/gdb
-#
-
-[target]
-dirs=compiler gdb

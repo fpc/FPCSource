@@ -1,9 +1,0 @@
-#
-#   Makefile.fpc for Fake Compiler
-#
-
-[target]
-units=browcol compiler systems version comphook globtype tokens
-
-[default]
-fpcdir=../../..
