@@ -2598,7 +2598,7 @@ object.
 
 When the compiler encounters a call to an object's constructor,
 it sets up the stack frame for the call, and inserts a call to the
-\var{FPC\_HELP\_DESTRUCTOR} procedure before issuing the call to the real constructor.
+\var{FPC\_HELP\_CONSTRUCTOR} procedure before issuing the call to the real constructor.
 The helper procedure allocates the needed memory (if needed) and inserts the
 VMT pointer in the object. After that, the real constructor is called.
 
@@ -3250,7 +3250,7 @@ object files in one archive.
 Smartlinking and the creation of shared (or dynamic) libraries are mutually
 exclusive, that is, if you turn on smartlinking, then the creation of shared
 libraries is turned of. The creation of static libraries is still possible.
-The reason for this is that it has little sense in making a smarlinked
+The reason for this is that it has little sense in making a smartlinked
 dynamical library. The whole shared library is loaded into memory anyway by
 the dynamic linker (or the operating system), so there would be no gain in size by
 making it smartlinked.
