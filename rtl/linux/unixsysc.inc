@@ -86,8 +86,8 @@ begin
   {$else}
   assignPipe:=do_SysCall(SysCall_nr_pipe,longint(@pip));
   {$endif}
-  pipe_in:=pip[1];
-  pipe_out:=pip[2];
+  pipe_in:=pip[0];
+  pipe_out:=pip[1];
 end;
 
 Function PClose(Var F:text) :cint;
@@ -117,7 +117,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  2003-12-31 20:23:31  marco
+  Revision 1.25  2004-01-02 22:46:29  marco
+   * fix from Marc W.
+
+  Revision 1.24  2003/12/31 20:23:31  marco
    * small fixes for exporting statfs(pchar,..)
 
   Revision 1.23  2003/12/30 15:43:20  marco
