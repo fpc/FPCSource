@@ -75,13 +75,16 @@ function SystemTimeToFileTime(const lSystemTime:tSYSTEMTIME;var FileTime:tFILETI
 function ExtTextOut(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; _para5:pRECT;
              _para6:lpcstr; _para7:UINT; _para8:pointer):WINBOOL; external 'gdi32' name 'ExtTextOutA';
 function SetScrollInfo(_para1:HWND; _para2:longint; const _para3:TSCROLLINFO; _para4:WINBOOL):longint; external 'user32' name 'SetScrollInfo';
-function PtInRect(var lprc:TRECT; pt:TPOINT):WINBOOL; external 'user32' name 'PtInRect';
+// function PtInRect(var lprc:TRECT; pt:TPOINT):WINBOOL; external 'user32' name 'PtInRect';
 
 
 end.
 {
   $Log$
-  Revision 1.9  2000-04-22 17:46:05  marco
+  Revision 1.10  2000-04-22 19:51:08  marco
+   * Forgot to remove the tpoint stuff.
+
+  Revision 1.9  2000/04/22 17:46:05  marco
    * some redef fixes (for lazarus mwedit component)
 
   Revision 1.8  2000/03/19 20:30:27  marco

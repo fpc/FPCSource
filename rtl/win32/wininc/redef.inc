@@ -111,11 +111,14 @@ function ExtTextOut(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; _pa
              _para6:lpcstr; _para7:UINT; _para8:pointer):WINBOOL;
 
 function SetScrollInfo(_para1:HWND; _para2:longint;const _para3:TSCROLLINFO; _para4:WINBOOL):longint;
-function PtInRect(var lprc:TRECT; pt:TPOINT):WINBOOL;
+{function PtInRect(var lprc:TRECT; pt:TPOINT):WINBOOL;}
 
 {
   $Log$
-  Revision 1.5  2000-04-22 17:46:05  marco
+  Revision 1.6  2000-04-22 19:51:08  marco
+   * Forgot to remove the tpoint stuff.
+
+  Revision 1.5  2000/04/22 17:46:05  marco
    * some redef fixes (for lazarus mwedit component)
 
   Revision 1.4  2000/03/19 20:29:06  marco
