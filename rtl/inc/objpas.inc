@@ -130,11 +130,13 @@
       class function TObject.MethodAddress(const name : shortstring) : pointer;
 
         var
+	   UName : ShortString;
            methodtable : pmethodnametable;
            i : dword;
            c : tclass;
 
         begin
+	   UName := UpCase(name);
            c:=self;
            while assigned(c) do
              begin
@@ -142,7 +144,7 @@
                 if assigned(methodtable) then
                   begin
                      for i:=0 to methodtable^.count-1 do
-                       if methodtable^.entries[i].name^=name then
+                       if UpCase(methodtable^.entries[i].name^)=UName then
                          begin
                             MethodAddress:=methodtable^.entries[i].addr;
                             exit;
@@ -455,7 +457,9 @@
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:45  michael
-  + removed logs
- 
+  Revision 1.3  2000-07-22 14:52:01  sg
+  * Resolved CVS conflicts for TObject.MethodAddress patch
+
+  Revision 1.1.2.1  2000/07/22 14:46:57  sg
+  * Made TObject.MethodAddress case independent
 }
