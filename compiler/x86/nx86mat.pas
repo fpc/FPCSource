@@ -161,21 +161,40 @@ interface
     procedure tx86unaryminusnode.second_float;
       var
         reg : tregister;
+        href : treference;
+        l1 : tasmlabel;
       begin
         secondpass(left);
 
         if expectloc=LOC_MMREGISTER then
           begin
-            reg:=cg.getmmregister(exprasmlist,OS_M128);
-            { zero out the register
-              op size doesn't matter }
-            cg.a_opmm_reg_reg(exprasmlist,OP_XOR,OS_F32,reg,reg,nil);
-            { move to a mm compatible location }
-            if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
-              location_force_mem(exprasmlist,left.location);
-            cg.a_opmm_loc_reg(exprasmlist,OP_SUB,left.location.size,left.location,reg,mms_movescalar);
+            location_force_mmregscalar(exprasmlist,left.location,false);
             location_reset(location,LOC_MMREGISTER,def_cgsize(resulttype.def));
-            location.register:=reg;
+
+            { make life of register allocator easier }
+            location.register:=cg.getmmregister(exprasmlist,OS_M128);
+            cg.a_loadmm_reg_reg(exprasmlist,def_cgsize(resulttype.def),def_cgsize(resulttype.def),left.location.register,location.register,mms_movescalar);
+
+            reg:=cg.getmmregister(exprasmlist,OS_M128);
+
+            objectlibrary.getdatalabel(l1);
+            consts.concat(Tai_label.Create(l1));
+            case def_cgsize(resulttype.def) of
+              OS_F32:
+                consts.concat(tai_const.create_32bit(1 shl 31));
+              OS_F64:
+                begin
+                  consts.concat(tai_const.create_32bit(0));
+                  consts.concat(tai_const.create_32bit(-(1 shl 31)));
+                end
+              else
+                internalerror(2004110215);
+            end;
+
+            reference_reset_symbol(href,l1,0);
+            cg.a_loadmm_ref_reg(exprasmlist,def_cgsize(resulttype.def),def_cgsize(resulttype.def),href,reg,mms_movescalar);
+
+            cg.a_opmm_reg_reg(exprasmlist,OP_XOR,left.location.size,reg,location.register,nil);
           end
         else
           begin
@@ -304,7 +323,11 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-10-31 21:45:04  peter
+  Revision 1.8  2004-11-02 18:23:16  florian
+    * fixed -<sse register>
+    * information about simple moves for sse is given to the register allocator
+
+  Revision 1.7  2004/10/31 21:45:04  peter
     * generic tlocation
     * move tlocation to cgutils
 

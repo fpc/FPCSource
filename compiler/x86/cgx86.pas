@@ -691,19 +691,28 @@ unit cgx86;
 
 
     procedure tcgx86.a_loadmm_reg_reg(list: taasmoutput; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle);
-       begin
-         if shuffle=nil then
-           begin
-             if fromsize=tosize then
-               list.concat(taicpu.op_reg_reg(A_MOVAPS,S_NO,reg1,reg2))
-             else
-               internalerror(200312202);
-           end
-         else if shufflescalar(shuffle) then
-           list.concat(taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg1,reg2))
-         else
-           internalerror(200312201);
-       end;
+      var
+        instr : taicpu;
+      begin
+        if shuffle=nil then
+          begin
+            if fromsize=tosize then
+              instr:=taicpu.op_reg_reg(A_MOVAPS,S_NO,reg1,reg2)
+            else
+              internalerror(200312202);
+          end
+        else if shufflescalar(shuffle) then
+          instr:=taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg1,reg2)
+        else
+          internalerror(200312201);
+        case get_scalar_mm_op(fromsize,tosize) of
+          A_MOVSS,
+          A_MOVSD,
+          A_MOVQ:
+          add_move_instruction(instr);
+        end;
+        list.concat(instr);
+      end;
 
 
     procedure tcgx86.a_loadmm_ref_reg(list: taasmoutput; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle);
@@ -787,7 +796,7 @@ unit cgx86;
               A_NOP,A_ADDPS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_XORPS
             ),
             ( { OS_F64 }
-              A_NOP,A_ADDPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_XORPS
+              A_NOP,A_ADDPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_XORPD
             )
           )
         );
@@ -1720,7 +1729,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.136  2004-11-01 23:30:11  peter
+  Revision 1.137  2004-11-02 18:23:16  florian
+    * fixed -<sse register>
+    * information about simple moves for sse is given to the register allocator
+
+  Revision 1.136  2004/11/01 23:30:11  peter
     * support > 32bit accesses for x86_64
     * rewrote array size checking to support 64bit
 
