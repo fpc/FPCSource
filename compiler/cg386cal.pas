@@ -2087,29 +2087,11 @@ implementation
                  end;
                 emitoverflowcheck(p^.left^.left);
               end;
-{$ifdef OLDINC}
-            in_inc_byte..in_dec_dword:
-              begin
-                 secondpass(p^.left);
-                 if cs_check_overflow in aktlocalswitches then
-                   begin
-                   { SINCE THE CARRY FLAG IS NEVER SET BY DEC/INC, we must use  }
-                   { ADD and SUB to check for overflow for unsigned operations. }
-                     exprasmlist^.concat(new(pai386,op_const_ref(ad2instr[p^.inlinenumber],
-                       in2size[p^.inlinenumber],1,newreference(p^.left^.location.reference))));
-                     emitoverflowcheck(p^.left);
-                   end
-                 else
-                 exprasmlist^.concat(new(pai386,op_ref(in2instr[p^.inlinenumber],
-                   in2size[p^.inlinenumber],newreference(p^.left^.location.reference))));
-              end;
-{$endif OLDINC}
             in_assigned_x :
               begin
                  secondpass(p^.left^.left);
                  p^.location.loc:=LOC_FLAGS;
-                 if (p^.left^.left^.location.loc=LOC_REGISTER) or
-                    (p^.left^.left^.location.loc=LOC_CREGISTER) then
+                 if (p^.left^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                    begin
                       exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,
                         p^.left^.left^.location.register,
@@ -2192,15 +2174,13 @@ implementation
                         asmop:=A_BTR;
                       if psetdef(p^.left^.resulttype)^.settype=smallset then
                         begin
-                           if p^.left^.right^.left^.location.loc in
-                             [LOC_CREGISTER,LOC_REGISTER] then
+                           if p^.left^.right^.left^.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
                              hregister:=p^.left^.right^.left^.location.register
                            else
                              begin
                                 hregister:=R_EDI;
                                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                  newreference(p^.left^.right^.left^.location.reference),
-                                  R_EDI)));
+                                  newreference(p^.left^.right^.left^.location.reference),R_EDI)));
                              end;
                           if (p^.left^.left^.location.loc=LOC_REFERENCE) then
                             exprasmlist^.concat(new(pai386,op_reg_ref(asmop,S_L,R_EDI,
@@ -2316,7 +2296,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1998-08-20 21:36:38  peter
+  Revision 1.19  1998-08-31 08:52:03  peter
+    * fixed error 10 with succ() and pref()
+
+  Revision 1.18  1998/08/20 21:36:38  peter
     * fixed 'with object do' bug
 
   Revision 1.17  1998/08/19 16:07:36  jonas

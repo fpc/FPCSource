@@ -3910,6 +3910,7 @@ unit pass_1;
              in_pred_x,
              in_succ_x:
                begin
+                  inc(p^.registers32);
                   p^.resulttype:=p^.left^.resulttype;
                   p^.location.loc:=LOC_REGISTER;
                   if not is_ordinal(p^.resulttype) then
@@ -5326,7 +5327,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.65  1998-08-28 12:51:40  florian
+  Revision 1.66  1998-08-31 08:52:05  peter
+    * fixed error 10 with succ() and pref()
+
+  Revision 1.65  1998/08/28 12:51:40  florian
     + ansistring to pchar type cast fixed
 
   Revision 1.64  1998/08/28 10:54:22  peter
