@@ -646,17 +646,47 @@ specify a character with ASCII value less than 27. Thus \verb+^G+ equals
 \var{\#7} (G is the seventh letter in the alphabet.)
 If you want to represent the single quote character, type it two times
 successively, thus \var{''''} represents the single quote character.
-\subsection{Short Strings}
-\fpc supports the \var{String} type as it is defined in Turbo Pascal.
+
+\subsection{Strings}
+\fpc supports the \var{String} type as it is defined in Turbo Pascal and
+it supports ansistrings as in Delphi.
 To declare a variable as a string, use the following type specification:
 \input{syntax/sstring.syn}
-The predefined type{ShortString} is defined as a string of length 255.
-\fpc reserves \var{Size+1} bytes for the string \var{S}, and in the zeroeth
-element of the string (\var{S[0]}) it will store the length of the variable.
+
+The meaning of a string declaration statement is interpreted differently 
+depending on the \var{\{\$H\}} switch. The above declaration can declare an
+ansistrng or a short string.
+
+Whatever the actual type, ansistrings and short strings can be used
+interchangeably. The compile always takes care of the necessary type
+coversions. Note, however, that the result of an expression that contains
+ansstrings snd short strings will always be an ansistring. 
+
+\subsection{Short strings}
+
+A string declaration declares a short string in the following cases:
+
+\begin{enumerate}
+\item If the switch is off: \var{\{\$H-\}}, the string declaration 
+will always be a short string declaration.
+\item If the switch is on \var{\{\$H+\}}, and there is a length
+specifier, the declaration is a short string declaration.
+\end{enumerate}
+
+The predefined type \var{ShortString} is defined as a string of length 255:
+\begin{listing}
+ ShortString = String[255];
+\end{listing}
+
+For short strings \fpc reserves \var{Size+1} bytes for the string \var{S}, 
+and in the zeroeth element of the string (\var{S[0]}) it will store the 
+length of the variable.
 If you don't specify the size of the string, \var{255} is taken as a
 default.
 For example in 
 \begin{listing}
+{$H-}
+
 Type
    NameString = String[10];
    StreetString = String;
@@ -664,6 +694,119 @@ Type
 \var{NameString} can contain maximum 10 characters. While 
 \var{StreetString} can contain 255 characters. The sizes of these variables
 are, respectively, 11 and 256 bytes.
+
+\subsection{Ansistrings}
+
+If the \var{\{\$H\}} switch is on, then a string definition that doesn't
+contain a length specifier, will be regarded as an ansistring.
+
+Ansistrings are strings that have no length limit. They are reference
+counted. Internally, an ansistring is treated as a pointer.
+
+If the string is empty (\var{''}), then the pointer is nil.
+If the string is not empty, then the pointer points to a structure in 
+heap memory that looks as in seet{ansistrings}.
+
+\begin{FPCltable}{rl}{AnsiString memory structure}{ansistrings}
+Offset & Contains \\ \hline
+-12  & Longint with maximum string size. \\
+-8   & Longint with actual string size.\\
+-4   & Longint with reference count.\\
+0    & Actual string, null-terminated. \\ \hline
+\end{FPCltable}
+
+Because of this structure, it is possible to typecast an ansistring to a 
+pchar. If the string is empty (so the pointer is nil) then the compiler
+makes sure that the typecasted pchar will point to a null byte.
+
+AnsiStrings can be unlimited in length. Since the length is stored,
+the length of an ansistring is available immediatly, providing for fast
+access.
+
+Assigning one ansistring to another doesn't involve moving the actual
+string. A statement
+\begin{listing}
+  S2:=S1;
+\end{listing}
+results in the reference count of \var{S2} being decreased by one,
+The referece count of \var{S1} is increased by one, and finally \var{S1}
+(as a pointer) is copied to \var{S2}. This is a significant speed-up in
+your code. 
+
+If a reference count reaches zero, then the memory occupied by the
+string is deallocated automatically, so no memory leaks arise.
+
+When an ansistring is declared, the \fpc compiler initially 
+allocates just memory for a pointer, not more. This pinter is guaranteed
+to be nil, meaning that the string is initially empty. This is
+true for local, global or part of a structure (arrays, records or objects).
+
+This does introduce an overhead. For instance, declaring
+\begin{listing}
+Var 
+  A : Array[1..100000] of string;
+\end{listing}
+Will copy 1000000 times \var{nil} into A. When A goes out of scope, then
+the 100000 strings will be dereferenced one by one. All this happens
+invisibly for the programmer, but when considering performance issues,
+this is important.
+
+Memory will be allocated only when the string is assigned a value.
+If the string goes out of scope, then it is automatically dereferenced.
+
+If you assign a value to a character of a string that has a reference count
+greater than 1, such as in the following
+statements:
+\begin{listing}
+  S:=T;  { reference count for S and T is now 2 }
+  S[I]:='@';
+\end{listing}
+then a copy of the string is created before the assignment. This is known
+as {\em copy-on-write} semantics.
+
+It is impossible to access the length of an ansistring by referring to 
+the zeroeth character. The following statement will generate a compiler
+error if S is an ansistring:
+\begin{listing}
+  Len:=S[0];
+\end{listing}
+Instead, you must use the \seefl{Length} function to get the length of a 
+string.
+
+To set the length of an ansistring, you can use the \seepl{SetLength}
+function.
+Constant ansistrings have a reference count of -1 and are treated specially.
+
+Ansistrings are converted to short strings by the compiler if needed,
+this means that you can mix the use of ansistrings ans short strings
+without problems.
+
+You can typecast ansistrings to \var{PChar} or \var{Pointer} types:
+\begin{listing}
+Var P : Pointer;
+    PC : PChar;
+    S : AnsiString;
+
+begin
+  S :='This is an ansistring';
+  PC:=Pchar(S);
+  P :=Pointer(S);
+\end{listing}
+There is a difference between the two typecasts. If you typecast an empty
+string to a pointer, the pointer wil be \var{Nil}. If you typecast an empty
+ansistring to a \var{PChar}, then the result will be a pointer to a zero
+byte (an empty string).
+ 
+The result of such a typecast must be use with care. In general, it is best
+to consider the result of such a typecast as read-only, i.e. suitable for
+passing to a procedure that needs a constant pchar argument. 
+
+It is safe to use the result of such a typecast for modification ONLY 
+if the following  conditios are met:
+\begin{enumerate}
+\item If you're typecasting an expre
+\end{enumerate}
+\subsection{Constant strings}
  
 To specify a constant string, you enclose the string in single-quotes, just
 as a \var{Char} type, only now you can have more than one character.
@@ -680,6 +823,10 @@ ASCII value.
 The example shows also that you can add two strings. The resulting string is
 just the concatenation of the first with the second string, without spaces in
 between them. Strings can not be substracted, however.
+
+Whether the constant string is stord as an ansistring or a short string
+
+
 \subsection{PChar}
 \fpc supports the Delphi implementation of the \var{PChar} type. \var{PChar}
 is defined as a pointer to a \var{Char} type, but allows additional
@@ -2829,9 +2976,11 @@ Near & \fpc is a 32-bit compiler.\\
 Far & \fpc is a 32-bit compiler. \\
 %External & Replaced by \var{C} modifier. \\ \hline
 \end{FPCltable}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Programs, Units, Blocks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \chapter{Programs, units, blocks}
 A Pascal program consists of modules called \var{units}. A unit can be used
 to group pieces of code together, or to give someone code without giving
@@ -3019,6 +3168,34 @@ begin
 end.
 \end{listing}
 This is especially useful if you redeclare the system unit's identifiers.
+\section{Libraries}
+\fpc supports making of dynamic libraries (DLLs under Windows) trough
+the use of the \var{Library} keyword.
+
+A Library is just like a unit or a program:
+\input{syntax/library.syn}
+
+By default, functions and procedures that are declared and implemented in
+library are not available to a programmer that wishes to use your library.
+
+In order to make functions or procedures available from the library,
+you must export them in an export clause:
+
+\input{syntax/exports.syn}
+
+Under \windowsnt, an index clause can be added to an exports entry.
+an index entry must be a positive number larger or equal than 1.
+It is best to use low index values, although nothing forces you to 
+do this.
+
+Optionally, an exports entry can have a name specifier. If present, the name
+specifier gives the exavt name (case sensitive) of the function in the
+library.
+
+If neither of these constructs is present, the functions or procedures 
+are exported with the exact names as specified in the exports clause.
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Exceptions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3039,7 +3216,7 @@ executed irrespective of an exception occurrence or not. They generally
 serve to clean up memory or close files in case an exception occurs. 
 code.
 \end{description}
-\subsection{The raise statement}
+\section{The raise statement}
 The \var{raise} statement is as follows:
 \input{syntax/raise.syn}
 This statement will raise an exception. If it is specified, the exception 
