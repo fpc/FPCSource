@@ -86,6 +86,7 @@ End;
 {*****************************************************************************
                          Stack check code
 *****************************************************************************}
+{ cheking the stack is done system independend in 1.1
 procedure int_stackcheck(stack_size:longint);[public,alias:'FPC_STACKCHECK'];
 {
   called when trying to get local stack if the compiler directive $S
@@ -97,6 +98,7 @@ procedure int_stackcheck(stack_size:longint);[public,alias:'FPC_STACKCHECK'];
 }
 begin
 end;
+}
 
 {*****************************************************************************
                               ParamStr/Randomize
@@ -532,7 +534,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-01-05 20:06:30  florian
+  Revision 1.7  2003-01-05 20:22:24  florian
+    - removed stack check, it's system independend in 1.1
+
+  Revision 1.6  2003/01/05 20:06:30  florian
     + fixed missing SysInitStdIO
 
   Revision 1.5  2002/10/13 09:25:31  florian
