@@ -459,23 +459,25 @@ begin
 end;
 
 
+Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : longint);
+begin
+  If pointer(ErrorProc)<>Nil then
+    ErrorProc(Errno,pointer(addr));
+  errorcode:=Errno;
+  exitcode:=Errno;
+  erroraddr:=pointer(addr);
+  errorbase:=frame;
+  halt(errorcode);
+end;
+
 Procedure HandleErrorFrame (Errno : longint;frame : longint);
 {
   Procedure to handle internal errors, i.e. not user-invoked errors
   Internal function should ALWAYS call HandleError instead of RunError.
   Can be used for exception handlers to specify the frame
 }
-var
-  addr : longint;
 begin
-  addr:=get_caller_addr(frame);
-  If pointer(ErrorProc)<>Nil then
-    ErrorProc(Errno,pointer(addr));
-  errorcode:=Errno;
-  exitcode:=Errno;
-  erroraddr:=pointer(addr);
-  errorbase:=get_caller_frame(frame);
-  halt(errorcode);
+  HandleErrorAddrFrame(Errno,get_caller_addr(frame),get_caller_frame(frame));
 end;
 
 
@@ -613,7 +615,10 @@ end;
 
 {
   $Log$
-  Revision 1.84  2000-02-26 15:49:40  jonas
+  Revision 1.85  2000-03-14 07:31:57  pierre
+   + HandleErrorAddrFrame
+
+  Revision 1.84  2000/02/26 15:49:40  jonas
     + new str_real which is completely TP compatible regarding output
       format and which should have no rounding errors anymore
 
