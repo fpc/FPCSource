@@ -612,10 +612,10 @@ begin
   dosregs.si:=1; { use ms-dos time }
   dosregs.ecx:=attr;
   dosregs.edx:=tb_offset+Sizeof(LFNSearchrec)+1;
-  dosmemput(tb_selector,tb_offset+Sizeof(LFNSearchrec)+1,path^,strlen(path)+1);
-  dosregs.ds:=tb_selector;
+  dosmemput(tb_segment,tb_offset+Sizeof(LFNSearchrec)+1,path^,strlen(path)+1);
+  dosregs.ds:=tb_segment;
   dosregs.edi:=tb_offset;
-  dosregs.es:=tb_selector;
+  dosregs.es:=tb_segment;
   dosregs.ax:=$714e;
   msdos(dosregs);
   LoadDosError;
@@ -632,7 +632,7 @@ begin
   Move(s.Fill,hdl,4);
   dosregs.si:=1; { use ms-dos time }
   dosregs.edi:=tb_offset;
-  dosregs.es:=tb_selector;
+  dosregs.es:=tb_segment;
   dosregs.ebx:=hdl;
   dosregs.ax:=$714f;
   msdos(dosregs);
@@ -681,13 +681,13 @@ begin
     if path[i]='/' then path[i]:='\';
   copytodos(f,sizeof(searchrec));
   dosregs.edx:=tb_offset;
-  dosregs.ds:=tb_selector;
+  dosregs.ds:=tb_segment;
   dosregs.ah:=$1a;
   msdos(dosregs);
   dosregs.ecx:=attr;
   dosregs.edx:=tb_offset+Sizeof(searchrec)+1;
-  dosmemput(tb_selector,tb_offset+Sizeof(searchrec)+1,path^,strlen(path)+1);
-  dosregs.ds:=tb_selector;
+  dosmemput(tb_segment,tb_offset+Sizeof(searchrec)+1,path^,strlen(path)+1);
+  dosregs.ds:=tb_segment;
   dosregs.ah:=$4e;
   msdos(dosregs);
   copyfromdos(f,sizeof(searchrec));
@@ -700,7 +700,7 @@ procedure Dosfindnext(var f : searchrec);
 begin
   copytodos(f,sizeof(searchrec));
   dosregs.edx:=tb_offset;
-  dosregs.ds:=tb_selector;
+  dosregs.ds:=tb_segment;
   dosregs.ah:=$1a;
   msdos(dosregs);
   dosregs.ah:=$4f;
@@ -1022,17 +1022,17 @@ begin
 {$ifdef GO32V2}
   copytodos(filerec(f).name,strlen(filerec(f).name)+1);
   dosregs.edx:=tb_offset;
-  dosregs.ds:=tb_selector;
-{$else}
-  strpcopy(n,filerec(f).name);
-  dosregs.edx:=longint(@n);
-{$endif}
+  dosregs.ds:=tb_segment;
   if LFNSupport then
    begin
      dosregs.ax:=$7143;
      dosregs.bx:=0;
    end
   else
+{$else}
+  strpcopy(n,filerec(f).name);
+  dosregs.edx:=longint(@n);
+{$endif GO32V2}
    dosregs.ax:=$4300;
   msdos(dosregs);
   LoadDosError;
@@ -1049,17 +1049,17 @@ begin
 {$ifdef GO32V2}
   copytodos(filerec(f).name,strlen(filerec(f).name)+1);
   dosregs.edx:=tb_offset;
-  dosregs.ds:=tb_selector;
-{$else}
-  strpcopy(n,filerec(f).name);
-  dosregs.edx:=longint(@n);
-{$endif}
+  dosregs.ds:=tb_segment;
   if LFNSupport then
    begin
      dosregs.ax:=$7143;
      dosregs.bx:=1;
    end
   else
+{$else}
+  strpcopy(n,filerec(f).name);
+  dosregs.edx:=longint(@n);
+{$endif}
    dosregs.ax:=$4301;
   dosregs.cx:=attr;
   msdos(dosregs);
@@ -1139,7 +1139,14 @@ End;
 end.
 {
   $Log$
-  Revision 1.9  1998-08-26 10:04:01  peter
+  Revision 1.10  1998-08-27 10:30:48  pierre
+    * go32v1 RTL did not compile (LFNsupport outside go32v2 defines !)
+      I renamed tb_selector to tb_segment because
+        it is a real mode segment as opposed to
+        a protected mode selector
+      Fixed it for go32v1 (remove the $E0000000 offset !)
+
+  Revision 1.9  1998/08/26 10:04:01  peter
     * new lfn check from mailinglist
     * renamed win95 -> LFNSupport
     + tb_selector, tb_offset for easier access to transferbuffer
@@ -1168,3 +1175,4 @@ end.
     * fixed read_text_as_array
     + read_text_as_pchar which was not yet in the rtl
 }
+

@@ -159,7 +159,7 @@ unit go32;
     function get_run_mode : word;
 
     function transfer_buffer : longint;
-    function tb_selector : longint;
+    function tb_segment : longint;
     function tb_offset : longint;
     function tb_size : longint;
     procedure copytodos(var addr; len : longint);
@@ -215,7 +215,7 @@ var
 {$ifndef go32v2}
 
     { the following procedures copy from and to DOS memory without DPMI,
-      these are not necessary for go32v2, becuase that requires dpmi (PFV) }
+      these are not necessary for go32v2, because that requires dpmi (PFV) }
 
     procedure raw_dosmemput(seg : word;ofs : word;var data;count : longint);
 
@@ -1163,9 +1163,14 @@ end ['EAX','EDX'];
       end;
 
 
-    function tb_selector : longint;
+    function tb_segment : longint;
       begin
-        tb_selector:=go32_info_block.linear_address_of_transfer_buffer shr 4;
+{$ifdef go32v2}
+        tb_segment:=go32_info_block.linear_address_of_transfer_buffer shr 4;
+{$else  i.E. for go32v1}
+        { all real mode memory is mapped to $E000000 location !! }
+        tb_segment:=(go32_info_block.linear_address_of_transfer_buffer shr 4) and $FFFF;
+{$endif go32v2}
       end;
 
 
@@ -1226,7 +1231,14 @@ end.
 
 {
   $Log$
-  Revision 1.11  1998-08-26 10:04:02  peter
+  Revision 1.12  1998-08-27 10:30:50  pierre
+    * go32v1 RTL did not compile (LFNsupport outside go32v2 defines !)
+      I renamed tb_selector to tb_segment because
+        it is a real mode segment as opposed to
+        a protected mode selector
+      Fixed it for go32v1 (remove the $E0000000 offset !)
+
+  Revision 1.11  1998/08/26 10:04:02  peter
     * new lfn check from mailinglist
     * renamed win95 -> LFNSupport
     + tb_selector, tb_offset for easier access to transferbuffer

@@ -117,8 +117,6 @@ var
   procedure sysrealintr(intnr : word;var regs : trealregs);
   function  tb : longint;
 
-
-
 implementation
 
 { include system independent routines }
@@ -213,9 +211,9 @@ begin
 end;
 
 
-function tb_selector : longint;
+function tb_segment : longint;
 begin
-  tb_selector:=go32_info_block.linear_address_of_transfer_buffer shr 4;
+  tb_segment:=go32_info_block.linear_address_of_transfer_buffer shr 4;
 end;
 
 
@@ -624,7 +622,7 @@ begin
   AllowSlash(p);
   syscopytodos(longint(p),strlen(p)+1);
   regs.realedx:=tb_offset;
-  regs.realds:=tb_selector;
+  regs.realds:=tb_segment;
 {$ifndef RTLLITE}
   if LFNSupport then
    regs.realeax:=$7141
@@ -651,8 +649,8 @@ begin
   sysseg_move(get_ds,longint(p1),dos_selector,tb+strlen(p2)+2,strlen(p1)+1);
   regs.realedi:=tb_offset;
   regs.realedx:=tb_offset + strlen(p2)+2;
-  regs.realds:=tb_selector;
-  regs.reales:=tb_selector;
+  regs.realds:=tb_segment;
+  regs.reales:=tb_segment;
 {$ifndef RTLLITE}
   if LFNSupport then
    regs.realeax:=$7156
@@ -682,7 +680,7 @@ begin
      syscopytodos(addr+writesize,size);
      regs.realecx:=size;
      regs.realedx:=tb_offset;
-     regs.realds:=tb_selector;
+     regs.realds:=tb_segment;
      regs.realebx:=h;
      regs.realeax:=$4000;
      sysrealintr($21,regs);
@@ -713,7 +711,7 @@ begin
       size:=len;
      regs.realecx:=size;
      regs.realedx:=tb_offset;
-     regs.realds:=tb_selector;
+     regs.realds:=tb_segment;
      regs.realebx:=h;
      regs.realeax:=$3f00;
      sysrealintr($21,regs);
@@ -809,7 +807,7 @@ begin
   do_seek(handle,pos);
   regs.realecx:=0;
   regs.realedx:=tb_offset;
-  regs.realds:=tb_selector;
+  regs.realds:=tb_segment;
   regs.realebx:=handle;
   regs.realeax:=$4000;
   sysrealintr($21,regs);
@@ -880,7 +878,7 @@ begin
 {$endif RTLLITE}
    regs.realeax:=$6c00;
   regs.realedx:=action;
-  regs.realds:=tb_selector;
+  regs.realds:=tb_segment;
   regs.realesi:=tb_offset;
   regs.realebx:=$2000+(flags and $ff);
   regs.realecx:=$20;
@@ -956,7 +954,7 @@ begin
   AllowSlash(pchar(@buffer));
   syscopytodos(longint(@buffer),length(s)+1);
   regs.realedx:=tb_offset;
-  regs.realds:=tb_selector;
+  regs.realds:=tb_segment;
 {$ifndef RTLLITE}
   if LFNSupport then
    regs.realeax:=$7100+func
@@ -1001,7 +999,7 @@ var
 begin
   regs.realedx:=drivenr;
   regs.realesi:=tb_offset;
-  regs.realds:=tb_selector;
+  regs.realds:=tb_segment;
 {$ifndef RTLLITE}
   if LFNSupport then
    regs.realeax:=$7147
@@ -1059,10 +1057,10 @@ begin
   Buffers:='                    '+#0;
   syscopytodos(longint(RootName),strlen(RootName)+1);
   regs.realeax:=$71a0;
-  regs.reales:=tb_selector;
+  regs.reales:=tb_segment;
   regs.realedi:=tb_offset;
   regs.realecx:=strlen(Buffers)+1;
-  regs.realds:=tb_selector;
+  regs.realds:=tb_segment;
   regs.realedx:=tb_offset;
   sysrealintr($21,regs);
   syscopyfromdos(longint(Buffers),strlen(Buffers)+1);
@@ -1090,7 +1088,14 @@ Begin
 End.
 {
   $Log$
-  Revision 1.16  1998-08-26 10:04:03  peter
+  Revision 1.17  1998-08-27 10:30:51  pierre
+    * go32v1 RTL did not compile (LFNsupport outside go32v2 defines !)
+      I renamed tb_selector to tb_segment because
+        it is a real mode segment as opposed to
+        a protected mode selector
+      Fixed it for go32v1 (remove the $E0000000 offset !)
+
+  Revision 1.16  1998/08/26 10:04:03  peter
     * new lfn check from mailinglist
     * renamed win95 -> LFNSupport
     + tb_selector, tb_offset for easier access to transferbuffer
