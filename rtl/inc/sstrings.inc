@@ -479,23 +479,23 @@ begin
    begin
    { Read integer part }
       flags:=flags or 1;
-      valfloat:=valfloat*10;
-      valfloat:=valfloat+(ord(s[code])-ord('0'));
+      valfloat:=valfloat*10+(ord(s[code])-ord('0'));
       inc(code);
    end;
 { Decimal ? }
   if (s[code]='.') and (length(s)>=code) then
    begin
-      hd:=0.1;
+      hd:=1.0;
       inc(code);
       while (s[code] in ['0'..'9']) and (length(s)>=code) do
         begin
            { Read fractional part. }
            flags:=flags or 2;
-           valfloat:=valfloat+hd*(ord(s[code])-ord('0'));
-           hd:=hd/10.0;
+           valfloat:=valfloat*10+(ord(s[code])-ord('0'));
+           hd:=hd*10.0;
            inc(code);
         end;
+      valfloat:=valfloat/hd;
    end;
  { Again, read integer and fractional part}
   if flags=0 then
@@ -528,12 +528,20 @@ begin
         end;
    end;
 { Calculate Exponent }
+{
   if esign>0 then
     for i:=1 to exponent do
       valfloat:=valfloat*10
     else
       for i:=1 to exponent do
-        valfloat:=valfloat/10;
+        valfloat:=valfloat/10; }
+  hd:=1.0;
+  for i:=1 to exponent do
+    hd:=hd*10.0;
+  if esign>0 then
+    valfloat:=valfloat*hd
+  else
+    valfloat:=valfloat/hd;
 { Not all characters are read ? }
   if length(s)>=code then
    begin
@@ -563,7 +571,10 @@ end;
 
 {
   $Log$
-  Revision 1.34  2000-02-09 16:59:31  peter
+  Revision 1.35  2000-04-06 11:51:47  pierre
+   * fix for extended constants
+
+  Revision 1.34  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.33  2000/01/07 16:41:36  daniel
