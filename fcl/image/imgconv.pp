@@ -19,7 +19,7 @@ program ImgConv;
 {_$define UseFile}
 
 uses FPWriteXPM, FPWritePNG, FPWriteBMP,
-     FPReadXPM, FPReadPNG, FPReadBMP,
+     FPReadXPM, FPReadPNG, FPReadBMP, fpreadjpeg,fpwritejpeg,
      {$ifndef UseFile}classes,{$endif}
      FPImage, sysutils;
 
@@ -38,8 +38,15 @@ begin
       Reader := TFPReaderXPM.Create
     else if T = 'B' then
       Reader := TFPReaderBMP.Create
+    else if T = 'J' then
+      Reader := TFPReaderJPEG.Create
+    else if T = 'P' then
+      Reader := TFPReaderPNG.Create
     else
-      Reader := TFPReaderPNG.Create;
+      begin
+      Writeln('Unknown file format : ',T);
+      Halt(1);
+      end;  
     ReadFile := paramstr(2);
     WriteOptions := paramstr(3);
     WriteFile := paramstr(4);
@@ -57,8 +64,15 @@ begin
     Writer := TFPWriterXPM.Create
   else if T = 'B' then
     Writer := TFPWriterBMP.Create
-  else
-    Writer := TFPWriterPNG.Create;
+  else if T = 'J' then
+    Writer := TFPWriterJPEG.Create
+  else if T = 'P' then
+    Writer := TFPWriterPNG.Create
+  else 
+    begin
+    Writeln('Unknown file format : ',T);
+    Halt(1);
+    end;
   img := TFPMemoryImage.Create(0,0);
 end;
 
@@ -123,7 +137,7 @@ begin
   if (paramcount <> 4) and (paramcount <> 3) then
     begin
     writeln ('Give filename to read and to write, preceded by filetype:');
-    writeln ('X for XPM, P for PNG, B for BMP (write only)');
+    writeln ('X for XPM, P for PNG, B for BMP (write only), J for JPEG');
     writeln ('example: imgconv X hello.xpm P hello.png');
     writeln ('example: imgconv hello.xpm P hello.png');
     writeln ('Options for');
