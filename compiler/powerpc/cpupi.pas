@@ -80,6 +80,9 @@ unit cpupi;
       begin
          if not(po_assembler in procdef.procoptions) then
            begin
+             procdef.parast.address_fixup := 0;
+             allocate_implicit_parameter;
+             procdef.localst.address_fixup := procdef.parast.address_fixup + procdef.parast.datasize;
              ofs:=align(maxpushedparasize+LinkageAreaSize,16);
              inc(procdef.parast.address_fixup,ofs);
              inc(framepointer_offset,ofs);
@@ -119,7 +122,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2003-05-16 23:15:51  jonas
+  Revision 1.18  2003-05-17 14:05:30  jonas
+    * fixed para/localst calculations (note to self: don't commit at
+      extremely late/early hours :)
+
+  Revision 1.17  2003/05/16 23:15:51  jonas
     * workaround for nested procedures until Peter fixes it properly :)
 
   Revision 1.16  2003/05/16 20:00:39  jonas
