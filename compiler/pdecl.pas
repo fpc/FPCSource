@@ -190,11 +190,10 @@ unit pdecl;
                 end;
               COLON:
                 begin
-                   consume(COLON);
-                   { this was missed, so const s : ^string = nil gives an
-                     error (FK)
-                   }
+                   { set the blocktype first so a consume also supports a
+                     caret, to support const s : ^string = nil }
                    block_type:=bt_type;
+                   consume(COLON);
                    ignore_equal:=true;
                    def:=read_type('');
                    ignore_equal:=false;
@@ -2124,7 +2123,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.89  1998-12-11 00:03:30  peter
+  Revision 1.90  1998-12-15 17:16:00  peter
+    * fixed const s : ^string
+    * first things for const pchar : @string[1]
+
+  Revision 1.89  1998/12/11 00:03:30  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.88  1998/11/30 09:43:20  pierre

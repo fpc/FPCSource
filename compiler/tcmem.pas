@@ -349,6 +349,9 @@ implementation
       var
          harr : pdef;
          ct : tconverttype;
+{$ifdef consteval}	 
+         tcsym : ptypedconstsym;
+{$endif}	 
       begin
          firstpass(p^.left);
          firstpass(p^.right);
@@ -368,17 +371,14 @@ implementation
          { Never convert a boolean or a char !}
          { maybe type conversion }
          if (p^.right^.resulttype^.deftype<>enumdef) and
-          not ((p^.right^.resulttype^.deftype=orddef) and
-          (Porddef(p^.right^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit,uchar])) then
-                begin
-                        p^.right:=gentypeconvnode(p^.right,s32bitdef);
-                        { once more firstpass }
-                        {?? It's better to only firstpass when the tree has
-                         changed, isn't it ?}
-                        firstpass(p^.right);
-                end;
-         if codegenerror then
-           exit;
+            not(is_char(p^.right^.resulttype)) and
+            not(is_boolean(p^.right^.resulttype)) then
+           begin
+             p^.right:=gentypeconvnode(p^.right,s32bitdef);
+             firstpass(p^.right);
+             if codegenerror then
+              exit;
+           end;
 
          { determine return type }
          if not assigned(p^.resulttype) then
@@ -413,6 +413,18 @@ implementation
          { the register calculation is easy if a const index is used }
          if p^.right^.treetype=ordconstn then
            begin
+{$ifdef consteval}
+              { constant evaluation }
+              if (p^.left^.treetype=loadn) and
+                 (p^.left^.symtableentry^.typ=typedconstsym) then
+               begin
+                 tcsym:=ptypedconstsym(p^.left^.symtableentry);
+                 if tcsym^.defintion^.typ=stringdef then
+                  begin
+
+                  end;
+               end;
+{$endif}
               p^.registers32:=p^.left^.registers32;
 
               { for ansi/wide strings, we need at least one register }
@@ -508,7 +520,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-12-11 00:03:57  peter
+  Revision 1.6  1998-12-15 17:16:02  peter
+    * fixed const s : ^string
+    * first things for const pchar : @string[1]
+
+  Revision 1.5  1998/12/11 00:03:57  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.4  1998/11/25 19:12:53  pierre

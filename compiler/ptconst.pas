@@ -214,22 +214,24 @@ unit ptconst;
                 if p^.treetype=addrn then
                   begin
                     hp:=p^.left;
-                    while assigned(hp) and (hp^.treetype=subscriptn) do
+                    while assigned(hp) and (hp^.treetype in [subscriptn,vecn]) do
                       hp:=hp^.left;
                     if (is_equal(ppointerdef(p^.resulttype)^.definition,ppointerdef(def)^.definition) or
                        (is_equal(ppointerdef(p^.resulttype)^.definition,voiddef)) or
                        (is_equal(ppointerdef(def)^.definition,voiddef))) and
-                       (hp^.treetype = loadn) then
+                       (hp^.treetype=loadn) then
                       begin
                         firstpass(p^.left);
                         hp:=p^.left;
                         offset:=0;
                         while assigned(hp) and (hp^.treetype<>loadn) do
                           begin
-                             if hp^.treetype=subscriptn then
-                               inc(offset,hp^.vs^.address)
+                             case hp^.treetype of
+                               vecn       : internalerror(9779);
+                               subscriptn : inc(offset,hp^.vs^.address)
                              else
                                Message(cg_e_illegal_expression);
+                             end;
                              hp:=hp^.left;
                           end;
                         datasegment^.concat(new(pai_const_symbol_offset,init(
@@ -659,7 +661,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.32  1998-12-11 16:50:23  florian
+  Revision 1.33  1998-12-15 17:16:01  peter
+    * fixed const s : ^string
+    * first things for const pchar : @string[1]
+
+  Revision 1.32  1998/12/11 16:50:23  florian
     + typed const int64 and qword
     + unary minus-operator  q1:=-q2;
     + not-operator
