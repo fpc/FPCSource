@@ -28,6 +28,7 @@ unit typinfo;
     type
        PShortString =^ShortString;
        PByte        =^Byte;
+       PWord        =^Word;
        PLongint     =^Longint;
        PBoolean     =^Boolean;
        PSingle      =^Single;
@@ -204,7 +205,7 @@ unit typinfo;
     function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
 
   implementation
-
+uses sysutils;
 {$ASMMODE ATT}
 
     function CallIntegerFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Integer;assembler;
@@ -214,10 +215,11 @@ unit typinfo;
          // ? Indexed function
          movl Index,%eax
          xorl %eax,%eax
-         jnz .LINoPush
+         je .LINoPush
          movl IValue,%eax
          pushl %eax
       .LINoPush:
+         push %esi
          call %edi
          // now the result is in EAX
       end;
@@ -232,10 +234,11 @@ unit typinfo;
          // ? Indexed procedure
          movl Index,%eax
          xorl %eax,%eax
-         jnz .LIPNoPush
+         je .LIPNoPush
          movl IValue,%eax
          pushl %eax
       .LIPNoPush:
+         pushl %esi
          call %edi
       end;
 
@@ -246,10 +249,11 @@ unit typinfo;
          // ? Indexed function
          movl Index,%eax
          xorl %eax,%eax
-         jnz .LINoPush
+         je .LINoPush
          movl IValue,%eax
          pushl %eax
       .LINoPush:
+         push %esi
          call %edi
          // 
       end;
@@ -266,10 +270,11 @@ unit typinfo;
          // ? Indexed procedure
          movl Index,%eax
          xorl %eax,%eax
-         jnz .LIPNoPush
+         je .LIPNoPush
          movl IValue,%eax
          pushl %eax
       .LIPNoPush:
+         push %esi
          call %edi
       end;
 
@@ -280,10 +285,11 @@ unit typinfo;
          // ? Indexed function
          movl Index,%eax
          xorl %eax,%eax
-         jnz .LBNoPush
+         je .LBNoPush
          movl IValue,%eax
          pushl %eax
       .LBNoPush:
+         push %esi
          call %edi
       end;
 
@@ -305,6 +311,7 @@ unit typinfo;
          // the result is stored in an invisible parameter
          pushl Res
       .LSSNoPush:
+         push %esi
          call %edi
       end;
 
@@ -322,6 +329,7 @@ unit typinfo;
          movl IValue,%eax
          pushl %eax
       .LSSPNoPush:
+         push %esi
          call %edi
       end;
 
@@ -370,7 +378,7 @@ unit typinfo;
             ptstatic:
               IsStoredProp:=CallBooleanFunc(Instance,PropInfo^.StoredProc,0,0);
             ptvirtual:
-              IsStoredProp:=CallBooleanFunc(Instance,(PPointer(Instance.ClassType)+Longint(PropInfo^.StoredProc)),0,0);
+              IsStoredProp:=CallBooleanFunc(Instance,(PPointer(Instance.ClassType)+Longint(PropInfo^.StoredProc))^,0,0);
             ptconst:
               IsStoredProp:=LongBool(PropInfo^.StoredProc);
          end;
@@ -460,7 +468,7 @@ unit typinfo;
 
     begin
     Index:=((P^.PropProcs shr 6) and 1);
-    If Index=0 then
+    If Index<>0 then
       IValue:=P^.Index
     else
       IValue:=0;
@@ -480,7 +488,7 @@ unit typinfo;
               Value:=CallIntegerFunc(Instance,PropInfo^.GetProc,Index,IValue);
             ptvirtual:
               Value:=CallIntegerFunc(Instance,
-                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)),
+                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,
                                      Index,IValue);
          end;
          { cut off unnecessary stuff }
@@ -496,25 +504,36 @@ unit typinfo;
     procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;
       Value : Longint);
 
-      Var Index,IValue : Longint;
+      var
+        Index,IValue : Longint;
+	DataSize: Integer;
 
       begin
          { cut off unnecessary stuff }
          case GetTypeData(PropInfo^.PropType)^.OrdType of
-            otSWord,otUWord:
-              Value:=Value and $ffff;
-            otSByte,otUByte:
-              Value:=Value and $ff;
+            otSWord,otUWord: begin
+                Value:=Value and $ffff;
+	        DataSize := 2;
+	      end;
+            otSByte,otUByte: begin
+                Value:=Value and $ff;
+	        DataSize := 1;
+	    end;
+	   else DataSize := 4;
          end;
          SetIndexValues(PropInfo,Index,Ivalue);
          case (PropInfo^.PropProcs shr 2) and 3 of
             ptfield:
-              PLongint(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+	      case DataSize of
+	        1: PByte(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Byte(Value);
+		2: PWord(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Word(Value);
+                4: PLongint(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+	      end;
             ptstatic:
               CallIntegerProc(Instance,PropInfo^.SetProc,Value,Index,IValue);
             ptvirtual:
               CallIntegerProc(Instance,
-                              (PPointer(Instance.ClassType)+Longint(PropInfo^.SetProc)),
+                              (PPointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,
                               Value,Index,IValue);
          end;
       end;
@@ -539,7 +558,7 @@ unit typinfo;
               Value:=Pointer(CallIntegerFunc(Instance,PropInfo^.GetProc,Index,IValue));
             ptvirtual:
               Value:=Pointer(CallIntegerFunc(Instance,
-                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)),
+                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,
                                      Index,IValue));
          end;
          GetAstrProp:=Value;
@@ -560,7 +579,7 @@ unit typinfo;
              CallSStringFunc(Instance,PropInfo^.GetProc,Index,IValue,Value);
             ptvirtual:
              CallSSTringFunc(Instance,
-                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)),
+                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,
                                      Index,Ivalue,Value);
          end;
          GetSStrProp:=Value;
@@ -577,7 +596,6 @@ unit typinfo;
       end;
       end;
 
-
     procedure SetAStrProp(Instance : TObject;PropInfo : PPropInfo;
       const Value : AnsiString);
 
@@ -588,7 +606,6 @@ unit typinfo;
 
       var
          Index,Ivalue : Longint;
-
       begin
          SetIndexValues(PropInfo,Index,IValue);
          case (PropInfo^.PropProcs shr 2) and 3 of
@@ -598,7 +615,7 @@ unit typinfo;
               CallIntegerProc(Instance,PropInfo^.SetProc,Longint(Pointer(Value)),Index,IValue);
             ptvirtual:
               CallIntegerProc(Instance,
-                              (PPointer(Instance.ClassType)+Longint(PropInfo^.SetProc)),
+                              (PPointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,
                               Longint(Pointer(Value)),Index,IValue);
          end;
       end;
@@ -617,7 +634,7 @@ unit typinfo;
               CallSStringProc(Instance,PropInfo^.GetProc,Value,Index,IValue);
             ptvirtual:
               CallSStringProc(Instance,
-                              (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)),
+                              (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,
                               Value,Index,IValue);
          end;
     end;
@@ -663,7 +680,7 @@ unit typinfo;
               Value:=CallExtendedFunc(Instance,PropInfo^.GetProc,Index,IValue);
             ptvirtual:
               Value:=CallExtendedFunc(Instance,
-                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)),
+                                     (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,
                                      Index,IValue);
          end;
          Result:=Value;
@@ -698,7 +715,7 @@ unit typinfo;
               CallExtendedProc(Instance,PropInfo^.SetProc,Value,Index,IValue);
             ptvirtual:
               CallExtendedProc(Instance,
-                               (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)),
+                               (PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,
                                Value,Index,IValue);
          end;
       end;
@@ -774,7 +791,10 @@ end.
 
 {
   $Log$
-  Revision 1.25  1999-08-29 22:21:27  michael
+  Revision 1.26  1999-09-03 15:39:23  michael
+  * Fixes from Sebastian Guenther
+
+  Revision 1.25  1999/08/29 22:21:27  michael
   * Patch from Sebastian Guenther
 
   Revision 1.24  1999/08/06 13:21:40  michael
