@@ -1901,11 +1901,11 @@ implementation
             localsymtable,
             parasymtable,
             staticsymtable :
-              break;
+              exit;
             globalsymtable :
               begin
                 findunitsymtable:=st;
-                break;
+                exit;
               end;
             objectsymtable :
               st:=st.defowner.owner;
@@ -1914,7 +1914,10 @@ implementation
                 { don't continue when the current
                   symtable is used for variant records }
                 if trecorddef(st.defowner).isunion then
-                 st:=nil
+                 begin
+                   findunitsymtable:=nil;
+                   exit;
+                 end
                 else
                  st:=st.defowner.owner;
               end;
@@ -2308,7 +2311,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2002-09-09 17:34:16  peter
+  Revision 1.72  2002-09-09 19:41:46  peter
+    * real fix internalerror for dup ids in union sym
+
+  Revision 1.71  2002/09/09 17:34:16  peter
     * tdicationary.replace added to replace and item in a dictionary. This
       is only allowed for the same name
     * varsyms are inserted in symtable before the types are parsed. This
