@@ -1349,6 +1349,7 @@ makefiles: fpc_makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
+ifeq ($(OS_SOURCE)$(CPU_SOURCE),$(OS_TARGET)$(CPU_TARGET))
 ifeq ($(GDBFOUND),1)
 $(CURRDIR)getver$(EXEEXT) : gdbver.pp
 	$(COMPILER) -o$(CURRDIR)getver$(EXEEXT) gdbver.pp
@@ -1366,6 +1367,12 @@ else
 GDBVER=GDB_V5
 gdbint$(PPUEXT): gdbint.pp
 	@$(ECHO) libgdb.a not found, using default GDB $(GDBVER)
+	$(COMPILER) -d$(GDBVER) gdbint.pp
+endif
+else
+GDBVER=GDB_V5
+gdbint$(PPUEXT): gdbint.pp
+	@$(ECHO) Different target os or cpu, using default GDB $(GDBVER)
 	$(COMPILER) -d$(GDBVER) gdbint.pp
 endif
 gdbcon$(PPUEXT): gdbcon.pp gdbint$(PPUEXT)

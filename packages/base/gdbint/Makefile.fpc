@@ -58,6 +58,8 @@ endif
 
 
 [rules]
+ifeq ($(OS_SOURCE)$(CPU_SOURCE),$(OS_TARGET)$(CPU_TARGET))
+
 ifeq ($(GDBFOUND),1)
 # libgdb.a found
 
@@ -82,6 +84,14 @@ else
 GDBVER=GDB_V5
 gdbint$(PPUEXT): gdbint.pp
         @$(ECHO) libgdb.a not found, using default GDB $(GDBVER)
+        $(COMPILER) -d$(GDBVER) gdbint.pp
+endif
+
+else
+# Different OS_TARGET, default to libgdb v5
+GDBVER=GDB_V5
+gdbint$(PPUEXT): gdbint.pp
+        @$(ECHO) Different target os or cpu, using default GDB $(GDBVER)
         $(COMPILER) -d$(GDBVER) gdbint.pp
 endif
 
