@@ -564,13 +564,30 @@ implementation
 
 
     function flags_to_cond(const f: TResFlags) : TAsmCond;
+      const flags2cond: array[tresflags] of tasmcond = (
+          C_EQ,{F_E     equal}    
+          C_NE,{F_NE    not equal}
+          C_GT,{F_G     gt signed}
+          C_LT,{F_L     lt signed}
+          C_GE,{F_GE    ge signed}
+          C_LE,{F_LE    le signed}
+          C_CS,{F_C     carry set}
+          C_CC,{F_NC    carry clear}
+          C_HI,{F_A     gt unsigned}
+          C_CC,{F_AE    ge unsigned}
+          C_CS,{F_B     lt unsigned}
+          C_LS);{F_BE    le unsigned}
       begin
+        flags_to_cond := flags2cond[f];
       end;
 
 end.
 {
   $Log$
-  Revision 1.10  2002-08-18 09:02:12  florian
+  Revision 1.11  2002-10-14 16:32:36  carl
+    + flag_2_cond implemented
+
+  Revision 1.10  2002/08/18 09:02:12  florian
     * fixed compilation problems
 
   Revision 1.9  2002/08/15 08:13:54  carl
