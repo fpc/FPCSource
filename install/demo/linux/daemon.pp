@@ -82,11 +82,11 @@ Begin
    new(aOld);
    new(aHup);
    new(aTerm);
-   aTerm^.sa_handler := @DoSig;
+   aTerm^.handler.sh := @DoSig;
    aTerm^.sa_mask := 0;
    aTerm^.sa_flags := 0;
    aTerm^.sa_restorer := nil;
-   aHup^.sa_handler := @DoSig;
+   aHup^.handler.sh := @DoSig;
    aHup^.sa_mask := 0;
    aHup^.sa_flags := 0;
    aHup^.sa_restorer := nil;
@@ -136,7 +136,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.1  2000-03-21 21:41:19  peter
+  Revision 1.2  2000-07-08 20:13:57  peter
+    * fixed sa_handler to handler.sh
+
+  Revision 1.1  2000/03/21 21:41:19  peter
     * initial version
 
 }
