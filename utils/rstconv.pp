@@ -77,13 +77,15 @@ begin
       if s[i] = '''' then begin
         Inc(i);
         j := i;
-        while s[i] <> '''' do Inc(i);
+        while (i <= Length(s)) and (s[i] <> '''') do
+	  Inc(i);
         item.Value := item.Value + Copy(s, j, i - j);
         Inc(i);
       end else if s[i] = '#' then begin
         Inc(i);
         j := i;
-        while s[i] in ['0'..'9'] do Inc(i);
+        while (i <= Length(s)) and (s[i] in ['0'..'9']) do
+	  Inc(i);
         item.Value := item.Value + Chr(StrToInt(Copy(s, j, i - j)));
       end else if s[i] = '+' then begin
         ReadLn(f, s);
@@ -205,7 +207,13 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 10:16:22  michael
+  Revision 1.2  2000-10-03 20:58:50  sg
+  * Made some fixes so that rstconv now works with range checks enabled
+
+  Revision 1.1.2.1  2000/10/03 20:56:06  sg
+  * Made some fixes so that rstconv now works with range checks enabled
+
+  Revision 1.1  2000/07/13 10:16:22  michael
   + Initial import
 
   Revision 1.6  2000/07/04 19:05:55  peter
