@@ -1,0 +1,1020 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="ipc">
+<short>The IPC unit.</short>
+<!-- \FPCexampledir{ipcex} -->
+<descr>
+<p>
+This document describes the IPC unit for Free Pascal. It was written for
+linux by Michael Van Canneyt. It gives all the functionality of system V 
+Inter-Process Communication: shared memory, semaphores and messages.
+It works only on the linux operating system.
+</p>
+<p>
+Many constants here are provided for completeness only, and should under
+normal circumstances not be used by the programmer.
+</p>
+</descr>
+
+<element name="IPCerror">
+<short>Last IPC error code</short>
+<descr>
+The <var>IPCerror</var> variable is used to report errors, by all calls.
+</descr>
+</element>
+
+<element name="IPC_CREAT">
+<short>Create if key is nonexistent</short>
+</element>
+
+<element name="IPC_EXCL">
+<short>fail if key exists</short>
+</element>
+
+<element name="IPC_NOWAIT">
+<short>return error on wait</short>
+</element>
+
+<element name="IPC_RMID">
+<short>Remove resource</short>
+</element>
+<element name="IPC_SET">
+<short>set ipc_perm options</short>
+</element>
+<element name="IPC_STAT">
+<short>get ipc_perm options</short>
+</element>
+<element name="IPC_INFO">
+<short>For ipcs call</short>
+</element>
+
+<element name="MSG_NOERROR">
+<short>Internal Message control code. Do not use</short>
+</element>
+<element name="MSG_EXCEPT">
+<short>Internal Message control code. Do not use</short>
+</element>
+<element name="MSGMNI">
+<short>Internal Message control code. Do not use</short>
+</element>
+<element name="MSGMAX">
+<short>Internal Message control code. Do not use</short>
+</element>
+<element name="MSGMNB">
+<short>Internal Message control code. Do not use</short>
+</element>
+
+<element name="SEM_UNDO">
+<short>Constant for use in <link id="semop"/></short>
+</element>
+<element name="GETPID">
+<short>Constant for use in <link id="semop"/></short>
+</element>
+<element name="GETVAL">
+<short>Constant for use in <link id="semop"/></short>
+</element>
+<element name="GETALL">
+<short>Constant for use in <link id="semop"/></short>
+</element>
+<element name="GETNCNT">
+<short>Constant for use in <link id="semop"/></short>
+</element>
+<element name="GETZCNT">
+<short>Constant for use in <link id="semop"/></short>
+</element>
+<element name="SETVAL">
+<short>Constant for use in <link id="semop"/></short>
+</element>
+<element name="SETALL">
+<short>Constant for use in <link id="semop"/></short>
+</element>
+
+<element name="SEMMNI">
+<short>Internal semaphore system constant. Do not use.</short>
+</element>
+<element name="SEMMSL">
+<short>Internal semaphore system constant. Do not use.</short>
+</element>
+<element name="SEMMNS">
+<short>Internal semaphore system constant. Do not use.</short>
+</element>
+<element name="SEMOPM">
+<short>Internal semaphore system constant. Do not use.</short>
+</element>
+<element name="SEMVMX">
+<short>Internal semaphore system constant. Do not use.</short>
+</element>
+
+<element name="SHM_R">
+<short>This constant is used in the <link id="shmctl"/> call.</short>
+</element>
+<element name="SHM_W">
+<short>This constant is used in the <link id="shmctl"/> call.</short>
+</element>
+<element name="SHM_RDONLY">
+<short>This constant is used in the <link id="shmctl"/> call.</short>
+</element>
+<element name="SHM_RND">
+<short>This constant is used in the <link id="shmctl"/> call.</short>
+</element>
+<element name="SHM_REMAP">
+<short>This constant is used in the <link id="shmctl"/> call.</short>
+</element>
+<element name="SHM_LOCK">
+<short>This constant is used in the <link id="shmctl"/> call.</short>
+</element>
+<element name="SHM_UNLOCK">
+<short>This constant is used in the <link id="shmctl"/> call.</short>
+</element>
+
+<element name="BaseUnix">
+<short>Some base types</short>
+</element>
+
+<element name="key_t">
+<short>Alias for <link id="TKey"/> type</short>
+</element>
+
+<element name="TIPC_Perm.mode">
+<short>Creation Mode</short>
+</element>
+
+<element name="TSHMinfo.shmmni">
+<short>?</short>
+</element>
+
+<element name="msglen_t">
+<short>Message length type</short>
+</element>
+
+<element name="msgqnum_t">
+<short>Message queue number type</short>
+</element>
+
+<element name="PMSG">
+<short>Pointer to <link id="TMSG"/> record</short>
+</element>
+
+<element name="PMSQid_ds">
+<short>Pointer to <link id="TMSQid_ds"/></short>
+</element>
+
+<element name="PMSGbuf">
+<short>Pointer to <link id="TMsgBuf"/> rcord</short>
+</element>
+
+<element name="SEM_GETPID">
+<short>Semaphore operation: Get process ID of last operation.</short>
+</element>
+
+<element name="SEM_GETVAL">
+<short>Semaphore operation: Get current value of semaphore</short>
+</element>
+
+<element name="SEM_GETALL">
+<short>Semaphore operation: Get all semaphore values</short>
+</element>
+
+<element name="SEM_GETNCNT">
+<short>Semaphore operation: Get number of processes waiting for resource.</short>
+</element>
+
+<element name="SEM_GETZCNT">
+<short>Semaphore operation: Get number of processes waiting for semaphores to reach zero </short>
+</element>
+
+<element name="SEM_SETVAL">
+<short>Semaphore operation: Set semaphore value</short>
+</element>
+
+<element name="SEM_SETALL">
+<short>Semaphore operation: Set all semaphore values</short>
+</element>
+
+
+<element name="SEM_SEMMNI">
+<short>Semaphore operation: ?</short>
+</element>
+
+
+<element name="SEM_SEMMSL">
+<short>Semaphore operation: ?</short>
+</element>
+
+
+<element name="SEM_SEMMNS">
+<short>Semaphore operation: ?</short>
+</element>
+
+<element name="SEM_SEMOPM">
+<short>Semaphore operation: ?</short>
+</element>
+
+
+<element name="SEM_SEMVMX">
+<short>Semaphore operation: ?</short>
+</element>
+
+
+<element name="TSEMid_ds.sem_nsems">
+<short>Number of semaphores</short>
+</element>
+
+<element name="PULong">
+<short>Pointer to cardinal type.</short>
+</element>
+<element name="PWord">
+<short>Pointer to word type.</short>
+</element>
+
+<element name="TKey">
+<short>Type returned by the <link id="ftok"/> key generating
+function.</short>
+</element>
+
+<element name="TIPC_Perm">
+<short>Record used in all IPC systems to specify the permissions.</short>
+<descr>
+<var>TIPC_Perm</var> is used in all IPC systems to specify the permissions.
+It should never be used directly.
+</descr>
+</element>
+<element name="TIPC_Perm.Key">
+<short>key used to create resource</short>
+</element>
+<element name="TIPC_Perm.uid">
+<short>Owner user ID</short>
+</element>
+<element name="TIPC_Perm.gid">
+<short>Owner group id</short>
+</element>
+<element name="TIPC_Perm.cuid">
+<short>Creator user ID</short>
+</element>
+<element name="TIPC_Perm.cgid">
+<short>Creator group ID</short>
+</element>
+<element name="TIPC_Perm.seq">
+<short>?</short>
+</element>
+
+<element name="PIPC_Perm">
+<short>Pointer to <link id="TIPC_Perm"/> record.</short>
+</element>
+
+<element name="TSHMid_ds">
+<short>Record used in the <link id="shmctl"/> call to set or retrieve settings for shared memory.</short>
+</element>
+<element name="PSHMid_DS">
+<short>Pointer to <link id="TSHMid_ds"/> record.</short>
+</element>
+<element name="TSHMid_ds.shm_perm">
+<short>Permissions</short>
+</element>
+<element name="TSHMid_ds.shm_segsz">
+<short>Segment size</short>
+</element>
+<element name="TSHMid_ds.shm_atime">
+<short>Last access time</short>
+</element>
+<element name="TSHMid_ds.shm_dtime">
+<short>Last detach time</short>
+</element>
+<element name="TSHMid_ds.shm_ctime">
+<short>Create time</short>
+</element>
+<element name="TSHMid_ds.shm_cpid">
+<short>Creator PID</short>
+</element>
+<element name="TSHMid_ds.shm_lpid">
+<short>Last operation PID</short>
+</element>
+<element name="TSHMid_ds.shm_nattch">
+<short>Number of attachments</short>
+</element>
+<element name="TSHMid_ds.shm_npages">
+<short>Number of pages</short>
+</element>
+<element name="TSHMid_ds.shm_pages">
+<short>?</short>
+</element>
+<element name="TSHMid_ds.attaches">
+<short>?</short>
+</element>
+
+<element name="TSHMinfo">
+<short>Record used by the shared memory system, Do not use directly.</short>
+</element>
+<element name="TSHMinfo.shmmax" skip="1"/>
+<element name="TSHMinfo.shmmin" skip="1"/>
+<element name="TSHMinfo.smmni" skip="1"/>
+<element name="TSHMinfo.shmseg" skip="1"/>
+<element name="TSHMinfo.shmall" skip="1"/>
+<element name="PSHMinfo" skip="1"/>
+
+<element name="TMSG">
+<short>Record used in the handling of message queues. Do not use directly.</short>
+</element>
+<element name="TMSG.msg_next" skip="1"/>
+<element name="TMSG.msg_type" skip="1"/>
+<element name="TMSG.msg_spot" skip="1"/>
+<element name="TMSG.msg_stime" skip="1"/>
+<element name="TMSG.msg_ts" skip="1"/>
+
+<element name="TMSQid_ds">
+<short>Record returned by the <link id="msgctl"/> call, contains all data about a message queue.</short>
+<descr>
+This record should never be used directly, it is an internal kernel record.
+It's fields may change at any time.
+</descr>
+</element>
+
+<element name="TMSQid_ds.msg_perm">
+<short>Queue permissions</short>
+</element>
+<element name="TMSQid_ds.msg_first">
+<short>Pointer to first message</short>
+</element>
+<element name="TMSQid_ds.msg_last">
+<short>Pointer to last message</short>
+</element>
+<element name="TMSQid_ds.msg_stime">
+<short>Last send time</short>
+</element>
+<element name="TMSQid_ds.msg_rtime">
+<short>Last receive time</short>
+</element>
+<element name="TMSQid_ds.msg_ctime">
+<short>Last control time</short>
+</element>
+<element name="TMSQid_ds.wwait">
+<short></short>
+</element>
+<element name="TMSQid_ds.rwait">
+<short></short>
+</element>
+<element name="TMSQid_ds.msg_cbytes">
+<short></short>
+</element>
+<element name="TMSQid_ds.msg_qnum">
+<short></short>
+</element>
+<element name="TMSQid_ds.msg_qbytes">
+<short></short>
+</element>
+<element name="TMSQid_ds.msg_lspid">
+<short></short>
+</element>
+<element name="TMSQid_ds.msg_lrpid">
+<short></short>
+</element>
+
+<element name="TMSGbuf">
+<short>Generic message data record</short>
+<descr>
+The <var>TMSGbuf</var> record is a record containing the data of a record. you
+should never use this record directly, instead you should make your own
+record that follows the structure of the <var>TMSGbuf</var> record, but that has
+a size that is big enough to accomodate your messages. The <var>mtype</var> field
+should always be present, and should always be filled.
+</descr>
+</element>
+<element name="TMSGbuf.mtype">
+<short>Message type</short>
+</element>
+<element name="TMSGbuf.mtext">
+<short>Message data</short>
+</element>
+
+<element name="TMSGinfo" skip="1">
+<short>Internal message system record. Do not use directly.</short>
+</element>
+<element name="TMSGinfo.msgpool" skip="1"/>
+<element name="TMSGinfo.msgmap" skip="1"/>
+<element name="TMSGinfo.msgmax" skip="1"/>
+<element name="TMSGinfo.msgmax" skip="1"/>
+<element name="TMSGinfo.msgmnb" skip="1"/>
+<element name="TMSGinfo.msgmni" skip="1"/>
+<element name="TMSGinfo.msgssz" skip="1"/>
+<element name="TMSGinfo.msgtql" skip="1"/>
+<element name="TMSGinfo.msgseg" skip="1"/>
+
+<element name="PMSGinfo" skip="1">
+<short>Pointer to <link id="TMSGinfo"/> record</short>
+</element>
+
+<element name="TSEMid_ds">
+<short>Structure returned by the <link id="semctl"/> call, contains all data of a semahore</short>
+</element>
+
+<element name="PSEMid_ds">
+<short>Pointer to <link id="TSEMid_ds"/> record.</short>
+</element>
+
+<element name="TSEMid_ds.sem_perm">
+<short>IPC permissions</short>
+</element>
+
+<element name="TSEMid_ds.sem_otime">
+<short>Last operation time</short>
+</element>
+
+<element name="TSEMid_ds.sem_ctime">
+<short>Create time</short>
+</element>
+
+<element name="TSEMid_ds.sem_base">
+<short>Internal data. Do not use</short>
+</element>
+
+<element name="TSEMid_ds.sem_pending">
+<short>Internal data. Do not use</short>
+</element>
+<element name="TSEMid_ds.sem_pending_last">
+<short>Internal data. Do not use</short>
+</element>
+<element name="TSEMid_ds.undo">
+<short>Internal data. Do not use</short>
+</element>
+<element name="TSEMid_ds.nsems">
+<short>Internal data. Do not use</short>
+</element>
+
+<element name="TSEMbuf">
+<short>Record used in <link id="semop"/> call.</short>
+<descr>
+The <var>TSEMbuf</var> record is used in the <link id="semop"/> call, and is
+used to specify which operations you want to do.
+</descr>
+</element>
+
+<element name="PSEMbuf">
+<short>Pointer to <link id="TSembuf"/> record.</short>
+</element>
+<element name="TSEMbuf.sem_num">
+<short>Number of the semaphore to perform operation on.</short>
+</element>
+<element name="TSEMbuf.sem_op">
+<short>Operation to perform on semaphore</short>
+</element>
+<element name="TSEMbuf.sem_flg">
+<short>Flags for operation.</short>
+</element>
+
+<element name="TSEMinfo" skip="1">
+<short>Internal semaphore system record. Do not use.</short>
+</element>
+<element name="TSEMinfo.semmap" skip="1"/>
+<element name="TSEMinfo.semmni" skip="1"/>
+<element name="TSEMinfo.semmns" skip="1"/>
+<element name="TSEMinfo.semmnu" skip="1"/>
+<element name="TSEMinfo.semmsl" skip="1"/>
+<element name="TSEMinfo.semopm" skip="1"/>
+<element name="TSEMinfo.semume" skip="1"/>
+<element name="TSEMinfo.semusz" skip="1"/>
+<element name="TSEMinfo.semvmx" skip="1"/>
+<element name="TSEMinfo.semaem" skip="1"/>
+
+<element name="PSEMinfo">
+<short>Pointer to <link id="TSEMinfo"/> record.</short>
+</element>
+
+<element name="TSEMun">
+<short>Record used in <link id="semctl"/> call.</short>
+</element>
+<element name="PSEMun">
+<short>Pointer to <link id="TSEMun"/> record</short>
+</element>
+
+<element name="ftok">
+<short>Create token from filename</short>
+<descr>
+<p>
+<var>ftok</var> returns a key that can be used in a <link id="semget"/>
+<link id="shmget"/>
+or <link id="msgget"/> call to access a new or existing IPC resource.
+</p>
+<p>
+<var>Path</var> is the name of a file in the file system, <var>ID</var> is a
+character of your choice. The ftok call does the same as it's C couterpart,
+so a pascal program and a C program will access the same resource if
+they use the same <var>Path</var> and <var>ID</var>
+</p>
+<p>
+For an example, see <link id="msgctl"/>, <link id="semctl"/> or <link id="shmctl"/>.
+</p>
+</descr>
+<errors>
+<var>ftok</var> returns -1 if the file in <var>Path</var> doesn't exist.
+</errors>
+<seealso>
+<link id="semget"/>
+<link id="shmget"/>
+<link id="msgget"/>
+</seealso>
+</element>
+
+
+<element name="msgget">
+<short>Return message queue ID, possibly creating the queue</short>
+<descr>
+<p>
+<var>msgget</var> returns the ID of the message queue described by <var>key</var>.
+Depending on the flags in <var>msgflg</var>, a new queue is created.
+</p>
+<p>
+<var>msgflg</var> can have one or more of the following values (combined by ORs):
+</p>
+<dl>
+<dt>IPC_CREAT</dt><dd> The queue is created if it doesn't already exist.</dd>
+<dt>IPC_EXCL</dt><dd> If used in combination with <var>IPC_CREAT</var>, causes the
+call to fail if the queue already exists. It cannot be used by itself.
+</dd>
+</dl>
+<p>
+Optionally, the flags can be <var>OR</var>ed with a permission mode, which is the
+same mode that can be used in the file system.
+</p>
+<p>
+For an example, see <link id="msgctl"/>.
+</p>
+</descr>
+<errors>
+On error, -1 is returned, and <var>IPCError</var> is set.
+</errors>
+<seealso>
+<link id="ftok"/>
+<link id="msgsnd"/>
+<link id="msgrcv"/>
+<link id="msgctl"/>
+</seealso>
+</element>
+
+
+<element name="msgsnd">
+<short>Send a message to the messague queue</short>
+<descr>
+<p>
+<var>msgsend</var> sends a message to a message queue with ID <var>msqid</var>.
+<var>msgp</var> is a pointer to a message buffer, that should be based on the
+<var>TMsgBuf</var> type. <var>msgsiz</var> is the size of the message (NOT of the
+message buffer record !)
+</p>
+<p>
+The <var>msgflg</var> can have a combination of the following values (ORed
+together):
+</p>
+<dl>
+<dt>0</dt><dd>No special meaning. The message will be written to the queue.
+If the queue is full, then the process is blocked.</dd>
+<dt>IPC_NOWAIT</dt><dd> If the queue is full, then no message is written,
+and the call returns immediatly.
+</dd>
+</dl>
+<p>
+The function returns <var>True</var> if the message was sent successfully, 
+<var>False</var> otherwise.
+</p>
+<p>
+For an example, see <link id="msgctl"/>.
+</p>
+</descr>
+<errors>
+In case of error, the call returns <var>False</var>, and <var>IPCerror</var> is set.
+</errors>
+<seealso>
+<link id="msgget"/>
+<link id="msgrcv"/>
+<link id="msgctl"/>
+</seealso>
+</element>
+
+
+<element name="msgrcv">
+<short>Retrieve a message from the queue</short>
+<descr>
+<p>
+<var>msgrcv</var> retrieves a message of type <var>msgtyp</var> from the message 
+queue with ID <var>msqid</var>. <var>msgtyp</var> corresponds to the <var>mtype</var> 
+field of the <var>TMSGbuf</var> record. The message is stored in the <var>MSGbuf</var>
+structure pointed to by <var>msgp</var>.
+</p>
+<p>
+The <var>msgflg</var> parameter can be used to control the behaviour of the
+<var>msgrcv</var> call. It consists of an ORed combination of the following
+flags:
+</p>
+<dl>
+<dt>0</dt><dd> No special meaning.</dd>
+<dt>IPC_NOWAIT</dt><dd>if no messages are available, then the call returns
+immediatly, with the <var>ENOMSG</var> error.</dd>
+<dt>MSG_NOERROR</dt><dd> If the message size is wrong (too large), 
+no error is generated, instead the message is truncated. 
+Normally, in such cases, the call returns an error (E2BIG)
+</dd>
+</dl>
+<p>
+The function returns <var>True</var> if the message was received correctly,
+<var>False</var> otherwise.
+</p>
+<p>
+For an example, see <link id="msgctl"/>.
+</p>
+</descr>
+<errors>
+In case of error, <var>False</var> is returned, and <var>IPCerror</var> is set.
+</errors>
+<seealso>
+<link id="msgget"/>
+<link id="msgsnd"/>
+<link id="msgctl"/>
+</seealso>
+</element>
+
+
+<element name="msgctl">
+<short>Perform various operations on a message queue</short>
+<descr>
+<p>
+<var>msgctl</var> performs various operations on the message queue with id
+<var>ID</var>. Which operation is performed, depends on the <var>cmd</var> 
+parameter, which can have one of the following values:
+</p>
+<dl>
+<dt>IPC_STAT</dt><dd> In this case, the <var>msgctl</var> call fills the
+<var>TMSQid_ds</var> structure with information about the message queue.
+</dd>
+<dt>IPC_SET</dt><dd> in this case, the <var>msgctl</var> call sets the permissions
+of the queue as specified in the <var>ipc_perm</var> record inside <var>buf</var>.
+</dd><dt>IPC_RMID</dt><dd> If this is specified, the message queue will be removed 
+from the system.
+</dd>
+</dl>
+<p>
+<var>buf</var> contains the data that are needed by the call. It can be 
+<var>Nil</var> in case the message queue should be removed.
+</p>
+<p>
+The function returns <var>True</var> if successfull, <var>False</var> otherwise.
+</p>
+</descr>
+<errors>
+On error, <var>False</var> is returned, and <var>IPCerror</var> is set accordingly.
+</errors>
+<seealso>
+<link id="msgget"/>
+<link id="msgsnd"/>
+<link id="msgrcv"/>
+</seealso>
+<example file="ipcex/msgtool"/>
+</element>
+
+
+<element name="semget">
+<short>Return the ID of a semaphore set, possibly creating the set</short>
+<descr>
+<p>
+<var>msgget</var> returns the ID of the semaphore set described by <var>key</var>.
+Depending on the flags in <var>semflg</var>, a new queue is created.
+</p>
+<p>
+<var>semflg</var> can have one or more of the following values (combined by ORs):
+</p>
+<dl>
+<dt>IPC_CREAT</dt><dd> The queue is created if it doesn't already exist.</dd>
+<dt>IPC_EXCL</dt><dd> If used in combination with <var>IPC_CREAT</var>, causes the
+call to fail if the set already exists. It cannot be used by itself.</dd>
+</dl>
+<p>
+Optionally, the flags can be <var>OR</var>ed with a permission mode, which is the
+same mode that can be used in the file system.
+</p>
+<p>
+if a new set of semaphores is created, then there will be <var>nsems</var>
+semaphores in it.
+</p>
+</descr>
+<errors>
+On error, -1 is returned, and <var>IPCError</var> is set.
+</errors>
+<seealso>
+<link id="ftok"/>
+<link id="semop"/>
+<link id="semctl"/>
+</seealso>
+</element>
+
+<element name="semop">
+<short>Perform semaphore operation.</short>
+<descr>
+<p>
+<var>semop</var> performs a set of operations on a message queue.
+<var>sops</var> points to an array of type <var>TSEMbuf</var>. The array should
+contain <var>nsops</var> elements.
+</p>
+<p>
+The fields of the <link id="TSEMbuf"/> structure 
+</p>
+<code>
+  TSEMbuf = record
+    sem_num : word;
+    sem_op  : integer;
+    sem_flg : integer;
+</code>
+<p>
+should be filled as follows:
+</p>
+<dl>
+<dt>sem_num</dt><dd> The number of the semaphore in the set on which the
+operation must be performed.</dd>
+<dt>sem_op</dt><dd>
+The operation to be performed. The operation depends on the
+sign of <var>sem_op</var>:
+A positive  number is simply added to the current value of the
+semaphore. If 0 (zero) is specified, then the process is suspended until the 
+specified semaphore reaches zero. If a negative number is specified, it is substracted from the
+current value of the semaphore. If the value would become negative
+then the process is suspended until the value becomes big enough, unless
+<var>IPC_NOWAIT</var> is specified in the <var>sem_flg</var>.
+</dd>
+<dt>sem_flg</dt>
+<dd> Optional flags: if <var>IPC_NOWAIT</var> is specified, then the
+calling process will never be suspended.
+</dd>
+</dl>
+<p>
+The function returns <var>True</var> if the operations were successful,
+<var>False</var> otherwise.
+</p>
+</descr>
+<errors>
+In case of error, <var>False</var> is returned, and <var>IPCerror</var> is set.
+</errors>
+<seealso>
+<link id="semget"/>
+<link id="semctl"/>
+</seealso>
+</element>
+
+<element name="semctl">
+<short>Perform various control operations on a semaphore set</short>
+<descr>
+<p>
+<var>semctl</var> performs various operations on the semaphore <var>semnum</var> w
+ith semaphore set id <var>ID</var>. 
+</p>
+<p>
+The <var>arg</var> parameter supplies the data needed for each call. This is
+a variant record that should be filled differently, according to the
+command:
+</p>
+<code>
+Type
+  TSEMun = record
+   case longint of
+      0 : ( val : longint );
+      1 : ( buf : PSEMid_ds );
+      2 : ( arr : PWord );
+      3 : ( padbuf : PSeminfo );
+      4 : ( padpad : pointer );
+   end;
+</code>
+<p>
+Which operation is performed, depends on the <var>cmd</var> 
+parameter, which can have one of the following values:
+</p>
+<dl>
+<dt>IPC_STAT</dt>
+<dd> In this case, the arg record should have it's <var>buf</var>
+field set to the address of a <var>TSEMid_ds</var> record. 
+The <var>semctl</var> call fills this <var>TSEMid_ds</var> structure with information 
+about the semaphore set. 
+</dd>
+<dt>IPC_SET</dt>
+<dd> In this case, the <var>arg</var> record should have it's <var>buf</var>
+field set to the address of a <var>TSEMid_ds</var> record.
+The <var>semctl</var> call sets the permissions of the queue as specified in 
+the <var>ipc_perm</var> record.
+</dd>
+<dt>IPC_RMID</dt>
+<dd> If this is specified, the semaphore set is removed from 
+from the system.
+</dd>
+<dt>GETALL</dt>
+<dd> In this case, the <var>arr</var> field of <var>arg</var> should point
+to a memory area where the values of the semaphores will be stored.
+The size of this memory area is \var{SizeOf(Word)* Number of semaphores
+in the set}.
+This call will then fill the memory array with all the values of the
+semaphores.
+</dd>
+<dt>GETNCNT</dt>
+<dd> This will fill the <var>val</var> field of the <var>arg</var> union
+with the number of processes waiting for resources.
+</dd>
+<dt>GETPID</dt>
+<dd> <var>semctl</var> returns the process ID of the process that
+performed the last <link id="semop"/> call.
+</dd>
+<dt>GETVAL</dt>
+<dd> <var>semctl</var> returns the value of the semaphore with number
+<var>semnum</var>.
+</dd>
+<dt>GETZCNT</dt>
+<dd> <var>semctl</var> returns the number of processes waiting for 
+semaphores that reach value zero.
+</dd>
+<dt>SETALL</dt>
+<dd> In this case, the <var>arr</var> field of <var>arg</var> should point
+to a memory area where the values of the semaphores will be retrieved from.
+The size of this memory area is \var{SizeOf(Word)* Number of semaphores
+in the set}.
+This call will then set the values of the semaphores from the memory array.
+</dd>
+<dt>SETVAL</dt>
+<dd> This will set the value of semaphore <var>semnum</var> to the value
+in the <var>val</var> field of the <var>arg</var> parameter.
+</dd>
+</dl>
+<p>
+The function returns -1 on error.
+</p>
+</descr>
+<errors>
+The function returns -1 on error, and <var>IPCerror</var> is set accordingly.
+</errors>
+<seealso>
+<link id="semget"/>
+<link id="semop"/>
+</seealso>
+<example file="ipcex/semtool"/>
+</element>
+
+
+<element name="shmget">
+<short>Return the ID of a shared memory block, possibly creating it</short>
+<descr>
+<p>
+<var>shmget</var> returns the ID of a shared memory block, described by <var>key</var>.
+Depending on the flags in <var>flag</var>, a new memory block is created.
+</p>
+<p>
+<var>flag</var> can have one or more of the following values (combined by ORs):
+</p>
+<dl>
+<dt>IPC_CREAT</dt>
+<dd> The queue is created if it doesn't already exist.
+</dd>
+<dt>IPC_EXCL</dt>
+<dd> If used in combination with <var>IPC_CREAT</var>, causes the
+call to fail if the queue already exists. It cannot be used by itself.
+</dd>
+</dl>
+<p>
+Optionally, the flags can be <var>OR</var>ed with a permission mode, which is the
+same mode that can be used in the file system.
+</p>
+<p>
+if a new memory block is created, then it will have size <var>Size</var>
+bytes in it.
+</p>
+</descr>
+<errors>
+On error, -1 is returned, and <var>IPCError</var> is set.
+</errors>
+<seealso>
+</seealso>
+</element>
+
+<element name="shmat">
+<short>Attach a shared memory block.</short>
+<descr>
+<p>
+<var>shmat</var> attaches a shared memory block with identified <var>shmid</var> 
+to the current process. The function returns a pointer to the shared memory
+block.
+</p>
+<p>
+If <var>shmaddr</var> is <var>Nil</var>, then the system chooses a free unmapped
+memory region, as high up in memory space as possible.
+</p>
+<p>
+If <var>shmaddr</var> is non-nil, and <var>SHM_RND</var> is in <var>shmflg</var>, then 
+the returned address is <var>shmaddr</var>, rounded down to <var>SHMLBA</var>.
+If <var>SHM_RND</var> is not specified, then <var>shmaddr</var> must be a
+page-aligned address.
+</p>
+<p>
+The parameter <var>shmflg</var> can be used to control the behaviour of the
+<var>shmat</var> call. It consists of a ORed combination of the following
+constants:
+</p>
+<dl>
+<dt>SHM_RND</dt> <dd> The suggested address in <var>shmaddr</var> is rounded down to
+<var>SHMLBA</var>.
+</dd>
+<dt>SHM_RDONLY</dt> <dd> the shared memory is attached for read access only.
+Otherwise the memory is attached for read-write. The process then needs
+read-write permissions to access the shared memory.
+</dd>
+</dl>
+<p>
+For an example, see <link id="shmctl"/>.
+</p>
+</descr>
+<errors>
+If an error occurs, -1 is returned, and <var>IPCerror</var> is set.
+</errors>
+<seealso>
+<link id="shmget"/>
+<link id="shmdt"/>
+<link id="shmctl"/>
+</seealso>
+</element>
+
+
+<element name="shmdt">
+<short>Detach shared memory block.</short>
+<descr>
+<p>
+<var>shmdt</var> detaches the shared memory at address <var>shmaddr</var>. This shared
+memory block is unavailable to the current process, until it is attached
+again by a call to <link id="shmat"/>.
+</p>
+<p>
+The function returns <var>True</var> if the memory block was detached
+successfully, <var>False</var> otherwise.
+</p>
+</descr>
+<errors>
+On error, False is returned, and IPCerror is set.
+</errors>
+<seealso>
+<link id="shmget"/>
+<link id="shmat"/>
+<link id="shmctl"/>
+</seealso>
+</element>
+
+<element name="shmctl">
+<short>Perform control operations on a shared memory block.</short>
+<descr>
+<p>
+<var>shmctl</var> performs various operations on the shared memory block
+identified by identifier <var>shmid</var>.
+</p>
+<p>
+The <var>buf</var> parameter points to a <var>TSHMid_ds</var> record. The 
+<var>cmd</var> parameter is used to pass which operation is to be performed.
+It can have one of the following values :
+</p>
+<dl>
+<dt>IPC_STAT</dt><dd> <var>shmctl</var> fills the <var>TSHMid_ds</var> record that 
+<var>buf</var> points to with the available information about the shared memory
+block.</dd>
+<dt>IPC_SET</dt><dd> applies the values in the <var>ipc_perm</var> record that
+<var>buf</var> points to, to the shared memory block.</dd>
+<dt>IPC_RMID</dt><dd> the shared memory block is destroyed (after all processes
+to which the block is attached, have detached from it).</dd>
+</dl>
+<p>
+If successful, the function returns <var>True</var>, <var>False</var> otherwise.
+</p>
+</descr>
+<errors>
+If an error occurs, the function returns <var>False</var>, and <var>IPCerror</var>
+is set.
+</errors>
+<seealso>
+<link id="shmget"/>
+<link id="shmat"/>
+<link id="shmdt"/>
+</seealso>
+<example file="ipcex/shmtool"/>
+</element>
+
+</module>
+</package>
+</fpdoc-descriptions>
