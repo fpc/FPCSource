@@ -516,10 +516,14 @@ implementation
 
     function trgobj.getregister(list:Taasmoutput;subreg:Tsubregister):Tregister;
       begin
-         if defaultsub=R_SUBNONE then
-           result:=newreg(regtype,getnewreg(R_SUBNONE),R_SUBNONE)
-         else
-           result:=newreg(regtype,getnewreg(subreg),subreg);
+        {$ifdef EXTDEBUG}
+        if reginfo=nil then
+          InternalError(2004020901);
+        {$endif EXTDEBUG}
+        if defaultsub=R_SUBNONE then
+          result:=newreg(regtype,getnewreg(R_SUBNONE),R_SUBNONE)
+        else
+          result:=newreg(regtype,getnewreg(subreg),subreg);
       end;
 
 
@@ -530,7 +534,11 @@ implementation
 
 
     procedure trgobj.ungetregister(list:Taasmoutput;r:Tregister);
-      begin
+      begin        
+        {$ifdef EXTDEBUG}
+        if reginfo=nil then
+          InternalError(2004020901);
+        {$endif EXTDEBUG}
         { Only explicit allocs insert regalloc info }
         if getsupreg(r)<first_imaginary then
           list.concat(Tai_regalloc.dealloc(r));
@@ -2001,7 +2009,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.120  2004-02-08 23:10:21  jonas
+  Revision 1.121  2004-02-09 20:12:23  olle
+    + check that register allocation is not made at the wrong moment
+
+  Revision 1.120  2004/02/08 23:10:21  jonas
     * taicpu.is_same_reg_move() now gets a regtype parameter so it only
       removes moves of that particular register type. This is necessary so
       we don't remove the live_start instruction of a register before it
