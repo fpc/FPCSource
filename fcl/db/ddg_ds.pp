@@ -131,7 +131,7 @@ end;
 
 procedure TIndexList.LoadFromStream(Stream: TStream);
 var
-  Value: Integer;
+  Value: PtrInt;
 begin
   while Stream.Position < Stream.Size do
   begin
@@ -155,11 +155,11 @@ end;
 procedure TIndexList.SaveToStream(Stream: TStream);
 var
   i: Integer;
-  Value: Integer;
+  Value: PtrInt;
 begin
   for i := 0 to Count - 1 do
   begin
-    Value := Integer(Items[i]);
+    Value := PtrInt(Items[i]);
     Stream.Write(Value, SizeOf(Value));
   end;
 end;
@@ -439,7 +439,7 @@ end;
 
 procedure TDDGDataSet.InternalPost;
 var
-  RecPos, InsPos: Integer;
+  RecPos, InsPos: PtrInt;
 begin
  {$ifdef dsdebug}
   Writeln ('Starting internal post.');
@@ -528,7 +528,10 @@ end;
 
 end.
   $Log$
-  Revision 1.4  2004-05-02 21:23:18  peter
+  Revision 1.5  2004-12-15 21:15:04  peter
+    * 64bit fixes
+
+  Revision 1.4  2004/05/02 21:23:18  peter
     * use ptrint
 
   Revision 1.3  2002/09/07 15:15:23  peter

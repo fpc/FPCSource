@@ -161,7 +161,7 @@ type
     FCurRec             :Integer;
     FRecBufSize         :Integer;
     FRecordSize         :Integer;
-    FLastBookmark       :Integer;
+    FLastBookmark       :PtrInt;
     FRecInfoOfs         :Word;
     FBookmarkOfs        :Word;
     FSaveChanges        :Boolean;
