@@ -26,11 +26,7 @@ program h2pas;
  ****************************************************************************)
 
    uses
-{$ifdef Delphi}
-     SysUtils,
-{$else Delphi}
-     strings,
-{$endif Delphi}
+     SysUtils,classes,
      options,scan,converu,lexlib,yacclib;
 
    type
@@ -50,13 +46,14 @@ program h2pas;
 
   var
      hp,ph    : presobject;
-     extfile  : text;  (* file for implementation headers extern procs *)
+     implemfile  : text;  (* file for implementation headers extern procs *)
      IsExtern : boolean;
      NeedEllipsisOverload : boolean;
      must_write_packed_field : boolean;
      tempfile : text;
      No_pop   : boolean;
      s,TN,PN  : String;
+     pointerprefix: boolean;
 
 (* $ define yydebug
  compile with -dYYDEBUG to get debugging info *)
@@ -69,6 +66,10 @@ program h2pas;
 
   var space_array : array [0..255] of byte;
       space_index : byte;
+      
+      { Used when PPointers is used - pointer type definitions }
+      PTypeList : TStringList;
+      
 
         procedure shift(space_number : byte);
           var
@@ -206,9 +207,14 @@ program h2pas;
         if RemoveUnderScore and (length(s)>1) and (s[1]='_') then
          i:=2;
         if UsePPointers then
-         PointerName:='P'+Copy(s,i,255)
+        begin
+         PointerName:='P'+Copy(s,i,255);
+         PTypeList.Add(PointerName);
+        end 
         else
          PointerName:=Copy(s,i,255);
+        if PointerPrefix then
+           PTypeList.Add('P'+s);
       end;
 
 
@@ -265,21 +271,21 @@ program h2pas;
                         writeln(outfile,';');
                         popshift;
                         { get function in implementation }
-                        write(extfile,aktspace,'function ',name);
-                        write(extfile,'(var a : ',ph,') : ');
+                        write(implemfile,aktspace,'function ',name);
+                        write(implemfile,'(var a : ',ph,') : ');
                         if not compactmode then
                          shift(2);
-                        write_p_a_def(extfile,hp3^.p1^.p1,hp2^.p1);
-                        writeln(extfile,';');
-                        writeln(extfile,aktspace,'begin');
+                        write_p_a_def(implemfile,hp3^.p1^.p1,hp2^.p1);
+                        writeln(implemfile,';');
+                        writeln(implemfile,aktspace,'begin');
                         shift(3);
-                        write(extfile,aktspace,name,':=(a.flag',flag_index);
-                        writeln(extfile,' and bm_',ph,'_',name,') shr bp_',ph,'_',name,';');
+                        write(implemfile,aktspace,name,':=(a.flag',flag_index);
+                        writeln(implemfile,' and bm_',ph,'_',name,') shr bp_',ph,'_',name,';');
                         popshift;
-                        writeln(extfile,aktspace,'end;');
+                        writeln(implemfile,aktspace,'end;');
                         if not compactmode then
                          popshift;
-                        writeln(extfile,'');
+                        writeln(implemfile,'');
                         { set function in interface }
                         write(outfile,aktspace,'procedure set_',name);
                         write(outfile,'(var a : ',ph,'; __',name,' : ');
@@ -288,22 +294,22 @@ program h2pas;
                         writeln(outfile,');');
                         popshift;
                         { set function in implementation }
-                        write(extfile,aktspace,'procedure set_',name);
-                        write(extfile,'(var a : ',ph,'; __',name,' : ');
+                        write(implemfile,aktspace,'procedure set_',name);
+                        write(implemfile,'(var a : ',ph,'; __',name,' : ');
                         if not compactmode then
                          shift(2);
-                        write_p_a_def(extfile,hp3^.p1^.p1,hp2^.p1);
-                        writeln(extfile,');');
-                        writeln(extfile,aktspace,'begin');
+                        write_p_a_def(implemfile,hp3^.p1^.p1,hp2^.p1);
+                        writeln(implemfile,');');
+                        writeln(implemfile,aktspace,'begin');
                         shift(3);
-                        write(extfile,aktspace,'a.flag',flag_index,':=');
-                        write(extfile,'a.flag',flag_index,' or ');
-                        writeln(extfile,'((__',name,' shl bp_',ph,'_',name,') and bm_',ph,'_',name,');');
+                        write(implemfile,aktspace,'a.flag',flag_index,':=');
+                        write(implemfile,'a.flag',flag_index,' or ');
+                        writeln(implemfile,'((__',name,' shl bp_',ph,'_',name,') and bm_',ph,'_',name,');');
                         popshift;
-                        writeln(extfile,aktspace,'end;');
+                        writeln(implemfile,aktspace,'end;');
                         if not compactmode then
                          popshift;
-                        writeln(extfile,'');
+                        writeln(implemfile,'');
                      end
                    else if is_sized then
                      begin
@@ -531,7 +537,7 @@ program h2pas;
        (* if in args *dname is replaced by pdname *)
        in_args : boolean = false;
        typedef_level : longint = 0;
-
+       
     (* writes an argument list, where p is t_arglist *)
 
     procedure write_args(var outfile:text; p : presobject);
@@ -579,20 +585,26 @@ program h2pas;
               else
                 begin
                    (* generate a call by reference parameter ?       *)
+
+//                   varpara:=usevarparas and
+//                            assigned(p^.p1^.p2^.p1) and
+//                            (p^.p1^.p2^.p1^.typ in [t_addrdef,t_pointerdef]) and
+//                            assigned(p^.p1^.p2^.p1^.p1) and
+//                            (p^.p1^.p2^.p1^.p1^.typ<>t_procdef);
                    varpara:=usevarparas and
-                            assigned(p^.p1^.p2^.p1) and
-                            (p^.p1^.p2^.p1^.typ in [t_addrdef,t_pointerdef]) and
-                            assigned(p^.p1^.p2^.p1^.p1) and
-                            (p^.p1^.p2^.p1^.p1^.typ<>t_procdef);
+                            assigned(p^.p1^.p1) and
+                            (p^.p1^.p1^.typ in [t_addrdef,t_pointerdef]) and
+                            assigned(p^.p1^.p1^.p1) and
+                            (p^.p1^.p1^.p1^.typ<>t_procdef);
                    (* do not do it for char pointer !!               *)
                    (* para : pchar; and var para : char; are         *)
                    (* completely different in pascal                 *)
                    (* here we exclude all typename containing char   *)
                    (* is this a good method ??                       *)
                    if varpara and
-                      (p^.p1^.p2^.p1^.typ=t_pointerdef) and
-                      (p^.p1^.p2^.p1^.p1^.typ=t_id) and
-                      (pos('CHAR',uppercase(p^.p1^.p2^.p1^.p1^.str))<>0) then
+                      (p^.p1^.p1^.typ=t_pointerdef) and
+                      (p^.p1^.p1^.p1^.typ=t_id) and
+                      (pos('CHAR',uppercase(p^.p1^.p1^.p1^.str))<>0) then
                      varpara:=false;
                    if varpara then
                      begin
@@ -621,8 +633,10 @@ program h2pas;
                          end;
                      end;
                    write(outfile,':');
-                   if varpara then
-                     write_p_a_def(outfile,p^.p1^.p2^.p1^.p1,p^.p1^.p1)
+                   if varpara then 
+                   begin
+                     write_p_a_def(outfile,p^.p1^.p2^.p1,p^.p1^.p1^.p1);
+                   end
                    else
                      write_p_a_def(outfile,p^.p1^.p2^.p1,p^.p1^.p1);
 
@@ -646,6 +660,8 @@ program h2pas;
          in_args:=old_in_args;
          popshift;
       end;
+       
+
 
     procedure write_p_a_def(var outfile:text; p,simple_type : presobject);
       var
@@ -720,10 +736,14 @@ program h2pas;
                                       if not pointerwritten then
                                        begin
                                          if in_args then
-                                          write(outfile,'P')
+                                         begin
+                                          write(outfile,'P');
+                                          pointerprefix:=true;
+                                         end 
                                          else
                                           write(outfile,'^');
                                          write_p_a_def(outfile,p^.p1,simple_type);
+                                         pointerprefix:=false;
                                        end;
                                      end;
                                 end;
@@ -780,6 +800,8 @@ program h2pas;
          case p^.typ of
             t_id :
               begin
+                if pointerprefix then
+                   PTypeList.Add('P'+p^.str);
                 if p^.intname then
                  write(outfile,p^.p)
                 else
@@ -815,10 +837,14 @@ program h2pas;
                  if not pointerwritten then
                   begin
                     if in_args then
-                     write(outfile,'P')
+                    begin
+                     write(outfile,'P');
+                     pointerprefix:=true;
+                    end 
                     else
                      write(outfile,'^');
                     write_type_specifier(outfile,p^.p1);
+                    pointerprefix:=false;
                   end;
               end;
             t_enumdef :
@@ -826,6 +852,8 @@ program h2pas;
                  if (typedef_level>1) and (p^.p1=nil) and
                     (p^.p2^.typ=t_id) then
                    begin
+                      if pointerprefix then
+                        PTypeList.Add('P'+p^.p2^.str);
                       write(outfile,p^.p2^.p);
                    end
                  else
@@ -914,11 +942,16 @@ program h2pas;
                  if ((in_args) or (typedef_level>1)) and
                     (p^.p1=nil) and (p^.p2^.typ=t_id) then
                    begin
+                      if pointerprefix then
+                        PTypeList.Add('P'+p^.p2^.str);
                      write(outfile,TypeName(p^.p2^.p));
                    end
                  else
                    begin
-                      writeln(outfile,'record');
+                      if packrecords then
+                        writeln(outfile,'packed record')
+                      else
+                        writeln(outfile,'record');
                       shift(3);
                       hp1:=p^.p1;
 
@@ -1046,7 +1079,10 @@ program h2pas;
                  else
                    begin
                       inc(typedef_level);
-                      writeln(outfile,'record');
+                      if packrecords then
+                        writeln(outfile,'packed record')
+                      else
+                        writeln(outfile,'record');
                       shift(2);
                       writeln(outfile,aktspace,'case longint of');
                       shift(3);
@@ -1286,7 +1322,7 @@ begin
          begin
          write(outfile,aktspace);
          if not IsExtern then
-         write(extfile,aktspace);
+         write(implemfile,aktspace);
          end;
          (* distinguish between procedure and function *)
          if assigned(yyv[yysp-4]) then
@@ -1298,9 +1334,9 @@ begin
          write_args(outfile,yyv[yysp-2]^.p1^.p1^.p2);
          if not IsExtern then
          begin
-         write(extfile,'procedure ',yyv[yysp-2]^.p1^.p2^.p);
+         write(implemfile,'procedure ',yyv[yysp-2]^.p1^.p2^.p);
          if assigned(yyv[yysp-2]^.p1^.p1^.p2) then
-         write_args(extfile,yyv[yysp-2]^.p1^.p1^.p2);
+         write_args(implemfile,yyv[yysp-2]^.p1^.p1^.p2);
          end;
          end
          else
@@ -1313,11 +1349,11 @@ begin
          write_p_a_def(outfile,yyv[yysp-2]^.p1^.p1^.p1,yyv[yysp-4]);
          if not IsExtern then
          begin
-         write(extfile,'function ',yyv[yysp-2]^.p1^.p2^.p);
+         write(implemfile,'function ',yyv[yysp-2]^.p1^.p2^.p);
          if assigned(yyv[yysp-2]^.p1^.p1^.p2) then
-         write_args(extfile,yyv[yysp-2]^.p1^.p1^.p2);
-         write(extfile,':');
-         write_p_a_def(extfile,yyv[yysp-2]^.p1^.p1^.p1,yyv[yysp-4]);
+         write_args(implemfile,yyv[yysp-2]^.p1^.p1^.p2);
+         write(implemfile,':');
+         write_p_a_def(implemfile,yyv[yysp-2]^.p1^.p1^.p1,yyv[yysp-4]);
          end;
          end;
          if assigned(yyv[yysp-1]) then
@@ -1341,10 +1377,10 @@ begin
          writeln(outfile,';');
          if not IsExtern then
          begin
-         writeln(extfile,';');
-         writeln(extfile,aktspace,'begin');
-         writeln(extfile,aktspace,'  { You must implemented this function }');
-         writeln(extfile,aktspace,'end;');
+         writeln(implemfile,';');
+         writeln(implemfile,aktspace,'begin');
+         writeln(implemfile,aktspace,'  { You must implement this function }');
+         writeln(implemfile,aktspace,'end;');
          end;
          end;
          IsExtern:=false;
@@ -1437,6 +1473,9 @@ begin
          TN:=TypeName(yyv[yysp-1]^.str);
          PN:=PointerName(yyv[yysp-1]^.str);
          if UsePPointers then writeln(outfile,aktspace,PN,' = ^',TN,';');
+         if PackRecords then
+         writeln(outfile, aktspace, TN, ' = packed record')
+         else
          writeln(outfile, aktspace, TN, ' = record');
          writeln(outfile, aktspace, '    {undefined structure}');
          writeln(outfile, aktspace, '  end;');
@@ -1630,39 +1669,39 @@ begin
          if not stripinfo then
          begin
          writeln (outfile,aktspace,'{ was #define dname(params) para_def_expr }');
-         writeln (extfile,aktspace,'{ was #define dname(params) para_def_expr }');
+         writeln (implemfile,aktspace,'{ was #define dname(params) para_def_expr }');
          if assigned(yyv[yysp-3]) then
          begin
          writeln (outfile,aktspace,'{ argument types are unknown }');
-         writeln (extfile,aktspace,'{ argument types are unknown }');
+         writeln (implemfile,aktspace,'{ argument types are unknown }');
          end;
          if not assigned(yyv[yysp-1]^.p3) then
          begin
          writeln(outfile,aktspace,'{ return type might be wrong }   ');
-         writeln(extfile,aktspace,'{ return type might be wrong }   ');
+         writeln(implemfile,aktspace,'{ return type might be wrong }   ');
          end;
          end;
          block_type:=bt_func;
          write(outfile,aktspace,'function ',yyv[yysp-5]^.p);
-         write(extfile,aktspace,'function ',yyv[yysp-5]^.p);
+         write(implemfile,aktspace,'function ',yyv[yysp-5]^.p);
          
          if assigned(yyv[yysp-3]) then
          begin
          write(outfile,'(');
-         write(extfile,'(');
+         write(implemfile,'(');
          ph:=new(presobject,init_one(t_enumdef,yyv[yysp-3]));
          write_def_params(outfile,ph);
-         write_def_params(extfile,ph);
+         write_def_params(implemfile,ph);
          if assigned(ph) then dispose(ph,done);
          ph:=nil;
          (* types are unknown *)
          write(outfile,' : longint)');
-         write(extfile,' : longint)');
+         write(implemfile,' : longint)');
          end;
          if not assigned(yyv[yysp-1]^.p3) then
          begin
          writeln(outfile,' : longint;',aktspace,commentstr);
-         writeln(extfile,' : longint;');
+         writeln(implemfile,' : longint;');
          flush(outfile);
          end
          else
@@ -1671,16 +1710,16 @@ begin
          write_type_specifier(outfile,yyv[yysp-1]^.p3);
          writeln(outfile,';',aktspace,commentstr);
          flush(outfile);
-         write(extfile,' : ');
-         write_type_specifier(extfile,yyv[yysp-1]^.p3);
-         writeln(extfile,';');
+         write(implemfile,' : ');
+         write_type_specifier(implemfile,yyv[yysp-1]^.p3);
+         writeln(implemfile,';');
          end;
          writeln(outfile);
          flush(outfile);
          hp:=new(presobject,init_two(t_funcname,yyv[yysp-5],yyv[yysp-1]));
-         write_funexpr(extfile,hp);
-         writeln(extfile);
-         flush(extfile);
+         write_funexpr(implemfile,hp);
+         writeln(implemfile);
+         flush(implemfile);
          if assigned(hp)then dispose(hp,done);
          
        end;
@@ -1731,19 +1770,19 @@ begin
          if not stripinfo then
          begin
          writeln (outfile,aktspace,'{ was #define dname def_expr }');
-         writeln (extfile,aktspace,'{ was #define dname def_expr }');
+         writeln (implemfile,aktspace,'{ was #define dname def_expr }');
          end;
          block_type:=bt_func;
          write(outfile,aktspace,'function ',yyv[yysp-3]^.p);
-         write(extfile,aktspace,'function ',yyv[yysp-3]^.p);
+         write(implemfile,aktspace,'function ',yyv[yysp-3]^.p);
          shift(2);
          if not assigned(yyv[yysp-1]^.p3) then
          begin
          writeln(outfile,' : longint;');
          writeln(outfile,aktspace,'  { return type might be wrong }');
          flush(outfile);
-         writeln(extfile,' : longint;');
-         writeln(extfile,aktspace,'  { return type might be wrong }');
+         writeln(implemfile,' : longint;');
+         writeln(implemfile,aktspace,'  { return type might be wrong }');
          end
          else
          begin
@@ -1751,18 +1790,18 @@ begin
          write_type_specifier(outfile,yyv[yysp-1]^.p3);
          writeln(outfile,';',aktspace,commentstr);
          flush(outfile);
-         write(extfile,' : ');
-         write_type_specifier(extfile,yyv[yysp-1]^.p3);
-         writeln(extfile,';');
+         write(implemfile,' : ');
+         write_type_specifier(implemfile,yyv[yysp-1]^.p3);
+         writeln(implemfile,';');
          end;
          writeln(outfile);
          flush(outfile);
          hp:=new(presobject,init_two(t_funcname,yyv[yysp-3],yyv[yysp-1]));
-         write_funexpr(extfile,hp);
+         write_funexpr(implemfile,hp);
          popshift;
          dispose(hp,done);
-         writeln(extfile);
-         flush(extfile);
+         writeln(implemfile);
+         flush(implemfile);
          end;
          
        end;
@@ -1798,7 +1837,7 @@ begin
        end;
   37 : begin
          
-         if not is_packed then
+         if (not is_packed) and (not packrecords) then
          writeln(outfile,'{$PACKRECORDS 1}');
          is_packed:=true;
          yyval:=new(presobject,init_two(t_structdef,yyv[yysp-1],yyv[yysp-2]));
@@ -1806,7 +1845,7 @@ begin
        end;
   38 : begin
          
-         if is_packed then
+         if (is_packed) and (not packrecords) then
          writeln(outfile,'{$PACKRECORDS 4}');
          is_packed:=false;
          yyval:=new(presobject,init_two(t_structdef,yyv[yysp-0],yyv[yysp-1]));
@@ -1814,7 +1853,7 @@ begin
        end;
   39 : begin
          
-         if not is_packed then
+         if (not is_packed) and (not packrecords) then
          writeln(outfile,'{$PACKRECORDS 1}');
          is_packed:=true;
          yyval:=new(presobject,init_two(t_uniondef,yyv[yysp-1],yyv[yysp-2]));
@@ -1854,7 +1893,7 @@ begin
        end;
   46 : begin
          
-         if not is_packed then
+         if (not is_packed) and (not packrecords)then
          writeln(outfile,'{$PACKRECORDS 1}');
          is_packed:=true;
          yyval:=new(presobject,init_one(t_uniondef,yyv[yysp-1]));
@@ -1867,7 +1906,7 @@ begin
        end;
   48 : begin
          
-         if not is_packed then
+         if (not is_packed) and (not packrecords) then
          writeln(outfile,'{$PACKRECORDS 1}');
          is_packed:=true;
          yyval:=new(presobject,init_one(t_structdef,yyv[yysp-1]));
@@ -1875,7 +1914,7 @@ begin
        end;
   49 : begin
          
-         if is_packed then
+         if (is_packed) and (not packrecords) then
          writeln(outfile,'{$PACKRECORDS 4}');
          is_packed:=false;
          yyval:=new(presobject,init_one(t_structdef,yyv[yysp-0]));
@@ -2062,6 +2101,7 @@ begin
        end;
   77 : begin
          
+         (* type_specifier STAR declarator *)
          hp:=new(presobject,init_one(t_pointerdef,yyv[yysp-2]));
          yyval:=new(presobject,init_two(t_arg,hp,yyv[yysp-0]));
          
@@ -7800,12 +7840,71 @@ begin
   line_no:=yylineno;
 end;
 
+procedure WriteFileHeader(var headerfile: Text);
+var
+ i: integer;
+ originalstr: string;
+begin
+{ write unit header }
+  if not includefile then
+   begin
+     writeln(headerfile,'unit ',unitname,';');
+     writeln(headerfile,'interface');
+     writeln(headerfile);
+     writeln(headerfile,'{');
+     writeln(headerfile,'  Automatically converted by H2Pas ',version,' from ',inputfilename);
+     writeln(headerfile,'  The following command line parameters were used:');
+     for i:=1 to paramcount do
+       writeln(headerfile,'    ',paramstr(i));
+     writeln(headerfile,'}');
+     writeln(headerfile);
+   end;
+  if UseName then
+   begin
+     writeln(headerfile,aktspace,'const');
+     writeln(headerfile,aktspace,'  External_library=''',libfilename,'''; {Setup as you need}');
+     writeln(headerfile);
+   end;
+  if UsePPointers then
+   begin
+     Writeln(headerfile,aktspace,'{ Pointers to basic pascal types, inserted by h2pas conversion program.}');
+     Writeln(headerfile,aktspace,'Type');
+     Writeln(headerfile,aktspace,'  PLongint  = ^Longint;');
+     Writeln(headerfile,aktspace,'  PSmallInt = ^SmallInt;');
+     Writeln(headerfile,aktspace,'  PByte     = ^Byte;');
+     Writeln(headerfile,aktspace,'  PWord     = ^Word;');
+     Writeln(headerfile,aktspace,'  PDWord    = ^DWord;');
+     Writeln(headerfile,aktspace,'  PDouble   = ^Double;');
+     Writeln(headerfile);
+   end;
+  if PTypeList.count <> 0 then 
+   Writeln(headerfile,aktspace,'Type');
+  for i:=0 to (PTypeList.Count-1) do
+   begin
+     originalstr:=copy(PTypelist[i],2,length(PTypeList[i]));
+     Writeln(headerfile,aktspace,PTypeList[i],'  = ^',originalstr,';');
+   end;
+  if not packrecords then
+   begin
+      writeln(headerfile,'{$IFDEF FPC}');
+      writeln(headerfile,'{$PACKRECORDS C}');
+      writeln(headerfile,'{$ENDIF}');
+   end;   
+  writeln(headerfile);
+end;
+
 
 var
   SS : string;
   i : longint;
+  headerfile: Text;
+  finaloutfile: Text;
 begin
+  pointerprefix:=false;
 { Initialize }
+  PTypeList:=TStringList.Create;
+  PTypeList.Sorted := true;
+  PTypeList.Duplicates := dupIgnore;
   yydebug:=true;
   aktspace:='';
   block_type:=bt_no;
@@ -7824,54 +7923,21 @@ begin
      writeln('file ',inputfilename,' not found!');
      halt(1);
    end;
-  assign(outfile, outputfilename);
+  { This is the intermediate output file } 
+  assign(outfile, 'ext3.tmp');
   {$I-}
   rewrite(outfile);
   {$I+}
   if ioresult<>0 then
    begin
-     writeln('file ',outputfilename,' could not be created!');
+     writeln('file ext3.tmp could not be created!');
      halt(1);
    end;
-{ write unit header }
-  if not includefile then
-   begin
-     writeln(outfile,'unit ',unitname,';');
-     writeln(outfile,'interface');
-     writeln(outfile);
-     writeln(outfile,'{');
-     writeln(outfile,'  Automatically converted by H2Pas ',version,' from ',inputfilename);
-     writeln(outfile,'  The following command line parameters were used:');
-     for i:=1 to paramcount do
-       writeln(outfile,'    ',paramstr(i));
-     writeln(outfile,'}');
-     writeln(outfile);
-   end;
-  if UseName then
-   begin
-     writeln(outfile,aktspace,'const');
-     writeln(outfile,aktspace,'  External_library=''',libfilename,'''; {Setup as you need}');
-     writeln(outfile);
-   end;
-  if UsePPointers then
-   begin
-     Writeln(outfile,aktspace,'{ Pointers to basic pascal types, inserted by h2pas conversion program.}');
-     Writeln(outfile,aktspace,'Type');
-     Writeln(outfile,aktspace,'  PLongint  = ^Longint;');
-     Writeln(outfile,aktspace,'  PSmallInt = ^SmallInt;');
-     Writeln(outfile,aktspace,'  PByte     = ^Byte;');
-     Writeln(outfile,aktspace,'  PWord     = ^Word;');
-     Writeln(outfile,aktspace,'  PDWord    = ^DWord;');
-     Writeln(outfile,aktspace,'  PDouble   = ^Double;');
-     Writeln(outfile);
-   end;
-  writeln(outfile,'{$IFDEF FPC}');
-  writeln(outfile,'{$PACKRECORDS C}');
-  writeln(outfile,'{$ENDIF}');
   writeln(outfile);
 { Open tempfiles }
-  Assign(extfile,'ext.tmp');
-  rewrite(extfile);
+  { This is where the implementation section of the unit shall be stored }
+  Assign(implemfile,'ext.tmp');
+  rewrite(implemfile);
   Assign(tempfile,'ext2.tmp');
   rewrite(tempfile);
 { Parse! }
@@ -7884,10 +7950,10 @@ begin
       writeln(outfile);
     end;
    { here we have a problem if a line is longer than 255 chars !! }
-   reset(extfile);
-   while not eof(extfile) do
+   reset(implemfile);
+   while not eof(implemfile) do
     begin
-      readln(extfile,SS);
+      readln(implemfile,SS);
       writeln(outfile,SS);
     end;
    { write end of file }
@@ -7895,17 +7961,68 @@ begin
    if not(includefile) then
      writeln(outfile,'end.');
    { close and erase tempfiles }
-   close(extfile);
-   erase(extfile);
-   close(outfile);
-   close(tempfile);
-   erase(tempfile);
+  close(implemfile);
+  erase(implemfile);
+  close(tempfile);
+  erase(tempfile);
+  flush(outfile);
+   
+  {**** generate full file ****}
+  assign(headerfile, 'ext4.tmp');
+  {$I-}
+  rewrite(headerfile);
+  {$I+}
+  if ioresult<>0 then
+    begin
+      writeln('file ext4.tmp could not be created!');
+      halt(1);
+  end;
+  WriteFileHeader(HeaderFile);
+   
+  { Final output filename } 
+  assign(finaloutfile, outputfilename);
+  {$I-}
+  rewrite(finaloutfile);
+  {$I+}
+  if ioresult<>0 then
+  begin
+     writeln('file ',outputfilename,' could not be created!');
+     halt(1);
+  end;
+  writeln(finaloutfile);
+  
+  { Read unit header file }
+  reset(headerfile);
+  while not eof(headerfile) do
+    begin
+      readln(headerfile,SS);
+      writeln(finaloutfile,SS);
+    end;
+  { Read interface and implementation file }
+  reset(outfile);
+  while not eof(outfile) do
+    begin
+      readln(outfile,SS);
+      writeln(finaloutfile,SS);
+    end;
+   
+  close(HeaderFile);
+  close(outfile);
+  close(finaloutfile);
+  erase(outfile);
+  erase(headerfile);
+   
+  PTypeList.Free;
 end.
 
 {
   $Log$
-  Revision 1.12  2004-08-18 19:18:18  peter
-    * recommit to get newer timestamp
+  Revision 1.13  2004-09-15 19:16:38  hajny
+    * regenerated
+
+  Revision 1.9  2004/09/08 22:21:41  carl
+    + support for creating packed records
+    * var parameter bugfixes
 
   Revision 1.8  2004/08/13 02:35:29  carl
     + bugfixes with C++ comments, they are now placed above the definition
