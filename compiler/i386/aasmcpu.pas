@@ -276,19 +276,19 @@ implementation
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS16,OT_BITS32,OT_BITS32,
           OT_BITS16,OT_BITS32,OT_BITS64,
-          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,OT_NONE,
           OT_NEAR,OT_FAR,OT_SHORT
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS8,OT_BITS8,OT_BITS16,
           OT_BITS16,OT_BITS32,OT_BITS64,
-          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,OT_NONE,
           OT_NEAR,OT_FAR,OT_SHORT
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_NONE,OT_NONE,OT_NONE,
           OT_BITS16,OT_BITS32,OT_BITS64,
-          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,OT_NONE,
           OT_NEAR,OT_FAR,OT_SHORT
          )
        );
@@ -1875,7 +1875,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2002-11-17 16:31:58  carl
+  Revision 1.9  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.8  2002/11/17 16:31:58  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k

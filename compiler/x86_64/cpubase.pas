@@ -59,7 +59,7 @@ type
   topsize = (S_NO,
     S_B,S_W,S_L,S_BW,S_BL,S_WL,S_BQ,S_WQ,S_LQ,
     S_IS,S_IL,S_IQ,
-    S_FS,S_FL,S_FX,S_D,S_Q,S_FV,
+    S_FS,S_FL,S_FX,S_D,S_Q,S_FV,S_FXX,
     S_NEAR,S_FAR,S_SHORT
   );
 
@@ -270,8 +270,8 @@ const
          LOC_FPUREGISTER,
          { if it is a FPU register variable on the fpu stack }
          LOC_CFPUREGISTER,
-         LOC_SSEREGISTER,
-         LOC_CSSEREGISTER
+         LOC_MMREGISTER,
+         LOC_CMMREGISTER
        );
 
       { tparamlocation describes where a parameter for a procedure is stored.
@@ -281,6 +281,7 @@ const
       tparalocation = packed record
          loc  : TLoc;
          sp_fixup : longint;
+         size : TCGSize;
          case TLoc of
             LOC_REFERENCE : (reference : tparareference);
             { segment in reference at the same place as in loc_register }
@@ -499,7 +500,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2002-11-17 18:26:16  mazen
+  Revision 1.5  2003-01-05 13:36:54  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.4  2002/11/17 18:26:16  mazen
   * fixed a compilation bug accmulator-->accumulator, in definition of return_result_reg
 
   Revision 1.3  2002/11/17 17:49:09  mazen

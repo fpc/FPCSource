@@ -50,6 +50,10 @@ Type
 
    pbestreal=^bestreal;
 
+   tprocessors =
+      (no_processor,
+       ClassDefault
+      );
 Const
    { Size of native extended type }
    extended_size = 10;
@@ -59,6 +63,12 @@ Const
    mmreg_size = 16;
    { target cpu string (used by compiler options) }
    target_cpu_string = 'x86_64';
+   { size of the buffer used for setjump/longjmp
+     the size of this buffer is deduced from the
+     jmp_buf structure in setjumph.inc file
+   }
+   {$warning FIX: jmp_buf_size }
+   jmp_buf_size = 48;
 
 
 Implementation
@@ -66,7 +76,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-09-07 15:25:15  peter
+  Revision 1.6  2003-01-05 13:36:54  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.5  2002/09/07 15:25:15  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/08/12 15:08:45  carl

@@ -358,7 +358,7 @@ implementation
           not output a pointer }
          case target_info.system of
 {$ifdef x86_64}
-            target_x86_64_linux:
+            system_x86_64_linux:
               ;
 {$endif x86_64}
 {$ifdef i386}
@@ -1437,7 +1437,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2002-12-29 18:17:23  peter
+  Revision 1.91  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.90  2002/12/29 18:17:23  peter
     * insert unitsym with the name as specified in the uses list
 
   Revision 1.89  2002/12/29 14:57:50  peter

@@ -65,10 +65,10 @@ unit cg64f32;
         procedure a_load64high_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);override;
         procedure a_load64low_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);override;
 
+        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);override;
         procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;value : qword;const l: tlocation);override;
         procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;reg : tregister64;const l : tlocation);override;
         procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg : tregister64);override;
-        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);override;
         procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : qword;const ref : treference);override;
 
         procedure a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);override;
@@ -748,7 +748,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-11-25 17:43:16  peter
+  Revision 1.33  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.32  2002/11/25 17:43:16  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

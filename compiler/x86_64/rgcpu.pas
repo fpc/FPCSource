@@ -258,7 +258,7 @@ unit rgcpu;
           exit;
          r := makeregsize(r,OS_INT);
          if (r = R_EDI) or
-            ((not assigned(procinfo^._class)) and (r = R_ESI)) then
+            ((not assigned(procinfo._class)) and (r = R_ESI)) then
            begin
              list.concat(tai_regalloc.DeAlloc(r));
              exit;
@@ -408,8 +408,7 @@ unit rgcpu;
       const s: tregisterset);
 
       begin
-        if (aktoptprocessor in [class386,classP5]) or
-           (CS_LittleSize in aktglobalswitches) then
+        if (CS_LittleSize in aktglobalswitches) then
           pushusedregisters(list,saved,s)
         else
           inherited saveusedregisters(list,saved,s);
@@ -420,8 +419,7 @@ unit rgcpu;
       const saved : tpushedsaved);
 
       begin
-        if (aktoptprocessor in [class386,classP5]) or
-           (CS_LittleSize in aktglobalswitches) then
+        if (CS_LittleSize in aktglobalswitches) then
           popusedregisters(list,saved)
         else
           inherited restoreusedregisters(list,saved);
@@ -475,7 +473,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-07-25 22:55:34  florian
+  Revision 1.3  2003-01-05 13:36:54  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.2  2002/07/25 22:55:34  florian
     * several fixes, small test units can be compiled
 
   Revision 1.1  2002/07/24 22:38:15  florian

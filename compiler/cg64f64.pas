@@ -32,7 +32,7 @@ unit cg64f64;
   interface
 
     uses
-       aasm,
+       aasmbase,aasmtai,aasmcpu,
        cpuinfo, cpubase,
        cginfo, cgobj,
        node,symtype;
@@ -41,16 +41,18 @@ unit cg64f64;
       {# Defines all the methods required on 32-bit processors
          to handle 64-bit integers.
       }
-      tcg64f32 = class(tcg64)
-        procedure a_load64_const_ref(list : taasmoutput;valuelo, valuehi : AWord;const ref : treference);override;
-        procedure a_load64_reg_ref(list : taasmoutput;reglo, reghi : tregister;const ref : treference);override;
-        procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reglo,reghi : tregister);override;
-        procedure a_load64_reg_reg(list : taasmoutput;reglosrc,reghisrc,reglodst,reghidst : tregister);override;
-        procedure a_load64_const_reg(list : taasmoutput;valuelosrc,valuehisrc:AWord;reglodst,reghidst : tregister);override;
-        procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reglo,reghi : tregister);override;
+      tcg64f64 = class(tcg64)
+        procedure a_reg_alloc(list : taasmoutput;r : tregister64);override;
+        procedure a_reg_dealloc(list : taasmoutput;r : tregister64);override;
+        procedure a_load64_const_ref(list : taasmoutput;value : AWord;const ref : treference);override;
+        procedure a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);override;
+        procedure a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);override;
+        procedure a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);override;
+        procedure a_load64_const_reg(list : taasmoutput;value: qword;reg : tregister64);override;
+        procedure a_load64_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister64);override;
         procedure a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);override;
-        procedure a_load64_const_loc(list : taasmoutput;valuelo, valuehi : AWord;const l : tlocation);override;
-        procedure a_load64_reg_loc(list : taasmoutput;reglo, reghi : tregister;const l : tlocation);override;
+        procedure a_load64_const_loc(list : taasmoutput;value : qword;const l : tlocation);override;
+        procedure a_load64_reg_loc(list : taasmoutput;reg : tregister64;const l : tlocation);override;
 
         procedure a_load64high_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);override;
         procedure a_load64low_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);override;
@@ -59,17 +61,23 @@ unit cg64f64;
         procedure a_load64high_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);override;
         procedure a_load64low_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);override;
 
-        procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;valuelosrc,valuehisrc:aword;const l: tlocation);override;
-        procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;reglo,reghi : tregister;const l : tlocation);override;
-        procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reglo,reghi : tregister);override;
+        procedure a_op64_reg_ref(list : taasmoutput;op:TOpCG;regsrc : tregister64;const ref : treference);override;
+        procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);override;
+        procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;value:qword;const l: tlocation);override;
+        procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;reg : tregister64;const l : tlocation);override;
+        procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg : tregister64);override;
+        procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;regdst : tregister64);override;
+        procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : qword;const ref : treference);override;
 
-        procedure a_param64_reg(list : taasmoutput;reglo,reghi : tregister;nr : longint);override;
-        procedure a_param64_const(list : taasmoutput;valuelo,valuehi : aword;nr : longint);override;
-        procedure a_param64_ref(list : taasmoutput;const r : treference;nr : longint);override;
-        procedure a_param64_loc(list : taasmoutput;const l : tlocation;nr : longint);override;
+        procedure a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);override;
+        procedure a_param64_const(list : taasmoutput;value : qword;const locpara : tparalocation);override;
+        procedure a_param64_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
+        procedure a_param64_loc(list : taasmoutput;const l : tlocation;const locpara : tparalocation);override;
+
+        function optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : qword; var reg: tregister64): boolean;override;
 
         { override to catch 64bit rangechecks }
-        procedure g_rangecheck(list: taasmoutput; const p: tnode;
+        procedure g_rangecheck64(list: taasmoutput; const p: tnode;
           const todef: tdef); override;
       end;
 
@@ -82,17 +90,17 @@ unit cg64f64;
 
     procedure tcg64f64.a_load64_reg_ref(list : taasmoutput;reg : tregister64;const ref : treference);
       begin
-         cg.a_load_const_ref(list,OS_64,reg,ref);
+         cg.a_load_reg_ref(list,OS_64,reg,ref);
       end;
 
     procedure tcg64f64.a_load64_ref_reg(list : taasmoutput;const ref : treference;reg : tregister64);
       begin
-         cg.a_load_ref_ref(list,OS_64,ref,reg);
+         cg.a_load_ref_reg(list,OS_64,ref,reg);
       end;
 
     procedure tcg64f64.a_load64_reg_reg(list : taasmoutput;regsrc,regdst : tregister64);
       begin
-         cg.a_load_reg_reg(list,OS_64,regsrc,regdst);
+         cg.a_load_reg_reg(list,OS_64,OS_64,regsrc,regdst);
       end;
 
     procedure tcg64f64.a_load64_const_reg(list : taasmoutput;value : qword;reg : tregister64);
@@ -107,7 +115,7 @@ unit cg64f64;
 
     procedure tcg64f64.a_load64_loc_ref(list : taasmoutput;const l : tlocation;const ref : treference);
       begin
-         cg.a_load_loc_ref(list,OS_64,l,ref);
+         cg.a_load_loc_ref(list,l,ref);
       end;
 
     procedure tcg64f64.a_load64_const_loc(list : taasmoutput;value : qword;const l : tlocation);
@@ -117,59 +125,80 @@ unit cg64f64;
 
     procedure tcg64f64.a_load64_reg_loc(list : taasmoutput;reg : tregister64;const l : tlocation);
       begin
-         cg.a_load_reg_loc(list,reg,l);
+         cg.a_load_reg_loc(list,OS_64,reg,l);
       end;
 
-    procedure a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reglo,reg : tregister64);
-      begin
-         cg.a_op_ref_reg(list,
-      end;
-
-    procedure a_op64_reg_reg(list : taasmoutput;op:TOpCG;regsrc,regdst : tregister64);
+    procedure tcg64f64.a_load64high_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);
       begin
       end;
 
-    procedure a_op64_reg_ref(list : taasmoutput;op:TOpCG;regsrc : tregister64;const ref : treference);
+    procedure tcg64f64.a_load64low_reg_ref(list : taasmoutput;reg : tregister;const ref : treference);
       begin
       end;
 
-    procedure a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;regdst : tregister64);
+    procedure tcg64f64.a_load64high_ref_reg(list : taasmoutput;const ref : treference;reg : tregister);
       begin
       end;
 
-    procedure a_op64_const_ref(list : taasmoutput;op:TOpCG;value : qword;const ref : treference);
+    procedure tcg64f64.a_load64low_ref_reg(list : taasmoutput;const ref : treference;reg : tregister);
       begin
       end;
 
-    procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;value : qword;const l: tlocation);
+    procedure tcg64f64.a_load64high_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);
       begin
       end;
 
-    procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;reg : tregister64;const l : tlocation);
+    procedure tcg64f64.a_load64low_loc_reg(list : taasmoutput;const l : tlocation;reg : tregister);
       begin
       end;
 
-    procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg64 : tregister64);
+
+    procedure tcg64f64.a_op64_ref_reg(list : taasmoutput;op:TOpCG;const ref : treference;reg : tregister64);
+      begin
+         cg.a_op_ref_reg(list,op,OS_64,ref,reg);
+      end;
+
+    procedure tcg64f64.a_op64_reg_ref(list : taasmoutput;op:TOpCG;regsrc : tregister64;const ref : treference);
       begin
       end;
 
-    procedure a_param64_reg(list : taasmoutput;reg64 : tregister;nr : longint);
+    procedure tcg64f64.a_op64_const_reg(list : taasmoutput;op:TOpCG;value : qword;regdst : tregister64);
       begin
       end;
 
-    procedure a_param64_const(list : taasmoutput;value : qword;nr : longint);
+    procedure tcg64f64.a_op64_const_ref(list : taasmoutput;op:TOpCG;value : qword;const ref : treference);
       begin
       end;
 
-    procedure a_param64_ref(list : taasmoutput;const r : treference;nr : longint);
+    procedure tcg64f64.a_op64_const_loc(list : taasmoutput;op:TOpCG;value : qword;const l: tlocation);
       begin
       end;
 
-    procedure a_param64_loc(list : taasmoutput;const l : tlocation;nr : longint);
+    procedure tcg64f64.a_op64_reg_loc(list : taasmoutput;op:TOpCG;reg : tregister64;const l : tlocation);
       begin
       end;
 
-    procedure g_rangecheck64(list: taasmoutput; const p: tnode;
+    procedure tcg64f64.a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg : tregister64);
+      begin
+      end;
+
+    procedure tcg64f64.a_param64_reg(list : taasmoutput;reg64 : tregister;const locpara : tparalocation);
+      begin
+      end;
+
+    procedure tcg64f64.a_param64_const(list : taasmoutput;value : qword;const locpara : tparalocation);
+      begin
+      end;
+
+    procedure tcg64f64.a_param64_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
+      begin
+      end;
+
+    procedure tcg64f64.a_param64_loc(list : taasmoutput;const l : tlocation;const locpara : tparalocation);
+      begin
+      end;
+
+    procedure tcg64f64.g_rangecheck64(list: taasmoutput; const p: tnode;
       const todef: tdef);
       begin
       end;
@@ -180,13 +209,13 @@ unit cg64f64;
      end;
 
 
-    procedure tcg.a_reg_alloc(list : taasmoutput;r : tregister64);
+    procedure tcg64f64.a_reg_alloc(list : taasmoutput;r : tregister64);
 
       begin
          list.concat(tai_regalloc.alloc(r));
       end;
 
-    procedure tcg.a_reg_dealloc(list : taasmoutput;r : tregister64);
+    procedure tcg64f64.a_reg_dealloc(list : taasmoutput;r : tregister64);
 
       begin
          list.concat(tai_regalloc.dealloc(r));
@@ -196,7 +225,11 @@ unit cg64f64;
 end.
 {
   $Log$
-  Revision 1.5  2002-09-07 15:25:00  peter
+  Revision 1.6  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.5  2002/09/07 15:25:00  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/08/19 18:17:48  carl

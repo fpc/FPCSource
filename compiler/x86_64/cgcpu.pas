@@ -43,7 +43,7 @@ unit cgcpu;
 
     uses
        globtype,globals,verbose,systems,cutils,
-       symdef,symsym,defbase,paramgr,
+       symdef,symsym,defutil,paramgr,
        rgobj,tgobj,rgcpu;
 
     procedure tcgx86_64.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aword; delsource,loadref : boolean);
@@ -173,7 +173,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-07-25 22:55:33  florian
+  Revision 1.3  2003-01-05 13:36:54  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.2  2002/07/25 22:55:33  florian
     * several fixes, small test units can be compiled
 
   Revision 1.1  2002/07/24 22:38:15  florian

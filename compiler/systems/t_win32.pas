@@ -102,6 +102,7 @@ interface
       function GetEdata(HeaderEntry:cardinal):longbool;override;
       function Scan(const binname:string):longbool;override;
     end;
+
 implementation
 
     function DllName(Const Name : string;NdefExt:longint;DefExt:pStr4) : string;
@@ -1625,7 +1626,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2002-12-24 15:55:51  peter
+  Revision 1.10  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.9  2002/12/24 15:55:51  peter
     * Use maybequote instead of getshortname
 
   Revision 1.8  2002/12/01 18:57:34  carl

@@ -70,7 +70,7 @@ uses
       topsize = (S_NO,
         S_B,S_W,S_L,S_BW,S_BL,S_WL,
         S_IS,S_IL,S_IQ,
-        S_FS,S_FL,S_FX,S_D,S_Q,S_FV,
+        S_FS,S_FL,S_FX,S_D,S_Q,S_FV,S_FXX,
         S_NEAR,S_FAR,S_SHORT
       );
 
@@ -533,7 +533,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2002-11-17 18:26:16  mazen
+  Revision 1.35  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.34  2002/11/17 18:26:16  mazen
   * fixed a compilation bug accmulator-->accumulator, in definition of return_result_reg
 
   Revision 1.33  2002/11/17 17:49:08  mazen

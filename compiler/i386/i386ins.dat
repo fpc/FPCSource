@@ -3317,3 +3317,11 @@ xmmreg,mem              \301\3\x66\x0F\x14\110          WILLAMETTE,SSE2,SM
 (Ch_All, Ch_None, Ch_None)
 xmmreg,xmmreg           \3\x66\x0F\x57\110              WILLAMETTE,SSE2
 xmmreg,mem              \301\3\x66\x0F\x57\110          WILLAMETTE,SSE2,SM
+
+;
+; $Log$
+; Revision 1.7  2003-01-05 13:36:53  florian
+;   * x86-64 compiles
+;   + very basic support for float128 type (x86-64 only)
+;
+;

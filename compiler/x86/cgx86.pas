@@ -140,7 +140,7 @@ unit cgx86;
    const
       TCGSize2OpSize: Array[tcgsize] of topsize =
         (S_NO,S_B,S_W,S_L,S_L,S_B,S_W,S_L,S_L,
-         S_FS,S_FL,S_FX,S_IQ,
+         S_FS,S_FL,S_FX,S_IQ,S_FXX,
          S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
 
 
@@ -1682,7 +1682,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.25  2003-01-02 16:17:50  peter
+  Revision 1.26  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.25  2003/01/02 16:17:50  peter
     * align stack on 4 bytes in copyvalueopenarray
 
   Revision 1.24  2002/12/24 15:56:50  peter

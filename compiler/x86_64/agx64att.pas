@@ -42,10 +42,10 @@ interface
     TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint);
 
     const
-      att_op2str:op2strtable={$i x64att.inc}
-      att_needsuffix:array[tasmop] of TAttSuffix={$i x64atts.inc}
+      gas_op2str:op2strtable={$i x64att.inc}
+      gas_needsuffix:array[tasmop] of TAttSuffix={$i x64atts.inc}
 
-      att_reg2str : reg2strtable = ('',
+      gas_reg2str : reg2strtable = ('',
          '%rax','%rcx','%rdx','%rbx','%rsp','%rbp','%rsi','%rdi',
          '%r8','%r9','%r10','%r11','%r12','%r13','%r14','%r15','%rip',
          '%eax','%ecx','%edx','%ebx','%esp','%ebp','%esi','%edi',
@@ -65,10 +65,10 @@ interface
          '%xmm8','%xmm9','%xmm10','%xmm11','%xmm12','%xmm13','%xmm14','%xmm15'
        );
 
-     att_opsize2str : array[topsize] of string[2] = ('',
+     gas_opsize2str : array[topsize] of string[2] = ('',
        'b','w','l','bw','bl','wl','bq','wq','lq',
        's','l','q',
-       's','l','t','d','q','v',
+       's','l','t','d','q','v','x',
        '','',''
      );
 
@@ -93,7 +93,7 @@ interface
        { should be replaced by coding the segment override  }
        { directly! - DJGPP FAQ                              }
          if segment<>R_NO then
-          s:=att_reg2str[segment]+':'
+          s:=gas_reg2str[segment]+':'
          else
           s:='';
          if assigned(symbol) then
@@ -112,7 +112,7 @@ interface
            s:=s+'0';
          if (index<>R_NO) and (base=R_NO) then
           begin
-            s:=s+'(,'+att_reg2str[index];
+            s:=s+'(,'+gas_reg2str[index];
             if scalefactor<>0 then
              s:=s+','+tostr(scalefactor)+')'
             else
@@ -120,11 +120,11 @@ interface
           end
          else
           if (index=R_NO) and (base<>R_NO) then
-           s:=s+'('+att_reg2str[base]+')'
+           s:=s+'('+gas_reg2str[base]+')'
           else
            if (index<>R_NO) and (base<>R_NO) then
             begin
-              s:=s+'('+att_reg2str[base]+','+att_reg2str[index];
+              s:=s+'('+gas_reg2str[base]+','+gas_reg2str[index];
               if scalefactor<>0 then
                s:=s+','+tostr(scalefactor)+')'
               else
@@ -140,7 +140,7 @@ interface
     begin
       case o.typ of
         top_reg :
-          getopstr:=att_reg2str[o.reg];
+          getopstr:=gas_reg2str[o.reg];
         top_ref :
           getopstr:=getreferencestring(o.ref^);
         top_const :
@@ -172,7 +172,7 @@ interface
     begin
       case o.typ of
         top_reg :
-          getopstr_jmp:='*'+att_reg2str[o.reg];
+          getopstr_jmp:='*'+gas_reg2str[o.reg];
         top_ref :
           getopstr_jmp:='*'+getreferencestring(o.ref^);
         top_const :
@@ -212,18 +212,18 @@ interface
        op:=taicpu(hp).opcode;
        calljmp:=is_calljmp(op);
        { call maybe not translated to call }
-       s:=#9+att_op2str[op]+cond2str[taicpu(hp).condition];
+       s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition];
        { suffix needed ?  fnstsw,fldcw don't support suffixes
          with binutils 2.9.5 under linux }
        if (not calljmp) and
-           (att_needsuffix[op]<>AttSufNONE) and
+           (gas_needsuffix[op]<>AttSufNONE) and
            (op<>A_FNSTSW) and (op<>A_FSTSW) and
            (op<>A_FNSTCW) and (op<>A_FSTCW) and
            (op<>A_FLDCW) and not(
            (taicpu(hp).oper[0].typ=top_reg) and
            (taicpu(hp).oper[0].reg in [R_ST..R_ST7])
           ) then
-              s:=s+att_opsize2str[taicpu(hp).opsize];
+              s:=s+gas_opsize2str[taicpu(hp).opsize];
        { process operands }
        if taicpu(hp).ops<>0 then
          begin
@@ -262,7 +262,7 @@ interface
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
-            supported_target : target_any;
+            supported_target : system_any;
             outputbinary: false;
             allowdirect : true;
             needar : true;
@@ -281,7 +281,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2002-08-12 15:08:44  carl
+  Revision 1.4  2003-01-05 13:36:54  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.3  2002/08/12 15:08:44  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

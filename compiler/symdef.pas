@@ -686,6 +686,9 @@ interface
 {$ifdef i386}
        pbestrealtype : ^ttype = @s80floattype;
 {$endif}
+{$ifdef x86_64}
+       pbestrealtype : ^ttype = @s80floattype;
+{$endif}
 {$ifdef m68k}
        pbestrealtype : ^ttype = @s64floattype;
 {$endif}
@@ -1914,9 +1917,9 @@ implementation
 
     procedure tfloatdef.write_rtti_data(rt:trttitype);
       const
-         {tfloattype = (s32real,s64real,s80real,s64bit);}
+         {tfloattype = (s32real,s64real,s80real,s64bit,s128bit);}
          translate : array[tfloattype] of byte =
-           (ftSingle,ftDouble,ftExtended,ftComp,ftCurr);
+           (ftSingle,ftDouble,ftExtended,ftComp,ftCurr,ftFloat128);
       begin
          rttiList.concat(Tai_const.Create_8bit(tkFloat));
          write_rtti_name;
@@ -1933,7 +1936,7 @@ implementation
 
       const
         names : array[tfloattype] of string[20] = (
-          'Single','Double','Extended','Comp','Currency');
+          'Single','Double','Extended','Comp','Currency','Float128');
 
       begin
          gettypename:=names[typ];
@@ -5557,7 +5560,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.120  2003-01-02 19:49:00  peter
+  Revision 1.121  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.120  2003/01/02 19:49:00  peter
     * update self parameter only for methodpointer and methods
 
   Revision 1.119  2002/12/29 18:25:59  peter

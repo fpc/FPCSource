@@ -73,7 +73,7 @@ interface
                  { integer registers }
                   OS_8,OS_16,OS_32,OS_64,OS_S8,OS_S16,OS_S32,OS_S64,
                  { single,double,extended,comp }
-                  OS_F32,OS_F64,OS_F80,OS_C64,
+                  OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
                  { multi-media sizes: split in byte, word, dword, ... }
                  { entities, then the signed counterparts             }
                   OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_MS8,OS_MS16,OS_MS32,
@@ -84,12 +84,12 @@ interface
          { integer values }
         (0,1,2,4,8,1,2,4,8,
          { floating point values }
-         4,8,EXTENDED_SIZE,8,
+         4,8,EXTENDED_SIZE,8,16,
          { multimedia values }
          1,2,4,8,16,1,2,4,8,16);
 
        tfloat2tcgsize: array[tfloattype] of tcgsize =
-         (OS_F32,OS_F64,OS_F80,OS_C64,OS_C64);
+         (OS_F32,OS_F64,OS_F80,OS_C64,OS_C64,OS_F128);
 
        tcgsize2tfloat: array[OS_F32..OS_C64] of tfloattype =
          (s32real,s64real,s80real,s64comp);
@@ -98,7 +98,7 @@ interface
          unsigned types }
        tcgsize2unsigned : array[tcgsize] of tcgsize = (OS_NO,
           OS_8,OS_16,OS_32,OS_64,OS_8,OS_16,OS_32,OS_64,
-          OS_F32,OS_F64,OS_F80,OS_C64,
+          OS_F32,OS_F64,OS_F80,OS_C64,OS_F128,
           OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M8,OS_M16,OS_M32,
           OS_M64,OS_M128);
 
@@ -107,7 +107,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2002-09-07 15:25:01  peter
+  Revision 1.17  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.16  2002/09/07 15:25:01  peter
     * old logs removed and tabs fixed
 
   Revision 1.15  2002/08/05 18:27:48  carl

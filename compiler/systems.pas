@@ -129,6 +129,7 @@ interface
              ,as_i386_pecoffwdosx
              ,as_m68k_mit
              ,as_powerpc_mpw
+             ,as_x86_64_as
        );
 
        tar = (ar_none
@@ -675,7 +676,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.57  2002-10-05 12:43:29  carl
+  Revision 1.58  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.57  2002/10/05 12:43:29  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

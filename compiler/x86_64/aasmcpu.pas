@@ -113,7 +113,7 @@ interface
       OT_UNITY     = $00802000;  { for shift/rotate instructions  }
 
       { Size of the instruction table converted by nasmconv.pas }
-      instabentries = {$i i386nop.inc}
+      instabentries = {$i x86_64no.inc}
       maxinfolen    = 8;
 
     type
@@ -137,6 +137,7 @@ interface
       end;
 
       taicpu = class(taicpu_abstract)
+         segprefix : tregister;
          opsize    : topsize;
          constructor op_none(op : tasmop;_size : topsize);
 
@@ -235,6 +236,8 @@ implementation
        IF_MMX    = $00004000;  { it's an MMX instruction  }
        IF_3DNOW  = $00008000;  { it's a 3DNow! instruction  }
        IF_SSE    = $00010000;  { it's a SSE (KNI, MMX2) instruction  }
+       { SSE2 instructions  }
+       IF_SSE2   = $00020000;
        IF_PMASK  = longint($FF000000);  { the mask for processor types  }
        IF_PFMASK = longint($F001FF00);  { the mask for disassembly "prefer"  }
        IF_8086   = $00000000;  { 8086 instruction  }
@@ -245,6 +248,8 @@ implementation
        IF_PENT   = $05000000;  { Pentium instruction  }
        IF_P6     = $06000000;  { P6 instruction  }
        IF_KATMAI = $07000000;  { Katmai instructions  }
+       { Willamette instructions }
+       IF_WILLAMETTE = $08000000;
        IF_CYRIX  = $10000000;  { Cyrix-specific instruction  }
        IF_AMD    = $20000000;  { AMD-specific instruction  }
        { added flags }
@@ -267,19 +272,19 @@ implementation
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS16,OT_BITS32,OT_BITS32,OT_BITS64,OT_BITS64,OT_BITS64,
           OT_BITS16,OT_BITS32,OT_BITS64,
-          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,OT_NONE,
           OT_NEAR,OT_FAR,OT_SHORT
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS8,OT_BITS8,OT_BITS16,OT_BITS8,OT_BITS16,OT_BITS32,
           OT_BITS16,OT_BITS32,OT_BITS64,
-          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,OT_NONE,
           OT_NEAR,OT_FAR,OT_SHORT
          ),
          (OT_NONE,
           OT_BITS8,OT_BITS16,OT_BITS32,OT_NONE,OT_NONE,OT_NONE,OT_NONE,OT_NONE,OT_NONE,
           OT_BITS16,OT_BITS32,OT_BITS64,
-          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,OT_NONE,
           OT_NEAR,OT_FAR,OT_SHORT
          )
        );
@@ -989,7 +994,7 @@ implementation
         i:=instabcache^[opcode];
         if i=-1 then
          begin
-           Message1(asmw_e_opcode_not_in_table,att_op2str[opcode]);
+           Message1(asmw_e_opcode_not_in_table,gas_op2str[opcode]);
            exit;
          end;
         insentry:=@instab[i];
@@ -1800,7 +1805,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2002-11-17 16:32:04  carl
+  Revision 1.5  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.4  2002/11/17 16:32:04  carl
     * memory optimization (3-4%) : cleanup of tai fields,
        cleanup of tdef and tsym fields.
     * make it work for m68k

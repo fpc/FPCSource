@@ -63,6 +63,7 @@ interface
           ait_real_64bit,
           ait_real_80bit,
           ait_comp_64bit,
+          ait_real_128bit,
 {$ifdef GDB}
           ait_stabn,
           ait_stabs,
@@ -112,6 +113,7 @@ interface
           'real_64bit',
           'real_80bit',
           'comp_64bit',
+          'real_128bit',
 {$ifdef GDB}
           'stabn',
           'stabs',
@@ -1709,7 +1711,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.14  2002-12-06 17:50:21  peter
+  Revision 1.15  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.14  2002/12/06 17:50:21  peter
     * symbol count fix merged
 
   Revision 1.13  2002/11/17 16:31:55  carl

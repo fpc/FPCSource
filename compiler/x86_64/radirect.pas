@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2001 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl
 
     Reads inline assembler and writes the lines direct to the output
 
@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit Radirect;
+unit radirect;
 
 {$i fpcdefs.inc}
 
@@ -40,17 +40,18 @@ interface
        globals,verbose,
        systems,
        { aasm }
-       cpubase,aasmtai,
+       aasmbase,aasmtai,aasmcpu,
        { symtable }
-       symconst,symbase,symtype,symsym,symtable,defbase,paramgr,
+       symconst,symbase,symtype,symsym,symtable,defutil,paramgr,
        { pass 1 }
        nbas,
        { parser }
        scanner,
        rax86_64,
-       agx64att,
        { codegen }
-       cgbase
+       cgbase,
+       { constants }
+       agx64att
        ;
 
     function assemble : tnode;
@@ -88,7 +89,7 @@ interface
           is_fpu(aktprocdef.rettype.def) then
          tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
        if (not is_void(aktprocdef.rettype.def)) then
-         retstr:=upper(tostr(procinfo^.return_offset)+'('+att_reg2str[procinfo^.framepointer]+')')
+         retstr:=upper(tostr(procinfo.return_offset)+'('+gas_reg2str[procinfo.framepointer]+')')
        else
          retstr:='';
          c:=current_scanner.asmgetchar;
@@ -137,7 +138,7 @@ interface
                                  { is the last written character an special }
                                  { char ?                                   }
                                  if (s[length(s)]='%') and
-                                    paramanager.ret_in_acc(aktprocdef.rettype.def) and
+                                    paramanager.ret_in_acc(aktprocdef.rettype.def,aktprocdef.proccalloption) and
                                     ((pos('AX',upper(hs))>0) or
                                     (pos('AL',upper(hs))>0)) then
                                    tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
@@ -169,14 +170,14 @@ interface
                                                hs:=tvarsym(sym).mangledname
                                              else
                                                hs:='-'+tostr(tvarsym(sym).address)+
-                                                   '('+att_reg2str[procinfo^.framepointer]+')';
+                                                   '('+gas_reg2str[procinfo.framepointer]+')';
                                              end
                                            else
                                            { call to local function }
                                            if (sym.typ=procsym) and ((pos('CALL',upper(s))>0) or
                                               (pos('LEA',upper(s))>0)) then
                                              begin
-                                                hs:=tprocsym(sym).defs^.def.mangledname;
+                                                hs:=tprocsym(sym).first_procdef.mangledname;
                                              end;
                                         end
                                       else
@@ -192,7 +193,7 @@ interface
                                                      l:=tvarsym(sym).address;
                                                      { set offset }
                                                      inc(l,aktprocdef.parast.address_fixup);
-                                                     hs:=tostr(l)+'('+att_reg2str[procinfo^.framepointer]+')';
+                                                     hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer]+')';
                                                      if pos(',',s) > 0 then
                                                        tvarsym(sym).varstate:=vs_used;
                                                   end;
@@ -224,10 +225,10 @@ interface
                                                      { procs can be called or the address can be loaded }
                                                      if ((pos('CALL',upper(s))>0) or (pos('LEA',upper(s))>0)) then
                                                       begin
-                                                        if assigned(tprocsym(sym).defs^.def) then
+                                                        if tprocsym(sym).procdef_count>1 then
                                                           Message1(asmr_w_direct_global_is_overloaded_func,hs);
-                                                        Message2(asmr_h_direct_global_to_mangled,hs,tprocsym(sym).defs^.def.mangledname);
-                                                        hs:=tprocsym(sym).defs^.def.mangledname;
+                                                        Message2(asmr_h_direct_global_to_mangled,hs,tprocsym(sym).first_procdef.mangledname);
+                                                        hs:=tprocsym(sym).first_procdef.mangledname;
                                                       end;
                                                    end;
                                                  else
@@ -236,9 +237,9 @@ interface
                                              end
                                            else if upper(hs)='__SELF' then
                                              begin
-                                                if assigned(procinfo^._class) then
-                                                  hs:=tostr(procinfo^.selfpointer_offset)+
-                                                      '('+att_reg2str[procinfo^.framepointer]+')'
+                                                if assigned(procinfo._class) then
+                                                  hs:=tostr(procinfo.selfpointer_offset)+
+                                                      '('+gas_reg2str[procinfo.framepointer]+')'
                                                 else
                                                  Message(asmr_e_cannot_use_SELF_outside_a_method);
                                              end
@@ -254,8 +255,8 @@ interface
                                                 { complicate to check there }
                                                 { we do it: }
                                                 if lexlevel>normal_function_level then
-                                                  hs:=tostr(procinfo^.framepointer_offset)+
-                                                    '('+att_reg2str[procinfo^.framepointer]+')'
+                                                  hs:=tostr(procinfo.framepointer_offset)+
+                                                    '('+gas_reg2str[procinfo.framepointer]+')'
                                                 else
                                                   Message(asmr_e_cannot_use_OLDEBP_outside_nested_procedure);
                                              end;
@@ -303,16 +304,77 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-08-10 14:53:38  carl
+  Revision 1.2  2003-01-05 13:36:54  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.5  2002/11/25 17:43:27  peter
+    * splitted defbase in defutil,symutil,defcmp
+    * merged isconvertable and is_equal into compare_defs(_ext)
+    * made operator search faster by walking the list only once
+
+  Revision 1.4  2002/11/18 17:32:00  peter
+    * pass proccalloption to ret_in_xxx and push_xxx functions
+
+  Revision 1.3  2002/09/03 16:26:28  daniel
+    * Make Tprocdef.defs protected
+
+  Revision 1.2  2002/08/17 09:23:47  florian
+    * first part of procinfo rewrite
+
+  Revision 1.1  2002/08/10 14:47:50  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's
     * move from nppcmem.pas -> ncgmem.pas vec. node.
 
-  Revision 1.2  2002/07/25 22:55:34  florian
-    * several fixes, small test units can be compiled
+  Revision 1.21  2002/07/20 11:58:05  florian
+    * types.pas renamed to defbase.pas because D6 contains a types
+      unit so this would conflicts if D6 programms are compiled
+    + Willamette/SSE2 instructions to assembler added
 
-  Revision 1.1  2002/07/24 22:38:15  florian
-    + initial release of x86-64 target code
+  Revision 1.20  2002/07/11 14:41:34  florian
+    * start of the new generic parameter handling
+
+  Revision 1.19  2002/07/01 18:46:34  peter
+    * internal linker
+    * reorganized aasm layer
+
+  Revision 1.18  2002/05/18 13:34:26  peter
+    * readded missing revisions
+
+  Revision 1.17  2002/05/16 19:46:52  carl
+  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
+  + try to fix temp allocation (still in ifdef)
+  + generic constructor calls
+  + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.15  2002/05/12 16:53:18  peter
+    * moved entry and exitcode to ncgutil and cgobj
+    * foreach gets extra argument for passing local data to the
+      iterator function
+    * -CR checks also class typecasts at runtime by changing them
+      into as
+    * fixed compiler to cycle with the -CR option
+    * fixed stabs with elf writer, finally the global variables can
+      be watched
+    * removed a lot of routines from cga unit and replaced them by
+      calls to cgobj
+    * u32bit-s32bit updates for and,or,xor nodes. When one element is
+      u32bit then the other is typecasted also to u32bit without giving
+      a rangecheck warning/error.
+    * fixed pascal calling method with reversing also the high tree in
+      the parast, detected by tcalcst3 test
+
+  Revision 1.14  2002/04/15 19:12:09  carl
+  + target_info.size_of_pointer -> pointer_size
+  + some cleanup of unused types/variables
+  * move several constants from cpubase to their specific units
+    (where they are used)
+  + att_Reg2str -> gas_reg2str
+  + int_reg2str -> std_reg2str
+
+  Revision 1.13  2002/04/14 17:01:52  carl
+  + att_reg2str -> gas_reg2str
 
 }

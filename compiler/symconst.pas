@@ -68,6 +68,7 @@ const
   ftExtended = 2;
   ftComp     = 3;
   ftCurr     = 4;
+  ftFloat128 = 5;
 
   mkProcedure= 0;
   mkFunction = 1;
@@ -149,7 +150,7 @@ type
   { float types }
   tfloattype = (
     s32real,s64real,s80real,
-    s64comp,s64currency
+    s64comp,s64currency,s128real
   );
 
   { string types }
@@ -339,7 +340,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2003-01-01 22:51:03  peter
+  Revision 1.42  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.41  2003/01/01 22:51:03  peter
     * high value insertion changed so it works also when 2 parameters
       are passed
 

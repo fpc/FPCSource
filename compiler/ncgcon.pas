@@ -83,7 +83,7 @@ implementation
       { constants are actually supported by the target processor? (JM) }
       const
         floattype2ait:array[tfloattype] of taitype=
-          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit);
+          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit,ait_real_128bit);
       var
          hp1 : tai;
          lastlabel : tasmlabel;
@@ -533,7 +533,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-12-29 16:58:11  peter
+  Revision 1.26  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.25  2002/12/29 16:58:11  peter
     * write terminating 0 for widestring constants
 
   Revision 1.24  2002/12/07 14:10:21  carl

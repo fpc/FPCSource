@@ -100,7 +100,8 @@ specific processor ABI. It is overriden for each CPU target.
 CONST
   TOpCG2AsmOp:ARRAY[topcg]OF TAsmOp=(A_NONE,A_ADD,A_AND,A_UDIV,A_SDIV,A_UMUL, A_SMUL, A_NEG,A_NOT,A_OR,A_not,A_not,A_not,A_SUB,A_XOR);
   TOpCmp2AsmCond:ARRAY[topcmp]OF TAsmCond=(C_NONE,C_E,C_G,C_L,C_GE,C_LE,C_NE,C_BE,C_B,C_AE,C_A);
-  TCGSize2OpSize:ARRAY[tcgsize]OF TOpSize=(S_NO,S_B,S_W,S_SW,S_SW,S_B,S_W,S_SW,S_SW,S_FS,S_FD,S_FQ,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+  TCGSize2OpSize:ARRAY[tcgsize]OF TOpSize=(S_NO,S_B,S_W,S_SW,S_SW,S_B,S_W,S_SW,S_SW,S_FS,S_FD,S_FQ,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
+
 IMPLEMENTATION
 USES
   globtype,globals,verbose,systems,cutils,
@@ -1334,7 +1335,11 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.29  2002-12-25 20:59:49  mazen
+  Revision 1.30  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.29  2002/12/25 20:59:49  mazen
   - many emitXXX removed from cga.pas in order to remove that file.
 
   Revision 1.28  2002/12/22 19:26:31  mazen

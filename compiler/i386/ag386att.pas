@@ -65,7 +65,7 @@ interface
      gas_opsize2str : array[topsize] of string[2] = ('',
        'b','w','l','bw','bl','wl',
        's','l','q',
-       's','l','t','d','q','v',
+       's','l','t','d','q','v','',
        '','',''
      );
 
@@ -303,7 +303,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.27  2002-12-24 18:10:34  peter
+  Revision 1.28  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.27  2002/12/24 18:10:34  peter
     * Long symbol names support
 
   Revision 1.26  2002/08/12 15:08:40  carl

@@ -98,7 +98,7 @@ unit cgcpu;
 const
       TCGSize2OpSize: Array[tcgsize] of topsize =
         (S_NO,S_B,S_W,S_L,S_L,S_B,S_W,S_L,S_L,
-         S_FS,S_FD,S_FX,S_NO,
+         S_FS,S_FD,S_FX,S_NO,S_NO,
          S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
 
 
@@ -1250,7 +1250,11 @@ end.
 
 {
   $Log$
-  Revision 1.13  2002-12-01 22:12:36  carl
+  Revision 1.14  2003-01-05 13:36:53  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.13  2002/12/01 22:12:36  carl
     * rename an error message
 
   Revision 1.12  2002/11/25 17:43:27  peter

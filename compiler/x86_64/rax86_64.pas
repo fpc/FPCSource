@@ -182,7 +182,7 @@ end;
 
 Procedure FWaitWarning;
 begin
-  if (target_info.target=target_i386_GO32V2) and (cs_fp_emulation in aktmoduleswitches) then
+  if (target_info.system=system_i386_GO32V2) and (cs_fp_emulation in aktmoduleswitches) then
    Message(asmr_w_fwait_emu_prob);
 end;
 
@@ -192,14 +192,14 @@ end;
 
 Procedure T386Operand.SetCorrectSize(opcode:tasmop);
 begin
-  if att_needsuffix[opcode]=attsufFPU then
+  if gas_needsuffix[opcode]=attsufFPU then
     begin
      case size of
       S_L : size:=S_FS;
       S_IQ : size:=S_FL;
      end;
     end
-  else if att_needsuffix[opcode]=attsufFPUint then
+  else if gas_needsuffix[opcode]=attsufFPUint then
     begin
       case size of
       S_W : size:=S_IS;
@@ -492,7 +492,7 @@ begin
        else if opcode=A_FDIVR then
          opcode:=A_FDIVRP;
 {$ifdef ATTOP}
-       message1(asmr_w_fadd_to_faddp,att_op2str[opcode]);
+       message1(asmr_w_fadd_to_faddp,gas_op2str[opcode]);
 {$else}
   {$ifdef INTELOP}
        message1(asmr_w_fadd_to_faddp,std_op2str[opcode]);
@@ -516,10 +516,10 @@ begin
       (opcode=A_FDIVR)) then
      begin
 {$ifdef ATTOP}
-       message1(asmr_w_adding_explicit_args_fXX,att_op2str[opcode]);
+       message1(asmr_w_adding_explicit_args_fXX,gas_op2str[opcode]);
 {$else}
   {$ifdef INTELOP}
-       message1(asmr_w_adding_explicit_args_fXX,att_op2str[opcode]);
+       message1(asmr_w_adding_explicit_args_fXX,gas_op2str[opcode]);
   {$else}
        message1(asmr_w_adding_explicit_args_fXX,'fXX');
   {$endif INTELOP}
@@ -541,7 +541,7 @@ begin
       (opcode=A_FMULP)) then
      begin
 {$ifdef ATTOP}
-       message1(asmr_w_adding_explicit_first_arg_fXX,att_op2str[opcode]);
+       message1(asmr_w_adding_explicit_first_arg_fXX,gas_op2str[opcode]);
 {$else}
   {$ifdef INTELOP}
        message1(asmr_w_adding_explicit_first_arg_fXX,std_op2str[opcode]);
@@ -566,7 +566,7 @@ begin
       (opcode=A_FMUL)) then
      begin
 {$ifdef ATTOP}
-       message1(asmr_w_adding_explicit_second_arg_fXX,att_op2str[opcode]);
+       message1(asmr_w_adding_explicit_second_arg_fXX,gas_op2str[opcode]);
 {$else}
   {$ifdef INTELOP}
        message1(asmr_w_adding_explicit_second_arg_fXX,std_op2str[opcode]);
@@ -587,8 +587,8 @@ begin
      So I think its at least a good idea to add a warning
      if someone uses this in assembler code
      FPC itself does not use it at all PM }
-   if (opcode=A_ENTER) and ((target_info.target=target_i386_linux) or
-        (target_info.target=target_i386_FreeBSD)) then
+   if (opcode=A_ENTER) and ((target_info.system=system_i386_linux) or
+        (target_info.system=system_i386_FreeBSD)) then
      begin
        message(asmr_w_enter_not_supported_by_linux);
      end;
@@ -655,7 +655,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2002-07-24 22:38:15  florian
+  Revision 1.2  2003-01-05 13:36:54  florian
+    * x86-64 compiles
+    + very basic support for float128 type (x86-64 only)
+
+  Revision 1.1  2002/07/24 22:38:15  florian
     + initial release of x86-64 target code
 
   Revision 1.22  2002/07/01 18:46:34  peter
