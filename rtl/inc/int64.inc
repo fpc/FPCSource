@@ -290,10 +290,11 @@
       var
          _f1,bitpos : qword;
          l : longint;
-
+         f1overflowed : boolean;
       begin
         fpc_mul_qword:=0;
         bitpos:=1;
+	f1overflowed:=false;
 
         for l:=0 to 63 do
           begin
@@ -304,11 +305,14 @@
 
                 { if one of the operands is greater than the result an
                   overflow occurs                                      }
-                if checkoverflow and (_f1<>0) and (f1<>0) and
-                  ((_f1>fpc_mul_qword) or (f1>fpc_mul_qword)) then
+                if checkoverflow and (f1overflowed or ((_f1<>0) and (f1<>0) and
+                  ((_f1>fpc_mul_qword) or (f1>fpc_mul_qword)))) then
                   HandleErrorFrame(215,get_frame);
               end;
-
+{$ifndef VER1_0}
+            { when bootstrapping, we forget about overflow checking for qword :) }
+            f1overflowed:=f1overflowed or ((f1 and (1 shl 63))<>0);
+{$endif VER1_0}
             f1:=f1 shl 1;
             bitpos:=bitpos shl 1;
           end;
@@ -362,7 +366,10 @@
 
 {
   $Log$
-  Revision 1.27  2004-09-26 07:15:34  florian
+  Revision 1.28  2004-09-26 07:37:49  florian
+    * fixed overflow checking for qword
+
+  Revision 1.27  2004/09/26 07:15:34  florian
     * tried to fix overflow checking in qword multiplication
 
   Revision 1.26  2004/05/23 14:09:43  peter
