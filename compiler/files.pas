@@ -755,12 +755,16 @@ unit files;
          staticlibfilename:=nil;
          sharedlibfilename:=nil;
          exefilename:=nil;
-         { go32v2 has the famous 8.3 limit ;) }
-{$ifdef go32v2}
+         { Dos has the famous 8.3 limit :( }
+{$ifdef tp}
          asmprefix:=stringdup(FixFileName('as'));
 {$else}
+  {$ifdef go32v2}
+         asmprefix:=stringdup(FixFileName('as'));
+  {$else}
          asmprefix:=stringdup(FixFileName(n));
-{$endif}
+  {$endif}
+{$endif tp}
          path:=nil;
          setfilename(p+n);
          used_units.init;
@@ -864,7 +868,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.43  1998-09-03 17:08:45  pierre
+  Revision 1.44  1998-09-10 13:51:32  peter
+    * tp compiler also uses 'as' as asmprefix
+
+  Revision 1.43  1998/09/03 17:08:45  pierre
     * better lines for stabs
       (no scroll back to if before else part
       no return to case line at jump outside case)
