@@ -107,13 +107,8 @@ begin
   else
     Count:=Count1;
   result := CompareMemRange(Pointer(S1),Pointer(S2), Count);
-  if (result=0) and (Count1<>Count2) then
-    begin
-    if Count1>Count2 then
-      result:=ord(s1[Count+1])
-    else
-      result:=-ord(s2[Count+1]);
-    end;
+  if result=0 then
+    result:=Count1-Count2;
 end;
 
 {   CompareMemRange returns the result of comparison of Length bytes at P1 and P2
@@ -2192,7 +2187,10 @@ const
 
 {
   $Log$
-  Revision 1.14  2004-08-07 16:56:28  florian
+  Revision 1.15  2004-08-07 19:32:35  florian
+    * fixed CompareStr with a patch from Michalis Kamburelis
+
+  Revision 1.14  2004/08/07 16:56:28  florian
     + TryStrToInt* added
 
   Revision 1.13  2004/06/13 10:49:50  florian
