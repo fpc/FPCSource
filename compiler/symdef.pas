@@ -1916,8 +1916,9 @@ implementation
       begin
          case typ of
            s32real : savesize:=4;
-           s64real : savesize:=8;
            s80real : savesize:=extended_size;
+           s64real,
+           s64currency,
            s64comp : savesize:=8;
          else
            savesize:=0;
@@ -5541,7 +5542,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2002-09-09 17:34:15  peter
+  Revision 1.95  2002-09-16 09:31:10  florian
+    * fixed  currency size
+
+  Revision 1.94  2002/09/09 17:34:15  peter
     * tdicationary.replace added to replace and item in a dictionary. This
       is only allowed for the same name
     * varsyms are inserted in symtable before the types are parsed. This
