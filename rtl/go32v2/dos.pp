@@ -157,7 +157,7 @@ var
   r : registers;
   SimpleDosError : word;
 begin
-  if (dosregs.flags and carryflag) <> 0 then
+  if (dosregs.flags and fcarry) <> 0 then
    begin
      { I got a extended error = 0
        while CarryFlag was set from Exec function }
@@ -484,7 +484,7 @@ BEGIN
     dosregs.ax:=$7303;
     msdos(dosregs);
     copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
-    if dosregs.ax<>$ffff then {No error clausule in int except cf}
+    if (dosregs.flags and fcarry) = 0 then {No error clausule in int except cf}
      begin
        copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
        if Free then
@@ -1047,7 +1047,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.12  2001-03-16 20:09:58  hajny
+  Revision 1.13  2001-10-12 16:04:15  peter
+    * fix error return in disksize (merged)
+
+  Revision 1.12  2001/03/16 20:09:58  hajny
     * universal FExpand
 
   Revision 1.11  2000/12/16 15:27:15  peter
