@@ -81,6 +81,7 @@ interface
         outcnt   : longint;
         outbuf   : array[0..AsmOutSize-1] of char;
         outfile  : file;
+        ioerror : boolean;
       public
         {# Returns the complete path and executable name of the assembler
            program.
@@ -450,7 +451,11 @@ Implementation
       begin
         if outcnt>0 then
          begin
+           { suppress i/o error }
+           {$i-}
            BlockWrite(outfile,outbuf,outcnt);
+           {$i+}
+           ioerror:=ioerror or (ioresult<>0);
            outcnt:=0;
          end;
       end;
@@ -545,10 +550,13 @@ Implementation
          begin
            Assign(outfile,asmfile);
            {$I-}
-            Rewrite(outfile,1);
+           Rewrite(outfile,1);
            {$I+}
            if ioresult<>0 then
-            Message1(exec_d_cant_create_asmfile,asmfile);
+             begin
+               ioerror:=true;
+               Message1(exec_d_cant_create_asmfile,asmfile);
+             end;
          end;
         outcnt:=0;
         AsmSize:=0;
@@ -576,7 +584,7 @@ Implementation
             begin
               Assign(f,ppufilename);
               {$I-}
-               reset(f,1);
+              reset(f,1);
               {$I+}
               if ioresult=0 then
                begin
@@ -606,7 +614,8 @@ Implementation
         AsmCreate(cut_normal);
         WriteAsmList;
         AsmClose;
-        DoAssemble;
+        if not(ioerror) then
+          DoAssemble;
       end;
 
 
@@ -1629,7 +1638,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.76  2004-10-04 18:26:51  peter
+  Revision 1.77  2004-10-08 15:52:40  florian
+    + non writeable unit output directory produces a nice error message now
+
+  Revision 1.76  2004/10/04 18:26:51  peter
     * debuginfo fixes
 
   Revision 1.75  2004/10/04 15:48:11  peter
