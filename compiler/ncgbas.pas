@@ -270,7 +270,7 @@ interface
           internalerror(200108222);
 
         { get a (persistent) temp }
-        tg.GetTemp(exprasmlist,size,temptype,tempinfo^.ref);
+        tg.GetTemp(exprasmlist,size,tempinfo^.temptype,tempinfo^.ref);
         tempinfo^.valid := true;
       end;
 
@@ -316,7 +316,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2003-06-09 12:20:47  peter
+  Revision 1.36  2003-06-09 18:26:46  peter
+    * remove temptype, use tempinfo.temptype instead
+
+  Revision 1.35  2003/06/09 12:20:47  peter
     * getposition added to retrieve the the current tai item
 
   Revision 1.34  2003/05/17 13:30:08  jonas

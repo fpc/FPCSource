@@ -103,7 +103,6 @@ interface
        { size (the size is separate to allow creating "void" temps with a custom size) }
        ttempcreatenode = class(tnode)
           size: longint;
-          temptype: ttemptype;
           tempinfo: ptempinfo;
           { * persistent temps are used in manually written code where the temp }
           { be usable among different statements and where you can manually say }
@@ -615,7 +614,7 @@ implementation
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
         tempinfo^.restype := _restype;
-        temptype := _temptype;
+        tempinfo^.temptype := _temptype;
       end;
 
     function ttempcreatenode.getcopy: tnode;
@@ -624,7 +623,6 @@ implementation
       begin
         n := ttempcreatenode(inherited getcopy);
         n.size := size;
-        n.temptype := temptype;
 
         new(n.tempinfo);
         fillchar(n.tempinfo^,sizeof(n.tempinfo^),0);
@@ -783,7 +781,7 @@ implementation
         inherited create(tempdeleten);
         tempinfo := temp.tempinfo;
         release_to_normal := true;
-        if temp.temptype <> tt_persistent then
+        if tempinfo^.temptype <> tt_persistent then
           internalerror(200204211);
       end;
 
@@ -853,7 +851,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2003-06-09 12:20:47  peter
+  Revision 1.56  2003-06-09 18:26:46  peter
+    * remove temptype, use tempinfo.temptype instead
+
+  Revision 1.55  2003/06/09 12:20:47  peter
     * getposition added to retrieve the the current tai item
 
   Revision 1.54  2003/06/08 18:27:15  jonas
