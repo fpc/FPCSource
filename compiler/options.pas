@@ -1342,34 +1342,44 @@ begin
   def_symbol('INTERNSETLENGTH');
   def_symbol('INTERNLENGTH');
   def_symbol('INT64FUNCRESOK');
-  def_symbol('PACKENUMFIXED');
   def_symbol('HAS_ADDR_STACK_ON_STACK');
   def_symbol('NOBOUNDCHECK');
   def_symbol('HASCOMPILERPROC');
   def_symbol('VALUEFREEMEM');
 
-{ some stuff for TP compatibility }
-{$ifdef i386}
-  def_symbol('CPU86');
-  def_symbol('CPU87');
-{$endif}
-{$ifdef m68k}
-  def_symbol('CPU68');
-{$endif}
-
-{ new processor stuff }
-{$ifdef i386}
-  def_symbol('CPUI386');
-{$endif}
-{$ifdef m68k}
-  def_symbol('CPU68K');
-{$endif}
-{$ifdef ALPHA}
-  def_symbol('CPUALPHA');
-{$endif}
-{$ifdef powerpc}
-  def_symbol('CPUPOWERPC');
-{$endif}
+  { some stuff for TP compatibility }
+  case target_info.cpu of
+   i386:
+        begin
+         def_symbol('CPU86');
+         def_symbol('CPU87');
+         def_symbol('CPUI386');
+        end;
+   m68k:
+        begin
+          def_symbol('CPU68');
+          def_symbol('CPU68K');
+        end;
+   alpha:
+        begin
+          def_symbol('CPUALPHA');
+        end;
+   powerpc:
+        begin
+          def_symbol('CPUPOWERPC');
+        end;
+   sparc:
+        begin
+          def_symbol('CPUSPARC');
+        end;
+   vm:
+        begin
+          def_symbol('CPUVIS');
+        end;
+   else
+        internalerror(1295969);
+  end;
+      
 
 { get default messagefile }
 {$ifdef Delphi}
@@ -1646,7 +1656,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.66  2002-04-04 19:05:58  peter
+  Revision 1.67  2002-04-07 10:22:35  carl
+  + CPU defines now depends on current target
+
+  Revision 1.66  2002/04/04 19:05:58  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
