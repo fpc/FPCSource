@@ -494,9 +494,9 @@ begin
   act.sa_handler := signalhandler(@SignalToRunError);
 {$ifdef RTSIGACTION}
   act.sa_flags:=SA_SIGINFO
-{$ifdef x86_64}
+{$ifdef cpux86_64}
     or $4000000
-{$endif x86_64}
+{$endif cpux86_64}
     ;
 {$endif RTSIGACTION}
   FpSigAction(SIGFPE,@act,nil);
@@ -565,7 +565,11 @@ end;
 
 {
  $Log$
- Revision 1.21  2004-10-25 15:38:59  peter
+ Revision 1.22  2004-11-02 14:49:48  florian
+   * fixed baseunix.signal for CPU using rt_sigaction
+   * fixed it for x86_64 too
+
+ Revision 1.21  2004/10/25 15:38:59  peter
    * compiler defined HEAP and HEAPSIZE removed
 
  Revision 1.20  2004/08/04 19:27:09  florian

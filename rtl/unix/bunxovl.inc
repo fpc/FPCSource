@@ -14,6 +14,10 @@
 
  **********************************************************************}
 
+{$if defined(CPUARM) or defined(CPUX86_64) or defined(CPUSPARC)}
+  {$define RTSIGACTION}
+{$endif}
+
 {$I textrec.inc}
 {$I filerec.inc}
 
@@ -61,7 +65,7 @@ End;
 Function  FpChdir (path : AnsiString): cInt;
 Begin
  FpChDir:=FpChdir(pchar(Path));
-End;		   
+End;
 
 Function  FpOpen (path : AnsiString; flags : cInt; Mode: TMode):cInt;
 Begin
@@ -94,7 +98,7 @@ begin
   FpStat:=FpStat(pchar(path),buf);
 End;
 
-Function FpAccess (pathname : AnsiString; aMode : cInt): cInt; 
+Function FpAccess (pathname : AnsiString; aMode : cInt): cInt;
 Begin
   FpAccess:=FpAccess(pchar(pathname),amode);
 End;
@@ -132,6 +136,13 @@ begin
  {restart behaviour needs libc}
       sa.sa_flags :=sa.sa_flags or SA_RESTART;
 }
+{$ifdef RTSIGACTION}
+      sa.sa_flags:=SA_SIGINFO
+{$ifdef cpux86_64}
+         or $4000000
+{$endif cpux86_64}
+      ;
+{$endif RTSIGACTION}
      FPSigaction(signum,@sa,@osa);
      if fpgetErrNo<>0 then
        fpsignal:=NIL
@@ -203,7 +214,7 @@ Function  FpStat (path: String; var buf : stat): cInt;
 
 begin
  path:=path+#0;
- FpStat:=FpStat(pchar(@path[1]),buf); 
+ FpStat:=FpStat(pchar(@path[1]),buf);
 end;
 
 Function fpDup(var oldfile,newfile:text):cint;
@@ -331,7 +342,11 @@ end;
 
 {
  $Log$
- Revision 1.11  2004-06-01 10:30:03  jonas
+ Revision 1.12  2004-11-02 14:49:48  florian
+   * fixed baseunix.signal for CPU using rt_sigaction
+   * fixed it for x86_64 too
+
+ Revision 1.11  2004/06/01 10:30:03  jonas
    * fixed missing cdecl procedure directive
 
  Revision 1.10  2004/03/28 19:36:19  marco
@@ -367,4 +382,3 @@ end;
 
 
 }
-
