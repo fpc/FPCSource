@@ -1897,10 +1897,11 @@ begin
   else
     begin
      CP:=0; RX:=0;
-     while (RX<=X) and (CP<length(S)) do
+     while (RX<=X) and (CP<=length(S)) do
       begin
         Inc(CP);
-        if S[CP]=TAB then
+        if (CP<=length(S)) and
+	   (S[CP]=TAB) then
           Inc(RX,TabSize-(RX mod TabSize))
         else
           Inc(RX);
@@ -7270,7 +7271,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.45  2004-11-02 23:53:19  peter
+  Revision 1.46  2004-11-03 12:08:30  peter
+    * fixed newline broken by valgrind patch
+
+  Revision 1.45  2004/11/02 23:53:19  peter
     * fixed crashes with ide and 1.9.x
 
   Revision 1.44  2004/02/13 06:53:57  pierre
