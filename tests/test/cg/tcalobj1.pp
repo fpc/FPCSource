@@ -31,6 +31,10 @@ program tcalobj1;
    BIG_INDEX = 33000;
    SMALL_INDEX = 13;     { value should not be aligned! }
  {$endif}
+ {$ifdef cpupowerpc}
+   BIG_INDEX = 33000;
+   SMALL_INDEX = 13;     { value should not be aligned! }
+ {$endif}
    RESULT_U8BIT = $55;
    RESULT_U16BIT = 2*RESULT_U8BIT;
    RESULT_S32BIT = $500F0000;
@@ -3292,7 +3296,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-09-07 15:40:52  peter
+  Revision 1.4  2003-04-21 18:34:00  florian
+    + powerpc support
+
+  Revision 1.3  2002/09/07 15:40:52  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/05/05 19:13:19  carl
