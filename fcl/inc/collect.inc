@@ -19,6 +19,10 @@
 function TCollectionItem.GetIndex: Integer;
 
 begin
+  if FCollection<>nil then
+    Result:=FCollection.FItems.IndexOf(Pointer(Self))
+  else
+    Result:=-1;
 end;
 
 
@@ -26,6 +30,11 @@ end;
 procedure TCollectionItem.SetCollection(Value: TCollection);
 
 begin
+  IF Value<>FCollection then
+    begin
+    If FCollection<>Nil then FCollection.RemoveItem(Self);
+    if Value<>Nil then Value.InsertItem(Self);
+    end;  
 end;
 
 
@@ -33,6 +42,13 @@ end;
 procedure TCollectionItem.Changed(AllItems: Boolean);
 
 begin
+ If (FCollection<>Nil) then
+  begin
+  If AllItems then 
+    FCollection.Update(Nil)
+  else
+    FCollection.Update(Self);
+  end;
 end;
 
 
@@ -40,12 +56,17 @@ end;
 function TCollectionItem.GetNamePath: string;
 
 begin
+  If FCollection<>Nil then
+    Result:=FCollection.GetNamePath+'['+IntToStr(Index)+']'
+  else
+    Result:=ClassName; 
 end;
 
 
 function TCollectionItem.GetOwner: TPersistent;
 
 begin
+  Result:=FCollection;
 end;
 
 
@@ -53,19 +74,29 @@ end;
 function TCollectionItem.GetDisplayName: string; 
 
 begin
+  Result:=ClassName;
 end;
 
 
 
 procedure TCollectionItem.SetIndex(Value: Integer);
 
+Var Temp : Longint;
+
 begin
+  Temp:=GetIndex;
+  If (Temp>-1) and (Temp<>Value) then
+    begin
+    FCollection.FItems.Move(Temp,Value);
+    Changed(True);
+    end; 
 end;
 
 
 procedure TCollectionItem.SetDisplayName(const Value: string);
 
 begin
+  Changed(False);
 end;
 
 
@@ -73,6 +104,8 @@ end;
 constructor TCollectionItem.Create(ACollection: TCollection); 
 
 begin
+  Inherited Create;
+  SetCollection(ACollection);
 end;
 
 
@@ -80,6 +113,8 @@ end;
 destructor TCollectionItem.Destroy; 
 
 begin
+  SetCollection(Nil);
+  Inherited Destroy;
 end;
 
 {****************************************************************************}
@@ -91,13 +126,31 @@ end;
 function TCollection.GetCount: Integer;
 
 begin
+  If Assigned(FItems) Then
+    Result:=FItems.Count
+  else
+    Result:=0;
 end;
 
+
+Procedure TCollection.SetPropName;
+
+begin
+  //!! Should be replaced by the proper routines.
+  FPropName:='';
+end;
 
 
 function TCollection.GetPropName: string;
 
+Var TheOWner : TPersistent;
+
 begin
+  Result:=FPropNAme;
+  TheOWner:=GetOwner;
+  If (Result<>'') or (TheOwner=Nil) Or (TheOwner.Classinfo=Nil) then exit;
+  SetPropName;  
+  Result:=FPropName;
 end;
 
 
@@ -105,6 +158,14 @@ end;
 procedure TCollection.InsertItem(Item: TCollectionItem);
 
 begin
+  If Not(Item Is FitemClass) then
+    exit;
+  FItems.add(Pointer(Item));
+  Item.Collection:=Self;
+  Item.FID:=FNextID;
+  inc(FNextID);
+  SetItemName(Item);
+  Changed;
 end;
 
 
@@ -112,32 +173,49 @@ end;
 procedure TCollection.RemoveItem(Item: TCollectionItem);
 
 begin
+  FItems.Remove(Pointer(Item));
+  Item.Collection:=Nil;
+  Changed;
 end;
 
 
 function TCollection.GetAttrCount: Integer; 
 
 begin
+  Result:=0;
 end;
 
 
 function TCollection.GetAttr(Index: Integer): string; 
 
 begin
+  Result:='';
 end;
 
 
 
 function TCollection.GetItemAttr(Index, ItemIndex: Integer): string; 
 
+
 begin
+  //!! Not Accepted !!
+  //!! Result:=TCollectionItem(FItems[ItemIndex]).DisplayName;
 end;
 
 
 
 function TCollection.GetNamePath: string; 
 
+Var OwnerName,ThePropName : String;
+
 begin
+  Result:=ClassName;
+  If GetOwner=Nil then Exit;
+  OwnerName:=GetOwner.GetNamePath;
+  If OwnerName='' then Exit;
+  ThePropName:=PropName;
+  if ThePropName='' then exit;
+  Result:=OwnerName+'.'+PropName;
 end;
 
 
@@ -145,6 +223,7 @@ end;
 procedure TCollection.Changed;
 
 begin
+  Update(Nil);
 end;
 
 
@@ -152,6 +231,7 @@ end;
 function TCollection.GetItem(Index: Integer): TCollectionItem;
 
 begin
+  //!! Result:=FItems[Index];
 end;
 
 
@@ -159,6 +239,7 @@ end;
 procedure TCollection.SetItem(Index: Integer; Value: TCollectionItem);
 
 begin
+ //!! TCollectionItem(FItems[Index]).Assign(Value);
 end;
 
 
@@ -180,6 +261,8 @@ end;
 constructor TCollection.Create(AItemClass: TCollectionItemClass);
 
 begin
+  FItemClass:=ItemClass;
+  FItems:=TList.Create;
 end;
 
 
@@ -187,6 +270,9 @@ end;
 destructor TCollection.Destroy; 
 
 begin
+  If Assigned(FItems) Then Clear;
+  FItems.Free;
+  Inherited Destroy;
 end;
 
 
@@ -194,13 +280,25 @@ end;
 function TCollection.Add: TCollectionItem;
 
 begin
+  Result:=FItemClass.Create(Self);
 end;
 
 
 
 procedure TCollection.Assign(Source: TPersistent);
 
+Var I : Longint;
+
 begin
+  If Source is TCollection then
+    begin
+    Clear;
+    For I:=0 To TCollection(Source).Count-1 do
+     Add.Assign(TCollection(Source).Items[I]);
+    exit;
+    end
+  else
+    Inherited Assign(Source);
 end;
 
 
@@ -215,6 +313,8 @@ end;
 procedure TCollection.Clear;
 
 begin
+  //!! If Assigned(FItems) then
+  //!!   While FItems.Count>0 do TCollectionItem(FItems.Last).Free;
 end;
 
 
@@ -228,11 +328,23 @@ end;
 
 function TCollection.FindItemID(ID: Integer): TCollectionItem;
 
+Var I : Longint;
+
 begin
+  Result:=Nil;
+  For I:=0 to Fitems.Count-1 do
+   begin
+   //!! Result:=TCollectionItem(FItems[I]);
+   If Result.Id=Id then exit;
+   end;
 end;
+
 {
   $Log$
-  Revision 1.1  1998-05-04 14:30:11  michael
+  Revision 1.2  1998-05-27 11:41:41  michael
+  Implemented TCollection and TCollectionItem
+
+  Revision 1.1  1998/05/04 14:30:11  michael
   * Split file according to Class; implemented dummys for all methods, so unit compiles.
 
 }

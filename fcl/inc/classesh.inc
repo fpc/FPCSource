@@ -269,6 +269,7 @@ type
     function GetItem(Index: Integer): TCollectionItem;
     procedure SetItem(Index: Integer; Value: TCollectionItem);
     procedure SetItemName(Item: TCollectionItem); virtual;
+    procedure SetPropName; virtual;
     procedure Update(Item: TCollectionItem); virtual;
     property PropName: string read GetPropName write FPropName;
   public
@@ -1046,7 +1047,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.3  1998-05-06 12:58:35  michael
+  Revision 1.4  1998-05-27 11:41:43  michael
+  Implemented TCollection and TCollectionItem
+
+  Revision 1.3  1998/05/06 12:58:35  michael
   + Added WriteAnsiString method to TStream
 
   Revision 1.2  1998/05/04 14:30:11  michael
