@@ -64,7 +64,7 @@ begin
       end
     else
       if not BeforeINI then
-        MyApp.Open(Param);
+        TryToOpenFile(nil,Param,0,0,true);
   end;
 end;
 
@@ -91,6 +91,9 @@ BEGIN
   MyApp.Init;
   { load all options after init because of open files }
   ReadINIFile;
+  { Update IDE }
+  if PrimaryFile<>'' then
+   MyApp.UpdatePrimaryFile;
 
   ProcessParams(false);
 
@@ -115,7 +118,11 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.15  1999-03-08 14:58:08  peter
+  Revision 1.16  1999-03-12 01:13:01  peter
+    * use TryToOpen() with parameter files to overcome double opened files
+      at startup
+
+  Revision 1.15  1999/03/08 14:58:08  peter
     + prompt with dialogs for tools
 
   Revision 1.14  1999/03/05 17:53:00  pierre
