@@ -28,6 +28,7 @@ type
     TCodeTemplateCollection = object(TSortedCollection)
       function Compare(Key1, Key2: Pointer): sw_Integer; virtual;
       function SearchByShortCut(const ShortCut: string): PCodeTemplate; virtual;
+      function LookUp(const S: string; AcceptMulti: boolean; var Idx: sw_integer): string; virtual;
     end;
 
     PCodeTemplateListBox = ^TCodeTemplateListBox;
@@ -48,13 +49,14 @@ type
     PCodeTemplatesDialog = ^TCodeTemplatesDialog;
     TCodeTemplatesDialog = object(TCenterDialog)
       SelMode: boolean;
-      constructor Init(ASelMode: boolean);
+      constructor Init(ASelMode: boolean;const AShortCut : string);
       function    Execute: Word; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetSelectedShortCut: string;
     private
       CodeTemplatesLB : PCodeTemplateListBox;
       TemplateViewer  : PFPCodeMemo;
+      StartIdx : sw_integer;
       procedure Add;
       procedure Edit;
       procedure Delete;
@@ -63,7 +65,7 @@ type
 
 const CodeTemplates : PCodeTemplateCollection = nil;
 
-function FPTranslateCodeTemplate(const Shortcut: string; ALines: PUnsortedStringCollection): boolean;
+function FPTranslateCodeTemplate(var Shortcut: string; ALines: PUnsortedStringCollection): boolean;
 
 procedure InitCodeTemplates;
 function  LoadCodeTemplates(var S: TStream): boolean;
@@ -74,7 +76,7 @@ procedure RegisterCodeTemplates;
 
 implementation
 
-uses Views,App,
+uses Views,App,Validate,
 {$ifdef FVISION}
      FVConsts,
 {$else}
@@ -193,14 +195,84 @@ begin
   SearchByShortCut:=P;
 end;
 
-function FPTranslateCodeTemplate(const Shortcut: string; ALines: PUnsortedStringCollection): boolean;
+function TCodeTemplateCollection.LookUp(const S: string; AcceptMulti: boolean; var Idx: sw_integer): string;
+var OLI,ORI,Left,Right,Mid: sw_integer;
+    MidP: PCodeTemplate;
+    MidS: string;
+    FoundS: string;
+    UpS : string;
+begin
+  Idx:=-1; FoundS:='';
+  Left:=0; Right:=Count-1;
+  UpS:=UpCaseStr(S);
+  while Left<=Right do
+    begin
+      OLI:=Left; ORI:=Right;
+      Mid:=Left+(Right-Left) div 2;
+      MidP:=At(Mid);
+      MidS:=UpCaseStr(MidP^.GetShortCut);
+      if copy(MidS,1,length(UpS))=UpS then
+        begin
+          if (Idx<>-1) and (Idx<>Mid) and not AcceptMulti then
+            begin
+              { several solutions possible, return nothing }
+              Idx:=-1;
+              FoundS:='';
+              break;
+            end
+          else if Idx=-1 then
+            begin
+              Idx:=Mid;
+              FoundS:=MidP^.GetShortCut;
+            end;
+        end;
+      if UpS<MidS then
+        Right:=Mid
+      else
+        Left:=Mid;
+      if (OLI=Left) and (ORI=Right) then
+        begin
+          if (Left<Right) then
+            Left:=Right
+          else
+            Break;
+        end;
+    end;
+  { check if next also fits...
+    return '' in that case }
+  if (Idx<>-1) and (Idx<Count-1) and not AcceptMulti then
+    begin
+      MidP:=At(Idx+1);
+      MidS:=UpCaseStr(MidP^.GetShortCut);
+      if copy(MidS,1,length(UpS))=UpS then
+        begin
+          Idx:=-1;
+          FoundS:='';
+        end;
+    end;
+  LookUp:=FoundS;
+end;
+
+
+function FPTranslateCodeTemplate(var Shortcut: string; ALines: PUnsortedStringCollection): boolean;
 var OK: boolean;
     P: PCodeTemplate;
+    CompleteName: String;
+    Idx : sw_integer;
 begin
   OK:=Assigned(CodeTemplates);
   if OK then
   begin
     P:=CodeTemplates^.SearchByShortCut(ShortCut);
+    if not assigned(P) then
+      begin
+        CompleteName:=CodeTemplates^.Lookup(ShortCut,false,Idx);
+        if Idx<>-1 then
+          begin
+            P:=CodeTemplates^.At(Idx);
+            ShortCut:=CompleteName;
+          end;
+      end;
     OK:=Assigned(P);
     if OK then
       P^.GetText(ALines);
@@ -267,10 +339,14 @@ begin
   GetExtent(R); R.Grow(-3,-2); R3.Copy(R);
   Inc(R.A.Y); R.B.Y:=R.A.Y+1; R.B.X:=R.A.X+46;
   New(ShortCutIL, Init(R, 128)); Insert(ShortcutIL);
-  R2.Copy(R); R2.Move(-1,-1); Insert(New(PLabel, Init(R2, label_codetemplate_shortcut, ShortcutIL)));
+  ShortCutIL^.SetValidator(New(PFilterValidator,Init(NumberChars+AlphaChars)));
+  R2.Copy(R); R2.Move(-1,-1);
+  Insert(New(PLabel, Init(R2, label_codetemplate_shortcut, ShortcutIL)));
   R.Move(0,3); R.B.Y:=R.A.Y+8;
-  New(CodeMemo, Init(R, nil,nil,nil{,4096 does not compile !! })); Insert(CodeMemo);
-  R2.Copy(R); R2.Move(-1,-1); R2.B.Y:=R2.A.Y+1; Insert(New(PLabel, Init(R2, label_codetemplate_content, CodeMemo)));
+  New(CodeMemo, Init(R, nil,nil,nil{,4096 does not compile !! }));
+  Insert(CodeMemo);
+  R2.Copy(R); R2.Move(-1,-1); R2.B.Y:=R2.A.Y+1;
+  Insert(New(PLabel, Init(R2, label_codetemplate_content, CodeMemo)));
 
   InsertButtons(@Self);
 
@@ -299,7 +375,7 @@ begin
   Execute:=R;
 end;
 
-constructor TCodeTemplatesDialog.Init(ASelMode: boolean);
+constructor TCodeTemplatesDialog.Init(ASelMode: boolean;const AShortCut : string);
 function B2I(B: boolean; I1,I2: longint): longint;
 begin
   if B then B2I:=I1 else B2I:=I2;
@@ -308,7 +384,7 @@ var R,R2,R3: TRect;
     SB: PScrollBar;
 begin
   R.Assign(0,0,46,20);
-  inherited Init(R,'CodeTemplates');
+  inherited Init(R,'Code Templates');
   HelpCtx:=hcCodeTemplateOptions;
   SelMode:=ASelMode;
   GetExtent(R); R.Grow(-3,-2); Inc(R.A.Y); R.B.Y:=R.A.Y+10;
@@ -317,6 +393,13 @@ begin
   New(SB, Init(R2)); Insert(SB);
   New(CodeTemplatesLB, Init(R,1,SB));
   Insert(CodeTemplatesLB);
+  if AShortCut<>'' then
+    begin
+      If assigned(CodeTemplates) then
+        CodeTemplates^.Lookup(AShortCut,true,StartIdx)
+      else
+        StartIdx:=-1;
+    end;
   R2.Copy(R); R2.Move(0,-1); R2.B.Y:=R2.A.Y+1; Dec(R2.A.X);
   Insert(New(PLabel, Init(R2, label_codetemplate_templates, CodeTemplatesLB)));
 
@@ -421,6 +504,8 @@ begin
       Dispose(L, Done);
     end;
   CodeTemplatesLB^.NewList(C);
+  if StartIdx<>-1 then
+    CodeTemplatesLB^.SetFocusedItem(CodeTemplates^.At(StartIdx));
   Update;
   R:=inherited Execute;
   if R=cmOK then
