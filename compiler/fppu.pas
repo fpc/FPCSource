@@ -67,7 +67,7 @@ interface
           procedure writeusedmacro(p:TNamedIndexItem;arg:pointer);
           procedure writeusedmacros;
           procedure writesourcefiles;
-          procedure writeusedunit;
+          procedure writeusedunit(intf:boolean);
           procedure writelinkcontainer(var p:tlinkcontainer;id:byte;strippath:boolean);
           procedure putasmsymbol_in_idx(s:tnamedindexitem;arg:pointer);
           procedure writeasmsymbols;
@@ -428,9 +428,10 @@ uses
       end;
 
 
-    procedure tppumodule.writeusedunit;
+    procedure tppumodule.writeusedunit(intf:boolean);
       var
         hp : tused_unit;
+        oldcrc : boolean;
       begin
         { renumber the units for derefence writing }
         numberunits;
@@ -438,16 +439,16 @@ uses
         hp:=tused_unit(used_units.first);
         while assigned(hp) do
          begin
-           { implementation units should not change
-             the CRC PM }
-           ppufile.do_crc:=hp.in_interface;
-           ppufile.putstring(hp.u.realmodulename^);
-           { the checksum should not affect the crc of this unit ! (PFV) }
-           ppufile.do_crc:=false;
-           ppufile.putlongint(longint(hp.checksum));
-           ppufile.putlongint(longint(hp.interface_checksum));
-           ppufile.putbyte(byte(hp.in_interface));
-           ppufile.do_crc:=true;
+           if hp.in_interface=intf then
+             begin
+               ppufile.putstring(hp.u.realmodulename^);
+               { the checksum should not affect the crc of this unit ! (PFV) }
+               oldcrc:=ppufile.do_crc;
+               ppufile.do_crc:=false;
+               ppufile.putlongint(longint(hp.checksum));
+               ppufile.putlongint(longint(hp.interface_checksum));
+               ppufile.do_crc:=oldcrc;
+             end;
            hp:=tused_unit(hp.next);
          end;
         ppufile.do_interface_crc:=true;
@@ -688,7 +689,6 @@ uses
            hs:=ppufile.getstring;
            checksum:=cardinal(ppufile.getlongint);
            intfchecksum:=cardinal(ppufile.getlongint);
-           in_interface:=(ppufile.getbyte<>0);
            { set the state of this unit before registering, this is
              needed for a correct circular dependency check }
            hp:=registerunit(self,hs,'');
@@ -812,6 +812,8 @@ uses
          repeat
            b:=ppufile.readentry;
            case b of
+             ibloadunit :
+               readloadunit;
              ibasmsymbols :
                readasmsymbols;
              ibendimplementation :
@@ -895,7 +897,9 @@ uses
 
          writesourcefiles;
          writeusedmacros;
-         writeusedunit;
+
+         { write interface uses }
+         writeusedunit(true);
 
          { write the objectfiles and libraries that come for this unit,
            preserve the containers becuase they are still needed to load
@@ -917,6 +921,9 @@ uses
 
          { everything after this doesn't affect the crc }
          ppufile.do_crc:=false;
+
+         { write implementation uses }
+         writeusedunit(false);
 
          { write asmsymbols }
          writeasmsymbols;
@@ -992,7 +999,7 @@ uses
          ppufile.writeentry(ibmodulename);
 
          { the interface units affect the crc }
-         writeusedunit;
+         writeusedunit(true);
 
          ppufile.writeentry(ibendinterface);
 
@@ -1045,6 +1052,7 @@ uses
         if current_module<>self then
          internalerror(200212284);
         load_refs:=true;
+
         { load the used units from interface }
         in_interface:=true;
         pu:=tused_unit(used_units.first);
@@ -1084,8 +1092,12 @@ uses
         tstoredsymtable(globalsymtable).ppuload(ppufile);
         interface_compiled:=true;
 
-        { now only read the implementation uses }
+        { read the implementation part, containing
+          the implementation uses and objectdata }
         in_interface:=false;
+        load_implementation;
+
+        { now only read the implementation uses }
         pu:=tused_unit(used_units.first);
         while assigned(pu) do
          begin
@@ -1109,9 +1121,6 @@ uses
            pu:=tused_unit(pu.next);
          end;
         numberunits;
-
-        { read the implementation/objectdata part }
-        load_implementation;
 
         { load browser info if stored }
         if ((flags and uf_has_browser)<>0) and load_refs then
@@ -1249,6 +1258,8 @@ uses
            if not do_compile then
             begin
               Message1(unit_u_loading_unit,modulename^);
+if modulename^='SYMSYM' then
+ modulename:=modulename;
               search_unit(false,false);
               if not do_compile then
                begin
@@ -1404,7 +1415,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.40  2003-10-22 15:22:33  peter
+  Revision 1.41  2003-10-22 17:38:25  peter
+    * write implementation units in implementation part of the ppu
+      so it doesn't confuse the unit loading
+
+  Revision 1.40  2003/10/22 15:22:33  peter
     * fixed unitsym-globalsymtable relation so the uses of a unit
       is counted correctly
 
