@@ -209,12 +209,27 @@ function paramstr(l:longint):string;
 var p:^Pchar;
 
 begin
-     if (l>=0) and (l<=paramcount) then
+    if L = 0 then
         begin
-            p:=args;
-            paramstr:=strpas(p[l]);
+            GetMem (P, 260);
+{$ASMMODE INTEL}
+            asm
+                mov edx, P
+                mov ecx, 260
+                mov eax, 7F33h
+                call syscall
+            end;
+{$ASMMODE ATT}
+            ParamStr := StrPas (PChar (P));
+            FreeMem (P, 260);
         end
-     else paramstr:='';
+    else
+        if (l>0) and (l<=paramcount) then
+            begin
+                p:=args;
+                paramstr:=strpas(p[l]);
+            end
+        else paramstr:='';
 end;
 
 {$asmmode att}
@@ -881,7 +896,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-11-11 23:12:39  hajny
+  Revision 1.4  2000-11-13 21:23:38  hajny
+    * ParamStr (0) fixed
+
+  Revision 1.3  2000/11/11 23:12:39  hajny
     * stackcheck alias corrected
 
   Revision 1.2  2000/10/15 20:43:10  hajny
