@@ -45,7 +45,7 @@ procedures needed.}
 PROGRAM voxel;
 
 
-USES Crt,Dos, {$IFnDEF FPC} Gameunit{$ENDIF} {$IFDEF FPC} Go32{$ENDIF};
+USES Crt,Dos {$IFDEF FPC}, Go32{$ENDIF};
 
 type lrgarr=array[0..65534] of byte;
 const
@@ -137,8 +137,13 @@ begin
   randomize; x:=0; y:=0; dir:=0; new(mp); fillchar(mp^,65535,0);
   new(scr); mp^[$0000]:=128; plasma(0,0,256,256);
   Reg.ax:=$13;  Intr($10,Reg);
+{$IFDEF FPC}
   Outportb($3C8,0);
   for i:=1 to 384 do OutPortb($3c9,pal[i]);
+{$ELSE}
+  Port[$3C8] := 0;
+  for i:=1 to 384 do Port[$3c9] := pal[i];
+{$ENDIF}
   repeat
     dir:=dir mod 360;
     draw(x,y,dir);
@@ -165,7 +170,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-01-03 13:51:08  marco
+  Revision 1.3  2000-02-22 04:12:42  alex
+  removed game unit reference for non fpc version
+
+  Revision 1.2  2000/01/03 13:51:08  marco
    * Fixed broken comment
 
   Revision 1.1  2000/01/01 14:58:01  marco
