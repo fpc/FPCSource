@@ -115,13 +115,17 @@
       var
          sign : boolean;
          q1,q2 : qword;
+         c : comp;
 
       begin
          if n=0 then
            HandleErrorFrame(200,get_frame);
          { can the fpu do the work? }
          if fpuint64 then
-           //!!!!!!!!!!! divint64:=comp(z)/comp(n)
+           begin
+              c:=comp(z)/comp(n);
+              divint64:=qword(c);
+           end
          else
            begin
               sign:=false;
@@ -192,11 +196,15 @@
       var
          sign : boolean;
          q1,q2,q3 : qword;
+         c : comp;
 
       begin
          { can the fpu do the work ? }
          if fpuint64 and not(checkoverflow) then
-           // !!!!!!! multint64:=comp(f1)*comp(f2)
+           begin
+              c:=comp(f1)*comp(f2);
+              mulint64:=int64(c);
+           end
          else
            begin
               sign:=false;
@@ -392,7 +400,10 @@
 
 {
   $Log$
-  Revision 1.15  2000-01-23 12:22:37  florian
+  Revision 1.16  2000-01-23 12:27:39  florian
+    * int64/int64 and int64*int64 is now done by the fpu if possible
+
+  Revision 1.15  2000/01/23 12:22:37  florian
     * reading of 64 bit type implemented
 
   Revision 1.14  2000/01/07 16:41:34  daniel
