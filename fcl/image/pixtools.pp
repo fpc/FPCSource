@@ -61,7 +61,7 @@ procedure FillFloodImageRel (Canv:TFPCustomCanvas; x,y :integer; const Image:TFP
 
 implementation
 
-uses clipping;
+uses clipping, ellipses;
 
 procedure FillRectangleColor (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer);
 begin
@@ -981,7 +981,7 @@ end;
 
 procedure SetFloodHashDiag(Canv:TFPCustomCanvas; x,y:integer; data:pointer);
 var r : PFloodHashRec;
-    w : 0..PatternBitCount-1;
+    w : integer;
 begin
   r := PFloodHashRec(data);
   w := r^.width;

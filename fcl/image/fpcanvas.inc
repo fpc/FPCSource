@@ -438,9 +438,13 @@ begin
 end;
 
 procedure TFPCustomCanvas.Ellipse (left,top,right,bottom:integer);
-var b : TRect;
 begin
   Ellipse (Rect(left,top,right,bottom));
+end;
+
+procedure TFPCustomCanvas.EllipseC (x,y:integer; rx,ry:longword);
+begin
+  Ellipse (Rect(x-rx,y-ry,x+rx,y+ry));
 end;
 
 procedure TFPCustomCanvas.Rectangle (left,top,right,bottom:integer);

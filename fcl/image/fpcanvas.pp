@@ -219,6 +219,7 @@ type
     // using pen and brush
     procedure Ellipse (Const Bounds:TRect);
     procedure Ellipse (left,top,right,bottom:integer);
+    procedure EllipseC (x,y:integer; rx,ry:longword);
     procedure Polygon (Const points:array of TPoint);
     procedure Polyline (Const points:array of TPoint);
     procedure Rectangle (Const Bounds:TRect);

@@ -3,8 +3,7 @@ program Drawing;
 
 uses classes, sysutils,
      FPImage, FPCanvas, FPImgCanv,
-     FPWritePNG, FPReadPNG,
-     ftfont;
+     FPWritePNG, FPReadPNG;
 
 const
   MyColor : TFPColor = (Red: $7FFF; Green: $0000; Blue: $FFFF; Alpha: alphaOpaque);
@@ -14,10 +13,8 @@ var canvas : TFPcustomCAnvas;
     ci, image : TFPCustomImage;
     writer : TFPCustomImageWriter;
     reader : TFPCustomImageReader;
-    ff : string;
-    afont : TFreeTypeFont;
 begin
-  image := TFPMemoryImage.Create (16,16);
+  image := TFPMemoryImage.Create (100,100);
   ci := TFPMemoryImage.Create (20,20);
   Canvas := TFPImageCanvas.Create (image);
   Writer := TFPWriterPNG.Create;
@@ -25,89 +22,54 @@ begin
   with TFPWriterPNG(Writer) do
     begin
     indexed := false;
-    wordsized := true;
+    wordsized := false;
     UseAlpha := false;
     GrayScale := false;
     end;
   try
-    if paramcount > 0 then
-      ff := paramstr(1)
-    else
-      ff := 'arial';
     ci.LoadFromFile ('test.png', reader);
     with Canvas as TFPImageCanvas do
       begin
-      height := 30;
-      width := 60;
-      with brush do
-        begin
-        color := colBlue;
-        style := bsSolid;
-        end;
-      rectangle(0,0, 20,29);
-      with pen do
-        begin
-        color := colLtGray;
-        end;
-      Line (0,18, 59,18);
-      afont := TFreeTypeFont.Create;
-      with afont do
-        begin
-        name := ff;
-        fontindex := 0;
-        size := 12;
-        color := colWhite;
-        AntiAliased := True;
-        resolution := 96;
-        end;
-      font := afont;
-      writeln ('Outputting texts');
-      // TextOut (20,30, 'Font: '+font.name);
-      font.color := colLtGray;
-      //TextOut (40,80, 'Meer van dit, veel meer...');
-      writeln (Gettextwidth('correct?'));
-      writeln (Gettextheight('correct?'));
-      TextOut (5,17, 'correct?');
-      with colors[6,7] do
-        writeln ('color 6,7 = ',red,',',green,',',blue);
-      aFont.antialiased := False;
-      afont.angle := -0.523598;
-      font.color := colLtGray;
-      //TextOut (40,100, 'Meer van dit, veel meer...');
-      font.color := colRed;
-      font.size := 24;
-      aFont.Angle := PI / 2.4;
-      font.color := colGreen;
-      //TextOut (100,240, 'HOERA !');
-      font.size := 26;
-      aFont.Angle := aFont.Angle + (pi / 90);
-      font.color := colBlue;
-      //TextOut (250,240, 'HOERA !');
-      font.size := 28;
-      aFont.Angle := aFont.Angle + (pi / 90);
-      font.color := colRed;
-      //TextOut (400,240, 'HOERA !');
-      writeln ('Text written');
-{      brush.color := colYellow;
-      brush.Style := bsSolid;
-      rectangle (60,0, 130,40);
-
-      pen.color := colSilver;
       pen.mode := pmCopy;
       pen.style := psSolid;
       pen.width := 1;
-      brush.color := MyColor;
-      pen.color := colBlue;
-      Rectangle (0,160, 120,200);
+      pen.color := colred;
+      with pen.color do
+        red := red div 4;
+      Ellipse (10,10, 90,90);
 
-      brush.style := bsDiagCross;
-      brush.color := colGreen;
+      pen.style := psDashDot;
+      pen.color := colred;
       HashWidth := 10;
+      Ellipse (10,10, 90,90);
+
+      with pen.color do
+        begin
+        red := red div 2;
+        green := red div 4;
+        blue := green;
+        end;
+      pen.style := psSolid;
+      RelativeBrushImage := true;
+      brush.image := ci;
+      brush.style := bsimage;
+      with brush.color do
+        green := green div 2;
+      Ellipse (11,11, 89,89);
+
+      brush.style := bsSolid;
+      brush.color := MyColor;
+      pen.style := psSolid;
+      pen.width := 3;
       pen.color := colSilver;
-      Rectangle (150,50, 250,150);
+      ellipse (30,35, 70,65);
+
+      pen.width := 1;
+      pen.color := colCyan;
+      ellipseC (50,50, 1,1);
 
       writeln ('Saving to inspect !');
-}      end;
+      end;
     image.SaveToFile ('DrawTest.png', writer);
   finally
     Canvas.Free;

@@ -18,7 +18,7 @@ unit FPPixlCanv;
 
 interface
 
-uses classes, FPImage, FPCanvas, PixTools;
+uses classes, FPImage, FPCanvas, PixTools, ellipses;
 
 type
 
@@ -223,23 +223,41 @@ begin
 end;
 
 procedure TFPPixelCanvas.DoEllipseFill (const Bounds:TRect);
-begin  //TODO
+begin
+  case Brush.style of
+    bsSolid : FillEllipseColor (self, Bounds, brush.color);
+    bsPattern : FillEllipsePattern (self, Bounds, brush.pattern, brush.color);
+    bsImage :
+      if assigned (brush.image) then
+        if FRelativeBI then
+          FillEllipseImageRel (self, Bounds, brush.image)
+        else
+          FillEllipseImage (self, Bounds, brush.image)
+      else
+        raise PixelCanvasException.Create (sErrNoImage);
+    bsDiagonal : FillEllipseHashDiagonal (self, Bounds, FHashWidth, brush.color);
+    bsFDiagonal : FillEllipseHashBackDiagonal (self, Bounds, FHashWidth, brush.color);
+    bsCross : FillEllipseHashCross (self, Bounds, FHashWidth, brush.color);
+    bsDiagCross : FillEllipseHashDiagCross (self, Bounds, FHashWidth, brush.color);
+    bsHorizontal : FillEllipseHashHorizontal (self, Bounds, FHashWidth, brush.color);
+    bsVertical : FillEllipseHashVertical (self, Bounds, FHashWidth, brush.color);
+  end;
 end;
 
 procedure TFPPixelCanvas.DoEllipse (const Bounds:TRect);
-var
-  Cx,Cy,Rx,Ry,phi:Integer;
-begin  //TODO: how to find center points and radius from bounds ?
-  with Bounds do
-    begin
-      Cx:=(Right+Left) shr 2;
-      Cy:=(Bottom+Top) shr 2;
-      Rx:=Abs(Right-Left) shr 2;
-      Ry:=Abs(Bottom-Top) shr 2;
+begin
+  with pen do
+    case style of
+      psSolid :
+        if pen.width > 1 then
+          DrawSolidEllipse (self, Bounds, width, color)
+        else
+          DrawSolidEllipse (self, Bounds, color);
+      psPattern:
+        DrawPatternEllipse (self, Bounds, pattern, color);
+      psDash, psDot, psDashDot, psDashDotDot :
+        DrawPatternEllipse (self, Bounds, PenPatterns[Style], color);
     end;
-  MoveTo(Cx+Rx,Cy);
-  for phi:=1 to 360 do
-    LineTo(Cx+Round(Rx*Cos(phi*Pi/180)),Cy+Round(Ry*Sin(phi*Pi/180)));
 end;
 
 procedure TFPPixelCanvas.DoPolygonFill (const points:array of TPoint);
