@@ -153,7 +153,6 @@ interface
        end;
 
        tvarsym = class(tstoredsym)
-{          highvarsym    : tvarsym;}
           defaultconstsym : tsym;
           varoptions    : tvaroptions;
           varspez       : tvarspez;  { sets the type of access }
@@ -1431,7 +1430,6 @@ implementation
          varspez:=vsp;
          fieldoffset:=0;
          fillchar(localloc,sizeof(localloc),0);
-{         highvarsym:=nil;}
          defaultconstsym:=nil;
          refs:=0;
          varstate:=vs_declared;
@@ -1467,7 +1465,6 @@ implementation
          varstate:=vs_used;
          varspez:=tvarspez(ppufile.getbyte);
          fieldoffset:=ppufile.getlongint;
-{         highvarsym:=nil;}
          defaultconstsym:=nil;
          ppufile.gettype(_vartype);
          ppufile.getsmallset(varoptions);
@@ -2109,6 +2106,8 @@ implementation
          if def.max<v then
            def.setmax(v);
          order;
+{         nextenum:=Tenumsym(def.firstenum);
+         def.firstenum:=self;}
       end;
 
 
@@ -2133,7 +2132,6 @@ implementation
          definition:=tenumdef(definitionderef.resolve);
          order;
       end;
-
 
    procedure tenumsym.order;
       var
@@ -2160,7 +2158,6 @@ implementation
             sym.nextenum := self;
           end;
       end;
-
 
     procedure tenumsym.ppuwrite(ppufile:tcompilerppufile);
       begin
@@ -2366,7 +2363,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.154  2004-02-04 23:01:36  daniel
+  Revision 1.155  2004-02-05 14:13:53  daniel
+    *  Tvarsym.highvarsym removed
+
+  Revision 1.154  2004/02/04 23:01:36  daniel
     * Empty destructor Tlabelsym.destroy removed
 
   Revision 1.153  2004/02/04 22:54:57  daniel
