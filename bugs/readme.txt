@@ -308,6 +308,7 @@ Fixed bugs:
   bug0249.pp   procedure of object cannot be assigned to property.  OK 0.99.11 (PFV)
   bug0250.pp   error with Ansistrings and loops.                    OK 0.99.11 (PFV)
   bug0251.pp   typed const are not aligned correctly                OK 0.99.11 (PM)
+  bug0252.pp   typecasting not possible within typed const          OK 0.99.13 (PFV)
   bug0253.pp   problem with overloaded procedures and forward       OK 0.99.11 (PFV)
   bug0254.pp   problem of endless loop if string at end of main
                file without new line.                               OK 0.99.11 (PM)
@@ -329,6 +330,7 @@ Fixed bugs:
   bug0273.pp   small array pushing to array of char procedure is wrong OK 0.99.13 (PFV)
   bug0274.pp   @(proc) is not allowed                               OK 0.99.13 (PFV)
   bug0276.pp   Asm, intel reference parsing incompatibility         OK 0.99.13 (PFV)
+  bug0277.pp   typecasting with const not possible                  OK 0.99.13 (PFV)
   bug0278.pp   (* in conditional code is handled wrong for tp,delphi OK 0.99.13 (PFV)
   bug0279.pp   crash with ansistring and new(^ansistring)           OK 0.99.13 (PFV)
   bug0280.pp   problem with object finalization.                    OK 0.99.13 (FK)
@@ -370,13 +372,11 @@ Unfixed bugs:
 bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
 bug0246.pp   const para can be changed without error
-bug0252.pp   typecasting not possible within typed const
 bug0262.pp   problems with virtual and overloaded methods
 bug0263.pp   export directive is not necessary in delphi anymore
 bug0265.pp   nested proc with for-counter in other lex level
 bug0272.pp   No error issued if wrong parameter in function inside a second function
 bug0275.pp   too many warnings
-bug0277.pp   typecasting with const not possible
 bug0281.pp   dup id checking with property is wrong
 bug0289.pp   no hint/note for unused types
 bug0290.pp   problem with storing hex numbers in integers
