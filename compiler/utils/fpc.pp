@@ -167,7 +167,8 @@ program fpc;
      try
        errorvalue:=ExecuteProcess(ppcbin,ppccommandline);
      except
-       error(ppcbin+' can''t be executed');
+       on e : exception do
+         error(ppcbin+' can''t be executed, error message: '+e.message);
      end;
      if errorvalue<>0 then
        error(ppcbin+' can''t be executed');
@@ -175,7 +176,10 @@ program fpc;
   end.
 {
   $Log$
-  Revision 1.11  2004-01-05 22:41:20  florian
+  Revision 1.12  2004-01-26 20:34:24  florian
+    * improved error message
+
+  Revision 1.11  2004/01/05 22:41:20  florian
     * changed sysutils.exec to ExecuteProcess
 
   Revision 1.10  2004/01/03 09:20:45  marco
