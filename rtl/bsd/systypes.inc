@@ -36,13 +36,16 @@ type
   PSysCallRegs=^SysCallRegs;
   TSysCallRegs=SysCallRegs;
 
-{ The following are records for system calls }
+{ The following are records for system calls BSD updated }
   dirent = packed record
-    ino,
-    off    : longint;
+    ino    : cardinal;		{ This is not inode number, but "a number 
+				  unique for each file on a filesystem"}
     reclen : word;
+    d_type,
+    namlen : byte;
     name   : array [0..255] of char;
   end;
+
   pdirent =^dirent;
   TDirEnt = dirent;
 
@@ -86,16 +89,22 @@ type
   TStat=Stat;
 
   Statfs = packed record
-    fstype,            { File system type }
-    bsize,             { Optimal block trensfer size }
-    blocks,            { Data blocks in system }
-    bfree,             { free blocks in system }
-    bavail,            { Available free blocks to non-root users }
-    files,             { File nodes in system }
-    ffree,             { Free file nodes in system }
-    fsid,              { File system ID }
-    namelen : longint; { Maximum name length in system }
-    spare   : array [0..6] of longint; { For later use }
+    spare2,	       { place holder}
+    bsize,	       { fundamental block size}
+    iosize,            { optimal block size }
+    blocks,            {  total blocks}
+    bfree,             { blocks free}
+    bavail,            { block available for mortal users}
+    files,	       { Total file nodes}
+    ffree	   : longint;    { file nodes free}
+    fsid	   : array[0..1] of longint;
+    fowner	   : longint; {mounter uid}
+    ftype	   : longint;
+    fflags         : longint; {copy of mount flags}
+    spare          : array [0..1] of longint; { For later use }
+    fstypename     : array[0..15] of char;
+    mountpoint     : array[0..89] of char;
+    mnfromname     : array[0..89] of char;
   end;
   PStatFS=^StatFS;
   TStatFS=StatFS;
@@ -105,7 +114,7 @@ type
   TFDSet=fdset;
 
   timeval = packed record
-    sec,usec:longint
+    sec,usec:int64;
   end;
   ptimeval=^timeval;
   TTimeVal=timeval;
@@ -129,7 +138,11 @@ type
 
 {
   $Log$
-  Revision 1.2  2000-02-02 16:45:38  marco
+  Revision 1.3  2000-02-03 17:05:55  marco
+
+   * Some types fixed/ported.
+
+  Revision 1.2  2000/02/02 16:45:38  marco
    * Typo in STAT record
 
   Revision 1.1  2000/02/02 16:36:09  marco
