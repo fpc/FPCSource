@@ -4582,6 +4582,7 @@ implementation
 
     function tprocvardef.getcopy : tstoreddef;
       begin
+        result:=self;
       (*
           { saves a definition to the return type }
           rettype         : ttype;
@@ -6378,7 +6379,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.293  2005-02-01 08:46:13  michael
+  Revision 1.294  2005-02-02 19:02:47  florian
+    * type = type <procvar>; ignored
+
+  Revision 1.293  2005/02/01 08:46:13  michael
    * Patch from peter: fix macpas anonymous function procvar
 
   Revision 1.292  2005/01/30 11:26:40  peter
