@@ -81,8 +81,7 @@ implementation
                  cg.a_load_const_reg(exprasmlist,OS_INT,aword(value),tmpreg);
                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_ADD_,hregister,
                   hregister,tmpreg));
-                cg.ungetregister(exprasmlist,tmpreg);
-               end;
+              end;
           end;
 
         begin
@@ -157,7 +156,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2004-06-20 08:55:32  florian
+  Revision 1.15  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.14  2004/06/20 08:55:32  florian
     * logs truncated
 
 }

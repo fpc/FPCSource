@@ -86,7 +86,7 @@ interface
         procedure g_restore_standard_registers(list:taasmoutput);override;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_save_standard_registers(list : taasmoutput);override;
-        procedure g_concatcopy(list:TAasmOutput;const source,dest:TReference;len:aint;delsource,loadref:boolean);override;
+        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint;loadref : boolean);override;
       end;
 
       TCg64Sparc=class(tcg64f32)
@@ -218,7 +218,6 @@ implementation
             tmpreg:=GetIntRegister(list,OS_INT);
             a_load_const_reg(list,OS_INT,a,tmpreg);
             list.concat(taicpu.op_reg_reg_reg(op,src,tmpreg,dst));
-            UnGetRegister(list,tmpreg);
           end
         else
           list.concat(taicpu.op_reg_const_reg(op,src,a,dst));
@@ -310,7 +309,6 @@ implementation
                   tmpreg:=GetIntRegister(list,OS_INT);
                   a_load_ref_reg(list,sz,sz,r,tmpreg);
                   a_load_reg_ref(list,sz,sz,tmpreg,ref);
-                  UnGetRegister(list,tmpreg);
                 end;
               else
                 internalerror(2002081103);
@@ -338,7 +336,6 @@ implementation
                   tmpreg:=GetAddressRegister(list);
                   a_loadaddr_ref_reg(list,r,tmpreg);
                   a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
-                  UnGetRegister(list,tmpreg);
                 end;
               else
                 internalerror(2002080701);
@@ -639,8 +636,6 @@ implementation
                 if hreg<>r then
                   a_load_reg_reg(list,OS_ADDR,OS_ADDR,hreg,r);
               end;
-            if hreg<>r then
-              UnGetRegister(list,hreg);
           end
         else
         { At least small offset, maybe base and maybe index }
@@ -960,7 +955,7 @@ implementation
 
     { ************* concatcopy ************ }
 
-    procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;len:aint;delsource,loadref:boolean);
+    procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;len:aint;loadref:boolean);
       var
         tmpreg1,
         hreg,
@@ -987,8 +982,6 @@ implementation
             a_loadaddr_ref_reg(list,source,src.base);
             orgsrc := false;
           end;
-        if not orgsrc and delsource then
-          reference_release(list,source);
           { load the address of dest into dst.base }
         dst.base:=GetAddressRegister(list);
         a_loadaddr_ref_reg(list,dest,dst.base);
@@ -1019,7 +1012,6 @@ implementation
             list.concat(taicpu.op_reg_reg(A_MOV,countreg,countreg));
             list.concat(taicpu.op_reg_reg(A_MOV,src.base,src.base));
             list.concat(taicpu.op_reg_reg(A_MOV,dst.base,dst.base));
-            UnGetRegister(list,countreg);
             len := len mod 4;
           end;
         { unrolled loop }
@@ -1043,7 +1035,6 @@ implementation
             a_load_reg_ref(list,OS_32,OS_32,hreg,dst);
             inc(src.offset,4);
             inc(dst.offset,4);
-            UnGetRegister(list,hreg);
           end;
         { copy the leftovers }
         if (len and 2) <> 0 then
@@ -1053,24 +1044,13 @@ implementation
             a_load_reg_ref(list,OS_16,OS_16,hreg,dst);
             inc(src.offset,2);
             inc(dst.offset,2);
-            UnGetRegister(list,hreg);
           end;
         if (len and 1) <> 0 then
           begin
             hreg:=GetIntRegister(list,OS_INT);
             a_load_ref_reg(list,OS_8,OS_8,src,hreg);
             a_load_reg_ref(list,OS_8,OS_8,hreg,dst);
-            UnGetRegister(list,hreg);
           end;
-        if orgsrc then
-          begin
-            if delsource then
-              reference_release(list,source);
-          end
-        else
-          UnGetRegister(list,src.base);
-        if not orgdst then
-          UnGetRegister(list,dst.base);
       end;
 
 {****************************************************************************
@@ -1227,7 +1207,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2004-09-21 20:33:00  peter
+  Revision 1.89  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.88  2004/09/21 20:33:00  peter
     * don't remove MOV reg1,reg1 it is needed for the RA
 
   Revision 1.87  2004/09/21 17:25:13  peter

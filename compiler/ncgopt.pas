@@ -98,8 +98,7 @@ begin
      not(nf_use_strconcat in flags) then
     begin
        tg.Gettemp(exprasmlist,256,tt_normal,href);
-       cg.g_copyshortstring(exprasmlist,left.location.reference,href,255,true,false);
-       { location is released by copyshortstring }
+       cg.g_copyshortstring(exprasmlist,left.location.reference,href,255,false);
        location_freetemp(exprasmlist,left.location);
        { return temp reference }
        location_reset(left.location,LOC_REFERENCE,def_cgsize(resulttype.def));
@@ -117,8 +116,6 @@ begin
     { no, make sure it is in a register }
     if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
       begin
-        { free the registers of right }
-        reference_release(exprasmlist,right.location.reference);
         { get register for the char }
         hreg := cg.getintregister(exprasmlist,OS_8);
         cg.a_load_ref_reg(exprasmlist,OS_8,OS_8,right.location.reference,hreg);
@@ -181,7 +178,6 @@ begin
       { no new_reference(href2) because it's only }
       { used once (JM)                            }
       cg.a_load_reg_ref(exprasmlist,OS_8,OS_8,hreg,href2);
-      cg.ungetregister(exprasmlist,hreg);
     end
   else
     cg.a_load_const_ref(exprasmlist,OS_8,tordconstnode(right).value,href2);
@@ -189,7 +185,6 @@ begin
   { increase the string length }
   cg.a_op_const_reg(exprasmlist,OP_ADD,OS_8,1,lengthreg);
   cg.a_load_reg_ref(exprasmlist,OS_8,OS_8,lengthreg,left.location.reference);
-  cg.ungetregister(exprasmlist,lengthreg);
   if checklength then
     cg.a_label(exprasmlist,l);
   location_copy(location,left.location);
@@ -201,7 +196,13 @@ end.
 
 {
   $Log$
-  Revision 1.14  2004-06-20 08:55:29  florian
+  Revision 1.15  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.14  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.13  2004/05/22 23:34:28  peter

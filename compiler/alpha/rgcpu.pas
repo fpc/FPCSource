@@ -35,7 +35,7 @@ unit rgcpu;
 
      type
        trgcpu = class(trgobj)
-         function getexplicitregisterint(list: taasmoutput; reg: tregister): tregister; override;
+         function getcpuregisterint(list: taasmoutput; reg: tregister): tregister; override;
          procedure ungetregisterint(list: taasmoutput; reg: tregister); override;
        end;
 
@@ -44,7 +44,7 @@ unit rgcpu;
     uses
       cgobj;
 
-    function trgcpu.getexplicitregisterint(list: taasmoutput; reg: tregister): tregister;
+    function trgcpu.getcpuregisterint(list: taasmoutput; reg: tregister): tregister;
 
       begin
         if reg = R_0 then
@@ -52,7 +52,7 @@ unit rgcpu;
             cg.a_reg_alloc(list,reg);
             result := reg;
           end
-        else result := inherited getexplicitregisterint(list,reg);
+        else result := inherited getcpuregisterint(list,reg);
       end;
 
 
@@ -71,7 +71,13 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-06-20 08:55:31  florian
+  Revision 1.3  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.2  2004/06/20 08:55:31  florian
     * logs truncated
 
 }

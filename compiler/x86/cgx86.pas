@@ -43,10 +43,10 @@ unit cgx86;
         function getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         function getmmxregister(list:Taasmoutput):Tregister;
 
-        procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
-        procedure ungetregister(list:Taasmoutput;r:Tregister);override;
-        procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
-        procedure deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
+        procedure getcpuregister(list:Taasmoutput;r:Tregister);override;
+        procedure ungetcpuregister(list:Taasmoutput;r:Tregister);override;
+        procedure alloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
+        procedure dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
         function  uses_registers(rt:Tregistertype):boolean;override;
         procedure add_reg_instruction(instr:Tai;r:tregister);override;
         procedure dec_fpu_stack;
@@ -102,7 +102,7 @@ unit cgx86;
         procedure g_flags2reg(list: taasmoutput; size: TCgSize; const f: tresflags; reg: TRegister); override;
         procedure g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref: TReference); override;
 
-        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint; delsource,loadref : boolean);override;
+        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint; loadref : boolean);override;
 
         { entry/exit code helpers }
         procedure g_releasevaluepara_openarray(list : taasmoutput;const ref:treference);override;
@@ -193,35 +193,35 @@ unit cgx86;
         result:=rg[R_MMXREGISTER].getregister(list,R_SUBNONE);
       end;
 
-    procedure Tcgx86.getexplicitregister(list:Taasmoutput;r:Tregister);
+    procedure Tcgx86.getcpuregister(list:Taasmoutput;r:Tregister);
       begin
         if getregtype(r)=R_FPUREGISTER then
           internalerror(2003121210)
         else
-          inherited getexplicitregister(list,r);
+          inherited getcpuregister(list,r);
       end;
 
 
-    procedure tcgx86.ungetregister(list:Taasmoutput;r:Tregister);
+    procedure tcgx86.ungetcpuregister(list:Taasmoutput;r:Tregister);
       begin
         if getregtype(r)=R_FPUREGISTER then
           rgfpu.ungetregisterfpu(list,r)
         else
-          inherited ungetregister(list,r);
+          inherited ungetcpuregister(list,r);
       end;
 
 
-    procedure Tcgx86.allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
+    procedure Tcgx86.alloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
       begin
         if rt<>R_FPUREGISTER then
-          inherited allocexplicitregisters(list,rt,r);
+          inherited alloccpuregisters(list,rt,r);
       end;
 
 
-    procedure Tcgx86.deallocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
+    procedure Tcgx86.dealloccpuregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);
       begin
         if rt<>R_FPUREGISTER then
-          inherited deallocexplicitregisters(list,rt,r);
+          inherited dealloccpuregisters(list,rt,r);
       end;
 
 
@@ -504,7 +504,6 @@ unit cgx86;
 {$endif x86_64}
               list.concat(taicpu.op_reg_reg(op,s,reg,tmpreg));
               a_load_reg_ref(list,tosize,tosize,tmpreg,ref);
-              ungetregister(list,tmpreg);
             end;
         else
           list.concat(taicpu.op_reg_ref(op,s,reg,ref));
@@ -976,10 +975,10 @@ unit cgx86;
             internalerror(200109233);
           OP_SHR,OP_SHL,OP_SAR:
             begin
-              getexplicitregister(list,NR_CL);
+              getcpuregister(list,NR_CL);
               a_load_reg_reg(list,OS_8,OS_8,makeregsize(list,src,OS_8),NR_CL);
               list.concat(taicpu.op_reg_reg(Topcg2asmop[op],tcgsize2opsize[size],NR_CL,src));
-              ungetregister(list,NR_CL);
+              ungetcpuregister(list,NR_CL);
             end;
           else
             begin
@@ -1267,8 +1266,7 @@ unit cgx86;
 
 { ************* concatcopy ************ }
 
-    procedure Tcgx86.g_concatcopy(list:Taasmoutput;const source,dest:Treference;
-                                  len:aint;delsource,loadref:boolean);
+    procedure Tcgx86.g_concatcopy(list:Taasmoutput;const source,dest:Treference;len:aint;loadref:boolean);
 
     const
 {$ifdef cpu64bit}
@@ -1331,11 +1329,8 @@ unit cgx86;
                     cgsize:=OS_32;
                   end;
                 dec(len,copysize);
-                if (len=0) and delsource then
-                  reference_release(list,source);
                 r:=getintregister(list,cgsize);
                 a_load_ref_reg(list,cgsize,cgsize,srcref,r);
-                ungetregister(list,r);
                 a_load_reg_ref(list,cgsize,cgsize,r,dstref);
                 inc(srcref.offset,copysize);
                 inc(dstref.offset,copysize);
@@ -1366,50 +1361,33 @@ unit cgx86;
                 a_loadmm_ref_reg(list,OS_M64,OS_M64,srcref,r3,nil);
               end;
             a_loadmm_reg_ref(list,OS_M64,OS_M64,r0,dstref,nil);
-            ungetregister(list,r0);
             if len>=16 then
               begin
                 inc(dstref.offset,8);
                 a_loadmm_reg_ref(list,OS_M64,OS_M64,r1,dstref,nil);
-                ungetregister(list,r1);
               end;
             if len>=24 then
               begin
                 inc(dstref.offset,8);
                 a_loadmm_reg_ref(list,OS_M64,OS_M64,r2,dstref,nil);
-                ungetregister(list,r2);
               end;
             if len>=32 then
               begin
                 inc(dstref.offset,8);
                 a_loadmm_reg_ref(list,OS_M64,OS_M64,r3,dstref,nil);
-                ungetregister(list,r3);
               end;
           end
         else {copy_string, should be a good fallback in case of unhandled}
           begin
-            getexplicitregister(list,REGDI);
+            getcpuregister(list,REGDI);
             a_loadaddr_ref_reg(list,dest,REGDI);
-            getexplicitregister(list,REGSI);
+            getcpuregister(list,REGSI);
             if loadref then
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,source,REGSI)
             else
-              begin
-                a_loadaddr_ref_reg(list,source,REGSI);
-                if delsource then
-                  begin
-                    srcref:=source;
-                    { Don't release ESI register yet, it's needed
-                      by the movsl }
-                    if (srcref.base=REGSI) then
-                      srcref.base:=NR_NO
-                    else if (srcref.index=REGSI) then
-                      srcref.index:=NR_NO;
-                    reference_release(list,srcref);
-                  end;
-              end;
+              a_loadaddr_ref_reg(list,source,REGSI);
 
-            getexplicitregister(list,REGCX);
+            getcpuregister(list,REGCX);
 
             list.concat(Taicpu.op_none(A_CLD,S_NO));
             if cs_littlesize in aktglobalswitches  then
@@ -1449,13 +1427,11 @@ unit cgx86;
                 if len=1 then
                   list.concat(Taicpu.op_none(A_MOVSB,S_NO));
               end;
-            ungetregister(list,REGCX);
-            ungetregister(list,REGSI);
-            ungetregister(list,REGDI);
+            ungetcpuregister(list,REGCX);
+            ungetcpuregister(list,REGSI);
+            ungetcpuregister(list,REGDI);
           end;
         end;
-      if delsource then
-        tg.ungetiftemp(list,source);
     end;
 
 
@@ -1546,14 +1522,14 @@ unit cgx86;
                else
                  begin
                     objectlibrary.getlabel(again);
-                    getexplicitregister(list,NR_EDI);
+                    getcpuregister(list,NR_EDI);
                     list.concat(Taicpu.op_const_reg(A_MOV,S_L,localsize div winstackpagesize,NR_EDI));
                     a_label(list,again);
                     list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,NR_ESP));
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EAX));
                     list.concat(Taicpu.op_reg(A_DEC,S_L,NR_EDI));
                     a_jmp_cond(list,OC_NE,again);
-                    ungetregister(list,NR_EDI);
+                    ungetcpuregister(list,NR_EDI);
                     list.concat(Taicpu.op_const_reg(A_SUB,S_L,localsize mod winstackpagesize,NR_ESP));
                  end
              end
@@ -1697,7 +1673,13 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.124  2004-06-20 08:55:32  florian
+  Revision 1.125  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.124  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.123  2004/06/16 20:07:11  florian

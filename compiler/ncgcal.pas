@@ -120,7 +120,6 @@ implementation
       begin
         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           internalerror(200304235);
-        location_release(exprasmlist,left.location);
         cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempcgpara);
       end;
 
@@ -144,7 +143,6 @@ implementation
         { Handle Floating point types differently }
         if left.resulttype.def.deftype=floatdef then
          begin
-           location_release(exprasmlist,left.location);
 {$ifdef i386}
            if tempcgpara.location^.loc<>LOC_REFERENCE then
              internalerror(200309291);
@@ -203,7 +201,7 @@ implementation
                  else
                    begin
                      reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset);
-                     cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false);
+                     cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false);
                    end;
                end;
              else
@@ -303,7 +301,6 @@ implementation
               paramanager.copy_value_on_stack(paraitem.paratyp,left.resulttype.def,
                   aktcallnode.procdefinition.proccalloption) then
             begin
-              location_release(exprasmlist,left.location);
 {$ifdef i386}
               if tempcgpara.location^.loc<>LOC_REFERENCE then
                 internalerror(200309292);
@@ -318,7 +315,7 @@ implementation
                 end
               else
                 reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset);
-              cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false);
+              cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false);
 {$else i386}
               cg.a_param_copy_ref(exprasmlist,left.resulttype.def.size,left.location.reference,tempcgpara);
 {$endif i386}
@@ -334,24 +331,15 @@ implementation
                   begin
 {$ifndef cpu64bit}
                     if left.location.size in [OS_64,OS_S64] then
-                     begin
-                       cg64.a_param64_loc(exprasmlist,left.location,tempcgpara);
-                       location_release(exprasmlist,left.location);
-                     end
+                      cg64.a_param64_loc(exprasmlist,left.location,tempcgpara)
                     else
 {$endif cpu64bit}
-                     begin
-                       location_release(exprasmlist,left.location);
-                       cg.a_param_loc(exprasmlist,left.location,tempcgpara);
-                     end;
+                      cg.a_param_loc(exprasmlist,left.location,tempcgpara);
                   end;
 {$ifdef SUPPORT_MMX}
                 LOC_MMXREGISTER,
                 LOC_CMMXREGISTER:
-                  begin
-                     location_release(exprasmlist,left.location);
-                     cg.a_parammm_reg(exprasmlist,left.location.register);
-                  end;
+                  cg.a_parammm_reg(exprasmlist,left.location.register);
 {$endif SUPPORT_MMX}
                 else
                   internalerror(200204241);
@@ -424,10 +412,7 @@ implementation
                     hp:=ttypeconvnode(hp).left;
                   if (hp.nodetype=addrn) and
                      (not(nf_procvarload in hp.flags)) then
-                    begin
-                      location_release(exprasmlist,left.location);
-                      cg.a_param_loc(exprasmlist,left.location,tempcgpara);
-                    end
+                    cg.a_param_loc(exprasmlist,left.location,tempcgpara)
                   else
                     push_addr_para;
                end
@@ -527,11 +512,10 @@ implementation
                   location.reference:=refcountedtemp;
                   { a_load_reg_ref may allocate registers! }
                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,location.reference);
-                  cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
+                  cg.ungetcpuregister(exprasmlist,NR_FUNCTION_RESULT_REG);
                 end
               else
                 begin
-                  cg.ungetregister(exprasmlist,resultparaloc^.register);
                   hregister := cg.getaddressregister(exprasmlist);
                   cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,resultparaloc^.register,hregister);
                   { in case of a regular funcretnode with ret_in_param, the }
@@ -543,7 +527,6 @@ implementation
                   tempnode.free;
                   cg.g_decrrefcount(exprasmlist,resulttype.def,location.reference,false);
                   cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
-                  cg.ungetregister(exprasmlist,hregister);
                end;
 
               { When the result is not used we need to finalize the result and
@@ -569,7 +552,6 @@ implementation
 {$ifdef x86}
                        tcgx86(cg).inc_fpu_stack;
 {$else x86}
-                       cg.ungetregister(exprasmlist,location.register);
                        hregister:=cg.getfpuregister(exprasmlist,location.size);
                        cg.a_loadfpu_reg_reg(exprasmlist,location.size,location.register,hregister);
                        location.register:=hregister;
@@ -588,21 +570,16 @@ implementation
                              if retloc.loc<>LOC_REGISTER then
                                internalerror(200409141);
                              { the function result registers are already allocated }
-                             cg.ungetregister(exprasmlist,retloc.registerlow);
                              location.registerlow:=cg.getintregister(exprasmlist,OS_32);
                              cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,retloc.registerlow,location.registerlow);
-                             cg.ungetregister(exprasmlist,retloc.registerhigh);
                              location.registerhigh:=cg.getintregister(exprasmlist,OS_32);
                              cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,retloc.registerhigh,location.registerhigh);
                            end
                           else
 {$endif cpu64bit}
                            begin
-                             { the function result register are already allocated }
-                             cg.ungetregister(exprasmlist,resultparaloc^.register);
                              { change register size after the unget because the
                                getregister was done for the full register
-
                                def_cgsize(resulttype.def) is used here because
                                it could be a constructor call }
                              location.register:=cg.getintregister(exprasmlist,def_cgsize(resulttype.def));
@@ -619,7 +596,6 @@ implementation
                    LOC_MMREGISTER:
                      begin
                        location_reset(location,LOC_MMREGISTER,cgsize);
-                       cg.ungetregister(exprasmlist,resultparaloc^.register);
                        location.register:=cg.getmmregister(exprasmlist,cgsize);
                        cg.a_loadmm_reg_reg(exprasmlist,cgsize,cgsize,resultparaloc^.register,location.register,mms_movescalar);
                      end;
@@ -713,7 +689,7 @@ implementation
                            if tmpparaloc^.loc<>LOC_REGISTER then
                              internalerror(200408221);
                            if getsupreg(callerparaloc^.register)<first_int_imreg then
-                             cg.getexplicitregister(exprasmlist,callerparaloc^.register);
+                             cg.getcpuregister(exprasmlist,callerparaloc^.register);
                            cg.a_load_reg_reg(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,
                                tmpparaloc^.register,callerparaloc^.register);
                          end;
@@ -722,7 +698,7 @@ implementation
                            if tmpparaloc^.loc<>LOC_FPUREGISTER then
                              internalerror(200408222);
                            if getsupreg(callerparaloc^.register)<first_fpu_imreg then
-                             cg.getexplicitregister(exprasmlist,callerparaloc^.register);
+                             cg.getcpuregister(exprasmlist,callerparaloc^.register);
                            cg.a_loadfpu_reg_reg(exprasmlist,ppn.tempcgpara.size,tmpparaloc^.register,callerparaloc^.register);
                          end;
                        LOC_MMREGISTER:
@@ -730,7 +706,7 @@ implementation
                            if tmpparaloc^.loc<>LOC_MMREGISTER then
                              internalerror(200408223);
                            if getsupreg(callerparaloc^.register)<first_mm_imreg then
-                             cg.getexplicitregister(exprasmlist,callerparaloc^.register);
+                             cg.getcpuregister(exprasmlist,callerparaloc^.register);
                            cg.a_loadmm_reg_reg(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,
                              tmpparaloc^.register,callerparaloc^.register,mms_movescalar);
                          end;
@@ -747,7 +723,7 @@ implementation
                                      reference_reset_base(htempref,tmpparaloc^.reference.index,tmpparaloc^.reference.offset);
                                      { use concatcopy, because it can also be a float which fails when
                                        load_ref_ref is used }
-                                     cg.g_concatcopy(exprasmlist,htempref,href,tcgsize2size[tmpparaloc^.size],false,false);
+                                     cg.g_concatcopy(exprasmlist,htempref,href,tcgsize2size[tmpparaloc^.size],false);
                                    end;
                                  LOC_REGISTER:
                                    cg.a_load_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
@@ -874,9 +850,6 @@ implementation
                  assigned(methodpointer) then
                 begin
                    vmtreg:=methodpointer.location.register;
-
-                   { release self }
-                   cg.ungetregister(exprasmlist,vmtreg);
                    pvreg:=cg.getintregister(exprasmlist,OS_ADDR);
                    reference_reset_base(href,vmtreg,
                       tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber));
@@ -890,14 +863,11 @@ implementation
                    { free the resources allocated for the parameters }
                    freeparas;
 
-                   { Release register containing procvar }
-                   cg.ungetregister(exprasmlist,pvreg);
-
-                   cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
+                   cg.alloccpuregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
                    if cg.uses_registers(R_FPUREGISTER) then
-                     cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_save_fpu);
+                     cg.alloccpuregisters(exprasmlist,R_FPUREGISTER,regs_to_save_fpu);
                    if cg.uses_registers(R_MMREGISTER) then
-                     cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,regs_to_save_mm);
+                     cg.alloccpuregisters(exprasmlist,R_MMREGISTER,regs_to_save_mm);
 
                    { call method }
                    extra_call_code;
@@ -913,11 +883,11 @@ implementation
                   { free the resources allocated for the parameters }
                   freeparas;
 
-                  cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
+                  cg.alloccpuregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
                   if cg.uses_registers(R_FPUREGISTER) then
-                    cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_save_fpu);
+                    cg.alloccpuregisters(exprasmlist,R_FPUREGISTER,regs_to_save_fpu);
                   if cg.uses_registers(R_MMREGISTER) then
-                    cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,regs_to_save_mm);
+                    cg.alloccpuregisters(exprasmlist,R_MMREGISTER,regs_to_save_mm);
 
                   if procdefinition.proccalloption=pocall_syscall then
                     do_syscall
@@ -937,7 +907,6 @@ implementation
            begin
               secondpass(right);
 
-              location_release(exprasmlist,right.location);
               pvreg:=cg.getintregister(exprasmlist,OS_ADDR);
               { Only load OS_ADDR from the reference }
               if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
@@ -954,14 +923,11 @@ implementation
               { free the resources allocated for the parameters }
               freeparas;
 
-              { Release register containing procvar }
-              cg.ungetregister(exprasmlist,pvreg);
-
-              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
+              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
               if cg.uses_registers(R_FPUREGISTER) then
-                cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_save_fpu);
+                cg.alloccpuregisters(exprasmlist,R_FPUREGISTER,regs_to_save_fpu);
               if cg.uses_registers(R_MMREGISTER) then
-                cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,regs_to_save_mm);
+                cg.alloccpuregisters(exprasmlist,R_MMREGISTER,regs_to_save_mm);
 
               { Calling interrupt from the same code requires some
                 extra code }
@@ -1007,10 +973,10 @@ implementation
               end;
            end;
          if cg.uses_registers(R_MMREGISTER) then
-           cg.deallocexplicitregisters(exprasmlist,R_MMREGISTER,regs_to_save_mm);
+           cg.dealloccpuregisters(exprasmlist,R_MMREGISTER,regs_to_save_mm);
          if cg.uses_registers(R_FPUREGISTER) then
-           cg.deallocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_save_fpu);
-         cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
+           cg.dealloccpuregisters(exprasmlist,R_FPUREGISTER,regs_to_save_fpu);
+         cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
 
          { handle function results }
          if (not is_void(resulttype.def)) then
@@ -1026,9 +992,9 @@ implementation
             (right=nil) and
             not(po_virtualmethod in procdefinition.procoptions) then
            begin
-              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_IOCHECK');
-              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            end;
 
          { release temps of paras }
@@ -1175,9 +1141,9 @@ implementation
             (right=nil) and
             not(po_virtualmethod in procdefinition.procoptions) then
            begin
-              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_IOCHECK');
-              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            end;
 
          { release temps of paras }
@@ -1254,7 +1220,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.174  2004-09-21 17:25:12  peter
+  Revision 1.175  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.174  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.173.4.3  2004/09/20 20:46:34  peter

@@ -96,8 +96,6 @@ implementation
                   emit_const_reg(A_AND,S_Q,tordconstnode(right).value-1,hreg2);
                   { add to the left value }
                   emit_reg_reg(A_ADD,S_Q,hreg2,hreg1);
-                  { release EDX if we used it }
-                  cg.ungetregister(exprasmlist,hreg2);
                   { do the shift }
                   emit_const_reg(A_SAR,S_Q,power,hreg1);
               end
@@ -108,10 +106,9 @@ implementation
         else
           begin
             {Bring denominator to a register.}
-            cg.ungetregister(exprasmlist,hreg1);
-            cg.getexplicitregister(exprasmlist,NR_RAX);
+            cg.getcpuregister(exprasmlist,NR_RAX);
             emit_reg_reg(A_MOV,S_Q,hreg1,NR_RAX);
-            cg.getexplicitregister(exprasmlist,NR_RDX);
+            cg.getcpuregister(exprasmlist,NR_RDX);
             {Sign extension depends on the left type.}
             if torddef(left.resulttype.def).typ=u64bit then
               emit_reg_reg(A_XOR,S_Q,NR_RDX,NR_RDX)
@@ -132,26 +129,17 @@ implementation
               begin
                 hreg1:=cg.getintregister(exprasmlist,right.location.size);
                 cg.a_load_loc_reg(exprasmlist,OS_64,right.location,hreg1);
-                cg.ungetregister(exprasmlist,hreg1);
                 emit_reg(op,S_Q,hreg1);
               end;
-            location_release(exprasmlist,right.location);
 
             { Copy the result into a new register. Release RAX & RDX.}
+            cg.ungetcpuregister(exprasmlist,NR_RDX);
+            cg.ungetcpuregister(exprasmlist,NR_RAX);
+            location.register:=cg.getintregister(exprasmlist,OS_INT);
             if nodetype=divn then
-              begin
-                cg.ungetregister(exprasmlist,NR_RDX);
-                cg.ungetregister(exprasmlist,NR_RAX);
-                location.register:=cg.getintregister(exprasmlist,OS_INT);
-                emit_reg_reg(A_MOV,S_Q,NR_RAX,location.register);
-              end
+              cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,NR_RAX,location.register)
             else
-              begin
-                cg.ungetregister(exprasmlist,NR_RAX);
-                cg.ungetregister(exprasmlist,NR_RDX);
-                location.register:=cg.getintregister(exprasmlist,OS_INT);
-                emit_reg_reg(A_MOV,S_Q,NR_RDX,location.register);
-              end;
+              cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,NR_RDX,location.register);
           end;
       end;
 
@@ -188,7 +176,6 @@ implementation
             mask:=63;
           end;
 
-
         { load left operators in a register }
         location_copy(location,left.location);
         location_force_reg(exprasmlist,location,opsize,false);
@@ -199,13 +186,11 @@ implementation
         else
           begin
             { load right operators in a RCX }
-            if right.location.loc<>LOC_CREGISTER then
-              location_release(exprasmlist,right.location);
-            cg.getexplicitregister(exprasmlist,NR_RCX);
+            cg.getcpuregister(exprasmlist,NR_RCX);
             cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,NR_RCX);
 
             { right operand is in ECX }
-            cg.ungetregister(exprasmlist,NR_RCX);
+            cg.ungetcpuregister(exprasmlist,NR_RCX);
             emit_reg_reg(op,tcgsize2opsize[opsize],NR_CL,location.register);
           end;
       end;
@@ -219,7 +204,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2004-06-20 08:55:32  florian
+  Revision 1.7  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.6  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.5  2004/06/16 20:07:11  florian

@@ -218,7 +218,7 @@ interface
            end;
 
          { Allocate registers used in the assembler block }
-         cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,used_regs_int);
+         cg.alloccpuregisters(exprasmlist,R_INTREGISTER,used_regs_int);
 
          if (current_procinfo.procdef.proccalloption=pocall_inline) then
            begin
@@ -314,7 +314,7 @@ interface
            end;
 
          { Release register used in the assembler block }
-         cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,used_regs_int);
+         cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,used_regs_int);
        end;
 
 
@@ -476,10 +476,7 @@ interface
               cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,tempinfo^.loc.reg,
                 tempinfo^.loc.reg);
               if release_to_normal then
-                tempinfo^.loc.loc := LOC_REGISTER
-              else
-                { !!tell rgobj this register is no longer a regvar!! }
-                cg.ungetregister(exprasmlist,tempinfo^.loc.reg);
+                tempinfo^.loc.loc := LOC_REGISTER;
             end;
         end;
       end;
@@ -496,7 +493,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2004-09-21 17:25:12  peter
+  Revision 1.67  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.66  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.65.4.1  2004/08/31 20:43:06  peter

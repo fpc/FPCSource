@@ -129,19 +129,16 @@ implementation
 {$ifndef cpu64bit}
                 if left.location.size in [OS_64,OS_S64] then
                  begin
-                   location_release(exprasmlist,left.location);
                    hregister:=cg.getintregister(exprasmlist,OS_INT);
                    cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,left.location.reference,hregister);
                    href:=left.location.reference;
                    inc(href.offset,4);
-                   cg.ungetregister(exprasmlist,hregister);
                    cg.a_op_ref_reg(exprasmlist,OP_OR,OS_32,href,hregister);
                  end
                 else
 {$endif cpu64bit}
                  begin
                    location_force_reg(exprasmlist,left.location,left.location.size,true);
-                   location_release(exprasmlist,left.location);
                    cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
                  end;
               end;
@@ -156,16 +153,11 @@ implementation
                  begin
                    hregister:=cg.getintregister(exprasmlist,OS_32);
                    cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.registerlow,hregister);
-                   cg.ungetregister(exprasmlist,hregister);
-                   location_release(exprasmlist,left.location);
                    cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,hregister);
                  end
                 else
 {$endif cpu64bit}
-                 begin
-                   location_release(exprasmlist,left.location);
-                   cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
-                 end;
+                  cg.a_op_reg_reg(exprasmlist,OP_OR,left.location.size,left.location.register,left.location.register);
               end;
             LOC_JUMP :
               begin
@@ -177,7 +169,6 @@ implementation
                 cg.a_label(exprasmlist,falselabel);
                 cg.a_load_const_reg(exprasmlist,OS_INT,0,hregister);
                 cg.a_label(exprasmlist,hlabel);
-                cg.ungetregister(exprasmlist,hregister);
                 cg.a_op_reg_reg(exprasmlist,OP_OR,OS_INT,hregister,hregister);
               end;
             else
@@ -238,7 +229,6 @@ implementation
             if (torddef(left.resulttype.def).typ=u32bit) then
               begin
                 tg.GetTemp(exprasmlist,8,tt_normal,href);
-                location_release(exprasmlist,left.location);
                 location_freetemp(exprasmlist,left.location);
                 cg.a_load_ref_ref(exprasmlist,left.location.size,OS_32,left.location.reference,href);
                 inc(href.offset,4);
@@ -248,7 +238,6 @@ implementation
               end;
 
             { Load from reference to fpu reg }
-            location_release(exprasmlist,left.location);
             case torddef(left.resulttype.def).typ of
               u32bit,
               scurrency,
@@ -301,7 +290,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2004-06-20 08:55:32  florian
+  Revision 1.14  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.13  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.12  2004/06/16 20:07:11  florian

@@ -119,7 +119,6 @@ unit nx86add;
               cg.a_load_loc_reg(exprasmlist,opsize,right.location,r);
               emit_reg_reg(op,TCGSize2Opsize[opsize],left.location.register,r);
               cg.a_load_reg_reg(exprasmlist,opsize,opsize,r,left.location.register);
-              cg.ungetregister(exprasmlist,r);
             end
            else
             begin
@@ -163,7 +162,6 @@ unit nx86add;
                         cg.a_load_loc_reg(exprasmlist,opsize,right.location,r);
                         emit_reg(A_NOT,TCGSize2Opsize[opsize],r);
                         emit_reg_reg(A_AND,TCGSize2Opsize[opsize],r,left.location.register);
-                        cg.ungetregister(exprasmlist,r);
                      end
                    else
                      begin
@@ -234,9 +232,6 @@ unit nx86add;
               { left was on the stack => swap }
               toggleflag(nf_swaped);
             end;
-
-           { releases the right reference }
-           location_release(exprasmlist,right.location);
          end
         { the nominator in st0 }
         else if (left.location.loc<>LOC_FPUREGISTER) then
@@ -402,7 +397,6 @@ unit nx86add;
         left_must_be_reg(opsize,noswap);
         emit_generic_code(op,opsize,true,extra_not,false);
         location_freetemp(exprasmlist,right.location);
-        location_release(exprasmlist,right.location);
 
         set_result_location_reg;
       end;
@@ -437,9 +431,7 @@ unit nx86add;
         left_must_be_reg(opsize,false);
         emit_generic_code(op,opsize,true,false,false);
         location_freetemp(exprasmlist,right.location);
-        location_release(exprasmlist,right.location);
         location_freetemp(exprasmlist,left.location);
-        location_release(exprasmlist,left.location);
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
@@ -484,7 +476,6 @@ unit nx86add;
             if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
               location_force_mem(exprasmlist,left.location);
             cg.a_opmm_loc_reg(exprasmlist,op,location.size,left.location,location.register,mms_movescalar);
-            location_release(exprasmlist,left.location);
           end
         else
           begin
@@ -498,7 +489,6 @@ unit nx86add;
             if right.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
               location_force_mem(exprasmlist,right.location);
             cg.a_opmm_loc_reg(exprasmlist,op,location.size,right.location,location.register,mms_movescalar);
-            location_release(exprasmlist,right.location);
           end;
       end;
 
@@ -558,8 +548,6 @@ unit nx86add;
                 internalerror(200402223);
             end;
           end;
-        location_release(exprasmlist,right.location);
-        location_release(exprasmlist,left.location);
         location.resflags:=getresflags(true);
       end;
 
@@ -591,10 +579,6 @@ unit nx86add;
 
         left_and_right_must_be_fpureg;
 
-        { releases the left reference }
-        if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-          location_release(exprasmlist,left.location);
-
         { if we swaped the tree nodes, then use the reverse operator }
         if nf_swaped in flags then
           begin
@@ -625,10 +609,6 @@ unit nx86add;
         pass_left_right;
         left_and_right_must_be_fpureg;
 
-        { releases the left reference }
-        if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-          location_release(exprasmlist,left.location);
-
 {$ifndef x86_64}
         if aktspecificoptprocessor<ClassPentium2 then
           begin
@@ -637,10 +617,10 @@ unit nx86add;
             tcgx86(cg).dec_fpu_stack;
 
             { load fpu flags }
-            cg.getexplicitregister(exprasmlist,NR_AX);
+            cg.getcpuregister(exprasmlist,NR_AX);
             emit_reg(A_FNSTSW,S_NO,NR_AX);
             emit_none(A_SAHF,S_NO);
-            cg.ungetregister(exprasmlist,NR_AX);
+            cg.ungetcpuregister(exprasmlist,NR_AX);
             if nf_swaped in flags then
              begin
                case nodetype of
@@ -754,7 +734,6 @@ unit nx86add;
                        paramanager.getintparaloc(pocall_default,2,paraloc2);
                        { process parameters }
                        secondpass(left);
-                       location_release(exprasmlist,left.location);
                        if paraloc2.location^.loc=LOC_REGISTER then
                          begin
                            hregister2:=cg.getaddressregister(exprasmlist);
@@ -766,7 +745,6 @@ unit nx86add;
                            cg.a_paramaddr_ref(exprasmlist,left.location.reference,paraloc2);
                          end;
                        secondpass(right);
-                       location_release(exprasmlist,right.location);
                        if paraloc1.location^.loc=LOC_REGISTER then
                          begin
                            hregister1:=cg.getaddressregister(exprasmlist);
@@ -780,21 +758,19 @@ unit nx86add;
                        { push parameters }
                        if paraloc1.location^.loc=LOC_REGISTER then
                          begin
-                           cg.ungetregister(exprasmlist,hregister2);
                            paramanager.allocparaloc(exprasmlist,paraloc2);
                            cg.a_param_reg(exprasmlist,OS_ADDR,hregister2,paraloc2);
                          end;
                        if paraloc2.location^.loc=LOC_REGISTER then
                          begin
-                           cg.ungetregister(exprasmlist,hregister1);
                            paramanager.allocparaloc(exprasmlist,paraloc1);
                            cg.a_param_reg(exprasmlist,OS_ADDR,hregister1,paraloc1);
                          end;
                        paramanager.freeparaloc(exprasmlist,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc2);
-                       cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                       cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                        cg.a_call_name(exprasmlist,'FPC_SHORTSTR_COMPARE');
-                       cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                       cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                        location_freetemp(exprasmlist,left.location);
                        location_freetemp(exprasmlist,right.location);
                        paraloc1.done;
@@ -900,7 +876,6 @@ unit nx86add;
          left_must_be_reg(opsize,false);
          emit_generic_code(op,opsize,unsigned,extra_not,mboverflow);
          location_freetemp(exprasmlist,right.location);
-         location_release(exprasmlist,right.location);
 
          set_result_location_reg;
       end;
@@ -920,12 +895,8 @@ unit nx86add;
          left_must_be_reg(opsize,false);
          emit_generic_code(A_CMP,opsize,unsigned,false,false);
          location_freetemp(exprasmlist,right.location);
-         location_release(exprasmlist,right.location);
-         if (left.location.loc<>LOC_CREGISTER) then
-           begin
-             location_freetemp(exprasmlist,left.location);
-             location_release(exprasmlist,left.location);
-           end;
+         location_freetemp(exprasmlist,left.location);
+
          location_reset(location,LOC_FLAGS,OS_NO);
          location.resflags:=getresflags(unsigned);
       end;
@@ -935,7 +906,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2004-09-21 17:25:13  peter
+  Revision 1.13  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.12  2004/09/21 17:25:13  peter
     * paraloc branch merged
 
   Revision 1.11.4.1  2004/08/31 20:43:06  peter

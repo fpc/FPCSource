@@ -211,8 +211,6 @@ interface
 
         exprasmlist.concat(taicpu.op_reg_reg_reg(op,
            left.location.register,right.location.register,location.register));
-
-        release_reg_left_right;
       end;
 
 
@@ -240,8 +238,6 @@ interface
              left.location.register,right.location.register));
         { Delay slot (can only contain integer operation) }
         exprasmlist.concat(taicpu.op_none(A_NOP));
-
-        release_reg_left_right;
       end;
 
 
@@ -257,8 +253,6 @@ interface
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
-
-        release_reg_left_right;
       end;
 
 
@@ -274,8 +268,6 @@ interface
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(true);
-
-        release_reg_left_right;
       end;
 
 
@@ -358,8 +350,6 @@ interface
         firstjmp64bitcmp;
         exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
         secondjmp64bitcmp;
-
-        release_reg_left_right;
       end;
 
 
@@ -380,8 +370,6 @@ interface
 
         location_reset(location,LOC_FLAGS,OS_NO);
         location.resflags:=getresflags(unsigned);
-
-        release_reg_left_right;
       end;
 
 begin
@@ -389,7 +377,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2004-09-21 17:25:13  peter
+  Revision 1.27  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.26  2004/09/21 17:25:13  peter
     * paraloc branch merged
 
   Revision 1.25.4.1  2004/09/19 18:08:30  peter

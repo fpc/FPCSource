@@ -117,7 +117,6 @@ interface
         hr : treference;
 
       begin
-         location_release(exprasmlist,left.location);
          location_reset(location,LOC_REGISTER,OS_ADDR);
          case tstringdef(left.resulttype.def).string_typ of
            st_shortstring :
@@ -201,7 +200,6 @@ interface
     procedure tcgtypeconvnode.second_array_to_pointer;
 
       begin
-         location_release(exprasmlist,left.location);
          location_reset(location,LOC_REGISTER,OS_ADDR);
          location.register:=cg.getaddressregister(exprasmlist);
          cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
@@ -218,7 +216,6 @@ interface
             {$ifdef cpu_uses_separate_address_registers}
               if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                 begin
-                  location_release(exprasmlist,left.location);
                   location.reference.base:=rg.getaddressregister(exprasmlist);
                   cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,
                           left.location.register,location.reference.base);
@@ -236,7 +233,6 @@ interface
           LOC_REFERENCE,
           LOC_CREFERENCE :
             begin
-              location_release(exprasmlist,left.location);
               location.reference.base:=cg.getaddressregister(exprasmlist);
               cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,
                 location.reference.base);
@@ -254,7 +250,6 @@ interface
          case tstringdef(resulttype.def).string_typ of
            st_shortstring :
              begin
-               location_release(exprasmlist,left.location);
                tg.GetTemp(exprasmlist,256,tt_normal,location.reference);
                cg.a_load_loc_ref(exprasmlist,left.location.size,left.location,
                  location.reference);
@@ -289,7 +284,6 @@ interface
             LOC_CREFERENCE,
             LOC_REFERENCE:
               begin
-                 location_release(exprasmlist,left.location);
                  location.register:=cg.getfpuregister(exprasmlist,left.location.size);
                  cg.a_loadfpu_loc_reg(exprasmlist,left.location,location.register);
                  location_freetemp(exprasmlist,left.location);
@@ -335,7 +329,6 @@ interface
           end
         else
           begin
-             location_release(exprasmlist,left.location);
              location_reset(location,LOC_REGISTER,OS_ADDR);
              location.register:=cg.getaddressregister(exprasmlist);
              cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,location.register);
@@ -393,7 +386,6 @@ interface
                {$ifdef cpu_uses_separate_address_registers}
                  if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                    begin
-                     location_release(exprasmlist,left.location);
                      location.register:=cg.getaddressregister(exprasmlist);
                      cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,
                               left.location.register,location.register);
@@ -404,10 +396,9 @@ interface
               end;
             LOC_CREFERENCE,LOC_REFERENCE:
               begin
-                location_release(exprasmlist,left.location);
                 location.register:=cg.getaddressregister(exprasmlist);
                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.register);
-                location_freetemp(exprasmlist,left.location);
+//                location_freetemp(exprasmlist,left.location);
               end;
             else
               internalerror(2002032214);
@@ -430,7 +421,6 @@ interface
             LOC_CREFERENCE,
             LOC_REFERENCE:
               begin
-                 location_release(exprasmlist,left.location);
                  location.register:=cg.getaddressregister(exprasmlist);
                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.register);
                  location_freetemp(exprasmlist,left.location);
@@ -539,7 +529,13 @@ end.
 
 {
   $Log$
-  Revision 1.59  2004-06-20 08:55:29  florian
+  Revision 1.60  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.59  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.58  2004/06/16 20:07:08  florian

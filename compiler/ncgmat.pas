@@ -192,7 +192,6 @@ implementation
           LOC_REFERENCE,
           LOC_CREFERENCE :
             begin
-              reference_release(exprasmlist,left.location.reference);
               location.register:=cg.getfpuregister(exprasmlist,location.size);
               cg.a_loadfpu_ref_reg(exprasmlist,
                  def_cgsize(left.resulttype.def),
@@ -325,8 +324,6 @@ implementation
                   { only used for temporary }
                   { purposes                }
                   hdenom := cg.getintregister(exprasmlist,OS_INT);
-                  if right.location.loc<>LOC_CREGISTER then
-                   location_release(exprasmlist,right.location);
                   cg.a_load_loc_reg(exprasmlist,right.location.size,right.location,hdenom);
                   { verify if the divisor is zero, if so return an error
                     immediately
@@ -369,11 +366,9 @@ implementation
 
     procedure tcgshlshrnode.second_integer;
       var
-         freescratch : boolean;
          op : topcg;
          hcountreg : tregister;
       begin
-         freescratch:=false;
          { determine operator }
          case nodetype of
            shln: op:=OP_SHL;
@@ -406,16 +401,11 @@ implementation
               if right.location.loc<>LOC_REGISTER then
                 begin
                   hcountreg:=cg.getintregister(exprasmlist,OS_INT);
-                  freescratch := true;
                   cg.a_load_loc_reg(exprasmlist,right.location.size,right.location,hcountreg);
                 end
               else
                 hcountreg:=right.location.register;
               cg.a_op_reg_reg(exprasmlist,op,OS_INT,hcountreg,location.register);
-              if right.location.loc<>LOC_REGISTER then
-                location_release(exprasmlist,right.location);
-              if freescratch then
-                cg.ungetregister(exprasmlist,hcountreg);
            end;
       end;
 
@@ -483,7 +473,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2004-09-21 17:25:12  peter
+  Revision 1.29  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.28  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.27.4.1  2004/08/31 20:43:06  peter

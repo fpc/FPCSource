@@ -152,18 +152,11 @@ implementation
              begin
                exprasmlist.concat(taicpu.op_reg_reg_reg(A_MULLW,resultreg,
                  divider,resultreg));
-               cg.ungetregister(exprasmlist,divider);
                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,location.register,
                  numerator,resultreg));
-               cg.ungetregister(exprasmlist,resultreg);
                resultreg := location.register;
-             end
-           else
-             cg.ungetregister(exprasmlist,divider);
+             end;
            end;
-       { free used registers }
-        if numerator <> resultreg then
-          cg.ungetregister(exprasmlist,numerator);
         { set result location }
         location.loc:=LOC_REGISTER;
         location.register:=resultreg;
@@ -287,7 +280,7 @@ implementation
                      location.registerlow := resultreg;
                    end;
 
-                 cg.getexplicitregister(exprasmlist,NR_R0);
+                 cg.getcpuregister(exprasmlist,NR_R0);
                  exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                    NR_R0,hregister1,32));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
@@ -304,7 +297,7 @@ implementation
                    location.registerhigh,location.registerhigh,NR_R0));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,
                    location.registerlow,hregisterlow,hregister1));
-                 cg.ungetregister(exprasmlist,NR_R0);
+                 cg.ungetcpuregister(exprasmlist,NR_R0);
 
                  if nodetype = shrn then
                    begin
@@ -312,8 +305,6 @@ implementation
                      location.registerhigh := location.registerlow;
                      location.registerlow := resultreg;
                    end;
-
-                   cg.ungetregister(exprasmlist,hregister1);
                end
            end
          else
@@ -348,8 +339,6 @@ implementation
 
                   cg.a_op_reg_reg_reg(exprasmlist,op,OS_32,hregister2,
                     hregister1,resultreg);
-
-                  cg.ungetregister(exprasmlist,hregister2);
                 end;
            end;
       end;
@@ -421,7 +410,6 @@ implementation
                           cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,
                             left.location.reference,src1);
                        end;
-                     reference_release(exprasmlist,left.location.reference);
                   end;
               end;
               { choose appropriate operand }
@@ -492,7 +480,6 @@ implementation
                     begin
                       location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
                       exprasmlist.concat(taicpu.op_reg_const(A_CMPWI,left.location.register,0));
-                      location_release(exprasmlist,left.location);
                       location_reset(location,LOC_FLAGS,OS_NO);
                       location.resflags.cr:=RS_CR0;
                       location.resflags.flag:=F_EQ;
@@ -534,7 +521,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2004-06-20 08:55:32  florian
+  Revision 1.40  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.39  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.38  2004/01/01 17:58:16  jonas

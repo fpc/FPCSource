@@ -149,14 +149,13 @@ unit rgobj;
          no more free registers which can be allocated.}
         function getregister(list:Taasmoutput;subreg:Tsubregister):Tregister;virtual;
         {# Get the register specified.}
-        procedure getexplicitregister(list:Taasmoutput;r:Tregister);virtual;
+        procedure getcpuregister(list:Taasmoutput;r:Tregister);virtual;
+        procedure ungetcpuregister(list:Taasmoutput;r:Tregister);virtual;
         {# Get multiple registers specified.}
-        procedure allocexplicitregisters(list:Taasmoutput;r:Tcpuregisterset);virtual;
+        procedure alloccpuregisters(list:Taasmoutput;r:Tcpuregisterset);virtual;
         {# Free multiple registers specified.}
-        procedure deallocexplicitregisters(list:Taasmoutput;r:Tcpuregisterset);virtual;
+        procedure dealloccpuregisters(list:Taasmoutput;r:Tcpuregisterset);virtual;
         function uses_registers:boolean;virtual;
-        {# Deallocate any kind of register }
-        procedure ungetregister(list:Taasmoutput;r:Tregister);virtual;
         procedure add_reg_instruction(instr:Tai;r:tregister);
         procedure add_move_instruction(instr:Taicpu);
         {# Do the register allocation.}
@@ -490,19 +489,15 @@ unit rgobj;
       end;
 
 
-    procedure trgobj.ungetregister(list:Taasmoutput;r:Tregister);
+    procedure trgobj.ungetcpuregister(list:Taasmoutput;r:Tregister);
       begin
-{$ifdef EXTDEBUG}
-        if (reginfo=nil) and (getsupreg(r)>=first_imaginary) then
+        if (getsupreg(r)>=first_imaginary) then
           InternalError(2004020901);
-{$endif EXTDEBUG}
-        { Only explicit allocs insert regalloc info }
-        if getsupreg(r)<first_imaginary then
-          list.concat(Tai_regalloc.dealloc(r));
+        list.concat(Tai_regalloc.dealloc(r));
       end;
 
 
-    procedure trgobj.getexplicitregister(list:Taasmoutput;r:Tregister);
+    procedure trgobj.getcpuregister(list:Taasmoutput;r:Tregister);
       var
         supreg:Tsuperregister;
       begin
@@ -514,25 +509,25 @@ unit rgobj;
       end;
 
 
-    procedure trgobj.allocexplicitregisters(list:Taasmoutput;r:Tcpuregisterset);
+    procedure trgobj.alloccpuregisters(list:Taasmoutput;r:Tcpuregisterset);
 
     var i:Tsuperregister;
 
     begin
       for i:=0 to first_imaginary-1 do
         if i in r then
-          getexplicitregister(list,newreg(regtype,i,defaultsub));
+          getcpuregister(list,newreg(regtype,i,defaultsub));
     end;
 
 
-    procedure trgobj.deallocexplicitregisters(list:Taasmoutput;r:Tcpuregisterset);
+    procedure trgobj.dealloccpuregisters(list:Taasmoutput;r:Tcpuregisterset);
 
     var i:Tsuperregister;
 
     begin
       for i:=0 to first_imaginary-1 do
         if i in r then
-          ungetregister(list,newreg(regtype,i,defaultsub));
+          ungetcpuregister(list,newreg(regtype,i,defaultsub));
     end;
 
 
@@ -2001,7 +1996,13 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.135  2004-09-21 17:25:12  peter
+  Revision 1.136  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.135  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.134.4.2  2004/09/21 17:03:26  peter

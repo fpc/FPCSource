@@ -190,7 +190,6 @@ implementation
                cg.a_loadfpu_ref_reg(exprasmlist,
                   def_cgsize(left.resulttype.def),
                   left.location.reference,location.register);
-               location_release(exprasmlist,left.location);
              end
          else
             internalerror(309991);
@@ -261,11 +260,8 @@ implementation
                  begin
                    r:=cg.getintregister(exprasmlist,OS_ADDR);
                    cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,r);
-                   location_release(exprasmlist,left.location);
-                   reference_reset(ref);
-                   ref.base:=r;
+                   reference_reset_base(ref,r,0);
                    exprasmlist.concat(taicpu.op_ref(A_PREFETCHNTA,S_NO,ref));
-                   cg.ungetregister(exprasmlist,r);
                  end;
                else
                  internalerror(200402021);
@@ -307,7 +303,6 @@ implementation
                     inc(tcallparanode(left).left.location.reference.offset,
                       (tordconstnode(tcallparanode(tcallparanode(left).right).left).value div bitsperop)*tcgsize2size[opsize]);
                     cg.a_op_const_ref(exprasmlist,cgop,opsize,l,tcallparanode(left).left.location.reference);
-                    location_release(exprasmlist,tcallparanode(left).left.location);
                   end;
                 LOC_CREGISTER :
                   cg.a_op_const_reg(exprasmlist,cgop,tcallparanode(left).left.location.size,l,tcallparanode(left).left.location.register);
@@ -337,14 +332,11 @@ implementation
                 hregister:=cg.makeregsize(exprasmlist,Tcallparanode(Tcallparanode(left).right).left.location.register,opsize)
               else
                 hregister:=cg.getintregister(exprasmlist,opsize);
-              location_release(exprasmlist,tcallparanode(tcallparanode(left).right).left.location);
               cg.a_load_loc_reg(exprasmlist,opsize,tcallparanode(tcallparanode(left).right).left.location,hregister);
               if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
                 emit_reg_ref(asmop,tcgsize2opsize[opsize],hregister,tcallparanode(left).left.location.reference)
               else
                 emit_reg_reg(asmop,tcgsize2opsize[opsize],hregister,tcallparanode(left).left.location.register);
-              cg.ungetregister(exprasmlist,hregister);
-              location_release(exprasmlist,Tcallparanode(left).left.location);
             end;
         end;
 
@@ -352,7 +344,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2004-06-20 08:55:32  florian
+  Revision 1.6  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.5  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.4  2004/06/16 20:07:11  florian

@@ -125,12 +125,8 @@ interface
         left_must_be_reg(opsize,noswap);
 {        emit_generic_code(op,opsize,true,extra_not,false);}
         location_freetemp(exprasmlist,right.location);
-        location_release(exprasmlist,right.location);
         if cmpop then
-         begin
-           location_freetemp(exprasmlist,left.location);
-           location_release(exprasmlist,left.location);
-         end;
+          location_freetemp(exprasmlist,left.location);
         set_result_location(cmpop,true);
       end;
 {$endif SUPPORT_MMX}
@@ -227,7 +223,6 @@ interface
                 right.location.register64,
                 left.location.register64);
             end;
-           location_release(exprasmlist,right.location);
          end
         else
          begin
@@ -242,23 +237,13 @@ interface
               { the carry flag is still ok }
               emit_reg_reg(op2,opsize,left.location.registerhigh,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.registerhigh);
-              cg.ungetregister(exprasmlist,r);
-              if right.location.loc<>LOC_CREGISTER then
-               begin
-                 location_freetemp(exprasmlist,right.location);
-                 location_release(exprasmlist,right.location);
-               end;
             end
            else
             begin
               cg64.a_op64_loc_reg(exprasmlist,op,right.location,
                 left.location.register64);
-              if (right.location.loc<>LOC_CREGISTER) then
-               begin
-                 location_freetemp(exprasmlist,right.location);
-                 location_release(exprasmlist,right.location);
-               end;
             end;
+          location_freetemp(exprasmlist,right.location);
          end;
 
         { only in case of overflow operations }
@@ -398,7 +383,6 @@ interface
            firstjmp64bitcmp;
            emit_reg_reg(A_CMP,S_L,right.location.registerlow,left.location.registerlow);
            secondjmp64bitcmp;
-           location_release(exprasmlist,right.location);
          end
         else
          begin
@@ -421,7 +405,6 @@ interface
                  secondjmp64bitcmp;
                  cg.a_jmp_always(exprasmlist,falselabel);
                  location_freetemp(exprasmlist,right.location);
-                 location_release(exprasmlist,right.location);
                end;
              LOC_CONSTANT :
                begin
@@ -435,11 +418,7 @@ interface
            end;
          end;
 
-        if (left.location.loc<>LOC_CREGISTER) then
-         begin
-           location_freetemp(exprasmlist,left.location);
-           location_release(exprasmlist,left.location);
-         end;
+        location_freetemp(exprasmlist,left.location);
 
         { we have LOC_JUMP as result }
         location_reset(location,LOC_JUMP,OS_NO)
@@ -560,8 +539,6 @@ interface
                  if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                   internalerror(200203245);
 
-                 location_release(exprasmlist,left.location);
-
                  hregister:=cg.getmmxregister(exprasmlist,OS_M64);
                  emit_ref_reg(A_MOVQ,S_NO,left.location.reference,hregister);
                end;
@@ -588,7 +565,6 @@ interface
                begin
                  if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                   internalerror(200203247);
-                 location_release(exprasmlist,right.location);
                  hreg:=cg.getmmxregister(exprasmlist,OS_M64);
                  emit_ref_reg(A_MOVQ,S_NO,right.location.reference,hreg);
                  emit_reg_reg(op,S_NO,left.location.register,hreg);
@@ -605,7 +581,6 @@ interface
                  if not(right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                   internalerror(200203246);
                  emit_ref_reg(op,S_NO,right.location.reference,left.location.register);
-                 location_release(exprasmlist,right.location);
                end;
             end;
           end
@@ -625,12 +600,9 @@ interface
           end;
 
         location_freetemp(exprasmlist,right.location);
-        location_release(exprasmlist,right.location);
         if cmpop then
-         begin
-           location_freetemp(exprasmlist,left.location);
-           location_release(exprasmlist,left.location);
-         end;
+          location_freetemp(exprasmlist,left.location);
+
         set_result_location(cmpop,true);
       end;
 {$endif SUPPORT_MMX}
@@ -652,16 +624,12 @@ interface
        and free the location.}
       r:=cg.getintregister(exprasmlist,OS_INT);
       cg.a_load_loc_reg(exprasmlist,OS_INT,left.location,r);
-      location_release(exprasmlist,left.location);
       {Allocate EAX.}
-      cg.getexplicitregister(exprasmlist,NR_EAX);
+      cg.getcpuregister(exprasmlist,NR_EAX);
       {Load the right value.}
       cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,NR_EAX);
-      location_release(exprasmlist,right.location);
-      {The mul instruction frees register r.}
-      cg.ungetregister(exprasmlist,r);
       {Also allocate EDX, since it is also modified by a mul (JM).}
-      cg.getexplicitregister(exprasmlist,NR_EDX);
+      cg.getcpuregister(exprasmlist,NR_EDX);
       emit_reg(A_MUL,S_L,r);
       if cs_check_overflow in aktlocalswitches  then
        begin
@@ -670,13 +638,12 @@ interface
          cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
          cg.a_label(exprasmlist,hl4);
        end;
-      {Free EDX}
-      cg.ungetregister(exprasmlist,NR_EDX);
-      {Free EAX}
-      cg.ungetregister(exprasmlist,NR_EAX);
+      {Free EAX,EDX}
+      cg.ungetcpuregister(exprasmlist,NR_EDX);
+      cg.ungetcpuregister(exprasmlist,NR_EAX);
       {Allocate a new register and store the result in EAX in it.}
       location.register:=cg.getintregister(exprasmlist,OS_INT);
-      emit_reg_reg(A_MOV,S_L,NR_EAX,location.register);
+      cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,NR_EAX,location.register);
       location_freetemp(exprasmlist,left.location);
       location_freetemp(exprasmlist,right.location);
     end;
@@ -687,7 +654,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.98  2004-06-20 08:55:31  florian
+  Revision 1.99  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.98  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.97  2004/06/16 20:07:10  florian

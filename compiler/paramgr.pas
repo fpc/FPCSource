@@ -300,19 +300,19 @@ implementation
               LOC_CREGISTER:
                 begin
                   if getsupreg(paraloc^.register)<first_int_imreg then
-                    cg.getexplicitregister(list,paraloc^.register);
+                    cg.getcpuregister(list,paraloc^.register);
                 end;
               LOC_FPUREGISTER,
               LOC_CFPUREGISTER:
                 begin
                   if getsupreg(paraloc^.register)<first_fpu_imreg then
-                    cg.getexplicitregister(list,paraloc^.register);
+                    cg.getcpuregister(list,paraloc^.register);
                 end;
               LOC_MMREGISTER,
               LOC_CMMREGISTER :
                 begin
                   if getsupreg(paraloc^.register)<first_mm_imreg then
-                    cg.getexplicitregister(list,paraloc^.register);
+                    cg.getcpuregister(list,paraloc^.register);
                 end;
             end;
             paraloc:=paraloc^.next;
@@ -332,12 +332,23 @@ implementation
           begin
             case paraloc^.loc of
               LOC_REGISTER,
-              LOC_CREGISTER,
+              LOC_CREGISTER:
+                begin
+                  if getsupreg(paraloc^.register)<first_int_imreg then
+                    cg.ungetcpuregister(list,paraloc^.register);
+                end;
               LOC_FPUREGISTER,
-              LOC_CFPUREGISTER,
+              LOC_CFPUREGISTER:
+                begin
+                  if getsupreg(paraloc^.register)<first_fpu_imreg then
+                    cg.ungetcpuregister(list,paraloc^.register);
+                end;
               LOC_MMREGISTER,
               LOC_CMMREGISTER :
-                cg.ungetregister(list,paraloc^.register);
+                begin
+                  if getsupreg(paraloc^.register)<first_mm_imreg then
+                    cg.ungetcpuregister(list,paraloc^.register);
+                end;
               LOC_REFERENCE,
               LOC_CREFERENCE :
                 begin
@@ -436,7 +447,13 @@ end.
 
 {
    $Log$
-   Revision 1.78  2004-09-21 17:25:12  peter
+   Revision 1.79  2004-09-25 14:23:54  peter
+     * ungetregister is now only used for cpuregisters, renamed to
+       ungetcpuregister
+     * renamed (get|unget)explicitregister(s) to ..cpuregister
+     * removed location-release/reference_release
+
+   Revision 1.78  2004/09/21 17:25:12  peter
      * paraloc branch merged
 
    Revision 1.77.4.1  2004/08/31 20:43:06  peter

@@ -109,7 +109,6 @@ implementation
           end
          else
           begin
-            cg.ungetreference(exprasmlist,location.reference);
             hreg := cg.getaddressregister(exprasmlist);
             cg.a_loadaddr_ref_reg(exprasmlist,location.reference,hreg);
             reference_reset_base(location.reference,hreg,0);
@@ -145,7 +144,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2004-06-20 08:55:31  florian
+  Revision 1.63  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.62  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.61  2004/06/16 20:07:10  florian

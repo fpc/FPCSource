@@ -137,7 +137,6 @@ unit cgcpu;
                   tmpreg:=getintregister(list,pushsize);
                   a_load_ref_reg(list,size,pushsize,r,tmpreg);
                   list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],tmpreg));
-                  ungetregister(list,tmpreg);
                 end
               else
                 list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[pushsize],r));
@@ -179,7 +178,6 @@ unit cgcpu;
                     begin
                       tmpreg:=getaddressregister(list);
                       a_loadaddr_ref_reg(list,r,tmpreg);
-                      ungetregister(list,tmpreg);
                       list.concat(taicpu.op_reg(A_PUSH,opsize,tmpreg));
                     end;
                 end
@@ -310,7 +308,7 @@ unit cgcpu;
 {$endif}
       begin
         { get stack space }
-        getexplicitregister(list,NR_EDI);
+        getcpuregister(list,NR_EDI);
         list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,NR_EDI));
         list.concat(Taicpu.op_reg(A_INC,S_L,NR_EDI));
         if (elesize<>1) then
@@ -337,9 +335,9 @@ unit cgcpu;
 
              a_label(list,ok);
              list.concat(Taicpu.op_reg_reg(A_SUB,S_L,NR_EDI,NR_ESP));
-             ungetregister(list,NR_EDI);
+             ungetcpuregister(list,NR_EDI);
              { now reload EDI }
-             getexplicitregister(list,NR_EDI);
+             getcpuregister(list,NR_EDI);
              list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,NR_EDI));
              list.concat(Taicpu.op_reg(A_INC,S_L,NR_EDI));
 
@@ -360,8 +358,8 @@ unit cgcpu;
         a_load_reg_reg(list,OS_INT,OS_INT,NR_ESP,NR_EDI);
 
         { Allocate other registers }
-        getexplicitregister(list,NR_ECX);
-        getexplicitregister(list,NR_ESI);
+        getcpuregister(list,NR_ECX);
+        getcpuregister(list,NR_ESI);
 
         { load count }
         a_load_ref_reg(list,OS_INT,OS_INT,lenref,NR_ECX);
@@ -397,9 +395,9 @@ unit cgcpu;
           S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
           S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
         end;
-        ungetregister(list,NR_EDI);
-        ungetregister(list,NR_ECX);
-        ungetregister(list,NR_ESI);
+        ungetcpuregister(list,NR_EDI);
+        ungetcpuregister(list,NR_ECX);
+        ungetcpuregister(list,NR_ESI);
 
         { patch the new address }
         a_load_reg_ref(list,OS_INT,OS_INT,NR_ESP,ref);
@@ -558,7 +556,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2004-09-21 17:25:12  peter
+  Revision 1.53  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.52  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.51.4.1  2004/08/31 20:43:06  peter

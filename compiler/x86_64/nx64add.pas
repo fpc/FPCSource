@@ -57,16 +57,12 @@ interface
         and free the location. }
       r:=cg.getintregister(exprasmlist,OS_INT);
       cg.a_load_loc_reg(exprasmlist,OS_INT,left.location,r);
-      location_release(exprasmlist,left.location);
       { Allocate RAX. }
-      cg.getexplicitregister(exprasmlist,NR_RAX);
+      cg.getcpuregister(exprasmlist,NR_RAX);
       { Load the right value. }
       cg.a_load_loc_reg(exprasmlist,OS_INT,right.location,NR_RAX);
-      location_release(exprasmlist,right.location);
-      { The mul instruction frees register r.}
-      cg.ungetregister(exprasmlist,r);
       { Also allocate RDX, since it is also modified by a mul (JM). }
-      cg.getexplicitregister(exprasmlist,NR_RDX);
+      cg.getcpuregister(exprasmlist,NR_RDX);
       emit_reg(A_MUL,S_Q,r);
       if cs_check_overflow in aktlocalswitches  then
        begin
@@ -75,10 +71,9 @@ interface
          cg.a_call_name(exprasmlist,'FPC_OVERFLOW');
          cg.a_label(exprasmlist,hl4);
        end;
-      { Free RDX }
-      cg.ungetregister(exprasmlist,NR_RDX);
-      { Free RAX }
-      cg.ungetregister(exprasmlist,NR_RAX);
+      { Free RDX,RAX }
+      cg.ungetcpuregister(exprasmlist,NR_RDX);
+      cg.ungetcpuregister(exprasmlist,NR_RAX);
       { Allocate a new register and store the result in RAX in it. }
       location.register:=cg.getintregister(exprasmlist,OS_INT);
       emit_reg_reg(A_MOV,S_Q,NR_RAX,location.register);
@@ -92,7 +87,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2004-06-16 20:07:11  florian
+  Revision 1.4  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.3  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.2.2.1  2004/04/26 15:54:33  peter

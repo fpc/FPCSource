@@ -36,9 +36,9 @@ unit rgcpu;
      type
        trgcpu = class(trgobj)
 {
-         function getexplicitregisterint(list: taasmoutput; reg: Tnewregister): tregister; override;
+         function getcpuregisterint(list: taasmoutput; reg: Tnewregister): tregister; override;
          procedure ungetregisterint(list: taasmoutput; reg: tregister); override;
-         function getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;override;
+         function getcpuregisterfpu(list : taasmoutput; r : Toldregister) : tregister;override;
          procedure ungetregisterfpu(list: taasmoutput; r : tregister; size:TCGsize);override;
          procedure cleartempgen; override;
         private
@@ -53,7 +53,7 @@ unit rgcpu;
       cgobj, verbose, cutils;
 
 (*
-    function trgcpu.getexplicitregisterint(list: taasmoutput; reg: Tnewregister): tregister;
+    function trgcpu.getcpuregisterint(list: taasmoutput; reg: Tnewregister): tregister;
 
       begin
         if ((reg shr 8) in [RS_R0]) and
@@ -67,7 +67,7 @@ unit rgcpu;
             result.number:=reg;
             cg.a_reg_alloc(list,result);
           end
-        else result := inherited getexplicitregisterint(list,reg);
+        else result := inherited getcpuregisterint(list,reg);
       end;
 
 
@@ -88,7 +88,7 @@ unit rgcpu;
       end;
 
 
-    function trgcpu.getexplicitregisterfpu(list : taasmoutput; r : Toldregister) : tregister;
+    function trgcpu.getcpuregisterfpu(list : taasmoutput; r : Toldregister) : tregister;
       begin
         if (r in [R_F1..R_F13]) and
            not is_reg_var_other[r] then
@@ -100,7 +100,7 @@ unit rgcpu;
             cg.a_reg_alloc(list,result);
           end
         else
-          result := inherited getexplicitregisterfpu(list,r);
+          result := inherited getcpuregisterfpu(list,r);
       end;
 
 
@@ -132,7 +132,13 @@ end.
 
 {
   $Log$
-  Revision 1.17  2004-06-20 08:55:32  florian
+  Revision 1.18  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.17  2004/06/20 08:55:32  florian
     * logs truncated
 
 }

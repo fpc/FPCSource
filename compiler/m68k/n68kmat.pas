@@ -160,9 +160,9 @@ implementation
        begin
          { On MC68000/68010 mw must pass through RTL routines }
          reg_d0:=NR_D0;
-         cg.getexplicitregister(exprasmlist,NR_D0);
+         cg.getcpuregister(exprasmlist,NR_D0);
          reg_d1:=NR_D1;
-         cg.getexplicitregister(exprasmlist,NR_D1);
+         cg.getcpuregister(exprasmlist,NR_D1);
          { put numerator in d0 }
          cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,num,reg_d0);
          { put denum in D1 }
@@ -221,9 +221,9 @@ implementation
        begin
          { On MC68000/68010 mw must pass through RTL routines }
          Reg_d0:=NR_D0;
-         cg.getexplicitregister(exprasmlist,NR_D0);
+         cg.getcpuregister(exprasmlist,NR_D0);
          Reg_d1:=NR_D1;
-         cg.getexplicitregister(exprasmlist,NR_D1);
+         cg.getcpuregister(exprasmlist,NR_D1);
          { put numerator in d0 }
          cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,num,Reg_D0);
          { put denum in D1 }
@@ -246,7 +246,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2004-06-20 08:55:31  florian
+  Revision 1.10  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.9  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.8  2004/04/25 21:26:16  florian

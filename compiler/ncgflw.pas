@@ -364,15 +364,8 @@ implementation
               do_loopvar_at_end:=false;
               tg.GetTemp(exprasmlist,hs,tt_normal,temp1);
               temptovalue:=true;
-              if (right.location.loc=LOC_REGISTER) or
-                 (right.location.loc=LOC_CREGISTER) then
-                begin
-                   cg.a_load_reg_ref(exprasmlist,opsize,opsize,right.location.register,temp1);
-                   cg.ungetregister(exprasmlist,right.location.register);
-                 end
-              else
-                cg.g_concatcopy(exprasmlist,right.location.reference,temp1,
-                  hs,true,false);
+              cg.a_load_loc_ref(exprasmlist,opsize,right.location,temp1);
+              location_freetemp(exprasmlist,right.location);
            end
          else
            temptovalue:=false;
@@ -803,14 +796,10 @@ implementation
                 begin
                   paramanager.allocparaloc(exprasmlist,paraloc3);
                   if assigned(frametree) then
-                    begin
-                      location_release(exprasmlist,frametree.location);
-                      cg.a_param_loc(exprasmlist,frametree.location,paraloc3)
-                    end
+                    cg.a_param_loc(exprasmlist,frametree.location,paraloc3)
                   else
                     cg.a_param_const(exprasmlist,OS_INT,0,paraloc3);
                   { push address }
-                  location_release(exprasmlist,right.location);
                   paramanager.allocparaloc(exprasmlist,paraloc2);
                   cg.a_param_loc(exprasmlist,right.location,paraloc2);
                 end
@@ -830,22 +819,21 @@ implementation
                    else
                      cg.a_param_const(exprasmlist,OS_INT,0,paraloc2);
                 end;
-              location_release(exprasmlist,left.location);
               paramanager.allocparaloc(exprasmlist,paraloc1);
               cg.a_param_loc(exprasmlist,left.location,paraloc1);
               paramanager.freeparaloc(exprasmlist,paraloc1);
               paramanager.freeparaloc(exprasmlist,paraloc2);
               paramanager.freeparaloc(exprasmlist,paraloc3);
-              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_RAISEEXCEPTION');
-              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            end
          else
            begin
-              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
               cg.a_call_name(exprasmlist,'FPC_RERAISE');
-              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            end;
          paraloc1.done;
          paraloc2.done;
@@ -867,17 +855,17 @@ implementation
       var
         paraloc1 : tcgpara;
       begin
-         cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+         cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_POPOBJECTSTACK');
-         cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+         cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          paraloc1.init;
          paramanager.getintparaloc(pocall_default,1,paraloc1);
          paramanager.allocparaloc(exprasmlist,paraloc1);
          cg.a_param_reg(exprasmlist,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
          paramanager.freeparaloc(exprasmlist,paraloc1);
-         cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+         cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
-         cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+         cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          paraloc1.done;
       end;
 
@@ -989,9 +977,9 @@ implementation
               paramanager.allocparaloc(exprasmlist,paraloc1);
               cg.a_param_const(exprasmlist,OS_ADDR,-1,paraloc1);
               paramanager.freeparaloc(exprasmlist,paraloc1);
-              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_CATCHES');
-              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               paraloc1.done;
 
               { the destruction of the exception object must be also }
@@ -1011,18 +999,18 @@ implementation
 
               free_exception(exprasmlist,destroytemps,0,doobjectdestroy,false);
 
-              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
-              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
               paraloc1.init;
               paramanager.getintparaloc(pocall_default,1,paraloc1);
               paramanager.allocparaloc(exprasmlist,paraloc1);
               cg.a_param_reg(exprasmlist, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
               paramanager.freeparaloc(exprasmlist,paraloc1);
-              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
-              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               paraloc1.done;
               { we don't need to restore esi here because reraise never }
               { returns                                                 }
@@ -1045,9 +1033,9 @@ implementation
               cg.a_label(exprasmlist,exitexceptlabel);
               { we must also destroy the address frame which guards }
               { exception object                                    }
-              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
               cleanupobjectstack;
               cg.a_jmp_always(exprasmlist,oldaktexitlabel);
@@ -1058,9 +1046,9 @@ implementation
               cg.a_label(exprasmlist,breakexceptlabel);
               { we must also destroy the address frame which guards }
               { exception object                                    }
-              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
               cleanupobjectstack;
               cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
@@ -1071,9 +1059,9 @@ implementation
               cg.a_label(exprasmlist,continueexceptlabel);
               { we must also destroy the address frame which guards }
               { exception object                                    }
-              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
               cleanupobjectstack;
               cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
@@ -1083,9 +1071,9 @@ implementation
            begin
               { do some magic for exit in the try block }
               cg.a_label(exprasmlist,exittrylabel);
-              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
               cg.a_jmp_always(exprasmlist,oldaktexitlabel);
            end;
@@ -1093,9 +1081,9 @@ implementation
          if fc_break in tryflowcontrol then
            begin
               cg.a_label(exprasmlist,breaktrylabel);
-              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
               cg.a_jmp_always(exprasmlist,oldaktbreaklabel);
            end;
@@ -1103,9 +1091,9 @@ implementation
          if fc_continue in tryflowcontrol then
            begin
               cg.a_label(exprasmlist,continuetrylabel);
-              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.a_call_name(exprasmlist,'FPC_POPADDRSTACK');
-              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               cg.g_exception_reason_load(exprasmlist,excepttemps.reasonbuf);
               cg.a_jmp_always(exprasmlist,oldaktcontinuelabel);
            end;
@@ -1160,9 +1148,9 @@ implementation
          paramanager.allocparaloc(exprasmlist,paraloc1);
          cg.a_paramaddr_ref(exprasmlist,href2,paraloc1);
          paramanager.freeparaloc(exprasmlist,paraloc1);
-         cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+         cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_CATCHES');
-         cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+         cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
          { is it this catch? No. go to next onlabel }
          cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,NR_FUNCTION_RESULT_REG,nextonlabel);
@@ -1213,16 +1201,16 @@ implementation
 
          free_exception(exprasmlist,excepttemps,0,doobjectdestroy,false);
 
-         cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+         cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
-         cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+         cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          paramanager.getintparaloc(pocall_default,1,paraloc1);
          paramanager.allocparaloc(exprasmlist,paraloc1);
          cg.a_param_reg(exprasmlist, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
          paramanager.freeparaloc(exprasmlist,paraloc1);
-         cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+         cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
-         cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+         cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          { we don't need to restore esi here because reraise never }
          { returns                                                 }
          cg.a_call_name(exprasmlist,'FPC_RERAISE');
@@ -1454,7 +1442,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.98  2004-09-21 17:25:12  peter
+  Revision 1.99  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.98  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.97.4.2  2004/09/12 18:30:48  peter

@@ -650,7 +650,6 @@ implementation
                 begin
                   reg:=cg.makeregsize(list,tvarsym(regvars[i]).localloc.register,OS_INT);
                   cg.a_load_reg_reg(list,OS_INT,OS_INT,reg,reg);
-                  cg.ungetregister(list,tvarsym(regvars[i]).localloc.register);
                 end;
             for i := 1 to maxfpuvarregs do
               if assigned(fpuregvars[i]) then
@@ -658,7 +657,6 @@ implementation
                   reg:=tvarsym(fpuregvars[i]).localloc.register;
                   size:=reg_cgsize(reg);
                   cg.a_loadfpu_reg_reg(list,size,reg,reg);
-                  cg.ungetregister(list,reg);
                 end;
           end;
       end;
@@ -671,7 +669,13 @@ end.
 
 {
   $Log$
-  Revision 1.78  2004-09-10 19:59:38  jonas
+  Revision 1.79  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.78  2004/09/10 19:59:38  jonas
     * clarified comment
 
   Revision 1.77  2004/06/20 08:55:30  florian

@@ -226,7 +226,6 @@ implementation
                pleftreg:=cg.getintregister(exprasmlist,OS_32);
                opsize:=OS_32;
                cg.a_load_ref_reg(exprasmlist,OS_8,OS_32,left.location.reference,pleftreg);
-               location_release(exprasmlist,left.location);
              end;
 
             { Get a label to jump to the end }
@@ -261,7 +260,6 @@ implementation
                       { move and substract in one instruction with LEA)    }
                       if (left.location.loc = LOC_CREGISTER) then
                         begin
-                          cg.ungetregister(exprasmlist,pleftreg);
                           r:=cg.getintregister(exprasmlist,OS_32);
                           reference_reset_base(href,pleftreg,-setparts[i].start);
                           cg.a_loadaddr_ref_reg(exprasmlist,href,r);
@@ -314,9 +312,6 @@ implementation
              right.location.reference.symbol:=nil;
              { Now place the end label }
              cg.a_label(exprasmlist,l);
-             cg.ungetregister(exprasmlist,pleftreg);
-             if r<>NR_NO then
-              cg.ungetregister(exprasmlist,r);
           end
          else
           begin
@@ -345,7 +340,6 @@ implementation
                     else
                       internalerror(200203312);
                   end;
-                  location_release(exprasmlist,right.location);
                 end
                else
                 begin
@@ -363,7 +357,6 @@ implementation
                         but 8 bits are easier to load                    }
                       hr:=cg.getintregister(exprasmlist,OS_32);
                       cg.a_load_ref_reg(exprasmlist,OS_8,OS_32,left.location.reference,hr);
-                      location_release(exprasmlist,left.location);
                     end;
                   end;
 
@@ -371,9 +364,7 @@ implementation
                     LOC_REGISTER,
                     LOC_CREGISTER :
                       begin
-                        emit_reg_reg(A_BT,S_L,hr,
-                          right.location.register);
-                        cg.ungetregister(exprasmlist,right.location.register);
+                        emit_reg_reg(A_BT,S_L,hr,right.location.register);
                       end;
                      LOC_CONSTANT :
                        begin
@@ -382,19 +373,15 @@ implementation
                          hr2:=cg.getintregister(exprasmlist,OS_32);
                          cg.a_load_const_reg(exprasmlist,OS_32,right.location.value,hr2);
                          emit_reg_reg(A_BT,S_L,hr,hr2);
-                         cg.ungetregister(exprasmlist,hr2);
                        end;
                      LOC_CREFERENCE,
                      LOC_REFERENCE :
                        begin
-                         location_release(exprasmlist,right.location);
                          emit_reg_ref(A_BT,S_L,hr,right.location.reference);
                        end;
                      else
                        internalerror(2002032210);
                   end;
-                  { simply to indicate EDI is deallocated here too (JM) }
-                  cg.ungetregister(exprasmlist,hr);
                   location.resflags:=F_C;
                 end;
              end
@@ -426,7 +413,6 @@ implementation
                           hr2:=cg.getintregister(exprasmlist,OS_32);
                           cg.a_load_const_reg(exprasmlist,OS_32,right.location.value,hr2);
                           emit_reg_reg(A_BT,S_L,hr,hr2);
-                          cg.ungetregister(exprasmlist,hr2);
                        end;
                   else
                     begin
@@ -447,7 +433,6 @@ implementation
                        exprasmlist.concat(taicpu.op_none(A_CLC,S_NO));
                        cg.a_jmp_always(exprasmlist,l2);
                        cg.a_label(exprasmlist,l);
-                       location_release(exprasmlist,left.location);
                        hr:=cg.getintregister(exprasmlist,OS_32);
                        cg.a_load_ref_reg(exprasmlist,OS_32,OS_32,left.location.reference,hr);
                        { We have to load the value into a register because
@@ -455,7 +440,6 @@ implementation
                        hr2:=cg.getintregister(exprasmlist,OS_32);
                        cg.a_load_const_reg(exprasmlist,OS_32,right.location.value,hr2);
                        emit_reg_reg(A_BT,S_L,hr,hr2);
-                       cg.ungetregister(exprasmlist,hr2);
                     end;
                   end;
                   cg.a_label(exprasmlist,l2);
@@ -467,7 +451,6 @@ implementation
                   location.resflags:=F_NE;
                   inc(right.location.reference.offset,tordconstnode(left).value shr 3);
                   emit_const_ref(A_TEST,S_B,1 shl (tordconstnode(left).value and 7),right.location.reference);
-                  location_release(exprasmlist,right.location);
                 end
                else
                 begin
@@ -477,10 +460,7 @@ implementation
                     pleftreg:=cg.getintregister(exprasmlist,OS_32);
                   cg.a_load_loc_reg(exprasmlist,OS_32,left.location,pleftreg);
                   location_freetemp(exprasmlist,left.location);
-                  location_release(exprasmlist,left.location);
                   emit_reg_ref(A_BT,S_L,pleftreg,right.location.reference);
-                  cg.ungetregister(exprasmlist,pleftreg);
-                  location_release(exprasmlist,right.location);
                   { tg.ungetiftemp(exprasmlist,right.location.reference) happens below }
                   location.resflags:=F_C;
                 end;
@@ -495,7 +475,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2004-06-16 20:07:11  florian
+  Revision 1.5  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.4  2004/06/16 20:07:11  florian
     * dwarf branch merged
 
   Revision 1.3  2004/05/22 23:34:28  peter

@@ -75,7 +75,6 @@ implementation
           begin
             hreg:=cg.getintregister(exprasmlist,OS_INT);
             exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
-            cg.ungetregister(exprasmlist,hreg);
           end
         { the pentium has two pipes and pop reg is pairable }
         { but the registers must be different!        }
@@ -86,10 +85,8 @@ implementation
             begin
                hreg:=cg.getintregister(exprasmlist,OS_INT);
                exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
-               cg.ungetregister(exprasmlist,hreg);
                hreg:=cg.getintregister(exprasmlist,OS_INT);
                exprasmlist.concat(taicpu.op_reg(A_POP,S_L,hreg));
-               cg.ungetregister(exprasmlist,hreg);
             end
         else
           if pop_size<>0 then
@@ -102,7 +99,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.101  2004-06-20 08:55:31  florian
+  Revision 1.102  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.101  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.100  2004/06/16 20:07:10  florian

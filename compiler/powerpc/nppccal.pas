@@ -75,8 +75,8 @@ implementation
         case target_info.system of
           system_powerpc_morphos:
             begin
-              cg.getexplicitregister(exprasmlist,NR_R0);
-              cg.getexplicitregister(exprasmlist,NR_R3);
+              cg.getcpuregister(exprasmlist,NR_R0);
+              cg.getcpuregister(exprasmlist,NR_R3);
 
               { store call offset into R3 }
               exprasmlist.concat(taicpu.op_reg_const(A_LI,NR_R3,-tprocdef(procdefinition).extnumber));
@@ -87,8 +87,8 @@ implementation
               exprasmlist.concat(taicpu.op_reg(A_MTLR,NR_R0));
               exprasmlist.concat(taicpu.op_none(A_BLRL));
 
-              cg.ungetregister(exprasmlist,NR_R0);
-              cg.ungetregister(exprasmlist,NR_R3);
+              cg.ungetcpuregister(exprasmlist,NR_R0);
+              cg.ungetcpuregister(exprasmlist,NR_R3);
             end;
           else
             internalerror(2004042901);
@@ -100,7 +100,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2004-09-21 17:25:13  peter
+  Revision 1.29  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.28  2004/09/21 17:25:13  peter
     * paraloc branch merged
 
   Revision 1.27.4.1  2004/09/18 20:21:08  jonas

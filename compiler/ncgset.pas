@@ -351,17 +351,6 @@ implementation
              cg.a_load_const_reg(exprasmlist,location.size,1,location.register);
              { in case value is not found }
              cg.a_label(exprasmlist,l3);
-             case left.location.loc of
-               LOC_CREGISTER :
-                 cg.ungetregister(exprasmlist,pleftreg);
-               LOC_REGISTER :
-                 cg.ungetregister(exprasmlist,pleftreg);
-               else
-                 begin
-                   reference_release(exprasmlist,left.location.reference);
-                   cg.ungetregister(exprasmlist,pleftreg);
-                 end;
-             end;
           end
          else
          {*****************************************************************}
@@ -392,8 +381,6 @@ implementation
                   emit_bit_test_reg_reg(exprasmlist,left.location.size,left.location.register,
                       right.location.register,location.size,location.register);
                 end;
-               location_release(exprasmlist,left.location);
-               location_release(exprasmlist,right.location);
              end
             else
              {************************** NOT SMALL SET ********************}
@@ -423,13 +410,6 @@ implementation
                   cg.a_op_const_reg_reg(exprasmlist,OP_SUB,opsize,32,left.location.register,hr);
                   cg.a_op_const_reg(exprasmlist,OP_SAR,opsize,31,hr);
 
-                  { free registers }
-                  cg.ungetregister(exprasmlist,hr2);
-                  if (left.location.loc in [LOC_CREGISTER]) then
-                    cg.ungetregister(exprasmlist,hr)
-                  else
-                    cg.ungetregister(exprasmlist,left.location.register);
-
                   { if left > 31, then result := 0 else result := result of bit test }
                   cg.a_op_reg_reg(exprasmlist,OP_AND,opsize,hr,hr2);
                   { allocate a register for the result }
@@ -449,7 +429,6 @@ implementation
                   { allocate a register for the result }
                   location.register := cg.getintregister(exprasmlist,location.size);
                   cg.a_load_ref_reg(exprasmlist,OS_8,location.size,right.location.reference, location.register);
-                  location_release(exprasmlist,right.location);
                   cg.a_op_const_reg(exprasmlist,OP_SHR,location.size,tordconstnode(left).value and 7,
                     location.register);
                   cg.a_op_const_reg(exprasmlist,OP_AND,location.size,1,location.register);
@@ -471,22 +450,18 @@ implementation
                     href.index := hr
                   else
                     begin
-                      reference_release(exprasmlist,href);
                       hr2 := cg.getaddressregister(exprasmlist);
                       cg.a_loadaddr_ref_reg(exprasmlist,href, hr2);
                       reference_reset_base(href,hr2,0);
                       href.index := hr;
                     end;
-                  reference_release(exprasmlist,href);
                   { allocate a register for the result }
                   location.register := cg.getintregister(exprasmlist,opsize);
                   cg.a_load_ref_reg(exprasmlist,opsize,opsize,href,location.register);
 
-                  cg.ungetregister(exprasmlist,pleftreg);
                   hr := cg.getintregister(exprasmlist,opsize);
                   cg.a_op_const_reg_reg(exprasmlist,OP_AND,opsize,31,pleftreg,hr);
                   cg.a_op_reg_reg(exprasmlist,OP_SHR,opsize,hr,location.register);
-                  cg.ungetregister(exprasmlist,hr);
                   cg.a_op_const_reg(exprasmlist,OP_AND,opsize,1,location.register);
                 end;
              end;
@@ -591,7 +566,6 @@ implementation
               first:=true;
               scratch_reg:=cg.getintregister(exprasmlist,opsize);
               genitem(hp);
-              cg.ungetregister(exprasmlist,scratch_reg);
               cg.a_jmp_always(exprasmlist,elselabel);
            end;
       end;
@@ -921,8 +895,6 @@ implementation
                 genlinearlist(nodes);
            end;
 
-         cg.ungetregister(exprasmlist,hregister);
-
          { now generate the instructions }
          hp:=tstatementnode(right);
          while assigned(hp) do
@@ -972,7 +944,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2004-08-25 11:51:31  jonas
+  Revision 1.68  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.67  2004/08/25 11:51:31  jonas
     * fixed rare case bug (see tests/test/tb0478.pp)
 
   Revision 1.66  2004/08/16 21:00:15  peter

@@ -174,7 +174,6 @@ interface
             if left.location.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
               location_force_mem(exprasmlist,left.location);
             cg.a_opmm_loc_reg(exprasmlist,OP_SUB,left.location.size,left.location,reg,mms_movescalar);
-            location_release(exprasmlist,left.location);
             location_reset(location,LOC_MMREGISTER,def_cgsize(resulttype.def));
             location.register:=reg;
           end
@@ -185,7 +184,6 @@ interface
               LOC_REFERENCE,
               LOC_CREFERENCE:
                 begin
-                  reference_release(exprasmlist,left.location.reference);
                   location.register:=NR_ST;
                   cg.a_loadfpu_ref_reg(exprasmlist,
                      def_cgsize(left.resulttype.def),
@@ -239,7 +237,6 @@ interface
            case left.expectloc of
              LOC_FLAGS :
                begin
-                 location_release(exprasmlist,left.location);
                  location_reset(location,LOC_FLAGS,OS_NO);
                  location.resflags:=left.location.resflags;
                  inverse_flags(location.resflags);
@@ -251,7 +248,6 @@ interface
              LOC_CREFERENCE :
                begin
                  location_force_reg(exprasmlist,left.location,opsize,true);
-                 location_release(exprasmlist,left.location);
                  emit_reg_reg(A_TEST,TCGSize2Opsize[opsize],left.location.register,left.location.register);
                  location_reset(location,LOC_FLAGS,OS_NO);
                  location.resflags:=F_E;
@@ -308,7 +304,13 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-06-20 08:55:32  florian
+  Revision 1.6  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.5  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.4  2004/06/16 20:07:11  florian

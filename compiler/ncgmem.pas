@@ -113,7 +113,6 @@ implementation
                   LOC_CREFERENCE,
                   LOC_REFERENCE:
                     begin
-                       location_release(exprasmlist,left.location);
                        reference_reset_base(href,cg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
                        cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,href.base);
                     end;
@@ -129,7 +128,6 @@ implementation
                     {$ifdef cpu_uses_separate_address_registers}
                       if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                         begin
-                          location_release(exprasmlist,left.location);
                           reference_reset_base(href,cg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
                           cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,href.base);
                         end
@@ -141,7 +139,6 @@ implementation
                   LOC_CREFERENCE,
                   LOC_REFERENCE:
                     begin
-                       location_release(exprasmlist,left.location);
                        reference_reset_base(href,cg.getaddressregister(exprasmlist),tobjectdef(left.resulttype.def).vmt_offset);
                        cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,href.base);
                     end;
@@ -149,7 +146,6 @@ implementation
                     internalerror(200305057);
                end;
              end;
-            reference_release(exprasmlist,href);
             location.register:=cg.getaddressregister(exprasmlist);
             cg.g_maybe_testself(exprasmlist,href.base);
             cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,location.register);
@@ -223,7 +219,6 @@ implementation
             exit;
           end;
 
-         location_release(exprasmlist,left.location);
          location_reset(location,LOC_REGISTER,OS_ADDR);
          location.register:=cg.getaddressregister(exprasmlist);
          { @ on a procvar means returning an address to the procedure that
@@ -255,7 +250,6 @@ implementation
               {$ifdef cpu_uses_separate_address_registers}
                 if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                   begin
-                    location_release(exprasmlist,left.location);
                     location.reference.base := cg.getaddressregister(exprasmlist);
                     cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,
                       location.reference.base);
@@ -268,7 +262,6 @@ implementation
             LOC_CREFERENCE,
             LOC_REFERENCE:
               begin
-                 location_release(exprasmlist,left.location);
                  location.reference.base:=cg.getaddressregister(exprasmlist);
                  cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,location.reference.base);
               end;
@@ -284,9 +277,9 @@ implementation
             cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
             paramanager.freeparaloc(exprasmlist,paraloc1);
             paraloc1.done;
-            cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+            cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-            cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+            cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
           end;
       end;
 
@@ -314,7 +307,6 @@ implementation
                   {$ifdef cpu_uses_separate_address_registers}
                     if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                       begin
-                        location_release(exprasmlist,left.location);
                         location.reference.base:=rg.getaddressregister(exprasmlist);
                         cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,
                           left.location.register,location.reference.base);
@@ -326,7 +318,6 @@ implementation
                 LOC_CREFERENCE,
                 LOC_REFERENCE:
                   begin
-                     location_release(exprasmlist,left.location);
                      location.reference.base:=cg.getaddressregister(exprasmlist);
                      cg.a_load_loc_reg(exprasmlist,OS_ADDR,left.location,location.reference.base);
                   end;
@@ -340,9 +331,9 @@ implementation
                 paramanager.allocparaloc(exprasmlist,paraloc1);
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(exprasmlist,paraloc1);
-                cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-                cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               end;
            end
          else if is_interfacecom(left.resulttype.def) then
@@ -358,9 +349,9 @@ implementation
                 paramanager.allocparaloc(exprasmlist,paraloc1);
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(exprasmlist,paraloc1);
-                cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-                cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
               end;
            end
          else
@@ -400,7 +391,6 @@ implementation
             else
               refnode:=withrefnode;
             secondpass(refnode);
-            location_release(exprasmlist,refnode.location);
             location_freetemp(exprasmlist,refnode.location);
             if not(refnode.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
               internalerror(2003092810);
@@ -482,7 +472,6 @@ implementation
           end
          else
           begin
-            cg.ungetreference(exprasmlist,location.reference);
             hreg := cg.getaddressregister(exprasmlist);
             cg.a_loadaddr_ref_reg(exprasmlist,location.reference,hreg);
             reference_reset_base(location.reference,hreg,0);
@@ -540,10 +529,7 @@ implementation
                objectlibrary.getlabel(neglabel);
                objectlibrary.getlabel(poslabel);
                cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_LT,0,hreg,poslabel);
-               location_release(exprasmlist,hightree.location);
                cg.a_cmp_loc_reg_label(exprasmlist,OS_INT,OC_BE,hightree.location,hreg,neglabel);
-               if freereg then
-                 cg.ungetregister(exprasmlist,hreg);
                cg.a_label(exprasmlist,poslabel);
                cg.a_call_name(exprasmlist,'FPC_RANGEERROR');
                cg.a_label(exprasmlist,neglabel);
@@ -562,9 +548,9 @@ implementation
                cg.a_param_loc(exprasmlist,left.location,paraloc1);
                paramanager.freeparaloc(exprasmlist,paraloc1);
                paramanager.freeparaloc(exprasmlist,paraloc2);
-               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+               cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                cg.a_call_name(exprasmlist,'FPC_DYNARRAY_RANGECHECK');
-               cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+               cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
             end
          else
            cg.g_rangecheck(exprasmlist,right.location,right.resulttype.def,left.resulttype.def);
@@ -612,7 +598,6 @@ implementation
                 LOC_CREFERENCE,
                 LOC_REFERENCE :
                   begin
-                    location_release(exprasmlist,left.location);
                     location.reference.base:=cg.getaddressregister(exprasmlist);
                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,location.reference.base);
                   end;
@@ -628,9 +613,9 @@ implementation
                    paramanager.allocparaloc(exprasmlist,paraloc1);
                    cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paraloc1);
                    paramanager.freeparaloc(exprasmlist,paraloc1);
-                   cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                   cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                    cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
-                   cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                   cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                 end;
 
               { in ansistrings/widestrings S[1] is p<w>char(S)[0] !! }
@@ -649,7 +634,6 @@ implementation
                 LOC_REFERENCE,
                 LOC_CREFERENCE :
                   begin
-                     location_release(exprasmlist,left.location);
                      location.reference.base:=cg.getaddressregister(exprasmlist);
                      cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,
                       left.location.reference,location.reference.base);
@@ -718,9 +702,9 @@ implementation
                               cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc2);
-                              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
-                              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                            end;
 
                          st_shortstring:
@@ -857,9 +841,9 @@ implementation
                               cg.a_param_ref(exprasmlist,OS_INT,href,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc1);
                               paramanager.freeparaloc(exprasmlist,paraloc2);
-                              cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                              cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
-                              cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                              cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                            end;
                          st_shortstring:
                            begin
@@ -895,7 +879,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.96  2004-09-21 17:25:12  peter
+  Revision 1.97  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.96  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.95.4.1  2004/08/31 20:43:06  peter

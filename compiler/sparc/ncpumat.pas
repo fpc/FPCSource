@@ -107,7 +107,6 @@ implementation
              cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,tordconstnode(right).value-1,tmpreg);
              { add to the left value }
              cg.a_op_reg_reg(exprasmlist,OP_ADD,OS_INT,tmpreg,numerator);
-             cg.UngetRegister(exprasmlist,tmpreg);
              cg.a_op_const_reg_reg(exprasmlist,OP_SAR,OS_INT,aword(power),numerator,resultreg);
            end
          else
@@ -149,13 +148,8 @@ implementation
                  cg.a_label(exprasmlist,overflowlabel);
                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_SMUL,resultreg,divider,resultreg));
                  exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,numerator,resultreg,resultreg));
-               end
-             else
-               cg.UngetRegister(exprasmlist,divider);
+               end;
            end;
-        { free used registers }
-        if numerator<>resultreg then
-          cg.UngetRegister(exprasmlist,numerator);
         { set result location }
         location.loc:=LOC_REGISTER;
         location.register:=resultreg;
@@ -314,7 +308,6 @@ implementation
                 begin
                   location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
                   exprasmlist.concat(taicpu.op_reg_const_reg(A_SUBcc,left.location.register,0,NR_G0));
-                  location_release(exprasmlist,left.location);
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags:=F_E;
                end;
@@ -332,7 +325,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2004-08-16 21:00:30  peter
+  Revision 1.21  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.20  2004/08/16 21:00:30  peter
     * fixed shr/shl 32
 
   Revision 1.19  2004/08/01 08:46:31  florian

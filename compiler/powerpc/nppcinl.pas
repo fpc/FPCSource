@@ -130,14 +130,11 @@ implementation
                      exprasmlist.concat(taicpu.op_const_reg(A_DCBT,0,left.location.reference.base))
                    else
                      exprasmlist.concat(taicpu.op_reg_reg(A_DCBT,left.location.reference.base,left.location.reference.index));
-                   location_release(exprasmlist,left.location);
                  end
                else
                  begin
                    cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,r);
-                   location_release(exprasmlist,left.location);
                    exprasmlist.concat(taicpu.op_const_reg(A_DCBT,0,r));
-                   cg.ungetregister(exprasmlist,r);
                  end;
              end;
            else
@@ -150,7 +147,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2004-06-20 08:55:32  florian
+  Revision 1.16  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.15  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.14  2004/05/31 11:57:48  jonas

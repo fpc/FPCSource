@@ -40,8 +40,6 @@ interface
           procedure set_result_location_reg;
           { load left and right nodes into registers }
           procedure force_reg_left_right(allow_swap,allow_constant:boolean);
-          { free used registers, except result location }
-          procedure release_reg_left_right;
 
           procedure second_opfloat;
           procedure second_opboolean;
@@ -220,23 +218,6 @@ interface
       end;
 
 
-    procedure tcgaddnode.release_reg_left_right;
-      begin
-        if (right.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
-           not(
-               (location.loc = right.location.loc) and
-               (location.register=right.location.register)
-              ) then
-          location_release(exprasmlist,right.location);
-        if (left.location.loc in [LOC_REGISTER,LOC_FPUREGISTER]) and
-           not(
-               (location.loc = left.location.loc) and
-               (location.register=left.location.register)
-              ) then
-          location_release(exprasmlist,left.location);
-      end;
-
-
 {*****************************************************************************
                                 Smallsets
 *****************************************************************************}
@@ -306,7 +287,6 @@ interface
                       else
                         cg.a_op_const_reg_reg(exprasmlist,OP_OR,location.size,
                             left.location.value,tmpreg,location.register);
-                      cg.ungetregister(exprasmlist,tmpreg);
                     end;
                   opdone := true;
                 end
@@ -342,7 +322,6 @@ interface
                       cg.a_op_reg_reg(exprasmlist,OP_NOT,location.size,right.location.register,right.location.register);
                       cg.a_op_reg_reg(exprasmlist,OP_AND,location.size,right.location.register,tmpreg);
                       cg.a_load_reg_reg(exprasmlist,OS_INT,location.size,tmpreg,location.register);
-                      cg.ungetregister(exprasmlist,tmpreg);
                     end
                   else
                     begin
@@ -370,8 +349,6 @@ interface
                 right.location.register,left.location.register,
                 location.register);
           end;
-
-        release_reg_left_right;
       end;
 
 
@@ -450,8 +427,6 @@ interface
                  right.location.value,left.location.register,
                  location.register);
          end;
-
-        release_reg_left_right;
       end;
 
 
@@ -596,8 +571,6 @@ interface
         { emit overflow check if enabled }
         if checkoverflow then
            cg.g_overflowcheck(exprasmlist,Location,ResultType.Def);
-
-        release_reg_left_right;
       end;
 
 
@@ -723,15 +696,12 @@ interface
                 aword(left.location.value),tmpreg);
               cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,location.size,
                 right.location.register,tmpreg,location.register);
-              cg.ungetregister(exprasmlist,tmpreg);
             end;
         end;
 
         { emit overflow check if required }
         if checkoverflow then
           cg.g_overflowcheck(exprasmlist,Location,ResultType.Def);
-
-        release_reg_left_right;
       end;
 
 
@@ -807,7 +777,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2004-06-20 08:55:29  florian
+  Revision 1.32  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.31  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.30  2004/06/16 20:07:08  florian

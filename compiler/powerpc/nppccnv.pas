@@ -132,14 +132,13 @@ implementation
         ref: treference;
         valuereg, tempreg, leftreg, tmpfpureg: tregister;
         size: tcgsize;
-        signed, valuereg_is_scratch: boolean;
+        signed : boolean;
       begin
 {$ifdef VER1_0}
         dummy1 := (int64(1) shl 31) or (int64($43300000) shl 32);
         dummy2 := int64($43300000) shl 32;
 {$endif VER1_0}
 
-        valuereg_is_scratch := false;
         location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
 
         { the code here comes from the PowerPC Compiler Writer's Guide }
@@ -190,10 +189,7 @@ implementation
             begin
               leftreg := left.location.register;
               if signed then
-                begin
-                  valuereg := cg.getintregister(exprasmlist,OS_INT);
-                  valuereg_is_scratch := true;
-                end
+                valuereg := cg.getintregister(exprasmlist,OS_INT)
               else
                 valuereg := leftreg;
             end;
@@ -201,7 +197,6 @@ implementation
             begin
               leftreg := cg.getintregister(exprasmlist,OS_INT);
               valuereg := leftreg;
-              valuereg_is_scratch := true;
               if signed then
                 size := OS_S32
               else
@@ -215,7 +210,6 @@ implementation
          tempreg := cg.getintregister(exprasmlist,OS_INT);
          exprasmlist.concat(taicpu.op_reg_const(A_LIS,tempreg,$4330));
          cg.a_load_reg_ref(exprasmlist,OS_32,OS_32,tempreg,ref);
-         cg.ungetregister(exprasmlist,tempreg);
          if signed then
            exprasmlist.concat(taicpu.op_reg_reg_const(A_XORIS,valuereg,
              { xoris expects a unsigned 16 bit int (FK) }
@@ -223,15 +217,6 @@ implementation
          inc(ref.offset,4);
          cg.a_load_reg_ref(exprasmlist,OS_32,OS_32,valuereg,ref);
          dec(ref.offset,4);
-         if (valuereg_is_scratch) then
-           cg.ungetregister(exprasmlist,valuereg);
-
-         if (left.location.loc = LOC_REGISTER) or
-            ((left.location.loc = LOC_CREGISTER) and
-             not signed) then
-           cg.ungetregister(exprasmlist,leftreg)
-         else
-           cg.ungetregister(exprasmlist,valuereg);
 
          tmpfpureg := cg.getfpuregister(exprasmlist,OS_F64);
          cg.a_loadfpu_ref_reg(exprasmlist,OS_F64,tempconst.location.reference,
@@ -245,7 +230,6 @@ implementation
 
          exprasmlist.concat(taicpu.op_reg_reg_reg(A_FSUB,location.register,
            location.register,tmpfpureg));
-         cg.ungetregister(exprasmlist,tmpfpureg);
 
          { work around bug in some PowerPC processors }
          if (tfloatdef(resulttype.def).typ = s32real) then
@@ -303,29 +287,23 @@ implementation
               begin
                 if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                   begin
-                    reference_release(exprasmlist,left.location.reference);
                     hreg1:=cg.getintregister(exprasmlist,OS_INT);
                     if left.location.size in [OS_64,OS_S64] then
                       begin
-                        cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,
-                         left.location.reference,hreg1);
+                        cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,left.location.reference,hreg1);
                         hreg2:=cg.getintregister(exprasmlist,OS_INT);
                         href:=left.location.reference;
                         inc(href.offset,4);
-                        cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,
-                          href,hreg2);
-                        cg.ungetregister(exprasmlist,hreg2);
+                        cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,href,hreg2);
                         cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hreg1,hreg2,hreg1);
                       end
                     else
-                      cg.a_load_ref_reg(exprasmlist,opsize,opsize,
-                        left.location.reference,hreg1);
+                      cg.a_load_ref_reg(exprasmlist,opsize,opsize,left.location.reference,hreg1);
                   end
                 else
                   begin
                      if left.location.size in [OS_64,OS_S64] then
                        begin
-                          location_release(exprasmlist,left.location);
                           hreg1:=cg.getintregister(exprasmlist,OS_32);
                           cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,left.location.registerlow,hreg1);
                        end
@@ -333,11 +311,8 @@ implementation
                        hreg1 := left.location.register;
                   end;
                 hreg2 := cg.getintregister(exprasmlist,OS_INT);
-                exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBIC,hreg2,
-                  hreg1,1));
-                cg.ungetregister(exprasmlist,hreg2);
-                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBFE,hreg1,hreg2,
-                  hreg1));
+                exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBIC,hreg2,hreg1,1));
+                exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBFE,hreg1,hreg2,hreg1));
               end;
             LOC_FLAGS :
               begin
@@ -370,7 +345,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2004-06-20 08:55:32  florian
+  Revision 1.54  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.53  2004/06/20 08:55:32  florian
     * logs truncated
 
   Revision 1.52  2004/05/19 22:26:46  jonas

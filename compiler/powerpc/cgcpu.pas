@@ -38,8 +38,6 @@ unit cgcpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
-        procedure ungetreference(list:Taasmoutput;const r:Treference);override;
-
         { passing parameters, per default the parameter is pushed }
         { nr gives the number of the parameter (enumerated from   }
         { left to right), this allows to move the parameter to    }
@@ -88,7 +86,7 @@ unit cgcpu;
 
         procedure a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);override;
 
-        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint; delsource,loadref : boolean);override;
+        procedure g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint; loadref : boolean);override;
 
         procedure g_overflowcheck(list: taasmoutput; const l: tlocation; def: tdef); override;
         { find out whether a is of the form 11..00..11b or 00..11...00. If }
@@ -226,15 +224,6 @@ const
       end;
 
 
-    procedure tcgppc.ungetreference(list:Taasmoutput;const r:Treference);
-      begin
-        if r.base<>NR_NO then
-          ungetregister(list,r.base);
-        if r.index<>NR_NO then
-          ungetregister(list,r.index);
-      end;
-
-
     procedure tcgppc.a_param_const(list : taasmoutput;size : tcgsize;a : aint;const paraloc : tcgpara);
       var
         ref: treference;
@@ -269,13 +258,10 @@ const
             a_load_ref_reg(list,size,size,r,paraloc.location^.register);
           LOC_REFERENCE:
             begin
-               reference_reset(ref);
-               ref.base:=paraloc.location^.reference.index;
-               ref.offset:=paraloc.location^.reference.offset;
+               reference_reset_base(ref,paraloc.location^.reference.index,paraloc.location^.reference.offset);
                tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
                a_load_ref_reg(list,size,size,r,tmpreg);
                a_load_reg_ref(list,size,size,tmpreg,ref);
-               rg[R_INTREGISTER].ungetregister(list,tmpreg);
             end;
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
             case size of
@@ -308,7 +294,6 @@ const
                tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
                a_loadaddr_ref_reg(list,r,tmpreg);
                a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
-               rg[R_INTREGISTER].ungetregister(list,tmpreg);
              end;
            else
              internalerror(2002080701);
@@ -404,7 +389,6 @@ const
             tmpref.base:= reg;
             list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
             list.concat(taicpu.op_reg(A_MTCTR,tmpreg));
-            rg[R_INTREGISTER].ungetregister(list,tmpreg);
           end
         else
           list.concat(taicpu.op_reg(A_MTCTR,reg));
@@ -452,10 +436,9 @@ const
        var
          op: TAsmOp;
          ref2: TReference;
-         freereg: boolean;
        begin
          ref2 := ref;
-         freereg := fixref(list,ref2);
+         fixref(list,ref2);
          if tosize in [OS_S8..OS_S16] then
            { storing is the same for signed and unsigned values }
            tosize := tcgsize(ord(tosize)-(ord(OS_S8)-ord(OS_8)));
@@ -464,8 +447,6 @@ const
            internalerror(200109236);
          op := storeinstr[tcgsize2unsigned[tosize],ref2.index<>NR_NO,false];
          a_load_store(list,op,reg,ref2);
-         if freereg then
-           rg[R_INTREGISTER].ungetregister(list,ref2.base);
        End;
 
 
@@ -489,7 +470,6 @@ const
          op: tasmop;
          tmpreg: tregister;
          ref2, tmpref: treference;
-         freereg: boolean;
 
        begin
           { TODO: optimize/take into consideration fromsize/tosize. Will }
@@ -497,15 +477,13 @@ const
           if not(fromsize in [OS_8,OS_S8,OS_16,OS_S16,OS_32,OS_S32]) then
             internalerror(2002090902);
           ref2 := ref;
-          freereg := fixref(list,ref2);
+          fixref(list,ref2);
           { the caller is expected to have adjusted the reference already }
           { in this case                                                  }
           if (TCGSize2Size[fromsize] >= TCGSize2Size[tosize]) then
             fromsize := tosize;
           op := loadinstr[fromsize,ref2.index<>NR_NO,false];
           a_load_store(list,op,reg,ref2);
-          if freereg then
-            rg[R_INTREGISTER].ungetregister(list,ref2.base);
           { sign extend shortint if necessary, since there is no }
           { load instruction that does that automatically (JM)   }
           if fromsize = OS_S8 then
@@ -559,7 +537,6 @@ const
        var
          op: tasmop;
          ref2: treference;
-         freereg: boolean;
 
        begin
           { several functions call this procedure with OS_32 or OS_64 }
@@ -573,11 +550,9 @@ const
                internalerror(200201121);
           end;
          ref2 := ref;
-         freereg := fixref(list,ref2);
+         fixref(list,ref2);
          op := fpuloadinstr[size,ref2.index <> NR_NO,false];
          a_load_store(list,op,reg,ref2);
-         if freereg then
-           rg[R_INTREGISTER].ungetregister(list,ref2.base);
        end;
 
 
@@ -591,17 +566,14 @@ const
        var
          op: tasmop;
          ref2: treference;
-         freereg: boolean;
 
        begin
          if not(size in [OS_F32,OS_F64]) then
            internalerror(200201122);
          ref2 := ref;
-         freereg := fixref(list,ref2);
+         fixref(list,ref2);
          op := fpustoreinstr[size,ref2.index <> NR_NO,false];
          a_load_store(list,op,reg,ref2);
-         if freereg then
-           rg[R_INTREGISTER].ungetregister(list,ref2.base);
        end;
 
 
@@ -756,7 +728,6 @@ const
                 list.concat(taicpu.op_reg_const(A_LI,scratchreg,-1));
                 list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,dst,
                   scratchreg,0,l1,l2));
-                rg[R_INTREGISTER].ungetregister(list,scratchreg);
               end
             else
               do_lo_hi;
@@ -789,7 +760,6 @@ const
             scratchreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
             a_load_const_reg(list,OS_32,a,scratchreg);
             a_op_reg_reg_reg(list,op,OS_32,scratchreg,src,dst);
-            rg[R_INTREGISTER].ungetregister(list,scratchreg);
           end;
       end;
 
@@ -843,7 +813,6 @@ const
                 scratch_register := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
                 a_load_const_reg(list,OS_32,a,scratch_register);
                 list.concat(taicpu.op_reg_reg_reg(A_CMPW,NR_CR0,reg,scratch_register));
-                rg[R_INTREGISTER].ungetregister(list,scratch_register);
               end
           else
             if (aword(a) <= $ffff) then
@@ -853,7 +822,6 @@ const
                 scratch_register := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
                 a_load_const_reg(list,OS_32,a,scratch_register);
                 list.concat(taicpu.op_reg_reg_reg(A_CMPLW,NR_CR0,reg,scratch_register));
-                rg[R_INTREGISTER].ungetregister(list,scratch_register);
               end;
           a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],0,l);
         end;
@@ -1758,12 +1726,11 @@ const
 
        var
          ref2, tmpref: treference;
-         freereg: boolean;
          tmpreg:Tregister;
 
        begin
          ref2 := ref;
-         freereg := fixref(list,ref2);
+         fixref(list,ref2);
          if assigned(ref2.symbol) then
            begin
              if target_info.system = system_powerpc_macos then
@@ -1812,11 +1779,6 @@ const
                    begin
                      list.concat(taicpu.op_reg_reg_ref(A_ADDIS,r,
                        ref2.base,tmpref));
-                     if freereg then
-                       begin
-                         rg[R_INTREGISTER].ungetregister(list,ref2.base);
-                         freereg := false;
-                       end;
                    end
                  else
                    list.concat(taicpu.op_reg_ref(A_LIS,r,tmpref));
@@ -1841,8 +1803,6 @@ const
            a_load_reg_reg(list,OS_ADDR,OS_ADDR,ref2.base,r)
          else
            list.concat(taicpu.op_reg_const(A_LI,r,0));
-         if freereg then
-           rg[R_INTREGISTER].ungetregister(list,ref2.base);
        end;
 
 { ************* concatcopy ************ }
@@ -1855,7 +1815,7 @@ const
     maxmoveunit = 4;
 {$endif ppc603}
 
-    procedure tcgppc.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint; delsource,loadref : boolean);
+    procedure tcgppc.g_concatcopy(list : taasmoutput;const source,dest : treference;len : aint; loadref : boolean);
 
       var
         countreg: TRegister;
@@ -1880,21 +1840,11 @@ const
                 begin
                   size := int_cgsize(len);
                   a_load_ref_ref(list,size,size,source,dest);
-                  if delsource then
-                    begin
-                      reference_release(list,source);
-                      tg.ungetiftemp(list,source);
-                    end;
                 end
               else
                 begin
                   a_reg_alloc(list,NR_F0);
                   a_loadfpu_ref_reg(list,OS_F64,source,NR_F0);
-                  if delsource then
-                    begin
-                      reference_release(list,source);
-                      tg.ungetiftemp(list,source);
-                    end;
                   a_loadfpu_reg_ref(list,OS_F64,NR_F0,dest);
                   a_reg_dealloc(list,NR_F0);
                 end;
@@ -1926,8 +1876,6 @@ const
             src := source;
             orgsrc := true;
           end;
-        if not orgsrc and delsource then
-          reference_release(list,source);
         { load the address of dest into dst.base }
         if (count > 4) or
            not issimpleref(dest) or
@@ -1967,7 +1915,6 @@ const
             list.concat(taicpu.op_reg_ref(A_LFDU,NR_F0,src));
             list.concat(taicpu.op_reg_ref(A_STFDU,NR_F0,dst));
             a_jmp(list,A_BC,C_NE,0,lab);
-            rg[R_INTREGISTER].ungetregister(list,countreg);
             a_reg_dealloc(list,NR_F0);
             len := len mod 8;
           end;
@@ -2020,7 +1967,6 @@ const
             list.concat(taicpu.op_reg_ref(A_LWZU,NR_R0,src));
             list.concat(taicpu.op_reg_ref(A_STWU,NR_R0,dst));
             a_jmp(list,A_BC,C_NE,0,lab);
-            rg[R_INTREGISTER].ungetregister(list,countreg);
             a_reg_dealloc(list,NR_R0);
             len := len mod 4;
           end;
@@ -2058,17 +2004,6 @@ const
            a_load_reg_ref(list,OS_8,OS_8,NR_R0,dst);
            a_reg_dealloc(list,NR_R0);
          end;
-       if orgsrc then
-         begin
-           if delsource then
-             reference_release(list,source);
-         end
-       else
-         rg[R_INTREGISTER].ungetregister(list,src.base);
-       if not orgdst then
-         rg[R_INTREGISTER].ungetregister(list,dst.base);
-       if delsource then
-         tg.ungetiftemp(list,source);
       end;
 
 
@@ -2302,9 +2237,6 @@ const
             else
               list.concat(taicpu.op_reg_ref(op,reg,ref));
           end;
-
-        if (tmpreg <> NR_NO) then
-          rg[R_INTREGISTER].ungetregister(list,tmpreg);
       end;
 
 
@@ -2402,7 +2334,6 @@ const
                       cg.a_load_const_reg(list,OS_32,cardinal(value),tmpreg);
                       list.concat(taicpu.op_reg_reg_reg(ops[issub,2],
                         regdst.reglo,regsrc.reglo,tmpreg));
-                      tcgppc(cg).rg[R_INTREGISTER].ungetregister(list,tmpreg);
                       list.concat(taicpu.op_reg_reg(ops[issub,3],
                         regdst.reghi,regsrc.reghi));
                     end
@@ -2412,8 +2343,6 @@ const
                       tmpreg64.reghi := tcgppc(cg).rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
                       a_load64_const_reg(list,value,tmpreg64);
                       a_op64_reg_reg_reg(list,op,tmpreg64,regsrc,regdst);
-                      tcgppc(cg).rg[R_INTREGISTER].ungetregister(list,tmpreg64.reglo);
-                      tcgppc(cg).rg[R_INTREGISTER].ungetregister(list,tmpreg64.reghi);
                     end
                 end
               else
@@ -2435,7 +2364,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.177  2004-09-21 17:25:12  peter
+  Revision 1.178  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.177  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.176.4.2  2004/09/18 20:21:08  jonas

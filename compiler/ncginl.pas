@@ -227,9 +227,9 @@ implementation
        paramanager.freeparaloc(exprasmlist,paraloc2);
        paramanager.freeparaloc(exprasmlist,paraloc3);
        paramanager.freeparaloc(exprasmlist,paraloc4);
-       cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+       cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
        cg.a_call_name(exprasmlist,'FPC_ASSERT');
-       cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+       cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
        cg.a_label(exprasmlist,truelabel);
        truelabel:=otlabel;
        falselabel:=oflabel;
@@ -265,7 +265,6 @@ implementation
         else
           begin
             secondpass(left);
-            location_release(exprasmlist,left.location);
             hregister:=cg.getaddressregister(exprasmlist);
 
             { handle self inside a method of a class }
@@ -311,7 +310,6 @@ implementation
         if inlinenumber=in_sizeof_x then
            begin
              reference_reset_base(href,hregister,0);
-             cg.ungetregister(exprasmlist,hregister);
              hregister:=cg.getintregister(exprasmlist,OS_INT);
              cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,href,hregister);
            end;
@@ -459,9 +457,7 @@ implementation
 {$endif cpu64bit}
                  cg.a_op_reg_loc(exprasmlist,addsubop[inlinenumber],
                    hregister,tcallparanode(left).left.location);
-               location_release(exprasmlist,tcallparanode(tcallparanode(left).right).left.location);
              end;
-          location_release(exprasmlist,tcallparanode(left).left.location);
           cg.g_overflowcheck(exprasmlist,tcallparanode(left).left.location,tcallparanode(left).resulttype.def);
           cg.g_rangecheck(exprasmlist,tcallparanode(left).left.location,tcallparanode(left).left.resulttype.def,
               tcallparanode(left).left.resulttype.def);
@@ -518,7 +514,6 @@ implementation
                     inc(tcallparanode(left).left.location.reference.offset,
                       (tordconstnode(tcallparanode(tcallparanode(left).right).left).value div bitsperop)*tcgsize2size[opsize]);
                     cg.a_op_const_ref(exprasmlist,cgop,opsize,l,tcallparanode(left).left.location.reference);
-                    location_release(exprasmlist,tcallparanode(left).left.location);
                   end;
                 LOC_CREGISTER :
                   cg.a_op_const_reg(exprasmlist,cgop,tcallparanode(left).left.location.size,l,tcallparanode(left).left.location.register);
@@ -594,7 +589,6 @@ implementation
                   { calculate the correct address of the operand }
                   cg.a_loadaddr_ref_reg(exprasmlist, tcallparanode(left).left.location.reference,addrreg);
                   cg.a_op_reg_reg(exprasmlist, OP_ADD, OS_ADDR, addrreg2, addrreg);
-                  cg.ungetregister(exprasmlist,addrreg2);
 
                   { hregister contains the bitnumber to add }
                   cg.a_load_const_reg(exprasmlist, opsize, 1, hregister2);
@@ -610,10 +604,7 @@ implementation
                       cg.a_op_reg_reg(exprasmlist, OP_NOT, opsize, hregister2, hregister2);
                       cg.a_op_reg_ref(exprasmlist, OP_AND, opsize, hregister2, href);
                     end;
-                  cg.ungetregister(exprasmlist,addrreg);
                 end;
-              cg.ungetregister(exprasmlist,hregister);
-              cg.ungetregister(exprasmlist,hregister2);
             end;
         end;
 
@@ -694,7 +685,13 @@ end.
 
 {
   $Log$
-  Revision 1.63  2004-09-21 17:25:12  peter
+  Revision 1.64  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.63  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.62.4.1  2004/08/31 20:43:06  peter

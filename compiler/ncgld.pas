@@ -169,7 +169,6 @@ implementation
                        hregister:=cg.getaddressregister(exprasmlist);
                        reference_reset_symbol(href,objectlibrary.newasmsymbol('FPC_THREADVAR_RELOCATE',AB_EXTERNAL,AT_DATA),0);
                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
-                       cg.ungetregister(exprasmlist,hregister);
                        cg.a_cmp_const_reg_label(exprasmlist,OS_ADDR,OC_EQ,0,hregister,norelocatelab);
                        { don't save the allocated register else the result will be destroyed later }
                        reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA),0);
@@ -177,11 +176,11 @@ implementation
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc1);
                        paraloc1.done;
-                       cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                       cg.alloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
                        cg.a_call_reg(exprasmlist,hregister);
-                       cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-                       cg.getexplicitregister(exprasmlist,NR_FUNCTION_RESULT_REG);
-                       cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
+                       cg.dealloccpuregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+                       cg.getcpuregister(exprasmlist,NR_FUNCTION_RESULT_REG);
+                       cg.ungetcpuregister(exprasmlist,NR_FUNCTION_RESULT_REG);
                        hregister:=cg.getaddressregister(exprasmlist);
                        cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
                        cg.a_jmp_always(exprasmlist,endrelocatelab);
@@ -318,7 +317,6 @@ implementation
                          LOC_CREFERENCE,
                          LOC_REFERENCE:
                            begin
-                              location_release(exprasmlist,left.location);
                               hregister:=cg.getaddressregister(exprasmlist);
                               if is_class_or_interface(left.resulttype.def) then
                                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.reference,hregister)
@@ -340,32 +338,22 @@ implementation
                         begin
                           { load vmt pointer }
                           reference_reset_base(href,hregister,0);
-                          reference_release(exprasmlist,href);
                           hregister:=cg.getaddressregister(exprasmlist);
                           cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
-
-
-                          reference_reset_base(href,hregister,
-                              procdef._class.vmtmethodoffset(procdef.extnumber));
-                          reference_release(exprasmlist,href);
-
                           { load method address }
+                          reference_reset_base(href,hregister,procdef._class.vmtmethodoffset(procdef.extnumber));
                           hregister:=cg.getaddressregister(exprasmlist);
                           cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,hregister);
                           { ... and store it }
                           cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
-                          cg.ungetregister(exprasmlist,hregister);
                         end
                       else
                         begin
-                          { we don't use the hregister }
-                          cg.ungetregister(exprasmlist,hregister);
                           { load address of the function }
                           reference_reset_symbol(href,objectlibrary.newasmsymbol(procdef.mangledname,AB_EXTERNAL,AT_FUNCTION),0);
                           hregister:=cg.getaddressregister(exprasmlist);
                           cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
                           cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
-                          cg.ungetregister(exprasmlist,hregister);
                         end;
                     end
                   else
@@ -576,18 +564,10 @@ implementation
                         cgsize:=def_cgsize(left.resulttype.def);
 {$ifndef cpu64bit}
                         if cgsize in [OS_64,OS_S64] then
-                          begin
-                            cg64.a_load64_ref_reg(exprasmlist,
-                               right.location.reference,left.location.register64);
-                            location_release(exprasmlist,right.location);
-                          end
+                          cg64.a_load64_ref_reg(exprasmlist,right.location.reference,left.location.register64)
                         else
 {$endif cpu64bit}
-                          begin
-                            location_release(exprasmlist,right.location);
-                            cg.a_load_ref_reg(exprasmlist,cgsize,cgsize,
-                                right.location.reference,left.location.register);
-                          end;
+                          cg.a_load_ref_reg(exprasmlist,cgsize,cgsize,right.location.reference,left.location.register);
                       end;
                     LOC_CFPUREGISTER :
                       begin
@@ -605,10 +585,10 @@ implementation
                         if (right.location.reference.offset mod sizeof(aint)<>0) and
                            (len>sizeof(aint)) then
                           cg.g_concatcopy_unaligned(exprasmlist,right.location.reference,
-                              left.location.reference,len,false,false)
+                              left.location.reference,len,false)
                         else
                           cg.g_concatcopy(exprasmlist,right.location.reference,
-                              left.location.reference,len,false,false);
+                              left.location.reference,len,false);
                       end;
                     else
                       internalerror(200203284);
@@ -679,7 +659,6 @@ implementation
                   if codegenerror then
                     exit;
                   cg.a_load_const_loc(exprasmlist,1,left.location);
-                  location_release(exprasmlist,left.location);
                   cg.a_jmp_always(exprasmlist,hlabel);
                   { generate the leftnode for the false case }
                   cg.a_label(exprasmlist,falselabel);
@@ -710,11 +689,7 @@ implementation
          end;
 
         if releaseright then
-          begin
-            location_release(exprasmlist,right.location);
-            location_freetemp(exprasmlist,right.location);
-          end;
-        location_release(exprasmlist,left.location);
+          location_freetemp(exprasmlist,right.location);
 
         truelabel:=otlabel;
         falselabel:=oflabel;
@@ -894,19 +869,12 @@ implementation
                  if vaddr then
                   begin
                     location_force_mem(exprasmlist,hp.left.location);
-                    location_release(exprasmlist,hp.left.location);
                     tmpreg:=cg.getaddressregister(exprasmlist);
                     cg.a_loadaddr_ref_reg(exprasmlist,hp.left.location.reference,tmpreg);
-                    cg.ungetregister(exprasmlist,tmpreg);
                     cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,tmpreg,href);
-                    if freetemp then
-                      location_freetemp(exprasmlist,hp.left.location);
                   end
                  else
-                  begin
-                    location_release(exprasmlist,hp.left.location);
-                    cg.a_load_loc_ref(exprasmlist,OS_ADDR,hp.left.location,href);
-                  end;
+                  cg.a_load_loc_ref(exprasmlist,OS_ADDR,hp.left.location,href);
                  { update href to the vtype field and write it }
                  dec(href.offset,sizeof(aint));
                  cg.a_load_const_ref(exprasmlist, OS_INT,vtype,href);
@@ -916,45 +884,39 @@ implementation
               else
               { normal array constructor of the same type }
                begin
-                 if is_ansistring(left.resulttype.def) or
-                    is_widestring(left.resulttype.def) or
-                    (left.resulttype.def.deftype=variantdef) then
-                   freetemp:=false;
+                 if not(
+                        is_ansistring(left.resulttype.def) or
+                        is_widestring(left.resulttype.def) or
+                        (left.resulttype.def.deftype=variantdef)
+                       ) then
+                   freetemp:=true;
                  case hp.left.location.loc of
                    LOC_FPUREGISTER,
                    LOC_CFPUREGISTER :
-                     begin
-                       location_release(exprasmlist,hp.left.location);
-                       cg.a_loadfpu_reg_ref(exprasmlist,hp.left.location.size,hp.left.location.register,href);
-                     end;
+                     cg.a_loadfpu_reg_ref(exprasmlist,hp.left.location.size,hp.left.location.register,href);
                    LOC_REFERENCE,
                    LOC_CREFERENCE :
                      begin
-                       location_release(exprasmlist,hp.left.location);
                        if is_shortstring(hp.left.resulttype.def) then
                          cg.g_copyshortstring(exprasmlist,hp.left.location.reference,href,
-                                              Tstringdef(hp.left.resulttype.def).len,freetemp,false)
+                                              Tstringdef(hp.left.resulttype.def).len,false)
                        else
-                         cg.g_concatcopy(exprasmlist,hp.left.location.reference,href,elesize,freetemp,false);
+                         cg.g_concatcopy(exprasmlist,hp.left.location.reference,href,elesize,false);
                      end;
                    else
                      begin
 {$ifndef cpu64bit}
                        if hp.left.location.size in [OS_64,OS_S64] then
-                         begin
-                           cg64.a_load64_loc_ref(exprasmlist,hp.left.location,href);
-                           location_release(exprasmlist,hp.left.location);
-                         end
+                         cg64.a_load64_loc_ref(exprasmlist,hp.left.location,href)
                        else
 {$endif cpu64bit}
-                         begin
-                           location_release(exprasmlist,hp.left.location);
-                           cg.a_load_loc_ref(exprasmlist,hp.left.location.size,hp.left.location,href);
-                         end;
+                         cg.a_load_loc_ref(exprasmlist,hp.left.location.size,hp.left.location,href);
                      end;
                  end;
                  inc(href.offset,elesize);
                end;
+              if freetemp then
+                location_freetemp(exprasmlist,hp.left.location);
             end;
            { load next entry }
            hp:=tarrayconstructornode(hp.right);
@@ -968,7 +930,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.124  2004-09-21 17:25:12  peter
+  Revision 1.125  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.124  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.123  2004/09/13 20:33:41  peter

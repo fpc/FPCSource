@@ -149,7 +149,6 @@ implementation
         op:=conv_op[tfloatdef(resulttype.def).typ,tfloatdef(left.resulttype.def).typ];
         if op=A_NONE then
           internalerror(200401121);
-        location_release(exprasmlist,left.location);
         location.register:=cg.getfpuregister(exprasmlist,location.size);
         exprasmlist.concat(taicpu.op_reg_reg(op,left.location.register,location.register));
       end;
@@ -188,7 +187,6 @@ implementation
             begin
               if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                 begin
-                  reference_release(exprasmlist,left.location.reference);
                   hreg2:=cg.getintregister(exprasmlist,opsize);
                   cg.a_load_ref_reg(exprasmlist,opsize,opsize,left.location.reference,hreg2);
                 end
@@ -197,7 +195,6 @@ implementation
 {$ifndef cpu64bit}
               if left.location.size in [OS_64,OS_S64] then
                 begin
-                  cg.ungetregister(exprasmlist,hreg2);
                   hreg1:=cg.getintregister(exprasmlist,OS_32);
                   cg.a_op_reg_reg_reg(exprasmlist,OP_OR,OS_32,hreg2,tregister(succ(longint(hreg2))),hreg1);
                   hreg2:=hreg1;
@@ -205,7 +202,6 @@ implementation
                 end;
 {$endif cpu64bit}
               exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBCC,NR_G0,hreg2,NR_G0));
-              cg.ungetregister(exprasmlist,hreg2);
               hreg1:=cg.getintregister(exprasmlist,opsize);
               exprasmlist.concat(taicpu.op_reg_const_reg(A_ADDX,NR_G0,0,hreg1));
             end;
@@ -244,7 +240,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2004-08-25 20:40:04  florian
+  Revision 1.32  2004-09-25 14:23:55  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.31  2004/08/25 20:40:04  florian
     * fixed absolute on sparc
 
   Revision 1.30  2004/08/24 21:02:33  florian

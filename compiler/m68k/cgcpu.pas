@@ -427,8 +427,8 @@ unit cgcpu;
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
-                     getexplicitregister(list,NR_D0);
-                     getexplicitregister(list,NR_D1);
+                     getcpuregister(list,NR_D0);
+                     getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, r2));
                      cg.a_call_name(list,'FPC_MUL_LONGINT');
@@ -456,8 +456,8 @@ unit cgcpu;
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
-                     getexplicitregister(list,NR_D0);
-                     getexplicitregister(list,NR_D1);
+                     getcpuregister(list,NR_D0);
+                     getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, r2));
                      cg.a_call_name(list,'FPC_MUL_LONGWORD');
@@ -620,8 +620,8 @@ unit cgcpu;
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
-                     getexplicitregister(list,NR_D0);
-                     getexplicitregister(list,NR_D1);
+                     getcpuregister(list,NR_D0);
+                     getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2, r2));
                      cg.a_call_name(list,'FPC_MUL_LONGINT');
@@ -663,8 +663,8 @@ unit cgcpu;
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
-                     getexplicitregister(list,NR_D0);
-                     getexplicitregister(list,NR_D1);
+                     getcpuregister(list,NR_D0);
+                     getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2, r2));
                      cg.a_call_name(list,'FPC_MUL_LONGWORD');
@@ -1313,7 +1313,13 @@ end.
 
 {
   $Log$
-  Revision 1.28  2004-06-20 08:55:31  florian
+  Revision 1.29  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.28  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.27  2004/05/20 21:54:33  florian

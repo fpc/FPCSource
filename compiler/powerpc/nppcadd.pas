@@ -234,15 +234,12 @@ interface
             op := A_CMPLW;
 
         if (right.location.loc = LOC_CONSTANT) then
-          if useconst then
-            exprasmlist.concat(taicpu.op_reg_const(op,
-              left.location.register,longint(right.location.value)))
-          else
-            begin
-              exprasmlist.concat(taicpu.op_reg_reg(op,
-                left.location.register,tmpreg));
-              cg.ungetregister(exprasmlist,tmpreg);
-            end
+          begin
+            if useconst then
+              exprasmlist.concat(taicpu.op_reg_const(op,left.location.register,longint(right.location.value)))
+            else
+              exprasmlist.concat(taicpu.op_reg_reg(op,left.location.register,tmpreg));
+          end
         else
           exprasmlist.concat(taicpu.op_reg_reg(op,
             left.location.register,right.location.register));
@@ -405,8 +402,6 @@ interface
                end;
            end;
          end;
-
-        release_reg_left_right;
       end;
 
 
@@ -479,8 +474,6 @@ interface
             exprasmlist.concat(taicpu.op_reg_reg_reg(op,
               newreg(R_SPECIALREGISTER,location.resflags.cr,R_SUBNONE),left.location.register,right.location.register))
           end;
-
-        release_reg_left_right;
       end;
 
 {*****************************************************************************
@@ -545,7 +538,6 @@ interface
                       else
                         cg.a_op_const_reg_reg(exprasmlist,OP_OR,OS_INT,
                           aword(left.location.value),tmpreg,location.register);
-                      cg.ungetregister(exprasmlist,tmpreg);
                     end;
                   opdone := true;
                 end
@@ -580,7 +572,6 @@ interface
                         aword(left.location.value),tmpreg);
                       exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC,
                         location.register,tmpreg,right.location.register));
-                      cg.ungetregister(exprasmlist,tmpreg);
                     end
                   else
                     exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC,
@@ -624,7 +615,6 @@ interface
                     exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC_,tmpreg,
                       right.location.register,left.location.register));
                 end;
-              cg.ungetregister(exprasmlist,tmpreg);
               location.resflags.cr := RS_CR0;
               location.resflags.flag := F_EQ;
               opdone := true;
@@ -647,8 +637,6 @@ interface
                 right.location.register,left.location.register,
                 location.register);
           end;
-
-        release_reg_left_right;
       end;
 
 {*****************************************************************************
@@ -898,10 +886,6 @@ interface
                   exprasmlist.concat(taicpu.op_reg_reg_reg(A_OR_,NR_R0,
                     tempreg64.reglo,tempreg64.reghi));
                   cg.a_reg_dealloc(exprasmlist,NR_R0);
-                  if (tempreg64.reglo <> left.location.registerlow) then
-                    cg.ungetregister(exprasmlist,tempreg64.reglo);
-                  if (tempreg64.reghi <> left.location.registerhigh) then
-                    cg.ungetregister(exprasmlist,tempreg64.reghi);
 
                   location_reset(location,LOC_FLAGS,OS_NO);
                   location.resflags := getresflags;
@@ -1062,9 +1046,6 @@ interface
         if cmpop and
            not(nodetype in [equaln,unequaln]) then
           location_reset(location,LOC_JUMP,OS_NO);
-
-        release_reg_left_right;
-
       end;
 
 
@@ -1409,7 +1390,6 @@ interface
                            aword(left.location.value),tmpreg);
                          cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,OS_INT,
                            right.location.register,tmpreg,location.register);
-                         cg.ungetregister(exprasmlist,tmpreg);
                        end;
                  end;
                ltn,lten,gtn,gten,equaln,unequaln :
@@ -1471,8 +1451,6 @@ interface
                 end;
               end;
            end;
-
-         release_reg_left_right;
       end;
 
 begin
@@ -1480,7 +1458,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2004-08-30 09:28:40  jonas
+  Revision 1.49  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.48  2004/08/30 09:28:40  jonas
     * only specially handle 64bit operations on ordinals
 
   Revision 1.47  2004/07/21 15:09:10  jonas

@@ -107,8 +107,6 @@ implementation
                   emit_const_reg(A_AND,S_L,tordconstnode(right).value-1,hreg2);
                   { add to the left value }
                   emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
-                  { release EDX if we used it }
-                  cg.ungetregister(exprasmlist,hreg2);
                   { do the shift }
                   emit_const_reg(A_SAR,S_L,power,hreg1);
                 end
@@ -132,11 +130,9 @@ implementation
         end
       else
         begin
-          {Bring denominator to a register.}
-          cg.ungetregister(exprasmlist,hreg1);
-          cg.getexplicitregister(exprasmlist,NR_EAX);
+          cg.getcpuregister(exprasmlist,NR_EAX);
           emit_reg_reg(A_MOV,S_L,hreg1,NR_EAX);
-          cg.getexplicitregister(exprasmlist,NR_EDX);
+          cg.getcpuregister(exprasmlist,NR_EDX);
           {Sign extension depends on the left type.}
           if torddef(left.resulttype.def).typ=u32bit then
             emit_reg_reg(A_XOR,S_L,NR_EDX,NR_EDX)
@@ -157,26 +153,17 @@ implementation
             begin
               hreg1:=cg.getintregister(exprasmlist,right.location.size);
               cg.a_load_loc_reg(exprasmlist,OS_32,right.location,hreg1);
-              cg.ungetregister(exprasmlist,hreg1);
               emit_reg(op,S_L,hreg1);
             end;
-          location_release(exprasmlist,right.location);
 
           {Copy the result into a new register. Release EAX & EDX.}
+          cg.ungetcpuregister(exprasmlist,NR_EDX);
+          cg.ungetcpuregister(exprasmlist,NR_EAX);
+          location.register:=cg.getintregister(exprasmlist,OS_INT);
           if nodetype=divn then
-            begin
-              cg.ungetregister(exprasmlist,NR_EDX);
-              cg.ungetregister(exprasmlist,NR_EAX);
-              location.register:=cg.getintregister(exprasmlist,OS_INT);
-              emit_reg_reg(A_MOV,S_L,NR_EAX,location.register);
-            end
+            cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,NR_EAX,location.register)
           else
-            begin
-              cg.ungetregister(exprasmlist,NR_EAX);
-              cg.ungetregister(exprasmlist,NR_EDX);
-              location.register:=cg.getintregister(exprasmlist,OS_INT);
-              emit_reg_reg(A_MOV,S_L,NR_EDX,location.register);
-            end;
+            cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,NR_EDX,location.register);
         end;
     end;
 
@@ -258,10 +245,8 @@ implementation
           else
             begin
               { load right operators in a register }
-              cg.getexplicitregister(exprasmlist,NR_ECX);
+              cg.getcpuregister(exprasmlist,NR_ECX);
               cg.a_load_loc_reg(exprasmlist,OS_32,right.location,NR_ECX);
-              if right.location.loc<>LOC_CREGISTER then
-                location_release(exprasmlist,right.location);
 
               { left operator is already in a register }
               { hence are both in a register }
@@ -303,7 +288,7 @@ implementation
                 end;
               cg.a_label(exprasmlist,l3);
 
-              cg.ungetregister(exprasmlist,NR_ECX);
+              cg.ungetcpuregister(exprasmlist,NR_ECX);
               location.registerlow:=hregisterlow;
               location.registerhigh:=hregisterhigh;
             end;
@@ -321,13 +306,11 @@ implementation
           else
             begin
               { load right operators in a ECX }
-              if right.location.loc<>LOC_CREGISTER then
-                location_release(exprasmlist,right.location);
-              cg.getexplicitregister(exprasmlist,NR_ECX);
+              cg.getcpuregister(exprasmlist,NR_ECX);
               cg.a_load_loc_reg(exprasmlist,OS_32,right.location,NR_ECX);
 
               { right operand is in ECX }
-              cg.ungetregister(exprasmlist,NR_ECX);
+              cg.ungetcpuregister(exprasmlist,NR_ECX);
               emit_reg_reg(op,S_L,NR_CL,location.register);
             end;
         end;
@@ -342,7 +325,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2004-06-20 08:55:31  florian
+  Revision 1.72  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.71  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.70  2004/05/23 14:10:17  peter

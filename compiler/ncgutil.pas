@@ -214,10 +214,7 @@ implementation
                          if (p.location.loc = LOC_CREGISTER) then
                            load_regvar_reg(list,p.location.register);
 {$endif OLDREGVARS}
-                         cg.a_cmp_const_loc_label(list,opsize,OC_NE,
-                           0,p.location,truelabel);
-                         { !!! should happen right after cmp (JM) }
-                         location_release(list,p.location);
+                         cg.a_cmp_const_loc_label(list,opsize,OC_NE,0,p.location,truelabel);
                          cg.a_jmp_always(list,falselabel);
                        end;
                      LOC_JUMP:
@@ -225,8 +222,7 @@ implementation
 {$ifdef cpuflags}
                      LOC_FLAGS :
                        begin
-                         cg.a_jmp_flags(list,p.location.resflags,
-                           truelabel);
+                         cg.a_jmp_flags(list,p.location.resflags,truelabel);
                          cg.a_jmp_always(list,falselabel);
                        end;
 {$endif cpuflags}
@@ -312,17 +308,17 @@ implementation
         paramanager.freeparaloc(list,paraloc3);
         paramanager.freeparaloc(list,paraloc2);
         paramanager.freeparaloc(list,paraloc1);
-        cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
-        cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
         paramanager.getintparaloc(pocall_default,1,paraloc1);
         paramanager.allocparaloc(list,paraloc1);
         cg.a_param_reg(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
         paramanager.freeparaloc(list,paraloc1);
-        cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         cg.a_call_name(list,'FPC_SETJMP');
-        cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+        cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
         cg.g_exception_reason_save(list, t.reasonbuf);
         cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,cg.makeregsize(list,NR_FUNCTION_RESULT_REG,OS_S32),exceptlabel);
@@ -334,9 +330,9 @@ implementation
 
     procedure free_exception(list:TAAsmoutput;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
      begin
-         cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+         cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
          cg.a_call_name(list,'FPC_POPADDRSTACK');
-         cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+         cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
          if not onlyfree then
           begin
@@ -376,10 +372,7 @@ implementation
                  cg.a_load_reg_reg(list,l.size,OS_32,l.registerlow,hregister);
                end
               else
-               begin
-                 location_release(list,l);
-                 hregister:=cg.getintregister(list,OS_INT);
-               end;
+               hregister:=cg.getintregister(list,OS_INT);
               { load value in low register }
               case l.loc of
                 LOC_FLAGS :
@@ -433,7 +426,6 @@ implementation
                begin
                  hregister:=cg.getintregister(list,OS_INT);
                  hregisterhi:=cg.getintregister(list,OS_INT);
-                 location_release(list,l);
                end;
               hreg64.reglo:=hregister;
               hreg64.reghi:=hregisterhi;
@@ -460,10 +452,7 @@ implementation
               ((l.size = dst_size) or
                (TCGSize2Size[l.size] = TCGSize2Size[OS_INT]));
            if not const_location then
-             begin
-               location_release(list,l);
-               hregister:=cg.getintregister(list,dst_size)
-             end
+             hregister:=cg.getintregister(list,dst_size)
            else
              hregister := l.register;
            { load value in new register }
@@ -528,11 +517,6 @@ implementation
         oldloc : tlocation;
       begin
         oldloc:=l;
-        {Do not bother to recycle the existing register. The register
-         allocator eliminates unnecessary moves, so it's not needed
-         and trying to recycle registers can cause problems because
-         the registers changes size and may need aditional constraints.}
-        location_release(list,l);
         hregister:=cg.getintregister(list,dst_size);
         { load value in new register }
         case l.loc of
@@ -601,14 +585,12 @@ implementation
               begin
                 tg.GetTemp(list,tcgsize2size[l.size],tt_normal,href);
                 cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,href,mms_movescalar);
-                location_release(list,l);
                 location_reset(l,LOC_REFERENCE,l.size);
                 l.reference:=href;
               end;
             reg:=cg.getfpuregister(list,l.size);
             cg.a_loadfpu_loc_reg(list,l,reg);
             location_freetemp(list,l);
-            location_release(list,l);
             location_reset(l,LOC_FPUREGISTER,l.size);
             l.register:=reg;
           end;
@@ -628,14 +610,12 @@ implementation
               begin
                 tg.GetTemp(list,tcgsize2size[l.size],tt_normal,href);
                 cg.a_loadfpu_reg_ref(list,l.size,l.register,href);
-                location_release(list,l);
                 location_reset(l,LOC_REFERENCE,l.size);
                 l.reference:=href;
               end;
             reg:=cg.getmmregister(list,l.size);
             cg.a_loadmm_loc_reg(list,l.size,l,reg,mms_movescalar);
             location_freetemp(list,l);
-            location_release(list,l);
             location_reset(l,LOC_MMREGISTER,l.size);
             l.register:=reg;
           end;
@@ -652,7 +632,6 @@ implementation
             begin
               tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
               cg.a_loadfpu_reg_ref(list,l.size,l.register,r);
-              location_release(list,l);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
             end;
@@ -661,7 +640,6 @@ implementation
             begin
               tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
               cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,r,mms_movescalar);
-              location_release(list,l);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
             end;
@@ -672,16 +650,10 @@ implementation
               tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
 {$ifndef cpu64bit}
               if l.size in [OS_64,OS_S64] then
-                begin
-                  cg64.a_load64_loc_ref(list,l,r);
-                  location_release(list,l);
-                end
+                cg64.a_load64_loc_ref(list,l,r)
               else
 {$endif cpu64bit}
-                begin
-                  location_release(list,l);
-                  cg.a_load_loc_ref(list,l.size,l,r);
-                end;
+                cg.a_load_loc_ref(list,l.size,l,r);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
             end;
@@ -784,10 +756,10 @@ implementation
                     so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
                   }
                   include(current_procinfo.flags,pi_do_call);
-                  cg.g_copyshortstring(list,href1,localcopyloc.reference,tstringdef(tvarsym(p).vartype.def).len,false,loadref)
+                  cg.g_copyshortstring(list,href1,localcopyloc.reference,tstringdef(tvarsym(p).vartype.def).len,loadref)
                 end
               else
-                cg.g_concatcopy(list,href1,localcopyloc.reference,tvarsym(p).vartype.def.size,true,loadref);
+                cg.g_concatcopy(list,href1,localcopyloc.reference,tvarsym(p).vartype.def.size,loadref);
               { update localloc of varsym }
               tg.Ungetlocal(list,tvarsym(p).localloc.reference);
               tvarsym(p).localloc:=localcopyloc;
@@ -947,7 +919,6 @@ implementation
                  cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,tmpreg);
                  reference_reset_base(href,tmpreg,0);
                  cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
-                 cg.ungetregister(list,tmpreg);
                end;
            end;
          end;
@@ -1100,8 +1071,8 @@ implementation
                         allocation info }
                       if getsupreg(resloc.registerlow)<first_int_imreg then
                         begin
-                          cg.getexplicitregister(list,resloc.registerlow);
-                          cg.ungetregister(list,resloc.registerlow);
+                          cg.getcpuregister(list,resloc.registerlow);
+                          cg.ungetcpuregister(list,resloc.registerlow);
                           // for the optimizer
                           cg.a_reg_alloc(list,resloc.registerlow);
                         end;
@@ -1120,8 +1091,8 @@ implementation
                       end;
                       if getsupreg(resloc.registerhigh)<first_int_imreg then
                         begin
-                          cg.getexplicitregister(list,resloc.registerhigh);
-                          cg.ungetregister(list,resloc.registerhigh);
+                          cg.getcpuregister(list,resloc.registerhigh);
+                          cg.ungetcpuregister(list,resloc.registerhigh);
                           // for the optimizer
                           cg.a_reg_alloc(list,resloc.registerhigh);
                         end;
@@ -1145,8 +1116,8 @@ implementation
                       hreg:=cg.makeregsize(list,funcretloc^.register,restmploc.size);
                       if getsupreg(funcretloc^.register)<first_int_imreg then
                         begin
-                          cg.getexplicitregister(list,funcretloc^.register);
-                          cg.ungetregister(list,hreg);
+                          cg.getcpuregister(list,funcretloc^.register);
+                          cg.ungetcpuregister(list,hreg);
                           // for the optimizer
                           cg.a_reg_alloc(list,funcretloc^.register);
                         end;
@@ -1157,8 +1128,8 @@ implementation
                 begin
                   if getsupreg(funcretloc^.register)<first_fpu_imreg then
                     begin
-                      cg.getexplicitregister(list,funcretloc^.register);
-                      cg.ungetregister(list,funcretloc^.register);
+                      cg.getcpuregister(list,funcretloc^.register);
+                      cg.ungetcpuregister(list,funcretloc^.register);
                     end;
                   cg.a_loadfpu_loc_reg(list,restmploc,funcretloc^.register);
                 end;
@@ -1166,8 +1137,8 @@ implementation
                 begin
                   if getsupreg(funcretloc^.register)<first_mm_imreg then
                     begin
-                      cg.getexplicitregister(list,funcretloc^.register);
-                      cg.ungetregister(list,funcretloc^.register);
+                      cg.getcpuregister(list,funcretloc^.register);
+                      cg.ungetcpuregister(list,funcretloc^.register);
                     end;
                   cg.a_loadmm_loc_reg(list,restmploc.size,restmploc,funcretloc^.register,mms_movescalar);
                 end;
@@ -1220,20 +1191,19 @@ implementation
                         begin
                           if getregtype(paraloc^.register)=R_INTREGISTER then
                             begin
+                              { Release parameter register }
                               if getsupreg(paraloc^.register)<first_int_imreg then
                                 begin
 {$ifndef cpu64bit}
                                   if assigned(hiparaloc) then
-                                    cg.getexplicitregister(list,hiparaloc^.register);
+                                    begin
+                                      cg.getcpuregister(list,hiparaloc^.register);
+                                      cg.ungetcpuregister(list,hiparaloc^.register);
+                                    end;
 {$endif cpu64bit}
-                                  cg.getexplicitregister(list,paraloc^.register);
+                                  cg.getcpuregister(list,paraloc^.register);
+                                  cg.ungetcpuregister(list,paraloc^.register);
                                 end;
-                              { Release parameter register }
-{$ifndef cpu64bit}
-                              if assigned(hiparaloc) then
-                                cg.ungetregister(list,hiparaloc^.register);
-{$endif cpu64bit}
-                              cg.ungetregister(list,paraloc^.register);
                             end;
                           cg.a_loadany_param_ref(list,hp.paraloc[calleeside],tvarsym(hp.parasym).localloc.reference,mms_movescalar);
                         end;
@@ -1242,17 +1212,6 @@ implementation
                     internalerror(200309185);
                 end;
                 hp:=tparaitem(hp.next);
-              end;
-            if gotregvarparas then
-              begin
-                { deallocate all register variables again }
-                hp:=tparaitem(current_procinfo.procdef.para.first);
-                while assigned(hp) do
-                  begin
-                    if (tvarsym(hp.parasym).localloc.loc=LOC_REGISTER) then
-                      cg.ungetregister(list,tvarsym(hp.parasym).localloc.register);
-                    hp:=tparaitem(hp.next);
-                  end;
               end;
           end;
 
@@ -1350,9 +1309,9 @@ implementation
             if not (target_info.system in [system_i386_win32,system_i386_wdosx]) or
                not (current_procinfo.procdef.proctypeoption=potype_proginit) then
               begin
-                cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
+                cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
                 cg.g_profilecode(list);
-                cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
+                cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
               end;
           end;
 
@@ -1373,15 +1332,15 @@ implementation
               cg.a_paramaddr_ref(list,href,paraloc1);
               paramanager.freeparaloc(list,paraloc2);
               paramanager.freeparaloc(list,paraloc1);
-              cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
+              cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
               cg.a_call_name(list,'_monstartup');
-              cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
+              cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_cdecl));
             end;
 
            { initialize units }
-           cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+           cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            cg.a_call_name(list,'FPC_INITIALIZEUNITS');
-           cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+           cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
 {$ifdef GDB}
            if (cs_debuginfo in aktmoduleswitches) then
@@ -1608,9 +1567,9 @@ implementation
              paramanager.allocparaloc(list,paraloc1);
              cg.a_param_const(list,OS_INT,stackframe,paraloc1);
              paramanager.freeparaloc(list,paraloc1);
-             cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+             cg.alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
              cg.a_call_name(list,'FPC_STACKCHECK');
-             cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+             cg.dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
              if paraloc1.location^.loc=LOC_REGISTER then
                begin
                  cg.a_load_ref_reg(list,OS_INT,OS_INT,href,paraloc1.location^.register);
@@ -1787,18 +1746,6 @@ implementation
                     case localloc.loc of
                       LOC_REFERENCE :
                         tg.Ungetlocal(list,localloc.reference);
-                      LOC_REGISTER :
-                        begin
-{$ifndef cpu64bit}
-                          if localloc.size in [OS_64,OS_S64] then
-                            begin
-                              cg.ungetregister(list,localloc.registerlow);
-                              cg.ungetregister(list,localloc.registerhigh);
-                            end
-                          else
-{$endif cpu64bit}
-                            cg.ungetregister(list,localloc.register);
-                        end;
                     end;
                   end;
               end;
@@ -2036,21 +1983,6 @@ implementation
                     case localloc.loc of
                       LOC_REFERENCE :
                         tg.UngetLocal(list,localloc.reference);
-                      LOC_REGISTER :
-                        begin
-                          if localloc.register<>paraitem.paraloc[calleeside].location^.register then
-                            begin
-{$ifndef cpu64bit}
-                              if localloc.size in [OS_64,OS_S64] then
-                                begin
-                                  cg.ungetregister(list,localloc.registerlow);
-                                  cg.ungetregister(list,localloc.registerhigh);
-                                end
-                              else
-{$endif cpu64bit}
-                                cg.ungetregister(list,localloc.register);
-                            end;
-                        end;
                     end;
                   end;
               end;
@@ -2133,7 +2065,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.216  2004-09-21 17:25:12  peter
+  Revision 1.217  2004-09-25 14:23:54  peter
+    * ungetregister is now only used for cpuregisters, renamed to
+      ungetcpuregister
+    * renamed (get|unget)explicitregister(s) to ..cpuregister
+    * removed location-release/reference_release
+
+  Revision 1.216  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.215  2004/09/14 16:33:46  peter
