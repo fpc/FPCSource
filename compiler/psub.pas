@@ -1077,7 +1077,7 @@ implementation
              if assigned(pd._class) and
                 (not assigned(old_current_procinfo.procdef._class)) then
               begin
-                Message1(parser_e_header_dont_match_any_member,pd.fullprocname(false));
+                MessagePos1(pd.fileinfo,parser_e_header_dont_match_any_member,pd.fullprocname(false));
                 tprocsym(pd.procsym).write_parameter_lists(pd);
               end
              else
@@ -1091,7 +1091,7 @@ implementation
                    tprocsym(pd.procsym).first_procdef.interfacedef and
                    not(tprocsym(pd.procsym).procdef_count>2) then
                  begin
-                   Message1(parser_e_header_dont_match_forward,pd.fullprocname(false));
+                   MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
                    tprocsym(pd.procsym).write_parameter_lists(pd);
                  end;
               end;
@@ -1297,7 +1297,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.151  2003-09-25 21:25:13  peter
+  Revision 1.152  2003-09-27 13:29:43  peter
+    * fix reported file position for not matched forwards
+
+  Revision 1.151  2003/09/25 21:25:13  peter
     * remove allocate_intterupt_parameter, allocation is platform
       dependent and needs to be done in create_paraloc_info
 
