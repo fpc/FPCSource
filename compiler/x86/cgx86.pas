@@ -1041,12 +1041,12 @@ unit cgx86;
          ai : taicpu;
          hreg : tregister;
        begin
-          if not(size in [OS_8,OS_S8]) then
-            a_load_const_reg(list,size,0,reg);
           hreg := rg.makeregsize(reg,OS_8);
           ai:=Taicpu.Op_reg(A_Setcc,S_B,hreg);
           ai.SetCondition(flags_to_cond(f));
           list.concat(ai);
+          if (reg <> hreg) then
+            a_load_reg_reg(list,OS_8,hreg,reg);
        end;
 
 
@@ -1225,12 +1225,12 @@ unit cgx86;
      begin
         list.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
      end;
-     
+
     procedure tcgx86.g_exception_reason_save_const(list : taasmoutput;const href : treference; a: aword);
      begin
         list.concat(Taicpu.op_const(A_PUSH,S_L,a));
      end;
-     
+
     procedure tcgx86.g_exception_reason_load(list : taasmoutput; const href : treference);
      begin
         list.concat(Taicpu.op_reg(A_POP,S_L,R_EAX));
@@ -1651,7 +1651,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.6  2002-08-09 19:18:27  carl
+  Revision 1.7  2002-08-10 10:06:04  jonas
+    * fixed stupid bug of mine in g_flags2reg() when optimizations are on
+
+  Revision 1.6  2002/08/09 19:18:27  carl
     * fix generic exception handling
 
   Revision 1.5  2002/08/04 19:52:04  carl
