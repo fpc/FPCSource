@@ -439,7 +439,7 @@ implementation
               else
 {$endif cpu64bit}
                 cg.a_op_const_loc(exprasmlist,addsubop[inlinenumber],
-                  addvalue,tcallparanode(left).left.location);
+                  aint(addvalue),tcallparanode(left).left.location);
             end
            else
              begin
@@ -686,7 +686,10 @@ end.
 
 {
   $Log$
-  Revision 1.61  2004-07-12 17:58:19  peter
+  Revision 1.62  2004-08-16 21:00:15  peter
+    * range checks fixed
+
+  Revision 1.61  2004/07/12 17:58:19  peter
     * remove maxlen field from ansistring/widestrings
 
   Revision 1.60  2004/06/20 08:55:29  florian

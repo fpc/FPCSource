@@ -541,9 +541,7 @@ implementation
              genitem(t^.less);
            { need we to test the first value }
            if first and (t^._low>get_min_value(left.resulttype.def)) then
-             begin
-                cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,t^._low,hregister,elselabel);
-             end;
+             cg.a_cmp_const_reg_label(exprasmlist,opsize,jmp_lt,aint(t^._low),hregister,elselabel);
            if t^._low=t^._high then
              begin
                 if t^._low-last=0 then
@@ -974,7 +972,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2004-07-22 10:07:09  jonas
+  Revision 1.66  2004-08-16 21:00:15  peter
+    * range checks fixed
+
+  Revision 1.65  2004/07/22 10:07:09  jonas
     * fixed relabeling (nextaltnr was never increased)
     * fixed inlining of case statements at the node level
 
