@@ -107,8 +107,8 @@ implementation
           end
          else
           begin
-            cg.a_loadaddr_ref_reg(exprasmlist,location.reference,location.reference.index);
             rg.ungetregisterint(exprasmlist,location.reference.base);
+            cg.a_loadaddr_ref_reg(exprasmlist,location.reference,location.reference.index);
             reference_reset_base(location.reference,location.reference.index,0);
           end;
          { insert the new index register and scalefactor or
@@ -142,7 +142,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-09-03 15:55:01  peter
+  Revision 1.55  2003-09-29 20:58:56  peter
+    * optimized releasing of registers
+
+  Revision 1.54  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.53.2.2  2003/08/31 15:46:26  peter

@@ -47,6 +47,7 @@ interface
 implementation
 
     uses
+      cutils,
       systems,
       verbose,globtype,globals,
       symconst,symtype,symdef,symsym,symtable,defutil,paramgr,
@@ -695,6 +696,129 @@ implementation
         elesize : longint;
         tmpreg  : tregister;
         paraloc : tparalocation;
+
+        procedure push_value(p:tnode);
+        var
+          href : treference;
+{$ifdef i386}
+          tempreference : treference;
+          sizetopush : longint;
+{$endif i386}
+          size : longint;
+          cgsize : tcgsize;
+        begin
+          { we've nothing to push when the size of the parameter is 0 }
+          if p.resulttype.def.size=0 then
+           exit;
+
+          if p.location.loc in [LOC_FLAGS,LOC_JUMP] then
+            internalerror(200309293);
+
+          { Handle Floating point types differently }
+          if p.resulttype.def.deftype=floatdef then
+            begin
+              location_release(exprasmlist,p.location);
+{$ifdef i386}
+              case p.location.loc of
+                LOC_FPUREGISTER,
+                LOC_CFPUREGISTER:
+                  begin
+                     size:=align(tfloatdef(p.resulttype.def).size,std_param_align);
+                     inc(pushedparasize,size);
+                     cg.g_stackpointer_alloc(exprasmlist,size);
+                     reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                     cg.a_loadfpu_reg_ref(exprasmlist,def_cgsize(p.resulttype.def),p.location.register,href);
+                  end;
+                LOC_REFERENCE,
+                LOC_CREFERENCE :
+                  begin
+                    sizetopush:=align(p.resulttype.def.size,std_param_align);
+                    tempreference:=p.location.reference;
+                    inc(tempreference.offset,sizetopush);
+                    while (sizetopush>0) do
+                     begin
+                       if sizetopush>=4 then
+                        begin
+                          cgsize:=OS_32;
+                          inc(pushedparasize,4);
+                          dec(tempreference.offset,4);
+                          dec(sizetopush,4);
+                        end
+                       else
+                        begin
+                          cgsize:=OS_16;
+                          inc(pushedparasize,2);
+                          dec(tempreference.offset,2);
+                          dec(sizetopush,2);
+                        end;
+                       cg.a_param_ref(exprasmlist,cgsize,tempreference,paraloc);
+                     end;
+                  end;
+                else
+                  internalerror(200204243);
+              end;
+{$else i386}
+              case p.location.loc of
+                LOC_FPUREGISTER,
+                LOC_CFPUREGISTER:
+                  cg.a_paramfpu_reg(exprasmlist,def_cgsize(p.resulttype.def),p.location.register,locpara);
+                LOC_REFERENCE,
+                LOC_CREFERENCE :
+                  cg.a_paramfpu_ref(exprasmlist,def_cgsize(p.resulttype.def),p.location.reference,locpara)
+                else
+                  internalerror(200204243);
+              end;
+{$endif i386}
+            end
+          else
+            begin
+              { copy the value on the stack or use normal parameter push? }
+              if paramanager.copy_value_on_stack(vs_value,p.resulttype.def,pocall_cdecl) then
+               begin
+                 location_release(exprasmlist,p.location);
+                 if not (p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                   internalerror(200204241);
+{$ifdef i386}
+                 { push on stack }
+                 size:=align(p.resulttype.def.size,std_param_align);
+                 inc(pushedparasize,size);
+                 cg.g_stackpointer_alloc(exprasmlist,size);
+                 reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                 cg.g_concatcopy(exprasmlist,p.location.reference,href,size,false,false);
+{$else i386}
+                 cg.a_param_copy_ref(exprasmlist,p.resulttype.def.size,p.location.reference,locpara);
+{$endif i386}
+               end
+              else
+               begin
+                 case p.location.loc of
+                   LOC_CONSTANT,
+                   LOC_REGISTER,
+                   LOC_CREGISTER,
+                   LOC_REFERENCE,
+                   LOC_CREFERENCE :
+                     begin
+                       cgsize:=def_cgsize(p.resulttype.def);
+                       if cgsize in [OS_64,OS_S64] then
+                        begin
+                          inc(pushedparasize,8);
+                          cg64.a_param64_loc(exprasmlist,p.location,paraloc);
+                          location_release(exprasmlist,p.location);
+                        end
+                       else
+                        begin
+                          location_release(exprasmlist,p.location);
+                          inc(pushedparasize,std_param_align);
+                          cg.a_param_loc(exprasmlist,p.location,paraloc);
+                        end;
+                     end;
+                   else
+                     internalerror(200204241);
+                 end;
+               end;
+            end;
+        end;
+
       begin
         dovariant:=(nf_forcevaria in flags) or tarraydef(resulttype.def).isvariant;
         if dovariant then
@@ -838,7 +962,7 @@ implementation
                      end
                     else
                       if vtype in [vtInt64,vtQword,vtExtended] then
-                        push_value_para(exprasmlist,hp.left,vs_value,pocall_cdecl,std_param_align,paraloc)
+                        push_value(hp.left)
                     else
                       begin
                         cg.a_param_loc(exprasmlist,hp.left.location,paraloc);
@@ -921,7 +1045,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2003-09-28 21:46:18  peter
+  Revision 1.88  2003-09-29 20:58:56  peter
+    * optimized releasing of registers
+
+  Revision 1.87  2003/09/28 21:46:18  peter
     * fix allocation of threadvar parameter
 
   Revision 1.86  2003/09/28 17:55:03  peter

@@ -102,12 +102,6 @@ implementation
        {$endif}
        ;
 
-
-    const
-      { Maximum number of loops when spilling registers }
-      maxspillingcounter = 20;
-
-
 {****************************************************************************
                       PROCEDURE/FUNCTION BODY PARSING
 ****************************************************************************}
@@ -584,6 +578,9 @@ implementation
         usesacc,
         usesfpu,
         usesacchi      : boolean;
+{$ifdef ra_debug}
+        i,
+{$endif ra_debug}
         spillingcounter : integer;
         fastspill:boolean;
       begin
@@ -622,9 +619,16 @@ implementation
         paramanager.create_paraloc_info(current_procinfo.procdef,calleeside);
 
         { Allocate space in temp/registers for parast and localst }
+        aktfilepos:=entrypos;
         gen_alloc_parast(aktproccode,tparasymtable(current_procinfo.procdef.parast));
         if current_procinfo.procdef.localst.symtabletype=localsymtable then
           gen_alloc_localst(aktproccode,tlocalsymtable(current_procinfo.procdef.localst));
+
+        { Load register parameters in temps and insert local copies
+          for values parameters. This must be done before the body is parsed
+          because the localloc is updated }
+        aktfilepos:=entrypos;
+        gen_load_para_value(aktproccode);
 
 {$warning FIXME!!}
         { FIXME!! If a procedure contains assembler blocks (or is pure assembler), }
@@ -688,9 +692,7 @@ implementation
         aktfilepos:=entrypos;
         gen_proc_symbol(templist);
         headertai:=tai(templist.last);
-        { add entry code after header }
-        gen_entry_code(templist,false);
-        { insert symbol and entry code }
+        { insert symbol }
         aktproccode.insertlist(templist);
 
         { Free space in temp/registers for parast and localst, must be
@@ -708,7 +710,7 @@ implementation
             spillingcounter:=0;
             repeat
 {$ifdef ra_debug}
-              if aktfilepos.line=2502 then
+              if aktfilepos.line=1206 then
                 rg.writegraph(spillingcounter);
 {$endif ra_debug}
               rg.prepare_colouring;
@@ -718,8 +720,21 @@ implementation
               if rg.spillednodes<>'' then
                 begin
                   inc(spillingcounter);
-                  if spillingcounter>maxspillingcounter then
+                  if spillingcounter>20 then
+{$ifdef ra_debug}
+                    break;
+{$else ra_debug}
                     internalerror(200309041);
+{$endif ra_debug}
+
+{$ifdef ra_debug}
+                  if aktfilepos.line=1207 then
+                    begin
+                      writeln('Spilling registers:');
+                      for i:=1 to length(rg.spillednodes) do
+                        writeln(ord(rg.spillednodes[i]));
+                    end;
+{$endif ra_debug}
                   fastspill:=rg.spill_registers(aktproccode,headertai,rg.spillednodes);
                 end;
             until (rg.spillednodes='') or not fastspill;
@@ -747,7 +762,11 @@ implementation
         aktproccode.insertlistafter(headertai,templist);
         { Add exit code at the end }
         aktfilepos:=exitpos;
-        gen_exit_code(templist,false,usesacc,usesacchi);
+        gen_stackfree_code(templist,usesacc,usesacchi);
+        aktproccode.concatlist(templist);
+        { Add end symbol and debug info }
+        aktfilepos:=exitpos;
+        gen_proc_symbol_end(templist);
         aktproccode.concatlist(templist);
 
         { save local data (casetable) also in the same file }
@@ -1288,7 +1307,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.153  2003-09-28 17:55:04  peter
+  Revision 1.154  2003-09-29 20:58:56  peter
+    * optimized releasing of registers
+
+  Revision 1.153  2003/09/28 17:55:04  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 

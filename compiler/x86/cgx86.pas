@@ -1111,14 +1111,14 @@ unit cgx86;
                   cgsize:=OS_16;
                 end;
               dec(len,copysize);
-              r:=rg.getregisterint(list,cgsize);
-              a_load_ref_reg(list,cgsize,cgsize,srcref,r);
               if (len=0) and delsource then
                 reference_release(list,source);
+              r:=rg.getregisterint(list,cgsize);
+              a_load_ref_reg(list,cgsize,cgsize,srcref,r);
+              rg.ungetregisterint(list,r);
               a_load_reg_ref(list,cgsize,cgsize,r,dstref);
               inc(srcref.offset,copysize);
               inc(dstref.offset,copysize);
-              rg.ungetregisterint(list,r);
             end;
         end
       else
@@ -1598,7 +1598,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.67  2003-09-28 13:37:19  peter
+  Revision 1.68  2003-09-29 20:58:56  peter
+    * optimized releasing of registers
+
+  Revision 1.67  2003/09/28 13:37:19  peter
     * a_call_ref removed
 
   Revision 1.66  2003/09/25 21:29:16  peter

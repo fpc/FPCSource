@@ -50,22 +50,16 @@ interface
 
     function  maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
 
-    procedure push_value_para(list:taasmoutput;p:tnode;
-                              varspez:tvarspez;
-                              calloption:tproccalloption;
-                              alignment:byte;
-                              const locpara : tparalocation);
-
-    procedure gen_load_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
-    procedure gen_initialize_code(list:TAAsmoutput;inlined:boolean);
-    procedure gen_finalize_code(list : TAAsmoutput;inlined:boolean);
-
     procedure gen_proc_symbol(list:Taasmoutput);
+    procedure gen_proc_symbol_end(list:Taasmoutput);
     procedure gen_stackalloc_code(list:Taasmoutput);
+    procedure gen_stackfree_code(list:Taasmoutput;usesacc,usesacchi:boolean);
     procedure gen_save_used_regs(list : TAAsmoutput);
     procedure gen_restore_used_regs(list : TAAsmoutput;usesacc,usesacchi,usesfpu:boolean);
-    procedure gen_entry_code(list:TAAsmoutput;inlined:boolean);
-    procedure gen_exit_code(list:TAAsmoutput;inlined,usesacc,usesacchi:boolean);
+    procedure gen_initialize_code(list:TAAsmoutput;inlined:boolean);
+    procedure gen_finalize_code(list : TAAsmoutput;inlined:boolean);
+    procedure gen_load_para_value(list:TAAsmoutput);
+    procedure gen_load_return_value(list:TAAsmoutput; var uses_acc,uses_acchi,uses_fpu : boolean);
 
 (*
     procedure geninlineentrycode(list : TAAsmoutput;stackframe:longint);
@@ -322,13 +316,17 @@ implementation
 
 {$ifndef cpu64bit}
     { 32-bit version }
-    procedure location_force(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
+    procedure location_force_reg(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
       var
         hregister,
         hregisterhi : tregister;
         hreg64 : tregister64;
         hl : tasmlabel;
+        oldloc : tlocation;
      begin
+        oldloc:=l;
+        if dst_size=OS_NO then
+          internalerror(200309144);
         { handle transformations to 64bit separate }
         if dst_size in [OS_64,OS_S64] then
          begin
@@ -341,7 +339,10 @@ implementation
                  cg.a_load_reg_reg(list,l.size,OS_32,l.registerlow,hregister);
                end
               else
-               hregister:=rg.getregisterint(list,OS_INT);
+               begin
+                 location_release(list,l);
+                 hregister:=rg.getregisterint(list,OS_INT);
+               end;
               { load value in low register }
               case l.loc of
                 LOC_FLAGS :
@@ -396,6 +397,7 @@ implementation
                begin
                  hregister:=rg.getregisterint(list,OS_INT);
                  hregisterhi:=rg.getregisterint(list,OS_INT);
+                 location_release(list,l);
                end;
               hreg64.reglo:=hregister;
               hreg64.reghi:=hregisterhi;
@@ -415,12 +417,11 @@ implementation
                rg.ungetregisterint(list,l.registerhigh);
                l.registerhigh:=NR_NO;
              end;
-            if l.loc=LOC_REGISTER then
-              rg.ungetregisterint(list,l.register);
            {Do not bother to recycle the existing register. The register
             allocator eliminates unnecessary moves, so it's not needed
             and trying to recycle registers can cause problems because
             the registers changes size and may need aditional constraints.}
+           location_release(list,l);
            hregister:=rg.getregisterint(list,dst_size);
            { load value in new register }
            case l.loc of
@@ -470,24 +471,34 @@ implementation
              location_reset(l,LOC_CREGISTER,dst_size);
            l.register:=hregister;
          end;
+       { Release temp when it was a reference }
+       if oldloc.loc=LOC_REFERENCE then
+         location_freetemp(list,oldloc);
      end;
 
 {$else cpu64bit}
 
     { 64-bit version }
-    procedure location_force(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
+    procedure location_force_reg(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
       var
         hregister : tregister;
         hl : tasmlabel;
+        oldloc : tlocation;
      begin
+        oldloc:=l;
+        if dst_size=OS_NO then
+          internalerror(200309144);
         { handle transformations to 64bit separate }
         if dst_size in [OS_64,OS_S64] then
-         begin
+          begin
               { load a smaller size to OS_64 }
               if l.loc=LOC_REGISTER then
                hregister:=rg.makeregsize(l.register,OS_INT)
               else
-               hregister:=rg.getregisterint(list,OS_INT);
+               begin
+                 location_release(list,l);
+                 hregister:=rg.getregisterint(list,OS_INT);
+               end;
               { load value in low register }
               case l.loc of
 {$ifdef cpuflags}
@@ -526,7 +537,10 @@ implementation
                  (TCGSize2Size[dst_size]=TCGSize2Size[l.size]) then
                hregister:=l.register
               else
-               hregister:=rg.getregisterint(list,OS_INT);
+               begin
+                 location_release(list,l);
+                 hregister:=rg.getregisterint(list,OS_INT);
+               end;
             end;
            hregister:=rg.makeregsize(hregister,dst_size);
            { load value in new register }
@@ -576,26 +590,11 @@ implementation
            location_reset(l,LOC_REGISTER,dst_size);
            l.register:=hregister;
          end;
+       { Release temp when it was a reference }
+       if oldloc.loc=LOC_REFERENCE then
+         location_freetemp(list,oldloc);
      end;
 {$endif cpu64bit}
-
-
-    procedure location_force_reg(list: TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
-
-    var oldloc:Tlocation;
-
-      begin
-        if dst_size=OS_NO then
-          internalerror(200309144);
-        oldloc:=l;
-        location_force(list, l, dst_size, maybeconst);
-        { release previous location before demanding a new register }
-        if (oldloc.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-         begin
-           location_freetemp(list,oldloc);
-           location_release(list,oldloc);
-         end;
-      end;
 
 
     procedure location_force_fpureg(list: TAAsmoutput;var l: tlocation;maybeconst:boolean);
@@ -672,204 +671,6 @@ implementation
       end;
 
 
-{*****************************************************************************
-                                Push Value Para
-*****************************************************************************}
-
-    procedure push_value_para(list:taasmoutput;p:tnode;
-                              varspez:tvarspez;
-                              calloption:tproccalloption;
-                              alignment:byte;
-                              const locpara : tparalocation);
-      var
-        href : treference;
-{$ifdef i386}
-        tempreference : treference;
-        sizetopush : longint;
-{$endif i386}
-        size : longint;
-        cgsize : tcgsize;
-      begin
-        { we've nothing to push when the size of the parameter is 0 }
-        if p.resulttype.def.size=0 then
-         exit;
-
-        { Move flags and jump in register to make it less complex }
-        if p.location.loc in [LOC_FLAGS,LOC_JUMP] then
-         location_force_reg(list,p.location,def_cgsize(p.resulttype.def),false);
-
-        { Handle Floating point types differently }
-        if p.resulttype.def.deftype=floatdef then
-         begin
-(*
-           if calloption=pocall_inline then
-             begin
-               size:=align(tfloatdef(p.resulttype.def).size,alignment);
-               inc(pushedparasize,size);
-               reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-               case p.location.loc of
-                 LOC_FPUREGISTER,
-                 LOC_CFPUREGISTER:
-                   cg.a_loadfpu_reg_ref(list,def_cgsize(p.resulttype.def),p.location.register,href);
-                 LOC_REFERENCE,
-                 LOC_CREFERENCE :
-                   cg.g_concatcopy(list,p.location.reference,href,size,false,false);
-                 else
-                   internalerror(200204243);
-               end;
-             end
-           else
-*)
-             begin
-               location_release(list,p.location);
-{$ifdef i386}
-               case p.location.loc of
-                 LOC_FPUREGISTER,
-                 LOC_CFPUREGISTER:
-                   begin
-                      size:=align(tfloatdef(p.resulttype.def).size,alignment);
-                      inc(pushedparasize,size);
-                      cg.g_stackpointer_alloc(list,size);
-                      reference_reset_base(href,NR_STACK_POINTER_REG,0);
-                      cg.a_loadfpu_reg_ref(list,def_cgsize(p.resulttype.def),p.location.register,href);
-                   end;
-                 LOC_REFERENCE,
-                 LOC_CREFERENCE :
-                   begin
-                     sizetopush:=align(p.resulttype.def.size,alignment);
-                     tempreference:=p.location.reference;
-                     inc(tempreference.offset,sizetopush);
-                     while (sizetopush>0) do
-                      begin
-                        if sizetopush>=4 then
-                         begin
-                           cgsize:=OS_32;
-                           inc(pushedparasize,4);
-                           dec(tempreference.offset,4);
-                           dec(sizetopush,4);
-                         end
-                        else
-                         begin
-                           cgsize:=OS_16;
-                           inc(pushedparasize,2);
-                           dec(tempreference.offset,2);
-                           dec(sizetopush,2);
-                         end;
-                        cg.a_param_ref(list,cgsize,tempreference,locpara);
-                      end;
-                   end;
-                 else
-                   internalerror(200204243);
-               end;
-{$else i386}
-               case p.location.loc of
-                 LOC_FPUREGISTER,
-                 LOC_CFPUREGISTER:
-                   cg.a_paramfpu_reg(list,def_cgsize(p.resulttype.def),p.location.register,locpara);
-                 LOC_REFERENCE,
-                 LOC_CREFERENCE :
-                   cg.a_paramfpu_ref(list,def_cgsize(p.resulttype.def),p.location.reference,locpara)
-                 else
-                   internalerror(200204243);
-               end;
-{$endif i386}
-             end;
-         end
-        else
-         begin
-           { copy the value on the stack or use normal parameter push? }
-           if paramanager.copy_value_on_stack(varspez,p.resulttype.def,calloption) then
-            begin
-              location_release(list,p.location);
-{$ifdef i386}
-              if not (p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-                internalerror(200204241);
-              { push on stack }
-              size:=align(p.resulttype.def.size,alignment);
-              inc(pushedparasize,size);
-              cg.g_stackpointer_alloc(list,size);
-              reference_reset_base(href,NR_STACK_POINTER_REG,0);
-              cg.g_concatcopy(list,p.location.reference,href,size,false,false);
-{$else i386}
-              cg.a_param_copy_ref(list,p.resulttype.def.size,p.location.reference,locpara);
-{$endif i386}
-            end
-           else
-            begin
-              case p.location.loc of
-                LOC_CONSTANT,
-                LOC_REGISTER,
-                LOC_CREGISTER,
-                LOC_REFERENCE,
-                LOC_CREFERENCE :
-                  begin
-                    cgsize:=def_cgsize(p.resulttype.def);
-                    if cgsize in [OS_64,OS_S64] then
-                     begin
-                       inc(pushedparasize,8);
-(*
-                       if calloption=pocall_inline then
-                        begin
-                          reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                          if p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-                            begin
-                              size:=align(p.resulttype.def.size,alignment);
-                              cg.g_concatcopy(list,p.location.reference,href,size,false,false)
-                            end
-                          else
-                            cg64.a_load64_loc_ref(list,p.location,href);
-                        end
-                       else
-*)
-                        cg64.a_param64_loc(list,p.location,locpara);
-                        location_release(list,p.location);
-                     end
-                    else
-                     begin
-                       location_release(list,p.location);
-                       inc(pushedparasize,alignment);
-(*
-                       if calloption=pocall_inline then
-                        begin
-                          reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                          if p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-                            begin
-                              size:=align(p.resulttype.def.size,alignment);
-                              cg.g_concatcopy(list,p.location.reference,href,size,false,false)
-                            end
-                          else
-                            cg.a_load_loc_ref(list,p.location.size,p.location,href);
-                        end
-                       else
-*)
-                        cg.a_param_loc(list,p.location,locpara);
-                     end;
-                  end;
-{$ifdef SUPPORT_MMX}
-                LOC_MMXREGISTER,
-                LOC_CMMXREGISTER:
-                  begin
-                     location_release(list,p.location);
-                     inc(pushedparasize,8);
-(*
-                     if calloption=pocall_inline then
-                       begin
-                          reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
-                          cg.a_loadmm_reg_ref(list,p.location.register,href);
-                       end
-                     else
-*)
-                      cg.a_parammm_reg(list,p.location.register);
-                  end;
-{$endif SUPPORT_MMX}
-                else
-                  internalerror(200204241);
-              end;
-           end;
-         end;
-      end;
-
-
 {****************************************************************************
                             Init/Finalize Code
 ****************************************************************************}
@@ -879,7 +680,9 @@ implementation
         href1,href2 : treference;
         list : taasmoutput;
         hsym : tvarsym;
+        l    : longint;
         loadref : boolean;
+        localcopyloc : tparalocation;
       begin
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
@@ -887,15 +690,15 @@ implementation
            (paramanager.push_addr_param(tvarsym(p).varspez,tvarsym(p).vartype.def,current_procinfo.procdef.proccalloption)) then
          begin
            loadref:=true;
-           case tvarsym(p).paraitem.paraloc[calleeside].loc of
+           case tvarsym(p).localloc.loc of
              LOC_REGISTER :
                begin
-                 reference_reset_base(href1,tvarsym(p).paraitem.paraloc[calleeside].register,0);
+                 reference_reset_base(href1,tvarsym(p).localloc.register,0);
                  loadref:=false;
                end;
              LOC_REFERENCE :
-               reference_reset_base(href1,tvarsym(p).paraitem.paraloc[calleeside].reference.index,
-                   tvarsym(p).paraitem.paraloc[calleeside].reference.offset);
+               reference_reset_base(href1,tvarsym(p).localloc.reference.index,
+                   tvarsym(p).localloc.reference.offset);
              else
                internalerror(200309181);
            end;
@@ -924,11 +727,20 @@ implementation
             begin
               if tvarsym(p).localloc.loc<>LOC_REFERENCE then
                 internalerror(200309183);
-              reference_reset_base(href2,tvarsym(p).localloc.reference.index,tvarsym(p).localloc.reference.offset);
+              { Allocate space for the local copy }
+              l:=tvarsym(p).getvaluesize;
+              localcopyloc.loc:=LOC_REFERENCE;
+              localcopyloc.size:=int_cgsize(l);
+              tg.GetLocal(list,l,localcopyloc.reference);
+              { Copy data }
+              reference_reset_base(href2,localcopyloc.reference.index,localcopyloc.reference.offset);
               if is_shortstring(tvarsym(p).vartype.def) then
                 cg.g_copyshortstring(list,href1,href2,tstringdef(tvarsym(p).vartype.def).len,false,loadref)
               else
                 cg.g_concatcopy(list,href1,href2,tvarsym(p).vartype.def.size,true,loadref);
+              { update localloc of varsym }
+              tg.Ungetlocal(list,tvarsym(p).localloc.reference);
+              tvarsym(p).localloc:=localcopyloc;
             end;
          end;
       end;
@@ -1274,16 +1086,13 @@ implementation
       end;
 
 
-    procedure gen_initialize_code(list:TAAsmoutput;inlined:boolean);
+    procedure gen_load_para_value(list:TAAsmoutput);
       var
         hp : tparaitem;
         href : treference;
-        paraloc1,
-        paraloc2 : tparalocation;
-        hregister : tregister;
         gotregvarparas : boolean;
       begin
-        { Save register parameters }
+        { Store register parameters in reference or in register variable }
         if assigned(current_procinfo.procdef.parast) and
            not (po_assembler in current_procinfo.procdef.procoptions) then
           begin
@@ -1294,20 +1103,6 @@ implementation
             gotregvarparas := false;
             while assigned(hp) do
               begin
-                if hp.paraloc[calleeside].loc=LOC_REGISTER then
-                  begin
-                    hregister:=rg.getregisterint(list,hp.paraloc[calleeside].size);
-                    rg.ungetregisterint(list,hregister);
-                    cg.a_load_param_reg(list,hp.paraloc[calleeside],hregister);
-                    rg.makeregvarint(getsupreg(hregister));
-                    { Update register }
-                    hp.paraloc[calleeside].register:=hregister;
-                    { Update localloc when there is no local copy }
-                    if not(vo_has_local_copy in tvarsym(hp.parasym).varoptions) then
-                      tvarsym(hp.parasym).localloc:=hp.paraloc[calleeside];
-                    gotregvarparas:=true;
-                  end;
-(*
                 case tvarsym(hp.parasym).localloc.loc of
                   LOC_REGISTER :
                     begin
@@ -1328,7 +1123,6 @@ implementation
                   else
                     internalerror(200309185);
                 end;
-*)
                 hp:=tparaitem(hp.next);
               end;
             if gotregvarparas then
@@ -1343,6 +1137,21 @@ implementation
                   end;
               end;
           end;
+
+        { generate copies of call by value parameters, must be done before
+          the initialization and body is parsed because the refcounts are
+          incremented using the local copies }
+        if not(po_assembler in current_procinfo.procdef.procoptions) then
+          current_procinfo.procdef.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas,list);
+      end;
+
+
+    procedure gen_initialize_code(list:TAAsmoutput;inlined:boolean);
+      var
+        href : treference;
+        paraloc1,
+        paraloc2 : tparalocation;
+      begin
         { the actual profile code can clobber some registers,
           therefore if the context must be saved, do it before
           the actual call to the profile code
@@ -1380,12 +1189,6 @@ implementation
 
         { initialisizes temp. ansi/wide string data }
         inittempvariables(list);
-
-        { generate copies of call by value parameters, must be done before
-          the initialization because the refcounts are incremented using
-          the local copies }
-        if not(po_assembler in current_procinfo.procdef.procoptions) then
-          current_procinfo.procdef.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas,list);
 
         { initialize ansi/widesstring para's }
         current_procinfo.procdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
@@ -1516,140 +1319,20 @@ implementation
       end;
 
 
-    procedure gen_stackalloc_code(list:Taasmoutput);
-      var
-        stackframe : longint;
-      begin
-        { Calculate size of stackframe }
-        stackframe:=current_procinfo.calc_stackframe_size;
-
-{$ifndef powerpc}
-        { at least for the ppc this applies always, so this code isn't usable (FK) }
-        { omit stack frame ? }
-        if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
-          begin
-            CGmessage(cg_d_stackframe_omited);
-            if stackframe<>0 then
-              cg.g_stackpointer_alloc(list,stackframe);
-          end
-        else
-{$endif powerpc}
-          begin
-            if (po_interrupt in current_procinfo.procdef.procoptions) then
-              cg.g_interrupt_stackframe_entry(list);
-
-            cg.g_stackframe_entry(list,stackframe);
-
-            {Never call stack checking before the standard system unit
-             has been initialized.}
-             if (cs_check_stack in aktlocalswitches) and (current_procinfo.procdef.proctypeoption<>potype_proginit) then
-               cg.g_stackcheck(list,stackframe);
-          end;
-      end;
-
-
-    procedure gen_save_used_regs(list : TAAsmoutput);
-      begin
-        { Pure assembler routines need to save the registers themselves }
-        if (po_assembler in current_procinfo.procdef.procoptions) then
-          exit;
-
-        { for the save all registers we can simply use a pusha,popa which
-          push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
-        if (po_saveregisters in current_procinfo.procdef.procoptions) then
-          cg.g_save_all_registers(list)
-        else
-          if current_procinfo.procdef.proccalloption in savestdregs_pocalls then
-            cg.g_save_standard_registers(list,rg.used_in_proc_int);
-      end;
-
-
-    procedure gen_restore_used_regs(list : TAAsmoutput;usesacc,usesacchi,usesfpu:boolean);
-      begin
-        { Pure assembler routines need to save the registers themselves }
-        if (po_assembler in current_procinfo.procdef.procoptions) then
-          exit;
-
-        { for the save all registers we can simply use a pusha,popa which
-          push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
-        if (po_saveregisters in current_procinfo.procdef.procoptions) then
-          cg.g_restore_all_registers(list,usesacc,usesacchi)
-        else
-          if current_procinfo.procdef.proccalloption in savestdregs_pocalls then
-            cg.g_restore_standard_registers(list,rg.used_in_proc_int);
-      end;
-
-
-    procedure gen_entry_code(list:TAAsmoutput;inlined:boolean);
-      var
-        href : treference;
-        hp : tparaitem;
-        gotregvarparas: boolean;
-      begin
-      end;
-
-
-    procedure gen_exit_code(list:TAAsmoutput;inlined,usesacc,usesacchi:boolean);
-      var
+    procedure gen_proc_symbol_end(list:Taasmoutput);
 {$ifdef GDB}
+      var
         stabsendlabel : tasmlabel;
         mangled_length : longint;
         p : pchar;
 {$endif GDB}
-        stacksize,
-        retsize : longint;
       begin
-
+        list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
 {$ifdef GDB}
-        if ((cs_debuginfo in aktmoduleswitches) and not inlined) then
+        if (cs_debuginfo in aktmoduleswitches) then
           begin
             objectlibrary.getlabel(stabsendlabel);
             cg.a_label(list,stabsendlabel);
-          end;
-{$endif GDB}
-
-{$ifndef powerpc}
-        { remove stackframe }
-        if not inlined then
-         begin
-           if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
-            begin
-              stacksize:=current_procinfo.calc_stackframe_size;
-              if (stacksize<>0) then
-                cg.a_op_const_reg(list,OP_ADD,OS_32,stacksize,current_procinfo.framepointer);
-            end
-           else
-            cg.g_restore_frame_pointer(list);
-         end;
-{$endif}
-
-        { at last, the return is generated }
-        if not inlined then
-         begin
-           if (po_interrupt in current_procinfo.procdef.procoptions) then
-            cg.g_interrupt_stackframe_exit(list,usesacc,usesacchi)
-           else
-            begin
-              if current_procinfo.procdef.proccalloption in clearstack_pocalls then
-                begin
-                  retsize:=0;
-                  if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
-                    inc(retsize,POINTER_SIZE);
-                end
-              else
-                begin
-                  retsize:=current_procinfo.para_stack_size;
-                end;
-              cg.g_return_from_proc(list,retsize);
-            end;
-         end;
-
-        if not inlined then
-          list.concat(Tai_symbol_end.Createname(current_procinfo.procdef.mangledname));
-
-{$ifdef GDB}
-        if (cs_debuginfo in aktmoduleswitches) and not inlined  then
-          begin
             { define calling EBP as pseudo local var PM }
             { this enables test if the function is a local one !! }
             {if  assigned(current_procinfo.parent) and
@@ -1711,6 +1394,104 @@ implementation
             freemem(p,2*mangled_length+50);
           end;
 {$endif GDB}
+      end;
+
+
+    procedure gen_stackalloc_code(list:Taasmoutput);
+      var
+        stackframe : longint;
+      begin
+        { Calculate size of stackframe }
+        stackframe:=current_procinfo.calc_stackframe_size;
+
+{$ifndef powerpc}
+        { at least for the ppc this applies always, so this code isn't usable (FK) }
+        { omit stack frame ? }
+        if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+          begin
+            CGmessage(cg_d_stackframe_omited);
+            if stackframe<>0 then
+              cg.g_stackpointer_alloc(list,stackframe);
+          end
+        else
+{$endif powerpc}
+          begin
+            if (po_interrupt in current_procinfo.procdef.procoptions) then
+              cg.g_interrupt_stackframe_entry(list);
+
+            cg.g_stackframe_entry(list,stackframe);
+
+            {Never call stack checking before the standard system unit
+             has been initialized.}
+             if (cs_check_stack in aktlocalswitches) and (current_procinfo.procdef.proctypeoption<>potype_proginit) then
+               cg.g_stackcheck(list,stackframe);
+          end;
+      end;
+
+
+    procedure gen_stackfree_code(list:Taasmoutput;usesacc,usesacchi:boolean);
+      var
+        stacksize,
+        retsize : longint;
+      begin
+{$ifndef powerpc}
+        { remove stackframe }
+        if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
+          begin
+            stacksize:=current_procinfo.calc_stackframe_size;
+            if (stacksize<>0) then
+              cg.a_op_const_reg(list,OP_ADD,OS_32,stacksize,current_procinfo.framepointer);
+          end
+        else
+          cg.g_restore_frame_pointer(list);
+{$endif}
+        { at last, the return is generated }
+        if (po_interrupt in current_procinfo.procdef.procoptions) then
+          cg.g_interrupt_stackframe_exit(list,usesacc,usesacchi)
+        else
+          begin
+            if current_procinfo.procdef.proccalloption in clearstack_pocalls then
+              begin
+                retsize:=0;
+                if paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption) then
+                  inc(retsize,POINTER_SIZE);
+              end
+            else
+              retsize:=current_procinfo.para_stack_size;
+            cg.g_return_from_proc(list,retsize);
+          end;
+      end;
+
+
+    procedure gen_save_used_regs(list : TAAsmoutput);
+      begin
+        { Pure assembler routines need to save the registers themselves }
+        if (po_assembler in current_procinfo.procdef.procoptions) then
+          exit;
+
+        { for the save all registers we can simply use a pusha,popa which
+          push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
+        if (po_saveregisters in current_procinfo.procdef.procoptions) then
+          cg.g_save_all_registers(list)
+        else
+          if current_procinfo.procdef.proccalloption in savestdregs_pocalls then
+            cg.g_save_standard_registers(list,rg.used_in_proc_int);
+      end;
+
+
+    procedure gen_restore_used_regs(list : TAAsmoutput;usesacc,usesacchi,usesfpu:boolean);
+      begin
+        { Pure assembler routines need to save the registers themselves }
+        if (po_assembler in current_procinfo.procdef.procoptions) then
+          exit;
+
+        { for the save all registers we can simply use a pusha,popa which
+          push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
+        if (po_saveregisters in current_procinfo.procdef.procoptions) then
+          cg.g_restore_all_registers(list,usesacc,usesacchi)
+        else
+          if current_procinfo.procdef.proccalloption in savestdregs_pocalls then
+            cg.g_restore_standard_registers(list,rg.used_in_proc_int);
       end;
 
 
@@ -1997,7 +1778,6 @@ implementation
     procedure gen_alloc_parast(list: taasmoutput;st:tparasymtable);
       var
         sym : tsym;
-        l   : longint;
       begin
         sym:=tsym(st.symindex.first);
         while assigned(sym) do
@@ -2006,41 +1786,29 @@ implementation
               begin
                 with tvarsym(sym) do
                   begin
-                    l:=getvaluesize;
-                    { Allocate local copy? }
-                    if (vo_has_local_copy in varoptions) and
-                       (l>0) then
+                    { Allocate imaginary register for register parameters }
+                    if paraitem.paraloc[calleeside].loc=LOC_REGISTER then
                       begin
-                        localloc.loc:=LOC_REFERENCE;
-                        localloc.size:=int_cgsize(l);
-                        tg.GetLocal(list,l,localloc.reference);
-                      end
-                    else
-                      begin
-                        { Allocate imaginary register for register parameters }
-                        if paraitem.paraloc[calleeside].loc=LOC_REGISTER then
-                          begin
-                            (*
+                        (*
 {$warning TODO Allocate register paras}
-                            localloc.loc:=LOC_REGISTER;
-                            localloc.size:=paraitem.paraloc[calleeside].size;
+                        localloc.loc:=LOC_REGISTER;
+                        localloc.size:=paraitem.paraloc[calleeside].size;
 {$ifndef cpu64bit}
-                            if localloc.size in [OS_64,OS_S64] then
-                              begin
-                                localloc.registerlow:=rg.getregisterint(list,OS_32);
-                                localloc.registerhigh:=rg.getregisterint(list,OS_32);
-                              end
-                            else
-{$endif cpu64bit}
-                              localloc.register:=rg.getregisterint(list,localloc.size);
-                              *)
-                            {localloc.loc:=LOC_REFERENCE;
-                            localloc.size:=paraitem.paraloc[calleeside].size;
-                            tg.GetLocal(list,tcgsize2size[localloc.size],localloc.reference);}
+                        if localloc.size in [OS_64,OS_S64] then
+                          begin
+                            localloc.registerlow:=rg.getregisterint(list,OS_32);
+                            localloc.registerhigh:=rg.getregisterint(list,OS_32);
                           end
                         else
-                          localloc:=paraitem.paraloc[calleeside];
-                      end;
+{$endif cpu64bit}
+                          localloc.register:=rg.getregisterint(list,localloc.size);
+                          *)
+                        localloc.loc:=LOC_REFERENCE;
+                        localloc.size:=paraitem.paraloc[calleeside].size;
+                        tg.GetLocal(list,tcgsize2size[localloc.size],localloc.reference);
+                      end
+                    else
+                      localloc:=paraitem.paraloc[calleeside];
                   end;
               end;
             sym:=tsym(sym.indexnext);
@@ -2088,7 +1856,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.151  2003-09-28 21:47:18  peter
+  Revision 1.152  2003-09-29 20:58:56  peter
+    * optimized releasing of registers
+
+  Revision 1.151  2003/09/28 21:47:18  peter
     * register paras and local copies updates
 
   Revision 1.150  2003/09/28 17:55:03  peter

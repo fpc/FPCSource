@@ -510,8 +510,8 @@ implementation
              LOC_CREFERENCE :
                begin
                  location_force_reg(exprasmlist,left.location,def_cgsize(resulttype.def),true);
-                 emit_reg_reg(A_TEST,opsize,left.location.register,left.location.register);
                  location_release(exprasmlist,left.location);
+                 emit_reg_reg(A_TEST,opsize,left.location.register,left.location.register);
                  location_reset(location,LOC_FLAGS,OS_NO);
                  location.resflags:=F_E;
                end;
@@ -569,7 +569,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2003-09-28 21:48:20  peter
+  Revision 1.62  2003-09-29 20:58:56  peter
+    * optimized releasing of registers
+
+  Revision 1.61  2003/09/28 21:48:20  peter
     * fix register leaks
 
   Revision 1.60  2003/09/03 15:55:01  peter

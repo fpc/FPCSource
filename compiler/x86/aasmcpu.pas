@@ -2218,7 +2218,7 @@ implementation
                       oper[1].typ:=top_reg;
                       oper[1].reg:=helpreg;
                       list.insertafter(helpins,self);
-                      rgunget(list,helpins,helpreg);
+                      rgunget(list,self,helpreg);
                     end;
                 end;
               end;
@@ -2233,7 +2233,7 @@ implementation
                   A_BT,A_BTS,
                   A_BTC,A_BTR :
                     begin
-                      {Yikes! We just changed the destination register into
+                      {Yikes! We just changed the source register into
                        a memory location above here.
 
                        Situation example:
@@ -2255,7 +2255,7 @@ implementation
                       dispose(oper[0].ref);
                       oper[0].typ:=top_reg;
                       oper[0].reg:=helpreg;
-                      rgunget(list,self,helpreg);
+                      rgunget(list,helpins,helpreg);
                     end;
                 end;
               end;
@@ -2317,7 +2317,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2003-09-28 21:49:30  peter
+  Revision 1.29  2003-09-29 20:58:56  peter
+    * optimized releasing of registers
+
+  Revision 1.28  2003/09/28 21:49:30  peter
     * fixed invalid opcode handling in spill registers
 
   Revision 1.27  2003/09/28 13:37:07  peter

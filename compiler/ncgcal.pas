@@ -35,6 +35,9 @@ interface
        tcgcallparanode = class(tcallparanode)
        private
           tempparaloc : tparalocation;
+          procedure allocate_tempparaloc;
+          procedure push_addr_para;
+          procedure push_value_para(calloption:tproccalloption;alignment:byte);
        public
           procedure secondcallparan(calloption:tproccalloption;alignment:byte);override;
        end;
@@ -97,12 +100,231 @@ implementation
                              TCGCALLPARANODE
 *****************************************************************************}
 
+    procedure tcgcallparanode.allocate_tempparaloc;
+      begin
+         { Allocate (temporary) paralocation }
+         tempparaloc:=paraitem.paraloc[callerside];
+         if tempparaloc.loc=LOC_REGISTER then
+           paramanager.alloctempregs(exprasmlist,tempparaloc)
+         else
+           paramanager.allocparaloc(exprasmlist,tempparaloc);
+      end;
+
+
+    procedure tcgcallparanode.push_addr_para;
+      begin
+        if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
+          internalerror(200304235);
+        location_release(exprasmlist,left.location);
+        allocate_tempparaloc;
+        cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
+      end;
+
+
+    procedure tcgcallparanode.push_value_para(calloption:tproccalloption;alignment:byte);
+      var
+        href : treference;
+{$ifdef i386}
+        tempreference : treference;
+        sizetopush : longint;
+{$endif i386}
+        size : longint;
+        cgsize : tcgsize;
+      begin
+        { we've nothing to push when the size of the parameter is 0 }
+        if left.resulttype.def.size=0 then
+          exit;
+
+        { Move flags and jump in register to make it less complex }
+        if left.location.loc in [LOC_FLAGS,LOC_JUMP] then
+          location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
+
+        { Handle Floating point types differently }
+        if left.resulttype.def.deftype=floatdef then
+         begin
+(*
+           if calloption=pocall_inline then
+             begin
+               size:=align(tfloatdef(p.resulttype.def).size,alignment);
+               inc(pushedparasize,size);
+               reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
+               case left.location.loc of
+                 LOC_FPUREGISTER,
+                 LOC_CFPUREGISTER:
+                   cg.a_loadfpu_reg_ref(exprasmlist,def_cgsize(p.resulttype.def),left.location.register,href);
+                 LOC_REFERENCE,
+                 LOC_CREFERENCE :
+                   cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false);
+                 else
+                   internalerror(200204243);
+               end;
+             end
+           else
+*)
+             begin
+               location_release(exprasmlist,left.location);
+               allocate_tempparaloc;
+{$ifdef i386}
+               case left.location.loc of
+                 LOC_FPUREGISTER,
+                 LOC_CFPUREGISTER:
+                   begin
+                      if tempparaloc.loc<>LOC_REFERENCE then
+                        internalerror(200309291);
+                      size:=align(tfloatdef(left.resulttype.def).size,alignment);
+                      inc(pushedparasize,size);
+                      cg.g_stackpointer_alloc(exprasmlist,size);
+                      reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                      cg.a_loadfpu_reg_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,href);
+                   end;
+                 LOC_REFERENCE,
+                 LOC_CREFERENCE :
+                   begin
+                     sizetopush:=align(left.resulttype.def.size,alignment);
+                     tempreference:=left.location.reference;
+                     inc(tempreference.offset,sizetopush);
+                     while (sizetopush>0) do
+                      begin
+                        if sizetopush>=4 then
+                         begin
+                           cgsize:=OS_32;
+                           inc(pushedparasize,4);
+                           dec(tempreference.offset,4);
+                           dec(sizetopush,4);
+                         end
+                        else
+                         begin
+                           cgsize:=OS_16;
+                           inc(pushedparasize,2);
+                           dec(tempreference.offset,2);
+                           dec(sizetopush,2);
+                         end;
+                        cg.a_param_ref(exprasmlist,cgsize,tempreference,tempparaloc);
+                      end;
+                   end;
+                 else
+                   internalerror(200204243);
+               end;
+{$else i386}
+               case left.location.loc of
+                 LOC_FPUREGISTER,
+                 LOC_CFPUREGISTER:
+                   cg.a_paramfpu_reg(exprasmlist,def_cgsize(p.resulttype.def),left.location.register,tempparaloc);
+                 LOC_REFERENCE,
+                 LOC_CREFERENCE :
+                   cg.a_paramfpu_ref(exprasmlist,def_cgsize(p.resulttype.def),left.location.reference,tempparaloc)
+                 else
+                   internalerror(200204243);
+               end;
+{$endif i386}
+             end;
+         end
+        else
+         begin
+           { copy the value on the stack or use normal parameter push? }
+           if paramanager.copy_value_on_stack(paraitem.paratyp,left.resulttype.def,calloption) then
+            begin
+              location_release(exprasmlist,left.location);
+              allocate_tempparaloc;
+{$ifdef i386}
+              if tempparaloc.loc<>LOC_REFERENCE then
+                internalerror(200309292);
+              if not (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                internalerror(200204241);
+              { push on stack }
+              size:=align(left.resulttype.def.size,alignment);
+              inc(pushedparasize,size);
+              cg.g_stackpointer_alloc(exprasmlist,size);
+              reference_reset_base(href,NR_STACK_POINTER_REG,0);
+              cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false);
+{$else i386}
+              cg.a_param_copy_ref(exprasmlist,left.resulttype.def.size,left.location.reference,tempparaloc);
+{$endif i386}
+            end
+           else
+            begin
+              case left.location.loc of
+                LOC_CONSTANT,
+                LOC_REGISTER,
+                LOC_CREGISTER,
+                LOC_REFERENCE,
+                LOC_CREFERENCE :
+                  begin
+                    cgsize:=def_cgsize(left.resulttype.def);
+                    if cgsize in [OS_64,OS_S64] then
+                     begin
+                       inc(pushedparasize,8);
+(*
+                       if calloption=pocall_inline then
+                        begin
+                          reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
+                          if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+                            begin
+                              size:=align(p.resulttype.def.size,alignment);
+                              cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false)
+                            end
+                          else
+                            cg64.a_load64_loc_ref(exprasmlist,left.location,href);
+                        end
+                       else
+*)
+                        allocate_tempparaloc;
+                        cg64.a_param64_loc(exprasmlist,left.location,tempparaloc);
+                        location_release(exprasmlist,left.location);
+                     end
+                    else
+                     begin
+                       location_release(exprasmlist,left.location);
+                       allocate_tempparaloc;
+                       inc(pushedparasize,alignment);
+(*
+                       if calloption=pocall_inline then
+                        begin
+                          reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
+                          if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
+                            begin
+                              size:=align(p.resulttype.def.size,alignment);
+                              cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false)
+                            end
+                          else
+                            cg.a_load_loc_ref(exprasmlist,left.location.size,left.location,href);
+                        end
+                       else
+*)
+                        cg.a_param_loc(exprasmlist,left.location,tempparaloc);
+                     end;
+                  end;
+{$ifdef SUPPORT_MMX}
+                LOC_MMXREGISTER,
+                LOC_CMMXREGISTER:
+                  begin
+                     location_release(exprasmlist,left.location);
+                     allocate_tempparaloc;
+                     inc(pushedparasize,8);
+(*
+                     if calloption=pocall_inline then
+                       begin
+                          reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
+                          cg.a_loadmm_reg_ref(exprasmlist,left.location.register,href);
+                       end
+                     else
+*)
+                      cg.a_parammm_reg(exprasmlist,left.location.register);
+                  end;
+{$endif SUPPORT_MMX}
+                else
+                  internalerror(200204241);
+              end;
+           end;
+         end;
+      end;
+
+
+
     procedure tcgcallparanode.secondcallparan(calloption:tproccalloption;alignment:byte);
       var
          otlabel,
          oflabel : tasmlabel;
-         tmpreg  : tregister;
-         href    : treference;
       begin
          if not(assigned(paraitem.paratype.def) or
                 assigned(paraitem.parasym)) then
@@ -119,24 +341,13 @@ implementation
          objectlibrary.getlabel(falselabel);
          secondpass(left);
 
-         { Allocate (temporary) paralocation }
-         tempparaloc:=paraitem.paraloc[callerside];
-         if tempparaloc.loc=LOC_REGISTER then
-           paramanager.alloctempregs(exprasmlist,tempparaloc)
-         else
-           paramanager.allocparaloc(exprasmlist,tempparaloc);
-
          { handle varargs first, because defcoll is not valid }
          if (nf_varargs_para in flags) then
            begin
              if paramanager.push_addr_param(vs_value,left.resulttype.def,calloption) then
-               begin
-                 inc(pushedparasize,POINTER_SIZE);
-                 location_release(exprasmlist,left.location);
-                 cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
-               end
+               push_addr_para
              else
-               push_value_para(exprasmlist,left,vs_value,calloption,alignment,tempparaloc);
+               push_value_para(calloption,alignment);
            end
          { hidden parameters }
          else if paraitem.is_hidden then
@@ -146,18 +357,9 @@ implementation
              if (vo_is_funcret in tvarsym(paraitem.parasym).varoptions) or
                 (not(left.resulttype.def.deftype in [pointerdef,classrefdef]) and
                  paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,calloption)) then
-               begin
-                  if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-                    internalerror(200305071);
-
-                  inc(pushedparasize,POINTER_SIZE);
-                  location_release(exprasmlist,left.location);
-                  cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
-               end
+               push_addr_para
              else
-               begin
-                 push_value_para(exprasmlist,left,paraitem.paratyp,calloption,alignment,tempparaloc);
-               end;
+               push_value_para(calloption,alignment);
            end
          { filter array of const c styled args }
          else if is_array_of_const(left.resulttype.def) and (nf_cargs in left.flags) then
@@ -174,21 +376,16 @@ implementation
                 location_force_mem(exprasmlist,left.location);
 
               { allow @var }
-              inc(pushedparasize,POINTER_SIZE);
               if (left.nodetype=addrn) and
                  (not(nf_procvarload in left.flags)) then
                 begin
+                  inc(pushedparasize,POINTER_SIZE);
                   location_release(exprasmlist,left.location);
+                  allocate_tempparaloc;
                   cg.a_param_loc(exprasmlist,left.location,tempparaloc);
                 end
               else
-                begin
-                   if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-                     internalerror(200304235);
-
-                   location_release(exprasmlist,left.location);
-                   cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
-                end;
+                push_addr_para;
            end
          { Normal parameter }
          else
@@ -211,18 +408,13 @@ implementation
                             is_self_node(left)) then
                       internalerror(200106041);
                    end;
-                  { Move to memory }
+                  { Force to be in memory }
                   if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                     location_force_mem(exprasmlist,left.location);
-                  { Push address }
-                  inc(pushedparasize,POINTER_SIZE);
-                  location_release(exprasmlist,left.location);
-                  cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
+                  push_addr_para;
                end
              else
-               begin
-                 push_value_para(exprasmlist,left,paraitem.paratyp,calloption,alignment,tempparaloc);
-               end;
+               push_value_para(calloption,alignment);
            end;
          truelabel:=otlabel;
          falselabel:=oflabel;
@@ -429,7 +621,7 @@ implementation
          { adress returned from an I/O-error }
          iolabel : tasmlabel;
          { help reference pointer }
-         href,helpref : treference;
+         href : treference;
          para_alignment,
          pop_size : longint;
          pvreg,
@@ -553,9 +745,6 @@ implementation
          oldpushedparasize:=pushedparasize;
          pushedparasize:=0;
 
-         { Align stack if required }
-         pop_size:=align_parasize;
-
          { Process parameters, register parameters will be loaded
            in imaginary registers. The actual load to the correct
            register is done just before the call }
@@ -564,6 +753,9 @@ implementation
          if assigned(left) then
            tcallparanode(left).secondcallparan(procdefinition.proccalloption,procdefinition.paraalign);
          aktcallnode:=oldaktcallnode;
+
+         { Align stack if required }
+         pop_size:=align_parasize;
 
          { procedure variable or normal function call ? }
          if (right=nil) then
@@ -642,11 +834,12 @@ implementation
            { now procedure variable case }
            begin
               secondpass(right);
+
               location_release(exprasmlist,right.location);
               pvreg:=rg.getabtregisterint(exprasmlist,OS_ADDR);
               rg.ungetregisterint(exprasmlist,pvreg);
               { Only load OS_ADDR from the reference }
-              if right.location.loc in  [LOC_REFERENCE,LOC_CREFERENCE] then
+              if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,right.location.reference,pvreg)
               else
                 cg.a_load_loc_reg(exprasmlist,OS_ADDR,right.location,pvreg);
@@ -1111,7 +1304,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.119  2003-09-28 17:55:03  peter
+  Revision 1.120  2003-09-29 20:58:55  peter
+    * optimized releasing of registers
+
+  Revision 1.119  2003/09/28 17:55:03  peter
     * parent framepointer changed to hidden parameter
     * tloadparentfpnode added
 

@@ -289,9 +289,8 @@ implementation
             paramanager.allocparaloc(exprasmlist,paraloc1);
             cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
             paramanager.freeparaloc(exprasmlist,paraloc1);
-            rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+            { FPC_CHECKPOINTER uses saveregisters }
             cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-            rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
           end;
       end;
 
@@ -342,15 +341,14 @@ implementation
                 paramanager.allocparaloc(exprasmlist,paraloc1);
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(exprasmlist,paraloc1);
-                rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+                { FPC_CHECKPOINTER uses saveregisters }
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-                rg.deallocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
               end;
            end
          else if is_interfacecom(left.resulttype.def) then
            begin
-              tg.GetTemp(exprasmlist,pointer_size,tt_interfacecom,location.reference);
-              cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,location.reference);
+             tg.GetTemp(exprasmlist,pointer_size,tt_interfacecom,location.reference);
+             cg.a_load_loc_ref(exprasmlist,OS_ADDR,left.location,location.reference);
              { implicit deferencing also for interfaces }
              if (cs_gdb_heaptrc in aktglobalswitches) and
                 (cs_checkpointer in aktglobalswitches) and
@@ -360,11 +358,9 @@ implementation
                 paramanager.allocparaloc(exprasmlist,paraloc1);
                 cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(exprasmlist,paraloc1);
-                rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
+                { FPC_CHECKPOINTER uses saveregisters }
                 cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-                rg.allocexplicitregistersint(exprasmlist,paramanager.get_volatile_registers_int(pocall_default));
               end;
-
            end
          else
            location_copy(location,left.location);
@@ -537,6 +533,7 @@ implementation
                objectlibrary.getlabel(neglabel);
                objectlibrary.getlabel(poslabel);
                cg.a_cmp_const_reg_label(exprasmlist,OS_INT,OC_LT,0,hreg,poslabel);
+               location_release(exprasmlist,hightree.location);
                cg.a_cmp_loc_reg_label(exprasmlist,OS_INT,OC_BE,hightree.location,hreg,neglabel);
                if freereg then
                  rg.ungetregisterint(exprasmlist,hreg);
@@ -544,7 +541,6 @@ implementation
                cg.a_call_name(exprasmlist,'FPC_RANGEERROR');
                cg.a_label(exprasmlist,neglabel);
                { release hightree }
-               location_release(exprasmlist,hightree.location);
                hightree.free;
              end;
           end
@@ -874,7 +870,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2003-09-28 21:45:52  peter
+  Revision 1.76  2003-09-29 20:58:56  peter
+    * optimized releasing of registers
+
+  Revision 1.75  2003/09/28 21:45:52  peter
     * fix register leak in with debug
 
   Revision 1.74  2003/09/28 17:55:03  peter

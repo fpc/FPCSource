@@ -1663,9 +1663,8 @@ unit rgobj;
     end;
 
     procedure Trgobj.select_spill;
-
-    var n:char;
-
+    var
+      n : char;
     begin
       {This code is WAY too naive. We need not to select just a register, but
        the register that is used the least...}
@@ -1735,7 +1734,7 @@ unit rgobj;
             include(used_in_proc_int,colour[k]);
         end;
 {$ifdef ra_debug}
-      if aktfilepos.line=2502 then
+      if aktfilepos.line=-1 then
         begin
           writeln('colourlist ',length(freezeworklist));
           for i:=0 to maxintreg do
@@ -1926,16 +1925,17 @@ unit rgobj;
               adj:=igraph.adjlist[Tsuperregister(i)];
               if adj=nil then
                 begin
+                  p:=i;
                   min:=0;
                   break;  {We won't find smaller ones.}
                 end
               else
                 if length(adj^)<min then
                   begin
+                    p:=i;
                     min:=length(adj^);
                     if min=0 then
                       break;  {We won't find smaller ones.}
-                    p:=i;
                   end;
             end;
         end;
@@ -1949,6 +1949,10 @@ unit rgobj;
            internalerror(10);
 {$endif}
          end;
+
+{$ifdef ra_debug}
+       writeln('Spilling temp: ',p,' min ',min);
+{$endif ra_debug}
 
        exclude(unusedregsint,p);
        include(used_in_proc_int,p);
@@ -2257,7 +2261,10 @@ end.
 
 {
   $Log$
-  Revision 1.78  2003-09-28 13:41:12  peter
+  Revision 1.79  2003-09-29 20:58:56  peter
+    * optimized releasing of registers
+
+  Revision 1.78  2003/09/28 13:41:12  peter
     * return reg 255 when allowdupreg is defined
 
   Revision 1.77  2003/09/25 16:19:32  peter
