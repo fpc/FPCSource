@@ -82,39 +82,46 @@ interface
         outbuf   : array[0..AsmOutSize-1] of char;
         outfile  : file;
       public
-        {# Returns the complete path and executable name of the assembler program.
+        {# Returns the complete path and executable name of the assembler
+           program.
 
-           It first tries looking in the UTIL directory if specified, otherwise
-           it searches in the free pascal binary directory, in the current
-           working directory and the in the  directories in the $PATH environment.
-        }
+           It first tries looking in the UTIL directory if specified,
+           otherwise it searches in the free pascal binary directory, in
+           the current working directory and then in the  directories
+           in the $PATH environment.}
         Function  FindAssembler:string;
+
         {# Actually does the call to the assembler file. Returns false
-           if the assembling of the file failed.
-        }
+           if the assembling of the file failed.}
         Function  CallAssembler(const command,para:string):Boolean;
+
         Function  DoAssemble:boolean;virtual;
         Procedure RemoveAsm;
         Procedure AsmFlush;
         Procedure AsmClear;
+
         {# Write a string to the assembler file }
         Procedure AsmWrite(const s:string);
+
         {# Write a string to the assembler file }
         Procedure AsmWritePChar(p:pchar);
+
         {# Write a string to the assembler file followed by a new line }
         Procedure AsmWriteLn(const s:string);
+
         {# Write a new line to the assembler file }
         Procedure AsmLn;
+
         procedure AsmCreate(Aplace:tcutplace);
         procedure AsmClose;
+
         {# This routine should be overriden for each assembler, it is used
-           to actually write the abstract assembler stream to file.
-        }
+           to actually write the abstract assembler stream to file.}
         procedure WriteTree(p:TAAsmoutput);virtual;
+
         {# This routine should be overriden for each assembler, it is used
            to actually write all the different abstract assembler streams
-           by calling for each stream type, the @var(WriteTree) method.
-        }
+           by calling for each stream type, the @var(WriteTree) method.}
         procedure WriteAsmList;virtual;
       public
         Constructor Create(smart:boolean);override;
@@ -1607,7 +1614,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.49  2003-01-10 21:49:00  marco
+  Revision 1.50  2003-03-10 18:16:00  olle
+    * niceified comments
+
+  Revision 1.49  2003/01/10 21:49:00  marco
    * more hasunix fixes
 
   Revision 1.48  2002/11/24 18:21:49  carl
