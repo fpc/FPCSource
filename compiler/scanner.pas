@@ -973,48 +973,46 @@ implementation
                   found:=2;
                end;
              '''' :
-               if (m_tp in aktmodeswitches) or
-                  (m_delphi in aktmodeswitches) then
-                begin
-                  repeat
-                    readchar;
-                    case c of
-                      #26 :
-                        end_of_file;
-                      newline :
-                        break;
-                      '''' :
-                        begin
-                          readchar;
-                          if c<>'''' then
-                           break;
-                        end;
-                    end;
-                  until false;
-                end;
-             '(' :
-                begin
-                  readchar;
-                  if c='*' then
-                    begin
-                      readchar;
-                      if c='$' then
+               begin
+                 repeat
+                   readchar;
+                   case c of
+                     #26 :
+                       end_of_file;
+                     newline :
+                       break;
+                     '''' :
                        begin
-                         found:=2;
-                         inc_comment_level;
-                         aktcommentstyle:=comment_oldtp;
-                       end
-                      else
-                       begin
-                         skipoldtpcomment;
-                         aktcommentstyle:=oldcommentstyle;
+                         readchar;
+                         if c<>'''' then
+                          break;
                        end;
-                    end
-                  else
-                    next_char_loaded:=true;
-                end;
+                   end;
+                 until false;
+               end;
+             '(' :
+               begin
+                 readchar;
+                 if c='*' then
+                   begin
+                     readchar;
+                     if c='$' then
+                      begin
+                        found:=2;
+                        inc_comment_level;
+                        aktcommentstyle:=comment_oldtp;
+                      end
+                     else
+                      begin
+                        skipoldtpcomment;
+                        aktcommentstyle:=oldcommentstyle;
+                      end;
+                   end
+                 else
+                   next_char_loaded:=true;
+               end;
              else
-                found:=0;
+               found:=0;
            end;
            if next_char_loaded then
              next_char_loaded:=false
@@ -1835,7 +1833,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.114  2000-06-30 20:23:38  peter
+  Revision 1.115  2000-07-08 16:22:30  peter
+    * also support string parsing in skipuntildirective for fpc modes
+
+  Revision 1.114  2000/06/30 20:23:38  peter
     * new message files layout with msg numbers (but still no code to
       show the number on the screen)
 
