@@ -36,6 +36,9 @@ ifndef RTLOPTS
 RTLOPTS=
 endif
 
+# Message files
+MSGFILES=errore.msg errord.msg errorn.msg 
+
 
 #####################################################################
 # Defaults
@@ -336,7 +339,7 @@ ifdef inlinux
 	makecfg $(LIBINSTALLDIR)/samplecfg
 endif
 	$(MKDIR) $(MSGINSTALLDIR)
-	$(INSTALL) errore.msg errorn.msg $(MSGINSTALLDIR)
+	$(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
 
 # this also installs the link /usr/bin/ppc386. The .deb does that later
 install: testfpcmake installlib
@@ -383,7 +386,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.27  1999-04-26 13:31:24  peter
+# Revision 1.28  1999-05-09 11:36:32  peter
+#   * makecfg inserted
+#
+# Revision 1.27  1999/04/26 13:31:24  peter
 #   * release storenumber,double_checksum
 #
 # Revision 1.26  1999/04/09 10:14:19  peter
