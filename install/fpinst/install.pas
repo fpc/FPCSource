@@ -63,6 +63,9 @@ program install;
   {$ENDIF VirtualPascal}
  {$ENDIF FPC}
 {$ENDIF OS2}
+{$IFDEF GO32V2}
+     emu387,
+{$ENDIF}
 {$ifdef HEAPTRC}
      heaptrc,
 {$endif HEAPTRC}
@@ -74,11 +77,14 @@ program install;
 {$IFDEF DLL}
      unzipdll,
 {$ENDIF}
-     app,dialogs,views,menus,msgbox,colortxt,tabs,inststr;
+     app,dialogs,views,menus,msgbox,colortxt,tabs,inststr,scroll;
 
 
   const
      installerversion='1.02';
+
+
+     {$ifdef TP}lfnsupport=false;{$endif}
 
      maxpacks=10;
      maxpackages=20;
@@ -149,6 +155,7 @@ program install;
      punzipdialog=^tunzipdialog;
      tunzipdialog=object(tdialog)
         filetext : pstatictext;
+        extractfiletext : pstatictext;
         constructor Init(var Bounds: TRect; ATitle: TTitleStr);
         procedure do_unzip(s,topath:string);
      end;
@@ -466,17 +473,33 @@ program install;
     begin
       inherited init(bounds,atitle);
 (*      R.Assign (11, 4, 38, 6);*)
-      R.Assign (1, 4, 39, 6);
+      R.Assign (1, 4,bounds.B.X-Bounds.A.X-2, 6);
       filetext:=new(pstatictext,init(r,#3'File: '));
       insert(filetext);
+      R.Assign (1, 7,bounds.B.X-Bounds.A.X-2, 9);
+      extractfiletext:=new(pstatictext,init(r,#3' '));
+      insert(extractfiletext);
     end;
 
 {$IFNDEF DLL}
   procedure UnzipCheckFn (Retcode: longint; Rec: pReportRec );{$ifdef Delphi32}STDCALL;{$endif}
   {$IFNDEF BIT32} FAR;{$ENDIF BIT32}
+  var
+    name : string;
   begin
     case Rec^.Status of
-     unzip_starting: UnzipErr := 0;
+     unzip_starting:
+         UnzipErr := 0;
+     file_starting:
+        begin
+         with UnzDlg^.extractfiletext^ do
+         begin
+          Disposestr(text);
+          name:=Strpas(Rec^.FileName);
+          Text:=NewStr(#3+name);
+          DrawView;
+         end;
+        end;
      file_failure: UnzipErr := RetCode;
      file_unzipping:
         begin
@@ -730,6 +753,9 @@ program install;
        titletext : pcoloredtext;
        labcfg : plabel;
        cfgcb : pcheckboxes;
+       scrollbox: pscrollbox;
+       sbr,sbsbr: trect;
+       sbsb: pscrollbar;
     begin
        f:=nil;
      { walk packages reverse and insert a newsitem for each, and set the mask }
@@ -822,18 +848,39 @@ program install;
        {-------- Pack Sheets ----------}
        for j:=1 to cfg.packs do
         begin
-          R.Copy (TabIR);
+          R.Copy(TabIR);
+          if R.A.Y+cfg.pack[j].packages>R.B.Y then
+            R.B.Y:=R.A.Y+cfg.pack[j].packages;
           new(packcbs[j],init(r,items[j]));
           if data.packmask[j]=$ffff then
            data.packmask[j]:=packmask[j];
-          packcbs[j]^.enablemask:=packmask[j];
+          packcbs[j]^.enablemask:={$ifdef DEV}$7fffffff{$else}packmask[j]{$endif};
           packcbs[j]^.movedto(firstitem[j]);
         end;
 
        {--------- Main ---------}
        packtd:=nil;
+       sbr.assign(1,3,tabr.b.x-tabr.a.x-3,tabr.b.y-tabr.a.y-1);
        for j:=cfg.packs downto 1 do
-        packtd:=NewTabDef(cfg.pack[j].name,packcbs[j],NewTabItem(packcbs[j],nil),packtd);
+       begin
+         if (sbr.b.y-sbr.a.y)<cfg.pack[j].packages then
+          begin
+            sbsbr.assign(sbr.b.x,sbr.a.y,sbr.b.x+1,sbr.b.y);
+            New(sbsb, init(sbsbr));
+          end
+         else
+           sbsb:=nil;
+         New(ScrollBox, Init(sbr, nil, sbsb));
+         PackCbs[j]^.MoveTo(0,0);
+         ScrollBox^.Insert(PackCbs[j]);
+
+         packtd:=NewTabDef(
+           cfg.pack[j].name,ScrollBox,
+             NewTabItem(sbsb,
+             NewTabItem(ScrollBox,
+             nil)),
+           packtd);
+       end;
 
        New(Tab, Init(TabR,
          NewTabDef(dialog_install_general,IlPath,
@@ -846,6 +893,7 @@ program install;
          packtd)
        ));
        Tab^.GrowMode:=0;
+
        Insert(Tab);
 
        line:=tabr.b.y;
@@ -1038,7 +1086,7 @@ program install;
       for j:=1 to cfg.packs do
        with cfg.pack[j] do
         begin
-          r.assign(20,7,60,16);
+          r.assign(10,7,70,18);
           UnzDlg:=new(punzipdialog,init(r,dialog_unzipdialog_title));
           desktop^.insert(UnzDlg);
           for i:=1 to packages do
@@ -1442,7 +1490,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-09-22 12:15:49  florian
+  Revision 1.7  2000-09-22 23:13:37  pierre
+     * add emulation for go32v2 and display currently extraced file
+     and changes by Gabor for scrolling support (merged)
+
+  Revision 1.6  2000/09/22 12:15:49  florian
     + support of Russian (Windows)
 
   Revision 1.5  2000/09/22 11:07:51  florian
@@ -1460,113 +1512,5 @@ end.
 
   Revision 1.1  2000/07/13 06:30:21  michael
   + Initial import
-
-  Revision 1.20  2000/07/09 12:55:45  hajny
-    * updated for version 1.0
-
-  Revision 1.19  2000/06/18 18:27:32  hajny
-    + archive validity checking, progress indicator, better error checking
-
-  Revision 1.18  2000/02/24 17:47:47  peter
-    * last fixes for 0.99.14a release
-
-  Revision 1.17  2000/02/23 17:17:56  peter
-    * write ppc386.cfg for all found targets
-
-  Revision 1.16  2000/02/06 12:59:39  peter
-    * change upper -> upcase
-    * fixed stupid debugging leftover with diskspace check
-
-  Revision 1.15  2000/02/02 17:19:10  pierre
-   * avoid diskfree problem and get mouse visible
-
-  Revision 1.14  2000/02/02 15:21:31  peter
-    * show errorcode in message when error in unzipping
-
-  Revision 1.13  2000/01/26 21:49:33  peter
-    * install.pas compilable by FPC again
-    * removed some notes from unzip.pas
-    * support installer creation under linux (install has name conflict)
-
-  Revision 1.12  2000/01/26 21:15:59  hajny
-    * compilable with TP again (lines < 127install.pas, ifdef around findclose)
-
-  Revision 1.11  2000/01/24 22:21:48  peter
-    * new install version (keys not wrong correct yet)
-
-  Revision 1.10  2000/01/18 00:22:48  peter
-    * fixed uninited local var
-
-  Revision 1.9  1999/08/03 20:21:53  peter
-    * fixed sources mask which was not set correctly
-
-  Revision 1.7  1999/07/01 07:56:58  hajny
-    * installation to root fixed
-
-  Revision 1.6  1999/06/29 22:20:19  peter
-    * updated to use tab pages
-
-  Revision 1.5  1999/06/25 07:06:30  hajny
-    + searching for installation script updated
-
-  Revision 1.4  1999/06/10 20:01:23  peter
-    + fcl,fv,gtk support
-
-  Revision 1.3  1999/06/10 15:00:14  peter
-    * fixed to compile for not os2
-    * update install.dat
-
-  Revision 1.2  1999/06/10 07:28:27  hajny
-    * compilable with TP again
-
-  Revision 1.1  1999/02/19 16:45:26  peter
-    * moved to fpinst/ directory
-    + makefile
-
-  Revision 1.15  1999/02/17 22:34:08  peter
-    * updates from TH for OS2
-
-  Revision 1.14  1998/12/22 22:47:34  peter
-    * updates for OS2
-    * small fixes
-
-  Revision 1.13  1998/12/21 13:11:39  peter
-    * updates for 0.99.10
-
-  Revision 1.12  1998/12/16 00:25:34  peter
-    * updated for 0.99.10
-    * new end dialogbox
-
-  Revision 1.11  1998/11/01 20:32:25  peter
-    * packed record
-
-  Revision 1.10  1998/10/25 23:38:35  peter
-    * removed warnings
-
-  Revision 1.9  1998/10/23 16:57:40  pierre
-   * compiles without -So option
-   * the main dialog init was buggy !!
-
-  Revision 1.8  1998/09/22 21:10:31  jonas
-    * initialize cfg and data with 0 at startup
-
-  Revision 1.7  1998/09/16 16:46:37  peter
-    + updates
-
-  Revision 1.6  1998/09/15 13:11:14  pierre
-  small fix to cleanup if no package
-
-  Revision 1.5  1998/09/15 12:06:06  peter
-    * install updated to support w32 and dos and config file
-
-  Revision 1.4  1998/09/10 10:50:49  florian
-    * DOS install program updated
-
-  Revision 1.3  1998/09/09 13:39:58  peter
-    + internal unzip
-    * dialog is showed automaticly
-
-  Revision 1.2  1998/04/07 22:47:57  florian
-    + version/release/patch numbers as string added
 
 }
