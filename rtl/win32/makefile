@@ -249,18 +249,25 @@ libsclean : clean
 # gdi32.exp will contain all exported functions names of gdi32.dll
 
 WINDOWS_DIR:=c:/windows
+
 %.exp : $(WINDOWS_DIR)/system/%.dll
 	pedump $< > $*.tmp
 	sed -n -e "s/Addr:\(.*\)Ord:\(.*\)Name: \(.*\)/@\3@/p" $*.tmp > $*.exp
 	-rm $*.tmp
 
+%.exd : $(WINDOWS_DIR)/system/%.drv
+	pedump $< > $*.tmp
+	sed -n -e "s/Addr:\(.*\)Ord:\(.*\)Name: \(.*\)/@\3@/p" $*.tmp > $*.exd
+	-rm $*.tmp
+
 # list of usefull dll's for windows.pp
 dllexps : gdi32.exp kernel32.exp advapi32.exp user32.exp mapi32.exp  \
 	comdlg32.exp shell32.exp mpr.exp comctl32.exp version.exp \
-	opengl32.exp spoolss.exp
+	opengl32.exp spoolss.exp winspool.exd
 
 # get a complete listing of all system dll's
-allexps : $(notdir $(patsubst %.dll,%.exp,$(wildcard $(WINDOWS_DIR)/system/*.dll)))
+allexps : $(notdir $(patsubst %.dll,%.exp,$(wildcard $(WINDOWS_DIR)/system/*.dll)) \
+	$(patsubst %.drv,%.exd,$(wildcard $(WINDOWS_DIR)/system/*.drv)))
 
 # extract the dllnames for which the real dll file is not 
 # known yet
@@ -273,7 +280,7 @@ allexps : $(notdir $(patsubst %.dll,%.exp,$(wildcard $(WINDOWS_DIR)/system/*.dll
 # get the DLL name from the listing in .exp files
 # of the current target 
 define grepname
-$(filter %.dll,$(subst .exp:,.dll ,$(shell grep @$*@ *.exp)))
+$(filter %.dll %.drv ,$(subst .exd:,.drv ,$(subst .exp:,.dll ,$(shell grep @$*@ *.ex*))))
 endef
 
 # creating of a sed script that
@@ -311,11 +318,11 @@ endif
 	@echo $* is in $(grepname)
 ifdef subfile
 	@echo s/external External_library name \'$*\'/external\
-	\'$(filter %.dll,$(subst .exp:,.dll ,$(shell grep @$*@ *.exp)))\'\
+	\'$(filter %.dll %.drv ,$(subst .exd:,.drv ,$(subst .exp:,.dll ,$(shell grep @$*@ *.ex*))))\'\
 	name \'$*\'/ >>$(subfile)
 else
 	@echo external \
-	\'$(filter %.dll,$(subst .exp:,.dll ,$(shell grep @$*@ *.exp)))\'\
+	\'$(filter %.dll %.drv ,$(subst .exd:,.drv ,$(subst .exp:,.dll ,$(shell grep @$*@ *.ex*))))\'\
 	name $* 
 endif
 
@@ -339,7 +346,11 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.9  1998-09-03 17:14:54  pierre
+# Revision 1.10  1998-09-03 18:17:35  pierre
+#   * small improvements in number of found functions
+#     all remaining are in func.pp
+#
+# Revision 1.9  1998/09/03 17:14:54  pierre
 #   * most functions found in main DLL's
 #     still some missing
 #     use 'make dllnames' to get missing names

@@ -1520,7 +1520,7 @@ unit unidef;
 
   function CreateScalableFontResource(_para1:DWORD; _para2:LPCWSTR; _para3:LPCWSTR; _para4:LPCWSTR):WINBOOL; external 'gdi32.dll' name 'CreateScalableFontResourceW';
 
-  function DeviceCapabilities(_para1:LPCWSTR; _para2:LPCWSTR; _para3:WORD; _para4:LPWSTR; var _para5:DEVMODE):longint; external External_library name 'DeviceCapabilitiesW';
+  function DeviceCapabilities(_para1:LPCWSTR; _para2:LPCWSTR; _para3:WORD; _para4:LPWSTR; var _para5:DEVMODE):longint; external 'winspool.drv' name 'DeviceCapabilitiesW';
 
   function EnumFontFamiliesEx(_para1:HDC; _para2:LPLOGFONT; _para3:FONTENUMEXPROC; _para4:LPARAM; _para5:DWORD):longint; external 'gdi32.dll' name 'EnumFontFamiliesExW';
 
@@ -1913,7 +1913,11 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.2  1998-09-03 17:14:55  pierre
+  Revision 1.3  1998-09-03 18:17:36  pierre
+    * small improvements in number of found functions
+      all remaining are in func.pp
+
+  Revision 1.2  1998/09/03 17:14:57  pierre
     * most functions found in main DLL's
       still some missing
       use 'make dllnames' to get missing names

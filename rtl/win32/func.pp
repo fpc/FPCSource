@@ -3688,7 +3688,7 @@ in define line 6852 *)
   function AbortProc(_para1:HDC; _para2:longint):WINBOOL; external External_library name 'AbortProc';
 
 {$ifndef windows_include_files}
-  function AbortSystemShutdown(_para1:LPTSTR):WINBOOL; external External_library name 'AbortSystemShutdownA';
+  function AbortSystemShutdown(_para1:LPTSTR):WINBOOL; external 'advapi32.dll' name 'AbortSystemShutdownA';
 {$endif windows_include_files}
 
   function AccessCheck(pSecurityDescriptor:PSECURITY_DESCRIPTOR; ClientToken:HANDLE; DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; PrivilegeSet:PPRIVILEGE_SET; 
@@ -3697,7 +3697,7 @@ in define line 6852 *)
 {$ifndef windows_include_files}
   function AccessCheckAndAuditAlarm(SubsystemName:LPCTSTR; HandleId:LPVOID; ObjectTypeName:LPTSTR; ObjectName:LPTSTR; SecurityDescriptor:PSECURITY_DESCRIPTOR; 
              DesiredAccess:DWORD; GenericMapping:PGENERIC_MAPPING; ObjectCreation:WINBOOL; GrantedAccess:LPDWORD; AccessStatus:LPBOOL; 
-             pfGenerateOnClose:LPBOOL):WINBOOL; external External_library name 'AccessCheckAndAuditAlarmA';
+             pfGenerateOnClose:LPBOOL):WINBOOL; external 'advapi32.dll' name 'AccessCheckAndAuditAlarmA';
 {$endif windows_include_files}
 
   function InterlockedIncrement(lpAddend:LPLONG):LONG; external 'kernel32.dll' name 'InterlockedIncrement';
@@ -6707,7 +6707,11 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.2  1998-09-03 17:14:52  pierre
+  Revision 1.3  1998-09-03 18:17:33  pierre
+    * small improvements in number of found functions
+      all remaining are in func.pp
+
+  Revision 1.2  1998/09/03 17:14:52  pierre
     * most functions found in main DLL's
       still some missing
       use 'make dllnames' to get missing names
