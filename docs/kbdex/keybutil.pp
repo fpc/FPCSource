@@ -12,17 +12,21 @@ Type
  
 Const 
   // Only use these strings. Should be used to localize key names.
-  SShift       : Array [1..3] of string = ('SHIFT','CTRL','ALT');
-  SLeftRight   : Array [1..2] of string = ('LEFT','RIGHT');
+  SShift       : Array [1..3] of string[5] = ('SHIFT','CTRL','ALT');
+  SLeftRight   : Array [1..2] of string[5] = ('LEFT','RIGHT');
   SUnicodeChar : String = 'Unicode character ';
   SScanCode    : String = 'Key with scancode ';
   SUnknownFunctionKey : String = 'Unknown function key : ';
   SAnd         : String = 'AND';
-  SKeyPad      : Array [0..($FF2F-kbdHome)] of string = 
+  SKeyPad      : Array [0..($FF2F-kbdHome)] of string[6] = 
                  ('Home','Up','PgUp','Left',
                   'Middle','Right','End','Down',
                   'PgDn','Insert','Delete','',
                   '','','','');
+
+Function ShiftStateToString(KeyEvent : TKeyEvent; UseLeftRight : Boolean) : String;
+Function FunctionKeyName (KeyCode : Word) : String;
+Function KeyEventToString(KeyEvent : TKeyEvent) : String;
 
 
 Implementation
@@ -42,7 +46,7 @@ begin
   Str(Int,IntToStr);  
 end;
   
-Function ShiftStateString(KeyEvent : TKeyEvent; UseLeftRight : Boolean) : String;
+Function ShiftStateToString(KeyEvent : TKeyEvent; UseLeftRight : Boolean) : String;
 
 Var
   S : Integer;
@@ -64,8 +68,8 @@ begin
   If (S and kbCtrl)<>0 Then
     AddToString(T,SShift[2]);
   If (S and kbAlt)<>0 Then  
-    AddToString(T,SShift[2]);
-  ShiftStateString:=T;  
+    AddToString(T,SShift[3]);
+  ShiftStateToString:=T;  
 end;
 
 Function FunctionKeyName (KeyCode : Word) : String;
@@ -88,14 +92,15 @@ Var
   T : String;
 
 begin
-  T:=ShiftStateString(KeyEvent,False);
+  T:=ShiftStateToString(KeyEvent,False);
   Case GetKeyEventFlags(KeyEvent) of
     kbASCII   : AddToString(T,GetKeyEventChar(KeyEvent));
     kbUniCode : AddToString(T,SUniCodeChar+IntToStr(GetKeyEventUniCode(Keyevent)));
     kbFnKey   : AddToString(T,FunctionKeyName(GetKeyEventCode(KeyEvent)));
                 // Not good, we need a GetKeyEventScanCode function !!
     kbPhys    : AddToString(T,SScanCode+IntToStr(KeyEvent and $ffff));
-  end;   
+  end;
+  KeyEventToString:=T;
 end;
   
 end. 

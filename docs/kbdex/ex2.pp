@@ -1,0 +1,22 @@
+Program Example2;
+
+{ Program to demonstrate the GetKeyEventCode function. }
+
+Uses keyboard,KeybUtil;
+
+Var
+  K : TKeyEvent;
+
+begin
+  InitKeyBoard;
+  Writeln('Press function keys, or press "q" to end.');
+  Repeat
+    K:=GetKeyEvent;
+    K:=TranslateKeyEvent(K);
+    If (GetKeyEventFlags(K)<>KbfnKey) then
+      Writeln('Not a function key')
+    else  
+      Writeln('Got key : ',KeyEventToString(K));
+  Until (GetKeyEventChar(K)='q');
+  DoneKeyboard;
+end.
