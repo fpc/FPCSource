@@ -913,7 +913,7 @@ unit pexpr;
                        if assigned(aktprocsym) and
                         ((srsym^.name=aktprocsym^.name) or
                         ((pvarsym(srsym)=opsym) and
-                        ((pprocdef(aktprocsym^.definition)^.options and pooperator)<>0))) and
+                        ((procinfo.flags and pi_operator)<>0))) and
                         (procinfo.retdef<>pdef(voiddef)) and
                         (token<>LKLAMMER) and
                         (not ((cs_tp_compatible in aktswitches) and
@@ -1464,7 +1464,7 @@ unit pexpr;
     const   tok2node:array[PLUS.._XOR] of Ttreetyp=
                     (addn,subn,muln,slashn,equaln,gtn,ltn,gten,lten,
                      isn,asn,inn,
-                     nothingn,caretn,nothingn,unequaln,nothingn,
+                     symdifn,starstarn,nothingn,caretn,unequaln,nothingn,
                      nothingn,nothingn,nothingn,nothingn,nothingn,
                      nothingn,nothingn,nothingn,nothingn,nothingn,
                      nothingn,nothingn,nothingn,nothingn,nothingn,
@@ -1484,7 +1484,7 @@ unit pexpr;
             operator_levels:array[Toperator_precedence] of set of Ttoken=
                     ([LT,LTE,GT,GTE,EQUAL,UNEQUAL,_IN,_IS],
                      [PLUS,MINUS,_OR,_XOR],
-                     [CARET,SYMDIF,STAR,SLASH,_DIV,_MOD,_AND,_SHL,_SHR,_AS]);
+                     [CARET,SYMDIF,STARSTAR,STAR,SLASH,_DIV,_MOD,_AND,_SHL,_SHR,_AS]);
 
     function sub_expr(pred_level:Toperator_precedence;accept_equal : boolean):Ptree;
 
@@ -1640,7 +1640,15 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.8  1998-04-14 23:27:03  florian
+  Revision 1.9  1998-04-29 10:33:58  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.8  1998/04/14 23:27:03  florian
     + exclude/include with constant second parameter added
 
   Revision 1.7  1998/04/09 23:02:15  florian

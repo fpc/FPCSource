@@ -226,7 +226,12 @@ unit ag68kmot;
       while assigned(hp) do
        begin
          case hp^.typ of
-       ait_comment : ;
+           ait_comment :
+             Begin
+                AsmWrite(As_comment);
+                AsmWritePChar(pai_asm_comment(hp)^.str);
+                AsmLn;
+             End;
          ait_align : AsmWriteLn(#9'CNOP 0,'+tostr(pai_align(hp)^.aligntype));
       ait_external : AsmWriteLn(#9'XREF'#9+StrPas(pai_external(hp)^.name));
  ait_real_extended : Message(assem_e_extended_not_supported);
@@ -493,8 +498,16 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:16  root
-  Initial revision
+  Revision 1.2  1998-04-29 10:33:42  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.1.1.1  1998/03/25 11:18:16  root
+  * Restored version
 
   Revision 1.3  1998/03/22 12:45:37  florian
     * changes of Carl-Eric to m68k target commit:

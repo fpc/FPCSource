@@ -154,10 +154,10 @@ End;
    last pai object in Last. Returns false if there isn't any}
   Begin
     GetLastInstruction := False;
-    Current := Pai(Current^.Last);
+    Current := Pai(Current^.previous);
     While Assigned(Current) And
           (Pai(Current)^.typ In SkipInstr) Do
-      Current := Pai(Current^.Last);
+      Current := Pai(Current^.previous);
     If Assigned(Current)
       Then
         Begin
@@ -222,10 +222,10 @@ End;
               Begin
                 If Assigned(new_one) Then
                   Begin
-                    new_one^.last := prev;
+                    new_one^.previous := prev;
                     new_one^.next := foll;
                     prev^.next := new_one;
-                    foll^.last := new_one;
+                    foll^.previous := new_one;
                   End;
               End
             Else AsmL^.Concat(new_one)
@@ -517,7 +517,7 @@ End;
                                    Else hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                     TRegister(twowords(Pai386(p)^.op2).word2)));
                                  hp1^.line := p^.line;
-                                 InsertLLItem(p^.last, p^.next, hp1);
+                                 InsertLLItem(p^.previous, p^.next, hp1);
                                  Dispose(p, Done);
                                  p := hp1;
                               End;
@@ -534,7 +534,7 @@ End;
                                   Else hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                    TRegister(twowords(Pai386(p)^.op2).word2)));
                                 hp1^.line:= p^.line;
-                                InsertLLItem(p^.last, p^.next, hp1);
+                                InsertLLItem(p^.previous, p^.next, hp1);
                                 Dispose(p, Done);
                                 p := hp1;
                               End;
@@ -585,7 +585,7 @@ End;
                                             hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef, TRegister(Pai386(p)^.op2)));
                                           End;
                                       hp1^.line := p^.line;
-                                      InsertLLItem(p^.last, p^.next, hp1);
+                                      InsertLLItem(p^.previous, p^.next, hp1);
                                       Dispose(p, Done);
                                       p := Pai(hp1^.next);
                                     End
@@ -604,7 +604,7 @@ End;
                                      Else hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                       TRegister(twowords(Pai386(p)^.op2).word2)));
                                    hp1^.line := p^.line;
-                                   InsertLLItem(p^.last, p^.next, hp1);
+                                   InsertLLItem(p^.previous, p^.next, hp1);
                                    Dispose(p, Done);
                                    p := hp1;
                                  End;
@@ -637,7 +637,7 @@ End;
                                            hp1 :=  New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                              TRegister(Pai386(p)^.op2)));
                                      hp1^.line := p^.line;
-                                     InsertLLItem(p^.last, p^.next, hp1);
+                                     InsertLLItem(p^.previous, p^.next, hp1);
                                      Dispose(p, Done);
                                      p := Pai(hp1^.next);
                                    End
@@ -693,7 +693,7 @@ End;
                                                TRegister(Pai386(p)^.op2)));
                                            End;
                                        hp1^.line := p^.line;
-                                       InsertLLItem(p^.last, p^.next, hp1);
+                                       InsertLLItem(p^.previous, p^.next, hp1);
                                        Dispose(p, Done);
                                        p := Pai(hp1^.next);
                                      End
@@ -715,7 +715,7 @@ End;
                          hp1 := New(Pai386, op_reg_reg(A_MOV, S_L,PReference(Pai386(p)^.op1)^.Base,
                            TRegister(Pai386(p)^.op2)));
                          hp1^.line := p^.line;
-                         InsertLLItem(p^.last,p^.next, hp1);
+                         InsertLLItem(p^.previous,p^.next, hp1);
                          Dispose(p, Done);
                          p := hp1;
                          Continue;
@@ -1113,7 +1113,7 @@ End;
                                                              TRegister(Pai386(p)^.op2),
                                                              TRegister(Pai386(p)^.op2)));
                                                   hp1^.line := p^.line;
-                                                  InsertLLItem(p^.last, p, hp1);
+                                                  InsertLLItem(p^.previous, p, hp1);
                                                   Pai386(p)^._operator := A_MOV;
                                                   Pai386(p)^.size := S_B;
                                                   Pai386(p)^.op2 :=
@@ -1172,7 +1172,7 @@ End;
                                       Pai386(p)^._operator := A_MOV;
                                       Pai386(p)^.size := S_B;
                                       Pai386(p)^.op2 := Pointer(Reg32ToReg8(TRegister(Pai386(p)^.op2)));
-                                      InsertLLItem(p^.last, p, hp1);
+                                      InsertLLItem(p^.previous, p, hp1);
                                     End
                                   Else
                                     If {Assigned(p^.next) And}
@@ -1331,7 +1331,7 @@ End;
                                          Else hp1 := New(Pai386, op_ref_reg(A_LEA, S_L, TmpRef,
                                                          TRegister(Pai386(p)^.op2)));
                                        hp1^.line := p^.line;
-                                       InsertLLItem(p^.last, p^.next, hp1);
+                                       InsertLLItem(p^.previous, p^.next, hp1);
                                        Dispose(p, Done);
                                        p := hp1;
                                      End;
@@ -1349,7 +1349,7 @@ End;
                                      hp1 := new(Pai386,op_reg_reg(A_ADD,Pai386(p)^.Size,
                                                 TRegister(Pai386(p)^.op2), TRegister(Pai386(p)^.op2)));
                                      hp1^.line := p^.line;
-                                     InsertLLItem(p^.last, p^.next, hp1);
+                                     InsertLLItem(p^.previous, p^.next, hp1);
                                      Dispose(p, done);
                                      p := hp1;
                                    End
@@ -1368,7 +1368,7 @@ End;
                                             TmpRef^.offset := 0;
                                             hp1 := new(Pai386,op_ref_reg(A_LEA,S_L,TmpRef, TRegister(Pai386(p)^.op2)));
                                             hp1^.line := p^.line;
-                                            InsertLLItem(p^.last, p^.next, hp1);
+                                            InsertLLItem(p^.previous, p^.next, hp1);
                                             Dispose(p, done);
                                             p := hp1;
                                           End
@@ -1460,7 +1460,7 @@ End;
                                  Continue
                                End
                              Else
-                               If {Assigned(p^.last) And}
+                               If {Assigned(p^.previous) And}
                                   GetLastInstruction(p, hp1) And
                                   (Pai(hp1)^.typ = ait_instruction) And
                                   (Pai386(hp1)^._operator = A_SUB) And
@@ -1469,7 +1469,7 @@ End;
                                   (TRegister(Pai386(hp1)^.Op2) = R_ESP)
                                  Then
                                    Begin
-{                                   hp1 := Pai(p^.last);}
+{                                   hp1 := Pai(p^.previous);}
                                     Inc(Longint(Pai386(p)^.op1), Longint(Pai386(hp1)^.op1));
                                     AsmL^.Remove(hp1);
                                     Dispose(hp1, Done);
@@ -1485,7 +1485,7 @@ End;
                     as the first instruction already adjusts the ZF}
                     Begin
                       If (Pai386(p)^.op1 = Pai386(p)^.op2) And
-{                        (assigned(p^.last)) And}
+{                        (assigned(p^.previous)) And}
                          GetLastInstruction(p, hp1) And
                          (pai(hp1)^.typ = ait_instruction) Then
                          Case Pai386(hp1)^._operator Of
@@ -1615,7 +1615,15 @@ end;
 End.
 {
   $Log$
-  Revision 1.7  1998-04-23 21:52:08  florian
+  Revision 1.8  1998-04-29 10:33:43  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.7  1998/04/23 21:52:08  florian
     * fixes of Jonas applied
 
   Revision 1.6  1998/04/21 11:30:14  peter

@@ -27,7 +27,9 @@ unit ptconst;
    uses symtable;
 
     { this procedure reads typed constants }
-    procedure readtypedconst(def : pdef);
+    { sym is only needed for ansi strings  }
+    { the assembler label is in the middle (PM) }
+    procedure readtypedconst(def : pdef;sym : ptypedconstsym);
 
   implementation
 
@@ -46,11 +48,11 @@ unit ptconst;
        ;
 
     { this procedure reads typed constants }
-    procedure readtypedconst(def : pdef);
+    procedure readtypedconst(def : pdef;sym : ptypedconstsym);
 
       var
          p : ptree;
-         i,l : longint;
+         i,l,strlength : longint;
          ll : plabel;
          s : string;
          ca : pchar;
@@ -243,57 +245,68 @@ unit ptconst;
            begin
               p:=expr;
               do_firstpass(p);
-              if pstringdef(def)^.string_typ=shortstring then
+              { first take care of prefixes for long and ansi strings }
+{$ifdef UseLongString}
+              if pstringdef(def)^.string_typ=longstring then
                 begin
-                   if p^.treetype=stringconstn then
-                     begin
-                        s:=p^.values^;
-                        if length(s)+1>def^.size then
-                          s[0]:=char(def^.size-1);
-                        generate_ascii(char(length(s))+s);
-                     end
-                   else if is_constcharnode(p) then
-                     begin
-                        datasegment^.concat(new(pai_string,init(#1+char(byte(p^.value)))));
-                        s:=char(byte(p^.value));
-                     end
-                   else Message(cg_e_illegal_expression);
-                   if def^.size>length(s) then
-                     begin
-                        getmem(ca,def^.size-length(s));
-                        fillchar(ca[0],def^.size-length(s)-1,' ');
-                        ca[def^.size-length(s)-1]:=#0;
-                        datasegment^.concat(new(pai_string,init_pchar(ca)));
-                        disposetree(p);
-                     end;
-                end
-              else if pstringdef(def)^.string_typ=longstring then
+                  { first write the maximum size }
+                  datasegment^.concat(new(pai_const,init_32bit(p^.length)))));
+                end else
+{$endif UseLongString}
+{$ifdef UseAnsiString}
+              if pstringdef(def)^.string_typ=ansistring then
                 begin
-                   if p^.treetype=stringconstn then
-                     begin
-                        s:=p^.values^;
-                        if length(s)+1>def^.size then
-                          s[0]:=char(def^.size-1);
-                        generate_ascii(char(length(s))+s);
-                     end
-                   else if is_constcharnode(p) then
-                     begin
-                        datasegment^.concat(new(pai_string,init(#1+char(byte(p^.value)))));
-                        s:=char(byte(p^.value));
-                     end
-                   else Message(cg_e_illegal_expression);
-                   if def^.size>length(s) then
-                     begin
-                        getmem(ca,def^.size-length(s));
-                        fillchar(ca[0],def^.size-length(s)-1,' ');
-                        ca[def^.size-length(s)-1]:=#0;
-                        datasegment^.concat(new(pai_string,init_pchar(ca)));
-                        disposetree(p);
-                     end;
-                end
-              else if pstringdef(def)^.string_typ=ansistring then
+{$ifdef debug}
+                  datasegment^.concat(new(pai_asm_comment,init('Header of ansistring')));
+{$endif debug}
+                  { first write the maximum size }
+                  datasegment^.concat(new(pai_const,init_32bit(pstringdef(def)^.len)));
+                  { second write the real length }
+                  datasegment^.concat(new(pai_const,init_32bit(p^.length)));
+                  { redondent with maxlength but who knows ... (PM) }
+                  { third write use count (set to -1 for safety ) }
+                  datasegment^.concat(new(pai_const,init_32bit(-1)));
+                  if assigned(sym) then
+                    sym^.really_insert_in_data;
+                end;
+{$endif UseAnsiString}
+              { the actual write is independent of the string_typ }
+              if p^.treetype=stringconstn then
                 begin
+{$ifdef UseAnsiString}
+                   if p^.length>=def^.size then
+                     strlength:=def^.size-1
+                   else
+                     strlength:=p^.length;
+                   { this can also handle longer strings }
+                   generate_pascii(p^.values,strlength);
+{$else UseAnsiString}
+                   if length(p^.values^)>=def^.size then
+                     strlength:=def^.size-1
+                   else
+                     strlength:=length(p^.values^);
+                   generate_ascii(char(strlength)+p^.values^);
+{$endif UseAnsiString}
                 end
+              else if is_constcharnode(p) then
+                begin
+                   datasegment^.concat(new(pai_string,init(#1+char(byte(p^.value)))));
+                   strlength:=1;
+                end
+              else Message(cg_e_illegal_expression);
+              if def^.size>strlength then
+                begin
+                   getmem(ca,def^.size-strlength);
+                   fillchar(ca[0],def^.size-strlength-1,' ');
+                   ca[def^.size-strlength-1]:=#0;
+{$ifdef UseAnsiString}
+                   { this can also handle longer strings }
+                   generate_pascii(ca,def^.size-strlength);
+{$else UseAnsiString}
+                   datasegment^.concat(new(pai_string,init_pchar(ca)));
+{$endif UseAnsiString}
+                   disposetree(p);
+                end;
            end;
          arraydef:
            begin
@@ -302,10 +315,10 @@ unit ptconst;
                     consume(LKLAMMER);
                     for l:=parraydef(def)^.lowrange to parraydef(def)^.highrange-1 do
                       begin
-                         readtypedconst(parraydef(def)^.definition);
+                         readtypedconst(parraydef(def)^.definition,nil);
                          consume(COMMA);
                       end;
-                    readtypedconst(parraydef(def)^.definition);
+                    readtypedconst(parraydef(def)^.definition,nil);
                     consume(RKLAMMER);
                  end
               else
@@ -419,7 +432,7 @@ unit ptconst;
                         aktpos:=pvarsym(srsym)^.address+pvarsym(srsym)^.definition^.size;
 
                         { read the data }
-                        readtypedconst(pvarsym(srsym)^.definition);
+                        readtypedconst(pvarsym(srsym)^.definition,nil);
 
                         if token=SEMICOLON then
                           consume(SEMICOLON)
@@ -437,7 +450,15 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.2  1998-04-07 13:19:48  pierre
+  Revision 1.3  1998-04-29 10:34:00  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.2  1998/04/07 13:19:48  pierre
     * bugfixes for reset_gdb_info
       in MEM parsing for go32v2
       better external symbol creation

@@ -827,11 +827,17 @@ unit pstatmnt;
          p : ptree;
          code : ptree;
          labelnr : plabel;
+{$ifdef UseTokenInfo}
+         filepos : tfilepos;
+{$endif UseTokenInfo}
 
       label
          ready;
 
       begin
+{$ifdef UseTokenInfo}
+         filepos:=tokeninfo^.filepos;
+{$endif UseTokenInfo}
          case token of
             _GOTO : begin
                        if not(cs_support_goto in aktswitches)then
@@ -930,6 +936,9 @@ unit pstatmnt;
            end;
          end;
          ready:
+{$ifdef UseTokenInfo}
+         set_tree_filepos(code,filepos);
+{$endif UseTokenInfo}
          statement:=code;
       end;
 
@@ -986,9 +995,9 @@ unit pstatmnt;
                    procinfo.retoffset:=procinfo.firsttemp-procinfo.retdef^.size;
                    procinfo.firsttemp:=procinfo.retoffset;
 {$endif TEST_FUNCRET }
-                   if (procinfo.flags and pooperator)<>0 then
+                   if (procinfo.flags and pi_operator)<>0 then
                      {opsym^.address:=procinfo.call_offset; is wrong PM }
-                     opsym^.address:=procinfo.retoffset;
+                     opsym^.address:=-procinfo.retoffset;
                    { eax is modified by a function }
 {$ifdef i386}
                    usedinproc:=usedinproc or ($80 shr byte(R_EAX))
@@ -1067,7 +1076,15 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.4  1998-04-08 16:58:05  pierre
+  Revision 1.5  1998-04-29 10:33:59  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.4  1998/04/08 16:58:05  pierre
     * several bugfixes
       ADD ADC and AND are also sign extended
       nasm output OK (program still crashes at end

@@ -1236,10 +1236,10 @@ end;
            Begin
              case pvarsym(sym)^.getsize of
               1: instr.operands[operandnum].size := S_B;
-              2: instr.operands[operandnum].size := S_W;
-              4: instr.operands[operandnum].size := S_L;
-              8: instr.operands[operandnum].size := S_Q;
-              extended_size: instr.operands[operandnum].size := S_X;
+              2: instr.operands[operandnum].size := S_W{ could be S_IS};
+              4: instr.operands[operandnum].size := S_L{ could be S_IL or S_FS};
+              8: instr.operands[operandnum].size := S_IQ{ could be S_D or S_FL};
+              extended_size: instr.operands[operandnum].size := S_FX;
              else
                { this is in the case where the instruction is LEA }
                { or something like that, in that case size is not }
@@ -1277,8 +1277,8 @@ end;
               1: instr.operands[operandnum].size := S_B;
               2: instr.operands[operandnum].size := S_W;
               4: instr.operands[operandnum].size := S_L;
-              8: instr.operands[operandnum].size := S_Q;
-              extended_size: instr.operands[operandnum].size := S_X;
+              8: instr.operands[operandnum].size := S_IQ;
+              extended_size: instr.operands[operandnum].size := S_FX;
              else}
                {* this is in the case where the instruction is LEA *}
                {* or something like that, in that case size is not *}
@@ -1317,8 +1317,8 @@ end;
                  1: instr.operands[operandnum].size := S_B;
                  2: instr.operands[operandnum].size := S_W;
                  4: instr.operands[operandnum].size := S_L;
-                 8: instr.operands[operandnum].size := S_Q;
-                 extended_size: instr.operands[operandnum].size := S_X;
+                 8: instr.operands[operandnum].size := S_IQ;
+                 extended_size: instr.operands[operandnum].size := S_FX;
                else
                { this is in the case where the instruction is LEA }
                { or something like that, in that case size is not }
@@ -1354,7 +1354,7 @@ end;
              1: instr.operands[operandnum].size := S_B;
              2: instr.operands[operandnum].size := S_W;
              4: instr.operands[operandnum].size := S_L;
-             8: instr.operands[operandnum].size := S_Q;
+             8: instr.operands[operandnum].size := S_IQ;
            else
            { this is in the case where the instruction is LEA }
            { or something like that, in that case size is not }
@@ -1371,7 +1371,7 @@ end;
               1: instr.operands[operandnum].size := S_B;
               2: instr.operands[operandnum].size := S_W;
               4: instr.operands[operandnum].size := S_L;
-              8: instr.operands[operandnum].size := S_Q;
+              8: instr.operands[operandnum].size := S_IQ;
             else
             { this is in the case where the instruction is LEA }
             { or something like that, in that case size is not }
@@ -1459,7 +1459,7 @@ end;
    pc: PChar;
   Begin
      getmem(pc,length(s)+1);
-     p^.concat(new(pai_string,init_pchar(strpcopy(pc,s))));
+     p^.concat(new(pai_string,init_length_pchar(strpcopy(pc,s),length(s))));
   end;
 
   Procedure ConcatPasString(p : paasmoutput;s:string);
@@ -1626,8 +1626,16 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:12  root
-  Initial revision
+  Revision 1.2  1998-04-29 10:33:43  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.1.1.1  1998/03/25 11:18:12  root
+  * Restored version
 
   Revision 1.15  1998/03/10 01:17:14  peter
     * all files have the same header

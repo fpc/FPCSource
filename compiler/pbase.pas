@@ -45,6 +45,9 @@ unit pbase;
     var
        { contains the current token to be processes }
        token : ttoken;
+{$ifdef UseTokenInfo}
+       tokeninfo : ptokeninfo;
+{$endif UseTokenInfo}
 
        { size of data segment, set by proc_unit or proc_program }
        datasize : longint;
@@ -102,7 +105,8 @@ unit pbase;
 
       { This is changed since I changed the order of token
       in cobjects.pas for operator overloading !!!! }
-      { ttoken = (PLUS,MINUS,STAR,SLASH,EQUAL,GT,LT,LTE,GTE,SYMDIF,CARET,ASSIGNMENT,
+      { ttoken = (PLUS,MINUS,STAR,SLASH,EQUAL,GT,
+                 LT,LTE,GTE,SYMDIF,STARSTAR,ASSIGNMENT,CARET,
                  LECKKLAMMER,RECKKLAMMER,
                  POINT,COMMA,LKLAMMER,RKLAMMER,COLON,SEMICOLON,
                  KLAMMERAFFE,UNEQUAL,POINTPOINT,
@@ -111,7 +115,7 @@ unit pbase;
 
       const tokens : array[PLUS..DOUBLEADDR] of string[12] = (
                  '+','-','*','/','=','>','<','>=','<=','is','as','in',
-                 '><','^',':=','<>','[',']','.',',','(',')',':',';',
+                 '><','**',':=','^','<>','[',']','.',',','(',')',':',';',
                  '@','..',
                  'identifier','const real.','end of file',
                  'ord const','const string','const char','@@');
@@ -120,6 +124,7 @@ unit pbase;
          j : integer;
 
       begin
+{$ifndef UseTokenInfo}
          if token<>i then
            begin
               if i<_AND then
@@ -139,16 +144,50 @@ unit pbase;
            end
          else
            token:=yylex;
+{$else UseTokenInfo}
+         if token<>i then
+           begin
+              if i<_AND then
+                syntaxerror(tokens[i])
+              else
+                begin
+
+                   { um die Programmgr”áe klein zu halten, }
+                   { wird fr ein Schlsselwort-Token der  }
+                   { "Text" in der Schlsselworttabelle    }
+                   { des Scanners nachgeschaut             }
+
+                   for j:=1 to anz_keywords do
+                     if keyword_token[j]=i then
+                       syntaxerror(keyword[j])
+                end;
+           end
+         else
+           begin
+             if assigned(tokeninfo) then
+               dispose(tokeninfo);
+             tokeninfo:=yylex;
+             token:=tokeninfo^.token;
+           end;
+{$endif UseTokenInfo}
       end;
 
     procedure consume_all_until(atoken : ttoken);
 
       begin
+{$ifndef UseTokenInfo}
          while (token<>atoken) and (token<>_EOF) do
            consume(token);
          { this will create an error if the token is _EOF }
          if token<>atoken then
            consume(atoken);
+{$else UseTokenInfo}
+         while (token<>atoken) and (token<>_EOF) do
+           consume(token);
+         { this will create an error if the token is _EOF }
+         if token<>atoken then
+           consume(atoken);
+{$endif UseTokenInfo}
          { this error is fatal as we have read the whole file }
          Message(scan_f_end_of_file);
       end;
@@ -205,7 +244,15 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-04-07 22:45:05  florian
+  Revision 1.3  1998-04-29 10:33:57  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.2  1998/04/07 22:45:05  florian
     * bug0092, bug0115 and bug0121 fixed
     + packed object/class/array
 

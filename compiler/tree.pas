@@ -119,6 +119,8 @@ unit tree;
                    asn,             {Represents the as typecast.}
                    caretn,          {Represents the ^ operator.}
                    failn,           {Represents the fail statement.}
+                   starstarn,       {Represents the ** operator exponentiation }
+                   procinlinen,      {Procedures that can be inlined }
                    { added for optimizations where we cannot suppress }
                    nothingn,
                    loadvmtn);       {???.}
@@ -202,14 +204,15 @@ unit tree;
         firstpasscount : longint;
 {$endif extdebug}
           case treetype : ttreetyp of
+             addn : (use_strconcat : boolean;string_typ : stringtype);
              callparan : (is_colon_para : boolean;exact_match_found : boolean);
-             assignn : (assigntyp : tassigntyp);
+             assignn : (assigntyp : tassigntyp;concat_string : boolean);
              loadn : (symtableentry : psym;symtable : psymtable;
                       is_absolute,is_first : boolean);
              calln : (symtableprocentry : pprocsym;
                       symtableproc : psymtable;procdefinition : pprocdef;
                       methodpointer : ptree;
-                      unit_specific : boolean);
+                      no_check,unit_specific : boolean);
              ordconstn : (value : longint);
              realconstn : (valued : bestreal;labnumber : longint;realtyp : tait);
              fixconstn : (valuef: longint);
@@ -218,10 +221,16 @@ unit tree;
 {$endif TEST_FUNCRET}
              subscriptn : (vs : pvarsym);
              vecn : (memindex,memseg:boolean);
-             stringconstn : (values : pstring;labstrnumber : longint);
+             { stringconstn : (length : longint; values : pstring;labstrnumber : longint); }
+             { string const can be longer then 255 with ansistring !! }
+{$ifdef UseAnsiString}
+             stringconstn : (values : pchar;length : longint; labstrnumber : longint);
+{$else UseAnsiString}
+             stringconstn : (values : pstring; labstrnumber : longint);
+{$endif UseAnsiString}
              typeconvn : (convtyp : tconverttype;explizit : boolean);
              inlinen : (inlinenumber : longint);
-             { procinlinen : (proc : pprocsym); }
+             procinlinen : (inlineprocdef : pprocdef);
              setconstrn : (constset : pconstset);
              loopn : (t1,t2 : ptree;backward : boolean);
              asmn : (p_asm : paasmoutput);
@@ -243,12 +252,19 @@ unit tree;
     function genrealconstnode(v : bestreal) : ptree;
     function gencallnode(v : pprocsym;st : psymtable) : ptree;
     function genmethodcallnode(v : pprocsym;st : psymtable;mp : ptree) : ptree;
+
+    { allow pchar or string for defining a pchar node }
     function genstringconstnode(const s : string) : ptree;
+{$ifdef UseAnsiString}
+    { length is required for ansistrings }
+    function genpcharconstnode(s : pchar;length : longint) : ptree;
+    { helper routine for conststring node }
+    function getpcharcopy(p : ptree) : pchar;
+{$endif UseAnsiString}
+
     function genzeronode(t : ttreetyp) : ptree;
     function geninlinenode(number : longint;l : ptree) : ptree;
-   {
-   function genprocinlinenode(code : ptree;procsym : pprocsym) : ptree;
-   }
+    function genprocinlinenode(callp,code : ptree) : ptree;
     function gentypedconstloadnode(sym : ptypedconstsym;st : psymtable) : ptree;
     function genenumnode(v : penumsym) : ptree;
     function genselfnode(_class : pdef) : ptree;
@@ -269,6 +285,7 @@ unit tree;
     procedure set_location(var destloc,sourceloc : tlocation);
     procedure swap_location(var destloc,sourceloc : tlocation);
     procedure set_file_line(from,_to : ptree);
+    procedure set_tree_filepos(p : ptree;const filepos : tfileposinfo);
 
 {$ifdef extdebug}
     const
@@ -354,8 +371,13 @@ unit tree;
            assigned(p^.location.reference.symbol) then
            stringdispose(p^.location.reference.symbol);
 
+{$ifndef UseAnsiString}
          if p^.disposetyp=dt_string then
            stringdispose(p^.values);
+{$else UseAnsiString}
+         if p^.disposetyp=dt_string then
+           ansistringdispose(p^.values,p^.length);
+{$endif UseAnsiString}
 {$ifdef extdebug}
          if p^.firstpasscount>maxfirstpasscount then
             maxfirstpasscount:=p^.firstpasscount;
@@ -408,7 +430,14 @@ unit tree;
                  if assigned(p^.t2) then
                    hp^.t2:=getcopy(p^.t2);
               end;
+{$ifdef UseAnsiString}
+            dt_string : begin
+                           hp^.values:=getpcharcopy(p);
+                           hp^.length:=p^.length;
+                        end;
+{$else UseAnsiString}
             dt_string : hp^.values:=stringdup(p^.values^);
+{$endif UseAnsiString}
             dt_typeconv : hp^.left:=getcopy(p^.left);
             dt_inlinen :
               if assigned(p^.left) then
@@ -464,7 +493,11 @@ unit tree;
                  if assigned(p^.left) then disposetree(p^.left);
                  disposetree(p^.methodpointer);
               end;
+{$ifdef UseAnsiString}
+            dt_string : ansistringdispose(p^.values,p^.length);
+{$else UseAnsiString}
             dt_string : stringdispose(p^.values);
+{$endif UseAnsiString}
             dt_constset :
               begin
                  if assigned(p^.constset) then
@@ -513,6 +546,12 @@ unit tree;
               _to^.inputfile:=from^.inputfile;
            end;
       end;
+
+   procedure set_tree_filepos(p : ptree;const filepos : tfileposinfo);
+     begin
+        p^.line:=filepos.line;
+        p^.inputfile:=filepos.infile;
+     end;
 
    function genwithnode(symtable : psymtable;l,r : ptree;count : longint) : ptree;
 
@@ -733,6 +772,55 @@ unit tree;
 
       var
          p : ptree;
+{$ifdef UseAnsiString}
+         l : longint;
+{$endif UseAnsiString}
+      begin
+         p:=getnode;
+         p^.disposetyp:=dt_string;
+         p^.treetype:=stringconstn;
+         p^.registers32:=0;
+{         p^.registers16:=0;
+         p^.registers8:=0; }
+         p^.registersfpu:=0;
+{$ifdef SUPPORT_MMX}
+         p^.registersmmx:=0;
+{$endif SUPPORT_MMX}
+         p^.resulttype:=cstringdef;
+{$ifdef UseAnsiString}
+         l:=length(s);
+         p^.length:=l;
+         { stringdup write even past a #0 }
+         getmem(p^.values,l+1);
+         move(s[1],p^.values^,l);
+         p^.values[l]:=#0;
+{$else UseAnsiString}
+         p^.values:=stringdup(s);
+{$endif UseAnsiString}
+         p^.labstrnumber:=-1;
+         genstringconstnode:=p;
+      end;
+
+{$ifdef UseAnsiString}
+    function getpcharcopy(p : ptree) : pchar;
+
+      var
+         pc : pchar;
+
+      begin
+         pc:=nil;
+         getmem(pc,p^.length+1);
+         { Peter can you change that ? }
+         if pc=nil then
+           comment(V_fatal,'No memory left');
+         move(p^.values^,pc^,p^.length+1);
+         getpcharcopy:=pc;
+      end;
+
+    function genpcharconstnode(s : pchar;length : longint) : ptree;
+
+      var
+         p : ptree;
 
       begin
          p:=getnode;
@@ -746,10 +834,12 @@ unit tree;
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
          p^.resulttype:=cstringdef;
-         p^.values:=stringdup(s);
+         p^.length:=length;
+         p^.values:=s;
          p^.labstrnumber:=-1;
-         genstringconstnode:=p;
+         genpcharconstnode:=p;
       end;
+{$endif UseAnsiString}
 
     function gensinglenode(t : ttreetyp;l : ptree) : ptree;
 
@@ -881,6 +971,7 @@ unit tree;
          p^.symtableprocentry:=v;
          p^.symtableproc:=st;
          p^.unit_specific:=false;
+         p^.no_check:=false;
          p^.disposetyp := dt_leftright;
          p^.methodpointer:=nil;
          p^.left:=nil;
@@ -1023,25 +1114,27 @@ unit tree;
       end;
 
 
-{    function genprocinlinenode(code : ptree;proc : pprocsym) : ptree;
+      { uses the callnode to create the new procinline node }
+    function genprocinlinenode(callp,code : ptree) : ptree;
 
       var
          p : ptree;
 
       begin
          p:=getnode;
-         p^.disposetyp:=dt_inlinen;
-         p^.treetype:=inlinen;
-         p^.inlineproc:=proc;
-         p^.left:=code;
+         p^.disposetyp:=dt_left;
+         p^.treetype:=procinlinen;
+         p^.inlineprocdef:=callp^.procdefinition;
+         { copy args }
+         p^.left:=getcopy(code);
          p^.registers32:=code^.registers32;
          p^.registersfpu:=code^.registersfpu;
-$ifdef SUPPORT_MMX
+{$ifdef SUPPORT_MMX}
          p^.registersmmx:=0;
-$endif SUPPORT_MMX
-         p^.resulttype:=proc^.definition^.returntype;
+{$endif SUPPORT_MMX}
+         p^.resulttype:=p^.inlineprocdef^.retdef;
          genprocinlinenode:=p;
-      end; }
+      end;
 
    function gensetconstruktnode(s : pconstset;settype : psetdef) : ptree;
 
@@ -1160,7 +1253,15 @@ $endif SUPPORT_MMX
 end.
 {
   $Log$
-  Revision 1.3  1998-04-21 10:16:49  peter
+  Revision 1.4  1998-04-29 10:34:08  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.3  1998/04/21 10:16:49  peter
     * patches from strasbourg
     * objects is not used anymore in the fpc compiled version
 

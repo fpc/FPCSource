@@ -771,15 +771,15 @@ Implementation
                                       R_FP1)))
                                   else
                                     { FPm --> FPn must use extended precision }
-                                    emit_reg_reg(A_FMOVE,S_X,p^.right^.location.fpureg,R_FP1);
+                                    emit_reg_reg(A_FMOVE,S_FX,p^.right^.location.fpureg,R_FP1);
 
                                   { arithmetic expression performed in extended mode }
-                                  exprasmlist^.concat(new(pai68k,op_reg_reg(op,S_X,
+                                  exprasmlist^.concat(new(pai68k,op_reg_reg(op,S_FX,
                                       p^.left^.location.fpureg,R_FP1)));
 
                                   { cmpop does not change any floating point register!! }
                                   if not cmpop then
-                                       emit_reg_reg(A_FMOVE,S_X,R_FP1,p^.left^.location.fpureg)
+                                       emit_reg_reg(A_FMOVE,S_FX,R_FP1,p^.left^.location.fpureg)
 {                                       exprasmlist^.concat(new(pai68k,op_reg_reg(A_FMOVE,
                                        getfloatsize(pfloatdef(p^.left^.resulttype)^.typ),
                                        R_FP1,p^.left^.location.fpureg)))}
@@ -835,7 +835,7 @@ Implementation
                                emit_reg_reg(A_FMOVE,getfloatsize(pfloatdef(p^.left^.resulttype)^.typ),
                                  p^.right^.location.fpureg,R_FP1);
 
-                               emit_reg_reg(op,S_X,R_FP1,p^.left^.location.fpureg);
+                               emit_reg_reg(op,S_FX,R_FP1,p^.left^.location.fpureg);
 
                                if cmpop then
                                  processcc(p);
@@ -1921,7 +1921,15 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-03-28 23:09:54  florian
+  Revision 1.3  1998-04-29 10:33:45  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.2  1998/03/28 23:09:54  florian
     * secondin bugfix (m68k and i386)
     * overflow checking bugfix (m68k and i386) -- pretty useless in
       secondadd, since everything is done using 32-bit

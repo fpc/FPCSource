@@ -179,12 +179,12 @@ unit ag386int;
                          S_B : hs:='byte '+hs;
                          S_W : hs:='word '+hs;
                          S_L : hs:='dword '+hs;
-                         S_S : hs:='dword '+hs;
-                         S_Q : hs:='qword '+hs;
-                         S_X : if current_module^.output_format in [of_nasm,of_obj] then
-                                 hs:='tword '+hs
-                               else
-                                 hs:='tbyte '+hs;
+                         S_IS : hs:='word '+hs;
+                         S_IL : hs:='dword '+hs;
+                         S_IQ : hs:='qword '+hs;
+                         S_FS : hs:='dword '+hs;
+                         S_FL : hs:='qword '+hs;
+                         S_FX : hs:='tword '+hs;
                          S_BW : if dest then
                              hs:='word '+hs
                            else
@@ -210,6 +210,12 @@ unit ag386int;
                S_B : hs:='byte ptr '+hs;
                S_W : hs:='word ptr '+hs;
                S_L : hs:='dword ptr '+hs;
+               S_IS : hs:='word ptr '+hs;
+               S_IL : hs:='dword ptr '+hs;
+               S_IQ : hs:='qword ptr '+hs;
+               S_FS : hs:='dword ptr '+hs;
+               S_FL : hs:='qword ptr '+hs;
+               S_FX : hs:='tbyte ptr '+hs;
                S_BW : if dest then
                    hs:='word ptr '+hs
                  else
@@ -316,7 +322,12 @@ unit ag386int;
       while assigned(hp) do
        begin
          case hp^.typ of
-       ait_comment : ;
+           ait_comment :
+             Begin
+                AsmWrite(As_comment);
+                AsmWritePChar(pai_asm_comment(hp)^.str);
+                AsmLn;
+             End;
          ait_align : begin
                      { align not supported at all with nasm v095  }
                      { align with specific value not supported by }
@@ -324,8 +335,8 @@ unit ag386int;
                      { CAUSES PROBLEMS WITH THE SEGMENT DEFINITION   }
                      { SEGMENT DEFINITION SHOULD MATCH TYPE OF ALIGN }
                      { HERE UNDER TASM!                              }
-{                      if current_module^.output_format<>of_nasm then
-                        AsmWriteLn(#9'ALIGN '+tostr(pai_align(hp)^.aligntype));}
+                     { if current_module^.output_format<>of_nasm then }
+                        AsmWriteLn(#9'ALIGN '+tostr(pai_align(hp)^.aligntype));
                      end;
       ait_external : begin
                        if current_module^.output_format in [of_nasm,of_obj] then
@@ -541,8 +552,12 @@ ait_labeled_instruction :
                            begin
                              if output_format=of_nasm then
                               s:=getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1)
+                              { with tasm call near ptr [edi+12] does not
+                                work but call near [edi+12] works ?? (PM)}
+                             else if pai386(hp)^.op1t=top_ref then
+                                s:='near '+getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1)
                              else
-                              s:='near ptr '+getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1);
+                                s:='near ptr '+getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1);
                            end
                           else
                            begin
@@ -602,6 +617,7 @@ ait_stab_function_name : ;
 
 
     procedure ti386intasmlist.WriteAsmList;
+
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module^.mainsource) then
@@ -635,21 +651,22 @@ ait_stab_function_name : ;
        end
       else
        begin
-         AsmWriteLn('.386p');
+         AsmWriteLn(#9'.386p');
+         AsmWriteLn(#9'LOCALS '+target_info.labelprefix);
 
          WriteTree(externals);
          { INTEL ASM doesn't support stabs
          WriteTree(debuglist);}
 
          AsmWriteLn('DGROUP'#9#9'GROUP'#9'_BSS,_DATA');
-         AsmWriteLn('_TEXT'#9#9'SEGMENT'#9'BYTE PUBLIC USE32 ''CODE''');
+         AsmWriteLn('_TEXT'#9#9'SEGMENT'#9'PARA PUBLIC USE32 ''CODE''');
          AsmWriteLn(#9#9'ASSUME'#9'CS:_TEXT,ES:DGROUP,DS:DGROUP,SS:DGROUP');
          AsmLn;
          WriteTree(codesegment);
          AsmWriteLn('_TEXT'#9#9'ENDS');
 
          AsmLn;
-         AsmWriteLn('_DATA'#9#9'SEGMENT'#9'DWORD PUBLIC USE32 ''DATA''');
+         AsmWriteLn('_DATA'#9#9'SEGMENT'#9'PARA PUBLIC USE32 ''DATA''');
 {$ifdef EXTDEBUG}
          AsmWriteLn(#9#9'DB'#9'"compiled by FPC '+version_string+'\0"');
          AsmWriteLn(#9#9'DB'#9'"target: '+target_info.target_name+'\0"');
@@ -659,7 +676,7 @@ ait_stab_function_name : ;
          AsmWriteLn('_DATA'#9#9'ENDS');
 
          AsmLn;
-         AsmWriteLn('_BSS'#9#9'SEGMENT'#9'DWORD PUBLIC USE32 ''BSS''');
+         AsmWriteLn('_BSS'#9#9'SEGMENT'#9'PARA PUBLIC USE32 ''BSS''');
          WriteTree(bsssegment);
          AsmWriteLn('_BSS'#9#9'ENDS');
 
@@ -675,7 +692,15 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.3  1998-04-08 16:58:01  pierre
+  Revision 1.4  1998-04-29 10:33:41  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.3  1998/04/08 16:58:01  pierre
     * several bugfixes
       ADD ADC and AND are also sign extended
       nasm output OK (program still crashes at end

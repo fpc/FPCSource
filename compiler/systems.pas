@@ -165,12 +165,21 @@ unit systems;
             unit_env : 'GO32V2UNITS';
             system_unit : 'SYSTEM';
             exeext : '.EXE';
+{$ifndef UseAnsiString}
             objext : '.O';
             dllext : '.DLL';
             arext : '.A';
             unitext : '.PPU';
             libext : '.PPL';
             asmext : '.S';
+{$else UseAnsiString}
+   { just for tests }
+            objext : '.OA';
+            dllext : '.DLL';
+            unitext : '.PAU';
+            libext : '.PPL';
+            asmext : '.SA';
+{$endif UseAnsiString}
             sourceext : '.PP';
             pasext : '.PAS';
             newline : #13#10;
@@ -366,7 +375,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1998-04-27 15:45:20  peter
+  Revision 1.5  1998-04-29 10:34:06  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.4  1998/04/27 15:45:20  peter
     + -Xl for smartlink
     + target_info.arext = .a
 

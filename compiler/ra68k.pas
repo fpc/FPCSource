@@ -610,9 +610,9 @@ var
        'B': instr.stropsize := S_B;
        'W': instr.stropsize := S_W;
        'L': instr.stropsize := S_L;
-       'S': instr.stropsize := S_S;
-       'D': instr.stropsize := S_Q;
-       'X': instr.stropsize := S_X;
+       'S': instr.stropsize := S_FS;
+       'D': instr.stropsize := S_FL;
+       'X': instr.stropsize := S_FX;
        else
         Message1(assem_e_invalid_opcode,s);
        end;
@@ -2169,8 +2169,16 @@ Begin
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.2  1998-04-29 10:34:01  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.1.1.1  1998/03/25 11:18:15  root
+  * Restored version
 
   Revision 1.14  1998/03/22 12:45:38  florian
     * changes of Carl-Eric to m68k target commit:

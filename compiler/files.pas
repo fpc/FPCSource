@@ -73,6 +73,12 @@ unit files;
           procedure register_file(f : pextfile);
        end;
 
+       tfileposinfo = record
+         infile : pinputfile;
+         line : longint; { could be changed to abspos }
+       end;
+       pfileposinfo = ^tfileposinfo;
+
     type
        tunitmap = array[0..maxunits-1] of pointer;
        punitmap = ^tunitmap;
@@ -618,7 +624,15 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.3  1998-04-27 23:10:28  peter
+  Revision 1.4  1998-04-29 10:33:52  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.3  1998/04/27 23:10:28  peter
     + new scanner
     * $makelib -> if smartlink
     * small filename fixes pmodule.setfilename

@@ -637,13 +637,13 @@ Begin
         If (Reg32(TRegister(Pai386(oldp)^.op1)) in RegsNotYetChecked) Then
           Begin
             RegsNotYetChecked := RegsNotYetChecked - [Reg32(TRegister(Pai386(oldp)^.op1))];
-            If Assigned(newp^.Last)
+            If Assigned(newp^.previous)
               Then
                 Begin
-                  TmpP := Pai(newp^.last);
-                  While Assigned (TmpP^.Last) And
+                  TmpP := Pai(newp^.previous);
+                  While Assigned (TmpP^.previous) And
                         PPaiProp(TmpP^.Line)^.CanBeRemoved Do
-                    TmpP := Pai(TmpP^.Last);
+                    TmpP := Pai(TmpP^.previous);
                   TmpResult := Assigned(TmpP) And
                                RegsSameContent(oldp, TmpP, Reg32(TRegister(Pai386(oldp)^.op1)))
                 End
@@ -656,13 +656,13 @@ Begin
                (Base <> R_NO) Then
               Begin
                 RegsNotYetChecked := RegsNotYetChecked - [Base];
-                If Assigned(newp^.Last)
+                If Assigned(newp^.previous)
                   Then
                     Begin
-                      TmpP := Pai(newp^.last);
-                      While Assigned (TmpP^.Last) And
+                      TmpP := Pai(newp^.previous);
+                      While Assigned (TmpP^.previous) And
                             PPaiProp(TmpP^.Line)^.CanBeRemoved Do
-                        TmpP := Pai(TmpP^.Last);
+                        TmpP := Pai(TmpP^.previous);
                       TmpResult := Assigned(TmpP) And
                                    RegsSameContent(oldp, TmpP, Base)
                     End
@@ -673,13 +673,13 @@ Begin
                (Index in RegsNotYetChecked) Then
               Begin
                 RegsNotYetChecked := RegsNotYetChecked - [Index];
-                If Assigned(newp^.Last)
+                If Assigned(newp^.previous)
                   Then
                     Begin
-                      TmpP := Pai(newp^.last);
-                      While Assigned (TmpP^.Last) And
+                      TmpP := Pai(newp^.previous);
+                      While Assigned (TmpP^.previous) And
                             PPaiProp(TmpP^.Line)^.CanBeRemoved Do
-                        TmpP := Pai(TmpP^.Last);
+                        TmpP := Pai(TmpP^.previous);
                       TmpResult := Assigned(TmpP) And
                                    RegsSameContent(oldp, TmpP, Index)
                     End
@@ -693,13 +693,13 @@ End;
 Begin {CheckSequence}
   Reg := Reg32(Reg);
   Found := 0;
-  hp2 := PPaiProp(Pai(p^.last)^.line)^.Regs[Reg].StartMod;
+  hp2 := PPaiProp(Pai(p^.previous)^.line)^.Regs[Reg].StartMod;
   hp3 := p;
-  EndMod := PPaiProp(Pai(p^.last)^.line)^.Regs[Reg].StartMod;
+  EndMod := PPaiProp(Pai(p^.previous)^.line)^.Regs[Reg].StartMod;
   RegsNotYetChecked := [R_EAX..R_EDI];
-  For Counter := 2 to PPaiProp(Pai(p^.last)^.line)^.Regs[Reg].NrOfMods Do
+  For Counter := 2 to PPaiProp(Pai(p^.previous)^.line)^.Regs[Reg].NrOfMods Do
     EndMod := Pai(EndMod^.Next);
-  While (Found <> PPaiProp(Pai(p^.last)^.line)^.Regs[Reg].NrOfMods) And
+  While (Found <> PPaiProp(Pai(p^.previous)^.line)^.Regs[Reg].NrOfMods) And
          InstructionsEqual(hp2, hp3) And
          NoChangedRegInRef(EndMod, hp3) Do
     Begin
@@ -707,10 +707,10 @@ Begin {CheckSequence}
       hp3 := Pai(hp3^.next);
       Inc(Found)
     End;
-  If (Found <> PPaiProp(Pai(p^.last)^.line)^.Regs[Reg].NrOfMods)
+  If (Found <> PPaiProp(Pai(p^.previous)^.line)^.Regs[Reg].NrOfMods)
      Then
        Begin
-         If ((Found+1) = PPaiProp(Pai(p^.last)^.line)^.Regs[Reg].NrOfMods) And
+         If ((Found+1) = PPaiProp(Pai(p^.previous)^.line)^.Regs[Reg].NrOfMods) And
            Assigned(hp2) And
            (Pai(hp2)^.typ = ait_instruction) And
            (Pai386(hp2)^._operator In [A_MOV, A_MOVZX]) And
@@ -821,7 +821,7 @@ Begin
         Then TmpProp := @PaiPropBlock^[InstrCnt]
         Else New(TmpProp);
       If (p <> First)
-        Then TmpProp^ := PPaiProp(Pai(p^.last)^.line)^
+        Then TmpProp^ := PPaiProp(Pai(p^.previous)^.line)^
         Else FillChar(TmpProp^, SizeOf(TmpProp^), 0);
       TmpProp^.LineSave := p^.line;
       PPaiProp(p^.line) := TmpProp;
@@ -993,8 +993,8 @@ Begin
         ait_instruction:
           Begin
             Case Pai386(p)^._operator Of
-              A_CLD: If Assigned(p^.last) And
-                        (PPaiProp(Pai(p^.last)^.line)^.DirFlag = F_NotSet) Then
+              A_CLD: If Assigned(p^.previous) And
+                        (PPaiProp(Pai(p^.previous)^.line)^.DirFlag = F_NotSet) Then
                           PPaiProp(Pai(p)^.line)^.CanBeRemoved := True;
 {$IfDef OptimizeMovs}
               A_MOV, A_MOVZX, A_MOVSX:
@@ -1009,8 +1009,8 @@ Begin
                       Begin {destination is always a register in this case}
                         With PPaiProp(p^.line)^.Regs[Reg32(Tregister(Pai386(p)^.op2))] Do
                           Begin
-                            If Assigned(p^.last) And
-                               (PPaiProp(Pai(p^.last)^.line)^.Regs[Reg32(TRegister(Pai386(p)^.op2))].typ = con_ref) Then
+                            If Assigned(p^.previous) And
+                               (PPaiProp(Pai(p^.previous)^.line)^.Regs[Reg32(TRegister(Pai386(p)^.op2))].typ = con_ref) Then
    {so we don't try to check a sequence when the register only contains a constant}
                                If CheckSequence(p, TRegister(Pai386(p)^.op2), Cnt) And
                                   (Cnt > 0)
@@ -1067,8 +1067,8 @@ Begin
                         Case Pai386(p)^.op2t Of
                           Top_Reg:
                             Begin
-                              If Assigned(p^.last) Then
-                                With PPaiProp(Pai(p^.last)^.line)^.Regs[Reg32(TRegister(Pai386(p)^.op2))] Do
+                              If Assigned(p^.previous) Then
+                                With PPaiProp(Pai(p^.previous)^.line)^.Regs[Reg32(TRegister(Pai386(p)^.op2))] Do
                                   If (Typ = Con_Const) And
                                      (StartMod = Pai386(p)^.op1) Then
                                     PPaiProp(p^.line)^.CanBeRemoved := True;
@@ -1079,17 +1079,17 @@ Begin
                   End;
                 End;
 {$EndIf OptimizeMovs}
-              A_STD: If Assigned(p^.last) And
-                        (PPaiProp(Pai(p^.last)^.line)^.DirFlag = F_Set) Then
+              A_STD: If Assigned(p^.previous) And
+                        (PPaiProp(Pai(p^.previous)^.line)^.DirFlag = F_Set) Then
                         PPaiProp(Pai(p)^.line)^.CanBeRemoved := True;
               A_XOR:
                 Begin
                   If (Pai386(p)^.op1t = top_reg) And
                      (Pai386(p)^.op2t = top_reg) And
                      (Pai386(p)^.op1 = Pai386(p)^.op2) And
-                     Assigned(p^.last) And
-                     (PPaiProp(Pai(p^.last)^.line)^.Regs[Reg32(Tregister(Pai386(p)^.op1))].typ = con_const) And
-                     (PPaiProp(Pai(p^.last)^.line)^.Regs[Reg32(Tregister(Pai386(p)^.op1))].StartMod = Pointer(0))
+                     Assigned(p^.previous) And
+                     (PPaiProp(Pai(p^.previous)^.line)^.Regs[Reg32(Tregister(Pai386(p)^.op1))].typ = con_const) And
+                     (PPaiProp(Pai(p^.previous)^.line)^.Regs[Reg32(Tregister(Pai386(p)^.op1))].StartMod = Pointer(0))
                     Then PPaiProp(p^.line)^.CanBeRemoved := True
                 End
             End
@@ -1148,7 +1148,7 @@ Var p: Pai;
 Begin
   P := Pai(AsmL^.First);
   NrOfPaiObjs := 1;
-  While (P <> Pai(AsmL^.Last)) Do
+  While (P <> Pai(AsmL^.last)) Do
     Begin
       Inc(NrOfPaiObjs);
       P := Pai(P^.next)
@@ -1191,7 +1191,15 @@ End;
 
 {
  $Log$
- Revision 1.4  1998-04-21 11:30:14  peter
+ Revision 1.5  1998-04-29 10:33:42  pierre
+   + added some code for ansistring (not complete nor working yet)
+   * corrected operator overloading
+   * corrected nasm output
+   + started inline procedures
+   + added starstarn : use ** for exponentiation (^ gave problems)
+   + started UseTokenInfo cond to get accurate positions
+
+ Revision 1.4  1998/04/21 11:30:14  peter
    * fixed $ifdef regalloc
 
  Revision 1.3  1998/04/16 16:53:56  jonas

@@ -29,6 +29,11 @@ unit aasm;
 
 {$I version.inc}
     type
+{$ifdef klaempfl}
+{$ifdef ver0_9_2}
+       extended = double;
+{$endif ver0_9_2}
+{$endif klaempfl}
        tait = (
           ait_string,
           ait_label,
@@ -84,6 +89,7 @@ unit aasm;
           len : longint;
           constructor init(const _str : string);
           constructor init_pchar(_str : pchar);
+          constructor init_length_pchar(_str : pchar;length : longint);
           destructor done;virtual;
        end;
 
@@ -141,6 +147,15 @@ unit aasm;
           destructor done; virtual;
        end;
 
+       { to insert a comment into the generated assembler file }
+
+       pai_asm_comment = ^tai_asm_comment;
+       tai_asm_comment = object(tai)
+          str : pchar;
+          constructor init(_str : pchar);
+          destructor done; virtual;
+       end;
+
 
        { alignment for operator }
        pai_align = ^tai_align;
@@ -193,6 +208,16 @@ unit aasm;
           constructor init(_value : double);
        end;
 
+       pai_comp = ^tai_comp;
+
+       { generates an comp (integer over 64 bits) }
+       tai_comp = object(tai)
+          value : bestreal;
+          constructor init(_value : bestreal);
+          { usefull for 64 bits apps, maybe later  }
+          constructor init_comp(_value : comp);
+       end;
+
        pai_single = ^tai_single;
 
        { generates a single (32 bit real) }
@@ -240,14 +265,6 @@ type
        pai_bestreal = pai_single;
        tai_bestreal = tai_single;
 {$endif m68k}
-
-       pai_comp = ^tai_comp;
-
-       { generates an comp (integer over 64 bits) }
-       tai_comp = object(tai)
-          value : bestreal;
-          constructor init(_value : bestreal);
-       end;
 
        paasmoutput = ^taasmoutput;
        taasmoutput = tlinkedlist;
@@ -542,6 +559,14 @@ type
          value:=_value;
       end;
 
+    constructor tai_comp.init_comp(_value : comp);
+
+      begin
+         inherited init;
+         typ:=ait_comp;
+         value:=_value;
+      end;
+
 {****************************************************************************
                                TAI_STRING
  ****************************************************************************}
@@ -563,6 +588,15 @@ type
           typ:=ait_string;
           str:=_str;
           len:=strlen(_str);
+       end;
+
+    constructor tai_string.init_length_pchar(_str : pchar;length : longint);
+
+       begin
+          inherited init;
+          typ:=ait_string;
+          str:=_str;
+          len:=length;
        end;
 
     destructor tai_string.done;
@@ -620,6 +654,26 @@ type
       end;
 
 {****************************************************************************
+                              TAI_ASM_COMMENT
+  comment to be inserted in the assembler file
+ ****************************************************************************}
+
+     constructor tai_asm_comment.init(_str : pchar);
+
+       begin
+          inherited init;
+          typ:=ait_comment;
+          str:=_str;
+       end;
+
+    destructor tai_asm_comment.done;
+
+      begin
+         strdispose(str);
+         inherited done;
+      end;
+
+{****************************************************************************
                               TAI_ALIGN
  ****************************************************************************}
 
@@ -667,7 +721,15 @@ type
 end.
 {
   $Log$
-  Revision 1.3  1998-04-27 23:10:27  peter
+  Revision 1.4  1998-04-29 10:33:40  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.3  1998/04/27 23:10:27  peter
     + new scanner
     * $makelib -> if smartlink
     * small filename fixes pmodule.setfilename

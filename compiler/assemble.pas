@@ -37,11 +37,17 @@ const
 
 {$ifdef i386}
 { tof = (of_none,of_o,of_obj,of_masm,of_att,of_nasm,of_win32) }
-  AsBin : array[tof] of string[8]=('','as','nasm','masm','as','nasm','asw');
+  AsBin : array[tof] of string[8]=('','as','nasm','tasm','as','nasm','asw');
+  { I hope that all I386 assembler recongnize this as
+    a comment begin (PM) }
+  As_comment : string[2] = '# ';
 {$endif}
 {$ifdef m68k}
-{ tof = (of_none,of_o,of_gas,of_mot,of_mit) }
-  AsBin : array[tof] of string[8]=('','','','','');
+{ tof = (of_none,of_o,of_gas,of_mot,of_mit)  }
+  AsBin : array[tof] of string[8]=('','','as68k','','');
+  { I hope that all M68K assembler recongnize this as
+    a comment begin (PM) }
+  As_comment : string[2] = '| ';
 {$endif}
 
 
@@ -218,11 +224,14 @@ begin
             end;
 {$endif}
 {$ifdef m68k}
-     of_o,
    of_mot,
-   of_mit,
-   of_gas : begin
+   of_mit : begin
             { !! Nothing yet !! }
+            end;
+   of_o,of_gas : begin
+              if CallAssembler(FindAssembler(of_gas),'  --register-prefix-optional'+
+              ' -o '+objfile+' '+asmfile) then
+               RemoveAsm;
             end;
 {$endif}
   else
@@ -464,7 +473,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1998-04-27 23:10:27  peter
+  Revision 1.5  1998-04-29 10:33:44  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.4  1998/04/27 23:10:27  peter
     + new scanner
     * $makelib -> if smartlink
     * small filename fixes pmodule.setfilename

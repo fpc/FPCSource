@@ -102,7 +102,32 @@ unit i386;
          R_ST,R_ST0,R_ST1,R_ST2,R_ST3,R_ST4,R_ST5,R_ST6,R_ST7,
          R_MM0,R_MM1,R_MM2,R_MM3,R_MM4,R_MM5,R_MM6,R_MM7);
 
-       topsize = (S_NO,S_B,S_W,S_L,S_BW,S_BL,S_WL,S_Q,S_S,S_X,S_D);
+       { S_NO = No Size of operand }
+       { S_B  = Byte size operand  }
+       { S_W  = Word size operand  }
+       { S_L  = DWord size operand }
+       { USED FOR conversions in x86}
+       { S_BW = Byte to word       }
+       { S_BL = Byte to long       }
+       { S_WL = Word to long       }
+       { Floating point types      }
+       { S_FX  = Extended type      }
+       { S_FL  = double/64bit integer }
+       { S_FS  = single type (32 bit) }
+       { S_IQ  = integer on 64 bits   }
+       { S_IL  = integer on 32 bits   }
+       { S_IS  = integer on 16 bits   }
+       { S_D   = integer on  bits for MMX }
+       topsize = (S_NO,S_B,S_W,S_L,S_BW,S_BL,S_WL,
+                  S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D);
+       { S_FS and S_FL added
+         S_X renamed to S_FX
+         S_IL added
+         S_S and S_Q renamed to S_IQ and S_IS
+         S_F? means a real load or store or read
+         added to distinguish between longint l suffix like 'movl'
+         and double l suffix 'fldl'
+         distinction needed for intel output !! }
 
        plocation = ^tlocation;
 
@@ -959,8 +984,11 @@ unit i386;
         'psubusb','psubusw','psubw','punpckhbw','punpckhdq',
         'punpckhwd','punpcklbw','punpckldq','punpcklwd','pxor');
 
+     {  topsize = (S_NO,S_B,S_W,S_L,S_BW,S_BL,S_WL,
+                  S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D); }
      att_opsize2str : array[topsize] of string[2] =
-       ('','b','w','l','bw','bl','wl','q','s','t','d');
+       ('','b','w','l','bw','bl','wl',
+        's','l','q','s','l','t','d');
 
      att_reg2str : array[tregister] of string[6] =
        ('','%eax','%ecx','%edx','%ebx','%esp','%ebp','%esi','%edi',
@@ -1079,17 +1107,11 @@ unit i386;
            lab2str:='ILLEGAL'
          else
          begin
-           if not(current_module^.output_format in [of_obj,of_nasm]) then
-              lab2str:=target_info.labelprefix+tostr(l^.nb)
-           else
-              lab2str:='?L'+tostr(l^.nb);
+            lab2str:=target_info.labelprefix+tostr(l^.nb);
          end;
 {$else EXTDEBUG}
            internalerror(2000);
-           if not(current_module^.output_format in [of_obj,of_nasm]) then
-              lab2str:=target_info.labelprefix+tostr(l^.nb)
-           else
-              lab2str:='?L'+tostr(l^.nb);
+           lab2str:=target_info.labelprefix+tostr(l^.nb);
 {$endif EXTDEBUG}
          { was missed: }
          inc(l^.refcount);
@@ -1460,15 +1482,19 @@ unit i386;
          inherited init;
          typ:=ait_instruction;
          _operator:=op;
-         if ((op=A_CMP) or (op=A_AND) or (op=A_ADD) or (op=A_ADC)) and
+         if ((op=A_CMP) or (op=A_AND) or (op=A_ADD) or
+            (op=A_ADC) or (op=A_SUB) or (op=A_SBB)) and
             ((_size=S_B) or (_size=S_BW) or (_size=S_BL)) and
             ((_op2<R_AL) or (_op2>R_DH)) and
             (_op1>127) then
            begin
 {$ifdef extdebug}
-              comment(v_warning,'wrong size for A_CMP or A_AND due to implicit size extension !!');
+              comment(v_warning,'wrong size for instruction due to implicit size extension !!');
 {$endif extdebug}
-              _size:=S_L;
+              if _size=S_BW then
+                _size:=S_W
+              else
+                _size:=S_L;
            end;
          opxt:=Top_const+Top_reg shl 4;
          size:=_size;
@@ -1754,7 +1780,15 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.4  1998-04-09 15:46:38  florian
+  Revision 1.5  1998-04-29 10:33:53  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.4  1998/04/09 15:46:38  florian
     + register allocation tracing stuff added
 
   Revision 1.3  1998/04/08 16:58:02  pierre

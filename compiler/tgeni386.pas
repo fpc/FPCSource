@@ -58,6 +58,7 @@ unit tgeni386;
     procedure setfirsttemp(l : longint);
     function gettempsize : longint;
     function gettempofsize(size : longint) : longint;
+    procedure ungettemp(pos : longint;size : longint);
     procedure gettempofsizereference(l : longint;var ref : treference);
     function istemp(const ref : treference) : boolean;
     procedure ungetiftemp(const ref : treference);
@@ -274,40 +275,33 @@ unit tgeni386;
 
     function getregister32 : tregister;
 
-      var
-         r : tregister;
-
       begin
          dec(usablereg32);
          if R_EAX in unused then
            begin
               unused:=unused-[R_EAX];
               usedinproc:=usedinproc or ($80 shr byte(R_EAX));
-              r:=R_EAX;
+              getregister32:=R_EAX;
            end
          else if R_EDX in unused then
            begin
               unused:=unused-[R_EDX];
               usedinproc:=usedinproc or ($80 shr byte(R_EDX));
-              r:=R_EDX;
+              getregister32:=R_EDX;
            end
          else if R_EBX in unused then
            begin
               unused:=unused-[R_EBX];
               usedinproc:=usedinproc or ($80 shr byte(R_EBX));
-              r:=R_EBX;
+              getregister32:=R_EBX;
            end
          else if R_ECX in unused then
            begin
               unused:=unused-[R_ECX];
               usedinproc:=usedinproc or ($80 shr byte(R_ECX));
-              r:=R_ECX;
+              getregister32:=R_ECX;
            end
          else internalerror(10);
-{$ifdef REGALLOC}
-         exprasmlist^.concat(new(pairegalloc,init(r)));
-{$endif REGALLOC}
-         getregister32:=r;
       end;
 
     procedure cleartempgen;
@@ -601,7 +595,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1998-04-09 22:16:36  florian
+  Revision 1.4  1998-04-29 10:34:08  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.3  1998/04/09 22:16:36  florian
     * problem with previous REGALLOC solved
     * improved property support
 

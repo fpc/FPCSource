@@ -213,13 +213,46 @@
             { because of jump being produced at comparison below: }
             p^.swaped:=not(p^.swaped);
          end;
+{$ifdef UseAnsiString}
+              if is_ansistring(p^.left^.resulttype) then
+                begin
+                  case p^.treetype of
+                  addn :
+                    begin
+                       { we do not need destination anymore }
+                       del_reference(p^.left^.location.reference);
+                       del_reference(p^.right^.location.reference);
+                       concatansistring(p);
+                    end;
+                  ltn,lten,gtn,gten,
+                  equaln,unequaln :
+                    begin
+                       pushusedregisters(pushedregs,$ff);
+                       secondpass(p^.left);
+                       del_reference(p^.left^.location.reference);
+                       emitpushreferenceaddr(p^.left^.location.reference);
+                       secondpass(p^.right);
+                       del_reference(p^.right^.location.reference);
+                       emitpushreferenceaddr(p^.right^.location.reference);
+                       emitcall('ANSISTRCMP',true);
+                       maybe_loadesi;
+                       popusedregisters(pushedregs);
+                    end;
+                  end;
+                end
+              else
+{$endif UseAnsiString}
        case p^.treetype of
           addn :
             begin
                cmpop:=false;
                secondpass(p^.left);
-               if (p^.left^.treetype<>addn) then
+               { if str_concat is set in expr
+                 s:=s+ ... no need to create a temp string (PM) }
+
+               if (p^.left^.treetype<>addn) and not (p^.use_strconcat) then
                  begin
+
                     { can only reference be }
                     { string in register would be funny    }
                     { therefore produce a temporary string }
@@ -275,7 +308,10 @@
                 end
                else }
                 begin
-                  pushusedregisters(pushedregs,$ff);
+                  if p^.use_strconcat then
+                    pushusedregisters(pushedregs,pstringdef(p^.left^.resulttype)^.len)
+                  else
+                    pushusedregisters(pushedregs,$ff);
                   emitpushreferenceaddr(p^.left^.location.reference);
                   emitpushreferenceaddr(p^.right^.location.reference);
                   emitcall('STRCONCAT',true);
@@ -1234,10 +1270,13 @@
 
 {
      $Log$
-     Revision 1.4  1998-04-21 15:22:45  pierre
-       * typing error in secondadd for mmx corrected
-       * USE_RHIDE sets usestderr to true
-         replacing gpc by fpc in RHIDE should be a lot easier
+     Revision 1.5  1998-04-29 10:33:49  pierre
+       + added some code for ansistring (not complete nor working yet)
+       * corrected operator overloading
+       * corrected nasm output
+       + started inline procedures
+       + added starstarn : use ** for exponentiation (^ gave problems)
+       + started UseTokenInfo cond to get accurate positions
 
      Revision 1.3  1998/04/08 11:34:22  peter
        * nasm works (linux only tested)

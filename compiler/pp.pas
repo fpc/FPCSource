@@ -41,14 +41,11 @@
   Required switches for a i386 compiler be compiled by Free Pascal Compiler:
   GDB;I386
 
-  Required switches for a 68000 compiler be compiled by Free Pascal Compiler:
-  GDB;M68K
-
   Required switches for a i386 compiler be compiled by Turbo Pascal:
   GDB;I386;TP
 
   Required switches for a 68000 compiler be compiled by Turbo Pascal:
-  GDB;M68K;TP
+  GDB;M68k;TP
 }
 
 {$ifdef FPC}
@@ -129,7 +126,7 @@ uses
   catch,
 {$endif LINUX}
 {$IfDef PMD}
-     OpenFiles,
+     OpenFile,
      BBError,
      ObjMemory,
      PMD, MemCheck,
@@ -376,10 +373,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1998-04-21 15:22:46  pierre
-    * typing error in secondadd for mmx corrected
-    * USE_RHIDE sets usestderr to true
-      replacing gpc by fpc in RHIDE should be a lot easier
+  Revision 1.5  1998-04-29 10:33:59  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
 
   Revision 1.3  1998/04/21 10:16:48  peter
     * patches from strasbourg

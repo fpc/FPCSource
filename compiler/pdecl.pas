@@ -80,6 +80,7 @@ unit pdecl;
          name : stringid;
          p : ptree;
          def : pdef;
+         sym : psym;
          ps : pconstset;
          pd : pdouble;
 
@@ -136,9 +137,10 @@ unit pdecl;
                    def:=read_type('');
                    block_type:=bt_general;
                    ignore_equal:=false;
-                   symtablestack^.insert(new(ptypedconstsym,init(name,def)));
+                   sym:=new(ptypedconstsym,init(name,def));
+                   symtablestack^.insert(sym);
                    consume(EQUAL);
-                   readtypedconst(def);
+                   readtypedconst(def,ptypedconstsym(sym));
                    consume(SEMICOLON);
                 end;
               else consume(EQUAL);
@@ -187,7 +189,7 @@ unit pdecl;
               do_firstpass(p);
               if not is_constintnode(p) then
                 Message(cg_e_illegal_expression);
-{$ifndef UseLongString}
+{$ifndef UseAnsiString}
               if (p^.value<1) or (p^.value>255) then
                 begin
                    Message(parser_e_string_too_long);
@@ -201,9 +203,9 @@ unit pdecl;
 {$else * GDB *}
                  else d:=globaldef('SYSTEM.STRING');
 {$endif * GDB *}
-{$else UseLongString}
+{$else UseAnsiString}
               if p^.value>255 then
-                d:=new(pstringdef,longinit(p^.value)
+                d:=new(pstringdef,ansiinit(p^.value))
               else if p^.value<>255 then
                 d:=new(pstringdef,init(p^.value))
 {$ifndef GDB}
@@ -211,9 +213,12 @@ unit pdecl;
 {$else * GDB *}
                  else d:=globaldef('SYSTEM.STRING');
 {$endif * GDB *}
-{$endif UseLongString}
+              consume(RECKKLAMMER);
+{$endif UseAnsiString}
               disposetree(p);
            end
+           { should string bwithout suffix be an ansistring also
+             in ansistring mode ?? (PM) }
 {$ifndef GDB}
                  else d:=new(pstringdef,init(255));
 {$else * GDB *}
@@ -1753,7 +1758,15 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.11  1998-04-28 11:45:52  florian
+  Revision 1.12  1998-04-29 10:33:57  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.11  1998/04/28 11:45:52  florian
     * make it compilable with TP
     + small COM problems solved to compile classes.pp
 

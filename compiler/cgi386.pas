@@ -222,7 +222,12 @@ implementation
                     else
                       begin
                          { first handle local and temporary variables }
-                         if (symtabletype=parasymtable) or (symtabletype=localsymtable) then
+                         if (symtabletype=parasymtable) or
+{$ifdef TestInline}
+                            (symtabletype=inlinelocalsymtable) then
+                            (symtabletype=inlineparasymtable) then
+{$endif TestInline}
+                            (symtabletype=localsymtable) then
                            begin
                               p^.location.reference.base:=procinfo.framepointer;
                               p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address;
@@ -230,6 +235,14 @@ implementation
                                 p^.location.reference.offset:=-p^.location.reference.offset;
                               if (symtabletype=parasymtable) then
                                 inc(p^.location.reference.offset,p^.symtable^.call_offset);
+{$ifdef TestInline}
+                              if (symtabletype=inlinelocalsymtable) then
+                                p^.location.reference.offset:=-p^.location.reference.offset
+                                  +p^.symtable^.call_offset;
+                              if (symtabletype=inlineparasymtable) then
+                                inc(p^.location.reference.offset,p^.symtable^.call_offset);
+                                { comment(v_fatal,'inline proc arg not replaced'); }
+{$endif TestInline}
                               if (lexlevel>(p^.symtable^.symtablelevel)) then
                                 begin
                                    hregister:=getregister32;
@@ -637,7 +650,7 @@ implementation
                    hp1:=pai(hp1^.next);
                 end;
               { :-(, we must generate a new entry }
-                 if p^.labnumber=-1 then
+              if p^.labnumber=-1 then
                 begin
                    getlabel(lastlabel);
                    p^.labnumber:=lastlabel^.nb;
@@ -654,9 +667,11 @@ implementation
                         +'$real_const'+tostr(p^.labnumber))));
                       consts^.insert(new(pai_cut,init));
                     end
+                   else if current_module^.output_format in [of_nasm,of_obj] then
+                     consts^.insert(new(pai_symbol,init('$real_const'+tostr(p^.labnumber))))
                    else
-                    consts^.insert(new(pai_label,init(lastlabel)));
-               end;
+                     consts^.insert(new(pai_label,init(lastlabel)));
+                end;
            end;
          stringdispose(p^.location.reference.symbol);
          if smartlink then
@@ -664,8 +679,10 @@ implementation
             p^.location.reference.symbol:=stringdup('_$'+current_module^.unitname^
                 +'$real_const'+tostr(p^.labnumber));
           end
+         else if current_module^.output_format in [of_nasm,of_obj] then
+           p^.location.reference.symbol:=stringdup('$real_const'+tostr(p^.labnumber))
          else
-          p^.location.reference.symbol:=stringdup(lab2str(lastlabel));
+           p^.location.reference.symbol:=stringdup(lab2str(lastlabel));
       end;
 
     procedure secondfixconst(var p : ptree);
@@ -721,8 +738,13 @@ implementation
                           (pai_string(hp1)^.len=length(p^.values^)+2) then
                           begin
                              same_string:=true;
+{$ifndef UseAnsiString}
                              for i:=1 to length(p^.values^) do
                                if pai_string(hp1)^.str[i]<>p^.values^[i] then
+{$else}
+                             for i:=0 to p^.length do
+                               if pai_string(hp1)^.str[i]<>p^.values[i] then
+{$endif}
                                  begin
                                     same_string:=false;
                                     break;
@@ -743,14 +765,22 @@ implementation
                 begin
                    getlabel(lastlabel);
                    p^.labstrnumber:=lastlabel^.nb;
+{$ifndef UseAnsiString}
                    getmem(pc,length(p^.values^)+3);
                    move(p^.values^,pc^,length(p^.values^)+1);
                    pc[length(p^.values^)+1]:=#0;
+{$else UseAnsiString}
+                   pc:=getpcharcopy(p);
+{$endif UseAnsiString}
+
                    { we still will have a problem if there is a #0 inside the pchar }
-                   consts^.insert(new(pai_string,init_pchar(pc)));
+{$ifndef UseAnsiString}
+                   consts^.insert(new(pai_string,init_length_pchar(pc,length(p^.values^)+2)));
                    { to overcome this problem we set the length explicitly }
                    { with the ending null char }
-                   pai_string(consts^.first)^.len:=length(p^.values^)+2;
+{$else UseAnsiString}
+                   consts^.insert(new(pai_string,init_length_pchar(pc,p^.length+1)));
+{$endif UseAnsiString}
                    if smartlink then
                     begin
                       consts^.insert(new(pai_symbol,init_global('_$'+current_module^.unitname^
@@ -758,13 +788,27 @@ implementation
                       consts^.insert(new(pai_cut,init));
                     end
                    else
-                    consts^.insert(new(pai_label,init(lastlabel)));
-               end;
+                    begin
+                       consts^.insert(new(pai_label,init(lastlabel)));
+                       if current_module^.output_format in [of_nasm,of_obj] then
+                         consts^.insert(new(pai_symbol,init('$string_const'+tostr(p^.labstrnumber))));
+                    end;
+{$ifdef UseAnsiString}
+                   consts^.insert(new(pai_const,init_32bit(-1)));
+                   consts^.insert(new(pai_const,init_32bit(p^.length)));
+                   consts^.insert(new(pai_const,init_32bit(p^.length)));
+{$ifdef debug}
+                   consts^.insert(new(pai_asm_comment,init('Header of ansistring')));
+{$endif debug}
+{$endif UseAnsiString}
+                end;
            end;
          stringdispose(p^.location.reference.symbol);
          if smartlink then
            p^.location.reference.symbol:=stringdup('_$'+current_module^.unitname^
                      +'$string_const'+tostr(p^.labstrnumber))
+         else if current_module^.output_format in [of_nasm,of_obj] then
+           p^.location.reference.symbol:=stringdup('$string_const'+tostr(p^.labstrnumber))
          else
            p^.location.reference.symbol:=stringdup(lab2str(lastlabel));
          p^.location.loc := LOC_MEM;
@@ -1141,6 +1185,9 @@ implementation
          secondpass(p^.left);
          set_location(p^.location,p^.left^.location);
 
+         { in ansistrings S[1] is pchar(S)[0] !! }
+         if is_ansistring(p^.left^.resulttype) then
+           dec(p^.location.reference.offset);
          { offset can only differ from 0 if arraydef }
          if p^.left^.resulttype^.deftype=arraydef then
            dec(p^.location.reference.offset,
@@ -1571,11 +1618,35 @@ implementation
          pushedregs : tpushed;
 
       begin
-         stringdispose(p^.location.reference.symbol);
-         gettempofsizereference(p^.resulttype^.size,p^.location.reference);
-         del_reference(p^.left^.location.reference);
-         copystring(p^.location.reference,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
-         ungetiftemp(p^.left^.location.reference);
+{$ifdef UseAnsiString}
+         if is_ansistring(p^.resulttype) and not is_ansistring(p^.left^.resulttype) then
+           begin
+              { call shortstring to ansistring conversion }
+              { result is in register }
+              del_reference(p^.left^.location.reference);
+              copyshortstringtoansistring(p^.location,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
+              ungetiftemp(p^.left^.location.reference);
+           end
+         else if not is_ansistring(p^.resulttype) and is_ansistring(p^.left.resulttype) then
+           begin
+              { call ansistring to shortstring conversion }
+              { result is in mem }
+              stringdispose(p^.location.reference.symbol);
+              gettempofsizereference(p^.resulttype^.size,p^.location.reference);
+              if p^.left^.location.locin [LOC_MEM,LOC_REFERENCE] then
+                del_reference(p^.left^.location.reference);
+              copyansistringtoshortstring(p^.location.reference,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
+              ungetiftemp(p^.left^.location.reference);
+           end
+         else
+{$endif UseAnsiString}
+           begin
+              stringdispose(p^.location.reference.symbol);
+              gettempofsizereference(p^.resulttype^.size,p^.location.reference);
+              del_reference(p^.left^.location.reference);
+              copystring(p^.location.reference,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
+              ungetiftemp(p^.left^.location.reference);
+           end;
       end;
 
     procedure second_cstring_charpointer(p,hp : ptree;convtyp : tconverttype);
@@ -1721,9 +1792,9 @@ implementation
          { for u32bit a solution would be to push $0 and to load a
          comp }
           if porddef(p^.left^.resulttype)^.typ=u32bit then
-            exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_Q,r)))
+            exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)))
           else
-            exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_L,r)));
+            exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IL,r)));
 
          { better than an add on all processors }
          if porddef(p^.left^.resulttype)^.typ=u32bit then
@@ -1744,13 +1815,13 @@ implementation
       begin
          { real must be on fpu stack }
          if (p^.left^.location.loc<>LOC_FPU) then
-           exprasmlist^.concat(new(pai386,op_ref(A_FLD,S_L,newreference(p^.left^.location.reference))));
+           exprasmlist^.concat(new(pai386,op_ref(A_FLD,S_FL,newreference(p^.left^.location.reference))));
          push_int($1f3f);
          push_int(65536);
          reset_reference(ref);
          ref.base:=R_ESP;
 
-         exprasmlist^.concat(new(pai386,op_ref(A_FIMUL,S_L,newreference(ref))));
+         exprasmlist^.concat(new(pai386,op_ref(A_FIMUL,S_IL,newreference(ref))));
 
          ref.offset:=4;
          exprasmlist^.concat(new(pai386,op_ref(A_FSTCW,S_L,newreference(ref))));
@@ -1759,7 +1830,7 @@ implementation
          exprasmlist^.concat(new(pai386,op_ref(A_FLDCW,S_L,newreference(ref))));
 
          ref.offset:=0;
-         exprasmlist^.concat(new(pai386,op_ref(A_FISTP,S_L,newreference(ref))));
+         exprasmlist^.concat(new(pai386,op_ref(A_FISTP,S_IL,newreference(ref))));
 
          ref.offset:=4;
          exprasmlist^.concat(new(pai386,op_ref(A_FLDCW,S_L,newreference(ref))));
@@ -1853,7 +1924,7 @@ implementation
 
          reset_reference(r);
          r.base:=R_ESP;
-         exprasmlist^.concat(new(pai386,op_ref(A_FLD,S_L,newreference(r))));
+         exprasmlist^.concat(new(pai386,op_ref(A_FLD,S_FL,newreference(r))));
          exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,8,R_ESP)));
          if popedx then
            exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDX)));
@@ -2134,6 +2205,7 @@ implementation
          opsize : topsize;
          otlabel,hlabel,oflabel : plabel;
          hregister : tregister;
+         use_strconcat : boolean;
          loc : tloc;
 
       begin
@@ -2142,7 +2214,8 @@ implementation
          getlabel(truelabel);
          getlabel(falselabel);
          { calculate left sides }
-         secondpass(p^.left);
+         if not(p^.concat_string) then
+           secondpass(p^.left);
 
          if codegenerror then
            exit;
@@ -2220,12 +2293,32 @@ implementation
 {$endif test_dest_loc}
          if p^.left^.resulttype^.deftype=stringdef then
            begin
-             { we do not need destination anymore }
-             del_reference(p^.left^.location.reference);
-             { only source if withresult is set }
-             del_reference(p^.right^.location.reference);
-             loadstring(p);
-             ungetiftemp(p^.right^.location.reference);
+{$ifdef UseAnsiString}
+              if is_ansistring(p^.left^.resulttype) then
+                begin
+
+                  { we do not need destination anymore }
+                  del_reference(p^.left^.location.reference);
+                  { only source if withresult is set }
+                  del_reference(p^.right^.location.reference);
+                  loadansistring(p);
+                end
+              else
+{$endif UseAnsiString}
+              if not (p^.concat_string) then
+                begin
+                  { we do not need destination anymore }
+                  del_reference(p^.left^.location.reference);
+                  { only source if withresult is set }
+                  del_reference(p^.right^.location.reference);
+                  loadstring(p);
+                  ungetiftemp(p^.right^.location.reference);
+                end
+              else
+                begin
+                  { its the only thing we have to do }
+                  del_reference(p^.right^.location.reference);
+                end
            end
         else case p^.right^.location.loc of
             LOC_REFERENCE,
@@ -2663,7 +2756,7 @@ implementation
          { help reference pointer }
          r : preference;
          pp,params : ptree;
-
+         inlinecode : ptree;
          { instruction for alignement correction }
          corr : pai386;
          { we must pop this size also after !! }
@@ -2676,11 +2769,18 @@ implementation
       begin
          extended_new:=false;
          iolabel:=nil;
+         inlinecode:=nil;
          loadesi:=true;
          no_virtual_call:=false;
          unusedregisters:=unused;
+
          if not assigned(p^.procdefinition) then
           exit;
+         if (p^.procdefinition^.options and poinline)<>0 then
+           begin
+              inlinecode:=p^.right;
+              p^.right:=nil;
+           end;
          { only if no proc var }
          if not(assigned(p^.right)) then
            is_con_or_destructor:=((p^.procdefinition^.options and poconstructor)<>0)
@@ -3089,11 +3189,14 @@ implementation
                      end;
                    exprasmlist^.concat(new(pai386,op_ref(A_CALL,S_NO,r)));
                 end
-              else
+              else if (p^.procdefinition^.options and poinline)=0 then
                 emitcall(p^.procdefinition^.mangledname,
                   (p^.symtableproc^.symtabletype=unitsymtable) or
                   ((p^.symtableproc^.symtabletype=objectsymtable) and
-                  (pobjectdef(p^.symtableproc^.defowner)^.owner^.symtabletype=unitsymtable)));
+                  (pobjectdef(p^.symtableproc^.defowner)^.owner^.symtabletype=unitsymtable)))
+              else { inlined proc }
+                { inlined code is in p^.right }
+                secondpass(p^.right);
               if ((p^.procdefinition^.options and poclearstack)<>0) then
                 begin
                    { consider the alignment with the rest (PM) }
@@ -3866,6 +3969,11 @@ implementation
               begin
                  secondpass(p^.left);
                  set_location(p^.location,p^.left^.location);
+                 { length in ansi strings is at offset -8 }
+{$ifdef UseAnsiString}
+                 if is_ansistring(p^.left^.resultype)) then
+                   dec(p^.location.reference.offset,8);
+{$endif UseAnsiString}
               end;
             in_pred_x,
             in_succ_x:
@@ -4242,9 +4350,17 @@ implementation
          href.symbol := Nil;
          clear_reference(href);
          getlabel(l);
-         href.symbol:=stringdup(lab2str(l));
          stringdispose(p^.location.reference.symbol);
-         datasegment^.concat(new(pai_label,init(l)));
+         if not (current_module^.output_format in [of_nasm,of_obj]) then
+           begin
+              href.symbol:=stringdup(lab2str(l));
+              datasegment^.concat(new(pai_label,init(l)));
+           end
+         else
+           begin
+              href.symbol:=stringdup('$set_const'+tostr(l^.nb));
+              datasegment^.concat(new(pai_symbol,init('$set_const'+tostr(l^.nb))));
+           end;
            {if psetdef(p^.resulttype)=smallset then
            begin
               smallsetvalue:=(p^.constset^[3]*256)+p^.constset^[2];
@@ -4313,7 +4429,8 @@ implementation
 
        var
            pushed,ranges : boolean;
-           hr : tregister;
+           hr,pleftreg : tregister;
+           opsize : topsize;
            setparts:array[1..8] of Tsetpart;
            i,numparts:byte;
            href,href2:Treference;
@@ -4498,13 +4615,22 @@ implementation
                             {If register is used, use only lower 8 bits}
                             if p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                              begin
-                               if p^.left^.location.register in [R_AL..R_DH] then
-                                 exprasmlist^.concat(new(pai386,op_const_reg(
-                                   A_AND,S_B,255,p^.left^.location.register)))
+                               pleftreg:=p^.left^.location.register;
+                               if pleftreg in [R_AL..R_DH] then
+                                 begin
+                                    exprasmlist^.concat(new(pai386,op_const_reg(
+                                      A_AND,S_B,255,pleftreg)));
+                                    opsize:=S_B;
+                                 end
                                else
-
-                                 exprasmlist^.concat(new(pai386,op_const_reg(
-                                   A_AND,S_L,255,p^.left^.location.register)));
+                                 begin
+                                    exprasmlist^.concat(new(pai386,op_const_reg(
+                                      A_AND,S_L,255,pleftreg)));
+                                    if pleftreg in [R_EAX..R_EDI] then
+                                      opsize:=S_L
+                                    else
+                                      opsize:=S_W;
+                                 end;
                              end;
                             {Get a label to jump to the end.}
                             p^.location.loc:=LOC_FLAGS;
@@ -4532,8 +4658,8 @@ implementation
                                         case p^.left^.location.loc of
                                            LOC_REGISTER,
                                            LOC_CREGISTER :
-                                             exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,S_B,
-                                               setparts[i].start,p^.left^.location.register)));
+                                             exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,
+                                               setparts[i].start,pleftreg)));
                                            else
                                              exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_B,
                                                setparts[i].start,newreference(p^.left^.location.reference))));
@@ -4546,8 +4672,8 @@ implementation
                                         case p^.left^.location.loc of
                                            LOC_REGISTER,
                                            LOC_CREGISTER:
-                                             exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,S_B,
-                                               setparts[i].stop,p^.left^.location.register)));
+                                             exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,
+                                               setparts[i].stop,pleftreg)));
                                            else
                                              exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_B,
                                                setparts[i].stop,newreference(p^.left^.location.reference))));
@@ -4567,8 +4693,8 @@ implementation
                                              case p^.left^.location.loc of
                                                LOC_REGISTER,
                                                LOC_CREGISTER :
-                                                 exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,S_B,
-                                                 setparts[i].start,p^.left^.location.register)));
+                                                 exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,
+                                                 setparts[i].start,pleftreg)));
                                                else
                                                  exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_B,
                                                setparts[i].start,newreference(p^.left^.location.reference))));
@@ -4583,8 +4709,8 @@ implementation
                                              case p^.left^.location.loc of
                                                LOC_REGISTER,
                                                LOC_CREGISTER :
-                                                 exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,S_B,
-                                                   setparts[i].stop+1,p^.left^.location.register)));
+                                                 exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,
+                                                   setparts[i].stop+1,pleftreg)));
                                                else
                                                  exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_B,
                                                    setparts[i].stop+1,newreference(p^.left^.location.reference))));
@@ -4602,8 +4728,8 @@ implementation
                                    case p^.left^.location.loc of
                                       LOC_REGISTER,
                                       LOC_CREGISTER:
-                                        exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,S_B,
-                                          setparts[i].stop,p^.left^.location.register)));
+                                        exprasmlist^.concat(new(pai386,op_const_reg(A_CMP,opsize,
+                                          setparts[i].stop,pleftreg)));
                                       else
                                         exprasmlist^.concat(new(pai386,op_const_ref(A_CMP,S_B,
                                           setparts[i].stop,newreference(p^.left^.location.reference))));
@@ -4623,7 +4749,7 @@ implementation
                             case p^.left^.location.loc of
                                LOC_REGISTER,
                                LOC_CREGISTER:
-                                 ungetregister32(p^.left^.location.register);
+                                 ungetregister32(pleftreg);
                                else
                                  del_reference(p^.left^.location.reference);
                             end;
@@ -5569,6 +5695,28 @@ do_jmp:
             end;
        end;
 
+    { not used for now }
+
+    procedure secondprocinline(var p : ptree);
+
+       var st : psymtable;
+
+       begin
+          st:=p^.inlineprocdef^.parast;
+          st^.call_offset:=4;
+          st:=p^.inlineprocdef^.localst;
+          st^.call_offset:=gettempofsize(st^.datasize);
+          exprasmlist^.concat(new(pai_asm_comment,init('Start of inlined proc')));
+          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EBP)));
+          exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
+          secondpass(p^.left);
+          exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EBP)));
+          exprasmlist^.concat(new(pai_asm_comment,init('End of inlined proc')));
+          {we can free the local stack now }
+          ungettemp(st^.call_offset,st^.datasize);
+       end;
+
+
      procedure secondpass(var p : ptree);
 
        const
@@ -5592,7 +5740,7 @@ do_jmp:
              secondexitn,secondwith,secondcase,secondlabel,
              secondgoto,secondsimplenewdispose,secondtryexcept,secondraise,
              secondnothing,secondtryfinally,secondis,secondas,seconderror,
-             secondfail,
+             secondfail,secondadd,secondprocinline,
              secondnothing,secondloadvmt);
       var
          oldcodegenerror : boolean;
@@ -5740,7 +5888,7 @@ do_jmp:
                    if assigned(aktprocsym) then
                      begin
                        if (aktprocsym^.definition^.options and
-                        poconstructor+podestructor+poinline+pointerrupt=0) and
+                        poconstructor+podestructor{+poinline}+pointerrupt=0) and
                         ((procinfo.flags and pi_do_call)=0) and (lexlevel>1) then
                        begin
                          { use ESP as frame pointer }
@@ -5877,7 +6025,15 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.17  1998-04-27 23:10:27  peter
+  Revision 1.18  1998-04-29 10:33:48  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.17  1998/04/27 23:10:27  peter
     + new scanner
     * $makelib -> if smartlink
     * small filename fixes pmodule.setfilename

@@ -127,6 +127,9 @@ unit parser;
 
          { some variables to save the compiler state }
          oldtoken : ttoken;
+{$ifdef UseTokenInfo}
+         oldtokeninfo : ptokeninfo;
+{$endif UseTokenInfo}
          oldpattern : stringid;
 
          oldpreprocstack : ppreprocstack;
@@ -243,6 +246,9 @@ unit parser;
          oldmacros:=macros;
          oldpattern:=pattern;
          oldtoken:=token;
+{$ifdef UseTokenInfo}
+         oldtokeninfo:=tokeninfo;
+{$endif UseTokenInfo}
          oldorgpattern:=orgpattern;
          old_block_type:=block_type;
          oldpreprocstack:=preprocstack;
@@ -290,7 +296,12 @@ unit parser;
          define_macros;
 
          { startup scanner }
+{$ifndef UseTokenInfo}
          token:=yylex;
+{$else UseTokenInfo}
+         tokeninfo:=yylex;
+         token:=tokeninfo^.token;
+{$endif UseTokenInfo}
 
          { init asm writing }
          datasegment:=new(paasmoutput,init);
@@ -323,11 +334,11 @@ unit parser;
               readconstdefs;
               { we could try to overload caret by default }
               symtablestack:=systemunit;
-              { if POWER is defined in the RTL then use it for caret overloading }
+              { if POWER is defined in the RTL then use it for starstar overloading }
               getsym('POWER',false);
               if assigned(srsym) and (srsym^.typ=procsym) and
-                 (overloaded_operators[CARET]=nil) then
-                overloaded_operators[CARET]:=pprocsym(srsym);
+                 (overloaded_operators[STARSTAR]=nil) then
+                overloaded_operators[STARSTAR]:=pprocsym(srsym);
            end
          else
            begin
@@ -471,6 +482,9 @@ done:
          { restore scanner state }
          pattern:=oldpattern;
          token:=oldtoken;
+{$ifdef UseTokenInfo}
+         tokeninfo:=oldtokeninfo;
+{$endif UseTokenInfo}
          orgpattern:=oldorgpattern;
          block_type:=old_block_type;
 
@@ -525,7 +539,15 @@ done:
 end.
 {
   $Log$
-  Revision 1.7  1998-04-27 23:10:28  peter
+  Revision 1.8  1998-04-29 10:33:55  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.7  1998/04/27 23:10:28  peter
     + new scanner
     * $makelib -> if smartlink
     * small filename fixes pmodule.setfilename

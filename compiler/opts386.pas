@@ -35,7 +35,7 @@ type
 implementation
 
 uses
-  globals;
+  systems,globals;
 
 procedure toption386.interpret_proc_specific_options(const opt:string);
 var
@@ -67,16 +67,22 @@ begin
                assem_need_external_list:=false;
              end
            else
+           { nasm supports local labels but
+             only inside one global label :
+             this does not work for const strings and
+             real references !! }
             if copy(opt,3,length(opt)-2)='obj' then
              begin
                output_format:=of_obj;
                assem_need_external_list:=true;
+               { target_info.labelprefix:='?L'; }
              end
            else
             if copy(opt,3,length(opt)-2)='nasm' then
              begin
                output_format:=of_nasm;
                assem_need_external_list:=true;
+               { target_info.labelprefix:='?L'; }
              end
            else
             IllegalPara(opt);
@@ -95,8 +101,6 @@ begin
             '4' : opt_processors:=i486;
             '5' : opt_processors:=pentium;
             '6' : opt_processors:=pentiumpro;
-            '7' : opt_processors:=cx6x86;
-            '8' : opt_processors:=amdk6;
             else IllegalPara(opt);
             end;
           end;
@@ -119,8 +123,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-04-09 14:28:09  jonas
-    + basic k6 and 6x86 optimizing support (-O7 and -O8)
+  Revision 1.3  1998-04-29 10:33:55  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
 
   Revision 1.1.1.1  1998/03/25 11:18:14  root
   * Restored version

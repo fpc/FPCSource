@@ -590,7 +590,12 @@ unit pass_1;
          resultset : pconstset;
          i : longint;
          b : boolean;
+{$ifndef UseAnsiString}
          s1,s2:^string;
+{$else UseAnsiString}
+         s1,s2 : pchar;
+         l1,l2 : longint;
+{$endif UseAnsiString}
 
          { this totally forgets to set the pi_do_call flag !! }
       label
@@ -600,25 +605,27 @@ unit pass_1;
          { first do the two subtrees }
          firstpass(p^.left);
          firstpass(p^.right);
+         lt:=p^.left^.treetype;
+         rt:=p^.right^.treetype;
+         rd:=p^.right^.resulttype;
+         ld:=p^.left^.resulttype;
 
          if codegenerror then
            exit;
 
-         new(s1);
-         new(s2);
          { overloaded operator ? }
          if (p^.treetype=caretn) or
-            (p^.left^.resulttype^.deftype=recorddef) or
+            (ld^.deftype=recorddef) or
             { <> and = are defined for classes }
-            ((p^.left^.resulttype^.deftype=objectdef) and
-             (not(pobjectdef(p^.left^.resulttype)^.isclass) or
+            ((ld^.deftype=objectdef) and
+             (not(pobjectdef(ld)^.isclass) or
               not(p^.treetype in [equaln,unequaln])
              )
             ) or
-            (p^.right^.resulttype^.deftype=recorddef) or
+            (rd^.deftype=recorddef) or
             { <> and = are defined for classes }
-            ((p^.right^.resulttype^.deftype=objectdef) and
-             (not(pobjectdef(p^.right^.resulttype)^.isclass) or
+            ((rd^.deftype=objectdef) and
+             (not(pobjectdef(rd)^.isclass) or
               not(p^.treetype in [equaln,unequaln])
              )
             ) then
@@ -633,8 +640,8 @@ unit pass_1;
                    t:=gencallnode(overloaded_operators[minus],nil);
                  muln:
                    t:=gencallnode(overloaded_operators[star],nil);
-                 caretn:
-                   t:=gencallnode(overloaded_operators[caret],nil);
+                 starstarn:
+                   t:=gencallnode(overloaded_operators[starstar],nil);
                  slashn:
                    t:=gencallnode(overloaded_operators[slash],nil);
                  ltn:
@@ -657,8 +664,6 @@ unit pass_1;
                Message(parser_e_operator_not_overloaded);
               if p^.treetype=unequaln then
                t:=gensinglenode(notn,t);
-              dispose(s1);
-              dispose(s2);
               firstpass(t);
               putnode(p);
               p:=t;
@@ -666,8 +671,6 @@ unit pass_1;
            end;
          no_overload:
          { compact consts }
-         lt:=p^.left^.treetype;
-         rt:=p^.right^.treetype;
 
          { convert int consts to real consts, if the }
          { other operand is a real const             }
@@ -728,8 +731,6 @@ unit pass_1;
                    Message(sym_e_type_mismatch);
                 end;
               disposetree(p);
-              dispose(s1);
-              dispose(s2);
               p:=t;
               exit;
               end
@@ -767,48 +768,85 @@ unit pass_1;
               end;
               disposetree(p);
               p:=t;
-              dispose(s1);
-              dispose(s2);
               firstpass(p);
               exit;
            end;
          concatstrings:=false;
+{$ifdef UseAnsiString}
+         s1:=nil;
+         s2:=nil;
+{$else UseAnsiString}
+         new(s1);
+         new(s2);
+{$endif UseAnsiString}
          if (lt=ordconstn) and (rt=ordconstn) and
-           (p^.left^.resulttype^.deftype=orddef) and
-           (porddef(p^.left^.resulttype)^.typ=uchar) and
-           (p^.right^.resulttype^.deftype=orddef) and
-           (porddef(p^.right^.resulttype)^.typ=uchar) then
+           (ld^.deftype=orddef) and
+           (porddef(ld)^.typ=uchar) and
+           (rd^.deftype=orddef) and
+           (porddef(rd)^.typ=uchar) then
            begin
+{$ifdef UseAnsiString}
+              s1:=strpnew(char(byte(p^.left^.value)));
+              s2:=strpnew(char(byte(p^.right^.value)));
+              l1:=1;l2:=1;
+{$else UseAnsiString}
               s1^:=char(byte(p^.left^.value));
               s2^:=char(byte(p^.right^.value));
               concatstrings:=true;
+{$endif UseAnsiString}
            end
          else if (lt=stringconstn) and (rt=ordconstn) and
-           (p^.right^.resulttype^.deftype=orddef) and
-           (porddef(p^.right^.resulttype)^.typ=uchar) then
+           (rd^.deftype=orddef) and
+           (porddef(rd)^.typ=uchar) then
            begin
-              s1^:=Pstring(p^.left^.value)^;
+{$ifdef UseAnsiString}
+              { here there is allways the damn #0 problem !! }
+              s1:=getpcharcopy(p^.left);
+              l1:=p^.left^.length;
+              s2:=strpnew(char(byte(p^.right^.value)));
+              l2:=1;
+{$else UseAnsiString}
+              s1^:=p^.left^.values^;
               s2^:=char(byte(p^.right^.value));
               concatstrings:=true;
+{$endif UseAnsiString}
            end
          else if (lt=ordconstn) and (rt=stringconstn) and
-           (p^.left^.resulttype^.deftype=orddef) and
-           (porddef(p^.left^.resulttype)^.typ=uchar) then
+           (ld^.deftype=orddef) and
+           (porddef(ld)^.typ=uchar) then
            begin
+{$ifdef UseAnsiString}
+              { here there is allways the damn #0 problem !! }
+              s1:=strpnew(char(byte(p^.left^.value)));
+              l1:=1;
+              s2:=getpcharcopy(p^.right);
+              l2:=p^.right^.length;
+{$else UseAnsiString}
               s1^:=char(byte(p^.left^.value));
-              s2^:=pstring(p^.right^.value)^;
+              s2^:=p^.right^.values^;
               concatstrings:=true;
+{$endif UseAnsiString}
            end
          else if (lt=stringconstn) and (rt=stringconstn) then
            begin
-              s1^:=pstring(p^.left^.value)^;
-              s2^:=pstring(p^.right^.value)^;
+{$ifdef UseAnsiString}
+              s1:=getpcharcopy(p^.left);
+              l1:=p^.left^.length;
+              s2:=getpcharcopy(p^.right);
+              l2:=p^.right^.length;
               concatstrings:=true;
+{$else UseAnsiString}
+              s1^:=p^.left^.values^;
+              s2^:=p^.right^.values^;
+              concatstrings:=true;
+{$endif UseAnsiString}
            end;
 
+         { I will need to translate all this to ansistrings !!! }
          if concatstrings then
            begin
               case p^.treetype of
+{$ifndef UseAnsiString}
                  addn : t:=genstringconstnode(s1^+s2^);
                  ltn : t:=genordinalconstnode(byte(s1^<s2^),booldef);
                  lten : t:=genordinalconstnode(byte(s1^<=s2^),booldef);
@@ -816,17 +854,41 @@ unit pass_1;
                  gten : t:=genordinalconstnode(byte(s1^>=s2^),booldef);
                  equaln : t:=genordinalconstnode(byte(s1^=s2^),booldef);
                  unequaln : t:=genordinalconstnode(byte(s1^<>s2^),booldef);
+{$else UseAnsiString}
+                 addn : t:=genpcharconstnode(
+                             concatansistrings(s1,s2,l1,l2),l1+l2);
+                 ltn : t:=genordinalconstnode(
+                           byte(compareansistrings(s1,s2,l1,l2)<0),booldef);
+                 lten : t:=genordinalconstnode(
+                            byte(compareansistrings(s1,s2,l1,l2)<=0),booldef);
+                 gtn : t:=genordinalconstnode(
+                            byte(compareansistrings(s1,s2,l1,l2)>0),booldef);
+                 gten : t:=genordinalconstnode(
+                             byte(compareansistrings(s1,s2,l1,l2)>=0),booldef);
+                 equaln : t:=genordinalconstnode(
+                               byte(compareansistrings(s1,s2,l1,l2)=0),booldef);
+                 unequaln : t:=genordinalconstnode(
+                                 byte(compareansistrings(s1,s2,l1,l2)<>0),booldef);
+{$endif UseAnsiString}
               end;
+{$ifdef UseAnsiString}
+              ansistringdispose(s1,l1);
+              ansistringdispose(s2,l2);
+{$else UseAnsiString}
               dispose(s1);
               dispose(s2);
+{$endif UseAnsiString}
               disposetree(p);
               p:=t;
               exit;
            end;
-         rd:=p^.right^.resulttype;
-         ld:=p^.left^.resulttype;
+{$ifdef UseAnsiString}
+         ansistringdispose(s1,l1);
+         ansistringdispose(s2,l2);
+{$else UseAnsiString}
          dispose(s1);
          dispose(s2);
+{$endif UseAnsiString}
 
          { we can set this globally but it not allways true }
          { procinfo.flags:=procinfo.flags or pi_do_call;    }
@@ -909,8 +971,9 @@ unit pass_1;
                 end;
                 if not(is_equal(rd,ld)) then
                  Message(sym_e_set_element_are_not_comp);
+                { why here its is alredy in entry of firstadd
                 firstpass(p^.left);
-                firstpass(p^.right);
+                firstpass(p^.right); }
                 { do constant evalution }
                 { set constructor ? }
                 if (p^.right^.treetype=setconstrn) and
@@ -1235,7 +1298,17 @@ unit pass_1;
                  { the result of a string addition is a string of length 255 }
                  if (p^.left^.resulttype^.deftype=stringdef) or
                     (p^.right^.resulttype^.deftype=stringdef) then
+                   begin
+{$ifndef UseAnsiString}
                    p^.resulttype:=cstringdef
+{$else UseAnsiString}
+                      if is_ansistring(p^.left^.resulttype) or
+                         is_ansistring(p^.right^.resulttype) then
+                        p^.resulttype:=cansistringdef
+                      else
+                        p^.resulttype:=cstringdef;
+{$endif UseAnsiString}
+                   end
                  else
                    p^.resulttype:=p^.left^.resulttype;
               end;
@@ -1394,7 +1467,7 @@ unit pass_1;
            { nasm can not cope with negativ reals !! }
          if is_constrealnode(p^.left)
 {$ifdef i386}
-         and (current_module^.output_format<>of_nasm)
+         and not(current_module^.output_format in [of_nasm,of_obj])
 {$endif}
            then
            begin
@@ -1653,6 +1726,8 @@ unit pass_1;
          { assignements to open arrays aren't allowed }
          if is_open_array(p^.left^.resulttype) then
            Message(sym_e_type_mismatch);
+         { test if we can avoid copying string to temp
+           as in s:=s+...; (PM) }
 {$ifdef dummyi386}
          if ((p^.right^.treetype=addn) or (p^.right^.treetype=subn)) and
             equal_trees(p^.left,p^.right^.left) and
@@ -1686,7 +1761,8 @@ unit pass_1;
          if codegenerror then
            exit;
 
-       { some string functions don't need conversion, so treat them separatly }
+         { some string functions don't need conversion, so treat them separatly }
+
          if (p^.left^.resulttype^.deftype=stringdef) and (assigned(p^.right^.resulttype)) then
           begin
             if not (p^.right^.resulttype^.deftype in [stringdef,orddef]) then
@@ -1696,8 +1772,24 @@ unit pass_1;
                if codegenerror then
                 exit;
              end;
-          { we call STRCOPY }
+            { we call STRCOPY }
             procinfo.flags:=procinfo.flags or pi_do_call;
+            hp:=p^.right;
+            { test for s:=s+anything ... }
+            { the problem is for
+              s:=s+s+s;
+              this is broken here !! }
+            { while hp^.treetype=addn do hp:=hp^.left;
+            if equal_trees(p^.left,hp) then
+              begin
+                p^.concat_string:=true;
+                hp:=p^.right;
+                while hp^.treetype=addn do
+                  begin
+                    hp^.use_strconcat:=true;
+                    hp:=hp^.left;
+                  end;
+              end; }
           end
          else
           begin
@@ -1902,15 +1994,16 @@ unit pass_1;
 
     procedure first_string_string(var p : ptree);
 
-      var l : longint;
-
            begin
-                   if p^.left^.treetype=stringconstn then
-                     l:=length(pstring(p^.left^.value)^)
-                   else
-                     l:=pstringdef(p^.left^.resulttype)^.len;
-                   if l<>parraydef(p^.resulttype)^.highrange-parraydef(p^.resulttype)^.lowrange+1 then
-                     Message(sym_e_type_mismatch);
+              if pstringdef(p^.resulttype)^.string_typ<>
+                 pstringdef(p^.left^.resulttype)^.string_typ then
+                begin
+                   { call shortstring_to_ansistring or ansistring_to_shortstring }
+                   procinfo.flags:=procinfo.flags or pi_do_call;
+                end;
+              { for simplicity lets first keep all ansistrings
+                as LOC_MEM, could also become LOC_REGISTER }
+              p^.location.loc:=LOC_MEM;
            end;
 
     procedure first_char_to_string(var p : ptree);
@@ -2163,7 +2256,7 @@ unit pass_1;
          tfirstconvproc = (first_bigger_smaller,first_nothing,first_bigger_smaller,
                            first_bigger_smaller,first_bigger_smaller,
                            first_bigger_smaller,first_bigger_smaller,
-                           first_bigger_smaller,first_locmem,
+                           first_bigger_smaller,first_string_string,
                            first_cstring_charpointer,first_string_chararray,
                            first_array_to_pointer,first_pointer_to_array,
                            first_char_to_string,first_bigger_smaller,
@@ -2567,7 +2660,6 @@ unit pass_1;
          regi : tregister;
          store_valid, old_count_ref : boolean;
 
-
       { types.is_equal can't handle a formaldef ! }
       function is_equal(def1,def2 : pdef) : boolean;
 
@@ -2651,6 +2743,7 @@ unit pass_1;
               p^.procdefinition:=pprocdef(p^.right^.resulttype);
            end
          else
+         { not a procedure variable }
            begin
               { determine the type of the parameters }
               if assigned(p^.left) then
@@ -2669,7 +2762,7 @@ unit pass_1;
               { do we know the procedure to call ? }
               if not(assigned(p^.procdefinition)) then
                 begin
-
+                   actprocsym:=p^.symtableprocentry;
                    { determine length of parameter list }
                    pt:=p^.left;
                    paralength:=0;
@@ -2681,7 +2774,6 @@ unit pass_1;
 
                    { alle in Frage kommenden Prozeduren in eine }
                    { verkettete Liste einfgen                  }
-                   actprocsym:=p^.symtableprocentry;
                    pd:=actprocsym^.definition;
                    while assigned(pd) do
                      begin
@@ -2977,8 +3069,10 @@ unit pass_1;
      {$ifdef UseBrowser}
                    add_new_ref(procs^.data^.lastref);
      {$endif UseBrowser}
+
                    p^.procdefinition:=procs^.data;
                    p^.resulttype:=procs^.data^.retdef;
+                   p^.symtableproc:=p^.procdefinition^.owner;
                    p^.location.loc:=LOC_MEM;
 {$ifdef CHAINPROCSYMS}
                    { object with method read;
@@ -3031,6 +3125,21 @@ unit pass_1;
                 end
               else
                 { no intern procedure => we do a call }
+              { handle predefined procedures }
+              if (p^.procdefinition^.options and poinline)<>0 then
+                begin
+                   if assigned(p^.methodpointer) then
+                     comment(v_fatal,'Unable to inline object methods');
+                   if assigned(p^.right) then
+                     comment(v_fatal,'Unable to inline procvar calls');
+                   { p^.treetype:=procinlinen; }
+                   if assigned(p^.procdefinition^.code) then
+                     p^.right:=genprocinlinenode(p,ptree(p^.procdefinition^.code))
+                   else
+                     comment(v_fatal,'no code for inline procedure stored');
+                   firstpass(p^.right);
+                end
+              else
                 procinfo.flags:=procinfo.flags or pi_do_call;
 
               { calc the correture value for the register }
@@ -3121,6 +3230,7 @@ unit pass_1;
            end;
 
          { determine the registers of the procedure variable }
+         { is this OK for inlined procs also ?? (PM)         }
          if assigned(p^.right) then
            begin
               p^.registersfpu:=max(p^.right^.registersfpu,p^.registersfpu);
@@ -3326,7 +3436,12 @@ unit pass_1;
                end;
              in_length_string:
                begin
-                  p^.resulttype:=u8bitdef;
+{$ifdef UseAnsiString}
+                  if is_ansistring(p^.left^.resulttype) then
+                    p^.resulttype:=s32bitdef
+                  else
+{$endif UseAnsiString}
+                    p^.resulttype:=u8bitdef;
                   { wer don't need string conversations here }
                   if (p^.left^.treetype=typeconvn) and
                      (p^.left^.left^.resulttype^.deftype=stringdef) then
@@ -4520,19 +4635,98 @@ unit pass_1;
            end;
       end;
 
-{    procedure firstprocinline(var p : ptree);
-      var old_inline_proc_firsttemp : longint;
+    procedure firstprocinline(var p : ptree);
 
       begin
-         old_inline_proc_firsttemp:=procinfo.firsttemp;
-         procinfo.firsttemp:=procinfo.firsttemp+p^.inlineproc^.definition^.localst^.datasize;
-      end; }
+          {left contains the code in tree form }
+          { but it has already been firstpassed }
+          { so firstpass(p^.left); does not seem required }
+          { might be required later if we change the arg handling !! }
+      end;
 
     type
        firstpassproc = procedure(var p : ptree);
 
     procedure firstpass(var p : ptree);
 
+(*       ttreetyp = (addn,            {Represents the + operator.}
+                   muln,            {Represents the * operator.}
+                   subn,            {Represents the - operator.}
+                   divn,            {Represents the div operator.}
+                   symdifn,         {Represents the >< operator.}
+                   modn,            {Represents the mod operator.}
+                   assignn,         {Represents an assignment.}
+                   loadn,           {Represents the use of a variabele.}
+                   rangen,          {Represents a range (i.e. 0..9).}
+                   ltn,             {Represents the < operator.}
+                   lten,            {Represents the <= operator.}
+                   gtn,             {Represents the > operator.}
+                   gten,            {Represents the >= operator.}
+                   equaln,          {Represents the = operator.}
+                   unequaln,        {Represents the <> operator.}
+                   inn,             {Represents the in operator.}
+                   orn,             {Represents the or operator.}
+                   xorn,            {Represents the xor operator.}
+                   shrn,            {Represents the shr operator.}
+                   shln,            {Represents the shl operator.}
+                   slashn,          {Represents the / operator.}
+                   andn,            {Represents the and operator.}
+                   subscriptn,      {??? Field in a record/object?}
+                   derefn,          {Dereferences a pointer.}
+                   addrn,           {Represents the @ operator.}
+                   doubleaddrn,     {Represents the @@ operator.}
+                   ordconstn,       {Represents an ordinal value.}
+                   typeconvn,       {Represents type-conversion/typecast.}
+                   calln,           {Represents a call node.}
+                   callparan,       {Represents a parameter.}
+                   realconstn,      {Represents a real value.}
+                   fixconstn,       {Represents a fixed value.}
+                   umminusn,        {Represents a sign change (i.e. -2).}
+                   asmn,            {Represents an assembler node }
+                   vecn,            {Represents array indexing.}
+                   stringconstn,    {Represents a string constant.}
+                   funcretn,        {Represents the function result var.}
+                   selfn,           {Represents the self parameter.}
+                   notn,            {Represents the not operator.}
+                   inlinen,         {Internal procedures (i.e. writeln).}
+                   niln,            {Represents the nil pointer.}
+                   errorn,          {This part of the tree could not be
+                                     parsed because of a compiler error.}
+                   typen,           {A type name. Used for i.e. typeof(obj).}
+                   hnewn,           {The new operation, constructor call.}
+                   hdisposen,       {The dispose operation with destructor call.}
+                   newn,            {The new operation, constructor call.}
+                   simpledisposen,  {The dispose operation.}
+                   setelen,         {A set element (i.e. [a,b]).}
+                   setconstrn,      {A set constant (i.e. [1,2]).}
+                   blockn,          {A block of statements.}
+                   anwein,          {A linear list of nodes.}
+                   loopn,           { used in genloopnode, must be converted }
+                   ifn,             {An if statement.}
+                   breakn,          {A break statement.}
+                   continuen,       {A continue statement.}
+                   repeatn,         {A repeat until block.}
+                   whilen,          {A while do statement.}
+                   forn,            {A for loop.}
+                   exitn,           {An exit statement.}
+                   withn,           {A with statement.}
+                   casen,           {A case statement.}
+                   labeln,          {A label.}
+                   goton,           {A goto statement.}
+                   simplenewn,      {The new operation.}
+                   tryexceptn,      {A try except block.}
+                   raisen,          {A raise statement.}
+                   switchesn,       {??? Currently unused...}
+                   tryfinallyn,     {A try finally statement.}
+                   isn,             {Represents the is operator.}
+                   asn,             {Represents the as typecast.}
+                   caretn,          {Represents the ^ operator.}
+                   failn,           {Represents the fail statement.}
+                   starstarn,       {Represents the ** operator exponentiation }
+                   procinlinen,      {Procedures that can be inlined }
+                   { added for optimizations where we cannot suppress }
+                   nothingn,
+                   loadvmtn);       {???.} *)
       const
          procedures : array[ttreetyp] of firstpassproc =
             (firstadd,firstadd,firstadd,firstmoddiv,firstadd,
@@ -4552,7 +4746,7 @@ unit pass_1;
              firstexitn,firstwith,firstcase,firstlabel,
              firstgoto,firstsimplenewdispose,firsttryexcept,firstraise,
              firstnothing,firsttryfinally,firstis,firstas,firstadd,
-             firstnothing,firstnothing,firstloadvmt);
+             firstnothing,firstadd,firstprocinline,firstnothing,firstloadvmt);
 
       var
          oldcodegenerror : boolean;
@@ -4597,10 +4791,29 @@ unit pass_1;
          do_firstpass:=codegenerror;
       end;
 
+    { to be called only for a whole function }
+    { to insert code at entry and exit       }
+
+    function function_firstpass(var p : ptree) : boolean;
+
+      begin
+         codegenerror:=false;
+         firstpass(p);
+         function_firstpass:=codegenerror;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.12  1998-04-22 21:06:50  florian
+  Revision 1.13  1998-04-29 10:33:56  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.12  1998/04/22 21:06:50  florian
     * last fixes before the release:
       - veryyyy slow firstcall fixed
 

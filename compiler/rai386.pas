@@ -170,10 +170,12 @@ const
         { segment register }
         S_W,S_W,S_W,S_W,S_W,S_W,S_W,
         { can also be S_S or S_T - must be checked at run-time }
-        S_Q,S_Q,S_Q,S_Q,S_Q,S_Q,S_Q,S_Q,S_Q);
+        S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL);
 
-       _constsizes: array[S_NO..S_S] of longint =
-       (0,ao_imm8,ao_imm16,ao_imm32,0,0,0,0,ao_imm32);
+       {topsize = (S_NO,S_B,S_W,S_L,S_BW,S_BL,S_WL,
+                  S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D);}
+       _constsizes: array[S_NO..S_FS] of longint =
+       (0,ao_imm8,ao_imm16,ao_imm32,0,0,0,ao_imm16,ao_imm32,0,ao_imm32);
 
 
 
@@ -1570,19 +1572,21 @@ var
                         OPR_REFERENCE:
                            Begin
                               if (operands[1].val <= $ff) and
-                               (operands[2].size in [S_B,S_W,S_L,S_Q,S_S]) then
+                               (operands[2].size in [S_B,S_W,S_L,
+                                 S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX]) then
                                  p^.concat(new(pai386,op_const_ref(instruc,
                                  operands[2].size,operands[1].val,
                                  newreference(operands[2].ref))))
                               else
                               if (operands[1].val <= $ffff) and
-                               (operands[2].size in [S_W,S_L,S_Q,S_S]) then
+                               (operands[2].size in [S_W,S_L,
+                               S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX]) then
                                  p^.concat(new(pai386,op_const_ref(instruc,
                                  operands[2].size,operands[1].val,
                                  newreference(operands[2].ref))))
                               else
                               if (operands[1].val <= $7fffffff) and
-                               (operands[2].size in [S_L,S_Q,S_S]) then
+                               (operands[2].size in [S_L,S_IL,S_IQ,S_FS,S_FL,S_FX]) then
                                  p^.concat(new(pai386,op_const_ref(instruc,
                                  operands[2].size,operands[1].val,
                                  newreference(operands[2].ref))))
@@ -1593,19 +1597,19 @@ var
                            Begin
                               { size of opcode determined by register }
                               if (operands[1].val <= $ff) and
-                               (operands[2].size in [S_B,S_W,S_L,S_Q,S_S]) then
+                               (operands[2].size in [S_B,S_W,S_L,S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX]) then
                                  p^.concat(new(pai386,op_const_reg(instruc,
                                  operands[2].size,operands[1].val,
                                  operands[2].reg)))
                               else
                               if (operands[1].val <= $ffff) and
-                               (operands[2].size in [S_W,S_L,S_Q,S_S]) then
+                               (operands[2].size in [S_W,S_L,S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX]) then
                                  p^.concat(new(pai386,op_const_reg(instruc,
                                  operands[2].size,operands[1].val,
                                  operands[2].reg)))
                               else
                               if (operands[1].val <= $7fffffff) and
-                               (operands[2].size in [S_L,S_Q,S_S]) then
+                               (operands[2].size in [S_L,S_IL,S_IQ,S_FS,S_FL,S_FX]) then
                                  p^.concat(new(pai386,op_const_reg(instruc,
                                  operands[2].size,operands[1].val,
                                  operands[2].reg)))
@@ -3161,8 +3165,8 @@ var
                                    AS_DWORD: instr.operands[operandnum].size := S_L;
                                    AS_WORD:  instr.operands[operandnum].size := S_W;
                                    AS_BYTE:  instr.operands[operandnum].size := S_B;
-                                   AS_QWORD: instr.operands[operandnum].size := S_Q;
-                                   AS_TBYTE: instr.operands[operandnum].size := S_X;
+                                   AS_QWORD: instr.operands[operandnum].size := S_IQ;
+                                   AS_TBYTE: instr.operands[operandnum].size := S_FX;
                                   end;
                                   Consume(actasmtoken);
                                   Case actasmtoken of
@@ -3362,7 +3366,15 @@ Begin
 end.
 {
   $Log$
-  Revision 1.3  1998-04-08 16:58:06  pierre
+  Revision 1.4  1998-04-29 10:34:03  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.3  1998/04/08 16:58:06  pierre
     * several bugfixes
       ADD ADC and AND are also sign extended
       nasm output OK (program still crashes at end

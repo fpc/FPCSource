@@ -594,6 +594,7 @@ implementation
 
       begin
          { an fix comma const. behaves as a memory reference }
+
          p^.location.loc:=LOC_MEM;
          p^.location.reference.isintvalue:=true;
          p^.location.reference.offset:=p^.valuef;
@@ -717,7 +718,7 @@ implementation
                                        exprasmlist^.concat(new(pai68k,op_const_reg(A_BCHG,S_L,31,
                                           p^.location.fpureg)))
                                    else
-                                       exprasmlist^.concat(new(pai68k,op_reg(A_FNEG,S_X,
+                                       exprasmlist^.concat(new(pai68k,op_reg(A_FNEG,S_FX,
                                           p^.location.fpureg)));
                                 end
                               else
@@ -735,7 +736,7 @@ implementation
                               if (cs_fp_emulation) in aktswitches then
                                   exprasmlist^.concat(new(pai68k,op_const_reg(A_BCHG,S_L,31,p^.location.fpureg)))
                               else
-                                 exprasmlist^.concat(new(pai68k,op_reg(A_FNEG,S_X,p^.location.fpureg)));
+                                 exprasmlist^.concat(new(pai68k,op_reg(A_FNEG,S_FX,p^.location.fpureg)));
                            end;
          end;
 {         emitoverflowcheck;}
@@ -1934,7 +1935,7 @@ implementation
 {           for u32bit a solution would be to push $0 and to load a
 +          comp
 +           if porddef(p^.left^.resulttype)^.typ=u32bit then
-+             exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_Q,r)))
++             exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)))
 +           else}
           p^.location.loc := LOC_FPU;
           { get floating point register. }
@@ -4286,7 +4287,7 @@ implementation
                           emit_reg_reg(A_MOVE,S_L,p^.left^.location.fpureg,R_D0)
                         else
                           exprasmlist^.concat(
-                             new(pai68k,op_reg_reg(A_FMOVE,S_S,p^.left^.location.fpureg,R_D0)));
+                             new(pai68k,op_reg_reg(A_FMOVE,S_FS,p^.left^.location.fpureg,R_D0)));
                       end;
                     end;
                   end
@@ -5098,7 +5099,15 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-04-07 22:45:03  florian
+  Revision 1.4  1998-04-29 10:33:44  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.3  1998/04/07 22:45:03  florian
     * bug0092, bug0115 and bug0121 fixed
     + packed object/class/array
 

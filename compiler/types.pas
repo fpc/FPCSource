@@ -37,6 +37,9 @@ unit types;
     { true if p points to an open array def }
     function is_open_array(p : pdef) : boolean;
 
+    { true if o is an ansi string def }
+    function is_ansistring(p : pdef) : boolean;
+
     { returns true, if def defines a signed data type (only for ordinal types) }
     function is_signed(def : pdef) : boolean;
 
@@ -216,6 +219,13 @@ unit types;
          is_open_array:=(p^.deftype=arraydef) and
                  (parraydef(p)^.lowrange=0) and
                  (parraydef(p)^.highrange=-1);
+      end;
+
+    { true if o is an ansi string def }
+    function is_ansistring(p : pdef) : boolean;
+      begin
+         is_ansistring:=(p^.deftype=stringdef) and
+                 (pstringdef(p)^.string_typ=ansistring);
       end;
 
     { true if the return value is in accumulator (EAX for i386), D0 for 68k }
@@ -925,7 +935,15 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.9  1998-04-21 10:16:49  peter
+  Revision 1.10  1998-04-29 10:34:08  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.9  1998/04/21 10:16:49  peter
     * patches from strasbourg
     * objects is not used anymore in the fpc compiled version
 

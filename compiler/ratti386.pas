@@ -143,29 +143,31 @@ const
         { segment register }
         S_W,S_W,S_W,S_W,S_W,S_W,S_W,
         { can also be S_S or S_T - must be checked at run-time }
-        S_Q,S_Q,S_Q,S_Q,S_Q,S_Q,S_Q,S_Q,S_Q);
+        S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL);
 
-       _constsizes: array[S_NO..S_S] of longint =
-       (0,ao_imm8,ao_imm16,ao_imm32,0,0,0,0,ao_imm32);
-
+       {topsize = (S_NO,S_B,S_W,S_L,S_BW,S_BL,S_WL,
+                  S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D);}
+       _constsizes: array[S_NO..S_FS] of longint =
+       (0,ao_imm8,ao_imm16,ao_imm32,0,0,0,ao_imm16,ao_imm32,0,ao_imm32);
 
        { converts from AT&T style to non-specific style... }
-      {'fildq','filds',
-     'fildl','fldl','fldt','fistq','fists','fistl','fstl','fsts',
-      'fstps','fistpl','fstpl','fistps','fistpq','fstpt','fcomps',
-      'ficompl','fcompl','ficomps','fcoms','ficoml','fcoml','ficoms',
-      'fiaddl','faddl','fiadds','fisubl','fsubl','fisubs','fsubs',
-      'fsubr','fsubrs','fisubrl','fsubrl','fisubrs','fmuls','fimull',
-      'fmull','fimuls','fdivs','fidivl','fdivl','fidivs','fdivrs',
-      'fidivrl','fdivrl','fidivrs','repe','repne','fadds','popfl', }
        _fpusizes:array[A_FILDQ..A_FIDIVRS] of topsize = (
-                 S_Q,S_S,S_L,S_L,S_X,S_Q,S_S,S_L,S_L,S_S,
-                 S_S,S_L,S_L,S_S,S_Q,S_X,
-                 S_S,S_L,S_L,S_S,
-                 S_S,S_L,S_L,S_S,S_L,S_L,S_S,
-                 S_L,S_L,S_S,S_S,S_NO,S_S,S_L,
-                 S_L,S_S,S_S,S_L,S_L,S_S,S_S,S_L,
-                 S_L,S_S,S_S,S_L,S_L,S_S);
+                 {'fildq','filds',}
+                 S_IQ,S_IS,
+                 {'fildl','fldl','fldt','fistq','fists','fistl','fstl','fsts',}
+                 S_IL,S_FL,S_FX,S_IQ,S_IS,S_IL,S_FL,S_FS,
+                 {'fstps','fistpl','fstpl','fistps','fistpq','fstpt','fcomps',}
+                 S_FS,S_IL,S_FL,S_IS,S_IQ,S_FX,S_FS,
+                 {'ficompl','fcompl','ficomps','fcoms','ficoml','fcoml','ficoms',}
+                 S_IL,S_FL,S_IS,S_FS,S_IL,S_FL,S_IS,
+                 {'fiaddl','faddl','fiadds','fisubl','fsubl','fisubs','fsubs',}
+                 S_IL,S_FL,S_IS,S_IL,S_FL,S_FS,S_IS,S_FS,
+                 {'fsubr','fsubrs','fisubrl','fsubrl','fisubrs','fmuls','fimull',}
+                 S_NO,S_FS,S_IL,S_FL,S_IS,S_FS,S_IL,
+                 {'fmull','fimuls','fdivs','fidivl','fdivl','fidivs','fdivrs',}
+                 S_FL,S_IL,S_FS,S_IL,S_FL,S_IS,S_FS,
+                 {'fidivrl','fdivrl',}
+                 S_IL,S_FL);
        _fpuopcodes:array[A_FILDQ..A_FIDIVRS] of tasmop = (
        A_FILD,A_FILD,A_FILD,A_FLD,A_FLD,A_FIST,A_FIST,A_FIST,A_FST,A_FST,
        A_FSTP,A_FISTP,A_FSTP,A_FISTP,A_FISTP,A_FSTP,
@@ -396,7 +398,11 @@ const
 
       if c = ':' then
       begin
-           uppervar(actasmpattern);
+           { uppervar(actasmpattern);
+           Carl, you cannot change the label to upper
+           if you want to be able to read in system unit
+           don't forget that ATT syntax is case sensitive
+           for labels !! (PM) }
            token := AS_LABEL;
            { let us point to the next character }
            c := asmgetchar;
@@ -886,8 +892,8 @@ const
              EXT_WORD   : instr.operands[operandnum].size := S_W;
              EXT_NEAR,EXT_FAR,EXT_PROC,EXT_DWORD,EXT_CODEPTR,EXT_DATAPTR:
              instr.operands[operandnum].size := S_L;
-             EXT_QWORD  : instr.operands[operandnum].size := S_Q;
-             EXT_TBYTE  : instr.operands[operandnum].size := S_X;
+             EXT_QWORD  : instr.operands[operandnum].size := S_FL;
+             EXT_TBYTE  : instr.operands[operandnum].size := S_FX;
            else
              { this is in the case where the instruction is LEA }
              { or something like that, in that case size is not }
@@ -1831,19 +1837,19 @@ const
                               else
                            { resort to intel styled checking ... }
                               if (operands[1].val <= $ff) and
-                               (operands[2].size in [S_B,S_W,S_L,S_Q,S_S]) then
+                               (operands[2].size in [S_B,S_W,S_L]) then
                                  p^.concat(new(pai386,op_const_ref(instruc,
                                  operands[2].size,operands[1].val,
                                  newreference(operands[2].ref))))
                               else
                               if (operands[1].val <= $ffff) and
-                               (operands[2].size in [S_W,S_L,S_Q,S_S]) then
+                               (operands[2].size in [S_W,S_L]) then
                                  p^.concat(new(pai386,op_const_ref(instruc,
                                  operands[2].size,operands[1].val,
                                  newreference(operands[2].ref))))
                               else
                               if (operands[1].val <= $7fffffff) and
-                               (operands[2].size in [S_L,S_Q,S_S]) then
+                               (operands[2].size in [S_L]) then
                                  p^.concat(new(pai386,op_const_ref(instruc,
                                  operands[2].size,operands[1].val,
                                  newreference(operands[2].ref))))
@@ -1854,19 +1860,19 @@ const
                            Begin
                               { size of opcode determined by register }
                               if (operands[1].val <= $ff) and
-                               (operands[2].size in [S_B,S_W,S_L,S_Q,S_S]) then
+                               (operands[2].size in [S_B,S_W,S_L]) then
                                  p^.concat(new(pai386,op_const_reg(instruc,
                                  operands[2].size,operands[1].val,
                                  operands[2].reg)))
                               else
                               if (operands[1].val <= $ffff) and
-                               (operands[2].size in [S_W,S_L,S_Q,S_S]) then
+                               (operands[2].size in [S_W,S_L]) then
                                  p^.concat(new(pai386,op_const_reg(instruc,
                                  operands[2].size,operands[1].val,
                                  operands[2].reg)))
                               else
                               if (operands[1].val <= $7fffffff) and
-                               (operands[2].size in [S_L,S_Q,S_S]) then
+                               (operands[2].size in [S_L]) then
                                  p^.concat(new(pai386,op_const_reg(instruc,
                                  operands[2].size,operands[1].val,
                                  operands[2].reg)))
@@ -3578,7 +3584,7 @@ const
                  { -- add.                                               -- }
                    if (cs_compilesystem in aktswitches) then
                    begin
-                     Consume(AS_LCOMM);
+                     Consume(AS_COMM);
                       if actasmtoken <> AS_ID then
                         begin
                            Message(assem_e_invalid_comm_def);
@@ -3675,7 +3681,15 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-04-08 16:58:07  pierre
+  Revision 1.4  1998-04-29 10:34:04  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.3  1998/04/08 16:58:07  pierre
     * several bugfixes
       ADD ADC and AND are also sign extended
       nasm output OK (program still crashes at end

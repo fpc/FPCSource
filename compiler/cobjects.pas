@@ -54,7 +54,7 @@ unit cobjects;
        plinkedlist_item = ^tlinkedlist_item;
 
        tlinkedlist_item = object
-          next,last : plinkedlist_item;
+          next,previous : plinkedlist_item;
           { does nothing }
           constructor init;
           destructor done;virtual;
@@ -223,6 +223,9 @@ unit cobjects;
     { if p=nil then freemem isn't called          }
     procedure stringdispose(var p : pstring);
 
+    { idem for ansistrings }
+    procedure ansistringdispose(var p : pchar;length : longint);
+
     { allocates mem for a copy of s, copies s to this mem and returns }
     { a pointer to this mem                                           }
     function stringdup(const s : string) : pstring;
@@ -303,6 +306,13 @@ unit cobjects;
       begin
          if assigned(p) then
            freemem(p,length(p^)+1);
+         p:=nil;
+      end;
+
+    procedure ansistringdispose(var p : pchar;length : longint);
+      begin
+         if assigned(p) then
+           freemem(p,length+1);
          p:=nil;
       end;
 
@@ -489,7 +499,7 @@ end;
     constructor tlinkedlist_item.init;
 
       begin
-         last:=nil;
+         previous:=nil;
          next:=nil;
       end;
 
@@ -558,7 +568,7 @@ end;
 
          { we have a double linked list }
          if assigned(first) then
-           first^.last:=p^.last;
+           first^.previous:=p^.last;
 
          first:=p^.first;
 
@@ -573,14 +583,14 @@ end;
     procedure tlinkedlist.concat(p : plinkedlist_item);
 
       begin
-         p^.last:=nil;
+         p^.previous:=nil;
          p^.next:=nil;
          if not(assigned(first)) then
            first:=p
            else
              begin
                 last^.next:=p;
-                p^.last:=last;
+                p^.previous:=last;
              end;
          last:=p;
       end;
@@ -588,13 +598,13 @@ end;
     procedure tlinkedlist.insert(p : plinkedlist_item);
 
       begin
-         p^.last:=nil;
+         p^.previous:=nil;
          p^.next:=nil;
          if not(assigned(first)) then
            last:=p
          else
            begin
-              first^.last:=p;
+              first^.previous:=p;
               p^.next:=first;
               first:=p;
            end;
@@ -615,21 +625,21 @@ end;
            begin
               first:=p^.next;
               if assigned(first) then
-                first^.last:=nil;
+                first^.previous:=nil;
            end
          else if last=p then
            begin
-              last:=last^.last;
+              last:=last^.previous;
               if assigned(last) then
                 last^.next:=nil;
            end
          else
            begin
-              p^.last^.next:=p^.next;
-              p^.next^.last:=p^.last;
+              p^.previous^.next:=p^.next;
+              p^.next^.previous:=p^.previous;
            end;
          p^.next:=nil;
-         p^.last:=nil;
+         p^.previous:=nil;
       end;
 
     procedure tlinkedlist.concatlist(p : plinkedlist);
@@ -643,7 +653,7 @@ end;
            else
              begin
                 last^.next:=p^.first;
-                p^.first^.last:=last;
+                p^.first^.previous:=last;
              end;
 
          last:=p^.last;
@@ -985,7 +995,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1998-04-27 23:10:28  peter
+  Revision 1.4  1998-04-29 10:33:50  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.3  1998/04/27 23:10:28  peter
     + new scanner
     * $makelib -> if smartlink
     * small filename fixes pmodule.setfilename

@@ -110,10 +110,14 @@ unit m68k;
        { S_BL = Byte to long       }
        { S_WL = Word to long       }
        { Floating point types      }
-       { S_X  = Extended type      }
-       { S_Q  = double/64bit integer }
-       { S_S  = single type (32 bit) }
-       topsize = (S_NO,S_B,S_W,S_L,S_BW,S_BL,S_WL,S_Q,S_S,S_X);
+       { S_FS  = single type (32 bit) }
+       { S_FL  = double/64bit integer }
+       { S_FX  = Extended type      }
+       { S_IS  = integer on 16 bits   }
+       { S_IL  = integer on 32 bits   }
+       { S_IQ  = integer on 64 bits   }
+       topsize = (S_NO,S_B,S_W,S_L,S_BW,S_BL,S_WL,
+                  S_FS,S_FL,S_FX,S_IS,S_IL,S_IQ);
 
        plocation = ^tlocation;
 
@@ -823,7 +827,11 @@ type
        '');
 
      mot_opsize2str : array[topsize] of string[2] =
-      ('','.b','.w','.l','.b','.b','.w','.d','.s','.x');
+      ('','.b','.w','.l','.b','.b','.w',
+       '.s','.d','.x','.s','.l','.q');
+       { I don't know about S_IS, S_IL and S_IQ for m68k
+         so I guessed, I am not even sure it can happen !!
+         (PM) }
 
      mot_reg2str : array[R_NO..R_FPSR] of string[6] =
       ('', 'd0','d1','d2','d3','d4','d5','d6','d7',
@@ -834,7 +842,8 @@ type
        'sfc','vbr','fpsr');
 
      gas_opsize2str : array[topsize] of string[2] =
-      ('','.b','.w','.l','.b','.b','.w','.d','.s','.x');
+      ('','.b','.w','.l','.b','.b','.w',
+       '.s','.d','.x','.s','.l','.q');
 
      gas_reg2str : array[R_NO..R_FPSR] of string[6] =
       ('', 'd0','d1','d2','d3','d4','d5','d6','d7',
@@ -845,7 +854,8 @@ type
        'sfc','vbr','fpsr');
 
      mit_opsize2str : array[topsize] of string[2] =
-      ('','b','w','l','b','b','w','d','s','x');
+      ('','b','w','l','b','b','w',
+       's','d','x','s','l','q');
 
      mit_reg2str : array[R_NO..R_FPSR] of string[6] =
       ('', 'd0','d1','d2','d3','d4','d5','d6','d7',
@@ -1632,8 +1642,16 @@ type
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:13  root
-  Initial revision
+  Revision 1.2  1998-04-29 10:33:54  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.1.1.1  1998/03/25 11:18:13  root
+  * Restored version
 
   Revision 1.13  1998/03/10 01:17:20  peter
     * all files have the same header

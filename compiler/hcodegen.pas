@@ -138,11 +138,21 @@ unit hcodegen;
     { searches the lowest label }
     function case_get_min(root : pcaserecord) : longint;
 
-    { concates the ASCII string to the const segment }
+    { concates the ASCII string to the data segment }
     procedure generate_ascii(hs : string);
 
-    { inserts the ASCII string to the const segment }
+    { inserts the ASCII string to the data segment }
     procedure generate_ascii_insert(hs : string);
+
+    { concates the ASCII string from pchar to the data  segment }
+    { WARNING : if hs has no #0 and strlen(hs)=length           }
+    { the terminal zero is not written                          }
+    procedure generate_pascii(hs : pchar;length : longint);
+
+
+    { inserts the ASCII string from pchar to the data segment }
+    { see WARNING above                                       }
+    procedure generate_pascii_insert(hs : pchar;length : longint);
 
     procedure generate_interrupt_stackframe_entry;
     procedure generate_interrupt_stackframe_exit;
@@ -218,14 +228,83 @@ unit hcodegen;
 
     procedure generate_ascii_insert(hs : string);
 
+
       begin
          while length(hs)>32 do
            begin
               datasegment^.insert(new(pai_string,init(copy(hs,length(hs)-32+1,length(hs)))));
+              { should be avoid very slow }
               delete(hs,length(hs)-32+1,length(hs));
            end;
          datasegment^.insert(new(pai_string,init(hs)));
       end;
+
+    function strnew(p : pchar;length : longint) : pchar;
+
+      var
+         pc : pchar;
+      begin
+         getmem(pc,length);
+         move(p^,pc^,length);
+         strnew:=pc;
+      end;
+
+    { concates the ASCII string from pchar to the const segment }
+    procedure generate_pascii(hs : pchar;length : longint);
+      var
+         real_end,current_begin,current_end : pchar;
+         c :char;
+
+      begin
+         if assigned(hs) then
+           begin
+              current_begin:=hs;
+              real_end:=strend(hs);
+              c:=hs[0];
+              while length>32 do
+                begin
+                   { restore the char displaced }
+                   current_begin[0]:=c;
+                   current_end:=current_begin+32;
+                   { store the char for next loop }
+                   c:=current_end[0];
+                   current_end[0]:=#0;
+                   datasegment^.concat(new(pai_string,init_length_pchar(strnew(current_begin,32),32)));
+                   length:=length-32;
+                end;
+              datasegment^.concat(new(pai_string,init_length_pchar(strnew(current_begin,length),length)));
+           end;
+      end;
+
+
+    { inserts the ASCII string from pchar to the const segment }
+    procedure generate_pascii_insert(hs : pchar;length : longint);
+      var
+         real_end,current_begin,current_end : pchar;
+         c :char;
+
+      begin
+         if assigned(hs) then
+           begin
+              current_begin:=hs;
+              real_end:=strend(hs);
+              c:=hs[0];
+              length:=longint(real_end)-longint(hs);
+              while length>32 do
+                begin
+                   { restore the char displaced }
+                   current_begin[0]:=c;
+                   current_end:=current_begin+32;
+                   { store the char for next loop }
+                   c:=current_end[0];
+                   current_end[0]:=#0;
+                   datasegment^.insert(new(pai_string,init_length_pchar(strnew(current_begin,32),32)));
+                   length:=length-32;
+                end;
+              datasegment^.insert(new(pai_string,init_length_pchar(strnew(current_begin,length),length)));
+           end;
+      end;
+
 
     function case_count_labels(root : pcaserecord) : longint;
 
@@ -276,8 +355,16 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:13  root
-  Initial revision
+  Revision 1.2  1998-04-29 10:33:53  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.1.1.1  1998/03/25 11:18:13  root
+  * Restored version
 
   Revision 1.6  1998/03/10 16:27:38  pierre
     * better line info in stabs debug

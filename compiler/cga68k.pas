@@ -269,9 +269,9 @@ unit cga68k;
     function getfloatsize(t: tfloattype): topsize;
     begin
       case t of
-      s32real: getfloatsize := S_S;
-      s64real: getfloatsize := S_Q;
-      s80real: getfloatsize := S_X;
+      s32real: getfloatsize := S_FS;
+      s64real: getfloatsize := S_FL;
+      s80real: getfloatsize := S_FX;
 {$ifdef extdebug}
     else {else case }
       begin
@@ -624,9 +624,6 @@ begin
 {$endif GDB}
     { Alignment required for Motorola }
     procinfo.aktentrycode^.insert(new(pai_align,init(2)));
-{$ifdef extdebug}
-    procinfo.aktentrycode^.insert(new(pai_direct,init(strpnew(target_info.newline))));
-{$endif extdebug}
 end;
 
 {Generate the exit code for a procedure.}
@@ -1072,9 +1069,9 @@ end;
       begin
         { no emulation }
         case t of
-            s32real : s := S_S;
-            s64real : s := S_Q;
-            s80real : s := S_X;
+            s32real : s := S_FS;
+            s64real : s := S_FL;
+            s80real : s := S_FX;
          else
            begin
              Message(cg_f_unknown_float_type);
@@ -1106,19 +1103,19 @@ end;
          case t of
             s32real : begin
                          op:=A_FSTP;
-                         s:=S_S;
+                         s:=S_FS;
                       end;
             s64real : begin
                          op:=A_FSTP;
-                         s:=S_L;
+                         s:=S_FL;
                       end;
             s80real : begin
                          op:=A_FSTP;
-                         s:=S_Q;
+                         s:=S_FX;
                       end;
             s64bit : begin
                          op:=A_FISTP;
-                         s:=S_Q;
+                         s:=S_IQ;
                       end;
             else internalerror(17);
          end;
@@ -1139,9 +1136,9 @@ end;
          InternalError(34);
         { no emulation }
         case t of
-            s32real : s := S_S;
-            s64real : s := S_Q;
-            s80real : s := S_X;
+            s32real : s := S_FS;
+            s64real : s := S_FL;
+            s80real : s := S_FX;
          else
            begin
              Message(cg_f_unknown_float_type);
@@ -1257,7 +1254,15 @@ end;
   end.
 {
   $Log$
-  Revision 1.2  1998-03-28 23:09:54  florian
+  Revision 1.3  1998-04-29 10:33:46  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.2  1998/03/28 23:09:54  florian
     * secondin bugfix (m68k and i386)
     * overflow checking bugfix (m68k and i386) -- pretty useless in
       secondadd, since everything is done using 32-bit

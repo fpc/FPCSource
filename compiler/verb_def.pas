@@ -242,10 +242,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1998-04-21 15:22:46  pierre
-    * typing error in secondadd for mmx corrected
-    * USE_RHIDE sets usestderr to true
-      replacing gpc by fpc in RHIDE should be a lot easier
+  Revision 1.4  1998-04-29 10:34:09  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
 
   Revision 1.2  1998/03/28 23:09:57  florian
     * secondin bugfix (m68k and i386)

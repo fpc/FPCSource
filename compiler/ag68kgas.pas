@@ -243,7 +243,12 @@ unit ag68kgas;
 {$endif GDB}
 
          case hp^.typ of
-       ait_comment,
+           ait_comment :
+             Begin
+                AsmWrite(As_comment);
+                AsmWritePChar(pai_asm_comment(hp)^.str);
+                AsmLn;
+             End;
       ait_external : ; { external is ignored }
          ait_align : AsmWriteLn(#9'.align '+tostr(pai_align(hp)^.aligntype));
      ait_datablock : begin
@@ -548,8 +553,16 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:16  root
-  Initial revision
+  Revision 1.2  1998-04-29 10:33:41  pierre
+    + added some code for ansistring (not complete nor working yet)
+    * corrected operator overloading
+    * corrected nasm output
+    + started inline procedures
+    + added starstarn : use ** for exponentiation (^ gave problems)
+    + started UseTokenInfo cond to get accurate positions
+
+  Revision 1.1.1.1  1998/03/25 11:18:16  root
+  * Restored version
 
   Revision 1.3  1998/03/22 12:45:37  florian
     * changes of Carl-Eric to m68k target commit:
