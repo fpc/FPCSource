@@ -513,19 +513,24 @@ implementation
            { Give a warning if objpas is loaded }
            if s='OBJPAS' then
             Message(parser_w_no_objpas_use_mode);
-           { check if the unit is already used }
-           pu:=tused_unit(current_module.used_units.first);
-           while assigned(pu) do
+           { Using the unit itself is not possible }
+           if (s<>current_module.modulename^) then
             begin
-              if (pu.u.modulename^=s) then
-               break;
-              pu:=tused_unit(pu.next);
-            end;
-         { avoid uses of itself }
-           if not assigned(pu) and (s<>current_module.modulename^) then
-            begin
-              { register the unit }
-              hp2:=registerunit(current_module,sorg,fn);
+              { check if the unit is already used }
+              hp2:=nil;
+              pu:=tused_unit(current_module.used_units.first);
+              while assigned(pu) do
+               begin
+                 if (pu.u.modulename^=s) then
+                  begin
+                    hp2:=pu.u;
+                    break;
+                  end;
+                 pu:=tused_unit(pu.next);
+               end;
+              { Need to register the unit? }
+              if not assigned(hp2) then
+                hp2:=registerunit(current_module,sorg,fn);
               { the current module uses the unit hp2 }
               current_module.addusedunit(hp2,true);
             end
@@ -559,7 +564,11 @@ implementation
                pu.interface_checksum:=pu.u.interface_crc;
                { Create unitsym, we need to use the name as specified, we
                  can not use the modulename because that can be different
-                 when -Un is used }
+                 when -Un is used. But when the names are the same then
+                 force the name of the module so there will be no difference
+                 in the case of the name }
+               if upper(sorg)=pu.u.modulename^ then
+                sorg:=pu.u.realmodulename^;
                unitsym:=tunitsym.create(sorg,pu.u.globalsymtable);
                if (pu.u.flags and (uf_init or uf_finalize))<>0 then
                  inc(unitsym.refs);
@@ -1296,7 +1305,7 @@ implementation
           end;
 {$IFDEF SPARC}
          ProcInfo.After_Header;
-{main function is declared as 
+{main function is declared as
   PROCEDURE main(ArgC:Integer;ArgV,EnvP:ARRAY OF PChar):Integer;CDECL;
 So, all parameters are passerd into registers in sparc architecture.}
 {$ENDIF SPARC}
@@ -1444,7 +1453,10 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.99  2003-03-23 23:21:42  hajny
+  Revision 1.100  2003-04-12 15:13:03  peter
+    * Use the original unitname when defining a unitsym
+
+  Revision 1.99  2003/03/23 23:21:42  hajny
     + emx target added
 
   Revision 1.98  2003/03/17 22:20:08  peter
