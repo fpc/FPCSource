@@ -176,15 +176,19 @@ function norm(const data : array of float) : float;
 
 implementation
 
+ResourceString
+  SMathError = 'Math Error : %s';
+  SInvalidArgument = 'Invalid argument';
+  
 Procedure DoMathError(Const S : String);
 begin
-  writeln (StdErr,'Math Error : ',S);
+  Raise EMathError.CreateFmt(SMathError,[S]);
 end;
 
 Procedure InvalidArgument;
 
 begin
-  DoMathError ('Invalid argument');
+  DoMathError(SInvalidArgument);
 end;
 
 function degtorad(deg : float) : float;
@@ -679,7 +683,10 @@ end;
 end.
 {
     $Log$
-    Revision 1.18  2000-04-29 10:10:51  jonas
+    Revision 1.19  2000-07-04 20:53:22  michael
+    + Exceptions now used for errors
+
+    Revision 1.18  2000/04/29 10:10:51  jonas
       * fixed arctan2 (tbug788 now works correctly)
 
     Revision 1.17  2000/04/20 13:12:40  pierre
