@@ -508,6 +508,7 @@ begin
   {$endif NoAg386Att}
   {$ifndef NoAg386Nsm}
      as_i386_nasmcoff,
+     as_i386_nasmwin32,
      as_i386_nasmelf,
      as_i386_nasmobj :
        a:=new(pi386nasmasmlist,Init(smart));
@@ -564,7 +565,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.62  2000-02-24 18:41:38  peter
+  Revision 1.63  2000-04-04 15:05:03  pierre
+   + accept nasmwin32 output
+
+  Revision 1.62  2000/02/24 18:41:38  peter
     * removed warnings/notes
 
   Revision 1.61  2000/02/09 13:22:45  peter
