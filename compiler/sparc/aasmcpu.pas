@@ -222,17 +222,17 @@ implementation
           used for the delay slots }
         result:=(opcode=A_MOV) and
                 (ops=2) and
-                (oper[0].typ=top_reg) and
-                (oper[1].typ=top_reg) and
-                (oper[0].reg=oper[1].reg);
+                (oper[0]^.typ=top_reg) and
+                (oper[1]^.typ=top_reg) and
+                (oper[0]^.reg=oper[1]^.reg);
       end;
 
 
     function taicpu.is_move:boolean;
       begin
         result:=(opcode=A_MOV) and
-                (oper[0].typ=top_reg) and
-                (oper[1].typ=top_reg);
+                (oper[0]^.typ=top_reg) and
+                (oper[1]^.typ=top_reg);
       end;
 
 
@@ -297,7 +297,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2003-10-01 20:34:49  peter
+  Revision 1.35  2003-10-24 07:00:17  mazen
+  * fixed compil problem when using ObjFpc mode (^ required).
+
+  Revision 1.34  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
