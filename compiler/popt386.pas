@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1993-98 by Floarian Klaempfl and Jonas Maebe
+    Copyright (c) 1993-98 by Florian Klaempfl and Jonas Maebe
 
     This unit contains the peephole optimizer.
 
@@ -37,30 +37,9 @@ Uses globals, systems, verbose, hcodegen
    {$endif i386}
      ;
 
-Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
-{updates RegsAllocated with the RegAlloc Information coming after P}
-Begin
-  p := Pai(p^.next);
-  Repeat
-    While Assigned(p) And
-          (p^.typ in (SkipInstr - [ait_RegAlloc, ait_RegDealloc])) Do
-      p := Pai(p^.next);
-    While Assigned(p) And
-          (p^.typ in [ait_RegAlloc, ait_RegDealloc]) Do
-      Begin
-        Case p^.typ Of
-          ait_RegAlloc: UsedRegs := UsedRegs + [PaiRegAlloc(p)^.Reg];
-          ait_regdealloc: UsedRegs := UsedRegs - [PaiRegAlloc(p)^.Reg];
-        End;
-        p := pai(p^.next);
-      End;
-  Until Not(Assigned(p)) Or
-        Not(p^.typ in SkipInstr);
-End;
-
 Function RegUsedAfterInstruction(Reg: TRegister; p: Pai; Var UsedRegs: TRegSet): Boolean;
 Begin
-  UpdateUsedRegs(UsedRegs, p);
+  UpdateUsedRegs(UsedRegs, Pai(p^.Next));
   RegUsedAfterInstruction := Reg in UsedRegs
 End;
 
@@ -126,7 +105,7 @@ Begin
   UsedRegs := [];
   While Assigned(P) Do
     Begin
-      UpDateUsedRegs(UsedRegs, p);
+      UpDateUsedRegs(UsedRegs, Pai(p^.next));
       Case P^.Typ Of
         Ait_Labeled_Instruction:
           Begin
@@ -1346,7 +1325,9 @@ Begin
                                       Pointer(Reg32ToReg8(TRegister(Pai386(p)^.op2)));
                                     { Jonas
                                     InsertLLItem(AsmL,p, p^.next, hp2);
-                                      I think you forgot to delete this line PM }
+                                      I think you forgot to delete this line PM
+
+                                     Indeed, I had forgotten that one (JM) }
                                   End;
                             End;
                         End
@@ -1382,7 +1363,10 @@ End.
 
 {
  $Log$
- Revision 1.15  1998-09-30 12:18:29  peter
+ Revision 1.16  1998-10-01 20:19:57  jonas
+   * moved UpdateUsedRegs (+ bugfix) to daopt386
+
+ Revision 1.15  1998/09/30 12:18:29  peter
    * fixed subl $2,esp;psuhw bug
 
  Revision 1.14  1998/09/20 17:11:51  jonas
