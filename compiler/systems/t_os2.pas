@@ -362,7 +362,8 @@ begin
    begin
      ExeCmd[1]:='ld $OPT -o $OUT @$RES';
      ExeCmd[2]:='emxbind -b $STRIP $APPTYPE $RSRC -k$STACKKB -h$HEAPMB -o $EXE $OUT -aim -s$DOSHEAPKB';
-     ExeCmd[3]:='del $OUT';
+     if Source_Info.Script = script_dos then
+      ExeCmd[3]:='del $OUT';
    end;
 end;
 
@@ -490,7 +491,7 @@ begin
         Replace(cmdstr,'$OUT',maybequoted(OutName));
         Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
         if i<>3 then
-         success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false)
+         success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,(i=1),false)
         else
          success:=DoExec(binstr,cmdstr,(i=1),true);
       end;
@@ -516,7 +517,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2004-12-28 20:39:12  hajny
+  Revision 1.19  2004-12-30 17:41:27  hajny
+    * missing utilsprefix added
+
+  Revision 1.18  2004/12/28 20:39:12  hajny
     * don't put quoted paths in link.res for OS/2
 
   Revision 1.17  2004/12/22 16:32:46  peter
