@@ -220,3 +220,4 @@ bug0161.pp   internal error when trying to create a set with another set as
 bug0162.pp   continue in repeat ... until loop doesn't work correct
 bug0163.pp   missing <= and >= operators for sets.
 bug0165.pp   missing range check code for enumerated types.
+bug0166.pp   forward type used in declaration crashes instead of error
