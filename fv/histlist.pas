@@ -213,7 +213,8 @@ BEGIN
    Len := PByte(P2)^+3;                               { Length of data }
    Dec(P, 2);                                         { Correct position }
    Inc(P2, PByte(P2)^+1);                             { Next hist record }
-   Move(P2^, P^, cardinal(P2) - cardinal(HistoryBlock) + HistoryUsed);          { Shuffle history }
+   { Shuffle history }
+   Move(P2^, P^, cardinal(HistoryBlock) + HistoryUsed - cardinal(P2) );
    Dec(HistoryUsed, Len);                             { Adjust history used }
 END;
 
@@ -413,7 +414,10 @@ END.
 
 {
  $Log$
- Revision 1.6  2002-05-24 09:30:33  pierre
+ Revision 1.7  2002-06-03 20:07:44  pierre
+  * DeleteString was moving to much memory
+
+ Revision 1.6  2002/05/24 09:30:33  pierre
   * fix bug with HistoryUsed, now is really a used size
 
  Revision 1.5  2001/11/07 22:07:55  pierre
