@@ -737,7 +737,7 @@ implementation
          begin
            { call by value open array ? }
            if is_cdecl and
-              paramanager.push_addr_param(p.resulttype.def) then
+              paramanager.push_addr_param(p.resulttype.def,false) then
             begin
               if not (p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                 internalerror(200204241);
@@ -839,7 +839,7 @@ implementation
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
            (tvarsym(p).varspez=vs_value) and
-           (paramanager.push_addr_param(tvarsym(p).vartype.def)) then
+           (paramanager.push_addr_param(tvarsym(p).vartype.def,false)) then
          begin
            reference_reset_base(href1,procinfo.framepointer,tvarsym(p).address+procinfo.para_offset);
            if is_open_array(tvarsym(p).vartype.def) or
@@ -1732,7 +1732,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2002-08-24 18:38:26  peter
+  Revision 1.43  2002-08-25 19:25:18  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.42  2002/08/24 18:38:26  peter
     * really use tt_noreuse for exception frame buffers
 
   Revision 1.41  2002/08/23 16:14:49  peter

@@ -1089,6 +1089,7 @@ implementation
               { insert in local symtable }
               { but with another name, so that recursive calls are possible }
               symtablestack.insert(aktprocdef.funcretsym);
+              symtablestack.insertvardata(aktprocdef.funcretsym);
               symtablestack.rename(aktprocdef.funcretsym.name,'$result');
               { update the symtablesize back to 0 if there were no locals }
               if not haslocals then
@@ -1096,7 +1097,7 @@ implementation
 
               { set the used registers depending on the function result }
               procinfo.update_usedinproc_result;
-              
+
             end;
          { force the asm statement }
          if token<>_ASM then
@@ -1144,7 +1145,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2002-08-17 09:23:40  florian
+  Revision 1.73  2002-08-25 19:25:20  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.72  2002/08/17 09:23:40  florian
     * first part of procinfo rewrite
 
   Revision 1.71  2002/08/16 14:24:58  carl

@@ -874,7 +874,7 @@ Begin
                 end;
               if (tvarsym(sym).varspez=vs_var) or
                  ((tvarsym(sym).varspez=vs_const) and
-                 paramanager.push_addr_param(tvarsym(sym).vartype.def)) then
+                  paramanager.push_addr_param(tvarsym(sym).vartype.def,false)) then
                 SetSize(pointer_size,false);
             end;
           localsymtable :
@@ -914,7 +914,7 @@ Begin
                 end;
               if (tvarsym(sym).varspez in [vs_var,vs_out]) or
                  ((tvarsym(sym).varspez=vs_const) and
-                  paramanager.push_addr_param(tvarsym(sym).vartype.def)) then
+                  paramanager.push_addr_param(tvarsym(sym).vartype.def,false)) then
                 SetSize(pointer_size,false);
             end;
         end;
@@ -1592,7 +1592,17 @@ end;
 end.
 {
   $Log$
-  Revision 1.44  2002-08-17 09:23:41  florian
+  Revision 1.45  2002-08-25 19:25:20  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.44  2002/08/17 09:23:41  florian
     * first part of procinfo rewrite
 
   Revision 1.43  2002/08/16 14:24:59  carl

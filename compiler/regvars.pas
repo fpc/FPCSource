@@ -178,7 +178,7 @@ implementation
                       { call by reference/const ? }
                       if (regvarinfo^.regvars[i].varspez in [vs_var,vs_out]) or
                          ((regvarinfo^.regvars[i].varspez=vs_const) and
-                           paramanager.push_addr_param(regvarinfo^.regvars[i].vartype.def)) then
+                           paramanager.push_addr_param(regvarinfo^.regvars[i].vartype.def,false)) then
                         begin
                            regvarinfo^.regvars[i].reg:=varregs[i];
                         end
@@ -316,7 +316,7 @@ implementation
           hr.base:=procinfo.framepointer;
           if (vsym.varspez in [vs_var,vs_out]) or
              ((vsym.varspez=vs_const) and
-               paramanager.push_addr_param(vsym.vartype.def)) then
+               paramanager.push_addr_param(vsym.vartype.def,false)) then
             opsize := OS_ADDR
           else
             opsize := def_cgsize(vsym.vartype.def);
@@ -469,7 +469,17 @@ end.
 
 {
   $Log$
-  Revision 1.40  2002-08-18 20:06:25  peter
+  Revision 1.41  2002-08-25 19:25:20  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.40  2002/08/18 20:06:25  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

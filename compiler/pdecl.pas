@@ -195,6 +195,7 @@ implementation
                    sym:=ttypedconstsym.createtype(orgname,tt,(cs_typed_const_writable in aktlocalswitches));
                    akttokenpos:=storetokenpos;
                    symtablestack.insert(sym);
+                   symtablestack.insertconstdata(sym);
                    { procvar can have proc directives }
                    if (tt.def.deftype=procvardef) then
                     begin
@@ -616,7 +617,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2002-08-12 15:08:40  carl
+  Revision 1.53  2002-08-25 19:25:19  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.52  2002/08/12 15:08:40  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

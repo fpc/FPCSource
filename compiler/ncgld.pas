@@ -52,7 +52,7 @@ implementation
 
     uses
       systems,
-      verbose,globals,
+      verbose,globtype,globals,
       symconst,symtype,symdef,symsym,symtable,defbase,paramgr,
       ncnv,ncon,nmem,
       aasmbase,aasmtai,aasmcpu,regvars,
@@ -68,6 +68,7 @@ implementation
       var
         intreg,
         hregister : tregister;
+        is_cdecl,
         freereg   : boolean;
         symtabletype : tsymtabletype;
         i : longint;
@@ -248,13 +249,16 @@ implementation
                                    end;
                               end;
                          end;
+                       { cdecl procedure }
+                       is_cdecl:=(symtabletype=parasymtable) and
+                                 (tprocdef(symtable.defowner).proccalloption in [pocall_cdecl,pocall_cppdecl]);
                        { in case call by reference, then calculate. Open array
                          is always an reference! }
                        if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
                           is_open_array(tvarsym(symtableentry).vartype.def) or
                           is_array_of_const(tvarsym(symtableentry).vartype.def) or
                           ((tvarsym(symtableentry).varspez=vs_const) and
-                           paramanager.push_addr_param(tvarsym(symtableentry).vartype.def)) then
+                           paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,is_cdecl)) then
                          begin
                             if hregister=R_NO then
                               hregister:=rg.getaddressregister(exprasmlist);
@@ -940,7 +944,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-08-23 16:14:48  peter
+  Revision 1.26  2002-08-25 19:25:18  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.25  2002/08/23 16:14:48  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 

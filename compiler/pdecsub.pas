@@ -46,6 +46,7 @@ interface
     procedure parse_proc_directives(var pdflags:word);
 
     procedure handle_calling_convention(sym:tprocsym;def:tabstractprocdef);
+    procedure calc_parasymtable_addresses(def:tprocdef);
 
     procedure parse_proc_head(options:tproctypeoption);
     procedure parse_proc_dec;
@@ -282,7 +283,8 @@ implementation
                    { but I suppose the comment is wrong and                         }
                    { it means that the address of var parameters can be placed      }
                    { in a register (FK)                                             }
-                     if (varspez in [vs_var,vs_const,vs_out]) and paramanager.push_addr_param(tt.def) then
+                     if (varspez in [vs_var,vs_const,vs_out]) and
+                        paramanager.push_addr_param(tt.def,false) then
                        include(vs.varoptions,vo_regable);
 
                    { insert the sym in the parasymtable }
@@ -291,7 +293,7 @@ implementation
                    { do we need a local copy? Then rename the varsym, do this after the
                      insert so the dup id checking is done correctly }
                      if (varspez=vs_value) and
-                        paramanager.push_addr_param(tt.def) and
+                        paramanager.push_addr_param(tt.def,aktprocdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
                         not(is_open_array(tt.def) or is_array_of_const(tt.def)) then
                        tprocdef(aktprocdef).parast.rename(vs.name,'val'+vs.name);
 
@@ -1462,14 +1464,10 @@ const
 
 
     procedure handle_calling_convention(sym:tprocsym;def:tabstractprocdef);
-      var
-        st,parast : tsymtable;
-        lastps,
-        highps,ps : tsym;
       begin
       { set the default calling convention }
         if def.proccalloption=pocall_none then
-         def.proccalloption:=aktdefproccall;
+          def.proccalloption:=aktdefproccall;
         case def.proccalloption of
           pocall_cdecl :
             begin
@@ -1485,8 +1483,8 @@ const
                   internalerror(200110234);
                  { do not copy on local !! }
                  tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara,nil);
-                 { Adjust positions of args for cdecl or stdcall }
-                 tparasymtable(tprocdef(def).parast).set_alignment(std_param_align);
+                 { Adjust alignment to match cdecl or stdcall }
+                 tprocdef(def).parast.dataalignment:=std_param_align;
                end;
             end;
           pocall_cppdecl :
@@ -1505,18 +1503,19 @@ const
                   internalerror(200110235);
                  { do not copy on local !! }
                  tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara,nil);
-                 { Adjust positions of args for cdecl or stdcall }
-                 tparasymtable(tprocdef(def).parast).set_alignment(std_param_align);
+                 { Adjust alignment to match cdecl or stdcall }
+                 tprocdef(def).parast.dataalignment:=std_param_align;
                end;
             end;
           pocall_stdcall :
             begin
               include(def.procoptions,po_savestdregs);
-              if (def.deftype=procdef) and
-                 assigned(tprocdef(def).parast) then
+              if (def.deftype=procdef) then
                begin
-                 { Adjust positions of args for cdecl or stdcall }
-                 tparasymtable(tprocdef(def).parast).set_alignment(std_param_align);
+                 if not assigned(tprocdef(def).parast) then
+                  internalerror(200110236);
+                 { Adjust alignment to match cdecl or stdcall }
+                 tprocdef(def).parast.dataalignment:=std_param_align;
                end;
             end;
           pocall_safecall :
@@ -1533,44 +1532,6 @@ const
           pocall_pascal :
             begin
               include(def.procoptions,po_leftright);
-              if def.deftype=procdef then
-               begin
-                 st:=tparasymtable.create;
-                 st.symindex.noclear:=true;
-                 parast:=tprocdef(def).parast;
-                 highps:=nil;
-                 lastps:=nil;
-                 while assigned(parast.symindex.first) and (lastps<>tsym(parast.symindex.first)) do
-                  begin
-                    ps:=tsym(parast.symindex.first);
-                    while assigned(ps.indexnext) and (tsym(ps.indexnext)<>lastps) do
-                      ps:=tsym(ps.indexnext);
-                    { Wait with inserting the high value, it needs to be inserted
-                      after the corresponding parameter }
-                    if Copy(ps.name,1,4)='high' then
-                     highps:=ps
-                    else
-                     begin
-                       { recalculate the corrected offset by inserting it into
-                         the new symtable and then reset the owner back }
-                       ps.owner:=st;
-                       tstoredsym(ps).insert_in_data;
-                       ps.owner:=parast;
-                       { add also the high tree if it was saved }
-                       if assigned(highps) then
-                        begin
-                          highps.owner:=st;
-                          tstoredsym(highps).insert_in_data;
-                          highps.owner:=parast;
-                          highps:=nil;
-                        end;
-                     end;
-                    lastps:=ps;
-                  end;
-                 st.free;
-                 if assigned(highps) then
-                  internalerror(200205111);
-               end;
             end;
           pocall_register :
             begin
@@ -1602,7 +1563,7 @@ const
                  { do not copy on local !! }
                  tprocdef(def).parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}resetvaluepara,nil);
                  { Adjust positions of args for cdecl or stdcall }
-                 tparasymtable(tprocdef(def).parast).set_alignment(std_param_align);
+                 tprocdef(def).parast.dataalignment:=std_param_align;
                end;
             end;
           pocall_inline :
@@ -1620,6 +1581,59 @@ const
            (po_external in def.procoptions) and
            target_info.DllScanSupported then
            current_module.externals.insert(tExternalsItem.create(tprocdef(def).mangledname));
+      end;
+
+
+    procedure calc_parasymtable_addresses(def:tprocdef);
+      var
+        lastps,
+        highps,ps : tsym;
+        st : tsymtable;
+      begin
+        st:=def.parast;
+        if po_leftright in def.procoptions then
+         begin
+           { pushed in reversed order, left to right }
+           highps:=nil;
+           lastps:=nil;
+           while assigned(st.symindex.first) and (lastps<>tsym(st.symindex.first)) do
+            begin
+              ps:=tsym(st.symindex.first);
+              while assigned(ps.indexnext) and (tsym(ps.indexnext)<>lastps) do
+                ps:=tsym(ps.indexnext);
+              if ps.typ=varsym then
+               begin
+                 { Wait with inserting the high value, it needs to be inserted
+                   after the corresponding parameter }
+                 if Copy(ps.name,1,4)='high' then
+                  highps:=ps
+                 else
+                  begin
+                    st.insertvardata(ps);
+                    { add also the high tree if it was saved }
+                    if assigned(highps) then
+                     begin
+                       st.insertvardata(highps);
+                       highps:=nil;
+                     end;
+                  end;
+               end;
+              lastps:=ps;
+            end;
+           if assigned(highps) then
+            internalerror(200208257);
+         end
+        else
+         begin
+           { pushed in normal order, right to left }
+           ps:=tsym(st.symindex.first);
+           while assigned(ps) do
+            begin
+              if ps.typ=varsym then
+               st.insertvardata(ps);
+              ps:=tsym(ps.indexnext);
+            end;
+         end;
       end;
 
 
@@ -1662,6 +1676,9 @@ const
             break;
          end;
         handle_calling_convention(aktprocsym,aktprocdef);
+        { calculate addresses in parasymtable }
+        if aktprocdef.deftype=procdef then
+          calc_parasymtable_addresses(aktprocdef);
       end;
 
 
@@ -1944,16 +1961,15 @@ const
               if paramanager.ret_in_param(aprocdef.rettype.def) then
                begin
                  aprocdef.parast.insert(otsym);
-                 { this increases the data size }
-                 { correct this to get the right ret $value }
-                 dec(aprocdef.parast.datasize,
-                     align(otsym.getpushsize,aktprocdef.parast.dataalignment));
                  { this allows to read the funcretoffset }
                  otsym.address:=-4;
                  otsym.varspez:=vs_var;
                end
               else
-               aprocdef.localst.insert(otsym);
+               begin
+                 aprocdef.localst.insert(otsym);
+                 aprocdef.localst.insertvardata(otsym);
+               end;
             end
            else
             begin
@@ -1969,7 +1985,17 @@ const
 end.
 {
   $Log$
-  Revision 1.67  2002-08-25 11:33:06  peter
+  Revision 1.68  2002-08-25 19:25:20  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.67  2002/08/25 11:33:06  peter
     * also check the paratypes when a forward was found
 
   Revision 1.66  2002/08/19 19:36:44  peter

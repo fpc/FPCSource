@@ -56,7 +56,7 @@ unit paramgr;
           {# Returns true if a parameter is too large to copy and only
             the address is pushed
           }
-          function push_addr_param(def : tdef) : boolean;virtual;
+          function push_addr_param(def : tdef;is_cdecl:boolean) : boolean;virtual;
           {# Returns a structure giving the information on
              the storage of the parameter (which must be
              an integer parameter)
@@ -138,7 +138,7 @@ unit paramgr;
 
 
     { true if a parameter is too large to copy and only the address is pushed }
-    function tparamanager.push_addr_param(def : tdef) : boolean;
+    function tparamanager.push_addr_param(def : tdef;is_cdecl:boolean) : boolean;
       begin
         push_addr_param:=false;
         if never_copy_const_param then
@@ -150,9 +150,13 @@ unit paramgr;
              formaldef :
                push_addr_param:=true;
              recorddef :
-               push_addr_param:=(def.size>pointer_size);
+               push_addr_param:=(not is_cdecl) and (def.size>pointer_size);
              arraydef :
-               push_addr_param:=((tarraydef(def).highrange>=tarraydef(def).lowrange) and (def.size>pointer_size)) or
+               push_addr_param:=(
+                                 (tarraydef(def).highrange>=tarraydef(def).lowrange) and
+                                 (def.size>pointer_size) and
+                                 (not is_cdecl)
+                                ) or
                                 is_open_array(def) or
                                 is_array_of_const(def) or
                                 is_array_constructor(def);
@@ -161,9 +165,9 @@ unit paramgr;
              stringdef :
                push_addr_param:=tstringdef(def).string_typ in [st_shortstring,st_longstring];
              procvardef :
-               push_addr_param:=(po_methodpointer in tprocvardef(def).procoptions);
+               push_addr_param:=(not is_cdecl) and (po_methodpointer in tprocvardef(def).procoptions);
              setdef :
-               push_addr_param:=(tsetdef(def).settype<>smallset);
+               push_addr_param:=(not is_cdecl) and (tsetdef(def).settype<>smallset);
            end;
          end;
       end;
@@ -302,7 +306,17 @@ end.
 
 {
    $Log$
-   Revision 1.14  2002-08-17 22:09:47  florian
+   Revision 1.15  2002-08-25 19:25:19  peter
+     * sym.insert_in_data removed
+     * symtable.insertvardata/insertconstdata added
+     * removed insert_in_data call from symtable.insert, it needs to be
+       called separatly. This allows to deref the address calculation
+     * procedures now calculate the parast addresses after the procedure
+       directives are parsed. This fixes the cdecl parast problem
+     * push_addr_param has an extra argument that specifies if cdecl is used
+       or not
+
+   Revision 1.14  2002/08/17 22:09:47  florian
      * result type handling in tcgcal.pass_2 overhauled
      * better tnode.dowrite
      * some ppc stuff fixed

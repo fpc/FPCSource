@@ -105,6 +105,7 @@ implementation
               aktprocdef.funcretsym:=tfuncretsym.create(aktprocsym.name,aktprocdef.rettype);
               { insert in local symtable }
               symtablestack.insert(aktprocdef.funcretsym);
+              symtablestack.insertvardata(aktprocdef.funcretsym);
               akttokenpos:=storepos;
 
               procinfo.set_result_offset;
@@ -455,6 +456,7 @@ implementation
                  vs.fileinfo:=fileinfo;
                  vs.varspez:=varspez;
                  aktprocdef.localst.insert(vs);
+                 aktprocdef.localst.insertvardata(vs);
                  include(vs.varoptions,vo_is_local_copy);
                  vs.varstate:=vs_assigned;
                  localvarsym:=vs;
@@ -786,7 +788,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2002-08-17 09:23:41  florian
+  Revision 1.69  2002-08-25 19:25:20  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.68  2002/08/17 09:23:41  florian
     * first part of procinfo rewrite
 
   Revision 1.67  2002/08/16 14:24:59  carl

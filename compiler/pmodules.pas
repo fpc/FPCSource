@@ -1247,7 +1247,6 @@ implementation
           begin
             gen_main_procsym(current_module.modulename^+'_main',potype_proginit,st);
             aktprocdef.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_main');
-            aktprocdef.aliasnames.insert('PASCALMAIN');
             { this code is called from C so we need to save some
               registers }
             include(aktprocdef.procoptions,po_savestdregs);
@@ -1388,7 +1387,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.73  2002-08-18 20:06:25  peter
+  Revision 1.74  2002-08-25 19:25:20  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.73  2002/08/18 20:06:25  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

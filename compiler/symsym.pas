@@ -63,7 +63,6 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;abstract;
           procedure writesym(ppufile:tcompilerppufile);
           procedure deref;override;
-          procedure insert_in_data;virtual;
 {$ifdef GDB}
           function  stabstring : pchar;virtual;
           procedure concatstabto(asmlist : taasmoutput);virtual;
@@ -180,10 +179,9 @@ interface
           procedure deref;override;
           procedure generate_mangledname;override;
           procedure set_mangledname(const s:string);
-          procedure insert_in_data;override;
           function  getsize : longint;
           function  getvaluesize : longint;
-          function  getpushsize : longint;
+          function  getpushsize(is_cdecl:boolean): longint;
 {$ifdef GDB}
           function  stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
@@ -223,7 +221,6 @@ interface
           destructor  destroy;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
-          procedure insert_in_data;override;
 {$ifdef GDB}
           procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
@@ -239,7 +236,6 @@ interface
           procedure deref;override;
           function  mangledname : string;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure insert_in_data;override;
 {$ifdef GDB}
           procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
@@ -256,7 +252,6 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           function  getsize:longint;
-          procedure insert_in_data;override;
 {$ifdef GDB}
           function  stabstring : pchar;override;
 {$endif GDB}
@@ -534,12 +529,6 @@ implementation
          ppufile.putstring(_realname^);
          ppufile.putsmallset(symoptions);
          ppufile.putposinfo(fileinfo);
-      end;
-
-
-    { for most symbol types there is nothing to do at all }
-    procedure tstoredsym.insert_in_data;
-      begin
       end;
 
 
@@ -1366,30 +1355,6 @@ implementation
       end;
 {$endif GDB}
 
-    procedure tfuncretsym.insert_in_data;
-      var
-        varalign,l : longint;
-      begin
-        { if retoffset is already set then reuse it, this is needed
-          when inserting the result variable }
-        if procinfo.return_offset<>0 then
-         address:=procinfo.return_offset
-        else
-         begin
-           { allocate space in local if ret in register }
-           if paramanager.ret_in_reg(returntype.def) then
-            begin
-              l:=returntype.def.size;
-              varalign:=size_2_align(l);
-              varalign:=used_align(varalign,aktalignment.localalignmin,owner.dataalignment);
-              address:=align(owner.datasize+l,varalign);
-              owner.datasize:=address;
-              procinfo.return_offset:=-address;
-            end;
-         end;
-      end;
-
-
 {****************************************************************************
                                   TABSOLUTESYM
 ****************************************************************************}
@@ -1495,11 +1460,6 @@ implementation
          else
            internalerror(10002);
          end;
-      end;
-
-
-    procedure tabsolutesym.insert_in_data;
-      begin
       end;
 
 
@@ -1639,8 +1599,9 @@ implementation
       end;
 
 
-    function tvarsym.getpushsize : longint;
+    function tvarsym.getpushsize(is_cdecl:boolean) : longint;
       begin
+         getpushsize:=-1;
          if assigned(vartype.def) then
            begin
               case varspez of
@@ -1650,205 +1611,21 @@ implementation
                 vs_value,
                 vs_const :
                   begin
-                      if paramanager.push_addr_param(vartype.def) then
+                      if paramanager.push_addr_param(vartype.def,is_cdecl) then
                         getpushsize:=pointer_size
                       else
                         getpushsize:=vartype.def.size;
                   end;
               end;
-           end
-         else
-           getpushsize:=0;
+           end;
       end;
 
-
-    procedure tvarsym.insert_in_data;
-      var
-         varalign,
-         l,modulo : longint;
-         storefilepos : tfileposinfo;
-      begin
-        if (vo_is_external in varoptions) then
-          exit;
-        { handle static variables of objects especially }
-        if read_member and (owner.symtabletype=objectsymtable) and
-           (sp_static in symoptions) then
-         begin
-            { the data filed is generated in parser.pas
-              with a tobject_FIELDNAME variable }
-            { this symbol can't be loaded to a register }
-            exclude(varoptions,vo_regable);
-            exclude(varoptions,vo_fpuregable);
-         end
-        else
-         if not(read_member) then
-          begin
-             { made problems with parameters etc. ! (FK) }
-             {  check for instance of an abstract object or class }
-             {
-             if (tvarsym(sym).definition.deftype=objectdef) and
-               ((tobjectdef(tvarsym(sym).definition).options and oo_is_abstract)<>0) then
-               Message(sym_e_no_instance_of_abstract_object);
-             }
-             storefilepos:=aktfilepos;
-             aktfilepos:=akttokenpos;
-             if (vo_is_thread_var in varoptions) then
-               l:=pointer_size
-             else
-               l:=getvaluesize;
-             case owner.symtabletype of
-               stt_exceptsymtable:
-                 { can contain only one symbol, address calculated later }
-                 ;
-               localsymtable :
-                 begin
-                   varstate:=vs_declared;
-                   varalign:=size_2_align(l);
-                   varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
-{$ifdef powerpc}
-                   { on the powerpc, the local variables are accessed with a positiv offset }
-                   address:=align(owner.datasize,varalign);
-                   owner.datasize:=address+l;
-{$else powerpc}
-                   address:=align(owner.datasize+l,varalign);
-                   owner.datasize:=address;
-{$endif powerpc}
-                 end;
-               staticsymtable :
-                 begin
-                   { enable unitialized warning for local symbols }
-                   varstate:=vs_declared;
-                   varalign:=size_2_align(l);
-                   varalign:=used_align(varalign,aktalignment.varalignmin,aktalignment.varalignmax);
-                   address:=align(owner.datasize,varalign);
-                   { insert cut for smartlinking or alignment }
-                   if (cs_create_smart in aktmoduleswitches) then
-                     bssSegment.concat(Tai_cut.Create)
-                   else if (address<>owner.datasize) then
-                     bssSegment.concat(Tai_align.create(varalign));
-                   owner.datasize:=address+l;
-{$ifdef GDB}
-                   if cs_debuginfo in aktmoduleswitches then
-                      concatstabto(bsssegment);
-{$endif GDB}
-                   if (cs_create_smart in aktmoduleswitches) or
-                      DLLSource or
-                      (vo_is_exported in varoptions) or
-                      (vo_is_C_var in varoptions) then
-                     bssSegment.concat(Tai_datablock.Create_global(mangledname,l))
-                   else
-                     bssSegment.concat(Tai_datablock.Create(mangledname,l));
-                   {Global variables (in implementation part of course)
-                    *can* be loaded into registers, they just may not be
-                    accessed from procedures. The lexlevel  test in nld.pas,
-                    Tloadnode.pass_1, should take care of this.
-
-                    If for some reason you think it isn't safe, try isolating
-                    and disabling those specific cases, because small programs
-                    without procedures can be very speed critical. For example,
-                    think of benchmarks and programming contests. Also, new
-                    users often test the quality of the code the compiler
-                    generates and they do that with small programs, we should
-                    show them the full optimizing power. (DM)}
-                   {exclude(varoptions,vo_regable);
-                   exclude(varoptions,vo_fpuregable);}
-                 end;
-               globalsymtable :
-                 begin
-                   varalign:=size_2_align(l);
-                   varalign:=used_align(varalign,aktalignment.varalignmin,aktalignment.varalignmax);
-                   address:=align(owner.datasize,varalign);
-                   { insert cut for smartlinking or alignment }
-                   if (cs_create_smart in aktmoduleswitches) then
-                     bssSegment.concat(Tai_cut.Create)
-                   else if (address<>owner.datasize) then
-                     bssSegment.concat(Tai_align.create(varalign));
-                   owner.datasize:=address+l;
-{$ifdef GDB}
-                   if cs_debuginfo in aktmoduleswitches then
-                     concatstabto(bsssegment);
-{$endif GDB}
-                   bssSegment.concat(Tai_datablock.Create_global(mangledname,l));
-                   { this symbol can't be loaded to a register }
-                   exclude(varoptions,vo_regable);
-                   exclude(varoptions,vo_fpuregable);
-                 end;
-               recordsymtable,
-               objectsymtable :
-                 begin
-                 { this symbol can't be loaded to a register }
-                   exclude(varoptions,vo_regable);
-                   exclude(varoptions,vo_fpuregable);
-                 { get the alignment size }
-                   if (aktalignment.recordalignmax=-1) then
-                    begin
-                      varalign:=vartype.def.alignment;
-                      if (varalign>4) and ((varalign mod 4)<>0) and
-                        (vartype.def.deftype=arraydef) then
-                        begin
-                          Message1(sym_w_wrong_C_pack,vartype.def.typename);
-                        end;
-                      if varalign=0 then
-                        varalign:=l;
-                      if (owner.dataalignment<aktalignment.maxCrecordalign) then
-                       begin
-                         if (varalign>16) and (owner.dataalignment<32) then
-                          owner.dataalignment:=32
-                         else if (varalign>12) and (owner.dataalignment<16) then
-                          owner.dataalignment:=16
-                         { 12 is needed for long double }
-                         else if (varalign>8) and (owner.dataalignment<12) then
-                          owner.dataalignment:=12
-                         else if (varalign>4) and (owner.dataalignment<8) then
-                          owner.dataalignment:=8
-                         else if (varalign>2) and (owner.dataalignment<4) then
-                          owner.dataalignment:=4
-                         else if (varalign>1) and (owner.dataalignment<2) then
-                          owner.dataalignment:=2;
-                       end;
-                      owner.dataalignment:=max(owner.dataalignment,aktalignment.maxCrecordalign);
-                    end
-                   else
-                    varalign:=vartype.def.alignment;
-                   if varalign=0 then
-                     varalign:=size_2_align(l);
-                   varalign:=used_align(varalign,aktalignment.recordalignmin,owner.dataalignment);
-                   address:=align(owner.datasize,varalign);
-                   owner.datasize:=address+l;
-                 end;
-               parasymtable :
-                 begin
-                   { here we need the size of a push instead of the
-                     size of the data }
-                   l:=getpushsize;
-                   varalign:=size_2_align(l);
-                   varstate:=vs_assigned;
-                   { we need the new datasize already aligned so we can't
-                     use the align_address here }
-                   address:=owner.datasize;
-                   varalign:=used_align(varalign,owner.dataalignment,owner.dataalignment);
-                   owner.datasize:=align(address+l,varalign);
-                 end
-               else
-                 begin
-                     modulo:=owner.datasize and 3;
-                     if (l>=4) and (modulo<>0) then
-                       inc(owner.datasize,4-modulo)
-                     else
-                       if (l>=2) and ((modulo and 1)<>0) then
-                         inc(owner.datasize);
-                   address:=owner.datasize;
-                   inc(owner.datasize,l);
-                 end;
-               end;
-             aktfilepos:=storefilepos;
-        end;
-      end;
 
 {$ifdef GDB}
     function tvarsym.stabstring : pchar;
      var
        st : string;
+       is_cdecl : boolean;
      begin
        st:=tstoreddef(vartype.def).numberstring;
        if (owner.symtabletype = objectsymtable) and
@@ -1876,11 +1653,12 @@ implementation
          end
        else if (owner.symtabletype in [parasymtable,inlineparasymtable]) then
          begin
+            is_cdecl:=(tprocdef(owner.defowner).proccalloption in [pocall_cdecl,pocall_cppdecl]);
             case varspez of
                vs_out,
                vs_var   : st := 'v'+st;
                vs_value,
-               vs_const : if paramanager.push_addr_param(vartype.def) then
+               vs_const : if paramanager.push_addr_param(vartype.def,is_cdecl) then
                             st := 'v'+st { should be 'i' but 'i' doesn't work }
                           else
                             st := 'p'+st;
@@ -1997,48 +1775,6 @@ implementation
          ppufile.writeentry(ibtypedconstsym);
       end;
 
-
-    procedure ttypedconstsym.insert_in_data;
-      var
-        curconstsegment : taasmoutput;
-        address,l,varalign : longint;
-        storefilepos : tfileposinfo;
-      begin
-        storefilepos:=aktfilepos;
-        aktfilepos:=akttokenpos;
-        if is_writable then
-          curconstsegment:=datasegment
-        else
-          curconstsegment:=consts;
-        l:=getsize;
-        varalign:=size_2_align(l);
-        varalign:=used_align(varalign,aktalignment.constalignmin,aktalignment.constalignmax);
-        address:=align(owner.datasize,varalign);
-        { insert cut for smartlinking or alignment }
-        if (cs_create_smart in aktmoduleswitches) then
-          curconstSegment.concat(Tai_cut.Create)
-        else if (address<>owner.datasize) then
-          curconstSegment.concat(Tai_align.create(varalign));
-        owner.datasize:=address+l;
-{$ifdef GDB}
-        if cs_debuginfo in aktmoduleswitches then
-          concatstabto(curconstsegment);
-{$endif GDB}
-        if (owner.symtabletype=globalsymtable) then
-          begin
-             if (owner.unitid=0) then
-               curconstSegment.concat(Tai_symbol.Createdataname_global(mangledname,getsize));
-          end
-        else
-          begin
-             if (cs_create_smart in aktmoduleswitches) or
-                DLLSource then
-               curconstSegment.concat(Tai_symbol.Createdataname_global(mangledname,getsize))
-             else
-               curconstSegment.concat(Tai_symbol.Createdataname(mangledname,getsize));
-          end;
-        aktfilepos:=storefilepos;
-      end;
 
 {$ifdef GDB}
     function ttypedconstsym.stabstring : pchar;
@@ -2679,7 +2415,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2002-08-25 09:06:21  peter
+  Revision 1.57  2002-08-25 19:25:21  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.56  2002/08/25 09:06:21  peter
     * fixed loop in concat_procdefs
 
   Revision 1.55  2002/08/20 16:54:40  peter

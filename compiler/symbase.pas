@@ -116,6 +116,8 @@ interface
           procedure foreach(proc2call : tnamedindexcallback;arg:pointer);
           procedure foreach_static(proc2call : tnamedindexstaticcallback;arg:pointer);
           procedure insert(sym : tsymentry);virtual;
+          procedure insertvardata(sym : tsymentry);virtual;abstract;
+          procedure insertconstdata(sym : tsymentry);virtual;abstract;
           function  search(const s : stringid) : tsymentry;
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;virtual;
           procedure registerdef(p : tdefentry);
@@ -304,14 +306,20 @@ implementation
       begin
       end;
 
-
-
-
-
 end.
 {
   $Log$
-  Revision 1.6  2002-05-18 13:34:18  peter
+  Revision 1.7  2002-08-25 19:25:20  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.6  2002/05/18 13:34:18  peter
     * readded missing revisions
 
   Revision 1.5  2002/05/16 19:46:44  carl

@@ -3209,8 +3209,10 @@ implementation
       var
          pdc : TParaItem;
          l : longint;
+         is_cdecl : boolean;
       begin
          l:=0;
+         is_cdecl:=(proccalloption in [pocall_cdecl,pocall_cppdecl]);
          pdc:=TParaItem(Para.first);
          while assigned(pdc) do
           begin
@@ -3218,7 +3220,7 @@ implementation
               vs_out,
               vs_var   : inc(l,POINTER_SIZE);
               vs_value,
-              vs_const : if paramanager.push_addr_param(pdc.paratype.def) then
+              vs_const : if paramanager.push_addr_param(pdc.paratype.def,is_cdecl) then
                           inc(l,POINTER_SIZE)
                          else
                           inc(l,pdc.paratype.def.size);
@@ -5507,7 +5509,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2002-08-18 20:06:25  peter
+  Revision 1.91  2002-08-25 19:25:20  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.90  2002/08/18 20:06:25  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

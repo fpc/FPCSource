@@ -29,13 +29,15 @@ interface
        { common }
        cutils,cclasses,
        { global }
-       globtype,tokens,
+       cpuinfo,globtype,tokens,
        { symtable }
        symconst,symbase,symtype,symdef,symsym,
        { ppu }
        ppu,symppu,
        { assembler }
-       aasmbase,aasmtai
+       aasmbase,aasmtai,aasmcpu,
+       { cg }
+       paramgr
        ;
 
 
@@ -96,6 +98,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
+          procedure insertvardata(sym : tsymentry);override;
        end;
 
        trecordsymtable = class(tabstractrecordsymtable)
@@ -122,14 +125,15 @@ interface
        public
           constructor create;
           procedure insert(sym : tsymentry);override;
+          procedure insertvardata(sym : tsymentry);override;
+          procedure insertconstdata(sym : tsymentry);override;
        end;
 
        tparasymtable = class(tabstractlocalsymtable)
        public
           constructor create;
           procedure insert(sym : tsymentry);override;
-          { change alignment for args  only parasymtable }
-          procedure set_alignment(_alignment : longint);
+          procedure insertvardata(sym : tsymentry);override;
        end;
 
        tabstractunitsymtable = class(tstoredsymtable)
@@ -144,6 +148,8 @@ interface
 {$ifdef GDB}
           procedure concattypestabto(asmlist : taasmoutput);
 {$endif GDB}
+          procedure insertvardata(sym : tsymentry);override;
+          procedure insertconstdata(sym : tsymentry);override;
        end;
 
        tglobalsymtable = class(tabstractunitsymtable)
@@ -155,6 +161,7 @@ interface
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure insert(sym : tsymentry);override;
+          procedure insertvardata(sym : tsymentry);override;
 {$ifdef GDB}
           function getnewtypecount : word; override;
 {$endif}
@@ -168,6 +175,7 @@ interface
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure insert(sym : tsymentry);override;
+          procedure insertvardata(sym : tsymentry);override;
        end;
 
        twithsymtable = class(tsymtable)
@@ -279,10 +287,6 @@ implementation
       { codegen }
       cgbase
       ;
-
-
-    var
-      in_loading : boolean;  { remove !!! }
 
 
 {*****************************************************************************
@@ -541,10 +545,6 @@ implementation
       begin
          { set owner and sym indexnb }
          sym.owner:=self;
-         { writes the symbol in data segment if required }
-         { also sets the datasize of owner             }
-         if not in_loading then
-           tstoredsym(sym).insert_in_data;
 
          { check the current symtable }
          hsym:=tsym(search(sym.name));
@@ -830,7 +830,6 @@ implementation
 
     procedure tstoredsymtable.chainoperators;
       var
-        pd : pprocdeflist;
         t : ttoken;
         srsym : tsym;
         srsymtable,
@@ -931,6 +930,17 @@ implementation
 {$endif}
 
 
+    procedure TStoredSymtable._needs_init_final(p : tnamedindexitem;arg:pointer);
+      begin
+         if (not b_needs_init_final) and
+            (tsym(p).typ=varsym) and
+            assigned(tvarsym(p).vartype.def) and
+            not is_class(tvarsym(p).vartype.def) and
+            tstoreddef(tvarsym(p).vartype.def).needs_inittable then
+           b_needs_init_final:=true;
+      end;
+
+
     { returns true, if p contains data which needs init/final code }
     function tstoredsymtable.needs_init_final : boolean;
       begin
@@ -1000,14 +1010,53 @@ implementation
       end;
 
 
-    procedure TStoredSymtable._needs_init_final(p : tnamedindexitem;arg:pointer);
+    procedure tabstractrecordsymtable.insertvardata(sym : tsymentry);
+      var
+        l,varalign : longint;
+        vardef : tdef;
       begin
-         if (not b_needs_init_final) and
-            (tsym(p).typ=varsym) and
-            assigned(tvarsym(p).vartype.def) and
-            not is_class(tvarsym(p).vartype.def) and
-            tstoreddef(tvarsym(p).vartype.def).needs_inittable then
-           b_needs_init_final:=true;
+        if sym.typ<>varsym then
+         internalerror(200208251);
+        l:=tvarsym(sym).getvaluesize;
+        vardef:=tvarsym(sym).vartype.def;
+        { this symbol can't be loaded to a register }
+        exclude(tvarsym(sym).varoptions,vo_regable);
+        exclude(tvarsym(sym).varoptions,vo_fpuregable);
+        { get the alignment size }
+        if (aktalignment.recordalignmax=-1) then
+         begin
+           varalign:=vardef.alignment;
+           if (varalign>4) and
+              ((varalign mod 4)<>0) and
+              (vardef.deftype=arraydef) then
+             Message1(sym_w_wrong_C_pack,vardef.typename);
+           if varalign=0 then
+             varalign:=l;
+           if (dataalignment<aktalignment.maxCrecordalign) then
+            begin
+              if (varalign>16) and (dataalignment<32) then
+               dataalignment:=32
+              else if (varalign>12) and (dataalignment<16) then
+               dataalignment:=16
+              { 12 is needed for long double }
+              else if (varalign>8) and (dataalignment<12) then
+               dataalignment:=12
+              else if (varalign>4) and (dataalignment<8) then
+               dataalignment:=8
+              else if (varalign>2) and (dataalignment<4) then
+               dataalignment:=4
+              else if (varalign>1) and (dataalignment<2) then
+               dataalignment:=2;
+            end;
+           dataalignment:=max(dataalignment,aktalignment.maxCrecordalign);
+         end
+        else
+         varalign:=vardef.alignment;
+        if varalign=0 then
+          varalign:=size_2_align(l);
+        varalign:=used_align(varalign,aktalignment.recordalignmin,dataalignment);
+        tvarsym(sym).address:=align(datasize,varalign);
+        datasize:=tvarsym(sym).address+l;
       end;
 
 
@@ -1233,6 +1282,96 @@ implementation
       end;
 
 
+    procedure tlocalsymtable.insertvardata(sym : tsymentry);
+      var
+        l,varalign : longint;
+      begin
+        if not(sym.typ in [varsym,funcretsym]) then
+          internalerror(200208255);
+        case sym.typ of
+          varsym :
+            begin
+              tvarsym(sym).varstate:=vs_declared;
+              l:=tvarsym(sym).getvaluesize;
+              varalign:=size_2_align(l);
+              varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
+{$ifdef powerpc}
+              { on the powerpc, the local variables are accessed with a positiv offset }
+              tvarsym(sym).address:=align(datasize,varalign);
+              datasize:=tvarsym(sym).address+l;
+{$else powerpc}
+              tvarsym(sym).address:=align(datasize+l,varalign);
+              datasize:=tvarsym(sym).address;
+{$endif powerpc}
+            end;
+          funcretsym :
+            begin
+              { if retoffset is already set then reuse it, this is needed
+                when inserting the result variable }
+              if procinfo.return_offset<>0 then
+               tfuncretsym(sym).address:=procinfo.return_offset
+              else
+               begin
+                 { allocate space in local if ret in register }
+                 if paramanager.ret_in_reg(tfuncretsym(sym).returntype.def) then
+                  begin
+                    l:=tfuncretsym(sym).returntype.def.size;
+                    varalign:=size_2_align(l);
+                    varalign:=used_align(varalign,aktalignment.localalignmin,dataalignment);
+                    tfuncretsym(sym).address:=align(datasize+l,varalign);
+                    datasize:=tfuncretsym(sym).address;
+                    procinfo.return_offset:=-tfuncretsym(sym).address;
+                  end;
+               end;
+            end;
+        end;
+      end;
+
+
+    procedure tlocalsymtable.insertconstdata(sym : tsymentry);
+      var
+        storefilepos : tfileposinfo;
+        curconstsegment : taasmoutput;
+        address,l,varalign : longint;
+      begin
+        { Note: this is the same code as tabstractunitsymtable.insertconstdata }
+        if sym.typ<>typedconstsym then
+         internalerror(200208254);
+        storefilepos:=aktfilepos;
+        aktfilepos:=tsym(sym).fileinfo;
+        if ttypedconstsym(sym).is_writable then
+          curconstsegment:=datasegment
+        else
+          curconstsegment:=consts;
+        l:=ttypedconstsym(sym).getsize;
+        varalign:=size_2_align(l);
+        varalign:=used_align(varalign,aktalignment.constalignmin,aktalignment.constalignmax);
+        address:=align(datasize,varalign);
+        { insert cut for smartlinking or alignment }
+        if (cs_create_smart in aktmoduleswitches) then
+          curconstSegment.concat(Tai_cut.Create)
+        else if (address<>datasize) then
+          curconstSegment.concat(Tai_align.create(varalign));
+        datasize:=address+l;
+{$ifdef GDB}
+        if cs_debuginfo in aktmoduleswitches then
+          concatstabto(curconstsegment);
+{$endif GDB}
+        if (cs_create_smart in aktmoduleswitches) or
+           DLLSource then
+          begin
+            curconstSegment.concat(Tai_symbol.Createdataname_global(
+                ttypedconstsym(sym).mangledname,ttypedconstsym(sym).getsize));
+          end
+        else
+          begin
+            curconstSegment.concat(Tai_symbol.Createdataname(
+                ttypedconstsym(sym).mangledname,ttypedconstsym(sym).getsize));
+          end;
+        aktfilepos:=storefilepos;
+      end;
+
+
 {****************************************************************************
                               TParaSymtable
 ****************************************************************************}
@@ -1279,29 +1418,28 @@ implementation
       end;
 
 
-    procedure tparasymtable.set_alignment(_alignment : longint);
+    procedure tparasymtable.insertvardata(sym : tsymentry);
       var
-         sym : tvarsym;
-         l : longint;
+        l,varalign : longint;
+        is_cdecl : boolean;
       begin
-        dataalignment:=_alignment;
-        sym:=tvarsym(symindex.first);
-        datasize:=0;
-        { there can be only varsyms      }
-        { no, default parameters         }
-        { lead to constsyms as well (FK) }
-        while assigned(sym) do
-          begin
-             if sym.typ=varsym then
-               begin
-                  l:=sym.getpushsize;
-                  sym.address:=datasize;
-                  datasize:=align(datasize+l,dataalignment);
-               end;
-             sym:=tvarsym(sym.indexnext);
-          end;
+        if sym.typ<>varsym then
+          internalerror(200208253);
+        { retrieve cdecl status }
+        if defowner.deftype<>procdef then
+          internalerror(200208256);
+        is_cdecl:=(tprocdef(defowner).proccalloption in [pocall_cdecl,pocall_cppdecl]);
+        { here we need the size of a push instead of the
+          size of the data }
+        l:=tvarsym(sym).getpushsize(is_cdecl);
+        varalign:=size_2_align(l);
+        tvarsym(sym).varstate:=vs_assigned;
+        { we need the new datasize already aligned so we can't
+          use the align_address here }
+        tvarsym(sym).address:=datasize;
+        varalign:=used_align(varalign,dataalignment,dataalignment);
+        datasize:=align(tvarsym(sym).address+l,varalign);
       end;
-
 
 
 {****************************************************************************
@@ -1319,6 +1457,88 @@ implementation
          is_stab_written:=false;
          dbx_count := -1;
 {$endif GDB}
+      end;
+
+
+    procedure tabstractunitsymtable.insertvardata(sym : tsymentry);
+      var
+        l,varalign : longint;
+        storefilepos : tfileposinfo;
+      begin
+        if sym.typ<>varsym then
+         internalerror(200208252);
+        storefilepos:=aktfilepos;
+        aktfilepos:=tsym(sym).fileinfo;
+        if (vo_is_thread_var in tvarsym(sym).varoptions) then
+          l:=pointer_size
+        else
+          l:=tvarsym(sym).getvaluesize;
+        varalign:=size_2_align(l);
+        varalign:=used_align(varalign,aktalignment.varalignmin,aktalignment.varalignmax);
+        tvarsym(sym).address:=align(datasize,varalign);
+        { insert cut for smartlinking or alignment }
+        if (cs_create_smart in aktmoduleswitches) then
+          bssSegment.concat(Tai_cut.Create)
+        else if (tvarsym(sym).address<>datasize) then
+          bssSegment.concat(Tai_align.create(varalign));
+        datasize:=tvarsym(sym).address+l;
+{$ifdef GDB}
+        if cs_debuginfo in aktmoduleswitches then
+           concatstabto(bsssegment);
+{$endif GDB}
+        if (symtabletype=globalsymtable) or
+           (cs_create_smart in aktmoduleswitches) or
+           DLLSource or
+           (vo_is_exported in tvarsym(sym).varoptions) or
+           (vo_is_C_var in tvarsym(sym).varoptions) then
+          bssSegment.concat(Tai_datablock.Create_global(tvarsym(sym).mangledname,l))
+        else
+          bssSegment.concat(Tai_datablock.Create(tvarsym(sym).mangledname,l));
+        aktfilepos:=storefilepos;
+      end;
+
+
+    procedure tabstractunitsymtable.insertconstdata(sym : tsymentry);
+      var
+        storefilepos : tfileposinfo;
+        curconstsegment : taasmoutput;
+        address,l,varalign : longint;
+      begin
+        if sym.typ<>typedconstsym then
+         internalerror(200208254);
+        storefilepos:=aktfilepos;
+        aktfilepos:=tsym(sym).fileinfo;
+        if ttypedconstsym(sym).is_writable then
+          curconstsegment:=datasegment
+        else
+          curconstsegment:=consts;
+        l:=ttypedconstsym(sym).getsize;
+        varalign:=size_2_align(l);
+        varalign:=used_align(varalign,aktalignment.constalignmin,aktalignment.constalignmax);
+        address:=align(datasize,varalign);
+        { insert cut for smartlinking or alignment }
+        if (cs_create_smart in aktmoduleswitches) then
+          curconstSegment.concat(Tai_cut.Create)
+        else if (address<>datasize) then
+          curconstSegment.concat(Tai_align.create(varalign));
+        datasize:=address+l;
+{$ifdef GDB}
+        if cs_debuginfo in aktmoduleswitches then
+          concatstabto(curconstsegment);
+{$endif GDB}
+        if (symtabletype=globalsymtable) or
+           (cs_create_smart in aktmoduleswitches) or
+           DLLSource then
+          begin
+            curconstSegment.concat(Tai_symbol.Createdataname_global(
+                ttypedconstsym(sym).mangledname,ttypedconstsym(sym).getsize));
+          end
+        else
+          begin
+            curconstSegment.concat(Tai_symbol.Createdataname(
+                ttypedconstsym(sym).mangledname,ttypedconstsym(sym).getsize));
+          end;
+        aktfilepos:=storefilepos;
       end;
 
 
@@ -1448,6 +1668,15 @@ implementation
           end;
 
          inherited insert(sym);
+      end;
+
+
+    procedure tstaticsymtable.insertvardata(sym : tsymentry);
+      begin
+        inherited insertvardata(sym);
+        { enable unitialized warning for local symbols }
+        if sym.typ=varsym then
+          tvarsym(sym).varstate:=vs_declared;
       end;
 
 
@@ -1584,6 +1813,18 @@ implementation
           end;
 
          inherited insert(sym);
+      end;
+
+
+    procedure tglobalsymtable.insertvardata(sym : tsymentry);
+      begin
+        inherited insertvardata(sym);
+        { this symbol can't be loaded to a register }
+        if sym.typ=varsym then
+         begin
+           exclude(tvarsym(sym).varoptions,vo_regable);
+           exclude(tvarsym(sym).varoptions,vo_fpuregable);
+         end;
       end;
 
 
@@ -2058,7 +2299,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2002-08-18 20:06:27  peter
+  Revision 1.69  2002-08-25 19:25:21  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.68  2002/08/18 20:06:27  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

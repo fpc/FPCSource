@@ -114,7 +114,7 @@ implementation
          { handle varargs first, because defcoll is not valid }
          if (nf_varargs_para in flags) then
            begin
-             if paramanager.push_addr_param(left.resulttype.def) then
+             if paramanager.push_addr_param(left.resulttype.def,is_cdecl) then
                begin
                  inc(pushedparasize,4);
                  cg.a_paramaddr_ref(exprasmlist,left.location.reference,paralocdummy);
@@ -214,8 +214,7 @@ implementation
                    is_array_of_const(defcoll.paratype.def))
                  ) or
                  (
-                  paramanager.push_addr_param(resulttype.def) and
-                  not is_cdecl
+                  paramanager.push_addr_param(resulttype.def,is_cdecl)
                  ) then
                 begin
                    if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
@@ -1315,7 +1314,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2002-08-23 16:14:49  peter
+  Revision 1.67  2002-08-25 19:25:21  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.66  2002/08/23 16:14:49  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 

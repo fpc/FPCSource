@@ -1461,7 +1461,7 @@ end;
                  end
                else
                  MemInfo.Size:=getsize;
-               MemInfo.PushSize:=getpushsize;
+               MemInfo.PushSize:=getpushsize(false);
                Symbol^.SetMemInfo(MemInfo);
              end;
           constsym :
@@ -2125,7 +2125,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-07-02 06:09:08  michael
+  Revision 1.27  2002-08-25 19:25:18  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.26  2002/07/02 06:09:08  michael
   + Patch from peter to fix snapshots
 
   Revision 1.25  2002/05/18 13:34:05  peter

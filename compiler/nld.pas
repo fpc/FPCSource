@@ -396,7 +396,7 @@ implementation
                    { we need a register for call by reference parameters }
                    if (tvarsym(symtableentry).varspez in [vs_var,vs_out]) or
                       ((tvarsym(symtableentry).varspez=vs_const) and
-                      paramanager.push_addr_param(tvarsym(symtableentry).vartype.def)) or
+                      paramanager.push_addr_param(tvarsym(symtableentry).vartype.def,false)) or
                       { call by value open arrays are also indirect addressed }
                       is_open_array(tvarsym(symtableentry).vartype.def) then
                      registers32:=1;
@@ -1120,7 +1120,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2002-08-19 19:36:43  peter
+  Revision 1.54  2002-08-25 19:25:19  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.53  2002/08/19 19:36:43  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small

@@ -67,7 +67,7 @@ implementation
         var
            s : string;
            filepos : tfileposinfo;
-           ss : tvarsym;
+           ss,ss2 : tvarsym;
         begin
            filepos:=akttokenpos;
            while not sc.empty do
@@ -81,8 +81,14 @@ implementation
                 if (st.symtabletype=objectsymtable) and
                    (sp_static in current_object_option) then
                   begin
-                     s:='$'+lower(st.name^)+'_'+upper(s);
-                     st.defowner.owner.insert(tvarsym.create(s,tt));
+                     ss2:=tvarsym.create('$'+lower(st.name^)+'_'+upper(s),tt);
+                     st.defowner.owner.insert(ss2);
+                     st.defowner.owner.insertvardata(ss2);
+                  end
+                else
+                  begin
+                    { external data is not possible here }
+                    st.insertvardata(ss);
                   end;
              end;
 {$ifdef fixLeaksOnError}
@@ -190,6 +196,7 @@ implementation
                   aktvarsym:=tvarsym.create_C(s,target_info.Cprefix+C_name,tt);
                   include(aktvarsym.varoptions,vo_is_external);
                   symtablestack.insert(aktvarsym);
+                  { external, so no insert in the data }
                   akttokenpos:=storetokenpos;
                   symdone:=true;
                end;
@@ -317,6 +324,7 @@ implementation
                     Message(parser_e_initialized_only_one_var);
                   tconstsym:=ttypedconstsym.createtype(s,tt,true);
                   symtablestack.insert(tconstsym);
+                  symtablestack.insertconstdata(tconstsym);
                   akttokenpos:=storetokenpos;
                   consume(_EQUAL);
                   readtypedconst(tt,tconstsym,true);
@@ -415,8 +423,11 @@ implementation
                     end;
                    if extern_aktvarsym then
                     include(aktvarsym.varoptions,vo_is_external);
-                   { insert in the stack/datasegment }
+                   { insert in the symtable }
                    symtablestack.insert(aktvarsym);
+                   { insert in the datasegment when it is not external }
+                   if not extern_aktvarsym then
+                     symtablestack.insertvardata(aktvarsym);
                    akttokenpos:=storetokenpos;
                    { now we can insert it in the import lib if its a dll, or
                      add it to the externals }
@@ -497,7 +508,9 @@ implementation
                   symtablestack:=symtablestack.next;
                   read_type(casetype,'');
                   symtablestack:=oldsymtablestack;
-                  symtablestack.insert(tvarsym.create(s,casetype));
+                  aktvarsym:=tvarsym.create(s,casetype);
+                  symtablestack.insert(aktvarsym);
+                  symtablestack.insertvardata(aktvarsym);
                 end;
               if not(is_ordinal(casetype.def)) or is_64bitint(casetype.def)  then
                Message(type_e_ordinal_expr_expected);
@@ -584,7 +597,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2002-07-29 21:23:44  florian
+  Revision 1.31  2002-08-25 19:25:20  peter
+    * sym.insert_in_data removed
+    * symtable.insertvardata/insertconstdata added
+    * removed insert_in_data call from symtable.insert, it needs to be
+      called separatly. This allows to deref the address calculation
+    * procedures now calculate the parast addresses after the procedure
+      directives are parsed. This fixes the cdecl parast problem
+    * push_addr_param has an extra argument that specifies if cdecl is used
+      or not
+
+  Revision 1.30  2002/07/29 21:23:44  florian
     * more fixes for the ppc
     + wrappers for the tcnvnode.first_* stuff introduced
 
