@@ -60,7 +60,6 @@ unit cgobj;
        }
        tcg = class
 {$ifndef newra}
-          scratch_register_array_pointer : aword;
           {# List of currently unused scratch registers }
           unusedscratchregisters:Tsupregset;
 {$endif}
@@ -523,7 +522,6 @@ unit cgobj;
 
       begin
 {$ifndef newra}
-         scratch_register_array_pointer:=1;
          for i:=low(scratch_regs) to high(scratch_regs) do
            include(unusedscratchregisters,scratch_regs[i]);
 {$endif}
@@ -558,21 +556,17 @@ unit cgobj;
          if unusedscratchregisters=[] then
            internalerror(68996);
 
-         for i:=scratch_register_array_pointer to
-                (scratch_register_array_pointer+max_scratch_regs-1) do
-           if scratch_regs[(i mod max_scratch_regs)+1] in unusedscratchregisters then
+         for i:=low(scratch_regs) to high(scratch_regs) do
+           if scratch_regs[i] in unusedscratchregisters then
              begin
                 r.enum:=R_INTREGISTER;
-                r.number:=scratch_regs[(i mod max_scratch_regs)+1] shl 8 or cgsize2subreg(size);
+                r.number:=scratch_regs[i] shl 8 or cgsize2subreg(size);
                 break;
              end;
          exclude(unusedscratchregisters,r.number shr 8);
 {$ifndef i386}
          include(rg.usedintbyproc,r.number shr 8);
 {$endif i386}
-         inc(scratch_register_array_pointer);
-         if scratch_register_array_pointer>max_scratch_regs then
-           scratch_register_array_pointer:=1;
          a_reg_alloc(list,r);
          get_scratch_reg_int:=r;
       end;
@@ -1697,7 +1691,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.99  2003-05-23 14:27:35  peter
+  Revision 1.100  2003-05-30 12:36:13  jonas
+    * use as little different registers on the ppc until newra is released,
+      since every used register must be saved
+
+  Revision 1.99  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 

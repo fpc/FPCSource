@@ -528,13 +528,24 @@ unit rgobj;
                                       var fusedinproc,fusedbyproc,unusedregs:Tsupregset
                                       {$ifndef newra};var countunusedregs:byte{$endif}):Tregister;
 
+{$ifdef powerpc}
+{$ifndef newra}
+{$define reuseregs}
+{$endif newra}
+{$endif powerpc}
+
     var i:Tsuperregister;
         r:Tregister;
 
     begin
+{$ifdef reuseregs}
+      i := lowreg;
+      lastintreg := highreg;
+{$else reuseregs}
       if not (lastintreg in [lowreg..highreg]) then
         lastintreg:=lowreg;
       i:=lastintreg;
+{$endif reuseregs}
       repeat
         if i=highreg then
           i:=lowreg
@@ -2027,7 +2038,11 @@ end.
 
 {
   $Log$
-  Revision 1.44  2003-05-17 13:30:08  jonas
+  Revision 1.45  2003-05-30 12:36:13  jonas
+    * use as little different registers on the ppc until newra is released,
+      since every used register must be saved
+
+  Revision 1.44  2003/05/17 13:30:08  jonas
     * changed tt_persistant to tt_persistent :)
     * tempcreatenode now doesn't accept a boolean anymore for persistent
       temps, but a ttemptype, so you can also create ansistring temps etc
