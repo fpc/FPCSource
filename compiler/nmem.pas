@@ -862,6 +862,18 @@ implementation
            registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
          end;
+        if assigned(withrefnode) then
+          begin
+            firstpass(withrefnode);
+            if withrefnode.registers32 > registers32 then
+              registers32:=withrefnode.registers32;
+            if withrefnode.registersfpu > registersfpu then
+              registers32:=withrefnode.registersfpu;
+{$ifdef SUPPORT_MMX}
+            if withrefnode.registersmmx > registersmmx then
+              registersmmx:=withrefnode.registersmmx;
+{$endif SUPPORT_MMX}
+          end;
       end;
 
 
@@ -885,7 +897,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-05-11 14:45:12  peter
+  Revision 1.55  2003-05-24 17:15:24  jonas
+    * added missing firstpass for withrefnode
+
+  Revision 1.54  2003/05/11 14:45:12  peter
     * tloadnode does not support objectsymtable,withsymtable anymore
     * withnode cleanup
     * direct with rewritten to use temprefnode
