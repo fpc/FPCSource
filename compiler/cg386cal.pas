@@ -1565,9 +1565,19 @@ implementation
                           case pararesult^.deftype of
                        stringdef : begin
                                      if doread then
-                                       emitcall('READ_TEXT_STRING',true)
+                                       case pstringdef(pararesult)^.string_typ of
+                                        shortstring: emitcall ('READ_TEXT_STRING',true);
+                                        ansistring : emitcall ('READ_TEXT_ANSISTRING',true);
+                                        longstring : emitcall ('READ_TEXT_LONGSTRING',true);
+                                        widestring : emitcall ('READ_TEXT_ANSISTRING',true);
+                                        end
                                      else
-                                       emitcall('WRITE_TEXT_STRING',true);
+                                       Case pstringdef(Pararesult)^.string_typ of
+                                        shortstring: emitcall ('WRITE_TEXT_STRING',true);
+                                        ansistring : emitcall ('WRITE_TEXT_ANSISTRING',true);
+                                        longstring : emitcall ('WRITE_TEXT_LONGSTRING',true);
+                                        widestring : emitcall ('WRITE_TEXT_ANSISTRING',true);
+                                        end;
                                    end;
                       pointerdef : begin
                                      if is_equal(ppointerdef(pararesult)^.definition,cchardef) then
@@ -2254,7 +2264,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  1998-07-01 15:28:48  peter
+  Revision 1.7  1998-07-06 14:19:51  michael
+  + Added calls for reading/writing ansistrings
+
+  Revision 1.6  1998/07/01 15:28:48  peter
     + better writeln/readln handling, now 100% like tp7
 
   Revision 1.5  1998/06/25 14:04:17  peter
