@@ -222,16 +222,26 @@ asm
            stw    r0,temp
            xoris  r3,r3,0x8000
            stw    r3,4+temp
+           {$ifndef macos}
            lis    r3,longint_to_real_helper@ha
            lfd    f1,longint_to_real_helper@l(r3)
+           {$else}
+           lfd    f1,longint_to_real_helper(r2)
+           {$endif}
            lfd    f0,temp
            stw    r4,4+temp
            fsub   f0,f0,f1
+           {$ifndef macos}
            lis    r4,cardinal_to_real_helper@ha
            lfd    f1,cardinal_to_real_helper@l(r4)
            lis    r3,int_to_real_factor@ha
            lfd    f3,temp
            lfd    f2,int_to_real_factor@l(r3)
+           {$else}
+           lfd    f1,cardinal_to_real_helper(r2)
+           lfd    f3,temp
+           lfd    f2,int_to_real_factor(r2)
+           {$endif}
            fsub   f3,f3,f1
            fmadd  f1,f0,f2,f3
 end ['R0','R3','R4','F0','F1','F2','F3'];
@@ -252,22 +262,32 @@ asm
            stw    r0,temp
            stw    r3,4+temp
            lfd    f0,temp
+           {$ifndef macos}
            lis    r3,cardinal_to_real_helper@ha
            lfd    f1,cardinal_to_real_helper@l(r3)
+           {$else}
+           lfd    f1,cardinal_to_real_helper(r2)
+           {$endif}
            stw    r4,4+temp
            fsub   f0,f0,f1
            lfd    f3,temp
+           {$ifndef macos}
            lis    r3,int_to_real_factor@ha
            lfd    f2,int_to_real_factor@l(r3)
+           {$else}
+           lfd    f2,int_to_real_factor(r2)
+           {$endif}
            fsub   f3,f3,f1
            fmadd  f1,f0,f2,f3
 end ['R0','R3','F0','F1','F2','F3'];
 
 
-
 {
   $Log$
-  Revision 1.13  2002-10-21 18:08:28  jonas
+  Revision 1.14  2002-11-28 11:04:16  olle
+    * macos: refs to globals in asm adapted to macos
+
+  Revision 1.13  2002/10/21 18:08:28  jonas
     * round has int64 instead of longint result
 
   Revision 1.12  2002/09/08 13:00:21  jonas
