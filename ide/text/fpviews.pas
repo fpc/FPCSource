@@ -300,6 +300,7 @@ procedure DisposeTabDef(P: PTabDef);
 
 function  GetEditorCurWord(Editor: PEditor): string;
 procedure InitReservedWords;
+procedure DoneReservedWords;
 
 procedure TranslateMouseClick(View: PView; var Event: TEvent);
 
@@ -332,7 +333,7 @@ implementation
 
 uses
   Keyboard,Memory,MsgBox,Validate,
-  Tokens,FPSwitch,FPSymbol,
+  Tokens,FPSwitch,FPSymbol,FPDebug,
   FPVars,FPUtils,FPHelp,FPCompile;
 
 const
@@ -549,6 +550,12 @@ begin
       ReservedWords^.AtFree(Idx-1);
       ReservedWords^.AtInsert(Idx-1,NewStr(S+WordS+#0));
     end;
+end;
+
+procedure DoneReservedWords;
+begin
+  if assigned(ReservedWords) then
+    dispose(ReservedWords,done);
 end;
 
 function IsFPReservedWord(S: string): boolean;
@@ -2283,7 +2290,9 @@ constructor TMessageItem.Init(AClass: longint; AText, AModule: string; AID: long
 begin
   inherited Init;
   TClass:=AClass;
-  Text:=NewStr(AText); Module:=NewStr(AModule); ID:=AID;
+  Text:=NewStr(AText);
+  Module:=NewStr(AModule);
+  ID:=AID;
 end;
 
 function TMessageItem.GetText(MaxLen: integer): string;
@@ -2307,6 +2316,7 @@ destructor TMessageItem.Done;
 begin
   inherited Done;
   if Text<>nil then DisposeStr(Text);
+  if Module<>nil then DisposeStr(Module);
 end;
 
 function TCompilerMessage.GetText(MaxLen: Integer): String;
@@ -2959,6 +2969,8 @@ begin
        end;
     W^.HelpCtx:=hcSourceWindow;
     Desktop^.Insert(W);
+    If assigned(BreakpointCollection) then
+      BreakPointCollection^.ShowBreakpoints(W);
     Message(Application,evBroadcast,cmUpdate,nil);
   end;
   PopStatus;
@@ -3076,7 +3088,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  1999-02-05 12:12:02  pierre
+  Revision 1.10  1999-02-10 09:42:52  pierre
+    + DoneReservedWords to avoid memory leaks
+    * TMessageItem Module field was not disposed
+
+  Revision 1.9  1999/02/05 12:12:02  pierre
     + SourceDir that stores directories for sources that the
       compiler should not know about
       Automatically asked for addition when a new file that
