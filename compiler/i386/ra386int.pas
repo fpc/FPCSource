@@ -1365,7 +1365,10 @@ var
               { now the next one must the be the dot }
               if actasmtoken<>AS_DOT then
                begin
-                 Message(asmr_e_building_record_offset);
+                 { if it is not a dot then we expect a constant
+                   value as offset }
+                 if not SearchIConstant(expr,l) then
+                   Message(asmr_e_building_record_offset);
                  expr:='';
                end;
             end
@@ -1959,7 +1962,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.34  2002-09-03 16:26:28  daniel
+  Revision 1.35  2002-09-16 19:07:00  peter
+    * support [eax].constant as reference
+
+  Revision 1.34  2002/09/03 16:26:28  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.33  2002/08/17 09:23:47  florian
