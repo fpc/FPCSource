@@ -321,18 +321,6 @@ state at the moment a signal is sent to your program.
 <element name="TDir">
 <short>Record used in <link id="OpenDir"/> and <link id="ReadDir"/> calls </short>
 </element>
-<code>
-  TDir =record
-    fd     : integer;
-    loc    : longint;
-    size   : integer;
-    buf    : pdirent;
-    nextoff: longint;
-    dd_max : integer; 
-    lock   : pointer;
-  end;
-  PDir =^TDir;
-</code>
 <element name="TDir.fd">
 <short>File descriptor. Do not use.</short>
 </element>
@@ -343,7 +331,7 @@ state at the moment a signal is sent to your program.
 <short>File size</short>
 </element>
 <element name="TDir.buf">
-<short>Pointer to <link id="TDirent"/> records</short>
+<short>Pointer to <link id="TDir"/> records</short>
 </element>
 <element name="TDir.nextoff">
 <short>?</short>
@@ -538,44 +526,44 @@ the system unit for disgnostic messages.
 </element>
 
 <element name="SA_NOCLDSTOP">
-<short>Signal flags: No child stop</short>
+<short>Sigaction options: Do not receive notification when child processes stop</short>
 </element>
 <element name="SA_SHIRQ">
-<short>Signal flags: </short>
+<short>Sigaction options: ?</short>
 </element>
 <element name="SA_STACK">
-<short>Signal flags: </short>
+<short>Sigaction options: Call the signal handler on an alternate signal stack.</short>
 </element>
 <element name="SA_RESTART">
-<short>Signal flags: </short>
+<short>Sigaction options: Provide behaviour compatible with BSD signal semantics</short>
 </element>
 <element name="SA_INTERRUPT">
-<short>Signal flags: </short>
+<short>Sigaction options: ?</short>
 </element>
 <element name="SA_NOMASK">
-<short>Signal flags: </short>
+<short>Sigaction options: Do not prevent the signal from being received when it is handled.</short>
 </element>
 <element name="SA_ONESHOT">
-<short>Signal flags: </short>
+<short>Sigaction options: Restore the signal action to the default state.</short>
 </element>
 
 <element name="SIG_BLOCK">
-<short>Signal flags: </short>
+<short>Sigprocmask flags: Add signals to the set of blocked signals.</short>
 </element>
 <element name="SIG_UNBLOCK">
-<short>Signal flags: </short>
+<short>Sigprocmask flags: Remove signals from the set set of blocked signals.</short>
 </element>
 <element name="SIG_SETMASK">
-<short>Signal flags: </short>
+<short>Sigprocmask flags: Set of blocked signals is given.</short>
 </element>
 <element name="SIG_DFL">
-<short>Signal flags: Default signal</short>
+<short>Signal handler: Default signal handler</short>
 </element>
 <element name="SIG_IGN">
-<short>Signal flags: Ignore signal</short>
+<short>Signal handler: Ignore signal</short>
 </element>
 <element name="SIG_ERR">
-<short>Signal flags: error</short>
+<short>Signal handler: error</short>
 </element>
 
 <element name="SIGHUP">
@@ -1145,8 +1133,8 @@ Auxiliary functions that are useful in connection with the other functions.
 <short>Check file access</short>
 <descr>
 <p>
-Tests user's access rights on the specified file. Mode is a mask existing of
-one or more of
+<var>Access</var> tests user's access rights on the specified file. 
+<var>Mode</var> is a mask existing of one or more of the following:
 </p>
 <dl>
 <dt>R_OK</dt><dd>User has read rights.</dd>
@@ -1191,7 +1179,7 @@ dangling symbolic link.</dd>
 <short>Schedule an alarm signal to be delivered</short>
 <descr>
 <p>
-Alarm schedules an alarm signal to be delivered to your process in <var>Sec</var>
+<var>Alarm</var> schedules an alarm signal to be delivered to your process in <var>Sec</var>
 seconds. When <var>Sec</var> seconds have elapsed, Linux will send a <var>SIGALRM</var>
 signal to the current process.  If <var>Sec</var> is zero, then no new alarm will
 be set. Whatever the value of <var>Sec</var>, any previous alarm is cancelled.
@@ -1381,8 +1369,8 @@ None.
 <element name="Chown">
 <short>Change owner of file</short>
 <descr>
-<var>Chown</var> sets the User ID and Group ID of the file in <var>Path</var> to \var{NewUid,
-NewGid}.
+<var>Chown</var> sets the User ID and Group ID of the file in <var>Path</var> to
+<var>NewUid</var>, <var>NewGid</var>
 The function returns <var>True</var> if the call was succesfull, <var>False</var> if the call
 failed.
 </descr>
@@ -1400,9 +1388,6 @@ search (=execute) permission.</dd>
 <dt>sys_enoent</dt>
 <dd> A directory entry in <var>Path</var> does
 not exist or is a symbolic link pointing to a non-existent directory.</dd>
-<dt>sys_enotdir</dt>
-<dd> A directory entry in <var>OldPath</var> or <var>NewPath</var> is
-nor a directory.</dd>
 <dt>sys_enomem</dt>
 <dd> Insufficient kernel memory.</dd>
 <dt>sys_erofs</dt>
@@ -1460,9 +1445,6 @@ search (=execute) permission.</dd>
 <dt>sys_enoent</dt>
 <dd> A directory entry in <var>Path</var> does
 not exist or is a symbolic link pointing to a non-existent directory.</dd>
-<dt>sys_enotdir</dt>
-<dd> A directory entry in <var>OldPath</var> or <var>NewPath</var> is
-nor a directory.</dd>
 <dt>sys_enomem</dt>
 <dd> Insufficient kernel memory.</dd>
 <dt>sys_erofs</dt>
@@ -1619,7 +1601,7 @@ None.
 Makes <var>NewFile</var> an exact copy of <var>OldFile</var>, after having flushed the
 buffer of <var>OldFile</var> in case it is a Text file or untyped file. 
 Due to the buffering mechanism of Pascal, this has not the same functionality
-as the \seem{dup}{2} call in C. The internal Pascal buffers are not the same 
+as the dup call in C. The internal Pascal buffers are not the same 
 after this call, but when the buffers are flushed (e.g. after output), 
 the output is sent to the same file.
 Doing an lseek will, however, work as in C, i.e. doing a lseek will change 
@@ -1870,8 +1852,6 @@ A compononent of the path has no search permission.</dd>
 <example file="olinuxex/ex8"/>
 </element>
 
-
-
 <element name="Execve">
 <short>Execute process using environment</short>
 <descr>
@@ -1887,16 +1867,16 @@ On success, <var>execve</var> does not return.
 Errors are reported in <var>LinuxError</var>:
 </p>
 <dl>
-<dt>eacces</dt>
+<dt>sys_eacces</dt>
 <dd> File is not a regular file, or has no execute permission.
 A compononent of the path has no search permission.</dd>
-<dt>sys_ eperm</dt><dd> The file system is mounted \textit{noexec}.</dd>
-<dt>sys_ e2big</dt><dd> Argument list too big.</dd>
-<dt>sys_ enoexec</dt><dd> The magic number in the file is incorrect.</dd>
-<dt>sys_ enoent</dt><dd> The file does not exist.</dd>
-<dt>sys_ enomem</dt><dd> Not enough memory for kernel.</dd>
-<dt>sys_ enotdir</dt><dd> A component of the path is not a directory.</dd>
-<dt>sys_ eloop</dt><dd> The path contains a circular reference (via symlinks).</dd>
+<dt>sys_eperm</dt><dd> The file system is mounted \textit{noexec}.</dd>
+<dt>sys_e2big</dt><dd> Argument list too big.</dd>
+<dt>sys_enoexec</dt><dd> The magic number in the file is incorrect.</dd>
+<dt>sys_enoent</dt><dd> The file does not exist.</dd>
+<dt>sys_enomem</dt><dd> Not enough memory for kernel.</dd>
+<dt>sys_enotdir</dt><dd> A component of the path is not a directory.</dd>
+<dt>sys_eloop</dt><dd> The path contains a circular reference (via symlinks).</dd>
 </dl>
 </errors>
 <seealso>
@@ -2153,7 +2133,7 @@ Errors are returned in LinuxError.
 <link id="fdClose"/>
 <link id="fdRead"/>
 <link id="fdWrite"/>
-<link id="fdTruncate"/>,
+<link id="fdTruncate"/>
 <link id="fdFlush"/>
 <link id="fdSeek"/>
 </seealso>
@@ -2461,7 +2441,7 @@ obstruction. Arg is a pointer to a flock record.
 occurs.
 </dd>
 <dt>F_GetLkw</dt>
-<dd> Same as for \textbf{F_Setlk}, but wait until the lock is
+<dd> Same as for <b>F_Setlk</b>, but wait until the lock is
 released.
 </dd>
 <dt>F_SetOwn</dt>
@@ -2484,8 +2464,8 @@ held by another process.</dd>
 <element name="Fork">
 <short>Create child process</short>
 <descr>
-Fork creates a child process which is a copy of the parent process.
-Fork returns the process ID in the parent process, and zero in the child's
+<var>Fork</var> creates a child process which is a copy of the parent process.
+<var>Fork</var> returns the process ID in the parent process, and zero in the child's
 process. (you can get the parent's PID with <link id="GetPPid"/>).
 </descr>
 <errors>
@@ -2642,7 +2622,7 @@ Get the effective user ID of the currently running process.
 None.
 </errors>
 <seealso>
-<link id="GetEUid"/>
+<link id="GetUid"/>
 </seealso>
 <example file="olinuxex/ex17"/>
 </element>
@@ -2652,9 +2632,9 @@ None.
 <short>Return value of environment variable.</short>
 <descr>
 <p>
-Returns the value of the environment variable in <var>P</var>. If the variable is
-not defined, nil is returned. The value of the environment variable may be
-the empty string.
+<var>GetEnv</var> returns the value of the environment variable in <var>P</var>. 
+If the variable is not defined, nil is returned. The value of the environment 
+variable may be the empty string.
 A PChar is returned to accomodate for strings longer than 255 bytes,
 <var>TERMCAP</var> and <var>LS_COLORS</var>, for instance.
 </p>
@@ -2662,7 +2642,7 @@ A PChar is returned to accomodate for strings longer than 255 bytes,
 <errors>
 None.
 </errors>
-<example file="olinuxex/ex41"/>
+<example file="linuxex/ex41"/>
 </element>
 
 
@@ -2962,9 +2942,6 @@ For more information on this, see various manual pages under linux.
 Errors are reported in LinuxError. They are very dependent on the used
 function, that's why we don't list them here
 </errors>
-<seealso>
-\seem{ioctl}{2}
-</seealso>
 <example file="olinuxex/ex54"/>
 </element>
 
@@ -3263,7 +3240,7 @@ None
 <short>Create FIFO (named pipe) in file system</short>
 <descr>
 <var>MkFifo</var> creates named a named pipe in the filesystem, with name
-<var>PathName</var> and mode {Mode}.
+<var>PathName</var> and mode <var>Mode</var>.
 </descr>
 <errors>
 <p>
@@ -3276,7 +3253,7 @@ None
 </errors>
 <seealso>
 <link id="POpen"/>
-<link id="MkFifo"/>, \seem{mkfifo}{4}
+<link id="MkFifo"/>
 </seealso>
 </element>
 
@@ -3407,7 +3384,7 @@ and <var>LinuxError</var> is set to <var>EINVAL</var>.
 <link id="Pause"/>
 <link id="Alarm"/>
 </seealso>
-<example file="olinuxex/ex70"/>
+<example file="olinuxex/ex72"/>
 </element>
 
 
@@ -3986,7 +3963,7 @@ None
 <short>Install signal handler (deprecated)</short>
 <descr>
 <p>
-Signal installs a new signal handler for signal <var>SigNum</var>. This call has
+<var>Signal</var> installs a new signal handler for signal <var>SigNum</var>. This call has
 the same functionality as the <b>SigAction</b> call.
 The return value for Signal is the old signal handler, or nil on error.
 </p>
