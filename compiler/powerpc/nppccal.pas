@@ -74,27 +74,17 @@ implementation
   procedure tppccallnode.load_framepointer;
 
     begin
-       { if we call a nested function in a method, we must      }
-       { push also SELF!                                        }
-       { THAT'S NOT TRUE, we have to load ESI via frame pointer }
-       { access                                                 }
-       {
-         begin
-            loadesi:=false;
-            emit_reg(A_PUSH,S_L,R_ESI);
-         end;
-       }
        {
        if lexlevel=(tprocdef(procdefinition).parast.symtablelevel) then
          begin
             reference_reset_base(href,procinfo^.framepointer,procinfo^.framepointer_offset);
-            cg.a_param_ref(exprasmlist,OS_ADDR,href,-1);
+            cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getframepointerloc(procinfo.procdef));
          end
          { this is only true if the difference is one !!
            but it cannot be more !! }
        else if (lexlevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
          begin
-            cg.a_param_reg(exprasmlist,OS_ADDR,procinfo^.framepointer,-1);
+            cg.a_param_reg(exprasmlist,OS_ADDR,procinfo^.framepointer,paramanager.getframepointerloc(procinfo.procdef));
          end
        else if (lexlevel>(tprocdef(procdefinition).parast.symtablelevel)) then
          begin
@@ -121,7 +111,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-11-25 17:43:28  peter
+  Revision 1.4  2002-12-05 14:28:12  florian
+    * some variant <-> dyn. array stuff
+
+  Revision 1.3  2002/11/25 17:43:28  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

@@ -69,6 +69,8 @@ interface
           function resulttype_interface_to_guid : tnode;
           function resulttype_dynarray_to_openarray : tnode;
           function resulttype_pwchar_to_string : tnode;
+          function resulttype_variant_to_dynarray : tnode;
+          function resulttype_dynarray_to_variant : tnode;
           function resulttype_call_helper(c : tconverttype) : tnode;
        protected
           function first_int_to_int : tnode;virtual;
@@ -311,12 +313,12 @@ implementation
         hp : tarrayconstructornode;
       begin
         if p.nodetype<>arrayconstructorn then
-         internalerror(200205105);
-  new(constset);
+          internalerror(200205105);
+        new(constset);
       {$ifdef oldset}
         FillChar(constset^,sizeof(constset^),0);
       {$else}
-  constset^:=[];
+        constset^:=[];
       {$endif}
         htype.reset;
         constsetlo:=0;
@@ -900,6 +902,7 @@ implementation
         result.resulttype := resulttype;
       end;
 
+
     function ttypeconvnode.resulttype_pwchar_to_string : tnode;
 
       begin
@@ -907,6 +910,24 @@ implementation
           'fpc_pwidechar_to_'+tstringdef(resulttype.def).stringtypname,
           ccallparanode.create(left,nil),resulttype);
         left := nil;
+      end;
+
+
+    function ttypeconvnode.resulttype_variant_to_dynarray : tnode;
+
+      begin
+        result := ccallnode.createinternres(
+          'fpc_variant_to_dynarray',
+          ccallparanode.create(caddrnode.create(crttinode.create(tstoreddef(resulttype.def),initrtti)),
+            ccallparanode.create(left,nil)
+          ),resulttype);
+        left := nil;
+      end;
+
+
+    function ttypeconvnode.resulttype_dynarray_to_variant : tnode;
+
+      begin
       end;
 
 
@@ -943,7 +964,9 @@ implementation
           { char_2_char } @ttypeconvnode.resulttype_char_to_char,
           { normal_2_smallset} nil,
           { dynarray_2_openarray} @resulttype_dynarray_to_openarray,
-          { pwchar_2_string} @resulttype_pwchar_to_string
+          { pwchar_2_string} @resulttype_pwchar_to_string,
+          { variant_2_dynarray} @resulttype_variant_to_dynarray,
+          { dynarray_2_variant} @resulttype_dynarray_to_variant
          );
       type
          tprocedureofobject = function : tnode of object;
@@ -980,6 +1003,8 @@ implementation
           tc_char_2_char : resulttype_char_to_char;
           tc_dynarray_2_openarray : resulttype_dynarray_to_openarray;
           tc_pwchar_2_string : resulttype_pwchar_to_string;
+          tc_variant_2_dynarray : resulttype_variant_to_dynarray;
+          tc_dynarray_2_variant : resulttype_dynarray_to_variant;
         end;
       end;
 {$Endif fpc}
@@ -1672,6 +1697,8 @@ implementation
            @ttypeconvnode._first_char_to_char,
            @ttypeconvnode._first_nothing,
            @ttypeconvnode._first_nothing,
+           nil,
+           nil,
            nil
          );
       type
@@ -1994,7 +2021,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  2002-11-30 10:45:14  carl
+  Revision 1.94  2002-12-05 14:27:26  florian
+    * some variant <-> dyn. array stuff
+
+  Revision 1.93  2002/11/30 10:45:14  carl
     * fix bug with checking of duplicated items in sets (new sets bug only)
 
   Revision 1.92  2002/11/27 19:43:21  carl

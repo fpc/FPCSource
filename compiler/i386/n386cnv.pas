@@ -354,7 +354,9 @@ implementation
            {$ifdef fpc}@{$endif}second_char_to_char,
            {$ifdef fpc}@{$endif}second_nothing,  { normal_2_smallset }
            {$ifdef fpc}@{$endif}second_nothing,  { dynarray_2_openarray }
-           {$ifdef fpc}@{$endif}second_nothing   { pwchar_2_string }
+           {$ifdef fpc}@{$endif}second_nothing,  { pwchar_2_string }
+           {$ifdef fpc}@{$endif}second_nothing,  { variant_2_dynarray }
+           {$ifdef fpc}@{$endif}second_nothing   { dynarray_2_variant}
          );
       type
          tprocedureofobject = procedure of object;
@@ -404,6 +406,10 @@ implementation
           tc_char_2_char : second_char_to_char;
           tc_normal_2_smallset : second_nothing;
           tc_dynarray_2_openarray : second_nothing;
+          tc_pwchar_2_string : second_nothing;
+          tc_variant_2_dynarray : second_nothing;
+          tc_dynarray_2_variant : second_nothing;
+          else internalerror(2002101101);
         end;
      end;
 {$endif}
@@ -413,7 +419,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2002-11-25 17:43:26  peter
+  Revision 1.53  2002-12-05 14:27:42  florian
+    * some variant <-> dyn. array stuff
+
+  Revision 1.52  2002/11/25 17:43:26  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

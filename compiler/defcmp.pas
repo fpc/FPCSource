@@ -39,7 +39,7 @@ interface
        tequaltype = (
          te_incompatible,
          te_convert_operator,
-         te_convert_l2,     { compatible conversion with possible loss of data }     
+         te_convert_l2,     { compatible conversion with possible loss of data }
          te_convert_l1,     { compatible conversion     }
          te_equal,          { the definitions are equal }
          te_exact
@@ -78,7 +78,9 @@ interface
           tc_char_2_char,
           tc_normal_2_smallset,
           tc_dynarray_2_openarray,
-          tc_pwchar_2_string
+          tc_pwchar_2_string,
+          tc_variant_2_dynarray,
+          tc_dynarray_2_variant
        );
 
     function compare_defs_ext(def_from,def_to : tdef;
@@ -550,6 +552,14 @@ implementation
                             doconv:=tc_equal;
                             b:=te_convert_l1;
                           end;
+                      end;
+                    variantdef :
+                      begin
+                         if is_dynamic_array(def_to) then
+                           begin
+                              doconv:=tc_variant_2_dynarray;
+                              b:=te_convert_l1;
+                           end;
                       end;
                   end;
                 end;
@@ -1149,7 +1159,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2002-12-01 22:07:41  carl
+  Revision 1.5  2002-12-05 14:27:26  florian
+    * some variant <-> dyn. array stuff
+
+  Revision 1.4  2002/12/01 22:07:41  carl
     * warning of portabilitiy problems with parasize / localsize
     + some added documentation
 
