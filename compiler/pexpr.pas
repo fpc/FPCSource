@@ -61,6 +61,9 @@ unit pexpr;
 {$ifdef m68k}
        ,m68k
 {$endif}
+{$ifdef alpha}
+       ,cpubase,cpuinfo
+{$endif}
        ;
 
     const
@@ -2064,7 +2067,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.127  1999-08-01 18:28:13  florian
+  Revision 1.128  1999-08-03 13:50:17  michael
+  + Changes for alpha
+
+  Revision 1.127  1999/08/01 18:28:13  florian
     * modifications for the new code generator
 
   Revision 1.126  1999/07/30 12:28:40  peter

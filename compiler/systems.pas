@@ -945,7 +945,7 @@ implementation
 {$endif m68k}
 {$ifdef alpha}
           ,(
-            id    : ar_alha_ar;
+            id    : ar_alpha_ar;
             arbin : 'ar';
             arcmd : 'rs $LIB $FILES'
           )
@@ -1235,7 +1235,7 @@ implementation
           )
 {$endif m68k}
 {$ifdef alpha}
-          (
+          ,(
             target      : target_alpha_LINUX;
             flags       : [];
             cpu         : alpha;
@@ -1621,7 +1621,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  1999-08-02 23:56:51  michael
+  Revision 1.85  1999-08-03 13:50:19  michael
+  + Changes for alpha
+
+  Revision 1.84  1999/08/02 23:56:51  michael
   + Added alpha cpu and linux for alpha os
 
   Revision 1.83  1999/07/10 10:26:20  peter

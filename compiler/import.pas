@@ -186,6 +186,10 @@ begin
     target_m68k_Linux :
       importlib:=new(pimportliblinux,Init);
 {$endif m68k}
+{$ifdef alpha}
+    target_alpha_Linux :
+      importlib:=new(pimportliblinux,Init);
+{$endif alpha}
     else
       importlib:=new(pimportlib,Init);
   end;
@@ -195,7 +199,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1999-05-17 14:33:01  pierre
+  Revision 1.11  1999-08-03 13:50:16  michael
+  + Changes for alpha
+
+  Revision 1.10  1999/05/17 14:33:01  pierre
    * func was not disposed in timported_item
 
   Revision 1.9  1998/11/28 16:20:50  peter
