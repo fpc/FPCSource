@@ -145,15 +145,19 @@ unit pmodules;
             begin
               if (hp^.u^.flags and uf_init)<>0 then
                begin
-                 unitinits.concat(new(pai_const_symbol,init('INIT$$'+hp^.u^.modulename^)));
+                 unitinits.concat(new(pai_const_symbol,initname('INIT$$'+hp^.u^.modulename^)));
+{$ifndef NEWLAB}
                  concat_external('INIT$$'+hp^.u^.modulename^,EXT_NEAR);
+{$endif}
                end
               else
                unitinits.concat(new(pai_const,init_32bit(0)));
               if (hp^.u^.flags and uf_finalize)<>0 then
                begin
-                 unitinits.concat(new(pai_const_symbol,init('FINALIZE$$'+hp^.u^.modulename^)));
+                 unitinits.concat(new(pai_const_symbol,initname('FINALIZE$$'+hp^.u^.modulename^)));
+{$ifndef NEWLAB}
                  concat_external('FINALIZE$$'+hp^.u^.modulename^,EXT_NEAR);
+{$endif}
                end
               else
                unitinits.concat(new(pai_const,init_32bit(0)));
@@ -164,7 +168,7 @@ unit pmodules;
         { TableCount,InitCount }
         unitinits.insert(new(pai_const,init_32bit(0)));
         unitinits.insert(new(pai_const,init_32bit(count)));
-        unitinits.insert(new(pai_symbol,init_global('INITFINAL')));
+        unitinits.insert(new(pai_symbol,initname_global('INITFINAL')));
         { insert in data segment }
         if (cs_smartlink in aktmoduleswitches) then
           datasegment^.concat(new(pai_cut,init));
@@ -201,7 +205,7 @@ unit pmodules;
            bsssegment^.concat(new(pai_datablock,init_global('HEAP',heapsize)));
          end;
 {$ifdef i386}
-         datasegment^.concat(new(pai_symbol,init_global('HEAPSIZE')));
+         datasegment^.concat(new(pai_symbol,initname_global('HEAPSIZE')));
          datasegment^.concat(new(pai_const,init_32bit(heapsize)));
 {$endif i386}
 {$ifdef m68k}
@@ -221,7 +225,7 @@ unit pmodules;
           target_i386_GO32V2 :
             begin
               { stacksize can be specified }
-              datasegment^.concat(new(pai_symbol,init_global('__stklen')));
+              datasegment^.concat(new(pai_symbol,initname_global('__stklen')));
               datasegment^.concat(new(pai_const,init_32bit(stacksize)));
             end;
           target_i386_WIN32 :
@@ -1341,7 +1345,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.122  1999-05-18 22:36:29  pierre
+  Revision 1.123  1999-05-21 13:55:06  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.122  1999/05/18 22:36:29  pierre
    * little redondant code removed
 
   Revision 1.121  1999/05/17 14:43:54  pierre

@@ -382,6 +382,7 @@ unit ag386bin;
                end;
              ait_symbol :
                pai_symbol(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
+{$ifndef NEWLAB}
              ait_label :
                begin
                  pai_label(hp)^.setaddress(objectalloc^.sectionsize);
@@ -395,9 +396,12 @@ unit ag386bin;
                      pai_label(hp)^.sym^.setaddress(objectalloc^.currsec,pai_label(hp)^.l^.address,0);
                    end;
                end;
+{$endif}
              ait_string :
                objectalloc^.sectionalloc(pai_string(hp)^.len);
+{$ifndef NEWLAB}
              ait_labeled_instruction,
+{$endif}
              ait_instruction :
                objectalloc^.sectionalloc(pai386(hp)^.Pass1(objectalloc^.sectionsize));
              ait_cut :
@@ -423,9 +427,13 @@ unit ag386bin;
            if (cs_debuginfo in aktmoduleswitches) then
             begin
               if (objectalloc^.currsec<>sec_none) and
-                 not(hp^.typ in  [ait_external,ait_regalloc, ait_tempalloc,
+                 not(hp^.typ in  [
+{$ifndef NEWLAB}
+                     ait_external,ait_label,
+{$endif}
+                     ait_regalloc,ait_tempalloc,
                      ait_stabn,ait_stabs,ait_section,
-                     ait_label,ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
+                     ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
                WriteFileLineInfo(hp^.fileinfo);
             end;
 {$endif GDB}
@@ -493,8 +501,10 @@ unit ag386bin;
              ait_const_rva,
              ait_const_symbol :
                objectalloc^.sectionalloc(4);
+{$ifndef NEWLAB}
              ait_external :
                pai_external(hp)^.sym^.typ:=AS_EXTERNAL;
+{$endif}
              ait_section:
                begin
                  objectalloc^.setsection(pai_section(hp)^.sec);
@@ -530,6 +540,7 @@ unit ag386bin;
                   pai_symbol(hp)^.sym^.typ:=AS_LOCAL;
                  pai_symbol(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
                end;
+{$ifndef NEWLAB}
              ait_label :
                begin
                  pai_label(hp)^.setaddress(objectalloc^.sectionsize);
@@ -543,9 +554,12 @@ unit ag386bin;
                      pai_label(hp)^.sym^.setaddress(objectalloc^.currsec,pai_label(hp)^.l^.address,0);
                    end;
                end;
+{$endif}
              ait_string :
                objectalloc^.sectionalloc(pai_string(hp)^.len);
+{$ifndef NEWLAB}
              ait_labeled_instruction,
+{$endif}
              ait_instruction :
                objectalloc^.sectionalloc(pai386(hp)^.Pass1(objectalloc^.sectionsize));
              ait_direct :
@@ -583,9 +597,13 @@ unit ag386bin;
            if cs_debuginfo in aktmoduleswitches then
             begin
               if (objectoutput^.currsec<>sec_none) and
-                 not(hp^.typ in  [ait_external,ait_regalloc, ait_tempalloc,
+                 not(hp^.typ in  [
+{$ifndef NEWLAB}
+                     ait_external,ait_label,
+{$endif}
+                     ait_regalloc,ait_tempalloc,
                      ait_stabn,ait_stabs,ait_section,
-                     ait_label,ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
+                     ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
                WriteFileLineInfo(hp^.fileinfo);
             end;
 {$endif GDB}
@@ -616,8 +634,10 @@ unit ag386bin;
                  stabslastfileinfo.line:=-1;
 {$endif GDB}
                end;
+{$ifndef NEWLAB}
              ait_external :
                objectoutput^.writesymbol(pai_external(hp)^.sym);
+{$endif}
              ait_symbol :
                objectoutput^.writesymbol(pai_symbol(hp)^.sym);
              ait_datablock :
@@ -662,12 +682,16 @@ unit ag386bin;
              ait_const_symbol :
                objectoutput^.writereloc(pai_const_symbol(hp)^.offset,4,
                  pai_const_symbol(hp)^.sym,relative_false);
+{$ifndef NEWLAB}
              ait_label :
                begin
                  if assigned(pai_label(hp)^.sym) then
                   objectoutput^.writesymbol(pai_label(hp)^.sym);
                end;
+{$endif}
+{$ifndef NEWLAB}
              ait_labeled_instruction,
+{$endif}
              ait_instruction :
                pai386(hp)^.Pass2;
 {$ifdef GDB}
@@ -825,7 +849,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.10  1999-05-19 11:54:17  pierre
+  Revision 1.11  1999-05-21 13:54:41  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.10  1999/05/19 11:54:17  pierre
    + experimental code for externalbss and stabs problem
 
   Revision 1.9  1999/05/12 00:19:37  peter

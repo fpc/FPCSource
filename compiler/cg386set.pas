@@ -605,9 +605,9 @@ implementation
                genitem(t^.less);
              { fill possible hole }
              for i:=last+1 to t^._low-1 do
-               jumpsegment^.concat(new(pai_const_symbol,init(lab2str(elselabel))));
+               jumpsegment^.concat(new(pai_const_symbol,initname(lab2str(elselabel))));
              for i:=t^._low to t^._high do
-               jumpsegment^.concat(new(pai_const_symbol,init(lab2str(t^.statement))));
+               jumpsegment^.concat(new(pai_const_symbol,initname(lab2str(t^.statement))));
               last:=t^._high;
              if assigned(t^.greater) then
                genitem(t^.greater);
@@ -834,7 +834,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1999-05-05 08:09:24  michael
+  Revision 1.31  1999-05-21 13:54:54  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.30  1999/05/05 08:09:24  michael
   * Changed longword to cardinal
 
   Revision 1.29  1999/05/04 21:44:34  florian

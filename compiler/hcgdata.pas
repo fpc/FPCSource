@@ -186,9 +186,11 @@ implementation
            writestrentry(p^.l);
 
          { write name label }
-         datasegment^.concat(new(pai_const_symbol,init(lab2str(p^.nl))));
-         datasegment^.concat(new(pai_const_symbol,init(p^.p^.mangledname)));
+         datasegment^.concat(new(pai_const_symbol,initname(lab2str(p^.nl))));
+         datasegment^.concat(new(pai_const_symbol,initname(p^.p^.mangledname)));
+{$ifndef NEWLAB}
          maybe_concat_external(p^.p^.owner,p^.p^.mangledname);
+{$endif}
 
          if assigned(p^.r) then
            writestrentry(p^.r);
@@ -231,8 +233,10 @@ implementation
 
          { write name label }
          datasegment^.concat(new(pai_const,init_32bit(p^.p^.messageinf.i)));
-         datasegment^.concat(new(pai_const_symbol,init(p^.p^.mangledname)));
+         datasegment^.concat(new(pai_const_symbol,initname(p^.p^.mangledname)));
+{$ifndef NEWLAB}
          maybe_concat_external(p^.p^.owner,p^.p^.mangledname);
+{$endif}
 
          if assigned(p^.r) then
            writeintentry(p^.r);
@@ -528,14 +532,16 @@ implementation
                                     begin
                                        _class^.options:=_class^.options or oo_is_abstract;
                                        datasegment^.concat(new(pai_const_symbol,
-                                         init('FPC_ABSTRACTERROR')));
+                                         initname('FPC_ABSTRACTERROR')));
                                     end
                                   else
                                     begin
                                       datasegment^.concat(new(pai_const_symbol,
-                                        init(procdefcoll^.data^.mangledname)));
+                                        initname(procdefcoll^.data^.mangledname)));
+{$ifndef NEWLAB}
                                       maybe_concat_external(procdefcoll^.data^.owner,
                                         procdefcoll^.data^.mangledname);
+{$endif}
                                     end;
                                end;
                           end;
@@ -566,7 +572,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1999-05-17 21:57:07  florian
+  Revision 1.6  1999-05-21 13:55:00  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.5  1999/05/17 21:57:07  florian
     * new temporary ansistring handling
 
   Revision 1.4  1999/05/13 21:59:27  peter

@@ -223,14 +223,14 @@ unit win_targ;
               importssection^.concat(new(pai_section,init(sec_idata2)));
               importssection^.concat(new(pai_label,init(lhead)));
               { pointer to procedure names }
-              importssection^.concat(new(pai_const_symbol,init_rva(lab2str(lidata4))));
+              importssection^.concat(new(pai_const_symbol,initname_rva(lab2str(lidata4))));
               { two empty entries follow }
               importssection^.concat(new(pai_const,init_32bit(0)));
               importssection^.concat(new(pai_const,init_32bit(0)));
               { pointer to dll name }
-              importssection^.concat(new(pai_const_symbol,init_rva(lab2str(lname))));
+              importssection^.concat(new(pai_const_symbol,initname_rva(lab2str(lname))));
               { pointer to fixups }
-              importssection^.concat(new(pai_const_symbol,init_rva(lab2str(lidata5))));
+              importssection^.concat(new(pai_const_symbol,initname_rva(lab2str(lidata5))));
               { first write the name references }
               importssection^.concat(new(pai_section,init(sec_idata4)));
               importssection^.concat(new(pai_const,init_32bit(0)));
@@ -274,24 +274,24 @@ unit win_targ;
                       importssection^.concat(new(pai_stab_function_name,init(nil)));
 {$EndIf GDB}
                      importssection^.concat(new(pai_align,init_op(4,$90)));
-                     importssection^.concat(new(pai_symbol,init_global(hp2^.func^)));
+                     importssection^.concat(new(pai_symbol,initname_global(hp2^.func^)));
                      importssection^.concat(new(pai386,op_ref(A_JMP,S_NO,r)));
                    end;
                   { create head link }
                   importssection^.concat(new(pai_section,init(sec_idata7)));
-                  importssection^.concat(new(pai_const_symbol,init_rva(lab2str(lhead))));
+                  importssection^.concat(new(pai_const_symbol,initname_rva(lab2str(lhead))));
                   { fixup }
                   getlabel(plabel(hp2^.lab));
                   importssection^.concat(new(pai_section,init(sec_idata4)));
-                  importssection^.concat(new(pai_const_symbol,init_rva(lab2str(hp2^.lab))));
+                  importssection^.concat(new(pai_const_symbol,initname_rva(lab2str(hp2^.lab))));
                   { add jump field to importsection }
                   importssection^.concat(new(pai_section,init(sec_idata5)));
                   if hp2^.is_var then
-                   importssection^.concat(new(pai_symbol,init_global(hp2^.func^)))
+                   importssection^.concat(new(pai_symbol,initname_global(hp2^.func^)))
                   else
                    importssection^.concat(new(pai_label,init(lcode)));
                    if hp2^.name^<>'' then
-                     importssection^.concat(new(pai_const_symbol,init_rva(lab2str(hp2^.lab))))
+                     importssection^.concat(new(pai_const_symbol,initname_rva(lab2str(hp2^.lab))))
                    else
                      importssection^.concat(new(pai_const,init_32bit($80000000 or hp2^.ordnr)));
                   { finally the import information }
@@ -340,14 +340,14 @@ unit win_targ;
               getlabel(l3);
               importssection^.concat(new(pai_section,init(sec_idata2)));
               { pointer to procedure names }
-              importssection^.concat(new(pai_const_symbol,init_rva(lab2str(l2))));
+              importssection^.concat(new(pai_const_symbol,initname_rva(lab2str(l2))));
               { two empty entries follow }
               importssection^.concat(new(pai_const,init_32bit(0)));
               importssection^.concat(new(pai_const,init_32bit(0)));
               { pointer to dll name }
-              importssection^.concat(new(pai_const_symbol,init_rva(lab2str(l1))));
+              importssection^.concat(new(pai_const_symbol,initname_rva(lab2str(l1))));
               { pointer to fixups }
-              importssection^.concat(new(pai_const_symbol,init_rva(lab2str(l3))));
+              importssection^.concat(new(pai_const_symbol,initname_rva(lab2str(l3))));
 
               { only create one section for each else it will
                 create a lot of idata* }
@@ -361,7 +361,7 @@ unit win_targ;
                 begin
                    getlabel(plabel(hp2^.lab));
                    if hp2^.name^<>'' then
-                     importssection^.concat(new(pai_const_symbol,init_rva(lab2str(hp2^.lab))))
+                     importssection^.concat(new(pai_const_symbol,initname_rva(lab2str(hp2^.lab))))
                    else
                      importssection^.concat(new(pai_const,init_32bit($80000000 or hp2^.ordnr)));
                    hp2:=pimported_item(hp2^.next);
@@ -384,16 +384,16 @@ unit win_targ;
                       r^.symbol:=newasmsymbol(lab2str(l4));
                       { place jump in codesegment }
                       codesegment^.concat(new(pai_align,init_op(4,$90)));
-                      codesegment^.concat(new(pai_symbol,init_global(hp2^.func^)));
+                      codesegment^.concat(new(pai_symbol,initname_global(hp2^.func^)));
                       codesegment^.concat(new(pai386,op_ref(A_JMP,S_NO,r)));
                       { add jump field to importsection }
                       importssection^.concat(new(pai_label,init(l4)));
                     end
                    else
                     begin
-                      importssection^.concat(new(pai_symbol,init_global(hp2^.func^)));
+                      importssection^.concat(new(pai_symbol,initname_global(hp2^.func^)));
                     end;
-                   importssection^.concat(new(pai_const_symbol,init_rva(lab2str(hp2^.lab))));
+                   importssection^.concat(new(pai_const_symbol,initname_rva(lab2str(hp2^.lab))));
                    hp2:=pimported_item(hp2^.next);
                 end;
               { finalize the addresses }
@@ -556,7 +556,7 @@ unit win_targ;
          { minor version }
          exportssection^.concat(new(pai_const,init_16bit(0)));
          { pointer to dll name }
-         exportssection^.concat(new(pai_const_symbol,init_rva(lab2str(dll_name_label))));
+         exportssection^.concat(new(pai_const_symbol,initname_rva(lab2str(dll_name_label))));
          { ordinal base normally set to 1 }
          exportssection^.concat(new(pai_const,init_32bit(ordinal_base)));
          { number of entries }
@@ -564,11 +564,11 @@ unit win_targ;
          { number of named entries }
          exportssection^.concat(new(pai_const,init_32bit(named_entries)));
          { address of export address table }
-         exportssection^.concat(new(pai_const_symbol,init_rva(lab2str(export_address_table))));
+         exportssection^.concat(new(pai_const_symbol,initname_rva(lab2str(export_address_table))));
          { address of name pointer pointers }
-         exportssection^.concat(new(pai_const_symbol,init_rva(lab2str(export_name_table_pointers))));
+         exportssection^.concat(new(pai_const_symbol,initname_rva(lab2str(export_name_table_pointers))));
          { address of ordinal number pointers }
-         exportssection^.concat(new(pai_const_symbol,init_rva(lab2str(export_ordinal_table))));
+         exportssection^.concat(new(pai_const_symbol,initname_rva(lab2str(export_ordinal_table))));
          { the name }
          exportssection^.concat(new(pai_label,init(dll_name_label)));
          if st='' then
@@ -595,7 +595,7 @@ unit win_targ;
               if (hp^.options and eo_name)<>0 then
                 begin
                    getlabel(name_label);
-                   name_table_pointers^.concat(new(pai_const_symbol,init_rva(lab2str(name_label))));
+                   name_table_pointers^.concat(new(pai_const_symbol,initname_rva(lab2str(name_label))));
                    ordinal_table^.concat(new(pai_const,init_16bit(hp^.index-ordinal_base)));
                    name_table^.concat(new(pai_align,init_op(2,0)));
                    name_table^.concat(new(pai_label,init(name_label)));
@@ -646,7 +646,7 @@ unit win_targ;
                    address_table^.concat(new(pai_const,init_32bit(0)));
                    inc(current_index);
                 end;
-              address_table^.concat(new(pai_const_symbol,init_rva(hp^.sym^.mangledname)));
+              address_table^.concat(new(pai_const_symbol,initname_rva(hp^.sym^.mangledname)));
               inc(current_index);
               hp:=pexported_item(hp^.next);
            end;
@@ -708,7 +708,7 @@ unit win_targ;
          seek(f,peheaderpos);
          blockread(f,peheader,sizeof(tpeheader));
          { write the value after the change }
-         
+
          Message1(execinfo_x_stackreserve,tostr(peheader.SizeOfStackReserve));
          Message1(execinfo_x_stackcommit,tostr(peheader.SizeOfStackCommit));
          close(f);
@@ -718,7 +718,10 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.25  1999-05-17 13:02:13  pierre
+  Revision 1.26  1999-05-21 13:55:24  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.25  1999/05/17 13:02:13  pierre
    * -Csmmm works for win32 but default is set to 32Mb
 
   Revision 1.24  1999/05/01 13:25:04  peter

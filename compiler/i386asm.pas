@@ -107,6 +107,9 @@ type
      constructor op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister; _op3 : preference);
      constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : preference);
 
+     { this is for Jmp instructions }
+     constructor op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : pasmsymbol);
+
      constructor op_sym(op : tasmop;_size : topsize;_op1 : pasmsymbol);
      constructor op_sym_ofs(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint);
      constructor op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : pasmsymbol;_op1ofs:longint;_op2 : tregister);
@@ -145,6 +148,7 @@ type
 {$endif NOAG386BIN}
   end;
 
+{$ifndef NEWLAB}
   pai386_labeled = ^tai386_labeled;
   tai386_labeled = object(tai386)
      lab : plabel;
@@ -156,6 +160,7 @@ type
      procedure Pass2;virtual;
 {$endif}
   end;
+{$endif}
 
 
 implementation
@@ -475,6 +480,16 @@ uses
          loadconst(0,_op1);
          loadreg(1,_op2);
          loadref(2,_op3);
+      end;
+
+
+    constructor tai386.op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : pasmsymbol);
+      begin
+         inherited init;
+         init(op,_size);
+         condition:=cond;
+         ops:=1;
+         loadsymbol(0,_op1,0);
       end;
 
 
@@ -1515,6 +1530,8 @@ end;
 {$endif NOAG386BIN}
 
 
+{$ifndef NEWLAB}
+
 {*****************************************************************************
                                Tai_Labeled
 *****************************************************************************}
@@ -1571,10 +1588,16 @@ end;
       end;
 {$endif}
 
+{$endif}
+
+
 end.
 {
   $Log$
-  Revision 1.8  1999-05-17 21:57:09  florian
+  Revision 1.9  1999-05-21 13:55:02  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.8  1999/05/17 21:57:09  florian
     * new temporary ansistring handling
 
   Revision 1.7  1999/05/16 17:00:45  peter

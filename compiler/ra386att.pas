@@ -1289,7 +1289,7 @@ var
   expr,
   tempstr : string;
   tempreg : tregister;
-  lab     : Pasmlabel;
+  lab     : PAsmLabelRec;
   hl      : plabel;
   tsize,l,
   toffset : longint;
@@ -1737,7 +1737,7 @@ Function Assemble: Ptree;
 Var
   hl        : plabel;
   labelptr,
-  nextlabel : pasmlabel;
+  nextlabel : PAsmLabelRec;
   commname  : string;
   lastsec   : tsection;
 Begin
@@ -1983,7 +1983,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  1999-05-12 00:19:56  peter
+  Revision 1.47  1999-05-21 13:55:13  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.46  1999/05/12 00:19:56  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 

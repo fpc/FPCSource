@@ -151,8 +151,10 @@ unit hcodegen;
     procedure cgmessage2(const t : tmsgconst;const s1,s2 : string);
     procedure cgmessage3(const t : tmsgconst;const s1,s2,s3 : string);
 
+{$ifndef NEWLAB}
     { helpers }
     procedure maybe_concat_external(symt : psymtable;const name : string);
+{$endif}
 
     { initialize respectively terminates the code generator }
     { for a new module or procedure                         }
@@ -224,6 +226,8 @@ implementation
                                     Helpers
 *****************************************************************************}
 
+{$ifndef NEWLAB}
+
     procedure maybe_concat_external(symt : psymtable;const name : string);
       begin
          if (symt^.symtabletype=unitsymtable) or
@@ -233,6 +237,8 @@ implementation
              (symt^.defowner^.owner^.symtabletype=unitsymtable)) then
            concat_external(name,EXT_NEAR);
       end;
+
+{$endif}
 
 
 {*****************************************************************************
@@ -322,7 +328,10 @@ end.
 
 {
   $Log$
-  Revision 1.31  1999-05-17 21:57:08  florian
+  Revision 1.32  1999-05-21 13:55:01  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.31  1999/05/17 21:57:08  florian
     * new temporary ansistring handling
 
   Revision 1.30  1999/05/01 13:24:22  peter

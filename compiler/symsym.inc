@@ -209,10 +209,12 @@
       begin
          inherited init(n);
          typ:=labelsym;
-         number:=l;
-         number^.is_used:=false;
-         number^.is_set:=true;
-         number^.refcount:=0;
+         lab:=l;
+{$ifndef NEWLAB}
+         lab^.is_used:=false;
+         lab^.is_set:=true;
+         lab^.refcount:=0;
+{$endif}
          defined:=false;
       end;
 
@@ -223,7 +225,7 @@
          typ:=labelsym;
          { this is all dummy
            it is only used for local browsing }
-         number:=nil;
+         lab:=nil;
          defined:=true;
       end;
 
@@ -236,12 +238,15 @@
     function tlabelsym.mangledname : string;
 
       begin
+{$ifdef NEWLAB}
+         mangledname:=lab^.name;
+{$else}
          { this also sets the is_used field }
-         mangledname:=lab2str(number);
+         mangledname:=lab2str(lab);
+{$endif}
       end;
 
     procedure tlabelsym.write;
-
       begin
          if owner^.symtabletype in [unitsymtable,globalsymtable] then
            Message(sym_e_ill_label_decl)
@@ -251,6 +256,7 @@
               current_ppu^.writeentry(iblabelsym);
            end;
       end;
+
 
 {****************************************************************************
                                   TUNITSYM
@@ -1461,15 +1467,15 @@
 {$endif GDB}
            if owner^.symtabletype=globalsymtable then
              begin
-                curconstsegment^.concat(new(pai_symbol,init_global(mangledname)));
+                curconstsegment^.concat(new(pai_symbol,initname_global(mangledname)));
              end
            else
              if owner^.symtabletype<>unitsymtable then
                begin
                  if (cs_smartlink in aktmoduleswitches) then
-                   curconstsegment^.concat(new(pai_symbol,init_global(mangledname)))
+                   curconstsegment^.concat(new(pai_symbol,initname_global(mangledname)))
                  else
-                   curconstsegment^.concat(new(pai_symbol,init(mangledname)));
+                   curconstsegment^.concat(new(pai_symbol,initname(mangledname)));
                end;
              aktfilepos:=storefilepos;
            end;
@@ -2011,7 +2017,10 @@
 
 {
   $Log$
-  Revision 1.91  1999-05-20 22:22:44  pierre
+  Revision 1.92  1999-05-21 13:55:21  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.91  1999/05/20 22:22:44  pierre
     + added synonym filed for ttypesym
       allows a clean disposal of tdefs and related ttypesyms
 

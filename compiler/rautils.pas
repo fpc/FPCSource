@@ -48,23 +48,23 @@ Type
   {---------------------------------------------------------------------}
 
     { Each local label has this structure associated with it }
-    PAsmLabel = ^TAsmLabel;
-    TAsmLabel = record
+    PAsmLabelRec = ^TAsmLabelRec;
+    TAsmLabelRec = record
       name: PString;    { pointer to a pascal string name of label }
       lab: PLabel;      { pointer to a label as defined in FPC     }
       emitted: boolean; { as the label itself been emitted ?       }
-      next: PAsmLabel;  { next node                                }
+      next: PAsmLabelRec;  { next node                                }
     end;
 
     TAsmLabelList = Object
     public
-      First: PAsmLabel;
+      First: PAsmLabelRec;
       Constructor Init;
       Destructor Done;
       Procedure Insert(s:string; lab: PLabel; emitted: boolean);
-      Function Search(const s: string): PAsmLabel;
+      Function Search(const s: string): PAsmLabelRec;
     private
-      Last: PAsmLabel;
+      Last: PAsmLabelRec;
     end;
 
 
@@ -236,11 +236,12 @@ Function ValHexaDecimal(const S:String):longint;
   Procedure ConcatLocal(p:paasmoutput;const s : string);
   Procedure ConcatGlobalBss(const s : string;size : longint);
   Procedure ConcatLocalBss(const s : string;size : longint);
+{$ifndef NEWLAB}
   { add to list of external labels }
   Procedure ConcatExternal(const s : string;typ : texternal_typ);
   { add to internal list of labels }
   Procedure ConcatInternal(const s : string;typ : texternal_typ);
-
+{$endif}
 
 Implementation
 
@@ -737,14 +738,14 @@ end;
 
 
 
-  Function TAsmLabelList.Search(const s: string): PAsmLabel;
+  Function TAsmLabelList.Search(const s: string): PAsmLabelRec;
   {*********************************************************************}
   {  Description: This routine searches for a label named s in the      }
   {  linked list, returns a pointer to the label if found, otherwise    }
   {  returns nil.                                                       }
   {*********************************************************************}
   Var
-    asmlab: PAsmLabel;
+    asmlab: PAsmLabelREc;
   Begin
     asmlab:=First;
     if First = nil then
@@ -771,8 +772,8 @@ end;
   {  this.                                                              }
   {*********************************************************************}
   Var
-    temp: PAsmLabel;
-    temp1: PAsmLabel;
+    temp: PAsmLabelRec;
+    temp1: PAsmLabelRec;
   Begin
     temp:=First;
     while temp <> nil do
@@ -1152,7 +1153,7 @@ end;
       Begin
        if (sym^.typ = labelsym) then
        Begin
-          hl:=plabelsym(sym)^.number;
+          hl:=plabelsym(sym)^.lab;
           SearchLabel:=TRUE;
           exit;
        end;
@@ -1165,7 +1166,7 @@ end;
     Begin
       if (srsym^.typ=labelsym) then
       Begin
-        hl:=plabelsym(srsym)^.number;
+        hl:=plabelsym(srsym)^.lab;
         SearchLabel:=TRUE;
         exit;
       end;
@@ -1175,6 +1176,20 @@ end;
 
 { looks for internal names of variables and routines }
 Function SearchDirectVar(var Instr: TInstruction; const hs:string;operandnum:byte): Boolean;
+{$ifdef NEWLAB}
+var
+  p : pasmsymbol;
+begin
+  SearchDirectVar:=false;
+  p:=getasmsymbol(hs);
+  if assigned(p) then
+   begin
+     instr.operands[operandnum].ref.symbol:=p;
+     instr.operands[operandnum].hasvar:=true;
+     SearchDirectVar:=true;
+   end;
+end;
+{$else}
 var
   p : pai_external;
 Begin
@@ -1204,6 +1219,7 @@ Begin
        Exit;
      end;
 end;
+{$endif}
 
 
  {*************************************************************************}
@@ -1283,7 +1299,7 @@ end;
 
   Procedure ConcatConstSymbol(p : paasmoutput;const sym:string;l:longint);
   begin
-    p^.concat(new(pai_const_symbol,init_offset(sym,l)));
+    p^.concat(new(pai_const_symbol,initname_offset(sym,l)));
   end;
 
 
@@ -1336,7 +1352,7 @@ end;
   {  linked list of instructions.(used by AT&T styled asm)              }
   {*********************************************************************}
    begin
-       p^.concat(new(pai_symbol,init_global(s)));
+       p^.concat(new(pai_symbol,initname_global(s)));
        { concat_internal(s,EXT_NEAR); done in aasm }
    end;
 
@@ -1347,7 +1363,7 @@ end;
   {  linked list of instructions.                                       }
   {*********************************************************************}
    begin
-       p^.concat(new(pai_symbol,init(s)));
+       p^.concat(new(pai_symbol,initname(s)));
        { concat_internal(s,EXT_NEAR); done in aasm }
    end;
 
@@ -1373,6 +1389,7 @@ end;
        { concat_internal(s,EXT_NEAR); done in aasm }
    end;
 
+{$ifndef NEWLAB}
   { add to list of external labels }
   Procedure ConcatExternal(const s : string;typ : texternal_typ);
   {*********************************************************************}
@@ -1398,11 +1415,16 @@ end;
    begin
        concat_internal(s,typ);
    end;
+{$endif}
+
 
 end.
 {
   $Log$
-  Revision 1.15  1999-05-12 00:17:11  peter
+  Revision 1.16  1999-05-21 13:55:18  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.15  1999/05/12 00:17:11  peter
     * fixed error which was shown for all 32bit consts
 
   Revision 1.14  1999/05/11 16:27:23  peter

@@ -319,11 +319,14 @@ procedure ConcatInstruction(p : paasmoutput;var instr:TInstruction);
 var
   siz  : topsize;
   i    : longint;
+{$ifndef NEWLAB}
   hlab : plabel;
+{$endif}
   ai   : pai386;
 begin
   with instr do
    begin
+{$ifndef NEWLAB}
    { Handle a labeled opcode first to see if it needs conversion }
      if labeled then
       begin
@@ -349,6 +352,7 @@ begin
             operands[i].ref.symbol:=newasmsymbol(lab2str(hlab));
           end;
       end;
+{$endif}
 
     { Get Opsize }
       if (opsize<>S_NO) or (Ops=0) then
@@ -393,7 +397,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-05-13 21:59:40  peter
+  Revision 1.6  1999-05-21 13:55:12  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.5  1999/05/13 21:59:40  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing

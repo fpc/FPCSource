@@ -132,7 +132,8 @@ unit og386cff;
          procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);virtual;
          procedure writesymbol(p:pasmsymbol);virtual;
          procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;
-         procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;nidx,nother,line:longint;reloc:boolean);virtual;
+         procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;
+	   nidx,nother,line:longint;reloc:boolean);virtual;
          function  text_flags : longint;virtual;
          function  data_flags : longint;virtual;
          function  bss_flags : longint;virtual;
@@ -588,7 +589,8 @@ unit og386cff;
       end;
 
 
-    procedure tgenericcoffoutput.writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;nidx,nother,line:longint;reloc:boolean);
+    procedure tgenericcoffoutput.writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;
+                                                 nidx,nother,line:longint;reloc:boolean);
       var
         stab : coffstab;
         s : tsection;
@@ -944,7 +946,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.6  1999-05-19 11:54:19  pierre
+  Revision 1.7  1999-05-21 13:55:03  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.6  1999/05/19 11:54:19  pierre
    + experimental code for externalbss and stabs problem
 
   Revision 1.5  1999/05/09 11:38:05  peter

@@ -75,7 +75,9 @@ implementation
                      end
                     else
                      p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
+{$ifndef NEWLAB}
                     maybe_concat_external(p^.symtableentry^.owner,p^.symtableentry^.mangledname);
+{$endif}
                  end;
               varsym :
                  begin
@@ -84,8 +86,10 @@ implementation
                     if (pvarsym(p^.symtableentry)^.var_options and vo_is_C_var)<>0 then
                       begin
                          p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
+{$ifndef NEWLAB}
                          if (pvarsym(p^.symtableentry)^.var_options and vo_is_external)<>0 then
                            concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
+{$endif}
                       end
                     { DLL variable }
                     else if (pvarsym(p^.symtableentry)^.var_options and vo_is_dll_var)<>0 then
@@ -100,7 +104,9 @@ implementation
                     else if (pvarsym(p^.symtableentry)^.var_options and vo_is_external)<>0 then
                       begin
                          p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
+{$ifndef NEWLAB}
                          concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
+{$endif}
                       end
                     { thread variable }
                     else if (pvarsym(p^.symtableentry)^.var_options and vo_is_thread_var)<>0 then
@@ -109,8 +115,10 @@ implementation
                          if popeax then
                            exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
                          p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
+{$ifndef NEWLAB}
                          if p^.symtable^.symtabletype=unitsymtable then
                            concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
+{$endif}
                          exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(p^.location.reference))));
                          { the called procedure isn't allowed to change }
                          { any register except EAX                      }
@@ -172,8 +180,10 @@ implementation
                                    staticsymtable :
                                      begin
                                        p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
+{$ifndef NEWLAB}
                                        if symtabletype=unitsymtable then
                                         concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
+{$endif}
                                      end;
                                    stt_exceptsymtable:
                                      begin
@@ -185,8 +195,10 @@ implementation
                                         if (pvarsym(p^.symtableentry)^.properties and sp_static)<>0 then
                                           begin
                                              p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
+{$ifndef NEWLAB}
                                              if p^.symtable^.defowner^.owner^.symtabletype=unitsymtable then
                                                concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
+{$endif}
                                           end
                                         else
                                           begin
@@ -331,23 +343,28 @@ implementation
                          else
                            begin
                               s:=newasmsymbol(pprocsym(p^.symtableentry)^.definition^.mangledname);
-
                               exprasmlist^.concat(new(pai386,op_sym_ofs_ref(A_MOV,S_L,s,0,
                                 newreference(p^.location.reference))));
+{$ifndef NEWLAB}
                               maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
+{$endif}
                            end;
                       end
                     else
                       begin
                          {!!!!! Be aware, work on virtual methods too }
                          p^.location.reference.symbol:=newasmsymbol(pprocsym(p^.symtableentry)^.definition^.mangledname);
+{$ifndef NEWLAB}
                          maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
+{$endif}
                       end;
                  end;
               typedconstsym :
                  begin
                     p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
+{$ifndef NEWLAB}
                     maybe_concat_external(p^.symtable,p^.symtableentry^.mangledname);
+{$endif}
                  end;
               else internalerror(4);
          end;
@@ -535,10 +552,10 @@ implementation
                                    emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
                                    exprasmlist^.concat(new(pai386,
                                      op_sym(A_CALL,S_NO,newasmsymbol('FPC_ADDREF'))));
-
+{$ifndef NEWLAB}
                                    if not (cs_compilesystem in aktmoduleswitches) then
                                      concat_external('FPC_ADDREF',EXT_NEAR);
-
+{$endif}
                                    { decrement destination reference counter }
                                    new(r);
                                    reset_reference(r^);
@@ -548,10 +565,10 @@ implementation
                                    emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                                    exprasmlist^.concat(new(pai386,
                                      op_sym(A_CALL,S_NO,newasmsymbol('FPC_DECREF'))));
-
+{$ifndef NEWLAB}
                                    if not(cs_compilesystem in aktmoduleswitches) then
                                      concat_external('FPC_DECREF',EXT_NEAR);
-
+{$endif}
                                 end;
 
 {$ifdef regallocfix}
@@ -854,7 +871,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  1999-05-17 23:51:38  peter
+  Revision 1.57  1999-05-21 13:54:51  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.56  1999/05/17 23:51:38  peter
     * with temp vars now use a reference with a persistant temp instead
       of setting datasize
 

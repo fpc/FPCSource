@@ -154,7 +154,7 @@
               sym^.definition:=nil;
               sym:=sym^.synonym;
            end;
-           
+
       end;
 
     { used for enumdef because the symbols are
@@ -385,7 +385,11 @@
          has_rtti:=true;
          getdatalabel(rtti_label);
          write_child_rtti_data;
+{$ifdef NEWLAB}
+         rttilist^.concat(new(pai_symbol,init(rtti_label)));
+{$else}
          rttilist^.concat(new(pai_label,init(rtti_label)));
+{$endif}
          write_rtti_data;
       end;
 
@@ -394,7 +398,11 @@
       begin
          if not(has_rtti) then
            generate_rtti;
+{$ifdef NEWLAB}
+         get_rtti_label:=rtti_label^.name;
+{$else}
          get_rtti_label:=lab2str(rtti_label);
+{$endif}
       end;
 
 
@@ -813,9 +821,9 @@
               { generate two constant for bounds }
               getlabelnr(rangenr);
               if (cs_smartlink in aktmoduleswitches) then
-                datasegment^.concat(new(pai_symbol,init_global(getrangecheckstring)))
+                datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring)))
               else
-                datasegment^.concat(new(pai_symbol,init(getrangecheckstring)));
+                datasegment^.concat(new(pai_symbol,initname(getrangecheckstring)));
               datasegment^.concat(new(pai_const,init_32bit(min)));
               datasegment^.concat(new(pai_const,init_32bit(max)));
            end;
@@ -883,7 +891,7 @@
          rttilist^.concat(new(pai_const,init_32bit(min)));
          rttilist^.concat(new(pai_const,init_32bit(max)));
          if assigned(basedef) then
-           rttilist^.concat(new(pai_const_symbol,init(basedef^.get_rtti_label)))
+           rttilist^.concat(new(pai_const_symbol,initname(basedef^.get_rtti_label)))
          else
            rttilist^.concat(new(pai_const,init_32bit(0)));
          hp:=firstenum;
@@ -1013,9 +1021,9 @@
               { generate two constant for bounds }
               getlabelnr(rangenr);
               if (cs_smartlink in aktmoduleswitches) then
-                datasegment^.concat(new(pai_symbol,init_global(getrangecheckstring)))
+                datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring)))
               else
-                datasegment^.concat(new(pai_symbol,init(getrangecheckstring)));
+                datasegment^.concat(new(pai_symbol,initname(getrangecheckstring)));
               if low<=high then
                 begin
                    datasegment^.concat(new(pai_const,init_32bit(low)));
@@ -1584,7 +1592,7 @@
          rttilist^.concat(new(pai_const,init_8bit(tkSet)));
          write_rtti_name;
          rttilist^.concat(new(pai_const,init_8bit(otULong)));
-         rttilist^.concat(new(pai_const_symbol,init(setof^.get_rtti_label)));
+         rttilist^.concat(new(pai_const_symbol,initname(setof^.get_rtti_label)));
       end;
 
 
@@ -1714,9 +1722,9 @@
               { generates the data for range checking }
               getlabelnr(rangenr);
               if (cs_smartlink in aktmoduleswitches) then
-                datasegment^.concat(new(pai_symbol,init_global(getrangecheckstring)))
+                datasegment^.concat(new(pai_symbol,initname_global(getrangecheckstring)))
               else
-                datasegment^.concat(new(pai_symbol,init(getrangecheckstring)));
+                datasegment^.concat(new(pai_symbol,initname(getrangecheckstring)));
               datasegment^.concat(new(pai_const,init_32bit(lowrange)));
               datasegment^.concat(new(pai_const,init_32bit(highrange)));
            end;
@@ -1800,7 +1808,7 @@
          { count of elements }
          rttilist^.concat(new(pai_const,init_32bit(highrange-lowrange+1)));
          { element type }
-         rttilist^.concat(new(pai_const_symbol,init(definition^.get_rtti_label)));
+         rttilist^.concat(new(pai_const_symbol,initname(definition^.get_rtti_label)));
       end;
 
     function tarraydef.gettypename : string;
@@ -2007,7 +2015,11 @@
          if (psym(sym)^.typ=varsym) and
             pvarsym(sym)^.definition^.needs_inittable then
            begin
-              rttilist^.concat(new(pai_const_symbol,init(lab2str(pvarsym(sym)^.definition^.get_inittable_label))));
+{$ifdef NEWLAB}
+              rttilist^.concat(new(pai_const_symbol,init(pvarsym(sym)^.definition^.get_inittable_label)));
+{$else}
+              rttilist^.concat(new(pai_const_symbol,initname(lab2str(pvarsym(sym)^.definition^.get_inittable_label))));
+{$endif}
               rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
            end;
       end;
@@ -2015,7 +2027,7 @@
 
     procedure write_field_rtti(sym : pnamedindexobject);{$ifndef fpc}far;{$endif}
       begin
-         rttilist^.concat(new(pai_const_symbol,init(pvarsym(sym)^.definition^.get_rtti_label)));
+         rttilist^.concat(new(pai_const_symbol,initname(pvarsym(sym)^.definition^.get_rtti_label)));
          rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
       end;
 
@@ -3317,7 +3329,7 @@ Const local_symtable_index : longint = $8001;
              begin
                 if (pprocdef(def)^.options and povirtualmethod)=0 then
                   begin
-                     rttilist^.concat(new(pai_const_symbol,init(pprocdef(def)^.mangledname)));
+                     rttilist^.concat(new(pai_const_symbol,initname(pprocdef(def)^.mangledname)));
                      typvalue:=1;
                   end
                 else
@@ -3340,7 +3352,7 @@ Const local_symtable_index : longint = $8001;
          if (psym(sym)^.typ=propertysym) and
             ((psym(sym)^.properties and sp_published)<>0) then
            begin
-              rttilist^.concat(new(pai_const_symbol,init(ppropertysym(sym)^.proptype^.get_rtti_label)));
+              rttilist^.concat(new(pai_const_symbol,initname(ppropertysym(sym)^.proptype^.get_rtti_label)));
               writeproc(ppropertysym(sym)^.readaccesssym,ppropertysym(sym)^.readaccessdef,0);
               writeproc(ppropertysym(sym)^.writeaccesssym,ppropertysym(sym)^.writeaccessdef,2);
               { isn't it stored ? }
@@ -3382,7 +3394,7 @@ Const local_symtable_index : longint = $8001;
          has_rtti:=true;
          getdatalabel(rtti_label);
          write_child_rtti_data;
-         rttilist^.concat(new(pai_symbol,init_global(rtti_name)));
+         rttilist^.concat(new(pai_symbol,initname_global(rtti_name)));
          rttilist^.concat(new(pai_label,init(rtti_label)));
          write_rtti_data;
       end;
@@ -3414,11 +3426,11 @@ Const local_symtable_index : longint = $8001;
          rttilist^.concat(new(pai_string,init(objname^)));
 
          { write class type }
-         rttilist^.concat(new(pai_const_symbol,init(vmt_mangledname)));
+         rttilist^.concat(new(pai_const_symbol,initname(vmt_mangledname)));
 
          { write owner typeinfo }
          if assigned(childof) and ((childof^.options and oo_can_have_published)<>0) then
-           rttilist^.concat(new(pai_const_symbol,init(childof^.get_rtti_label)))
+           rttilist^.concat(new(pai_const_symbol,initname(childof^.get_rtti_label)))
          else
            rttilist^.concat(new(pai_const,init_32bit(0)));
 
@@ -3489,7 +3501,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.120  1999-05-20 22:22:43  pierre
+  Revision 1.121  1999-05-21 13:55:19  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.120  1999/05/20 22:22:43  pierre
     + added synonym filed for ttypesym
       allows a clean disposal of tdefs and related ttypesyms
 

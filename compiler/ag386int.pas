@@ -55,10 +55,11 @@ unit ag386int;
     const
       line_length = 70;
 
+{$ifndef NEWLAB}
       extstr : array[EXT_NEAR..EXT_ABS] of String[8] =
              ('NEAR','FAR','PROC','BYTE','WORD','DWORD',
               'CODEPTR','DATAPTR','FWORD','PWORD','QWORD','TBYTE','ABS');
-
+{$endif}
 
     function single2str(d : single) : string;
       var
@@ -425,8 +426,10 @@ unit ag386int;
                      { HERE UNDER TASM!                              }
                        AsmWriteLn(#9'ALIGN '+tostr(pai_align(hp)^.aligntype));
                      end;
+{$ifndef NEWLAB}
       ait_external : AsmWriteLn(#9'EXTRN'#9+pai_external(hp)^.sym^.name+
                                 ' :'+extstr[pai_external(hp)^.exttyp]);
+{$endif}
      ait_datablock : begin
                        if pai_datablock(hp)^.is_global then
                          AsmWriteLn(#9'PUBLIC'#9+pai_datablock(hp)^.sym^.name);
@@ -539,6 +542,7 @@ unit ag386int;
                         end;
                        AsmLn;
                      end;
+{$ifndef NEWLAB}
          ait_label : begin
                        if pai_label(hp)^.l^.is_used then
                         begin
@@ -550,13 +554,16 @@ unit ag386int;
                            AsmWriteLn(':');
                         end;
                      end;
+{$endif}
         ait_direct : begin
                        AsmWritePChar(pai_direct(hp)^.str);
                        AsmLn;
                      end;
+{$ifndef NEWLAB}
 ait_labeled_instruction :
                AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]+
                  cond2str[pai386_labeled(hp)^.condition]+#9+lab2str(pai386_labeled(hp)^.lab));
+{$endif}
         ait_symbol : begin
                        if pai_symbol(hp)^.is_global then
                          AsmWriteLn(#9'PUBLIC'#9+pai_symbol(hp)^.sym^.name);
@@ -788,7 +795,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.41  1999-05-12 00:19:38  peter
+  Revision 1.42  1999-05-21 13:54:42  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.41  1999/05/12 00:19:38  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 

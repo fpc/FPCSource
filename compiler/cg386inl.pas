@@ -177,7 +177,9 @@ implementation
             new(r);
             reset_reference(r^);
             r^.symbol:=newasmsymbol('U_'+upper(target_info.system_unit)+io[doread]);
+{$ifndef NEWLAB}
             concat_external(r^.symbol^.name,EXT_NEAR);
+{$endif}
             exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,r,R_EDI)))
           end;
 
@@ -1238,7 +1240,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  1999-05-18 21:58:27  florian
+  Revision 1.52  1999-05-21 13:54:50  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.51  1999/05/18 21:58:27  florian
     * fixed some bugs related to temp. ansistrings and functions results
       which return records/objects/arrays which need init/final.
 

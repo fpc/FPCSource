@@ -200,7 +200,7 @@ implementation
     procedure secondcalln(var p : ptree);
       var
          unusedregisters : tregisterset;
-         pushed,pushedregs : tpushed;
+         pushed : tpushed;
          hr,funcretref : treference;
          hregister,hregister2 : tregister;
          oldpushedparasize : longint;
@@ -469,8 +469,10 @@ implementation
                                              exprasmlist^.concat(new(pai386,op_sym_ofs_reg(A_MOV,S_L,
                                                newasmsymbol(pobjectdef(
                                                p^.methodpointer^.resulttype)^.vmt_mangledname),0,R_ESI)));
+{$ifndef NEWLAB}
                                              maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
                                                pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
+{$endif}
                                            end;
                                          { exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                                            this is done below !! }
@@ -525,8 +527,10 @@ implementation
                                     { insert the vmt }
                                     exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
                                       newasmsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname))));
+{$ifndef NEWLAB}
                                     maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
                                       pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
+{$endif}
                                     extended_new:=true;
                                  end;
                                hdisposen:
@@ -540,9 +544,11 @@ implementation
                                     del_reference(p^.methodpointer^.location.reference);
                                     exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_ESI)));
                                     exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
-                                    newasmsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname))));
+                                      newasmsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname))));
+{$ifndef NEWLAB}
                                     maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
                                       pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
+{$endif}
                                  end;
                                else
                                  begin
@@ -612,8 +618,10 @@ implementation
                                                    { it's no bad idea, to insert the VMT }
                                                    exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,newasmsymbol(
                                                      pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname))));
+{$ifndef NEWLAB}
                                                    maybe_concat_external(pobjectdef(p^.methodpointer^.resulttype)^.owner,
                                                      pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname);
+{$endif}
                                                 end
                                               { destructors haven't to dispose the instance, if this is }
                                               { a direct call                                           }
@@ -1182,7 +1190,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  1999-05-18 22:34:26  pierre
+  Revision 1.85  1999-05-21 13:54:44  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.84  1999/05/18 22:34:26  pierre
    * extedebug problem solved
 
   Revision 1.83  1999/05/18 21:58:24  florian

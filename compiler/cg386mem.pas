@@ -64,8 +64,10 @@ implementation
          exprasmlist^.concat(new(pai386,op_sym_ofs_reg(A_MOV,
             S_L,newasmsymbol(pobjectdef(pclassrefdef(p^.resulttype)^.definition)^.vmt_mangledname),0,
             p^.location.register)));
+{$ifndef NEWLAB}
          maybe_concat_external(pobjectdef(pclassrefdef(p^.resulttype)^.definition)^.owner,
             pobjectdef(pclassrefdef(p^.resulttype)^.definition)^.vmt_mangledname);
+{$endif}
       end;
 
 
@@ -854,7 +856,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  1999-05-19 16:48:21  florian
+  Revision 1.44  1999-05-21 13:54:53  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.43  1999/05/19 16:48:21  florian
     * tdef.typename: returns a now a proper type name for the most types
 
   Revision 1.42  1999/05/18 22:11:52  pierre

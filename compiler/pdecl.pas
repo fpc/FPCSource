@@ -317,7 +317,9 @@ unit pdecl;
                   dispose(sc,done);
                   aktvarsym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,p));
                   aktvarsym^.var_options:=aktvarsym^.var_options or vo_is_external;
+{$ifndef NEWLAB}
                   concat_external(aktvarsym^.mangledname,EXT_NEAR);
+{$endif}
                   symtablestack^.insert(aktvarsym);
                   tokenpos:=storetokenpos;
                   symdone:=true;
@@ -510,8 +512,10 @@ unit pdecl;
                           end;
                          importlib^.importvariable(aktvarsym^.mangledname,dll_name,C_name)
                        end
+{$ifndef NEWLAB}
                       else
                        concat_external(aktvarsym^.mangledname,EXT_NEAR);
+{$endif}
                     end;
                    symdone:=true;
                  end
@@ -1542,7 +1546,7 @@ unit pdecl;
 
               { table for string messages }
               if (aktclass^.options and oo_hasmsgstr)<>0 then
-                datasegment^.concat(new(pai_const_symbol,init(lab2str(strmessagetable))))
+                datasegment^.concat(new(pai_const_symbol,initname(lab2str(strmessagetable))))
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
 
@@ -1554,13 +1558,13 @@ unit pdecl;
 
               { inittable for con-/destruction }
               if aktclass^.needs_inittable then
-                datasegment^.concat(new(pai_const_symbol,init(lab2str(aktclass^.get_inittable_label))))
+                datasegment^.concat(new(pai_const_symbol,initname(lab2str(aktclass^.get_inittable_label))))
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
 
               { pointer to type info of published section }
               if (aktclass^.options and oo_can_have_published)<>0 then
-                datasegment^.concat(new(pai_const_symbol,init(aktclass^.rtti_name)))
+                datasegment^.concat(new(pai_const_symbol,initname(aktclass^.rtti_name)))
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
 
@@ -1571,12 +1575,12 @@ unit pdecl;
 
               { pointer to dynamic table }
               if (aktclass^.options and oo_hasmsgint)<>0 then
-                datasegment^.concat(new(pai_const_symbol,init(lab2str(intmessagetable))))
+                datasegment^.concat(new(pai_const_symbol,initname(lab2str(intmessagetable))))
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
 
               { pointer to class name string }
-              datasegment^.concat(new(pai_const_symbol,init(lab2str(classnamelabel))));
+              datasegment^.concat(new(pai_const_symbol,initname(lab2str(classnamelabel))));
            end;
 {$ifdef GDB}
          { generate the VMT }
@@ -1591,7 +1595,7 @@ unit pdecl;
 {$endif GDB}
          if ((aktclass^.options and oo_hasvmt)<>0) then
            begin
-              datasegment^.concat(new(pai_symbol,init_global(aktclass^.vmt_mangledname)));
+              datasegment^.concat(new(pai_symbol,initname_global(aktclass^.vmt_mangledname)));
 
               { determine the size with publicsyms^.datasize, because }
               { size gives back 4 for classes                         }
@@ -1605,9 +1609,11 @@ unit pdecl;
               if assigned(aktclass^.childof) and
                  ((aktclass^.childof^.options and oo_hasvmt)<>0) then
                 begin
-                   datasegment^.concat(new(pai_const_symbol,init(aktclass^.childof^.vmt_mangledname)));
+                   datasegment^.concat(new(pai_const_symbol,initname(aktclass^.childof^.vmt_mangledname)));
+{$ifndef NEWLAB}
                    if aktclass^.childof^.owner^.symtabletype=unitsymtable then
                      concat_external(aktclass^.childof^.vmt_mangledname,EXT_NEAR);
+{$endif}
                 end
               else
                 datasegment^.concat(new(pai_const,init_32bit(0)));
@@ -2229,7 +2235,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.120  1999-05-20 22:19:52  pierre
+  Revision 1.121  1999-05-21 13:55:04  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.120  1999/05/20 22:19:52  pierre
    * better stabs line info for vars
 
   Revision 1.119  1999/05/19 12:41:56  florian

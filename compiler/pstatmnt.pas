@@ -1022,7 +1022,7 @@ unit pstatmnt;
                               end
                             else
                               code:=genlabelnode(goton,
-                                plabelsym(srsym)^.number);
+                                plabelsym(srsym)^.lab);
                          end;
                     end;
             _BEGIN : code:=statement_block(_BEGIN);
@@ -1076,7 +1076,7 @@ unit pstatmnt;
                         plabelsym(srsym)^.defined:=true;
 
                         { statement modifies srsym }
-                        labelnr:=plabelsym(srsym)^.number;
+                        labelnr:=plabelsym(srsym)^.lab;
                         lastsymknown:=false;
                         { the pointer to the following instruction }
                         { isn't a very clean way                   }
@@ -1267,7 +1267,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.85  1999-05-17 23:51:40  peter
+  Revision 1.86  1999-05-21 13:55:08  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.85  1999/05/17 23:51:40  peter
     * with temp vars now use a reference with a persistant temp instead
       of setting datasize
 

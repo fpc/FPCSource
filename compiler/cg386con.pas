@@ -74,8 +74,13 @@ implementation
               hp1:=pai(consts^.first);
               while assigned(hp1) do
                 begin
+{$ifdef NEWLAB}
+                   if hp1^.typ=ait_symbol then
+                     lastlabel:=pasmlabel(pai_symbol(hp1)^.sym)
+{$else}
                    if hp1^.typ=ait_label then
                      lastlabel:=pai_label(hp1)^.l
+{$endif}
                    else
                      begin
                         if (hp1^.typ=realait) and (lastlabel<>nil) then
@@ -176,8 +181,13 @@ implementation
               hp1:=pai(consts^.first);
               while assigned(hp1) do
                 begin
+{$ifdef NEWLAB}
+                   if hp1^.typ=ait_symbol then
+                     lastlabel:=pasmlabel(pai_symbol(hp1)^.sym)
+{$else}
                    if hp1^.typ=ait_label then
                      lastlabel:=pai_label(hp1)^.l
+{$endif}
                    else
                      begin
                         { when changing that code, be careful that }
@@ -222,7 +232,7 @@ implementation
                                  begin
                                    getdatalabel(l2);
                                    consts^.concat(new(pai_label,init(l2)));
-                                   consts^.concat(new(pai_const_symbol,init(lab2str(p^.lab_str))));
+                                   consts^.concat(new(pai_const_symbol,initname(lab2str(p^.lab_str))));
                                    { return the offset of the real string }
                                    p^.lab_str:=l2;
                                  end;
@@ -253,7 +263,7 @@ implementation
                                 getdatalabel(l1);
                                 getdatalabel(l2);
                                 consts^.concat(new(pai_label,init(l2)));
-                                consts^.concat(new(pai_const_symbol,init(lab2str(l1))));
+                                consts^.concat(new(pai_const_symbol,initname(lab2str(l1))));
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
                                 consts^.concat(new(pai_const,init_32bit(-1)));
@@ -326,8 +336,13 @@ implementation
              hp1:=pai(consts^.first);
              while assigned(hp1) do
                begin
+{$ifdef NEWLAB}
+                  if hp1^.typ=ait_symbol then
+                    lastlabel:=pasmlabel(pai_symbol(hp1)^.sym)
+{$else}
                   if hp1^.typ=ait_label then
                     lastlabel:=pai_label(hp1)^.l
+{$endif}
                   else
                     begin
                       if (lastlabel<>nil) and (hp1^.typ=neededtyp) then
@@ -410,7 +425,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  1999-05-12 00:19:41  peter
+  Revision 1.35  1999-05-21 13:54:47  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.34  1999/05/12 00:19:41  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 

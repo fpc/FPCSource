@@ -1092,7 +1092,7 @@ var
   expr,
   tempstr : string;
   tempreg : tregister;
-  lab     : Pasmlabel;
+  lab     : PAsmLabelRec;
   l,
   toffset,
   tsize   : longint;
@@ -1558,7 +1558,7 @@ Function Assemble: Ptree;
 {*********************************************************************}
 Var
   hl : plabel;
-  labelptr : pasmlabel;
+  labelptr : PAsmLabelRec;
 Begin
   Message1(asmr_d_start_reading,'intel');
   inexpression:=FALSE;
@@ -1726,7 +1726,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  1999-05-05 22:22:03  peter
+  Revision 1.34  1999-05-21 13:55:16  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.33  1999/05/05 22:22:03  peter
     * updated messages
 
   Revision 1.32  1999/05/04 21:45:02  florian

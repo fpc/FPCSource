@@ -65,7 +65,7 @@
 
        plabelsym = ^tlabelsym;
        tlabelsym = object(tsym)
-          number : plabel;
+          lab : plabel;
           defined : boolean;
           constructor init(const n : string; l : plabel);
           destructor done;virtual;
@@ -331,7 +331,10 @@
 
 {
   $Log$
-  Revision 1.24  1999-05-20 22:22:45  pierre
+  Revision 1.25  1999-05-21 13:55:23  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.24  1999/05/20 22:22:45  pierre
     + added synonym filed for ttypesym
       allows a clean disposal of tdefs and related ttypesyms
 

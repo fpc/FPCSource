@@ -217,7 +217,7 @@ unit ptconst;
                    (p^.treetype<>addrn) then
                   begin
                     getdatalabel(ll);
-                    curconstsegment^.concat(new(pai_const_symbol,init(lab2str(ll))));
+                    curconstsegment^.concat(new(pai_const_symbol,initname(lab2str(ll))));
                     consts^.concat(new(pai_label,init(ll)));
                     if p^.treetype=stringconstn then
                       begin
@@ -279,7 +279,7 @@ unit ptconst;
                           end;
                         if hp^.symtableentry^.typ=constsym then
                           Message(type_e_variable_id_expected);
-                        curconstsegment^.concat(new(pai_const_symbol,init_offset(hp^.symtableentry^.mangledname,offset)));
+                        curconstsegment^.concat(new(pai_const_symbol,initname_offset(hp^.symtableentry^.mangledname,offset)));
                         (*if token=POINT then
                           begin
                              offset:=0;
@@ -304,8 +304,10 @@ unit ptconst;
                              curconstsegment^.concat(new(pai_const,init_symbol(
                                strpnew(p^.left^.symtableentry^.mangledname))));
                           end;   *)
+{$ifndef NEWLAB}
                         maybe_concat_external(hp^.symtableentry^.owner,
                           hp^.symtableentry^.mangledname);
+{$endif}
                       end
                     else
                       Message(cg_e_illegal_expression);
@@ -317,9 +319,12 @@ unit ptconst;
                   begin
                     if (p^.left^.treetype=typen) then
                       begin
-                        curconstsegment^.concat(new(pai_const_symbol,init(pobjectdef(p^.left^.resulttype)^.vmt_mangledname)));
+                        curconstsegment^.concat(new(pai_const_symbol,
+                          initname(pobjectdef(p^.left^.resulttype)^.vmt_mangledname)));
+{$ifndef NEWLAB}
                         if pobjectdef(p^.left^.resulttype)^.owner^.symtabletype=unitsymtable then
                           concat_external(pobjectdef(p^.left^.resulttype)^.vmt_mangledname,EXT_NEAR);
+{$endif}
                       end
                     else
                       Message(cg_e_illegal_expression);
@@ -454,7 +459,7 @@ unit ptconst;
                            else
                             strlength:=p^.length;
                            getdatalabel(ll);
-                           curconstsegment^.concat(new(pai_const_symbol,init(lab2str(ll))));
+                           curconstsegment^.concat(new(pai_const_symbol,initname(lab2str(ll))));
                            { first write the maximum size }
                            consts^.concat(new(pai_const,init_32bit(strlength)));
                            { second write the real length }
@@ -597,9 +602,11 @@ unit ptconst;
                      end
                    else
                      Message(type_e_mismatch);
-                   curconstsegment^.concat(new(pai_const_symbol,init(pd^.mangledname)));
+                   curconstsegment^.concat(new(pai_const_symbol,initname(pd^.mangledname)));
+{$ifndef NEWLAB}
                    if pd^.owner^.symtabletype=unitsymtable then
                      concat_external(pd^.mangledname,EXT_NEAR);
+{$endif}
                 end;
            end;
          { reads a typed constant record }
@@ -714,7 +721,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.43  1999-05-12 00:19:54  peter
+  Revision 1.44  1999-05-21 13:55:11  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.43  1999/05/12 00:19:54  peter
     * removed R_DEFAULT_SEG
     * uniform float names
 

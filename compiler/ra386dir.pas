@@ -125,9 +125,11 @@ unit Ra386dir;
                                 if srsym<>nil then
                                   if (srsym^.typ = labelsym) then
                                     Begin
-                                       hs:=lab2str(plabelsym(srsym)^.number);
+                                       hs:=lab2str(plabelsym(srsym)^.lab);
+{$ifndef NEWLAB}
                                        {label is set !! }
-                                       plabelsym(srsym)^.number^.is_set:=true;
+                                       plabelsym(srsym)^.lab^.is_set:=true;
+{$endif}
                                     end
                                   else
                                     Message(asmr_w_using_defined_as_local);
@@ -158,7 +160,7 @@ unit Ra386dir;
                                         begin
                                            if (sym^.typ = labelsym) then
                                              Begin
-                                                hs:=lab2str(plabelsym(sym)^.number);
+                                                hs:=lab2str(plabelsym(sym)^.lab);
                                              end
                                            else if sym^.typ=varsym then
                                              begin
@@ -295,7 +297,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.19  1999-05-05 22:22:02  peter
+  Revision 1.20  1999-05-21 13:55:15  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.19  1999/05/05 22:22:02  peter
     * updated messages
 
   Revision 1.18  1999/05/01 13:24:40  peter

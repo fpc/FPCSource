@@ -698,9 +698,10 @@ do_jmp:
          { push the vmt }
          exprasmlist^.concat(new(pai386,op_sym(A_PUSH,S_L,
            newasmsymbol(p^.excepttype^.vmt_mangledname))));
+{$ifndef NEWLAB}
          maybe_concat_external(p^.excepttype^.owner,
            p^.excepttype^.vmt_mangledname);
-
+{$endif}
          emitcall('FPC_CATCHES',true);
          exprasmlist^.concat(new(pai386,
            op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
@@ -793,14 +794,17 @@ do_jmp:
          hp^.offset:=procinfo.ESI_offset;
          hp^.base:=procinfo.framepointer;
          exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_ESI,hp)));
-         exprasmlist^.concat(new(pai386_labeled,op_lab(A_JMP,quickexitlabel)));
+         emitjmp(C_None,quickexitlabel);
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.37  1999-05-17 21:57:01  florian
+  Revision 1.38  1999-05-21 13:54:48  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.37  1999/05/17 21:57:01  florian
     * new temporary ansistring handling
 
   Revision 1.36  1999/05/13 21:59:21  peter

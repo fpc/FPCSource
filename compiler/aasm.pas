@@ -30,10 +30,13 @@ unit aasm;
     type
        tait = (
           ait_none,
-          ait_string,
-          ait_label,
           ait_direct,
+          ait_string,
+{$ifndef NEWLAB}
+          ait_label,
           ait_labeled_instruction,
+          ait_external,
+{$endif}
           ait_comment,
           ait_instruction,
           ait_datablock,
@@ -46,7 +49,6 @@ unit aasm;
           ait_real_64bit,
           ait_real_32bit,
           ait_comp_64bit,
-          ait_external,
           ait_align,
           ait_section,
           { the following is only used by the win32 version of the compiler }
@@ -70,15 +72,25 @@ unit aasm;
 
        pasmsymbol = ^tasmsymbol;
        tasmsymbol = object(tnamedindexobject)
+         typ     : TAsmsymtype;
+         { the next fields are filled in the binary writer }
          idx     : longint;
          section : tsection;
          address,
          size    : longint;
-         typ     : TAsmsymtype;
-         constructor init(const s:string);
+         constructor init(const s:string;_typ:TAsmsymtype);
          procedure reset;
          procedure setaddress(sec:tsection;offset,len:longint);
        end;
+
+       pasmlabel = ^tasmlabel;
+       tasmlabel = object(tasmsymbol)
+         labelnr : longint;
+         refs    : longint;
+         constructor init;
+         constructor initdata;
+       end;
+
 
        pasmsymbollist = ^tasmsymbollist;
        tasmsymbollist = object(tdictionary)
@@ -88,8 +100,8 @@ unit aasm;
        pai = ^tai;
        tai = object(tlinkedlist_item)
           typ      : tait;
-         {pointer to record with optimizer info about this tai object}
-          optinfo: pointer;
+          { pointer to record with optimizer info about this tai object }
+          optinfo  : pointer;
           fileinfo : tfileposinfo;
           constructor init;
        end;
@@ -110,10 +122,12 @@ unit aasm;
        tai_symbol = object(tai)
           sym : pasmsymbol;
           is_global : boolean;
-          constructor init(const _name : string);
-          constructor init_global(const _name : string);
+          constructor init(_sym:PAsmSymbol);
+          constructor initname(const _name : string);
+          constructor initname_global(const _name : string);
        end;
 
+{$ifndef NEWLAB}
        { external types defined for TASM }
        { EXT_ANY for search purposes     }
        texternal_typ = (EXT_ANY,EXT_NEAR, EXT_FAR, EXT_PROC, EXT_BYTE,
@@ -149,7 +163,7 @@ unit aasm;
           destructor done; virtual;
           procedure setaddress(offset:longint);
        end;
-
+{$endif}
 
        pai_direct = ^tai_direct;
        tai_direct = object(tai)
@@ -211,9 +225,12 @@ unit aasm;
        tai_const_symbol = object(tai)
           sym    : pasmsymbol;
           offset : longint;
-          constructor init(const name:string);
-          constructor init_offset(const name:string;ofs:longint);
-          constructor init_rva(const name:string);
+          constructor init(_sym:PAsmSymbol);
+          constructor init_offset(_sym:PAsmSymbol;ofs:longint);
+          constructor init_rva(_sym:PAsmSymbol);
+          constructor initname(const name:string);
+          constructor initname_offset(const name:string;ofs:longint);
+          constructor initname_rva(const name:string);
        end;
 
        { generates a single (32 bit real) }
@@ -291,20 +308,43 @@ type
       internals,externals,debuglist,consts,
       importssection,exportssection,
       resourcesection,rttilist         : paasmoutput;
+  { asm symbol list }
+      asmsymbollist : pasmsymbollist;
 
+{$ifdef NEWLAB}
+    type
+    { For Easier conversion of old code, can be remove in the future }
+      plabel = pasmlabel;
+      pai_label  = Pai_symbol;
+
+    const
+      nextlabelnr : longint = 1;
+      countlabelref : boolean = true;
+
+    { make l as a new label }
+    procedure getlabel(var l : plabel);
+    { make l as a new label and flag is_data }
+    procedure getdatalabel(var l : plabel);
+    { free a label }
+    procedure freelabel(var l : plabel);
+    {just get a label number }
+    procedure getlabelnr(var l : longint);
+    { convert label to string}
+    function lab2str(l : plabel) : string;
+{$endif}
+
+    function  newasmsymbol(const s : string) : pasmsymbol;
+    function  newasmsymboltyp(const s : string;_typ:TAsmSymType) : pasmsymbol;
+    function  getasmsymbol(const s : string) : pasmsymbol;
+    function  renameasmsymbol(const sold, snew : string):pasmsymbol;
+
+    procedure ResetAsmsymbolList;
+
+{$ifndef NEWLAB}
   { external symbols without repetition }
     function search_assembler_symbol(pl : paasmoutput;const _name : string;exttype : texternal_typ) : pai_external;
     procedure concat_external(const _name : string;exttype : texternal_typ);
     procedure concat_internal(const _name : string;exttype : texternal_typ);
-
-  { asm symbol list }
-    var
-      asmsymbollist : pasmsymbollist;
-
-    function newasmsymbol(const s : string) : pasmsymbol;
-    function getasmsymbol(const s : string) : pasmsymbol;
-    function renameasmsymbol(const sold, snew : string) : pasmsymbol;
-    procedure ResetAsmsymbolList;
 
   { label functions }
     const
@@ -324,6 +364,7 @@ type
     procedure setzerolabel(var l : plabel);
     {just get a label number }
     procedure getlabelnr(var l : longint);
+{$endif}
 
 
 implementation
@@ -362,8 +403,10 @@ uses
       begin
          inherited init;
          typ:=ait_datablock;
-         sym:=newasmsymbol(_name);
+         sym:=newasmsymboltyp(_name,AS_LOCAL);
+{$ifndef NEWLAB}
          concat_internal(_name,EXT_ANY);
+{$endif}
          size:=_size;
          is_global:=false;
       end;
@@ -373,8 +416,10 @@ uses
       begin
          inherited init;
          typ:=ait_datablock;
-         sym:=newasmsymbol(_name);
+         sym:=newasmsymboltyp(_name,AS_GLOBAL);
+{$ifndef NEWLAB}
          concat_internal(_name,EXT_ANY);
+{$endif}
          size:=_size;
          is_global:=true;
       end;
@@ -384,26 +429,36 @@ uses
                                TAI_SYMBOL
  ****************************************************************************}
 
-    constructor tai_symbol.init(const _name : string);
-
+    constructor tai_symbol.init(_sym:PAsmSymbol);
       begin
          inherited init;
          typ:=ait_symbol;
-         sym:=newasmsymbol(_name);
-         concat_internal(_name,EXT_ANY);
+         sym:=_sym;
+      end;
+
+    constructor tai_symbol.initname(const _name : string);
+      begin
+         inherited init;
+         typ:=ait_symbol;
+         sym:=newasmsymboltyp(_name,AS_LOCAL);
          is_global:=false;
+{$ifndef NEWLAB}
+         concat_internal(_name,EXT_ANY);
+{$endif}
       end;
 
-    constructor tai_symbol.init_global(const _name : string);
-
+    constructor tai_symbol.initname_global(const _name : string);
       begin
          inherited init;
          typ:=ait_symbol;
-         sym:=newasmsymbol(_name);
-         concat_internal(_name,EXT_ANY);
+         sym:=newasmsymboltyp(_name,AS_GLOBAL);
          is_global:=true;
+{$ifndef NEWLAB}
+         concat_internal(_name,EXT_ANY);
+{$endif}
       end;
 
+{$ifndef NEWLAB}
 
 {****************************************************************************
                                TAI_EXTERNAL
@@ -417,6 +472,8 @@ uses
          exttyp:=exttype;
          sym:=_sym;
       end;
+
+{$endif}
 
 
 {****************************************************************************
@@ -452,27 +509,51 @@ uses
                                TAI_CONST_SYMBOL_OFFSET
  ****************************************************************************}
 
-    constructor tai_const_symbol.init(const name:string);
+    constructor tai_const_symbol.init(_sym:PAsmSymbol);
       begin
          inherited init;
          typ:=ait_const_symbol;
-         sym:=newasmsymbol(name);
+         sym:=_sym;
          offset:=0;
       end;
 
-    constructor tai_const_symbol.init_offset(const name:string;ofs:longint);
+    constructor tai_const_symbol.init_offset(_sym:PAsmSymbol;ofs:longint);
       begin
          inherited init;
          typ:=ait_const_symbol;
-         sym:=newasmsymbol(name);
+         sym:=_sym;
          offset:=ofs;
       end;
 
-    constructor tai_const_symbol.init_rva(const name:string);
+    constructor tai_const_symbol.init_rva(_sym:PAsmSymbol);
       begin
          inherited init;
          typ:=ait_const_rva;
-         sym:=newasmsymbol(name);
+         sym:=_sym;
+         offset:=0;
+      end;
+
+    constructor tai_const_symbol.initname(const name:string);
+      begin
+         inherited init;
+         typ:=ait_const_symbol;
+         sym:=newasmsymboltyp(name,AS_EXTERNAL);
+         offset:=0;
+      end;
+
+    constructor tai_const_symbol.initname_offset(const name:string;ofs:longint);
+      begin
+         inherited init;
+         typ:=ait_const_symbol;
+         sym:=newasmsymboltyp(name,AS_EXTERNAL);
+         offset:=ofs;
+      end;
+
+    constructor tai_const_symbol.initname_rva(const name:string);
+      begin
+         inherited init;
+         typ:=ait_const_rva;
+         sym:=newasmsymboltyp(name,AS_EXTERNAL);
          offset:=0;
       end;
 
@@ -567,6 +648,8 @@ uses
          inherited done;
       end;
 
+{$ifndef NEWLAB}
+
 {****************************************************************************
                                TAI_LABEL
  ****************************************************************************}
@@ -596,6 +679,8 @@ uses
       begin
         l^.address:=offset;
       end;
+
+{$endif}
 
 
 {****************************************************************************
@@ -701,6 +786,7 @@ uses
        Kind := _Kind;
      End;
 
+{$ifndef NEWLAB}
 
 {*****************************************************************************
                            External Helpers
@@ -749,7 +835,7 @@ uses
         if not target_asm.externals then
          exit;
         { insert in symbollist }
-        hp:=newasmsymbol(_name);
+        hp:=newasmsymboltyp(_name,AS_EXTERNAL);
         { insert in externals }
         if search_assembler_symbol(externals,_name,exttype)=nil then
          externals^.concat(new(pai_external,init(hp,exttype)));
@@ -764,21 +850,24 @@ uses
         if not target_asm.externals then
          exit;
         { insert in symbollist }
-        hp:=newasmsymbol(_name);
+        hp:=newasmsymboltyp(_name,AS_EXTERNAL);
         { insert in externals }
         if search_assembler_symbol(internals,_name,exttype)=nil then
          internals^.concat(new(pai_external,init(hp,exttype)));
       end;
+
+{$endif}
 
 
 {*****************************************************************************
                                   AsmSymbol
 *****************************************************************************}
 
-    constructor tasmsymbol.init(const s:string);
+    constructor tasmsymbol.init(const s:string;_typ:TAsmsymtype);
       begin;
         inherited initname(s);
         reset;
+        typ:=_typ;
       end;
 
     procedure tasmsymbol.reset;
@@ -797,7 +886,35 @@ uses
         size:=len;
       end;
 
-    { generates an help record for constants }
+{*****************************************************************************
+                                  AsmLabel
+*****************************************************************************}
+
+    constructor tasmlabel.init;
+      begin;
+        labelnr:=nextlabelnr;
+        inc(nextlabelnr);
+        inherited init(target_asm.labelprefix+tostr(labelnr),AS_LOCAL);
+        refs:=0;
+      end;
+
+
+    constructor tasmlabel.initdata;
+      begin;
+        labelnr:=nextlabelnr;
+        inc(nextlabelnr);
+        if (cs_smartlink in aktmoduleswitches) then
+         inherited init('_$'+current_module^.modulename^+'$_L'+tostr(labelnr),AS_GLOBAL)
+        else
+         inherited init(target_asm.labelprefix+tostr(labelnr),AS_LOCAL);
+        refs:=0;
+      end;
+
+
+{*****************************************************************************
+                              AsmSymbolList helpers
+*****************************************************************************}
+
     function newasmsymbol(const s : string) : pasmsymbol;
       var
         hp : pasmsymbol;
@@ -808,19 +925,40 @@ uses
            newasmsymbol:=hp;
            exit;
          end;
-        hp:=new(pasmsymbol,init(s));
+        { Not found, insert it as an External }
+        hp:=new(pasmsymbol,init(s,AS_EXTERNAL));
         asmsymbollist^.insert(hp);
         newasmsymbol:=hp;
       end;
 
-    { returns nil if non existing symbol }
+
+    function  newasmsymboltyp(const s : string;_typ:TAsmSymType) : pasmsymbol;
+      var
+        hp : pasmsymbol;
+      begin
+        hp:=pasmsymbol(asmsymbollist^.search(s));
+        if assigned(hp) then
+         begin
+           hp^.typ:=_typ;
+           newasmsymboltyp:=hp;
+           exit;
+         end;
+        { Not found, insert it as an External }
+        hp:=new(pasmsymbol,init(s,_typ));
+        asmsymbollist^.insert(hp);
+        newasmsymboltyp:=hp;
+      end;
+
+
     function getasmsymbol(const s : string) : pasmsymbol;
       begin
         getasmsymbol:=pasmsymbol(asmsymbollist^.search(s));
       end;
 
+
     { renames an asmsymbol }
-    function renameasmsymbol(const sold, snew : string) : pasmsymbol;
+    function renameasmsymbol(const sold, snew : string):pasmsymbol;
+{$ifdef nodictonaryrename}
       var
         hpold,hpnew : pasmsymbol;
       begin
@@ -849,6 +987,11 @@ uses
         asmsymbollist^.insert(hpold);
         renameasmsymbol:=hpold;
       end;
+{$else}
+      begin
+        renameasmsymbol:=pasmsymbol(asmsymbollist^.rename(sold,snew));
+      end;
+{$endif}
 
 
     procedure ResetAsmSym(p:Pnamedindexobject);{$ifndef FPC}far;{$endif}
@@ -870,6 +1013,8 @@ uses
 {*****************************************************************************
                               Label Helpers
 *****************************************************************************}
+
+{$ifndef NEWLAB}
 
     function lab2str(l : plabel) : string;
       begin
@@ -968,6 +1113,41 @@ uses
          inc(nextlabelnr);
       end;
 
+{$else}
+
+    procedure getlabel(var l : plabel);
+      begin
+        l:=new(pasmlabel,init);
+        asmsymbollist^.insert(l);
+      end;
+
+
+    procedure getdatalabel(var l : plabel);
+      begin
+        l:=new(pasmlabel,initdata);
+        asmsymbollist^.insert(l);
+      end;
+
+
+    procedure freelabel(var l : plabel);
+      begin
+        { nothing to do, the dispose of the asmsymbollist will do it }
+        l:=nil;
+      end;
+
+    procedure getlabelnr(var l : longint);
+      begin
+         l:=nextlabelnr;
+         inc(nextlabelnr);
+      end;
+
+    function lab2str(l : plabel) : string;
+      begin
+        lab2str:=l^.name;
+      end;
+
+{$endif}
+
 
 {*****************************************************************************
                                  TAAsmOutput
@@ -984,7 +1164,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.45  1999-05-20 22:18:51  pierre
+  Revision 1.46  1999-05-21 13:54:38  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.45  1999/05/20 22:18:51  pierre
    * fix from Peter for double bug reported 20/05/1999
 
   Revision 1.44  1999/05/12 00:19:34  peter

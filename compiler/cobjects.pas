@@ -173,8 +173,8 @@ unit cobjects;
          constructor init;
          constructor initname(const n:string);
          destructor  done;virtual;
-         procedure setname(const n:string);
-         function  name:string;
+         procedure setname(const n:string);virtual;
+         function  name:string;virtual;
        end;
 
        Pdictionaryhasharray=^Tdictionaryhasharray;
@@ -1941,7 +1941,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  1999-05-21 10:38:59  peter
+  Revision 1.31  1999-05-21 13:54:59  peter
+    * NEWLAB for label as symbol
+
+  Revision 1.30  1999/05/21 10:38:59  peter
     * fixed deleteindex which didn't reset indexnr and set first wrong
 
   Revision 1.29  1999/05/08 19:47:27  peter
