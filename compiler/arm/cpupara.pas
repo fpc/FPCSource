@@ -434,7 +434,7 @@ unit cpupara;
         result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset);
         if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
           { just continue loading the parameters in the registers }
-          result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset)
+          result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset)
         else
           internalerror(200410231);
       end;
@@ -444,7 +444,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2004-11-24 22:03:26  florian
+  Revision 1.28  2005-01-01 19:30:17  florian
+    * ie with array of const;cdecl; fixed
+
+  Revision 1.27  2004/11/24 22:03:26  florian
     * fixed arm compilation
 
   Revision 1.26  2004/11/21 17:54:59  peter
