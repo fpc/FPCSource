@@ -822,7 +822,9 @@ implementation
       var
         tempreference : treference;
         href : treference;
+{$ifdef i386}
         hreg : tregister;
+{$endif i386}
         sizetopush,
         size : longint;
         cgsize : tcgsize;
@@ -1282,16 +1284,19 @@ implementation
         { Constructors need to return self }
         if (current_procinfo.procdef.proctypeoption=potype_constructor) then
           begin
+{$ifdef newra}
+            r:=rg.getexplicitregint(NR_FUNCTION_RETURN_REG);
+{$else}
             r.enum:=R_INTREGISTER;
             r.number:=NR_FUNCTION_RETURN_REG;
             cg.a_reg_alloc(list,r);
+{$endif}
             { return the self pointer }
             ressym:=tvarsym(current_procinfo.procdef.parast.search('self'));
             if not assigned(ressym) then
               internalerror(200305058);
             reference_reset_base(href,current_procinfo.framepointer,tvarsym(ressym).adjusted_address);
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,r);
-            cg.a_reg_dealloc(list,r);
             uses_acc:=true;
             exit;
           end;
@@ -1325,19 +1330,29 @@ implementation
               if resloc.size in [OS_64,OS_S64] then
                begin
                  uses_acchi:=true;
+{$ifdef newra}
+                 r:=rg.getexplicitregint(NR_FUNCTION_RETURN64_LOW_REG);
+                 r2:=rg.getexplicitregint(NR_FUNCTION_RETURN64_HIGH_REG);
+{$else}
                  r.enum:=R_INTREGISTER;
                  r.number:=NR_FUNCTION_RETURN64_LOW_REG;
                  cg.a_reg_alloc(list,r);
                  r2.enum:=R_INTREGISTER;
                  r2.number:=NR_FUNCTION_RETURN64_HIGH_REG;
                  cg.a_reg_alloc(list,r2);
+{$endif}
                  cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2){$ifdef newra},false{$endif});
                end
               else
 {$endif cpu64bit}
                begin
+{$ifdef newra}
+                 hreg:=rg.getexplicitregint(NR_FUNCTION_RETURN_REG);
+{$else}
                  hreg.enum:=R_INTREGISTER;
                  hreg.number:=NR_FUNCTION_RETURN_REG;
+                 cg.a_reg_alloc(list,hreg);
+{$endif}
                  hreg:=rg.makeregsize(hreg,resloc.size);
                  cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
                end;
@@ -1363,19 +1378,30 @@ implementation
                  if resloc.size in [OS_64,OS_S64] then
                   begin
                     uses_acchi:=true;
+{$ifdef newra}
+                    r:=rg.getexplicitregint(NR_FUNCTION_RETURN64_LOW_REG);
+                    r2:=rg.getexplicitregint(NR_FUNCTION_RETURN64_HIGH_REG);
+{$else}
                     r.enum:=R_INTREGISTER;
                     r.number:=NR_FUNCTION_RETURN64_LOW_REG;
                     cg.a_reg_alloc(list,r);
                     r2.enum:=R_INTREGISTER;
                     r2.number:=NR_FUNCTION_RETURN64_HIGH_REG;
                     cg.a_reg_alloc(list,r2);
+{$endif}
                     cg64.a_load64_loc_reg(list,resloc,joinreg64(r,r2){$ifdef newra},false{$endif});
                   end
                  else
 {$endif cpu64bit}
                   begin
+{$ifdef newra}
+                    hreg:=rg.getexplicitregint(NR_FUNCTION_RETURN_REG);
+{$else}
                     hreg.enum:=R_INTREGISTER;
-                    hreg.number:=(RS_FUNCTION_RETURN_REG shl 8) or cgsize2subreg(resloc.size);
+                    hreg.number:=NR_FUNCTION_RETURN_REG;
+                    cg.a_reg_alloc(list,hreg);
+{$endif}
+                    hreg:=rg.makeregsize(hreg,resloc.size);
                     cg.a_load_loc_reg(list,resloc.size,resloc,hreg);
                   end;
                 end
@@ -1976,7 +2002,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.125  2003-06-13 21:19:30  peter
+  Revision 1.126  2003-06-17 16:32:44  peter
+    * alloc register for function result
+
+  Revision 1.125  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.124  2003/06/09 12:23:30  peter
