@@ -45,8 +45,8 @@ endif
 
 # Ascii mode ? (i.e. no pics)
 ifndef ASCIIMODE
-#ASCIIMODE=NO
-ASCIIMODE=YES
+ASCIIMODE=NO
+#ASCIIMODE=YES
 endif
 
 # DVI to PS converter
@@ -84,6 +84,11 @@ PS = $(addsuffix .ps, $(HTML))
 DVI = $(addsuffix .dvi, $(HTML))
 TXT = $(addsuffix .txt, $(HTML))
 PDF = $(addsuffix .pdf, $(HTML))
+TOC = $(addsuffix .toc, $(HTML))
+AUX = $(addsuffix .aux, $(HTML))
+LOG = $(addsuffix .log, $(HTML))
+LOT = $(addsuffix .lot, $(HTML))
+CHK = $(addsuffix .chk, $(HTML) unitex refex)
 
 CHAPTERS = $(addsuffix .tex, crt dos getopts go32 graph linux printer\
               strings objects heaptrc)
@@ -147,7 +152,7 @@ help:
 
 clean:
 	-rm -rf $(HTML)
-	-rm -f *.aux *.log *.dvi *.ps *.toc *.i* *.lot *.pdf *.txt *.chk
+	-rm -f $(TOC) $(LOG) $(DVI) $(PDF) $(AUX) $(PS) *.i* $(LOT) $(TXT) $(CHK)
 	-$(MAKE) -C crtex clean
 	-$(MAKE) -C dosex clean
 	-$(MAKE) -C go32ex clean
@@ -242,7 +247,7 @@ units.chk: units.tex unitex.chk
 ref: ref.chk
 
 ref.chk: refex.chk ref.tex
-	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 3 -link 2\
+	$(LATEX2HTML) $(LATEX2HTMLOPTS) -split 4 -link 2\
         -t "Free Pascal reference guide" ref.tex
 	sed -f foot.sed <ref/footnode.html >ref/footnote.html
 	mv ref/footnote.html ref/footnode.html
@@ -334,7 +339,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.17  1999-01-17 15:12:50  michael
+# Revision 1.18  1999-02-02 22:47:04  michael
+# + Better clean
+#
+# Revision 1.17  1999/01/17 15:12:50  michael
 # Added examples 27-40
 #
 # Revision 1.16  1998/12/15 23:50:53  michael
