@@ -90,7 +90,7 @@ endif
 endif
 export ECHO
 endif
-override OS_TARGET_DEFAULT=freebsd
+// override OS_TARGET_DEFAULT=freebsd
 override DEFAULT_FPCDIR=../..
 ifndef FPC
 ifdef PP
@@ -211,6 +211,7 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 BSDINC=$(RTL)/bsd
 BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
+CPUPROCINC=$(CPU_TARGET)
 UNITPREFIX=rtl
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
@@ -234,7 +235,7 @@ override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings baseunix $(LINUXUNIT) unix i
 override TARGET_LOADERS+=prt0 cprt0
 override TARGET_RSTS+=math varutils typinfo
 override INSTALL_FPCPACKAGE=y y
-override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC)
+override COMPILER_INCLUDEDIR+=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC) $(CPUPROCINC)
 override COMPILER_SOURCEDIR+=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC)
 override COMPILER_TARGETDIR+=.
 ifdef REQUIRE_UNITSDIR
