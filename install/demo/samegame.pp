@@ -6,10 +6,12 @@
 
     SameGame is a standard game in GNOME and KDE. I liked it, and I
     automatically brainstormed how I would implement it.
-    It turned out to be really easy, and is basically only 100 lines or so.
+    It turned out to be really easy, and is basically only 100 lines or so,
+    the rest is scorekeeping, helptext, menu etc.
 
     The game demonstrates some features of the MSMOUSE unit, and some of
-    the Crt unit.
+    the Crt and Graph units. (depending whether it is compiled with
+    UseGraphics or not)
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -20,18 +22,65 @@
 
  **********************************************************************}
 PROGRAM SameGame;
-Uses Crt,GameUnit;
 
-CONST   FieldX                            = 10; {Top left playfield coordinates}
+Uses Crt,Dos,
+{$IFDEF UseGraphics}
+ Graph,
+{$ENDIF}
+ GameUnit;
+
+CONST
+        GrFieldX                          = 10; {X topleft of playfield}
+        GrFieldY                          = 70; {Y topleft of playfield}
+        ScalerX                           = 22; {ScalerX x Scaler y dots
+                                                  must be approx a square}
+        ScalerY                           = 20;
+        FieldX                            = 10; {Top left playfield
+                                                 coordinates in squares(textmode)}
         FieldY                            =  3; {Top left playfield coordinates}
         PlayFieldXDimension               = 20; {Dimensions of playfield}
         PlayFieldYDimension               = 15;
+        RowDispl                          = 15;
+        MenuX                             = 480;
+        MenuY                             = 120;
+        grNewGameLine                     = 'NEW GAME';
+        grHelpLine                        = 'HELP';
+        grEndGame                         = 'END GAME';
+
 
        {Used colors. Colors[0..2] are the colors used on the playfield, Colors[3]
           is the background and Colors[4] is the color used to mark the pieces}
         Colors : ARRAY [0..4] OF LONGINT  = (White,Blue,Red,Black,LightMagenta);
 
+
 TYPE PlayFieldType=ARRAY[0..PlayFieldXDimension-1,0..PlayFieldYDimension-1] OF BYTE;
+
+{$IFDEF UseGraphics}
+PROCEDURE DisplayPlayField(CONST PlayField:PlayFieldType);
+{Screen routine, simply puts the array Playfield on screen.
+Both used for displaying the normal grid as the grid with a certain area marked}
+
+VAR X,Y : LONGINT;
+    LastOne,
+    NumbLast : LONGINT;
+
+BEGIN
+ HideMouse;
+ FOR Y:=0 TO PlayFieldYDimension-1 DO
+  BEGIN
+   X:=0;
+   REPEAT
+    LastOne:=PlayField[X,Y];
+    NumbLast:=X;
+    WHILE (PlayField[X,Y]=LastOne) AND (X<(PlayFieldXDimension-1))DO
+     INC(X);
+    SetFillStyle(SolidFill,Colors[LastOne]);
+    Bar(GrFieldX+NumbLast*ScalerX,GrFieldY+Y*ScalerY,GrFieldX+X*ScalerX-1,GrFieldY+(Y+1)*ScalerY-1);
+   UNTIL X>=(PlayFieldXDimension-1);
+  END;
+ ShowMouse;
+END;
+{$ELSE}
 
 PROCEDURE DisplayPlayField(CONST PlayField:PlayFieldType);
 {Screen routine, simply puts the array Playfield on screen.
@@ -50,6 +99,7 @@ BEGIN
     END;
    END;
 END;
+{$ENDIF}
 
 PROCEDURE ShowHelp;
 {Shows some explanation of the game and waits for a key}
@@ -57,34 +107,59 @@ PROCEDURE ShowHelp;
 VAR I : LONGINT;
 
 BEGIN
- FOR I:=2 TO 24 DO
-  BEGIN
-   GotoXY(1,I);
-   ClrEol;
-  END;
- GotoXY(1,3); TextColor(White);
- Write('SAMEGAME');
- SetDefaultColor;
- WriteLn(' is a small game, with a principle copied from some KDE game');
- WriteLn;
- WriteLn('I tried to implement it under Go32V2 to demonstrate the MsMouse unit');
- Writeln('When it worked, I tried to get it running under Linux. I succeeded,');
- Writeln('but the mouse unit of the API doesn'#39't work with GPM 1.17');
- Writeln;
- WriteLn('If you move over the playfield, aggregates of one color will be marked');
- Writeln('in purple. If you then press the left mouse button, that aggregate will');
- Writeln('disappear, and the playfield will collapse to the bottom-left. Please');
- Writeln('keep in mind that only an aggregate of two blocks or more will disappear.');
- Writeln;
- Writeln('For every aggregate you let disappear you get points, but the score is');
- Writeln('quadratic proportional to the number of blocks killed. So 4 times killing');
- Writeln(' a 4 block aggregate scores 4 points, and one time 16 blocks will score 64');
- Writeln('blocks. The purpose of the game is obtaining the highscore');
- Writeln;
- Writeln('If you manage to kill the entire playfield, you'#39'll get a bonus');
- Writeln;
- WriteLn('Press any key to get back to the game');
- GetKey;
+ {$IFDEF UseGraphics}
+  HideMouse;
+  SetbkColor(black);
+  SetViewPort(0,0,getmaxx,getmaxy,clipoff);
+  ClearViewPort;
+  SetTextStyle(0,Horizdir,2);
+  OutTextXY(220,10,'SAMEGAME');
+  SetTextStyle(0,Horizdir,1);
+  OutTextXY(5,40+1*LineDistY,' is a small game, with a principle copied from some KDE game');
+  OutTextXY(5,40+3*LineDistY,'I tried to implement it under Go32V2 to demonstrate the MsMouse unit');
+  OutTextXY(5,40+4*LineDistY,'When it worked, I tried to get it running under Linux. I succeeded,');
+  OutTextXY(5,40+5*LineDistY,'but the mouse unit of the API doesn'#39't work with GPM 1.17');
+  OutTextXY(5,40+7*LineDistY,'If you move over the playfield, aggregates of one color will be marked');
+  OutTextXY(5,40+8*LineDistY,'in purple. If you then press the left mouse button, that aggregate will');
+  OutTextXY(5,40+9*LineDistY,'disappear, and the playfield will collapse to the bottom-left. Please');
+  OutTextXY(5,40+10*LineDistY,'keep in mind that only an aggregate of two blocks or more will disappear.');
+  OutTextXY(5,40+12*LineDistY,'For every aggregate you let disappear you get points, but the score is');
+  OutTextXY(5,40+13*LineDistY,'quadratic proportional to the number of blocks killed. So 4 times killing');
+  OutTextXY(5,40+14*LineDistY,' a 4 block aggregate scores 4 points, and one time 16 blocks will score 64');
+  OutTextXY(5,40+15*LineDistY,'blocks. The purpose of the game is obtaining the highscore');
+  OutTextXY(5,40+17*LineDistY,'If you manage to empty the entire playfield, you'#39'll get a bonus');
+  OutTextXY(5,40+19*LineDistY,'Press any key to get back to the game');
+  ShowMouse;
+ {$ELSE}
+  FOR I:=2 TO 24 DO
+   BEGIN
+    GotoXY(1,I);
+    ClrEol;
+   END;
+  GotoXY(1,3); TextColor(White);
+  Write('SAMEGAME');
+  SetDefaultColor;
+  WriteLn(' is a small game, with a principle copied from some KDE game');
+  WriteLn;
+  WriteLn('I tried to implement it under Go32V2 to demonstrate the MsMouse unit');
+  Writeln('When it worked, I tried to get it running under Linux. I succeeded,');
+  Writeln('but the mouse unit of the API doesn'#39't work with GPM 1.17');
+  Writeln;
+  WriteLn('If you move over the playfield, aggregates of one color will be marked');
+  Writeln('in purple. If you then press the left mouse button, that aggregate will');
+  Writeln('disappear, and the playfield will collapse to the bottom-left. Please');
+  Writeln('keep in mind that only an aggregate of two blocks or more will disappear.');
+  Writeln;
+  Writeln('For every aggregate you let disappear you get points, but the score is');
+  Writeln('quadratic proportional to the number of blocks killed. So 4 times killing');
+  Writeln(' a 4 block aggregate scores 4 points, and one time 16 blocks will score 64');
+  Writeln('blocks. The purpose of the game is obtaining the highscore');
+  Writeln;
+  Writeln('If you manage to empty the entire playfield, you'#39'll get a bonus');
+  Writeln;
+  WriteLn('Press any key to get back to the game');
+ {$ENDIF}
+  GetKey;
 END;
 
 VAR MarkField,PlayField : PlayFieldType; {The playfield, and the marked form}
@@ -96,6 +171,7 @@ PROCEDURE ShowButtons;
 {Shows the clickable buttons}
 
 BEGIN
+ {$IFNDEF UseGraphics}
  TextColor(Yellow); TextBackGround(Blue);
  GotoXY(60,5);   Write('NEW game');
  GotoXY(60,6);   Write('HELP');
@@ -103,7 +179,14 @@ BEGIN
  {$IFDEF Linux}
   GotoXY(60,8);   Write('Force IBM charset');
  {$ENDIF}
- SetDefaultColor;
+  SetDefaultColor;
+ {$ELSE}
+ SetTextStyle(0,Horizdir,1);
+ OutTextXY(MenuX,MenuY,grNewGameLine);
+ OutTextXY(MenuX,MenuY+RowDispl,grHelpLine);
+ OutTextXY(MenuX,MenuY+2*RowDispl,grEndGame);
+  {$ENDIF}
+
 END;
 
 FUNCTION PlayFieldPiecesLeft:LONGINT;
@@ -123,11 +206,20 @@ END;
 PROCEDURE ShowScore;
 {Simply procedure to update the score}
 
+ VAR S : String;
+
 BEGIN
+ {$IFDEF UseGraphics}
+  Str(Score:5,S);
+  SetFillStyle(SolidFill,0);
+  Bar(300,440,450,458);
+  OutTextXY(300,440,'Score :'+S);
+ {$ELSE}
  TextColor(White);
  GotoXY(20,23);   Write(' ':20);
  GotoXY(20,23);   Write('Score : ',Score);
  SetDefaultColor;
+ {$ENDIF}
 END;
 
 FUNCTION CubesToScore : LONGINT;
@@ -237,11 +329,25 @@ PROCEDURE BuildScreen;
 {Some procedures that build the screen}
 
 BEGIN
-  ClrScr; Score:=0;
+  {$IFDEF UseGraphics}
+   setbkcolor(black);
+   setviewport(0,0,getmaxx,getmaxy,clipoff);
+   clearviewport;
+  {$ELSE}
+   ClrScr;
+  {$ENDIF}
+  Score:=0;
   ShowScore;
   ShowButtons;
   ShowHighScore;
   ShowMouse;
+  {$IFDEF UseGraphics}
+
+   SetTextStyle(0,Horizdir,2);
+   OuttextXY(10,10,'SameGame v0.03, (C) by Marco v/d Voort. ');
+   SetTextStyle(0,Horizdir,1);
+   OuttextXY(50,40,'A demo for the FPC RTL and API units Crt,(MS)Mouse and Graph');
+  {$ELSE}
   GotoXY(1,1);
   TextColor(Yellow);
   Write('SameGame v0.02');
@@ -250,6 +356,7 @@ BEGIN
   TextColor(Yellow); Write('FPC');
   TextColor(White); Write(' API or MsMouse unit. By Marco van de Voort');
   SetDefaultColor;
+  {$ENDIF}
   IF LastScore<>0 THEN
    BEGIN
     GotoXY(10,20);
@@ -267,6 +374,7 @@ VAR X,Y,
     MX,MY,MState,Dummy : LONGINT;
     EndOfGame          : LONGINT;
     S                  : String;
+    DoneSomething      : BOOLEAN;
 
 BEGIN
  RANDOMIZE;
@@ -276,8 +384,14 @@ BEGIN
   EndOfGame:=0;
   REPEAT
    GetMouseState(MX,MY,MState);
-   X:=MX SHR 3;
-   Y:=MY SHR 3;
+   {$IFDEF UseGraphics}
+    X:=2*((MX-GrFieldX) DIV ScalerX) +FieldX;
+    Y:=((MY-GrFieldY) DIV ScalerY) +FieldY-1;
+   {$ELSE}
+    X:=MX SHR 3;
+    Y:=MY SHR 3;
+   {$ENDIF}
+   DoneSomething:=FALSE;
    IF PlayFieldPiecesLeft=0 THEN
     BEGIN
      INC(Score,1000);
@@ -285,10 +399,21 @@ BEGIN
     END
    ELSE
     BEGIN
+     {$IFDEF UseGraphics}
+      IF (MX>=MenuX) AND (MX<(MenuX+16*Length(GrNewGameLine))) THEN
+       BEGIN {X in clickable area}
+        IF (MY>=MenuY) AND (MY<(MenuY+RowDispl*3+2)) THEN
+         BEGIN
+          X:=65; {X doesn't matter as long as it is 60..69}
+          Y:=((MY-MenuY) DIV RowDispl)+4;
+         END;
+       END;
+     {$ENDIF}
      IF (X>=60) AND (X<=69) THEN
       BEGIN
          IF (MState AND LButton) <>0 THEN {If leftbutton pressed,}
           BEGIN
+           DoneSomething:=TRUE;
            IF Y=4 THEN
             EndOfGame:=1;
            IF Y=6 THEN
@@ -311,12 +436,15 @@ BEGIN
       END;
     IF (X>=(FieldX-2)) AND (Y>=(FieldY-2)) THEN
      BEGIN
-      DEC(X,FieldX-1); DEC(Y,FieldY-1);
+
+      DEC(X,FieldX-1);
+      DEC(Y,FieldY-1);
       X:=X SHR 1;
       IF (X<PlayFieldXDimension) AND (Y<PlayFieldYDimension) THEN
        BEGIN
         IF MarkField[X,Y]<>4 THEN
          BEGIN
+          DoneSomething:=TRUE;
           MarkField:=PlayField;
           MarkAfield(X,Y);
           DisplayPlayField(MarkField);
@@ -326,8 +454,10 @@ BEGIN
           GotoXY(20,22);
           Write('Marked :',CubesToScore);
          END;
-        IF (MState AND LButton) <>0 THEN {If leftbutton pressed,}
+        IF (MarkField[X,Y]=4) AND ((MState AND LButton) <>0) THEN
+                                   {If leftbutton pressed,}
          BEGIN
+          DoneSomething:=TRUE;
           REPEAT                            {wait untill it's released.
                                            The moment of pressing counts}
            GetMouseState(X,Y,Dummy);
@@ -335,13 +465,13 @@ BEGIN
           Colapse;
           MarkField:=PlayField;
           DisplayPlayField(MarkField);
-        END;
-      END;
+        END
+      END
     END;
    IF KeyPressed THEN
     BEGIN
      X:=GetKey;
-     IF (X=ORD('X')) OR (X=ORD('x'))  THEN
+     IF (CHR(X) IN ['X','x','Q','q']) OR (X=27) THEN
       EndOfGame:=2;
     END;
    END;
@@ -350,9 +480,17 @@ BEGIN
   X:=SlipInScore(Score);
   IF X<>0 THEN
    BEGIN
+    HideMouse;
     ShowHighScore;
-    InputStr(S,HighX,HighY+12-X,10,FALSE,AlfaBeta);
+    {$IFDEF UseGraphics}
+     Str(Score:5,S);
+     OutTextXY(HighX+150,HighY+LineDistY*(10-X),S);
+     GrInputStr(S,HighX,HighY+LineDistY*(10-X),16,12,10,FALSE,AlfaBeta);
+    {$ELSE}
+     InputStr(S,HighX,HighY+12-X,10,FALSE,AlfaBeta);
+    {$ENDIF}
     HighScore[X-1].Name:=S;
+    ShowMouse;
    END;
   LastScore:=Score;
   UNTIL EndOFGame=2;
@@ -361,8 +499,26 @@ END;
 CONST FileName='samegame.scr';
 
 VAR I : LONGINT;
+    Error : LONGINT;
+    {$IFDEF UseGraphics}
+    gd,gm : INTEGER;
+    Pal   : PaletteType;
+    {$ENDIF}
 
 BEGIN
+ {$IFDEF UseGraphics}
+  gm:=vgahi;
+  gd:=vga;
+  InitGraph(gd,gm,'');
+  if GraphResult <> grOk then
+    begin
+      Writeln('Graph driver ',gd,' graph mode ',gm,' not supported');
+      Halt(1);
+    end;
+  SetFillStyle(SolidFill,1);
+  GetDefaultPalette(Pal);
+  SetAllPalette(Pal);
+ {$ENDIF}
   IF NOT MousePresent THEN
    BEGIN
     Writeln('No mouse found. A mouse is required!');
@@ -373,7 +529,11 @@ BEGIN
   LoadHighScore(FileName);
   InitMouse;
   CursorOff;
-  HighX:=52;   HighY:=10; {the position of the highscore table}
+ {$IFDEF UseGraphics}
+    HighX:=450;   HighY:=220; {the position of the highscore table}
+ {$else}
+    HighX:=52;   HighY:=10; {the position of the highscore table}
+  {$endif}
 
   DoMainLoopMouse;
 
@@ -381,13 +541,21 @@ BEGIN
   DoneMouse;
   CursorOn;
   SaveHighScore;
+  {$IFDEF UseGraphics}
+   CloseGraph;
+  {$ENDIF}
   ClrScr;
   Writeln;
   Writeln('Last games'#39' score was : ',Score);
 END.
 {
   $Log$
-  Revision 1.2  1999-06-01 19:24:33  peter
+  Revision 1.3  1999-12-31 17:04:22  marco
+
+
+  Graphical version
+
+  Revision 1.2  1999/06/01 19:24:33  peter
     * updates from marco
 
   Revision 1.1  1999/05/27 21:36:34  peter
