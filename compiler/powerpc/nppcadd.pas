@@ -1021,10 +1021,10 @@ interface
                       else
                         begin
                           // const32 - reg64
-                          cg.a_load_const_reg(exprasmlist,OS_32,
-                            aword(left.location.valueqword),location.registerlow);
+                          location_force_reg(exprasmlist,left.location, 
+                            OS_32,true);
                           exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBC,
-                            location.registerlow,location.registerlow,
+                            location.registerlow,left.location.registerlow,
                             right.location.registerlow));
                         end;
                       exprasmlist.concat(taicpu.op_reg_reg(A_SUBFZE,
@@ -1040,17 +1040,17 @@ interface
                       end;
                       exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                         location.registerlow,right.location.registerlow,0));
-                      cg.a_load_const_reg(exprasmlist,OS_INT,
-                        left.location.valueqword shr 32,location.registerhigh);
+                      left.location.valueqword := left.location.valueqword shr 32;
+                      location_force_reg(exprasmlist,left.location,OS_32,true);
                       exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBFE,
                         location.registerhigh,right.location.registerhigh,
-                        location.registerhigh));
+                        left.location.register));
                     end
                   else
                     begin
                       // const64 - reg64
                       location_force_reg(exprasmlist,left.location,
-                        def_cgsize(left.resulttype.def),true);
+                        def_cgsize(left.resulttype.def),false);
                       if (left.location.loc = LOC_REGISTER) then
                         location.register64 := left.location.register64
                       else if (location.registerlow.number = NR_NO) then
@@ -1479,7 +1479,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2003-04-24 22:29:58  florian
+  Revision 1.28  2003-04-27 11:06:06  jonas
+    * fixed 64bit "const - reg/ref" bugs
+
+  Revision 1.27  2003/04/24 22:29:58  florian
     * fixed a lot of PowerPC related stuff
 
   Revision 1.26  2003/04/23 22:18:01  peter
