@@ -886,7 +886,7 @@ begin
             if assigned(procinfo^._class) then
                 procinfo^.aktexitcode^.concat(new(pai_stabs,init(strpnew(
                  '"$t:v'+procinfo^._class^.numberstring+'",'+
-                 tostr(N_PSYM)+',0,0,'+tostr(procinfo^.esi_offset)))));
+                 tostr(N_PSYM)+',0,0,'+tostr(procinfo^.selfpointer_offset)))));
 
             if (porddef(aktprocsym^.definition^.retdef) <> voiddef) then
                 procinfo^.aktexitcode^.concat(new(pai_stabs,init(strpnew(
@@ -1166,7 +1166,7 @@ end;
                      end;
                    new(hp);
                    reset_reference(hp^);
-                   hp^.offset:=p^.ESI_offset;
+                   hp^.offset:=p^.selfpointer_offset;
                    hp^.base:=R_A5;
                    exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,R_A5)));
                 end
@@ -1174,7 +1174,7 @@ end;
                 begin
                    new(hp);
                    reset_reference(hp^);
-                   hp^.offset:=procinfo^.ESI_offset;
+                   hp^.offset:=procinfo^.selfpointer_offset;
                    hp^.base:=procinfo^.framepointer;
                    exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,R_A5)));
                 end;
@@ -1391,7 +1391,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.36  1999-11-06 14:34:18  peter
+  Revision 1.37  1999-11-09 23:06:44  peter
+    * esi_offset -> selfpointer_offset to be newcg compatible
+    * hcogegen -> cgbase fixes for newcg
+
+  Revision 1.36  1999/11/06 14:34:18  peter
     * truncated log to 20 revs
 
   Revision 1.35  1999/09/27 23:44:48  peter

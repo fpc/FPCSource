@@ -1634,7 +1634,7 @@ var
                          Begin
                            if assigned(procinfo._class) then
                              Begin
-                               instr.operands[operandnum].ref.offset := procinfo.ESI_offset;
+                               instr.operands[operandnum].ref.offset := procinfo.selfpointer_offset;
                                instr.operands[operandnum].ref.base := procinfo.framepointer;
                              end
                            else
@@ -2178,7 +2178,11 @@ Begin
 end.
 {
   $Log$
-  Revision 1.9  1999-09-16 23:05:56  florian
+  Revision 1.10  1999-11-09 23:06:46  peter
+    * esi_offset -> selfpointer_offset to be newcg compatible
+    * hcogegen -> cgbase fixes for newcg
+
+  Revision 1.9  1999/09/16 23:05:56  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.8  1999/01/10 15:37:59  peter

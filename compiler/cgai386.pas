@@ -2290,7 +2290,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                      end;
                    new(hp);
                    reset_reference(hp^);
-                   hp^.offset:=p^.ESI_offset;
+                   hp^.offset:=p^.selfpointer_offset;
                    hp^.base:=R_ESI;
                    emit_ref_reg(A_MOV,S_L,hp,R_ESI);
                 end
@@ -2298,7 +2298,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 begin
                    new(hp);
                    reset_reference(hp^);
-                   hp^.offset:=procinfo^.ESI_offset;
+                   hp^.offset:=procinfo^.selfpointer_offset;
                    hp^.base:=procinfo^.framepointer;
                    emit_ref_reg(A_MOV,S_L,hp,R_ESI);
                 end;
@@ -2889,7 +2889,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
         begin
            new(hr);
            reset_reference(hr^);
-           hr^.offset:=procinfo^.ESI_offset;
+           hr^.offset:=procinfo^.selfpointer_offset;
            hr^.base:=procinfo^.framepointer;
            exprasmlist^.insert(new(paicpu,op_ref_reg(A_MOV,S_L,hr,R_ESI)));
         end;
@@ -3374,7 +3374,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    not assigned(procinfo^.parent^._class)) then
                   exprasmlist^.concat(new(pai_stabs,init(strpnew(
                    '"$t:v'+procinfo^._class^.numberstring+'",'+
-                   tostr(N_PSYM)+',0,0,'+tostr(procinfo^.esi_offset)))))
+                   tostr(N_PSYM)+',0,0,'+tostr(procinfo^.selfpointer_offset)))))
                 else
                   exprasmlist^.concat(new(pai_stabs,init(strpnew(
                    '"$t:r'+procinfo^._class^.numberstring+'",'+
@@ -3447,7 +3447,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.57  1999-11-06 14:34:19  peter
+  Revision 1.58  1999-11-09 23:06:44  peter
+    * esi_offset -> selfpointer_offset to be newcg compatible
+    * hcogegen -> cgbase fixes for newcg
+
+  Revision 1.57  1999/11/06 14:34:19  peter
     * truncated log to 20 revs
 
   Revision 1.56  1999/10/25 12:18:11  peter

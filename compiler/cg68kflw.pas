@@ -770,7 +770,7 @@ do_jmp:
          { also reset to zero in the stack }
          new(hp);
          reset_reference(hp^);
-         hp^.offset:=procinfo^.ESI_offset;
+         hp^.offset:=procinfo^.selfpointer_offset;
          hp^.base:=procinfo^.framepointer;
          exprasmlist^.concat(new(paicpu,op_reg_ref(A_MOVE,S_L,R_A5,hp)));
          exprasmlist^.concat(new(pai_labeled,init(A_JMP,quickexitlabel)));
@@ -779,7 +779,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.11  1999-09-27 23:44:48  peter
+  Revision 1.12  1999-11-09 23:06:44  peter
+    * esi_offset -> selfpointer_offset to be newcg compatible
+    * hcogegen -> cgbase fixes for newcg
+
+  Revision 1.11  1999/09/27 23:44:48  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 

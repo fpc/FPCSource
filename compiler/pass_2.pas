@@ -464,7 +464,7 @@ implementation
 
                          { calc parameter distance new }
                          dec(procinfo^.framepointer_offset,4);
-                         dec(procinfo^.ESI_offset,4);
+                         dec(procinfo^.selfpointer_offset,4);
 
                          { is this correct ???}
                          { retoffset can be negativ for results in eax !! }
@@ -697,7 +697,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  1999-11-06 14:34:21  peter
+  Revision 1.42  1999-11-09 23:06:45  peter
+    * esi_offset -> selfpointer_offset to be newcg compatible
+    * hcogegen -> cgbase fixes for newcg
+
+  Revision 1.41  1999/11/06 14:34:21  peter
     * truncated log to 20 revs
 
   Revision 1.40  1999/09/27 23:44:52  peter

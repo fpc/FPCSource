@@ -514,17 +514,15 @@ const
 
   max_scratch_regs = 1;
 
-{$ifndef noopt}
 { low and high of the available maximum width integer general purpose }
 { registers                                                           }
-       LoGPReg = R_EAX;
-       HiGPReg = R_EDI;
+  LoGPReg = R_EAX;
+  HiGPReg = R_EDI;
 
 { low and high of every possible width general purpose register (same as }
 { above on most architctures apart from the 80x86)                       }
-       LoReg = R_EAX;
-       HiReg = R_BL;
-{$endif noopt}
+  LoReg = R_EAX;
+  HiReg = R_BL;
 
   cpuflags = [];
 
@@ -889,7 +887,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1999-11-06 14:34:20  peter
+  Revision 1.17  1999-11-09 23:06:45  peter
+    * esi_offset -> selfpointer_offset to be newcg compatible
+    * hcogegen -> cgbase fixes for newcg
+
+  Revision 1.16  1999/11/06 14:34:20  peter
     * truncated log to 20 revs
 
   Revision 1.15  1999/10/27 16:11:28  peter

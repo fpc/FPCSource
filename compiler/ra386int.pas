@@ -38,7 +38,12 @@ Implementation
 Uses
   globtype,
   strings,cobjects,systems,verbose,globals,
-  files,aasm,types,scanner,hcodegen,symtable,cpubase,
+  files,aasm,types,scanner,symtable,cpubase,
+{$ifdef NEWCG}
+  cgbase,
+{$else}
+  hcodegen,
+{$endif}
   rautils,ra386;
 
 
@@ -1767,7 +1772,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  1999-11-06 14:34:24  peter
+  Revision 1.52  1999-11-09 23:06:46  peter
+    * esi_offset -> selfpointer_offset to be newcg compatible
+    * hcogegen -> cgbase fixes for newcg
+
+  Revision 1.51  1999/11/06 14:34:24  peter
     * truncated log to 20 revs
 
   Revision 1.50  1999/10/01 07:59:21  peter

@@ -27,7 +27,12 @@ Uses
   strings,
   cobjects,
   globtype,systems,verbose,globals,files,
-  symconst,symtable,aasm,hcodegen,cpubase,cpuasm
+  symconst,symtable,aasm,cpubase,cpuasm
+{$ifdef NEWCG}
+  ,cgbase
+{$else}
+  ,hcodegen
+{$endif}
   ;
 
 Const
@@ -692,7 +697,7 @@ Begin
   if assigned(procinfo^._class) then
    Begin
      opr.typ:=OPR_REFERENCE;
-     opr.ref.offset:=procinfo^.ESI_offset;
+     opr.ref.offset:=procinfo^.selfpointer_offset;
      opr.ref.base:=procinfo^.framepointer;
      opr.ref.options:=ref_selffixup;
      SetupSelf:=true;
@@ -1433,7 +1438,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  1999-11-06 14:34:26  peter
+  Revision 1.29  1999-11-09 23:06:46  peter
+    * esi_offset -> selfpointer_offset to be newcg compatible
+    * hcogegen -> cgbase fixes for newcg
+
+  Revision 1.28  1999/11/06 14:34:26  peter
     * truncated log to 20 revs
 
   Revision 1.27  1999/09/27 23:44:58  peter

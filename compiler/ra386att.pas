@@ -37,8 +37,13 @@ Implementation
 Uses
   globtype,
   strings,cobjects,systems,verbose,globals,
-  files,aasm,types,symconst,symtable,scanner,hcodegen,
-  cpubase,rautils,ra386;
+  files,aasm,types,symconst,symtable,scanner,cpubase,
+{$ifdef NEWCG}
+  cgbase,
+{$else}
+  hcodegen,
+{$endif}
+  rautils,ra386;
 
 type
  tasmtoken = (
@@ -1987,7 +1992,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  1999-11-06 14:34:23  peter
+  Revision 1.62  1999-11-09 23:06:46  peter
+    * esi_offset -> selfpointer_offset to be newcg compatible
+    * hcogegen -> cgbase fixes for newcg
+
+  Revision 1.61  1999/11/06 14:34:23  peter
     * truncated log to 20 revs
 
   Revision 1.60  1999/10/01 07:59:20  peter

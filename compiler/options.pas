@@ -1068,14 +1068,19 @@ begin
 {$ifdef m68k}
   def_symbol('CPU68');
 {$endif}
+
+{ new processor stuff }
+{$ifdef i386}
+  def_symbol('CPUI386');
+{$endif}
+{$ifdef m68k}
+  def_symbol('CPU68K');
+{$endif}
 {$ifdef ALPHA}
   def_symbol('CPUALPHA');
 {$endif}
 {$ifdef powerpc}
   def_symbol('CPUPOWERPC');
-{$endif}
-{$ifdef m68k}
-  def_symbol('CPU68K');
 {$endif}
 
 { get default messagefile }
@@ -1251,7 +1256,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.33  1999-11-06 14:34:21  peter
+  Revision 1.34  1999-11-09 23:06:45  peter
+    * esi_offset -> selfpointer_offset to be newcg compatible
+    * hcogegen -> cgbase fixes for newcg
+
+  Revision 1.33  1999/11/06 14:34:21  peter
     * truncated log to 20 revs
 
   Revision 1.32  1999/11/04 23:13:25  peter

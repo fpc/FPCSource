@@ -67,7 +67,7 @@ implementation
           { frame pointer offset }
           framepointer_offset : longint;
           { self pointer offset }
-          ESI_offset : longint;
+          selfpointer_offset : longint;
           { result value offset }
           retoffset : longint;
 
@@ -374,7 +374,11 @@ end.
 
 {
   $Log$
-  Revision 1.47  1999-11-06 14:34:21  peter
+  Revision 1.48  1999-11-09 23:06:45  peter
+    * esi_offset -> selfpointer_offset to be newcg compatible
+    * hcogegen -> cgbase fixes for newcg
+
+  Revision 1.47  1999/11/06 14:34:21  peter
     * truncated log to 20 revs
 
   Revision 1.46  1999/10/21 14:18:54  peter

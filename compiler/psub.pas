@@ -65,18 +65,22 @@ uses
 {$ifdef GDB}
   ,gdb
 {$endif GDB}
-{$ifdef i386}
-{$ifndef newcg}
-  ,tgeni386
-  ,cgai386
-{$endif newcg}
-  {$ifndef NoOpt}
-  ,aopt386
+{$ifdef newcg}
+  {$ifndef NOOPT}
+    ,aopt
   {$endif}
-{$endif}
-{$ifdef m68k}
-  ,tgen68k,cga68k
-{$endif}
+{$else}
+  {$ifdef i386}
+    ,tgeni386
+    ,cgai386
+    {$ifndef NOOPT}
+      ,aopt386
+    {$endif}
+  {$endif}
+  {$ifdef m68k}
+    ,tgen68k,cga68k
+  {$endif}
+{$endif newcg}
   { parser specific stuff }
   ,pbase,ptype,pdecl,pexpr,pstatmnt
 {$ifdef newcg}
@@ -292,11 +296,7 @@ begin
   { self isn't pushed in nested procedure of methods }
   if assigned(procinfo^._class) and (lexlevel=normal_function_level) then
     begin
-{$ifdef newcg}
       procinfo^.selfpointer_offset:=paramoffset;
-{$else newcg}
-      procinfo^.ESI_offset:=paramoffset;
-{$endif newcg}
       if assigned(aktprocsym^.definition) and
          not(po_containsself in aktprocsym^.definition^.procoptions) then
         inc(paramoffset,target_os.size_of_pointer);
@@ -1902,7 +1902,11 @@ end.
 
 {
   $Log$
-  Revision 1.31  1999-11-06 14:34:23  peter
+  Revision 1.32  1999-11-09 23:06:45  peter
+    * esi_offset -> selfpointer_offset to be newcg compatible
+    * hcogegen -> cgbase fixes for newcg
+
+  Revision 1.31  1999/11/06 14:34:23  peter
     * truncated log to 20 revs
 
   Revision 1.30  1999/10/26 12:30:44  peter

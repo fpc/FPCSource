@@ -117,11 +117,7 @@ unit pdecl;
 {$else}
                      aktprocdef^.procoptions:=aktprocdef^.procoptions+[po_containsself];
 {$endif}
-{$ifdef newcg}
                      inc(procinfo^.selfpointer_offset,vs^.address);
-      {$else newcg}
-                     inc(procinfo^.ESI_offset,vs^.address);
-      {$endif newcg}
                    end;
                   consume(idtoken);
                   consume(_COLON);
@@ -1190,7 +1186,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.169  1999-11-09 12:58:29  peter
+  Revision 1.170  1999-11-09 23:06:45  peter
+    * esi_offset -> selfpointer_offset to be newcg compatible
+    * hcogegen -> cgbase fixes for newcg
+
+  Revision 1.169  1999/11/09 12:58:29  peter
     * support absolute unit.variable
 
   Revision 1.168  1999/11/06 14:34:21  peter

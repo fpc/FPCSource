@@ -32,8 +32,13 @@ unit Ra386dir;
   implementation
 
      uses
-        files,hcodegen,globals,scanner,aasm,cpubase,cpuasm,
+        files,globals,scanner,aasm,cpubase,cpuasm,
         cobjects,symconst,symtable,types,verbose,
+{$ifdef NEWCG}
+        cgbase,
+{$else}
+        hcodegen,
+{$endif}
         rautils,ra386;
 
     function assemble : ptree;
@@ -230,7 +235,7 @@ unit Ra386dir;
                                            if upper(hs)='__SELF' then
                                              begin
                                                 if assigned(procinfo^._class) then
-                                                  hs:=tostr(procinfo^.ESI_offset)+'('+att_reg2str[procinfo^.framepointer]+')'
+                                                  hs:=tostr(procinfo^.selfpointer_offset)+'('+att_reg2str[procinfo^.framepointer]+')'
                                                 else
                                                  Message(asmr_e_cannot_use_SELF_outside_a_method);
                                              end
@@ -290,7 +295,11 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.25  1999-11-06 14:34:24  peter
+  Revision 1.26  1999-11-09 23:06:46  peter
+    * esi_offset -> selfpointer_offset to be newcg compatible
+    * hcogegen -> cgbase fixes for newcg
+
+  Revision 1.25  1999/11/06 14:34:24  peter
     * truncated log to 20 revs
 
   Revision 1.24  1999/09/27 23:44:58  peter
