@@ -113,7 +113,8 @@ begin
 { Normal types }
   addtype('Single',s32floattype);
   addtype('Double',s64floattype);
-  addtype('Extended',s80floattype);
+  { extended size is the best real type for the target }
+  addtype('Extended',pbestrealtype^);
   addtype('Real',s64floattype);
 {$ifdef x86}
   adddef('Comp',tfloatdef.create(s64comp));
@@ -290,8 +291,8 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  2002-07-16 15:34:21  florian
-    * exit is now a syssym instead of a keyword
+  Revision 1.32  2002-07-25 17:54:24  carl
+   + Extended is now CPU dependant (equal to bestrealtype)
 
   Revision 1.30  2002/07/07 09:52:32  florian
     * powerpc target fixed, very simple units can be compiled
