@@ -46,3 +46,4 @@ testdos.pp        test dos unit functions
 testset.pp        test set functions
 testheap.pp       test heap functions
 teststr.pp        test string functions and speed
+testaoc.pp        test Array of construct.
