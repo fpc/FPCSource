@@ -33,7 +33,7 @@ interface
        go32,dos
     {$endif}
     {$ifdef os2}
-       doscalls
+       doscalls,dos
     {$endif}
        ;
 
@@ -296,7 +296,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.39  2000-01-07 16:41:44  daniel
+    Revision 1.40  2000-01-16 19:10:25  hajny
+      * 'uses Dos' added for OS/2 target
+
+    Revision 1.39  2000/01/07 16:41:44  daniel
       * copyright 2000
 
     Revision 1.38  1999/12/26 19:30:53  hajny
