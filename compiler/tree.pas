@@ -1717,8 +1717,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.73  1999-04-21 16:31:49  pierre
-  ra386att.pas
+  Revision 1.74  1999-04-21 21:45:31  pierre
+   * wrong log fro v1.73 corrected
+
+  Revision 1.73  1999/04/21 16:31:49  pierre
+  + offset field for temp storage added $ifdef TEMPS_NOT_PUSH
 
   Revision 1.72  1999/04/15 09:01:35  peter
     * fixed set loading
