@@ -22,7 +22,6 @@
 
     type
        UINT = longint;
-       DWORD = longint;
        LPDWORD = ^DWORD;
        BOOL = longint;
 {$ifdef UNICODE}
@@ -95,8 +94,11 @@
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:47  root
-  Initial revision
+  Revision 1.2  1998-03-27 00:50:22  peter
+    * small fixes so it compiles
+
+  Revision 1.1.1.1  1998/03/25 11:18:47  root
+  * Restored version
 
   Revision 1.5  1998/03/05 22:37:37  florian
     * some stuff added
@@ -105,7 +107,7 @@
   + Added log at the end
 
 
-  
+
   Working file: rtl/win32/win32.inc
   description:
   ----------------------------

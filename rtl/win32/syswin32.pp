@@ -13,9 +13,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
-{ system unit for Win32 }
-{$define Win32}
 unit syswin32;
 
 {$I os.inc}
@@ -194,7 +191,7 @@ end;
     function do_write(h,addr,len : longint) : longint;
 
       var
-         size:longint
+         size:longint;
 
       begin
          if writefile(h,pointer(addr),len,size,nil)=0 then
@@ -462,8 +459,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:47  root
-  Initial revision
+  Revision 1.2  1998-03-27 00:50:22  peter
+    * small fixes so it compiles
+
+  Revision 1.1.1.1  1998/03/25 11:18:47  root
+  * Restored version
 
   Revision 1.13  1998/03/05 22:37:36  florian
     * some stuff added

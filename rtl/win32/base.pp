@@ -84,12 +84,12 @@
           (MAKELONG((short) ((pt).x), (short) ((pt).y)))
 
 
-      #define SECURITY_NULL_SID_AUTHORITY     {0,0,0,0,0,0}
-      #define SECURITY_WORLD_SID_AUTHORITY    {0,0,0,0,0,1}
-      #define SECURITY_LOCAL_SID_AUTHORITY    {0,0,0,0,0,2}
-      #define SECURITY_CREATOR_SID_AUTHORITY  {0,0,0,0,0,3}
-      #define SECURITY_NON_UNIQUE_AUTHORITY   {0,0,0,0,0,4}
-      #define SECURITY_NT_AUTHORITY           {0,0,0,0,0,5}
+      #define SECURITY_NULL_SID_AUTHORITY     0,0,0,0,0,0
+      #define SECURITY_WORLD_SID_AUTHORITY    0,0,0,0,0,1
+      #define SECURITY_LOCAL_SID_AUTHORITY    0,0,0,0,0,2
+      #define SECURITY_CREATOR_SID_AUTHORITY  0,0,0,0,0,3
+      #define SECURITY_NON_UNIQUE_AUTHORITY   0,0,0,0,0,4
+      #define SECURITY_NT_AUTHORITY           0,0,0,0,0,5
 
  ****************************************************************************}
 
@@ -514,34 +514,31 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:46  root
-  Initial revision
+  Revision 1.2  1998-03-27 00:50:22  peter
+    * small fixes so it compiles
+
+  Revision 1.1.1.1  1998/03/25 11:18:46  root
+  * Restored version
 
   Revision 1.5  1998/01/26 12:02:21  michael
   + Added log at the end
 
-
-  
-  Working file: rtl/win32/base.pp
-  description:
-  ----------------------------
   revision 1.4
   date: 1997/12/01 12:42:46;  author: michael;  state: Exp;  lines: +10 -15
   + added copyright reference in header.
-  ----------------------------
+
   revision 1.3
   date: 1997/11/27 23:28:30;  author: florian;  state: Exp;  lines: +14 -14
   - Win32: base.pp compilable, but there is a compiler bug, so wrong assembler
            is created
   - Win32: API interface units renamed to *.pp
-  ----------------------------
+  
   revision 1.2
   date: 1997/11/27 23:11:56;  author: florian;  state: Exp;  lines: +2 -2
   - Win32: some errors of base removed
   - Win32: unit base to makefile added
-  ----------------------------
+  
   revision 1.1
   date: 1997/11/27 10:15:30;  author: florian;  state: Exp;
   Win32 files added (they are untested)
-  =============================================================================
 }
