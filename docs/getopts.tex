@@ -70,35 +70,6 @@ messages.\\
 \var{OptOpt:Char} \  In case of an error, contains the character causing the 
 error.
 \section {Procedures and functions}
-\function {Getopt}{(Shortopts : String)}{Char}
-{
-Returns the next option found on the command-line. If no more options are
-found, returns \var{EndOfOptions}. If the option requires an argument, it is
-returned in the \var{OptArg} variable.
-
-\var{ShortOptions} is a string containing all possible one-letter options.
-If a letter is followed by a colon (:), then that option needs an argument.
-If a letter is followed by 2 colons, the option has an optional argument.
-
-If the first character of \var{shortoptions} is a \var{'+'} then options following a non-option are
-regarded as non-options (standard Unix behavior). If it is a \var{'-'},
-then all non-options are treated as arguments of a option with character
-\var{\#0}. This is useful for applications that require their options in
-the exact order as they appear on the command-line.
-
-If the first character of \var{shortoptions} is none of the above, options
-and non-options are permuted, so all non-options are behind all options.
-This allows options and non-options to be in random order on the command
-line.
-}
-{ 
-Errors are reported through giving back a \var{'?'} character. \var{OptOpt}
-then gives the character which caused the error. If \var{OptErr} is
-\var{True} then getopt prints an error-message to \var{stdout}.
-}
-{\seef{GetLongOpts}, \seem{getopt}{3}}
-
-\input{optex/optex.tex}
 
 \function {GetLongOpts}{(Shortopts : String, LongOpts : POption; var Longint
 : Integer )}{Char}
@@ -133,3 +104,34 @@ Optional arguments can only be specified through the first method.
 { see \seef{Getopt}, \seem{getopt}{3}}
 
 For an example, see \seef{Getopt}
+
+\function {Getopt}{(Shortopts : String)}{Char}
+{
+Returns the next option found on the command-line. If no more options are
+found, returns \var{EndOfOptions}. If the option requires an argument, it is
+returned in the \var{OptArg} variable.
+
+\var{ShortOptions} is a string containing all possible one-letter options.
+If a letter is followed by a colon (:), then that option needs an argument.
+If a letter is followed by 2 colons, the option has an optional argument.
+
+If the first character of \var{shortoptions} is a \var{'+'} then options following a non-option are
+regarded as non-options (standard Unix behavior). If it is a \var{'-'},
+then all non-options are treated as arguments of a option with character
+\var{\#0}. This is useful for applications that require their options in
+the exact order as they appear on the command-line.
+
+If the first character of \var{shortoptions} is none of the above, options
+and non-options are permuted, so all non-options are behind all options.
+This allows options and non-options to be in random order on the command
+line.
+}
+{ 
+Errors are reported through giving back a \var{'?'} character. \var{OptOpt}
+then gives the character which caused the error. If \var{OptErr} is
+\var{True} then getopt prints an error-message to \var{stdout}.
+}
+{\seef{GetLongOpts}, \seem{getopt}{3}}
+
+\input{optex/optex.tex}
+

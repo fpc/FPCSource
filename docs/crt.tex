@@ -107,6 +107,7 @@ var lastmode : Word;
 \end{verbatim}
 
 \section{Procedures and Functions}
+
 \procedure{AssignCrt}{(Var F: Text)}
 {
 Assigns a file F to the console. Everything written to the file F goes to
@@ -117,6 +118,37 @@ to the window instead.
 
 \input{crtex/ex1.tex}
 
+\Procedure{BigCursor}{Makes the cursor a big rectangle. 
+
+Not implemented on \linux.}
+{None.}{\seep{CursorOn}, \seep{CursorOff}}
+
+\Procedure {ClrEol}
+{ ClrEol clears the current line, starting from the cursor position, to the
+end of the window. The cursor doesn't move}
+{None.}{\seep{DelLine}, \seep{InsLine}, \seep{ClrScr}}
+
+\input{crtex/ex9.tex}
+
+\procedure {ClrScr}{}
+{ ClrScr clears the current window (using the current colors), 
+and sets the cursor in the top left
+corner of the current window.}
+{None.}{ \seep{Window} }
+
+\input{crtex/ex8.tex}
+
+\Procedure{CursorOff}{Switches the cursor off (i.e. the cursor is no
+longer visible). 
+
+Not implemented on \linux.}
+{None.}{\seep{CursorOn}, \seep{BigCursor}}
+
+\Procedure{CursorOn}{Switches the cursor on. 
+
+Not implemented on \linux.}
+{None.}{\seep{BigCursor}, \seep{CursorOff}}
+
 \procedure{Delay}{(DTime: Word)}
 {Delay waits a specified number of milliseconds. The number of specified
 seconds is a approximation, and may be off a lot, if system load is high.}
@@ -124,25 +156,22 @@ seconds is a approximation, and may be off a lot, if system load is high.}
 
 \input{crtex/ex15.tex}
 
-\procedure {TextColor}{(CL: Byte)}
-{
-TextColor sets the foreground color to \var{CL}. \var{CL} can be one of the
-predefined color constants.
+\Procedure {DelLine}
+{ DelLine removes the current line. Lines following the current line are 
+scrolled 1 line up, and an empty line is inserted at the bottom of the
+current window. The cursor doesn't move.}
+{None.}{\seep{ClrEol}, \seep{InsLine}, \seep{ClrScr}}
+
+\input{crtex/ex11.tex}
+
+\procedure {GotoXY}{(X: Byte; Y: Byte)}
+{ Positions the cursor at \var{(X,Y)}, \var{X} in horizontal, \var{Y} in
+vertical direction relative to the origin of the current window. The origin
+is located at \var{(1,1)}, the upper-left corner of the window.
 }
-{None.}{ \seep{TextBackground}, \seep{HighVideo}, \seep{LowVideo},
-\seep{NormVideo}}
+{None.}{ \seef{WhereX}, \seef{WhereY}, \seep{Window} }
 
-\input{crtex/ex12.tex}
-
-\procedure {TextBackground}{(CL: Byte)}
-{
-TextBackground sets the background color to \var{CL}. \var{CL} can be one of the
-predefined color constants.
-}
-{None.}{ \seep{TextColor}, \seep{HighVideo}, \seep{LowVideo},
-\seep{NormVideo}}
-
-\input{crtex/ex13.tex}
+\input{crtex/ex6.tex}
 
 \procedure {HighVideo}{}
 { HighVideo switches the output to highlighted text. (It sets the high
@@ -152,6 +181,26 @@ intensity bit of the video attribute)
 \seep{NormVideo}}
 
 \input{crtex/ex14.tex}
+
+\procedure {InsLine}{}
+{ InsLine inserts an empty line at the current cursor position. 
+Lines following the current line are scrolled 1 line down, 
+causing the last line to disappear from the window. 
+The cursor doesn't move.}
+{None.}{\seep{ClrEol}, \seep{DelLine}, \seep{ClrScr}}
+
+\input{crtex/ex10.tex}
+
+\Function {KeyPressed}{Boolean}
+{ The Keypressed function scans the keyboard buffer and sees if a key has
+been pressed. If this is the case, \var{True} is returned. If not,
+\var{False} is returned. The \var{Shift, Alt, Ctrl} are not reported.
+The key is not removed from the buffer, and can hence still be read after
+the KeyPressed function has been called.
+}
+{None.}{\seef{ReadKey}}
+
+\input{crtex/ex2.tex}
 
 \Procedure {LowVideo}
 { LowVideo switches the output to non-highlighted text. (It clears the high
@@ -171,30 +220,52 @@ defaults are read from the cursor position at startup)
 
 For an example, see \seep{HighVideo}
 
-\Procedure{BigCursor}{Makes the cursor a big rectangle. 
+\Procedure{NoSound}{
+Stops the speaker sound.
 
-Not implemented on \linux.}
-{None.}{\seep{CursorOn}, \seep{CursorOff}}
+This is not supported in \linux}{None.}{\seep{Sound}}
 
-\Procedure{CursorOn}{Switches the cursor on. 
+\input{crtex/ex16.tex}
 
-Not implemented on \linux.}
-{None.}{\seep{BigCursor}, \seep{CursorOff}}
+\Function  {ReadKey}{Char}
+{
+The ReadKey function reads 1 key from the keyboard buffer, and returns this.
+If an extended or function key has been pressed, then the zero ASCII code is 
+returned. You can then read the scan code of the key with a second ReadKey
+call.
 
-\Procedure{CursorOff}{Switches the cursor off (i.e. the cursor is no
-longer visible). 
-
-Not implemented on \linux.}
-{None.}{\seep{CursorOn}, \seep{BigCursor}}
-
-\procedure {GotoXY}{(X: Byte; Y: Byte)}
-{ Positions the cursor at \var{(X,Y)}, \var{X} in horizontal, \var{Y} in
-vertical direction relative to the origin of the current window. The origin
-is located at \var{(1,1)}, the upper-left corner of the window.
+\textbf{Remark.} Key mappings under Linux can cause the wrong key to be
+reported by ReadKey, so caution is needed when using ReadKey.  
 }
-{None.}{ \seef{WhereX}, \seef{WhereY}, \seep{Window} }
+{None.}{\seef{KeyPressed}}
 
-\input{crtex/ex6.tex}
+\input{crtex/ex3.tex}
+
+
+\procedure{Sound}{(hz : word)}
+{ Sounds the speaker at a frequency of \var{hz}.
+
+This is not supported in \linux}{None.}{\seep{NoSound}}
+
+\procedure {TextBackground}{(CL: Byte)}
+{
+TextBackground sets the background color to \var{CL}. \var{CL} can be one of the
+predefined color constants.
+}
+{None.}{ \seep{TextColor}, \seep{HighVideo}, \seep{LowVideo},
+\seep{NormVideo}}
+
+\input{crtex/ex13.tex}
+
+\procedure {TextColor}{(CL: Byte)}
+{
+TextColor sets the foreground color to \var{CL}. \var{CL} can be one of the
+predefined color constants.
+}
+{None.}{ \seep{TextBackground}, \seep{HighVideo}, \seep{LowVideo},
+\seep{NormVideo}}
+
+\input{crtex/ex12.tex}
 
 \Function  {WhereX}{Byte}
 {
@@ -232,15 +303,6 @@ are relative to the window's top left corner.
 \input{crtex/ex5.tex}
 
 
-\procedure {ClrScr}{}
-{ ClrScr clears the current window (using the current colors), 
-and sets the cursor in the top left
-corner of the current window.}
-{None.}{ \seep{Window} }
-
-\input{crtex/ex8.tex}
-
-
 %\procedure {ScrollWindow}{(X1,Y1,X2,Y2 : Byte; Count : Longint)}
 %{ ScrollWindow scrolls the contents of the window defined by the upper-left
 %\var{(X1,Y1)} and lower-right \var{(X2,Y2)} corners \var{count} lines up if
@@ -274,70 +336,4 @@ corner of the current window.}
 %
 %The memory pointed to by \var{P} is NOT freed.}{None}
 %{\seef{SaveScreenRegion}, \seep{Window} }
-
-
-\Procedure {ClrEol}
-{ ClrEol clears the current line, starting from the cursor position, to the
-end of the window. The cursor doesn't move}
-{None.}{\seep{DelLine}, \seep{InsLine}, \seep{ClrScr}}
-
-\input{crtex/ex9.tex}
-
-
-\Procedure {DelLine}
-{ DelLine removes the current line. Lines following the current line are 
-scrolled 1 line up, and an empty line is inserted at the bottom of the
-current window. The cursor doesn't move.}
-{None.}{\seep{ClrEol}, \seep{InsLine}, \seep{ClrScr}}
-
-\input{crtex/ex11.tex}
-
-
-\procedure {InsLine}{}
-{ InsLine inserts an empty line at the current cursor position. 
-Lines following the current line are scrolled 1 line down, 
-causing the last line to disappear from the window. 
-The cursor doesn't move.}
-{None.}{\seep{ClrEol}, \seep{DelLine}, \seep{ClrScr}}
-
-\input{crtex/ex10.tex}
-
-
-\Function {KeyPressed}{Boolean}
-{ The Keypressed function scans the keyboard buffer and sees if a key has
-been pressed. If this is the case, \var{True} is returned. If not,
-\var{False} is returned. The \var{Shift, Alt, Ctrl} are not reported.
-The key is not removed from the buffer, and can hence still be read after
-the KeyPressed function has been called.
-}
-{None.}{\seef{ReadKey}}
-
-\input{crtex/ex2.tex}
-
-
-\Function  {ReadKey}{Char}
-{
-The ReadKey function reads 1 key from the keyboard buffer, and returns this.
-If an extended or function key has been pressed, then the zero ASCII code is 
-returned. You can then read the scan code of the key with a second ReadKey
-call.
-
-\textbf{Remark.} Key mappings under Linux can cause the wrong key to be
-reported by ReadKey, so caution is needed when using ReadKey.  
-}
-{None.}{\seef{KeyPressed}}
-
-\input{crtex/ex3.tex}
-
-
-\procedure{Sound}{(hz : word)}
-{ Sounds the speaker at a frequency of \var{hz}.
-
-This is not supported in \linux}{None.}{\seep{NoSound}}
-\Procedure{NoSound}{
-Stops the speaker sound.
-
-This is not supported in \linux}{None.}{\seep{Sound}}
-
-\input{crtex/ex16.tex}
 

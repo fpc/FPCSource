@@ -99,129 +99,6 @@ TSockArray = Array[1..2] of Longint;
 
 \section {Functions and Procedures}
 
-\function{Socket}{(Domain,SocketType,Protocol:Longint)}{Longint}
-{\var{Socket} creates a new socket in domain \var{Domain}, from type
-\var{SocketType} using protocol \var{Protocol}.
-
-The Domain, Socket type and Protocol can be specified using predefined
-constants (see the section on constants for available constants)
-
-If succesfull, the function returns a socket descriptor, which can be passed
-to a subsequent \seef{Bind} call. If unsuccesfull, the function returns -1.
-}
-{Errors are returned in \var{SocketError}, and include the follwing:
-\begin{description}
-\item[SYS\_EPROTONOSUPPORT]
-The protocol type or the specified protocol is not
-supported within this domain.
-\item[SYS\_EMFILE]
-The per-process descriptor table is full.
-\item[SYS\_ENFILE]
-The system file table is full.
-\item[SYS\_EACCESS]
- Permission  to  create  a  socket of the specified
- type and/or protocol is denied.
-\item[SYS\_ENOBUFS]
- Insufficient  buffer  space  is  available.    The
- socket   cannot   be   created   until  sufficient
- resources are freed.
-\end{description}}
-{\seef{SocketPair}, \seem{socket}{2}}
-for an example, see \seef{Accept}.
-\function{Send}{(Sock:Longint;Var Addr;AddrLen,Flags:Longint)}{Longint}
-{\var{Send} sends \var{AddrLen} bytes starting from address \var{Addr}
-to socket \var{Sock}. \var{Sock} must be in a connected state.
-
-The function returns the number of bytes sent, or -1 if a detectable 
-error occurred.
-
-\var{Flags} can be one of the following:
-\begin{description}
-\item [1] : Process out-of band data.
-\item [4] : Bypass routing, use a direct interface.
-\end{description}
-}
-{Errors are reported in \var{SocketError}, and include the following:
-\begin{description}
-\item[SYS\_EBADF] The socket descriptor is invalid.
-\item[SYS\_ENOTSOCK] The descriptor is not a socket.
-\item[SYS\_EFAULT] The address is outside your address space.
-\item[SYS\_EMSGSIZE] The message cannot be sent atomically.
-\item[SYS\_EWOULDBLOCK] The requested operation would block the process.
-\item[SYS\_ENOBUFS] The system doesn't have enough free buffers available.
-\end{description}
-}{\seef{Recv}, \seem{send}{2}}
-
-\function{Recv}{(Sock:Longint;Var Addr;AddrLen,Flags:Longint)}{Longint}
-{\var{Recv} reads at most \var{Addrlen} bytes from socket \var{Sock} into
-address \var{Addr}. The socket must be in a connected state.
-
-\var{Flags} can be one of the following:
-\begin{description}
-\item [1] : Process out-of band data.
-\item [4] : Bypass routing, use a direct interface.
-\item [??] : Wait for full request or report an error.
-\end{description}
-
-The functions returns the number of bytes actually read from the socket, or
--1 if a detectable error occurred.}
-{Errors are reported in \var{SocketError}, and include the following:
-\begin{description}
-\item[SYS\_EBADF] The socket descriptor is invalid.
-\item[SYS\_ENOTCONN] The socket isn't connected.
-\item[SYS\_ENOTSOCK] The descriptor is not a socket.
-\item[SYS\_EFAULT] The address is outside your address space.
-\item[SYS\_EMSGSIZE] The message cannot be sent atomically.
-\item[SYS\_EWOULDBLOCK] The requested operation would block the process.
-\item[SYS\_ENOBUFS] The system doesn't have enough free buffers available.
-\end{description}
-}{\seef{Send}}
-
-\function{Bind}{(Sock:Longint;Var Addr;AddrLen:Longint)}{Boolean}
-{\var{Bind} binds the socket \var{Sock} to address \var{Addr}. \var{Addr}
-has length \var{Addrlen}.
-
-The function returns \var{True} if the call was succesful, \var{False} if
-not.
-}
-{Errors are returned in \var{SocketError} and include the following:
-\begin{description}
-\item[SYS\_EBADF] The socket descriptor is invalid.
-\item[SYS\_EINVAL] The socket is already bound to an address,
-\item[SYS\_EACCESS] Address is protected and you don't have permission to
-open it.
-\end{description}
-More arrors can be found in the Unix man pages.
-}{\seef{Socket}}
-
-\functionl{Bind}{AltBind}{(Sock:longint;const addr:string)}{boolean}
-{This is an alternate form of the \var{Bind} command.
-This form of the \var{Bind} command is equivalent to subsequently 
-calling \seep{Str2UnixSockAddr} and the regular \seef{Bind} function.
-
-The function returns \var{True} if successfull, \var{False} otherwise.
-}
-{Errors are those of the regular \seef{Bind} command.}
-{\seef{Bind}}
-
-
-\function{Listen}{(Sock,MaxConnect:Longint)}{Boolean}
-{\var{Listen} listens for up to \var{MaxConnect} connections from socket
-\var{Sock}. The socket \var{Sock} must be of type \var{SOCK\_STREAM} or
-\var{Sock\_SEQPACKET}.
-
-The function returns \var{True} if a connection was accepted, \var{False} 
-if an error occurred.
-}
-{Errors are reported in \var{SocketError}, and include the following:
-\begin{description}
-\item[SYS\_EBADF] The socket descriptor is invalid.
-\item[SYS\_ENOTSOCK] The descriptor is not a socket.
-\item[SYS\_EOPNOTSUPP] The socket type doesn't support the \var{Listen}
-operation.
-\end{description}
-}{\seef{Socket}, \seef{Bind}, \seef{Connect}}
-
 \function{Accept}{(Sock:Longint;Var Addr;Var Addrlen:Longint)}{Longint}
 {\var{Accept} accepts a connection from a socket \var{Sock}, which was
 listening for a connection. The accepted socket may NOT be used to accept
@@ -261,12 +138,54 @@ The function returns \var{True} if successfull, \var{False} otherwise.
 It is equivalent
 to subsequently calling the regular \seef{Accept} function and the 
 \seep{Sock2File} function.
+The \var{Addr} parameter contains the name of the unix socket file to be
+opened. 
 
 The function returns \var{True} if successfull, \var{False} otherwise.
 }
 {The errors are those of \seef{Accept}.}
 {\seef{Accept}}
 
+
+\functionl{Accept}{AltCAccept}{(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:File)}{Boolean}
+{ This is an alternate form of the \seef{Accept} command. 
+It is equivalent
+to subsequently calling the regular \seef{Accept} function and the 
+\seep{Sock2File} function.
+The \var{Addr} parameter contains the parameters of the internet socket that
+should be opened.
+
+The function returns \var{True} if successfull, \var{False} otherwise.
+}
+{The errors are those of \seef{Accept}.}
+{\seef{Accept}}
+
+\function{Bind}{(Sock:Longint;Var Addr;AddrLen:Longint)}{Boolean}
+{\var{Bind} binds the socket \var{Sock} to address \var{Addr}. \var{Addr}
+has length \var{Addrlen}.
+
+The function returns \var{True} if the call was succesful, \var{False} if
+not.
+}
+{Errors are returned in \var{SocketError} and include the following:
+\begin{description}
+\item[SYS\_EBADF] The socket descriptor is invalid.
+\item[SYS\_EINVAL] The socket is already bound to an address,
+\item[SYS\_EACCESS] Address is protected and you don't have permission to
+open it.
+\end{description}
+More arrors can be found in the Unix man pages.
+}{\seef{Socket}}
+
+\functionl{Bind}{AltBind}{(Sock:longint;const addr:string)}{boolean}
+{This is an alternate form of the \var{Bind} command.
+This form of the \var{Bind} command is equivalent to subsequently 
+calling \seep{Str2UnixSockAddr} and the regular \seef{Bind} function.
+
+The function returns \var{True} if successfull, \var{False} otherwise.
+}
+{Errors are those of the regular \seef{Bind} command.}
+{\seef{Bind}}
 
 \function{Connect}{(Sock:Longint;Var Addr;Addrlen:Longint)}{Boolean}
 {\var{Connect} opens a connection to a peer, whose address is described by
@@ -291,51 +210,28 @@ The function returns \var{True} if successfull, \var{False} otherwise.
 {\seef{Connect}}
 
 \functionl{Connect}{AltBConnect}{(Sock:longint;const addr:string;var SockIn,SockOut:file)}{Boolean}
-{ This is an alternate form of the \seef{Connect} command. 
-It is equivalent
-to subsequently calling the regular \seef{Connect} function and the 
-\seep{Sock2File} function.
+{ This is an alternate form of the \seef{Connect} command. The parameter
+\var{addr} contains the name of the unix socket file to be opened. 
+It is equivalent to subsequently calling the regular \seef{Connect} 
+function and the  \seep{Sock2File} function.
 
 The function returns \var{True} if successfull, \var{False} otherwise.
 }{The errors are those of \seef{Connect}.}
 {\seef{Connect}}
 
 
-\function{Shutdown}{(Sock:Longint;How:Longint)}{Longint}
-{\var{ShutDown} closes one end of a full duplex socket connection, described
-by \var{Sock}. \var{How} determines how the connection will be shut down,
-and can be one of the following:
-\begin{description}
-\item[0] : Further receives are disallowed.
-\item[1] : Further sends are disallowed.
-\item[2] : Sending nor receiving are allowed.
-\end{description}
+\functionl{Connect}{AltCConnect}{(Sock:longint;const addr: TInetSockAddr;var SockIn,SockOut:file)}{Boolean}
+{ This is another alternate form of the \seef{Connect} command. 
+It is equivalent
+to subsequently calling the regular \seef{Connect} function and the 
+\seep{Sock2File} function. The \var{Addr} parameter contains the parameters
+of the internet socket to connect to.
 
-On succes, the function returns 0, on error -1 is returned.
-}
-{\var{SocketError} is used to report errors, and includes the following:
-\begin{description}
-\item[SYS\_EBADF] The socket descriptor is invalid.
-\item[SYS\_ENOTCONN] The socket isn't connected.
-\item[SYS\_ENOTSOCK] The descriptor is not a socket.
-\end{description}
-}{\seef{Socket}, \seef{Connect}}
+The function returns \var{True} if successfull, \var{False} otherwise.
+}{The errors are those of \seef{Connect}.}
+{\seef{Connect}}
 
-\function{GetSocketName}{(Sock:Longint;Var Addr;Var Addrlen:Longint)}{Longint}
-{\var{GetSockName} returns the current name of the specified socket
-\var{Sock}. \var{Addr} should point to enough space to store the name, the
-amount of space pointed to should be set in \var{Addrlen}. 
-When the function returns succesfully, \var{Addr} will be filled with the 
-name, and \var{Addrlen} will be set to the length of \var{Addr}.}
-{Errors are reported in \var{SocketError}, and include the following:
-\begin{description}
-\item[SYS\_EBADF] The socket descriptor is invalid.
-\item[SYS\_ENOBUFS] The system doesn't have enough buffers to perform the
-operation.
-\item[SYS\_ENOTSOCK] The descriptor is not a socket.
-\item[SYS\_EFAULT] \var{Addr} points outside your address space.
-\end{description}
-}{\seef{Bind}}
+\input{sockex/pfinger.tex}
 
 \function{GetPeerName}{(Sock:Longint;Var Addr;Var Addrlen:Longint)}{Longint}
 {\var{GetPeerName} returns the name of the entity connected to the 
@@ -357,25 +253,22 @@ operation.
 \end{description}
 }{\seef{Connect}, \seef{Socket}, \seem{connect}{2}}
 
-\function{SetSocketOptions}{(Sock,Level,OptName:Longint;Var OptVal;optlen:longint)}{Longint}
-{\var{SetSocketOptions} sets the connection options for socket \var{Sock}.
-The socket may be manipulated at different levels, indicated by \var{Level},
-which can be one of the following:
-\begin{description}
-\item[SOL\_SOCKET] To manipulate the socket itself. 
-\item[XXX] set \var{Level} to \var{XXX}, the protocol number of the protocol
-which should interprete the option.
- \end{description}
-For more information on this call, refer to the unix manual page \seem{setsockopt}{2}.
-}
+\function{GetSocketName}{(Sock:Longint;Var Addr;Var Addrlen:Longint)}{Longint}
+{\var{GetSockName} returns the current name of the specified socket
+\var{Sock}. \var{Addr} should point to enough space to store the name, the
+amount of space pointed to should be set in \var{Addrlen}. 
+When the function returns succesfully, \var{Addr} will be filled with the 
+name, and \var{Addrlen} will be set to the length of \var{Addr}.}
 {Errors are reported in \var{SocketError}, and include the following:
 \begin{description}
 \item[SYS\_EBADF] The socket descriptor is invalid.
+\item[SYS\_ENOBUFS] The system doesn't have enough buffers to perform the
+operation.
 \item[SYS\_ENOTSOCK] The descriptor is not a socket.
-\item[SYS\_EFAULT] \var{OptVal} points outside your address space.
+\item[SYS\_EFAULT] \var{Addr} points outside your address space.
 \end{description}
-}
-{\seef{GetSocketOptions}}
+}{\seef{Bind}}
+
 
 \function{GetSocketOptions}{(Sock,Level,OptName:Longint;Var OptVal;optlen:longint)}{Longint}
 {\var{GetSocketOptions} gets the connection options for socket \var{Sock}.
@@ -397,6 +290,158 @@ For more information on this call, refer to the unix manual page \seem{getsockop
 }
 {\seef{GetSocketOptions}}
 
+\function{Listen}{(Sock,MaxConnect:Longint)}{Boolean}
+{\var{Listen} listens for up to \var{MaxConnect} connections from socket
+\var{Sock}. The socket \var{Sock} must be of type \var{SOCK\_STREAM} or
+\var{Sock\_SEQPACKET}.
+
+The function returns \var{True} if a connection was accepted, \var{False} 
+if an error occurred.
+}
+{Errors are reported in \var{SocketError}, and include the following:
+\begin{description}
+\item[SYS\_EBADF] The socket descriptor is invalid.
+\item[SYS\_ENOTSOCK] The descriptor is not a socket.
+\item[SYS\_EOPNOTSUPP] The socket type doesn't support the \var{Listen}
+operation.
+\end{description}
+}{\seef{Socket}, \seef{Bind}, \seef{Connect}}
+
+\function{Recv}{(Sock:Longint;Var Addr;AddrLen,Flags:Longint)}{Longint}
+{\var{Recv} reads at most \var{Addrlen} bytes from socket \var{Sock} into
+address \var{Addr}. The socket must be in a connected state.
+
+\var{Flags} can be one of the following:
+\begin{description}
+\item [1] : Process out-of band data.
+\item [4] : Bypass routing, use a direct interface.
+\item [??] : Wait for full request or report an error.
+\end{description}
+
+The functions returns the number of bytes actually read from the socket, or
+-1 if a detectable error occurred.}
+{Errors are reported in \var{SocketError}, and include the following:
+\begin{description}
+\item[SYS\_EBADF] The socket descriptor is invalid.
+\item[SYS\_ENOTCONN] The socket isn't connected.
+\item[SYS\_ENOTSOCK] The descriptor is not a socket.
+\item[SYS\_EFAULT] The address is outside your address space.
+\item[SYS\_EMSGSIZE] The message cannot be sent atomically.
+\item[SYS\_EWOULDBLOCK] The requested operation would block the process.
+\item[SYS\_ENOBUFS] The system doesn't have enough free buffers available.
+\end{description}
+}{\seef{Send}}
+
+\function{Send}{(Sock:Longint;Var Addr;AddrLen,Flags:Longint)}{Longint}
+{\var{Send} sends \var{AddrLen} bytes starting from address \var{Addr}
+to socket \var{Sock}. \var{Sock} must be in a connected state.
+
+The function returns the number of bytes sent, or -1 if a detectable 
+error occurred.
+
+\var{Flags} can be one of the following:
+\begin{description}
+\item [1] : Process out-of band data.
+\item [4] : Bypass routing, use a direct interface.
+\end{description}
+}
+{Errors are reported in \var{SocketError}, and include the following:
+\begin{description}
+\item[SYS\_EBADF] The socket descriptor is invalid.
+\item[SYS\_ENOTSOCK] The descriptor is not a socket.
+\item[SYS\_EFAULT] The address is outside your address space.
+\item[SYS\_EMSGSIZE] The message cannot be sent atomically.
+\item[SYS\_EWOULDBLOCK] The requested operation would block the process.
+\item[SYS\_ENOBUFS] The system doesn't have enough free buffers available.
+\end{description}
+}{\seef{Recv}, \seem{send}{2}}
+
+\function{SetSocketOptions}{(Sock,Level,OptName:Longint;Var OptVal;optlen:longint)}{Longint}
+{\var{SetSocketOptions} sets the connection options for socket \var{Sock}.
+The socket may be manipulated at different levels, indicated by \var{Level},
+which can be one of the following:
+\begin{description}
+\item[SOL\_SOCKET] To manipulate the socket itself. 
+\item[XXX] set \var{Level} to \var{XXX}, the protocol number of the protocol
+which should interprete the option.
+ \end{description}
+For more information on this call, refer to the unix manual page \seem{setsockopt}{2}.
+}
+{Errors are reported in \var{SocketError}, and include the following:
+\begin{description}
+\item[SYS\_EBADF] The socket descriptor is invalid.
+\item[SYS\_ENOTSOCK] The descriptor is not a socket.
+\item[SYS\_EFAULT] \var{OptVal} points outside your address space.
+\end{description}
+}
+{\seef{GetSocketOptions}}
+
+\function{Shutdown}{(Sock:Longint;How:Longint)}{Longint}
+{\var{ShutDown} closes one end of a full duplex socket connection, described
+by \var{Sock}. \var{How} determines how the connection will be shut down,
+and can be one of the following:
+\begin{description}
+\item[0] : Further receives are disallowed.
+\item[1] : Further sends are disallowed.
+\item[2] : Sending nor receiving are allowed.
+\end{description}
+
+On succes, the function returns 0, on error -1 is returned.
+}
+{\var{SocketError} is used to report errors, and includes the following:
+\begin{description}
+\item[SYS\_EBADF] The socket descriptor is invalid.
+\item[SYS\_ENOTCONN] The socket isn't connected.
+\item[SYS\_ENOTSOCK] The descriptor is not a socket.
+\end{description}
+}{\seef{Socket}, \seef{Connect}}
+
+\procedure{Sock2File}{(Sock:Longint;Var SockIn,SockOut:File)}
+{\var{Sock2File} transforms a socket \var{Sock} into 2 Pascal file
+descriptors of type \var{File}, one for reading from the socket
+(\var{SockIn}), one for writing to the socket (\var{SockOut}).}
+{None.}
+{\seef{Socket}, \seep{Sock2Text}}
+
+\procedure{Sock2Text}{(Sock:Longint;Var SockIn,SockOut: Text)}
+{\var{Sock2Text} transforms a socket \var{Sock} into 2 Pascal file
+descriptors of type \var{Text}, one for reading from the socket
+(\var{SockIn}), one for writing to the socket (\var{SockOut}).}
+{None.}
+{\seef{Socket}, \seep{Sock2File}}
+
+
+
+\function{Socket}{(Domain,SocketType,Protocol:Longint)}{Longint}
+{\var{Socket} creates a new socket in domain \var{Domain}, from type
+\var{SocketType} using protocol \var{Protocol}.
+
+The Domain, Socket type and Protocol can be specified using predefined
+constants (see the section on constants for available constants)
+
+If succesfull, the function returns a socket descriptor, which can be passed
+to a subsequent \seef{Bind} call. If unsuccesfull, the function returns -1.
+}
+{Errors are returned in \var{SocketError}, and include the follwing:
+\begin{description}
+\item[SYS\_EPROTONOSUPPORT]
+The protocol type or the specified protocol is not
+supported within this domain.
+\item[SYS\_EMFILE]
+The per-process descriptor table is full.
+\item[SYS\_ENFILE]
+The system file table is full.
+\item[SYS\_EACCESS]
+ Permission  to  create  a  socket of the specified
+ type and/or protocol is denied.
+\item[SYS\_ENOBUFS]
+ Insufficient  buffer  space  is  available.    The
+ socket   cannot   be   created   until  sufficient
+ resources are freed.
+\end{description}}
+{\seef{SocketPair}, \seem{socket}{2}}
+for an example, see \seef{Accept}.
+
 \function{SocketPair}{(Domain,SocketType,Protocol:Longint;var Pair:TSockArray)}{Longint}
 {\var{SocketPair} creates 2 sockets in domain \var{Domain}, from type
 \var{SocketType} and using protocol \var{Protocol}.
@@ -406,20 +451,6 @@ The pair is returned in \var{Pair}, and they are indistinguishable.
 The function returns -1 upon error and 0 upon success.
 }
 {Errors are reported in \var{SocketError}, and are the same as in \seef{Socket}}
-
-\procedure{Sock2Text}{(Sock:Longint;Var SockIn,SockOut: Text)}
-{\var{Sock2Text} transforms a socket \var{Sock} into 2 Pascal file
-descriptors of type \var{Text}, one for reading from the socket
-(\var{SockIn}), one for writing to the socket (\var{SockOut}).}
-{None.}
-{\seef{Socket}, \seep{Sock2File}}
-
-\procedure{Sock2File}{(Sock:Longint;Var SockIn,SockOut:File)}
-{\var{Sock2File} transforms a socket \var{Sock} into 2 Pascal file
-descriptors of type \var{File}, one for reading from the socket
-(\var{SockIn}), one for writing to the socket (\var{SockOut}).}
-{None.}
-{\seef{Socket}, \seep{Sock2Text}}
 
 \procedure{Str2UnixSockAddr}{(const addr:string;var t:TUnixSockAddr;var len:longint)}
 {\var{Str2UnixSockAddr} transforms a Unix socket address in a string to a

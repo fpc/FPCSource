@@ -240,109 +240,6 @@ Selector to the \dos memory. The whole \dos memory is mapped to a
 single segment. This function will only work in DPMI mode.
 
 \section{Functions and Procedures}
-\procedure {Disable}{}{
-Clears the interrupt flag with CLD and disables the interrupts.
-}
-{None.}{\seep{Enable}}
-\par {\bf NOTE: }This
-function works only in DPMI mode\par 
-
-\procedure{Enable}{}{
-Sets the interrupt flag with STI and allows the processor to handle
-interrupts.
-}{None.}{\seep{Disable}}
-
-\procedurel{get\_meminfo}{GetMeminfo}{(var meminfo : tmeminfo)}{
-Returns the current state of memory allocation of the \dos extender.
-
-\textbf{NOTE: }This procedure has nothing to do with the Pascal function 
-\var{maxavail} and \var{memavail}.}{None.} 
-{\htmlref{tmeminfo}{ty:tmeminfo}} 
-
-\procedurel{get\_pm\_interrupt}{GetPmInterrupt}{(vector : byte;var intaddr : tseginfo)}
-{
-Returns the address of the current protected mode handler for the interrupt
-\var{vector}.}{None.}
-{\seep{SetPmInterrupt},\htmlref{tseginfo}{ty:tseginfo}}
-
-\functionl{get\_run\_mode}{GetRunMode}{}{word}{
-This function returns the mode which the extender is currently running. 
-The function is mostly used to determine if DPMI is supported. 
-
-
-}{None.}
-{\htmlref{rm}{co:rmmode}}
-Example :
-\begin{verbatim}
-uses
-   go32;
-
-begin
-   if get_run_mode=rm_dpmi then
-     writeln('DPMI available')
-   else
-     writeln('No DPMI available');
-end.
-\end{verbatim}
-
-\functionl{get\_cs}{GetCs}{}{word}{Returns the value of the CS
-register.}{None.}{\seef{GetDs},\seef{GetSs}}
-
-\functionl{get\_ds}{GetDs}{}{word}{Returns the value of the DS
-register.}{None.}{\seef{GetCs},\seef{GetSs}}
-
-\functionl{get\_ss}{GetSs}{word}{Returns the value of the SS
-register.}{None.}{\seef{GetDs},\seef{GetCs}}
-
-\function{inportb}{(port : word)}{byte}{Reads a byte from the given I/O
-port.}{None.}{\seep{outportb},\seef{inportw},\seef{inportl}}
-
-\function{inportw}{(port : word)}{word}{Reads a word from the given I/O
-port.}{None.}{\seep{outportw},\seef{inportb},\seef{inportl}}
-
-\function{inportl}{(port : word)}{longint}{Reads a longint from the given I/O
-port.}{None.}{\seep{outportl},\seef{inportw},\seef{inportb}}
-
-\procedure{outportb}{(port : word;data : byte)}{Writes a byte to the
-specified port.}{None.}{\seef{inportb},\seep{outportw},\seep{outportl}}
-
-\procedure{outportw}{(port : word;data : word)}{Writes a word to the
-specified port.}{None.}{\seef{inportw},\seep{outportb},\seep{outportl}}
-
-\procedure{outportl}{(port : word;data : longint)}{Writes a longint to the
-specified port.}{None.}{\seef{inportl},\seep{outportb},\seep{outportw}}
-
-\procedure{realintr}{(intnr : word;var regs : trealregs)}{
-\textbf {NOTE: }This procedure works only in DPMI mode.} 
-{None.}{}
-
-\procedurel{seg\_fillchar}{SegFillChar}{(seg : word;ofs : longint;count : longint;c :
-char)}
-{Fills a memory area specified by a 48 bit pointer with the given number
-of chars.
-
-\textbf {NOTE:} Be careful using this function in non-DPMI mode. 
-}{None.}{\seep{SegFillWord}, \seep{SegMove}}
-
-\procedurel {seg\_fillword}{SegFillWord}{(seg : word;ofs : longint;count : longint;w :
-word)}{Fills a memory area specified by a 48 bit pointer with the given number
-of words.
-
-\textbf {NOTE:} Be careful using this function in non-DPMI mode. 
-}{None.}{\seep{SegFillChar}, \seep{SegMove}}
-
-\procedurel{seg\_move}{SegMove}{(sseg : word;source : longint;dseg : word;dest : longint;count :
-longint)}
-{This procedure copies data when the source and destination are specified
-by 48 bit pointers. For example, this function is used by the DPMI version
-of \var{dosmemget} and \var{dosmemput}. }{The procedure checks only
-for overlapping if source selector equals the destination selector. 
-Be also careful using this function in non-DPMI
-mode.}{\seep{SegFillWord},\seep{SegFillChar}}
-
-\procedurel{set\_pm\_interrupt}{SetPmInterrupt}{(vector : byte;const intaddr : tseginfo)}
-{Sets a new protected mode handler for the interrupt \var{vector}.}
-{None.}{\seep{GetPmInterrupt}, \htmlref{tseginfo}{ty:tseginfo}} 
 
 \functionl{Allocate\_Ldt\_Descriptors}{AllocateLdtDescriptors}{(Count :
 word)}{word}
@@ -408,148 +305,6 @@ end.
 \end{verbatim}
 \end{FPCList}
 
-\procedurel{Free\_Ldt\_Descriptor}{FreeLdtDescriptor}{(Sel : word)}
-{
-\var{Free\_Ldt\_Descriptor} frees a previously allocated selector
-with descriptor \var{Sel}
-
-{\em Notes:}
-\begin{itemize}
-\item Only works with real DPMI.
-\item After this call this selector is invalid and must not be used for any
-memory operations anymore.
-\item Each descriptor allocated with \var{allocate\_ltd\_descriptor} must be 
-freed
-individually with this function, even if it was previously allocated as
-a part of a contiguous array of descriptors.
-\end{itemize}
-}
-{None.}
-{\seef{AllocateLdtDescriptors}}
-
-For an example, see \seef{AllocateLdtDescriptors}.
-
-\functionl{Segment\_To\_Descriptor}{SegmentToDescriptor}{(Seg : Word)}{Word}
-{\var{Segment\_To\_Descriptor} Maps a real mode segment (paragraph) address 
-(in \var{Seg}) onto an descriptor that can be used by a protected mode 
-program to access  the same memory.
-
-The function returns a selector to the DOS real-mode segment.
-
-{\em Notes:}
-\begin{itemize}
-\item Only works with real DPMI.
-\item The descriptors limit will be set to 64KB.
-\item multiple calls to this function with the same segment address will
-  return the same selector.
-\item Descriptors created by this function can never be modified or freed.
-For this reason this function shouldn't be used too often. Programs
-which need to examine various real mode addresses using the same
-selector should use the function \var{allocate\_ldt\_descriptors} and change
-the base address as necessary.
-\end{itemize}
-}
-{None.}
-{}
-\begin{FPCList}
-\item[Example]
-\begin{verbatim}
-uses go32;
-
-var r : trealregs;
-    VGAsel : word;
-
-begin
-     r.realeax := $13; realintr($10, r); 
-     { set VGA mode 13h }
-     VGASel := segment_to_descriptor($A000);
-     {...}
-     seg_fillchar(VGAsel, 100*320+6, 1, #15); 
-     { put a pixel at (6/100) in color 15 }
-     readln;
-     {...} 
-     r.realeax := $3; realintr($10, r);
-end.
-\end{verbatim}
-\end{FPCList}
-
-
-\Functionl{Get\_Next\_Selector\_Increment\_Value}
-{GetNextSelectorIncrementValue}{word}
-{\var{Get\_Next\_Selector\_Increment\_Value} returns the selector increment 
-value when allocating multiple subsequent descriptors
-
-The function \var{allocate\_ldt\_descriptors} can allocate an array of
-contiguous descriptors, but only return the selector for the first. The
-value returned by this function can be used to calculate the selectors
-for subsequent descriptors in the array.
-
-{\em Notes:}
-\begin{itemize}
-\item Only works under real DPMI.
-\item the increment is always a power of 2.
-\end{itemize}
-}
-{None.}
-{\seef{AllocateLdtDescriptors}}
-
-\functionl{Get\_Segment\_Base\_Address}{GetSegmentBaseAddress}{(Sel: word)}{Longint}
-{
-\var{Get\_Segment\_Base\_Address} returns the 32-bit linear base address 
-from the LDT descriptor for the specified segment (\var{Sel}).
-
-
-{\em Notes:}
-\begin{itemize}
-\item Only works under real DPMI.
-\end{itemize}
-}
-{None.}
-{\seep{SetSegmentBaseAddress}}
-
-\begin{FPCList}
-\item[Example:]
-\begin{verbatim}
-uses go32;
-
-begin
-     Writeln(get_segment_base_address(get_ds));
-end.
-\end{verbatim}
-\end{FPCList}
-
-\procedurel{Set\_Segment\_Base\_Address}{SetSegmentBaseAddress}
-{(var Des : word;Sel : longint)}
-{\var{{Set\_Segment\_Base\_Address}} sets the 32-bit linear base address 
-of the descriptor \var{Des} for the specified selector \var{Sel}.
-
-{\em Notes:}
-\begin{itemize}
-\item only works under real DPMI
-\end{itemize}
-}
-{None.}
-{ \seef{AllocateLdtDescriptors}, \seep{SetSegmentLimit}}
-
-For an example, see \seef{AllocateLdtDescriptors}.
-
-\procedurel{Set\_Segment\_Limit}{SetSegmentLimit}{(Des : word;Len : longint)}
-{\var{Set\_Segment\_Limit} sets the limit of the descriptor \var{Des} 
-to the specified length \var{Len}
-
-{\em Notes:}
-\begin{itemize}
-\item Only works under real DPMI.
-\item The new limit is the byte length of the segment-1.
-\item Segment limits bigger than or equal to 1MB must be page aligned, they
-must have the lower 12 bits set.
-\end{itemize}
-}
-{None}
-{ \seep{SetSegmentBaseAddress}, \seef{AllocateLdtDescriptors}}
-
-For an example, see \seef{AllocateLdtDescriptors}.
-
 \functionl{Create\_Code\_Segment\_Alias\_Descriptor}
 {CreateCodeSegmentAliasDescriptor}{(Des : Word)}{Word}
 {\var{Create\_Code\_Segment\_Alias\_Descriptor}
@@ -583,6 +338,52 @@ end.
 \end{verbatim}
 \end{FPCList}
 
+
+\procedure {Disable}{}{
+Clears the interrupt flag with CLD and disables the interrupts.
+}
+{None.}{\seep{Enable}}
+\par {\bf NOTE: }This
+function works only in DPMI mode\par 
+
+\procedure{Enable}{}{
+Sets the interrupt flag with STI and allows the processor to handle
+interrupts.
+}{None.}{\seep{Disable}}
+
+\procedurel{Free\_Ldt\_Descriptor}{FreeLdtDescriptor}{(Sel : word)}
+{
+\var{Free\_Ldt\_Descriptor} frees a previously allocated selector
+with descriptor \var{Sel}
+
+{\em Notes:}
+\begin{itemize}
+\item Only works with real DPMI.
+\item After this call this selector is invalid and must not be used for any
+memory operations anymore.
+\item Each descriptor allocated with \var{allocate\_ltd\_descriptor} must be 
+freed
+individually with this function, even if it was previously allocated as
+a part of a contiguous array of descriptors.
+\end{itemize}
+}
+{None.}
+{\seef{AllocateLdtDescriptors}}
+
+For an example, see \seef{AllocateLdtDescriptors}.
+
+
+\functionl{get\_cs}{GetCs}{}{word}{Returns the value of the CS
+register.}{None.}{\seef{GetDs},\seef{GetSs}}
+
+\functionl{Get\_Descriptor\_Access\_right}{GetDescriptorAccesRight}{(Des: word)}{Longint}
+{\var{Get\_Descriptor\_Access\_right} gets the access rights of a
+descriptor \var{Des}.}
+{None.}{seef{SetDescriptorAccesRight}}
+
+\functionl{get\_ds}{GetDs}{}{word}{Returns the value of the DS
+register.}{None.}{\seef{GetCs},\seef{GetSs}}
+
 \functionl{Get\_Linear\_Addr}{GetLinearAddr}{(PhysAddr : longint;Size : longint)}{longint}
 {\var{Get\_Linear\_Addr} converts a physical address \var{PhysAddr} into 
 a linear address.
@@ -594,6 +395,89 @@ a linear address.
 }{None.}{}
 
 For an example, see \seef{AllocateLdtDescriptors}.
+
+\procedurel{get\_meminfo}{GetMeminfo}{(var meminfo : tmeminfo)}{
+Returns the current state of memory allocation of the \dos extender.
+
+\textbf{NOTE: }This procedure has nothing to do with the Pascal function 
+\var{maxavail} and \var{memavail}.}{None.} 
+{\htmlref{tmeminfo}{ty:tmeminfo}} 
+
+\Functionl{Get\_Next\_Selector\_Increment\_Value}
+{GetNextSelectorIncrementValue}{word}
+{\var{Get\_Next\_Selector\_Increment\_Value} returns the selector increment 
+value when allocating multiple subsequent descriptors
+
+The function \var{allocate\_ldt\_descriptors} can allocate an array of
+contiguous descriptors, but only return the selector for the first. The
+value returned by this function can be used to calculate the selectors
+for subsequent descriptors in the array.
+
+{\em Notes:}
+\begin{itemize}
+\item Only works under real DPMI.
+\item the increment is always a power of 2.
+\end{itemize}
+}
+{None.}
+{\seef{AllocateLdtDescriptors}}
+
+
+\procedurel{get\_pm\_interrupt}{GetPmInterrupt}{(vector : byte;var intaddr : tseginfo)}
+{
+Returns the address of the current protected mode handler for the interrupt
+\var{vector}.}{None.}
+{\seep{SetPmInterrupt},\htmlref{tseginfo}{ty:tseginfo}}
+
+
+
+\functionl{get\_run\_mode}{GetRunMode}{}{word}{
+This function returns the mode which the extender is currently running. 
+The function is mostly used to determine if DPMI is supported. 
+
+
+}{None.}
+{\htmlref{rm}{co:rmmode}}
+Example :
+\begin{verbatim}
+uses
+   go32;
+
+begin
+   if get_run_mode=rm_dpmi then
+     writeln('DPMI available')
+   else
+     writeln('No DPMI available');
+end.
+\end{verbatim}
+
+\functionl{Get\_Segment\_Base\_Address}{GetSegmentBaseAddress}{(Sel: word)}{Longint}
+{
+\var{Get\_Segment\_Base\_Address} returns the 32-bit linear base address 
+from the LDT descriptor for the specified segment (\var{Sel}).
+
+
+{\em Notes:}
+\begin{itemize}
+\item Only works under real DPMI.
+\end{itemize}
+}
+{None.}
+{\seep{SetSegmentBaseAddress}}
+
+\begin{FPCList}
+\item[Example:]
+\begin{verbatim}
+uses go32;
+
+begin
+     Writeln(get_segment_base_address(get_ds));
+end.
+\end{verbatim}
+\end{FPCList}
+
+\functionl{get\_ss}{GetSs}{word}{Returns the value of the SS
+register.}{None.}{\seef{GetDs},\seef{GetCs}}
 
 \functionl{Global\_Dos\_Alloc}{GlobalDosAlloc}{(Len : longint)}{longint}
 {\var{Global\_Dos\_Alloc}
@@ -668,12 +552,134 @@ block, described by selector \var{Sel}.
 
 For an example, see \seef{GlobalDosAlloc}.
 
+\function{inportb}{(port : word)}{byte}{Reads a byte from the given I/O
+port.}{None.}{\seep{outportb},\seef{inportw},\seef{inportl}}
+
+\function{inportl}{(port : word)}{longint}{Reads a longint from the given I/O
+port.}{None.}{\seep{outportl},\seef{inportw},\seef{inportb}}
+
+\function{inportw}{(port : word)}{word}{Reads a word from the given I/O
+port.}{None.}{\seep{outportw},\seef{inportb},\seef{inportl}}
+
+\procedure{outportb}{(port : word;data : byte)}{Writes a byte to the
+specified port.}{None.}{\seef{inportb},\seep{outportw},\seep{outportl}}
+
+\procedure{outportl}{(port : word;data : longint)}{Writes a longint to the
+specified port.}{None.}{\seef{inportl},\seep{outportb},\seep{outportw}}
+
+\procedure{outportw}{(port : word;data : word)}{Writes a word to the
+specified port.}{None.}{\seef{inportw},\seep{outportb},\seep{outportl}}
+
+\procedure{realintr}{(intnr : word;var regs : trealregs)}{
+\textbf {NOTE: }This procedure works only in DPMI mode.} 
+{None.}{}
+
+\procedurel{seg\_fillchar}{SegFillChar}{(seg : word;ofs : longint;count : longint;c :
+char)}
+{Fills a memory area specified by a 48 bit pointer with the given number
+of chars.
+
+\textbf {NOTE:} Be careful using this function in non-DPMI mode. 
+}{None.}{\seep{SegFillWord}, \seep{SegMove}}
+
+\procedurel {seg\_fillword}{SegFillWord}{(seg : word;ofs : longint;count : longint;w :
+word)}{Fills a memory area specified by a 48 bit pointer with the given number
+of words.
+
+\textbf {NOTE:} Be careful using this function in non-DPMI mode. 
+}{None.}{\seep{SegFillChar}, \seep{SegMove}}
+
+\functionl{Segment\_To\_Descriptor}{SegmentToDescriptor}{(Seg : Word)}{Word}
+{\var{Segment\_To\_Descriptor} Maps a real mode segment (paragraph) address 
+(in \var{Seg}) onto an descriptor that can be used by a protected mode 
+program to access  the same memory.
+
+The function returns a selector to the DOS real-mode segment.
+
+{\em Notes:}
+\begin{itemize}
+\item Only works with real DPMI.
+\item The descriptors limit will be set to 64KB.
+\item multiple calls to this function with the same segment address will
+  return the same selector.
+\item Descriptors created by this function can never be modified or freed.
+For this reason this function shouldn't be used too often. Programs
+which need to examine various real mode addresses using the same
+selector should use the function \var{allocate\_ldt\_descriptors} and change
+the base address as necessary.
+\end{itemize}
+}
+{None.}
+{}
+\begin{FPCList}
+\item[Example]
+\begin{verbatim}
+uses go32;
+
+var r : trealregs;
+    VGAsel : word;
+
+begin
+     r.realeax := $13; realintr($10, r); 
+     { set VGA mode 13h }
+     VGASel := segment_to_descriptor($A000);
+     {...}
+     seg_fillchar(VGAsel, 100*320+6, 1, #15); 
+     { put a pixel at (6/100) in color 15 }
+     readln;
+     {...} 
+     r.realeax := $3; realintr($10, r);
+end.
+\end{verbatim}
+\end{FPCList}
+
+\procedurel{seg\_move}{SegMove}{(sseg : word;source : longint;dseg : word;dest : longint;count :
+longint)}
+{This procedure copies data when the source and destination are specified
+by 48 bit pointers. For example, this function is used by the DPMI version
+of \var{dosmemget} and \var{dosmemput}. }{The procedure checks only
+for overlapping if source selector equals the destination selector. 
+Be also careful using this function in non-DPMI
+mode.}{\seep{SegFillWord},\seep{SegFillChar}}
+
 \functionl{Set\_Descriptor\_Access\_right}{SetDescriptorAccesRight}{(Des: word; W: word)}{Longint}
 {\var{Set\_Descriptor\_Access\_right} sets the access rights of a
 descriptor \var{Des}.}
 {None.}{seef{GetDescriptorAccesRight}}
 
-\functionl{Get\_Descriptor\_Access\_right}{GetDescriptorAccesRight}{(Des: word)}{Longint}
-{\var{Get\_Descriptor\_Access\_right} gets the access rights of a
-descriptor \var{Des}.}
-{None.}{seef{SetDescriptorAccesRight}}
+\procedurel{set\_pm\_interrupt}{SetPmInterrupt}{(vector : byte;const intaddr : tseginfo)}
+{Sets a new protected mode handler for the interrupt \var{vector}.}
+{None.}{\seep{GetPmInterrupt}, \htmlref{tseginfo}{ty:tseginfo}} 
+
+\procedurel{Set\_Segment\_Base\_Address}{SetSegmentBaseAddress}
+{(var Des : word;Sel : longint)}
+{\var{{Set\_Segment\_Base\_Address}} sets the 32-bit linear base address 
+of the descriptor \var{Des} for the specified selector \var{Sel}.
+
+{\em Notes:}
+\begin{itemize}
+\item only works under real DPMI
+\end{itemize}
+}
+{None.}
+{ \seef{AllocateLdtDescriptors}, \seep{SetSegmentLimit}}
+
+For an example, see \seef{AllocateLdtDescriptors}.
+
+\procedurel{Set\_Segment\_Limit}{SetSegmentLimit}{(Des : word;Len : longint)}
+{\var{Set\_Segment\_Limit} sets the limit of the descriptor \var{Des} 
+to the specified length \var{Len}
+
+{\em Notes:}
+\begin{itemize}
+\item Only works under real DPMI.
+\item The new limit is the byte length of the segment-1.
+\item Segment limits bigger than or equal to 1MB must be page aligned, they
+must have the lower 12 bits set.
+\end{itemize}
+}
+{None}
+{ \seep{SetSegmentBaseAddress}, \seef{AllocateLdtDescriptors}}
+
+For an example, see \seef{AllocateLdtDescriptors}.
+
