@@ -476,7 +476,7 @@ asm
     movw $0x7f00,%ax
     call syscall
     inc %eax         { Result in EAX, -1 = error (has to be transformed to 0) }
-    jz Sbrk_End
+    jz .Sbrk_End
     dec %eax         { No error - back to previous value }
 .Sbrk_End:
 end ['eax', 'edx'];
@@ -1158,7 +1158,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2003-10-12 17:52:28  hajny
+  Revision 1.43  2003-10-12 17:59:40  hajny
+    * wrong use of Intel syntax
+
+  Revision 1.42  2003/10/12 17:52:28  hajny
     * wrong use of Intel syntax
 
   Revision 1.41  2003/10/12 10:45:36  hajny
