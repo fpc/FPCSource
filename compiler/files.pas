@@ -254,7 +254,8 @@ unit files;
 
     var
        main_module    : pmodule;     { Main module of the program }
-       current_module : pmodule;     { Current module which is compiled }
+       current_module : pmodule;     { Current module which is compiled or loaded }
+       compiled_module : pmodule;     { Current module which is compiled }
        current_ppu    : pppufile;    { Current ppufile which is read }
        global_unit_count : word;
        usedunits      : tlinkedlist; { Used units for this program }
@@ -1330,7 +1331,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.102  1999-08-31 15:51:10  pierre
+  Revision 1.103  1999-09-16 08:00:50  pierre
+   + compiled_module to avoid wrong file info when load PPU files
+
+  Revision 1.102  1999/08/31 15:51:10  pierre
    * in_second_compile cleaned up, in_compile and in_second_load added
 
   Revision 1.101  1999/08/27 10:43:20  pierre
