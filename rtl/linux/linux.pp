@@ -30,7 +30,8 @@ var
 {********************
       Process
 ********************}
-    
+
+
 Const
   { For getting/setting priority }
   Prio_Process = 0;
@@ -50,7 +51,8 @@ Const
   LOCK_EX = 2;
   LOCK_UN = 8;
   LOCK_NB = 4;
-  
+
+
 Type
   Tpipe = array[1..2] of longint;
 
@@ -66,7 +68,8 @@ Type
   NameStr = String[255];
   ExtStr  = String[255];
 
-const  
+const
+
   { For testing  access rights }
   R_OK = 4;
   W_OK = 2;
@@ -84,7 +87,8 @@ const
   F_GetOwn = 8;
   F_SetOwn = 9;
 
-  
+
+
 {********************
       Signal
 ********************}
@@ -149,7 +153,8 @@ Type
 
   SigSet  = Integer;
   PSigSet = ^SigSet;
-  
+
+
 {$PACKRECORDS 1}
   SigActionRec = record
     Sa_Handler : ^SignalHandler;
@@ -232,7 +237,8 @@ Const
   TIOCPKT_START      = 8;
   TIOCPKT_NOSTOP     = 16;
   TIOCPKT_DOSTOP     = 32;
-  
+
+
 Type
 {$PACKRECORDS 1}
   winsize = record
@@ -252,11 +258,15 @@ Type
   end;
 
   TermIOS = record
-    c_iflag,              
-    c_oflag,              
-    c_cflag,              
+    c_iflag,
+
+    c_oflag,
+
+    c_cflag,
+
     c_lflag  : longint;
-    c_line  : char;         
+    c_line  : char;
+
     c_cc     : array[0..NCCS-1] of byte;
   end;
 {$PACKRECORDS 2}
@@ -420,7 +430,8 @@ const
    TCIFLUSH  = 0;
    TCOFLUSH  = 1;
    TCIOFLUSH = 2;
-  
+
+
 {********************
       Info
 ********************}
@@ -472,13 +483,15 @@ Procedure GetDate(Var Year,Month,Day:Integer);
      Process Handling
 ***************************}
 
+function  CreateShellArgV(const prog:string):ppchar;
 Procedure Execve(Path:pathstr;args:ppchar;ep:ppchar);
+Procedure Execve(path:pchar;args:ppchar;ep:ppchar);
 Procedure Execv(const path:pathstr;args:ppchar);
 Procedure Execvp(Path:Pathstr;Args:ppchar;Ep:ppchar);
 Procedure Execl(const Todo:string);
 Procedure Execle(Todo:string;Ep:ppchar);
 Procedure Execlp(Todo:string;Ep:ppchar);
-Function  Shell(Command:String):Longint;
+Function  Shell(const Command:String):Longint;
 Function  Fork:longint;
 Function  WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
 Procedure Nice(N:integer);
@@ -629,7 +642,8 @@ Function  FD_IsSet(fd:longint;var fds:fdSet):boolean;
 {Stat.Mode Types}
 Function S_ISLNK(m:integer):boolean;
 Function S_ISREG(m:integer):boolean;
-Function S_ISDIR(m:integer):boolean;   
+Function S_ISDIR(m:integer):boolean;
+
 Function S_ISCHR(m:integer):boolean;
 Function S_ISBLK(m:integer):boolean;
 Function S_ISFIFO(m:integer):boolean;
@@ -660,6 +674,26 @@ var
 {******************************************************************************
                           Process related calls
 ******************************************************************************}
+
+function CreateShellArgV(const prog:string):ppchar;
+{
+  Create an argv which executes a command in a shell using /bin/sh -c
+}
+var
+  pp,p : ppchar;
+  temp : string;
+begin
+  getmem(pp,4*4);
+  temp:='/bin/sh'#0'-c'#0+prog+#0;
+  pp^:=@temp[1];
+  p:=pp+4;
+  p^:=@temp[9];
+  p:=p+4;
+  p^:=@temp[12];
+  p:=p+4;
+  p^:=Nil;
+  CreateShellArgV:=pp;
+end;
 
 
 Function Fork:longint;
@@ -698,6 +732,23 @@ begin
   Linuxerror:=errno;
 end;
 
+
+Procedure Execve(path:pchar;args:ppchar;ep:ppchar);
+{
+  Replaces the current program by the program specified in path,
+  arguments in args are passed to Execve.
+  environment specified in ep is passed on.
+}
+var
+  regs:SysCallregs;
+begin
+  regs.reg2:=longint(path);
+  regs.reg3:=longint(args);
+  regs.reg4:=longint(ep);
+  SysCall(SysCall_nr_Execve,regs);
+{ This only gets set when the call fails, otherwise we don't get here ! }
+  Linuxerror:=errno;
+end;
 
 
 Procedure Execv(const path:pathstr;args:ppchar);
@@ -752,8 +803,9 @@ var
 begin
   p:=StringToPPChar(ToDo);
   if (p=nil) or (p^=nil) then
-   exit; 
-  ExecVE(StrPas(p^),p,EP);
+   exit;
+
+  ExecVE(p^,p,EP);
 end;
 
 
@@ -812,7 +864,7 @@ end;
 
 
 
-Function Shell(Command:String):Longint;
+Function Shell(const Command:String):Longint;
 {
   Executes the shell, and passes it the string Command. (Through /bin/sh -c)
   The current environment is passed to the shell.
@@ -820,30 +872,17 @@ Function Shell(Command:String):Longint;
   If the Exec call failed exit status 127 is reported.
 }
 var
-  p,pp     : ppchar;
-  sh       : string[12];
+  p        : ppchar;
   temp,pid : longint;
 begin
-  sh:='/bin/sh'#0'-c'#0;
-  Command:=Command+#0;
-  getmem(pp,12);
-  if pp=nil then
-   begin
-     LinuxError:=Sys_enomem;
-     exit;
-   end;
-  pp^:=@sh[1];
-  p:=pp+4;
-  p^:=@sh[9];
-  p:=p+4;
-  p^:=@command[1];
   pid:=fork;
   if pid=-1 then
    exit; {Linuxerror already set in Fork}
   if pid=0 then
    begin
      {This is the child.}
-     Execve('/bin/sh',pp,envp);
+     p:=CreateShellArgv(command);
+     Execve(p^,p,envp);
      exit(127);
    end;
   temp:=0;
@@ -1277,7 +1316,8 @@ end;
 
 Function  fdSeek (fd,pos,seektype :longint): longint;
 {
-  Do a Seek on a file descriptor fd to position pos, starting from seektype 
+  Do a Seek on a file descriptor fd to position pos, starting from seektype
+
 }
 begin
    fdseek:=Sys_LSeek (fd,pos,seektype);
@@ -1311,7 +1351,8 @@ Function Fcntl(Fd:Text;Cmd:integer):integer;
 var
   sr : Syscallregs;
 begin
-  if (cmd in [F_GetFd,F_GetFl,F_GetOwn]) then      
+  if (cmd in [F_GetFd,F_GetFl,F_GetOwn]) then
+
    begin
      sr.reg2:=textrec(fd).handle;
      sr.reg3:=cmd;
@@ -1348,7 +1389,8 @@ Procedure Fcntl(Fd:Text;Cmd:Integer;Arg:Longint);
 var
   sr : Syscallregs;
 begin
-  if (cmd in [F_SetFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkw,F_SetOwn]) then      
+  if (cmd in [F_SetFd,F_SetFl,F_GetLk,F_SetLk,F_SetLkw,F_SetOwn]) then
+
    begin
      sr.reg2:=textrec(fd).handle;
      sr.reg3:=cmd;
@@ -1482,7 +1524,8 @@ Function  FStat(var F:File;Var Info:stat):Boolean;
 begin
   FStat:=Fstat(FileRec(F).Handle,Info);
 end;
-  
+
+
 
 
 Function Lstat(Filename: PathStr;var Info:stat):Boolean;
@@ -1839,7 +1882,8 @@ begin
                textrec(f).mode:=fmclosed;
   else
    textrec(f).mode:=fmclosed;
-  end;   
+  end;
+
 end;
 
 
@@ -1848,7 +1892,8 @@ begin
   case textrec(f).mode of
    fmoutput : Sys_write(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufpos);
     fminput : textrec(f).bufend:=Sys_read(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufsize);
-  end;   
+  end;
+
   textrec(f).bufpos:=0;
 end;
 
@@ -1902,7 +1947,8 @@ begin
    begin
      AssignPipe:=false;
      exit;
-   end;    
+   end;
+
 { Set up input }
   Assign(Pipe_in,'.');
   Textrec(Pipe_in).Handle:=f_in;
@@ -1938,7 +1984,8 @@ begin
    begin
      AssignPipe:=false;
      exit;
-   end;    
+   end;
+
 { Set up input }
   Assign(Pipe_in,'.');
   Filerec(Pipe_in).Handle:=f_in;
@@ -1959,8 +2006,10 @@ Function PClose(Var F:text) :longint;
 var
   sr  : syscallregs;
   pl  : ^longint;
-  res : longint; 
-  
+  res : longint;
+
+
+
 begin
   sr.reg2:=Textrec(F).Handle;
   SysCall (syscall_nr_close,sr);
@@ -1976,7 +2025,8 @@ var
   sr : syscallregs;
   pl : ^longint;
   res : longint;
-  
+
+
 begin
  sr.reg2:=FileRec(F).Handle;
  SysCall (Syscall_nr_close,sr);
@@ -1990,10 +2040,12 @@ end;
 Procedure PCloseText(Var F:text);
 {
   May not use @PClose due overloading
-}  
+}
+
 begin
   PClose(f);
-end; 
+end;
+
 
 
 Procedure POpen(var F:text;const Prog:String;rw:char);
@@ -2009,8 +2061,7 @@ var
   pipo : text;
   pid  : longint;
   pl   : ^longint;
-  p,pp : ppchar;
-  temp : string[255];
+  pp   : ppchar;
 begin
   LinuxError:=0;
   rw:=upcase(rw);
@@ -2048,16 +2099,8 @@ begin
         if linuxerror<>0 then
          halt(127);
       end;
-     getmem(pp,sizeof(pchar)*4);
-     temp:='/bin/sh'#0'-c'#0+prog+#0;
-     pp^:=@temp[1];
-     p:=pp+sizeof(pchar);
-     p^:=@temp[9];
-     p:=p+sizeof(pchar);
-     p^:=@temp[12];
-     p:=p+sizeof(pchar);
-     p^:=Nil;
-     Execve('/bin/sh',pp,envp);
+     pp:=createshellargv(prog);
+     Execve(pp^,pp,envp);
      halt(127);
    end
   else
@@ -2194,7 +2237,8 @@ var
   pipi,
   pipo : text;
   pid  : longint;
-  
+
+
 begin
   LinuxError:=0;
   AssignPipe(streamin,pipo);
@@ -2232,7 +2276,8 @@ begin
   else
    begin
    { we're in the parent}
-   { 
+   {
+
      Let's redraw the schedule :
           Parent      Child
           pipo[1] --> pipi[1]
@@ -2534,12 +2579,14 @@ Procedure CFMakeRaw(var tios:TermIOS);
 begin
   with tios do
    begin
-     c_iflag:=c_iflag and (not (IGNBRK or BRKINT or PARMRK or ISTRIP or 
+     c_iflag:=c_iflag and (not (IGNBRK or BRKINT or PARMRK or ISTRIP or
+
                                 INLCR or IGNCR or ICRNL or IXON));
      c_oflag:=c_oflag and (not OPOST);
      c_lflag:=c_lflag and (not (ECHO or ECHONL or ICANON or ISIG or IEXTEN));
      c_cflag:=(c_cflag and (not (CSIZE or PARENB))) or CS8;
-   end;    
+   end;
+
 end;
 
 
@@ -2731,7 +2778,8 @@ begin
       buf:=buf+1;
    end;
 end;
- 
+
+
 
 
 Function FExpand(Const Path:PathStr):PathStr;
@@ -2763,7 +2811,8 @@ Begin
      else
       inc(i);
      temp:=temp+'/'+copy(path,i,length(path)-i+1)+'/';
-   end;    
+   end;
+
 {First remove all references to '/./'}
   while pos('/./',temp)<>0 do
    delete(temp,pos('/./',temp),2);
@@ -2780,7 +2829,8 @@ Begin
       end
      else
       if i=1 then               {i=1, so we have temp='/../something', just delete '/../'}
-       delete(temp,1,3);      
+       delete(temp,1,3);
+
   until i=0;
 {Remove ending . and / which may exist}
   if (length(temp)>0) and (temp[length(temp)]='/') then
@@ -2818,7 +2868,8 @@ Begin
        NewDir:=Copy(DirList,1,P1 - 1);
        if NewDir[Length(NewDir)]<>'/' then
         NewDir:=NewDir+'/';
-       NewDir:=NewDir+Path;    
+       NewDir:=NewDir+Path;
+
        Delete(DirList,1,p1);
        if FStat(NewDir,Info) then
         Begin
@@ -3166,7 +3217,8 @@ end;
 
 
 
-Function S_ISDIR(m:integer):boolean;   
+Function S_ISDIR(m:integer):boolean;
+
 {
   Check mode field of inode for directory.
 }
@@ -3221,7 +3273,12 @@ End.
 
 {
   $Log$
-  Revision 1.7  1998-05-06 12:35:26  michael
+  Revision 1.8  1998-05-06 18:45:32  peter
+    * fixed the shell() bug (the correct code was also in Popen) moved the
+      argv generation to CreateShellArgv
+    + Execve with pchar instead of string
+
+  Revision 1.7  1998/05/06 12:35:26  michael
   + Removed log from before restored version.
 
   Revision 1.6  1998/04/15 11:23:53  michael
@@ -3233,13 +3290,9 @@ End.
   Revision 1.4  1998/04/07 13:08:29  michael
   + Added flock for file locking
 
-
   Revision 1.3  1998/04/07 12:27:41  peter
     * fixed fexpand('..')
 
   Revision 1.2  1998/04/04 17:07:17  michael
   + Fixed AssignStream, it completely refused to work
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
 }
