@@ -16,18 +16,6 @@
   This unit is an equivalent to the Delphi math unit
   (with some improvements)
 
-  About assembler usage:
-  ----------------------
-  I used as few as possible assembler to allow an easy port
-  to other processors. Today, I think it's wasted time to write
-  assembler because different versions of a family of processors
-  need different implementations.
-
-  To improve performance, I changed all integer arguments and
-  functions results to longint, because 16 bit instructions are
-  lethal for a modern intel processor.
-                                                      (FK)
-
   What's to do:
     o a lot of function :), search for !!!!
     o some statistical functions
@@ -154,21 +142,21 @@ function lnxp1(x : float) : float;
 
 function power(base,exponent : float) : float;
 { base^exponent }
-function intpower(base : float;exponent : longint) : float;
+function intpower(base : float;const exponent : Integer) : float;
 
 { number converting }
 
 { rounds x towards positive infinity }
-function ceil(x : float) : longint;
+function ceil(x : float) : Integer;
 { rounds x towards negative infinity }
-function floor(x : float) : longint;
+function floor(x : float) : Integer;
 
 { misc. functions }
 
 { splits x into mantissa and exponent (to base 2) }
 procedure Frexp(X: float; var Mantissa: float; var Exponent: integer);
 { returns x*(2^p) }
-function ldexp(x : float;p : longint) : float;
+function ldexp(x : float; const p : Integer) : float;
 
 { statistical functions }
 
@@ -303,20 +291,8 @@ function cotan(x : float) : float;
 procedure sincos(theta : float;var sinus,cosinus : float);
 
   begin
-  {$ifndef i386}
-  sinus:=sin(theta);
-  cosinus:=cos(theta);
-  {$else}
-  asm
-    fldt theta
-    fsincos
-    fwait
-    movl cosinus,%eax
-    fstpt (%eax)
-    movl sinus,%eax
-    fstpt (%eax)
-  end;
-  {$endif}
+    sinus:=sin(theta);
+    cosinus:=cos(theta);
   end;
 
 { Sign, ArcSin and ArcCos from Arjan van Dijk (arjan.vanDijk@User.METAIR.WAU.NL) }
@@ -344,21 +320,8 @@ end;
 
 
 function arctan2( x,y : float) : float;
-
-  {$ifndef i386}
   begin
-  ArcTan2:=ArcTan(x/y);
-  {$else}
-    { without the assembler keyword, you have to store the result to }
-    { __result at the end of the assembler block (JM)                }
-    assembler;
-    asm
-    fldt X
-    fldt Y
-    fpatan
-    //leave
-    // ret $20 This is wrong for 4 byte aligned OS !!
-  {$endif}
+     ArcTan2:=ArcTan(x/y);
   end;
 
 function cosh(x : float) : float;
@@ -479,7 +442,7 @@ function power(base,exponent : float) : float;
         InvalidArgument
   end;
 
-function intpower(base : float;exponent : longint) : float;
+function intpower(base : float;const exponent : Integer) : float;
 
   var
      i : longint;
@@ -501,7 +464,7 @@ function intpower(base : float;exponent : longint) : float;
        intpower:=1.0/intpower;
   end;
 
-function ceil(x : float) : longint;
+function ceil(x : float) : integer;
 
   begin
     Ceil:=Trunc(x);
@@ -509,7 +472,7 @@ function ceil(x : float) : longint;
       Ceil:=Ceil+1;
   end;
 
-function floor(x : float) : longint;
+function floor(x : float) : integer;
 
   begin
      Floor:=Trunc(x);
@@ -536,7 +499,7 @@ procedure Frexp(X: float; var Mantissa: float; var Exponent: integer);
       mantissa := x;
   end;
 
-function ldexp(x : float;p : longint) : float;
+function ldexp(x : float;const p : Integer) : float;
 
   begin
      ldexp:=x*intpower(2.0,p);
@@ -973,7 +936,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2002-09-07 16:01:22  peter
+  Revision 1.8  2002-09-07 21:06:12  carl
+    * cleanup of parameters
+    - remove assembler code
+
+  Revision 1.7  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
 
 }
