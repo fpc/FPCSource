@@ -14,9 +14,9 @@ defaultrule: info
 override PATH:=$(subst \,/,$(PATH))
 
 # Search for PWD and determine also if we are under linux
-PWD=$(strip $(wildcard $(addsuffix /pwd.exe,$(subst ;, ,$(PATH)))))
+PWD:=$(strip $(wildcard $(addsuffix /pwd.exe,$(subst ;, ,$(PATH)))))
 ifeq ($(PWD),)
-PWD=$(strip $(wildcard $(addsuffix /pwd,$(subst :, ,$(PATH)))))
+PWD:=$(strip $(wildcard $(addsuffix /pwd,$(subst :, ,$(PATH)))))
 ifeq ($(PWD),)
 nopwd:
 	@echo You need the GNU utils package to use this Makefile!
@@ -52,11 +52,18 @@ else
 EXEEXT=.exe
 endif
 
-# The path which is search separated by spaces
+# The path which is searched separated by spaces
 ifdef inlinux
 SEARCHPATH=$(subst :, ,$(PATH))
 else
 SEARCHPATH=$(subst ;, ,$(PATH))
+endif
+
+# Base dir
+ifdef PWD
+BASEDIR:=$(shell $(PWD))
+else
+BASEDIR=.
 endif
 
 #####################################################################
@@ -65,34 +72,85 @@ endif
 
 # What compiler to use ?
 ifndef FPC
-ifdef inOS2
-export FPC=ppos2$(EXEEXT)
+# Compatibility with old makefiles
+ifdef PP
+FPC=$(PP)
 else
-export FPC=ppc386$(EXEEXT)
+ifdef inOS2
+FPC=ppos2
+else
+FPC=ppc386
 endif
 endif
+endif
+override FPC:=$(subst $(EXEEXT),,$(FPC))
+override FPC:=$(subst \,/,$(FPC))$(EXEEXT)
 
 # Target OS
 ifndef OS_TARGET
-export OS_TARGET=$(shell $(FPC) -iTO)
+OS_TARGET:=$(shell $(FPC) -iTO)
 endif
 
 # Source OS
 ifndef OS_SOURCE
-export OS_SOURCE=$(shell $(FPC) -iSO)
+OS_SOURCE:=$(shell $(FPC) -iSO)
 endif
 
-# FPC_CPU
-ifndef FPC_CPU
-export FPC_CPU=$(shell $(FPC) -iTP)
+# Target CPU
+ifndef CPU_TARGET
+CPU_TARGET:=$(shell $(FPC) -iTP)
+endif
+
+# Source CPU
+ifndef CPU_SOURCE
+CPU_SOURCE:=$(shell $(FPC) -iSP)
 endif
 
 # FPC version
 ifndef FPC_VERSION
-export FPC_VERSION=$(shell $(FPC) -iV)
+FPC_VERSION:=$(shell $(FPC) -iV)
 endif
 
+export FPC OS_TARGET OS_SOURCE CPU_TARGET CPU_SOURCE FPC_VERSION
 
+#####################################################################
+# FPCDIR Setting
+#####################################################################
+
+# Test FPCDIR to look if the RTL dir exists
+ifdef FPCDIR
+override FPCDIR:=$(subst \,/,$(FPCDIR))
+ifeq ($(wildcard $(FPCDIR)/rtl),)
+ifeq ($(wildcard $(FPCDIR)/units),)
+override FPCDIR=wrong
+endif
+endif
+else
+override FPCDIR=wrong
+endif
+
+# Detect FPCDIR
+ifeq ($(FPCDIR),wrong)
+ifdef inlinux
+override FPCDIR=/usr/local/lib/fpc/$(FPC_VERSION)
+ifeq ($(wildcard $(FPCDIR)/units),)
+override FPCDIR=/usr/lib/fpc/$(FPC_VERSION)
+endif
+else
+override FPCDIR:=$(subst /$(FPC),,$(firstword $(strip $(wildcard $(addsuffix /$(FPC),$(SEARCHPATH))))))
+override FPCDIR:=$(FPCDIR)/..
+ifeq ($(wildcard $(FPCDIR)/rtl),)
+ifeq ($(wildcard $(FPCDIR)/units),)
+override FPCDIR:=$(FPCDIR)/..
+ifeq ($(wildcard $(FPCDIR)/rtl),)
+ifeq ($(wildcard $(FPCDIR)/units),)
+override FPCDIR=c:/pp
+endif
+endif
+endif
+endif
+endif
+endif
 
 #####################################################################
 # User Settings
@@ -134,7 +192,8 @@ ASMEXT=.s
 SMARTEXT=.sl
 STATICLIBEXT=.a
 SHAREDLIBEXT=.so
-PACKAGESUFFIX=
+RSTEXT=.rst
+FPCMADE=fpcmade
 
 # Go32v1
 ifeq ($(OS_TARGET),go32v1)
@@ -144,17 +203,17 @@ ASMEXT=.s1
 SMARTEXT=.sl1
 STATICLIBEXT=.a1
 SHAREDLIBEXT=.so1
-PACKAGESUFFIX=v1
+FPCMADE=fpcmade.v1
 endif
 
 # Go32v2
 ifeq ($(OS_TARGET),go32v2)
-PACKAGESUFFIX=go32
+FPCMADE=fpcmade.dos
 endif
 
 # Linux
 ifeq ($(OS_TARGET),linux)
-PACKAGESUFFIX=linux
+FPCMADE=fpcmade.lnx
 endif
 
 # Win32
@@ -165,7 +224,7 @@ ASMEXT=.sw
 SMARTEXT=.slw
 STATICLIBEXT=.aw
 SHAREDLIBEXT=.dll
-PACKAGESUFFIX=win32
+FPCMADE=fpcmade.w32
 endif
 
 # OS/2
@@ -176,7 +235,7 @@ OEXT=.oo2
 SMARTEXT=.so
 STATICLIBEXT=.ao2
 SHAREDLIBEXT=.dll
-PACKAGESUFFIX=os2
+FPCMADE=fpcmade.os2
 endif
 
 # library prefix
@@ -208,29 +267,56 @@ endif
 # Default Directories
 #####################################################################
 
-# Base dir
-ifdef PWD
-BASEDIR:=$(shell $(PWD))
-else
-BASEDIR=.
-endif
-
 # set the prefix directory where to install everything
 ifndef PREFIXINSTALLDIR
 ifdef inlinux
-export PREFIXINSTALLDIR=/usr
+PREFIXINSTALLDIR=/usr
 else
-export PREFIXINSTALLDIR=/pp
+PREFIXINSTALLDIR=/pp
 endif
 endif
+export PREFIXINSTALLDIR
 
+# Where to place the resulting zip files
+ifndef DESTZIPDIR
+DESTZIPDIR:=$(BASEDIR)
+endif
+export DESTZIPDIR
 
+#####################################################################
+# Redirection
+#####################################################################
 
+ifndef REDIRFILE
+REDIRFILE=log
+endif
+
+ifdef REDIR
+ifndef inlinux
+override FPC=redir -eo $(FPC)
+endif
+# set the verbosity to max
+override FPCOPT+=-va
+override REDIR:= >> $(REDIRFILE)
+endif
+
+#####################################################################
+# Standard rules
+#####################################################################
+
+#####################################################################
+# Local Makefile
+#####################################################################
+
+ifneq ($(wildcard fpcmake.loc),)
+include fpcmake.loc
+endif
 
 #####################################################################
 # Users rules
 #####################################################################
 
+.PHONY: all units tests cont_tests
 
 # For linux by default no graph tests
 ifdef inlinux
@@ -249,6 +335,9 @@ graphlst=
 endif
 
 all : info
+
+units :
+	$(MAKE) -C units
 
 tests : clean all_compilations
 

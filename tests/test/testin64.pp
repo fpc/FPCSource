@@ -27,8 +27,11 @@ var
    q1,q3,q4 : qword;
 
 begin
-   if (q4 div q3) div (q2 div q1)<>(q2 div q1) div (q4 div q3) then
-     writeln;
+   q1:=1;
+   q3:=1;
+   q4:=1;
+   if not((q4 div q3) div (q2 div q1)<>(q2 div q1) div (q4 div q3)) then
+     writeln('Error :(');
    q:=q-q;
    q:=q-(q*q);
    q:=(q*q)-(q*q);
@@ -83,10 +86,11 @@ begin
    q:=(q*q)*(q*q);
    q:=((q*q)*(q*q))*((q*q)*(q*q));
 
-   write(q);
-   write(i);
+   writeln(q);
+   writeln(i);
+{ test can't be interactive (PFV)
    read(q);
-   read(i);
+   read(i); }
    str(q,s);
    str(i,s);
 end.

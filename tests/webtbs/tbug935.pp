@@ -1,3 +1,4 @@
+{$inline on}
 
 procedure test(v:boolean);
 

@@ -14,9 +14,7 @@ asm
    MOV  AX,B
    CMP  AX,[CB]
    JZ   @OK
-   CLI
    MOV  [CB],AX
-   STI
    CALL DoIt
 @OK:      { <-- creates labels with same name }
 end;

@@ -10,6 +10,8 @@ none=1
 exts=1
 
 [rules]
+.PHONY: all units tests cont_tests
+
 # For linux by default no graph tests
 ifdef inlinux
 NOGRAPH=1
@@ -27,6 +29,9 @@ graphlst=
 endif
 
 all : info
+
+units :
+	$(MAKE) -C units
 
 tests : clean all_compilations
 

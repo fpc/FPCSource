@@ -17,7 +17,6 @@ var
    i : longint;
 
 begin
-   d;
    for i:=1 to 20 do
      try
         d;

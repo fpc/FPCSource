@@ -9,9 +9,7 @@ asm
    MOV  AX,B
    CMP  AX,[CB]
    JZ   @@10
-   CLI
    MOV  [CB],AX
-   STI
 @@10:
 end;
 
