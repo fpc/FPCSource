@@ -263,7 +263,7 @@ begin
   FreeNotifyData(Self, Data);
 end;
 
-function TEventLoop.TimerTicks: Int64;
+class function TEventLoop.TimerTicks: Int64;
 begin
   Result := asyncGetTicks;
 end;
@@ -347,22 +347,22 @@ begin
       if (RealBuffer[i] = #13) or (RealBuffer[i] = #10) then
       begin
         LineLength := i - LastEndOfLine;
-	SetLength(line, LineLength);
-	if LineLength > 0 then
-	  Move(RealBuffer[LastEndOfLine], line[1], LineLength);
+        SetLength(line, LineLength);
+        if LineLength > 0 then
+          Move(RealBuffer[LastEndOfLine], line[1], LineLength);
 
-	if ((RealBuffer[i] = #13) and (RealBuffer[i + 1] = #10)) or
-	   ((RealBuffer[i] = #10) and (RealBuffer[i + 1] = #13)) then
-	  Inc(i);
-	LastEndOfLine := i + 1;
+        if ((RealBuffer[i] = #13) and (RealBuffer[i + 1] = #10)) or
+           ((RealBuffer[i] = #10) and (RealBuffer[i + 1] = #13)) then
+          Inc(i);
+        LastEndOfLine := i + 1;
 
-	if Assigned(FOnLine) then begin
-	  FBuffer := RealBuffer + LastEndOfLine;
-	  FBytesInBuffer := CurBytesInBuffer - LastEndOfLine;
-	  FOnLine(line);
-	  // Check if <this> has been destroyed by FOnLine:
-	  if not Assigned(FBuffer) then exit;
-	end;
+        if Assigned(FOnLine) then begin
+          FBuffer := RealBuffer + LastEndOfLine;
+          FBytesInBuffer := CurBytesInBuffer - LastEndOfLine;
+          FOnLine(line);
+          // Check if <this> has been destroyed by FOnLine:
+          if not Assigned(FBuffer) then exit;
+        end;
       end;
       Inc(i);
     end;
@@ -606,7 +606,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-09-15 15:45:38  sg
+  Revision 1.4  2002-12-27 15:46:15  peter
+    * add class to timerticks
+
+  Revision 1.3  2002/09/15 15:45:38  sg
   * Added stream line reader classes
 
   Revision 1.2  2002/09/07 15:42:57  peter
