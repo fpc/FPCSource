@@ -21,6 +21,8 @@
 
  ****************************************************************************
 }
+{ This unit generate assembler for memory related nodes.
+}
 unit ncgmem;
 
 {$i fpcdefs.inc}
@@ -76,7 +78,8 @@ implementation
       aasmbase,aasmtai,aasmcpu,
       cgbase,pass_2,
       nld,ncon,nadd,
-      cpuinfo,cpubase,cgobj,cgcpu,
+      cpuinfo,cpubase,cpupara,
+      cgobj,cgcpu,
       tgobj,rgobj
 {$ifdef GDB}
   {$ifdef delphi}
@@ -243,7 +246,7 @@ implementation
          if (cs_gdb_heaptrc in aktglobalswitches) and
             (cs_checkpointer in aktglobalswitches) then
           begin
-            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,1);
+            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,getintparaloc(1));
             cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
           end;
       end;
@@ -463,7 +466,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2002-07-01 18:46:23  peter
+  Revision 1.16  2002-07-07 09:52:32  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.15  2002/07/01 18:46:23  peter
     * internal linker
     * reorganized aasm layer
 

@@ -25,7 +25,8 @@ unit aoptbase;
 
 Interface
 
-uses aasm, cpuasm,cpubase;
+uses aasmbase,aasmcpu,aasmtai,
+  cpubase;
 
 { the number of tai objects processed by an optimizer object since the last }
 { time a register was modified                                              }
@@ -261,7 +262,11 @@ End.
 
 {
   $Log$
-  Revision 1.5  2002-05-18 13:34:05  peter
+  Revision 1.6  2002-07-07 09:52:32  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.5  2002/05/18 13:34:05  peter
     * readded missing revisions
 
   Revision 1.4  2002/05/16 19:46:34  carl

@@ -95,12 +95,12 @@ uses
         R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7
       );
 
-      {# A type to store register locations for 64 Bit values. }
+      { A type to store register locations for 64 Bit values. }
       tregister64 = packed record
         reglo,reghi : tregister;
       end;
 
-      {# alias for compact code }
+      { alias for compact code }
       treg64 = tregister64;
 
       {# Set type definition for registers }
@@ -210,6 +210,13 @@ uses
          options     : trefoptions;
       end;
 
+      { reference record }
+      pparareference = ^tparareference;
+      tparareference = packed record
+         index       : tregister;
+         offset      : longint;
+      end;
+
 {*****************************************************************************
                                 Operands
 *****************************************************************************}
@@ -248,6 +255,29 @@ uses
         LOC_SSEREGISTER,
         LOC_CSSEREGISTER
       );
+
+      { tparamlocation describes where a parameter for a procedure is stored.
+        References are given from the caller's point of view. The usual
+        TLocation isn't used, because contains a lot of unnessary fields.
+      }
+      tparalocation = packed record
+         loc  : TLoc;
+         sp_fixup : longint;
+         case TLoc of
+            LOC_REFERENCE : (reference : tparareference);
+            { segment in reference at the same place as in loc_register }
+            LOC_REGISTER,LOC_CREGISTER : (
+              case longint of
+                1 : (register,registerhigh : tregister);
+                { overlay a registerlow }
+                2 : (registerlow : tregister);
+                { overlay a 64 Bit register type }
+                3 : (reg64 : tregister64);
+                4 : (register64 : tregister64);
+              );
+            { it's only for better handling }
+            LOC_MMXREGISTER,LOC_CMMXREGISTER : (mmxreg : tregister);
+      end;
 
       tlocation = packed record
          loc  : TLoc;
@@ -456,7 +486,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2002-07-01 18:46:30  peter
+  Revision 1.26  2002-07-07 09:52:33  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.25  2002/07/01 18:46:30  peter
     * internal linker
     * reorganized aasm layer
 

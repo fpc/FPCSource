@@ -279,7 +279,7 @@ implementation
          { reset the temporary memory }
          rg.cleartempgen;
          rg.usedinproc:=[];
-         
+
          { save entry info }
          entrypos:=aktfilepos;
          entryswitches:=aktlocalswitches;
@@ -816,7 +816,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2002-07-04 20:43:01  florian
+  Revision 1.56  2002-07-07 09:52:32  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.55  2002/07/04 20:43:01  florian
     * first x86-64 patches
 
   Revision 1.54  2002/07/01 18:46:25  peter

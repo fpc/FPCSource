@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-{# @abstract(This unit implements an abstract asm output class for all processor types)
+{ @abstract(This unit implements an abstract asm output class for all processor types)
   This unit implements an abstract assembler output class for all processors, these
   are then overriden for each assembler writer to actually write the data in these
   classes to an assembler file.
@@ -781,7 +781,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-07-01 18:46:20  peter
+  Revision 1.2  2002-07-07 09:52:32  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.1  2002/07/01 18:46:20  peter
     * internal linker
     * reorganized aasm layer
 

@@ -54,7 +54,7 @@ implementation
       verbose,systems,
       symsym,aasmbase,aasmtai,aasmcpu,
       cgbase,pass_2,
-      cpuinfo,cpubase,
+      cpuinfo,cpubase,cpupara,
       nld,ncon,
       cga,cgobj,tgobj,rgobj;
 
@@ -78,28 +78,28 @@ implementation
                       secondpass(frametree);
                       if codegenerror then
                        exit;
-                      cg.a_param_loc(exprasmlist,frametree.location,2);
+                      cg.a_param_loc(exprasmlist,frametree.location,getintparaloc(2));
                     end
                   else
-                    cg.a_param_const(exprasmlist,OS_INT,0,2);
+                    cg.a_param_const(exprasmlist,OS_INT,0,getintparaloc(2));
                   { push address }
                   secondpass(right);
                   if codegenerror then
                    exit;
-                  cg.a_param_loc(exprasmlist,right.location,1);
+                  cg.a_param_loc(exprasmlist,right.location,getintparaloc(1));
                 end
               else
                 begin
                    getaddrlabel(a);
                    cg.a_label(exprasmlist,a);
-                   cg.a_param_reg(exprasmlist,OS_INT,R_EBP,2);
+                   cg.a_param_reg(exprasmlist,OS_INT,R_EBP,getintparaloc(2));
                    emit_sym(A_PUSH,S_L,a);
                 end;
               { push object }
               secondpass(left);
               if codegenerror then
                 exit;
-              cg.a_param_loc(exprasmlist,left.location,1);
+              cg.a_param_loc(exprasmlist,left.location,getintparaloc(1));
               cg.a_call_name(exprasmlist,'FPC_RAISEEXCEPTION');
            end
          else
@@ -202,10 +202,10 @@ implementation
 
          tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
          tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
-         cg.a_paramaddr_ref(exprasmlist,tempaddr,3);
-         cg.a_paramaddr_ref(exprasmlist,tempbuf,2);
+         cg.a_paramaddr_ref(exprasmlist,tempaddr,getintparaloc(3));
+         cg.a_paramaddr_ref(exprasmlist,tempbuf,getintparaloc(2));
          { push type of exceptionframe }
-         cg.a_param_const(exprasmlist,OS_INT,1,1);
+         cg.a_param_const(exprasmlist,OS_INT,1,getintparaloc(1));
          cg.a_call_name(exprasmlist,'FPC_PUSHEXCEPTADDR');
 
          { allocate eax }
@@ -269,7 +269,7 @@ implementation
               { FPC_CATCHES must be called with
                 'default handler' flag (=-1)
               }
-              cg.a_param_const(exprasmlist,OS_INT,aword(-1),1);
+              cg.a_param_const(exprasmlist,OS_INT,aword(-1),getintparaloc(1));
               cg.a_call_name(exprasmlist,'FPC_CATCHES');
               cg.g_maybe_loadself(exprasmlist);
 
@@ -280,10 +280,10 @@ implementation
 
               tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
               tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
-              cg.a_paramaddr_ref(exprasmlist,tempaddr,3);
-              cg.a_paramaddr_ref(exprasmlist,tempbuf,2);
+              cg.a_paramaddr_ref(exprasmlist,tempaddr,getintparaloc(3));
+              cg.a_paramaddr_ref(exprasmlist,tempbuf,getintparaloc(2));
               { push type of exceptionframe }
-              cg.a_param_const(exprasmlist,OS_INT,1,1);
+              cg.a_param_const(exprasmlist,OS_INT,1,getintparaloc(1));
               cg.a_call_name(exprasmlist,'FPC_PUSHEXCEPTADDR');
 
               { allocate eax }
@@ -449,9 +449,9 @@ implementation
 
          tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
          tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
-         cg.a_paramaddr_ref(exprasmlist,tempaddr,3);
-         cg.a_paramaddr_ref(exprasmlist,tempbuf,2);
-         cg.a_param_const(exprasmlist,OS_INT,1,1);
+         cg.a_paramaddr_ref(exprasmlist,tempaddr,getintparaloc(3));
+         cg.a_paramaddr_ref(exprasmlist,tempbuf,getintparaloc(2));
+         cg.a_param_const(exprasmlist,OS_INT,1,getintparaloc(1));
          cg.a_call_name(exprasmlist,'FPC_PUSHEXCEPTADDR');
 
          exprasmList.concat(tai_regalloc.Alloc(R_EAX));
@@ -603,10 +603,10 @@ implementation
 
          tg.gettempofsizereferencepersistant(exprasmlist,12,tempaddr);
          tg.gettempofsizereferencepersistant(exprasmlist,24,tempbuf);
-         cg.a_paramaddr_ref(exprasmlist,tempaddr,3);
-         cg.a_paramaddr_ref(exprasmlist,tempbuf,2);
+         cg.a_paramaddr_ref(exprasmlist,tempaddr,getintparaloc(3));
+         cg.a_paramaddr_ref(exprasmlist,tempbuf,getintparaloc(2));
          { Type of stack-frame must be pushed}
-         cg.a_param_const(exprasmlist,OS_INT,1,1);
+         cg.a_param_const(exprasmlist,OS_INT,1,getintparaloc(1));
          cg.a_call_name(exprasmlist,'FPC_PUSHEXCEPTADDR');
 
          { allocate eax }
@@ -726,7 +726,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-07-01 18:46:33  peter
+  Revision 1.29  2002-07-07 09:52:34  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.28  2002/07/01 18:46:33  peter
     * internal linker
     * reorganized aasm layer
 

@@ -378,13 +378,15 @@ unit rgobj;
     procedure trgobj.ungetregister(list: taasmoutput; r : tregister);
 
       begin
+         if r=R_NO then
+           exit;
          if r in intregs then
            ungetregisterint(list,r)
          else if r in fpuregs then
            ungetregisterfpu(list,r)
          else if r in mmregs then
            ungetregistermm(list,r)
-         else internalerror(18);
+         else internalerror(2002070602);
       end;
 
 
@@ -854,7 +856,11 @@ end.
 
 {
   $Log$
-  Revision 1.12  2002-07-01 18:46:26  peter
+  Revision 1.13  2002-07-07 09:52:32  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.12  2002/07/01 18:46:26  peter
     * internal linker
     * reorganized aasm layer
 

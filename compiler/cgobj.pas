@@ -33,7 +33,7 @@ unit cgobj;
 
     uses
        cclasses,aasmbase,aasmtai,aasmcpu,symtable,
-       cpubase,cpuinfo,
+       cpubase,cpuinfo,cpupara,
        cginfo,
        symconst,symbase,symtype,node;
 
@@ -109,7 +109,7 @@ unit cgobj;
              @param(r register source of the operand)
              @param(nr parameter number (starting from one) of routine (from left to right))
           }
-          procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);virtual; abstract;
+          procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);virtual; abstract;
           {# Pass a parameter, which is a constant, to a routine.
 
              A generic version is provided.
@@ -118,7 +118,7 @@ unit cgobj;
              @param(a value of constant to send)
              @param(nr parameter number (starting from one) of routine (from left to right))
           }
-          procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);virtual;
+          procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);virtual;
           {# Pass the value of a parameter, which is located in memory, to a routine.
 
              A generic version is provided.
@@ -127,7 +127,7 @@ unit cgobj;
              @param(r Memory reference of value to send)
              @param(nr parameter number (starting from one) of routine (from left to right))
           }
-          procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);virtual;
+          procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);virtual;
           {# Pass the value of a parameter, which can be located either in a register or memory location,
              to a routine.
 
@@ -136,7 +136,7 @@ unit cgobj;
              @param(l location of the operand to send)
              @param(nr parameter number (starting from one) of routine (from left to right))
           }
-          procedure a_param_loc(list : taasmoutput;const l : tlocation;nr : longint);
+          procedure a_param_loc(list : taasmoutput;const l : tlocation;const locpara : tparalocation);
           {# Pass the address of a reference to a routine.
 
              A generic version is provided.
@@ -144,7 +144,7 @@ unit cgobj;
              @param(r reference to get address from)
              @param(nr parameter number (starting from one) of routine (from left to right))
           }
-          procedure a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);virtual;
+          procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);virtual;
 
           {**********************************}
           { these methods must be overriden: }
@@ -366,10 +366,10 @@ unit cgobj;
         procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;reg : tregister64;const l : tlocation);virtual;abstract;
         procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg64 : tregister64);virtual;abstract;
 
-        procedure a_param64_reg(list : taasmoutput;reg64 : tregister64;nr : longint);virtual;abstract;
-        procedure a_param64_const(list : taasmoutput;value : qword;nr : longint);virtual;abstract;
-        procedure a_param64_ref(list : taasmoutput;const r : treference;nr : longint);virtual;abstract;
-        procedure a_param64_loc(list : taasmoutput;const l : tlocation;nr : longint);virtual;abstract;
+        procedure a_param64_reg(list : taasmoutput;reg64 : tregister64;const loc : tparalocation);virtual;abstract;
+        procedure a_param64_const(list : taasmoutput;value : qword;const loc : tparalocation);virtual;abstract;
+        procedure a_param64_ref(list : taasmoutput;const r : treference;const loc : tparalocation);virtual;abstract;
+        procedure a_param64_loc(list : taasmoutput;const l : tlocation;const loc : tparalocation);virtual;abstract;
 
         { override to catch 64bit rangechecks }
         procedure g_rangecheck64(list: taasmoutput; const p: tnode;
@@ -467,7 +467,7 @@ unit cgobj;
           for better code generation these methods should be overridden
 ******************************************************************************}
 
-    procedure tcg.a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);
+    procedure tcg.a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);
 
       var
          hr : tregister;
@@ -475,11 +475,11 @@ unit cgobj;
       begin
          hr:=get_scratch_reg_int(list);
          a_load_const_reg(list,size,a,hr);
-         a_param_reg(list,size,hr,nr);
+         a_param_reg(list,size,hr,locpara);
          free_scratch_reg(list,hr);
       end;
 
-    procedure tcg.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);
+    procedure tcg.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);
 
       var
          hr : tregister;
@@ -487,30 +487,30 @@ unit cgobj;
       begin
          hr:=get_scratch_reg_int(list);
          a_load_ref_reg(list,size,r,hr);
-         a_param_reg(list,size,hr,nr);
+         a_param_reg(list,size,hr,locpara);
          free_scratch_reg(list,hr);
       end;
 
 
-    procedure tcg.a_param_loc(list : taasmoutput;const l:tlocation;nr : longint);
+    procedure tcg.a_param_loc(list : taasmoutput;const l:tlocation;const locpara : tparalocation);
 
       begin
         case l.loc of
           LOC_REGISTER,
           LOC_CREGISTER :
-            a_param_reg(list,l.size,l.register,nr);
+            a_param_reg(list,l.size,l.register,locpara);
           LOC_CONSTANT :
-            a_param_const(list,l.size,l.value,nr);
+            a_param_const(list,l.size,l.value,locpara);
           LOC_CREFERENCE,
           LOC_REFERENCE :
-            a_param_ref(list,l.size,l.reference,nr);
+            a_param_ref(list,l.size,l.reference,locpara);
         else
           internalerror(2002032211);
         end;
       end;
 
 
-    procedure tcg.a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);
+    procedure tcg.a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
 
       var
          hr : tregister;
@@ -518,7 +518,7 @@ unit cgobj;
       begin
          hr:=get_scratch_reg_address(list);
          a_loadaddr_ref_reg(list,r,hr);
-         a_param_reg(list,OS_ADDR,hr,nr);
+         a_param_reg(list,OS_ADDR,hr,locpara);
          free_scratch_reg(list,hr);
       end;
 
@@ -894,14 +894,15 @@ unit cgobj;
 
     procedure tcg.g_copyshortstring(list : taasmoutput;const source,dest : treference;len:byte;delsource,loadref : boolean);
       begin
-        a_paramaddr_ref(list,dest,3);
+        {$warning FIX ME!}
+        a_paramaddr_ref(list,dest,getintparaloc(3));
         if loadref then
-         a_param_ref(list,OS_ADDR,source,2)
+          a_param_ref(list,OS_ADDR,source,getintparaloc(2))
         else
-         a_paramaddr_ref(list,source,2);
+          a_paramaddr_ref(list,source,getintparaloc(2));
         if delsource then
          reference_release(list,source);
-        a_param_const(list,OS_INT,len,1);
+        a_param_const(list,OS_INT,len,getintparaloc(1));
         a_call_name(list,'FPC_SHORTSTR_COPY');
         g_maybe_loadself(list);
       end;
@@ -927,14 +928,14 @@ unit cgobj;
          { call the special incr function or the generic addref }
          if incrfunc<>'' then
           begin
-            a_param_ref(list,OS_ADDR,ref,1);
+            a_param_ref(list,OS_ADDR,ref,getintparaloc(1));
             a_call_name(list,incrfunc);
           end
          else
           begin
             reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-            a_paramaddr_ref(list,href,2);
-            a_paramaddr_ref(list,ref,1);
+            a_paramaddr_ref(list,href,getintparaloc(2));
+            a_paramaddr_ref(list,ref,getintparaloc(1));
             a_call_name(list,'FPC_ADDREF');
          end;
       end;
@@ -958,14 +959,14 @@ unit cgobj;
          { call the special decr function or the generic decref }
          if decrfunc<>'' then
           begin
-            a_paramaddr_ref(list,ref,1);
+            a_paramaddr_ref(list,ref,getintparaloc(1));
             a_call_name(list,decrfunc);
           end
          else
           begin
             reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-            a_paramaddr_ref(list,href,2);
-            a_paramaddr_ref(list,ref,1);
+            a_paramaddr_ref(list,href,getintparaloc(2));
+            a_paramaddr_ref(list,ref,getintparaloc(1));
             a_call_name(list,'FPC_DECREF');
          end;
       end;
@@ -982,11 +983,11 @@ unit cgobj;
          else
            begin
               reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-              a_paramaddr_ref(list,href,2);
+              a_paramaddr_ref(list,href,getintparaloc(2));
               if loadref then
-                a_param_ref(list,OS_ADDR,ref,1)
+                a_param_ref(list,OS_ADDR,ref,getintparaloc(1))
               else
-                a_paramaddr_ref(list,ref,1);
+                a_paramaddr_ref(list,ref,getintparaloc(1));
               a_call_name(list,'FPC_INITIALIZE');
            end;
       end;
@@ -1003,11 +1004,11 @@ unit cgobj;
          else
            begin
               reference_reset_symbol(href,tstoreddef(t).get_rtti_label(initrtti),0);
-              a_paramaddr_ref(list,href,2);
+              a_paramaddr_ref(list,href,getintparaloc(2));
               if loadref then
-                a_param_ref(list,OS_ADDR,ref,1)
+                a_param_ref(list,OS_ADDR,ref,getintparaloc(1))
               else
-                a_paramaddr_ref(list,ref,1);
+                a_paramaddr_ref(list,ref,getintparaloc(1));
               a_call_name(list,'FPC_FINALIZE');
            end;
       end;
@@ -1137,7 +1138,7 @@ unit cgobj;
     procedure tcg.g_stackcheck(list : taasmoutput;stackframesize : longint);
 
       begin
-         a_param_const(list,OS_32,stackframesize,1);
+         a_param_const(list,OS_32,stackframesize,getintparaloc(1));
          a_call_name(list,'FPC_STACKCHECK');
       end;
 
@@ -1190,10 +1191,11 @@ unit cgobj;
             {!! this is a terrible hack, normally the helper should get three params : }
             {    one with self register, one with flag and one with VMT pointer        }
             {reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset+POINTER_SIZE);}
-            a_param_reg(list, OS_ADDR, SELF_POINTER_REG, 2);
+            a_param_reg(list, OS_ADDR, SELF_POINTER_REG, getintparaloc(2);
+
             { parameter 1 : vmt pointer (stored at the selfpointer address on stack)  }
             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
-            a_param_ref(list, OS_ADDR,href,1);
+            a_param_ref(list, OS_ADDR,href,getintparaloc(1));
             a_call_name(list,'FPC_NEW_CLASS');
             a_load_reg_reg(list,OS_ADDR,accumulator,SELF_POINTER_REG);
             { save the self pointer result }
@@ -1203,19 +1205,19 @@ unit cgobj;
         else if is_object(procinfo^._class) then
           begin
             { parameter 3 :vmt_offset     }
-            a_param_const(list, OS_32, procinfo^._class.vmt_offset, 3);
+            a_param_const(list, OS_32, procinfo^._class.vmt_offset, getintparaloc(3));
             { parameter 2 : address of pointer to vmt }
             {  this is the first(?) parameter which was pushed to the constructor }
             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset-POINTER_SIZE);
             hregister:=get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list, href, hregister);
-            a_param_reg(list, OS_ADDR,hregister,2);
+            a_param_reg(list, OS_ADDR,hregister,getintparaloc(2));
             free_scratch_reg(list, hregister);
             { parameter 1 : address of self pointer   }
             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
             hregister:=get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list, href, hregister);
-            a_param_reg(list, OS_ADDR,hregister,1);
+            a_param_reg(list, OS_ADDR,hregister,getintparaloc(1));
             free_scratch_reg(list, hregister);
             a_call_name(list,'FPC_HELP_CONSTRUCTOR');
             a_load_reg_reg(list,OS_ADDR,accumulator,SELF_POINTER_REG);
@@ -1236,10 +1238,10 @@ unit cgobj;
          begin
            { 2nd parameter  : flag }
            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset+POINTER_SIZE);
-           a_param_ref(list, OS_ADDR,href,2);
+           a_param_ref(list, OS_ADDR,href,getintparaloc(2));
            { 1st parameter to destructor : self }
            reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
-           a_param_ref(list, OS_ADDR,href,1);
+           a_param_ref(list, OS_ADDR,href,getintparaloc(1));
            a_call_name(list,'FPC_DISPOSE_CLASS')
          end
         else if is_object(procinfo^._class) then
@@ -1256,16 +1258,16 @@ unit cgobj;
             end;
            { actually call destructor }
             { parameter 3 :vmt_offset     }
-            a_param_const(list, OS_32, procinfo^._class.vmt_offset, 3);
+            a_param_const(list, OS_32, procinfo^._class.vmt_offset, getintparaloc(3));
             { parameter 2 : pointer to vmt }
             {  this is the first parameter which was pushed to the destructor }
             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset-POINTER_SIZE);
-            a_param_ref(list, OS_ADDR, href ,2);
+            a_param_ref(list, OS_ADDR, href ,getintparaloc(2));
             { parameter 1 : address of self pointer   }
             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
             hregister:=get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list, href, hregister);
-            a_param_reg(list, OS_ADDR,hregister,1);
+            a_param_reg(list, OS_ADDR,hregister,getintparaloc(1));
             free_scratch_reg(list, hregister);
             a_call_name(list,'FPC_HELP_DESTRUCTOR');
          end
@@ -1281,8 +1283,8 @@ unit cgobj;
       begin
         if is_class(procinfo^._class) then
           begin
-            { 
-              Dispose of the class then set self_pointer to nil 
+            {
+              Dispose of the class then set self_pointer to nil
               both in stack and in self register.
             }
             { 2nd parameter  : flag }
@@ -1299,19 +1301,19 @@ unit cgobj;
         else if is_object(procinfo^._class) then
           begin
             { parameter 3 :vmt_offset     }
-            a_param_const(list, OS_32, procinfo^._class.vmt_offset, 3);
+            a_param_const(list, OS_32, procinfo^._class.vmt_offset, getintparaloc(3));
             { parameter 2 : address of pointer to vmt }
             {  this is the first(?) parameter which was pushed to the constructor }
             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset-POINTER_SIZE);
             hregister:=get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list, href, hregister);
-            a_param_reg(list, OS_ADDR,hregister,2);
+            a_param_reg(list, OS_ADDR,hregister,getintparaloc(2));
             free_scratch_reg(list, hregister);
             { parameter 1 : address of self pointer   }
             reference_reset_base(href, procinfo^.framepointer,procinfo^.selfpointer_offset);
             hregister:=get_scratch_reg_address(list);
             a_loadaddr_ref_reg(list, href, hregister);
-            a_param_reg(list, OS_ADDR,hregister,1);
+            a_param_reg(list, OS_ADDR,hregister,getintparaloc(1));
             free_scratch_reg(list, hregister);
             a_call_name(list,'FPC_HELP_FAIL');
             { SET SELF TO NIL }
@@ -1342,7 +1344,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.32  2002-07-06 20:09:10  carl
+  Revision 1.33  2002-07-07 09:52:32  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.32  2002/07/06 20:09:10  carl
   * updated generic constructor / destructor calling
 
   Revision 1.31  2002/07/02 11:40:00  jonas

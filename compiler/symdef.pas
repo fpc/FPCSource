@@ -97,6 +97,7 @@ interface
           paratype     : ttype;
           parasym      : tsym;
           paratyp      : tvarspez;
+          paraloc      : tparalocation;
           argconvtyp   : targconvtyp;
           convertlevel : byte;
           defaultvalue : tsym; { tconstsym }
@@ -3158,6 +3159,8 @@ implementation
             ppufile.gettype(hp.paratype);
             hp.defaultvalue:=tsym(ppufile.getderef);
             hp.parasym:=tsym(ppufile.getderef);
+            { later, we'll gerate this on the fly (FK) }
+            ppufile.getdata(hp.paraloc,sizeof(tparalocation));
             if not assigned(hp.defaultvalue) then
              inc(minparacount);
             inc(maxparacount);
@@ -3191,6 +3194,7 @@ implementation
             ppufile.puttype(hp.paratype);
             ppufile.putderef(hp.defaultvalue);
             ppufile.putderef(hp.parasym);
+            ppufile.putdata(hp.paraloc,sizeof(tparalocation));
             hp:=TParaItem(hp.next);
           end;
       end;
@@ -5478,7 +5482,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2002-07-01 18:46:26  peter
+  Revision 1.82  2002-07-07 09:52:32  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.81  2002/07/01 18:46:26  peter
     * internal linker
     * reorganized aasm layer
 

@@ -20,7 +20,8 @@
 
  ****************************************************************************
 }
-
+{ This unit implements the code generator for the i386.
+}
 unit cgcpu;
 
 {$i fpcdefs.inc}
@@ -30,7 +31,7 @@ unit cgcpu;
     uses
        cginfo,cgbase,cgobj,cg64f32,
        aasmbase,aasmtai,aasmcpu,
-       cpubase,cpuinfo,
+       cpubase,cpuinfo,cpupara,
        node,symconst;
 
     type
@@ -41,10 +42,10 @@ unit cgcpu;
         { left to right), this allows to move the parameter to    }
         { register, if the cpu supports register calling          }
         { conventions                                             }
-        procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);override;
-        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);override;
-        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);override;
-        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);override;
+        procedure a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);override;
+        procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);override;
+        procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);override;
+        procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
 
 
         procedure a_call_name(list : taasmoutput;const s : string);override;
@@ -318,7 +319,7 @@ unit cgcpu;
     { we implement the following routines because otherwise we can't }
     { instantiate the class since it's abstract                      }
 
-    procedure tcg386.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;nr : longint);
+    procedure tcg386.a_param_reg(list : taasmoutput;size : tcgsize;r : tregister;const locpara : tparalocation);
       begin
         case size of
           OS_8,OS_S8,
@@ -337,7 +338,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.a_param_const(list : taasmoutput;size : tcgsize;a : aword;nr : longint);
+    procedure tcg386.a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);
 
       begin
         case size of
@@ -356,7 +357,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;nr : longint);
+    procedure tcg386.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);
 
       var
         tmpreg: tregister;
@@ -382,7 +383,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.a_paramaddr_ref(list : taasmoutput;const r : treference;nr : longint);
+    procedure tcg386.a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
 
       var
         tmpreg: tregister;
@@ -1341,13 +1342,13 @@ unit cgcpu;
          tempaddr:=exceptbuf;
          tempbuf:=exceptbuf;
          inc(tempbuf.offset,12);
-         a_paramaddr_ref(list,tempaddr,3);
-         a_paramaddr_ref(list,tempbuf,2);
-         a_param_const(list,OS_INT,l,1);
+         a_paramaddr_ref(list,tempaddr,getintparaloc(3));
+         a_paramaddr_ref(list,tempbuf,getintparaloc(2));
+         a_param_const(list,OS_INT,l,getintparaloc(1));
          a_call_name(list,'FPC_PUSHEXCEPTADDR');
 
          a_reg_alloc(list,accumulator);
-         a_param_reg(list,OS_ADDR,accumulator,1);
+         a_param_reg(list,OS_ADDR,accumulator,getintparaloc(1));
          a_reg_dealloc(list,accumulator);
          a_call_name(list,'FPC_SETJMP');
          list.concat(tai_regalloc.Alloc(accumulator));
@@ -1784,7 +1785,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-07-01 18:46:30  peter
+  Revision 1.26  2002-07-07 09:52:33  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.25  2002/07/01 18:46:30  peter
     * internal linker
     * reorganized aasm layer
 

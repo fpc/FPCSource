@@ -452,8 +452,7 @@ uses
      var
         hs : string;
      begin
-        str(i,hs);
-        tostr:=hs;
+        str(i,result);
      end;
 
 
@@ -804,7 +803,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2002-07-01 18:46:22  peter
+  Revision 1.19  2002-07-07 09:52:32  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.18  2002/07/01 18:46:22  peter
     * internal linker
     * reorganized aasm layer
 

@@ -64,7 +64,7 @@ interface
       cutils,verbose,
       aasmbase,aasmtai,aasmcpu,symconst,symdef,
       ncon,ncal,
-      cpubase,cpuinfo,
+      cpubase,cpuinfo,cpupara,
       pass_2,
       cginfo,cgbase,
       cgobj,cgcpu,
@@ -450,10 +450,10 @@ interface
            { instance to check }
            secondpass(left);
            rg.saveusedregisters(exprasmlist,pushed,all_registers);
-           cg.a_param_loc(exprasmlist,left.location,2);
+           cg.a_param_loc(exprasmlist,left.location,getintparaloc(2));
            { type information }
            secondpass(right);
-           cg.a_paramaddr_ref(exprasmlist,right.location.reference,1);
+           cg.a_paramaddr_ref(exprasmlist,right.location.reference,getintparaloc(1));
            location_release(exprasmlist,right.location);
            { call helper }
            if is_class(left.resulttype.def) then
@@ -468,10 +468,10 @@ interface
            { instance to check }
            secondpass(left);
            rg.saveusedregisters(exprasmlist,pushed,all_registers);
-           cg.a_param_loc(exprasmlist,left.location,2);
+           cg.a_param_loc(exprasmlist,left.location,getintparaloc(2));
            { type information }
            secondpass(right);
-           cg.a_param_loc(exprasmlist,right.location,1);
+           cg.a_param_loc(exprasmlist,right.location,getintparaloc(1));
            location_release(exprasmlist,right.location);
            { call helper }
            cg.a_call_name(exprasmlist,'FPC_DO_AS');
@@ -490,7 +490,11 @@ end.
 
 {
   $Log$
-  Revision 1.18  2002-07-04 20:43:01  florian
+  Revision 1.19  2002-07-07 09:52:32  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.18  2002/07/04 20:43:01  florian
     * first x86-64 patches
 
   Revision 1.17  2002/07/01 18:46:22  peter

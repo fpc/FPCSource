@@ -93,15 +93,24 @@ interface
        tcgsize2tfloat: array[OS_F32..OS_C64] of tfloattype =
          (s32real,s64real,s80real,s64comp);
 
-
-
+       { Table to convert tcgsize variables to the correspondending
+         unsigned types }
+       tcgsize2unsigned : array[tcgsize] of tcgsize = (OS_NO,
+          OS_8,OS_16,OS_32,OS_64,OS_8,OS_16,OS_32,OS_64,
+          OS_F32,OS_F64,OS_F80,OS_C64,
+          OS_M8,OS_M16,OS_M32,OS_M64,OS_M128,OS_M8,OS_M16,OS_M32,
+          OS_M64,OS_M128);
 
 implementation
 
 end.
 {
   $Log$
-  Revision 1.12  2002-07-01 16:23:52  peter
+  Revision 1.13  2002-07-07 09:52:32  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.12  2002/07/01 16:23:52  peter
     * cg64 patch
     * basics for currency
     * asnode updates for class and interface (not finished)

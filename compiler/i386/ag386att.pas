@@ -20,6 +20,8 @@
 
  ****************************************************************************
 }
+{ This unit implements an asmoutput class for i386 AT&T syntax
+}
 unit ag386att;
 
 {$i fpcdefs.inc}
@@ -34,7 +36,7 @@ interface
     type
       T386ATTAssembler=class(TGNUassembler)
       public
-        procedure WriteInstruction(hp: tai);  override;
+        procedure WriteInstruction(hp: tai);override;
       end;
 
     TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint);
@@ -338,7 +340,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2002-07-01 18:46:29  peter
+  Revision 1.24  2002-07-07 09:52:33  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.23  2002/07/01 18:46:29  peter
     * internal linker
     * reorganized aasm layer
 

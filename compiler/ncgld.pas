@@ -57,7 +57,7 @@ implementation
       ncnv,ncon,nmem,
       aasmbase,aasmtai,aasmcpu,regvars,
       cginfo,cgbase,pass_2,
-      cpubase,cpuinfo,
+      cpubase,cpuinfo,cpupara,
       tgobj,ncgutil,cgobj,cg64f32,rgobj,rgcpu;
 
 {*****************************************************************************
@@ -132,7 +132,7 @@ implementation
                     begin
                        rg.saveusedregisters(exprasmlist,pushed,[accumulator]);
                        reference_reset_symbol(href,newasmsymbol(tvarsym(symtableentry).mangledname),0);
-                       cg.a_param_ref(exprasmlist,OS_ADDR,href,1);
+                       cg.a_param_ref(exprasmlist,OS_ADDR,href,getintparaloc(1));
                        { the called procedure isn't allowed to change }
                        { any register except EAX                    }
                        cg.a_call_name(exprasmlist,'FPC_RELOCATE_THREADVAR');
@@ -845,13 +845,13 @@ implementation
                     if vaddr then
                      begin
                        location_force_mem(exprasmlist,hp.left.location);
-                       cg.a_paramaddr_ref(exprasmlist,hp.left.location.reference,-1);
+                       cg.a_paramaddr_ref(exprasmlist,hp.left.location.reference,paralocdummy);
                        location_release(exprasmlist,hp.left.location);
                        if freetemp then
                         location_freetemp(exprasmlist,hp.left.location);
                      end
                     else
-                     cg.a_param_loc(exprasmlist,hp.left.location,-1);
+                     cg.a_param_loc(exprasmlist,hp.left.location,paralocdummy);
                     inc(pushedparasize,pointer_size);
                   end
                  else
@@ -921,7 +921,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-07-01 18:46:23  peter
+  Revision 1.12  2002-07-07 09:52:32  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.11  2002/07/01 18:46:23  peter
     * internal linker
     * reorganized aasm layer
 

@@ -28,7 +28,9 @@ interface
 
     uses
       node,
-      cginfo,cpubase,aasmbase,aasmtai,aasmcpu,
+      cpubase,cpupara,
+      aasmbase,aasmtai,aasmcpu,
+      cginfo,
       rgobj;
 
     type
@@ -51,7 +53,8 @@ interface
     function  maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
 
     procedure push_value_para(p:tnode;inlined,is_cdecl:boolean;
-                              para_offset:longint;alignment : longint);
+                              para_offset:longint;alignment : longint;
+                              const locpara : tparalocation);
 
     procedure genentrycode(list : TAAsmoutput;
                            make_global:boolean;
@@ -590,7 +593,8 @@ implementation
 *****************************************************************************}
 
     procedure push_value_para(p:tnode;inlined,is_cdecl:boolean;
-                              para_offset:longint;alignment : longint);
+                              para_offset:longint;alignment : longint;
+                              const locpara : tparalocation);
       var
         tempreference : treference;
         href : treference;
@@ -657,7 +661,7 @@ implementation
                        cg.a_load_ref_ref(exprasmlist,cgsize,tempreference,href);
                      end
                     else
-                     cg.a_param_ref(exprasmlist,cgsize,tempreference,-1);
+                     cg.a_param_ref(exprasmlist,cgsize,tempreference,locpara);
                   end;
                end;
              else
@@ -698,7 +702,7 @@ implementation
                           cg64.a_load64_loc_ref(exprasmlist,p.location,href);
                         end
                        else
-                        cg64.a_param64_loc(exprasmlist,p.location,-1);
+                        cg64.a_param64_loc(exprasmlist,p.location,locpara);
                      end
                     else
                      begin
@@ -729,7 +733,7 @@ implementation
                           cg.a_load_loc_ref(exprasmlist,p.location,href);
                         end
                        else
-                        cg.a_param_loc(exprasmlist,p.location,-1);
+                        cg.a_param_loc(exprasmlist,p.location,locpara);
                        { restore old register }
                        if p.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                          p.location.register:=hreg;
@@ -797,9 +801,9 @@ implementation
         if (tsym(p).typ=varsym) and
            (vo_is_thread_var in tvarsym(p).varoptions) then
          begin
-           cg.a_param_const(list,OS_INT,tvarsym(p).getsize,2);
+           cg.a_param_const(list,OS_INT,tvarsym(p).getsize,getintparaloc(2));
            reference_reset_symbol(href,newasmsymbol(tvarsym(p).mangledname),0);
-           cg.a_paramaddr_ref(list,href,2);
+           cg.a_paramaddr_ref(list,href,getintparaloc(1));
            rg.saveregvars(list,all_registers);
            cg.a_call_name(list,'FPC_INIT_THREADVAR');
          end;
@@ -947,20 +951,20 @@ implementation
              tt_freeansistring :
                begin
                  reference_reset_base(href,procinfo^.framepointer,hp^.pos);
-                 cg.a_paramaddr_ref(list,href,1);
+                 cg.a_paramaddr_ref(list,href,getintparaloc(1));
                  cg.a_call_name(list,'FPC_ANSISTR_DECR_REF');
                end;
              tt_widestring,
              tt_freewidestring :
                begin
                  reference_reset_base(href,procinfo^.framepointer,hp^.pos);
-                 cg.a_paramaddr_ref(list,href,1);
+                 cg.a_paramaddr_ref(list,href,getintparaloc(2));
                  cg.a_call_name(list,'FPC_WIDESTR_DECR_REF');
                end;
              tt_interfacecom :
                begin
                  reference_reset_base(href,procinfo^.framepointer,hp^.pos);
-                 cg.a_paramaddr_ref(list,href,1);
+                 cg.a_paramaddr_ref(list,href,getintparaloc(2));
                  cg.a_call_name(list,'FPC_INTF_DECR_REF');
                end;
            end;
@@ -1342,14 +1346,14 @@ implementation
                             cg.a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nodestroycall);
                             if is_class(procinfo^._class) then
                              begin
-                               cg.a_param_const(list,OS_INT,1,2);
-                               cg.a_param_reg(list,OS_ADDR,self_pointer_reg,1);
+                               cg.a_param_const(list,OS_INT,1,getintparaloc(2));
+                               cg.a_param_reg(list,OS_ADDR,self_pointer_reg,getintparaloc(1));
                              end
                             else if is_object(procinfo^._class) then
                              begin
-                               cg.a_param_reg(list,OS_ADDR,self_pointer_reg,2);
+                               cg.a_param_reg(list,OS_ADDR,self_pointer_reg,getintparaloc(2));
                                reference_reset_symbol(href,newasmsymbol(procinfo^._class.vmt_mangledname),0);
-                               cg.a_paramaddr_ref(list,href,1);
+                               cg.a_paramaddr_ref(list,href,getintparaloc(1));
                              end
                             else
                              Internalerror(200006164);
@@ -1611,7 +1615,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2002-07-01 18:46:23  peter
+  Revision 1.20  2002-07-07 09:52:32  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.19  2002/07/01 18:46:23  peter
     * internal linker
     * reorganized aasm layer
 

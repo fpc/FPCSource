@@ -54,7 +54,7 @@ implementation
       aasmbase,aasmtai,aasmcpu,
       cginfo,cgbase,pass_2,
       pass_1,nld,ncon,nadd,
-      cpubase,
+      cpubase,cpupara,
       cgobj,cga,tgobj,rgobj,ncgutil;
 
 {*****************************************************************************
@@ -89,7 +89,7 @@ implementation
             (cs_gdb_heaptrc in aktglobalswitches) and
             (cs_checkpointer in aktglobalswitches) then
           begin
-            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,1);
+            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,getintparaloc(1));
             cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
           end;
       end;
@@ -165,7 +165,7 @@ implementation
                         exit;
                      end;
                    rg.saveusedregisters(exprasmlist,pushed,all_registers);
-                   cg.a_paramaddr_ref(exprasmlist,left.location.reference,1);
+                   cg.a_paramaddr_ref(exprasmlist,left.location.reference,getintparaloc(1));
                    rg.saveregvars(exprasmlist,all_registers);
                    cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_UNIQUE');
                    cg.g_maybe_loadself(exprasmlist);
@@ -192,7 +192,7 @@ implementation
               if (cs_check_range in aktlocalswitches) then
                 begin
                    rg.saveusedregisters(exprasmlist,pushed,all_registers);
-                   cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,1);
+                   cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,getintparaloc(1));
                    rg.saveregvars(exprasmlist,all_registers);
                    cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
                    cg.g_maybe_loadself(exprasmlist);
@@ -294,10 +294,10 @@ implementation
                         st_ansistring:
                           begin
                              rg.saveusedregisters(exprasmlist,pushed,all_registers);
-                             cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,2);
+                             cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,getintparaloc(2));
                              href:=location.reference;
                              dec(href.offset,7);
-                             cg.a_param_ref(exprasmlist,OS_INT,href,1);
+                             cg.a_param_ref(exprasmlist,OS_INT,href,getintparaloc(1));
                              rg.saveregvars(exprasmlist,all_registers);
                              cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
                              rg.restoreusedregisters(exprasmlist,pushed);
@@ -451,10 +451,10 @@ implementation
                          st_ansistring:
                            begin
                               rg.saveusedregisters(exprasmlist,pushed,all_registers);
-                              cg.a_param_reg(exprasmlist,OS_INT,right.location.register,1);
+                              cg.a_param_reg(exprasmlist,OS_INT,right.location.register,getintparaloc(1));
                               href:=location.reference;
                               dec(href.offset,7);
-                              cg.a_param_ref(exprasmlist,OS_INT,href,1);
+                              cg.a_param_ref(exprasmlist,OS_INT,href,getintparaloc(1));
                               rg.saveregvars(exprasmlist,all_registers);
                               cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
                               rg.restoreusedregisters(exprasmlist,pushed);
@@ -520,7 +520,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2002-07-01 18:46:33  peter
+  Revision 1.36  2002-07-07 09:52:34  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.35  2002/07/01 18:46:33  peter
     * internal linker
     * reorganized aasm layer
 

@@ -29,7 +29,8 @@ Unit AoptObj;
 
 Interface
 
-uses aasm, cclasses, cpuinfo, cpubase, cpuasm, aoptbase, aoptcpub;
+uses aasmbase,aasmcpu,aasmtai,
+  cclasses, cpuinfo, cpubase, aoptbase, aoptcpub;
 
 { ************************************************************************* }
 { ********************************* Constants ***************************** }
@@ -277,7 +278,7 @@ Type
 
 Implementation
 
-uses globtype, globals, cgbase, tainst;
+uses globtype, globals, cgbase;
 
 { ************************************************************************* }
 { ******************************** TUsedRegs ****************************** }
@@ -787,7 +788,11 @@ End.
 
 {
  $Log$
- Revision 1.5  2002-07-01 18:46:21  peter
+ Revision 1.6  2002-07-07 09:52:32  florian
+   * powerpc target fixed, very simple units can be compiled
+   * some basic stuff for better callparanode handling, far from being finished
+
+ Revision 1.5  2002/07/01 18:46:21  peter
    * internal linker
    * reorganized aasm layer
 

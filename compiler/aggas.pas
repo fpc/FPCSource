@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-{# Base unit for writing GNU assembler output.
+{ Base unit for writing GNU assembler output.
 }
 unit aggas;
 
@@ -796,7 +796,11 @@ var
 end.
 {
   $Log$
-  Revision 1.6  2002-07-01 18:46:20  peter
+  Revision 1.7  2002-07-07 09:52:32  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.6  2002/07/01 18:46:20  peter
     * internal linker
     * reorganized aasm layer
 

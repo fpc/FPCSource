@@ -58,6 +58,7 @@ interface
       cutils,verbose,globals,
       symconst,symdef,aasmbase,aasmtai,aasmcpu,types,htypechk,
       cgbase,pass_2,regvars,
+      cpupara,
       ncon,nset,
       cga,ncgutil,tgobj,rgobj,rgcpu,cgobj,cg64f32;
 
@@ -378,13 +379,13 @@ interface
                         remove_non_regvars_from_loc(right.location,regstopush);
                         rg.saveusedregisters(exprasmlist,pushed,regstopush);
                         { push the maximum possible length of the result }
-                        cg.a_paramaddr_ref(exprasmlist,left.location.reference,2);
+                        cg.a_paramaddr_ref(exprasmlist,left.location.reference,getintparaloc(2));
                         { the optimizer can more easily put the          }
                         { deallocations in the right place if it happens }
                         { too early than when it happens too late (if    }
                         { the pushref needs a "lea (..),edi; push edi")  }
                         location_release(exprasmlist,right.location);
-                        cg.a_paramaddr_ref(exprasmlist,right.location.reference,1);
+                        cg.a_paramaddr_ref(exprasmlist,right.location.reference,getintparaloc(1));
                         rg.saveregvars(exprasmlist,regstopush);
                         cg.a_call_name(exprasmlist,'FPC_SHORTSTR_CONCAT');
                         tg.ungetiftemp(exprasmlist,right.location.reference);
@@ -398,10 +399,10 @@ interface
                        rg.saveusedregisters(exprasmlist,pushed,all_registers);
                        secondpass(left);
                        location_release(exprasmlist,left.location);
-                       cg.a_paramaddr_ref(exprasmlist,left.location.reference,2);
+                       cg.a_paramaddr_ref(exprasmlist,left.location.reference,getintparaloc(2));
                        secondpass(right);
                        location_release(exprasmlist,right.location);
-                       cg.a_paramaddr_ref(exprasmlist,right.location.reference,1);
+                       cg.a_paramaddr_ref(exprasmlist,right.location.reference,getintparaloc(1));
                        rg.saveregvars(exprasmlist,all_registers);
                        cg.a_call_name(exprasmlist,'FPC_SHORTSTR_COMPARE');
                        cg.g_maybe_loadself(exprasmlist);
@@ -1571,7 +1572,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2002-07-01 18:46:31  peter
+  Revision 1.42  2002-07-07 09:52:33  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.41  2002/07/01 18:46:31  peter
     * internal linker
     * reorganized aasm layer
 

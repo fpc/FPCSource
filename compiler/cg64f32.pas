@@ -63,10 +63,10 @@ unit cg64f32;
         procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;reg : tregister64;const l : tlocation);override;
         procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg : tregister64);override;
 
-        procedure a_param64_reg(list : taasmoutput;reg : tregister64;nr : longint);override;
-        procedure a_param64_const(list : taasmoutput;value : qword;nr : longint);override;
-        procedure a_param64_ref(list : taasmoutput;const r : treference;nr : longint);override;
-        procedure a_param64_loc(list : taasmoutput;const l : tlocation;nr : longint);override;
+        procedure a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);override;
+        procedure a_param64_const(list : taasmoutput;value : qword;const locpara : tparalocation);override;
+        procedure a_param64_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
+        procedure a_param64_loc(list : taasmoutput;const l : tlocation;const locpara : tparalocation);override;
 
         procedure g_rangecheck64(list: taasmoutput; const p: tnode;
           const todef: tdef); override;
@@ -364,56 +364,60 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_param64_reg(list : taasmoutput;reg : tregister64;nr : longint);
+    procedure tcg64f32.a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);
       begin
-         cg.a_param_reg(list,OS_32,reg.reghi,nr);
+{$warning FIX ME}
+         cg.a_param_reg(list,OS_32,reg.reghi,locpara);
          { the nr+1 needs definitivly a fix FK }
          { maybe the parameter numbering needs }
          { to take care of this on 32 Bit      }
          { systems FK                          }
-         cg.a_param_reg(list,OS_32,reg.reglo,nr+1);
+         cg.a_param_reg(list,OS_32,reg.reglo,locpara);
       end;
 
 
-    procedure tcg64f32.a_param64_const(list : taasmoutput;value : qword;nr : longint);
+    procedure tcg64f32.a_param64_const(list : taasmoutput;value : qword;const locpara : tparalocation);
       begin
+{$warning FIX ME}
         if target_info.endian<>source_info.endian then
           swap_qword(value);
-         cg.a_param_const(list,OS_32,hi(value),nr);
+         cg.a_param_const(list,OS_32,hi(value),locpara);
          { the nr+1 needs definitivly a fix FK }
          { maybe the parameter numbering needs }
          { to take care of this on 32 Bit      }
          { systems FK                          }
-         cg.a_param_const(list,OS_32,lo(value),nr+1);
+         cg.a_param_const(list,OS_32,lo(value),locpara);
       end;
 
 
-    procedure tcg64f32.a_param64_ref(list : taasmoutput;const r : treference;nr : longint);
+    procedure tcg64f32.a_param64_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);
       var
         tmpref: treference;
       begin
+{$warning FIX ME}
         tmpref := r;
         inc(tmpref.offset,4);
-        cg.a_param_ref(list,OS_32,tmpref,nr);
+        cg.a_param_ref(list,OS_32,tmpref,locpara);
         { the nr+1 needs definitivly a fix FK }
         { maybe the parameter numbering needs }
         { to take care of this on 32 Bit      }
         { systems FK                          }
-        cg.a_param_ref(list,OS_32,r,nr+1);
+        cg.a_param_ref(list,OS_32,r,locpara);
       end;
 
 
-    procedure tcg64f32.a_param64_loc(list : taasmoutput;const l:tlocation;nr : longint);
+    procedure tcg64f32.a_param64_loc(list : taasmoutput;const l:tlocation;const locpara : tparalocation);
       begin
+{$warning FIX ME}
         case l.loc of
           LOC_REGISTER,
           LOC_CREGISTER :
-            a_param64_reg(list,l.register64,nr);
+            a_param64_reg(list,l.register64,locpara);
           LOC_CONSTANT :
-            a_param64_const(list,l.valueqword,nr);
+            a_param64_const(list,l.valueqword,locpara);
           LOC_CREFERENCE,
           LOC_REFERENCE :
-            a_param64_ref(list,l.reference,nr);
+            a_param64_ref(list,l.reference,locpara);
         else
           internalerror(200203287);
         end;
@@ -587,7 +591,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-07-01 18:46:21  peter
+  Revision 1.17  2002-07-07 09:52:32  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.16  2002/07/01 18:46:21  peter
     * internal linker
     * reorganized aasm layer
 

@@ -253,6 +253,11 @@ begin
   s64floattype.setdef(tfloatdef.create(s64real));
   s80floattype.setdef(tfloatdef.create(s80real));
 {$endif x86}
+{$ifdef powerpc}
+  s32floattype.setdef(tfloatdef.create(s32real));
+  s64floattype.setdef(tfloatdef.create(s64real));
+  s80floattype.setdef(tfloatdef.create(s80real));
+{$endif powerpc}
 {$ifdef sparc}
   s32floattype.setdef(tfloatdef.create(s32real));
   s64floattype.setdef(tfloatdef.create(s64real));
@@ -284,7 +289,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.29  2002-07-06 20:18:47  carl
+  Revision 1.30  2002-07-07 09:52:32  florian
+    * powerpc target fixed, very simple units can be compiled
+    * some basic stuff for better callparanode handling, far from being finished
+
+  Revision 1.29  2002/07/06 20:18:47  carl
   + more SPARC patches from Mazen
 
   Revision 1.28  2002/07/04 20:43:02  florian
