@@ -157,7 +157,7 @@ implementation
        ;
 
     type
-      TValidAssign=(Valid_Property,Valid_Void);
+      TValidAssign=(Valid_Property,Valid_Void,Valid_Const);
       TValidAssigns=set of TValidAssign;
 
 
@@ -1029,7 +1029,7 @@ implementation
                        if (tvarsym(tloadnode(hp).symtableentry).varspez=vs_const) then
                         begin
                           { allow p^:= constructions with p is const parameter }
-                          if gotderef then
+                          if gotderef or (Valid_Const in opts) then
                            valid_for_assign:=true
                           else
                            CGMessagePos(tloadnode(hp).fileinfo,type_e_no_assign_to_const);
@@ -1088,7 +1088,8 @@ implementation
 
     function  valid_for_formal_const(p : tnode) : boolean;
       begin
-        valid_for_formal_const:=is_constnode(p) or is_procsym_load(p) or valid_for_assign(p,[valid_void]);
+        valid_for_formal_const:=is_constnode(p) or is_procsym_load(p) or (p.resulttype.def.deftype=formaldef) or
+          valid_for_assign(p,[valid_void,valid_const]);
       end;
 
 
@@ -1903,7 +1904,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2004-05-24 20:39:41  florian
+  Revision 1.90  2004-05-24 21:04:31  florian
+    * fixed more formal const problems
+
+  Revision 1.89  2004/05/24 20:39:41  florian
     * stricter handling of formal const parameters and IE fixed
 
   Revision 1.88  2004/05/23 18:28:40  peter
