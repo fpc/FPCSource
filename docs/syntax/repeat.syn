@@ -1,0 +1,8 @@
+\begin{psyntax}{Repeat statement}{repeatstatement}
+\synt{repeat\ statement}
+\lit*{repeat}
+\<[b] \synt{statement} \\ \lit* ; \>
+\lit*{until}
+\synt{expression}
+\end{psyntax}
+

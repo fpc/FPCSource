@@ -1,0 +1,4 @@
+\begin{psyntax}{While statements}{whilestatement}
+\synt{while\ statement}
+\lit*{while} \synt{expression} \lit*{do} \synt{statement}
+\end{psyntax}

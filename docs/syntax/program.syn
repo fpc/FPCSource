@@ -1,0 +1,24 @@
+\begin{diagram}{Programs}{programs}
+\begin{mysyntdiag}
+\synt{program}
+\synt{program\ header} 
+\lit* ; 
+\[ \synt{uses\ clause} \]
+\synt{block}
+\lit* .
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{program\ header}
+\lit*{program} \synt{identifier}
+\[ \lit* ( \synt{program\ parameters} \lit* )\]
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{program\ parameters} \synt{identifier\ list}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{uses\ clause}
+\lit*{uses} \<[b] \synt{identifier} \\ \lit* , \>
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\end{mysyntdiag}
+\end{diagram}

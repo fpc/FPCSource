@@ -1,0 +1,6 @@
+\begin{psyntax}{With statement}{withstatement}
+\synt{with\ statement}
+\<[b] \synt{variable\ reference} \\ \lit* , \>
+\lit*{do}
+\synt{statement}
+\end{psyntax}

@@ -1,0 +1,25 @@
+\begin{diagram}{For statement}{forstatement}
+\begin{mysyntdiag}
+\synt{for\ statement} 
+\lit*{for}
+\synt{control\ variable}
+\lit*{:=}
+\synt{initial\ value}
+\( 
+  \lit*{to} \\
+  \lit*{downto}
+\)
+\synt{final\ value}
+\lit*{do}
+\synt{statement}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{control\ variable} \synt{variable\ identifier}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{initial\ value} \synt{expression}
+\end{mysyntdiag}
+\begin{mysyntdiag}
+\synt{final\ value} \synt{expression}
+\end{mysyntdiag}
+\end{diagram}
