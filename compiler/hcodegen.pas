@@ -136,10 +136,14 @@ unit hcodegen;
        make_const_global : boolean;
 
     { message calls with codegenerror support }
-    procedure cgmessage(const t : tmsgconst);
-    procedure cgmessage1(const t : tmsgconst;const s : string);
-    procedure cgmessage2(const t : tmsgconst;const s1,s2 : string);
-    procedure cgmessage3(const t : tmsgconst;const s1,s2,s3 : string);
+    procedure cgmessage(t : tmsgconst);
+    procedure cgmessage1(t : tmsgconst;const s : string);
+    procedure cgmessage2(t : tmsgconst;const s1,s2 : string);
+    procedure cgmessage3(t : tmsgconst;const s1,s2,s3 : string);
+    procedure CGMessagePos(const pos:tfileposinfo;t:tmsgconst);
+    procedure CGMessagePos1(const pos:tfileposinfo;t:tmsgconst;const s1:string);
+    procedure CGMessagePos2(const pos:tfileposinfo;t:tmsgconst;const s1,s2:string);
+    procedure CGMessagePos3(const pos:tfileposinfo;t:tmsgconst;const s1,s2,s3:string);
 
     { initialize respectively terminates the code generator }
     { for a new module or procedure                      }
@@ -158,7 +162,7 @@ implementation
             override the message calls to set codegenerror
 *****************************************************************************}
 
-    procedure cgmessage(const t : tmsgconst);
+    procedure cgmessage(t : tmsgconst);
       var
          olderrorcount : longint;
       begin
@@ -170,7 +174,7 @@ implementation
            end;
       end;
 
-    procedure cgmessage1(const t : tmsgconst;const s : string);
+    procedure cgmessage1(t : tmsgconst;const s : string);
       var
          olderrorcount : longint;
       begin
@@ -182,7 +186,7 @@ implementation
            end;
       end;
 
-    procedure cgmessage2(const t : tmsgconst;const s1,s2 : string);
+    procedure cgmessage2(t : tmsgconst;const s1,s2 : string);
       var
          olderrorcount : longint;
       begin
@@ -194,7 +198,7 @@ implementation
            end;
       end;
 
-    procedure cgmessage3(const t : tmsgconst;const s1,s2,s3 : string);
+    procedure cgmessage3(t : tmsgconst;const s1,s2,s3 : string);
       var
          olderrorcount : longint;
       begin
@@ -202,6 +206,55 @@ implementation
            begin
               olderrorcount:=Errorcount;
               verbose.Message3(t,s1,s2,s3);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
+
+
+    procedure cgmessagepos(const pos:tfileposinfo;t : tmsgconst);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.MessagePos(pos,t);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
+
+    procedure cgmessagepos1(const pos:tfileposinfo;t : tmsgconst;const s : string);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.MessagePos1(pos,t,s);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
+
+    procedure cgmessagepos2(const pos:tfileposinfo;t : tmsgconst;const s1,s2 : string);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.MessagePos2(pos,t,s1,s2);
+              codegenerror:=olderrorcount<>Errorcount;
+           end;
+      end;
+
+    procedure cgmessagepos3(const pos:tfileposinfo;t : tmsgconst;const s1,s2,s3 : string);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=Errorcount;
+              verbose.MessagePos3(pos,t,s1,s2,s3);
               codegenerror:=olderrorcount<>Errorcount;
            end;
       end;
@@ -315,7 +368,10 @@ end.
 
 {
   $Log$
-  Revision 1.43  1999-09-27 23:44:51  peter
+  Revision 1.44  1999-10-13 10:42:15  peter
+    * cgmessagepos functions
+
+  Revision 1.43  1999/09/27 23:44:51  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
