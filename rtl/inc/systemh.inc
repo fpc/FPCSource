@@ -217,6 +217,7 @@ Function  Pos(const substr:shortstring;const s:shortstring):StrLenInt;
 Function  Pos(C:Char;const s:shortstring):StrLenInt;
 Procedure SetLength(var s:shortstring;len:StrLenInt);
 Procedure SetString (Var S : Shortstring; Buf : PChar; Len : Longint);
+Procedure SetString (Var S : AnsiString; Buf : PChar; Len : Longint);
 Function  Length(s:string):byte;
 Function  upCase(const s:shortstring):shortstring;
 {$ifndef RTLLITE}
@@ -398,7 +399,10 @@ const
 
 {
   $Log$
-  Revision 1.67  1999-11-20 12:48:09  jonas
+  Revision 1.68  1999-11-25 13:34:57  michael
+  + Added Ansistring setstring call
+
+  Revision 1.67  1999/11/20 12:48:09  jonas
     * reinstated old random generator, but modified it so the integer
       one now has a much longer period
 

@@ -631,9 +631,19 @@ begin
   FillChar(Pointer(StringOfChar)^,Length(StringOfChar),c);
 end;
 
+Procedure SetString (Var S : AnsiString; Buf : PChar; Len : Longint);
+
+begin
+  SetLength(S,Len);
+  Move (Buf[0],S[1],Len);
+end;
+
 {
   $Log$
-  Revision 1.35  1999-11-06 14:35:38  peter
+  Revision 1.36  1999-11-25 13:34:57  michael
+  + Added Ansistring setstring call
+
+  Revision 1.35  1999/11/06 14:35:38  peter
     * truncated log
 
   Revision 1.34  1999/11/02 23:57:54  peter
