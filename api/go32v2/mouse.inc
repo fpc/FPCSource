@@ -92,13 +92,15 @@ asm
         xorb    $0x7f,%fs:(%eax)
 
         { store position of old cursor }
-        movw    %cx,oldmousex
-        movw    %dx,oldmousey
+        movzwl  %cx,%ecx
+        movl    %ecx,oldmousex
+        movzwl  %dx,%edx
+        movl    %edx,oldmousey
 
         { calculate address of new cursor }
-        movzwl  %dx,%eax
+        movl    %edx,%eax
         imulw   screenwidth,%ax
-        addw    %cx,%ax
+        addl    %ecx,%eax
         leal    1(%edi,%eax,2),%eax
         { draw new cursor }
         xorb    $0x7f,%fs:(%eax)
@@ -305,14 +307,31 @@ begin
   Unlock_Code(Pointer(@Mouse_Trap), 400);            { Release trap code }
   Unlock_Code(Pointer(@MouseInt), 400);               { Lock MouseInt code  }
   Unlock_Data(ActionRegs, SizeOf(TRealRegs));        { Release registers }
-{$ifdef DEBUG}
-  Unlock_Data(EntryEDI, 4*SizeOf(longint));
-  Unlock_Data(callcounter, 2*SizeOf(longint));
-{$endif DEBUG}
+  UnLock_Data(MouseCallBack,SizeOf(Pointer));
   { unlock Mouse Queue and related stuff ! }
   Unlock_Data(PendingMouseEvent,
-        MouseEventBufSize*Sizeof(TMouseEvent)+2*Sizeof(PMouseEvent)+256);
-  UnLock_Data(MouseCallBack,SizeOf(Pointer));
+        MouseEventBufSize*Sizeof(TMouseEvent));
+  Unlock_Data(PendingMouseTail,SizeOf(longint));
+  Unlock_Data(PendingMouseEvents,sizeof(byte));
+  Unlock_Data(MouseButtons,SizeOf(byte));
+  Unlock_Data(MouseWhereX,SizeOf(word));
+  Unlock_Data(MouseWhereY,SizeOf(word));
+  Unlock_Data(drawmousecursor,SizeOf(boolean));
+  Unlock_Data(mouseisvisible,SizeOf(boolean));
+  Unlock_Data(mouselock,SizeOf(boolean));
+  Unlock_Data(videoseg,SizeOf(word));
+  Unlock_Data(dosmemselector,SizeOf(word));
+  Unlock_Data(screenwidth,SizeOf(word));
+  Unlock_Data(OldMouseX,SizeOf(longint));
+  Unlock_Data(OldMouseY,SizeOf(longint));
+{$ifdef DEBUG}
+  Unlock_Data(EntryEDI, SizeOf(longint));
+  Unlock_Data(EntryESI, SizeOf(longint));
+  Unlock_Data(EntryDS, SizeOf(word));
+  Unlock_Data(EntryES, SizeOf(word));
+  Unlock_Data(MouseError, SizeOf(longint));
+  Unlock_Data(callcounter, SizeOf(longint));
+{$endif DEBUG}
   Release_mouse_bridge;
 end;
 
@@ -346,10 +365,27 @@ begin
       Lock_Data(MouseCallBack, SizeOf(pointer));
       { lock Mouse Queue and related stuff ! }
       Lock_Data(PendingMouseEvent,
-        MouseEventBufSize*Sizeof(TMouseEvent)+2*Sizeof(PMouseEvent)+256);
+        MouseEventBufSize*Sizeof(TMouseEvent));
+      Lock_Data(PendingMouseTail,SizeOf(longint));
+      Lock_Data(PendingMouseEvents,sizeof(byte));
+      Lock_Data(MouseButtons,SizeOf(byte));
+      Lock_Data(MouseWhereX,SizeOf(word));
+      Lock_Data(MouseWhereY,SizeOf(word));
+      Lock_Data(drawmousecursor,SizeOf(boolean));
+      Lock_Data(mouseisvisible,SizeOf(boolean));
+      Lock_Data(mouselock,SizeOf(boolean));
+      Lock_Data(videoseg,SizeOf(word));
+      Lock_Data(dosmemselector,SizeOf(word));
+      Lock_Data(screenwidth,SizeOf(word));
+      Lock_Data(OldMouseX,SizeOf(longint));
+      Lock_Data(OldMouseY,SizeOf(longint));
 {$ifdef DEBUG}
-      Lock_Data(EntryEDI, 4*SizeOf(longint));
-      Lock_Data(callcounter, 2*SizeOf(longint));
+      Lock_Data(EntryEDI, SizeOf(longint));
+      Lock_Data(EntryESI, SizeOf(longint));
+      Lock_Data(EntryDS, SizeOf(word));
+      Lock_Data(EntryES, SizeOf(word));
+      Lock_Data(MouseError, SizeOf(longint));
+      Lock_Data(callcounter, SizeOf(longint));
 {$endif DEBUG}
       Allocate_mouse_bridge;
       FirstMouseInitDone:=true;
@@ -606,7 +642,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-02-07 22:54:44  florian
+  Revision 1.4  2000-02-17 17:00:01  pierre
+   * Data locking cleaned up
+
+  Revision 1.3  2000/02/07 22:54:44  florian
     * custommouse define removed, i.e. code is always active
     * the xor value for the mouse cursor must be $7f instead of $ff
 
