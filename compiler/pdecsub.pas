@@ -73,9 +73,9 @@ implementation
        cutils,cclasses,
        { global }
        globtype,globals,verbose,
-       systems,cpubase,
+       systems,
        { aasm }
-       aasmbase,aasmtai,aasmcpu,
+       aasmbase,
        { symtable }
        symbase,symtable,defutil,defcmp,paramgr,
        { pass 1 }
@@ -85,9 +85,7 @@ implementation
        fmodule,scanner,
        pbase,pexpr,ptype,pdecl,
        { linking }
-       import,gendef,
-       { codegen }
-       cpuinfo,cgbase
+       import,gendef
        ;
 
     const
@@ -1713,15 +1711,18 @@ const
              available to contain it }
            if parse_only then
             begin
-              { if external is available, then cdecl must also be available }
-              if (po_external in pd.procoptions) and
+              { if external is available, then cdecl must also be available,
+                procvars don't need external }
+              if not((po_external in pd.procoptions) or
+                     (pd.deftype=procvardef)) and
                  not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
                 Message(parser_e_varargs_need_cdecl_and_external);
             end
            else
             begin
               { both must be defined now }
-              if not(po_external in pd.procoptions) or
+              if not((po_external in pd.procoptions) or
+                     (pd.deftype=procvardef)) or
                  not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
                 Message(parser_e_varargs_need_cdecl_and_external);
             end;
@@ -2126,7 +2127,10 @@ const
 end.
 {
   $Log$
-  Revision 1.146  2003-10-05 21:21:52  peter
+  Revision 1.147  2003-10-07 20:52:54  peter
+    * procvar varargs fixed
+
+  Revision 1.146  2003/10/05 21:21:52  peter
     * c style array of const generates callparanodes
     * varargs paraloc fixes
 
