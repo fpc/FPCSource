@@ -241,7 +241,11 @@ begin
       end
      else
       DynamicLinker:='/lib/ld-linux.so.1';
+     {$ifdef BSD}
+      DynamicLinker:='';
+     {$endif}
    end;
+
 end;
 
 
@@ -473,7 +477,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-27 16:11:54  peter
+  Revision 1.5  2000-09-10 20:26:55  peter
+    * bsd patches from marco
+
+  Revision 1.4  2000/08/27 16:11:54  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 

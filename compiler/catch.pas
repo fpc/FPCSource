@@ -28,9 +28,6 @@ Unit catch;
   {$S-}
 {$endif}
 
-{$ifdef BSD}
-  {$define NOCATCH}
-{$endif}
 
 {$ifdef DEBUG}
   {$define NOCATCH}
@@ -109,7 +106,9 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:32  michael
-  + removed logs
+  Revision 1.3  2000-09-10 20:26:55  peter
+    * bsd patches from marco
 
+  Revision 1.2  2000/07/13 11:32:32  michael
+  + removed logs
 }
