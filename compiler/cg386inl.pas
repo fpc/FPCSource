@@ -752,7 +752,7 @@ implementation
                            end;
               pointerdef : begin
                              opsize:=S_L;
-                             if ppointerdef(p^.left^.left^.resulttype)^.definition=voiddef then
+                             if porddef(ppointerdef(p^.left^.left^.resulttype)^.definition)=voiddef then
                               addvalue:=1
                              else
                               addvalue:=ppointerdef(p^.left^.left^.resulttype)^.definition^.savesize;
@@ -939,7 +939,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-10-02 10:35:09  peter
+  Revision 1.9  1998-10-02 17:04:51  peter
+    * fix for tp7
+
+  Revision 1.8  1998/10/02 10:35:09  peter
     * support for inc(pointer,value) which now increases with value instead
       of 0*value :)
 
