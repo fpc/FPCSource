@@ -25,7 +25,7 @@ end;
 
 destructor TBinaryObjectReader.Destroy;
 begin
-  { Seek back the amount of bytes that we didn't process unitl now: }
+  { Seek back the amount of bytes that we didn't process until now: }
   FStream.Seek(Integer(FBufPos) - Integer(FBufEnd), soFromCurrent);
 
   if Assigned(FBuffer) then
@@ -171,6 +171,7 @@ var
   Value: Integer;
 begin
   try
+    Result := 0;
     while True do
     begin
       Name := ReadStr;
@@ -179,7 +180,7 @@ begin
       Value := GetEnumValue(PTypeInfo(EnumType), Name);
       if Value = -1 then
         raise EReadError.Create(SInvalidPropertyValue);
-      Result := Result or Value;
+      Result := Result or (1 shl Value);
     end;
   except
     SkipSetBody;
@@ -199,6 +200,7 @@ end;
 function TBinaryObjectReader.ReadString(StringType: TValueType): String;
 var
   i: Integer;
+  p: PChar;
 begin
   case StringType of
     vaString:
@@ -209,9 +211,18 @@ begin
     vaLString:
       Read(i, 4);
   end;
-  SetLength(Result, i);
+//  SetLength(Result, i);
   if i > 0 then
-    Read(Pointer(@Result[1])^, i);
+  begin
+    // ###
+    GetMem(p, i + 1);
+    Read(p^, i);
+    p[i] := #0;
+    Result := p;
+    FreeMem(p);
+  end else
+    SetLength(Result, 0);
+{    Read(Pointer(@Result[1])^, i);}
 end;
 
 {!!!: function TBinaryObjectReader.ReadWideString: WideString;
@@ -708,12 +719,12 @@ begin
             FOnCreateComponent(Self, ComponentClass, Result);
           if not Assigned(Result) then
           begin
-//!!!:            NewComponent := TComponent(ComponentClass.NewInstance);
-	    NewComponent := TComponentClass(ComponentClass).Create(Owner);
+            NewComponent := TComponent(ComponentClass.NewInstance);
+//!!!:	    NewComponent := TComponentClass(ComponentClass).Create(Owner);
             if ffInline in Flags then
 	      NewComponent.FComponentState :=
 	        NewComponent.FComponentState + [csLoading, csInline];
-//!!!:            NewComponent.Create(Owner);
+            NewComponent.Create(Owner);
 
 	    { Don't set Result earlier because else we would come in trouble
 	      with the exception recover mechanism! (Result should be NIL if
@@ -1002,6 +1013,8 @@ begin
           raise EReadError.Create(SInvalidPropertyValue);
       end else
         SetOrdProp(Instance, PropInfo, ReadInteger);
+    tkBool:
+      SetOrdProp(Instance, PropInfo, Ord(ReadBoolean));
     tkChar:
       SetOrdProp(Instance, PropInfo, Ord(ReadChar));
     tkEnumeration:
@@ -1050,6 +1063,8 @@ begin
           FFixups.Add(TPropFixup.Create(Instance, Root, PropInfo, '', ReadIdent));
       end;
     tkInt64: SetInt64Prop(Instance, PropInfo, ReadInt64);
+    else
+      raise EReadError.CreateFmt(SUnknownPropertyType, [Ord(PropType^.Kind)]);
   end;
 end;
 
@@ -1057,7 +1072,7 @@ function TReader.ReadRootComponent(ARoot: TComponent): TComponent;
 var
   Dummy, i: Integer;
   Flags: TFilerFlags;
-  CompClassName, CompName: String;
+  CompClassName, CompName, ResultName: String;
 begin
   FDriver.BeginRootComponent;
   Result := nil;
@@ -1083,12 +1098,15 @@ begin
           begin
 	    { We need an unique name }
             i := 0;
-            Result.Name := CompName;
-            while Assigned(FindGlobalComponent(Result.Name)) do
+	    { Don't use Result.Name directly, as this would influence
+	      FindGlobalComponent in successive loop runs }
+            ResultName := CompName;
+            while Assigned(FindGlobalComponent(ResultName)) do
             begin
               Inc(i);
-              Result.Name := CompName + '_' + IntToStr(i);
+              ResultName := CompName + '_' + IntToStr(i);
             end;
+	    Result.Name := ResultName;
           end else
             Result.Name := '';
         end;
@@ -1259,7 +1277,13 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:00  michael
+  Revision 1.3  2000-12-21 09:08:09  sg
+  * Applied bugfixes by Mattias Gaertner for TBinaryObjectReader.ReadSet
+    (uninitialized result and missing bit shifting) and
+    TReader.ReadRootComponent (finding an unique component name)
+    (merged from fixbranch)
+
+  Revision 1.2  2000/07/13 11:33:00  michael
   + removed logs
  
 }
