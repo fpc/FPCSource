@@ -1922,7 +1922,13 @@ Begin
       CurProp^.CanBeRemoved := False;
       UpdateUsedRegs(UsedRegs, Pai(p^.Next));
       For TmpReg := R_EAX To R_EDI Do
-        Inc(NrOfInstrSinceLastMod[TmpReg]);
+        if NrOfInstrSinceLastMod[TmpReg] < 255 then
+          Inc(NrOfInstrSinceLastMod[TmpReg]) 
+        else
+          begin
+            NrOfInstrSinceLastMod[TmpReg] := 0;
+            curprop^.regs[TmpReg].typ := con_unknown;
+          end;
       Case p^.typ Of
         ait_marker:;
         ait_label:
@@ -2448,7 +2454,10 @@ End.
 
 {
   $Log$
-  Revision 1.12  2000-12-04 17:00:09  jonas
+  Revision 1.13  2000-12-21 12:22:53  jonas
+    * fixed range error
+
+  Revision 1.12  2000/12/04 17:00:09  jonas
     * invalidate regs that depend on a modified register
 
   Revision 1.11  2000/11/29 00:30:44  florian
