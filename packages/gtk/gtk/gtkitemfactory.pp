@@ -72,7 +72,6 @@ type
   GTK_ITEM_FACTORY=TGtkItemFactory;
   GTK_ITEM_FACTORY_CLASS=TGtkItemFactoryClass;
 
-{$ifndef gtkwin}
 function  GTK_ITEM_FACTORY_TYPE:TGtkType;cdecl;external gtkdll name 'gtk_item_factory_get_type';
 function  GTK_IS_ITEM_FACTORY(obj:pointer):boolean;
 function  GTK_IS_ITEM_FACTORY_CLASS(klass:pointer):boolean;
@@ -107,7 +106,6 @@ function  gtk_item_factory_from_path(path:Pgchar):PGtkItemFactory;cdecl;external
 procedure gtk_item_factory_create_menu_entries(n_entries:guint; entries:PGtkMenuEntry);cdecl;external gtkdll name 'gtk_item_factory_create_menu_entries';
 procedure gtk_item_factories_path_delete(ifactory_path:Pgchar; path:Pgchar);cdecl;external gtkdll name 'gtk_item_factories_path_delete';
 procedure gtk_item_factory_create_items_ac(ifactory:PGtkItemFactory; n_entries:guint; entries:PGtkItemFactoryEntry; callback_data:gpointer; callback_type:guint);cdecl;external gtkdll name 'gtk_item_factory_create_items_ac';
-{$endif}
 
 {$endif read_interface}
 
@@ -138,8 +136,6 @@ procedure set_in_propagation(var a : TGtkItemFactoryItem; __in_propagation : gui
        a.flag0:=a.flag0 or ((__in_propagation shl bp_TGtkItemFactoryItem_in_propagation) and bm_TGtkItemFactoryItem_in_propagation);
     end;
 
-{$ifndef gtkwin}
-
 function  GTK_IS_ITEM_FACTORY(obj:pointer):boolean;
 begin
   GTK_IS_ITEM_FACTORY:=(obj<>nil) and GTK_IS_ITEM_FACTORY_CLASS(PGtkTypeObject(obj)^.klass);
@@ -150,17 +146,17 @@ begin
   GTK_IS_ITEM_FACTORY_CLASS:=(klass<>nil) and (PGtkTypeClass(klass)^.thetype=GTK_ITEM_FACTORY_TYPE);
 end;
 
-{$endif}
-
 {$endif read_implementation}
 
 
 {
   $Log$
-  Revision 1.3  2000-09-09 18:41:39  peter
+  Revision 1.4  2000-12-07 09:25:15  florian
+    * the win32 port supports the item factory as well
+
+  Revision 1.3  2000/09/09 18:41:39  peter
     * fixes for gtk win32
 
   Revision 1.2  2000/07/13 11:33:22  michael
-  + removed logs
- 
+  + removed logs 
 }
