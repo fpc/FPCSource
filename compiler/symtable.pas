@@ -757,7 +757,8 @@ implementation
       else if ((tsym(p).owner.symtabletype in
               [objectsymtable,parasymtable,localsymtable,staticsymtable])) then
           begin
-           if (Errorcount<>0) then
+           if (Errorcount<>0) or
+              (copy(p.name,1,3)='def') then
              exit;
            { do not claim for inherited private fields !! }
            if (tstoredsym(p).refs=0) and (tsym(p).owner.symtabletype=objectsymtable) then
@@ -2450,7 +2451,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2003-03-17 16:54:41  peter
+  Revision 1.91  2003-03-17 18:56:49  peter
+    * ignore hints for default parameter values
+
+  Revision 1.90  2003/03/17 16:54:41  peter
     * support DefaultHandler and anonymous inheritance fixed
       for message methods
 
