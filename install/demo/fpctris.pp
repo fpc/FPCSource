@@ -1,0 +1,1288 @@
+{
+    $Id$
+
+    This program is both available in XTDFPC as in the FPC demoes.
+    Copyright (C) 1999 by Marco van de Voort
+
+    FPCTris implements a simple Crt driven Tetrisish game to demonstrate the
+    Crt unit. (KeyPressed, ReadKey, GotoXY, Delay,TextColor,TextBackground)
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+PROGRAM FPCTris;
+{ Trying to make a tetris from zero as a demo for FPC.
+
+  Coordinate system:
+
+   0  ->   TheWidth-1            A figure is coded in a LONGINT like this:
+   ---------
+0 |   *     |                    ..*.            00100000    MSB
+| |   **    |                    ..*.            00100000
+V |   *     |                    .**.            01100000
+  |         |                    ....            00000000    LSB
+  |+   ++ ++|
+  |++ ++++++|                  so  00100000001000000110000000000000b
+  |+++++++++|
+   ---------
+TheHeight-1
+
+}
+
+Uses Crt,Dos;
+
+{$dEFINE DoubleCache} {Try to write as less characters to console as possible}
+
+CONST TheWidth  = 11; {Watch out, also correct RowMask!}
+      TheHeight = 20;
+      PosXField = 10; { Upper X,Y coordinates of playfield}
+      PosYField = 3;
+      MaxFigures= 16; {Maximum # figures place is reserved for.}
+      NrLevels  = 12; {Number of levels currenty defined}
+      FieldSpace= 177;
+
+
+TYPE TetrisFieldType = ARRAY [0..25] OF LONGINT;
+     LevelInfoType   = ARRAY [0..NrLevels-1] OF LONGINT;
+     FigureType      = LONGINT;    { actually array[0..3][0..3] of bit rounded up to a longint}
+     HighScoreType   = Packed RECORD
+                        Name : String[12];
+                        Score: LONGINT;
+                       END;
+     HighScoreArr    = ARRAY[0..9] OF HighScoreType;
+     CHARSET         = SET OF CHAR;
+
+{The figures: }
+
+CONST GraphFigures : ARRAY[0..4] OF String[80] =(
+'.*... .*... .*... ..*.. .*... .*... **... **... ..**. .**.. ..*.. *....',
+'.*... .*... .**.. .**.. .*... .**.. **... .*... ..*.. .**.. ..*.. **...',
+'**... .**.. ..*.. .*... .*... .*... ..... .*... ..*.. .**.. **.** .**..',
+'..... ..... ..... ..... .*... ..... ..... .***. ***.. .**.. ..*.. ..**.',
+'..... ..... ..... ..... ..... ..... ..... ..... ..... .**.. ..*.. .....');
+
+{Their relative occurance : }
+
+      FigureChance : ARRAY[0..MaxFigures-1] OF LONGINT =(
+  8,     8,    8,    8,     8,   8,   10,    1,   1,     1,    1,    1,0,0,0,0 );
+
+{Scores per figure. Not necessarily used. Just for future use}
+
+      FigureScore  : ARRAY[0..MaxFigures-1] OF LONGINT =(
+  2,     2,    4,    4,     1,   2,    2,   10,  10,    10,   20,   10,0,0,0,0 );
+
+{Diverse AND/OR masks to manipulate graphics}
+
+{general table to mask out a bit 31=msb 0=lsb}
+ AndTable : ARRAY[0..31] OF LONGINT=($80000000,$40000000,$20000000,$10000000,
+    $8000000,$4000000,$2000000,$1000000,$800000,$400000,$200000,$100000,
+    $80000,$40000,$20000,$10000,$8000,$4000,$2000,$1000,$800,$400,$200,$100,
+    $80,$40,$20,$10,8,4,2,1);
+
+{Mask to isolate a row of a (FigureType)}
+
+ MagicMasks : ARRAY[0..4] OF LONGINT = ($F8000000,$07C00000,$003E0000,$0001F000,$00000F80);
+
+{Mask to check if a line is full; a bit for every column aligned to left.}
+ RowMask    = $FFE00000;
+
+{Masks to calculate if the left or rightside is partially empty, write them
+in binary, and put 5 bits on a row. }
+
+ LeftMask : ARRAY[0..4] OF LONGINT = ($84210800,$C6318C00,$E739CE00,$F7BDEF00,$FFFFFFE0);
+ RightMask: ARRAY[0..4] OF LONGINT = ($08421080,$18C63180,$39CE7380,$7BDEF780,$FFFFFF80);
+
+{Some key-codes. Return value of ReadKey. If value is zero (functionkey) then
+  code=ReadKey SHL 8}
+
+   ArrU   = $04800;    ArrL   = $04B00;    ArrR   = $04D00;   BS  = $08;  (* Backspace *)
+   ArrD   = $05000;    CR     = $0D;       ESC    = $1B;      KDelete= $05300;
+   KInsert= $05200;    Home   = $04700;    KEnd   = $04F00;   CtrlY = $19;
+   CtrlT = $14;
+
+{Allowed characters entering highscores}
+   AlfaBeta : CHARSET= [' '..'z'];
+
+{This constant/parameter is used to detect a certain bug. The bug was fixed, but
+I use the constant to remind where the bug was, and what is related to eachother.}
+
+   Tune=-1;
+
+{First array is a table to find the level for a given number of dissappeared lines
+ the second and third are the delaytime and iterationlevel per level.  }
+
+  LevelBorders  : LevelInfoType = ( 10, 20, 30, 45, 60, 80,100,130,160,200,240,280);
+  DelayLevel    : LevelInfoType = (100, 90, 80, 70, 60, 60, 50, 40, 40, 20, 20,10);
+  IterationLevel: LevelInfoType = (  5,  5,  5,  5,  5,  4,  4,  4,  3,  3,  2, 2);
+
+{Some frequently used chars in high-ascii and low-ascii. UseColor selects between
+them}
+  ColorString = #196#179#192#217#219;
+  DumbTermStr = '-|..*';
+
+{The variables. If people feel they are missing, I first checked the Alias, and
+   then filled with names of the FPC-Devel list.}
+  InitNames : ARRAY[0..9] OF String[12] = ('Carl','Daniel','Florian','Jonas','Lee','Marco','Michael (3x)',
+                                           'Peter','Pierre','Thomas' );
+
+{ A multiplication factor to reward killing more then one line with one figure}
+
+  ProgressiveFactor :  ARRAY[1..5] OF LONGINT = (10,12,16,22,30);
+
+VAR
+    TopX,TopY   : LONGINT;                      {Coordinates figure relative
+                                                  to left top of playfield}
+    FigureNr    : LONGINT;                      {Nr in Figure cache, second
+                                                  index in Figures}
+    {$IFDEF DoubleCache}
+    BackField,                                  {Copy of the screen for faster matching}
+    {$ENDIF}
+    MainField   : TetrisFieldType;              {The screen grid}
+    ColorField  : ARRAY[0..TheHeight-1,0..TheWidth-1] OF LONGINT; {The color info}
+    DelayTime   : LONGINT;                      {Delay time, can be used for
+                                                  implementing levels}
+    IterationPerDelay : LONGINT;                {Iterations of mainloop (incl delay)
+                                                 before the piece falls down a row}
+    TotalChance : LONGINT;                      {Sum of FigureChange array}
+    Lines       : LONGINT;                      {Completed lines}
+    NrFigures   : LONGINT;                      {# Figures currently used}
+    RightSizeArray,                             {Nunber of empty columns to the left }
+    LeftSizeArray,                              {or right of the figure/piece}
+    Figures     : ARRAY[0..MaxFigures-1,0..3] OF LONGINT; {All bitmap info of figures}
+
+    NrFiguresLoaded : LONGINT;                  {Total figures available in GraphFigures}
+    CurrentCol  : LONGINT;                      {Color of current falling piece}
+    UseColor    : BOOLEAN;                      {Color/Mono mode}
+    DefColor    : BYTE;                         {Backup of startup colors}
+    Level       : LONGINT;                      {The current level number}
+    Style       : String;                       {Contains all chars to create the field}
+    nonupdatemode  : BOOLEAN;                   {Helpmode/highscore screen or game mode}
+    HelpMode    : BOOLEAN;
+    NextFigure  : LONGINT;                      {Next figure to fall}
+    Score       : LONGINT;                      {The score}
+    HighScore   : HighScoreArr;
+    ScorePath   : String;
+
+FUNCTION GetKey:LONGINT;
+
+VAR InKey: LONGINT;
+
+BEGIN
+ InKey:=ORD(ReadKey);
+ IF InKey=0 THEN InKey:=ORD(ReadKey) SHL 8;
+ GetKey:=InKey;
+END;
+
+FUNCTION  InputStr(VAR S:String;X,Y,Len:LONGINT;TextIn:BOOLEAN;CharAllow:CHARSET):BOOLEAN;
+
+{
+  Input a string from keyboard, in a nice way,
+   allowed characters are in CHARSET CharAllow, but several editting
+   keys are always allowed, see CASE loop.
+
+Parameters:
+
+   X,Y       Coordinates field
+   Len       Length field
+   TextIn    S already filled?}
+
+VAR
+    InGev                     : LONGINT; { No. of chars inputted }
+    Posi                      : LONGINT; { Cursorposition}
+    Ins                       : BOOLEAN;  { Insert yes/no}
+    Key                       : LONGINT; { Last key as ELib.GetKey
+                                            code <255 if normal key,
+                                            >256 if special/function
+                                            key. See keys.inc}
+    Uitg                      : String;    {The inputted string}
+    Full                      : BOOLEAN;   { Is the string full? }
+    EndVal                    : WORD;
+
+PROCEDURE ReWr; { Rewrite the field, using Uitg}
+
+VAR    I                         : LONGINT;  { Temporary variabele }
+
+BEGIN
+ IF Length(Uitg)>Len THEN
+  Uitg[0]:=CHR(Len);
+ IF Length(Uitg)>0 THEN
+  FOR I:= 1 TO Length(Uitg) DO
+   BEGIN
+    GotoXY(X+I-1,Y);
+    IF Uitg[I]=CHR(32) THEN
+     Write(CHR(FieldSpace))
+    ELSE
+     Write(Uitg[I]);
+   END;
+ IF Len<>Length(Uitg) THEN
+  BEGIN
+   GotoXY(X+Length(Uitg),Y);
+   FOR I:= Length(Uitg) TO Len-1 DO
+    Write(CHR(FieldSpace));
+  END;
+END;
+
+PROCEDURE DoCursor; { Put Cursor in/out insert-mode }
+
+BEGIN
+ {$IFNDEF Linux}
+{ IF Ins THEN
+  SetCursorSize($11E)
+ ELSE
+  SetCursorSize($71E); }
+ {$ENDIF}
+
+END;
+
+BEGIN
+    { Init }
+
+  InGev :=0;              { 0 chars untill now }
+  Posi  :=1;               { Cursorposition 0 }
+  Ins   :=TRUE;            { Insert according to parameters }
+  DoCursor;        { Set cursor accordingly }
+  Key   :=0;
+
+       { put ±±± padded field on screen }
+
+  FillChar(Uitg,Len+1,CHR(FieldSpace));
+  Uitg[0]:=CHR(Len);
+  ReWr;
+  GotoXY(X,Y);
+
+  FillChar(Uitg,Len,32);
+  UitG[0]:=#0;
+
+  IF TextIn THEN
+   BEGIN
+    Uitg:=S;
+    Posi:=Length(Uitg)+1;                        { Put a predefined }
+    ReWr;                                   {  String on screen if specified }
+   END;
+
+  EndVal:=0;
+  WHILE EndVal=0 DO
+   BEGIN
+    Full:=FALSE;
+    IF ((Posi)>=Len) THEN
+     BEGIN
+      Full:=TRUE;
+      Posi:=Len;
+     END;
+    GotoXY(X+Posi-1,Y);
+    {$IFNDEF Linux}
+     {$IFDEF FPC}
+      CursorOn;
+     {$ENDIF}
+    DoCursor;
+    {$ENDIF}
+    Key:=GetKey;
+   {$IFNDEF Linux}
+    {$IFDEF FPC}
+    CursorOff;
+    {$ENDIF}
+   {$ENDIF}
+    CASE Key OF
+          CR              : BEGIN
+                             EndVal:=1;
+                             S:=UitG;
+                            END;
+          ESC             : EndVal:=2;
+          BS              : IF Posi>1 THEN       { BackSpace }
+                              BEGIN
+                               DEC(Posi);
+                               Delete(Uitg,Posi,1);
+                               DEC(InGev);
+                               ReWr;
+                              END;
+          KDelete          : BEGIN
+                              Delete(Uitg,Posi,1);
+                              DEC(InGev);
+                              ReWr;
+                             END;
+          ArrR            : IF (NOT Full) AND ((Posi-1)<InGev) THEN
+                              BEGIN
+                               INC (Posi);
+                               GotoXY(X+Posi-1,Y);
+                               END;
+          KInsert          : BEGIN
+                               Ins:= NOT Ins;
+                               DoCursor;
+                              END;
+          ArrL            : IF (NOT (Posi=1)) THEN
+                              BEGIN
+                               DEC (Posi);
+                               GotoXY(X+Posi-1,Y);
+                              END;
+          Home            : Posi:=1;
+          KEnd            : Posi:=InGev-1;
+          CtrlY           : BEGIN
+                             Delete(Uitg,Posi,Length(Uitg)-Posi);
+                             ReWr;
+                            END;
+          CtrlT           : BEGIN
+                             Uitg[0]:=#0; Posi:=1; ReWr;
+                            END;
+    END; {Case}
+   IF EndVal=0 THEN
+    BEGIN
+     IF (CHR(Key) IN CharAllow) THEN
+      BEGIN
+       IF Posi>Len THEN
+        Posi:=Len;
+       IF (Ins=FALSE) OR Full THEN
+        BEGIN
+         IF (ORD(Uitg[0])<Posi) THEN
+           Uitg[0]:=CHR(Posi);
+         Uitg[Posi]:=CHR(Key);
+        END
+       ELSE
+        BEGIN
+         Insert(CHR(Key),Uitg,Posi);
+{         InsertC(uitg,CHR(Key),Posi);}
+        END;
+       ReWr;
+       INC(Posi);
+      END;
+     END;
+    InGev:=Length(Uitg);
+   END;
+  InputStr:=Endval=1;
+END;
+
+
+FUNCTION RRotate(Figure:FigureType;ColumnsToDo:LONGINT):FigureType;
+{Rotate a figure to the right (=clockwise).
+
+This new (v0.06) routine performs a ColumnsTodo x ColumnsToDo rotation,
+instead of always a 4x4 (v0.04) or 5x5 (v0.05) rotation.
+
+This avoids weird, jumpy behaviour when rotating small pieces.}
+
+VAR I,J, NewFig:LONGINT;
+
+BEGIN
+ NewFig:=0;
+ FOR I:=0 TO ColumnsToDo-1 DO
+  FOR J:=0 TO ColumnsToDo-1 DO
+   IF Figure AND AndTable[I*5+J]<>0 THEN
+    NewFig:=NewFig OR AndTable[(ColumnsToDo-1-I)+5*(J)]; {}
+ RRotate:=NewFig;
+END;
+
+{ LeftSize and RightSize count the number of empty lines to the left and
+right of the character. On the below character LeftSize will return 2 and
+RightSize will return 1.
+
+        ..*.
+        ..*.
+        ..*.
+        ..*.
+}
+FUNCTION RightSize(Fig:FigureType):LONGINT;
+
+VAR I : LONGINT;
+
+BEGIN
+ I:=0;
+ WHILE ((Fig AND RightMask[I])=0) AND (I<5) DO
+  INC(I);
+  IF I>4 THEN
+   HALT;
+ Rightsize:=I;
+END;
+
+FUNCTION Leftsize(Fig:FigureType):LONGINT;
+
+VAR I : LONGINT;
+
+BEGIN
+ I:=0;
+ WHILE ((Fig AND LeftMask[I])=0)  AND (I<5) DO
+  INC(I);
+  IF I>4 THEN
+   HALT;
+ Leftsize:=I;
+END;
+
+FUNCTION FigSym(Figure:LONGINT;RightSizeFig:LONGINT):LONGINT;
+ {Try to find the "symmetry" of a figure, the smallest square (1x1,2x2,3x3 etc)
+ in which the figure fits. This requires all figures designed to be aligned to
+ topleft.}
+
+VAR ColumnsToDo : LONGINT;
+
+BEGIN
+ {Determine which bottom rows aren't used}
+
+ ColumnsToDo:=5;
+ WHILE ((Figure AND MagicMasks[ColumnsToDo-1])=0) AND (ColumnsToDo>1) DO
+  DEC(ColumnsToDo);
+
+ {Compare with columns used, already calculated, and take the biggest}
+ IF ColumnsToDo<(5-RightSizeFig) THEN
+  ColumnsToDo:=5-RightSizeFig;
+ FigSym:=ColumnsToDo;
+END;
+
+
+PROCEDURE CreateFiguresArray;
+{Reads figures from ASCII representation into binary form, and creates the
+ rotated representations, and the number of empty columns to the right and
+ left per figure. }
+
+VAR I,J,K,L,Symmetry : LONGINT;
+
+BEGIN
+ NrFigures:=0; K:=1;
+ WHILE K<Length(GraphFigures[0]) DO
+  BEGIN
+   IF GraphFigures[0][K]=' ' THEN
+    INC(K);
+   L:=0;
+   FOR I:=0 TO 4 DO   {Rows}
+    FOR J:=0 TO 4 DO {Columns}
+     IF GraphFigures[I][K+J]='*' THEN
+      L:=L OR AndTable[I*5+J];
+    Figures[NrFigures][0]:=L;
+    INC(NrFigures);
+    INC(K,5);
+  END;
+ NrFiguresLoaded:=NrFigures;
+ FOR I:= 0 TO NrFigures-1 DO
+  BEGIN
+   RightSizeArray[I][0]:=RightSize(Figures[I][0]);
+   LeftSizeArray[I][0]:=LeftSize(Figures[I][0]);
+   Symmetry:=FigSym(Figures[I][0],RightSizeArray[I][0]);
+   FOR J:=0 TO 2 DO                              {Create the other 3 by rotating}
+    BEGIN
+     Figures[I][J+1]:=RRotate(Figures[I][J],Symmetry);
+     RightSizeArray[I][J+1]:=RightSize(Figures[I][J+1]);
+     LeftSizeArray[I][J+1]:=LeftSize(Figures[I][J+1]);
+    END;
+   END;
+{Clear main grid}
+ FillChar(MainField,SIZEOF(TetrisFieldType),0);
+END;
+
+PROCEDURE CalculateTotalChance;
+{Called after a change in the the number of figures, normally 7 (standard)
+or NrFiguresLoaded (10 right now) to recalculate the total of the chance table}
+
+VAR Temp:LONGINT;
+
+BEGIN
+ TotalChance:=0;
+ FOR Temp:=0 TO NrFigures-1 DO INC(TotalChance,FigureChance[Temp]);
+END;
+
+FUNCTION MatchPosition(Fig:FigureType;X,Y:LONGINT): BOOLEAN;
+{Most important routine. Tries to position the figure on the position
+IF it returns FALSE then the piece overlaps something on the background,
+or the lower limit of the playfield
+}
+
+VAR I,J,K  : LONGINT;
+    Match: BOOLEAN;
+
+BEGIN
+ Match:=TRUE;
+ FOR I:=0 TO 4 DO
+  BEGIN
+   K:=Fig;
+   K:=K AND MagicMasks[I];
+   IF K<>0 THEN
+    BEGIN
+     J:=5*(I)-X+Tune;
+     IF J>0 THEN
+      K:=K SHL J
+     ELSE
+      IF J<0 THEN
+       K:=K SHR -J;
+     IF (MainField[Y+I] AND K)<>0 THEN
+      Match:=FALSE;
+   END;
+  END;
+ I:=4;
+ IF (Fig AND MagicMasks[4])=0 THEN
+  DEC(I);
+ IF (Fig AND MagicMasks[3])=0 THEN
+  DEC(I);
+ IF (Fig AND MagicMasks[2])=0 THEN
+  DEC(I);
+ IF (Y+I)>=TheHeight THEN
+  Match:=FALSE;
+ MatchPosition:=Match;
+END;
+
+PROCEDURE FixFigureInField(Fig:FigureType;X,Y:LONGINT;Clear:BOOLEAN);
+{Blends the figure into the background, or erases the figure from the
+background}
+
+VAR I,J,K  : LONGINT;
+
+BEGIN
+ FOR I:=0 TO 4 DO
+  BEGIN
+   K:=Fig;
+    K:=K AND MagicMasks[I];
+   IF K<>0 THEN
+    BEGIN
+     J:=5*I-X+Tune;
+     IF J>0 THEN
+      K:=K SHL J
+     ELSE
+      IF J<0 THEN
+       K:=K SHR (-J);
+     IF Clear THEN
+      BEGIN
+       K:=K XOR -1;
+       MainField[Y+I]:= MainField[Y+I] AND K;
+      END
+     ELSE
+      MainField[Y+I]:= MainField[Y+I] OR K;
+    END;
+ END;
+END;
+
+PROCEDURE FixColField(ThisFig:LONGINT);
+{Puts color info of a figure into the colorgrid, simplified
+FixFigureInField on byte instead of bit manipulation basis.}
+
+VAR I,J,K  : LONGINT;
+
+BEGIN
+ FOR I:=0 TO 4 DO
+  BEGIN
+   K:=Figures[ThisFig][FigureNr];
+   IF (I+TopY)<=TheHeight THEN
+    FOR J:=0 TO 4 DO
+     BEGIN
+      IF (K AND AndTable[J+5*I])<>0 THEN
+       ColorField[TopY+I,TopX-Tune+J]:=CurrentCol;
+     END;
+  END;
+END;
+
+PROCEDURE DisplMainFieldTextMono;
+{Displays the grid with a simple buffering algoritm, depending on
+conditional DoubleBuffer}
+
+VAR Row,Column,Difference,StartRow,EndRow : LONGINT;
+    S : String;
+
+BEGIN
+ FOR Row:=0 TO TheHeight-1 DO
+  BEGIN
+   {$IFDEF DoubleCache}
+    IF BackField[Row]<>MainField[Row] THEN
+     BEGIN
+    {$ENDIF}
+   FillChar(S[1],2*TheWidth,#32);
+   StartRow:=0;
+   EndRow:=TheWidth-1;
+   {$IFDEF DoubleCache}
+    Difference:=MainField[Row] XOR BackField[Row];     {Calc differences in line}
+    {Search for first and last bit changed}
+    WHILE ((Difference AND AndTable[StartRow])=0) AND (StartRow<(TheWidth-1)) DO
+     INC(StartRow);
+    WHILE ((Difference AND AndTable[EndRow])=0) AND (EndRow>0) DO
+     DEC(EndRow);
+   {$ENDIF}
+   {Prepare a string}
+   GotoXY(PosXField+2*StartRow,PosYField+Row);
+   S[0]:=CHR(2*(EndRow-StartRow+1));
+   FOR Column:=0 TO EndRow-StartRow DO
+    BEGIN
+     IF (MainField[Row] AND AndTable[StartRow+Column])<>0 THEN
+      BEGIN
+       S[Column*2+1]:=Style[5];
+       S[Column*2+2]:=Style[5];
+      END;
+    END;
+   {Write the string}
+   Write(S);
+   {$IFDEF DoubleCache}
+    END;
+   {$ENDIF}
+  END;
+ {$IFDEF DoubleCache}
+  BackField:=MainField;     {Keep a copy of the screen for faster updates
+                              of terminals, for next DisplMainFieldText.}
+ {$ENDIF}
+END;
+
+PROCEDURE DisplMainFieldTextColor;
+{Same as above, but also use ColorField to output colors,
+ the buffering is the same, but the colors make it less efficient.}
+
+VAR Row,Column,Difference,StartRow,EndRow,
+    L : LONGINT;
+    S   : String;
+    LastCol : LONGINT;
+
+BEGIN
+ LastCol:=255;
+ FOR Row:=0 TO TheHeight-1 DO
+  BEGIN
+   {$IFDEF DoubleCache}
+    IF BackField[Row]<>MainField[Row] THEN
+     BEGIN
+    {$ENDIF}
+   FillChar(S[1],2*TheWidth,#32);
+   StartRow:=0;
+   EndRow:=TheWidth-1;
+   {$IFDEF DoubleCache}
+    Difference:=MainField[Row] XOR BackField[Row];     {Calc differences in line}
+    WHILE ((Difference AND AndTable[StartRow])=0) AND (StartRow<(TheWidth-1)) DO
+     INC(StartRow);
+    WHILE ((Difference AND AndTable[EndRow])=0) AND (EndRow>0) DO
+     DEC(EndRow);
+   {$ENDIF}
+   GotoXY(PosXField+2*StartRow,PosYField+Row);
+   FOR Column:=0 TO EndRow-StartRow DO
+    BEGIN
+     IF (MainField[Row] AND AndTable[StartRow+Column])<>0 THEN
+      BEGIN
+       L:=ColorField[Row,StartRow+Column];
+       IF L=0 THEN
+        L:=CurrentCol;
+       IF L<>LastCol THEN
+        BEGIN
+         TextColor(L);
+         Write(Style[5],Style[5]);
+        END;
+      END
+     ELSE
+      Write('  ');
+    END;
+   {$IFDEF DoubleCache}
+    END;
+   {$ENDIF}
+  END;
+ {$IFDEF DoubleCache}
+  BackField:=MainField;     {Keep a copy of the screen for faster updates
+                              of terminals, for next DisplMainFieldText.}
+ {$ENDIF}
+END;
+
+PROCEDURE DisplMainFieldText;
+{Main redraw routine; Check in what mode we are and call appropriate routine}
+
+BEGIN
+ IF UseColor THEN
+  DisplMainFieldTextColor
+ ELSE
+  DisplMainFieldTextMono;
+END;
+
+PROCEDURE RedrawScreen;
+{Frustrates the caching system so that the entire screen is redrawn}
+
+VAR I : LONGINT;
+
+BEGIN
+ FOR I:=0 TO TheHeight-1 DO
+  BackField[I]:=MainField[I] XOR -1;    {backup copy is opposite of MainField}
+END;
+
+FUNCTION GetNextFigure:LONGINT;
+
+VAR IndTotal,Temp,TheFigure : LONGINT;
+
+BEGIN
+Temp:=RANDOM(TotalChance);
+ IndTotal:=0;
+ TheFigure:=0;
+ WHILE Temp>=IndTotal DO
+  BEGIN
+   INC(IndTotal,FigureChance[TheFigure]);
+   INC(TheFigure);
+  END;
+ dec(thefigure);
+ GetNextFigure:=TheFigure;
+END;
+
+PROCEDURE ShowNextFigure(ThisFig:LONGINT);
+
+VAR I,J,K  : LONGINT;
+    S      : String[8];
+
+BEGIN
+ IF UseColor THEN
+  TextColor(White);
+ IF NOT nonupdatemode THEN
+  BEGIN
+   FOR I:=0 TO 4 DO
+    BEGIN
+     FillChar(S,9,' ');
+     S[0]:=#8;
+     K:=Figures[ThisFig][FigureNr];
+     IF (I+TopY)<=TheHeight THEN
+      FOR J:=0 TO 4 DO
+       BEGIN
+        IF (K AND AndTable[J+5*I])<>0 THEN
+         BEGIN
+          S[J*2+1]:=Style[5];
+          S[J*2+2]:=Style[5];
+         END
+       END;
+     GotoXY(50,11+I); Write(S);
+    END;
+  END;
+END;
+
+PROCEDURE FixScores;
+
+BEGIN
+    IF UseColor THEN
+    BEGIN
+     TextColor(DefColor AND 15);
+     TextBackground(DefColor SHR 4);
+    END;
+   GotoXY(40,18);
+   Write('Score :',Score);
+END;
+
+PROCEDURE ShowLines;
+
+BEGIN
+ IF NOT nonupdatemode THEN
+  BEGIN
+   IF UseColor THEN
+    TextColor(Yellow);
+   GotoXY(40,16); Write('Lines: ',Lines:4,'    Level: ',Level);
+  END;
+END;
+
+FUNCTION InitAFigure(VAR TheFigure:LONGINT) : BOOLEAN;
+{A new figure appears in the top of the screen. If return value=FALSE then
+the piece couldn't be created (when it is overlapping with the background.
+That's the game-over condition)}
+
+VAR Temp : LONGINT;
+
+BEGIN
+ TopX:=(TheWidth-4) DIV 2;             { Middle of Screen}
+ TopY:=0;
+ FigureNr:=1;
+ IF TheFigure<>-1 THEN
+  INC(Score,FigureScore[TheFigure]);
+ IF NOT NonUpdateMode THEN
+  FixScores;
+ Temp:=GetNextFigure;                   {Determine next char (after the one this
+                                      initafigure created has got down)}
+ TheFigure:=NextFigure;                 {Previous NextFigure becomes active now.}
+ NextFigure:=Temp;
+ InitAFigure:=MatchPosition(Figures[TheFigure][0],TopX,TopY);
+ ShowNextFigure(NextFigure);
+ CurrentCol:=RANDOM(14)+1;
+END;
+
+PROCEDURE ShowHighScore;
+
+VAR I : LONGINT;
+
+BEGIN
+ GotoXY(50,9); Write('The Highscores');
+ FOR I:=0 TO 9 DO
+  BEGIN
+   GotoXY(40,20-I);
+   Write(HighScore[I].Name,' ':(13-Length(HighScore[I].Name)),' ',HighScore[I].Score:5);
+  END;
+END;
+
+PROCEDURE ShowGameMode;
+
+BEGIN
+ IF NOT nonupdatemode THEN
+  BEGIN
+   GotoXY(61,13);
+   IF NrFigures<>7 THEN
+    write('Extended')
+   ELSE
+    write('Standard');
+  END;
+END;
+
+
+PROCEDURE CreateFrame;
+{Used once to print the "background" of the screen (not the background grid,
+but the text, and the cadre around the playfield}
+
+VAR I : LONGINT;
+
+BEGIN
+ TextColor(DefColor AND 15);
+ TextBackground(DefColor SHR 4);
+ GotoXY(40,4);
+ Write('FPCTris v0.06, (C) by the FPC team.');
+ GotoXY(40,6);
+ Write('A demo of the FPC Crt unit, and');
+ GotoXY(40,7);
+ Write(' its portability');
+ FOR I:=9 TO 24 DO
+  BEGIN
+   GotoXY(40,I);
+   Write(' ':38);
+  END;
+ ShowGameMode;
+ IF nonupdatemode THEN
+  BEGIN
+   IF HelpMode THEN
+    BEGIN
+   GotoXY(40,9);
+   Write('Arrow left/right to move, down to drop');
+   GotoXY(40,10);
+   Write('arrow-up to rotate the piece');
+   GotoXY(40,11);
+   Write('"P" to pause');
+   GotoXY(40,12);
+   Write('"E" Mode (standard or extended)');
+   GotoXY(40,13);
+   Write('"C" switches between color/mono mode');
+   GotoXY(40,14);
+   Write('Escape to quit');
+   GotoXY(40,15);
+   Write('"S" to show the highscores');
+   {$IFDEF Linux}
+   GotoXY(40,16);
+   Write('"i" try to switch to IBM character set');
+   {$ENDIF}
+   END
+   ELSE
+    ShowHighScore;
+  END
+ ELSE
+  BEGIN
+   GotoXY(40,9);
+   Write('"h" to display the helpscreen');
+  END;
+
+ FOR I :=0 TO TheHeight-1 DO
+  BEGIN
+   GotoXY(PosXField-1 ,PosYField+I); Write(Style[2]);
+   GotoXY(PosXField+2*TheWidth ,PosYField+I); Write(Style[2]);
+  END;
+ GotoXY(PosXField-1,PosYField+TheHeight);
+ Write(Style[3]);
+ FOR I:=0 TO (2*TheWidth)-1 DO
+  Write(Style[1]);
+ Write(Style[4]);
+END;
+
+PROCEDURE FixLevel(Lines:LONGINT);
+
+
+BEGIN
+ Level:=0;
+ WHILE (Lines>LevelBorders[Level]) AND (Level<HIGH(LevelBorders)) DO
+  INC(Level);
+ DelayTime:=DelayLevel[Level];
+ IterationPerDelay:=IterationLevel[Level];
+END;
+
+PROCEDURE FixMainFieldLines;
+{Deletes full horizontal lines from the playfield will also get some
+score-keeping code in the future.}
+
+VAR I,LocalLines : LONGINT;
+
+BEGIN
+ I:=TheHeight-1;
+ LocalLines:=0;
+ WHILE I>=0 DO
+  BEGIN
+   IF (MainField[I] XOR RowMask)=0 THEN
+    BEGIN
+     Move(MainField[0],MainField[1],I*4);
+     Move(ColorField[0,0],ColorField[1,0],4*I*TheWidth);
+     MainField[0]:=0;
+     FillChar(ColorField[0,0],0,TheWidth);
+     INC(LocalLines);
+    END
+   ELSE
+    DEC(I);
+  END;
+
+ INC(Lines,LocalLines);
+ INC(Score,ProgressiveFactor[LocalLines]*LocalLines);
+
+ I:=Level;
+ FixLevel(Lines);
+ IF LocalLines<>0 THEN
+  ShowLines;
+ {$IFDEF DoubleCache}
+  IF UseColor THEN
+   RedrawScreen;
+ {$ENDIF}
+END;
+
+PROCEDURE DoFPCTris;
+{The main routine. Initialisation, keyboard loop}
+
+VAR EndGame   : BOOLEAN;
+    FixHickup : LONGINT;
+    Counter   : LONGINT;
+    Temp,Key  : LONGINT;
+    TheFigure : LONGINT;                      {Current first index in Figures}
+
+PROCEDURE TurnFigure;
+{Erases a figure from the grid, turns it if possible, and puts it back on
+again}
+
+BEGIN
+  FixFigureInField(Figures[TheFigure][FigureNr],TopX,TopY,TRUE);
+  IF MatchPosition(Figures[TheFigure][Temp],TopX,TopY) THEN
+   FigureNr:=Temp;
+  FixFigureInField(Figures[TheFigure][FigureNr],TopX,TopY,FALSE);
+END;
+
+PROCEDURE FixHighScores;
+
+VAR I,J : LONGINT;
+    S   : String;
+
+BEGIN
+ I:=0;
+ FOR J:=9 TO 22 DO
+    BEGIN
+     GotoXY(40,J);
+     Write(' ':38);
+    END;
+ IF UseColor THEN
+  TextColor(White);
+ GotoXY(40,23);
+ Writeln('Game Over, score = ',Score);
+ WHILE (Score>HighScore[I].Score) AND (I<10) DO
+  INC(I);
+ IF I<>0 THEN
+  BEGIN
+   IF I>1 THEN
+    FOR J:=0 TO I-2 DO
+     HighScore[J]:=HighScore[J+1];
+    HighScore[I-1].Score:=Score;
+    HighScore[I-1].Name:='';
+   NonUpdateMode:=TRUE;
+   HelpMode:=FALSE;
+
+   ShowHighScore;
+   InputStr(S,40,21-I,10,FALSE,AlfaBeta);
+   HighScore[I-1].Name:=S;
+   ShowHighScore;
+  END
+ ELSE
+  BEGIN
+   ShowHighScore;
+  END;
+END;
+
+{$IFNDEF FPC}
+PROCEDURE SetCursorSize(CurDat:WORD);ASSEMBLER;
+ASM
+  mov ah,1
+  mov cx,CurDat
+  int $10
+END;
+
+{The two procedures below are standard (and os-independant) in FPC's Crt}
+PROCEDURE CursorOn;
+BEGIN
+  SetCursorSize($090A);
+END;
+
+PROCEDURE CursorOff;
+BEGIN
+  SetCursorSize($FFFF);
+END;
+{$ENDIF}
+
+BEGIN
+ {Here should be some terminal-detection for Linux}
+ nonupdatemode:=FALSE;
+ HelpMode :=TRUE;
+ {$IFDEF Linux}
+  UseColor:=FALSE;
+ {$ELSE}
+  UseColor:=TRUE;
+ {$ENDIF}
+ DefColor:=TextAttr;                { Save the current attributes, to restore}
+ ClrScr;
+ CursorOff;
+ RANDOMIZE;
+ CreateFiguresArray;                  { Load and precalculate a lot of stuff}
+ IF UseColor THEN
+  Style:= ColorString
+ ELSE
+  Style:=DumbTermStr;
+
+ NrFigures:=7;                        {Default standard tetris mode, only use
+                                        the first 7 standard figures}
+ CalculateTotalChance;                {Calculated the total of all weightfactors}
+ EndGame:=FALSE;                      {When TRUE, end of game has been detected}
+ FixHickup:=0;                        {Used to avoid unnecessary pauses with the "down key"}
+ CreateFrame;                         {Draws all background garbadge}
+
+ TheFigure:=-1;
+ NextFigure:=GetNextFigure;              {Two figures have to be inited. The first
+                                        figure starts dropping, and that is this
+                                        one}
+ InitAFigure(TheFigure);              {The second figure is the figure to be
+                                       displayed as NEXT. That's this char :-)}
+ DisplMainFieldText;                  {Display/update the grid}
+ Counter:=0;                          {counts up to IterationPerDelay}
+ DelayTime:=100;                      {Time of delay}
+ IterationPerDelay:=5;                {= # Delays per shift down of figure}
+ Lines:=0;                            {Lines that have disappeared}
+ Score:=0;
+ ShowLines;
+ REPEAT
+  IF KeyPressed THEN                  {The function name says it all}
+   BEGIN
+    Key:=ORD(READKEY);
+    IF Key=0 THEN                     {Function key?}
+     Key:=ORD(READKEY) SHL 8;
+    CASE Key OF                       {Check for all keys}
+     ArrU : BEGIN
+             Temp:=(FigureNr+3) AND 3;
+             IF ((TopX+LeftSizeArray[TheFigure][FigureNr])<0) THEN
+              BEGIN
+              IF  (LeftSizeArray[TheFigure][FigureNr]<=LeftSizeArray[TheFigure][Temp]) THEN
+               TurnFigure;
+              END
+             ELSE
+             IF (TopX+7-RightSizeArray[TheFigure][FigureNr])>TheWidth THEN
+              BEGIN
+              IF  (RightSizeArray[TheFigure][FigureNr]<=RightSizeArray[TheFigure][Temp]) THEN
+               TurnFigure;
+              END
+             ELSE
+              TurnFigure;
+           END;
+
+    ArrL  : BEGIN
+             IF (TopX+LeftSizeArray[TheFigure][FigureNr])>=0 THEN
+              BEGIN
+               Temp:=TopX+1-LeftSizeArray[TheFigure][FigureNr];
+               FixFigureInField(Figures[TheFigure][FigureNr],TopX,TopY,TRUE);
+               IF MatchPosition(Figures[TheFigure][FigureNr],TopX-1,TopY) THEN
+                DEC(TopX);
+               FixFigureInField(Figures[TheFigure][FigureNr],TopX,TopY,FALSE);
+              END;
+             END;
+
+    ArrR  : BEGIN
+             IF (TopX+7-RightSizeArray[TheFigure][FigureNr])<=TheWidth THEN
+              BEGIN
+               FixFigureInField(Figures[TheFigure][FigureNr],TopX,TopY,TRUE);
+               IF MatchPosition(Figures[TheFigure][FigureNr],TopX+1,TopY) THEN
+                INC(TopX);
+               FixFigureInField(Figures[TheFigure][FigureNr],TopX,TopY,FALSE);
+              END;
+             END;
+
+    ArrD  : BEGIN
+             IF FixHickup=0 THEN
+              BEGIN
+             FixFigureInField(Figures[TheFigure][FigureNr],TopX,TopY,TRUE);
+             Temp:=TopY;
+             WHILE MatchPosition(Figures[TheFigure][FigureNr],TopX,TopY+1) DO
+              INC(TopY);
+             Temp:=TopY-Temp;
+             INC(Score,Temp DIV 2);
+             FixFigureInField(Figures[TheFigure][FigureNr],TopX,TopY,FALSE);
+             FixHickUp:=4;
+             END;
+            END;
+
+ORD('q'),
+   ESC     : BEGIN
+             TextColor(DefColor AND 15);
+             TextBackground(DefColor SHR 4);
+             GotoXY(1,25);
+             EndGame:=TRUE;
+            END;
+
+ORD('C'),
+ ORD('c') : BEGIN
+             UseColor:=NOT UseColor;
+             IF UseColor THEN
+              Style:= ColorString
+             ELSE
+              BEGIN
+               TextColor(DefColor AND 15);
+               TextBackground(DefColor  SHR 4);
+               Style:=DumbTermStr;
+              END;
+             CreateFrame;
+             RedrawScreen;
+             DisplMainFieldText;
+            END;
+
+ORD('H'),
+ ORD('h') : BEGIN
+             nonupdatemode:=NOT nonupdatemode;
+             CreateFrame;
+             ShowLines;
+             ShowNextFigure(NextFigure);
+            END;
+ ORD('S'),
+  ORD('s') : BEGIN
+              IF NOT nonupdatemode THEN
+               BEGIN
+                NonUpdateMode:=TRUE;
+                helpmode:=NOT helpmode;
+               END
+              ELSE
+                HelpMode:=NOT helpmode;
+               CreateFrame;
+               ShowLines;
+               ShowNextFigure(NextFigure);
+              END;
+ORD('E'),
+ ORD('e'): BEGIN                            {Extra figures on/off}
+            IF NrFigures<>NrFiguresLoaded THEN
+              NrFigures:=NrFiguresLoaded     {Extra figures}
+            ELSE
+              NrFigures:=7;                   {Standard Tetris figures}
+            CalculateTotalChance;             {Recalculate weight-totals}
+            IF UseColor THEN
+             BEGIN
+              TextColor(DefColor AND 15);
+              TextBackground(DefColor SHR 4);
+             END;
+            ShowGameMode;
+           END;
+
+ORD('p') : BEGIN                             {"p" : Pause}
+             Key:=ORD(ReadKey);
+            IF Key=0 THEN
+             Key:=ORD(ReadKey);
+           END;
+{$IFDEF Linux}
+ ORD('i')  : write(#27+'(K');
+{$ENDIF}
+        END; {END OF Key CASE}
+      END { OF If KeyPressed}
+
+  ELSE
+   BEGIN
+    {$IFDEF Linux}
+     GotoXY(50,10);      {Get cursor out of the way, CursorOn/Off
+                            doesn't work on telnet-terminals}
+    {$ENDIF}
+    Delay(DelayTime);
+   END;
+
+  INC(Counter);
+  IF (Counter=IterationPerDelay) OR (FixHickup=1) THEN
+   BEGIN
+    IF FixHickup=1 THEN
+      Counter:=IterationPerDelay-1
+    ELSE
+     Counter:=0;
+    FixFigureInField(Figures[TheFigure][FigureNr],TopX,TopY,TRUE);
+    FixHickup:=0;
+    IF MatchPosition(Figures[TheFigure][FigureNr],TopX,TopY+1) THEN
+     BEGIN
+      INC(TopY);
+      FixFigureInField(Figures[TheFigure][FigureNr],TopX,TopY,FALSE);
+     END
+    ELSE
+    BEGIN
+      FixFigureInField(Figures[TheFigure][FigureNr],TopX,TopY,FALSE);
+      FixColField(TheFigure);
+      IF InitAFigure(TheFigure) THEN
+        BEGIN
+         FixMainFieldLines;
+         FixFigureInField(Figures[TheFigure][FigureNr],TopX,TopY,FALSE);
+         DisplMainFieldText;
+         Delay(DelayTime*IterationPerDelay);
+        END
+      ELSE
+       BEGIN
+        FixFigureInField(Figures[TheFigure][FigureNr],TopX,TopY,FALSE);
+        EndGame:=TRUE;
+       END;
+    END;
+   END
+  ELSE
+   IF FixHickup>1 THEN
+    DEC(FixHickup);
+ DisplMainFieldText;
+ UNTIL EndGame;
+ FixHighScores;
+ CursorOn;
+ TextColor(DefColor AND 15);
+ TextBackground(DefColor SHR 4);
+ GotoXY(1,25);
+END;
+
+CONST FileName='fpctris.scr';
+
+Procedure LoadHighScore;
+
+var
+ F: File;
+ I : LONGINT;
+
+BEGIN
+ {$I-}
+ Assign(F, FileName);
+ FileMode := 0;  {Set file access to read only }
+ Reset(F);
+ Close(F);
+ {$I+}
+ IF IOResult=0 THEN
+  ScorePath:=FileName
+ ELSE
+  ScorePath:=FSearch(FileName,GetEnv('PATH'));
+ IF ScorePath='' THEN
+  BEGIN
+   FOR I:=0 TO 9 DO
+    BEGIN
+     HighScore[I].Name:=InitNames[I];
+     HighScore[I].Score:=(I+1)*750;
+    END;
+   ScorePath:=FileName;
+  END
+ ELSE
+  BEGIN
+   Assign(F,ScorePath);
+   Reset(F,1);
+   BlockRead(F,HighScore,SIZEOF(HighScoreArr));
+   Close(F);
+  END;
+END;
+
+Procedure SaveHighScore;
+
+var
+ F: File;
+
+BEGIN
+ Assign(F,ScorePath);
+ Rewrite(F,1);
+ BlockWrite(F,HighScore,SIZEOF(HighScoreArr));
+ Close(F);
+END;
+
+BEGIN
+ LoadHighScore;
+ DoFpcTris;
+ SaveHighScore;
+END.
+
+{
+  $Log$
+  Revision 1.1  1999-05-27 21:36:33  peter
+    * new demo's
+    * fixed mandel for linux
+
+}

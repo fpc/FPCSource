@@ -26,12 +26,21 @@ DEFAULTFPCDIR=..
 #####################################################################
 
 UNITOBJECTS=
-EXEOBJECTS=eratos qsort hello blackbox magic
+EXEOBJECTS=eratos qsort hello blackbox magic lines fpctris
 
+# Win32 demo's
 ifeq ($(OS_TARGET),win32)
 override EXEOBJECTS+=winhello menu
-else
-override EXEOBJECTS+=mandel lines
+endif
+
+# Go32v2 demo's
+ifeq ($(OS_TARGET),go32v2)
+override EXEOBJECTS+=mandel samegame
+endif
+
+# Linux demo's
+ifeq ($(OS_TARGET),linux)
+override EXEOBJECTS+=mandel
 endif
 
 
@@ -108,11 +117,15 @@ endif
 
 ifeq ($(OS_TARGET),win32)
 vpath %$(PASEXT) win32
-
+endif
 
 #
 # $Log$
-# Revision 1.3  1999-05-03 18:04:38  peter
+# Revision 1.4  1999-05-27 21:36:32  peter
+#   * new demo's
+#   * fixed mandel for linux
+#
+# Revision 1.3  1999/05/03 18:04:38  peter
 #   * updates
 #
 #

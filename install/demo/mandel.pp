@@ -83,10 +83,13 @@ begin
   until (Z=0) or (Xq + Yq > 4 );
   if Z=0 Then
     CalcMandel:=(blue and $FFFFFF)
-  else if getMaxColor>255 then
-    CalcMandel:=(stdcolors[(z mod 254) + 1] and $FFFFFF)
   else
-    CalcMandel:=(z mod Max_Color) + 1 ;
+{$ifdef go32v2}
+    if getMaxColor>255 then
+      CalcMandel:=(stdcolors[(z mod 254) + 1] and $FFFFFF)
+    else
+{$endif}
+      CalcMandel:=(z mod Max_Color) + 1 ;
 end;
 
 {-----------------------------------------------------------------------------}
@@ -334,7 +337,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1998-12-20 22:22:10  peter
+  Revision 1.5  1999-05-27 21:36:33  peter
+    * new demo's
+    * fixed mandel for linux
+
+  Revision 1.4  1998/12/20 22:22:10  peter
     * updates
 
 }
