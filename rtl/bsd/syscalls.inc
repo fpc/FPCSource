@@ -38,6 +38,8 @@ paste to and AS source). Ultimately I hope to design something like this}
                    ret
 }
 
+procedure actualsyscall; cdecl; EXTERNAL NAME '_actualsyscall';
+
 function Do_SysCall(sysnr:LONGINT):longint;
 
 var retval:longint;
@@ -45,7 +47,7 @@ var retval:longint;
 begin
  asm
   movl  sysnr,%eax
-  call  _actualsyscall
+  call  actualsyscall
   mov   %eax,Retval
  end;
  if RetVal<0 then
@@ -68,7 +70,7 @@ begin
  asm
   movl  sysnr,%eax
   pushl Param1
-  call  _actualsyscall
+  call  actualsyscall
   addl  $4,%esp
   mov   %eax,Retval
  end;
@@ -93,7 +95,7 @@ begin
  asm
   movl  sysnr,%eax
   pushw Param1
-  call  _actualsyscall
+  call  actualsyscall
   addl  $2,%esp
   mov   %eax,Retval
  end;
@@ -119,7 +121,7 @@ begin
    movl  sysnr,%eax
    pushl param2
    pushl Param1
-   call  _actualsyscall
+   call  actualsyscall
    addl  $8,%esp
    mov   %eax,Retval
  end;
@@ -144,7 +146,7 @@ begin
    pushl param3
    pushl param2
    pushl Param1
-   call  _actualsyscall
+   call  actualsyscall
    addl  $12,%esp
    mov   %eax,Retval
  end;
@@ -169,7 +171,7 @@ begin
    pushw param3
    pushl param2
    pushl Param1
-   call  _actualsyscall
+   call  actualsyscall
    addl  $12,%esp
    mov   %eax,Retval
  end;
@@ -197,7 +199,7 @@ begin
    pushl param3
    pushl param2
    pushl Param1
-   call  _actualsyscall
+   call  actualsyscall
    addl  $16,%esp
    mov   %eax,Retval
  end;
@@ -226,7 +228,7 @@ begin
    pushl param3
    pushl param2
    pushl Param1
-   call  _actualsyscall
+   call  actualsyscall
    addl  $20,%esp
    mov   %eax,Retval
  end;
@@ -256,7 +258,7 @@ begin
    pushl param3
    pushl param2
    pushl Param1
-   call  _actualsyscall
+   call  actualsyscall
    addl  $28,%esp
    mov   %eax,Retval
  end;
@@ -507,7 +509,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2000-03-02 15:34:07  marco
+  Revision 1.10  2000-03-16 16:18:12  marco
+   * Last changes before next test. ppc386 -h works with these srcs.
+
+  Revision 1.9  2000/03/02 15:34:07  marco
    * added a syscall for 5 longints
 
   Revision 1.8  2000/03/01 20:03:57  marco
