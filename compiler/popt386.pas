@@ -1467,17 +1467,18 @@ Begin
                    { shr/sar const1, %reg
                      shl     const2, %reg
                       with const1 = const2 }
-                              Begin
-                                Paicpu(p)^.opcode := A_AND;
-                                l := (1 shl (Paicpu(p)^.oper[0].val))-1;
-                                Case Paicpu(p)^.opsize Of
-                                  S_B: Paicpu(p)^.LoadConst(0,l Xor $ff);
-                                  S_W: Paicpu(p)^.LoadConst(0,l Xor $ffff);
-                                  S_L: Paicpu(p)^.LoadConst(0,l Xor $ffffffff);
+                              if (Paicpu(p)^.oper[0].val = Paicpu(hp1)^.oper[0].val) then
+                                Begin
+                                  Paicpu(p)^.opcode := A_AND;
+                                  l := (1 shl (Paicpu(p)^.oper[0].val))-1;
+                                  Case Paicpu(p)^.opsize Of
+                                    S_B: Paicpu(p)^.LoadConst(0,l Xor $ff);
+                                    S_W: Paicpu(p)^.LoadConst(0,l Xor $ffff);
+                                    S_L: Paicpu(p)^.LoadConst(0,l Xor $ffffffff);
+                                  End;
+                                  AsmL^.remove(hp1);
+                                  dispose(hp1, done);
                                 End;
-                                AsmL^.remove(hp1);
-                                dispose(hp1, done);
-                              End;
                 End;
               A_SETcc :
                 { changes
@@ -1946,7 +1947,11 @@ End.
 
 {
   $Log$
-  Revision 1.4  2000-07-21 15:19:55  jonas
+  Revision 1.5  2000-07-28 13:56:23  jonas
+    * fixed bug in shr/shl optimization when -Og is used (merged from fixes
+      branch)
+
+  Revision 1.4  2000/07/21 15:19:55  jonas
     * daopt386: changes to getnextinstruction/getlastinstruction so they
       ignore labels who have is_addr set
     + daopt386/csopt386: remove loads of registers which are overwritten
