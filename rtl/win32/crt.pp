@@ -432,8 +432,10 @@ End;
 var
    ScanCode : char;
    SpecialKey : boolean;
+   DoingNumChars: Boolean;
+   DoingNumCode: Byte;
 
-Function RemapScanCode (ScanCode: byte; CtrlKeyState: byte): byte;
+Function RemapScanCode (ScanCode: byte; CtrlKeyState: byte; keycode:longint): byte;
   { Several remappings of scancodes are necessary to comply with what
     we get with MSDOS. Special Windows keys, as Alt-Tab, Ctrl-Esc etc.
     are excluded }
@@ -468,7 +470,16 @@ begin
   CtrlKey := ((CtrlKeyState AND
             (RIGHT_CTRL_PRESSED OR LEFT_CTRL_PRESSED)) > 0);
   ShiftKey := ((CtrlKeyState AND SHIFT_PRESSED) > 0);
-  if AltKey then
+  if AltKey then begin
+    Case KeyCode of
+      VK_NUMPAD0 ..
+      VK_NUMPAD9    : begin
+                       DoingNumChars := true;
+                       DoingNumCode := Byte((DoingNumCode * 10) + (KeyCode - VK_NUMPAD0));
+                      end;
+    end; { case }
+
+
     case ScanCode of
     // Digits, -, =
     $02..$0D: inc(ScanCode, $76);
@@ -482,6 +493,7 @@ begin
     $1C:      Scancode := $A6;   // Enter
     $35:      Scancode := $A4;   // / (keypad and normal!)
     end
+   end
   else if CtrlKey then
     case Scancode of
     // Tab key
@@ -513,6 +525,7 @@ function KeyPressed : boolean;
 var
   nevents, nread, i: longint;
   buf : TINPUTRECORD;
+  AltKey: Boolean;
 begin
   KeyPressed := FALSE;
   if ScanCode <> #0 then
@@ -527,19 +540,54 @@ begin
         if buf.EventType = KEY_EVENT then
          if buf.KeyEvent.bKeyDown then
           begin
+            { Alt key is VK_MENU }
+            { Capslock key is VK_CAPITAL }
+
+            AltKey := ((Buf.KeyEvent.dwControlKeyState AND
+                          (RIGHT_ALT_PRESSED OR LEFT_ALT_PRESSED)) > 0);
+            if (Buf.KeyEvent.wVirtualKeyCode in [VK_SHIFT, VK_MENU, VK_CONTROL,
+                                                VK_CAPITAL, VK_NUMLOCK,
+                                                VK_SCROLL]) then
+              begin
+                { Discard this key }
+              end
+                else begin
             KeyPressed := TRUE;
+
             if ord(buf.KeyEvent.AsciiChar) = 0 then
              begin
                SpecialKey := TRUE;
-               ScanCode := Chr(RemapScanCode(Buf.KeyEvent.wVirtualScanCode, Buf.KeyEvent.dwControlKeyState));
+                          ScanCode := Chr(RemapScanCode(Buf.KeyEvent.wVirtualScanCode, Buf.KeyEvent.dwControlKeyState,
+                                                        Buf.KeyEvent.wVirtualKeyCode));
              end
             else
              begin
                SpecialKey := FALSE;
                ScanCode := Chr(Ord(buf.KeyEvent.AsciiChar));
              end;
-            break;
+
+                        if Buf.KeyEvent.wVirtualKeyCode in [VK_NUMPAD0..VK_NUMPAD9] then
+                         if AltKey then
+                          begin
+                            Keypressed := false;
+                            Specialkey := false;
+                            ScanCode := #0;
+                          end
+                            else BREAK;
           end;
+          end { if }
+           else if (Buf.KeyEvent.wVirtualKeyCode in [VK_MENU]) then
+                 if DoingNumChars then
+                  if DoingNumCode > 0 then
+                   begin
+                     ScanCode := Chr(DoingNumCode);
+                     Keypressed := true;
+
+                     DoingNumChars := false;
+                     DoingNumCode := 0;
+                     BREAK;
+                   end; { if }
+
       end;
    end;
 end;
@@ -583,7 +631,6 @@ begin
 end;
 
 
-
 {****************************************************************************
                           HighLevel Crt Functions
 ****************************************************************************}
@@ -598,7 +645,7 @@ begin
   CharInfo.UnicodeChar := 32;
   CharInfo.Attributes := TextAttr;
 
-  Y := WinMinY + (Y - 1);
+  Y := WinMinY + Y-1;
 
   SrcRect.Top := Y - 01;
   SrcRect.Left := WinMinX - 1;
@@ -727,19 +774,16 @@ begin
             Inc(CurrX);
           end; { else }
   end; { case }
-
   if CurrX > WinMaxX then
     begin
       CurrX := WinMinX;
       Inc(CurrY);
     end; { if }
-
   While CurrY > WinMaxY do
    begin
      RemoveLine(1);
      Dec(CurrY);
    end; { while }
-
 end;
 
 
@@ -877,13 +921,13 @@ End;
 procedure AssignCrt(var F: Text);
 begin
   Assign(F,'');
-
   TextRec(F).OpenFunc:=@CrtOpen;
 end;
 
 
-var CursorInfo : TConsoleCursorInfo;
-    ConsoleInfo: TConsoleScreenBufferinfo;
+var
+  CursorInfo  : TConsoleCursorInfo;
+  ConsoleInfo : TConsoleScreenBufferinfo;
 begin
   { Initialize the output handles }
   OutHandle := GetStdHandle(STD_OUTPUT_HANDLE);
@@ -902,7 +946,6 @@ begin
   CursorSaveY := ConsoleInfo.dwCursorPosition.Y;
   TextAttr := ConsoleInfo.wAttributes;
 
-
   { Load startup values }
   ScreenWidth := GetScreenWidth;
   ScreenHeight := GetScreenHeight;
@@ -910,6 +953,8 @@ begin
   TurnMouseOff;
 
   WindMax := (ScreenWidth - 1) OR ((ScreenHeight - 1) SHL 8);
+  DoingNumChars := false;
+  DoingNumCode := 0;
 
   { Redirect the standard output }
   AssignCrt(Output);
@@ -922,7 +967,10 @@ begin
 end. { unit Crt }
 {
   $Log$
-  Revision 1.10  1999-08-24 13:15:44  peter
+  Revision 1.11  1999-08-28 09:30:39  peter
+    * fixes from Maarten Bekers
+
+  Revision 1.10  1999/08/24 13:15:44  peter
     * Removeline fixed
 
   Revision 1.9  1999/07/06 22:44:11  florian
