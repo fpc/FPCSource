@@ -1153,7 +1153,7 @@ end;
 {$endif NOBOUNDCHECK}
 
 { do a thread save inc/dec }
-
+{$define FPC_SYSTEM_HAS_DECLOCKED}
 function declocked(var l : longint) : boolean;assembler;
 
   asm
@@ -1170,7 +1170,7 @@ function declocked(var l : longint) : boolean;assembler;
 .Ldeclockedend:
      setzb      %al
   end ['EDI','EAX'];
-
+{$define FPC_SYSTEM_HAS_INCLOCKED}
 procedure inclocked(var l : longint);assembler;
 
   asm
@@ -1214,7 +1214,11 @@ end;
 
 {
   $Log$
-  Revision 1.37  2003-01-03 17:14:54  peter
+  Revision 1.38  2003-01-06 23:03:13  mazen
+  + defining FPC_SYSTEM_HAS_DECLOCKED and FPC_SYSTEM_HAS_INCLOCKED to avoid
+    compilation error on generic.inc
+
+  Revision 1.37  2003/01/03 17:14:54  peter
     * fix possible overflow when array len > 255 when converting to
       shortstring
 
