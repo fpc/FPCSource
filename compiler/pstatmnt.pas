@@ -348,13 +348,16 @@ unit pstatmnt;
          p:=comp_expr(true);
          do_firstpass(p);
          right:=nil;
-         case p^.resulttype^.deftype of
-            objectdef : begin
-                          obj:=pobjectdef(p^.resulttype);
+         if (not codegenerror) and
+            (p^.resulttype^.deftype in [objectdef,recorddef]) then
+          begin
+            case p^.resulttype^.deftype of
+             objectdef : begin
+                           obj:=pobjectdef(p^.resulttype);
                           { this creates the stack in the wrong order !!
-                          levelcount:=0;
-                          while assigned(obj) do
-                            begin
+                            levelcount:=0;
+                            while assigned(obj) do
+                             begin
                                symtab:=obj^.publicsyms;
                                withsymtable:=new(psymtable,init(symtable.withsymtable));
                                withsymtable^.root:=symtab^.root;
@@ -362,26 +365,25 @@ unit pstatmnt;
                                symtablestack:=withsymtable;
                                obj:=obj^.childof;
                                inc(levelcount);
-                            end; }
-
-                          withsymtable:=new(psymtable,init(symtable.withsymtable));
-                          withsymtable^.root:=obj^.publicsyms^.root;
-                          withsymtable^.defowner:=obj;
-                          symtab:=withsymtable;
-                          levelcount:=1;
-                          obj:=obj^.childof;
-                          while assigned(obj) do
+                             end; }
+                           withsymtable:=new(psymtable,init(symtable.withsymtable));
+                           withsymtable^.root:=obj^.publicsyms^.root;
+                           withsymtable^.defowner:=obj;
+                           symtab:=withsymtable;
+                           levelcount:=1;
+                           obj:=obj^.childof;
+                           while assigned(obj) do
                             begin
-                               symtab^.next:=new(psymtable,init(symtable.withsymtable));
-                               symtab:=symtab^.next;
-                               symtab^.root:=obj^.publicsyms^.root;
-                               obj:=obj^.childof;
-                               inc(levelcount);
+                              symtab^.next:=new(psymtable,init(symtable.withsymtable));
+                              symtab:=symtab^.next;
+                              symtab^.root:=obj^.publicsyms^.root;
+                              obj:=obj^.childof;
+                              inc(levelcount);
                             end;
-                          symtab^.next:=symtablestack;
-                          symtablestack:=withsymtable;
-                       end;
-            recorddef : begin
+                           symtab^.next:=symtablestack;
+                           symtablestack:=withsymtable;
+                         end;
+             recorddef : begin
                            symtab:=precdef(p^.resulttype)^.symtable;
                            levelcount:=1;
                            withsymtable:=new(psymtable,init(symtable.withsymtable));
@@ -390,56 +392,54 @@ unit pstatmnt;
                            withsymtable^.defowner:=obj;
                            symtablestack:=withsymtable;
                         end;
+            end;
+            if token=COMMA then
+             begin
+               consume(COMMA);
+             {$ifdef tp}
+               right:=_with_statement;
+             {$else}
+               right:=_with_statement();
+             {$endif}
+             end
             else
-              begin
-                 Message(parser_e_false_with_expr);
-                 { try to recover from error }
-                 if token=COMMA then
-                   begin
-                      consume(COMMA);
-{$ifdef tp}
-                      hp:=_with_statement;
-{$else}
-                      hp:=_with_statement();
-{$endif}
-                   end
-                 else
-                   begin
-                      consume(_DO);
-                      { ignore all }
-                      if token<>SEMICOLON then
-                      statement;
-                   end;
-                 _with_statement:=nil;
-                 exit;
-              end;
-         end;
-         if token=COMMA then
-           begin
-              consume(COMMA);
-{$ifdef tp}
-              right:=_with_statement;
-{$else}
-              right:=_with_statement();
-{$endif}
-           end
-         else
-           begin
-              consume(_DO);
-              if token<>SEMICOLON then
+             begin
+               consume(_DO);
+               if token<>SEMICOLON then
                 right:=statement
-              else
+               else
                 right:=nil;
-           end;
-         for i:=1 to levelcount do
-           symtablestack:=symtablestack^.next;
-
-         _with_statement:=genwithnode(withsymtable,p,right,levelcount);
+             end;
+            for i:=1 to levelcount do
+             symtablestack:=symtablestack^.next;
+            _with_statement:=genwithnode(withsymtable,p,right,levelcount);
+          end
+         else
+          begin
+            Message(parser_e_false_with_expr);
+            { try to recover from error }
+            if token=COMMA then
+             begin
+               consume(COMMA);
+             {$ifdef tp}
+               hp:=_with_statement;
+             {$else}
+               hp:=_with_statement();
+             {$endif}
+             end
+            else
+             begin
+               consume(_DO);
+               { ignore all }
+               if token<>SEMICOLON then
+                statement;
+             end;
+            _with_statement:=nil;
+          end;
       end;
 
 
     function with_statement : ptree;
-
       begin
          consume(_WITH);
          with_statement:=_with_statement;
@@ -1227,7 +1227,13 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.38  1998-09-04 08:42:04  peter
+  Revision 1.39  1998-09-21 10:26:07  peter
+    * merged fix
+
+  Revision 1.38.2.1  1998/09/21 10:24:43  peter
+    * fixed error recovery with with
+
+  Revision 1.38  1998/09/04 08:42:04  peter
     * updated some error messages
 
   Revision 1.37  1998/08/21 14:08:52  pierre
