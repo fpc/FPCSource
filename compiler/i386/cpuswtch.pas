@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-unit opts386;
+unit cpuswtch;
 
 {$i defines.inc}
 
@@ -115,7 +115,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-11-30 22:21:56  florian
+  Revision 1.1  2000-11-30 22:42:50  florian
+  * renamed
+
+  Revision 1.1  2000/11/30 22:21:56  florian
     * moved to i386
 
   Revision 1.6  2000/10/24 10:40:53  jonas

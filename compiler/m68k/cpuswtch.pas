@@ -19,7 +19,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     }
 
-unit opts68k;
+unit cpuswtch;
 
 {$i defines.inc}
 
@@ -74,7 +74,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-11-30 22:22:50  florian
+  Revision 1.1  2000-11-30 22:41:55  florian
+  * renamed
+
+  Revision 1.1  2000/11/30 22:22:50  florian
     * moved to m68k
 
   Revision 1.4  2000/09/24 15:06:20  peter
