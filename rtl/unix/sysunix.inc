@@ -540,10 +540,12 @@ begin
         validdir:=false;
      until (d=nil) or
            ((validdir) and (thisdir.dev=thisdev) and (thisdir.ino=thisino) );
+     { At this point, d.name contains the name of the current dir}
+     if (d<>nil) then
+      thedir:='/'+strpas(@(d^.name[0]))+thedir;
+     { closedir also makes d invalid }
      if (closedir(dirstream)<0) or (d=nil) then
       exit;
-   { At this point, d.name contains the name of the current dir}
-     thedir:='/'+strpas(@(d^.name[0]))+thedir;
      thisdev:=dotdotdev;
      thisino:=dotdotino;
      predot:=predot+'../';
@@ -746,7 +748,10 @@ End.
 
 {
   $Log$
-  Revision 1.7  2001-03-21 21:08:20  hajny
+  Revision 1.8  2001-04-12 17:53:43  peter
+    * fixed usage of already release memory in getdir
+
+  Revision 1.7  2001/03/21 21:08:20  hajny
     * GetDir fixed
 
   Revision 1.6  2001/03/16 20:09:58  hajny
