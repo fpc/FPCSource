@@ -621,8 +621,8 @@ implementation
            end;
       end;
 
-    {Makes implicit externals (procedures declared in the interface 
-     section which do not have a counterpart in the implementation) 
+    {Makes implicit externals (procedures declared in the interface
+     section which do not have a counterpart in the implementation)
      to be an imported procedure. For mode macpas.}
     procedure import_implict_external(pd:tabstractprocdef);
 
@@ -1917,10 +1917,7 @@ implementation
       {even GDB v4.16 only now 'i' 'r' and 'e' !!!}
       case consttyp of
         conststring:
-          if target_info.system in [system_powerpc_macos,system_powerpc_darwin] then
-            st:='s'''+backspace_quote(octal_quote(strpas(pchar(value.valueptr)),['''']),['"','\',#10,#13])+''''
-          else
-            st:='s'''+backspace_quote(strpas(pchar(value.valueptr)),['''','"','\',#10,#13])+'''';
+          st:='s'''+backspace_quote(octal_quote(strpas(pchar(value.valueptr)),[#0..#9,#11,#12,#14..#31,'''']),['"','\',#10,#13])+'''';
         constord:
           st:='i'+int64tostr(value.valueord);
         constpointer:
@@ -2217,7 +2214,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.171  2004-05-11 22:52:48  olle
+  Revision 1.172  2004-05-22 23:32:52  peter
+  quote all low ascii chars in stabs
+
+  Revision 1.171  2004/05/11 22:52:48  olle
     * Moved import_implicit_external to symsym
 
   Revision 1.170  2004/05/11 18:29:41  olle
