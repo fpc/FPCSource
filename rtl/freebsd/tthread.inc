@@ -1,18 +1,18 @@
-{
-    $Id$
-    This file is part of the Free Component Library (FCL)
-    Copyright (c) 1999-2000 by Peter Vreman
+{  
+   $Id$
+   This file is part of the Free Pascal run time library.
+   (c) 2000-2003 by Marco van de Voort
+   member of the Free Pascal development team.
 
-    Linux TThread implementation
+   See the file COPYING.FPC, included in this distribution,
+   for details about the copyright.
 
-    See the file COPYING.FPC, included in this distribution,
-    for details about the copyright.
+   TThread implementation old (1.0) and new (pthreads) style
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
- **********************************************************************}
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY;without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+}
 
 
 {$IFDEF VER1_0} // leaving the old implementation in for now...
@@ -606,7 +606,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2003-11-22 11:04:08  marco
+  Revision 1.8  2004-01-03 12:18:29  marco
+   * a lot of copyright notices and CVS logs added and fixed
+
+  Revision 1.7  2003/11/22 11:04:08  marco
    * Johill: suspend fix
 
   Revision 1.6  2003/11/19 10:12:02  marco

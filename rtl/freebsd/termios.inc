@@ -1,3 +1,18 @@
+{  
+   $Id$
+   This file is part of the Free Pascal run time library.
+   (c) 2000-2003 by Marco van de Voort
+   member of the Free Pascal development team.
+
+   See the file COPYING.FPC, included in this distribution,
+   for details about the copyright.
+  
+   Termios header for FreeBSD
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY;without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+}
 
 CONST
 
@@ -348,4 +363,9 @@ struct winsize {
         POSIX_VDISABLE, CINTR,  CQUIT,  CSUSP,  CDSUSP, CSTART, CSTOP,  CLNEXT,
         CDISCARD, CMIN, CTIME,  CSTATUS, POSIX_VDISABLE);
 
+{
+  $Log$
+  Revision 1.4  2004-01-03 12:18:29  marco
+   * a lot of copyright notices and CVS logs added and fixed
 
+}

@@ -3,7 +3,7 @@
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
 
-    Classes unit for linux
+    Classes unit for FreeBSD
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -52,7 +52,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2003-12-22 16:16:33  marco
+  Revision 1.5  2004-01-03 12:18:29  marco
+   * a lot of copyright notices and CVS logs added and fixed
+
+  Revision 1.4  2003/12/22 16:16:33  marco
    * small 1.0 compat fix
 
   Revision 1.3  2003/11/17 10:05:51  marco

@@ -1,7 +1,7 @@
-UNIT Console;
-{  $Id$
+{  
+   $Id$
    This file is part of the Free Pascal run time library.
-   (c) 2000 by Marco van de Voort
+   (c) 2000-2003 by Marco van de Voort
    member of the Free Pascal development team.
 
    See the file COPYING.FPC, included in this distribution,
@@ -22,6 +22,8 @@ UNIT Console;
    but WITHOUT ANY WARRANTY;without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
+
+UNIT Console;
 
 {$packrecords C}
 
@@ -3470,5 +3472,12 @@ Begin
  MOUSE_GETHWID:=FpIoctl(fd,nr_MOUSE_GETHWID,@param1)=0;
 end;
 
-
 end.
+
+{
+  $Log$
+  Revision 1.8  2004-01-03 12:18:29  marco
+   * a lot of copyright notices and CVS logs added and fixed
+
+
+}

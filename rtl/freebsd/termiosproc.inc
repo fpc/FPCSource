@@ -1,19 +1,19 @@
-{
-    $Id$
-    This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Peter Vreman
-    member of the Free Pascal development team.
+{  
+   $Id$
+   This file is part of the Free Pascal run time library.
+   (c) 2000-2003 by Marco van de Voort
+   member of the Free Pascal development team.
 
-    See the file COPYING.FPC, included in this distribution,
-    for details about the copyright.
+   See the file COPYING.FPC, included in this distribution,
+   for details about the copyright.
 
-    This file contains the implementation of several termio(s) functions
+   Termios implementation for FreeBSD
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY;without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+}
 
- **********************************************************************}
 
 {******************************************************************************
                          IOCtl and Termios calls
@@ -132,11 +132,13 @@ end;
 
 {
    $Log$
-   Revision 1.2  2003-12-16 19:43:53  marco
+   Revision 1.3  2004-01-03 12:18:29  marco
+    * a lot of copyright notices and CVS logs added and fixed
+
+   Revision 1.2  2003/12/16 19:43:53  marco
     * nil <-> 0 changes
 
    Revision 1.1  2003/11/19 17:15:31  marco
     * termio new includefile
-
 
 }
