@@ -66,6 +66,14 @@
   {$define HasSysMsgUnit}
 {$endif}
 
+{$ifdef OpenBSD}
+  {$undef SUPPORTVESA}
+  {$define SUPPORTREDIR}
+  {$undef WinClipSupported}
+  {$define HasSignal}
+  {$define HasSysMsgUnit}
+{$endif}
+
 {$ifdef Win32}
   {$undef SUPPORTVESA}
   {$define SUPPORTREDIR}

@@ -935,6 +935,7 @@ begin
      AddSelectItem('~O~S/2','os2',idNone);
      AddSelectItem('~W~IN32','win32',idNone);
      AddSelectItem('N~e~tWare','netware',idNone);
+     AddSelectItem('O~p~enBSD','openbsd',idNone);
 {$endif I386}
 {$ifdef M68K}
      AddSelectItem('~A~miga','amiga',idNone);
@@ -1123,6 +1124,9 @@ begin
   {$ifdef netbsd}
        TargetSwitches^.SetCurrSelParam('netbsd');
   {$endif}
+  {$ifdef openbsd}
+       TargetSwitches^.SetCurrSelParam('openbsd');
+  {$endif}
 {$endif i386}
 {$ifdef m68k}
   {$ifdef linux}
@@ -1260,7 +1264,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2002-12-15 14:08:29  peter
+  Revision 1.14  2003-02-09 23:50:10  pierre
+   + i386 openbsd target added
+
+  Revision 1.13  2002/12/15 14:08:29  peter
     * more stable default target setting
 
   Revision 1.12  2002/11/30 01:56:52  pierre

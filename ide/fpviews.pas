@@ -4145,6 +4145,9 @@ begin
 {$ifdef NetBSD}
   OSStr:='NetBSD';
 {$endif}
+{$ifdef OpenBSD}
+  OSStr:='OpenBSD';
+{$endif}
 
   R.Assign(0,0,38,14{$ifdef NODEBUG}-1{$endif});
   inherited Init(R, dialog_about);
@@ -4565,7 +4568,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.40  2003-01-22 00:27:58  pierre
+  Revision 1.41  2003-02-09 23:50:10  pierre
+   + i386 openbsd target added
+
+  Revision 1.40  2003/01/22 00:27:58  pierre
    * implement reloadfile if changed
 
   Revision 1.39  2002/12/16 15:16:15  pierre
