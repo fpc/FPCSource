@@ -292,15 +292,19 @@ next :
 	$(CP) $(PP) $(EXENAME)
 else
 next :
-	$(MAKE) clean
+	$(MAKE) execlean
 	$(MAKE) -C $(UNITDIR) libsclean
 	$(MAKE) -C $(UNITDIR) 'PP=$(COMPILERDIR)/$(PP)' 'OPT=$(RTLOPTS)' all
+	$(MAKE) clean
 	$(MAKE) all
 endif
 
 clean :
 	-rm -rf *.sl
 	-rm -f *.a *.o *.ppu *.ppw *.s $(EXENAME)
+
+execlean :
+	-rm -f $(EXENAME)
 
 distclean: clean
 	-rm -f $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3)
@@ -363,9 +367,10 @@ endif
 # This target remakes the units with the currently made version
 remake: $(EXENAME)
 	$(REPLACE) $(EXENAME) $(TEMPNAME)
-	$(MAKE) clean
+	$(MAKE) execlean
 	$(MAKE) -C $(UNITDIR) libsclean
 	$(MAKE) -C $(UNITDIR) 'PP=$(COMPILERDIR)/$(TEMPNAME)' 'OPT=$(RTLOPTS)' all
+	$(MAKE) clean
 	$(MAKE) 'PP=./$(TEMPNAME)' all
 
 remake3: $(TEMPNAME3)
@@ -519,7 +524,10 @@ test:
 
 #
 # $Log$
-# Revision 1.1  1998-09-10 13:53:54  peter
+# Revision 1.1.2.1  1998-09-11 12:07:51  pierre
+#   + added execlean to be able to keep last *.s files
+#
+# Revision 1.1  1998/09/10 13:53:54  peter
 #   * msg2inc compile works
 #
 # Revision 1.31  1998/09/09 18:26:25  michael
