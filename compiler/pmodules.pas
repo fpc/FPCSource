@@ -390,6 +390,7 @@ unit pmodules;
               begin
                 dispose(current_module^.ppufile,done);
                 current_module^.ppufile:=nil;
+                current_ppu:=nil;
               end;
            { recompile the unit or give a fatal error if sources not available }
              if not(current_module^.sources_avail) then
@@ -421,6 +422,7 @@ unit pmodules;
            begin
               dispose(current_module^.ppufile,done);
               current_module^.ppufile:=nil;
+              current_ppu:=nil;
            end;
         end;
 
@@ -1342,7 +1344,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.120  1999-05-13 21:59:35  peter
+  Revision 1.121  1999-05-17 14:43:54  pierre
+   * reset current_ppu to nil when appropriate
+
+  Revision 1.120  1999/05/13 21:59:35  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing
