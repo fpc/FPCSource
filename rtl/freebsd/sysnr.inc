@@ -136,7 +136,6 @@ const
  syscall_nr_setrlimit                   =195;
 syscall_nr_getdirentries                =196;
  syscall_nr_mmap                        =197;
- syscall_nr___syscall                   =198;
  syscall_nr_lseek                       =199;
  syscall_nr_truncate                    =200;
  syscall_nr_ftruncate                   =201;
@@ -243,6 +242,7 @@ syscall_nr_getdirentries                =196;
 {More or less checked BSD syscalls}
  syscall_nr_getitimer                   = 86;
  syscall_nr_setitimer                   = 83;
+ syscall_nr___syscall                   =198;
 
  syscall_nr_sysarch                     = 165;
  syscall_nr_accept                      =  30;
@@ -318,7 +318,10 @@ syscall_nr_getdirentries                =196;
 
 {
   $Log$
-  Revision 1.5  2002-05-06 09:35:09  marco
+  Revision 1.6  2002-08-19 12:32:34  marco
+   * again fixes.
+
+  Revision 1.5  2002/05/06 09:35:09  marco
    * Some stuff from 1.0.x ported
 
   Revision 1.4  2001/01/22 07:25:10  marco
