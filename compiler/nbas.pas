@@ -44,6 +44,7 @@ interface
           constructor create;virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+          procedure mark_write;override;
        end;
        terrornodeclass = class of terrornode;
 
@@ -238,6 +239,10 @@ implementation
       begin
          result:=nil;
          codegenerror:=true;
+      end;
+
+    procedure terrornode.mark_write;
+      begin
       end;
 
 {*****************************************************************************
@@ -759,7 +764,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2003-01-03 12:15:55  daniel
+  Revision 1.40  2003-03-17 20:30:46  peter
+    * errornode.mark_write added
+
+  Revision 1.39  2003/01/03 12:15:55  daniel
     * Removed ifdefs around notifications
       ifdefs around for loop optimizations remain
 
