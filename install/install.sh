@@ -8,7 +8,7 @@
 #
 
 # Release Version
-VERSION=0.99.14
+VERSION=1.00
 
 # some useful functions
 # ask displays 1st parameter, and ask new value for variable, whose name is
@@ -105,6 +105,8 @@ echo Installing compiler and RTL ...
 unztar baselinux.tar.gz $PREFIX
 rm -f $EXECDIR/ppc386
 ln -sf $LIBDIR/ppc386 $EXECDIR/ppc386
+echo Installing utilities...
+unztar utillinux.tar.gz $PREFIX
 if yesno "Install FCL"; then
     unztar unitsfcllinux.tar.gz $PREFIX
 fi
@@ -152,7 +154,7 @@ if yesno "Install sources"; then
     unztar packagessrc.tar.gz $PREFIX
   fi    
   if yesno "Install Utils source"; then
-    unztar utilssrc.tar.gz $PREFIX
+    unztar utilsrc.tar.gz $PREFIX
   fi    
   rm -f *src.tar.gz
   echo Done.
@@ -179,10 +181,6 @@ echo
 
 # Install /etc/ppc386.cfg, this is done using the samplecfg script
 $LIBDIR/samplecfg $LIBDIR
-
-# Cleanup
-SOURCES=`/bin/ls *src.tar.gz`
-FILES=`/bin/ls *linux.tar.gz`
 
 # The End
 echo
