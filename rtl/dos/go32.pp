@@ -181,6 +181,34 @@ unit go32;
        dosmemfillchar : procedure(seg,ofs : word;count : longint;c : char)=dpmi_dosmemfillchar;
        dosmemfillword : procedure(seg,ofs : word;count : longint;w : word)=dpmi_dosmemfillword;
 
+{$ifdef SUPPORT_PORT}
+    type
+       tport = class
+          procedure writeport(p : word;data : byte);
+          function readport(p : word) : byte;
+          property p[w : word] : byte read readport write writeport;default;
+       end;
+
+       tportw = class
+          procedure writeport(p : word;data : word);
+          function readport(p : word) : word;
+          property p[w : word] : word read readport write writeport;default;
+       end;
+
+       tportl = class
+          procedure writeport(p : word;data : longint);
+          function readport(p : word) : longint;
+          property p[w : word] : longint read readport write writeport;default;
+       end;
+    var
+       { we don't need to initialize port, because neither member
+         variables nor virtual methods are accessed
+       }
+       port,portb : tport;
+       portw : tportw;
+       portl : tportl;
+{$endif SUPPORT_PORT}
+
   implementation
 
 {$ifndef go32v2}
@@ -1119,6 +1147,48 @@ unit go32;
 
 {$endif not V0_6}
 
+{$ifdef SUPPORT_PORT}
+
+    { to give easy port access }
+
+    procedure tport.writeport(p : word;data : byte);
+
+      begin
+         outportb(p,data);
+      end;
+
+    function tport.readport(p : word) : byte;
+
+      begin
+         readport:=inportb(p);
+      end;
+
+    procedure tportw.writeport(p : word;data : word);
+
+      begin
+         outportw(p,data);
+      end;
+
+    function tportw.readport(p : word) : word;
+
+      begin
+         readport:=inportw(p);
+      end;
+
+    procedure tportl.writeport(p : word;data : longint);
+
+      begin
+         outportl(p,data);
+      end;
+
+    function tportl.readport(p : word) : longint;
+
+      begin
+         readport:=inportl(p);
+      end;
+
+{$endif SUPPORT_PORT}
+
 begin
    int31error:=0;
 {$ifndef go32v2}
@@ -1139,7 +1209,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-03-29 17:26:20  florian
+  Revision 1.3  1998-04-12 22:35:29  florian
+    + support of port-array added
+
+  Revision 1.2  1998/03/29 17:26:20  florian
     * small improvements
 
   Revision 1.1.1.1  1998/03/25 11:18:41  root
