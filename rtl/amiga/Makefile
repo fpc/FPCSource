@@ -128,7 +128,10 @@ ASMEXT=.asm
 
 # Define Linux Units
 SYSTEMPPU=sysamiga$(PPUEXT)
-OBJECTS=strings exec dos crt printer objects objpas
+# no compiling :
+# getopts : no argv !!
+# sysutils : problem with objpas unit ??
+OBJECTS=strings exec dos crt printer objects objpas heaptrc
 
 PRT=prt0
 LOADERAS=$(PRT).as
@@ -191,6 +194,11 @@ objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
 	$(PP) $(OPT) -I$(INC) objpas $(REDIR)
 	$(DEL) objpas.pp
 
+sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp objpas$(PPUEXT) $(SYSTEMPPU)
+	$(COPY) $(OBJPASDIR)/sysutils.pp .
+	$(PP) $(OPT) -I$(INC) sysutils $(REDIR)
+	$(DEL) sysutils.pp
+
 #
 # System Dependent Units
 #
@@ -217,6 +225,16 @@ objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 # Other RTL Units
 #
 
+getopts$(PPUEXT) : $(INC)/getopts.pp strings$(PPUEXT) $(SYSTEMPPU)
+	$(COPY) $(INC)/getopts.pp .
+	$(PP) $(OPT) -I$(INC) getopts $(REDIR)
+	$(DEL) getopts.pp
+	
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
+	$(COPY) $(INC)/heaptrc.pp .
+	$(PP) $(OPT) heaptrc $(REDIR)
+	$(DEL) heaptrc.pp
+	
 #####################################################################
 # Libs
 #####################################################################
@@ -256,7 +274,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.5  1998-10-14 10:49:46  pierre
+# Revision 1.6  1998-10-22 16:43:54  pierre
+#   + added some units
+#
+# Revision 1.5  1998/10/14 10:49:46  pierre
 #   * added some include directory command lines necessary
 #   * added some missing units
 #   + now compiles completely  with cross-compiler
