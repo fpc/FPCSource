@@ -120,32 +120,6 @@ implementation
                  truelabel:=otlabel;
                  falselabel:=oflabel;
               end;
-            in_lo_word,
-            in_hi_word :
-              begin
-                 secondpass(left);
-                 location.loc:=LOC_REGISTER;
-                 if left.location.loc<>LOC_REGISTER then
-                   begin
-                     if left.location.loc=LOC_CREGISTER then
-                       begin
-                          location.register:=reg32toreg16(getregister32);
-                          emit_reg_reg(A_MOV,S_W,left.location.register,
-                            location.register);
-                       end
-                     else
-                       begin
-                          del_reference(left.location.reference);
-                          location.register:=reg32toreg16(getregister32);
-                          emit_ref_reg(A_MOV,S_W,newreference(left.location.reference),
-                            location.register);
-                       end;
-                   end
-                 else location.register:=left.location.register;
-                 if inlinenumber=in_hi_word then
-                   emit_const_reg(A_SHR,S_W,8,location.register);
-                 location.register:=reg16toreg8(location.register);
-              end;
             in_sizeof_x,
             in_typeof_x :
               begin
@@ -179,73 +153,6 @@ implementation
                       emit_ref_reg(A_MOV,S_L,r,
                         location.register);
                    end;
-              end;
-            in_lo_long,
-            in_hi_long :
-              begin
-                 secondpass(left);
-                 location.loc:=LOC_REGISTER;
-                 if left.location.loc<>LOC_REGISTER then
-                   begin
-                      if left.location.loc=LOC_CREGISTER then
-                        begin
-                           location.register:=getregister32;
-                           emit_reg_reg(A_MOV,S_L,left.location.register,
-                             location.register);
-                        end
-                      else
-                        begin
-                           del_reference(left.location.reference);
-                           location.register:=getregister32;
-                           emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
-                             location.register);
-                        end;
-                   end
-                 else location.register:=left.location.register;
-                 if inlinenumber=in_hi_long then
-                   emit_const_reg(A_SHR,S_L,16,location.register);
-                 location.register:=reg32toreg16(location.register);
-              end;
-            in_lo_qword,
-            in_hi_qword:
-              begin
-                 secondpass(left);
-                 location.loc:=LOC_REGISTER;
-                 case left.location.loc of
-                    LOC_CREGISTER:
-                      begin
-                         location.register:=getregister32;
-                         if inlinenumber=in_hi_qword then
-                           emit_reg_reg(A_MOV,S_L,left.location.registerhigh,
-                             location.register)
-                         else
-                           emit_reg_reg(A_MOV,S_L,left.location.registerlow,
-                             location.register)
-                      end;
-                    LOC_MEM,LOC_REFERENCE:
-                      begin
-                         del_reference(left.location.reference);
-                         location.register:=getregister32;
-                         r:=newreference(left.location.reference);
-                         if inlinenumber=in_hi_qword then
-                           inc(r^.offset,4);
-                         emit_ref_reg(A_MOV,S_L,
-                           r,location.register);
-                      end;
-                    LOC_REGISTER:
-                      begin
-                         if inlinenumber=in_hi_qword then
-                           begin
-                              location.register:=left.location.registerhigh;
-                              ungetregister32(left.location.registerlow);
-                           end
-                         else
-                           begin
-                              location.register:=left.location.registerlow;
-                              ungetregister32(left.location.registerhigh);
-                           end;
-                      end;
-                 end;
               end;
             in_length_x :
               begin
@@ -843,7 +750,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2001-12-02 16:19:17  jonas
+  Revision 1.29  2001-12-04 15:59:03  jonas
+    * converted lo/hi to processor independent code, generated code is the
+      same as before (when turning on the optimizer)
+
+  Revision 1.28  2001/12/02 16:19:17  jonas
     * less unnecessary regvar loading with if-statements
 
   Revision 1.26  2001/09/28 20:38:51  jonas

@@ -59,7 +59,7 @@ implementation
       globtype, cutils,
       symbase,symconst,symtype,symdef,symsym,symtable,types,
       pass_1,
-      ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,
+      ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,
       cpubase,tgcpu,cgbase
       ;
 
@@ -1962,6 +1962,7 @@ implementation
       var
          srsym   : tsym;
          hp,hpp  : tnode;
+         shiftconst: longint;
 
       begin
          result:=nil;
@@ -1987,11 +1988,24 @@ implementation
           in_lo_word,
           in_hi_word:
             begin
-              if registers32<1 then
-                registers32:=1;
-              location.loc:=LOC_REGISTER;
+              shiftconst := 0;
+              case inlinenumber of
+                in_hi_qword:
+                  shiftconst := 32;
+                in_hi_long:
+                  shiftconst := 16;
+                in_hi_word:
+                  shiftconst := 8;
+              end;
+              if shiftconst <> 0 then
+                result := ctypeconvnode.create(cshlshrnode.create(shrn,left,
+                    cordconstnode.create(shiftconst,u32bittype)),resulttype)
+              else
+                result := ctypeconvnode.create(left,resulttype);
+              left := nil;
+              include(result.flags,nf_explizit);
+              firstpass(result);
             end;
-
           in_sizeof_x:
             begin
               if push_high_param(left.resulttype.def) then
@@ -2308,7 +2322,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2001-12-03 14:21:34  jonas
+  Revision 1.65  2001-12-04 15:59:03  jonas
+    * converted lo/hi to processor independent code, generated code is the
+      same as before (when turning on the optimizer)
+
+  Revision 1.64  2001/12/03 14:21:34  jonas
     * fixed web bug 1693 (dynarray support for length)
 
   Revision 1.63  2001/10/24 16:17:36  jonas
