@@ -11,10 +11,10 @@ const
 var
 
   VidMem: PByteArray;
-  ScrWidth: Integer;
+  ScrWidth: SmallInt;
 
 
-procedure bytemove(var source, dest; count: Integer);
+procedure bytemove(var source, dest; count: SmallInt);
 var
   s, d: PByte;
 begin
@@ -30,7 +30,7 @@ end;
 
 
 
-procedure PutPixel16(X,Y : Integer; Pixel: Word);
+procedure PutPixel16(X,Y : SmallInt; Pixel: Word);
 var
   offset: word;
   dummy: byte;
@@ -55,7 +55,7 @@ begin
 end;
 
 
-function GetPixel16(X,Y: Integer):word;
+function GetPixel16(X,Y: SmallInt):word;
 var
   dummy, offset: Word;
   shift: byte;
@@ -76,7 +76,7 @@ begin
 end;
 
 
-procedure GetScanLine16(x1, x2, y: integer; var data);
+procedure GetScanLine16(x1, x2, y: SmallInt; var data);
 var
   dummylong: longint;
   Offset, count, count2, amount, index: word;
@@ -203,7 +203,7 @@ begin
 end;
 
 
-procedure DirectPutPixel16(X,Y : Integer);
+procedure DirectPutPixel16(X,Y : SmallInt);
 { x,y -> must be in global coordinates. No clipping. }
 var
   color: word;
@@ -243,9 +243,9 @@ begin
 end;
 
 
-procedure HLine16(x, x2, y: Integer);
+procedure HLine16(x, x2, y: SmallInt);
 var
-  xtmp: Integer;
+  xtmp: SmallInt;
   ScrOfs, HLength: Word;
   LMask, RMask: Byte;
 begin
@@ -359,9 +359,9 @@ end;
 
 
 
-procedure VLine16(x,y,y2: integer);
+procedure VLine16(x,y,y2: SmallInt);
 var
-  ytmp: integer;
+  ytmp: SmallInt;
   ScrOfs,i: longint;
   BitMask: byte;
 
@@ -428,7 +428,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 16:01:27  peter
+  Revision 1.3  2004-03-23 22:36:31  peter
+    * use smallint instead of integer
+
+  Revision 1.2  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
 }
