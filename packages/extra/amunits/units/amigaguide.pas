@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
 
     A file in Amiga system run time library.
-    Copyright (c) 1998 by Nils Sjoholm
+    Copyright (c) 1998-2002 by Nils Sjoholm
     member of the Amiga RTL development team.
 
     See the file COPYING.FPC, included in this distribution,
@@ -14,6 +14,15 @@
 
  **********************************************************************}
 
+{
+    History:
+   
+    Added functions and procedures with array of const.
+    For use with fpc 1.0.7. They are in systemvartags.
+    10 Nov 2002.
+
+    nils.sjoholm@mailbox.swipnet.se
+}
 
 unit amigaguide;
 
@@ -463,4 +472,10 @@ END;
 END. (* UNIT AMIGAGUIDE *)
 
 
+{
+   $Log$
+   Revision 1.2  2002-11-17 20:28:53  nils
+   * added functions with array of const
+   
+}
 
