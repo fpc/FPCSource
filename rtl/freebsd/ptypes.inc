@@ -55,6 +55,7 @@ type
     clock_t  = culong;
 
     time_t   = clong;           { used for returning the time  }
+    ptime_t  = ^time_t;
     socklen_t= cuint32;
 
 CONST
