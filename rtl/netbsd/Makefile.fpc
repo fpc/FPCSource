@@ -31,7 +31,7 @@ fpcdir=../..
 target=netbsd
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC)
+includedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC) $(BSDPROCINC) $(TARGETPROCINC)
 sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC)
 targetdir=.
 
@@ -53,6 +53,7 @@ BSDINC=$(RTL)/bsd
 BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
+TARGETPROCINC=$(RTL)/netbsd/$(CPU_TARGET)
 
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
