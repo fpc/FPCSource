@@ -87,7 +87,7 @@ implementation
          href,href2 : Treference;
          l,l2       : plabel;
 
-         function analizeset(Aset:Pconstset;is_small:boolean):boolean;
+         function analizeset(Aset:pconstset;is_small:boolean):boolean;
            type
              byteset=set of byte;
            var
@@ -173,7 +173,7 @@ implementation
 
          { Can we generate jumps? Possible for all types of sets }
          if (p^.right^.treetype=setconstn) and
-            analizeset(p^.right^.constset,use_small) then
+            analizeset(p^.right^.value_set,use_small) then
           begin
             { It gives us advantage to check for the set elements
               separately instead of using the SET_IN_BYTE procedure.
@@ -775,7 +775,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-09-05 23:51:05  florian
+  Revision 1.13  1998-09-07 18:45:54  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.12  1998/09/05 23:51:05  florian
     * possible bug with too few registers in first/secondin fixed
 
   Revision 1.11  1998/09/04 08:41:41  peter

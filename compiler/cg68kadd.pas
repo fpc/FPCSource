@@ -300,9 +300,9 @@ implementation
                            if (p^.treetype in [equaln,unequaln]) and
                              (
                                ((p^.left^.treetype=stringconstn) and
-                                (p^.left^.values^='')) or
+                                (p^.left^.value_str^='')) or
                                ((p^.right^.treetype=stringconstn) and
-                                (p^.right^.values^=''))
+                                (p^.right^.value_str^=''))
                              ) then
                              begin
                                 { only one node can be stringconstn }
@@ -1263,7 +1263,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-09-04 08:41:42  peter
+  Revision 1.3  1998-09-07 18:45:55  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.2  1998/09/04 08:41:42  peter
     * updated some error messages
 
   Revision 1.1  1998/09/01 09:07:09  peter

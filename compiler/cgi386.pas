@@ -219,7 +219,7 @@ implementation
              secondstringconst,secondfuncret,secondselfn,
              secondnot,secondinline,secondniln,seconderror,
              secondnothing,secondhnewn,secondhdisposen,secondnewn,
-             secondsimplenewdispose,secondsetelement,secondsetcons,secondblockn,
+             secondsimplenewdispose,secondsetelement,secondsetconst,secondblockn,
              secondstatement,secondnothing,secondifn,secondbreakn,
              secondcontinuen,second_while_repeatn,second_while_repeatn,secondfor,
              secondexitn,secondwith,secondcase,secondlabel,
@@ -516,7 +516,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  1998-09-05 23:03:58  florian
+  Revision 1.53  1998-09-07 18:46:03  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.52  1998/09/05 23:03:58  florian
     * some fixes to get -Or work:
       - inc/dec didn't take care of CREGISTER
       - register calculcation of inc/dec was wrong

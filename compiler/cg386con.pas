@@ -33,7 +33,7 @@ interface
     procedure secondfixconst(var p : ptree);
     procedure secondordconst(var p : ptree);
     procedure secondstringconst(var p : ptree);
-    procedure secondsetcons(var p : ptree);
+    procedure secondsetconst(var p : ptree);
     procedure secondniln(var p : ptree);
 
 
@@ -52,13 +52,10 @@ implementation
       var
          hp1 : pai;
          lastlabel : plabel;
-         found : boolean;
       begin
-         clear_reference(p^.location.reference);
          lastlabel:=nil;
-         found:=false;
          { const already used ? }
-         if p^.labnumber=-1 then
+         if not assigned(p^.lab_real) then
            begin
               { tries to found an old entry }
               hp1:=pai(consts^.first);
@@ -70,12 +67,12 @@ implementation
                      begin
                         if (hp1^.typ=p^.realtyp) and (lastlabel<>nil) then
                           begin
-                             if ((p^.realtyp=ait_real_64bit) and (pai_double(hp1)^.value=p^.valued)) or
-                               ((p^.realtyp=ait_real_extended) and (pai_extended(hp1)^.value=p^.valued)) or
-                               ((p^.realtyp=ait_real_32bit) and (pai_single(hp1)^.value=p^.valued)) then
+                             if ((p^.realtyp=ait_real_64bit) and (pai_double(hp1)^.value=p^.value_real)) or
+                               ((p^.realtyp=ait_real_extended) and (pai_extended(hp1)^.value=p^.value_real)) or
+                               ((p^.realtyp=ait_real_32bit) and (pai_single(hp1)^.value=p^.value_real)) then
                                begin
                                   { found! }
-                                  p^.labnumber:=lastlabel^.nb;
+                                  p^.lab_real:=lastlabel;
                                   break;
                                end;
                           end;
@@ -84,25 +81,25 @@ implementation
                    hp1:=pai(hp1^.next);
                 end;
               { :-(, we must generate a new entry }
-              if p^.labnumber=-1 then
+              if not assigned(p^.lab_real) then
                 begin
-                   getlabel(lastlabel);
-                   p^.labnumber:=lastlabel^.nb;
-                   concat_constlabel(lastlabel,constreal);
+                   getdatalabel(lastlabel);
+                   p^.lab_real:=lastlabel;
+                   if (cs_smartlink in aktmoduleswitches) then
+                    consts^.concat(new(pai_cut,init));
+                   consts^.concat(new(pai_label,init(lastlabel)));
                    case p^.realtyp of
-                     ait_real_64bit : consts^.concat(new(pai_double,init(p^.valued)));
-                     ait_real_32bit : consts^.concat(new(pai_single,init(p^.valued)));
-                  ait_real_extended : consts^.concat(new(pai_extended,init(p^.valued)));
+                     ait_real_64bit : consts^.concat(new(pai_double,init(p^.value_real)));
+                     ait_real_32bit : consts^.concat(new(pai_single,init(p^.value_real)));
+                  ait_real_extended : consts^.concat(new(pai_extended,init(p^.value_real)));
                    else
                      internalerror(10120);
                    end;
                 end;
            end;
-         stringdispose(p^.location.reference.symbol);
-         if assigned(lastlabel) then
-           p^.location.reference.symbol:=stringdup(constlabel2str(lastlabel,constreal))
-         else
-           p^.location.reference.symbol:=stringdup(constlabelnb2str(p^.labnumber,constreal));
+         clear_reference(p^.location.reference);
+         p^.location.reference.symbol:=stringdup(lab2str(p^.lab_real));
+         p^.location.loc:=LOC_MEM;
       end;
 
 
@@ -115,7 +112,7 @@ implementation
          { an fix comma const. behaves as a memory reference }
          p^.location.loc:=LOC_MEM;
          p^.location.reference.isintvalue:=true;
-         p^.location.reference.offset:=p^.valuef;
+         p^.location.reference.offset:=p^.value_fix;
       end;
 
 
@@ -141,18 +138,15 @@ implementation
          hp1 : pai;
 {$ifdef UseAnsiString}
          l1,
-{$endif}        
-
-         lastlabel : plabel;
-         pc : pchar;
+{$endif}
+         lastlabel   : plabel;
+         pc          : pchar;
          same_string : boolean;
-         i : word;
-
+         i           : longint;
       begin
-         clear_reference(p^.location.reference);
          lastlabel:=nil;
          { const already used ? }
-         if p^.labstrnumber=-1 then
+         if not assigned(p^.lab_str) then
            begin
               { tries to found an old entry }
               hp1:=pai(consts^.first);
@@ -173,20 +167,16 @@ implementation
                           (pai_string(hp1)^.len=p^.length+2) then
 {$else UseAnsiString}
                         if (hp1^.typ=ait_string) and (lastlabel<>nil) and
-                          (pai_string(hp1)^.len=length(p^.values^)+2) then
+                          (pai_string(hp1)^.len=length(p^.value_str^)+2) then
 {$endif UseAnsiString}
-
                           begin
                              same_string:=true;
 {$ifndef UseAnsiString}
-                             { weird error here !!!   }
-                             { pchar ' ' was found equal to string '' !!!! }
-                             { gave strange output in exceptions !! PM }
-                             for i:=0 to length(p^.values^) do
-                               if pai_string(hp1)^.str[i]<>p^.values^[i] then
+                             for i:=0 to length(p^.value_str^) do
+                               if pai_string(hp1)^.str[i]<>p^.value_str^[i] then
 {$else}
                              for i:=0 to p^.length do
-                               if pai_string(hp1)^.str[i]<>p^.values[i] then
+                               if pai_string(hp1)^.str[i]<>p^.value_str[i] then
 {$endif}
                                  begin
                                     same_string:=false;
@@ -195,7 +185,7 @@ implementation
                              if same_string then
                                begin
                                   { found! }
-                                  p^.labstrnumber:=lastlabel^.nb;
+                                  p^.lab_str:=lastlabel;
                                   break;
                                end;
                           end;
@@ -204,38 +194,37 @@ implementation
                    hp1:=pai(hp1^.next);
                 end;
               { :-(, we must generate a new entry }
-              if p^.labstrnumber=-1 then
+              if not assigned(p^.lab_str) then
                 begin
-                   getlabel(lastlabel);
-                   p^.labstrnumber:=lastlabel^.nb;
+                   getdatalabel(lastlabel);
+                   p^.lab_str:=lastlabel;
+                   if (cs_smartlink in aktmoduleswitches) then
+                    consts^.concat(new(pai_cut,init));
+                   consts^.concat(new(pai_label,init(lastlabel)));
 {$ifndef UseAnsiString}
-                   getmem(pc,length(p^.values^)+3);
-                   move(p^.values^,pc^,length(p^.values^)+1);
-                   pc[length(p^.values^)+1]:=#0;
-                   concat_constlabel(lastlabel,conststring);
+                   getmem(pc,length(p^.value_str^)+3);
+                   move(p^.value_str^,pc^,length(p^.value_str^)+1);
+                   pc[length(p^.value_str^)+1]:=#0;
                    { we still will have a problem if there is a #0 inside the pchar }
-                   consts^.concat(new(pai_string,init_length_pchar(pc,length(p^.values^)+2)));
+                   consts^.concat(new(pai_string,init_length_pchar(pc,length(p^.value_str^)+2)));
 {$else UseAnsiString}
-
                    { generate an ansi string ? }
                    case p^.stringtype of
                       st_ansistring:
                         begin
                            { an empty ansi string is nil! }
-                           concat_constlabel(lastlabel,conststring);
                            if p^.length=0 then
                              consts^.concat(new(pai_const,init_32bit(0)))
                            else
                              begin
                                 getlabel(l1);
                                 consts^.concat(new(pai_const,init_symbol(strpnew(lab2str(l1)))));
-
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
                                 consts^.concat(new(pai_const,init_32bit(p^.length)));
                                 consts^.concat(new(pai_const,init_32bit(-1)));
                                 consts^.concat(new(pai_label,init(l1)));
                                 getmem(pc,p^.length+1);
-                                move(p^.values^,pc^,p^.length+1);
+                                move(p^.value_str^,pc^,p^.length+1);
                                 { to overcome this problem we set the length explicitly }
                                 { with the ending null char }
                                 consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
@@ -244,9 +233,8 @@ implementation
                       st_shortstring:
                         begin
                            getmem(pc,p^.length+3);
-                           move(p^.values^,pc[1],p^.length+1);
+                           move(p^.value_str^,pc[1],p^.length+1);
                            pc[0]:=chr(p^.length);
-                           concat_constlabel(lastlabel,conststring);
                            { to overcome this problem we set the length explicitly }
                            { with the ending null char }
                            consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+2)));
@@ -255,12 +243,9 @@ implementation
 {$endif UseAnsiString}
                 end;
            end;
-         stringdispose(p^.location.reference.symbol);
-         if assigned(lastlabel) then
-           p^.location.reference.symbol:=stringdup(constlabel2str(lastlabel,conststring))
-         else
-           p^.location.reference.symbol:=stringdup(constlabelnb2str(p^.labstrnumber,conststring));
-         p^.location.loc := LOC_MEM;
+         clear_reference(p^.location.reference);
+         p^.location.reference.symbol:=stringdup(lab2str(p^.lab_str));
+         p^.location.loc:=LOC_MEM;
       end;
 
 
@@ -268,47 +253,50 @@ implementation
                              SecondSetCons
 *****************************************************************************}
 
-    procedure secondsetcons(var p : ptree);
+    procedure secondsetconst(var p : ptree);
       var
-         l    : plabel;
-         i    : longint;
-         href : treference;
+         lastlabel : plabel;
+         i : longint;
       begin
 {$ifdef SMALLSETORD}
         if psetdef(p^.resulttype)^.settype=smallset then
          begin
            p^.location.loc:=LOC_MEM;
            p^.location.reference.isintvalue:=true;
-           p^.location.reference.offset:=p^.constset^[0];
+           p^.location.reference.offset:=p^.value_set^[0];
          end
         else
          begin
-           reset_reference(href);
-           getlabel(l);
-           stringdispose(p^.location.reference.symbol);
-           href.symbol:=stringdup(constlabel2str(l,constseta));
-           concat_constlabel(l,constseta);
+           getdatalabel(lastlabel);
+           p^.lab_set:=lastlabel;
+           if (cs_smartlink in aktmoduleswitches) then
+            consts^.concat(new(pai_cut,init));
+           consts^.concat(new(pai_label,init(duplabel(lastlabel))));
            for i:=0 to 31 do
-             consts^.concat(new(pai_const,init_8bit(p^.constset^[i])));
-           p^.location.reference:=href;
+             consts^.concat(new(pai_const,init_8bit(p^.value_set^[i])));
+           clear_reference(p^.location.reference);
+           p^.location.reference.symbol:=stringdup(lab2str(p^.lab_set));
+           p^.location.loc:=LOC_MEM;
          end;
 {$else}
-        reset_reference(href);
-        getlabel(l);
-        stringdispose(p^.location.reference.symbol);
-        href.symbol:=stringdup(constlabel2str(l,constseta));
-        concat_constlabel(l,constseta);
+        getdatalabel(lastlabel);
+        p^.lab_set:=lastlabel;
+        if (cs_smartlink in aktmoduleswitches) then
+         consts^.concat(new(pai_cut,init));
+        consts^.concat(new(pai_label,init(lastlabel)));
         if psetdef(p^.resulttype)^.settype=smallset then
          begin
-           move(p^.constset^,i,sizeof(longint));
+           move(p^.value_set^,i,sizeof(longint));
            consts^.concat(new(pai_const,init_32bit(i)));
          end
         else
          begin
            for i:=0 to 31 do
-             consts^.concat(new(pai_const,init_8bit(p^.constset^[i])));
+             consts^.concat(new(pai_const,init_8bit(p^.value_set^[i])));
          end;
-        p^.location.reference:=href;
+        clear_reference(p^.location.reference);
+        p^.location.reference.symbol:=stringdup(lab2str(p^.lab_set));
+        p^.location.loc:=LOC_MEM;
 {$endif SMALLSETORD}
       end;
 
@@ -328,7 +316,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-08-28 10:56:57  peter
+  Revision 1.13  1998-09-07 18:45:53  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.12  1998/08/28 10:56:57  peter
     * removed warnings
 
   Revision 1.11  1998/08/14 18:18:39  peter

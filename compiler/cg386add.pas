@@ -230,8 +230,8 @@ implementation
                cmpop:=true;
              { generate better code for s='' and s<>'' }
                if (p^.treetype in [equaln,unequaln]) and
-                  (((p^.left^.treetype=stringconstn) and (p^.left^.values^='')) or
-                   ((p^.right^.treetype=stringconstn) and (p^.right^.values^=''))) then
+                  (((p^.left^.treetype=stringconstn) and (p^.left^.value_str^='')) or
+                   ((p^.right^.treetype=stringconstn) and (p^.right^.value_str^=''))) then
                  begin
                     secondpass(p^.left);
                     { are too few registers free? }
@@ -1277,7 +1277,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-09-04 10:05:04  florian
+  Revision 1.11  1998-09-07 18:45:52  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.10  1998/09/04 10:05:04  florian
     * ugly fix for STRCAT, nevertheless it needs more fixing !!!!!!!
       we need an new version of STRCAT which takes a length parameter
 

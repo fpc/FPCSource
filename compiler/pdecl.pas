@@ -114,26 +114,25 @@ unit pdecl;
                            else internalerror(111);
                         end;
                       stringconstn:
-                        {values is disposed with p so I need a copy !}
+                        {value_str is disposed with p so I need a copy !}
 {$ifdef USEANSISTRING}  begin
                            getmem(sp,p^.length+1);
-                           move(p^.values^,sp^[1],p^.length);
+                           move(p^.value_str^,sp^[1],p^.length);
                            sp^[0]:=chr(p^.length);
                            symtablestack^.insert(new(pconstsym,init(name,conststring,longint(sp),nil)));
                         end;
 {$else USEANSISTRING}
-                        symtablestack^.insert(new(pconstsym,init(name,conststring,longint(stringdup(p^.values^)),nil)));
+                        symtablestack^.insert(new(pconstsym,init(name,conststring,longint(stringdup(p^.value_str^)),nil)));
 {$endif USEANSISTRING}
                       realconstn : begin
                                       new(pd);
-                                      pd^:=p^.valued;
+                                      pd^:=p^.value_real;
                                       symtablestack^.insert(new(pconstsym,init(name,constreal,longint(pd),nil)));
                                    end;
                        setconstn : begin
                                       new(ps);
-                                      ps^:=p^.constset^;
-                                      symtablestack^.insert(new(pconstsym,init(name,
-                                        constseta,longint(ps),p^.resulttype)));
+                                      ps^:=p^.value_set^;
+                                      symtablestack^.insert(new(pconstsym,init(name,constset,longint(ps),p^.resulttype)));
                                    end;
                       else Message(cg_e_illegal_expression);
                    end;
@@ -1670,7 +1669,7 @@ unit pdecl;
             LKLAMMER:
               begin
                  consume(LKLAMMER);
-                 { allow negativ values }
+                 { allow negativ value_str }
                  l:=-1;
                  aufsym := Nil;
                  aufdef:=new(penumdef,init);
@@ -1970,7 +1969,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.49  1998-09-07 17:37:00  florian
+  Revision 1.50  1998-09-07 18:46:08  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.49  1998/09/07 17:37:00  florian
     * first fixes for published properties
 
   Revision 1.48  1998/09/04 08:42:02  peter

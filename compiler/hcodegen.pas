@@ -143,18 +143,16 @@ unit hcodegen;
     function case_get_min(root : pcaserecord) : longint;
 
     { concates/inserts the ASCII string to the data segment }
-    procedure generate_ascii(const hs : string);
-    procedure generate_ascii_insert(const hs : string);
+    procedure generate_ascii(a : paasmoutput;const hs : string);
     { concates/inserts the ASCII string from pchar to the data  segment }
     { WARNING : if hs has no #0 and strlen(hs)=length           }
     { the terminal zero is not written                          }
     procedure generate_pascii(a : paasmoutput;hs : pchar;length : longint);
-    procedure generate_pascii_insert(hs : pchar;length : longint);
 
     { convert/concats a label for constants in the consts section }
-    function constlabel2str(l : plabel;ctype:tconsttype):string;
+{    function constlabel2str(l : plabel;ctype:tconsttype):string;
     function constlabelnb2str(pnb : longint;ctype:tconsttype):string;
-    procedure concat_constlabel(p:plabel;ctype:tconsttype);
+    procedure concat_constlabel(p:plabel;ctype:tconsttype); }
 
     { to be able to force to have a global label for const }
     const
@@ -336,15 +334,9 @@ implementation
                               String Helpers
 *****************************************************************************}
 
-    procedure generate_ascii(const hs : string);
+    procedure generate_ascii(a : paasmoutput;const hs : string);
       begin
-         datasegment^.concat(new(pai_string,init(hs)))
-      end;
-
-
-    procedure generate_ascii_insert(const hs : string);
-      begin
-         datasegment^.insert(new(pai_string,init(hs)));
+         a^.concat(new(pai_string,init(hs)))
       end;
 
 
@@ -387,87 +379,15 @@ implementation
       end;
 
 
-    { inserts the ASCII string from pchar to the const segment }
-    procedure generate_pascii_insert(hs : pchar;length : longint);
-      var
-         real_end,current_begin,current_end : pchar;
-         c :char;
-      begin
-         if assigned(hs) then
-           begin
-              current_begin:=hs;
-              real_end:=strend(hs);
-              c:=hs[0];
-              length:=longint(real_end)-longint(hs);
-              while length>32 do
-                begin
-                   { restore the char displaced }
-                   current_begin[0]:=c;
-                   current_end:=current_begin+32;
-                   { store the char for next loop }
-                   c:=current_end[0];
-                   current_end[0]:=#0;
-                   datasegment^.insert(new(pai_string,init_length_pchar(strnew(current_begin,32),32)));
-                   length:=length-32;
-                end;
-              datasegment^.insert(new(pai_string,init_length_pchar(strnew(current_begin,length),length)));
-           end;
-      end;
-
-{*****************************************************************************
-                              Const Helpers
-*****************************************************************************}
-
-    const
-      consttypestr : array[tconsttype] of string[6]=
-        ('ord','string','real','bool','int','char','set');
-
-      { Peter this gives problems for my inlines !! }
-      { we must use the number directly !!! (PM) }
-    function constlabel2str(l : plabel;ctype:tconsttype):string;
-      begin
-        if (cs_smartlink in aktmoduleswitches) or
-           make_const_global {or (aktoutputformat in [as_tasm])} then
-         constlabel2str:='_$'+current_module^.modulename^+'$'+consttypestr[ctype]+'_const_'+tostr(l^.nb)
-        else
-         constlabel2str:=lab2str(l);
-      end;
-
-    function constlabelnb2str(pnb : longint;ctype:tconsttype):string;
-      begin
-        if (cs_smartlink in aktmoduleswitches) or
-           make_const_global {or (aktoutputformat in [as_tasm])} then
-         constlabelnb2str:='_$'+current_module^.modulename^+'$'+consttypestr[ctype]+'_const_'+tostr(pnb)
-        else
-         constlabelnb2str:=target_asm.labelprefix+tostr(pnb);
-      end;
-
-
-    procedure concat_constlabel(p:plabel;ctype:tconsttype);
-      var
-        s : string;
-      begin
-        if (cs_smartlink in aktmoduleswitches) or
-           make_const_global {or (aktoutputformat in [as_tasm])} then
-         begin
-           s:='_$'+current_module^.modulename^+'$'+consttypestr[ctype]+'_const_'+tostr(p^.nb);
-           if (cs_smartlink in aktmoduleswitches) then
-            begin
-              consts^.concat(new(pai_cut,init));
-              consts^.concat(new(pai_symbol,init_global(s)))
-            end
-           else
-            consts^.concat(new(pai_symbol,init_global(s)));
-         end
-        else
-         consts^.concat(new(pai_label,init(p)));
-      end;
-
 end.
 
 {
   $Log$
-  Revision 1.15  1998-09-01 09:02:51  peter
+  Revision 1.16  1998-09-07 18:46:04  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.15  1998/09/01 09:02:51  peter
     * moved message() to hcodegen, so pass_2 also uses them
 
   Revision 1.14  1998/08/21 14:08:43  pierre

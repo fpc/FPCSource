@@ -1277,7 +1277,7 @@
                          pd^:=readreal;
                          value:=longint(pd);
                        end;
-           constseta : begin
+            constset : begin
                          definition:=readdefref;
                          new(ps);
                          readnormalset(ps^);
@@ -1294,7 +1294,7 @@
         case consttype of
          conststring : stringdispose(pstring(value));
            constreal : dispose(pbestreal(value));
-           constseta : dispose(pnormalset(value));
+            constset : dispose(pnormalset(value));
         end;
         inherited done;
       end;
@@ -1308,7 +1308,7 @@
 
     procedure tconstsym.deref;
       begin
-        if consttype in [constord,constseta] then
+        if consttype in [constord,constset] then
          resolvedef(pdef(definition));
       end;
 
@@ -1327,7 +1327,7 @@
                        end;
          conststring : writestring(pstring(value)^);
            constreal : writereal(pbestreal(value)^);
-           constseta : begin
+            constset : begin
                          writedefref(definition);
                          writenormalset(pointer(value)^);
                        end;
@@ -1624,7 +1624,11 @@
 
 {
   $Log$
-  Revision 1.40  1998-09-07 17:37:04  florian
+  Revision 1.41  1998-09-07 18:46:12  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.40  1998/09/07 17:37:04  florian
     * first fixes for published properties
 
   Revision 1.39  1998/09/05 22:11:02  florian

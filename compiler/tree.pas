@@ -151,9 +151,8 @@ unit tree;
 
        { allows to determine which elementes are to be replaced }
        tdisposetyp = (dt_nothing,dt_leftright,dt_left,
-                      dt_mbleft,dt_string,dt_typeconv,dt_inlinen,
-                      dt_mbleft_and_method,dt_constset,dt_loop,dt_case,
-                      dt_with,dt_onn);
+                      dt_mbleft,dt_typeconv,dt_inlinen,
+                      dt_mbleft_and_method,dt_loop,dt_case,dt_with,dt_onn);
 
       { different assignment types }
 
@@ -210,23 +209,21 @@ unit tree;
                       methodpointer : ptree;
                       no_check,unit_specific,return_value_used : boolean);
              ordconstn : (value : longint);
-             realconstn : (valued : bestreal;labnumber : longint;realtyp : tait);
-             fixconstn : (valuef: longint);
+             realconstn : (value_real : bestreal;lab_real : plabel;realtyp : tait);
+             fixconstn : (value_fix: longint);
              funcretn : (funcretprocinfo : pointer;retdef : pdef);
              subscriptn : (vs : pvarsym);
              vecn : (memindex,memseg:boolean);
-             { stringconstn : (length : longint; values : pstring;labstrnumber : longint); }
-             { string const can be longer then 255 with ansistring !! }
 {$ifdef UseAnsiString}
-             stringconstn : (values : pchar;length : longint; labstrnumber : longint;stringtype : tstringtype);
+             stringconstn : (value_str : pchar;length : longint; lab_str : plabel;stringtype : tstringtype);
 {$else UseAnsiString}
-             stringconstn : (values : pstring; labstrnumber : longint;stringtype : tstringtype);
+             stringconstn : (value_str : pstring; lab_str:plabel;stringtype : tstringtype);
 {$endif UseAnsiString}
              typeconvn : (convtyp : tconverttype;explizit : boolean);
              inlinen : (inlinenumber : longint;inlineconst:boolean);
              procinlinen : (inlineprocdef : pprocdef;
                             retoffset,para_offset,para_size : longint);
-             setconstn : (constset : pconstset);
+             setconstn : (value_set : pconstset;lab_set:plabel);
              loopn : (t1,t2 : ptree;backward : boolean);
              asmn : (p_asm : paasmoutput;object_preserved : boolean);
              casen : (nodes : pcaserecord;elseblock : ptree);
@@ -333,21 +330,22 @@ unit tree;
          case p^.treetype of
           asmn : if assigned(p^.p_asm) then
                   dispose(p^.p_asm,done);
-     setconstn : if assigned(p^.constset) then
-                  dispose(p^.constset);
+  stringconstn : begin
+{$ifndef UseAnsiString}
+                   stringdispose(p^.value_str);
+{$else UseAnsiString}
+                   ansistringdispose(p^.value_str,p^.length);
+{$endif UseAnsiString}
+                 end;
+     setconstn : begin
+                   if assigned(p^.value_set) then
+                     dispose(p^.value_set);
+                 end;
          end;
          { reference info }
          if (p^.location.loc in [LOC_MEM,LOC_REFERENCE]) and
             assigned(p^.location.reference.symbol) then
            stringdispose(p^.location.reference.symbol);
-
-{$ifndef UseAnsiString}
-         if p^.disposetyp=dt_string then
-           stringdispose(p^.values);
-{$else UseAnsiString}
-         if p^.disposetyp=dt_string then
-           ansistringdispose(p^.values,p^.length);
-{$endif UseAnsiString}
 {$ifdef extdebug}
          if p^.firstpasscount>maxfirstpasscount then
             maxfirstpasscount:=p^.firstpasscount;
@@ -397,19 +395,26 @@ unit tree;
                  if assigned(p^.t2) then
                    hp^.t2:=getcopy(p^.t2);
               end;
-{$ifdef UseAnsiString}
-            dt_string : begin
-                           hp^.values:=getpcharcopy(p);
-                           hp^.length:=p^.length;
-                        end;
-{$else UseAnsiString}
-            dt_string : hp^.values:=stringdup(p^.values^);
-{$endif UseAnsiString}
             dt_typeconv : hp^.left:=getcopy(p^.left);
             dt_inlinen :
               if assigned(p^.left) then
                 hp^.left:=getcopy(p^.left);
             else internalerror(11);
+         end;
+       { now check treetype }
+         case p^.treetype of
+  stringconstn : begin
+{$ifdef UseAnsiString}
+                   hp^.value_str:=getpcharcopy(p);
+                   hp^.length:=p^.length;
+{$else UseAnsiString}
+                   hp^.value_str:=stringdup(p^.value_str^);
+{$endif UseAnsiString}
+                 end;
+     setconstn : begin
+                   new(hp^.value_set);
+                   hp^.value_set:=p^.value_set;
+                 end;
          end;
          getcopy:=hp;
       end;
@@ -434,7 +439,6 @@ unit tree;
         p^.left:=swapp;
         p^.swaped:=not(p^.swaped);
     end;
-
 
 
     procedure disposetree(p : ptree);
@@ -472,21 +476,6 @@ unit tree;
               begin
                  if assigned(p^.left) then disposetree(p^.left);
                  disposetree(p^.methodpointer);
-              end;
-{$ifdef UseAnsiString}
-            dt_string : ansistringdispose(p^.values,p^.length);
-{$else UseAnsiString}
-            dt_string : stringdispose(p^.values);
-{$endif UseAnsiString}
-            dt_constset :
-              begin
-                 if assigned(p^.constset) then
-                   begin
-                      dispose(p^.constset);
-                      p^.constset:=nil;
-                   end;
-                 if assigned(p^.left) then
-                   disposetree(p^.left);
               end;
             dt_typeconv : disposetree(p^.left);
             dt_inlinen :
@@ -740,17 +729,17 @@ unit tree;
 {$endif SUPPORT_MMX}
 {$ifdef i386}
          p^.resulttype:=c64floatdef;
-         p^.valued:=v;
+         p^.value_real:=v;
          { default value is double }
          p^.realtyp:=ait_real_64bit;
 {$endif}
 {$ifdef m68k}
          p^.resulttype:=new(pfloatdef,init(s32real));
-         p^.valued:=v;
+         p^.value_real:=v;
          { default value is double }
          p^.realtyp:=ait_real_32bit;
 {$endif}
-         p^.labnumber:=-1;
+         p^.lab_real:=nil;
          genrealconstnode:=p;
       end;
 
@@ -763,7 +752,7 @@ unit tree;
 {$endif UseAnsiString}
       begin
          p:=getnode;
-         p^.disposetyp:=dt_string;
+         p^.disposetyp:=dt_nothing;
          p^.treetype:=stringconstn;
          p^.registers32:=0;
 {         p^.registers16:=0;
@@ -777,13 +766,13 @@ unit tree;
          l:=length(s);
          p^.length:=l;
          { stringdup write even past a #0 }
-         getmem(p^.values,l+1);
-         move(s[1],p^.values^,l);
-         p^.values[l]:=#0;
+         getmem(p^.value_str,l+1);
+         move(s[1],p^.value_str^,l);
+         p^.value_str[l]:=#0;
 {$else UseAnsiString}
-         p^.values:=stringdup(s);
+         p^.value_str:=stringdup(s);
 {$endif UseAnsiString}
-         p^.labstrnumber:=-1;
+         p^.lab_str:=nil;
          p^.stringtype:=st_shortstring;
          genstringconstnode:=p;
       end;
@@ -800,7 +789,7 @@ unit tree;
          { Peter can you change that ? }
          if pc=nil then
            Message(general_f_no_memory_left);
-         move(p^.values^,pc^,p^.length+1);
+         move(p^.value_str^,pc^,p^.length+1);
          getpcharcopy:=pc;
       end;
 
@@ -811,7 +800,7 @@ unit tree;
 
       begin
          p:=getnode;
-         p^.disposetyp:=dt_string;
+         p^.disposetyp:=dt_nothing;
          p^.treetype:=stringconstn;
          p^.registers32:=0;
 {         p^.registers16:=0;
@@ -822,8 +811,8 @@ unit tree;
 {$endif SUPPORT_MMX}
          p^.resulttype:=cstringdef;
          p^.length:=length;
-         p^.values:=s;
-         p^.labstrnumber:=-1;
+         p^.value_str:=s;
+         p^.lab_str:=nil;
          genpcharconstnode:=p;
       end;
 {$endif UseAnsiString}
@@ -1137,7 +1126,7 @@ unit tree;
 
      begin
         p:=getnode;
-        p^.disposetyp:=dt_constset;
+        p^.disposetyp:=dt_nothing;
         p^.treetype:=setconstn;
         p^.registers32:=0;
         p^.registersfpu:=0;
@@ -1146,8 +1135,8 @@ unit tree;
 {$endif SUPPORT_MMX}
          p^.resulttype:=settype;
          p^.left:=nil;
-         new(p^.constset);
-         p^.constset^:=s^;
+         new(p^.value_set);
+         p^.value_set^:=s^;
          gensetconstnode:=p;
       end;
 
@@ -1389,12 +1378,12 @@ unit tree;
              funcretn : (funcretprocinfo : pointer;retdef : pdef);
              subscriptn : (vs : pvarsym);
              vecn : (memindex,memseg:boolean);
-             { stringconstn : (length : longint; values : pstring;labstrnumber : longint); }
+             { stringconstn : (length : longint; value_str : pstring;labstrnumber : longint); }
              { string const can be longer then 255 with ansistring !! }
 {$ifdef UseAnsiString}
-             stringconstn : (values : pchar;length : longint; labstrnumber : longint);
+             stringconstn : (value_str : pchar;length : longint; labstrnumber : longint);
 {$else UseAnsiString}
-             stringconstn : (values : pstring; labstrnumber : longint);
+             stringconstn : (value_str : pstring; labstrnumber : longint);
 {$endif UseAnsiString}
              typeconvn : (convtyp : tconverttype;explizit : boolean);
              inlinen : (inlinenumber : longint);
@@ -1556,7 +1545,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.35  1998-09-04 08:42:11  peter
+  Revision 1.36  1998-09-07 18:46:17  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.35  1998/09/04 08:42:11  peter
     * updated some error messages
 
   Revision 1.34  1998/09/01 17:39:54  peter

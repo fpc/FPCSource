@@ -146,7 +146,7 @@ implementation
          case p^.treetype of
            simpledisposen:
              begin
-                if ppointerdef(p^.left^.resulttype)^.definition^.needs_rtti then
+                if ppointerdef(p^.left^.resulttype)^.definition^.needs_inittable then
                   begin
 {!!!!!!!}               
 
@@ -168,7 +168,7 @@ implementation
            simplenewn:
              begin
                 emitcall('GETMEM',true);
-                if ppointerdef(p^.left^.resulttype)^.definition^.needs_rtti then
+                if ppointerdef(p^.left^.resulttype)^.definition^.needs_inittable then
                   begin
 {!!!!!!!}               
 
@@ -691,7 +691,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-01 09:07:09  peter
+  Revision 1.2  1998-09-07 18:45:57  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.1  1998/09/01 09:07:09  peter
     * m68k fixes, splitted cg68k like cgi386
 
 }

@@ -138,7 +138,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                        { if it is a char, then simply    }
                        { load 0 length string            }
                        if (p^.right^.treetype=stringconstn) and
-                          (p^.right^.values^='') then
+                          (p^.right^.value_str^='') then
                         exprasmlist^.concat(new(pai68k,op_const_ref(
                            A_MOVE,S_B,0,newreference(p^.left^.location.reference))))
                        else
@@ -458,7 +458,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
     { This routine needs to be further checked to see if it works correctly  }
     { because contrary to the intel version, all large set elements are read }
-    { as 32-bit values, and then decomposed to find the correct byte.        }
+    { as 32-bit value_str, and then decomposed to find the correct byte.        }
 
     { CHECKED : Depending on the result size, if reference, a load may be    }
     { required on word, long or byte.                                        }
@@ -1264,7 +1264,7 @@ end;
         if not ((cs_fp_emulation) in aktmoduleswitches) then
         begin
             { This permits the mixing of emulation and non-emulation routines }
-            { only possible for REAL = SINGLE values                          }
+            { only possible for REAL = SINGLE value_str                          }
             if not (location.fpureg in [R_FP0..R_FP7]) then
              Begin
                if s = S_FS then
@@ -1345,7 +1345,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1998-09-04 08:41:50  peter
+  Revision 1.15  1998-09-07 18:46:00  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.14  1998/09/04 08:41:50  peter
     * updated some error messages
 
   Revision 1.13  1998/09/01 12:48:02  peter

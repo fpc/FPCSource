@@ -911,7 +911,7 @@ unit pexpr;
                               constchar : p1:=genordinalconstnode(pconstsym(srsym)^.value,cchardef);
                               constreal : p1:=genrealconstnode(pbestreal(pconstsym(srsym)^.value)^);
                               constbool : p1:=genordinalconstnode(pconstsym(srsym)^.value,booldef);
-                              constseta : p1:=gensetconstnode(pconstset(pconstsym(srsym)^.value),
+                               constset : p1:=gensetconstnode(pconstset(pconstsym(srsym)^.value),
                                                 psetdef(pconstsym(srsym)^.definition));
                                constord : p1:=genordinalconstnode(pconstsym(srsym)^.value,
                                                 pconstsym(srsym)^.definition);
@@ -1018,7 +1018,7 @@ unit pexpr;
            constsetlo:=0;
            constsethi:=0;
            constp:=gensinglenode(setconstn,nil);
-           constp^.constset:=constset;
+           constp^.value_set:=constset;
            buildp:=constp;
            pd:=nil;
            if token<>RECKKLAMMER then
@@ -1102,8 +1102,8 @@ unit pexpr;
                            if not(is_equal(pd,cchardef)) then
                             Message(type_e_typeconflict_in_set)
                            else
-                            for l:=1 to length(pstring(p2^.values)^) do
-                             do_set(ord(pstring(p2^.values)^[l]));
+                            for l:=1 to length(pstring(p2^.value_str)^) do
+                             do_set(ord(pstring(p2^.value_str)^[l]));
                            disposetree(p2);
                          end;
                  else
@@ -1147,7 +1147,7 @@ unit pexpr;
          ---------------------------------------------}
 
         procedure postfixoperators;
-        { p1 and p2 must contain valid values }
+        { p1 and p2 must contain valid value_str }
         begin
           check_tokenpos;
           while again do
@@ -1850,14 +1850,18 @@ unit pexpr;
             Message(cg_e_illegal_expression);
         end
       else
-        get_stringconst:=p^.values^;
+        get_stringconst:=p^.value_str^;
       disposetree(p);
     end;
 
 end.
 {
   $Log$
-  Revision 1.46  1998-09-04 08:42:03  peter
+  Revision 1.47  1998-09-07 18:46:10  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.46  1998/09/04 08:42:03  peter
     * updated some error messages
 
   Revision 1.45  1998/09/01 17:39:49  peter

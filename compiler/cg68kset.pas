@@ -281,7 +281,7 @@ implementation
              else
                 begin
                   if (p^.right^.treetype=setconstn) and
-                     analizeset(p^.right^.constset) then
+                     analizeset(p^.right^.value_set) then
                     begin
                       {It gives us advantage to check for the set elements
                         separately instead of using the SET_IN_BYTE procedure.
@@ -812,7 +812,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-09-04 08:41:49  peter
+  Revision 1.3  1998-09-07 18:45:59  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.2  1998/09/04 08:41:49  peter
     * updated some error messages
 
   Revision 1.1  1998/09/01 09:07:09  peter

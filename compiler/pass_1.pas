@@ -840,8 +840,8 @@ unit pass_1;
        { both real constants ? }
          if (lt=realconstn) and (rt=realconstn) then
            begin
-              lvd:=p^.left^.valued;
-              rvd:=p^.right^.valued;
+              lvd:=p^.left^.value_real;
+              rvd:=p^.right^.value_real;
               case p^.treetype of
                  addn : t:=genrealconstnode(lvd+rvd);
                  subn : t:=genrealconstnode(lvd-rvd);
@@ -897,7 +897,7 @@ unit pass_1;
               s2:=strpnew(char(byte(p^.right^.value)));
               l2:=1;
 {$else UseAnsiString}
-              s1^:=p^.left^.values^;
+              s1^:=p^.left^.value_str^;
               s2^:=char(byte(p^.right^.value));
 {$endif UseAnsiString}
               concatstrings:=true;
@@ -914,7 +914,7 @@ unit pass_1;
               l2:=p^.right^.length;
 {$else UseAnsiString}
               s1^:=char(byte(p^.left^.value));
-              s2^:=p^.right^.values^;
+              s2^:=p^.right^.value_str^;
 {$endif UseAnsiString}
               concatstrings:=true;
            end
@@ -926,8 +926,8 @@ unit pass_1;
               s2:=getpcharcopy(p^.right);
               l2:=p^.right^.length;
 {$else UseAnsiString}
-              s1^:=p^.left^.values^;
-              s2^:=p^.right^.values^;
+              s1^:=p^.left^.value_str^;
+              s2^:=p^.right^.value_str^;
 {$endif UseAnsiString}
               concatstrings:=true;
            end;
@@ -1114,31 +1114,31 @@ unit pass_1;
                         addn : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
-                                      p^.right^.constset^[i] or p^.left^.constset^[i];
+                                      p^.right^.value_set^[i] or p^.left^.value_set^[i];
                                   t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                         muln : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
-                                      p^.right^.constset^[i] and p^.left^.constset^[i];
+                                      p^.right^.value_set^[i] and p^.left^.value_set^[i];
                                   t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                         subn : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
-                                      p^.left^.constset^[i] and not(p^.right^.constset^[i]);
+                                      p^.left^.value_set^[i] and not(p^.right^.value_set^[i]);
                                   t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                      symdifn : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
-                                      p^.left^.constset^[i] xor p^.right^.constset^[i];
+                                      p^.left^.value_set^[i] xor p^.right^.value_set^[i];
                                   t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                     unequaln : begin
                                  b:=true;
                                  for i:=0 to 31 do
-                                  if p^.right^.constset^[i]=p^.left^.constset^[i] then
+                                  if p^.right^.value_set^[i]=p^.left^.value_set^[i] then
                                    begin
                                      b:=false;
                                      break;
@@ -1148,7 +1148,7 @@ unit pass_1;
                       equaln : begin
                                  b:=true;
                                  for i:=0 to 31 do
-                                  if p^.right^.constset^[i]<>p^.left^.constset^[i] then
+                                  if p^.right^.value_set^[i]<>p^.left^.value_set^[i] then
                                    begin
                                      b:=false;
                                      break;
@@ -1607,7 +1607,7 @@ unit pass_1;
       begin
          {why this !!! lost of dummy type definitions
          one per const string !!!
-         p^.resulttype:=new(pstringdef,init(length(p^.values^)));}
+         p^.resulttype:=new(pstringdef,init(length(p^.value_str^)));}
          if cs_ansistrings in aktlocalswitches then
            p^.resulttype:=cansistringdef
          else
@@ -1646,7 +1646,7 @@ unit pass_1;
 {$endif}
            then
            begin
-              t:=genrealconstnode(-p^.left^.valued);
+              t:=genrealconstnode(-p^.left^.value_real);
               disposetree(p);
               firstpass(t);
               p:=t;
@@ -2303,7 +2303,7 @@ unit pass_1;
            begin
               { convert constants direct }
               p^.treetype:=fixconstn;
-              p^.valuef:=p^.left^.value shl 16;
+              p^.value_fix:=p^.left^.value shl 16;
               p^.disposetyp:=dt_nothing;
               disposetree(p^.left);
               p^.location.loc:=LOC_MEM;
@@ -2323,7 +2323,7 @@ unit pass_1;
            begin
               { convert constants direct }
               p^.treetype:=fixconstn;
-              p^.valuef:=round(p^.left^.valued*65536);
+              p^.value_fix:=round(p^.left^.value_real*65536);
               p^.disposetyp:=dt_nothing;
               disposetree(p^.left);
               p^.location.loc:=LOC_MEM;
@@ -2346,7 +2346,7 @@ unit pass_1;
            begin
               { convert constants direct }
               p^.treetype:=realconstn;
-              p^.valued:=round(p^.left^.valuef/65536.0);
+              p^.value_real:=round(p^.left^.value_fix/65536.0);
               p^.disposetyp:=dt_nothing;
               disposetree(p^.left);
               p^.location.loc:=LOC_MEM;
@@ -2567,7 +2567,7 @@ unit pass_1;
           exit;
         end;
 
-       { load the values from the left part }
+       { load the value_str from the left part }
        p^.registers32:=p^.left^.registers32;
        p^.registersfpu:=p^.left^.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -3688,7 +3688,7 @@ unit pass_1;
          if ret_in_param(p^.retdef) or
             (@procinfo<>pprocinfo(p^.funcretprocinfo)) then
            p^.registers32:=1;
-         { no claim if setting higher return values }
+         { no claim if setting higher return value_str }
          if must_be_valid and
             (@procinfo=pprocinfo(p^.funcretprocinfo)) and
             not procinfo.funcret_is_valid then
@@ -3768,7 +3768,7 @@ unit pass_1;
           begin
             isreal:=(p^.left^.treetype=realconstn);
             vl:=p^.left^.value;
-            vr:=p^.left^.valued;
+            vr:=p^.left^.value_real;
             case p^.inlinenumber of
          in_const_trunc : begin
                             if isreal then
@@ -3970,7 +3970,7 @@ unit pass_1;
 {$ifdef UseAnsiString}
                        hp:=genordinalconstnode(p^.left^.length,s32bitdef);
 {$else UseAnsiString}
-                       hp:=genordinalconstnode(length(p^.left^.values^),s32bitdef);
+                       hp:=genordinalconstnode(length(p^.left^.value_str^),s32bitdef);
 {$endif UseAnsiString}
                        disposetree(p);
                        firstpass(hp);
@@ -4950,7 +4950,7 @@ unit pass_1;
       begin
          { it's a f... to determine the used registers }
          { should be done by getnode
-           I think also, that all values should be set to their maximum (FK)
+           I think also, that all value_str should be set to their maximum (FK)
          p^.registers32:=0;
          p^.registersfpu:=0;
          p^.registersmmx:=0;
@@ -5456,7 +5456,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.75  1998-09-05 23:51:06  florian
+  Revision 1.76  1998-09-07 18:46:05  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.75  1998/09/05 23:51:06  florian
     * possible bug with too few registers in first/secondin fixed
 
   Revision 1.74  1998/09/05 23:04:00  florian

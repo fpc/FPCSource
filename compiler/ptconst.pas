@@ -131,7 +131,7 @@ unit ptconst;
               p:=comp_expr(true);
               do_firstpass(p);
               if is_constrealnode(p) then
-                value:=p^.valued
+                value:=p^.value_real
               else if is_constintnode(p) then
                 value:=p^.value
               else
@@ -159,11 +159,11 @@ unit ptconst;
                 if (ppointerdef(def)^.definition^.deftype=orddef) and
                    (porddef(ppointerdef(def)^.definition)^.typ=uchar) then
                   begin
-                    getlabel(ll);
+                    getdatalabel(ll);
                     datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(ll)))));
                     consts^.concat(new(pai_label,init(ll)));
                     if p^.treetype=stringconstn then
-                      consts^.concat(new(pai_string,init(p^.values^+#0)))
+                      consts^.concat(new(pai_string,init(p^.value_str^+#0)))
                     else
                       if is_constcharnode(p) then
                         consts^.concat(new(pai_string,init(char(byte(p^.value))+#0)))
@@ -219,7 +219,7 @@ unit ptconst;
                      begin
 {$ifdef i386}
                         for l:=0 to def^.savesize-1 do
-                          datasegment^.concat(new(pai_const,init_8bit(p^.constset^[l])));
+                          datasegment^.concat(new(pai_const,init_8bit(p^.value_set^[l])));
 {$endif}
 {$ifdef m68k}
                         j:=0;
@@ -227,10 +227,10 @@ unit ptconst;
                         { HORRIBLE HACK because of endian        }
                         { now use intel endian for constant sets }
                          begin
-                           datasegment^.concat(new(pai_const,init_8bit(p^.constset^[j+3])));
-                           datasegment^.concat(new(pai_const,init_8bit(p^.constset^[j+2])));
-                           datasegment^.concat(new(pai_const,init_8bit(p^.constset^[j+1])));
-                           datasegment^.concat(new(pai_const,init_8bit(p^.constset^[j])));
+                           datasegment^.concat(new(pai_const,init_8bit(p^.value_set^[j+3])));
+                           datasegment^.concat(new(pai_const,init_8bit(p^.value_set^[j+2])));
+                           datasegment^.concat(new(pai_const,init_8bit(p^.value_set^[j+1])));
+                           datasegment^.concat(new(pai_const,init_8bit(p^.value_set^[j])));
                            Inc(j,4);
                          end;
 {$endif}
@@ -272,19 +272,18 @@ unit ptconst;
                              strlength:=p^.length;
                            datasegment^.concat(new(pai_const,init_8bit(strlength)));
                            { this can also handle longer strings }
-                           generate_pascii(datasegment,p^.values,strlength);
+                           generate_pascii(datasegment,p^.value_str,strlength);
 {$else UseAnsiString}
-                           if length(p^.values^)>=def^.size then
+                           if length(p^.value_str^)>=def^.size then
                              begin
                                strlength:=def^.size-1;
-                               generate_ascii(char(strlength)+copy(p^.values^,1,strlength));
+                               generate_ascii(datasegment,char(strlength)+copy(p^.value_str^,1,strlength));
                              end
                            else
                              begin
-                               strlength:=length(p^.values^);
-                               generate_ascii(char(strlength)+p^.values^);
+                               strlength:=length(p^.value_str^);
+                               generate_ascii(datasegment,char(strlength)+p^.value_str^);
                              end;
-
 {$endif UseAnsiString}
                         end
                       else if is_constcharnode(p) then
@@ -319,7 +318,7 @@ unit ptconst;
                      if p^.treetype=stringconstn then
                        begin
                           { this can also handle longer strings }
-                          generate_pascii(consts,p^.values,p^.length);
+                          generate_pascii(consts,p^.value_str,p^.length);
                        end
                      else if is_constcharnode(p) then
                        begin
@@ -338,7 +337,7 @@ unit ptconst;
                         datasegment^.concat(new(pai_const,init_32bit(0)))
                       else
                         begin
-                           getlabel(ll);
+                           getdatalabel(ll);
                            datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(ll)))));
                            { first write the maximum size }
                            consts^.concat(new(pai_const,init_32bit(p^.length)));
@@ -355,7 +354,7 @@ unit ptconst;
                            if p^.treetype=stringconstn then
                              begin
                                 { this can also handle longer strings }
-                                generate_pascii(consts,p^.values,p^.length);
+                                generate_pascii(consts,p^.value_str,p^.length);
                              end
                            else if is_constcharnode(p) then
                              begin
@@ -388,7 +387,7 @@ unit ptconst;
                    p:=comp_expr(true);
                    do_firstpass(p);
                    if p^.treetype=stringconstn then
-                     s:=p^.values^
+                     s:=p^.value_str^
                    else if is_constcharnode(p) then
                      s:=char(byte(p^.value))
                    else Message(cg_e_illegal_expression);
@@ -512,7 +511,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.14  1998-09-04 08:42:07  peter
+  Revision 1.15  1998-09-07 18:46:11  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.14  1998/09/04 08:42:07  peter
     * updated some error messages
 
   Revision 1.13  1998/09/01 09:05:36  peter

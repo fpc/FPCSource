@@ -72,7 +72,6 @@ implementation
 
 
     procedure seconderror(var p : ptree);
-
       begin
          p^.error:=true;
          codegenerror:=true;
@@ -110,15 +109,12 @@ implementation
          if not p^.object_preserved then
           begin
 {$ifdef i386}   
-
             maybe_loadesi;
 {$endif}
 {$ifdef m68k}
             maybe_loada5;
 {$endif}        
-
           end;
-
        end;
 
 
@@ -173,7 +169,7 @@ implementation
              secondnewn,        {newn}
              secondsimplenewdispose, {simpledisposen}
              secondsetelement,  {setelementn}
-             secondsetcons,     {setconstn}
+             secondsetconst,    {setconstn}
              secondblockn,      {blockn}
              secondstatement,   {statementn}
              secondnothing,     {loopn}
@@ -213,7 +209,6 @@ implementation
             oldcodegenerror:=codegenerror;
             oldlocalswitches:=aktlocalswitches;
             oldpos:=aktfilepos;
-        
 
             aktfilepos:=p^.fileinfo;
             aktlocalswitches:=p^.localswitches;
@@ -221,7 +216,6 @@ implementation
             procedures[p^.treetype](p);
             p^.error:=codegenerror;
         
-
             codegenerror:=codegenerror or oldcodegenerror;
             aktlocalswitches:=oldlocalswitches;
             aktfilepos:=oldpos;
@@ -248,10 +242,8 @@ implementation
        parasym : boolean;
 
     procedure searchregvars(p : psym);
-
       var
          i,j,k : longint;
-
       begin
          if (p^.typ=varsym) and ((pvarsym(p)^.var_options and vo_regable)<>0) then
            begin
@@ -403,7 +395,6 @@ implementation
 
                                        regvars[i]^.reg:=reg32toreg8(varregs[i]);
 {$endif}                                
-
                                        regsize:=S_B;
                                     end
                                   else if  (regvars[i]^.definition^.deftype=orddef) and
@@ -413,7 +404,6 @@ implementation
 
                                        regvars[i]^.reg:=reg32toreg16(varregs[i]);
 {$endif}                                
-
                                        regsize:=S_W;
                                     end
                                   else
@@ -485,7 +475,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-01 09:07:12  peter
+  Revision 1.2  1998-09-07 18:46:07  peter
+    * update smartlinking, uses getdatalabel
+    * renamed ptree.value vars to value_str,value_real,value_set
+
+  Revision 1.1  1998/09/01 09:07:12  peter
     * m68k fixes, splitted cg68k like cgi386
 
 }
