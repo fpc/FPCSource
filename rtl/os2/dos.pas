@@ -877,7 +877,7 @@ procedure FindClose (var F: SearchRec);
 begin
     if os_mode = osOS2 then
     begin
-        DosError := DosFindClose (F.Handle);
+        if F.Handle <> $FFFFFFFF then DosError := DosFindClose (F.Handle);
         Dispose (F.FStat);
     end;
 end;
@@ -1060,7 +1060,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2001-03-11 18:58:42  hajny
+  Revision 1.10  2001-04-10 18:49:40  hajny
+    * better check for FindClose
+
+  Revision 1.9  2001/03/11 18:58:42  hajny
     * another Find* problem :-(
 
   Revision 1.8  2001/03/10 09:57:51  hajny
