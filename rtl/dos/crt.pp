@@ -851,7 +851,7 @@ Begin
   repeat
     if f.bufpos>f.bufend then
      f.bufend:=f.bufpos;
-    SetScreenCursor(CurrY,CurrX);
+    SetScreenCursor(CurrX,CurrY);
     ch:=readkey;
     case ch of
     #0 : case readkey of
@@ -910,7 +910,7 @@ Begin
     end;
   until false;
   f.bufpos:=0;
-  SetScreenCursor(CurrY,CurrX);
+  SetScreenCursor(CurrX,CurrY);
   CrtRead:=0;
 End;
 
@@ -982,7 +982,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  1998-08-19 14:55:44  peter
+  Revision 1.12  1998-08-19 17:57:55  peter
+    * fixed crtread with wrong cursor position
+
+  Revision 1.11  1998/08/19 14:55:44  peter
     * fixed removeline which scrolled too much lines
 
   Revision 1.10  1998/08/18 13:32:46  carl
