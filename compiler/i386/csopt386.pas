@@ -230,7 +230,6 @@ var
   regsNotRead, regsStillValid : tregset;
   checkingPrevSequences,
   passedFlagsModifyingInstr,
-  passedJump,
   invalsmemwrite               : boolean;
 
   function getPrevSequence(p: tai; supreg: tsuperregister; currentPrev: tai; var newPrev: tai): tsuperregister;
@@ -239,6 +238,8 @@ var
     current_reg: tsuperregister = RS_INVALID;
 
     function stillValid(p: tai): boolean;
+      var
+        hp: tai;
       begin
         stillValid :=
           (p.typ = ait_instruction) and
@@ -249,9 +250,14 @@ var
           (ptaiprop(p.optinfo)^.regs[supreg].typ =
             ptaiprop(currentPrev.optinfo)^.regs[supreg].typ) and
           (supreg in (regsNotRead * regsStillValid));
-        passedJump :=
-          (p.typ = ait_instruction) and
-          (taicpu(p).is_jmp);
+        { stop if the register was still used right before a (conditional) }
+        { jump, since in that case its current contents could still be     }
+        { used in the other path of the jump)                              }
+        if (p.typ = ait_instruction) and
+           (taicpu(p).is_jmp) and
+           getlastinstruction(p,hp) then
+          stillValid := stillValid and
+           not(supreg in ptaiprop(hp.optinfo)^.usedregs);
         passedFlagsModifyingInstr :=
           instrWritesFlags(currentPrev);
       end;
@@ -299,13 +305,9 @@ var
       end;
 
     getPrevSequence := RS_INVALID;
-    passedJump := passedJump or
-      ((currentPrev.typ = ait_instruction) and
-       (taicpu(currentPrev).is_jmp));
     passedFlagsModifyingInstr := instrWritesFlags(currentPrev);
 
-    if (passedJump and not(supreg in [RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_ESI,RS_EDI])) or
-       not getLastInstruction(currentPrev,hp) then
+    if not getLastInstruction(currentPrev,hp) then
       exit;
 
     prevFound := currentPrev;
@@ -328,14 +330,7 @@ var
         prevFound := hp;
         if not(ptaiprop(hp.optinfo)^.canBeRemoved) then
           tmpResult := findChangedRegister(hp);
-{$Warning: fix for regvars}
-        if { do not load the self pointer or a regvar before a (conditional)  }
-           { jump with a new value, since if the jump is taken, the old value }
-           { is (probably) still necessary                                    }
-{
-           (passedJump and not(supreg in [RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_ESI,RS_EDI])) or
-}
-           not getLastInstruction(hp,hp) then
+        if not getLastInstruction(hp,hp) then
           break;
       end;
     getPrevSequence := tmpResult;
@@ -361,7 +356,6 @@ var
                isSimpleMemLoc(taicpu(p).oper[0]^.ref^) then
               begin
                 checkingPrevSequences := true;
-                passedJump := false;
               end
             else
               getNextRegToTest := RS_INVALID;
@@ -2115,7 +2109,10 @@ end.
 
 {
   $Log$
-  Revision 1.63  2004-06-20 08:55:31  florian
+  Revision 1.64  2004-07-23 13:30:19  jonas
+    * fixed some more potential regvar bugs
+
+  Revision 1.63  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.62  2004/06/16 20:07:10  florian
