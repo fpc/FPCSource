@@ -1157,14 +1157,14 @@ begin
       if NewPos<>nil then
        size:=GrowHeapSize2;
     end
-  { else alloate the needed bytes }
+  { else allocate the needed bytes }
   else
     NewPos:=SBrk(size);
   { try again }
   if NewPos=nil then
    begin
      NewPos:=Sbrk(size);
-     if NewPos<>nil then
+     if NewPos=nil then
       begin
         if ReturnNilIfGrowHeapFails then
           GrowHeap:=1
@@ -1265,7 +1265,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  2003-09-27 11:52:35  peter
+  Revision 1.23  2003-09-28 12:43:48  peter
+    * fixed wrong check when allocation of a block > 1mb failed
+
+  Revision 1.22  2003/09/27 11:52:35  peter
     * sbrk returns pointer
 
   Revision 1.21  2003/05/23 14:53:48  peter
