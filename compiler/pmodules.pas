@@ -340,7 +340,7 @@ unit pmodules;
                    else
                     begin
                     { recompile the unit ? }
-                      if (not current_module^.in_implementation) and (hp^.in_implementation) then
+                      if (not current_module^.in_implementation) and (not hp^.in_implementation) then
                        Message(unit_f_circular_unit_reference);
                     end;
                    break;
@@ -982,7 +982,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.56  1998-09-28 11:22:15  pierre
+  Revision 1.57  1998-09-30 12:11:52  peter
+    * fixed circular uses which looped forever
+
+  Revision 1.56  1998/09/28 11:22:15  pierre
    * did not compile for browser
    * merge from fixes
 
