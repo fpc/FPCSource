@@ -48,11 +48,16 @@ asm
         stw     r6,saveR6
         stw     r5,(r3)
         stw     r5,4(r3)
+        li      r6,1
         stw     r5,8(r3)
         stw     r5,12(r3)
-        li      r6,1
         stw     r5,16(r3)
         stw     r5,20(r3)
+
+        // r6 := 1 shl r4[27-31] -> bit index in dword (shift instructions
+        // with count in register only consider lower 5 bits of this register)
+        slw     r6,r6,r4
+
         stw     r5,24(r3)
         stw     r5,28(r3)
 
@@ -61,12 +66,8 @@ asm
         // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
         rlwinm  r5,r4,29,0,31-2
 
-        // r4 := 1 shl r4[27-31] -> bit index in dword (shift instructions
-        // with count in register only consider lower 5 bits of this register)
-        slw     r4,r6,r4
-
         // store the result
-        stwx    r4,r3,r5
+        stwx    r6,r3,r5
         lwz     r5,saveR5
         lwz     r6,saveR6
 end ['R4'];
@@ -111,15 +112,15 @@ asm
        stw      r5,saveR5
        stw      r6,saveR6
        // get the index of the correct *dword* in the set
-       rlwinm   r5,r4,29,3,31     // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
-       // load dword in which the bit has to be set (and update r3 to this address)
+       rlwinm   r5,r4,29,0,31-2   // r5 := (r4 rotl(32-3)) and (0x0fffffff8)
+       // load dword in which the bit is (and update r3 to this address)
        lwzxu    r6,r3,r5
        li       r5,1
        // generate bit which has to be cleared
        slw      r4,r5,r4
-       // remove it
        lwz      r5,saveR5
-       nor      r4,r6,r4
+       // remove it
+       andc     r4,r6,r4
        lwz      r6,saveR6
        // store result
        stw      r4,(r3)
@@ -543,7 +544,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2000-09-26 14:22:13  jonas
+  Revision 1.6  2000-10-07 14:42:16  jonas
+    * Fixed small error and did a small optimization
+
+  Revision 1.5  2000/09/26 14:22:13  jonas
     * one more bug corrected
 
   Revision 1.4  2000/09/26 14:19:04  jonas
