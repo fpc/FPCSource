@@ -336,7 +336,7 @@ end;
 
 function def_internalerror(i : longint) : boolean;
 begin
-  do_comment(V_Fatal,'Internal error '+tostr(i)+':'+tostr(status.currentline));
+  do_comment(V_Fatal+V_LineInfo,'Internal error '+tostr(i));
 {$ifdef EXTDEBUG}
   {$ifdef FPC}
     { Internalerror() and def_internalerror() do not
@@ -385,7 +385,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2003-02-15 22:20:43  carl
+  Revision 1.26  2003-04-26 19:32:31  peter
+    * print lineinfo for internalerror
+
+  Revision 1.25  2003/02/15 22:20:43  carl
    + give line number of internal error
 
   Revision 1.24  2003/01/09 21:52:37  peter
