@@ -508,6 +508,7 @@ TYPE
       PROCEDURE DrawBackGround; Virtual;
       PROCEDURE Lock;
       PROCEDURE UnLock;
+      PROCEDURE ResetCursor; Virtual;
       PROCEDURE Awaken; Virtual;
       PROCEDURE ReDraw;
       PROCEDURE ReDrawArea (X1, Y1, X2, Y2: Sw_Integer); Virtual;
@@ -2696,6 +2697,13 @@ BEGIN
        if (x1<=x2) and (y1<=y2) then
          Cur^.ReDrawArea(x1,y1,x2,y2);
      end;
+END;
+
+
+PROCEDURE TGroup.ResetCursor;
+BEGIN
+  if (Current<>nil) then
+    Current^.ResetCursor;
 END;
 
 
@@ -5852,7 +5860,10 @@ END.
 
 {
  $Log$
- Revision 1.41  2004-11-02 23:53:19  peter
+ Revision 1.42  2004-11-03 10:37:24  peter
+   * cursor probs fixed
+
+ Revision 1.41  2004/11/02 23:53:19  peter
    * fixed crashes with ide and 1.9.x
 
  Revision 1.40  2002/10/17 11:24:17  pierre

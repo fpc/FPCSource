@@ -3318,7 +3318,7 @@ END;
 PROCEDURE THistory.Draw;
 VAR B: TDrawBuffer;
 BEGIN
-   MoveCStr(B, #222'~'#25'~'#221, GetColor($0102));   { Set buffer data }
+   MoveCStr(B,#222'~v~'#221, GetColor($0102));   { Set buffer data }
    WriteLine(0, 0, Size.X, Size.Y, B);                { Write buffer }
 END;
 
@@ -4229,7 +4229,10 @@ END;
 END.
 {
  $Log$
- Revision 1.23  2004-11-02 23:53:19  peter
+ Revision 1.24  2004-11-03 10:37:24  peter
+   * cursor probs fixed
+
+ Revision 1.23  2004/11/02 23:53:19  peter
    * fixed crashes with ide and 1.9.x
 
  Revision 1.22  2002/10/17 13:27:53  pierre
