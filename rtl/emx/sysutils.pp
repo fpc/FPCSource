@@ -58,13 +58,13 @@ type
                  DateLastWrite,       {Date of last modification of file.}
                  TimeLastWrite: word; {Time of last modification of file.}
                  FileSize,            {Size of file.}
-                 FileAlloc: longint;  {Amount of space the file really
+                 FileAlloc: cardinal; {Amount of space the file really
                                        occupies on disk.}
                 end;
  PFileStatus0 = ^TFileStatus0;
 
  TFileStatus3 = object (TFileStatus)
-                 NextEntryOffset: longint; {Offset of next entry}
+                 NextEntryOffset: cardinal; {Offset of next entry}
                  DateCreation,             {Date of file creation.}
                  TimeCreation,             {Time of file creation.}
                  DateLastAccess,           {Date of last access to file.}
@@ -72,9 +72,9 @@ type
                  DateLastWrite,            {Date of last modification of file.}
                  TimeLastWrite: word;      {Time of last modification of file.}
                  FileSize,                 {Size of file.}
-                 FileAlloc: longint;       {Amount of space the file really
+                 FileAlloc: cardinal;      {Amount of space the file really
                                             occupies on disk.}
-                 AttrFile: longint;        {Attributes of file.}
+                 AttrFile: cardinal;       {Attributes of file.}
                 end;
  PFileStatus3 = ^TFileStatus3;
 
@@ -91,7 +91,7 @@ type
               (File_Sys_ID,
                Sectors_Per_Cluster,
                Total_Clusters,
-               Free_Clusters: longint;
+               Free_Clusters: cardinal;
                Bytes_Per_Sector: word);
              2:                           {For date/time description,
                                            see file searching realted
@@ -106,18 +106,18 @@ type
  PFSInfo = ^TFSInfo;
 
  TCountryCode=record
-               Country,           {Country to query info about (0=current).}
-               CodePage: longint; {Code page to query info about (0=current).}
+               Country,            {Country to query info about (0=current).}
+               CodePage: cardinal; {Code page to query info about (0=current).}
               end;
  PCountryCode=^TCountryCode;
 
  TTimeFmt = (Clock12, Clock24);
 
  TCountryInfo=record
-               Country, CodePage: longint;  {Country and codepage requested.}
+               Country, CodePage: cardinal;  {Country and codepage requested.}
                case byte of
                 0:
-                 (DateFormat: longint;      {1=ddmmyy 2=yymmdd 3=mmddyy}
+                 (DateFormat: cardinal;     {1=ddmmyy 2=yymmdd 3=mmddyy}
                   CurrencyUnit: array [0..4] of char;
                   ThousandSeparator: char;  {Thousands separator.}
                   Zero1: byte;              {Always zero.}
@@ -143,7 +143,7 @@ type
                   Zero5: byte;
                   Reserve2: array [0..4] of word);
                 1:
-                 (fsDateFmt: longint;       {1=ddmmyy 2=yymmdd 3=mmddyy}
+                 (fsDateFmt: cardinal;      {1=ddmmyy 2=yymmdd 3=mmddyy}
                   szCurrency: array [0..4] of char;
                                             {null terminated currency symbol}
                   szThousandsSeparator: array [0..1] of char;
@@ -181,37 +181,37 @@ const
 {This is the correct way to call external assembler procedures.}
 procedure syscall;external name '___SYSCALL';
 
-function DosSetFileInfo (Handle, InfoLevel: longint; AFileStatus: PFileStatus;
-        FileStatusLen: longint): longint; cdecl; external 'DOSCALLS' index 218;
+function DosSetFileInfo (Handle: longint; InfoLevel: cardinal; AFileStatus: PFileStatus;
+        FileStatusLen: cardinal): cardinal; cdecl; external 'DOSCALLS' index 218;
 
-function DosQueryFSInfo (DiskNum, InfoLevel: longint; var Buffer: TFSInfo;
-               BufLen: longint): longint; cdecl; external 'DOSCALLS' index 278;
+function DosQueryFSInfo (DiskNum, InfoLevel: cardinal; var Buffer: TFSInfo;
+               BufLen: cardinal): cardinal; cdecl; external 'DOSCALLS' index 278;
 
-function DosQueryFileInfo (Handle, InfoLevel: longint;
-           AFileStatus: PFileStatus; FileStatusLen: longint): longint; cdecl;
+function DosQueryFileInfo (Handle: longint; InfoLevel: cardinal;
+           AFileStatus: PFileStatus; FileStatusLen: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 279;
 
-function DosScanEnv (Name: PChar; var Value: PChar): longint; cdecl;
+function DosScanEnv (Name: PChar; var Value: PChar): cardinal; cdecl;
                                                  external 'DOSCALLS' index 227;
 
-function DosFindFirst (FileMask: PChar; var Handle: longint; Attrib: longint;
+function DosFindFirst (FileMask: PChar; var Handle: longint; Attrib: cardinal;
                        AFileStatus: PFileStatus; FileStatusLen: cardinal;
-                    var Count: cardinal; InfoLevel: cardinal): longint; cdecl;
+                    var Count: cardinal; InfoLevel: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 264;
 
 function DosFindNext (Handle: longint; AFileStatus: PFileStatus;
-                FileStatusLen: cardinal; var Count: cardinal): longint; cdecl;
+                FileStatusLen: cardinal; var Count: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 265;
 
-function DosFindClose (Handle: longint): longint; cdecl;
+function DosFindClose (Handle: longint): cardinal; cdecl;
                                                  external 'DOSCALLS' index 263;
 
-function DosQueryCtryInfo (Size: longint; var Country: TCountryCode;
-           var Res: TCountryInfo; var ActualSize: longint): longint; cdecl;
+function DosQueryCtryInfo (Size: cardinal; var Country: TCountryCode;
+           var Res: TCountryInfo; var ActualSize: cardinal): cardinal; cdecl;
                                                         external 'NLS' index 5;
 
-function DosMapCase (Size: longint; var Country: TCountryCode;
-                       AString: PChar): longint; cdecl; external 'NLS' index 7;
+function DosMapCase (Size: cardinal; var Country: TCountryCode;
+                      AString: PChar): cardinal; cdecl; external 'NLS' index 7;
 
 
 {****************************************************************************
@@ -430,29 +430,29 @@ function FindFirst (const Path: string; Attr: longint; var Rslt: TSearchRec): lo
 var SR: PSearchRec;
     FStat: PFileFindBuf3;
     Count: cardinal;
-    Err: longint;
+    Err: cardinal;
 
 begin
     if os_mode = osOS2 then
-        begin
-            New (FStat);
-            Rslt.FindHandle := $FFFFFFFF;
-            Count := 1;
-            Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
-                 Attr and FindResvdMask, FStat, SizeOf (FStat^), Count,
-                                                                   ilStandard);
-            if (Err = 0) and (Count = 0) then Err := 18;
-            FindFirst := -Err;
-            if Err = 0 then
-                begin
-                    Rslt.Name := FStat^.Name;
-                    Rslt.Size := FStat^.FileSize;
-                    Rslt.Attr := FStat^.AttrFile;
-                    Rslt.ExcludeAttr := 0;
-                    TRec (Rslt.Time).T := FStat^.TimeLastWrite;
-                    TRec (Rslt.Time).D := FStat^.DateLastWrite;
-                end;
-            Dispose (FStat);
+begin
+  New (FStat);
+  Rslt.FindHandle := $FFFFFFFF;
+  Count := 1;
+  Err := DosFindFirst (PChar (Path), Rslt.FindHandle,
+               Attr and FindResvdMask, FStat, SizeOf (FStat^), Count,
+                                                          ilStandard);
+  if (Err = 0) and (Count = 0) then Err := 18;
+  FindFirst := -Err;
+  if Err = 0 then
+  begin
+    Rslt.Name := FStat^.Name;
+    Rslt.Size := FStat^.FileSize;
+    Rslt.Attr := FStat^.AttrFile;
+    Rslt.ExcludeAttr := 0;
+    TRec (Rslt.Time).T := FStat^.TimeLastWrite;
+    TRec (Rslt.Time).D := FStat^.DateLastWrite;
+  end;
+  Dispose (FStat);
         end
     else
         begin
@@ -479,11 +479,11 @@ function FindNext (var Rslt: TSearchRec): longint;
 var SR: PSearchRec;
     FStat: PFileFindBuf3;
     Count: cardinal;
-    Err: longint;
+    Err: cardinal;
 
 begin
     if os_mode = osOS2 then
-        begin
+begin
             New (FStat);
             Count := 1;
             Err := DosFindNext (Rslt.FindHandle, FStat, SizeOf (FStat^),
@@ -528,7 +528,7 @@ var SR: PSearchRec;
 begin
     if os_mode = osOS2 then
         begin
-            DosFindClose (F.FindHandle);
+    DosFindClose (F.FindHandle);
         end
     else
         begin
@@ -555,10 +555,10 @@ end ['eax', 'ebx', 'ecx', 'edx'];
 
 function FileSetDate (Handle, Age: longint): longint;
 var FStat: PFileStatus0;
-    RC: longint;
+    RC: cardinal;
 begin
     if os_mode = osOS2 then
-        begin
+begin
             New (FStat);
             RC := DosQueryFileInfo (Handle, ilStandard, FStat,
                                                               SizeOf (FStat^));
@@ -729,7 +729,7 @@ end;
 function DiskFree (Drive: byte): int64;
 
 var FI: TFSinfo;
-    RC: longint;
+    RC: cardinal;
 
 begin
     if (os_mode = osDOS) or (os_mode = osDPMI) then
@@ -764,13 +764,13 @@ begin
                    int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
             else
                 DiskFree := -1;
-        end;
+end;
 end;
 
 function DiskSize (Drive: byte): int64;
 
 var FI: TFSinfo;
-    RC: longint;
+    RC: cardinal;
 
 begin
     if (os_mode = osDOS) or (os_mode = osDPMI) then
@@ -806,7 +806,7 @@ begin
                    int64 (FI.Sectors_Per_Cluster) * int64 (FI.Bytes_Per_Sector)
             else
                 DiskSize := -1;
-        end;
+end;
 end;
 
 
@@ -949,8 +949,8 @@ end;
 procedure InitInternational;
 var Country: TCountryCode;
     CtryInfo: TCountryInfo;
-    Size: longint;
-    RC: longint;
+    Size: cardinal;
+    RC: cardinal;
 begin
     Size := 0;
     FillChar (Country, SizeOf (Country), 0);
@@ -1013,7 +1013,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2003-10-07 21:33:24  hajny
+  Revision 1.11  2003-10-14 21:15:20  hajny
+    * longint2cardinal fixes merged
+
+  Revision 1.10  2003/10/07 21:33:24  hajny
     * stdcall fixes and asm routines cleanup
 
   Revision 1.9  2003/10/04 17:53:08  hajny
