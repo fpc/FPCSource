@@ -25,11 +25,16 @@
     if length(s) = 0 NewStr returns Nil   }
 
 function NewStr(const S: string): PString;
+
+Type 
+  PPointer = ^pointer;
+
 begin
   result := Nil;
   if Length(S) <> 0 then
     begin
-    New(Result);
+    New(PPointer(Result));
+    PPointer(Result)^:=Nil;
     result^ := S;
     end ;
 end ;
@@ -53,9 +58,9 @@ end ;
 
 {   AppendStr appends S to Dest   }
 
-procedure AppendStr(var Dest: PString; const S: string);
+procedure AppendStr(var Dest: String; const S: string);
 begin
-Dest^ := Dest^ + S;
+Dest := Dest + S;
 end ;
 
 {   UpperCase returns a copy of S where all lowercase characters ( from a to z )
@@ -183,65 +188,169 @@ for i := 1 to len do
 end ;
 
 function AnsiCompareStr(const S1, S2: string): integer;
+
+Var I,L1,L2 : Longint;
+
 begin
-  result:=0;
-end ;
+  Result:=0;
+  L1:=Length(S1);
+  L2:=Length(S2);
+  I:=1;
+  While (Result=0) and ((I<=L1) and (I<=L2)) do
+    begin
+    Result:=Ord(S1[I])-Ord(S2[I]); //!! Must be replaced by ansi characters !!
+    Inc(I);
+    end;
+  If Result=0 Then
+    Result:=L1-L2;
+end;
 
 function AnsiCompareText(const S1, S2: string): integer;
+Var I,L1,L2 : Longint;
+
 begin
-  result:=0;
-end ;
+  Result:=0;
+  L1:=Length(S1);
+  L2:=Length(S2);
+  I:=1;
+  While (Result=0) and ((I<=L1) and (I<=L2)) do
+    begin
+    Result:=Ord(LowerCaseTable[Ord(S1[I])])-Ord(LowerCaseTable[Ord(S2[I])]); //!! Must be replaced by ansi characters !!
+    Inc(I);
+    end;
+  If Result=0 Then
+    Result:=L1-L2;
+end;
 
 function AnsiStrComp(S1, S2: PChar): integer;
+
 begin
-  result:=0;
-end ;
+  Result:=0;
+  If S1=Nil then
+    begin
+    If S2=Nil Then Exit;
+    result:=-1;
+    end;
+  If S2=Nil then
+    begin
+    Result:=1;
+    exit;
+    end;
+  Repeat
+    Result:=Ord(S1[0])-Ord(S2[0]); //!! Must be replaced by ansi characters !!
+    Inc(S1);
+    Inc(S2);
+  Until (Result<>0) or ((S1[0]=#0) or (S2[0]=#0))
+end;
 
 function AnsiStrIComp(S1, S2: PChar): integer;
+
 begin
-  result:=0;
-end ;
+  Result:=0;
+  If S1=Nil then
+    begin
+    If S2=Nil Then Exit;
+    result:=-1;
+    end;
+  If S2=Nil then
+    begin
+    Result:=1;
+    exit;
+    end;
+  Repeat
+    Result:=Ord(LowerCaseTable[Ord(S1[0])])-Ord(LowerCaseTable[Ord(S2[0])]); //!! Must be replaced by ansi characters !!
+    Inc(S1);
+    Inc(S2);
+  Until (Result<>0) or ((S1[0]=#0) or (S2[0]=#0))
+end;
 
 function AnsiStrLComp(S1, S2: PChar; MaxLen: cardinal): integer;
+
+Var I : longint;
+
 begin
-  result:=0;
+  Result:=0;
+  If MaxLen=0 then exit;
+  If S1=Nil then
+    begin
+    If S2=Nil Then Exit;
+    result:=-1;
+    end;
+  If S2=Nil then
+    begin
+    Result:=1;
+    exit;
+    end;
+  I:=0;
+  Repeat
+    Result:=Ord(S1[0])-Ord(S2[0]); //!! Must be replaced by ansi characters !!
+    Inc(S1);
+    Inc(S2);
+    Inc(I);
+  Until (Result<>0) or ((S1[0]=#0) or (S2[0]=#0)) or (I=MaxLen)
 end ;
 
 function AnsiStrLIComp(S1, S2: PChar; MaxLen: cardinal): integer;
+
+Var I : longint;
+
 begin
-  result:=0;
+  Result:=0;
+  If MaxLen=0 then exit;
+  If S1=Nil then
+    begin
+    If S2=Nil Then Exit;
+    result:=-1;
+    end;
+  If S2=Nil then
+    begin
+    Result:=1;
+    exit;
+    end;
+  I:=0;
+  Repeat
+    Result:=Ord(LowerCaseTable[Ord(S1[0])])-Ord(LowerCaseTable[Ord(S2[0])]); //!! Must be replaced by ansi characters !!
+    Inc(S1);
+    Inc(S2);
+    Inc(I);
+  Until (Result<>0) or ((S1[0]=#0) or (S2[0]=#0)) or (I=MaxLen)
 end ;
 
 function AnsiStrLower(Str: PChar): PChar;
 begin
+result := Str;
 if Str <> Nil then begin
    while Str^ <> #0 do begin
       Str^ := LowerCaseTable[byte(Str^)];
       Str := Str + 1;
       end ;
    end ;
-result := Str;
 end ;
 
 function AnsiStrUpper(Str: PChar): PChar;
 begin
+result := Str;
 if Str <> Nil then begin
    while Str^ <> #0 do begin
       Str^ := UpperCaseTable[byte(Str^)];
       Str := Str + 1;
       end ;
    end ;
-result := Str;
 end ;
 
 function AnsiLastChar(const S: string): PChar;
+
 begin
-  result:=nil;
+  //!! No multibyte yet, so we return the last one.
+  result:=StrEnd(Pchar(S));
+  Dec(Result);
 end ;
 
 function AnsiStrLastChar(Str: PChar): PChar;
 begin
-  result:=nil;
+  //!! No multibyte yet, so we return the last one.
+  result:=StrEnd(Str);
+  Dec(Result);
 end ;
 
 {==============================================================================}
@@ -319,7 +428,7 @@ end ;
     deleted to the left and right and double occurances
     of Quote replaced by a single Quote   }
 
-function AnsiExtractQuotedStr(var Src: PChar; Quote: Char): string;
+function AnsiExtractQuotedStr(Const Src: PChar; Quote: Char): string;
 var i: integer; P, Q: PChar;
 begin
 P := Src;
@@ -351,10 +460,21 @@ j := 0;
 count := Length(S);
 while i < count do begin
    i := i + 1;
-   if (S[i] = #13) and ((i = count) or (S[i + 1] <> #10)) then begin
-      result := result + Copy(S, 1 + j, i - j) + #10;
-      j := i;
-      end ;
+{$ifndef linux}
+   if (S[i] = #13) and ((i = count) or (S[i + 1] <> #10)) then 
+     begin
+     result := result + Copy(S, 1 + j, i - j) + #10;
+     j := i;
+     end;
+{$else}
+   If S[i]=#13 then
+     begin
+     Result:= Result+Copy(S,J+1,i-j-1)+#10;
+     If I<>Count Then 
+       If S[I+1]=#10 then inc(i);
+     J :=I;
+     end;
+{$endif}      
    end ;
 if j <> i then
    result := result + copy(S, 1 + j, i - j);
@@ -656,14 +776,23 @@ begin
               end;
         'E' : begin
               CheckArg(vtExtended,true);
-              If Prec=-1 then prec:=15;
-              ExtVal:=Args[doarg].VExtended^;
-              Prec:=Prec+5;   // correct dot, eXXX
-              If ExtVal<0 then Inc(Prec); // Corect for minus sign
-              If Abs(Extval)<1 then Inc(Prec); // correct for - in E
-              Str(Args[doarg].VExtended^:prec,ToAdd);
+              ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffexponent,Prec,3);
               end;
         'F' : begin
+              CheckArg(vtExtended,true);
+              ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffFixed,9999,Prec);
+              end;
+        'G' : begin
+              CheckArg(vtExtended,true);
+              ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffGeneral,Prec,3);
+              end;
+        'N' : begin
+              CheckArg(vtExtended,true);
+              ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffNumber,9999,Prec);
+              end;
+        'M' : begin
+              CheckArg(vtExtended,true);
+              ToAdd:=FloatToStrF(Args[doarg].VExtended^,ffCurrency,9999,Prec);
               end;
         'S' : begin
                 if CheckArg(vtString,false) then
@@ -757,10 +886,22 @@ Begin
   Result := FloatToStrF(Value, ffGeneral, 15, 0);
 End;
 
+Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
+Var
+  Tmp: String[40];
+Begin
+  Tmp := FloatToStrF(Value, format, Precision, Digits);
+  Result := Length(Tmp);
+  Move(Tmp[1], Buffer[0], Result);
+End;
+        
+
 Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
 Var
   P: Integer;
   Negative, TooSmall, TooLarge: Boolean;
+  
+    
 Begin
   Case format Of
 
@@ -778,12 +919,24 @@ Begin
         End;
 
         If TooSmall Or TooLarge Then
+          begin
           Result := FloatToStrF(Value, ffExponent, Precision, Digits);
-
-        P := Length(Result);
-        While Result[P] = '0' Do Dec(P);
-        If Result[P] = DecimalSeparator Then Dec(P);
-        SetLength(Result, P);
+          // Strip unneeded zeroes.
+          P:=Pos('E',result)-1;
+          If P<>-1 then
+             While (P>1) and (Result[P]='0') do
+               begin
+               Delete(Result,P,1);
+               Dec(P);
+               end;
+          end
+        else
+          begin
+          P := Length(Result);
+          While Result[P] = '0' Do Dec(P);
+          If Result[P] = DecimalSeparator Then Dec(P);
+          SetLength(Result, P);
+          end;
       End;
 
     ffExponent:
@@ -792,19 +945,15 @@ Begin
         If (Precision = -1) Or (Precision > 15) Then Precision := 15;
         Str(Value:Precision + 8, Result);
         Result[3] := DecimalSeparator;
-        If (Digits < 4) And (Result[Precision + 5] = '0') Then
+        P:=4;
+        While (P>0) and (Digits < P) And (Result[Precision + 5] = '0') do
           Begin
-          system.Delete(Result, Precision + 5, 1);
-          If (Digits < 3) And (Result[Precision + 5] = '0') Then
-            Begin
-            system.Delete(Result, Precision + 5, 1);
-            If (Digits < 2) And (Result[Precision + 5] = '0') Then
-            Begin
-              system.Delete(Result, Precision + 5, 1);
-              If (Digits < 1) And (Result[Precision + 5] = '0') Then system.Delete(Result, Precision + 3, 3);
-            End;
-          End;
-        End;
+          If P<>1 then 
+            system.Delete(Result, Precision + 5, 1)
+          else
+            system.Delete(Result, Precision + 3, 3);
+          Dec(P);
+          end;
         If Result[1] = ' ' Then
           System.Delete(Result, 1, 1);
       End;
@@ -849,7 +998,7 @@ Begin
         Else Negative := False;
 
         If Digits = -1 Then Digits := CurrencyDecimals
-        Else If Digits > 15 Then Digits := 15;
+        Else If Digits > 18 Then Digits := 18;
         Str(Value:0:Digits, Result);
         If Result[1] = ' ' Then System.Delete(Result, 1, 1);
         P := Pos('.', Result);
@@ -980,7 +1129,10 @@ const
 
 {
   $Log$
-  Revision 1.17  1999-04-08 11:31:03  peter
+  Revision 1.18  1999-05-28 20:08:20  michael
+  * too may fixes to list
+
+  Revision 1.17  1999/04/08 11:31:03  peter
     * removed warnings
 
   Revision 1.16  1999/04/08 10:19:41  peter

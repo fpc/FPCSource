@@ -35,7 +35,7 @@ type
 function NewStr(const S: string): PString;
 procedure DisposeStr(S: PString);
 procedure AssignStr(var P: PString; const S: string);
-procedure AppendStr(var Dest: PString; const S: string);
+procedure AppendStr(var Dest: String; const S: string);
 function UpperCase(const s: string): string;
 function LowerCase(const s: string): string;
 function CompareStr(const S1, S2: string): Integer;
@@ -60,7 +60,7 @@ function TrimLeft(const S: string): string;
 function TrimRight(const S: string): string;
 function QuotedStr(const S: string): string;
 function AnsiQuotedStr(const S: string; Quote: char): string;
-function AnsiExtractQuotedStr(var Src: PChar; Quote: Char): string;
+function AnsiExtractQuotedStr(Const Src: PChar; Quote: Char): string;
 function AdjustLineBreaks(const S: string): string;
 function IsValidIdent(const Ident: string): boolean;
 function IntToStr(Value: integer): string;
@@ -80,6 +80,7 @@ Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Arra
 Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
 Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: Integer): String;
 Function FloatToStr(Value: Extended): String;
+Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -91,7 +92,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.6  1999-02-28 13:17:36  michael
+  Revision 1.7  1999-05-28 20:08:21  michael
+  * too may fixes to list
+
+  Revision 1.6  1999/02/28 13:17:36  michael
   + Added internationalization support and more format functions
 
   Revision 1.5  1998/12/15 22:43:11  peter
