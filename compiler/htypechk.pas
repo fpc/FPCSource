@@ -995,10 +995,16 @@ implementation
                  if is_class_or_interface(hp.resulttype.def) then
                    gotderef:=true;
                end;
+             muln,
+             divn,
+             andn,
+             xorn,
+             orn,
+             notn,
              subn,
              addn :
                begin
-                 { Allow add/sub operators on a pointer, or an integer
+                 { Allow operators on a pointer, or an integer
                    and a pointer typecast and deref has been found }
                  if ((hp.resulttype.def.deftype=pointerdef) or
                      (is_integer(hp.resulttype.def) and gotpointer)) and
@@ -2029,7 +2035,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.115  2005-02-13 20:33:57  peter
+  Revision 1.116  2005-02-14 16:45:00  peter
+    * allow more operations on integers with a typecast to pointer
+
+  Revision 1.115  2005/02/13 20:33:57  peter
     * allow nil^ passed to var parameter
 
   Revision 1.114  2005/02/02 22:16:39  florian
