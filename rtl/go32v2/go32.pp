@@ -15,6 +15,7 @@
 
 unit go32;
 
+{$Mode ObjFpc}
 {$S-,R-,I-,Q-} {no stack check, used by DPMIEXCP !! }
 
 interface
@@ -1170,7 +1171,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-03-26 00:01:52  peter
+  Revision 1.4  1999-05-13 21:54:27  peter
+    * objpas fixes
+
+  Revision 1.3  1999/03/26 00:01:52  peter
     * fixed rounding in global_dos_alloc
 
   Revision 1.2  1999/03/01 15:40:51  peter

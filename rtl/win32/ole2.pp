@@ -15,6 +15,8 @@
  **********************************************************************}
 unit ole2;
 
+{$Mode ObjFpc}
+
   interface
 
     uses
@@ -33,7 +35,10 @@ unit ole2;
 end.
 {
   $Log$
-  Revision 1.2  1999-03-30 17:00:25  peter
+  Revision 1.3  1999-05-13 21:54:29  peter
+    * objpas fixes
+
+  Revision 1.2  1999/03/30 17:00:25  peter
     * fixes for 0.99.10
 
   Revision 1.1  1999/03/22 22:12:51  florian

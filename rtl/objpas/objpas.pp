@@ -15,6 +15,7 @@
  **********************************************************************}
 unit objpas;
 
+{$Mode ObjFpc}
 {$I-,S-}
 
 interface
@@ -25,7 +26,7 @@ interface
 
     const
        // vmtSelfPtr           = -36;  { not implemented yet }
-       vmtMsgStrPtr            = -36;  
+       vmtMsgStrPtr            = -36;
        vmtIntfTable            = -32;
        vmtAutoTable            = -28;
        vmtInitTable            = -24;
@@ -200,7 +201,7 @@ interface
            vtWideString : (VWideString: Pointer);
 //           vtInt64      : (VInt64: PInt64);
        end;
-     
+
 {****************************************************************************
                              Compatibiity routines.
 ****************************************************************************}
@@ -417,7 +418,7 @@ Procedure AssignFile(Var f:TypedFile;c:char);
 
         var
            index : dword;
-           count,i : longint;           
+           count,i : longint;
            msgtable : pmsgtable;
            p : pointer;
            vmt : tclass;
@@ -456,7 +457,7 @@ Procedure AssignFile(Var f:TypedFile;c:char);
 
         var
            name : shortstring;
-           count,i : longint;           
+           count,i : longint;
            msgstrtable : pmsgstrtable;
            p : pointer;
            vmt : tclass;
@@ -615,7 +616,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  1999-04-16 20:47:20  florian
+  Revision 1.23  1999-05-13 21:54:28  peter
+    * objpas fixes
+
+  Revision 1.22  1999/04/16 20:47:20  florian
     + tobject.messagestringtable function for Megido/GTK support
       added
 
