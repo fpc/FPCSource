@@ -12,7 +12,7 @@
  {$ifdef ver1_0}
  uses linux;
  {$else}
- uses unix;
+ uses baseunix;
  {$endif}
 {$endif unix}
 
@@ -28,7 +28,15 @@ Var
  Sel: Word;
  v: pointer;
 Begin
+ {$ifdef unix}
+ {$ifdef ver1_0}
  Signal(SIGSEGV,signalhandler(@our_sig));
+ {$else}
+ fpSignal(SIGSEGV,signalhandler(@our_sig));
+ {$endif}
+ {$else}
+ Signal(SIGSEGV,signalhandler(@our_sig));
+ {$endif}
  { generate a sigsegv by writing to null-address }
  sel:=0;
  v:=nil;
