@@ -762,17 +762,15 @@ implementation
                   begin
                      { boolean to byte are special because the
                        location can be different }
-                     if (p^.resulttype^.deftype=orddef) and
-                        (porddef(p^.resulttype)^.typ=u8bit) and
-                        (p^.left^.resulttype^.deftype=orddef) and
-                        (porddef(p^.left^.resulttype)^.typ=bool8bit) then
+                     if is_integer(p^.resulttype) and
+                        is_boolean(p^.left^.resulttype) then
                        begin
                           p^.convtyp:=tc_bool_2_int;
                           firstconvert[p^.convtyp](p);
                           exit;
                        end;
                      if is_pchar(p^.resulttype) and
-                       is_ansistring(p^.left^.resulttype) then
+                        is_ansistring(p^.left^.resulttype) then
                        begin
                           p^.convtyp:=tc_ansistring_2_pchar;
                           firstconvert[p^.convtyp](p);
@@ -823,7 +821,7 @@ implementation
                          end
                      {Are we typecasting an ordconst to a char?}
                      else
-                       if is_equal(p^.resulttype,cchardef) and
+                       if is_char(p^.resulttype) and
                           is_ordinal(p^.left^.resulttype) then
                          begin
                             if p^.left^.treetype=ordconstn then
@@ -865,24 +863,21 @@ implementation
               else
                 CGMessage(type_e_mismatch);
            end
-         end
-       else
-         begin
-            { ordinal contants can be directly converted }
-            if (p^.left^.treetype=ordconstn) and is_ordinal(p^.resulttype) then
-              begin
-                 { perform range checking }
-                 if not(p^.explizit and (m_tp in aktmodeswitches)) then
-                   testrange(p^.resulttype,p^.left^.value);
-                 hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
-                 disposetree(p);
-                 firstpass(hp);
-                 p:=hp;
-                 exit;
-              end;
-            if p^.convtyp<>tc_equal then
-              firstconvert[p^.convtyp](p);
          end;
+        { ordinal contants can be directly converted }
+        if (p^.left^.treetype=ordconstn) and is_ordinal(p^.resulttype) then
+          begin
+             { perform range checking }
+             if not(p^.explizit and (m_tp in aktmodeswitches)) then
+               testrange(p^.resulttype,p^.left^.value);
+             hp:=genordinalconstnode(p^.left^.value,p^.resulttype);
+             disposetree(p);
+             firstpass(hp);
+             p:=hp;
+             exit;
+          end;
+        if p^.convtyp<>tc_equal then
+          firstconvert[p^.convtyp](p);
       end;
 
 
@@ -956,7 +951,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  1998-12-11 00:03:53  peter
+  Revision 1.13  1998-12-30 22:13:47  peter
+    * if explicit cnv then also handle the ordinal consts direct
+
+  Revision 1.12  1998/12/11 00:03:53  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.11  1998/12/04 10:18:12  florian
