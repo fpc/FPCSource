@@ -218,6 +218,7 @@ begin
   AddMask('*.ppu *.o *.a *.s');
   AddMask('*.pp1 *.o1 *.a1 *.s1');
   AddMask('*.ppo *.oo *.ao *.so');
+  AddMask('*.rst');
   if not quiet then
     begin
       writeln(Title+' '+Version);
@@ -264,7 +265,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 10:16:21  michael
+  Revision 1.2  2000-12-27 22:13:44  peter
+    * .rst added
+
+  Revision 1.1  2000/07/13 10:16:21  michael
   + Initial import
 
   Revision 1.11  2000/07/04 19:05:54  peter
