@@ -348,7 +348,7 @@ parser_e_overloaded_have_same_parameters=E_overloaded functions have the same pa
 % declaration.
 parser_e_header_dont_match_forward=E_function header doesn't match the forward declaration $1
 % You declared a function with same parameters but
-% different result type or function specifiers.
+% different result type or function modifiers.
 parser_e_header_different_var_names=E_function header $1 doesn't match forward : var name changes $2 => $3
 % You declared the function in the \var{interface} part, or with the
 % \var{forward} directive, but define it with a different parameter list.
@@ -640,8 +640,8 @@ parser_u_parsing_implementation=U_Parsing implementation of $1
 parser_d_compiling_second_time=D_Compiling $1 for the second time
 % When you request debug messages (\var{-vd}) the compiler tells you what
 % units it recompiles for the second time.
-parser_e_no_paras_allowed=E_Array properties aren't allowed at this point
-% You cannot use  array properties at that point.a
+parser_e_no_paras_allowed=E_Array properties aren't allowed here
+% You cannot use array properties at that point in the source.
 parser_e_no_property_found_to_override=E_No property found to override
 % You want to overrride a property of a parent class, when there is, in fact,
 % no such property in the parent class.
@@ -680,7 +680,7 @@ parser_e_proc_dir_not_allowed_in_implementation=E_Procedure directive $1 not all
 % This procedure directive is not defined in the \var{implementation} section of
 % a unit. You can only use it in the \var{interface} section.
 parser_e_proc_dir_not_allowed_in_procvar=E_Procedure directive $1 not allowed in procvar declaration
-% This procedure directive cannot be part of a procedural of function
+% This procedure directive cannot be part of a procedural or function
 % type declaration.
 parser_e_function_already_declared_public_forward=E_Function is already declared Public/Forward $1
 % You will get this error if a function is defined as \var{forward} twice.
@@ -730,9 +730,11 @@ parser_e_cant_publish_that_property=E_That kind of property can't be published
 % section must be an ordinal type, a real type, strings or sets.
 parser_w_empty_import_name=W_Empty import name specified
 % Both index and name for the import are 0 or empty
-parser_e_empty_import_name=W_Empty import name specified
+parser_e_empty_import_name=W_An import name is required
 % Some targets need a name for the imported procedure or a cdecl specifier
 parser_e_used_proc_name_changed=E_Function internal name changed after use of function
+% This is an internal error; please report any occurrences of this error
+% to the \fpc team.
 parser_e_division_by_zero=E_Division by zero
 % There is a divsion by zero encounted
 parser_e_invalid_float_operation=E_Invalid floating point operation
@@ -753,8 +755,8 @@ parser_e_ill_msg_param=E_Message handlers can take only one call by ref. paramet
 parser_e_duplicate_message_label=E_Duplicate message label: $1
 % A label for a message is used twice in one object/class
 parser_e_self_in_non_message_handler=E_Self can be only an explicit parameter in message handlers
-% The self parameter can be passed only explicit if it is a method which
-% is declared as message method handler
+% The self parameter can be passed only explicitly in a method which
+% is declared as message method handler.
 parser_e_threadvars_only_sg=E_Threadvars can be only static or global
 % Threadvars must be static or global, you can't declare a thread
 % local to a procedure. Local variables are always local to a thread,
@@ -984,7 +986,8 @@ sym_e_error_in_type_def=E_Error in type definition
 sym_e_type_id_not_defined=E_Type identifier not defined
 % The type identifier has not been defined yet.
 sym_e_forward_type_not_resolved=E_Forward type not resolved $1
-% The compiler encountered an unknown type.
+% A symbol was forward defined, but no declaration was encountered.
+ The compiler encountered a reference to an unknown type.
 sym_e_only_static_in_static=E_Only static variables can be used in static methods or outside methods
 % A static method of an object can only access static variables.
 sym_e_invalid_call_tvarsymmangledname=E_Invalid call to tvarsym.mangledname()
@@ -1001,6 +1004,8 @@ sym_w_label_not_defined=W_Label not defined $1
 sym_e_label_used_and_not_defined=E_Label used but not defined $1
 % A label was declared and used, but not defined.
 sym_e_ill_label_decl=E_Illegal label declaration
+% This error should never happen; it occurs if a label is defined outside a
+% procedure or function.
 sym_e_goto_and_label_not_supported=E_GOTO and LABEL are not supported (use switch -Sg)
 % You must compile a program which has \var{label}s and \var{goto} statements
 % with the  \var{-Sg} switch. By default, \var{label} and \var{goto} aren't
@@ -1155,7 +1160,7 @@ cg_f_secondvecn_base_defined_twice=F_SecondVecn() base defined twice
 % please contact the developers and try to provide  an exact description of
 % the circumstances in which the error occurs.
 cg_f_extended_cg68k_not_supported=F_Extended cg68k not supported
-% The var{extended} type is not supported on the m68k platform.
+% The \var{extended} type is not supported on the m68k platform.
 cg_f_32bit_not_supported_in_68000=F_32-bit unsigned not supported in MC68000 mode
 % The cardinal is not supported on the m68k platform.
 cg_f_internal_error_in_secondinline=F_Internal Error in secondinline()
@@ -1269,7 +1274,7 @@ asmr_h_direct_global_to_mangled=H_$1 translated to $2
 asmr_w_direct_global_is_overloaded_func=W_$1 is associated to an overloaded function
 asmr_e_cannot_use_SELF_outside_a_method=E_Cannot use SELF outside a method
 asmr_e_cannot_use_OLDEBP_outside_nested_procedure=E_Cannot use OLDEBP outside a nested procedure
-asmr_e_void_function=W_Functions with void return value can't return any value in asm code
+asmr_e_void_function=W_Procedures can't return any value in asm code
 asmr_e_SEG_not_supported=E_SEG not supported
 asmr_e_size_suffix_and_dest_dont_match=E_Size suffix and destination or source size do not match
 asmr_w_size_suffix_and_dest_dont_match=W_Size suffix and destination or source size do not match
@@ -1387,9 +1392,9 @@ unit_u_ppu_flags=U_PPU Flags: $1
 unit_u_ppu_crc=U_PPU Crc: $1
 % When you use the \var{-vu} flag, the unit CRC check is shown.
 unit_u_ppu_time=U_PPU Time: $1
-% When you use the \var{-vu} flag, the unit time is shown.
+% When you use the \var{-vu} flag, the time the unit was compiled is shown.
 unit_u_ppu_file_too_short=U_PPU File too short
-% When you use the \var{-vu} flag, the unit time is shown.
+% The ppufile is too short, not all declarations are present.
 unit_u_ppu_invalid_header=U_PPU Invalid Header (no PPU at the begin)
 % A unit file contains as the first three bytes the ascii codes of \var{PPU}
 unit_u_ppu_invalid_version=U_PPU Invalid Version $1
@@ -1407,12 +1412,12 @@ unit_u_ppu_write=U_Writing $1
 % When you specify the \var{-vu} switch, the compiler will tell you where it
 % writes the unit file.
 unit_f_ppu_cannot_write=F_Can't Write PPU-File
-% An err
-unit_f_ppu_read_error=F_reading PPU-File
-% Unexpected end of file
-unit_f_ppu_read_unexpected_end=F_unexpected end of PPU-File
+% An error occurred when writing the unit file.
+unit_f_ppu_read_error=F_Error reading PPU-File
 % This means that the unit file was corrupted, and contains invalid
 % information. Recompilation will be necessary.
+unit_f_ppu_read_unexpected_end=F_unexpected end of PPU-File
+% Unexpected end of file.
 unit_f_ppu_invalid_entry=F_Invalid PPU-File entry: $1
 % The unit the compiler is trying to read is corrupted, or generated with a
 % newer version of the compiler.
@@ -1458,7 +1463,7 @@ unit_u_recompile_sharedlib_is_older=U_Recompiling unit, shared lib is older than
 % When you use the \var{-vu} flag, the compiler warns if the shared library
 % of the unit are older than the unit file itself.
 unit_u_recompile_obj_and_asm_older=U_Recompiling unit, obj and asm are older than ppufile
-% When you use the \var{-vu} flag, the compiler warns if the assembler of
+% When you use the \var{-vu} flag, the compiler warns if the assembler or
 % object file of the unit are older than the unit file itself.
 unit_u_recompile_obj_older_than_asm=U_Recompiling unit, obj is older than asm
 % When you use the \var{-vu} flag, the compiler warns if the assembler
