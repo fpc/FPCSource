@@ -1341,13 +1341,13 @@ dateutils$(PPUEXT): $(OBJPASDIR)/dateutils.pp baseunix$(PPUEXT) $(SYSTEMUNIT)$(P
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
 		   $(SYSTEMUNIT)$(PPUEXT)
-baseunix$(PPUEXT) : errno.inc $(BSDINC)/bunxtype.inc ptypes.inc $(BSDINC)/ctypes.inc \
+baseunix$(PPUEXT) : unixtype$(PPUEXT) errno.inc $(BSDINC)/bunxtype.inc ptypes.inc $(BSDINC)/ctypes.inc \
   signal.inc $(UNIXINC)/bunxh.inc $(BSDINC)/bunxmain.inc $(BSDINC)/ostypes.inc \
   $(BSDINC)/bunxfunc.inc \
   $(BSDINC)/ostypes.inc $(BSDINC)/ossysch.inc $(BSDINC)/bunxmacr.inc $(UNIXINC)/gensigset.inc \
   $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
-unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp ptypes.inc ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
-unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
+unixtype$(PPUEXT) : $(UNIXINC)/unixtype.pp ptypes.inc $(BSDINC)/ctypes.inc $(SYSTEMUNIT)$(PPUEXT)
+unix$(PPUEXT) : unixtype$(PPUEXT) $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
 		 sysconst.inc $(UNIXINC)/timezone.inc \
 		 unixsysc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 dos$(PPUEXT) : $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
