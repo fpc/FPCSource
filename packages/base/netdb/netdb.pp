@@ -145,7 +145,7 @@ begin
   {$else}
   result := i;
   {$endif}
-end
+end;
 
 Function htons(var W : Word) : word;
 
@@ -978,7 +978,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-09-29 07:44:11  michael
+  Revision 1.7  2003-09-29 19:21:19  marco
+   * ; added to line 150
+
+  Revision 1.6  2003/09/29 07:44:11  michael
   + Endian patch from bas steendijk@xs4all.nl
 
   Revision 1.5  2003/09/28 09:34:02  peter
