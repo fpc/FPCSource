@@ -43,12 +43,6 @@ var
 begin
   More:=Upper(copy(opt,3,length(opt)-2));
   case opt[2] of
-   'A' : begin
-           if set_string_asm(More) then
-            initoutputformat:=target_asm.id
-           else
-            IllegalPara(opt);
-         end;
    'O' : begin
            for j:=3 to length(opt) do
             case opt[j] of
@@ -64,7 +58,9 @@ begin
          end;
    'R' : begin
            if More='MOT' then
-            initasmmode:=M68K_MOT;
+            initasmmode:=M68K_MOT
+           else
+            IllegalPara(opt);
          end;
 
   else
@@ -75,7 +71,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1998-08-19 16:07:50  jonas
+  Revision 1.5  1998-09-25 09:57:09  peter
+    * moved -A to options.pas, becuase the code is the same
+
+  Revision 1.4  1998/08/19 16:07:50  jonas
     * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
 
   Revision 1.3  1998/08/10 14:50:06  peter
