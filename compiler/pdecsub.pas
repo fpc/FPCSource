@@ -1618,23 +1618,25 @@ const
             begin
               include(def.procoptions,po_leftright);
               st:=tparasymtable.create;
-              parast:=tprocdef(def).parast;
-              lastps:=nil;
-              if parast<>nil then
-              while assigned(parast.symindex.first) and (lastps<>tsym(parast.symindex.first)) do
-                begin
-                  ps:=tsym(parast.symindex.first);
-                  while assigned(ps.indexnext) and (tsym(ps.indexnext)<>lastps) do
-                    ps:=tsym(ps.indexnext);
-                  ps.owner:=st;
-                  { recalculate the corrected offset }
-                  { the really_insert_in_data procedure
-                    for parasymtable should only calculateoffset PM }
-                  tstoredsym(ps).insert_in_data;
-                  { reset the owner correctly }
-                  ps.owner:=parast;
-                  lastps:=ps;
-                end;
+              if def.deftype=procdef then
+               begin
+                 parast:=tprocdef(def).parast;
+                 lastps:=nil;
+                 while assigned(parast.symindex.first) and (lastps<>tsym(parast.symindex.first)) do
+                  begin
+                    ps:=tsym(parast.symindex.first);
+                    while assigned(ps.indexnext) and (tsym(ps.indexnext)<>lastps) do
+                      ps:=tsym(ps.indexnext);
+                    ps.owner:=st;
+                    { recalculate the corrected offset }
+                    { the really_insert_in_data procedure
+                      for parasymtable should only calculateoffset PM }
+                    tstoredsym(ps).insert_in_data;
+                    { reset the owner correctly }
+                    ps.owner:=parast;
+                    lastps:=ps;
+                  end;
+               end;
             end;
           pocall_register :
             begin
@@ -1756,7 +1758,6 @@ const
         tabstractprocdef(aktprocdef):=pd;
         { names should never be used anyway }
         inc(lexlevel);
-        AktProcDef.parast:=nil;
         parse_proc_directives(pdflags);
         dec(lexlevel);
         aktprocsym.free;
@@ -2016,7 +2017,10 @@ const
 end.
 {
   $Log$
-  Revision 1.47  2002-03-29 11:23:24  michael
+  Revision 1.48  2002-03-29 13:29:32  peter
+    * fixed memory corruption created by previous fix
+
+  Revision 1.47  2002/03/29 11:23:24  michael
   + Patch from Pavel Ozerski
 
   Revision 1.46  2002/01/24 18:25:49  peter
