@@ -548,8 +548,9 @@ Procedure FSplit (path: pathstr; \\ var dir: dirstr; var name: namestr;
 
 \var{FSplit} splits a full file name into 3 parts : A \var{Path}, a
 \var{Name} and an extension  (in \var{ext}.) 
-Under \linux, the extension is taken to be all letters after the last dot
-(.).
+The extension is taken to be all letters after the {\em last} dot (.). For 
+\dos, however, an exception is made when \var{LFNSupport=False}, then
+the extension is defined as all characters after the {\em first} dot.
 
 \Errors
 None.
