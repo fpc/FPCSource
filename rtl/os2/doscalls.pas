@@ -1571,6 +1571,7 @@ const   mfPag_Read      = $00001;   {Give read access to memory.}
         mfObj_Protected = $00080;
         mfObj_Gettable  = $00100;
         mfObj_Giveable  = $00200;
+        mfObj_Any       = $00400;   {Allow using high memory (> 512 MB).}
         mfPag_Default   = $00400;
         mfPag_Shared    = $02000;
         mfPag_Free      = $04000;
@@ -1594,6 +1595,7 @@ const   mfPag_Read      = $00001;   {Give read access to memory.}
         obj_Protected = mfObj_Protected;
         obj_Gettable = mfObj_Gettable;
         obj_Giveable = mfObj_Giveable;
+        obj_Any = mfObj_Any;
         pag_Default = mfPag_Default;
         pag_Shared = mfPag_Shared;
         pag_Free = mfPag_Free;
@@ -2498,6 +2500,11 @@ const   deHardErr           = 1;    {Hard errors are enabled, to disable
                                      do not give this switch.}
         deDisableExceptions = 2;    {Exceptions are disabled, to enable
                                      do not give this switch.}
+{For compatibility with VP:}
+        ferr_DisableHardErr = 0;    {Disable hard error popups.}
+        ferr_EnableHardErr  = deHardErr;
+        ferr_EnableException = 0;   {Enable exception popups.}
+        ferr_DisableException = deDisableExceptions;
 
 {Disable the end user notification of hardware errors and exceptions. Users
  can overide this in config.sys. By default, notification is enabled.
@@ -5356,7 +5363,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.27  2004-05-24 19:33:22  hajny
+  Revision 1.28  2004-09-11 19:35:27  hajny
+    * some constants added
+
+  Revision 1.27  2004/05/24 19:33:22  hajny
     * regcall update
 
   Revision 1.26  2004/05/23 21:47:34  hajny
