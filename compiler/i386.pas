@@ -58,6 +58,9 @@ unit i386;
     uses
       cobjects,aasm;
 
+    type
+       tcpuflags = (cf_registers64);
+
     const
       extended_size = 10;
 
@@ -227,7 +230,7 @@ unit i386;
        { S_D   = integer on ? bits for MMX }
        { S_FV  = floating point vector 4*32 bit = 128 bit (for KNI) }
        topsize = (S_NO,S_B,S_W,S_L,S_BW,S_BL,S_WL,
-                  S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D,S_FV);
+                  S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D,S_Q,S_FV);
     const
        firstopsize = low(topsize);
        lastopsize  = high(topsize);
@@ -350,6 +353,12 @@ unit i386;
 
        registers_saved_on_cdecl = [R_ESI,R_EDI,R_EBX];
 
+       cpuflags : set of tcpuflags = [];
+
+       { size of pointers }
+       pointersize = 4;
+       sizepostfix_pointer = S_L;
+
     type
        pai_labeled = ^tai_labeled;
 
@@ -445,6 +454,14 @@ unit i386;
     function reg32toreg8(reg : tregister) : tregister;
     function reg32toreg16(reg : tregister) : tregister;
     function reg16toreg32(reg : tregister) : tregister;
+
+    { these procedures must be defined by all target cpus }
+    function regtoreg8(reg : tregister) : tregister;
+    function regtoreg16(reg : tregister) : tregister;
+    function regtoreg32(reg : tregister) : tregister;
+
+    { can be ignored on 32 bit systems }
+    function regtoreg64(reg : tregister) : tregister;
 
     { resets all values of ref to defaults }
     procedure reset_reference(var ref : treference);
@@ -1098,7 +1115,8 @@ unit i386;
                   S_IS,S_IL,S_IQ,S_FS,S_FL,S_FX,S_D,S_FV); }
      att_opsize2str : array[topsize] of string[2] =
        ('','b','w','l','bw','bl','wl',
-        's','l','q','s','l','t','d','v');  { dont know how vector will be coded }
+        's','l','q','s','l','t','d','q','v');
+        { dont know how vector will be coded }
 
      att_reg2str : array[tregister] of string[6] =
        ('','%eax','%ecx','%edx','%ebx','%esp','%ebp','%esi','%edi',
@@ -1282,6 +1300,30 @@ unit i386;
       begin
          reg8toreg32:=tregister(byte(reg)-byte(R_DI));
       end;
+
+    function regtoreg8(reg : tregister) : tregister;
+
+     begin
+        regtoreg8:=reg32toreg8(reg);
+     end;
+
+    function regtoreg16(reg : tregister) : tregister;
+
+     begin
+        regtoreg16:=reg32toreg16(reg);
+     end;
+
+    function regtoreg32(reg : tregister) : tregister;
+
+     begin
+        regtoreg32:=reg;
+     end;
+
+    function regtoreg64(reg : tregister) : tregister;
+
+     begin
+        internalerror(6464);
+     end;
 
     procedure reset_reference(var ref : treference);
 
@@ -1815,7 +1857,8 @@ unit i386;
 
       end;
 
-    constructor tai386.op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: longint);
+  constructor tai386.op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: longint);
+
     begin
          inherited init;
          typ:=ait_instruction;
@@ -1919,7 +1962,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.27  1999-01-10 15:37:53  peter
+  Revision 1.28  1999-01-13 11:34:06  florian
+    * unified i386.pas for the old and new code generator
+
+  Revision 1.27  1999/01/10 15:37:53  peter
     * moved some tables from ra386*.pas -> i386.pas
     + start of coff writer
     * renamed asmutils unit to rautils
