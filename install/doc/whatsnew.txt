@@ -1,7 +1,41 @@
 
                             Free Pascal Compiler
 
-                               Version 1.0.2
+                               Version 1.0.4
+
+******************************************************************************
+                             Whats New in 1.0.4
+******************************************************************************
+
+Compiler:
+  + Fpc executable
+  + Rangechecking for int64
+  + Better cardinal rangechecking
+  + Debugging support for classes
+  + FreeBSD and Linux define both UNIX
+  * XMM registers in assembler fixed
+  * Optimizer fixes
+  * Fixed some reported bugs
+
+RTL:
+  + Lot of FreeBSD updates
+  * FindFirst/FindClose fixes
+  * Termios updates for FreeBSD and Linux
+  * FExpand fixes
+  * TypInfo fixes
+  * Val(qword) works
+
+FCL:
+  * sstream example added
+  * fixed some missing .o and .a files
+
+Utils:
+  * fpcmake updates for freebsd
+  * ppufiles fix to allow / in filenames under go32v2/win32
+
+Docs:
+  + IDE documentation
+
 
 ******************************************************************************
                              Whats New in 1.0.2
@@ -36,6 +70,7 @@ RTL:
   * paramstr(0) fix for linux 2.0 kernels
   * go32v2 getenv made case insensitive
   * lot of os2 updates
+
 
 ******************************************************************************
                              Whats New in 1.00
