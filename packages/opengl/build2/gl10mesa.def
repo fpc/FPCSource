@@ -1,0 +1,40 @@
+# This is the definition file for all GL mesa stuff
+
+%COPY_INTERFACE
+%END
+
+
+#=====================================================================
+# Procedures and functions
+#=====================================================================
+
+%PROCS
+// GL_MESA_window_pos
+glWindowPos2iMESA: procedure(x, y: LongInt); ogl_dll;
+glWindowPos2sMESA: procedure(x, y: ShortInt); ogl_dll;
+glWindowPos2fMESA: procedure(x, y: Single); ogl_dll;
+glWindowPos2dMESA: procedure(x, y: Double); ogl_dll;
+glWindowPos2ivMESA: procedure(var p: LongInt); ogl_dll;
+glWindowPos2svMESA: procedure(var p: ShortInt); ogl_dll;
+glWindowPos2fvMESA: procedure(var p: Single); ogl_dll;
+glWindowPos2dvMESA: procedure(var p: Double); ogl_dll;
+glWindowPos3iMESA: procedure(x, y, z: LongInt); ogl_dll;
+glWindowPos3sMESA: procedure(x, y, z: ShortInt); ogl_dll;
+glWindowPos3fMESA: procedure(x, y, z: Single); ogl_dll;
+glWindowPos3dMESA: procedure(x, y, z: Double); ogl_dll;
+glWindowPos3ivMESA: procedure(var p: LongInt); ogl_dll;
+glWindowPos3svMESA: procedure(var p: ShortInt); ogl_dll;
+glWindowPos3fvMESA: procedure(var p: Single); ogl_dll;
+glWindowPos3dvMESA: procedure(var p: Double); ogl_dll;
+glWindowPos4iMESA: procedure(x, y, z, w: LongInt); ogl_dll;
+glWindowPos4sMESA: procedure(x, y, z, w: ShortInt); ogl_dll;
+glWindowPos4fMESA: procedure(x, y, z, w: Single); ogl_dll;
+glWindowPos4dMESA: procedure(x, y, z, w: Double); ogl_dll;
+glWindowPos4ivMESA: procedure(var p: LongInt); ogl_dll;
+glWindowPos4svMESA: procedure(var p: ShortInt); ogl_dll;
+glWindowPos4fvMESA: procedure(var p: Single); ogl_dll;
+glWindowPos4dvMESA: procedure(var p: Double); ogl_dll;
+
+// GL_MESA_resize_buffers
+glResizeBuffersMESA: procedure; ogl_dll;
+%END

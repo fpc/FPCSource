@@ -1,0 +1,109 @@
+# This is the definition file for all GL 1.0 SGI stuff
+
+%COPY_INTERFACE
+
+const
+  // GL_SGIS_multitexture
+  GL_SELECTED_TEXTURE_SGIS		= $835C;
+  GL_SELECTED_TEXTURE_COORD_SET_SGIS	= $835D;
+  GL_MAX_TEXTURES_SGIS			= $835E;
+  GL_TEXTURE0_SGIS			= $835F;
+  GL_TEXTURE1_SGIS			= $8360;
+  GL_TEXTURE2_SGIS			= $8361;
+  GL_TEXTURE3_SGIS			= $8362;
+  GL_TEXTURE_COORD_SET_SOURCE_SGIS	= $8363;
+
+const
+  // GL_SGIS_texture_edge_clamp
+  GL_CLAMP_TO_EDGE_SGIS			= $812F;
+
+%END
+
+
+#=====================================================================
+# Procedures and functions
+#=====================================================================
+
+%PROCS
+
+// GL_SGIS_multitexture
+glMultiTexCoord1dSGIS: procedure(target: GLenum; s: Double); ogl_dll;
+glMultiTexCoord1dvSGIS: procedure(target: GLenum; var v: Double); ogl_dll;
+glMultiTexCoord1fSGIS: procedure(target: GLenum; s: Single); ogl_dll;
+glMultiTexCoord1fvSGIS: procedure(target: GLenum; var v: Single); ogl_dll;
+glMultiTexCoord1iSGIS: procedure(target: GLenum; s: LongInt); ogl_dll;
+glMultiTexCoord1ivSGIS: procedure(target: GLenum; var v: LongInt); ogl_dll;
+glMultiTexCoord1sSGIS: procedure(target: GLenum; s: ShortInt); ogl_dll;
+glMultiTexCoord1svSGIS: procedure(target: GLenum; var v: ShortInt); ogl_dll;
+glMultiTexCoord2dSGIS: procedure(target: GLenum; s, t: Double); ogl_dll;
+glMultiTexCoord2dvSGIS: procedure(target: GLenum; var v: Double); ogl_dll;
+glMultiTexCoord2fSGIS: procedure(target: GLenum; s, t: Single); ogl_dll;
+glMultiTexCoord2fvSGIS: procedure(target: GLenum; var v: Single); ogl_dll;
+glMultiTexCoord2iSGIS: procedure(target: GLenum; s, t: LongInt); ogl_dll;
+glMultiTexCoord2ivSGIS: procedure(target: GLenum; var v: LongInt); ogl_dll;
+glMultiTexCoord2sSGIS: procedure(target: GLenum; s, t: ShortInt); ogl_dll;
+glMultiTexCoord2svSGIS: procedure(target: GLenum; var v: ShortInt); ogl_dll;
+glMultiTexCoord3dSGIS: procedure(target: GLenum; s, t, r: Double); ogl_dll;
+glMultiTexCoord3dvSGIS: procedure(target: GLenum; var v: Double); ogl_dll;
+glMultiTexCoord3fSGIS: procedure(target: GLenum; s, t, r: Single); ogl_dll;
+glMultiTexCoord3fvSGIS: procedure(target: GLenum; var v: Single); ogl_dll;
+glMultiTexCoord3iSGIS: procedure(target: GLenum; s, t, r: LongInt); ogl_dll;
+glMultiTexCoord3ivSGIS: procedure(target: GLenum; var v: LongInt); ogl_dll;
+glMultiTexCoord3sSGIS: procedure(target: GLenum; s, t, r: ShortInt); ogl_dll;
+glMultiTexCoord3svSGIS: procedure(target: GLenum; var v: ShortInt); ogl_dll;
+glMultiTexCoord4dSGIS: procedure(target: GLenum; s, t, r, q: Double); ogl_dll;
+glMultiTexCoord4dvSGIS: procedure(target: GLenum; var v: Double); ogl_dll;
+glMultiTexCoord4fSGIS: procedure(target: GLenum; s, t, r, q: Single); ogl_dll;
+glMultiTexCoord4fvSGIS: procedure(target: GLenum; var v: Single); ogl_dll;
+glMultiTexCoord4iSGIS: procedure(target: GLenum; s, t, r, q: LongInt); ogl_dll;
+glMultiTexCoord4ivSGIS: procedure(target: GLenum; var v: LongInt); ogl_dll;
+glMultiTexCoord4sSGIS: procedure(target: GLenum; s, t, r, q: ShortInt); ogl_dll;
+glMultiTexCoord4svSGIS: procedure(target: GLenum; var v: ShortInt); ogl_dll;
+glMultiTexCoordPointerSGIS: procedure(target: GLenum; size: LongInt; AType: GLEnum; stride: LongInt; var APointer); ogl_dll;
+glSelectTextureSGIS: procedure(target: GLenum); ogl_dll;
+glSelectTextureCoordSetSGIS: procedure(target: GLenum); ogl_dll;
+
+// GL_EXT_multitexture
+glMultiTexCoord1dEXT: procedure(target: GLenum; s: Double); ogl_dll;
+glMultiTexCoord1dvEXT: procedure(target: GLenum; var v: Double); ogl_dll;
+glMultiTexCoord1fEXT: procedure(target: GLenum; s: Single); ogl_dll;
+glMultiTexCoord1fvEXT: procedure(target: GLenum; var v: Single); ogl_dll;
+glMultiTexCoord1iEXT: procedure(target: GLenum; s: LongInt); ogl_dll;
+glMultiTexCoord1ivEXT: procedure(target: GLenum; var v: LongInt); ogl_dll;
+glMultiTexCoord1sEXT: procedure(target: GLenum; s: ShortInt); ogl_dll;
+glMultiTexCoord1svEXT: procedure(target: GLenum; var v: ShortInt); ogl_dll;
+glMultiTexCoord2dEXT: procedure(target: GLenum; s, t: Double); ogl_dll;
+glMultiTexCoord2dvEXT: procedure(target: GLenum; var v: Double); ogl_dll;
+glMultiTexCoord2fEXT: procedure(target: GLenum; s, t: Single); ogl_dll;
+glMultiTexCoord2fvEXT: procedure(target: GLenum; var v: Single); ogl_dll;
+glMultiTexCoord2iEXT: procedure(target: GLenum; s, t: LongInt); ogl_dll;
+glMultiTexCoord2ivEXT: procedure(target: GLenum; var v: LongInt); ogl_dll;
+glMultiTexCoord2sEXT: procedure(target: GLenum; s, t: ShortInt); ogl_dll;
+glMultiTexCoord2svEXT: procedure(target: GLenum; var v: ShortInt); ogl_dll;
+glMultiTexCoord3dEXT: procedure(target: GLenum; s, t, r: Double); ogl_dll;
+glMultiTexCoord3dvEXT: procedure(target: GLenum; var v: Double); ogl_dll;
+glMultiTexCoord3fEXT: procedure(target: GLenum; s, t, r: Single); ogl_dll;
+glMultiTexCoord3fvEXT: procedure(target: GLenum; var v: Single); ogl_dll;
+glMultiTexCoord3iEXT: procedure(target: GLenum; s, t, r: LongInt); ogl_dll;
+glMultiTexCoord3ivEXT: procedure(target: GLenum; var v: LongInt); ogl_dll;
+glMultiTexCoord3sEXT: procedure(target: GLenum; s, t, r: ShortInt); ogl_dll;
+glMultiTexCoord3svEXT: procedure(target: GLenum; var v: ShortInt); ogl_dll;
+glMultiTexCoord4dEXT: procedure(target: GLenum; s, t, r, q: Double); ogl_dll;
+glMultiTexCoord4dvEXT: procedure(target: GLenum; var v: Double); ogl_dll;
+glMultiTexCoord4fEXT: procedure(target: GLenum; s, t, r, q: Single); ogl_dll;
+glMultiTexCoord4fvEXT: procedure(target: GLenum; var v: Single); ogl_dll;
+glMultiTexCoord4iEXT: procedure(target: GLenum; s, t, r, q: LongInt); ogl_dll;
+glMultiTexCoord4ivEXT: procedure(target: GLenum; var v: LongInt); ogl_dll;
+glMultiTexCoord4sEXT: procedure(target: GLenum; s, t, r, q: ShortInt); ogl_dll;
+glMultiTexCoord4svEXT: procedure(target: GLenum; var v: ShortInt); ogl_dll;
+glInterleavedTextureCoordSetsEXT: procedure(factor: LongInt); ogl_dll;
+glSelectTextureEXT: procedure(target: GLenum); ogl_dll;
+glSelectTextureCoordSetEXT: procedure(target: GLenum); ogl_dll;
+glSelectTextureTransformEXT: procedure(target: GLenum); ogl_dll;
+
+// GL_EXT_point_parameters
+glPointParameterfEXT: procedure(pname: GLenum; param: Single); ogl_dll;
+glPointParameterfvEXT: procedure(pname: GLenum; var params: Single); ogl_dll;
+
+%END
+
