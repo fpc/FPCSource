@@ -338,7 +338,7 @@ implementation
              emitlab(l);
              case left.location.loc of
             LOC_REGISTER,
-           LOC_CREGISTER : ungetregister32(pleftreg);
+           LOC_CREGISTER : ungetregister(pleftreg);
              else
                del_reference(left.location.reference);
              end;
@@ -1061,7 +1061,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:33:32  peter
+  Revision 1.2  2000-10-26 15:53:27  jonas
+    * fixed web bug1192 (changed an ungetregister32 to ungetregister)
+      ("merged" from fixes)
+
+  Revision 1.1  2000/10/15 09:33:32  peter
     * moved n386*.pas to i386/ cpu_target dir
 
   Revision 1.4  2000/10/14 10:14:49  peter
