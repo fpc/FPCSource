@@ -393,17 +393,25 @@ implementation
             begin
               firstpass(hp^.left);
               case hp^.left^.resulttype^.deftype of
-               floatdef : begin
-                            hp^.left:=gentypeconvnode(hp^.left,s80floatdef);
-                            firstpass(hp^.left);
-                          end;
-              stringdef : begin
-                            if p^.cargs then
-                             begin
-                               hp^.left:=gentypeconvnode(hp^.left,charpointerdef);
-                               firstpass(hp^.left);
-                             end;
-                          end;
+                enumdef,
+                orddef :
+                  begin
+                    hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
+                    firstpass(hp^.left);
+                  end;
+                floatdef :
+                  begin
+                    hp^.left:=gentypeconvnode(hp^.left,s80floatdef);
+                    firstpass(hp^.left);
+                  end;
+                stringdef :
+                  begin
+                    if p^.cargs then
+                     begin
+                       hp^.left:=gentypeconvnode(hp^.left,charpointerdef);
+                       firstpass(hp^.left);
+                     end;
+                  end;
               end;
               if (pd=nil) then
                pd:=hp^.left^.resulttype
@@ -453,7 +461,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1999-03-10 13:24:23  pierre
+  Revision 1.18  1999-03-16 21:02:10  peter
+    * all array of const enum/ord are converted to s32bit
+
+  Revision 1.17  1999/03/10 13:24:23  pierre
    * array of const type to definition field
 
   Revision 1.16  1999/02/22 02:15:52  peter
