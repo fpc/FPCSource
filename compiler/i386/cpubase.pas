@@ -635,6 +635,8 @@ uses
                                   Helpers
 *****************************************************************************}
 
+    procedure convert_register_to_enum(var r:Tregister);
+
     function is_calljmp(o:tasmop):boolean;
 
     function flags_to_cond(const f: TResFlags) : TAsmCond;
@@ -666,6 +668,9 @@ implementation
           NR_CL:  r.enum:=R_CL;         NR_DL:  r.enum:=R_DL;
           NR_AH:  r.enum:=R_AH;         NR_BH:  r.enum:=R_BH;
           NR_CH:  r.enum:=R_CH;         NR_DH:  r.enum:=R_DH;
+          NR_CS:  r.enum:=R_CS;         NR_DS:  r.enum:=R_DS;
+          NR_ES:  r.enum:=R_ES;         NR_FS:  r.enum:=R_FS;
+          NR_GS:  r.enum:=R_GS;         NR_SS:  r.enum:=R_SS;
         else
           internalerror(200301082);
         end;
@@ -703,7 +708,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2003-01-08 22:32:36  daniel
+  Revision 1.38  2003-01-09 15:49:56  daniel
+    * Added register conversion
+
+  Revision 1.37  2003/01/08 22:32:36  daniel
     * Added register convesrion procedure
 
   Revision 1.36  2003/01/08 18:43:57  daniel

@@ -451,6 +451,7 @@ interface
 
        taasmoutput = class(tlinkedlist)
           function getlasttaifilepos : pfileposinfo;
+          procedure convert_registers;
        end;
 
 
@@ -1709,11 +1710,40 @@ uses
                end;
            end;
       end;
+      
+    procedure Taasmoutput.convert_registers;
+    
+    var p:Tai;
+        i:shortint;
+    
+    begin
+      p:=Tai(first);
+      while assigned(p) do
+        begin
+          case p.typ of
+            ait_regalloc:
+              convert_register_to_enum(Tai_regalloc(p).reg);
+            ait_instruction:
+              begin
+                for i:=0 to Taicpu_abstract(p).ops-1 do
+                  if Taicpu_abstract(p).oper[i].typ=Top_reg then
+                    convert_register_to_enum(Taicpu_abstract(p).oper[i].reg);
+              {$ifdef i386}
+                convert_register_to_enum(Taicpu_abstract(p).segprefix);
+              {$endif}
+              end;
+          end;
+          p:=Tai(p.next);
+        end;
+    end;
 
 end.
 {
   $Log$
-  Revision 1.16  2003-01-08 18:43:56  daniel
+  Revision 1.17  2003-01-09 15:49:56  daniel
+    * Added register conversion
+
+  Revision 1.16  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.15  2003/01/05 13:36:53  florian

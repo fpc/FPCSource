@@ -546,7 +546,7 @@ uses
 
     procedure inverse_flags(var r : TResFlags);
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
-
+    procedure convert_register_to_enum(var r:Tregister);
 
 implementation
 
@@ -597,10 +597,20 @@ implementation
         flags_to_cond := flags2cond[f];
       end;
 
+    procedure convert_register_to_enum(var r:Tregister);
+
+    begin
+      {$warning Convert_register_to_enum implementation is missing!}
+      internalerror(200301082);
+    end;
+
 end.
 {
   $Log$
-  Revision 1.15  2003-01-08 18:43:57  daniel
+  Revision 1.16  2003-01-09 15:49:56  daniel
+    * Added register conversion
+
+  Revision 1.15  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.14  2002/11/30 23:33:03  carl

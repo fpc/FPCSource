@@ -365,7 +365,7 @@ implementation
                 if (cs_optimize in aktglobalswitches) and
                 { do not optimize pure assembler procedures }
                    ((procinfo.flags and pi_is_assembler)=0)  then
-                  Optimize(procinfo.aktproccode);
+                  optimize(procinfo.aktproccode);
 {$endif NoOpt}
                 { save local data (casetable) also in the same file }
                 if assigned(procinfo.aktlocaldata) and
@@ -844,7 +844,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2003-01-08 18:43:56  daniel
+  Revision 1.89  2003-01-09 15:49:56  daniel
+    * Added register conversion
+
+  Revision 1.88  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.87  2003/01/03 20:35:08  peter

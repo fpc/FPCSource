@@ -326,13 +326,19 @@ implementation
                 procinfo.procdef.fpu_used:=p.registersfpu;
 
            end;
+      {$ifdef i386}
+         exprasmlist.convert_registers;
+      {$endif}
          procinfo.aktproccode.concatlist(exprasmlist);
       end;
 
 end.
 {
   $Log$
-  Revision 1.41  2002-12-22 14:35:39  peter
+  Revision 1.42  2003-01-09 15:49:56  daniel
+    * Added register conversion
+
+  Revision 1.41  2002/12/22 14:35:39  peter
     * removed Writeln
 
   Revision 1.40  2002/12/21 23:21:47  mazen

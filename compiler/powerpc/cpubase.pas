@@ -671,7 +671,7 @@ uses
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
     procedure create_cond_imm(BO,BI:byte;var r : TAsmCond);
     procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
-
+    procedure convert_register_to_enum(var r:Tregister);
 
 implementation
 
@@ -745,10 +745,20 @@ implementation
         end;
       end;
 
+    procedure convert_register_to_enum(var r:Tregister);
+
+    begin
+      {$warning Convert_register_to_enum implementation is missing!}
+      internalerror(200301082);
+    end;
+
 end.
 {
   $Log$
-  Revision 1.39  2003-01-08 18:43:58  daniel
+  Revision 1.40  2003-01-09 15:49:56  daniel
+    * Added register conversion
+
+  Revision 1.39  2003/01/08 18:43:58  daniel
    * Tregister changed into a record
 
   Revision 1.38  2002/11/25 17:43:27  peter

@@ -510,7 +510,12 @@ const
 
 FUNCTION is_calljmp(o:tasmop):boolean;
 FUNCTION flags_to_cond(CONST f:TResFlags):TAsmCond;
+procedure convert_register_to_enum(var r:Tregister);
+
 IMPLEMENTATION
+
+uses  verbose;
+
 const
   CallJmpOp=[A_JMPL..A_CBccc];
 function is_calljmp(o:tasmop):boolean;
@@ -528,10 +533,24 @@ function flags_to_cond(const f:TResFlags):TAsmCond;
   BEGIN
     result:=flags_2_cond[f];
   END;
+
+procedure convert_register_to_enum(var r:Tregister);
+
+begin
+    {$warning Convert_register_to_enum implementation is missing!}
+    internalerror(200301082);
+end;
+
 END.
+
+
+
 {
   $Log$
-  Revision 1.18  2003-01-08 18:43:58  daniel
+  Revision 1.19  2003-01-09 15:49:56  daniel
+    * Added register conversion
+
+  Revision 1.18  2003/01/08 18:43:58  daniel
    * Tregister changed into a record
 
   Revision 1.17  2003/01/05 20:39:53  mazen
