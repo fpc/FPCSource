@@ -521,7 +521,8 @@ var
     Writeln('                             (default ppu)');
     Writeln('                -V           Be more verbose');
     Writeln('          -? or -H           This HelpScreen');
-    Writeln('                -A[call]     Add compiler calls to makefile');
+    Writeln('                -A[call]     Add compiler calls to makefile (all files)');
+    Writeln('                -F[call]     Add compiler calls to makefile (only top file)');
     halt(1);
   end;
 
@@ -578,7 +579,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-05-12 16:11:39  peter
+  Revision 1.2  1999-06-08 20:24:53  michael
+  * Fixed usage
+
+  Revision 1.1  1999/05/12 16:11:39  peter
     * moved
 
   Revision 1.1  1999/05/03 18:03:15  peter
