@@ -27,7 +27,7 @@ program eratosthenes;
 
     begin
        a[1]:=false;
-       for i:=1 to max do
+       for i:=2 to max do
          a[i]:=true;
        for i:=2 to max div 2 do
          if a[i] then
@@ -55,7 +55,10 @@ program eratosthenes;
 
 {
   $Log$
-  Revision 1.1  2000-03-09 02:49:09  alex
+  Revision 1.2  2000-04-10 08:34:25  pierre
+   1 is NOT a prime
+
+  Revision 1.1  2000/03/09 02:49:09  alex
   moved files
 
   Revision 1.5  1998/09/11 10:55:21  peter
