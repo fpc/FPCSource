@@ -31,11 +31,7 @@ Procedure Optimize(AsmL: PAasmOutput);
 
 Implementation
 
-Uses CObjects, globals, systems, strings, verbose, hcodegen
-   {$ifdef i386}
-     ,i386, cgi386, DAOpt386, POpt386, CSOpt386
-   {$endif i386}
-     ;
+Uses i386, DAOpt386, POpt386, CSOpt386;
 
 Procedure Optimize(AsmL: PAasmOutput);
 Var BlockEnd: Pai;
@@ -47,10 +43,11 @@ Begin
   If BlockEnd <> Nil Then
     CSE(AsmL, Pai(AsmL^.First), BlockEnd);
   PeepHoleOptPass2(AsmL);
+  ShutDownDFA;
 End;
 
 End.
 
 {
- $log$
+ $log $
 }
