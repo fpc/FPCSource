@@ -49,7 +49,10 @@ Uses
 Function RegUsedAfterInstruction(Reg: TRegister; p: Pai; Var UsedRegs: TRegSet): Boolean;
 Begin
   UpdateUsedRegs(UsedRegs, Pai(p^.Next));
-  RegUsedAfterInstruction := Reg in UsedRegs
+  RegUsedAfterInstruction :=
+    (Reg in UsedRegs) and
+    (not(getNextInstruction(p,p)) or
+     not(regLoadedWithNewValue(reg,false,p)));
 End;
 
 Procedure PeepHoleOptPass1(Asml: PAasmOutput; BlockStart, BlockEnd: Pai);
@@ -509,6 +512,7 @@ Begin
                               Dispose(p, Done);
                               Dispose(hp1, Done);
                               p := hp2;
+                              RemoveLastDeallocForFuncRes(asmL, p);
                               Continue
                             End
                           Else
@@ -544,7 +548,6 @@ Begin
                        {change "imul $1, reg1, reg2" to "mov reg1, reg2"}
                         Begin
                           hp1 := New(Paicpu, Op_Reg_Reg(A_MOV, S_L, Paicpu(p)^.oper[1].reg,Paicpu(p)^.oper[2].reg));
-                          hp1^.fileinfo := p^.fileinfo;
                           InsertLLItem(AsmL, p^.previous, p^.next, hp1);
                           Dispose(p, Done);
                           p := hp1;
@@ -576,7 +579,6 @@ Begin
                                  hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg))
                                Else
                                  hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
-                               hp1^.fileinfo := p^.fileinfo;
                                InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                                Dispose(p, Done);
                                p := hp1;
@@ -593,7 +595,6 @@ Begin
                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg))
                               Else
                                 hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
-                              hp1^.fileinfo:= p^.fileinfo;
                               InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                               Dispose(p, Done);
                               p := hp1;
@@ -621,7 +622,6 @@ Begin
                                           hp1 :=  New(Paicpu, op_reg_reg(A_ADD, S_L,
                                             Paicpu(p)^.oper[1].reg,Paicpu(p)^.oper[1].reg));
                                         End;
-                                    hp1^.fileinfo := p^.fileinfo;
                                     InsertLLItem(AsmL,p, p^.next, hp1);
                                     Reset_reference(tmpref);
                                     TmpRef.Index := Paicpu(p)^.oper[1].reg;
@@ -638,7 +638,6 @@ Begin
                                           TmpRef.base := Paicpu(p)^.oper[1].reg;
                                           hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
                                         End;
-                                    hp1^.fileinfo := p^.fileinfo;
                                     InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                                     Dispose(p, Done);
                                     p := Pai(hp1^.next);
@@ -656,7 +655,6 @@ Begin
                                  hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg))
                                Else
                                  hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg));
-                               hp1^.fileinfo := p^.fileinfo;
                                InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                                Dispose(p, Done);
                                p := hp1;
@@ -676,7 +674,6 @@ Begin
                                    Else
                                      hp1 := New(Paicpu, op_reg_reg(A_ADD, S_L,
                                        Paicpu(p)^.oper[1].reg,Paicpu(p)^.oper[1].reg));
-                                   hp1^.fileinfo := p^.fileinfo;
                                    InsertLLItem(AsmL,p, p^.next, hp1);
                                    TmpRef.base := Paicpu(p)^.oper[1].reg;
                                    TmpRef.Index := Paicpu(p)^.oper[1].reg;
@@ -686,7 +683,6 @@ Begin
                                        hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[2].reg))
                                      Else
                                        hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
-                                   hp1^.fileinfo := p^.fileinfo;
                                    InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                                    Dispose(p, Done);
                                    p := Pai(hp1^.next);
@@ -715,7 +711,6 @@ Begin
                                          TmpRef.ScaleFactor := 4;
                                          hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
                                        End;
-                                     hp1^.fileinfo := p^.fileinfo;
                                      InsertLLItem(AsmL,p, p^.next, hp1);
                                      Reset_reference(tmpref);
                                      TmpRef.Index := Paicpu(p)^.oper[1].reg;
@@ -731,7 +726,6 @@ Begin
                                          TmpRef.ScaleFactor := 2;
                                          hp1 :=  New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef), Paicpu(p)^.oper[1].reg));
                                        End;
-                                     hp1^.fileinfo := p^.fileinfo;
                                      InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                                      Dispose(p, Done);
                                      p := Pai(hp1^.next);
@@ -748,27 +742,58 @@ Begin
                 {changes "lea (%reg1), %reg2" into "mov %reg1, %reg2"}
                   If (Paicpu(p)^.oper[0].ref^.Base In [R_EAX..R_EDI]) And
                      (Paicpu(p)^.oper[0].ref^.Index = R_NO) And
+{$ifndef newOptimizations}
                      (Paicpu(p)^.oper[0].ref^.Offset = 0) And
+{$endif newOptimizations}
                      (Not(Assigned(Paicpu(p)^.oper[0].ref^.Symbol))) Then
                     If (Paicpu(p)^.oper[0].ref^.Base <> Paicpu(p)^.oper[1].reg)
-                      Then
+{$ifdef newOptimizations}
+                       and (Paicpu(p)^.oper[0].ref^.Offset = 0)
+{$endif newOptimizations}
+                       Then
                         Begin
                           hp1 := New(Paicpu, op_reg_reg(A_MOV, S_L,Paicpu(p)^.oper[0].ref^.Base,
                             Paicpu(p)^.oper[1].reg));
-                          hp1^.fileinfo := p^.fileinfo;
                          InsertLLItem(AsmL,p^.previous,p^.next, hp1);
                          Dispose(p, Done);
                          p := hp1;
                          Continue;
                        End
                      Else
+{$ifdef newOptimizations}
+                      if (Paicpu(p)^.oper[0].ref^.Offset = 0) then
+{$endif newOptimizations}
                        Begin
                          hp1 := Pai(p^.Next);
                          AsmL^.Remove(p);
                          Dispose(p, Done);
                          p := hp1;
                          Continue;
-                       End;
+                       End
+{$ifdef newOptimizations}
+                      else
+                        with Paicpu(p)^.oper[0].ref^ do
+                          if (Base = Paicpu(p)^.oper[1].reg) then
+                            begin
+                              l := offset+offsetfixup;
+                              case l of
+                                1,-1:
+                                  begin
+                                    if l = 1 then
+                                      paicpu(p)^.opcode := A_INC
+                                    else paicpu(p)^.opcode := A_DEC;
+                                    paicpu(p)^.loadreg(0,Paicpu(p)^.oper[1].reg);
+                                    paicpu(p)^.ops := 1;
+                                  end;
+                                else
+                                  begin
+                                    paicpu(p)^.opcode := A_ADD;
+                                    paicpu(p)^.loadconst(0,offset+offsetfixup);
+                                  end;
+                              end;
+                            end;
+{$endif newOptimizations}
+
                 End;
               A_MOV:
                 Begin
@@ -877,6 +902,7 @@ Begin
                                    AsmL^.Remove(p);
                                    Dispose(p, done);
                                    p := hp1;
+                                   RemoveLastDeallocForFuncRes(asmL,p);
                                  End
                                Else
                                  If (Paicpu(p)^.oper[0].typ = top_reg) And
@@ -942,70 +968,70 @@ Begin
                                         End;
                                     End;
                                 End
-                                Else
-                                  Begin
-                                    If GetNextInstruction(hp1, hp2) And
-                                       (Paicpu(p)^.oper[0].typ = top_ref) And
-                                       (Paicpu(p)^.oper[1].typ = top_reg) And
-                                       (Paicpu(hp1)^.oper[0].typ = top_reg) And
-                                       (Paicpu(hp1)^.oper[0].reg = Paicpu(p)^.oper[1].reg) And
-                                       (Paicpu(hp1)^.oper[1].typ = top_ref) And
-                                       (Pai(hp2)^.typ = ait_instruction) And
-                                       (Paicpu(hp2)^.opcode = A_MOV) And
-                                       (Paicpu(hp2)^.opsize = Paicpu(p)^.opsize) and
-                                       (Paicpu(hp2)^.oper[1].typ = top_reg) And
-                                       (Paicpu(hp2)^.oper[0].typ = top_ref) And
-                                       RefsEqual(Paicpu(hp2)^.oper[0].ref^, Paicpu(hp1)^.oper[1].ref^)
-                                      Then
-                                        If (Paicpu(p)^.oper[1].reg in [R_DI,R_EDI])
-                                          Then
-                                 {   mov mem1, %edi
-                                     mov %edi, mem2
-                                     mov mem2, reg2
-                                  to:
-                                     mov mem1, reg2
-                                     mov reg2, mem2}
-                                            Begin
-                                              Paicpu(p)^.Loadoper(1,Paicpu(hp2)^.oper[1]);
-                                              Paicpu(hp1)^.loadoper(0,Paicpu(hp2)^.oper[1]);
-                                              AsmL^.Remove(hp2);
-                                              Dispose(hp2,Done);
-                                            End
-                                          Else
-                                            If (Paicpu(p)^.oper[1].reg <> Paicpu(hp2)^.oper[1].reg) And
-                                               not(RegInRef(Paicpu(p)^.oper[1].reg,Paicpu(p)^.oper[0].ref^)) And
-                                               not(RegInRef(Paicpu(hp2)^.oper[1].reg,Paicpu(hp2)^.oper[0].ref^))
-                                              Then
-                                 {   mov mem1, reg1         mov mem1, reg1
-                                     mov reg1, mem2         mov reg1, mem2
-                                     mov mem2, reg2         mov mem2, reg1
-                                  to:                    to:
-                                     mov mem1, reg1         mov mem1, reg1
-                                     mov mem1, reg2         mov reg1, mem2
-                                     mov reg1, mem2
+                              Else
+                                Begin
+                                  tmpUsedRegs := UsedRegs;
+                                  If GetNextInstruction(hp1, hp2) And
+                                     (Paicpu(p)^.oper[0].typ = top_ref) And
+                                     (Paicpu(p)^.oper[1].typ = top_reg) And
+                                     (Paicpu(hp1)^.oper[0].typ = top_reg) And
+                                     (Paicpu(hp1)^.oper[0].reg = Paicpu(p)^.oper[1].reg) And
+                                     (Paicpu(hp1)^.oper[1].typ = top_ref) And
+                                     (Pai(hp2)^.typ = ait_instruction) And
+                                     (Paicpu(hp2)^.opcode = A_MOV) And
+                                     (Paicpu(hp2)^.opsize = Paicpu(p)^.opsize) and
+                                     (Paicpu(hp2)^.oper[1].typ = top_reg) And
+                                     (Paicpu(hp2)^.oper[0].typ = top_ref) And
+                                     RefsEqual(Paicpu(hp2)^.oper[0].ref^, Paicpu(hp1)^.oper[1].ref^) Then
+                                    If (Paicpu(p)^.oper[1].reg in [R_DI,R_EDI]) and
+                                       not(RegUsedAfterInstruction(R_EDI,hp1,tmpUsedRegs)) Then
+                             {   mov mem1, %edi
+                                 mov %edi, mem2
+                                 mov mem2, reg2
+                              to:
+                                 mov mem1, reg2
+                                 mov reg2, mem2}
+                                      Begin
+                                        Paicpu(p)^.Loadoper(1,Paicpu(hp2)^.oper[1]);
+                                        Paicpu(hp1)^.loadoper(0,Paicpu(hp2)^.oper[1]);
+                                        AsmL^.Remove(hp2);
+                                        Dispose(hp2,Done);
+                                      End
+                                    Else
+                                      If (Paicpu(p)^.oper[1].reg <> Paicpu(hp2)^.oper[1].reg) And
+                                         not(RegInRef(Paicpu(p)^.oper[1].reg,Paicpu(p)^.oper[0].ref^)) And
+                                         not(RegInRef(Paicpu(hp2)^.oper[1].reg,Paicpu(hp2)^.oper[0].ref^))
+                                        Then
+                           {   mov mem1, reg1         mov mem1, reg1
+                               mov reg1, mem2         mov reg1, mem2
+                               mov mem2, reg2         mov mem2, reg1
+                            to:                    to:
+                               mov mem1, reg1         mov mem1, reg1
+                               mov mem1, reg2         mov reg1, mem2
+                               mov reg1, mem2
 
-                               or (if mem1 depends on reg1
-                                   and/or if mem2 depends on reg2)
-                                  to:
-                                     mov mem1, reg1
-                                     mov reg1, mem2
-                                     mov reg1, reg2
-                               }
-                                              Begin
-                                                Paicpu(hp1)^.LoadRef(0,newreference(Paicpu(p)^.oper[0].ref^));
-                                                Paicpu(hp1)^.LoadReg(1,Paicpu(hp2)^.oper[1].reg);
-                                                Paicpu(hp2)^.LoadRef(1,newreference(Paicpu(hp2)^.oper[0].ref^));
-                                                Paicpu(hp2)^.LoadReg(0,Paicpu(p)^.oper[1].reg);
-                                              End
-                                            Else
-                                              If (Paicpu(hp1)^.Oper[0].reg <> Paicpu(hp2)^.Oper[1].reg) Then
-                                                Paicpu(hp2)^.LoadReg(0,Paicpu(hp1)^.Oper[0].reg)
-                                              Else
-                                                Begin
-                                                  AsmL^.Remove(hp2);
-                                                  Dispose(hp2, Done);
-                                                End
-                                  End;
+                         or (if mem1 depends on reg1
+                             and/or if mem2 depends on reg2)
+                            to:
+                               mov mem1, reg1
+                               mov reg1, mem2
+                               mov reg1, reg2
+                         }
+                                        Begin
+                                          Paicpu(hp1)^.LoadRef(0,newreference(Paicpu(p)^.oper[0].ref^));
+                                          Paicpu(hp1)^.LoadReg(1,Paicpu(hp2)^.oper[1].reg);
+                                          Paicpu(hp2)^.LoadRef(1,newreference(Paicpu(hp2)^.oper[0].ref^));
+                                          Paicpu(hp2)^.LoadReg(0,Paicpu(p)^.oper[1].reg);
+                                        End
+                                      Else
+                                        If (Paicpu(hp1)^.Oper[0].reg <> Paicpu(hp2)^.Oper[1].reg) Then
+                                          Paicpu(hp2)^.LoadReg(0,Paicpu(hp1)^.Oper[0].reg)
+                                        Else
+                                          Begin
+                                            AsmL^.Remove(hp2);
+                                            Dispose(hp2, Done);
+                                          End
+                                End;
                             End
                           Else
 (*                          {movl [mem1],reg1
@@ -1300,7 +1326,6 @@ Begin
                                   End
                                 Else hp1 := New(Paicpu, op_ref_reg(A_LEA, S_L, newReference(TmpRef),
                                                 Paicpu(p)^.oper[1].reg));
-                              hp1^.fileinfo := p^.fileinfo;
                               InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                               Dispose(p, Done);
                               p := hp1;
@@ -1318,7 +1343,6 @@ Begin
                             Begin
                               hp1 := new(Paicpu,op_reg_reg(A_ADD,Paicpu(p)^.opsize,
                                          Paicpu(p)^.oper[1].reg, Paicpu(p)^.oper[1].reg));
-                              hp1^.fileinfo := p^.fileinfo;
                               InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                               Dispose(p, done);
                               p := hp1;
@@ -1332,7 +1356,6 @@ Begin
                                    TmpRef.index := Paicpu(p)^.oper[1].reg;
                                    TmpRef.scalefactor := 1 shl Paicpu(p)^.oper[0].val;
                                    hp1 := new(Paicpu,op_ref_reg(A_LEA,S_L,newReference(TmpRef), Paicpu(p)^.oper[1].reg));
-                                   hp1^.fileinfo := p^.fileinfo;
                                    InsertLLItem(AsmL,p^.previous, p^.next, hp1);
                                    Dispose(p, done);
                                    p := hp1;
@@ -1403,6 +1426,10 @@ Begin
                               End;
                 End;
               A_SETcc :
+                { changes
+                    setcc (funcres)             setcc reg
+                    movb (funcres), reg      to leave/ret
+                    leave/ret                               }
                 Begin
                   If (Paicpu(p)^.oper[0].typ = top_ref) And
                      GetNextInstruction(p, hp1) And
@@ -1582,7 +1609,6 @@ Begin
                   Begin
                     Inc(paicpu(hp1)^.oper[0].sym^.refs);
                     hp2 := New(Paicpu,op_sym(A_PUSH,S_L,paicpu(hp1)^.oper[0].sym));
-                    hp2^.fileinfo := p^.fileinfo;
                     InsertLLItem(AsmL, p^.previous, p, hp2);
                     Paicpu(p)^.opcode := A_JMP;
                     AsmL^.Remove(hp1);
@@ -1638,7 +1664,7 @@ Begin
   { change   mov            (ref), reg            }
   {          add/sub/or/... reg2/$const, reg      }
   {          mov            (reg), ref            }
-  {          # relaese reg                        }
+  {          # release reg                        }
   { to       add/sub/or/... reg2/$const, (ref)    }
                      Begin
                        Paicpu(hp1)^.LoadRef(1,newreference(Paicpu(p)^.oper[0].ref^));
@@ -1677,7 +1703,6 @@ Begin
                                   Begin
                                     hp1 := New(Paicpu, op_reg_reg(A_XOR, S_L,
                                                Paicpu(p)^.oper[1].reg, Paicpu(p)^.oper[1].reg));
-                                    hp1^.fileinfo := p^.fileinfo;
                                     InsertLLItem(AsmL,p^.previous, p, hp1);
                                     Paicpu(p)^.opcode := A_MOV;
                                     Paicpu(p)^.changeopsize(S_B);
@@ -1699,7 +1724,6 @@ Begin
                             Begin
                               hp1 := New(Paicpu,op_reg_reg(A_XOR, S_L, Paicpu(p)^.oper[1].reg,
                                          Paicpu(p)^.oper[1].reg));
-                              hp1^.fileinfo := p^.fileinfo;
                               Paicpu(p)^.opcode := A_MOV;
                               Paicpu(p)^.changeopsize(S_B);
                               Paicpu(p)^.LoadReg(1,Reg32ToReg8(Paicpu(p)^.oper[1].reg));
@@ -1717,7 +1741,13 @@ End.
 
 {
  $Log$
- Revision 1.79  2000-01-21 11:26:19  pierre
+ Revision 1.80  2000-01-22 16:05:15  jonas
+   + change "lea x(reg),reg" to "add x,reg" (-dnewoptimizations)
+   * detection whether edi is used after instructions (since regalloc
+     info for it is now available)
+   * better regUsedAfterInstruction function
+
+ Revision 1.79  2000/01/21 11:26:19  pierre
   * bug fix for bug 802
 
  Revision 1.78  2000/01/11 17:14:49  jonas
