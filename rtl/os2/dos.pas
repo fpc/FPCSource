@@ -620,7 +620,7 @@ function diskfree(drive:byte):int64;
 var fi:TFSinfo;
 
 begin
-    if os_mode=osDOS or os_mode = osDPMI then
+    if (os_mode=osDOS) or (os_mode = osDPMI) then
     {Function 36 is not supported in OS/2.}
         asm
             movb 8(%ebp),%dl
@@ -657,7 +657,7 @@ function disksize(drive:byte):int64;
 var fi:TFSinfo;
 
 begin
-    if os_mode=osDOS or os_mode = osDPMI then
+    if (os_mode=osDOS) or (os_mode = osDPMI) then
         {Function 36 is not supported in OS/2.}
         asm
             movb 8(%ebp),%dl
@@ -1001,7 +1001,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2000-03-05 19:00:37  hajny
+  Revision 1.22  2000-03-12 18:32:17  hajny
+    * missing parentheses added
+
+  Revision 1.21  2000/03/05 19:00:37  hajny
     * DiskFree, DiskSize - int64 result, fix for osDPMI mode
 
   Revision 1.20  2000/02/09 16:59:33  peter
