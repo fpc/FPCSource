@@ -2866,14 +2866,13 @@ Begin
        delete(temp,1,3);
   until i=0;
   { Remove ending /.. }
-  i:=pos('/..',pa);
-  if i<>0 and (i =length(pa)-2) then
+  i:=pos('/..',temp);
+  if i<>0 and (i =length(temp)-2) then
     begin
     j:=i-1;
-    while (j>1) and (pa[j]<>'/') do
+    while (j>1) and (temp[j]<>'/') do
       dec (j);
-    delete (pa,j,i-j+3);
-    end;
+    delete (temp,j,i-j+3);
     end;
   { if last character is / then remove it - dir is also a file :-) }
   if (length(temp)>0) and (temp[length(temp)]='/') then
@@ -3530,7 +3529,10 @@ End.
 
 {
   $Log$
-  Revision 1.15  1998-08-16 09:12:14  michael
+  Revision 1.16  1998-08-16 10:23:28  michael
+  fixed typos
+
+  Revision 1.15  1998/08/16 09:12:14  michael
   Corrected fexpand behaviour.
 
   Revision 1.14  1998/08/14 12:01:04  carl
