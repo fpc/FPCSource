@@ -131,9 +131,15 @@
 
     function getheapsize : longint; assembler;
     asm
-       move.l HEAPSIZE,d0
+       move.l HEAP_SIZE,d0
     end ['d0'];
 
+
+    function heapsize : longint;
+
+	  begin
+		 heapsize:=_internal_heapsize;
+      end;
 
 {$IfDef CHECKHEAP}
     procedure call_stack(p : pointer);
@@ -1015,9 +1021,9 @@ begin
         { set the total new heap size }
         asm
           move.l Size,d0
-          move.l HEAPSIZE,d1
+          move.l HEAP_SIZE,d1
           add.l  d0,d1
-          move.l d1,HEAPSIZE
+          move.l d1,HEAP_SIZE
         end;
         GrowHeap:=2;{ try again }
         _internal_heapsize:=size+_internal_heapsize;
@@ -1064,7 +1070,11 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-07-02 14:24:08  michael
+  Revision 1.4  1998-07-08 11:54:40  carl
+    + reinstated hepasize function
+    * renamed HEAPSIZE global var to HEAP_SIZE to remove conflicts
+
+  Revision 1.3  1998/07/02 14:24:08  michael
   Undid carls changes, but renamed _heapsize to _internal_heapsize. Make cycle now works
 
   Revision 1.2  1998/07/02 12:22:38  carl
