@@ -28,7 +28,10 @@ uses
     { this procedure allows to hook mouse messages }
     mousemessagehandler : function(Window: hwnd; AMessage, WParam,
                                    LParam: Longint): Longint;
-   mainwindow : HWnd;
+    mainwindow : HWnd;
+    // this allows direct drawing to the window
+    bitmapdc : hdc;
+    windc : hdc;
 
   const
     { predefined window style }
@@ -38,6 +41,8 @@ uses
     graphwindowstyle : DWord = cs_hRedraw or cs_vRedraw;
 
     windowtitle : pchar = 'Graph window application';
+    drawtoscreen : boolean = true;
+    drawtobitmap : boolean = true;
 
 CONST
 
@@ -115,19 +120,19 @@ var
    savedscreen : hbitmap;
    graphrunning : boolean;
    graphdrawing : tcriticalsection;
+   pens : array[0..15] of HPEN;
 {$ifdef DEBUG_WM_PAINT}
    graphdebug : text;
+
 const
    wm_paint_count : longint = 0;
 var
 {$endif DEBUG_WM_PAINT}
-   bitmapdc : hdc;
    oldbitmap : hgdiobj;
    pal : ^rgbrec;
 //   SavePtr : pointer; { we don't use that pointer }
    MessageThreadHandle : Handle;
    MessageThreadID : DWord;
-   windc : hdc;
 
 function GetPaletteEntry(r,g,b : word) : word;
 
@@ -171,8 +176,10 @@ procedure PutPixel16Win32GUI(x,y : integer;pixel : word);
       begin
          c:=RGB(pal[pixel].red,pal[pixel].green,pal[pixel].blue);
          EnterCriticalSection(graphdrawing);
-         SetPixel(bitmapdc,x,y,c);
-         SetPixel(windc,x,y,c);
+         if drawtobitmap then
+           SetPixelV(bitmapdc,x,y,c);
+         if drawtoscreen then
+           SetPixelV(windc,x,y,c);
          LeaveCriticalSection(graphdrawing);
       end;
   end;
@@ -222,31 +229,39 @@ procedure DirectPutPixel16Win32GUI(x,y : integer);
              Begin
                 c2:=Windows.GetPixel(bitmapdc,x,y);
                 c:=RGB(pal[col].red,pal[col].green,pal[col].blue) xor c2;
-                SetPixel(bitmapdc,x,y,c);
-                SetPixel(windc,x,y,c);
+                if drawtobitmap then
+                  SetPixelV(bitmapdc,x,y,c);
+                if drawtoscreen then
+                  SetPixelV(windc,x,y,c);
              End;
            AndPut:
              Begin
                 c2:=Windows.GetPixel(bitmapdc,x,y);
                 c:=RGB(pal[col].red,pal[col].green,pal[col].blue) and c2;
-                SetPixel(bitmapdc,x,y,c);
-                SetPixel(windc,x,y,c);
+                if drawtobitmap then
+                  SetPixelV(bitmapdc,x,y,c);
+                if drawtoscreen then
+                  SetPixelV(windc,x,y,c);
              End;
            OrPut:
              Begin
                 c2:=Windows.GetPixel(bitmapdc,x,y);
                 c:=RGB(pal[col].red,pal[col].green,pal[col].blue) or c2;
-                SetPixel(bitmapdc,x,y,c);
-                SetPixel(windc,x,y,c);
+                if drawtobitmap then
+                  SetPixelV(bitmapdc,x,y,c);
+                if drawtoscreen then
+                  SetPixelV(windc,x,y,c);
              End
            else
              Begin
-               If CurrentWriteMode<>NotPut Then
-                 col:=CurrentColor
-               Else col := Not(CurrentColor);
-               c:=RGB(pal[col].red,pal[col].green,pal[col].blue);
-               SetPixel(bitmapdc,x,y,c);
-               SetPixel(windc,x,y,c);
+                If CurrentWriteMode<>NotPut Then
+                  col:=CurrentColor
+                Else col := Not(CurrentColor);
+                c:=RGB(pal[col].red,pal[col].green,pal[col].blue);
+                if drawtobitmap then
+                  SetPixelV(bitmapdc,x,y,c);
+                if drawtoscreen then
+                  SetPixelV(windc,x,y,c);
              End
          end;
          LeaveCriticalSection(graphdrawing);
@@ -254,13 +269,29 @@ procedure DirectPutPixel16Win32GUI(x,y : integer);
   end;
 
 var
-   bitmapfontcache : array[0..255] of HBITMAP;
+   bitmapfontverticalcache : array[0..255] of HBITMAP;
+   bitmapfonthorizoncache : array[0..255] of HBITMAP;
 
-procedure DrawBitmapCharHorizWin32GUI(x,y : longint;charsize : word;const s : string);
+procedure OutTextXYWin32GUI(x,y : smallint;const TextString : string);
 
+  type
+   Tpoint = record
+     X,Y: smallint;
+   end;
   var
-     cnt1,cnt2,cnt3,cnt4,j,k,c,xpos,i : longint;
+     i,j,k,c       : longint;
+     xpos,ypos     : longint;
+     counter       : longint;
+     cnt1,cnt2     : smallint;
+     cnt3,cnt4     : smallint;
+     charsize      : word;
+     WriteMode     : word;
+     curX2, curY2, xpos2, ypos2, x2, y2: graph_float;
+     oldvalues     : linesettingstype;
      fontbitmap    : TBitmapChar;
+     chr           : char;
+     curx2i,cury2i,
+     xpos2i,ypos2i : longint;
      charbitmap,oldcharbitmap : HBITMAP;
      chardc : HDC;
      color : longint;
@@ -268,103 +299,409 @@ procedure DrawBitmapCharHorizWin32GUI(x,y : longint;charsize : word;const s : st
      bitmaprgn,winrgn : HRGN;
 
   begin
-     EnterCriticalSection(graphdrawing);
-     c:=length(s);
-     chardc:=CreateCompatibleDC(windc);
-     if currentcolor<>white then
+     { save current write mode }
+     WriteMode := CurrentWriteMode;
+     CurrentWriteMode := NormalPut;
+     GetTextPosition(xpos,ypos,textstring);
+     X:=X-XPos; Y:=Y+YPos;
+     XPos:=X; YPos:=Y;
+     CharSize := CurrentTextInfo.Charsize;
+     if Currenttextinfo.font=DefaultFont then
+     begin
+       if CurrentTextInfo.direction=HorizDir then
+       { Horizontal direction }
+         begin
+            if (x>viewwidth) or (y>viewheight) or
+              (x<0) or (y<0) then
+              begin
+                 CurrentWriteMode:=WriteMode;
+                 exit;
+              end;
+            EnterCriticalSection(graphdrawing);
+            c:=length(textstring);
+            chardc:=CreateCompatibleDC(windc);
+            if currentcolor<>white then
+              begin
+                 color:=RGB(pal[currentcolor].red,pal[currentcolor].green,
+                   pal[currentcolor].blue);
+
+                 if drawtoscreen then
+                   begin
+                      brushwin:=CreateSolidBrush(color);
+                      oldbrushwin:=SelectObject(windc,brushwin);
+                   end;
+
+                 if drawtobitmap then
+                   begin
+                      brushbitmap:=CreateSolidBrush(color);
+                      oldbrushbitmap:=SelectObject(bitmapdc,brushbitmap);
+                   end;
+              end;
+            inc(x,startxviewport);
+            inc(y,startyviewport);
+
+            { let windows do the clipping }
+            if drawtobitmap then
+              begin
+                 bitmaprgn:=CreateRectRgn(startxviewport,startyviewport,
+                   startxviewport+viewwidth+1,startyviewport+viewheight+1);
+                 SelectClipRgn(bitmapdc,bitmaprgn);
+              end;
+
+            if drawtoscreen then
+              begin
+                 winrgn:=CreateRectRgn(startxviewport,startyviewport,
+                   startxviewport+viewwidth+1,startyviewport+viewheight+1);
+                 SelectClipRgn(windc,winrgn);
+              end;
+
+            for i:=0 to c-1 do
+              begin
+                 xpos:=x+(i*8)*Charsize;
+                 if bitmapfonthorizoncache[byte(textstring[i+1])]=0 then
+                   begin
+                      charbitmap:=CreateCompatibleBitmap(windc,8,8);
+                      if charbitmap=0 then
+                        writeln('Bitmap konnte nicht erzeugt werden!');
+                      oldcharbitmap:=SelectObject(chardc,charbitmap);
+                      Fontbitmap:=TBitmapChar(DefaultFontData[textstring[i+1]]);
+
+                      for j:=0 to 7 do
+                         for k:=0 to 7 do
+                           if Fontbitmap[j,k]<>0 then
+                             SetPixelV(chardc,k,j,$ffffff)
+                           else
+                             SetPixelV(chardc,k,j,0);
+                      bitmapfonthorizoncache[byte(textstring[i+1])]:=charbitmap;
+                      SelectObject(chardc,oldcharbitmap);
+                   end;
+                 oldcharbitmap:=SelectObject(chardc,bitmapfonthorizoncache[byte(textstring[i+1])]);
+                 if CharSize=1 then
+                   begin
+                      if currentcolor=white then
+                        begin
+                           if drawtoscreen then
+                             BitBlt(windc,xpos,y,8,8,chardc,0,0,SRCPAINT);
+                           if drawtobitmap then
+                             BitBlt(bitmapdc,xpos,y,8,8,chardc,0,0,SRCPAINT);
+                        end
+                      else
+                        begin
+                           { could we do this with one pattern operation ?? }
+                           { we would need something like DSnaSPao }
+                           if drawtoscreen then
+                             begin
+                                // ROP $00220326=DSna
+                                BitBlt(windc,xpos,y,8,8,chardc,0,0,$00220326);
+                                // ROP $00EA02E9 = DPSao
+                                BitBlt(windc,xpos,y,8,8,chardc,0,0,$00EA02E9);
+                             end;
+
+                           if drawtobitmap then
+                             begin
+                                BitBlt(bitmapdc,xpos,y,8,8,chardc,0,0,$00220326);
+                                BitBlt(bitmapdc,xpos,y,8,8,chardc,0,0,$00EA02E9);
+                             end;
+                        end;
+                   end
+                 else
+                   begin
+                      if currentcolor=white then
+                        begin
+                           if drawtoscreen then
+                             StretchBlt(windc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,SRCPAINT);
+                           if drawtobitmap then
+                             StretchBlt(bitmapdc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,SRCPAINT);
+                        end
+                      else
+                        begin
+                           { could we do this with one pattern operation ?? }
+                           { we would need something like DSnaSPao }
+                           if drawtoscreen then
+                             begin
+                                // ROP $00220326=DSna
+                                StretchBlt(windc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,$00220326);
+                                // ROP $00EA02E9 = DPSao
+                                StretchBlt(windc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,$00EA02E9);
+                             end;
+                           if drawtobitmap then
+                             begin
+                                StretchBlt(bitmapdc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,$00220326);
+                                StretchBlt(bitmapdc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,$00EA02E9);
+                             end;
+                        end;
+                   end;
+                 SelectObject(chardc,oldcharbitmap);
+              end;
+           if currentcolor<>white then
+             begin
+                 if drawtoscreen then
+                   begin
+                      SelectObject(windc,oldbrushwin);
+                      DeleteObject(brushwin);
+                   end;
+
+                 if drawtobitmap then
+                   begin
+                      SelectObject(bitmapdc,oldbrushbitmap);
+                      DeleteObject(brushbitmap);
+                   end;
+             end;
+           { release clip regions }
+           if drawtobitmap then
+             begin
+               SelectClipRgn(bitmapdc,0);
+               DeleteObject(bitmaprgn);
+             end;
+           if drawtoscreen then
+             begin
+                SelectClipRgn(windc,0);
+                DeleteObject(winrgn);
+             end;
+           DeleteDC(chardc);
+           LeaveCriticalSection(graphdrawing);
+         end
+       else
+       { Vertical direction }
+         begin
+            if (x>viewwidth) or (y>viewheight) or
+              (x<0) or (y<0) then
+              begin
+                 CurrentWriteMode:=WriteMode;
+                 exit;
+              end;
+            EnterCriticalSection(graphdrawing);
+            c:=length(textstring);
+            chardc:=CreateCompatibleDC(windc);
+            if currentcolor<>white then
+              begin
+                 color:=RGB(pal[currentcolor].red,pal[currentcolor].green,
+                   pal[currentcolor].blue);
+
+                 if drawtoscreen then
+                   begin
+                      brushwin:=CreateSolidBrush(color);
+                      oldbrushwin:=SelectObject(windc,brushwin);
+                   end;
+
+                 if drawtobitmap then
+                   begin
+                      brushbitmap:=CreateSolidBrush(color);
+                      oldbrushbitmap:=SelectObject(bitmapdc,brushbitmap);
+                   end;
+              end;
+            inc(x,startxviewport);
+            inc(y,startyviewport);
+            { let windows do the clipping }
+            if drawtoscreen then
+              begin
+                 winrgn:=CreateRectRgn(startxviewport,startyviewport,
+                   startxviewport+viewwidth+1,startyviewport+viewheight+1);
+                 SelectClipRgn(windc,winrgn);
+              end;
+
+            if drawtobitmap then
+              begin
+                 bitmaprgn:=CreateRectRgn(startxviewport,startyviewport,
+                   startxviewport+viewwidth+1,startyviewport+viewheight+1);
+                 SelectClipRgn(bitmapdc,bitmaprgn);
+              end;
+            for i:=0 to c-1 do
+              begin
+                 ypos:=y+1-((i+1)*8)*CharSize;
+                 if bitmapfontverticalcache[byte(textstring[i+1])]=0 then
+                   begin
+                      charbitmap:=CreateCompatibleBitmap(windc,8,8);
+                      if charbitmap=0 then
+                        writeln('Bitmap konnte nicht erzeugt werden!');
+                      oldcharbitmap:=SelectObject(chardc,charbitmap);
+                      Fontbitmap:=TBitmapChar(DefaultFontData[textstring[i+1]]);
+
+                      for j:=0 to 7 do
+                         for k:=0 to 7 do
+                           if Fontbitmap[j,k]<>0 then
+                             SetPixelV(chardc,j,7-k,$ffffff)
+                           else
+                             SetPixelV(chardc,j,7-k,0);
+                      bitmapfontverticalcache[byte(textstring[i+1])]:=charbitmap;
+                      SelectObject(chardc,oldcharbitmap);
+                   end;
+                 oldcharbitmap:=SelectObject(chardc,bitmapfontverticalcache[byte(textstring[i+1])]);
+                 if CharSize=1 then
+                   begin
+                      if currentcolor=white then
+                        begin
+                           if drawtoscreen then
+                             BitBlt(windc,x,ypos,8,8,chardc,0,0,SRCPAINT);
+                           if drawtobitmap then
+                             BitBlt(bitmapdc,x,ypos,8,8,chardc,0,0,SRCPAINT);
+                        end
+                      else
+                        begin
+                           { could we do this with one pattern operation ?? }
+                           { we would need something like DSnaSPao }
+                           if drawtoscreen then
+                             begin
+                                // ROP $00220326=DSna
+                                BitBlt(windc,x,ypos,8,8,chardc,0,0,$00220326);
+                                // ROP $00EA02E9 = DPSao
+                                BitBlt(windc,x,ypos,8,8,chardc,0,0,$00EA02E9);
+                             end;
+                           if drawtobitmap then
+                             begin
+                                BitBlt(bitmapdc,x,ypos,8,8,chardc,0,0,$00220326);
+                                BitBlt(bitmapdc,x,ypos,8,8,chardc,0,0,$00EA02E9);
+                             end;
+                        end;
+                   end
+                 else
+                   begin
+                      if currentcolor=white then
+                        begin
+                           if drawtoscreen then
+                             StretchBlt(windc,x,ypos,8*charsize,8*charsize,chardc,0,0,8,8,SRCPAINT);
+                           if drawtobitmap then
+                             StretchBlt(bitmapdc,x,ypos,8*charsize,8*charsize,chardc,0,0,8,8,SRCPAINT);
+                        end
+                      else
+                        begin
+                           { could we do this with one pattern operation ?? }
+                           { we would need something like DSnaSPao }
+                           if drawtoscreen then
+                             begin
+                                // ROP $00220326=DSna
+                                StretchBlt(windc,x,ypos,8*charsize,8*charsize,chardc,0,0,8,8,$00220326);
+                                // ROP $00EA02E9 = DPSao
+                                StretchBlt(windc,x,ypos,8*charsize,8*charsize,chardc,0,0,8,8,$00EA02E9);
+                             end;
+                           if drawtobitmap then
+                             begin
+                                StretchBlt(bitmapdc,x,ypos,8*charsize,8*charsize,chardc,0,0,8,8,$00220326);
+                                StretchBlt(bitmapdc,x,ypos,8*charsize,8*charsize,chardc,0,0,8,8,$00EA02E9);
+                             end;
+                        end;
+                   end;
+                 SelectObject(chardc,oldcharbitmap);
+              end;
+           if currentcolor<>white then
+             begin
+                if drawtoscreen then
+                  begin
+                     SelectObject(windc,oldbrushwin);
+                     DeleteObject(brushwin);
+                  end;
+
+                if drawtobitmap then
+                  begin
+                     SelectObject(bitmapdc,oldbrushbitmap);
+                     DeleteObject(brushbitmap);
+                  end;
+             end;
+           { release clip regions }
+           if drawtoscreen then
+             begin
+                SelectClipRgn(windc,0);
+                DeleteObject(winrgn);
+             end;
+           if drawtobitmap then
+             begin
+                SelectClipRgn(bitmapdc,0);
+                DeleteObject(bitmaprgn);
+             end;
+           DeleteDC(chardc);
+           LeaveCriticalSection(graphdrawing);
+        end;
+     end else
+     { This is a stroked font which is already loaded into memory }
        begin
-          color:=RGB(pal[currentcolor].red,pal[currentcolor].green,
-            pal[currentcolor].blue);
+          getlinesettings(oldvalues);
+          { reset line style to defaults }
+          setlinestyle(solidln,oldvalues.pattern,normwidth);
+          if Currenttextinfo.direction=vertdir then
+             xpos:=xpos + Textheight(textstring);
+          CurX2:=xpos; xpos2 := curX2; x2 := xpos2;
+          CurY2:=ypos; ypos2 := curY2; y2 := ypos2;
+{              x:=xpos; y:=ypos;}
 
-          brushwin:=CreateSolidBrush(color);
-          oldbrushwin:=SelectObject(windc,brushwin);
-
-          brushbitmap:=CreateSolidBrush(color);
-          oldbrushbitmap:=SelectObject(bitmapdc,brushbitmap);
-       end;
-     inc(x,startxviewport);
-     inc(y,startyviewport);
-     { let windows do the clipping }
-     bitmaprgn:=CreateRectRgn(startxviewport,startyviewport,
-       startxviewport+viewwidth+1,startyviewport+viewheight+1);
-     winrgn:=CreateRectRgn(startxviewport,startyviewport,
-       startxviewport+viewwidth+1,startyviewport+viewheight+1);
-     SelectClipRgn(bitmapdc,bitmaprgn);
-     SelectClipRgn(windc,winrgn);
-     for i:=0 to c-1 do
-       begin
-          xpos:=x+(i*8)*Charsize;
-          if bitmapfontcache[byte(s[i+1])]=0 then
+          for i:=1 to length(textstring) do
             begin
-               charbitmap:=CreateCompatibleBitmap(windc,8,8);
-               oldcharbitmap:=SelectObject(chardc,charbitmap);
-               Fontbitmap:=TBitmapChar(DefaultFontData[s[i+1]]);
-
-               for j:=0 to 7 do
-                  for k:=0 to 7 do
-                    if Fontbitmap[j,k]<>0 then
-                      SetPixel(chardc,k,j,$ffffff)
-                    else
-                      SetPixel(chardc,k,j,0);
-               bitmapfontcache[byte(s[i+1])]:=charbitmap;
-               SelectObject(chardc,oldcharbitmap);
-            end;
-          oldcharbitmap:=SelectObject(chardc,bitmapfontcache[byte(s[i+1])]);
-          if CharSize=1 then
-            begin
-               if currentcolor=white then
+               c:=byte(textstring[i]);
+{                   Stroke_Count[c] := }
+               unpack( fonts[CurrentTextInfo.font].instr,
+                 fonts[CurrentTextInfo.font].Offsets[c], Strokes );
+               counter:=0;
+               while true do
                  begin
-                    BitBlt(windc,xpos,y,8,8,chardc,0,0,SRCPAINT);
-                    BitBlt(bitmapdc,xpos,y,8,8,chardc,0,0,SRCPAINT);
-                 end
+                     if CurrentTextInfo.direction=VertDir then
+                       begin
+                         xpos2:=x2-(Strokes[counter].Y*CurrentYRatio);
+                         ypos2:=y2-(Strokes[counter].X*CurrentXRatio);
+                       end
+                     else
+                       begin
+                         xpos2:=x2+(Strokes[counter].X*CurrentXRatio) ;
+                         ypos2:=y2-(Strokes[counter].Y*CurrentYRatio) ;
+                       end;
+                     case opcodes(Strokes[counter].opcode) of
+                       _END_OF_CHAR: break;
+                       _DO_SCAN: begin
+                                { Currently unsupported };
+                                end;
+                       _MOVE : Begin
+                                 CurX2 := XPos2;
+                                 CurY2 := YPos2;
+                               end;
+                       _DRAW: Begin
+                                curx2i:=trunc(CurX2);
+                                cury2i:=trunc(CurY2);
+                                xpos2i:=trunc(xpos2);
+                                ypos2i:=trunc(ypos2);
+                                { this optimization doesn't matter that much
+                                if (curx2i=xpos2i) then
+                                  begin
+                                     if (cury2i=ypos2i) then
+                                       putpixel(curx2i,cury2i,currentcolor)
+                                     else if (cury2i+1=ypos2i) or
+                                       (cury2i=ypos2i+1) then
+                                        begin
+                                           putpixel(curx2i,cury2i,currentcolor);
+                                           putpixel(curx2i,ypos2i,currentcolor);
+                                        end
+                                      else
+                                        Line(curx2i,cury2i,xpos2i,ypos2i);
+                                  end
+                                else if (cury2i=ypos2i) then
+                                  begin
+                                     if (curx2i+1=xpos2i) or
+                                       (curx2i=xpos2i+1) then
+                                        begin
+                                           putpixel(curx2i,cury2i,currentcolor);
+                                           putpixel(xpos2i,cury2i,currentcolor);
+                                        end
+                                      else
+                                        Line(curx2i,cury2i,xpos2i,ypos2i);
+                                  end
+                                else
+                                }
+                                Line(curx2i,cury2i,xpos2i,ypos2i);
+                                CurX2:=xpos2;
+                                CurY2:=ypos2;
+                              end;
+                         else
+                           Begin
+                           end;
+                        end;
+                    Inc(counter);
+                 end; { end while }
+               if Currenttextinfo.direction=VertDir then
+                 y2:=y2-(byte(fonts[CurrenttextInfo.font].widths[c])*CurrentXRatio)
                else
-                 begin
-                    { could we do this with one pattern operation ?? }
-                    { we would need something like DSnaSPao }
-                    // ROP $00220326=DSna
-                    BitBlt(windc,xpos,y,8,8,chardc,0,0,$00220326);
-                    BitBlt(bitmapdc,xpos,y,8,8,chardc,0,0,$00220326);
-                    // ROP $00EA02E9 = DPSao
-                    BitBlt(windc,xpos,y,8,8,chardc,0,0,$00EA02E9);
-                    BitBlt(bitmapdc,xpos,y,8,8,chardc,0,0,$00EA02E9);
-                 end;
-            end
-          else
-            begin
-               if currentcolor=white then
-                 begin
-                    StretchBlt(windc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,SRCPAINT);
-                    StretchBlt(bitmapdc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,SRCPAINT);
-                 end
-               else
-                 begin
-                    { could we do this with one pattern operation ?? }
-                    { we would need something like DSnaSPao }
-                    // ROP $00220326=DSna
-                    StretchBlt(windc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,$00220326);
-                    StretchBlt(bitmapdc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,$00220326);
-                    // ROP $00EA02E9 = DPSao
-                    StretchBlt(windc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,$00EA02E9);
-                    StretchBlt(bitmapdc,xpos,y,8*charsize,8*charsize,chardc,0,0,8,8,$00EA02E9);
-                 end;
+                 x2:=x2+(byte(fonts[Currenttextinfo.font].widths[c])*CurrentXRatio);
             end;
-          SelectObject(chardc,oldcharbitmap);
+          setlinestyle( oldvalues.linestyle, oldvalues.pattern, oldvalues.thickness);
        end;
-    if currentcolor<>white then
-      begin
-         SelectObject(windc,oldbrushwin);
-         DeleteObject(brushwin);
-
-         SelectObject(bitmapdc,oldbrushbitmap);
-         DeleteObject(brushbitmap);
-      end;
-    { release clip regions }
-    SelectClipRgn(bitmapdc,0);
-    SelectClipRgn(windc,0);
-    DeleteObject(bitmaprgn);
-    DeleteObject(winrgn);
-    DeleteDC(chardc);
-    LeaveCriticalSection(graphdrawing);
+    { restore write mode }
+    CurrentWriteMode := WriteMode;
   end;
 
 procedure HLine16Win32GUI(x,x2,y: integer);
@@ -384,16 +721,18 @@ procedure HLine16Win32GUI(x,x2,y: integer);
                x2:=x xor x2;
                x:=x xor x2;
              end;
-           { First convert to global coordinates }
+           if ClipPixels then
+             begin
+                if (x>ViewWidth) or (y<0) or (y>ViewHeight) or (x2<0) then
+                  exit;
+                if x<0 then
+                  x:=0;
+                if x2>ViewWidth then
+                  x2:=ViewWidth;
+             end;
            X:=X+StartXViewPort;
            X2:=X2+StartXViewPort;
            Y:=Y+StartYViewPort;
-           if ClipPixels then
-             Begin
-                if LineClipped(x,y,x2,y,StartXViewPort,StartYViewPort,
-                       StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
-                   exit;
-             end;
            Case CurrentWriteMode of
              AndPut:
                Begin
@@ -403,8 +742,11 @@ procedure HLine16Win32GUI(x,x2,y: integer);
                     begin
                        c2:=Windows.GetPixel(bitmapdc,i,y);
                        c:=RGB(pal[col].red,pal[col].green,pal[col].blue) and c2;
-                       SetPixel(bitmapdc,i,y,c);
-                       SetPixel(windc,i,y,c);
+                       if drawtobitmap then
+                         SetPixel(bitmapdc,i,y,c);
+
+                       if drawtoscreen then
+                         SetPixel(windc,i,y,c);
                     end;
                   LeaveCriticalSection(graphdrawing);
                End;
@@ -416,8 +758,12 @@ procedure HLine16Win32GUI(x,x2,y: integer);
                     begin
                        c2:=Windows.GetPixel(bitmapdc,i,y);
                        c:=RGB(pal[col].red,pal[col].green,pal[col].blue) xor c2;
-                       SetPixel(bitmapdc,i,y,c);
-                       SetPixel(windc,i,y,c);
+
+                       if drawtobitmap then
+                         SetPixel(bitmapdc,i,y,c);
+
+                       if drawtoscreen then
+                         SetPixel(windc,i,y,c);
                     end;
                   LeaveCriticalSection(graphdrawing);
                End;
@@ -429,8 +775,12 @@ procedure HLine16Win32GUI(x,x2,y: integer);
                     begin
                        c2:=Windows.GetPixel(bitmapdc,i,y);
                        c:=RGB(pal[col].red,pal[col].green,pal[col].blue) or c2;
-                       SetPixel(bitmapdc,i,y,c);
-                       SetPixel(windc,i,y,c);
+
+                       if drawtobitmap then
+                         SetPixel(bitmapdc,i,y,c);
+
+                       if drawtoscreen then
+                         SetPixel(windc,i,y,c);
                     end;
                   LeaveCriticalSection(graphdrawing);
                End
@@ -439,26 +789,322 @@ procedure HLine16Win32GUI(x,x2,y: integer);
                   If CurrentWriteMode<>NotPut Then
                     col:=CurrentColor
                   Else col:=Not(CurrentColor);
-                  c:=RGB(pal[col].red,pal[col].green,pal[col].blue);
-                  pen:=CreatePen(PS_SOLID,1,c);
                   EnterCriticalSection(graphdrawing);
-                  oldpen:=SelectObject(bitmapdc,pen);
-                  Windows.MoveToEx(bitmapdc,x,y,nil);
-                  Windows.LineTo(bitmapdc,x2+1,y);
-                  SelectObject(bitmapdc,oldpen);
+                  if x2-x<=2 then
+                    begin
+                       c:=RGB(pal[col].red,pal[col].green,pal[col].blue);
+                       for x := x to x2 do
+                         begin
+                            if drawtobitmap then
+                              SetPixelV(bitmapdc,x,y,c);
+                            if drawtoscreen then
+                              SetPixelV(windc,x,y,c);
+                         end;
+                    end
+                  else
+                    begin
+                       if (col>=0) and (col<=high(pens)) then
+                         begin
+                            if pens[col]=0 then
+                              begin
+                                 c:=RGB(pal[col].red,pal[col].green,pal[col].blue);
+                                 pens[col]:=CreatePen(PS_SOLID,1,c);
+                              end;
+                            pen:=pens[col];
+                         end
+                       else
+                         begin
+                            c:=RGB(pal[col].red,pal[col].green,pal[col].blue);
+                            pen:=CreatePen(PS_SOLID,1,c);
+                         end;
 
-                  oldpen:=SelectObject(windc,pen);
-                  Windows.MoveToEx(windc,x,y,nil);
-                  Windows.LineTo(windc,x2+1,y);
-                  SelectObject(windc,oldpen);
+                       if drawtobitmap then
+                         begin
+                            oldpen:=SelectObject(bitmapdc,pen);
+                            Windows.MoveToEx(bitmapdc,x,y,nil);
+                            Windows.LineTo(bitmapdc,x2+1,y);
+                            SelectObject(bitmapdc,oldpen);
+                         end;
 
-                  DeleteObject(pen);
-                  LeaveCriticalSection(graphdrawing);
+                       if drawtoscreen then
+                         begin
+                            oldpen:=SelectObject(windc,pen);
+                            Windows.MoveToEx(windc,x,y,nil);
+                            Windows.LineTo(windc,x2+1,y);
+                            SelectObject(windc,oldpen);
+                         end;
+
+                       if (col<0) or (col>high(pens)) then
+                         DeleteObject(pen);
+                    end;
+                   LeaveCriticalSection(graphdrawing);
                End;
            End;
         end;
    end;
 
+procedure VLine16Win32GUI(x,y,y2: smallint); {$ifndef fpc}far;{$endif fpc}
+
+ var
+  ytmp: smallint;
+  col,c : longint;
+  oldpen,pen : HPEN;
+
+Begin
+  { must we swap the values? }
+  if y >= y2 then
+   Begin
+     ytmp := y2;
+     y2 := y;
+     y:= ytmp;
+   end;
+ if ClipPixels then
+   begin
+      if (x>ViewWidth) or (x<0) or (y>ViewHeight) or (y2<0) then
+        exit;
+      if y<0 then
+        y:=0;
+      if y2>ViewHeight then
+        y2:=ViewHeight;
+   end;
+  { First convert to global coordinates }
+  X   := X + StartXViewPort;
+  Y2  := Y2 + StartYViewPort;
+  Y   := Y + StartYViewPort;
+  if currentwritemode=normalput then
+    begin
+       col:=CurrentColor;
+       EnterCriticalSection(graphdrawing);
+       if y2-y<=2 then
+         begin
+            c:=RGB(pal[col].red,pal[col].green,pal[col].blue);
+            for y := y to y2 do
+              begin
+                 if drawtobitmap then
+                   SetPixelV(bitmapdc,x,y,c);
+                 if drawtoscreen then
+                   SetPixelV(windc,x,y,c);
+              end;
+         end
+       else
+         begin
+            if (col>=0) and (col<=high(pens)) then
+              begin
+                 if pens[col]=0 then
+                   begin
+                      c:=RGB(pal[col].red,pal[col].green,pal[col].blue);
+                      pens[col]:=CreatePen(PS_SOLID,1,c);
+                   end;
+                 pen:=pens[col];
+              end
+            else
+              begin
+                 c:=RGB(pal[col].red,pal[col].green,pal[col].blue);
+                 pen:=CreatePen(PS_SOLID,1,c);
+              end;
+
+            if drawtobitmap then
+              begin
+                 oldpen:=SelectObject(bitmapdc,pen);
+                 Windows.MoveToEx(bitmapdc,x,y,nil);
+                 Windows.LineTo(bitmapdc,x,y2+1);
+                 SelectObject(bitmapdc,oldpen);
+              end;
+
+            if drawtoscreen then
+              begin
+                 oldpen:=SelectObject(windc,pen);
+                 Windows.MoveToEx(windc,x,y,nil);
+                 Windows.LineTo(windc,x,y2+1);
+                 SelectObject(windc,oldpen);
+              end;
+            if (col<0) or (col>high(pens)) then
+              DeleteObject(pen);
+         end;
+       LeaveCriticalSection(graphdrawing);
+    end
+  else
+    for y := y to y2 do Directputpixel(x,y)
+End;
+
+procedure Circle16Win32GUI(X, Y: smallint; Radius:Word);
+
+  var
+     bitmaprgn,winrgn : HRGN;
+     col,c : longint;
+     oldpen,pen : HPEN;
+     OriginalArcInfo: ArcCoordsType;
+     OldWriteMode: word;
+
+  begin
+     if (Radius = 0) then
+          Exit;
+
+     if (Radius = 1) then
+       begin
+          { only normal put mode is supported by a call to PutPixel }
+          PutPixel(X, Y, CurrentColor);
+          Exit;
+       end;
+
+     if (Radius = 2) then
+       begin
+          { only normal put mode is supported by a call to PutPixel }
+          PutPixel(X-1, Y, CurrentColor);
+          PutPixel(X+1, Y, CurrentColor);
+          PutPixel(X, Y-1, CurrentColor);
+          PutPixel(X, Y+1, CurrentColor);
+          Exit;
+       end;
+
+     if LineInfo.Thickness = Normwidth then
+       begin
+          EnterCriticalSection(graphdrawing);
+          { let windows do the clipping }
+          if drawtobitmap then
+            begin
+               bitmaprgn:=CreateRectRgn(startxviewport,startyviewport,
+                 startxviewport+viewwidth+1,startyviewport+viewheight+1);
+               SelectClipRgn(bitmapdc,bitmaprgn);
+            end;
+
+          if drawtoscreen then
+            begin
+               winrgn:=CreateRectRgn(startxviewport,startyviewport,
+                 startxviewport+viewwidth+1,startyviewport+viewheight+1);
+               SelectClipRgn(windc,winrgn);
+            end;
+
+          inc(x,StartXViewPort);
+          inc(y,StartYViewPort);
+          col:=CurrentColor;
+
+          if (col>=0) and (col<=high(pens)) then
+            begin
+               if pens[col]=0 then
+                 begin
+                    c:=RGB(pal[col].red,pal[col].green,pal[col].blue);
+                    pens[col]:=CreatePen(PS_SOLID,1,c);
+                 end;
+               pen:=pens[col];
+            end
+          else
+            begin
+               c:=RGB(pal[col].red,pal[col].green,pal[col].blue);
+               pen:=CreatePen(PS_SOLID,1,c);
+            end;
+
+          if drawtobitmap then
+            begin
+               oldpen:=SelectObject(bitmapdc,pen);
+               windows.arc(bitmapdc,x-radius,y-radius,x+radius,y+radius,
+                 x,y-radius,x,y-radius);
+               SelectObject(bitmapdc,oldpen);
+            end;
+
+          if drawtoscreen then
+            begin
+               oldpen:=SelectObject(windc,pen);
+               windows.arc(windc,x-radius,y-radius,x+radius,y+radius,
+                 x,y-radius,x,y-radius);
+               SelectObject(windc,oldpen);
+            end;
+
+          if (col<0) or (col>high(pens)) then
+            DeleteObject(pen);
+          { release clip regions }
+          if drawtoscreen then
+            begin
+               SelectClipRgn(windc,0);
+               DeleteObject(winrgn);
+            end;
+          if drawtobitmap then
+            begin
+               SelectClipRgn(bitmapdc,0);
+               DeleteObject(bitmaprgn);
+            end;
+          LeaveCriticalSection(graphdrawing);
+       end
+     else
+       begin
+          { save state of arc information }
+          { because it is not needed for  }
+          { a circle call.                }
+          move(ArcCall,OriginalArcInfo, sizeof(ArcCall));
+          InternalEllipse(X,Y,Radius,Radius,0,360,{$ifdef fpc}@{$endif}DummyPatternLine);
+          { restore arc information }
+          move(OriginalArcInfo, ArcCall,sizeof(ArcCall));
+       end;
+ end;
+
+{
+Procedure PutImageWin32GUI(X,Y: smallint; var Bitmap; BitBlt: Word); {$ifndef fpc}far;{$endif fpc}
+type
+  pt = array[0..$fffffff] of word;
+  ptw = array[0..2] of longint;
+var
+  k: longint;
+  oldCurrentColor: word;
+  oldCurrentWriteMode, i, j, y1, x1, deltaX, deltaX1, deltaY: smallint;
+Begin
+{$ifdef logging}
+  LogLn('putImage at ('+strf(x)+','+strf(y)+') with width '+strf(ptw(Bitmap)[0])+
+    ' and height '+strf(ptw(Bitmap)[1]));
+  deltaY := 0;
+{$endif logging}
+  inc(x,startXViewPort);
+  inc(y,startYViewPort);
+  x1 := ptw(Bitmap)[0]+x; { get width and adjust end coordinate accordingly }
+  y1 := ptw(Bitmap)[1]+y; { get height and adjust end coordinate accordingly }
+
+  deltaX := 0;
+  deltaX1 := 0;
+  k := 3 * sizeOf(Longint) div sizeOf(Word); { Three reserved longs at start of bitmap }
+ { check which part of the image is in the viewport }
+  if clipPixels then
+    begin
+      if y < startYViewPort then
+        begin
+          deltaY := startYViewPort - y;
+          inc(k,(x1-x+1)*deltaY);
+          y := startYViewPort;
+         end;
+      if y1 > startYViewPort+viewHeight then
+        y1 := startYViewPort+viewHeight;
+      if x < startXViewPort then
+        begin
+          deltaX := startXViewPort-x;
+          x := startXViewPort;
+        end;
+      if x1 > startXViewPort + viewWidth then
+        begin
+          deltaX1 := x1 - (startXViewPort + viewWidth);
+          x1 := startXViewPort + viewWidth;
+        end;
+    end;
+{$ifdef logging}
+  LogLn('deltax: '+strf(deltax)+', deltax1: '+strf(deltax1)+',deltay: '+strf(deltay));
+{$endif logging}
+  case bitBlt of
+  end;
+  oldCurrentColor := currentColor;
+  oldCurrentWriteMode := currentWriteMode;
+  currentWriteMode := bitBlt;
+  for j:=Y to Y1 do
+   Begin
+     inc(k,deltaX);
+     for i:=X to X1 do
+      begin
+        currentColor := pt(bitmap)[k];
+        directPutPixel(i,j);
+        inc(k);
+     end;
+     inc(k,deltaX1);
+   end;
+  currentWriteMode := oldCurrentWriteMode;
+  currentColor := oldCurrentColor;
+end;
+}
 procedure SetRGBPaletteWin32GUI(colorNum,redValue,greenvalue,
       bluevalue : integer);
 
@@ -588,7 +1234,12 @@ begin
          SelectObject(windc,oldpen);
          SelectObject(windc,oldbrush);
          // clear font cache
-         fillchar(bitmapfontcache,sizeof(bitmapfontcache),0);
+         fillchar(bitmapfonthorizoncache,sizeof(bitmapfonthorizoncache),0);
+         fillchar(bitmapfontverticalcache,sizeof(bitmapfontverticalcache),0);
+
+         // clear predefined pens
+         fillchar(pens,sizeof(pens),0);
+
          LeaveCriticalSection(graphdrawing);
       end;
     wm_Destroy:
@@ -601,8 +1252,15 @@ begin
          DeleteDC(bitmapdc);
          // release font cache
          for i:=0 to 255 do
-           if bitmapfontcache[i]<>0 then
-             DeleteObject(bitmapfontcache[i]);
+           if bitmapfonthorizoncache[i]<>0 then
+             DeleteObject(bitmapfonthorizoncache[i]);
+         for i:=0 to 255 do
+           if bitmapfontverticalcache[i]<>0 then
+             DeleteObject(bitmapfontverticalcache[i]);
+
+         for i:=0 to high(pens) do
+           if pens[i]<>0 then
+             DeleteObject(pens[i]);
 
          LeaveCriticalSection(graphdrawing);
 {$ifdef DEBUG_WM_PAINT}
@@ -774,9 +1432,32 @@ procedure LineWin32GUI(X1, Y1, X2, Y2: smallint); {$ifndef fpc}far;{$endif fpc}
                   If LineInfo.Thickness=NormWidth then
                    Begin
                       EnterCriticalSection(graphdrawing);
+                      {
+                      if currentwritemode<>normalput then
+                        begin
+                           case currentwritemode of
+                              XORPut:
+                                begin
+                                   SetROP2(windc,R2_XORPEN);
+                                   SetROP2(bitmapdc,R2_XORPEN);
+                                end;
+                              AndPut:
+                                begin
+                                   SetROP2(windc,R2_MASKPEN);
+                                   SetROP2(bitmapdc,R2_MASKPEN);
+                                end;
+                              OrPut:
+                                begin
+                                   SetROP2(windc,R2_MERGEPEN);
+                                   SetROP2(bitmapdc,R2_MERGEPEN);
+                                end;
+                           end;
+                        end;
+                      }
                       col:=RGB(pal[CurrentColor].red,pal[CurrentColor].green,pal[CurrentColor].blue);
                       pen:=CreatePen(PS_SOLID,1,col);
-                      OldCurrentColor:=CurrentColor;
+                      if pen=0 then
+                        writeln('Pen konnte nicht erzeugt werden!');
 
                       oldpen:=SelectObject(windc,pen);
                       MoveToEx(windc,x1,y1,nil);
@@ -791,7 +1472,13 @@ procedure LineWin32GUI(X1, Y1, X2, Y2: smallint); {$ifndef fpc}far;{$endif fpc}
                       SelectObject(bitmapdc,oldpen);
 
                       DeleteObject(pen);
-                      CurrentColor:=OldCurrentColor;
+                      {
+                      if currentwritemode<>normalput then
+                        begin
+                           SetROP2(windc,R2_COPYPEN);
+                           SetROP2(bitmapdc,R2_COPYPEN);
+                        end;
+                      }
                       LeaveCriticalSection(graphdrawing);
                    end
                  else
@@ -1067,6 +1754,25 @@ function queryadapterinfo : pmodeinfo;
      ScreenWidth,ScreenHeight : longint;
      ScreenWidthMaximized,ScreenHeightMaximized : longint;
 
+  procedure SetupWin32GUIDefault;
+
+    begin
+       mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+       mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+       mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+       mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+       mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+       mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+       mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+       mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+       mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+       mode.OuttextXY:={$ifdef fpc}@{$endif}OuttextXYWin32GUI;
+       mode.VLine := {$ifdef fpc}@{$endif}VLine16Win32GUI;
+       // mode.circle := {$ifdef fpc}@{$endif}Circle16Win32GUI;
+       // doesn't work yet
+       // mode.Line:={$ifdef fpc}@{$endif}LineWin32GUI;
+    end;
+
   begin
      SaveVideoState:=savestate;
      RestoreVideoState:=restorestate;
@@ -1103,17 +1809,7 @@ function queryadapterinfo : pmodeinfo;
           mode.DirectColor := FALSE;
           mode.MaxX := 639;
           mode.MaxY := 479;
-          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
-          // mode.Line:={$ifdef fpc}@{$endif}LineWin32GUI;
+          SetupWin32GUIDefault;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -1131,16 +1827,7 @@ function queryadapterinfo : pmodeinfo;
           mode.DirectColor := FALSE;
           mode.MaxX := 639;
           mode.MaxY := 199;
-          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
+          SetupWin32GUIDefault;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -1157,16 +1844,7 @@ function queryadapterinfo : pmodeinfo;
           mode.DirectColor := FALSE;
           mode.MaxX := 639;
           mode.MaxY := 349;
-          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
+          SetupWin32GUIDefault;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -1183,16 +1861,7 @@ function queryadapterinfo : pmodeinfo;
           mode.DirectColor := FALSE;
           mode.MaxX := 639;
           mode.MaxY := 399;
-          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
+          SetupWin32GUIDefault;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -1209,16 +1878,7 @@ function queryadapterinfo : pmodeinfo;
           mode.DirectColor := FALSE;
           mode.MaxX := 639;
           mode.MaxY := 479;
-          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
+          SetupWin32GUIDefault;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -1236,16 +1896,7 @@ function queryadapterinfo : pmodeinfo;
           mode.DirectColor := FALSE;
           mode.MaxX := 799;
           mode.MaxY := 599;
-          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
+          SetupWin32GUIDefault;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -1259,16 +1910,7 @@ function queryadapterinfo : pmodeinfo;
           mode.DirectColor := FALSE;
           mode.MaxX := 799;
           mode.MaxY := 599;
-          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
+          SetupWin32GUIDefault;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -1286,16 +1928,7 @@ function queryadapterinfo : pmodeinfo;
           mode.DirectColor := FALSE;
           mode.MaxX := 1023;
           mode.MaxY := 767;
-          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
+          SetupWin32GUIDefault;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -1309,16 +1942,7 @@ function queryadapterinfo : pmodeinfo;
           mode.DirectColor := FALSE;
           mode.MaxX := 1023;
           mode.MaxY := 768;
-          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
+          SetupWin32GUIDefault;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -1336,16 +1960,7 @@ function queryadapterinfo : pmodeinfo;
           mode.DirectColor := FALSE;
           mode.MaxX := 1279;
           mode.MaxY := 1023;
-          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
+          SetupWin32GUIDefault;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -1359,16 +1974,7 @@ function queryadapterinfo : pmodeinfo;
           mode.DirectColor := FALSE;
           mode.MaxX := 1279;
           mode.MaxY := 1023;
-          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-          mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
+          SetupWin32GUIDefault;
           mode.XAspect := 10000;
           mode.YAspect := 10000;
           AddMode(mode);
@@ -1384,16 +1990,7 @@ function queryadapterinfo : pmodeinfo;
       mode.DirectColor := FALSE;
       mode.MaxX := ScreenWidth-1;
       mode.MaxY := ScreenHeight-1;
-      mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-      mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-      mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-      mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-      mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-      mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-      mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-      mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-      mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
+      SetupWin32GUIDefault;
       mode.XAspect := 10000;
       mode.YAspect := 10000;
       AddMode(mode);
@@ -1407,16 +2004,7 @@ function queryadapterinfo : pmodeinfo;
       mode.DirectColor := FALSE;
       mode.MaxX := ScreenWidth-1;
       mode.MaxY := ScreenHeight-1;
-      mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-      mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-      mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-      mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-      mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-      mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-      mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-      mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-      mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
+      SetupWin32GUIDefault;
       mode.XAspect := 10000;
       mode.YAspect := 10000;
       AddMode(mode);
@@ -1431,16 +2019,7 @@ function queryadapterinfo : pmodeinfo;
       mode.DirectColor := FALSE;
       mode.MaxX := ScreenWidthMaximized-1;
       mode.MaxY := ScreenHeightMaximized-1;
-      mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-      mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-      mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-      mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-      mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-      mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-      mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-      mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-      mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
+      SetupWin32GUIDefault;
       mode.XAspect := 10000;
       mode.YAspect := 10000;
       AddMode(mode);
@@ -1454,16 +2033,7 @@ function queryadapterinfo : pmodeinfo;
       mode.DirectColor := FALSE;
       mode.MaxX := ScreenWidthMaximized-1;
       mode.MaxY := ScreenHeightMaximized-1;
-      mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-      mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-      mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-      mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-      mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-      mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-      mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-      mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-      mode.DrawBitmapCharHoriz:={$ifdef fpc}@{$endif}DrawBitmapCharHorizWin32GUI;
+      SetupWin32GUIDefault;
       mode.XAspect := 10000;
       mode.YAspect := 10000;
       AddMode(mode);
@@ -1474,7 +2044,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-03-27 12:57:30  florian
+  Revision 1.7  2000-04-02 12:12:22  florian
+    * a lot of optimizing done
+
+  Revision 1.6  2000/03/27 12:57:30  florian
     * some "resource leaks" fixed
 
   Revision 1.5  2000/03/25 19:10:11  florian
