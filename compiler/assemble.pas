@@ -151,12 +151,10 @@ begin
      lastas:=ord(target_asm.id);
      { is an assembler passed ? }
      if utilsdirectory<>'' then
-         begin
-            LastASBin:=Search(target_asm.asmbin+source_os.exeext,
-              utilsdirectory,asfound)+target_asm.asmbin+source_os.exeext;
-         end
-       else
-         LastASBin:=FindExe(target_asm.asmbin,asfound);
+       LastASBin:=Search(target_asm.asmbin+source_os.exeext,utilsdirectory,asfound)+
+         target_asm.asmbin+source_os.exeext;
+     if LastASBin='' then
+       LastASBin:=FindExe(target_asm.asmbin,asfound);
      if (not asfound) and not(cs_asm_extern in aktglobalswitches) then
       begin
         Message1(exec_w_assembler_not_found,LastASBin);
@@ -549,7 +547,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.48  1999-05-27 19:44:03  peter
+  Revision 1.48.2.1  1999-06-28 15:55:39  peter
+    * also search path if not found in utilsdirectory
+
+  Revision 1.48  1999/05/27 19:44:03  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
