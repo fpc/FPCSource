@@ -1054,7 +1054,7 @@ unit cgx86;
           ai.SetCondition(flags_to_cond(f));
           list.concat(ai);
           if (reg <> hreg) then
-            a_load_reg_reg(list,OS_8,OS_8,hreg,reg);
+            a_load_reg_reg(list,OS_8,size,hreg,reg);
        end;
 
 
@@ -1682,7 +1682,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.19  2002-10-16 19:01:43  peter
+  Revision 1.20  2002-11-09 21:18:31  carl
+    * flags2reg() was not extending the byte register to the correct result size
+
+  Revision 1.19  2002/10/16 19:01:43  peter
     + $IMPLICITEXCEPTIONS switch to turn on/off generation of the
       implicit exception frames for procedures with initialized variables
       and for constructors. The default is on for compatibility
