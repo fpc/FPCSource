@@ -99,8 +99,8 @@ function inflateReset(var strm:TZStream):longint;cdecl;external libz name 'infla
 function compress(dest:pbytef;destLen:uLongf; source : pbytef; sourceLen:uLong):longint;cdecl;external libz name 'compress';
 function compress2(dest:pbytef;destLen:uLongf; source : pbytef; sourceLen:uLong; level:longint):longint;cdecl;external libz name 'compress2';
 function uncompress(dest:pbytef;destLen:uLongf; source : pbytef; sourceLen:uLong):longint;cdecl;external libz name 'uncompress';
-function gzopen(path:pchar; mode:pbytef):gzFile;cdecl;external libz name 'gzopen';
-function gzdopen(fd:longint; mode:pbytef):gzFile;cdecl;external libz name 'gzdopen';
+function gzopen(path:pchar; mode:pchar):gzFile;cdecl;external libz name 'gzopen';
+function gzdopen(fd:longint; mode:pchar):gzFile;cdecl;external libz name 'gzdopen';
 function gzsetparams(thefile:gzFile; level:longint; strategy:longint):longint;cdecl;external libz name 'gzsetparams';
 function gzread(thefile:gzFile; buf:pointer; len:cardinal):longint;cdecl;external libz name 'gzread';
 function gzwrite(thefile:gzFile; buf:pointer; len:cardinal):longint;cdecl;external libz name 'gzwrite';
