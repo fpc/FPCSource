@@ -398,6 +398,8 @@ const
                      ((A_LWZ,A_LWZU),(A_LWZX,A_LWZUX)),
                      { 64bit stuff should be handled separately }
                      ((A_NONE,A_NONE),(A_NONE,A_NONE)),
+                     { 128bit stuff too }
+                     ((A_NONE,A_NONE),(A_NONE,A_NONE)),
                      { there's no load-byte-with-sign-extend :( }
                      ((A_LBZ,A_LBZU),(A_LBZX,A_LBZUX)),
                      ((A_LHA,A_LHAU),(A_LHAX,A_LHAUX)),
@@ -2298,7 +2300,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.162  2004-02-09 20:44:40  olle
+  Revision 1.163  2004-02-09 22:45:49  florian
+    * compilation fixed
+
+  Revision 1.162  2004/02/09 20:44:40  olle
     * macos: a_load_store fixed to only allocat temp reg if needed, side effect is compiler work for macos again.
 
   Revision 1.161  2004/02/08 20:15:42  jonas

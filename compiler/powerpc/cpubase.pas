@@ -302,7 +302,8 @@ uses
            LOC_REFERENCE,LOC_REGISTER or LOC_FPUREGISTER
          }
          loc  : TCGLoc;
-         {Word alignment on stack 4 --> 32 bit}
+         lochigh : TCGLoc;
+         { Word alignment on stack 4 --> 32 bit }
          Alignment:Byte;
          case TCGLoc of
             LOC_REFERENCE : (reference : tparareference);
@@ -631,7 +632,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2004-02-08 18:08:59  jonas
+  Revision 1.85  2004-02-09 22:45:49  florian
+    * compilation fixed
+
+  Revision 1.84  2004/02/08 18:08:59  jonas
     * fixed regvars support. Needs -doldregvars to activate. Only tested with
       ppc, other processors should however only require maxregvars and
       maxfpuregvars constants in cpubase.pas. Remember to take scratch-
