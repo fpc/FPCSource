@@ -9,7 +9,7 @@ Var Addr : TInetSockAddr;
     
 begin
   Addr.family:=AF_INET;
-  { port 78 in network order }
+  { port 79 in network order }
   Addr.port:=79 shl 8;
   { localhost : 127.0.0.1 in network order }
   Addr.addr:=((1 shl 24) or 127);
