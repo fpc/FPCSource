@@ -165,6 +165,7 @@ type
         procedure   GetLinkBounds(Index: sw_integer; var R: TRect); virtual;
         function    GetLinkFileID(Index: sw_integer): word; virtual;
         function    GetLinkContext(Index: sw_integer): THelpCtx; virtual;
+        function    GetLinkTarget(Index: sw_integer): string; virtual;
         function    GetLinkText(Index: sw_integer): string; virtual;
         function    GetColorAreaCount: sw_integer; virtual;
         procedure   GetColorAreaBounds(Index: sw_integer; var R: TRect); virtual;
@@ -734,7 +735,8 @@ end;
 constructor THelpViewer.Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
 begin
   inherited Init(Bounds, AHScrollBar, AVScrollBar, nil, nil);
-  Flags:=efInsertMode; ReadOnly:=true;
+  Flags:=efInsertMode or efPersistentBlocks;
+  ReadOnly:=true;
   New(WordList, Init(50,50));
   Margin:=1; CurLink:=-1;
 end;
@@ -866,6 +868,11 @@ begin
   GetLinkContext:=HelpTopic^.GetLinkContext(Index);
 end;
 
+function THelpViewer.GetLinkTarget(Index: sw_integer): string;
+begin
+  GetLinkTarget:='';
+end;
+
 function THelpViewer.GetLinkText(Index: sw_integer): string;
 var S: string;
     R: TRect;
@@ -938,6 +945,9 @@ begin
     GetLinkBounds(Link,R);
     SetCurPtr(R.A.X,R.A.Y);
     TrackCursor(true);
+    {St:=GetLinkTarget(Link);
+    If St<>'' then
+      SetTitle('Help '+St);}
   end;
 end;
 
@@ -1409,7 +1419,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  2002-09-07 15:40:49  peter
+  Revision 1.10  2003-01-18 01:36:23  pierre
+   * fix web bug 1649
+
+  Revision 1.9  2002/09/07 15:40:49  peter
     * old logs removed and tabs fixed
 
   Revision 1.8  2002/03/25 14:37:45  pierre
