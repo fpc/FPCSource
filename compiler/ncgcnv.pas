@@ -220,6 +220,7 @@ interface
               location.reference.base:=rg.getaddressregister(exprasmlist);
               cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,
                 location.reference.base);
+              location_freetemp(exprasmlist,left.location);
             end;
           else
             internalerror(2002032216);
@@ -237,6 +238,7 @@ interface
                cg.a_load_loc_ref(exprasmlist,left.location,
                  location.reference);
                location_release(exprasmlist,left.location);
+               location_freetemp(exprasmlist,left.location);
              end;
            { the rest is removed in the resulttype pass and converted to compilerprocs }
            else
@@ -262,6 +264,7 @@ interface
                  location_release(exprasmlist,left.location);
                  location.register:=rg.getregisterfpu(exprasmlist);
                  cg.a_loadfpu_loc_reg(exprasmlist,left.location,location.register);
+                 location_freetemp(exprasmlist,left.location);
               end;
             else
               internalerror(2002032215);
@@ -336,7 +339,6 @@ interface
       var
          l1 : tasmlabel;
          hr : treference;
-         hd : tobjectdef;
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
          objectlibrary.getlabel(l1);
@@ -358,6 +360,7 @@ interface
                 location_release(exprasmlist,left.location);
                 location.register:=rg.getaddressregister(exprasmlist);
                 cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,location.register);
+                location_freetemp(exprasmlist,left.location);
               end;
             else
               internalerror(2002032214);
@@ -383,6 +386,7 @@ interface
                  location_release(exprasmlist,left.location);
                  location.register:=rg.getregisterint(exprasmlist);
                  cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,location.register);
+                 location_freetemp(exprasmlist,left.location);
               end;
             LOC_CREGISTER:
               begin
@@ -487,7 +491,10 @@ end.
 
 {
   $Log$
-  Revision 1.27  2002-08-23 16:14:48  peter
+  Revision 1.28  2002-08-25 09:06:58  peter
+    * add calls to release temps
+
+  Revision 1.27  2002/08/23 16:14:48  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 
