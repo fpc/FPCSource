@@ -125,6 +125,10 @@ uses
 
 function Compile(const cmd:string):longint;
 
+Const
+       { do we need to link }
+       IsExe : boolean = false;
+
 implementation
 
 uses
@@ -322,7 +326,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.39  1999-11-12 11:03:50  peter
+  Revision 1.40  1999-11-18 13:43:48  pierre
+   + IsExe global var needed for IDE
+
+  Revision 1.39  1999/11/12 11:03:50  peter
     * searchpaths changed to stringqueue object
 
   Revision 1.38  1999/11/09 23:47:53  pierre
