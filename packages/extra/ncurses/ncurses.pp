@@ -47,8 +47,8 @@ type
   CXX_TYPE_OF_BOOL = char;
 
 Var
-    COLORS : longint;external name 'COLORS';
-    COLOR_PAIRS : longint;external name 'COLOR_PAIRS';
+    COLORS : longint; cvar;
+    COLOR_PAIRS : longint; cvar;
 
     const
        COLOR_BLACK = 0;
@@ -65,7 +65,7 @@ Type
     pacs_map = ^tacs_map;
 
 Var
-    acs_map : tacs_map;external name 'acs_map';
+    acs_map : tacs_map; cvar;
 
     function ACS_ULCORNER : chtype;
     function ACS_LLCORNER : chtype;
@@ -195,13 +195,13 @@ Var
        PSCREEN = PWINDOW;
 
       var
-       stdscr  : PWINDOW;external name 'stdscr';
-       curscr  : PWINDOW;external name 'curscr';
-       newscr  : PWINDOW;external name 'newscr';
-       LINES   : longint;external name 'LINES';
-       COLS    : longint;external name 'COLS';
-       TABSIZE : longint;external name 'TABSIZE';
-       ESCDELAY: longint;external name 'ESCDELAY';
+       stdscr  : PWINDOW; cvar;
+       curscr  : PWINDOW; cvar;
+       newscr  : PWINDOW; cvar;
+       LINES   : longint; cvar; 
+       COLS    : longint; cvar; 
+       TABSIZE : longint; cvar;
+       ESCDELAY: longint; cvar;
 
     Function define_key(_para1:pchar; _para2:longint):longint; cdecl;external;
     Function keyok(_para1:longint; _para2:bool):longint; cdecl;external;
@@ -1683,7 +1683,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:01  peter
+  Revision 1.3  2003-02-09 16:22:51  marco
+   * xx : thetype; external name ='xx'; to xx :thetype; cvar;
+
+  Revision 1.2  2002/09/07 15:43:01  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/01/29 17:55:17  peter
