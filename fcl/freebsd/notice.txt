@@ -1,7 +1,0 @@
-
-This directory is only temporarily, to ease working on FPC/FreeBSD 1.0.2
-packaging. After that is done, the API and FCL will be restructured like the
-RTL. (linux - unix - freebsd structure)
-
-This dir is a plain copy from the api/linux dir with some small substitutions in
-makefile.fpc (to select the right target)
