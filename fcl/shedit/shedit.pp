@@ -455,7 +455,7 @@ procedure TSHTextEdit.EndSelectionChange;
 
   procedure RedrawArea(x1, y1, x2, y2: Integer);
   begin
-    WriteLn('Redraw: ', x1, '/', y1, ' - ', x2, '/', y2);
+    //WriteLn('Redraw: ', x1, '/', y1, ' - ', x2, '/', y2);
     if y1 = y2 then
       FWidget.InvalidateRect(x1, y1, (x2 - x1) + 1, (y2 - y1) + 1)
     else begin
@@ -467,17 +467,17 @@ procedure TSHTextEdit.EndSelectionChange;
   end;
 
 begin
-WriteLn('=> TSHTextEdit.EndSelectionChange');
+//WriteLn('=> TSHTextEdit.EndSelectionChange');
   if not OldSelValid then begin
     if FSel.IsValid then
       RedrawArea(FSel.OStartX, FSel.OStartY, FSel.OEndX, FSel.OEndY);
   end else begin
-    WriteLn('Old selection: ', OldSelStartX, '/', OldSelStartY, ' - ', OldSelEndX, '/', OldSelEndY);
+    //WriteLn('Old selection: ', OldSelStartX, '/', OldSelStartY, ' - ', OldSelEndX, '/', OldSelEndY);
     if not FSel.IsValid then begin
-      WriteLn('No new selection');
+      //WriteLn('No new selection');
       RedrawArea(OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY);
     end else begin
-      WriteLn('New selection: ', FSel.OStartX, '/', FSel.OStartY, ' - ', FSel.OEndX, '/', FSel.OEndY);
+      //WriteLn('New selection: ', FSel.OStartX, '/', FSel.OStartY, ' - ', FSel.OEndX, '/', FSel.OEndY);
       // Do OldSel and FSel intersect?
       if (OldSelEndY < FSel.OStartY) or (OldSelStartY > FSel.OEndY) or
          ((OldSelEndY = FSel.OStartY) and (OldSelEndX <= FSel.OStartX)) or
@@ -513,7 +513,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2000-01-31 19:23:37  sg
+  Revision 1.16  2000-01-31 19:28:12  sg
+  * Forgot some debug code ;)
+
+  Revision 1.15  2000/01/31 19:23:37  sg
   * Fixed selection redrawing bugs
   * Changed "x1, y2, x2, y2" arguments to "x, y, w, h"
 
