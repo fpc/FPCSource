@@ -114,7 +114,7 @@ implementation
             cg.getexplicitregister(exprasmlist,NR_RDX);
             {Sign extension depends on the left type.}
             if torddef(left.resulttype.def).typ=u64bit then
-              emit_reg_reg(A_XOR,S_L,NR_RDX,NR_RDX)
+              emit_reg_reg(A_XOR,S_Q,NR_RDX,NR_RDX)
             else
               emit_none(A_CDQ,S_NO);
 
@@ -181,7 +181,7 @@ implementation
         { shifting by a constant directly coded: }
         if (right.nodetype=ordconstn) then
           { l shl 32 should 0 imho, but neither TP nor Delphi do it in this way (FK)}
-          emit_const_reg(op,S_L,tordconstnode(right).value and 63,location.register)
+          emit_const_reg(op,S_Q,tordconstnode(right).value and 63,location.register)
         else
           begin
             { load right operators in a RCX }
@@ -192,7 +192,7 @@ implementation
 
             { right operand is in ECX }
             cg.ungetregister(exprasmlist,NR_RCX);
-            emit_reg_reg(op,S_L,NR_CL,location.register);
+            emit_reg_reg(op,S_Q,NR_CL,location.register);
           end;
       end;
 
@@ -205,7 +205,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2004-02-05 01:24:08  florian
+  Revision 1.4  2004-02-05 18:28:37  peter
+    * x86_64 fixes for opsize
+
+  Revision 1.3  2004/02/05 01:24:08  florian
     * several fixes to compile x86-64 system
 
   Revision 1.2  2004/02/04 19:22:27  peter

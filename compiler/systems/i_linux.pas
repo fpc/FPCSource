@@ -314,7 +314,7 @@ unit i_linux;
             newline      : #10;
             dirsep       : '/';
             files_case_relevent : true;
-            assem        : as_i386_elf32;
+            assem        : as_gas;
             assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
@@ -514,7 +514,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.23  2004-01-28 22:16:31  peter
+  Revision 1.24  2004-02-05 18:28:37  peter
+    * x86_64 fixes for opsize
+
+  Revision 1.23  2004/01/28 22:16:31  peter
     * more record alignment fixes
 
   Revision 1.22  2004/01/28 15:36:47  florian

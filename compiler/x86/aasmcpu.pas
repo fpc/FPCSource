@@ -307,21 +307,24 @@ implementation
        { Intel style operands ! }
        opsize_2_type:array[0..2,topsize] of longint=(
          (OT_NONE,
-          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS16,OT_BITS32,OT_BITS32,OT_BITS64,OT_BITS64,OT_BITS64,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS16,OT_BITS32,OT_BITS32,OT_BITS64,OT_BITS64,OT_BITS64,
           OT_BITS16,OT_BITS32,OT_BITS64,
-          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,OT_NONE,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
+          OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT
          ),
          (OT_NONE,
-          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS8,OT_BITS8,OT_BITS16,OT_BITS8,OT_BITS16,OT_BITS32,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS8,OT_BITS8,OT_BITS16,OT_BITS8,OT_BITS16,OT_BITS32,
           OT_BITS16,OT_BITS32,OT_BITS64,
-          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,OT_NONE,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
+          OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT
          ),
          (OT_NONE,
-          OT_BITS8,OT_BITS16,OT_BITS32,OT_NONE,OT_NONE,OT_NONE,OT_NONE,OT_NONE,OT_NONE,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_NONE,OT_NONE,OT_NONE,OT_NONE,OT_NONE,OT_NONE,
           OT_BITS16,OT_BITS32,OT_BITS64,
-          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,OT_NONE,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
+          OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT
          )
        );
@@ -333,21 +336,24 @@ implementation
        { Intel style operands ! }
        opsize_2_type:array[0..2,topsize] of longint=(
          (OT_NONE,
-          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS16,OT_BITS32,OT_BITS32,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS16,OT_BITS32,OT_BITS32,
           OT_BITS16,OT_BITS32,OT_BITS64,
-          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,OT_NONE,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
+          OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT
          ),
          (OT_NONE,
-          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS8,OT_BITS8,OT_BITS16,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_BITS8,OT_BITS8,OT_BITS16,
           OT_BITS16,OT_BITS32,OT_BITS64,
-          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,OT_NONE,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
+          OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT
          ),
          (OT_NONE,
-          OT_BITS8,OT_BITS16,OT_BITS32,OT_NONE,OT_NONE,OT_NONE,
+          OT_BITS8,OT_BITS16,OT_BITS32,OT_BITS64,OT_NONE,OT_NONE,OT_NONE,
           OT_BITS16,OT_BITS32,OT_BITS64,
-          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,OT_NONE,
+          OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_NONE,
+          OT_BITS64,
           OT_NEAR,OT_FAR,OT_SHORT
          )
       );
@@ -1958,7 +1964,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2004-02-03 21:21:23  peter
+  Revision 1.48  2004-02-05 18:28:37  peter
+    * x86_64 fixes for opsize
+
+  Revision 1.47  2004/02/03 21:21:23  peter
     * real fix for the short jmp out of range problem. Only forward jumps
       needs an offset correction. For backward jumps both the address of
       the symbol and the instruction are already updated so no correction

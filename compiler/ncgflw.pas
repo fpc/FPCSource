@@ -496,7 +496,7 @@ implementation
          load_all_regvars(exprasmlist);
 {$endif OLDREGVARS}
 
-         cmp_const:=aword(Tordconstnode(right).value);
+         cmp_const:=Tordconstnode(right).value;
          if do_loopvar_at_end then
             begin
               {Watch out for wrap around 255 -> 0.}
@@ -1463,7 +1463,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  2004-01-31 17:45:17  peter
+  Revision 1.91  2004-02-05 18:28:37  peter
+    * x86_64 fixes for opsize
+
+  Revision 1.90  2004/01/31 17:45:17  peter
     * Change several $ifdef i386 to x86
     * Change several OS_32 to OS_INT/OS_ADDR
 

@@ -29,9 +29,10 @@
 
 type
   topsize = (S_NO,
-    S_B,S_W,S_L,S_BW,S_BL,S_WL,S_BQ,S_WQ,S_LQ,
+    S_B,S_W,S_L,S_Q,S_BW,S_BL,S_WL,S_BQ,S_WQ,S_LQ,
     S_IS,S_IL,S_IQ,
-    S_FS,S_FL,S_FX,S_D,S_Q,S_FV,S_FXX,
+    S_FS,S_FL,S_FX,S_FV,S_FXX,
+    S_MD,
     S_NEAR,S_FAR,S_SHORT
   );
 
@@ -135,7 +136,10 @@ const
 
 {
   $Log$
-  Revision 1.11  2004-01-15 13:57:58  florian
+  Revision 1.12  2004-02-05 18:28:37  peter
+    * x86_64 fixes for opsize
+
+  Revision 1.11  2004/01/15 13:57:58  florian
     * renamed instruction tables
 
   Revision 1.10  2004/01/14 23:39:05  florian

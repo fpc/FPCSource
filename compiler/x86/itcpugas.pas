@@ -45,16 +45,18 @@ interface
 
 {$ifdef x86_64}
      gas_opsize2str : array[topsize] of string[2] = ('',
-       'b','w','l','bw','bl','wl','bq','wq','lq',
+       'b','w','l','q','bw','bl','wl','bq','wq','lq',
        's','l','q',
-       's','l','t','d','q','v','x',
+       's','l','t','v','x',
+       'd',
        '','',''
      );
 {$else x86_64}
      gas_opsize2str : array[topsize] of string[2] = ('',
-       'b','w','l','bw','bl','wl',
+       'b','w','l','q','bw','bl','wl',
        's','l','q',
-       's','l','t','d','q','v','',
+       's','l','t','v','',
+       'd',
        '','',''
      );
 {$endif x86_64}
@@ -133,7 +135,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2004-01-15 14:01:32  florian
+  Revision 1.3  2004-02-05 18:28:37  peter
+    * x86_64 fixes for opsize
+
+  Revision 1.2  2004/01/15 14:01:32  florian
     + x86 instruction tables for x86-64 extended
 
   Revision 1.1  2003/11/12 16:05:40  florian

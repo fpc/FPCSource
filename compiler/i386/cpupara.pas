@@ -192,6 +192,7 @@ unit cpupara;
       begin
          fillchar(result,sizeof(tparalocation),0);
          result.size:=OS_INT;
+         result.alignment:=get_para_align(calloption);
          if calloption=pocall_register then
            begin
              if (nr<=high(parasupregs)+1) then
@@ -487,7 +488,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-12-28 22:09:12  florian
+  Revision 1.49  2004-02-05 18:28:37  peter
+    * x86_64 fixes for opsize
+
+  Revision 1.48  2003/12/28 22:09:12  florian
     + setting of bit 6 of cr for c var args on ppc implemented
 
   Revision 1.47  2003/12/03 23:13:20  peter

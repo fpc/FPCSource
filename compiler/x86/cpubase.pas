@@ -437,7 +437,7 @@ implementation
     function reg2opsize(r:Tregister):topsize;
       const
         subreg2opsize : array[tsubregister] of topsize =
-          (S_NO,S_B,S_B,S_W,S_L,S_D,S_NO,S_NO);
+          (S_NO,S_B,S_B,S_W,S_L,S_Q,S_NO,S_NO);
       begin
         reg2opsize:=S_L;
         case getregtype(r) of
@@ -447,7 +447,7 @@ implementation
             reg2opsize:=S_FL;
           R_MMXREGISTER,
           R_MMREGISTER :
-            reg2opsize:=S_D;
+            reg2opsize:=S_MD;
           R_SPECIALREGISTER :
             begin
               case r of
@@ -539,7 +539,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  2004-02-04 22:01:13  peter
+  Revision 1.40  2004-02-05 18:28:37  peter
+    * x86_64 fixes for opsize
+
+  Revision 1.39  2004/02/04 22:01:13  peter
     * first try to get cpupara working for x86_64
 
   Revision 1.38  2004/01/30 13:42:03  florian
