@@ -3,7 +3,7 @@
 #
 
 [targets]
-units=paszlib adler crc crcasm gzio infblock infcodes inffast inftrees infutil strutils trees zcompres zdeflate zinflate zbase zuncompr zutil
+units=paszlib adler gzcrc gzcrcasm gzio infblock infcodes inffast inftrees infutil strutils trees zcompres zdeflate zinflate zbase zuncompr zutil
 examples=example minigzip
 
 [install]
