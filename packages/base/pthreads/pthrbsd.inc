@@ -17,12 +17,14 @@
 
 **********************************************************************}
 
-
 {
   Automatically converted by H2Pas 0.99.15 from pthrwrk2.h
 }
 
+{$linklib c} // needs libc_r
+
 {$PACKRECORDS C}
+
 
   {
      Copyright (c) 1993, 1994 by Chris Provenzano, proven@mit.edu
@@ -420,7 +422,10 @@ function pthread_attr_getfloatstate(_para1:Ppthread_attr_t; _para2:Pcint):cint;c
 
 {  
    $Log$
-   Revision 1.2  2003-11-04 09:02:18  marco
+   Revision 1.3  2003-11-16 21:30:24  marco
+    * now linklib's
+
+   Revision 1.2  2003/11/04 09:02:18  marco
     * freebsd fixes to get syncobjs running
 
    Revision 1.1  2003/11/03 11:38:38  marco
