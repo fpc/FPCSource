@@ -57,9 +57,40 @@ Begin
         sys_Uname:=rval;
 end;
 
+function GetDomainName(Name:PChar; NameLen:Cint):cint;
+
+Const Mib_GetDomainname : array[0..1] of cint=(CTL_KERN,KERN_NISDOMAINNAME);
+
+VAR
+	tsize : size_t;
+begin
+	tsize := namelen;
+	if (sys_sysctl(@Mib_GetDomainname, 2, name, @tsize, NIL, 0) = -1) Then
+          GetDomainName:=-1
+        Else
+          GetDomainName:=0;
+end;          
+
+function GetHostName(Name:PChar; NameLen:Cint):cint;
+
+Const Mib_GetHostName : array[0..1] of cint=(CTL_KERN,KERN_HOSTNAME);
+
+Var
+	tsize : size_t;
+begin
+	tsize := namelen;
+	if (sys_sysctl(@Mib_GetHostName, 2, name, @tsize, NIL, 0) = -1) Then
+	  GetHostName:=-1
+	Else
+	  GetHostName:=0;
+End;
+
 {
  $Log$
- Revision 1.2  2002-09-07 16:01:17  peter
+ Revision 1.3  2002-09-08 16:11:59  marco
+  * Added GetDomainName and that other one ..
+
+ Revision 1.2  2002/09/07 16:01:17  peter
    * old logs removed and tabs fixed
 
  Revision 1.1  2002/08/21 07:03:16  marco
