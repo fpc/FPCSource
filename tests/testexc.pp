@@ -1,5 +1,7 @@
 program testexceptions;
 
+{$mode objfpc}
+
 Type
   TAObject = class(TObject)
     a : longint;
@@ -27,11 +29,11 @@ Procedure DoTryFinally (Level : Longint; DoRaise : Boolean);
 
 Var Raised,Reraised : Boolean;
     I : Longint;
-    
+
 begin
   Try
     writeln ('Try(',level,') : Checking for exception');
-    If Level=MaxLevel then 
+    If Level=MaxLevel then
       begin
       if DoRaise then
         begin
@@ -49,7 +51,7 @@ begin
   finally
     Writeln ('Finally (',level,'): Starting code.');
   end;
-  writeln ('Out of try/finally at level (',level,')');  
+  writeln ('Out of try/finally at level (',level,')');
 end;
 
 Procedure DoTryExcept (Level : Longint; DoRaise : Boolean);
@@ -57,11 +59,11 @@ Procedure DoTryExcept (Level : Longint; DoRaise : Boolean);
 Var Raised : Boolean;
     I : Longint;
     Caught : TObject;
-    
+
 begin
   Try
     writeln ('Try(',level,') : Checking for exception');
-    If Level=MaxLevel then 
+    If Level=MaxLevel then
       if DoRaise then
         begin
         Writeln ('Try(',level,'): Level ',maxlevel,', raising exception.');
@@ -80,7 +82,7 @@ begin
     On E : TObject do Writeln ('Caught object ',E.ClassName);
 //    writeln ('Except (',level,') : Exception caught by default handler');
   end;
-  writeln ('Out of try/except at level (',level,')');  
+  writeln ('Out of try/except at level (',level,')');
 end;
 
 Procedure DoMix (Level : Longint; DoRaise : Boolean);
@@ -88,12 +90,12 @@ Procedure DoMix (Level : Longint; DoRaise : Boolean);
 Var Raised : Boolean;
     I : Longint;
     Caught : TObject;
-    
+
 begin
   Try
     Try
     writeln ('Try(',level,') : Checking for exception');
-    If Level=MaxLevel then 
+    If Level=MaxLevel then
       if DoRaise then
         begin
         Writeln ('Try(',level,'): Level ',maxlevel,', raising exception.');
@@ -119,7 +121,7 @@ begin
    else
     writeln ('Except (',level,') : Exception caught by default handler');
   end;
-  writeln ('Out of try/except at level (',level,')');  
+  writeln ('Out of try/except at level (',level,')');
 end;
 
 function _dotryfinally : boolean;
@@ -193,6 +195,6 @@ begin
   dotryfinally;
   Finish;
   Writeln ('Testing Try/Finally with raise');
-  Start ('This one should end with an error message !!.'); 
+  Start ('This one should end with an error message !!.');
   DoTryFinally (1,True);
 end.
