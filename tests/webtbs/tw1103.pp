@@ -9,7 +9,7 @@ type
 
 function GetGroupInfo: TestRec;
 begin
-//  fillchar(Result, Sizeof(Result), 0);
+  Result.fString := 'Test';
   Result.fRetAddr := 0;
 end;
 
@@ -23,6 +23,16 @@ begin
   SelectGroup;
 end;
 
+procedure destroystack;
+var
+  s : string;
+  i : longint;
 begin
+  for i:=0 to 255 do
+   s[i]:=#$90;   
+end;  
+
+begin
+//  destroystack;
   p;
 end.
