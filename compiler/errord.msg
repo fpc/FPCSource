@@ -2,6 +2,8 @@
 %%% Contains all comments from errord.msg
 %%% Reordering of errord.msg respective to errore.msg
 %%% Contains all comments from errord.msg
+%%% Reordering of errord.msg respective to errore.msg
+%%% Contains all comments from errord.msg
 #
 #   $Id$
 #   This file is part of the Free Pascal Compiler
@@ -1653,6 +1655,16 @@ option_obsolete_switch_use_new=E_Sie benutzen den nun ÅberflÅssigen Schalter $1,
 option_switch_bin_to_src_assembler=N_Schalte Assembler auf den Standard-Assembler-Quellcodeschreiber
 % this notifies you that the assembler has been changed because you used the
 % -a switch which can't be used with a binary assembler writer.
+%\end{description}
+# EndOfTeX
+#
+# Logo (option -l)
+#
+option_incompatible_asm=W_Das gewÑhlte Assembler-Ausgabeformat "$1" ist nicht mit "$2" kompatibel
+option_asm_forced=W_Verwendung des Assemblers "$1" erzwungen
+% The assembler output selected can not generate
+% object files with the correct format. Therefore, the
+% default assembler for this target is used instead.
 %\end{description}
 # EndOfTeX
 #
