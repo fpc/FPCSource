@@ -25,6 +25,12 @@ unit system;
 
     {$I heaph.inc}
 
+    const 
+       seg0040 = $0040;
+       segA000 = $A000;
+       segB000 = $B000;
+       segB800 = $B800;
+
     var
        mem  : array[0..$7fffffff] of byte absolute $0;
        memw : array[0..$7fffffff] of word absolute $0;
@@ -1036,8 +1042,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.2  1998-03-30 21:49:12  florian
+    + seg* added
+
+  Revision 1.1.1.1  1998/03/25 11:18:42  root
+  * Restored version
 
   Revision 1.18  1998/03/24 21:48:47  florian
     * extended to support mem*
