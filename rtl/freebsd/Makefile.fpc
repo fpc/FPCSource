@@ -60,7 +60,7 @@ PRT0=prt0
 else
 SYSTEMUNIT=sysbsd
 LINUXUNIT=linux
-override FPCOPT+=-dUNIX
+override FPCOPT+=-dUNIX -dNOMOUSE
 PRT0=prt0_10
 endif
 
@@ -68,7 +68,7 @@ endif
 # that generates release PPU files
 # which will not be recompiled
 ifdef RELEASE
-override FPCOPT+=-Ur
+override FPCOPT+=-Ur 
 endif
 
 # Paths
