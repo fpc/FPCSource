@@ -666,7 +666,30 @@ unit pdecl;
                      parse_only:=oldparse_only;
                      if (token=ID) and
                        ((pattern='VIRTUAL') or (pattern='DYNAMIC')) then
-                       Message(parser_w_constructor_cannot_be_not_virtual);
+                       begin
+                          consume(ID);
+                          consume(SEMICOLON);
+                          if (aktclass^.options and oois_class=0) then
+                            Message(parser_e_constructor_cannot_be_not_virtual)
+                          else
+                            begin
+                               aktprocsym^.definition^.options:=
+                                 aktprocsym^.definition^.options or povirtualmethod;
+                               aktclass^.options:=aktclass^.options or oo_hasvirtual;
+                            end
+                       end
+                     else if (token=ID) and (pattern='OVERRIDE') then
+                       begin
+                          consume(ID);
+                          consume(SEMICOLON);
+                          if (aktclass^.options and oois_class=0) then
+                            Message(parser_e_constructor_cannot_be_not_virtual)
+                          else
+                            begin
+                               aktprocsym^.definition^.options:=
+                                 aktprocsym^.definition^.options or pooverridingmethod or povirtualmethod;
+                            end;
+                       end;
                   end;
                 _DESTRUCTOR:
                   begin
@@ -1666,7 +1689,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.3  1998-04-07 22:45:05  florian
+  Revision 1.4  1998-04-08 10:26:09  florian
+    * correct error handling of virtual constructors
+    * problem with new type declaration handling fixed
+
+  Revision 1.3  1998/04/07 22:45:05  florian
     * bug0092, bug0115 and bug0121 fixed
     + packed object/class/array
 

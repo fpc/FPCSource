@@ -828,7 +828,7 @@ unit pexpr;
       begin
          case token of
             ID:
-          begin
+              begin
                  { allow post fix operators }
                  again:=true;
                  if (cs_delphi2_compatible in aktswitches) and
@@ -916,75 +916,87 @@ unit pexpr;
                               typesym:
                                 begin
                                    pd:=ptypesym(srsym)^.definition;
-                                   if token=LKLAMMER then
+                                   { if we read a type declaration  }
+                                   { we have to return the type and }
+                                   { nothing else                   }
+                                   if block_type=bt_type then
                                      begin
-                                        consume(LKLAMMER);
-                                        p1:=expr;
-                                        consume(RKLAMMER);
-                                        p1:=gentypeconvnode(p1,pd);
-                                        p1^.explizit:=true;
-                                     end
-                                   else if (token=POINT) and
-                                     (pd^.deftype=objectdef) and
-                                     ((pobjectdef(pd)^.options and oois_class)=0) then
-                                     begin
-                                        consume(POINT);
-                                        if assigned(procinfo._class) then
-                                          begin
-                                             if procinfo._class^.isrelated(pobjectdef(pd)) then
-                                               begin
-                                                  p1:=genzeronode(typen);
-                                                  p1^.resulttype:=pd;
-                                                  srsymtable:=pobjectdef(pd)^.publicsyms;
-                                                  sym:=pvarsym(srsymtable^.search(pattern));
-                                                  consume(ID);
-                                                  do_member_read(sym,p1,pd,again);
-                                               end
-                                             else
-                                               begin
-                                                  Message(parser_e_no_super_class);
-                                                  pd:=generrordef;
-                                                  again:=false;
-                                               end;
-                                          end
-                                        else
-                                          begin
-                                             { allows @TObject.Load }
-                                             { also allows static methods and variables }
-
-                                              p1:=genzeronode(typen);
-                                              p1^.resulttype:=pd;
-                                              srsymtable:=pobjectdef(pd)^.publicsyms;
-                                              sym:=pvarsym(srsymtable^.search(pattern));
-                                              if not(getaddr) and
-                                                ((sym^.properties and sp_static)=0) then
-                                                Message(sym_e_only_static_in_static)
-                                              else
-                                                begin
-                                                   consume(ID);
-                                                   do_member_read(sym,p1,pd,again);
-                                                end;
-                                          end
+                                        p1:=genzeronode(typen);
+                                        p1^.resulttype:=pd;
+                                        pd:=voiddef;
                                      end
                                    else
                                      begin
-                                        { class reference ? }
-                                        if (pd^.deftype=objectdef)
-                                          and ((pobjectdef(pd)^.options and oois_class)<>0) then
+                                        if token=LKLAMMER then
                                           begin
-                                             p1:=genzeronode(typen);
-                                             p1^.resulttype:=pd;
-                                             pd:=new(pclassrefdef,init(pd));
-                                             p1:=gensinglenode(loadvmtn,p1);
-                                             p1^.resulttype:=pd;
+                                             consume(LKLAMMER);
+                                             p1:=expr;
+                                             consume(RKLAMMER);
+                                             p1:=gentypeconvnode(p1,pd);
+                                             p1^.explizit:=true;
+                                          end
+                                        else if (token=POINT) and
+                                          (pd^.deftype=objectdef) and
+                                          ((pobjectdef(pd)^.options and oois_class)=0) then
+                                          begin
+                                             consume(POINT);
+                                             if assigned(procinfo._class) then
+                                               begin
+                                                  if procinfo._class^.isrelated(pobjectdef(pd)) then
+                                                    begin
+                                                       p1:=genzeronode(typen);
+                                                       p1^.resulttype:=pd;
+                                                       srsymtable:=pobjectdef(pd)^.publicsyms;
+                                                       sym:=pvarsym(srsymtable^.search(pattern));
+                                                       consume(ID);
+                                                       do_member_read(sym,p1,pd,again);
+                                                    end
+                                                  else
+                                                    begin
+                                                       Message(parser_e_no_super_class);
+                                                       pd:=generrordef;
+                                                       again:=false;
+                                                    end;
+                                               end
+                                             else
+                                               begin
+                                                  { allows @TObject.Load }
+                                                  { also allows static methods and variables }
+
+                                                   p1:=genzeronode(typen);
+                                                   p1^.resulttype:=pd;
+                                                   srsymtable:=pobjectdef(pd)^.publicsyms;
+                                                   sym:=pvarsym(srsymtable^.search(pattern));
+                                                   if not(getaddr) and
+                                                     ((sym^.properties and sp_static)=0) then
+                                                     Message(sym_e_only_static_in_static)
+                                                   else
+                                                     begin
+                                                        consume(ID);
+                                                        do_member_read(sym,p1,pd,again);
+                                                     end;
+                                               end
                                           end
                                         else
                                           begin
-                                             { generate a type node }
-                                             { (for typeof etc)     }
-                                             p1:=genzeronode(typen);
-                                             p1^.resulttype:=pd;
-                                             pd:=voiddef;
+                                             { class reference ? }
+                                             if (pd^.deftype=objectdef)
+                                               and ((pobjectdef(pd)^.options and oois_class)<>0) then
+                                               begin
+                                                  p1:=genzeronode(typen);
+                                                  p1^.resulttype:=pd;
+                                                  pd:=new(pclassrefdef,init(pd));
+                                                  p1:=gensinglenode(loadvmtn,p1);
+                                                  p1^.resulttype:=pd;
+                                               end
+                                             else
+                                               begin
+                                                  { generate a type node }
+                                                  { (for typeof etc)     }
+                                                  p1:=genzeronode(typen);
+                                                  p1^.resulttype:=pd;
+                                                  pd:=voiddef;
+                                               end;
                                           end;
                                      end;
                                 end;
@@ -1565,7 +1577,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.4  1998-04-07 22:45:05  florian
+  Revision 1.5  1998-04-08 10:26:09  florian
+    * correct error handling of virtual constructors
+    * problem with new type declaration handling fixed
+
+  Revision 1.4  1998/04/07 22:45:05  florian
     * bug0092, bug0115 and bug0121 fixed
     + packed object/class/array
 
