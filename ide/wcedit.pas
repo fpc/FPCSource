@@ -220,6 +220,8 @@ type
       function    GetFold(Index: sw_integer): PFold; virtual;
       procedure   RegisterFold(AFold: PFold); virtual;
       procedure   UnRegisterFold(AFold: PFold); virtual;
+    private
+      OnDiskLoadTime : longint;
     end;
 
     PFileEditor = ^TFileEditor;
@@ -239,8 +241,6 @@ type
       function    IsChangedOnDisk : boolean;
     public
       procedure   BindingsChanged; virtual;
-    private
-      OnDiskLoadTime : longint;
     end;
 
 function DefUseSyntaxHighlight(Editor: PFileEditor): boolean;
@@ -881,6 +881,7 @@ begin
     Indicator^.CodeOwner:=@Self;
   UpdateIndicator;
   LimitsChanged;
+  OnDiskLoadTime:=-1;
 end;
 
 function TCodeEditor.GetFlags: longint;
@@ -1279,6 +1280,7 @@ procedure TCodeEditor.Undo;
 var
   Temp,Idx,Last,Count : Longint;
   StoredFlags : longint;
+  UndoTime : longint;
   WasInserting,IsGrouped,HadefNoIndent : boolean;
   MaxY,MinY : sw_integer;
   Line : String;
@@ -1305,6 +1307,7 @@ begin
     if Core^.UndoList^.At(Last)^.Is_grouped_action then
       begin
         Count:=Core^.UndoList^.At(Last)^.ActionCount;
+        UndoTime:=Core^.UndoList^.At(Last)^.TimeStamp;
         Dec(Last);
         IsGrouped:=true;
       end
@@ -1316,6 +1319,8 @@ begin
     for Idx:=Last downto Last-Count+1 do
       with Core^.UndoList^.At(Idx)^ do
         begin
+          if not IsGrouped then
+            UndoTime:=TimeStamp;
           case action of
             eaMoveCursor :
               begin
@@ -1422,6 +1427,14 @@ begin
         end;
       if Core^.UndoList^.count=0 then
         SetCmdState(UndoCmd,false);
+      if (Core^.UndoList^.count=0) or
+         ((Core^.UndoList^.count=1) and
+          (Core^.UndoList^.At(0)^.Action=eaMoveCursor)) then
+        begin
+          SetCmdState(UndoCmd,false);
+          if (UndoTime>OnDiskLoadTime) or (OnDiskLoadTime=-1) then
+            SetModified(false);
+        end;
       SetCmdState(RedoCmd,true);
       Message(Application,evBroadcast,cmCommandSetChanged,nil);
       if MinY<>-1 then
@@ -1754,7 +1767,6 @@ begin
   FileName:=AFileName;
   UpdateIndicator;
   Message(@Self,evBroadcast,cmFileNameChanged,@Self);
-  OnDiskLoadTime:=-1;
 end;
 
 function TFileEditor.LoadFile: boolean;
@@ -2050,7 +2062,10 @@ end;
 END.
 {
  $Log$
- Revision 1.14  2002-09-09 06:58:28  pierre
+ Revision 1.15  2002-09-12 22:09:07  pierre
+  * reset modified flag, web bug 1262
+
+ Revision 1.14  2002/09/09 06:58:28  pierre
   + FastBufStream.readline method added
 
  Revision 1.13  2002/09/07 15:40:47  peter
