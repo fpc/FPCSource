@@ -99,13 +99,15 @@ type
   end;
 
   { ``header'', ie. size of structure valid when chunk is in use }
-  { should correspond to tmemchunk_xx structure }
+  { should correspond to tmemchunk_var_hdr structure starting with the
+    last field. Reason is that the overlap is starting from the end of the
+    record. }
   tmemchunk_fixed_hdr = record
-    size : ptrint;
 {$ifdef cpusparc}
     { Sparc needs to alloc aligned on 8 bytes, to allow doubles }
     _dummy : ptrint;
 {$endif cpusparc}
+    size : ptrint;
   end;
   tmemchunk_var_hdr = record
     prevsize : ptrint;
@@ -1284,7 +1286,10 @@ end;
 
 {
   $Log$
-  Revision 1.31  2004-06-17 16:16:13  peter
+  Revision 1.32  2004-06-18 14:40:55  peter
+    * moved padding for sparc
+
+  Revision 1.31  2004/06/17 16:16:13  peter
     * New heapmanager that releases memory back to the OS, donated
       by Micha Nelissen
 
