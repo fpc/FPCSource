@@ -1,3 +1,4 @@
+#   $Id$
 /* Startup code for elf32-sparc
    Copyright (C) 1997, 1998 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
@@ -49,13 +50,18 @@ _start:
      address of the shared library termination function, which will be
      registered with atexit().  If we are statically linked, this will
      be NULL.  */
-	mov	%g1, %o5
+  mov	%g1, %o5
 
-  /* Let libc do the rest of the initialization, and call main.  */
-	call	__libc_start_main
-	 nop
+  /* Call the user program entry point.  */
+  call	PASCALMAIN
+  nop
 
   /* Die very horribly if exit returns.  */
 	unimp
 
 	.size _start, .-_start
+
+# $Log$
+# Revision 1.3  2002-11-18 19:03:46  mazen
+# * start code of gcc adapted for FPC
+#
