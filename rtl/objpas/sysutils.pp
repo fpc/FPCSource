@@ -25,7 +25,7 @@ interface
        dos,windows
       {$else}
         {$ifdef go32v2}
-         go32
+       dos,go32
         {$endif go32v2}
       {$endif win32}
     {$endif linux}
@@ -271,7 +271,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.20  1999-02-09 12:38:44  michael
+    Revision 1.21  1999-02-09 14:24:50  pierre
+     * dos unit missing for go32v2 !!
+
+    Revision 1.20  1999/02/09 12:38:44  michael
     * Fixed INt() proble. Defined THandle, included Filemode constants
 
     Revision 1.19  1999/02/03 16:18:58  michael
