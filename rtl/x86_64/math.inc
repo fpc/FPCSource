@@ -171,7 +171,7 @@
             fldt d
             fsub %st(1),%st
             fstp %st(1)
-            fclex
+            fnclex
             fldcw -4(%rbp)
       end;
 
@@ -193,7 +193,7 @@
             fwait
             fldt d
             frndint
-            fclex
+            fnclex
             fldcw -4(%rbp)
       end;
 
@@ -220,7 +220,7 @@
             fldt d
             fistpq res
             movq res,%rax
-            fclex
+            fnclex
             fldcw oldcw
       end;
 
@@ -245,13 +245,13 @@
             fnstcw oldcw
             fwait
             movw $0x1372,newcw
-            fclex
+            fnclex
             fldcw newcw
             fwait
             fldt d
             fistpq res
             movq res,%rax
-            fclex
+            fnclex
             fldcw oldcw
       end;
 
@@ -278,7 +278,10 @@
 
 {
   $Log$
-  Revision 1.7  2005-01-30 18:01:15  peter
+  Revision 1.8  2005-01-30 18:41:53  peter
+    * add fnclex before loading old CW
+
+  Revision 1.7  2005/01/30 18:01:15  peter
     * signal cleanup for linux
     * sigactionhandler instead of tsigaction for bsds
     * sigcontext moved to cpu dir
