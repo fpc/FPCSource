@@ -1,0 +1,11 @@
+#
+#   Makefile.fpc for Fake GDB
+#
+
+[targets]
+units=gdbcon gdbint
+
+[rules]
+gdbint$(PPUEXT): gdbint$(PASEXT)
+
+gdbcon$(PPUEXT): gdbcon$(PASEXT) gdbint$(PPUEXT)

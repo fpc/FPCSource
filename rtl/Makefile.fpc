@@ -6,8 +6,7 @@
 defaultrule=native
 
 [sections]
-tools=0
-info=0
+none=1
 
 
 [presettings]

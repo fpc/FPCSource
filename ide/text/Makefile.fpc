@@ -1,0 +1,74 @@
+#
+#   Makefile.fpc for FP IDE
+#
+
+[targets]
+programs=fp
+
+[dirs]
+fpcdir=../..
+unitdir=../../fv ../../api $(COMPUNITDIR) $(GDBUNITDIR)
+objdir=$(GDBOBJDIR)
+libdir=$(GDBLIBDIR)
+
+[libs]
+libgcc=1
+
+
+[presettings]
+# when making a full version include the compiler
+ifeq ($(FULL),1)
+override COMPUNITDIR+=../../compiler
+override COMPUNITOPT+=-dBrowserCol -dGDB -Sg
+else
+override COMPUNITDIR+=../fake/compiler
+endif
+
+# when including debugger include the gdbinterface
+ifndef GDBINT
+GDBINT=gdbint
+endif
+
+ifeq ($(GDB),1)
+override GDBUNITDIR+=../../$(GDBINT)
+GDBLIBDIR+=../../$(GDBINT)/libgdb/$(OS_TARGET)
+GDBOBJDIR+=../../$(GDBINT)/libgdb/$(OS_TARGET)
+ifeq ($(OS_TARGET),go32v2)
+ifneq ($(DJDIR),)
+GDBLIBDIR+=$(DJDIR)/lib
+endif
+endif
+else
+override GDBUNITDIR+=../fake/gdb
+endif
+
+
+[rules]
+.PHONY: gdb full fullgdb clean_compiler
+
+fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
+
+gdb:
+        $(MAKE) all GDB=1
+
+full:
+        $(MAKE) all FULL=1
+
+fullgdb:
+        $(MAKE) all FULL=1 GDB=1
+
+# This is necessary because we don't have all units separate in the
+# units targets
+clean : testfpcmake fpc_cleanall
+
+#
+# Installation
+#
+install: fpc_install
+        $(INSTALL) $(wildcard *.pt) $(wildcard *.tdf) readme.txt $(BININSTALLDIR)
+
+#
+# Misc
+#
+clean_compiler:
+        $(MAKE) -C ../../compiler clean

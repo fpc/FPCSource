@@ -310,8 +310,8 @@ ifdef inlinux
         $(INSTALLEXE) $(EXENAME) $(LIBINSTALLDIR)
 else
         $(MKDIR) $(BININSTALLDIR)
-ifdef UPX
-        -$(UPX) $(EXENAME)
+ifdef UPXPROG
+        -$(UPXPROG) $(EXENAME)
 endif
         $(INSTALLEXE) $(EXENAME) $(BININSTALLDIR)
 endif
