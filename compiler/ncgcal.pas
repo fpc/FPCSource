@@ -123,12 +123,8 @@ implementation
 
     procedure tcgcallparanode.push_value_para;
       var
-        href : treference;
-{$ifdef i386}
-        tempreference : treference;
-        sizetopush : longint;
-{$endif i386}
-        size : longint;
+        href   : treference;
+        size   : longint;
         cgsize : tcgsize;
       begin
         { we've nothing to push when the size of the parameter is 0 }
@@ -145,42 +141,56 @@ implementation
            location_release(exprasmlist,left.location);
            allocate_tempparaloc;
 {$ifdef i386}
+           if tempparaloc.loc<>LOC_REFERENCE then
+             internalerror(200309291);
            case left.location.loc of
              LOC_FPUREGISTER,
              LOC_CFPUREGISTER:
                begin
-                  if tempparaloc.loc<>LOC_REFERENCE then
-                    internalerror(200309291);
-                  size:=align(tfloatdef(left.resulttype.def).size,tempparaloc.alignment);
-                  inc(tcgcallnode(aktcallnode).pushedparasize,size);
-                  cg.g_stackpointer_alloc(exprasmlist,size);
-                  reference_reset_base(href,NR_STACK_POINTER_REG,0);
-                  cg.a_loadfpu_reg_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,href);
+                 size:=align(tfloatdef(left.resulttype.def).size,tempparaloc.alignment);
+                 inc(tcgcallnode(aktcallnode).pushedparasize,size);
+                 if tempparaloc.reference.index=NR_STACK_POINTER_REG then
+                   begin
+                     cg.g_stackpointer_alloc(exprasmlist,size);
+                     reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                   end
+                 else
+                   reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
+                 cg.a_loadfpu_reg_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,href);
                end;
              LOC_REFERENCE,
              LOC_CREFERENCE :
                begin
-                 sizetopush:=align(left.resulttype.def.size,tempparaloc.alignment);
-                 tempreference:=left.location.reference;
-                 inc(tempreference.offset,sizetopush);
-                 while (sizetopush>0) do
-                  begin
-                    if (sizetopush>=4) or (tempparaloc.alignment>=4) then
-                     begin
-                       cgsize:=OS_32;
-                       inc(tcgcallnode(aktcallnode).pushedparasize,4);
-                       dec(tempreference.offset,4);
-                       dec(sizetopush,4);
-                     end
-                    else
-                     begin
-                       cgsize:=OS_16;
-                       inc(tcgcallnode(aktcallnode).pushedparasize,2);
-                       dec(tempreference.offset,2);
-                       dec(sizetopush,2);
-                     end;
-                    cg.a_param_ref(exprasmlist,cgsize,tempreference,tempparaloc);
-                  end;
+                 size:=align(left.resulttype.def.size,tempparaloc.alignment);
+                 if tempparaloc.reference.index=NR_STACK_POINTER_REG then
+                   begin
+                     href:=left.location.reference;
+                     inc(href.offset,size);
+                     while (size>0) do
+                      begin
+                        if (size>=4) or (tempparaloc.alignment>=4) then
+                         begin
+                           cgsize:=OS_32;
+                           inc(tcgcallnode(aktcallnode).pushedparasize,4);
+                           dec(href.offset,4);
+                           dec(size,4);
+                         end
+                        else
+                         begin
+                           cgsize:=OS_16;
+                           inc(tcgcallnode(aktcallnode).pushedparasize,2);
+                           dec(href.offset,2);
+                           dec(size,2);
+                         end;
+                        cg.a_param_ref(exprasmlist,cgsize,href,tempparaloc);
+                      end;
+                   end
+                 else
+                   begin
+                     reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
+                     cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false);
+                     inc(tcgcallnode(aktcallnode).pushedparasize,size);
+                   end;
                end;
              else
                internalerror(200204243);
@@ -216,8 +226,13 @@ implementation
               { push on stack }
               size:=align(left.resulttype.def.size,tempparaloc.alignment);
               inc(tcgcallnode(aktcallnode).pushedparasize,size);
-              cg.g_stackpointer_alloc(exprasmlist,size);
-              reference_reset_base(href,NR_STACK_POINTER_REG,0);
+              if tempparaloc.reference.index=NR_STACK_POINTER_REG then
+                begin
+                  cg.g_stackpointer_alloc(exprasmlist,size);
+                  reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                end
+              else
+                reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
               cg.g_concatcopy(exprasmlist,left.location.reference,href,size,false,false);
 {$else i386}
               cg.a_param_copy_ref(exprasmlist,left.resulttype.def.size,left.location.reference,tempparaloc);
@@ -1105,7 +1120,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.132  2003-10-17 14:38:32  peter
+  Revision 1.133  2003-10-20 19:28:17  peter
+    * fixed inlining float parameters for i386
+
+  Revision 1.132  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 
