@@ -232,11 +232,11 @@ UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
-override FPCOPT+=-dNOMOUSE
+override FPCOPT+=-dNOGPM
 loaders+=gprt0
 else
 SYSTEMUNIT=sysbsd
-override FPCOPT+=-dUNIX -dNOMOUSE
+override FPCOPT+=-dUNIX -dNOGPM
 endif
 ifdef RELEASE
 override FPCOPT+=-Ur

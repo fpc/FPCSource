@@ -21,6 +21,7 @@ const
 
 type
   PEventState = pointer;
+  PRTLEvent   = pointer;   // Windows=thandle, other=pointer to record.
   TThreadFunc = function(parameter : pointer) : ptrint;
 
   // Function prototypes for TThreadManager Record.
@@ -41,6 +42,8 @@ type
   TBasicEventHandler	    = procedure(state:peventstate);
   TBasicEventWaitForHandler = function (timeout:cardinal;state:peventstate):longint;
   TBasicEventCreateHandler  = function (EventAttributes :Pointer;  AManualReset,InitialState : Boolean;const Name:ansistring):pEventState;
+  TRTLEventHandler	    = procedure(AEvent:PRTLEvent);
+  TRTLCreateEventHandler    = function:PRTLEvent;	
 
   // TThreadManager interface.
   TThreadManager = Record
@@ -64,11 +67,15 @@ type
     RelocateThreadVar      : TRelocateThreadVarHandler;
     AllocateThreadVars     : TAllocateThreadVarsHandler;
     ReleaseThreadVars      : TReleaseThreadVarsHandler;
-    BasicEventCreate	   : TBasicEventCreateHandler;
-    BasicEventDestroy	   : TBasicEventHandler;
-    BasicEventResetEvent   : TBasicEventHandler;
+    BasicEventCreate	   : TBasicEventCreateHandler;      // left in for a while.
+    BasicEventDestroy	   : TBasicEventHandler;	    // we might need BasicEvent
+    BasicEventResetEvent   : TBasicEventHandler;	    // for a real TEvent	
     BasicEventSetEvent     : TBasicEventHandler;
     BasiceventWaitFOr	   : TBasicEventWaitForHandler;
+    RTLEventCreate	   : TRTLCreateEventHandler;
+    RTLEventDestroy	   : TRTLEventHandler;
+    RTLEventSetEvent       : TRTLEventHandler;
+    RTLeventWaitFOr	   : TRTLEventHandler;
   end;
 
 {*****************************************************************************
@@ -143,9 +150,18 @@ procedure basiceventResetEvent(state:peventstate);
 procedure basiceventSetEvent(state:peventstate);
 function  basiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
 
+function  RTLEventCreate :PRTLEvent;
+procedure RTLeventdestroy(state:pRTLEvent);
+procedure RTLeventSetEvent(state:pRTLEvent);
+procedure RTLeventWaitFor(state:pRTLEvent);
+
 {
   $Log$
-  Revision 1.20  2004-12-12 14:30:27  peter
+  Revision 1.21  2004-12-22 21:29:24  marco
+   * rtlevent kraam. Checked (compile): Linux, FreeBSD, Darwin, Windows
+  	Check work: ask Neli.
+
+  Revision 1.20  2004/12/12 14:30:27  peter
     * x86_64 updates
 
   Revision 1.19  2004/09/19 18:55:30  armin

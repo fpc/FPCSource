@@ -229,6 +229,31 @@ begin
  result:=currenttm.basiceventWaitFor(Timeout,state);
 end;
 
+function  RTLEventCreate :PRTLEvent;
+
+begin
+  result:=currenttm.rtleventcreate;
+end;
+
+
+procedure RTLeventdestroy(state:pRTLEvent);
+
+begin
+  currenttm.rtleventdestroy(state);
+end;
+
+procedure RTLeventSetEvent(state:pRTLEvent);
+
+begin
+  currenttm.rtleventsetEvent(state);
+end;
+
+procedure RTLeventWaitFor(state:pRTLEvent);
+
+begin
+  currenttm.rtleventWaitFor(state);
+end;
+
 
 { ---------------------------------------------------------------------
     ThreadManager which gives run-time error. Use if no thread support.
@@ -354,6 +379,31 @@ begin
   NoThreadError;
 end;
 
+function  NORTLEventCreate :PRTLEvent;
+
+begin
+  NoThreadError;
+end;
+
+procedure NORTLeventdestroy(state:pRTLEvent);
+
+begin
+  NoThreadError;
+end;
+
+procedure NORTLeventSetEvent(state:pRTLEvent);
+
+begin
+  NoThreadError;
+end;
+
+procedure NORTLeventWaitFor(state:pRTLEvent);
+
+begin
+  NoThreadError;
+end;
+
+
 Var
   NoThreadManager : TThreadManager;
 
@@ -387,6 +437,10 @@ begin
     basiceventResetEvent   :=@NobasiceventResetEvent;
     basiceventSetEvent     :=@NobasiceventSetEvent;
     basiceventWaitFor      :=@NobasiceventWaitFor;
+    rtlEventCreate         :=@NortlEventCreate;
+    rtleventdestroy        :=@Nortleventdestroy;
+    rtleventSetEvent       :=@NortleventSetEvent;
+    rtleventWaitFor        :=@NortleventWaitFor;
 
     end;
   SetThreadManager(NoThreadManager);
@@ -395,7 +449,11 @@ end;
 
 {
   $Log$
-  Revision 1.12  2004-09-19 18:55:30  armin
+  Revision 1.13  2004-12-22 21:29:24  marco
+   * rtlevent kraam. Checked (compile): Linux, FreeBSD, Darwin, Windows
+  	Check work: ask Neli.
+
+  Revision 1.12  2004/09/19 18:55:30  armin
   * added define DISABLE_NO_THREAD_MANAGER to avoid warnings if thread manager is always present
 
   Revision 1.11  2004/05/23 20:26:20  marco

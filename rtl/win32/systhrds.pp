@@ -88,6 +88,7 @@ function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialSt
 function  CloseHandle(hObject:CARDINAL):LONGBOOL; external 'kernel32' name 'CloseHandle';
 function  ResetEvent(hEvent:CARDINAL):LONGBOOL; external 'kernel32' name 'ResetEvent';
 function  SetEvent(hEvent:CARDINAL):LONGBOOL; external 'kernel32' name 'SetEvent';
+function PulseEvent(hEvent:THANDLE):CARDINAL {WINBOOL}; external 'kernel32' name 'PulseEvent';
 
 CONST
    WAIT_OBJECT_0 = 0;
@@ -419,6 +420,30 @@ begin
   end;
 end;
 
+function intRTLEventCreate: PRTLEvent;
+begin
+  Result := PRTLEVENT(CreateEvent(nil, false, false, nil));
+end;
+
+procedure intRTLEventDestroy(AEvent: PRTLEvent);
+begin
+  CloseHandle(THANDLE(AEvent));
+end;
+
+procedure intRTLEventSetEvent(AEvent: PRTLEvent);
+begin
+  PulseEvent(THANDLE(AEvent));
+end;
+
+CONST INFINITE=-1;
+
+procedure intRTLEventWaitFor(AEvent: PRTLEvent);
+begin
+  WaitForSingleObject(THANDLE(AEvent), INFINITE);
+end;
+
+
+
 Var
   WinThreadManager : TThreadManager; 
 
@@ -454,6 +479,10 @@ begin
     BasicEventResetEvent   :=@intBasicEventResetEvent;
     BasicEventSetEvent     :=@intBasicEventSetEvent;
     BasiceventWaitFor      :=@intBasiceventWaitFor;
+    RTLEventCreate       :=@intRTLEventCreate;
+    RTLEventDestroy      :=@intRTLEventDestroy;
+    RTLEventSetEvent     :=@intRTLEventSetEvent;
+    RTLeventWaitFor      :=@intRTLeventWaitFor;
     end;
   SetThreadManager(WinThreadManager);
   InitHeapMutexes;
@@ -465,7 +494,11 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-05-23 15:30:13  marco
+  Revision 1.12  2004-12-22 21:29:24  marco
+   * rtlevent kraam. Checked (compile): Linux, FreeBSD, Darwin, Windows
+  	Check work: ask Neli.
+
+  Revision 1.11  2004/05/23 15:30:13  marco
    * first try
 
   Revision 1.10  2004/01/21 14:15:42  florian

@@ -52,6 +52,12 @@ Uses
 { Include OS specific parts. }
 {$i pthread.inc}
 
+Type  PINTRTLEvent = ^TINTRTLEvent;
+      TINTRTLEvent = record
+        condvar: pthread_cond_t;
+        mutex: pthread_mutex_t;
+       end;
+
 {*****************************************************************************
                              Threadvar support
 *****************************************************************************}
@@ -516,6 +522,48 @@ begin
     end;
 end;
 
+function intRTLEventCreate: PRTLEvent;
+
+var p:pintrtlevent;
+
+begin
+  new(p);
+  pthread_cond_init(@p^.condvar, nil);
+  pthread_mutex_init(@p^.mutex, nil);
+  result:=PRTLEVENT(p);
+end;
+
+procedure intRTLEventDestroy(AEvent: PRTLEvent);
+
+var p:pintrtlevent;
+
+begin
+  p:=pintrtlevent(aevent);
+  pthread_cond_destroy(@p^.condvar);
+  pthread_mutex_destroy(@p^.mutex);
+  dispose(p);
+end;
+
+procedure intRTLEventSetEvent(AEvent: PRTLEvent);
+var p:pintrtlevent;
+
+begin
+  p:=pintrtlevent(aevent);
+  pthread_mutex_lock(@p^.mutex);
+  pthread_cond_signal(@p^.condvar);
+  pthread_mutex_unlock(@p^.mutex);
+end;
+
+procedure intRTLEventWaitFor(AEvent: PRTLEvent);
+var p:pintrtlevent;
+
+begin
+  p:=pintrtlevent(aevent);  
+  pthread_mutex_lock(@p^.mutex);
+  pthread_cond_wait(@p^.condvar, @p^.mutex);
+  pthread_mutex_unlock(@p^.mutex);
+end;
+
 Var
   CThreadManager : TThreadManager;
 
@@ -551,6 +599,10 @@ begin
     BasicEventResetEvent   :=@intBasicEventResetEvent;
     BasicEventSetEvent     :=@intBasicEventSetEvent;
     BasiceventWaitFor      :=@intBasiceventWaitFor;
+    rtlEventCreate         :=@intrtlEventCreate;       
+    rtlEventDestroy        :=@intrtlEventDestroy;
+    rtlEventSetEvent       :=@intrtlEventSetEvent;
+    rtleventWaitFor        :=@intrtleventWaitFor;
     end;
   SetThreadManager(CThreadManager);
   InitHeapMutexes;
@@ -561,7 +613,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2004-12-12 14:30:27  peter
+  Revision 1.15  2004-12-22 21:29:24  marco
+   * rtlevent kraam. Checked (compile): Linux, FreeBSD, Darwin, Windows
+  	Check work: ask Neli.
+
+  Revision 1.14  2004/12/12 14:30:27  peter
     * x86_64 updates
 
   Revision 1.13  2004/10/14 17:39:33  florian

@@ -29,6 +29,9 @@ CONST PTHREAD_EXPLICIT_SCHED       = 0;
     ppthread_key_t  = ^pthread_key_t;
     ppthread_mutex_t= ^pthread_mutex_t;
     ppthread_attr_t = ^pthread_attr_t;
+    ppthread_cond_t            = ^pthread_cond_t;
+    ppthread_condattr_t        = ^pthread_condattr_t;
+
     __destr_func_t  = procedure (p :pointer);cdecl;
     __startroutine_t= function (p :pointer):pointer;cdecl;
     ppthread_mutexattr_t = ^pthread_mutexattr_t;
@@ -56,6 +59,10 @@ function  pthread_mutex_unlock  (p:ppthread_mutex_attr_t):cint; cdecl;external;
 function  pthread_cancel(_para1:pthread_t):cint;cdecl;external;
 function  pthread_detach(_para1:pthread_t):cint;cdecl;external;
 function  pthread_join(_para1:pthread_t; _para2:Ppointer):cint;cdecl;external;
+function pthread_cond_destroy(_para1:Ppthread_cond_t):cint;cdecl;external;
+function pthread_cond_init(_para1:Ppthread_cond_t;_para2:Ppthread_condattr_t):cint;cdecl;external;
+function pthread_cond_signal(_para1:Ppthread_cond_t):cint;cdecl;external;
+function pthread_cond_wait(_para1:Ppthread_cond_t;_para2:Ppthread_mutex_t):cint;cdecl;external;
 
 function sem_init(__sem:Psem_t; __pshared:cint;__value:dword):cint;cdecl; external;
 function sem_destroy(__sem:Psem_t):cint;cdecl;external ;
@@ -74,7 +81,11 @@ function pthread_mutexattr_settype(_para1:Ppthread_mutexattr_t; _para2:cint):cin
 
 {
   $Log$
-  Revision 1.5  2004-09-10 15:15:45  marco
+  Revision 1.6  2004-12-22 21:29:24  marco
+   * rtlevent kraam. Checked (compile): Linux, FreeBSD, Darwin, Windows
+  	Check work: ask Neli.
+
+  Revision 1.5  2004/09/10 15:15:45  marco
    * small glitch fixes
 
   Revision 1.4  2004/09/09 20:29:06  jonas
