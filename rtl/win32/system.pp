@@ -696,8 +696,9 @@ var
        sysreallocmem(argv,argvlen*sizeof(pointer));
      end;
     { use realloc to reuse already existing memory }
-    if len<>0 then
-     sysreallocmem(argv[idx],len+1);
+    { always allocate, even if length is zero, since }
+    { the arg. is still present!                     }
+    sysreallocmem(argv[idx],len+1);
   end;
 
 begin
@@ -1498,7 +1499,10 @@ end.
 
 {
   $Log$
-  Revision 1.35  2002-10-14 20:40:22  florian
+  Revision 1.36  2002-10-31 15:17:58  carl
+    * always allocate argument even if its empty (bugfix web bug 2202)
+
+  Revision 1.35  2002/10/14 20:40:22  florian
     * InitFPU renamed to SysResetFPU
 
   Revision 1.34  2002/10/14 19:39:17  peter
