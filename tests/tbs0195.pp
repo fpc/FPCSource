@@ -4,6 +4,9 @@
 {$ifdef linux}
 {$define OK}
 {$endif}
+{$ifdef win32}
+{$define OK}
+{$endif}
 
 {$ifdef OK}
 uses graph
