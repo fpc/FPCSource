@@ -137,9 +137,6 @@ uses
   {$ifdef profile}
     profile,
   {$endif profile}
-  {$ifdef EXTDEBUG}
-    checkmem,
-  {$endif EXTDEBUG}
   {$ifndef NOCATCH}
     {$ifdef Unix}
       catch,
@@ -207,7 +204,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2004-03-20 20:55:36  florian
+  Revision 1.31  2004-05-23 16:46:39  peter
+    * checkmem remvoed
+
+  Revision 1.30  2004/03/20 20:55:36  florian
     + implemented cdecl'd varargs on arm
     + -dCMEM supported by the compiler
     * label/goto asmsymbol type with -dextdebug fixed
