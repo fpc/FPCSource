@@ -180,6 +180,9 @@ varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
                     objpas$(PPUEXT) $(OBJPASDIR)/varutilh.inc
         $(COMPILER) -I$(OBJPASDIR) varutils.pp
 
+types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/types.pp
+
 #
 # Other system-independent RTL Units
 #
