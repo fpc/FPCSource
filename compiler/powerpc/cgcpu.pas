@@ -2294,6 +2294,7 @@ const
       var
         tmpreg: tregister;
         tmpreg64: tregister64;
+        newop: TOpCG;
         issub: boolean;
       begin
         case op of
@@ -2305,11 +2306,19 @@ const
             end;
           OP_ADD, OP_SUB:
             begin
+              if (int64(value) < 0) then
+                begin
+                  if op = OP_ADD then
+                    op := OP_SUB
+                  else
+                    op := OP_ADD;
+                  int64(value) := -int64(value);
+                end;
               if (longint(value) <> 0) then
                 begin
                   issub := op = OP_SUB;
-                  if (longint(value)-ord(issub) >= -32768) and
-                     (longint(value)-ord(issub) <= 32767) then
+                  if (int64(value) > 0) and
+                     (int64(value)-ord(issub) <= 32767) then
                     begin
                       list.concat(taicpu.op_reg_reg_const(ops[issub,1],
                         regdst.reglo,regsrc.reglo,longint(value)));
@@ -2355,7 +2364,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.84  2003-04-26 16:08:41  jonas
+  Revision 1.85  2003-04-26 22:56:11  jonas
+    * fix to a_op64_const_reg_reg
+
+  Revision 1.84  2003/04/26 16:08:41  jonas
     * fixed g_flags2reg
 
   Revision 1.83  2003/04/26 15:25:29  florian
