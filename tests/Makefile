@@ -1505,6 +1505,9 @@ endif
 ifdef TEST_REMOTEPATH
 override DOTESTOPT+=-P$(TEST_REMOTEPATH)
 endif
+ifdef TEST_DELTEMP
+override DOTESTOPT+=-T
+endif
 ifdef TEST_VERBOSE
 override DOTESTOPT+=-V
 endif
