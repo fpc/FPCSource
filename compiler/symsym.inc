@@ -1322,64 +1322,81 @@
                    if (aktpackrecords=packrecord_C) then
                     begin
                       varalign:=vartype.def^.alignment;
-                      if (owner^.dataalignment<4) then
+                      if (varalign>4) and ((varalign mod 4)<>0) and
+                        (vartype.def^.deftype=arraydef) then
+                        begin
+                          Message1(sym_w_wrong_C_pack,vartype.def^.typename);
+                        end;
+                      if varalign=0 then
+                        varalign:=l;
+                      if (owner^.dataalignment<target_os.maxCrecordalignment) then
                        begin
-                         if varalign=0 then
-                          begin
-                            if (l>=4) then
-                             owner^.dataalignment:=4
-                            else
-                             if (owner^.dataalignment<2) and (l>=2) then
-                              owner^.dataalignment:=2;
-                          end
-                         else
-                          if varalign>owner^.dataalignment then
-                           owner^.dataalignment:=varalign;
+                         if (varalign>16) and (owner^.dataalignment<32) then
+                          owner^.dataalignment:=32
+                         else if (varalign>12) and (owner^.dataalignment<16) then
+                          owner^.dataalignment:=16
+                         { 12 is needed for long double }
+                         else if (varalign>8) and (owner^.dataalignment<12) then
+                          owner^.dataalignment:=12
+                         else if (varalign>4) and (owner^.dataalignment<8) then
+                          owner^.dataalignment:=8
+                         else if (varalign>2) and (owner^.dataalignment<4) then
+                          owner^.dataalignment:=4
+                         else if (varalign>1) and (owner^.dataalignment<2) then
+                          owner^.dataalignment:=2;
                        end;
+                      if owner^.dataalignment>target_os.maxCrecordalignment then
+                        owner^.dataalignment:=target_os.maxCrecordalignment;
                     end
                    else
-                    varalign:=0;
+                    varalign:=vartype.def^.alignment;
+                   if varalign=0 then
+                     varalign:=l;
                  { align record and object fields }
-                   if (l=1) or (varalign=1) or (owner^.dataalignment=1) then
+                   if (varalign=1) or (owner^.dataalignment=1) then
                     begin
                       address:=owner^.datasize;
                       inc(owner^.datasize,l)
                     end
-                   else
-                    if (l=2) or (varalign=2) or (owner^.dataalignment=2) then
+                   else if (varalign=2) or (owner^.dataalignment=2) then
                      begin
                        owner^.datasize:=(owner^.datasize+1) and (not 1);
                        address:=owner^.datasize;
                        inc(owner^.datasize,l)
                      end
-                   else
-                    if (l<=4) or (varalign=4) or (owner^.dataalignment=4) then
+                   else if (varalign<=4) or (owner^.dataalignment=4) then
                      begin
                        owner^.datasize:=(owner^.datasize+3) and (not 3);
                        address:=owner^.datasize;
                        inc(owner^.datasize,l);
                      end
-                   else
-                    if (l<=8) or (owner^.dataalignment=8) then
+                   else if (varalign<=8) or (owner^.dataalignment=8) then
                      begin
                        owner^.datasize:=(owner^.datasize+7) and (not 7);
                        address:=owner^.datasize;
                        inc(owner^.datasize,l);
                      end
-                   else
-                    if (l<=16) or (owner^.dataalignment=16) then
+                         { 12 is needed for C long double support }
+                   else if (varalign<=12) and (owner^.dataalignment=12) then
+                     begin
+                       owner^.datasize:=((owner^.datasize+11) div 12) * 12;
+                       address:=owner^.datasize;
+                       inc(owner^.datasize,l);
+                     end
+                   else if (varalign<=16) or (owner^.dataalignment=16) then
                      begin
                        owner^.datasize:=(owner^.datasize+15) and (not 15);
                        address:=owner^.datasize;
                        inc(owner^.datasize,l);
                      end
-                   else
-                    if (l<=32) or (owner^.dataalignment=32) then
+                   else if (varalign<=32) or (owner^.dataalignment=32) then
                      begin
                        owner^.datasize:=(owner^.datasize+31) and (not 31);
                        address:=owner^.datasize;
                        inc(owner^.datasize,l);
-                     end;
+                     end
+                    else
+                     internalerror(1000022);
                  end;
                parasymtable :
                  begin
@@ -2166,7 +2183,10 @@
 
 {
   $Log$
-  Revision 1.149  2000-06-18 18:11:32  peter
+  Revision 1.150  2000-06-23 21:32:45  pierre
+   * alignment for record changed for C packing mostly
+
+  Revision 1.149  2000/06/18 18:11:32  peter
     * C record packing fixed to also check first entry of the record
       if bigger than the recordalignment itself
     * variant record alignment uses alignment per variant and saves the
