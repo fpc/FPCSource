@@ -80,21 +80,21 @@ end;
 
 
 
-Function Send(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint;
+Function Send(Sock:Longint;Const Addr;AddrLen,Flags:Longint):Longint;
 begin
   Send:=SocketCall(Socket_Sys_Send,Sock,Longint(@Addr),AddrLen,Flags,0,0);
 end;
 
 
 
-Function Recv(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint;
+Function Recv(Sock:Longint;Const Addr;AddrLen,Flags:Longint):Longint;
 begin
   Recv:=SocketCall(Socket_Sys_Recv,Sock,Longint(@Addr),AddrLen,Flags,0,0);
 end;
 
 
 
-Function Bind(Sock:Longint;Var Addr;AddrLen:Longint):Boolean;
+Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
 begin
   Bind:=(SocketCall(Socket_Sys_Bind,Sock,Longint(@Addr),AddrLen)=0);
 end;
@@ -117,8 +117,7 @@ end;
 
 
 
-Function Connect(Sock:Longint;Var Addr;Addrlen:Longint): boolean;
-
+Function Connect(Sock:Longint;Const Addr;Addrlen:Longint): boolean;
 begin
   Connect:=SocketCall(Socket_Sys_Connect,Sock,longint(@Addr),AddrLen)=0;
 end;
@@ -146,7 +145,7 @@ end;
 
 
 
-Function SetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;optlen:longint):Longint;
+Function SetSocketOptions(Sock,Level,OptName:Longint;Const OptVal;optlen:longint):Longint;
 begin
   SetSocketOptions:=SocketCall(Socket_Sys_SetSockOpt,Sock,Level,OptName,Longint(@OptVal),OptLen,0);
 end;
@@ -262,7 +261,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  2001-06-02 00:31:30  peter
+  Revision 1.3  2001-06-04 11:43:51  peter
+    * Formal const to var fixes
+    * Hexstr(int64) added
+
+  Revision 1.2  2001/06/02 00:31:30  peter
     * merge unix updates from the 1.0 branch, mostly related to the
       solaris target
 

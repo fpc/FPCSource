@@ -390,7 +390,7 @@ End;
                                Write(Ln)
 *****************************************************************************}
 
-Procedure WriteBuffer(var f:TextRec;var b;len:longint);
+Procedure WriteBuffer(var f:TextRec;const b;len:longint);
 var
   p   : pchar;
   left,
@@ -1047,7 +1047,11 @@ end;
 
 {
   $Log$
-  Revision 1.6  2001-04-08 13:21:30  jonas
+  Revision 1.7  2001-06-04 11:43:51  peter
+    * Formal const to var fixes
+    * Hexstr(int64) added
+
+  Revision 1.6  2001/04/08 13:21:30  jonas
     * fixed potential buffer overflow in FPC_WRITE_TEXT_PCHAR_AS_ARRAY (merged)
 
   Revision 1.5  2001/03/21 23:29:40  florian

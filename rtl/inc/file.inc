@@ -124,7 +124,7 @@ Begin
 End;
 
 
-Procedure BlockWrite(Var f:File;Var Buf;Count:Longint;var Result:Longint);[IOCheck];
+Procedure BlockWrite(Var f:File;Const Buf;Count:Longint;var Result:Longint);[IOCheck];
 {
   Write Count records from Buf to file f, return written records in result
 }
@@ -142,7 +142,7 @@ Begin
 End;
 
 
-Procedure BlockWrite(Var f:File;Var Buf;Count:Word;var Result:Word);[IOCheck];
+Procedure BlockWrite(Var f:File;Const Buf;Count:Word;var Result:Word);[IOCheck];
 {
   Write Count records from Buf to file f, return written records in Result
 }
@@ -154,7 +154,7 @@ Begin
 End;
 
 
-Procedure BlockWrite(Var f:File;Var Buf;Count:Word;var Result:Integer);[IOCheck];
+Procedure BlockWrite(Var f:File;Const Buf;Count:Cardinal;var Result:Cardinal);[IOCheck];
 {
   Write Count records from Buf to file f, return written records in Result
 }
@@ -166,7 +166,19 @@ Begin
 End;
 
 
-Procedure BlockWrite(Var f:File;Var Buf;Count:Longint);[IOCheck];
+Procedure BlockWrite(Var f:File;Const Buf;Count:Word;var Result:Integer);[IOCheck];
+{
+  Write Count records from Buf to file f, return written records in Result
+}
+var
+  l : longint;
+Begin
+  BlockWrite(f,Buf,Count,l);
+  Result:=l;
+End;
+
+
+Procedure BlockWrite(Var f:File;Const Buf;Count:Longint);[IOCheck];
 {
   Write Count records from Buf to file f, if none a Read and Count>0 then
   InOutRes is set
@@ -190,7 +202,7 @@ Begin
   If InOutRes <> 0 then
    exit;
   case FileRec(f).Mode of
-    fmInOut,fmInput : 
+    fmInOut,fmInput :
       Result:=Do_Read(FileRec(f).Handle,Longint(@Buf),count*FileRec(f).RecSize)
         div FileRec(f).RecSize;
     fmOutput: inOutRes := 104;
@@ -200,6 +212,19 @@ End;
 
 
 Procedure BlockRead(var f:File;var Buf;count:Word;var Result:Word);[IOCheck];
+{
+  Read Count records from file f to Buf, return number of read records in
+  Result
+}
+var
+  l : longint;
+Begin
+  BlockRead(f,Buf,Count,l);
+  Result:=l;
+End;
+
+
+Procedure BlockRead(var f:File;var Buf;count:Cardinal;var Result:Cardinal);[IOCheck];
 {
   Read Count records from file f to Buf, return number of read records in
   Result
@@ -385,7 +410,11 @@ End;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:43  michael
+  Revision 1.3  2001-06-04 11:43:51  peter
+    * Formal const to var fixes
+    * Hexstr(int64) added
+
+  Revision 1.2  2000/07/13 11:33:43  michael
   + removed logs
- 
+
 }

@@ -241,9 +241,10 @@ begin
 end;
 
 
-function hexstr(val : longint;cnt : byte) : shortstring;
 const
   HexTbl : array[0..15] of char='0123456789ABCDEF';
+
+function hexstr(val : longint;cnt : byte) : shortstring;
 var
   i : longint;
 begin
@@ -257,6 +258,32 @@ end;
 
 
 function binstr(val : longint;cnt : byte) : shortstring;
+var
+  i : longint;
+begin
+  binstr[0]:=char(cnt);
+  for i:=cnt downto 1 do
+   begin
+     binstr[i]:=char(48+val and 1);
+     val:=val shr 1;
+   end;
+end;
+
+
+function hexstr(val : int64;cnt : byte) : shortstring;
+var
+  i : longint;
+begin
+  hexstr[0]:=char(cnt);
+  for i:=cnt downto 1 do
+   begin
+     hexstr[i]:=hextbl[val and $f];
+     val:=val shr 4;
+   end;
+end;
+
+
+function binstr(val : int64;cnt : byte) : shortstring;
 var
   i : longint;
 begin
@@ -546,7 +573,11 @@ end;
 
 {
   $Log$
-  Revision 1.11  2001-04-13 22:30:04  peter
+  Revision 1.12  2001-06-04 11:43:51  peter
+    * Formal const to var fixes
+    * Hexstr(int64) added
+
+  Revision 1.11  2001/04/13 22:30:04  peter
     * remove warnings
 
   Revision 1.10  2001/04/13 18:06:28  peter

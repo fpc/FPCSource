@@ -132,16 +132,16 @@ Var
 
 {Basic Socket Functions}
 Function Socket(Domain,SocketType,Protocol:Longint):Longint;
-Function Send(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint;
-Function Recv(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint;
-Function Bind(Sock:Longint;Var Addr;AddrLen:Longint):Boolean;
+Function Send(Sock:Longint;Const Addr;AddrLen,Flags:Longint):Longint;
+Function Recv(Sock:Longint;Const Addr;AddrLen,Flags:Longint):Longint;
+Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
 Function Listen (Sock,MaxConnect:Longint):Boolean;
 Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
-Function Connect(Sock:Longint;Var Addr;Addrlen:Longint):boolean;
+Function Connect(Sock:Longint;Const Addr;Addrlen:Longint):boolean;
 Function Shutdown(Sock:Longint;How:Longint):Longint;
 Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
-Function SetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;optlen:longint):Longint;
+Function SetSocketOptions(Sock,Level,OptName:Longint;Const OptVal;optlen:longint):Longint;
 Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
 Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
 
@@ -159,7 +159,11 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.4  2000-11-13 13:40:04  marco
+  Revision 1.5  2001-06-04 11:43:51  peter
+    * Formal const to var fixes
+    * Hexstr(int64) added
+
+  Revision 1.4  2000/11/13 13:40:04  marco
    * Renamefest
 
   Revision 1.3  2000/09/11 14:53:14  marco

@@ -112,6 +112,7 @@ Type
   PDWord              = ^DWord;
   PLongWord           = ^LongWord;
   PLongint            = ^Longint;
+  PCardinal           = ^Cardinal;
   PQWord              = ^QWord;
   PInt64              = ^Int64;
 
@@ -304,6 +305,8 @@ Function  lowerCase(const s:shortstring):shortstring;
 Function  Space(b:byte):shortstring;
 Function  hexStr(Val:Longint;cnt:byte):shortstring;
 Function  binStr(Val:Longint;cnt:byte):shortstring;
+Function  hexStr(Val:int64;cnt:byte):shortstring;
+Function  binStr(Val:int64;cnt:byte):shortstring;
 
 { Char functions }
 Function  Chr(b:byte):Char;
@@ -362,11 +365,13 @@ Procedure Rewrite(Var f:File);
 Procedure Reset(Var f:File;l:Longint);
 Procedure Reset(Var f:File);
 Procedure Close(Var f:File);
-Procedure BlockWrite(Var f:File;Var Buf;Count:Longint;Var Result:Longint);
-Procedure BlockWrite(Var f:File;Var Buf;Count:Word;Var Result:Word);
-Procedure BlockWrite(Var f:File;Var Buf;Count:Word;Var Result:Integer);
-Procedure BlockWrite(Var f:File;Var Buf;Count:Longint);
+Procedure BlockWrite(Var f:File;Const Buf;Count:Longint;Var Result:Longint);
+Procedure BlockWrite(Var f:File;Const Buf;Count:Cardinal;var Result:Cardinal);
+Procedure BlockWrite(Var f:File;Const Buf;Count:Word;Var Result:Word);
+Procedure BlockWrite(Var f:File;Const Buf;Count:Word;Var Result:Integer);
+Procedure BlockWrite(Var f:File;Const Buf;Count:Longint);
 Procedure BlockRead(Var f:File;Var Buf;count:Longint;Var Result:Longint);
+Procedure BlockRead(Var f:File;Var Buf;count:Cardinal;Var Result:Cardinal);
 Procedure BlockRead(Var f:File;Var Buf;count:Word;Var Result:Word);
 Procedure BlockRead(Var f:File;Var Buf;count:Word;Var Result:Integer);
 Procedure BlockRead(Var f:File;Var Buf;count:Longint);
@@ -497,7 +502,11 @@ const
 
 {
   $Log$
-  Revision 1.23  2001-06-03 20:17:06  peter
+  Revision 1.24  2001-06-04 11:43:51  peter
+    * Formal const to var fixes
+    * Hexstr(int64) added
+
+  Revision 1.23  2001/06/03 20:17:06  peter
     * ucs4char added
 
   Revision 1.22  2001/05/16 17:44:25  jonas
