@@ -31,50 +31,39 @@ unit files;
     const
 {$ifdef FPC}
        maxunits = 1024;
+       extbufsize = 65535;
 {$else}
        maxunits = 128;
+       extbufsize = 2000;
 {$endif}
 
     type
-       pextfile = ^textfile;
-
        { this isn't a text file, this is t-ext-file }
-       { which means a extended file                }
-       { this files can be handled by a file        }
-       { manager                                    }
+       { which means a extended file this files can }
+       { be handled by a file manager               }
+       pextfile = ^textfile;
        textfile = object(tbufferedfile)
           path,name,ext : pstring;
-          { this is because there is a name conflict }
-          { with the older next from tinputstack     }
-          _next : pextfile;
-          { 65000 input files for a unit should be enough !! }
-          ref_index : word;
-
+          _next      : pextfile; { else conflicts with tinputstack }
+          ref_index  : word;     { 65000 input files for a unit should be enough !! }
           { p must be the complete path (with ending \ (or / for unix ...) }
           constructor init(const p,n,e : string);
           destructor done;virtual;
        end;
 
        pinputfile = ^tinputfile;
-
        tinputfile = object(textfile)
           filenotatend : boolean;
-          line_no : longint;
-          { second counter for unimportant tokens }
-          line_count : longint;
-          { next input file in the stack of input files }
-          next : pinputfile;
-          { to handle the browser refs }
-          ref_count : longint;
-
+          line_no      : longint;
+          line_count   : longint;    { second counter for unimportant tokens }
+          next         : pinputfile; { next input file in the stack of input files }
+          ref_count    : longint;    { to handle the browser refs }
           constructor init(const p,n,e : string);
-          { writes the file name and line number to t }
-          procedure write_file_line(var t : text);
-          function get_file_line : string;
+          procedure write_file_line(var t : text); { writes the file name and line number to t }
+          function  get_file_line : string;
        end;
 
        pfilemanager = ^tfilemanager;
-
        tfilemanager = object
           files : pextfile;
           last_ref_index : word;
@@ -84,109 +73,64 @@ unit files;
           procedure register_file(f : pextfile);
        end;
 
-       pimported_procedure = ^timported_procedure;
-
-       timported_procedure = object(tlinkedlist_item)
-          ordnr : word;
-          name,func : pstring;
-          { should be plabel, but this gaves problems with circular units }
-          lab : pointer;
-          constructor init(const n,s : string;o : word);
-          destructor done;virtual;
-       end;
-
-       pimportlist = ^timportlist;
-
-       timportlist = object(tlinkedlist_item)
-          dllname : pstring;
-          imported_procedures : plinkedlist;
-          constructor init(const n : string);
-          destructor done;virtual;
-       end;
-
     type
-       pmodule = ^tmodule;
-       pused_unit = ^tused_unit;
+       tunitmap = array[0..maxunits-1] of pointer;
+       punitmap = ^tunitmap;
 
+       pmodule = ^tmodule;
+       tmodule = object(tlinkedlist_item)
+          ppufile       : pextfile; { the PPU file }
+          ppuversion,               { PPU version, handle different versions }
+          crc,                      { check sum written to the file }
+          flags         : longint;  { flags }
+
+          compiled,                 { unit is already compiled }
+          do_assemble,              { only assemble the object, don't recompile }
+          do_compile,               { need to compile the sources }
+          sources_avail,            { if all sources are reachable }
+          in_implementation,        { processing the implementation part? }
+          in_main       : boolean;  { global, after uses else false }
+
+          map           : punitmap; { mapping of all used units }
+          unitcount     : word;     { local unit counter }
+          symtable      : pointer;  { pointer to the psymtable of this unit }
+          output_format : tof;      { how to write this file }
+
+          uses_imports  : boolean;  { Set if the module imports from DLL's.}
+          imports       : plinkedlist;
+
+          sourcefiles   : tfilemanager;
+          linklibfiles,
+          linkofiles    : tstringcontainer;
+          used_units    : tlinkedlist;
+          current_inputfile : pinputfile;
+
+          unitname,                 { name of the (unit) module in uppercase }
+          objfilename,              { fullname of the objectfile }
+          asmfilename,              { fullname of the assemblerfile }
+          ppufilename,              { fullname of the ppufile }
+          arfilename,               { fullname of the archivefile }
+          mainsource    : pstring;  { name of the main sourcefile }
+
+          constructor init(const s:string;is_unit:boolean);
+          destructor special_done;virtual; { this is to be called only when compiling again }
+
+          procedure setfilename(const path,name:string);
+          function  load_ppu(const unit_path,n,ext:string):boolean;
+          procedure search_unit(const n : string);
+       end;
+
+       pused_unit = ^tused_unit;
        tused_unit = object(tlinkedlist_item)
-          u : pmodule;
-          in_uses, in_interface, is_stab_written : boolean;
-          unitid : word;
+          u               : pmodule;
+          in_uses,
+          in_interface,
+          is_stab_written : boolean;
+          unitid          : word;
           constructor init(_u : pmodule;f : byte);
           destructor done;virtual;
        end;
 
-       tunitmap = array[0..maxunits-1] of pointer;
-       punitmap = ^tunitmap;
-
-       tmodule = object(tlinkedlist_item)
-
-          { the PPU file }
-          ppufile : pextfile;
-          { used for global switches - in_main section after uses clause }
-          { then TRUE else false.                                        }
-          in_main : boolean;
-          { mapping of all used units }
-          map : punitmap;
-          { local unit counter }
-          unitcount : word;
-          { this is a pointer because symtable uses this unit }
-          { it should be psymtable                            }
-          symtable : pointer;
-
-          { PPU version, handle different versions }
-          ppuversion : longint;
-
-          { check sum written to the file }
-          crc : longint;
-
-          { flags }
-          flags : byte;
-
-          {Set if the module imports from DLL's.}
-          uses_imports:boolean;
-
-          imports : plinkedlist;
-
-          { how to write this file }
-          output_format : tof;
-
-          { for interpenetrated units }
-          in_implementation,
-          compiled,
-          do_assemble,
-          do_compile,              { true, if it's needed to compile the sources }
-          sources_avail : boolean; { true, if all sources are reachable }
-
-          { only used, if the module is compiled by this compiler call }
-          sourcefiles : tfilemanager;
-          linklibfiles,
-          linkofiles  : tstringcontainer;
-          used_units  : tlinkedlist;
-          current_inputfile : pinputfile;
-
-          unitname,               { name of the (unit) module }
-          objfilename,            { fullname of the objectfile }
-          asmfilename,            { fullname of the assemblerfile }
-          ppufilename,            { fullname of the ppufile }
-          mainsource   : pstring; { name of the main sourcefile }
-
-          constructor init(const s:string;is_unit:boolean);
-          { this is to be called only when compiling again }
-          destructor special_done;virtual;
-
-          function load_ppu(const unit_path,n,ext : string):boolean;
-          procedure search_unit(const n : string);
-       end;
-
-    const
-       main_module : pmodule = nil;
-       current_module : pmodule = nil;
-
-    var
-       loaded_units : tlinkedlist;
-
-    type
        tunitheader = array[0..19] of char;
 
     const
@@ -207,7 +151,6 @@ unit files;
                                    {  |                              }
                                    {  start of machine language      }
 
-    const
        ibloadunit      = 1;
        iborddef        = 2;
        ibpointerdef    = 3;
@@ -253,6 +196,14 @@ unit files;
        uf_big_endian     = $20;
        uf_smartlink      = $40;
 
+    const
+       main_module    : pmodule = nil;
+       current_module : pmodule = nil;
+
+    var
+       loaded_units   : tlinkedlist;
+
+
   implementation
 
   uses
@@ -266,11 +217,7 @@ unit files;
     constructor textfile.init(const p,n,e : string);
 
       begin
-{$ifdef FPC}
-         inherited init(p+n+e,65536);
-{$else}
-         inherited init(p+n+e,10000);
-{$endif}
+         inherited init(p+n+e,extbufsize);
          path:=stringdup(p);
          name:=stringdup(n);
          ext:=stringdup(e);
@@ -353,50 +300,26 @@ unit files;
       end;
 
 {****************************************************************************
-                           Imports stuff
- ****************************************************************************}
-
-
-    constructor timported_procedure.init(const n,s : string;o : word);
-
-      begin
-         inherited init;
-         func:=stringdup(n);
-         name:=stringdup(s);
-         ordnr:=o;
-         lab:=nil;
-      end;
-
-    destructor timported_procedure.done;
-
-      begin
-         stringdispose(name);
-         inherited done;
-      end;
-
-    constructor timportlist.init(const n : string);
-
-      begin
-         inherited init;
-         dllname:=stringdup(n);
-         imported_procedures:=new(plinkedlist,init);
-      end;
-
-    destructor timportlist.done;
-
-      begin
-         dispose(imported_procedures,done);
-         stringdispose(dllname);
-      end;
-
-{****************************************************************************
                                   TMODULE
  ****************************************************************************}
 
-{$I-}
+    procedure tmodule.setfilename(const path,name:string);
+      var
+        s : string;
+      begin
+         stringdispose(objfilename);
+         stringdispose(asmfilename);
+         stringdispose(ppufilename);
+         stringdispose(arfilename);
+         s:=FixFileName(FixPath(path)+name);
+         objfilename:=stringdup(s+target_info.objext);
+         asmfilename:=stringdup(s+target_info.asmext);
+         ppufilename:=stringdup(s+target_info.unitext);
+         arfilename:=stringdup(s+target_info.arext);
+      end;
 
     function tmodule.load_ppu(const unit_path,n,ext : string):boolean;
-    var
+      var
          header  : tunitheader;
          count   : longint;
          temp,hs : string;
@@ -457,10 +380,22 @@ unit files;
       crc:=plongint(@header[10])^;
       Message1(unit_d_ppu_crc,tostr(crc));
 
+    { read name if its there }
+      ppufile^.read_data(b,1,count);
+{$IFDEF UNITNAME}
+      if b=ibunitname then
+       begin
+         ppufile^.read_data(hs[0],1,count);
+         ppufile^.read_data(hs[1],ord(hs[0]),count);
+         stringdispose(unitname);
+         unitname:=stringdup(hs);
+         ppufile^.read_data(b,1,count);
+       end;
+{$ENDIF UNITNAME}
+
     { search source files there is at least one source file }
       do_compile:=false;
       sources_avail:=true;
-      ppufile^.read_data(b,1,count);
       while b<>ibend do
        begin
          ppufile^.read_data(hs[0],1,count);
@@ -533,26 +468,13 @@ unit files;
          Path,
          filename  : string;
          found     : boolean;
-         start,pos : longint;
+         start,i   : longint;
 
          Function UnitExists(const ext:string):boolean;
          begin
            Message1(unit_t_unitsearch,Singlepathstring+filename+ext);
            UnitExists:=FileExists(Singlepathstring+FileName+ext);
          end;
-
-         Procedure SetFileNames;
-         begin
-           stringdispose(mainsource);
-           stringdispose(objfilename);
-           stringdispose(asmfilename);
-           stringdispose(ppufilename);
-           mainsource:=stringdup(SinglePathString+FileName+ext);
-           objfilename:=stringdup(SinglePathString+FileName+target_info.objext);
-           asmfilename:=stringdup(SinglePathString+FileName+target_info.asmext);
-           ppufilename:=stringdup(SinglePathString+FileName+target_info.unitext);
-         end;
-
 
        begin
          start:=1;
@@ -561,21 +483,20 @@ unit files;
          Found:=false;
          repeat
          {Create current path to check}
-           pos:=system.pos(';',path);
-           if pos=0 then
-            pos:=length(path)+1;
-           singlepathstring:=FixPath(copy(path,start,pos-start));
-           delete(path,start,pos-start+1);
+           i:=pos(';',path);
+           if i=0 then
+            i:=length(path)+1;
+           singlepathstring:=FixPath(copy(path,start,i-start));
+           delete(path,start,i-start+1);
          { Check for PPL file }
            if not (cs_link_static in aktswitches) then
             begin
               Found:=UnitExists(target_info.libext);
               if Found then
                Begin
-                 SetFileNames;
+                 SetFileName(SinglePathString,FileName);
                  Found:=Load_PPU(singlepathstring,filename,target_info.libext);
                End;
-
              end;
          { Check for PPU file }
            if not (cs_link_dynamic in aktswitches) and not Found then
@@ -583,10 +504,9 @@ unit files;
               Found:=UnitExists(target_info.unitext);
               if Found then
                Begin
-                 SetFileNames;
+                 SetFileName(SinglePathString,FileName);
                  Found:=Load_PPU(singlepathstring,filename,target_info.unitext);
                End;
-
             end;
          { Check for Sources }
            if not Found then
@@ -604,34 +524,35 @@ unit files;
                  if Found then
                   Ext:=target_info.pasext;
                end;
+              stringdispose(mainsource);
               if Found then
                begin
                  sources_avail:=true;
                {Load Filenames when found}
-                 SetFilenames;
+	         mainsource:=StringDup(SinglePathString+FileName+Ext);
+                 SetFileName(SinglePathString,FileName);
                end
               else
-               begin
-                 sources_avail:=false;
-                 stringdispose(mainsource);
-               end;
+               sources_avail:=false;
             end;
          until Found or (path='');
       end;
 
+
     constructor tmodule.init(const s:string;is_unit:boolean);
       var
-        p:dirstr;
-        n:namestr;
-        e:extstr;
+        p : dirstr;
+        n : namestr;
+        e : extstr;
       begin
          FSplit(s,p,n,e);
-         n:=Upper(n);
-         unitname:=stringdup(n);
+         unitname:=stringdup(Upper(n));
+         mainsource:=stringdup(s);
          objfilename:=nil;
          asmfilename:=nil;
+         arfilename:=nil;
          ppufilename:=nil;
-         mainsource:=stringdup(s);
+         setfilename(p,n);
          used_units.init;
          sourcefiles.init;
          linkofiles.init;
@@ -659,7 +580,8 @@ unit files;
     destructor tmodule.special_done;
 
       begin
-         if assigned(map) then dispose(map);
+         if assigned(map) then
+           dispose(map);
          { cannot remove that because it is linked
          in the global chain of used_objects
          used_units.done; }
@@ -689,16 +611,20 @@ unit files;
       end;
 
     destructor tused_unit.done;
-
       begin
          inherited done;
       end;
-{$I+}
 
 end.
 {
   $Log$
-  Revision 1.2  1998-04-21 10:16:47  peter
+  Revision 1.3  1998-04-27 23:10:28  peter
+    + new scanner
+    * $makelib -> if smartlink
+    * small filename fixes pmodule.setfilename
+    * moved import from files.pas -> import.pas
+
+  Revision 1.2  1998/04/21 10:16:47  peter
     * patches from strasbourg
     * objects is not used anymore in the fpc compiled version
 

@@ -33,7 +33,7 @@ const
 {$else}
   AsmOutSize=10000;
 {$endif}
-
+  SmartExt='.sl';
 
 {$ifdef i386}
 { tof = (of_none,of_o,of_obj,of_masm,of_att,of_nasm,of_win32) }
@@ -48,38 +48,39 @@ const
 type
   PAsmList=^TAsmList;
   TAsmList=object
-    outcnt  : longint;
-    outbuf  : array[0..AsmOutSize-1] of char;
-    outfile : file;
-    constructor Init;
-    destructor Done;
+  {filenames}
+    path     : dirstr;
+    name     : namestr;
+    asmfile,
+    objfile,
+    srcfile,
+    as_bin   : string;
+    smartcnt : longint;
+  {outfile}
+    outcnt   : longint;
+    outbuf   : array[0..AsmOutSize-1] of char;
+    outfile  : file;
+    Constructor Init(const fn:string);
+    Destructor Done;
+    Function  FindAssembler(curr_of:tof):string;
+    Function  CallAssembler(const command,para:string):Boolean;
+    Function  DoAssemble:boolean;
+    Procedure RemoveAsm;
+    procedure NextSmartName;
     Procedure AsmFlush;
     Procedure AsmWrite(const s:string);
     Procedure AsmWritePChar(p:pchar);
     Procedure AsmWriteLn(const s:string);
     Procedure AsmLn;
-    procedure OpenAsmList(const fn,fn2:string);
-    procedure CloseAsmList;
+    procedure AsmCreate;
+    procedure AsmClose;
     procedure WriteTree(p:paasmoutput);virtual;
     procedure WriteAsmList;virtual;
   end;
 
-  PAsmFile=^TAsmFile;
-  TAsmFile=object
-    asmlist : pasmlist;
-    path:dirstr;
-    asmfile,
-    objfile,
-    srcfile,
-    as_bin  : string;
-    Constructor Init(const fn:string);
-    Destructor Done;
-    Function FindAssembler(curr_of:tof):string;
-    Procedure WriteAsmSource;
-    Function CallAssembler(const command,para:string):Boolean;
-    Procedure RemoveAsm;
-    Function DoAssemble:boolean;
-  end;
+Procedure GenerateAsm(const fn:string);
+Procedure OnlyAsm(const fn:string);
+
 
 Implementation
 
@@ -100,12 +101,149 @@ uses
 
 Function DoPipe:boolean;
 begin
-  DoPipe:=use_pipe and (not writeasmfile) and (current_module^.output_format=of_o);
+  DoPipe:=use_pipe and (not WriteAsmFile) and (current_module^.output_format=of_o);
 end;
 
 
 {*****************************************************************************
-                                  TASMLIST
+                       TAsmList Calling and Name
+*****************************************************************************}
+
+const
+  last_of  : tof=of_none;
+var
+  LastASBin : string;
+Function TAsmList.FindAssembler(curr_of:tof):string;
+var
+  asfound : boolean;
+begin
+  if last_of<>curr_of then
+   begin
+     last_of:=curr_of;
+     LastASBin:=FindExe(asbin[curr_of],asfound);
+     if (not asfound) and (not externasm) then
+      begin
+        Message1(exec_w_assembler_not_found,LastASBin);
+        externasm:=true;
+      end;
+     if asfound then
+      Message1(exec_u_using_assembler,LastASBin);
+   end;
+  FindAssembler:=LastASBin;
+end;
+
+
+Function TAsmList.CallAssembler(const command,para:string):Boolean;
+begin
+  if not externasm then
+   begin
+     swapvectors;
+     exec(command,para);
+     swapvectors;
+     if (dosexitcode<>0) then
+      begin
+        Message(exec_w_error_while_assembling);
+        callassembler:=false;
+        exit;
+      end
+     else
+      if (doserror<>0) then
+       begin
+         Message(exec_w_cant_call_assembler);
+         externasm:=true;
+       end;
+   end;
+  if externasm then
+   AsmRes.AddAsmCommand(command,para,asmfile);
+  callassembler:=true;
+end;
+
+
+procedure TAsmList.RemoveAsm;
+var
+  g : file;
+  i : word;
+begin
+  if writeasmfile then
+   exit;
+  if ExternAsm then
+   AsmRes.AddDeleteCommand(asmfile)
+  else
+   begin
+     assign(g,asmfile);
+     {$I-}
+      erase(g);
+     {$I+}
+     i:=ioresult;
+   end;
+end;
+
+
+Function TAsmList.DoAssemble:boolean;
+begin
+  if DoPipe then
+   exit;
+  if not externasm then
+   Message1(exec_i_assembling,asmfile);
+  case current_module^.output_format of
+{$ifdef i386}
+   of_att : begin
+              externasm:=true; {Force Extern Asm}
+              if CallAssembler(FindAssembler(of_att),' -D -o '+objfile+' '+AsmFile) then
+               RemoveAsm;
+            end;
+     of_o : begin
+              if CallAssembler(FindAssembler(of_o),'-D -o '+objfile+' '+AsmFile) then
+               RemoveAsm;
+            end;
+ of_win32 : begin
+              if CallAssembler(FindAssembler(of_win32),'-D -o '+objfile+' '+AsmFile) then
+               RemoveAsm;
+            end;
+  of_nasm : begin
+            {$ifdef linux}
+              if CallAssembler(FindAssembler(of_nasm),' -f elf -o '+objfile+' '+AsmFile) then
+               RemoveAsm;
+            {$else}
+              if CallAssembler(FindAssembler(of_nasm),' -f coff -o '+objfile+' '+AsmFile) then
+               RemoveAsm;
+            {$endif}
+            end;
+   of_obj : begin
+              if CallAssembler(FindAssembler(of_nasm),' -f obj -o '+objfile+' '+AsmFile) then
+               RemoveAsm;
+            end;
+  of_masm : begin
+            { !! Nothing yet !! }
+            end;
+{$endif}
+{$ifdef m68k}
+     of_o,
+   of_mot,
+   of_mit,
+   of_gas : begin
+            { !! Nothing yet !! }
+            end;
+{$endif}
+  else
+   internalerror(30000);
+  end;
+  DoAssemble:=true;
+end;
+
+
+procedure TAsmList.NextSmartName;
+begin
+  inc(smartcnt);
+  if smartcnt>999999 then
+   Comment(V_Fatal,'Too many assembler files');
+  AsmFile:=Path+FixFileName('as'+tostr(smartcnt)+target_info.asmext);
+  ObjFile:=Path+FixFileName('as'+tostr(smartcnt)+target_info.objext);
+end;
+
+
+{*****************************************************************************
+                       TAsmList AsmFile Writing
 *****************************************************************************}
 
 Procedure TAsmList.AsmFlush;
@@ -153,45 +291,45 @@ begin
 end;
 
 
-
-
 Procedure TAsmList.AsmLn;
 begin
   if OutCnt>=AsmOutSize-2 then
    AsmFlush;
   OutBuf[OutCnt]:=target_info.newline[1];
-  inc(OutCnt); 
+  inc(OutCnt);
   if length(target_info.newline)>1 then
    begin
      OutBuf[OutCnt]:=target_info.newline[2];
-     inc(OutCnt); 
+     inc(OutCnt);
    end;
 end;
 
 
-procedure TAsmList.OpenAsmList(const fn,fn2:string);
+procedure TAsmList.AsmCreate;
 begin
+  if SmartLink then
+   NextSmartName;
 {$ifdef linux}
   if DoPipe then
    begin
-     Message1(exec_i_assembling_pipe,fn);
-     POpen(outfile,'as -o '+fn2,'W');
+     Message1(exec_i_assembling_pipe,asmfile);
+     POpen(outfile,'as -o '+objfile,'W');
    end
   else
 {$endif}
    begin
-     Assign(outfile,fn);
+     Assign(outfile,asmfile);
      {$I-}
       Rewrite(outfile,1);
      {$I+}
      if ioresult<>0 then
-      Message1(exec_d_cant_create_asmfile,fn);
+      Message1(exec_d_cant_create_asmfile,asmfile);
    end;
   outcnt:=0;
 end;
 
 
-procedure TAsmList.CloseAsmList;
+procedure TAsmList.AsmClose;
 var
   f : file;
   l : longint;
@@ -207,7 +345,9 @@ begin
      if Assigned(current_module^.ppufilename) then
       begin
         Assign(f,current_module^.ppufilename^);
-        reset(f,1);
+        {$I-}
+         reset(f,1);
+        {$I+}
         if ioresult=0 then
          begin
            getftime(f,l);
@@ -231,194 +371,106 @@ begin
 end;
 
 
-constructor TAsmList.Init;
-begin
-  OutCnt:=0;
-end;
-
-
-destructor TAsmList.Done;
-begin
-end;
-
-
-{*****************************************************************************
-                                  TASMFILE
-*****************************************************************************}
-
-Constructor TAsmFile.Init(const fn:string);
+Constructor TAsmList.Init(const fn:string);
 var
-  name:namestr;
-  ext:extstr;
+  ext : extstr;
+  i   : word;
 begin
 {Create filenames for easier access}
   fsplit(fn,path,name,ext);
   srcfile:=fn;
   asmfile:=path+name+target_info.asmext;
   objfile:=path+name+target_info.objext;
-{Init output format}
-  case current_module^.output_format of
-{$ifdef i386}
-     of_o,
-     of_win32,
-     of_att:
-       asmlist:=new(pi386attasmlist,Init);
-     of_obj,
-     of_masm,
-     of_nasm:
-       asmlist:=new(pi386intasmlist,Init);
-{$endif}
-{$ifdef m68k}
-     of_o,
-   of_gas : asmlist:=new(pm68kgasasmlist,Init);
-   of_mot : asmlist:=new(pm68kmotasmlist,Init);
-   of_mit : asmlist:=new(pm68kmitasmlist,Init);
-{$endif}
-  else
-   internalerror(30000);
-  end;
-end;
-
-
-Destructor TAsmFile.Done;
-begin
-end;
-
-
-Procedure TAsmFile.WriteAsmSource;
-begin
-  asmlist^.OpenAsmList(asmfile,objfile);
-  asmlist^.WriteAsmList;
-  asmlist^.CloseAsmList;
-end;
-
-
-const
-  last_of  : tof=of_none;
-var
-  LastASBin : string;
-Function TAsmFile.FindAssembler(curr_of:tof):string;
-var
-  asfound : boolean;
-begin
-  if last_of<>curr_of then
+  OutCnt:=0;
+{Smartlinking}
+  smartcnt:=0;
+  if smartlink then
    begin
-     last_of:=curr_of;
-     LastASBin:=FindExe(asbin[curr_of],asfound);
-     if (not asfound) and (not externasm) then
-      begin
-        Message1(exec_w_assembler_not_found,LastASBin);
-        externasm:=true;
-      end;
-     if asfound then
-      Message1(exec_u_using_assembler,LastASBin);
-   end;
-  FindAssembler:=LastASBin;
-end;
-
-
-Function TAsmFile.CallAssembler(const command,para:string):Boolean;
-begin
-  if not externasm then
-   begin
-     swapvectors;
-     exec(command,para);
-     swapvectors;
-     if (dosexitcode<>0) then
-      begin
-        Message(exec_w_error_while_assembling);
-        callassembler:=false;
-        exit;
-      end
-     else
-      if (doserror<>0) then
-       begin
-         Message(exec_w_cant_call_assembler);
-         externasm:=true;
-       end;
-   end;
-  if externasm then
-   AsmRes.AddAsmCommand(command,para,asmfile);
-  callassembler:=true;
-end;
-
-
-procedure TAsmFile.RemoveAsm;
-var
-  g : file;
-  i : word;
-begin
-  if writeasmfile then
-   exit;
-  if ExternAsm then
-   AsmRes.AddDeleteCommand (AsmFile)
-  else
-   begin
-     assign(g,asmfile);
+     path:=FixPath(path)+FixFileName(name+smartext);
      {$I-}
-      erase(g);
+      mkdir(path);
      {$I+}
      i:=ioresult;
    end;
+  path:=FixPath(path);
 end;
 
 
-Function TAsmFile.DoAssemble:boolean;
+Destructor TAsmList.Done;
 begin
-  if DoPipe then
-   exit;
-  if not externasm then
-   Message1(exec_i_assembling,asmfile);
+end;
+
+
+{*****************************************************************************
+                     Generate Assembler Files Main Procedure
+*****************************************************************************}
+
+Procedure GenerateAsm(const fn:string);
+var
+  a : PAsmList;
+begin
   case current_module^.output_format of
 {$ifdef i386}
-   of_att : begin
-              externasm:=true; {Force Extern Asm}
-              if CallAssembler(FindAssembler(of_att),' -D -o '+objfile+' '+asmfile) then
-               RemoveAsm;
-            end;
-     of_o : begin
-              if CallAssembler(FindAssembler(of_o),'-D -o '+objfile+' '+asmfile) then
-               RemoveAsm;
-            end;
- of_win32 : begin
-              if CallAssembler(FindAssembler(of_win32),'-D -o '+objfile+' '+asmfile) then
-               RemoveAsm;
-            end;
-  of_nasm : begin
-            {$ifdef linux}
-              if CallAssembler(FindAssembler(of_nasm),' -f elf -o '+objfile+' '+asmfile) then
-               RemoveAsm;
-            {$else}
-              if CallAssembler(FindAssembler(of_nasm),' -f coff -o '+objfile+' '+asmfile) then
-               RemoveAsm;
-            {$endif}
-            end;
-   of_obj : begin
-              if CallAssembler(FindAssembler(of_nasm),' -f obj -o '+objfile+' '+asmfile) then
-               RemoveAsm;
-            end;
-  of_masm : begin
-            { !! Nothing yet !! }
-            end;
+     of_o,
+ of_win32,
+   of_att : a:=new(pi386attasmlist,Init(fn));
+   of_obj,
+  of_masm,
+  of_nasm : a:=new(pi386intasmlist,Init(fn));
 {$endif}
 {$ifdef m68k}
      of_o,
-   of_mot,
-   of_mit,
-   of_gas : begin
-            { !! Nothing yet !! }
-            end;
+   of_gas : a:=new(pm68kgasasmlist,Init(fn));
+   of_mot : a:=new(pm68kmotasmlist,Init(fn));
+   of_mit : a:=new(pm68kmitasmlist,Init(fn));
 {$endif}
   else
    internalerror(30000);
   end;
-  DoAssemble:=true;
+  a^.AsmCreate;
+  a^.WriteAsmList;
+  a^.AsmClose;
+  a^.DoAssemble;
+  dispose(a,Done);
+end;
+
+
+Procedure OnlyAsm(const fn:string);
+var
+  a : PAsmList;
+begin
+  case current_module^.output_format of
+{$ifdef i386}
+     of_o,
+ of_win32,
+   of_att : a:=new(pi386attasmlist,Init(fn));
+   of_obj,
+  of_masm,
+  of_nasm : a:=new(pi386intasmlist,Init(fn));
+{$endif}
+{$ifdef m68k}
+     of_o,
+   of_gas : a:=new(pm68kgasasmlist,Init(fn));
+   of_mot : a:=new(pm68kmotasmlist,Init(fn));
+   of_mit : a:=new(pm68kmitasmlist,Init(fn));
+{$endif}
+  else
+   internalerror(30000);
+  end;
+  a^.DoAssemble;
+  dispose(a,Done);
 end;
 
 end.
 {
   $Log$
-  Revision 1.3  1998-04-10 14:41:43  peter
+  Revision 1.4  1998-04-27 23:10:27  peter
+    + new scanner
+    * $makelib -> if smartlink
+    * small filename fixes pmodule.setfilename
+    * moved import from files.pas -> import.pas
+
+  Revision 1.3  1998/04/10 14:41:43  peter
     * removed some Hints
     * small speed optimization for AsmLn
 

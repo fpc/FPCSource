@@ -193,11 +193,6 @@ unit cobjects;
            { closes the file and releases the buffer }
            procedure close;
 
-{$ifdef MAKELIB}
-           { used for making tiny files for libs }
-           procedure changename(filename : string);
-{$endif MAKELIB}
-
            { goto the given position }
            procedure seek(l : longint);
 
@@ -986,18 +981,17 @@ end;
               iomode:=0;
            end;
       end;
-{$ifdef MAKELIB}
-    procedure tbufferedfile.changename(filename : string);
 
-      begin
-         close;
-         assign(f,filename);
-      end;
-{$endif MAKELIB}
 end.
 {
   $Log$
-  Revision 1.2  1998-04-07 11:09:04  peter
+  Revision 1.3  1998-04-27 23:10:28  peter
+    + new scanner
+    * $makelib -> if smartlink
+    * small filename fixes pmodule.setfilename
+    * moved import from files.pas -> import.pas
+
+  Revision 1.2  1998/04/07 11:09:04  peter
     + filemode is set correct in tbufferedfile.reset
 
   Revision 1.1.1.1  1998/03/25 11:18:15  root

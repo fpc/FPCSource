@@ -48,26 +48,21 @@ unit aasm;
           ait_comp,
           ait_external,
           ait_align,
-
           { the following is only used by the win32 version of the compiler }
           { and only the GNU AS Win32 is able to write it                   }
           ait_section,
           ait_const_rva,
-          { the following must is system depended }
 {$ifdef GDB}
           ait_stabn,
           ait_stabs,
           ait_stab_function_name,
 {$endif GDB}
-{$ifdef MAKELIB}
-          { used to split unit into tiny assembler files }
-          ait_cut,
-{$endif MAKELIB}
-          { never used, makes insertation of new ait_ easier to type }
+          ait_cut, { used to split into tiny assembler files }
 {$ifdef REGALLOC}
           ait_regalloc,
           ait_regdealloc,
 {$endif REGALLOC}
+          { never used, makes insertation of new ait_ easier to type }
           ait_dummy);
 
      type
@@ -215,13 +210,11 @@ unit aasm;
           value : bestreal;
           constructor init(_value : bestreal);
        end;
-{$ifdef MAKELIB}
-       pai_cut = ^tai_cut;
 
+       pai_cut = ^tai_cut;
        tai_cut = object(tai)
           constructor init;
        end;
-{$endif MAKELIB}
 
 { for each processor define the best precision }
 { bestreal is defined in globals }
@@ -661,23 +654,26 @@ type
          inherited done;
       end;
 
-{$ifdef MAKELIB}
 {****************************************************************************
                               TAI_CUT
  ****************************************************************************}
 
      constructor tai_cut.init;
-
        begin
           inherited init;
           typ:=ait_cut;
        end;
-{$endif MAKELIB}
 
 end.
 {
   $Log$
-  Revision 1.2  1998-04-09 15:46:37  florian
+  Revision 1.3  1998-04-27 23:10:27  peter
+    + new scanner
+    * $makelib -> if smartlink
+    * small filename fixes pmodule.setfilename
+    * moved import from files.pas -> import.pas
+
+  Revision 1.2  1998/04/09 15:46:37  florian
     + register allocation tracing stuff added
 
   Revision 1.1.1.1  1998/03/25 11:18:16  root

@@ -196,7 +196,6 @@ unit pmodules;
          st : punitsymtable;
          old_current_module,hp,nextmodule : pmodule;
          pu : pused_unit;
-         a  : pasmfile;
          hs : pstring;
       begin
          old_current_module:=current_module;
@@ -255,11 +254,7 @@ unit pmodules;
                 begin
                 { only reassemble ? }
                   if (hp^.do_assemble) then
-                   begin
-                     a:=new(PAsmFile,Init(hp^.asmfilename^));
-                     a^.DoAssemble;
-                     dispose(a,Done);
-                   end;
+                   OnlyAsm(hp^.asmfilename^);
                  { we should know there the PPU file else it's an error and
                    we can't load the unit }
                   if hp^.ppufile^.name^<>'' then
@@ -416,71 +411,66 @@ unit pmodules;
     procedure proc_unit;
 
       var
-         unitname : stringid;
 {$ifdef GDB}
          { several defs to simulate more or less C++ objects for GDB }
-         vmtdef : precdef;
-         pvmtdef : ppointerdef;
+         vmtdef      : precdef;
+         pvmtdef     : ppointerdef;
          vmtarraydef : parraydef;
          vmtsymtable : psymtable;
 {$endif GDB}
-         names:Tstringcontainer;
-         p : psymtable;
+         names  : Tstringcontainer;
+         p      : psymtable;
          unitst : punitsymtable;
-         pu : pused_unit;
-         { the output ppufile is written to this path }
-         s1,s2,s3:^string; {Saves stack space, but only eats heap
-                            space when there is a lot of heap free.}
-
+         pu     : pused_unit;
+         s1,s2  : ^string; {Saves stack space}
       begin
          consume(_UNIT);
 
-         stringdispose(current_module^.objfilename);
-         stringdispose(current_module^.ppufilename);
-       { create filenames and check unit name }
-         new(s1);
-         new(s2);
-         new(s3);
-         s1^:=FixFileName(current_module^.current_inputfile^.path^+current_module^.current_inputfile^.name^);
-         current_module^.objfilename:=stringdup(s1^+target_info.objext);
-         current_module^.ppufilename:=stringdup(s1^+target_info.unitext);
-
-         s1^:=upper(pattern);
-         s2^:=upper(target_info.system_unit);
-         s3^:=upper(current_module^.current_inputfile^.name^);
-         if (cs_compilesystem in aktswitches)  then
+         if token=ID then
           begin
-            if (cs_check_unit_name in aktswitches) and
-               ((length(pattern)>8) or (s1^<>s2^) or (s1^<>s3^)) then
-                Message1(unit_e_illegal_unit_name,s1^);
-          end
-         else
-          if (s1^=s2^) then
-           Message(unit_w_switch_us_missed);
-         dispose(s3);
-         dispose(s2);
-         dispose(s1);
+          { create filenames and unit name }
+             current_module^.SetFileName(current_module^.current_inputfile^.path^,current_module^.current_inputfile^.name^);
+             current_module^.unitname:=stringdup(upper(pattern));
 
-       { add object }
-         Linker.AddObjectFile(current_module^.objfilename^);
-
-         unitname:=pattern;
-
+          { check for system unit }
+             new(s1);
+             new(s2);
+             s1^:=upper(target_info.system_unit);
+             s2^:=upper(current_module^.current_inputfile^.name^);
+             if (cs_compilesystem in aktswitches)  then
+              begin
+                if (cs_check_unit_name in aktswitches) and
+                   ((length(current_module^.unitname^)>8) or
+                    (current_module^.unitname^<>s1^) or
+                    (current_module^.unitname^<>s2^)) then
+                  Message1(unit_e_illegal_unit_name,s1^);
+              end
+             else
+              if (current_module^.unitname^=s1^) then
+               Message(unit_w_switch_us_missed);
+             dispose(s2);
+             dispose(s1);
+	     
+	  { Add Object File }     
+             Linker.AddObjectFile(current_module^.objfilename^);
+             current_module^.linkofiles.insert(current_module^.objfilename^);
+          end;
+	  
          consume(ID);
          consume(SEMICOLON);
          consume(_INTERFACE);
 
          { this should be placed after uses !!}
 {$ifndef UseNiceNames}
-         procprefix:='_'+unitname+'$$';
+         procprefix:='_'+current_module^.unitname^+'$$';
 {$else UseNiceNames}
-         procprefix:='_'+tostr(length(unitname))+lowercase(unitname)+'_';
+         procprefix:='_'+tostr(length(current_module^.unitname^))+lowercase(current_module^.unitname^)+'_';
 {$endif UseNiceNames}
 
          parse_only:=true;
 
          { generate now the global symboltable }
-         p:=new(punitsymtable,init(globalsymtable,unitname));
+         p:=new(punitsymtable,init(globalsymtable,current_module^.unitname^));
          refsymtable:=p;
          unitst:=punitsymtable(p);
 
@@ -491,7 +481,6 @@ unit pmodules;
          { a unit compiled at command line must be inside the loaded_unit list }
          if (compile_level=1) then
            begin
-              current_module^.unitname:=stringdup(unitname);
               loaded_units.insert(current_module);
               if cs_unit_to_lib in initswitches then
                 begin
@@ -646,14 +635,14 @@ unit pmodules;
          only_calculate_crc:=false;
          }
          { generates static symbol table }
-         p:=new(punitsymtable,init(staticsymtable,unitname));
+         p:=new(punitsymtable,init(staticsymtable,current_module^.unitname^));
          refsymtable:=p;
 
          {Generate a procsym.}
-         aktprocsym:=new(Pprocsym,init(unitname+'_init'));
+         aktprocsym:=new(Pprocsym,init(current_module^.unitname^+'_init'));
          aktprocsym^.definition:=new(Pprocdef,init);
          aktprocsym^.definition^.options:=aktprocsym^.definition^.options or pounitinit;
-         aktprocsym^.definition^.setmangledname(unitname+'_init');
+         aktprocsym^.definition^.setmangledname(current_module^.unitname^+'_init');
 
          {The generated procsym has a local symtable. Discard it and turn
           it into the static one.}
@@ -661,7 +650,8 @@ unit pmodules;
          aktprocsym^.definition^.localst:=p;
 
          names.init;
-         names.insert(unitname+'_init');
+         names.insert(current_module^.unitname^+'_init');
+         names.insert('INIT$$'+current_module^.unitname^);
 
          { testing !!!!!!!!! }
          { we set the interface part as a unitsymtable  }
@@ -672,13 +662,6 @@ unit pmodules;
          symtablestack:=unitst^.next;
 
          parse_uses(unitst);
-
-         { duplicated here to be sure }
-{$ifndef UseNiceNames}
-         procprefix:='_'+unitname+'$$';
-{$else UseNiceNames}
-         procprefix:='_'+tostr(length(unitname))+lowercase(unitname)+'_';
-{$endif UseNiceNames}
 
          { but reinsert the global symtable as lasts }
          unitst^.next:=symtablestack;
@@ -696,27 +679,21 @@ unit pmodules;
               allow_special:=true;
               Switch_to_temp_heap;
            end;
-{$endif Splitheap}
-
-{$ifdef Splitheap}
          { it will report all crossings }
          allow_special:=false;
 {$endif Splitheap}
+
          { set some informations }
          procinfo.retdef:=voiddef;
          procinfo._class:=nil;
          procinfo.call_offset:=8;
-
          { for temporary values }
          procinfo.framepointer:=frame_pointer;
-
          { clear flags }
          procinfo.flags:=0;
 
          {Reset the codegenerator.}
          codegen_newprocedure;
-
-         names.insert('INIT$$'+unitname);
 
          compile_proc_body(names,true,false);
 
@@ -779,12 +756,14 @@ unit pmodules;
          { fatal error (avoids pointer problems)}
          { when referencing the non-existant    }
          { system unit.                         }
-         if (cs_compilesystem in aktswitches) then
+
+         { System Unit should be compiled using proc_unit !! (PFV) }
+{         if (cs_compilesystem in aktswitches) then
          Begin
            if token<>_UNIT then
             Message1(scan_f_syn_expected,'UNIT');
            consume(_UNIT);
-         end;
+         end;}
 
          parse_only:=false;
          programname:='';
@@ -799,7 +778,7 @@ unit pmodules;
          else
            { is there an program head ? }
            if token=_PROGRAM then
-           begin
+            begin
               consume(_PROGRAM);
               programname:=pattern;
               consume(ID);
@@ -810,7 +789,7 @@ unit pmodules;
                    consume(RKLAMMER);
                 end;
               consume(SEMICOLON);
-           end;
+            end;
 
          { insert after the unit symbol tables the static symbol table }
          { of the program                                              }
@@ -826,9 +805,6 @@ unit pmodules;
          dispose(aktprocsym^.definition^.localst,done);
          aktprocsym^.definition^.localst:=st;
 
-         names.init;
-         names.insert('program_init');
-
          refsymtable:=st;
 
          {Insert the symbols of the system unit into the stack of symbol
@@ -838,7 +814,8 @@ unit pmodules;
          refsymtable^.insert(new(punitsym,init('SYSTEM',systemunit)));
 
          {Load the units used by the program we compile.}
-         if token=_USES then loadunits;
+         if token=_USES then
+	   loadunits;
 
          {Insert the name of the main program into the symbol table.}
          if programname<>'' then
@@ -865,27 +842,31 @@ unit pmodules;
          procprefix:='';
          in_except_block:=false;
 
-
          {The program intialization needs an alias, so it can be called
           from the bootstrap code.}
-         case target_info.target of
-            target_GO32V1,
-            target_GO32V2,
-            target_OS2,
-            target_WIN32:
-              names.insert('_main');
-            target_LINUX:
-              names.insert('main');
-         end;
+         names.init;
+         names.insert('program_init');
          names.insert('PASCALMAIN');
+         case target_info.target of
+          target_GO32V1,
+          target_GO32V2,
+             target_OS2,
+           target_WIN32 : names.insert('_main');
+           target_LINUX : names.insert('main');
+         end;
 
          compile_proc_body(names,true,false);
 
          codegen_doneprocedure;
 
-         Linker.AddObjectFile(current_module^.unitname^);
-         current_module^.linkofiles.insert(current_module^.unitname^);
+         Linker.AddObjectFile(current_module^.objfilename^);
+         current_module^.linkofiles.insert(current_module^.objfilename^);
 
+         if smartlink then
+           begin
+             bsssegment^.concat(new(pai_cut,init));
+             datasegment^.concat(new(pai_cut,init));
+           end;
         { On the Macintosh Classic M68k Architecture   }
         { The Heap variable is simply a POINTER to the }
         { real HEAP. The HEAP must be set up by the RTL }
@@ -936,7 +917,13 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.5  1998-04-14 23:27:03  florian
+  Revision 1.6  1998-04-27 23:10:28  peter
+    + new scanner
+    * $makelib -> if smartlink
+    * small filename fixes pmodule.setfilename
+    * moved import from files.pas -> import.pas
+
+  Revision 1.5  1998/04/14 23:27:03  florian
     + exclude/include with constant second parameter added
 
   Revision 1.4  1998/04/10 14:41:43  peter

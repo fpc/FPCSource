@@ -22,7 +22,7 @@
 }
 
 {$ifdef tp}
-{$E+,F+,N+,D-,L+,Y+}
+{$E+,F+,N+,D+,L-,Y+}
 {$endif}
 unit cgi386;
 
@@ -647,23 +647,25 @@ implementation
                      ait_real_extended : consts^.insert(new(pai_extended,init(p^.valued)));
                      else
                        internalerror(10120);
-                     end;
-{$ifndef MAKELIB}
-                   consts^.insert(new(pai_label,init(lastlabel)));
-{$else MAKELIB}
-                   consts^.insert(new(pai_symbol,init_global('_$'+current_module^.unitname^
-                     +'$real_const'+tostr(p^.labnumber))));
-                   consts^.insert(new(pai_cut,init));
-{$endif MAKELIB}
-                end;
+                   end;
+                   if smartlink then
+                    begin
+                      consts^.insert(new(pai_symbol,init_global('_$'+current_module^.unitname^
+                        +'$real_const'+tostr(p^.labnumber))));
+                      consts^.insert(new(pai_cut,init));
+                    end
+                   else
+                    consts^.insert(new(pai_label,init(lastlabel)));
+               end;
            end;
          stringdispose(p^.location.reference.symbol);
-{$ifndef MAKELIB}
-         p^.location.reference.symbol:=stringdup(lab2str(lastlabel));
-{$else MAKELIB}
-         p^.location.reference.symbol:=stringdup('_$'+current_module^.unitname^
-                     +'$real_const'+tostr(p^.labnumber));
-{$endif MAKELIB}
+         if smartlink then
+          begin
+            p^.location.reference.symbol:=stringdup('_$'+current_module^.unitname^
+                +'$real_const'+tostr(p^.labnumber));
+          end
+         else
+          p^.location.reference.symbol:=stringdup(lab2str(lastlabel));
       end;
 
     procedure secondfixconst(var p : ptree);
@@ -749,22 +751,22 @@ implementation
                    { to overcome this problem we set the length explicitly }
                    { with the ending null char }
                    pai_string(consts^.first)^.len:=length(p^.values^)+2;
-{$ifndef MAKELIB}
-                   consts^.insert(new(pai_label,init(lastlabel)));
-{$else MAKELIB}
-                   consts^.insert(new(pai_symbol,init_global('_$'+current_module^.unitname^
-                     +'$string_const'+tostr(p^.labstrnumber))));
-                   consts^.insert(new(pai_cut,init));
-{$endif MAKELIB}
-                end;
+                   if smartlink then
+                    begin
+                      consts^.insert(new(pai_symbol,init_global('_$'+current_module^.unitname^
+                        +'$string_const'+tostr(p^.labstrnumber))));
+                      consts^.insert(new(pai_cut,init));
+                    end
+                   else
+                    consts^.insert(new(pai_label,init(lastlabel)));
+               end;
            end;
          stringdispose(p^.location.reference.symbol);
-{$ifndef MAKELIB}
-         p^.location.reference.symbol:=stringdup(lab2str(lastlabel));
-{$else MAKELIB}
-         p^.location.reference.symbol:=stringdup('_$'+current_module^.unitname^
-                     +'$string_const'+tostr(p^.labstrnumber));
-{$endif MAKELIB}
+         if smartlink then
+           p^.location.reference.symbol:=stringdup('_$'+current_module^.unitname^
+                     +'$string_const'+tostr(p^.labstrnumber))
+         else
+           p^.location.reference.symbol:=stringdup(lab2str(lastlabel));
          p^.location.loc := LOC_MEM;
       end;
 
@@ -5875,7 +5877,13 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.16  1998-04-23 21:52:08  florian
+  Revision 1.17  1998-04-27 23:10:27  peter
+    + new scanner
+    * $makelib -> if smartlink
+    * small filename fixes pmodule.setfilename
+    * moved import from files.pas -> import.pas
+
+  Revision 1.16  1998/04/23 21:52:08  florian
     * fixes of Jonas applied
 
   Revision 1.15  1998/04/22 21:06:49  florian

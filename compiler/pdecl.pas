@@ -963,9 +963,8 @@ unit pdecl;
          testcurobject:=0;
          curobjectname:='';
 
-{$ifdef MAKELIB}
-        datasegment^.concat(new(pai_cut,init));
-{$endif MAKELIB}
+         if smartlink then
+           datasegment^.concat(new(pai_cut,init));
 {$ifdef GDB}
          { generate the VMT }
          if cs_debuginfo in aktswitches then
@@ -1736,7 +1735,13 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.9  1998-04-10 21:36:56  florian
+  Revision 1.10  1998-04-27 23:10:28  peter
+    + new scanner
+    * $makelib -> if smartlink
+    * small filename fixes pmodule.setfilename
+    * moved import from files.pas -> import.pas
+
+  Revision 1.9  1998/04/10 21:36:56  florian
     + some stuff to support method pointers (procedure of object) added
       (declaration, parameter handling)
 

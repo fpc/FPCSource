@@ -132,8 +132,8 @@ unit parser;
          oldpreprocstack : ppreprocstack;
          oldorgpattern,oldprocprefix : string;
          old_block_type : tblock_type;
-         oldinputbuffer : pchar;
-         oldinputpointer : longint;
+         oldinputbuffer,
+         oldinputpointer : pchar;
          olds_point,oldparse_only : boolean;
          oldc : char;
          oldcomment_level : word;
@@ -209,8 +209,6 @@ unit parser;
            set_macro('FPC_PATCH',patch_nr);
         end;
 
-      var
-         a : PAsmFile;
       label
          done;
 
@@ -403,15 +401,12 @@ unit parser;
              if current_module^.uses_imports then
               importlib^.generatelib;
 
-             a:=new(PAsmFile,Init(filename));
-             a^.WriteAsmSource;
-             a^.DoAssemble;
-             dispose(a,Done);
+             GenerateAsm(filename);
 
              { Check linking  => we are at first level in compile }
              if (compile_level=1) then
               begin
-	        if Linker.ExeName='' then
+                if Linker.ExeName='' then
                  Linker.SetFileName(FileName);
                 if (comp_unit) then
                  begin
@@ -530,7 +525,13 @@ done:
 end.
 {
   $Log$
-  Revision 1.6  1998-04-21 10:16:48  peter
+  Revision 1.7  1998-04-27 23:10:28  peter
+    + new scanner
+    * $makelib -> if smartlink
+    * small filename fixes pmodule.setfilename
+    * moved import from files.pas -> import.pas
+
+  Revision 1.6  1998/04/21 10:16:48  peter
     * patches from strasbourg
     * objects is not used anymore in the fpc compiled version
 

@@ -22,15 +22,36 @@
 unit import;
 interface
 
+uses
+  cobjects;
+
 type
-  pimportlib=^timportlib;
-  timportlib=object
-    constructor Init;
-    destructor Done;
-    procedure preparelib(const s:string);virtual;
-    procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
-    procedure generatelib;virtual;
-  end;
+   pimported_procedure = ^timported_procedure;
+   timported_procedure = object(tlinkedlist_item)
+      ordnr : word;
+      name,func : pstring;
+      lab : pointer; { should be plabel, but this gaves problems with circular units }
+      constructor init(const n,s : string;o : word);
+      destructor done;virtual;
+   end;
+
+   pimportlist = ^timportlist;
+   timportlist = object(tlinkedlist_item)
+      dllname : pstring;
+      imported_procedures : plinkedlist;
+      constructor init(const n : string);
+      destructor done;virtual;
+   end;
+
+   pimportlib=^timportlib;
+   timportlib=object
+      constructor Init;
+      destructor Done;
+      procedure preparelib(const s:string);virtual;
+      procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
+      procedure generatelib;virtual;
+   end;
+
 var
   importlib : pimportlib;
 
@@ -41,6 +62,48 @@ implementation
 uses
   systems,verbose,
   os2_targ,win_targ;
+
+{****************************************************************************
+                           TImported_procedure
+****************************************************************************}
+
+constructor timported_procedure.init(const n,s : string;o : word);
+begin
+  inherited init;
+  func:=stringdup(n);
+  name:=stringdup(s);
+  ordnr:=o;
+  lab:=nil;
+end;
+
+destructor timported_procedure.done;
+begin
+  stringdispose(name);
+  inherited done;
+end;
+
+
+{****************************************************************************
+                              TImportlist
+****************************************************************************}
+
+constructor timportlist.init(const n : string);
+begin
+  inherited init;
+  dllname:=stringdup(n);
+  imported_procedures:=new(plinkedlist,init);
+end;
+
+destructor timportlist.done;
+begin
+  dispose(imported_procedures,done);
+  stringdispose(dllname);
+end;
+
+
+{****************************************************************************
+                              TImportLib
+****************************************************************************}
 
 constructor timportlib.Init;
 begin
@@ -83,8 +146,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:12  root
-  Initial revision
+  Revision 1.2  1998-04-27 23:10:28  peter
+    + new scanner
+    * $makelib -> if smartlink
+    * small filename fixes pmodule.setfilename
+    * moved import from files.pas -> import.pas
+
+  Revision 1.1.1.1  1998/03/25 11:18:12  root
+  * Restored version
 
   Revision 1.3  1998/03/10 01:17:19  peter
     * all files have the same header
