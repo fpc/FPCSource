@@ -237,7 +237,7 @@ unit types;
 
       begin
          dont_copy_const_param:=(def^.deftype in [arraydef,objectdef,formaldef,recorddef]) or
-           ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_shortstring,st_longstring])) or
+           ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_ansistring,st_shortstring,st_longstring])) or
            ((def^.deftype=procvardef) and ((pprocvardef(def)^.options and pomethodpointer)<>0)) or
            ((def^.deftype=setdef) and (psetdef(def)^.settype<>smallset));
       end;
@@ -858,7 +858,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.15  1998-07-18 22:54:32  florian
+  Revision 1.16  1998-07-20 23:35:50  michael
+  Const ansistrings are not copied.
+
+  Revision 1.15  1998/07/18 22:54:32  florian
     * some ansi/wide/longstring support fixed:
        o parameter passing
        o returning as result from functions
