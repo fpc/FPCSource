@@ -32,7 +32,7 @@ endif
 
 .PHONY: all tex clean
 
-OBJECTS=ex1 ex2 ex3
+OBJECTS=ex1 ex2 ex3 ex4
 
 TEXOBJECTS=$(addsuffix .tex, $(OBJECTS))
 
