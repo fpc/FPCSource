@@ -509,7 +509,8 @@ uses X;
        PXKeyEvent =^TXKeyEvent;
        TXKeyPressedEvent = TXKeyEvent;
        PXKeyPressedEvent= ^TXKeyPressedEvent;
-       XKeyReleasedEvent = TXKeyEvent;
+       TXKeyReleasedEvent = TXKeyEvent;
+       PXKeyReleasedEvent= ^TXKeyReleasedEvent;
        TXButtonEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -527,8 +528,11 @@ uses X;
             button : cardinal;
             same_screen : TBool;
          end;
+       PXButtonEvent = ^TXButtonEvent;
        TXButtonPressedEvent = TXButtonEvent;
+       PXButtonPressedEvent = ^TXButtonPressedEvent;
        TXButtonReleasedEvent = TXButtonEvent;
+       PXButtonReleasedEvent = ^TXButtonReleasedEvent;
        TXMotionEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -546,7 +550,9 @@ uses X;
             is_hint : char;
             same_screen : TBool;
          end;
+       PXMotionEvent = ^TXMotionEvent;
        TXPointerMovedEvent = TXMotionEvent;
+       PXPointerMovedEvent = ^TXPointerMovedEvent;
     {
          * NotifyAncestor, NotifyVirtual, NotifyInferior,
          * NotifyNonlinear,NotifyNonlinearVirtual
@@ -570,8 +576,11 @@ uses X;
             focus : TBool;
             state : cardinal;
          end;
+       PXCrossingEvent = ^TXCrossingEvent;
        TXEnterWindowEvent = TXCrossingEvent;
+       PXEnterWindowEvent = ^TXEnterWindowEvent;
        TXLeaveWindowEvent = TXCrossingEvent;
+       PXLeaveWindowEvent = ^TXLeaveWindowEvent;
        TXFocusChangeEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -581,8 +590,11 @@ uses X;
             mode : longint;
             detail : longint;
          end;
+       PXFocusChangeEvent = ^TXFocusChangeEvent;
        TXFocusInEvent = TXFocusChangeEvent;
+       PXFocusInEvent = ^TXFocusInEvent;
        TXFocusOutEvent = TXFocusChangeEvent;
+       PXFocusOutEvent = ^TXFocusOutEvent;
        TXKeymapEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -591,6 +603,7 @@ uses X;
             window : TWindow;
             key_vector : array[0..(32)-1] of char;
          end;
+       PXKeymapEvent = ^TXKeymapEvent;
        TXExposeEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -603,6 +616,7 @@ uses X;
             height : longint;
             count : longint;
          end;
+       PXExposeEvent = ^TXExposeEvent;
        TXGraphicsExposeEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -617,6 +631,7 @@ uses X;
             major_code : longint;
             minor_code : longint;
          end;
+       PXGraphicsExposeEvent = ^TXGraphicsExposeEvent;
        TXNoExposeEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -626,6 +641,7 @@ uses X;
             major_code : longint;
             minor_code : longint;
          end;
+       PXNoExposeEvent = ^TXNoExposeEvent;
        TXVisibilityEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -634,6 +650,7 @@ uses X;
             window : TWindow;
             state : longint;
          end;
+       PXVisibilityEvent = ^TXVisibilityEvent;
        TXCreateWindowEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -648,6 +665,7 @@ uses X;
             border_width : longint;
             override_redirect : TBool;
          end;
+       PXCreateWindowEvent = ^TXCreateWindowEvent;
        TXDestroyWindowEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -656,6 +674,7 @@ uses X;
             event : TWindow;
             window : TWindow;
          end;
+       PXDestroyWindowEvent = ^TXDestroyWindowEvent;
        TXUnmapEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -665,6 +684,7 @@ uses X;
             window : TWindow;
             from_configure : TBool;
          end;
+       PXUnmapEvent = ^TXUnmapEvent;
        TXMapEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -674,6 +694,7 @@ uses X;
             window : TWindow;
             override_redirect : TBool;
          end;
+       PXMapEvent = ^TXMapEvent;
        TXMapRequestEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -682,6 +703,7 @@ uses X;
             parent : TWindow;
             window : TWindow;
          end;
+       PXMapRequestEvent = ^TXMapRequestEvent;
        TXReparentEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -694,6 +716,7 @@ uses X;
             y : longint;
             override_redirect : TBool;
          end;
+       PXReparentEvent = ^TXReparentEvent;
        TXConfigureEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -709,6 +732,7 @@ uses X;
             above : TWindow;
             override_redirect : TBool;
          end;
+       PXConfigureEvent = ^TXConfigureEvent;
        TXGravityEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -719,6 +743,7 @@ uses X;
             x : longint;
             y : longint;
          end;
+       PXGravityEvent = ^TXGravityEvent;
        TXResizeRequestEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -728,6 +753,7 @@ uses X;
             width : longint;
             height : longint;
          end;
+       PXResizeRequestEvent = ^TXResizeRequestEvent;
        TXConfigureRequestEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -744,6 +770,7 @@ uses X;
             detail : longint;
             value_mask : cardinal;
          end;
+       PXConfigureRequestEvent = ^TXConfigureRequestEvent;
        TXCirculateEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -753,6 +780,7 @@ uses X;
             window : TWindow;
             place : longint;
          end;
+       PXCirculateEvent = ^TXCirculateEvent;
        TXCirculateRequestEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -762,6 +790,7 @@ uses X;
             window : TWindow;
             place : longint;
          end;
+       PXCirculateRequestEvent = ^TXCirculateRequestEvent;
        TXPropertyEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -772,6 +801,7 @@ uses X;
             time : TTime;
             state : longint;
          end;
+       PXPropertyEvent = ^TXPropertyEvent;
        TXSelectionClearEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -781,6 +811,7 @@ uses X;
             selection : TAtom;
             time : TTime;
          end;
+       PXSelectionClearEvent = ^TXSelectionClearEvent;
        TXSelectionRequestEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -793,6 +824,7 @@ uses X;
             {whatproperty : TAtom;}
             time : TTime;
          end;
+       PXSelectionRequestEvent = ^TXSelectionRequestEvent;
        TXSelectionEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -804,6 +836,7 @@ uses X;
             whatproperty : TAtom;
             whattime : TTime;
          end;
+       PXSelectionEvent = ^TXSelectionEvent;
        TXColormapEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -815,6 +848,7 @@ uses X;
             news : TBool; { Was new. MVC }
             state : longint;
          end;
+       PXColormapEvent = ^TXColormapEvent;
        TXClientMessageEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -830,6 +864,7 @@ uses X;
                    2 : (l : array[0..(5)-1] of longint);
               end;
          end;
+       PXClientMessageEvent = ^TXClientMessageEvent;
        TXMappingEvent = record
             eventtype : longint;
             serial : cardinal;
@@ -858,6 +893,7 @@ uses X;
             display : PDisplay;
             window : TWindow;
          end;
+       PXAnyEvent = ^TXAnyEvent;
        TXEvent = record
            case longint of
               0 : (eventtype : longint);
@@ -1690,7 +1726,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-03-06 16:15:43  peter
+  Revision 1.6  2000-05-22 08:21:05  sg
+  * Added pointer types for all events. (PXxxxEvent = ^TXxxxEvent)
+
+  Revision 1.5  2000/03/06 16:15:43  peter
     * removed comment warnings
 
   Revision 1.4  2000/03/01 09:16:13  sg
