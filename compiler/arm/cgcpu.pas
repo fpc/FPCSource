@@ -522,6 +522,19 @@ unit cgcpu;
             ref.symbol:=nil;
           end;
 
+        if (ref.base<>NR_NO) and (ref.index<>NR_NO) and (ref.offset<>0) then
+          begin
+            if tmpreg<>NR_NO then
+              list.concat(taicpu.op_reg_reg_const(A_ADD,tmpreg,tmpreg,ref.offset))
+            else
+              begin
+                tmpreg:=getintregister(list,OS_ADDR);
+                list.concat(taicpu.op_reg_reg_const(A_ADD,tmpreg,ref.base,ref.offset));
+                ref.base:=tmpreg;
+              end;
+            ref.offset:=0;
+          end;
+
         { floating point operations have only limited references
           we expect here, that a base is already set }
         if (op in [A_LDF,A_STF]) and (ref.index<>NR_NO) then
@@ -550,7 +563,7 @@ unit cgcpu;
               end
             else
               begin
-                tmpreg:=getintregister(list,OS_INT);
+                tmpreg:=getintregister(list,OS_ADDR);
                 list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,ref.index));
                 ref.base:=tmpreg;
                 ref.index:=NR_NO;
@@ -1210,7 +1223,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2004-01-22 20:13:18  florian
+  Revision 1.38  2004-01-24 01:33:20  florian
+    * fixref fixed if index, base and offset were given
+
+  Revision 1.37  2004/01/22 20:13:18  florian
     * fixed several issues with flags
 
   Revision 1.36  2004/01/22 02:22:47  florian
