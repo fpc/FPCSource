@@ -11,5 +11,8 @@ begin
   d1:=c1/c2;
   d2:=i1/i2;
   if d1<>d2 then
-    halt(1);
+    begin
+      writeln('error');
+      halt(1);
+    end;
 end.
