@@ -56,6 +56,7 @@ unit t_win32;
        Function  WriteResponseFile(isdll:boolean) : Boolean;
        Function  PostProcessExecutable(const fn:string;isdll:boolean) : Boolean;
     public
+       Constructor Init;
        Procedure SetDefaultInfo;virtual;
        function  MakeExecutable:boolean;virtual;
        function  MakeSharedLibrary:boolean;virtual;
@@ -629,6 +630,14 @@ unit t_win32;
                               TLINKERWIN32
 ****************************************************************************}
 
+Constructor TLinkerWin32.Init;
+begin
+  Inherited Init;
+  { allow duplicated libs (PM) }
+  SharedLibFiles.doubles:=true;
+  StaticLibFiles.doubles:=true;
+end;
+
 Procedure TLinkerWin32.SetDefaultInfo;
 begin
   with Info do
@@ -1049,7 +1058,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-10-22 14:42:40  peter
+  Revision 1.3  1999-10-28 10:33:06  pierre
+   * Libs can be link serveral times
+
+  Revision 1.2  1999/10/22 14:42:40  peter
     * reset linklibc
 
   Revision 1.1  1999/10/21 14:29:38  peter
