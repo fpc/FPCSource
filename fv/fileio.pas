@@ -93,7 +93,7 @@ UNIT FileIO;
 
 USES
   {$IFDEF WIN16} WinTypes, WinProcs, {$ENDIF}         { Stardard BP units }
-  Common;                                             { Standard GFV unit }
+  FVCommon;                                           { Standard GFV unit }
 
 {***************************************************************************}
 {                             PUBLIC CONSTANTS                              }
@@ -154,7 +154,7 @@ access mode the file is opened and the file handle returned. If the
 name or mode is invalid or an error occurs the return will be zero.
 27Oct98 LdB
 ---------------------------------------------------------------------}
-FUNCTION FileOpen (Var FileName: AsciiZ; Mode: Word): THandle;
+FUNCTION FileOpen (Const FileName: AsciiZ; Mode: Word): THandle;
 
 {-SetFileSize--------------------------------------------------------
 The file opened by the handle is set the given size. If the action is
@@ -228,7 +228,21 @@ FUNCTION FileWrite (Handle: THandle; Var Buf; Count: Sw_Word; Var Actual: Sw_Wor
 {$ENDIF}
 
 {$IFDEF OS_LINUX}                                     { LINUX COMPILER }
-  USES unix;
+  USES
+    {$ifdef VER1_0}
+      linux;
+    {$else}
+      unix;
+    {$endif}
+{$ENDIF}
+
+{$IFDEF OS_FREEBSD}                                   { FREEBSD COMPILER }
+  USES
+    {$ifdef VER1_0}
+      linux;
+    {$else}
+      unix;
+    {$endif}
 {$ENDIF}
 
 {***************************************************************************}
@@ -292,7 +306,7 @@ END;
 {---------------------------------------------------------------------------}
 {  FileOpen -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27Oct98 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION FileOpen (Var FileName: AsciiZ; Mode: Word): THandle;
+FUNCTION FileOpen (Const FileName: AsciiZ; Mode: Word): THandle;
 {$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
    {$IFDEF ASM_BP}                                    { BP COMPATABLE ASM }
    ASSEMBLER;
@@ -679,7 +693,11 @@ END;
 END.
 {
  $Log$
- Revision 1.4  2001-05-03 15:55:44  pierre
+ Revision 1.5  2001-08-04 19:14:33  peter
+   * Added Makefiles
+   * added FV specific units and objects from old FV
+
+ Revision 1.4  2001/05/03 15:55:44  pierre
   + linux support for fileio contributed by Holger Schurig
 
  Revision 1.3  2001/04/10 21:29:55  pierre

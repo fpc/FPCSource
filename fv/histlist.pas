@@ -76,7 +76,7 @@ UNIT HistList;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
-USES Common, Objects;                                 { Standard GFV units }
+USES FVCommon, Objects;                                 { Standard GFV units }
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
@@ -112,7 +112,7 @@ FUNCTION HistoryCount (Id: Byte): Word;
 Returns the Index'th string in the history list with ID number Id.
 30Sep99 LdB
 ---------------------------------------------------------------------}
-FUNCTION HistoryStr (Id: Byte; Index: Integer): String;
+FUNCTION HistoryStr (Id: Byte; Index: Sw_Integer): String;
 
 {-ClearHistory-------------------------------------------------------
 Removes all strings from all history lists.
@@ -125,6 +125,8 @@ Adds the string Str to the history list indicated by Id.
 30Sep99 LdB
 ---------------------------------------------------------------------}
 PROCEDURE HistoryAdd (Id: Byte; Const Str: String);
+
+function HistoryRemove(Id: Byte; Index: Sw_Integer): boolean;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {              HISTORY STREAM STORAGE AND RETREIVAL ROUTINES                }
@@ -204,7 +206,7 @@ END;
 {  DeleteString -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB      }
 {---------------------------------------------------------------------------}
 PROCEDURE DeleteString;
-VAR Len: Integer; P, P2: PChar;
+VAR Len: Sw_Integer; P, P2: PChar;
 BEGIN
    P := PChar(CurString);                             { Current string }
    P2 := PChar(CurString);                            { Current string }
@@ -307,8 +309,8 @@ END;
 {---------------------------------------------------------------------------}
 {  HistoryStr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Sep99 LdB        }
 {---------------------------------------------------------------------------}
-FUNCTION HistoryStr(Id: Byte; Index: Integer): String;
-VAR I: Integer;
+FUNCTION HistoryStr(Id: Byte; Index: Sw_Integer): String;
+VAR I: Sw_Integer;
 BEGIN
    StartId(Id);                                       { Set to first record }
    If (HistoryBlock <> Nil) Then Begin                { History initalized }
@@ -346,6 +348,23 @@ BEGIN
    InsertString(Id, Str);                             { Add new history item }
 END;
 
+function HistoryRemove(Id: Byte; Index: Sw_Integer): boolean;
+var
+  I: Sw_Integer;
+begin
+  StartId(Id);
+  for I := 0 to Index do
+   AdvanceStringPtr;                                  { Find the string }
+  if CurString <> nil then
+    begin
+       DeleteString;
+       HistoryRemove:=true;
+    end
+  else
+    HistoryRemove:=false;
+end;
+
+
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {              HISTORY STREAM STORAGE AND RETREIVAL ROUTINES                }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -381,7 +400,11 @@ END.
 
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:22  marco
+ Revision 1.3  2001-08-04 19:14:33  peter
+   * Added Makefiles
+   * added FV specific units and objects from old FV
+
+ Revision 1.2  2000/08/24 12:00:22  marco
   * CVS log and ID tags
 
 

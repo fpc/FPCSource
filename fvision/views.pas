@@ -75,7 +75,7 @@ USES
    {$ENDIF}
 
    GFVGraph,                                          { GFV standard unit }
-   Common, Objects, Drivers;                          { GFV standard units }
+   FVCommon, Objects, Drivers;                          { GFV standard units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -334,8 +334,8 @@ TYPE
 TYPE
    PComplexArea = ^TComplexArea;                      { Complex area }
    TComplexArea = PACKED RECORD
-      X1, Y1  : Integer;                              { Top left corner }
-      X2, Y2  : Integer;                              { Lower right corner }
+      X1, Y1  : Sw_Integer;                              { Top left corner }
+      X2, Y2  : Sw_Integer;                              { Lower right corner }
       NextArea: PComplexArea;                         { Next area pointer }
    END;
 
@@ -355,7 +355,7 @@ TYPE
          DragMode : Byte;                             { View drag mode }
          DrawMask : Byte;                             { Draw masks }
          TabMask  : Byte;                             { Tab move masks }
-         ColourOfs: Integer;                          { View palette offset }
+         ColourOfs: Sw_Integer;                          { View palette offset }
          HelpCtx  : Word;                             { View help context }
          State    : Word;                             { View state masks }
          Options  : Word;                             { View options masks }
@@ -378,7 +378,7 @@ TYPE
       FUNCTION Prev: PView;
       FUNCTION Execute: Word; Virtual;
       FUNCTION Focus: Boolean;
-      FUNCTION DataSize: Word; Virtual;
+      FUNCTION DataSize: Sw_Word; Virtual;
       FUNCTION TopView: PView;
       FUNCTION PrevView: PView;
       FUNCTION NextView: PView;
@@ -388,10 +388,10 @@ TYPE
       FUNCTION GetColor (Color: Word): Word;
       FUNCTION Valid (Command: Word): Boolean; Virtual;
       FUNCTION GetState (AState: Word): Boolean;
-      FUNCTION TextWidth (Txt: String): Integer;
+      FUNCTION TextWidth (Txt: String): Sw_Integer;
       FUNCTION MouseInView (Point: TPoint): Boolean;
       FUNCTION CommandEnabled (Command: Word): Boolean;
-      FUNCTION OverLapsArea (X1, Y1, X2, Y2: Integer): Boolean;
+      FUNCTION OverLapsArea (X1, Y1, X2, Y2: Sw_Integer): Boolean;
       FUNCTION MouseEvent (Var Event: TEvent; Mask: Word): Boolean;
       PROCEDURE Hide;
       PROCEDURE Show;
@@ -412,15 +412,15 @@ TYPE
       PROCEDURE SetViewLimits;
       PROCEDURE DrawBackGround; Virtual;
       PROCEDURE ReleaseViewLimits;
-      PROCEDURE MoveTo (X, Y: Integer);
-      PROCEDURE GrowTo (X, Y: Integer);
+      PROCEDURE MoveTo (X, Y: Sw_Integer);
+      PROCEDURE GrowTo (X, Y: Sw_Integer);
       PROCEDURE SetDrawMask (Mask: Byte);
       PROCEDURE EndModal (Command: Word); Virtual;
-      PROCEDURE SetCursor (X, Y: Integer);
+      PROCEDURE SetCursor (X, Y: Sw_Integer);
       PROCEDURE PutInFrontOf (Target: PView);
-      PROCEDURE DisplaceBy (Dx, Dy: Integer); Virtual;
+      PROCEDURE DisplaceBy (Dx, Dy: Sw_Integer); Virtual;
       PROCEDURE SetCommands (Commands: TCommandSet);
-      PROCEDURE ReDrawArea (X1, Y1, X2, Y2: Integer);
+      PROCEDURE ReDrawArea (X1, Y1, X2, Y2: Sw_Integer);
       PROCEDURE EnableCommands (Commands: TCommandSet);
       PROCEDURE DisableCommands (Commands: TCommandSet);
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
@@ -446,29 +446,29 @@ TYPE
       PROCEDURE CalcBounds (Var Bounds: TRect; Delta: TPoint); Virtual;
 
       FUNCTION Exposed: Boolean;   { This needs help!!!!! }
-      PROCEDURE GraphLine (X1, Y1, X2, Y2: Integer; Colour: Byte);
-      PROCEDURE GraphRectangle (X1, Y1, X2, Y2: Integer; Colour: Byte);
-      PROCEDURE ClearArea (X1, Y1, X2, Y2: Integer; Colour: Byte);
-      PROCEDURE GraphArc (Xc, Yc: Integer; Sa, Ea: Real; XRad, YRad: Integer;
+      PROCEDURE GraphLine (X1, Y1, X2, Y2: Sw_Integer; Colour: Byte);
+      PROCEDURE GraphRectangle (X1, Y1, X2, Y2: Sw_Integer; Colour: Byte);
+      PROCEDURE ClearArea (X1, Y1, X2, Y2: Sw_Integer; Colour: Byte);
+      PROCEDURE GraphArc (Xc, Yc: Sw_Integer; Sa, Ea: Real; XRad, YRad: Sw_Integer;
         Colour: Byte);
-      PROCEDURE FilletArc (Xc, Yc: Integer; Sa, Ea: Real; XRad, YRad, Ht: Integer;
+      PROCEDURE FilletArc (Xc, Yc: Sw_Integer; Sa, Ea: Real; XRad, YRad, Ht: Sw_Integer;
         Colour: Byte);
-      PROCEDURE BicolorRectangle (X1, Y1, X2, Y2: Integer; Light, Dark: Byte;
+      PROCEDURE BicolorRectangle (X1, Y1, X2, Y2: Sw_Integer; Light, Dark: Byte;
         Down: Boolean);
-      PROCEDURE WriteBuf (X, Y, W, H: Integer; Var Buf);
-      PROCEDURE WriteLine (X, Y, W, H: Integer; Var Buf);
+      PROCEDURE WriteBuf (X, Y, W, H: Sw_Integer; Var Buf);
+      PROCEDURE WriteLine (X, Y, W, H: Sw_Integer; Var Buf);
       PROCEDURE MakeLocal (Source: TPoint; Var Dest: TPoint);
       PROCEDURE MakeGlobal (Source: TPoint; Var Dest: TPoint);
-      PROCEDURE WriteStr (X, Y: Integer; Str: String; Color: Byte);
-      PROCEDURE WriteChar (X, Y: Integer; C: Char; Color: Byte;
-        Count: Integer);
+      PROCEDURE WriteStr (X, Y: Sw_Integer; Str: String; Color: Byte);
+      PROCEDURE WriteChar (X, Y: Sw_Integer; C: Char; Color: Byte;
+        Count: Sw_Integer);
       PROCEDURE DragView (Event: TEvent; Mode: Byte; Var Limits: TRect;
         MinSize, MaxSize: TPoint);
-      PROCEDURE WriteAbs(X, Y, L :Integer;var Buf);
-      PROCEDURE WriteShadow(X1, Y1, X2, Y2 : Integer);
+      PROCEDURE WriteAbs(X, Y, L :Sw_Integer;var Buf);
+      PROCEDURE WriteShadow(X1, Y1, X2, Y2 : Sw_Integer);
 
-      FUNCTION FontWidth: Integer;
-      FUNCTION Fontheight: Integer;
+      FUNCTION FontWidth: Sw_Integer;
+      FUNCTION Fontheight: Sw_Integer;
 
    END;
 
@@ -489,7 +489,7 @@ TYPE
       FUNCTION First: PView;
       FUNCTION Execute: Word; Virtual;
       FUNCTION GetHelpCtx: Word; Virtual;
-      FUNCTION DataSize: Word; Virtual;
+      FUNCTION DataSize: Sw_Word; Virtual;
       FUNCTION ExecView (P: PView): Word; Virtual;
       FUNCTION FirstThat (P: Pointer): PView;
       FUNCTION Valid (Command: Word): Boolean; Virtual;
@@ -504,7 +504,7 @@ TYPE
       PROCEDURE Delete (P: PView);
       PROCEDURE ForEach (P: Pointer); Virtual;
       PROCEDURE EndModal (Command: Word); Virtual;
-      PROCEDURE DisplaceBy (Dx, Dy: Integer); Virtual;
+      PROCEDURE DisplaceBy (Dx, Dy: Sw_Integer); Virtual;
       PROCEDURE SelectNext (Forwards: Boolean);
       PROCEDURE InsertBefore (P, Target: PView);
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
@@ -520,7 +520,7 @@ TYPE
       PRIVATE
          LockFlag: Byte;
          Clip    : TRect;
-      FUNCTION IndexOf (P: PView): Integer;
+      FUNCTION IndexOf (P: PView): Sw_Integer;
       FUNCTION FindNext (Forwards: Boolean): PView;
       FUNCTION FirstMatch (AState: Word; AOptions: Word): PView;
       PROCEDURE ResetCurrent;
@@ -546,31 +546,31 @@ TYPE
    TScrollChars = Array [0..4] of Char;
 
    TScrollBar = OBJECT (TView)
-         Value : Integer;                             { Scrollbar value }
-         Min   : Integer;                             { Scrollbar minimum }
-         Max   : Integer;                             { Scrollbar maximum }
-         PgStep: Integer;                             { One page step }
-         ArStep: Integer;                             { One range step }
-         Id    : Integer;                             { Scrollbar ID }
+         Value : Sw_Integer;                             { Scrollbar value }
+         Min   : Sw_Integer;                             { Scrollbar minimum }
+         Max   : Sw_Integer;                             { Scrollbar maximum }
+         PgStep: Sw_Integer;                             { One page step }
+         ArStep: Sw_Integer;                             { One range step }
+         Id    : Sw_Integer;                             { Scrollbar ID }
       CONSTRUCTOR Init (Var Bounds: TRect);
       CONSTRUCTOR Load (Var S: TStream);
       FUNCTION GetPalette: PPalette; Virtual;
-      FUNCTION ScrollStep (Part: Integer): Integer; Virtual;
+      FUNCTION ScrollStep (Part: Sw_Integer): Sw_Integer; Virtual;
       PROCEDURE Draw; Virtual;
       PROCEDURE ScrollDraw;                                          Virtual;
       PROCEDURE DrawBackGround;                                      Virtual;
-      PROCEDURE SetValue (AValue: Integer);
-      PROCEDURE SetRange (AMin, AMax: Integer);
-      PROCEDURE SetStep (APgStep, AArStep: Integer);
-      PROCEDURE SetParams (AValue, AMin, AMax, APgStep, AArStep: Integer);
+      PROCEDURE SetValue (AValue: Sw_Integer);
+      PROCEDURE SetRange (AMin, AMax: Sw_Integer);
+      PROCEDURE SetStep (APgStep, AArStep: Sw_Integer);
+      PROCEDURE SetParams (AValue, AMin, AMax, APgStep, AArStep: Sw_Integer);
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
       PRIVATE
          Chars: TScrollChars;                         { Scrollbar chars }
-      FUNCTION GetPos: Integer;
-      FUNCTION GetSize: Integer;
-      PROCEDURE DrawPos (Pos: Integer);
-      PROCEDURE ClearPos (Pos: Integer);
+      FUNCTION GetPos: Sw_Integer;
+      FUNCTION GetSize: Sw_Integer;
+      PROCEDURE DrawPos (Pos: Sw_Integer);
+      PROCEDURE ClearPos (Pos: Sw_Integer);
    END;
    PScrollBar = ^TScrollBar;
 
@@ -587,8 +587,8 @@ TYPE
       CONSTRUCTOR Load (Var S: TStream);
       FUNCTION GetPalette: PPalette; Virtual;
       PROCEDURE ScrollDraw;                                          Virtual;
-      PROCEDURE SetLimit (X, Y: Integer);
-      PROCEDURE ScrollTo (X, Y: Integer);
+      PROCEDURE SetLimit (X, Y: Sw_Integer);
+      PROCEDURE ScrollTo (X, Y: Sw_Integer);
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
@@ -605,30 +605,30 @@ TYPE
 {---------------------------------------------------------------------------}
 TYPE
    TListViewer = OBJECT (TView)
-         NumCols   : Integer;                         { Number of columns }
-         TopItem   : Integer;                         { Top most item }
-         Focused   : Integer;                         { Focused item }
-         Range     : Integer;                         { Range of listview }
+         NumCols   : Sw_Integer;                         { Number of columns }
+         TopItem   : Sw_Integer;                         { Top most item }
+         Focused   : Sw_Integer;                         { Focused item }
+         Range     : Sw_Integer;                         { Range of listview }
          HScrollBar: PScrollBar;                      { Horz scrollbar }
          VScrollBar: PScrollBar;                      { Vert scrollbar }
-      CONSTRUCTOR Init (Var Bounds: TRect; ANumCols: Word; AHScrollBar,
+      CONSTRUCTOR Init (Var Bounds: TRect; ANumCols: Sw_Word; AHScrollBar,
         AVScrollBar: PScrollBar);
       CONSTRUCTOR Load (Var S: TStream);
       FUNCTION GetPalette: PPalette; Virtual;
-      FUNCTION IsSelected (Item: Integer): Boolean; Virtual;
-      FUNCTION GetText (Item: Integer; MaxLen: Integer): String; Virtual;
+      FUNCTION IsSelected (Item: Sw_Integer): Boolean; Virtual;
+      FUNCTION GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String; Virtual;
       PROCEDURE DrawFocus; Virtual;
       PROCEDURE DrawBackGround; Virtual;
-      PROCEDURE FocusItem (Item: Integer); Virtual;
-      PROCEDURE SetTopItem (Item: Integer);
-      PROCEDURE SetRange (ARange: Integer);
-      PROCEDURE SelectItem (Item: Integer); Virtual;
+      PROCEDURE FocusItem (Item: Sw_Integer); Virtual;
+      PROCEDURE SetTopItem (Item: Sw_Integer);
+      PROCEDURE SetRange (ARange: Sw_Integer);
+      PROCEDURE SelectItem (Item: Sw_Integer); Virtual;
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
       PROCEDURE ChangeBounds (Var Bounds: TRect); Virtual;
       PRIVATE
-      PROCEDURE FocusItemNum (Item: Integer); Virtual;
+      PROCEDURE FocusItemNum (Item: Sw_Integer); Virtual;
    END;
    PListViewer = ^TListViewer;
 
@@ -638,16 +638,16 @@ TYPE
 TYPE
    TWindow = OBJECT (TGroup)
          Flags   : Byte;                              { Window flags }
-         Number  : Integer;                           { Window number }
-         Palette : Integer;                           { Window palette }
+         Number  : Sw_Integer;                           { Window number }
+         Palette : Sw_Integer;                           { Window palette }
          ZoomRect: TRect;                             { Zoom rectangle }
          Frame   : PFrame;                            { Frame view object }
          Title   : PString;                           { Title string }
-      CONSTRUCTOR Init (Var Bounds: TRect; ATitle: TTitleStr; ANumber: Integer);
+      CONSTRUCTOR Init (Var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer);
       CONSTRUCTOR Load (Var S: TStream);
       DESTRUCTOR Done; Virtual;
       FUNCTION GetPalette: PPalette; Virtual;
-      FUNCTION GetTitle (MaxSize: Integer): TTitleStr; Virtual;
+      FUNCTION GetTitle (MaxSize: Sw_Integer): TTitleStr; Virtual;
       FUNCTION StandardScrollBar (AOptions: Word): PScrollBar;
       PROCEDURE Zoom; Virtual;
       PROCEDURE Close; Virtual;
@@ -683,7 +683,7 @@ Receiver^.HandleEvent to handle the event. Message returns nil if
 Receiver is nil, or if the event is not handled successfully.
 19Sep97 LdB
 ---------------------------------------------------------------------}
-FUNCTION NewMessage (P: PView; What, Command: Word; Id: Integer; Data: Real;
+FUNCTION NewMessage (P: PView; What, Command: Word; Id: Sw_Integer; Data: Real;
   InfoPtr: Pointer): Pointer;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -704,7 +704,7 @@ Creates and scrollbar object of the given size and direction and sets
 the scrollbar id number.
 22Sep97 LdB
 ---------------------------------------------------------------------}
-FUNCTION CreateIdScrollBar (X, Y, Size, Id: Integer; Horz: Boolean): PScrollBar;
+FUNCTION CreateIdScrollBar (X, Y, Size, Id: Sw_Integer; Horz: Boolean): PScrollBar;
 
 {***************************************************************************}
 {                        INITIALIZED PUBLIC VARIABLES                       }
@@ -995,7 +995,7 @@ END;
 {--TView--------------------------------------------------------------------}
 {  DataSize -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION TView.DataSize: Word;
+FUNCTION TView.DataSize: Sw_Word;
 BEGIN
    DataSize := 0;                                     { Transfer size }
 END;
@@ -1067,7 +1067,7 @@ END;
 FUNCTION TView.GetColor (Color: Word): Word;
 VAR Col: Byte; W: Word; P: PPalette; Q: PView;
 BEGIN
-   W := 0;                                            { Clear colour word }
+   W := 0;                                            { Clear colour Sw_Word }
    If (Hi(Color) > 0) Then Begin                      { High colour req }
      Col := Hi(Color) + ColourOfs;                    { Initial offset }
      Q := @Self;                                      { Pointer to self }
@@ -1117,8 +1117,8 @@ END;
 {--TView--------------------------------------------------------------------}
 {  TextWidth -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25Nov99 LdB         }
 {---------------------------------------------------------------------------}
-FUNCTION TView.TextWidth (Txt: String): Integer;
-VAR I: Integer; S: String;
+FUNCTION TView.TextWidth (Txt: String): Sw_Integer;
+VAR I: Sw_Integer; S: String;
 BEGIN
    S := Txt;                                          { Transfer text }
    Repeat
@@ -1153,7 +1153,7 @@ END;
 {--TView--------------------------------------------------------------------}
 {  OverLapsArea -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Sep97 LdB      }
 {---------------------------------------------------------------------------}
-FUNCTION TView.OverlapsArea (X1, Y1, X2, Y2: Integer): Boolean;
+FUNCTION TView.OverlapsArea (X1, Y1, X2, Y2: Sw_Integer): Boolean;
 BEGIN
    OverLapsArea := False;                             { Preset false }
    If TextModeGFV then Begin
@@ -1356,7 +1356,7 @@ BEGIN
 END;
 
 PROCEDURE TView.DrawShadow;
-VAR X1, Y1, X2, Y2 : Integer;
+VAR X1, Y1, X2, Y2 : Sw_Integer;
 BEGIN
 {$ifdef DEBUG}
    if WriteDebugInfo then
@@ -1438,7 +1438,7 @@ END;
 {  SetViewLimits -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Sep99 LdB     }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.SetViewLimits;
-VAR X1, Y1, X2, Y2: Integer; P: PGroup; ViewPort: ViewPortType; Ca: PComplexArea;
+VAR X1, Y1, X2, Y2: Sw_Integer; P: PGroup; ViewPort: ViewPortType; Ca: PComplexArea;
 BEGIN
    If (MaxAvail >= SizeOf(TComplexArea)) Then Begin   { Check enough memory }
      GetMem(Ca, SizeOf(TComplexArea));                { Allocate memory }
@@ -1491,8 +1491,8 @@ END;
 {  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 21Sep99 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.DrawBackGround;
-VAR Bc: Byte; X1, Y1, X2, Y2: Integer; ViewPort: ViewPortType;
-    X, Y: Integer;
+VAR Bc: Byte; X1, Y1, X2, Y2: Sw_Integer; ViewPort: ViewPortType;
+    X, Y: Sw_Integer;
     Buf : TDrawBuffer;
 BEGIN
    If (GOptions AND goNoDrawView = 0) Then Begin      { Non draw views exit }
@@ -1559,7 +1559,7 @@ END;
 {--TView--------------------------------------------------------------------}
 {  MoveTo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB            }
 {---------------------------------------------------------------------------}
-PROCEDURE TView.MoveTo (X, Y: Integer);
+PROCEDURE TView.MoveTo (X, Y: Sw_Integer);
 VAR R: TRect;
 BEGIN
    R.Assign(X, Y, X + Size.X, Y + Size.Y);            { Assign area }
@@ -1569,7 +1569,7 @@ END;
 {--TView--------------------------------------------------------------------}
 {  GrowTo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB            }
 {---------------------------------------------------------------------------}
-PROCEDURE TView.GrowTo (X, Y: Integer);
+PROCEDURE TView.GrowTo (X, Y: Sw_Integer);
 VAR R: TRect;
 BEGIN
    R.Assign(Origin.X, Origin.Y, Origin.X + X,
@@ -1609,7 +1609,7 @@ END;
 {--TView--------------------------------------------------------------------}
 {  SetCursor -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15Sep97 LdB         }
 {---------------------------------------------------------------------------}
-PROCEDURE TView.SetCursor (X, Y: Integer);
+PROCEDURE TView.SetCursor (X, Y: Sw_Integer);
 BEGIN
    Cursor.X := X;                                     { New x position }
    Cursor.Y := Y;                                     { New y position }
@@ -1667,7 +1667,7 @@ END;
 {--TView--------------------------------------------------------------------}
 {  DisplaceBy -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15May98 LdB        }
 {---------------------------------------------------------------------------}
-PROCEDURE TView.DisplaceBy (Dx, Dy: Integer);
+PROCEDURE TView.DisplaceBy (Dx, Dy: Sw_Integer);
 BEGIN
    RawOrigin.X := RawOrigin.X + Dx;                   { Displace raw x }
    RawOrigin.Y := RawOrigin.Y + Dy;                   { Displace raw y }
@@ -1688,7 +1688,7 @@ END;
 {--TView--------------------------------------------------------------------}
 {  ReDrawArea -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05May98 LdB        }
 {---------------------------------------------------------------------------}
-PROCEDURE TView.ReDrawArea (X1, Y1, X2, Y2: Integer);
+PROCEDURE TView.ReDrawArea (X1, Y1, X2, Y2: Sw_Integer);
 VAR HLimit: PView; ViewPort: ViewPortType;
 BEGIN
 {$ifdef DEBUG}
@@ -1845,10 +1845,10 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TView.Locate (Var Bounds: TRect);
 VAR
-    X1, Y1, X2, Y2: Integer;
+    X1, Y1, X2, Y2: Sw_Integer;
     Min, Max: TPoint; R: TRect;
 
-   FUNCTION Range(Val, Min, Max: Integer): Integer;
+   FUNCTION Range(Val, Min, Max: Sw_Integer): Sw_Integer;
    BEGIN
      If (Val < Min) Then Range := Min Else            { Value to small }
        If (Val > Max) Then Range := Max Else          { Value to large }
@@ -2055,7 +2055,7 @@ END;
 {  GetPeerViewPtr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.GetPeerViewPtr (Var S: TStream; Var P);
-VAR Index: Integer;
+VAR Index: Sw_Integer;
 BEGIN
    Index := 0;                                        { Zero index value }
    S.Read(Index, 2);                                  { Read view index }
@@ -2070,7 +2070,7 @@ END;
 {  PutPeerViewPtr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.PutPeerViewPtr (Var S: TStream; P: PView);
-VAR Index: Integer;
+VAR Index: Sw_Integer;
 BEGIN
    If (P = Nil) OR (OwnerGroup = Nil) Then Index := 0 { Return zero index }
      Else Index := OwnerGroup^.IndexOf(P);            { Return view index }
@@ -2081,16 +2081,16 @@ END;
 {  CalcBounds -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB        }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.CalcBounds (Var Bounds: Objects.TRect; Delta: TPoint);
-VAR S, D: Integer; Min, Max: TPoint;
+VAR S, D: Sw_Integer; Min, Max: TPoint;
 
-   FUNCTION Range (Val, Min, Max: Integer): Integer;
+   FUNCTION Range (Val, Min, Max: Sw_Integer): Sw_Integer;
    BEGIN
      If (Val < Min) Then Range := Min Else            { Value below min }
      If (Val > Max) Then Range := Max Else            { Value above max }
        Range := Val;                                  { Accept value }
    END;
 
-   PROCEDURE GrowI (Var I: sw_Integer);
+   PROCEDURE GrowI (Var I: Sw_Integer);
    BEGIN
      If (GrowMode AND gfGrowRel = 0) Then Inc(I, D)
        Else I := (I * S + (S - D) SHR 1) DIV (S - D); { Calc grow value }
@@ -2144,7 +2144,7 @@ END;
 {  Load -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15Sep97 LdB              }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TGroup.Load (Var S: TStream);
-VAR I, Count: Word; P, Q: ^Pointer; V: PView; OwnerSave: PGroup;
+VAR I, Count: Sw_Word; P, Q: ^Pointer; V: PView; OwnerSave: PGroup;
     FixupSave: PFixupList;
 BEGIN
    Inherited Load(S);                                 { Call ancestor }
@@ -2245,7 +2245,7 @@ END;
 {--TGroup-------------------------------------------------------------------}
 {  DataSize -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15Jul98 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION TGroup.DataSize: Word;
+FUNCTION TGroup.DataSize: Sw_Word;
 VAR Total: Word; P: PView;
 BEGIN
    Total := 0;                                        { Zero totals count }
@@ -2495,7 +2495,7 @@ END;
 {--TGroup-------------------------------------------------------------------}
 {  DisplaceBy -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15May98 LdB        }
 {---------------------------------------------------------------------------}
-PROCEDURE TGroup.DisplaceBy (Dx, Dy: Integer);
+PROCEDURE TGroup.DisplaceBy (Dx, Dy: Sw_Integer);
 VAR P: PView;
 BEGIN
    P := First;                                        { Get first view }
@@ -2520,7 +2520,7 @@ END;
 {  InsertBefore -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 29Sep99 LdB      }
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.InsertBefore (P, Target: PView);
-VAR SaveState, I: Word;
+VAR SaveState : Word; I: Sw_Word;
 BEGIN
    If (P <> Nil) AND (P^.Owner = Nil) AND             { View valid }
    ((Target = Nil) OR (Target^.Owner = @Self))        { Target valid }
@@ -2602,7 +2602,7 @@ END;
 {  GetData -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 29Mar98 LdB           }
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.GetData (Var Rec);
-VAR Total: Word; P: PView;
+VAR Total: Sw_Word; P: PView;
 BEGIN
    Total := 0;                                        { Clear total }
    P := Last;                                         { Start at last }
@@ -2617,7 +2617,7 @@ END;
 {  SetData -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 29Mar98 LdB           }
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.SetData (Var Rec);
-VAR Total: Word; P: PView;
+VAR Total: Sw_Word; P: PView;
 BEGIN
    Total := 0;                                        { Clear total }
    P := Last;                                         { Start at last }
@@ -2632,7 +2632,7 @@ END;
 {  Store -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Mar98 LdB             }
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.Store (Var S: TStream);
-VAR Count: Integer; OwnerSave: PGroup;
+VAR Count: Sw_Integer; OwnerSave: PGroup;
 
    PROCEDURE DoPut (P: PView); FAR;
    BEGIN
@@ -2734,7 +2734,7 @@ END;
 {  GetSubViewPtr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 20May98 LdB     }
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.GetSubViewPtr (Var S: TStream; Var P);
-VAR Index, I: Word; Q: PView;
+VAR Index, I: Sw_Word; Q: PView;
 BEGIN
    Index := 0;                                        { Zero index value }
    S.Read(Index, 2);                                  { Read view index }
@@ -2749,7 +2749,7 @@ END;
 {  PutSubViewPtr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 20May98 LdB     }
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.PutSubViewPtr (Var S: TStream; P: PView);
-VAR Index: Word;
+VAR Index: Sw_Word;
 BEGIN
    If (P = Nil) Then Index := 0 Else                  { Nil view, Index = 0 }
      Index := IndexOf(P);                             { Calc view index }
@@ -2764,8 +2764,8 @@ END;
 {--TGroup-------------------------------------------------------------------}
 {  IndexOf -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION TGroup.IndexOf (P: PView): Integer;
-VAR I: Integer; Q: PView;
+FUNCTION TGroup.IndexOf (P: PView): Sw_Integer;
+VAR I: Sw_Integer; Q: PView;
 BEGIN
    Q := Last;                                         { Start on last view }
    If (Q <> Nil) Then Begin                           { Subviews exist }
@@ -2970,8 +2970,8 @@ END;
 {--TScrollBar---------------------------------------------------------------}
 {  ScrollStep -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22May98 LdB        }
 {---------------------------------------------------------------------------}
-FUNCTION TScrollBar.ScrollStep (Part: Integer): Integer;
-VAR Step: Integer;
+FUNCTION TScrollBar.ScrollStep (Part: Sw_Integer): Sw_Integer;
+VAR Step: Sw_Integer;
 BEGIN
    If (Part AND $0002 = 0) Then Step := ArStep        { Range step size }
      Else Step := PgStep;                             { Page step size }
@@ -3043,7 +3043,7 @@ END;
 {--TScrollBar---------------------------------------------------------------}
 {  SetValue -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19May98 LdB          }
 {---------------------------------------------------------------------------}
-PROCEDURE TScrollBar.SetValue (AValue: Integer);
+PROCEDURE TScrollBar.SetValue (AValue: Sw_Integer);
 BEGIN
    SetParams(AValue, Min, Max, PgStep, ArStep);       { Set value }
 END;
@@ -3051,7 +3051,7 @@ END;
 {--TScrollBar---------------------------------------------------------------}
 {  SetRange -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19May98 LdB          }
 {---------------------------------------------------------------------------}
-PROCEDURE TScrollBar.SetRange (AMin, AMax: Integer);
+PROCEDURE TScrollBar.SetRange (AMin, AMax: Sw_Integer);
 BEGIN
    SetParams(Value, AMin, AMax, PgStep, ArStep);      { Set range }
 END;
@@ -3059,7 +3059,7 @@ END;
 {--TScrollBar---------------------------------------------------------------}
 {  SetStep -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19May98 LdB           }
 {---------------------------------------------------------------------------}
-PROCEDURE TScrollBar.SetStep (APgStep, AArStep: Integer);
+PROCEDURE TScrollBar.SetStep (APgStep, AArStep: Sw_Integer);
 BEGIN
    SetParams(Value, Min, Max, APgStep, AArStep);      { Set step sizes }
 END;
@@ -3067,7 +3067,7 @@ END;
 {--TScrollBar---------------------------------------------------------------}
 {  SetParams -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 21Jul99 LdB         }
 {---------------------------------------------------------------------------}
-PROCEDURE TScrollBar.SetParams (AValue, AMin, AMax, APgStep, AArStep: Integer);
+PROCEDURE TScrollBar.SetParams (AValue, AMin, AMax, APgStep, AArStep: Sw_Integer);
 BEGIN
    If (AMax < AMin) Then AMax := AMin;                { Max below min fix up }
    If (AValue < AMin) Then AValue := AMin;            { Value below min fix }
@@ -3124,11 +3124,11 @@ END;
 {  HandleEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22May98 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE TScrollBar.HandleEvent (Var Event: TEvent);
-VAR Tracking: Boolean; I, P, S, ClickPart, Iv: Integer;
+VAR Tracking: Boolean; I, P, S, ClickPart, Iv: Sw_Integer;
     Mouse: TPoint; Extent: TRect;
 
-   FUNCTION GetPartCode: Integer;
-   VAR Mark, Part, J: Integer;
+   FUNCTION GetPartCode: Sw_Integer;
+   VAR Mark, Part, J: Sw_Integer;
    BEGIN
      Part := -1;                                      { Preset failure }
      If Extent.Contains(Mouse) Then Begin             { Contains mouse }
@@ -3254,8 +3254,8 @@ END;
 {--TScrollBar---------------------------------------------------------------}
 {  GetPos -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 23May98 LdB            }
 {---------------------------------------------------------------------------}
-FUNCTION TScrollBar.GetPos: Integer;
-VAR R: Integer;
+FUNCTION TScrollBar.GetPos: Sw_Integer;
+VAR R: Sw_Integer;
 BEGIN
    R := Max - Min;                                    { Get full range }
    If (R = 0) Then GetPos := 0 Else                   { Return zero }
@@ -3266,8 +3266,8 @@ END;
 {--TScrollBar---------------------------------------------------------------}
 {  GetSize -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 23May98 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION TScrollBar.GetSize: Integer;
-VAR S: Integer;
+FUNCTION TScrollBar.GetSize: Sw_Integer;
+VAR S: Sw_Integer;
 BEGIN
    If TextModeGFV then Begin
      If Size.X = 1 Then
@@ -3287,8 +3287,8 @@ END;
 {  view is visible, exposed and not obstructed before drawing the thumbnail }
 {  square area.                                                             }
 {---------------------------------------------------------------------------}
-PROCEDURE TScrollBar.DrawPos (Pos: Integer);
-VAR i, X1, Y1, X2, Y2: Integer; ViewPort: ViewPortType;
+PROCEDURE TScrollBar.DrawPos (Pos: Sw_Integer);
+VAR i, X1, Y1, X2, Y2: Sw_Integer; ViewPort: ViewPortType;
 BEGIN
    If (State AND sfVisible <> 0) AND                  { View is visible }
    (State AND sfExposed <> 0) AND                     { View is exposed }
@@ -3335,8 +3335,8 @@ END;
 {  view is visible, exposed and not obstructed before clearing the old      }
 {  thumbnail area.                                                          }
 {---------------------------------------------------------------------------}
-PROCEDURE TScrollBar.ClearPos (Pos: Integer);
-VAR X, Y: Integer; ViewPort: ViewPortType;
+PROCEDURE TScrollBar.ClearPos (Pos: Sw_Integer);
+VAR X, Y: Sw_Integer; ViewPort: ViewPortType;
 BEGIN
    If (State AND sfVisible <> 0) AND                  { View is visible }
    (State AND sfExposed <> 0) Then Begin              { View is exposed }
@@ -3402,7 +3402,7 @@ END;
 {--TScroller----------------------------------------------------------------}
 {  ScrollTo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Jul99 LdB          }
 {---------------------------------------------------------------------------}
-PROCEDURE TScroller.ScrollTo (X, Y: Integer);
+PROCEDURE TScroller.ScrollTo (X, Y: Sw_Integer);
 BEGIN
    Inc(DrawLock);                                     { Set draw lock }
    If (HScrollBar<>Nil) Then HScrollBar^.SetValue(X); { Set horz scrollbar }
@@ -3482,9 +3482,9 @@ CONST TvListViewerName = 'LISTBOX';                   { Native name }
 {--TListViewer--------------------------------------------------------------}
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28May98 LdB              }
 {---------------------------------------------------------------------------}
-CONSTRUCTOR TListViewer.Init (Var Bounds: TRect; ANumCols: Word; AHScrollBar,
+CONSTRUCTOR TListViewer.Init (Var Bounds: TRect; ANumCols: Sw_Word; AHScrollBar,
   AVScrollBar: PScrollBar);
-VAR ArStep, PgStep: Integer;
+VAR ArStep, PgStep: Sw_Integer;
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
    Options := Options OR (ofFirstClick+ofSelectable); { Set options }
@@ -3533,7 +3533,7 @@ END;
 {--TListViewer--------------------------------------------------------------}
 {  IsSelected -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28May98 LdB        }
 {---------------------------------------------------------------------------}
-FUNCTION TListViewer.IsSelected (Item: Integer): Boolean;
+FUNCTION TListViewer.IsSelected (Item: Sw_Integer): Boolean;
 BEGIN
    If (Item = Focused) Then IsSelected := True Else
      IsSelected := False;                             { Selected item }
@@ -3542,7 +3542,7 @@ END;
 {--TListViewer--------------------------------------------------------------}
 {  GetText -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28May98 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION TListViewer.GetText (Item: Integer; MaxLen: Integer): String;
+FUNCTION TListViewer.GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String;
 BEGIN                                                 { Abstract method }
    GetText := '';                                     { Return empty }
 END;
@@ -3551,7 +3551,7 @@ END;
 {  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27Oct99 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TListViewer.DrawBackGround;
-VAR  I, J, ColWidth, Item, Indent, CurCol: Integer; Color: Word;
+VAR  I, J, ColWidth, Item, Indent, CurCol: Sw_Integer; Color: Word;
     Text: String; B: TDrawBuffer;
 
 BEGIN
@@ -3587,10 +3587,10 @@ END;
 {  DrawFocus -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27Oct99 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE TListViewer.DrawFocus;
-VAR DrawIt: Boolean; SCOff: Byte; I, J, Item, CurCol, ColWidth: Integer;
+VAR DrawIt: Boolean; SCOff: Byte; I, J, Item, CurCol, ColWidth: Sw_Integer;
     Color: Word;
 
-  Indent: Integer;
+  Indent: Sw_Integer;
   B: TDrawBuffer;
   Text: String;
 BEGIN
@@ -3641,7 +3641,7 @@ END;
 {--TListViewer--------------------------------------------------------------}
 {  FocusItem -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Jul99 LdB         }
 {---------------------------------------------------------------------------}
-PROCEDURE TListViewer.FocusItem (Item: Integer);
+PROCEDURE TListViewer.FocusItem (Item: Sw_Integer);
 BEGIN
    Focused := Item;                                   { Set focus to item }
    If (VScrollBar <> Nil) Then
@@ -3658,7 +3658,7 @@ END;
 {--TListViewer--------------------------------------------------------------}
 {  SetTopItem -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Aug99 LdB        }
 {---------------------------------------------------------------------------}
-PROCEDURE TListViewer.SetTopItem (Item: Integer);
+PROCEDURE TListViewer.SetTopItem (Item: Sw_Integer);
 BEGIN
    TopItem := Item;                                   { Set the top item }
 END;
@@ -3666,7 +3666,7 @@ END;
 {--TListViewer--------------------------------------------------------------}
 {  SetRange -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Jul99 LdB          }
 {---------------------------------------------------------------------------}
-PROCEDURE TListViewer.SetRange (ARange: Integer);
+PROCEDURE TListViewer.SetRange (ARange: Sw_Integer);
 BEGIN
    Range := ARange;                                   { Set new range }
    If (VScrollBar <> Nil) Then Begin                  { Vertical scrollbar }
@@ -3679,7 +3679,7 @@ END;
 {--TListViewer--------------------------------------------------------------}
 {  SelectItem -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Jul99 LdB        }
 {---------------------------------------------------------------------------}
-PROCEDURE TListViewer.SelectItem (Item: Integer);
+PROCEDURE TListViewer.SelectItem (Item: Sw_Integer);
 BEGIN
    Message(Owner, evBroadcast, cmListItemSelected,
      @Self);                                          { Send message }
@@ -3698,7 +3698,7 @@ PROCEDURE TListViewer.SetState (AState: Word; Enable: Boolean);
    END;
 
    PROCEDURE LoseFocus;
-   VAR Cs: Integer;
+   VAR Cs: Sw_Integer;
    BEGIN
      If (GOptions AND goNativeClass = 0) Then Begin   { Not in native mode }
        Cs := State;                                   { Hold current state }
@@ -3741,10 +3741,10 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TListViewer.HandleEvent (Var Event: TEvent);
 CONST MouseAutosToSkip = 4;
-VAR Oi, Ni: Integer; Ct, Cw: Word; Mouse: TPoint;
+VAR Oi, Ni: Sw_Integer; Ct, Cw: Word; Mouse: TPoint;
 
-   PROCEDURE MoveFocus (Req: Integer);
-   VAR Ti, Cs: Integer;
+   PROCEDURE MoveFocus (Req: Sw_Integer);
+   VAR Ti, Cs: Sw_Integer;
    BEGIN
      If (GOptions AND goNativeClass = 0) Then Begin   { Not in native mode }
        Ti := TopItem;                                 { Hold top item }
@@ -3870,7 +3870,7 @@ END;
 {--TListViewer--------------------------------------------------------------}
 {  FocusItemNum -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Jul99 LdB      }
 {---------------------------------------------------------------------------}
-PROCEDURE TListViewer.FocusItemNum (Item: Integer);
+PROCEDURE TListViewer.FocusItemNum (Item: Sw_Integer);
 BEGIN
    If (Item < 0) Then Item := 0 Else                  { Restrain underflow }
      If (Item >= Range) AND (Range > 0) Then
@@ -3885,7 +3885,7 @@ END;
 {--TWindow------------------------------------------------------------------}
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Jul99 LdB              }
 {---------------------------------------------------------------------------}
-CONSTRUCTOR TWindow.Init (Var Bounds: TRect; ATitle: TTitleStr; ANumber: Integer);
+CONSTRUCTOR TWindow.Init (Var Bounds: TRect; ATitle: TTitleStr; ANumber: Sw_Integer);
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
    State := State OR sfShadow;                        { View is shadowed }
@@ -3949,7 +3949,7 @@ END;
 {--TWindow------------------------------------------------------------------}
 {  GetTitle -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION TWindow.GetTitle (MaxSize: Integer): TTitleStr;
+FUNCTION TWindow.GetTitle (MaxSize: Sw_Integer): TTitleStr;
 VAR S: String;
 BEGIN
    If (Number <> 0) Then begin                        { Valid window number }
@@ -4057,7 +4057,7 @@ END;
 {  HandleEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11Aug99 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE TWindow.HandleEvent (Var Event: TEvent);
-VAR I, J: Integer;
+VAR I, J: Sw_Integer;
     Min, Max: TPoint; Limits: TRect;
 
    PROCEDURE DragWindow (Mode: Byte);
@@ -4197,7 +4197,7 @@ END;
 {--TView--------------------------------------------------------------------}
 {  GraphLine -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Sep99 LdB         }
 {---------------------------------------------------------------------------}
-PROCEDURE TView.GraphLine (X1, Y1, X2, Y2: Integer; Colour: Byte);
+PROCEDURE TView.GraphLine (X1, Y1, X2, Y2: Sw_Integer; Colour: Byte);
 VAR ViewPort: ViewPortType;
 BEGIN
    GetViewSettings(ViewPort, TextModeGFV);            { Get viewport settings }
@@ -4210,7 +4210,7 @@ BEGIN
    End;
 END;
 
-PROCEDURE TView.GraphRectangle (X1, Y1, X2, Y2: Integer; Colour: Byte);
+PROCEDURE TView.GraphRectangle (X1, Y1, X2, Y2: Sw_Integer; Colour: Byte);
 VAR ViewPort: ViewPortType;
 BEGIN
    If (TextModeGFV <> TRUE) Then Begin                { GRAPHICS MODE GFV }
@@ -4226,9 +4226,9 @@ END;
 {--TView--------------------------------------------------------------------}
 {  ClearArea -> Platforms DOS/DPMI/WIN/OS2 - Checked 19Sep97 LdB            }
 {---------------------------------------------------------------------------}
-PROCEDURE TView.ClearArea (X1, Y1, X2, Y2: Integer; Colour: Byte);
+PROCEDURE TView.ClearArea (X1, Y1, X2, Y2: Sw_Integer; Colour: Byte);
 VAR
-    X, Y: Integer; ViewPort: ViewPortType;
+    X, Y: Sw_Integer; ViewPort: ViewPortType;
     Buf : TDrawBuffer;
 BEGIN
    GetViewSettings(ViewPort, TextModeGFV);            { Get viewport }
@@ -4252,10 +4252,10 @@ BEGIN
 END;
 
 
-PROCEDURE TView.GraphArc (Xc, Yc: Integer; Sa, Ea: Real; XRad, YRad: Integer;
+PROCEDURE TView.GraphArc (Xc, Yc: Sw_Integer; Sa, Ea: Real; XRad, YRad: Sw_Integer;
 Colour: Byte);
 CONST RadConv  = 57.2957795130823229;                 { Degrees per radian }
-VAR X1, Y1, X2, Y2, X3, Y3: Integer; {$IFDEF OS_WINDOWS} ODc: hDc; {$ENDIF}
+VAR X1, Y1, X2, Y2, X3, Y3: Sw_Integer; {$IFDEF OS_WINDOWS} ODc: hDc; {$ENDIF}
 BEGIN
    {$IFDEF NOT_IMPLEMENTED}
    {$IFDEF OS_WINDOWS}
@@ -4296,10 +4296,10 @@ BEGIN
    {$ENDIF NOT_IMPLEMENTED}
 END;
 
-PROCEDURE TView.FilletArc (Xc, Yc: Integer; Sa, Ea: Real; XRad, YRad, Ht: Integer;
+PROCEDURE TView.FilletArc (Xc, Yc: Sw_Integer; Sa, Ea: Real; XRad, YRad, Ht: Sw_Integer;
 Colour: Byte);
 CONST RadConv  = 57.2957795130823229;                 { Degrees per radian }
-{$IFDEF OS_WINDOWS} VAR X1, Y1, X2, Y2, X3, Y3, X4, Y4: Integer; ODc: hDc; {$ENDIF}
+{$IFDEF OS_WINDOWS} VAR X1, Y1, X2, Y2, X3, Y3, X4, Y4: Sw_Integer; ODc: hDc; {$ENDIF}
 BEGIN
    {$IFDEF NOT_IMPLEMENTED}
    {$IFDEF OS_WINDOWS}
@@ -4352,7 +4352,7 @@ END;
 {--TView--------------------------------------------------------------------}
 {  BiColorRectangle -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06May98 LdB  }
 {---------------------------------------------------------------------------}
-PROCEDURE TView.BicolorRectangle (X1, Y1, X2, Y2: Integer; Light, Dark: Byte;
+PROCEDURE TView.BicolorRectangle (X1, Y1, X2, Y2: Sw_Integer; Light, Dark: Byte;
 Down: Boolean);
 VAR UpperLeft, RightDown: Byte;
 BEGIN
@@ -4369,9 +4369,9 @@ BEGIN
    GraphLine(X2, Y1, X2, Y2, RightDown);              { Draw right line }
 END;
 
-PROCEDURE TView.WriteBuf (X, Y, W, H: Integer; Var Buf);
-VAR I, J, K, L, CW: Integer; P: PDrawBuffer;
-    Tix, Tiy: Integer; ViewPort: ViewPortType;
+PROCEDURE TView.WriteBuf (X, Y, W, H: Sw_Integer; Var Buf);
+VAR I, J, K, L, CW: Sw_Integer; P: PDrawBuffer;
+    Tix, Tiy: Sw_Integer; ViewPort: ViewPortType;
 BEGIN
    If (State AND sfVisible <> 0) AND                  { View is visible }
    (State AND sfIconised = 0) AND                     { View is not icon}
@@ -4419,9 +4419,9 @@ BEGIN
    end;
 END;
 
-PROCEDURE TView.WriteLine (X, Y, W, H: Integer; Var Buf);
-VAR I, J, K, Cw: Integer; P: PDrawBuffer;
-    Tix, Tiy: Integer; ViewPort: ViewPortType;
+PROCEDURE TView.WriteLine (X, Y, W, H: Sw_Integer; Var Buf);
+VAR I, J, K, Cw: Sw_Integer; P: PDrawBuffer;
+    Tix, Tiy: Sw_Integer; ViewPort: ViewPortType;
 BEGIN
    If (State AND sfVisible <> 0) AND                  { View is visible }
    (State AND sfIconised = 0) AND                     { View is not icon}
@@ -4494,9 +4494,9 @@ BEGIN
    End;
 END;
 
-PROCEDURE TView.WriteStr (X, Y: Integer; Str: String; Color: Byte);
-VAR Fc, Bc, B: Byte; X1, Y1, X2, Y2: Integer;
-    Tix, Tiy, Ti: Integer; ViewPort: ViewPortType;
+PROCEDURE TView.WriteStr (X, Y: Sw_Integer; Str: String; Color: Byte);
+VAR Fc, Bc, B: Byte; X1, Y1, X2, Y2: Sw_Integer;
+    Tix, Tiy, Ti: Sw_Integer; ViewPort: ViewPortType;
     Buf : TDrawBuffer;
 BEGIN
    If (State AND sfVisible <> 0) AND                  { View is visible }
@@ -4541,9 +4541,9 @@ BEGIN
    End;
 END;
 
-PROCEDURE TView.WriteChar (X, Y: Integer; C: Char; Color: Byte;
-  Count: Integer);
-VAR Fc, Bc: Byte; I, Ti, Tix, Tiy: Integer; Col: Word; S: String; ViewPort: ViewPortType;
+PROCEDURE TView.WriteChar (X, Y: Sw_Integer; C: Char; Color: Byte;
+  Count: Sw_Integer);
+VAR Fc, Bc: Byte; I, Ti, Tix, Tiy: Sw_Integer; Col: Word; S: String; ViewPort: ViewPortType;
     Buf : TDrawBuffer;
 BEGIN
    If (State AND sfVisible <> 0) AND                  { View visible }
@@ -4589,7 +4589,7 @@ BEGIN
    End;
 END;
 
-PROCEDURE TView.WriteAbs(X, Y, L : Integer; Var Buf);
+PROCEDURE TView.WriteAbs(X, Y, L : Sw_Integer; Var Buf);
 VAR
   P: PGroup;
   PrevP,PP : PView;
@@ -4666,7 +4666,7 @@ BEGIN
 END;
 
 {define DirectWriteShadow}
-PROCEDURE TView.WriteShadow(X1, Y1, X2, Y2 : Integer);
+PROCEDURE TView.WriteShadow(X1, Y1, X2, Y2 : Sw_Integer);
 VAR
   P: PGroup;
   PrevP,PP : PView;
@@ -4750,16 +4750,6 @@ PROCEDURE TView.DragView (Event: TEvent; Mode: Byte; Var Limits: TRect;
   MinSize, MaxSize: TPoint);
 VAR PState: Word; Mouse, Q, R, P, S, Op1, Op2: TPoint; SaveBounds: TRect;
 
-   FUNCTION Min (I, J: Integer): Integer;
-   BEGIN
-     If (I < J) Then Min := I Else Min := J;          { Select minimum }
-   END;
-
-   FUNCTION Max (I, J: Integer): Integer;
-   BEGIN
-     If (I > J) Then Max := I Else Max := J;          { Select maximum }
-   END;
-
    PROCEDURE MoveGrow (P, S: TPoint);
    VAR R: TRect;
    BEGIN
@@ -4781,7 +4771,7 @@ VAR PState: Word; Mouse, Q, R, P, S, Op1, Op2: TPoint; SaveBounds: TRect;
      Locate(R);                                       { Locate view }
    END;
 
-   PROCEDURE Change (DX, DY: Integer);
+   PROCEDURE Change (DX, DY: Sw_Integer);
    BEGIN
      If (Mode AND dmDragMove <> 0) AND
      (GetShiftState AND $03 = 0) Then Begin
@@ -4792,7 +4782,7 @@ VAR PState: Word; Mouse, Q, R, P, S, Op1, Op2: TPoint; SaveBounds: TRect;
      End;
    END;
 
-   PROCEDURE Update (X, Y: Integer);
+   PROCEDURE Update (X, Y: Sw_Integer);
    BEGIN
      If (Mode AND dmDragMove <> 0) Then Begin
        P.X := X; P.Y := Y;                            { Adjust values }
@@ -4885,12 +4875,12 @@ BEGIN
    SetState(sfDragging, False);                       { Clr dragging flag }
 END;
 
-FUNCTION TView.FontWidth: Integer;
+FUNCTION TView.FontWidth: Sw_Integer;
 BEGIN
    FontWidth := SysFontWidth;
 END;
 
-FUNCTION TView.FontHeight: Integer;
+FUNCTION TView.FontHeight: Sw_Integer;
 BEGIN
    FontHeight := SysFontHeight;
 END;
@@ -4918,7 +4908,7 @@ BEGIN
    End;
 END;
 
-PROCEDURE TScroller.SetLimit (X, Y: Integer);
+PROCEDURE TScroller.SetLimit (X, Y: Sw_Integer);
 VAR PState: Word;
 BEGIN
    Limit.X := X;                                      { Hold x limit }
@@ -4990,9 +4980,9 @@ BEGIN
 END;
 
 PROCEDURE TWindow.DrawBorder;
-VAR Fc, Bc: Byte; X, Y: Integer; S: String;
+VAR Fc, Bc: Byte; X, Y: Sw_Integer; S: String;
     ViewPort: ViewPortType;
-    I : sw_integer;
+    I : Sw_Integer;
     LeftUpCorner,
     RightUpCorner,
     HorizontalBar,
@@ -5134,7 +5124,7 @@ END;
 {---------------------------------------------------------------------------}
 {  NewMessage -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19Sep97 LdB        }
 {---------------------------------------------------------------------------}
-FUNCTION NewMessage (P: PView; What, Command: Word; Id: Integer;
+FUNCTION NewMessage (P: PView; What, Command: Word; Id: Sw_Integer;
   Data: Real; InfoPtr: Pointer): Pointer;
 VAR Event: TEvent;
 BEGIN
@@ -5158,7 +5148,7 @@ END;
 {---------------------------------------------------------------------------}
 {  CreateIdScrollBar -> Platforms DOS/DPMI/WIN/NT/OS2 - Checked 22May97 LdB }
 {---------------------------------------------------------------------------}
-FUNCTION CreateIdScrollBar (X, Y, Size, Id: Integer; Horz: Boolean): PScrollBar;
+FUNCTION CreateIdScrollBar (X, Y, Size, Id: Sw_Integer; Horz: Boolean): PScrollBar;
 VAR R: TRect; P: PScrollBar;
 BEGIN
    If Horz Then R.Assign(X, Y, X+Size, Y+1) Else      { Horizontal bar }
@@ -5193,7 +5183,11 @@ END.
 
 {
  $Log$
- Revision 1.14  2001-06-01 16:01:20  pierre
+ Revision 1.15  2001-08-04 19:14:33  peter
+   * Added Makefiles
+   * added FV specific units and objects from old FV
+
+ Revision 1.14  2001/06/01 16:01:20  pierre
   TScrollBar Drawing  and TView.DragView corrected
 
  Revision 1.13  2001/05/31 12:14:06  pierre

@@ -1,10 +1,10 @@
 USES
-  Common,FileIO;
+  FVCommon,FileIO;
 
 VAR
   Handle : THandle;
   buf    : ARRAY[0..255] OF CHAR;
-  n 	 : Longint;
+  n      : Longint;
 BEGIN
   Handle := FileOpen(AsciiZ('test'), fa_Create);
   writeln('FileOpen: ',Handle);

@@ -1,0 +1,31 @@
+#
+#   Makefile.fpc for Free Vision for Free Pascal
+#
+
+[package]
+name=fv
+version=1.0.5
+
+[target]
+units=buildfv
+exampledirs=test
+
+[libs]
+libname=libfpfv.so
+libversion=1.0
+
+[compiler]
+targetdir=.
+
+[install]
+units=$(subst $(PPUEXT),,$(wildcard *$(PPUEXT)))
+fpcpackage=y
+
+[clean]
+units=$(subst $(PPUEXT),,$(wildcard *$(PPUEXT)))
+
+[default]
+fpcdir=..
+
+[rules]
+buildfv$(PPUEXT): $(wildcard *.pas *.inc)

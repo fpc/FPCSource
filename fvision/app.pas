@@ -57,7 +57,7 @@ USES
    {$ENDIF}
 
    GFVGraph,                                          { GFV standard unit }
-   Common, Memory,                                    { GFV standard units }
+   FVCommon, Memory,                                    { GFV standard units }
    Objects, Drivers, Views, Menus, HistList, Dialogs; { GFV standard units }
 
 {***************************************************************************}
@@ -1088,7 +1088,11 @@ END;
 END.
 {
  $Log$
- Revision 1.11  2001-05-31 21:39:11  pierre
+ Revision 1.12  2001-08-04 19:14:32  peter
+   * Added Makefiles
+   * added FV specific units and objects from old FV
+
+ Revision 1.11  2001/05/31 21:39:11  pierre
   + AltF12 to force Redraw of Application
 
  Revision 1.10  2001/05/31 12:15:24  pierre

@@ -74,7 +74,7 @@ UNIT Validate;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
-USES Common, Objects;                                 { GFV standard units }
+USES FVCommon, Objects;                                 { GFV standard units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -1058,7 +1058,11 @@ END.
 
 {
  $Log$
- Revision 1.4  2001-05-03 22:32:52  pierre
+ Revision 1.5  2001-08-04 19:14:33  peter
+   * Added Makefiles
+   * added FV specific units and objects from old FV
+
+ Revision 1.4  2001/05/03 22:32:52  pierre
   new bunch of changes, displays something for dos at least
 
  Revision 1.3  2001/04/10 21:29:55  pierre

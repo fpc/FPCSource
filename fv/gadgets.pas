@@ -95,7 +95,7 @@ UNIT Gadgets;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
-USES Common, Time, Objects, Drivers, Views, App;      { Standard GFV units }
+USES FVConsts, Time, Objects, Drivers, Views, App;      { Standard GFV units }
 
 {***************************************************************************}
 {                        PUBLIC OBJECT DEFINITIONS                          }
@@ -226,7 +226,11 @@ END;
 END.
 {
  $Log$
- Revision 1.2  2000-08-24 12:00:21  marco
+ Revision 1.3  2001-08-04 19:14:33  peter
+   * Added Makefiles
+   * added FV specific units and objects from old FV
+
+ Revision 1.2  2000/08/24 12:00:21  marco
   * CVS log and ID tags
 
 

@@ -78,7 +78,7 @@ USES
 
    video,
    GFVGraph,                                          { GFV graphics unit }
-   Common, Objects;                                   { GFV standard units }
+   FVCommon, Objects;                                 { GFV standard units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -231,28 +231,28 @@ CONST
 {---------------------------------------------------------------------------}
 TYPE
    TEvent = PACKED RECORD
-      What: Word;                                     { Event type }
-      Case Word Of
+      What: Sw_Word;                                     { Event type }
+      Case Sw_Word Of
         evNothing: ();                                { ** NO EVENT ** }
         evMouse: (
           Buttons: Byte;                              { Mouse buttons }
           Double: Boolean;                            { Double click state }
           Where: TPoint);                             { Mouse position }
         evKeyDown: (                                  { ** KEY EVENT ** }
-          Case Integer Of
-            0: (KeyCode: Word);                       { Full key code }
+          Case Sw_Integer Of
+            0: (KeyCode: Sw_Word);                       { Full key code }
             1: (CharCode: Char;                       { Char code }
                 ScanCode: Byte;                       { Scan code }
                 KeyShift: byte));                     { Shift states }
         evMessage: (                                  { ** MESSAGE EVENT ** }
-          Command: Word;                              { Message command }
-          Id     : Word;                              { Message id }
+          Command: Sw_Word;                              { Message command }
+          Id     : Sw_Word;                              { Message id }
           Data   : Real;                              { Message data }
-          Case Word Of
+          Case Sw_Word Of
             0: (InfoPtr: Pointer);                    { Message pointer }
             1: (InfoLong: Longint);                   { Message longint }
-            2: (InfoWord: Word);                      { Message word }
-            3: (InfoInt: Integer);                    { Message integer }
+            2: (InfoWord: Word);                      { Message Sw_Word }
+            3: (InfoInt: Integer);                    { Message Sw_Integer }
             4: (InfoByte: Byte);                      { Message byte }
             5: (InfoChar: Char));                     { Message character }
    END;
@@ -262,7 +262,7 @@ TYPE
 {                    ERROR HANDLER FUNCTION DEFINITION                      }
 {---------------------------------------------------------------------------}
 TYPE
-   TSysErrorFunc = FUNCTION (ErrorCode: Integer; Drive: Byte): Integer;
+   TSysErrorFunc = FUNCTION (ErrorCode: Sw_Integer; Drive: Byte): Sw_Integer;
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
@@ -283,13 +283,13 @@ the screen. For example, given the string '~B~roccoli' as its
 parameter, CStrLen returns 8.
 25May96 LdB
 ---------------------------------------------------------------------}
-FUNCTION CStrLen (Const S: String): Integer;
+FUNCTION CStrLen (Const S: String): Sw_Integer;
 
 {-MoveStr------------------------------------------------------------
 Moves a string into a buffer for use with a view's WriteBuf or WriteLine.
-Dest must be a TDrawBuffer (or an equivalent array of words). The
-characters in Str are moved into the low bytes of corresponding words
-in Dest. The high bytes of the words are set to Attr, or remain
+Dest must be a TDrawBuffer (or an equivalent array of Sw_Words). The
+characters in Str are moved into the low bytes of corresponding Sw_Words
+in Dest. The high bytes of the Sw_Words are set to Attr, or remain
 unchanged if Attr is zero.
 25May96 LdB
 ---------------------------------------------------------------------}
@@ -297,30 +297,30 @@ PROCEDURE MoveStr (Var Dest; Const Str: String; Attr: Byte);
 
 {-MoveCStr-----------------------------------------------------------
 The characters in Str are moved into the low bytes of corresponding
-words in Dest. The high bytes of the words are set to Lo(Attr) or
+Sw_Words in Dest. The high bytes of the Sw_Words are set to Lo(Attr) or
 Hi(Attr). Tilde characters (~) in the string toggle between the two
-attribute bytes passed in the Attr word.
+attribute bytes passed in the Attr Sw_Word.
 25May96 LdB
 ---------------------------------------------------------------------}
 PROCEDURE MoveCStr (Var Dest; Const Str: String; Attrs: Word);
 
 {-MoveBuf------------------------------------------------------------
 Count bytes are moved from Source into the low bytes of corresponding
-words in Dest. The high bytes of the words in Dest are set to Attr,
+Sw_Words in Dest. The high bytes of the Sw_Words in Dest are set to Attr,
 or remain unchanged if Attr is zero.
 25May96 LdB
 ---------------------------------------------------------------------}
-PROCEDURE MoveBuf (Var Dest, Source; Attr: Byte; Count: Word);
+PROCEDURE MoveBuf (Var Dest, Source; Attr: Byte; Count: Sw_Word);
 
 {-MoveChar------------------------------------------------------------
 Moves characters into a buffer for use with a view's WriteBuf or
-WriteLine. Dest must be a TDrawBuffer (or an equivalent array of words).
-The low bytes of the first Count words of Dest are set to C, or
-remain unchanged if Ord(C) is zero. The high bytes of the words are
+WriteLine. Dest must be a TDrawBuffer (or an equivalent array of Sw_Words).
+The low bytes of the first Count Sw_Words of Dest are set to C, or
+remain unchanged if Ord(C) is zero. The high bytes of the Sw_Words are
 set to Attr, or remain unchanged if Attr is zero.
 25May96 LdB
 ---------------------------------------------------------------------}
-PROCEDURE MoveChar (Var Dest; C: Char; Attr: Byte; Count: Word);
+PROCEDURE MoveChar (Var Dest; C: Char; Attr: Byte; Count: Sw_Word);
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                        KEYBOARD SUPPORT ROUTINES                          }
@@ -351,7 +351,7 @@ Returns the ascii character for the Ctrl+Key scancode that was given.
 FUNCTION GetCtrlChar (KeyCode: Word): Char;
 
 {-CtrlToArrow--------------------------------------------------------
-Converts a WordStar-compatible control key code to the corresponding
+Converts a Sw_WordStar-compatible control key code to the corresponding
 cursor key code.
 25May96 LdB
 ---------------------------------------------------------------------}
@@ -449,7 +449,7 @@ PROCEDURE ClearScreen;
 Does nothing provided for compatability purposes only.
 04Jan97 LdB
 ---------------------------------------------------------------------}
-PROCEDURE SetVideoMode (Mode: Word);
+PROCEDURE SetVideoMode (Mode: Sw_Word);
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                           ERROR CONTROL ROUTINES                          }
@@ -473,7 +473,7 @@ PROCEDURE DoneSysError;
 Error handling is not yet implemented so this simply drops through.
 20May98 LdB
 ---------------------------------------------------------------------}
-FUNCTION SystemError (ErrorCode: Integer; Drive: Byte): Integer;
+FUNCTION SystemError (ErrorCode: Sw_Integer; Drive: Byte): Sw_Integer;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                           STRING FORMAT ROUTINES                          }
@@ -532,25 +532,25 @@ CONST
    SysErrActive : Boolean = False;                    { Compatability only }
    FailSysErrors: Boolean = False;                    { Compatability only }
    ButtonCount  : Byte = 0;                           { Mouse button count }
-   DoubleDelay  : Word = 8;                           { Double click delay }
-   RepeatDelay  : Word = 8;                           { Auto mouse delay }
-   SysColorAttr : Word = $4E4F;                       { System colour attr }
-   SysMonoAttr  : Word = $7070;                       { System mono attr }
-   StartupMode  : Word = $FFFF;                       { Compatability only }
-   CursorLines  : Word = $FFFF;                       { Compatability only }
+   DoubleDelay  : Sw_Word = 8;                           { Double click delay }
+   RepeatDelay  : Sw_Word = 8;                           { Auto mouse delay }
+   SysColorAttr : Sw_Word = $4E4F;                       { System colour attr }
+   SysMonoAttr  : Sw_Word = $7070;                       { System mono attr }
+   StartupMode  : Sw_Word = $FFFF;                       { Compatability only }
+   CursorLines  : Sw_Word = $FFFF;                       { Compatability only }
    ScreenBuffer : Pointer = Nil;                      { Compatability only }
    SaveInt09    : Pointer = Nil;                      { Compatability only }
-   SysErrorFunc : TSysErrorFunc = SystemError;        { System error ptr }
+   SysErrorFunc : TSysErrorFunc = {$ifdef FPC}@{$endif}SystemError; { System error ptr }
 
 {---------------------------------------------------------------------------}
 {          >>> NEW INITIALIZED DOS/DPMI/WIN/NT/OS2 VARIABLES <<<            }
 {---------------------------------------------------------------------------}
 CONST
    TextModeGFV    : Boolean = False;                  { DOS/DPMI textmode op }
-   DefLineNum     : Integer = 25;                     { Default line number }
-   DefFontHeight  : Integer = 0;                      { Default font height }
-   SysFontWidth   : Integer = 8;                      { System font width }
-   SysFontHeight  : Integer = 16;                     { System font height }
+   DefLineNum     : Sw_Integer = 25;                     { Default line number }
+   DefFontHeight  : Sw_Integer = 0;                      { Default font height }
+   SysFontWidth   : Sw_Integer = 8;                      { System font width }
+   SysFontHeight  : Sw_Integer = 16;                     { System font height }
 
 {***************************************************************************}
 {                      UNINITIALIZED PUBLIC VARIABLES                       }
@@ -565,7 +565,7 @@ VAR
    ScreenWidth : Byte;                                { Screen text width }
    ScreenHeight: Byte;                                { Screen text height }
 {$ifdef GRAPH_API}
-   ScreenMode  : Word;                                { Screen mode }
+   ScreenMode  : Sw_Word;                                { Screen mode }
 {$else not GRAPH_API}
    ScreenMode  : TVideoMode;                         { Screen mode }
 {$endif GRAPH_API}
@@ -628,10 +628,10 @@ CONST AltCodes: Array [0..127] Of Byte = (
 {                           NEW CONTROL VARIABLES                           }
 {---------------------------------------------------------------------------}
 CONST
-   HideCount : Integer = 0;                           { Cursor hide count }
-   QueueCount: Word = 0;                              { Queued message count }
-   QueueHead : Word = 0;                              { Queue head pointer }
-   QueueTail : Word = 0;                              { Queue tail pointer }
+   HideCount : Sw_Integer = 0;                           { Cursor hide count }
+   QueueCount: Sw_Word = 0;                              { Queued message count }
+   QueueHead : Sw_Word = 0;                              { Queue head pointer }
+   QueueTail : Sw_Word = 0;                              { Queue tail pointer }
 
 {***************************************************************************}
 {                 PRIVATE INTERNAL UNINITIALIZED VARIABLES                  }
@@ -644,14 +644,14 @@ VAR
    LastDouble : Boolean;                              { Last double buttons }
    LastButtons: Byte;                                 { Last button state }
    DownButtons: Byte;                                 { Last down buttons }
-   EventCount : Word;                                 { Events in queue }
-   AutoDelay  : Word;                                 { Delay time count }
-   DownTicks  : Word;                                 { Down key tick count }
-   AutoTicks  : Word;                                 { Held key tick count }
-   LastWhereX : Word;                                 { Last x position }
-   LastWhereY : Word;                                 { Last y position }
-   DownWhereX : Word;                                 { Last x position }
-   DownWhereY : Word;                                 { Last y position }
+   EventCount : Sw_Word;                                 { Events in queue }
+   AutoDelay  : Sw_Word;                                 { Delay time count }
+   DownTicks  : Sw_Word;                                 { Down key tick count }
+   AutoTicks  : Sw_Word;                                 { Held key tick count }
+   LastWhereX : Sw_Word;                                 { Last x position }
+   LastWhereY : Sw_Word;                                 { Last y position }
+   DownWhereX : Sw_Word;                                 { Last x position }
+   DownWhereY : Sw_Word;                                 { Last y position }
    LastWhere  : TPoint;                               { Last mouse position }
    DownWhere  : TPoint;                               { Last down position }
    EventQHead : Pointer;                              { Head of queue }
@@ -865,8 +865,8 @@ end;
 {---------------------------------------------------------------------------}
 {  CStrLen -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25May96 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION CStrLen (Const S: String): Integer;
-VAR I, J: Integer;
+FUNCTION CStrLen (Const S: String): Sw_Integer;
+VAR I, J: Sw_Integer;
 BEGIN
    J := 0;                                            { Set result to zero }
    For I := 1 To Length(S) Do
@@ -881,7 +881,7 @@ PROCEDURE MoveStr (Var Dest; Const Str: String; Attr: Byte);
 VAR I: Word; P: PWord;
 BEGIN
    For I := 1 To Length(Str) Do Begin                 { For each character }
-     P := @TWordArray(Dest)[I-1];                     { Pointer to word }
+     P := @TWordArray(Dest)[I-1];                     { Pointer to Sw_Word }
      If (Attr <> 0) Then WordRec(P^).Hi := Attr;      { Copy attribute }
      WordRec(P^).Lo := Byte(Str[I]);                  { Copy string char }
    End;
@@ -891,12 +891,12 @@ END;
 {  MoveCStr -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 10Jul99 LdB          }
 {---------------------------------------------------------------------------}
 PROCEDURE MoveCStr (Var Dest; Const Str: String; Attrs: Word);
-VAR B: Byte; I, J: Word; P: PWord;
+VAR B: Byte; I, J: Sw_Word; P: PWord;
 BEGIN
    J := 0;                                            { Start position }
    For I := 1 To Length(Str) Do Begin                 { For each character }
      If (Str[I] <> '~') Then Begin                    { Not tilde character }
-       P := @TWordArray(Dest)[J];                     { Pointer to word }
+       P := @TWordArray(Dest)[J];                     { Pointer to Sw_Word }
        If (Lo(Attrs) <> 0) Then
          WordRec(P^).Hi := Lo(Attrs);                 { Copy attribute }
        WordRec(P^).Lo := Byte(Str[I]);                { Copy string char }
@@ -912,11 +912,11 @@ END;
 {---------------------------------------------------------------------------}
 {  MoveBuf -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 10Jul99 LdB           }
 {---------------------------------------------------------------------------}
-PROCEDURE MoveBuf (Var Dest, Source; Attr: Byte; Count: Word);
+PROCEDURE MoveBuf (Var Dest, Source; Attr: Byte; Count: Sw_Word);
 VAR I: Word; P: PWord;
 BEGIN
    For I := 1 To Count Do Begin
-     P := @TWordArray(Dest)[I-1];                     { Pointer to word }
+     P := @TWordArray(Dest)[I-1];                     { Pointer to Sw_Word }
      If (Attr <> 0) Then WordRec(P^).Hi := Attr;      { Copy attribute }
      WordRec(P^).Lo := TByteArray(Source)[I-1];       { Copy source data }
    End;
@@ -925,11 +925,11 @@ END;
 {---------------------------------------------------------------------------}
 {  MoveChar -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 10Jul99 LdB          }
 {---------------------------------------------------------------------------}
-PROCEDURE MoveChar (Var Dest; C: Char; Attr: Byte; Count: Word);
+PROCEDURE MoveChar (Var Dest; C: Char; Attr: Byte; Count: Sw_Word);
 VAR I: Word; P: PWord;
 BEGIN
    For I := 1 To Count Do Begin
-     P := @TWordArray(Dest)[I-1];                     { Pointer to word }
+     P := @TWordArray(Dest)[I-1];                     { Pointer to Sw_Word }
      If (Attr <> 0) Then WordRec(P^).Hi := Attr;      { Copy attribute }
      If (Ord(C) <> 0) Then WordRec(P^).Lo := Byte(C); { Copy character }
    End;
@@ -964,7 +964,7 @@ END;
 {  GetAltChar -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 25May96 LdB        }
 {---------------------------------------------------------------------------}
 FUNCTION GetAltChar (KeyCode: Word): Char;
-VAR I: Integer;
+VAR I: Sw_Integer;
 BEGIN
    GetAltChar := #0;                                  { Preset fail return }
    If (Lo(KeyCode) = 0) Then Begin                    { Extended key }
@@ -997,10 +997,10 @@ FUNCTION CtrlToArrow (KeyCode: Word): Word;
 CONST NumCodes = 11;
       CtrlCodes : Array [0..NumCodes-1] Of Char =
         (#19, #4, #5, #24, #1, #6, #7, #22, #18, #3, #8);
-      ArrowCodes: Array [0..NumCodes-1] Of Word =
+      ArrowCodes: Array [0..NumCodes-1] Of Sw_Word =
        (kbLeft, kbRight, kbUp, kbDown, kbHome, kbEnd, kbDel, kbIns,
         kbPgUp, kbPgDn, kbBack);
-VAR I: Integer;
+VAR I: Sw_Integer;
 BEGIN
    CtrlToArrow := KeyCode;                            { Preset key return }
    For I := 0 To NumCodes - 1 Do
@@ -1029,7 +1029,7 @@ end;
 procedure GetKeyEvent (Var Event: TEvent);
 var
   key      : TKeyEvent;
-  keycode  : word;
+  keycode  : Word;
   keyshift : byte;
 begin
   if Keyboard.PollKeyEvent<>0 then
@@ -1205,11 +1205,11 @@ END;
 {  InitVideo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Nov99 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE InitVideo;
-VAR {$ifdef Use_API}I, J: Integer;
+VAR {$ifdef Use_API}I, J: Sw_Integer;
     {$else not Use_API}
-    {$IFDEF OS_DOS} I, J: Integer;Ts: TextSettingsType;{$ENDIF}
+    {$IFDEF OS_DOS} I, J: Sw_Integer;Ts: TextSettingsType;{$ENDIF}
     {$IFDEF OS_WINDOWS} Dc, Mem: HDc; TempFont: TLogFont; Tm: TTextmetric; {$ENDIF}
-    {$IFDEF OS_OS2} Ts, Fs: Integer; Ps: HPs; Tm: FontMetrics; {$ENDIF}
+    {$IFDEF OS_OS2} Ts, Fs: Sw_Integer; Ps: HPs; Tm: FontMetrics; {$ENDIF}
     {$ENDIF}
 BEGIN
 {$ifdef GRAPH_API}
@@ -1271,7 +1271,7 @@ END;
 {---------------------------------------------------------------------------}
 {  SetVideoMode -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 10Nov99 LdB      }
 {---------------------------------------------------------------------------}
-PROCEDURE SetVideoMode (Mode: Word);
+PROCEDURE SetVideoMode (Mode: Sw_Word);
 BEGIN
    If (Mode > $100) Then DefLineNum := 50             { 50 line mode request }
      Else DefLineNum := 24;                           { Normal 24 line mode }
@@ -1300,7 +1300,7 @@ END;
 {---------------------------------------------------------------------------}
 {  SystemError -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 20May98 LdB       }
 {---------------------------------------------------------------------------}
-FUNCTION SystemError (ErrorCode: Integer; Drive: Byte): Integer;
+FUNCTION SystemError (ErrorCode: Sw_Integer; Drive: Byte): Sw_Integer;
 BEGIN
    If (FailSysErrors = False) Then Begin              { Check error ignore }
 
@@ -1474,7 +1474,11 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.10  2001-05-10 16:46:27  pierre
+ Revision 1.11  2001-08-04 19:14:33  peter
+   * Added Makefiles
+   * added FV specific units and objects from old FV
+
+ Revision 1.10  2001/05/10 16:46:27  pierre
   + some improovements made
 
  Revision 1.9  2001/05/07 22:22:03  pierre

@@ -57,7 +57,7 @@ USES
    {$ENDIF}
 
    GFVGraph,                                          { GFV standard unit }
-   Common, Objects, Drivers, Views, Validate;         { Standard GFV units }
+   FVCommon, FVConsts, Objects, Drivers, Views, Validate;         { Standard GFV units }
 
 {***************************************************************************}
 {                              PUBLIC CONSTANTS                             }
@@ -85,6 +85,28 @@ CONST
 
    CDialog = CGrayDialog;                             { Default palette }
 
+const
+    { ldXXXX constants  }
+  ldNone        = $0000;
+  ldNew         = $0001;
+  ldEdit        = $0002;
+  ldDelete      = $0004;
+  ldNewEditDelete = ldNew or ldEdit or ldDelete;
+  ldHelp        = $0008;
+  ldAllButtons  = ldNew or ldEdit or ldDelete or ldHelp;
+  ldNewIcon     = $0010;
+  ldEditIcon    = $0020;
+  ldDeleteIcon  = $0040;
+  ldAllIcons    = ldNewIcon or ldEditIcon or ldDeleteIcon;
+  ldAll         = ldAllIcons or ldAllButtons;
+  ldNoFrame     = $0080;
+  ldNoScrollBar = $0100;
+
+    { ofXXXX constants  }
+  ofNew           = $0001;
+  ofDelete        = $0002;
+  ofEdit          = $0004;
+  ofNewEditDelete = ofNew or ofDelete or ofEdit;
 
 {---------------------------------------------------------------------------}
 {                     TDialog PALETTE COLOUR CONSTANTS                      }
@@ -138,34 +160,21 @@ TYPE
 {***************************************************************************}
 
 {---------------------------------------------------------------------------}
-{                      TDialog OBJECT - DIALOG OBJECT                       }
-{---------------------------------------------------------------------------}
-TYPE
-   TDialog = OBJECT (TWindow)
-      CONSTRUCTOR Init (Var Bounds: TRect; ATitle: TTitleStr);
-      CONSTRUCTOR Load (Var S: TStream);
-      FUNCTION GetPalette: PPalette; Virtual;
-      FUNCTION Valid (Command: Word): Boolean; Virtual;
-      PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
-   END;
-   PDialog = ^TDialog;
-
-{---------------------------------------------------------------------------}
 {                   TInputLine OBJECT - INPUT LINE OBJECT                   }
 {---------------------------------------------------------------------------}
 TYPE
    TInputLine = OBJECT (TView)
-         MaxLen: Integer;                             { Max input length }
-         CurPos: Integer;                             { Cursor position }
-         FirstPos: Integer;                           { First position }
-         SelStart: Integer;                           { Selected start }
-         SelEnd: Integer;                             { Selected end }
+         MaxLen: Sw_Integer;                             { Max input length }
+         CurPos: Sw_Integer;                             { Cursor position }
+         FirstPos: Sw_Integer;                           { First position }
+         SelStart: Sw_Integer;                           { Selected start }
+         SelEnd: Sw_Integer;                             { Selected end }
          Data: PString;                               { Input line data }
          Validator: PValidator;                       { Validator of view }
-      CONSTRUCTOR Init (Var Bounds: TRect; AMaxLen: Integer);
+      CONSTRUCTOR Init (Var Bounds: TRect; AMaxLen: Sw_Integer);
       CONSTRUCTOR Load (Var S: TStream);
       DESTRUCTOR Done; Virtual;
-      FUNCTION DataSize: Word; Virtual;
+      FUNCTION DataSize: Sw_Word; Virtual;
       FUNCTION GetPalette: PPalette; Virtual;
       FUNCTION Valid (Command: Word): Boolean; Virtual;
       PROCEDURE Draw; Virtual;
@@ -179,7 +188,7 @@ TYPE
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
       PRIVATE
-      FUNCTION CanScroll (Delta: Integer): Boolean;
+      FUNCTION CanScroll (Delta: Sw_Integer): Boolean;
    END;
    PInputLine = ^TInputLine;
 
@@ -213,24 +222,31 @@ TYPE
 {                 TCluster OBJECT - CLUSTER ANCESTOR OBJECT                 }
 {---------------------------------------------------------------------------}
 TYPE
+  { Palette layout }
+  { 1 = Normal text }
+  { 2 = Selected text }
+  { 3 = Normal shortcut }
+  { 4 = Selected shortcut }
+  { 5 = Disabled text }
+
    TCluster = OBJECT (TView)
-         Id        : Integer;                         { New communicate id }
-         Sel       : Integer;                         { Selected item }
+         Id        : Sw_Integer;                         { New communicate id }
+         Sel       : Sw_Integer;                         { Selected item }
          Value     : LongInt;                         { Bit value }
          EnableMask: LongInt;                         { Mask enable bits }
          Strings   : TStringCollection;               { String collection }
       CONSTRUCTOR Init (Var Bounds: TRect; AStrings: PSItem);
       CONSTRUCTOR Load (Var S: TStream);
       DESTRUCTOR Done; Virtual;
-      FUNCTION DataSize: Word; Virtual;
+      FUNCTION DataSize: Sw_Word; Virtual;
       FUNCTION GetHelpCtx: Word; Virtual;
       FUNCTION GetPalette: PPalette; Virtual;
-      FUNCTION Mark (Item: Integer): Boolean; Virtual;
-      FUNCTION MultiMark (Item: Integer): Byte; Virtual;
-      FUNCTION ButtonState (Item: Integer): Boolean;
+      FUNCTION Mark (Item: Sw_Integer): Boolean; Virtual;
+      FUNCTION MultiMark (Item: Sw_Integer): Byte; Virtual;
+      FUNCTION ButtonState (Item: Sw_Integer): Boolean;
       PROCEDURE DrawFocus;                                           Virtual;
-      PROCEDURE Press (Item: Integer); Virtual;
-      PROCEDURE MovedTo (Item: Integer); Virtual;
+      PROCEDURE Press (Item: Sw_Integer); Virtual;
+      PROCEDURE MovedTo (Item: Sw_Integer); Virtual;
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
       PROCEDURE DrawMultiBox (Const Icon, Marker: String);
       PROCEDURE DrawBox (Const Icon: String; Marker: Char);
@@ -240,21 +256,29 @@ TYPE
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent);                     Virtual;
       PRIVATE
-      FUNCTION FindSel (P: TPoint): Integer;
-      FUNCTION Row (Item: Integer): Integer;
-      FUNCTION Column (Item: Integer): Integer;
+      FUNCTION FindSel (P: TPoint): Sw_Integer;
+      FUNCTION Row (Item: Sw_Integer): Sw_Integer;
+      FUNCTION Column (Item: Sw_Integer): Sw_Integer;
    END;
    PCluster = ^TCluster;
 
 {---------------------------------------------------------------------------}
 {                TRadioButtons OBJECT - RADIO BUTTON OBJECT                 }
 {---------------------------------------------------------------------------}
+
+  { Palette layout }
+  { 1 = Normal text }
+  { 2 = Selected text }
+  { 3 = Normal shortcut }
+  { 4 = Selected shortcut }
+
+
 TYPE
    TRadioButtons = OBJECT (TCluster)
-      FUNCTION Mark (Item: Integer): Boolean; Virtual;
+      FUNCTION Mark (Item: Sw_Integer): Boolean; Virtual;
       PROCEDURE DrawFocus; Virtual;
-      PROCEDURE Press (Item: Integer); Virtual;
-      PROCEDURE MovedTo(Item: Integer); Virtual;
+      PROCEDURE Press (Item: Sw_Integer); Virtual;
+      PROCEDURE MovedTo(Item: Sw_Integer); Virtual;
       PROCEDURE SetData (Var Rec); Virtual;
    END;
    PRadioButtons = ^TRadioButtons;
@@ -262,17 +286,31 @@ TYPE
 {---------------------------------------------------------------------------}
 {                  TCheckBoxes OBJECT - CHECK BOXES OBJECT                  }
 {---------------------------------------------------------------------------}
+
+  { Palette layout }
+  { 1 = Normal text }
+  { 2 = Selected text }
+  { 3 = Normal shortcut }
+  { 4 = Selected shortcut }
+
 TYPE
    TCheckBoxes = OBJECT (TCluster)
-      FUNCTION Mark (Item: Integer): Boolean; Virtual;
+      FUNCTION Mark (Item: Sw_Integer): Boolean; Virtual;
       PROCEDURE DrawFocus; Virtual;
-      PROCEDURE Press (Item: Integer); Virtual;
+      PROCEDURE Press (Item: Sw_Integer); Virtual;
    END;
    PCheckBoxes = ^TCheckBoxes;
 
 {---------------------------------------------------------------------------}
 {               TMultiCheckBoxes OBJECT - CHECK BOXES OBJECT                }
 {---------------------------------------------------------------------------}
+
+  { Palette layout }
+  { 1 = Normal text }
+  { 2 = Selected text }
+  { 3 = Normal shortcut }
+  { 4 = Selected shortcut }
+
 TYPE
    TMultiCheckBoxes = OBJECT (TCluster)
          SelRange: Byte;                              { Select item range }
@@ -282,10 +320,10 @@ TYPE
         ASelRange: Byte; AFlags: Word; Const AStates: String);
       CONSTRUCTOR Load (Var S: TStream);
       DESTRUCTOR Done; Virtual;
-      FUNCTION DataSize: Word; Virtual;
-      FUNCTION MultiMark (Item: Integer): Byte; Virtual;
+      FUNCTION DataSize: Sw_Word; Virtual;
+      FUNCTION MultiMark (Item: Sw_Integer): Byte; Virtual;
       PROCEDURE DrawFocus; Virtual;
-      PROCEDURE Press (Item: Integer); Virtual;
+      PROCEDURE Press (Item: Sw_Integer); Virtual;
       PROCEDURE GetData (Var Rec); Virtual;
       PROCEDURE SetData (Var Rec); Virtual;
       PROCEDURE Store (Var S: TStream);
@@ -295,18 +333,59 @@ TYPE
 {---------------------------------------------------------------------------}
 {                     TListBox OBJECT - LIST BOX OBJECT                     }
 {---------------------------------------------------------------------------}
+
+  { Palette layout }
+  { 1 = Active }
+  { 2 = Inactive }
+  { 3 = Focused }
+  { 4 = Selected }
+  { 5 = Divider }
+
 TYPE
    TListBox = OBJECT (TListViewer)
          List: PCollection;                           { List of strings }
-      CONSTRUCTOR Init (Var Bounds: TRect; ANumCols: Word;
+      CONSTRUCTOR Init (Var Bounds: TRect; ANumCols: Sw_Word;
         AScrollBar: PScrollBar);
       CONSTRUCTOR Load (Var S: TStream);
-      FUNCTION DataSize: Word; Virtual;
-      FUNCTION GetText (Item: Integer; MaxLen: Integer): String; Virtual;
+      FUNCTION DataSize: Sw_Word; Virtual;
+      FUNCTION GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String; Virtual;
       PROCEDURE NewList(AList: PCollection); Virtual;
       PROCEDURE GetData (Var Rec); Virtual;
       PROCEDURE SetData (Var Rec); Virtual;
       PROCEDURE Store (Var S: TStream);
+      procedure DeleteFocusedItem; virtual;
+        { DeleteFocusedItem deletes the focused item and redraws the view. }
+        {#X FreeFocusedItem }
+      procedure DeleteItem (Item : Sw_Integer); virtual;
+        { DeleteItem deletes Item from the associated collection. }
+        {#X FreeItem }
+      procedure FreeAll; virtual;
+        { FreeAll deletes and disposes of all items in the associated
+          collection. }
+        { FreeFocusedItem FreeItem }
+      procedure FreeFocusedItem; virtual;
+        { FreeFocusedItem deletes and disposes of the focused item then redraws
+          the listbox. }
+        {#X FreeAll FreeItem }
+      procedure FreeItem (Item : Sw_Integer); virtual;
+        { FreeItem deletes Item from the associated collection and disposes of
+          it, then redraws the listbox. }
+        {#X FreeFocusedItem FreeAll }
+      function GetFocusedItem : Pointer; virtual;
+        { GetFocusedItem is a more readable method of returning the focused
+          item from the listbox.  It is however slightly slower than: }
+  {#M+}
+  {
+  Item := ListBox^.List^.At(ListBox^.Focused); }
+  {#M-}
+      procedure Insert (Item : Pointer); virtual;
+        { Insert inserts Item into the collection, adjusts the listbox's range,
+          then redraws the listbox. }
+        {#X FreeItem }
+      procedure SetFocusedItem (Item : Pointer); virtual;
+        { SetFocusedItem changes the focused item to Item then redraws the
+          listbox. }
+        {# FocusItemNum }
    END;
    PListBox = ^TListBox;
 
@@ -329,14 +408,18 @@ TYPE
 {---------------------------------------------------------------------------}
 {              TParamText OBJECT - PARMETER STATIC TEXT OBJECT              }
 {---------------------------------------------------------------------------}
+
+  { Palette layout }
+  { 1 = Text }
+
 TYPE
    TParamText = OBJECT (TStaticText)
-         ParamCount: Integer;                         { Parameter count }
+         ParamCount: Sw_Integer;                         { Parameter count }
          ParamList : Pointer;                         { Parameter list }
       CONSTRUCTOR Init (Var Bounds: TRect; Const AText: String;
-        AParamCount: Integer);
+        AParamCount: Sw_Integer);
       CONSTRUCTOR Load (Var S: TStream);
-      FUNCTION DataSize: Word; Virtual;
+      FUNCTION DataSize: Sw_Word; Virtual;
       PROCEDURE GetData (Var Rec); Virtual;
       PROCEDURE SetData (Var Rec); Virtual;
       PROCEDURE Store (Var S: TStream);
@@ -363,14 +446,22 @@ TYPE
 {---------------------------------------------------------------------------}
 {             THistoryViewer OBJECT - HISTORY VIEWER OBJECT                 }
 {---------------------------------------------------------------------------}
+
+  { Palette layout }
+  { 1 = Active }
+  { 2 = Inactive }
+  { 3 = Focused }
+  { 4 = Selected }
+  { 5 = Divider }
+
 TYPE
    THistoryViewer = OBJECT (TListViewer)
          HistoryId: Word;                             { History id }
       CONSTRUCTOR Init(Var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar;
         AHistoryId: Word);
-      FUNCTION HistoryWidth: Integer;
+      FUNCTION HistoryWidth: Sw_Integer;
       FUNCTION GetPalette: PPalette; Virtual;
-      FUNCTION GetText (Item: Integer; MaxLen: Integer): String; Virtual;
+      FUNCTION GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String; Virtual;
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
    END;
    PHistoryViewer = ^THistoryViewer;
@@ -378,6 +469,16 @@ TYPE
 {---------------------------------------------------------------------------}
 {             THistoryWindow OBJECT - HISTORY WINDOW OBJECT                 }
 {---------------------------------------------------------------------------}
+
+  { Palette layout }
+  { 1 = Frame passive }
+  { 2 = Frame active }
+  { 3 = Frame icon }
+  { 4 = ScrollBar page area }
+  { 5 = ScrollBar controls }
+  { 6 = HistoryViewer normal text }
+  { 7 = HistoryViewer selected text }
+
 TYPE
   THistoryWindow = OBJECT (TWindow)
          Viewer: PListViewer;                         { List viewer object }
@@ -391,6 +492,11 @@ TYPE
 {---------------------------------------------------------------------------}
 {                   THistory OBJECT - HISTORY OBJECT                        }
 {---------------------------------------------------------------------------}
+
+  { Palette layout }
+  { 1 = Arrow }
+  { 2 = Sides }
+
 TYPE
    THistory = OBJECT (TView)
          HistoryId: Word;
@@ -405,6 +511,292 @@ TYPE
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
    END;
    PHistory = ^THistory;
+
+  {#Z+}
+  PBrowseInputLine = ^TBrowseInputLine;
+  TBrowseInputLine = Object(TInputLine)
+    History: Sw_Word;
+    constructor Init(var Bounds: TRect; AMaxLen: Sw_Integer; AHistory: Sw_Word);
+    constructor Load(var S: TStream);
+    function DataSize: Sw_Word; virtual;
+    procedure GetData(var Rec); virtual;
+    procedure SetData(var Rec); virtual;
+    procedure Store(var S: TStream);
+  end;  { of TBrowseInputLine }
+
+  TBrowseInputLineRec = record
+    Text: string;
+    History: Sw_Word;
+  end;  { of TBrowseInputLineRec }
+  {#Z+}
+  PBrowseButton = ^TBrowseButton;
+  {#Z-}
+  TBrowseButton = Object(TButton)
+    Link: PBrowseInputLine;
+    constructor Init(var Bounds: TRect; ATitle: TTitleStr; ACommand: Word;
+      AFlags: Byte; ALink: PBrowseInputLine);
+    constructor Load(var S: TStream);
+    procedure Press; virtual;
+    procedure Store(var S: TStream);
+  end;  { of TBrowseButton }
+
+
+  {#Z+}
+  PCommandIcon = ^TCommandIcon;
+  {#Z-}
+  TCommandIcon = Object(TStaticText)
+    { A TCommandIcon sends an evCommand message to its owner with
+      Event.Command set to #Command# when it is clicked with a mouse. }
+    constructor Init (var Bounds : TRect; AText : String; ACommand : Word);
+      { Creates an instance of a TCommandIcon and sets #Command# to
+        ACommand.  AText is the text which is displayed as the icon.  If an
+        error occurs Init fails. }
+    procedure HandleEvent (var Event : TEvent); virtual;
+      { Captures mouse events within its borders and sends an evCommand to
+        its owner in response to the mouse event. }
+      {#X Command }
+      private
+    Command : Word;
+      { Command is the command sent to the command icon's owner when it is
+        clicked. }
+  end;  { of TCommandIcon }
+
+
+  {#Z+}
+  PCommandSItem = ^TCommandSItem;
+  {#Z-}
+  TCommandSItem = record
+    { A TCommandSItem is the data structure used to initialize command
+      clusters with #NewCommandSItem# rather than the standarad #NewSItem#.
+      It is used to associate a command with an individual cluster item. }
+    {#X TCommandCheckBoxes TCommandRadioButtons }
+    Value : String;
+      { Value is the text displayed for the cluster item. }
+      {#X Command Next }
+    Command : Word;
+      { Command is the command broadcast when the cluster item is pressed. }
+      {#X Value Next }
+    Next : PCommandSItem;
+      { Next is a pointer to the next item in the cluster. }
+      {#X Value Command }
+  end;  { of TCommandSItem }
+
+
+  TCommandArray = array[0..15] of Word;
+    { TCommandArray holds a list of commands which are associated with a
+      cluster. }
+    {#X TCommandCheckBoxes TCommandRadioButtons }
+
+
+  {#Z+}
+  PCommandCheckBoxes = ^TCommandCheckBoxes;
+  {#Z-}
+  TCommandCheckBoxes = Object(TCheckBoxes)
+    { TCommandCheckBoxes function as normal TCheckBoxes, except that when a
+      cluster item is pressed it broadcasts a command associated with the
+      cluster item to the cluster's owner.
+
+      TCommandCheckBoxes are useful when other parts of a dialog should be
+      enabled or disabled in response to a check box's status. }
+    CommandList : TCommandArray;
+      { CommandList is the list of commands associated with each check box
+        item. }
+      {#X Init Load Store }
+    constructor Init (var Bounds : TRect; ACommandStrings : PCommandSItem);
+      { Init calls the inherited constructor, then sets up the #CommandList#
+        with the specified commands.  If an error occurs Init fails. }
+      {#X NewCommandSItem }
+    constructor Load (var S : TStream);
+      { Load calls the inherited constructor, then loads the #CommandList#
+        from the stream S.  If an error occurs Load fails. }
+      {#X Store Init }
+    procedure Press (Item : Sw_Integer); virtual;
+      { Press calls the inherited Press then broadcasts the command
+        associated with the cluster item that was pressed to the check boxes'
+        owner. }
+      {#X CommandList }
+    procedure Store (var S : TStream); virtual;
+      { Store calls the inherited Store method then writes the #CommandList#
+        to the stream. }
+      {#X Load }
+  end;  { of TCommandCheckBoxes }
+
+
+  {#Z+}
+  PCommandRadioButtons = ^TCommandRadioButtons;
+  {#Z-}
+  TCommandRadioButtons = Object(TRadioButtons)
+    { TCommandRadioButtons function as normal TRadioButtons, except that when
+      a cluster item is pressed it broadcasts a command associated with the
+      cluster item to the cluster's owner.
+
+      TCommandRadioButtons are useful when other parts of a dialog should be
+      enabled or disabled in response to a radiobutton's status. }
+    CommandList : TCommandArray;  { commands for each possible value }
+      { The list of commands associated with each radio button item. }
+      {#X Init Load Store }
+    constructor Init (var Bounds : TRect; ACommandStrings : PCommandSItem);
+      { Init calls the inherited constructor and sets up the #CommandList#
+        with the specified commands.  If an error occurs Init disposes of the
+        command strings then fails. }
+      {#X NewCommandSItem }
+    constructor Load (var S : TStream);
+      { Load calls the inherited constructor then loads the #CommandList#
+        from the stream S.  If an error occurs Load fails. }
+      {#X Store }
+    procedure MovedTo (Item : Sw_Integer); virtual;
+      { MovedTo calls the inherited MoveTo, then broadcasts the command of
+        the newly selected cluster item to the cluster's owner. }
+      {#X Press CommandList }
+    procedure Press (Item : Sw_Integer); virtual;
+      { Press calls the inherited Press then broadcasts the command
+        associated with the cluster item that was pressed to the check boxes
+        owner. }
+      {#X CommandList MovedTo }
+    procedure Store (var S : TStream); virtual;
+      { Store calls the inherited Store method then writes the #CommandList#
+        to the stream. }
+      {#X Load }
+  end;  { of TCommandRadioButtons }
+
+  PEditListBox = ^TEditListBox;
+  TEditListBox = Object(TListBox)
+    CurrentField : Integer;
+    constructor Init (Bounds : TRect; ANumCols: Word;
+      AVScrollBar : PScrollBar);
+    constructor Load (var S : TStream);
+    function  FieldValidator : PValidator; virtual;
+    function  FieldWidth : Integer; virtual;
+    procedure GetField (InputLine : PInputLine); virtual;
+    function  GetPalette : PPalette; virtual;
+    procedure HandleEvent (var Event : TEvent); virtual;
+    procedure SetField (InputLine : PInputLine); virtual;
+    function  StartColumn : Integer; virtual;
+      PRIVATE
+    procedure EditField (var Event : TEvent);
+  end;  { of TEditListBox }
+
+
+  PModalInputLine = ^TModalInputLine;
+  TModalInputLine = Object(TInputLine)
+    function  Execute : Word; virtual;
+    procedure HandleEvent (var Event : TEvent); virtual;
+    procedure SetState (AState : Word; Enable : Boolean); virtual;
+      private
+    EndState : Word;
+  end;  { of TModalInputLine }
+
+{---------------------------------------------------------------------------}
+{                      TDialog OBJECT - DIALOG OBJECT                       }
+{---------------------------------------------------------------------------}
+
+  { Palette layout }
+  {  1 = Frame passive }
+  {  2 = Frame active }
+  {  3 = Frame icon }
+  {  4 = ScrollBar page area }
+  {  5 = ScrollBar controls }
+  {  6 = StaticText }
+  {  7 = Label normal }
+  {  8 = Label selected }
+  {  9 = Label shortcut }
+  { 10 = Button normal }
+  { 11 = Button default }
+  { 12 = Button selected }
+  { 13 = Button disabled }
+  { 14 = Button shortcut }
+  { 15 = Button shadow }
+  { 16 = Cluster normal }
+  { 17 = Cluster selected }
+  { 18 = Cluster shortcut }
+  { 19 = InputLine normal text }
+  { 20 = InputLine selected text }
+  { 21 = InputLine arrows }
+  { 22 = History arrow }
+  { 23 = History sides }
+  { 24 = HistoryWindow scrollbar page area }
+  { 25 = HistoryWindow scrollbar controls }
+  { 26 = ListViewer normal }
+  { 27 = ListViewer focused }
+  { 28 = ListViewer selected }
+  { 29 = ListViewer divider }
+  { 30 = InfoPane }
+  { 31 = Cluster disabled }
+  { 32 = Reserved }
+
+  PDialog = ^TDialog;
+  TDialog = object(TWindow)
+    constructor Init(var Bounds: TRect; ATitle: TTitleStr);
+    constructor Load(var S: TStream);
+    procedure Cancel (ACommand : Word); virtual;
+      { If the dialog is a modal dialog, Cancel calls EndModal(ACommand).  If
+        the dialog is non-modal Cancel calls Close.
+
+        Cancel may be overridden to provide special processing prior to
+        destructing the dialog. }
+    procedure ChangeTitle (ANewTitle : TTitleStr); virtual;
+      { ChangeTitle disposes of the current title, assigns ANewTitle to Title,
+        then redraws the dialog. }
+    procedure FreeSubView (ASubView : PView); virtual;
+      { FreeSubView deletes and disposes ASubView from the dialog. }
+      {#X FreeAllSubViews IsSubView }
+    procedure FreeAllSubViews; virtual;
+      { Deletes then disposes all subviews in the dialog. }
+      {#X FreeSubView IsSubView }
+    function GetPalette: PPalette; virtual;
+    procedure HandleEvent(var Event: TEvent); virtual;
+    function IsSubView (AView : PView) : Boolean; virtual;
+      { IsSubView returns True if AView is non-nil and is a subview of the
+        dialog. }
+      {#X FreeSubView FreeAllSubViews }
+    function NewButton (X, Y, W, H : Sw_Integer; ATitle : TTitleStr;
+                        ACommand, AHelpCtx : Word;
+                        AFlags : Byte) : PButton;
+      { Creates and inserts into the dialog a new TButton with the
+        help context AHelpCtx.
+
+        A pointer to the new button is returned for checking validity of the
+        initialization. }
+      {#X NewInputLine NewLabel }
+    function NewLabel (X, Y : Sw_Integer; AText : String;
+                       ALink : PView) : PLabel;
+      { NewLabel creates and inserts into the dialog a new TLabel and
+        associates it with ALink. }
+      {#X NewButton NewInputLine }
+    function NewInputLine (X, Y, W, AMaxLen : Sw_Integer; AHelpCtx : Word
+                           ; AValidator : PValidator) : PInputLine;
+      { NewInputLine creates and inserts into the dialog a new TBSDInputLine
+        with the help context to AHelpCtx and the validator AValidator.
+
+        A pointer to the inputline is returned for checking validity of the
+        initialization. }
+      {#X NewButton NewLabel }
+    function Valid(Command: Word): Boolean; virtual;
+  end;
+
+  PListDlg = ^TListDlg;
+  TListDlg = object(TDialog)
+    { TListDlg displays a listbox of items, with optional New, Edit, and
+      Delete buttons displayed according to the options bit set in the
+      dialog.  Use the ofXXXX flags declared in this unit OR'd with the
+      standard ofXXXX flags to set the appropriate bits in Options.
+
+      If enabled, when the New or Edit buttons are pressed, an evCommand
+      message is sent to the application with a Command value of NewCommand
+      or EditCommand, respectively.  Using this mechanism in combination with
+      the declared Init parameters, a standard TListDlg can be used with any
+      type of list displayable in a TListBox or its descendant. }
+    NewCommand: Word;
+    EditCommand: Word;
+    ListBox: PListBox;
+    ldOptions: Word;
+    constructor Init (ATitle: TTitleStr; Items: string; AButtons: Word;
+      AListBox: PListBox; AEditCommand, ANewCommand: Word);
+    constructor Load(var S: TStream);
+    procedure HandleEvent(var Event: TEvent); virtual;
+    procedure Store(var S: TStream); virtual;
+  end;  { of TListDlg }
+
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
@@ -422,6 +814,13 @@ should be nil.
 28Apr98 LdB
 ---------------------------------------------------------------------}
 FUNCTION NewSItem (Const Str: String; ANext: PSItem): PSItem;
+
+{ NewCommandSItem allocates and returns a pointer to a new #TCommandSItem#
+ record.  The Value and Next fields of the record are set to NewStr(Str)
+ and ANext, respectively.  The NewSItem function and the TSItem record type
+ allow easy construction of singly-linked lists of command strings. }
+function NewCommandSItem (Str : String; ACommand : Word;
+                          ANext : PCommandSItem) : PCommandSItem;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                   DIALOG OBJECT REGISTRATION PROCEDURE                    }
@@ -569,11 +968,54 @@ CONST
      Store: @TParamText.Store                         { Object store method }
    );
 
+  RCommandCheckBoxes : TStreamRec = (
+    ObjType : idCommandCheckBoxes;
+    VmtLink : Ofs(TypeOf(TCommandCheckBoxes)^);
+    Load    : @TCommandCheckBoxes.Load;
+    Store   : @TCommandCheckBoxes.Store);
+
+  RCommandRadioButtons : TStreamRec = (
+    ObjType : idCommandRadioButtons;
+    VmtLink : Ofs(TypeOf(TCommandRadioButtons)^);
+    Load    : @TCommandRadioButtons.Load;
+    Store   : @TCommandRadioButtons.Store);
+
+  RCommandIcon : TStreamRec = (
+    ObjType  : idCommandIcon;
+    VmtLink  : Ofs(Typeof(TCommandIcon)^);
+    Load     : @TCommandIcon.Load;
+    Store    : @TCommandIcon.Store);
+
+  RBrowseButton: TStreamRec = (
+    ObjType  : idBrowseButton;
+    VmtLink  : Ofs(TypeOf(TBrowseButton)^);
+    Load     : @TBrowseButton.Load;
+    Store    : @TBrowseButton.Store);
+
+  REditListBox : TStreamRec = (
+    ObjType : idEditListBox;
+    VmtLink : Ofs(TypeOf(TEditListBox)^);
+    Load    : @TEditListBox.Load;
+    Store   : @TEditListBox.Store);
+
+  RListDlg : TStreamRec = (
+    ObjType : idListDlg;
+    VmtLink : Ofs(TypeOf(TListDlg)^);
+    Load    : @TListDlg.Load;
+    Store   : @TListDlg.Store);
+
+  RModalInputLine : TStreamRec = (
+    ObjType : idModalInputLine;
+    VmtLink : Ofs(TypeOf(TModalInputLine)^);
+    Load    : @TModalInputLine.Load;
+    Store   : @TModalInputLine.Store);
+
+
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                 IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
-USES HistList;                                        { Standard GFV unit }
+USES App,HistList;                               { Standard GFV unit }
 
 {***************************************************************************}
 {                         PRIVATE DEFINED CONSTANTS                         }
@@ -603,7 +1045,7 @@ END;
 {  HotKey -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08Jun98 LdB            }
 {---------------------------------------------------------------------------}
 FUNCTION HotKey (Const S: String): Char;
-VAR I: Word;
+VAR I: Sw_Word;
 BEGIN
    HotKey := #0;                                      { Preset fail }
    If (S <> '') Then Begin                            { Valid string }
@@ -699,6 +1141,123 @@ BEGIN
    End;
 END;
 
+{****************************************************************************}
+{ TDialog.Cancel                                                             }
+{****************************************************************************}
+procedure TDialog.Cancel (ACommand : Word);
+begin
+  if State and sfModal = sfModal then
+    EndModal(ACommand)
+  else Close;
+end;
+
+{****************************************************************************}
+{ TDialog.ChangeTitle                                                        }
+{****************************************************************************}
+procedure TDialog.ChangeTitle (ANewTitle : TTitleStr);
+begin
+  if (Title <> nil) then
+    DisposeStr(Title);
+  Title := NewStr(ANewTitle);
+  Frame^.DrawView;
+end;
+
+{****************************************************************************}
+{ TDialog.FreeSubView                                                        }
+{****************************************************************************}
+procedure TDialog.FreeSubView (ASubView : PView);
+begin
+  if IsSubView(ASubView) then begin
+     Delete(ASubView);
+     Dispose(ASubView,Done);
+     DrawView;
+     end;
+end;
+
+{****************************************************************************}
+{ TDialog.FreeAllSubViews                                                    }
+{****************************************************************************}
+procedure TDialog.FreeAllSubViews;
+var
+  P : PView;
+begin
+  P := First;
+  repeat
+    P := First;
+    if (P <> nil) then begin
+       Delete(P);
+       Dispose(P,Done);
+       end;
+  until (P = nil);
+  DrawView;
+end;
+
+{****************************************************************************}
+{ TDialog.IsSubView                                                          }
+{****************************************************************************}
+function TDialog.IsSubView (AView : PView) : Boolean;
+var P : PView;
+begin
+  P := First;
+  while (P <> nil) and (P <> AView) do
+    P := P^.NextView;
+  IsSubView := ((P <> nil) and (P = AView));
+end;
+
+{****************************************************************************}
+{ TDialog.NewButton                                                          }
+{****************************************************************************}
+function TDialog.NewButton (X, Y, W, H : Sw_Integer; ATitle : TTitleStr;
+                               ACommand, AHelpCtx : Word;
+                               AFlags : Byte) : PButton;
+var
+  B : PButton;
+  R : TRect;
+begin
+  R.Assign(X,Y,X+W,Y+H);
+  B := New(PButton,Init(R,ATitle,ACommand,AFlags));
+  if (B <> nil) then begin
+     B^.HelpCtx := AHelpCtx;
+     Insert(B);
+     end;
+  NewButton := B;
+end;
+
+{****************************************************************************}
+{ TDialog.NewInputLine                                                       }
+{****************************************************************************}
+function TDialog.NewInputLine (X, Y, W, AMaxLen : Sw_Integer; AHelpCtx : Word
+                                  ; AValidator : PValidator) : PInputLine;
+var
+  P : PInputLine;
+  R : TRect;
+begin
+  R.Assign(X,Y,X+W,Y+1);
+  P := New(PInputLine,Init(R,AMaxLen));
+  if (P <> nil) then begin
+     P^.SetValidator(AValidator);
+     P^.HelpCtx := AHelpCtx;
+     Insert(P);
+     end;
+  NewInputLine := P;
+end;
+
+{****************************************************************************}
+{ TDialog.NewLabel                                                           }
+{****************************************************************************}
+function TDialog.NewLabel (X, Y : Sw_Integer; AText : String;
+                              ALink : PView) : PLabel;
+var
+  P : PLabel;
+  R : TRect;
+begin
+  R.Assign(X,Y,X+CStrLen(AText)+1,Y+1);
+  P := New(PLabel,Init(R,AText,ALink));
+  if (P <> nil) then
+     Insert(P);
+  NewLabel := P;
+end;
+
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                       TInputLine OBJECT METHODS                           }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -706,7 +1265,7 @@ END;
 {--TInputLine---------------------------------------------------------------}
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Oct99 LdB              }
 {---------------------------------------------------------------------------}
-CONSTRUCTOR TInputLine.Init (Var Bounds: TRect; AMaxLen: Integer);
+CONSTRUCTOR TInputLine.Init (Var Bounds: TRect; AMaxLen: Sw_Integer);
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
    State := State OR sfCursorVis;                     { Cursor visible }
@@ -755,8 +1314,8 @@ END;
 {--TInputLine---------------------------------------------------------------}
 {  DataSize -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Oct99 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION TInputLine.DataSize: Word;
-VAR DSize: Word;
+FUNCTION TInputLine.DataSize: Sw_Word;
+VAR DSize: Sw_Word;
 BEGIN
    DSize := 0;                                        { Preset zero datasize }
    If (Validator <> Nil) AND (Data <> Nil) Then
@@ -811,7 +1370,7 @@ END;
 {  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Oct99 LdB              }
 {---------------------------------------------------------------------------}
 PROCEDURE TInputLine.Draw;
-VAR Color: Byte; X, L, R: Integer; S, T: String;
+VAR Color: Byte; X, L, R: Sw_Integer; S, T: String;
 BEGIN
    If (State AND sfFocused = 0) Then Color := 1       { Not focused colour }
      Else Color := 2;                                 { Focused colour }
@@ -858,7 +1417,7 @@ END;
 {  DrawCursor -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05Oct99 LdB        }
 {---------------------------------------------------------------------------}
 PROCEDURE TInputLine.DrawCursor;
-VAR I, X: Integer; S: String;
+VAR I, X: Sw_Integer; S: String;
 BEGIN
    If (State AND sfFocused <> 0) Then Begin           { Focused window }
      X := TextWidth(LeftArr);                         { Preset x position }
@@ -961,9 +1520,9 @@ END;
 PROCEDURE TInputLine.HandleEvent (Var Event: TEvent);
 CONST PadKeys = [$47, $4B, $4D, $4F, $73, $74];
 VAR WasAppending: Boolean; ExtendBlock: Boolean; OldData: String;
-Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Integer;
+Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Sw_Integer;
 
-   FUNCTION MouseDelta: Integer;
+   FUNCTION MouseDelta: Sw_Integer;
    BEGIN
      If (Event.Where.X <= RawOrigin.X+TextWidth(LeftArr))
        Then MouseDelta := -1 Else                     { To left of text area }
@@ -972,8 +1531,8 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Integer;
          Else MouseDelta := 0;                        { In area return 0 }
    END;
 
-   FUNCTION MousePos: Integer;
-   VAR Mp, Tw, Pos: Integer; S: String;
+   FUNCTION MousePos: Sw_Integer;
+   VAR Mp, Tw, Pos: Sw_Integer; S: String;
    BEGIN
      Mp := Event.Where.X - RawOrigin.X;               { Mouse position }
      If (Data <> Nil) Then S := Copy(Data^, FirstPos+1,
@@ -1033,7 +1592,7 @@ Delta, Anchor, OldCurPos, OldFirstPos, OldSelStart, OldSelEnd: Integer;
    END;
 
    FUNCTION CheckValid (NoAutoFill: Boolean): Boolean;
-   VAR OldLen: Integer; NewData: String;
+   VAR OldLen: Sw_Integer; NewData: String;
    BEGIN
      If (Validator <> Nil) Then Begin                 { Validator valid }
        CheckValid := False;                           { Preset false return }
@@ -1193,7 +1752,7 @@ END;
 {--TInputLine---------------------------------------------------------------}
 {  CanScroll -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Oct99 LdB         }
 {---------------------------------------------------------------------------}
-FUNCTION TInputLine.CanScroll (Delta: Integer): Boolean;
+FUNCTION TInputLine.CanScroll (Delta: Sw_Integer): Boolean;
 VAR S: String;
 BEGIN
    If (Delta < 0) Then CanScroll := FirstPos > 0      { Check scroll left }
@@ -1286,7 +1845,7 @@ END;
 {  DrawFocus -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Apr98 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE TButton.DrawFocus;
-VAR B: Byte; I, Pos: Integer;
+VAR B: Byte; I, Pos: Sw_Integer;
     Bc: Word; Db: TDrawBuffer;
     C : char;
 BEGIN
@@ -1478,7 +2037,7 @@ CONST TvClusterClassName = 'TVCLUSTER';
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28May98 LdB              }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TCluster.Init (Var Bounds: TRect; AStrings: PSItem);
-VAR I: Integer; P: PSItem;
+VAR I: Sw_Integer; P: PSItem;
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
    GOptions := GOptions OR goDrawFocus;               { Draw focus view }
@@ -1523,7 +2082,7 @@ END;
 {  Done -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Jul99 LdB              }
 {---------------------------------------------------------------------------}
 DESTRUCTOR TCluster.Done;
-VAR I: Integer;
+VAR I: Sw_Integer;
 BEGIN
    Strings.Done;                                      { Dispose of strings }
    Inherited Done;                                    { Call ancestor }
@@ -1532,9 +2091,9 @@ END;
 {--TCluster-----------------------------------------------------------------}
 {  DataSize -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Apr98 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION TCluster.DataSize: Word;
+FUNCTION TCluster.DataSize: Sw_Word;
 BEGIN
-   DataSize := SizeOf(Word);                          { Exchanges a word }
+   DataSize := SizeOf(Sw_Word);                          { Exchanges a word }
 END;
 
 {--TCluster-----------------------------------------------------------------}
@@ -1559,7 +2118,7 @@ END;
 {--TCluster-----------------------------------------------------------------}
 {  Mark -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04May98 LdB              }
 {---------------------------------------------------------------------------}
-FUNCTION TCluster.Mark (Item: Integer): Boolean;
+FUNCTION TCluster.Mark (Item: Sw_Integer): Boolean;
 BEGIN
    Mark := False;                                     { Default false }
 END;
@@ -1567,7 +2126,7 @@ END;
 {--TCluster-----------------------------------------------------------------}
 {  MultiMark -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04May98 LdB         }
 {---------------------------------------------------------------------------}
-FUNCTION TCluster.MultiMark (Item: Integer): Byte;
+FUNCTION TCluster.MultiMark (Item: Sw_Integer): Byte;
 BEGIN
    MultiMark := Byte(Mark(Item) = True);              { Return multi mark }
 END;
@@ -1575,7 +2134,7 @@ END;
 {--TCluster-----------------------------------------------------------------}
 {  ButtonState -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 03Jun98 LdB       }
 {---------------------------------------------------------------------------}
-FUNCTION TCluster.ButtonState (Item: Integer): Boolean;
+FUNCTION TCluster.ButtonState (Item: Sw_Integer): Boolean;
 BEGIN
    If (Item > 31) Then ButtonState := False Else      { Impossible item }
      ButtonState := ((1 SHL Item) AND EnableMask)<>0; { Return true/false }
@@ -1591,7 +2150,7 @@ END;
 {--TCluster-----------------------------------------------------------------}
 {  Press -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 03Jun98 LdB             }
 {---------------------------------------------------------------------------}
-PROCEDURE TCluster.Press (Item: Integer);
+PROCEDURE TCluster.Press (Item: Sw_Integer);
 VAR P: PView;
 BEGIN
    P := TopView;
@@ -1602,7 +2161,7 @@ END;
 {--TCluster-----------------------------------------------------------------}
 {  MovedTo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 03Jun98 LdB           }
 {---------------------------------------------------------------------------}
-PROCEDURE TCluster.MovedTo (Item: Integer);
+PROCEDURE TCluster.MovedTo (Item: Sw_Integer);
 BEGIN                                                 { Abstract method }
 END;
 
@@ -1622,7 +2181,7 @@ END;
 {  DrawMultiBox -> Platforms DOS/DPMI/WIN/NT - Updated 05Jun98 LdB          }
 {---------------------------------------------------------------------------}
 PROCEDURE TCluster.DrawMultiBox (Const Icon, Marker: String);
-VAR I, J, K, Cur, Col: Integer; CNorm, CSel, CDis, Color: Word; B: TDrawBuffer;
+VAR I, J, K, Cur, Col: Sw_Integer; CNorm, CSel, CDis, Color: Word; B: TDrawBuffer;
     Tb, SCOff: Byte;
 BEGIN
    CNorm := GetColor($0301);                          { Normal colour }
@@ -1678,7 +2237,7 @@ END;
 {  SetButtonState -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 03Jun98 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TCluster.SetButtonState (AMask: Longint; Enable: Boolean);
-VAR I: Integer; M: Longint;
+VAR I: Sw_Integer; M: Longint;
 BEGIN
    If Enable Then EnableMask := EnableMask OR AMask   { Set enable bit mask }
      Else EnableMask := EnableMask AND NOT AMask;     { Disable bit mask }
@@ -1737,7 +2296,7 @@ END;
 {  HandleEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Jun98 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE TCluster.HandleEvent (Var Event: TEvent);
-VAR C: Char; I, J, S, Vh: Integer; Key: Word; Mouse: TPoint; Ts: PString;
+VAR C: Char; I, J, S, Vh: Sw_Integer; Key: Word; Mouse: TPoint; Ts: PString;
 
    PROCEDURE MoveSel;
    BEGIN
@@ -1846,8 +2405,8 @@ END;
 {--TCluster-----------------------------------------------------------------}
 {  FindSel -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 03Jun98 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION TCluster.FindSel (P: TPoint): Integer;
-VAR I, J, S, Vh: Integer; R: TRect;
+FUNCTION TCluster.FindSel (P: TPoint): Sw_Integer;
+VAR I, J, S, Vh: Sw_Integer; R: TRect;
 BEGIN
    GetExtent(R);                                      { Get view extents }
    If R.Contains(P) Then Begin                        { Point in view }
@@ -1866,7 +2425,7 @@ END;
 {--TCluster-----------------------------------------------------------------}
 {  Row -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 03Jun98 LdB               }
 {---------------------------------------------------------------------------}
-FUNCTION TCluster.Row (Item: Integer): Integer;
+FUNCTION TCluster.Row (Item: Sw_Integer): Sw_Integer;
 BEGIN
    If (Options AND ofFramed <> 0) OR                  { Normal frame }
   (GOptions AND goThickFramed <> 0) Then              { Thick frame }
@@ -1877,8 +2436,8 @@ END;
 {--TCluster-----------------------------------------------------------------}
 {  Column -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 03Jun98 LdB            }
 {---------------------------------------------------------------------------}
-FUNCTION TCluster.Column (Item: Integer): Integer;
-VAR I, J, Col, Width, L, Vh: Integer; Ts: PString;
+FUNCTION TCluster.Column (Item: Sw_Integer): Sw_Integer;
+VAR I, J, Col, Width, L, Vh: Sw_Integer; Ts: PString;
 BEGIN
    If (Options AND ofFramed <> 0) OR                  { Normal frame }
    (GOptions AND goThickFramed <> 0) Then             { Thick frame }
@@ -1910,7 +2469,7 @@ END;
 {--TRadioButtons------------------------------------------------------------}
 {  Mark -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Apr98 LdB              }
 {---------------------------------------------------------------------------}
-FUNCTION TRadioButtons.Mark (Item: Integer): Boolean;
+FUNCTION TRadioButtons.Mark (Item: Sw_Integer): Boolean;
 BEGIN
    Mark := Item = Value;                              { True if item = value }
 END;
@@ -1928,7 +2487,7 @@ END;
 {--TRadioButtons------------------------------------------------------------}
 {  Press -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Apr98 LdB             }
 {---------------------------------------------------------------------------}
-PROCEDURE TRadioButtons.Press (Item: Integer);
+PROCEDURE TRadioButtons.Press (Item: Sw_Integer);
 BEGIN
    Value := Item;                                     { Set value field }
    Inherited Press(Item);                             { Call ancestor }
@@ -1937,7 +2496,7 @@ END;
 {--TRadioButtons------------------------------------------------------------}
 {  MovedTo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04May98 LdB           }
 {---------------------------------------------------------------------------}
-PROCEDURE TRadioButtons.MovedTo (Item: Integer);
+PROCEDURE TRadioButtons.MovedTo (Item: Sw_Integer);
 BEGIN
    Value := Item;                                     { Set value to item }
    If (Id <> 0) Then NewMessage(Owner, evCommand,
@@ -1949,7 +2508,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TRadioButtons.SetData (Var Rec);
 BEGIN
-   Sel := Integer(Rec);                               { Set selection }
+   Sel := Sw_Integer(Rec);                               { Set selection }
    Inherited SetData(Rec);                            { Call ancestor }
 END;
 
@@ -1960,7 +2519,7 @@ END;
 {--TCheckBoxes--------------------------------------------------------------}
 {  Mark -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Apr98 LdB              }
 {---------------------------------------------------------------------------}
-FUNCTION TCheckBoxes.Mark(Item: Integer): Boolean;
+FUNCTION TCheckBoxes.Mark(Item: Sw_Integer): Boolean;
 BEGIN
    If (Value AND (1 SHL Item) <> 0) Then              { Check if item ticked }
      Mark := True Else Mark := False;                 { Return result }
@@ -1979,7 +2538,7 @@ END;
 {--TCheckBoxes--------------------------------------------------------------}
 {  Press -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Apr98 LdB             }
 {---------------------------------------------------------------------------}
-PROCEDURE TCheckBoxes.Press (Item: Integer);
+PROCEDURE TCheckBoxes.Press (Item: Sw_Integer);
 BEGIN
    Value := Value XOR (1 SHL Item);                   { Flip the item mask }
    Inherited Press(Item);                             { Call ancestor }
@@ -2024,7 +2583,7 @@ END;
 {--TMultiCheckBoxes---------------------------------------------------------}
 {  DataSize -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Jun98 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION TMultiCheckBoxes.DataSize: Word;
+FUNCTION TMultiCheckBoxes.DataSize: Sw_Word;
 BEGIN
    DataSize := SizeOf(LongInt);                       { Size to exchange }
 END;
@@ -2032,7 +2591,7 @@ END;
 {--TMultiCheckBoxes---------------------------------------------------------}
 {  MultiMark -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Jun98 LdB         }
 {---------------------------------------------------------------------------}
-FUNCTION TMultiCheckBoxes.MultiMark (Item: Integer): Byte;
+FUNCTION TMultiCheckBoxes.MultiMark (Item: Sw_Integer): Byte;
 BEGIN
    MultiMark := (Value SHR (Word(Item) *
     WordRec(Flags).Hi)) AND WordRec(Flags).Lo;        { Return mark state }
@@ -2051,7 +2610,7 @@ END;
 {--TMultiCheckBoxes---------------------------------------------------------}
 {  Press -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Jun98 LdB             }
 {---------------------------------------------------------------------------}
-PROCEDURE TMultiCheckBoxes.Press (Item: Integer);
+PROCEDURE TMultiCheckBoxes.Press (Item: Sw_Integer);
 VAR CurState: ShortInt;
 BEGIN
    CurState := (Value SHR (Word(Item) *
@@ -2108,7 +2667,7 @@ TYPE
 {--TListBox-----------------------------------------------------------------}
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Jun98 LdB              }
 {---------------------------------------------------------------------------}
-CONSTRUCTOR TListBox.Init (Var Bounds: TRect; ANumCols: Word;
+CONSTRUCTOR TListBox.Init (Var Bounds: TRect; ANumCols: Sw_Word;
   AScrollBar: PScrollBar);
 BEGIN
    Inherited Init(Bounds, ANumCols, Nil, AScrollBar); { Call ancestor }
@@ -2127,7 +2686,7 @@ END;
 {--TListBox-----------------------------------------------------------------}
 {  DataSize -> Platforms DOS/DPMI/WIN/NT/Os2 - Updated 06Jun98 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION TListBox.DataSize: Word;
+FUNCTION TListBox.DataSize: Sw_Word;
 BEGIN
    DataSize := SizeOf(TListBoxRec);                   { Xchg data size }
 END;
@@ -2135,7 +2694,7 @@ END;
 {--TListBox-----------------------------------------------------------------}
 {  GetText -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Jun98 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION TListBox.GetText (Item: Integer; MaxLen: Integer): String;
+FUNCTION TListBox.GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String;
 VAR P: PString;
 BEGIN
    GetText := '';                                     { Preset return }
@@ -2186,6 +2745,93 @@ BEGIN
    S.Put(List);                                       { Store list to stream }
 END;
 
+{****************************************************************************}
+{ TListBox.DeleteFocusedItem                                                 }
+{****************************************************************************}
+procedure TListBox.DeleteFocusedItem;
+begin
+  DeleteItem(Focused);
+end;
+
+{****************************************************************************}
+{ TListBox.DeleteItem                                                        }
+{****************************************************************************}
+procedure TListBox.DeleteItem (Item : Sw_Integer);
+begin
+  if (List <> nil) and (List^.Count > 0) and
+     ((Item < List^.Count) and (Item > -1)) then begin
+     if IsSelected(Item) and (Item > 0) then
+        FocusItem(Item - 1);
+     List^.AtDelete(Item);
+     SetRange(List^.Count);
+     end;
+end;
+
+{****************************************************************************}
+{ TListBox.FreeAll                                                           }
+{****************************************************************************}
+procedure TListBox.FreeAll;
+begin
+  if (List <> nil) then
+  begin
+    List^.FreeAll;
+    SetRange(List^.Count);
+  end;
+end;
+
+{****************************************************************************}
+{ TListBox.FreeFocusedItem                                                   }
+{****************************************************************************}
+procedure TListBox.FreeFocusedItem;
+begin
+  FreeItem(Focused);
+end;
+
+{****************************************************************************}
+{ TListBox.FreeItem                                                          }
+{****************************************************************************}
+procedure TListBox.FreeItem (Item : Sw_Integer);
+begin
+  if (Item > -1) and (Item < Range) then
+  begin
+    List^.AtFree(Item);
+    if (Range > 1) and (Focused >= List^.Count) then
+      Dec(Focused);
+    SetRange(List^.Count);
+  end;
+end;
+
+{****************************************************************************}
+{ TListBox.SetFocusedItem                                                    }
+{****************************************************************************}
+procedure TListBox.SetFocusedItem (Item : Pointer);
+begin
+  FocusItem(List^.IndexOf(Item));
+end;
+
+{****************************************************************************}
+{ TListBox.GetFocusedItem                                                    }
+{****************************************************************************}
+function TListBox.GetFocusedItem : Pointer;
+begin
+  if (List = nil) or (List^.Count = 0) then
+     GetFocusedItem := nil
+  else GetFocusedItem := List^.At(Focused);
+end;
+
+{****************************************************************************}
+{ TListBox.Insert                                                            }
+{****************************************************************************}
+procedure TListBox.Insert (Item : Pointer);
+begin
+  if (List <> nil) then
+  begin
+    List^.Insert(Item);
+    SetRange(List^.Count);
+  end;
+end;
+
+
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                        TStaticText OBJECT METHODS                         }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
@@ -2230,7 +2876,7 @@ END;
 {  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TStaticText.DrawBackGround;
-VAR Just: Byte; I, J, P, Y, L: Integer; S, T: String;
+VAR Just: Byte; I, J, P, Y, L: Sw_Integer; S, T: String;
 BEGIN
    Inherited DrawBackGround;                          { Call ancestor }
    GetText(S);                                        { Fetch text to write }
@@ -2292,7 +2938,7 @@ END;
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28Apr98 LdB              }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TParamText.Init (Var Bounds: TRect; Const AText: String;
-  AParamCount: Integer);
+  AParamCount: Sw_Integer);
 BEGIN
    Inherited Init(Bounds, AText);                     { Call ancestor }
    ParamCount := AParamCount;                         { Hold param count }
@@ -2310,7 +2956,7 @@ END;
 {--TParamText---------------------------------------------------------------}
 {  DataSize -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Jun98 LdB          }
 {---------------------------------------------------------------------------}
-FUNCTION TParamText.DataSize: Word;
+FUNCTION TParamText.DataSize: Sw_Word;
 BEGIN
    DataSize := ParamCount * SizeOf(Pointer);          { Return data size }
 END;
@@ -2469,8 +3115,8 @@ END;
 {--THistoryViewer-----------------------------------------------------------}
 {  HistoryWidth -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB      }
 {---------------------------------------------------------------------------}
-FUNCTION THistoryViewer.HistoryWidth: Integer;
-VAR Width, T, Count, I: Integer;
+FUNCTION THistoryViewer.HistoryWidth: Sw_Integer;
+VAR Width, T, Count, I: Sw_Integer;
 BEGIN
    Width := 0;                                        { Zero width variable }
    Count := HistoryCount(HistoryId);                  { Hold count value }
@@ -2493,7 +3139,7 @@ END;
 {--THistoryViewer-----------------------------------------------------------}
 {  GetText -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB           }
 {---------------------------------------------------------------------------}
-FUNCTION THistoryViewer.GetText (Item: Integer; MaxLen: Integer): String;
+FUNCTION THistoryViewer.GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String;
 BEGIN
    GetText := HistoryStr(HistoryId, Item);            { Return history string }
 END;
@@ -2684,6 +3330,777 @@ BEGIN
        RecordHistory(Link^.Data^);                    { Record the history }
 END;
 
+{****************************************************************************}
+{ TBrowseButton Object                                                       }
+{****************************************************************************}
+{****************************************************************************}
+{ TBrowseButton.Init                                                         }
+{****************************************************************************}
+constructor TBrowseButton.Init(var Bounds: TRect; ATitle: TTitleStr;
+  ACommand: Word; AFlags: Byte; ALink: PBrowseInputLine);
+begin
+  if not inherited Init(Bounds,ATitle,ACommand,AFlags) then
+    Fail;
+  Link := ALink;
+end;
+
+{****************************************************************************}
+{ TBrowseButton.Load                                                         }
+{****************************************************************************}
+constructor TBrowseButton.Load(var S: TStream);
+begin
+  if not inherited Load(S) then
+    Fail;
+  GetPeerViewPtr(S,Link);
+end;
+
+{****************************************************************************}
+{ TBrowseButton.Press                                                        }
+{****************************************************************************}
+procedure TBrowseButton.Press;
+var
+  E: TEvent;
+begin
+  Message(Owner, evBroadcast, cmRecordHistory, nil);
+  if Flags and bfBroadcast <> 0 then
+    Message(Owner, evBroadcast, Command, Link) else
+  begin
+    E.What := evCommand;
+    E.Command := Command;
+    E.InfoPtr := Link;
+    PutEvent(E);
+  end;
+end;
+
+{****************************************************************************}
+{ TBrowseButton.Store                                                        }
+{****************************************************************************}
+procedure TBrowseButton.Store(var S: TStream);
+begin
+  inherited Store(S);
+  PutPeerViewPtr(S,Link);
+end;
+
+
+{****************************************************************************}
+{ TBrowseInputLine Object                                                    }
+{****************************************************************************}
+{****************************************************************************}
+{ TBrowseInputLine.Init                                                      }
+{****************************************************************************}
+constructor TBrowseInputLine.Init(var Bounds: TRect; AMaxLen: Sw_Integer; AHistory: Sw_Word);
+begin
+  if not inherited Init(Bounds,AMaxLen) then
+    Fail;
+  History := AHistory;
+end;
+
+{****************************************************************************}
+{ TBrowseInputLine.Load                                                      }
+{****************************************************************************}
+constructor TBrowseInputLine.Load(var S: TStream);
+begin
+  if not inherited Load(S) then
+    Fail;
+  S.Read(History,SizeOf(History));
+  if (S.Status <> stOk) then
+    Fail;
+end;
+
+{****************************************************************************}
+{ TBrowseInputLine.DataSize                                                  }
+{****************************************************************************}
+function TBrowseInputLine.DataSize: Sw_Word;
+begin
+  DataSize := SizeOf(TBrowseInputLineRec);
+end;
+
+{****************************************************************************}
+{ TBrowseInputLine.GetData                                                   }
+{****************************************************************************}
+procedure TBrowseInputLine.GetData(var Rec);
+var
+  LocalRec: TBrowseInputLineRec absolute Rec;
+begin
+  if (Validator = nil) or
+    (Validator^.Transfer(Data^,@LocalRec.Text, vtGetData) = 0) then
+  begin
+    FillChar(LocalRec.Text, DataSize, #0);
+    Move(Data^, LocalRec.Text, Length(Data^) + 1);
+  end;
+  LocalRec.History := History;
+end;
+
+{****************************************************************************}
+{ TBrowseInputLine.SetData                                                   }
+{****************************************************************************}
+procedure TBrowseInputLine.SetData(var Rec);
+var
+  LocalRec: TBrowseInputLineRec absolute Rec;
+begin
+  if (Validator = nil) or
+    (Validator^.Transfer(Data^, @LocalRec.Text, vtSetData) = 0) then
+    Move(LocalRec.Text, Data^[0], MaxLen + 1);
+  History := LocalRec.History;
+  SelectAll(True);
+end;
+
+{****************************************************************************}
+{ TBrowseInputLine.Store                                                     }
+{****************************************************************************}
+procedure TBrowseInputLine.Store(var S: TStream);
+begin
+  inherited Store(S);
+  S.Write(History,SizeOf(History));
+end;
+
+
+{****************************************************************************}
+{ TCommandCheckBoxes Object                                                  }
+{****************************************************************************}
+{****************************************************************************}
+{ TCommandCheckBoxes.Init                                                    }
+{****************************************************************************}
+constructor TCommandCheckBoxes.Init (var Bounds : TRect;
+                                     ACommandStrings : PCommandSItem);
+var StartSItem, S : PSItem;
+    CItems : PCommandSItem;
+    i : Sw_Integer;
+begin
+  if ACommandStrings = nil then
+     Fail;
+    { set up string list }
+  StartSItem := NewSItem(ACommandStrings^.Value,nil);
+  S := StartSItem;
+  CItems := ACommandStrings^.Next;
+  while (CItems <> nil) do begin
+    S^.Next := NewSItem(CItems^.Value,nil);
+    S := S^.Next;
+    CItems := CItems^.Next;
+    end;
+    { construct check boxes }
+  if not TCheckBoxes.Init(Bounds,StartSItem) then begin
+    while (StartSItem <> nil) do begin
+      S := StartSItem;
+      StartSItem := StartSItem^.Next;
+      if (S^.Value <> nil) then
+         DisposeStr(S^.Value);
+      Dispose(S);
+      end;
+    Fail;
+    end;
+    { set up CommandList and dispose of memory used by ACommandList }
+  i := 0;
+  while (ACommandStrings <> nil) do begin
+    CommandList[i] := ACommandStrings^.Command;
+    CItems := ACommandStrings;
+    ACommandStrings := ACommandStrings^.Next;
+    Dispose(CItems);
+    Inc(i);
+    end;
+end;
+
+{****************************************************************************}
+{ TCommandCheckBoxes.Load                                                    }
+{****************************************************************************}
+constructor TCommandCheckBoxes.Load (var S : TStream);
+begin
+  if not TCheckBoxes.Load(S) then
+     Fail;
+  S.Read(CommandList,SizeOf(CommandList));
+  if (S.Status <> stOk) then begin
+     TCheckBoxes.Done;
+     Fail;
+     end;
+end;
+
+{****************************************************************************}
+{ TCommandCheckBoxes.Press                                                   }
+{****************************************************************************}
+procedure TCommandCheckBoxes.Press (Item : Sw_Integer);
+var Temp : Sw_Integer;
+begin
+  Temp := Value;
+  TCheckBoxes.Press(Item);
+  if (Value <> Temp) then  { value changed - notify peers }
+     Message(Owner,evCommand,CommandList[Item],@Value);
+end;
+
+{****************************************************************************}
+{ TCommandCheckBoxes.Store                                                   }
+{****************************************************************************}
+procedure TCommandCheckBoxes.Store (var S : TStream);
+begin
+  TCheckBoxes.Store(S);
+  S.Write(CommandList,SizeOf(CommandList));
+end;
+
+{****************************************************************************}
+{ TCommandIcon Object                                                        }
+{****************************************************************************}
+{****************************************************************************}
+{ TCommandIcon.Init                                                          }
+{****************************************************************************}
+constructor TCommandIcon.Init (var Bounds : TRect; AText : String;
+                               ACommand : Word);
+begin
+  if not TStaticText.Init(Bounds,AText) then
+     Fail;
+  Options := Options or ofPostProcess;
+  Command := ACommand;
+end;
+
+{****************************************************************************}
+{ TCommandIcon.HandleEvent                                                   }
+{****************************************************************************}
+procedure TCommandIcon.HandleEvent (var Event : TEvent);
+begin
+  if ((Event.What = evMouseDown) and MouseInView(MouseWhere)) then begin
+     ClearEvent(Event);
+     Message(Owner,evCommand,Command,nil);
+     end;
+  TStaticText.HandleEvent(Event);
+end;
+
+{****************************************************************************}
+{ TCommandInputLine Object                                                   }
+{****************************************************************************}
+{****************************************************************************}
+{ TCommandInputLine.Changed                                                  }
+{****************************************************************************}
+{procedure TCommandInputLine.Changed;
+begin
+  Message(Owner,evBroadcast,cmInputLineChanged,@Self);
+end;  }
+
+{****************************************************************************}
+{ TCommandInputLine.HandleEvent                                              }
+{****************************************************************************}
+{procedure TCommandInputLine.HandleEvent (var Event : TEvent);
+var E : TEvent;
+begin
+  E := Event;
+  TBSDInputLine.HandleEvent(Event);
+  if ((E.What and evKeyBoard = evKeyBoard) and (Event.KeyCode = kbEnter))
+     then Changed;
+end; }
+
+{****************************************************************************}
+{ TCommandRadioButtons Object                                                }
+{****************************************************************************}
+
+{****************************************************************************}
+{ TCommandRadioButtons.Init                                                  }
+{****************************************************************************}
+constructor TCommandRadioButtons.Init (var Bounds : TRect;
+                                       ACommandStrings : PCommandSItem);
+var
+  StartSItem, S : PSItem;
+  CItems : PCommandSItem;
+  i : Sw_Integer;
+begin
+  if ACommandStrings = nil
+     then Fail;
+    { set up string list }
+  StartSItem := NewSItem(ACommandStrings^.Value,nil);
+  S := StartSItem;
+  CItems := ACommandStrings^.Next;
+  while (CItems <> nil) do begin
+    S^.Next := NewSItem(CItems^.Value,nil);
+    S := S^.Next;
+    CItems := CItems^.Next;
+    end;
+    { construct check boxes }
+  if not TRadioButtons.Init(Bounds,StartSItem) then begin
+     while (StartSItem <> nil) do begin
+       S := StartSItem;
+       StartSItem := StartSItem^.Next;
+       if (S^.Value <> nil) then
+          DisposeStr(S^.Value);
+       Dispose(S);
+       end;
+     Fail;
+     end;
+    { set up command list }
+  i := 0;
+  while (ACommandStrings <> nil) do begin
+    CommandList[i] := ACommandStrings^.Command;
+    CItems := ACommandStrings;
+    ACommandStrings := ACommandStrings^.Next;
+    Dispose(CItems);
+    Inc(i);
+    end;
+end;
+
+{****************************************************************************}
+{ TCommandRadioButtons.Load                                                  }
+{****************************************************************************}
+constructor TCommandRadioButtons.Load (var S : TStream);
+begin
+  if not TRadioButtons.Load(S) then
+     Fail;
+  S.Read(CommandList,SizeOf(CommandList));
+  if (S.Status <> stOk) then begin
+     TRadioButtons.Done;
+     Fail;
+     end;
+end;
+
+{****************************************************************************}
+{ TCommandRadioButtons.MoveTo                                                }
+{****************************************************************************}
+procedure TCommandRadioButtons.MovedTo (Item : Sw_Integer);
+var Temp : Sw_Integer;
+begin
+  Temp := Value;
+  TRadioButtons.MovedTo(Item);
+  if (Value <> Temp) then  { value changed - notify peers }
+     Message(Owner,evCommand,CommandList[Item],@Value);
+end;
+
+{****************************************************************************}
+{ TCommandRadioButtons.Press                                                 }
+{****************************************************************************}
+procedure TCommandRadioButtons.Press (Item : Sw_Integer);
+var Temp : Sw_Integer;
+begin
+  Temp := Value;
+  TRadioButtons.Press(Item);
+  if (Value <> Temp) then  { value changed - notify peers }
+     Message(Owner,evCommand,CommandList[Item],@Value);
+end;
+
+{****************************************************************************}
+{ TCommandRadioButtons.Store                                                 }
+{****************************************************************************}
+procedure TCommandRadioButtons.Store (var S : TStream);
+begin
+  TRadioButtons.Store(S);
+  S.Write(CommandList,SizeOf(CommandList));
+end;
+
+{****************************************************************************}
+{ TEditListBox Object                                                        }
+{****************************************************************************}
+{****************************************************************************}
+{ TEditListBox.Init                                                          }
+{****************************************************************************}
+constructor TEditListBox.Init (Bounds : TRect; ANumCols: Word;
+                               AVScrollBar : PScrollBar);
+
+begin
+  if not inherited Init(Bounds,ANumCols,AVScrollBar)
+     then Fail;
+  CurrentField := 1;
+end;
+
+{****************************************************************************}
+{ TEditListBox.Load                                                          }
+{****************************************************************************}
+constructor TEditListBox.Load (var S : TStream);
+begin
+  if not inherited Load(S)
+     then Fail;
+  CurrentField := 1;
+end;
+
+{****************************************************************************}
+{ TEditListBox.EditField                                                     }
+{****************************************************************************}
+procedure TEditListBox.EditField (var Event : TEvent);
+var R : TRect;
+    InputLine : PModalInputLine;
+    Data : String;
+begin
+  R.Assign(StartColumn,(Origin.Y + Focused - TopItem),
+           (StartColumn + FieldWidth + 2),(Origin.Y + Focused - TopItem + 1));
+  Owner^.MakeGlobal(R.A,R.A);
+  Owner^.MakeGlobal(R.B,R.B);
+  InputLine := New(PModalInputLine,Init(R,FieldWidth));
+  InputLine^.SetValidator(FieldValidator);
+  if InputLine <> nil
+     then begin
+              { Use TInputLine^.SetData so that data validation occurs }
+              { because TInputLine.Data is allocated memory large enough  }
+              { to hold a string of MaxLen.  It is also faster.           }
+            GetField(InputLine);
+            if (Application^.ExecView(InputLine) = cmOk)
+               then SetField(InputLine);
+            Dispose(InputLine,done);
+          end;
+end;
+
+{****************************************************************************}
+{ TEditListBox.FieldValidator                                                }
+{****************************************************************************}
+function TEditListBox.FieldValidator : PValidator;
+  { In a multiple field listbox FieldWidth should return the width  }
+  { appropriate for Field.  The default is an inputline for editing }
+  { a string of length large enough to fill the listbox field.      }
+begin
+  FieldValidator := nil;
+end;
+
+{****************************************************************************}
+{ TEditListBox.FieldWidth                                                    }
+{****************************************************************************}
+function TEditListBox.FieldWidth : Integer;
+  { In a multiple field listbox FieldWidth should return the width }
+  { appropriate for CurrentField.                                  }
+begin
+  FieldWidth := Size.X - 2;
+end;
+
+{****************************************************************************}
+{ TEditListBox.GetField                                                      }
+{****************************************************************************}
+procedure TEditListBox.GetField (InputLine : PInputLine);
+  { Places a string appropriate to Field and Focused into InputLine that }
+  { will be edited.   Override this method for complex data types.       }
+begin
+  InputLine^.SetData(PString(List^.At(Focused))^);
+end;
+
+{****************************************************************************}
+{ TEditListBox.GetPalette                                                    }
+{****************************************************************************}
+function TEditListBox.GetPalette : PPalette;
+begin
+  GetPalette := inherited GetPalette;
+end;
+
+{****************************************************************************}
+{ TEditListBox.HandleEvent                                                   }
+{****************************************************************************}
+procedure TEditListBox.HandleEvent (var Event : TEvent);
+begin
+  if (Event.What = evKeyboard) and (Event.KeyCode = kbAltE)
+     then begin  { edit field }
+            EditField(Event);
+            DrawView;
+            ClearEvent(Event);
+          end;
+  inherited HandleEvent(Event);
+end;
+
+{****************************************************************************}
+{ TEditListBox.SetField                                                      }
+{****************************************************************************}
+procedure TEditListBox.SetField (InputLine : PInputLine);
+  { Override this method for field types other than PStrings. }
+var Item : PString;
+begin
+  Item := NewStr(InputLine^.Data^);
+  if Item <> nil
+     then begin
+            List^.AtFree(Focused);
+            List^.Insert(Item);
+            SetFocusedItem(Item);
+          end;
+end;
+
+{****************************************************************************}
+{ TEditListBox.StartColumn                                                   }
+{****************************************************************************}
+function TEditListBox.StartColumn : Integer;
+begin
+  StartColumn := Origin.X;
+end;
+
+{****************************************************************************}
+{ TListDlg Object                                                            }
+{****************************************************************************}
+{****************************************************************************}
+{ TListDlg.Init                                                              }
+{****************************************************************************}
+constructor TListDlg.Init (ATitle : TTitleStr; Items:
+  String; AButtons: Word; AListBox: PListBox; AEditCommand, ANewCommand :
+  Word);
+var
+  Bounds: TRect;
+  b: Byte;
+  ButtonCount: Byte;
+  i, j, Gap, Line: Integer;
+  Scrollbar: PScrollbar;
+  HasFrame: Boolean;
+  HasButtons: Boolean;
+  HasScrollBar: Boolean;
+  HasItems: Boolean;
+begin
+  if AListBox = nil then
+    Fail
+  else
+    ListBox := AListBox;
+  HasFrame := ((AButtons and ldNoFrame) = 0);
+  HasButtons := ((AButtons and ldAllButtons) <> 0);
+  HasScrollBar := ((AButtons and ldNoScrollBar) = 0);
+  HasItems := (Items <> '');
+  ButtonCount := 2;
+  for b := 0 to 3 do
+    if (AButtons and ($0001 shl 1)) <> 0 then
+      Inc(ButtonCount);
+    { Make sure dialog is large enough for buttons }
+  ListBox^.GetExtent(Bounds);
+  Bounds.Move(ListBox^.Origin.X,ListBox^.Origin.Y);
+  if HasFrame then
+  begin
+    Inc(Bounds.B.X,2);
+    Inc(Bounds.B.Y,2);
+  end;
+  if HasButtons then
+  begin
+    Inc(Bounds.B.X,14);
+    if Bounds.B.Y < (ButtonCount * 2) + 4 then
+      Bounds.B.Y := (ButtonCount * 2) + 5;
+  end;
+  if HasItems then
+    Inc(Bounds.B.Y,1);
+  if not TDialog.Init(Bounds,ATitle) then
+    Fail;
+  NewCommand := ANewCommand;
+  EditCommand := AEditCommand;
+  Options := Options or ofNewEditDelete;
+  if (not HasFrame) and (Frame <> nil) then
+  begin
+    Delete(Frame);
+    Dispose(Frame,Done);
+    Frame := nil;
+    Options := Options and not ofFramed;
+  end;
+  HelpCtx := hcListDlg;
+    { position and insert ListBox }
+  ListBox := AListBox;
+  Insert(ListBox);
+  if HasItems then
+    if HasFrame then
+      ListBox^.MoveTo(2,2)
+    else ListBox^.MoveTo(0,2)
+  else
+    if HasFrame then
+      ListBox^.MoveTo(1,1)
+    else ListBox^.MoveTo(0,0);
+  if HasButtons then
+    if ListBox^.Size.Y < (ButtonCount * 2) then
+      ListBox^.GrowTo(ListBox^.Size.X,ButtonCount * 2);
+    { do Items }
+  if HasItems then
+  begin
+    Bounds.Assign(1,1,CStrLen(Items)+2,2);
+    Insert(New(PLabel,Init(Bounds,Items,ListBox)));
+  end;
+    { do scrollbar }
+  if HasScrollBar then
+  begin
+    Bounds.Assign(ListBox^.Size.X+ListBox^.Origin.X,ListBox^.Origin.Y,
+      ListBox^.Size.X + ListBox^.Origin.X + 1,
+      ListBox^.Size.Y + ListBox^.Origin.Y { origin });
+    ScrollBar := New(PScrollBar,Init(Bounds));
+    Bounds.Assign(Origin.X,Origin.Y,Origin.X + Size.X + 1, Origin.Y + Size.Y);
+    ChangeBounds(Bounds);
+    Insert(Scrollbar);
+  end;
+  if HasButtons then
+  begin  { do buttons }
+    j := $0001;
+    Gap := 0;
+    for i := 0 to 3 do
+      if ((j shl i) and AButtons) <> 0 then
+        Inc(Gap);
+    Gap := ((Size.Y - 2) div (Gap + 2));
+    if Gap < 2 then
+      Gap := 2;
+      { Insert Buttons }
+    Line := 2;
+    if (AButtons and ldNew) = ldNew then
+    begin
+      Insert(NewButton(Size.X - 12,Line,10,2,'~N~ew',cmNew,hcInsert,bfNormal));
+      Inc(Line,Gap);
+    end;
+    if (AButtons and ldEdit) = ldEdit then
+    begin
+      Insert(NewButton(Size.X - 12,Line,10,2,'~E~dit',cmEdit,hcEdit,
+        bfNormal));
+      Inc(Line,Gap);
+    end;
+    if (AButtons and ldDelete) = ldDelete then
+    begin
+      Insert(NewButton(Size.X - 12,Line,10,2,'~D~elete',cmDelete,hcDelete,
+        bfNormal));
+      Inc(Line,Gap);
+    end;
+    Insert(NewButton(Size.X - 12,Line,10,2,'O~k~',cmOK,hcOk,bfDefault or
+      bfNormal));
+    Inc(Line,Gap);
+    Insert(NewButton(Size.X - 12,Line,10,2,'Cancel',cmCancel,hcCancel,
+      bfNormal));
+    if (AButtons and ldHelp) = ldHelp then
+    begin
+      Inc(Line,Gap);
+      Insert(NewButton(Size.X - 12,Line,10,2,'~H~elp',cmHelp,hcNoContext,
+        bfNormal));
+    end;
+  end;
+  if HasFrame and ((AButtons and ldAllIcons) <> 0) then
+  begin
+    Line := 2;
+    if (AButtons and ldNewIcon) = ldNewIcon then
+    begin
+      Bounds.Assign(Line,Size.Y-1,Line+5,Size.Y);
+      Insert(New(PCommandIcon,Init(Bounds,' Ins ',cmNew)));
+      Inc(Line,5);
+      if (AButtons and (ldEditIcon or ldDeleteIcon)) <> 0 then
+      begin
+        Bounds.Assign(Line,Size.Y-1,Line+1,Size.Y);
+        Insert(New(PStaticText,Init(Bounds,'/')));
+        Inc(Line,1);
+      end;
+    end;
+    if (AButtons and ldEditIcon) = ldEditIcon then
+    begin
+      Bounds.Assign(Line,Size.Y-1,Line+6,Size.Y);
+      Insert(New(PCommandIcon,Init(Bounds,' Edit ',cmEdit)));
+      Inc(Line,6);
+      if (AButtons and ldDeleteIcon) <> 0 then
+      begin
+        Bounds.Assign(Line,Size.Y-1,Line+1,Size.Y);
+        Insert(New(PStaticText,Init(Bounds,'/')));
+        Inc(Line,1);
+      end;
+    end;
+    if (AButtons and ldNewIcon) = ldNewIcon then
+    begin
+      Bounds.Assign(Line,Size.Y-1,Line+5,Size.Y);
+      Insert(New(PCommandIcon,Init(Bounds,' Del ',cmDelete)));
+    end;
+  end;
+    { Set focus to list boLine when dialog opens }
+  SelectNext(False);
+end;
+
+{****************************************************************************}
+{ TListDlg.Load                                                              }
+{****************************************************************************}
+constructor TListDlg.Load (var S : TStream);
+begin
+  if not TDialog.Load(S) then
+    Fail;
+  S.Read(NewCommand,SizeOf(NewCommand) + SizeOf(EditCommand));
+  GetSubViewPtr(S,ListBox);
+end;
+
+{****************************************************************************}
+{ TListDlg.HandleEvent                                                       }
+{****************************************************************************}
+procedure TListDlg.HandleEvent (var Event : TEvent);
+const
+  TargetCommands: TCommandSet = [cmNew, cmEdit, cmDelete];
+begin
+  if ((Event.What and evCommand) <> 0) and
+     (Event.Command in TargetCommands) then
+  case Event.Command of
+    cmDelete:
+      if Options and ofDelete = ofDelete then
+      begin
+        ListBox^.FreeFocusedItem;
+        ListBox^.DrawView;
+        ClearEvent(Event);
+      end;
+    cmNew:
+      if Options and ofNew = ofNew then
+      begin
+        Message(Application,evCommand,NewCommand,nil);
+        ListBox^.SetRange(ListBox^.List^.Count);
+        ListBox^.DrawView;
+        ClearEvent(Event);
+      end;
+    cmEdit:
+      if Options and ofEdit = ofEdit then
+      begin
+        Message(Application,evCommand,EditCommand,ListBox^.GetFocusedItem);
+        ListBox^.DrawView;
+        ClearEvent(Event);
+      end;
+  end;
+  if (Event.What and evBroadcast > 0) and
+     (Event.Command = cmListItemSelected) then
+  begin  { use PutEvent instead of Message so that a window list box works }
+    Event.What := evCommand;
+    Event.Command := cmOk;
+    Event.InfoPtr := nil;
+    PutEvent(Event);
+  end;
+  TDialog.HandleEvent(Event);
+end;
+
+{****************************************************************************}
+{ TListDlg.Store                                                             }
+{****************************************************************************}
+procedure TListDlg.Store (var S : TStream);
+begin
+  TDialog.Store(S);
+  S.Write(NewCommand,SizeOf(NewCommand) + SizeOf(EditCommand));
+  PutSubViewPtr(S,ListBox);
+end;
+
+{****************************************************************************}
+{ TModalInputLine Object                                                     }
+{****************************************************************************}
+{****************************************************************************}
+{ TModalInputLine.Execute                                                    }
+{****************************************************************************}
+function TModalInputLine.Execute : Word;
+var Event : TEvent;
+begin
+  repeat
+    EndState := 0;
+    repeat
+      GetEvent(Event);
+      HandleEvent(Event);
+      if Event.What <> evNothing
+         then Owner^.EventError(Event);  { may change this to ClearEvent }
+    until (EndState <> 0);
+  until Valid(EndState);
+  Execute := EndState;
+end;
+
+{****************************************************************************}
+{ TModalInputLine.HandleEvent                                                }
+{****************************************************************************}
+procedure TModalInputLine.HandleEvent (var Event : TEvent);
+begin
+  case Event.What of
+    evKeyboard : case Event.KeyCode of
+                   kbUp, kbDown : EndModal(cmCancel);
+                   kbEnter : EndModal(cmOk);
+                   else inherited HandleEvent(Event);
+                 end;
+    evMouse : if MouseInView(Event.Where)
+                 then inherited HandleEvent(Event)
+                 else EndModal(cmCancel);
+    else inherited HandleEvent(Event);
+  end;
+end;
+
+{****************************************************************************}
+{ TModalInputLine.SetState                                                   }
+{****************************************************************************}
+procedure TModalInputLine.SetState (AState : Word; Enable : Boolean);
+var Pos : Integer;
+begin
+  if (AState = sfSelected)
+     then begin
+            Pos := CurPos;
+            inherited SetState(AState,Enable);
+            CurPos := Pos;
+            SelStart := CurPos;
+            SelEnd := CurPos;
+            BlockCursor;
+            DrawView;
+          end
+     else inherited SetState(AState,Enable);
+end;
+
+
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
 {***************************************************************************}
@@ -2703,6 +4120,24 @@ BEGIN
    Item^.Next := ANext;                               { Chain the ptr }
    NewSItem := Item;                                  { Return item }
 END;
+
+{****************************************************************************}
+{ NewCommandSItem                                                            }
+{****************************************************************************}
+function NewCommandSItem (Str : String; ACommand : Word;
+                          ANext : PCommandSItem) : PCommandSItem;
+var Temp : PCommandSItem;
+begin
+  New(Temp);
+  if (Temp <> nil) then
+  begin
+    Temp^.Value := Str;
+    Temp^.Command := ACommand;
+    Temp^.Next := ANext;
+  end;
+  NewCommandSItem := Temp;
+end;
+
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                    DIALOG OBJECT REGISTRATION ROUTINES                    }
@@ -2725,12 +4160,22 @@ BEGIN
    RegisterType(RLabel);                              { Register label }
    RegisterType(RHistory);                            { Register history }
    RegisterType(RParamText);                          { Register parm text }
+   RegisterType(RCommandCheckBoxes);
+   RegisterType(RCommandIcon);
+   RegisterType(RCommandRadioButtons);
+   RegisterType(REditListBox);
+   RegisterType(RModalInputLine);
+   RegisterType(RListDlg);
 END;
 
 END.
 {
  $Log$
- Revision 1.10  2001-06-01 16:00:00  pierre
+ Revision 1.11  2001-08-04 19:14:32  peter
+   * Added Makefiles
+   * added FV specific units and objects from old FV
+
+ Revision 1.10  2001/06/01 16:00:00  pierre
   * small changes for tbutton.draw
 
  Revision 1.9  2001/05/31 12:14:50  pierre
