@@ -78,7 +78,7 @@ program install;
 
 
   const
-     installerversion='0.99.12b';
+     installerversion='0.99.14';
 
      maxpackages=20;
      maxsources=20;
@@ -549,6 +549,7 @@ program install;
        labcfg : plabel;
        cfgcb : pcheckboxes;
     begin
+       f:=nil;
      { walk packages reverse and insert a newsitem for each, and set the mask }
        items:=nil;
        mask_components:=0;
@@ -1044,7 +1045,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  1999-08-03 20:21:53  peter
+  Revision 1.10  2000-01-18 00:22:48  peter
+    * fixed uninited local var
+
+  Revision 1.9  1999/08/03 20:21:53  peter
     * fixed sources mask which was not set correctly
 
   Revision 1.7  1999/07/01 07:56:58  hajny
