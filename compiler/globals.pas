@@ -1560,6 +1560,14 @@ implementation
         {$ENDIF}
         initasmmode:=asmmode_direct;
 {$endif powerpc}
+{$ifdef sparc}
+        initoptprocessor:=SPARC_V8;
+        initpackenum:=4;
+        {$IFDEF testvarsets}
+         initsetalloc:=0;
+        {$ENDIF}
+        initasmmode:=asmmode_direct;
+{$endif sparc}
         initinterfacetype:=it_interfacecom;
         initdefproccall:=pocall_none;
         initdefines:=TStringList.Create;
@@ -1575,7 +1583,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2003-05-23 15:03:31  peter
+  Revision 1.92  2003-05-23 22:33:48  florian
+    * fix some small flaws which prevent sparc linux system unit from compiling
+    * some reformatting done
+
+  Revision 1.91  2003/05/23 15:03:31  peter
     * fix previous commit for unix
 
   Revision 1.90  2003/05/23 14:39:56  peter

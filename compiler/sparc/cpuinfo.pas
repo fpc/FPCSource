@@ -39,9 +39,10 @@ TYPE
   ts64comp = extended;
   pbestreal=^bestreal;
 
-{ possible supported processors for this target }
+  { possible supported processors for this target }
   tprocessors=(no_processor,SPARC_V8,SPARC_V9);
-CONST
+
+const
 {# Size of native extended floating point type }
 {SPARC architecture uses IEEE double floating point numbers}
   extended_size = 8;
@@ -61,7 +62,11 @@ IMPLEMENTATION
 END.
 {
   $Log$
-  Revision 1.6  2002-11-16 20:07:57  florian
+  Revision 1.7  2003-05-23 22:33:48  florian
+    * fix some small flaws which prevent sparc linux system unit from compiling
+    * some reformatting done
+
+  Revision 1.6  2002/11/16 20:07:57  florian
     * made target_cpu_name lowercase
 
   Revision 1.5  2002/10/16 12:36:54  mazen

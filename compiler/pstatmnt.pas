@@ -794,7 +794,6 @@ implementation
                  End;
                asmstat:=tasmnode(radirect.assemble);
              end;
-
          else
            Message(parser_f_assembler_reader_not_supported);
          end;
@@ -1175,7 +1174,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2003-05-23 15:15:36  peter
+  Revision 1.102  2003-05-23 22:33:48  florian
+    * fix some small flaws which prevent sparc linux system unit from compiling
+    * some reformatting done
+
+  Revision 1.101  2003/05/23 15:15:36  peter
     * better error for undefined ordinal labels
 
   Revision 1.100  2003/05/17 13:30:08  jonas

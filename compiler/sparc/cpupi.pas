@@ -21,33 +21,39 @@
  ****************************************************************************}
 { This unit contains the CPU specific part of tprocinfo. }
 unit cpupi;
-{$INCLUDE fpcdefs.inc}
+
+{$I fpcdefs.inc}
+
 interface
-uses
-        cutils,
-        cgbase,cpuinfo;
-type
-  TSparcProcInfo=class(TProcInfo)
-    {overall size of allocated stack space, currently this is used for the
-    PowerPC only}
-    LocalSize:aword;
-    {max of space need for parameters, currently used by the PowerPC port only}
-    maxpushedparasize:aword;
-    constructor create(aparent:tprocinfo);override;
-{According the the SPARC ABI the standard stack frame must include :
-  *  16 word save for the in and local registers in case of overflow/underflow.
-this save area always must exist at the %o6+0,
-  *  software conventions requires space for the aggregate return value pointer, even if the word is not used,
-  *  althogh the first six words of arguments reside in registers, the standard
-stack frame reserves space for them. Arguments beond the sixth reside on the
-stack as in the Intel architecture,
-  * other areas depend on the compiler and the code being compiled. The
-standard calling sequence does not define a maximum stack frame size, nor does
-it restrict how a language system uses the "unspecified" areas of the standard
-stack frame.}
-    procedure after_header;override;
-    procedure after_pass1;override;
-  end;
+
+  uses
+    cutils,
+    cgbase,cpuinfo,
+    psub;
+
+  type
+    TSparcProcInfo=class(tcgprocinfo)
+      { overall size of allocated stack space, currently this is used for the
+        PowerPC only }
+      LocalSize:aword;
+      {max of space need for parameters, currently used by the PowerPC port only}
+      maxpushedparasize:aword;
+      constructor create(aparent:tprocinfo);override;
+      { According the the SPARC ABI the standard stack frame must include :
+        *  16 word save for the in and local registers in case of overflow/underflow.
+           this save area always must exist at the %o6+0,
+        *  software conventions requires space for the aggregate return value pointer, even if the word is not used,
+        *  althogh the first six words of arguments reside in registers, the standard
+           stack frame reserves space for them. Arguments beond the sixth reside on the
+           stack as in the Intel architecture,
+        * other areas depend on the compiler and the code being compiled. The
+          standard calling sequence does not define a maximum stack frame size, nor does
+          it restrict how a language system uses the "unspecified" areas of the standard
+          stack frame.}
+      procedure after_header;override;
+      procedure after_pass1;override;
+    end;
+
 implementation
 uses
         tgobj,paramgr,symsym,systems;
@@ -95,7 +101,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2003-04-27 11:21:36  peter
+  Revision 1.15  2003-05-23 22:33:48  florian
+    * fix some small flaws which prevent sparc linux system unit from compiling
+    * some reformatting done
+
+  Revision 1.14  2003/04/27 11:21:36  peter
     * aktprocdef renamed to current_procdef
     * procinfo renamed to current_procinfo
     * procinfo will now be stored in current_module so it can be

@@ -962,74 +962,86 @@ procedure TCgSparc.g_overflowCheck(List:TAasmOutput;const p:TNode);
       a_call_name(list,'FPC_OVERFLOW');
       a_label(list,hl);
     end;
+
 { *********** entry/exit code and address loading ************ }
 
 procedure TCgSparc.g_stackframe_entry(list:TAasmOutput;LocalSize:LongInt);
   var
-    href:TReference;
-    r:Tregister;
-    i:integer;
-    again:tasmlabel;
+    r : tregister;
   begin
-{Althogh the SPARC architecture require only word alignment, software
-convention and the operating system require every stack frame to be double word
-aligned}
-    LocalSize:=(LocalSize+7)and $FFFFFFF8;
-{Execute the SAVE instruction to get a new register window and create a new
-stack frame. In the "SAVE %i6,size,%i6" the first %i6 is related to the state
-before execution of the SAVE instrucion so it is the caller %i6, when the %i6
-after execution of that instruction is the called function stack pointer}
-    r.enum:=stack_pointer_reg;
-    with list do
-      concat(Taicpu.Op_reg_const_reg(A_SAVE,r,-LocalSize,r));
+    { Althogh the SPARC architecture require only word alignment, software
+      convention and the operating system require every stack frame to be double word
+      aligned }
+    LocalSize:=align(LocalSize,8);
+    { Execute the SAVE instruction to get a new register window and create a new
+      stack frame. In the "SAVE %i6,size,%i6" the first %i6 is related to the state
+      before execution of the SAVE instrucion so it is the caller %i6, when the %i6
+      after execution of that instruction is the called function stack pointer}
+    r.enum:=R_INTREGISTER;
+    r.number:=NR_STACK_POINTER_REG;
+    list.concat(Taicpu.Op_reg_const_reg(A_SAVE,r,-LocalSize,r));
   end;
+
+
 procedure TCgSparc.g_restore_all_registers(list:TaasmOutput;accused,acchiused:boolean);
   begin
-    {$warning FIX ME TCgSparc.g_restore_all_registers}
+    { The sparc port uses the sparc standard calling convetions so this function has no used }
   end;
+
+
 procedure TCgSparc.g_restore_frame_pointer(list:TAasmOutput);
   begin
-{This function intontionally does nothing as frame pointer is restored in the
-delay slot of the return instrucion done in g_return_from_proc}
+     { This function intontionally does nothing as frame pointer is restored in the
+       delay slot of the return instrucion done in g_return_from_proc}
   end;
+
+
 procedure TCgSparc.g_restore_standard_registers(list:taasmoutput;usedinproc:Tsupregset);
   begin
-    {$WARNING FIX ME TCgSparc.g_restore_standard_registers}
+    { The sparc port uses the sparc standard calling convetions so this function has no used }
   end;
+
+
 procedure TCgSparc.g_return_from_proc(list:TAasmOutput;parasize:aword);
-
-var r,r2:Tregister;
-
+  var
+    r,r2:Tregister;
   begin
-{According to the SPARC ABI, the stack is cleared using the RESTORE instruction
-which is genereted in the g_restore_frame_pointer. Notice that SPARC has no
-RETURN instruction and that JMPL is used instead. The JMPL instrucion have one
-delay slot, so an inversion is possible such as
-  JMPL  %i7+8,%g0
-  RESTORE  %g0,0,%g0
-If no inversion we can use just
-  RESTORE  %g0,0,%g0
-  JMPL  %i7+8,%g0
-  NOP}
+    { According to the SPARC ABI, the stack is cleared using the RESTORE instruction
+      which is genereted in the g_restore_frame_pointer. Notice that SPARC has no
+      RETURN instruction and that JMPL is used instead. The JMPL instrucion have one
+      delay slot, so an inversion is possible such as
+      JMPL  %i7+8,%g0
+      RESTORE  %g0,0,%g0
+      If no inversion we can use just
+      RESTORE  %g0,0,%g0
+      JMPL  %i7+8,%g0
+      NOP
+    }
     with list do
       begin
-{Return address is computed by adding 8 to the CALL address saved onto %i6}
+        { Return address is computed by adding 8 to the CALL address saved onto %i6}
         r.enum:=R_G0;
         r2.enum:=R_I7;
         concat(Taicpu.Op_caddr_reg(A_JMPL,r,8,r));
-{We use trivial restore in the delay slot of the JMPL instruction, as we
-already set result onto %i0}
+        { We use trivial restore in the delay slot of the JMPL instruction, as we
+          already set result onto %i0 }
         concat(Taicpu.Op_reg_const_reg(A_RESTORE,r,0,r));
-      end
+     end
   end;
+
+
 procedure TCgSparc.g_save_all_registers(list : taasmoutput);
   begin
-    {$warning FIX ME TCgSparc.g_save_all_registers}
+    { The sparc port uses the sparc standard calling convetions so this function has no used }
   end;
+
+
 procedure TCgSparc.g_save_standard_registers(list : taasmoutput; usedinproc:Tsupregset);
   begin
-    {$warning FIX ME tcgppc.g_save_standard_registers}
+    { The sparc port uses the sparc standard calling convetions so this function has no used }
   end;
+
+
 procedure TCgSparc.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tregister);
 
        begin
@@ -1449,7 +1461,11 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.49  2003-05-22 16:11:22  florian
+  Revision 1.50  2003-05-23 22:33:48  florian
+    * fix some small flaws which prevent sparc linux system unit from compiling
+    * some reformatting done
+
+  Revision 1.49  2003/05/22 16:11:22  florian
     * fixed sparc compilation partially
 
   Revision 1.48  2003/05/07 15:04:30  mazen

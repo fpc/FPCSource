@@ -338,19 +338,22 @@ interface
 *****************************************************************************}
 
 const
-  asmmode_i386_direct_info : tasmmodeinfo =
+  asmmode_sparc_direct_info : tasmmodeinfo =
           (
             id    : asmmode_direct;
             idtxt : 'DIRECT'
           );
 
 initialization
-  RegisterAsmMode(asmmode_i386_direct_info);
-
+  RegisterAsmMode(asmmode_sparc_direct_info);
 end.
 {
   $Log$
-  Revision 1.9  2003-05-23 21:10:50  florian
+  Revision 1.10  2003-05-23 22:33:48  florian
+    * fix some small flaws which prevent sparc linux system unit from compiling
+    * some reformatting done
+
+  Revision 1.9  2003/05/23 21:10:50  florian
     * fixed sparc compiler compilation
 
   Revision 1.8  2003/05/22 16:11:22  florian
