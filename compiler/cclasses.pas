@@ -78,6 +78,8 @@ interface
           procedure Clear;
           { inserts an Item }
           procedure Insert(Item:TLinkedListItem);
+          { inserts an Item after Loc }
+          procedure InsertAfter(Item,Loc : TLinkedListItem);
           { concats an Item }
           procedure Concat(Item:TLinkedListItem);
           { deletes an Item }
@@ -318,7 +320,7 @@ implementation
          begin
 {$ifndef Delphi}
            inc(TotalMem,memavail-startmem);
-{$endif}           
+{$endif}
            startmem:=0;
          end;
       end;
@@ -469,6 +471,20 @@ end;
          end;
         FFirst:=Item;
         inc(FCount);
+      end;
+
+
+    procedure TLinkedList.InsertAfter(Item,Loc : TLinkedListItem);
+      begin
+         Item.Next:=Loc.Next;
+         Loc.Next:=Item;
+         Item.Previous:=Loc;
+         if assigned(Item.Next) then
+           Item.Next.Previous:=Item
+         else
+           { if we've no next item, we've to adjust FLast }
+           FLast:=Item;
+         inc(FCount);
       end;
 
 
@@ -1821,7 +1837,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2002-11-24 18:18:39  carl
+  Revision 1.22  2002-12-15 19:34:31  florian
+    + some front end stuff for vs_hidden added
+
+  Revision 1.21  2002/11/24 18:18:39  carl
     - remove some unused defines
 
   Revision 1.20  2002/10/05 12:43:23  carl

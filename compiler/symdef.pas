@@ -3186,12 +3186,22 @@ implementation
         hp : TParaItem;
         hpc : tconstsym;
       begin
+        { look for a visible parameter }
         hp:=TParaItem(Para.last);
+        while assigned(hp) do
+          begin
+            if hp.paratyp<>vs_hidden then
+              break;
+            hp:=TParaItem(hp.previous);
+          end;
+        { no visible parameter? }
         if not(assigned(hp)) then
           begin
              typename_paras:='';
              exit;
           end;
+
+        hp:=TParaItem(Para.last);
         s:='(';
         while assigned(hp) do
          begin
@@ -3201,50 +3211,53 @@ implementation
              s:=s+'const'
            else if hp.paratyp=vs_out then
              s:=s+'out';
-           if assigned(hp.paratype.def.typesym) then
+           if hp.paratyp<>vs_hidden then
              begin
-               if hp.paratyp in [vs_var,vs_const,vs_out] then
-                 s := s + ' ';
-               hs:=hp.paratype.def.typesym.realname;
-               if hs[1]<>'$' then
-                 s:=s+hp.paratype.def.typesym.realname
-               else
-                 s:=s+hp.paratype.def.gettypename;
-             end;
-           { default value }
-           if assigned(hp.defaultvalue) then
-            begin
-              hpc:=tconstsym(hp.defaultvalue);
-              hs:='';
-              case hpc.consttyp of
-                conststring,
-                constresourcestring :
-                  hs:=strpas(pchar(hpc.value.valueptr));
-                constreal :
-                  str(pbestreal(hpc.value.valueptr)^,hs);
-                constord :
-                  hs:=tostr(hpc.value.valueord);
-                constpointer :
-                  hs:=tostr(hpc.value.valueordptr);
-                constbool :
-                  begin
-                    if hpc.value.valueord<>0 then
-                     hs:='TRUE'
-                    else
-                     hs:='FALSE';
+               if assigned(hp.paratype.def.typesym) then
+                 begin
+                   if hp.paratyp in [vs_var,vs_const,vs_out] then
+                     s := s + ' ';
+                   hs:=hp.paratype.def.typesym.realname;
+                   if hs[1]<>'$' then
+                     s:=s+hp.paratype.def.typesym.realname
+                   else
+                     s:=s+hp.paratype.def.gettypename;
+                 end;
+               { default value }
+               if assigned(hp.defaultvalue) then
+                begin
+                  hpc:=tconstsym(hp.defaultvalue);
+                  hs:='';
+                  case hpc.consttyp of
+                    conststring,
+                    constresourcestring :
+                      hs:=strpas(pchar(hpc.value.valueptr));
+                    constreal :
+                      str(pbestreal(hpc.value.valueptr)^,hs);
+                    constord :
+                      hs:=tostr(hpc.value.valueord);
+                    constpointer :
+                      hs:=tostr(hpc.value.valueordptr);
+                    constbool :
+                      begin
+                        if hpc.value.valueord<>0 then
+                         hs:='TRUE'
+                        else
+                         hs:='FALSE';
+                      end;
+                    constnil :
+                      hs:='nil';
+                    constchar :
+                      hs:=chr(hpc.value.valueord);
+                    constset :
+                      hs:='<set>';
                   end;
-                constnil :
-                  hs:='nil';
-                constchar :
-                  hs:=chr(hpc.value.valueord);
-                constset :
-                  hs:='<set>';
-              end;
-              if hs<>'' then
-               s:=s+'="'+hs+'"';
-            end;
+                  if hs<>'' then
+                   s:=s+'="'+hs+'"';
+                end;
+             end;
            hp:=TParaItem(hp.previous);
-           if assigned(hp) then
+           if assigned(hp) and (hp.paratyp<>vs_hidden) then
             s:=s+',';
          end;
         s:=s+')';
@@ -3810,17 +3823,20 @@ implementation
          end;
         { we need to use the symtable where the procsym is inserted,
           because that is visible to the world }
-        s:=mangledname_prefix('',procsym.owner)+procsym.name+'$';
+        s:=mangledname_prefix('',procsym.owner)+procsym.name;
         if overloadnumber>0 then
-         s:=s+tostr(overloadnumber)+'$';
+         s:=s+'$'+tostr(overloadnumber);
         { add parameter types }
         hp:=TParaItem(Para.last);
+        if assigned(hp) and (hp.paratyp<>vs_hidden) then
+          s:=s+'$';
         while assigned(hp) do
          begin
-           s:=s+hp.paratype.def.mangledparaname;
+           if hp.paratyp<>vs_hidden then
+             s:=s+hp.paratype.def.mangledparaname;
            hp:=TParaItem(hp.previous);
-           if assigned(hp) then
-            s:=s+'$';
+           if assigned(hp) and (hp.paratyp<>vs_hidden) then
+             s:=s+'$';
          end;
         _mangledname:=stringdup(s);
         mangledname:=_mangledname^;
@@ -5522,7 +5538,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.116  2002-12-15 11:26:02  peter
+  Revision 1.117  2002-12-15 19:34:31  florian
+    + some front end stuff for vs_hidden added
+
+  Revision 1.116  2002/12/15 11:26:02  peter
     * ignore vs_hidden parameters when choosing overloaded proc
 
   Revision 1.115  2002/12/07 14:27:09  carl

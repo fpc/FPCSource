@@ -128,7 +128,7 @@ implementation
                  (tsym(indexnext).typ=varsym) and
                  (copy(tvarsym(indexnext).name,1,4)='high') then
                begin
-                 { removing it is to complicated,
+                 { removing it is too complicated,
                    we just hide it PM }
                  highname:='hidden'+copy(tvarsym(indexnext).name,5,high(name));
                  Message(parser_w_cdecl_has_no_high);
@@ -365,6 +365,9 @@ implementation
                       begin
                         hvs:=tvarsym.create('$high'+vs.name,s32bittype);
                         hvs.varspez:=vs_const;
+{$ifdef vs_hidden}
+                        aktprocdef.concatpara(s32bittype,hvs,vs_hidden,nil);
+{$endif vs_hidden}
                         currparast.insert(hvs);
                       end;
                      aktprocdef.concatpara(tt,vs,varspez,tdefaultvalue);
@@ -2076,7 +2079,10 @@ const
 end.
 {
   $Log$
-  Revision 1.87  2002-12-07 14:27:07  carl
+  Revision 1.88  2002-12-15 19:34:31  florian
+    + some front end stuff for vs_hidden added
+
+  Revision 1.87  2002/12/07 14:27:07  carl
     * 3% memory optimization
     * changed some types
     + added type checking with different size for call node and for
