@@ -26,7 +26,7 @@ uses Views,App,
      WViews,WEditor,WHTMLHlp;
 
 const
-     VersionStr           = '0.9.2';
+     VersionStr           = '0.9.3';
 
      MaxRecentFileCount   = 5;
      MaxToolCount         = 16;
@@ -474,7 +474,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.13  2003-01-22 00:27:58  pierre
+  Revision 1.14  2004-11-05 00:21:56  peter
+  version info at startup
+
+  Revision 1.13  2003/01/22 00:27:58  pierre
    * implement reloadfile if changed
 
   Revision 1.12  2002/11/30 01:53:02  pierre

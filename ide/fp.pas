@@ -55,7 +55,10 @@ uses
   fpcatch,
 {$endif HasSignal}
   Dos,Objects,
-  BrowCol,
+  BrowCol,Version,
+{$ifndef NODEBUG}
+  gdbint,
+{$endif NODEBUG}
 {$ifdef FVISION}
   FVConsts,
 {$else}
@@ -303,15 +306,16 @@ BEGIN
   HeapLimit:=4096;
 {$endif}
   HistorySize:=16384;
-  writeln('þ Free Pascal IDE  Version '+VersionStr);
-{$ifdef win32}
-  // Win32ShowMouse;
-{$endif win32}
+
+  { Startup info }
+  writeln('þ Free Pascal IDE Version '+VersionStr+' ['+{$i %date%}+']');
+  writeln('þ Compiler Version '+Version_String);
 {$ifdef WITH_GDB}
-{$ifdef win32}
-  writeln('Using "',GetCygwinFullName,'" version ',GetCygwinVersionString);
-  CheckCygwinVersion;
-{$endif win32}
+  writeln('þ GBD Version '+GDBVersion);
+ {$ifdef win32}
+   writeln('þ Cygwin "',GetCygwinFullName,'" version ',GetCygwinVersionString);
+   CheckCygwinVersion;
+ {$endif win32}
 {$endif WITH_GDB}
 
   ProcessParams(true);
@@ -501,7 +505,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.23  2003-09-29 14:36:59  peter
+  Revision 1.24  2004-11-05 00:21:56  peter
+  version info at startup
+
+  Revision 1.23  2003/09/29 14:36:59  peter
     * win32 fixed
 
   Revision 1.22  2003/06/04 15:06:14  peter
