@@ -20,6 +20,11 @@
 
 procedure fpc_cpuinit;
 begin
+  asm
+    rfs r0
+    orr r0,r0,#0x1f0000
+    wfs r0
+  end;
 end;
 
 {****************************************************************************
@@ -117,7 +122,11 @@ end;
 
 {
   $Log$
-  Revision 1.6  2004-03-14 21:45:11  florian
+  Revision 1.7  2004-03-23 21:03:10  florian
+    + assembler implementation of fpc_mul_qword
+    * fpu exceptions are now generated
+
+  Revision 1.6  2004/03/14 21:45:11  florian
     * draft for qword mul
 
   Revision 1.5  2004/01/21 23:12:07  florian
