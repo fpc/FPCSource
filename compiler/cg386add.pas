@@ -281,9 +281,10 @@ implementation
                              { therefore produce a temporary string }
 
                              gettempofsizereference(256,href);
-                             copyshortstring(href,p^.left^.location.reference,255,false);
+                             copyshortstring(href,p^.left^.location.reference,255,false,true);
                              { release the registers }
-                             del_reference(p^.left^.location.reference);
+{                             done by copyshortstring now (JM)           }
+{                             del_reference(p^.left^.location.reference); }
                              ungetiftemp(p^.left^.location.reference);
 
                              { does not hurt: }
@@ -2270,7 +2271,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  2000-02-29 23:57:36  pierre
+  Revision 1.98  2000-04-10 12:23:19  jonas
+    * modified copyshortstring so it takes an extra paramter which allows it
+      to delete the sref itself (so the reg deallocations are put in the
+      right place for the optimizer)
+
+  Revision 1.97  2000/02/29 23:57:36  pierre
     Use $GOTO ON
 
   Revision 1.96  2000/02/18 21:25:48  florian

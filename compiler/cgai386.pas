@@ -91,7 +91,8 @@ unit cgai386;
     procedure emit_mov_reg_loc(reg: TRegister; const t:tlocation);
     procedure emit_movq_reg_loc(reghigh,reglow: TRegister;t:tlocation);
 
-    procedure copyshortstring(const dref,sref : treference;len : byte;loadref:boolean);
+    procedure copyshortstring(const dref,sref : treference;len : byte;
+                        loadref, del_sref: boolean);
     procedure loadansistring(p : ptree);
 
     procedure finalize(t : pdef;const ref : treference;is_already_ref : boolean);
@@ -894,9 +895,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                            Emit String Functions
 *****************************************************************************}
 
-    procedure copyshortstring(const dref,sref : treference;len : byte;loadref:boolean);
+    procedure copyshortstring(const dref,sref : treference;len : byte;
+                loadref, del_sref: boolean);
       begin
          emitpushreferenceaddr(dref);
+          { if it's deleted right before it's used, the optimizer can move }
+          { the reg deallocations to the right places (JM)                 }
+         if del_sref then
+           del_reference(sref);
          if loadref then
           emit_push_mem(sref)
          else
@@ -3012,7 +3018,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               reset_reference(href2);
               href2.base:=procinfo^.framepointer;
               href2.offset:=-pvarsym(p)^.localvarsym^.address+pvarsym(p)^.localvarsym^.owner^.address_fixup;
-              copyshortstring(href2,href1,pstringdef(pvarsym(p)^.vartype.def)^.len,true);
+              copyshortstring(href2,href1,pstringdef(pvarsym(p)^.vartype.def)^.len,true,false);
             end
            else
             begin
@@ -3893,7 +3899,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.95  2000-04-10 09:01:15  pierre
+  Revision 1.96  2000-04-10 12:23:18  jonas
+    * modified copyshortstring so it takes an extra paramter which allows it
+      to delete the sref itself (so the reg deallocations are put in the
+      right place for the optimizer)
+
+  Revision 1.95  2000/04/10 09:01:15  pierre
    * fix for bug 922 in copyvalueparas
 
   Revision 1.94  2000/04/03 20:51:22  florian

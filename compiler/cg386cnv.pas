@@ -364,8 +364,9 @@ implementation
                    begin
                       gettempofsizereference(pto^.resulttype^.size,pto^.location.reference);
                       copyshortstring(pto^.location.reference,pfrom^.location.reference,
-                        pstringdef(pto^.resulttype)^.len,false);
-                      del_reference(pfrom^.location.reference);
+                        pstringdef(pto^.resulttype)^.len,false,true);
+{                      done by copyshortstring now (JM)          }
+{                      del_reference(pfrom^.location.reference); }
                       ungetiftemp(pfrom^.location.reference);
                    end;
                  st_longstring:
@@ -1536,7 +1537,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.104  2000-03-31 22:56:45  pierre
+  Revision 1.105  2000-04-10 12:23:19  jonas
+    * modified copyshortstring so it takes an extra paramter which allows it
+      to delete the sref itself (so the reg deallocations are put in the
+      right place for the optimizer)
+
+  Revision 1.104  2000/03/31 22:56:45  pierre
     * fix the handling of value parameters in cdecl function
 
   Revision 1.103  2000/02/19 10:12:47  florian
