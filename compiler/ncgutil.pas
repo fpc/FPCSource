@@ -69,7 +69,7 @@ interface
 
     procedure gen_entry_code(list:TAAsmoutput;inlined:boolean);
     procedure gen_stackalloc_code(list:Taasmoutput);
-    procedure gen_exit_code(list:Taasmoutput;inlined:boolean);
+    procedure gen_exit_code(list : TAAsmoutput;inlined,usesacc,usesacchi,usesfpu:boolean);
 
 (*
     procedure geninlineentrycode(list : TAAsmoutput;stackframe:longint);
@@ -274,16 +274,28 @@ implementation
        cg.a_paramaddr_ref(list,jmpbuf,paramanager.getintparaloc(list,2));
        { push type of exceptionframe }
        cg.a_param_const(list,OS_S32,1,paramanager.getintparaloc(list,1));
-       cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
        paramanager.freeintparaloc(list,3);
        paramanager.freeintparaloc(list,2);
        paramanager.freeintparaloc(list,1);
+{$ifdef newra}
+       rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
+       cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
+{$ifdef newra}
+       rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
 
        r.enum:=R_INTREGISTER;
        r.number:=NR_FUNCTION_RESULT_REG;
        cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(list,1));
-       cg.a_call_name(list,'FPC_SETJMP');
        paramanager.freeintparaloc(list,1);
+{$ifdef newra}
+       rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
+       cg.a_call_name(list,'FPC_SETJMP');
+{$ifdef newra}
+       rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
 
        cg.g_exception_reason_save(list, href);
        cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,r,exceptlabel);
@@ -296,7 +308,13 @@ implementation
     var r:Tregister;
 
      begin
+{$ifdef newra}
+         rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
          cg.a_call_name(list,'FPC_POPADDRSTACK');
+{$ifdef newra}
+         rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
 
          if not onlyfree then
           begin
@@ -1231,23 +1249,41 @@ implementation
                begin
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
-                 cg.a_call_name(list,'FPC_ANSISTR_DECR_REF');
                  paramanager.freeintparaloc(list,1);
+{$ifdef newra}
+                 rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
+                 cg.a_call_name(list,'FPC_ANSISTR_DECR_REF');
+{$ifdef newra}
+                 rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
                end;
              tt_widestring,
              tt_freewidestring :
                begin
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
-                 cg.a_call_name(list,'FPC_WIDESTR_DECR_REF');
                  paramanager.freeintparaloc(list,1);
+{$ifdef newra}
+                 rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
+                 cg.a_call_name(list,'FPC_WIDESTR_DECR_REF');
+{$ifdef newra}
+                 rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
                end;
              tt_interfacecom :
                begin
                  reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
-                 cg.a_call_name(list,'FPC_INTF_DECR_REF');
                  paramanager.freeintparaloc(list,1);
+{$ifdef newra}
+                 rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
+                 cg.a_call_name(list,'FPC_INTF_DECR_REF');
+{$ifdef newra}
+                 rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
                end;
            end;
            hp:=hp^.next;
@@ -1492,13 +1528,25 @@ implementation
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,2));
                  reference_reset_symbol(href,objectlibrary.newasmsymboldata('__image_base__'),0);
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(list,1));
-                 cg.a_call_name(list,'_monstartup');
                  paramanager.freeintparaloc(list,2);
                  paramanager.freeintparaloc(list,1);
+{$ifdef newra}
+                 rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
+                 cg.a_call_name(list,'_monstartup');
+{$ifdef newra}
+                 rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
                end;
 
               { initialize units }
+{$ifdef newra}
+              rg.allocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
               cg.a_call_name(list,'FPC_INITIALIZEUNITS');
+{$ifdef newra}
+              rg.deallocexplicitregistersint(list,VOLATILE_INTREGISTERS);
+{$endif newra}
             end;
 
 {$ifdef GDB}
@@ -1689,7 +1737,7 @@ implementation
       end;
 
 
-    procedure gen_exit_code(list : TAAsmoutput;inlined:boolean);
+    procedure gen_exit_code(list : TAAsmoutput;inlined,usesacc,usesacchi,usesfpu:boolean);
 
       var
 {$ifdef GDB}
@@ -1697,18 +1745,9 @@ implementation
         mangled_length : longint;
         p : pchar;
 {$endif GDB}
-        usesacc,
-        usesacchi,
-        usesfpu : boolean;
         rsp : Tregister;
         retsize : longint;
       begin
-        { handle return value, this is not done for assembler routines when
-          they didn't reference the result variable }
-        usesacc:=false;
-        usesfpu:=false;
-        usesacchi:=false;
-        gen_load_return_value(list,usesacc,usesacchi,usesfpu);
 
 {$ifdef GDB}
         if ((cs_debuginfo in aktmoduleswitches) and not inlined) then
@@ -1987,7 +2026,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.130  2003-07-06 17:58:22  peter
+  Revision 1.131  2003-07-23 11:04:15  jonas
+    * split en_exit_code into a part that may allocate a register and a part
+      that doesn't, so the former can be done before the register colouring
+      has been performed
+
+  Revision 1.130  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 

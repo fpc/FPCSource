@@ -749,6 +749,9 @@ implementation
     procedure gen_implicit_initfinal(list:taasmoutput;flag:word;st:tsymtable);
       var
         pd : tprocdef;
+        usesacc,
+        usesfpu,
+        usesacchi : boolean;
       begin
         { update module flags }
         current_module.flags:=current_module.flags or flag;
@@ -772,7 +775,11 @@ implementation
         gen_entry_code(list,false);
         gen_initialize_code(list,false);
         gen_finalize_code(list,false);
-        gen_exit_code(list,false);
+        usesacc:=false;
+        usesfpu:=false;
+        usesacchi:=false;
+        gen_load_return_value(list,usesacc,usesacchi,usesfpu);
+        gen_exit_code(list,false,usesacc,usesacchi,usesfpu);
         list.convert_registers;
         release_main_proc(pd);
       end;
@@ -1446,7 +1453,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.115  2003-07-06 17:58:22  peter
+  Revision 1.116  2003-07-23 11:04:15  jonas
+    * split en_exit_code into a part that may allocate a register and a part
+      that doesn't, so the former can be done before the register colouring
+      has been performed
+
+  Revision 1.115  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 

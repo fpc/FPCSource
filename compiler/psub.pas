@@ -571,6 +571,9 @@ implementation
         oldfilepos : tfileposinfo;
         templist,
         stackalloccode : Taasmoutput;
+        usesacc,
+        usesfpu,
+        usesacchi      : boolean;
 
       begin
         { the initialization procedure can be empty, then we
@@ -625,11 +628,18 @@ implementation
           aktproccode.insertlistafter(tasmnode(finalasmnode).currenttai,templist)
         else
           aktproccode.concatlist(templist);
-        gen_exit_code(templist,false);
-        aktproccode.concatlist(templist);
+
+        { handle return value, this is not done for assembler routines when
+          they didn't reference the result variable }
+        usesacc:=false;
+        usesfpu:=false;
+        usesacchi:=false;
+        gen_load_return_value(aktproccode,usesacc,usesacchi,usesfpu);
 
 {$ifdef newra}
-{                rg.writegraph;}
+{$ifdef ra_debug2}
+        rg.writegraph;
+{$endif}
 {$endif}
         if not(cs_no_regalloc in aktglobalswitches) then
           begin
@@ -657,7 +667,11 @@ implementation
         gen_stackalloc_code(stackalloccode);
         stackalloccode.convert_registers;
         aktproccode.insertlist(stackalloccode);
-        stackalloccode.destroy;
+        stackalloccode.free;
+
+        gen_exit_code(templist,false,usesacc,usesacchi,usesfpu);
+        templist.convert_registers;
+        aktproccode.concatlist(templist);
 
         { now all the registers used are known }
         { Remove all imaginary registers from the used list.}
@@ -1252,7 +1266,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.132  2003-07-06 17:58:22  peter
+  Revision 1.133  2003-07-23 11:04:15  jonas
+    * split en_exit_code into a part that may allocate a register and a part
+      that doesn't, so the former can be done before the register colouring
+      has been performed
+
+  Revision 1.132  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 
