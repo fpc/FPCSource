@@ -7,7 +7,7 @@ const
   path='c:\';
 {$endif}
 BEGIN
-  if FSearch('tbug1092.pp',path))<>'tbug1092.pp' then
+  if FSearch('tbug1092.pp',path)<>'tbug1092.pp' then
    begin
      writeln('FSearch didn''t find file in the current dir!');
      halt(1);
