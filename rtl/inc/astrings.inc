@@ -476,7 +476,7 @@ end;
 
 {$IfDef ValInternCompiled}
 
-Function ValAnsiFloat(Const S : AnsiString; Var Code : TMaxSInt): ValReal; [public, alias:'FPC_VAL_REAL_STRANSI'];
+Function ValAnsiFloat(Const S : AnsiString; Var Code : TMaxSInt): ValReal; [public, alias:'FPC_VAL_REAL_ANSISTR'];
 Var SS : String;
 begin
  AnsiStr_To_ShortStr(SS,Pointer(S));
@@ -484,7 +484,7 @@ begin
 end;
 
 
-Function ValAnsiUnsigendInt (Const S : AnsiString; Code : TMaxSInt): TMaxUInt; [public, alias:'FPC_VAL_UINT_STRANSI'];
+Function ValAnsiUnsigendInt (Const S : AnsiString; Code : TMaxSInt): TMaxUInt; [public, alias:'FPC_VAL_UINT_ANSISTR'];
 Var SS : ShortString;
 
 begin
@@ -493,7 +493,7 @@ begin
 end;
 
 
-Function ValAnsiSignedInt (DestSize: Byte; Const S : AnsiString; Var Code : TMaxSInt): TMaxSInt; [public, alias:'FPC_VAL_SINT_STRANSI'];
+Function ValAnsiSignedInt (DestSize: Byte; Const S : AnsiString; Var Code : TMaxSInt): TMaxSInt; [public, alias:'FPC_VAL_SINT_ANSISTR'];
 
 Var SS : ShortString;
 
@@ -503,7 +503,7 @@ begin
 end;
 
 {$IfDef SUPPORT_FIXED}
-Function ValAnsiFixed(Const S : AnsiString; Var Code : TMaxSint): ValReal; [public, alias:'FPC_VAL_FIXED_STRANSI'];
+Function ValAnsiFixed(Const S : AnsiString; Var Code : TMaxSint): ValReal; [public, alias:'FPC_VAL_FIXED_ANSISTR'];
 Var SS : String;
 begin
  AnsiStr_To_ShortStr (SS,Pointer(S));
@@ -621,7 +621,7 @@ end;
 }
 
 Procedure ACoStr (Co : Comp;Len,fr: Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_STRANSI_COMP'];
+  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI'{$endif}+'_COMP'];
 
 Var SS : ShortString;
 
@@ -632,7 +632,7 @@ end;
 
 
 Procedure ASiStr (Si : Single;Len,fr: Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_STRANSI_SINGLE'];
+  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI'{$endif}+'_SINGLE'];
 
 Var SS : ShortString;
 
@@ -643,7 +643,7 @@ end;
 
 {$IfDef Support_Fixed}
 Procedure AFiStr (fi : Comp;Len,fr: Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_STRANSI_FIXED'];
+  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI'{$endif}+'_FIXED'];
 
 Var SS : ShortString;
 
@@ -654,7 +654,7 @@ end;
 {$EndIf Support_Fixed}
 
 Procedure ARStr (D : Real;Len,fr: Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_STRANSI_REAL'];
+  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI'{$endif}+'_REAL'];
 
 Var SS : ShortString;
 
@@ -665,7 +665,7 @@ end;
 
 
 Procedure AEStr (E : Extended;Len,Fr: Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_STRANSI_EXTENDED'];
+  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI'{$endif}+'_EXTENDED'];
 
 Var SS : ShortString;
 
@@ -677,7 +677,7 @@ end;
 
 
 Procedure ACStr (C : Cardinal;Len : Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_STRANSI_CARDINAL'];
+  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI'{$endif}+'_CARDINAL'];
 
 Var SS : ShortString;
 
@@ -689,7 +689,7 @@ end;
 
 
 Procedure ALStr (L : Longint; Len : Longint; Var S : AnsiString);
-  [Public,Alias : 'FPC_STRANSI_LONGINT'];
+  [Public,Alias : 'FPC_'+{$ifdef NOSTRANSI}'ANSISTR'{$else}'STRANSI'{$endif}+'_LONGINT'];
 
 Var SS : ShortString;
 
@@ -750,7 +750,11 @@ end;
 
 {
   $Log$
-  Revision 1.14  1999-03-16 17:49:40  jonas
+  Revision 1.15  1999-04-01 22:00:48  peter
+    * universal names for str/val (ansistr instead of stransi)
+    * '1.' support for val() this is compatible with tp7
+
+  Revision 1.14  1999/03/16 17:49:40  jonas
     * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
     * in text.inc: changed RTE 106 when read integer values are out of bounds to RTE 201
     * in systemh.inc: disabled "support_fixed" for the i386 because it gave internal errors,

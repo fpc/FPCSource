@@ -282,7 +282,7 @@ end;
                               Str() Helpers
 *****************************************************************************}
 
-procedure int_str_real(d : real;len,fr : longint;var s : shortstring);[public,alias:'FPC_STR_REAL'];
+procedure int_str_real(d : real;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_REAL'];
 begin
 {$ifdef i386}
    str_real(len,fr,d,rt_s64real,s);
@@ -293,7 +293,7 @@ end;
 
 
 {$ifdef SUPPORT_SINGLE}
-procedure int_str_single(d : single;len,fr : longint;var s : shortstring);[public,alias:'FPC_STR_SINGLE'];
+procedure int_str_single(d : single;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_SINGLE'];
 begin
    str_real(len,fr,d,rt_s32real,s);
 end;
@@ -301,7 +301,7 @@ end;
 
 
 {$ifdef SUPPORT_EXTENDED}
-procedure int_str_extended(d : extended;len,fr : longint;var s : shortstring);[public,alias:'FPC_STR_EXTENDED'];
+procedure int_str_extended(d : extended;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_EXTENDED'];
 begin
    str_real(len,fr,d,rt_s80real,s);
 end;
@@ -309,7 +309,7 @@ end;
 
 
 {$ifdef SUPPORT_COMP}
-procedure int_str_comp(d : comp;len,fr : longint;var s : shortstring);[public,alias:'FPC_STR_COMP'];
+procedure int_str_comp(d : comp;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_COMP'];
 begin
    str_real(len,fr,d,rt_s64bit,s);
 end;
@@ -317,14 +317,14 @@ end;
 
 
 {$ifdef SUPPORT_FIXED}
-procedure int_str_fixed(d : fixed;len,fr : longint;var s : shortstring);[public,alias:'FPC_STR_FIXED'];
+procedure int_str_fixed(d : fixed;len,fr : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_FIXED'];
 begin
    str_real(len,fr,d,rt_f32bit,s);
 end;
 {$endif SUPPORT_FIXED}
 
 
-procedure int_str_longint(v : longint;len : longint;var s : shortstring);[public,alias:'FPC_STR_LONGINT'];
+procedure int_str_longint(v : longint;len : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_LONGINT'];
 begin
    int_str(v,s);
    if length(s)<len then
@@ -332,7 +332,7 @@ begin
 end;
 
 
-procedure int_str_cardinal(v : cardinal;len : longint;var s : shortstring);[public,alias:'FPC_STR_CARDINAL'];
+procedure int_str_cardinal(v : cardinal;len : longint;var s : shortstring);[public,alias:'FPC_'+{$ifdef NOSTRANSI}'SHORT'+{$endif}'STR_CARDINAL'];
 begin
   int_str(v,s);
   if length(s)<len then
@@ -394,7 +394,7 @@ end;
 
 {$IfDef ValInternCompiled}
 
-Function ValSignedInt(DestSize: longint; Const S: ShortString; var Code: TMaxSInt): TMaxSInt; [public, alias:'FPC_VAL_SINT_SSTRING'];
+Function ValSignedInt(DestSize: longint; Const S: ShortString; var Code: TMaxSInt): TMaxSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR'];
 var
   u: TMaxSInt;
   base : byte;
@@ -460,7 +460,7 @@ begin
     End;
 end;
 
-Function ValUnsignedInt(Const S: ShortString; var Code: TMaxSInt): TMaxUInt; [public, alias:'FPC_VAL_UINT_SSTRING'];
+Function ValUnsignedInt(Const S: ShortString; var Code: TMaxSInt): TMaxUInt; [public, alias:'FPC_VAL_UINT_SHORTSTR'];
 var
   u: TMaxUInt;
   base : byte;
@@ -501,7 +501,7 @@ begin
   code := 0;
 end;
 
-Function ValFloat(const s : shortstring; var code : TMaxSInt): ValReal; [public, alias:'FPC_VAL_REAL_SSTRING'];
+Function ValFloat(const s : shortstring; var code : TMaxSInt): ValReal; [public, alias:'FPC_VAL_REAL_SHORTSTR'];
 var
   hd,
   esign,sign : valreal;
@@ -519,7 +519,7 @@ begin
   case s[code] of
    '+' : inc(code);
    '-' : begin
-           sign:=-1.0;
+           sign:=-1;
            inc(code);
          end;
   end;
@@ -601,7 +601,7 @@ begin
 end;
 
 {$ifdef SUPPORT_FIXED}
-Function ValFixed(const s : shortstring;var code : TMaxSInt): Fixed; [public, alias:'FPC_VAL_FIXED_SSTRING'];
+Function ValFixed(const s : shortstring;var code : TMaxSInt): Fixed; [public, alias:'FPC_VAL_FIXED_SHORTSTR'];
 begin
   ValFixed := Fixed(ValFloat(s,code));
 end;
@@ -869,7 +869,6 @@ var
   flags      : byte;
 const
   i10 = 10;
-
 begin
   d:=0;
   code:=1;
@@ -882,7 +881,7 @@ begin
   case s[code] of
    '+' : inc(code);
    '-' : begin
-           sign:=-1.0;
+           sign:=-1;
            inc(code);
          end;
   end;
@@ -899,25 +898,19 @@ begin
    begin
       hd:=extended(i1)/extended(i10);
       inc(code);
-      { After dot, a number is required. }
-      if not(s[code] in ['0'..'9']) or (length(s)<code) then
-        begin
-           d:=0.0;
-           exit;
-        end;
       while (s[code] in ['0'..'9']) and (length(s)>=code) do
         begin
            { Read fractional part. }
            flags:=flags or 2;
            d:=d+hd*(ord(s[code])-ord('0'));
-           hd:=hd/10.0;
+           hd:=hd/i10;
            inc(code);
         end;
    end;
  { Again, read integer and fractional part}
   if flags=0 then
    begin
-      d:=0.0;
+      d:=0;
       exit;
    end;
  { Exponent ? }
@@ -934,7 +927,7 @@ begin
          end;
       if not(s[code] in ['0'..'9']) or (length(s)<code) then
         begin
-           d:=0.0;
+           d:=0;
            exit;
         end;
       while (s[code] in ['0'..'9']) and (length(s)>=code) do
@@ -1208,7 +1201,11 @@ end;
 
 {
   $Log$
-  Revision 1.23  1999-03-26 00:24:16  peter
+  Revision 1.24  1999-04-01 22:00:49  peter
+    * universal names for str/val (ansistr instead of stransi)
+    * '1.' support for val() this is compatible with tp7
+
+  Revision 1.23  1999/03/26 00:24:16  peter
     * last para changed to long for easier pushing with 4 byte aligns
 
   Revision 1.22  1999/03/16 17:49:36  jonas
