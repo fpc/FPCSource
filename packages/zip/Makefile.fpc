@@ -1,0 +1,16 @@
+#
+#   Makefile.fpc for ZLib (LibC version)
+#
+
+[targets]
+units=ziptypes unzip
+units_os2=unzipdll
+
+[dirs]
+fpcdir=../..
+
+[rules]
+
+unzip$(PPUEXT): unzip$(PASEXT) ziptypes$(PPUEXT)
+
+unzipdll$(PPUEXT):  unzipdll$(PASEXT) ziptypes$(PPUEXT)
