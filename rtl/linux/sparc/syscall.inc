@@ -48,8 +48,9 @@ asm
         call    %o1
 .LNoThread0:
         st      %i0,[%o0]
-        mov     -1,%i0
+        mov     -1,%o0
 .LSyscOK0:
+        mov     %o0,%i0
 end;
 
 
@@ -80,8 +81,9 @@ asm
         call    %o1
 .LNoThread1:
         st      %i0,[%o0]
-        mov     -1,%i0
+        mov     -1,%o0
 .LSyscOK1:
+        mov     %o0,%i0
 end;
 
 
@@ -113,8 +115,9 @@ asm
         call    %o1
 .LNoThread2:
         st      %i0,[%o0]
-        mov     -1,%i0
+        mov     -1,%o0
 .LSyscOK2:
+        mov     %o0,%i0
 end;
 
 
@@ -147,8 +150,9 @@ asm
         call    %o1
 .LNoThread3:
         st      %i0,[%o0]
-        mov     -1,%i0
+        mov     -1,%o0
 .LSyscOK3:
+        mov     %o0,%i0
 end;
 
 
@@ -182,8 +186,9 @@ asm
         call    %o1
 .LNoThread4:
         st      %i0,[%o0]
-        mov     -1,%i0
+        mov     -1,%o0
 .LSyscOK4:
+        mov     %o0,%i0
 end;
 
 
@@ -218,8 +223,9 @@ asm
         call    %o1
 .LNoThread5:
         st      %i0,[%o0]
-        mov     -1,%i0
+        mov     -1,%o0
 .LSyscOK5:
+        mov     %o0,%i0
 end;
 
 
@@ -255,8 +261,9 @@ asm
         call    %o1
 .LNoThread6:
         st      %i0,[%o0]
-        mov     -1,%i0
+        mov     -1,%o0
 .LSyscOK6:
+        mov     %o0,%i0
 end;
 
 
@@ -342,7 +349,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2003-07-06 20:40:10  peter
+  Revision 1.8  2003-07-06 22:08:05  peter
+    * fix setting return value
+
+  Revision 1.7  2003/07/06 20:40:10  peter
     * wrong return reg
 
   Revision 1.6  2003/07/03 21:03:57  peter
