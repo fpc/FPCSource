@@ -456,14 +456,33 @@ CONST
   dummy: byte;
 {$endif asmgraph}
  begin
-    if CurrentWriteMode = XORPut then
-     begin
+    case CurrentWriteMode of
+      XORPut:
+        begin
       { getpixel wants local/relative coordinates }
-      Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
-      Color := CurrentColor XOR Color;
-     end
-    else
-      Color := CurrentColor;
+          Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
+          Color := CurrentColor Xor Color;
+        end;
+      OrPut:
+        begin
+      { getpixel wants local/relative coordinates }
+          Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
+          Color := CurrentColor Or Color;
+        end;
+      AndPut:
+        begin
+      { getpixel wants local/relative coordinates }
+          Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
+          Color := CurrentColor And Color;
+        end;
+      NotPut:
+        begin
+      { getpixel wants local/relative coordinates }
+          Color := Not Color;
+        end
+      else
+        Color := CurrentColor;
+    end;
 {$ifndef asmgraph}
     offset := Y * 80 + (X shr 3) + VideoOfs;
     PortW[$3ce] := $f01;
@@ -601,7 +620,9 @@ CONST
     if HLength=0 then
       LMask:=LMask and RMask;
     port[$3ce]:=0;
-    port[$3cf]:=CurrentColor;
+    If CurrentWriteMode <> NotPut Then
+      port[$3cf]:= CurrentColor
+    else port[$3cf]:= not CurrentColor;
     port[$3ce]:=1;
     port[$3cf]:=$f;
     port[$3ce]:=3;
@@ -612,7 +633,7 @@ CONST
          port[$3cf]:=1 shl 3;
        ORPut:
          port[$3cf]:=2 shl 3;
-       NormalPut:
+       NormalPut, NotPut:
          port[$3cf]:=0
        else
          port[$3cf]:=0
@@ -674,7 +695,9 @@ CONST
     ScrOfs:=y*ScrWidth+x div 8;
     BitMask:=$80 shr (x and 7);
     port[$3ce]:=0;
-    port[$3cf]:=CurrentColor;
+    If CurrentWriteMode <> NotPut Then
+      port[$3cf]:= CurrentColor
+    else port[$3cf]:= not CurrentColor;
     port[$3ce]:=1;
     port[$3cf]:=$f;
     port[$3ce]:=8;
@@ -687,7 +710,7 @@ CONST
          port[$3cf]:=1 shl 3;
        ORPut:
          port[$3cf]:=2 shl 3;
-       NormalPut:
+       NormalPut, NotPut:
          port[$3cf]:=0
        else
          port[$3cf]:=0
@@ -1812,11 +1835,11 @@ const CrtAddress: word = 0;
        end;
 
      { check if VESA adapter supported...      }
-{$ifdef supportVESA}
+{$ifndef noSupportVESA}
      hasVesa := getVesaInfo(VESAInfo);
-{$else supportVESA}
+{$else noSupportVESA}
      hasVESA := false;
-{$endif supportVESA}
+{$endif noSupportVESA}
      if hasVesa then
        begin
          { We have to set and restore the entire VESA state }
@@ -2496,7 +2519,12 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.8  1999-07-18 15:07:19  jonas
+Revision 1.9  1999-08-01 14:50:51  jonas
+  * fixed hline16 and vline16 for notput (also TP supports copy, and, or, xor and
+    notput for lines!!)
+  * fixed directputpixel16 to support all the different put types
+
+Revision 1.8  1999/07/18 15:07:19  jonas
   + xor-, and and- orput support for VESA256 modes
   * compile with -dlogging if you wnt some info to be logged to grlog.txt
 
