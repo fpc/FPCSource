@@ -2472,7 +2472,7 @@ const
   {*********************************************************************}
   var expr: string;
       tempstr: string;
-      r : extended;
+      r : bestreal;
       code : word;
       negativ : boolean;
       errorflag: boolean;
@@ -3675,7 +3675,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-08-10 14:50:21  peter
+  Revision 1.7  1998-08-10 23:57:23  peter
+    * use bestreal instead of extended
+
+  Revision 1.6  1998/08/10 14:50:21  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.5  1998/07/14 14:46:58  peter
