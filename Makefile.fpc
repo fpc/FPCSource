@@ -352,8 +352,20 @@ docsrc:
 
 .PHONY: demozip
 
+# We don't want the package name fpc in the path
+ifdef UNIXINSTALLDIR
+DEMOSOURCEDIR=$(INSTALL_DOCDIR)/../demo
+else
+DEMOSOURCEDIR=$(INSTALL_PREFIX)/demo
+endif
+
+demosrcinstall:
+        $(MAKE) -C demo clean
+        $(MKDIR) $(DEMOSOURCEDIR)
+        $(COPYTREE) demo/* $(DEMOSOURCEDIR)
+
 demozip:
-	$(MAKE) -C demo zipsourceinstall ZIPNAME=demo
+        $(MAKE) fpc_zipinstall ZIPTARGET=demosrcinstall ZIPNAME=demo
 
 
 ##########################################################################

@@ -783,6 +783,7 @@ implementation
            AddVariable('install_basedir');
            AddVariable('install_datadir');
            AddVariable('install_fpcpackage');
+           AddVariable('install_fpcsubdir');
            AddVariable('install_createpackagefpc');
            { Dist }
            AddVariable('dist_destdir');
@@ -866,7 +867,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2002-03-11 19:10:36  peter
+  Revision 1.23  2002-03-19 19:37:09  peter
+    * fix source location in zips for packages and demos
+
+  Revision 1.22  2002/03/11 19:10:36  peter
     * Regenerated with updated fpcmake
 
   Revision 1.21  2002/02/28 17:03:47  pierre

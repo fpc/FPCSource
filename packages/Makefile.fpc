@@ -7,7 +7,7 @@ dirs=base extra
 
 [install]
 fpcpackage=y
-sourcesubdir=packages
+fpcsubdir=packages
 
 [default]
 fpcdir=..
