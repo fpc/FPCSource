@@ -907,15 +907,15 @@ implementation
         var
           hpi : tcgprocinfo;
         begin
-          { process nested procs first }
+          { generate code for this procedure }
+          pi.generate_code;
+          { process nested procs }
           hpi:=tcgprocinfo(pi.nestedprocs.first);
           while assigned(hpi) do
            begin
              do_generate_code(hpi);
              hpi:=tcgprocinfo(hpi.next);
            end;
-          { generate code for this procedure }
-          pi.generate_code;
           pi.resetprocdef;
         end;
 
@@ -1212,7 +1212,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.115  2003-05-22 21:31:35  peter
+  Revision 1.116  2003-05-23 18:49:55  jonas
+    * generate code for parent procedure before that of nested procedures as
+      well (I only need pass_1 to be done for the ppc, but pass_1 and pass_2
+      are grouped and it doesn't hurt that pass_2 is done as well)
+
+  Revision 1.115  2003/05/22 21:31:35  peter
     * defer codegeneration for nested procedures
 
   Revision 1.114  2003/05/16 20:00:39  jonas
