@@ -50,7 +50,7 @@ package=umisw32.zip,~M~iscellaneous units
 #
 # Emx packages
 #
-pack=Os/2 ~E~MX
+pack=OS/2 ~E~MX
 filecheck=*emx.zip
 package=baseemx.zip,~B~asic system for EMX (required)
 package=asldemx.zip,GNU ~L~inker and assembler for EMX (required)
