@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2002-2003 by Olle Raab
+    Copyright (c) 2002-2004 by Olle Raab
 
     FreePascal system unit for MacOS.
 
@@ -183,6 +183,13 @@ depend on any other units, and thus the macos api must be accessed
 as an include file and not a unit.}
 
 {$I macostp.inc}
+
+{If the Apples Universal Interfaces are used, the qd variable is required
+to be allocated somewhere, so we do it here for the convenience to the user.}
+
+var
+  qd: QDGlobals; cvar;
+
 
 {$ifdef MACOS_USE_STDCLIB}
 
@@ -1271,7 +1278,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2004-06-21 19:23:34  olle
+  Revision 1.18  2004-07-14 23:34:07  olle
+    + added qd, the "QuickDraw globals"
+
+  Revision 1.17  2004/06/21 19:23:34  olle
     + Variables describing misc OS features added
     + Detection of GUI app
     * Working directory for APPTYPE TOOL correct now

@@ -806,6 +806,51 @@ external 'InterfaceLib';
 PROCEDURE UpperString(VAR theString: Str255; diacSensitive: BOOLEAN);
 external 'InterfaceLib';
 
+{************** from Quickdraw ***************}
+
+TYPE
+	Bits16								= ARRAY [0..15] OF INTEGER;
+
+	PatternPtr = ^Pattern;
+	Pattern = RECORD
+		pat:					PACKED ARRAY [0..7] OF UInt8;
+	END;
+
+	PatPtr								= ^Pattern;
+	BitMapPtr = ^BitMap;
+	BitMap = RECORD
+		baseAddr:				pointer;
+		rowBytes:				INTEGER;
+		bounds:					Rect;
+	END;
+	BitMapHandle = ^BitMapPtr;
+
+	CursorPtr = ^Cursor;
+	Cursor = RECORD
+		data:					Bits16;
+		mask:					Bits16;
+		hotSpot:				Point;
+	END;
+	CursPtr = ^Cursor;
+
+  GrafPtr = pointer; //TODO Should actually point to a GrafPort.
+
+	QDGlobalsPtr = ^QDGlobals;
+	QDGlobals = RECORD
+		privates:				PACKED ARRAY [0..75] OF CHAR;
+		randSeed:				LONGINT;								{  in Carbon use GetQDGlobalsRandomSeed }
+		screenBits:				BitMap;									{  in Carbon use GetQDGlobalsScreenBits }
+		arrow:					Cursor;									{  in Carbon use GetQDGlobalsArrow }
+		dkGray:					Pattern;								{  in Carbon use GetQDGlobalsDarkGray }
+		ltGray:					Pattern;								{  in Carbon use GetQDGlobalsLightGray }
+		gray:					Pattern;								{  in Carbon use GetQDGlobalsGray }
+		black:					Pattern;								{  in Carbon use GetQDGlobalsBlack }
+		white:					Pattern;								{  in Carbon use GetQDGlobalsWhite }
+		thePort:				GrafPtr;								{  in Carbon use GetQDGlobalsThePort }
+	END;
+
+	QDGlobalsHdl						= ^QDGlobalsPtr;
+
 {************** from others ***************}
 
 procedure ExitToShell;
