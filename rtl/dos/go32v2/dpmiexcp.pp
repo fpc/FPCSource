@@ -15,12 +15,11 @@
  **********************************************************************}
 Unit DPMIExcp;
 
-{$define UseRMcbrk}
 { If linking to C code we must avoid loading of the dpmiexcp.o
   in libc.a from the equivalent C code
   => all global functions from dpmiexcp.c must be aliased PM
 
-    Problem this is only valid for DJGPP v2.01 }
+  Problem this is only valid for DJGPP v2.01 }
 
 interface
 
@@ -29,6 +28,7 @@ uses
 
 { No stack checking ! }
 {$S-}
+
 
 { Error Messages }
 function do_faulting_finish_message : integer;
@@ -103,17 +103,36 @@ function dpmi_set_coprocessor_emulation(flag : longint) : longint;
 
 implementation
 
-{$ifdef VER0_99_5}
-  {$I386_DIRECT}
-{$endif}
-
 {$ASMMODE DIRECT}
 
 {$L exceptn.o}
 
 var
+  v2prt0_ds_alias : pointer;external name '___v2prt0_ds_alias';
+  djgpp_ds_alias  : pointer;external name '___djgpp_ds_alias';
+  endtext         : byte;external name '_etext';
+  starttext       : byte;external name 'start';
+  djgpp_old_kbd : tseginfo;external name '___djgpp_old_kbd';
+  djgpp_hw_lock_start : longint;external name '___djgpp_hw_lock_start';
+  djgpp_hw_lock_end : longint;external name '___djgpp_hw_lock_end';
+  djgpp_hwint_flags : longint;external name '___djgpp_hwint_flags';
+  djgpp_dos_sel : word;external name '___djgpp_dos_sel';
+  djgpp_exception_table : array[0..0] of pointer;external name '___djgpp_exception_table';
+
+procedure djgpp_i24;external name ' ___djgpp_i24';
+procedure djgpp_iret;external name ' ___djgpp_iret';
+procedure djgpp_npx_hdlr;external name '___djgpp_npx_hdlr';
+procedure djgpp_kbd_hdlr;external name '___djgpp_kbd_hdlr';
+procedure djgpp_kbd_hdlr_pc98;external name '___djgpp_kbd_hdlr_pc98';
+procedure djgpp_cbrk_hdlr;external name '___djgpp_cbrk_hdlr';
+
+
+var
   exceptions_on : boolean;
-  starttext, endtext : pointer;
+const
+  cbrk_vect : byte = $1b;
+  exception_level : longint = 0;
+
 
 {****************************************************************************
                                   Helpers
@@ -122,17 +141,11 @@ var
 procedure err(const x : string);
 begin
    write(stderr, x);
-{$ifdef VER0_99_5}
-   flush(stderr);
-{$endif}
 end;
 
 procedure errln(const x : string);
 begin
    writeln(stderr, x);
-{$ifdef VER0_99_5}
-   flush(stderr);
-{$endif}
 end;
 
 
@@ -196,9 +209,6 @@ begin
   end;
 end;
 
-
-const
-  exception_level : longint = 0;
 
 procedure dpmi_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);
 begin
@@ -266,21 +276,21 @@ end;
 var
   signal_list : Array[0..SIGMAX] of SignalHandler;
 
-function SIG_ERR( x: longint) : longint;
+function SIG_ERR(x:longint):longint;
 begin
-   SIG_ERR:=-1;
+  SIG_ERR:=-1;
 end;
 
 
-function SIG_IGN( x: longint) : longint;
+function SIG_IGN(x:longint):longint;
 begin
-   SIG_IGN:=-1;
+  SIG_IGN:=-1;
 end;
 
 
-function SIG_DFL( x: longint) : longint;
+function SIG_DFL(x:longint):longint;
 begin
-   SIG_DFL:=0;
+  SIG_DFL:=0;
 end;
 
 
@@ -298,25 +308,21 @@ begin
   signal:=temp;
 end;
 
-{$ifndef VER0_99_5}
-{$ifndef VER0_99_6}
 
 { C counter part }
-function c_signal(sig : longint;func : SignalHandler) : SignalHandler;
-            cdecl;[public,alias : '_signal'];
+function c_signal(sig : longint;func : SignalHandler) : SignalHandler;cdecl;[public,alias : '_signal'];
 var
   temp : SignalHandler;
-  begin
-     temp:=signal(sig,func);
-     c_signal:=temp;
-  end;
-{$endif VER0_99_5}
-{$endif VER0_99_6}
+begin
+  temp:=signal(sig,func);
+  c_signal:=temp;
+end;
 
-const signames : array [0..14] of string[4] = (
-   'ABRT','FPE ','ILL ','SEGV','TERM','ALRM','HUP ',
-   'INT ','KILL','PIPE','QUIT','USR1','USR2','NOFP','TRAP');
 
+const
+  signames : array [0..14] of string[4] = (
+    'ABRT','FPE ','ILL ','SEGV','TERM','ALRM','HUP ',
+    'INT ','KILL','PIPE','QUIT','USR1','USR2','NOFP','TRAP');
 
 function _raise(sig : longint) : longint;
 var
@@ -343,7 +349,6 @@ traceback_exit:
         itox(sig, 4);
       end;
      errln('');
-   { if(djgpp_exception_state<>nil) then }
      do_faulting_finish_message();   { Exits, does not return }
      exit(-1);
    end;
@@ -356,58 +361,38 @@ traceback_exit:
   exit(0);
 end;
 
-function c_raise(sig : longint) : longint;
-           cdecl;[public,alias : '_raise'];
-  begin
-     c_raise:=_raise(sig);
-  end;
-  
+
+function c_raise(sig : longint) : longint;cdecl;[public,alias : '_raise'];
+begin
+  c_raise:=_raise(sig);
+end;
+
 
 {****************************************************************************
                                  Exceptions
 ****************************************************************************}
 
-const
-  cbrk_vect : byte = $1b;
-
-function except_to_sig(excep : longint) : longint;
-  begin
-     case excep of
-        5,8,9,11,12,13,14 : exit(SIGSEGV);
-        0,4,16            : exit(SIGFPE);
-        1,3               : exit(SIGTRAP);
-        7                 : exit(SIGNOFP);
-        else
-           begin
-              if(excep = $75)   then    {/* HW int to fake exception values hardcoded in exceptn.S */}
-                exit(SIGFPE)
-              else if (excep = $78) then
-                exit(SIGTIMR)
-              else if ((excep = $79) or (excep = $1b)) then
-                exit(SIGINT)
-              else
-                exit(SIGILL);
-           end;
-        end;
-  end;
-
-{
 function except_to_sig(excep : longint) : longint;
 begin
   case excep of
-       5,8,9,
- 11,12,13,14 : exit(SIGSEGV);
-      0,4,16 : exit(SIGFPE);
-         1,3 : exit(SIGTRAP);
-           7 : exit(SIGNOFP);
-         $75 : exit(SIGFPE);
-         $78 : exit(SIGTIMR);
-     $1b,$79 : exit(SIGINT);
+    5,8,9,11,12,13,14 : exit(SIGSEGV);
+    0,4,16            : exit(SIGFPE);
+    1,3               : exit(SIGTRAP);
+    7                 : exit(SIGNOFP);
   else
-   exit(SIGILL);
+    begin
+      case excep of
+        $75 : exit(SIGFPE);
+        $78 : exit(SIGTIMR);
+        $1b,
+        $79 : exit(SIGINT);
+      else
+        exit(SIGILL);
+      end;
+    end;
   end;
 end;
-}
+
 
 procedure show_call_frame;
 begin
@@ -497,15 +482,18 @@ begin
     end;
 
   if (signum >= EXCEPTIONCOUNT) then
-    en:=nil
+    begin
+       case signum of
+         $75 : en:='Floating Point exception';
+         $1b : en:='Control-Break Pressed';
+         $79 : en:='Control-C Pressed';
+       else
+         en:=nil;
+       end;
+    end
   else
     en:=exception_names[signum];
-  if (signum = $75) then
-    en:='Floating Point exception';
-  if (signum = $1b) then
-    en:='Control-Break Pressed';
-  if (signum = $79) then
-    en:='Control-C Pressed';
+
   if (en = nil) then
     begin
        err('Exception ');
@@ -621,22 +609,7 @@ var
   cbrk_rmcb  : trealseginfo;
   cbrk_regs  : registers;
 
-function djgpp_cbrk_hdlr : pointer;
-begin
-asm
-        movl    ___djgpp_cbrk_hdlr,%eax
-        movl %eax,__RESULT
-end;
-end;
 
-
-function djgpp_old_kbd : pseginfo;
-begin
-asm
-        movl ___djgpp_old_kbd,%eax
-        movl %eax,__RESULT
-end;
-end;
 
 procedure djgpp_exception_toggle;[alias : '___djgpp_exception_toggle'];
 var
@@ -682,13 +655,12 @@ begin
          end;
       end;
    end;
-  get_pm_interrupt($75, _except);
-  set_pm_interrupt($75, npx_ori);
+  get_pm_interrupt($75,_except);
+  set_pm_interrupt($75,npx_ori);
   npx_ori:=_except;
-  get_pm_interrupt(9, _except);
-  set_pm_interrupt(9, kbd_ori);
-  kbd_ori := _except;
-{$ifdef UseRMcbrk}
+  get_pm_interrupt(9,_except);
+  set_pm_interrupt(9,kbd_ori);
+  kbd_ori:=_except;
   if (cbrk_hooked) then
    begin
      set_rm_interrupt(cbrk_vect,cbrk_ori);
@@ -704,14 +676,13 @@ begin
 {$ifdef SYSTEMDEBUG}
      errln('ori rm cbrk  '+hexstr(cbrk_ori.segment,4)+':'+hexstr(longint(cbrk_ori.offset),4));
 {$endif SYSTEMDEBUG}
-     get_rm_callback(djgpp_cbrk_hdlr, cbrk_regs, cbrk_rmcb);
+     get_rm_callback(@djgpp_cbrk_hdlr, cbrk_regs, cbrk_rmcb);
      set_rm_interrupt(cbrk_vect, cbrk_rmcb);
 {$ifdef SYSTEMDEBUG}
      errln('now rm cbrk  '+hexstr(cbrk_rmcb.segment,4)+':'+hexstr(longint(cbrk_rmcb.offset),4));
 {$endif SYSTEMDEBUG}
      cbrk_hooked := true;
    end;
-{$endif UseRMcbrk}
 end;
 
 
@@ -768,6 +739,7 @@ begin
 end;
 
 
+
 procedure djgpp_exception_setup;[alias : '___djgpp_exception_setup'];
 var
   temp_kbd,
@@ -775,10 +747,7 @@ var
   _except,
   old_kbd     : tseginfo;
   locksize    : longint;
-  hw_lock_start,
-  hw_lock_end : longint;
   i           : longint;
-  dossel      : word;
 begin
   asm
         movl    _exception_exit,%eax
@@ -798,74 +767,32 @@ begin
   asm
         movw    %ds,___djgpp_app_DS
         movw    %ds,___djgpp_our_DS
-        movl    $___djgpp_hw_lock_start,%eax
-        movl    %eax,hw_lock_start
-        movl    $___djgpp_hw_lock_end,%eax
-        movl    %eax,hw_lock_end
   end;
-  dossel := dosmemselector;
-  asm
-        movw    dossel,%ax
-        movw    %ax,___djgpp_dos_sel
-  end;
+  djgpp_dos_sel:=dosmemselector;
 { lock addresses which may see HW interrupts }
-{ lockmem.address = __djgpp_base_address + (unsigned) &__djgpp_hw_lock_start;}
-  locksize := hw_lock_end - hw_lock_start;
-  lock_code(pointer(hw_lock_start),locksize);
+  lock_code(@djgpp_hw_lock_start,@djgpp_hw_lock_end-@djgpp_hw_lock_start);
   _except.segment:=get_cs;
-{  _except.offset:= (unsigned) &__djgpp_exception_table;}
-  asm
-         leal   _except,%eax
-         movl   $___djgpp_exception_table,(%eax)
-  end;
+  _except.offset:=@djgpp_exception_table;
   for i:=0 to ExceptionCount-1 do
    begin
      except_ori[i] := _except;    { New value to set }
-     _except.offset:=_except.offset + 4;  { This is the size of push n, jmp }
+     inc(_except.offset,4);       { This is the size of push n, jmp }
    end;
-
-  kbd_ori.segment := _except.segment;
-  npx_ori.segment := _except.segment;
-  { make local copy to solve mangledname problem (PFV) }
-  temp_npx:=@npx_ori;
-  temp_kbd:=@kbd_ori;
-  asm
-        movl    temp_npx,%eax
-        movl    $___djgpp_npx_hdlr,(%eax)
-  end;
+  kbd_ori.segment:=_except.segment;
+  npx_ori.segment:=_except.segment;
+  npx_ori.offset:=@djgpp_npx_hdlr;
   if (go32_info_block.linear_address_of_primary_screen <> $a0000) then
-   begin
-     asm
-        movl    temp_kbd,%eax
-        movl    $___djgpp_kbd_hdlr,(%eax)
-     end;
-   end
+   kbd_ori.offset:=@djgpp_kbd_hdlr
   else
    begin
-     asm
-        movl    temp_kbd,%eax
-        movl    $___djgpp_kbd_hdlr_pc98,(%eax)
-     end;
+     kbd_ori.offset:=@djgpp_kbd_hdlr_pc98;
      cbrk_vect := $06;
-     asm
-        leal    _except,%eax
-        movl    $___djgpp_iret,(%eax)
-     end;
+     _except.offset:=@djgpp_iret;
      set_pm_interrupt($23,_except);
    end;
-  asm
-        leal    _except,%eax
-        movl    $___djgpp_i24,(%eax)
-  end;
+  _except.offset:=@djgpp_i24;
   set_pm_interrupt($24, _except);
-  get_pm_interrupt(9,old_kbd);
-  asm
-        movl    $___djgpp_old_kbd,%edi
-        leal    old_kbd,%esi
-        movl    $6,%ecx { sier of tseginfo }
-        rep
-        movsb
-  end;
+  get_pm_interrupt(9,djgpp_old_kbd);
   djgpp_exception_toggle;    { Set new values & save old values }
 { get original video mode and save }
   old_video_mode := farpeekb(dosmemselector, $449);
@@ -876,59 +803,25 @@ end;
 
 
 function djgpp_set_ctrl_c(enable : boolean) : boolean;
-var
-  oldenable : boolean;
 begin
-  asm
-        movb    ___djgpp_hwint_flags,%al
-        andb    $1,%al
-        movb    %al,oldenable
-  end;
-  if (enable) then
-    asm
-        movl    ___djgpp_hwint_flags,%eax
-        andl    $0xfffe,%eax
-        movl    %eax,___djgpp_hwint_flags
-    end
+  djgpp_set_ctrl_c:=(djgpp_hwint_flags and 1)=0;
+  if enable then
+   djgpp_hwint_flags:=djgpp_hwint_flags and (not 1)
   else
-    asm
-        movl    ___djgpp_hwint_flags,%eax
-        orl     $1,%eax
-        movl    %eax,___djgpp_hwint_flags
-    end;
-{  __djgpp_hwint_flags |= 1;}
-  djgpp_set_ctrl_c:=oldenable;
+   djgpp_hwint_flags:=djgpp_hwint_flags or 1;
 end;
 
-function c_djgpp_set_ctrl_c(enable : longint) : boolean;
-            cdecl;[public,alias : '___djgpp_set_ctrl_c'];
 
-  var
-     e : boolean;
-     
-  begin
-     asm
-        movl enable,%eax
-        movb %al,e
-     end;
-     c_djgpp_set_ctrl_c:=djgpp_set_ctrl_c(e);
-  end;
-  
-procedure InitDPMIExcp;
-var
-  tempendtext,
-  tempstarttext : pointer;
+function c_djgpp_set_ctrl_c(enable : longint) : boolean;cdecl;[public,alias : '___djgpp_set_ctrl_c'];
 begin
-{ We need to use tempendtext becuase the mangledname of endtext could be
-  different }
-  asm
-        movl    $_etext,tempendtext
-        movl    $start,tempstarttext
-        movl    ___v2prt0_ds_alias,%eax
-        movl    %eax,___djgpp_ds_alias
-  end;
-  endtext:=tempendtext;
-  starttext:=tempstarttext;
+  c_djgpp_set_ctrl_c:=djgpp_set_ctrl_c(boolean(enable));
+end;
+
+
+
+procedure InitDPMIExcp;
+begin
+  djgpp_ds_alias:=v2prt0_ds_alias;
   djgpp_exception_setup;
 end;
 
@@ -938,7 +831,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  1998-08-20 08:08:36  pierre
+  Revision 1.10  1998-10-13 21:42:42  peter
+    * cleanup and use of external var
+    * fixed ctrl-break crashes
+
+  Revision 1.9  1998/08/20 08:08:36  pierre
     * dpmiexcp did not compile with older versions
       due to the proc to procvar bug
     * makefile separator problem fixed
