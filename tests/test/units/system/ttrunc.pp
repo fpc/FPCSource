@@ -1,6 +1,10 @@
 { this tests the trunc routine }
 program ttrunc;
 
+{$ifdef VER1_0}
+  {$define SKIP_CURRENCY_TEST}
+{$endif }
+
 {$APPTYPE CONSOLE}
 
 const
@@ -161,6 +165,7 @@ Begin
 end;
 
 
+{$ifndef SKIP_CURRENCY_TEST}
 procedure test_trunc_currency;
 var
  r: currency;
@@ -207,18 +212,26 @@ Begin
    fail;
  WriteLn('Success!');
 end;
+{$endif SKIP_CURRENCY_TEST}
 
 
 Begin
   test_trunc_real;
   test_trunc_single;
   test_trunc_double;
+{$ifdef SKIP_CURRENCY_TEST}
+  Writeln('Skipping currency test because its not supported by theis compiler');
+{$else SKIP_CURRENCY_TEST}
   test_trunc_currency;
+{$endif SKIP_CURRENCY_TEST}
 end.
 
 {
   $Log$
-  Revision 1.2  2002-09-18 18:30:30  carl
+  Revision 1.3  2002-10-15 10:26:36  pierre
+   * add code to remember that currency is only implemented in 1.1 compiler
+
+  Revision 1.2  2002/09/18 18:30:30  carl
     + currency testing
     * more system unit routine testing
 

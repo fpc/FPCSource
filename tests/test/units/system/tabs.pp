@@ -2,6 +2,9 @@
 { Carl Eric Codere Copyright (c) 2002 }
 program tabs;
 
+{$ifdef VER1_0}
+  {$define SKIP_CURRENCY_TEST}
+{$endif }
 {$APPTYPE CONSOLE}
 {$R+}
 {$Q+}
@@ -13,14 +16,14 @@ const
   RESULT_TWO_INT = 12345;
   VALUE_TWO_INT = 12345;
   RESULT_CONST_TWO_INT = abs(VALUE_TWO_INT);
-  
+
   RESULT_THREE_INT = 2147483647;
   VALUE_THREE_INT = -2147483647;
   RESULT_CONST_THREE_INT = abs(VALUE_THREE_INT);
   RESULT_FOUR_INT = 2147483647;
   VALUE_FOUR_INT = 2147483647;
   RESULT_CONST_FOUR_INT = abs(VALUE_FOUR_INT);
-  
+
 
   RESULT_ONE_REAL = 12345.6789;
   VALUE_ONE_REAL = -12345.6789;
@@ -28,7 +31,7 @@ const
   RESULT_TWO_REAL = 54321.6789E+02;
   VALUE_TWO_REAL = 54321.6789E+02;
   RESULT_CONST_TWO_REAL = abs(VALUE_TWO_REAL);
-  
+
   RESULT_THREE_REAL = 0.0;
   VALUE_THREE_REAL = 0.0;
   RESULT_CONST_THREE_REAL = abs(VALUE_THREE_REAL);
@@ -36,14 +39,15 @@ const
   VALUE_FOUR_REAL = -12.0;
   RESULT_CONST_FOUR_REAL = abs(VALUE_FOUR_REAL);
 
- 
+
 procedure fail;
  begin
   WriteLn('Failure!');
   halt(1);
  end;
- 
 
+
+{$ifndef SKIP_CURRENCY_TEST}
  procedure test_abs_currency;
   var
    _result : boolean;
@@ -52,11 +56,11 @@ procedure fail;
   begin
     Write('Abs() test with currency type...');
     _result := true;
-    
+
     value := VALUE_ONE_REAL;
     if (trunc(abs(value)) <> trunc(RESULT_CONST_ONE_REAL))  then
        _result := false;
-       
+
     value := VALUE_TWO_REAL;
     if trunc(abs(value)) <> trunc(RESULT_CONST_TWO_REAL) then
        _result := false;
@@ -64,7 +68,7 @@ procedure fail;
     value := VALUE_THREE_REAL;
     if trunc(abs(value)) <> trunc(RESULT_CONST_THREE_REAL) then
        _result := false;
-       
+
     value := VALUE_FOUR_REAL;
     if trunc(abs(value)) <> trunc(RESULT_CONST_FOUR_REAL) then
        _result := false;
@@ -73,7 +77,7 @@ procedure fail;
     value1 := abs(value);
     if trunc(value1) <> trunc(RESULT_ONE_REAL) then
        _result := false;
-       
+
     value := VALUE_TWO_REAL;
     value1 := abs(value);
     if trunc(value1) <> trunc(RESULT_TWO_REAL) then
@@ -83,18 +87,19 @@ procedure fail;
     value1 := abs(value);
     if trunc(value1) <> trunc(RESULT_THREE_REAL) then
        _result := false;
-       
+
     value := VALUE_FOUR_REAL;
     value1 := abs(value);
     if trunc(value1) <> trunc(RESULT_FOUR_REAL) then
        _result := false;
 
-       
+
     if not _result then
       fail
     else
       WriteLn('Success!');
   end;
+{$endif SKIP_CURRENCY_TEST}
 
 
 
@@ -110,8 +115,8 @@ procedure fail;
    value := VALUE_ONE_INT;
     if (abs(value) <> (RESULT_CONST_ONE_INT))  then
        _result := false;
-       
-       
+
+
     value := VALUE_TWO_INT;
     if abs(value) <> (RESULT_CONST_TWO_INT) then
        _result := false;
@@ -119,7 +124,7 @@ procedure fail;
     value := VALUE_THREE_INT;
     if abs(value) <> (RESULT_CONST_THREE_INT) then
        _result := false;
-       
+
     value := VALUE_FOUR_INT;
     if abs(value) <> (RESULT_CONST_FOUR_INT) then
        _result := false;
@@ -128,7 +133,7 @@ procedure fail;
     value1 := abs(value);
     if value1 <> (RESULT_ONE_INT) then
        _result := false;
-       
+
     value := VALUE_TWO_INT;
     value1 := abs(value);
     if value1 <> (RESULT_TWO_INT) then
@@ -138,19 +143,19 @@ procedure fail;
     value1 := abs(value);
     if value1 <> (RESULT_THREE_INT) then
        _result := false;
-       
+
     value := VALUE_FOUR_INT;
     value1 := abs(value);
     if value1 <> (RESULT_FOUR_INT) then
        _result := false;
-    
+
     if not _result then
       fail
     else
       WriteLn('Success!');
   end;
 
-  
+
  procedure test_abs_longint;
   var
    _result : boolean;
@@ -159,12 +164,12 @@ procedure fail;
   begin
     Write('Abs() test with longint type...');
     _result := true;
-    
+
    value := VALUE_ONE_INT;
     if (abs(value) <> (RESULT_CONST_ONE_INT))  then
        _result := false;
-       
-       
+
+
     value := VALUE_TWO_INT;
     if abs(value) <> (RESULT_CONST_TWO_INT) then
        _result := false;
@@ -172,7 +177,7 @@ procedure fail;
     value := VALUE_THREE_INT;
     if abs(value) <> (RESULT_CONST_THREE_INT) then
        _result := false;
-       
+
     value := VALUE_FOUR_INT;
     if abs(value) <> (RESULT_CONST_FOUR_INT) then
        _result := false;
@@ -181,7 +186,7 @@ procedure fail;
     value1 := abs(value);
     if value1 <> (RESULT_ONE_INT) then
        _result := false;
-       
+
     value := VALUE_TWO_INT;
     value1 := abs(value);
     if value1 <> (RESULT_TWO_INT) then
@@ -191,19 +196,19 @@ procedure fail;
     value1 := abs(value);
     if value1 <> (RESULT_THREE_INT) then
        _result := false;
-       
+
     value := VALUE_FOUR_INT;
     value1 := abs(value);
     if value1 <> (RESULT_FOUR_INT) then
        _result := false;
-    
+
     if not _result then
       fail
     else
       WriteLn('Success!');
   end;
-  
- procedure test_abs_real; 
+
+ procedure test_abs_real;
   var
    _result : boolean;
    value : real;
@@ -211,11 +216,11 @@ procedure fail;
   begin
     _result := true;
     Write('Abs() test with real type...');
-    
+
     value := VALUE_ONE_REAL;
     if (trunc(abs(value)) <> trunc(RESULT_CONST_ONE_REAL))  then
        _result := false;
-       
+
     value := VALUE_TWO_REAL;
     if trunc(abs(value)) <> trunc(RESULT_CONST_TWO_REAL) then
        _result := false;
@@ -223,7 +228,7 @@ procedure fail;
     value := VALUE_THREE_REAL;
     if trunc(abs(value)) <> trunc(RESULT_CONST_THREE_REAL) then
        _result := false;
-       
+
     value := VALUE_FOUR_REAL;
     if trunc(abs(value)) <> trunc(RESULT_CONST_FOUR_REAL) then
        _result := false;
@@ -232,7 +237,7 @@ procedure fail;
     value1 := abs(value);
     if trunc(value1) <> trunc(RESULT_ONE_REAL) then
        _result := false;
-       
+
     value := VALUE_TWO_REAL;
     value1 := abs(value);
     if trunc(value1) <> trunc(RESULT_TWO_REAL) then
@@ -242,12 +247,12 @@ procedure fail;
     value1 := abs(value);
     if trunc(value1) <> trunc(RESULT_THREE_REAL) then
        _result := false;
-       
+
     value := VALUE_FOUR_REAL;
     value1 := abs(value);
     if trunc(value1) <> trunc(RESULT_FOUR_REAL) then
        _result := false;
-    
+
     if not _result then
       fail
     else
@@ -259,7 +264,11 @@ var
  _success : boolean;
  l: boolean;
 Begin
+{$ifdef SKIP_CURRENCY_TEST}
+  Writeln('Skipping currency test because its not supported by theis compiler');
+{$else SKIP_CURRENCY_TEST}
   test_abs_currency;
+{$endif SKIP_CURRENCY_TEST}
   test_abs_real;
   test_abs_longint;
   test_abs_int64;
@@ -267,8 +276,11 @@ end.
 
 {
  $Log$
- Revision 1.1  2002-09-18 18:30:30  carl
+ Revision 1.2  2002-10-15 10:26:36  pierre
+  * add code to remember that currency is only implemented in 1.1 compiler
+
+ Revision 1.1  2002/09/18 18:30:30  carl
    + currency testing
    * more system unit routine testing
 
-} 
+}
