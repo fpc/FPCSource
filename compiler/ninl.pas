@@ -1167,20 +1167,22 @@ implementation
                            else
                             if is_dynamic_array(left.resulttype.def) then
                               begin
-{
-                                Doesn't work because that procedure isn't in
-                                the interface of the system unit :( (JM)
-
-                                srsym:=searchsymonlyin(systemunit,'FPC_DYNARRAY_HIGH');
-                                if not assigned(srsym) then
-                                  internalerror(200104291);
-                                inserttypeconv(left,voidpointertype);
-                                hp:=ccallparanode.create(left,nil);
-                                hp:=ccallnode.create(hp,tprocsym(srsym),systemunit,nil);
+{$ifndef hascompilerproc}
+                                writeln('Error: high(dynamic_array) isn''t implemented yet');
+                                codegenerror := true;
+{$else hascompilerproc}
+                                { can't use inserttypeconv because we need }
+                                { an explicit type conversion (JM)         }
+                                hp := ctypeconvnode.create(left,voidpointertype);
+                                hp.toggleflag(nf_explizit);
+                                hp := ccallparanode.create(hp,nil);
+                                hp := ccallnode.createintern('fpc_dynarray_high',hp);
+                                { make sure the left node doesn't get disposed, since it's }
+                                { reused in the new node (JM)                              }
                                 left:=nil;
                                 resulttypepass(hp);
-                                result:=hp;}
-                                {$warning "high(dynamic_array)" isn't implemented yet }
+                                result:=hp;
+{$endif hascompilerproc}
                               end
                            else
                             begin
@@ -1790,7 +1792,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2001-07-09 21:15:40  peter
+  Revision 1.45  2001-08-06 09:44:10  jonas
+    + support for high(dynarray) using compilerproc (forgot to commit
+      previously)
+
+  Revision 1.44  2001/07/09 21:15:40  peter
     * Length made internal
     * Add array support for Length
 
