@@ -14,6 +14,8 @@
 
  **********************************************************************}
 
+{$R-}
+
 const
   EventLogAvailable: boolean = false;
 
@@ -246,7 +248,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-03-02 02:01:35  hajny
+  Revision 1.3  2003-03-20 20:15:27  hajny
+    * range checking has to be disabled
+
+  Revision 1.2  2003/03/02 02:01:35  hajny
     + support for OS/2 system log added
 
   Revision 1.1  2003/02/19 20:25:16  michael
