@@ -58,6 +58,7 @@ interface
     function used_align(varalign,minalign,maxalign:longint):longint;
     function size_2_align(len : longint) : longint;
     procedure Replace(var s:string;s1:string;const s2:string);
+    procedure Replace(var s:AnsiString;s1:string;const s2:string);
     procedure ReplaceCase(var s:string;const s1,s2:string);
     function upper(const s : string) : string;
     function lower(const s : string) : string;
@@ -286,6 +287,27 @@ uses
 
 
     procedure Replace(var s:string;s1:string;const s2:string);
+      var
+         last,
+         i  : longint;
+      begin
+        s1:=upper(s1);
+        last:=0;
+        repeat
+          i:=pos(s1,upper(s));
+          if i=last then
+           i:=0;
+          if (i>0) then
+           begin
+             Delete(s,i,length(s1));
+             Insert(s2,s,i);
+             last:=i;
+           end;
+        until (i=0);
+      end;
+
+
+    procedure Replace(var s:AnsiString;s1:string;const s2:string);
       var
          last,
          i  : longint;
@@ -1234,7 +1256,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.44  2004-09-21 20:32:40  peter
+  Revision 1.45  2004-10-14 14:55:12  mazen
+  * use SysUtils unit instead of Dos Unit
+  + overload Replace to use AnsiString
+
+  Revision 1.44  2004/09/21 20:32:40  peter
     * range check error in swapint64
 
   Revision 1.43  2004/09/13 20:26:45  peter
