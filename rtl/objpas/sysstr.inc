@@ -429,9 +429,11 @@ end ;
 {   FmtLoadStr returns the string resource Ident and formats it accordingly   }
 
 
+{$ifdef autoobjpas}
 function FmtLoadStr(Ident: integer; const Args: array of const): string;
 begin
 end;
+{$endif}
 
 Const
   feInvalidFormat   = 1;
@@ -453,7 +455,7 @@ begin
   Halt(1);
 end;
 
-
+{$ifdef AUTOOBJPAS}
 Function Format (Const Fmt : String; const Args : Array of const) : String;
 
 Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
@@ -691,7 +693,7 @@ begin
     Oldpos:=chpos;
     end;
 end;
-
+{$endif}
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -887,7 +889,10 @@ end ;
 
 {
   $Log$
-  Revision 1.6  1998-10-02 10:42:17  michael
+  Revision 1.7  1998-10-02 12:17:17  michael
+  + Made sure it compiles with official 0.99.8
+
+  Revision 1.6  1998/10/02 10:42:17  michael
   + Initial implementation of format
 
   Revision 1.5  1998/10/01 16:05:37  michael
@@ -904,7 +909,10 @@ end ;
   Update from gertjan Schouten, plus small fix for linux
 
   $Log$
-  Revision 1.6  1998-10-02 10:42:17  michael
+  Revision 1.7  1998-10-02 12:17:17  michael
+  + Made sure it compiles with official 0.99.8
+
+  Revision 1.6  1998/10/02 10:42:17  michael
   + Initial implementation of format
 
   Revision 1.5  1998/10/01 16:05:37  michael

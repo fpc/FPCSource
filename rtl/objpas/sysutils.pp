@@ -54,7 +54,9 @@ interface
           fhelpcontext : longint;
         public
           constructor create(const msg : string);
+{$ifdef autoobjpas}
           constructor createfmt(const msg : string; const args : array of const);
+{$endif}          
           constructor createres(ident : longint);
           { !!!! }
           property helpcontext : longint read fhelpcontext write fhelpcontext;
@@ -141,14 +143,14 @@ interface
          {!!!!!}
       end;
 
-
+{$ifdef autoobjpas}
     constructor exception.createfmt(const msg : string; const args : array of const);
 
       begin
          inherited create;
          fmessage:=Format(msg,args);
       end;
-
+{$endif}
 
     constructor exception.createres(ident : longint);
 
@@ -205,7 +207,11 @@ begin
      EInoutError(E).ErrorCode:=IOresult; // Clears InOutRes !!
      end;
   else
+{$ifdef autoobjpas}
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
+{$else}
+   E:=Exception.Create(SUnknownRunTimeError);
+{$endif}
   end;
   Raise E {at Address};
 end;
@@ -231,7 +237,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.11  1998-10-01 16:04:11  michael
+    Revision 1.12  1998-10-02 12:17:18  michael
+    + Made sure it compiles with official 0.99.8
+
+    Revision 1.11  1998/10/01 16:04:11  michael
     + Added RTL error handling
 
     Revision 1.10  1998/09/24 23:45:27  peter
