@@ -161,7 +161,7 @@ begin
      if (regs.ch and $1f)<>0 then
       begin
         SysGetCursorType:=crHalfBlock;
-        if regs.cl+1=(regs.ch and $1F) then
+        if regs.cl-1=(regs.ch and $1F) then
          SysGetCursorType:=crUnderline;
       end;
    end;
@@ -246,7 +246,7 @@ begin
   realintr($10,regs);
 end;
 
-Const 
+Const
   SysVideoModeCount = 5;
   SysVMD : Array[0..SysVideoModeCount-1] of TVideoMode = (
    (Col: 40; Row : 25;  Color : False),
@@ -255,7 +255,7 @@ Const
    (Col: 80; Row : 25;  Color : True),
    (Col: 80; Row : 50;  Color : True)
   );
-  
+
 Function SysSetVideoMode (Const Mode : TVideoMode) : Boolean;
 
 Var
@@ -270,20 +270,20 @@ begin
        (Mode.Color=SysVMD[i].Color) then
       SysSetVideoMode:=True
     else
-      Dec(I);  
+      Dec(I);
   If SysSetVideoMode then
     begin
     If (I<SysVideoModeCount-1) then
       DoSetVideoMode(I)
     else
-      SetVideo8x8;  
+      SetVideo8x8;
     ScreenWidth:=SysVMD[I].Col;
     ScreenHeight:=SysVMD[I].Row;
     ScreenColor:=SysVMD[I].Color;
     DoCustomMouse(false);
     end;
 end;
-  
+
 Function SysGetVideoModeData (Index : Word; Var Data : TVideoMode) : boolean;
 
 begin
@@ -318,7 +318,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2001-10-06 22:28:24  michael
+  Revision 1.5  2001-10-12 16:04:45  peter
+    * video fixes (merged)
+
+  Revision 1.4  2001/10/06 22:28:24  michael
   + Merged video mode selection/setting system
 
   Revision 1.3  2001/09/21 19:50:18  michael
