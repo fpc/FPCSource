@@ -15,7 +15,7 @@
  **********************************************************************}
 
 {$ASMMODE DIRECT}
-
+{$ifdef dummy}
     function abs(d : real) : real;
 
       begin
@@ -218,16 +218,6 @@
          end [];
       end;
 
-    function pi : real;
-
-      begin
-         asm
-            fldpi
-            leave
-            ret
-         end [];
-      end;
-
     function sin(d : real) : real;
 
       begin
@@ -248,6 +238,258 @@
       end;
 
    function power(bas,expo : real) : real;
+     begin
+        power:=exp(ln(bas)*expo);
+     end;
+{$endif dummy
+
+   function power(bas,expo : longint) : longint;
+     begin
+        power:=round(exp(ln(bas)*expo));
+     end;
+
+{****************************************************************************
+                       EXTENDED data type routines
+ ****************************************************************************}
+
+    function pi : extended;
+
+      begin
+         asm
+            fldpi
+            leave
+            ret
+         end [];
+      end;
+
+    function abs(d : extended) : extended;
+
+      begin
+         asm
+            fldt 8(%ebp)
+            fabs
+            leave
+            ret $10
+         end [];
+      end;
+
+    function sqr(d : extended) : extended;
+
+      begin
+         asm
+            fldt 8(%ebp)
+            fldt 8(%ebp)
+            fmulp
+            leave
+            ret $10
+         end [];
+      end;
+
+    function sqrt(d : extended) : extended;
+
+      begin
+         asm
+            fldt 8(%ebp)
+            fsqrtl
+            leave
+            ret $10
+         end [];
+      end;
+
+    function arctan(d : extended) : extended;
+
+      begin
+         asm
+            fldt 8(%ebp)
+            fld1
+            fpatan
+            leave
+            ret $10
+         end [];
+      end;
+
+    function cos(d : extended) : extended;
+
+      begin
+         asm
+            fldt 8(%ebp)
+            fcos
+            fstsw
+            sahf
+            jnp .LCOS1
+            fstp %st(0)
+            fldt .LCOS0
+         .LCOS1:
+            leave
+            ret $10
+         .LCOS0:
+            .long       0xffffffff
+            .long       0xffffffff
+            .word       0xffff
+         end ['EAX'];
+      end;
+
+    function exp(d : extended) : extended;
+
+      begin
+         asm
+            // comes from DJ GPP
+            fldt        8(%ebp)
+            fldl2e
+            fmulp
+            fstcww      .LCW1
+            fstcww      .LCW2
+            fwait
+            andw        $0xf3ff,.LCW2
+            orw $0x0400,.LCW2
+            fldcww      .LCW2
+            fld         %st(0)
+            frndint
+            fldcww      .LCW1
+            fxch        %st(1)
+            fsub        %st(1),%st
+            f2xm1
+            fld1
+            fadd
+            fscale
+            fstp        %st(1)
+            leave
+            ret $10
+
+            // store some help data in the data segment
+            .data
+    .LCW1:
+            .word       0
+    .LCW2:
+            .word       0
+    .LC0:
+            .double     0d1.0e+00
+
+            // do not forget to switch back to text
+            .text
+         end;
+      end;
+
+    function frac(d : extended) : extended;
+
+      begin
+         asm
+            subl $16,%esp
+            fnstcw -4(%ebp)
+            fwait
+            movw -4(%ebp),%cx
+            orw $0x0c3f,%cx
+            movw %cx,-8(%ebp)
+            fldcw -8(%ebp)
+            fwait
+            fldt 8(%ebp)
+            frndint
+            fldt 8(%ebp)
+            fsub %st(1)
+            fstp %st(1)
+            fclex
+            fldcw -4(%ebp)
+            leave
+            ret $10
+         end ['ECX'];
+      end;
+
+    function int(d : extended) : extended;
+
+      begin
+         asm
+            subl $16,%esp
+            fnstcw -4(%ebp)
+            fwait
+            movw -4(%ebp),%cx
+            orw $0x0c3f,%cx
+            movw %cx,-8(%ebp)
+            fldcw -8(%ebp)
+            fwait
+            fldt 8(%ebp)
+            frndint
+            fclex
+            fldcw -4(%ebp)
+            leave
+            ret $10
+         end ['ECX'];
+      end;
+
+    function trunc(d : extended) : longint;
+
+      begin
+         asm
+            subl $16,%esp
+            fnstcw -4(%ebp)
+            fwait
+            movw -4(%ebp),%cx
+            orw $0x0c3f,%cx
+            movw %cx,-8(%ebp)
+            fldcw -8(%ebp)
+            fwait
+            fldt 8(%ebp)
+            fistpl -8(%ebp)
+            movl -8(%ebp),%eax
+            fldcw -4(%ebp)
+            leave
+            ret $10
+         end ['EAX','ECX'];
+      end;
+
+    function round(d : extended) : longint;
+
+      begin
+         asm
+            subl $8,%esp
+            fnstcw -4(%ebp)
+            fwait
+            movw $0x1372,-8(%ebp)
+            fldcw -8(%ebp)
+            fwait
+            fldt 8(%ebp)
+            fistpl -8(%ebp)
+            movl -8(%ebp),%eax
+            fldcw -4(%ebp)
+            leave
+            ret $10
+         end ['EAX','ECX'];
+      end;
+
+    function ln(d : extended) : extended;
+
+      begin
+         asm
+            fldln2
+            fldt 8(%ebp)
+            fyl2x
+            leave
+            ret $10
+         end [];
+      end;
+
+    function sin(d : extended) : extended;
+
+      begin
+         asm
+            fldt 8(%ebp)
+            fsin
+            fstsw
+            sahf
+            jnp .LSIN1
+            fstp %st(0)
+            fldt .LSIN0
+         .LSIN1:
+            leave
+            ret $10
+         .LSIN0:
+            .long       0xffffffff
+            .long       0xffffffff
+            .word       0xffff
+         end ['EAX'];
+      end;
+
+   function power(bas,expo : extended) : extended;
+
      begin
         power:=exp(ln(bas)*expo);
      end;
@@ -373,7 +615,10 @@
 
 {
   $Log$
-  Revision 1.2  1998-05-31 14:15:49  peter
+  Revision 1.3  1998-08-08 12:28:09  florian
+    * a lot small fixes to the extended data type work
+
+  Revision 1.2  1998/05/31 14:15:49  peter
     * force to use ATT or direct parsing
 
 }

@@ -467,11 +467,10 @@ begin
   val(s,b,word(code));
 end;
 
-
-procedure val(const s : string;var d : real;var code : word);
+procedure val(const s : string;var d : valreal;var code : word);
 var
   hd,
-  esign,sign : real;
+  esign,sign : valreal;
   exponent,i : longint;
   flags      : byte;
 begin
@@ -567,14 +566,13 @@ begin
   code:=0;
 end;
 
-
-procedure val(const s : string;var d : real;var code : integer);
+procedure val(const s : string;var d : valreal;var code : integer);
 begin
   val(s,d,word(code));
 end;
 
 
-procedure val(const s : string;var d : real);
+procedure val(const s : string;var d : valreal);
 var
   code : word;
 begin
@@ -585,7 +583,7 @@ end;
 {$ifdef SUPPORT_SINGLE}
 procedure val(const s : string;var d : single;var code : word);
 var
-  e : double;
+  e : valreal;
 begin
   val(s,e,code);
   d:=e;
@@ -594,7 +592,7 @@ end;
 
 procedure val(const s : string;var d : single;var code : integer);
 var
-  e : double;
+  e : valreal;
 begin
   val(s,e,word(code));
   d:=e;
@@ -612,28 +610,31 @@ end;
 {$endif SUPPORT_SINGLE}
 
 {$ifdef SUPPORT_EXTENDED}
-procedure val(const s : string;var d : extended;var code : word);
+
+{ we have to define val for reals, if extended is supported }
+
+procedure val(const s : string;var d : real;var code : word);
 var
-  e : double;
+  e : valreal;
 begin
   val(s,e,code);
   d:=e;
 end;
 
 
-procedure val(const s : string;var d : extended;var code : integer);
+procedure val(const s : string;var d : real;var code : integer);
 var
-  e : double;
+   e : valreal;
 begin
   val(s,e,word(code));
   d:=e;
 end;
 
 
-procedure val(const s : string;var d : extended);
+procedure val(const s : string;var d : real);
 var
   code : word;
-  e    : double;
+  e    : valreal;
 begin
   val(s,e,code);
   d:=e;
@@ -644,7 +645,7 @@ end;
 {$ifdef SUPPORT_COMP}
 procedure val(const s : string;var d : comp;var code : word);
 var
-  e : double;
+  e : valreal;
 begin
   val(s,e,code);
   d:=comp(e);
@@ -653,7 +654,7 @@ end;
 
 procedure val(const s : string;var d : comp;var code : integer);
 var
-  e : double;
+  e : valreal;
 begin
   val(s,e,word(code));
   d:=comp(e);
@@ -663,7 +664,7 @@ end;
 procedure val(const s : string;var d : comp);
 var
   code : word;
-  e    : double;
+  e    : valreal;
 begin
   val(s,e,code);
   d:=comp(e);
@@ -717,7 +718,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  1998-07-18 17:14:23  florian
+  Revision 1.10  1998-08-08 12:28:13  florian
+    * a lot small fixes to the extended data type work
+
+  Revision 1.9  1998/07/18 17:14:23  florian
     * strlenint type implemented
 
   Revision 1.8  1998/07/10 11:02:38  peter

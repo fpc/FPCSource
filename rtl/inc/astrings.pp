@@ -251,17 +251,15 @@ end;
 
 
 
-Procedure Ansi_To_ShortString (Var S1 : ShortString; Var S2 : AnsiString; Maxlen : Longint);
+Procedure Ansi_To_ShortString (Var S1 : ShortString;const S2 : AnsiString; Maxlen : Longint);
+  [Public, alias: 'FPC_TO_ANSISTRING_SHORT'];
 {
  Converts a AnsiString to a ShortString;
- if maxlen<>-1, the resulting string has maximal length maxlen
- else a default length of 255 is taken. 
 }
 Var Size : Longint;
 
 begin
   Size:=PAnsiRec(Pointer(S2)-FirstOff)^.Len;
-  if maxlen=-1 then maxlen:=255;
   If Size>maxlen then Size:=maxlen;
   Move (Pointer(S2)^,S1[1],Size);
   byte(S1[0]):=Size;
@@ -269,7 +267,8 @@ end;
 
 
 
-Procedure Short_To_AnsiString (Var S1 : AnsiString; Var S2 : ShortString);
+Procedure Short_To_AnsiString (Const S1 : AnsiString; Var S2 : ShortString);
+  [Public, alias: 'FPC_SHORT_TO_ANSISTRING'];
 {
  Converts a ShortString to a AnsiString;
 }
@@ -280,7 +279,8 @@ begin
   Size:=Byte(S2[0]);
   Setlength (S1,Size);
   Move (S2[1],Pointer(S1)^,Size);
-  PByte(Pointer(S1)+Size)^:=0; { Terminating Zero }
+  { Terminating Zero }
+  PByte(Pointer(S1)+Size)^:=0;
 end;
 
 
@@ -676,7 +676,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1998-07-29 21:44:34  michael
+  Revision 1.11  1998-08-08 12:28:10  florian
+    * a lot small fixes to the extended data type work
+
+  Revision 1.10  1998/07/29 21:44:34  michael
   + Implemented reading/writing of ansistrings
 
   Revision 1.9  1998/07/20 23:36:56  michael

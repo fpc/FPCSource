@@ -36,6 +36,7 @@ Type
 { at least declare Turbo Pascal real types }
 {$ifdef i386}
   Double = real;
+  ValReal = Extended;
   {$define SUPPORT_EXTENDED}
   {$define SUPPORT_COMP}
   {$define SUPPORT_SINGLE}
@@ -44,6 +45,7 @@ Type
 
 {$ifdef m68k}
    StrLenInt = Integer;
+   ValReal = Real;
    {$ifdef USEANSISTRINGS}
       {$error StrLenInt must be a longint if ansi strings are used}
    {$endif}
@@ -242,18 +244,21 @@ Procedure Val(const s:string;Var b:Word);
 Procedure Val(const s:string;Var b:Integer;Var code:Word);
 Procedure Val(const s:string;Var b:Integer;Var code:Integer);
 Procedure Val(const s:string;Var b:Integer);
-Procedure Val(const s:string;Var d:Real;Var code:Word);
-Procedure Val(const s:string;Var d:Real;Var code:Integer);
-Procedure Val(const s:string;Var d:Real);
+Procedure Val(const s:string;Var d:ValReal;Var code:Word);
+Procedure Val(const s:string;Var d:ValReal;Var code:Integer);
+Procedure Val(const s:string;Var d:ValReal);
 {$ifdef SUPPORT_SINGLE}
 Procedure Val(const s:string;Var d:single;Var code:Word);
 Procedure Val(const s:string;Var d:single;Var code:Integer);
 Procedure Val(const s:string;Var d:single);
 {$endif SUPPORT_SINGLE}
 {$ifdef SUPPORT_EXTENDED}
-Procedure Val(const s:string;Var d:Extended;Var code:Word);
-Procedure Val(const s:string;Var d:Extended;Var code:Integer);
-Procedure Val(const s:string;Var d:Extended);
+{ if extended is supported, valreal is an extended, so we
+  have to define the real routines
+}
+Procedure Val(const s:string;Var d:Real;Var code:Word);
+Procedure Val(const s:string;Var d:Real;Var code:Integer);
+Procedure Val(const s:string;Var d:Real);
 {$endif SUPPORT_EXTENDED}
 {$ifdef SUPPORT_COMP}
 Procedure Val(const s:string;Var d:comp;Var code:Word);
@@ -410,7 +415,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.21  1998-07-30 13:26:17  michael
+  Revision 1.22  1998-08-08 12:28:14  florian
+    * a lot small fixes to the extended data type work
+
+  Revision 1.21  1998/07/30 13:26:17  michael
   + Added support for ErrorProc variable. All internal functions are required
     to call HandleError instead of runerror from now on.
     This is necessary for exception support.
