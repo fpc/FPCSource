@@ -660,14 +660,14 @@ Procedure FD_Clr(fd:longint;var fds:fdSet);
 Procedure FD_Set(fd:longint;var fds:fdSet);
 Function  FD_IsSet(fd:longint;var fds:fdSet):boolean;
 {Stat.Mode Types}
-Function S_ISLNK(m:integer):boolean;
-Function S_ISREG(m:integer):boolean;
-Function S_ISDIR(m:integer):boolean;
+Function S_ISLNK(m:word):boolean;
+Function S_ISREG(m:word):boolean;
+Function S_ISDIR(m:word):boolean;
 
-Function S_ISCHR(m:integer):boolean;
-Function S_ISBLK(m:integer):boolean;
-Function S_ISFIFO(m:integer):boolean;
-Function S_ISSOCK(m:integer):boolean;
+Function S_ISCHR(m:word):boolean;
+Function S_ISBLK(m:word):boolean;
+Function S_ISFIFO(m:word):boolean;
+Function S_ISSOCK(m:word):boolean;
 
 
 {******************************************************************************
@@ -3235,7 +3235,7 @@ end;
       Stat.Mode Macro's
 --------------------------------}
 
-Function S_ISLNK(m:integer):boolean;
+Function S_ISLNK(m:word):boolean;
 {
   Check mode field of inode for link.
 }
@@ -3245,7 +3245,7 @@ end;
 
 
 
-Function S_ISREG(m:integer):boolean;
+Function S_ISREG(m:word):boolean;
 {
   Check mode field of inode for regular file.
 }
@@ -3255,7 +3255,7 @@ end;
 
 
 
-Function S_ISDIR(m:integer):boolean;
+Function S_ISDIR(m:word):boolean;
 
 {
   Check mode field of inode for directory.
@@ -3266,7 +3266,7 @@ end;
 
 
 
-Function S_ISCHR(m:integer):boolean;
+Function S_ISCHR(m:word):boolean;
 {
   Check mode field of inode for character device.
 }
@@ -3276,7 +3276,7 @@ end;
 
 
 
-Function S_ISBLK(m:integer):boolean;
+Function S_ISBLK(m:word):boolean;
 {
   Check mode field of inode for block device.
 }
@@ -3286,7 +3286,7 @@ end;
 
 
 
-Function S_ISFIFO(m:integer):boolean;
+Function S_ISFIFO(m:word):boolean;
 {
   Check mode field of inode for named pipe (FIFO).
 }
@@ -3296,7 +3296,7 @@ end;
 
 
 
-Function S_ISSOCK(m:integer):boolean;
+Function S_ISSOCK(m:word):boolean;
 {
   Check mode field of inode for socket.
 }
@@ -3521,7 +3521,10 @@ End.
 
 {
   $Log$
-  Revision 1.32  1999-02-22 12:50:53  peter
+  Revision 1.33  1999-03-11 12:02:03  peter
+    * s_is<x> functions have now word para instead of integer
+
+  Revision 1.32  1999/02/22 12:50:53  peter
     * fixed dup() to have var para
 
   Revision 1.31  1999/02/22 11:47:42  peter
