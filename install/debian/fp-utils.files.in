@@ -10,10 +10,10 @@
 /usr/bin/plex 
 /usr/bin/pyacc
 /usr/bin/h2pas
-/usr/lib/fpc/0.99.13/units/linux/lexlib.ppu 
-/usr/lib/fpc/0.99.13/units/linux/yacclib.ppu
-/usr/lib/fpc/0.99.13/units/linux/lexlib.o 
-/usr/lib/fpc/0.99.13/units/linux/yacclib.o
+/usr/lib/fpc/%{fpcversion}/units/linux/lexlib.ppu 
+/usr/lib/fpc/%{fpcversion}/units/linux/yacclib.ppu
+/usr/lib/fpc/%{fpcversion}/units/linux/lexlib.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/yacclib.o
 /usr/lib/fpc/lexyacc/yylex.cod 
 /usr/lib/fpc/lexyacc/yyparse.cod
 /usr/share/man/man1/delp.1

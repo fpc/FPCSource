@@ -1,18 +1,18 @@
 
-/usr/lib/fpc/#FPCVERSION#/units/linux/ibase.ppu
+/usr/lib/fpc/%{fpcversion}/units/linux/ibase.ppu
 
-/usr/lib/fpc/#FPCVERSION#/units/linux/ibase.o
+/usr/lib/fpc/%{fpcversion}/units/linux/ibase.o
 
-/usr/lib/fpc/#FPCVERSION#/units/linux/mysql_com.ppu 
-/usr/lib/fpc/#FPCVERSION#/units/linux/mysql_version.ppu 
-/usr/lib/fpc/#FPCVERSION#/units/linux/mysql.ppu
+/usr/lib/fpc/%{fpcversion}/units/linux/mysql_com.ppu 
+/usr/lib/fpc/%{fpcversion}/units/linux/mysql_version.ppu 
+/usr/lib/fpc/%{fpcversion}/units/linux/mysql.ppu
 
-/usr/lib/fpc/#FPCVERSION#/units/linux/mysql_com.o 
-/usr/lib/fpc/#FPCVERSION#/units/linux/mysql_version.o 
-/usr/lib/fpc/#FPCVERSION#/units/linux/mysql.o
+/usr/lib/fpc/%{fpcversion}/units/linux/mysql_com.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/mysql_version.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/mysql.o
 
-/usr/lib/fpc/#FPCVERSION#/units/linux/dllist.ppu 
-/usr/lib/fpc/#FPCVERSION#/units/linux/postgres.ppu
+/usr/lib/fpc/%{fpcversion}/units/linux/dllist.ppu 
+/usr/lib/fpc/%{fpcversion}/units/linux/postgres.ppu
 
-/usr/lib/fpc/#FPCVERSION#/units/linux/dllist.o 
-/usr/lib/fpc/#FPCVERSION#/units/linux/postgres.o
+/usr/lib/fpc/%{fpcversion}/units/linux/dllist.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/postgres.o

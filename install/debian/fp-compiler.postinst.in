@@ -1,6 +1,6 @@
 #! /bin/sh
 
-FPCDIR=/usr/lib/fpc/#FPCVERSION#
+FPCDIR=/usr/lib/fpc/%{fpcversion}
 
 # create link
 ln -sf $FPCDIR/ppc386 /usr/bin/ppc386

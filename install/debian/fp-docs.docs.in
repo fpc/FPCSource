@@ -1,4 +1,4 @@
-debian/tmp/usr/share/doc/fpc/#FPCVERSION#/user.pdf
-debian/tmp/usr/share/doc/fpc/#FPCVERSION#/prog.pdf
-debian/tmp/usr/share/doc/fpc/#FPCVERSION#/ref.pdf
-debian/tmp/usr/share/doc/fpc/#FPCVERSION#/units.pdf
+debian/tmp/usr/share/doc/fpc/%{fpcversion}/user.pdf
+debian/tmp/usr/share/doc/fpc/%{fpcversion}/prog.pdf
+debian/tmp/usr/share/doc/fpc/%{fpcversion}/ref.pdf
+debian/tmp/usr/share/doc/fpc/%{fpcversion}/units.pdf

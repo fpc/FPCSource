@@ -1,11 +1,11 @@
 
-/usr/lib/fpc/0.99.13/units/linux/glib.ppu 
-/usr/lib/fpc/0.99.13/units/linux/gmodule.ppu 
-/usr/lib/fpc/0.99.13/units/linux/gdk.ppu 
-/usr/lib/fpc/0.99.13/units/linux/gtk.ppu
+/usr/lib/fpc/%{fpcversion}/units/linux/glib.ppu 
+/usr/lib/fpc/%{fpcversion}/units/linux/gmodule.ppu 
+/usr/lib/fpc/%{fpcversion}/units/linux/gdk.ppu 
+/usr/lib/fpc/%{fpcversion}/units/linux/gtk.ppu
 
-/usr/lib/fpc/0.99.13/units/linux/glib.o 
-/usr/lib/fpc/0.99.13/units/linux/gdk.o 
-/usr/lib/fpc/0.99.13/units/linux/gtk.o
+/usr/lib/fpc/%{fpcversion}/units/linux/glib.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/gdk.o 
+/usr/lib/fpc/%{fpcversion}/units/linux/gtk.o
 
 /usr/share/doc/fp-units-gtk/

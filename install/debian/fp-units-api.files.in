@@ -1,1 +1,1 @@
-/usr/lib/fpc/#FPCVERSION#/units/linux/api
+/usr/lib/fpc/%{fpcversion}/units/linux/api
