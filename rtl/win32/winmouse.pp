@@ -126,7 +126,7 @@ unit winmouse;
          Windows.ShowCursor(false);
       end;
 
-    function msghandler(Window: hwnd; AMessage, WParam: Longword; LParam: Longint): Longint;
+    function msghandler(Window: HWnd; AMessage:UInt; WParam : WParam; LParam: LParam): Longint; stdcall;
 
       begin
          { we catch the double click messages here too, }
@@ -199,7 +199,10 @@ unit winmouse;
   end.
 {
   $Log$
-  Revision 1.5  2003-04-23 11:22:12  peter
+  Revision 1.6  2003-04-23 11:35:00  peter
+    * wndproc definition fixed
+
+  Revision 1.5  2003/04/23 11:22:12  peter
     * fixed msghandler declarations
 
   Revision 1.4  2002/09/07 16:01:29  peter

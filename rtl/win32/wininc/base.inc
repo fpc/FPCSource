@@ -242,7 +242,7 @@
      ULONG  = cardinal;
      USHORT = word;
 
-     WPARAM = cardinal;
+     WPARAM = Longint;
      PLPSTR = ^LPSTR;
      PLPWStr= ^LPWStr;
 
@@ -937,7 +937,10 @@ type
 
 {
   $Log$
-  Revision 1.16  2003-04-01 15:37:17  peter
+  Revision 1.17  2003-04-23 11:35:00  peter
+    * wndproc definition fixed
+
+  Revision 1.16  2003/04/01 15:37:17  peter
     * HResult is alias for System.HResult
     * Handle is unique type of Cardinal
 

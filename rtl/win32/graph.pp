@@ -23,17 +23,12 @@ uses
 
   var
     { this procedure allows to hook keyboard messages }
-    charmessagehandler : function(Window: hwnd; AMessage, WParam : longword;
-                                  LParam: Longint): Longint;
+    charmessagehandler : WndProc;
     { this procedure allows to hook mouse messages }
-    mousemessagehandler : function(Window: hwnd; AMessag, WParam : longword;
-                                   LParam: Longint): Longint;
+    mousemessagehandler : WndProc;
     { this procedure allows to wm_command messages }
-    commandmessagehandler : function(Window: hwnd; AMessage, WParam : longword;
-                                   LParam: Longint): Longint;
-
-    NotifyMessageHandler : function(Window: hwnd; AMessage, WParam,
-                                   LParam: Longint): Longint;
+    commandmessagehandler : WndProc;
+    NotifyMessageHandler : WndProc;
 
     OnGraphWindowCreation : procedure;
 
@@ -1165,8 +1160,8 @@ procedure restorestate;
   begin
   end;
 
-function WindowProcGraph(Window: HWnd; AMessage, WParam : longword;
-                    LParam: Longint): Longint; stdcall; export;
+function WindowProcGraph(Window: HWnd; AMessage:UInt; WParam : WParam;
+                    LParam: LParam): Longint; stdcall;
 
   var
      dc : hdc;
@@ -1323,8 +1318,8 @@ begin
   end;
 end;
 
-function WindowProcParent(Window: HWnd; AMessage, WParam : longword;
-                    LParam: Longint): Longint; stdcall; export;
+function WindowProcParent(Window: HWnd; AMessage:UInt; WParam : WParam;
+                    LParam: LParam): Longint; stdcall;
 
 begin
   WindowProcParent := 0;
@@ -2227,7 +2222,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-04-23 11:08:09  florian
+  Revision 1.12  2003-04-23 11:35:00  peter
+    * wndproc definition fixed
+
+  Revision 1.11  2003/04/23 11:08:09  florian
     * fixed parameter types
 
   Revision 1.10  2002/09/07 16:01:28  peter
