@@ -5,8 +5,8 @@
     This unit implements some support functions
 
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU General Public License as published 
+    by the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
@@ -18,8 +18,12 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
- ****************************************************************************
+ 
+****************************************************************************
 }
+{# This unit contains some generic support functions which are used
+   in the different parts of the compiler.
+}   
 unit cutils;
 
 {$i defines.inc}
@@ -35,11 +39,17 @@ interface
     type
        pstring = ^string;
 
+    {# Returns the minimal value between @var(a) and @var(b) }
     function min(a,b : longint) : longint;
+    {# Returns the maximum value between @var(a) and @var(b) }
     function max(a,b : longint) : longint;
+    {# Returns the value in @var(x) swapped to different endian }
     function SwapLong(x : longint): longint;
+    {# Returns the value in @va(x) swapped to different endian }
     function SwapWord(x : word): word;
+    {# Return value @var(i) aligned on @var(a) boundary }
     function align(i,a:longint):longint;
+    
     function used_align(varalign,minalign,maxalign:longint):longint;
     function size_2_align(len : longint) : longint;
     procedure Replace(var s:string;s1:string;const s2:string);
@@ -56,7 +66,11 @@ interface
     function int64tostr(i : int64) : string;
     function tostr_with_plus(i : longint) : string;
     procedure valint(S : string;var V : longint;var code : integer);
+    {# Returns true if the string s is a number }
     function is_number(const s : string) : boolean;
+    {# Returns true if value is a power of 2, the actual  
+       exponent value is returned in power.
+    }
     function ispowerof2(value : int64;var power : longint) : boolean;
     function maybequoted(const s:string):string;
     function CompareText(S1, S2: string): longint;
@@ -70,12 +84,16 @@ interface
     { a pointer to this mem                                           }
     function stringdup(const s : string) : pstring;
 
-    { allocates memory for s and copies s as zero terminated string
-      to that mem and returns a pointer to that mem }
+    {# Allocates memory for the string @var(s) and copies s as zero 
+       terminated string to that allocated memory and returns a pointer 
+       to that mem 
+    }
     function  strpnew(const s : string) : pchar;
     procedure strdispose(var p : pchar);
 
-    { makes a char lowercase, with spanish, french and german char set }
+    {# makes the character @var(c) lowercase, with spanish, french and german 
+       character set 
+    }
     function lowercase(c : char) : char;
 
     { makes zero terminated string to a pascal string }
@@ -685,7 +703,7 @@ uses
     { 0 means equal }
     { 1 means p1 > p2 }
     { -1 means p1 < p2 }
-    function compareansistrings(p1,p2 : pchar;length1,length2 : longint) : longint;
+    function compareansistrings(p1,p2 : pchar;length1,length2 :  longint) : longint;
       var
          i,j : longint;
       begin
@@ -747,63 +765,8 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2002-04-02 17:11:28  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.12  2001/11/18 18:43:13  peter
-    * overloading supported in child classes
-    * fixed parsing of classes with private and virtual and overloaded
-      so it is compatible with delphi
-
-  Revision 1.11  2001/09/05 15:20:26  jonas
-    * ispowerf2 now works with 64bit ints and should be faster
-
-  Revision 1.10  2001/08/04 11:06:30  peter
-    * browcol has no depends on ide/fv
-
-  Revision 1.9  2001/07/30 20:59:27  peter
-    * m68k updates from v10 merged
-
-  Revision 1.8  2001/07/01 20:16:15  peter
-    * alignmentinfo record added
-    * -Oa argument supports more alignment settings that can be specified
-      per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
-      RECORDMAX,LOCALMIN,LOCALMAX. It is possible to set the mimimum
-      required alignment and the maximum usefull alignment. The final
-      alignment will be choosen per variable size dependent on these
-      settings
-
-  Revision 1.7  2001/06/18 20:36:23  peter
-    * -Ur switch (merged)
-    * masm fixes (merged)
-    * quoted filenames for go32v2 and win32
-
-  Revision 1.6  2001/05/09 14:11:10  jonas
-    * range check error fixes from Peter
-
-  Revision 1.5  2000/12/24 12:25:31  peter
-    + cstreams unit
-    * dynamicarray object to class
-
-  Revision 1.4  2000/11/28 00:17:43  pierre
-   + int64tostr function added
-
-  Revision 1.3  2000/11/07 20:47:35  peter
-    * use tables for upper/lower
-
-  Revision 1.2  2000/09/24 15:06:14  peter
-    * use defines.inc
-
-  Revision 1.1  2000/08/27 16:11:50  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
+  Revision 1.14  2002-04-12 17:16:35  carl
+  + more documentation of basic unit
 
 }
+
