@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1998-2000 by Pavel Ozerski and Pierre Muller
+    Copyright (c) 1998-2000 by Pavel Ozerski
 
     This program implements support post processing
     for the (i386) Win32 target
@@ -26,22 +26,22 @@ program post_process_win32_executable;
 
 
 uses
-  globtype,globals,t_win32,strings;
+  globtype,globals,strings;
 
 const
-  execinfo_f_cant_open_executable='Cannot open file ';
-  execinfo_x_codesize='Code size: ';
-  execinfo_x_initdatasize='Size of Initialized Data: ';
-  execinfo_x_uninitdatasize='Size of Uninitialized Data: ';
-  execinfo_f_cant_process_executable='Cannot process file ';
-  execinfo_x_stackreserve='Size of Stack Reserve: ';
-  execinfo_x_stackcommit='Size of Stack Commit: ';
-
+execinfo_f_cant_open_executable='Cannot open file ';
+execinfo_x_codesize='Code size: ';
+execinfo_x_initdatasize='Size of Initialized Data: ';
+execinfo_x_uninitdatasize='Size of Uninitialized Data: ';
+execinfo_f_cant_process_executable='Cannot process file ';
+execinfo_x_stackreserve='Size of Stack Reserve: ';
+execinfo_x_stackcommit='Size of Stack Commit: ';
 var
-  verbose:longbool;
-  ii,jj,p:longint;
-  x:single;
-  code:integer;
+verbose:longbool;
+ii,jj:longint;
+code:integer;
+DllVersion : sTring;
+Dllmajor,Dllminor : word;
 
 procedure Message1(const info,fn:string);
 var
@@ -54,10 +54,195 @@ begin
    halt(1);
 end;
 
+
+function postprocessexecutable(const fn : string;isdll:boolean):boolean;
+type
+  tdosheader = packed record
+     e_magic : word;
+     e_cblp : word;
+     e_cp : word;
+     e_crlc : word;
+     e_cparhdr : word;
+     e_minalloc : word;
+     e_maxalloc : word;
+     e_ss : word;
+     e_sp : word;
+     e_csum : word;
+     e_ip : word;
+     e_cs : word;
+     e_lfarlc : word;
+     e_ovno : word;
+     e_res : array[0..3] of word;
+     e_oemid : word;
+     e_oeminfo : word;
+     e_res2 : array[0..9] of word;
+     e_lfanew : longint;
+  end;
+  tpeheader = packed record
+     PEMagic : array[0..3] of char;
+     Machine : word;
+     NumberOfSections : word;
+     TimeDateStamp : longint;
+     PointerToSymbolTable : longint;
+     NumberOfSymbols : longint;
+     SizeOfOptionalHeader : word;
+     Characteristics : word;
+     Magic : word;
+     MajorLinkerVersion : byte;
+     MinorLinkerVersion : byte;
+     SizeOfCode : longint;
+     SizeOfInitializedData : longint;
+     SizeOfUninitializedData : longint;
+     AddressOfEntryPoint : longint;
+     BaseOfCode : longint;
+     BaseOfData : longint;
+     ImageBase : longint;
+     SectionAlignment : longint;
+     FileAlignment : longint;
+     MajorOperatingSystemVersion : word;
+     MinorOperatingSystemVersion : word;
+     MajorImageVersion : word;
+     MinorImageVersion : word;
+     MajorSubsystemVersion : word;
+     MinorSubsystemVersion : word;
+     Reserved1 : longint;
+     SizeOfImage : longint;
+     SizeOfHeaders : longint;
+     CheckSum : longint;
+     Subsystem : word;
+     DllCharacteristics : word;
+     SizeOfStackReserve : longint;
+     SizeOfStackCommit : longint;
+     SizeOfHeapReserve : longint;
+     SizeOfHeapCommit : longint;
+     LoaderFlags : longint;
+     NumberOfRvaAndSizes : longint;
+     DataDirectory : array[1..$80] of byte;
+  end;
+  tcoffsechdr=packed record
+    name     : array[0..7] of char;
+    vsize    : longint;
+    rvaofs   : longint;
+    datalen  : longint;
+    datapos  : longint;
+    relocpos : longint;
+    lineno1  : longint;
+    nrelocs  : word;
+    lineno2  : word;
+    flags    : longint;
+  end;
+  psecfill=^tsecfill;
+  tsecfill=record
+    fillpos,
+    fillsize : longint;
+    next : psecfill;
+  end;
 var
-  l:tlinkerwin32;
+  f : file;
+  dosheader : tdosheader;
+  peheader : tpeheader;
+  firstsecpos,
+  maxfillsize,
+  l,peheaderpos : longint;
+  coffsec : tcoffsechdr;
+  secroot,hsecroot : psecfill;
+  zerobuf : pointer;
+begin
+  postprocessexecutable:=false;
+  { open file }
+  assign(f,fn);
+  {$I-}
+   reset(f,1);
+  if ioresult<>0 then
+    Message1(execinfo_f_cant_open_executable,fn);
+  { read headers }
+  blockread(f,dosheader,sizeof(tdosheader));
+  peheaderpos:=dosheader.e_lfanew;
+  seek(f,peheaderpos);
+  blockread(f,peheader,sizeof(tpeheader));
+  { write info }
+  Message1(execinfo_x_codesize,tostr(peheader.SizeOfCode));
+  Message1(execinfo_x_initdatasize,tostr(peheader.SizeOfInitializedData));
+  Message1(execinfo_x_uninitdatasize,tostr(peheader.SizeOfUninitializedData));
+  { change stack size (PM) }
+  { I am not sure that the default value is adequate !! }
+  peheader.SizeOfStackReserve:=stacksize;
+  { change the header }
+  { sub system }
+  { gui=2 }
+  { cui=3 }
+  if apptype=at_gui then
+    peheader.Subsystem:=2
+  else if apptype=at_cui then
+    peheader.Subsystem:=3;
+  if dllversion<>'' then
+    begin
+     peheader.MajorImageVersion:=dllmajor;
+     peheader.MinorImageVersion:=dllminor;
+    end;
+  { reset timestamp }
+  peheader.TimeDateStamp:=0;
+  { write header back }
+  seek(f,peheaderpos);
+  blockwrite(f,peheader,sizeof(tpeheader));
+  if ioresult<>0 then
+    Message1(execinfo_f_cant_process_executable,fn);
+  seek(f,peheaderpos);
+  blockread(f,peheader,sizeof(tpeheader));
+  { write the value after the change }
+  Message1(execinfo_x_stackreserve,tostr(peheader.SizeOfStackReserve));
+  Message1(execinfo_x_stackcommit,tostr(peheader.SizeOfStackCommit));
+  { read section info }
+  maxfillsize:=0;
+  firstsecpos:=0;
+  secroot:=nil;
+  for l:=1to peheader.NumberOfSections do
+   begin
+     blockread(f,coffsec,sizeof(tcoffsechdr));
+     if coffsec.datapos>0 then
+      begin
+        if secroot=nil then
+         firstsecpos:=coffsec.datapos;
+        new(hsecroot);
+        hsecroot^.fillpos:=coffsec.datapos+coffsec.vsize;
+        hsecroot^.fillsize:=coffsec.datalen-coffsec.vsize;
+        hsecroot^.next:=secroot;
+        secroot:=hsecroot;
+        if secroot^.fillsize>maxfillsize then
+         maxfillsize:=secroot^.fillsize;
+      end;
+   end;
+  if firstsecpos>0 then
+   begin
+     l:=firstsecpos-filepos(f);
+     if l>maxfillsize then
+      maxfillsize:=l;
+   end
+  else
+   l:=0;
+  { get zero buffer }
+  getmem(zerobuf,maxfillsize);
+  fillchar(zerobuf^,maxfillsize,0);
+  { zero from sectioninfo until first section }
+  blockwrite(f,zerobuf^,l);
+  { zero section alignments }
+  while assigned(secroot) do
+   begin
+     seek(f,secroot^.fillpos);
+     blockwrite(f,zerobuf^,secroot^.fillsize);
+     hsecroot:=secroot;
+     secroot:=secroot^.next;
+     dispose(hsecroot);
+   end;
+  freemem(zerobuf,maxfillsize);
+  close(f);
+  {$I+}
+  if ioresult<>0 then;
+  postprocessexecutable:=true;
+end;
+
+var
   fn,s:string;
-  isDll:boolean;
 
 function GetSwitchValue(const key,shortkey,default:string;const PossibleValues:array of pchar):string;
 var
@@ -126,13 +311,11 @@ begin
   writeln('-i | --input <file>              - set input file;');
   writeln('-m | --subsystem <console | gui> - set Win32 subsystem;');
   writeln('-s | --stack <size>              - set stack size;');
-  writeln('-t | --type <exe | dll>          - define binary type;');
   writeln('-V | --version <n.n>             - set image version;');
   writeln('-v | --verbose                   - show info while processing;');
   writeln('-h | --help | -?                 - show this screen');
   halt;
 end;
-
 begin
 aktglobalswitches:=[];
 verbose:=false;
@@ -159,28 +342,20 @@ else
   apptype:=at_cui;
 
 dllversion:=GetSwitchValue('--version','-V','1.0',['*r']);
-{ val(dllversion,x,code);
-dllmajor:=trunc(x);
-dllminor:=trunc(frac(x)*10);
- This does not work for 1.12 !! PM }
-p:=pos('.',dllversion);
-if p=0 then
+ii:=pos('.',dllversion);
+if ii=0 then
   begin
-    dllminor:=0;
-    val(dllversion,dllmajor,code);
+   ii:=succ(length(dllversion));
+   dllversion:=dllversion+'.0';
   end
-else
+else if ii=1 then
   begin
-    val(copy(dllversion,1,p-1),dllmajor,code);
-    val(copy(dllversion,p+1,255),dllminor,code);
+   ii:=2;
+   dllversion:='0.'+dllversion;
   end;
-
-isDll:=GetSwitchValue('--type','-t','exe',['exe','dll'])='dll';
-{ if isDLL then
-  aktglobalswitches:=[cs_link_extern];
-  no because otherwise you don't change anything to a dll !!
-  by the way why not simply use the suffix ?? PM }
-l.init;
-l.PostProcessExecutable(fn,isdll);
-
+val(copy(dllversion,1,pred(ii)),dllmajor,code);
+val(copy(dllversion,succ(ii),length(dllversion)),dllminor,code);
+if verbose then
+  writeln('Image Version: ',dllmajor,'.',dllminor);
+PostProcessExecutable(fn,false);
 end.
