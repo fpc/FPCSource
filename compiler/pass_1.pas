@@ -2040,16 +2040,24 @@ unit pass_1;
          { the register calculation is easy if a const index is used }
          if p^.right^.treetype=ordconstn then
            begin
-              p^.registers32:=p^.left^.registers32
-              {
-              if is_ansistring(p^.left^.
-              }
+              p^.registers32:=p^.left^.registers32;
+
+              { for ansi/wide strings, we need at least one register }
+              if is_ansistring(p^.left^.resulttype) or
+                is_widestring(p^.left^.resulttype) then
+                p^.registers32:=max(p^.registers32,1);
            end
          else
            begin
               { this rules are suboptimal, but they should give }
               { good results                                    }
               p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
+
+              { for ansi/wide strings, we need at least one register }
+              if is_ansistring(p^.left^.resulttype) or
+                is_widestring(p^.left^.resulttype) then
+                p^.registers32:=max(p^.registers32,1);
+
               { need we an extra register when doing the restore ? }
               if (p^.left^.registers32<=p^.right^.registers32) and
               { only if the node needs less than 3 registers }
@@ -5092,7 +5100,12 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.44  1998-07-24 22:16:59  florian
+  Revision 1.45  1998-07-26 21:58:59  florian
+   + better support for switch $H
+   + index access to ansi strings added
+   + assigment of data (records/arrays) containing ansi strings
+
+  Revision 1.44  1998/07/24 22:16:59  florian
     * internal error 10 together with array access fixed. I hope
       that's the final fix.
 

@@ -486,14 +486,20 @@ unit pdecl;
               disposetree(p);
            end
            { should string without suffix be an ansistring also
-             in ansistring mode ?? (PM) }
+             in ansistring mode ?? (PM) Yes!!! (FK) }
+          else
+            begin
+               if cs_ansistrings in aktswitches then
+                 d:=new(pstringdef,ansiinit(0))
+               else
 {$ifndef GDB}
-                 else d:=new(pstringdef,init(255));
+                 d:=new(pstringdef,init(255));
 {$else GDB}
-                 else d:=globaldef('STRING');
+                 d:=globaldef('STRING');
 {$endif GDB}
-                 stringtype:=d;
-          end;
+            end;
+          stringtype:=d;
+       end;
 
 
     function id_type(var s : string) : pdef;
@@ -518,20 +524,20 @@ unit pdecl;
          getsym(s,true);
          if assigned(srsym) then
            begin
-                  if srsym^.typ=unitsym then
-                        begin
-                           consume(POINT);
-                           getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
-                           s:=pattern;
-                           consume(ID);
-                        end;
-                  if srsym^.typ<>typesym then
-                        begin
-                           Message(sym_e_type_id_expected);
-                           lasttypesym:=ptypesym(srsym);
-                           id_type:=generrordef;
-                           exit;
-                        end;
+              if srsym^.typ=unitsym then
+                begin
+                   consume(POINT);
+                   getsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
+                   s:=pattern;
+                   consume(ID);
+                end;
+              if srsym^.typ<>typesym then
+                begin
+                   Message(sym_e_type_id_expected);
+                   lasttypesym:=ptypesym(srsym);
+                   id_type:=generrordef;
+                   exit;
+                end;
            end;
          lasttypesym:=ptypesym(srsym);
          id_type:=ptypesym(srsym)^.definition;
@@ -1875,7 +1881,12 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.34  1998-07-20 22:17:15  florian
+  Revision 1.35  1998-07-26 21:59:00  florian
+   + better support for switch $H
+   + index access to ansi strings added
+   + assigment of data (records/arrays) containing ansi strings
+
+  Revision 1.34  1998/07/20 22:17:15  florian
     * hex constants in numeric char (#$54#$43 ...) are now allowed
     * there was a bug in record_var_dec which prevents the used
       of nested variant records (for example drivers.tevent of tv)

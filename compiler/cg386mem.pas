@@ -325,11 +325,40 @@ implementation
 
       begin
          secondpass(p^.left);
-         set_location(p^.location,p^.left^.location);
 
-         { in ansistrings S[1] is pchar(S)[0] !! }
-         if is_ansistring(p^.left^.resulttype) then
-           dec(p^.location.reference.offset);
+         { we load the array reference to p^.location }
+
+         { an ansistring needs to be dereferenced }
+         if is_ansistring(p^.left^.resulttype) or
+           is_widestring(p^.left^.resulttype) then
+           begin
+              reset_reference(p^.location.reference);
+              p^.location.loc:=LOC_REFERENCE;
+              del_reference(p^.left^.location.reference);
+              p^.location.reference.base:=getregister32;
+              exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                newreference(p^.left^.location.reference),
+                p^.location.reference.base)));
+              if is_ansistring(p^.left^.resulttype) then
+                begin
+                   { in ansistrings S[1] is pchar(S)[0] !! }
+                   dec(p^.location.reference.offset);
+                   { this is necessary for ansistrings with constant index }
+                   dec(p^.left^.location.reference.offset);
+                end
+              else
+                begin
+                   { in widestrings S[1] is pwchar(S)[0] !! }
+                   dec(p^.location.reference.offset,2);
+                   { this is necessary for ansistrings with constant index }
+                   dec(p^.left^.location.reference.offset,2);
+                   exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,
+                     2,p^.location.reference.base)));
+                end;
+           end
+         else
+           set_location(p^.location,p^.left^.location);
+
          { offset can only differ from 0 if arraydef }
          if p^.left^.resulttype^.deftype=arraydef then
            dec(p^.location.reference.offset,
@@ -340,14 +369,14 @@ implementation
               if (p^.left^.resulttype^.deftype=arraydef) then
                 begin
                    if not(is_open_array(p^.left^.resulttype)) then
-                         begin
+                     begin
                         if (p^.right^.value>parraydef(p^.left^.resulttype)^.highrange) or
                            (p^.right^.value<parraydef(p^.left^.resulttype)^.lowrange) then
                           Message(parser_e_range_check_error);
 
                         dec(p^.left^.location.reference.offset,
                             get_mul_size*parraydef(p^.left^.resulttype)^.lowrange);
-                         end
+                     end
                    else
                      begin
                         { range checking for open arrays }
@@ -579,7 +608,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-07-24 22:16:55  florian
+  Revision 1.5  1998-07-26 21:58:58  florian
+   + better support for switch $H
+   + index access to ansi strings added
+   + assigment of data (records/arrays) containing ansi strings
+
+  Revision 1.4  1998/07/24 22:16:55  florian
     * internal error 10 together with array access fixed. I hope
       that's the final fix.
 

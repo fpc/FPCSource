@@ -249,6 +249,8 @@ implementation
          otlabel,hlabel,oflabel : plabel;
          hregister : tregister;
          loc : tloc;
+         r : preference;
+
       begin
          otlabel:=truelabel;
          oflabel:=falselabel;
@@ -362,7 +364,7 @@ implementation
         else case p^.right^.location.loc of
             LOC_REFERENCE,
             LOC_MEM : begin
-                         { handle ordinal constants trimmed }
+                         { extra handling for ordinal constants }
                          if (p^.right^.treetype in [ordconstn,fixconstn]) or
                             (loc=LOC_CREGISTER) then
                            begin
@@ -385,6 +387,39 @@ implementation
                            end
                          else
                            begin
+                              if p^.right^.resulttype^.needs_rtti then
+                                begin
+                                   { this would be a problem }
+                                   if not(p^.left^.resulttype^.needs_rtti) then
+                                     internalerror(3457);
+
+                                   { increment source reference counter }
+                                   new(r);
+                                   reset_reference(r^);
+                                   r^.symbol:=stringdup(lab2str(p^.right^.resulttype^.get_rtti_label));
+                                   emitpushreferenceaddr(exprasmlist,r^);
+
+                                   emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
+                                   exprasmlist^.concat(new(pai386,
+                                     op_csymbol(A_CALL,S_NO,newcsymbol('ADDREF',0))));
+
+                                   if not (cs_compilesystem in aktswitches) then
+                                     concat_external('ADDREF',EXT_NEAR);
+
+                                   { decrement destination reference counter }
+                                   new(r);
+                                   reset_reference(r^);
+                                   r^.symbol:=stringdup(lab2str(p^.left^.resulttype^.get_rtti_label));
+                                   emitpushreferenceaddr(exprasmlist,r^);
+
+                                   emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
+                                   exprasmlist^.concat(new(pai386,
+                                     op_csymbol(A_CALL,S_NO,newcsymbol('DECREF',0))));
+
+                                   if not (cs_compilesystem in aktswitches) then
+                                     concat_external('DECREF',EXT_NEAR);
+
+                                end;
                               concatcopy(p^.right^.location.reference,
                                 p^.left^.location.reference,p^.left^.resulttype^.size,false);
                               ungetiftemp(p^.right^.location.reference);
@@ -524,7 +559,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-07-24 22:16:54  florian
+  Revision 1.6  1998-07-26 21:58:57  florian
+   + better support for switch $H
+   + index access to ansi strings added
+   + assigment of data (records/arrays) containing ansi strings
+
+  Revision 1.5  1998/07/24 22:16:54  florian
     * internal error 10 together with array access fixed. I hope
       that's the final fix.
 
