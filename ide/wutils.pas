@@ -336,6 +336,11 @@ function CharStr(C: char; Count: integer): string;
 var S: string;
 {$endif}
 begin
+  if Count<=0 then
+    begin
+      CharStr:='';
+      exit;
+    end;
 {$ifdef FPC}
   CharStr[0]:=chr(Count);
   FillChar(CharStr[1],Count,C);
@@ -1229,7 +1234,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.3  2001-08-12 00:04:50  pierre
+  Revision 1.4  2001-09-18 15:36:58  pierre
+   * avoid bug 1610
+
+  Revision 1.3  2001/08/12 00:04:50  pierre
    * some speed improvements for string operations
 
   Revision 1.2  2001/08/05 02:01:49  peter
