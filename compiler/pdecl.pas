@@ -2015,6 +2015,7 @@ unit pdecl;
                 { check if it is the definition of a forward defined class }
                 if assigned(srsym) and (token=_CLASS) and
                   (srsym^.typ=typesym) and
+                  (assigned(ptypesym(srsym)^.definition)) and
                   (ptypesym(srsym)^.definition^.deftype=objectdef) and
                   ((pobjectdef(ptypesym(srsym)^.definition)^.options and oo_isforward)<>0) and
                   ((pobjectdef(ptypesym(srsym)^.definition)^.options and oo_is_class)<>0) then
@@ -2139,7 +2140,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.94  1999-01-19 12:17:00  peter
+  Revision 1.95  1999-01-25 20:13:48  peter
+    * fixed crash with forward declared class of ...
+
+  Revision 1.94  1999/01/19 12:17:00  peter
     * fixed constant strings > 255 chars
 
   Revision 1.93  1999/01/15 13:08:23  peter
