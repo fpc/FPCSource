@@ -66,6 +66,8 @@ begin
 
     DotPos := Pos('.', s);
     EqPos := Pos('=', s);
+    if DotPos > EqPos then // paranoia checking.
+      DotPos := 0;
     item.ModuleName := Copy(s, 1, DotPos - 1);
     item.ConstName := Copy(s, DotPos + 1, EqPos - DotPos - 1);
 
@@ -205,7 +207,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-07-24 16:22:38  michael
+  Revision 1.3  1999-07-24 18:35:10  michael
+  + Added check for missing unitname in constant name
+
+  Revision 1.2  1999/07/24 16:22:38  michael
   + Comments and empty lines are now ignored
 
   Revision 1.1  1999/07/23 18:23:45  michael
