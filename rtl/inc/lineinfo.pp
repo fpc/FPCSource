@@ -78,7 +78,11 @@ var
 ****************************************************************************}
 
 {$if defined(netbsd) or defined(freebsd) or defined(linux) or defined(sunos)}
-  {$define ELF32}
+  {$ifdef cpu64}
+    {$define ELF64}
+  {$else}  
+    {$define ELF32}
+  {$endif}  
 {$endif}
 
 {$ifdef go32v2}
@@ -339,9 +343,6 @@ begin
                 + AoutHeader.DataSize
                 + AoutHeader.TextRelocSize
                 + AoutHeader.DataRelocSize;
-(* I don't really know, where this "+ 4" comes from, *)
-(* but it seems to be correct. :-) - TH              *)
-(* Maybe not PM                                      *)
    StabCnt := AoutHeader.SymbSize div SizeOf (TStab);
    StabStrOfs := StabOfs + AoutHeader.SymbSize;
    StabsFunctionRelative:=false;
@@ -444,6 +445,100 @@ begin
   LoadElf32:=(stabofs<>-1) and (stabstrofs<>-1);
 end;
 {$endif ELF32}
+
+
+{$ifdef ELF64}
+function LoadElf64:boolean;
+type
+  telf64header=packed record
+      magic0123         : longint;
+      file_class        : byte;
+      data_encoding     : byte;
+      file_version      : byte;
+      padding           : array[$07..$0f] of byte;
+      e_type            : word;
+      e_machine         : word;
+      e_version         : longword;
+      e_entry           : int64;                  // entrypoint
+      e_phoff           : int64;                  // program header offset
+      e_shoff           : int64;                  // sections header offset
+      e_flags           : longword;
+      e_ehsize          : word;             // elf header size in bytes
+      e_phentsize       : word;             // size of an entry in the program header array
+      e_phnum           : word;             // 0..e_phnum-1 of entrys
+      e_shentsize       : word;             // size of an entry in sections header array
+      e_shnum           : word;             // 0..e_shnum-1 of entrys
+      e_shstrndx        : word;             // index of string section header
+  end;
+  telf64sechdr=packed record
+      sh_name           : longword;
+      sh_type           : longword;
+      sh_flags          : int64;
+      sh_addr           : int64;
+      sh_offset         : int64;
+      sh_size           : int64;
+      sh_link           : longword;
+      sh_info           : longword;
+      sh_addralign      : int64;
+      sh_entsize        : int64;
+    end;
+var
+  elfheader : telf64header;
+  elfsec    : telf64sechdr;
+  secnames  : array[0..255] of char;
+  pname     : pchar;
+  i : longint;
+begin
+  processaddress := 0;
+  LoadElf64:=false;
+  stabofs:=-1;
+  stabstrofs:=-1;
+  { read and check header }
+  if filesize(f)<sizeof(telf64header) then
+   exit;
+  blockread(f,elfheader,sizeof(telf64header));
+{$ifdef ENDIAN_LITTLE}
+ if elfheader.magic0123<>$464c457f then
+   exit;
+{$endif ENDIAN_LITTLE}
+{$ifdef ENDIAN_BIG}
+ if elfheader.magic0123<>$7f454c46 then
+   exit;
+ { this seems to be at least the case for m68k cpu PM }
+{$ifdef cpum68k}
+ {StabsFunctionRelative:=false;}
+{$endif cpum68k}
+{$endif ENDIAN_BIG}
+  if elfheader.e_shentsize<>sizeof(telf64sechdr) then
+   exit;
+  { read section names }
+  seek(f,elfheader.e_shoff+elfheader.e_shstrndx*cardinal(sizeof(telf64sechdr)));
+  blockread(f,elfsec,sizeof(telf64sechdr));
+  seek(f,elfsec.sh_offset);
+  blockread(f,secnames,sizeof(secnames));
+  { read section info }
+  seek(f,elfheader.e_shoff);
+  for i:=1to elfheader.e_shnum do
+   begin
+     blockread(f,elfsec,sizeof(telf64sechdr));
+     pname:=@secnames[elfsec.sh_name];
+     if (pname[4]='b') and
+        (pname[1]='s') and
+        (pname[2]='t') then
+      begin
+        if (pname[5]='s') and
+           (pname[6]='t') then
+         stabstrofs:=elfsec.sh_offset
+        else
+         begin
+           stabofs:=elfsec.sh_offset;
+           stabcnt:=elfsec.sh_size div sizeof(tstab);
+         end;
+      end;
+   end;
+  LoadElf64:=(stabofs<>-1) and (stabstrofs<>-1);
+end;
+{$endif ELF64}
 
 
 {$ifdef beos}
@@ -600,6 +695,13 @@ begin
 {$endif}
 {$ifdef ELF32}
   if LoadElf32 then
+   begin
+     OpenStabs:=true;
+     exit;
+   end;
+{$endif}
+{$ifdef ELF64}
+  if LoadElf64 then
    begin
      OpenStabs:=true;
      exit;
@@ -781,7 +883,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.21  2004-04-22 19:43:43  peter
+  Revision 1.22  2004-04-22 21:10:35  peter
+    * elf64 support
+
+  Revision 1.21  2004/04/22 19:43:43  peter
     * fix 64bit address printing
 
   Revision 1.20  2004/02/06 20:17:12  daniel
