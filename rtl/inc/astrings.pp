@@ -73,9 +73,9 @@ begin
     Begin
     With PAnsiRec(S-Firstoff)^ do
       begin
-      Writeln ('Maxlen : ',maxlen);
-      Writeln ('Len    : ',len);
-      Writeln ('Ref    : ',ref);
+      Write   ('(Maxlen: ',maxlen);
+      Write   (' Len:',len);
+      Writeln (' Ref: ',ref,')');
       end;
     end;
 end;
@@ -220,6 +220,7 @@ begin
      AssignAnsiString(S3,S2)
   else
     begin
+       S3:=Nil;
        Size:=PAnsiRec(S2-FirstOff)^.Len;
        Location:=Length(AnsiString(S1));
        { Setlength takes case of uniqueness
@@ -245,9 +246,9 @@ begin
   Size:=byte(S2[0]);
   Location:=Length(S1);
   If Size=0 then exit;
-    { Setlength takes case of uniqueness
-      and alllocated memory. We need to use length,
-      to take into account possibility of S1=Nil }
+  { Setlength takes case of uniqueness
+    and alllocated memory. We need to use length,
+    to take into account possibility of S1=Nil }
   SetLength (S1,Size+Length(S1));
   Move (S2[1],Pointer(Pointer(S1)+Location)^,Size);
   PByte( Pointer(S1)+length(S1) )^:=0; { Terminating Zero }
@@ -405,14 +406,14 @@ Procedure SetLength (Var S : AnsiString; l : Longint);
  Makes sure S is unique, and contains enough room.
 }
 Var Temp : Pointer;
-
+     
 begin
    If (Pointer(S)=Nil) and (l>0) then
     begin
     { Need a complete new string...}
-  //  S:=NewAnsiString(l);
+    Pointer(s):=NewAnsiString(l);
     PAnsiRec(Pointer(S)-FirstOff)^.Len:=l;
-    PAnsiRec(Pointer(S)-FirstOff)^.Len:=l;
+    PAnsiRec(Pointer(S)-FirstOff)^.MaxLen:=l;
     PByte (Pointer(S)+l)^:=0;
     end
   else if l>0 then
@@ -420,14 +421,17 @@ begin
     If (PAnsiRec(Pointer(S)-FirstOff)^.Maxlen < L) or
        (PAnsiRec(Pointer(S)-FirstOff)^.Ref <> 1) then
       begin
-      { Reallocation is needed... }
+      { Reallocation is needed... }   
       Temp:=Pointer(NewAnsiString(L));
       if Length(S)>0 then
         Move (Pointer(S)^,Temp^,Length(S)+1);
       Decr_Ansi_ref (Pointer(S));
       Pointer(S):=Temp;
-      end;
-    PAnsiRec(Pointer(S)-FirstOff)^.Len:=l
+      end
+    else
+      //!! Force nil termination in case it gets shorter
+      PByte(Pointer(S)+l)^:=0;
+    PAnsiRec(Pointer(S)-FirstOff)^.Len:=l;
     end
   else
     { Length=0 }
@@ -713,7 +717,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  1998-10-21 09:03:11  michael
+  Revision 1.23  1998-10-21 23:01:54  michael
+  + Some more corrections
+
+  Revision 1.22  1998/10/21 09:03:11  michael
   + more fixes so it compiles
 
   Revision 1.21  1998/10/21 08:56:58  michael
