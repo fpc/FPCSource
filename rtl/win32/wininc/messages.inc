@@ -1150,7 +1150,11 @@
      WM_KEYFIRST = 256;
      WM_KEYLAST = 264;
      WM_MOUSEFIRST = 512;
-     WM_MOUSELAST = 522;
+     WM_MOUSELAST     = 525;
+     WM_MOUSEWHEEL    = 522;
+     WM_XBUTTONDOWN   = 523; 
+     WM_XBUTTONUP     = 524;             
+     WM_XBUTTONDBLCLK = 525;
 
 Type
 
@@ -1274,7 +1278,10 @@ Type
 
 {
   $Log$
-  Revision 1.9  2003-11-28 17:21:40  peter
+  Revision 1.10  2003-12-06 15:53:21  marco
+   * mouse_last fixes for bug 2784
+
+  Revision 1.9  2003/11/28 17:21:40  peter
     * TWMEraseBkgnd added
 
   Revision 1.8  2003/11/09 13:49:28  michael
