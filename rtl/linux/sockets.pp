@@ -167,12 +167,10 @@ end;
 
 
 
-Function Connect(Sock:Longint;Var Addr;Addrlen:Longint):Longint;
+Function Connect(Sock:Longint;Var Addr;Addrlen:Longint): boolean;
 
 begin
-  Connect:=SocketCall(Socket_Sys_Connect,Sock,longint(@Addr),AddrLen);
-  If Connect<0 Then
-    Connect:=-1;
+  Connect:=SocketCall(Socket_Sys_Connect,Sock,longint(@Addr),AddrLen)=0;
 end;
 
 
@@ -255,7 +253,7 @@ end;
 
 
 
-Function DoConnect(Sock:longint;const addr:string):Longint;
+Function DoConnect(Sock:longint;const addr:string):Boolean;
 var
   UnixAddr : TUnixSockAddr;
   AddrLen  : longint;
@@ -301,31 +299,19 @@ Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean
 Var FD : Longint;
 
 begin
-  FD:=DoConnect(Sock,addr);
-  If Not(FD=-1) then
-   begin
+  Connect:=DoConnect(Sock,addr);
+  If Connect then
      Sock2Text(Sock,SockIn,SockOut);
-     Connect:=true;
-   end
-  else
-   Connect:=false;
 end;
 
 
 
 Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean;
 
-Var FD : Longint;
-
 begin
-  FD:=DoConnect(Sock,addr);
-  if Not(FD=-1) then
-   begin
+  Connect:=DoConnect(Sock,addr);
+  if Connect then
      Sock2File(Sock,SockIn,SockOut);
-     Connect:=true;
-   end
-  else
-   Connect:=false;
 end;
 
 {$i sockets.inc}
@@ -334,7 +320,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  1999-06-27 16:04:25  michael
+  Revision 1.9  1999-07-03 15:16:47  michael
+  + Fixed Connect call
+
+  Revision 1.8  1999/06/27 16:04:25  michael
   + Updated to Florians system independent sockets unit
 
   Revision 1.7  1999/06/08 18:35:24  michael

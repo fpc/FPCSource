@@ -109,11 +109,11 @@ begin
     SocketError:=0;
 end;
 
-Function Connect(Sock:Longint;Var Addr;Addrlen:Longint):Longint;
+Function Connect(Sock:Longint;Var Addr;Addrlen:Longint):Boolean;
 
 begin
-  Connect:=WinSock.Connect(Sock,WinSock.TSockAddr(Addr),AddrLen);
-  if Connect<0 then
+  Connect:=WinSock.Connect(Sock,WinSock.TSockAddr(Addr),AddrLen)=0;
+  if Connect then
     SocketError:=WSAGetLastError
   else
     SocketError:=0;
@@ -211,7 +211,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  1999-06-21 12:40:48  florian
+  Revision 1.2  1999-07-03 15:16:48  michael
+  + Fixed Connect call
+
+  Revision 1.1  1999/06/21 12:40:48  florian
     + initial revision, derieved from the linux version
 
 }

@@ -58,7 +58,7 @@ Function Recv(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint;
 Function Bind(Sock:Longint;Var Addr;AddrLen:Longint):Boolean;
 Function Listen (Sock,MaxConnect:Longint):Boolean;
 Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
-Function Connect(Sock:Longint;Var Addr;Addrlen:Longint):Longint;
+Function Connect(Sock:Longint;Var Addr;Addrlen:Longint):boolean;
 Function Shutdown(Sock:Longint;How:Longint):Longint;
 Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
@@ -80,7 +80,10 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.1  1999-06-21 12:26:27  florian
+  Revision 1.2  1999-07-03 15:16:46  michael
+  + Fixed Connect call
+
+  Revision 1.1  1999/06/21 12:26:27  florian
     + files created by splitting the linux sockets unit
 
 }

@@ -23,7 +23,7 @@ begin
    textrec(f).mode:=fmclosed
   else
    case textrec(f).userdata[1] of
-    S_OUT : textrec(f).mode:=fmoutput;
+     S_OUT : textrec(f).mode:=fmoutput;
      S_IN : textrec(f).mode:=fminput;
    else
     textrec(f).mode:=fmclosed;
@@ -114,7 +114,7 @@ begin
   DoAccept:=Accept(Sock,Addr,AddrLen);
 end;
 
-Function DoConnect(Sock:longint;const addr: TInetSockAddr): Longint;
+Function DoConnect(Sock:longint;const addr: TInetSockAddr): Boolean;
 
 begin
   DoConnect:=Connect(Sock,Addr,SizeOF(TInetSockAddr));
@@ -122,32 +122,18 @@ end;
 
 Function Connect(Sock:longint;const addr: TInetSockAddr;var SockIn,SockOut:text):Boolean;
 
-Var FD : Longint;
-
 begin
-  FD:=DoConnect(Sock,addr);
-  If Not(FD=-1) then
-   begin
-     Sock2Text(FD,SockIn,SockOut);
-     Connect:=true;
-   end
-  else
-   Connect:=false;
+  Connect:=DoConnect(Sock,addr);
+  If Connect then
+     Sock2Text(Sock,SockIn,SockOut);
 end;
 
 Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):Boolean;
 
-Var FD : Longint;
-
 begin
-  FD:=DoConnect(Sock,addr);
-  If Not (FD=-1) then
-   begin
-     Sock2File(FD,SockIn,SockOut);
-     Connect:=true;
-   end
-  else
-   Connect:=false;
+  Connect:=DoConnect(Sock,addr);
+  If Connect then
+     Sock2File(Sock,SockIn,SockOut);
 end;
 
 Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;
@@ -179,7 +165,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.1  1999-06-21 12:26:27  florian
+  Revision 1.2  1999-07-03 15:16:45  michael
+  + Fixed Connect call
+
+  Revision 1.1  1999/06/21 12:26:27  florian
     + files created by splitting the linux sockets unit
 
 }
