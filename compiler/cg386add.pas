@@ -167,12 +167,13 @@ implementation
                         emitcall('FPC_ANSICAT',true);
                         unused:=savedunused;
                         p^.location.register:=getexplicitregister32(R_EAX);
+                        p^.location.loc:=LOC_REGISTER;
                         emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.register);
                         popusedregisters(pushedregs);
                         maybe_loadesi;
                         ungetiftemp(p^.left^.location.reference);
                         ungetiftemp(p^.right^.location.reference);
-                        gettempofsizereference(4,hr);
+                        gettempofsizereference(4,p^.location.reference);
                         temptoremove^.concat(new(ptemptodestroy,init(hr,p^.resulttype)));
                         exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,p^.location.register,
                           newreference(hr))));
@@ -243,7 +244,7 @@ implementation
                              { release the registers }
                              del_reference(p^.left^.location.reference);
                              gettempofsizereference(256,href);
-                             copystring(href,p^.left^.location.reference,255);
+                             copyshortstring(href,p^.left^.location.reference,255);
                              ungetiftemp(p^.left^.location.reference);
 
                              { does not hurt: }
@@ -1404,7 +1405,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1998-11-07 12:49:30  peter
+  Revision 1.25  1998-11-16 15:35:35  peter
+    * rename laod/copystring -> load/copyshortstring
+    * fixed int-bool cnv bug
+    + char-ansistring conversion
+
+  Revision 1.24  1998/11/07 12:49:30  peter
     * fixed ansicompare which returns signed
 
   Revision 1.23  1998/10/29 15:42:43  florian

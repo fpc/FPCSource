@@ -553,7 +553,7 @@ implementation
                                   { generate copy }
                                   if is_shortstring(p^.resulttype) then
                                     begin
-                                       copystring(stackref,p^.left^.location.reference,
+                                       copyshortstring(stackref,p^.left^.location.reference,
                                          pstringdef(p^.resulttype)^.len);
                                     end
                                   else
@@ -1552,7 +1552,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  1998-11-15 16:32:33  florian
+  Revision 1.44  1998-11-16 15:35:36  peter
+    * rename laod/copystring -> load/copyshortstring
+    * fixed int-bool cnv bug
+    + char-ansistring conversion
+
+  Revision 1.43  1998/11/15 16:32:33  florian
     * some stuff of Pavel implement (win32 dll creation)
     * bug with ansistring function results fixed
 

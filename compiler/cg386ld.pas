@@ -358,7 +358,7 @@ implementation
                        { we do not need destination anymore }
                        del_reference(p^.left^.location.reference);
                        del_reference(p^.right^.location.reference);
-                       loadstring(p);
+                       loadshortstring(p);
                        ungetiftemp(p^.right^.location.reference);
                     end;
                 end
@@ -578,117 +578,6 @@ implementation
         vtWideString = 15;
         vtInt64      = 16;
 
-    procedure emit_mov_loc_ref(const t:tlocation;const ref:treference);
-      begin
-        case t.loc of
-          LOC_REGISTER,
-         LOC_CREGISTER : begin
-                           exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                             t.register,newreference(ref))));
-                           ungetregister32(t.register); { the register is not needed anymore }
-                         end;
-               LOC_MEM,
-         LOC_REFERENCE : begin
-                           if t.reference.isintvalue then
-                             exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,
-                               t.reference.offset,newreference(ref))))
-                           else
-                             begin
-                               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
-                                 newreference(t.reference),R_EDI)));
-                               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                                 R_EDI,newreference(ref))));
-                             end;
-                           ungetiftemp(t.reference);
-                         end;
-        else
-         internalerror(330);
-        end;
-      end;
-
-
-    procedure emit_push_loc(const t:tlocation);
-      begin
-        case t.loc of
-          LOC_REGISTER,
-         LOC_CREGISTER : begin
-                           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,t.register)));
-                           ungetregister32(t.register); { the register is not needed anymore }
-                         end;
-               LOC_MEM,
-         LOC_REFERENCE : begin
-                           if t.reference.isintvalue then
-                             exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,t.reference.offset)))
-                           else
-                             exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(t.reference))));
-                           ungetiftemp(t.reference);
-                         end;
-        else
-         internalerror(330);
-        end;
-      end;
-
-
-    procedure emit_to_reference(var p:ptree);
-      begin
-        case p^.location.loc of
-               LOC_FPU : begin
-                           reset_reference(p^.location.reference);
-                           gettempofsizereference(10,p^.location.reference);
-                           floatstore(pfloatdef(p^.resulttype)^.typ,p^.location.reference);
-                           p^.location.loc:=LOC_REFERENCE;
-                         end;
-               LOC_MEM,
-         LOC_REFERENCE : ;
-        else
-         internalerror(333);
-        end;
-      end;
-
-
-    procedure emit_lea_loc_ref(const t:tlocation;const ref:treference);
-      begin
-        case t.loc of
-               LOC_MEM,
-         LOC_REFERENCE : begin
-                           if t.reference.isintvalue then
-                             internalerror(331)
-                           else
-                             begin
-                               exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-                                 newreference(t.reference),R_EDI)));
-                               exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,
-                                 R_EDI,newreference(ref))));
-                             end;
-                           ungetiftemp(t.reference);
-                         end;
-        else
-         internalerror(332);
-        end;
-      end;
-
-
-    procedure emit_push_lea_loc(const t:tlocation);
-      begin
-        case t.loc of
-               LOC_MEM,
-         LOC_REFERENCE : begin
-                           if t.reference.isintvalue then
-                             internalerror(331)
-                           else
-                             begin
-                               exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,
-                                 newreference(t.reference),R_EDI)));
-                               exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
-                             end;
-                           ungetiftemp(t.reference);
-                         end;
-        else
-         internalerror(332);
-        end;
-      end;
-
-
     procedure secondarrayconstruct(var p : ptree);
       var
         hp    : ptree;
@@ -790,7 +679,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1998-11-10 10:09:10  peter
+  Revision 1.27  1998-11-16 15:35:39  peter
+    * rename laod/copystring -> load/copyshortstring
+    * fixed int-bool cnv bug
+    + char-ansistring conversion
+
+  Revision 1.26  1998/11/10 10:09:10  peter
     * va_list -> array of const
 
   Revision 1.25  1998/11/05 12:02:35  peter

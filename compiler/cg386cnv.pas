@@ -405,7 +405,7 @@ implementation
                       stringdispose(p^.location.reference.symbol);
                       gettempofsizereference(p^.resulttype^.size,p^.location.reference);
                       del_reference(p^.left^.location.reference);
-                      copystring(p^.location.reference,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
+                      copyshortstring(p^.location.reference,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
                       ungetiftemp(p^.left^.location.reference);
                    end;
                  st_longstring:
@@ -597,18 +597,39 @@ implementation
 
 
     procedure second_char_to_string(p,hp : ptree;convtyp : tconverttype);
+      var
+        pushed : tpushed;
       begin
          clear_location(p^.location);
          p^.location.loc:=LOC_MEM;
-         gettempofsizereference(256,p^.location.reference);
-         { call loadstring with correct left and right }
-         p^.right:=p^.left;
-         p^.left:=p;
-         loadstring(p);
-         p^.left:=nil; { reset left tree, which is empty }
-         { p^.right is not disposed for typeconv !! PM }
-         disposetree(p^.right);
-         p^.right:=nil;
+         case pstringdef(p^.resulttype)^.string_typ of
+           st_shortstring :
+             begin
+               gettempofsizereference(256,p^.location.reference);
+               { call loadstring with correct left and right }
+               p^.right:=p^.left;
+               p^.left:=p;
+               loadshortstring(p);
+               p^.left:=nil; { reset left tree, which is empty }
+               { p^.right is not disposed for typeconv !! PM }
+               disposetree(p^.right);
+               p^.right:=nil;
+             end;
+           st_ansistring :
+             begin
+               gettempofsizereference(4,p^.location.reference);
+               {temptoremove^.concat(new(ptemptodestroy,init(p^.location.reference,p^.resulttype)));}
+               exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,0,newreference(p^.location.reference))));
+               pushusedregisters(pushed,$ff);
+               emit_push_loc(p^.left^.location);
+               emitpushreferenceaddr(exprasmlist,p^.location.reference);
+               emitcall('FPC_CHAR2ANSI',true);
+               popusedregisters(pushed);
+               maybe_loadesi;
+             end;
+           else
+            internalerror(4179);
+        end;
       end;
 
 
@@ -990,7 +1011,7 @@ implementation
                 exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,hregister,p^.location.register)));
               end;
           4 : begin
-                p^.location.register:=reg16toreg32(hregister);
+                p^.location.register:=reg8toreg32(hregister);
                 exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,p^.location.register)));
               end;
          else
@@ -1286,7 +1307,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1998-11-05 12:02:30  peter
+  Revision 1.32  1998-11-16 15:35:38  peter
+    * rename laod/copystring -> load/copyshortstring
+    * fixed int-bool cnv bug
+    + char-ansistring conversion
+
+  Revision 1.31  1998/11/05 12:02:30  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 
