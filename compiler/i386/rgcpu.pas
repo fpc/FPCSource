@@ -61,14 +61,18 @@ unit rgcpu;
           procedure pushusedintregisters(list:Taasmoutput;
                                          var pushed:Tpushedsavedint;
                                          const s:Tsupregset);
+{$ifdef SUPPORT_MMX}
           procedure pushusedotherregisters(list:Taasmoutput;
                                            var pushed:Tpushedsaved;
                                            const s:Tregisterset);
+{$endif SUPPORT_MMX}
 
           procedure popusedintregisters(list:Taasmoutput;
                                         const pushed:Tpushedsavedint);
+{$ifdef SUPPORT_MMX}
           procedure popusedotherregisters(list:Taasmoutput;
                                           const pushed:Tpushedsaved);
+{$endif SUPPORT_MMX}
 
           procedure saveusedintregisters(list:Taasmoutput;
                                          var saved:Tpushedsavedint;
@@ -169,7 +173,7 @@ unit rgcpu;
 
     begin
       subreg:=cgsize2subreg(size);
-          
+
       if countunusedregsint=0 then
         internalerror(10);
       getregisterint.enum:=R_INTREGISTER;
@@ -229,9 +233,9 @@ unit rgcpu;
     end;
 
     procedure trgcpu.ungetregisterint(list: taasmoutput; r : tregister);
-    
+
     var supreg:Tsuperregister;
-    
+
       begin
          if r.enum=R_NO then
           exit;
@@ -301,7 +305,7 @@ unit rgcpu;
 
     var r:Tsuperregister;
         r2:Tregister;
-    
+
     begin
       usedintinproc:=usedintinproc+s;
       for r:=RS_EAX to RS_EDX do
@@ -334,7 +338,7 @@ unit rgcpu;
     var r:Toldregister;
         r2:Tregister;
         hr:Treference;
-    
+
     begin
       usedinproc:=usedinproc+s;
       for r:=R_MM0 to R_MM6 do
@@ -439,10 +443,12 @@ unit rgcpu;
                                             const s:tregisterset);
 
     begin
+{$ifdef SUPPORT_MMX}
       if (aktoptprocessor in [class386,classP5]) or
          (CS_LittleSize in aktglobalswitches) then
         pushusedotherregisters(list,saved,s)
       else
+{$endif SUPPORT_MMX}
         inherited saveusedotherregisters(list,saved,s);
     end;
 
@@ -462,10 +468,12 @@ unit rgcpu;
                                                const saved:tpushedsaved);
 
     begin
+{$ifdef SUPPORT_MMX}
       if (aktoptprocessor in [class386,classP5]) or
          (CS_LittleSize in aktglobalswitches) then
         popusedotherregisters(list,saved)
       else
+{$endif SUPPORT_MMX}
         inherited restoreusedotherregisters(list,saved);
     end;
 
@@ -517,7 +525,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2003-03-08 13:59:17  daniel
+  Revision 1.16  2003-03-17 15:52:57  peter
+    * SUPPORT_MMX define compile fix
+
+  Revision 1.15  2003/03/08 13:59:17  daniel
     * Work to handle new register notation in ag386nsm
     + Added newra version of Ti386moddivnode
 
