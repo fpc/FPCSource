@@ -99,10 +99,20 @@ type
      CO_E_APPDIDNTREG = DWORD($800401FE);
      CO_E_RELEASED = DWORD($800401FF);
 
+{MvdV: JCL templates}
+function GetTimeZoneInformation(var TimeZoneInformation:TTimeZoneInformation):DWORD;
+function FileTimeToLocalFileTime(const lpFileTime:TFILETIME; var LocalFileTime :TFILETIME):WINBOOL;
+function FileTimeToSystemTime(const lpFileTime:TFILETIME; var lpSystemTime:TSYSTEMTIME):WINBOOL;
+function DosDateTimeToFileTime(wFatDate:WORD; wFatTime:WORD; var lpFileTime:tFILETIME):WINBOOL;
+function SystemTimeToFileTime(const lSystemTime:tSYSTEMTIME; var FileTime:TFILETIME):WINBOOL;
+
 
 {
   $Log$
-  Revision 1.3  2000-02-09 16:59:36  peter
+  Revision 1.4  2000-03-19 20:29:06  marco
+   * some stuff for JCL
+
+  Revision 1.3  2000/02/09 16:59:36  peter
     * truncated log
 
   Revision 1.2  2000/01/07 16:41:56  daniel

@@ -2107,7 +2107,7 @@ ExitProcess(
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function SetSysColors(cElements:longint; var lpaElements:INT; var lpaRgbValues:COLORREF):WINBOOL;
+  function SetSysColors(cElements:longint; var lpaElements:wINT; var lpaRgbValues:COLORREF):WINBOOL;
 
 (* Const before type ignored *)
   function DrawFocusRect(hDC:HDC; var lprc:RECT):WINBOOL;
@@ -2325,7 +2325,7 @@ ExitProcess(
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function CreatePolyPolygonRgn(var _para1:POINT; var _para2:INT; _para3:longint; _para4:longint):HRGN;
+  function CreatePolyPolygonRgn(var _para1:POINT; var _para2:wINT; _para3:longint; _para4:longint):HRGN;
 
   function CreatePatternBrush(_para1:HBITMAP):HBRUSH;
 
@@ -2494,7 +2494,7 @@ ExitProcess(
 
 (* Const before type ignored *)
 (* Const before type ignored *)
-  function PolyPolygon(_para1:HDC; var _para2:POINT; var _para3:INT; _para4:longint):WINBOOL;
+  function PolyPolygon(_para1:HDC; var _para2:POINT; var _para3:wINT; _para4:longint):WINBOOL;
 
   function PtInRegion(_para1:HRGN; _para2:longint; _para3:longint):WINBOOL;
 
@@ -2611,7 +2611,7 @@ ExitProcess(
 
   function GetEnhMetaFilePaletteEntries(_para1:HENHMETAFILE; _para2:UINT; _para3:LPPALETTEENTRY):UINT;
 
-  function GetWinMetaFileBits(_para1:HENHMETAFILE; _para2:UINT; _para3:LPBYTE; _para4:INT; _para5:HDC):UINT;
+  function GetWinMetaFileBits(_para1:HENHMETAFILE; _para2:UINT; _para3:LPBYTE; _para4:wINT; _para5:HDC):UINT;
 
 (* Const before type ignored *)
   function PlayEnhMetaFile(_para1:HDC; _para2:HENHMETAFILE; var _para3:RECT):WINBOOL;
@@ -3024,7 +3024,7 @@ ExitProcess(
   function ListView_GetEditControl(hwndLV : HWND) : LRESULT;
 
   { was #define dname(params) def_expr }
-  function ListView_GetImageList(hwnd:HWND;iImageList : INT) : LRESULT;
+  function ListView_GetImageList(hwnd:HWND;iImageList : wINT) : LRESULT;
 
   { was #define dname(params) def_expr }
   function ListView_GetISearchString(hwndLV:HWND;lpsz : LPTSTR) : LRESULT;
@@ -4843,7 +4843,7 @@ in define line 6852 *)
 
   function GetSysColorBrush(nIndex:longint):HBRUSH; external 'user32' name 'GetSysColorBrush';
 
-  function SetSysColors(cElements:longint; var lpaElements:INT; var lpaRgbValues:COLORREF):WINBOOL; external 'user32' name 'SetSysColors';
+  function SetSysColors(cElements:longint; var lpaElements:wINT; var lpaRgbValues:COLORREF):WINBOOL; external 'user32' name 'SetSysColors';
 
   function DrawFocusRect(hDC:HDC; var lprc:RECT):WINBOOL; external 'user32' name 'DrawFocusRect';
 
@@ -5022,7 +5022,7 @@ in define line 6852 *)
 
   function CreatePenIndirect(var _para1:LOGPEN):HPEN; external 'gdi32' name 'CreatePenIndirect';
 
-  function CreatePolyPolygonRgn(var _para1:POINT; var _para2:INT; _para3:longint; _para4:longint):HRGN; external 'gdi32' name 'CreatePolyPolygonRgn';
+  function CreatePolyPolygonRgn(var _para1:POINT; var _para2:wINT; _para3:longint; _para4:longint):HRGN; external 'gdi32' name 'CreatePolyPolygonRgn';
 
   function CreatePatternBrush(_para1:HBITMAP):HBRUSH; external 'gdi32' name 'CreatePatternBrush';
 
@@ -5185,7 +5185,7 @@ in define line 6852 *)
 
   function PaintRgn(_para1:HDC; _para2:HRGN):WINBOOL; external 'gdi32' name 'PaintRgn';
 
-  function PolyPolygon(_para1:HDC; var _para2:POINT; var _para3:INT; _para4:longint):WINBOOL; external 'gdi32' name 'PolyPolygon';
+  function PolyPolygon(_para1:HDC; var _para2:POINT; var _para3:wINT; _para4:longint):WINBOOL; external 'gdi32' name 'PolyPolygon';
 
   function PtInRegion(_para1:HRGN; _para2:longint; _para3:longint):WINBOOL; external 'gdi32' name 'PtInRegion';
 
@@ -5289,7 +5289,7 @@ in define line 6852 *)
 
   function GetEnhMetaFilePaletteEntries(_para1:HENHMETAFILE; _para2:UINT; _para3:LPPALETTEENTRY):UINT; external 'gdi32' name 'GetEnhMetaFilePaletteEntries';
 
-  function GetWinMetaFileBits(_para1:HENHMETAFILE; _para2:UINT; _para3:LPBYTE; _para4:INT; _para5:HDC):UINT; external 'gdi32' name 'GetWinMetaFileBits';
+  function GetWinMetaFileBits(_para1:HENHMETAFILE; _para2:UINT; _para3:LPBYTE; _para4:wINT; _para5:HDC):UINT; external 'gdi32' name 'GetWinMetaFileBits';
 
   function PlayEnhMetaFile(_para1:HDC; _para2:HENHMETAFILE; var _para3:RECT):WINBOOL; external 'gdi32' name 'PlayEnhMetaFile';
 
@@ -5807,7 +5807,7 @@ in define line 6852 *)
     end;
 
   { was #define dname(params) def_expr }
-  function ListView_GetImageList(hwnd:HWND;iImageList : INT) : LRESULT;
+  function ListView_GetImageList(hwnd:HWND;iImageList : wINT) : LRESULT;
     begin
        ListView_GetImageList:=SendMessage(hwnd,LVM_GETIMAGELIST,WPARAM(iImageList),0);
     end;
@@ -6712,7 +6712,10 @@ end.
 {$endif not windows_include_files}
 {
   $Log$
-  Revision 1.5  2000-02-09 16:59:35  peter
+  Revision 1.6  2000-03-19 20:29:06  marco
+   * some stuff for JCL
+
+  Revision 1.5  2000/02/09 16:59:35  peter
     * truncated log
 
   Revision 1.4  2000/01/07 16:41:55  daniel
