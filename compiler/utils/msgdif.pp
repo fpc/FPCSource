@@ -271,7 +271,6 @@ procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
                            readln(t2,s);
                            inc(i2);
                         end;
-                    s:='';
                  end;
             end
           else
@@ -295,7 +294,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-06-09 11:57:29  pierre
+  Revision 1.4  1999-06-09 12:17:34  pierre
+   * bugfix from fixes-0_99_12 merged
+
+
+  Revision 1.2.2.2  1999/06/09 12:12:19  pierre
+   * small bug fixed
+
+  Revision 1.3  1999/06/09 11:57:29  pierre
    * fix branch changes merged
 
   Revision 1.2.2.1  1999/06/09 11:48:18  pierre
