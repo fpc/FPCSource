@@ -9,6 +9,12 @@ uses
    dpmiexcp;
 {$endif go32v2}
 
+Type
+  TMyRecord = Record
+    MyProc1,MyProc2 : Procedure(l : longint);
+    MyVar : longint;
+  end;
+
 procedure do_error(i : longint);
 
   begin
@@ -79,8 +85,18 @@ type
       globalvar:=l;
    end;
 
+ procedure testproc(l : longint);
+
+   begin
+      globalvar:=l;
+   end;
+
 const
    constmethodaddr : pointer = @to1.test2;
+   MyRecord : TMyRecord = (
+     MyProc1 : TestProc;
+     MyProc2 : @TestProc;
+   );
 
 var
    o1 : to1;
@@ -88,6 +104,17 @@ var
    p : procedure(l : longint) of object;
 
 begin
+   { Simple procedure variables }
+   writeln('Procedure variables');
+   globalvar:=0;
+   MyRecord.MyProc1(1234);
+   if globalvar<>1234 then
+     do_error(2000);
+   globalvar:=0;
+   MyRecord.MyProc2(4321);
+   if globalvar<>4321 then
+     do_error(2001);
+   writeln('Ok');
    {                                       }
    {  Procedures of objects                }
    {                                       }
@@ -114,12 +141,15 @@ begin
    globalvar:=0;
    callmethodparam(@o1,constmethodaddr,34);
    if globalvar<>34 then
-     do_error(1001);
+     do_error(1001);   
    writeln('Ok');
 end.
 {
   $Log$
-  Revision 1.1  1999-12-02 17:37:45  peter
+  Revision 1.2  2000-04-02 09:06:55  florian
+  *** empty log message ***
+
+  Revision 1.1  1999/12/02 17:37:45  peter
     * moved *.pp into subdirs
     * fpcmaked
 
