@@ -95,20 +95,22 @@ begin
   OpenSymbolBrowser(0,0,'Units','Global scope',nil,S,nil,nil,nil);
 end;
 
-function SymbolDialog(Info: pointer): PDialog;
+function SymbolDialog(const S : string) : PDialog;
 var D: PDialog;
     R,R1,R2: TRect;
     IL: PInputLine;
 begin
-  R.Assign(0,0,40,7);
+  R.Assign(0,0,40,8);
   New(D, Init(R, 'Browse Symbol'));
   with D^ do
   begin
     Options:=Options or ofCentered;
     GetExtent(R); R.Grow(-3,-2); R.B.Y:=R.A.Y+1;
-    R1.Copy(R); R1.B.X:=27; R2.Copy(R); R2.A.X:=27;
-    New(IL, Init(R2,5));
+    R1.Copy(R);
+    R2.Copy(R); Inc(R2.A.Y);Inc(R2.B.Y);
+    New(IL, Init(R2,255));
     Insert(IL);
+    IL^.SetData(S);
     Insert(New(PLabel, Init(R1, 'Enter S~y~mbol to browse', IL)));
     GetExtent(R); R.Grow(-8,-1); R.A.Y:=R.B.Y-2; R.B.X:=R.A.X+10;
     Insert(New(PButton, Init(R, '~O~K', cmOK, bfDefault)));
@@ -120,21 +122,25 @@ begin
 end;
 
 procedure TIDEApp.SearchSymbol;
-Var S : String;
-  EditorWindow: PSourceWindow;
+var
+    EditorWindow : PSourceWindow;
+    S : string;
 begin
   EditorWindow:=FirstEditorWindow;
   If assigned(EditorWindow) then
-    S:=LowerCaseStr(GetEditorCurWord(EditorWindow))
+    S:=LowerCaseStr(EditorWindow^.Editor^.GetCurrentWord)
   else
     S:='';
-  if ExecuteDialog(SymbolDialog,@S)<>cmCancel then
+  if ExecuteDialog(SymbolDialog(S),@S)<>cmCancel then
     OpenOneSymbolBrowser(S);
 end;
 
 {
   $Log$
-  Revision 1.9  1999-06-28 19:32:22  peter
+  Revision 1.10  1999-06-29 12:49:55  pierre
+   * SearchSymbol works
+
+  Revision 1.9  1999/06/28 19:32:22  peter
     * fixes from gabor
 
   Revision 1.8  1999/06/28 12:38:19  pierre
