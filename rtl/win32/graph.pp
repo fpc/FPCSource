@@ -70,6 +70,18 @@ CONST
   m1280x1024x32k    = $119;
   m1280x1024x64k    = $11A;
 
+  { some extra modes which applies only to GUI }
+  mLargestWindow16  = $f0;
+  mLargestWindow256 = $f1;
+  mLargestWindow32k = $f2;
+  mLargestWindow64k = $f3;
+  mLargestWindow16M = $f4;
+  mMaximizedWindow16 = $f5;
+  mMaximizedWindow256 = $f6;
+  mMaximizedWindow32k = $f7;
+  mMaximizedWindow64k = $f8;
+  mMaximizedWindow16M = $f9;
+
 
 implementation
 
@@ -316,12 +328,12 @@ procedure HLine16Win32GUI(x,x2,y: integer);
                   pen:=CreatePen(PS_SOLID,1,c);
                   oldpen:=SelectObject(bitmapdc,pen);
                   Windows.MoveToEx(bitmapdc,x,y,nil);
-                  Windows.LineTo(bitmapdc,x2,y);
+                  Windows.LineTo(bitmapdc,x2+1,y);
                   SelectObject(bitmapdc,oldpen);
 
                   oldpen:=SelectObject(windc,pen);
                   Windows.MoveToEx(windc,x,y,nil);
-                  Windows.LineTo(windc,x2,y);
+                  Windows.LineTo(windc,x2+1,y);
                   SelectObject(windc,oldpen);
 
                   DeleteObject(pen);
@@ -426,8 +438,7 @@ begin
 {$endif def DEBUG_WM_PAINT}
          if graphrunning then
            {BitBlt(dc,0,0,maxx+1,maxy+1,bitmapdc,0,0,SRCCOPY);}
-           BitBlt(dc,r.left,r.top,r.right,r.bottom,bitmapdc,r.left,r.top,SRCCOPY);
-
+           BitBlt(dc,r.left,r.top,r.right-r.left+1,r.bottom-r.top+1,bitmapdc,r.left,r.top,SRCCOPY);
          EndPaint(Window,ps);
          LeaveCriticalSection(graphdrawing);
          Exit;
@@ -480,21 +491,25 @@ begin
   WindowClass.hCursor := LoadCursor(0, idc_Arrow);
   WindowClass.hbrBackground := GetStockObject(BLACK_BRUSH);
   WindowClass.lpszMenuName := nil;
-  WindowClass.lpszClassName := 'MyWindow';
+  WindowClass.lpszClassName := 'FPCGraphWindow';
 
   winregister:=RegisterClass(WindowClass) <> 0;
 end;
 
+var
+   // here we can force the creation of a maximized window }
+   extrastyle : longint;
+
  { Create the Window Class }
-function WinCreate: HWnd;
+function WinCreate : HWnd;
 var
   hWindow: HWnd;
 begin
 
-  hWindow := CreateWindow('MyWindow', windowtitle,
-              ws_OverlappedWindow, 50, 50,
-              maxx+1+2*GetSystemMetrics(SM_CXBORDER),
-              maxy+1+2*GetSystemMetrics(SM_CYBORDER)+
+  hWindow := CreateWindow('FPCGraphWindow', windowtitle,
+              ws_OverlappedWindow or extrastyle, CW_USEDEFAULT, 0,
+              maxx+1+2*GetSystemMetrics(SM_CXFRAME),
+              maxy+1+2*GetSystemMetrics(SM_CYFRAME)+
                 GetSystemMetrics(SM_CYCAPTION),
               0, 0, system.MainInstance, nil);
 
@@ -519,14 +534,14 @@ function MessageHandleThread(p : pointer) : DWord;StdCall;
        begin
           if not WinRegister then
             begin
-               MessageBox(0, 'Register failed', nil, mb_Ok);
+               MessageBox(0, 'Window registration failed', nil, mb_Ok);
                ExitThread(1);
             end;
           winregistered:=true;
        end;
      MainWindow := WinCreate;
      if longint(mainwindow) = 0 then begin
-       MessageBox(0, 'WinCreate failed', nil, mb_Ok);
+       MessageBox(0, 'Window creation failed', nil, mb_Ok);
        ExitThread(1);
      end;
      while longint(GetMessage(@AMessage, 0, 0, 0))=longint(true) do
@@ -544,6 +559,14 @@ procedure InitWin32GUI16colors;
   begin
      getmem(pal,sizeof(RGBrec)*maxcolor);
      move(DefaultColors,pal^,sizeof(RGBrec)*maxcolor);
+     if (IntCurrentMode=mMaximizedWindow16) or
+       (IntCurrentMode=mMaximizedWindow256) or
+       (IntCurrentMode=mMaximizedWindow32k) or
+       (IntCurrentMode=mMaximizedWindow64k) or
+       (IntCurrentMode=mMaximizedWindow16M) then
+       extrastyle:=ws_maximize
+     else
+       extrastyle:=0;
      { start graph subsystem }
      InitializeCriticalSection(graphdrawing);
      graphrunning:=false;
@@ -621,177 +644,388 @@ function queryadapterinfo : pmodeinfo;
   var
      mode: TModeInfo;
      ScreenWidth,ScreenHeight : longint;
+     ScreenWidthMaximized,ScreenHeightMaximized : longint;
 
   begin
      SaveVideoState:=savestate;
      RestoreVideoState:=restorestate;
-     ScreenWidth:=GetSystemMetrics(SM_CXSCREEN);
-     ScreenHeight:=GetSystemMetrics(SM_CYSCREEN);
+     { we must take care of the border and caption }
+     ScreenWidth:=GetSystemMetrics(SM_CXSCREEN)-
+       2*GetSystemMetrics(SM_CXFRAME);
+     ScreenHeight:=GetSystemMetrics(SM_CYSCREEN)-
+       2*GetSystemMetrics(SM_CYFRAME)-
+       GetSystemMetrics(SM_CYCAPTION);
+     { for maximozed windows it's again different }
+     { here we've only a caption }
+     ScreenWidthMaximized:=GetSystemMetrics(SM_CXFULLSCREEN);
+     { neither GetSystemMetrics(SM_CYFULLSCREEN nor     }
+     { SystemParametersInfo(SPI_GETWORKAREA)            }
+     { takes a hidden try into account :( FK            }
+     ScreenHeightMaximized:=GetSystemMetrics(SM_CYFULLSCREEN);
+
      QueryAdapterInfo := ModeList;
      { If the mode listing already exists... }
      { simply return it, without changing    }
      { anything...                           }
      if assigned(ModeList) then
        exit;
-     InitMode(mode);
-     { now add all standard VGA modes...       }
-     mode.DriverNumber:= VGA;
-     mode.HardwarePages:= 0;
-     mode.ModeNumber:=VGALo;
-     mode.ModeName:='640 x 200 Win32GUI';
-     mode.MaxColor := 16;
-     mode.PaletteSize := mode.MaxColor;
-     mode.DirectColor := FALSE;
-     mode.MaxX := 639;
-     mode.MaxY := 199;
-     mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-     mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-     mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-     mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-     mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-     mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-     mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-     mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-     mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-     mode.XAspect := 10000;
-     mode.YAspect := 10000;
-     AddMode(mode);
-     InitMode(mode);
-     mode.DriverNumber:= VGA;
-     mode.HardwarePages:= 0;
-     mode.ModeNumber:=VGAMed;
-     mode.ModeName:='640 x 350 Win32GUI';
-     mode.MaxColor := 16;
-     mode.PaletteSize := mode.MaxColor;
-     mode.DirectColor := FALSE;
-     mode.MaxX := 639;
-     mode.MaxY := 349;
-     mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-     mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-     mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-     mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-     mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-     mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-     mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-     mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-     mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-     mode.XAspect := 10000;
-     mode.YAspect := 10000;
-     AddMode(mode);
-     InitMode(mode);
-     mode.DriverNumber:= VGA;
-     mode.HardwarePages:= 0;
-     mode.ModeNumber:=VGAHi;
-     mode.ModeName:='640 x 480 Win32GUI';
-     mode.MaxColor := 16;
-     mode.PaletteSize := mode.MaxColor;
-     mode.DirectColor := FALSE;
-     mode.MaxX := 639;
-     mode.MaxY := 479;
-     mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-     mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-     mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-     mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-     mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-     mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-     mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-     mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-     mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-     mode.XAspect := 10000;
-     mode.YAspect := 10000;
-     AddMode(mode);
-     InitMode(mode);
-     mode.DriverNumber:= VESA;
-     mode.HardwarePages:= 0;
-     mode.ModeNumber:=m640x400x256;
-     mode.ModeName:='640 x 400 x 256 Win32GUI';
-     mode.MaxColor := 256;
-     mode.PaletteSize := mode.MaxColor;
-     mode.DirectColor := FALSE;
-     mode.MaxX := 639;
-     mode.MaxY := 399;
-     mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-     mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-     mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-     mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-     mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-     mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-     mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-     mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-     mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-     mode.XAspect := 10000;
-     mode.YAspect := 10000;
-     AddMode(mode);
-     InitMode(mode);
-     mode.DriverNumber:= VESA;
-     mode.HardwarePages:= 0;
-     mode.ModeNumber:=m640x480x256;
-     mode.ModeName:='640 x 480 x 256 Win32GUI';
-     mode.MaxColor := 256;
-     mode.PaletteSize := mode.MaxColor;
-     mode.DirectColor := FALSE;
-     mode.MaxX := 639;
-     mode.MaxY := 479;
-     mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-     mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-     mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-     mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-     mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-     mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-     mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-     mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-     mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-     mode.XAspect := 10000;
-     mode.YAspect := 10000;
-     AddMode(mode);
+     if (ScreenWidth>=640) and (ScreenHeight>=200) then
+       begin
+          InitMode(mode);
+          { now add all standard VGA modes...       }
+          mode.DriverNumber:= VGA;
+          mode.HardwarePages:= 0;
+          mode.ModeNumber:=VGALo;
+          mode.ModeName:='640 x 200 x 16 Win32GUI';
+          mode.MaxColor := 16;
+          mode.PaletteSize := mode.MaxColor;
+          mode.DirectColor := FALSE;
+          mode.MaxX := 639;
+          mode.MaxY := 199;
+          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.XAspect := 10000;
+          mode.YAspect := 10000;
+          AddMode(mode);
+       end;
+     if (ScreenWidth>=640) and (ScreenHeight>=350) then
+       begin
+          InitMode(mode);
+          mode.DriverNumber:= VGA;
+          mode.HardwarePages:= 0;
+          mode.ModeNumber:=VGAMed;
+          mode.ModeName:='640 x 350 x 16 Win32GUI';
+          mode.MaxColor := 16;
+          mode.PaletteSize := mode.MaxColor;
+          mode.DirectColor := FALSE;
+          mode.MaxX := 639;
+          mode.MaxY := 349;
+          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.XAspect := 10000;
+          mode.YAspect := 10000;
+          AddMode(mode);
+       end;
+     if (ScreenWidth>=640) and (ScreenHeight>=400) then
+       begin
+          InitMode(mode);
+          mode.DriverNumber:= VESA;
+          mode.HardwarePages:= 0;
+          mode.ModeNumber:=m640x400x256;
+          mode.ModeName:='640 x 400 x 256 Win32GUI';
+          mode.MaxColor := 256;
+          mode.PaletteSize := mode.MaxColor;
+          mode.DirectColor := FALSE;
+          mode.MaxX := 639;
+          mode.MaxY := 399;
+          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.XAspect := 10000;
+          mode.YAspect := 10000;
+          AddMode(mode);
+       end;
+     if (ScreenWidth>=640) and (ScreenHeight>=480) then
+       begin
+          InitMode(mode);
+          mode.DriverNumber:= VGA;
+          mode.HardwarePages:= 0;
+          mode.ModeNumber:=VGAHi;
+          mode.ModeName:='640 x 480 x 16 Win32GUI';
+          mode.MaxColor := 16;
+          mode.PaletteSize := mode.MaxColor;
+          mode.DirectColor := FALSE;
+          mode.MaxX := 639;
+          mode.MaxY := 479;
+          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.XAspect := 10000;
+          mode.YAspect := 10000;
+          AddMode(mode);
+          InitMode(mode);
+          mode.DriverNumber:= VESA;
+          mode.HardwarePages:= 0;
+          mode.ModeNumber:=m640x480x256;
+          mode.ModeName:='640 x 480 x 256 Win32GUI';
+          mode.MaxColor := 256;
+          mode.PaletteSize := mode.MaxColor;
+          mode.DirectColor := FALSE;
+          mode.MaxX := 639;
+          mode.MaxY := 479;
+          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.XAspect := 10000;
+          mode.YAspect := 10000;
+          AddMode(mode);
+       end;
      { add 800x600 only if screen is large enough }
      If (ScreenWidth>=800) and (ScreenHeight>=600) then
        begin
-         InitMode(mode);
-         mode.DriverNumber:= VESA;
-         mode.HardwarePages:= 0;
-         mode.ModeNumber:=m800x600x16;
-         mode.ModeName:='800 x 600 x 16 Win32GUI';
-         mode.MaxColor := 16;
-         mode.PaletteSize := mode.MaxColor;
-         mode.DirectColor := FALSE;
-         mode.MaxX := 799;
-         mode.MaxY := 599;
-         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-         mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-         mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-         mode.XAspect := 10000;
-         mode.YAspect := 10000;
-         AddMode(mode);
-         InitMode(mode);
-         mode.DriverNumber:= VESA;
-         mode.HardwarePages:= 0;
-         mode.ModeNumber:=m800x600x256;
-         mode.ModeName:='800 x 600 x 256 Win32GUI';
-         mode.MaxColor := 256;
-         mode.PaletteSize := mode.MaxColor;
-         mode.DirectColor := FALSE;
-         mode.MaxX := 799;
-         mode.MaxY := 599;
-         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
-         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
-         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
-         mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
-         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
-         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
-         mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
-         mode.XAspect := 10000;
-         mode.YAspect := 10000;
-         AddMode(mode);
+          InitMode(mode);
+          mode.DriverNumber:= VESA;
+          mode.HardwarePages:= 0;
+          mode.ModeNumber:=m800x600x16;
+          mode.ModeName:='800 x 600 x 16 Win32GUI';
+          mode.MaxColor := 16;
+          mode.PaletteSize := mode.MaxColor;
+          mode.DirectColor := FALSE;
+          mode.MaxX := 799;
+          mode.MaxY := 599;
+          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.XAspect := 10000;
+          mode.YAspect := 10000;
+          AddMode(mode);
+          InitMode(mode);
+          mode.DriverNumber:= VESA;
+          mode.HardwarePages:= 0;
+          mode.ModeNumber:=m800x600x256;
+          mode.ModeName:='800 x 600 x 256 Win32GUI';
+          mode.MaxColor := 256;
+          mode.PaletteSize := mode.MaxColor;
+          mode.DirectColor := FALSE;
+          mode.MaxX := 799;
+          mode.MaxY := 599;
+          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.XAspect := 10000;
+          mode.YAspect := 10000;
+          AddMode(mode);
        end;
+     { add 1024x768 only if screen is large enough }
+     If (ScreenWidth>=1024) and (ScreenHeight>=768) then
+       begin
+          InitMode(mode);
+          mode.DriverNumber:= VESA;
+          mode.HardwarePages:= 0;
+          mode.ModeNumber:=m1024x768x16;
+          mode.ModeName:='1024 x 768 x 16 Win32GUI';
+          mode.MaxColor := 16;
+          mode.PaletteSize := mode.MaxColor;
+          mode.DirectColor := FALSE;
+          mode.MaxX := 1023;
+          mode.MaxY := 767;
+          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.XAspect := 10000;
+          mode.YAspect := 10000;
+          AddMode(mode);
+          InitMode(mode);
+          mode.DriverNumber:= VESA;
+          mode.HardwarePages:= 0;
+          mode.ModeNumber:=m1024x768x256;
+          mode.ModeName:='1024 x 768 x 256 Win32GUI';
+          mode.MaxColor := 256;
+          mode.PaletteSize := mode.MaxColor;
+          mode.DirectColor := FALSE;
+          mode.MaxX := 1023;
+          mode.MaxY := 768;
+          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.XAspect := 10000;
+          mode.YAspect := 10000;
+          AddMode(mode);
+       end;
+     { add 1280x1024 only if screen is large enough }
+     If (ScreenWidth>=1280) and (ScreenHeight>=1024) then
+       begin
+          InitMode(mode);
+          mode.DriverNumber:= VESA;
+          mode.HardwarePages:= 0;
+          mode.ModeNumber:=m1280x1024x16;
+          mode.ModeName:='1280 x 1024 x 16 Win32GUI';
+          mode.MaxColor := 16;
+          mode.PaletteSize := mode.MaxColor;
+          mode.DirectColor := FALSE;
+          mode.MaxX := 1279;
+          mode.MaxY := 1023;
+          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.XAspect := 10000;
+          mode.YAspect := 10000;
+          AddMode(mode);
+          InitMode(mode);
+          mode.DriverNumber:= VESA;
+          mode.HardwarePages:= 0;
+          mode.ModeNumber:=m1280x1024x256;
+          mode.ModeName:='1280 x 1024 x 256 Win32GUI';
+          mode.MaxColor := 256;
+          mode.PaletteSize := mode.MaxColor;
+          mode.DirectColor := FALSE;
+          mode.MaxX := 1279;
+          mode.MaxY := 1023;
+          mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+          mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+          mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+          mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+          mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+          mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+          mode.XAspect := 10000;
+          mode.YAspect := 10000;
+          AddMode(mode);
+       end;
+     { at least we add a mode with the largest possible window }
+      InitMode(mode);
+      mode.DriverNumber:= VESA;
+      mode.HardwarePages:= 0;
+      mode.ModeNumber:=mLargestWindow16;
+      mode.ModeName:='Largest Window x 16';
+      mode.MaxColor := 16;
+      mode.PaletteSize := mode.MaxColor;
+      mode.DirectColor := FALSE;
+      mode.MaxX := ScreenWidth-1;
+      mode.MaxY := ScreenHeight-1;
+      mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+      mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+      mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+      mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+      mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+      mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+      mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+      mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
+      AddMode(mode);
+      InitMode(mode);
+      mode.DriverNumber:= VESA;
+      mode.HardwarePages:= 0;
+      mode.ModeNumber:=mLargestWindow256;
+      mode.ModeName:='Largest Window x 256';
+      mode.MaxColor := 256;
+      mode.PaletteSize := mode.MaxColor;
+      mode.DirectColor := FALSE;
+      mode.MaxX := ScreenWidth-1;
+      mode.MaxY := ScreenHeight-1;
+      mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+      mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+      mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+      mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+      mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+      mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+      mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+      mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
+      AddMode(mode);
+     { .. and a maximized window }
+      InitMode(mode);
+      mode.DriverNumber:= VESA;
+      mode.HardwarePages:= 0;
+      mode.ModeNumber:=mMaximizedWindow16;
+      mode.ModeName:='Maximized Window x 16';
+      mode.MaxColor := 16;
+      mode.PaletteSize := mode.MaxColor;
+      mode.DirectColor := FALSE;
+      mode.MaxX := ScreenWidthMaximized-1;
+      mode.MaxY := ScreenHeightMaximized-1;
+      mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+      mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+      mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+      mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+      mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+      mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+      mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+      mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
+      AddMode(mode);
+      InitMode(mode);
+      mode.DriverNumber:= VESA;
+      mode.HardwarePages:= 0;
+      mode.ModeNumber:=mMaximizedWindow256;
+      mode.ModeName:='Maximized Window x 256';
+      mode.MaxColor := 256;
+      mode.PaletteSize := mode.MaxColor;
+      mode.DirectColor := FALSE;
+      mode.MaxX := ScreenWidthMaximized-1;
+      mode.MaxY := ScreenHeightMaximized-1;
+      mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16Win32GUI;
+      mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16Win32GUI;
+      mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16Win32GUI;
+      mode.HLine := {$ifdef fpc}@{$endif}HLine16Win32GUI;
+      mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetRGBPaletteWin32GUI;
+      mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetRGBPaletteWin32GUI;
+      mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualWin32GUI;
+      mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveWin32GUI;
+      mode.InitMode := {$ifdef fpc}@{$endif}InitWin32GUI16colors;
+      mode.XAspect := 10000;
+      mode.YAspect := 10000;
+      AddMode(mode);
   end;
 
 begin
@@ -799,7 +1033,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-03-19 11:20:14  peter
+  Revision 1.2  2000-03-24 10:49:17  florian
+    * the mode detection takes now care of window caption and border
+    + 1024x768 and 1280x1024 modes added
+    + special gui modes added: largest window and maximized window to
+      use the desktop as much as possible
+    * Hline fixed: the windows function LineTo doesn't draw the last pixel!
+
+  Revision 1.1  2000/03/19 11:20:14  peter
     * graph unit include is now independent and the dependent part
       is now in graph.pp
     * ggigraph unit for linux added
@@ -833,5 +1074,4 @@ end.
 
   Revision 1.1  1999/11/03 20:23:02  florian
     + first release of win32 gui support
-
 }
