@@ -154,6 +154,7 @@ type sigset_t = array[0..3] of Longint;
 
 
   SignalHandler   = Procedure(Sig : Longint);cdecl;
+  TSignalHandler   = Procedure(Sig : Longint);cdecl;
   PSignalHandler  = ^SignalHandler;
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
@@ -195,7 +196,10 @@ const
 
 {
   $Log$
-  Revision 1.8  2003-10-27 17:12:45  marco
+  Revision 1.9  2004-12-30 12:52:43  marco
+   * tsignalhandler added"
+
+  Revision 1.8  2003/10/27 17:12:45  marco
    * fixes for signal handling.
 
   Revision 1.7  2003/01/05 19:02:29  marco
