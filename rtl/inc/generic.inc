@@ -574,6 +574,7 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FPC_SHORTSTR_APPEND_SHORTSTR}
 
 procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring);{$ifdef hascompilerproc} compilerproc; {$endif}
+    [public,alias:'FPC_SHORTSTR_APPEND_SHORTSTR'];
 var
   s1l, s2l : byte;
 begin
@@ -974,7 +975,10 @@ end;
 
 {
   $Log$
-  Revision 1.58  2003-05-26 19:36:46  peter
+  Revision 1.59  2003-05-26 21:18:13  peter
+    * FPC_SHORTSTR_APPEND_SHORTSTR public added
+
+  Revision 1.58  2003/05/26 19:36:46  peter
     * fpc_shortstr_concat is now the same for all targets
     * fpc_shortstr_append_shortstr added for optimized code generation
 
