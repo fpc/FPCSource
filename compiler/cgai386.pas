@@ -2260,9 +2260,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
     begin
        if (psym(p)^.typ=varsym) and
           assigned(pvarsym(p)^.definition) and
-          pvarsym(p)^.definition^.needs_inittable and
           not((pvarsym(p)^.definition^.deftype=objectdef) and
-            pobjectdef(pvarsym(p)^.definition)^.isclass) then
+            pobjectdef(pvarsym(p)^.definition)^.isclass) and
+          pvarsym(p)^.definition^.needs_inittable then
          begin
             procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
             reset_reference(hr);
@@ -2319,9 +2319,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
     begin
        if (psym(p)^.typ=varsym) and
           assigned(pvarsym(p)^.definition) and
-          pvarsym(p)^.definition^.needs_inittable and
           not((pvarsym(p)^.definition^.deftype=objectdef) and
-            pobjectdef(pvarsym(p)^.definition)^.isclass) then
+          pobjectdef(pvarsym(p)^.definition)^.isclass) and
+          pvarsym(p)^.definition^.needs_inittable then
          begin
             { not all kind of parameters need to be finalized  }
             if (psym(p)^.owner^.symtabletype=parasymtable) and
@@ -3118,7 +3118,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.20  1999-08-01 17:17:37  florian
+  Revision 1.21  1999-08-01 17:32:31  florian
+    * more fixes for inittable call
+
+  Revision 1.20  1999/08/01 17:17:37  florian
     * tried to fix a bug with init table
 
   Revision 1.19  1999/07/29 20:53:58  peter
