@@ -422,6 +422,7 @@ begin
      end
    else
      ppointer(_self+vmt_pos)^:=nil;
+   _self := nil;  
 end;
 {$endif FPC_SYSTEM_HAS_FPC_HELP_FAIL}
 
@@ -919,7 +920,10 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {
   $Log$
-  Revision 1.35  2002-09-10 21:29:44  jonas
+  Revision 1.36  2002-09-13 19:13:06  carl
+    * FPC_HELP_FAIL : reset _self to nil
+
+  Revision 1.35  2002/09/10 21:29:44  jonas
     * added some missing compilerproc directives
 
   Revision 1.34  2002/09/07 21:08:42  carl
