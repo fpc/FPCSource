@@ -783,6 +783,7 @@ begin
   if p+size>=heapptr then
    begin
      heapptr:=p;
+     internal_memavail:=internal_heapsize;
      goto freemem_exit;
    end;
 { heap block? }
@@ -1086,7 +1087,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  1999-02-08 09:31:39  florian
+  Revision 1.7  1999-03-18 11:21:16  peter
+    * memavail fixed for too big freemem calls
+
+  Revision 1.6  1999/02/08 09:31:39  florian
     * fixed small things regarding TEMPHEAP
 
   Revision 1.5  1999/01/22 12:39:21  pierre
