@@ -4565,6 +4565,9 @@ Const
      VK_X = 88;
      VK_Y = 89;
      VK_Z = 90;
+     VK_LWIN = 91;
+     VK_RWIN = 92;
+     VK_APPS = 93; 
      VK_NUMPAD0 = 96;
      VK_NUMPAD1 = 97;
      VK_NUMPAD2 = 98;
@@ -5930,7 +5933,10 @@ const
 
 {
   $Log$
-  Revision 1.18  2004-08-26 15:57:23  michael
+  Revision 1.19  2004-12-18 19:49:53  michael
+  + Added windows key VK_ definitions from Alexey barkovoy (bug 3445)
+
+  Revision 1.18  2004/08/26 15:57:23  michael
   + Some missing functions/defines as per bug 3270 from Frank Kintrup
 
   Revision 1.17  2004/07/27 12:03:15  michael
