@@ -58,26 +58,16 @@ begin
   FSourceEnd[0] := #0;
 end;
 
-
 procedure TParser.SkipBlanks;
-var
-  Count            : Integer;
 begin
-  Inc(FOrigin, FSourcePtr - FBuffer);
-  FSourceEnd[0] := FSaveChar;
-  Count := FBufPtr - FSourcePtr;
-  if Count <> 0 then Move(FSourcePtr[0], FBuffer[0], Count);
-  FBufPtr := FBuffer + Count;
-  Inc(FBufPtr, FStream.Read(FBufPtr[0], FBufEnd - FBufPtr));
-  FSourcePtr := FBuffer;
-  FSourceEnd := FBufPtr;
-  if FSourceEnd = FBufEnd then
-  begin
-    FSourceEnd := LineStart(FBuffer, FSourceEnd - 1);
-    if FSourceEnd = FBuffer then Error(SLineTooLong);
+  while FSourcePtr^ < #33 do begin
+    if FSourcePtr^ = #0 then begin
+      ReadBuffer;
+      if FSourcePtr^ = #0 then exit;
+      continue;
+    end else if FSourcePtr^ = #10 then Inc(FSourceLine);
+    Inc(FSourcePtr);
   end;
-  FSaveChar := FSourceEnd[0];
-  FSourceEnd[0] := #0;
 end;
 
 constructor TParser.Create(Stream: TStream);
@@ -311,7 +301,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.6  1999-04-08 10:18:53  peter
+  Revision 1.7  1999-09-28 10:28:21  fcl
+  * Fixed some severe bugs  (sg)
+
+  Revision 1.6  1999/04/08 10:18:53  peter
     * makefile updates
 
 }
