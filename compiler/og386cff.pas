@@ -614,6 +614,10 @@ unit og386cff;
          s:=currsec
         else }
          s:=section;
+        { do not use the size stored in offset field
+         this is DJGPP specific ! PM }
+        if win32 then
+          offset:=0;
         { local var can be at offset -1 !! PM }
         if reloc then
          begin
@@ -960,7 +964,15 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.11  1999-08-11 17:17:38  peter
+  Revision 1.12  1999-08-16 15:35:25  pierre
+    * fix for DLL relocation problems
+    * external bss vars had wrong stabs for pecoff
+    + -WB11000000 to specify default image base, allows to
+      load several DLLs with debugging info included
+      (relocatable DLL are stripped because the relocation
+       of the .Stab section is misplaced by ldw)
+
+  Revision 1.11  1999/08/11 17:17:38  peter
     * fixed rva writting for section relocs
     * fixed section flags for edata and idata
 

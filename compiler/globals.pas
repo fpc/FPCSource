@@ -170,6 +170,7 @@ unit globals;
     const
        RelocSection : boolean = true;
        DLLsource : boolean = false;
+       DLLImageBase : pstring = nil;
 
        { should we allow non static members ? }
        allow_only_static : boolean = false;
@@ -1168,6 +1169,8 @@ unit globals;
    procedure DoneGlobals;
      begin
         initdefines.done;
+        if assigned(DLLImageBase) then
+          StringDispose(DLLImageBase);
      end;
 
    procedure InitGlobals;
@@ -1233,7 +1236,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  1999-08-11 17:26:32  peter
+  Revision 1.19  1999-08-16 15:35:21  pierre
+    * fix for DLL relocation problems
+    * external bss vars had wrong stabs for pecoff
+    + -WB11000000 to specify default image base, allows to
+      load several DLLs with debugging info included
+      (relocatable DLL are stripped because the relocation
+       of the .Stab section is misplaced by ldw)
+
+  Revision 1.18  1999/08/11 17:26:32  peter
     * tlinker object is now inherited for win32 and dos
     * postprocessexecutable is now a method of tlinker
 

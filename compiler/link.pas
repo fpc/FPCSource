@@ -587,6 +587,9 @@ var
   success    : boolean;
   ii         : longint;
 begin
+  { can be changed after InitLinker
+    for DLLs due to relocation problems PM }
+  Strip:=(cs_link_strip in aktglobalswitches);
 {$ifdef linux}
   if LinkToC then
    begin
@@ -632,8 +635,9 @@ begin
       same memory pool. The heap grows upwards, the stack grows downwards.}
      Replace(s,'$DOSHEAPKB',tostr((stacksize+maxheapsize+1023) shr 10));
      if Strip and Target_Link.StripBind then
-                   Replace (S, '$STRIP', Target_Link.StripOpt) else
-                                                     Replace (S, '$STRIP', '');
+       Replace (S, '$STRIP', Target_Link.StripOpt)
+     else
+       Replace (S, '$STRIP', '');
      if utilsdirectory<>'' then
        begin
           bindbin:=Search(target_link.bindbin[ii]+source_os.exeext,
@@ -767,7 +771,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.66  1999-08-11 17:26:34  peter
+  Revision 1.67  1999-08-16 15:35:23  pierre
+    * fix for DLL relocation problems
+    * external bss vars had wrong stabs for pecoff
+    + -WB11000000 to specify default image base, allows to
+      load several DLLs with debugging info included
+      (relocatable DLL are stripped because the relocation
+       of the .Stab section is misplaced by ldw)
+
+  Revision 1.66  1999/08/11 17:26:34  peter
     * tlinker object is now inherited for win32 and dos
     * postprocessexecutable is now a method of tlinker
 

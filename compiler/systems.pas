@@ -895,7 +895,7 @@ implementation
             binders : 0;
             bindbin : ('dlltool','ldw');
             bindcmd : ('--as asw.exe --dllname $EXE --output-exp exp.$$$',
-                       '-s $OPT -o $EXE $RES exp.$$$');
+                       '$OPT -o $EXE $RES exp.$$$');
             stripopt   : '-s';
             stripbind  : false;
             libpathprefix : 'SEARCH_DIR(';
@@ -1734,7 +1734,15 @@ begin
 end.
 {
   $Log$
-  Revision 1.90  1999-08-04 13:03:11  jonas
+  Revision 1.91  1999-08-16 15:35:29  pierre
+    * fix for DLL relocation problems
+    * external bss vars had wrong stabs for pecoff
+    + -WB11000000 to specify default image base, allows to
+      load several DLLs with debugging info included
+      (relocatable DLL are stripped because the relocation
+       of the .Stab section is misplaced by ldw)
+
+  Revision 1.90  1999/08/04 13:03:11  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
 

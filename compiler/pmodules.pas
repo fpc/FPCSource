@@ -233,12 +233,19 @@ unit pmodules;
                     target_link.linkcmd:=target_link.linkcmd+' --base-file base.$$$';
                     target_link.bindcmd[1]:=target_link.bindcmd[1]+' --base-file base.$$$';
                   end;
+                 if assigned(DLLImageBase) then
+                   begin
+                     target_link.linkcmd:=target_link.linkcmd+' --image-base=0x'+DLLImageBase^;
+                     target_link.bindcmd[2]:=target_link.bindcmd[2]+' --image-base=0x'+DLLImageBase^;
+                   end;
                end;
               if apptype=at_gui then
                begin
                 target_link.linkcmd:='--subsystem windows '+target_link.linkcmd;
                 target_link.bindcmd[2]:='--subsystem windows '+target_link.bindcmd[2];
                end;
+              if (cs_link_strip in aktglobalswitches) then
+                target_link.bindcmd[2]:='-s '+target_link.bindcmd[2];
             end;
 {$endif i386}
 {$ifdef m68k}
@@ -1189,6 +1196,12 @@ unit pmodules;
          if islibrary then
            begin
               consume(_LIBRARY);
+              { relocation works only without stabs !! PM }
+              if RelocSection then
+                begin
+                  aktglobalswitches:=aktglobalswitches+[cs_link_strip];
+                  aktmoduleswitches:=aktmoduleswitches-[cs_debuginfo];
+                end;
               stringdispose(current_module^.modulename);
               current_module^.modulename:=stringdup(pattern);
               current_module^.islibrary:=true;
@@ -1356,7 +1369,15 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.141  1999-08-11 17:26:36  peter
+  Revision 1.142  1999-08-16 15:35:27  pierre
+    * fix for DLL relocation problems
+    * external bss vars had wrong stabs for pecoff
+    + -WB11000000 to specify default image base, allows to
+      load several DLLs with debugging info included
+      (relocatable DLL are stripped because the relocation
+       of the .Stab section is misplaced by ldw)
+
+  Revision 1.141  1999/08/11 17:26:36  peter
     * tlinker object is now inherited for win32 and dos
     * postprocessexecutable is now a method of tlinker
 

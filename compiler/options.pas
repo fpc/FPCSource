@@ -663,12 +663,28 @@ begin
                      IllegalPara(opt);
               'W' : begin
                       for j:=1 to length(More) do
-                       case More[j]of
+                       case More[j] of
                         'B': {bind_win32_dll:=true}
-                             RelocSection:=true;
+                             begin
+                               {  -WB200000 means set prefered base address
+                                 to $200000, but does not change relocsection boolean
+                                 this way we can create both relocatble and
+                                 non relocatable DLL at a specific base address PM }
+                               if (length(More)>j) then
+                                 begin
+                                   if DLLImageBase=nil then
+                                     DLLImageBase:=StringDup(Copy(More,j+1,255));
+                                 end
+                               else
+                                 RelocSection:=true;
+                               break;
+                             end;
                         'C': apptype:=at_cui;
                         'G': apptype:=at_gui;
-                        'N': RelocSection:=false;
+                        'N': begin
+                               RelocSection:=false;
+                             end;
+                             
                         'R': RelocSection:=true;
                        else
                         IllegalPara(opt);
@@ -1163,7 +1179,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1999-08-11 17:26:35  peter
+  Revision 1.14  1999-08-16 15:35:26  pierre
+    * fix for DLL relocation problems
+    * external bss vars had wrong stabs for pecoff
+    + -WB11000000 to specify default image base, allows to
+      load several DLLs with debugging info included
+      (relocatable DLL are stripped because the relocation
+       of the .Stab section is misplaced by ldw)
+
+  Revision 1.13  1999/08/11 17:26:35  peter
     * tlinker object is now inherited for win32 and dos
     * postprocessexecutable is now a method of tlinker
 

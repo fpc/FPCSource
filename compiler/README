@@ -52,4 +52,7 @@ Changes in the syntax or semantic of FPC:
              exceptions and exceptions need the class OOP model
   18/05/99   The compiler will stop directly if there are errors in the
              commandline parameters           
-
+  16/08/99   DLL are relocatable by default (need to strip symbols)
+             -WN make non relocatable DLL (which can retain debug info)
+             for both type of DLL the prefered image base can be specified
+             with -WB1100000 for instance to get image base at $11000000.
