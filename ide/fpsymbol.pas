@@ -222,6 +222,7 @@ procedure RemoveBrowsersCollection;
 
 const
    GlobalsCollection : PSortedCollection = nil;
+   ProcedureCollection : PSortedCollection = nil;
    ModulesCollection : PSortedCollection = nil;
 
 implementation
@@ -265,6 +266,12 @@ begin
       GlobalsCollection^.deleteAll;
       Dispose(GlobalsCollection,done);
       GlobalsCollection:=nil;
+    end;
+  if assigned(ProcedureCollection) then
+    begin
+      ProcedureCollection^.deleteAll;
+      Dispose(ProcedureCollection,done);
+      ProcedureCollection:=nil;
     end;
   if assigned(ModulesCollection) then
     begin
@@ -1812,7 +1819,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  2001-08-05 12:23:00  peter
+  Revision 1.4  2001-10-24 21:49:56  pierre
+   + FindProcedure implemented
+
+  Revision 1.3  2001/08/05 12:23:00  peter
     * Automatically support for fvision or old fv
 
   Revision 1.2  2001/08/05 02:01:48  peter

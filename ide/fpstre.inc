@@ -332,6 +332,9 @@ const
       dialog_browsesymbol = 'Browse Symbol';
       label_entersymboltobrowse = 'Enter S~y~mbol to browse';
 
+      dialog_proceduredialog = 'Find Procedure';
+      label_enterproceduretofind = 'Enter ~m~atching expr.';
+
       dialog_gdbwindow = 'GDB window';
 
       dialog_disaswindow = 'Disassembly window';
@@ -675,6 +678,8 @@ const
       label_sym_objects = 'Objects';
       label_sym_globalscope = 'Global scope';
       label_sym_globals = 'Globals';
+      label_sym_findprocedure = 'Procedures';
+      label_sym_findprocedure2 = 'Matching ';
 
       { Symbol browser meminfo page }
       msg_sizeinmemory = 'Size in memory';
@@ -1007,7 +1012,10 @@ const
 
 {
   $Log$
-  Revision 1.3  2001-10-12 14:21:47  pierre
+  Revision 1.4  2001-10-24 21:49:56  pierre
+   + FindProcedure implemented
+
+  Revision 1.3  2001/10/12 14:21:47  pierre
    + show error if switch to new screen mode failed
 
   Revision 1.2  2001/08/29 23:31:27  pierre
