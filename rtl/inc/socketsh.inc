@@ -141,7 +141,6 @@ TInetSockAddr = packed Record
 Var
   SocketError:cint;
 
-{$ifndef FPC_USE_LIBC}
 function  fpsocket      (domain:cint; xtype:cint; protocol: cint):cint; 
 function  fprecv        (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t; 
 function  fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t; 
@@ -157,23 +156,6 @@ function  fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint;
 function  fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; 
 function  fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : tsocklen):cint; 
 function  fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; 
-{$else}
-function  fpsocket      (domain:cint; xtype:cint; protocol: cint):cint; cdecl; external;
-function  fprecv        (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t; cdecl; external;
-function  fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t; cdecl; external;
-function  fpsend        (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t; cdecl; external;
-function  fpsendto      (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t; cdecl; external;
-function  fpbind        (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  cdecl; external;
-function  fplisten      (s:cint; backlog : cint):cint;                          cdecl; external;
-function  fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; cdecl; external;
-function  fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  cdecl; external;
-function  fpshutdown    (s:cint; how:cint):cint; cdecl; external;
-function  fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint; cdecl; external;
-function  fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint; cdecl; external;
-function  fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; cdecl; external;
-function  fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : tsocklen):cint; cdecl; external;
-function  fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; cdecl; external;
-{$endif}
 
 {Basic Socket Functions}
 Function Socket(Domain,SocketType,Protocol:Longint):Longint;
@@ -212,7 +194,10 @@ Function NToHs (Net : word):word;         {$ifdef HASINLINE} inline; {$endif}
 
 {
   $Log$
-  Revision 1.20  2004-12-21 14:36:18  marco
+  Revision 1.21  2004-12-23 18:32:26  marco
+   * cdecl stuff removed. Now works on FreeBSD with and without FPC_USE_LIBC
+
+  Revision 1.20  2004/12/21 14:36:18  marco
    * more maybelibc removal
 
   Revision 1.19  2004/12/21 09:48:14  michael
