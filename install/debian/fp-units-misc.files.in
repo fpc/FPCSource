@@ -20,7 +20,6 @@
 
 /usr/lib/fpc/%{fpcversion}/units/linux/libgdbcon.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/gdbcon.o 
-/usr/lib/fpc/%{fpcversion}/units/linux/libgdbint.a 
 /usr/lib/fpc/%{fpcversion}/units/linux/gdbint.o
 
 /usr/lib/fpc/%{fpcversion}/units/linux/paszlib/paszlib.ppu 

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Create debian files from *.in files.
+# Create debian files from *.in files
 #
 # $1 = path to debian files
 #

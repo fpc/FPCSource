@@ -2,8 +2,8 @@
 
 FPCDIR=/usr/lib/fpc/%{fpcversion}
 
-# create link
-ln -sf $FPCDIR/ppc386 /usr/bin/ppc386
+# remove link
+rm -f /usr/bin/ppc386
 
 # Debhelper code
 #DEBHELPER#
