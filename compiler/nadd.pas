@@ -975,6 +975,15 @@ implementation
                       inserttypeconv(left,right.resulttype)
                     else if not(equal_defs(ld,rd)) then
                       IncompatibleTypes(ld,rd);
+                    { now that the type checking is done, convert both to charpointer, }
+                    { because methodpointers are 8 bytes even though only the first 4  }
+                    { bytes must be compared. This can happen here if we are in        }
+                    { TP/Delphi mode, because there @methodpointer = voidpointer (but  }
+                    { a voidpointer of 8 bytes). A conversion to voidpointer would be  }
+                    { optimized away, since the result already was a voidpointer, so   }
+                    { use a charpointer instead (JM)                                   }
+                    inserttypeconv_explicit(left,charpointertype);
+                    inserttypeconv_explicit(right,charpointertype);
                  end;
                ltn,lten,gtn,gten:
                  begin
@@ -2024,7 +2033,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.126  2004-08-08 15:22:29  florian
+  Revision 1.127  2004-08-17 19:04:36  jonas
+    * fixed "if @procvar_of_object <> nil" in Delphi/TP mode for for non-x86
+
+  Revision 1.126  2004/08/08 15:22:29  florian
     * fixed several ie9999s when illegal operators were used
 
   Revision 1.125  2004/06/20 08:55:29  florian
