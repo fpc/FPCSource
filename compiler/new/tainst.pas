@@ -23,7 +23,7 @@
 Unit tainst;
 
 interface
-  
+
   Uses aasm,cpubase,cpuinfo,cobjects;
   
 Type
@@ -42,10 +42,10 @@ tainstruction = object(tai)
   opcode    : tasmop;
   condition : TAsmCond;
   ops       : longint;
-  oper      : array[0..2] of toper;
+  oper      : array[0..max_operands-1] of toper;
   Constructor init(op : tasmop);
   Destructor Done;virtual;
-  function getcopy:plinkedlist_item;
+  function getcopy:plinkedlist_item;virtual;
   procedure loadconst(opidx:longint;l:longint);
   procedure loadsymbol(opidx:longint;s:pasmsymbol;sofs:longint);
   procedure loadref(opidx:longint;p:preference);
@@ -243,7 +243,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-08-06 16:04:05  michael
+  Revision 1.2  1999-08-06 16:38:37  jonas
+    * declared getcopy virtual, since it's already declared as such
+      in cobjects.pas (FPC doesn't error on that, TP does)
+
+  Revision 1.1  1999/08/06 16:04:05  michael
   + introduced tainstruction
 
 }
