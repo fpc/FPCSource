@@ -88,7 +88,7 @@ implementation
 
 uses
   globtype,globals,systems,verbose,
-  cpuinfo,
+  cpuinfo,cginfo,
   itx86att,cgx86;
 
 {$define ATTOP}
@@ -203,6 +203,8 @@ end;
 Procedure T386Operand.SetSize(_size:longint;force:boolean);
 begin
   inherited SetSize(_size,force);
+  { OS_64 will be set to S_L and be fixed later
+    in SetCorrectSize }
   opsize:=TCGSize2Opsize[size];
 end;
 
@@ -211,16 +213,17 @@ Procedure T386Operand.SetCorrectSize(opcode:tasmop);
 begin
   if gas_needsuffix[opcode]=attsufFPU then
     begin
-     case opsize of
-      S_L : opsize:=S_FS;
-      S_IQ : opsize:=S_FL;
+     case size of
+       OS_32 : opsize:=S_FS;
+       OS_64 : opsize:=S_FL;
      end;
     end
   else if gas_needsuffix[opcode]=attsufFPUint then
     begin
-      case opsize of
-        S_W : opsize:=S_IS;
-        S_L : opsize:=S_IL;
+      case size of
+        OS_16 : opsize:=S_IS;
+        OS_32 : opsize:=S_IL;
+        OS_64 : opsize:=S_IQ;
       end;
     end;
 end;
@@ -656,19 +659,27 @@ begin
        OPR_REFERENCE:
          begin
            ai.loadref(i-1,operands[i].opr.ref);
-           if t386operand(operands[i]).opsize<>S_NO then
+           if operands[i].size<>OS_NO then
              begin
                asize:=0;
-               case t386operand(operands[i]).opsize of
-                   S_B :
+               case operands[i].size of
+                   OS_8,OS_S8 :
                      asize:=OT_BITS8;
-                   S_W, S_IS :
+                   OS_16,OS_S16 :
                      asize:=OT_BITS16;
-                   S_L, S_IL, S_FS:
-                     asize:=OT_BITS32;
-                   S_Q, S_D, S_FL, S_FV :
+                   OS_32,OS_S32,OS_F32,
+                   OS_64,OS_S64:
+                     begin
+                       { Only FPU operations know about 64bit values, for all
+                         integer operations it is seen as 32bit }
+                       if gas_needsuffix[opcode] in [attsufFPU,attsufFPUint] then
+                         asize:=OT_BITS64
+                       else
+                         asize:=OT_BITS32;
+                     end;
+                   OS_F64,OS_C64 :
                      asize:=OT_BITS64;
-                   S_FX :
+                   OS_F80 :
                      asize:=OT_BITS80;
                  end;
                if asize<>0 then
@@ -704,7 +715,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2003-05-30 23:57:08  peter
+  Revision 1.4  2003-05-31 16:22:28  peter
+    * fixed opsize and operand size setting for 64bit values
+
+  Revision 1.3  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)
