@@ -408,7 +408,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_op64_reg_ref(list : taasmoutput;op:TOpCG;reg : tregister64; const ref: treference);override;
+    procedure tcg64f32.a_op64_reg_ref(list : taasmoutput;op:TOpCG;reg : tregister64; const ref: treference);
       var
         tempreg: tregister64;
       begin
@@ -766,7 +766,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2003-04-07 08:45:09  jonas
+  Revision 1.38  2003-04-07 08:52:58  jonas
+    * fixed compiling error
+
+  Revision 1.37  2003/04/07 08:45:09  jonas
     + generic a_op64_reg_ref implementation
 
   Revision 1.36  2003/03/28 19:16:56  peter
