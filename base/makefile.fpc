@@ -975,6 +975,8 @@ fpc_objectinfo:
 	@$(ECHO)  UnitObjects... $(UNITOBJECTS)
 	@$(ECHO)  ExeObjects.... $(EXEOBJECTS)
 	@$(ECHO)
+	@$(ECHO)  ExtraUnits.... $(EXTRAUNITS)
+	@$(ECHO)
 
 fpc_installinfo:
 	@$(ECHO)
@@ -1024,7 +1026,10 @@ endif
 
 #
 # $Log$
-# Revision 1.36  1999-07-01 18:20:01  jonas
+# Revision 1.37  1999-07-05 21:37:35  peter
+#   * display extraunits in info
+#
+# Revision 1.36  1999/07/01 18:20:01  jonas
 #   * changed RELEASE=1 processor option from -Op2 to -Op3
 #
 # Revision 1.35  1999/06/18 11:03:08  peter
