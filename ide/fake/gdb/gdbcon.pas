@@ -92,6 +92,7 @@ type
   PGDBController=^TGDBController;
   TGDBController=object(TGDBInterface)
     progname   : pchar;
+    progargs   : pchar;
     in_command,
     init_count : longint;
     debugger_started,
@@ -108,6 +109,7 @@ type
     procedure WriteErrorBuf;
     procedure WriteOutputBuf;
     function  LoadFile(const fn:string):boolean;
+    procedure SetArgs(const s : string);
     procedure ClearSymbols;
   end;
 
@@ -161,6 +163,10 @@ end;
 function TGDBController.LoadFile(const fn:string):boolean;
 begin
   LoadFile:=true;
+end;
+
+procedure TGDBController.SetArgs(const s : string);
+begin
 end;
 
 
@@ -356,7 +362,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-02-06 00:04:55  florian
+  Revision 1.4  1999-02-08 11:39:33  pierre
+   * reflect added setArgs in gdbint
+
+  Revision 1.3  1999/02/06 00:04:55  florian
     * faked gdb fixed
 
   Revision 1.2  1999/02/04 17:19:22  peter
