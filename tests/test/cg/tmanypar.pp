@@ -27,8 +27,36 @@ begin
 end;
 
 
+procedure t2;
+var
+  a,b,c,d,e,f,g: longint;
 begin
+  a := 1;
+  b := 2;
+  c := 3;
+  d := 4;
+  e := 5;
+  f := 6;
+  g := 7;
   t($deadbeef,$cafebabe,$BeC0ffee,$C001D00D,$feeb1e,cardinal($abba-$ceedee),
-    $feedface,$badfade5,$deafb00b,$badc0c0a,$2badf001,$defaced)
+    $feedface,$badfade5,$deafb00b,$badc0c0a,$2badf001,$defaced);
+  if a<>1 then
+    halt(13);
+  if b<>2 then
+    halt(14);
+  if c<>3 then
+    halt(15);
+  if d<>4 then
+    halt(16);
+  if e<>5 then
+    halt(17);
+  if f<>6 then
+    halt(18);
+  if g<>7 then
+    halt(19);
+end;
+
+begin
+  t2;
 end.
 
