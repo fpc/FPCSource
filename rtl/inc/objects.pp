@@ -2697,7 +2697,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.20  1998-12-23 13:31:48  daniel
+  Revision 1.21  1998-12-23 20:30:45  michael
+  removed CR characters
+
+  Revision 1.20  1998/12/23 13:31:48  daniel
   + invalidhandle constant
 
   Revision 1.16  1998/12/08 10:11:27  peter
