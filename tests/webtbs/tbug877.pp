@@ -8,20 +8,15 @@ var
   l: TList;
   IsCaught: boolean;
 
-
-
 begin
   L:= TList.Create;
   IsCaught:=false;
   Try
-  WriteLn(LongInt(L[0]));{L[0] not exist, ==> access violation}
-  L.Free;
+     WriteLn(LongInt(L[0]));{L[0] not exist, ==> access violation}
+     L.Free;
   Except
     on eListError do
-       begin
-         Writeln('Exception caught');
-         IsCaught:=true;
-       end;
+      IsCaught:=true;
   end;
   If not IsCaught then
     begin
