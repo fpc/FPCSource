@@ -108,8 +108,15 @@ interface
            begin
              if not assigned(p.altsymbol) then
               begin
+                { generatealtsymbol will also increase the refs }
                 p.GenerateAltSymbol;
                 UsedAsmSymbolListInsert(p);
+              end
+             else
+              begin
+                { increase the refs, they will be decreased when the
+                  asmnode is destroyed }
+                inc(p.refs);
               end;
              p:=p.altsymbol;
            end;
@@ -221,7 +228,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2001-05-18 22:31:06  peter
+  Revision 1.4  2001-06-02 19:22:15  peter
+    * refs count for relabeled asmsymbols fixed
+
+  Revision 1.3  2001/05/18 22:31:06  peter
     * tasmnode.pass_2 is independent of cpu, moved to ncgbas
     * include ncgbas for independent nodes
 
