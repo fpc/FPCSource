@@ -165,9 +165,9 @@ begin
       Exit;
     End;
 { Try to load the word from the editor }
-  If not(DeskTop^.First=nil) and
-     (DeskTop^.First^.HelpCtx=hcSourceWindow) then
-    Searchword:=PSourceWindow(DeskTop^.First)^.Editor^.GetCurrentWord
+  If not(DeskTop^.Current=nil) and
+     (DeskTop^.Current^.HelpCtx=hcSourceWindow) then
+    Searchword:=PSourceWindow(DeskTop^.Current)^.Editor^.GetCurrentWord
   else
     Searchword:='';
   { Don't use the listseparator in the file list else it's seen as 1 file
@@ -282,7 +282,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  1999-10-08 15:25:25  pierre
+  Revision 1.16  2000-02-02 22:49:44  pierre
+    * use desktop^.current for current word in grep
+
+  Revision 1.15  1999/10/08 15:25:25  pierre
    + Grep read check added
 
   Revision 1.14  1999/09/22 16:17:31  pierre
