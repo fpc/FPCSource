@@ -1308,14 +1308,17 @@ implementation
               l:=tvarsym(sym).getvaluesize;
               varalign:=size_2_align(l);
               varalign:=used_align(varalign,aktalignment.localalignmin,aktalignment.localalignmax);
-{$ifdef powerpc}
-              { on the powerpc, the local variables are accessed with a positiv offset }
-              tvarsym(sym).address:=align(datasize,varalign);
-              datasize:=tvarsym(sym).address+l;
-{$else powerpc}
-              tvarsym(sym).address:=align(datasize+l,varalign);
-              datasize:=tvarsym(sym).address;
-{$endif powerpc}
+              if (tg.direction = 1) then
+                begin
+                  { on the powerpc, the local variables are accessed with a positiv offset }
+                  tvarsym(sym).address:=align(datasize,varalign);
+                  datasize:=tvarsym(sym).address+l;
+                end
+              else
+                begin
+                  tvarsym(sym).address:=align(datasize+l,varalign);
+                  datasize:=tvarsym(sym).address;
+                end;
             end;
           funcretsym :
             begin
@@ -1332,14 +1335,17 @@ implementation
                     l:=tfuncretsym(sym).returntype.def.size;
                     varalign:=size_2_align(l);
                     varalign:=used_align(varalign,aktalignment.localalignmin,dataalignment);
-{$ifdef powerpc}
-                    { on the powerpc, the local variables are accessed with a positiv offset }
-                    tfuncretsym(sym).address:=align(datasize,varalign);
-                    datasize:=tfuncretsym(sym).address+l;
-{$else powerpc}
-                    tfuncretsym(sym).address:=align(datasize+l,varalign);
-                    datasize:=tfuncretsym(sym).address;
-{$endif powerpc}
+                    if (tg.direction = 1) then
+                      begin
+                        { on the powerpc, the local variables are accessed with a positiv offset }
+                        tfuncretsym(sym).address:=align(datasize,varalign);
+                        datasize:=tfuncretsym(sym).address+l;
+                      end
+                    else
+                      begin
+                        tfuncretsym(sym).address:=align(datasize+l,varalign);
+                        datasize:=tfuncretsym(sym).address;
+                      end;
                     procinfo.return_offset:=tg.direction*tfuncretsym(sym).address;
                   end;
                end;
@@ -2457,7 +2463,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2003-04-05 21:09:32  jonas
+  Revision 1.93  2003-04-16 07:53:11  jonas
+    * calculation of parameter and resultlocation offsets now depends on
+      tg.direction instead of if(n)def powerpc
+
+  Revision 1.92  2003/04/05 21:09:32  jonas
     * several ppc/generic result offset related fixes. The "normal" result
       offset seems now to be calculated correctly and a lot of duplicate
       calculations have been removed. Nested functions accessing the parent's
