@@ -30,7 +30,7 @@ interface
        { version string }
        version_nr = '1';
        release_nr = '9';
-       patch_nr   = '7';
+       patch_nr   = '8';
        minorpatch = '';
 
        { word version for ppu file }
@@ -90,7 +90,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  2005-02-14 17:13:09  peter
+  Revision 1.32  2005-02-15 22:28:29  peter
+    * 1.9.8
+
+  Revision 1.31  2005/02/14 17:13:09  peter
     * truncate log
 
   Revision 1.30  2005/01/19 21:10:15  peter

@@ -4,7 +4,7 @@
 
 [package]
 name=mysql
-version=1.9.7
+version=1.9.8
 
 [target]
 units=mysql4_com mysql4_version mysql4 mysql4dyn mysql4_comdyn mysql3_com mysql3_version mysql3

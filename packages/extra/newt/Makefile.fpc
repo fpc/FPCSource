@@ -4,7 +4,7 @@
 
 [package]
 name=newt
-version=1.9.6
+version=1.9.8
 
 [target]
 units=newt

@@ -85,15 +85,7 @@ if [ ! "$CROSS" = "cross" ]; then
   fi
 fi
 
-
-# Build everything using the makefiles
-${MAKE} distclean CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS
-${MAKE} ${CROSS}zipinstall CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS
-if [ $? != 0 ]; then
-  echo "Failed to make distribution archive."
-  exit 1
-fi
-
+# First check for docs.tar.gz before building anything
 if [ "$CROSS" = "" ]; then
   if [ ! -f docs.tar.gz ]; then
     if [ "$MAKEDOCS" != "yes" ]; then
@@ -112,6 +104,14 @@ if [ "$CROSS" = "" ]; then
     echo "Failed to make demo source archive."
     exit 1
   fi
+fi
+
+# Build everything using the makefiles
+${MAKE} distclean CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS
+${MAKE} ${CROSS}zipinstall CPU_TARGET=$TARGETCPU OS_TARGET=$TARGETOS
+if [ $? != 0 ]; then
+  echo "Failed to make distribution archive."
+  exit 1
 fi
 
 # Files to be in the release

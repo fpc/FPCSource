@@ -6,7 +6,7 @@
 
 [package]
 name=ide
-version=1.9.7
+version=1.9.8
 
 [target]
 dirs=compiler
@@ -184,7 +184,10 @@ clean_compiler:
 
 #
 # $Log$
-# Revision 1.30  2005-01-10 22:49:56  armin
+# Revision 1.31  2005-02-15 22:28:29  peter
+#   * 1.9.8
+#
+# Revision 1.30  2005/01/10 22:49:56  armin
 # * updated makefile.fpc versions to 1.9.7, regenerated makefiles
 #
 # Revision 1.29  2004/12/30 20:57:39  hajny

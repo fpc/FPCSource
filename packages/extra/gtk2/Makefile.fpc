@@ -4,7 +4,7 @@
 
 [package]
 name=gtk2
-version=1.9.6
+version=1.9.8
 
 [require]
 libc=y
@@ -19,7 +19,7 @@ unitdir=glib atk pango gtk+/gdk-pixbuf gtk+/gdk gtk+/gtk libglade
 
 [libs]
 libname=libfpgtk2.so
-libversion=1.0
+libversion=1.9.8
 
 [install]
 buildunit=buildgtk2

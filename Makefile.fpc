@@ -4,7 +4,7 @@
 
 [package]
 name=fpc
-version=1.9.7
+version=1.9.8
 
 [target]
 dirs=compiler rtl utils fcl fv packages ide installer
@@ -531,6 +531,12 @@ DEBPACKAGEVERSION:=$(shell head -n 1 $(CVSINSTALL)/debian/changelog | awk '{ pri
 DEBFPCVERSION:=$(shell echo $(DEBPACKAGEVERSION) | awk -F '-' '{ print $$1 }')
 DEBSRCDIR:=$(BUILDDIR)/fpc-$(DEBFPCVERSION)
 
+debcheck:
+ifneq ($(DEBFPCVERSION),$(PACKAGE_VERSION))
+        @$(ECHO) "Debian version ($(DEBFPCVERSION)) is not correct, expect $(PACKAGE_VERSION)"
+        @exit 1
+endif
+
 debcopy: distclean
         rm -rf $(DEBSRCDIR)
         install -d $(DEBSRCDIR)
@@ -568,7 +574,7 @@ debclean:
 debtargz: checkfpcdir
         $(MAKE) fpc_zipinstall USETAR=y ZIPTARGET=debcopy PACKDIR=$(DEBSRCDIR) FULLZIPNAME=fpc-$(DEBFPCVERSION).orig
 
-deb: checkfpcdir debcopy debbuild debclean
+deb: checkfpcdir debcheck debcopy debbuild debclean
 
 endif   # changelog found
 
@@ -589,16 +595,14 @@ ifneq ($(wildcard $(CVSINSTALL)/fpc.spec),)
 
 .PHONY: rpmcopy rpm
 
-RPMFPCVERSION:=$(shell grep '^Version:' $(CVSINSTALL)/fpc.spec | awk '{ print $$2 }')
-
 # Only the recent rpms have rpmbuild
 RPMBUILD=$(strip $(wildcard $(addsuffix /rpmbuild,$(SEARCHPATH))))
 ifeq ($(RPMBUILD),)
 RPMBUILD=$(strip $(wildcard $(addsuffix /rpm,$(SEARCHPATH))))
 endif
 RPMDIR=$(BUILDDIR)/rpm
-RPMSPECFILE:=$(RPMDIR)/SPECS/fpc-$(RPMFPCVERSION).spec
-RPMSOURCEFILE:=$(RPMDIR)/SOURCES/fpc-$(RPMFPCVERSION)-src.tar.gz
+RPMSPECFILE:=$(RPMDIR)/SPECS/fpc-$(PACKAGE_VERSION).spec
+RPMSOURCEFILE:=$(RPMDIR)/SOURCES/fpc-$(PACKAGE_VERSION)-src.tar.gz
 RPMSRCDIR:=$(RPMDIR)/SOURCES/fpc
 rpmcopy: distclean
         # false || is needed to workaround fpcmake sections
@@ -611,11 +615,11 @@ rpmcopy: distclean
         rm -rf $(RPMSRCDIR)
         # Create fpc.spec, include our own builddir
         echo "%define _topdir $(RPMDIR)" > $(RPMSPECFILE)
-	echo "%define _sourcedir $(RPMDIR)/SOURCES" >> $(RPMSPECFILE)
-	echo "%define _builddir $(RPMDIR)/BUILD" >> $(RPMSPECFILE)
-	echo "%define _rpmdir $(RPMDIR)/RPMS" >> $(RPMSPECFILE)
-	echo "%define _srcrpmdir $(RPMDIR)/SRPMS" >> $(RPMSPECFILE)
-        cat $(CVSINSTALL)/fpc.spec >> $(RPMSPECFILE)
+        echo "%define _sourcedir $(RPMDIR)/SOURCES" >> $(RPMSPECFILE)
+        echo "%define _builddir $(RPMDIR)/BUILD" >> $(RPMSPECFILE)
+        echo "%define _rpmdir $(RPMDIR)/RPMS" >> $(RPMSPECFILE)
+        echo "%define _srcrpmdir $(RPMDIR)/SRPMS" >> $(RPMSPECFILE)
+        sed "s+%FPCVERSION%+$(PACKAGE_VERSION)+" $(CVSINSTALL)/fpc.spec >> $(RPMSPECFILE)
 ifndef NODOCS
         cat $(CVSINSTALL)/fpcdoc.spec >> $(RPMSPECFILE)
 endif
@@ -682,14 +686,14 @@ innocheck:
 ifndef NODOCS
 # Check for docs-pdf.zip
 ifeq ($(wildcard docs-pdf.zip),)
-	@$(ECHO) "No documentation available. Please copy the file docs-pdf.zip to this directory."
-	@exit 1
+        @$(ECHO) "No documentation available. Please copy the file docs-pdf.zip to this directory."
+        @exit 1
 endif
 endif
 # Check for libgdb
 ifeq ($(wildcard libgdb/win32/libgdb.a),)
-	@$(ECHO) "Libgdb not available. Please get and unzip libgdb-<version>.i386-win32.zip in this directory."
-	@exit 1
+        @$(ECHO) "Libgdb not available. Please get and unzip libgdb-<version>.i386-win32.zip in this directory."
+        @exit 1
 endif
 
 innobuild: innocheck build
@@ -699,9 +703,9 @@ ifndef NODOCS
         unzip -d $(INNODIR) docs-pdf.zip
 endif
         $(MAKE) install INSTALL_PREFIX=$(INNODIR)
-	compiler/utils/fpcsubst -i install/fpc.ist -o $(INNODIR)/fpc.iss $(FPCISSSUBST)
-	$(INNOCMD_ISCC)
-      	$(MOVE) $(INNODIR)/Output/setup.exe fpc-$(PACKAGE_VERSION).$(FULL_TARGET).exe
+        compiler/utils/fpcsubst -i install/fpc.ist -o $(INNODIR)/fpc.iss $(FPCISSSUBST)
+        $(INNOCMD_ISCC)
+        $(MOVE) $(INNODIR)/Output/setup.exe fpc-$(PACKAGE_VERSION).$(FULL_TARGET).exe
 
 innoclean:
         $(DELTREE) $(INNODIR)

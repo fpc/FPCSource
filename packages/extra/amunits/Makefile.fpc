@@ -4,7 +4,7 @@
 
 [package]
 name=amunits
-version=1.0.10
+version=1.9.8
 
 [target]
 dirs=units utilunits

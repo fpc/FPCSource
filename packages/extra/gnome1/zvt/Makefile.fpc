@@ -4,7 +4,7 @@
 
 [package]
 name=zvt
-version=1.9.7
+version=1.9.8
 
 [require]
 libc=y
@@ -19,7 +19,7 @@ sourcedir=zvt
 
 [libs]
 libname=libfpzvt.so
-libversion=1.0
+libversion=1.9.8
 
 [install]
 fpcpackage=y
