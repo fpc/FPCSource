@@ -215,7 +215,8 @@
 
        { flush to be sure }
          current_ppu^.flush;
-       { create and write header }         current_ppu^.header.size:=current_ppu^.size;
+       { create and write header }
+         current_ppu^.header.size:=current_ppu^.size;
          current_ppu^.header.checksum:=current_ppu^.crc;
          current_ppu^.header.compiler:=wordversion;
          current_ppu^.header.cpu:=word(target_cpu);
@@ -348,20 +349,15 @@
             begin
               { check the date of the source files }
               Source_Time:=GetNamedFileTime(current_module^.path^+hs);
-              { search for include files in the includepathlist, this
-                can't be done, becuase a .inc file with the same name as
-                used by a unit will cause the unit to recompile which is
-                not the intention (PFV) }
-              { OK but then only the last filename
-                should not be searched in include files (PM)}
-              if (Source_Time=-1) and not current_ppu^.endofentry  then
+              incfile_found:=false;
+              if (Source_Time=-1) then
                 begin
                   temp:=search(hs,includesearchpath,incfile_found);
                   if incfile_found then
                    begin
                      hs:=temp+hs;
                      Source_Time:=GetNamedFileTime(hs);
-                   end;
+                   end
                 end
               else
                 hs:=current_module^.path^+hs;
@@ -372,11 +368,19 @@
                end
               else
                begin
-                 temp:=' time '+filetimestring(source_time);
-                 if (source_time>ppufiletime) then
+                 { time newer? But only allow if the file is not searched
+                   in the include path (PFV), else you've problems with
+                   units which use the same includefile names }
+                 if incfile_found then
+                  temp:=' found'
+                 else
                   begin
-                    current_module^.do_compile:=true;
-                    temp:=temp+' *'
+                    temp:=' time '+filetimestring(source_time);
+                    if (source_time>ppufiletime) then
+                     begin
+                       current_module^.do_compile:=true;
+                       temp:=temp+' *'
+                     end;
                   end;
                end;
 {$ifdef UseBrowser}
@@ -443,7 +447,11 @@
 
 {
   $Log$
-  Revision 1.24  1998-10-20 08:06:59  pierre
+  Revision 1.25  1998-10-26 09:35:47  peter
+    * don't count includefiles which are found in the includepath for a
+      recompile.
+
+  Revision 1.24  1998/10/20 08:06:59  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default
