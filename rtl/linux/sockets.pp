@@ -401,7 +401,7 @@ end;
 
 
 
-Function DoConnect(Sock:longint;const addr:string):Boolean;
+Function DoConnect(Sock:longint;const addr:string):Longint;
 var
   UnixAddr : TUnixSockAddr;
   AddrLen  : longint;
@@ -443,8 +443,12 @@ end;
 
 
 Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean;
+
+Var FD : Longint;
+
 begin
-  if DoConnect(Sock,addr) then
+  FD:=DoConnect(Sock,addr);
+  If Not(FD<0) then
    begin
      Sock2Text(Sock,SockIn,SockOut);
      Connect:=true;
@@ -456,8 +460,12 @@ end;
 
 
 Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean;
+
+Var FD : Longint;
+
 begin
-  if DoConnect(Sock,addr) then
+  FD:=DoConnect(Sock,addr);
+  if Not(FD<0) then
    begin
      Sock2File(Sock,SockIn,SockOut);
      Connect:=true;
@@ -554,7 +562,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  1999-06-08 16:05:08  michael
+  Revision 1.5  1999-06-08 16:08:33  michael
+  + completed (hopefully) Fix by stian (my_wave@ypsilonia.net)
+
+  Revision 1.4  1999/06/08 16:05:08  michael
   + Fix by stian (my_wave@ypsilonia.net)
 
   Revision 1.3  1998/11/16 10:21:30  peter
