@@ -260,7 +260,7 @@ implementation
                +tostr(pprocdef(p^.procdefinition)^.parast^.address_fixup));
              exprasmlist^.concat(new(pai_asm_comment,init(
                strpnew('inlined parasymtable is at offset '
-               +tostr(pprocdef(p^.procdefinition^.parast)^.address_fixup)))));
+               +tostr(pprocdef(p^.procdefinition)^.parast^.address_fixup)))));
 {$endif extdebug}
               p^.right:=nil;
               { disable further inlining of the same proc
@@ -1182,7 +1182,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  1999-05-18 21:58:24  florian
+  Revision 1.84  1999-05-18 22:34:26  pierre
+   * extedebug problem solved
+
+  Revision 1.83  1999/05/18 21:58:24  florian
     * fixed some bugs related to temp. ansistrings and functions results
       which return records/objects/arrays which need init/final.
 
