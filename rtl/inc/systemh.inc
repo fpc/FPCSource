@@ -134,6 +134,7 @@ Type
 
   { map comp to int64, but this doesn't mean to compile the comp support in! }
   Comp = Int64;
+  PComp = ^Comp;
 {$endif CPUPOWERPC}
 
 {$ifdef CPUSPARC}
@@ -665,7 +666,10 @@ const
 
 {
   $Log$
-  Revision 1.65  2003-04-01 15:36:31  peter
+  Revision 1.66  2003-04-23 22:46:41  florian
+    + powerpc defines now pcomp as well
+
+  Revision 1.65  2003/04/01 15:36:31  peter
     * make HResult unique type
 
   Revision 1.64  2003/03/17 14:30:11  peter
