@@ -300,6 +300,7 @@ unit tree;
     function is_constboolnode(p : ptree) : boolean;
     function is_constrealnode(p : ptree) : boolean;
     function is_constcharnode(p : ptree) : boolean;
+    function str_length(p : ptree) : longint;
 
 {$I innr.inc}
 
@@ -1583,12 +1584,26 @@ unit tree;
            (porddef(p^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit]));
       end;
 
+    function str_length(p : ptree) : longint;
 
+      begin
+{$ifdef UseAnsiString}
+         str_length:=p^.length;
+{$else UseAnsiString}
+         str_length:=length(p^.value_str^);
+{$endif UseAnsiString}
+      end;
+      
 
 end.
 {
   $Log$
-  Revision 1.43  1998-09-27 10:16:28  florian
+  Revision 1.44  1998-09-28 16:57:28  pierre
+    * changed all length(p^.value_str^) into str_length(p)
+      to get it work with and without ansistrings
+    * changed sourcefiles field of tmodule to a pointer
+
+  Revision 1.43  1998/09/27 10:16:28  florian
     * type casts pchar<->ansistring fixed
     * ansistring[..] calls does now an unique call
 

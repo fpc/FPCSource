@@ -135,7 +135,7 @@
         hp    : pinputfile;
       begin
       { second write the used source files }
-        hp:=current_module^.sourcefiles.files;
+        hp:=current_module^.sourcefiles^.files;
         while assigned(hp) do
          begin
          { only name and extension }
@@ -382,7 +382,7 @@
 {$ifdef UseBrowser}
               new(hp,init(hs));
               { the indexing is wrong here PM }
-              current_module^.sourcefiles.register_file(hp);
+              current_module^.sourcefiles^.register_file(hp);
 {$endif UseBrowser}
             end;
            Message1(unit_t_ppu_source,hs+temp);
@@ -392,7 +392,7 @@
         current_module^.mainsource:=stringdup(hs);
 
         { the indexing is corrected here PM }
-        current_module^.sourcefiles.inverse_register_indexes;
+        current_module^.sourcefiles^.inverse_register_indexes;
       { check if we want to rebuild every unit, only if the sources are
         available }
         if do_build and current_module^.sources_avail then
@@ -443,7 +443,12 @@
 
 {
   $Log$
-  Revision 1.17  1998-09-22 17:13:53  pierre
+  Revision 1.18  1998-09-28 16:57:27  pierre
+    * changed all length(p^.value_str^) into str_length(p)
+      to get it work with and without ansistrings
+    * changed sourcefiles field of tmodule to a pointer
+
+  Revision 1.17  1998/09/22 17:13:53  pierre
     + browsing updated and developed
       records and objects fields are also stored
 

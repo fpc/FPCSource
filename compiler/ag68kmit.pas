@@ -290,7 +290,7 @@ unit ag68kmit;
              { file changed ? (must be before line info) }
                if lastfileindex<>hp^.fileinfo.fileindex then
                 begin
-                  infile:=current_module^.sourcefiles.get_file(hp^.fileinfo.fileindex);
+                  infile:=current_module^.sourcefiles^.get_file(hp^.fileinfo.fileindex);
                   if includecount=0 then
                    curr_n:=n_sourcefile
                   else
@@ -641,7 +641,12 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.9  1998-09-16 01:07:43  carl
+  Revision 1.10  1998-09-28 16:57:11  pierre
+    * changed all length(p^.value_str^) into str_length(p)
+      to get it work with and without ansistrings
+    * changed sourcefiles field of tmodule to a pointer
+
+  Revision 1.9  1998/09/16 01:07:43  carl
     * bugfix of byte alignment
 
   Revision 1.8  1998/08/10 14:49:37  peter

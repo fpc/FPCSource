@@ -129,7 +129,7 @@ unit files;
           uses_imports  : boolean;  { Set if the module imports from DLL's.}
           imports       : plinkedlist;
 
-          sourcefiles   : tfilemanager;
+          sourcefiles   : pfilemanager;
           linksharedlibs,
           linkstaticlibs,
           linkofiles    : tstringcontainer;
@@ -803,7 +803,7 @@ unit files;
          path:=nil;
          setfilename(p+n,true);
          used_units.init;
-         sourcefiles.init;
+         new(sourcefiles,init);
          linkofiles.init;
          linkstaticlibs.init;
          linksharedlibs.init;
@@ -849,7 +849,8 @@ unit files;
         if assigned(imports) then
          dispose(imports,done);
         used_units.done;
-        sourcefiles.done;
+        if assigned(sourcefiles) then
+         dispose(sourcefiles,done);
         linkofiles.done;
         linkstaticlibs.done;
         linksharedlibs.done;
@@ -906,7 +907,12 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.48  1998-09-24 23:46:34  peter
+  Revision 1.49  1998-09-28 16:57:20  pierre
+    * changed all length(p^.value_str^) into str_length(p)
+      to get it work with and without ansistrings
+    * changed sourcefiles field of tmodule to a pointer
+
+  Revision 1.48  1998/09/24 23:46:34  peter
     + outputdir support
 
   Revision 1.47  1998/09/22 17:13:43  pierre

@@ -240,7 +240,7 @@ implementation
          while assigned(hp) do
            begin
               addlog('Unit '+hp^.modulename^+' has index '+tostr(hp^.unit_index));
-              ff:=hp^.sourcefiles.files;
+              ff:=hp^.sourcefiles^.files;
               while assigned(ff) do
                 begin
                    addlog('File '+ff^.name^+' index '+tostr(ff^.ref_index));
@@ -459,7 +459,7 @@ implementation
          get_source_file:=nil;
          if not assigned(hp) then
            exit;
-         f:=pinputfile(hp^.sourcefiles.files);
+         f:=pinputfile(hp^.sourcefiles^.files);
          while assigned(f) do
            begin
               if f^.ref_index=fileindex then
@@ -476,7 +476,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  1998-09-23 15:38:59  pierre
+  Revision 1.10  1998-09-28 16:57:12  pierre
+    * changed all length(p^.value_str^) into str_length(p)
+      to get it work with and without ansistrings
+    * changed sourcefiles field of tmodule to a pointer
+
+  Revision 1.9  1998/09/23 15:38:59  pierre
     * browser bugfixes
       was adding a reference when looking for the symbol
       if -bSYM_NAME was used

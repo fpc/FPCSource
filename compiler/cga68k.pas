@@ -138,7 +138,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                        { if it is a char, then simply    }
                        { load 0 length string            }
                        if (p^.right^.treetype=stringconstn) and
-                          (p^.right^.value_str^='') then
+                          (str_length(p^.right)=0) then
                         exprasmlist^.concat(new(pai68k,op_const_ref(
                            A_MOVE,S_B,0,newreference(p^.left^.location.reference))))
                        else
@@ -1345,7 +1345,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  1998-09-17 09:42:30  peter
+  Revision 1.18  1998-09-28 16:57:17  pierre
+    * changed all length(p^.value_str^) into str_length(p)
+      to get it work with and without ansistrings
+    * changed sourcefiles field of tmodule to a pointer
+
+  Revision 1.17  1998/09/17 09:42:30  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

@@ -248,7 +248,7 @@ unit ag68kgas;
         { file changed ? (must be before line info) }
           if lastfileindex<>fileinfo.fileindex then
            begin
-             infile:=current_module^.sourcefiles.get_file(fileinfo.fileindex);
+             infile:=current_module^.sourcefiles^.get_file(fileinfo.fileindex);
              if includecount=0 then
               curr_n:=n_sourcefile
              else
@@ -663,7 +663,12 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.11  1998-09-16 01:07:13  carl
+  Revision 1.12  1998-09-28 16:57:09  pierre
+    * changed all length(p^.value_str^) into str_length(p)
+      to get it work with and without ansistrings
+    * changed sourcefiles field of tmodule to a pointer
+
+  Revision 1.11  1998/09/16 01:07:13  carl
     * alignment fix for bytes
 
   Revision 1.10  1998/09/01 09:07:08  peter

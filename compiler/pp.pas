@@ -243,7 +243,9 @@ begin
   oldexit:=exitproc;
   exitproc:=@myexit;
 {$ifndef TP}
+{$ifndef UseAnsiString}
   heapblocks:=true;
+{$endif not UseAnsiString}
 {$endif}
 {$ifdef UseOverlay}
   InitOverlay;
@@ -254,7 +256,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  1998-09-24 23:49:13  peter
+  Revision 1.31  1998-09-28 16:57:23  pierre
+    * changed all length(p^.value_str^) into str_length(p)
+      to get it work with and without ansistrings
+    * changed sourcefiles field of tmodule to a pointer
+
+  Revision 1.30  1998/09/24 23:49:13  peter
     + aktmodeswitches
 
   Revision 1.29  1998/09/17 09:42:41  peter

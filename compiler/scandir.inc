@@ -557,7 +557,7 @@ const
            Message1(scan_u_start_include_file,current_scanner^.inputfile^.path^+current_scanner^.inputfile^.name^);
            current_scanner^.reload;
          { register for refs }
-           current_module^.sourcefiles.register_file(hp);
+           current_module^.sourcefiles^.register_file(hp);
          end;
       end;
 
@@ -930,7 +930,12 @@ const
 
 {
   $Log$
-  Revision 1.33  1998-09-26 17:45:40  peter
+  Revision 1.34  1998-09-28 16:57:24  pierre
+    * changed all length(p^.value_str^) into str_length(p)
+      to get it work with and without ansistrings
+    * changed sourcefiles field of tmodule to a pointer
+
+  Revision 1.33  1998/09/26 17:45:40  peter
     + idtoken and only one token table
 
   Revision 1.32  1998/09/24 23:49:19  peter

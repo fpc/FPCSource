@@ -300,9 +300,9 @@ implementation
                            if (p^.treetype in [equaln,unequaln]) and
                              (
                                ((p^.left^.treetype=stringconstn) and
-                                (p^.left^.value_str^='')) or
+                                (str_length(p^.left)=0)) or
                                ((p^.right^.treetype=stringconstn) and
-                                (p^.right^.value_str^=''))
+                                (str_length(p^.right)=0))
                              ) then
                              begin
                                 { only one node can be stringconstn }
@@ -1263,7 +1263,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-09-17 09:42:21  peter
+  Revision 1.6  1998-09-28 16:57:16  pierre
+    * changed all length(p^.value_str^) into str_length(p)
+      to get it work with and without ansistrings
+    * changed sourcefiles field of tmodule to a pointer
+
+  Revision 1.5  1998/09/17 09:42:21  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 

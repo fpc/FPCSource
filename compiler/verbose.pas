@@ -247,7 +247,7 @@ begin
      ((current_module^.unit_index<>lastmoduleidx) or
       (aktfilepos.fileindex<>lastfileidx)) then
    begin
-     status.currentsource:=current_module^.sourcefiles.get_file_name(aktfilepos.fileindex);
+     status.currentsource:=current_module^.sourcefiles^.get_file_name(aktfilepos.fileindex);
      lastmoduleidx:=current_module^.unit_index;
      { update lastfileidx only if name known PM }
      if status.currentsource<>'' then
@@ -403,7 +403,12 @@ end.
 
 {
   $Log$
-  Revision 1.20  1998-09-05 22:11:06  florian
+  Revision 1.21  1998-09-28 16:57:30  pierre
+    * changed all length(p^.value_str^) into str_length(p)
+      to get it work with and without ansistrings
+    * changed sourcefiles field of tmodule to a pointer
+
+  Revision 1.20  1998/09/05 22:11:06  florian
     + switch -vb
     * while/repeat loops accept now also word/longbool conditions
     * makebooltojump did an invalid ungetregister32, fixed

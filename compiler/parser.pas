@@ -205,8 +205,8 @@ unit parser;
        { reset the unit or create a new program }
          if assigned(current_module) then
           begin
-            current_module^.sourcefiles.done;
-            current_module^.sourcefiles.init;
+            current_module^.sourcefiles^.done;
+            current_module^.sourcefiles^.init;
             current_module^.used_units.done;
             current_module^.used_units.init;
             current_module^.linkofiles.done;
@@ -374,7 +374,12 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.51  1998-09-26 17:45:30  peter
+  Revision 1.52  1998-09-28 16:57:22  pierre
+    * changed all length(p^.value_str^) into str_length(p)
+      to get it work with and without ansistrings
+    * changed sourcefiles field of tmodule to a pointer
+
+  Revision 1.51  1998/09/26 17:45:30  peter
     + idtoken and only one token table
 
   Revision 1.50  1998/09/24 23:49:08  peter

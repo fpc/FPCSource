@@ -200,7 +200,7 @@ implementation
     constructor tscannerfile.init(const fn:string);
       begin
         inputfile:=new(pinputfile,init(fn));
-        current_module^.sourcefiles.register_file(inputfile);
+        current_module^.sourcefiles^.register_file(inputfile);
       { reset localinput }
         inputbuffer:=nil;
         inputpointer:=nil;
@@ -1424,7 +1424,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  1998-09-26 17:45:41  peter
+  Revision 1.55  1998-09-28 16:57:26  pierre
+    * changed all length(p^.value_str^) into str_length(p)
+      to get it work with and without ansistrings
+    * changed sourcefiles field of tmodule to a pointer
+
+  Revision 1.54  1998/09/26 17:45:41  peter
     + idtoken and only one token table
 
   Revision 1.53  1998/09/24 23:49:20  peter

@@ -78,7 +78,7 @@ implementation
                            end;
                stringdef : begin
                              if p^.left^.treetype=stringconstn then
-                              len:=length(p^.left^.value_str^)
+                              len:=str_length(p^.left)
                              else
                               begin
                                 href:=p^.left^.location.reference;
@@ -1437,7 +1437,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  1998-09-26 15:03:02  florian
+  Revision 1.31  1998-09-28 16:57:15  pierre
+    * changed all length(p^.value_str^) into str_length(p)
+      to get it work with and without ansistrings
+    * changed sourcefiles field of tmodule to a pointer
+
+  Revision 1.30  1998/09/26 15:03:02  florian
     * small problems with DOM and excpetions fixed (code generation
       of raise was wrong and self was sometimes destroyed :()
 
