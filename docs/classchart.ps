@@ -1,7 +1,6 @@
 %!PS-Adobe-2.0
 %BoundingBox: 0 0 2000 3200
-%%DocumentPaperSizes: a4
-%!
+%%DocumentPaperSizes: a3
 %
 %    $Id$
 %
@@ -11,6 +10,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  Configurable section
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Print head classes on separate pages ?
+% 1=yes 0=no 
+/SeparatePages {
+0 % 1
+} def 
+
 % sets the line width of the class graph to 0.5 points
 /SetLineWidth { 0.5 setlinewidth} def
 
@@ -390,8 +395,10 @@ setfont
 } def
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Title
+% Footer.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/printfooter 
+{
 /Helvetica-BoldOblique findfont
 % first draw outline, only then fill it up. 
 % Needed because after stroke no rmoveto ??
@@ -410,7 +417,7 @@ setfont
 setfont
 0 0 0 setrgbcolor
 (Object Chart) show
-
+} def
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % here the class tree follows
@@ -427,6 +434,8 @@ setfont
   (Exception) Missing newchildclass
   (EAbort) Incomplete newchildclass
   (EAbstractError) Ready newclass Linuxonly
+  (EAccessViolation) Ready newclass
+  (EBitsError) Ready newclass
   (EConvertError) Ready newclass
   (EDatabaseError) Missing newclass Linuxonly
     (EDBCLient) Missing newchildclass
@@ -444,8 +453,10 @@ setfont
     onelevelback
   (EInOutError) Ready newclass
   (EInvalidCast) Ready newclass
+  (EInvalidOperation) Ready newclass
   (EInvalidPointer) Ready newclass
   (EDSWriter) Missing newclass
+  (EListError) Ready newclass
   (EMathError) Ready newclass
     (EInvalidOp) Ready newchildclass
     (EOverflow) Ready newclass
@@ -453,6 +464,22 @@ setfont
     (EZeroDivide) Ready newclass
     onelevelback
   (EOutOfMemory) Ready newclass
+    (EOutOfResources) Ready newchildclass
+    onelevelback
+  (EResNotFound) Ready newclass
+  (EStreamError) Ready newclass
+    (EFCreateError) Ready newchildclass
+    (EFilerError) Ready newclass
+      (EClassNotFound) Ready newchildclass
+      (EInvalidImage) Ready newclass
+      (EMethodNotFound) Ready newclass
+      (EReadError) Ready newclass
+      (EWriteError) Ready newclass
+      onelevelback
+    (EFOpenError) Ready newclass
+    onelevelback
+   (EStringListError) Ready newclass
+   (EThread) Ready newclass
   onelevelback
 (OutlineError) Missing newclass
 
@@ -460,29 +487,41 @@ setfont
 % Some more base classes
 %%%%%%%%%%%%%%%%%%%%%%%
 newcolumn
+(TBits) Untested newclass
+(TCollection) Untested newclass
+(TCollectionItem) Untested newclass
+(TFiler) Untested newclass
+  (TReader) Untested newchildclass
+  (TWriter) Untested newclass
+  onelevelback
 (TInterface) Missing newclass % 40 mm newclassxmoved
   (TIAddInNotifier) Missing newchildclass
   onelevelback
-
-%restoreoldxy
 (TInterfacedObject) Missing newclass
-
 (TList) Ready newclass
 (TLookupList) Missing newclass
 
 (TPropertyEditor) Missing newclass %40 mm newclassxmoved
-(TClassProperty) Missing newchildclass
-  (TFontProperty) Missing newchildclass
+  (TClassProperty) Missing newchildclass
+    (TFontProperty) Missing newchildclass
+    onelevelback
+  (TComponentProperty) Missing newclass
   onelevelback
-(TComponentProperty) Missing newclass
-onelevelback
-% remove a childy coordinate
-%restoreoldxy
 (TRegistry) Missing newclass
   (TRegIniFile) Missing newchildclass
   onelevelback
+(TRTLCriticalSection) Untested newclass
 (TSessionList) Missing newclass
-
+(TStream) Ready newclass
+  (TCustomMemoryStream) Ready newchildclass
+    (TMemorySTream) Ready newchildclass
+    onelevelback
+  (THandleStream) Ready newclass
+    (TFileStream) Ready newchildclass
+    onelevelback
+  (TResourceStream) Incomplete newclass
+  (TStringStream) Untested newclass
+  onelevelback 
 %%%%%%%%%%%%%%%%%%%%%%%%
 % Syncronization classes
 (TSyncroObject) Untested newclass
@@ -495,6 +534,7 @@ onelevelback
   onelevelback
 %%%%%%%%%%%%%%%%%%%%%%%%
 % Thread classes
+
 (TThread) Missing newclass
 
 %%%%%%%%%%%%%%%%%%%%%%%
@@ -507,16 +547,26 @@ newcolumn
   (TMetafileCanvas) Missing newclass
   onelevelback
 (TClipboard) Missing newclass
+(TStrings) Untested newclass
+  (TStringList) Untested newchildclass
+  onelevelback
+(TTextAttributes) Missing newclass
 %%%%%%%%%%%%%%%%%%%%%%%
 % TComponent classes
 %%%%%%%%%%%%%%%%%%%%%%%
 newcolumn
 (TComponent) Untested newlargeheadclass
+
+% Print footer and eject (last) page
+printfooter
 showpage
 
 %
 %   $Log$
-%   Revision 1.10  1998-10-03 15:06:26  florian
+%   Revision 1.11  1998-10-04 13:37:50  michael
+%   + A few adaptations, all implemented classes should be there
+%
+%   Revision 1.10  1998/10/03 15:06:26  florian
 %     + EInvalidCast added
 %
 %   Revision 1.9  1998/10/03 13:53:43  florian
