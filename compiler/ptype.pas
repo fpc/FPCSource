@@ -190,10 +190,12 @@ implementation
                         s:='FILE';
                      end;
                 end;
-            else
+            _ID:
               begin
                 id_type(tt,s,isforwarddef);
               end;
+            else
+              message(type_e_type_id_expected);
          end;
       end;
 
@@ -610,7 +612,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2002-01-06 12:08:15  peter
+  Revision 1.33  2002-01-15 16:13:34  jonas
+    * fixed web bugs 1758 and 1760
+
+  Revision 1.32  2002/01/06 12:08:15  peter
     * removed uauto from orddef, use new range_to_basetype generating
       the correct ordinal type for a range
 
