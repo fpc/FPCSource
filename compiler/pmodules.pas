@@ -364,6 +364,7 @@ unit pmodules;
         st : punitsymtable;
         second_time : boolean;
         old_current_ppu : pppufile;
+        tempmodule,
         old_current_module,hp,hp2 : pmodule;
         name : string;{ necessary because current_module^.mainsource^ is reset in compile !! }
         scanner : pscannerfile;
@@ -513,7 +514,7 @@ unit pmodules;
                while assigned(hp2) do
                 begin
                   if hp2^.do_reload then
-                   loadunit(hp2^.modulename^,false);
+                   tempmodule:=loadunit(hp2^.modulename^,false);
                   hp2:=pmodule(hp2^.next);
                 end;
              end
@@ -1339,7 +1340,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.124.2.2  1999-07-06 00:47:52  peter
+  Revision 1.124.2.3  1999-07-22 16:09:29  peter
+    * reuse old import entries
+
+  Revision 1.124.2.2  1999/07/06 00:47:52  peter
     * killed recompile bug
 
   Revision 1.124.2.1  1999/06/15 13:54:26  peter
