@@ -147,9 +147,9 @@ var
   Control : PView;
   IL1,IL2 : PInputLine;
   s : string;
-  p,lineNb : longint;
+  p,lineNb,GrepOutputLine : longint;
   error : word;
-  showmsg : boolean;
+  showmsg,error_in_reading : boolean;
   ToFocus : sw_integer;
   searchword,
   GrepExe,GrepArgs,Line,ModuleName : String;
@@ -218,7 +218,7 @@ begin
          { Linux ? }
          AddToolCommand(GrepExe+' -n '+GrepArgs);
          ToFocus:=ToolMessages^.count-1;
-         if not ExecuteRedir(GrepExe,GrepArgs,'',GrepOutName,GrepErrName) then
+         if not ExecuteRedir(GrepExe,'-n '+GrepArgs,'',GrepOutName,GrepErrName) then
            Begin
               { 2 as exit code just means that
                 some file vwere not found ! }
@@ -233,9 +233,12 @@ begin
          showmsg:=true;
          Assign(GrepOut,GrepOutName);
          Reset(GrepOut);
+         error_in_reading:=false;
+         GrepOutputLine:=0;
          While not eof(GrepOut) do
            begin
              readln(GrepOut,Line);
+             Inc(GrepOutputLine);
              p:=pos(':',line);
              if p>0 then
                begin
@@ -244,14 +247,25 @@ begin
                  p:=pos(':',Line);
                  val(copy(Line,1,p-1),lineNb,error);
                  if error=0 then
-                   AddToolMessage(ModuleName,Copy(Line,p+1,255),LineNb,1);
+                   AddToolMessage(ModuleName,Copy(Line,p+1,255),LineNb,1)
+                 else
+                   error_in_reading:=true;
                end;
            end;
          Close(GrepOut);
-         Erase(GrepOut);
+         if not error_in_reading then
+           Erase(GrepOut)
+         else
+           begin
+             Params[0]:=GrepOutputLine;
+             WarningBox(#3'Error reading Grep output'#13#3'In line %d of '+GrepOutName,@Params);
+           end;
        { Delete also grep$$.err }
-         Assign(GrepOut,GrepErrName);
-         Erase(GrepOut);
+         if not error_in_reading then
+           begin
+             Assign(GrepOut,GrepErrName);
+             Erase(GrepOut);
+           end;
          {$I+}
          EatIO;
        end;
@@ -268,7 +282,10 @@ end;
 
 {
   $Log$
-  Revision 1.14  1999-09-22 16:17:31  pierre
+  Revision 1.15  1999-10-08 15:25:25  pierre
+   + Grep read check added
+
+  Revision 1.14  1999/09/22 16:17:31  pierre
    + HistList for Grep
 
   Revision 1.13  1999/08/03 20:22:35  peter
