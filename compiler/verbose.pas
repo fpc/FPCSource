@@ -249,7 +249,7 @@ begin
 { fix status }
   status.currentline:=aktfilepos.line;
   status.currentcolumn:=aktfilepos.column;
-  if assigned(current_module) and
+  if assigned(current_module) and assigned(current_module^.sourcefiles) and
      ((current_module^.unit_index<>lastmoduleidx) or
       (aktfilepos.fileindex<>lastfileidx)) then
    begin
@@ -428,7 +428,10 @@ end.
 
 {
   $Log$
-  Revision 1.27  1998-10-28 18:26:24  pierre
+  Revision 1.28  1998-11-06 09:45:41  pierre
+    * bug on errors (file used after dispose !) fixed
+
+  Revision 1.27  1998/10/28 18:26:24  pierre
    * removed some erros after other errors (introduced by useexcept)
    * stabs works again correctly (for how long !)
 

@@ -956,14 +956,17 @@ unit files;
          dispose(map);
         if assigned(ppufile) then
          dispose(ppufile,done);
+        ppufile:=nil;
         if assigned(imports) then
          dispose(imports,done);
+        imports:=nil;
 {$ifndef VER0_99_8}
         if assigned(scanner) then
           pscannerfile(scanner)^.invalid:=true;
 {$endif}
         if assigned(sourcefiles) then
          dispose(sourcefiles,done);
+        sourcefiles:=nil;
         used_units.done;
         linkofiles.done;
         linkstaticlibs.done;
@@ -981,8 +984,10 @@ unit files;
 {$ifndef VER0_99_8}
         if assigned(globalsymtable) then
           dispose(punitsymtable(globalsymtable),done);
+        globalsymtable:=nil;
         if assigned(localsymtable) then
           dispose(punitsymtable(localsymtable),done);
+        localsymtable:=nil;
 {$endif}
         inherited done;
       end;
@@ -1027,7 +1032,10 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.70  1998-11-03 11:33:14  peter
+  Revision 1.71  1998-11-06 09:45:40  pierre
+    * bug on errors (file used after dispose !) fixed
+
+  Revision 1.70  1998/11/03 11:33:14  peter
     + search_unit arg to only search for sources
 
   Revision 1.69  1998/10/29 11:35:44  florian
