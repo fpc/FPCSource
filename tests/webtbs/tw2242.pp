@@ -1,4 +1,6 @@
-{ %skiptarget=go32v2,macos Crashes on MacOS when assembling, linking or running }
+{ %skiptarget=go32v2,macos }
+{ On macos PPCAsm reports error: Branch destination out of range }
+
 { %opt=-Sc }
 VAR s : ansistring;
 BEGIN
