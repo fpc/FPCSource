@@ -470,11 +470,7 @@ begin
   end;
   if isclassmethod and
      assigned(aktprocsym) then
-{$ifdef INCLUDEOK}
     include(aktprocsym^.definition^.procoptions,po_classmethod);
-{$else}
-    aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+[po_classmethod];
-{$endif}
   consume(_SEMICOLON);
   dec(lexlevel);
 end;
@@ -574,11 +570,7 @@ end;
 procedure pd_abstract(const procnames:Tstringcontainer);
 begin
   if (po_virtualmethod in aktprocsym^.definition^.procoptions) then
-{$ifdef INCLUDEOK}
     include(aktprocsym^.definition^.procoptions,po_abstractmethod)
-{$else}
-    aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+[po_abstractmethod]
-{$endif}
   else
     Message(parser_e_only_virtual_methods_abstract);
   { the method is defined }
@@ -618,13 +610,8 @@ procedure pd_static(const procnames:Tstringcontainer);
 begin
   if (cs_static_keyword in aktmoduleswitches) then
     begin
-{$ifdef INCLUDEOK}
       include(aktprocsym^.symoptions,sp_static);
       include(aktprocsym^.definition^.procoptions,po_staticmethod);
-{$else}
-      aktprocsym^.symoptions:=aktprocsym^.symoptions+[sp_static];
-      aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+[po_staticmethod];
-{$endif}
     end;
 end;
 
@@ -651,21 +638,13 @@ begin
   do_firstpass(pt);
   if pt^.treetype=stringconstn then
     begin
-{$ifdef INCLUDEOK}
       include(aktprocsym^.definition^.procoptions,po_msgstr);
-{$else}
-      aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+[po_msgstr];
-{$endif}
       aktprocsym^.definition^.messageinf.str:=strnew(pt^.value_str);
     end
   else
    if is_constintnode(pt) then
     begin
-{$ifdef INCLUDEOK}
       include(aktprocsym^.definition^.procoptions,po_msgint);
-{$else}
-      aktprocsym^.definition^.procoptions:=aktprocsym^.definition^.procoptions+[po_msgint];
-{$endif}
       aktprocsym^.definition^.messageinf.i:=pt^.value;
     end
   else
@@ -1885,11 +1864,7 @@ begin
            vs^.fileinfo:=fileinfo;
            vs^.varspez:=varspez;
            aktprocsym^.definition^.localst^.insert(vs);
-{$ifdef INCLUDEOK}
            include(vs^.varoptions,vo_is_local_copy);
-{$else}
-           vs^.varoptions:=vs^.varoptions+[vo_is_local_copy];
-{$endif}
            vs^.varstate:=vs_assigned;
            localvarsym:=vs;
            inc(refs); { the para was used to set the local copy ! }
@@ -2083,7 +2058,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:46  michael
+  Revision 1.3  2000-07-13 12:08:27  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:46  michael
   + removed logs
 
 }

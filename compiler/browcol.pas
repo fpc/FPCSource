@@ -1250,6 +1250,7 @@ end;
          vs_Value : ;
          vs_Const : CurName:=CurName+'const ';
          vs_Var   : CurName:=CurName+'var ';
+         vs_Out   : CurName:=CurName+'out ';
        end;
        if assigned(dc^.paratype.def) then
          CurName:=CurName+GetDefinitionStr(dc^.paratype.def);
@@ -2093,7 +2094,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:32  michael
+  Revision 1.3  2000-07-13 12:08:24  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:32  michael
   + removed logs
 
 }

@@ -80,9 +80,9 @@ override LOCALDEF+=-dGDB -dBROWSERLOG
 ifeq ($(CPU_TARGET),i386)
 # also insert MMX support
 override LOCALDEF+=-dSUPPORT_MMX
-# We don't need the intel and binary writer on linux...
+# We don't need the intel writer on linux...
 ifdef inlinux
-override LOCALDEF+=-dNOAG386INT -dNOAG386BIN
+override LOCALDEF+=-dNOAG386INT
 endif
 endif
 

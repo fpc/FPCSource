@@ -3,7 +3,7 @@
     Copyright (c) 1998-2000 by Florian Klaempfl
 
     Routines for the code generation of data structures
-    like VMT,Messages
+    like VMT, Messages, VTables, Interfaces descs
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,13 +41,25 @@ interface
     function gendmt(_class : pobjectdef) : pasmlabel;
 {$endif WITHDMT}
 
+{ define INTERFACE_SUPPORT}
+
+{$ifdef INTERFACE_SUPPORT}
+    function genintftable(_class: pobjectdef): pasmlabel;
+{$endif INTERFACE_SUPPORT}
+
 implementation
 
     uses
        strings,cobjects,
        globtype,globals,verbose,
        symconst,types,
-       hcodegen;
+       hcodegen, systems, files
+{$ifdef INTERFACE_SUPPORT}
+{$ifdef i386}
+       ,cg386ic
+{$endif}
+{$endif INTERFACE_SUPPORT}
+       ;
 
 
 {*****************************************************************************
@@ -731,7 +743,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:41  michael
+  Revision 1.3  2000-07-13 12:08:26  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:41  michael
   + removed logs
 
 }

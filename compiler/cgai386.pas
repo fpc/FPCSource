@@ -2855,9 +2855,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          begin
             { not all kind of parameters need to be finalized  }
             if (psym(p)^.owner^.symtabletype=parasymtable) and
-              ((pvarsym(p)^.varspez=vs_var)  or
-               (pvarsym(p)^.varspez=vs_const) { and
-               (dont_copy_const_param(pvarsym(p)^.definition)) } ) then
+              (pvarsym(p)^.varspez in [vs_out,vs_var,vs_const]) then
               exit;
             if assigned(procinfo) then
               procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
@@ -3971,7 +3969,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:37  michael
+  Revision 1.3  2000-07-13 12:08:25  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:37  michael
   + removed logs
 
 }

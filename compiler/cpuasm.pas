@@ -779,7 +779,7 @@ begin
             { instruction size will then always become 2 (PFV) }
             relsize:=(InsOffset+2)-l;
             if (not assigned(sym) or
-                ((sym^.typ<>AS_EXTERNAL) and (sym^.address<>0))) and
+                ((sym^.bind<>AB_EXTERNAL) and (sym^.address<>0))) and
                (relsize>=-128) and (relsize<=127) then
              ot:=OT_IMM32 or OT_SHORT
             else
@@ -1673,7 +1673,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:38  michael
+  Revision 1.3  2000-07-13 12:08:25  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:38  michael
   + removed logs
 
 }

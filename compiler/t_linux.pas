@@ -112,11 +112,7 @@ begin
 {$IFDEF NEWST}
   exclude(aktvarsym^.properties,vo_is_dll_var);
 {$ELSE}
-{$ifdef INCLUDEOK}
   exclude(aktvarsym^.varoptions,vo_is_dll_var);
-{$else}
-  aktvarsym^.varoptions:=aktvarsym^.varoptions-[vo_is_dll_var];
-{$endif}
 {$ENDIF NEWST}
 end;
 
@@ -477,7 +473,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:50  michael
+  Revision 1.3  2000-07-13 12:08:28  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:50  michael
   + removed logs
 
 }

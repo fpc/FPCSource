@@ -1003,22 +1003,14 @@
     constructor tvarsym.init_dll(const n : string;const tt : ttype);
       begin
          tvarsym.init(n,tt);
-{$ifdef INCLUDEOK}
          include(varoptions,vo_is_dll_var);
-{$else}
-         varoptions:=varoptions+[vo_is_dll_var];
-{$endif}
       end;
 
 
     constructor tvarsym.init_C(const n,mangled : string;const tt : ttype);
       begin
          tvarsym.init(n,tt);
-{$ifdef INCLUDEOK}
          include(varoptions,vo_is_C_var);
-{$else}
-         varoptions:=varoptions+[vo_is_C_var];
-{$endif}
          setmangledname(mangled);
       end;
 
@@ -1143,6 +1135,7 @@
          if assigned(vartype.def) then
            begin
               case varspez of
+                vs_out,
                 vs_var :
                   getpushsize:=target_os.size_of_pointer;
                 vs_value,
@@ -1194,12 +1187,8 @@
             { the data filed is generated in parser.pas
               with a tobject_FIELDNAME variable }
             { this symbol can't be loaded to a register }
-{$ifdef INCLUDEOK}
             exclude(varoptions,vo_regable);
             exclude(varoptions,vo_fpuregable);
-{$else}
-            varoptions:=varoptions-[vo_regable,vo_fpuregable];
-{$endif}
          end
         else
          if not(read_member) then
@@ -1276,12 +1265,8 @@
                    { increase datasize }
                    inc(owner^.datasize,l);
                    { this symbol can't be loaded to a register }
-{$ifdef INCLUDEOK}
                    exclude(varoptions,vo_regable);
                    exclude(varoptions,vo_fpuregable);
-{$else}
-                   varoptions:=varoptions-[vo_regable,vo_fpuregable];
-{$endif}
                  end;
                globalsymtable :
                  begin
@@ -1301,23 +1286,15 @@
                    bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)));
                    inc(owner^.datasize,l);
                    { this symbol can't be loaded to a register }
-{$ifdef INCLUDEOK}
                    exclude(varoptions,vo_regable);
                    exclude(varoptions,vo_fpuregable);
-{$else}
-                   varoptions:=varoptions-[vo_regable,vo_fpuregable];
-{$endif}
                  end;
                recordsymtable,
                objectsymtable :
                  begin
                  { this symbol can't be loaded to a register }
-{$ifdef INCLUDEOK}
                    exclude(varoptions,vo_regable);
                    exclude(varoptions,vo_fpuregable);
-{$else}
-                   varoptions:=varoptions-[vo_regable,vo_fpuregable];
-{$endif}
                  { get the alignment size }
                    if (aktpackrecords=packrecord_C) then
                     begin
@@ -1464,6 +1441,7 @@
        else if (owner^.symtabletype in [parasymtable,inlineparasymtable]) then
          begin
             case varspez of
+               vs_out,
                vs_var   : st := 'v'+st;
                vs_value,
                vs_const : if push_addr_param(vartype.def) then
@@ -1627,16 +1605,16 @@
 {$endif GDB}
         if owner^.symtabletype=globalsymtable then
           begin
-             curconstsegment^.concat(new(pai_symbol,initname_global(mangledname,getsize)));
+             curconstsegment^.concat(new(pai_symbol,initdataname_global(mangledname,getsize)));
           end
         else
           if owner^.symtabletype<>unitsymtable then
             begin
               if (cs_create_smart in aktmoduleswitches) or
                  DLLSource then
-                curconstsegment^.concat(new(pai_symbol,initname_global(mangledname,getsize)))
+                curconstsegment^.concat(new(pai_symbol,initdataname_global(mangledname,getsize)))
               else
-                curconstsegment^.concat(new(pai_symbol,initname(mangledname,getsize)));
+                curconstsegment^.concat(new(pai_symbol,initdataname(mangledname,getsize)));
             end;
         aktfilepos:=storefilepos;
       end;
@@ -1946,11 +1924,7 @@
                begin
                   restype.def^.typesym:=@self;
                   synonym:=nil;
-{$ifdef INCLUDEOK}
                   include(symoptions,sp_primary_typesym);
-{$else}
-                  symoptions:=symoptions+[sp_primary_typesym];
-{$endif}
                end
              else
                begin
@@ -2183,7 +2157,10 @@
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:49  michael
+  Revision 1.3  2000-07-13 12:08:27  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:49  michael
   + removed logs
  
 }

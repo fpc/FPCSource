@@ -87,13 +87,13 @@ unit og386cff;
          strpos  : longint;
          section : tsection;
          value   : longint;
-         typ     : TAsmsymtype;
+         typ     : TAsmsymbind;
        end;
 
        pcoffsection = ^tcoffsection;
        tcoffsection = object
           index  : tsection;
-          secidx : longint;
+          secsymidx : longint; { index for the section in symtab }
           data   : PDynamicArray;
           size,
           fillsize,
@@ -125,6 +125,7 @@ unit og386cff;
          destructor  done;virtual;
          procedure initwriting(Aplace:tcutplace);virtual;
          procedure donewriting;virtual;
+         function  sectionsize(s:tsection):longint;virtual;
          procedure setsectionsizes(var s:tsecsize);virtual;
          procedure writebytes(var data;len:longint);virtual;
          procedure writealloc(len:longint);virtual;
@@ -230,7 +231,7 @@ unit og386cff;
     constructor tcoffsection.init(sec:TSection;Aflags:longint);
       begin
         index:=sec;
-        secidx:=0;
+        secsymidx:=0;
         flags:=AFlags;
         { alignment after section }
         case sec of
@@ -381,6 +382,15 @@ unit og386cff;
       end;
 
 
+    function tgenericcoffoutput.sectionsize(s:tsection):longint;
+      begin
+        if assigned(sects[s]) then
+         sectionsize:=sects[s]^.len
+        else
+         sectionsize:=0;
+      end;
+
+
     function tgenericcoffoutput.text_flags : longint;
       begin
         text_flags:=0;
@@ -469,10 +479,13 @@ unit og386cff;
         if pos=-1 then
          sym.name:=s;
         sym.value:=p^.size;
-        sym.typ:=p^.typ;
+        sym.typ:=p^.bind;
+        { coff doesn't have common, replace with external }
+        if sym.typ=AB_COMMON then
+          sym.typ:=AB_EXTERNAL;
         { if local of global then set the section value to the address
           of the symbol }
-        if p^.typ in [AS_LOCAL,AS_GLOBAL] then
+        if sym.typ in [AB_LOCAL,AB_GLOBAL] then
          begin
            sym.section:=p^.section;
            sym.value:=p^.address+sects[p^.section]^.mempos;
@@ -480,13 +493,13 @@ unit og386cff;
         { update the asmsymbol index }
         p^.idx:=syms^.count;
         { store the symbol, but not the local ones (PM) }
-        if (p^.typ<>AS_LOCAL) or ((copy(s,1,2)<>'.L') and
+        if (sym.typ<>AB_LOCAL) or ((copy(s,1,2)<>'.L') and
           ((copy(s,1,1)<>'L') or not win32)) then
           syms^.write(sym,1);
         { make the exported syms known to the objectwriter
           (needed for .a generation) }
-        if (p^.typ=AS_GLOBAL) or
-           ((p^.typ=AS_EXTERNAL) and (sym.value=p^.size) and (sym.value>0)) then
+        if (sym.typ=AB_GLOBAL) or
+           ((sym.typ=AB_EXTERNAL) and (sym.value=p^.size) and (sym.value>0)) then
           writer^.writesym(p^.name);
       end;
 
@@ -676,6 +689,48 @@ unit og386cff;
       end;
 
 
+    procedure tgenericcoffoutput.setsectionsizes(var s:tsecsize);
+      var
+        align,
+        mempos : longint;
+        sec : tsection;
+      begin
+        { multiply stab with real size }
+        s[sec_stab]:=s[sec_stab]*sizeof(coffstab);
+        { if debug then also count header stab }
+        if (cs_debuginfo in aktmoduleswitches) then
+         begin
+           inc(s[sec_stab],sizeof(coffstab));
+           inc(s[sec_stabstr],length(SplitFileName(current_module^.mainsource^))+2);
+         end;
+        { fix all section }
+        mempos:=0;
+        for sec:=low(tsection) to high(tsection) do
+         begin
+           if (s[sec]>0) and (not assigned(sects[sec])) then
+             createsection(sec);
+           if assigned(sects[sec]) then
+            begin
+              sects[sec]^.size:=s[sec];
+              sects[sec]^.mempos:=mempos;
+              { calculate the alignment }
+              align:=sects[sec]^.align;
+              sects[sec]^.fillsize:=align-(sects[sec]^.size and (align-1));
+              if sects[sec]^.fillsize=align then
+               sects[sec]^.fillsize:=0;
+              { next section position, not for win32 which uses
+                relative addresses }
+              if not win32 then
+                inc(mempos,sects[sec]^.size+sects[sec]^.fillsize);
+            end;
+         end;
+      end;
+
+
+{***********************************************
+             Writing to disk
+***********************************************}
+
     procedure tgenericcoffoutput.write_relocs(s:pcoffsection);
       var
         rel  : coffreloc;
@@ -687,8 +742,8 @@ unit og386cff;
            rel.address:=r^.address;
            if assigned(r^.symbol) then
             begin
-              if (r^.symbol^.typ=AS_LOCAL) then
-               rel.sym:=2*sects[r^.symbol^.section]^.secidx
+              if (r^.symbol^.bind=AB_LOCAL) then
+               rel.sym:=2*sects[r^.symbol^.section]^.secsymidx
               else
                begin
                  if r^.symbol^.idx=-1 then
@@ -697,7 +752,7 @@ unit og386cff;
                end;
             end
            else if r^.section<>sec_none then
-            rel.sym:=2*sects[r^.section]^.secidx
+            rel.sym:=2*sects[r^.section]^.secsymidx
            else
             rel.sym:=0;
            case r^.relative of
@@ -751,7 +806,7 @@ unit og386cff;
         for sec:=low(tsection) to high(tsection) do
          if assigned(sects[sec]) then
           begin
-            write_symbol(target_asm.secnames[sec],-1,sects[sec]^.mempos,sects[sec]^.secidx,3,1);
+            write_symbol(target_asm.secnames[sec],-1,sects[sec]^.mempos,sects[sec]^.secsymidx,3,1);
             fillchar(secrec,sizeof(secrec),0);
             secrec.len:=sects[sec]^.len;
             secrec.nrelocs:=sects[sec]^.nrelocs;
@@ -762,12 +817,12 @@ unit og386cff;
         for i:=1 to syms^.count do
          begin
            syms^.read(sym,1);
-           if sym.typ=AS_LOCAL then
+           if sym.typ=AB_LOCAL then
              globalval:=3
            else
              globalval:=2;
            if assigned(sects[sym.section]) then
-             sectionval:=sects[sym.section]^.secidx
+             sectionval:=sects[sym.section]^.secsymidx
            else
              sectionval:=0;
            write_symbol(sym.name,sym.strpos,sym.value,sectionval,globalval,0);
@@ -775,48 +830,9 @@ unit og386cff;
       end;
 
 
-    procedure tgenericcoffoutput.setsectionsizes(var s:tsecsize);
-      var
-        align,
-        mempos : longint;
-        sec : tsection;
-      begin
-        { multiply stab with real size }
-        s[sec_stab]:=s[sec_stab]*sizeof(coffstab);
-        { if debug then also count header stab }
-        if (cs_gdb_lineinfo in aktglobalswitches) or
-           (cs_debuginfo in aktmoduleswitches) then
-         begin
-           inc(s[sec_stab],sizeof(coffstab));
-           inc(s[sec_stabstr],length(SplitFileName(current_module^.mainsource^))+2);
-         end;
-        { fix all section }
-        mempos:=0;
-        for sec:=low(tsection) to high(tsection) do
-         begin
-           if (s[sec]>0) and (not assigned(sects[sec])) then
-             createsection(sec);
-           if assigned(sects[sec]) then
-            begin
-              sects[sec]^.size:=s[sec];
-              sects[sec]^.mempos:=mempos;
-              { calculate the alignment }
-              align:=sects[sec]^.align;
-              sects[sec]^.fillsize:=align-(sects[sec]^.size and (align-1));
-              if sects[sec]^.fillsize=align then
-               sects[sec]^.fillsize:=0;
-              { next section position, not for win32 which uses
-                relative addresses }
-              if not win32 then
-                inc(mempos,sects[sec]^.size+sects[sec]^.fillsize);
-            end;
-         end;
-      end;
-
-
     procedure tgenericcoffoutput.writetodisk;
       var
-        datapos,secidx,
+        datapos,secsymidx,
         nsects,sympos,i : longint;
         gotreloc : boolean;
         sec    : tsection;
@@ -851,12 +867,12 @@ unit og386cff;
         datapos:=sizeof(coffheader)+sizeof(coffsechdr)*nsects;
         initsym:=2; { 2 for the file }
         { sections first }
-        secidx:=0;
+        secsymidx:=0;
         for sec:=low(tsection) to high(tsection) do
          if assigned(sects[sec]) then
           begin
-            inc(secidx);
-            sects[sec]^.secidx:=secidx;
+            inc(secsymidx);
+            sects[sec]^.secsymidx:=secsymidx;
             sects[sec]^.datapos:=datapos;
             if assigned(sects[sec]^.data) then
               inc(datapos,sects[sec]^.len);
@@ -1003,7 +1019,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:43  michael
+  Revision 1.3  2000-07-13 12:08:26  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:43  michael
   + removed logs
 
 }

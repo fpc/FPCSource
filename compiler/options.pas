@@ -1236,6 +1236,9 @@ begin
   def_symbol('CORRECTFLDCW');
   def_symbol('ENHANCEDRAISE');
 
+{ New since 1.09 }
+  def_symbol('HASOUT');
+
 { some stuff for TP compatibility }
 {$ifdef i386}
   def_symbol('CPU86');
@@ -1488,7 +1491,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:44  michael
+  Revision 1.3  2000-07-13 12:08:26  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:44  michael
   + removed logs
 
 }

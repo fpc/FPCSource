@@ -658,7 +658,7 @@ unit ag386att;
              begin
                if (pai_label(hp)^.l^.is_used) then
                 begin
-                  if pai_label(hp)^.l^.typ=AS_GLOBAL then
+                  if pai_label(hp)^.l^.bind=AB_GLOBAL then
                    begin
                      AsmWrite('.globl'#9);
                      AsmWriteLn(pai_label(hp)^.l^.name);
@@ -902,7 +902,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:28  michael
+  Revision 1.3  2000-07-13 12:08:24  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:28  michael
   + removed logs
 
 }

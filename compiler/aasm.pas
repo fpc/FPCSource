@@ -89,12 +89,15 @@ unit aasm;
 
   { asm symbol functions }
     type
-       TAsmsymtype=(AS_NONE,AS_EXTERNAL,AS_LOCAL,AS_GLOBAL);
+       TAsmsymbind=(AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL);
+
+       TAsmsymtype=(AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION);
 
        pasmsymbol = ^tasmsymbol;
        tasmsymbol = object(tnamedindexobject)
-         orgtyp,
-         typ     : TAsmsymtype;
+         orgbind,
+         bind      : TAsmsymbind;
+         typ       : TAsmsymtype;
          proclocal : boolean;
          { this need to be incremented with every symbol loading into the
            paasmoutput, thus in loadsym/loadref/const_symbol (PFV) }
@@ -107,10 +110,10 @@ unit aasm;
          { alternate symbol which can be used for 'renaming' needed for
            inlining }
          altsymbol : pasmsymbol;
-         constructor init(const s:string;_typ:TAsmsymtype);
+         constructor init(const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
          procedure reset;
          function  is_used:boolean;
-         procedure settyp(t:tasmsymtype);
+         procedure setbind(t:tasmsymbind);
          procedure setaddress(sec:tsection;offset,len:longint);
          procedure GenerateAltSymbol;
        end;
@@ -160,6 +163,8 @@ unit aasm;
           constructor init(_sym:PAsmSymbol;siz:longint);
           constructor initname(const _name : string;siz:longint);
           constructor initname_global(const _name : string;siz:longint);
+          constructor initdataname(const _name : string;siz:longint);
+          constructor initdataname_global(const _name : string;siz:longint);
        end;
 
        pai_symbol_end = ^tai_symbol_end;
@@ -362,7 +367,7 @@ type
     procedure getlabelnr(var l : longint);
 
     function  newasmsymbol(const s : string) : pasmsymbol;
-    function  newasmsymboltyp(const s : string;_typ:TAsmSymType) : pasmsymbol;
+    function  newasmsymboltype(const s : string;_bind:TAsmSymBind;_typ:TAsmsymtype) : pasmsymbol;
     function  getasmsymbol(const s : string) : pasmsymbol;
     function  renameasmsymbol(const sold, snew : string):pasmsymbol;
 
@@ -406,7 +411,7 @@ uses
       begin
          inherited init;
          typ:=ait_datablock;
-         sym:=newasmsymboltyp(_name,AS_LOCAL);
+         sym:=newasmsymboltype(_name,AB_LOCAL,AT_DATA);
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -419,7 +424,7 @@ uses
       begin
          inherited init;
          typ:=ait_datablock;
-         sym:=newasmsymboltyp(_name,AS_GLOBAL);
+         sym:=newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
          { keep things aligned }
          if _size<=0 then
            _size:=4;
@@ -438,14 +443,14 @@ uses
          typ:=ait_symbol;
          sym:=_sym;
          size:=siz;
-         is_global:=(sym^.typ=AS_GLOBAL);
+         is_global:=(sym^.bind=AB_GLOBAL);
       end;
 
     constructor tai_symbol.initname(const _name : string;siz:longint);
       begin
          inherited init;
          typ:=ait_symbol;
-         sym:=newasmsymboltyp(_name,AS_LOCAL);
+         sym:=newasmsymboltype(_name,AB_LOCAL,AT_FUNCTION);
          size:=siz;
          is_global:=false;
       end;
@@ -454,7 +459,25 @@ uses
       begin
          inherited init;
          typ:=ait_symbol;
-         sym:=newasmsymboltyp(_name,AS_GLOBAL);
+         sym:=newasmsymboltype(_name,AB_GLOBAL,AT_FUNCTION);
+         size:=siz;
+         is_global:=true;
+      end;
+
+    constructor tai_symbol.initdataname(const _name : string;siz:longint);
+      begin
+         inherited init;
+         typ:=ait_symbol;
+         sym:=newasmsymboltype(_name,AB_LOCAL,AT_DATA);
+         size:=siz;
+         is_global:=false;
+      end;
+
+    constructor tai_symbol.initdataname_global(const _name : string;siz:longint);
+      begin
+         inherited init;
+         typ:=ait_symbol;
+         sym:=newasmsymboltype(_name,AB_GLOBAL,AT_DATA);
          size:=siz;
          is_global:=true;
       end;
@@ -475,7 +498,7 @@ uses
       begin
          inherited init;
          typ:=ait_symbol_end;
-         sym:=newasmsymboltyp(_name,AS_GLOBAL);
+         sym:=newasmsymboltype(_name,AB_GLOBAL,AT_NONE);
       end;
 
 
@@ -674,7 +697,7 @@ uses
         typ:=ait_label;
         l:=_l;
         l^.is_set:=true;
-        is_global:=(l^.typ=AS_GLOBAL);
+        is_global:=(l^.bind=AB_GLOBAL);
       end;
 
 
@@ -834,7 +857,7 @@ uses
                                   AsmSymbol
 *****************************************************************************}
 
-    constructor tasmsymbol.init(const s:string;_typ:TAsmsymtype);
+    constructor tasmsymbol.init(const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
       begin;
       {$IFDEF NEWST}
         inherited init(s);
@@ -842,7 +865,8 @@ uses
         inherited initname(s);
       {$ENDIF NEWST}
         reset;
-        orgtyp:=_typ;
+        orgbind:=_bind;
+        bind:=_bind;
         typ:=_typ;
       end;
 
@@ -850,7 +874,7 @@ uses
       begin
         if not assigned(altsymbol) then
          begin
-           new(altsymbol,init(name+'_'+tostr(nextaltnr),typ));
+           new(altsymbol,init(name+'_'+tostr(nextaltnr),bind,typ));
            { also copy the amount of references }
            altsymbol^.refs:=refs;
            inc(nextaltnr);
@@ -864,7 +888,7 @@ uses
         address:=0;
         size:=0;
         idx:=-1;
-        typ:=AS_EXTERNAL;
+        bind:=AB_EXTERNAL;
         proclocal:=false;
         { mainly used to remove unused labels from the codesegment }
         refs:=0;
@@ -875,10 +899,10 @@ uses
         is_used:=(refs>0);
       end;
 
-    procedure tasmsymbol.settyp(t:tasmsymtype);
+    procedure tasmsymbol.setbind(t:tasmsymbind);
       begin
-        typ:=t;
-        orgtyp:=t;
+        bind:=t;
+        orgbind:=t;
       end;
 
     procedure tasmsymbol.setaddress(sec:tsection;offset,len:longint);
@@ -888,8 +912,8 @@ uses
         size:=len;
         { when the typ was reset to External, set it back to the original
           type it got when defined }
-        if (typ=AS_EXTERNAL) and (orgtyp<>AS_NONE) then
-         typ:=orgtyp;
+        if (bind=AB_EXTERNAL) and (orgbind<>AB_NONE) then
+         bind:=orgbind;
       end;
 
 
@@ -901,7 +925,7 @@ uses
       begin;
         labelnr:=nextlabelnr;
         inc(nextlabelnr);
-        inherited init(target_asm.labelprefix+tostr(labelnr),AS_LOCAL);
+        inherited init(target_asm.labelprefix+tostr(labelnr),AB_LOCAL,AT_FUNCTION);
         proclocal:=true;
         is_set:=false;
       end;
@@ -912,9 +936,9 @@ uses
         labelnr:=nextlabelnr;
         inc(nextlabelnr);
         if (cs_create_smart in aktmoduleswitches) then
-          inherited init('_$'+current_module^.modulename^+'$_L'+tostr(labelnr),AS_GLOBAL)
+          inherited init('_$'+current_module^.modulename^+'$_L'+tostr(labelnr),AB_GLOBAL,AT_DATA)
         else
-          inherited init(target_asm.labelprefix+tostr(labelnr),AS_LOCAL);
+          inherited init(target_asm.labelprefix+tostr(labelnr),AB_LOCAL,AT_DATA);
         is_set:=false;
         { write it always }
         refs:=1;
@@ -943,27 +967,26 @@ uses
            exit;
          end;
         { Not found, insert it as an External }
-        hp:=new(pasmsymbol,init(s,AS_EXTERNAL));
+        hp:=new(pasmsymbol,init(s,AB_EXTERNAL,AT_FUNCTION));
         asmsymbollist^.insert(hp);
         newasmsymbol:=hp;
       end;
 
 
-    function  newasmsymboltyp(const s : string;_typ:TAsmSymType) : pasmsymbol;
+    function  newasmsymboltype(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : pasmsymbol;
       var
         hp : pasmsymbol;
       begin
         hp:=pasmsymbol(asmsymbollist^.search(s));
         if assigned(hp) then
+         hp^.setbind(_bind)
+        else
          begin
-           hp^.settyp(_typ);
-           newasmsymboltyp:=hp;
-           exit;
+           { Not found, insert it as an External }
+           hp:=new(pasmsymbol,init(s,_bind,_typ));
+           asmsymbollist^.insert(hp);
          end;
-        { Not found, insert it as an External }
-        hp:=new(pasmsymbol,init(s,_typ));
-        asmsymbollist^.insert(hp);
-        newasmsymboltyp:=hp;
+        newasmsymboltype:=hp;
       end;
 
 
@@ -1008,7 +1031,7 @@ uses
       begin
         if (pasmsymbol(p)^.refs>0) and
            (pasmsymbol(p)^.section=Sec_none) and
-           (pasmsymbol(p)^.typ<>AS_EXTERNAL) then
+           (pasmsymbol(p)^.bind<>AB_EXTERNAL) then
          Message1(asmw_e_undefined_label,pasmsymbol(p)^.name);
       end;
 
@@ -1067,7 +1090,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:28  michael
+  Revision 1.3  2000-07-13 12:08:24  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:28  michael
   + removed logs
 
 }

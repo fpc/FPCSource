@@ -233,7 +233,7 @@ uses
       var
          actmembertype : tsymoptions;
          there_is_a_destructor : boolean;
-         is_a_class : boolean;
+         classtype : (ct_object,ct_class,ct_interface,ct_cppclass);
          childof : pobjectdef;
          aktclass : pobjectdef;
 
@@ -249,11 +249,7 @@ uses
            if (cs_constructor_name in aktglobalswitches) and (aktprocsym^.name<>'INIT') then
             Message(parser_e_constructorname_must_be_init);
 
-{$ifdef INCLUDEOK}
            include(aktclass^.objectoptions,oo_has_constructor);
-{$else}
-           aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_constructor];
-{$endif}
            consume(_SEMICOLON);
              begin
                 if (aktclass^.is_class) then
@@ -339,6 +335,11 @@ uses
                          begin
                             consume(_CONST);
                             varspez:=vs_const;
+                         end
+                       else if token=_OUT then
+                         begin
+                            consume(_OUT);
+                            varspez:=vs_out;
                          end
                        else varspez:=vs_value;
                        sc:=idlist;
@@ -699,11 +700,7 @@ uses
            dec(lexlevel);
            if (cs_constructor_name in aktglobalswitches) and (aktprocsym^.name<>'DONE') then
             Message(parser_e_destructorname_must_be_done);
-{$ifdef INCLUDEOK}
            include(aktclass^.objectoptions,oo_has_destructor);
-{$else}
-           aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_destructor];
-{$endif}
            consume(_SEMICOLON);
            if not(aktprocsym^.definition^.para^.empty) then
              if not (m_tp in aktmodeswitches) then
@@ -727,13 +724,9 @@ uses
       procedure setclassattributes;
 
         begin
-           if is_a_class then
+           if classtype=ct_class then
              begin
-{$ifdef INCLUDEOK}
                 include(aktclass^.objectoptions,oo_is_class);
-{$else}
-                aktclass^.objectoptions:=aktclass^.objectoptions+[oo_is_class];
-{$endif}
                 if (cs_generate_rtti in aktlocalswitches) or
                     (assigned(aktclass^.childof) and
                      (oo_can_have_published in aktclass^.childof^.objectoptions)) then
@@ -801,7 +794,7 @@ uses
 
            { write tables for classes, this must be done before the actual
              class is written, because we need the labels defined }
-           if is_a_class then
+           if classtype=ct_class then
             begin
               methodnametable:=genpublishedmethodstable(aktclass);
               fieldtablelabel:=aktclass^.generate_field_table;
@@ -832,14 +825,14 @@ uses
                  typeglobalnumber('__vtbl_ptr_type')+'",'+tostr(N_STSYM)+',0,0,'+aktclass^.vmt_mangledname))));
            end;
 {$endif GDB}
-           datasegment^.concat(new(pai_symbol,initname_global(aktclass^.vmt_mangledname,0)));
+           datasegment^.concat(new(pai_symbol,initdataname_global(aktclass^.vmt_mangledname,0)));
 
            { determine the size with symtable^.datasize, because }
            { size gives back 4 for classes                    }
            datasegment^.concat(new(pai_const,init_32bit(aktclass^.symtable^.datasize)));
            datasegment^.concat(new(pai_const,init_32bit(-aktclass^.symtable^.datasize)));
 {$ifdef WITHDMT}
-           if not(is_a_class) then
+           if classtype=ct_object then
              begin
                 if assigned(dmtlabel) then
                   datasegment^.concat(new(pai_const_symbol,init(dmtlabel)))
@@ -858,7 +851,7 @@ uses
              datasegment^.concat(new(pai_const,init_32bit(0)));
 
            { write extended info for classes, for the order see rtl/inc/objpash.inc }
-           if is_a_class then
+           if classtype=ct_class then
             begin
               { pointer to class name string }
               datasegment^.concat(new(pai_const_symbol,init(classnamelabel)));
@@ -923,10 +916,23 @@ uses
                  end
                 else
                  begin
-                   { a mix of class and object isn't allowed }
-                   if (childof^.is_class and not is_a_class) or
-                      (not childof^.is_class and is_a_class) then
-                    Message(parser_e_mix_of_classes_and_objects);
+                   { a mix of class, interfaces, objects and cppclasses
+                     isn't allowed }
+                   case classtype of
+                      ct_class:
+                        if not(childof^.is_class) and
+                          not(childof^.is_interface) then
+                          Message(parser_e_mix_of_classes_and_objects);
+                      ct_interface:
+                        if not(childof^.is_interface) then
+                          Message(parser_e_mix_of_classes_and_objects);
+                      ct_cppclass:
+                        if not(childof^.is_cppclass) then
+                          Message(parser_e_mix_of_classes_and_objects);
+                      ct_object:
+                        if not(childof^.is_object) then
+                          Message(parser_e_mix_of_classes_and_objects);
+                   end;
                    { the forward of the child must be resolved to get
                      correct field addresses }
                    if assigned(fd) then
@@ -946,7 +952,7 @@ uses
                 consume(_RKLAMMER);
              end
            { if no parent class, then a class get tobject as parent }
-           else if is_a_class then
+           else if classtype=ct_class then
              setclassparent
            else
              aktclass:=new(pobjectdef,init(n,nil));
@@ -978,20 +984,22 @@ uses
          case token of
             _OBJECT:
               begin
-                 is_a_class:=false;
+                 classtype:=ct_object;
                  consume(_OBJECT)
               end;
             _CPPCLASS:
               begin
+                 classtype:=ct_cppclass;
                  internalerror(2003001);
               end;
             _INTERFACE:
               begin
+                 classtype:=ct_interface;
                  internalerror(2003002);
               end;
             _CLASS:
               begin
-                 is_a_class:=true;
+                 classtype:=ct_class;
                  consume(_CLASS);
                  if not(assigned(fd)) and (token=_OF) then
                    begin
@@ -1070,22 +1078,14 @@ uses
 
 
        { short class declaration ? }
-         if (not is_a_class) or (token<>_SEMICOLON) then
+         if (classtype<>ct_class) or (token<>_SEMICOLON) then
           begin
           { Parse componenten }
             repeat
               if (sp_private in actmembertype) then
-{$ifdef INCLUDEOK}
                 include(aktclass^.objectoptions,oo_has_private);
-{$else}
-                aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_private];
-{$endif}
               if (sp_protected in actmembertype) then
-{$ifdef INCLUDEOK}
                 include(aktclass^.objectoptions,oo_has_protected);
-{$else}
-                aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_protected];
-{$endif}
               case token of
               _ID : begin
                       case idtoken of
@@ -1126,23 +1126,18 @@ uses
                       parse_object_proc_directives(aktprocsym);
 {$endif newcg}
                       if (po_msgint in aktprocsym^.definition^.procoptions) then
-{$ifdef INCLUDEOK}
                         include(aktclass^.objectoptions,oo_has_msgint);
-{$else}
-                        aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_msgint];
-{$endif}
+
                       if (po_msgstr in aktprocsym^.definition^.procoptions) then
-{$ifdef INCLUDEOK}
                         include(aktclass^.objectoptions,oo_has_msgstr);
-{$else}
-                        aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_msgstr];
-{$endif}
+
                       if (po_virtualmethod in aktprocsym^.definition^.procoptions) then
-{$ifdef INCLUDEOK}
                         include(aktclass^.objectoptions,oo_has_virtual);
-{$else}
-                        aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_virtual];
-{$endif}
+
+                      { C++ classes use always C calling conventions }
+                      if aktclass^.is_cppclass then
+                        include(aktprocsym^.definition^.proccalloptions,pocall_cdecl);
+
                       parse_only:=oldparse_only;
                     end;
      _CONSTRUCTOR : begin
@@ -1155,11 +1150,12 @@ uses
                       parse_object_proc_directives(aktprocsym);
 {$endif newcg}
                       if (po_virtualmethod in aktprocsym^.definition^.procoptions) then
-{$ifdef INCLUDEOK}
                         include(aktclass^.objectoptions,oo_has_virtual);
-{$else}
-                        aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_virtual];
-{$endif}
+
+                      { C++ classes use always C calling conventions }
+                      if aktclass^.is_cppclass then
+                        include(aktprocsym^.definition^.proccalloptions,pocall_cdecl);
+
                       parse_only:=oldparse_only;
                     end;
       _DESTRUCTOR : begin
@@ -1175,11 +1171,12 @@ uses
                       parse_object_proc_directives(aktprocsym);
 {$endif newcg}
                       if (po_virtualmethod in aktprocsym^.definition^.procoptions) then
-{$ifdef INCLUDEOK}
                         include(aktclass^.objectoptions,oo_has_virtual);
-{$else}
-                        aktclass^.objectoptions:=aktclass^.objectoptions+[oo_has_virtual];
-{$endif}
+
+                      { C++ classes use always C calling conventions }
+                      if aktclass^.is_cppclass then
+                        include(aktprocsym^.definition^.proccalloptions,pocall_cdecl);
+
                       parse_only:=oldparse_only;
                     end;
              _END : begin
@@ -1553,11 +1550,7 @@ uses
                   begin
                     consume(_OF);
                     consume(_OBJECT);
-{$ifdef INCLUDEOK}
                     include(pprocvardef(tt.def)^.procoptions,po_methodpointer);
-{$else}
-                    pprocvardef(tt.def)^.procoptions:=pprocvardef(tt.def)^.procoptions+[po_methodpointer];
-{$endif}
                   end;
               end;
             _FUNCTION:
@@ -1572,11 +1565,7 @@ uses
                   begin
                     consume(_OF);
                     consume(_OBJECT);
-{$ifdef INCLUDEOK}
                     include(pprocvardef(tt.def)^.procoptions,po_methodpointer);
-{$else}
-                    pprocvardef(tt.def)^.procoptions:=pprocvardef(tt.def)^.procoptions+[po_methodpointer];
-{$endif}
                   end;
               end;
             else
@@ -1589,7 +1578,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:47  michael
+  Revision 1.3  2000-07-13 12:08:27  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:47  michael
   + removed logs
 
 }

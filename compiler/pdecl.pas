@@ -92,7 +92,10 @@ unit pdecl;
           else
             if try_to_consume(_CONST) then
               varspez:=vs_const
-            else
+          else
+            if try_to_consume(_OUT) then
+              varspez:=vs_out
+          else
               varspez:=vs_value;
           inserthigh:=false;
           tt.reset;
@@ -113,11 +116,7 @@ unit pdecl;
                      vs^.varspez:=vs_var;
                    { insert the sym in the parasymtable }
                      pprocdef(aktprocdef)^.parast^.insert(vs);
-{$ifdef INCLUDEOK}
                      include(aktprocdef^.procoptions,po_containsself);
-{$else}
-                     aktprocdef^.procoptions:=aktprocdef^.procoptions+[po_containsself];
-{$endif}
                      inc(procinfo^.selfpointer_offset,vs^.address);
                    end;
                   consume(idtoken);
@@ -215,7 +214,11 @@ unit pdecl;
                      vs:=new(pvarsym,init(s,tt));
                      vs^.varspez:=varspez;
                    { we have to add this to avoid var param to be in registers !!!}
-                     if (varspez in [vs_var,vs_const]) and push_addr_param(tt.def) then
+                   { I don't understand the comment above,                          }
+                   { but I suppose the comment is wrong and                         }
+                   { it means that the address of var parameters can be placed      }
+                   { in a register (FK)                                             }
+                     if (varspez in [vs_var,vs_const,vs_out]) and push_addr_param(tt.def) then
                        include(vs^.varoptions,vo_regable);
 
                    { insert the sym in the parasymtable }
@@ -284,11 +287,7 @@ unit pdecl;
                 s:=sc^.get_with_tokeninfo(tokenpos);
                 ss:=new(pvarsym,init(s,tt));
                 if is_threadvar then
-{$ifdef INCLUDEOK}
                   include(ss^.varoptions,vo_is_thread_var);
-{$else}
-                  ss^.varoptions:=ss^.varoptions+[vo_is_thread_var];
-{$endif}
                 st^.insert(ss);
                 { static data fields are inserted in the globalsymtable }
                 if (st^.symtabletype=objectsymtable) and
@@ -390,11 +389,7 @@ unit pdecl;
 {$endif fixLeaksOnError}
                   dispose(sc,done);
                   aktvarsym:=new(pvarsym,init_C(s,target_os.Cprefix+C_name,tt));
-{$ifdef INCLUDEOK}
                   include(aktvarsym^.varoptions,vo_is_external);
-{$else}
-                  aktvarsym^.varoptions:=aktvarsym^.varoptions+[vo_is_external];
-{$endif}
                   symtablestack^.insert(aktvarsym);
                   tokenpos:=storetokenpos;
                   symdone:=true;
@@ -593,11 +588,7 @@ unit pdecl;
 {$endif}
                     end;
                    if extern_aktvarsym then
-{$ifdef INCLUDEOK}
                     include(aktvarsym^.varoptions,vo_is_external);
-{$else}
-                    aktvarsym^.varoptions:=aktvarsym^.varoptions+[vo_is_external];
-{$endif}
                    { insert in the stack/datasegment }
                    symtablestack^.insert(aktvarsym);
                    tokenpos:=storetokenpos;
@@ -620,17 +611,9 @@ unit pdecl;
                 else
                  if (is_object) and (cs_static_keyword in aktmoduleswitches) and (idtoken=_STATIC) then
                   begin
-{$ifdef INCLUDEOK}
                     include(current_object_option,sp_static);
-{$else}
-                    current_object_option:=current_object_option+[sp_static];
-{$endif}
                     insert_syms(symtablestack,sc,tt,false);
-{$ifdef INCLUDEOK}
                     exclude(current_object_option,sp_static);
-{$else}
-                    current_object_option:=current_object_option-[sp_static];
-{$endif}
                     consume(_STATIC);
                     consume(_SEMICOLON);
                     symdone:=true;
@@ -1171,11 +1154,7 @@ unit pdecl;
            Begin
               Message1(parser_w_not_supported_for_inline,tokenstring(t));
               Message(parser_w_inlining_disabled);
-{$ifdef INCLUDEOK}
               exclude(aktprocsym^.definition^.proccalloptions,pocall_inline);
-{$else}
-              aktprocsym^.definition^.proccalloptions:=aktprocsym^.definition^.proccalloptions-[pocall_inline];
-{$endif}
            End;
       end;
 
@@ -1257,7 +1236,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:44  michael
+  Revision 1.3  2000-07-13 12:08:26  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:44  michael
   + removed logs
 
 }

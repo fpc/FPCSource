@@ -180,7 +180,7 @@ begin
   if not(assigned(resourcestringlist)) then
     resourcestringlist:=new(paasmoutput,init);
   resourcestringlist^.insert(new(pai_const,init_32bit(resstrcount)));
-  resourcestringlist^.insert(new(pai_symbol,initname_global(current_module^.modulename^+'_'+'RESOURCESTRINGLIST',0)));
+  resourcestringlist^.insert(new(pai_symbol,initdataname_global(current_module^.modulename^+'_'+'RESOURCESTRINGLIST',0)));
   R:=PResourceStringItem(List.First);
   While assigned(R) do
    begin
@@ -284,7 +284,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:39  michael
+  Revision 1.3  2000-07-13 12:08:25  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:39  michael
   + removed logs
 
 }

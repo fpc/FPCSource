@@ -2484,6 +2484,7 @@
          while assigned(pdc) do
           begin
             case pdc^.paratyp of
+              vs_out,
               vs_var   : inc(l,target_os.size_of_pointer);
               vs_value,
               vs_const : if push_addr_param(pdc^.paratype.def) then
@@ -2512,7 +2513,9 @@
            else if hp^.paratyp=vs_var then
              s:=s+'var'
            else if hp^.paratyp=vs_const then
-             s:=s+'const';
+             s:=s+'const'
+           else if hp^.paratyp=vs_out then
+             s:=s+'out';
            hp:=pparaitem(hp^.previous);
            if assigned(hp) then
             s:=s+',';
@@ -3040,24 +3043,68 @@ Const local_symtable_index : longint = $8001;
 
 {$IfDef GDB}
     function tprocdef.cplusplusmangledname : string;
+
+      function getcppparaname(p : pdef) : string;
+
+        const
+           ordtype2str : array[tbasetype] of string[2] = (
+             '','','c',
+             'Uc','Us','Ul',
+             'Sc','s','l',
+             'b','b','b',
+             'Us','x','w');
+
+        var
+           s : string;
+
+        begin
+           case p^.deftype of
+              orddef:
+                s:=ordtype2str[porddef(p)^.typ];
+              pointerdef:
+                s:='P'+getcppparaname(ppointerdef(p)^.pointertype.def);
+              else
+                internalerror(2103001);
+           end;
+           getcppparaname:=s;
+        end;
+
       var
          s,s2 : string;
          param : pparaitem;
+
       begin
-      s := typesym^.name;
-      if _class <> nil then
-        begin
-        s2 := _class^.objname^;
-        s := s+'__'+tostr(length(s2))+s2;
-        end else s := s + '_';
-      param := pparaitem(para^.first);
-      while assigned(param) do
-        begin
-        s2 := param^.paratype.def^.typesym^.name;
-        s := s+tostr(length(s2))+s2;
-        param := pparaitem(param^.next);
-        end;
-      cplusplusmangledname:=s;
+         { we need this in lowercase letters! }
+         s := procsym^.name;
+         if procsym^.owner^.symtabletype=objectsymtable then
+           begin
+              s2:=pobjectdef(procsym^.owner^.defowner)^.objname^;
+              case proctypeoption of
+                 potype_destructor:
+                   s:='_$_'+tostr(length(s2))+s2;
+                 potype_constructor:
+                   s:='___'+tostr(length(s2))+s2;
+                 else
+                   s:='_'+s+'__'+tostr(length(s2))+s2;
+              end;
+
+           end
+         else s:=s+'_';
+
+         { concat modifiers }
+         { !!!!! }
+
+         { now we handle the parameters }
+         param := pparaitem(para^.first);
+         while assigned(param) do
+           begin
+              s2:=getcppparaname(param^.paratype.def);
+              if param^.paratyp in [vs_var,vs_out] then
+                s2:='R'+s2;
+              s:=s+s2;
+              param:=pparaitem(param^.next);
+           end;
+         cplusplusmangledname:=s;
       end;
 {$EndIf GDB}
 
@@ -3202,6 +3249,7 @@ Const local_symtable_index : longint = $8001;
                    vs_value: paraspec := 0;
                    vs_const: paraspec := pfConst;
                    vs_var  : paraspec := pfVar;
+                   vs_out  : paraspec := pfOut;
                  end;
                  { write flags for current parameter }
                  rttilist^.concat(new(pai_const,init_8bit(paraspec)));
@@ -3371,11 +3419,7 @@ Const local_symtable_index : longint = $8001;
              if (oo_has_vmt in c^.objectoptions) or is_class then
                begin
                   vmt_offset:=c^.vmt_offset;
-{$ifdef INCLUDEOK}
                   include(objectoptions,oo_has_vmt);
-{$else}
-                  objectoptions:=objectoptions+[oo_has_vmt];
-{$endif}
                end;
           end;
         savesize := symtable^.datasize;
@@ -3414,11 +3458,7 @@ Const local_symtable_index : longint = $8001;
           begin
              { ok, in future, the forward can be resolved }
              Message1(sym_e_class_forward_not_resolved,objname^);
-{$ifdef INCLUDEOK}
              exclude(objectoptions,oo_is_forward);
-{$else}
-             objectoptions:=objectoptions-[oo_is_forward];
-{$endif}
           end;
      end;
 
@@ -3560,6 +3600,21 @@ Const local_symtable_index : longint = $8001;
          is_class:=(oo_is_class in objectoptions);
       end;
 
+    function tobjectdef.is_object : boolean;
+      begin
+         is_object:=([oo_is_class,oo_is_interface,oo_is_cppclass]*
+           objectoptions)=[];
+      end;
+
+    function tobjectdef.is_interface : boolean;
+      begin
+         is_interface:=(oo_is_interface in objectoptions);
+      end;
+
+    function tobjectdef.is_cppclass : boolean;
+      begin
+         is_cppclass:=(oo_is_cppclass in objectoptions);
+      end;
 
 {$ifdef GDB}
     procedure addprocname(p :pnamedindexobject);
@@ -3605,7 +3660,9 @@ Const local_symtable_index : longint = $8001;
                         if para^.paratyp=vs_var then
                           argnames := argnames+'3var'
                         else if para^.paratyp=vs_const then
-                          argnames:=argnames+'5const';
+                          argnames:=argnames+'5const'
+                        else if para^.paratyp=vs_out then
+                          argnames:=argnames+'3out';
                      end
                    else
                      begin
@@ -4130,7 +4187,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:49  michael
+  Revision 1.3  2000-07-13 12:08:27  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:49  michael
   + removed logs
  
 }

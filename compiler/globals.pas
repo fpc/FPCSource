@@ -64,13 +64,13 @@ unit globals;
 
        delphimodeswitches : tmodeswitches=
          [m_delphi,m_tp,m_all,m_class,m_objpas,m_result,m_string_pchar,
-          m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring];
+          m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,m_out];
        fpcmodeswitches    : tmodeswitches=
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support,m_initfinal,m_add_pointer];
        objfpcmodeswitches : tmodeswitches=
          [m_objfpc,m_fpc,m_all,m_class,m_objpas,m_result,m_string_pchar,m_nested_comment,
-          m_repeat_forward,m_cvar_support,m_initfinal,m_add_pointer];
+          m_repeat_forward,m_cvar_support,m_initfinal,m_add_pointer,m_out];
        tpmodeswitches     : tmodeswitches=
          [m_tp7,m_tp,m_all,m_tp_procvar];
        gpcmodeswitches    : tmodeswitches=
@@ -1587,7 +1587,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:41  michael
+  Revision 1.3  2000-07-13 12:08:25  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:41  michael
   + removed logs
 
 }

@@ -84,20 +84,20 @@ unit systems;
             as_i386_nasmcoff,as_i386_nasmwin32,
             as_i386_nasmelf,as_i386_nasmobj,
             as_i386_tasm,as_i386_masm,
-            as_i386_dbg,as_i386_coff,as_i386_pecoff
+            as_i386_dbg,as_i386_coff,as_i386_pecoff,as_i386_elf
             ,as_m68k_as,as_m68k_gas,as_m68k_mit,as_m68k_mot,as_m68k_mpw,
             as_alpha_as,as_powerpc_as,as_powerpc_mpw
        );
        { binary assembler writers, needed to test for -a }
      const
-       {$ifdef i386} i386asmcnt=12; {$else} i386asmcnt=0; {$endif}
+       {$ifdef i386} i386asmcnt=13; {$else} i386asmcnt=0; {$endif}
        {$ifdef m68k} m68kasmcnt=5; {$else} m68kasmcnt=0; {$endif}
        {$ifdef alpha} alphaasmcnt=1; {$else} alphaasmcnt=0; {$endif}
        {$ifdef powerpc} powerpcasmcnt=2; {$else} powerpcasmcnt=0; {$endif}
        asmcnt=i386asmcnt+m68kasmcnt+alphaasmcnt+powerpcasmcnt+1;
 
        binassem : set of tasm = [
-         as_i386_dbg,as_i386_coff,as_i386_pecoff
+         as_i386_dbg,as_i386_coff,as_i386_pecoff,as_i386_elf
        ];
 
      type
@@ -745,6 +745,22 @@ implementation
               '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
               '.stab','.stabstr')
           )
+          ,(
+            id     : as_i386_elf;
+            idtxt  : 'ELF';
+            asmbin : '';
+            asmcmd : '';
+            supported_target : target_i386_linux;
+            allowdirect : false;
+            externals : true;
+            needar : false;
+            labelprefix : '.L';
+            comment : '';
+            secnames : ('',
+              '.text','.data','.bss',
+              '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
+              '.stab','.stabstr')
+          )
 {$endif i386}
 {$ifdef m68k}
           ,(
@@ -1033,7 +1049,7 @@ implementation
             resobjext   : '.or';
             exeext      : '';
             os          : os_i386_Linux;
-            assem       : as_i386_as;
+            assem       : as_i386_elf;
             assemsrc    : as_i386_as;
             ar          : ar_i386_ar;
             res         : res_none;
@@ -1644,7 +1660,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:50  michael
+  Revision 1.3  2000-07-13 12:08:28  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:50  michael
   + removed logs
 
 }

@@ -70,6 +70,7 @@ unit og386;
          procedure NextSmartName;
          procedure initwriting(Aplace:tcutplace);virtual;
          procedure donewriting;virtual;
+         function  sectionsize(s:tsection):longint;virtual;
          procedure setsectionsizes(var s:tsecsize);virtual;
          procedure writebytes(var data;len:longint);virtual;
          procedure writealloc(len:longint);virtual;
@@ -225,6 +226,11 @@ unit og386;
         writer^.close;
       end;
 
+    function tobjectoutput.sectionsize(s:tsection):longint;
+      begin
+        sectionsize:=0;
+      end;
+
     procedure tobjectoutput.setsectionsizes(var s:tsecsize);
       begin
       end;
@@ -273,7 +279,10 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:43  michael
+  Revision 1.3  2000-07-13 12:08:26  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:43  michael
   + removed logs
 
 }

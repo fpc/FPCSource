@@ -34,7 +34,7 @@ unit ag386bin;
        cpubase,cobjects,aasm,files,assemble;
 
     type
-      togtype=(og_none,og_dbg,og_coff,og_pecoff);
+      togtype=(og_none,og_dbg,og_coff,og_pecoff,og_elf);
 
       pi386binasmlist=^ti386binasmlist;
       ti386binasmlist=object
@@ -83,7 +83,7 @@ unit ag386bin;
 {$ifdef GDB}
        gdb,
 {$endif}
-       og386,og386dbg,og386cff;
+       og386,og386dbg,og386cff,og386elf;
 
 {$ifdef GDB}
 
@@ -267,7 +267,7 @@ unit ag386bin;
 
         if (nidx=n_textline) and assigned(funcname) and
            (target_os.use_function_relative_addresses) then
-          objectoutput^.WriteStabs(sec_code,pgenericcoffoutput(objectoutput)^.sects[sec_code]^.len-funcname^.address,
+          objectoutput^.WriteStabs(sec_code,objectoutput^.sectionsize(sec_code)-funcname^.address,
               nil,nidx,0,line,false)
         else
           begin
@@ -277,7 +277,7 @@ unit ag386bin;
               sec:=sec_data
             else
               sec:=sec_bss;
-            objectoutput^.WriteStabs(sec,pgenericcoffoutput(objectoutput)^.sects[sec]^.len,
+            objectoutput^.WriteStabs(sec,objectoutput^.sectionsize(sec),
               nil,nidx,0,line,true);
           end;
       end;
@@ -311,7 +311,7 @@ unit ag386bin;
            hp:=newasmsymbol('Ltext'+ToStr(IncludeCount));
            if currpass=1 then
              begin
-                hp^.settyp(AS_LOCAL);
+                hp^.setbind(AB_LOCAL);
                 hp^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
              end
            else
@@ -358,13 +358,12 @@ unit ag386bin;
         hp:=newasmsymbol('Letext');
         if currpass=1 then
           begin
-            hp^.settyp(AS_LOCAL);
+            hp^.setbind(AB_LOCAL);
             hp^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
           end
         else
           objectoutput^.writesymbol(hp);
-        EmitStabs('"",'+tostr(n_sourcefile)+
-             ',0,0,Letext');
+        EmitStabs('"",'+tostr(n_sourcefile)+',0,0,Letext');
         objectalloc^.setsection(store_sec);
       end;
 {$endif GDB}
@@ -509,7 +508,7 @@ unit ag386bin;
                   begin
                     if pai_datablock(hp)^.is_global then
                      begin
-                       pai_datablock(hp)^.sym^.settyp(AS_EXTERNAL);
+                       pai_datablock(hp)^.sym^.setbind(AB_COMMON);
                        pai_datablock(hp)^.sym^.setaddress(sec_none,pai_datablock(hp)^.size,pai_datablock(hp)^.size);
                      end
                     else
@@ -519,7 +518,7 @@ unit ag386bin;
                          objectalloc^.sectionalign(4)
                        else if l>1 then
                          objectalloc^.sectionalign(2);
-                       pai_datablock(hp)^.sym^.settyp(AS_LOCAL);
+                       pai_datablock(hp)^.sym^.setbind(AB_LOCAL);
                        pai_datablock(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,
                          pai_datablock(hp)^.size);
                        objectalloc^.sectionalloc(pai_datablock(hp)^.size);
@@ -529,9 +528,9 @@ unit ag386bin;
 {$endif}
                    begin
                      if pai_datablock(hp)^.is_global then
-                      pai_datablock(hp)^.sym^.settyp(AS_GLOBAL)
+                      pai_datablock(hp)^.sym^.setbind(AB_GLOBAL)
                      else
-                      pai_datablock(hp)^.sym^.settyp(AS_LOCAL);
+                      pai_datablock(hp)^.sym^.setbind(AB_LOCAL);
                      l:=pai_datablock(hp)^.size;
                      if l>2 then
                        objectalloc^.sectionalign(4)
@@ -588,17 +587,22 @@ unit ag386bin;
              ait_symbol :
                begin
                  if pai_symbol(hp)^.is_global then
-                  pai_symbol(hp)^.sym^.settyp(AS_GLOBAL)
+                  pai_symbol(hp)^.sym^.setbind(AB_GLOBAL)
                  else
-                  pai_symbol(hp)^.sym^.settyp(AS_LOCAL);
+                  pai_symbol(hp)^.sym^.setbind(AB_LOCAL);
                  pai_symbol(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
                end;
+             ait_symbol_end :
+               begin
+                 if target_info.target=target_i386_linux then
+                  pai_symbol(hp)^.sym^.size:=objectalloc^.sectionsize-pai_symbol(hp)^.sym^.address;
+                end;
              ait_label :
                begin
                  if pai_label(hp)^.is_global then
-                  pai_label(hp)^.l^.settyp(AS_GLOBAL)
+                  pai_label(hp)^.l^.setbind(AB_GLOBAL)
                  else
-                  pai_label(hp)^.l^.settyp(AS_LOCAL);
+                  pai_label(hp)^.l^.setbind(AB_LOCAL);
                  pai_label(hp)^.l^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
                end;
              ait_string :
@@ -963,6 +967,8 @@ unit ag386bin;
             objectoutput:=new(pdjgppcoffoutput,init(smart));
           og_pecoff :
             objectoutput:=new(pwin32coffoutput,init(smart));
+          og_elf :
+            objectoutput:=new(pelf32output,init(smart));
         end;
         objectalloc:=new(pobjectalloc,init);
         SmartAsm:=smart;
@@ -979,7 +985,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:29  michael
+  Revision 1.3  2000-07-13 12:08:24  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:29  michael
   + removed logs
 
 }

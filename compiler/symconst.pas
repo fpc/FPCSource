@@ -133,9 +133,9 @@ type
     oo_has_msgint,
     oo_has_abstract,       { the object/class has an abstract method => no instances can be created }
     oo_can_have_published, { the class has rtti, i.e. you can publish properties }
-    oo_cpp_class,          { the object/class uses an C++ compatible }
+    oo_is_cppclass,        { the object/class uses an C++ compatible }
                            { class layout }
-    oo_interface           { delphi styled interface }
+    oo_is_interface        { delphi styled interface }
   );
 
   tobjectoptions=set of tobjectoption;
@@ -215,7 +215,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:49  michael
+  Revision 1.3  2000-07-13 12:08:27  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:49  michael
   + removed logs
 
 }

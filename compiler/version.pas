@@ -28,9 +28,8 @@ interface
        wordversion = (1 shl 14)+0;
 
        { version string }
-
        version_nr = '1';
-       release_nr = '00';
+       release_nr = '1';
        patch_nr   = '0';
 {$ifdef newcg}
        minorpatch = ' NCG';
@@ -99,7 +98,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:54  michael
+  Revision 1.3  2000-07-13 12:08:28  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:54  michael
   + removed logs
 
 }

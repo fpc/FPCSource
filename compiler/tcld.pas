@@ -133,7 +133,7 @@ implementation
                    if (pvarsym(p^.symtableentry)^.varspez=vs_const) then
                      p^.location.loc:=LOC_MEM;
                    { we need a register for call by reference parameters }
-                   if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
+                   if (pvarsym(p^.symtableentry)^.varspez in [vs_var,vs_out]) or
                       ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
                       push_addr_param(pvarsym(p^.symtableentry)^.vartype.def)) or
                       { call by value open arrays are also indirect addressed }
@@ -498,7 +498,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:52  michael
+  Revision 1.3  2000-07-13 12:08:28  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:52  michael
   + removed logs
 
 }

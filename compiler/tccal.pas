@@ -240,7 +240,7 @@ implementation
               if p^.left^.resulttype^.deftype=procvardef then
                 test_local_to_procvar(pprocvardef(p^.left^.resulttype),defcoll^.paratype.def);
               { property is not allowed as var parameter }
-              if (defcoll^.paratyp=vs_var) and
+              if (defcoll^.paratyp in [vs_out,vs_var]) and
                  (p^.left^.isproperty) then
                 CGMessagePos(p^.left^.fileinfo,type_e_argument_cant_be_assigned);
               { generate the high() value tree }
@@ -250,7 +250,7 @@ implementation
                      is_shortstring(defcoll^.paratype.def)) and
                      (defcoll^.paratype.def^.deftype<>formaldef) then
                 begin
-                   if (defcoll^.paratyp=vs_var) and
+                   if (defcoll^.paratyp in [vs_var,vs_out]) and
                    { allows conversion from word to integer and
                      byte to shortint }
                      (not(
@@ -311,7 +311,7 @@ implementation
               if (cs_strict_var_strings in aktlocalswitches) and
                  is_shortstring(p^.left^.resulttype) and
                  is_shortstring(defcoll^.paratype.def) and
-                 (defcoll^.paratyp=vs_var) and
+                 (defcoll^.paratyp in [vs_out,vs_var]) and
                  not(is_open_string(defcoll^.paratype.def)) and
                  not(is_equal(p^.left^.resulttype,defcoll^.paratype.def)) then
                  begin
@@ -351,6 +351,11 @@ implementation
                      set_unique(p^.left);
                    make_not_regable(p^.left);
                 end;
+
+              { ansistrings out paramaters doesn't need to be  }
+              { unique, they are finalized                     }
+              if defcoll^.paratyp=vs_out then
+                make_not_regable(p^.left);
 
               if do_count then
                 set_varstate(p^.left,defcoll^.paratyp <> vs_var);
@@ -488,11 +493,7 @@ implementation
               if assigned(inlinecode) then
                 begin
                    inlined:=true;
-{$ifdef INCLUDEOK}
                    exclude(p^.procdefinition^.proccalloptions,pocall_inline);
-{$else}
-                   p^.procdefinition^.proccalloptions:=p^.procdefinition^.proccalloptions-[pocall_inline];
-{$endif}
                 end;
               p^.right:=nil;
            end;
@@ -800,7 +801,7 @@ implementation
                                        def_to:=hp^.nextpara^.paratype.def;
                                        if ((def_from^.deftype=orddef) and (def_to^.deftype=orddef)) and
                                          (is_in_limit(def_from,def_to) or
-                                         ((hp^.nextpara^.paratyp=vs_var) and
+                                         ((hp^.nextpara^.paratyp in [vs_var,vs_out]) and
                                          (def_from^.size=def_to^.size))) then
                                          begin
                                             exactmatch:=true;
@@ -1044,11 +1045,7 @@ implementation
                           begin
                              { consider it has not inlined if called
                                again inside the args }
-{$ifdef INCLUDEOK}
                              exclude(p^.procdefinition^.proccalloptions,pocall_inline);
-{$else}
-                             p^.procdefinition^.proccalloptions:=p^.procdefinition^.proccalloptions-[pocall_inline];
-{$endif}
                              firstpass(inlinecode);
                              inlined:=true;
                           end;
@@ -1212,11 +1209,7 @@ implementation
          if assigned(procs) then
            dispose(procs);
          if inlined then
-{$ifdef INCLUDEOK}
            include(p^.procdefinition^.proccalloptions,pocall_inline);
-{$else}
-           p^.procdefinition^.proccalloptions:=p^.procdefinition^.proccalloptions+[pocall_inline];
-{$endif}
          aktcallprocsym:=oldcallprocsym;
       end;
 
@@ -1236,7 +1229,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:51  michael
+  Revision 1.3  2000-07-13 12:08:28  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:51  michael
   + removed logs
 
 }

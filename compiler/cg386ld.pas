@@ -258,7 +258,7 @@ implementation
                            end;
                          { in case call by reference, then calculate. Open array
                            is always an reference! }
-                         if (pvarsym(p^.symtableentry)^.varspez=vs_var) or
+                         if (pvarsym(p^.symtableentry)^.varspez in [vs_var,vs_out]) or
                             is_open_array(pvarsym(p^.symtableentry)^.vartype.def) or
                             is_array_of_const(pvarsym(p^.symtableentry)^.vartype.def) or
                             ((pvarsym(p^.symtableentry)^.varspez=vs_const) and
@@ -1002,7 +1002,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:34  michael
+  Revision 1.3  2000-07-13 12:08:25  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:34  michael
   + removed logs
 
 }

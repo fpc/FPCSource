@@ -748,11 +748,7 @@ unit pstatmnt;
                  Begin
                     Message1(parser_w_not_supported_for_inline,'direct asm');
                     Message(parser_w_inlining_disabled);
-{$ifdef INCLUDEOK}
                     exclude(aktprocsym^.definition^.proccalloptions,pocall_inline);
-{$else}
-                    aktprocsym^.definition^.proccalloptions:=aktprocsym^.definition^.proccalloptions-[pocall_inline];
-{$endif}
                  End;
                asmstat:=ra386dir.assemble;
              end;
@@ -1384,7 +1380,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:45  michael
+  Revision 1.3  2000-07-13 12:08:27  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:45  michael
   + removed logs
 
 }

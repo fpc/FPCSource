@@ -516,7 +516,8 @@ begin
   {$ifndef NoAg386Bin}
      as_i386_dbg,
      as_i386_coff,
-     as_i386_pecoff :
+     as_i386_pecoff,
+     as_i386_elf :
        begin
          case aktoutputformat of
            as_i386_dbg :
@@ -525,6 +526,8 @@ begin
              b:=new(pi386binasmlist,Init(og_coff,smart));
            as_i386_pecoff :
              b:=new(pi386binasmlist,Init(og_pecoff,smart));
+           as_i386_elf :
+             b:=new(pi386binasmlist,Init(og_elf,smart));
          end;
          b^.WriteBin;
          dispose(b,done);
@@ -603,7 +606,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:32  michael
+  Revision 1.3  2000-07-13 12:08:24  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:32  michael
   + removed logs
 
 }

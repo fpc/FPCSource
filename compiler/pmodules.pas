@@ -173,7 +173,7 @@ unit pmodules;
         With ResourceStringTables do}
           begin
           ResourceStringTables.insert(new(pai_const,init_32bit(count)));
-          ResourceStringTables.insert(new(pai_symbol,initname_global('FPC_RESOURCESTRINGTABLES',0)));
+          ResourceStringTables.insert(new(pai_symbol,initdataname_global('FPC_RESOURCESTRINGTABLES',0)));
           ResourceStringTables.concat(new(pai_symbol_end,initname('FPC_RESOURCESTRINGTABLES')));
           end;
         { insert in data segment }
@@ -225,7 +225,7 @@ unit pmodules;
         { TableCount,InitCount }
         unitinits.insert(new(pai_const,init_32bit(0)));
         unitinits.insert(new(pai_const,init_32bit(count)));
-        unitinits.insert(new(pai_symbol,initname_global('INITFINAL',0)));
+        unitinits.insert(new(pai_symbol,initdataname_global('INITFINAL',0)));
         unitinits.concat(new(pai_symbol_end,initname('INITFINAL')));
         { insert in data segment }
         if (cs_create_smart in aktmoduleswitches) then
@@ -273,11 +273,11 @@ unit pmodules;
 {$ifdef m68k}
          if target_info.target<>target_m68k_PalmOS then
            begin
-              datasegment^.concat(new(pai_symbol,initname_global('HEAP_SIZE',0)));
+              datasegment^.concat(new(pai_symbol,initdataname_global('HEAP_SIZE',0)));
               datasegment^.concat(new(pai_const,init_32bit(heapsize)));
            end;
 {$else m68k}
-         datasegment^.concat(new(pai_symbol,initname_global('HEAPSIZE',4)));
+         datasegment^.concat(new(pai_symbol,initdataname_global('HEAPSIZE',4)));
          datasegment^.concat(new(pai_const,init_32bit(heapsize)));
 {$endif m68k}
       end;
@@ -298,7 +298,7 @@ unit pmodules;
           target_i386_GO32V2 :
             begin
               { stacksize can be specified }
-              datasegment^.concat(new(pai_symbol,initname_global('__stklen',4)));
+              datasegment^.concat(new(pai_symbol,initdataname_global('__stklen',4)));
               datasegment^.concat(new(pai_const,init_32bit(stacksize)));
             end;
 {$endif i386}
@@ -306,7 +306,7 @@ unit pmodules;
           target_m68k_Atari :
             begin
               { stacksize can be specified }
-              datasegment^.concat(new(pai_symbol,initname_global('__stklen',4)));
+              datasegment^.concat(new(pai_symbol,initdataname_global('__stklen',4)));
               datasegment^.concat(new(pai_const,init_32bit(stacksize)));
             end;
 {$endif m68k}
@@ -1707,7 +1707,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:45  michael
+  Revision 1.3  2000-07-13 12:08:26  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:45  michael
   + removed logs
 
 }

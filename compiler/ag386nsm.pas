@@ -725,7 +725,7 @@ unit ag386nsm;
 
     procedure writeexternal(p:pnamedindexobject);{$ifndef FPC}far;{$endif}
       begin
-        if pasmsymbol(p)^.typ=AS_EXTERNAL then
+        if pasmsymbol(p)^.bind=AB_EXTERNAL then
          currentasmlist^.AsmWriteln('EXTERN'#9+p^.name);
       end;
 
@@ -774,7 +774,10 @@ unit ag386nsm;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:30  michael
+  Revision 1.3  2000-07-13 12:08:24  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:30  michael
   + removed logs
 
 }

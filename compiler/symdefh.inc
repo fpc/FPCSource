@@ -86,7 +86,7 @@
 
        targconvtyp = (act_convertable,act_equal,act_exact);
 
-       tvarspez = (vs_value,vs_const,vs_var);
+       tvarspez = (vs_value,vs_const,vs_var,vs_out);
 
        pparaitem = ^tparaitem;
        tparaitem = object(tlinkedlist_item)
@@ -199,6 +199,9 @@
           procedure check_forwards;
           function  is_related(d : pobjectdef) : boolean;
           function  is_class : boolean;
+          function  is_interface : boolean;
+          function  is_cppclass : boolean;
+          function  is_object : boolean;
           function  next_free_name_index : longint;
           procedure insertvmt;
           procedure set_parent(c : pobjectdef);
@@ -531,7 +534,10 @@
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:49  michael
+  Revision 1.3  2000-07-13 12:08:27  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:49  michael
   + removed logs
  
 }

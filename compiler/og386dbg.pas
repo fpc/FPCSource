@@ -92,12 +92,12 @@ unit og386dbg;
          end;
         p^.idx:=nsyms;
         write('symbol [',nsyms,'] '+p^.name+' (',target_asm.secnames[p^.section],',',p^.address,',',p^.size,',');
-        case p^.typ of
-          AS_LOCAL :
+        case p^.bind of
+          AB_LOCAL :
             writeln('local)');
-          AS_GLOBAL :
+          AB_GLOBAL :
             writeln('global)');
-          AS_EXTERNAL :
+          AB_EXTERNAL :
             writeln('extern)');
         else
           writeln('unknown)');
@@ -180,7 +180,10 @@ unit og386dbg;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:43  michael
+  Revision 1.3  2000-07-13 12:08:26  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:43  michael
   + removed logs
 
 }

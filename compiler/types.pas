@@ -235,8 +235,8 @@ implementation
                 begin
                    if not(is_equal(def1^.paratype.def,def2^.paratype.def)) or
                      ((def1^.paratyp<>def2^.paratyp) and
-                      ((def1^.paratyp=vs_var) or
-                       (def1^.paratyp=vs_var)
+                      ((def1^.paratyp in [vs_var,vs_out]) or
+                       (def2^.paratyp in [vs_var,vs_out])
                       )
                      ) then
                      begin
@@ -285,8 +285,8 @@ implementation
                 begin
                    if (isconvertable(def1^.paratype.def,def2^.paratype.def,doconv,callparan,false)=0) or
                      ((def1^.paratyp<>def2^.paratyp) and
-                      ((def1^.paratyp=vs_var) or
-                       (def1^.paratyp=vs_var)
+                      ((def1^.paratyp in [vs_out,vs_var]) or
+                       (def2^.paratyp in [vs_out,vs_var])
                       )
                      ) then
                      begin
@@ -1085,7 +1085,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:53  michael
+  Revision 1.3  2000-07-13 12:08:28  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:53  michael
   + removed logs
 
 }

@@ -75,11 +75,50 @@ implementation
              end;
         end;
 
+      procedure prepareout(const r : treference);
+
+        var
+           hr : treference;
+           pushed : tpushed;
+
+        begin
+           { out parameters needs to be finalized }
+           if (defcoll^.paratype.def^.needs_inittable) then
+             begin
+                reset_reference(hr);
+                hr.symbol:=defcoll^.paratype.def^.get_inittable_label;
+                emitpushreferenceaddr(hr);
+                emitpushreferenceaddr(r);
+                emitcall('FPC_FINALIZE');
+             end
+           else
+           { or at least it zeroed out }
+             begin
+                case defcoll^.paratype.def^.size of
+                   1:
+                     emit_const_ref(A_MOV,S_B,0,newreference(r));
+                   2:
+                     emit_const_ref(A_MOV,S_W,0,newreference(r));
+                   4:
+                     emit_const_ref(A_MOV,S_L,0,newreference(r));
+                   else
+                     begin
+                        pushusedregisters(pushed,$ff);
+                        emit_const(A_PUSH,S_W,0);
+                        push_int(defcoll^.paratype.def^.size);
+                        emitpushreferenceaddr(r);
+                        emitcall('FPC_FILLCHAR');
+                        popusedregisters(pushed);
+                     end
+                end;
+             end;
+        end;
       var
          otlabel,oflabel : pasmlabel;
          { temporary variables: }
          tempdeftype : tdeftype;
          r : preference;
+
       begin
          { set default para_alignment to target_os.stackalignment }
          if para_alignment=0 then
@@ -145,7 +184,7 @@ implementation
                 end;
            end
          { handle call by reference parameter }
-         else if (defcoll^.paratyp=vs_var) then
+         else if (defcoll^.paratyp in [vs_var,vs_out]) then
            begin
               if (p^.left^.location.loc<>LOC_REFERENCE) then
                 CGMessage(cg_e_var_must_be_reference);
@@ -166,6 +205,8 @@ implementation
                 end
               else
                 emitpushreferenceaddr(p^.left^.location.reference);
+              if defcoll^.paratyp=vs_out then
+                prepareout(p^.left^.location.reference);
               del_reference(p^.left^.location.reference);
            end
          else
@@ -309,11 +350,7 @@ implementation
               p^.right:=getcopy(p^.right);
               { disable further inlining of the same proc
                 in the args }
-{$ifdef INCLUDEOK}
               exclude(p^.procdefinition^.proccalloptions,pocall_inline);
-{$else}
-              p^.procdefinition^.proccalloptions:=p^.procdefinition^.proccalloptions-[pocall_inline];
-{$endif}
            end
          else
            { parameters not necessary anymore (JM) }
@@ -949,11 +986,7 @@ implementation
                 { inlined code is in inlinecode }
                 begin
                    { set poinline again }
-{$ifdef INCLUDEOK}
                    include(p^.procdefinition^.proccalloptions,pocall_inline);
-{$else}
-                   p^.procdefinition^.proccalloptions:=p^.procdefinition^.proccalloptions+[pocall_inline];
-{$endif}
                    { process the inlinecode }
                    secondpass(inlinecode);
                    { free the args }
@@ -1478,7 +1511,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:32  michael
+  Revision 1.3  2000-07-13 12:08:24  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:32  michael
   + removed logs
 
 }

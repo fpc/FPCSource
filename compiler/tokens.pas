@@ -108,6 +108,7 @@ type
     _NEW,
     _NIL,
     _NOT,
+    _OUT,
     _SET,
     _SHL,
     _SHR,
@@ -311,6 +312,7 @@ const
       (str:'NEW'           ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'NIL'           ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'NOT'           ;special:false;keyword:m_all;op:_OP_NOT),
+      (str:'OUT'           ;special:false;keyword:m_out;op:NOTOKEN),
       (str:'SET'           ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'SHL'           ;special:false;keyword:m_all;op:_OP_SHL),
       (str:'SHR'           ;special:false;keyword:m_all;op:_OP_SHR),
@@ -519,7 +521,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:52  michael
+  Revision 1.3  2000-07-13 12:08:28  michael
+  + patched to 1.1.0 with former 1.09patch from peter
+
+  Revision 1.2  2000/07/13 11:32:52  michael
   + removed logs
 
 }
