@@ -104,6 +104,8 @@ scan_c_ifndef_found,
 scan_c_else_found,
 scan_c_skipping_until,
 scan_i_press_enter,
+scan_w_unsupported_switch,
+scan_w_illegal_directive,
 {
   Parser
 }
@@ -201,7 +203,7 @@ parser_e_no_paras_allowed,
 parser_e_no_property_found_to_override,
 parser_e_only_one_default_property,
 parser_e_property_need_paras,
-parser_e_constructor_cannot_be_not_virtual,
+parser_w_constructor_cannot_be_not_virtual,
 {
   Symbol table
 }
