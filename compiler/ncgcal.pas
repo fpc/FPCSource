@@ -163,7 +163,7 @@ implementation
                    end
                  else
                    reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
-                 cg.a_loadfpu_reg_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,href);
+                 cg.a_loadfpu_reg_ref(exprasmlist,left.location.size,left.location.register,href);
                end;
              LOC_MMREGISTER,
              LOC_CMMREGISTER:
@@ -176,7 +176,7 @@ implementation
                    end
                  else
                    reference_reset_base(href,tempparaloc.reference.index,tempparaloc.reference.offset);
-                 cg.a_loadmm_reg_ref(exprasmlist,def_cgsize(left.resulttype.def),def_cgsize(left.resulttype.def),left.location.register,href,mms_movescalar);
+                 cg.a_loadmm_reg_ref(exprasmlist,left.location.size,left.location.size,left.location.register,href,mms_movescalar);
                end;
              LOC_REFERENCE,
              LOC_CREFERENCE :
@@ -221,12 +221,12 @@ implementation
                  LOC_CREFERENCE,
                  LOC_MMREGISTER,
                  LOC_CMMREGISTER:
-                   cg.a_parammm_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc,mms_movescalar);
+                   cg.a_parammm_reg(exprasmlist,left.location.size,left.location.register,tempparaloc,mms_movescalar);
                  LOC_FPUREGISTER,
                  LOC_CFPUREGISTER:
                    begin
                      location_force_fpureg(exprasmlist,left.location,false);
-                     cg.a_paramfpu_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc);
+                     cg.a_paramfpu_reg(exprasmlist,left.location.size,left.location.register,tempparaloc);
                    end;
                  else
                    internalerror(2002042433);
@@ -238,8 +238,19 @@ implementation
                  LOC_CMMREGISTER:
                    begin
                      location_force_mmregscalar(exprasmlist,left.location,false);
-                     cg.a_parammm_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc,mms_movescalar);
+                     cg.a_parammm_reg(exprasmlist,left.location.size,left.location.register,tempparaloc,mms_movescalar);
                    end;
+{$ifdef x86_64}
+                 { x86_64 pushes s64comp in normal register }
+                 LOC_REGISTER,
+                 LOC_CREGISTER :
+                   begin
+                     location_force_mem(exprasmlist,left.location);
+                     { force integer size }
+                     left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
+                     cg.a_param_ref(exprasmlist,left.location.size,left.location.reference,tempparaloc);
+                   end;
+{$endif x86_64}
 {$ifdef sparc}
                  { sparc pushes floats in normal registers }
                  LOC_REGISTER,
@@ -249,7 +260,7 @@ implementation
                  LOC_CREFERENCE,
                  LOC_FPUREGISTER,
                  LOC_CFPUREGISTER:
-                   cg.a_paramfpu_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc);
+                   cg.a_paramfpu_reg(exprasmlist,left.location.size,left.location.register,tempparaloc);
                  else
                    internalerror(2002042433);
                end;
@@ -258,7 +269,7 @@ implementation
                case tempparaloc.loc of
                  LOC_MMREGISTER,
                  LOC_CMMREGISTER:
-                   cg.a_parammm_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.reference,tempparaloc,mms_movescalar);
+                   cg.a_parammm_ref(exprasmlist,left.location.size,left.location.reference,tempparaloc,mms_movescalar);
 {$ifdef sparc}
                  { sparc pushes floats in normal registers }
                  LOC_REGISTER,
@@ -268,7 +279,7 @@ implementation
                  LOC_CREFERENCE,
                  LOC_FPUREGISTER,
                  LOC_CFPUREGISTER:
-                   cg.a_paramfpu_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.reference,tempparaloc);
+                   cg.a_paramfpu_ref(exprasmlist,left.location.size,left.location.reference,tempparaloc);
                  else
                    internalerror(2002042431);
                end;
@@ -641,6 +652,9 @@ implementation
      procedure tcgcallnode.pushparas;
        var
          ppn : tcgcallparanode;
+{$ifdef cputargethasfixedstack}
+         href : treference;
+{$endif cputargethasfixedstack}
        begin
          { copy all resources to the allocated registers }
          ppn:=tcgcallparanode(left);
@@ -1250,7 +1264,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.171  2004-07-09 23:41:04  jonas
+  Revision 1.172  2004-07-11 19:01:13  peter
+    * comps are passed in int registers
+
+  Revision 1.171  2004/07/09 23:41:04  jonas
     * support register parameters for inlined procedures + some inline
       cleanups
 
