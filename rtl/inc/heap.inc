@@ -437,7 +437,7 @@ end;
 
 function SysMemSize(p:pointer):longint;
 begin
-  SysMemSize:=pheaprecord(pointer(p)-sizeof(theaprecord))^.size-sizeof(theaprecord);
+  SysMemSize:=(pheaprecord(pointer(p)-sizeof(theaprecord))^.size-sizeof(theaprecord)) and sizemask;
 end;
 
 
@@ -552,7 +552,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  1999-09-22 21:59:02  peter
+  Revision 1.19  1999-10-01 07:55:54  peter
+    * fixed memsize which forgot the sizemask
+
+  Revision 1.18  1999/09/22 21:59:02  peter
     * best match for main freelist
     * removed root field, saves 4 bytes per block
     * fixed crash in dumpblocks
