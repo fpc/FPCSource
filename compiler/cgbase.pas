@@ -388,33 +388,29 @@ implementation
 
     begin
       delete:=false;
-{$ifdef VER1_0}
-      { indexword in 1.0.x is broken }
-      for i:=1 to length do
-        if buf^[i-1]=s then
-          begin
-            deleteidx(i-1);
-            delete:=true;
-            break;
-          end;
-{$else VER1_0}
-{$ifndef FPC}
-      for i:=1 to length do
-        if buf^[i-1]=s then
-          begin
-            deleteidx(i-1);
-            delete:=true;
-            break;
-          end;
-{$else FPC}
+      { indexword in 1.0.x and 1.9.4 is broken }
+{$ifndef VER1_0}
+  {$ifndef VER1_9_4}
+    {$define USEINDEXWORD}
+  {$endif}
+{$endif}
+{$ifdef USEINDEXWORD}
       i:=indexword(buf^,length,s);
       if i<>-1 then
         begin
           deleteidx(i);
           delete := true;
         end;
-{$endif FPC}
-{$endif VER1_0}
+{$else USEINDEXWORD}
+      for i:=1 to length do
+        if buf^[i-1]=s then
+          begin
+            deleteidx(i-1);
+            delete:=true;
+            break;
+          end;
+{$endif USEINDEXWORD}
+{$undef USEINDEXWORD}
     end;
 
 
@@ -602,7 +598,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.96  2004-10-31 21:45:02  peter
+  Revision 1.97  2004-11-09 16:18:12  peter
+    * indexword can't be used for 1.9.4
+
+  Revision 1.96  2004/10/31 21:45:02  peter
     * generic tlocation
     * move tlocation to cgutils
 
