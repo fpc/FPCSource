@@ -2014,20 +2014,6 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
        if (not inlined) and (aktprocsym^.definition^.proctypeoption=potype_proginit) then
            begin
               emitinsertcall('FPC_INITIALIZEUNITS');
-              if target_info.target=target_I386_WIN32 then
-                begin
-                   new(hr);
-                   reset_reference(hr^);
-                   hr^.symbol:=newasmsymbol(
-                   'U_SYSWIN32_ISCONSOLE');
-                   if apptype=at_cui then
-                     exprasmlist^.insert(new(paicpu,op_const_ref(A_MOV,S_B,
-                       1,hr)))
-                   else
-                     exprasmlist^.insert(new(paicpu,op_const_ref(A_MOV,S_B,
-                       0,hr)));
-                end;
-
               oldlist:=exprasmlist;
               exprasmlist:=new(paasmoutput,init);
               p:=symtablestack;
@@ -2815,7 +2801,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.2  2000-10-24 07:20:03  pierre
+  Revision 1.3  2000-10-24 08:54:25  michael
+  + Extra patch from peter
+
+  Revision 1.2  2000/10/24 07:20:03  pierre
    * fix for bug 1193 (merged)
 
   Revision 1.1  2000/10/15 09:47:42  peter
