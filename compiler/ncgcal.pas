@@ -1133,9 +1133,9 @@ implementation
          { perhaps i/o check ? }
          if iolabel<>nil then
            begin
-              reference_reset_symbol(href,iolabel,0);
-              cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(exprasmlist,1));
-              paramanager.freeintparaloc(exprasmlist,1);
+              //reference_reset_symbol(href,iolabel,0);
+              //cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(exprasmlist,1));
+              //paramanager.freeintparaloc(exprasmlist,1);
 {$ifdef newra}
               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
 {$endif newra}
@@ -1490,9 +1490,9 @@ implementation
          { perhaps i/o check ? }
          if iolabel<>nil then
            begin
-              reference_reset_symbol(href,iolabel,0);
-              cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(exprasmlist,1));
-              paramanager.freeintparaloc(exprasmlist,1);
+              //reference_reset_symbol(href,iolabel,0);
+              //cg.a_paramaddr_ref(exprasmlist,href,paramanager.getintparaloc(exprasmlist,1));
+              //paramanager.freeintparaloc(exprasmlist,1);
 {$ifdef newra}
               rg.allocexplicitregistersint(exprasmlist,VOLATILE_INTREGISTERS);
 {$endif newra}
@@ -1583,7 +1583,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.107  2003-08-17 16:59:20  jonas
+  Revision 1.108  2003-08-21 22:14:16  olle
+    - removed parameter from fpc_iocheck
+
+  Revision 1.107  2003/08/17 16:59:20  jonas
     * fixed regvars so they work with newra (at least for ppc)
     * fixed some volatile register bugs
     + -dnotranslation option for -dnewra, which causes the registers not to

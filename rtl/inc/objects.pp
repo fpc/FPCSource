@@ -706,24 +706,24 @@ type
 function PreviousFramePointer: FramePointer;assembler;
 {$undef FPC_PreviousFramePointer_Implemented}
 asm
-{$ifdef i386}
+{$ifdef cpui386}
 {$define FPC_PreviousFramePointer_Implemented}
     movl (%ebp), %eax
 end ['EAX'];
 {$endif}
-{$ifdef m68k}
+{$ifdef cpum68k}
 {$define FPC_PreviousFramePointer_Implemented}
     move.l (a6),d0
 end ['D0'];
 {$endif}
-{$ifdef sparc}
+{$ifdef cpusparc}
 {$define FPC_PreviousFramePointer_Implemented}
     { we have first our own frame }
     ld [%fp],%i0
     ld [%io],%i0
 end;
 {$endif}
-{$ifdef powerpc}
+{$ifdef cpupowerpc}
 {$define FPC_PreviousFramePointer_Implemented}
     {$warning FIX ME !!!! }
     { getting the previous stack frame is quite hard for the standard powerpc calling conventions
@@ -741,11 +741,11 @@ function CallPointerConstructor(Ctor: pointer; Obj: pointer; VMT: pointer; Param
 begin
 {$ifdef VER1_0}
   asm
-{$ifdef i386}
+{$ifdef cpui386}
 {$define FPC_CallPointerConstructor_Implemented}
         movl Obj, %esi
 {$endif}
-{$ifdef m68k}
+{$ifdef cpum68k}
 {$define FPC_CallPointerConstructor_Implemented}
         move.l Obj, a5
 {$endif}
@@ -756,7 +756,7 @@ begin
 {$endif}  
   CallPointerConstructor := PointerConstructor(Ctor)(VMT, Obj, Param1)
 end;
-{$ifdef powerpc}
+{$ifdef cpupowerpc}
 {$define FPC_CallPointerConstructor_Implemented}
 { for the powerpc, we don't need to load self, because we use standard calling conventions
   so self should be in a register anyways }
@@ -771,15 +771,15 @@ function CallPointerMethod(Method: pointer; Obj: pointer; Param1: pointer): poin
 begin
 {$ifdef VER1_0}
   asm
-{$ifdef i386}
+{$ifdef cpui386}
 {$define FPC_CallPointerMethod_Implemented}
         movl Obj, %esi
 {$endif}
-{$ifdef m68k}
+{$ifdef cpum68k}
 {$define FPC_CallPointerMethod_Implemented}
         move.l Obj, a5
 {$endif}
-{$ifdef powerpc}
+{$ifdef cpupowerpc}
 {$define FPC_CallPointerMethod_Implemented}
 { for the powerpc, we don't need to load self, because we use standard calling conventions
   so self should be in a register anyways }
@@ -2927,7 +2927,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.20  2003-07-08 21:21:33  peter
+  Revision 1.21  2003-08-21 22:17:13  olle
+    - removed parameter from fpc_iocheck
+
+  Revision 1.20  2003/07/08 21:21:33  peter
     * 1.1 does not need to load esi
 
   Revision 1.19  2003/06/05 14:45:56  peter
