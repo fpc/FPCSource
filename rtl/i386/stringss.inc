@@ -19,66 +19,54 @@ function strpas(p : pchar) : string;
 begin
 asm
         movl    __RESULT,%edi
-        movl    p,%esi
-        // at the end, add 255 to cl to get the string length (byte(1+255) = 0)
         movb    $1,%cl
+        movl    p,%esi
         // skip length byte -> align dest to multiple of 4
-        movl    (%esi),%eax
-        testl   $0x0ff,%eax
-        jz      .LStrPasDone
-        // we only need the first 3 chars currently
-        shll    $8,%eax
+.LStrCopyAlignLoop:
+        movb    (%esi),%al
+        incl    %edi
+        incl    %esi
+        testb   %al,%al
+        jz      .LStrCopyDone
         incb    %cl
-        addl    $3,%esi
-        // Store everything already, since the temp string = 255 chars anyway
-        // The length byte will contain zero this way, but it will be
-        // overwritten at the end, so it doesn't matter
-        movl    %eax,(%edi)
-        // test the second char (we shifted left 8 bits)
-        testl   $0x0ff0000,%eax
-        jz      .LStrPasDone
-        // for pairing, add 4 to edi here already
-        addl    $4,%edi
-        incb    %cl
-        // test the third char (we shifted left 8 bits)
-        testl   $0x0ff000000,%eax
-        jz      .LStrPasDone
-        incb    %cl
-        .balign  16
-.LStrPasLoop:
+        movb    %al,(%edi)
+        cmpb    $4,%cl
+        jne     .LStrCopyAlignLoop
+        incl    %edi
+        .align  16
+.LStrCopyAligned:
         movl    (%esi),%eax
         addl    $4,%esi
         // this won't overwrite data since the result = 255 char string
         movl    %eax,(%edi)
         testl   $0x0ff,%eax
-        jz      .LStrPasDone
+        jz      .LStrCopyDone
         testl   $0x0ff00,%eax
-        jz      .LStrPasByte
+        jz      .LStrCopyByte
         testl   $0x0ff0000,%eax
-        jz      .LStrPasWord
+        jz      .LStrCopyWord
         testl   $0x0ff000000,%eax
-        jz      .LStrPas3Bytes
+        jz      .LStrCopy3Bytes
         addl    $4,%edi
         addb    $4,%cl
-        // since cl = 4 at the start of the loop, it will always count
+        // since ecx = 4 at the start of the loop, it will always count
         // upto exactly 0
-        jnz     .LStrPasLoop
-        jmp     .LStrPasDone
-.LStrPas3Bytes:
+        jnz     .LStrCopyAligned
+        jmp     .LStrCopyDone
+.LStrCopy3Bytes:
         addb     $3,%cl
-        jmp     .LStrPasDone
-.LStrPasWord:
+        jmp     .LStrCopyDone
+.LStrCopyWord:
         addb    $2,%cl
-        jmp     .LStrPasDone
-.LStrPasByte:
+        jmp     .LStrCopyDone
+.LStrCopyByte:
         incb    %cl
-.LStrPasDone:
+.LStrCopyDone:
         movl    __RESULT,%edi
         addb    $255,%cl
         movb    %cl,(%edi)
 end ['EAX','ECX','ESI','EDI'];
 end;
-
 
 function strpcopy(d : pchar;const s : string) : pchar;assembler;
 asm
@@ -98,7 +86,11 @@ end ['EDI','EAX','ECX'];
 
 {
   $Log$
-  Revision 1.13  2000-06-12 19:53:32  peter
+  Revision 1.14  2000-06-30 12:20:20  jonas
+    * strpas is again slightly slower, but won't crash anymore if a pchar
+      is passed to it that starts less than 4 bbytes from the heap end
+
+  Revision 1.13  2000/06/12 19:53:32  peter
     * change .align to .balign
 
   Revision 1.12  2000/06/12 13:17:56  jonas
