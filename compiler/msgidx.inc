@@ -97,6 +97,7 @@ type tmsgconst=(
   parser_e_no_overloaded_procvars,
   parser_e_invalid_string_size,
   parser_w_use_extended_syntax_for_objects,
+  parser_e_no_new_dispose_on_void_pointers,
   parser_e_class_id_expected,
   parser_e_no_type_not_allowed_here,
   parser_e_methode_id_expected,

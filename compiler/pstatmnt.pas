@@ -920,7 +920,10 @@ unit pstatmnt;
                  begin
                     if (ppointerdef(p^.resulttype)^.definition^.deftype=objectdef) and
                        ((pobjectdef(ppointerdef(p^.resulttype)^.definition)^.options and oo_hasvmt) <> 0)  then
-                     Message(parser_w_use_extended_syntax_for_objects);
+                      Message(parser_w_use_extended_syntax_for_objects);
+                    if (ppointerdef(p^.resulttype)^.definition^.deftype=orddef) and
+                       (porddef(ppointerdef(p^.resulttype)^.definition)^.typ=uvoid) then
+                      Message(parser_e_no_new_dispose_on_void_pointers);
 
                      case ht of
                         _NEW : new_dispose_statement:=gensinglenode(simplenewn,p);
@@ -1264,7 +1267,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.77  1999-04-15 09:01:33  peter
+  Revision 1.78  1999-04-15 12:58:14  pierre
+   * fix for bug0234
+
+  Revision 1.77  1999/04/15 09:01:33  peter
     * fixed set loading
     * object inheritance support for browser
 
