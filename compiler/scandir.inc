@@ -706,9 +706,9 @@ const
       begin
 {$ifdef i386}
         case t of
-       _DIR_I386_ATT : aktasmmode:=I386_ATT;
-    _DIR_I386_DIRECT : aktasmmode:=I386_INTEL;
-     _DIR_I386_INTEL : aktasmmode:=I386_DIRECT;
+         _DIR_I386_ATT    : aktasmmode:=I386_ATT;
+         _DIR_I386_DIRECT : aktasmmode:=I386_DIRECT;
+         _DIR_I386_INTEL  : aktasmmode:=I386_INTEL;
         end;
 {$endif}
       end;
@@ -797,7 +797,10 @@ const
 
 {
   $Log$
-  Revision 1.1  1998-04-27 23:13:53  peter
+  Revision 1.2  1998-04-28 10:09:54  pierre
+    * typo error in asm style reading corrected
+
+  Revision 1.1  1998/04/27 23:13:53  peter
     + the new files for the scanner
 
 }
