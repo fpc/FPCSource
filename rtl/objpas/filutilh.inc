@@ -19,7 +19,9 @@ Type
 
 Type 
   TSearchRec = Record
-    Time,Size, Attr : Longint;
+    Time : Longint;
+    Size : Int64;
+    Attr : Longint;
     Name : TFileName;
     ExcludeAttr : Longint;
     FindHandle : THandle;
@@ -62,6 +64,7 @@ Function FileCreate (Const FileName : String) : Longint;
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
 Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
 Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
+Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
 Procedure FileClose (Handle : Longint);
 Function FileTruncate (Handle,Size: Longint) : boolean;
 Function FileAge (Const FileName : String): Longint;
@@ -80,7 +83,10 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.4  2001-04-16 18:34:46  florian
+  Revision 1.5  2001-10-25 21:23:49  peter
+    * added 64bit fileseek
+
+  Revision 1.4  2001/04/16 18:34:46  florian
     * updates from Armin commited
 
   Revision 1.3  2001/01/18 22:09:09  michael

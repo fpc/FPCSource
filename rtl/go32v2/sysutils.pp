@@ -139,6 +139,13 @@ begin
 end;
 
 
+Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
+begin
+  {$warning need to add 64bit call }
+  FileSeek:=FileSeek(Handle,Longint(FOffset),Longint(Origin));
+end;
+
+
 Procedure FileClose (Handle : Longint);
 var
   Regs: registers;
@@ -649,7 +656,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.5  2001-06-03 15:18:01  peter
+  Revision 1.6  2001-10-25 21:23:49  peter
+    * added 64bit fileseek
+
+  Revision 1.5  2001/06/03 15:18:01  peter
     * eoutofmemory and einvalidpointer fix
 
   Revision 1.4  2001/02/20 22:14:19  peter
@@ -658,7 +668,7 @@ end.
   Revision 1.3  2000/08/30 06:29:19  michael
   + Merged syserrormsg fix
 
-  
+
     Revision 1.2  2000/08/20 15:46:46  peter
     * sysutils.pp moved to target and merged with disk.inc, filutil.inc
 

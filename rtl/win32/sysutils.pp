@@ -100,6 +100,13 @@ begin
 end;
 
 
+Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
+begin
+  {$warning need to add 64bit call }
+  Result := longint(SetFilePointer(Handle, FOffset, nil, Origin));
+end;
+
+
 Procedure FileClose (Handle : Longint);
 begin
   if Handle<=4 then
@@ -679,7 +686,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.9  2001-06-03 15:18:01  peter
+  Revision 1.10  2001-10-25 21:23:49  peter
+    * added 64bit fileseek
+
+  Revision 1.9  2001/06/03 15:18:01  peter
     * eoutofmemory and einvalidpointer fix
 
   Revision 1.8  2001/05/20 12:08:36  peter

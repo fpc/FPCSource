@@ -149,6 +149,11 @@ asm
 @FSeekEnd:
 end;
 
+Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
+begin
+  {$warning need to add 64bit call }
+  Result:=FileSeek(Handle,Longint(Foffset),Longint(Origin));
+end;
 
 procedure FileClose (Handle: longint);
 begin
@@ -774,7 +779,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2001-06-03 15:18:01  peter
+  Revision 1.13  2001-10-25 21:23:49  peter
+    * added 64bit fileseek
+
+  Revision 1.12  2001/06/03 15:18:01  peter
     * eoutofmemory and einvalidpointer fix
 
   Revision 1.11  2001/05/21 20:50:19  hajny

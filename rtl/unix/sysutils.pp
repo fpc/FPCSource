@@ -82,6 +82,14 @@ begin
 end;
 
 
+Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
+
+begin
+  {$warning need to add 64bit call }
+  FileSeek:=fdSeek (Handle,FOffset,Origin);
+end;
+
+
 Procedure FileClose (Handle : Longint);
 
 begin
@@ -465,7 +473,10 @@ end.
 {
 
   $Log$
-  Revision 1.10  2001-06-03 20:19:09  peter
+  Revision 1.11  2001-10-25 21:23:49  peter
+    * added 64bit fileseek
+
+  Revision 1.10  2001/06/03 20:19:09  peter
     * FSStat to StatFS
     * StatFS structure to TStatFS
 
