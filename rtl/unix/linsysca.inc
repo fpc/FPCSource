@@ -751,25 +751,6 @@ begin
 end;
 
 
-{ Moved to syscalls.inc, because it is needed for initialising the runerror/
-exceptions system
-Procedure SigAction(Signum:longint;Var Act,OldAct:PSigActionRec );
-{
-  Change action of process upon receipt of a signal.
-  Signum specifies the signal (all except SigKill and SigStop).
-  If Act is non-nil, it is used to specify the new action.
-  If OldAct is non-nil the previous action is saved there.
-}
-Var
-  sr : Syscallregs;
-begin
-  sr.reg2:=Signum;
-  sr.reg3:=Longint(act);
-  sr.reg4:=Longint(oldact);
-  SysCall(Syscall_nr_sigaction,sr);
-  linuxerror:=errno;
-end;
-}
 Procedure SigProcMask(How:longint;SSet,OldSSet:PSigSet);
 {
   Change the list of currently blocked signals.
@@ -1193,7 +1174,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-09-18 13:14:50  marco
+  Revision 1.3  2000-10-02 17:57:37  peter
+    * removed warning (merged)
+
+  Revision 1.2  2000/09/18 13:14:50  marco
    * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
 
   Revision 1.4  2000/09/12 08:51:43  marco
