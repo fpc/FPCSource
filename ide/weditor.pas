@@ -982,11 +982,8 @@ end;
 type TPosOfs = {$ifdef TP}longint{$endif}{$ifdef FPC}int64{$endif};
 
 function PosToOfs(const X,Y: sw_integer): TPosOfs;
-type TPosRec = record LoI, HiI: sw_integer; end;
-var C: TPosRec;
 begin
-  C.LoI:=X; C.HiI:=Y;
-  PosToOfs:=TPosOfs(C);
+  PosToOfs:=TPosOfs(y) shl (sizeof(sw_integer)*8) or x;
 end;
 
 function PosToOfsP(const P: TPoint): TPosOfs;
@@ -7193,7 +7190,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.50  2004-12-06 16:35:26  peter
+  Revision 1.51  2005-01-07 18:29:48  florian
+    * fixed endian dependend code
+
+  Revision 1.50  2004/12/06 16:35:26  peter
   fix ioerror when last save had invalid dir
 
   Revision 1.49  2004/12/06 16:23:43  peter
