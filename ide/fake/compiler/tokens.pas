@@ -187,8 +187,13 @@ type
     encoded : longint;
   end;
 
+type
+  ttokenarray=array[ttoken] of tokenrec;
+  ptokenarray=^ttokenarray;
+
+
 const
-  tokeninfo:array[ttoken] of tokenrec=(
+  arraytokeninfo: ttokenarray =(
     { Operators which can be overloaded }
       (str:'+'             ;special:true ;keyword:m_none),
       (str:'-'             ;special:true ;keyword:m_none),
@@ -339,12 +344,18 @@ const
       (str:'INITIALIZATION';special:false;keyword:m_class)
   );
 
+const
+  tokeninfo: ptokenarray = @arraytokeninfo;
+  
 implementation
 
 end.
 {
   $Log$
-  Revision 1.1  1999-01-28 19:56:12  peter
+  Revision 1.2  1999-09-07 08:28:19  pierre
+   * adapted to new compiler/tokens unit
+
+  Revision 1.1  1999/01/28 19:56:12  peter
     * moved to include compiler/gdb independent of each other
 
   Revision 1.1  1998/12/22 14:27:54  peter
