@@ -31,7 +31,7 @@ interface
 
        version_nr = '1';
        release_nr = '00';
-       patch_nr   = '0';
+       patch_nr   = '';
 {$ifdef newcg}
        minorpatch = ' NCG';
 {$else newcg}
@@ -41,8 +41,6 @@ interface
        minorpatch = '';
   {$endif}
 {$endif newcg}
-       version_string = version_nr+'.'+release_nr+'.'+patch_nr;
-       full_version_string = version_nr+'.'+release_nr+'.'+patch_nr+minorpatch;
 
        { date string }
 {$ifdef FPC}
@@ -73,14 +71,38 @@ interface
         source_cpu_string = 'm68k';
 {$endif}
 
+function version_string:string;
+function full_version_string:string;
+
 
 implementation
+
+function version_string:string;
+begin
+  if patch_nr='' then
+   version_string := version_nr+'.'+release_nr
+  else
+   version_string := version_nr+'.'+release_nr+'.'+patch_nr;
+end;
+
+
+function full_version_string:string;
+begin
+  if patch_nr='' then
+   full_version_string := version_nr+'.'+release_nr+minorpatch
+  else
+   full_version_string := version_nr+'.'+release_nr+'.'+patch_nr+minorpatch;
+end;
+
 
 begin
 end.
 {
   $Log$
-  Revision 1.18  2000-07-06 20:08:46  peter
+  Revision 1.19  2000-07-09 09:34:50  peter
+    * version_string is now a function so it returns 1.00 instead of 1.00.0
+
+  Revision 1.18  2000/07/06 20:08:46  peter
     * version 1.00.0 so the snapshots can test with this version number
       for a few days
 
