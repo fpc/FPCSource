@@ -491,15 +491,15 @@ begin
   case (flags and 3) of
    0 : begin
          filerec(f).mode:=fminput;
-         oflags:=GENERIC_READ;
+         oflags:=longint(GENERIC_READ);
        end;
    1 : begin
          filerec(f).mode:=fmoutput;
-         oflags:=GENERIC_WRITE;
+         oflags:=longint(GENERIC_WRITE);
        end;
    2 : begin
          filerec(f).mode:=fminout;
-         oflags:=GENERIC_WRITE or GENERIC_READ;
+         oflags:=longint(GENERIC_WRITE or GENERIC_READ);
        end;
   end;
 { create it ? }
@@ -1505,7 +1505,10 @@ end.
 
 {
   $Log$
-  Revision 1.37  2002-11-30 18:17:35  carl
+  Revision 1.38  2002-12-07 13:58:45  carl
+    * fix warnings
+
+  Revision 1.37  2002/11/30 18:17:35  carl
     + profiling support
 
   Revision 1.36  2002/10/31 15:17:58  carl
