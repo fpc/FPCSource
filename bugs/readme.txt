@@ -113,6 +113,7 @@ Fixed bugs:
   bug0087.pp   shows internal error 12 - no more SegFaults           OK 0.99.1 (FK)
   bug0088.pp   internal error 12 or Runerror 216                     OK 0.99.1 (FK)
   bug0089.pp   internal error 12 or Runerror 216                     OK 0.99.1 (FK)
+  bug0090.pp   shows PChar comparison problem                        OK 0.99.7 (PFV)
   bug0092.pp   The unfixable bug. Maybe we find a solution one day.  OK 0.99.6 (FK)
   bug0093.pp   Two Cardinal type bugs                                0K 0.99.1 (FK/MvC)
   bug0094.pp   internal error when recordtype not found with case    OK 0.99.1
@@ -190,7 +191,6 @@ bug0050.pp   can't set a function result in a nested procedure of a function
 bug0051.pp   shows a problem with putpixel
 bug0052.pp   collects missing graph unit routines
 bug0057.pp   shows a crash with switch graph/text/graph
-bug0090.pp   shows PChar comparison problem
 bug0091.pp   missing standard functions in constant expressions
 bug0123.pp   problem with intel assembler (shrd)
 bug0124.pp   problem with -Rintel switch and indexing (whatever the order)
