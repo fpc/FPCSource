@@ -31,9 +31,7 @@ const
   BIAS4 = $7f-1;
 {$endif}
 
-{$ifdef BSD}
- {$define newsignal}
-{$endif}
+{$define newsignal}
 
 {$I systemh.inc}
 {$I heaph.inc}
@@ -742,6 +740,7 @@ procedure SignalToRunerror(Sig: longint; SigContext: SigContextRec); cdecl;
 var
   res,fpustate : word;
 begin
+  res:=0;
   case sig of
     8 : begin
     { this is not allways necessary but I don't know yet
@@ -771,10 +770,18 @@ begin
             end;
 {$endif I386}
           ResetFPU;
-          HandleError(res);
         end;
-   11 : HandleError(216);
+   11 : res:=216;
   end;
+{ give runtime error at the position where the signal was raised }
+  if res<>0 then
+   begin
+{$ifdef I386}
+     HandleErrorAddrFrame(res,SigContext.eip,SigContext.ebp);
+{$else}
+     HandleError(res);
+{$endif}
+   end;
 end;
 
 Procedure InstallSignals;
@@ -869,7 +876,12 @@ End.
 
 {
   $Log$
-  Revision 1.45  2000-04-16 16:07:58  marco
+  Revision 1.46  2000-05-08 14:27:36  peter
+    * released newsignal
+    * newsignal gives now better backtraces using the sigcontext eip/ebp
+      fields
+
+  Revision 1.45  2000/04/16 16:07:58  marco
    * BSD fixes
 
   Revision 1.44  2000/04/14 13:04:53  marco
