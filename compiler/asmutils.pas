@@ -228,6 +228,8 @@ Type
      Procedure OpPop(var _Operator:TExprOperator);
   end;
 
+  { Evaluate an expression string to a longint }
+  Function CalculateExpression(const expression: string): longint;
 
   {---------------------------------------------------------------------}
   {                     String routines                                 }
@@ -546,6 +548,15 @@ Begin
 end;
 
 
+Function CalculateExpression(const expression: string): longint;
+var
+  expr: TExprParse;
+Begin
+  expr.Init;
+  CalculateExpression := expr.Evaluate(expression);
+  expr.Done;
+end;
+
 {*************************************************************************}
 {                         String conversions/utils                        }
 {*************************************************************************}
@@ -657,6 +668,7 @@ end;
      '7': vs:=vs shl 3+7;
     else
       begin
+        Message(assem_f_error_converting_octal);
         OctalToDec := '';
         exit;
       end;
@@ -683,6 +695,7 @@ end;
        vs:=vs shl 1+1
      else
        begin
+         Message(assem_f_error_converting_bin);
          BinaryToDec := '';
          exit;
        end;
@@ -719,6 +732,7 @@ end;
      'F': vs:=vs shl 4+15;
     else
       begin
+        Message(assem_f_error_converting_hex);
         HexToDec := '';
         exit;
       end;
@@ -1788,7 +1802,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  1998-12-11 00:02:44  peter
+  Revision 1.17  1998-12-23 22:55:55  peter
+    + rec.field(%esi) support
+    + [esi+rec.field] support
+
+  Revision 1.16  1998/12/11 00:02:44  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.15  1998/11/17 00:26:11  peter

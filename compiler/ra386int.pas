@@ -2006,228 +2006,212 @@ var
 
 
 
-
-  Function CalculateExpression(expression: string): longint;
-  var
-    expr: TExprParse;
-  Begin
-   expr.Init;
-   CalculateExpression := expr.Evaluate(expression);
-   expr.Done;
-  end;
-
-
-
-  Procedure GetRecordOffsetSize(const expr: string;var offset:longint;var size:longint);
-  {*********************************************************************}
-  { PROCEDURE GetRecordOffsetSize                                       }
-  {  Description: This routine builds up a record offset after a AS_DOT }
-  {  token is encountered.                                              }
-  {   On entry actasmtoken should be equal to AS_DOT                    }
-  {*********************************************************************}
-  { EXIT CONDITION:  On exit the routine should point to either the     }
-  {       AS_COMMA or AS_SEPARATOR token.                               }
-  { Warning: This is called recursively.                                }
-  {*********************************************************************}
-  var
-    toffset,tsize : longint;
-  Begin
-    offset:=0;
-    size:=0;
-    Consume(AS_DOT);
-    if actasmtoken = AS_ID then
-      Begin
-        if not GetTypeOffsetSize(expr,actasmpattern,toffset,tsize) and
-           not GetVarOffsetSize(expr,actasmpattern,toffset,tsize) then
-         begin
-           Message(assem_e_syntax_error);
-           toffset:=0;
-           tsize:=0;
-         end;
+Procedure GetRecordOffsetSize(const expr: string;var offset:longint;var size:longint);
+{*********************************************************************}
+{ PROCEDURE GetRecordOffsetSize                                       }
+{  Description: This routine builds up a record offset after a AS_DOT }
+{  token is encountered.                                              }
+{  On entry actasmtoken should be equal to AS_DOT                     }
+{*********************************************************************}
+{ EXIT CONDITION:  On exit the routine should point to either the     }
+{ ERROR RECOVER: read until AS_COMMA or AS_SEPARATOR token.           }
+{ Warning: This is called recursively.                                }
+{*********************************************************************}
+var
+  toffset,tsize : longint;
+Begin
+  offset:=0;
+  size:=0;
+  Consume(AS_DOT);
+  if actasmtoken = AS_ID then
+   Begin
+     if not GetTypeOffsetSize(expr,actasmpattern,toffset,tsize) and
+        not GetVarOffsetSize(expr,actasmpattern,toffset,tsize) then
+      begin
+        Message(assem_e_syntax_error);
+        toffset:=0;
+        tsize:=0;
+      end;
+     inc(offset,toffset);
+     size:=tsize;
+     Consume(AS_ID);
+     if actasmtoken=AS_DOT then
+      begin
+        GetRecordOffsetSize(expr,toffset,tsize);
         inc(offset,toffset);
         size:=tsize;
-        Consume(AS_ID);
-        case actasmtoken of
-          AS_SEPARATOR,
-          AS_COMMA      : exit;
-          AS_DOT        : begin
-                            GetRecordOffsetSize(expr,toffset,tsize);
-                            inc(offset,toffset);
-                            size:=tsize;
-                          end;
+      end;
+   end
+  else
+   Begin
+     Message(assem_e_syntax_error);
+     repeat
+       consume(actasmtoken)
+     until (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA);
+   end;
+end;
 
-        else
-          Begin
-            Message(assem_e_syntax_error);
-            repeat
-              consume(actasmtoken)
-            until (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA);
-            exit;
-          end;
+
+Function BuildRefExpression: longint;
+{*********************************************************************}
+{ FUNCTION BuildExpression: longint                                   }
+{  Description: This routine calculates a constant expression to      }
+{  a given value. The return value is the value calculated from       }
+{  the expression.                                                    }
+{ The following tokens (not strings) are recognized:                  }
+{    (,),SHL,SHR,/,*,NOT,OR,XOR,AND,MOD,+/-,numbers,ID to constants.  }
+{*********************************************************************}
+{ ENTRY: On entry the token should be any valid expression token.     }
+{ EXIT:  On Exit the token points to any token after the closing      }
+{         RBRACKET                                                    }
+{ ERROR RECOVERY: Tries to find COMMA or SEPARATOR token by consuming }
+{  invalid tokens.                                                    }
+{*********************************************************************}
+var
+  tempstr,expr : string;
+  l,k : longint;
+  errorflag : boolean;
+Begin
+  errorflag := FALSE;
+  tempstr := '';
+  expr := '';
+  { tell tokenizer that we are in }
+  { an expression.                }
+  inexpression := TRUE;
+  Repeat
+    Case actasmtoken of
+      AS_LPAREN:
+        Begin
+          Consume(AS_LPAREN);
+          expr := expr + '(';
         end;
-      end
+      AS_RPAREN:
+        Begin
+          Consume(AS_RPAREN);
+          expr := expr + ')';
+        end;
+      AS_SHL:
+        Begin
+          Consume(AS_SHL);
+          expr := expr + '<';
+        end;
+      AS_SHR:
+        Begin
+          Consume(AS_SHR);
+          expr := expr + '>';
+        end;
+      AS_SLASH:
+        Begin
+          Consume(AS_SLASH);
+          expr := expr + '/';
+        end;
+      AS_MOD:
+        Begin
+          Consume(AS_MOD);
+          expr := expr + '%';
+        end;
+      AS_STAR:
+        Begin
+          Consume(AS_STAR);
+          expr := expr + '*';
+        end;
+      AS_PLUS:
+        Begin
+          Consume(AS_PLUS);
+          expr := expr + '+';
+        end;
+      AS_MINUS:
+        Begin
+          Consume(AS_MINUS);
+          expr := expr + '-';
+        end;
+      AS_AND:
+        Begin
+          Consume(AS_AND);
+          expr := expr + '&';
+        end;
+      AS_NOT:
+        Begin
+          Consume(AS_NOT);
+          expr := expr + '~';
+        end;
+      AS_XOR:
+        Begin
+          Consume(AS_XOR);
+          expr := expr + '^';
+        end;
+      AS_OR:
+        Begin
+          Consume(AS_OR);
+          expr := expr + '|';
+        end;
+      AS_INTNUM:
+        Begin
+          expr := expr + actasmpattern;
+          Consume(AS_INTNUM);
+        end;
+      AS_BINNUM:
+        Begin
+          expr:=expr+BinaryToDec(actasmpattern);
+          Consume(AS_BINNUM);
+        end;
+      AS_HEXNUM:
+        Begin
+          expr:=expr+HexToDec(actasmpattern);
+          Consume(AS_HEXNUM);
+        end;
+      AS_OCTALNUM:
+        Begin
+          expr:=expr+OctalToDec(actasmpattern);
+          Consume(AS_OCTALNUM);
+        end;
+      AS_ID:
+        Begin
+          tempstr:=actasmpattern;
+          consume(AS_ID);
+          if actasmtoken=AS_DOT then
+           begin
+             GetRecordOffsetSize(tempstr,l,k);
+             str(l, tempstr);
+             expr := expr + tempstr;
+           end
+          else
+           begin
+             if SearchIConstant(tempstr,l) then
+              begin
+                str(l, tempstr);
+                expr := expr + tempstr;
+              end
+             else
+              Message1(assem_e_invalid_const_symbol,tempstr);
+           end;
+        end;
+      AS_RBRACKET: { End of reference }
+        Begin
+          if not ErrorFlag then
+            BuildRefExpression := CalculateExpression(expr)
+          else
+            BuildRefExpression := 0;
+          Consume(AS_RBRACKET);
+          { no longer in an expression }
+          inexpression := FALSE;
+          exit;
+        end;
     else
       Begin
-        Message(assem_e_syntax_error);
-        repeat
-          consume(actasmtoken)
-        until (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA);
+        { write error only once. }
+        if not errorflag then
+          Message(assem_e_invalid_constant_expression);
+        BuildRefExpression := 0;
+        if actasmtoken in [AS_COMMA,AS_SEPARATOR] then
+          exit;
+        { consume tokens until we find COMMA or SEPARATOR }
+        Consume(actasmtoken);
+        errorflag := TRUE;
       end;
-  end;
-
-
-  Function BuildRefExpression: longint;
-  {*********************************************************************}
-  { FUNCTION BuildExpression: longint                                   }
-  {  Description: This routine calculates a constant expression to      }
-  {  a given value. The return value is the value calculated from       }
-  {  the expression.                                                    }
-  { The following tokens (not strings) are recognized:                  }
-  {    (,),SHL,SHR,/,*,NOT,OR,XOR,AND,MOD,+/-,numbers,ID to constants.  }
-  {*********************************************************************}
-  { ENTRY: On entry the token should be any valid expression token.     }
-  { EXIT:  On Exit the token points to any token after the closing      }
-  {         RBRACKET                                                    }
-  { ERROR RECOVERY: Tries to find COMMA or SEPARATOR token by consuming }
-  {  invalid tokens.                                                    }
-  {*********************************************************************}
-  var tempstr: string;
-      expr: string;
-    l,k : longint;
-    errorflag : boolean;
-  Begin
-    errorflag := FALSE;
-    tempstr := '';
-    expr := '';
-    { tell tokenizer that we are in }
-    { an expression.                }
-    inexpression := TRUE;
-    Repeat
-      Case actasmtoken of
-      AS_LPAREN: Begin
-                  Consume(AS_LPAREN);
-                  expr := expr + '(';
-                end;
-      AS_RPAREN: Begin
-                  Consume(AS_RPAREN);
-                  expr := expr + ')';
-                end;
-      AS_SHL:    Begin
-                  Consume(AS_SHL);
-                  expr := expr + '<';
-                end;
-      AS_SHR:    Begin
-                  Consume(AS_SHR);
-                  expr := expr + '>';
-                end;
-      AS_SLASH:  Begin
-                  Consume(AS_SLASH);
-                  expr := expr + '/';
-                end;
-      AS_MOD:    Begin
-                  Consume(AS_MOD);
-                  expr := expr + '%';
-                end;
-      AS_STAR:   Begin
-                  Consume(AS_STAR);
-                  expr := expr + '*';
-                end;
-      AS_PLUS:   Begin
-                  Consume(AS_PLUS);
-                  expr := expr + '+';
-                end;
-      AS_MINUS:  Begin
-                  Consume(AS_MINUS);
-                  expr := expr + '-';
-                end;
-      AS_AND:    Begin
-                  Consume(AS_AND);
-                  expr := expr + '&';
-                end;
-      AS_NOT:    Begin
-                  Consume(AS_NOT);
-                  expr := expr + '~';
-                end;
-      AS_XOR:    Begin
-                  Consume(AS_XOR);
-                  expr := expr + '^';
-                end;
-      AS_OR:     Begin
-                  Consume(AS_OR);
-                  expr := expr + '|';
-                end;
-      { End of reference }
-      AS_RBRACKET: Begin
-                     if not ErrorFlag then
-                        BuildRefExpression := CalculateExpression(expr)
-                     else
-                        BuildRefExpression := 0;
-                     Consume(AS_RBRACKET);
-                     { no longer in an expression }
-                     inexpression := FALSE;
-                     exit;
-                  end;
-      AS_ID:
-                Begin
-                  tempstr:=actasmpattern;
-                  consume(AS_ID);
-                  if actasmtoken=AS_DOT then
-                   begin
-                     GetRecordOffsetSize(tempstr,l,k);
-                     str(l, tempstr);
-                     expr := expr + tempstr;
-                   end
-                  else
-                   begin
-                     if SearchIConstant(tempstr,l) then
-                      begin
-                        str(l, tempstr);
-                        expr := expr + tempstr;
-                      end
-                     else
-                      Message1(assem_e_invalid_const_symbol,tempstr);
-                   end;
-                end;
-      AS_INTNUM:  Begin
-                   expr := expr + actasmpattern;
-                   Consume(AS_INTNUM);
-                 end;
-      AS_BINNUM:  Begin
-                      tempstr := BinaryToDec(actasmpattern);
-                      if tempstr = '' then
-                       Message(assem_f_error_converting_bin);
-                      expr:=expr+tempstr;
-                      Consume(AS_BINNUM);
-                 end;
-
-      AS_HEXNUM: Begin
-                    tempstr := HexToDec(actasmpattern);
-                    if tempstr = '' then
-                     Message(assem_f_error_converting_hex);
-                    expr:=expr+tempstr;
-                    Consume(AS_HEXNUM);
-                end;
-      AS_OCTALNUM: Begin
-                    tempstr := OctalToDec(actasmpattern);
-                    if tempstr = '' then
-                     Message(assem_f_error_converting_octal);
-                    expr:=expr+tempstr;
-                    Consume(AS_OCTALNUM);
-                  end;
-      else
-        Begin
-          { write error only once. }
-          if not errorflag then
-           Message(assem_e_invalid_constant_expression);
-          BuildRefExpression := 0;
-          if actasmtoken in [AS_COMMA,AS_SEPARATOR] then exit;
-          { consume tokens until we find COMMA or SEPARATOR }
-          Consume(actasmtoken);
-          errorflag := TRUE;
-        end;
-      end;
-    Until false;
-  end;
+    end;
+  Until false;
+end;
 
 
 
@@ -2580,148 +2564,151 @@ var
 
 
 
-  Procedure BuildReference(var instr: TInstruction);
-  {*********************************************************************}
-  { EXIT CONDITION:  On exit the routine should point to either the     }
-  {       AS_COMMA or AS_SEPARATOR token.                               }
-  {   On entry: contains the register after the opening bracket if any. }
-  {*********************************************************************}
-  var
-    reg:string;
-    segreg: boolean;
-    negative: boolean;
-    expr: string;
-  Begin
-     expr := '';
-     if instr.operands[operandnum].operandtype <> OPR_REFERENCE then
-     Begin
-       Message(assem_e_syn_no_ref_with_brackets);
-       InitAsmRef(instr);
-       consume(AS_REGISTER);
-     end
-     else
-     Begin
-       { save the reg }
-       reg := actasmpattern;
-       { is the syntax of the form: [REG:REG...] }
-       consume(AS_REGISTER);
-       if actasmtoken = AS_COLON then
-       begin
-         segreg := TRUE;
-         Message(assem_e_expression_form_not_supported);
-         if instr.operands[operandnum].ref.segment <> R_NO then
+Procedure BuildReference(var instr: TInstruction);
+{*********************************************************************}
+{ EXIT CONDITION:  On exit the routine should point to either the     }
+{       AS_COMMA or AS_SEPARATOR token.                               }
+{   On entry: contains the register after the opening bracket if any. }
+{*********************************************************************}
+var
+  reg:string;
+  segreg: boolean;
+  negative: boolean;
+  expr: string;
+Begin
+  expr := '';
+  if instr.operands[operandnum].operandtype <> OPR_REFERENCE then
+   Begin
+     Message(assem_e_syn_no_ref_with_brackets);
+     InitAsmRef(instr);
+     consume(AS_REGISTER);
+   end
+  else
+   Begin
+     { save the reg }
+     reg := actasmpattern;
+     consume(AS_REGISTER);
+     { is the syntax of the form: [REG:REG...] }
+     if actasmtoken = AS_COLON then
+      begin
+        segreg := TRUE;
+        Message(assem_e_expression_form_not_supported);
+        if instr.operands[operandnum].ref.segment <> R_NO then
           Message(assem_e_defining_seg_more_than_once);
-         instr.operands[operandnum].ref.segment := findsegment(reg);
-         { Here we should process the syntax of the form   }
-         { [reg:reg...]                                    }
-         {!!!!!!!!!!!!!!!!!!!!!!!!                         }
-       end
-       { This is probably of the following syntax: }
-       { SREG:[REG...] where SReg: is optional.    }
-       { Therefore we immediately say that reg     }
-       { is the base.                              }
-       else
-       Begin
-         if instr.operands[operandnum].ref.base <> R_NO then
+        instr.operands[operandnum].ref.segment := findsegment(reg);
+        { Here we should process the syntax of the form   }
+        { [reg:reg...]                                    }
+      end
+     else { SREG:[REG...] where SReg: is optional.    }
+      Begin
+        if instr.operands[operandnum].ref.base <> R_NO then
           Message(assem_e_defining_base_more_than_once);
-         instr.operands[operandnum].ref.base := findregister(reg);
-       end;
-       { we process this type of syntax immediately... }
-       case actasmtoken of
+        instr.operands[operandnum].ref.base := findregister(reg);
+      end;
 
-          {  REG:[REG].Field.Field ...     }
-          {  REG:[REG].Field[REG].Field... }
-         AS_RBRACKET: Begin
-                       Consume(AS_RBRACKET);
-                       { check for record fields }
-                       if actasmtoken = AS_DOT then
-                          BuildRecordOffset(instr,'');
-                       if (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA) then
-                         exit
-                       else
-                         Message(assem_e_syn_reference);
-                     end;
-          {  REG:[REG +/- ...].Field.Field ... }
-         AS_PLUS,AS_MINUS: Begin
-                            if actasmtoken = AS_MINUS then
-                            Begin
-                               expr := '-';
-                               negative := TRUE
-                            end
-                            else
-                            Begin
-                               negative := FALSE;
-                               expr := '+';
-                            end;
-                            Consume(actasmtoken);
-                            { REG:[REG+REG+/-...].Field.Field }
-                            if actasmtoken = AS_REGISTER then
-                            Begin
-                              if negative then
-                                Message(assem_e_negative_index_register);
-                              if instr.operands[operandnum].ref.index <> R_NO then
-                                Message(assem_e_defining_index_more_than_once);
-                              instr.operands[operandnum].ref.index := findregister(actasmpattern);
-                              Consume(AS_REGISTER);
-                              case actasmtoken of
-                                AS_RBRACKET: { REG:[REG+REG].Field.Field... }
-                                            Begin
-                                              Consume(AS_RBRACKET);
-                                              Case actasmtoken of
-                                                 AS_DOT: BuildRecordOffset(instr,'');
-                                                 AS_COMMA,AS_SEPARATOR: exit;
-                                              else
-                                                Message(assem_e_syntax_error);
-                                              end
-                                             end;
-                                AS_PLUS,AS_MINUS: { REG:[REG+REG+/-expr... }
-                                                Begin
-                                                  if instr.operands[operandnum].ref.offset <> 0 then
-                                                   Message(assem_f_internal_error_in_buildreference);
-                                                  instr.operands[operandnum].ref.offset :=
-                                                      BuildRefExpression;
-                                                  case actasmtoken of
-                                                    AS_DOT: BuildRecordOffset(instr,'');
-                                                    AS_COMMA,AS_SEPARATOR: ;
-                                                  else
-                                                    Message(assem_e_syntax_error);
-                                                  end; { end case }
-                                                end;
-                                AS_STAR: Begin  { REG:[REG+REG*SCALING...].Field.Field... }
-                                             BuildScaling(instr);
-                                         end;
-                                else
-                                Begin
-                                  Message(assem_e_syntax_error);
-                                end;
-                              end; { end case }
-                            end
-                            else if actasmtoken = AS_STAR then
-                            { REG:[REG*SCALING ... ]     }
-                            Begin
-                              BuildScaling(instr);
-                            end
-                            else
-                            { REG:[REG+expr].Field.Field }
-                             Begin
-                               if instr.operands[operandnum].ref.offset <> 0 then
-                                Message(assem_f_internal_error_in_buildreference);
-                               instr.operands[operandnum].ref.offset := BuildRefExpression;
-                               case actasmtoken of
-                                  AS_DOT: BuildRecordOffset(instr,'');
-                                  AS_COMMA,AS_SEPARATOR: ;
-                                else
-                                  Message(assem_e_syntax_error);
-                               end; { end case }
-                             end; { end if }
-                         end; { end this case }
-     {  REG:[REG*scaling] ... }
-         AS_STAR: Begin
-                     BuildScaling(instr);
-                 end;
-       end;
-     end; { end outer if }
-  end;
+     { we process this type of syntax immediately... }
+     case actasmtoken of
+       { SREG:[REG].Field.Field ...     }
+       { SREG:[REG].Field[REG].Field... }
+       AS_RBRACKET:
+         Begin
+           Consume(AS_RBRACKET);
+           { check for record fields }
+           if actasmtoken = AS_DOT then
+             BuildRecordOffset(instr,'');
+           if (actasmtoken = AS_SEPARATOR) or (actasmtoken = AS_COMMA) then
+             exit
+           else
+             Message(assem_e_syn_reference);
+         end;
+
+       { SREG:[REG +/- ...].Field.Field ... }
+       AS_PLUS,
+       AS_MINUS:
+         Begin
+           if actasmtoken = AS_MINUS then
+            Begin
+              expr := '-';
+              negative := TRUE
+            end
+           else
+            Begin
+              negative := FALSE;
+              expr := '+';
+            end;
+           Consume(actasmtoken);
+           { REG:[REG+REG+/-...].Field.Field }
+           if actasmtoken = AS_REGISTER then
+            Begin
+              if negative then
+                Message(assem_e_negative_index_register);
+              if instr.operands[operandnum].ref.index <> R_NO then
+                Message(assem_e_defining_index_more_than_once);
+              instr.operands[operandnum].ref.index := findregister(actasmpattern);
+              Consume(AS_REGISTER);
+              case actasmtoken of
+                AS_RBRACKET: { SREG:[REG+REG].Field.Field... }
+                  Begin
+                    Consume(AS_RBRACKET);
+                    Case actasmtoken of
+                      AS_DOT: BuildRecordOffset(instr,'');
+                      AS_COMMA,
+                      AS_SEPARATOR: exit;
+                    else
+                      Message(assem_e_syntax_error);
+                    end;
+                  end;
+                AS_PLUS,
+                AS_MINUS: { REG:[REG+REG+/-expr... }
+                  Begin
+                    if instr.operands[operandnum].ref.offset <> 0 then
+                      Message(assem_f_internal_error_in_buildreference);
+                    instr.operands[operandnum].ref.offset:=BuildRefExpression;
+                    case actasmtoken of
+                      AS_DOT: BuildRecordOffset(instr,'');
+                      AS_COMMA,
+                      AS_SEPARATOR: ;
+                    else
+                      Message(assem_e_syntax_error);
+                    end;
+                  end;
+                AS_STAR: { REG:[REG+REG*SCALING...].Field.Field... }
+                  begin
+                    BuildScaling(instr);
+                  end;
+              else
+                Message(assem_e_syntax_error);
+              end; { end case }
+            end
+           else
+           { REG:[REG*(+/-)SCALING ... ] }
+            if actasmtoken = AS_STAR then
+             Begin
+               BuildScaling(instr);
+             end
+           else
+           { REG:[REG+expr].Field.Field }
+             Begin
+               if instr.operands[operandnum].ref.offset <> 0 then
+                 Message(assem_f_internal_error_in_buildreference);
+               instr.operands[operandnum].ref.offset := BuildRefExpression;
+               case actasmtoken of
+                 AS_DOT: BuildRecordOffset(instr,'');
+                 AS_COMMA,
+                 AS_SEPARATOR: ;
+               else
+                 Message(assem_e_syntax_error);
+               end;
+             end; { end if }
+         end; { end this case }
+
+      AS_STAR: {  REG:[REG*scaling] ... }
+        Begin
+          BuildScaling(instr);
+        end;
+    end;
+  end; { end outer if }
+end;
 
 
   Procedure BuildBracketExpression(var Instr: TInstruction; var_prefix: boolean);
@@ -3517,7 +3504,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  1998-12-11 00:03:43  peter
+  Revision 1.19  1998-12-23 22:55:57  peter
+    + rec.field(%esi) support
+    + [esi+rec.field] support
+
+  Revision 1.18  1998/12/11 00:03:43  peter
     + globtype,tokens,version unit splitted from globals
 
   Revision 1.17  1998/12/08 23:03:46  jonas
