@@ -212,6 +212,9 @@ rtllinux:
 rtlos2:
 	$(MAKE) -C os2 CFGFILE=../cfg/ppos2.cfg OS_TARGET=os2
 
+rtlwin32:
+	$(MAKE) -C win32 CFGFILE=../cfg/ppw32.cfg OS_TARGET=win32
+
 go32v1libs:
 	$(MAKE) -C dos/go32v1 CFGFILE=../../cfg/ppdos.cfg OS_TARGET=go32v1 libs
 
@@ -224,30 +227,27 @@ linuxlibs:
 os2libs:
 	$(MAKE) -C os2 CFGFILE=../cfg/ppos2.cfg OS_TARGET=os2 libs
 
+win32libs:
+	$(MAKE) -C win32 CFGFILE=../cfg/ppw32.cfg OS_TARGET=win32 libs
+
 clean:
-	$(MAKE) -C inc clean
-	$(MAKE) -C i386 clean
-	$(MAKE) -C m68k clean
-	$(MAKE) -C cfg clean
 	$(MAKE) -C template clean
 	$(MAKE) -C dos clean
 	$(MAKE) -C dos/go32v1 clean
 	$(MAKE) -C dos/go32v2 clean
 	$(MAKE) -C linux clean
+	$(MAKE) -C win32 clean
 	$(MAKE) -C os2 clean
 	-$(DEL) *.dif
 
 diffclean:
-	$(MAKE) -C inc diffclean
-	$(MAKE) -C i386 diffclean
-	$(MAKE) -C m68k diffclean
-	$(MAKE) -C cfg diffclean
 	$(MAKE) -C template diffclean
 	$(MAKE) -C dos diffclean
 	$(MAKE) -C dos/go32v1 diffclean
 	$(MAKE) -C dos/go32v2 diffclean
 	$(MAKE) -C linux diffclean
 	$(MAKE) -C os2 diffclean
+	$(MAKE) -C win32 diffclean
 	-$(DEL) *.dif
 
 
