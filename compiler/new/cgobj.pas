@@ -930,7 +930,7 @@ unit cgobj;
          abstract;
       end;
 
-    procedure tcg.a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;b : byte;reg : tregister;
+    procedure tcg.a_cmp_reg_const_label(list : paasmoutput;size : tcgsize;cmp_op : topcmp;a : aword;reg : tregister;
       l : pasmlabel);
 
       begin
@@ -977,7 +977,10 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.17  1999-08-06 16:27:26  florian
+  Revision 1.18  1999-08-06 16:37:45  jonas
+    * completed bugfix done by Florian o I wouldn't get conflicts :)
+
+  Revision 1.17  1999/08/06 16:27:26  florian
     * for Jonas: else he will get conflicts
 
   Revision 1.16  1999/08/06 16:04:05  michael
