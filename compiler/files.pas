@@ -166,7 +166,7 @@ unit files;
           destructor done;virtual;
        end;
 
-{$ifndef NEWPPU}
+{$ifdef OLDPPU}
     type
        tunitheader = array[0..19] of char;
     const
@@ -968,7 +968,12 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.28  1998-06-25 08:48:12  florian
+  Revision 1.29  1998-06-25 10:51:00  pierre
+    * removed a remaining ifndef NEWPPU
+      replaced by ifdef OLDPPU
+    * added uf_finalize to ppu unit
+
+  Revision 1.28  1998/06/25 08:48:12  florian
     * first version of rtti support
 
   Revision 1.27  1998/06/24 14:48:34  peter

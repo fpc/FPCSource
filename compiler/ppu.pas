@@ -95,6 +95,7 @@ const
   uf_in_library     = $10;
   uf_shared_library = $20;
   uf_smartlink      = $40;
+  uf_finalize       = $80;
 
 
 type
@@ -749,7 +750,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1998-06-16 08:56:26  peter
+  Revision 1.7  1998-06-25 10:51:01  pierre
+    * removed a remaining ifndef NEWPPU
+      replaced by ifdef OLDPPU
+    * added uf_finalize to ppu unit
+
+  Revision 1.6  1998/06/16 08:56:26  peter
     + targetcpu
     * cleaner pmodules for newppu
 
