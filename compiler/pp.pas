@@ -111,8 +111,12 @@ uses
 {$ifdef heaptrc}
   ppheap,
 {$endif heaptrc}
+{$ifdef linux}
+  catch,
+{$endif}  
 {$endif FPC}
-  globals,compiler;
+  globals,compiler
+  ;
 
 {$ifdef useoverlay}
   {$O files}
@@ -263,7 +267,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  1998-11-05 12:02:53  peter
+  Revision 1.36  1998-11-27 22:54:52  michael
+  + Added catch unit again
+
+  Revision 1.35  1998/11/05 12:02:53  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 
