@@ -536,10 +536,10 @@ uses
       firstsavemmreg  = R_NO;
       lastsavemmreg   = R_NO;
 
-      maxvarregs = 17;
+      maxvarregs = 15;
       varregs : Array [1..maxvarregs] of Tnewregister =
                 (RS_R14,RS_R15,RS_R16,RS_R17,RS_R18,RS_R19,RS_R20,RS_R21,
-                 RS_R22,RS_R23,RS_R24,RS_R25,RS_R26,RS_R27,RS_R28,RS_R29,RS_R30);
+                 RS_R22,RS_R23,RS_R24,RS_R25,RS_R26,RS_R27,RS_R28);
 
       maxfpuvarregs = 31-14+1;
       fpuvarregs : Array [1..maxfpuvarregs] of Toldregister =
@@ -562,7 +562,7 @@ uses
          routine calls or in assembler blocks.
       }
       max_scratch_regs = 3;
-      scratch_regs: Array[1..max_scratch_regs] of Tsuperregister = (RS_R28,RS_R29,RS_R30);
+      scratch_regs: Array[1..max_scratch_regs] of Tsuperregister = (RS_R29,RS_R30,RS_R31);
 
 {*****************************************************************************
                           Default generic sizes
@@ -807,7 +807,11 @@ implementation
 
     begin
       if r.enum = R_INTREGISTER then
-        case r.number of
+        if (r.number >= NR_NO) and
+           (r.number <= NR_R31) then
+          r.enum := toldregister(r.number shr 8)
+        else
+{        case r.number of
           NR_NO: r.enum:= R_NO;
 
           NR_R0: r.enum:= R_0;
@@ -842,9 +846,9 @@ implementation
           NR_R29: r.enum:= R_29;
           NR_R30: r.enum:= R_30;
           NR_R31: r.enum:= R_31;
-        else
+        else}
           internalerror(200301082);
-        end;
+{        end;}
     end;
 
     function cgsize2subreg(s:Tcgsize):Tsubregister;
@@ -856,7 +860,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2003-05-24 16:02:01  jonas
+  Revision 1.53  2003-05-30 18:49:59  jonas
+    * changed scratchregs from r28-r30 to r29-r31
+    * made sure the regvar registers don't overlap with the scratchregs
+      anymore
+
+  Revision 1.52  2003/05/24 16:02:01  jonas
     * fixed endian problem with tlocation.value/valueqword fields
 
   Revision 1.51  2003/05/16 16:26:05  jonas
