@@ -51,11 +51,11 @@ begin
  if RetVal<0 then
    begin
      ErrNo:=-RetVal;
-     DoSysCall:=-1;
+     do_syscall:=-1;
    end
   else
    begin
-     DoSysCall:=Retval;
+     do_syscall:=Retval;
      errno:=0
    end;
 end;
@@ -75,17 +75,17 @@ begin
  if RetVal<0 then
    begin
      ErrNo:=-RetVal;
-     DoSysCall:=-1;
+     do_syscall:=-1;
    end
   else
    begin
-     DoSysCall:=Retval;
+     do_syscall:=Retval;
      errno:=0
    end;
 end;
 
 
-function Do_SysCall(sysnr,param1:integer):longint;
+function Do_SysCall(sysnr:longint;param1:integer):longint;
 
 var retval:longint;
 
@@ -100,11 +100,11 @@ begin
  if RetVal<0 then
    begin
      ErrNo:=-RetVal;
-     DoSysCall:=-1;
+     do_syscall:=-1;
    end
   else
    begin
-     DoSysCall:=Retval;
+     do_syscall:=Retval;
      errno:=0
    end;
 end;
@@ -126,11 +126,11 @@ begin
  if RetVal<0 then
    begin
      ErrNo:=-RetVal;
-     DoSysCall:=-1;
+     do_syscall:=-1;
    end
   else
    begin
-     DoSysCall:=Retval;
+     do_syscall:=Retval;
      errno:=0
    end;
  end;
@@ -151,11 +151,11 @@ begin
  if RetVal<0 then
    begin
      ErrNo:=-RetVal;
-     DoSysCall:=-1;
+     do_syscall:=-1;
    end
   else
    begin
-     DoSysCall:=Retval;
+     do_syscall:=Retval;
      errno:=0
    end;
 end;
@@ -176,11 +176,11 @@ begin
  if RetVal<0 then
    begin
      ErrNo:=-RetVal;
-     DoSysCall:=-1;
+     do_syscall:=-1;
    end
   else
    begin
-     DoSysCall:=Retval;
+     do_syscall:=Retval;
      errno:=0
    end;
 end;
@@ -204,14 +204,45 @@ begin
  if RetVal<0 then
    begin
      ErrNo:=-RetVal;
-     DoSysCall:=-1;
+     do_syscall:=-1;
    end
   else
    begin
-     DoSysCall:=Retval;
+     do_syscall:=Retval;
      errno:=0
    end;
  end;
+
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;
+
+var retval:longint;
+
+begin
+ asm
+   movl  sysnr,%eax
+   pushl param7
+   pushl param6
+   pushl param5
+   pushl param4
+   pushl param3
+   pushl param2
+   pushl Param1
+   call  _actualsyscall
+   addl  $28,%esp
+   mov   %eax,Retval
+ end;
+ if RetVal<0 then
+   begin
+     ErrNo:=-RetVal;
+     do_syscall:=-1;
+   end
+  else
+   begin
+     do_syscall:=Retval;
+     errno:=0
+   end;
+ end;
+
 
 {
 Function SysCall( callnr:longint;var regs : SysCallregs ):longint;
@@ -269,7 +300,7 @@ VAR tv     : timeval;
     retval : longint;
 
 begin
-  Retval:=DoSyscall(116,longint(tv),longint(tz));
+  Retval:=do_syscall(116,longint(@tv),longint(@tz));
   If retval=-1 then
    sys_time:=-1
   else
@@ -284,43 +315,43 @@ end;
 Function Sys_Open(f:pchar;flags:longint;mode:integer):longint;
 
 Begin
- sys_open:=DoSyscall(5,longint(f),flags,mode);
+ sys_open:=do_syscall(5,longint(f),flags,mode);
 End;
 
 Function Sys_Close(f:longint):longint;
 
 begin
- sys_close:=DoSyscall(6,f);
+ sys_close:=do_syscall(6,f);
 end;
 
 Function Sys_Lseek(F:longint;Off:longint;Whence:longint):longint;
 
 begin
- sys_lseek:=DoSyscall(199,F,Off,Whence);
+ sys_lseek:=do_syscall(199,F,Off,Whence);
 end;
 
 Function Sys_Read(f:longint;buffer:pchar;count:longint):longint;
 
 begin
-  sys_read:=DoSyscall(3,F,longint(buffer),count);
+  sys_read:=do_syscall(3,F,longint(buffer),count);
 end;
 
 Function Sys_Write(f:longint;buffer:pchar;count:longint):longint;
 
 begin
- sys_write:=DoSyscall(4,F,longint(buffer),count);
+ sys_write:=do_syscall(4,F,longint(buffer),count);
 end;
 
 Function Sys_Unlink(Filename:pchar):longint;
 
 begin
-  sys_unlink:=DoSyscall(10,longint(Filename));
+  sys_unlink:=do_syscall(10,longint(Filename));
 end;
 
 Function Sys_Rename(Oldname,Newname:pchar):longint;
 
 begin
-  sys_rename:=DoSyscall(38,longint(oldname),longint(newname));
+  sys_rename:=do_syscall(38,longint(oldname),longint(newname));
 end;
 
 Function Sys_Stat(Filename:pchar;var Buffer: stat):longint;
@@ -329,7 +360,7 @@ Function Sys_Stat(Filename:pchar;var Buffer: stat):longint;
 }
 
 begin
- sys_stat:=DoSyscall(188,longint(filename),longint(@buffer));
+ sys_stat:=do_syscall(188,longint(filename),longint(@buffer));
 end;
 
 Function Sys_Symlink(oldname,newname:pchar):longint;
@@ -338,8 +369,17 @@ Function Sys_Symlink(oldname,newname:pchar):longint;
 }
 
 begin
- sys_symlink:=DoSyscall(57,longint(oldname),longint(newname));
+ sys_symlink:=do_syscall(57,longint(oldname),longint(newname));
 end;
+
+
+Function Sys_ReadLink(name,linkname:pchar;maxlen:longint):longint;
+
+begin
+  sys_readlink:=do_syscall(58, longint(name),longint(linkname),maxlen);
+end;
+
+
 
 {*****************************************************************************
                --- Directory:Directory related calls ---
@@ -348,20 +388,19 @@ end;
 Function Sys_Chdir(Filename:pchar):longint;
 
 begin
- sys_chdir(12,longint(filename));
+ sys_chdir:=do_syscall(12,longint(filename));
 end;
 
 Function Sys_Mkdir(Filename:pchar;mode:longint):longint;
 
 begin {Mode is 16-bit on F-BSD}
- asm
-  sys_mkdir:=dosyscall(longint(filename),mode shl 8);
+  sys_mkdir:=do_syscall(longint(filename),mode shl 8);
 end;
 
 Function Sys_Rmdir(Filename:pchar):longint;
 
 begin
- sys_rmdir:=Dosyscall(137,longint(filename));
+ sys_rmdir:=do_syscall(137,longint(filename));
 end;
 
 { we need this for getcwd, NOT touched for BSD version }
@@ -410,7 +449,7 @@ Function Sys_ReadDir(p:pdir):pdirent;
 var
     retval : longint;
 begin
- retval:=dosyscall(272,longint(@p.fd),longint(@p.buf),sizeof(dirent));
+  retval:=do_syscall(272,longint(p^.fd),longint(p^.buf),sizeof(dirent));
   if retval=0 then
    sys_readdir:=nil
   else
@@ -421,16 +460,28 @@ end;
         --- Process:Process & program handling - related calls ---
 *****************************************************************************}
 
+
+Function sys_GetPid:LongInt;
+{
+  Get Process ID.
+}
+
+begin
+ sys_GetPID:=do_syscall(20);
+end;
+
 Procedure Sys_Exit(ExitCode:longint);
 
 begin
- asm
-  sys_exit:=dosyscall(1,exitcode);
+  do_syscall(1,exitcode);
 end;
 
 {
   $Log$
-  Revision 1.7  2000-03-01 17:28:40  marco
+  Revision 1.8  2000-03-01 20:03:57  marco
+   * small fixes for syslinux
+
+  Revision 1.7  2000/03/01 17:28:40  marco
    * some changes due to updating linux.pp to new syscall
 
   Revision 1.6  2000/02/27 23:45:39  marco
