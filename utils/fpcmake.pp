@@ -62,9 +62,9 @@ const
     true,true,true,true,true,true,true
   );
 
-  targets=4;
+  targets=5;
   targetstr : array[1..targets] of string=(
-    'linux','go32v2','win32','os2'
+    'linux','go32v2','win32','os2','freebsd'
   );
 
   rules=18;
@@ -1349,7 +1349,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-09-01 21:37:30  peter
+  Revision 1.3  2000-10-26 22:39:34  peter
+    * freebsd updates
+
+  Revision 1.2  2000/09/01 21:37:30  peter
     * targetdir support (merged)
 
   Revision 1.1  2000/07/13 10:16:22  michael
