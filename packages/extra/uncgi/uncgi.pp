@@ -107,6 +107,12 @@ function get_next_value(id: pchar): pchar;
 }
 procedure set_content(ctype: string);
 
+{ Function to get the requested URL }
+
+function http_url: pchar;
+
+
+
 procedure cgi_init;
 procedure cgi_deinit;
 
@@ -441,7 +447,12 @@ begin
 end;
 
 
-
+Function http_url: pchar;
+begin
+  http_url:=getenv('REQUEST_URI');
+end;
+  
+  
 begin
   {$ifdef win32}
   InitWin32CGI;
@@ -454,7 +465,10 @@ end.
 {
   HISTORY
   $Log$
-  Revision 1.5  2002-09-07 15:43:06  peter
+  Revision 1.6  2002-09-12 16:24:59  michael
+  + Added http_url function from Michael Weinert
+
+  Revision 1.5  2002/09/07 15:43:06  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/05/31 11:54:33  marco
