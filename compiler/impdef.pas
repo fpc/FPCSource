@@ -175,9 +175,15 @@ begin
   if FileCreated then
    close(t);
 end;
+
+end.
+
 {
   $Log$
-  Revision 1.3  2000-09-24 15:06:17  peter
+  Revision 1.4  2000-11-20 13:58:19  pierre
+   * missing end. added
+
+  Revision 1.3  2000/09/24 15:06:17  peter
     * use defines.inc
 
   Revision 1.2  2000/07/13 11:32:43  michael
