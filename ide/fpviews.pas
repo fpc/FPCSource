@@ -139,7 +139,7 @@ type
       function  IsReservedWord(const S: string): boolean; virtual;
       function  IsAsmReservedWord(const S: string): boolean; virtual;
       function  GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
-      function  GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string): boolean; virtual;
+      function  GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): pstring; virtual;
       { CodeTemplates }
       function    TranslateCodeTemplate(var Shortcut: string; ALines: PUnsortedStringCollection): boolean; virtual;
       function    SelectCodeTemplate(var ShortCut: string): boolean; virtual;
@@ -420,7 +420,7 @@ type
                     PScrollBar; AIndicator: PIndicator);
       function    IsReservedWord(const S: string): boolean; virtual;
       function    GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
-      function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string): boolean; virtual;
+      function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): pstring; virtual;
       function    GetPalette: PPalette; virtual;
     end;
 
@@ -430,7 +430,7 @@ type
                     PScrollBar; AIndicator: PIndicator);
       function    IsReservedWord(const S: string): boolean; virtual;
       function    GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
-      function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string): boolean; virtual;
+      function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): pstring; virtual;
     end;
 
 function  SearchFreeWindowNo: integer;
@@ -947,16 +947,17 @@ begin
   DoneTokens;
 end;
 
-function IsFPReservedWord(S: string): boolean;
+function IsFPReservedWord(const S: string): boolean;
 var _Is: boolean;
     Idx,Item: sw_integer;
+    UpS: string;
 begin
   Idx:=length(S); _Is:=false;
   if (Low(ReservedWords)<=Idx) and (Idx<=High(ReservedWords)) and
      (ReservedWords[Idx]<>nil) and (ReservedWords[Idx]^.Count<>0) then
     begin
-      S:=UpcaseStr(S);
-      _Is:=ReservedWords[Idx]^.Search(@S,Item);
+      UpS:=UpcaseStr(S);
+      _Is:=ReservedWords[Idx]^.Search(@UpS,Item);
     end;
   IsFPReservedWord:=_Is;
 end;
@@ -1117,62 +1118,71 @@ begin
   CompileStamp:=0;
 end;
 
+Const
+  FreePascalSpecSymbolCount : array [TSpecSymbolClass] of integer =
+  (
+    3,{ssCommentPrefix}
+    1,{ssCommentSingleLinePrefix}
+    2,{ssCommentSuffix}
+    1,{ssStringPrefix}
+    1,{ssStringSuffix}
+    1,{ssDirectivePrefix}
+    1,{ssDirectiveSuffix}
+    1,{ssAsmPrefix}
+    1 {ssAsmSuffix}
+  );
+
+  FreePascalEmptyString : string[1] = '';
+  FreePascalCommentPrefix1 : string[1] = '{';
+  FreePascalCommentPrefix2 : string[2] = '(*';
+  FreePascalCommentPrefix3 : string[2] = '//';
+  FreePascalCommentSingleLinePrefix : string[2] = '//';
+  FreePascalCommentSuffix1 : string[1] = '{';
+  FreePascalCommentSuffix2 : string[2] = '*)';
+  FreePascalStringPrefix : string[1] = '''';
+  FreePascalStringSuffix : string[1] = '''';
+  FreePascalDirectivePrefix : string[2] = '{$';
+  FreePascalDirectiveSuffix : string[1] = '}';
+  FreePascalAsmPrefix : string[3] = 'ASM';
+  FreePascalAsmSuffix : string[3] = 'END';
+
 function TSourceEditor.GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer;
-var Count: integer;
 begin
-  case SpecClass of
-    ssCommentPrefix   : Count:=3;
-    ssCommentSingleLinePrefix   : Count:=1;
-    ssCommentSuffix   : Count:=2;
-    ssStringPrefix    : Count:=1;
-    ssStringSuffix    : Count:=1;
-    ssAsmPrefix       : Count:=1;
-    ssAsmSuffix       : Count:=1;
-    ssDirectivePrefix : Count:=1;
-    ssDirectiveSuffix : Count:=1;
-  else
-    Count:=0;
-  end;
-  GetSpecSymbolCount:=Count;
+  GetSpecSymbolCount:=FreePascalSpecSymbolCount[SpecClass];
 end;
 
-function TSourceEditor.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string): boolean;
+function TSourceEditor.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): pstring;
 begin
-  GetSpecSymbol:=true;
+  GetSpecSymbol:=@FreePascalEmptyString;
   case SpecClass of
     ssCommentPrefix :
       case Index of
-        0 : Symbol:='{';
-        1 : Symbol:='(*';
-        2 : Symbol:='//';
+        0 : GetSpecSymbol:=@FreePascalCommentPrefix1;
+        1 : GetSpecSymbol:=@FreePascalCommentPrefix2;
+        2 : GetSpecSymbol:=@FreePascalCommentPrefix3;
       end;
     ssCommentSingleLinePrefix :
       case Index of
-        0 : Symbol:='//';
+        0 : GetSpecSymbol:=@FreePascalCommentSingleLinePrefix;
       end;
     ssCommentSuffix :
       case Index of
-        0 : Symbol:='}';
-        1 : Symbol:='*)';
+        0 : GetSpecSymbol:=@FreePascalCommentSuffix1;
+        1 : GetSpecSymbol:=@FreePascalCommentSuffix2;
       end;
     ssStringPrefix :
-      Symbol:='''';
+      GetSpecSymbol:=@FreePascalStringPrefix;
     ssStringSuffix :
-      Symbol:='''';
+      GetSpecSymbol:=@FreePascalStringSuffix;
     { must be uppercased to avoid calling UpCaseStr in MatchesAnyAsmSymbol PM }
     ssAsmPrefix :
-      Symbol:='ASM';
+      GetSpecSymbol:=@FreePascalAsmPrefix;
     ssAsmSuffix :
-      Symbol:='END';
+      GetSpecSymbol:=@FreePascalAsmSuffix;
     ssDirectivePrefix :
-      Symbol:='{$';
+      GetSpecSymbol:=@FreePascalDirectivePrefix;
     ssDirectiveSuffix :
-      Symbol:='}';
-    else
-      begin
-        Symbol:='';
-        GetSpecSymbol:=false;
-      end;
+      GetSpecSymbol:=@FreePascalDirectiveSuffix;
   end;
 end;
 
@@ -4227,11 +4237,10 @@ begin
   GetSpecSymbolCount:=0;
 end;
 
-function TFPMemo.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string): boolean;
+function TFPMemo.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): pstring;
 begin
   Abstract;
-  GetSpecSymbol:=false;
-  Symbol:='';
+  GetSpecSymbol:=nil;
 end;
 
 function TFPMemo.IsReservedWord(const S: string): boolean;
@@ -4246,60 +4255,42 @@ begin
 end;
 
 function TFPCodeMemo.GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer;
-var Count: integer;
 begin
-  case SpecClass of
-    ssCommentPrefix   : Count:=3;
-    ssCommentSingleLinePrefix   : Count:=1;
-    ssCommentSuffix   : Count:=2;
-    ssStringPrefix    : Count:=1;
-    ssStringSuffix    : Count:=1;
-    ssAsmPrefix       : Count:=1;
-    ssAsmSuffix       : Count:=1;
-    ssDirectivePrefix : Count:=1;
-    ssDirectiveSuffix : Count:=1;
-  else
-    Count:=0;
-  end;
-  GetSpecSymbolCount:=Count;
+  GetSpecSymbolCount:=FreePascalSpecSymbolCount[SpecClass];
 end;
 
-function TFPCodeMemo.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string): boolean;
+function TFPCodeMemo.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): pstring;
 begin
-  GetSpecSymbol:=true;
+  GetSpecSymbol:=@FreePascalEmptyString;
   case SpecClass of
     ssCommentPrefix :
       case Index of
-        0 : Symbol:='{';
-        1 : Symbol:='(*';
-        2 : Symbol:='//';
+        0 : GetSpecSymbol:=@FreePascalCommentPrefix1;
+        1 : GetSpecSymbol:=@FreePascalCommentPrefix2;
+        2 : GetSpecSymbol:=@FreePascalCommentPrefix3;
       end;
     ssCommentSingleLinePrefix :
       case Index of
-        0 : Symbol:='//';
+        0 : GetSpecSymbol:=@FreePascalCommentSingleLinePrefix;
       end;
     ssCommentSuffix :
       case Index of
-        0 : Symbol:='}';
-        1 : Symbol:='*)';
+        0 : GetSpecSymbol:=@FreePascalCommentSuffix1;
+        1 : GetSpecSymbol:=@FreePascalCommentSuffix2;
       end;
     ssStringPrefix :
-      Symbol:='''';
+      GetSpecSymbol:=@FreePascalStringPrefix;
     ssStringSuffix :
-      Symbol:='''';
+      GetSpecSymbol:=@FreePascalStringSuffix;
+    { must be uppercased to avoid calling UpCaseStr in MatchesAnyAsmSymbol PM }
     ssAsmPrefix :
-      Symbol:='ASM';
+      GetSpecSymbol:=@FreePascalAsmPrefix;
     ssAsmSuffix :
-      Symbol:='END';
+      GetSpecSymbol:=@FreePascalAsmSuffix;
     ssDirectivePrefix :
-      Symbol:='{$';
+      GetSpecSymbol:=@FreePascalDirectivePrefix;
     ssDirectiveSuffix :
-      Symbol:='}';
-  else
-    begin
-      GetSpecSymbol:=false;
-      Symbol:='';
-    end;
+      GetSpecSymbol:=@FreePascalDirectiveSuffix;
   end;
 end;
 
@@ -4369,7 +4360,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.31  2002-09-11 11:23:48  pierre
+  Revision 1.32  2002-09-12 08:42:07  pierre
+   * removed lots of unnecessary copies of strings for syntax highlighting
+
+  Revision 1.31  2002/09/11 11:23:48  pierre
    * more changes to speed syntax highlighting up
 
   Revision 1.30  2002/09/11 10:05:10  pierre

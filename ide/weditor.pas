@@ -562,7 +562,7 @@ type
     public
      { Syntax highlight support }
    {a}function    GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
-   {a}function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string): boolean; virtual;
+   {a}function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): pstring; virtual;
    {a}function    IsReservedWord(const S: string): boolean; virtual;
    {a}function    IsAsmReservedWord(const S: string): boolean; virtual;
     public
@@ -2093,7 +2093,7 @@ var
   type TPartialType = (pmNone,pmLeft,pmRight,pmAny);
 
   function MatchesAnySpecSymbol(SClass: TSpecSymbolClass; PartialMatch: TPartialType): boolean;
-  var S: string;
+  var S: pstring;
       I: Sw_integer;
       Match,Found: boolean;
   begin
@@ -2102,23 +2102,23 @@ var
     for I:=1 to Editor^.GetSpecSymbolCount(SClass) do
     begin
       SymbolIndex:=I;
-      Editor^.GetSpecSymbol(SClass,I-1,S);
-      if (length(SymbolConcat)<length(S)) or
-         ((PartialMatch=pmNone) and (length(S)<>length(SymbolConcat)))
+      S:=Editor^.GetSpecSymbol(SClass,I-1);
+      if (length(SymbolConcat)<length(S^)) or
+         ((PartialMatch=pmNone) and (length(S^)<>length(SymbolConcat)))
           then
         Match:=false
       else
         begin
           case PartialMatch of
-            pmNone : Match:=SymbolConcat=S;
+            pmNone : Match:=SymbolConcat=S^;
             pmRight:
-              Match:=copy(SymbolConcat,length(SymbolConcat)-length(S)+1,length(S))=S;
-          else Match:=MatchSymbol(SymbolConcat,S);
+              Match:=copy(SymbolConcat,length(SymbolConcat)-length(S^)+1,length(S^))=S^;
+          else Match:=MatchSymbol(SymbolConcat,S^);
           end;
         end;
       if Match then
       begin
-        MatchingSymbol:=S; Found:=true; Break;
+        MatchingSymbol:=S^; Found:=true; Break;
       end;
     end;
     MatchedSymbol:=MatchedSymbol or Found;
@@ -2126,7 +2126,8 @@ var
   end;
 
   function MatchesAsmSpecSymbol(Const OrigWhat: string; SClass: TSpecSymbolClass): boolean;
-  var What, S: string;
+  var What : String;
+      S: pstring;
       I: Sw_integer;
       Match,Found: boolean;
   begin
@@ -2136,8 +2137,8 @@ var
     for I:=1 to Editor^.GetSpecSymbolCount(SClass) do
     begin
       SymbolIndex:=I;
-      Editor^.GetSpecSymbol(SClass,I-1,S);
-      if (length(S)<>length(What)) then
+      S:=Editor^.GetSpecSymbol(SClass,I-1);
+      if (length(S^)<>length(What)) then
         Match:=false
       else
         begin
@@ -2145,7 +2146,7 @@ var
             S:=UpcaseStr(S); asm symbols need to be uppercased PM }
           {case PartialMatch of
             pmNone : }
-          Match:=What=S;
+          Match:=What=S^;
           {  pmRight:
               Match:=copy(What,length(What)-length(S)+1,length(S))=S;
           else Match:=MatchSymbol(What,S);
@@ -2153,7 +2154,7 @@ var
         end;
       if Match then
       begin
-        MatchingSymbol:=S;
+        MatchingSymbol:=S^;
         Found:=true;
         Break;
       end;
@@ -2312,7 +2313,7 @@ var
   procedure ProcessChar(C: char);
   var CC: TCharClass;
       EX: Sw_integer;
-      EndComment: string;
+      EndComment: pstring;
   begin
     CC:=GetCharClass(C);
     if ClassStart=X then
@@ -2376,8 +2377,8 @@ var
                   { Remove (* from SymbolConcat to avoid problem with (*) PM }
                   { fixes part of bug 1617 }
                   { but removed proper directive prefix detection ... }
-                  Editor^.GetSpecSymbol(ssCommentSuffix,SymbolIndex,EndComment);
-                  if MatchingSymbol[length(MatchingSymbol)]=EndComment[1] then
+                  EndComment:=Editor^.GetSpecSymbol(ssCommentSuffix,SymbolIndex);
+                  if MatchingSymbol[length(MatchingSymbol)]=EndComment^[1] then
                     Delete(SymbolConcat,1,length(MatchingSymbol));
                 end
               else if InComment and IsCommentSuffix then
@@ -3114,11 +3115,10 @@ begin
   GetSpecSymbolCount:=0;
 end;
 
-function TCustomCodeEditor.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer;var Symbol: string):boolean;
+function TCustomCodeEditor.GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): pstring;
 begin
   Abstract;
-  Symbol:='';
-  GetSpecSymbol:=false;
+  GetSpecSymbol:=nil;
 end;
 
 function TCustomCodeEditor.IsReservedWord(const S: string): boolean;
@@ -7179,7 +7179,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.35  2002-09-11 13:11:54  pierre
+  Revision 1.36  2002-09-12 08:42:07  pierre
+   * removed lots of unnecessary copies of strings for syntax highlighting
+
+  Revision 1.35  2002/09/11 13:11:54  pierre
    * speed up by using fixed char sets in GetCharClass
 
   Revision 1.34  2002/09/11 11:23:48  pierre
