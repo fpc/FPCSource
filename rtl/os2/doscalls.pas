@@ -1308,6 +1308,26 @@ const   mfPag_Read      = $00001;   {Give read access to memory.}
         mfSub_Sparse    = $00004;
         mfSub_Serialize = $00008;
 
+(* Plus a little bit compatibility... *)
+        pag_Read = mfPag_Read;
+        pag_Write = mfPag_Write;
+        pag_Execute = mfPag_Execute;
+        pag_Guard = mfPag_Guard;
+        pag_Commit = mfPag_Commit;
+        pag_Decommit = mfPag_Decommit;
+        obj_Tile = mfObj_Tile;
+        obj_Protected = mfObj_Protected;
+        obj_Gettable = mfObj_Gettable;
+        obj_Giveable = mfObj_Giveable;
+        pag_Default = mfPag_Default;
+        pag_Shared = mfPag_Shared;
+        pag_Free = mfPag_Free;
+        pag_Base = mfPag_Base;
+        sub_Init = mfSub_Init;
+        sub_Grow = mfSub_Grow;
+        sub_Sparse = mfSub_Sparse;
+        sub_Serialize = mfSub_Serialize;
+
 {Get some memory.
  P          = Pointer to memory will be returned here.
  Size       = Number of bytes to get. The size is rounded up to a multiple
@@ -4011,7 +4031,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.8  2001-01-23 20:28:05  hajny
+  Revision 1.9  2001-01-27 18:31:38  hajny
+    * Another bunch of compatibility additions
+
+  Revision 1.8  2001/01/23 20:28:05  hajny
     + DosAllocThreadLocalMemory
 
   Revision 1.7  2001/01/14 18:59:13  hajny
