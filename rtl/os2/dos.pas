@@ -191,24 +191,26 @@ const   FindResvdMask = $00003737; {Allowed bits in attribute
 
 function fsearch(path:pathstr;dirlist:string):pathstr;
 Var
-  R: PChar;
+  A: array [0..255] of char;
   D, P: AnsiString;
 begin
   P:=Path;
   D:=DirList;
-  DosError:=DosSearchPath(0, PChar(D), PChar(P), R, 255);
-  fsearch:=R;
+  DosError:=DosSearchPath(0, PChar(D), PChar(P), @A, 255);
+  fsearch := StrPas (@A);
 end;
 
 procedure getftime(var f;var time:longint);
 var
   FStat: PFileStatus3;
 begin
+  New (FStat);
   DosError:=DosQueryFileInfo(FileRec(F).Handle, 1, FStat, SizeOf(FStat^));
   If DosError=0 then
     Time:=FStat^.timelastwrite+FStat^.DateLastWrite*256
   else
     Time:=0;
+  Dispose (FStat);
 end;
 
 procedure SetFTime (var F; Time: longint);
@@ -216,8 +218,8 @@ var FStat: PFileStatus3;
     RC: longint;
 begin
   New (FStat);
-  RC := DosQueryFileInfo (FileRec (F).Handle, ilStandard, FStat,
-                                                    SizeOf (FStat^));
+  RC := DosQueryFileInfo (FileRec (F).Handle, ilStandard, @FStat,
+                                                    SizeOf (FStat));
   if RC = 0 then
   begin
     FStat^.DateLastAccess := Hi (Time);
@@ -567,7 +569,7 @@ begin
   pop eax
   mov P, edi      { place pointer to variable contents in P }
 @End:
- end ['eax','ebx','ecx','edx','esi','edi'];
+ end ['eax','ecx','edx','esi','edi'];
  GetEnvPChar := P;
 end;
 {$ASMMODE ATT}
@@ -577,7 +579,6 @@ function GetEnv (const EnvVar: string): string;
 begin
  GetEnv := StrPas (GetEnvPChar (EnvVar));
 end;
-{$ASMMODE ATT}
 
 procedure fsplit(path:pathstr;var dir:dirstr;var name:namestr;
                  var ext:extstr);
@@ -681,29 +682,36 @@ procedure getfattr(var f;var attr : word);
 var
   PathInfo: PFileStatus3;
 begin
+  New (PathInfo);
   Attr:=0;
   DosError:=DosQueryPathInfo(FileRec(F).Name, ilStandard, PathInfo, SizeOf(PathInfo^));
   if DosError=0 then
     Attr := PathInfo^.attrFile;
+  Dispose (PathInfo);
 end;
 
 procedure setfattr(var f;attr : word);
 var
   PathInfo: PFileStatus3;
 begin
+  New (PathInfo);
   DosError:=DosQueryPathInfo(FileRec(F).Name, ilStandard, PathInfo, SizeOf(PathInfo^));
   if DosError=0 then
   begin
     PathInfo^.attrFile:=Attr;
     DosError:=DosSetPathInfo(FileRec(F).Name, ilStandard, PathInfo, SizeOf(PathInfo^), doWriteThru);
   end;
+  Dispose (PathInfo);
 end;
 
 begin
 end.
 {
   $Log$
-  Revision 1.27  2003-10-03 21:46:41  peter
+  Revision 1.28  2003-10-05 22:06:43  hajny
+    * result buffers must be allocated
+
+  Revision 1.27  2003/10/03 21:46:41  peter
     * stdcall fixes
 
   Revision 1.26  2003/09/24 08:59:16  yuri
