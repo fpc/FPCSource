@@ -394,7 +394,7 @@ end;
 {$endif FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_HELP_FAIL}
-procedure fpc_help_fail(var _self : pointer; var vmt : pointer; vmt_pos : cardinal);safecall; [public,alias:'FPC_HELP_FAIL'];
+procedure fpc_help_fail(var _self:pointer;var vmt:pointer;vmt_pos:cardinal);safecall;[public,alias:'FPC_HELP_FAIL'];compilerproc;
    type
      ppointer = ^pointer;
      pvmt = ^tvmt;
@@ -431,7 +431,7 @@ end;
 { RETURNS SELF                                                 }
 { IMPORTANT: SELF REGISTER should be pre-loaded before call to }
 { constructor for this to work!                                }
-function fpc_new_class(_vmt: pointer; _self : pointer):pointer;saveregisters;[public,alias:'FPC_NEW_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_new_class(_vmt:pointer;_self:pointer):pointer;saveregisters;[public,alias:'FPC_NEW_CLASS']; {$ifdef hascompilerproc} compilerproc; {$endif}
  begin
    if _vmt <> nil then
      begin
@@ -447,7 +447,7 @@ function fpc_new_class(_vmt: pointer; _self : pointer):pointer;saveregisters;[pu
 {$endif FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 
 {$ifndef FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
-procedure fpc_dispose_class(_self: tobject; flag : longint);saveregisters;[public,alias:'FPC_DISPOSE_CLASS'];
+procedure fpc_dispose_class(_self: tobject; flag : longint);saveregisters;[public,alias:'FPC_DISPOSE_CLASS'];compilerproc;
  begin
    if (_self <> nil) and (flag = 1) then
       _self.FreeInstance;
@@ -766,15 +766,15 @@ end;
 ****************************************************************************}
 
 {$ifndef FPC_SYSTEM_HAS_GET_FRAME}
-{$error Get_frame must be defined for each processor }
+{_$error Get_frame must be defined for each processor }
 {$endif ndef FPC_SYSTEM_HAS_GET_FRAME}
 
 {$ifndef FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-{$error Get_caller_addr must be defined for each processor }
+{_$error Get_caller_addr must be defined for each processor }
 {$endif ndef FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 
 {$ifndef FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-{$error Get_caller_frame must be defined for each processor }
+{_$error Get_caller_frame must be defined for each processor }
 {$endif ndef FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 
 {****************************************************************************
@@ -871,8 +871,23 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_SQR_INT64}
 
+{$ifndef FPC_SYSTEM_HAS_DECLOCKED}
+function declocked(var l:longint):boolean;
+  begin
+    Dec(l);
+    declocked:=(l=0);
+  end;
+{$endif FPC_SYSTEM_HAS_DECLOCKED}
+
+{$ifndef FPC_SYSTEM_HAS_INCLOCKED}
+procedure inclocked(var l:longint);
+  begin
+    Inc(l);
+  end;
+{$endif FPC_SYSTEM_HAS_INCLOCKED}
+
 {$ifndef FPC_SYSTEM_HAS_SPTR}
-{$error Sptr must be defined for each processor }
+{_$error Sptr must be defined for each processor }
 {$endif ndef FPC_SYSTEM_HAS_SPTR}
 
 {****************************************************************************
@@ -950,7 +965,11 @@ end;
 
 {
   $Log$
-  Revision 1.45  2003-01-05 21:32:35  mazen
+  Revision 1.46  2003-01-06 23:04:21  mazen
+  * functions headers modified in generic.inc to make it possible compiling sparc
+    RTL based on generic code
+
+  Revision 1.45  2003/01/05 21:32:35  mazen
   * fixing several bugs compiling the RTL
 
   Revision 1.44  2002/12/23 21:27:13  peter

@@ -215,13 +215,13 @@ Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
 {$ifndef i386}
 Procedure fpc_DestroyException(o : TObject); compilerproc;
 procedure fpc_help_constructor; compilerproc;
-procedure fpc_help_fail; compilerproc;
+procedure fpc_help_fail(var _self:pointer;var vmt:pointer;vmt_pos:cardinal);safecall;compilerproc;
 procedure fpc_help_destructor(var _self : pointer; vmt : pointer; vmt_pos : cardinal);saveregisters;compilerproc;
-procedure fpc_new_class; compilerproc;
-procedure fpc_dispose_class; compilerproc;
-procedure fpc_help_fail_class; compilerproc;
-procedure fpc_check_object(obj : pointer); compilerproc;
-procedure fpc_check_object_ext; compilerproc;
+function fpc_new_class(_vmt:pointer;_self:pointer):pointer;saveregisters;compilerproc;
+procedure fpc_dispose_class(_self: tobject; flag : longint);saveregisters;compilerproc;
+function fpc_help_fail_class(_vmt:pointer;_self:pointer):pointer;saveregisters;compilerproc;
+procedure fpc_check_object(obj:pointer); compilerproc;
+procedure fpc_check_object_ext(vmt,expvmt:pointer);saveregisters;compilerproc;
 {$endif i386}
 Procedure fpc_Initialize (Data,TypeInfo : pointer); compilerproc;
 Procedure fpc_finalize (Data,TypeInfo: Pointer); compilerproc;
@@ -285,7 +285,11 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.32  2003-01-06 08:25:47  michael
+  Revision 1.33  2003-01-06 23:04:21  mazen
+  * functions headers modified in generic.inc to make it possible compiling sparc
+    RTL based on generic code
+
+  Revision 1.32  2003/01/06 08:25:47  michael
   + PAtch from peter fixing daily build
 
   Revision 1.31  2003/01/05 21:32:35  mazen
