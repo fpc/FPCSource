@@ -37,7 +37,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion=16;
+  CurrentPPUVersion=17;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -120,6 +120,8 @@ const
   uf_static_linked = $80;  { the ppu can be linked static }
   uf_shared_linked = $100; { the ppu can be linked shared }
   uf_local_browser = $200;
+  uf_no_link       = $400; { unit has no .o generated, but can still have
+                             external linking! }
 
 type
 {$ifdef m68k}
@@ -384,7 +386,7 @@ begin
      Id[3]:='U';
      Ver[1]:='0';
      Ver[2]:='1';
-     Ver[3]:='6';
+     Ver[3]:='7';
    end;
 end;
 
@@ -869,9 +871,20 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-07-03 00:25:43  peter
-    * 0.99.13
-    * new link support
+  Revision 1.3  1999-07-27 23:46:55  peter
+    * version 17 ppu
+
+  Revision 1.36  1999/07/23 16:05:25  peter
+    * alignment is now saved in the symtable
+    * C alignment added for records
+    * PPU version increased to solve .12 <-> .13 probs
+
+  Revision 1.35  1999/07/05 16:21:30  peter
+    * fixed linking for units without linking necessary
+
+  Revision 1.34  1999/07/03 00:29:57  peter
+    * new link writing to the ppu, one .ppu is needed for all link types,
+      static (.o) is now always created also when smartlinking is used
 
   Revision 1.33  1999/05/13 21:59:36  peter
     * removed oldppu code
