@@ -187,9 +187,7 @@ PPUOBJECTS=$(SYSTEMPPU) $(addsuffix $(PPUEXT), $(OBJECTS))
 
 all : $(OBJLOADERS) $(PPUOBJECTS)
 
-install :
-	make clean
-	make all
+install : all
 	$(MKDIR) $(UNITINSTALLDIR)
 	$(INSTALL) *$(PPUEXT) *$(OEXT) $(UNITINSTALLDIR)
 
@@ -334,7 +332,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.23  1998-09-07 18:31:53  peter
+# Revision 1.24  1998-09-10 09:10:05  michael
+# errors when making libs
+#
+# Revision 1.23  1998/09/07 18:31:53  peter
 #   * fixed $smartlibext -> $staticlibext to fix a 'rm *' :(
 #
 # Revision 1.22  1998/08/21 20:20:12  michael
