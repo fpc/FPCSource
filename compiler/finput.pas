@@ -118,7 +118,11 @@ uses
 {$else Delphi}
   dos,
 {$endif Delphi}
-  cobjects,globals;
+  cobjects,globals
+{$ifdef heaptrc}
+  ,fmodule
+{$endif heaptrc}
+  ;
 
 {****************************************************************************
                                   TINPUTFILE
@@ -564,7 +568,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.2  2000-09-24 15:06:16  peter
+  Revision 1.3  2000-10-14 21:52:54  peter
+    * fixed memory leaks
+
+  Revision 1.2  2000/09/24 15:06:16  peter
     * use defines.inc
 
   Revision 1.1  2000/08/27 16:11:50  peter

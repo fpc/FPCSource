@@ -55,8 +55,9 @@ implementation
        globtype,globals,systems,verbose,
        cutils,cobjects,
        aasm,cpubase,cpuasm,
+       symconst,
 {$ifdef GDB}
-       gdb,symconst,
+       gdb,
 {$endif GDB}
        types,
        ncon,nld,
@@ -1148,6 +1149,7 @@ implementation
            secondpass(hightree);
            push_value_para(hightree,false,false,0,4);
            hightree.free;
+           hightree:=nil;
          end
         else
          begin
@@ -1313,7 +1315,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-10-14 10:14:50  peter
+  Revision 1.3  2000-10-14 21:52:54  peter
+    * fixed memory leaks
+
+  Revision 1.2  2000/10/14 10:14:50  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.1  2000/10/01 19:58:40  peter

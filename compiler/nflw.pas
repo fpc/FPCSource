@@ -108,6 +108,7 @@ interface
           exceptsymtable : psymtable;
           excepttype : pobjectdef;
           constructor create(l,r:tnode);virtual;
+          destructor destroy;override;
           function pass_1 : tnode;override;
           function getcopy : tnode;override;
        end;
@@ -193,10 +194,8 @@ implementation
     destructor tloopnode.destroy;
 
       begin
-         if assigned(t1) then
-          t1.free;
-         if assigned(t2) then
-          t2.free;
+         t1.free;
+         t2.free;
          inherited destroy;
       end;
 
@@ -881,6 +880,13 @@ implementation
          excepttype:=nil;
       end;
 
+    destructor tonnode.destroy;
+      begin
+        if assigned(exceptsymtable) then
+         dispose(exceptsymtable,done);
+        inherited destroy;
+      end;
+
     function tonnode.getcopy : tnode;
 
       var
@@ -976,7 +982,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-10-14 10:14:50  peter
+  Revision 1.7  2000-10-14 21:52:55  peter
+    * fixed memory leaks
+
+  Revision 1.6  2000/10/14 10:14:50  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.5  2000/10/01 19:48:24  peter

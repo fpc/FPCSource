@@ -44,6 +44,7 @@ interface
        tasmnode = class(tnode)
           p_asm : paasmoutput;
           constructor create(p : paasmoutput);virtual;
+          destructor destroy;override;
           function pass_1 : tnode;override;
        end;
 
@@ -311,6 +312,12 @@ implementation
          p_asm:=p;
       end;
 
+    destructor tasmnode.destroy;
+      begin
+        if assigned(p_asm) then
+         dispose(p_asm,done);
+        inherited destroy;
+      end;
 
     function tasmnode.pass_1 : tnode;
       begin
@@ -327,7 +334,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-10-14 10:14:50  peter
+  Revision 1.2  2000-10-14 21:52:54  peter
+    * fixed memory leaks
+
+  Revision 1.1  2000/10/14 10:14:50  peter
     * moehrendorf oct 2000 rewrite
 
 }

@@ -702,6 +702,7 @@ implementation
                         secondpass(hightree);
                         emit_mov_loc_ref(hightree.location,href,S_L,true);
                         hightree.free;
+                        hightree:=nil;
                       end;
                      emitrangecheck(right,left.resulttype);
                    end;
@@ -1016,7 +1017,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-10-14 10:14:49  peter
+  Revision 1.2  2000-10-14 21:52:54  peter
+    * fixed memory leaks
+
+  Revision 1.1  2000/10/14 10:14:49  peter
     * moehrendorf oct 2000 rewrite
 
 }

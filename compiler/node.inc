@@ -62,9 +62,10 @@
 
       begin
          { reference info }
-         if (location.loc in [LOC_MEM,LOC_REFERENCE]) and
+         {if (location.loc in [LOC_MEM,LOC_REFERENCE]) and
             assigned(location.reference.symbol) then
-           dispose(location.reference.symbol,done);
+           dispose(location.reference.symbol,done);}
+
 {$ifdef EXTDEBUG}
          if firstpasscount>maxfirstpasscount then
             maxfirstpasscount:=firstpasscount;
@@ -264,6 +265,12 @@
          left:=l;
       end;
 
+    destructor tunarynode.destroy;
+      begin
+        left.free;
+        inherited destroy;
+      end;
+
     function tunarynode.docompare(p : tnode) : boolean;
 
       begin
@@ -343,6 +350,12 @@
       begin
          inherited create(tt,l);
          right:=r
+      end;
+
+    destructor tbinarynode.destroy;
+      begin
+        right.free;
+        inherited destroy;
       end;
 
     procedure tbinarynode.concattolist(l : plinkedlist);
@@ -489,7 +502,10 @@
 
 {
   $Log$
-  Revision 1.9  2000-10-14 10:14:51  peter
+  Revision 1.10  2000-10-14 21:52:55  peter
+    * fixed memory leaks
+
+  Revision 1.9  2000/10/14 10:14:51  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.8  2000/10/01 19:48:24  peter

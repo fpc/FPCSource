@@ -36,7 +36,7 @@ interface
 implementation
 
     uses
-       globtype,globals,files;
+       globtype,globals,fmodule;
 
     procedure ppextra_info(p : pointer);
       var pl : plongint;
@@ -70,7 +70,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-09-24 15:06:24  peter
+  Revision 1.4  2000-10-14 21:52:56  peter
+    * fixed memory leaks
+
+  Revision 1.3  2000/09/24 15:06:24  peter
     * use defines.inc
 
   Revision 1.2  2000/07/13 11:32:45  michael

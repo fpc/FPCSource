@@ -323,6 +323,8 @@ interface
       begin
         if assigned(Data) then
           dispose(Data,done);
+        if assigned(relocsect) then
+          dispose(relocsect,done);
       end;
 
 
@@ -473,7 +475,11 @@ interface
         sec : tsection;
       begin
         writetodisk;
+        { free memory }
         dispose(syms,done);
+        dispose(symtabsect,done);
+        dispose(strtabsect,done);
+        dispose(shstrtabsect,done);
         for sec:=low(tsection) to high(tsection) do
          if assigned(sects[sec]) then
           dispose(sects[sec],done);
@@ -1050,7 +1056,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.7  2000-09-24 15:06:20  peter
+  Revision 1.8  2000-10-14 21:52:55  peter
+    * fixed memory leaks
+
+  Revision 1.7  2000/09/24 15:06:20  peter
     * use defines.inc
 
   Revision 1.6  2000/08/27 16:11:51  peter

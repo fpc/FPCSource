@@ -874,7 +874,9 @@ implementation
             if (pd^.deftype<>pointerdef) then
               begin
                  Message1(type_e_pointer_type_expected,pd^.typename);
+                 p.free;
                  p:=factor(false);
+                 p.free;
                  consume(_RKLAMMER);
                  new_dispose_statement:=cerrornode.create;
                  exit;
@@ -883,6 +885,7 @@ implementation
             if ppointerdef(pd)^.pointertype.def^.deftype<>objectdef then
               begin
                  Message(parser_e_pointer_to_class_expected);
+                 p.free;
                  new_dispose_statement:=factor(false);
                  consume_all_until(_RKLAMMER);
                  consume(_RKLAMMER);
@@ -912,6 +915,7 @@ implementation
                   Message(parser_e_expr_have_to_be_constructor_call)
                  else
                   Message(parser_e_expr_have_to_be_destructor_call);
+                 p.free;
                  new_dispose_statement:=cerrornode.create;
               end
             else
@@ -960,7 +964,7 @@ implementation
                     begin
                       if (tcallnode(p2).procdefinition^.proctypeoption<>potype_constructor) then
                         Message(parser_e_expr_have_to_be_constructor_call);
-                      p2:=cassignmentnode.create(p.getcopy,cnewnode.create(p2));
+                      p2:=cassignmentnode.create(p,cnewnode.create(p2));
                       tassignmentnode(p2).right.resulttype:=pd2;
                     end
                    else
@@ -1254,7 +1258,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-10-14 10:14:52  peter
+  Revision 1.11  2000-10-14 21:52:56  peter
+    * fixed memory leaks
+
+  Revision 1.10  2000/10/14 10:14:52  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.9  2000/10/01 19:48:25  peter

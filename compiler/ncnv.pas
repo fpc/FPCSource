@@ -183,12 +183,15 @@ implementation
             {split a range into p2 and p3 }
               if p.left.nodetype=arrayconstructorrangen then
                begin
-                 p2:=tarrayconstructorrangenode(p.left).left.getcopy;
-                 p3:=tarrayconstructorrangenode(p.left).right.getcopy;
+                 p2:=tarrayconstructorrangenode(p.left).left;
+                 p3:=tarrayconstructorrangenode(p.left).right;
+                 tarrayconstructorrangenode(p.left).left:=nil;
+                 tarrayconstructorrangenode(p.left).right:=nil;
                end
               else
                begin
-                 p2:=p.left.getcopy;
+                 p2:=p.left;
+                 p.left:=nil;
                  p3:=nil;
                end;
               firstpass(p2);
@@ -843,8 +846,8 @@ implementation
                        else
                         hp:=genloadcallnode(pprocsym(tcallnode(left).symtableprocentry),
                           tcallnode(left).symtableproc);
-                       left.free;
                        firstpass(hp);
+                       left.free;
                        left:=hp;
                        aprocdef:=pprocdef(left.resulttype);
                    (*  end
@@ -1160,7 +1163,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-10-14 10:14:50  peter
+  Revision 1.8  2000-10-14 21:52:55  peter
+    * fixed memory leaks
+
+  Revision 1.7  2000/10/14 10:14:50  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.6  2000/10/01 19:48:24  peter

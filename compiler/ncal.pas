@@ -76,6 +76,7 @@ interface
           inlineprocsym : pprocsym;
           retoffset,para_offset,para_size : longint;
           constructor create(callp,code : tnode);virtual;
+          destructor destroy;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
@@ -1239,6 +1240,7 @@ interface
                              tcallparanode(left).left);
                            tcallparanode(left).left:=nil;
                            left.free;
+                           left:=nil;
                          end;
                      end
                    else
@@ -1487,6 +1489,12 @@ interface
       {$ENDIF NEWST}
       end;
 
+    destructor tprocinlinenode.destroy;
+      begin
+        inlinetree.free;
+        inherited destroy;
+      end;
+
     function tprocinlinenode.getcopy : tnode;
 
       var
@@ -1521,7 +1529,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-10-14 10:14:50  peter
+  Revision 1.10  2000-10-14 21:52:55  peter
+    * fixed memory leaks
+
+  Revision 1.9  2000/10/14 10:14:50  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.8  2000/10/01 19:48:24  peter

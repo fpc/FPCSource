@@ -91,13 +91,13 @@ interface
 {$IFDEF NEWST}
           withsymtables : Pcollection;
           withreference : preference;
-
 {$ELSE}
           withsymtable : pwithsymtable;
           tablecount : longint;
           withreference:preference;
 {$ENDIF NEWST}
           constructor create(symtable : pwithsymtable;l,r : tnode;count : longint);virtual;
+          destructor destroy;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
@@ -423,7 +423,7 @@ implementation
 
                     { it could also be a procvar, not only pprocsym ! }
                        if tcallnode(left).symtableprocentry^.typ=varsym then
-                        hp3:=pabstractprocdef(pvarsym(tloadnode(left).symtableentry)^.vartype.def)
+                        hp3:=pabstractprocdef(pvarsym(tcallnode(left).symtableprocentry)^.vartype.def)
                        else
                         hp3:=pabstractprocdef(pprocsym(tcallnode(left).symtableprocentry)^.definition);
 
@@ -829,6 +829,28 @@ implementation
          set_file_line(l);
       end;
 
+    destructor twithnode.destroy;
+      var
+        symt : psymtable;
+        i    : longint;
+      begin
+{$IFDEF NEWST}
+        dispose(withsymtables,done);
+{$ELSE}
+        symt:=withsymtable;
+        for i:=1 to tablecount do
+         begin
+           if assigned(symt) then
+            begin
+              withsymtable:=pwithsymtable(symt^.next);
+              dispose(symt,done);
+            end;
+           symt:=withsymtable;
+         end;
+{$ENDIF NEWST}
+        inherited destroy;
+      end;
+
     function twithnode.getcopy : tnode;
 
       var
@@ -882,7 +904,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-10-14 10:14:51  peter
+  Revision 1.7  2000-10-14 21:52:55  peter
+    * fixed memory leaks
+
+  Revision 1.6  2000/10/14 10:14:51  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.5  2000/10/01 19:48:24  peter

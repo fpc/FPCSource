@@ -66,6 +66,7 @@ interface
           stringtype : tstringtype;
           constructor createstr(const s : string;st:tstringtype);virtual;
           constructor createpchar(s : pchar;l : longint);virtual;
+          destructor destroy;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function getpcharcopy : pchar;
@@ -75,6 +76,7 @@ interface
           value_set : pconstset;
           lab_set : pasmlabel;
           constructor create(s : pconstset;settype : psetdef);virtual;
+          destructor destroy;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
@@ -124,7 +126,7 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globals,systems,
+      cutils,cobjects,verbose,globals,systems,
       types,hcodegen,pass_1,cpubase,nld;
 
     function genordinalconstnode(v : tconstexprint;def : pdef) : tordconstnode;
@@ -500,6 +502,12 @@ implementation
          lab_str:=nil;
       end;
 
+    destructor tstringconstnode.destroy;
+      begin
+        ansistringdispose(value_str,len);
+        inherited destroy;
+      end;
+
     function tstringconstnode.getcopy : tnode;
 
       var
@@ -561,6 +569,13 @@ implementation
            value_set:=nil;
       end;
 
+    destructor tsetconstnode.destroy;
+      begin
+        if assigned(value_set) then
+         dispose(value_set);
+        inherited destroy;
+      end;
+
     function tsetconstnode.getcopy : tnode;
 
       var
@@ -613,7 +628,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-10-14 10:14:50  peter
+  Revision 1.9  2000-10-14 21:52:55  peter
+    * fixed memory leaks
+
+  Revision 1.8  2000/10/14 10:14:50  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.7  2000/09/28 19:49:52  florian

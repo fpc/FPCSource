@@ -258,6 +258,7 @@
        tunarynode = class(tparentnode)
           left : tnode;
           constructor create(tt : tnodetype;l : tnode);
+          destructor destroy;override;
           procedure concattolist(l : plinkedlist);override;
           function ischild(p : tnode) : boolean;override;
           procedure det_resulttype;override;
@@ -274,6 +275,7 @@
        tbinarynode = class(tunarynode)
           right : tnode;
           constructor create(tt : tnodetype;l,r : tnode);
+          destructor destroy;override;
           procedure concattolist(l : plinkedlist);override;
           function ischild(p : tnode) : boolean;override;
           procedure det_resulttype;override;
@@ -302,7 +304,10 @@
 
 {
   $Log$
-  Revision 1.12  2000-10-14 10:14:51  peter
+  Revision 1.13  2000-10-14 21:52:55  peter
+    * fixed memory leaks
+
+  Revision 1.12  2000/10/14 10:14:51  peter
     * moehrendorf oct 2000 rewrite
 
   Revision 1.11  2000/10/01 19:48:24  peter
