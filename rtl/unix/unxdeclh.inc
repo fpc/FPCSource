@@ -21,10 +21,13 @@ Function fpFlock (fd,mode : longint) : cint; cdecl; external clib name 'flock';
 Function fsync (fd : cint) : cint; cdecl; external clib name 'fsync';
 Function StatFS  (Path:pchar;Var Info:tstatfs):cint; cdecl; external clib name 'statfs';
 function pipe (var fildes: filedesarray):cint;  cdecl; external clib name 'pipe';
-
+function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint;   cdecl; external clib name 'gettimeofday';
 {
    $Log$
-   Revision 1.5  2004-11-14 12:21:08  marco
+   Revision 1.6  2004-12-22 13:53:51  marco
+    * fpgettimeofday moved from baseunix to unix
+
+   Revision 1.5  2004/11/14 12:21:08  marco
     * moved some calls from unix to baseunix. Darwin untested.
 
    Revision 1.4  2004/04/23 19:16:25  marco
