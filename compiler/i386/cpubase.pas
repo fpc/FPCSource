@@ -264,18 +264,6 @@ const
     C_S,C_Z,C_NO,C_NP,C_NP,C_P,C_NS,C_NZ
   );
 
-<<<<<<< cpubase.pas
-const
-  CondAsmOps=3;
-  CondAsmOp:array[0..CondAsmOps-1] of TasmOp=(
-    A_CMOVcc, A_Jcc, A_SETcc
-  );
-  CondAsmOpStr:array[0..CondAsmOps-1] of string[4]=(
-    'CMOV','J','SET'
-  );
-=======
->>>>>>> 1.14
-
 
 {*****************************************************************************
                                   Registers
@@ -320,7 +308,6 @@ const
   regset8bit  : tregisterset = [R_AL..R_DH];
   regset16bit : tregisterset = [R_AX..R_DI,R_CS..R_SS];
   regset32bit : tregisterset = [R_EAX..R_EDI];
-<<<<<<< cpubase.pas
 
   { Convert reg to opsize }
   reg2opsize : array[firstreg..lastreg] of topsize = (S_NO,
@@ -335,10 +322,7 @@ const
     S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D,
     S_D,S_D,S_D,S_D,S_D,S_D,S_D,S_D
   );
-=======
->>>>>>> 1.14
 
-<<<<<<< cpubase.pas
   { Convert reg to operand type }
   reg2type : array[firstreg..lastreg] of longint = (OT_NONE,
     OT_REG_EAX,OT_REG_ECX,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,
@@ -353,9 +337,6 @@ const
     OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG
   );
 
-{$ifdef INTELOP}
-  int_reg2str : reg2strtable = ('',
-=======
   {# Standard opcode string table (for each tasmop enumeration). The
      opcode strings should conform to the names as defined by the
      processor manufacturer.
@@ -367,7 +348,6 @@ const
      by the processor manufacturer
   }
   std_reg2str : reg2strtable = ('',
->>>>>>> 1.14
     'eax','ecx','edx','ebx','esp','ebp','esi','edi',
     'ax','cx','dx','bx','sp','bp','si','di',
     'al','cl','dl','bl','ah','ch','bh','dh',
@@ -379,8 +359,6 @@ const
     'mm0','mm1','mm2','mm3','mm4','mm5','mm6','mm7',
     'xmm0','xmm1','xmm2','xmm3','xmm4','xmm5','xmm6','xmm7'
   );
-
-
 
 
 {*****************************************************************************
@@ -554,49 +532,7 @@ const
   pointer_size  = 4;
   extended_size = 10;
   mmreg_size = 8;
-<<<<<<< cpubase.pas
-  sizepostfix_pointer = S_L;
 
-
-{*****************************************************************************
-                              Instruction table
-*****************************************************************************}
-=======
->>>>>>> 1.14
-
-<<<<<<< cpubase.pas
-{$ifndef NOAG386BIN}
-type
-  tinsentry=packed record
-    opcode  : tasmop;
-    ops     : byte;
-    optypes : array[0..2] of longint;
-    code    : array[0..maxinfolen] of char;
-    flags   : longint;
-  end;
-  pinsentry=^tinsentry;
-=======
->>>>>>> 1.14
-
-<<<<<<< cpubase.pas
-  TInsTabCache=array[TasmOp] of longint;
-  PInsTabCache=^TInsTabCache;
-=======
->>>>>>> 1.14
-
-<<<<<<< cpubase.pas
-const
-  InsTab:array[0..instabentries-1] of TInsEntry=
-{$i i386tab.inc}
-
-var
-  InsTabCache : PInsTabCache;
-{$endif NOAG386BIN}
-
-=======
-  procedure InitCpu;
-  procedure DoneCpu;
->>>>>>> 1.14
 
 {*****************************************************************************
                    Opcode propeties (needed for optimizer)
@@ -655,31 +591,7 @@ const
        maxintregs = maxvarregs;
        maxfpuregs = maxfpuvarregs;
 
-<<<<<<< cpubase.pas
-    function imm_2_type(l:longint):longint;
-=======
-    { the following functions allow to convert registers }
-    { for example reg8toreg32(R_AL) returns R_EAX        }
-    { for example reg16toreg32(R_AL) gives an undefined  }
-    { result                                             }
-    { these functions expects that the turn of           }
-    { tregister isn't changed                            }
-    function reg8toreg16(reg : tregister) : tregister;
-    function reg8toreg32(reg : tregister) : tregister;
-    function reg16toreg8(reg : tregister) : tregister;
-    function reg32toreg8(reg : tregister) : tregister;
-    function reg32toreg16(reg : tregister) : tregister;
-    function reg16toreg32(reg : tregister) : tregister;
-
-    { these procedures must be defined by all target cpus }
-    function regtoreg8(reg : tregister) : tregister;
-    function regtoreg16(reg : tregister) : tregister;
-    function regtoreg32(reg : tregister) : tregister;
->>>>>>> 1.14
-
     function changeregsize(r:tregister;size:topsize):tregister;
-
-    function reg2str(r : tregister) : string;
 
     function is_calljmp(o:tasmop):boolean;
 
@@ -797,18 +709,13 @@ implementation
       end;
 
 
-    procedure InitCpu;
-     begin
-     end;
-
-    procedure DoneCpu;
-     begin
-     end;
-
 end.
 {
   $Log$
-  Revision 1.15  2002-04-15 19:44:20  peter
+  Revision 1.16  2002-04-15 19:53:54  peter
+    * fixed conflicts between the last 2 commits
+
+  Revision 1.15  2002/04/15 19:44:20  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

@@ -178,7 +178,6 @@ begin
      DoneLinker;
      DoneAssembler;
      DoneAsm;
-     DoneCpu;
    end;
 { Free memory for the others }
   CompilerInited:=false;
@@ -223,7 +222,6 @@ begin
   InitExport;
   InitLinker;
   InitAssembler;
-  InitCpu;
   InitAsm;
   CompilerInitedAfterArgs:=true;
 end;
@@ -339,7 +337,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2002-04-15 18:56:42  carl
+  Revision 1.25  2002-04-15 19:53:54  peter
+    * fixed conflicts between the last 2 commits
+
+  Revision 1.24  2002/04/15 18:56:42  carl
   + InitAsm
 
   Revision 1.23  2002/03/24 19:05:31  carl
