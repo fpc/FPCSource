@@ -147,6 +147,7 @@ interface
     procedure tcgaddnode.set_result_location_reg;
       begin
         location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+{$ifdef x86}
         if left.location.loc=LOC_REGISTER then
           begin
             if TCGSize2Size[left.location.size]<>TCGSize2Size[location.size] then
@@ -177,6 +178,7 @@ interface
               location.register := right.location.register;
           end
         else
+{$endif}
           begin
 {$ifndef cpu64bit}
             if location.size in [OS_64,OS_S64] then
@@ -186,7 +188,7 @@ interface
               end
             else
 {$endif}
-              location.register := cg.getintregister(exprasmlist,location.size);
+            location.register := cg.getintregister(exprasmlist,location.size);
           end;
       end;
 
@@ -774,7 +776,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2005-01-01 14:32:53  florian
+  Revision 1.38  2005-01-20 21:28:52  florian
+    * optimized register usage for non-x86 e.g. 3 operand cpus
+
+  Revision 1.37  2005/01/01 14:32:53  florian
     * maybe_constant means also that a loc can be CREGISTER
 
   Revision 1.36  2004/11/01 17:41:28  florian
