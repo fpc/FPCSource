@@ -47,8 +47,6 @@ implementation
         GetReferenceString:='';
         with ref do
           begin
-            inc(offset,offsetfixup);
-            offsetfixup:=0;
             if (base=NR_NO) and (index=NR_NO) then
               begin
                  if assigned(symbol) then
@@ -171,7 +169,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.26  2004-06-16 20:07:10  florian
+    Revision 1.27  2004-06-20 07:11:32  florian
+      - offsetfixup removed
+
+    Revision 1.26  2004/06/16 20:07:10  florian
       * dwarf branch merged
 
     Revision 1.25.2.3  2004/05/30 17:54:14  florian
