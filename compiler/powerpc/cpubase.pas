@@ -529,7 +529,11 @@ uses
 
 
       firstsaveintreg = RS_R13;
+{$ifndef newra}
       lastsaveintreg  = RS_R27;
+{$else newra}
+      lastsaveintreg  = RS_R31;
+{$endif newra}
       firstsavefpureg = R_F14;
       lastsavefpureg  = R_F31;
       { no altivec support yet. Need to override tcgobj.a_loadmm_* first in tcgppc }
@@ -882,7 +886,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2003-07-06 20:25:03  jonas
+  Revision 1.62  2003-07-23 11:00:09  jonas
+    * "lastsaveintreg" is RS_R31 instead of RS_R27 with -dnewra, because
+      there are no scratch regs anymore
+
+  Revision 1.61  2003/07/06 20:25:03  jonas
     * fixed ppc compiler
 
   Revision 1.60  2003/07/06 15:28:24  jonas
