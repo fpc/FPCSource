@@ -46,7 +46,7 @@ uses Strings;
 
 const
 
-  LF_SH_Comment1 = LF_SH_Multiline1;	{ {} Comments}
+  LF_SH_Comment1 = LF_SH_Multiline1;	{ Normal braced Comments}
   LF_SH_Comment2 = LF_SH_Multiline2;    { (* *) Comments}
   LF_SH_Asm      = LF_SH_Multiline3;
 
@@ -297,6 +297,8 @@ begin
           end;
           if StringLength = 1 then
             dest[LastSHPos] := Chr(shCharacters);
+	  if (source[0] = #0) and (dest[dp - 1] <> '''') then
+	    dest[LastSHPos] := Chr(shInvalid);
           AddSH(shDefault);
         end;
       '_', 'A'..'Z', 'a'..'z': begin
@@ -309,6 +311,7 @@ begin
       else begin
         AddSH(shInvalid);
         PutChar;  // = found an invalid char!
+	AddSH(shDefault);
       end;
     end;
   end;
@@ -322,7 +325,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2000-02-20 10:59:46  sg
+  Revision 1.8  2000-02-22 14:29:17  sg
+  * Unterminated strings now get the shInvalid style
+
+  Revision 1.7  2000/02/20 10:59:46  sg
   * Added new style: shInvalid
   * Cosmetic changes
 
