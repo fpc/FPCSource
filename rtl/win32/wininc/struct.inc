@@ -3513,14 +3513,28 @@
      PINPUTRECORD = ^INPUT_RECORD;
 
      SYSTEMTIME = record
-          wYear : WORD;
-          wMonth : WORD;
-          wDayOfWeek : WORD;
-          wDay : WORD;
-          wHour : WORD;
-          wMinute : WORD;
-          wSecond : WORD;
-          wMilliseconds : WORD;
+          case integer of
+           1 : (
+             wYear : WORD;
+             wMonth : WORD;
+             wDayOfWeek : WORD;
+             wDay : WORD;
+             wHour : WORD;
+             wMinute : WORD;
+             wSecond : WORD;
+             wMilliseconds : WORD;
+               );
+           { Compatibility for FPC }
+           2 : (
+             Year : WORD;
+             Month : WORD;
+             DayOfWeek : WORD;
+             Day : WORD;
+             Hour : WORD;
+             Minute : WORD;
+             Second : WORD;
+             Millisecond : WORD;
+               );
        end;
      LPSYSTEMTIME = ^SYSTEMTIME;
      _SYSTEMTIME = SYSTEMTIME;
@@ -7013,7 +7027,10 @@ type
 
 {
   $Log$
-  Revision 1.15  2002-09-15 17:53:45  peter
+  Revision 1.16  2002-10-02 21:03:04  peter
+    * TSystemTime fpc compatibility parameters added as variant record
+
+  Revision 1.15  2002/09/15 17:53:45  peter
     * Remove Float type, use Single instead
 
   Revision 1.14  2002/09/07 16:01:32  peter
