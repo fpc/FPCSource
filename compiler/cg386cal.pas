@@ -1053,7 +1053,7 @@ implementation
                    if (cs_check_range in aktlocalswitches) then
                      begin
                         exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,r^.base)));
-                        emitcall('CHECK_OBJECT',true);
+                        emitcall('FPC_CHECK_OBJECT',true);
                      end;
                    exprasmlist^.concat(new(pai386,op_ref(A_CALL,S_NO,r)));
                 end
@@ -1268,9 +1268,7 @@ implementation
          if iolabel<>nil then
            begin
               exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,newcsymbol(lab2str(iolabel),0))));
-              { this was wrong, probably an error due to diff3
-                emitcall(p^.procdefinition^.mangledname);}
-              emitcall('IOCHECK',true);
+              emitcall('FPC_IOCHECK',true);
            end;
          if must_pop then
            exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,pop_size,R_ESP)));
@@ -1408,7 +1406,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1998-09-04 08:41:37  peter
+  Revision 1.23  1998-09-14 10:43:45  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.22  1998/09/04 08:41:37  peter
     * updated some error messages
 
   Revision 1.21  1998/09/01 12:47:57  peter

@@ -413,7 +413,7 @@ implementation
                   del_reference(p^.right^.location.reference);
                   { registers need not be save. that happens in SET_IN_BYTE }
                   { (EDI is changed) }
-                  emitcall('SET_IN_BYTE',true);
+                  emitcall('FPC_SET_IN_BYTE',true);
                   { ungetiftemp(p^.right^.location.reference); }
                   p^.location.loc:=LOC_FLAGS;
                   p^.location.resflags:=F_C;
@@ -783,7 +783,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1998-09-09 17:51:59  florian
+  Revision 1.16  1998-09-14 10:43:53  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.15  1998/09/09 17:51:59  florian
     * the next try to fix the case problem ...
 
   Revision 1.14  1998/09/09 16:44:21  florian

@@ -148,7 +148,7 @@ implementation
              begin
                 if ppointerdef(p^.left^.resulttype)^.definition^.needs_inittable then
                   begin
-{!!!!!!!}               
+{!!!!!!!}
 
 (*                     new(r);
                      reset_reference(r^);
@@ -161,16 +161,16 @@ implementation
                         LOC_REFERENCE:
                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                      end;
-                     emitcall('FINALIZE',true); *)
+                     emitcall('FPC_FINALIZE',true); *)
                   end;
-                emitcall('FREEMEM',true);
+                emitcall('FPC_FREEMEM',true);
              end;
            simplenewn:
              begin
-                emitcall('GETMEM',true);
+                emitcall('FPC_GETMEM',true);
                 if ppointerdef(p^.left^.resulttype)^.definition^.needs_inittable then
                   begin
-{!!!!!!!}               
+{!!!!!!!}
 
 (*                     new(r);
                      reset_reference(r^);
@@ -183,7 +183,7 @@ implementation
                         LOC_REFERENCE:
                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                      end;
-                     emitcall('INITIALIZE',true); *)
+                     emitcall('FPC_INITIALIZE',true); *)
                   end;
              end;
          end;
@@ -392,7 +392,7 @@ implementation
                      begin
                        exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,l1,R_D0)));
                        exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,ind,R_D1)));
-                       emitcall('LONGMUL',true);
+                       emitcall('FPC_LONGMUL',true);
                        exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_D0,ind)));
                      end;
                  end;
@@ -691,7 +691,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-09-11 12:29:44  pierre
+  Revision 1.4  1998-09-14 10:44:02  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.3  1998/09/11 12:29:44  pierre
     * removed explicit range_checking as it is buggy
 
   Revision 1.2.2.1  1998/09/11 12:08:59  pierre

@@ -814,7 +814,7 @@ implementation
                      { If the base is already A0, the no instruction will }
                      { be emitted!                                        }
                      emit_reg_reg(A_MOVE,S_L,r^.base,R_A0);
-                        emitcall('CHECK_OBJECT',true);
+                        emitcall('FPC_CHECK_OBJECT',true);
                     end;
                    { This was wrong we must then load the address into the }
                    { register a0 and/or a5                                 }
@@ -1008,9 +1008,7 @@ implementation
          if iolabel<>nil then
            begin
               exprasmlist^.concat(new(pai68k,op_csymbol(A_PEA,S_L,newcsymbol(lab2str(iolabel),0))));
-              { this was wrong, probably an error due to diff3
-              emitcall(p^.procdefinition^.mangledname);}
-              emitcall('IOCHECK',true);
+              emitcall('FPC_IOCHECK',true);
            end;
 
          { restore registers }
@@ -1046,7 +1044,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-09-04 08:41:43  peter
+  Revision 1.4  1998-09-14 10:43:55  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.3  1998/09/04 08:41:43  peter
     * updated some error messages
 
   Revision 1.2  1998/09/01 12:47:59  peter

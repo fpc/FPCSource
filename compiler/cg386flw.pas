@@ -719,13 +719,6 @@ do_jmp:
       var
         hp : preference;
       begin
-         {if procinfo.exceptions then
-           aktproccode.concat(gennasmrec(CALL,S_NO,'HELP_DESTRUCTOR_E'))
-         else }
-         { we should know if the constructor is called with a new or not,
-         how can we do that ???
-         exprasmlist^.concat(new(pai386,op_csymbol(A_CALL,S_NO,newcsymbol('HELP_DESTRUCTOR',0))));
-         }
          exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,R_ESI,R_ESI)));
          { also reset to zero in the stack }
          new(hp);
@@ -740,7 +733,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.15  1998-09-04 08:41:39  peter
+  Revision 1.16  1998-09-14 10:43:48  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.15  1998/09/04 08:41:39  peter
     * updated some error messages
 
   Revision 1.14  1998/09/03 17:08:39  pierre
@@ -758,7 +754,10 @@ end.
   Revision 1.11  1998/08/05 16:00:10  florian
     * some fixes for ansi strings
     * $log$ to $Log$
-    * $log$ to Revision 1.15  1998-09-04 08:41:39  peter
+    * $log$ to Revision 1.16  1998-09-14 10:43:48  peter
+    * $log$ to   * all internal RTL functions start with FPC_
+    * $log$ to
+    * $log$ to Revision 1.15  1998/09/04 08:41:39  peter
     * $log$ to   * updated some error messages
     * $log$ to
     * $log$ to Revision 1.14  1998/09/03 17:08:39  pierre

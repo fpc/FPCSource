@@ -123,7 +123,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(dref),R_A1)));
          exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,newreference(sref),R_A0)));
          exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,len,R_D0)));
-         emitcall('STRCOPY',true);
+         emitcall('FPC_STRCOPY',true);
          maybe_loada5;
          popusedregisters(pushed);
       end;
@@ -266,14 +266,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
              getlabel(hl);
              emitl(A_BCC, hl);
              exprasmlist^.concat(new(pai68k, op_const_reg(A_MOVE,S_L,201,R_D0)));
-             emitcall('HALT_ERROR',true);
+             emitcall('FPC_HALT_ERROR',true);
              emitl(A_LABEL, hl);
           end
         else
           begin
             exprasmlist^.concat(new(pai68k, op_ref_reg(A_LEA,S_L,newreference(hp), R_A1)));
             exprasmlist^.concat(new(pai68k, op_reg_reg(A_MOVE, S_L, index, R_D0)));
-            emitcall('RE_BOUNDS_CHECK',true);
+            emitcall('FPC_RE_BOUNDS_CHECK',true);
           end;
      end;
 
@@ -395,7 +395,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 emitl(A_BVC,hl)
               else
                 emitl(A_BCC,hl);
-              emitcall('RE_OVERFLOW',true);
+              emitcall('FPC_OVERFLOW',true);
               emitl(A_LABEL,hl);
            end;
       end;
@@ -539,7 +539,7 @@ begin
              (target_info.target=target_linux) then
                 begin
                     procinfo.aktentrycode^.insert(new(pai68k,
-                     op_csymbol(A_JSR,S_NO,newcsymbol('INIT_STACK_CHECK',0))));
+                     op_csymbol(A_JSR,S_NO,newcsymbol('FPC_INIT_STACK_CHECK',0))));
                 end
             else
             { The main program has already allocated its stack - so we simply compare }
@@ -547,10 +547,10 @@ begin
             if (cs_check_stack in aktlocalswitches) then
                 begin
                   procinfo.aktentrycode^.insert(new(pai68k,op_csymbol(A_JSR,S_NO,
-                      newcsymbol('STACKCHECK',0))));
+                      newcsymbol('FPC_STACKCHECK',0))));
                   procinfo.aktentrycode^.insert(new(pai68k,op_const_reg(A_MOVE,S_L,
                       0,R_D0)));
-                  concat_external('STACKCHECK',EXT_NEAR);
+                  concat_external('FPC_STACKCHECK',EXT_NEAR);
                 end;
 
 
@@ -579,15 +579,15 @@ begin
              begin
               procinfo.aktentrycode^.insert(new(pai_labeled,init(A_BEQ,quickexitlabel)));
               procinfo.aktentrycode^.insert(new(pai68k,op_csymbol(A_JSR,S_NO,
-              newcsymbol('NEW_CLASS',0))));
-              concat_external('NEW_CLASS',EXT_NEAR);
+              newcsymbol('FPC_NEW_CLASS',0))));
+              concat_external('FPC_NEW_CLASS',EXT_NEAR);
              end
            else
              begin
               procinfo.aktentrycode^.insert(new(pai_labeled,init(A_BEQ,quickexitlabel)));
               procinfo.aktentrycode^.insert(new(pai68k,op_csymbol(A_JSR,S_NO,
-              newcsymbol('HELP_CONSTRUCTOR',0))));
-              concat_external('HELP_CONSTRUCTOR',EXT_NEAR);
+              newcsymbol('FPC_HELP_CONSTRUCTOR',0))));
+              concat_external('FPC_HELP_CONSTRUCTOR',EXT_NEAR);
              end;
         end;
     { don't load ESI, does the caller }
@@ -620,9 +620,9 @@ begin
                                   if (aktprocsym^.definition^.options and poproginit=0) then
                                    Begin
                                        procinfo.aktentrycode^.insert(new(pai68k,
-                                         op_csymbol(A_JSR,S_NO,newcsymbol('STACKCHECK',0))));
+                                         op_csymbol(A_JSR,S_NO,newcsymbol('FPC_STACKCHECK',0))));
                                        procinfo.aktentrycode^.insert(new(pai68k,op_const_reg(A_MOVE,S_L,stackframe,R_D0)));
-                                       concat_external('STACKCHECK',EXT_NEAR);
+                                       concat_external('FPC_STACKCHECK',EXT_NEAR);
                                    end;
                                 end;
                             { to allocate stack space }
@@ -646,10 +646,10 @@ begin
                               and (aktprocsym^.definition^.options and poproginit=0) then
                                 begin
                                   procinfo.aktentrycode^.insert(new(pai68k,
-                                   op_csymbol(A_JSR,S_NO,newcsymbol('STACKCHECK',0))));
+                                   op_csymbol(A_JSR,S_NO,newcsymbol('FPC_STACKCHECK',0))));
                                   procinfo.aktentrycode^.insert(new(pai68k,op_const_reg(A_MOVE,S_L,
                                     stackframe,R_D0)));
-                                  concat_external('STACKCHECK',EXT_NEAR);
+                                  concat_external('FPC_STACKCHECK',EXT_NEAR);
                                 end;
                                procinfo.aktentrycode^.insert(new(pai68k,op_reg_reg(A_MOVE,S_L,R_SP,R_A6)));
                                procinfo.aktentrycode^.insert(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A6,R_SPPUSH)));
@@ -735,14 +735,14 @@ begin
        if procinfo._class^.isclass then
          begin
            procinfo.aktexitcode^.insert(new(pai68k,op_csymbol(A_JSR,S_NO,
-             newcsymbol('DISPOSE_CLASS',0))));
-           concat_external('DISPOSE_CLASS',EXT_NEAR);
+             newcsymbol('FPC_DISPOSE_CLASS',0))));
+           concat_external('FPC_DISPOSE_CLASS',EXT_NEAR);
          end
        else
          begin
            procinfo.aktexitcode^.insert(new(pai68k,op_csymbol(A_JSR,S_NO,
-             newcsymbol('HELP_DESTRUCTOR',0))));
-           concat_external('HELP_DESTRUCTOR',EXT_NEAR);
+             newcsymbol('FPC_HELP_DESTRUCTOR',0))));
+           concat_external('FPC_HELP_DESTRUCTOR',EXT_NEAR);
          end;
      end;
 
@@ -751,8 +751,8 @@ begin
     if ((aktprocsym^.definition^.options and poproginit)<>0) and
       (target_info.target<>target_PalmOS) then
      begin
-       procinfo.aktexitcode^.concat(new(pai68k,op_csymbol(A_JSR,S_NO,newcsymbol('__EXIT',0))));
-       externals^.concat(new(pai_external,init('__EXIT',EXT_NEAR)));
+       procinfo.aktexitcode^.concat(new(pai68k,op_csymbol(A_JSR,S_NO,newcsymbol('FPC_DO_EXIT',0))));
+       externals^.concat(new(pai_external,init('FPC_DO_EXIT',EXT_NEAR)));
      end;
 
     { handle return value }
@@ -1345,7 +1345,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  1998-09-07 18:46:00  peter
+  Revision 1.16  1998-09-14 10:44:04  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.15  1998/09/07 18:46:00  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 

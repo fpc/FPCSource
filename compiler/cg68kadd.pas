@@ -239,7 +239,7 @@ implementation
                        secondpass(p^.right);
                        del_reference(p^.right^.location.reference);
                        emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
-                       emitcall('ANSISTRCMP',true);
+                       emitcall('FPC_ANSISTRCMP',true);
                        maybe_loada5;
                        popusedregisters(pushedregs);
                     end;
@@ -278,7 +278,7 @@ implementation
                            { Because parameters are inversed in the rtl }
                            emitpushreferenceaddr(p^.right^.location.reference);
                            emitpushreferenceaddr(p^.left^.location.reference);
-                           emitcall('STRCONCAT',true);
+                           emitcall('FPC_STRCONCAT',true);
                            maybe_loadA5;
                            popusedregisters(pushedregs);
                            set_location(p^.location,p^.left^.location);
@@ -334,7 +334,7 @@ implementation
 {
                                emitpushreferenceaddr(p^.left^.location.reference);
                                emitpushreferenceaddr(p^.right^.location.reference); }
-                               emitcall('STRCMP',true);
+                               emitcall('FPC_STRCMP',true);
                                maybe_loada5;
                                popusedregisters(pushedregs);
                           end;
@@ -386,7 +386,7 @@ implementation
                      pushusedregisters(pushedregs,$ff);
                      emitpushreferenceaddr(p^.right^.location.reference);
                      emitpushreferenceaddr(p^.left^.location.reference);
-                     emitcall('SET_COMP_SETS',true);
+                     emitcall('FPC_SET_COMP_SETS',true);
                      maybe_loada5;
                      popusedregisters(pushedregs);
                      ungetiftemp(p^.left^.location.reference);
@@ -408,13 +408,13 @@ implementation
                            loadsetelement(p^.right^.right);
                            loadsetelement(p^.right^.left);
                            emitpushreferenceaddr(href);
-                           emitcall('SET_SET_RANGE',true);
+                           emitcall('FPC_SET_SET_RANGE',true);
                          end
                         else
                          begin
                            loadsetelement(p^.right^.left);
                            emitpushreferenceaddr(href);
-                           emitcall('SET_SET_BYTE',true);
+                           emitcall('FPC_SET_SET_BYTE',true);
                          end;
                       end
                      else
@@ -423,7 +423,7 @@ implementation
                         emitpushreferenceaddr(href);
                         emitpushreferenceaddr(p^.right^.location.reference);
                         emitpushreferenceaddr(p^.left^.location.reference);
-                        emitcall('SET_ADD_SETS',true);
+                        emitcall('FPC_SET_ADD_SETS',true);
                       end;
                      maybe_loada5;
                      popusedregisters(pushedregs);
@@ -445,9 +445,9 @@ implementation
                      emitpushreferenceaddr(p^.right^.location.reference);
                      emitpushreferenceaddr(p^.left^.location.reference);
                      case p^.treetype of
-                      subn : emitcall('SET_SUB_SETS',true);
-                   symdifn : emitcall('SET_SYMDIF_SETS',true);
-                      muln : emitcall('SET_MUL_SETS',true);
+                      subn : emitcall('FPC_SET_SUB_SETS',true);
+                   symdifn : emitcall('FPC_SET_SYMDIF_SETS',true);
+                      muln : emitcall('FPC_SET_MUL_SETS',true);
                      end;
                      maybe_loada5;
                      popusedregisters(pushedregs);
@@ -858,7 +858,7 @@ implementation
                                               emit_reg_reg(A_MOVE,opsize,p^.right^.location.register,
                                                  R_D0);
                                               emit_reg_reg(A_MOVE,opsize,p^.location.register,R_D1);
-                                              emitcall('LONGMUL',true);
+                                              emitcall('FPC_LONGMUL',true);
                                               emit_reg_reg(A_MOVE,opsize,R_D0,p^.location.register);
                                             end
                                             else
@@ -887,7 +887,7 @@ implementation
                                               exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE, opsize,
                                                  newreference(p^.right^.location.reference),R_D1)));
                                               emit_reg_reg(A_MOVE,opsize,p^.location.register,R_D0);
-                                              emitcall('LONGMUL',true);
+                                              emitcall('FPC_LONGMUL',true);
                                               emit_reg_reg(A_MOVE,opsize,R_D0,p^.location.register);
                                             end
                                             else
@@ -941,7 +941,7 @@ implementation
                                emit_reg_reg(A_MOVE,opsize,p^.right^.location.register,
                                R_D0);
                                emit_reg_reg(A_MOVE,opsize,p^.location.register,R_D1);
-                               emitcall('LONGMUL',true);
+                               emitcall('FPC_LONGMUL',true);
                                emit_reg_reg(A_MOVE,opsize,R_D0,p^.location.register);
                              end
                              else
@@ -1112,11 +1112,11 @@ implementation
 
                                   { probably a faster way to do this but... }
                                   case op of
-                                   A_FADD: emitcall('SINGLE_ADD',true);
-                                   A_FMUL: emitcall('SINGLE_MUL',true);
-                                   A_FSUB: emitcall('SINGLE_SUB',true);
-                                   A_FDIV: emitcall('SINGLE_DIV',true);
-                                   A_FCMP: emitcall('SINGLE_CMP',true);
+                                   A_FADD: emitcall('FPC_SINGLE_ADD',true);
+                                   A_FMUL: emitcall('FPC_SINGLE_MUL',true);
+                                   A_FSUB: emitcall('FPC_SINGLE_SUB',true);
+                                   A_FDIV: emitcall('FPC_SINGLE_DIV',true);
+                                   A_FCMP: emitcall('FPC_SINGLE_CMP',true);
                                   end;
                                   if not cmpop then { only flags are affected with cmpop }
                                      exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_D0,
@@ -1177,11 +1177,11 @@ implementation
                              emit_reg_reg(A_MOVE,S_L,p^.left^.location.fpureg,R_D1);
                              { probably a faster way to do this but... }
                              case op of
-                               A_FADD: emitcall('SINGLE_ADD',true);
-                               A_FMUL: emitcall('SINGLE_MUL',true);
-                               A_FSUB: emitcall('SINGLE_SUB',true);
-                               A_FDIV: emitcall('SINGLE_DIV',true);
-                               A_FCMP: emitcall('SINGLE_CMP',true);
+                               A_FADD: emitcall('FPC_SINGLE_ADD',true);
+                               A_FMUL: emitcall('FPC_SINGLE_MUL',true);
+                               A_FSUB: emitcall('FPC_SINGLE_SUB',true);
+                               A_FDIV: emitcall('FPC_SINGLE_DIV',true);
+                               A_FCMP: emitcall('FPC_SINGLE_CMP',true);
                              end;
                              if not cmpop then { only flags are affected with cmpop }
                                exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_D0,
@@ -1263,7 +1263,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-09-07 18:45:55  peter
+  Revision 1.4  1998-09-14 10:43:54  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.3  1998/09/07 18:45:55  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 

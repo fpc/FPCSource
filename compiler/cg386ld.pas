@@ -403,10 +403,10 @@ implementation
 
                                    emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
                                    exprasmlist^.concat(new(pai386,
-                                     op_csymbol(A_CALL,S_NO,newcsymbol('ADDREF',0))));
+                                     op_csymbol(A_CALL,S_NO,newcsymbol('FPC_ADDREF',0))));
 
                                    if not (cs_compilesystem in aktmoduleswitches) then
-                                     concat_external('ADDREF',EXT_NEAR);
+                                     concat_external('FPC_ADDREF',EXT_NEAR);
 
                                    { decrement destination reference counter }
                                    new(r);
@@ -416,10 +416,10 @@ implementation
 
                                    emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                                    exprasmlist^.concat(new(pai386,
-                                     op_csymbol(A_CALL,S_NO,newcsymbol('DECREF',0))));
+                                     op_csymbol(A_CALL,S_NO,newcsymbol('FPC_DECREF',0))));
 
                                    if not(cs_compilesystem in aktmoduleswitches) then
-                                     concat_external('DECREF',EXT_NEAR);
+                                     concat_external('FPC_DECREF',EXT_NEAR);
 
                                 end;
                               concatcopy(p^.right^.location.reference,
@@ -551,7 +551,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  1998-09-04 12:24:24  florian
+  Revision 1.14  1998-09-14 10:43:50  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.13  1998/09/04 12:24:24  florian
     * bug0159 fixed
 
   Revision 1.12  1998/09/04 11:55:17  florian

@@ -736,7 +736,7 @@ implementation
           begin
             p^.location.fpureg := getregister32;
             exprasmlist^.concat(new(pai68k, op_ref_reg(A_MOVE, S_L, r, R_D0)));
-            emitcall('LONG2SINGLE',true);
+            emitcall('FPC_LONG2SINGLE',true);
             emit_reg_reg(A_MOVE,S_L,R_D0,p^.location.fpureg);
           end
           else
@@ -765,7 +765,7 @@ implementation
            begin
              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.left^.location.reference),R_D0)));
              exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,65536,R_D1)));
-             emitcall('LONGMUL',true);
+             emitcall('FPC_LONGMUL',true);
              emit_reg_reg(A_MOVE,S_L,R_D0,rreg);
            end
            else
@@ -781,7 +781,7 @@ implementation
            begin
              exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,p^.left^.location.fpureg,R_D0)));
              exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,65536,R_D1)));
-             emitcall('LONGMUL',true);
+             emitcall('FPC_LONGMUL',true);
              emit_reg_reg(A_MOVE,S_L,R_D0,rreg);
            end
            else
@@ -1179,7 +1179,7 @@ implementation
         gettempofsizereference(32,href);
         emitpushreferenceaddr(p^.left^.location.reference);
         emitpushreferenceaddr(href);
-        emitcall('SET_LOAD_SMALL',true);
+        emitcall('FPC_SET_LOAD_SMALL',true);
         maybe_loada5;
         popusedregisters(pushedregs);
         p^.location.loc:=LOC_MEM;
@@ -1344,7 +1344,7 @@ implementation
               end;
             else internalerror(100);
          end;
-         emitcall('DO_IS',true);
+         emitcall('FPC_DO_IS',true);
          exprasmlist^.concat(new(pai68k,op_reg(A_TST,S_B,R_D0)));
          popusedregisters(pushed);
       end;
@@ -1368,7 +1368,7 @@ implementation
            S_L,newcsymbol(pobjectdef(p^.right^.resulttype)^.vmt_mangledname,0),R_SPPUSH)));
          concat_external(pobjectdef(p^.right^.resulttype)^.vmt_mangledname,EXT_NEAR);
          emitpushreferenceaddr(p^.location.reference);
-          emitcall('DO_AS',true);
+          emitcall('FPC_DO_AS',true);
          popusedregisters(pushed);
       end;
 
@@ -1376,7 +1376,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-09-11 12:29:43  pierre
+  Revision 1.4  1998-09-14 10:43:56  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.3  1998/09/11 12:29:43  pierre
     * removed explicit range_checking as it is buggy
 
   Revision 1.2.2.1  1998/09/11 12:08:57  pierre

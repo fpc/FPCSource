@@ -136,7 +136,7 @@ implementation
                  { if not zero then simply continue on }
                  emitl(A_BNE,hl1);
                  exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,200,R_D0)));
-                 emitcall('HALT_ERROR',true);
+                 emitcall('FPC_HALT_ERROR',true);
                  emitl(A_LABEL,hl1);
                  if (p^.treetype = modn) then
                  Begin
@@ -174,9 +174,9 @@ implementation
                      { routines...  d0/d1                    }
                      { return result in d0                   }
                      if p^.treetype = divn then
-                       emitcall('LONGDIV',true)
+                       emitcall('FPC_LONGDIV',true)
                      else
-                       emitcall('LONGMOD',true);
+                       emitcall('FPC_LONGMOD',true);
                      emit_reg_reg(A_MOVE,S_L,R_D0,hreg1);
               end; { endif }
          end;
@@ -446,7 +446,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-01 09:07:09  peter
+  Revision 1.2  1998-09-14 10:44:01  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.1  1998/09/01 09:07:09  peter
     * m68k fixes, splitted cg68k like cgi386
 
 }

@@ -23,14 +23,6 @@ const
    in_ord_x             = 5;
    in_length_string     = 6;
    in_chr_byte          = 7;
-{$ifdef VER0_99_5}
-   in_inc_byte          = 8;
-   in_inc_word          = 9;
-   in_inc_dword         = 10;
-   in_dec_byte          = 11;
-   in_dec_word          = 12;
-   in_dec_dword         = 13;
-{$endif}
    in_write_x           = 14;
    in_writeln_x         = 15;
    in_read_x            = 16;
@@ -74,7 +66,10 @@ const
 
 {
   $Log$
-  Revision 1.7  1998-09-01 17:39:46  peter
+  Revision 1.8  1998-09-14 10:44:07  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.7  1998/09/01 17:39:46  peter
     + internal constant functions
 
 }

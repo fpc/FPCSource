@@ -139,7 +139,7 @@ implementation
                        secondpass(p^.right);
                        del_reference(p^.right^.location.reference);
                        emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
-                       emitcall('ANSISTRCMP',true);
+                       emitcall('FPC_ANSISTRCMP',true);
                        maybe_loadesi;
                        popusedregisters(pushedregs);
                     end;
@@ -216,7 +216,7 @@ implementation
                   pushusedregisters(pushedregs,$ff);
                   emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                   emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
-                  emitcall('STRCONCAT',true);
+                  emitcall('FPC_STRCONCAT',true);
                   maybe_loadesi;
                   popusedregisters(pushedregs);
                 end;
@@ -259,7 +259,7 @@ implementation
                     secondpass(p^.right);
                     del_reference(p^.right^.location.reference);
                     emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
-                    emitcall('STRCMP',true);
+                    emitcall('FPC_STRCMP',true);
                     maybe_loadesi;
                     popusedregisters(pushedregs);
                  end;
@@ -310,7 +310,7 @@ implementation
                      pushusedregisters(pushedregs,$ff);
                      emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
                      emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                     emitcall('SET_COMP_SETS',true);
+                     emitcall('FPC_SET_COMP_SETS',true);
                      maybe_loadesi;
                      popusedregisters(pushedregs);
                      ungetiftemp(p^.left^.location.reference);
@@ -332,13 +332,13 @@ implementation
                            pushsetelement(p^.right^.right);
                            pushsetelement(p^.right^.left);
                            emitpushreferenceaddr(exprasmlist,href);
-                           emitcall('SET_SET_RANGE',true);
+                           emitcall('FPC_SET_SET_RANGE',true);
                          end
                         else
                          begin
                            pushsetelement(p^.right^.left);
                            emitpushreferenceaddr(exprasmlist,href);
-                           emitcall('SET_SET_BYTE',true);
+                           emitcall('FPC_SET_SET_BYTE',true);
                          end;
                       end
                      else
@@ -347,7 +347,7 @@ implementation
                         emitpushreferenceaddr(exprasmlist,href);
                         emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
                         emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
-                        emitcall('SET_ADD_SETS',true);
+                        emitcall('FPC_SET_ADD_SETS',true);
                       end;
                      maybe_loadesi;
                      popusedregisters(pushedregs);
@@ -369,9 +369,9 @@ implementation
                      emitpushreferenceaddr(exprasmlist,p^.right^.location.reference);
                      emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                      case p^.treetype of
-                      subn : emitcall('SET_SUB_SETS',true);
-                   symdifn : emitcall('SET_SYMDIF_SETS',true);
-                      muln : emitcall('SET_MUL_SETS',true);
+                      subn : emitcall('FPC_SET_SUB_SETS',true);
+                   symdifn : emitcall('FPC_SET_SYMDIF_SETS',true);
+                      muln : emitcall('FPC_SET_MUL_SETS',true);
                      end;
                      maybe_loadesi;
                      popusedregisters(pushedregs);
@@ -889,7 +889,7 @@ implementation
                           emitl(A_JNB,hl4)
                          else
                           emitl(A_JNO,hl4);
-                         emitcall('RE_OVERFLOW',true);
+                         emitcall('FPC_OVERFLOW',true);
                          emitl(A_LABEL,hl4);
                        end;
                     end;
@@ -1277,7 +1277,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  1998-09-07 18:45:52  peter
+  Revision 1.12  1998-09-14 10:43:44  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.11  1998/09/07 18:45:52  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 

@@ -1032,7 +1032,7 @@ implementation
         gettempofsizereference(32,href);
         emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
         emitpushreferenceaddr(exprasmlist,href);
-        emitcall('SET_LOAD_SMALL',true);
+        emitcall('FPC_SET_LOAD_SMALL',true);
         maybe_loadesi;
         popusedregisters(pushedregs);
         p^.location.loc:=LOC_MEM;
@@ -1193,7 +1193,7 @@ implementation
               end;
             else internalerror(100);
          end;
-         emitcall('DO_IS',true);
+         emitcall('FPC_DO_IS',true);
          exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_B,R_AL,R_AL)));
          popusedregisters(pushed);
       end;
@@ -1242,7 +1242,7 @@ implementation
               end;
             else internalerror(100);
          end;
-         emitcall('DO_AS',true);
+         emitcall('FPC_DO_AS',true);
          { restore register, this restores automatically the }
          { result                                            }
          popusedregisters(pushed);
@@ -1252,7 +1252,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1998-09-11 12:29:40  pierre
+  Revision 1.19  1998-09-14 10:43:46  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.18  1998/09/11 12:29:40  pierre
     * removed explicit range_checking as it is buggy
 
   Revision 1.17.2.1  1998/09/11 12:08:54  pierre

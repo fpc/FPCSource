@@ -156,13 +156,13 @@ implementation
                         LOC_REFERENCE:
                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                      end;
-                     emitcall('FINALIZE',true);
+                     emitcall('FPC_FINALIZE',true);
                   end;
-                emitcall('FREEMEM',true);
+                emitcall('FPC_FREEMEM',true);
              end;
            simplenewn:
              begin
-                emitcall('GETMEM',true);
+                emitcall('FPC_GETMEM',true);
                 if ppointerdef(p^.left^.resulttype)^.definition^.needs_inittable then
                   begin
                      new(r);
@@ -176,7 +176,7 @@ implementation
                         LOC_REFERENCE:
                           emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                      end;
-                     emitcall('INITIALIZE',true);
+                     emitcall('FPC_INITIALIZE',true);
                   end;
              end;
          end;
@@ -643,7 +643,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-09-03 16:03:15  florian
+  Revision 1.10  1998-09-14 10:43:52  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.9  1998/09/03 16:03:15  florian
     + rtti generation
     * init table generation changed
 

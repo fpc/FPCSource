@@ -103,8 +103,7 @@ begin
   while not eof(f) do
    begin
      readln(f,s);
-     inc(line);
-     if (s<>'') and not(s[1] in ['#',';']) then
+     if (s<>'') and not(s[1] in ['#',';','%']) then
       begin
         i:=pos('=',s);
         if i>0 then
@@ -225,7 +224,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1998-08-29 13:52:31  peter
+  Revision 1.4  1998-09-14 10:44:08  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.3  1998/08/29 13:52:31  peter
     + new messagefile
     * merged optione.msg into errore.msg
 

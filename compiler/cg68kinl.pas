@@ -224,9 +224,9 @@ implementation
                           { allways read only one record by element }
                             push_int(typedtyp^.size);
                             if doread then
-                              emitcall('TYPED_READ',true)
+                              emitcall('FPC_TYPED_READ',true)
                             else
-                              emitcall('TYPED_WRITE',true);
+                              emitcall('FPC_TYPED_WRITE',true);
                        end
                      else
                        begin
@@ -280,34 +280,34 @@ implementation
                                        push_int(pstringdef(pararesult)^.len);
                                        case pstringdef(pararesult)^.string_typ of
                                         st_shortstring:
-                                          emitcall ('READ_TEXT_STRING',true);
+                                          emitcall ('FPC_READ_TEXT_STRING',true);
                                         st_ansistring:
-                                          emitcall ('READ_TEXT_ANSISTRING',true);
+                                          emitcall ('FPC_READ_TEXT_ANSISTRING',true);
                                         st_longstring:
-                                          emitcall ('READ_TEXT_LONGSTRING',true);
+                                          emitcall ('FPC_READ_TEXT_LONGSTRING',true);
                                         st_widestring:
-                                          emitcall ('READ_TEXT_ANSISTRING',true);
+                                          emitcall ('FPC_READ_TEXT_ANSISTRING',true);
                                         end
                                        end
                                      else
                                        Case pstringdef(Pararesult)^.string_typ of
                                         st_shortstring:
-                                          emitcall ('WRITE_TEXT_STRING',true);
+                                          emitcall ('FPC_WRITE_TEXT_STRING',true);
                                         st_ansistring:
-                                          emitcall ('WRITE_TEXT_ANSISTRING',true);
+                                          emitcall ('FPC_WRITE_TEXT_ANSISTRING',true);
                                         st_longstring:
-                                          emitcall ('WRITE_TEXT_LONGSTRING',true);
+                                          emitcall ('FPC_WRITE_TEXT_LONGSTRING',true);
                                         st_widestring:
-                                          emitcall ('WRITE_TEXT_ANSISTRING',true);
+                                          emitcall ('FPC_WRITE_TEXT_ANSISTRING',true);
                                         end;
                                    end;
                       pointerdef : begin
                                      if is_equal(ppointerdef(pararesult)^.definition,cchardef) then
                                        begin
                                          if doread then
-                                           emitcall('READ_TEXT_PCHAR_AS_POINTER',true)
+                                           emitcall('FPC_READ_TEXT_PCHAR_AS_POINTER',true)
                                          else
-                                           emitcall('WRITE_TEXT_PCHAR_AS_POINTER',true);
+                                           emitcall('FPC_WRITE_TEXT_PCHAR_AS_POINTER',true);
                                        end;
                                    end;
                         arraydef : begin
@@ -315,46 +315,45 @@ implementation
                                         is_equal(parraydef(pararesult)^.definition,cchardef) then
                                        begin
                                          if doread then
-                                           emitcall('READ_TEXT_PCHAR_AS_ARRAY',true)
+                                           emitcall('FPC_READ_TEXT_PCHAR_AS_ARRAY',true)
                                          else
-                                           emitcall('WRITE_TEXT_PCHAR_AS_ARRAY',true);
+                                           emitcall('FPC_WRITE_TEXT_PCHAR_AS_ARRAY',true);
                                        end;
                                    end;
                         floatdef : begin
                                      if doread then
-                                       emitcall('READ_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true)
+                                       emitcall('FPC_READ_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true)
                                      else
-                                       emitcall('WRITE_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true);
+                                       emitcall('FPC_WRITE_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true);
                                    end;
                           orddef : begin
                                      case porddef(pararesult)^.typ of
                                           u8bit : if doread then
-                                                    emitcall('READ_TEXT_BYTE',true);
+                                                    emitcall('FPC_READ_TEXT_BYTE',true);
                                           s8bit : if doread then
-                                                    emitcall('READ_TEXT_SHORTINT',true);
+                                                    emitcall('FPC_READ_TEXT_SHORTINT',true);
                                          u16bit : if doread then
-                                                    emitcall('READ_TEXT_WORD',true);
+                                                    emitcall('FPC_READ_TEXT_WORD',true);
                                          s16bit : if doread then
-                                                    emitcall('READ_TEXT_INTEGER',true);
+                                                    emitcall('FPC_READ_TEXT_INTEGER',true);
                                          s32bit : if doread then
-                                                    emitcall('READ_TEXT_LONGINT',true)
+                                                    emitcall('FPC_READ_TEXT_LONGINT',true)
                                                   else
-                                                    emitcall('WRITE_TEXT_LONGINT',true);
+                                                    emitcall('FPC_WRITE_TEXT_LONGINT',true);
                                          u32bit : if doread then
-                                                    emitcall('READ_TEXT_CARDINAL',true)
+                                                    emitcall('FPC_READ_TEXT_CARDINAL',true)
                                                   else
-                                                    emitcall('WRITE_TEXT_CARDINAL',true);
+                                                    emitcall('FPC_WRITE_TEXT_CARDINAL',true);
                                           uchar : if doread then
-                                                    emitcall('READ_TEXT_CHAR',true)
+                                                    emitcall('FPC_READ_TEXT_CHAR',true)
                                                   else
-                                                    emitcall('WRITE_TEXT_CHAR',true);
+                                                    emitcall('FPC_WRITE_TEXT_CHAR',true);
                                        bool8bit,
                                       bool16bit,
                                       bool32bit : if  doread then
-                                                  { emitcall('READ_TEXT_BOOLEAN',true) }
                                                     Message(parser_e_illegal_parameter_list)
                                                   else
-                                                    emitcall('WRITE_TEXT_BOOLEAN',true);
+                                                    emitcall('FPC_WRITE_TEXT_BOOLEAN',true);
                                      end;
                                    end;
                           end;
@@ -372,16 +371,16 @@ implementation
                if doread then
                 begin
                   if doln then
-                    emitcall('READLN_END',true)
+                    emitcall('FPC_READLN_END',true)
                   else
-                    emitcall('READ_END',true);
+                    emitcall('FPC_READ_END',true);
                 end
                else
                 begin
                   if doln then
-                    emitcall('WRITELN_END',true)
+                    emitcall('FPC_WRITELN_END',true)
                   else
-                    emitcall('WRITE_END',true);
+                    emitcall('FPC_WRITE_END',true);
                 end;
                popusedregisters(pushed);
                maybe_loada5;
@@ -391,7 +390,7 @@ implementation
              begin
                 { registers are saved in the procedure }
                 exprasmlist^.concat(new(pai68k,op_csymbol(A_PEA,S_L,newcsymbol(lab2str(iolabel),0))));
-                emitcall('IOCHECK',true);
+                emitcall('FPC_IOCHECK',true);
              end;
          { Freeup all used temps }
            ungetiftemp(aktfile);
@@ -489,11 +488,11 @@ implementation
              exit;
 
            if is_real then
-             emitcall('STR_'+float_name[pfloatdef(hp^.resulttype)^.typ],true)
+             emitcall('FPC_STR_'+float_name[pfloatdef(hp^.resulttype)^.typ],true)
            else if porddef(hp^.resulttype)^.typ=u32bit then
-             emitcall('STR_CARDINAL',true)
+             emitcall('FPC_STR_CARDINAL',true)
            else
-             emitcall('STR_LONGINT',true);
+             emitcall('FPC_STR_LONGINT',true);
            popusedregisters(pushed);
         end;
 
@@ -812,9 +811,9 @@ implementation
                   secondload(p^.left);
                   emitpushreferenceaddr(p^.left^.location.reference);
                   if p^.inlinenumber=in_reset_typedfile then
-                    emitcall('RESET_TYPED',true)
+                    emitcall('FPC_RESET_TYPED',true)
                   else
-                    emitcall('REWRITE_TYPED',true);
+                    emitcall('FPC_REWRITE_TYPED',true);
                   popusedregisters(pushed);
                end;
             in_write_x :
@@ -904,7 +903,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-09-04 08:41:48  peter
+  Revision 1.3  1998-09-14 10:43:59  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.2  1998/09/04 08:41:48  peter
     * updated some error messages
 
   Revision 1.1  1998/09/01 09:07:09  peter

@@ -473,7 +473,7 @@ implementation
                               newreference(p^.right^.location.reference),R_A0)));;
 {                            emitpushreferenceaddr(p^.right^.location.reference);}
                             del_reference(p^.right^.location.reference);
-                            emitcall('SET_IN_BYTE',true);
+                            emitcall('FPC_SET_IN_BYTE',true);
                             { ungetiftemp(p^.right^.location.reference); }
                             p^.location.loc:=LOC_FLAGS;
                             p^.location.resflags:=F_C;
@@ -812,7 +812,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-09-07 18:45:59  peter
+  Revision 1.4  1998-09-14 10:44:03  peter
+    * all internal RTL functions start with FPC_
+
+  Revision 1.3  1998/09/07 18:45:59  peter
     * update smartlinking, uses getdatalabel
     * renamed ptree.value vars to value_str,value_real,value_set
 
