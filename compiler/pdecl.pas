@@ -511,11 +511,9 @@ implementation
               { generate persistent init/final tables when it's declared in the interface so it can
                 be reused in other used }
               if (not current_module.in_implementation) and
-                 (tt.def.needs_inittable or
-                  (is_class(tt.def) and
-                   not(oo_is_forward in tobjectdef(tt.def).objectoptions)
-                  )
-                 ) then
+                 ((is_class(tt.def) and
+                   tobjectdef(tt.def).members_need_inittable) or
+                  tt.def.needs_inittable) then
                 generate_inittable(newtype);
 
               { for objects we should write the vmt and interfaces.
@@ -630,7 +628,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2002-10-14 19:45:02  peter
+  Revision 1.56  2002-10-19 15:09:25  peter
+    + tobjectdef.members_need_inittable that is used to generate only the
+      inittable when it is really used. This saves a lot of useless calls
+      to fpc_finalize when destroying classes
+
+  Revision 1.55  2002/10/14 19:45:02  peter
     * only allow threadvar when threading switch is defined
 
   Revision 1.54  2002/10/06 12:25:05  florian

@@ -1268,8 +1268,11 @@ implementation
               dataSegment.concat(Tai_const_symbol.Create(_class.get_rtti_label(fullrtti)))
             else
               dataSegment.concat(Tai_const.Create_32bit(0));
-            { inittable for con-/destruction, for classes this is always generated }
-            dataSegment.concat(Tai_const_symbol.Create(_class.get_rtti_label(initrtti)));
+            { inittable for con-/destruction }
+            if _class.members_need_inittable then
+              dataSegment.concat(Tai_const_symbol.Create(_class.get_rtti_label(initrtti)))
+            else
+              dataSegment.concat(Tai_const.Create_32bit(0));
             { auto table }
             dataSegment.concat(Tai_const.Create_32bit(0));
             { interface table }
@@ -1314,7 +1317,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.31  2002-10-15 19:00:42  peter
+  Revision 1.32  2002-10-19 15:09:24  peter
+    + tobjectdef.members_need_inittable that is used to generate only the
+      inittable when it is really used. This saves a lot of useless calls
+      to fpc_finalize when destroying classes
+
+  Revision 1.31  2002/10/15 19:00:42  peter
     * small tweak to use speedvalue before comparing strings
 
   Revision 1.30  2002/10/06 16:40:25  florian

@@ -274,6 +274,7 @@ interface
           function  size : longint;override;
           function  alignment:longint;override;
           function  vmtmethodoffset(index:longint):longint;
+          function  members_need_inittable : boolean;
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
           function  vmt_mangledname : string;
@@ -4647,6 +4648,12 @@ implementation
       end;
 
 
+    function tobjectdef.members_need_inittable : boolean;
+      begin
+        members_need_inittable:=tobjectsymtable(symtable).needs_init_final;
+      end;
+
+
     procedure tobjectdef.count_published_properties(sym:tnamedindexitem;arg:pointer);
       begin
          if needs_prop_entry(tsym(sym)) and
@@ -5452,7 +5459,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2002-10-07 21:30:27  peter
+  Revision 1.100  2002-10-19 15:09:25  peter
+    + tobjectdef.members_need_inittable that is used to generate only the
+      inittable when it is really used. This saves a lot of useless calls
+      to fpc_finalize when destroying classes
+
+  Revision 1.99  2002/10/07 21:30:27  peter
     * removed obsolete rangecheck stuff
 
   Revision 1.98  2002/10/05 15:14:26  peter
