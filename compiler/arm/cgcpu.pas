@@ -187,8 +187,6 @@ unit cgcpu;
           else
             internalerror(2002081101);
         end;
-        if paraloc.alignment<>0 then
-          internalerror(2002081102);
       end;
 
 
@@ -220,8 +218,6 @@ unit cgcpu;
           else
             internalerror(2002081103);
         end;
-        if paraloc.alignment<>0 then
-          internalerror(2002081104);
       end;
 
 
@@ -1295,7 +1291,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2004-10-24 11:53:45  peter
+  Revision 1.58  2004-10-24 17:32:53  florian
+    * fixed several arm compiler bugs
+
+  Revision 1.57  2004/10/24 11:53:45  peter
     * fixed compilation with removed loadref
 
   Revision 1.56  2004/10/24 07:54:25  florian

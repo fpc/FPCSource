@@ -249,7 +249,7 @@ implementation
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].Alignment:=std_param_align;
             paralen:=tcgsize2size[paracgsize];
-            while (paralen>0) do
+            while paralen>0 do
               begin
                 paraloc:=hp.paraloc[side].add_location;
                 { Floats are passed in int registers,
@@ -318,7 +318,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2004-10-05 20:41:02  peter
+  Revision 1.45  2004-10-24 17:32:53  florian
+    * fixed several arm compiler bugs
+
+  Revision 1.44  2004/10/05 20:41:02  peter
     * more spilling rewrites
 
   Revision 1.43  2004/09/27 21:24:17  peter

@@ -269,7 +269,7 @@ unit cpupara;
                end;
 
              paralen:=tcgsize2size[paracgsize];
-             while (paralen>0) do
+             while paralen>0 do
                begin
                  paraloc:=hp.paraloc[side].add_location;
                  { for things like formaldef }
@@ -278,7 +278,7 @@ unit cpupara;
                  else if paracgsize in [OS_64,OS_S64] then
                    paraloc^.size:=OS_32
                  else
-                   paraloc^.size:=def_cgsize(paradef);
+                   paraloc^.size:=paracgsize;
                  case loc of
                     LOC_REGISTER:
                       begin
@@ -426,7 +426,7 @@ unit cpupara;
         parasize, l: longint;
         curintreg, curfloatreg, curmmreg: tsuperregister;
         hp: tparaitem;
-        paraloc: tparalocation;
+        paraloc: tcgparalocation;
       begin
         init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
 
@@ -463,7 +463,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2004-10-24 07:54:25  florian
+  Revision 1.22  2004-10-24 17:32:53  florian
+    * fixed several arm compiler bugs
+
+  Revision 1.21  2004/10/24 07:54:25  florian
     * fixed compilation of arm compiler
 
   Revision 1.20  2004/10/22 16:36:57  florian

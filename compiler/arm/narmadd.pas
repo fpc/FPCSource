@@ -309,13 +309,13 @@ interface
 
         if right.location.loc = LOC_CONSTANT then
           begin
-             if is_shifter_const(right.location.value,b) then
+             if is_shifter_const(dword(right.location.value),b) then
                exprasmlist.concat(taicpu.op_reg_const(A_CMP,left.location.register,right.location.value))
              else
                begin
                  tmpreg:=cg.getintregister(exprasmlist,location.size);
                  cg.a_load_const_reg(exprasmlist,OS_INT,
-                   aword(right.location.value),tmpreg);
+                   right.location.value,tmpreg);
                  exprasmlist.concat(taicpu.op_reg_reg(A_CMP,left.location.register,tmpreg));
                end;
           end
@@ -331,7 +331,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2004-10-24 07:54:25  florian
+  Revision 1.17  2004-10-24 17:32:53  florian
+    * fixed several arm compiler bugs
+
+  Revision 1.16  2004/10/24 07:54:25  florian
     * fixed compilation of arm compiler
 
   Revision 1.15  2004/06/20 08:55:31  florian

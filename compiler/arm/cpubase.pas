@@ -254,31 +254,6 @@ unit cpubase;
 *****************************************************************************}
 
     type
-      { tparamlocation describes where a parameter for a procedure is stored.
-        References are given from the caller's point of view. The usual
-        TLocation isn't used, because contains a lot of unnessary fields.
-      }
-      tparalocation = record
-         size : TCGSize;
-         loc  : TCGLoc;
-         lochigh : TCGLoc;
-         alignment : byte;
-         case TCGLoc of
-            LOC_REFERENCE : (reference : tparareference);
-            { segment in reference at the same place as in loc_register }
-            LOC_MMREGISTER,LOC_CMMREGISTER,
-            LOC_FPUREGISTER,LOC_CFPUREGISTER,
-            LOC_REGISTER,LOC_CREGISTER : (
-              case longint of
-                1 : (register,registerhigh : tregister);
-                { overlay a registerlow }
-                2 : (registerlow : tregister);
-                { overlay a 64 Bit register type }
-                3 : (reg64 : tregister64);
-                4 : (register64 : tregister64);
-              );
-      end;
-
       tlocation = record
          loc  : TCGLoc;
          size : TCGSize;
@@ -286,12 +261,12 @@ unit cpubase;
             LOC_FLAGS : (resflags : tresflags);
             LOC_CONSTANT : (
               case longint of
-                1 : (value : AWord);
+                1 : (value : aint);
                 { can't do this, this layout depends on the host cpu. Use }
                 { lo(valueqword)/hi(valueqword) instead (JM)              }
                 { 2 : (valuelow, valuehigh:AWord);                        }
                 { overlay a complete 64 Bit value }
-                3 : (value64 : qword);
+                3 : (value64 : int64);
               );
             LOC_CREFERENCE,
             LOC_REFERENCE : (reference : treference);
@@ -589,7 +564,10 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.33  2004-10-22 16:36:57  florian
+  Revision 1.34  2004-10-24 17:32:53  florian
+    * fixed several arm compiler bugs
+
+  Revision 1.33  2004/10/22 16:36:57  florian
     * first arm fixes for new paraloc handling
 
   Revision 1.32  2004/10/15 09:15:34  mazen

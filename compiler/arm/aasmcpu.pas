@@ -50,17 +50,17 @@ uses
 
          constructor op_reg_reg(op : tasmop;_op1,_op2 : tregister);
          constructor op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
-         constructor op_reg_const(op:tasmop; _op1: tregister; _op2: aword);
+         constructor op_reg_const(op:tasmop; _op1: tregister; _op2: aint);
 
          constructor op_ref_regset(op:tasmop; _op1: treference; _op2: tcpuregisterset);
 
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
-         constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aword);
+         constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aint);
          constructor op_reg_reg_sym_ofs(op : tasmop;_op1,_op2 : tregister; _op3: tasmsymbol;_op3ofs: longint);
          constructor op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister; const _op3: treference);
          constructor op_reg_reg_shifterop(op : tasmop;_op1,_op2 : tregister;_op3 : tshifterop);
          { SFM/LFM }
-         constructor op_reg_const_ref(op : tasmop;_op1 : tregister;_op2 : aword;_op3 : treference);
+         constructor op_reg_const_ref(op : tasmop;_op1 : tregister;_op2 : aint;_op3 : treference);
 
          { this is for Jmp instructions }
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
@@ -159,7 +159,7 @@ implementation
       begin
          inherited create(op);
          ops:=1;
-         loadconst(0,aword(_op1));
+         loadconst(0,aint(_op1));
       end;
 
 
@@ -172,12 +172,12 @@ implementation
       end;
 
 
-    constructor taicpu.op_reg_const(op:tasmop; _op1: tregister; _op2: aword);
+    constructor taicpu.op_reg_const(op:tasmop; _op1: tregister; _op2: aint);
       begin
          inherited create(op);
          ops:=2;
          loadreg(0,_op1);
-         loadconst(1,aword(_op2));
+         loadconst(1,aint(_op2));
       end;
 
 
@@ -209,17 +209,17 @@ implementation
       end;
 
 
-     constructor taicpu.op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aword);
+     constructor taicpu.op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aint);
        begin
          inherited create(op);
          ops:=3;
          loadreg(0,_op1);
          loadreg(1,_op2);
-         loadconst(2,aword(_op3));
+         loadconst(2,aint(_op3));
       end;
 
 
-    constructor taicpu.op_reg_const_ref(op : tasmop;_op1 : tregister;_op2 : aword;_op3 : treference);
+    constructor taicpu.op_reg_const_ref(op : tasmop;_op1 : tregister;_op2 : aint;_op3 : treference);
       begin
          inherited create(op);
          ops:=3;
@@ -493,7 +493,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.34  2004-07-04 15:22:34  florian
+  Revision 1.35  2004-10-24 17:32:53  florian
+    * fixed several arm compiler bugs
+
+  Revision 1.34  2004/07/04 15:22:34  florian
     * fixed float spilling to use sfm/lfm instead of stf/ldf
 
   Revision 1.33  2004/06/20 08:55:31  florian

@@ -34,7 +34,7 @@ unit cpupi;
 
     type
        tarmprocinfo = class(tcgprocinfo)
-          floatregstart : aword;
+          floatregstart : aint;
           // procedure handle_body_start;override;
           // procedure after_pass1;override;
           procedure set_first_temp_offset;override;
@@ -106,7 +106,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2004-06-20 08:55:31  florian
+  Revision 1.10  2004-10-24 17:32:53  florian
+    * fixed several arm compiler bugs
+
+  Revision 1.9  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.8  2004/06/16 20:07:10  florian
