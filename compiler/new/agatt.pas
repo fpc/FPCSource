@@ -36,7 +36,19 @@ unit agatt;
     type
       pattasmlist=^tattasmlist;
       tattasmlist=object(tasmlist)
-        Procedure WriteInstruction (P : Pai); virtual;
+        { convert an operand to a string }
+        function getopstr(const o:toper) : string;
+
+
+        { convert a treference to a string }
+        function getreferencestring(var ref : treference) : string; Virtual;
+        { convert a call/jmp operand to a string }
+        function getopstr_jmp(const o:toper) : string; Virtual;
+
+        { write an ait_instruction }
+        Procedure WriteInstruction (P : paicpu); virtual;
+
+
         procedure WriteTree(p:paasmoutput);virtual;
         procedure WriteAsmList;virtual;
 {$ifdef GDB}
@@ -46,41 +58,57 @@ unit agatt;
 
   implementation
 
-    const
-       op2str : array[tasmop] of string[14] = (
-          'addf','addg','addl','addq',
-          'adds','addt','amask','and','beq','bge',
-          'bgt','bic','bis','blbc','blbs','ble',
-          'blt','bne','br','bsr','call_pal','cmoveq',
-          'cmovge','cmovgt','cmovlbc','cmovlbs','cmovle','cmovlt',
-          'cmovne','cmpbge','cmpeq','cmpgeq','cmpgle','cmpglt',
-          'cmple','cmplt','cmpteq','cmptle','cmptlt','cmptun',
-          'cmpule','cmpult','cpys','cpyse','cpysn','ctlz',
-          'ctpop','cttz','cvtdg','cvtgd','cvtgf','cvtgq',
-          'cvtlq','cvtqf','cvtqg','cvtql','cvtqs','cvtqt',
-          'cvtst','cvttq','cvtts','divf','divg','divs',
-          'divt','ecb','eqv','excb','extbl','extlh',
-          'extll','extqh','extql','extwh','extwl','fbeq',
-          'fbge','fbgt','fble','fblt','fbne','fcmoveq',
-          'fcmovge','fcmovgt','fcmovle','fcmovlt','fcmovne','fetch',
-          'fetch_m','ftois','ftoit','implver','insbl','inslh',
-          'insll','insqh','insql','inswh','inswl','itoff',
-          'itofs','itoft','jmp','jsr','jsr_coroutine','lda',
-          'ldah','ldbu','ldwu','ldf','ldg','ldl',
-          'ldl_l','ldq','ldq_l','ldq_u','lds','ldt',
-          'maxsb8','maxsw4','maxub8','maxuw4','mb','mf_fpcr',
-          'minsb8','minsw4','minub8','minuw4','mskbl','msklh',
-          'mskll','mskqh','mskql','mskwh','mskwl','mt_fpcr',
-          'mulf','mulg','mull','mulq',
-          'muls','mult','ornot','perr','pklb','pkwb',
-          'rc','ret','rpcc','rs','s4addl','s4addq',
-          's4subl','s4subq','s8addl','s8addq','s8subl','s8subq',
-          'sextb','sextw','sll','sqrtf','sqrtg','sqrts',
-          'sqrtt','sra','srl','stb','stf','stg',
-          'sts','stl','stl_c','stq','stq_c','stq_u',
-          'stt','stw','subf','subg','subl',
-          'subq','subs','subt','trapb','umulh','unpkbl',
-          'unpkbw','wh64','wmb','xor','zap','zapnot');
+
+    function tattasmlist.getreferencestring(var ref : treference) : string;
+    begin
+      Abstract
+    End;
+
+    function tattasmlist.getopstr_jmp(const o:toper) : string;
+    Begin
+      Abstract
+    end;
+
+    Procedure tattasmlist.WriteInstruction (P : paicpu); virtual;
+    Begin
+      Abstract
+    End;
+
+
+    function tattamslist.getopstr(const o:toper) : string;
+    var
+      hs : string;
+    begin
+      case o.typ of
+        top_reg :
+          getopstr:=att_reg2str[o.reg];
+        top_ref :
+          getopstr:=getreferencestring(o.ref^);
+        top_const :
+          getopstr:='$'+tostr(o.val);
+        top_symbol :
+          begin
+            if assigned(o.sym) then
+              hs:='$'+o.sym^.name
+            else
+              hs:='$';
+            if o.symofs>0 then
+             hs:=hs+'+'+tostr(o.symofs)
+            else
+             if o.symofs<0 then
+              hs:=hs+tostr(o.symofs)
+            else
+             if not(assigned(o.sym)) then
+               hs:=hs+'0';
+            getopstr:=hs;
+          end;
+        else
+          internalerror(10001);
+      end;
+    end;
+
+
+
 
 {$ifdef GDB}
       procedure tattasmlist.WriteFileLineInfo(var fileinfo : tfileposinfo);
@@ -572,13 +600,16 @@ unit agatt;
 
     Procedure tattasmlist.WriteInstruction (P : Pai); virtual;
 
-     begin 
+     begin
        RunError(255);
      end;
 end.
 {
  $Log$
- Revision 1.1  1999-08-03 13:48:50  michael
+ Revision 1.2  1999-09-03 13:08:36  jonas
+   * defined some necessary virtual helper methods
+
+ Revision 1.1  1999/08/03 13:48:50  michael
  + Initial implementation
 
 }
