@@ -120,6 +120,7 @@ type
       function    GetUndoActionCount: sw_integer; virtual;
       function    GetRedoActionCount: sw_integer; virtual;
     private
+      OnDiskLoadTime : longint;
       procedure LinesInsert(Idx: sw_integer; Line: PLine);
     end;
 
@@ -220,8 +221,6 @@ type
       function    GetFold(Index: sw_integer): PFold; virtual;
       procedure   RegisterFold(AFold: PFold); virtual;
       procedure   UnRegisterFold(AFold: PFold); virtual;
-    private
-      OnDiskLoadTime : longint;
     end;
 
     PFileEditor = ^TFileEditor;
@@ -379,6 +378,7 @@ begin
   New(Lines, Init(500,1000));
   TabSize:=DefaultTabSize;
   IndentSize:=DefaultIndentSize;
+  OnDiskLoadTime:=-1;
 end;
 
 procedure TCodeEditorCore.ChangeLinesTo(ALines : PLineCollection);
@@ -881,7 +881,6 @@ begin
     Indicator^.CodeOwner:=@Self;
   UpdateIndicator;
   LimitsChanged;
-  OnDiskLoadTime:=-1;
 end;
 
 function TCodeEditor.GetFlags: longint;
@@ -1432,7 +1431,7 @@ begin
           (Core^.UndoList^.At(0)^.Action=eaMoveCursor)) then
         begin
           SetCmdState(UndoCmd,false);
-          if (UndoTime>OnDiskLoadTime) or (OnDiskLoadTime=-1) then
+          if (UndoTime>Core^.OnDiskLoadTime) or (Core^.OnDiskLoadTime=-1) then
             SetModified(false);
         end;
       SetCmdState(RedoCmd,true);
@@ -1780,13 +1779,14 @@ begin
       longint(PA[2]):=Core^.GetChangedLine;
       EditorDialog(edChangedOnloading,@PA);
     end;
-  OnDiskLoadTime:=GetFileTime(FileName);
+  Core^.OnDiskLoadTime:=GetFileTime(FileName);
   LoadFile:=OK;
 end;
 
 function TFileEditor.IsChangedOnDisk : boolean;
 begin
-  IsChangedOnDisk:=(OnDiskLoadTime<>GetFileTime(FileName)) and (OnDiskLoadTime<>-1);
+  IsChangedOnDisk:=(Core^.OnDiskLoadTime<>GetFileTime(FileName)) and
+    (Core^.OnDiskLoadTime<>-1);
 end;
 
 function TFileEditor.SaveFile: boolean;
@@ -1828,7 +1828,7 @@ begin
     end;
   { don't forget to update the OnDiskLoadTime value }
   if OK then
-    OnDiskLoadTime:=GetFileTime(FileName);
+    Core^.OnDiskLoadTime:=GetFileTime(FileName);
   if not OK then
     EditorDialog(edSaveError,@FileName);
   SaveFile:=OK;
@@ -1863,7 +1863,7 @@ begin
       SetModified(false);
       ClearUndoList;
       { don't forget to update the OnDiskLoadTime value }
-      OnDiskLoadTime:=GetFileTime(FileName);
+      Core^.OnDiskLoadTime:=GetFileTime(FileName);
       DrawView;
     end
   else
@@ -1893,13 +1893,13 @@ var
 begin
   SaveAs := False;
   SavedName:=FileName;
-  SavedDiskLoadTime:=OnDiskLoadTime;
+  SavedDiskLoadTime:=Core^.OnDiskLoadTime;
   if EditorDialog(edSaveAs, @FileName) <> cmCancel then
   begin
     FileName:=FExpand(FileName);
     Message(Owner, evBroadcast, cmUpdateTitle, @Self);
     { if we rename the file the OnDiskLoadTime is wrong so we reset it }
-    OnDiskLoadTime:=-1;
+    Core^.OnDiskLoadTime:=-1;
     if SaveFile then
       begin
         SaveAs := true;
@@ -1907,7 +1907,7 @@ begin
     else
       begin
         FileName:=SavedName;
-        OnDiskLoadTime:=SavedDiskLoadTime;
+        Core^.OnDiskLoadTime:=SavedDiskLoadTime;
         Message(Owner, evBroadcast, cmUpdateTitle, @Self);
       end;
     if IsClipboard then FileName := '';
@@ -2062,7 +2062,10 @@ end;
 END.
 {
  $Log$
- Revision 1.15  2002-09-12 22:09:07  pierre
+ Revision 1.16  2002-12-16 15:14:44  pierre
+  * moved OnDiskLoadTime to Core
+
+ Revision 1.15  2002/09/12 22:09:07  pierre
   * reset modified flag, web bug 1262
 
  Revision 1.14  2002/09/09 06:58:28  pierre
