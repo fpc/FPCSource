@@ -780,14 +780,14 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_ODD_LONGINT}
 
-{$ifndef FPC_SYSTEM_HAS_ODD_CARDINAL}
+{$ifndef FPC_SYSTEM_HAS_ODD_LONGWORD}
 
-function odd(l:cardinal):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_odd];
+function odd(l:longword):boolean;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:in_const_odd];
 begin
    odd:=boolean(l and 1);
 end;
 
-{$endif ndef FPC_SYSTEM_HAS_ODD_CARDINAL}
+{$endif ndef FPC_SYSTEM_HAS_ODD_LONGWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_ODD_INT64}
@@ -899,9 +899,9 @@ var
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGINT}
 
-{$ifndef FPC_SYSTEM_HAS_INT_STR_CARDINAL}
+{$ifndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 
-procedure int_str(l : cardinal;var s : string);
+procedure int_str(l : longword;var s : string);
 begin
   s:='';
   if l = 0 then
@@ -916,37 +916,14 @@ begin
     end;
 end;
 
-{$endif ndef FPC_SYSTEM_HAS_INT_STR_CARDINAL}
-
-{****************************************************************************
-                               Bounds Check
-****************************************************************************}
-
-{$ifndef NOBOUNDCHECK}
-{$ifndef FPC_SYSTEM_HAS_FPC_BOUNDCHECK}
-
-procedure int_boundcheck(l : longint; range : pointer);[public,alias: 'FPC_BOUNDCHECK'];
-  type
-    prange = ^trange;
-    trange = packed record
-               min,max : longint;
-             end;
-begin
-   if (l < prange(range)^.min) or
-      (l > prange(range)^.max) then
-     HandleError(201);
-end;
-
-{$endif ndef FPC_SYSTEM_HAS_FPC_BOUNDCHECK}
-{$endif NOBOUNDCHECK}
-
-{****************************************************************************
-                                 IoCheck
-****************************************************************************}
-
+{$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {
   $Log$
-  Revision 1.33  2002-09-07 15:07:45  peter
+  Revision 1.34  2002-09-07 21:08:42  carl
+    * cardinal -> longword
+    - remove generic boundcheck (does not exist in v1.1)
+
+  Revision 1.33  2002/09/07 15:07:45  peter
     * old logs removed and tabs fixed
 
   Revision 1.32  2002/08/19 19:34:02  peter
