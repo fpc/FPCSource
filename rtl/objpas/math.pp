@@ -1171,7 +1171,7 @@ end;
 function IsZero(const A: Single): Boolean; 
 
 begin
-  Result:=IsZero(A,SZeroResolution);
+  Result:=IsZero(A,single(SZeroResolution));
 end;
 
 {$ifdef FPC_HAS_TYPE_DOUBLE}
@@ -1266,7 +1266,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2004-02-09 17:21:04  marco
+  Revision 1.19  2004-02-09 18:53:09  florian
+    * compilation on ppc fixed
+
+  Revision 1.18  2004/02/09 17:21:04  marco
    * 1.0 compilation fixes
 
   Revision 1.17  2004/02/09 09:11:46  michael
