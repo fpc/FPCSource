@@ -171,7 +171,7 @@
             (owner^.symtabletype in [recordsymtable,objectsymtable]) then
            begin
 {$ifndef OLDPPU}
-              owner^.defindex^.delete(@self);
+              owner^.defindex^.deleteindex(@self);
 {$else}
               { no other definition
                  has been inserted !! (PM) }
@@ -3459,7 +3459,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.107  1999-04-28 06:02:11  florian
+  Revision 1.108  1999-04-28 22:30:52  pierre
+   * delete -> deleteindex in tdef.correct_owner_symtable
+
+  Revision 1.107  1999/04/28 06:02:11  florian
     * changes of Bruessel:
        + message handler can now take an explicit self
        * typinfo fixed: sometimes the type names weren't written
