@@ -847,6 +847,9 @@ implementation
                                     end;
             else internalerror(2002);
          end;
+         { we need the min_label always to choose between }
+         { cmps and subs/decs                             }
+         min_label:=case_get_min(p^.nodes);
          { now generate the jumps }
            if cs_optimize in aktglobalswitches then
            begin
@@ -857,7 +860,6 @@ implementation
               { moreover can the size only be appro- }
               { ximated as it is not known if rel8,  }
               { rel16 or rel32 jumps are used   }
-              min_label:=case_get_min(p^.nodes);
               max_label:=case_get_max(p^.nodes);
               labels:=case_count_labels(p^.nodes);
               { can we omit the range check of the jump table ? }
@@ -956,7 +958,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2000-05-16 18:56:04  florian
+  Revision 1.52  2000-05-17 11:42:27  florian
+    * fixed my previous commit
+
+  Revision 1.51  2000/05/16 18:56:04  florian
     * fixed a problem with case and negative labels if a linear list
       was generated (fixes tests\test\testcase)
 
