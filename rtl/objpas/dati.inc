@@ -604,7 +604,7 @@ var
                         end ;
                      'Z': begin
                         if Count = 1 then StoreInt(MilliSecond, 0)
-                        else StoreInt(MilliSecond, 2);
+                        else StoreInt(MilliSecond, 3);
                         end ;
                      'T': begin
                         if Count = 1 then StoreFormat(timereformat(ShortTimeFormat))
@@ -677,7 +677,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:22  peter
+  Revision 1.7  2002-09-07 21:06:51  carl
+    * bugfix 1867 (merged)
+
+  Revision 1.6  2002/09/07 16:01:22  peter
     * old logs removed and tabs fixed
 
 }
