@@ -102,10 +102,10 @@ implementation
               end
             else
               begin
+                 inc(fpuvaroffset);
                  floatstore(PFloatDef(dest^.resulttype)^.typ,dest^.location.reference);
                  { floatstore decrements the fpu var offset }
                  { but in fact we didn't increment it       }
-                 inc(fpuvaroffset);
               end;
           orddef:
             begin
@@ -452,10 +452,6 @@ implementation
                                 if pfloatdef(p^.resulttype)^.typ<>f32bit then
                                   dec(fpuvaroffset);
                                 }
-                                { the result is on the fpu stack   }
-                                { and storedirectreuslt decrements }
-                                { fpuvaroffset                     }
-                                inc(fpuvaroffset);
                                 if doread then
                                   begin
                                      maybe_loadesi;
@@ -1532,7 +1528,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.102  2000-07-05 20:19:47  florian
+  Revision 1.103  2000-07-05 20:29:16  florian
+    * fixed my previous commit :/
+
+  Revision 1.102  2000/07/05 20:19:47  florian
     * fixed fpuvaroffset calculation in read statements
 
   Revision 1.101  2000/05/11 09:56:20  pierre
