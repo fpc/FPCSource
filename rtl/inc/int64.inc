@@ -50,12 +50,12 @@
          count_leading_zero:=r;
       end;
 
-    function divqword(z,n : qword) : qword;
+    function divqword(z,n : qword) : qword;safecall;
 
       begin
       end;
 
-    function divint64(z,n : int64) : int64;
+    function divint64(z,n : int64) : int64;safecall;
 
       var
          sign : boolean;
@@ -88,7 +88,7 @@
       end;
 
     { multiplies two qwords }
-    function mulqword(f1,f2 : qword;checkoverflow : boolean) : qword;
+    function mulqword(f1,f2 : qword;checkoverflow : boolean) : qword;safecall;
 
       var
          res,bitpos : qword;
@@ -125,7 +125,7 @@
        fpuint64 = true:
          ... using the comp multiplication
      }
-    function mulint64(f1,f2 : int64;checkoverflow : boolean) : int64;
+    function mulint64(f1,f2 : int64;checkoverflow : boolean) : int64;safecall;
 
       var
          sign : boolean;
@@ -194,7 +194,11 @@
 
 {
   $Log$
-  Revision 1.1  1998-12-12 12:15:41  florian
+  Revision 1.2  1999-01-06 12:25:03  florian
+    * naming for str(...) routines inserted
+    * don't know what in int64 changed
+
+  Revision 1.1  1998/12/12 12:15:41  florian
     + first implementation
 
 }

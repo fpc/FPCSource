@@ -591,19 +591,20 @@ begin
  Val(SS,SI,Code);
 end;
 
-(*
-Procedure Str (Const R : Real;Len,fr : Longint; Const S : AnsiString);
 
-Var SS : ShortString;
+{!!!!!!!!!!!!
+  We need ansistring str routines for the following types:
+  FIXED
+  SINGLE
+  COMP
+  FIXED16
+  QWORD
+  INT64
+}
 
-begin
- {int_Str_Real (R,Len,fr,SS);}
- Short_To_AnsiString (Pointer(S),SS);
-end;
 
-
-{
 Procedure Str (Var D : Double;Len,fr: Longint; Var S : AnsiString);
+  [Public,Alias : 'FPC_STRANSI_REAL'];
 
 Var SS : ShortString;
 
@@ -611,10 +612,10 @@ begin
  {int_Str_Double (D,Len,fr,SS);}
  Short_To_AnsiString (S,SS);
 end;
-}
 
 
 Procedure Str (E : Extended;Lenf,Fr: Longint; Var S : AnsiString);
+  [Public,Alias : 'FPC_STRANSI_EXTENDED'];
 
 Var SS : ShortString;
 
@@ -626,6 +627,7 @@ end;
 
 
 Procedure Str (C : Cardinal;Len : Longint; Var S : AnsiString);
+  [Public,Alias : 'FPC_STRANSI_CARDINAL'];
 
 begin
 end;
@@ -633,6 +635,7 @@ end;
 
 
 Procedure Str (L : Longint; Len : Longint; Var S : AnsiString);
+  [Public,Alias : 'FPC_STRANSI_LONGINT'];
 
 Var SS : ShortString;
 
@@ -644,11 +647,13 @@ end;
 
 
 Procedure Str (Var W : Word;Len : Longint; Var S : AnsiString);
+  [Public,Alias : 'FPC_STRANSI_EXTENDED'];
 
 begin
 end;
 
 
+(* these procedures are not used by the compiler:
 
 Procedure Str (Var I : Integer;Len : Longint; Var S : AnsiString);
 
@@ -722,7 +727,11 @@ end;
 
 {
   $Log$
-  Revision 1.5  1998-12-15 22:43:01  peter
+  Revision 1.6  1999-01-06 12:25:02  florian
+    * naming for str(...) routines inserted
+    * don't know what in int64 changed
+
+  Revision 1.5  1998/12/15 22:43:01  peter
     * removed temp symbols
 
   Revision 1.4  1998/11/18 10:56:46  michael
