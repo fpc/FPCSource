@@ -1501,7 +1501,7 @@ implementation
 
       { omit stack frame ? }
       if (not inlined) then
-        if (procinfo^.framepointer=stack_pointer) then
+        if (procinfo^.framepointer=STACK_POINTER_REG) then
           begin
               CGMessage(cg_d_stackframe_omited);
               nostackframe:=true;
@@ -1518,7 +1518,7 @@ implementation
               if (aktprocdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
-                parasize:=aktprocdef.parast.datasize+procinfo^.para_offset-8;
+                parasize:=aktprocdef.parast.datasize+procinfo^.para_offset-target_info.first_parm_offset;
               nostackframe:=false;
               if stackframe<>0 then
                begin
@@ -2301,7 +2301,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2002-04-19 15:39:34  peter
+  Revision 1.25  2002-04-20 21:37:07  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+  * removing frame pointer in routines is only available for : i386,m68k and vis targets
+
+  Revision 1.24  2002/04/19 15:39:34  peter
     * removed some more routines from cga
     * moved location_force_reg/mem to ncgutil
     * moved arrayconstructnode secondpass to ncgld

@@ -27,6 +27,7 @@ Unit cpuinfo;
 Interface
 
 Type
+   {# Natural integer register type and size for the target machine }
    AWord = Cardinal;
    PAWord = ^AWord;
 
@@ -38,15 +39,29 @@ Type
    TConstPtrUInt = cardinal;
 
 Const
-   { Size of native extended type }
+   {# Size of native extended floating point type }
    extended_size = 10;
+   {# Size of a pointer                           }
+   pointer_size  = 4;
+   {# Size of a multimedia register               }
+   mmreg_size = 8;
 
 Implementation
 
 end.
 {
   $Log$
-  Revision 1.6  2002-04-07 13:41:50  carl
+  Revision 1.7  2002-04-20 21:37:07  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+  * removing frame pointer in routines is only available for : i386,m68k and vis targets
+
+  Revision 1.6  2002/04/07 13:41:50  carl
   - moved type constant
 
   Revision 1.5  2002/04/02 17:11:34  peter

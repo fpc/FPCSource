@@ -35,7 +35,7 @@ Implementation
 
 Uses
   {$ifdef replaceregdebug}cutils,{$endif}
-  verbose,globals,cpubase,cpuasm,daopt386,csopt386,cginfo,rgobj;
+  verbose,globals,cpuinfo,cpubase,cpuasm,daopt386,csopt386,cginfo,rgobj;
 
 function canBeFirstSwitch(p: Taicpu; reg: tregister): boolean;
 { checks whether an operation on reg can be switched to another reg without an }
@@ -350,7 +350,17 @@ End.
 
 {
   $Log$
-  Revision 1.11  2002-04-15 19:44:22  peter
+  Revision 1.12  2002-04-20 21:37:08  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+  * removing frame pointer in routines is only available for : i386,m68k and vis targets
+
+  Revision 1.11  2002/04/15 19:44:22  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

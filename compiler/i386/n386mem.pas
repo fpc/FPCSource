@@ -61,7 +61,7 @@ implementation
       symconst,symtype,symdef,symsym,symtable,aasm,types,
       cginfo,cgbase,pass_2,
       pass_1,nld,ncon,nadd,
-      cpubase,
+      cpuinfo,cpubase,
       cgobj,cga,tgobj,rgobj,ncgutil,n386util;
 
 {*****************************************************************************
@@ -663,7 +663,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2002-04-19 15:39:35  peter
+  Revision 1.27  2002-04-20 21:37:07  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+  * removing frame pointer in routines is only available for : i386,m68k and vis targets
+
+  Revision 1.26  2002/04/19 15:39:35  peter
     * removed some more routines from cga
     * moved location_force_reg/mem to ncgutil
     * moved arrayconstructnode secondpass to ncgld

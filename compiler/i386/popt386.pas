@@ -41,7 +41,7 @@ Uses
 {$ifdef finaldestdebug}
   cobjects,
 {$endif finaldestdebug}
-  tainst,cpubase,cpuasm,DAOpt386,cginfo,rgobj;
+  tainst,cpubase,optbase,cpuasm,DAOpt386,cginfo,rgobj;
 
 Function RegUsedAfterInstruction(Reg: TRegister; p: Tai; Var UsedRegs: TRegSet): Boolean;
 Begin
@@ -1364,7 +1364,7 @@ Begin
                              Taicpu(hp2).opcode := A_MOV;
                              Taicpu(hp2).Loadoper(1,Taicpu(hp1).oper[0]);
                              reference_reset(tmpref);
-                             tmpRef.base := stack_pointer;
+                             tmpRef.base := STACK_POINTER_REG;
                              tmpRef.offset := l;
                              Taicpu(hp2).loadRef(0,tmpRef);
                              hp4 := hp1;
@@ -2040,7 +2040,17 @@ End.
 
 {
   $Log$
-  Revision 1.21  2002-04-15 19:44:21  peter
+  Revision 1.22  2002-04-20 21:37:07  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+  * removing frame pointer in routines is only available for : i386,m68k and vis targets
+
+  Revision 1.21  2002/04/15 19:44:21  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

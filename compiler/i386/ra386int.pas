@@ -1123,8 +1123,8 @@ Begin
                 if (opr.ref.index<>R_NO) then
                  Message(asmr_e_wrong_base_index)
                 else if assigned(procinfo^._class) and
-                  (oldbase=self_pointer) and
-                  (opr.ref.base=self_pointer) then
+                  (oldbase=SELF_POINTER_REG) and
+                  (opr.ref.base=SELF_POINTER_REG) then
                   begin
                     Message(asmr_w_possible_object_field_bug);
                     { warn but accept... who knows what people
@@ -1959,7 +1959,17 @@ finalization
 end.
 {
   $Log$
-  Revision 1.24  2002-04-15 19:44:22  peter
+  Revision 1.25  2002-04-20 21:37:07  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+  * removing frame pointer in routines is only available for : i386,m68k and vis targets
+
+  Revision 1.24  2002/04/15 19:44:22  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

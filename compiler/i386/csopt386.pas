@@ -27,7 +27,7 @@ Unit CSOpt386;
 
 Interface
 
-Uses aasm, cpuinfo, cpubase, cpuasm;
+Uses aasm, cpuinfo, cpubase, cpuasm, optbase;
 
 function CSE(asmL: TAAsmoutput; first, last: Tai; pass: longint): boolean;
 
@@ -352,9 +352,9 @@ Begin {CheckSequence}
   OrgRegResult := False;
   with startRegInfo do
     begin
-      newRegsEncountered := [procinfo^.FramePointer, stack_pointer];
+      newRegsEncountered := [procinfo^.FramePointer, STACK_POINTER_REG];
       new2OldReg[procinfo^.FramePointer] := procinfo^.FramePointer;
-      new2OldReg[stack_pointer] := stack_pointer;
+      new2OldReg[STACK_POINTER_REG] := STACK_POINTER_REG;
       oldRegsEncountered := newRegsEncountered;
     end;
 
@@ -1323,7 +1323,7 @@ begin
              (Taicpu(startmod).opcode = A_MOVSX) or
              (Taicpu(startmod).opcode = A_LEA)) and
             (Taicpu(startmod).oper[0].typ = top_ref) and
-            (Taicpu(startmod).oper[0].ref^.base = stack_pointer)) or
+            (Taicpu(startmod).oper[0].ref^.base = STACK_POINTER_REG)) or
            not(reg in pTaiprop(hp1.optInfo)^.usedRegs) or
            findRegDealloc(reg,p))) then
         pTaiprop(startMod.optInfo)^.canBeRemoved := true;
@@ -1984,7 +1984,17 @@ End.
 
 {
   $Log$
-  Revision 1.30  2002-04-15 19:44:20  peter
+  Revision 1.31  2002-04-20 21:37:07  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+  * removing frame pointer in routines is only available for : i386,m68k and vis targets
+
+  Revision 1.30  2002/04/15 19:44:20  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

@@ -31,7 +31,7 @@ Interface
 Uses
   GlobType,
   CClasses,Aasm,
-  cpubase,cpuasm;
+  cpubase,cpuasm,optbase;
 
 {******************************* Constants *******************************}
 
@@ -2586,7 +2586,17 @@ End.
 
 {
   $Log$
-  Revision 1.31  2002-04-15 19:44:20  peter
+  Revision 1.32  2002-04-20 21:37:07  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+  * removing frame pointer in routines is only available for : i386,m68k and vis targets
+
+  Revision 1.31  2002/04/15 19:44:20  peter
     * fixed stackcheck that would be called recursively when a stack
       error was found
     * generic changeregsize(reg,size) for i386 register resizing

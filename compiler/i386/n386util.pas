@@ -227,7 +227,7 @@ implementation
          hregister:=rg.getregisterint(exprasmlist);
 {$ifdef TEMPS_NOT_PUSH}
          reset_reference(href);
-         href.base:=procinfo^.frame_pointer;
+         href.base:=procinfo^.frame_pointer_reg;
          href.offset:=p.temp_offset;
          emit_ref_reg(A_MOV,S_L,href,hregister);
 {$else  TEMPS_NOT_PUSH}
@@ -274,7 +274,7 @@ implementation
       begin
          hregister:=rg.getregisterint(exprasmlist);
          reset_reference(href);
-         href.base:=procinfo^.frame_pointer;
+         href.base:=procinfo^.frame_pointer_reg;
          href.offset:=p.temp_offset;
          emit_ref_reg(A_MOV,S_L,href,hregister);
          if (p.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
@@ -1112,7 +1112,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2002-04-19 15:39:35  peter
+  Revision 1.33  2002-04-20 21:37:07  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+  * removing frame pointer in routines is only available for : i386,m68k and vis targets
+
+  Revision 1.32  2002/04/19 15:39:35  peter
     * removed some more routines from cga
     * moved location_force_reg/mem to ncgutil
     * moved arrayconstructnode secondpass to ncgld

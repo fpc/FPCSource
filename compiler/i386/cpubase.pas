@@ -423,7 +423,7 @@ type
     LOC_CONSTANT,     { constant value }
     LOC_JUMP,         { boolean results only, jump to false or true label }
     LOC_FLAGS,        { boolean results only, flags are set }
-    LOC_CREFERENCE,   { in memory constant value }
+    LOC_CREFERENCE,   { in memory constant value reference (cannot change) }
     LOC_REFERENCE,    { in memory value }
     LOC_REGISTER,     { in a processor register }
     LOC_CREGISTER,    { Constant register which shouldn't be modified }
@@ -465,7 +465,10 @@ type
 
 const
   general_registers = [R_EAX,R_EBX,R_ECX,R_EDX];
-
+  
+  {# Table of registers which can be allocated by the code generator       
+     internally, when generating the code.                             
+  }   
   { legend:                                                                }
   { xxxregs = set of all possibly used registers of that type in the code  }
   {           generator                                                    }
@@ -494,86 +497,66 @@ const
   firstsavemmreg = R_MM0;
   lastsavemmreg = R_MM7;
 
-
+  {# Constant defining possibly all registers which might require saving }
   ALL_REGISTERS = [firstreg..lastreg];
 
   lvaluelocations = [LOC_REFERENCE,LOC_CFPUREGISTER,
     LOC_CREGISTER,LOC_MMXREGISTER,LOC_CMMXREGISTER];
 
-  registers_saved_on_cdecl = [R_ESI,R_EDI,R_EBX];
 
-  { generic register names }
-  stack_pointer = R_ESP;
-  frame_pointer = R_EBP;
-  self_pointer  = R_ESI;
+{*****************************************************************************
+                          Generic Register names
+*****************************************************************************}
+
+  {# Stack pointer register }
+  stack_pointer_reg = R_ESP;
+  {# Frame pointer register }
+  frame_pointer_reg = R_EBP;
+  {# Self pointer register : contains the instance address of an 
+     object or class. }
+  self_pointer_reg  = R_ESI;
+  {# Register for addressing absolute data in a position independant way, 
+     such as in PIC code. The exact meaning is ABI specific }
+  pic_offset_reg = R_EBX;
+  {# Results are returned in this register (32-bit values) }
   accumulator   = R_EAX;
+  {# Hi-Results are returned in this register (64-bit value high register) }
   accumulatorhigh = R_EDX;
   { WARNING: don't change to R_ST0!! See comments above implementation of }
   { a_loadfpu* methods in rgcpu (JM)                                      }
   fpuresultreg = R_ST;
   mmresultreg = R_MM0;
-  { the register where the vmt offset is passed to the destructor }
-  { helper routine                                                }
-  vmt_offset_reg = R_EDI;
 
+  {# Registers which are defined as scratch and no need to save across 
+     routine calls or in assembler blocks.
+  }
   scratch_regs : array[1..1] of tregister = (R_EDI);
 
-{ low and high of the available maximum width integer general purpose }
-{ registers                                                           }
-  LoGPReg = R_EAX;
-  HiGPReg = R_EDI;
-
-{ low and high of every possible width general purpose register (same as }
-{ above on most architctures apart from the 80x86)                       }
-  LoReg = R_EAX;
-  HiReg = R_BL;
-
-  { sizes }
-  pointer_size  = 4;
-  extended_size = 10;
-  mmreg_size = 8;
-
+  
 
 {*****************************************************************************
-                   Opcode propeties (needed for optimizer)
+                       GCC /ABI linking information
 *****************************************************************************}
 
-{$ifndef NOOPT}
-Type
-{What an instruction can change}
-  TInsChange = (Ch_None,
-     {Read from a register}
-     Ch_REAX, Ch_RECX, Ch_REDX, Ch_REBX, Ch_RESP, Ch_REBP, Ch_RESI, Ch_REDI,
-     {write from a register}
-     Ch_WEAX, Ch_WECX, Ch_WEDX, Ch_WEBX, Ch_WESP, Ch_WEBP, Ch_WESI, Ch_WEDI,
-     {read and write from/to a register}
-     Ch_RWEAX, Ch_RWECX, Ch_RWEDX, Ch_RWEBX, Ch_RWESP, Ch_RWEBP, Ch_RWESI, Ch_RWEDI,
-     {modify the contents of a register with the purpose of using
-      this changed content afterwards (add/sub/..., but e.g. not rep
-      or movsd)}
-     Ch_MEAX, Ch_MECX, Ch_MEDX, Ch_MEBX, Ch_MESP, Ch_MEBP, Ch_MESI, Ch_MEDI,
-     Ch_CDirFlag {clear direction flag}, Ch_SDirFlag {set dir flag},
-     Ch_RFlags, Ch_WFlags, Ch_RWFlags, Ch_FPU,
-     Ch_Rop1, Ch_Wop1, Ch_RWop1,Ch_Mop1,
-     Ch_Rop2, Ch_Wop2, Ch_RWop2,Ch_Mop2,
-     Ch_Rop3, Ch_WOp3, Ch_RWOp3,Ch_Mop3,
-     Ch_WMemEDI,
-     Ch_All
-  );
+  {# Registers which must be saved when calling a routine declared as
+     cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
+     saved should be the ones as defined in the target ABI and / or GCC.
+     
+     This value can be deduced from the CALLED_USED_REGISTERS array in the
+     GCC source.
+  }
+  std_saved_registers = [R_ESI,R_EDI,R_EBX];
+  {# Required parameter alignment when calling a routine declared as
+     stdcall and cdecl. The alignment value should be the one defined
+     by GCC or the target ABI. 
+     
+     The value of this constant is equal to the constant 
+     PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
+  }     
+  std_param_align = 4;
+  
 
 
-const
-  MaxCh = 3; { Max things a instruction can change }
-type
-  TInsProp = packed record
-    Ch : Array[1..MaxCh] of TInsChange;
-  end;
-
-const
-  InsProp : array[tasmop] of TInsProp =
-{$i i386prop.inc}
-
-{$endif NOOPT}
 
 
 {*****************************************************************************
@@ -712,7 +695,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2002-04-15 19:53:54  peter
+  Revision 1.17  2002-04-20 21:37:07  carl
+  + generic FPC_CHECKPOINTER
+  + first parameter offset in stack now portable
+  * rename some constants
+  + move some cpu stuff to other units
+  - remove unused constents
+  * fix stacksize for some targets
+  * fix generic size problems which depend now on EXTEND_SIZE constant
+  * removing frame pointer in routines is only available for : i386,m68k and vis targets
+
+  Revision 1.16  2002/04/15 19:53:54  peter
     * fixed conflicts between the last 2 commits
 
   Revision 1.15  2002/04/15 19:44:20  peter
