@@ -1,81 +1,13 @@
 {****************************************************************************
 
-                   Copyright (c) 1993,94 by Florian Kl„mpfl
-                  
+		   Copyright (c) 1993,94 by Florian Kl„mpfl
+		  
  ****************************************************************************}
 unit os2def;
 
-  interface
-  
-    type
-       APIRET = longint;
-       APIRET16 = word;
-       APIRET32 = longint;
-       
-       SHANDLE = word;
-       LHANDLE = longint;
-       
-       CHAR = char;
-       SHORT = integer;
-       LONG = longint;
-       INT = longint;
-       UCHAR = char;
-       USHORT = word;
-       ULONG = longint;
-       UINT = longint;
-       
-{!!!!!!! typedef UCHAR     * _Seg16 PUCHAR16;
-typedef CHAR      * _Seg16 PCHAR16; }
+interface
 
-       BYTE = byte;
-       PSZ = ^char;
-       NPSZ = ^char;
-       PCH = ^char;
-       NPCH = ^char;
-{       typedef int ( APIENTRY _PFN)  ();
-typedef _PFN    *PFN;
-typedef int ( APIENTRY _NPFN)  ();
-typedef _NPFN   *NPFN;  }
-
-       PBYTE = ^BYTE;
-       NPBYTE = ^BYTE;
-       PCHAR = ^CHAR;
-       PSHORT = ^SHORT;
-       PLONG = ^LONG;
-       PINT = ^INT;
-       PUCHAR = ^UCHAR;
-       PUSHORT = ^USHORT;
-       PULONG = ^ULONG;
-       PUINT = ^UINT;
-      
-       PVOID = pointer;
-       PPVOID = ^PVOID;
-
-      { typedef VOID   * _Seg16  PVOID16; }
-
-       BOOL = longint;
-       PBOOL = ^BOOL;
-     
-       BOOL16 = word;
-{ typedef BOOL16     * _Seg16 PBOOL16;  }
-
-       BOOL32 = BOOL;
-       PBOOL32 = PBOOL;
-      
-       QWORD = record
-          ulLo : ULONG;
-          ulHi : ULONG;
-       end;
-      
-       PQWORD = ^QWORD;
-      
-       SEL = WORD;
-       PSEL = ^SEL;
-      
-       ERRORID = ULONG;
-       PERRORID = ^ERRORID;
-      
-    const
+const
        SEVERITY_NOERROR = $0;
        SEVERITY_WARNING = $4;
        SEVERITY_ERROR = $8;
@@ -86,87 +18,7 @@ typedef _NPFN   *NPFN;  }
        GPIERR_BASE = $2000;
        DEVERR_BASE = $3000;
        SPLERR_BASE = $4000;
-      
-    type
-       HMODULE = LHANDLE;
-       PID = LHANDLE;
-       TID = LHANDLE;
-      
-       SGID = USHORT;
-      
-       PHMODULE = ^HMODULE;
-       PPID = ^PID;
-       PTID = ^TID;
-      
-       HSEM = pointer;
-       PHSEM = ^HSEM;
-      
-       HAB = LHANDLE;
-       PHAB = ^HAB;
-      
-       HPS = LHANDLE;
-       PHPS = ^HPS;
-      
-       HDC = LHANDLE;
-       PHDC = ^HDC;
-      
-       HRGN = LHANDLE;
-       PHRGN = ^HRGN;
-      
-       HBITMAP = LHANDLE;
-       PHBITMAP = ^HBITMAP;
-      
-       HMF = LHANDLE;
-       PHMF = ^HMF;
-      
-       HPAL = LHANDLE;
-       PHPAL = HPAL;
-      
-       COLOR = LONG;
-       PCOLOR = ^COLOR;
-      
-       POINTL = record
-          x : LONG;
-          y : LONG;
-       end;
-      
-       PPOINTL = ^POINTL;
-       NPPOINTL = ^POINTL;
-      
-       POINTS = record
-          x : SHORT;
-          y : SHORT;
-       end;
-      
-       PPOINTS = ^POINTS;
-      
-       RECTL = record
-          xLeft : LONG;
-          yBottom : LONG;
-          xRight : LONG;
-          yTop : LONG;
-       end;
 
-       PRECTL = ^RECTL;
-
-       NPRECTL = ^RECTL;
-       
-       STR8 = array[0..7] of CHAR;
-
-       PSTR8 = ^STR8;
-
-       DRIVDATA = record
-          cb : LONG;
-          lVersion : LONG;
-          szDeviceName : array[0..32-1] of CHAR;
-          abGeneralData : array[0..1-1] of CHAR;
-       end;
-
-       PDRIVDATA = ^DRIVDATA;
-
-       PDEVOPENDATA = ^PSZ;
-
-    const
        ADDRESS = 0;
        DRIVER_NAME = 1;
        DRIVER_DATA = 2;
@@ -177,34 +29,6 @@ typedef _NPFN   *NPFN;  }
        SPL_PARAMS = 7;
        NETWORK_PARAMS = 8;
 
-    type
-       DEVOPENSTRUC = record
-          pszLogAddress : PSZ;
-          pszDriverName : PSZ;
-          pdriv : PDRIVDATA;
-          pszDataType : PSZ;
-          pszComment : PSZ;
-          pszQueueProcName : PSZ;
-          pszQueueProcParams : PSZ;
-          pszSpoolerParams : PSZ;
-          pszNetworkParams : PSZ;
-       end;
-
-       PDEVOPENSTRUC = ^DEVOPENSTRUC;
-
-       PRINTDEST = record
-          cb : ULONG;
-          lType : LONG;
-          pszToken : PSZ;
-          lCount : LONG;
-          pdopData : PDEVOPENDATA;
-          fl : ULONG;
-          pszPrinter : PSZ;
-       end;
-
-       PPRINTDEST = ^PRINTDEST;
-
-    const
        PD_JOB_PROPERTY = $0001;
        FATTR_SEL_ITALIC = $0001;
        FATTR_SEL_UNDERSCORE = $0002;
@@ -219,24 +43,7 @@ typedef _NPFN   *NPFN;  }
        FATTR_FONTUSE_OUTLINE = $0004;
        FATTR_FONTUSE_TRANSFORMABLE = $0008;
        FACESIZE = 32;
-
-    type
-       FATTRS = record
-          usRecordLength : USHORT;
-          fsSelection : USHORT;
-          lMatch : LONG;
-          szFacename : array[0..FACESIZE-1] of CHAR;
-          idRegistry : USHORT;
-          usCodePage : USHORT;
-          lMaxBaselineExt : LONG;
-          lAveCharWidth : LONG;
-          fsType : USHORT;
-          fsFontUse : USHORT;
-       end;
-
-       PFATTRS = ^FATTRS;
-
-    const
+      
        FM_TYPE_FIXED = $0001;
        FM_TYPE_LICENSED = $0002;
        FM_TYPE_KERNING = $0004;
@@ -259,96 +66,174 @@ typedef _NPFN   *NPFN;  }
        FM_CAP_NOMIX = $0001;
 
     type
+       pcardinal = ^cardinal;
+       plongint = ^longint;
+       pinteger = ^integer;
+       pshortint = ^shortint;
+       ppointer = ^pointer;
+       pbyte = ^byte;
+       
+       POINTL = record
+	  x : cardinal;
+	  y : cardinal;
+       end;
+
+       PPOINTL = ^POINTL;
+
+       POINTS = record
+	  x : integer;
+	  y : integer;
+       end;
+      
+       PPOINTS = ^POINTS;
+      
+       RECTL = record
+	  xLeft : longint;
+	  yBottom : longint;
+	  xRight : longint;
+	  yTop : longint;
+       end;
+
+       PRECTL = ^RECTL;
+
+       NPRECTL = ^RECTL;
+       
+       STR8 = array[0..7] of CHAR;
+
+       PSTR8 = ^STR8;
+
+       DRIVDATA = record
+	  cb : longint;
+	  lVersion : longint;
+	  szDeviceName : array[0..32-1] of CHAR;
+	  abGeneralData : array[0..1-1] of CHAR;
+       end;
+
+       PDRIVDATA = ^DRIVDATA;
+
+       PDEVOPENDATA = pshortint;           {Initially, ^PSZ}
+
+       DEVOPENSTRUC = record
+	  pszLogAddress : pshortint;
+	  pszDriverName : pshortint;
+	  pdriv : PDRIVDATA;
+	  pszDataType : pshortint;
+	  pszComment : pshortint;
+	  pszQueueProcName : pshortint;
+	  pszQueueProcParams : pshortint;
+	  pszSpoolerParams : pshortint;
+	  pszNetworkParams : pshortint;
+       end;
+
+       PDEVOPENSTRUC = ^DEVOPENSTRUC;
+
+       PRINTDEST = record
+	  cb : cardinal;
+	  lType : longint;
+	  pszToken : pshortint;
+	  lCount : longint;
+	  pdopData : PDEVOPENDATA;
+	  fl : cardinal;
+	  pszPrinter : pshortint;
+       end;
+
+       PPRINTDEST = ^PRINTDEST;
+       
+       FATTRS = record
+	  usRecordLength : word;
+	  fsSelection : word;
+	  lMatch : longint;
+	  szFacename : array[0..FACESIZE-1] of CHAR;
+	  idRegistry : word;
+	  usCodePage : word;
+	  lMaxBaselineExt : longint;
+	  lAveCharWidth : longint;
+	  fsType : word;
+	  fsFontUse : word;
+       end;
+
+       PFATTRS = ^FATTRS;
+       
        PANOSE = record
-          bFamilyType : BYTE;
-          bSerifStyle : BYTE;
-          bWeight : BYTE;
-          bProportion : BYTE;
-          bContrast : BYTE;
-          bStrokeVariation : BYTE;
-          bArmStyle : BYTE;
-          bLetterform : BYTE;
-          bMidline : BYTE;
-          bXHeight : BYTE;
-          abReserved : array[0..2-1] of BYTE;
+	  bFamilyType : BYTE;
+	  bSerifStyle : BYTE;
+	  bWeight : BYTE;
+	  bProportion : BYTE;
+	  bContrast : BYTE;
+	  bStrokeVariation : BYTE;
+	  bArmStyle : BYTE;
+	  bLetterform : BYTE;
+	  bMidline : BYTE;
+	  bXHeight : BYTE;
+	  abReserved : array[0..2-1] of BYTE;
        end;
 
        FONTMETRICS = record
-          szFamilyname : array[0..FACESIZE-1] of CHAR;
-          szFacename : array[0..FACESIZE-1] of CHAR;
-          idRegistry : USHORT;
-          usCodePage : USHORT;
-          lEmHeight : LONG;
-          lXHeight : LONG;
-          lMaxAscender : LONG;
-          lMaxDescender : LONG;
-          lLowerCaseAscent : LONG;
-          lLowerCaseDescent : LONG;
-          lInternalLeading : LONG;
-          lExternalLeading : LONG;
-          lAveCharWidth : LONG;
-          lMaxCharInc : LONG;
-          lEmInc : LONG;
-          lMaxBaselineExt : LONG;
-          sCharSlope : SHORT;
-          sInlineDir : SHORT;
-          sCharRot : SHORT;
-          usWeightClass : USHORT;
-          usWidthClass : USHORT;
-          sXDeviceRes : SHORT;
-          sYDeviceRes : SHORT;
-          sFirstChar : SHORT;
-          sLastChar : SHORT;
-          sDefaultChar : SHORT;
-          sBreakChar : SHORT;
-          sNominalPointSize : SHORT;
-          sMinimumPointSize : SHORT;
-          sMaximumPointSize : SHORT;
-          fsType : USHORT;
-          fsDefn : USHORT;
-          fsSelection : USHORT;
-          fsCapabilities : USHORT;
-          lSubscriptXSize : LONG;
-          lSubscriptYSize : LONG;
-          lSubscriptXOffset : LONG;
-          lSubscriptYOffset : LONG;
-          lSuperscriptXSize : LONG;
-          lSuperscriptYSize : LONG;
-          lSuperscriptXOffset : LONG;
-          lSuperscriptYOffset : LONG;
-          lUnderscoreSize : LONG;
-          lUnderscorePosition : LONG;
-          lStrikeoutSize : LONG;
-          lStrikeoutPosition : LONG;
-          sKerningPairs : SHORT;
-          sFamilyClass : SHORT;
-          lMatch : LONG;
-          FamilyNameAtom : LONG;
-          FaceNameAtom : LONG;
-          panose : PANOSE;
+	  szFamilyname : array[0..FACESIZE-1] of CHAR;
+	  szFacename : array[0..FACESIZE-1] of CHAR;
+	  idRegistry : word;
+	  usCodePage : word;
+	  lEmHeight : longint;
+	  lXHeight : longint;
+	  lMaxAscender : longint;
+	  lMaxDescender : longint;
+	  lLowerCaseAscent : longint;
+	  lLowerCaseDescent : longint;
+	  lInternalLeading : longint;
+	  lExternalLeading : longint;
+	  lAveCharWidth : longint;
+	  lMaxCharInc : longint;
+	  lEmInc : longint;
+	  lMaxBaselineExt : longint;
+	  sCharSlope : integer;
+	  sInlineDir : integer;
+	  sCharRot : integer;
+	  usWeightClass : word;
+	  usWidthClass : word;
+	  sXDeviceRes : integer;
+	  sYDeviceRes : integer;
+	  sFirstChar : integer;
+	  sLastChar : integer;
+	  sDefaultChar : integer;
+	  sBreakChar : integer;
+	  sNominalPointSize : integer;
+	  sMinimumPointSize : integer;
+	  sMaximumPointSize : integer;
+	  fsType : word;
+	  fsDefn : word;
+	  fsSelection : word;
+	  fsCapabilities : word;
+	  lSubscriptXSize : longint;
+	  lSubscriptYSize : longint;
+	  lSubscriptXOffset : longint;
+	  lSubscriptYOffset : longint;
+	  lSuperscriptXSize : longint;
+	  lSuperscriptYSize : longint;
+	  lSuperscriptXOffset : longint;
+	  lSuperscriptYOffset : longint;
+	  lUnderscoreSize : longint;
+	  lUnderscorePosition : longint;
+	  lStrikeoutSize : longint;
+	  lStrikeoutPosition : longint;
+	  sKerningPairs : integer;
+	  sFamilyClass : integer;
+	  lMatch : longint;
+	  FamilyNameAtom : longint;
+	  FaceNameAtom : longint;
+	  panose : PANOSE;
        end;
 
        PFONTMETRICS = ^FONTMETRICS;
-       
-       HWND = LHANDLE;
-       HMQ = LHANDLE;
-       PHWND = ^HWND;
-       PHMQ = ^LHANDLE;
-       
-       WRECTL = RECTL;
-       PWRECT = PRECTL;
-       NPWRECT = NPRECTL;
-       WPOINT = POINTL;
-       PWPOINT = PPOINTL;
-       NPWPOINT = NPPOINTL;
        
   { Nun folgen einige FPKPascal-spezifische Typen: }
   
       { null. term. Strings sind in den Header Dateien oft als }
       { array[0..0] of byte deklariert, der folgende Typ er-   }
-      { m”glich eine Typkonvertierung                  }
+      { m”glich eine Typkonvertierung                          }
       CHARARRAY = array[0..0] of char;
      
+
+
   implementation
   
 end.
