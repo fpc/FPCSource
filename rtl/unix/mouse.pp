@@ -224,7 +224,10 @@ begin
    exit(0);
 {$ifndef NOGPM}
   Gpm_GetSnapshot(e);
-  GetMouseY:=e.y-1;
+  if e.y>0 then
+   GetMouseY:=e.y-1
+  else
+   GetMouseY:=0;
 {$endif ndef NOGPM}
 {$endif ndef NOMOUSE}
 end;
@@ -287,8 +290,14 @@ begin
    exit;
 {$ifndef NOGPM}
   Gpm_GetEvent(e);
-  MouseEvent.x:=e.x-1;
-  MouseEvent.y:=e.y-1;
+  if e.x>0 then
+   MouseEvent.x:=e.x-1
+  else
+   MouseEvent.x:=0;
+  if e.y>0 then
+   MouseEvent.y:=e.y-1
+  else
+   MouseEvent.y:=0;
   MouseEvent.buttons:=0;
   if e.buttons and Gpm_b_left<>0 then
    inc(MouseEvent.buttons,1);
@@ -359,8 +368,14 @@ begin
   if (gpm_fs=-2) or (Select(gpm_fs+1,@fds,nil,nil,1)>0) then
    begin
      Gpm_GetSnapshot(e);
-     MouseEvent.x:=e.x-1;
-     MouseEvent.y:=e.y-1;
+     if e.x>0 then
+      MouseEvent.x:=e.x-1
+     else
+      MouseEvent.x:=0;
+     if e.y>0 then
+      MouseEvent.y:=e.y-1
+     else
+      MouseEvent.y:=0;
      MouseEvent.buttons:=0;
      if e.buttons and Gpm_b_left<>0 then
       inc(MouseEvent.buttons,1);
@@ -390,7 +405,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2001-01-21 20:21:40  marco
+  Revision 1.3  2001-08-05 12:24:20  peter
+    * m68k merges
+
+  Revision 1.2  2001/01/21 20:21:40  marco
    * Rename fest II. Rtl OK
 
   Revision 1.1  2001/01/13 11:03:58  peter

@@ -67,7 +67,7 @@ begin
    begin
      str(sys_getpid,hs);
      {$ifdef FreeBSD}
-      hs:='/proc/'+hs+'/file'#0; 
+      hs:='/proc/'+hs+'/file'#0;
      {$else}
       hs:='/proc/'+hs+'/exe'#0;
      {$endif}
@@ -192,8 +192,11 @@ begin
   Sys_ENOTDIR : Inoutres:=3;
     Sys_EROFS,
    Sys_EEXIST,
+   Sys_EISDIR,
    Sys_EACCES : Inoutres:=5;
   Sys_ETXTBSY : Inoutres:=162;
+  else
+    InOutRes := Integer(Errno);
   end;
 end;
 
@@ -718,7 +721,10 @@ End.
 
 {
   $Log$
-  Revision 1.15  2001-07-16 19:51:36  marco
+  Revision 1.16  2001-08-05 12:24:20  peter
+    * m68k merges
+
+  Revision 1.15  2001/07/16 19:51:36  marco
    * A small note, copied from the Solaris patch. Do_close needs errnotoiores?
 
   Revision 1.14  2001/07/15 11:57:16  peter
