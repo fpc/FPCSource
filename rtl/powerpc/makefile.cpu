@@ -1,0 +1,13 @@
+# $Id$
+#
+# Here we set processor dependent include file names.
+#
+
+CPUNAMES=powerpc math set
+CPUINCNAMES=$(addsuffix .inc,$(CPUNAMES))
+#
+# $Log$
+# Revision 1.1  2002-07-26 16:54:48  florian
+#   + initial version
+#
+#
