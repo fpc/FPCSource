@@ -551,9 +551,8 @@ begin
     KeyPressed := TRUE
   else
    begin
-     nevents:=0;
      GetNumberOfConsoleInputEvents(TextRec(input).Handle,nevents);
-     while nevents>1 do
+     while nevents>0 do
        begin
           ReadConsoleInputA(TextRec(input).Handle,buf,1,nread);
           if buf.EventType = KEY_EVENT then
@@ -1007,7 +1006,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.5  2000-12-15 13:16:30  jonas
+  Revision 1.6  2001-01-03 21:01:50  florian
+    * fixed the repeat key bug introduced by my last patch
+
+  Revision 1.5  2000/12/15 13:16:30  jonas
     * fixed range check errors
 
   Revision 1.4  2000/12/09 13:27:41  florian
