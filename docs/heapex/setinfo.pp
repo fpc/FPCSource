@@ -50,7 +50,7 @@ begin
 end;
 
 begin
- set_extra_info(SizeOf(Marker),@SetMarker);
+ SetExtraInfo(SizeOf(Marker),@SetMarker);
  Writeln ('Part 1');
  part1;
  Writeln('Part 2');
