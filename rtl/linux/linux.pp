@@ -493,7 +493,9 @@ Procedure GetTimeOfDay(var tv:timeval);
 Function  GetTimeOfDay:longint;
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
 Function  LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
-Procedure GetTime(Var Hour,Minute,Second:Word);
+procedure GetTime(var hour,min,sec,msec,usec:word);
+procedure GetTime(var hour,min,sec,sec100:word);
+procedure GetTime(var hour,min,sec:word);
 Procedure GetDate(Var Year,Month,Day:Word);
 Procedure GetDateTime(Var Year,Month,Day,hour,minute,second:Word);
 
@@ -1341,16 +1343,42 @@ Begin
 End;
 
 
-Procedure GetTime(Var Hour,Minute,Second:Word);
+procedure GetTime(var hour,min,sec,msec,usec:word);
 {
   Gets the current time, adjusted to local time
 }
 var
   year,day,month:Word;
-Begin
-  EpochToLocal(GetTimeOfDay,year,month,day,hour,minute,second);
-End;
+  t : timeval;
+begin
+  gettimeofday(t);
+  EpochToLocal(t.sec,year,month,day,hour,min,sec);
+  msec:=t.usec div 1000;
+  usec:=t.usec mod 1000;
+end;
 
+
+procedure GetTime(var hour,min,sec,sec100:word);
+{
+  Gets the current time, adjusted to local time
+}
+var
+  usec : word;
+begin
+  gettime(hour,min,sec,sec100,usec);
+  sec100:=sec100 div 10;
+end;
+
+
+Procedure GetTime(Var Hour,Min,Sec:Word);
+{
+  Gets the current time, adjusted to local time
+}
+var
+  msec,usec : Word;
+Begin
+  gettime(hour,min,sec,msec,usec);
+End;
 
 
 Procedure GetDate(Var Year,Month,Day:Word);
@@ -1358,7 +1386,7 @@ Procedure GetDate(Var Year,Month,Day:Word);
   Gets the current date, adjusted to local time
 }
 var
-  hour,minute,second : Word;
+  hour,minute,second : word;
 Begin
   EpochToLocal(GetTimeOfDay,year,month,day,hour,minute,second);
 End;
@@ -3055,7 +3083,7 @@ end;
 Function FExpand(Const Path:PathStr):PathStr;
 var
   temp  : pathstr;
-  i,j,k : longint;
+  i,j   : longint;
   p     : pchar;
 Begin
 {Remove eventual drive - doesn't exist in Linux}
@@ -3078,8 +3106,10 @@ Begin
    begin
      if path[i]<>'/' then
       begin
-        getdir(0,temp);
-        k:=ioresult;
+        {$I-}
+         getdir(0,temp);
+        {$I+}
+        if ioresult<>0 then;
       end
      else
       inc(i);
@@ -3787,7 +3817,10 @@ End.
 
 {
   $Log$
-  Revision 1.54  1999-12-01 22:46:59  peter
+  Revision 1.55  1999-12-08 01:03:54  peter
+    * overloaded gettime functions supporting hsec and msec,usec
+
+  Revision 1.54  1999/12/01 22:46:59  peter
     + timezone support
 
   Revision 1.53  1999/11/14 21:35:04  peter
