@@ -72,248 +72,248 @@ var
   global_long_double : extended; cvar;
 
 { simple parameter passing }
-procedure test_param_u8(x: byte); cdecl;
-procedure test_param_u16(x : word); cdecl;
-procedure test_param_u32(x: cardinal); cdecl;
-procedure test_param_u64(x: qword); cdecl;
-procedure test_param_s16(x : smallint); cdecl;
-procedure test_param_s32(x: longint); cdecl;
-procedure test_param_s64(x: int64); cdecl;
-procedure test_param_float(x : single); cdecl;
-procedure test_param_double(x: double); cdecl;
-procedure test_param_longdouble(x: extended); cdecl;
-procedure test_param_var_u8(var x: byte); cdecl;
+procedure test_param_u8(x: byte); cdecl; public;
+procedure test_param_u16(x : word); cdecl; public;
+procedure test_param_u32(x: cardinal); cdecl; public;
+procedure test_param_u64(x: qword); cdecl; public;
+procedure test_param_s16(x : smallint); cdecl; public;
+procedure test_param_s32(x: longint); cdecl; public;
+procedure test_param_s64(x: int64); cdecl; public;
+procedure test_param_float(x : single); cdecl; public;
+procedure test_param_double(x: double); cdecl; public;
+procedure test_param_longdouble(x: extended); cdecl; public;
+procedure test_param_var_u8(var x: byte); cdecl; public;
 
 { array parameter passing }
-procedure test_array_param_u8(x: byte_array); cdecl;
-procedure test_array_param_u16(x : word_array); cdecl;
-procedure test_array_param_u32(x: cardinal_array); cdecl;
-procedure test_array_param_u64(x: qword_array); cdecl;
-procedure test_array_param_s16(x :smallint_array); cdecl;
-procedure test_array_param_s32(x: longint_array); cdecl;
-procedure test_array_param_s64(x: int64_array); cdecl;
-procedure test_array_param_float(x : single_array); cdecl;
-procedure test_array_param_double(x: double_array); cdecl;
-procedure test_array_param_longdouble(x: extended_array); cdecl;
+procedure test_array_param_u8(x: byte_array); cdecl; public;
+procedure test_array_param_u16(x : word_array); cdecl; public;
+procedure test_array_param_u32(x: cardinal_array); cdecl; public;
+procedure test_array_param_u64(x: qword_array); cdecl; public;
+procedure test_array_param_s16(x :smallint_array); cdecl; public;
+procedure test_array_param_s32(x: longint_array); cdecl; public;
+procedure test_array_param_s64(x: int64_array); cdecl; public;
+procedure test_array_param_float(x : single_array); cdecl; public;
+procedure test_array_param_double(x: double_array); cdecl; public;
+procedure test_array_param_longdouble(x: extended_array); cdecl; public;
 
 { mixed parameter passing }
-procedure test_param_mixed_u16(z: byte; x : word; y :byte); cdecl;
-procedure test_param_mixed_u32(z: byte; x: cardinal; y: byte); cdecl;
-procedure test_param_mixed_s64(z: byte; x: int64; y: byte); cdecl;
-procedure test_param_mixed_float(x: single; y: byte); cdecl;
-procedure test_param_mixed_double(x: double; y: byte); cdecl;
-procedure test_param_mixed_long_double(x: extended; y: byte); cdecl;
-procedure test_param_mixed_var_u8(var x: byte;y:byte); cdecl;
+procedure test_param_mixed_u16(z: byte; x : word; y :byte); cdecl; public;
+procedure test_param_mixed_u32(z: byte; x: cardinal; y: byte); cdecl; public;
+procedure test_param_mixed_s64(z: byte; x: int64; y: byte); cdecl; public;
+procedure test_param_mixed_float(x: single; y: byte); cdecl; public;
+procedure test_param_mixed_double(x: double; y: byte); cdecl; public;
+procedure test_param_mixed_long_double(x: extended; y: byte); cdecl; public;
+procedure test_param_mixed_var_u8(var x: byte;y:byte); cdecl; public;
 { structure parameter testing }
-procedure test_param_struct_tiny(buffer :   _1BYTE_); cdecl;
-procedure test_param_struct_small(buffer :  _3BYTE_); cdecl;
-procedure test_param_struct_small_s(buffer :  _3BYTE_S); cdecl;
-procedure test_param_struct_medium(buffer : _5BYTE_); cdecl;
-procedure test_param_struct_large(buffer :  _7BYTE_); cdecl;
+procedure test_param_struct_tiny(buffer :   _1BYTE_); cdecl; public;
+procedure test_param_struct_small(buffer :  _3BYTE_); cdecl; public;
+procedure test_param_struct_small_s(buffer :  _3BYTE_S); cdecl; public;
+procedure test_param_struct_medium(buffer : _5BYTE_); cdecl; public;
+procedure test_param_struct_large(buffer :  _7BYTE_); cdecl; public;
 { mixed with structure parameter testing }
-procedure test_param_mixed_struct_tiny(buffer :   _1BYTE_; y :byte); cdecl;
-procedure test_param_mixed_struct_small(buffer :  _3BYTE_; y :byte); cdecl;
-procedure test_param_mixed_struct_small_s(buffer :  _3BYTE_S; y :byte); cdecl;
-procedure test_param_mixed_struct_medium(buffer : _5BYTE_; y :byte); cdecl;
-procedure test_param_mixed_struct_large(buffer :  _7BYTE_; y :byte); cdecl;
+procedure test_param_mixed_struct_tiny(buffer :   _1BYTE_; y :byte); cdecl; public;
+procedure test_param_mixed_struct_small(buffer :  _3BYTE_; y :byte); cdecl; public;
+procedure test_param_mixed_struct_small_s(buffer :  _3BYTE_S; y :byte); cdecl; public;
+procedure test_param_mixed_struct_medium(buffer : _5BYTE_; y :byte); cdecl; public;
+procedure test_param_mixed_struct_large(buffer :  _7BYTE_; y :byte); cdecl; public;
 { function result value testing }
-function test_function_u8: byte; cdecl;
-function test_function_u16: word; cdecl;
-function test_function_u32: cardinal; cdecl;
-function test_function_u64: qword; cdecl;
-function test_function_s16: smallint; cdecl;
-function test_function_s32: longint; cdecl;
-function test_function_s64: int64; cdecl;
-function test_function_pchar: pchar; cdecl;
-function test_function_float : single; cdecl;
-function test_function_double : double; cdecl;
-function test_function_longdouble: extended; cdecl;
-function test_function_tiny_struct : _1byte_; cdecl;
-function test_function_small_struct : _3byte_; cdecl;
-function test_function_small_struct_s : _3byte_s; cdecl;
-function test_function_medium_struct : _5byte_; cdecl;
-function test_function_struct : _7byte_; cdecl;
+function test_function_u8: byte; cdecl; public;
+function test_function_u16: word; cdecl; public;
+function test_function_u32: cardinal; cdecl; public;
+function test_function_u64: qword; cdecl; public;
+function test_function_s16: smallint; cdecl; public;
+function test_function_s32: longint; cdecl; public;
+function test_function_s64: int64; cdecl; public;
+function test_function_pchar: pchar; cdecl; public;
+function test_function_float : single; cdecl; public;
+function test_function_double : double; cdecl; public;
+function test_function_longdouble: extended; cdecl; public;
+function test_function_tiny_struct : _1byte_; cdecl; public;
+function test_function_small_struct : _3byte_; cdecl; public;
+function test_function_small_struct_s : _3byte_s; cdecl; public;
+function test_function_medium_struct : _5byte_; cdecl; public;
+function test_function_struct : _7byte_; cdecl; public;
 
 
 implementation
 
 { simple parameter passing }
-procedure test_param_u8(x: byte); cdecl;
+procedure test_param_u8(x: byte); cdecl; public;
   begin
     global_u8bit:=x;
   end;
 
-procedure test_param_u16(x : word); cdecl;
+procedure test_param_u16(x : word); cdecl; public;
   begin
     global_u16bit:=x;
   end;
 
-procedure test_param_u32(x: cardinal); cdecl;
+procedure test_param_u32(x: cardinal); cdecl; public;
   begin
     global_u32bit:=x;
   end;
 
-procedure test_param_u64(x: qword); cdecl;
+procedure test_param_u64(x: qword); cdecl; public;
   begin
     global_u64bit:=x;
   end;
 
-procedure test_param_s16(x : smallint); cdecl;
+procedure test_param_s16(x : smallint); cdecl; public;
   begin
     global_s16bit:=x;
   end;
 
-procedure test_param_s32(x: longint); cdecl;
+procedure test_param_s32(x: longint); cdecl; public;
   begin
     global_s32bit:=x;
   end;
 
-procedure test_param_s64(x: int64); cdecl;
+procedure test_param_s64(x: int64); cdecl; public;
   begin
     global_s64bit:=x;
   end;
 
-procedure test_param_float(x : single); cdecl;
+procedure test_param_float(x : single); cdecl; public;
   begin
     global_float:=x;
   end;
 
-procedure test_param_double(x: double); cdecl;
+procedure test_param_double(x: double); cdecl; public;
   begin
     global_double:=x;
   end;
 
-procedure test_param_longdouble(x: extended); cdecl;
+procedure test_param_longdouble(x: extended); cdecl; public;
   begin
     global_long_double:=x;
   end;
 
-procedure test_param_var_u8(var x: byte); cdecl;
+procedure test_param_var_u8(var x: byte); cdecl; public;
   begin
     x:=RESULT_U8BIT;
   end;
 
 
 { array parameter passing }
-procedure test_array_param_u8(x: byte_array); cdecl;
+procedure test_array_param_u8(x: byte_array); cdecl; public;
   begin
    global_u8bit:=x[1];
   end;
 
-procedure test_array_param_u16(x : word_array); cdecl;
+procedure test_array_param_u16(x : word_array); cdecl; public;
   begin
    global_u16bit:=x[1];
   end;
 
-procedure test_array_param_u32(x: cardinal_array); cdecl;
+procedure test_array_param_u32(x: cardinal_array); cdecl; public;
   begin
    global_u32bit:=x[1];
   end;
 
-procedure test_array_param_u64(x: qword_array); cdecl;
+procedure test_array_param_u64(x: qword_array); cdecl; public;
   begin
    global_u64bit:=x[1];
   end;
 
-procedure test_array_param_s16(x :smallint_array); cdecl;
+procedure test_array_param_s16(x :smallint_array); cdecl; public;
   begin
    global_s16bit:=x[1];
   end;
 
-procedure test_array_param_s32(x: longint_array); cdecl;
+procedure test_array_param_s32(x: longint_array); cdecl; public;
   begin
    global_s32bit:=x[1];
   end;
 
-procedure test_array_param_s64(x: int64_array); cdecl;
+procedure test_array_param_s64(x: int64_array); cdecl; public;
   begin
    global_s64bit:=x[1];
   end;
 
-procedure test_array_param_float(x : single_array); cdecl;
+procedure test_array_param_float(x : single_array); cdecl; public;
   begin
    global_float:=x[1];
   end;
 
-procedure test_array_param_double(x: double_array); cdecl;
+procedure test_array_param_double(x: double_array); cdecl; public;
   begin
    global_double:=x[1];
   end;
 
-procedure test_array_param_longdouble(x: extended_array); cdecl;
+procedure test_array_param_longdouble(x: extended_array); cdecl; public;
   begin
    global_long_double:=x[1];
   end;
 
 
 { mixed parameter passing }
-procedure test_param_mixed_u16(z: byte; x : word; y :byte); cdecl;
+procedure test_param_mixed_u16(z: byte; x : word; y :byte); cdecl; public;
   begin
     global_u16bit:=x;
     global_u8bit:=y;
   end;
 
-procedure test_param_mixed_u32(z: byte; x: cardinal; y: byte); cdecl;
+procedure test_param_mixed_u32(z: byte; x: cardinal; y: byte); cdecl; public;
   begin
     global_u32bit:=x;
     global_u8bit:=y;
   end;
 
-procedure test_param_mixed_s64(z: byte; x: int64; y: byte); cdecl;
+procedure test_param_mixed_s64(z: byte; x: int64; y: byte); cdecl; public;
   begin
     global_s64bit:=x;
     global_u8bit:=y;
   end;
 
-procedure test_param_mixed_float(x: single; y: byte); cdecl;
+procedure test_param_mixed_float(x: single; y: byte); cdecl; public;
   begin
     global_float:=x;
     global_u8bit:=y;
   end;
 
-procedure test_param_mixed_double(x: double; y: byte); cdecl;
+procedure test_param_mixed_double(x: double; y: byte); cdecl; public;
   begin
     global_double:=x;
     global_u8bit:=y;
   end;
 
-procedure test_param_mixed_long_double(x: extended; y: byte); cdecl;
+procedure test_param_mixed_long_double(x: extended; y: byte); cdecl; public;
   begin
     global_long_double:=x;
     global_u8bit:=y;
   end;
 
-procedure test_param_mixed_var_u8(var x: byte;y:byte); cdecl;
+procedure test_param_mixed_var_u8(var x: byte;y:byte); cdecl; public;
   begin
     x:=RESULT_U8BIT;
     global_u8bit:=y;
   end;
 
 { structure parameter testing }
-procedure test_param_struct_tiny(buffer :   _1BYTE_); cdecl;
+procedure test_param_struct_tiny(buffer :   _1BYTE_); cdecl; public;
   begin
     global_u8bit:=buffer.u8;
   end;
 
-procedure test_param_struct_small(buffer :  _3BYTE_); cdecl;
+procedure test_param_struct_small(buffer :  _3BYTE_); cdecl; public;
   begin
     global_u8bit:=buffer.u8;
     global_u16bit:=buffer.u16;
 end;
 
-procedure test_param_struct_small_s(buffer :  _3BYTE_S); cdecl;
+procedure test_param_struct_small_s(buffer :  _3BYTE_S); cdecl; public;
   begin
     global_u8bit:=buffer.w8;
     global_u16bit:=buffer.u16;
   end;
 
-procedure test_param_struct_medium(buffer : _5BYTE_); cdecl;
+procedure test_param_struct_medium(buffer : _5BYTE_); cdecl; public;
   begin
     global_u8bit:=buffer.u8;
     global_u32bit:=buffer.u32;
   end;
 
-procedure test_param_struct_large(buffer :  _7BYTE_); cdecl;
+procedure test_param_struct_large(buffer :  _7BYTE_); cdecl; public;
   begin
     global_u8bit:=buffer.u8;
     global_u16bit:=buffer.u16;
@@ -321,30 +321,30 @@ procedure test_param_struct_large(buffer :  _7BYTE_); cdecl;
   end;
 
 { mixed with structure parameter testing }
-procedure test_param_mixed_struct_tiny(buffer :   _1BYTE_; y :byte); cdecl;
+procedure test_param_mixed_struct_tiny(buffer :   _1BYTE_; y :byte); cdecl; public;
   begin
     global_u8bit := y;
   end;
 
-procedure test_param_mixed_struct_small(buffer :  _3BYTE_; y :byte); cdecl;
-  begin
-    global_u8bit := y;
-    global_u16bit := buffer.u16;
-  end;
-
-procedure test_param_mixed_struct_small_s(buffer :  _3BYTE_S; y :byte); cdecl;
+procedure test_param_mixed_struct_small(buffer :  _3BYTE_; y :byte); cdecl; public;
   begin
     global_u8bit := y;
     global_u16bit := buffer.u16;
   end;
 
-procedure test_param_mixed_struct_medium(buffer : _5BYTE_; y :byte); cdecl;
+procedure test_param_mixed_struct_small_s(buffer :  _3BYTE_S; y :byte); cdecl; public;
+  begin
+    global_u8bit := y;
+    global_u16bit := buffer.u16;
+  end;
+
+procedure test_param_mixed_struct_medium(buffer : _5BYTE_; y :byte); cdecl; public;
   begin
     global_u8bit := y;
     global_u32bit := buffer.u32;
   end;
 
-procedure test_param_mixed_struct_large(buffer :  _7BYTE_; y :byte); cdecl;
+procedure test_param_mixed_struct_large(buffer :  _7BYTE_; y :byte); cdecl; public;
   begin
     global_u8bit:=y;
     global_u16bit:=buffer.u16;
@@ -352,85 +352,85 @@ procedure test_param_mixed_struct_large(buffer :  _7BYTE_; y :byte); cdecl;
   end;
 
 { function result value testing }
-function test_function_u8: byte; cdecl;
+function test_function_u8: byte; cdecl; public;
   begin
     test_function_u8:=RESULT_U8BIT;
   end;
 
-function test_function_u16: word; cdecl;
+function test_function_u16: word; cdecl; public;
   begin
     test_function_u16:=RESULT_U16BIT;
   end;
 
-function test_function_u32: cardinal; cdecl;
+function test_function_u32: cardinal; cdecl; public;
   begin
     test_function_u32:=RESULT_U32BIT;
   end;
 
-function test_function_u64: qword; cdecl;
+function test_function_u64: qword; cdecl; public;
   begin
     test_function_u64:=RESULT_U64BIT;
   end;
 
-function test_function_s16: smallint; cdecl;
+function test_function_s16: smallint; cdecl; public;
   begin
     test_function_s16:=RESULT_S16BIT;
   end;
 
-function test_function_s32: longint; cdecl;
+function test_function_s32: longint; cdecl; public;
   begin
     test_function_s32:=RESULT_S32BIT;
   end;
 
-function test_function_s64: int64; cdecl;
+function test_function_s64: int64; cdecl; public;
   begin
     test_function_s64:=RESULT_S64BIT;
   end;
 
-function test_function_pchar: pchar; cdecl;
+function test_function_pchar: pchar; cdecl; public;
   begin
     test_function_pchar:=RESULT_PCHAR;
   end;
 
-function test_function_float : single; cdecl;
+function test_function_float : single; cdecl; public;
   begin
     test_function_float:=RESULT_FLOAT;
   end;
 
-function test_function_double : double; cdecl;
+function test_function_double : double; cdecl; public;
   begin
     test_function_double:=RESULT_DOUBLE;
   end;
 
-function test_function_longdouble: extended; cdecl;
+function test_function_longdouble: extended; cdecl; public;
   begin
     test_function_longdouble:=RESULT_LONGDOUBLE;
   end;
 
-function test_function_tiny_struct : _1byte_; cdecl;
+function test_function_tiny_struct : _1byte_; cdecl; public;
   begin
     test_function_tiny_struct.u8:=RESULT_U8BIT;
   end;
 
-function test_function_small_struct : _3byte_; cdecl;
+function test_function_small_struct : _3byte_; cdecl; public;
   begin
     test_function_small_struct.u8:=RESULT_U8BIT;
     test_function_small_struct.u16:=RESULT_U16BIT;
   end;
 
-function test_function_small_struct_s : _3byte_s; cdecl;
+function test_function_small_struct_s : _3byte_s; cdecl; public;
   begin
     test_function_small_struct_s.w8:=RESULT_U8BIT;
     test_function_small_struct_s.u16:=RESULT_U16BIT;
   end;
 
-function test_function_medium_struct : _5byte_; cdecl;
+function test_function_medium_struct : _5byte_; cdecl; public;
   begin
     test_function_medium_struct.u8:=RESULT_U8BIT;
     test_function_medium_struct.u32:=RESULT_U32BIT;
   end;
 
-function test_function_struct : _7byte_; cdecl;
+function test_function_struct : _7byte_; cdecl; public;
   begin
     test_function_struct.u8:=RESULT_U8BIT;
     test_function_struct.u16:=RESULT_U16BIT;
@@ -444,7 +444,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-11-18 00:42:16  pierre
+  Revision 1.3  2004-11-29 21:48:04  peter
+    * add public
+
+  Revision 1.2  2002/11/18 00:42:16  pierre
    + records with really 3 byte size tests added
 
   Revision 1.1  2002/11/04 15:17:45  pierre
