@@ -692,7 +692,7 @@ implementation
 
     constructor ttempdeletenode.create(const temp: ttempcreatenode);
       begin
-        inherited create(temprefn);
+        inherited create(tempdeleten);
         tempinfo := temp.tempinfo;
         release_to_normal := false;
         if not temp.persistent then
@@ -764,7 +764,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2003-03-17 20:30:46  peter
+  Revision 1.41  2003-04-12 14:53:59  jonas
+    * ttempdeletenode.create now sets the nodetype to tempdeleten instead of
+      temprefn
+
+  Revision 1.40  2003/03/17 20:30:46  peter
     * errornode.mark_write added
 
   Revision 1.39  2003/01/03 12:15:55  daniel
