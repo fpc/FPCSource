@@ -149,11 +149,17 @@ Type
   { Read disk function declarations }
   {$i diskh.inc}
 
-    procedure FreeAndNil(var obj);
+  { read thread handling }
+  {$i systhrdh.inc}
+
+  procedure FreeAndNil(var obj);
 
 {
   $Log$
-  Revision 1.12  2001-08-22 14:11:28  florian
+  Revision 1.13  2001-08-22 21:19:16  florian
+    + some new stuff of D6/Kylix added
+
+  Revision 1.12  2001/08/22 14:11:28  florian
     + HexDisplayPrefix added
 
   Revision 1.11  2001/08/19 21:02:02  florian
