@@ -1026,7 +1026,10 @@ begin
   regs.realeax:=$6700;
   sysrealintr($21,regs);
   if (regs.realflags and carryflag) <> 0 then
-    Increase_file_handle_count:=false
+   begin
+    Increase_file_handle_count:=false;
+    Dec (FileHandleCount, 10);
+   end;
   else
     Increase_file_handle_count:=true;
 end;
@@ -1414,7 +1417,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.38  2000-05-18 07:18:28  pierre
+  Revision 1.39  2000-06-04 14:14:10  hajny
+    * FileHandleCount decreased upon unsuccessful increase attempt
+
+  Revision 1.38  2000/05/18 07:18:28  pierre
    * Added default error value to GetInoOutRes function
 
   Revision 1.37  2000/04/10 11:21:02  pierre
