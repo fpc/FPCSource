@@ -428,15 +428,17 @@ implementation
          if resulttype.def.needs_inittable then
           begin
             { the FUNCTION_RESULT_REG is already allocated }
-            cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
             if not assigned(funcretnode) then
               begin
                 location_reset(location,LOC_CREFERENCE,OS_ADDR);
                 location.reference:=refcountedtemp;
+                { a_load_reg_ref may allocate registers! }
                 cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,location.reference);
+                cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
               end
             else
               begin
+                cg.ungetregister(exprasmlist,NR_FUNCTION_RESULT_REG);
                 hregister := cg.getaddressregister(exprasmlist);
                 cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,hregister);
                 { in case of a regular funcretnode with ret_in_param, the }
@@ -1127,7 +1129,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.144  2003-12-06 01:15:22  florian
+  Revision 1.145  2003-12-07 12:41:32  jonas
+    * fixed ansistring/widestring results: deallocate result reg only after
+      it has been stored to memory, as the storing itself may require extra
+      results (e.g. on ppc)
+
+  Revision 1.144  2003/12/06 01:15:22  florian
     * reverted Peter's alloctemp patch; hopefully properly
 
   Revision 1.143  2003/12/03 23:13:20  peter
