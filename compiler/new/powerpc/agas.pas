@@ -25,7 +25,8 @@ unit agas;
   interface
 
     uses
-       cpubase,dos,globals,systems,errors,cobjects,aasm,strings,files
+       cpubase,dos,globals,systems,{errors,}cobjects,aasm,strings,files,
+       agatt
 {$ifdef GDB}
        ,gdb
 {$endif GDB}
@@ -33,12 +34,12 @@ unit agas;
 
     type
       paicpuattasmlist=^taicpuattasmlist;
-      taicpuattasmlist=object(tasmlist)
+      taicpuattasmlist=object(tattasmlist)
         function getreferencestring(var ref : treference) : string; Virtual;
         function getopstr_jmp(const o:toper) : string; Virtual;
 
-        procedure WriteInstruction (P : Pai); virtual;
-        procedure cond2str(op: tasnop; c: tasmcond): string;
+        procedure WriteInstruction (HP : Pai); virtual;
+        function cond2str(op: tasmop; c: tasmcond): string;
 
         { to construct the output for conditional branches }
         function branchmode(o: tasmop): string[4];
@@ -47,43 +48,45 @@ unit agas;
 
   implementation
 
+    uses cpuasm;
+
     const
        att_op2str : array[tasmop] of string[14] = ('<none>',
-    'add','add.','addo','addo.','addc','addc.','addco','addco.,
-    'adde','adde.','addeo','addeo.','addi','addic','addic.','addis,
-    'addme','addme.','addmeo','addmeo.','addze','addze.','addzeo,
-    'addzeo.','and','and.','andc','andc.','andi.','andis.','b,
-    'ba','bl','bla','bc','bca','bcl','bcla','bcctr','bcctrl','bclr,
-    'bclrl','cmp','cmpi','cmpl','cmpli','cntlzw','cntlzw.','crand,
-    'crandc','creqv','crnand','crnor','cror','crorc','crxor','dcba,
-    'dcbf','dcbi','dcbst','dcbt','divw','divw.','divwo','divwo.,
-    'divwu','divwu.','divwuo','divwuo.','eciwx','ecowx','eieio','eqv,
-    'eqv.','extsb','extsb.','extsh','extsh.','fabs','fabs.','fadd,
-    'fadd.','fadds','fadds.','fcompo','fcmpu','fctiw','fctw.','fctwz,
-    'fctwz.','fdiv','fdiv.','fdivs','fdivs.','fmadd','fmadd.','fmadds,
-    'fmadds.','fmr','fmsub','fmsub.','fmsubs','fmsubs.','fmul','fmul.,
-    'fmuls','fmuls.','fnabs','fnabs.','fneg','fneg.','fnmadd,
-    'fnmadd.','fnmadds','fnmadds.','fnmsub','fnmsub.','fnmsubs,
-    'fnmsubs.','fres','fres.','frsp','frsp.','frsqrte','frsqrte.,
-    'fsel','fsel.','fsqrt','fsqrt.','fsqrts','fsqrts.','fsub','fsub.,
-    'fsubs','fsubs.','icbi','isync','lbz','lbzu','lbzux','lbzx,
-    'lfd','lfdu','lfdux','lfdx','lfs','lfsu','lfsux','lfsx','lha,
-    'lhau','lhaux','lhax','hbrx','lhz','lhzu','lhzux','lhzx','lmw,
-    'lswi','lswx','lwarx','lwbrx','lwz','lwzu','lwzux','lwzx','mcrf,
-    'mcrfs','lcrxe','mfcr','mffs','maffs.','mfmsr','mfspr','mfsr,
-    'mfsrin','mftb','mtfcrf','mtfd0','mtfsb1','mtfsf','mtfsf.,
-    'mtfsfi','mtfsfi.','mtmsr','mtspr','mtsr','mtsrin','mulhw,
-    'mulhw.','mulhwu','mulhwu.','mulli','mullh','mullw.','mullwo,
-    'mullwo.','nand','nand.','neg','neg.','nego','nego.','nor','nor.,
+    'add','add.','addo','addo.','addc','addc.','addco','addco.',
+    'adde','adde.','addeo','addeo.','addi','addic','addic.','addis',
+    'addme','addme.','addmeo','addmeo.','addze','addze.','addzeo',
+    'addzeo.','and','and.','andc','andc.','andi.','andis.','b',
+    'ba','bl','bla','bc','bca','bcl','bcla','bcctr','bcctrl','bclr',
+    'bclrl','cmp','cmpi','cmpl','cmpli','cntlzw','cntlzw.','crand',
+    'crandc','creqv','crnand','crnor','cror','crorc','crxor','dcba',
+    'dcbf','dcbi','dcbst','dcbt','divw','divw.','divwo','divwo.',
+    'divwu','divwu.','divwuo','divwuo.','eciwx','ecowx','eieio','eqv',
+    'eqv.','extsb','extsb.','extsh','extsh.','fabs','fabs.','fadd',
+    'fadd.','fadds','fadds.','fcompo','fcmpu','fctiw','fctw.','fctwz',
+    'fctwz.','fdiv','fdiv.','fdivs','fdivs.','fmadd','fmadd.','fmadds',
+    'fmadds.','fmr','fmsub','fmsub.','fmsubs','fmsubs.','fmul','fmul.',
+    'fmuls','fmuls.','fnabs','fnabs.','fneg','fneg.','fnmadd',
+    'fnmadd.','fnmadds','fnmadds.','fnmsub','fnmsub.','fnmsubs',
+    'fnmsubs.','fres','fres.','frsp','frsp.','frsqrte','frsqrte.',
+    'fsel','fsel.','fsqrt','fsqrt.','fsqrts','fsqrts.','fsub','fsub.',
+    'fsubs','fsubs.','icbi','isync','lbz','lbzu','lbzux','lbzx',
+    'lfd','lfdu','lfdux','lfdx','lfs','lfsu','lfsux','lfsx','lha',
+    'lhau','lhaux','lhax','hbrx','lhz','lhzu','lhzux','lhzx','lmw',
+    'lswi','lswx','lwarx','lwbrx','lwz','lwzu','lwzux','lwzx','mcrf',
+    'mcrfs','lcrxe','mfcr','mffs','maffs.','mfmsr','mfspr','mfsr',
+    'mfsrin','mftb','mtfcrf','mtfd0','mtfsb1','mtfsf','mtfsf.',
+    'mtfsfi','mtfsfi.','mtmsr','mtspr','mtsr','mtsrin','mulhw',
+    'mulhw.','mulhwu','mulhwu.','mulli','mullh','mullw.','mullwo',
+    'mullwo.','nand','nand.','neg','neg.','nego','nego.','nor','nor.',
     'or','or.','orc','orc.','ori','oris', 'rfi', 'rlwimi', 'rlwimi.',
-    'rlwinm', 'tlwinm.','rlwnm','sc','slw', 'slw.', 'sraw', 'sraw.,
+    'rlwinm', 'tlwinm.','rlwnm','sc','slw', 'slw.', 'sraw', 'sraw.',
     'srawi', 'srawi.','srw', 'srw.', 'stb', 'stbu', 'stbux','stbx','stfd',
     'stfdu', 'stfdux', 'stfdx', 'stfiwx', 'stfs', 'stfsu', 'stfsux', 'stfsx',
     'sth', 'sthbrx', 'sthu', 'sthux', 'sthx', 'stmw', 'stswi', 'stswx', 'stw',
     'stwbrx', 'stwx.', 'stwu', 'stwux', 'stwx', 'subf', 'subf.', 'subfo',
     'subfo.', 'subfc', 'subc.', 'subfco', 'subfco.', 'subfe', 'subfe.',
-    'subfeo', 'subfeo.', 'subfic', 'subfme', 'subfme.', 'subfmeo', 'subfmeo.,
-    'subfze', 'subfze.', 'subfzeo', 'subfzeo.', 'sync', 'tlbia', 'tlbie,
+    'subfeo', 'subfeo.', 'subfic', 'subfme', 'subfme.', 'subfmeo', 'subfmeo.',
+    'subfze', 'subfze.', 'subfzeo', 'subfzeo.', 'sync', 'tlbia', 'tlbie',
     'tlbsync', 'tw', 'twi', 'xor', 'xor.', 'xori', 'xoris',
     { some simplified mnemonics }
     'subi', 'subis', 'subic', 'subic.', 'sub', 'sub.', 'subo', 'subo.',
@@ -92,7 +95,7 @@ unit agas;
     'insrwi.', 'rotlwi', 'rotlwi.', 'rotlw', 'rotlw.', 'slwi', 'slwi.',
     'srwi', 'srwi.', 'clrlwi', 'clrlwi.', 'clrrwi', 'clrrwi.', 'clrslwi',
     'clrslwi.', 'blr', 'bctr', 'blrl', 'bctrl', 'crset', 'crclr', 'crmove',
-    'crnot', 'mt', 'mf','nop', 'li', 'la', 'mr','not', 'mtcr');
+    'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','not', 'mtcr');
 
     function taicpuattasmlist.getreferencestring(var ref : treference) : string;
     var
@@ -100,8 +103,13 @@ unit agas;
     begin
       if ref.is_immediate then
        begin
+{$ifndef testing}
          internalerror(1000101);
          exit;
+{$else testing}
+         writeln('internalerror 1000101');
+         halt(1);
+{$endif testing}
        end
       else
        begin
@@ -109,7 +117,14 @@ unit agas;
           begin
             inc(offset,offsetfixup);
             if (offset < -32768) or (offset > 32767) then
+{$ifndef testing}
               internalerror(19991);
+{$else testing}
+              begin
+                writeln('internalerror 19991');
+                halt(1);
+              end;
+{$endif testing}
             s:='';
             if assigned(symbol) then
              s:=s+symbol^.name + symaddr2str[symaddr];
@@ -127,8 +142,15 @@ unit agas;
                s:=s+'('+att_reg2str[base]+')'
              else if (index<>R_NO) and (base<>R_NO) and (offset = 0) then
                s:=s+att_reg2str[base]+','+att_reg2str[index]
-             else if (index<>R_NO) or (base<>R_NO)) then
-               internalerror(19992);
+             else if ((index<>R_NO) or (base<>R_NO)) then
+{$ifndef testing}
+              internalerror(19992);
+{$else testing}
+              begin
+                writeln('internalerror 19992');
+                halt(1);
+              end;
+{$endif testing}
           end;
        end;
       getreferencestring:=s;
@@ -155,26 +177,33 @@ unit agas;
             getopstr_jmp:=hs;
           end;
         else
+{$ifndef testing}
           internalerror(10001);
+{$else testing}
+          begin
+            writeln('internalerror 10001');
+            halt(1);
+          end;
+{$endif testing}
       end;
     end;
 
 
-    Procedure taicpuattasmlist.WriteInstruction (P : Pai);
+    Procedure taicpuattasmlist.WriteInstruction (HP : Pai);
     var op: TAsmOp;
         s: string;
         i: byte;
+        sep: string[3];
     begin
       op:=paicpu(hp)^.opcode;
-      if not is_calljmp(o) then
-        s:=#9+att_op2str[op];
-      else
+      if is_calljmp(op) then
     { direct BO/BI in op[0] and op[1] not supported, put them in condition! }
         s:=s+cond2str(op,paicpu(hp)^.condition)+
            getopstr_jmp(paicpu(hp)^.oper[0])
       else
     { process operands }
         begin
+          s:=#9+att_op2str[op];
           if paicpu(hp)^.ops<>0 then
             begin
               if not is_calljmp(op) then
@@ -190,7 +219,7 @@ unit agas;
       AsmWriteLn(s);
     end;
 
-    procedure taicpuattasmlist.cond2str(op: tasmop; c: tasmcond): string;
+    function taicpuattasmlist.cond2str(op: tasmop; c: tasmcond): string;
     { note: no checking is performed whether the given combination of }
     { conditions is valid                                             }
     var tempstr: sintrg;
@@ -244,7 +273,10 @@ unit agas;
 end.
 {
   $Log$
-  Revision 1.5  2000-03-26 16:37:36  jonas
+  Revision 1.6  2000-05-01 11:03:32  jonas
+    * some fixes, does not yet compile
+
+  Revision 1.5  2000/03/26 16:37:36  jonas
     + use cpubase unit
     - removed use of alpha unit
 

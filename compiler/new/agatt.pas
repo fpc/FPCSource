@@ -26,7 +26,7 @@ unit agatt;
   interface
 
     uses
-       globals,systems,errors,cobjects,aasm,strings,files,assemble
+       globals,systems,{errors,}cobjects,aasm,strings,files,assemble,cpuasm
 {$ifdef GDB}
        ,gdb
 {$endif GDB}
@@ -69,13 +69,13 @@ unit agatt;
       Abstract
     end;
 
-    Procedure tattasmlist.WriteInstruction (P : paicpu); virtual;
+    Procedure tattasmlist.WriteInstruction (P : paicpu);
     Begin
       Abstract
     End;
 
 
-    function tattamslist.getopstr(const o:toper) : string;
+    function tattasmlist.getopstr(const o:toper) : string;
     var
       hs : string;
     begin
@@ -103,7 +103,14 @@ unit agatt;
             getopstr:=hs;
           end;
         else
+{$ifndef testing}
           internalerror(10001);
+{$else testing}
+          begin
+            writeln('internalerror 10001');
+            halt(1);
+          end;
+{$endif testing}
       end;
     end;
 
@@ -524,7 +531,14 @@ unit agatt;
              ;
 
            else
+{$ifndef testing}
              internalerror(10000);
+{$else testing}
+             begin
+               writeln('internalerror 10001');
+               halt(1);
+             end;
+{$endif testing}
          end;
          hp:=pai(hp^.next);
        end;
@@ -606,7 +620,10 @@ unit agatt;
 end.
 {
  $Log$
- Revision 1.3  2000-01-07 01:14:50  peter
+ Revision 1.4  2000-05-01 11:03:32  jonas
+   * some fixes, does not yet compile
+
+ Revision 1.3  2000/01/07 01:14:50  peter
    * updated copyright to 2000
 
  Revision 1.2  1999/09/03 13:08:36  jonas
