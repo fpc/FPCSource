@@ -620,7 +620,7 @@ begin
   case N of
     $00       : C:=#0;
     $01..$0D  : C:=chr(Compression.CharTable[N]);
-    ncRawChar : C:=chr(GetNextNibble*16+GetNextNibble);
+    ncRawChar : C:=chr(GetNextNibble+GetNextNibble shl 4);
     ncRepChar : begin
                   Cnt:=2+GetNextNibble;
                   C:=GetNextChar{$ifdef FPC}(){$endif};
@@ -658,7 +658,7 @@ begin
 end;
 var OK: boolean;
     TextR,KeyWR: TRecord;
-    W,I: word;
+    I: word;
 begin
   OK:=T<>nil;
   if OK and (T^.Text=nil) then
@@ -913,11 +913,15 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  1999-03-01 15:42:11  peter
+  Revision 1.9  1999-03-03 16:44:05  pierre
+   * TPH reader fix from Peter
+
+  Revision 1.8  1999/03/01 15:42:11  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
