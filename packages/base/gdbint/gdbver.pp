@@ -14,11 +14,16 @@ uses
   strings;
 
 const
+{$ifdef OpenBSD}
+  ver_name = '_version';
+{$else}
 {$ifdef unix}
   ver_name = 'version';
 {$else not unix}
   ver_name = '_version';
 {$endif}
+{$endif}
+
   { This variable should be change with
     change in GDB CVS PM }
   Current_cvs_version : longint = 503;
@@ -90,7 +95,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-12-12 14:17:59  pierre
+  Revision 1.6  2003-02-09 19:14:48  marco
+   * ugly openbsd fix
+
+  Revision 1.5  2002/12/12 14:17:59  pierre
    * 5.3 was not correctly parsed
 
   Revision 1.4  2002/12/02 13:59:16  pierre
