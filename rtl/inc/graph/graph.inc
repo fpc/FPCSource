@@ -17,7 +17,7 @@
 {  1. Allocate a descriptor      }
 {  2. Set segment limit          }
 {  3. Set base linear address    }
-  const
+const
    InternalDriverName = 'DOSGX';
 {$ifdef fpc}
  {$ifdef asmgraph}
@@ -2460,7 +2460,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.24  1999-10-24 15:51:22  carl
+Revision 1.25  1999-11-03 20:23:01  florian
+  + first release of win32 gui support
+
+Revision 1.24  1999/10/24 15:51:22  carl
   * Bugfix of mode m800x600x64k - wrong vide mode would be used.
   + TP compilable.
 

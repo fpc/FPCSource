@@ -199,6 +199,11 @@ Unit Graph;
 Interface
 
 
+  {$ifdef win32}
+  uses
+     windows;
+  {$endif win32}
+
     const
        { error codes }
        grOk =  0;
@@ -585,6 +590,12 @@ VAR
   RestoreVideoState: RestoreStateProc;
   ExitSave: pointer;
 
+{$ifdef win32}
+  { this procedure allows to hook keyboard message of the graph unit window }
+  charmessagehandler : function(Window: hwnd; AMessage, WParam,
+                    LParam: Longint): Longint;
+{$endif win32}
+
 
 Procedure Closegraph;
 procedure SetLineStyle(LineStyle: word; Pattern: word; Thickness: word);
@@ -672,14 +683,22 @@ Function GetDriverName: string;
  procedure OutText(const TextString : string);
 
 
-
 Implementation
+
+{ what a mess ... it would be much better if the graph unit        }
+{ would follow the structure of the FPC system unit:               }
+{ the main file is system depended and the system independend part }
+{ is included  (FK)                                                }
 {$ifdef fpc}
   {$ifdef go32v2}
     {$define dpmi}
     uses go32,ports;
     Type TDPMIRegisters = go32.registers;
   {$endif go32v2}
+  {$ifdef win32}
+  uses
+     strings;
+  {$endif}
 {$else fpc}
 {$IFDEF DPMI}
 uses WinAPI;
@@ -2103,13 +2122,20 @@ end;
     DefaultHooks;
   end;
 
+{$i modes.inc}
+{$i palette.inc}
+
+{$ifdef win32}
+{$i win32.inc}
+{$else win32}
+
 {$ifdef DPMI}
 {$i vesah.inc}
 {$endif DPMI}
 
-{$i modes.inc}
 {$i graph.inc}
 
+{$endif win32}
 
   function InstallUserDriver(Name: string; AutoDetectPtr: Pointer): integer;
    begin
@@ -2537,8 +2563,6 @@ end;
 {--------------------------------------------------------------------------}
 
 
-  {$i palette.inc}
-
   procedure SetColor(Color: Word);
 
    Begin
@@ -2937,6 +2961,9 @@ begin
 {$ifdef testsave}
  savevideostate;
 {$endif testsave}
+{$ifdef win32}
+ charmessagehandler:=nil;
+{$endif win32}
 end.
 
 
@@ -2945,7 +2972,10 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.33  1999-10-17 10:20:13  jonas
+  Revision 1.34  1999-11-03 20:23:01  florian
+    + first release of win32 gui support
+
+  Revision 1.33  1999/10/17 10:20:13  jonas
     * fixed clipping for thickwidth lines (bug 659)
     * fixed the faster internalellipsedefault, but it doesn't plot
       all pixels (there are gaps in the ellipses)

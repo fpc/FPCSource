@@ -1577,7 +1577,9 @@ end;
     sub ax,004Fh
     cmp ax,1
     sbb al,al
+{$ifndef ver0_99_12}
     mov @RESULT,al
+{$endif ver0_99_12}
    end;
   end;
  end;
@@ -1936,7 +1938,10 @@ end;
 
 {
 $Log$
-Revision 1.20  1999-10-24 15:50:23  carl
+Revision 1.21  1999-11-03 20:23:01  florian
+  + first release of win32 gui support
+
+Revision 1.20  1999/10/24 15:50:23  carl
   * Bugfix in TP mode SaveStateVESA
 
 Revision 1.19  1999/10/24 03:37:15  carl
