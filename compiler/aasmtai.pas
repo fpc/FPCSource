@@ -161,8 +161,10 @@ interface
 
        { the short name makes typing easier }
        tai = class(TLinkedListItem)
+{$ifndef NOOPT}
           { pointer to record with optimizer info about this tai object }
           optinfo  : pointer;
+{$endif}
           fileinfo : tfileposinfo;
           typ      : taitype;
           constructor Create;
@@ -499,7 +501,9 @@ uses
     constructor tai.Create;
       begin
         fileinfo:=aktfilepos;
+{$ifndef NOOPT}
         optinfo:=nil;
+{$endif}
       end;
 
 
@@ -507,7 +511,9 @@ uses
       begin
         typ:=t;
         ppufile.getposinfo(fileinfo);
+{$ifndef NOOPT}
         optinfo:=nil;
+{$endif}
       end;
 
 
@@ -1548,7 +1554,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.9  2002-10-05 12:43:23  carl
+  Revision 1.10  2002-11-09 15:38:03  carl
+    + NOOPT removed the optinfo field
+
+  Revision 1.9  2002/10/05 12:43:23  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 
