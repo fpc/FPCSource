@@ -366,8 +366,8 @@ var info : TEllipseInfo;
 begin
   with canv.pen do
     case mode of
-      pmAnd : MyPutPix := @PutPixelAnd;
-      pmOr : MyPutPix := @PutPixelOr;
+      pmMask : MyPutPix := @PutPixelAnd;
+      pmMerge : MyPutPix := @PutPixelOr;
       pmXor : MyPutPix := @PutPixelXor;
       else MyPutPix := @PutPixelCopy;
     end;
@@ -396,8 +396,8 @@ var infoOut, infoIn : TEllipseInfo;
 begin
   with canv.pen do
     case mode of
-      pmAnd : MyPutPix := @PutPixelAnd;
-      pmOr : MyPutPix := @PutPixelOr;
+      pmMask : MyPutPix := @PutPixelAnd;
+      pmMerge : MyPutPix := @PutPixelOr;
       pmXor : MyPutPix := @PutPixelXor;
       else MyPutPix := @PutPixelCopy;
     end;
@@ -441,8 +441,8 @@ var info : TEllipseInfo;
 begin
   with canv.pen do
     case mode of
-      pmAnd : MyPutPix := @PutPixelAnd;
-      pmOr : MyPutPix := @PutPixelOr;
+      pmMask : MyPutPix := @PutPixelAnd;
+      pmMerge : MyPutPix := @PutPixelOr;
       pmXor : MyPutPix := @PutPixelXor;
       else MyPutPix := @PutPixelCopy;
     end;
