@@ -585,7 +585,7 @@ begin
       {$ifdef OS2}
         set_source(target_i386_OS2);
         if (OS_Mode = osDOS) or (OS_Mode = osDPMI) then
-          source_os.scriptext := '.bat';
+          source_info.scriptext := '.bat';
         { OS/2 via EMX can be run under DOS as well }
       {$else}
         {$ifdef WIN32}
@@ -677,7 +677,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.32  2001-12-15 05:43:20  carl
+  Revision 1.33  2002-01-06 20:34:34  hajny
+    * source_os changed to source_info in OS/2 define
+
+  Revision 1.32  2001/12/15 05:43:20  carl
   + QNX target
 
   Revision 1.31  2001/11/15 20:48:43  hajny
