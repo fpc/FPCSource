@@ -57,6 +57,7 @@ utils. Provided units are the runtime library (RTL), free component library
 %setup -c
 
 %build
+FPCDIR=
 NEWPP=`pwd`/compiler/%{ppcname}
 NEWFPDOC=`pwd`/utils/fpdoc/fpdoc
 	make compiler_cycle
@@ -68,7 +69,7 @@ NEWFPDOC=`pwd`/utils/fpdoc/fpdoc
 	make ide_all FPC=${NEWPP}
 	make utils_all FPC=${NEWPP}
 if [ -z ${NODOCS} ]; then
-	make -C docs pdf FPDOC=${NEWFPDOC}
+	make -C docs pdf FPC=${NEWPP} FPDOC=${NEWFPDOC}
 fi
 
 %install
@@ -76,6 +77,7 @@ if [ %{buildroot} != "/" ]; then
 	rm -rf %{buildroot}
 fi
 
+FPCDIR=
 NEWPP=`pwd`/compiler/%{ppcname}
 INSTALLOPTS="FPC=${NEWPP} INSTALL_PREFIX=%{buildroot}/usr INSTALL_LIBDIR=%{buildlibdir} \
 		INSTALL_DOCDIR=%{builddocdir} INSTALL_BINDIR=%{buildbindir} \
@@ -93,7 +95,7 @@ INSTALLOPTS="FPC=${NEWPP} INSTALL_PREFIX=%{buildroot}/usr INSTALL_LIBDIR=%{build
 	make man_install ${INSTALLOPTS} INSTALL_MANDIR=%{buildmandir}
 	
 if [ -z ${NODOCS} ]; then
-	make -C docs pdfinstall DOCINSTALLDIR=%{builddocdir}
+	make -C docs pdfinstall ${INSTALLOPTS} DOCINSTALLDIR=%{builddocdir}
 fi
 
 	# create link
