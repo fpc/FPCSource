@@ -123,45 +123,55 @@ end ['R3','R4'];
 
 procedure do_set_range(p : pointer;l,h : byte);assembler;[public,alias:'FPC_SET_SET_RANGE'];
 {
-  bad implementation, but it's very seldom used
-
   on entry: p in r3, l in r4, h in r5
 }
 var
   saveR6, saveR7, saveR8: longint;
 asm
-       cmplw    cr0,r4,r5
-       bg       cr0,.LSET_RANGE_EXIT
-       stw      r6,saveR6
-       stw      r7,saveR7
-       stw      r8,saveR8
-       
-       
-       
-       lwz      r7,(r3)
-       
-       
-
-        pushl   %eax
-        movl    p,%edi
-        xorl    %eax,%eax
-        xorl    %ecx,%ecx
-        movb    h,%al
-        movb    l,%cl
-.LSET_SET_RANGE_LOOP:
-        cmpl    %ecx,%eax
-        jl      .LSET_SET_RANGE_EXIT
-        movl    %eax,%ebx
-        movl    %eax,%edx
-        andl    $0xf8,%ebx
-        andl    $7,%edx
-        shrl    $3,%ebx
-        btsl    %edx,(%edi,%ebx)
-        dec     %eax
-        jmp     .LSET_SET_RANGE_LOOP
-.LSET_SET_RANGE_EXIT:
-        popl %eax
-end ['R4'];
+  cmplw  cr0,r4,r5
+  bg     cr0,.LSET_RANGE_EXIT
+  stw    r6,saveR6
+  stw    r7,saveR7
+  stw    r8,saveR8
+  rlwinm r6,r4,32-3,0,31-2    // divide by 8 to get starting and ending byte-
+  rlwinm r7,r5,32-3,0,31-2    // address and clear two lowest bits to get
+                              // start/end longint address * 4
+  sub.   r7,r6,r7             // are bit lo and hi in the same longint?
+  rlwinm r5,r5,0,31-4,31      // hi := hi mod 32 (= "hi and 31", but the andi
+                              // instr. only exists in flags modifying form)
+  eqv    r8,r8,r8             // r8 = $0x0ffffffff = bitmask to be inserted
+  subfic r5,r5,32             // hi := 32 - (hi mod 32) = shift count for later
+  srw    r8,r8,r4             // shift bitmask to clear bits below lo
+                              // note: shift right = opposite little endian!!
+  lwzu   r4,r3,r6             // go to starting pos in set and load value
+                              // (lo is not necessary anymore)
+  beq    .Lset_range_hi       // if bit lo and hi in same longint, keep
+                              // current mask and adjust for hi bit
+  subic. r7,r7,4              // bit hi in next longint?
+  or     r4,r4,r8             // merge and
+  stw    r4,(r3)              // store current mask
+  eqv    r8,r8,r8             // new mask
+  lwzu   r4,4(r3)             // load next longint of set
+  beq    .Lset_range_hi       // bit hi in this longint -> go to adjust for hi
+.Lset_range_loop:
+  subic. r7,r7,4
+  stwu   r8,4(r3)             // fill longints in between with full mask
+  bne    .Lset_range_loop
+  lwzu    r4,4(r3)            // load next value from set
+.Lset_range_hi:               // in all cases, r3 here contains the address of
+                              // the longint which contains the hi bit and r9
+                              // contains this longint
+  slw    r7,r8,r5             // r7 := bitmask shl (32 - (hi mod 32)) =
+                              // bitmask with bits higher than hi cleared
+  and    r8,r7,r8             // combine lo and hi bitmasks for this longint
+  or     r4,r4,r8             // and combine with existing set
+  stw    r4,(r3)              // store to set
+.Lset_range_done:
+  lwz    r6,saver6
+  lwz    r7,saver7
+  lwz    r8,saver8
+.Lset_range_exit:
+end ['R3','R4','R5'];
 
 
 procedure do_in_byte(p : pointer;b : byte);assembler;[public,alias:'FPC_SET_IN_BYTE'];
@@ -206,14 +216,14 @@ asm
        subi     r5,r5,4
        li       r6,8
        stw      r8,saveR8
-       lwz      r7,(r3)
-       lwz      r8,(r4)
+       subi     r3,4
+       subi     r4,4
    .LMADDSETS1:
-      subi.     r6,r6,1
-      or        r7,r7,r8
-      lwzu      r8,4(r4)
-      stwu      r7,4(r5)
+      subic.    r6,r6,1
       lwzu      r7,4(r3)
+      lwzu      r8,4(r4)
+      or        r7,r7,r8
+      stwu      r7,4(r5)
       bne       cr0,.LMADDSETS1
       lwz       r6,saveR6
       lwz       r7,saveR7
@@ -235,14 +245,14 @@ asm
        subi     r5,r5,4
        li       r6,8
        stw      r8,saveR8
-       lwz      r7,(r3)
-       lwz      r8,(r4)
+       subi     r3,4
+       subi     r4,4
    .LMADDSETS1:
-       subi.    r6,r6,1
-       and      r7,r7,r8
-       lwzu     r8,4(r4)
-       stwu     r7,4(r5)
+       subic.   r6,r6,1
        lwzu     r7,4(r3)
+       lwzu     r8,4(r4)
+       and      r7,r7,r8
+       stwu     r7,4(r5)
        bne      cr0,.LMADDSETS1
        lwz      r6,saveR6
        lwz      r7,saveR7
@@ -264,14 +274,14 @@ asm
        subi     r5,r5,4
        li       r6,8
        stw      r8,saveR8
-       lwz      r7,(r3)
-       lwz      r8,(r4)
+       subi     r3,4
+       subi     r4,4
    .LMSUBSETS1:
        subi.    r6,r6,1
-       andc     r8,r8,r7
-       lwzu     r7,4(r3)
-       stwu     r8,4(r5)
        lwzu     r8,4(r4)
+       lwzu     r7,4(r3)
+       andc     r8,r8,r7
+       stwu     r8,4(r5)
        bne      cr0,.LMSUBSETS1
        lwz      r6,saveR6
        lwz      r7,saveR7
@@ -293,14 +303,14 @@ asm
        subi     r5,r5,4
        li       r6,8
        stw      r8,saveR8
-       lwz      r7,(r3)
-       lwz      r8,(r4)
+       subi     r3,4
+       subi     r4,4
    .LMSYMDIFSETS1:
        subi.    r6,r6,1
-       xor      r7,r7,r8
-       lwzu     r8,4(r4)
-       stwu     r7,4(r5)
        lwzu     r7,4(r3)
+       lwzu     r8,4(r4)
+       xor      r7,r7,r8
+       stwu     r7,4(r5)
        bne      cr0,.LMSYMDIFSETS1
        lwz      r6,saveR6
        lwz      r7,saveR7
@@ -323,12 +333,12 @@ asm
        li       r6,8
        stw      r7,saveR7
        mtctr    r6
-       lwz      r6,(r3)
-       lwz      r7,(r4)
+       subi     r3,4
+       subi     r4,4
     .LMCOMPSETS1:
-       cmplw    cr0,r6,r7
        lwzu     r6,4(r3)
        lwzu     r7,4(r4)
+       cmplw    cr0,r6,r7
        bdnzeq   cr0,.LMCOMPSETS1
        mtctr    r5
        lwz      r5,saveR5
@@ -351,12 +361,12 @@ asm
        li       r6,8
        stw      r7,saveR7
        mtctr    r6
-       lwz      r6,(r3)
-       lwz      r7,(r4)
+       subi     r3,4
+       subi     r4,4
     .LMCOMPSETS1:
-       andc.    r7,r6,r7
-       lwzu     r6,4(r3)
        lwzu     r7,4(r4)
+       lwzu     r6,4(r3)
+       andc.    r7,r6,r7
        bdnzeq   cr0,.LMCOMPSETS1
        mtctr    r5
        lwz      r5,saveR5
@@ -530,7 +540,12 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:56  michael
+  Revision 1.3  2000-09-22 10:03:18  jonas
+    + implementation for FPC_SET_SET_RANGE
+    * changed some routines so they never read data from after the actual
+      set (could cause sigsegv's if the set is at the end of the heap)
+
+  Revision 1.2  2000/07/13 11:33:56  michael
   + removed logs
  
 }
