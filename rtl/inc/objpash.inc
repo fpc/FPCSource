@@ -266,7 +266,7 @@
    type
       PVarRec = ^TVarRec;
       TVarRec = record
-         case VType : Longint of
+         case VType : Ptrint of
            vtInteger    : (VInteger: Longint);
 {$ifdef ENDIAN_BIG}
            vtBoolean    : (booldummy1,booldummy2,booldummy3: byte; VBoolean: Boolean);
@@ -299,7 +299,10 @@
 
 {
   $Log$
-  Revision 1.23  2004-04-26 21:06:00  peter
+  Revision 1.24  2004-04-28 19:52:41  peter
+    * vtype changed to ptrint
+
+  Revision 1.23  2004/04/26 21:06:00  peter
     * class size changed to aint
 
   Revision 1.22  2004/04/25 16:32:31  florian
