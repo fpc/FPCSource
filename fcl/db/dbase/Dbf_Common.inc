@@ -154,7 +154,6 @@
 
   {$mode delphi}
   {$h+}
-  {$asmmode intel}
 
   {$define SUPPORT_INT64}
   {$define SUPPORT_DEFAULT_PARAMS}
