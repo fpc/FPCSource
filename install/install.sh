@@ -121,8 +121,6 @@ echo $DOCDIR
 DEMODIR=$DOCDIR/examples
 
 # Install compiler/RTL. Mandatory.
-echo Unpacking ...
-# tar xf binary.tar
 echo Installing compiler and RTL ...
 unztarfromtar binary.tar base${OSNAME}.tar.gz $PREFIX
 rm -f $EXECDIR/ppc386
@@ -150,8 +148,6 @@ echo
 
 # Install the sources. Optional.
 if yesno "Install sources"; then
-  echo Unpacking ...
-  # tar xf sources.tar
   echo Installing sources in $SRCDIR ...
   unztarfromtar sources.tar  basesrc.tar.gz $PREFIX
   if yesno "Install compiler source"; then
