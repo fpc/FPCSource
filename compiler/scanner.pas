@@ -1536,6 +1536,12 @@ implementation
                  pattern[1]:='%';
                  i:=1;
                end;
+         '&' : begin
+                 readchar;
+                 base:=8;
+                 pattern[1]:='&';
+                 i:=1;
+               end;
          '$' : begin
                  readchar;
                  base:=16;
@@ -1550,6 +1556,7 @@ implementation
         end;
         while ((base>=10) and (c in ['0'..'9'])) or
               ((base=16) and (c in ['A'..'F','a'..'f'])) or
+              ((base=8) and (c in ['0'..'7'])) or
               ((base=2) and (c in ['0'..'1'])) do
          begin
            if i<255 then
@@ -2088,6 +2095,18 @@ implementation
                end;
 
              '%' :
+               begin
+                 if not(m_fpc in aktmodeswitches) then
+                  Illegal_Char(c)
+                 else
+                  begin
+                    readnumber;
+                    token:=_INTCONST;
+                    goto exit_label;
+                  end;
+               end;
+
+             '&' :
                begin
                  if not(m_fpc in aktmodeswitches) then
                   Illegal_Char(c)
@@ -2764,7 +2783,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.40  2002-07-20 17:35:52  florian
+  Revision 1.41  2002-08-06 21:12:16  florian
+    + support for octal constants, they are specified by a leading &
+
+  Revision 1.40  2002/07/20 17:35:52  florian
     + char constants specified with #.. with more than 3 digits are handled as widechar
 
   Revision 1.39  2002/05/18 13:34:17  peter
