@@ -52,8 +52,16 @@ Type
   {$define SUPPORT_EXTENDED}
   {$define SUPPORT_COMP}
   {$define SUPPORT_SINGLE}
-  {$define SUPPORT_FIXED}
+
+{causes internalerror(17) with internal val handling, and is not yet fully
+ supported anyway (JM)}
+  { define SUPPORT_FIXED}
+
   Double = real;
+{$IfDef ValInternCompiled}
+  TMaxSInt = Longint;
+  TMaxUInt = Cardinal;
+{$EndIf ValInternCompiled}
   {$ifdef DEFAULT_EXTENDED}
     ValReal = Extended;
   {$else}
@@ -62,6 +70,8 @@ Type
 {$endif}
 
 {$ifdef m68k}
+  TMaxSInt = Longint;
+  TMaxUInt = Cardinal;
    StrLenInt = Longint;
    ValReal = Real;
 {$endif}
@@ -78,6 +88,13 @@ Type
   TProcedure  = Procedure;
 
 const
+{$IfDef ValInternCompiled}
+{ Maximum value of the biggest signed and unsigned integer type available}
+  MaxSIntValue = High(TMaxSInt);
+  MaxUIntValue = High(TMaxUInt);
+{$EndIf ValInternCompiled}
+
+
 { max. values for longint and int}
   maxLongint = $7fffffff;
   maxint     = 32767;
@@ -214,6 +231,7 @@ Function  hexStr(Val:Longint;cnt:byte):shortstring;
 Function  binStr(Val:Longint;cnt:byte):shortstring;
 {$endif RTLLITE}
 Function  Space(b:byte):shortstring;
+{$IfNDef ValInternCompiled}
 Procedure Val(const s:shortstring;Var l:Longint;Var code:Word);
 Procedure Val(const s:shortstring;Var l:Longint;Var code:Integer);
 Procedure Val(const s:shortstring;Var l:Longint;Var code:Longint);
@@ -273,6 +291,7 @@ Procedure Val(const s:shortstring;Var d:ValReal);
     Procedure Val(const s:shortstring;Var d:Extended);
   {$endif}
 {$endif DEFAULT_EXTENDED}
+{$EndIf ValInternCompiled}
 
 {****************************************************************************
                              AnsiString Handling
@@ -286,6 +305,7 @@ Function  Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;
 Function  Pos (Const Substr : AnsiString; Const Source : AnsiString) : Longint;
 Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : Longint);
 Procedure Delete (Var S : AnsiString; Index,Size: Longint);
+{$IfNDef ValInternCompiled}
 Procedure Val (Const S : AnsiString; var R : real; Var Code : Integer);
 {
 Procedure Val (Const S : AnsiString; var D : Double; Var Code : Integer);
@@ -297,6 +317,7 @@ Procedure Val (Const S : AnsiString; var W : Word; Var Code : Integer);
 Procedure Val (Const S : AnsiString; var I : Integer; Var Code : Integer);
 Procedure Val (Const S : AnsiString; var B : Byte; Var Code : Integer);
 Procedure Val (Const S : AnsiString; var SI : ShortInt; Var  Code : Integer);
+{$EndIf ValInternCompiled}
 {
 Procedure Str (Const R : Real;Len, fr : longint; Var S : AnsiString);
 Procedure Str (Const D : Double;Len,fr : longint; Var S : AnsiString);
@@ -436,7 +457,12 @@ const
 
 {
   $Log$
-  Revision 1.52  1999-03-10 22:15:30  florian
+  Revision 1.53  1999-03-16 17:49:37  jonas
+    * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
+    * in text.inc: changed RTE 106 when read integer values are out of bounds to RTE 201
+    * in systemh.inc: disabled "support_fixed" for the i386 because it gave internal errors,
+
+  Revision 1.52  1999/03/10 22:15:30  florian
     + system.cmdline variable for go32v2 and win32 added
 
   Revision 1.51  1999/03/03 15:23:58  michael

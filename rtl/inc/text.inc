@@ -975,7 +975,7 @@ End;
 Procedure Read_Longint(var f : TextRec;var l : Longint);[Public,Alias:'FPC_READ_TEXT_LONGINT'];
 var
   hs   : String;
-  code : Word;
+  code : Longint;
   base : longint;
 Begin
   l:=0;
@@ -1007,7 +1007,7 @@ Begin
    exit;
   Read_Longint(f,ll);
   If (ll<-32768) or (ll>32767) Then
-   InOutRes:=106
+   InOutRes:=201
   else
    l:=ll;
 End;
@@ -1022,7 +1022,7 @@ Begin
    exit;
   Read_Longint(f,ll);
   If (ll<0) or (ll>$ffff) Then
-   InOutRes:=106
+   InOutRes:=201
   else
    l:=ll;
 End;
@@ -1037,7 +1037,7 @@ Begin
    exit;
   Read_Longint(f,ll);
   If (ll<0) or (ll>255) Then
-   InOutRes:=106
+   InOutRes:=201
   else
    l:=ll;
 End;
@@ -1052,7 +1052,7 @@ Begin
    exit;
   Read_Longint(f,ll);
   If (ll<-128) or (ll>127) Then
-   InOutRes:=106
+   InOutRes:=201
   else
    l:=ll;
 End;
@@ -1061,7 +1061,7 @@ End;
 Procedure Read_Cardinal(var f : TextRec;var l : cardinal);[Public,Alias:'FPC_READ_TEXT_CARDINAL'];
 var
   hs   : String;
-  code : Word;
+  code : longint;
   base : longint;
 Begin
   l:=0;
@@ -1080,7 +1080,7 @@ Begin
    ReadNumeric(f,hs,Base);
   val(hs,l,code);
   If code<>0 Then
-   InOutRes:=106;
+   InOutRes:=201;
 End;
 
 
@@ -1208,7 +1208,12 @@ end;
 
 {
   $Log$
-  Revision 1.41  1999-03-02 18:23:37  peter
+  Revision 1.42  1999-03-16 17:49:39  jonas
+    * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
+    * in text.inc: changed RTE 106 when read integer values are out of bounds to RTE 201
+    * in systemh.inc: disabled "support_fixed" for the i386 because it gave internal errors,
+
+  Revision 1.41  1999/03/02 18:23:37  peter
     * changed so handlerror() -> inoutres:= to have $I- support
 
   Revision 1.40  1999/03/01 15:41:04  peter

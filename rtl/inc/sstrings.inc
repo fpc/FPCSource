@@ -344,7 +344,12 @@ end;
                            Val() Functions
 *****************************************************************************}
 
-Function InitVal(const s:shortstring;var negativ:boolean;var base:byte):Word;
+Function InitVal(const s:shortstring;var negativ:boolean;var base:byte):
+{$IfDef ValInternCompiled}
+TMaxSInt;
+{$Else ValInternCompiled}
+Word;
+{$EndIf ValInternCompiled}
 var
   Code : Longint;
 begin
@@ -371,8 +376,11 @@ begin
               repeat
                 inc(code);
               until (code>=length(s)) or (s[code]<>'0');
+{The following isn't correct anymore for 64 bit integers! (JM)}
+{$IfNDef ValInternCompiled}
               if length(s)-code>7 then
                code:=code+8;
+{$EndIf ValInternCompiled}
             end;
       '%' : begin
               base:=2;
@@ -382,6 +390,225 @@ begin
   end;
   InitVal:=code;
 end;
+
+
+{$IfDef ValInternCompiled}
+
+Function ValSignedInt(DestSize: Byte; Const S: ShortString; var Code: TMaxSInt): TMaxSInt; [public, alias:'FPC_VAL_SINT_SSTRING'];
+var
+  u: TMaxSInt;
+  base : byte;
+  negative : boolean;
+  temp, prev: TMaxUInt;
+begin
+  ValSignedInt := 0;
+  Temp:=0;
+  Code:=InitVal(s,negative,base);
+  if Code>length(s) then
+   exit;
+  if negative and (s='-2147483648') then
+   begin
+     Code:=0;
+     ValSignedInt:=$80000000;
+     exit;
+   end;
+
+  while Code<=Length(s) do
+   begin
+     case s[Code] of
+       '0'..'9' : u:=Ord(S[Code])-Ord('0');
+       'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
+       'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+     else
+      u:=16;
+     end;
+     Prev := Temp;
+     Temp := Temp*TMaxUInt(base);
+     If ((base = 10) and
+         (prev > MaxSIntValue div TMaxUInt(Base))) or
+        (Temp < prev) Then
+       Begin
+         ValSignedInt := 0;
+         Exit
+       End;
+     if (u>=base) or
+        ((base = 10) and
+         (MaxSIntValue-Temp < u)) or
+        ((base <> 10) and
+         (MaxUIntValue-Temp < u)) then
+       begin
+         ValSignedInt:=0;
+         exit;
+       end;
+     Temp:=Temp+u;
+     inc(code);
+   end;
+  code := 0;
+  ValSignedInt := TMaxSInt(Temp);
+  If Negative Then
+    ValSignedInt := -ValSignedInt;
+  If Not(Negative) and (base <> 10) Then
+   {sign extend the result to allow proper range checking}
+    Case DestSize of
+      1: If (ValSignedInt > High(ShortInt)) and (ValSignedInt <= High(Byte)) Then
+           ValSignedInt := ValSignedInt or (MaxUIntValue xor High(Byte));
+      2: If (ValSignedInt > High(Integer)) and (ValSignedInt <= High(Word)) Then
+           ValSignedInt := ValSignedInt or (MaxUIntValue xor High(Word));
+{     Uncomment the folling once full 64bit support is in place
+      4: If (ValSignedInt > High(Longint)) and (ValSignedInt <= High(Cardinal)) Then
+           ValSignedInt := ValSignedInt or (MaxUIntValue xor High(Cardinal));}
+    End;
+end;
+
+Function ValUnsignedInt(Const S: ShortString; var Code: TMaxSInt): TMaxUInt; [public, alias:'FPC_VAL_UINT_SSTRING'];
+var
+  u: TMaxUInt;
+  base : byte;
+  negative : boolean;
+  prev: TMaxUInt;
+begin
+  ValUnSignedInt:=0;
+  Code:=InitVal(s,negative,base);
+  If Negative or (Code>length(s)) Then
+    Exit;
+  while Code<=Length(s) do
+   begin
+     case s[Code] of
+       '0'..'9' : u:=Ord(S[Code])-Ord('0');
+       'A'..'F' : u:=Ord(S[Code])-(Ord('A')-10);
+       'a'..'f' : u:=Ord(S[Code])-(Ord('a')-10);
+     else
+      u:=16;
+     end;
+     prev := ValUnsignedInt;
+     ValUnsignedInt:=ValUnsignedInt*TMaxUInt(base);
+     If prev > ValUnsignedInt Then
+      {we've had an overflow. Can't check this with
+       "If ValUnsignedInt <= (MaxUIntValue div TMaxUInt(Base)) Then"
+       because this division always overflows! (JM)}
+       Begin
+         ValUnsignedInt := 0;
+         Exit
+       End;
+     if (u>=base) or (MaxUIntValue-ValUnsignedInt < u) then
+      begin
+        ValUnsignedInt:=0;
+        exit;
+      end;
+     ValUnsignedInt:=ValUnsignedInt+u;
+     inc(code);
+   end;
+  code := 0;
+end;
+
+Function ValFloat(const s : shortstring; var code : TMaxSInt): ValReal; [public, alias:'FPC_VAL_REAL_SSTRING'];
+var
+  hd,
+  esign,sign : valreal;
+  exponent,i : longint;
+  flags      : byte;
+begin
+  ValFloat:=0.0;
+  code:=1;
+  exponent:=0;
+  esign:=1;
+  flags:=0;
+  sign:=1;
+  while (code<=length(s)) and (s[code] in [' ',#9]) do
+   inc(code);
+  case s[code] of
+   '+' : inc(code);
+   '-' : begin
+           sign:=-1.0;
+           inc(code);
+         end;
+  end;
+  while (Code<=Length(s)) and (s[code] in ['0'..'9']) do
+   begin
+   { Read integer part }
+      flags:=flags or 1;
+      valfloat:=valfloat*10;
+      valfloat:=valfloat+(ord(s[code])-ord('0'));
+      inc(code);
+   end;
+{ Decimal ? }
+  if (s[code]='.') and (length(s)>=code) then
+   begin
+      hd:=0.1;
+      inc(code);
+      { After dot, a number is required. }
+      if not(s[code] in ['0'..'9']) or (length(s)<code) then
+        begin
+           valfloat:=0.0;
+           exit;
+        end;
+      while (s[code] in ['0'..'9']) and (length(s)>=code) do
+        begin
+           { Read fractional part. }
+           flags:=flags or 2;
+           valfloat:=valfloat+hd*(ord(s[code])-ord('0'));
+           hd:=hd/10.0;
+           inc(code);
+        end;
+   end;
+ { Again, read integer and fractional part}
+  if flags=0 then
+   begin
+      valfloat:=0.0;
+      exit;
+   end;
+ { Exponent ? }
+  if (upcase(s[code])='E') and (length(s)>=code) then
+   begin
+      inc(code);
+      if s[code]='+' then
+        inc(code)
+      else
+        if s[code]='-' then
+         begin
+           esign:=-1;
+           inc(code);
+         end;
+      if not(s[code] in ['0'..'9']) or (length(s)<code) then
+        begin
+           valfloat:=0.0;
+           exit;
+        end;
+      while (s[code] in ['0'..'9']) and (length(s)>=code) do
+        begin
+           exponent:=exponent*10;
+           exponent:=exponent+ord(s[code])-ord('0');
+           inc(code);
+        end;
+   end;
+{ Calculate Exponent }
+  if esign>0 then
+    for i:=1 to exponent do
+      valfloat:=valfloat*10
+    else
+      for i:=1 to exponent do
+        valfloat:=valfloat/10;
+{ Not all characters are read ? }
+  if length(s)>=code then
+   begin
+     valfloat:=0.0;
+     exit;
+   end;
+{ evaluate sign }
+  valfloat:=valfloat*sign;
+{ success ! }
+  code:=0;
+end;
+
+{$ifdef SUPPORT_FIXED}
+Function ValFixed(const s : shortstring;var code : TMaxSInt): Fixed; [public, alias:'FPC_VAL_FIXED_SSTRING'];
+begin
+  ValFixed := Fixed(ValFloat(s,code));
+end;
+{$endif SUPPORT_FIXED}
+
+
+{$Else ValInternCompiled}
 
 
 procedure val(const s : shortstring;var l : longint;var code : word);
@@ -970,6 +1197,7 @@ begin
   d:=fixed(e);
 end;
 {$endif SUPPORT_FIXED}
+{$EndIf ValInternCompiled}
 
 Procedure SetString (Var S : Shortstring; Buf : PChar; Len : Longint);
 
@@ -980,7 +1208,12 @@ end;
 
 {
   $Log$
-  Revision 1.21  1999-03-10 21:49:03  florian
+  Revision 1.22  1999-03-16 17:49:36  jonas
+    * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
+    * in text.inc: changed RTE 106 when read integer values are out of bounds to RTE 201
+    * in systemh.inc: disabled "support_fixed" for the i386 because it gave internal errors,
+
+  Revision 1.21  1999/03/10 21:49:03  florian
     * str and val for extended use now int constants to minimize
       rounding error
 

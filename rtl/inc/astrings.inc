@@ -474,7 +474,45 @@ begin
   pos := j;
 end;
 
+{$IfDef ValInternCompiled}
 
+Function ValAnsiFloat(Const S : AnsiString; Var Code : TMaxSInt): ValReal; [public, alias:'FPC_VAL_REAL_STRANSI'];
+Var SS : String;
+begin
+ AnsiStr_To_ShortStr(SS,Pointer(S));
+ ValAnsiFloat := ValFloat(SS,Code);
+end;
+
+
+Function ValAnsiUnsigendInt (Const S : AnsiString; Code : TMaxSInt): TMaxUInt; [public, alias:'FPC_VAL_UINT_STRANSI'];
+Var SS : ShortString;
+
+begin
+ AnsiStr_To_ShortStr(SS,Pointer(S));
+ ValAnsiUnsigendInt := ValUnsignedInt(SS,Code);
+end;
+
+
+Function ValAnsiSignedInt (DestSize: Byte; Const S : AnsiString; Var Code : TMaxSInt): TMaxSInt; [public, alias:'FPC_VAL_SINT_STRANSI'];
+
+Var SS : ShortString;
+
+begin
+ AnsiStr_To_ShortStr (SS,Pointer(S));
+ ValAnsiSignedInt := ValSignedInt(DestSize,SS,Code);
+end;
+
+{$IfDef SUPPORT_FIXED}
+Function ValAnsiFixed(Const S : AnsiString; Var Code : TMaxSint): ValReal; [public, alias:'FPC_VAL_FIXED_STRANSI'];
+Var SS : String;
+begin
+ AnsiStr_To_ShortStr (SS,Pointer(S));
+ ValAnsiFixed := Fixed(ValFloat(SS,Code));
+end;
+{$EndIf SUPPORT_FIXED}
+
+
+{$Else ValInternCompiled}
 
 Procedure Val (Const S : AnsiString; var R : real; Var Code : Integer);
 Var
@@ -572,6 +610,8 @@ begin
  Val(SS,SI,Code);
 end;
 
+{$EndIf ValInternCompiled}
+
 
 {!!!!!!!!!!!!
   We need ansistring str routines for the following types:
@@ -601,6 +641,7 @@ begin
  S:=SS;
 end;
 
+{$IfDef Support_Fixed}
 Procedure AFiStr (fi : Comp;Len,fr: Longint; Var S : AnsiString);
   [Public,Alias : 'FPC_STRANSI_FIXED'];
 
@@ -610,6 +651,7 @@ begin
  int_Str_Fixed (fi,Len,fr,SS);
  S:=SS;
 end;
+{$EndIf Support_Fixed}
 
 Procedure ARStr (D : Real;Len,fr: Longint; Var S : AnsiString);
   [Public,Alias : 'FPC_STRANSI_REAL'];
@@ -708,7 +750,12 @@ end;
 
 {
   $Log$
-  Revision 1.13  1999-03-02 18:24:51  peter
+  Revision 1.14  1999-03-16 17:49:40  jonas
+    * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
+    * in text.inc: changed RTE 106 when read integer values are out of bounds to RTE 201
+    * in systemh.inc: disabled "support_fixed" for the i386 because it gave internal errors,
+
+  Revision 1.13  1999/03/02 18:24:51  peter
     * function names cleanup
     + chararray -> ansistring
 
