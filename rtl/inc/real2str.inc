@@ -154,7 +154,8 @@ var
           (not overflow and (stackPtr = maxDigits+1)) or (currPrec = 0);
     { round if we didn't use all available digits yet and if the }
     { remainder is > 5                                           }
-    if overflow  and
+    if (overflow or
+        (stackPtr < maxDigits+1)) and
        (trunc(intPartStack[stackPtr]-corrVal) > 5.0 - roundCorr) then
       roundStr(temp,spos);
 {$ifdef DEBUG_NASM}
@@ -438,7 +439,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:07:46  peter
+  Revision 1.7  2002-10-04 16:41:17  jonas
+    * fixed web bug 2131
+
+  Revision 1.6  2002/09/07 15:07:46  peter
     * old logs removed and tabs fixed
 
 }
