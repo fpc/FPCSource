@@ -125,13 +125,14 @@ type
    end;
 
    tvariantmanager = record
+
       vartoint : function(const v : variant) : longint;
       vartoint64 : function(const v : variant) : int64;
       vartoword64 : function(const v : variant) : qword;
       vartobool : function(const v : variant) : boolean;
       vartoreal : function(const v : variant) : extended;
       vartocurr : function(const v : variant) : currency;
-      vartopstr : procedure(var s;const v : variant);
+      vartopstr : procedure(var s ;const v : variant);
       vartolstr : procedure(var s : ansistring;const v : variant);
       vartowstr : procedure(var s : widestring;const v : variant);
       vartointf : procedure(var intf : iinterface;const v : variant);
@@ -139,10 +140,15 @@ type
       vartodynarray : procedure(var dynarr : pointer;const v : variant;
          typeinfo : pointer);
 
+      varfrombool : procedure(var dest : variant;const source : Boolean);
       varfromint : procedure(var dest : variant;const source : longint);
       varfromint64 : procedure(var dest : variant;const source : int64);
       varfromword64 : procedure(var dest : variant;const source : qword);
       varfromreal : procedure(var dest : variant;const source : extended);
+      varfrompstr: procedure(var dest: variant; const source: ShortString);
+      varfromlstr: procedure(var dest: variant; const source: string);
+      varfromwstr: procedure(var dest: variant; const source: WideString);
+            
       {!!!!!!!}
 
       { operators }
@@ -161,10 +167,13 @@ type
 
    pvariantmanager = ^tvariantmanager;
 
+procedure GetVariantManager(var VarMgr: TVariantManager);
+procedure SetVariantManager(const VarMgr: TVariantManager);
+function IsVariantManagerSet: Boolean;
+
 var
    VarDispProc : pointer;
    DispCallByIDProc : pointer;
-   variantmanager : tvariantmanager;
 
 {**********************************************************************
                        to Variant assignments
@@ -246,7 +255,10 @@ operator :=(const source : variant) dest : tdatetime;
 }
 {
   $Log$
-  Revision 1.2  2001-11-08 16:17:30  florian
+  Revision 1.3  2001-11-08 20:59:10  michael
+  + System unit implementation of variants
+
+  Revision 1.2  2001/11/08 16:17:30  florian
     + beginning of variant dispatching
 
   Revision 1.1  2001/08/19 21:02:02  florian

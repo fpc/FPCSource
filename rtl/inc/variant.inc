@@ -15,6 +15,32 @@
 
  **********************************************************************}
 
+var
+   variantmanager : tvariantmanager;   
+
+procedure invalidvariantop;
+  begin
+     HandleErrorFrame(221,get_frame);
+  end;
+
+procedure vardisperror;
+
+  begin
+     HandleErrorFrame(222,get_frame);
+  end;
+
+
+{ ---------------------------------------------------------------------
+    Compiler helper routines.
+  ---------------------------------------------------------------------}
+ 
+
+procedure varclear(var v : tvardata);
+begin
+   if not(v.vtype in [varempty,varerror,varnull]) then
+     invalidvariantop;
+end;
+
 procedure variant_init(var v : variant);[Public,Alias:'FPC_VARIANT_INIT'];
 
   begin
@@ -27,91 +53,155 @@ procedure variant_clear(var v : variant);[Public,Alias:'FPC_VARIANT_CLEAR'];
      variantmanager.varclear(v);
   end;
 
+{ ---------------------------------------------------------------------
+    Overloaded operators.
+  ---------------------------------------------------------------------}
+  
+
 { Integer }
+
 operator :=(const source : byte) dest : variant;
-  begin
-  end;
+
+begin
+  Variantmanager.varfromInt(Dest,Source);
+end;
+
 
 operator :=(const source : shortint) dest : variant;
-  begin
-  end;
+
+begin
+  Variantmanager.varfromInt(Dest,Source);
+end;
+
 
 operator :=(const source : word) dest : variant;
-  begin
-  end;
+
+begin
+  Variantmanager.varfromInt(Dest,Source);
+end;
+
 
 operator :=(const source : smallint) dest : variant;
-  begin
-  end;
+
+begin
+  Variantmanager.varfromInt(Dest,Source);
+end;
+
 
 operator :=(const source : dword) dest : variant;
-  begin
-  end;
+
+begin
+  Variantmanager.varfromInt(Dest,Source);
+end;
+
 
 operator :=(const source : longint) dest : variant;
-  begin
-  end;
+
+begin
+  Variantmanager.varfromInt(Dest,Source);
+end;
+
 
 operator :=(const source : qword) dest : variant;
-  begin
-  end;
+
+begin
+  Variantmanager.varfromWord64(Dest,Source);
+end;
+
 
 operator :=(const source : int64) dest : variant;
-  begin
-  end;
+
+begin
+  Variantmanager.varfromInt64(Dest,Source);
+end;
 
 { Boolean }
+
 operator :=(const source : boolean) dest : variant;
-  begin
-  end;
+
+begin
+  Variantmanager.varfromBool(Dest,Source);
+end;
+
 
 operator :=(const source : wordbool) dest : variant;
-  begin
-  end;
+
+begin
+  Variantmanager.varfromBool(Dest,Boolean(Source));
+end;
+
 
 operator :=(const source : longbool) dest : variant;
-  begin
-  end;
+
+begin
+  Variantmanager.varfromBool(Dest,Boolean(Source));
+end;
+
 
 { Chars }
+
 operator :=(const source : char) dest : variant;
-  begin
-  end;
+
+begin
+  VariantManager.VarFromPStr(Dest,Source);
+end;
+
 
 operator :=(const source : widechar) dest : variant;
-  begin
-  end;
+
+begin
+  VariantManager.VarFromWStr(Dest,Source);
+end;
 
 { Strings }
+
 operator :=(const source : shortstring) dest : variant;
-  begin
-  end;
+
+begin
+  VariantManager.VarFromPStr(Dest,Source);
+end;
+
 
 operator :=(const source : ansistring) dest : variant;
-  begin
-  end;
+
+begin
+  VariantManager.VarFromLStr(Dest,Source);
+end;
+
 
 operator :=(const source : widestring) dest : variant;
-  begin
-  end;
 
+begin
+  VariantManager.VarFromWStr(Dest,Source);
+end;
 
 { Floats }
+
 operator :=(const source : single) dest : variant;
-  begin
-  end;
+
+begin
+  VariantManager.VarFromReal(Dest,Source);
+end;
+
 
 operator :=(const source : double) dest : variant;
-  begin
-  end;
+
+begin
+  VariantManager.VarFromReal(Dest,Source);
+end;
+
 
 operator :=(const source : extended) dest : variant;
-  begin
-  end;
 
-operator :=(const source : comp) dest : variant;
-  begin
-  end;
+begin
+  VariantManager.VarFromReal(Dest,Source);
+end;
+
+Operator :=(const source : comp) dest : variant;
+
+begin
+  VariantManager.VarFromReal(Dest,Source);
+end;
 
 { Misc. }
 { Fixme!!!
@@ -128,144 +218,210 @@ operator :=(const source : tdatetime) dest : variant;
  **********************************************************************}
 
 { Integer }
+
 operator :=(const source : variant) dest : byte;
-  begin
-     dest:=variantmanager.vartoint(source);
-  end;
+
+begin     
+  dest:=variantmanager.vartoint(source);
+end;
+
 
 operator :=(const source : variant) dest : shortint;
-  begin
-     dest:=variantmanager.vartoint(source);
-  end;
+
+begin
+  dest:=variantmanager.vartoint(source);
+end;
+
 
 operator :=(const source : variant) dest : word;
 
-  var
-     l : longint;
+begin
+  dest:=variantmanager.vartoint(source);
+end;
 
-  begin
-     dest:=variantmanager.vartoint(source);
-  end;
 
 operator :=(const source : variant) dest : smallint;
 
-  var
-     l : longint;
+begin
+  dest:=variantmanager.vartoint(source);
+end;
 
-  begin
-     dest:=variantmanager.vartoint(source);
-  end;
 
 operator :=(const source : variant) dest : dword;
-  begin
-     dest:=variantmanager.vartoint(source);
-  end;
+
+begin
+  dest:=variantmanager.vartoint(source);
+end;
+
 
 operator :=(const source : variant) dest : longint;
-  begin
-     dest:=variantmanager.vartoint(source);
-  end;
+
+begin
+  dest:=variantmanager.vartoint(source);
+end;
+
 
 operator :=(const source : variant) dest : qword;
-  begin
-     dest:=variantmanager.vartoword64(source);
-  end;
+
+begin
+  dest:=variantmanager.vartoword64(source);
+end;
+
 
 operator :=(const source : variant) dest : int64;
-  begin
-     dest:=variantmanager.vartoint64(source);
-  end;
+
+begin
+  dest:=variantmanager.vartoint64(source);
+end;
 
 
 { Boolean }
+
 operator :=(const source : variant) dest : boolean;
-  begin
-     dest:=variantmanager.vartobool(source);
-  end;
+
+begin
+  dest:=variantmanager.vartobool(source);
+end;
+
 
 operator :=(const source : variant) dest : wordbool;
-  begin
-     dest:=variantmanager.vartobool(source);
-  end;
+
+begin
+  dest:=variantmanager.vartobool(source);
+end;
+
 
 operator :=(const source : variant) dest : longbool;
-  begin
-     dest:=variantmanager.vartobool(source);
-  end;
+
+begin
+   dest:=variantmanager.vartobool(source);
+end;
+
 
 { Chars }
+
 operator :=(const source : variant) dest : char;
-  begin
-  end;
+
+Var
+  S : String;
+
+begin
+  VariantManager.VarToPStr(S,Source);
+  If Length(S)>0 then
+    Dest:=S[1];
+end;
+
 
 operator :=(const source : variant) dest : widechar;
-  begin
-  end;
+
+Var
+  WS : WideString;
+
+begin
+  VariantManager.VarToWStr(WS,Source);
+  If Length(WS)>0 then
+    Dest:=WS[1];
+end;
+
 
 { Strings }
+
 operator :=(const source : variant) dest : shortstring;
-  begin
-  end;
+
+begin
+  VariantManager.VarToPStr(Dest,Source);
+end;
 
 operator :=(const source : variant) dest : ansistring;
-  begin
-     variantmanager.vartolstr(dest,source);
-  end;
+
+begin
+  VariantManager.vartolstr(dest,source);
+end;
 
 operator :=(const source : variant) dest : widestring;
-  begin
-     variantmanager.vartowstr(dest,source);
-  end;
+
+begin
+  variantmanager.vartowstr(dest,source);
+end;
 
 { Floats }
+
 operator :=(const source : variant) dest : single;
-  begin
-     dest:=variantmanager.vartoreal(source);
-  end;
+
+begin
+  dest:=variantmanager.vartoreal(source);
+end;
+
 
 operator :=(const source : variant) dest : double;
-  begin
-     dest:=variantmanager.vartoreal(source);
-  end;
+
+begin
+  dest:=variantmanager.vartoreal(source);
+end;
+
 
 operator :=(const source : variant) dest : extended;
-  begin
-     dest:=variantmanager.vartoreal(source);
-  end;
+
+begin
+  dest:=variantmanager.vartoreal(source);
+end;
+
 
 operator :=(const source : variant) dest : comp;
-  begin
-     dest:=comp(variantmanager.vartoreal(source));
-  end;
+
+begin
+  dest:=comp(variantmanager.vartoreal(source));
+end;
 
 { Misc. }
 { FIXME !!!!!!!
+
 operator :=(const source : variant) dest : currency;
-  begin
-     dest:=variantmanager.vartocurr(source);
-  end;
 
-operator :=(const source : variant) dest : tdatetime;
-  begin
-  end;
-}
-
-procedure invalidvariantop;
-  begin
-     HandleErrorFrame(221,get_frame);
-  end;
-
-procedure varclear(var v : tvardata);
 begin
-   if not(v.vtype in [varempty,varerror,varnull]) then
-     invalidvariantop;
+  dest:=variantmanager.vartocurr(source);
 end;
 
-procedure vardisperror;
 
-  begin
-     HandleErrorFrame(222,get_frame);
-  end;
+operator :=(const source : variant) dest : tdatetime;
+
+begin
+
+end;
+}
+
+{ ---------------------------------------------------------------------
+    Variant manager functions
+  ---------------------------------------------------------------------}
+  
+
+
+procedure GetVariantManager(var VarMgr: TVariantManager);
+
+begin
+  VarMgr:=VariantManager;
+end;
+
+procedure SetVariantManager(const VarMgr: TVariantManager);
+
+begin
+  VariantManager:=VarMgr;
+end;
+
+function IsVariantManagerSet: Boolean;
+
+var
+   i : longint;     
+begin
+   I:=0;
+   Result:=True; 
+   While Result and (I<(sizeof(tvariantmanager) div sizeof(pointer))-1) do
+     begin
+     Result:=Pointer(ppointer(@variantmanager+i*sizeof(pointer))^)<>Pointer(@invalidvariantop);
+     Inc(I);
+     end;
+end;
+
 
 procedure initvariantmanager;
   var
@@ -278,9 +434,13 @@ procedure initvariantmanager;
      pointer(variantmanager.varclear):=@varclear
   end;
 
+
 {
   $Log$
-  Revision 1.2  2001-11-08 16:17:30  florian
+  Revision 1.3  2001-11-08 20:59:10  michael
+  + System unit implementation of variants
+
+  Revision 1.2  2001/11/08 16:17:30  florian
     + beginning of variant dispatching
 
   Revision 1.1  2001/08/19 21:02:01  florian
