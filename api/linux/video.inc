@@ -20,11 +20,15 @@ const
   logend: string = #10#10;
 {$endif logging}
 {$ASMMODE ATT}
+const
+  can_delete_term : boolean = false;
 
 procedure SendEscapeSeqNdx(Ndx: Word);
 var
   P: PChar;
 begin
+  if not assigned(cur_term_Strings) then
+    RunError(219);
   P:=cur_term_Strings^[Ndx];
   if assigned(p) then
    fdWrite(TTYFd, P^, StrLen(P));
@@ -122,8 +126,8 @@ begin
   Hstr:='';
   Fg:=Attr and $f;
   Bg:=Attr shr 4;
-  OFg:=Attr and $f;
-  OBg:=Attr shr 4;
+  OFg:=OAttr and $f;
+  OBg:=OAttr shr 4;
   if (OFg<>7) or (Fg=7) or ((OFg>7) and (Fg<8)) or ((OBg>7) and (Bg<8)) then
    begin
      hstr:='0';
@@ -270,6 +274,11 @@ begin
             begin
               if (Spaces>0) then
                OutSpaces;
+              if ord(chattr.ch)<32 then
+                begin
+                  Chattr.Attr:= $ff xor Chattr.Attr;
+                  ChAttr.ch:= chr(ord(chattr.ch)+$30);
+                end;
               if LastAttr<>chattr.Attr then
                OutClr(chattr.Attr);
               OutData(chattr.ch);
@@ -384,8 +393,11 @@ var
     ws_row, ws_col, ws_xpixel, ws_ypixel: Word;
   end;
   Err: Longint;
+  prev_term : TerminalCommon_ptr1;
 begin
+{$ifndef CPUI386}
   LowAscii:=false;
+{$endif CPUI386}
   if VideoBufSize<>0 then
    begin
      clearscreen;
@@ -422,15 +434,20 @@ begin
       begin
         { running on a remote terminal, no error with /dev/vcsa }
         Console:=False;
+        LowAscii:=false;
         TTYFd:=stdout;
       end;
      ioctl(stdin, TIOCGWINSZ, @WS);
-     ScreenWidth:=WS.ws_Col;
-     ScreenHeight:=WS.ws_Row;
      if WS.ws_Col=0 then
       WS.ws_Col:=80;
      if WS.ws_Row=0 then
       WS.ws_Row:=25;
+     ScreenWidth:=WS.ws_Col;
+     { TDrawBuffer only has FVMaxWidth elements
+       larger values lead to crashes }
+     if ScreenWidth> FVMaxWidth then
+       ScreenWidth:=FVMaxWidth;
+     ScreenHeight:=WS.ws_Row;
      CursorX:=1;
      CursorY:=1;
      ScreenColor:=True;
@@ -441,7 +458,9 @@ begin
      { Start with a clear screen }
      if not Console then
       begin
+        prev_term:=cur_term;
         setupterm(nil, stdout, err);
+        can_delete_term:=assigned(prev_term) and (prev_term<>cur_term);
         SendEscapeSeqNdx(cursor_home);
         SendEscapeSeqNdx(cursor_normal);
         SendEscapeSeqNdx(cursor_visible);
@@ -449,7 +468,10 @@ begin
         SetCursorType(crUnderLine);
       end
      else if not assigned(cur_term) then
-       setupterm(nil, stdout, err);
+       begin
+         setupterm(nil, stdout, err);
+         can_delete_term:=false;
+       end;
      ClearScreen;
 {$ifdef logging}
      assign(f,'video.log');
@@ -483,10 +505,10 @@ begin
   FreeMem(OldVideoBuf,VideoBufSize);
   VideoBufSize:=0;
   doneVideoDone;
-  if assigned(cur_term) then
+  if can_delete_term then
     begin
       del_curterm(cur_term);
-      cur_term := nil;
+      can_delete_term:=false;
     end;
 {$ifdef logging}
   close(f);
@@ -605,7 +627,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2000-10-04 11:53:31  pierre
+  Revision 1.6  2000-10-15 09:17:20  peter
+    * merged more fixes
+
+  Revision 1.5  2000/10/04 11:53:31  pierre
    Add TargetEntry and TargetExit (merged)
 
   Revision 1.4  2000/09/26 08:18:29  jonas
