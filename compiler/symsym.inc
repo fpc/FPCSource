@@ -96,7 +96,7 @@
       wrong refs were written because of
       interface parsing of other units PM
       moduleindex must be checked !! }
-      
+
     function tsym.write_references : boolean;
       var
         ref   : pref;
@@ -324,7 +324,7 @@
          unitsymtable:=punitsymtable(current_module^.symtable);
          prevsym:=nil;
       end;
-      
+
     destructor tunitsym.done;
       begin
          if assigned(unitsymtable) and (unitsymtable^.unitsym=@self) then
@@ -1461,6 +1461,7 @@
       end;
 {$endif GDB}
 
+
 {****************************************************************************
                                   TENUMSYM
 ****************************************************************************}
@@ -1475,60 +1476,55 @@
            def^.setmin(v);
          if def^.max<v then
            def^.setmax(v);
-{$ifdef GDB}
          order;
-{$endif GDB}
       end;
 
-    constructor tenumsym.load;
 
+    constructor tenumsym.load;
       begin
          tsym.load;
          typ:=enumsym;
          definition:=penumdef(readdefref);
          value:=readlong;
-{$ifdef GDB}
          next := Nil;
-{$endif GDB}
       end;
+
 
     procedure tenumsym.deref;
-
       begin
          resolvedef(pdef(definition));
-{$ifdef GDB}
          order;
-{$endif}
       end;
 
-{$ifdef GDB}
-         procedure tenumsym.order;
-         var sym : penumsym;
-         begin
+
+   procedure tenumsym.order;
+      var
+         sym : penumsym;
+      begin
          sym := definition^.first;
          if sym = nil then
-           begin
-           definition^.first := @self;
-           next := nil;
-           exit;
-           end;
-         {reorder the symbols in increasing value }
+          begin
+            definition^.first := @self;
+            next := nil;
+            exit;
+          end;
+         { reorder the symbols in increasing value }
          if value < sym^.value then
-           begin
-           next := sym;
-           definition^.first := @self;
-           end else
-           begin
-           while (sym^.value <= value) and assigned(sym^.next) do
+          begin
+            next := sym;
+            definition^.first := @self;
+          end
+         else
+          begin
+            while (sym^.value <= value) and assigned(sym^.next) do
              sym := sym^.next;
-           next := sym^.next;
-           sym^.next := @self;
-           end;
-         end;
-{$endif GDB}
+            next := sym^.next;
+            sym^.next := @self;
+          end;
+      end;
+
 
     procedure tenumsym.write;
-
       begin
          tsym.write;
          writedefref(definition);
@@ -1536,12 +1532,14 @@
          current_ppu^.writeentry(ibenumsym);
       end;
 
+
 {$ifdef GDB}
     procedure tenumsym.concatstabto(asmlist : paasmoutput);
     begin
     {enum elements have no stab !}
     end;
 {$EndIf GDB}
+
 
 {****************************************************************************
                                   TTYPESYM
@@ -1717,7 +1715,10 @@
 
 {
   $Log$
-  Revision 1.46  1998-09-23 15:39:13  pierre
+  Revision 1.47  1998-09-24 15:11:17  peter
+    * fixed enum for not GDB
+
+  Revision 1.46  1998/09/23 15:39:13  pierre
     * browser bugfixes
       was adding a reference when looking for the symbol
       if -bSYM_NAME was used

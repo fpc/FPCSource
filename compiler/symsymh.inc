@@ -291,8 +291,8 @@
           constructor load;
           procedure write;virtual;
           procedure deref;virtual;
-{$ifdef GDB}
           procedure order;
+{$ifdef GDB}
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
        end;
@@ -314,7 +314,10 @@
 
 {
   $Log$
-  Revision 1.1  1998-09-23 12:03:57  peter
+  Revision 1.2  1998-09-24 15:11:18  peter
+    * fixed enum for not GDB
+
+  Revision 1.1  1998/09/23 12:03:57  peter
     * overloading fix for array of const
 
 }
