@@ -18,76 +18,93 @@
 # spaces, or the makefile won't work anymore after you save.
 
 #####################################################################
-# Configuration section
+# Makefile Defaults
 #####################################################################
 
-# Use smartlinking ?
-ifndef SMARTLINK
-SMARTLINK=NO
-endif
-
-# Name of library ?
-# If this is set, all units will be put in the same library.
-# If it is empty (default), the units will be left in separate files.
-ifndef LIBNAME
-LIBNAME=
-#LIBNAME=fpc
-endif
-
-# Should the library be shared or static (only if LIBNAME is set).
-# Set this to 'shared' or 'static' to create a librrary
-# Setting this to shared will disable smart linking.
-ifndef	LIBTYPE
-LIBTYPE=
-#LIBTYPE=static
-endif
-
-
-#####################################################################
-# Defaults
-#####################################################################
+# Default place of the makefile.fpc
+DEFAULTFPCDIR=../..
 
 # set target and cpu which are required
-OS_TARGET=go32v2
-CPU=i386
+override OS_TARGET=go32v2
+override CPU=i386
 
 # Where are the include files
 RTL=..
-CFG=$(RTL)/cfg
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU)
-OBJPASDIR=$(RTL)/objpas
-PPI=ppi
 
 # Where to place the result files
 TARGETDIR=.
+
+# These units belong to the RTL
+UNITPREFIX=rtl
+
+
+#####################################################################
+# Own defaults
+#####################################################################
+
+# Paths
+OBJPASDIR=$(RTL)/objpas
+PPI=ppi
+
+# Define Go32v2 Units
+SYSTEMUNIT=system
+
+# Loaders
+LOADEROBJECTS=prt0 exceptn fpu
+
+# Unit Objects
+UNITOBJECTS=$(SYSTEMUNIT) strings go32 initc \
+	  dpmiexcp profile dxeload emu387 \
+	  dos crt objects printer \
+	  objpas sysutils math typinfo \
+	  cpu mmx getopts heaptrc \
+	  msmouse graph
+
 
 #####################################################################
 # Include default makefile
 #####################################################################
 
-include $(CFG)/makefile.cfg
+# test if FPCMAKE is still valid
+ifdef FPCMAKE
+ifeq ($(strip $(wildcard $(FPCMAKE))),)
+FPCDIR=
+FPCMAKE=
+endif
+endif
 
+ifndef FPCDIR
+ifdef DEFAULTFPCDIR
+FPCDIR=$(DEFAULTFPCDIR)
+endif
+endif
 
-#####################################################################
-# System dependent
-#####################################################################
+ifndef FPCMAKE
+ifdef FPCDIR
+FPCMAKE=$(FPCDIR)/makefile.fpc
+else
+FPCMAKE=makefile.fpc
+endif
+endif
 
-# Define Go32v2 Units
-SYSTEMPPU=system$(PPUEXT)
-
-OBJECTS=strings go32 initc \
-	dpmiexcp profile dxeload emu387 \
-	dos crt objects printer \
-        objpas sysutils \
-        cpu mmx msmouse getopts heaptrc graph typinfo
-
-LOADERS=prt0 exceptn fpu
+override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
+ifeq ($(FPCMAKE),)
+nofpcmake:
+	@echo makefile.fpc not found!
+	@echo Check the FPCMAKE and FPCDIR environment variables.
+	@exit
+else
+include $(FPCMAKE)
+endif
 
 
 #####################################################################
 # Include system unit dependencies
 #####################################################################
+
+SYSTEMPPU=$(addsuffix $(PPUEXT),$(SYSTEMUNIT))
 
 # Get the system independent include file names.
 # This will set the following variables :
@@ -106,44 +123,17 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 
 #####################################################################
-# System independent Makefile
+# Dependencies
 #####################################################################
 
-# Add Prefix and Suffixes
-OBJLOADERS=$(addsuffix $(OEXT), $(LOADERS))
-PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
-
-.PHONY : all install clean \
-	 libs libsclean \
-	 diffs diffclean \
-
-all : $(OBJLOADERS) $(PPUOBJECTS)
-
-install : all
-	$(MKDIR) $(UNITINSTALLDIR)
-	$(INSTALL) *$(PPUEXT) *$(OEXT) $(UNITINSTALLDIR)
-
-clean :
-	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) $(PPAS) link.res log
-	-$(DELTREE) *$(SMARTEXT)
-
-
-#####################################################################
-# Files
-#####################################################################
+vpath %$(PASEXT) $(INC) $(PROCINC)
 
 #
 # Loaders
 #
 
 prt0$(OEXT) : v2prt0.as
-	as -o prt0$(OEXT) v2prt0.as
-
-exceptn$(OEXT) : exceptn.as
-	as -o exceptn$(OEXT) exceptn.as
-
-fpu$(OEXT) : fpu.as
-	as -o fpu$(OEXT) fpu.as
+	$(AS) -o prt0$(OEXT) v2prt0.as
 
 #
 # Base Units (System, strings, os-dependent-base-unit)
@@ -152,13 +142,11 @@ fpu$(OEXT) : fpu.as
 $(SYSTEMPPU) : system.pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg system.pp $(REDIR)
 
-strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
-                   $(SYSTEMPPU)
-	$(COMPILER) $(INC)/strings.pp $(REDIR)
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
+		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
+		   $(SYSTEMPPU)
 
 go32$(PPUEXT) : go32.pp $(SYSTEMPPU)
-	$(COMPILER) go32.pp $(REDIR)
 
 #
 # Delphi Object Model
@@ -171,22 +159,17 @@ include $(OBJPASDIR)/makefile.op
 # System Dependent Units
 #
 
-# new version need -Sv switch for external variables
 dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) $(SYSTEMPPU)
 	$(COMPILER) -Sg dpmiexcp.pp $(REDIR)
 
 initc$(PPUEXT) : initc.pp $(SYSTEMPPU)
-	$(COMPILER) initc.pp $(REDIR)
 
 profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT)
-	$(COMPILER) profile.pp $(REDIR)
 
 dxeload$(PPUEXT) : dxeload.pp $(SYSTEMPPU)
-	$(COMPILER) dxeload.pp $(REDIR)
 
 emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
 		  dpmiexcp$(PPUEXT)
-	$(COMPILER) emu387.pp $(REDIR)
 
 #
 # TP7 Compatible RTL Units
@@ -194,170 +177,34 @@ emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
 	       go32$(PPUEXT) strings$(PPUEXT) $(SYSTEMPPU)
-	$(COMPILER) dos.pp $(REDIR)
 
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc go32$(PPUEXT) $(SYSTEMPPU)
-	$(COMPILER) crt.pp $(REDIR)
 
 objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
-	$(COMPILER) $(INC)/objects.pp $(REDIR)
 
 printer$(PPUEXT) : printer.pp $(SYSTEMPPU)
-	$(COMPILER) printer.pp $(REDIR)
 
 #
 # Other RTL Units
 #
 
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
-	$(COMPILER) $(PROCINC)/cpu.pp $(REDIR)
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
-	$(COMPILER) $(PROCINC)/mmx.pp $(REDIR)
 
 msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
-	$(COMPILER) msmouse.pp $(REDIR)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
-	$(COMPILER) $(INC)/getopts.pp $(REDIR)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
-	$(COMPILER) $(INC)/heaptrc.pp $(REDIR)
 
-PPIFILES:=$(wildcard $(PPI)/*.ppi)
-graph$(PPUEXT) : graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) $(PPIFILES)
+graph$(PPUEXT) : graph.pp go32$(PPUEXT) $(SYSTEMPPU) mmx$(PPUEXT) \
+		 $(wildcard $(PPI)/*.ppi)
 	$(COMPILER) -I$(PPI) graph.pp $(REDIR)
-
-
-#####################################################################
-# Libs
-#####################################################################
-
-staticlib:
-	make libsclean
-	make all SMARTLINK=YES LIBNAME=fpc LIBTYPE=static
-
-sharedlib:
-	@echo Shared Libraries not supported for Go32v2
-
-staticlibinstall: staticlib
-	$(MKDIR) $(STATIC_LIBINSTALLDIR)
-	$(MKDIR) $(STATIC_UNITINSTALLDIR)
-	$(INSTALLEXE) *$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
-	$(INSTALL) *$(PPUEXT) *$(OEXT) $(STATIC_UNITINSTALLDIR)
-
-sharedlibinstall: sharedlib
-
-libinstall: staticlibinstall
-
-libsclean : clean
-	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
-
-
-#####################################################################
-# Default targets
-#####################################################################
-
-include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.8  1999-02-25 10:00:01  michael
-# + Fixed type in strings target
-#
-# Revision 1.7  1999/02/25 07:39:20  michael
-# * Joined strings and sysutils
-#
-# Revision 1.6  1999/02/09 17:16:58  florian
-#   + typinfo is now also in the makefile for go32v2
-#   + sysutils.filetruncate for go32v2
-#
-# Revision 1.5  1999/01/21 11:54:35  peter
-#   * renamed mouse->msmouse to resolve conflict with the api mouse unit
-#
-# Revision 1.4  1999/01/15 11:47:16  peter
-#   + added math unit to objects
-#
-# Revision 1.3  1998/12/28 23:37:39  peter
-#   * clean target fix, theres no objpas dir to clean anymore
-#
-# Revision 1.2  1998/12/21 14:20:37  pierre
-#  * initc unit added
-#
-# Revision 1.1  1998/12/21 13:07:02  peter
-#   * use -FE
-#
-# Revision 1.12  1998/11/24 23:06:40  peter
-#   * removed platform.inc
-#
-# Revision 1.11  1998/11/24 19:50:01  jonas
-#   + added warning about TABs
-#
-# Revision 1.10  1998/10/21 16:51:07  pierre
-#  * dxeload range check problem solved
-#
-# Revision 1.9	1998/10/14 07:56:02  pierre
-#  * -Sv now necessary for dpmiexcp unit
-#
-# Revision 1.8	1998/10/12 08:36:31  pierre
-#  * wrong 'objpas' target in all removed
-#
-# Revision 1.7	1998/10/11 13:45:05  michael
-# + Added disk.inc to sysutils dependencies
-#
-# Revision 1.6	1998/10/11 12:21:48  michael
-# + Further sysutils implementations.
-#
-# Revision 1.5	1998/10/06 22:10:30  peter
-#   + heaptrc
-#
-# Revision 1.4	1998/10/02 09:26:00  peter
-#   * fixed rtl path
-#
-# Revision 1.3	1998/09/16 16:47:27  peter
-#   * merged fixes
-#
-# Revision 1.1.2.2  1998/09/16 16:17:50  peter
-#   * updates to install with go32,win32
-#
-# Revision 1.2	1998/09/15 12:09:09  peter
-#   * merged updates
-#
-# Revision 1.1.2.1  1998/09/15 12:02:03  peter
-#   * updates to get objpas using its own makefile
-#
-# Revision 1.1	1998/09/10 14:13:28  peter
-#   * renamed
-#
-# Revision 1.16  1998/09/10 10:20:41  florian
-#   * fixed typo of previous commit
-#
-# Revision 1.15  1998/09/10 10:16:52  florian
-#   * make staticlib does now a make libclean instead of make clean
-#
-# Revision 1.14  1998/08/20 08:08:37  pierre
-#   * dpmiexcp did not compile with older versions
-#     due to the proc to procvar bug
-#   * makefile separator problem fixed
-#
-# Revision 1.13  1998/08/19 10:05:01  peter
-#   * fixed for go32v2 staticlib
-#
-# Revision 1.12  1998/08/05 10:31:05  pierre
-#   + added BUGFIX test to be able to compile bugfix branch
-#
-# Revision 1.11  1998/07/29 15:44:37  michael
-#  included sysutils and math.pp as target. They compile now.
-#
-# Revision 1.10  1998/07/22 21:37:03  michael
-# make cycle now works
-#
-# Revision 1.9	1998/05/22 00:39:36  peter
-#   * go32v1, go32v2 recompiles with the new objects
-#   * remake3 works again with go32v2
-#   - removed some "optimizes" from daniel which were wrong
-#
-# Revision 1.8	1998/05/06 11:53:40  peter
-#   * update
+# Revision 1.9  1999-03-09 01:35:54  peter
+#   * makefile.fpc updates and defaultfpcdir var
 #
 #

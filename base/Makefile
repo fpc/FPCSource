@@ -1,6 +1,6 @@
 #
 #   $Id$
-#   Copyright (c) 1998 by the Free Pascal Development Team
+#   Copyright (c) 1999 by the Free Pascal Development Team
 #
 #   Makefile for Free Pascal Source Tree
 #
@@ -116,20 +116,22 @@ compiler_sharedinstall:
 # RTL
 #######################################
 
+RTLDIR=rtl/$(OS_TARGET)
+
 rtl_all:
-	$(MAKE) -C rtl/$(OS_TARGET) all
+	$(MAKE) -C $(RTLDIR) all
 
 rtl_clean:
-	$(MAKE) -C rtl/$(OS_TARGET) clean
+	$(MAKE) -C $(RTLDIR) clean
 
 rtl_install:
-	$(MAKE) -C rtl/$(OS_TARGET) install
+	$(MAKE) -C $(RTLDIR) install
 
 rtl_staticinstall:
-	$(MAKE) -C rtl/$(OS_TARGET) staticlibinstall
+	$(MAKE) -C $(RTLDIR) staticlibinstall
 
 rtl_sharedinstall:
-	$(MAKE) -C rtl/$(OS_TARGET) sharedlibinstall
+	$(MAKE) -C $(RTLDIR) sharedlibinstall
 
 
 #######################################
@@ -255,10 +257,16 @@ staticinstall: $(addsuffix _staticinstall,$(MODULES))
 
 sharedinstall: $(addsuffix _sharedinstall,$(MODULES))
 
+
 #######################################
-# Special targets
+# Packaging targets
 #######################################
 
+ifndef ZIPTARGET
+ZIPTARGET=install
+endif
+
+export ZIPTARGET
 export PACKAGEDIR=$(BASEDIR)
 
 idezips: clean
@@ -274,29 +282,20 @@ idezips: clean
 	$(MAKE) ide_fullgdb
 	$(MAKE) -C $(IDEDIR) zipinstall ZIPNAME=ide_full
 
+fvzip: rtl_clean api_clean fv_clean
+	$(MAKE) api_all
+	$(MAKE) -C $(APIDIR) zipinstall ZIPNAME=fv-$(PACKAGESUFFIX)
+	$(MAKE) fv_all
+	$(MAKE) -C $(FVDIR) zipinstalladd ZIPNAME=fv-$(PACKAGESUFFIX)
 
-#######################################
-# Defaults
-#######################################
+compilerzip: #compiler_clean rtl_clean
+	$(MAKE) compiler_all
+	$(MAKE) -C compiler zipinstall ZIPTARGET=quickinstall ZIPNAME=compiler-$(PACKAGESUFFIX)
+	$(MAKE) -C $(RTLDIR) zipinstalladd ZIPNAME=compiler-$(PACKAGESUFFIX)
 
 #
 # $Log$
-# Revision 1.6  1999-02-22 02:17:36  peter
-#   * fixed dos linebreaks
-#
-# Revision 1.5  1999/02/19 16:46:07  peter
-#   + fpinst_ targets for the isntaller
-#
-# Revision 1.4  1999/02/19 15:33:01  peter
-#   + idezips target
-#
-# Revision 1.3	1999/02/16 00:50:12  peter
-#   + ide_all,ide_gdb,ide_full,ide_fullgdb targets
-#
-# Revision 1.2	1999/01/28 19:58:19  peter
-#   * makefile updates
-#
-# Revision 1.1	1999/01/21 11:48:39  peter
-#   * initial version
+# Revision 1.7  1999-03-09 01:35:46  peter
+#   * makefile.fpc updates and defaultfpcdir var
 #
 #

@@ -17,6 +17,9 @@
 # Defaults
 #####################################################################
 
+# Default place of the makefile.fpc
+DEFAULTFPCDIR=..
+
 NEEDUNITDIR=../api ../fv
 
 
@@ -27,10 +30,23 @@ NEEDUNITDIR=../api ../fv
 UNITOBJECTS=ziptypes unzip
 EXEOBJECTS=install
 
-
 #####################################################################
 # Include default makefile
 #####################################################################
+
+# test if FPCMAKE is still valid
+ifdef FPCMAKE
+ifeq ($(strip $(wildcard $(FPCMAKE))),)
+FPCDIR=
+FPCMAKE=
+endif
+endif
+
+ifndef FPCDIR
+ifdef DEFAULTFPCDIR
+FPCDIR=$(DEFAULTFPCDIR)
+endif
+endif
 
 ifndef FPCMAKE
 ifdef FPCDIR
@@ -43,10 +59,8 @@ endif
 override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
 ifeq ($(FPCMAKE),)
 nofpcmake:
-	@echo
 	@echo makefile.fpc not found!
 	@echo Check the FPCMAKE and FPCDIR environment variables.
-	@echo
 	@exit
 else
 include $(FPCMAKE)
@@ -59,8 +73,7 @@ endif
 
 #
 # $Log$
-# Revision 1.1  1999-02-19 16:45:26  peter
-#   * moved to fpinst/ directory
-#   + makefile
+# Revision 1.2  1999-03-09 01:35:53  peter
+#   * makefile.fpc updates and defaultfpcdir var
 #
 #

@@ -1,6 +1,6 @@
 #
 #   $Id$
-#   Copyright (c) 1998 by the Free Pascal Development Team
+#   Copyright (c) 1999 by the Free Pascal Development Team
 #
 #   Common makefile for Free Pascal
 #
@@ -29,21 +29,20 @@ override RELEASEVER:=0.99.11
 # We want only / in the path !
 override PATH:=$(subst \,/,$(PATH))
 
+# Search for PWD and determine also if we are under linux
 PWD=$(strip $(wildcard $(addsuffix /pwd.exe,$(subst ;, ,$(PATH)))))
 ifeq ($(PWD),)
 PWD=$(strip $(wildcard $(addsuffix /pwd,$(subst :, ,$(PATH)))))
 ifeq ($(PWD),)
 nopwd:
-	@echo
 	@echo You need the GNU pwd,cp,mv,rm,install utils to use this makefile!
 	@echo Get ftp://tflily.fys.kuleuven.ac.be/pub/fpc/dist/gnuutils.zip
-	@echo
 	@exit
 else
 inlinux=1
 endif
 else
-PWD:=$(subst \,/,$(firstword $(PWD)))
+PWD:=$(firstword $(PWD))
 endif
 
 # Detect NT - NT sets OS to Windows_NT
@@ -60,11 +59,9 @@ endif
 
 ifndef FPCDIR
 nofpcdir:
-	@echo
 	@echo You need to set the FPCDIR environment variable to use
 	@echo this Makefile.
 	@echo Example: SET FPCDIR=/pp
-	@echo
 	@exit
 endif
 
@@ -202,6 +199,20 @@ else
 PPAS=ppas.bat
 endif
 
+# The extension of executables
+ifdef inlinux
+EXEEXT=
+else
+EXEEXT=.exe
+endif
+
+# The path which is search separated by spaces
+ifdef inlinux
+SEARCHPATH=$(subst :, ,$(PATH))
+else
+SEARCHPATH=$(subst ;, ,$(PATH))
+endif
+
 # ldconfig to rebuild .so cache
 ifdef inlinux
 LDCONFIG=ldconfig
@@ -216,44 +227,51 @@ endif
 
 # diff
 ifndef DIFF
-DIFF=diff
+DIFF=$(strip $(wildcard $(addsuffix /diff$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(DIFF),)
+DIFF=
+else
+export DIFF:=$(firstword $(DIFF))
+endif
 endif
 
-# date
+# echo
+ifndef ECHO
+ECHO=$(strip $(wildcard $(addsuffix /echo$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(ECHO),)
+ECHO=echo
+else
+export ECHO:=$(firstword $(ECHO))
+endif
+endif
+
+# gdate/date
 ifndef DATE
-# first try go32v2 specific gdate
-DATE=$(strip $(wildcard $(addsuffix /gdate.exe,$(subst ;, ,$(PATH)))))
-# try generic date.exe
+DATE=$(strip $(wildcard $(addsuffix /date$(EXEEXT),$(SEARCHPATH))))
 ifeq ($(DATE),)
-DATE=$(strip $(wildcard $(addsuffix /date.exe,$(subst ;, ,$(PATH)))))
-# finally try for linux
-ifeq ($(DATE),)
-DATE=$(strip $(wildcard $(addsuffix /date,$(subst :, ,$(PATH)))))
+DATE=$(strip $(wildcard $(addsuffix /gdate$(EXEEXT),$(SEACHPATH))))
 ifeq ($(DATE),)
 DATE=
+else
+export DATE:=$(firstword $(DATE))
 endif
 else
-DATE:=$(subst \,/,$(firstword $(DATE)))
-endif
-else
-DATE:=$(subst \,/,$(firstword $(DATE)))
+export DATE:=$(firstword $(DATE))
 endif
 endif
 
 # Sed
 ifndef SED
-SED=$(strip $(wildcard $(addsuffix /sed.exe,$(subst ;, ,$(PATH)))))
-ifeq ($(SED),)
-SED=$(strip $(wildcard $(addsuffix /sed,$(subst :, ,$(PATH)))))
+SED=$(strip $(wildcard $(addsuffix /sed$(EXEEXT),$(SEARCHPATH))))
 ifeq ($(SED),)
 SED=
-endif
 else
-SED:=$(subst \,/,$(firstword $(SED)))
+export SED:=$(firstword $(SED))
 endif
 endif
 
 # Look if UPX is found for go32v2 and win32
+ifndef UPX
 ifeq ($(OS_TARGET),go32v2)
 UPX=1
 endif
@@ -261,17 +279,35 @@ ifeq ($(OS_TARGET),win32)
 UPX=1
 endif
 ifdef UPX
-UPX=$(strip $(wildcard $(addsuffix /upx.exe,$(subst ;, ,$(PATH)))))
+UPX=$(strip $(wildcard $(addsuffix /upx$(EXEEXT),$(SEARCHPATH))))
 ifeq ($(UPX),)
 UPX=
+else
+export UPX:=$(firstword $(UPX))
 endif
 else
 UPX=
 endif
+endif
 
-# Zip
-ifndef ZIP
-ZIP=zip -D9 -r
+# ZipProg, you can't use Zip as the var name (PFV)
+ifndef ZIPPROG
+ifdef inlinux
+export ZIPPROG=tar cvz --file
+else
+ZIPPROG=$(strip $(wildcard $(addsuffix /zip$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(ZIPPROG),)
+ZIPPROG=
+else
+export ZIPPROG:=$(firstword $(ZIPPROG)) -D9 -r
+endif
+endif
+endif
+
+ifdef inlinux
+ZIPEXT=.tar.gz
+else
+ZIPEXT=.zip
 endif
 
 
@@ -281,13 +317,15 @@ endif
 
 # Base dir
 ifdef PWD
-BASEDIR=$(shell $(PWD))
+BASEDIR:=$(shell $(PWD))
+else
+BASEDIR=.
 endif
 
 # set the directory to the rtl base
 ifndef RTLDIR
 ifdef RTL
-RTLDIR=$(RTL)/$(OS_TARGET)
+RTLDIR:=$(RTL)/$(OS_TARGET)
 else
 RTLDIR:=$(FPCDIR)/rtl/$(OS_TARGET)
 endif
@@ -307,7 +345,7 @@ ifndef PREFIXINSTALLDIR
 ifdef inlinux
 PREFIXINSTALLDIR=/usr
 else
-PREFIXINSTALLDIR=$(FPCDIR)
+PREFIXINSTALLDIR=/pp
 endif
 endif
 
@@ -341,11 +379,6 @@ BININSTALLDIR=$(PREFIXINSTALLDIR)/bin
 else
 BININSTALLDIR=$(BASEINSTALLDIR)/bin/$(OS_TARGET)
 endif
-endif
-
-# set the directory where to install extra files
-ifndef EXTRAINSTALLDIR
-EXTRAINSTALLDIR=$(BININSTALLDIR)
 endif
 
 # Where the .msg files will be stored
@@ -508,6 +541,7 @@ override COMPILER=$(PP) $(PPOPT)
 #####################################################################
 
 # Default needed extensions (Go32v2,Linux)
+LOADEREXT=.as
 PPLEXT=.ppl
 PPUEXT=.ppu
 OEXT=.o
@@ -515,13 +549,7 @@ ASMEXT=.s
 SMARTEXT=.sl
 STATICLIBEXT=.a
 SHAREDLIBEXT=.so
-
-# Executable extension
-ifdef inlinux
-EXEEXT=
-else
-EXEEXT=.exe
-endif
+PACKAGESUFFIX=
 
 # Go32v1
 ifeq ($(OS_TARGET),go32v1)
@@ -531,6 +559,17 @@ ASMEXT=.s1
 SMARTEXT=.sl1
 STATICLIBEXT=.a1
 SHAREDLIBEXT=.so1
+PACKAGESUFFIX=v1
+endif
+
+# Go32v2
+ifeq ($(OS_TARGET),go32v2)
+PACKAGESUFFIX=go32
+endif
+
+# Linux
+ifeq ($(OS_TARGET),linux)
+PACKAGESUFFIX=lin
 endif
 
 # Win32
@@ -541,6 +580,7 @@ ASMEXT=.sw
 SMARTEXT=.slw
 STATICLIBEXT=.aw
 SHAREDLIBEXT=.dll
+PACKAGESUFFIX=w32
 endif
 
 # OS/2
@@ -551,6 +591,7 @@ OEXT=.o2
 SMARTEXT=.so
 STATICLIBEXT=.ao
 SHAREDLIBEXT=.dll
+PACKAGESUFFIX=os2
 endif
 
 # determine libary extension.
@@ -569,7 +610,7 @@ ifeq ($(OS_TARGET),go32v1)
 LIBPREFIX=
 endif
 
-# determine with .pas extension is used
+# determine which .pas extension is used
 ifdef EXEOBJECTS
 override TESTPAS:=$(strip $(wildcard $(addsuffix .pas,$(firstword $(EXEOBJECTS)))))
 else
@@ -582,6 +623,19 @@ else
 PASEXT=.pas
 endif
 
+# also call ppas if with command option -s
+ifeq (,$(findstring -s ,$(COMPILER)))
+EXECPPAS=
+else
+EXECPPAS=@$(PPAS)
+endif
+
+ifdef DATE
+DATESTR=$(shell $(DATE) +%y%m%d)
+else
+DATESTR=
+endif
+
 
 #####################################################################
 # Export commandline values, so nesting use the same values
@@ -590,7 +644,7 @@ endif
 export FPCDIR FPCMAKE
 export RELEASEVER OS_SOURCE OS_TARGET OPT OPTDEF CPU PP RELEASE VERBOSE
 export SMARTLINK LIBTYPE LIBNAME
-export BASEINSTALLDIR
+export BASEINSTALLDIR PACKAGESUFFIX
 
 
 #####################################################################
@@ -600,26 +654,32 @@ export BASEINSTALLDIR
 ifndef NODEFAULTRULES
 
 # Create Filenames
+LOADEROFILES=$(addsuffix $(OEXT),$(LOADEROBJECTS))
 EXEFILES=$(addsuffix $(EXEEXT),$(EXEOBJECTS))
 EXEOFILES=$(addsuffix $(OEXT),$(EXEOBJECTS))
 UNITFILES=$(addsuffix $(PPUEXT),$(UNITOBJECTS))
 UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
 
 .PHONY : all clean install \
+	 libsclean staticlibinstall sharedlibinstall libinstall \
 	 info cfginfo objectinfo installinfo filesinfo
 
-.SUFFIXES : $(EXEEXT) $(PPUEXT) $(PASEXT)
+.SUFFIXES : $(EXEEXT) $(PPUEXT) $(PASEXT) $(OEXT)
 
 
 #####################################################################
 # Default
 #####################################################################
 
+ifndef NODEFAULTALL
 ifdef DEFAULTUNITS
-all: units
+all: loaders units
 else
-all: units exes
+all: loaders units exes
 endif
+endif
+
+loaders: $(LOADEROFILES)
 
 units: $(UNITFILES)
 
@@ -627,10 +687,15 @@ exes: $(EXEFILES)
 
 # General compile rules
 %$(PPUEXT): %$(PASEXT)
-	$(COMPILER) $<
+	$(COMPILER) $< $(REDIR)
+	$(EXECPASS)
 
 %$(EXEEXT): %$(PASEXT)
-	$(COMPILER) $<
+	$(COMPILER) $< $(REDIR)
+	$(EXECPASS)
+
+%$(OEXT): %$(LOADEREXT)
+	$(AS) -o $*$(OEXT) $<
 
 
 #####################################################################
@@ -647,19 +712,15 @@ ifdef inlinux
 	$(MAKE) libsclean
 	$(MAKE) all LIBTYPE=shared
 else
-	@echo Shared Libraries not supported
+	@$(ECHO) Shared Libraries not supported
 endif
-
-
-libsclean : clean
-	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 
 
 #####################################################################
 # Install rules
 #####################################################################
 
-install : all
+standardinstall : all
 ifndef DEFAULTUNITS
 ifdef EXEOBJECTS
 	$(MKDIR) $(BININSTALLDIR)
@@ -670,6 +731,10 @@ endif
 	$(INSTALLEXE) $(EXEFILES) $(BININSTALLDIR)
 endif
 endif
+ifdef LOADEROBJECTS
+	$(MKDIR) $(UNITINSTALLDIR)
+	$(INSTALL) $(LOADEROFILES) $(UNITINSTALLDIR)
+endif
 ifdef UNITOBJECTS
 	$(MKDIR) $(UNITINSTALLDIR)
 	$(INSTALL) $(UNITFILES) $(UNITINSTALLDIR)
@@ -679,10 +744,19 @@ else
 	-$(INSTALL) $(UNITOFILES) $(UNITINSTALLDIR)
 endif
 endif
-ifdef INSTALLEXTRA
-	$(INSTALL) $(INSTALLEXTRA) $(EXTRAINSTALLDIR)
+
+ifndef NODEFAULTINSTALL
+install: standardinstall $(EXTRAINSTALL)
 endif
 
+# Target for the sharedlib install which is not avail for all targets
+SHAREDINSTALL=sharedlibinstall
+ifeq ($(OS_TARGET),go32v1)
+SHAREDINSTALL=
+endif
+ifeq ($(OS_TARGET),go32v2)
+SHAREDINSTALL=
+endif
 
 staticlibinstall: staticlib
 	$(MKDIR) $(STATIC_UNITINSTALLDIR)
@@ -698,7 +772,7 @@ sharedlibinstall: sharedlib
 	$(INSTALLEXE) *$(SHAREDLIBEXT) $(SHARED_LIBINSTALLDIR)
 
 
-libinstall: staticlibinstall sharedlibinstall
+libinstall: staticlibinstall $(SHAREDINSTALL)
 
 
 #####################################################################
@@ -715,22 +789,44 @@ ifndef PACKAGEDIR
 PACKAGEDIR=$(BASEDIR)
 endif
 
-zipinstall:
-# Some checks first
-ifndef ZIPNAME
-	@echo Please specify ZIPNAME!
-	@exit
+# Add .zip/.tar.gz extension
+ifdef ZIPNAME
+override ZIPNAME:=$(ZIPNAME)$(ZIPEXT)
 endif
-	make install BASEINSTALLDIR=$(PACKDIR)
+
+# Default target which is call before zipping
+ifndef ZIPTARGET
+ZIPTARGET=install
+endif
+
+# Note: This will not remove the zipfile first
+zipinstalladd:
+ifndef ZIPNAME
+	@$(ECHO) Please specify ZIPNAME!
+	@exit
+else
+	$(MAKE) $(ZIPTARGET) BASEINSTALLDIR=$(PACKDIR)
 	cd $(PACKDIR)
-	$(ZIP) $(PACKAGEDIR)/$(ZIPNAME) *
+	$(ZIPPROG) $(PACKAGEDIR)/$(ZIPNAME) *
 	cd $(BASEDIR)
 	$(DELTREE) $(PACKDIR)
+endif
+
+# This will remove the zipfile
+zipinstalldel:
+ifdef ZIPNAME
+	$(DEL) $(PACKAGEDIR)/$(ZIPNAME)
+endif
+
+# First remove the zip and then install
+zipinstall: zipinstalldel zipinstalladd
+
 
 #####################################################################
 # Clean rules
 #####################################################################
 
+ifndef NODEFAULTCLEAN
 clean:
 	-$(DEL) $(UNITOFILES) $(UNITFILES) $(PPAS) link.res log
 ifeq ($(SMARTLINK),YES)
@@ -739,8 +835,15 @@ endif
 ifdef EXEOBJECTS
 	-$(DEL) $(EXEFILES) $(EXEOFILES)
 endif
+ifdef LOADEROBJECTS
+	-$(DEL) $(LOADEROFILES)
+endif
 ifdef EXTRACLEAN
 	-$(DEL) $(EXTRACLEAN)
+endif
+
+libsclean : clean
+	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
 endif
 
 
@@ -756,52 +859,70 @@ depend:
 # Info rules
 #####################################################################
 
-info: cfginfo objectinfo installinfo
+info: cfginfo objectinfo toolsinfo installinfo
 
 cfginfo:
-	@echo
-	@echo  == Configuration info ==
-	@echo
-	@echo  FPCDir.... $(FPCDIR)
-	@echo  FPCMake... $(FPCMAKE)
-	@echo
-	@echo  Target.... $(OS_TARGET)
-	@echo  Source.... $(OS_SOURCE)
-	@echo  Target.... $(OS_TARGET)
-	@echo  Basedir... $(BASEDIR)
-	@echo  Pwd....... $(PWD)
+	@$(ECHO)
+	@$(ECHO)  == Configuration info ==
+	@$(ECHO)
+	@$(ECHO)  FPCDir.... $(FPCDIR)
+	@$(ECHO)  FPCMake... $(FPCMAKE)
+	@$(ECHO)
+	@$(ECHO)  Source.... $(OS_SOURCE)
+	@$(ECHO)  Target.... $(OS_TARGET)
+	@$(ECHO)  Basedir... $(BASEDIR)
+	@$(ECHO)
+
+toolsinfo:
+	@$(ECHO)
+	@$(ECHO)  == Tools info ==
+	@$(ECHO)
+	@$(ECHO)  Pwd....... $(PWD)
+	@$(ECHO)  Echo...... $(ECHO)
 ifdef SED
-	@echo  Sed....... $(SED)
+	@$(ECHO)  Sed....... $(SED)
+endif
+ifdef DATE
+	@$(ECHO)  Date...... $(DATE)
+endif
+ifdef DIFF
+	@$(ECHO)  Diff...... $(DIFF)
 endif
 ifdef UPX
-	@echo  Upx....... $(UPX)
+	@$(ECHO)  Upx....... $(UPX)
 endif
-	@echo
+ifdef UPX
+	@$(ECHO)  Zip....... $(ZIPPROG)
+endif
+	@$(ECHO)
 
 objectinfo:
-	@echo
-	@echo  == Object info ==
-	@echo
-	@echo  UnitObjects... $(UNITOBJECTS)
-	@echo  ExeObjects.... $(EXEOBJECTS)
-	@echo
+	@$(ECHO)
+	@$(ECHO)  == Object info ==
+	@$(ECHO)
+	@$(ECHO)  LoaderObjects. $(LOADEROBJECTS)
+	@$(ECHO)  UnitObjects... $(UNITOBJECTS)
+	@$(ECHO)  ExeObjects.... $(EXEOBJECTS)
+	@$(ECHO)
 
 installinfo:
-	@echo
-	@echo  == Install info ==
-	@echo
-	@echo  BaseInstallDir....... $(BASEINSTALLDIR)
-	@echo  BinInstallDir........ $(BININSTALLDIR)
-	@echo  UnitInstallDir....... $(UNITINSTALLDIR)
-	@echo  StaticUnitInstallDir. $(STATIC_UNITINSTALLDIR)
-	@echo  SharedUnitInstallDir. $(SHARED_UNITINSTALLDIR)
-	@echo  LibInstallDir........ $(LIBINSTALLDIR)
-	@echo  StaticLibInstallDir.. $(STATIC_LIBINSTALLDIR)
-	@echo  SharedLibInstallDir.. $(SHARED_LIBINSTALLDIR)
-	@echo  MsgInstallDir........ $(MSGINSTALLDIR)
-	@echo  DocInstallDir........ $(DOCINSTALLDIR)
-	@echo  ExtraInstallDir...... $(EXTRAINSTALLDIR)
-	@echo
+	@$(ECHO)
+	@$(ECHO)  == Install info ==
+	@$(ECHO)
+	@$(ECHO)  DateStr.............. $(DATESTR)
+	@$(ECHO)  PackageSuffix........ $(PACKAGESUFFIX)
+	@$(ECHO)
+	@$(ECHO)  BaseInstallDir....... $(BASEINSTALLDIR)
+	@$(ECHO)  BinInstallDir........ $(BININSTALLDIR)
+	@$(ECHO)  UnitInstallDir....... $(UNITINSTALLDIR)
+	@$(ECHO)  StaticUnitInstallDir. $(STATIC_UNITINSTALLDIR)
+	@$(ECHO)  SharedUnitInstallDir. $(SHARED_UNITINSTALLDIR)
+	@$(ECHO)  LibInstallDir........ $(LIBINSTALLDIR)
+	@$(ECHO)  StaticLibInstallDir.. $(STATIC_LIBINSTALLDIR)
+	@$(ECHO)  SharedLibInstallDir.. $(SHARED_LIBINSTALLDIR)
+	@$(ECHO)  MsgInstallDir........ $(MSGINSTALLDIR)
+	@$(ECHO)  DocInstallDir........ $(DOCINSTALLDIR)
+	@$(ECHO)
 
 # try to get the files in the currentdir
 PASFILES:=$(wildcard *.pas)
@@ -811,23 +932,30 @@ MSGFILES:=$(wildcard *.msg)
 ASFILES:=$(wildcard *.as)
 
 filesinfo:
-	@echo
-	@echo  == Files info ==
-	@echo
+	@$(ECHO)
+	@$(ECHO)  == Files info ==
+	@$(ECHO)
 ifdef PASFILES
-	@echo  Pas files are $(PASFILES)
+	@$(ECHO)  Pas files are $(PASFILES)
 endif
 ifdef PPFILES
-	@echo  PP  files are $(PPFILES)
+	@$(ECHO)  PP  files are $(PPFILES)
 endif
 ifdef INCFILES
-	@echo  Inc files are $(INCFILES)
+	@$(ECHO)  Inc files are $(INCFILES)
 endif
 ifdef MSGFILES
-	@echo  Msg files are $(MSGFILES)
+	@$(ECHO)  Msg files are $(MSGFILES)
 endif
 ifdef ASFILES
-	@echo  As  files are $(ASFILES)
+	@$(ECHO)  As  files are $(ASFILES)
 endif
 
 endif #NODEFAULTRULES
+
+#
+# $Log$
+# Revision 1.8  1999-03-09 01:35:47  peter
+#   * makefile.fpc updates and defaultfpcdir var
+#
+#
