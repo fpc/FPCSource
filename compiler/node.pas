@@ -198,6 +198,7 @@ interface
          nf_swapable,    { tbinop operands can be swaped }
          nf_swaped,      { tbinop operands are swaped    }
          nf_error,
+         nf_copy,
 
          { general }
          nf_write,       { Node is written to            }
@@ -234,8 +235,6 @@ interface
          nf_use_strconcat,
 
          { tarrayconstructnode }
-         nf_cargs,
-         nf_cargswap,
          nf_forcevaria,
          nf_novariaallowed,
 
@@ -243,10 +242,7 @@ interface
          nf_explicit,
 
          { tinlinenode }
-         nf_inlineconst,
-
-         { tblocknode }
-         nf_releasetemps
+         nf_inlineconst
        );
 
        tnodeflags = set of tnodeflag;
@@ -770,6 +766,8 @@ implementation
 {$ifdef extdebug}
          p.firstpasscount:=firstpasscount;
 {$endif extdebug}
+         { mark node as being a copy }
+         include(p.flags,nf_copy);
 {         p.list:=list; }
          getcopy:=p;
       end;
@@ -1091,7 +1089,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2003-11-12 15:48:27  peter
+  Revision 1.76  2003-11-23 17:38:48  peter
+    * mark nodes that are copies
+
+  Revision 1.75  2003/11/12 15:48:27  peter
     * fix set_varstate in for loops
     * fix set_varstate from case statements
 
