@@ -29,6 +29,7 @@ interface
 { Also write the ppu if only crc if done, this can be used with ppudump to
   see the differences between the intf and implementation }
 { define INTFPPU}
+{$define ORDERSOURCES}
 
 {$ifdef Test_Double_checksum}
 var
@@ -1005,7 +1006,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.55  2000-02-09 13:22:59  peter
+  Revision 1.56  2000-02-29 21:58:31  pierre
+   * ORDERSOURCES released
+
+  Revision 1.55  2000/02/09 13:22:59  peter
     * log truncated
 
   Revision 1.54  2000/01/07 01:14:30  peter

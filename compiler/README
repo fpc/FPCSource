@@ -82,3 +82,5 @@ Changes in the syntax or semantic of FPC:
              with -dSUPPORT_FIXED and recompile the rtl with that compiler.
              To find out if the used compiler supports the fixed data
              type, check the directive HASFIXED  (FK)
+  29/02/00   ORDERSOURCES released => PPU version change
+             this allows for a more correct include file hunting order.

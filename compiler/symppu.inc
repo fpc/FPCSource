@@ -31,7 +31,7 @@
     {$ENDIF}
 {$ENDIF}
 
-{ define ORDERSOURCES}
+{$define ORDERSOURCES}
 
 {*****************************************************************************
                                  PPU Writing
@@ -734,7 +734,10 @@
 
 {
   $Log$
-  Revision 1.59  2000-02-09 13:23:05  peter
+  Revision 1.60  2000-02-29 21:58:31  pierre
+   * ORDERSOURCES released
+
+  Revision 1.59  2000/02/09 13:23:05  peter
     * log truncated
 
   Revision 1.58  2000/01/07 01:14:40  peter
