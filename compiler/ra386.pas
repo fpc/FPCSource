@@ -384,6 +384,16 @@ begin
       siz:=operands[Ops]^.size;
    end;
 
+   { NASM does not support FADD without args
+     as alias of FADDP
+     and GNU AS interprets FADD without operand differently
+     for version 2.9.1 and 2.9.5 !! }
+   if (opcode=A_FADD) and (ops=0) then
+     begin
+       opcode:=A_FADDP;
+       message(asmr_w_fadd_to_faddp);
+     end;
+
   ai:=new(paicpu,op_none(opcode,siz));
   ai^.Ops:=Ops;
   for i:=1to Ops do
@@ -414,7 +424,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2000-05-12 21:26:22  pierre
+  Revision 1.18  2000-05-15 14:08:49  pierre
+   * FADD without operand translated into FADDP
+
+  Revision 1.17  2000/05/12 21:26:22  pierre
     * fix the FDIV FDIVR FSUB FSUBR and popping equivalent
       simply by swapping from reverse to normal and vice-versa
       when passing from one syntax to the other !
