@@ -68,6 +68,7 @@ unit cpupara;
     function tarmparamanager.getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;
       begin
          fillchar(result,sizeof(tparalocation),0);
+         result.lochigh:=LOC_INVALID;
          if nr<1 then
            internalerror(2002070801)
          else if nr<=4 then
@@ -240,6 +241,7 @@ unit cpupara;
                end;
              { make sure all alignment bytes are 0 as well }
              fillchar(paraloc,sizeof(paraloc),0);
+             paraloc.lochigh:=LOC_INVALID;
              case loc of
                 LOC_REGISTER:
                   begin
@@ -256,6 +258,7 @@ unit cpupara;
                          inc(nextintreg);
                          if is_64bit then
                           begin
+                            paraloc.lochigh:=LOC_REGISTER;
                             paraloc.registerhigh:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
                             inc(nextintreg);
                           end;
@@ -277,15 +280,15 @@ unit cpupara;
                      paraloc.size:=def_cgsize(paradef);
                      if nextfloatreg<=RS_F3 then
                        begin
-                          paraloc.loc:=LOC_FPUREGISTER;
-                          paraloc.register:=newreg(R_FPUREGISTER,nextfloatreg,R_SUBWHOLE);
-                          inc(nextfloatreg);
+                         paraloc.loc:=LOC_FPUREGISTER;
+                         paraloc.register:=newreg(R_FPUREGISTER,nextfloatreg,R_SUBWHOLE);
+                         inc(nextfloatreg);
                        end
                      else
-                        begin
-                           {!!!!!!!}
-                           paraloc.size:=def_cgsize(paradef);
-                           internalerror(2002071004);
+                       begin
+                         {!!!!!!!}
+                         paraloc.size:=def_cgsize(paradef);
+                         internalerror(2002071004);
                        end;
                   end;
                 LOC_REFERENCE:
@@ -319,6 +322,7 @@ unit cpupara;
           end;
        { Function return }
        fillchar(paraloc,sizeof(tparalocation),0);
+       paraloc.lochigh:=LOC_INVALID;
        paraloc.size:=def_cgsize(p.rettype.def);
        { Return in FPU register? }
        if p.rettype.def.deftype=floatdef then
@@ -333,8 +337,9 @@ unit cpupara;
            paraloc.loc:=LOC_REGISTER;
            if paraloc.size in [OS_64,OS_S64] then
              begin
-               paraloc.register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
-               paraloc.register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
+               paraloc.lochigh:=LOC_REGISTER;
+               paraloc.register:=NR_FUNCTION_RETURN64_LOW_REG;
+               paraloc.registerhigh:=NR_FUNCTION_RETURN64_HIGH_REG;
              end
            else
              paraloc.register:=NR_FUNCTION_RETURN_REG;
@@ -354,7 +359,11 @@ unit cpupara;
        if (paraitem.paratyp in [vs_var,vs_out]) then
          locpara.loc:=LOC_REGISTER
        else
-         locpara.loc:=getparaloc(calloption,paraitem.paratype.def);
+         begin
+           locpara.loc:=getparaloc(calloption,paraitem.paratype.def);
+           if (locpara.loc=LOC_REGISTER) and (def_cgsize(paraitem.paratype.def) in [OS_64,OS_S64,OS_F64]) then
+             locpara.lochigh:=LOC_REGISTER;
+         end;
 
        if locpara.loc=LOC_REFERENCE then
          inherited alloctempparaloc(list,calloption,paraitem,locpara)
@@ -368,7 +377,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2004-02-09 22:48:45  florian
+  Revision 1.15  2004-03-07 00:16:59  florian
+    * compilation of arm rtl fixed
+
+  Revision 1.14  2004/02/09 22:48:45  florian
     * several fixes to parameter handling on arm
 
   Revision 1.13  2004/01/24 01:32:49  florian

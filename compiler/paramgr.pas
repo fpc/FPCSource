@@ -469,7 +469,7 @@ implementation
           LOC_MMREGISTER:
             locpara.registerhigh:=cg.getmmregister(list,cgsize);
           else
-            internalerror(200308123);
+            internalerror(200308124);
         end;
       end;
 
@@ -532,7 +532,10 @@ end.
 
 {
    $Log$
-   Revision 1.72  2004-03-06 20:35:19  florian
+   Revision 1.73  2004-03-07 00:16:59  florian
+     * compilation of arm rtl fixed
+
+   Revision 1.72  2004/03/06 20:35:19  florian
      * fixed arm compilation
      * cleaned up code generation for exported linux procedures
 
