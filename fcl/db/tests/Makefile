@@ -131,7 +131,7 @@ endif
 
 # Default FPCDIR
 ifeq ($(FPCDIR),wrong)
-override FPCDIR=../..
+override FPCDIR=../../..
 ifeq ($(wildcard $(FPCDIR)/rtl),)
 ifeq ($(wildcard $(FPCDIR)/units),)
 override FPCDIR=wrong
@@ -184,29 +184,29 @@ endif
 
 # Targets
 
-override UNITOBJECTS+=utmp
-override EXAMPLEOBJECTS+=testutmp
+override EXEOBJECTS+=testds createds mtest tested
 
 # Clean
 
 
 # Install
 
-EXAMPLESUBDIR=utmp
 ZIPTARGET=install
 
 # Defaults
 
+override NEEDOPT=-S2
 
 # Directories
 
 
 # Packages
 
-override PACKAGES+=rtl
+override PACKAGES+=rtl fcl mysql
 
 # Libraries
 
+override NEEDGCCLIB=1
 
 # Info
 
@@ -498,6 +498,8 @@ endif
 # PACKAGESDIR packages
 
 PACKAGERTL=1
+PACKAGEFCL=1
+PACKAGEMYSQL=1
 
 ifdef PACKAGERTL
 ifneq ($(wildcard $(FPCDIR)/rtl),)
@@ -528,6 +530,64 @@ ifdef UNITDIR_RTL
 override NEEDUNITDIR+=$(UNITDIR_RTL)
 endif
 endif
+ifdef PACKAGEFCL
+ifneq ($(wildcard $(FPCDIR)/fcl),)
+ifneq ($(wildcard $(FPCDIR)/fcl/$(OS_TARGET)),)
+PACKAGEDIR_FCL=$(FPCDIR)/fcl/$(OS_TARGET)
+else
+PACKAGEDIR_FCL=$(FPCDIR)/fcl
+endif
+ifeq ($(wildcard $(PACKAGEDIR_FCL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_fcl
+package_fcl:
+	$(MAKE) -C $(PACKAGEDIR_FCL) all
+endif
+UNITDIR_FCL=$(PACKAGEDIR_FCL)
+else
+PACKAGEDIR_FCL=
+ifneq ($(wildcard $(UNITSDIR)/fcl),)
+ifneq ($(wildcard $(UNITSDIR)/fcl/$(OS_TARGET)),)
+UNITDIR_FCL=$(UNITSDIR)/fcl/$(OS_TARGET)
+else
+UNITDIR_FCL=$(UNITSDIR)/fcl
+endif
+else
+UNITDIR_FCL=
+endif
+endif
+ifdef UNITDIR_FCL
+override NEEDUNITDIR+=$(UNITDIR_FCL)
+endif
+endif
+ifdef PACKAGEMYSQL
+ifneq ($(wildcard $(PACKAGESDIR)/mysql),)
+ifneq ($(wildcard $(PACKAGESDIR)/mysql/$(OS_TARGET)),)
+PACKAGEDIR_MYSQL=$(PACKAGESDIR)/mysql/$(OS_TARGET)
+else
+PACKAGEDIR_MYSQL=$(PACKAGESDIR)/mysql
+endif
+ifeq ($(wildcard $(PACKAGEDIR_MYSQL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_mysql
+package_mysql:
+	$(MAKE) -C $(PACKAGEDIR_MYSQL) all
+endif
+UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)
+else
+PACKAGEDIR_MYSQL=
+ifneq ($(wildcard $(UNITSDIR)/mysql),)
+ifneq ($(wildcard $(UNITSDIR)/mysql/$(OS_TARGET)),)
+UNITDIR_MYSQL=$(UNITSDIR)/mysql/$(OS_TARGET)
+else
+UNITDIR_MYSQL=$(UNITSDIR)/mysql
+endif
+else
+UNITDIR_MYSQL=
+endif
+endif
+ifdef UNITDIR_MYSQL
+override NEEDUNITDIR+=$(UNITDIR_MYSQL)
+endif
+endif
 
 
 #####################################################################
@@ -549,6 +609,14 @@ ifndef DESTZIPDIR
 DESTZIPDIR:=$(BASEDIR)
 endif
 export DESTZIPDIR
+
+# On linux, try to find where libgcc.a is.
+ifdef inlinux
+ifndef GCCLIBDIR
+GCCLIBDIR:=$(shell dirname `(gcc -v 2>&1)| head -n 1| awk '{ print $$4 } '`)
+endif
+endif
+export GCCLIBDIR
 
 #####################################################################
 # Install Directories
@@ -712,12 +780,21 @@ ifdef VERBOSE
 override FPCOPT+=-vwni
 endif
 
+ifdef NEEDOPT
+override FPCOPT+=$(NEEDOPT)
+endif
+
 ifdef NEEDUNITDIR
 override FPCOPT+=$(addprefix -Fu,$(NEEDUNITDIR))
 endif
 
 ifdef UNITSDIR
 override FPCOPT+=-Fu$(UNITSDIR)
+endif
+
+# Add GCC lib path if asked
+ifdef GCCLIBDIR
+override FPCOPT+=-Fl$(GCCLIBDIR)
 endif
 
 # Target dirs and the prefix to use for clean/install
@@ -791,10 +868,6 @@ all: fpc_all
 
 debug: fpc_debug
 
-examples: fpc_examples
-
-test: fpc_test
-
 smart: fpc_smart
 
 shared: fpc_shared
@@ -821,39 +894,24 @@ cleanall: fpc_cleanall
 
 info: fpc_info
 
-.PHONY:  all debug examples test smart shared showinstall install sourceinstall exampleinstall zipinstall zipsourceinstall zipexampleinstall clean distclean cleanall info
+.PHONY:  all debug smart shared showinstall install sourceinstall exampleinstall zipinstall zipsourceinstall zipexampleinstall clean distclean cleanall info
 
 #####################################################################
-# Units
+# Exes
 #####################################################################
 
-.PHONY: fpc_units
+.PHONY: fpc_exes
 
-override ALLTARGET+=fpc_units
+ifdef EXEOBJECTS
+override EXEFILES=$(addsuffix $(EXEEXT),$(EXEOBJECTS))
+override EXEOFILES=$(addsuffix $(OEXT),$(EXEOBJECTS))
 
-override UNITPPUFILES=$(addsuffix $(PPUEXT),$(UNITOBJECTS))
-override INSTALLPPUFILES+=$(UNITPPUFILES)
-override CLEANPPUFILES+=$(UNITPPUFILES)
-
-fpc_units: $(UNITPPUFILES)
-
-#####################################################################
-# Examples
-#####################################################################
-
-.PHONY: fpc_examples fpc_test
-
-ifdef EXAMPLEOBJECTS
-override EXAMPLESOURCEFILES:=$(addsuffix $(PASEXT),$(EXAMPLEOBJECTS))
-override EXAMPLEFILES:=$(addsuffix $(EXEEXT),$(EXAMPLEOBJECTS))
-override EXAMPLEOFILES:=$(addsuffix $(OEXT),$(EXAMPLEOBJECTS))
-
-override CLEANEXEFILES+=$(EXAMPLEFILES) $(EXAMPLEOFILES)
+override ALLTARGET+=fpc_exes
+override INSTALLEXEFILES+=$(EXEFILES)
+override CLEANEXEFILES+=$(EXEFILES) $(EXEOFILES)
 endif
 
-fpc_examples: all $(EXAMPLEFILES) $(addsuffix _all,$(EXAMPLEDIROBJECTS))
-
-fpc_test: examples
+fpc_exes: $(EXEFILES)
 
 #####################################################################
 # General compile rules
@@ -1226,8 +1284,3 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 
-#####################################################################
-# Users rules
-#####################################################################
-
-testutmp$(EXEEXT): testutmp$(PASEXT) utmp$(PPUEXT)

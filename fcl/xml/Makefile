@@ -184,26 +184,30 @@ endif
 
 # Targets
 
-override UNITOBJECTS+=utmp
-override EXAMPLEOBJECTS+=testutmp
+override UNITOBJECTS+=dom htmldoc xmlcfg xmlread xmlstreaming xmlwrite
 
 # Clean
 
 
 # Install
 
-EXAMPLESUBDIR=utmp
+UNITSUBDIR=fcl
+PACKAGENAME=fcl
 ZIPTARGET=install
 
 # Defaults
 
+override NEEDOPT=-S2
 
 # Directories
 
+ifndef TARGETDIR
+TARGETDIR=../$(OS_TARGET)
+endif
 
 # Packages
 
-override PACKAGES+=rtl
+override PACKAGES+=rtl fcl
 
 # Libraries
 
@@ -498,6 +502,7 @@ endif
 # PACKAGESDIR packages
 
 PACKAGERTL=1
+PACKAGEFCL=1
 
 ifdef PACKAGERTL
 ifneq ($(wildcard $(FPCDIR)/rtl),)
@@ -526,6 +531,35 @@ endif
 endif
 ifdef UNITDIR_RTL
 override NEEDUNITDIR+=$(UNITDIR_RTL)
+endif
+endif
+ifdef PACKAGEFCL
+ifneq ($(wildcard $(FPCDIR)/fcl),)
+ifneq ($(wildcard $(FPCDIR)/fcl/$(OS_TARGET)),)
+PACKAGEDIR_FCL=$(FPCDIR)/fcl/$(OS_TARGET)
+else
+PACKAGEDIR_FCL=$(FPCDIR)/fcl
+endif
+ifeq ($(wildcard $(PACKAGEDIR_FCL)/$(FPCMADE)),)
+override COMPILEPACKAGES+=package_fcl
+package_fcl:
+	$(MAKE) -C $(PACKAGEDIR_FCL) all
+endif
+UNITDIR_FCL=$(PACKAGEDIR_FCL)
+else
+PACKAGEDIR_FCL=
+ifneq ($(wildcard $(UNITSDIR)/fcl),)
+ifneq ($(wildcard $(UNITSDIR)/fcl/$(OS_TARGET)),)
+UNITDIR_FCL=$(UNITSDIR)/fcl/$(OS_TARGET)
+else
+UNITDIR_FCL=$(UNITSDIR)/fcl
+endif
+else
+UNITDIR_FCL=
+endif
+endif
+ifdef UNITDIR_FCL
+override NEEDUNITDIR+=$(UNITDIR_FCL)
 endif
 endif
 
@@ -712,6 +746,10 @@ ifdef VERBOSE
 override FPCOPT+=-vwni
 endif
 
+ifdef NEEDOPT
+override FPCOPT+=$(NEEDOPT)
+endif
+
 ifdef NEEDUNITDIR
 override FPCOPT+=$(addprefix -Fu,$(NEEDUNITDIR))
 endif
@@ -791,10 +829,6 @@ all: fpc_all
 
 debug: fpc_debug
 
-examples: fpc_examples
-
-test: fpc_test
-
 smart: fpc_smart
 
 shared: fpc_shared
@@ -821,7 +855,7 @@ cleanall: fpc_cleanall
 
 info: fpc_info
 
-.PHONY:  all debug examples test smart shared showinstall install sourceinstall exampleinstall zipinstall zipsourceinstall zipexampleinstall clean distclean cleanall info
+.PHONY:  all debug smart shared showinstall install sourceinstall exampleinstall zipinstall zipsourceinstall zipexampleinstall clean distclean cleanall info
 
 #####################################################################
 # Units
@@ -836,24 +870,6 @@ override INSTALLPPUFILES+=$(UNITPPUFILES)
 override CLEANPPUFILES+=$(UNITPPUFILES)
 
 fpc_units: $(UNITPPUFILES)
-
-#####################################################################
-# Examples
-#####################################################################
-
-.PHONY: fpc_examples fpc_test
-
-ifdef EXAMPLEOBJECTS
-override EXAMPLESOURCEFILES:=$(addsuffix $(PASEXT),$(EXAMPLEOBJECTS))
-override EXAMPLEFILES:=$(addsuffix $(EXEEXT),$(EXAMPLEOBJECTS))
-override EXAMPLEOFILES:=$(addsuffix $(OEXT),$(EXAMPLEOBJECTS))
-
-override CLEANEXEFILES+=$(EXAMPLEFILES) $(EXAMPLEOFILES)
-endif
-
-fpc_examples: all $(EXAMPLEFILES) $(addsuffix _all,$(EXAMPLEDIROBJECTS))
-
-fpc_test: examples
 
 #####################################################################
 # General compile rules
@@ -1226,8 +1242,3 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 
-#####################################################################
-# Users rules
-#####################################################################
-
-testutmp$(EXEEXT): testutmp$(PASEXT) utmp$(PPUEXT)
