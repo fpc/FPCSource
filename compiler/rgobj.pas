@@ -462,6 +462,8 @@ unit rgobj;
 
     constructor Trgobj.create(Acpu_registers:byte;const Ausable:string);
 
+    var i:Tsuperregister;
+
      begin
        used_in_proc_int := [];
        used_in_proc_other:=[];
@@ -484,6 +486,8 @@ unit rgobj;
        fillchar(degree,sizeof(degree),0);
        {Precoloured nodes should have an infinite degree, which we can approach
         by 255.}
+       for i:=first_int_supreg to last_int_supreg do
+         degree[i]:=255;
        fillchar(movelist,sizeof(movelist),0);
        worklist_moves:=Tlinkedlist.create;
        usable_registers:=Ausable;
@@ -2221,7 +2225,12 @@ end.
 
 {
   $Log$
-  Revision 1.74  2003-09-11 11:54:59  florian
+  Revision 1.75  2003-09-12 19:07:42  daniel
+    * Fixed fast spilling functionality by re-adding the code that initializes
+      precoloured nodes to degree 255. I would like to play hangman on the one
+      who removed that code.
+
+  Revision 1.74  2003/09/11 11:54:59  florian
     * improved arm code generation
     * move some protected and private field around
     * the temp. register for register parameters/arguments are now released

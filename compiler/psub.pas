@@ -701,7 +701,7 @@ implementation
                     internalerror(200309041);
                   fastspill:=rg.spill_registers(aktproccode,rg.spillednodes);
                 end;
-            until (rg.spillednodes=''){ or not fastspill};
+            until (rg.spillednodes='') or not fastspill;
             aktproccode.translate_registers(rg.colour);
 (*
 {$ifndef NoOpt}
@@ -1317,7 +1317,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.145  2003-09-10 19:14:31  daniel
+  Revision 1.146  2003-09-12 19:07:42  daniel
+    * Fixed fast spilling functionality by re-adding the code that initializes
+      precoloured nodes to degree 255. I would like to play hangman on the one
+      who removed that code.
+
+  Revision 1.145  2003/09/10 19:14:31  daniel
     * Failed attempt to restore broken fastspill functionality
 
   Revision 1.144  2003/09/09 20:59:27  daniel
