@@ -1,0 +1,19 @@
+#
+# Makefile.fpc for MySql FCL db units
+#
+
+[package]
+main=fcl
+
+[target]
+units=sdfdata
+examples=testsdf testfix
+
+[compiler]
+targetdir=../../$(OS_TARGET)
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
