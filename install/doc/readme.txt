@@ -29,7 +29,7 @@ More platforms will be supported in future 1.9.x beta releases.
 Because release building is quite time intensive, we decide to start the
 2.0 beta series only with the most important targets. If you want to change
 this and create and maintain 2.0 beta releases for other platforms and
-targets, feel free to contact us, E-Mail addresses are listened below.
+targets, feel free to contact us, E-Mail addresses are listed below.
 
 ****************************************************************************
 * Features
