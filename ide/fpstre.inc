@@ -81,6 +81,7 @@ const
 
       menu_run               = '~R~un';
       menu_run_run           = '~R~un';
+      menu_run_continue      = '~C~ontinue';
       menu_run_stepover      = '~S~tep over';
       menu_run_traceinto     = '~T~race into';
       menu_run_conttocursor  = '~G~oto Cursor';
@@ -1033,7 +1034,10 @@ const
 
 {
   $Log$
-  Revision 1.10  2002-08-13 07:15:02  pierre
+  Revision 1.11  2002-08-13 08:57:03  pierre
+   + Continue string added, to support Run submenu changes
+
+  Revision 1.10  2002/08/13 07:15:02  pierre
    + Disable all invalid breakpoints feature added
 
   Revision 1.9  2002/04/12 08:59:42  pierre
