@@ -40,7 +40,8 @@ var
 
 implementation
 
-Uses Syscall,Baseunix;
+Uses
+  {$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF}, Baseunix;
 
 {$Define OS_FILEISREADONLY} // Specific implementation for Unix.
 
@@ -1091,7 +1092,10 @@ end.
 {
 
   $Log$
-  Revision 1.49  2004-10-30 20:55:54  marco
+  Revision 1.50  2004-10-31 22:25:31  olle
+    * Fix for FPC_USE_LIBC
+
+  Revision 1.49  2004/10/30 20:55:54  marco
    * unix interface cleanup
 
   Revision 1.48  2004/10/12 15:22:23  michael
