@@ -263,6 +263,9 @@ implementation
 
 uses
   Dos,Drivers,{Views,App,}{$ifndef FPC}strings,{$endif}
+{$ifdef DEBUG}
+  verbose,
+{$endif DEBUG}
   WUtils,
   aasm,globtype,globals,finput,fmodule,comphook;
 
@@ -411,6 +414,7 @@ end;
 
 procedure TSymbolCollection.Insert(Item: Pointer);
 begin
+
   TCollection.Insert(Item);
 end;
 
@@ -792,7 +796,7 @@ begin
   if assigned(Name) then
     DisposeStr(Name);
 {  if assigned(Params) then
-    DisposeStr(Params);
+    DisposeStr(Params); in TypeNames
   if assigned(VType) then
     DisposeStr(VType);
   if assigned(DType) then
@@ -812,7 +816,6 @@ begin
   S.Read(RelatedTypeID, SizeOf(RelatedTypeID));
   S.Read(Flags, SizeOf(Flags));
   Name:=S.ReadStr;
-  Params:=S.ReadStr;
   if (Flags and sfHasMemInfo)<>0 then
     begin
       S.Read(MI,SizeOf(MI));
@@ -829,7 +832,7 @@ begin
   { --- items needing fixup --- }
   S.Read(DType, SizeOf(DType));
   S.Read(VType, SizeOf(VType));
-  {S.Read(Ancestor, SizeOf(Ancestor));}
+  S.Read(Params, SizeOf(Params));
 end;
 
 procedure TSymbol.Store(var S: TStream);
@@ -840,7 +843,6 @@ begin
   S.Write(RelatedTypeID, SizeOf(RelatedTypeID));
   S.Write(Flags, SizeOf(Flags));
   S.WriteStr(Name);
-  S.WriteStr(Params);
 
   if (Flags and sfHasMemInfo)<>0 then
     S.Write(MemInfo^,SizeOf(MemInfo^));
@@ -855,7 +857,7 @@ begin
   { --- items needing fixup --- }
   S.Write(DType, SizeOf(DType));
   S.Write(VType, SizeOf(VType));
-  {S.Write(Ancestor, SizeOf(Ancestor));}
+  S.Write(Params, SizeOf(Params));
 end;
 
 constructor TExport.Init(const AName: string; AIndex: longint; ASymbol: PSymbol);
@@ -1083,10 +1085,10 @@ end;
 
 destructor TSourceFile.Done;
 begin
-  inherited Done;
   if assigned(SourceFileName) then DisposeStr(SourceFileName);
   if assigned(ObjFileName) then DisposeStr(ObjFileName);
   if assigned(PPUFileName) then DisposeStr(PPUFileName);
+  inherited Done;
 end;
 
 function TSourceFile.GetSourceFilename: string;
@@ -1568,7 +1570,15 @@ end;
             Ref:=Ref^.nextref;
           end;
         if Assigned(Symbol) then
-          Owner^.Insert(Symbol);
+          begin
+            if not Owner^.Search(Symbol,J) then
+              Owner^.Insert(Symbol)
+            else
+              begin
+                Dispose(Symbol,done);
+                Symbol:=nil;
+              end;
+          end;
         sym:=pstoredsym(sym^.indexnext);
       end;
   end;
@@ -1769,7 +1779,8 @@ begin
   Dispose(D,Done);
 
   { --- Build object tree --- }
-  if assigned(ObjectTree) then Dispose(ObjectTree, Done);
+  if assigned(ObjectTree) then
+    Dispose(ObjectTree, Done);
   New(ObjectsSymbol, InitName('Objects'));
   ObjectTree:=ObjectsSymbol;
 
@@ -1823,7 +1834,10 @@ var m: tmodule;
     source: string;
 begin
   if Assigned(SourceFiles) then
-    begin Dispose(SourceFiles, Done); SourceFiles:=nil; end;
+    begin
+      Dispose(SourceFiles, Done);
+      SourceFiles:=nil;
+    end;
   if assigned(loaded_units.first) then
   begin
     New(SourceFiles, Init(50,10));
@@ -1872,6 +1886,16 @@ procedure browcol_exit;
 begin
   exitproc:=oldexit;
   DisposeBrowserCol;
+  if Assigned(SourceFiles) then
+    begin
+      Dispose(SourceFiles, Done);
+      SourceFiles:=nil;
+    end;
+  if assigned(ObjectTree) then
+    begin
+      Dispose(ObjectTree, Done);
+      ObjectTree:=nil;
+    end;
 end;
 
 
@@ -1952,8 +1976,19 @@ end;
 function TPointerDictionary.AddPtr(PtrValue, DataPtr: pointer): PPointerXRef;
 var P: PPointerXRef;
 begin
-  P:=NewPointerXRef(PtrValue,DataPtr);
-  Insert(P);
+  P:=SearchXRef(PtrValue);
+  if P=nil then
+    begin
+      P:=NewPointerXRef(PtrValue,DataPtr);
+      Insert(P);
+{$ifdef DEBUG}
+    end
+  else
+    begin
+      if P^.DataPtr<>DataPtr then
+        InternalError(987654);
+{$endif DEBUG}
+    end;
   AddPtr:=P;
 end;
 
@@ -1992,7 +2027,7 @@ var PD: PPointerDictionary;
     begin
       PD^.Resolve(P^.DType);
       PD^.Resolve(P^.VType);
-      {PD^.Resolve(P^.Ancestor);}
+      PD^.Resolve(P^.Params);
       if Assigned(P^.References) then
         with P^.References^ do
          for I:=0 to Count-1 do
@@ -2092,7 +2127,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-01-12 19:21:32  peter
+  Revision 1.16  2001-03-25 12:28:22  peter
+    * memleak fixes (merged)
+
+  Revision 1.15  2001/01/12 19:21:32  peter
     * compiles again
 
   Revision 1.14  2000/12/25 00:07:25  peter

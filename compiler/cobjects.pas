@@ -73,6 +73,7 @@ interface
        Tdictionary=object
          noclear   : boolean;
          replace_existing : boolean;
+         delete_doubles : boolean;
          constructor init;
          destructor  done;virtual;
          procedure usehash;
@@ -307,6 +308,7 @@ end;
         hasharray:=nil;
         noclear:=false;
         replace_existing:=false;
+        delete_doubles:=false;
       end;
 
 
@@ -555,11 +557,20 @@ end;
                 begin
                   newnode^.left:=currnode^.left;
                   newnode^.right:=currnode^.right;
+                  if delete_doubles then
+                    begin
+                      currnode^.left:=nil;
+                      currnode^.right:=nil;
+                      dispose(currnode,done);
+                    end;
                   currnode:=newnode;
                   insertnode:=newnode;
                 end
               else
-               insertnode:=currnode;
+               begin
+                 insertnode:=currnode;
+                 dispose(newnode,done);
+               end;
              end;
          end;
       end;
@@ -903,7 +914,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2000-12-25 00:07:25  peter
+  Revision 1.23  2001-03-25 12:28:22  peter
+    * memleak fixes (merged)
+
+  Revision 1.22  2000/12/25 00:07:25  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
