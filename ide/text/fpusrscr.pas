@@ -486,14 +486,14 @@ begin
   BigWin.Y:=50;
   SetConsoleScreenBufferSize(DosScreenBufferHandle,BigWin);
   SetConsoleScreenBufferSize(IDEScreenBufferHandle,BigWin);
-{$endif win32bigwin}
-  Capture;
   BigWin.X:=80;
   BigWin.Y:=50;
   { Try to allow to store more info }
   res:=SetConsoleScreenBufferSize(DosScreenBufferHandle,BigWin);
   if not res then
     error:=GetLastError;
+{$endif win32bigwin}
+  Capture;
   SwitchBack;
 end;
 
@@ -501,6 +501,7 @@ destructor TWin32Screen.Done;
 begin
   if IDEActive then
     SwitchTo;
+  SetStdHandle(Std_Output_Handle,IDEScreenBufferHandle);
   CloseHandle(DosScreenBufferHandle);
   inherited Done;
 end;
@@ -666,7 +667,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-11-10 17:12:00  pierre
+  Revision 1.8  1999-12-01 16:17:18  pierre
+   * Restore std_output_handle correctly at exit for GDB
+
+  Revision 1.7  1999/11/10 17:12:00  pierre
    * Win32 screen problems solved
 
   Revision 1.6  1999/09/22 13:02:00  pierre
