@@ -19,7 +19,6 @@
 {                          Internal routines                            }
 {-----------------------------------------------------------------------}
 
-{$ifndef nonewmodes}
  procedure res2Mode(x, y, maxColor: longint; var driver,mode: smallInt);
  var
    l: longint;
@@ -67,7 +66,6 @@ begin
   x := resolutions[modeNr].x;
   y := resolutions[modeNr].y;
 end;
-{$endif nonewmodes}
 
 
  procedure addmode(const mode: TModeInfo);
@@ -78,14 +76,11 @@ end;
   { modes. Duplicates are allowed.                         }
   {********************************************************}
   var
-{$ifndef nonewmodes}
     i,driverNr, modeNr: smallint;
     prev: PModeInfo;
-{$endif nonewmodes}
     list: PModeInfo;
     newlst : PModeInfo;
   begin
-{$ifndef nonewmodes}
     res2Mode(mode.maxx+1,mode.maxy+1,mode.maxColor,driverNr,ModeNr);
     { bitdepth supported? }
     if (driverNr <> maxsmallint) then
@@ -160,7 +155,6 @@ end;
        newModeList.loHiModeNr[driverNr].lo:=1;
        newModeList.loHiModeNr[driverNr].hi:=i;
      end;
-{$endif nonewmodes}
     { TP-like mode stuff }
     if not assigned(ModeList) then
       begin
@@ -207,14 +201,11 @@ end;
   {********************************************************}
     var
      list, lastModeInfo: PModeInfo;
-{$ifndef nonewmodes}
      x,y: longint;
-{$endif}
     begin
 {$ifdef logging}
       LogLn('Searching for driver '+strf(reqdriver)+' and mode '+strf(reqmode));
 {$endif logging}
-{$ifndef nonewmodes}
       if (reqDriver >= lowNewDriver) and
          (reqDriver <= highNewDriver) then
         begin
@@ -270,7 +261,6 @@ end;
           end;
           exit;
         end;
-{$endif nonewmodes}
        searchmode := nil;
        list := ModeList;
        If assigned(list) then
@@ -598,7 +588,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2001-06-01 11:13:22  jonas
+  Revision 1.8  2002-09-07 12:37:19  carl
+    - unit cleanup (removed unused defines)
+
+  Revision 1.7  2001/06/01 11:13:22  jonas
     * GetMaxMode() now returns a smallint instead of a word (since the type
       of the modenumbers is smallint too) (merged)
 
