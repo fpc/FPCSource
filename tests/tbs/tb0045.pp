@@ -10,7 +10,7 @@
 {$ifdef go32v2}
 {$define OK}
 {$endif}
-{$ifdef linux}
+{$ifdef Unix}
 {$define OK}
 {$endif}
 
@@ -75,7 +75,10 @@ END.
 
 {
   $Log$
-  Revision 1.1  2000-11-30 22:38:17  peter
+  Revision 1.2  2002-06-01 19:08:52  marco
+   * Renamefest
+
+  Revision 1.1  2000/11/30 22:38:17  peter
     * renamed test suite
 
   Revision 1.1  2000/11/29 23:14:15  peter

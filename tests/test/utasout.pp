@@ -8,9 +8,9 @@
 {$output_format nasmcoff}
 {$endif go32v2}
 
-{$ifdef linux}
+{$ifdef unix}
 {$output_format nasmelf}
-{$endif linux}
+{$endif unix}
 
 
 unit utasout;

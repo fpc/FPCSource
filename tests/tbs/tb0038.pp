@@ -3,7 +3,7 @@
 { Old file: tbs0043.pp }
 {  shows assembler nasm output fpu opcodes problem     OK 0.99.6 (PFV) }
 
-{$ifdef linux}
+{$ifdef Unix}
   {$output_format nasmelf}
 {$endif}
 {$ifdef go32v2}

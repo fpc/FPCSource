@@ -6,7 +6,7 @@
 {$ifdef go32v2}
 {$define OK}
 {$endif}
-{$ifdef linux}
+{$ifdef Unix}
 {$define OK}
 {$endif}
 {$ifdef win32}

@@ -1,7 +1,7 @@
 PROGRAM tbug1092;
 USES Dos;
 const
-{$Ifdef linux}
+{$Ifdef Unix}
   path='/etc';
 {$else}
   path='c:\';

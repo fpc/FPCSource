@@ -7,7 +7,7 @@
 {$ifdef win32}
 {$output_format nasmwin32}
 {$endif}
-{$ifdef linux}
+{$ifdef Unix}
 {$output_format nasmelf}
 {$endif}
 { This test program deals with the

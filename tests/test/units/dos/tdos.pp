@@ -103,7 +103,7 @@ begin
   writeln('DiskSize 0 : ',DiskSize(0));
   {writeln('DiskSize 1 : ',DiskSize(1)); this is a: on dos  ??! }
   writeln('DiskSize 1 : ',DiskSize(3)); { this is c: on dos }
-{$IFDEF LINUX}
+{$IFDEF Unix}
   AddDisk('/fd0');
   writeln('DiskSize 4 : ',DiskSize(4));
 {$ENDIF}
@@ -131,7 +131,7 @@ begin
   writeln;
   writeln('File(name) Functions');
   writeln('********************');
-{$ifdef linux }
+{$ifdef unix }
   test:='/usr/local/bin/ppc.so';
   writeln('FSplit(',test,')');
   FSplit(test,dir,name,ext);
@@ -195,7 +195,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2001-12-10 02:25:08  carl
+  Revision 1.4  2002-06-01 19:08:52  marco
+   * Renamefest
+
+  Revision 1.3  2001/12/10 02:25:08  carl
   + exec now tests hello, which permits testing of DosError and DosExitCode
 
 }  

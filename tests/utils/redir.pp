@@ -40,6 +40,8 @@ Interface
 {$ifdef linux}
 {$define implemented}
 {$endif}
+{$ifdef BSD}
+{$define implemented}
 
 { be sure msdos is not set for FPC compiler }
 {$ifdef FPC}
@@ -787,7 +789,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.7  2002-02-24 20:07:23  hajny
+  Revision 1.8  2002-06-01 19:08:52  marco
+   * Renamefest
+
+  Revision 1.7  2002/02/24 20:07:23  hajny
     * dummy implementation for OS/2
 
   Revision 1.6  2001/07/01 20:13:50  peter

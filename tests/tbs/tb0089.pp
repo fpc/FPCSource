@@ -4,10 +4,7 @@
 {$ifdef go32v2}
 {$define OK}
 {$endif}
-{$ifdef linux}
-{$define OK}
-{$endif}
-{$ifdef freebsd}
+{$ifdef Unix}
 {$define OK}
 {$endif}
 

@@ -11,10 +11,10 @@
 {$undef dummy}
 {$endif go32v2}
 
-{$ifdef linux}
+{$ifdef Unix}
 {$output_format as}
 {$undef dummy}
-{$endif linux}
+{$endif unix}
 
 {$ifdef dummy}
 const

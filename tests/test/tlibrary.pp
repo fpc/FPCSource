@@ -4,9 +4,9 @@
  {$define supported}
  {$define supportidx}
 {$endif win32}
-{$ifdef linux}
+{$ifdef Unix}
  {$define supported}
-{$endif linux}
+{$endif Unix}
 
 {$ifdef supported}
 
