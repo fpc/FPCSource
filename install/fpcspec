@@ -1,18 +1,19 @@
 Name: fpc
-Version: 0.99.5
-Release: 3
+Version: 0.99.8
+Release: 1
 ExclusiveArch: i386
 Copyright: GPL
 Group: Development/Languages
-Source: fpc-0.99.5-src.tar.gz
+Source: fpc-0.99.8-src.tar.gz
 Summary: Free Pascal Compiler
-Packager: Peter Vreman (pfv@worldonline.nl)
+Packager: Peter Vreman (pfv@cooldown.demon.nl)
 URL: http://tfdec1.fys.kuleuven.ac.be/~michael/fpc/
 %description
 The Free Pascal Compiler is a Turbo Pascal 7.0 and Delphi II compatible
 32bit Pascal Compiler. It comes with fully TP 7.0 compatible run-time library.
 Some extensions are added to the language, like function overloading. Shared
-libraries can be linked and created.
+and static libraries can be linked and created. Linking with C libraries is
+easy, so interfaces can be written fast. 
 
 %define package fpc-%{PACKAGE_VERSION}
 %define bindir /usr/bin
@@ -27,8 +28,8 @@ libraries can be linked and created.
 
 %build
 make -C rtl/linux all
-make -C compiler cycle OPT=-Xs
-make -C rtl/utils all OPT=-Xs
+make -C compiler cycle RELEASE=1
+make -C rtl/utils all RELEASE=1
 make -C docs html
 
 %install
@@ -48,9 +49,11 @@ make -C docs clean
 
 %files
 %{bindir}/ppc386
-%{bindir}/dumpppu
+%{bindir}/ppudump
 %{bindir}/ppumove
 %{bindir}/h2pas
+%{bindir}/mkdep
+%{bindir}/msg2inc
 %{vlibdir}
 %dir %{libdir}
 %doc %{docdir}
