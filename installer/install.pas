@@ -47,6 +47,10 @@ program install;
  {$UNDEF DOSSTUB}
 {$ENDIF}
 
+{$ifdef win32}
+{$define USE_FPUSRSCR}
+{$endif}
+
 {$ifdef go32v2}
 {$define MAYBE_LFN}
 {$endif}
@@ -2008,7 +2012,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2003-03-05 21:12:32  hajny
+  Revision 1.19  2003-04-06 15:56:25  carl
+    * Use FPC user screen for Win32 target
+
+  Revision 1.18  2003/03/05 21:12:32  hajny
     * missing quotes in GO32v2-specific part
 
   Revision 1.17  2003/03/01 16:15:42  hajny
