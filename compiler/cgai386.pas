@@ -2865,7 +2865,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
     var
       href1,href2 : treference;
       r    : preference;
-      len  : longint;
+      power,len  : longint;
       opsize : topsize;
       again,ok : pasmlabel;
     begin
@@ -2890,9 +2890,17 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               exprasmlist^.concat(new(paicpu,
                 op_reg(A_INC,S_L,R_EDI)));
 
-              exprasmlist^.concat(new(paicpu,
-                op_const_reg(A_IMUL,S_L,
-                parraydef(pvarsym(p)^.vartype.def)^.elesize,R_EDI)));
+              if (parraydef(pvarsym(p)^.vartype.def)^.elesize<>1) then
+               begin
+                 if ispowerof2(parraydef(pvarsym(p)^.vartype.def)^.elesize, power) then
+                   exprasmlist^.concat(new(paicpu,
+                     op_const_reg(A_SHL,S_L,
+                       power,R_EDI)))
+                 else
+                   exprasmlist^.concat(new(paicpu,
+                     op_const_reg(A_IMUL,S_L,
+                     parraydef(pvarsym(p)^.vartype.def)^.elesize,R_EDI)));
+               end;
 {$ifndef NOTARGETWIN32}
               { windows guards only a few pages for stack growing, }
               { so we have to access every page first              }
@@ -2932,13 +2940,22 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    exprasmlist^.concat(new(paicpu,
                      op_reg(A_INC,S_L,R_EDI)));
 
-                   exprasmlist^.concat(new(paicpu,
-                     op_const_reg(A_IMUL,S_L,
-                     parraydef(pvarsym(p)^.vartype.def)^.elesize,R_EDI)));
+                   if (parraydef(pvarsym(p)^.vartype.def)^.elesize<>1) then
+                    begin
+                      if ispowerof2(parraydef(pvarsym(p)^.vartype.def)^.elesize, power) then
+                        exprasmlist^.concat(new(paicpu,
+                          op_const_reg(A_SHL,S_L,
+                            power,R_EDI)))
+                      else
+                        exprasmlist^.concat(new(paicpu,
+                          op_const_reg(A_IMUL,S_L,
+                          parraydef(pvarsym(p)^.vartype.def)^.elesize,R_EDI)));
+                    end;
                 end;
-{$endif NOTARGETWIN32}
+{$else not NOTARGETWIN32}
               exprasmlist^.concat(new(paicpu,
                 op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
+{$endif NOTARGETWIN32}
               { load destination }
               exprasmlist^.concat(new(paicpu,
                 op_reg_reg(A_MOV,S_L,R_ESP,R_EDI)));
@@ -2984,7 +3001,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                   len:=len shr 1;
                 end;
 
-              exprasmlist^.concat(new(paicpu,
+              if ispowerof2(len, power) then
+                exprasmlist^.concat(new(paicpu,
+                  op_const_reg(A_SHL,S_L,
+                    power,R_ECX)))
+              else
+                exprasmlist^.concat(new(paicpu,
                 op_const_reg(A_IMUL,S_L,len,R_ECX)));
               exprasmlist^.concat(new(paicpu,
                 op_none(A_REP,S_NO)));
@@ -3897,7 +3919,12 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.97  2000-04-24 12:48:37  peter
+  Revision 1.98  2000-04-26 10:03:45  pierre
+    * correct bugs for ts010026 and ts010029 in win32 mode
+      in copyvaluparas
+    + use SHL instead of IMUL if constant is a power of 2 in copyvalueparas
+
+  Revision 1.97  2000/04/24 12:48:37  peter
     * removed unused vars
 
   Revision 1.96  2000/04/10 12:23:18  jonas
