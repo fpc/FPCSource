@@ -1880,18 +1880,22 @@ implementation
                end;
              '{' :
                begin
-                 if not(m_nested_comment in aktmodeswitches) or
-                    (comment_level=0) then
-                  begin
-                    found:=1;
-                    aktcommentstyle:=comment_tp;
-                  end;
-                 inc_comment_level;
-                 incomment:=true;
+                 if (not incomment) or
+                    (aktcommentstyle=comment_tp) then
+                   begin 
+                     if (comment_level=0) then
+                      begin
+                        found:=1;
+                        aktcommentstyle:=comment_tp;
+                      end;
+                     inc_comment_level;
+                     incomment:=true;
+                   end;  
                end;
              '*' :
                begin
-                 if incomment then
+                 if incomment and
+                    (aktcommentstyle=comment_oldtp) then
                    begin
                      readchar;
                      if c=')' then
@@ -1908,9 +1912,13 @@ implementation
                end;
              '}' :
                begin
-                 dec_comment_level;
-                 found:=0;
-                 incomment:=false;
+                 if incomment and
+                    (aktcommentstyle=comment_tp) then
+                   begin 
+                     dec_comment_level;
+                     found:=0;
+                     incomment:=false;
+                   end;  
                end;
              '$' :
                begin
@@ -2980,7 +2988,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.72  2004-02-26 16:15:45  peter
+  Revision 1.73  2004-02-27 11:50:13  michael
+  + Patch from peter to fix webtb[fs]/tw2853*.pp
+
+  Revision 1.72  2004/02/26 16:15:45  peter
     * resursive macro's fixed in preprocessor
 
   Revision 1.71  2004/02/25 00:54:47  olle
