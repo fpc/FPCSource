@@ -6026,6 +6026,10 @@ if \var{Rewrite} finds a file with the same name as \var{F}, this file is
 truncated to length \var{0}. If it doesn't find such a file, a new file is
 created.
 
+Contrary to \tp, \fpc opens the file with mode \var{fmoutput}. If you want
+to get it in \var{fminout} mode, you'll need to do an extra call to 
+\seef{Reset}.
+
 \Errors
 If the file cannot be opened for writing, then a run-time error is
 generated. This behavior can be changed by the \var{\{\$i\} } compiler switch.
