@@ -297,7 +297,10 @@ end;
 
 procedure Toption.QuickInfo(const s:string);
 begin
-  Writeln(s);
+  if source_os.newline=#13#10 then
+    Write(s+#10)
+  else
+    Writeln(s);
   Stop;
 end;
 
@@ -1234,7 +1237,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  1999-10-26 13:13:47  peter
+  Revision 1.28  1999-10-28 11:13:36  pierre
+   * fix for cygwin make problem with -iTP
+
+  Revision 1.27  1999/10/26 13:13:47  peter
     * define INCLUDEOK, which seems to work correct
 
   Revision 1.26  1999/10/14 14:57:52  florian
