@@ -70,6 +70,7 @@ var
   tmpRef: treference;
   regCounter: tregister;
   opCount: byte;
+  dummy: boolean;
 begin
   modifiesConflictingMemLocation := false;
   if p1.typ <> ait_instruction then
@@ -81,7 +82,7 @@ begin
         for regCounter := R_EAX to R_EDI do
           begin
             if writeToMemDestroysContents(reg32(p.oper[0].reg),p.oper[1].ref^,
-                 regCounter,c[regCounter]) then
+                 regCounter,c[regCounter],dummy) then
               begin
                 exclude(regsStillValid,regCounter);
                 modifiesConflictingMemLocation := not(reg in regsStillValid);
@@ -170,7 +171,7 @@ begin
               tmpRef.base := R_EDI;
               tmpRef.index := R_EDI;
               for regCounter := R_EAX to R_EDI do
-                if writeToMemDestroysContents(R_NO,tmpRef,regCounter,c[regCounter]) then
+                if writeToMemDestroysContents(R_NO,tmpRef,regCounter,c[regCounter],dummy) then
                   begin
                     exclude(regsStillValid,regCounter);
                     modifiesConflictingMemLocation := not(reg in regsStillValid);
@@ -720,6 +721,16 @@ begin
 {$endif replaceregdebug}
 end;
 
+procedure clearmemwrites(p: tai; reg: tregister);
+var
+  beginmemwrite: tai;
+begin
+  beginmemwrite := pTaiprop(p.optinfo)^.regs[reg].memwrite;
+  repeat
+    pTaiprop(p.optinfo)^.regs[reg].memwrite := nil;
+  until not getnextinstruction(p,p) or
+        (pTaiprop(p.optinfo)^.regs[reg].memwrite <> beginmemwrite);
+end;
 
 Procedure ClearRegContentsFrom(reg: TRegister; p, endP: Tai);
 { first clears the contents of reg from p till endP. Then the contents are }
@@ -729,6 +740,7 @@ var
     hp: Tai;
     l: longint;
 {$endif replaceregdebug}
+    regcounter: tregister;
     oldStartmod: Tai;
 begin
 {$ifdef replaceregdebug}
@@ -744,12 +756,25 @@ begin
   PTaiProp(p.optInfo)^.Regs[reg].typ := con_unknown;
   While (p <> endP) Do
     Begin
-      PTaiProp(p.optInfo)^.Regs[reg].typ := con_unknown;
+      for regcounter := R_EAX to R_EDI do
+        if (regcounter <> reg) and
+           assigned(pTaiprop(p.optinfo)^.regs[reg].memwrite) and
+           reginref(regcounter,pTaiprop(p.optinfo)^.regs[reg].memwrite.oper[1].ref^) then
+          clearmemwrites(p,regcounter);
+      with PTaiProp(p.optInfo)^.Regs[reg] do
+        begin
+          typ := con_unknown;
+          memwrite := nil;
+        end;
       getNextInstruction(p,p);
     end;
   oldStartmod := PTaiProp(p.optInfo)^.Regs[reg].startmod;
   repeat
-    PTaiProp(p.optInfo)^.Regs[reg].typ := con_unknown;
+    with PTaiProp(p.optInfo)^.Regs[reg] do
+      begin
+        typ := con_unknown;
+        memwrite := nil;
+      end;
   until not getNextInstruction(p,p) or
         (PTaiProp(p.optInfo)^.Regs[reg].startmod <> oldStartmod);
 {$ifdef replaceregdebug}
@@ -1311,45 +1336,57 @@ begin
      (p.opcode = A_IDIV));
 end;
 
-function memtoreg(const t: Taicpu; const ref: treference): tregister;
+function memtoreg(const t: Taicpu; const ref: treference; var startp: tai): tregister;
 var
   hp: tai;
   p: pTaiprop;
   regcounter: tregister;
+  optimizable: boolean;
 begin
-  if not getlastinstruction(t,hp) then
+  if not getlastinstruction(t,hp) or
+     not issimplememloc(ref) then
     begin
       memtoreg := R_NO;
       exit;
     end;
   p := pTaiprop(hp.optinfo);
-  if isSimpleMemLoc(ref) then
+  optimizable := false;
+  for regcounter := R_EAX to R_EDI do
     begin
-      for regcounter := R_EAX to R_EDI do
-        if (p^.regs[regcounter].typ in [CON_REF,CON_NOREMOVEREF]) and
-           (p^.regs[regcounter].nrofmods = 1) and
-           ((Taicpu(p^.regs[regcounter].startmod).opcode = A_MOV) or
-            (Taicpu(p^.regs[regcounter].startmod).opcode = A_MOVZX) or
-            (Taicpu(p^.regs[regcounter].startmod).opcode = A_MOVSX)) and
-           (taicpu(p^.regs[regcounter].startmod).oper[0].typ = top_ref) and
-           refsequal(ref,taicpu(p^.regs[regcounter].startmod).oper[0].ref^) then
-          begin
-            if ((t.opsize <> S_B) or
-                (regcounter <> R_EDI)) and
-               sizescompatible(Taicpu(p^.regs[regcounter].startmod).opsize,t.opsize) then
-              begin
-                case t.opsize of
-                  S_B,S_BW,S_BL:
-                    memtoreg := reg32toreg8(regcounter);
-                  S_W,S_WL:
-                    memtoreg := reg32toreg16(regcounter);
-                  S_L:
-                    memtoreg := regcounter;
-                end;
-                exit;
+      if (assigned(p^.regs[regcounter].memwrite) and
+         refsequal(ref,p^.regs[regcounter].memwrite.oper[1].ref^)) then
+        begin
+          optimizable := true;
+          hp := p^.regs[regcounter].memwrite;
+        end
+      else if ((p^.regs[regcounter].typ in [CON_REF,CON_NOREMOVEREF]) and
+             (p^.regs[regcounter].nrofmods = 1) and
+             ((Taicpu(p^.regs[regcounter].startmod).opcode = A_MOV) or
+              (Taicpu(p^.regs[regcounter].startmod).opcode = A_MOVZX) or
+              (Taicpu(p^.regs[regcounter].startmod).opcode = A_MOVSX)) and
+             (taicpu(p^.regs[regcounter].startmod).oper[0].typ = top_ref) and
+             refsequal(ref,taicpu(p^.regs[regcounter].startmod).oper[0].ref^)) then
+        begin
+          optimizable := true;
+          hp := p^.regs[regcounter].startmod;
+        end;
+      if optimizable then
+          if ((t.opsize <> S_B) or
+              (regcounter <> R_EDI)) and
+             sizescompatible(Taicpu(hp).opsize,t.opsize) then
+            begin
+              case t.opsize of
+                S_B,S_BW,S_BL:
+                  memtoreg := reg32toreg8(regcounter);
+                S_W,S_WL:
+                  memtoreg := reg32toreg16(regcounter);
+                S_L:
+                  memtoreg := regcounter;
               end;
-          end;
-    end;
+              startp := hp;
+              exit;
+            end;
+        end;
   memtoreg := R_NO;
 end;
 
@@ -1643,14 +1680,20 @@ Begin
                               begin
                                 regcounter :=
                                   memtoreg(taicpu(p),
-                                  Taicpu(p).oper[0].ref^);
+                                  Taicpu(p).oper[0].ref^,hp5);
                                 if regcounter <> R_NO then
-                                  begin
-                                    Taicpu(p).loadreg(0,regcounter);
-                                    allocregbetween(asml,reg32(regcounter),
-                                      pTaiprop(p.optinfo)^.regs[reg32(regcounter)].startmod,
-                                      p);
-                                  end;
+                                  if (taicpu(p).opcode = A_MOV) and
+                                     (taicpu(p).oper[1].typ = top_reg) and
+                                     (taicpu(p).oper[1].reg = regcounter) then
+                                    pTaiProp(p.optinfo)^.canberemoved := true
+                                  else
+                                    begin
+                                      Taicpu(p).loadreg(0,regcounter);
+                                      regcounter := reg32(regcounter);
+                                      allocregbetween(asml,regcounter,hp5,p);
+                                      incstate(pTaiProp(p.optinfo)^.regs[regcounter].rstate,1);
+                                      updatestate(regcounter,p);
+                                    end;
                               end;
                           end;
                         { at first, only try optimizations of large blocks, because doing }
@@ -1715,13 +1758,14 @@ Begin
                             begin
                               regcounter :=
                                 memtoreg(taicpu(p),
-                                Taicpu(p).oper[0].ref^);
+                                Taicpu(p).oper[0].ref^,hp5);
                               if regcounter <> R_NO then
                                 begin
                                   Taicpu(p).loadreg(0,regcounter);
-                                  allocregbetween(asml,reg32(regcounter),
-                                    pTaiprop(p.optinfo)^.regs[reg32(regcounter)].startmod,
-                                    p);
+                                  regcounter := reg32(regcounter);
+                                  allocregbetween(asml,regcounter,hp5,p);
+                                  incstate(pTaiProp(p.optinfo)^.regs[regcounter].rstate,1);
+                                  updatestate(regcounter,p);
                                 end;
                             end;
                         Ch_MOp1:
@@ -1730,7 +1774,7 @@ Begin
                             begin
                               regcounter :=
                                 memtoreg(taicpu(p),
-                                Taicpu(p).oper[0].ref^);
+                                Taicpu(p).oper[0].ref^,hp5);
                               if (regcounter <> R_NO) (* and
                                  (not getNextInstruction(p,hp1) or
                                   (RegLoadedWithNewValue(reg32(regcounter),false,hp1) or
@@ -1744,11 +1788,13 @@ Begin
                                   new(pTaiprop(hp1.optinfo));
                                   pTaiProp(hp1.optinfo)^ := pTaiProp(p.optinfo)^;
                                   insertllitem(asml,p,p.next,hp1);
+                                  incstate(pTaiProp(hp1.optinfo)^.regs[reg32(regcounter)].rstate,1);
+                                  updatestate(reg32(regcounter),hp1);
                                   hp1 := Tai_Marker.Create(NoPropInfoStart);
                                   insertllitem(asml,p,p.next,hp1);
                                   Taicpu(p).loadreg(0,regcounter);
-                                  allocregbetween(asml,reg32(regcounter),
-                                    pTaiprop(p.optinfo)^.regs[reg32(regcounter)].startmod,
+                                  regcounter := reg32(regcounter);
+                                  allocregbetween(asml,regcounter,hp5,
                                     tai(p.next.next));
                                 end;
                             end;
@@ -1759,13 +1805,14 @@ Begin
                             begin
                               regcounter :=
                                 memtoreg(taicpu(p),
-                                Taicpu(p).oper[1].ref^);
+                                Taicpu(p).oper[1].ref^,hp5);
                               if regcounter <> R_NO then
                                 begin
                                   Taicpu(p).loadreg(1,regcounter);
-                                  allocregbetween(asml,reg32(regcounter),
-                                    pTaiprop(p.optinfo)^.regs[reg32(regcounter)].startmod,
-                                    p);
+                                  regcounter := reg32(regcounter);
+                                  allocregbetween(asml,regcounter,hp5,p);
+                                  incstate(pTaiProp(p.optinfo)^.regs[regcounter].rstate,1);
+                                  updatestate(regcounter,p);
                                 end;
                             end;
                         Ch_MOp2:
@@ -1780,7 +1827,7 @@ Begin
                             begin
                               regcounter :=
                                 memtoreg(taicpu(p),
-                                Taicpu(p).oper[1].ref^);
+                                Taicpu(p).oper[1].ref^,hp5);
                               if (regcounter <> R_NO) (* and
                                  (not getNextInstruction(p,hp1) or
                                   (RegLoadedWithNewValue(reg32(regcounter),false,hp1) or
@@ -1794,11 +1841,13 @@ Begin
                                   new(pTaiprop(hp1.optinfo));
                                   pTaiProp(hp1.optinfo)^ := pTaiProp(p.optinfo)^;
                                   insertllitem(asml,p,p.next,hp1);
+                                  incstate(pTaiProp(hp1.optinfo)^.regs[reg32(regcounter)].rstate,1);
+                                  updatestate(reg32(regcounter),hp1);
                                   hp1 := Tai_Marker.Create(NoPropInfoStart);
                                   insertllitem(asml,p,p.next,hp1);
                                   Taicpu(p).loadreg(1,regcounter);
-                                  allocregbetween(asml,reg32(regcounter),
-                                    pTaiprop(p.optinfo)^.regs[reg32(regcounter)].startmod,
+                                  regcounter := reg32(regcounter);
+                                  allocregbetween(asml,regcounter,hp5,
                                     tai(p.next.next));
                                 end;
                             end;
@@ -1904,7 +1953,10 @@ End.
 
 {
   $Log$
-  Revision 1.20  2001-10-14 11:50:21  jonas
+  Revision 1.21  2001-10-27 10:20:43  jonas
+    + replace mem accesses to locations to which a reg was stored recently with that reg
+
+  Revision 1.20  2001/10/14 11:50:21  jonas
     + also replace mem references in modify operands with regs
 
   Revision 1.19  2001/10/12 13:58:05  jonas

@@ -73,6 +73,7 @@ type
       {start and end of block instructions that defines the
        content of this register.}
                StartMod: Tai;
+               MemWrite: Taicpu;
       {how many instructions starting with StarMod does the block consist of}
                NrOfMods: Byte;
       {the type of the content of the register: unknown, memory, constant}
@@ -170,7 +171,7 @@ function instrWritesFlags(p: Tai): boolean;
 function instrReadsFlags(p: Tai): boolean;
 
 function writeToMemDestroysContents(regWritten: tregister; const ref: treference;
-  reg: tregister; const c: tcontent): boolean;
+  reg: tregister; const c: tcontent; var invalsmemwrite: boolean): boolean;
 function writeToRegDestroysContents(destReg: tregister; reg: tregister;
   const c: tcontent): boolean;
 function writeDestroysContents(const op: toper; reg: tregister;
@@ -1328,12 +1329,17 @@ begin
   for counter := R_EAX to R_EDI Do
     if counter <> reg then
       with p1^.regs[counter] Do
-        if (typ in [con_ref,con_noRemoveRef]) and
-           sequenceDependsOnReg(p1^.Regs[counter],counter,reg) then
-          if typ in [con_ref,con_invalid] then
-            typ := con_invalid
-          { con_invalid and con_noRemoveRef = con_unknown }
-          else typ := con_unknown;
+        begin
+          if (typ in [con_ref,con_noRemoveRef]) and
+             sequenceDependsOnReg(p1^.Regs[counter],counter,reg) then
+            if typ in [con_ref,con_invalid] then
+              typ := con_invalid
+            { con_invalid and con_noRemoveRef = con_unknown }
+            else typ := con_unknown;
+          if assigned(memwrite) and
+             regInRef(counter,memwrite.oper[1].ref^) then
+            memwrite := nil;
+        end;
 end;
 
 Procedure DestroyReg(p1: PTaiProp; Reg: TRegister; doIncState:Boolean);
@@ -1364,6 +1370,7 @@ Begin
               typ := con_invalid
             { con_invalid and con_noRemoveRef = con_unknown }
             else typ := con_unknown;
+          memwrite := nil;
         end;
       invalidateDependingRegs(p1,reg);
     end;
@@ -1737,17 +1744,12 @@ begin
 end;
 
 function writeToMemDestroysContents(regWritten: tregister; const ref: treference;
-  reg: tregister; const c: tcontent): boolean;
+  reg: tregister; const c: tcontent; var invalsmemwrite: boolean): boolean;
 { returns whether the contents c of reg are invalid after regWritten is }
 { is written to ref                                                     }
 var
   refsEq: trefCompare;
 begin
-  if not(c.typ in [con_ref,con_noRemoveRef,con_invalid]) then
-    begin
-      writeToMemDestroysContents := false;
-      exit;
-    end;
   reg := reg32(reg);
   regWritten := reg32(regWritten);
   if isSimpleRef(ref) then
@@ -1760,6 +1762,16 @@ begin
       else
         { local/global variable or parameter which is not an array }
         refsEq := {$ifdef fpc}@{$endif}refsEqual;
+      invalsmemwrite :=
+        assigned(c.memwrite) and
+        ((not(cs_uncertainOpts in aktglobalswitches) and
+          containsPointerRef(c.memwrite)) or
+         refsEq(c.memwrite.oper[1].ref^,ref));
+      if not(c.typ in [con_ref,con_noRemoveRef,con_invalid]) then
+        begin
+          writeToMemDestroysContents := false;
+          exit;
+        end;
 
      { write something to a parameter, a local or global variable, so          }
      {  * with uncertain optimizations on:                                     }
@@ -1785,7 +1797,7 @@ begin
                 )
             )
            )
-          )
+          );
     end
   else
     { write something to a pointer location, so                               }
@@ -1794,15 +1806,26 @@ begin
     {       a parameter, except if DestroyRefs is called because of a "movsl" }
     {   * with uncertain optimzations off:                                    }
     {     - destroy every register which contains a memory location           }
-    with c do
-      writeToMemDestroysContents :=
-        (typ in [con_ref,con_noRemoveRef]) and
+    begin
+      invalsmemwrite :=
+        assigned(c.memwrite) and
         (not(cs_UncertainOpts in aktglobalswitches) or
-       { for movsl }
-         ((ref.base = R_EDI) and (ref.index = R_EDI)) or
-       { don't destroy if reg contains a parameter, local or global variable }
-         containsPointerLoad(c)
-        )
+         containsPointerRef(c.memwrite));
+      if not(c.typ in [con_ref,con_noRemoveRef,con_invalid]) then
+        begin
+          writeToMemDestroysContents := false;
+          exit;
+        end;
+      with c do
+        writeToMemDestroysContents :=
+          (typ in [con_ref,con_noRemoveRef]) and
+          (not(cs_UncertainOpts in aktglobalswitches) or
+         { for movsl }
+           ((ref.base = R_EDI) and (ref.index = R_EDI)) or
+         { don't destroy if reg contains a parameter, local or global variable }
+           containsPointerLoad(c)
+          );
+    end;
 end;
 
 function writeToRegDestroysContents(destReg: tregister; reg: tregister;
@@ -1819,6 +1842,8 @@ function writeDestroysContents(const op: toper; reg: tregister;
   const c: tcontent): boolean;
 { returns whether the contents c of reg are invalid after regWritten is }
 { is written to op                                                      }
+var
+  dummy: boolean;
 begin
   reg := reg32(reg);
   case op.typ of
@@ -1827,7 +1852,7 @@ begin
         writeToRegDestroysContents(op.reg,reg,c);
     top_ref:
       writeDestroysContents :=
-        writeToMemDestroysContents(R_NO,op.ref^,reg,c);
+        writeToMemDestroysContents(R_NO,op.ref^,reg,c,dummy);
   else
     writeDestroysContents := false;
   end;
@@ -1839,11 +1864,16 @@ procedure destroyRefs(p: Tai; const ref: treference; regWritten: tregister);
 { is called because of a "mov?? %reg, (mem)" instruction)                      }
 var
   counter: TRegister;
+  destroymemwrite: boolean;
 begin
   for counter := R_EAX to R_EDI Do
-    if writeToMemDestroysContents(regWritten,ref,counter,
-         pTaiProp(p.optInfo)^.regs[counter]) then
-      destroyReg(pTaiProp(p.optInfo), counter, false)
+    begin
+      if writeToMemDestroysContents(regWritten,ref,counter,
+           pTaiProp(p.optInfo)^.regs[counter],destroymemwrite) then
+        destroyReg(pTaiProp(p.optInfo), counter, false)
+      else if destroymemwrite then
+        pTaiProp(p.optinfo)^.regs[counter].MemWrite := nil;
+    end;
 End;
 
 Procedure DestroyAllRegs(p: PTaiProp);
@@ -1853,6 +1883,7 @@ Begin {initializes/desrtoys all registers}
     Begin
       ReadReg(p, Counter);
       DestroyReg(p, Counter, true);
+      p^.regs[counter].MemWrite := nil;
     End;
   p^.DirFlag := F_Unknown;
 End;
@@ -1914,6 +1945,7 @@ Begin
           PTaiProp(Tai(StartMod).OptInfo)^.Regs[Reg].NrOfMods := NrOfMods;
           NrOfInstrSinceLastMod[Reg] := 0;
           invalidateDependingRegs(p.optinfo,reg);
+          pTaiprop(p.optinfo)^.regs[reg].memwrite := nil;
 {$ifdef StateDebug}
           hp := Tai_asm_comment.Create(strpnew(att_reg2str[reg]+': '+tostr(PTaiProp(p.optinfo)^.Regs[reg].WState)
                 + ' -- ' + tostr(PTaiProp(p.optinfo)^.Regs[reg].nrofmods))));
@@ -2237,6 +2269,7 @@ Begin
                                    { that depended on the previous value of }
                                    { this register                          }
                                     invalidateDependingRegs(curprop,tmpreg);
+                                    curprop^.regs[tmpreg].memwrite := nil;
                                 end;
                             end
                           else
@@ -2260,11 +2293,17 @@ Begin
 {$endif StateDebug}
                           End;
                         Top_Ref:
-                          { can only be if oper[0] = top_reg }
                           Begin
-                            ReadReg(CurProp, Taicpu(p).oper[0].reg);
                             ReadRef(CurProp, Taicpu(p).oper[1].ref);
-                            DestroyRefs(p, Taicpu(p).oper[1].ref^, Taicpu(p).oper[0].reg);
+                            if taicpu(p).oper[0].typ = top_reg then
+                              begin
+                                ReadReg(CurProp, Taicpu(p).oper[0].reg);
+                                DestroyRefs(p, Taicpu(p).oper[1].ref^, Taicpu(p).oper[0].reg);
+                                pTaiProp(p.optinfo)^.regs[reg32(Taicpu(p).oper[0].reg)].memwrite :=
+                                  Taicpu(p);
+                              end
+                            else
+                              DestroyRefs(p, Taicpu(p).oper[1].ref^, R_NO);
                           End;
                       End;
                     top_symbol,Top_Const:
@@ -2552,7 +2591,10 @@ End.
 
 {
   $Log$
-  Revision 1.22  2001-10-12 13:58:05  jonas
+  Revision 1.23  2001-10-27 10:20:43  jonas
+    + replace mem accesses to locations to which a reg was stored recently with that reg
+
+  Revision 1.22  2001/10/12 13:58:05  jonas
     + memory references are now replaced by register reads in "regular"
       instructions (e.g. "addl ref1,%eax" will be replaced by "addl %ebx,%eax"
       if %ebx contains ref1). Previously only complete load sequences were
