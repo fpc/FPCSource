@@ -362,6 +362,7 @@ begin
   if error then
     begin
        errornb:=error_num;
+       ReadWatches;
        ErrorBox(#3'Error within GDB'#13#3'Error code = %d',@errornb);
     end;
 end;
@@ -445,6 +446,7 @@ begin
         begin
            Command('p '+GetStr(PB^.Name));
            S:=StrPas(GetOutput);
+           got_error:=false;
            If Pos('=',S)>0 then
              S:=Copy(S,Pos('=',S)+1,255);
            If S[Length(S)]=#10 then
@@ -1409,13 +1411,18 @@ end;
             strdispose(last_value);
           last_value:=current_value;
           Debugger^.Command('p '+GetStr(expr));
-          p:=strnew(Debugger^.GetOutput);
+          if Debugger^.Error then
+            p:=StrNew(Debugger^.GetError)
+          else
+            p:=StrNew(Debugger^.GetOutput);
+          { do not open a messagebox for such errors }
+          Debugger^.got_error:=false;
           if assigned(p) and (p[0]='$') then
             q:=StrPos(p,'=');
           if not assigned(q) then
             q:=p;
           i:=strlen(q);
-          if q[i-1]=#10 then
+          if (i>0) and (q[i-1]=#10) then
             begin
               q[i-1]:=#0;
               last_removed:=true;
@@ -1922,7 +1929,10 @@ end.
 
 {
   $Log$
-  Revision 1.20  1999-07-10 01:24:14  pierre
+  Revision 1.21  1999-07-11 00:35:14  pierre
+   * fix problems for wrong watches
+
+  Revision 1.20  1999/07/10 01:24:14  pierre
    + First implementation of watches window
 
   Revision 1.19  1999/06/30 23:58:12  pierre
