@@ -74,6 +74,9 @@ ifneq ($(findstring -di386,$(COMPILER)),)
 override LOCALDEF+=-dSUPPORT_MMX
 endif
 
+# include OPT also for the RTL (also needed to pass the RELEASE options
+# to the RTL !!)
+override RTLOPTS+=$(OPT)
 
 #####################################################################
 # Setup Targets
@@ -329,7 +332,11 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.11  1998-10-12 12:20:37  pierre
+# Revision 1.12  1998-10-22 19:15:46  peter
+#   + VERBOSE=1 to set -vwni (necessary due the -n)
+#   * fixed OPT, now also passed to RTLOPTS
+#
+# Revision 1.11  1998/10/12 12:20:37  pierre
 #   + added tai_const_symbol_offset
 #     for r : pointer = @var.field;
 #   * better message for different arg names on implementation
