@@ -152,7 +152,7 @@ package=asldos2.zip,GNU ~L~inker and GNU assembler for OS/2 (required)
 # OS/2 3
 package=ideos2.zip,~I~DE with integrated compiler (BETA - no debugger)
 # OS/2 4
-package=utilos2.zip,~E~xtra Utilities
+package=utilsos2.zip[utilos2.zip],~E~xtra Utilities
 # OS/2 5
 package=makeos2.zip,GNU ~U~tilities (needed for Makefile usage)
 # OS/2 6
@@ -174,7 +174,7 @@ package=umd5os2.zip,Unit for MD~5~ processing
 #
 # OS/2 packages 2nd part
 #
-pack=OS/~2~
+pack=OS/~2~-2
 filecheck=*os2.zip
 # OS/2-2 1
 #package=ugdbintos2.zip[ugdbos2.zip],GDB interfacing units
@@ -228,7 +228,7 @@ package=asldemx.zip,GNU ~L~inker and GNU assembler for EMX (required)
 # EMX 3
 package=ideemx.zip,~I~DE with integrated compiler (BETA - no debugger)
 # EMX 4
-package=utilemx.zip,~E~xtra Utilities
+package=utilsemx.zip[utilemx.zip],~E~xtra Utilities
 # EMX 5
 package=makeemx.zip,GNU ~U~tilities (needed for Makefile usage)
 # EMX 6
