@@ -1,0 +1,17 @@
+#
+#   Makefile.fpc for PNG Library interface
+#
+
+[package]
+name=libpng
+version=1.0.5
+
+[require]
+packages=zlib
+libc=y
+
+[target]
+units=png
+
+[default]
+fpcdir=../..

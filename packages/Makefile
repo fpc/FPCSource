@@ -118,7 +118,7 @@ endif
 UNITSDIR=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 PACKAGESDIR=$(wildcard $(FPCDIR) $(FPCDIR)/packages)
 ifeq ($(OS_TARGET),linux)
-override TARGET_DIRS+=zlib ncurses x11 gtk syslog inet uncgi mysql ibase postgres oracle opengl forms svgalib ggi utmp paszlib gdbint cmem regexpr unzip
+override TARGET_DIRS+=zlib ncurses x11 gtk syslog inet uncgi mysql ibase postgres oracle opengl forms svgalib ggi libpng libgd utmp paszlib gdbint cmem regexpr unzip
 endif
 ifeq ($(OS_TARGET),go32v2)
 override TARGET_DIRS+=uncgi gdbint paszlib unzip regexpr
@@ -744,6 +744,8 @@ TARGET_DIRS_OPENGL=1
 TARGET_DIRS_FORMS=1
 TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_GGI=1
+TARGET_DIRS_LIBPNG=1
+TARGET_DIRS_LIBGD=1
 TARGET_DIRS_UTMP=1
 TARGET_DIRS_PASZLIB=1
 TARGET_DIRS_GDBINT=1
@@ -1382,6 +1384,84 @@ ggi_info:
 ggi:
 	$(MAKE) -C ggi all
 .PHONY: ggi_all ggi_debug ggi_examples ggi_smart ggi_shared ggi_install ggi_sourceinstall ggi_exampleinstall ggi_distinstall ggi_zipinstall ggi_zipsourceinstall ggi_zipexampleinstall ggi_zipdistinstall ggi_clean ggi_distclean ggi_cleanall ggi_info ggi
+endif
+ifdef TARGET_DIRS_LIBPNG
+libpng_all:
+	$(MAKE) -C libpng all
+libpng_debug:
+	$(MAKE) -C libpng debug
+libpng_examples:
+	$(MAKE) -C libpng examples
+libpng_smart:
+	$(MAKE) -C libpng smart
+libpng_shared:
+	$(MAKE) -C libpng shared
+libpng_install:
+	$(MAKE) -C libpng install
+libpng_sourceinstall:
+	$(MAKE) -C libpng sourceinstall
+libpng_exampleinstall:
+	$(MAKE) -C libpng exampleinstall
+libpng_distinstall:
+	$(MAKE) -C libpng distinstall
+libpng_zipinstall:
+	$(MAKE) -C libpng zipinstall
+libpng_zipsourceinstall:
+	$(MAKE) -C libpng zipsourceinstall
+libpng_zipexampleinstall:
+	$(MAKE) -C libpng zipexampleinstall
+libpng_zipdistinstall:
+	$(MAKE) -C libpng zipdistinstall
+libpng_clean:
+	$(MAKE) -C libpng clean
+libpng_distclean:
+	$(MAKE) -C libpng distclean
+libpng_cleanall:
+	$(MAKE) -C libpng cleanall
+libpng_info:
+	$(MAKE) -C libpng info
+libpng:
+	$(MAKE) -C libpng all
+.PHONY: libpng_all libpng_debug libpng_examples libpng_smart libpng_shared libpng_install libpng_sourceinstall libpng_exampleinstall libpng_distinstall libpng_zipinstall libpng_zipsourceinstall libpng_zipexampleinstall libpng_zipdistinstall libpng_clean libpng_distclean libpng_cleanall libpng_info libpng
+endif
+ifdef TARGET_DIRS_LIBGD
+libgd_all:
+	$(MAKE) -C libgd all
+libgd_debug:
+	$(MAKE) -C libgd debug
+libgd_examples:
+	$(MAKE) -C libgd examples
+libgd_smart:
+	$(MAKE) -C libgd smart
+libgd_shared:
+	$(MAKE) -C libgd shared
+libgd_install:
+	$(MAKE) -C libgd install
+libgd_sourceinstall:
+	$(MAKE) -C libgd sourceinstall
+libgd_exampleinstall:
+	$(MAKE) -C libgd exampleinstall
+libgd_distinstall:
+	$(MAKE) -C libgd distinstall
+libgd_zipinstall:
+	$(MAKE) -C libgd zipinstall
+libgd_zipsourceinstall:
+	$(MAKE) -C libgd zipsourceinstall
+libgd_zipexampleinstall:
+	$(MAKE) -C libgd zipexampleinstall
+libgd_zipdistinstall:
+	$(MAKE) -C libgd zipdistinstall
+libgd_clean:
+	$(MAKE) -C libgd clean
+libgd_distclean:
+	$(MAKE) -C libgd distclean
+libgd_cleanall:
+	$(MAKE) -C libgd cleanall
+libgd_info:
+	$(MAKE) -C libgd info
+libgd:
+	$(MAKE) -C libgd all
+.PHONY: libgd_all libgd_debug libgd_examples libgd_smart libgd_shared libgd_install libgd_sourceinstall libgd_exampleinstall libgd_distinstall libgd_zipinstall libgd_zipsourceinstall libgd_zipexampleinstall libgd_zipdistinstall libgd_clean libgd_distclean libgd_cleanall libgd_info libgd
 endif
 ifdef TARGET_DIRS_UTMP
 utmp_all:

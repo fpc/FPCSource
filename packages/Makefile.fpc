@@ -6,7 +6,7 @@
 dirs_linux=zlib ncurses x11 gtk syslog \
            inet uncgi \
            mysql ibase postgres oracle \
-           opengl forms svgalib ggi \
+           opengl forms svgalib ggi libpng libgd \
            utmp paszlib gdbint cmem regexpr unzip
 dirs_win32=uncgi gtk gdbint ibase mysql zlib paszlib unzip regexpr opengl
 dirs_go32v2=uncgi gdbint paszlib unzip regexpr
