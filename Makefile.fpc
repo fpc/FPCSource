@@ -523,10 +523,16 @@ RPMBUILD=$(strip $(wildcard $(addsuffix /rpmbuild,$(SEARCHPATH))))
 ifeq ($(RPMBUILD),)
 RPMBUILD=$(strip $(wildcard $(addsuffix /rpm,$(SEARCHPATH))))
 endif
+REDHATDIR=$(shell rpm --eval=%_topdir)
+ifeq ($(REDHATDIR),%_topdir)
+REDHATDIR=
+endif
+ifeq ($(REDHATDIR),)
 REDHATDIR=/usr/src/redhat
 # Debian has /usr/src/rpm
 ifeq ($(wildcard $(REDHATDIR)),)
 REDHATDIR=/usr/src/rpm
+endif
 endif
 RPMSOURCESDIR:=$(REDHATDIR)/SOURCES
 RPMSPECDIR:=$(REDHATDIR)/SPECS
