@@ -942,7 +942,7 @@ unix$(PPUEXT) : unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
 		 syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
 		 unixsysc.inc
 ports$(PPUEXT) : ports.pp unix$(PPUEXT) objpas$(PPUEXT)
-dl$(PPUEXT) : $(UNIXINC)/dl.pp
+dl$(PPUEXT) : $(UNIXINC)/dl.pp $(SYSTEMUNIT)$(PPUEXT)
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 	       unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
