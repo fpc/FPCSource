@@ -1238,6 +1238,7 @@ function GlobalUnlockPtr(lp:pointer):Pointer;
 function GlobalLockPtr(lp:pointer):Pointer;
 function GlobalReAllocPtr(lp:Pointer;cbNew,flags:DWord):Pointer;
 function GlobalPtrHandle(lp:pointer):Pointer;
+function SetLayeredWindowAttributes(HWND:hwnd;crKey :COLORREF;bAlpha : byte;dwFlags : DWORD):WINBOOL; external 'user32' name 'SETLAYEREDWINDOWATTRIBUTES';
 
 {$endif read_interface}
 
@@ -2334,7 +2335,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  2004-11-14 18:05:54  marco
+  Revision 1.22  2004-11-14 19:49:13  marco
+   * setlayeredwindowattributes (2000+) added.
+
+  Revision 1.21  2004/11/14 18:05:54  marco
    * fillrect var -> const (bug 3268)
 
   Revision 1.20  2004/08/26 15:57:23  michael
