@@ -25,8 +25,7 @@ interface
 {$MODE OBJFPC}
 
 uses
-  os2def,
-  pmwin;
+  os2def;
 
 resourcestring  
   msg_failedtodisplay='Failed to display help panel.';
