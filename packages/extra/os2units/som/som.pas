@@ -874,7 +874,6 @@ Procedure somEndPersistentIds; cdecl;
 var
 {$warning support of external vars required}
   SOMClassMgrObject     : SOMClassMgrType;//³ 00007 ³ SOMClassMgrObject
-//Function  SOMClassMgrObject:SOMClassMgrType;
 
 (* The somRegisterClassLibrary function is provided for use
  * in SOM class libraries on platforms that have loader-invoked
@@ -1386,17 +1385,24 @@ var
 (* Another not ported vars *)
 // Control the printing of method and procedure entry messages,
 // 0-none, 1-user, 2-core&user */
-//SOMEXTERN int SOMDLINK SOM_TraceLevel;
-//³ 00018 ³ SOM_TraceLevel
+  SOM_TraceLevel: Longint; //³ 00018 ³ SOM_TraceLevel
 
 // Control the printing of warning messages, 0-none, 1-all
-//SOMEXTERN int SOMDLINK SOM_WarnLevel;
-//³ 00019 ³ SOM_WarnLevel
+  SOM_WarnLevel: Longint; //³ 00019 ³ SOM_WarnLevel
 
 // Control the printing of successful assertions, 0-none, 1-user,
 // 2-core&user
-//SOMEXTERN int SOMDLINK SOM_AssertLevel;
-//³ 00017 ³ SOM_AssertLevel
+  SOM_AssertLevel: Longint; //³ 00017 ³ SOM_AssertLevel
+
+// ToDo: Move this to corresponding place
+Procedure somCheckArgs(argc: longint; argv: array of pchar); cdecl;
+  external 'som' name 'somCheckArgs'; {index 25}
+Procedure somUnregisterClassLibrary (libraryName: PChar); cdecl;
+  external 'som' name 'somUnregisterClassLibrary'; {index 89}
+Function somResolveTerminal(x : SOMClassPtr; mdata: somMToken): somMethodProcPtr; cdecl;
+  external 'som' name 'somResolveTerminal'; {index 133}
+Function somPCallResolve(obj: SOMObjectPtr; callingCls: SOMClassPtr; method: somMToken): somMethodProcPtr; cdecl;
+  external 'som' name 'somPCallResolve'; {index 362}
 
 Implementation
 
@@ -1439,21 +1445,14 @@ end;
 
 End.
 
-(*
-SOMEXTERN void SOMLINK somCheckArgs(int argc, zString argv[]);
-³ 00025 ³ somCheckArgs
-³ 00038 ³ somSaveMetrics // not found
-³ 00046 ³ somWriteMetrics // not found
-³ 00051 ³ somCreateDynamicClass // not found
-³ 00056 ³ SOM_IdTable // not found
-³ 00057 ³ SOM_IdTableSize // not found
-³ 00062 ³ somStartCriticalSection // not found
-³ 00063 ³ somEndCriticalSection // not found
-void*   va_SOMObject_somDispatchA(SOMObject *somSelf,
+(* Don't know how to port ... thing
+
+Function va_SOMObject_somDispatchA(SOMObject *somSelf,
                 somId methodId,
                 somId descriptor,
-                ...)
+                ...): Pointer; cdecl;
 ³ 00064 ³ va_SOMObject_somDispatchA
+
 double   va_SOMObject_somDispatchD(SOMObject *somSelf,
                 somId methodId,
                 somId descriptor,
@@ -1474,10 +1473,7 @@ boolean   va_SOMObject_somDispatch(SOMObject *somSelf,
                 somId methodId,
                 ...)
 ³ 00068 ³ va_SOMObject_somDispatch
-³ 00080 ³ somfixMsgTemplate // not found
-³ 00087 ³ SOMParentDerivedMetaclassClassData // not found
-SOMEXTERN void SOMLINK somUnregisterClassLibrary (string libraryName);
-³ 00089 ³ somUnregisterClassLibrary
+
 void*  SOMLINK somva_SOMObject_somDispatchA(SOMObject *somSelf,
                 somId methodId,
                 somId descriptor,
@@ -1509,20 +1505,30 @@ boolean  SOMLINK somva_SOMObject_somClassDispatch(SOMObject *somSelf,
                 somId methodId,
                 ...)
 ³ 00101 ³ somva_SOMObject_somClassDispatch
+
+*)
+
+(*
+³ 00038 ³ somSaveMetrics // not found
+³ 00046 ³ somWriteMetrics // not found
+³ 00051 ³ somCreateDynamicClass // not found
+³ 00056 ³ SOM_IdTable // not found
+³ 00057 ³ SOM_IdTableSize // not found
+³ 00062 ³ somStartCriticalSection // not found
+³ 00063 ³ somEndCriticalSection // not found
+³ 00080 ³ somfixMsgTemplate // not found
+³ 00087 ³ SOMParentDerivedMetaclassClassData // not found
 ³ 00132 ³ somFreeThreadData // not found
-SOMEXTERN somMethodProc * SOMLINK somResolveTerminal(SOMClass *, somMToken mdata);
-³ 00133 ³ somResolveTerminal
 ³ 00135 ³ somIdMarshal  // not found
 ³ 00361 ³ somMakeUserRdStub // Not found
-SOMEXTERN somMethodProc * SOMLINK somPCallResolve(SOMObject *obj,
-                                                  SOMClass *callingCls,
-                                                  somMToken method);
-Ã 00362 Á somPCallResolve
 *)
 
 {
 $Log$
-Revision 1.1  2003-09-22 13:52:59  yuri
+Revision 1.2  2003-11-30 08:13:14  yuri
+* more ported functions
+
+Revision 1.1  2003/09/22 13:52:59  yuri
 + Initial import. Mostly backup.
 
 }
