@@ -17,12 +17,21 @@
    function GetDiskFreeSpace(drive:pchar;var sector_cluster,bytes_sector,
                              freeclusters,totalclusters:longint):longbool;
      external 'kernel32' name 'GetDiskFreeSpaceA';
+type
+   TGetDiskFreeSpaceEx = function(drive:pchar;var availableforcaller,
+                             total,free):longbool;stdcall;
 
-function diskfree(drive : byte) : longint;
+var
+   GetDiskFreeSpaceEx : TGetDiskFreeSpaceEx;
+
+function diskfree(drive : byte) : int64;
 var
   disk : array[1..4] of char;
   secs,bytes,
   free,total : longint;
+  qwtotal,qwfree,qwcaller : int64;
+
+
 begin
   if drive=0 then
    begin
@@ -36,18 +45,30 @@ begin
      disk[3]:='\';
      disk[4]:=#0;
    end;
-  if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
-   result:=free*secs*bytes
+  if assigned(GetDiskFreeSpaceEx) then
+    begin
+       if GetDiskFreeSpaceEx(@disk,qwcaller,qwtotal,qwfree) then
+         diskfree:=qwfree
+       else
+         diskfree:=-1;
+    end
   else
-   result:=-1;
+    begin
+       if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
+         diskfree:=int64(free)*secs*bytes
+       else
+         diskfree:=-1;
+    end;
 end;
 
 
-function disksize(drive : byte) : longint;
+function disksize(drive : byte) : int64;
 var
   disk : array[1..4] of char;
   secs,bytes,
   free,total : longint;
+  qwtotal,qwfree,qwcaller : int64;
+
 begin
   if drive=0 then
    begin
@@ -61,10 +82,20 @@ begin
      disk[3]:='\';
      disk[4]:=#0;
    end;
-  if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
-   result:=total*secs*bytes
+  if assigned(GetDiskFreeSpaceEx) then
+    begin
+       if GetDiskFreeSpaceEx(@disk,qwcaller,qwtotal,qwfree) then
+         disksize:=qwtotal
+       else
+         disksize:=-1;
+    end
   else
-   result:=-1;
+    begin
+       if GetDiskFreeSpace(@disk,secs,bytes,free,total) then
+         disksize:=int64(total)*secs*bytes
+       else
+         disksize:=-1;
+    end;
 end;
 
 
@@ -102,7 +133,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-02-09 16:59:34  peter
+  Revision 1.5  2000-05-15 19:28:41  peter
+    * int64 support for diskfree,disksize
+
+  Revision 1.4  2000/02/09 16:59:34  peter
     * truncated log
 
   Revision 1.3  2000/01/07 16:41:52  daniel

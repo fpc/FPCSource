@@ -14,8 +14,13 @@
 
  **********************************************************************}
 
-Function DiskFree (Drive : Byte) : Longint;
-Function DiskSize (Drive : Byte) : Longint;
+{$ifdef Int64}
+ Function  DiskFree(drive: byte) : int64;
+ Function  DiskSize(drive: byte) : int64;
+{$else}
+ Function  DiskFree(drive: byte) : longint;
+ Function  DiskSize(drive: byte) : longint;
+{$endif}
 Function GetCurrentDir : String;
 Function SetCurrentDir (Const NewDir : String) : Boolean;
 Function CreateDir (Const NewDir : String) : Boolean;
@@ -23,7 +28,10 @@ Function RemoveDir (Const Dir : String) : Boolean;
 
 {
  $Log$
- Revision 1.4  2000-02-09 16:59:32  peter
+ Revision 1.5  2000-05-15 19:28:41  peter
+   * int64 support for diskfree,disksize
+
+ Revision 1.4  2000/02/09 16:59:32  peter
    * truncated log
 
  Revision 1.3  2000/01/07 16:41:43  daniel

@@ -134,9 +134,7 @@ Function FileExists (Const FileName : String) : Boolean;
 var
   Handle: THandle;
   FindData: TWin32FindData;
-  P : Pchar;
 begin
-  P:=Pchar(Filename);
   Handle := FindFirstFile(Pchar(FileName), @FindData);
   Result:=Handle <> INVALID_HANDLE_VALUE;
   If Result then
@@ -429,7 +427,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2000-02-17 22:16:05  sg
+  Revision 1.16  2000-05-15 19:28:41  peter
+    * int64 support for diskfree,disksize
+
+  Revision 1.15  2000/02/17 22:16:05  sg
   * Changed the second argument of FileWrite from "var buffer" to
     "const buffer", like in Delphi.
 

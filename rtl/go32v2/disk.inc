@@ -14,6 +14,93 @@
 
  **********************************************************************}
 
+{$ifdef Int64}
+
+TYPE  ExtendedFat32FreeSpaceRec=packed Record
+         RetSize           : WORD; { (ret) size of returned structure}
+         Strucversion      : WORD; {(call) structure version (0000h)
+                                    (ret) actual structure version (0000h)}
+         SecPerClus,               {number of sectors per cluster}
+         BytePerSec,               {number of bytes per sector}
+         AvailClusters,            {number of available clusters}
+         TotalClusters,            {total number of clusters on the drive}
+         AvailPhysSect,            {physical sectors available on the drive}
+         TotalPhysSect,            {total physical sectors on the drive}
+         AvailAllocUnits,          {Available allocation units}
+         TotalAllocUnits : DWORD;  {Total allocation units}
+         Dummy,Dummy2    : DWORD;  {8 bytes reserved}
+         END;
+
+function do_diskdata(drive : byte; Free : BOOLEAN) : Int64;
+
+VAR S    : String;
+    Rec  : ExtendedFat32FreeSpaceRec;
+    regs : registers;
+BEGIN
+ if (swap(dosversion)>=$070A) AND LFNSupport then
+  begin
+   DosError:=0;
+   S:='C:\'#0;
+   if Drive=0 then
+    begin
+     GetDir(Drive,S);
+     Setlength(S,4);
+     S[4]:=#0;
+    end
+   else
+    S[1]:=chr(Drive+64);
+   Rec.Strucversion:=0;
+   dosmemput(tb_segment,tb_offset,Rec,SIZEOF(ExtendedFat32FreeSpaceRec));
+   dosmemput(tb_segment,tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1,S[1],4);
+   regs.dx:=tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1;
+   regs.ds:=tb_segment;
+   regs.di:=tb_offset;
+   regs.es:=tb_segment;
+   regs.cx:=Sizeof(ExtendedFat32FreeSpaceRec);
+   regs.ax:=$7303;
+   msdos(regs);
+   if regs.ax<>$ffff then
+    begin
+      copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
+      if Free then
+       Do_DiskData:=int64(rec.AvailAllocUnits)*rec.SecPerClus*rec.BytePerSec
+      else
+       Do_DiskData:=int64(rec.TotalAllocUnits)*rec.SecPerClus*rec.BytePerSec;
+    end
+   else
+    Do_DiskData:=-1;
+  end
+ else
+  begin
+   DosError:=0;
+   regs.dl:=drive;
+   regs.ah:=$36;
+   msdos(regs);
+   if regs.ax<>$FFFF then
+    begin
+     if Free then
+      Do_DiskData:=int64(regs.ax)*regs.bx*regs.cx
+     else
+      Do_DiskData:=int64(regs.ax)*regs.cx*regs.dx;
+    end
+   else
+    do_diskdata:=-1;
+  end;
+end;
+
+function diskfree(drive : byte) : int64;
+
+begin
+   diskfree:=Do_DiskData(drive,TRUE);
+end;
+
+
+function disksize(drive : byte) : int64;
+begin
+  disksize:=Do_DiskData(drive,false);
+end;
+{$else}
+
 Function DiskFree (Drive : Byte) : Longint;
 var
   Regs: Registers;
@@ -40,6 +127,8 @@ begin
   else
     result := -1;
 end;
+
+{$endif}
 
 
 Function GetCurrentDir : String;
@@ -77,7 +166,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-02-09 16:59:28  peter
+  Revision 1.5  2000-05-15 19:28:41  peter
+    * int64 support for diskfree,disksize
+
+  Revision 1.4  2000/02/09 16:59:28  peter
     * truncated log
 
   Revision 1.3  2000/01/07 16:41:30  daniel

@@ -22,7 +22,7 @@
    1 - '/fd0/.'  (floppy drive 1 - should be adapted to local system )
    2 - '/fd1/.'  (floppy drive 2 - should be adapted to local system )
    3 - '/'       (C: equivalent of dos is the root partition)
-   4..26          (can be set by your own applications)
+   4..26          (can be set by you're own applications)
   ! Use AddDisk() to Add new drives !
   They both return -1 when a failure occurs.
 }
@@ -50,6 +50,34 @@ end;
 
 
 
+{$ifdef INT64}
+
+Function DiskFree(Drive: Byte): int64;
+var
+  fs : statfs;
+Begin
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
+     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
+   Diskfree:=int64(fs.bavail)*int64(fs.bsize)
+  else
+   Diskfree:=-1;
+End;
+
+
+
+Function DiskSize(Drive: Byte): int64;
+var
+  fs : statfs;
+Begin
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and fsstat(StrPas(fixdrivestr[drive]),fs)) or
+     ((not (drivestr[Drive]=nil)) and fsstat(StrPas(drivestr[drive]),fs)) then
+   DiskSize:=int64(fs.blocks)*int64(fs.bsize)
+  else
+   DiskSize:=-1;
+End;
+
+{$else}
+
 Function DiskFree(Drive: Byte): Longint;
 var
   fs : statfs;
@@ -73,6 +101,9 @@ Begin
   else
    DiskSize:=-1;
 End;
+
+{$endif INT64}
+
 
 
 Function GetCurrentDir : String;
@@ -110,7 +141,10 @@ end;
 
 {
  $Log$
- Revision 1.6  2000-02-09 16:59:31  peter
+ Revision 1.7  2000-05-15 19:28:41  peter
+   * int64 support for diskfree,disksize
+
+ Revision 1.6  2000/02/09 16:59:31  peter
    * truncated log
 
  Revision 1.5  2000/01/07 16:41:40  daniel
