@@ -15,6 +15,11 @@
  **********************************************************************}
 
 
+  { Read date & Time function declarations }
+(* This must be placed before other functions, because TDateTime from DosCalls
+   would be used under OS/2 instead of that one from datih.inc otherwise. *)
+  {$i datih.inc}
+
   { Read String Handling functions declaration }
   {$i sysstrh.inc}
 
@@ -115,9 +120,6 @@ Var
   { Read internationalization settings }
   {$i sysinth.inc}
 
-  { Read date & Time function declarations }
-  {$i datih.inc}
-
   { Read pchar handling functions declration }
   {$i syspchh.inc}
 
@@ -132,7 +134,10 @@ Var
 
 {
   $Log$
-  Revision 1.3  2000-08-29 17:56:32  michael
+  Revision 1.4  2000-08-30 18:29:34  hajny
+    * OS/2 fix - datih.inc moved to the beginning
+
+  Revision 1.3  2000/08/29 17:56:32  michael
   Merged syserrormsg fix
 
   Revision 1.2  2000/08/20 15:46:46  peter
