@@ -304,6 +304,91 @@ implementation
              secondnothing,     {nothingn}
              secondloadvmt      {loadvmtn}
              );
+{$ifdef logsecondpass}
+      secondnames: array[ttreetyp] of string[13] =
+            ('add-addn',  {addn}
+             'add-muln)',  {muln}
+             'add-subn',  {subn}
+             'moddiv-divn',      {divn}
+             'add-symdifn',      {symdifn}
+             'moddiv-modn',      {modn}
+             'assignment',  {assignn}
+             'load',        {loadn}
+             'nothing-range',     {range}
+             'add-ltn',  {ltn}
+             'add-lten',  {lten}
+             'add-gtn',  {gtn}
+             'add-gten',  {gten}
+             'add-equaln',  {equaln}
+             'add-unequaln',  {unequaln}
+             'in',    {inn}
+             'add-orn',  {orn}
+             'add-xorn',  {xorn}
+             'shlshr-shrn',      {shrn}
+             'shlshr-shln',      {shln}
+             'add-slashn',  {slashn}
+             'add-andn',  {andn}
+             'subscriptn',  {subscriptn}
+             'dderef',       {derefn}
+             'addr',        {addrn}
+             'doubleaddr',  {doubleaddrn}
+             'ordconst',    {ordconstn}
+             'typeconv',    {typeconvn}
+             'calln',       {calln}
+             'nothing-callp',     {callparan}
+             'realconst',   {realconstn}
+             'fixconst',    {fixconstn}
+             'unaryminus',  {unaryminusn}
+             'asm',         {asmn}
+             'vecn',        {vecn}
+             'pointerconst', {pointerconstn}
+             'stringconst', {stringconstn}
+             'funcret',     {funcretn}
+             'selfn',       {selfn}
+             'not',  {notn}
+             'inline',      {inlinen}
+             'niln',        {niln}
+             'error',       {errorn}
+             'nothing-typen',     {typen}
+             'hnewn',       {hnewn}
+             'hdisposen',   {hdisposen}
+             'newn',        {newn}
+             'simplenewDISP', {simpledisposen}
+             'setelement',  {setelementn}
+             'setconst',    {setconstn}
+             'blockn',      {blockn}
+             'statement',   {statementn}
+             'nothing-loopn',     {loopn}
+             'ifn',  {ifn}
+             'breakn',      {breakn}
+             'continuen',   {continuen}
+             '_while_REPEAT', {repeatn}
+             '_WHILE_repeat', {whilen}
+             'for',  {forn}
+             'exitn',       {exitn}
+             'with',        {withn}
+             'case',        {casen}
+             'label',       {labeln}
+             'goto',        {goton}
+             'simpleNEWdisp', {simplenewn}
+             'tryexcept',   {tryexceptn}
+             'raise',       {raisen}
+             'nothing-swtch',     {switchesn}
+             'tryfinally',  {tryfinallyn}
+             'on',    {onn}
+             'is',    {isn}
+             'as',    {asn}
+             'error-caret',       {caretn}
+             'fail',        {failn}
+             'add-startstar',  {starstarn}
+             'procinline',  {procinlinen}
+             'arrayconstruc', {arrayconstructn}
+             'noth-arrcnstr',     {arrayconstructrangen}
+             'nothing-nothg',     {nothingn}
+             'loadvmt'      {loadvmtn}
+             );
+
+{$endif logsecondpass}
       var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
@@ -326,7 +411,13 @@ implementation
             aktfilepos:=p^.fileinfo;
             aktlocalswitches:=p^.localswitches;
             codegenerror:=false;
+{$ifdef logsecondpass}
+            logsecond('second'+secondnames[p^.treetype],true);
+{$endif logsecondpass}
             procedures[p^.treetype](p);
+{$ifdef logsecondpass}
+            logsecond('second'+secondnames[p^.treetype],false);
+{$endif logsecondpass}
             p^.error:=codegenerror;
 
             codegenerror:=codegenerror or oldcodegenerror;
@@ -749,7 +840,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2000-01-16 22:17:11  peter
+  Revision 1.51  2000-01-21 12:16:53  jonas
+    + add info on entry/exit of secondpass procedure in assembler files, between
+      -dlogsecondpass
+
+  Revision 1.50  2000/01/16 22:17:11  peter
     * renamed call_offset to para_offset
 
   Revision 1.49  2000/01/07 01:14:28  peter
