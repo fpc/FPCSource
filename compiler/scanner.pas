@@ -554,10 +554,11 @@ implementation
 
     procedure tscannerfile.poppreprocstack;
       var
-         hp : ppreprocstack;
+        hp : ppreprocstack;
       begin
         if assigned(preprocstack) then
          begin
+           Message1(scan_c_endif_found,preprocstack^.name);
            hp:=preprocstack^.next;
            dispose(preprocstack,done);
            preprocstack:=hp;
@@ -921,8 +922,10 @@ implementation
         m       : longint;
         mac     : pmacrosym;
         asciinr : string[3];
+{$ifdef new__is_keyword}
         encoded : longint;
-        p:^byte;
+        p       : ^byte;
+{$endif}
       label
          exit_label;
       begin
@@ -1515,7 +1518,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  1998-10-16 14:20:57  daniel
+  Revision 1.64  1998-10-21 20:16:05  peter
+    * beter line info for conditionals
+
+  Revision 1.63  1998/10/16 14:20:57  daniel
   * Faster keyword scanning.
   * Import library and smartlink library in one file.
 

@@ -276,9 +276,12 @@ const
         mac   : pmacrosym;
         found : boolean;
         state : char;
+        oldaktfilepos : tfileposinfo;
       begin
+        oldaktfilepos:=aktfilepos;
         while true do
          begin
+           current_scanner^.gettokenpos;
            case t of
    _DIR_ENDIF : begin
                   current_scanner^.poppreprocstack;
@@ -324,14 +327,17 @@ const
             break
            else
             begin
+              current_scanner^.gettokenpos;
               Message(scan_c_skipping_until);
               repeat
                 current_scanner^.skipuntildirective;
                 t:=Get_Directive(current_scanner^.readid);
               until is_conditional(t);
+              current_scanner^.gettokenpos;
               Message1(scan_d_handling_switch,'$'+directive[t]);
             end;
          end;
+        oldaktfilepos:=aktfilepos;
       end;
 
 
@@ -944,7 +950,10 @@ const
 
 {
   $Log$
-  Revision 1.39  1998-10-13 16:50:21  pierre
+  Revision 1.40  1998-10-21 20:16:04  peter
+    * beter line info for conditionals
+
+  Revision 1.39  1998/10/13 16:50:21  pierre
     * undid some changes of Peter that made the compiler wrong
       for m68k (I had to reinsert some ifdefs)
     * removed several memory leaks under m68k
