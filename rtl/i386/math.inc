@@ -19,6 +19,16 @@
                        EXTENDED data type routines
  ****************************************************************************}
 
+{$ifdef hasinternmath}
+    function pi : extended;[internproc:in_pi];
+    function abs(d : extended) : extended;[internproc:in_abs_extended];
+    function sqr(d : extended) : extended;[internproc:in_sqr_extended];
+    function sqrt(d : extended) : extended;[internproc:in_sqrt_extended];
+    function arctan(d : extended) : extended;[internproc:in_arctan_extended];
+    function ln(d : extended) : extended;[internproc:in_ln_extended];
+    function sin(d : extended) : extended;[internproc:in_sin_extended];
+    function cos(d : extended) : extended;[internproc:in_cos_extended];
+{$else hasinternmath}
     function pi : extended;assembler;[internconst:in_const_pi];
       asm
             fldpi
@@ -54,7 +64,6 @@
             fpatan
       end [];
 
-
     function cos(d : extended) : extended;assembler;[internconst:in_const_cos];
       asm
             fldt d
@@ -74,6 +83,35 @@
          .LCOS1:
       end ['EAX'];
 
+    function ln(d : extended) : extended;assembler;[internconst:in_const_ln];
+      asm
+            fldln2
+            fldt d
+            fyl2x
+      end [];
+
+
+    function sin(d : extended) : extended;assembler;[internconst:in_const_sin];
+      asm
+            fldt d
+            fsin
+            fstsw
+            sahf
+            jnp .LSIN1
+            fstp %st(0)
+            fldt .LSIN0
+            jmp .LSIN1
+         .data
+         .LSIN0:
+            .long       0xffffffff
+            .long       0xffffffff
+            .long       0xffffffff
+         .text
+         .LSIN1:
+      end ['EAX'];
+
+
+{$endif hasinternmath}
 
     function exp(d : extended) : extended;assembler;[internconst:in_const_exp];
        asm
@@ -83,7 +121,6 @@
             fmulp
             fstcw      .LCW1
             fstcw      .LCW2
-            fwait
             andw        $0xf3ff,.LCW2
             orw         $0x0400,.LCW2
             fldcw      .LCW2
@@ -176,34 +213,6 @@
             movl -8(%ebp),%eax
             fldcw -4(%ebp)
       end ['EAX','ECX'];
-
-
-    function ln(d : extended) : extended;assembler;[internconst:in_const_ln];
-      asm
-            fldln2
-            fldt d
-            fyl2x
-      end [];
-
-
-    function sin(d : extended) : extended;assembler;[internconst:in_const_sin];
-      asm
-            fldt d
-            fsin
-            fstsw
-            sahf
-            jnp .LSIN1
-            fstp %st(0)
-            fldt .LSIN0
-            jmp .LSIN1
-         .data
-         .LSIN0:
-            .long       0xffffffff
-            .long       0xffffffff
-            .long       0xffffffff
-         .text
-         .LSIN1:
-      end ['EAX'];
 
 
    function power(bas,expo : extended) : extended;
@@ -341,7 +350,10 @@
 
 {
   $Log$
-  Revision 1.15  1999-07-06 15:35:59  peter
+  Revision 1.16  1999-09-15 20:24:11  florian
+    * some math functions are now coded inline by the compiler
+
+  Revision 1.15  1999/07/06 15:35:59  peter
     * removed temp defines
 
   Revision 1.14  1999/03/01 15:40:57  peter
