@@ -55,10 +55,7 @@ function TSparcCallNode.pass_1:TNode;
       with TProcDef(procdefinition).parast do
         if datasize>TSparcProcInfo(procinfo).maxpushedparasize
         then
-          TSparcProcInfo(procinfo).maxpushedparasize:=datasize
-        else
-    else
-      InternalError(2002101001);
+          TSparcProcInfo(procinfo).maxpushedparasize:=datasize;
   end;
 procedure TSparcCallNode.load_framepointer;
   begin
@@ -69,7 +66,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-01-22 22:30:03  mazen
+  Revision 1.7  2003-02-04 21:50:54  mazen
+  * fixing internal errors related to notn when compiling RTL
+
+  Revision 1.6  2003/01/22 22:30:03  mazen
   - internal errors rmoved from a_loar_reg_reg when reg sizes differs from 32
 
   Revision 1.5  2002/11/14 21:42:08  mazen

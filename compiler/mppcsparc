@@ -3,6 +3,7 @@ cd "`dirname "$0"`/.."
 FPC_SRC_DIR="$PWD"
 COMP_DIR="$FPC_SRC_DIR/compiler"
 RTL_DIR="$FPC_SRC_DIR/rtl"
+INCLUDE_PATH=`echo -Fi"$RTL_DIR"/{unix,linux,sparc,inc,linux/sparc}`
 if [[ "$1" == "-B" ]] || [[ "$#" == 0 ]]
 then
   cd "$COMP_DIR"
@@ -15,8 +16,8 @@ then
   then
     shift 1
     SRC_DIR=`echo "$COMP_DIR/"{,sparc,systems}":"`
-    gdb -d "$SRC_DIR" --args "$COMP_DIR"/ppcsparc -s -al -Fi"$RTL_DIR"/{unix,linux,sparc,inc} -dSPARC "$@"
+    gdb -d "$SRC_DIR" --args "$COMP_DIR"/ppcsparc -s -al $INCLUDE_PATH -dSPARC "$@"
   else
-    "$COMP_DIR"/ppcsparc -s -al -Fi"$RTL_DIR"/{unix,linux,sparc,inc,linux/sparc} -dSPARC "$@"
+    "$COMP_DIR"/ppcsparc -s -al $INCLUDE_PATH -dSPARC "$@"
   fi
 fi

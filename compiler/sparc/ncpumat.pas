@@ -401,74 +401,75 @@ procedure tSparcshlshrnode.pass_2;
 {*****************************************************************************
                                TSparcNOTNODE
 *****************************************************************************}
-
-    procedure tSparcnotnode.pass_2;
-
-      var
-         hl : tasmlabel;
-         regl, regh: tregister;
-
-      begin
-         if is_boolean(resulttype.def) then
+procedure tSparcnotnode.pass_2;
+var
+  hl : tasmlabel;
+  regl, regh: tregister;
+begin
+  if is_boolean(resulttype.def)
+  then
+    begin
+      { the second pass could change the location of left }
+      { if it is a register variable, so we've to do      }
+      { this before the case statement                    }
+      if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,
+         LOC_FLAGS,LOC_REGISTER,LOC_CREGISTER]
+      then
+        secondpass(left);
+      case left.location.loc of
+        LOC_JUMP :
           begin
-            { the second pass could change the location of left }
-            { if it is a register variable, so we've to do      }
-            { this before the case statement                    }
-            if left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE,
-              LOC_FLAGS,LOC_REGISTER,LOC_CREGISTER] then
-              secondpass(left);
-            case left.location.loc of
-              LOC_JUMP :
-                begin
-                  hl:=truelabel;
-                  truelabel:=falselabel;
-                  falselabel:=hl;
-                  secondpass(left);
-                  maketojumpbool(exprasmlist,left,lr_load_regvars);
-                  hl:=truelabel;
-                  truelabel:=falselabel;
-                  falselabel:=hl;
-                end;
-              LOC_FLAGS :
-                begin
-                  location_copy(location,left.location);
-                  //inverse_flags(location.resflags);
-                end;
-              LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE :
-                begin
-                  location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
-                  exprasmlist.concat(taicpu.op_reg_const(A_SUBcc,left.location.register,0));
-                  location_release(exprasmlist,left.location);
-                  location_reset(location,LOC_FLAGS,OS_NO);
-                  //location.resflags.cr:=r_NONE;
-                  //location.resflags.flag:=F_NONE;
-               end;
-            end;
-          end
-         else if is_64bitint(left.resulttype.def) then
-           begin
-             secondpass(left);
-             location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
-             location_copy(location,left.location);
-             { perform the NOT operation }
-             exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.registerhigh,
-               location.registerhigh));
-             exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.registerlow,
-               location.registerlow));
-           end
-         else
-           begin
-             secondpass(left);
-             location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
-             location_copy(location,left.location);
-             if location.loc=LOC_CREGISTER then
-              location.register := rg.getregisterint(exprasmlist);
-             { perform the NOT operation }
-             exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.register,
-               left.location.register));
+            hl:=truelabel;
+            truelabel:=falselabel;
+            falselabel:=hl;
+            secondpass(left);
+            maketojumpbool(exprasmlist,left,lr_load_regvars);
+            hl:=truelabel;
+            truelabel:=falselabel;
+            falselabel:=hl;
+            location.loc:=LOC_JUMP;
           end;
+        LOC_FLAGS :
+          begin
+            location_copy(location,left.location);
+            //inverse_flags(location.resflags);
+          end;
+        LOC_REGISTER, LOC_CREGISTER, LOC_REFERENCE, LOC_CREFERENCE :
+          begin
+            location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),true);
+            exprasmlist.concat(taicpu.op_reg_const(A_SUBcc,left.location.register,0));
+            location_release(exprasmlist,left.location);
+            location_reset(location,LOC_FLAGS,OS_NO);
+            //location.resflags.cr:=r_NONE;
+            //location.resflags.flag:=F_NONE;
+         end;
       end;
-
+    end
+  else if is_64bitint(left.resulttype.def)
+  then
+    begin
+      secondpass(left);
+      location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
+      location_copy(location,left.location);
+      { perform the NOT operation }
+      exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.registerhigh,
+      location.registerhigh));
+      exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.registerlow,
+      location.registerlow));
+    end
+  else
+    begin
+      secondpass(left);
+      location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
+      location_copy(location,left.location);
+      if location.loc=LOC_CREGISTER
+      then
+        location.register := rg.getregisterint(exprasmlist);
+        { perform the NOT operation }
+        exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.register,
+        left.location.register));
+      end;
+  end;
 begin
    cmoddivnode:=tSparcmoddivnode;
    cshlshrnode:=tSparcshlshrnode;
@@ -477,7 +478,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2003-01-08 18:43:58  daniel
+  Revision 1.4  2003-02-04 21:50:54  mazen
+  * fixing internal errors related to notn when compiling RTL
+
+  Revision 1.3  2003/01/08 18:43:58  daniel
    * Tregister changed into a record
 
   Revision 1.2  2002/12/30 21:17:22  mazen
