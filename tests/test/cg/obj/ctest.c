@@ -44,6 +44,12 @@ struct _3BYTE_
 	unsigned short u16;
 };
 
+struct _3BYTE_S
+{
+	unsigned short u16;
+	unsigned char w8;
+};
+
 struct _5BYTE_
 {
 	unsigned char  u8;
@@ -232,6 +238,11 @@ void test_param_struct_small(struct _3BYTE_ buffer)
 	global_u8bit = buffer.u8;
 	global_u16bit = buffer.u16;
 }
+void test_param_struct_small_s(struct _3BYTE_S buffer)
+{
+	global_u8bit = buffer.w8;
+	global_u16bit = buffer.u16;
+}
 
 void test_param_struct_medium(struct _5BYTE_ buffer)
 {
@@ -254,6 +265,11 @@ void test_param_mixed_struct_tiny(struct _1BYTE_ buffer, unsigned char y)
 }
 
 void test_param_mixed_struct_small(struct _3BYTE_ buffer, unsigned char y)
+{
+	global_u8bit = y;
+	global_u16bit = buffer.u16;
+}
+void test_param_mixed_struct_small_s(struct _3BYTE_S buffer, unsigned char y)
 {
 	global_u8bit = y;
 	global_u16bit = buffer.u16;
@@ -343,6 +359,13 @@ struct _3BYTE_ test_function_small_struct()
 	test_struct.u16 = RESULT_U16BIT;
 	return test_struct;
 }
+struct _3BYTE_S test_function_small_struct_s()
+{
+        struct _3BYTE_S test_struct;
+	test_struct.u16 = RESULT_U16BIT;
+	test_struct.w8 = RESULT_U8BIT;
+	return test_struct;
+}
 
 struct _5BYTE_ test_function_medium_struct()
 {
@@ -362,7 +385,10 @@ struct _7BYTE_ test_function_struct()
 
 /*
   $Log$
-  Revision 1.5  2002-11-04 15:17:45  pierre
+  Revision 1.6  2002-11-18 00:42:16  pierre
+   + records with really 3 byte size tests added
+
+  Revision 1.5  2002/11/04 15:17:45  pierre
    * compatibility with C checks improved
 
   Revision 1.4  2002/09/07 15:40:56  peter

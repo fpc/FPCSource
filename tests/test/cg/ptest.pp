@@ -33,6 +33,11 @@ type
   u16 : word;
  end;
 
+ _3byte_s = record
+  u16 : word;
+  w8 : byte;
+ end;
+
  _5byte_ = record
   u8 : byte;
   u32 : cardinal;
@@ -102,11 +107,13 @@ procedure test_param_mixed_var_u8(var x: byte;y:byte); cdecl;
 { structure parameter testing }
 procedure test_param_struct_tiny(buffer :   _1BYTE_); cdecl;
 procedure test_param_struct_small(buffer :  _3BYTE_); cdecl;
+procedure test_param_struct_small_s(buffer :  _3BYTE_S); cdecl;
 procedure test_param_struct_medium(buffer : _5BYTE_); cdecl;
 procedure test_param_struct_large(buffer :  _7BYTE_); cdecl;
 { mixed with structure parameter testing }
 procedure test_param_mixed_struct_tiny(buffer :   _1BYTE_; y :byte); cdecl;
 procedure test_param_mixed_struct_small(buffer :  _3BYTE_; y :byte); cdecl;
+procedure test_param_mixed_struct_small_s(buffer :  _3BYTE_S; y :byte); cdecl;
 procedure test_param_mixed_struct_medium(buffer : _5BYTE_; y :byte); cdecl;
 procedure test_param_mixed_struct_large(buffer :  _7BYTE_; y :byte); cdecl;
 { function result value testing }
@@ -123,6 +130,7 @@ function test_function_double : double; cdecl;
 function test_function_longdouble: extended; cdecl;
 function test_function_tiny_struct : _1byte_; cdecl;
 function test_function_small_struct : _3byte_; cdecl;
+function test_function_small_struct_s : _3byte_s; cdecl;
 function test_function_medium_struct : _5byte_; cdecl;
 function test_function_struct : _7byte_; cdecl;
 
@@ -291,6 +299,12 @@ procedure test_param_struct_small(buffer :  _3BYTE_); cdecl;
   begin
     global_u8bit:=buffer.u8;
     global_u16bit:=buffer.u16;
+end;
+
+procedure test_param_struct_small_s(buffer :  _3BYTE_S); cdecl;
+  begin
+    global_u8bit:=buffer.w8;
+    global_u16bit:=buffer.u16;
   end;
 
 procedure test_param_struct_medium(buffer : _5BYTE_); cdecl;
@@ -313,6 +327,12 @@ procedure test_param_mixed_struct_tiny(buffer :   _1BYTE_; y :byte); cdecl;
   end;
 
 procedure test_param_mixed_struct_small(buffer :  _3BYTE_; y :byte); cdecl;
+  begin
+    global_u8bit := y;
+    global_u16bit := buffer.u16;
+  end;
+
+procedure test_param_mixed_struct_small_s(buffer :  _3BYTE_S; y :byte); cdecl;
   begin
     global_u8bit := y;
     global_u16bit := buffer.u16;
@@ -398,6 +418,12 @@ function test_function_small_struct : _3byte_; cdecl;
     test_function_small_struct.u16:=RESULT_U16BIT;
   end;
 
+function test_function_small_struct_s : _3byte_s; cdecl;
+  begin
+    test_function_small_struct_s.w8:=RESULT_U8BIT;
+    test_function_small_struct_s.u16:=RESULT_U16BIT;
+  end;
+
 function test_function_medium_struct : _5byte_; cdecl;
   begin
     test_function_medium_struct.u8:=RESULT_U8BIT;
@@ -418,7 +444,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-04 15:17:45  pierre
+  Revision 1.2  2002-11-18 00:42:16  pierre
+   + records with really 3 byte size tests added
+
+  Revision 1.1  2002/11/04 15:17:45  pierre
    * compatibility with C checks improved
 
 

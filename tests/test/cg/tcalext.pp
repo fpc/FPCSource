@@ -49,6 +49,11 @@ type
   u16 : word;
  end;
 
+ _3byte_s = record
+  u16 : word;
+  w8 : byte;
+ end;
+ 
  _5byte_ = record
   u8 : byte;
   u32 : cardinal;
@@ -107,11 +112,13 @@ procedure test_param_mixed_var_u8(var x: byte;y:byte); cdecl; external;
 { structure parameter testing }
 procedure test_param_struct_tiny(buffer :   _1BYTE_); cdecl; external;
 procedure test_param_struct_small(buffer :  _3BYTE_); cdecl; external;
+procedure test_param_struct_small_s(buffer :  _3BYTE_S); cdecl; external;
 procedure test_param_struct_medium(buffer : _5BYTE_); cdecl; external;
 procedure test_param_struct_large(buffer :  _7BYTE_); cdecl; external;
 { mixed with structure parameter testing }
 procedure test_param_mixed_struct_tiny(buffer :   _1BYTE_; y :byte); cdecl; external;
 procedure test_param_mixed_struct_small(buffer :  _3BYTE_; y :byte); cdecl; external;
+procedure test_param_mixed_struct_small_s(buffer :  _3BYTE_S; y :byte); cdecl; external;
 procedure test_param_mixed_struct_medium(buffer : _5BYTE_; y :byte); cdecl; external;
 procedure test_param_mixed_struct_large(buffer :  _7BYTE_; y :byte); cdecl; external;
 { function result value testing }
@@ -128,6 +135,7 @@ function test_function_double : double; cdecl; external;
 function test_function_longdouble: extended; cdecl; external;
 function test_function_tiny_struct : _1byte_; cdecl; external;
 function test_function_small_struct : _3byte_; cdecl; external;
+function test_function_small_struct_s : _3byte_s; cdecl; external;
 function test_function_medium_struct : _5byte_; cdecl; external;
 function test_function_struct : _7byte_; cdecl; external;
 
@@ -209,6 +217,7 @@ const
 var failed : boolean;
     tinystruct : _1BYTE_;
     smallstruct : _3BYTE_;
+    smallstruct_s : _3BYTE_S;
     mediumstruct : _5BYTE_;
     bigstruct : _7BYTE_;
     pc: pchar;
@@ -514,6 +523,17 @@ begin
     failed := true;
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
+    
+  clear_values;
+  clear_globals;
+
+  smallstruct_s.u16 := RESULT_U16BIT;
+  smallstruct_s.w8 := RESULT_U8BIT;
+  test_param_struct_small_s(smallstruct_s);
+  if global_u16bit <> RESULT_U16BIT then
+    failed := true;
+  if global_u8bit <> RESULT_U8BIT then
+    failed := true;
 
   clear_values;
   clear_globals;
@@ -563,6 +583,16 @@ begin
 
   smallstruct.u16 := RESULT_u16BIT;
   test_param_mixed_struct_small(smallstruct,RESULT_U8BIT);
+  if global_u16bit <> RESULT_U16BIT then
+    failed := true;
+  if global_u8bit <> RESULT_U8BIT then
+    failed := true;
+
+  clear_values;
+  clear_globals;
+
+  smallstruct_s.u16 := RESULT_U16BIT;
+  test_param_mixed_struct_small_s(smallstruct_s,RESULT_U8BIT);
   if global_u16bit <> RESULT_U16BIT then
     failed := true;
   if global_u8bit <> RESULT_U8BIT then
@@ -713,6 +743,12 @@ begin
   if smallstruct.u16 <> RESULT_U16BIT then
     failed := true;
 
+  smallstruct_s := test_function_small_struct_s;
+  if smallstruct_s.u16 <> RESULT_U16BIT then
+    failed := true;
+  if smallstruct_s.w8 <> RESULT_U8BIT then
+    failed := true;
+
   mediumstruct := test_function_medium_struct;
   if mediumstruct.u8 <> RESULT_U8BIT then
     failed := true;
@@ -745,7 +781,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-11-17 21:46:17  peter
+  Revision 1.8  2002-11-18 00:42:16  pierre
+   + records with really 3 byte size tests added
+
+  Revision 1.7  2002/11/17 21:46:17  peter
     * fixed
 
   Revision 1.6  2002/11/04 15:17:45  pierre
