@@ -18,7 +18,7 @@ netbitutils netmgr notifymgr overlaymgr palmcompatibility palmlocale palmos \
 password pdiconst pdilib penmgr phonelookup preferences privaterecords progress \
 rect scrollbar selday seltime seltimezone seriallinkmgr serialmgr serialmgrold \
 slotdrvrlib smslib soundmgr stringmgr sysevent sysevtmgr systemmgr \
-systemresources sysutils table telephonymgr telephonymgrtypes telephonymgrui \
+systemresources sysutil table telephonymgr telephonymgrtypes telephonymgrui \
 textmgr textservicesmgr timemgr udamgr uicolor uicontrols uiresources vfsmgr window
 
 
