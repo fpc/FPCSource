@@ -180,6 +180,7 @@ implementation
 
       var
          hl,otlabel,oflabel : tasmlabel;
+{$ifdef i386}
          org_regvar_loaded_other,
          then_regvar_loaded_other,
          else_regvar_loaded_other : regvarother_booleanarray;
@@ -189,6 +190,7 @@ implementation
          org_list,
          then_list,
          else_list : taasmoutput;
+{$endif i386}
 
       begin
          location_reset(location,LOC_VOID,OS_NO);
@@ -202,7 +204,7 @@ implementation
       {$endif}
          secondpass(left);
 
-
+{$ifdef i386}
          { save regvars loaded in the beginning so that we can restore them }
          { when processing the else-block                                   }
          if cs_regalloc in aktglobalswitches then
@@ -210,13 +212,16 @@ implementation
              org_list := exprasmlist;
              exprasmlist := taasmoutput.create;
            end;
+{$endif i386}
          maketojumpbool(exprasmlist,left,lr_dont_load_regvars);
 
+{$ifdef i386}
          if cs_regalloc in aktglobalswitches then
            begin
              org_regvar_loaded_int := rg.regvar_loaded_int;
              org_regvar_loaded_other := rg.regvar_loaded_other;
            end;
+{$endif i386}
 
          if assigned(right) then
            begin
@@ -227,6 +232,7 @@ implementation
               secondpass(right);
            end;
 
+{$ifdef i386}
          { save current asmlist (previous instructions + then-block) and }
          { loaded regvar state and create new clean ones                 }
          if cs_regalloc in aktglobalswitches then
@@ -238,6 +244,7 @@ implementation
              then_list := exprasmlist;
              exprasmlist := taasmoutput.create;
            end;
+{$endif i386}
 
          if assigned(t1) then
            begin
@@ -245,10 +252,15 @@ implementation
                 begin
                    objectlibrary.getlabel(hl);
                    { do go back to if line !! }
+{$ifdef i386}
                    if not(cs_regalloc in aktglobalswitches) then
+{$endif i386}
                      aktfilepos:=exprasmList.getlasttaifilepos^
+{$ifdef i386}
                    else
-                     aktfilepos:=then_list.getlasttaifilepos^;
+                     aktfilepos:=then_list.getlasttaifilepos^
+{$endif i386}
+                   ;
                    cg.a_jmp_always(exprasmlist,hl);
                 end;
               cg.a_label(exprasmlist,falselabel);
@@ -256,6 +268,7 @@ implementation
               rg.cleartempgen;
             {$endif}
               secondpass(t1);
+{$ifdef i386}
               { save current asmlist (previous instructions + else-block) }
               { and loaded regvar state and create a new clean list       }
               if cs_regalloc in aktglobalswitches then
@@ -265,11 +278,13 @@ implementation
                   else_list := exprasmlist;
                   exprasmlist := taasmoutput.create;
                 end;
+{$endif i386}
               if assigned(right) then
                 cg.a_label(exprasmlist,hl);
            end
          else
            begin
+{$ifdef i386}
               if cs_regalloc in aktglobalswitches then
                 begin
                   else_regvar_loaded_int := rg.regvar_loaded_int;
@@ -277,6 +292,7 @@ implementation
                   else_list := exprasmlist;
                   exprasmlist := taasmoutput.create;
                 end;
+{$endif i386}
               cg.a_label(exprasmlist,falselabel);
            end;
          if not(assigned(right)) then
@@ -284,6 +300,7 @@ implementation
               cg.a_label(exprasmlist,truelabel);
            end;
 
+{$ifdef i386}
          if cs_regalloc in aktglobalswitches then
            begin
              { add loads of regvars at the end of the then- and else-blocks  }
@@ -316,6 +333,7 @@ implementation
              exprasmlist.free;
              exprasmlist := org_list;
            end;
+{$endif i386}
          truelabel:=otlabel;
          falselabel:=oflabel;
       end;
@@ -1403,7 +1421,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2003-05-26 21:17:17  peter
+  Revision 1.65  2003-05-30 18:55:21  jonas
+    * fixed several regvar related bugs for non-i386. make cycle with -Or now
+      works for ppc
+
+  Revision 1.64  2003/05/26 21:17:17  peter
     * procinlinenode removed
     * aktexit2label removed, fast exit removed
     + tcallnode.inlined_pass_2 added

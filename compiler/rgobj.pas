@@ -1109,11 +1109,13 @@ unit rgobj;
     var regi:Tsuperregister;
 
     begin
+{$ifdef i386}
       for regi:=firstsaveintreg to lastsaveintreg do
         begin
           if (regi in s) then
             inc(reg_pushes_int[regi],t_times*2);
         end;
+{$endif i386}
     end;
 
     procedure trgobj.incrementotherregisterpushed(const s:Tregisterset);
@@ -1122,6 +1124,7 @@ unit rgobj;
          regi : Toldregister;
 
       begin
+{$ifdef i386}
          if firstsavefpureg <> R_NO then
            for regi:=firstsavefpureg to lastsavefpureg do
              begin
@@ -1134,6 +1137,7 @@ unit rgobj;
                 if (regi in s) then
                   inc(reg_pushes_other[regi],t_times*2);
              end;
+{$endif i386}
       end;
 
 
@@ -1169,9 +1173,12 @@ unit rgobj;
     {$ifndef newra}
       dec(countunusedregsint);
     {$endif}
-      exclude(usableregsint,reg shl 8);
-      exclude(unusedregsint,reg shl 8);
+      exclude(usableregsint,reg);
+      exclude(unusedregsint,reg);
       include(is_reg_var_int,reg);
+{$ifndef i386}
+      include(usedintbyproc,reg);
+{$endif not i386}
     end;
 
     procedure trgobj.makeregvarother(reg: tregister);
@@ -1186,6 +1193,9 @@ unit rgobj;
              dec(countunusedregsfpu);
              exclude(usableregsfpu,reg.enum);
              exclude(unusedregsfpu,reg.enum);
+{$ifndef i386}
+             include(usedbyproc,reg.enum);
+{$endif not i386}
           end
         else if reg.enum in mmregs then
           begin
@@ -1193,6 +1203,9 @@ unit rgobj;
              dec(countunusedregsmm);
              exclude(usableregsmm,reg.enum);
              exclude(unusedregsmm,reg.enum);
+{$ifndef i386}
+             include(usedbyproc,reg.enum);
+{$endif not i386}
           end;
         is_reg_var_other[reg.enum]:=true;
       end;
@@ -2038,7 +2051,11 @@ end.
 
 {
   $Log$
-  Revision 1.45  2003-05-30 12:36:13  jonas
+  Revision 1.46  2003-05-30 18:55:21  jonas
+    * fixed several regvar related bugs for non-i386. make cycle with -Or now
+      works for ppc
+
+  Revision 1.45  2003/05/30 12:36:13  jonas
     * use as little different registers on the ppc until newra is released,
       since every used register must be saved
 

@@ -40,10 +40,12 @@ interface
     procedure load_regvar_reg(asml: TAAsmoutput; reg: tregister);
     procedure load_all_regvars(asml: TAAsmoutput);
 
+{$ifdef i386}
     procedure sync_regvars_other(list1, list2: taasmoutput; const regvarsloaded1,
       regvarsloaded2: regvarother_booleanarray);
     procedure sync_regvars_int(list1, list2: taasmoutput; const regvarsloaded1,
       regvarsloaded2: Tsupregset);
+{$endif i386}
 
 implementation
 
@@ -154,7 +156,7 @@ implementation
           new(regvarinfo);
           fillchar(regvarinfo^,sizeof(regvarinfo^),0);
           current_procdef.regvarinfo := regvarinfo;
-          if (p.registers32<4) then
+          if (p.registers32<maxvarregs) then
             begin
               parasym:=false;
               symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}searchregvars,@parasym);
@@ -197,8 +199,10 @@ implementation
 
                       regvarinfo^.regvars[i].reg.enum:=R_INTREGISTER;
                       regvarinfo^.regvars[i].reg.number:=(varregs[i] shl 8) or cgsize2subreg(siz);
+{$ifdef i386}
                       { procedure uses this register }
                       include(rg.usedintinproc,varregs[i]);
+{$endif i386}
                     end
                   else
                     begin
@@ -253,6 +257,7 @@ implementation
                        r.enum:=R_ST0;
                        regvarinfo^.fpuregvars[i].reg:=trgcpu(rg).correct_fpuregister(r,i);
 {$else i386}
+                       regvarinfo^.fpuregvars[i].reg.enum:=fpuvarregs[i];
                        rg.makeregvarother(regvarinfo^.fpuregvars[i].reg);
 {$endif i386}
                      end;
@@ -271,6 +276,7 @@ implementation
       regvarinfo: pregvarinfo;
       vsym: tvarsym;
     begin
+{$ifdef i386}
       regvarinfo := pregvarinfo(current_procdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
@@ -321,6 +327,7 @@ implementation
                   end;
               end;
         end;
+{$endif i386}
     end;
 
     procedure load_regvar(asml: TAAsmoutput; vsym: tvarsym);
@@ -330,6 +337,9 @@ implementation
       r,
       reg : tregister;
     begin
+{$ifndef i386}
+      exit;
+{$endif i386}
       reg:=vsym.reg;
       if reg.enum=R_INTREGISTER then
         begin
@@ -472,7 +482,7 @@ implementation
         end;
     end;
 
-
+{$ifdef i386}
     procedure sync_regvars_other(list1, list2: taasmoutput; const regvarsloaded1,
       regvarsloaded2: regvarother_booleanarray);
     var
@@ -510,6 +520,7 @@ implementation
               load_regvar_reg(list1,r);
         end;
     end;
+{$endif i386}
 
 
     procedure cleanup_regvars(asml: TAAsmoutput);
@@ -544,7 +555,7 @@ implementation
                     end
                   else
                     begin
-                      reg.number:=(r.number and not $ff) or cgsize2subreg(OS_INT);
+                      reg.number:=(reg.number and not $ff) or cgsize2subreg(OS_INT);
                       r:=reg;
                       convert_register_to_enum(r);
                       if r.enum>lastreg then
@@ -561,7 +572,11 @@ end.
 
 {
   $Log$
-  Revision 1.51  2003-05-23 14:27:35  peter
+  Revision 1.52  2003-05-30 18:55:21  jonas
+    * fixed several regvar related bugs for non-i386. make cycle with -Or now
+      works for ppc
+
+  Revision 1.51  2003/05/23 14:27:35  peter
     * remove some unit dependencies
     * current_procinfo changes to store more info
 
