@@ -19,20 +19,20 @@
 {****************************************************************}
 program tcall;
 
-{$mode objfpc}
-uses sysutils;
+{$ifdef fpc}{$mode objfpc}{$endif}
+uses SysUtils;
 
 {
 class:
   class constructor
-   1a  - success            
-   1b  - failure            
+   1a  - success
+   1b  - failure
   2 class destructor
   3 class method
   4 virtual method
   5 abstract method
   6 static method
-object:  
+object:
   object constructor
   7a  - success
   7b  - failure
@@ -43,15 +43,15 @@ standard:
   11 function
   12 procedure
   13 procedure variable
-  
+
 modifiers:
-  no parameters                    1a  1b      
+  no parameters                    1a  1b
   parameters
      - const                       1a
      - value                       1a
      - variable                    1a
-     - mixed                       1a 
-     
+     - mixed                       1a
+
   explicit self parameter
   operator directive
   assembler directive
@@ -67,7 +67,7 @@ modifiers:
 
 const
   GLOBAL_RESULT = $55;
-  
+
 var
  globalresult : integer;
  failed : boolean;
@@ -81,13 +81,14 @@ type
     constructor create_const(const l:longint; const b: byte);
     constructor create_mixed(var a: byte; b: byte; var c: byte; const d: byte);
   end;
-  
+
   tclass2 = class
     constructor create_none;               { class constructor }
+  public
     b: array[1..20000000] of byte;
   end;
-  
-  
+
+
   constructor tclass1.create_none;
    begin
      Inherited create;
@@ -106,27 +107,27 @@ type
      Inherited create;
       b:=GLOBAL_RESULT;
     end;
-    
+
   constructor tclass1.create_const(const l:longint; const b: byte);
     begin
      Inherited create;
       globalresult := GLOBAL_RESULT;
     end;
-    
+
   constructor tclass1.create_mixed(var a: byte; b: byte; var c: byte; const d: byte);
     begin
      Inherited create;
       globalresult := GLOBAL_RESULT;
     end;
 
-  
+
 
   constructor tclass2.create_none;
    begin
      Inherited create;
      globalresult:=GLOBAL_RESULT;
    end;
-  
+
 
 
 procedure fail;
@@ -152,66 +153,71 @@ var
  l:longint;
 Begin
   { reset test variables }
-  globalresult := 0; 
+  globalresult := 0;
   failed := false;
 
+{$ifdef fpc}
   { required to do correct testing...}
-  heaperror := @myheaperror;  
-  
+  heaperror := @myheaperror;
+{$endif fpc}
+
   write('class constructor testing...');
-  { secondcalln : class constructor success } 
-  class_none:=tclass1.create_none; 
+  { secondcalln : class constructor success }
+  class_none:=tclass1.create_none;
   if globalresult <> GLOBAL_RESULT then
     failed:= true;
 
-  globalresult := 0; 
-  class_value:=tclass1.create_value(0,GLOBAL_RESULT); 
+  globalresult := 0;
+  class_value:=tclass1.create_value(0,GLOBAL_RESULT);
   if globalresult <> GLOBAL_RESULT then
     failed:= true;
 
-  globalresult := 0; 
+  globalresult := 0;
   b:=0;
-  class_var:=tclass1.create_var(l,b); 
+  class_var:=tclass1.create_var(l,b);
   globalresult:=b;
   if globalresult <> GLOBAL_RESULT then
     failed:= true;
 
 
-  globalresult := 0; 
+  globalresult := 0;
   b:=GLOBAL_RESULT;
-  class_const:=tclass1.create_const(l,b); 
+  class_const:=tclass1.create_const(l,b);
   if globalresult <> GLOBAL_RESULT then
     failed:= true;
 
-  globalresult := 0; 
+  globalresult := 0;
   b:=0;
   a:=0;
   c:=0;
   d:=GLOBAL_RESULT;
-  class_mixed:=tclass1.create_mixed(a,b,c,d); 
+  class_mixed:=tclass1.create_mixed(a,b,c,d);
   if globalresult <> GLOBAL_RESULT then
     failed:= true;
 
-  globalresult := 0; 
+  globalresult := 0;
   { secondcalln : class constructor failure }
-  try 
-    class_none_fail:=tclass2.create_none; 
+  try
+    class_none_fail:=tclass2.create_none;
    except
    on EOutOfMemory do globalresult:=GLOBAL_RESULT;
-   end;   
+   end;
   if globalresult <> GLOBAL_RESULT then
     failed:= true;
-    
+
   if failed then
     fail
   else
     WriteLn('Passed!');
-      
+
 end.
 
 {
  $Log$
- Revision 1.1  2002-03-30 23:19:16  carl
+ Revision 1.2  2002-04-02 17:05:17  peter
+   * fix for non-fpc compilers
+
+ Revision 1.1  2002/03/30 23:19:16  carl
  + secondcalln() : unfinished
 
 }
