@@ -29,6 +29,7 @@ uses cobjects,files;
 
 Type
     TLinker = Object
+       Glibc2,
        LinkToC,                           { Should we link to the C libs? }
        Strip             : Boolean;       { Strip symbols ? }
        ObjectFiles,
@@ -92,12 +93,16 @@ begin
   SharedLibFiles.Doubles:=False;
   StaticLibFiles.Doubles:=False;
   LinkToC:=False;
+  Glibc2:=false;
   Strip:=false;
   LinkOptions:='';
 {$ifdef linux}
   { first try glibc2 }
   DynamicLinker:='/lib/ld-linux.so.2';
-  if not FileExists(DynamicLinker) then
+  if FileExists(DynamicLinker) then
+   Glibc2:=true
+  else
+
    DynamicLinker:='/lib/ld-linux.so.1';
   LibrarySearchPath:='/lib;/usr/lib';
 {$else}
@@ -274,7 +279,8 @@ begin
                     if cs_profile in aktmoduleswitches then
                      begin
                        prtobj:='gprt0';
-                       AddSharedLibrary('gmon');
+                       if not glibc2 then
+                        AddSharedLibrary('gmon');
                        AddSharedLibrary('c');
                        linklibc:=true;
                      end
@@ -330,12 +336,8 @@ begin
    WriteRes(FindObjectFile(prtobj));
   if linklibc then
    begin
-     s2:=search('crti.o',librarysearchpath,found);
-     if s2<>'' then
-      begin
-        WriteRes(s2+'crti.o');
-        WriteRes(s2+'crtbegin.o');
-      end;
+     WriteRes(search('crti.o',librarysearchpath,found)+'crti.o');
+     WriteRes(search('crtbegin.o',librarysearchpath,found)+'crtbegin.o');
    end;
 
   while not ObjectFiles.Empty do
@@ -346,11 +348,8 @@ begin
    end;
   if linklibc then
    begin
-     if s2<>'' then
-      begin
-        WriteRes(s2+'crtend.o');
-        WriteRes(s2+'crtn.o');
-      end;
+     WriteRes(search('crtend.o',librarysearchpath,found)+'crtend.o');
+     WriteRes(search('crtn.o',librarysearchpath,found)+'crtn.o');
    end;
 
   { Write sharedlibraries like -l<lib> }
@@ -489,7 +488,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  1998-08-31 12:26:26  peter
+  Revision 1.22  1998-09-01 09:01:00  peter
+    + glibc2 support
+
+  Revision 1.21  1998/08/31 12:26:26  peter
     * m68k and palmos updates from surebugfixes
 
   Revision 1.20  1998/08/19 10:06:14  peter
