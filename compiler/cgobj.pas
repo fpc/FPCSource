@@ -365,6 +365,8 @@ unit cgobj;
         procedure a_op64_const_loc(list : taasmoutput;op:TOpCG;value : qword;const l: tlocation);virtual;abstract;
         procedure a_op64_reg_loc(list : taasmoutput;op:TOpCG;reg : tregister64;const l : tlocation);virtual;abstract;
         procedure a_op64_loc_reg(list : taasmoutput;op:TOpCG;const l : tlocation;reg64 : tregister64);virtual;abstract;
+        procedure a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);virtual;
+        procedure a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);virtual;
 
         procedure a_param64_reg(list : taasmoutput;reg64 : tregister64;const loc : tparalocation);virtual;abstract;
         procedure a_param64_const(list : taasmoutput;value : qword;const loc : tparalocation);virtual;abstract;
@@ -1373,13 +1375,32 @@ unit cgobj;
       begin
       end;
 
+
+    procedure tcg64.a_op64_const_reg_reg(list: taasmoutput;op:TOpCG;value : qword;regsrc,regdst : tregister64);
+      begin
+        a_load64_reg_reg(list,regsrc,regdst);
+        a_op64_const_reg(list,op,value,regdst);
+      end;
+
+
+    procedure tcg64.a_op64_reg_reg_reg(list: taasmoutput;op:TOpCG;regsrc1,regsrc2,regdst : tregister64);
+      begin
+        a_load64_reg_reg(list,regsrc2,regdst);
+        a_op64_reg_reg(list,op,regsrc1,regdst);
+      end;
+
+
 finalization
   cg.free;
   cg64.free;
 end.
 {
   $Log$
-  Revision 1.38  2002-07-27 19:53:51  jonas
+  Revision 1.39  2002-07-28 15:56:00  jonas
+    + tcg64.a_op64_const_reg_reg() and tcg64.a_op64_reg_reg_reg() methods +
+      generic implementation
+
+  Revision 1.38  2002/07/27 19:53:51  jonas
     + generic implementation of tcg.g_flags2ref()
     * tcg.flags2xxx() now also needs a size parameter
 
