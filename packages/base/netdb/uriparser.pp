@@ -2,8 +2,9 @@
     $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
+    Original author: Sebastian Guenther
 
-    Unit to parse complete URI in its parts.
+    Unit to parse complete URI in its parts or to reassemble an URI
     
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -219,8 +220,11 @@ begin
 
   // Extract the hostname
 
-  if (Length(s) > 2) and (s[1] = '/') and (s[2] = '/') then
+  if ((Length(s) > 2) and (s[1] = '/') and (s[2] = '/')) or
+    ((Length(s) > 1) and (s[1] <> '/')) then
   begin
+    if s[1] <> '/' then
+      s := '//' + s;
     for i := Length(s) downto 1 do
       if s[i] in ['@', '/'] then
       begin
