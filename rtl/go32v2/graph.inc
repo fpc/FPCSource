@@ -2129,7 +2129,7 @@ const CrtAddress: word = 0;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
              mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
-             mode.hline := {$ifdef fpc}@{$endif}HLineVESA256;
+             mode.vline := {$ifdef fpc}@{$endif}VLineVESA256;
              mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLineVESA256;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
@@ -2513,7 +2513,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.8  1999-12-25 08:25:20  jonas
+Revision 1.9  1999-12-25 22:26:10  jonas
+  * vlinevesa256 wasn't used yet for 640x480x256
+
+Revision 1.8  1999/12/25 08:25:20  jonas
   * screen dimensions for g640x480x32k were set to 640x400, changed
 
 Revision 1.7  1999/12/12 13:34:19  jonas
