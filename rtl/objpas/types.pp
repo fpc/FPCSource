@@ -17,6 +17,11 @@ unit types;
 
   interface
 
+{$ifdef Win32}
+    uses
+       Windows;
+{$endif Win32}
+
 {$ifndef ver1_0}
     const
        RT_RCDATA = PChar(10);
@@ -30,18 +35,26 @@ unit types;
        PDouble = System.PDouble;
        PByte = System.PByte;
 
+{$ifdef Win32}
+       TPoint = Windows.TPoint;
+{$else}
        TPoint = packed record
           X : Longint;
           Y : Longint;
        end;
+{$endif}
        PPoint = ^TPoint;
        tagPOINT = TPoint;
 
+{$ifdef Win32}
+       TRect = Windows.TRect;
+{$else}
        TRect = packed record
           case Integer of
              0: (Left,Top,Right,Bottom : Longint);
              1: (TopLeft,BottomRight : TPoint);
        end;
+{$endif}
        PRect = ^TRect;
 
        TSize = packed record
@@ -319,7 +332,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.2  2002-07-27 07:28:10  florian
+  Revision 1.3  2003-01-02 22:22:12  peter
+    * reuse Windows types to fix incompatible parameters
+
+  Revision 1.2  2002/07/27 07:28:10  florian
     * fixed errror on non win32 targets with 1.0.x when doing a make cycle
 
   Revision 1.1  2002/07/23 20:39:54  florian
