@@ -147,7 +147,7 @@ implementation
          lastlabel   : plabel;
          pc          : pchar;
          same_string : boolean;
-         l,
+         l,j,
          i,mylength  : longint;
       begin
          lastlabel:=nil;
@@ -176,26 +176,44 @@ implementation
                            (pai_string(hp1)^.len=mylength) then
                           begin
                              same_string:=true;
-                             for i:=0 to p^.length do
-                               if pai_string(hp1)^.str[i]<>p^.value_str[i] then
-                                 begin
-                                    same_string:=false;
-                                    break;
-                                 end;
+                             { if shortstring then check the length byte first and
+                               set the start index to 1 }
+                             if is_shortstring(p^.resulttype) then
+                              begin
+                                if p^.length<>ord(pai_string(hp1)^.str[0]) then
+                                 same_string:=false;
+                                j:=1;
+                              end
+                             else
+                              j:=0;
+                             { don't check if the length byte was already wrong }
                              if same_string then
-                               begin
-                                  { found! }
-                                  p^.lab_str:=lastlabel;
-                                  if (p^.stringtype in [st_ansistring,st_widestring]) then
+                              begin
+                                for i:=0 to p^.length do
+                                 begin
+                                   if pai_string(hp1)^.str[j]<>p^.value_str[i] then
                                     begin
-                                       getdatalabel(l2);
-                                       consts^.concat(new(pai_label,init(l2)));
-                                       consts^.concat(new(pai_const_symbol,init(lab2str(p^.lab_str))));
-                                       { return the offset of the real string }
-                                       p^.lab_str:=l2;
+                                      same_string:=false;
+                                      break;
                                     end;
-                                  break;
-                               end;
+                                   inc(j);
+                                 end;
+                              end;
+                             { found ? }
+                             if same_string then
+                              begin
+                                p^.lab_str:=lastlabel;
+                                { create a new entry for ansistrings, but reuse the data }
+                                if (p^.stringtype in [st_ansistring,st_widestring]) then
+                                 begin
+                                   getdatalabel(l2);
+                                   consts^.concat(new(pai_label,init(l2)));
+                                   consts^.concat(new(pai_const_symbol,init(lab2str(p^.lab_str))));
+                                   { return the offset of the real string }
+                                   p^.lab_str:=l2;
+                                 end;
+                                break;
+                              end;
                           end;
                         lastlabel:=nil;
                      end;
@@ -384,7 +402,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1999-02-25 21:02:25  peter
+  Revision 1.30  1999-03-31 13:51:49  peter
+    * shortstring reuse fixed
+
+  Revision 1.29  1999/02/25 21:02:25  peter
     * ag386bin updates
     + coff writer
 
