@@ -102,6 +102,8 @@ uses
 
 implementation
 
+uses cutils,rgobj;
+
 {*****************************************************************************
                                  taicpu Constructors
 *****************************************************************************}
@@ -430,8 +432,274 @@ implementation
                              r:Tsupregset; 
                              var unusedregsint:Tsupregset; 
                               const spilltemplist:Tspill_temp_list): boolean;
+
+      function get_insert_pos(p:Tai;huntfor1,huntfor2,huntfor3:Tsuperregister):Tai;
+
+      var back:Tsupregset;
+
       begin
-        internalerror(211);
+        back:=unusedregsint;
+        get_insert_pos:=p;
+        while (p<>nil) and (p.typ=ait_regalloc) do
+          begin
+            {Rewind the register allocation.}
+            if Tai_regalloc(p).allocation then
+              include(unusedregsint,Tai_regalloc(p).reg.number shr 8)
+            else
+              begin
+                exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8);
+                if Tai_regalloc(p).reg.number shr 8=huntfor1 then
+                  begin
+                    get_insert_pos:=Tai(p.previous);
+                    back:=unusedregsint;
+                  end;
+                if Tai_regalloc(p).reg.number shr 8=huntfor2 then
+                  begin
+                    get_insert_pos:=Tai(p.previous);
+                    back:=unusedregsint;
+                  end;
+                if Tai_regalloc(p).reg.number shr 8=huntfor3 then
+                  begin
+                    get_insert_pos:=Tai(p.previous);
+                    back:=unusedregsint;
+                  end;
+              end;
+            p:=Tai(p.previous);
+          end;
+        unusedregsint:=back;
+      end;
+
+      procedure forward_allocation(p:Tai);
+
+      begin
+        {Forward the register allocation again.}
+        while (p<>self) do
+          begin
+            if p.typ<>ait_regalloc then
+              internalerror(200305311);
+            if Tai_regalloc(p).allocation then
+              exclude(unusedregsint,Tai_regalloc(p).reg.number shr 8)
+            else
+              include(unusedregsint,Tai_regalloc(p).reg.number shr 8);
+            p:=Tai(p.next);
+          end;
+      end;
+
+
+      procedure decode_loadstore(op: tasmop; var counterpart: tasmop; wasload: boolean);
+     
+        begin
+          wasload := true;
+          case op of
+            A_LBZ:
+              begin
+                counterpart := A_STB;
+              end;
+            A_LHZ,A_LHA:
+              begin
+                counterpart := A_STH;
+              end;
+            A_LWZ:
+              begin
+                counterpart := A_STW;
+              end;
+            A_STB:
+              begin
+                counterpart := A_LBZ;
+                wasload := false;
+              end;
+            A_STH:
+              begin
+                counterpart := A_LHZ;
+                wasload := false;
+              end;
+            A_STW:
+              begin
+                counterpart := A_LWZ;
+                wasload := false;
+              end;
+            else
+              internalerror(2003070602);
+          end;
+       end;
+
+
+    var i:byte;
+        supreg, reg1, reg2, reg3: Tsuperregister;
+        helpreg:Tregister;
+        helpins:Taicpu;
+        op:Tasmop;
+        hopsize:Topsize;
+        pos:Tai;
+        wasload: boolean;
+
+      begin
+        spill_registers:=false;
+        // there are no instruction with only one operand and oper[0].typ is
+        // always top_reg
+        if (oper[1].typ=top_ref) then
+          begin
+            // load/store
+            decode_loadstore(opcode,op,wasload);
+
+            { the register that's being stored/loaded }
+            supreg:=oper[0].reg.number shr 8;
+            if supreg in r then
+              begin
+                // Example:
+                //   l?? r20d, 8(r1)   ; r20d must be spilled into -60(r1)
+                //
+                //   Change into:
+                //
+                //   l?? r21d, 8(r1)
+                //   st? r21d, -60(r1)
+                //
+                // And:
+                //
+                //   st? r20d, 8(r1)   ; r20d must be spilled into -60(r1)
+                //
+                //   Change into:
+                //
+                //   l?? r21d, -60(r1)
+                //   st? r21d, 8(r1)
+  
+                pos := get_insert_pos(Tai(previous),oper[0].reg.number shr 8,
+                                      oper[1].ref^.base.number shr 8,oper[1].ref^.index.number shr 8);
+                rgget(list,pos,0,helpreg);
+                spill_registers := true;
+                if wasload then
+                  begin
+                    helpins := taicpu.op_reg_ref(A_LWZ,helpreg,oper[1].ref^);
+                    loadref(1,spilltemplist[supreg]);
+                    opcode := op;
+                  end
+                else
+                  helpins := taicpu.op_reg_ref(op,helpreg,spilltemplist[supreg]);
+                if pos=nil then
+                  list.insertafter(helpins,list.first)
+                else
+                  list.insertafter(helpins,pos.next);
+                loadreg(0,helpreg);
+                rgunget(list,helpins,helpreg);
+                forward_allocation(tai(helpins.next));
+              end;
+
+            { now the registers used in the reference }
+            { a) base                                 }
+            supreg := oper[1].ref^.base.number shr 8;
+            if supreg in r then
+              begin
+                if wasload then
+                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.index.number shr 8,oper[0].reg.number shr 8,0)
+                else
+                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.index.number shr 8,0,0);
+                rgget(list,pos,subreg,helpreg);
+                spill_registers:=true;
+                helpins:=Taicpu.op_reg_ref(A_LWZ,helpreg,spilltemplist[supreg]);
+                if pos=nil then
+                  list.insertafter(helpins,list.first)
+                else
+                  list.insertafter(helpins,pos.next);
+                oper[1].ref^.base:=helpreg;
+                rgunget(list,helpins,helpreg);
+                forward_allocation(Tai(helpins.next));
+              end;
+
+            { b) index }
+            supreg := oper[1].ref^.index.number shr 8;
+            if supreg in r then
+              begin
+                if wasload then
+                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.base.number shr 8,oper[0].reg.number shr 8,0)
+                else
+                  pos:=get_insert_pos(Tai(previous),oper[1].ref^.base.number shr 8,0,0);
+                rgget(list,pos,subreg,helpreg);
+                spill_registers:=true;
+                helpins:=Taicpu.op_reg_ref(A_LWZ,helpreg,spilltemplist[supreg]);
+                if pos=nil then
+                  list.insertafter(helpins,list.first)
+                else
+                  list.insertafter(helpins,pos.next);
+                oper[1].ref^.index:=helpreg;
+                rgunget(list,helpins,helpreg);
+                forward_allocation(Tai(helpins.next));
+              end;
+            { load/store is done }
+            exit;
+          end;
+
+        { all other instructions the compiler generates are the same (I hope):   }
+        { operand 0 is a register and is the destination, the others are sources }
+        { and can be either registers or constants                               }
+        if oper[0].typ <> top_reg then
+          internalerror(2003070603);
+
+        reg1 := oper[0].reg.number shr 8;
+        if oper[1].typ = top_reg then
+          reg2 := oper[1].reg.number shr 8
+        else
+          reg2 := 0;
+        if (ops >= 3) and
+           (oper[2].typ = top_reg) then
+          reg3 := oper[2].reg.number shr 8
+        else
+          reg3 := 0;
+
+        supreg:=reg1;
+        if supreg in r then
+          begin
+            // Example:
+            //   add r20d, r21d, r22d   ; r20d must be spilled into -60(r1)
+            //
+            //   Change into:
+            //
+            //   lwz r23d, -60(r1)
+            //   add r23d, r21d, r22d
+            //   stw r23d, -60(r1)
+
+            pos := get_insert_pos(Tai(previous),reg1,reg2,reg3);
+            rgget(list,pos,0,helpreg);
+            spill_registers := true;
+            helpins := taicpu.op_reg_ref(A_STW,helpreg,spilltemplist[supreg]);
+            list.insertafter(helpins,self)
+            helpins := taicpu.op_reg_ref(A_LWZ,helpreg,spilltemplist[supreg]);
+            if pos=nil then
+              list.insertafter(helpins,list.first)
+            else
+              list.insertafter(helpins,pos.next);
+            loadreg(0,helpreg);
+            rgunget(list,helpins,helpreg);
+            forward_allocation(tai(helpins.next));
+          end;
+
+        for i := 1 to 2 do
+          if (oper[i].typ = top_reg) then
+            begin
+              supreg:=oper[i].reg.number;
+              if supreg in r then
+                begin
+                  // Example:
+                  //   add r20d, r21d, r22d   ; r20d must be spilled into -60(r1)
+                  //
+                  //   Change into:
+                  //
+                  //   lwz r23d, -60(r1)
+                  //   add r23d, r21d, r22d
+                  //   stw r23d, -60(r1)
+      
+                  pos := get_insert_pos(Tai(previous),reg1,reg2,reg3);
+                  rgget(list,pos,0,helpreg);
+                  spill_registers := true;
+                  helpins := taicpu.op_reg_ref(A_LWZ,helpreg,spilltemplist[supreg]);
+                  if pos=nil then
+                    list.insertafter(helpins,list.first)
+                  else
+                    list.insertafter(helpins,pos.next);
+                  loadreg(i,helpreg);
+                  rgunget(list,helpins,helpreg);
+                  forward_allocation(tai(helpins.next));
+                end;
+            end;
       end;
 
 
@@ -448,7 +716,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2003-06-14 22:32:43  jonas
+  Revision 1.9  2003-07-06 15:29:06  jonas
+    + first spill_registers implementation, most likely still very buggy
+
+  Revision 1.8  2003/06/14 22:32:43  jonas
     * ppc compiles with -dnewra, haven't tried to compile anything with it
       yet though
 
