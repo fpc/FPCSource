@@ -81,17 +81,13 @@ function sys_sysctlnametomib (Name: pchar; mibp:plongint;sizep:psize_t):cint;
 
 Implementation
 
-{$ifdef VER1_0}
-Uses Linux;	// yuck, I know.
-{$else}
-Uses Unix;  {Syscall functions}
-{$endif}
-
 {temporarily}
-
 {$ifdef FreeBSD}
 CONST  syscall_nr___sysctl                    = 202;
 {$endif}
+
+{$I sysnr.inc}
+{$I syscallh.inc}
 
 function sys_sysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; newp:pointer;newlen:size_t):cint;
 
@@ -142,7 +138,10 @@ end.
 
 { 
   $Log$
-  Revision 1.1  2002-08-08 11:39:30  marco
+  Revision 1.2  2002-08-19 12:29:11  marco
+   * First working POSIX *BSD system unit.
+
+  Revision 1.1  2002/08/08 11:39:30  marco
    * Initial versions, to allow support for uname in posix.pp
 
 

@@ -41,7 +41,7 @@ procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
          mov $-1,%eax
    end;
 
-function Do_SysCall(sysnr:LONGINT):longint; assembler;
+function Do_SysCall(sysnr:LONGINT):longint; assembler; [public,alias:'FPC_DOSYS0'];
 
 asm
   movl  sysnr,%eax
@@ -53,7 +53,7 @@ asm
 {$endif}
 end;
 
-function Do_SysCall(sysnr,param1:longint):longint; assembler;
+function Do_SysCall(sysnr,param1:longint):longint; assembler;[public,alias:'FPC_DOSYS1'];
 
  asm
   movl  sysnr,%eax
@@ -67,7 +67,7 @@ function Do_SysCall(sysnr,param1:longint):longint; assembler;
 {$endif}
  end;
 
-function Do_SysCall(sysnr,param1:integer):longint; assembler;
+function Do_SysCall(sysnr,param1:integer):longint; assembler;[public,alias:'FPC_DOSYS1w'];
 
  asm
   movl  sysnr,%eax
@@ -81,7 +81,7 @@ function Do_SysCall(sysnr,param1:integer):longint; assembler;
 {$endif}
  end;
 
-function Do_SysCall(sysnr,param1,param2:LONGINT):longint; assembler;
+function Do_SysCall(sysnr,param1,param2:LONGINT):longint; assembler; [public,alias:'FPC_DOSYS2'];
 
  asm
    movl  sysnr,%eax
@@ -96,7 +96,7 @@ function Do_SysCall(sysnr,param1,param2:LONGINT):longint; assembler;
 {$endif}
  end;
 
-function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint; assembler;
+function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint; assembler;[public,alias:'FPC_DOSYS3'];
 
  asm
    movl  sysnr,%eax
@@ -112,7 +112,7 @@ function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint; assembler;
 {$endif}
 end;
 
-function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint; assembler;
+function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint; assembler;[public,alias:'FPC_DOSYS4'];
 
 asm
    movl  sysnr,%eax
@@ -130,7 +130,7 @@ asm
 end;
 
 
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;  assembler;
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;  assembler;[public,alias:'FPC_DOSYS5'];
 
  asm
    movl  sysnr,%eax
@@ -148,7 +148,7 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;  
 {$endif}
 end;
 
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):longint;  assembler;
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):longint;  assembler;[public,alias:'FPC_DOSYS6'];
 
 asm
    movl  sysnr,%eax
@@ -167,7 +167,7 @@ asm
 {$endif}
 end;
 
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;  assembler;
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;  assembler; [public,alias:'FPC_DOSYS7'];
 
 asm
    movl  sysnr,%eax

@@ -135,11 +135,14 @@ CONST
     {                               SIGNALS                                   }
     {*************************************************************************}
     
-    {$i signal2.inc}
+{$i signal.inc}
 
 {
   $Log$
-  Revision 1.1  2002-08-03 19:34:19  marco
+  Revision 1.2  2002-08-19 12:29:11  marco
+   * First working POSIX *BSD system unit.
+
+  Revision 1.1  2002/08/03 19:34:19  marco
    * Initial *BSD versions. Seems that OpenBSD doesn't need much change,
       NetBSD may need some fixes to stat record and ftruncate and lseek.
       It is all close together, and it should be doable to have just one copy
