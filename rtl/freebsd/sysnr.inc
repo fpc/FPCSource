@@ -113,9 +113,6 @@ const
  syscall_nr_uname                       =164;
 
  syscall_nr_rtprio                      =166;
- syscall_nr_semsys                      =169;
- syscall_nr_msgsys                      =170;
- syscall_nr_shmsys                      =171;
  syscall_nr_pread                       =173;
  syscall_nr_pwrite                      =174;
  syscall_nr_ntp_adjtime                 =176;
@@ -233,6 +230,9 @@ syscall_nr_getdirentries                =196;
 }
 
 {More or less checked BSD syscalls}
+ syscall_nr_semsys                      =169;
+ syscall_nr_msgsys                      =170;
+ syscall_nr_shmsys                      =171;
  syscall_nr_mkfifo                      =132;
  syscall_nr___getcwd                    =326;
  syscall_nr_getitimer                   = 86;
@@ -318,7 +318,10 @@ syscall_nr_getdirentries                =196;
 
 {
   $Log$
-  Revision 1.9  2002-10-27 17:21:29  marco
+  Revision 1.10  2004-04-25 15:07:59  marco
+   * IPC syscalls moved
+
+  Revision 1.9  2002/10/27 17:21:29  marco
    * Only "difficult" functions + execvp + termios + rewinddir left to do
 
   Revision 1.8  2002/10/26 18:27:52  marco
