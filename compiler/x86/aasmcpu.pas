@@ -37,6 +37,11 @@ interface
       aasmbase,aasmtai;
 
     const
+      { "mov reg,reg" source operand number }
+      O_MOV_SOURCE = 0;
+      { "mov reg,reg" source operand number }
+      O_MOV_DEST = 1;
+
     { Operand types }
       OT_NONE      = $00000000;
 
@@ -2391,7 +2396,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2003-06-03 13:01:59  daniel
+  Revision 1.6  2003-06-14 14:53:50  jonas
+    * fixed newra cycle for x86
+    * added constants for indicating source and destination operands of the
+      "move reg,reg" instruction to aasmcpu (and use those in rgobj)
+
+  Revision 1.5  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.4  2003/05/30 23:57:08  peter

@@ -31,6 +31,13 @@ uses
   aasmbase,globals,verbose,
   cpubase,cpuinfo;
 
+    const
+      { "mov reg,reg" source operand number }
+      O_MOV_SOURCE = 1;
+      { "mov reg,reg" source operand number }
+      O_MOV_DEST = 0;
+
+
     type
       taicpu = class(taicpu_abstract)
          constructor op_none(op : tasmop);
@@ -402,7 +409,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2003-05-11 11:08:25  jonas
+  Revision 1.7  2003-06-14 14:53:50  jonas
+    * fixed newra cycle for x86
+    * added constants for indicating source and destination operands of the
+      "move reg,reg" instruction to aasmcpu (and use those in rgobj)
+
+  Revision 1.6  2003/05/11 11:08:25  jonas
     + op_reg_reg_reg_const_const (for rlwnm)
 
   Revision 1.5  2003/03/12 22:43:38  jonas

@@ -31,6 +31,12 @@ uses
   aasmbase,globals,verbose,
   cpubase,cpuinfo;
 
+    const
+      { "mov reg,reg" source operand number }
+      O_MOV_SOURCE = 0;
+      { "mov reg,reg" source operand number }
+      O_MOV_DEST = 1;
+
     type
       taicpu = class(taicpu_abstract)
          constructor op_none(op : tasmop);
@@ -256,7 +262,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2003-06-12 16:43:07  peter
+  Revision 1.30  2003-06-14 14:53:50  jonas
+    * fixed newra cycle for x86
+    * added constants for indicating source and destination operands of the
+      "move reg,reg" instruction to aasmcpu (and use those in rgobj)
+
+  Revision 1.29  2003/06/12 16:43:07  peter
     * newra compiles for sparc
 
   Revision 1.28  2003/06/01 01:03:41  peter

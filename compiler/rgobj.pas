@@ -889,7 +889,7 @@ unit rgobj;
       unusedregsfpu:=usableregsfpu;
       unusedregsmm:=usableregsmm;
    {$ifdef newra}
-      saved_by_proc_int:=[];
+      savedintbyproc:=[];
       for i:=low(Tsuperregister) to high(Tsuperregister) do
         begin
           if igraph.adjlist[i]<>nil then
@@ -1492,9 +1492,9 @@ unit rgobj;
       i.moveset:=ms_worklist_moves;
       i.instruction:=instr;
       worklist_moves.insert(i);
-      ssupreg:=instr.oper[0].reg.number shr 8;
+      ssupreg:=instr.oper[O_MOV_SOURCE].reg.number shr 8;
       add_to_movelist(ssupreg,i);
-      dsupreg:=instr.oper[1].reg.number shr 8;
+      dsupreg:=instr.oper[O_MOV_DEST].reg.number shr 8;
       if ssupreg<>dsupreg then
         {Avoid adding the same move instruction twice to a single register.}
         add_to_movelist(dsupreg,i);
@@ -2453,7 +2453,12 @@ end.
 
 {
   $Log$
-  Revision 1.54  2003-06-13 21:19:31  peter
+  Revision 1.55  2003-06-14 14:53:50  jonas
+    * fixed newra cycle for x86
+    * added constants for indicating source and destination operands of the
+      "move reg,reg" instruction to aasmcpu (and use those in rgobj)
+
+  Revision 1.54  2003/06/13 21:19:31  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.53  2003/06/12 21:11:10  peter

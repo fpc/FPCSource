@@ -659,7 +659,7 @@ implementation
         { now all the registers used are known }
         { Remove all imaginary registers from the used list.}
 {$ifdef newra}
-        procdef.usedintregisters:=rg.used_in_proc_int*ALL_INTREGISTERS-rg.saved_by_proc_int;
+        procdef.usedintregisters:=rg.used_in_proc_int*ALL_INTREGISTERS-rg.savedintbyproc;
 {$else}
         procdef.usedintregisters:=rg.used_in_proc_int;
 {$endif}
@@ -1251,7 +1251,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.127  2003-06-13 21:19:31  peter
+  Revision 1.128  2003-06-14 14:53:50  jonas
+    * fixed newra cycle for x86
+    * added constants for indicating source and destination operands of the
+      "move reg,reg" instruction to aasmcpu (and use those in rgobj)
+
+  Revision 1.127  2003/06/13 21:19:31  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.126  2003/06/12 16:43:07  peter

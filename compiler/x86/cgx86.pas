@@ -1783,7 +1783,7 @@ unit cgx86;
       r.number:=NR_EBP;
     {$ifdef newra}
       list.concat(tai_regalloc.alloc(r));
-      include(rg.saved_by_proc_int,RS_EBP);
+      include(rg.savedintbyproc,RS_EBP);
     {$endif}
       rsp.enum:=R_INTREGISTER;
       rsp.number:=NR_ESP;
@@ -1850,9 +1850,9 @@ unit cgx86;
       r.number:=NR_EDI;
       list.concat(Taicpu.op_reg(A_PUSH,S_L,r));
     {$ifdef newra}
-      include(rg.saved_by_proc_int,RS_EBX);
-      include(rg.saved_by_proc_int,RS_ESI);
-      include(rg.saved_by_proc_int,RS_EDI);
+      include(rg.savedintbyproc,RS_EBX);
+      include(rg.savedintbyproc,RS_ESI);
+      include(rg.savedintbyproc,RS_EDI);
     {$endif}
     end;
 
@@ -1935,7 +1935,12 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.55  2003-06-13 21:19:32  peter
+  Revision 1.56  2003-06-14 14:53:50  jonas
+    * fixed newra cycle for x86
+    * added constants for indicating source and destination operands of the
+      "move reg,reg" instruction to aasmcpu (and use those in rgobj)
+
+  Revision 1.55  2003/06/13 21:19:32  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.54  2003/06/12 18:31:18  peter
