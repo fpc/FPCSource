@@ -1010,7 +1010,7 @@ begin
               else
                 Result:=TGetWideStrProc(AMethod)();
             end;
-        end;      
+        end;
       end;
   end;
 end;
@@ -1064,7 +1064,7 @@ type
   TGetDoubleProcIndex = function(Index: integer): Double of object;
   TGetSingleProc = function:Single of object;
   TGetSingleProcIndex = function(Index: integer):Single of object;
-{$ifdef HASCURRENCY}  
+{$ifdef HASCURRENCY}
   TGetCurrencyProc = function : Currency of object;
   TGetCurrencyProcIndex = function(Index: integer) : Currency of object;
 {$endif HASCURRENCY}
@@ -1083,7 +1083,7 @@ begin
          Result:=PExtended(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
        ftcomp:
          Result:=PComp(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
-{$ifdef HASCURRENCY}         
+{$ifdef HASCURRENCY}
        ftcurr:
          Result:=PCurrency(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
 {$endif HASCURRENCY}
@@ -1126,7 +1126,7 @@ type
   TSetDoubleProcIndex = procedure(Index: integer; const AValue: Double) of object;
   TSetSingleProc = procedure(const AValue: Single) of object;
   TSetSingleProcIndex = procedure(Index: integer; const AValue: Single) of object;
-{$ifdef HASCURRENCY}  
+{$ifdef HASCURRENCY}
   TSetCurrencyProc = procedure(const AValue: Currency) of object;
   TSetCurrencyProcIndex = procedure(Index: integer; const AValue: Currency) of object;
 {$endif HASCURRENCY}
@@ -1142,8 +1142,13 @@ begin
           PDouble(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
         ftExtended:
           PExtended(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+{$ifdef FPC_COMP_IS_INT64}
+        ftComp:
+          PComp(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=trunc(Value);
+{$else FPC_COMP_IS_INT64}
         ftComp:
           PComp(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
+{$endif FPC_COMP_IS_INT64}
        end;
     ptStatic,
     ptVirtual:
@@ -1433,7 +1438,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2004-05-23 19:00:40  florian
+  Revision 1.25  2004-05-24 21:05:19  florian
+    * fixed comp property writing for cpus where comp=int64
+
+  Revision 1.24  2004/05/23 19:00:40  florian
     + added widestring routines
 
   Revision 1.23  2004/02/22 16:48:39  florian
