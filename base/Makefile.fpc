@@ -124,6 +124,8 @@ gtkzip: rtl_clean
 compilerzip: compiler_clean rtl_clean
         $(MAKE) rtl_all
         $(MAKE) compiler_all
+        $(MAKE) rtl_clean
+        $(MAKE) rtl_all FPC=$(BASEDIR)/compiler/ppc386
         $(MAKE) zipinstall ZIPTARGET='compiler_install rtl_install' ZIPNAME=compiler-$(PACKAGESUFFIX)
 
 fclzip: rtl_clean fcl_clean
