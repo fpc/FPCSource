@@ -92,18 +92,6 @@ Type
   NameStr = String[255];  { size increased to be more compatible with Unix}
   ExtStr  = String[255];  { size increased to be more compatible with Unix}
 
-  { If you need more devicenames just expand this two arrays }
-  { device zero is for the current drive                     }
-  deviceids = (NOTHING, DF0ID, DF1ID, DF2ID, DF3ID, DH0ID, DH1ID,
-               CD0ID, MDOS1ID, MDOS2ID);
-
-
-
-Const
-  devicenames : array [DF0ID..MDOS2ID] of String = (
-                'df0:','df1:','df2:','df3:','dh0:',
-                'dh1:','cd0:','A:','B:');
-
 
 
 {
@@ -197,7 +185,6 @@ Procedure Keep(exitcode: word);
 implementation
 
 
-
 Type
     pClockData = ^tClockData;
     tClockData = packed Record
@@ -210,8 +197,82 @@ Type
       wday  : Word;
     END;
 
-    BPTR = Longint;
+    BPTR     = Longint;
     BSTR     = Longint;
+
+  pMinNode = ^tMinNode;
+  tMinNode = Packed Record
+    mln_Succ,
+    mln_Pred  : pMinNode;
+  End;
+
+
+    pMinList = ^tMinList;
+    tMinList = Packed record
+    mlh_Head        : pMinNode;
+    mlh_Tail        : pMinNode;
+    mlh_TailPred    : pMinNode;
+    end;
+{ *  List Node Structure.  Each member in a list starts with a Node * }
+
+  pNode = ^tNode;
+  tNode = Packed Record
+    ln_Succ,                { * Pointer to next (successor) * }
+    ln_Pred  : pNode;       { * Pointer to previous (predecessor) * }
+    ln_Type  : Byte;
+    ln_Pri   : Shortint;        { * Priority, for sorting * }
+    ln_Name  : PCHAR;       { * ID string, null terminated * }
+  End;  { * Note: Integer aligned * }
+
+
+
+    pList = ^tList;
+    tList = Packed record
+    lh_Head     : pNode;
+    lh_Tail     : pNode;
+    lh_TailPred : pNode;
+    lh_Type     : Byte;
+    l_pad       : Byte;
+    end;
+
+
+   pMsgPort = ^tMsgPort;
+    tMsgPort = Packed record
+    mp_Node     : tNode;
+    mp_Flags    : Byte;
+    mp_SigBit   : Byte;     { signal bit number    }
+    mp_SigTask  : Pointer;   { task to be signalled (TaskPtr) }
+    mp_MsgList  : tList;     { message linked list  }
+    end;
+
+
+  pTask = ^tTask;
+    tTask = Packed record
+        tc_Node         : tNode;
+        tc_Flags        : Byte;
+        tc_State        : Byte;
+        tc_IDNestCnt    : Shortint;         { intr disabled nesting         }
+        tc_TDNestCnt    : Shortint;         { task disabled nesting         }
+        tc_SigAlloc     : Cardinal        { sigs allocated                }
+        tc_SigWait      : Cardinal;        { sigs we are waiting for       }
+        tc_SigRecvd     : Cardinal;        { sigs we have received         }
+        tc_SigExcept    : Cardinal;        { sigs we will take excepts for }
+        tc_TrapAlloc    : Word;        { traps allocated               }
+        tc_TrapAble     : Word;        { traps enabled                 }
+        tc_ExceptData   : Pointer;      { points to except data         }
+        tc_ExceptCode   : Pointer;      { points to except code         }
+        tc_TrapData     : Pointer;      { points to trap data           }
+        tc_TrapCode     : Pointer;      { points to trap code           }
+        tc_SPReg        : Pointer;      { stack pointer                 }
+        tc_SPLower      : Pointer;      { stack lower bound             }
+        tc_SPUpper      : Pointer;      { stack upper bound + 2         }
+        tc_Switch       : Pointer;      { task losing CPU               }
+        tc_Launch       : Pointer;      { task getting CPU              }
+        tc_MemEntry     : tList;        { allocated memory              }
+        tc_UserData     : Pointer;      { per task data                 }
+    end;
+
+
 
     TDateStamp = packed record
         ds_Days         : Longint;      { Number of days since Jan. 1, 1978 }
@@ -262,18 +323,6 @@ Type
 { ------ Library Base Structure ---------------------------------- }
 {  Also used for Devices and some Resources  }
 
-{ *  List Node Structure.  Each member in a list starts with a Node * }
-
-  pNode = ^tNode;
-  tNode = Packed Record
-    ln_Succ,                { * Pointer to next (successor) * }
-    ln_Pred  : pNode;       { * Pointer to previous (predecessor) * }
-    ln_Type  : Byte;
-    ln_Pri   : Shortint;        { * Priority, for sorting * }
-    ln_Name  : PCHAR;       { * ID string, null terminated * }
-  End;  { * Note: Integer aligned * }
-
-
     pLibrary = ^tLibrary;
     tLibrary = packed record
         lib_Node     : tNode;
@@ -314,23 +363,65 @@ Type
 
     pCommandLineInterface = ^TCommandLineInterface;
     TCommandLineInterface = packed record
-      cli_result2     : longint;    {* Value of IoErr from last command	  *}
-      cli_SetName     : BSTR;       {* Name of current directory		     *}
-      cli_CommandDir  : BPTR;       {* Head of the path locklist		     *}
-      cli_ReturnCode  : longint;    {* Return code from last command		  *}
-      cli_CommandName : BSTR;       {* Name of current command		        *}
-      cli_FailLevel   : longint;    {* Fail level (set by FAILAT)		     *}
-      cli_Prompt      : BSTR;       {* Current prompt (set by PROMPT)	  *}
-      cli_StandardInput: BPTR;      {* Default (terminal) CLI input		  *}
-      cli_CurrentInput : BPTR;      {* Current CLI input			           *}
-      cli_CommandFile  : BSTR;      {* Name of EXECUTE command file		  *}
+      cli_result2     : longint;    {* Value of IoErr from last command   *}
+      cli_SetName     : BSTR;       {* Name of current directory             *}
+      cli_CommandDir  : BPTR;       {* Head of the path locklist             *}
+      cli_ReturnCode  : longint;    {* Return code from last command          *}
+      cli_CommandName : BSTR;       {* Name of current command              *}
+      cli_FailLevel   : longint;    {* Fail level (set by FAILAT)            *}
+      cli_Prompt      : BSTR;       {* Current prompt (set by PROMPT)     *}
+      cli_StandardInput: BPTR;      {* Default (terminal) CLI input       *}
+      cli_CurrentInput : BPTR;      {* Current CLI input                       *}
+      cli_CommandFile  : BSTR;      {* Name of EXECUTE command file       *}
       cli_Interactive  : longint;   {* Boolean; True if prompts required  *}
       cli_Background   : longint    {* Boolean; True if CLI created by RUN*}
-      cli_CurrentOutput: BPTR;      {* Current CLI output			        *}
+      cli_CurrentOutput: BPTR;      {* Current CLI output                   *}
       cli_DefautlStack : longint;   {* Stack size to be obtained in long words *}
-      cli_StandardOutput : BPTR;    {* Default (terminal) CLI output		  *}
+      cli_StandardOutput : BPTR;    {* Default (terminal) CLI output          *}
       cli_Module       : BPTR;      {* SegList of currently loaded command*}
     END;
+
+  pDosList = ^tDosList;
+   tDosList = packed record
+    dol_Next            : BPTR;           {    bptr to next device on list }
+    dol_Type            : Longint;        {    see DLT below }
+    dol_Task            : Pointer;        {    ptr to handler task }
+    dol_Lock            : BPTR;
+    dol_Misc            : Array[0..23] of Shortint;
+    dol_Name            : BSTR;           {    bptr to bcpl name }
+   END;
+
+    TProcess = packed record
+        pr_Task         : TTask;
+        pr_MsgPort      : TMsgPort;      { This is BPTR address from DOS functions  }
+{126}   pr_Pad          : Word;         { Remaining variables on 4 byte boundaries }
+{128}   pr_SegList      : Pointer;      { Array of seg lists used by this process  }
+{132}   pr_StackSize    : Longint;      { Size of process stack in bytes            }
+{136}   pr_GlobVec      : Pointer;      { Global vector for this process (BCPL)    }
+{140}   pr_TaskNum      : Longint;      { CLI task number of zero if not a CLI      }
+{144}   pr_StackBase    : BPTR;         { Ptr to high memory end of process stack  }
+{148}   pr_Result2      : Longint;      { Value of secondary result from last call }
+{152}   pr_CurrentDir   : BPTR;         { Lock associated with current directory   }
+{156}   pr_CIS          : BPTR;         { Current CLI Input Stream                  }
+{160}   pr_COS          : BPTR;         { Current CLI Output Stream                 }
+{164}   pr_ConsoleTask  : Pointer;      { Console handler process for current window}
+{168}   pr_FileSystemTask : Pointer;    { File handler process for current drive   }
+{172}   pr_CLI          : BPTR;         { pointer to ConsoleLineInterpreter         }
+        pr_ReturnAddr   : Pointer;      { pointer to previous stack frame           }
+        pr_PktWait      : Pointer;      { Function to be called when awaiting msg  }
+        pr_WindowPtr    : Pointer;      { Window for error printing }
+        { following definitions are new with 2.0 }
+        pr_HomeDir      : BPTR;         { Home directory of executing program      }
+        pr_Flags        : Longint;      { flags telling dos about process          }
+        pr_ExitCode     : Pointer;      { code to call on exit of program OR NULL  }
+        pr_ExitData     : Longint;      { Passed as an argument to pr_ExitCode.    }
+        pr_Arguments    : PChar;        { Arguments passed to the process at start }
+        pr_LocalVars    : TMinList;      { Local environment variables             }
+        pr_ShellPrivate : Longint;      { for the use of the current shell         }
+        pr_CES          : BPTR;         { Error stream - IF NULL, use pr_COS       }
+    end;
+    PProcess = ^TProcess;
+
 
 CONST
     { DOS Lib Offsets }
@@ -341,6 +432,8 @@ CONST
     _LVOExecute    = -222;
     _LVOSystemTagList = -606;
 
+    LDF_READ   = 1;
+    LDF_DEVICES = 4;
 
     ERROR_NO_MORE_ENTRIES            = 232;
     FIBF_SCRIPT         = 64;  { program is a script              }
@@ -351,7 +444,7 @@ CONST
     FIBF_EXECUTE        = 2;   { ignored by system, used by shell }
     FIBF_DELETE         = 1;   { prevent file from being deleted  }
 
-
+    SHARED_LOCK         = -2;
 
 {******************************************************************************
                            --- Internal routines ---
@@ -397,24 +490,21 @@ Begin
   end;
 end;
 
-
-function Examine(lock : BPTR;
-                 info : pFileInfoBlock) : Boolean;
-Begin
-  asm
-    MOVEM.L d2/a6,-(A7)
-    MOVE.L  lock,d1
-    MOVE.L  info,d2
-    MOVE.L  _DOSBase,A6
+FUNCTION Examine(lock : BPTR; fileInfoBlock : pFileInfoBlock) : BOOLEAN;
+BEGIN
+  ASM
+    MOVE.L  A6,-(A7)
+    MOVE.L  lock,D1
+    MOVE.L  fileInfoBlock,D2
+    MOVEA.L _DOSBase,A6
     JSR -102(A6)
-    MOVEM.L (A7)+,d2/a6
-    TST.L   d0
-    SNE     d0
-    NEG.B   d0
-    MOVE.B  d0,@RESULT
-   end;
-end;
-
+    MOVEA.L (A7)+,A6
+    TST.L   D0
+    BEQ.B   @end
+    MOVEQ   #1,D0
+    @end: MOVE.B  D0,@RESULT
+  END;
+END;
 
 function Lock(const name : string;
            accessmode : Longint) : BPTR;
@@ -447,141 +537,171 @@ Begin
   end;
 end;
 
-
-function Info(lock : BPTR;
-              params : pInfoData) : Boolean;
-Begin
-  asm
-    MOVEM.L d2/a6,-(A7)
-    MOVE.L  lock,d1
-    MOVE.L  params,d2
-    MOVE.L  _DOSBase,A6
+FUNCTION Info(lock : BPTR; parameterBlock : pInfoData) : BOOLEAN;
+BEGIN
+  ASM
+    MOVE.L  A6,-(A7)
+    MOVE.L  lock,D1
+    MOVE.L  parameterBlock,D2
+    MOVEA.L _DOSBase,A6
     JSR -114(A6)
-    MOVEM.L (A7)+,d2/a6
-    TST.L   d0
-    SNE     d0
-    NEG.B   d0
-    MOVE.B  d0,@RESULT
-  end;
-end;
+    MOVEA.L (A7)+,A6
+    TST.L   D0
+    BEQ.B   @end
+    MOVEQ   #1,D0
+    @end: MOVE.B  D0,@RESULT
+  END;
+END;
 
-function NameFromLock(Datei : BPTR;
-                      Buffer : Pchar;
-                      BufferSize : Longint) : Boolean;
-Begin
-  asm
-    MOVEM.L d2/d3/a6,-(A7)
-    MOVE.L  Datei,d1
-    MOVE.L  Buffer,d2
-    MOVE.L  BufferSize,d3
-    MOVE.L  _DOSBase,A6
+FUNCTION NameFromLock(lock : BPTR; buffer : pCHAR; len : LONGINT) : BOOLEAN;
+BEGIN
+  ASM
+    MOVE.L  A6,-(A7)
+    MOVE.L  lock,D1
+    MOVE.L  buffer,D2
+    MOVE.L  len,D3
+    MOVEA.L _DOSBase,A6
     JSR -402(A6)
-    MOVEM.L (A7)+,d2/d3/a6
-    TST.L   d0
-    SNE     d0
-    NEG.B   d0
-    MOVE.B  d0,@RESULT
-  end;
-end;
+    MOVEA.L (A7)+,A6
+    TST.L   D0
+    BEQ.B   @end
+    MOVEQ   #1,D0
+    @end: MOVE.B  D0,@RESULT
+  END;
+END;
 
-function GetVar(name : pchar; Buffer : pchar; BufferSize : Longint;
-                flags : Longint) : Longint;
-begin
+FUNCTION GetVar(name : pCHAR; buffer : pCHAR; size : LONGINT; flags : LONGINT) : LONGINT;
+BEGIN
+  ASM
+    MOVE.L  A6,-(A7)
+    MOVE.L  name,D1
+    MOVE.L  buffer,D2
+    MOVE.L  size,D3
+    MOVE.L  flags,D4
+    MOVEA.L _DOSBase,A6
+    JSR -906(A6)
+    MOVEA.L (A7)+,A6
+    MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION FindTask(name : pCHAR) : pTask;
+BEGIN
+  ASM
+    MOVE.L  A6,-(A7)
+    MOVEA.L name,A1
+    MOVEA.L _ExecBase,A6
+    JSR -294(A6)
+    MOVEA.L (A7)+,A6
+    MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION MatchFirst(pat : pCHAR; anchor : pAnchorPath) : LONGINT;
+BEGIN
+  ASM
+    MOVE.L  A6,-(A7)
+    MOVE.L  pat,D1
+    MOVE.L  anchor,D2
+    MOVEA.L _DOSBase,A6
+    JSR -822(A6)
+    MOVEA.L (A7)+,A6
+    MOVE.L  D0,@RESULT
+  END;
+END;
+
+FUNCTION MatchNext(anchor : pAnchorPath) : LONGINT;
+BEGIN
+  ASM
+    MOVE.L  A6,-(A7)
+    MOVE.L  anchor,D1
+    MOVEA.L _DOSBase,A6
+    JSR -828(A6)
+    MOVEA.L (A7)+,A6
+    MOVE.L  D0,@RESULT
+  END;
+END;
+
+PROCEDURE MatchEnd(anchor : pAnchorPath);
+BEGIN
+  ASM
+    MOVE.L  A6,-(A7)
+    MOVE.L  anchor,D1
+    MOVEA.L _DOSBase,A6
+    JSR -834(A6)
+    MOVEA.L (A7)+,A6
+  END;
+END;
+
+FUNCTION Cli : pCommandLineInterface;
+BEGIN
+  ASM
+    MOVE.L  A6,-(A7)
+    MOVEA.L _DOSBase,A6
+    JSR -492(A6)
+    MOVEA.L (A7)+,A6
+    MOVE.L  D0,@RESULT
+  END;
+END;
+
+Function _Execute(p: pchar): longint;
+ Begin
    asm
-       MOVEM.L d2/d3/d4/a6,-(A7)
-       MOVE.L  name,d1
-       MOVE.L  Buffer,d2
-       MOVE.L  BufferSize,d3
-       MOVE.L  flags,d4
-       MOVE.L  _DOSBase,A6
-       JSR -906(A6)
-       MOVEM.L (A7)+,d2/d3/d4/a6
-       MOVE.L  d0,@RESULT
+     move.l  a6,d6                 { save base pointer       }
+     move.l  d2,-(sp)
+     move.l  p,d1                  { command to execute      }
+     clr.l   d2                    { No TagList for command  }
+     move.l  _DosBase,a6
+     jsr     _LVOSystemTagList(a6)
+     move.l  (sp)+,d2
+     move.l  d6,a6                 { restore base pointer    }
+     move.l  d0,@RESULT
    end;
 end;
 
-(*   Function FindTask(p : PChar): PProcess;
-   Begin
-    asm
-         move.l  a6,d6              { Save base pointer    }
-         move.l  p,d0
-         move.l  d0,a1
-         move.l  _ExecBase,a6
-         jsr     _LVOFindTask(a6)
-         move.l  d6,a6              { Restore base pointer }
-         move.l  d0,@Result
-    end;
-   end;*)
+FUNCTION LockDosList(flags : CARDINAL) : pDosList;
+BEGIN
+  ASM
+    MOVE.L  A6,-(A7)
+    MOVE.L  flags,D1
+    MOVEA.L _DOSBase,A6
+    JSR -654(A6)
+    MOVEA.L (A7)+,A6
+    MOVE.L  D0,@RESULT
+  END;
+END;
 
 
-   Function MatchFirst(pat: pchar; Anchor: pAnchorPath) : longint;
-    Begin
-      asm
-        move.l  d2,-(sp)
-        move.l  a6,d6
-        move.l  pat,d1
-        move.l  Anchor,d2
-        move.l  _DosBase,a6
-        jsr     _LVOMatchFirst(a6)
-        move.l  (sp)+,d2
-        move.l  d6,a6
-        move.l  d0,@Result
-      end;
-    end;
+PROCEDURE UnLockDosList(flags : CARDINAL);
+BEGIN
+  ASM
+    MOVE.L  A6,-(A7)
+    MOVE.L  flags,D1
+    MOVEA.L _DOSBase,A6
+    JSR -660(A6)
+    MOVEA.L (A7)+,A6
+  END;
+END;
 
 
-   Function MatchNext(Anchor : pAnchorPath): longint;
-    Begin
-     asm
-       move.l anchor,d1
-       move.l a6,d6
-       move.l _DosBase,a6
-       jsr    _LVOMatchNext(a6)
-       move.l d6,a6
-       move.l d0,@Result
-     end;
-    end;
+FUNCTION NextDosEntry(dlist : pDosList; flags : CARDINAL) : pDosList;
+BEGIN
+  ASM
+    MOVE.L  A6,-(A7)
+    MOVE.L  dlist,D1
+    MOVE.L  flags,D2
+    MOVEA.L _DOSBase,A6
+    JSR -690(A6)
+    MOVEA.L (A7)+,A6
+    MOVE.L  D0,@RESULT
+  END;
+END;
 
 
-   Procedure MatchEnd(Anchor : pAnchorPath);
-    Begin
-      asm
-        move.l anchor,d1
-        move.l a6,d6
-        move.l _DosBase,a6
-        jsr    _LVOMatchEnd(a6)
-        move.l d6,a6
-      end;
-    end;
-
-
-
-    Function Cli: Pointer; assembler;
-    { Returns a pointer to the current cli process }
-    asm
-      move.l  a6,d6
-      move.l  _DosBase,a6
-      jsr     _LVOCli(a6)
-      move.l  d6,a6        { value is returned in d0 }
-    end;
-
-
-
-    Function _Execute(p: pchar): longint;
-     Begin
-       asm
-         move.l  a6,d6                 { save base pointer       }
-         move.l  d2,-(sp)
-         move.l  p,d1                  { command to execute      }
-         clr.l   d2                    { No TagList for command  }
-         move.l  _DosBase,a6
-         jsr     _LVOSystemTagList(a6)
-         move.l  (sp)+,d2
-         move.l  d6,a6                 { restore base pointer    }
-         move.l  d0,@RESULT
-       end;
-     end;
-
+FUNCTION BADDR(bval : BPTR): POINTER;
+BEGIN
+    BADDR := POINTER( bval shl 2);
+END;
 
 function PasToC(var s: string): Pchar;
 var i: integer;
@@ -595,25 +715,6 @@ begin
     s[i]     := #0;
     PasToC := @s[1]
 end;
-
- Function strpas(Str: pchar): string;
- { only 255 first characters are actually copied. }
-  var
-   counter : byte;
-   lstr: string;
- Begin
-   counter := 0;
-   lstr := '';
-   while (ord(Str[counter]) <> 0) and (counter < 255) do
-   begin
-     Inc(counter);
-     lstr[counter] := char(Str[counter-1]);
-   end;
-   lstr[0] := char(counter);
-   strpas := lstr;
- end;
-
-
 
 
 Procedure AmigaToDt(SecsPast: LongInt; Var Dt: DateTime);
@@ -784,10 +885,14 @@ Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
    buf: array[0..255] of char;
    result : longint;
    MyLock : longint;
+   i : Integer;
   Begin
    DosError := 0;
    LastdosExitCode := 0;
    p:=Path+' '+ComLine;
+   { allow backslash as slash }
+   for i:=1 to length(p) do
+       if p[i]='\' then p[i]:='/';
    Move(p[1],buf,length(p));
    buf[Length(p)]:=#0;
    { Here we must first check if the command we wish to execute }
@@ -795,7 +900,7 @@ Procedure Exec (Const Path: PathStr; Const ComLine: ComStr);
    { _SystemTagList call (program will abort!!)                 }
 
    { Try to open with shared lock                               }
-   MyLock:=Lock(path,-2);
+   MyLock:=Lock(path,SHARED_LOCK);
    if MyLock <> 0 then
      Begin
         { File exists - therefore unlock it }
@@ -852,15 +957,44 @@ Procedure SetCBreak(BreakValue: Boolean);
 {  We could walk through the device list    }
 {  at startup to determine possible devices }
 
+const
+
+  not_to_use_devs : array[0..12] of string =(
+                   'DF0:',
+                   'DF1:',
+                   'DF2:',
+                   'DF3:',
+                   'PED:',
+                   'PRJ:',
+                   'PIPE:',
+                   'RAM:',
+                   'CON:',
+                   'RAW:',
+                   'SER:',
+                   'PAR:',
+                   'PRT:');
+
+var
+   deviceids : array[1..20] of byte;
+   devicenames : array[1..20] of string[20];
+   numberofdevices : Byte;
+
 Function DiskFree(Drive: Byte): Longint;
 Var
   MyLock      : BPTR;
   Inf         : pInfoData;
   Free        : Longint;
+  myproc      : pProcess;
+  OldWinPtr   : Pointer;
 Begin
   Free := -1;
+  { Here we stop systemrequesters to appear }
+  myproc := pProcess(FindTask(nil));
+  OldWinPtr := myproc^.pr_WindowPtr;
+  myproc^.pr_WindowPtr := Pointer(-1);
+  { End of systemrequesterstop }
   New(Inf);
-  MyLock := Lock(devicenames[deviceids(Drive)],-2);
+  MyLock := Lock(devicenames[deviceids[Drive]],SHARED_LOCK);
   If MyLock <> 0 then begin
      if Info(MyLock,Inf) then begin
         Free := (Inf^.id_NumBlocks * Inf^.id_BytesPerBlock) -
@@ -869,6 +1003,8 @@ Begin
      Unlock(MyLock);
   end;
   Dispose(Inf);
+  { Restore systemrequesters }
+  myproc^.pr_WindowPtr := OldWinPtr;
   diskfree := Free;
 end;
 
@@ -879,10 +1015,17 @@ Var
   MyLock      : BPTR;
   Inf         : pInfoData;
   Size        : Longint;
+  myproc      : pProcess;
+  OldWinPtr   : Pointer;
 Begin
   Size := -1;
+  { Here we stop systemrequesters to appear }
+  myproc := pProcess(FindTask(nil));
+  OldWinPtr := myproc^.pr_WindowPtr;
+  myproc^.pr_WindowPtr := Pointer(-1);
+  { End of systemrequesterstop }
   New(Inf);
-  MyLock := Lock(devicenames[deviceids(Drive)],-2);
+  MyLock := Lock(devicenames[deviceids[Drive]],SHARED_LOCK);
   If MyLock <> 0 then begin
      if Info(MyLock,Inf) then begin
         Size := (Inf^.id_NumBlocks * Inf^.id_BytesPerBlock);
@@ -890,6 +1033,8 @@ Begin
      Unlock(MyLock);
   end;
   Dispose(Inf);
+  { Restore systemrequesters }
+  myproc^.pr_WindowPtr := OldWinPtr;
   disksize := Size;
 end;
 
@@ -906,7 +1051,7 @@ Begin
  DosError:=0;
  New(Anchor);
  {----- allow backslash as slash         -----}
- for index:=0 to length(path) do
+ for index:=1 to length(path) do
    if path[index]='\' then path[index]:='/';
  {----- replace * by #? AmigaOs strings  -----}
  repeat
@@ -1136,7 +1281,7 @@ var
 begin
     DosError:=0;
     FTime := 0;
-    FLock := Lock(StrPas(filerec(f).name), -2);
+    FLock := Lock(StrPas(filerec(f).name), SHARED_LOCK);
     IF FLock <> 0 then begin
         New(FInfo);
         if Examine(FLock, FInfo) then begin
@@ -1186,7 +1331,7 @@ end;
     flags:=0;
     New(info);
     { open with shared lock }
-    MyLock:=Lock(StrPas(filerec(f).name),-2);
+    MyLock:=Lock(StrPas(filerec(f).name),SHARED_LOCK);
     if MyLock <> 0 then
       Begin
         Examine(MyLock,info);
@@ -1224,7 +1369,7 @@ Procedure setfattr (var f;attr : word);
     DosError:=0;
     flags:=FIBF_WRITE;
     { open with shared lock }
-    MyLock:=Lock(StrPas(filerec(f).name),-2);
+    MyLock:=Lock(StrPas(filerec(f).name),SHARED_LOCK);
 
     { By default files are read-write }
     if attr AND ReadOnly <> 0 then
@@ -1267,14 +1412,14 @@ Procedure setfattr (var f;attr : word);
 function GetEnv(envvar : String): String;
 var
    buffer : Pchar;
-   bufarr : array[0..500] of char;
+   bufarr : array[0..255] of char;
    strbuffer : array[0..255] of char;
    temp : Longint;
 begin
    move(envvar[1],strbuffer,length(envvar));
    strbuffer[length(envvar)] := #0;
    buffer := @bufarr;
-   temp := GetVar(strbuffer,buffer,500,$100);
+   temp := GetVar(strbuffer,buffer,255,$100);
    if temp = -1 then
       GetEnv := ''
    else GetEnv := StrPas(buffer);
@@ -1290,17 +1435,79 @@ Procedure keep(exitcode : word);
   { ! Not implemented in Linux ! }
   End;
 
+procedure AddDevice(str : String);
+begin
+    inc(numberofdevices);
+    deviceids[numberofdevices] := numberofdevices;
+    devicenames[numberofdevices] := str;
+end;
+
+function MakeDeviceName(str : pchar): string;
+var
+   temp : string[20];
+begin
+   temp := strpas(str);
+   temp := temp + ':';
+   MakeDeviceName := temp;
+end;
+
+function IsInDeviceList(str : string): boolean;
+var
+   i : byte;
+   theresult : boolean;
+begin
+   theresult := false;
+   for i := low(not_to_use_devs) to high(not_to_use_devs) do
+   begin
+       if str = not_to_use_devs[i] then begin
+          theresult := true;
+          break;
+       end;
+   end;
+   IsInDeviceList := theresult;
+end;
+
+
+function BSTR2STRING(s : BSTR): pchar;
+begin
+    BSTR2STRING := Pointer(Longint(BADDR(s))+1);
+end;
+
+procedure ReadInDevices;
+var
+   dl : pDosList;
+   temp : pchar;
+   str  : string[20];
+begin
+   dl := LockDosList(LDF_DEVICES or LDF_READ );
+   repeat
+      dl := NextDosEntry(dl,LDF_DEVICES );
+      if dl <> nil then begin
+         temp := BSTR2STRING(dl^.dol_Name);
+         str := MakeDeviceName(temp);
+         if not IsInDeviceList(str) then
+              AddDevice(str);
+      end;
+   until dl = nil;
+   UnLockDosList(LDF_DEVICES or LDF_READ );
+end;
 
 Begin
  DosError:=0;
  ver:=TRUE;
  breakflag:=TRUE;
+ numberofdevices := 0;
+ AddDevice('DF0:');
+ AddDevice('DF1:');
+ AddDevice('DF2:');
+ AddDevice('DF3:');
+ ReadInDevices;
 End.
 
 {
   $Log$
-  Revision 1.4  1998-07-21 12:08:06  carl
-    * FExpand bugfix was returning a pchar!
+  Revision 1.5  1998-08-04 13:37:10  carl
+    * bugfix of findfirst, was not convberting correctl backslahes
 
 
 }
