@@ -1936,14 +1936,12 @@ implementation
            {Mazen : Do no thing like in a delay slot for sparc : nop;};
           2:
             DoSpill2RegInstructions;
-          3:
+          else
         {all other instructions the compiler generates are the same (I hope):  }
         {operand 0 is a register and is the destination, the others are sources}
         {and can be either registers or constants                              }
         {exception: branches (is_jmp isn't always set for them)                }
             DoSpill3RegInstructions;
-          else
-            InternalError(2003102900);
         end;
       end;
 
@@ -2140,7 +2138,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2003-10-29 15:40:20  peter
+  Revision 1.52  2003-10-29 21:06:39  jonas
+    * allow more than 3 args in the spilling routine
+
+  Revision 1.51  2003/10/29 15:40:20  peter
     * support indexing and offset retrieval for locals
 
   Revision 1.50  2003/10/29 14:42:14  mazen
