@@ -771,6 +771,18 @@ const
   accumulator   = R_EAX;
   scratch_register = R_EDI;
 
+{$ifndef noopt}
+{ low and high of the available maximum width integer general purpose }
+{ registers                                                           }
+       LoGPReg = R_EAX;
+       HiGPReg = R_EDI;
+
+{ low and high of every possible width general purpose register (same as }
+{ above on most architctures apart from the 80x86)                       }
+       LoReg = R_EAX;
+       HiReg = R_BL;
+{$endif noopt}
+
   cpuflags = [];
 
   { sizes }
@@ -816,6 +828,7 @@ var
          (R_EBX,R_EDX,R_ECX,R_EAX);
 
        maxfpuvarregs = 8;
+       max_operands = 3;
 
     function imm_2_type(l:longint):longint;
 
@@ -1064,7 +1077,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1999-08-13 15:36:30  peter
+  Revision 1.7  1999-08-18 13:26:23  jonas
+    + some constants for the new optimizer
+
+  Revision 1.6  1999/08/13 15:36:30  peter
     * fixed suffix writing for a_setcc
 
   Revision 1.5  1999/08/12 14:36:02  peter
