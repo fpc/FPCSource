@@ -1115,6 +1115,12 @@ Begin
               exit;
             end;
          end;
+       enumsym:
+         Begin
+           l:=penumsym(srsym)^.value;
+           SearchIConstant:=TRUE;
+           exit;
+         end;
      end;
    end;
 end;
@@ -1404,7 +1410,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  1999-08-27 14:37:50  peter
+  Revision 1.25  1999-09-04 20:29:11  florian
+    * bug 577 fixed
+
+  Revision 1.24  1999/08/27 14:37:50  peter
     * fixed crash with typedconst array
 
   Revision 1.23  1999/08/13 21:28:38  peter
