@@ -178,6 +178,7 @@ Fixed bugs:
   bug0151.pp   crash when using undeclared variable in withstatement OK 0.99.7 (PFV)
   bug0154.pp   Subrange types give type mismatch when assigning to   OK 0.99.7 (PFV)
                base type
+  bug0156.pp   (a,b) forward type def in record crashes when loading ppu OK 0.99.7 (PM/PFV)
   bug0157.pp   Invalid compilation and also crashes                  OK 0.99.7 (PFV)
   bug0158.pp   Invalid boolean typecast                              OK 0.99.7 (PFV)
   bug0159.pp   Invalid virtual functions - should compile            OK 0.99.7 (FK)
@@ -211,4 +212,3 @@ bug0155.pp   Asm, Missing string return for asm functions
 bug0150.pp   Shows that the assert() macro is missing under Delphi.
 bug0152.pp   End value of loop variable must be calculated before loop
              variable is initialized.
-bug0156.pp   (a,b) forward type def in record crashes when loading ppu
