@@ -16,6 +16,10 @@
 unit lineinfo;
 interface
 
+{$IFDEF OS2}
+ {$DEFINE EMX} (* EMX is the only possibility under OS/2 at the moment *)
+{$ENDIF OS2}
+
 implementation
 
 uses
@@ -241,6 +245,84 @@ end;
 {$endif Win32}
 
 
+{$IFDEF EMX}
+function LoadEMXaout: boolean;
+type
+  TDosHeader = packed record
+     e_magic : word;
+     e_cblp : word;
+     e_cp : word;
+     e_crlc : word;
+     e_cparhdr : word;
+     e_minalloc : word;
+     e_maxalloc : word;
+     e_ss : word;
+     e_sp : word;
+     e_csum : word;
+     e_ip : word;
+     e_cs : word;
+     e_lfarlc : word;
+     e_ovno : word;
+     e_res : array[0..3] of word;
+     e_oemid : word;
+     e_oeminfo : word;
+     e_res2 : array[0..9] of word;
+     e_lfanew : longint;
+  end;
+  TEmxHeader = packed record
+     Version: array [1..16] of char;
+     Bound: word;
+     AoutOfs: longint;
+     Options: array [1..42] of char;
+  end;
+  TAoutHeader = packed record
+     Magic: word;
+     Machine: byte;
+     Flags: byte;
+     TextSize: longint;
+     DataSize: longint;
+     BssSize: longint;
+     SymbSize: longint;
+     EntryPoint: longint;
+     TextRelocSize: longint;
+     DataRelocSize: longint;
+  end;
+const
+ StartPageSize = $1000;
+var
+ DosHeader: TDosHeader;
+ EmxHeader: TEmxHeader;
+ AoutHeader: TAoutHeader;
+ S4: string [4];
+begin
+ LoadEMXaout := false;
+ StabOfs := -1;
+ StabStrOfs := -1;
+{ read and check header }
+ if FileSize (F) > SizeOf (DosHeader) then
+ begin
+  BlockRead (F, DosHeader, SizeOf (TDosHeader));
+  Seek (F, DosHeader.e_cparhdr shl 4);
+  BlockRead (F, EmxHeader, SizeOf (TEmxHeader));
+  S4 [0] := #4;
+  Move (EmxHeader.Version, S4 [1], 4);
+  if S4 = 'emx ' then
+  begin
+   Seek (F, EmxHeader.AoutOfs);
+   BlockRead (F, AoutHeader, SizeOf (TAoutHeader));
+   StabOfs := (Succ (EmxHeader.AoutOfs div StartPageSize)) * StartPageSize
+                               + AoutHeader.TextSize + AoutHeader.DataSize + 4;
+(* I don't really know, where this "+ 4" comes from, *)
+(* but it seems to be correct. :-) - TH              *)
+   StabCnt := AoutHeader.SymbSize div SizeOf (TStab);
+   StabStrOfs := StabOfs + AoutHeader.SymbSize;
+   LoadEMXaout := (StabOfs <> -1) and (StabStrOfs <> -1);
+  end;
+ end;
+end;
+{$ENDIF EMX}
+
+
 {$ifdef linux}
 function LoadElf32:boolean;
 type
@@ -357,6 +439,13 @@ begin
      exit;
    end;
 {$endif}
+{$IFDEF EMX}
+  if LoadEMXaout then
+   begin
+     OpenStabs:=true;
+     exit;
+   end;
+{$ENDIF EMX}
 {$ifdef win32}
   if LoadPECoff then
    begin
@@ -522,7 +611,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2000-02-09 16:59:30  peter
+  Revision 1.6  2000-03-19 18:10:41  hajny
+    + added support for EMX
+
+  Revision 1.5  2000/02/09 16:59:30  peter
     * truncated log
 
   Revision 1.4  2000/02/08 15:23:02  pierre
