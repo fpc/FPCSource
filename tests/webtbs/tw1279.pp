@@ -2,7 +2,7 @@
 { %version=1.1 }
 
 uses
-   testunit in 'uw1279';
+   testunit in 'webtbs/uw1279';
 
 begin
 end.
