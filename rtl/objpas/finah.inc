@@ -23,7 +23,7 @@
 
 Const
   DirSeparators : set of char = ['/','\'];  
-{$ifdef Linux}
+{$ifdef Unix}
   OSDirSeparator = '/';
 {$else}
   OsDirSeparator = '\';
@@ -44,7 +44,10 @@ Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:51  michael
+  Revision 1.3  2000-11-13 14:41:20  marco
+   * Unix renamefest for defines
+
+  Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs
  
 }

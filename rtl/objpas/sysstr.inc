@@ -476,7 +476,7 @@ j := 0;
 count := Length(S);
 while i < count do begin
    i := i + 1;
-{$ifndef linux}
+{$ifndef Unix}
    if (S[i] = #13) and ((i = count) or (S[i + 1] <> #10)) then
      begin
      result := result + Copy(S, 1 + j, i - j) + #10;
@@ -1267,7 +1267,10 @@ const
 
 {
   $Log$
-  Revision 1.5  2000-09-30 15:51:41  michael
+  Revision 1.6  2000-11-13 14:41:20  marco
+   * Unix renamefest for defines
+
+  Revision 1.5  2000/09/30 15:51:41  michael
   + Merged int64 fix from fixbranch
 
   Revision 1.1.2.2  2000/09/30 15:07:41  michael

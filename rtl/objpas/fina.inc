@@ -93,7 +93,7 @@ Var S : String;
 Begin
  S:=FileName;
  DoDirSeparators(S);
-{$ifdef linux}
+{$ifdef Unix}
   Result:=Linux.fexpand(S);
 {$else}
   Result:=Dos.Fexpand(S);
@@ -188,7 +188,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:51  michael
+  Revision 1.3  2000-11-13 14:41:20  marco
+   * Unix renamefest for defines
+
+  Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs
  
 }
