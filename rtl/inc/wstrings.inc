@@ -229,15 +229,13 @@ begin
    fpc_WideStr_To_ShortStr:=''
   else
    begin
-     //Size:=Length(S2);
-     //If Size>high_of_res then
-     // Size:=high_of_res;
-     //widestringmanager.Wide2AnsiMoveProc(PWideChar(S2),PChar(@fpc_WideStr_To_ShortStr[1]),Size);
-     //byte(fpc_WideStr_To_ShortStr[0]):=byte(Size);
-     widestringmanager.Wide2AnsiMoveProc(PWideChar(S2),temp,Size);  
-     fpc_WideStr_To_ShortStr := temp;
+     Size:=Length(S2);
+     If Size>high_of_res then
+       Size:=high_of_res;
+     widestringmanager.Wide2AnsiMoveProc(PWideChar(S2),temp,Size);
+     fpc_WideStr_To_ShortStr:=temp;
    end;
-   
+
 end;
 
 
@@ -673,7 +671,7 @@ begin
   len := length(temp);
   if len > arraysize then
     len := arraysize;
-  
+
   move(temp[1],fpc_ansistr_to_widechararray[0],len*sizeof(widechar));
   fillchar(fpc_ansistr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
 end;
@@ -1311,7 +1309,7 @@ function Utf8ToUnicode(Dest: PWideChar; Source: PChar; MaxChars: SizeInt): SizeI
 function Utf8ToUnicode(Dest: PWideChar; MaxDestChars: SizeUInt; Source:
 PChar;
   SourceBytes: SizeUInt): SizeUInt;
-  
+
   var
     i,j : SizeUInt;
     w : word;
@@ -1451,7 +1449,7 @@ function CompareWideString(const s1, s2 : WideString) : PtrInt;
   begin
     unimplementedwidestring;
   end;
-  
+
 
 function CompareTextWideString(const s1, s2 : WideString): PtrInt;
   begin
@@ -1471,7 +1469,7 @@ procedure initwidestringmanager;
     widestringmanager.Ansi2WideMoveProc:=@defaultAnsi2WideMove;
     widestringmanager.UpperWideStringProc:=@GenericWideCase;
     widestringmanager.LowerWideStringProc:=@GenericWideCase;
-    widestringmanager.CompareWideStringProc:=@CompareWideString;    
+    widestringmanager.CompareWideStringProc:=@CompareWideString;
     widestringmanager.CompareTextWideStringProc:=@CompareTextWideString;
     widestringmanager.CharLengthPCharProc:=@CharLengthPChar;
   end;
@@ -1479,7 +1477,11 @@ procedure initwidestringmanager;
 
 {
   $Log$
-  Revision 1.56  2005-03-22 10:10:54  florian
+  Revision 1.57  2005-04-03 08:46:02  florian
+    * widestr->shortstr fixed
+    * wstrings to system unit dependencies added
+
+  Revision 1.56  2005/03/22 10:10:54  florian
     * shortstr_to_widestring fixed
 
   Revision 1.55  2005/03/14 21:32:04  florian

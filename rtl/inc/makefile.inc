@@ -6,7 +6,7 @@
 
 SYSNAMES=systemh heaph mathh filerec textrec system real2str sstrings innr \
          file typefile text rtti heap astrings objpas objpash except int64 \
-         generic dynarr varianth variant
+         generic dynarr varianth variant wstrings
 
 SYSINCNAMES=$(addsuffix .inc,$(SYSNAMES))
 
