@@ -249,7 +249,7 @@ var
       begin
          asm
             movl bytes,%ebx
-            orl  $0x10,%ebx             // round up
+            addl $0xf,%ebx              // round up
             shrl $0x4,%ebx              // convert to Paragraphs
             movl $0x100,%eax            // function 0x100
             int  $0x31
@@ -1170,7 +1170,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-03-01 15:40:51  peter
+  Revision 1.3  1999-03-26 00:01:52  peter
+    * fixed rounding in global_dos_alloc
+
+  Revision 1.2  1999/03/01 15:40:51  peter
     * use external names
     * removed all direct assembler modes
 
