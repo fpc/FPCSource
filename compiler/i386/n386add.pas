@@ -496,13 +496,11 @@ interface
          swapleftright;
 
         { optimize first loading of a set }
-{$ifdef usecreateset}
         if (right.nodetype=setelementn) and
-           not(assigned(right.right)) and
+           not(assigned(tsetelementnode(right).right)) and
            is_emptyset(left) then
          createset:=true
         else
-{$endif}
          begin
            createset:=false;
            secondpass(left);
@@ -2285,7 +2283,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2001-05-27 14:30:56  florian
+  Revision 1.14  2001-06-18 20:36:25  peter
+    * -Ur switch (merged)
+    * masm fixes (merged)
+    * quoted filenames for go32v2 and win32
+
+  Revision 1.13  2001/05/27 14:30:56  florian
     + some widestring stuff added
 
   Revision 1.12  2001/05/06 17:12:14  jonas

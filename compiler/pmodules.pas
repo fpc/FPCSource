@@ -319,11 +319,6 @@ implementation
             ;
 {$endif powerpc}
 {$ifdef i386}
-          target_i386_Win32 :
-            begin
-              if islibrary then
-                exportssection.concat(tai_const_symbol.create_rva(exportlib.edatalabel));
-            end;
           target_i386_GO32V2 :
             begin
               { stacksize can be specified }
@@ -1216,6 +1211,13 @@ implementation
           end;
          compile_proc_body(true,false);
 
+         { Add symbol to the exports section for win32 so smartlinking a
+           DLL will include the edata section }
+         if assigned(exportlib) and
+            (target_info.target=target_i386_win32) and
+            assigned(current_module._exports.first) then
+           codesegment.concat(tai_const_symbol.create(exportlib.edatalabel));
+
          { avoid self recursive destructor call !! PM }
          aktprocsym.definition.localst:=nil;
 
@@ -1333,7 +1335,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2001-06-06 21:58:16  peter
+  Revision 1.37  2001-06-18 20:36:25  peter
+    * -Ur switch (merged)
+    * masm fixes (merged)
+    * quoted filenames for go32v2 and win32
+
+  Revision 1.36  2001/06/06 21:58:16  peter
     * Win32 fixes for Makefile so it doesn't require sh.exe
 
   Revision 1.35  2001/06/03 21:57:36  peter

@@ -297,11 +297,11 @@ begin
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
-  Replace(cmdstr,'$EXE',current_module.exefilename^);
+  Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+  Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
-  Replace(cmdstr,'$SCRIPT','--script='+outputexedir+Info.ResName);
+  Replace(cmdstr,'$SCRIPT','--script='+maybequoted(outputexedir+Info.ResName));
   success:=DoExec(FindUtil(BinStr),cmdstr,true,false);
 
 { Remove ReponseFile }
@@ -473,7 +473,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2001-06-03 15:15:31  peter
+  Revision 1.6  2001-06-18 20:36:26  peter
+    * -Ur switch (merged)
+    * masm fixes (merged)
+    * quoted filenames for go32v2 and win32
+
+  Revision 1.5  2001/06/03 15:15:31  peter
     * dllprt0 stub for linux shared libs
     * pass -init and -fini for linux shared libs
     * libprefix splitted into staticlibprefix and sharedlibprefix

@@ -73,7 +73,7 @@ interface
       public
         Function  FindAssembler:string;
         Function  CallAssembler(const command,para:string):Boolean;
-        Function  DoAssemble:boolean;
+        Function  DoAssemble:boolean;virtual;
         Procedure RemoveAsm;
         Procedure AsmFlush;
         Procedure AsmClear;
@@ -1515,7 +1515,12 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.20  2001-06-13 18:31:57  peter
+  Revision 1.21  2001-06-18 20:36:23  peter
+    * -Ur switch (merged)
+    * masm fixes (merged)
+    * quoted filenames for go32v2 and win32
+
+  Revision 1.20  2001/06/13 18:31:57  peter
     * smartlink with dll fixed (merged)
 
   Revision 1.19  2001/04/21 15:34:49  peter

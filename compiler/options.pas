@@ -741,6 +741,7 @@ begin
                                 Message2(option_obsolete_switch_use_new,'-Up','-Fu');
                                 break;
                               end;
+                        'r' : do_release:=true;
                         's' : initmoduleswitches:=initmoduleswitches+[cs_compilesystem];
                         '-' : begin
                                 initmoduleswitches:=initmoduleswitches
@@ -1540,7 +1541,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.43  2001-06-02 19:21:45  peter
+  Revision 1.44  2001-06-18 20:36:24  peter
+    * -Ur switch (merged)
+    * masm fixes (merged)
+    * quoted filenames for go32v2 and win32
+
+  Revision 1.43  2001/06/02 19:21:45  peter
     * extradefines field added to target_info, so that targets don't
       need to put code in options.pas for it
 

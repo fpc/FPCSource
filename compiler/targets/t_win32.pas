@@ -429,6 +429,7 @@ implementation
          if not(assigned(exportssection)) then
            exportssection:=TAAsmoutput.create;
          last_index:=0;
+         getdatalabel(edatalabel);
       end;
 
 
@@ -552,7 +553,6 @@ implementation
          exportsSection.concat(Tai_section.Create(sec_edata));
          { create label to reference from main so smartlink will include
            the .edata section }
-         getdatalabel(edatalabel);
          exportsSection.concat(Tai_symbol.Create(edatalabel,0));
          { export flags }
          exportsSection.concat(Tai_const.Create_32bit(0));
@@ -819,9 +819,9 @@ begin
      SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
      if binstr<>'' then
       begin
-        Replace(cmdstr,'$EXE',current_module.exefilename^);
+        Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
-        Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+        Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
         Replace(cmdstr,'$ASBIN',AsbinStr);
         Replace(cmdstr,'$RELOC',RelocStr);
@@ -830,7 +830,7 @@ begin
         if not DefFile.Empty {and UseDefFileForExport} then
           begin
             DefFile.WriteFile;
-            Replace(cmdstr,'$DEF','-d '+deffile.fname);
+            Replace(cmdstr,'$DEF','-d '+maybequoted(deffile.fname));
           end
         else
           Replace(cmdstr,'$DEF','');
@@ -899,9 +899,9 @@ begin
      SplitBinCmd(Info.DllCmd[i],binstr,cmdstr);
      if binstr<>'' then
       begin
-        Replace(cmdstr,'$EXE',current_module.sharedlibfilename^);
+        Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
-        Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+        Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
         Replace(cmdstr,'$APPTYPE',AppTypeStr);
         Replace(cmdstr,'$ASBIN',AsbinStr);
         Replace(cmdstr,'$RELOC',RelocStr);
@@ -910,7 +910,7 @@ begin
         if not DefFile.Empty {and UseDefFileForExport} then
           begin
             DefFile.WriteFile;
-            Replace(cmdstr,'$DEF','-d '+deffile.fname);
+            Replace(cmdstr,'$DEF','-d '+maybequoted(deffile.fname));
           end
         else
           Replace(cmdstr,'$DEF','');
@@ -1456,7 +1456,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2001-06-06 21:58:16  peter
+  Revision 1.12  2001-06-18 20:36:26  peter
+    * -Ur switch (merged)
+    * masm fixes (merged)
+    * quoted filenames for go32v2 and win32
+
+  Revision 1.11  2001/06/06 21:58:16  peter
     * Win32 fixes for Makefile so it doesn't require sh.exe
 
   Revision 1.10  2001/06/03 20:18:13  peter

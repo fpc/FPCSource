@@ -53,6 +53,7 @@ interface
     procedure valint(S : string;var V : longint;var code : integer);
     function is_number(const s : string) : boolean;
     function ispowerof2(value : longint;var power : longint) : boolean;
+    function maybequoted(const s:string):string;
 
     { releases the string p and assignes nil to p }
     { if p=nil then freemem isn't called          }
@@ -424,6 +425,30 @@ uses
       end;
 
 
+    function maybequoted(const s:string):string;
+      var
+        s1 : string;
+        i  : integer;
+      begin
+        if (pos('"',s)>0) then
+         begin
+           s1:='"';
+           for i:=1 to length(s) do
+            begin
+              if s[i]='"' then
+               s1:=s1+'\"'
+              else
+               s1:=s1+s[i];
+            end;
+           maybequoted:=s1+'"';
+         end
+        else if (pos(' ',s)>0) then
+         maybequoted:='"'+s+'"'
+        else
+         maybequoted:=s;
+      end;
+
+
     function pchar2pstring(p : pchar) : pstring;
       var
          w,i : longint;
@@ -633,7 +658,12 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2001-05-09 14:11:10  jonas
+  Revision 1.7  2001-06-18 20:36:23  peter
+    * -Ur switch (merged)
+    * masm fixes (merged)
+    * quoted filenames for go32v2 and win32
+
+  Revision 1.6  2001/05/09 14:11:10  jonas
     * range check error fixes from Peter
 
   Revision 1.5  2000/12/24 12:25:31  peter

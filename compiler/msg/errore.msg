@@ -914,10 +914,10 @@ parser_w_skipped_fields_before=03175_W_Some fields coming before "$1" weren't in
 parser_e_skipped_fields_before=03176_E_Some fields coming before "$1" weren't initialized
 % In all syntax modes but Delphi mode, you can't leave some fields uninitialized
 % in the middle of a typed constant record
-parser_w_skipped_fields_after=03177_W_Some fields coming after "$1" weren't initialized
+parser_h_skipped_fields_after=03177_H_Some fields coming after "$1" weren't initialized
 % You can leave some fields at the end of a type constant record uninitialized
 % (the compiler will initialize them to zero automatically), but the the
-% compiler warns you when it detects such situations.
+% compiler gives a hint because it can be the source of a problem.
 parser_e_varargs_need_cdecl_and_external=03178_E_VarArgs directive without CDecl and External
 % The varargs directive can only be used with procedures or functions
 % that are declared with CDecl and External directives. The varargs directive
@@ -1724,6 +1724,10 @@ unit_h_cond_set_in_last_compile=10039_H_Conditional $1 was set at startup in las
 unit_w_cant_compile_unit_with_changed_incfile=10040_W_Can't recompile unit $1, but found modifed include files
 % A unit was found to have modified include files, but
 % some source files were not found, so recompilation is impossible.
+unit_h_source_modified=10041_H_File $1 is newer than Release PPU file $2
+% A modified source file for a unit was found that was compiled with the
+% release flag (-Ur). The unit will not implicitly be recompiled because
+% this release flag is set.
 % \end{description}
 # EndOfTeX
 
@@ -1912,6 +1916,7 @@ option_help_pages=11025_[
 **1u<x>_undefines the symbol <x>
 **1U_unit options:
 **2Un_don't check the unit name
+**2Ur_generate release unit files
 **2Us_compile a system unit
 **1v<x>_Be verbose. <x> is a combination of the following letters:
 **2*_e : Show errors (default)       d : Show debug info

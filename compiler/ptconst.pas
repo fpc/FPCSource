@@ -63,9 +63,6 @@ implementation
     procedure readtypedconst(const t:ttype;sym : ttypedconstsym;no_change_allowed : boolean);
 
       var
-{$ifdef m68k}
-         j : longint;
-{$endif m68k}
          len,base  : longint;
          p,hp      : tnode;
          i,l,offset,
@@ -369,23 +366,9 @@ implementation
                      Message(cg_e_illegal_expression)
                    else
                      begin
-{$ifdef i386}
+                        { this writing is endian independant }
                         for l:=0 to t.def.size-1 do
                           curconstSegment.concat(Tai_const.Create_8bit(tsetconstnode(p).value_set^[l]));
-{$endif}
-{$ifdef m68k}
-                        j:=0;
-                        for l:=0 to ((def.size-1) div 4) do
-                        { HORRIBLE HACK because of endian       }
-                        { now use intel endian for constant sets }
-                         begin
-                           curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value_set^[j+3]));
-                           curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value_set^[j+2]));
-                           curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value_set^[j+1]));
-                           curconstSegment.concat(Tai_const.Create_8bit(tordconstnode(p).value_set^[j]));
-                           Inc(j,4);
-                         end;
-{$endif}
                      end;
                 end
               else
@@ -778,7 +761,7 @@ implementation
                     { don't complain if there only come other variant parts }
                     { after the last initialized field                      }
                     (tvarsym(srsym).address > tvarsym(recsym).address) then
-                   Message1(parser_w_skipped_fields_after,s);
+                   Message1(parser_h_skipped_fields_after,s);
 
                  for i:=1 to t.def.size-aktpos do
                    curconstSegment.concat(Tai_const.Create_8bit(0));
@@ -902,7 +885,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2001-05-06 17:15:00  jonas
+  Revision 1.24  2001-06-18 20:36:25  peter
+    * -Ur switch (merged)
+    * masm fixes (merged)
+    * quoted filenames for go32v2 and win32
+
+  Revision 1.23  2001/05/06 17:15:00  jonas
     + detect incomplete typed constant records
 
   Revision 1.22  2001/04/18 22:01:57  peter

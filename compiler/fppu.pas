@@ -561,9 +561,14 @@ uses
                     temp:=' time '+filetimestring(source_time);
                     if (source_time>ppufiletime) then
                      begin
-                       do_compile:=true;
-                       recompile_reason:=rr_sourcenewer;
-                       temp:=temp+' *'
+                       if {is_main or} ((flags and uf_release)=0) then
+                        begin
+                          do_compile:=true;
+                          recompile_reason:=rr_sourcenewer;
+                        end
+                       else
+                        Message2(unit_h_source_modified,hs,ppufilename^);
+                       temp:=temp+' *';
                      end;
                   end;
                end;
@@ -581,7 +586,8 @@ uses
          end;
       { check if we want to rebuild every unit, only if the sources are
         available }
-        if do_build and sources_avail then
+        if do_build and sources_avail and
+           ((flags and uf_release)=0) then
           begin
              do_compile:=true;
              recompile_reason:=rr_build;
@@ -714,6 +720,8 @@ uses
           flags:=flags or uf_has_browser;
          if cs_local_browser in aktmoduleswitches then
           flags:=flags or uf_local_browser;
+         if do_release then
+          flags:=flags or uf_release;
 
 {$ifdef Test_Double_checksum_write}
          Assign(CRCFile,s+'.IMP');
@@ -1172,7 +1180,12 @@ uses
 end.
 {
   $Log$
-  Revision 1.8  2001-06-04 11:49:08  peter
+  Revision 1.9  2001-06-18 20:36:23  peter
+    * -Ur switch (merged)
+    * masm fixes (merged)
+    * quoted filenames for go32v2 and win32
+
+  Revision 1.8  2001/06/04 11:49:08  peter
     * store used units in original type in ppu
 
   Revision 1.7  2001/05/19 23:05:19  peter

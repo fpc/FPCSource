@@ -115,6 +115,7 @@ interface
 
        { some flags for global compiler switches }
        do_build,
+       do_release,
        do_make       : boolean;
        not_unit_proc : boolean;
        { path for searching units, different paths can be seperated by ; }
@@ -1198,6 +1199,7 @@ implementation
      begin
       { set global switches }
         do_build:=false;
+        do_release:=false;
         do_make:=true;
         compile_level:=0;
         { these two should not be cleared in
@@ -1282,7 +1284,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2001-06-03 21:57:35  peter
+  Revision 1.38  2001-06-18 20:36:24  peter
+    * -Ur switch (merged)
+    * masm fixes (merged)
+    * quoted filenames for go32v2 and win32
+
+  Revision 1.37  2001/06/03 21:57:35  peter
     + hint directive parsing support
 
   Revision 1.36  2001/06/03 20:21:08  peter

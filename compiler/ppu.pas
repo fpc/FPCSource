@@ -126,6 +126,7 @@ const
                              external linking! }
   uf_has_resources = $800; { unit has resource section }
   uf_little_endian = $1000;
+  uf_release       = $2000;{ unit was compiled with -Ur option }
 
 type
   ppureal=extended;
@@ -956,7 +957,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2001-05-18 22:28:59  peter
+  Revision 1.10  2001-06-18 20:36:25  peter
+    * -Ur switch (merged)
+    * masm fixes (merged)
+    * quoted filenames for go32v2 and win32
+
+  Revision 1.9  2001/05/18 22:28:59  peter
     * endian define
 
   Revision 1.8  2001/05/06 14:49:17  peter
