@@ -1158,9 +1158,9 @@ const
              current_scanner^.skipspace;
              hs:=current_scanner^.readid;
              if hs='GUI' then
-               apptype:=at_gui
+               apptype:=app_gui
              else if hs='CONSOLE' then
-               apptype:=at_cui
+               apptype:=app_cui
              else
                Message1(scan_w_unsupported_app_type,hs);
           end;
@@ -1455,7 +1455,10 @@ const
 
 {
   $Log$
-  Revision 1.11  2000-11-04 14:25:21  florian
+  Revision 1.12  2000-11-12 22:17:47  peter
+    * some realname updates for messages
+
+  Revision 1.11  2000/11/04 14:25:21  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.10  2000/10/31 22:02:51  peter

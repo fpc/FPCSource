@@ -262,9 +262,9 @@ implementation
            not(plabelsym(p)^.defined) then
          begin
            if plabelsym(p)^.used then
-            Message1(sym_e_label_used_and_not_defined,p^.name)
+            Message1(sym_e_label_used_and_not_defined,plabelsym(p)^.realname)
            else
-            Message1(sym_w_label_not_defined,p^.name);
+            Message1(sym_w_label_not_defined,plabelsym(p)^.realname);
          end;
       end;
 
@@ -297,30 +297,30 @@ implementation
              begin
                 if (psym(p)^.owner^.symtabletype=parasymtable) or (vo_is_local_copy in pvarsym(p)^.varoptions) then
                   begin
-                    MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_not_used,p^.name);
+                    MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_not_used,psym(p)^.realname);
                   end
                 else if (psym(p)^.owner^.symtabletype=objectsymtable) then
-                  MessagePos2(psym(p)^.fileinfo,sym_n_private_identifier_not_used,psym(p)^.owner^.name^,p^.name)
+                  MessagePos2(psym(p)^.fileinfo,sym_n_private_identifier_not_used,psym(p)^.owner^.name^,psym(p)^.realname)
                 else
-                  MessagePos1(psym(p)^.fileinfo,sym_n_local_identifier_not_used,p^.name);
+                  MessagePos1(psym(p)^.fileinfo,sym_n_local_identifier_not_used,psym(p)^.realname);
              end
            else if pvarsym(p)^.varstate=vs_assigned then
              begin
                 if (psym(p)^.owner^.symtabletype=parasymtable) then
                   begin
                     if not(pvarsym(p)^.varspez in [vs_var,vs_out])  then
-                      MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_only_set,p^.name)
+                      MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_only_set,psym(p)^.realname)
                   end
                 else if (vo_is_local_copy in pvarsym(p)^.varoptions) then
                   begin
                     if not(pvarsym(p)^.varspez in [vs_var,vs_out]) then
-                      MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_only_set,p^.name);
+                      MessagePos1(psym(p)^.fileinfo,sym_h_para_identifier_only_set,psym(p)^.realname);
                   end
                 else if (psym(p)^.owner^.symtabletype=objectsymtable) then
-                  MessagePos2(psym(p)^.fileinfo,sym_n_private_identifier_only_set,psym(p)^.owner^.name^,p^.name)
+                  MessagePos2(psym(p)^.fileinfo,sym_n_private_identifier_only_set,psym(p)^.owner^.name^,psym(p)^.realname)
                 else if (psym(p)^.owner^.symtabletype<>parasymtable) then
                   if not (vo_is_exported in pvarsym(p)^.varoptions) then
-                    MessagePos1(psym(p)^.fileinfo,sym_n_local_identifier_only_set,p^.name);
+                    MessagePos1(psym(p)^.fileinfo,sym_n_local_identifier_only_set,psym(p)^.realname);
              end;
          end
       else if ((psym(p)^.owner^.symtabletype in
@@ -330,7 +330,7 @@ implementation
              exit;
            { do not claim for inherited private fields !! }
            if (pstoredsym(p)^.refs=0) and (psym(p)^.owner^.symtabletype=objectsymtable) then
-             MessagePos2(psym(p)^.fileinfo,sym_n_private_method_not_used,psym(p)^.owner^.name^,p^.name)
+             MessagePos2(psym(p)^.fileinfo,sym_n_private_method_not_used,psym(p)^.owner^.name^,psym(p)^.realname)
            { units references are problematic }
            else if (pstoredsym(p)^.refs=0) and not(psym(p)^.typ in [funcretsym,enumsym,unitsym]) then
              if (psym(p)^.typ<>procsym) or not (pprocsym(p)^.is_global) or
@@ -338,7 +338,7 @@ implementation
                but unused should still be signaled PM }
                 ((psym(p)^.owner^.symtabletype=staticsymtable) and
                 not current_module^.is_unit) then
-             MessagePos2(psym(p)^.fileinfo,sym_h_local_symbol_not_used,SymTypeName[psym(p)^.typ],p^.name);
+             MessagePos2(psym(p)^.fileinfo,sym_h_local_symbol_not_used,SymTypeName[psym(p)^.typ],psym(p)^.realname);
           end;
       end;
 
@@ -2007,7 +2007,7 @@ implementation
        var
          st : psymtable;
        begin
-         Message1(sym_e_duplicate_id,sym^.name);
+         Message1(sym_e_duplicate_id,sym^.realname);
          st:=findunitsymtable(sym^.owner);
          with sym^.fileinfo do
            begin
@@ -2352,7 +2352,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2000-11-06 15:54:15  florian
+  Revision 1.16  2000-11-12 22:17:47  peter
+    * some realname updates for messages
+
+  Revision 1.15  2000/11/06 15:54:15  florian
     * fixed two bugs to get make cycle work, but it's not enough
 
   Revision 1.14  2000/11/04 14:25:22  florian

@@ -266,7 +266,7 @@ implementation
 {$ifndef Delphi}
          recoverpos    : jmp_buf;
          oldrecoverpos : pjmp_buf;
-{$endif Delphi}         
+{$endif Delphi}
 {$endif useexcept}
 {$ifdef newcg}
          oldcg         : pcg;
@@ -557,7 +557,7 @@ implementation
 {$endif BrowserLog}
 
                  { Write Browser Collections }
-                 do_extractsymbolinfo;
+                 do_extractsymbolinfo{$ifdef FPC}(){$endif};
               end;
 
          if current_module^.in_second_compile then
@@ -593,7 +593,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-11-04 14:25:20  florian
+  Revision 1.10  2000-11-12 22:17:46  peter
+    * some realname updates for messages
+
+  Revision 1.9  2000/11/04 14:25:20  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.8  2000/10/31 22:02:49  peter

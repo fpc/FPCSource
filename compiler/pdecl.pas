@@ -335,7 +335,7 @@ implementation
                      end
                     else
                      begin
-                       MessagePos1(psym(p)^.fileinfo,sym_e_forward_type_not_resolved,p^.name);
+                       MessagePos1(psym(p)^.fileinfo,sym_e_forward_type_not_resolved,psym(p)^.realname);
                        { try to recover }
                        ppointerdef(pd)^.pointertype.def:=generrordef;
                      end;
@@ -350,7 +350,7 @@ implementation
                   begin
                     { only give an error as the implementation may follow in an
                       other type block which is allowed by FPC modes }
-                    MessagePos1(psym(p)^.fileinfo,sym_e_forward_type_not_resolved,p^.name);
+                    MessagePos1(psym(p)^.fileinfo,sym_e_forward_type_not_resolved,psym(p)^.realname);
                   end
                  else
                   begin
@@ -545,7 +545,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2000-11-11 16:19:11  peter
+  Revision 1.21  2000-11-12 22:17:46  peter
+    * some realname updates for messages
+
+  Revision 1.20  2000/11/11 16:19:11  peter
     * allow far directive for pointer type declarations
 
   Revision 1.19  2000/11/04 14:25:20  florian

@@ -1156,7 +1156,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-11-06 23:05:52  florian
+  Revision 1.10  2000-11-12 22:17:47  peter
+    * some realname updates for messages
+
+  Revision 1.9  2000/11/06 23:05:52  florian
     * more fixes
 
   Revision 1.8  2000/11/06 20:30:55  peter
