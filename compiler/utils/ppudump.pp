@@ -645,7 +645,6 @@ type
     po_staticmethod,      { static method }
     po_overridingmethod,  { method with override directive }
     po_methodpointer,     { method pointer, only in procvardef, also used for 'with object do' }
-    po_containsself,      { self is passed explicit to the compiler }
     po_interrupt,         { Procedure is an interrupt handler }
     po_iocheck,           { IO checking should be done after a call to the procedure }
     po_assembler,         { Procedure is written in assembler }
@@ -659,7 +658,9 @@ type
     po_varargs,           { printf like arguments }
     po_leftright,         { push arguments from left to right }
     po_clearstack,        { caller clears the stack }
-    po_internconst        { procedure has constant evaluator intern }
+    po_internconst,       { procedure has constant evaluator intern }
+    po_addressonly,       { flag that only the address of a method is returned and not a full methodpointer }
+    po_public             { procedure is exported }
   );
   tprocoptions=set of tprocoption;
 function read_abstract_proc_def:tproccalloption;
@@ -701,7 +702,7 @@ const
      (mask:potype_destructor;  str:'Destructor'),
      (mask:potype_operator;    str:'Operator')
   );
-  procopts=21;
+  procopts=22;
   procopt : array[1..procopts] of tprocopt=(
      (mask:po_classmethod;     str:'ClassMethod'),
      (mask:po_virtualmethod;   str:'VirtualMethod'),
@@ -709,7 +710,6 @@ const
      (mask:po_staticmethod;    str:'StaticMethod'),
      (mask:po_overridingmethod;str:'OverridingMethod'),
      (mask:po_methodpointer;   str:'MethodPointer'),
-     (mask:po_containsself;    str:'ContainsSelf'),
      (mask:po_interrupt;       str:'Interrupt'),
      (mask:po_iocheck;         str:'IOCheck'),
      (mask:po_assembler;       str:'Assembler'),
@@ -723,7 +723,9 @@ const
      (mask:po_varargs;         str:'VarArgs'),
      (mask:po_leftright;       str:'LeftRight'),
      (mask:po_clearstack;      str:'ClearStack'),
-     (mask:po_internconst;     str:'InternConst')
+     (mask:po_internconst;     str:'InternConst'),
+     (mask:po_addressonly;     str:'AddressOnly'),
+     (mask:po_public;          str:'Public')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -1938,7 +1940,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2003-05-09 17:47:03  peter
+  Revision 1.43  2003-06-05 20:06:11  peter
+    * new procoptions
+
+  Revision 1.42  2003/05/09 17:47:03  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 
