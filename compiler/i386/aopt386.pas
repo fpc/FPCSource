@@ -50,6 +50,7 @@ Begin
   slowopt := (cs_slowoptimize in aktglobalswitches);
   pass := 0;
   changed := false;
+  dfa := TDFAObj.create(asml);
   repeat
      lastLoop :=
        not(slowopt) or
@@ -58,8 +59,8 @@ Begin
        (pass = 4);
      changed := false;
    { Setup labeltable, always necessary }
-     BlockStart := Tai(AsmL.First);
-     BlockEnd := DFAPass1(AsmL, BlockStart);
+     blockstart := tai(asml.first);
+     blockend := dfa.pass_1(blockstart);
    { Blockend now either contains an ait_marker with Kind = AsmBlockStart, }
    { or nil                                                                }
      While Assigned(BlockStart) Do
@@ -74,11 +75,7 @@ Begin
         { Data flow analyzer }
          If (cs_fastoptimize in aktglobalswitches) Then
            begin
-             If DFAPass2(
-{$ifdef statedebug}
-                         AsmL,
-{$endif statedebug}
-                               BlockStart, BlockEnd) Then
+             if dfa.pass_2 then
               { common subexpression elimination }
                changed := CSE(asmL, blockStart, blockEnd, pass) or changed;
            end;
@@ -86,8 +83,10 @@ Begin
          PeepHoleOptPass2(AsmL, BlockStart, BlockEnd);
          if lastLoop then
            PostPeepHoleOpts(AsmL, BlockStart, BlockEnd);
-        { Dispose labeltabel }
-         ShutDownDFA;
+
+        { Free memory }
+        dfa.clear;
+
         { Continue where we left off, BlockEnd is either the start of an }
         { assembler block or nil                                         }
          BlockStart := BlockEnd;
@@ -106,19 +105,25 @@ Begin
                  (Tai_Marker(HP).Kind <> AsmBlockStart)) Then
              { There is no assembler block anymore after the current one, so }
              { optimize the next block of "normal" instructions              }
-               BlockEnd := DFAPass1(AsmL, BlockStart)
+               BlockEnd := dfa.pass_1(blockstart)
              { Otherwise, skip the next assembler block }
-             Else BlockStart := HP;
+             else
+               blockStart := hp;
            End;
        End;
      inc(pass);
   until lastLoop;
+  dfa.free;
+
 End;
 
 End.
 {
   $Log$
-  Revision 1.8  2003-02-26 21:15:43  daniel
+  Revision 1.9  2003-06-08 18:48:03  jonas
+    * first small steps towards an oop optimizer
+
+  Revision 1.8  2003/02/26 21:15:43  daniel
     * Fixed the optimizer
 
   Revision 1.7  2002/07/01 18:46:29  peter

@@ -472,11 +472,9 @@ Var
     if level > 20 then
       exit;
     GetfinalDestination := false;
-    If (tasmlabel(hp.oper[0].sym).labelnr >= LoLab) and
-       (tasmlabel(hp.oper[0].sym).labelnr <= HiLab) and   {range check, a jump can go past an assembler block!}
-       Assigned(LTable^[tasmlabel(hp.oper[0].sym).labelnr-LoLab].TaiObj) Then
-      Begin
-        p1 := LTable^[tasmlabel(hp.oper[0].sym).labelnr-LoLab].TaiObj; {the jump's destination}
+    p1 := dfa.getlabelwithsym(tasmlabel(hp.oper[0].sym));
+    if assigned(p1) then
+      begin
         SkipLabels(p1,p1);
         If (Tai(p1).typ = ait_instruction) and
            (Taicpu(p1).is_jmp) Then
@@ -635,8 +633,7 @@ Begin
                               Taicpu(p).condition:=inverse_cond[Taicpu(p).condition]
                              else
                               begin
-                                If (LabDif <> 0) Then
-                                  GetFinalDestination(asml, Taicpu(p),0);
+                                GetFinalDestination(asml, Taicpu(p),0);
                                 p:=Tai(p.next);
                                 continue;
                               end;
@@ -645,12 +642,10 @@ Begin
                              Taicpu(p).oper[0].sym.increfs;
                              asml.remove(hp1);
                              hp1.free;
-                             If (LabDif <> 0) Then
-                               GetFinalDestination(asml, Taicpu(p),0);
+                             GetFinalDestination(asml, Taicpu(p),0);
                            end
                          else
-                           If (LabDif <> 0) Then
-                             GetFinalDestination(asml, Taicpu(p),0);
+                           GetFinalDestination(asml, Taicpu(p),0);
                      end;
                  end;
              end
@@ -2063,7 +2058,10 @@ End.
 
 {
   $Log$
-  Revision 1.46  2003-06-03 21:09:05  peter
+  Revision 1.47  2003-06-08 18:48:03  jonas
+    * first small steps towards an oop optimizer
+
+  Revision 1.46  2003/06/03 21:09:05  peter
     * internal changeregsize for optimizer
     * fix with a hack to not remove the first instruction of a block
       which will leave blockstart pointing to invalid memory

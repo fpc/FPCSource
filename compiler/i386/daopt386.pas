@@ -197,13 +197,42 @@ Function InstructionsEquivalent(p1, p2: Tai; Var RegInfo: TRegInfo): Boolean;
 function sizescompatible(loadsize,newsize: topsize): boolean;
 Function OpsEqual(const o1,o2:toper): Boolean;
 
-Function DFAPass1(AsmL: TAAsmOutput; BlockStart: Tai): Tai;
-Function DFAPass2(
-{$ifdef statedebug}
-                   AsmL: TAAsmOutPut;
-{$endif statedebug}
-                                      BlockStart, BlockEnd: Tai): Boolean;
-Procedure ShutDownDFA;
+
+type
+  tdfaobj = class
+    constructor create(_list: taasmoutput); virtual;
+
+    function pass_1(_blockstart: tai): tai;
+    function pass_2: boolean;
+    procedure clear;
+
+    function getlabelwithsym(sym: tasmlabel): tai;
+
+   private
+    { Walks through the list to find the lowest and highest label number, inits the }
+    { labeltable and fixes/optimizes some regallocs                                 }
+     procedure initlabeltable;
+
+    function initdfapass2: boolean;
+    procedure dodfapass2;
+
+    { asm list we're working on }
+    list: taasmoutput;
+
+    { current part of the asm list }
+    blockstart, blockend: tai;
+
+    { the amount of TaiObjects in the current part of the assembler list }
+    nroftaiobjs: longint;
+
+    { Array which holds all TTaiProps }
+    taipropblock: ptaipropblock;
+
+    { all labels in the current block: their value mapped to their location }
+    lolab, hilab, labdif: longint;
+    labeltable: plabeltable;
+  end;
+
 
 Function FindLabel(L: tasmlabel; Var hp: Tai): Boolean;
 
@@ -211,16 +240,8 @@ Procedure IncState(Var S: Byte; amount: longint);
 
 {******************************* Variables *******************************}
 
-Var
-{the amount of TaiObjects in the current assembler list}
-  NrOfTaiObjs: Longint;
-
-{Array which holds all TTaiProps}
-  TaiPropBlock: PTaiPropBlock;
-
-  LoLab, HiLab, LabDif: Longint;
-
-  LTable: PLabelTable;
+var
+  dfa: tdfaobj;
 
 {*********************** End of Interface section ************************}
 
@@ -311,40 +332,6 @@ End;
 {$endif tempOpts}
 
 {************************ Create the Label table ************************}
-
-Function FindLoHiLabels(Var LowLabel, HighLabel, LabelDif: Longint; BlockStart: Tai): Tai;
-{Walks through the TAAsmlist to find the lowest and highest label number}
-Var LabelFound: Boolean;
-    P, lastP: Tai;
-Begin
-  LabelFound := False;
-  LowLabel := MaxLongint;
-  HighLabel := 0;
-  P := BlockStart;
-  lastP := p;
-  While Assigned(P) Do
-    Begin
-      If (Tai(p).typ = ait_label) Then
-        If not labelCanBeSkipped(Tai_label(p))
-          Then
-            Begin
-              LabelFound := True;
-              If (Tai_Label(p).l.labelnr < LowLabel) Then
-                LowLabel := Tai_Label(p).l.labelnr;
-              If (Tai_Label(p).l.labelnr > HighLabel) Then
-                HighLabel := Tai_Label(p).l.labelnr;
-            End;
-      lastP := p;
-      GetNextInstruction(p, p);
-    End;
-  if (lastP.typ = ait_marker) and
-     (Tai_marker(lastp).kind = asmBlockStart) then
-    FindLoHiLabels := lastP
-  else FindLoHiLabels := nil;
-  If LabelFound
-    Then LabelDif := HighLabel+1-LowLabel
-    Else LabelDif := 0;
-End;
 
 Function FindRegAlloc(Reg: Tregister; StartTai: Tai; alloc: boolean): Boolean;
 { Returns true if a ait_alloc object for Reg is found in the block of Tai's }
@@ -477,71 +464,7 @@ begin
     end;
 end;
 
-Procedure BuildLabelTableAndFixRegAlloc(asmL: TAAsmOutput; Var LabelTable: PLabelTable; LowLabel: Longint;
-            Var LabelDif: Longint; BlockStart, BlockEnd: Tai);
-{Builds a table with the locations of the labels in the TAAsmoutput.
- Also fixes some RegDeallocs like "# %eax released; push (%eax)"}
-Var p, hp1, hp2, lastP: Tai;
-    regCounter: TRegister;
-    UsedRegs, noDeallocRegs: TRegSet;
-Begin
-  UsedRegs := [];
-  If (LabelDif <> 0) Then
-    Begin
-      GetMem(LabelTable, LabelDif*SizeOf(TLabelTableItem));
-      FillChar(LabelTable^, LabelDif*SizeOf(TLabelTableItem), 0);
-    End;
-  p := BlockStart;
-  lastP := p;
-  While (P <> BlockEnd) Do
-    Begin
-      Case p.typ Of
-        ait_Label:
-          If not labelCanBeSkipped(Tai_label(p)) Then
-            LabelTable^[Tai_Label(p).l.labelnr-LowLabel].TaiObj := p;
-        ait_regAlloc:
-          { ESI and EDI are (de)allocated manually, don't mess with them }
-          if not(tai_regalloc(p).Reg.enum in [R_EDI]) then
-            begin
-              if tai_regalloc(p).Allocation then
-                Begin
-                  If Not(tai_regalloc(p).Reg.enum in UsedRegs) Then
-                    UsedRegs := UsedRegs + [tai_regalloc(p).Reg.enum]
-                  Else
-                    addRegDeallocFor(asmL, tai_regalloc(p).reg, p);
-                End
-              else
-                begin
-                  UsedRegs := UsedRegs - [tai_regalloc(p).Reg.enum];
-                  hp1 := p;
-                  hp2 := nil;
-                  While Not(FindRegAlloc(tai_regalloc(p).Reg, Tai(hp1.Next),true)) And
-                        GetNextInstruction(hp1, hp1) And
-                        RegInInstruction(tai_regalloc(p).Reg.enum, hp1) Do
-                    hp2 := hp1;
-                  If hp2 <> nil Then
-                    Begin
-                      hp1 := Tai(p.previous);
-                      AsmL.Remove(p);
-                      InsertLLItem(AsmL, hp2, Tai(hp2.Next), p);
-                      p := hp1;
-                    end;
-                end;
-            end;
-      end;
-      repeat
-        lastP := p;
-        P := Tai(P.Next);
-      until not(Assigned(p)) or
-            not(p.typ in (SkipInstr - [ait_regalloc]));
-    End;
-  { don't add deallocation for function result variable or for regvars}
-  getNoDeallocRegs(noDeallocRegs);
-  usedRegs := usedRegs - noDeallocRegs;
-  for regCounter.enum := R_EAX to R_EDI do
-    if regCounter.enum in usedRegs then
-      addRegDeallocFor(asmL,regCounter,lastP);
-End;
+
 
 {************************ Search the Label table ************************}
 
@@ -2025,15 +1948,6 @@ Begin
   End;
 End;
 
-Function DFAPass1(AsmL: TAAsmOutput; BlockStart: Tai): Tai;
-{gathers the RegAlloc data... still need to think about where to store it to
- avoid global vars}
-Var BlockEnd: Tai;
-Begin
-  BlockEnd := FindLoHiLabels(LoLab, HiLab, LabDif, BlockStart);
-  BuildLabelTableAndFixRegAlloc(AsmL, LTable, LoLab, LabDif, BlockStart, BlockEnd);
-  DFAPass1 := BlockEnd;
-End;
 
 Procedure AddInstr2RegContents({$ifdef statedebug} asml: TAAsmoutput; {$endif}
 p: Taicpu; reg: TRegister);
@@ -2089,11 +2003,196 @@ Begin
     End
 End;
 
-Procedure DoDFAPass2(
-{$Ifdef StateDebug}
-AsmL: TAAsmOutput;
-{$endif statedebug}
-BlockStart, BlockEnd: Tai);
+
+{*************************************************************************************}
+{************************************** TDFAOBJ **************************************}
+{*************************************************************************************}
+
+constructor tdfaobj.create(_list: taasmoutput);
+begin
+  list := _list;
+  blockstart := nil;
+  blockend := nil;
+  nroftaiobjs := 0;
+  taipropblock := nil;
+  lolab := 0;
+  hilab := 0;
+  labdif := 0;
+  labeltable := nil;  
+end;
+
+
+procedure tdfaobj.initlabeltable;
+var
+  labelfound: boolean;
+  p, prev: tai;
+  hp1, hp2: Tai;
+{$ifdef i386}
+  regcounter: tregister;
+{$endif i386}
+  usedregs, nodeallocregs: tregset;
+begin
+  labelfound := false;
+  lolab := maxlongint;
+  hilab := 0;
+  p := blockstart;
+  prev := p;
+  while assigned(p) do
+    begin
+      if (tai(p).typ = ait_label) then
+        if not labelcanbeskipped(tai_label(p)) then
+          begin
+            labelfound := true;
+             if (tai_Label(p).l.labelnr < lolab) then
+               lolab := tai_label(p).l.labelnr;
+             if (tai_Label(p).l.labelnr > hilab) then
+               hilab := tai_label(p).l.labelnr;
+          end;
+      prev := p;
+      getnextinstruction(p, p);
+    end;
+  if (prev.typ = ait_marker) and
+     (tai_marker(prev).kind = asmblockstart) then
+    blockend := prev
+  else blockend := nil;
+  if labelfound then
+    labdif := hilab+1-lolab
+  else labdif := 0;
+
+  usedregs := [];
+  if (labdif <> 0) then
+    begin
+      getmem(labeltable, labdif*sizeof(tlabeltableitem));
+      fillchar(labeltable^, labdif*sizeof(tlabeltableitem), 0);
+    End;
+  p := blockstart;
+  prev := p;
+  while (p <> blockend) do
+    begin
+      case p.typ of
+        ait_label:
+          if not labelcanbeskipped(tai_label(p)) then
+            labeltable^[tai_label(p).l.labelnr-lolab].taiobj := p;
+{$ifdef i386}
+        ait_regalloc:
+          { EDI is (de)allocated manually, don't mess with it }
+          if not(tai_regalloc(p).reg.enum in [R_EDI]) then
+            begin
+              if tai_regalloc(p).allocation then
+                begin
+                  if not(tai_regalloc(p).reg.enum in usedregs) then
+                    usedregs := usedregs + [tai_regalloc(p).reg.enum]
+                  else
+                    addregdeallocfor(list, tai_regalloc(p).reg, p);
+                end
+              else
+                begin
+                  usedregs := Usedregs - [tai_regalloc(p).reg.enum];
+                  hp1 := p;
+                  hp2 := nil;
+                  while not(findregalloc(tai_regalloc(p).reg, tai(hp1.next),true)) and
+                        getnextinstruction(hp1, hp1) and
+                        regininstruction(tai_regalloc(p).reg.enum, hp1) Do
+                    hp2 := hp1;
+                  if hp2 <> nil then
+                    begin
+                      hp1 := tai(p.previous);
+                      list.remove(p);
+                      insertllitem(list, hp2, tai(hp2.next), p);
+                      p := hp1;
+                    end;
+                end;
+            end;
+{$endif i386}
+      end;
+      repeat
+        prev := p;
+        p := tai(p.next);
+      until not(assigned(p)) or
+            not(p.typ in (skipinstr - [ait_regalloc]));
+    end;
+{$ifdef i386}
+  { don't add deallocation for function result variable or for regvars}
+  getNoDeallocRegs(noDeallocRegs);
+  usedRegs := usedRegs - noDeallocRegs;
+  for regCounter.enum := R_EAX to R_EDI do
+    if regCounter.enum in usedRegs then
+      addRegDeallocFor(list,regCounter,prev);
+{$endif i386}
+end;
+
+
+function tdfaobj.pass_1(_blockstart: tai): tai;
+begin
+  blockstart := _blockstart;
+  initlabeltable;
+  pass_1 := blockend;
+end;
+
+
+
+function tdfaobj.initdfapass2: boolean;
+{reserves memory for the PTaiProps in one big memory block when not using
+ TP, returns False if not enough memory is available for the optimizer in all
+ cases}
+var
+  p: Tai;
+  count: Longint;
+{    TmpStr: String; }
+begin
+  p := blockstart;
+  skiphead(p);
+  nroftaiobjs := 0;
+  while (p <> blockend) do
+    begin
+{$IfDef JumpAnal}
+      case p.typ of
+        ait_label:
+          begin
+            if not labelcanbeskipped(tai_label(p)) then
+              labeltable^[tai_label(p).l.labelnr-lolab].instrnr := nroftaiobjs
+          End;
+        ait_instruction:
+          begin
+            if taicpu(p).is_jmp then
+             begin
+               if (tasmlabel(taicpu(p).oper[0].sym).labelnr >= lolab) And
+                  (tasmlabel(taicpu(p).oper[0].sym).labelnr <= hilab) Then
+                 inc(labeltable^[tasmlabel(taicpu(p).oper[0].sym).labelnr-lolab].refsfound);
+             end;
+          end;
+{        ait_instruction:
+          Begin
+           If (Taicpu(p).opcode = A_PUSH) And
+              (Taicpu(p).oper[0].typ = top_symbol) And
+              (PCSymbol(Taicpu(p).oper[0])^.offset = 0) Then
+             Begin
+               TmpStr := StrPas(PCSymbol(Taicpu(p).oper[0])^.symbol);
+               If}
+      End;
+{$EndIf JumpAnal}
+      inc(NrOfTaiObjs);
+      getnextinstruction(p,p);
+    End;
+  if nroftaiobjs <> 0 Then
+    begin
+      initdfapass2 := True;
+      getmem(taipropblock, nroftaiobjs*sizeof(ttaiprop));
+      fillchar(taiPropblock^,nroftaiobjs*sizeof(ttaiprop),0);
+      p := blockstart;
+      skiphead(p);
+      for count := 1 To nroftaiobjs do
+        begin
+          ptaiprop(p.optinfo) := @taipropblock^[count];
+          getnextinstruction(p, p);
+        end;
+    end
+  else
+    initdfapass2 := false;
+end;
+
+
+procedure tdfaobj.dodfapass2;
 {Analyzes the Data Flow of an assembler list. Starts creating the reg
  contents for the instructions starting with p. Returns the last Tai which has
  been processed}
@@ -2640,96 +2739,53 @@ Begin
     End;
 End;
 
-Function InitDFAPass2(BlockStart, BlockEnd: Tai): Boolean;
-{reserves memory for the PTaiProps in one big memory block when not using
- TP, returns False if not enough memory is available for the optimizer in all
- cases}
-Var p: Tai;
-    Count: Longint;
-{    TmpStr: String; }
-Begin
-  P := BlockStart;
-  SkipHead(P);
-  NrOfTaiObjs := 0;
-  While (P <> BlockEnd) Do
-    Begin
-{$IfDef JumpAnal}
-      Case p.Typ Of
-        ait_label:
-          Begin
-            If not labelCanBeSkipped(Tai_label(p)) Then
-              LTable^[Tai_Label(p).l^.labelnr-LoLab].InstrNr := NrOfTaiObjs
-          End;
-        ait_instruction:
-          begin
-            if Taicpu(p).is_jmp then
-             begin
-               If (tasmlabel(Taicpu(p).oper[0].sym).labelnr >= LoLab) And
-                  (tasmlabel(Taicpu(p).oper[0].sym).labelnr <= HiLab) Then
-                 Inc(LTable^[tasmlabel(Taicpu(p).oper[0].sym).labelnr-LoLab].RefsFound);
-             end;
-          end;
-{        ait_instruction:
-          Begin
-           If (Taicpu(p).opcode = A_PUSH) And
-              (Taicpu(p).oper[0].typ = top_symbol) And
-              (PCSymbol(Taicpu(p).oper[0])^.offset = 0) Then
-             Begin
-               TmpStr := StrPas(PCSymbol(Taicpu(p).oper[0])^.symbol);
-               If}
-      End;
-{$EndIf JumpAnal}
-      Inc(NrOfTaiObjs);
-      GetNextInstruction(p, p);
-    End;
-{Uncomment the next line to see how much memory the reloading optimizer needs}
-{  Writeln(NrOfTaiObjs*SizeOf(TTaiProp));}
-{no need to check mem/maxavail, we've got as much virtual memory as we want}
-  If NrOfTaiObjs <> 0 Then
-    Begin
-      InitDFAPass2 := True;
-      GetMem(TaiPropBlock, NrOfTaiObjs*SizeOf(TTaiProp));
-      fillchar(TaiPropBlock^,NrOfTaiObjs*SizeOf(TTaiProp),0);
-      p := BlockStart;
-      SkipHead(p);
-      For Count := 1 To NrOfTaiObjs Do
-        Begin
-          PTaiProp(p.OptInfo) := @TaiPropBlock^[Count];
-          GetNextInstruction(p, p);
-        End;
-    End
-  Else InitDFAPass2 := False;
-End;
 
-Function DFAPass2(
-{$ifdef statedebug}
-                   AsmL: TAAsmOutPut;
-{$endif statedebug}
-                                      BlockStart, BlockEnd: Tai): Boolean;
-Begin
-  If InitDFAPass2(BlockStart, BlockEnd) Then
-    Begin
-      DoDFAPass2(
-{$ifdef statedebug}
-         asml,
-{$endif statedebug}
-         BlockStart, BlockEnd);
-      DFAPass2 := True
-    End
-  Else DFAPass2 := False;
-End;
+function tdfaobj.pass_2: boolean;
+begin
+  if initdfapass2 Then
+    begin
+      dodfapass2;
+      pass_2 := true
+    end
+  else
+    pass_2 := false;
+end;
 
-Procedure ShutDownDFA;
-Begin
-  If LabDif <> 0 Then
-    FreeMem(LTable, LabDif*SizeOf(TLabelTableItem));
-End;
 
-End.
+function tdfaobj.getlabelwithsym(sym: tasmlabel): tai;
+begin
+  if (sym.labelnr >= lolab) and
+     (sym.labelnr <= hilab) then   { range check, a jump can go past an assembler block! }
+    getlabelwithsym := labeltable^[sym.labelnr-lolab].taiobj
+  else
+    getlabelwithsym := nil;
+end;
+
+
+
+procedure tdfaobj.clear;
+begin
+  if labdif <> 0 then
+    begin
+      freemem(labeltable);
+      labeltable := nil;
+    end;
+  if assigned(taipropblock) then
+    begin
+      freemem(taipropblock, nroftaiobjs*sizeof(ttaiprop));
+      taipropblock := nil;
+    end;
+end;
+
+
+end.
 
 {
   $Log$
-  Revision 1.51  2003-06-03 21:09:05  peter
+  Revision 1.52  2003-06-08 18:48:03  jonas
+    * first small steps towards an oop optimizer
+
+  Revision 1.51  2003/06/03 21:09:05  peter
     * internal changeregsize for optimizer
     * fix with a hack to not remove the first instruction of a block
       which will leave blockstart pointing to invalid memory

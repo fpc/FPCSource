@@ -1980,7 +1980,6 @@ begin
             p := Tai(p.next);;
           End;
     End;
-    FreeMem(TaiPropBlock, NrOfTaiObjs*SizeOf(TTaiProp))
 End;
 
 function CSE(AsmL: TAAsmOutput; First, Last: Tai; pass: longint): boolean;
@@ -1997,7 +1996,10 @@ End.
 
 {
   $Log$
-  Revision 1.47  2003-06-03 21:09:05  peter
+  Revision 1.48  2003-06-08 18:48:03  jonas
+    * first small steps towards an oop optimizer
+
+  Revision 1.47  2003/06/03 21:09:05  peter
     * internal changeregsize for optimizer
     * fix with a hack to not remove the first instruction of a block
       which will leave blockstart pointing to invalid memory
