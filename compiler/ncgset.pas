@@ -595,10 +595,11 @@ implementation
                else if left.nodetype=ordconstn then
                 begin
                   { use location.register as scratch register here }
-                  inc(right.location.reference.offset,tordconstnode(left).value shr 3);
-                  { adjust for endianess differences }
-                  if (source_info.endian <> target_info.endian) then
-                    right.location.reference.offset := right.location.reference.offset xor 3;
+                  if (source_info.endian = target_info.endian) then
+                    inc(right.location.reference.offset,tordconstnode(left).value shr 3)
+                  else
+                    { adjust for endianess differences }
+                    inc(right.location.reference.offset,(tordconstnode(left).value shr 3) xor 3);
                   cg.a_load_ref_reg(exprasmlist, OS_8, right.location.reference, location.register);
                   location_release(exprasmlist,right.location);
                   cg.a_op_const_reg(exprasmlist,OP_SHR, tordconstnode(left).value and 7,
@@ -1124,7 +1125,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2003-05-17 19:17:35  jonas
+  Revision 1.34  2003-05-23 19:52:28  jonas
+    * corrected fix for endian differences in tcginnode
+
+  Revision 1.33  2003/05/17 19:17:35  jonas
     * fixed size setting of result location of innodes
 
   Revision 1.32  2003/05/01 12:26:50  jonas
