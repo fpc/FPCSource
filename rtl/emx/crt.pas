@@ -131,7 +131,7 @@ function kbdcharin(var Akeyrec:Tkbdkeyinfo;wait,kbdhandle:longint):word; cdecl;
 function kbdpeek(var Akeyrec:TkbdkeyInfo;kbdhandle:word):word; cdecl;
                  external 'EMXWRAP' index 222;
 
-function dossleep(time:longint):word; cdecl;
+function dossleep(time:cardinal):cardinal; cdecl;
                   external 'DOSCALLS' index 229;
 function vioscrollup(top,left,bottom,right,lines:longint;
                      var screl:word;viohandle:longint):word; cdecl;
@@ -894,7 +894,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-03-23 23:11:17  hajny
+  Revision 1.2  2003-10-19 09:35:28  hajny
+    * fixes from OS/2 merged to EMX
+
+  Revision 1.1  2003/03/23 23:11:17  hajny
     + emx target added
 
 

@@ -25,9 +25,6 @@ interface
 uses
  Dos;
 
-type
-  THandle = type Longint;
-
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -231,15 +228,9 @@ const
                              specification for DosFindFirst call.}
 
 {$ASMMODE INTEL}
-function FileOpen (const FileName: string; Mode: integer): longint;
-{$IFOPT H+}
-                                                                    assembler;
-{$ELSE}
-var FN: string;
-begin
-    FN := FileName + #0;
-{$ENDIF}
-    asm
+function FileOpen (const FileName: string; Mode: integer): longint; assembler;
+asm
+ push ebx
         mov eax, Mode
 (* DenyAll if sharing not specified. *)
         test eax, 112
@@ -248,50 +239,24 @@ begin
 @FOpen1:
         mov ecx, eax
         mov eax, 7F2Bh
-{$IFOPT H+}
-        mov edx, FileName
-{$ELSE}
-        lea edx, FN
-        inc edx
-{$ENDIF}
-        call syscall
-{$IFOPT H-}
-        mov Result, eax
-{$ENDIF}
-    end ['eax', 'ebx', 'ecx', 'edx'];
-{$IFOPT H-}
-end;
-{$ENDIF}
+ mov edx, FileName
+ call syscall
+ pop ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 
-function FileCreate (const FileName: string): longint;
-{$IFOPT H+}
-                                                                    assembler;
-{$ELSE}
-var FN: string;
-begin
-    FN := FileName + #0;
-{$ENDIF}
-    asm
+function FileCreate (const FileName: string): longint; assembler;
+asm
+ push ebx
         mov eax, 7F2Bh
         mov ecx, ofReadWrite or faCreate or doDenyRW   (* Sharing to DenyAll *)
-{$IFOPT H+}
-        mov edx, FileName
-{$ELSE}
-        lea edx, FN
-        inc edx
-{$ENDIF}
-        call syscall
-{$IFOPT H-}
-        mov Result, eax
-{$ENDIF}
-    end ['eax', 'ebx', 'ecx', 'edx'];
-{$IFOPT H-}
-end;
-{$ENDIF}
+ mov edx, FileName
+ call syscall
+ pop ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 
-Function FileCreate (Const FileName : String; Mode:longint) : Longint;
+function FileCreate (const FileName: string; Mode: longint): longint;
 begin
   FileCreate:=FileCreate(FileName);
 end;
@@ -300,6 +265,7 @@ end;
 function FileRead (Handle: longint; var Buffer; Count: longint): longint;
                                                                      assembler;
 asm
+ push ebx
     mov eax, 3F00h
     mov ebx, Handle
     mov ecx, Count
@@ -308,12 +274,14 @@ asm
     jnc @FReadEnd
     mov eax, -1
 @FReadEnd:
-end ['eax', 'ebx', 'ecx', 'edx'];
+ pop ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 
 function FileWrite (Handle: longint; const Buffer; Count: longint): longint;
                                                                      assembler;
 asm
+ push ebx
     mov eax, 4000h
     mov ebx, Handle
     mov ecx, Count
@@ -322,11 +290,13 @@ asm
     jnc @FWriteEnd
     mov eax, -1
 @FWriteEnd:
-end ['eax', 'ebx', 'ecx', 'edx'];
+ pop ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 
 function FileSeek (Handle, FOffset, Origin: longint): longint; assembler;
 asm
+ push ebx
     mov eax, Origin
     mov ah, 42h
     mov ebx, Handle
@@ -335,9 +305,10 @@ asm
     jnc @FSeekEnd
     mov eax, -1
 @FSeekEnd:
-end ['eax', 'ebx', 'edx'];
+ pop ebx
+end {['eax', 'ebx', 'edx']};
 
-Function FileSeek (Handle : Longint; FOffset,Origin : Int64) : Int64;
+function FileSeek (Handle: longint; FOffset, Origin: Int64): Int64;
 begin
   {$warning need to add 64bit call }
   Result:=FileSeek(Handle,Longint(Foffset),Longint(Origin));
@@ -358,6 +329,7 @@ end;
 
 function FileTruncate (Handle, Size: longint): boolean; assembler;
 asm
+ push ebx
     mov eax, 7F25h
     mov ebx, Handle
     mov edx, Size
@@ -371,7 +343,8 @@ asm
     jnc @FTruncEnd
     dec eax
 @FTruncEnd:
-end ['eax', 'ebx', 'ecx', 'edx'];
+ pop ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 
 function FileAge (const FileName: string): longint;
@@ -388,22 +361,10 @@ begin
 end;
 
 
-function FileExists (const FileName: string): boolean;
-{$IFOPT H+}
-                                                       assembler;
-{$ELSE}
-var FN: string;
-begin
-    FN := FileName + #0;
-{$ENDIF}
+function FileExists (const FileName: string): boolean; assembler;
 asm
-    mov ax, 4300h
-{$IFOPT H+}
-    mov edx, FileName
-{$ELSE}
-    lea edx, FN
-    inc edx
-{$ENDIF}
+ mov ax, 4300h
+ mov edx, FileName
     call syscall
     mov eax, 0
     jc @FExistsEnd
@@ -411,13 +372,7 @@ asm
     jnz @FExistsEnd
     inc eax
 @FExistsEnd:
-{$IFOPT H-}
-    mov Result, eax
-{$ENDIF}
-end ['eax', 'ecx', 'edx'];
-{$IFOPT H-}
-end;
-{$ENDIF}
+end {['eax', 'ecx', 'edx']};
 
 
 type    TRec = record
@@ -542,6 +497,7 @@ end;
 
 function FileGetDate (Handle: longint): longint; assembler;
 asm
+ push ebx
     mov ax, 5700h
     mov ebx, Handle
     call syscall
@@ -550,7 +506,8 @@ asm
     mov ax, dx
     shld eax, ecx, 16
 @FGetDateEnd:
-end ['eax', 'ebx', 'ecx', 'edx'];
+ pop ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 
 function FileSetDate (Handle, Age: longint): longint;
@@ -596,128 +553,55 @@ begin
 end;
 
 
-function FileGetAttr (const FileName: string): longint;
-{$IFOPT H+}
-                                                        assembler;
-{$ELSE}
-var FN: string;
-begin
-    FN := FileName + #0;
-{$ENDIF}
+function FileGetAttr (const FileName: string): longint; assembler;
 asm
-    mov ax, 4300h
-{$IFOPT H+}
-    mov edx, FileName
-{$ELSE}
-    lea edx, FN
-    inc edx
-{$ENDIF}
+ mov ax, 4300h
+ mov edx, FileName
     call syscall
     jnc @FGetAttrEnd
     mov eax, -1
 @FGetAttrEnd:
-{$IFOPT H-}
-    mov Result, eax
-{$ENDIF}
-  end ['eax', 'edx'];
-{$IFOPT H-}
-end;
-{$ENDIF}
+end {['eax', 'edx']};
 
 
-function FileSetAttr (const Filename: string; Attr: longint): longint;
-{$IFOPT H+}
-                                                                     assembler;
-{$ELSE}
-var FN: string;
-begin
-    FN := FileName + #0;
-{$ENDIF}
+function FileSetAttr (const Filename: string; Attr: longint): longint; assembler;
 asm
     mov ax, 4301h
     mov ecx, Attr
-{$IFOPT H+}
-    mov edx, FileName
-{$ELSE}
-    lea edx, FN
-    inc edx
-{$ENDIF}
+ mov edx, FileName
     call syscall
     mov eax, 0
     jnc @FSetAttrEnd
     mov eax, -1
 @FSetAttrEnd:
-{$IFOPT H-}
-    mov Result, eax
-{$ENDIF}
-end ['eax', 'ecx', 'edx'];
-{$IFOPT H-}
-end;
-{$ENDIF}
+end {['eax', 'ecx', 'edx']};
 
 
-function DeleteFile (const FileName: string): boolean;
-{$IFOPT H+}
-                                                       assembler;
-{$ELSE}
-var FN: string;
-begin
-    FN := FileName + #0;
-{$ENDIF}
+function DeleteFile (const FileName: string): boolean; assembler;
 asm
     mov ax, 4100h
-{$IFOPT H+}
-    mov edx, FileName
-{$ELSE}
-    lea edx, FN
-    inc edx
-{$ENDIF}
+ mov edx, FileName
     call syscall
     mov eax, 0
     jc @FDeleteEnd
     inc eax
 @FDeleteEnd:
-{$IFOPT H-}
-    mov Result, eax
-{$ENDIF}
-  end ['eax', 'edx'];
-{$IFOPT H-}
-end;
-{$ENDIF}
+end {['eax', 'edx']};
 
 
-function RenameFile (const OldName, NewName: string): boolean;
-{$IFOPT H+}
-                                                       assembler;
-{$ELSE}
-var FN1, FN2: string;
-begin
-    FN1 := OldName + #0;
-    FN2 := NewName + #0;
-{$ENDIF}
+function RenameFile (const OldName, NewName: string): boolean; assembler;
 asm
+ push edi
     mov ax, 5600h
-{$IFOPT H+}
     mov edx, OldName
     mov edi, NewName
-{$ELSE}
-    lea edx, FN1
-    inc edx
-    lea edi, FN2
-    inc edi
-{$ENDIF}
     call syscall
     mov eax, 0
     jc @FRenameEnd
     inc eax
 @FRenameEnd:
-{$IFOPT H-}
-    mov Result, eax
-{$ENDIF}
-  end ['eax', 'edx', 'edi'];
-{$IFOPT H-}
-end;
-{$ENDIF}
+ pop edi
+end {['eax', 'edx', 'edi']};
 
 
 {****************************************************************************
@@ -844,22 +728,10 @@ end;
 
 
 {$ASMMODE INTEL}
-function DirectoryExists (const Directory: string): boolean;
-{$IFOPT H+}
-                                                             assembler;
-{$ELSE}
-var FN: string;
-begin
-    FN := Directory + #0;
-{$ENDIF}
+function DirectoryExists (const Directory: string): boolean; assembler;
 asm
-    mov ax, 4300h
-{$IFOPT H+}
+ mov ax, 4300h
     mov edx, Directory
-{$ELSE}
-    lea edx, FN
-    inc edx
-{$ENDIF}
     call syscall
     mov eax, 0
     jc @FExistsEnd
@@ -867,13 +739,7 @@ asm
     jz @FExistsEnd
     inc eax
 @FExistsEnd:
-{$IFOPT H-}
-    mov Result, eax
-{$ENDIF}
-  end ['eax', 'ecx', 'edx'];
-{$IFOPT H-}
-end;
-{$ENDIF}
+end {['eax', 'ecx', 'edx']};
 
 
 {****************************************************************************
@@ -883,6 +749,7 @@ end;
 procedure GetLocalTime (var SystemTime: TSystemTime); assembler;
 asm
 (* Expects the default record alignment (word)!!! *)
+ push edi
     mov ah, 2Ah
     call syscall
     mov edi, SystemTime
@@ -907,7 +774,8 @@ asm
     shl eax, 16
     mov al, dh
     stosd
-end ['eax', 'ecx', 'edx', 'edi'];
+ pop edi
+end {['eax', 'ecx', 'edx', 'edi']};
 {$asmmode default}
 
 
@@ -1013,7 +881,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2003-10-14 21:15:20  hajny
+  Revision 1.12  2003-10-19 09:35:28  hajny
+    * fixes from OS/2 merged to EMX
+
+  Revision 1.11  2003/10/14 21:15:20  hajny
     * longint2cardinal fixes merged
 
   Revision 1.10  2003/10/07 21:33:24  hajny

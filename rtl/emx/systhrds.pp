@@ -92,44 +92,44 @@ type
 
 
 { import the necessary stuff from the OS }
-function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): longint;
+function DosAllocThreadLocalMemory (Count: cardinal; var P: pointer): cardinal;
                                           cdecl; external 'DOSCALLS' index 454;
 
-function DosFreeThreadLocalMemory (P: pointer): longint; cdecl;
+function DosFreeThreadLocalMemory (P: pointer): cardinal; cdecl;
                                                  external 'DOSCALLS' index 455;
 
-function DosCreateThread (var TID: longint; Address: pointer;
+function DosCreateThread (var TID: cardinal; Address: pointer;
 (* TThreadFunc *)
-        aParam: pointer; Flags: longint; StackSize: longint): longint; cdecl;
+        aParam: pointer; Flags: cardinal; StackSize: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 311;
 
-procedure DosExit (Action, Result: longint); cdecl;
+procedure DosExit (Action, Result: cardinal); cdecl;
                                                  external 'DOSCALLS' index 234;
 
-function DosCreateMutExSem (Name: PChar; var Handle: longint; Attr: longint;
-                State: boolean): longint; cdecl; external 'DOSCALLS' index 331;
+function DosCreateMutExSem (Name: PChar; var Handle: longint; Attr: cardinal;
+               State: boolean): cardinal; cdecl; external 'DOSCALLS' index 331;
 
-function DosCloseMutExSem (Handle: longint): longint; cdecl;
+function DosCloseMutExSem (Handle: longint): cardinal; cdecl;
                                                  external 'DOSCALLS' index 333;
 
-function DosQueryMutExSem (Handle: longint; var PID, TID, Count: longint):
-                                 longint; cdecl; external 'DOSCALLS' index 336;
+function DosQueryMutExSem (Handle: longint; var PID, TID, Count: cardinal):
+                                cardinal; cdecl; external 'DOSCALLS' index 336;
 
-function DosRequestMutExSem (Handle, Timeout: longint): longint; cdecl;
+function DosRequestMutExSem (Handle:longint; Timeout: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 334;
 
-function DosReleaseMutExSem (Handle: longint): longint; cdecl;
+function DosReleaseMutExSem (Handle: longint): cardinal; cdecl;
                                                  external 'DOSCALLS' index 335;
 
-function DosAllocMem (var P: pointer; Size, Flag: longint): longint; cdecl;
+function DosAllocMem (var P: pointer; Size, Flag: cardinal): cardinal; cdecl;
                                                  external 'DOSCALLS' index 299;
 
-function DosFreeMem (P: pointer): longint; cdecl;
+function DosFreeMem (P: pointer): cardinal; cdecl;
                                                  external 'DOSCALLS' index 304;
 
-function DosEnterCritSec:longint; cdecl; external 'DOSCALLS' index 232;
+function DosEnterCritSec:cardinal; cdecl; external 'DOSCALLS' index 232;
 
-function DosExitCritSec:longint; cdecl; external 'DOSCALLS' index 233;
+function DosExitCritSec:cardinal; cdecl; external 'DOSCALLS' index 233;
 
 procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                                     PAPIB: PPProcessInfoBlock); cdecl;
@@ -379,7 +379,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-03-23 23:11:17  hajny
+  Revision 1.4  2003-10-19 09:35:28  hajny
+    * fixes from OS/2 merged to EMX
+
+  Revision 1.3  2003/03/23 23:11:17  hajny
     + emx target added
 
   Revision 1.2  2002/11/17 22:32:05  hajny

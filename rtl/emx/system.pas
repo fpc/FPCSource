@@ -34,6 +34,7 @@ interface
 {Platform specific information}
 type
   THandle = Longint;
+
 const
  LineEnding = #13#10;
 { LFNSupport is defined separately below!!! }
@@ -131,29 +132,30 @@ procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                             external 'DOSCALLS' index 312;
 
 function DosLoadModule (ObjName: PChar; ObjLen: cardinal; DLLName: PChar;
-                                         var Handle: cardinal): longint; cdecl;
+                                        var Handle: cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 318;
 
 function DosQueryProcAddr (Handle, Ordinal: cardinal; ProcName: PChar;
-                                         var Address: pointer): longint; cdecl;
+                                        var Address: pointer): cardinal; cdecl;
 external 'DOSCALLS' index 321;
 
-function DosSetRelMaxFH (var ReqCount, CurMaxFH: longint): longint; cdecl;
+function DosSetRelMaxFH (var ReqCount: longint; var CurMaxFH: cardinal):
+                                                               cardinal; cdecl;
 external 'DOSCALLS' index 382;
 
-function DosSetCurrentDir (Name:PChar): longint; cdecl;
+function DosSetCurrentDir (Name:PChar): cardinal; cdecl;
 external 'DOSCALLS' index 255;
 
-function DosSetDefaultDisk (DiskNum:longint): longint; cdecl;
+function DosSetDefaultDisk (DiskNum:cardinal): cardinal; cdecl;
 external 'DOSCALLS' index 220;
 
 { This is not real prototype, but is close enough }
 { for us (the 2nd parameter is actually a pointer }
 { to a structure).                                }
-function DosCreateDir( Name : pchar; p : pointer): longint; cdecl;
+function DosCreateDir (Name: PChar; P: pointer): cardinal; cdecl;
 external 'DOSCALLS' index 270;
 
-function DosDeleteDir( Name : pchar) : longint; cdecl;
+function DosDeleteDir (Name: PChar): cardinal; cdecl;
 external 'DOSCALLS' index 226;
 
 {This is the correct way to call external assembler procedures.}
@@ -212,13 +214,13 @@ function paramcount:longint;assembler;
 asm
     movl argc,%eax
     decl %eax
-end ['EAX'];
+end {['EAX']};
 
     function args:pointer;assembler;
 
     asm
         movl argv,%eax
-    end ['EAX'];
+end {['EAX']};
 
 
 function paramstr(l:longint):string;
@@ -267,7 +269,7 @@ asm
     call syscall
     mov word ptr [randseed], cx
     mov word ptr [randseed + 2], dx
-end ['eax', 'ecx', 'edx'];
+end {['eax', 'ecx', 'edx']};
 
 {$ASMMODE ATT}
 
@@ -292,7 +294,7 @@ begin
 {$ENDIF CONTHEAP}
   asm
     movl size,%edx
-    movw $0x7f00,%eax
+    movw $0x7f00,%ax
     call syscall     { result directly in EAX }
     inc %eax         { Result in EAX, -1 = error (has to be transformed to 0) }
     jz .LSbrk_End
@@ -307,25 +309,25 @@ end;
                                      assembler;
 asm
     movl size,%edx
-    movw $0x7f00,%eax
+    movw $0x7f00,%ax
     call syscall
     inc %eax         { Result in EAX, -1 = error (has to be transformed to 0) }
     jz .LSbrk_End
     dec %eax         { No error - back to previous value }
 .LSbrk_End:
-end ['eax', 'edx'];
+end {['eax', 'edx']};
 {$ENDIF DUMPGROW}
 
 function getheapstart:pointer;assembler;
 
 asm
     movl heap_base,%eax
-end ['EAX'];
+end {['EAX']};
 
 function getheapsize:longint;assembler;
 asm
     movl heap_brk,%eax
-end ['EAX'];
+end {['EAX']};
 
 {$i heap.inc}
 
@@ -398,6 +400,7 @@ end;
 
 function do_read(h,addr,len:longint):longint; assembler;
 asm
+    pushl %ebx
     movl len,%ecx
     movl addr,%edx
     movl h,%ebx
@@ -407,10 +410,12 @@ asm
     movw %ax,inoutres;
     xorl %eax,%eax
 .LDOSREAD1:
-end ['eax', 'ebx', 'ecx', 'edx'];
+    popl %ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 function do_write(h,addr,len:longint) : longint; assembler;
 asm
+    pushl %ebx
     xorl %eax,%eax
     cmpl $0,len    { 0 bytes to write is undefined behavior }
     jz   .LDOSWRITE1
@@ -422,10 +427,12 @@ asm
     jnc .LDOSWRITE1
     movw %ax,inoutres;
 .LDOSWRITE1:
-end ['eax', 'ebx', 'ecx', 'edx'];
+    popl %ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 function do_filepos(handle:longint): longint; assembler;
 asm
+    pushl %ebx
     movw $0x4201,%ax
     movl handle,%ebx
     xorl %edx,%edx
@@ -434,10 +441,12 @@ asm
     movw %ax,inoutres;
     xorl %eax,%eax
 .LDOSFILEPOS:
-end ['eax', 'ebx', 'ecx', 'edx'];
+    popl %ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 procedure do_seek(handle,pos:longint); assembler;
 asm
+    pushl %ebx
     movw $0x4200,%ax
     movl handle,%ebx
     movl pos,%edx
@@ -445,10 +454,12 @@ asm
     jnc .LDOSSEEK1
     movw %ax,inoutres;
 .LDOSSEEK1:
-end ['eax', 'ebx', 'ecx', 'edx'];
+    popl %ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 function do_seekend(handle:longint):longint; assembler;
 asm
+    pushl %ebx
     movw $0x4202,%ax
     movl handle,%ebx
     xorl %edx,%edx
@@ -457,7 +468,8 @@ asm
     movw %ax,inoutres;
     xorl %eax,%eax
 .Lset_at_end1:
-end ['eax', 'ebx', 'ecx', 'edx'];
+    popl %ebx
+end {['eax', 'ebx', 'ecx', 'edx']};
 
 function do_filesize(handle:longint):longint;
 
@@ -491,12 +503,12 @@ asm
 end ['eax', 'ebx', 'ecx', 'edx'];
 
 const
-    FileHandleCount: longint = 20;
+    FileHandleCount: cardinal = 20;
 
 function Increase_File_Handle_Count: boolean;
 var Err: word;
-    L1, L2: longint;
-begin
+    L1: longint;
+    L2: cardinal;
     if os_mode = osOS2 then
         begin
             L1 := 10;
@@ -545,7 +557,7 @@ procedure do_open(var f;p:pchar;flags:longint);
   when (flags and $10000) there is no check for close (needed for textfiles)
 }
 
-var Action: longint;
+var Action: cardinal;
 
 begin
     allowslash(p);
@@ -603,15 +615,16 @@ begin
         cmpl $0xffffffff, %eax
         jnz .LOPEN1
         movw %cx, InOutRes
-        movw UnusedHandle, %ax
+        movl UnusedHandle, %eax
 .LOPEN1:
         movl f,%edx         { Warning : This assumes Handle is first }
-        movw %ax,(%edx)     { field of FileRec                       }
+        movl %eax,(%edx)    { field of FileRec                       }
         popl %ebx
     end ['eax', 'ecx', 'edx'];
     if (InOutRes = 4) and Increase_File_Handle_Count then
 (* Trying again after increasing amount of file handles *)
         asm
+            pushl %ebx
             movl $0x7f2b, %eax
             movl Action, %ecx
             movl p, %edx
@@ -619,10 +632,11 @@ begin
             cmpl $0xffffffff, %eax
             jnz .LOPEN2
             movw %cx, InOutRes
-            movw UnusedHandle, %ax
+            movl UnusedHandle, %eax
 .LOPEN2:
             movl f,%edx
-            movw %ax,(%edx)
+            movl %eax,(%edx)
+            popl %ebx
         end ['eax', 'ecx', 'edx'];
       { for systems that have more handles }
     if FileRec (F).Handle > FileHandleCount then
@@ -658,7 +672,7 @@ asm
     dec eax                 { nope, so result is zero }
 @IsDevEnd:
     pop ebx
-end ['eax', 'edx'];
+end {['eax', 'ebx', 'edx']};
 {$ASMMODE ATT}
 
 
@@ -775,7 +789,7 @@ end;
 
 procedure ChDir (const S: string);[IOCheck];
 
-var RC: longint;
+var RC: cardinal;
     Buffer: array [0..255] of char;
 
 begin
@@ -1115,7 +1129,8 @@ end;
 
 
 function GetFileHandleCount: longint;
-var L1, L2: longint;
+var L1: longint;
+    L2: cardinal;
 begin
     L1 := 0; (* Don't change the amount, just check. *)
     if DosSetRelMaxFH (L1, L2) <> 0 then GetFileHandleCount := 50
@@ -1248,7 +1263,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2003-10-16 15:43:13  peter
+  Revision 1.16  2003-10-19 09:35:28  hajny
+    * fixes from OS/2 merged to EMX
+
+  Revision 1.15  2003/10/16 15:43:13  peter
     * THandle is platform dependent
 
   Revision 1.14  2003/10/12 18:07:30  hajny
