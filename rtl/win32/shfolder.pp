@@ -1,3 +1,19 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2000 by the Free Pascal development team
+
+    Interface to shfolder.dll
+    
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
 { ---------------------------------------------------------------------
   shfolder.dll is distributed standard with IE5.5, so it should ship 
   with 2000/XP or higher but is likely to be installed on NT/95/98 or 
@@ -31,23 +47,23 @@ Const
   LibName = 'SHFolder.dll';
 
 Const
-  CSIDL_PERSONAL             = $0005; { %USERPROFILE%\My Documents }
-  CSIDL_APPDATA              = $001A; { %USERPROFILE%\Application Data (roaming) }
-  CSIDL_LOCAL_APPDATA        = $001C; { %USERPROFILE%\Local Settings\Application Data (non roaming) }
-  CSIDL_INTERNET_CACHE       = $0020; { %USERPROFILE%\Local Settings\Temporary Internet Files}
-  CSIDL_COOKIES              = $0021; { %USERPROFILE%\Cookies}
-  CSIDL_HISTORY              = $0022; { %USERPROFILE%\Local settings\History}
-  CSIDL_COMMON_APPDATA       = $0023; { %PROFILESPATH%\All Users\Application Data }
-  CSIDL_WINDOWS              = $0024; { %SYSTEMROOT% }
-  CSIDL_SYSTEM               = $0025; { %SYSTEMROOT%\SYSTEM32 (may be system on 95/98/ME) }
-  CSIDL_PROGRAM_FILES        = $0026; { %SYSTEMDRIVE%\Program Files }
-  CSIDL_MYPICTURES           = $0027; { %USERPROFILE%\My Documents\My Pictures }
-  CSIDL_PROGRAM_FILES_COMMON = $002b; { %SYSTEMDRIVE%\Program Files\Common }
-  CSIDL_COMMON_DOCUMENTS     = $002e; { %PROFILEPATH%\All Users\Documents }
+  CSIDL_PERSONAL             = $0005; { %USERPROFILE%\My Documents                                       }
+  CSIDL_APPDATA              = $001A; { %USERPROFILE%\Application Data (roaming)                         }
+  CSIDL_LOCAL_APPDATA        = $001C; { %USERPROFILE%\Local Settings\Application Data (non roaming)      }
+  CSIDL_INTERNET_CACHE       = $0020; { %USERPROFILE%\Local Settings\Temporary Internet Files            }
+  CSIDL_COOKIES              = $0021; { %USERPROFILE%\Cookies                                            }
+  CSIDL_HISTORY              = $0022; { %USERPROFILE%\Local settings\History                             }
+  CSIDL_COMMON_APPDATA       = $0023; { %PROFILESPATH%\All Users\Application Data                        }
+  CSIDL_WINDOWS              = $0024; { %SYSTEMROOT%                                                     }
+  CSIDL_SYSTEM               = $0025; { %SYSTEMROOT%\SYSTEM32 (may be system on 95/98/ME)                }
+  CSIDL_PROGRAM_FILES        = $0026; { %SYSTEMDRIVE%\Program Files                                      }
+  CSIDL_MYPICTURES           = $0027; { %USERPROFILE%\My Documents\My Pictures                           }
+  CSIDL_PROGRAM_FILES_COMMON = $002b; { %SYSTEMDRIVE%\Program Files\Common                               }
+  CSIDL_COMMON_DOCUMENTS     = $002e; { %PROFILEPATH%\All Users\Documents                                }
   CSIDL_COMMON_ADMINTOOLS    = $002f; { %PROFILEPATH%\All Users\Start Menu\Programs\Administrative Tools }
-  CSIDL_ADMINTOOLS           = $0030; { %USERPROFILEPATH%\<user name>\Start Menu\Programs\Administrative Tools }
+  CSIDL_ADMINTOOLS           = $0030; { %USERPROFILE%\Start Menu\Programs\Administrative Tools           } 
 
-  CSIDL_FLAG_CREATE          = $8000; { (force creation of requested folder if it doesn't exist yet) }
+  CSIDL_FLAG_CREATE          = $8000; { (force creation of requested folder if it doesn't exist yet)     }
 
 { Original entry points }
 
@@ -74,3 +90,9 @@ const
   SHFolderDll = 'SHFolder.dll';
 
 end.
+{
+  $Log$
+  Revision 1.2  2004-01-31 23:34:37  michael
+  + Added header/log footer
+
+}
