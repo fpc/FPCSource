@@ -1,5 +1,5 @@
 { %cpu=i386 }
-{ %opt=-O1r }
+{ %opt=-Ogr }
 
 {$mode delphi}
 
