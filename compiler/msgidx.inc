@@ -70,6 +70,8 @@ type tmsgconst=(
   parser_e_export_name_double,
   parser_e_export_ordinal_double,
   parser_e_export_invalid_index,
+  parser_w_parser_reloc_no_debug,
+  parser_w_parser_win32_debug_needs_WN,
   parser_e_constructorname_must_be_init,
   parser_e_destructorname_must_be_done,
   parser_e_illegal_open_parameter,

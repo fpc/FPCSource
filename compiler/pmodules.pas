@@ -1312,15 +1312,21 @@ unit pmodules;
       begin
          DLLsource:=islibrary;
          parse_only:=false;
+         { relocation works only without stabs !! PM }
+         if RelocSection then
+           begin
+              aktglobalswitches:=aktglobalswitches+[cs_link_strip];
+              { Warning stabs info does not work with reloc section !! }
+              if cs_debuginfo in aktmoduleswitches then
+                begin
+                  Message1(parser_w_parser_reloc_no_debug,current_module^.mainsource^);
+                  Message(parser_w_parser_win32_debug_needs_WN);
+                  aktmoduleswitches:=aktmoduleswitches-[cs_debuginfo];
+                end;
+           end;
          if islibrary then
            begin
               consume(_LIBRARY);
-              { relocation works only without stabs !! PM }
-              if RelocSection then
-                begin
-                  aktglobalswitches:=aktglobalswitches+[cs_link_strip];
-                  aktmoduleswitches:=aktmoduleswitches-[cs_debuginfo];
-                end;
               stringdispose(current_module^.modulename);
               current_module^.modulename:=stringdup(pattern);
               current_module^.islibrary:=true;
@@ -1499,7 +1505,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.164  1999-11-09 23:46:00  pierre
+  Revision 1.165  1999-11-15 15:03:47  pierre
+    * Pavel's changes for reloc section in executable
+    + warning that -g needs -WN under win32
+
+  Revision 1.164  1999/11/09 23:46:00  pierre
     * power search for ** operator not in browser
     * DBX support work, still does not work !
 

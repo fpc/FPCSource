@@ -290,6 +290,10 @@ parser_e_export_ordinal_double=E_Duplicate exported function index $1
 % Exported function names inside a specific DLL must all be different
 parser_e_export_invalid_index=E_Invalid index for exported function
 % DLL function index must be in the range \var{1..\$FFFF}
+parser_w_parser_reloc_no_debug=W_Relocatable DLL or executable $1 debug info does not work, disabled.
+parser_w_parser_win32_debug_needs_WN=W_To allow debugging for win32 code you need to disable relocation with -WN option
+% Stabs info is wrong for relocatable DLL or EXES use -WN
+% if you want to debug win32 executables.
 parser_e_constructorname_must_be_init=E_Constructor name must be INIT
 % You are declaring a constructor with a name which isn't \var{init}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
