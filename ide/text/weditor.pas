@@ -21,6 +21,11 @@ interface
 uses
   Dos,Objects,Drivers,Views,Menus,Commands;
 
+
+{ try to only do syntax on part of file until current position
+  does not work correctly yet PM }
+{ $define TEST_PARTIAL_SYNTAX}
+
 const
       cmFileNameChanged      = 51234;
       cmASCIIChar            = 51235;
@@ -79,6 +84,7 @@ const
       edReplaceFile   = 13;
       edWriteBlock    = 14;
       edReadBlock     = 15;
+      edFileOnDiskChanged = 16;
 
       ffmOptions      = $0007; ffsOptions     = 0;
       ffmDirection    = $0008; ffsDirection   = 3;
@@ -167,6 +173,8 @@ type
       Modified : Boolean;
 {$ifdef debug}
       StoreUndo : Boolean;
+      SyntaxComplete : boolean;
+      UseTabs : Boolean;
 {$endif debug}
       constructor Init(var Bounds: TRect);
       procedure   Draw; virtual;
@@ -304,6 +312,10 @@ type
     private
       LastLocalCmd: word;
       KeyState    : Integer;
+{$ifdef TEST_PARTIAL_SYNTAX}
+      LastSyntaxedLine : sw_integer;
+      SyntaxComplete : boolean;
+{$endif TEST_PARTIAL_SYNTAX}
       ErrorMessage: PString;
       Bookmarks   : array[0..9] of TEditorBookmark;
       LockFlag    : integer;
@@ -404,6 +416,9 @@ type
       function    ShouldSave: boolean; virtual;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
+      function    IsChangedOnDisk : boolean;
+      private
+        OnDiskLoadTime : longint;
     end;
 
     TCodeEditorDialog = function(Dialog: Integer; Info: Pointer): Word;
@@ -1073,10 +1088,14 @@ begin
 {$ifdef debug}
      if StoreUndo then
        WordRec (B[1]).Lo := ord('S');
+     if SyntaxComplete then
+       WordRec(B[2]).lo := ord('C');
+     if UseTabs then
+       WordRec(B[3]).lo := ord('T');
 {$endif debug}
      L[0] := Location.Y + 1;
      L[1] := Location.X + 1;
-     FormatStr(S, ' %d:%d ', L);
+     FormatStr(S, '%d:%d ', L);
      MoveStr(B[8 - Pos(':', S)], S, Color);
    end;
   WriteBuf(0, 0, Size.X, 1, B);
@@ -1150,7 +1169,11 @@ begin
   SetDebuggerRow(-1);
   SetCurPtr(0,0);
   Indicator:=AIndicator;
-  UpdateIndicator; LimitsChanged;
+{$ifdef TEST_PARTIAL_SYNTAX}
+  SyntaxComplete:=true;
+{$endif TEST_PARTIAL_SYNTAX}
+  UpdateIndicator;
+  LimitsChanged;
 end;
 
 procedure TCodeEditor.SetFlags(AFlags: longint);
@@ -1296,6 +1319,10 @@ begin
     Indicator^.Modified:=Modified;
 {$ifdef debug}
     Indicator^.StoreUndo:=StoreUndo;
+{$ifdef TEST_PARTIAL_SYNTAX}
+    Indicator^.SyntaxComplete:=SyntaxComplete and ((Flags and efSyntaxHighlight)<>0);
+{$endif TEST_PARTIAL_SYNTAX}
+    Indicator^.UseTabs:=((Flags and efUseTabCharacters)<>0);
 {$endif debug}
     if lockflag>0 then
       IndicatorDrawCalled:=true
@@ -1638,6 +1665,10 @@ begin
   HighlightColColor:=GetColor(11);
   HighlightRowColor:=GetColor(12);
   ErrorMessageColor:=GetColor(16);
+{$ifdef TEST_PARTIAL_SYNTAX}
+  If LastSyntaxedLine<Delta.Y+Size.Y then
+    UpdateAttrsRange(LastSyntaxedLine,Delta.Y+Size.Y,AttrAll);
+{$endif TEST_PARTIAL_SYNTAX}
   for Y:=0 to Size.Y-1 do
   if Y=ErrorLine then
   begin
@@ -2631,7 +2662,7 @@ begin
             else LastX:=0;
        end
        else begin
-         SetDisplayText(CurLine,copy(S,1,StartX)+copy(S,EndX+1,255));
+         SetDisplayText(CurLine,RExpand(copy(S,1,StartX),StartX)+copy(S,EndX+1,255));
          LastX:=StartX;
          if (StartX=0) and (0<LineDelta) and
        not(((LineDelta=LineCount-1) and (StartX=0) and (StartX=EndX))) then
@@ -3971,10 +4002,20 @@ var
 var CurLine: Sw_integer;
     Line,NextLine,PrevLine,OldLine: PLine;
 begin
+{$ifdef TEST_PARTIAL_SYNTAX}
+  If ((Flags and efSyntaxHighlight)<>0) and (LastSyntaxedLine<FromLine)
+     and (FromLine<GetLineCount) then
+    FromLine:=UpdateAttrsRange(LastSyntaxedLine,FromLine,Attrs);
+{$endif TEST_PARTIAL_SYNTAX}
   if ((Flags and efSyntaxHighlight)=0) or (FromLine>=GetLineCount) then
   begin
     SetLineFormat(FromLine,'');
-    UpdateAttrs:=GetLineCount-1;
+    UpdateAttrs:=GetLineCount;
+{$ifdef TEST_PARTIAL_SYNTAX}
+    LastSyntaxedLine:=GetLineCount;
+    SyntaxComplete:=true;
+{$endif TEST_PARTIAL_SYNTAX}
+    UpdateIndicator;
     Exit;
   end;
   CurLine:=FromLine;
@@ -4035,20 +4076,37 @@ begin
          (NextLine^.BeginsWithDirective=Line^.EndsWithDirective) and
          (NextLine^.Format<>nil) then
        Break;
+{$ifdef TEST_PARTIAL_SYNTAX}
+    if not SyntaxComplete then
+      if ((Attrs and attrForceFull)=0) and
+         (CurLine>Delta.Y+Size.Y) then
+        break;
+{$endif TEST_PARTIAL_SYNTAX}
     PrevLine:=Line;
   until false;
   UpdateAttrs:=CurLine;
+{$ifdef TEST_PARTIAL_SYNTAX}
+  If LastSyntaxedLine<CurLine-1 then
+    LastSyntaxedLine:=CurLine-1;
+  if CurLine=GetLineCount then
+    begin
+      SyntaxComplete:=true;
+      UpdateIndicator;
+    end;
+{$endif TEST_PARTIAL_SYNTAX}
 end;
 
 
 function TCodeEditor.UpdateAttrsRange(FromLine, ToLine: sw_integer; Attrs: byte): sw_integer;
 var Line: Sw_integer;
 begin
+  Lock;
   Line:=FromLine;
   repeat
     Line:=UpdateAttrs(Line,Attrs);
-  until (Line>GetLineCount) or (Line>ToLine);
+  until (Line>=GetLineCount) or (Line>ToLine);
   UpdateAttrsRange:=Line;
+  Unlock;
 end;
 
 
@@ -4389,6 +4447,9 @@ begin
     begin
       S.Read(TSize,SizeOf(TSize));
       New(TS, Init(@S,S.GetPos,TSize));
+{$ifdef TEST_PARTIAL_SYNTAX}
+      SyntaxComplete:=false;
+{$endif TEST_PARTIAL_SYNTAX}
       LoadFromStream(TS);
       Dispose(TS, Done);
     end;
@@ -4456,7 +4517,12 @@ begin
    end;
   LimitsChanged;
   if (Flags and efSyntaxHighlight)<>0 then
-    UpdateAttrsRange(0,GetLineCount-1,attrAll+attrForceFull);
+    UpdateAttrsRange(0,Min(Delta.Y+Size.Y,GetLineCount-1),
+      attrAll
+{$ifndef TEST_PARTIAL_SYNTAX}
+      +attrForceFull
+{$endif TEST_PARTIAL_SYNTAX}
+      );
   TextStart;
   LoadFromStream:=OK;
 end;
@@ -4572,44 +4638,8 @@ begin
   FileName:=AFileName;
   UpdateIndicator;
   Message(@Self,evBroadcast,cmFileNameChanged,@Self);
+  OnDiskLoadTime:=-1;
 end;
-
-(*function TFileEditor.LoadFile: boolean;
-var S: string;
-    OK: boolean;
-    f: text;
-    FM,Line: Sw_integer;
-    Buf : Pointer;
-begin
-  DeleteAllLines;
-  GetMem(Buf,EditorTextBufSize);
-{$I-}
-  EatIO;
-  FM:=FileMode; FileMode:=0;
-  Assign(f,FileName);
-  SetTextBuf(f,Buf^,EditorTextBufSize);
-  Reset(f);
-  OK:=(IOResult=0);
-  if Eof(f) then
-   AddLine('')
-  else
-   while OK and (Eof(f)=false) and (GetLineCount<MaxLineCount) do
-   begin
-     readln(f,S);
-     OK:=OK and (IOResult=0);
-     if OK AddLine(S);
-   end;
-  FileMode:=FM;
-  Close(F);
-  EatIO;
-{$I+}
-  LimitsChanged;
-  if (Flags and efSyntaxHighlight)<>0 then
-    UpdateAttrsRange(0,GetLineCount-1,attrAll+attrForceFull);
-  TextStart;
-  LoadFile:=OK;
-  FreeMem(Buf,EditorTextBufSize);
-end;*)
 
 function TFileEditor.LoadFile: boolean;
 var S: PBufStream;
@@ -4617,10 +4647,18 @@ var S: PBufStream;
 begin
   New(S, Init(FileName,stOpenRead,EditorTextBufSize));
   OK:=Assigned(S);
+{$ifdef TEST_PARTIAL_SYNTAX}
+  SyntaxComplete:=false;
+{$endif TEST_PARTIAL_SYNTAX}
   if OK then OK:=LoadFromStream(S);
   if Assigned(S) then Dispose(S, Done);
-
+  OnDiskLoadTime:=GetFileTime(FileName);
   LoadFile:=OK;
+end;
+
+function TFileEditor.IsChangedOnDisk : boolean;
+begin
+  IsChangedOnDisk:=OnDiskLoadTime<>GetFileTime(FileName);
 end;
 
 function TFileEditor.SaveFile: boolean;
@@ -4629,6 +4667,14 @@ var OK: boolean;
     S: PBufStream;
     f: text;
 begin
+  If IsChangedOnDisk then
+    begin
+      if EditorDialog(edFileOnDiskChanged, @FileName) <> cmYes then
+        begin
+          SaveFile:=false;
+          exit;
+        end;
+    end;
 {$I-}
   if (Flags and efBackupFiles)<>0 then
   begin
@@ -4646,6 +4692,8 @@ begin
   if OK then OK:=SaveToStream(S);
   if Assigned(S) then Dispose(S, Done);
   if OK then SetModified(false);
+  { don't forget to update the OnDiskLoadTime value }
+  OnDiskLoadTime:=GetFileTime(FileName);
   SaveFile:=OK;
 end;
 
@@ -4981,6 +5029,10 @@ begin
     edSaveUntitled:
       StdEditorDialog := MessageBox('Save untitled file?',
    nil, mfInsertInApp+ mfInformation + mfYesNoCancel);
+    edFileOnDiskChanged:
+      StdEditorDialog := MessageBox(#3'File %s '#13#3+
+        'was modified by another program.'#13#3'Overwrite new version?',
+   @info, mfInsertInApp+ mfInformation + mfYesNoCancel);
     edSaveAs,edWriteBlock,edReadBlock:
       begin
         Name:=PString(Info)^;
@@ -4994,7 +5046,10 @@ begin
             else
               DriveNumber:=Ord(FileDir[1])-ord('A')+1;
             GetDir(DriveNumber,StoreDir2);
+{$ifndef FPC}
             ChDir(Copy(FileDir,1,2));
+            { this sets InOutRes in win32 PM }
+{$endif not FPC}
           end;
         if FileDir<>'' then
           ChDir(FileDir);
@@ -5033,10 +5088,10 @@ begin
           end;
         if DriveNumber<>0 then
           ChDir(StoreDir2);
-{$ifdef TP}
+{$ifndef FPC}
         if (Length(StoreDir)>1) and (StoreDir[2]=':') then
           ChDir(Copy(StoreDir,1,2));
-{$endif}
+{$endif not FPC}
         if StoreDir<>'' then
           ChDir(StoreDir);
 
@@ -5097,7 +5152,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.63  1999-11-22 17:34:08  pierre
+  Revision 1.64  1999-12-01 17:25:00  pierre
+   + check if file on disk was changed since load before overwriting
+
+  Revision 1.63  1999/11/22 17:34:08  pierre
    * fix for form bug 634
 
   Revision 1.62  1999/11/18 13:42:06  pierre
