@@ -213,6 +213,35 @@ begin
    end;
  end;
 
+
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;
+
+var retval:longint;
+
+begin
+ asm
+   movl  sysnr,%eax
+   pushl param5
+   pushl param4
+   pushl param3
+   pushl param2
+   pushl Param1
+   call  _actualsyscall
+   addl  $20,%esp
+   mov   %eax,Retval
+ end;
+ if RetVal<0 then
+   begin
+     ErrNo:=-RetVal;
+     do_syscall:=-1;
+   end
+  else
+   begin
+     do_syscall:=Retval;
+     errno:=0
+   end;
+ end;
+
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;
 
 var retval:longint;
@@ -478,7 +507,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2000-03-01 20:03:57  marco
+  Revision 1.9  2000-03-02 15:34:07  marco
+   * added a syscall for 5 longints
+
+  Revision 1.8  2000/03/01 20:03:57  marco
    * small fixes for syslinux
 
   Revision 1.7  2000/03/01 17:28:40  marco
