@@ -977,7 +977,7 @@ end;
            dec(byte(pa[0]));
           { if only a drive is given in path then there should be a '\' at the
             end of the string given back }
-          if length(path) = 2 then pa := pa + '\';
+          if length(pa) = 2 then pa := pa + '\';
           fexpand:=pa;
        end;
 
@@ -1162,7 +1162,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.17  1998-11-22 09:33:21  florian
+  Revision 1.18  1998-11-23 12:48:02  peter
+    * fexpand('o:') fixed to return o:\ (from the mailinglist)
+
+  Revision 1.17  1998/11/22 09:33:21  florian
     * fexpand bug (temp. strings were too shoort) fixed, was reported
       by Marco van de Voort
 
