@@ -184,7 +184,7 @@ binary-arch: build-arch arrange-arch debian-files
 	dh_installchangelogs -pfp-rtl logs/Changes.rtl
 	dh_installchangelogs -pfp-utils logs/Changes.utils
 	dh_installchangelogs -pfp-units-fcl logs/Changes.fcl
-#	dh_installchangelogs -pfp-units-api logs/Changes.api
+	dh_installchangelogs -pfp-units-api logs/Changes.api
 #	dh_installchangelogs -pfp-units-fv logs/Changes.fv
 
 	dh_undocumented -a

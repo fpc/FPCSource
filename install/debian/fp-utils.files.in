@@ -5,6 +5,7 @@
 /usr/bin/ptop 
 /usr/bin/rstconv 
 /usr/bin/data2inc 
+/usr/bin/bin2obj
 /usr/bin/delp
 /usr/bin/plex 
 /usr/bin/pyacc
@@ -19,6 +20,7 @@
 /usr/share/man/man1/ppdep.1
 /usr/share/man/man1/ppumove.1
 /usr/share/man/man1/ppudump.1
+/usr/share/man/man1/ppufiles.1
 /usr/share/man/man1/fpcmake.1
 /usr/share/man/man1/ptop.1
 /usr/share/man/man1/h2pas.1
