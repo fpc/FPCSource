@@ -835,8 +835,7 @@ implementation
       begin
         if not assigned(p.altsymbol) then
          begin
-           p.altsymbol:=tasmsymbol.create(name+'_'+tostr(nextaltnr),p.defbind,p.typ);
-           inc(nextaltnr);
+           p.altsymbol:=tasmsymbol.create(p.name+'_'+tostr(nextaltnr),p.defbind,p.typ);
            symbolsearch.insert(p.altsymbol);
            { add also the original sym to the usedasmsymbollist,
              that list is used to reset the altsymbol }
@@ -950,7 +949,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2004-07-22 10:07:09  jonas
+  Revision 1.21  2004-07-22 10:09:10  jonas
+    * fixed relabeling properly now :)
+
+  Revision 1.20  2004/07/22 10:07:09  jonas
     * fixed relabeling (nextaltnr was never increased)
     * fixed inlining of case statements at the node level
 
