@@ -63,7 +63,7 @@ if .%FPCERRLOG% == . exit
 
 echo *"Makefile" for OS/2: > %FPCERRLOG%
 
-echo *Setting up environment ... >> %FPCERRLOG%
+echo *Setting up environment (possible "Invalid path" messages are OK here) ... >> %FPCERRLOG%
 
 rem Check whether FPCDIR exists
 if .%FPCDIR% == . goto ErrorDir
@@ -91,74 +91,99 @@ set FPCSRC=%FPCDIR%\SOURCE
 :SnapDir
 set FPCSNAP=%FPCSNAPPATH%
 if .%FPCSNAP% == . set FPCSNAP=%FPCSRC%\SNAPSHOT
-if exist %FPCSNAP% goto SnapExists
+echo X > %FPCSNAP%\TEST.TMP
+if exist %FPCSNAP%\TEST.TMP goto SnapExists
 echo *Creating directories for the snapshot ... >> %FPCERRLOG%
 mkdir %FPCSNAP% >> %FPCERRLOG%
-if exist %FPCSNAP% goto SnapExists
+echo X > %FPCSNAP%\TEST.TMP
+if exist %FPCSNAP%\TEST.TMP goto SnapExists
 echo *Error: Cannot create the directory %FPCSNAP%!!
 goto End
 
 :SnapExists
-if exist %FPCSNAP%\BIN goto BinExists
+del %FPCSNAP%\TEST.TMP > nul
+echo X > %FPCSNAP%\BIN\TEST.TMP
+if exist %FPCSNAP%\BIN\TEST.TMP goto BinExists
 echo *Creating directories for the snapshot (binaries) ... >> %FPCERRLOG%
 mkdir %FPCSNAP%\BIN >> %FPCERRLOG%
-if exist %FPCSNAP%\BIN goto BinExists
+echo X > %FPCSNAP%\BIN\TEST.TMP
+if exist %FPCSNAP%\BIN\TEST.TMP goto BinExists
 echo *Error: Cannot create the directory %FPCSNAP%\BIN!!
 goto End
 
 :BinExists
+del %FPCSNAP%\BIN\TEST.TMP > nul
 set FPCSNAPBIN=%FPCSNAP%\BIN\OS2
-if exist %FPCSNAPBIN% goto BinOS2Exists
+echo X > %FPCSNAPBIN%\TEST.TMP
+if exist %FPCSNAPBIN%\TEST.TMP goto BinOS2Exists
 echo *Creating directories for the snapshot (binaries for OS/2) ... >> %FPCERRLOG%
 mkdir %FPCSNAPBIN% >> %FPCERRLOG%
-if exist %FPCSNAPBIN% goto BinOS2Exists
+echo X > %FPCSNAPBIN%\TEST.TMP
+if exist %FPCSNAPBIN%\TEST.TMP goto BinOS2Exists
 echo *Error: Cannot create the directory %FPCSNAPBIN%!!
 goto End
 
 :BinOS2Exists
+del %FPCSNAPBIN%\TEST.TMP > nul
 set FPCSNAPMSG=%FPCSNAP%\MSG
-if exist %FPCSNAPMSG% goto MsgExists
+echo X > %FPCSNAPMSG%\TEST.TMP
+if exist %FPCSNAPMSG%\TEST.TMP goto MsgExists
 echo *Creating directories for the snapshot (messages) ... >> %FPCERRLOG%
 mkdir %FPCSNAPMSG% >> %FPCERRLOG%
-if exist %FPCSNAPMSG% goto MsgExists
+echo X > %FPCSNAPMSG%\TEST.TMP
+if exist %FPCSNAPMSG%\TEST.TMP goto MsgExists
 echo *Error: Cannot create the directory %FPCSNAPMSG%!!
 goto End
 
 :MsgExists
-if exist %FPCSNAP%\UNITS goto UnitsExists
+del %FPCSNAPMSG%\TEST.TMP > nul
+echo X > %FPCSNAP%\UNITS\TEST.TMP
+if exist %FPCSNAP%\UNITS\TEST.TMP goto UnitsExists
 echo *Creating directories for the snapshot (units) ... >> %FPCERRLOG%
 mkdir %FPCSNAP%\UNITS >> %FPCERRLOG%
-if exist %FPCSNAP%\UNITS goto UnitsExists
+echo X > %FPCSNAP%\UNITS\TEST.TMP
+if exist %FPCSNAP%\UNITS\TEST.TMP goto UnitsExists
 echo *Error: Cannot create the directory %FPCSNAP%\UNITS!!
 goto End
 
 :UnitsExists
-if exist %FPCSNAP%\UNITS\OS2 goto UnitsOS2Exists
+del %FPCSNAP%\UNITS\TEST.TMP > nul
+echo X > %FPCSNAP%\UNITS\OS2\TEST.TMP
+if exist %FPCSNAP%\UNITS\OS2\TEST.TMP goto UnitsOS2Exists
 echo *Creating directories for the snapshot (units for OS/2) ... >> %FPCERRLOG%
 mkdir %FPCSNAP%\UNITS\OS2 >> %FPCERRLOG%
-if exist %FPCSNAP%\UNITS\OS2 goto UnitsOS2Exists
+echo X > %FPCSNAP%\UNITS\OS2\TEST.TMP
+if exist %FPCSNAP%\UNITS\OS2\TEST.TMP goto UnitsOS2Exists
 echo *Error: Cannot create the directory %FPCSNAP%\UNITS\OS2!!
 goto End
 
 :UnitsOS2Exists
+del %FPCSNAP%\UNITS\OS2\TEST.TMP > nul
 set FPCSNAPRTL=%FPCSNAP%\UNITS\OS2\RTL
-if exist %FPCSNAPRTL% goto OS2RTLExists
+echo X > %FPCSNAPRTL%\TEST.TMP
+if exist %FPCSNAPRTL%\TEST.TMP goto OS2RTLExists
 echo *Creating directories for the snapshot (units for OS/2 RTL) ... >> %FPCERRLOG%
 mkdir %FPCSNAPRTL% >> %FPCERRLOG%
-if exist %FPCSNAPRTL% goto OS2RTLExists
+echo X > %FPCSNAPRTL%\TEST.TMP
+if exist %FPCSNAPRTL%\TEST.TMP goto OS2RTLExists
 echo *Error: Cannot create the directory %FPCSNAPRTL%!!
 goto End
 
 :OS2RTLExists
+del %FPCSNAPRTL%\TEST.TMP > nul
 set FPCSNAPDOC=%FPCSNAP%\DOC
-if exist %FPCSNAPDOC% goto SetOpts
+echo X > %FPCSNAPDOC%\TEST.TMP
+if exist %FPCSNAPDOC%\TEST.TMP goto SetOpts
 echo *Creating directories for the snapshot (documentation) ... >> %FPCERRLOG%
 mkdir %FPCSNAPDOC% >> %FPCERRLOG%
-if exist %FPCSNAPDOC% goto SetOpts
+echo X > %FPCSNAPDOC%\TEST.TMP
+if exist %FPCSNAPDOC%\TEST.TMP goto SetOpts
 echo *Error: Cannot create the directory %FPCSNAPDOC%!!
 goto End
 
 :SetOpts
+
+del %FPCSNAPDOC%\TEST.TMP > nul
 
 rem Path to file with options
 set OS2OPTF=%FPCSRC%\OS2SNAP.OPT
@@ -216,7 +241,7 @@ set OS2INCP=-Fi%OS2RTL%;%OS2RTLC%;%OS2RTLO%;%OS2RTLP%
 rem PPAS step disabled by default
 set FORCEPPAS=
 rem Name of the PPAS script
-set PPASNAME=PPAS.CMD
+set PPASNAME=PPAS.BAT
 rem Default compiler for the first compilation
 set CYCLE=0
 if not .%CYCLE% == .0 goto EnvErr
@@ -429,97 +454,97 @@ echo *Assembling the helpers ... >> %FPCERRLOG%
 %REALTOOLS%\as -o %FPCSNAPRTL%\code3.oo2 %OS2RTL%\code3.as >> %FPCERRLOG%
 echo *Compiling the system unit ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% -Us %OTHEROPTS% %OS2RTL%\SYSOS2.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit Objects ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\OBJECTS.PP
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit Strings ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\STRINGS.PP
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit HeapTrace ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\HEAPTRC.PP
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit CPU ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLP%\CPU.PP
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit MMX ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLP%\MMX.PP
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit DosCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\DOSCALLS.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit DOS ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\DOS.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit SysUtils ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\SYSUTILS.PP
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit TypInfo ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\TYPINFO.PP
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit CRT ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\CRT.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit Printer ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PRINTER.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit Math ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\MATH.PP
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit UComplex ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\UCOMPLEX.PP
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit GetOpts ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLC%\GETOPTS.PP
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit KbdCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\KBDCALLS.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit MouCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\MOUCALLS.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit VioCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\VIOCALLS.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit MonCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\MONCALLS.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit Ports ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PORTS.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling PM units ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PMWIN.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PMBITMAP.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PMGPI.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling MMOS2 units ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\DIVE.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 echo * Deleting the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 del %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
@@ -555,7 +580,7 @@ if not .%OTHEROPTS% == . echo *User specified options: %OTHEROPTS% >> %FPCERRLOG
 :CompStart2
 echo *Compiling the compiler ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %COMPSPATH%\PP.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 echo *Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPBIN%\%PPASNAME% >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 echo * Deleting the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 del %FPCSNAPBIN%\%PPASNAME% >> %FPCERRLOG%
@@ -661,7 +686,10 @@ goto End
 
 
   $Log$
-  Revision 1.12  2000-03-12 18:29:40  hajny
+  Revision 1.13  2000-03-16 19:43:36  hajny
+    * fix for COMMAND.COM, order, etc.
+
+  Revision 1.12  2000/03/12 18:29:40  hajny
     * wrong order corrected
 
   Revision 1.11  2000/03/12 13:37:24  hajny
