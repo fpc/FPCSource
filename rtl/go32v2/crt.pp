@@ -63,6 +63,8 @@ var
   TextAttr: Byte;         { Current text attribute }
   WindMin: Word;          { Window upper left coordinates }
   WindMax: Word;          { Window lower right coordinates }
+  ScreenWidth,
+  ScreenHeight : longint;
 
 { Interface procedures }
 procedure AssignCrt(var F: Text);
@@ -101,9 +103,7 @@ uses
 {$ASMMODE ATT}
 
 var
-  DelayCnt,
-  ScreenWidth,
-  ScreenHeight : longint;
+  DelayCnt : Longint;
   VidSeg : Word;
 
 {
@@ -834,7 +834,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2002-12-15 20:22:24  peter
+  Revision 1.9  2003-03-17 18:13:13  peter
+    * exported ScreenHeight, ScreenWidth
+
+  Revision 1.8  2002/12/15 20:22:24  peter
     * fix making string empty in readln when cursor is not at the end
 
   Revision 1.7  2002/09/10 10:38:04  pierre
