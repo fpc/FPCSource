@@ -1,26 +1,34 @@
+#
+#   $Id$
+#   This file is part of the Free Pascal run time library.
+#   Copyright (c) 1996-98 by Michael van Canneyt
+#
+#   Makefile for the Free Pascal Win32 Runtime Library
+#
+#   See the file COPYING.FPC, included in this distribution,
+#   for details about the copyright.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
 #****************************************************************************
-#
-#                   Copyright (c) 1993,96 by Florian Klaempfl
-#
-#****************************************************************************
-#
-# makefile for FPKPascal
-#
+
 #####################################################################
 # Start of configurable section
 #####################################################################
 
 # What compiler do you want to use :
-# !! If you specify a path, specify an absolute path !!
-#PP=/pas/fpk/curver/ppc386
+ifndef PP
 PP=ppc386
+endif PP
 
 # Where do you want to install the units ?
 # For each of the systems, a subdirectory OSunits of
 # this directry will be created, and the system dependent
 # files will be set there.
 # For linux:
-UNITINSTALLDIR=/usr/lib/ppc/0.99.6
+UNITINSTALLDIR=/usr/lib/fpc/0.99.6
 # For dos/os2 : 
 # UNITINSTALLDIR=\pp\units
 
