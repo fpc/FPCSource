@@ -947,7 +947,11 @@ begin
   if fmtlen > 0 then
     Move(fmt,F[1],fmtlen);
   S:=Format (F,Args);
+<<<<<<< sysstr.inc
   If Cardinal(Length(S))>Buflen then
+=======
+  If cardinal(Length(S))>Buflen then
+>>>>>>> 1.1.2.9
     Result:=Length(S)
   else
     Result:=Buflen;
@@ -1338,7 +1342,10 @@ const
 
 {
   $Log$
-  Revision 1.15  2002-07-06 12:14:03  daniel
+  Revision 1.16  2002-08-29 10:04:25  michael
+  + Fix for bug report 2097 in formatbuf
+
+  Revision 1.15  2002/07/06 12:14:03  daniel
   - Changes from Strasbourg
 
   Revision 1.14  2002/01/24 12:33:53  jonas
