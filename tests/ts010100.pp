@@ -4,5 +4,6 @@ var
    o : tobject;
 
 begin
-   halt(1);
+   if assigned(o) then
+     halt(1);
 end.

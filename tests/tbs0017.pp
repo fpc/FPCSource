@@ -1,27 +1,38 @@
+
+{$ifdef go32v2}
+   uses dpmiexcp;
+
+{$endif go32v2}
+
+const
+      nextoptpass : longint = 0;
   procedure init;
 
-    var
-       endofparas : boolean;
+    const
+       endofparas : boolean = false;
 
     procedure getparastring;
 
       procedure nextopt;
 
         begin
+           endofparas:=true;
            getparastring;
+           inc(nextoptpass);
            init;
-           endofparas:=false;
         end;
 
       begin
+       if not endofparas then
          nextopt;
       end;
       
     begin
-       getparastring;
+         getparastring;
     end;      
      
 begin
    init;
+   if nextoptpass<>1 then Halt(1);
 end.
 

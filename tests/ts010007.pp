@@ -1,3 +1,5 @@
+{ $OPT=-S2 }
+{ classes need objpas !! }
 { needed to intercept  GPF (PM) }
 {$ifdef go32v2}
   uses dpmiexcp;

@@ -29,8 +29,24 @@ type
 var
    p : pa;
    data : array[0..4] of longint;
+   saveexit : pointer;
+
+  procedure testerror;
+    begin
+       exitproc:=saveexit;
+       if errorcode=210 then
+         begin
+            errorcode:=0;
+            writeln('Object valid VMT check works');
+            runerror(0);
+         end 
+       else
+         halt(1);
+    end;
 
 begin
+   saveexit:=exitproc;
+   exitproc:=@testerror;
    fillchar(data,sizeof(data),12);
    p:=new(pa,init);
    p^.p;
