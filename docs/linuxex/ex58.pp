@@ -8,19 +8,18 @@ replace pid with the real pid of this program.
 You can get this pid by running 'ps'.
 }
 
-uses Linux;
+uses BaseUnix;
 
-Procedure DoSig(sig : Longint);cdecl;
+Procedure DoSig(sig : cint);cdecl;
 
 begin
    writeln('Receiving signal: ',sig);
 end; 
 
 begin
-   SigNal(SigUsr1,@DoSig);
-   if LinuxError<>0 then
+   if fpSignal(SigUsr1,SignalHandler(@DoSig))=signalhandler(SIG_ERR) then
      begin
-     writeln('Error: ',linuxerror,'.');
+     writeln('Error: ',fpGetErrno,'.');
      halt(1);
      end;
    Writeln ('Send USR1 signal or press <ENTER> to exit'); 

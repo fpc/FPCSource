@@ -8,12 +8,12 @@ replace pid with the real pid of this program.
 You can get this pid by running 'ps'.
 }
 
-uses Linux;
+uses BaseUnix;
 
 Var
    oa,na : PSigActionRec;
    
-Procedure DoSig(sig : Longint);cdecl;
+Procedure DoSig(sig : cint);cdecl;
 
 begin
    writeln('Receiving signal: ',sig);
@@ -22,14 +22,15 @@ end;
 begin
    new(na);
    new(oa);
-   na^.Handler.sh:=@DoSig;
-   na^.Sa_Mask:=0;
+   na^.sa_Handler:=TSigaction(@DoSig);
+   fillchar(na^.Sa_Mask,sizeof(na^.sa_mask),#0);
    na^.Sa_Flags:=0;
-   na^.Sa_Restorer:=Nil;
-   SigAction(SigUsr1,na,oa);
-   if LinuxError<>0 then
+   {$ifdef Linux}		// Linux specific
+     na^.Sa_Restorer:=Nil;
+   {$endif}
+   if fpSigAction(SigUsr1,na,oa)<>0 then
      begin
-     writeln('Error: ',linuxerror,'.');
+     writeln('Error: ',fpgeterrno,'.');
      halt(1);
      end;
    Writeln ('Send USR1 signal or press <ENTER> to exit'); 

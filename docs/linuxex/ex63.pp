@@ -2,8 +2,8 @@ Program Example63;
 
 { Program to demonstrate the FRename function. }
 
-Uses Linux;
+Uses BaseUnix;
 
 begin
-  FRename (paramstr(1),paramstr(2));
+  FpRename (paramstr(1),paramstr(2));
 end.

@@ -2,7 +2,7 @@ Program example64;
 
 { Program to demonstrate the SigRaise function.}
 
-uses Linux;
+uses Unix,BaseUnix;
 
 Var
    oa,na : PSigActionRec;
@@ -16,14 +16,16 @@ end;
 begin
    new(na);
    new(oa);
-   na^.handler.sh:=@DoSig;
-   na^.Sa_Mask:=0;
+   na^.sa_handler:=TSigaction(@DoSig);
+   fillchar(na^.Sa_Mask,sizeof(na^.Sa_Mask),#0);
    na^.Sa_Flags:=0;
+   {$ifdef Linux}
+   // this member is linux only, and afaik even there arcane 	
    na^.Sa_Restorer:=Nil;
-   SigAction(SigUsr1,na,oa);
-   if LinuxError<>0 then
+   {$endif}
+   if fpSigAction(SigUsr1,na,oa)<>0 then
      begin
-     writeln('Error: ',linuxerror,'.');
+     writeln('Error: ',fpgeterrno);
      halt(1);
      end;
    Writeln('Sending USR1 (',sigusr1,') signal to self.');

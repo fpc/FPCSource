@@ -2,9 +2,9 @@ Program Example59;
 
 { Program to demonstrate the Alarm function. }
 
-Uses linux;
+Uses BaseUnix;
 
-Procedure AlarmHandler(Sig : longint);cdecl;
+Procedure AlarmHandler(Sig : cint);cdecl;
 
 begin
   Writeln ('Got to alarm handler');
@@ -12,10 +12,10 @@ end;
 
 begin
   Writeln('Setting alarm handler');
-  Signal(SIGALRM,@AlarmHandler);
+  fpSignal(SIGALRM,SignalHandler(@AlarmHandler));
   Writeln ('Scheduling Alarm in 10 seconds');
-  Alarm(10);
+  fpAlarm(10);
   Writeln ('Pausing');
-  Pause;
+  fpPause;
   Writeln ('Pause returned');
 end.

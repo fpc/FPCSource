@@ -2,7 +2,7 @@ Program Example6;
 
 { Program to demonstrate the GetDateTime function. }
 
-Uses linux;
+Uses Unix;
 
 Var Year, Month, Day, Hour, min, sec : Word;
 

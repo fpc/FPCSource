@@ -1,7 +1,9 @@
 program Example64;
 
-{ Example to demonstrate the SysInfo function }
+{ Example to demonstrate the SysInfo function.
+  Sysinfo is Linux-only. }
 
+{$ifdef Linux}
 Uses Linux;
 
 Function Mb(L : Longint) : longint;
@@ -12,8 +14,10 @@ end;
    
 Var Info : TSysInfo;
     D,M,Secs,H : longint;
+{$endif}
 
 begin
+  {$ifdef Linux}
   If Not SysInfo(Info) then 
     Halt(1);
   With Info do
@@ -33,4 +37,5 @@ begin
     Writeln('Total Swap : ',Mb(totalswap),'Mb.');
     Writeln('Free Swap  : ',Mb(freeswap),'Mb.');
     end;
+  {$endif}
 end.

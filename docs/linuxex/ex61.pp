@@ -2,7 +2,9 @@ Program ex61;
 
 { Example program to demonstrate the CreateShellArgV function }
 
-uses linux;
+// note: CreateShellArgV is reasonbly obsolete in 1.9.x due to  the new fpexec functions
+
+uses Unix;
 
 Var
   S: String;

@@ -2,7 +2,7 @@ Program Example62;
 
 { Program to demonstrate the ReadLink function. }
 
-Uses linux;
+Uses BaseUnix,Unix;
 
 Var F : Text;
     S : String;
@@ -13,16 +13,16 @@ begin
   Writeln (F,'This is written to test.txt');
   Close(f);
   { new.txt and test.txt are now the same file }
-  if not SymLink ('test.txt','new.txt') then
+  if fpSymLink ('test.txt','new.txt')<>0 then
     writeln ('Error when symlinking !');
-  S:=ReadLink('new.txt');
+  S:=fpReadLink('new.txt');
   If S='' then 
     Writeln ('Error reading link !')
   Else   
     Writeln ('Link points to : ',S);
  { Now remove links }
- If not Unlink ('new.txt') then
+ If fpUnlink ('new.txt')<>0 then
    Writeln ('Error when unlinking !');
- If not Unlink ('test.txt') then
+ If fpUnlink ('test.txt')<>0 then
    Writeln ('Error when unlinking !');
 end.
