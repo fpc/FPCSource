@@ -20,7 +20,7 @@
 
  ****************************************************************************
 }
-
+{#@abstract(Temporary reference allocator unit)}
 unit tgobj;
 
 {$i defines.inc}
@@ -56,6 +56,7 @@ unit tgobj;
       end;
 
 
+       {# Generates temporary variables }
        ttgobj = class
           { contains all temps }
           templist      : ptemprecord;
@@ -65,17 +66,22 @@ unit tgobj;
           firsttemp,
           lasttemp      : longint;
           lasttempofsize : ptemprecord;
-
           { tries to hold the amount of times which the current tree is processed  }
           t_times: longint;
 
           constructor create;
 
-          { generates temporary variables }
+          {# Clear and free the complete linked list of temporary memory 
+             locations. The list is set to nil.}          
           procedure resettempgen;
+          {# Sets the first offset from the frame pointer or stack pointer where  
+             the temporary references will be allocated. It is to note that this 
+             value should always be negative. 
+             
+             @param(l start offset where temps will start in stack)
+          }
           procedure setfirsttemp(l : longint);
           function gettempsize : longint;
-          function gettempofsize(list: taasmoutput; size : longint) : longint;
           { special call for inlined procedures }
           function gettempofsizepersistant(list: taasmoutput; size : longint) : longint;
           procedure gettempofsizereferencepersistant(list: taasmoutput; l : longint;var ref : treference);
@@ -85,14 +91,40 @@ unit tgobj;
 
           { for parameter func returns }
           procedure normaltemptopersistant(pos : longint);
+          
+          {# Searches the list of currently allocated persistent memory space 
+             as the specified address @var(pos) , and if found, converts this memory 
+             space to normal volatile memory space which can be freed and reused.
+             
+             @param(pos offset from current frame pointer to memory area to convert)
+          }              
           procedure persistanttemptonormal(pos : longint);
 
           {procedure ungettemp(pos : longint;size : longint);}
           procedure ungetpersistanttemp(list: taasmoutput; pos : longint);
           procedure ungetpersistanttempreference(list: taasmoutput; const ref : treference);
 
+          {# This routine is used to assign and allocate extra temporary volatile memory space 
+             on the stack from a reference. @var(l) is the size of the persistent memory space to 
+             allocate, while @var(ref) is a reference entry which will be set to the correct offset 
+             and correct base register (which is the current @var(procinfo^.framepointer)) register.
+             The offset and base fields of ref will be set appropriately in this routine, and can be 
+             considered valid on exit of this routine.
+             
+             @param(l size of the area to allocate)
+             @param(ref allocated reference)
+          }
           procedure gettempofsizereference(list: taasmoutput; l : longint;var ref : treference);
+          {# Returns TRUE if the reference ref is allocated in temporary volatile memory space, 
+             otherwise returns FALSE.
+             
+             @param(ref reference to verify)
+          }
           function istemp(const ref : treference) : boolean;
+          {# Frees a reference @var(ref) which was allocated in the volatile temporary memory space. 
+             The freed space can later be reallocated and reused. If this reference
+             is not in the temporary memory, it is simply not freed.
+          }             
           procedure ungetiftemp(list: taasmoutput; const ref : treference);
           function getsizeoftemp(const ref: treference): longint;
 
@@ -108,6 +140,7 @@ unit tgobj;
        private
           function ungettemp(list: taasmoutput; pos:longint;allowtype:ttemptype):ttemptype;
           function newtempofsize(size : longint) : longint;
+          function gettempofsize(list: taasmoutput; size : longint) : longint;
        end;
 
      var
@@ -460,9 +493,7 @@ unit tgobj;
            led to problems with local arrays
            with lower bound > 0 (PM) }
          istemp:=((ref.base=procinfo^.framepointer) and
-{$ifdef i386}
                   (ref.index=R_NO) and
-{$endif}
                   (ref.offset<firsttemp));
       end;
 
@@ -641,7 +672,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2002-04-04 19:06:06  peter
+  Revision 1.4  2002-04-07 09:17:17  carl
+  + documentation
+  - clean-up
+
+  Revision 1.3  2002/04/04 19:06:06  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
