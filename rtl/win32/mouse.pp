@@ -32,18 +32,14 @@ var
 Const
   MouseEventActive : Boolean = false;
 
-procedure MouseEventHandler;
+procedure MouseEventHandler(var ir:INPUT_RECORD);
 
   var
-     ir : INPUT_RECORD;
      dwRead : DWord;
      i: longint;
      e : TMouseEvent;
 
   begin
-     ReadConsoleInput(TextRec(Input).Handle,ir,1,dwRead);
-     if (dwRead=1) and (ir.EventType=_MOUSE_EVENT) then
-       begin
           EnterCriticalSection(ChangeMouseEvents);
           e.x:=ir.MouseEvent.dwMousePosition.x;
           e.y:=ir.MouseEvent.dwMousePosition.y;
@@ -71,7 +67,6 @@ procedure MouseEventHandler;
                // inc(PendingMouseEvents);
             end;
           LeaveCriticalSection(ChangeMouseEvents);
-       end;
   end;
 
 procedure InitMouse;
@@ -83,9 +78,9 @@ begin
   if MouseEventActive then
     exit;
   // enable mouse events
-  GetConsoleMode(TextRec(Input).Handle,@mode);
+  GetConsoleMode(StdInputHandle,@mode);
   mode:=mode or ENABLE_MOUSE_INPUT;
-  SetConsoleMode(TextRec(Input).Handle,mode);
+  SetConsoleMode(StdInputHandle,mode);
 
   PendingMouseHead:=@PendingMouseEvent;
   PendingMouseTail:=@PendingMouseEvent;
@@ -106,9 +101,9 @@ begin
     exit;
   HideMouse;
   // disable mouse events
-  GetConsoleMode(TextRec(Input).Handle,@mode);
+  GetConsoleMode(StdInputHandle,@mode);
   mode:=mode and (not ENABLE_MOUSE_INPUT);
-  SetConsoleMode(TextRec(Input).Handle,mode);
+  SetConsoleMode(StdInputHandle,mode);
 
   SetMouseEventHandler(nil);
   DeleteCriticalSection(ChangeMouseEvents);
@@ -193,6 +188,20 @@ begin
 end;
 
 
+function PollMouseEvent(var MouseEvent: TMouseEvent):boolean;
+begin
+  EnterCriticalSection(ChangeMouseEvents);
+  if PendingMouseEvents>0 then
+   begin
+     MouseEvent:=PendingMouseHead^;
+     PollMouseEvent:=true;
+   end
+  else
+   PollMouseEvent:=false;
+  LeaveCriticalSection(ChangeMouseEvents);
+end;
+
+
 procedure PutMouseEvent(const MouseEvent: TMouseEvent);
 begin
   if PendingMouseEvents<MouseEventBufSize then
@@ -207,24 +216,13 @@ begin
    end;
 end;
 
-
-function PollMouseEvent(var MouseEvent: TMouseEvent):boolean;
-begin
-  EnterCriticalSection(ChangeMouseEvents);
-  if PendingMouseEvents>0 then
-   begin
-     MouseEvent:=PendingMouseHead^;
-     PollMouseEvent:=true;
-   end
-  else
-   PollMouseEvent:=false;
-  LeaveCriticalSection(ChangeMouseEvents);
-end;
-
 end.
 {
   $Log$
-  Revision 1.1  2001-01-13 11:03:59  peter
+  Revision 1.2  2001-01-14 22:20:00  peter
+    * slightly optimized event handling (merged)
+
+  Revision 1.1  2001/01/13 11:03:59  peter
     * API 2 RTL commit
 
 }

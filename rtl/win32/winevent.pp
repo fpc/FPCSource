@@ -22,8 +22,11 @@ interface
    because win32 uses only one message queue for mouse and key events
 }
 
+    uses
+       Windows;
+
     type
-       TEventProcedure = Procedure;
+       TEventProcedure = Procedure(var ir:INPUT_RECORD);
 
     { these procedures must be used to set the event handlers }
     { these doesn't do something, they signal only the        }
@@ -47,24 +50,20 @@ interface
 
   implementation
 
-    uses
-       windows, dos;
-
     const
        { these procedures are called if an event occurs }
-       MouseEventHandler : procedure = nil;
-       KeyboardEventHandler : procedure = nil;
-       FocusEventHandler : procedure = nil;
-       MenuEventHandler : procedure = nil;
-       ResizeEventHandler : procedure = nil;
-       UnknownEventHandler  : procedure = nil;
+       MouseEventHandler : TEventProcedure = nil;
+       KeyboardEventHandler : TEventProcedure = nil;
+       FocusEventHandler : TEventProcedure = nil;
+       MenuEventHandler : TEventProcedure = nil;
+       ResizeEventHandler : TEventProcedure = nil;
+       UnknownEventHandler  : TEventProcedure = nil;
 
        { if this counter is zero, the event handler thread is killed }
        InstalledHandlers : Byte = 0;
 
     var
        HandlerChanging : TCriticalSection;
-       OldExitProc : Pointer;
        EventThreadHandle : Handle;
        EventThreadID : DWord;
 
@@ -106,25 +105,18 @@ interface
          GetUnknownEventHandler:=UnknownEventHandler;
       end;
 
-    { removes an event from the event queue }
-    { necessary, if no handler is installed }
-    Procedure DestroyOneEvent;
-      var
-         ir : TInputRecord;
-         dwRead : DWord;
-      begin
-         ReadConsoleInput(TextRec(Input).Handle,ir,1,dwRead);
-      end;
 
     Function EventHandleThread(p : pointer) : DWord;StdCall;
+      const
+        irsize = 10;
       var
-         ir : TInputRecord;
-         dwRead : DWord;
+         ir : array[0..irsize-1] of TInputRecord;
+         i,dwRead : DWord;
       begin
          while not(ExitEventHandleThread) do
            begin
               { wait for an event }
-              WaitForSingleObject(TextRec(Input).Handle,INFINITE);
+              WaitForSingleObject(StdInputHandle,INFINITE);
               { guard this code, else it is doomed to crash, if the
                 thread is switched between the assigned test and
                 the call and the handler is removed
@@ -133,61 +125,56 @@ interface
                 begin
                    EnterCriticalSection(HandlerChanging);
                    { read, but don't remove the event }
-                   if (PeekConsoleInput(TextRec(Input).Handle,ir,1,dwRead)) and
-                     (dwRead>0) then
-                     { call the handler }
-                     case ir.EventType of
+                   if ReadConsoleInput(StdInputHandle,ir[0],irsize,dwRead) then
+                    begin
+                      i:=0;
+                      while (i<dwRead) do
+                       begin
+                       { call the handler }
+                       case ir[i].EventType of
                         KEY_EVENT:
                           begin
                              if assigned(KeyboardEventHandler) then
-                               KeyboardEventHandler
-                             else
-                               DestroyOneEvent;
+                               KeyboardEventHandler(ir[i]);
                           end;
 
                         _MOUSE_EVENT:
                           begin
                              if assigned(MouseEventHandler) then
-                               MouseEventHandler
-                             else
-                               DestroyOneEvent;
+                               MouseEventHandler(ir[i]);
                           end;
 
                         WINDOW_BUFFER_SIZE_EVENT:
                           begin
                              if assigned(ResizeEventHandler) then
-                               ResizeEventHandler
-                             else
-                               DestroyOneEvent;
+                               ResizeEventHandler(ir[i]);
                           end;
 
                         MENU_EVENT:
                           begin
                              if assigned(MenuEventHandler) then
-                               MenuEventHandler
-                             else
-                               DestroyOneEvent;
+                               MenuEventHandler(ir[i]);
                           end;
 
                         FOCUS_EVENT:
                           begin
                              if assigned(FocusEventHandler) then
-                               FocusEventHandler
-                             else
-                               DestroyOneEvent;
+                               FocusEventHandler(ir[i]);
                           end;
 
                         else
                           begin
                              if assigned(UnknownEventHandler) then
-                               UnknownEventHandler
-                             else
-                               DestroyOneEvent;
+                               UnknownEventHandler(ir[i]);
                           end;
-                     end;
+                       end;
+                       inc(i);
+                      end;
+                    end;
                    LeaveCriticalSection(HandlerChanging);
                 end;
            end;
+        EventHandleThread:=0;
       end;
 
     Procedure NewEventHandlerInstalled(p,oldp : TEventProcedure);
@@ -213,12 +200,12 @@ interface
            begin
               ExitEventHandleThread:=true;
               { create a dummy event and sent it to the thread, so
-                we can leave WatiForSingleObject }
+                we can leave WaitForSingleObject }
               ir.EventType:=KEY_EVENT;
               { mouse event can be disabled by mouse.inc code
                 in DoneMouse
                 so use a key event instead PM }
-              WriteConsoleInput(TextRec(Input).Handle,ir,1,written);
+              WriteConsoleInput(StdInputHandle,ir,1,written);
               { wait, til the thread is ready }
               WaitForSingleObject(EventThreadHandle,INFINITE);
               CloseHandle(EventThreadHandle);
@@ -312,11 +299,15 @@ finalization
   SetUnknownEventHandler(nil);
   { delete the critical section object }
   DeleteCriticalSection(HandlerChanging);
+
 end.
 
 {
   $Log$
-  Revision 1.1  2001-01-13 11:03:59  peter
+  Revision 1.2  2001-01-14 22:20:00  peter
+    * slightly optimized event handling (merged)
+
+  Revision 1.1  2001/01/13 11:03:59  peter
     * API 2 RTL commit
 
 }

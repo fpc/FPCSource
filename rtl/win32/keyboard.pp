@@ -110,18 +110,12 @@ end;
 { The event-Handler thread from the unit event will call us if a key-event
   is available }
 
-procedure HandleKeyboard;
+procedure HandleKeyboard(var ir:INPUT_RECORD);
 var
-   ir     : INPUT_RECORD;
-   dwRead : DWord;
    i      : longint;
    c      : word;
    addThis: boolean;
 begin
-   dwRead:=1;
-   ReadConsoleInput(TextRec(Input).Handle,ir,1,dwRead);
-   if (dwRead=1) and (ir.EventType=KEY_EVENT) then
-     begin
          with ir.KeyEvent do
            begin
               { key up events are ignored (except alt) }
@@ -156,36 +150,37 @@ begin
                    lastShiftState := transShiftState (dwControlKeyState);  {save it for PollShiftStateEvent}
                    SetEvent (newKeyEvent);             {event that a new key is available}
                    LeaveCriticalSection (lockVar);
-                end else
+                end
+              else
                 begin
                   lastShiftState := transShiftState (dwControlKeyState);   {save it for PollShiftStateEvent}
                   {for alt-number we have to look for alt-key release}
                   if altNumActive then
-                    if (wVirtualKeyCode = $12) then    {alt-released}
-                    begin
-                      if altNumBuffer <> '' then       {numbers with alt pressed?}
+                   begin
+                     if (wVirtualKeyCode = $12) then    {alt-released}
                       begin
-                        Val (altNumBuffer, c, i);
-                        if (i = 0) and (c <= 255) then {valid number?}
-                        begin                          {add to queue}
-                          fillchar (ir, sizeof (ir), 0);
-                          bKeyDown := true;
-                          AsciiChar := char (c);
+                        if altNumBuffer <> '' then       {numbers with alt pressed?}
+                         begin
+                           Val (altNumBuffer, c, i);
+                           if (i = 0) and (c <= 255) then {valid number?}
+                            begin                          {add to queue}
+                              fillchar (ir, sizeof (ir), 0);
+                              bKeyDown := true;
+                              AsciiChar := char (c);
                                                        {and add to queue}
-                          EnterCriticalSection (lockVar);
-                          keyboardeventqueue[nextfreekeyevent]:=
-                            ir.KeyEvent;
-                          incqueueindex(nextfreekeyevent);
-                          SetEvent (newKeyEvent);      {event that a new key is available}
-                          LeaveCriticalSection (lockVar);
-                        end;
+                              EnterCriticalSection (lockVar);
+                              keyboardeventqueue[nextfreekeyevent]:=ir.KeyEvent;
+                              incqueueindex(nextfreekeyevent);
+                              SetEvent (newKeyEvent);      {event that a new key is available}
+                              LeaveCriticalSection (lockVar);
+                            end;
+                         end;
+                        altNumActive   := false;         {clear alt-buffer}
+                        altNumBuffer   := '';
                       end;
-                      altNumActive   := false;         {clear alt-buffer}
-                      altNumBuffer   := '';
-                    end;
+                   end;
                 end;
            end;
-     end;
 end;
 
 procedure InitKeyboard;
@@ -194,16 +189,16 @@ begin
      exit;
    KeyBoardLayout:=GetKeyboardLayout(0);
    lastShiftState := 0;
-   FlushConsoleInputBuffer(TextRec(Input).Handle);
+   FlushConsoleInputBuffer(StdInputHandle);
    newKeyEvent := CreateEvent (nil,        // address of security attributes
                                true,       // flag for manual-reset event
                                false,      // flag for initial state
                                nil);       // address of event-object name
    if newKeyEvent = INVALID_HANDLE_VALUE then
-   begin
-     // what to do here ????
-     RunError (217);
-   end;
+    begin
+      // what to do here ????
+      RunError (217);
+    end;
    InitializeCriticalSection (lockVar);
    altNumActive := false;
    altNumBuffer := '';
@@ -220,7 +215,7 @@ begin
      exit;
    SetKeyboardEventHandler(nil);     {hangs???}
    DeleteCriticalSection (lockVar);
-   FlushConsoleInputBuffer(TextRec(Input).Handle);
+   FlushConsoleInputBuffer(StdInputHandle);
    closeHandle (newKeyEvent);
    KeyboardActive:=false;
 end;
@@ -791,7 +786,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-01-13 11:03:59  peter
+  Revision 1.2  2001-01-14 22:20:00  peter
+    * slightly optimized event handling (merged)
+
+  Revision 1.1  2001/01/13 11:03:59  peter
     * API 2 RTL commit
 
 }
