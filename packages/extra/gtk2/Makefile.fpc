@@ -1,0 +1,29 @@
+#
+#   Makefile.fpc for Free Pascal GTK 2.x.y Bindings
+#
+
+[package]
+name=gtk2
+version=1.9.6
+
+[require]
+libc=y
+
+[target]
+units=buildgtk2
+implicitunits=glib2 atk pango gdk2pixbuf gdk2 gtk2 libglade2
+
+[compiler]
+unitdir=glib atk pango gtk+/gdk-pixbuf gtk+/gdk gtk+/gtk libglade
+
+[libs]
+libname=libfpgtk2.so
+libversion=1.0
+
+[install]
+buildunit=buildgtk2
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
