@@ -1532,12 +1532,8 @@ Begin
                         hp1 := Pai(p^.next);
                         While Assigned(hp1) And
                               (Pai(hp1)^.typ In [ait_instruction]+SkipInstr) And
-                               Not((Pai(hp1)^.typ = ait_instruction) And
-                                   ((Paicpu(hp1)^.opcode = A_CALL) or
-                                    (Paicpu(hp1)^.opcode = A_PUSH) or
-                                    ((Paicpu(hp1)^.opcode = A_MOV) And
-                                     (Paicpu(hp1)^.oper[1].typ = top_ref) And
-                                     (Paicpu(hp1)^.oper[1].ref^.base = R_ESP)))) do
+                               not regReadByInstruction(R_ESP,hp1) and
+                               not regModifiedByInstruction(R_ESP,hp1) do
                           hp1 := Pai(hp1^.next);
                         If Assigned(hp1) And
                            (Pai(hp1)^.typ = ait_instruction) And
@@ -1949,7 +1945,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  2000-08-18 10:09:13  jonas
+  Revision 1.11  2000-09-18 11:28:36  jonas
+    * fixed web bug 1133 (merged from fixes branch)
+
+  Revision 1.10  2000/08/18 10:09:13  jonas
     * fix for web bug1099 (merged from fixes branch)
 
   Revision 1.9  2000/08/05 13:33:08  peter
