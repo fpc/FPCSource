@@ -5,7 +5,7 @@
     Generate i386 assembler for in call nodes
 
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published bymethodpointer
+    it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
@@ -42,9 +42,6 @@ interface
           procedure pass_2;override;
        end;
 
-       ti386procinlinenode = class(tprocinlinenode)
-          procedure pass_2;override;
-       end;
 
 implementation
 
@@ -376,7 +373,7 @@ implementation
              Comment(V_debug,
                'inlined parasymtable is at offset '
                +tostr(tprocdef(procdefinition).parast.address_fixup));
-             exprasmList.concat(Tai_asm_comment.Create(
+             exprasmList.concat(tai_comment.Create(
                strpnew('inlined parasymtable is at offset '
                +tostr(tprocdef(procdefinition).parast.address_fixup))));
 {$endif extdebug}
@@ -501,7 +498,8 @@ implementation
            end;
 
          { Allocate return value for inlined routines }
-         if inlined then
+         if inlined and
+            (resulttype.def.size>0) then
            inlinecode.retoffset:=tg.gettempofsizepersistant(exprasmlist,Align(resulttype.def.size,aktalignment.paraalign));
 
          { Allocate return value when returned in argument }
@@ -526,7 +524,7 @@ implementation
 {$ifdef extdebug}
                    Comment(V_debug,'function return value is at offset '
                                    +tostr(funcretref.offset));
-                   exprasmlist.concat(tai_asm_comment.create(
+                   exprasmlist.concat(tai_comment.create(
                                        strpnew('function return value is at offset '
                                                +tostr(funcretref.offset))));
 {$endif extdebug}
@@ -1305,190 +1303,19 @@ implementation
            end;
       end;
 
-
-
-{*****************************************************************************
-                             TI386PROCINLINENODE
-*****************************************************************************}
-
-
-    procedure ti386procinlinenode.pass_2;
-       var st : tsymtable;
-           oldprocdef : tprocdef;
-           ps, i : longint;
-           tmpreg: tregister;
-           oldprocinfo : tprocinfo;
-           oldinlining_procedure,
-           nostackframe,make_global : boolean;
-           inlineentrycode,inlineexitcode : TAAsmoutput;
-           oldexitlabel,oldexit2label,oldquickexitlabel:tasmlabel;
-           oldregstate: pointer;
-{$ifdef GDB}
-           startlabel,endlabel : tasmlabel;
-           pp : pchar;
-           mangled_length  : longint;
-{$endif GDB}
-       begin
-          { deallocate the registers used for the current procedure's regvars }
-          if assigned(aktprocdef.regvarinfo) then
-            begin
-              with pregvarinfo(aktprocdef.regvarinfo)^ do
-                for i := 1 to maxvarregs do
-                  if assigned(regvars[i]) then
-                    store_regvar(exprasmlist,regvars[i].reg);
-              rg.saveStateForInline(oldregstate);
-              { make sure the register allocator knows what the regvars in the }
-              { inlined code block are (JM)                                    }
-              rg.resetusableregisters;
-              rg.clearregistercount;
-              rg.cleartempgen;
-              if assigned(inlineprocdef.regvarinfo) then
-                with pregvarinfo(inlineprocdef.regvarinfo)^ do
-                  for i := 1 to maxvarregs do
-                    if assigned(regvars[i]) then
-                      begin
-                        tmpreg:=rg.makeregsize(regvars[i].reg,OS_INT);
-                        rg.makeregvar(tmpreg);
-                      end;
-            end;
-          oldinlining_procedure:=inlining_procedure;
-          oldexitlabel:=aktexitlabel;
-          oldexit2label:=aktexit2label;
-          oldquickexitlabel:=quickexitlabel;
-          objectlibrary.getlabel(aktexitlabel);
-          objectlibrary.getlabel(aktexit2label);
-          { we're inlining a procedure }
-          inlining_procedure:=true;
-          oldprocdef:=aktprocdef;
-
-          aktprocdef:=inlineprocdef;
-
-          { save old procinfo }
-          oldprocinfo:=procinfo;
-
-          { clone }
-          procinfo:=tprocinfo(cprocinfo.newinstance);
-          move(pointer(oldprocinfo)^,pointer(procinfo)^,cprocinfo.InstanceSize);
-
-          { set new procinfo }
-          procinfo.return_offset:=retoffset;
-          procinfo.para_offset:=para_offset;
-          procinfo.no_fast_exit:=false;
-
-          { arg space has been filled by the parent secondcall }
-          st:=aktprocdef.localst;
-          { set it to the same lexical level }
-          st.symtablelevel:=oldprocdef.localst.symtablelevel;
-          if st.datasize>0 then
-            begin
-              st.address_fixup:=tg.gettempofsizepersistant(exprasmlist,st.datasize)+st.datasize;
-{$ifdef extdebug}
-              Comment(V_debug,'local symtable is at offset '+tostr(st.address_fixup));
-              exprasmList.concat(Tai_asm_comment.Create(strpnew(
-                'local symtable is at offset '+tostr(st.address_fixup))));
-{$endif extdebug}
-            end;
-          exprasmList.concat(Tai_Marker.Create(InlineStart));
-{$ifdef extdebug}
-          exprasmList.concat(Tai_asm_comment.Create(strpnew('Start of inlined proc')));
-{$endif extdebug}
-{$ifdef GDB}
-          if (cs_debuginfo in aktmoduleswitches) then
-            begin
-              objectlibrary.getaddrlabel(startlabel);
-              objectlibrary.getaddrlabel(endlabel);
-              cg.a_label(exprasmlist,startlabel);
-              inlineprocdef.localst.symtabletype:=inlinelocalsymtable;
-              inlineprocdef.parast.symtabletype:=inlineparasymtable;
-
-              { Here we must include the para and local symtable info }
-              inlineprocdef.concatstabto(withdebuglist);
-
-              { set it back for safety }
-              inlineprocdef.localst.symtabletype:=localsymtable;
-              inlineprocdef.parast.symtabletype:=parasymtable;
-
-              mangled_length:=length(oldprocdef.mangledname);
-              getmem(pp,mangled_length+50);
-              strpcopy(pp,'192,0,0,'+startlabel.name);
-              if (target_info.use_function_relative_addresses) then
-                begin
-                  strpcopy(strend(pp),'-');
-                  strpcopy(strend(pp),oldprocdef.mangledname);
-                end;
-              withdebugList.concat(Tai_stabn.Create(strnew(pp)));
-            end;
-{$endif GDB}
-          { takes care of local data initialization }
-          inlineentrycode:=TAAsmoutput.Create;
-          inlineexitcode:=TAAsmoutput.Create;
-          ps:=para_size;
-          make_global:=false; { to avoid warning }
-          genentrycode(inlineentrycode,make_global,0,ps,nostackframe,true);
-          if po_assembler in aktprocdef.procoptions then
-            inlineentrycode.insert(Tai_marker.Create(asmblockstart));
-          exprasmList.concatlist(inlineentrycode);
-          secondpass(inlinetree);
-          genexitcode(inlineexitcode,0,false,true);
-          if po_assembler in aktprocdef.procoptions then
-            inlineexitcode.concat(Tai_marker.Create(asmblockend));
-          exprasmList.concatlist(inlineexitcode);
-
-          inlineentrycode.free;
-          inlineexitcode.free;
-{$ifdef extdebug}
-          exprasmList.concat(Tai_asm_comment.Create(strpnew('End of inlined proc')));
-{$endif extdebug}
-          exprasmList.concat(Tai_Marker.Create(InlineEnd));
-
-          {we can free the local data now, reset also the fixup address }
-          if st.datasize>0 then
-            begin
-              tg.ungetpersistanttemp(exprasmlist,st.address_fixup-st.datasize);
-              st.address_fixup:=0;
-            end;
-          { restore procinfo }
-          procinfo.free;
-          procinfo:=oldprocinfo;
-{$ifdef GDB}
-          if (cs_debuginfo in aktmoduleswitches) then
-            begin
-              cg.a_label(exprasmlist,endlabel);
-              strpcopy(pp,'224,0,0,'+endlabel.name);
-             if (target_info.use_function_relative_addresses) then
-               begin
-                 strpcopy(strend(pp),'-');
-                 strpcopy(strend(pp),oldprocdef.mangledname);
-               end;
-              withdebugList.concat(Tai_stabn.Create(strnew(pp)));
-              freemem(pp,mangled_length+50);
-            end;
-{$endif GDB}
-          { restore }
-          aktprocdef:=oldprocdef;
-          aktexitlabel:=oldexitlabel;
-          aktexit2label:=oldexit2label;
-          quickexitlabel:=oldquickexitlabel;
-          inlining_procedure:=oldinlining_procedure;
-
-          { reallocate the registers used for the current procedure's regvars, }
-          { since they may have been used and then deallocated in the inlined  }
-          { procedure (JM)                                                     }
-          if assigned(aktprocdef.regvarinfo) then
-            begin
-              rg.restoreStateAfterInline(oldregstate);
-            end;
-       end;
-
-
 begin
    ccallparanode:=ti386callparanode;
    ccallnode:=ti386callnode;
-   cprocinlinenode:=ti386procinlinenode;
 end.
 {
   $Log$
-  Revision 1.64  2002-08-17 09:23:45  florian
+  Revision 1.65  2002-08-18 20:06:30  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.64  2002/08/17 09:23:45  florian
     * first part of procinfo rewrite
 
   Revision 1.63  2002/08/12 15:08:42  carl

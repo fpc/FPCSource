@@ -29,16 +29,36 @@ unit cpunode;
   implementation
 
     uses
-       ncgbas,ncgflw,ncgcnv,ncgld,ncgmem,ncgcon,ncgset,ncginl,
-       n386add,n386cal,n386con,n386cnv,n386flw,n386mat,n386mem,
-       n386set,n386inl,n386opt,
+       { generic nodes }
+       ncgbas,ncgld,ncgflw,ncgcnv,ncgmem,ncgcon,ncgcal,ncgset,ncginl,
+       { to be able to only parts of the generic code,
+         the processor specific nodes must be included
+         after the generic one (FK)
+       }
+       n386add,
+       n386cal,
+       n386con,
+       n386flw,
+       n386mem,
+       n386set,
+       n386inl,
+       n386opt,
        { this not really a node }
-       n386obj, rgcpu;
+       n386obj,
+       n386mat,
+       n386cnv
+       ;
 
 end.
 {
   $Log$
-  Revision 1.15  2002-07-25 18:01:58  carl
+  Revision 1.16  2002-08-18 20:06:29  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.15  2002/07/25 18:01:58  carl
    + added generic inline nodes
 
   Revision 1.14  2002/07/06 20:27:26  carl

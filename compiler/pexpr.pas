@@ -667,7 +667,7 @@ implementation
               { generate a methodcallnode or proccallnode }
               { we shouldn't convert things like @tcollection.load }
               if assigned(getprocvardef) then
-	       aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef)
+               aprocdef:=Tprocsym(sym).search_procdef_byprocvardef(getprocvardef)
               else
                aprocdef:=nil;
               p2:=cloadnode.create_procvar(sym,aprocdef,st);
@@ -1919,7 +1919,7 @@ implementation
                   { make sure we found a valid procedure, otherwise the  }
                   { "getprocvardef" will become the default in taddrnode }
                   { while there should be an error (JM)                  }
-                  assigned(tloadnode(taddrnode(p1).left).procdeflist) then
+                  assigned(tloadnode(taddrnode(p1).left).procdef) then
                 taddrnode(p1).getprocvardef:=getprocvardef;
              end;
 
@@ -2248,7 +2248,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2002-08-17 09:23:39  florian
+  Revision 1.77  2002-08-18 20:06:24  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.76  2002/08/17 09:23:39  florian
     * first part of procinfo rewrite
 
   Revision 1.75  2002/08/01 16:37:47  jonas

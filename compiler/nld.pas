@@ -31,15 +31,18 @@ interface
        {$ifdef state_tracking}
        nstate,
        {$endif}
-       symconst,symbase,symtype,symsym,symdef;
+       symconst,symppu,symbase,symtype,symsym,symdef;
 
     type
        tloadnode = class(tunarynode)
           symtableentry : tsym;
           symtable : tsymtable;
-          procdeflist : tprocdef;
+          procdef : tprocdef;
           constructor create(v : tsym;st : tsymtable);virtual;
           constructor create_procvar(v : tsym;d:tprocdef;st : tsymtable);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           procedure set_mp(p:tnode);
           function  getcopy : tnode;override;
           function  pass_1 : tnode;override;
@@ -57,6 +60,8 @@ interface
        tassignmentnode = class(tbinarynode)
           assigntype : tassigntype;
           constructor create(l,r : tnode);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -70,6 +75,9 @@ interface
        tfuncretnode = class(tnode)
           funcretsym : tfuncretsym;
           constructor create(v:tsym);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -98,6 +106,9 @@ interface
           allowed : boolean;
           restype : ttype;
           constructor create(t : ttype);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
@@ -109,6 +120,9 @@ interface
           rttitype : trttitype;
           rttidef : tstoreddef;
           constructor create(def:tstoreddef;rt:trttitype);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function  getcopy : tnode;override;
           function pass_1 : tnode;override;
           procedure pass_2;override;
@@ -148,7 +162,7 @@ implementation
           internalerror(200108121);
          symtableentry:=v;
          symtable:=st;
-         procdeflist:=nil;
+         procdef:=nil;
       end;
 
     constructor tloadnode.create_procvar(v : tsym;d:tprocdef;st : tsymtable);
@@ -158,8 +172,36 @@ implementation
           internalerror(200108121);
          symtableentry:=v;
          symtable:=st;
-         procdeflist:=d;
+         procdef:=d;
       end;
+
+
+    constructor tloadnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        symtableentry:=tsym(ppufile.getderef);
+{$warning FIXME: No withsymtable support}
+        symtable:=nil;
+        procdef:=tprocdef(ppufile.getderef);
+      end;
+
+
+    procedure tloadnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putderef(symtableentry);
+        ppufile.putderef(procdef);
+      end;
+
+
+    procedure tloadnode.derefimpl;
+      begin
+        inherited derefimpl;
+        resolvesym(pointer(symtableentry));
+        symtable:=symtableentry.owner;
+        resolvedef(pointer(procdef));
+      end;
+
 
     procedure tloadnode.set_mp(p:tnode);
       begin
@@ -262,14 +304,14 @@ implementation
                   resulttype:=ttypedconstsym(symtableentry).typedconsttype;
             procsym :
                 begin
-                   if not assigned(procdeflist) then
+                   if not assigned(procdef) then
                     begin
                       if assigned(tprocsym(symtableentry).defs^.next) then
                        CGMessage(parser_e_no_overloaded_procvars);
                       resulttype.setdef(tprocsym(symtableentry).defs^.def);
                     end
                    else
-                    resulttype.setdef(procdeflist);
+                    resulttype.setdef(procdef);
 
                    if (m_tp_procvar in aktmodeswitches) then
                     begin
@@ -425,6 +467,21 @@ implementation
          inherited create(assignn,l,r);
          assigntype:=at_normal;
       end;
+
+
+    constructor tassignmentnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        assigntype:=tassigntype(ppufile.getbyte);
+      end;
+
+
+    procedure tassignmentnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putbyte(byte(assigntype));
+      end;
+
 
     function tassignmentnode.getcopy : tnode;
 
@@ -596,18 +653,18 @@ implementation
     var se:Tstate_entry;
 
     begin
-	track_state_pass:=false;
-	if exec_known then
-	    begin
-		track_state_pass:=right.track_state_pass(exec_known);
-		{Force a new resulttype pass.}
-		right.resulttype.def:=nil;
-		do_resulttypepass(right);
-		resulttypepass(right);
-		aktstate.store_fact(left.getcopy,right.getcopy);
-	    end
-	else
-	    aktstate.delete_fact(left);
+        track_state_pass:=false;
+        if exec_known then
+            begin
+                track_state_pass:=right.track_state_pass(exec_known);
+                {Force a new resulttype pass.}
+                right.resulttype.def:=nil;
+                do_resulttypepass(right);
+                resulttypepass(right);
+                aktstate.store_fact(left.getcopy,right.getcopy);
+            end
+        else
+            aktstate.delete_fact(left);
     end;
 {$endif}
 
@@ -620,6 +677,26 @@ implementation
       begin
          inherited create(funcretn);
          funcretsym:=tfuncretsym(v);
+      end;
+
+
+    constructor tfuncretnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        funcretsym:=tfuncretsym(ppufile.getderef);
+      end;
+
+
+    procedure tfuncretnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putderef(funcretsym);
+      end;
+
+
+    procedure tfuncretnode.derefimpl;
+      begin
+        resolvesym(pointer(funcretsym));
       end;
 
 
@@ -901,6 +978,28 @@ implementation
       end;
 
 
+    constructor ttypenode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        ppufile.gettype(restype);
+        allowed:=boolean(ppufile.getbyte);
+      end;
+
+
+    procedure ttypenode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.puttype(restype);
+        ppufile.putbyte(byte(allowed));
+      end;
+
+
+    procedure ttypenode.derefimpl;
+      begin
+        restype.resolve;
+      end;
+
+
     function ttypenode.det_resulttype:tnode;
       begin
         result:=nil;
@@ -940,6 +1039,28 @@ implementation
          inherited create(rttin);
          rttidef:=def;
          rttitype:=rt;
+      end;
+
+
+    constructor trttinode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        rttidef:=tstoreddef(ppufile.getderef);
+        rttitype:=trttitype(ppufile.getbyte);
+      end;
+
+
+    procedure trttinode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putderef(rttidef);
+        ppufile.putbyte(byte(rttitype));
+      end;
+
+
+    procedure trttinode.derefimpl;
+      begin
+        resolvedef(pointer(rttidef));
       end;
 
 
@@ -996,7 +1117,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2002-08-17 22:09:46  florian
+  Revision 1.52  2002-08-18 20:06:23  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.51  2002/08/17 22:09:46  florian
     * result type handling in tcgcal.pass_2 overhauled
     * better tnode.dowrite
     * some ppc stuff fixed
@@ -1010,7 +1137,7 @@ end.
     + Willamette/SSE2 instructions to assembler added
 
   Revision 1.48  2002/07/20 07:44:37  daniel
-  * Forgot to add a {$ifdef extdebug}
+  * Forgot to add a $ifdef extdebug
 
   Revision 1.47  2002/07/19 12:55:27  daniel
   * Further developed state tracking in whilerepeatn

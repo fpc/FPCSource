@@ -71,13 +71,13 @@ unit cpupi;
       begin
          procdef.parast.address_fixup:=align(maxpushedparasize,16);
          if cs_asm_source in aktglobalswitches then
-           aktproccode.insert(Tai_asm_comment.Create(strpnew('Parameter copies start at: r1+'+tostr(procdef.parast.address_fixup))));
+           aktproccode.insert(Tai_comment.Create(strpnew('Parameter copies start at: r1+'+tostr(procdef.parast.address_fixup))));
          procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
          if cs_asm_source in aktglobalswitches then
-           aktproccode.insert(Tai_asm_comment.Create(strpnew('Locals start at: r1+'+tostr(procdef.localst.address_fixup))));
+           aktproccode.insert(Tai_comment.Create(strpnew('Locals start at: r1+'+tostr(procdef.localst.address_fixup))));
          procinfo.firsttemp_offset:=align(procdef.localst.address_fixup+procdef.localst.datasize,16);
          if cs_asm_source in aktglobalswitches then
-           aktproccode.insert(Tai_asm_comment.Create(strpnew('Temp. space start: r1+'+tostr(procinfo.firsttemp_offset))));
+           aktproccode.insert(Tai_comment.Create(strpnew('Temp. space start: r1+'+tostr(procinfo.firsttemp_offset))));
 
          //!!!! tg.setfirsttemp(procinfo.firsttemp_offset);
          tg.firsttemp:=procinfo.firsttemp_offset;
@@ -89,7 +89,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-08-17 09:23:49  florian
+  Revision 1.2  2002-08-18 20:06:30  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.1  2002/08/17 09:23:49  florian
     * first part of procinfo rewrite
 }
 

@@ -79,13 +79,13 @@ implementation
       { constants are actually supported by the target processor? (JM) }
 
       const
-        floattype2ait:array[tfloattype] of tait=
+        floattype2ait:array[tfloattype] of taitype=
           (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit);
 
       var
          hp1 : tai;
          lastlabel : tasmlabel;
-         realait : tait;
+         realait : taitype;
 
       begin
         location_reset(location,LOC_CREFERENCE,def_cgsize(resulttype.def));
@@ -385,10 +385,10 @@ implementation
 
     procedure tcgsetconstnode.pass_2;
       var
-         hp1     : tai;
+         hp1         : tai;
          lastlabel   : tasmlabel;
-         i         : longint;
-         neededtyp   : tait;
+         i           : longint;
+         neededtyp   : taitype;
       type
          setbytes=array[0..31] of byte;
          Psetbytes=^setbytes;
@@ -525,7 +525,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-08-11 14:32:26  peter
+  Revision 1.19  2002-08-18 20:06:23  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.18  2002/08/11 14:32:26  peter
     * renamed current_library to objectlibrary
 
   Revision 1.17  2002/08/11 13:24:11  peter

@@ -64,7 +64,8 @@ implementation
      procedure logsecond(ht:tnodetype; entry: boolean);
        const
          secondnames: array[tnodetype] of string[13] =
-            ('add-addn',  {addn}
+            ('<emptynode>',
+             'add-addn',  {addn}
              'add-muln',  {muln}
              'add-subn',  {subn}
              'moddiv-divn',      {divn}
@@ -151,7 +152,7 @@ implementation
           p := strpnew('second'+secondnames[ht]+' (entry)')
         else
           p := strpnew('second'+secondnames[ht]+' (exit)');
-        exprasmlist.concat(tai_asm_comment.create(p));
+        exprasmlist.concat(tai_comment.create(p));
       end;
 {$endif EXTDEBUG}
 
@@ -329,7 +330,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2002-08-17 09:23:38  florian
+  Revision 1.36  2002-08-18 20:06:24  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.35  2002/08/17 09:23:38  florian
     * first part of procinfo rewrite
 
   Revision 1.34  2002/08/15 19:10:35  peter

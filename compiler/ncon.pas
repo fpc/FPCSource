@@ -30,7 +30,7 @@ interface
       globtype,widestr,
       node,
       aasmbase,aasmtai,cpuinfo,globals,
-      symconst,symtype,symdef,symsym;
+      symconst,symppu,symtype,symdef,symsym;
 
     type
        trealconstnode = class(tnode)
@@ -38,6 +38,9 @@ interface
           value_real : bestreal;
           lab_real : tasmlabel;
           constructor create(v : bestreal;const t:ttype);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -49,6 +52,9 @@ interface
           restype : ttype;
           value : TConstExprInt;
           constructor create(v : tconstexprint;const t:ttype);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -63,6 +69,9 @@ interface
           restype : ttype;
           value   : TConstPtrUInt;
           constructor create(v : TConstPtrUInt;const t:ttype);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -78,6 +87,9 @@ interface
           constructor createstr(const s : string;st:tstringtype);virtual;
           constructor createpchar(s : pchar;l : longint);virtual;
           constructor createwstr(w : pcompilerwidestring);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           destructor destroy;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -93,6 +105,9 @@ interface
           lab_set : tasmlabel;
           constructor create(s : pconstset;const t:ttype);virtual;
           destructor destroy;override;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -110,6 +125,8 @@ interface
        tguidconstnode = class(tnode)
           value : tguid;
           constructor create(const g:tguid);virtual;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -269,7 +286,7 @@ implementation
 
     begin
         is_emptyset:=(p.nodetype=setconstn) and
-	 (Tsetconstnode(p).value_set^=[]);
+         (Tsetconstnode(p).value_set^=[]);
     end;
 {$endif}
 
@@ -329,6 +346,32 @@ implementation
          lab_real:=nil;
       end;
 
+    constructor trealconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        ppufile.gettype(restype);
+        value_real:=ppufile.getreal;
+        lab_real:=tasmlabel(ppufile.getasmsymbol);
+      end;
+
+
+    procedure trealconstnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.puttype(restype);
+        ppufile.putreal(value_real);
+        ppufile.putasmsymbol(lab_real);
+      end;
+
+
+    procedure trealconstnode.derefimpl;
+      begin
+        inherited derefimpl;
+        restype.resolve;
+        objectlibrary.derefasmsymbol(lab_real);
+      end;
+
+
     function trealconstnode.getcopy : tnode;
 
       var
@@ -362,6 +405,7 @@ implementation
           (value_real = trealconstnode(p).value_real);
       end;
 
+
 {*****************************************************************************
                               TORDCONSTNODE
 *****************************************************************************}
@@ -373,6 +417,30 @@ implementation
          value:=v;
          restype:=t;
       end;
+
+
+    constructor tordconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        ppufile.gettype(restype);
+        value:=ppufile.getexprint;
+      end;
+
+
+    procedure tordconstnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.puttype(restype);
+        ppufile.putexprint(value);
+      end;
+
+
+    procedure tordconstnode.derefimpl;
+      begin
+        inherited derefimpl;
+        restype.resolve;
+      end;
+
 
     function tordconstnode.getcopy : tnode;
 
@@ -413,7 +481,7 @@ implementation
     procedure Tordconstnode._dowrite;
 
     begin
-	inherited _dowrite;
+        inherited _dowrite;
         system.write(writenodeindention,',value = ',value);
     end;
 {$endif}
@@ -429,6 +497,30 @@ implementation
          value:=v;
          restype:=t;
       end;
+
+
+    constructor tpointerconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        ppufile.gettype(restype);
+        value:=ppufile.getptruint;
+      end;
+
+
+    procedure tpointerconstnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.puttype(restype);
+        ppufile.putptruint(value);
+      end;
+
+
+    procedure tpointerconstnode.derefimpl;
+      begin
+        inherited derefimpl;
+        restype.resolve;
+      end;
+
 
     function tpointerconstnode.getcopy : tnode;
 
@@ -516,6 +608,7 @@ implementation
          lab_str:=nil;
       end;
 
+
     destructor tstringconstnode.destroy;
       begin
         if st_type=st_widestring then
@@ -524,6 +617,36 @@ implementation
          ansistringdispose(value_str,len);
         inherited destroy;
       end;
+
+
+    constructor tstringconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        st_type:=tstringtype(ppufile.getbyte);
+        len:=ppufile.getlongint;
+        getmem(value_str,len+1);
+        ppufile.getdata(value_str^,len);
+        value_str[len]:=#0;
+        lab_str:=tasmlabel(ppufile.getasmsymbol);
+      end;
+
+
+    procedure tstringconstnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putbyte(byte(st_type));
+        ppufile.putlongint(len);
+        ppufile.putdata(value_str^,len);
+        ppufile.putasmsymbol(lab_str);
+      end;
+
+
+    procedure tstringconstnode.derefimpl;
+      begin
+        inherited derefimpl;
+        objectlibrary.derefasmsymbol(lab_str);
+      end;
+
 
     function tstringconstnode.getcopy : tnode;
 
@@ -614,6 +737,31 @@ implementation
         inherited destroy;
       end;
 
+
+    constructor tsetconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        ppufile.gettype(restype);
+        new(value_set);
+        ppufile.getdata(value_set^,sizeof(tconstset));
+      end;
+
+
+    procedure tsetconstnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.puttype(restype);
+        ppufile.putdata(value_set^,sizeof(tconstset));
+      end;
+
+
+    procedure tsetconstnode.derefimpl;
+      begin
+        inherited derefimpl;
+        restype.resolve;
+      end;
+
+
     function tsetconstnode.getcopy : tnode;
 
       var
@@ -670,8 +818,8 @@ implementation
     function tsetconstnode.docompare(p: tnode): boolean;
 
     begin
-	docompare:=(inherited docompare(p))
-	 and (value_set^=Tsetconstnode(p).value_set^);
+        docompare:=(inherited docompare(p))
+         and (value_set^=Tsetconstnode(p).value_set^);
     end;
 {$endif}
 
@@ -707,6 +855,20 @@ implementation
          inherited create(guidconstn);
          value:=g;
       end;
+
+    constructor tguidconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      begin
+        inherited ppuload(t,ppufile);
+        ppufile.getguid(value);
+      end;
+
+
+    procedure tguidconstnode.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putguid(value);
+      end;
+
 
     function tguidconstnode.getcopy : tnode;
 
@@ -750,7 +912,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2002-08-17 22:09:45  florian
+  Revision 1.39  2002-08-18 20:06:23  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.38  2002/08/17 22:09:45  florian
     * result type handling in tcgcal.pass_2 overhauled
     * better tnode.dowrite
     * some ppc stuff fixed

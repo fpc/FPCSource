@@ -534,7 +534,7 @@ implementation
           exit;
          if (cs_gdb_dbx in aktglobalswitches) then
            begin
-             debugList.concat(Tai_asm_comment.Create(strpnew('EINCL of global '+
+             debugList.concat(tai_comment.Create(strpnew('EINCL of global '+
                tglobalsymtable(current_module.globalsymtable).name^+' has index '+
                tostr(tglobalsymtable(current_module.globalsymtable).unitid))));
              debugList.concat(Tai_stabs.Create(strpnew('"'+
@@ -1388,7 +1388,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  2002-08-17 09:23:39  florian
+  Revision 1.73  2002-08-18 20:06:25  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.72  2002/08/17 09:23:39  florian
     * first part of procinfo rewrite
 
   Revision 1.71  2002/08/11 13:24:12  peter

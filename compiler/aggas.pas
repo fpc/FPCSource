@@ -305,7 +305,7 @@ var
     var
       ch       : char;
       hp       : tai;
-      consttyp : tait;
+      consttyp : taitype;
       s        : string;
       found    : boolean;
       i,pos,l  : longint;
@@ -388,7 +388,7 @@ var
            ait_comment :
              Begin
                AsmWrite(target_asm.comment);
-               AsmWritePChar(tai_asm_comment(hp).str);
+               AsmWritePChar(tai_comment(hp).str);
                AsmLn;
              End;
 
@@ -796,7 +796,13 @@ var
 end.
 {
   $Log$
-  Revision 1.8  2002-07-26 21:15:37  florian
+  Revision 1.9  2002-08-18 20:06:23  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.8  2002/07/26 21:15:37  florian
     * rewrote the system handling
 
   Revision 1.7  2002/07/07 09:52:32  florian

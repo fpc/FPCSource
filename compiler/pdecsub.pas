@@ -1103,7 +1103,7 @@ const
       mutexclpo     : [po_leftright]
     ),(
       idtok:_INLINE;
-      pd_flags : pd_implemen+pd_body+pd_notobjintf;
+      pd_flags : pd_interface+pd_implemen+pd_body+pd_notobjintf;
       handler  : nil;
       pocall   : pocall_inline;
       pooption : [];
@@ -1957,7 +1957,13 @@ const
 end.
 {
   $Log$
-  Revision 1.64  2002-08-17 09:23:39  florian
+  Revision 1.65  2002-08-18 20:06:24  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.64  2002/08/17 09:23:39  florian
     * first part of procinfo rewrite
 
   Revision 1.63  2002/08/11 14:32:27  peter

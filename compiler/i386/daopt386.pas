@@ -1176,10 +1176,10 @@ Begin
   firstRemovedWasAlloc := false;
   first := true;
 {$ifdef allocregdebug}
-  hp := Tai_asm_comment.Create(strpnew('allocating '+std_reg2str[reg]+
+  hp := tai_comment.Create(strpnew('allocating '+std_reg2str[reg]+
     ' from here...')));
   insertllitem(asml,p1.previous,p1,hp);
-  hp := Tai_asm_comment.Create(strpnew('allocated '+std_reg2str[reg]+
+  hp := tai_comment.Create(strpnew('allocated '+std_reg2str[reg]+
     ' till here...')));
   insertllitem(asml,p2,p1.next,hp);
 {$endif allocregdebug}
@@ -1560,7 +1560,7 @@ Begin {checks whether two Taicpu instructions are equal}
  {an instruction <> mov, movzx, movsx}
        begin
   {$ifdef csdebug}
-         hp := Tai_asm_comment.Create(strpnew('checking if equivalent'));
+         hp := tai_comment.Create(strpnew('checking if equivalent'));
          hp.previous := p2;
          hp.next := p2^.next;
          p2^.next^.previous := hp;
@@ -1576,7 +1576,7 @@ Begin {checks whether two Taicpu instructions are equal}
     Else
       begin
   {$ifdef csdebug}
-        hp := Tai_asm_comment.Create(strpnew('different opcodes/format'));
+        hp := tai_comment.Create(strpnew('different opcodes/format'));
         hp.previous := p2;
         hp.next := p2^.next;
         p2^.next^.previous := hp;
@@ -1585,7 +1585,7 @@ Begin {checks whether two Taicpu instructions are equal}
         InstructionsEquivalent := False;
       end;
   {$ifdef csdebug}
-    hp := Tai_asm_comment.Create(strpnew('instreq: '+tostr(byte(instructionsequivalent))));
+    hp := tai_comment.Create(strpnew('instreq: '+tostr(byte(instructionsequivalent))));
     hp.previous := p2;
     hp.next := p2^.next;
     p2^.next^.previous := hp;
@@ -1896,7 +1896,7 @@ Begin
     top_reg:
       begin
 {$ifdef statedebug}
-        hp := Tai_asm_comment.Create(strpnew('destroying '+std_reg2str[o.reg]));
+        hp := tai_comment.Create(strpnew('destroying '+std_reg2str[o.reg]));
         hp.next := Taiobj^.next;
         hp.previous := Taiobj;
         Taiobj^.next := hp;
@@ -1945,7 +1945,7 @@ Begin
           invalidateDependingRegs(p.optinfo,reg);
           pTaiprop(p.optinfo)^.regs[reg].memwrite := nil;
 {$ifdef StateDebug}
-          hp := Tai_asm_comment.Create(strpnew(std_reg2str[reg]+': '+tostr(PTaiProp(p.optinfo)^.Regs[reg].WState)
+          hp := tai_comment.Create(strpnew(std_reg2str[reg]+': '+tostr(PTaiProp(p.optinfo)^.Regs[reg].WState)
                 + ' -- ' + tostr(PTaiProp(p.optinfo)^.Regs[reg].nrofmods))));
           InsertLLItem(AsmL, p, p.next, hp);
 {$endif StateDebug}
@@ -1953,12 +1953,12 @@ Begin
       Else
         Begin
 {$ifdef statedebug}
-          hp := Tai_asm_comment.Create(strpnew('destroying '+std_reg2str[reg]));
+          hp := tai_comment.Create(strpnew('destroying '+std_reg2str[reg]));
           insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
           DestroyReg(PTaiProp(p.optinfo), Reg, true);
 {$ifdef StateDebug}
-          hp := Tai_asm_comment.Create(strpnew(std_reg2str[reg]+': '+tostr(PTaiProp(p.optinfo)^.Regs[reg].WState)));
+          hp := tai_comment.Create(strpnew(std_reg2str[reg]+': '+tostr(PTaiProp(p.optinfo)^.Regs[reg].WState)));
           InsertLLItem(AsmL, p, p.next, hp);
 {$endif StateDebug}
         End
@@ -2246,7 +2246,7 @@ Begin
                         top_reg:
                           Begin
 {$ifdef statedebug}
-                            hp := Tai_asm_comment.Create(strpnew('destroying '+
+                            hp := tai_comment.Create(strpnew('destroying '+
                               std_reg2str[Taicpu(p).oper[1].reg])));
                             insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
@@ -2275,7 +2275,7 @@ Begin
                           else
                             begin
 {$ifdef statedebug}
-                              hp := Tai_asm_comment.Create(strpnew('destroying & initing '+std_reg2str[tmpreg]));
+                              hp := tai_comment.Create(strpnew('destroying & initing '+std_reg2str[tmpreg]));
                               insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
                               destroyReg(curprop, tmpreg, true);
@@ -2288,7 +2288,7 @@ Begin
                                   end
                             end;
 {$ifdef StateDebug}
-                  hp := Tai_asm_comment.Create(strpnew(std_reg2str[TmpReg]+': '+tostr(CurProp^.regs[TmpReg].WState)));
+                  hp := tai_comment.Create(strpnew(std_reg2str[TmpReg]+': '+tostr(CurProp^.regs[TmpReg].WState)));
                   InsertLLItem(AsmL, p, p.next, hp);
 {$endif StateDebug}
                           End;
@@ -2313,7 +2313,7 @@ Begin
                             Begin
                               TmpReg := Reg32(Taicpu(p).oper[1].reg);
 {$ifdef statedebug}
-          hp := Tai_asm_comment.Create(strpnew('destroying '+std_reg2str[tmpreg]));
+          hp := tai_comment.Create(strpnew('destroying '+std_reg2str[tmpreg]));
           insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
                               With CurProp^.regs[TmpReg] Do
@@ -2340,7 +2340,7 @@ Begin
                      (Taicpu(p).OpCode = A_DIV) Then
                     ReadReg(CurProp,R_EDX);
 {$ifdef statedebug}
-                  hp := Tai_asm_comment.Create(strpnew('destroying eax and edx'));
+                  hp := tai_comment.Create(strpnew('destroying eax and edx'));
                   insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
 {                  DestroyReg(CurProp, R_EAX, true);}
@@ -2357,7 +2357,7 @@ Begin
                       Begin
                         ReadReg(CurProp,R_EAX);
 {$ifdef statedebug}
-                        hp := Tai_asm_comment.Create(strpnew('destroying eax and edx'));
+                        hp := tai_comment.Create(strpnew('destroying eax and edx'));
                         insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
 {                        DestroyReg(CurProp, R_EAX, true); }
@@ -2382,7 +2382,7 @@ Begin
                   else
                     begin
 {$ifdef statedebug}
-                      hp := Tai_asm_comment.Create(strpnew('destroying & initing'+
+                      hp := tai_comment.Create(strpnew('destroying & initing'+
                         std_reg2str[Taicpu(p).oper[1].reg])));
                       insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
@@ -2408,7 +2408,7 @@ Begin
                             If (InstrProp.Ch[Cnt] >= Ch_RWEAX) Then
                               ReadReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]));
 {$ifdef statedebug}
-                            hp := Tai_asm_comment.Create(strpnew('destroying '+
+                            hp := tai_comment.Create(strpnew('destroying '+
                               std_reg2str[TCh2Reg(InstrProp.Ch[Cnt])])));
                             insertllitem(asml,p,p.next,hp);
 {$endif statedebug}
@@ -2472,7 +2472,7 @@ Begin
                         Else
                           Begin
 {$ifdef statedebug}
-                            hp := Tai_asm_comment.Create(strpnew(
+                            hp := tai_comment.Create(strpnew(
                               'destroying all regs for prev instruction')));
                             insertllitem(asml,p, p.next,hp);
 {$endif statedebug}
@@ -2489,7 +2489,7 @@ Begin
         Else
           Begin
 {$ifdef statedebug}
-            hp := Tai_asm_comment.Create(strpnew(
+            hp := tai_comment.Create(strpnew(
               'destroying all regs: unknown Tai: '+tostr(ord(p.typ)))));
             insertllitem(asml,p, p.next,hp);
 {$endif statedebug}
@@ -2591,7 +2591,13 @@ End.
 
 {
   $Log$
-  Revision 1.42  2002-08-17 09:23:44  florian
+  Revision 1.43  2002-08-18 20:06:29  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.42  2002/08/17 09:23:44  florian
     * first part of procinfo rewrite
 
   Revision 1.41  2002/07/01 18:46:31  peter

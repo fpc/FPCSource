@@ -112,37 +112,8 @@ const
   ibwidestringdef  = 56;
   ibvariantdef     = 57;
   {implementation/objectdata}
-  ibasmsymbols     = 80;
-  {tais}
-  ibtaidirect       = 100;
-  ibtaistring       = 101;
-  ibtailabel        = 102;
-  ibtaicomment      = 103;
-  ibtaiinstruction  = 104;
-  ibtaidatablock    = 105;
-  ibtaisymbol       = 106;
-  ibtaisymbol_end   = 107;
-  ibtaiconst_32bit  = 108;
-  ibtaiconst_16bit  = 109;
-  ibtaiconst_8bit   = 110;
-  ibtaiconst_symbol = 111;
-  ibtaireal_80bit   = 112;
-  ibtaireal_64bit   = 113;
-  ibtaireal_32bit   = 114;
-  ibtaicomp_64bit   = 115;
-  ibtaialign        = 116;
-  ibtaisection      = 117;
-  ibtaiconst_rva    = 118;
-  ibtaistabn        = 119;
-  ibtaistabs        = 120;
-  ibtaiforce_line   = 121;
-  ibtaifunction_name = 122;
-  ibtaicut          = 123;
-  ibtairegalloc     = 124;
-  ibtaitempalloc    = 125;
-  ibtaimarker       = 126;
-  {tnodes}
-  ibnode            = 150;
+  ibnode           = 80;
+  ibasmsymbols     = 81;
 
 { unit flags }
   uf_init          = $1;
@@ -1014,7 +985,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2002-08-15 19:10:35  peter
+  Revision 1.26  2002-08-18 20:06:25  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.25  2002/08/15 19:10:35  peter
     * first things tai,tnode storing in ppu
 
   Revision 1.24  2002/08/15 15:09:42  carl

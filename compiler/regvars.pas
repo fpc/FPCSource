@@ -373,7 +373,7 @@ implementation
              if assigned(regvarinfo^.regvars[i]) then
                begin
                 if cs_asm_source in aktglobalswitches then
-                 asml.insert(Tai_asm_comment.Create(strpnew(regvarinfo^.regvars[i].name+
+                 asml.insert(tai_comment.Create(strpnew(regvarinfo^.regvars[i].name+
                   ' with weight '+tostr(regvarinfo^.regvars[i].refs)+' assigned to register '+
                   std_reg2str[regvarinfo^.regvars[i].reg])));
                 if (status.verbosity and v_debug)=v_debug then
@@ -395,7 +395,7 @@ implementation
 {$ifdef i386}
           if assigned(p) then
             if cs_asm_source in aktglobalswitches then
-              asml.insert(Tai_asm_comment.Create(strpnew(tostr(p.registersfpu)+
+              asml.insert(tai_comment.Create(strpnew(tostr(p.registersfpu)+
               ' registers on FPU stack used by temp. expressions')));
 {$endif i386}
           for i:=1 to maxfpuvarregs do
@@ -403,7 +403,7 @@ implementation
                if assigned(regvarinfo^.fpuregvars[i]) then
                  begin
                     if cs_asm_source in aktglobalswitches then
-                      asml.insert(Tai_asm_comment.Create(strpnew(regvarinfo^.fpuregvars[i].name+
+                      asml.insert(tai_comment.Create(strpnew(regvarinfo^.fpuregvars[i].name+
                         ' with weight '+tostr(regvarinfo^.fpuregvars[i].refs)+' assigned to register '+
                         std_reg2str[regvarinfo^.fpuregvars[i].reg])));
                     if (status.verbosity and v_debug)=v_debug then
@@ -412,7 +412,7 @@ implementation
                  end;
             end;
           if cs_asm_source in aktglobalswitches then
-            asml.insert(Tai_asm_comment.Create(strpnew('Register variable assignment:')));
+            asml.insert(tai_comment.Create(strpnew('Register variable assignment:')));
         end;
     end;
 
@@ -469,7 +469,13 @@ end.
 
 {
   $Log$
-  Revision 1.39  2002-08-17 09:23:41  florian
+  Revision 1.40  2002-08-18 20:06:25  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.39  2002/08/17 09:23:41  florian
     * first part of procinfo rewrite
 
   Revision 1.38  2002/08/06 20:55:22  florian

@@ -28,7 +28,7 @@ interface
     uses
        cclasses,
        globtype,globals,
-       aasmbase,
+       cpuinfo,aasmbase,
        symbase,symtype,
        ppu;
 
@@ -37,12 +37,16 @@ interface
        public
          procedure checkerror;
          procedure getguid(var g: tguid);
+         function  getexprint:tconstexprint;
+         function  getptruint:TConstPtrUInt;
          procedure getposinfo(var p:tfileposinfo);
          function  getderef : pointer;
          function  getsymlist:tsymlist;
          procedure gettype(var t:ttype);
          function  getasmsymbol:tasmsymbol;
          procedure putguid(const g: tguid);
+         procedure putexprint(v:tconstexprint);
+         procedure PutPtrUInt(v:TConstPtrUInt);
          procedure putposinfo(const p:tfileposinfo);
          procedure putderef(p : tsymtableentry);
          procedure putsymlist(p:tsymlist);
@@ -71,6 +75,52 @@ implementation
     procedure tcompilerppufile.getguid(var g: tguid);
       begin
         getdata(g,sizeof(g));
+      end;
+
+
+    function tcompilerppufile.getexprint:tconstexprint;
+      var
+        l1,l2 : longint;
+      begin
+        if sizeof(tconstexprint)=8 then
+          begin
+            l1:=getlongint;
+            l2:=getlongint;
+{$ifopt R+}
+  {$define Range_check_on}
+{$endif opt R+}
+{$R- needed here }
+            result:=qword(l1)+(int64(l2) shl 32);
+{$ifdef Range_check_on}
+  {$R+}
+  {$undef Range_check_on}
+{$endif Range_check_on}
+          end
+        else
+          result:=getlongint;
+      end;
+
+
+    function tcompilerppufile.getPtrUInt:TConstPtrUInt;
+      var
+        l1,l2 : longint;
+      begin
+        if sizeof(tconstexprint)=8 then
+          begin
+            l1:=getlongint;
+            l2:=getlongint;
+{$ifopt R+}
+  {$define Range_check_on}
+{$endif opt R+}
+{$R- needed here }
+            result:=qword(l1)+(int64(l2) shl 32);
+{$ifdef Range_check_on}
+  {$R+}
+  {$undef Range_check_on}
+{$endif Range_check_on}
+          end
+        else
+          result:=getlongint;
       end;
 
 
@@ -273,6 +323,30 @@ implementation
       end;
 
 
+    procedure tcompilerppufile.putexprint(v:tconstexprint);
+      begin
+        if sizeof(TConstExprInt)=8 then
+          begin
+             putlongint(longint(lo(v)));
+             putlongint(longint(hi(v)));
+          end
+        else
+          putlongint(v);
+      end;
+
+
+    procedure tcompilerppufile.PutPtrUInt(v:TConstPtrUInt);
+      begin
+        if sizeof(TConstPtrUInt)=8 then
+          begin
+             putlongint(longint(lo(v)));
+             putlongint(longint(hi(v)));
+          end
+        else
+          putlongint(v);
+      end;
+
+
     procedure tcompilerppufile.putderef(p : tsymtableentry);
       begin
         if p=nil then
@@ -399,19 +473,30 @@ implementation
 
     procedure tcompilerppufile.putasmsymbol(s:tasmsymbol);
       begin
-        if s.ppuidx=-1 then
+        if assigned(s) then
          begin
-           s.ppuidx:=objectlibrary.asmsymbolppuidx;
-           inc(objectlibrary.asmsymbolppuidx);
-         end;
-        putlongint(s.ppuidx);
+           if s.ppuidx=-1 then
+            begin
+              inc(objectlibrary.asmsymbolppuidx);
+              s.ppuidx:=objectlibrary.asmsymbolppuidx;
+            end;
+           putlongint(s.ppuidx);
+         end
+        else
+         putlongint(0);
       end;
 
 
 end.
 {
   $Log$
-  Revision 1.14  2002-08-11 14:32:28  peter
+  Revision 1.15  2002-08-18 20:06:26  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.14  2002/08/11 14:32:28  peter
     * renamed current_library to objectlibrary
 
   Revision 1.13  2002/08/11 13:24:14  peter

@@ -63,13 +63,12 @@ interface
           is_def_stab_written : tdefstabstatus;
 {$endif GDB}
           constructor create;
-          constructor loaddef(ppufile:tcompilerppufile);
+          constructor ppuloaddef(ppufile:tcompilerppufile);
           destructor  destroy;override;
-          procedure writedef(ppufile:tcompilerppufile);
-          procedure write(ppufile:tcompilerppufile);virtual;abstract;
+          procedure ppuwritedef(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);virtual;abstract;
           procedure deref;override;
           procedure derefimpl;override;
-          procedure derefobjectdata;override;
           function  size:longint;override;
           function  alignment:longint;override;
           function  is_publishable : boolean;override;
@@ -118,8 +117,8 @@ interface
           constructor createtext;
           constructor createuntyped;
           constructor createtyped(const tt : ttype);
-          constructor load(ppufile:tcompilerppufile);
-          procedure write(ppufile:tcompilerppufile);override;
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           function  gettypename:string;override;
           function  getmangledparaname:string;override;
@@ -133,9 +132,9 @@ interface
 
        tvariantdef = class(tstoreddef)
           constructor create;
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           function gettypename:string;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure setsize;
           function needs_inittable : boolean;override;
           procedure write_rtti_data(rt:trttitype);override;
@@ -143,8 +142,8 @@ interface
 
        tformaldef = class(tstoreddef)
           constructor create;
-          constructor load(ppufile:tcompilerppufile);
-          procedure write(ppufile:tcompilerppufile);override;
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  gettypename:string;override;
 {$ifdef GDB}
           function  stabstring : pchar;override;
@@ -178,8 +177,8 @@ interface
           is_far : boolean;
           constructor create(const tt : ttype);
           constructor createfar(const tt : ttype);
-          constructor load(ppufile:tcompilerppufile);
-          procedure write(ppufile:tcompilerppufile);override;
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           function  gettypename:string;override;
           { debug }
@@ -210,9 +209,9 @@ interface
        trecorddef = class(tabstractrecorddef)
        public
           constructor create(p : tsymtable);
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           function  size:longint;override;
           function  alignment : longint;override;
@@ -263,9 +262,9 @@ interface
           { store implemented interfaces defs and name mappings }
           implementedinterfaces: timplementedinterfaces;
           constructor create(ot : tobjectdeftype;const n : string;c : tobjectdef);
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           function  size : longint;override;
           function  alignment:longint;override;
@@ -326,8 +325,8 @@ interface
 
        tclassrefdef = class(tpointerdef)
           constructor create(const t:ttype);
-          constructor load(ppufile:tcompilerppufile);
-          procedure write(ppufile:tcompilerppufile);override;
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function gettypename:string;override;
           { debug }
 {$ifdef GDB}
@@ -348,8 +347,8 @@ interface
           IsArrayOfConst : boolean;
           function elesize : longint;
           constructor create(l,h : longint;const t : ttype);
-          constructor load(ppufile:tcompilerppufile);
-          procedure write(ppufile:tcompilerppufile);override;
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  gettypename:string;override;
           function  getmangledparaname : string;override;
 {$ifdef GDB}
@@ -375,8 +374,8 @@ interface
           low,high : TConstExprInt;
           typ      : tbasetype;
           constructor create(t : tbasetype;v,b : TConstExprInt);
-          constructor load(ppufile:tcompilerppufile);
-          procedure write(ppufile:tcompilerppufile);override;
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  is_publishable : boolean;override;
           function  gettypename:string;override;
           procedure setsize;
@@ -395,8 +394,8 @@ interface
        tfloatdef = class(tstoreddef)
           typ : tfloattype;
           constructor create(t : tfloattype);
-          constructor load(ppufile:tcompilerppufile);
-          procedure write(ppufile:tcompilerppufile);override;
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
           procedure setsize;
@@ -420,9 +419,9 @@ interface
           symtablelevel   : byte;
           fpu_used        : byte;    { how many stack fpu must be empty }
           constructor create;
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
-          procedure  write(ppufile:tcompilerppufile);override;
+          procedure  ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure concatpara(const tt:ttype;sym : tsym;vsp : tvarspez;defval:tsym);
           function  para_size(alignsize:longint) : longint;
@@ -437,8 +436,8 @@ interface
 
        tprocvardef = class(tabstractprocdef)
           constructor create;
-          constructor load(ppufile:tcompilerppufile);
-          procedure write(ppufile:tcompilerppufile);override;
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  size : longint;override;
           function gettypename:string;override;
           function is_publishable : boolean;override;
@@ -508,12 +507,11 @@ interface
           { small set which contains the modified registers }
           usedregisters : tregisterset;
           constructor create;
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure derefimpl;override;
-          procedure derefobjectdata;override;
           function  getsymtable(t:tgetsymtable):tsymtable;override;
           function  haspara:boolean;
           function  mangledname : string;
@@ -550,7 +548,7 @@ interface
           constructor loadwide(ppufile:tcompilerppufile);
           function  stringtypname:string;
           function  size : longint;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  gettypename:string;override;
           function  getmangledparaname:string;override;
           function  is_publishable : boolean;override;
@@ -574,9 +572,9 @@ interface
           basedef   : tenumdef;
           constructor create;
           constructor create_subrange(_basedef:tenumdef;_min,_max:longint);
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
@@ -602,9 +600,9 @@ interface
           elementtype : ttype;
           settype : tsettype;
           constructor create(const t:ttype;high : longint);
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           function  gettypename:string;override;
           function  is_publishable : boolean;override;
@@ -828,7 +826,7 @@ implementation
        manglenamesize : longint;
 {$endif}
 
-    constructor tstoreddef.loaddef(ppufile:tcompilerppufile);
+    constructor tstoreddef.ppuloaddef(ppufile:tcompilerppufile);
       begin
          inherited create;
 {$ifdef EXTDEBUG}
@@ -890,7 +888,7 @@ implementation
       end;
 
 
-    procedure tstoreddef.writedef(ppufile:tcompilerppufile);
+    procedure tstoreddef.ppuwritedef(ppufile:tcompilerppufile);
       begin
         ppufile.putword(indexnr);
         ppufile.putderef(typesym);
@@ -923,11 +921,6 @@ implementation
 
 
     procedure tstoreddef.derefimpl;
-      begin
-      end;
-
-
-    procedure tstoreddef.derefobjectdata;
       begin
       end;
 
@@ -1191,7 +1184,7 @@ implementation
 
     constructor tstringdef.loadshort(ppufile:tcompilerppufile);
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          string_typ:=st_shortstring;
          deftype:=stringdef;
          len:=ppufile.getbyte;
@@ -1211,7 +1204,7 @@ implementation
 
     constructor tstringdef.loadlong(ppufile:tcompilerppufile);
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          deftype:=stringdef;
          string_typ:=st_longstring;
          len:=ppufile.getlongint;
@@ -1231,7 +1224,7 @@ implementation
 
     constructor tstringdef.loadansi(ppufile:tcompilerppufile);
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          deftype:=stringdef;
          string_typ:=st_ansistring;
          len:=ppufile.getlongint;
@@ -1251,7 +1244,7 @@ implementation
 
     constructor tstringdef.loadwide(ppufile:tcompilerppufile);
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          deftype:=stringdef;
          string_typ:=st_widestring;
          len:=ppufile.getlongint;
@@ -1275,9 +1268,9 @@ implementation
       end;
 
 
-    procedure tstringdef.write(ppufile:tcompilerppufile);
+    procedure tstringdef.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writedef(ppufile);
+         inherited ppuwritedef(ppufile);
          if string_typ=st_shortstring then
            ppufile.putbyte(len)
          else
@@ -1437,9 +1430,9 @@ implementation
       end;
 
 
-    constructor tenumdef.load(ppufile:tcompilerppufile);
+    constructor tenumdef.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          deftype:=enumdef;
          basedef:=tenumdef(ppufile.getderef);
          minval:=ppufile.getlongint;
@@ -1501,9 +1494,9 @@ implementation
       end;
 
 
-    procedure tenumdef.write(ppufile:tcompilerppufile);
+    procedure tenumdef.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writedef(ppufile);
+         inherited ppuwritedef(ppufile);
          ppufile.putderef(basedef);
          ppufile.putlongint(min);
          ppufile.putlongint(max);
@@ -1660,11 +1653,11 @@ implementation
       end;
 
 
-    constructor torddef.load(ppufile:tcompilerppufile);
+    constructor torddef.ppuload(ppufile:tcompilerppufile);
       var
         l1,l2 : longint;
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          deftype:=orddef;
          typ:=tbasetype(ppufile.getbyte);
          if sizeof(TConstExprInt)=8 then
@@ -1768,9 +1761,9 @@ implementation
       end;
 
 
-    procedure torddef.write(ppufile:tcompilerppufile);
+    procedure torddef.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writedef(ppufile);
+         inherited ppuwritedef(ppufile);
          ppufile.putbyte(byte(typ));
          if sizeof(TConstExprInt)=8 then
           begin
@@ -1913,9 +1906,9 @@ implementation
       end;
 
 
-    constructor tfloatdef.load(ppufile:tcompilerppufile);
+    constructor tfloatdef.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          deftype:=floatdef;
          typ:=tfloattype(ppufile.getbyte);
          setsize;
@@ -1935,9 +1928,9 @@ implementation
       end;
 
 
-    procedure tfloatdef.write(ppufile:tcompilerppufile);
+    procedure tfloatdef.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writedef(ppufile);
+         inherited ppuwritedef(ppufile);
          ppufile.putbyte(byte(typ));
          ppufile.writeentry(ibfloatdef);
       end;
@@ -2025,9 +2018,9 @@ implementation
       end;
 
 
-    constructor tfiledef.load(ppufile:tcompilerppufile);
+    constructor tfiledef.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          deftype:=filedef;
          filetyp:=tfiletyp(ppufile.getbyte);
          if filetyp=ft_typed then
@@ -2058,9 +2051,9 @@ implementation
       end;
 
 
-    procedure tfiledef.write(ppufile:tcompilerppufile);
+    procedure tfiledef.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writedef(ppufile);
+         inherited ppuwritedef(ppufile);
          ppufile.putbyte(byte(filetyp));
          if filetyp=ft_typed then
            ppufile.puttype(typedfiletype);
@@ -2158,17 +2151,17 @@ implementation
       end;
 
 
-    constructor tvariantdef.load(ppufile:tcompilerppufile);
+    constructor tvariantdef.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          deftype:=variantdef;
          setsize;
       end;
 
 
-    procedure tvariantdef.write(ppufile:tcompilerppufile);
+    procedure tvariantdef.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writedef(ppufile);
+         inherited ppuwritedef(ppufile);
          ppufile.writeentry(ibvariantdef);
       end;
 
@@ -2220,9 +2213,9 @@ implementation
       end;
 
 
-    constructor tpointerdef.load(ppufile:tcompilerppufile);
+    constructor tpointerdef.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          deftype:=pointerdef;
          ppufile.gettype(pointertype);
          is_far:=(ppufile.getbyte<>0);
@@ -2237,9 +2230,9 @@ implementation
       end;
 
 
-    procedure tpointerdef.write(ppufile:tcompilerppufile);
+    procedure tpointerdef.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writedef(ppufile);
+         inherited ppuwritedef(ppufile);
          ppufile.puttype(pointertype);
          ppufile.putbyte(byte(is_far));
          ppufile.writeentry(ibpointerdef);
@@ -2327,10 +2320,10 @@ implementation
       end;
 
 
-    constructor tclassrefdef.load(ppufile:tcompilerppufile);
+    constructor tclassrefdef.ppuload(ppufile:tcompilerppufile);
       begin
          { be careful, tclassdefref inherits from tpointerdef }
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          deftype:=classrefdef;
          ppufile.gettype(pointertype);
          is_far:=false;
@@ -2338,10 +2331,10 @@ implementation
       end;
 
 
-    procedure tclassrefdef.write(ppufile:tcompilerppufile);
+    procedure tclassrefdef.ppuwrite(ppufile:tcompilerppufile);
       begin
          { be careful, tclassdefref inherits from tpointerdef }
-         inherited writedef(ppufile);
+         inherited ppuwritedef(ppufile);
          ppufile.puttype(pointertype);
          ppufile.writeentry(ibclassrefdef);
       end;
@@ -2408,9 +2401,9 @@ implementation
       end;
 
 
-    constructor tsetdef.load(ppufile:tcompilerppufile);
+    constructor tsetdef.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          deftype:=setdef;
          ppufile.gettype(elementtype);
          settype:=tsettype(ppufile.getbyte);
@@ -2428,9 +2421,9 @@ implementation
       end;
 
 
-    procedure tsetdef.write(ppufile:tcompilerppufile);
+    procedure tsetdef.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writedef(ppufile);
+         inherited ppuwritedef(ppufile);
          ppufile.puttype(elementtype);
          ppufile.putbyte(byte(settype));
          if settype=varset then
@@ -2540,17 +2533,17 @@ implementation
       end;
 
 
-    constructor tformaldef.load(ppufile:tcompilerppufile);
+    constructor tformaldef.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          deftype:=formaldef;
          savesize:=POINTER_SIZE;
       end;
 
 
-    procedure tformaldef.write(ppufile:tcompilerppufile);
+    procedure tformaldef.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writedef(ppufile);
+         inherited ppuwritedef(ppufile);
          ppufile.writeentry(ibformaldef);
       end;
 
@@ -2594,9 +2587,9 @@ implementation
       end;
 
 
-    constructor tarraydef.load(ppufile:tcompilerppufile);
+    constructor tarraydef.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          deftype:=arraydef;
          { the addresses are calculated later }
          ppufile.gettype(elementtype);
@@ -2655,9 +2648,9 @@ implementation
       end;
 
 
-    procedure tarraydef.write(ppufile:tcompilerppufile);
+    procedure tarraydef.ppuwrite(ppufile:tcompilerppufile);
       begin
-         inherited writedef(ppufile);
+         inherited ppuwritedef(ppufile);
          ppufile.puttype(elementtype);
          ppufile.puttype(rangetype);
          ppufile.putlongint(lowrange);
@@ -2918,17 +2911,17 @@ implementation
       end;
 
 
-    constructor trecorddef.load(ppufile:tcompilerppufile);
+    constructor trecorddef.ppuload(ppufile:tcompilerppufile);
       var
          oldread_member : boolean;
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          deftype:=recorddef;
          savesize:=ppufile.getlongint;
          oldread_member:=read_member;
          read_member:=true;
          symtable:=trecordsymtable.create;
-         trecordsymtable(symtable).load(ppufile);
+         trecordsymtable(symtable).ppuload(ppufile);
          read_member:=oldread_member;
          symtable.defowner:=self;
       end;
@@ -2967,16 +2960,16 @@ implementation
       end;
 
 
-    procedure trecorddef.write(ppufile:tcompilerppufile);
+    procedure trecorddef.ppuwrite(ppufile:tcompilerppufile);
       var
          oldread_member : boolean;
       begin
          oldread_member:=read_member;
          read_member:=true;
-         inherited writedef(ppufile);
+         inherited ppuwritedef(ppufile);
          ppufile.putlongint(savesize);
          ppufile.writeentry(ibrecorddef);
-         trecordsymtable(symtable).write(ppufile);
+         trecordsymtable(symtable).ppuwrite(ppufile);
          read_member:=oldread_member;
       end;
 
@@ -3146,12 +3139,12 @@ implementation
       end;
 
 
-    constructor tabstractprocdef.load(ppufile:tcompilerppufile);
+    constructor tabstractprocdef.ppuload(ppufile:tcompilerppufile);
       var
          hp : TParaItem;
          count,i : word;
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          Para:=TParaLinkedList.Create;
          minparacount:=0;
          maxparacount:=0;
@@ -3180,12 +3173,12 @@ implementation
       end;
 
 
-    procedure tabstractprocdef.write(ppufile:tcompilerppufile);
+    procedure tabstractprocdef.ppuwrite(ppufile:tcompilerppufile);
       var
         hp : TParaItem;
         oldintfcrc : boolean;
       begin
-         inherited writedef(ppufile);
+         inherited ppuwritedef(ppufile);
          ppufile.puttype(rettype);
          oldintfcrc:=ppufile.do_interface_crc;
          ppufile.do_interface_crc:=false;
@@ -3209,6 +3202,7 @@ implementation
             hp:=TParaItem(hp.next);
           end;
       end;
+
 
 
     function tabstractprocdef.para_size(alignsize:longint) : longint;
@@ -3375,9 +3369,9 @@ implementation
       end;
 
 
-    constructor tprocdef.load(ppufile:tcompilerppufile);
+    constructor tprocdef.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited load(ppufile);
+         inherited ppuload(ppufile);
          deftype:=procdef;
 
          ppufile.getnormalset(usedregisters);
@@ -3393,22 +3387,29 @@ implementation
          ppufile.getposinfo(fileinfo);
          { inline stuff }
          if proccalloption=pocall_inline then
-           funcretsym:=tsym(ppufile.getderef)
+          begin
+            funcretsym:=tsym(ppufile.getderef);
+            code:=ppuloadnode(ppufile);
+          end
          else
-           funcretsym:=nil;
+          begin
+            code := nil;
+            funcretsym:=nil;
+          end;
          { load para and local symtables }
          parast:=tparasymtable.create;
-         tparasymtable(parast).load(ppufile);
+         tparasymtable(parast).ppuload(ppufile);
          parast.defowner:=self;
          if (proccalloption=pocall_inline) or
             ((current_module.flags and uf_local_browser)<>0) then
           begin
             localst:=tlocalsymtable.create;
-            tlocalsymtable(localst).load(ppufile);
+            tlocalsymtable(localst).ppuload(ppufile);
             localst.defowner:=self;
           end
          else
           localst:=nil;
+
          { default values for no persistent data }
          if (cs_link_deffile in aktglobalswitches) and
             (tf_need_export in target_info.flags) and
@@ -3418,7 +3419,6 @@ implementation
          forwarddef:=false;
          interfacedef:=false;
          hasforward:=false;
-         code := nil;
          regvarinfo := nil;
          lastref:=nil;
          lastwritten:=nil;
@@ -3454,11 +3454,11 @@ implementation
       end;
 
 
-    procedure tprocdef.write(ppufile:tcompilerppufile);
+    procedure tprocdef.ppuwrite(ppufile:tcompilerppufile);
       var
         oldintfcrc : boolean;
       begin
-         inherited write(ppufile);
+         inherited ppuwrite(ppufile);
          oldintfcrc:=ppufile.do_interface_crc;
          ppufile.do_interface_crc:=false;
          { set all registers to used for simplified compilation PM }
@@ -3482,8 +3482,12 @@ implementation
            on the crc }
          oldintfcrc:=ppufile.do_crc;
          ppufile.do_crc:=false;
-         if (proccalloption=pocall_inline) then
-           ppufile.putderef(funcretsym);
+         { inline stuff }
+         if proccalloption=pocall_inline then
+          begin
+            ppufile.putderef(funcretsym);
+            ppuwritenode(ppufile,code);
+          end;
          ppufile.do_crc:=oldintfcrc;
 
          { write this entry }
@@ -3495,7 +3499,7 @@ implementation
             parast:=tparasymtable.create;
             parast.defowner:=self;
           end;
-         tparasymtable(parast).write(ppufile);
+         tparasymtable(parast).ppuwrite(ppufile);
 
          { save localsymtable for inline procedures or when local
            browser info is requested, this has no influence on the crc }
@@ -3509,7 +3513,7 @@ implementation
                localst:=tlocalsymtable.create;
                localst.defowner:=self;
              end;
-            tlocalsymtable(localst).write(ppufile);
+            tlocalsymtable(localst).ppuwrite(ppufile);
             ppufile.do_crc:=oldintfcrc;
           end;
       end;
@@ -3799,11 +3803,10 @@ implementation
             { safety }
             funcretsym:=nil;
           end;
-      end;
 
-
-    procedure tprocdef.derefobjectdata;
-      begin
+        { inline tree }
+        if (proccalloption=pocall_inline) then
+          code.derefimpl;
       end;
 
 
@@ -3925,14 +3928,14 @@ implementation
       end;
 
 
-    constructor tprocvardef.load(ppufile:tcompilerppufile);
+    constructor tprocvardef.ppuload(ppufile:tcompilerppufile);
       begin
-         inherited load(ppufile);
+         inherited ppuload(ppufile);
          deftype:=procvardef;
       end;
 
 
-    procedure tprocvardef.write(ppufile:tcompilerppufile);
+    procedure tprocvardef.ppuwrite(ppufile:tcompilerppufile);
       begin
          { here we cannot get a real good value so just give something }
          { plausible (PM) }
@@ -3946,7 +3949,7 @@ implementation
 {$endif FAST_FPU}
          else
            fpu_used:=0;
-         inherited write(ppufile);
+         inherited ppuwrite(ppufile);
          ppufile.writeentry(ibprocvardef);
       end;
 
@@ -4134,12 +4137,12 @@ implementation
      end;
 
 
-    constructor tobjectdef.load(ppufile:tcompilerppufile);
+    constructor tobjectdef.ppuload(ppufile:tcompilerppufile);
       var
          oldread_member : boolean;
          i,implintfcount: longint;
       begin
-         inherited loaddef(ppufile);
+         inherited ppuloaddef(ppufile);
          deftype:=objectdef;
          objecttype:=tobjectdeftype(ppufile.getbyte);
          savesize:=ppufile.getlongint;
@@ -4176,7 +4179,7 @@ implementation
          oldread_member:=read_member;
          read_member:=true;
          symtable:=tobjectsymtable.create(objrealname^);
-         tobjectsymtable(symtable).load(ppufile);
+         tobjectsymtable(symtable).ppuload(ppufile);
          read_member:=oldread_member;
 
          symtable.defowner:=self;
@@ -4211,13 +4214,13 @@ implementation
      end;
 
 
-    procedure tobjectdef.write(ppufile:tcompilerppufile);
+    procedure tobjectdef.ppuwrite(ppufile:tcompilerppufile);
       var
          oldread_member : boolean;
          implintfcount : longint;
          i : longint;
       begin
-         inherited writedef(ppufile);
+         inherited ppuwritedef(ppufile);
          ppufile.putbyte(byte(objecttype));
          ppufile.putlongint(size);
          ppufile.putlongint(vmt_offset);
@@ -4247,7 +4250,7 @@ implementation
 
          oldread_member:=read_member;
          read_member:=true;
-         tobjectsymtable(symtable).write(ppufile);
+         tobjectsymtable(symtable).ppuwrite(ppufile);
          read_member:=oldread_member;
       end;
 
@@ -5504,7 +5507,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.89  2002-08-11 15:28:00  florian
+  Revision 1.90  2002-08-18 20:06:25  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.89  2002/08/11 15:28:00  florian
     + support of explicit type case <any ordinal type>->pointer
       (delphi mode only)
 

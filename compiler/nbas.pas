@@ -27,7 +27,10 @@ unit nbas;
 interface
 
     uses
-       aasmbase,aasmtai,aasmcpu,symtype,node,cpubase;
+       cpubase,
+       aasmbase,aasmtai,aasmcpu,
+       node,
+       symtype,symppu;
 
     type
        tnothingnode = class(tnode)
@@ -48,6 +51,9 @@ interface
           p_asm : taasmoutput;
           constructor create(p : taasmoutput);virtual;
           destructor destroy;override;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
@@ -471,6 +477,52 @@ implementation
         inherited destroy;
       end;
 
+
+    constructor tasmnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
+      var
+        hp : tai;
+      begin
+        inherited ppuload(t,ppufile);
+        p_asm:=taasmoutput.create;
+        repeat
+          hp:=ppuloadai(ppufile);
+          if hp=nil then
+           break;
+          p_asm.concat(hp);
+        until false;
+      end;
+
+
+    procedure tasmnode.ppuwrite(ppufile:tcompilerppufile);
+      var
+        hp : tai;
+      begin
+        inherited ppuwrite(ppufile);
+        hp:=tai(p_asm.first);
+        while assigned(hp) do
+         begin
+           ppuwriteai(ppufile,hp);
+           hp:=tai(hp.next);
+         end;
+        { end is marked by a nil }
+        ppuwriteai(ppufile,nil);
+      end;
+
+
+    procedure tasmnode.derefimpl;
+      var
+        hp : tai;
+      begin
+        inherited derefimpl;
+        hp:=tai(p_asm.first);
+        while assigned(hp) do
+         begin
+           hp.derefimpl;
+           hp:=tai(hp.next);
+         end;
+      end;
+
+
     function tasmnode.getcopy: tnode;
       var
         n: tasmnode;
@@ -694,7 +746,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-08-17 22:09:44  florian
+  Revision 1.34  2002-08-18 20:06:23  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.33  2002/08/17 22:09:44  florian
     * result type handling in tcgcal.pass_2 overhauled
     * better tnode.dowrite
     * some ppc stuff fixed

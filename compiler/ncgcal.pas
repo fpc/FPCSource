@@ -64,6 +64,9 @@ implementation
       cginfo,cgbase,pass_2,
       cpuinfo,cpubase,cpupi,aasmbase,aasmtai,aasmcpu,
       nmem,nld,ncnv,
+{$ifdef i386}
+      cga,
+{$endif i386}
       ncgutil,cgobj,tgobj,regvars,rgobj,rgcpu,cg64f32,cgcpu;
 
 {*****************************************************************************
@@ -374,7 +377,7 @@ implementation
              Comment(V_debug,
                'inlined parasymtable is at offset '
                +tostr(tprocdef(procdefinition).parast.address_fixup));
-             exprasmList.concat(Tai_asm_comment.Create(
+             exprasmList.concat(tai_comment.Create(
                strpnew('inlined parasymtable is at offset '
                +tostr(tprocdef(procdefinition).parast.address_fixup))));
 {$endif extdebug}
@@ -528,7 +531,7 @@ implementation
 {$ifdef extdebug}
                    Comment(V_debug,'function return value is at offset '
                                    +tostr(funcretref.offset));
-                   exprasmlist.concat(tai_asm_comment.create(
+                   exprasmlist.concat(tai_comment.create(
                                        strpnew('function return value is at offset '
                                                +tostr(funcretref.offset))));
 {$endif extdebug}
@@ -1332,19 +1335,21 @@ implementation
           oldexitlabel:=aktexitlabel;
           oldexit2label:=aktexit2label;
           oldquickexitlabel:=quickexitlabel;
+          oldprocdef:=aktprocdef;
+          oldprocinfo:=procinfo;
           objectlibrary.getlabel(aktexitlabel);
           objectlibrary.getlabel(aktexit2label);
           { we're inlining a procedure }
           inlining_procedure:=true;
-          oldprocdef:=aktprocdef;
-
           aktprocdef:=inlineprocdef;
-          { save old procinfo }
-          oldprocinfo:=procinfo;
 
-          { clone }
+          { clone procinfo, but not the asmlists }
           procinfo:=tprocinfo(cprocinfo.newinstance);
           move(pointer(oldprocinfo)^,pointer(procinfo)^,cprocinfo.InstanceSize);
+          procinfo.aktentrycode:=nil;
+          procinfo.aktexitcode:=nil;
+          procinfo.aktproccode:=nil;
+          procinfo.aktlocaldata:=nil;
 
           { set new procinfo }
           procinfo.return_offset:=retoffset;
@@ -1360,13 +1365,13 @@ implementation
               st.address_fixup:=tg.gettempofsizepersistant(exprasmlist,st.datasize)+st.datasize;
 {$ifdef extdebug}
               Comment(V_debug,'local symtable is at offset '+tostr(st.address_fixup));
-              exprasmList.concat(Tai_asm_comment.Create(strpnew(
+              exprasmList.concat(tai_comment.Create(strpnew(
                 'local symtable is at offset '+tostr(st.address_fixup))));
 {$endif extdebug}
             end;
           exprasmList.concat(Tai_Marker.Create(InlineStart));
 {$ifdef extdebug}
-          exprasmList.concat(Tai_asm_comment.Create(strpnew('Start of inlined proc')));
+          exprasmList.concat(tai_comment.Create(strpnew('Start of inlined proc')));
 {$endif extdebug}
 {$ifdef GDB}
           if (cs_debuginfo in aktmoduleswitches) then
@@ -1413,7 +1418,7 @@ implementation
           inlineentrycode.free;
           inlineexitcode.free;
 {$ifdef extdebug}
-          exprasmList.concat(Tai_asm_comment.Create(strpnew('End of inlined proc')));
+          exprasmList.concat(tai_comment.Create(strpnew('End of inlined proc')));
 {$endif extdebug}
           exprasmList.concat(Tai_Marker.Create(InlineEnd));
 
@@ -1464,7 +1469,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-08-17 22:09:44  florian
+  Revision 1.12  2002-08-18 20:06:23  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.11  2002/08/17 22:09:44  florian
     * result type handling in tcgcal.pass_2 overhauled
     * better tnode.dowrite
     * some ppc stuff fixed

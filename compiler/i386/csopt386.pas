@@ -548,7 +548,7 @@ begin
 {$ifdef alignregdebug}
       if assigned(prev) then
         begin
-          temp := Tai_asm_comment.Create(strpnew('got here'));
+          temp := tai_comment.Create(strpnew('got here'));
           temp.next := prev.next;
           temp.previous := prev;
           prev.next := temp;
@@ -573,7 +573,7 @@ begin
                       lastRemoved := regCounter;
                       exclude(regsUsable,regCounter);
 {$ifdef alignregdebug}
-                      temp := Tai_asm_comment.Create(strpnew(
+                      temp := tai_comment.Create(strpnew(
                                 std_reg2str[regCounter]+' removed')));
                       temp.next := prev.next;
                       temp.previous := prev;
@@ -582,7 +582,7 @@ begin
                         temp.next.previous := temp;
                       if regsUsable = [] then
                         begin
-                          temp := Tai_asm_comment.Create(strpnew(
+                          temp := tai_comment.Create(strpnew(
                                     'regsUsable empty here')));
                           temp.next := prev.next;
                           temp.previous := prev;
@@ -623,7 +623,7 @@ begin
                       lastRemoved := regCounter;
                       exclude(regsUsable,regCounter);
 {$ifdef alignregdebug}
-                      temp := Tai_asm_comment.Create(strpnew(
+                      temp := tai_comment.Create(strpnew(
                                 std_reg2str[regCounter]+' removed')));
                       temp.next := next.next;
                       temp.previous := next;
@@ -632,7 +632,7 @@ begin
                         temp.next.previous := temp;
                       if regsUsable = [] then
                         begin
-                          temp := Tai_asm_comment.Create(strpnew(
+                          temp := tai_comment.Create(strpnew(
                                     'regsUsable empty here')));
                           temp.next := next.next;
                           temp.previous := next;
@@ -667,7 +667,7 @@ begin
           break
         end;
 {$ifdef alignregdebug}
-  next := Tai_asm_comment.Create(strpnew(std_reg2str[lastRemoved]+
+  next := tai_comment.Create(strpnew(std_reg2str[lastRemoved]+
                ' chosen as alignment register')));
   next.next := p.next;
   next.previous := p;
@@ -702,7 +702,7 @@ var
 begin
 {$ifdef replaceregdebug}
   l := random(1000);
-  hp := Tai_asm_comment.Create(strpnew(
+  hp := tai_comment.Create(strpnew(
           'cleared '+std_reg2str[reg]+' from here... '+tostr(l))));
   hp.next := p;
   hp.previous := p.previous;
@@ -737,7 +737,7 @@ begin
 {$ifdef replaceregdebug}
   if assigned(p) then
     begin
-      hp := Tai_asm_comment.Create(strpnew(
+      hp := tai_comment.Create(strpnew(
         'cleared '+std_reg2str[reg]+' till here... '+tostr(l))));
       hp.next := p;
       hp.previous := p.previous;
@@ -758,7 +758,7 @@ var
 begin
 {$ifdef replaceregdebug}
   l := random(1000);
-  hp := Tai_asm_comment.Create(strpnew(
+  hp := tai_comment.Create(strpnew(
           'restored '+std_reg2str[reg]+' with data from here... '+tostr(l))));
   hp.next := p;
   hp.previous := p.previous;
@@ -783,7 +783,7 @@ begin
 {$ifdef replaceregdebug}
   if assigned(p) then
     begin
-      hp := Tai_asm_comment.Create(strpnew(
+      hp := tai_comment.Create(strpnew(
         'restored '+std_reg2str[reg]+' till here... '+tostr(l))));
       hp.next := p;
       hp.previous := p.previous;
@@ -1097,7 +1097,7 @@ begin
         not(Taicpu(endp).is_jmp);
       if tmpresult and not assigned(endp.optInfo) then
         begin
-{          hp := Tai_asm_comment.Create(strpnew('next no optinfo'));
+{          hp := tai_comment.Create(strpnew('next no optinfo'));
           hp.next := endp;
           hp.previous := endp.previous;
           endp.previous := hp;
@@ -1173,7 +1173,7 @@ begin
   if SequenceEnd then
     begin
 {$ifdef replaceregdebug}
-      hp := Tai_asm_comment.Create(strpnew(
+      hp := tai_comment.Create(strpnew(
         'replacing '+std_reg2str[newreg]+' with '+std_reg2str[orgreg]+
         ' from here...')));
       hp.next := p;
@@ -1182,7 +1182,7 @@ begin
       if assigned(hp.previous) then
         hp.previous^.next := hp;
 
-      hp := Tai_asm_comment.Create(strpnew(
+      hp := tai_comment.Create(strpnew(
         'replaced '+std_reg2str[newreg]+' with '+std_reg2str[orgreg]+
         ' till here')));
       hp.next := endp.next;
@@ -1245,7 +1245,7 @@ begin
 {$ifdef replaceregdebug}
      else
        begin
-         hp := Tai_asm_comment.Create(strpnew(
+         hp := tai_comment.Create(strpnew(
            'replacing '+std_reg2str[newreg]+' with '+std_reg2str[orgreg]+
            ' from here...')));
          hp.previous := p.previous;
@@ -1254,7 +1254,7 @@ begin
         if assigned(hp.previous) then
           hp.previous^.next := hp;
 
-      hp := Tai_asm_comment.Create(strpnew(
+      hp := tai_comment.Create(strpnew(
         'replacing '+std_reg2str[newreg]+' with '+std_reg2str[orgreg]+
         ' failed here')));
       hp.next := endp.next;
@@ -1285,7 +1285,7 @@ Begin
 {$ifdef testing}
      if (pTaiprop(p.optInfo)^.regs[counter].typ in [con_const,con_noRemoveConst]) then
        begin
-         hp := Tai_asm_comment.Create(strpnew(
+         hp := tai_comment.Create(strpnew(
            'checking const load of '+tostr(l)+' here...')));
          hp.next := PTaiProp(p.OptInfo)^.Regs[Counter].StartMod;
          hp.previous := PTaiProp(p.OptInfo)^.Regs[Counter].StartMod^.previous;
@@ -1462,7 +1462,7 @@ Begin
 {so we don't try to check a sequence when p is the first instruction of the block}
                               begin
 {$ifdef csdebug}
-                               hp5 := Tai_asm_comment.Create(strpnew(
+                               hp5 := tai_comment.Create(strpnew(
                                  'cse checking '+std_reg2str[Reg32(Taicpu(p).oper[1].reg)])));
                                insertLLItem(asml,p,p.next,hp5);
 {$endif csdebug}
@@ -1545,7 +1545,7 @@ Begin
               For RegCounter := R_EAX To R_EDI Do
                 If (RegCounter in RegInfo.RegsLoadedForRef) Then
                   Begin
-           hp5 := Tai_asm_comment.Create(strpnew('New: '+std_reg2str[RegCounter]+', Old: '+
+           hp5 := tai_comment.Create(strpnew('New: '+std_reg2str[RegCounter]+', Old: '+
                                                   std_reg2str[RegInfo.New2OldReg[RegCounter]])));
            InsertLLItem(AsmL, Tai(hp2.previous), hp2, hp5);
                   End;
@@ -1984,7 +1984,13 @@ End.
 
 {
   $Log$
-  Revision 1.37  2002-08-17 09:23:44  florian
+  Revision 1.38  2002-08-18 20:06:29  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.37  2002/08/17 09:23:44  florian
     * first part of procinfo rewrite
 
   Revision 1.36  2002/07/01 18:46:31  peter

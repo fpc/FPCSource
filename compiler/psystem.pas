@@ -36,6 +36,7 @@ interface
     procedure createconstdefs;
 
     procedure registernodes;
+    procedure registertais;
 
 
 implementation
@@ -43,6 +44,10 @@ implementation
     uses
       globals,globtype,
       symconst,symtype,symsym,symdef,symtable,
+      aasmtai,aasmcpu,
+{$ifdef GDB}
+      gdb,
+{$endif GDB}
       node,nbas,nflw,nset,ncon,ncnv,nld,nmem,ncal,nmat,nadd,ninl,nopt;
 
 
@@ -406,10 +411,71 @@ implementation
         nodeclass[rttin]:=crttinode;
       end;
 
+
+    procedure registertais;
+      {
+        Register all possible tais in the taiclass array that
+        will be used for loading the tais from a ppu
+      }
+      begin
+        aiclass[ait_none]:=nil;
+        aiclass[ait_align]:=tai_align;
+        aiclass[ait_section]:=tai_section;
+        aiclass[ait_comment]:=tai_comment;
+        aiclass[ait_direct]:=tai_direct;
+        aiclass[ait_string]:=tai_string;
+        aiclass[ait_instruction]:=taicpu;
+        aiclass[ait_datablock]:=tai_datablock;
+        aiclass[ait_symbol]:=tai_symbol;
+        aiclass[ait_symbol_end]:=tai_symbol_end;
+        aiclass[ait_label]:=tai_label;
+        aiclass[ait_const_32bit]:=tai_const;
+        aiclass[ait_const_16bit]:=tai_const;
+        aiclass[ait_const_8bit]:=tai_const;
+        aiclass[ait_const_symbol]:=tai_const_symbol;
+        aiclass[ait_const_rva]:=tai_const_symbol;
+        aiclass[ait_real_32bit]:=tai_real_32bit;
+        aiclass[ait_real_64bit]:=tai_real_64bit;
+        aiclass[ait_real_80bit]:=tai_real_80bit;
+        aiclass[ait_comp_64bit]:=tai_comp_64bit;
+{$ifdef GDB}
+        aiclass[ait_stabn]:=tai_stabn;
+        aiclass[ait_stabs]:=tai_stabs;
+        aiclass[ait_force_line]:=tai_force_line;
+        aiclass[ait_stab_function_name]:=tai_stab_function_name;
+{$endif GDB}
+{$ifdef alpha}
+          { the follow is for the DEC Alpha }
+        aiclass[ait_frame]:=tai_frame;
+        aiclass[ait_ent]:=tai_ent;
+{$endif alpha}
+{$ifdef m68k}
+{$warning FIXME: tai_labeled_instruction doesn't exists}
+//        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
+{$endif m68k}
+{$ifdef ia64}
+        aiclass[ait_bundle]:=tai_bundle;
+        aiclass[ait_stop]:=tai_stop;
+{$endif ia64}
+{$ifdef SPARC}
+        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
+{$endif SPARC}
+        aiclass[ait_cut]:=tai_cut;
+        aiclass[ait_regalloc]:=tai_regalloc;
+        aiclass[ait_tempalloc]:=tai_tempalloc;
+        aiclass[ait_marker]:=tai_marker;
+      end;
+
 end.
 {
   $Log$
-  Revision 1.36  2002-08-15 19:10:35  peter
+  Revision 1.37  2002-08-18 20:06:25  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.36  2002/08/15 19:10:35  peter
     * first things tai,tnode storing in ppu
 
   Revision 1.35  2002/08/14 19:14:39  carl

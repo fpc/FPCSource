@@ -67,13 +67,12 @@ interface
           procedure writesyms(ppufile:tcompilerppufile);
        public
           { load/write }
-          procedure load(ppufile:tcompilerppufile);virtual;
-          procedure write(ppufile:tcompilerppufile);virtual;
+          procedure ppuload(ppufile:tcompilerppufile);virtual;
+          procedure ppuwrite(ppufile:tcompilerppufile);virtual;
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);virtual;
           procedure write_references(ppufile:tcompilerppufile;locals:boolean);virtual;
           procedure deref;virtual;
           procedure derefimpl;virtual;
-          procedure derefobjectdata;virtual;
           procedure insert(sym : tsymentry);override;
           function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;override;
           procedure allsymbolsused;
@@ -93,8 +92,8 @@ interface
 
        tabstractrecordsymtable = class(tstoredsymtable)
        public
-          procedure load(ppufile:tcompilerppufile);override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuload(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
        end;
@@ -113,8 +112,8 @@ interface
 
        tabstractlocalsymtable = class(tstoredsymtable)
        public
-          procedure load(ppufile:tcompilerppufile);override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuload(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
        end;
@@ -153,8 +152,8 @@ interface
           unitsym       : tunitsym;
           constructor create(const n : string);
           destructor  destroy;override;
-          procedure load(ppufile:tcompilerppufile);override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuload(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure insert(sym : tsymentry);override;
 {$ifdef GDB}
           function getnewtypecount : word; override;
@@ -164,8 +163,8 @@ interface
        tstaticsymtable = class(tabstractunitsymtable)
        public
           constructor create(const n : string);
-          procedure load(ppufile:tcompilerppufile);override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuload(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure write_references(ppufile:tcompilerppufile;locals:boolean);override;
           procedure insert(sym : tsymentry);override;
@@ -290,7 +289,7 @@ implementation
                              TStoredSymtable
 *****************************************************************************}
 
-    procedure tstoredsymtable.load(ppufile:tcompilerppufile);
+    procedure tstoredsymtable.ppuload(ppufile:tcompilerppufile);
       begin
         { load definitions }
         loaddefs(ppufile);
@@ -300,7 +299,7 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.write(ppufile:tcompilerppufile);
+    procedure tstoredsymtable.ppuwrite(ppufile:tcompilerppufile);
       begin
          { write definitions }
          writedefs(ppufile);
@@ -323,24 +322,24 @@ implementation
          repeat
            b:=ppufile.readentry;
            case b of
-              ibpointerdef : hp:=tpointerdef.load(ppufile);
-                ibarraydef : hp:=tarraydef.load(ppufile);
-                  iborddef : hp:=torddef.load(ppufile);
-                ibfloatdef : hp:=tfloatdef.load(ppufile);
-                 ibprocdef : hp:=tprocdef.load(ppufile);
+              ibpointerdef : hp:=tpointerdef.ppuload(ppufile);
+                ibarraydef : hp:=tarraydef.ppuload(ppufile);
+                  iborddef : hp:=torddef.ppuload(ppufile);
+                ibfloatdef : hp:=tfloatdef.ppuload(ppufile);
+                 ibprocdef : hp:=tprocdef.ppuload(ppufile);
           ibshortstringdef : hp:=tstringdef.loadshort(ppufile);
            iblongstringdef : hp:=tstringdef.loadlong(ppufile);
            ibansistringdef : hp:=tstringdef.loadansi(ppufile);
            ibwidestringdef : hp:=tstringdef.loadwide(ppufile);
-               ibrecorddef : hp:=trecorddef.load(ppufile);
-               ibobjectdef : hp:=tobjectdef.load(ppufile);
-                 ibenumdef : hp:=tenumdef.load(ppufile);
-                  ibsetdef : hp:=tsetdef.load(ppufile);
-              ibprocvardef : hp:=tprocvardef.load(ppufile);
-                 ibfiledef : hp:=tfiledef.load(ppufile);
-             ibclassrefdef : hp:=tclassrefdef.load(ppufile);
-               ibformaldef : hp:=tformaldef.load(ppufile);
-              ibvariantdef : hp:=tvariantdef.load(ppufile);
+               ibrecorddef : hp:=trecorddef.ppuload(ppufile);
+               ibobjectdef : hp:=tobjectdef.ppuload(ppufile);
+                 ibenumdef : hp:=tenumdef.ppuload(ppufile);
+                  ibsetdef : hp:=tsetdef.ppuload(ppufile);
+              ibprocvardef : hp:=tprocvardef.ppuload(ppufile);
+                 ibfiledef : hp:=tfiledef.ppuload(ppufile);
+             ibclassrefdef : hp:=tclassrefdef.ppuload(ppufile);
+               ibformaldef : hp:=tformaldef.ppuload(ppufile);
+              ibvariantdef : hp:=tvariantdef.ppuload(ppufile);
                  ibenddefs : break;
                      ibend : Message(unit_f_ppu_read_error);
            else
@@ -369,19 +368,19 @@ implementation
          repeat
            b:=ppufile.readentry;
            case b of
-                ibtypesym : sym:=ttypesym.load(ppufile);
-                ibprocsym : sym:=tprocsym.load(ppufile);
-               ibconstsym : sym:=tconstsym.load(ppufile);
-                 ibvarsym : sym:=tvarsym.load(ppufile);
-             ibfuncretsym : sym:=tfuncretsym.load(ppufile);
-            ibabsolutesym : sym:=tabsolutesym.load(ppufile);
-                ibenumsym : sym:=tenumsym.load(ppufile);
-          ibtypedconstsym : sym:=ttypedconstsym.load(ppufile);
-            ibpropertysym : sym:=tpropertysym.load(ppufile);
-                ibunitsym : sym:=tunitsym.load(ppufile);
-               iblabelsym : sym:=tlabelsym.load(ppufile);
-                 ibsyssym : sym:=tsyssym.load(ppufile);
-                ibrttisym : sym:=trttisym.load(ppufile);
+                ibtypesym : sym:=ttypesym.ppuload(ppufile);
+                ibprocsym : sym:=tprocsym.ppuload(ppufile);
+               ibconstsym : sym:=tconstsym.ppuload(ppufile);
+                 ibvarsym : sym:=tvarsym.ppuload(ppufile);
+             ibfuncretsym : sym:=tfuncretsym.ppuload(ppufile);
+            ibabsolutesym : sym:=tabsolutesym.ppuload(ppufile);
+                ibenumsym : sym:=tenumsym.ppuload(ppufile);
+          ibtypedconstsym : sym:=ttypedconstsym.ppuload(ppufile);
+            ibpropertysym : sym:=tpropertysym.ppuload(ppufile);
+                ibunitsym : sym:=tunitsym.ppuload(ppufile);
+               iblabelsym : sym:=tlabelsym.ppuload(ppufile);
+                 ibsyssym : sym:=tsyssym.ppuload(ppufile);
+                ibrttisym : sym:=trttisym.ppuload(ppufile);
                 ibendsyms : break;
                     ibend : Message(unit_f_ppu_read_error);
            else
@@ -406,7 +405,7 @@ implementation
          pd:=tstoreddef(defindex.first);
          while assigned(pd) do
            begin
-              pd.write(ppufile);
+              pd.ppuwrite(ppufile);
               pd:=tstoreddef(pd.indexnext);
            end;
       { write end of definitions }
@@ -428,7 +427,7 @@ implementation
          pd:=tstoredsym(symindex.first);
          while assigned(pd) do
            begin
-              pd.write(ppufile);
+              pd.ppuwrite(ppufile);
               pd:=tstoredsym(pd.indexnext);
            end;
        { end of symbols }
@@ -531,19 +530,6 @@ implementation
         while assigned(hp) do
          begin
            hp.derefimpl;
-           hp:=tdef(hp.indexnext);
-         end;
-      end;
-
-
-    procedure tstoredsymtable.derefobjectdata;
-      var
-        hp : tdef;
-      begin
-        hp:=tdef(defindex.first);
-        while assigned(hp) do
-         begin
-           hp.derefobjectdata;
            hp:=tdef(hp.indexnext);
          end;
       end;
@@ -958,20 +944,20 @@ implementation
                           TAbstractRecordSymtable
 ****************************************************************************}
 
-    procedure tabstractrecordsymtable.load(ppufile:tcompilerppufile);
+    procedure tabstractrecordsymtable.ppuload(ppufile:tcompilerppufile);
       var
         storesymtable : tsymtable;
       begin
         storesymtable:=aktrecordsymtable;
         aktrecordsymtable:=self;
 
-        inherited load(ppufile);
+        inherited ppuload(ppufile);
 
         aktrecordsymtable:=storesymtable;
       end;
 
 
-    procedure tabstractrecordsymtable.write(ppufile:tcompilerppufile);
+    procedure tabstractrecordsymtable.ppuwrite(ppufile:tcompilerppufile);
       var
         oldtyp : byte;
         storesymtable : tsymtable;
@@ -981,7 +967,7 @@ implementation
          oldtyp:=ppufile.entrytyp;
          ppufile.entrytyp:=subentryid;
 
-         inherited write(ppufile);
+         inherited ppuwrite(ppufile);
 
          ppufile.entrytyp:=oldtyp;
          aktrecordsymtable:=storesymtable;
@@ -1123,20 +1109,20 @@ implementation
                           TAbstractLocalSymtable
 ****************************************************************************}
 
-    procedure tabstractlocalsymtable.load(ppufile:tcompilerppufile);
+    procedure tabstractlocalsymtable.ppuload(ppufile:tcompilerppufile);
       var
         storesymtable : tsymtable;
       begin
         storesymtable:=aktlocalsymtable;
         aktlocalsymtable:=self;
 
-        inherited load(ppufile);
+        inherited ppuload(ppufile);
 
         aktlocalsymtable:=storesymtable;
       end;
 
 
-   procedure tabstractlocalsymtable.write(ppufile:tcompilerppufile);
+   procedure tabstractlocalsymtable.ppuwrite(ppufile:tcompilerppufile);
       var
         oldtyp : byte;
         storesymtable : tsymtable;
@@ -1350,12 +1336,12 @@ implementation
                 unitid:=current_module.unitcount;
                 inc(current_module.unitcount);
              end;
-           asmList.concat(Tai_asm_comment.Create(strpnew('Begin unit '+name^+' has index '+tostr(unitid))));
+           asmList.concat(tai_comment.Create(strpnew('Begin unit '+name^+' has index '+tostr(unitid))));
            if cs_gdb_dbx in aktglobalswitches then
              begin
                 if dbx_count_ok then
                   begin
-                     asmList.concat(Tai_asm_comment.Create(strpnew('"repeated" unit '+name^
+                     asmList.concat(tai_comment.Create(strpnew('"repeated" unit '+name^
                               +' has index '+tostr(unitid)+' dbx count = '+tostr(dbx_count))));
                      asmList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'
                        +tostr(N_EXCL)+',0,0,'+tostr(dbx_count))));
@@ -1380,7 +1366,7 @@ implementation
                   begin
                     dbx_counter := prev_dbx_count;
                     do_count_dbx:=false;
-                    asmList.concat(Tai_asm_comment.Create(strpnew('End unit '+name^
+                    asmList.concat(tai_comment.Create(strpnew('End unit '+name^
                       +' has index '+tostr(unitid))));
                     asmList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'
                       +tostr(N_EINCL)+',0,0,0')));
@@ -1404,14 +1390,14 @@ implementation
       end;
 
 
-    procedure tstaticsymtable.load(ppufile:tcompilerppufile);
+    procedure tstaticsymtable.ppuload(ppufile:tcompilerppufile);
       begin
         aktstaticsymtable:=self;
 
         next:=symtablestack;
         symtablestack:=self;
 
-        inherited load(ppufile);
+        inherited ppuload(ppufile);
 
         { now we can deref the syms and defs }
         deref;
@@ -1421,11 +1407,11 @@ implementation
       end;
 
 
-    procedure tstaticsymtable.write(ppufile:tcompilerppufile);
+    procedure tstaticsymtable.ppuwrite(ppufile:tcompilerppufile);
       begin
         aktstaticsymtable:=self;
 
-        inherited write(ppufile);
+        inherited ppuwrite(ppufile);
       end;
 
 
@@ -1482,7 +1468,7 @@ implementation
              unittypecount:=1;
              pglobaltypecount := @unittypecount;
              {unitid:=current_module.unitcount;}
-             debugList.concat(Tai_asm_comment.Create(strpnew('Global '+name^+' has index '+tostr(unitid))));
+             debugList.concat(tai_comment.Create(strpnew('Global '+name^+' has index '+tostr(unitid))));
              debugList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));
              {inc(current_module.unitcount);}
              dbx_count_ok:=false;
@@ -1509,7 +1495,7 @@ implementation
        end;
 
 
-    procedure tglobalsymtable.load(ppufile:tcompilerppufile);
+    procedure tglobalsymtable.ppuload(ppufile:tcompilerppufile);
       begin
 {$ifdef GDB}
          if cs_gdb_dbx in aktglobalswitches then
@@ -1529,7 +1515,7 @@ implementation
          next:=symtablestack;
          symtablestack:=self;
 
-         inherited load(ppufile);
+         inherited ppuload(ppufile);
 
          { now we can deref the syms and defs }
          deref;
@@ -1544,10 +1530,10 @@ implementation
       end;
 
 
-    procedure tglobalsymtable.write(ppufile:tcompilerppufile);
+    procedure tglobalsymtable.ppuwrite(ppufile:tcompilerppufile);
       begin
         { write the symtable entries }
-        inherited write(ppufile);
+        inherited ppuwrite(ppufile);
 
         { write dbx count }
 {$ifdef GDB}
@@ -2072,7 +2058,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2002-08-17 09:23:43  florian
+  Revision 1.68  2002-08-18 20:06:27  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.67  2002/08/17 09:23:43  florian
     * first part of procinfo rewrite
 
   Revision 1.66  2002/08/11 13:24:15  peter

@@ -661,11 +661,14 @@ implementation
 
     procedure TAsmLibraryData.DerefAsmsymbol(var s:tasmsymbol);
       begin
-        if not assigned(asmsymbolidx) then
-          internalerror(200208072);
-        if longint(pointer(s))>=asmsymbolppuidx then
-          internalerror(200208073);
-        s:=asmsymbolidx^[longint(pointer(s))];
+        if assigned(s) then
+         begin
+           if not assigned(asmsymbolidx) then
+             internalerror(200208072);
+           if longint(pointer(s))>=asmsymbolppuidx then
+             internalerror(200208073);
+           s:=asmsymbolidx^[longint(pointer(s))];
+         end;
       end;
 
 
@@ -840,7 +843,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2002-08-12 15:08:39  carl
+  Revision 1.7  2002-08-18 20:06:23  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.6  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

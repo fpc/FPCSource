@@ -60,7 +60,7 @@ interface
           constructor create(const n : string);
           constructor loadsym(ppufile:tcompilerppufile);
           destructor destroy;override;
-          procedure write(ppufile:tcompilerppufile);virtual;abstract;
+          procedure ppuwrite(ppufile:tcompilerppufile);virtual;abstract;
           procedure writesym(ppufile:tcompilerppufile);
           procedure deref;override;
           procedure insert_in_data;virtual;
@@ -83,18 +83,18 @@ interface
           code : pointer; { should be tnode }
           constructor create(const n : string; l : tasmlabel);
           destructor destroy;override;
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           procedure generate_mangledname;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
 
        tunitsym = class(tstoredsym)
           unitsymtable : tsymtable;
           prevsym      : tunitsym;
           constructor create(const n : string;ref : tsymtable);
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure restoreunitsym;
 {$ifdef GDB}
           procedure concatstabto(asmlist : taasmoutput);override;
@@ -113,7 +113,7 @@ interface
           overloadchecked : boolean;
           overloadcount   : longint; { amount of overloaded functions in this module }
           constructor create(const n : string);
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           { writes all declarations except the specified one }
           procedure write_parameter_lists(skipdef:tprocdef);
@@ -121,7 +121,7 @@ interface
           { only forward                                             }
           procedure check_forward;
           procedure unchain_overload;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure addprocdef(p:tprocdef);
           procedure concat_procdefs_to(s:Tprocsym);
@@ -144,8 +144,8 @@ interface
           isusedinstab : boolean;
 {$endif GDB}
           constructor create(const n : string;const tt : ttype);
-          constructor load(ppufile:tcompilerppufile);
-          procedure write(ppufile:tcompilerppufile);override;
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           function  gettypedef:tdef;override;
           procedure load_references(ppufile:tcompilerppufile;locals:boolean);override;
@@ -167,9 +167,9 @@ interface
           constructor create(const n : string;const tt : ttype);
           constructor create_dll(const n : string;const tt : ttype);
           constructor create_C(const n,mangled : string;const tt : ttype);
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure generate_mangledname;override;
           procedure set_mangledname(const s:string);
@@ -195,9 +195,9 @@ interface
           storedaccess  : tsymlist;
           constructor create(const n : string);
           destructor  destroy;override;
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           function  getsize : longint;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  gettypedef:tdef;override;
           procedure deref;override;
           procedure dooverride(overriden:tpropertysym);
@@ -212,9 +212,9 @@ interface
           address       : longint;
           funcretstate  : tvarstate;
           constructor create(const n : string;const tt : ttype);
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure insert_in_data;override;
 {$ifdef GDB}
@@ -228,10 +228,10 @@ interface
           ref     : tstoredsym;
           asmname : pstring;
           constructor create(const n : string;const tt : ttype);
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           procedure deref;override;
           function  mangledname : string;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure insert_in_data;override;
 {$ifdef GDB}
           procedure concatstabto(asmlist : taasmoutput);override;
@@ -243,10 +243,10 @@ interface
           is_writable     : boolean;
           constructor create(const n : string;p : tdef;writable : boolean);
           constructor createtype(const n : string;const tt : ttype;writable : boolean);
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
           procedure generate_mangledname;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           function  getsize:longint;
           procedure insert_in_data;override;
@@ -269,11 +269,11 @@ interface
           constructor create_ptr(const n : string;t : tconsttyp;v : pointer);
           constructor create_ptr_typed(const n : string;t : tconsttyp;v : pointer;const tt:ttype);
           constructor create_string(const n : string;t : tconsttyp;str:pchar;l:longint);
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
           function  mangledname : string;
           procedure deref;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
           function  stabstring : pchar;override;
           procedure concatstabto(asmlist : taasmoutput);override;
@@ -285,8 +285,8 @@ interface
           definition : tenumdef;
           nextenum   : tenumsym;
           constructor create(const n : string;def : tenumdef;v : longint);
-          constructor load(ppufile:tcompilerppufile);
-          procedure write(ppufile:tcompilerppufile);override;
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure order;
 {$ifdef GDB}
@@ -297,9 +297,9 @@ interface
        tsyssym = class(tstoredsym)
           number : longint;
           constructor create(const n : string;l : longint);
-          constructor load(ppufile:tcompilerppufile);
+          constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
 {$ifdef GDB}
           procedure concatstabto(asmlist : taasmoutput);override;
 {$endif GDB}
@@ -310,8 +310,8 @@ interface
           lab     : tasmsymbol;
           rttityp : trttitype;
           constructor create(const n:string;rt:trttitype);
-          constructor load(ppufile:tcompilerppufile);
-          procedure write(ppufile:tcompilerppufile);override;
+          constructor ppuload(ppufile:tcompilerppufile);
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  mangledname:string;
           function  get_label:tasmsymbol;
        end;
@@ -647,7 +647,7 @@ implementation
          code:=nil;
       end;
 
-    constructor tlabelsym.load(ppufile:tcompilerppufile);
+    constructor tlabelsym.ppuload(ppufile:tcompilerppufile);
 
       begin
          inherited loadsym(ppufile);
@@ -673,7 +673,7 @@ implementation
       end;
 
 
-    procedure tlabelsym.write(ppufile:tcompilerppufile);
+    procedure tlabelsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          if owner.symtabletype=globalsymtable then
            Message(sym_e_ill_label_decl)
@@ -707,7 +707,7 @@ implementation
           end;
       end;
 
-    constructor tunitsym.load(ppufile:tcompilerppufile);
+    constructor tunitsym.ppuload(ppufile:tcompilerppufile);
 
       begin
          inherited loadsym(ppufile);
@@ -753,7 +753,7 @@ implementation
          inherited destroy;
       end;
 
-    procedure tunitsym.write(ppufile:tcompilerppufile);
+    procedure tunitsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited writesym(ppufile);
          ppufile.writeentry(ibunitsym);
@@ -783,7 +783,7 @@ implementation
       end;
 
 
-    constructor tprocsym.load(ppufile:tcompilerppufile);
+    constructor tprocsym.ppuload(ppufile:tcompilerppufile);
       var
          pd : tprocdef;
       begin
@@ -1007,7 +1007,7 @@ implementation
             end;
     end;
 
-    procedure tprocsym.write(ppufile:tcompilerppufile);
+    procedure tprocsym.ppuwrite(ppufile:tcompilerppufile);
       var
          p : pprocdeflist;
       begin
@@ -1125,7 +1125,7 @@ implementation
       end;
 
 
-    constructor tpropertysym.load(ppufile:tcompilerppufile);
+    constructor tpropertysym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited loadsym(ppufile);
          typ:=propertysym;
@@ -1188,7 +1188,7 @@ implementation
       end;
 
 
-    procedure tpropertysym.write(ppufile:tcompilerppufile);
+    procedure tpropertysym.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited writesym(ppufile);
         ppufile.putsmallset(propoptions);
@@ -1254,7 +1254,7 @@ implementation
          address:=procinfo.return_offset;
       end;
 
-    constructor tfuncretsym.load(ppufile:tcompilerppufile);
+    constructor tfuncretsym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited loadsym(ppufile);
          ppufile.gettype(returntype);
@@ -1267,7 +1267,7 @@ implementation
         inherited destroy;
       end;
 
-    procedure tfuncretsym.write(ppufile:tcompilerppufile);
+    procedure tfuncretsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited writesym(ppufile);
          ppufile.puttype(returntype);
@@ -1323,10 +1323,10 @@ implementation
       end;
 
 
-    constructor tabsolutesym.load(ppufile:tcompilerppufile);
+    constructor tabsolutesym.ppuload(ppufile:tcompilerppufile);
       begin
          { Note: This needs to load everything of tvarsym.write }
-         inherited load(ppufile);
+         inherited ppuload(ppufile);
          { load absolute }
          typ:=absolutesym;
          ref:=nil;
@@ -1348,7 +1348,7 @@ implementation
       end;
 
 
-    procedure tabsolutesym.write(ppufile:tcompilerppufile);
+    procedure tabsolutesym.ppuwrite(ppufile:tcompilerppufile);
       var
         hvo : tvaroptions;
       begin
@@ -1480,7 +1480,7 @@ implementation
       end;
 
 
-    constructor tvarsym.load(ppufile:tcompilerppufile);
+    constructor tvarsym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited loadsym(ppufile);
          typ:=varsym;
@@ -1512,7 +1512,7 @@ implementation
       end;
 
 
-    procedure tvarsym.write(ppufile:tcompilerppufile);
+    procedure tvarsym.ppuwrite(ppufile:tcompilerppufile);
       var
         hvo : tvaroptions;
       begin
@@ -1880,7 +1880,7 @@ implementation
       end;
 
 
-    constructor ttypedconstsym.load(ppufile:tcompilerppufile);
+    constructor ttypedconstsym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited loadsym(ppufile);
          typ:=typedconstsym;
@@ -1916,7 +1916,7 @@ implementation
       end;
 
 
-    procedure ttypedconstsym.write(ppufile:tcompilerppufile);
+    procedure ttypedconstsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited writesym(ppufile);
          ppufile.puttype(typedconsttype);
@@ -2072,7 +2072,7 @@ implementation
       end;
 
 
-    constructor tconstsym.load(ppufile:tcompilerppufile);
+    constructor tconstsym.ppuload(ppufile:tcompilerppufile);
       var
          pd : pbestreal;
          ps : pnormalset;
@@ -2089,22 +2089,7 @@ implementation
          valueptr:=nil;
          case consttyp of
            constint:
-             if sizeof(tconstexprint)=8 then
-               begin
-                  l1:=ppufile.getlongint;
-                  l2:=ppufile.getlongint;
-{$ifopt R+}
-  {$define Range_check_on}
-{$endif opt R+}
-{$R- needed here }
-                  valueord:=qword(l1)+(int64(l2) shl 32);
-{$ifdef Range_check_on}
-  {$R+}
-  {$undef Range_check_on}
-{$endif Range_check_on}
-               end
-             else
-               valueord:=ppufile.getlongint;
+             valueord:=ppufile.getexprint;
            constwchar,
            constbool,
            constchar :
@@ -2112,42 +2097,12 @@ implementation
            constord :
              begin
                ppufile.gettype(consttype);
-               if sizeof(TConstExprInt)=8 then
-                 begin
-                    l1:=ppufile.getlongint;
-                    l2:=ppufile.getlongint;
-{$ifopt R+}
-  {$define Range_check_on}
-{$endif opt R+}
-{$R- needed here }
-                    valueord:=qword(l1)+(int64(l2) shl 32);
-{$ifdef Range_check_on}
-  {$R+}
-  {$undef Range_check_on}
-{$endif Range_check_on}
-                 end
-               else
-                 valueord:=ppufile.getlongint;
+               valueord:=ppufile.getexprint;
              end;
            constpointer :
              begin
                ppufile.gettype(consttype);
-               if sizeof(TConstPtrUInt)=8 then
-                 begin
-                    l1:=ppufile.getlongint;
-                    l2:=ppufile.getlongint;
-{$ifopt R+}
-  {$define Range_check_on}
-{$endif opt R+}
-{$R- needed here }
-                    valueordptr:=qword(l1)+(int64(l2) shl 32);
-{$ifdef Range_check_on}
-  {$R+}
-  {$undef Range_check_on}
-{$endif Range_check_on}
-                 end
-               else
-                 valueordptr:=cardinal(ppufile.getlongint);
+               valueordptr:=ppufile.getptruint;
              end;
            conststring,
            constresourcestring :
@@ -2207,46 +2162,26 @@ implementation
       end;
 
 
-    procedure tconstsym.write(ppufile:tcompilerppufile);
+    procedure tconstsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited writesym(ppufile);
          ppufile.putbyte(byte(consttyp));
          case consttyp of
            constnil : ;
            constint:
-             begin
-               if sizeof(TConstExprInt)=8 then
-                 begin
-                    ppufile.putlongint(longint(lo(valueord)));
-                    ppufile.putlongint(longint(hi(valueord)));
-                 end
-               else
-                 ppufile.putlongint(valueord);
-             end;
+             ppufile.putexprint(valueord);
            constbool,
            constchar :
              ppufile.putlongint(valueord);
            constord :
              begin
                ppufile.puttype(consttype);
-               if sizeof(TConstExprInt)=8 then
-                 begin
-                    ppufile.putlongint(longint(lo(valueord)));
-                    ppufile.putlongint(longint(hi(valueord)));
-                 end
-               else
-                 ppufile.putlongint(valueord);
+               ppufile.putexprint(valueord);
              end;
            constpointer :
              begin
                ppufile.puttype(consttype);
-               if sizeof(TConstPtrUInt)=8 then
-                 begin
-                    ppufile.putlongint(longint(lo(valueordptr)));
-                    ppufile.putlongint(longint(hi(valueordptr)));
-                 end
-               else
-                 ppufile.putlongint(longint(valueordptr));
+               ppufile.putptruint(valueordptr);
              end;
            conststring,
            constresourcestring :
@@ -2329,7 +2264,7 @@ implementation
       end;
 
 
-    constructor tenumsym.load(ppufile:tcompilerppufile);
+    constructor tenumsym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited loadsym(ppufile);
          typ:=enumsym;
@@ -2373,7 +2308,7 @@ implementation
       end;
 
 
-    procedure tenumsym.write(ppufile:tcompilerppufile);
+    procedure tenumsym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited writesym(ppufile);
          ppufile.putderef(definition);
@@ -2411,7 +2346,7 @@ implementation
       end;
 
 
-    constructor ttypesym.load(ppufile:tcompilerppufile);
+    constructor ttypesym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited loadsym(ppufile);
          typ:=typesym;
@@ -2434,7 +2369,7 @@ implementation
       end;
 
 
-    procedure ttypesym.write(ppufile:tcompilerppufile);
+    procedure ttypesym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited writesym(ppufile);
          ppufile.puttype(restype);
@@ -2511,7 +2446,7 @@ implementation
          number:=l;
       end;
 
-    constructor tsyssym.load(ppufile:tcompilerppufile);
+    constructor tsyssym.ppuload(ppufile:tcompilerppufile);
       begin
          inherited loadsym(ppufile);
          typ:=syssym;
@@ -2523,7 +2458,7 @@ implementation
         inherited destroy;
       end;
 
-    procedure tsyssym.write(ppufile:tcompilerppufile);
+    procedure tsyssym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited writesym(ppufile);
          ppufile.putlongint(number);
@@ -2552,7 +2487,7 @@ implementation
       end;
 
 
-    constructor trttisym.load(ppufile:tcompilerppufile);
+    constructor trttisym.ppuload(ppufile:tcompilerppufile);
       begin
         inherited loadsym(ppufile);
         typ:=rttisym;
@@ -2561,7 +2496,7 @@ implementation
       end;
 
 
-    procedure trttisym.write(ppufile:tcompilerppufile);
+    procedure trttisym.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited writesym(ppufile);
          ppufile.putbyte(byte(rttityp));
@@ -2673,7 +2608,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2002-08-17 09:23:42  florian
+  Revision 1.53  2002-08-18 20:06:27  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.52  2002/08/17 09:23:42  florian
     * first part of procinfo rewrite
 
   Revision 1.51  2002/08/16 14:24:59  carl

@@ -428,7 +428,7 @@ implementation
                       assigned(otsym) then
                      otsym.address:=-procinfo.return_offset;
 
-		   rg.usedinproc := rg.usedinproc +	
+                   rg.usedinproc := rg.usedinproc +
                       getfuncretusedregisters(aktprocdef.rettype.def);
                 end;
            end;
@@ -655,7 +655,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-08-17 09:23:33  florian
+  Revision 1.26  2002-08-18 20:06:23  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.25  2002/08/17 09:23:33  florian
     * first part of procinfo rewrite
 
   Revision 1.24  2002/08/11 14:32:26  peter

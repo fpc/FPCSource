@@ -506,7 +506,7 @@ Var
               if not FindAnyLabel(p1,l) then
                 begin
   {$ifdef finaldestdebug}
-                  insertllitem(asml,p1,p1.next,Tai_asm_comment.Create(
+                  insertllitem(asml,p1,p1.next,tai_comment.Create(
                     strpnew('previous label inserted'))));
   {$endif finaldestdebug}
                   objectlibrary.getlabel(l);
@@ -522,7 +522,7 @@ Var
               else
                 begin
   {$ifdef finaldestdebug}
-                  insertllitem(asml,p1,p1.next,Tai_asm_comment.Create(
+                  insertllitem(asml,p1,p1.next,tai_comment.Create(
                     strpnew('next label reused'))));
   {$endif finaldestdebug}
                   inc(l.refs);
@@ -2044,7 +2044,13 @@ End.
 
 {
   $Log$
-  Revision 1.33  2002-08-17 09:23:46  florian
+  Revision 1.34  2002-08-18 20:06:30  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.33  2002/08/17 09:23:46  florian
     * first part of procinfo rewrite
 
   Revision 1.32  2002/08/11 14:32:30  peter

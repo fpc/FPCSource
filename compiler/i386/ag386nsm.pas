@@ -363,7 +363,7 @@ interface
       lines,
       i,j,l    : longint;
       InlineLevel : longint;
-      consttyp : tait;
+      consttyp : taitype;
       found,
       do_line,
       quoted   : boolean;
@@ -431,7 +431,7 @@ interface
            ait_comment :
              Begin
                AsmWrite(target_asm.comment);
-               AsmWritePChar(tai_asm_comment(hp).str);
+               AsmWritePChar(tai_comment(hp).str);
                AsmLn;
              End;
 
@@ -893,7 +893,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.25  2002-08-12 15:08:41  carl
+  Revision 1.26  2002-08-18 20:06:28  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.25  2002/08/12 15:08:41  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

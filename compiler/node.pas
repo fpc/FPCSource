@@ -44,6 +44,7 @@ interface
 {$endif}
 
        tnodetype = (
+          emptynode,        {No node (returns nil when loading from ppu)}
           addn,             {Represents the + operator}
           muln,             {Represents the * operator}
           subn,             {Represents the - operator}
@@ -128,6 +129,7 @@ interface
 
       const
         nodetype2str : array[tnodetype] of string[20] = (
+          '<emptynode>',
           'addn',
           'muln',
           'subn',
@@ -310,13 +312,14 @@ interface
           maxfirstpasscount,
           firstpasscount : longint;
 {$endif extdebug}
-          constructor create(tt : tnodetype);
+          constructor create(t:tnodetype);
           { this constructor is only for creating copies of class }
           { the fields are copied by getcopy                      }
           constructor createforcopy;
-          constructor load(tt : tnodetype;ppufile:tcompilerppufile);
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);virtual;
           destructor destroy;override;
-          procedure write(ppufile:tcompilerppufile);virtual;
+          procedure ppuwrite(ppufile:tcompilerppufile);virtual;
+          procedure derefimpl;virtual;
 
           { toggles the flag }
           procedure toggleflag(f : tnodeflags);
@@ -371,10 +374,11 @@ interface
        punarynode = ^tunarynode;
        tunarynode = class(tnode)
           left : tnode;
-          constructor create(tt : tnodetype;l : tnode);
-          constructor load(tt:tnodetype;ppufile:tcompilerppufile);
+          constructor create(t:tnodetype;l : tnode);
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           destructor destroy;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
           function docompare(p : tnode) : boolean;override;
@@ -389,10 +393,11 @@ interface
        pbinarynode = ^tbinarynode;
        tbinarynode = class(tunarynode)
           right : tnode;
-          constructor create(tt : tnodetype;l,r : tnode);
-          constructor load(tt:tnodetype;ppufile:tcompilerppufile);
+          constructor create(t:tnodetype;l,r : tnode);
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           destructor destroy;override;
-          procedure write(ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure derefimpl;override;
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
           function docompare(p : tnode) : boolean;override;
@@ -406,7 +411,7 @@ interface
        end;
 
        tbinopnode = class(tbinarynode)
-          constructor create(tt : tnodetype;l,r : tnode);virtual;
+          constructor create(t:tnodetype;l,r : tnode);virtual;
           function docompare(p : tnode) : boolean;override;
        end;
 
@@ -418,13 +423,16 @@ interface
 {$endif tempregdebug}
 
     var
+      { array with all class types for tnodes }
       nodeclass : tnodeclassarray;
 {$ifdef EXTDEBUG}
+      { indention used when writing the tree to the screen }
       writenodeindention : string;
 {$endif EXTDEBUG}
 
 
     function ppuloadnode(ppufile:tcompilerppufile):tnode;
+    procedure ppuwritenode(ppufile:tcompilerppufile;n:tnode);
 {$ifdef EXTDEBUG}
     procedure writenode(t:tnode);
 {$endif EXTDEBUG}
@@ -434,6 +442,10 @@ implementation
 
     uses
        cutils,verbose;
+
+    const
+      ppunodemarker = 255;
+
 
 {****************************************************************************
                                  Helpers
@@ -446,16 +458,38 @@ implementation
       begin
         { marker }
         b:=ppufile.getbyte;
-        if b<>255 then
+        if b<>ppunodemarker then
           internalerror(200208151);
         { load nodetype }
         t:=tnodetype(ppufile.getbyte);
         if t>high(tnodetype) then
           internalerror(200208152);
-        if not assigned(nodeclass[t]) then
-          internalerror(200208153);
-        { generate node of the correct class }
-        ppuloadnode:=nodeclass[t].load(t,ppufile);
+        if t<>emptynode then
+         begin
+           if not assigned(nodeclass[t]) then
+             internalerror(200208153);
+writeln('load: ',nodetype2str[t]);
+           { generate node of the correct class }
+           ppuloadnode:=nodeclass[t].ppuload(t,ppufile);
+         end
+        else
+         ppuloadnode:=nil;
+      end;
+
+
+    procedure ppuwritenode(ppufile:tcompilerppufile;n:tnode);
+      begin
+        { marker, read by ppuloadnode }
+        ppufile.putbyte(ppunodemarker);
+        { type, read by ppuloadnode }
+        if assigned(n) then
+         begin
+           ppufile.putbyte(byte(n.nodetype));
+writeln('write: ',nodetype2str[n.nodetype]);
+           n.ppuwrite(ppufile);
+         end
+        else
+         ppufile.putbyte(byte(emptynode));
       end;
 
 
@@ -475,11 +509,11 @@ implementation
                                  TNODE
  ****************************************************************************}
 
-    constructor tnode.create(tt : tnodetype);
+    constructor tnode.create(t:tnodetype);
 
       begin
          inherited create;
-         nodetype:=tt;
+         nodetype:=t;
          blocktype:=block_type;
          { this allows easier error tracing }
          location.loc:=LOC_INVALID;
@@ -504,9 +538,10 @@ implementation
       begin
       end;
 
-    constructor tnode.load(tt : tnodetype;ppufile:tcompilerppufile);
+    constructor tnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
 
       begin
+        nodetype:=t;
         { tnode fields }
         blocktype:=tblock_type(ppufile.getbyte);
         ppufile.getposinfo(fileinfo);
@@ -527,18 +562,19 @@ implementation
       end;
 
 
-    procedure tnode.write(ppufile:tcompilerppufile);
+    procedure tnode.ppuwrite(ppufile:tcompilerppufile);
       begin
-        { marker, read by ppuloadnode }
-        ppufile.putbyte($ff);
-        { type, read by ppuloadnode }
-        ppufile.putbyte(byte(nodetype));
-        { tnode fields }
         ppufile.putbyte(byte(block_type));
-        ppufile.putposinfo(aktfilepos);
+        ppufile.putposinfo(fileinfo);
         ppufile.putsmallset(localswitches);
         ppufile.puttype(resulttype);
         ppufile.putsmallset(flags);
+      end;
+
+
+    procedure tnode.derefimpl;
+      begin
+        resulttype.resolve;
       end;
 
 
@@ -576,24 +612,27 @@ implementation
     procedure tnode._dowrite;
       begin
         dowritenodetype;
-        system.write(',resulttype = "',resulttype.def.gettypename,'"');
-        system.write(',location.loc = ',ord(location.loc));
-        system.write(',registersfpu = ',registersfpu);
+        if assigned(resulttype.def) then
+          write(',resulttype = "',resulttype.def.gettypename,'"')
+        else
+          write(',resulttype = <nil>');
+        write(',location.loc = ',ord(location.loc));
+        write(',registersfpu = ',registersfpu);
       end;
 
     procedure tnode.dowritenodetype;
       begin
-          system.write(nodetype2str[nodetype]);
+          write(nodetype2str[nodetype]);
       end;
 
     procedure tnode.dowrite;
       begin
-         system.write(writenodeindention,'(');
+         write(writenodeindention,'(');
          writenodeindention:=writenodeindention+'    ';
          _dowrite;
-         writeln(writenodeindention);
+         writeln;
          delete(writenodeindention,1,4);
-         system.write(writenodeindention,')');
+         write(writenodeindention,')');
       end;
 {$endif EXTDEBUG}
 
@@ -678,17 +717,17 @@ implementation
                                  TUNARYNODE
  ****************************************************************************}
 
-    constructor tunarynode.create(tt : tnodetype;l : tnode);
+    constructor tunarynode.create(t:tnodetype;l : tnode);
 
       begin
-         inherited create(tt);
+         inherited create(t);
          left:=l;
       end;
 
 
-    constructor tunarynode.load(tt : tnodetype;ppufile:tcompilerppufile);
+    constructor tunarynode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
-        inherited load(tt,ppufile);
+        inherited ppuload(t,ppufile);
         left:=ppuloadnode(ppufile);
       end;
 
@@ -700,10 +739,18 @@ implementation
       end;
 
 
-    procedure tunarynode.write(ppufile:tcompilerppufile);
+    procedure tunarynode.ppuwrite(ppufile:tcompilerppufile);
       begin
-        inherited write(ppufile);
-        left.write(ppufile);
+        inherited ppuwrite(ppufile);
+        ppuwritenode(ppufile,left);
+      end;
+
+
+    procedure tunarynode.derefimpl;
+      begin
+        inherited derefimpl;
+        if assigned(left) then
+          left.derefimpl;
       end;
 
 
@@ -772,17 +819,17 @@ implementation
                             TBINARYNODE
  ****************************************************************************}
 
-    constructor tbinarynode.create(tt : tnodetype;l,r : tnode);
+    constructor tbinarynode.create(t:tnodetype;l,r : tnode);
 
       begin
-         inherited create(tt,l);
+         inherited create(t,l);
          right:=r
       end;
 
 
-    constructor tbinarynode.load(tt : tnodetype;ppufile:tcompilerppufile);
+    constructor tbinarynode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
-        inherited load(tt,ppufile);
+        inherited ppuload(t,ppufile);
         right:=ppuloadnode(ppufile);
       end;
 
@@ -794,10 +841,18 @@ implementation
       end;
 
 
-    procedure tbinarynode.write(ppufile:tcompilerppufile);
+    procedure tbinarynode.ppuwrite(ppufile:tcompilerppufile);
       begin
-        inherited write(ppufile);
-        right.write(ppufile);
+        inherited ppuwrite(ppufile);
+        ppuwritenode(ppufile,right);
+      end;
+
+
+    procedure tbinarynode.derefimpl;
+      begin
+        inherited derefimpl;
+        if assigned(right) then
+          right.derefimpl;
       end;
 
 
@@ -898,10 +953,10 @@ implementation
                             TBINOPYNODE
  ****************************************************************************}
 
-    constructor tbinopnode.create(tt : tnodetype;l,r : tnode);
+    constructor tbinopnode.create(t:tnodetype;l,r : tnode);
 
       begin
-         inherited create(tt,l,r);
+         inherited create(t,l,r);
       end;
 
     function tbinopnode.docompare(p : tnode) : boolean;
@@ -917,7 +972,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2002-08-17 22:09:46  florian
+  Revision 1.37  2002-08-18 20:06:24  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.36  2002/08/17 22:09:46  florian
     * result type handling in tcgcal.pass_2 overhauled
     * better tnode.dowrite
     * some ppc stuff fixed

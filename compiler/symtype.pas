@@ -68,7 +68,6 @@ interface
          constructor create;
          procedure deref;virtual;abstract;
          procedure derefimpl;virtual;abstract;
-         procedure derefobjectdata;virtual;abstract;
          function  typename:string;
          function  gettypename:string;virtual;
          function  mangledparaname:string;
@@ -529,7 +528,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2002-08-11 13:24:16  peter
+  Revision 1.21  2002-08-18 20:06:28  peter
+    * inlining is now also allowed in interface
+    * renamed write/load to ppuwrite/ppuload
+    * tnode storing in ppu
+    * nld,ncon,nbas are already updated for storing in ppu
+
+  Revision 1.20  2002/08/11 13:24:16  peter
     * saving of asmsymbols in ppu supported
     * asmsymbollist global is removed and moved into a new class
       tasmlibrarydata that will hold the info of a .a file which
