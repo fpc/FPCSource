@@ -26,6 +26,7 @@
 unit parser;
 
 { Use exception catching so the compiler goes futher after a Stop }
+{$ifndef NOUSEEXCEPT}
 {$ifdef i386}
   {$define USEEXCEPT}
 {$endif}
@@ -35,6 +36,7 @@ unit parser;
     {$undef USEEXCEPT}
   {$endif}
 {$endif}
+{$endif ndef NOUSEEXCEPT}
 
   interface
 
@@ -258,6 +260,7 @@ unit parser;
          oldcodesegment,
          oldexprasmlist,
          olddebuglist,
+         oldwithdebuglist,
          oldconsts     : paasmoutput;
          oldasmsymbollist : pasmsymbollist;
        { akt.. things }
@@ -313,6 +316,7 @@ unit parser;
          oldbsssegment:=bsssegment;
          oldcodesegment:=codesegment;
          olddebuglist:=debuglist;
+         oldwithdebuglist:=withdebuglist;
          oldconsts:=consts;
          oldrttilist:=rttilist;
          oldexprasmlist:=exprasmlist;
@@ -498,6 +502,7 @@ unit parser;
               codesegment:=oldcodesegment;
               consts:=oldconsts;
               debuglist:=olddebuglist;
+              withdebuglist:=oldwithdebuglist;
               importssection:=oldimports;
               exportssection:=oldexports;
               resourcesection:=oldresource;
@@ -594,7 +599,15 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.100  2000-02-14 20:58:44  marco
+  Revision 1.101  2000-02-18 20:53:15  pierre
+    * fixes a stabs problem for functions
+    + includes a stabs local var for with statements
+      the name is with in lowercase followed by an index
+      for nested with.
+    + Withdebuglist added because the stabs declarations of local
+      var are postponed to end of function.
+
+  Revision 1.100  2000/02/14 20:58:44  marco
    * Basic structures for new sethandling implemented.
 
   Revision 1.99  2000/02/09 13:22:55  peter

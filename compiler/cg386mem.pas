@@ -43,6 +43,9 @@ interface
 implementation
 
     uses
+{$ifdef GDB}
+      strings,gdb,
+{$endif GDB}
       globtype,systems,
       cobjects,verbose,globals,
       symconst,symtable,aasm,types,
@@ -809,6 +812,14 @@ implementation
     procedure secondwith(var p : ptree);
       var
         usetemp,with_expr_in_temp : boolean;
+{$ifdef GDB}
+        withstartlabel,withendlabel : pasmlabel;
+        pp : pchar;
+        mangled_length  : longint;
+
+      const
+        withlevel : longint = 0;
+{$endif GDB}
       begin
          if assigned(p^.left) then
             begin
@@ -870,6 +881,28 @@ implementation
 {$ifndef noAllocEdi}
                   ungetregister32(R_EDI);
 {$endif noAllocEdi}
+{$ifdef GDB}
+                  if (cs_debuginfo in aktmoduleswitches) then
+                    begin
+                      inc(withlevel);
+                      getlabel(withstartlabel);
+                      getlabel(withendlabel);
+                      emitlab(withstartlabel);
+                      withdebuglist^.concat(new(pai_stabs,init(strpnew(
+                         '"with'+tostr(withlevel)+':'+tostr(symtablestack^.getnewtypecount)+
+                         '=*'+p^.left^.resulttype^.numberstring+'",'+
+                         tostr(N_LSYM)+',0,0,'+tostr(p^.withreference^.offset)))));
+                      mangled_length:=length(aktprocsym^.definition^.mangledname);
+                      getmem(pp,mangled_length+50);
+                      strpcopy(pp,'192,0,0,'+withstartlabel^.name);
+                      if (target_os.use_function_relative_addresses) then
+                        begin
+                          strpcopy(strend(pp),'-');
+                          strpcopy(strend(pp),aktprocsym^.definition^.mangledname);
+                        end;
+                      withdebuglist^.concat(new(pai_stabn,init(strnew(pp))));
+                    end;
+{$endif GDB}
                   del_reference(p^.left^.location.reference);
                 end;
 
@@ -878,7 +911,24 @@ implementation
                  secondpass(p^.right);
 
                if usetemp then
-                 ungetpersistanttemp(p^.withreference^.offset);
+                 begin
+                   ungetpersistanttemp(p^.withreference^.offset);
+{$ifdef GDB}
+                   if (cs_debuginfo in aktmoduleswitches) then
+                     begin
+                       emitlab(withendlabel);
+                       strpcopy(pp,'224,0,0,'+withendlabel^.name);
+                      if (target_os.use_function_relative_addresses) then
+                        begin
+                          strpcopy(strend(pp),'-');
+                          strpcopy(strend(pp),aktprocsym^.definition^.mangledname);
+                        end;
+                       withdebuglist^.concat(new(pai_stabn,init(strnew(pp))));
+                       freemem(pp,mangled_length+50);
+                       dec(withlevel);
+                     end;
+{$endif GDB}
+                 end;
 
                if with_expr_in_temp then
                  ungetpersistanttemp(p^.left^.location.reference.offset);
@@ -892,7 +942,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2000-02-09 18:08:33  jonas
+  Revision 1.72  2000-02-18 20:53:14  pierre
+    * fixes a stabs problem for functions
+    + includes a stabs local var for with statements
+      the name is with in lowercase followed by an index
+      for nested with.
+    + Withdebuglist added because the stabs declarations of local
+      var are postponed to end of function.
+
+  Revision 1.71  2000/02/09 18:08:33  jonas
     * added regallocs for esi
 
   Revision 1.70  2000/02/09 13:22:47  peter
@@ -971,4 +1029,3 @@ end.
     * array constructor support
 
 }
-

@@ -335,7 +335,7 @@ type
       exprasmlist,
     { default lists }
       datasegment,codesegment,bsssegment,
-      debuglist,consts,
+      debuglist,withdebuglist,consts,
       importssection,exportssection,
       resourcesection,rttilist,
       resourcestringlist         : paasmoutput;
@@ -1044,7 +1044,15 @@ uses
 end.
 {
   $Log$
-  Revision 1.77  2000-02-09 13:22:42  peter
+  Revision 1.78  2000-02-18 20:53:14  pierre
+    * fixes a stabs problem for functions
+    + includes a stabs local var for with statements
+      the name is with in lowercase followed by an index
+      for nested with.
+    + Withdebuglist added because the stabs declarations of local
+      var are postponed to end of function.
+
+  Revision 1.77  2000/02/09 13:22:42  peter
     * log truncated
 
   Revision 1.76  2000/02/03 23:01:45  peter

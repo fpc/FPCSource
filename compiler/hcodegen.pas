@@ -357,6 +357,7 @@ implementation
          codesegment:=new(paasmoutput,init);
          bsssegment:=new(paasmoutput,init);
          debuglist:=new(paasmoutput,init);
+         withdebuglist:=new(paasmoutput,init);
          consts:=new(paasmoutput,init);
          rttilist:=new(paasmoutput,init);
          importssection:=nil;
@@ -383,6 +384,7 @@ implementation
          dispose(bsssegment,done);
          dispose(datasegment,done);
          dispose(debuglist,done);
+         dispose(withdebuglist,done);
          dispose(consts,done);
          dispose(rttilist,done);
          if assigned(importssection) then
@@ -447,7 +449,15 @@ end.
 
 {
   $Log$
-  Revision 1.56  2000-02-09 13:22:53  peter
+  Revision 1.57  2000-02-18 20:53:14  pierre
+    * fixes a stabs problem for functions
+    + includes a stabs local var for with statements
+      the name is with in lowercase followed by an index
+      for nested with.
+    + Withdebuglist added because the stabs declarations of local
+      var are postponed to end of function.
+
+  Revision 1.56  2000/02/09 13:22:53  peter
     * log truncated
 
   Revision 1.55  2000/01/16 22:17:11  peter

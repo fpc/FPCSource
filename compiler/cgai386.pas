@@ -3668,7 +3668,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 
               { define calling EBP as pseudo local var PM }
               { this enables test if the function is a local one !! }
-              if  assigned(procinfo^.parent) then
+              if  assigned(procinfo^.parent) and (lexlevel>normal_function_level) then
                 exprasmlist^.concat(new(pai_stabs,init(strpnew(
                  '"parent_ebp:'+voidpointerdef^.numberstring+'",'+
                  tostr(N_LSYM)+',0,0,'+tostr(procinfo^.framepointer_offset)))));
@@ -3694,19 +3694,31 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                        tostr(N_PSYM)+',0,0,'+tostr(procinfo^.return_offset)))));
                 end;
               mangled_length:=length(aktprocsym^.definition^.mangledname);
-              getmem(p,mangled_length+50);
+              getmem(p,2*mangled_length+50);
               strpcopy(p,'192,0,0,');
               strpcopy(strend(p),aktprocsym^.definition^.mangledname);
+              if (target_os.use_function_relative_addresses) then
+                begin
+                  strpcopy(strend(p),'-');
+                  strpcopy(strend(p),aktprocsym^.definition^.mangledname);
+                end;
               exprasmlist^.concat(new(pai_stabn,init(strnew(p))));
               {list^.concat(new(pai_stabn,init(strpnew('192,0,0,'
                +aktprocsym^.definition^.mangledname))));
               p[0]:='2';p[1]:='2';p[2]:='4';
               strpcopy(strend(p),'_end');}
-              freemem(p,mangled_length+50);
+              strpcopy(p,'224,0,0,'+aktexit2label^.name);
+              if (target_os.use_function_relative_addresses) then
+                begin
+                  strpcopy(strend(p),'-');
+                  strpcopy(strend(p),aktprocsym^.definition^.mangledname);
+                end;
+              exprasmlist^.concatlist(withdebuglist);
               exprasmlist^.concat(new(pai_stabn,init(
-                strpnew('224,0,0,'+aktexit2label^.name))));
+                strnew(p))));
                { strpnew('224,0,0,'
                +aktprocsym^.definition^.mangledname+'_end'))));}
+              freemem(p,2*mangled_length+50);
           end;
 {$endif GDB}
       exprasmlist:=oldexprasmlist;
@@ -3740,7 +3752,15 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.81  2000-02-10 23:44:43  florian
+  Revision 1.82  2000-02-18 20:53:14  pierre
+    * fixes a stabs problem for functions
+    + includes a stabs local var for with statements
+      the name is with in lowercase followed by an index
+      for nested with.
+    + Withdebuglist added because the stabs declarations of local
+      var are postponed to end of function.
+
+  Revision 1.81  2000/02/10 23:44:43  florian
     * big update for exception handling code generation: possible mem holes
       fixed, break/continue/exit should work always now as expected
 
