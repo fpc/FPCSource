@@ -380,7 +380,9 @@ Begin
   If FileRec(f).mode=fmClosed Then
    Begin
      Do_Rename(PChar(@FileRec(f).Name),p);
-     Move(p^,FileRec(f).Name,StrLen(p)+1);
+     { check error code of do_rename }
+     If InOutRes = 0 then
+        Move(p^,FileRec(f).Name,StrLen(p)+1);
    End;
 End;
 
@@ -410,7 +412,10 @@ End;
 
 {
   $Log$
-  Revision 1.3  2001-06-04 11:43:51  peter
+  Revision 1.4  2001-06-27 21:37:38  peter
+    * v10 merges
+
+  Revision 1.3  2001/06/04 11:43:51  peter
     * Formal const to var fixes
     * Hexstr(int64) added
 

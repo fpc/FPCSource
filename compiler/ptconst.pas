@@ -65,7 +65,7 @@ implementation
       var
          len,base  : longint;
          p,hp      : tnode;
-         i,l,offset,
+         i,j,l,offset,
          strlength : longint;
          curconstsegment : TAAsmoutput;
          ll        : tasmlabel;
@@ -366,9 +366,29 @@ implementation
                      Message(cg_e_illegal_expression)
                    else
                      begin
-                        { this writing is endian independant }
-                        for l:=0 to t.def.size-1 do
-                          curconstSegment.concat(Tai_const.Create_8bit(tsetconstnode(p).value_set^[l]));
+                        { this writing is endian independant   }
+                        { untrue - because they are considered }
+                        { arrays of 32-bit values CEC          }
+
+                        { store as longint values in little-endian format }
+                        if target_info.endian = endian_little then
+                          begin
+                            for l:= 0 to p.resulttype.def.size-1 do
+                               curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[l]));
+                          end
+                        else
+                          begin
+                            { store as longint values in big-endian format }
+                            j:=0;
+                            for l:=0 to ((p.resulttype.def.size-1) div 4) do
+                              begin
+                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+3]));
+                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+2]));
+                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j+1]));
+                                curconstsegment.concat(tai_const.create_8bit(tsetconstnode(p).value_set^[j]));
+                                Inc(j,4);
+                              end;
+                          end;
                      end;
                 end
               else
@@ -885,7 +905,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2001-06-18 20:36:25  peter
+  Revision 1.25  2001-06-27 21:37:36  peter
+    * v10 merges
+
+  Revision 1.24  2001/06/18 20:36:25  peter
     * -Ur switch (merged)
     * masm fixes (merged)
     * quoted filenames for go32v2 and win32

@@ -243,7 +243,7 @@ implementation
                              Endian Handling
 *****************************************************************************}
 
-Function SwapLong(var x : longint): longint;
+Function SwapLong(x : longint): longint;
 var
   y : word;
   z : word;
@@ -256,7 +256,7 @@ Begin
 End;
 
 
-Function SwapWord(var x : word): word;
+Function SwapWord(x : word): word;
 var
   z : byte;
 Begin
@@ -630,14 +630,27 @@ end;
 
 
 procedure tppufile.getsmallset(var b);
+var
+  l : longint;
 begin
-  getdata(b,4);
+  l:=getlongint;
+  longint(b):=l;
 end;
 
 
 procedure tppufile.getnormalset(var b);
+type
+  SetLongintArray = Array [0..7] of longint;
+var
+  i : longint;
 begin
-  getdata(b,32);
+  if change_endian then
+    begin
+      for i:=0 to 7 do
+        SetLongintArray(b)[i]:=getlongint;
+    end
+  else
+    getdata(b,32);
 end;
 
 
@@ -898,22 +911,37 @@ begin
 end;
 
 
-procedure tppufile.putstring(s:string);
-begin
-  putdata(s,length(s)+1);
-end;
+    procedure tppufile.putstring(s:string);
+      begin
+        putdata(s,length(s)+1);
+      end;
 
 
-procedure tppufile.putsmallset(const b);
-begin
-  putdata(b,4);
-end;
+    procedure tppufile.putsmallset(const b);
+      var
+        l : longint;
+      begin
+        l:=longint(b);
+        putlongint(l);
+      end;
 
 
-procedure tppufile.putnormalset(const b);
-begin
-  putdata(b,32);
-end;
+    procedure tppufile.putnormalset(const b);
+      type
+        SetLongintArray = Array [0..7] of longint;
+      var
+        i : longint;
+        tempb : setlongintarray;
+      begin
+        if change_endian then
+          begin
+            for i:=0 to 7 do
+              tempb[i]:=SwapLong(SetLongintArray(b)[i]);
+            putdata(tempb,32);
+          end
+        else
+          putdata(b,32);
+      end;
 
 
     procedure tppufile.tempclose;
@@ -957,7 +985,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2001-06-18 20:36:25  peter
+  Revision 1.11  2001-06-27 21:37:36  peter
+    * v10 merges
+
+  Revision 1.10  2001/06/18 20:36:25  peter
     * -Ur switch (merged)
     * masm fixes (merged)
     * quoted filenames for go32v2 and win32

@@ -211,7 +211,9 @@ Begin
   If TextRec(t).mode=fmClosed Then
    Begin
      Do_Rename(PChar(@TextRec(t).Name),p);
-     Move(p^,TextRec(t).Name,StrLen(p)+1);
+     { check error code of do_rename }
+     If InOutRes = 0 then
+         Move(p^,TextRec(t).Name,StrLen(p)+1);
    End;
 End;
 
@@ -1047,7 +1049,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2001-06-04 11:43:51  peter
+  Revision 1.8  2001-06-27 21:37:38  peter
+    * v10 merges
+
+  Revision 1.7  2001/06/04 11:43:51  peter
     * Formal const to var fixes
     * Hexstr(int64) added
 

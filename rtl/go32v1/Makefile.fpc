@@ -40,11 +40,7 @@ PROCINC=../$(CPU_TARGET)
 # that generates release PPU files
 # which will not be recompiled
 ifdef RELEASE
-ifneq ($(findstring 1.0.2,$(FPC_VERSION)),)
-ifneq ($(findstring 1.0.4,$(FPC_VERSION)),)
 override FPCOPT+=-Ur
-endif
-endif
 endif
 
 # Paths

@@ -259,6 +259,14 @@ const
   );
  KDGKBENT=$4B46;
  KDSKBENT=$4B47;
+ KDGKBMETA=$4B62;
+ KDSKBMETA=$4B63;
+ K_ESCPREFIX=$4;
+ K_METABIT=$3;
+
+const
+  oldmeta : longint = 0;
+  meta : longint = 0;
 
 procedure PatchKeyboard;
 var
@@ -266,6 +274,9 @@ var
   entry : kbentry;
   i : longint;
 begin
+  Ioctl(stdinputhandle,KDGKBMETA,@oldmeta);
+  meta:=K_ESCPREFIX;
+  Ioctl(stdinputhandle,KDSKBMETA,@meta);
   for i:=1 to kbdchanges do
    begin
      e:=@kbdchange[i];
@@ -278,7 +289,7 @@ begin
      ioctl(stdinputhandle,KDGKBENT,@entry);
      e^.newval:=entry.kb_value;
    end;
-  for i:=1to kbdchanges do
+  for i:=1 to kbdchanges do
    begin
      e:=@kbdchange[i];
      entry.kb_table:=e^.tab;
@@ -295,6 +306,8 @@ var
   entry : kbentry;
   i : longint;
 begin
+  if oldmeta in [K_ESCPREFIX,K_METABIT] then
+    Ioctl(stdinputhandle,KDSKBMETA,@oldmeta);
   for i:=1 to kbdchanges do
    begin
      e:=@kbdchange[i];
@@ -1697,7 +1710,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2001-04-10 23:35:02  peter
+  Revision 1.4  2001-06-27 21:37:38  peter
+    * v10 merges
+
+  Revision 1.3  2001/04/10 23:35:02  peter
     * fixed argument name
     * merged fixes
 

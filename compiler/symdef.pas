@@ -2335,20 +2335,11 @@ implementation
                                    TSETDEF
 ***************************************************************************}
 
-{ For i386 smallsets work,
-  for m68k there are problems
-  can be test by compiling with -dusesmallset PM }
-{$ifdef i386}
-{$define usesmallset}
-{$endif i386}
-
     constructor tsetdef.create(const t:ttype;high : longint);
       begin
          inherited create;
          deftype:=setdef;
          elementtype:=t;
-{$ifdef usesmallset}
-         { small sets only working for i386 PM }
          if high<32 then
            begin
             settype:=smallset;
@@ -2363,8 +2354,7 @@ implementation
               ;
           end
          else
-{$endif usesmallset}
-         if high<256 then
+          if high<256 then
            begin
               settype:=normset;
               savesize:=32;
@@ -5524,7 +5514,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.34  2001-06-04 18:05:39  peter
+  Revision 1.35  2001-06-27 21:37:36  peter
+    * v10 merges
+
+  Revision 1.34  2001/06/04 18:05:39  peter
     * procdef demangling fixed
 
   Revision 1.33  2001/06/04 11:53:13  peter

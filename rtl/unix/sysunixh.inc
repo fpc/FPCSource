@@ -15,16 +15,16 @@
 
  **********************************************************************}
 
+{$define newsignal}
+
+{$I systemh.inc}
+{$I heaph.inc}
+
 {$ifdef m68k}
 { used for single computations }
 const
   BIAS4 = $7f-1;
 {$endif}
-
-{$define newsignal}
-
-{$I systemh.inc}
-{$I heaph.inc}
 
 {Platform specific information}
 const
@@ -54,7 +54,10 @@ var
 
 {
   $Log$
-  Revision 1.9  2001-06-18 14:26:16  jonas
+  Revision 1.10  2001-06-27 21:37:39  peter
+    * v10 merges
+
+  Revision 1.9  2001/06/18 14:26:16  jonas
     * move platform independent constant declarations after inclusion of
       systemh.inc
 

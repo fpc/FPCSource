@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-{ This unit provides the same functionality as the TypInfo Unit }
+{ This unit provides the same Functionality as the TypInfo Unit }
 { of Delphi                                                     }
 
 unit typinfo;
@@ -170,7 +170,7 @@ unit typinfo;
         Name : ShortString;
       end;
 
-      TProcInfoProc = procedure(PropInfo : PPropInfo) of object;
+      TProcInfoProc = Procedure(PropInfo : PPropInfo) of object;
 
       PPropList = ^TPropList;
       TPropList = array[0..65535] of PPropInfo;
@@ -182,66 +182,166 @@ unit typinfo;
 
     { general property handling }
     // just skips the id and the name
-    function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
+    Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
 
     // searches in the property PropName
-    function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
-    procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
-    function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds;
+    Function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
+    Procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
+    Function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds;
       PropList : PPropList) : Integer;
 
     // returns true, if PropInfo is a stored property
-    function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
+    Function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
 
     { subroutines to read/write properties }
-    function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Longint;
-    procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;
+    Function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Longint;
+    Procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;
       Value : Longint);
 
-    function GetStrProp(Instance : TObject;PropInfo : PPropInfo) : Ansistring;
-    procedure SetStrProp(Instance : TObject;PropInfo : PPropInfo;
+    Function GetStrProp(Instance : TObject;PropInfo : PPropInfo) : Ansistring;
+    Procedure SetStrProp(Instance : TObject;PropInfo : PPropInfo;
       const Value : Ansistring);
 
-    function GetFloatProp(Instance : TObject;PropInfo : PPropInfo) : Extended;
-    procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo;
+    Function GetFloatProp(Instance : TObject;PropInfo : PPropInfo) : Extended;
+    Procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo;
       Value : Extended);
 
-    function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
-    procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo;
+    Function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
+    Procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo;
       const Value: Variant);
 
-    function GetMethodProp(Instance : TObject;PropInfo : PPropInfo) : TMethod;
-    procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo;
+    Function GetMethodProp(Instance : TObject;PropInfo : PPropInfo) : TMethod;
+    Procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo;
       const Value : TMethod);
 
-    function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;
-    procedure SetInt64Prop(Instance: TObject; PropInfo: PPropInfo;
+    Function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;
+    Procedure SetInt64Prop(Instance: TObject; PropInfo: PPropInfo;
       const Value: Int64);
 
     { misc. stuff }
-    function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
-    function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
+    Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
+    Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
 
+{ Easy access methods, appeared in Delphi 5 }
+Function IsPublishedProp(Instance: TObject; const PropName: string): Boolean; overload;
+Function IsPublishedProp(AClass: TClass; const PropName: string): Boolean; overload;
+Function GetPropInfo(Instance: TObject; const PropName: string): PPropInfo; overload;
+Function GetPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds): PPropInfo; overload;
+Function GetPropInfo(AClass: TClass; const PropName: string): PPropInfo; overload;
+Function GetPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds): PPropInfo; overload;
+Function PropIsType(Instance: TObject; const PropName: string; TypeKind: TTypeKind): Boolean; overload;
+Function PropIsType(AClass: TClass; const PropName: string; TypeKind: TTypeKind): Boolean; overload;
+Function PropType(Instance: TObject; const PropName: string): TTypeKind; overload;
+Function PropType(AClass: TClass; const PropName: string): TTypeKind; overload;
+Function IsStoredProp(Instance: TObject; const PropName: string): Boolean; overload;
 
-  const
+Function GetOrdProp(Instance: TObject; const PropName: string): Longint; overload;
+Procedure SetOrdProp(Instance: TObject; const PropName: string; Value: Longint); overload;
+
+Function GetEnumProp(Instance: TObject; const PropName: string): string; overload;
+Procedure SetEnumProp(Instance: TObject; const PropName: string;const Value: string); overload;
+
+// Default false
+Function GetSetProp(Instance: TObject; const PropName: string): string; overload;
+Function GetSetProp(Instance: TObject; const PropName: string; Brackets: Boolean): string; overload;
+Procedure SetSetProp(Instance: TObject; const PropName: string; const Value: string); overload;
+
+// Default nil
+Function GetObjectProp(Instance: TObject; const PropName: string): TObject; overload;
+Function GetObjectProp(Instance: TObject; const PropName: string; MinClass: TClass): TObject; overload;
+Procedure SetObjectProp(Instance: TObject; const PropName: string; Value: TObject); overload;
+Function GetObjectPropClass(Instance: TObject; const PropName: string): TClass; overload;
+
+Function GetStrProp(Instance: TObject; const PropName: string): string; overload;
+Procedure SetStrProp(Instance: TObject; const PropName: string; const Value: string); overload;
+
+Function GetFloatProp(Instance: TObject; const PropName: string): Extended; overload;
+Procedure SetFloatProp(Instance: TObject; const PropName: string; Value: Extended); overload;
+
+Function GetVariantProp(Instance: TObject; const PropName: string): Variant; overload;
+Procedure SetVariantProp(Instance: TObject; const PropName: string; const Value: Variant); overload;
+
+Function GetMethodProp(Instance: TObject; const PropName: string): TMethod; overload;
+Procedure SetMethodProp(Instance: TObject; const PropName: string; const Value: TMethod); overload;
+
+Function GetInt64Prop(Instance: TObject; const PropName: string): Int64; overload;
+Procedure SetInt64Prop(Instance: TObject; const PropName: string;  const Value: Int64); overload;
+
+// Default True
+Function GetPropValue(Instance: TObject; const PropName: string): Variant;
+Function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
+Procedure SetPropValue(Instance: TObject; const PropName: string; const Value: Variant);
+
+const
     BooleanIdents: array[Boolean] of String = ('False', 'True');
     DotSep: String = '.';
 
 
-  implementation
+Implementation
 
   type
-
     PMethod = ^TMethod;
 
+{ ---------------------------------------------------------------------
+  Auxiliary methods
+  ---------------------------------------------------------------------}
+
+Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
+
+  Var PS : PShortString;
+      PT : PTypeData;
+
+begin
+ PT:=GetTypeData(TypeInfo);
+ // ^.BaseType);
+ //      If PT^.MinValue<0 then Value:=Ord(Value<>0); {map to 0/1}
+ PS:=@PT^.NameList;
+ While Value>0 Do
+  begin
+    PS:=PShortString(pointer(PS)+PByte(PS)^+1);
+    Dec(Value);
+  end;
+ Result:=PS^;
+end;
+
+Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
+
+  Var PS : PShortString;
+      PT : PTypeData;
+      Count : longint;
+
+begin
+  If Length(Name)=0 then exit(-1);
+  PT:=GetTypeData(TypeInfo);
+  Count:=0;
+  Result:=-1;
+  PS:=@PT^.NameList;
+  While (Result=-1) and (PByte(PS)^<>0) do
+    begin
+    If CompareText(PS^, Name) = 0 then
+      Result:=Count;
+    PS:=PShortString(pointer(PS)+PByte(PS)^+1);
+    Inc(Count);
+    end;
+end;
+
+Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
+
+begin
+  GetTypeData:=PTypeData(pointer(TypeInfo)+2+PByte(pointer(TypeInfo)+1)^);
+end;
+
+{ ---------------------------------------------------------------------
+  Low-level calling of methods.
+  ---------------------------------------------------------------------}
 
 {$ASMMODE ATT}
 
-    function CallIntegerFunc(s: Pointer; Address: Pointer; Index, IValue: LongInt): Int64; assembler;
+Function CallIntegerFunc(s: Pointer; Address: Pointer; Index, IValue: LongInt): Int64; assembler;
       asm
          movl S,%esi
          movl Address,%edi
-         // ? Indexed function
+     // ? Indexed Function
          movl Index,%eax
          testl %eax,%eax
          je .LINoPush
@@ -253,14 +353,14 @@ unit typinfo;
          // now the result is in EDX:EAX
       end;
 
-    function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; INdex,IValue : Longint) : Integer;assembler;
+Function CallIntegerProc(s : Pointer;Address : Pointer;Value : Integer; INdex,IValue : Longint) : Integer;assembler;
       asm
          movl S,%esi
          movl Address,%edi
          // Push value to set
          movl Value,%eax
          pushl %eax
-         // ? Indexed procedure
+     // ? Indexed Procedure
          movl Index,%eax
          testl %eax,%eax
          je .LIPNoPush
@@ -271,11 +371,11 @@ unit typinfo;
          call %edi
       end;
 
-    function CallExtendedFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Extended;assembler;
+Function CallExtendedFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint) : Extended;assembler;
       asm
          movl S,%esi
          movl Address,%edi
-         // ? Indexed function
+     // ? Indexed Function
          movl Index,%eax
          testl %eax,%eax
          je .LINoPush
@@ -287,7 +387,7 @@ unit typinfo;
          //
       end;
 
-    function CallExtendedProc(s : Pointer;Address : Pointer;Value : Extended; INdex,IVAlue : Longint) : Integer;assembler;
+Function CallExtendedProc(s : Pointer;Address : Pointer;Value : Extended; INdex,IVAlue : Longint) : Integer;assembler;
       asm
          movl S,%esi
          movl Address,%edi
@@ -296,7 +396,7 @@ unit typinfo;
          pushl (%eax)
          pushl 4(%eax)
          pushl 8(%eax)
-         // ? Indexed procedure
+     // ? Indexed Procedure
          movl Index,%eax
          testl %eax,%eax
          je .LIPNoPush
@@ -307,11 +407,11 @@ unit typinfo;
          call %edi
       end;
 
-    function CallBooleanFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Boolean;assembler;
+Function CallBooleanFunc(s : Pointer;Address : Pointer; Index,IValue : Longint) : Boolean;assembler;
       asm
          movl S,%esi
          movl Address,%edi
-         // ? Indexed function
+     // ? Indexed Function
          movl Index,%eax
          testl %eax,%eax
          je .LBNoPush
@@ -322,16 +422,16 @@ unit typinfo;
          call %edi
       end;
 
-    // Assembler functions can't have short stringreturn values.
-    // So we make a procedure with var parameter.
-    // That's not true (FK)
+// Assembler Functions can't have short stringreturn values.
+// So we make a Procedure with var parameter.
+// That's not true (FK)
 
-    Procedure CallSStringFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint;
+Procedure CallSStringFunc(s : Pointer;Address : Pointer; INdex,IValue : Longint;
                             Var Res: Shortstring);assembler;
       asm
          movl S,%esi
          movl Address,%edi
-         // ? Indexed function
+     // ? Indexed Function
          movl Index,%eax
          testl %eax,%eax
          jnz .LSSNoPush
@@ -344,14 +444,14 @@ unit typinfo;
          call %edi
       end;
 
-    Procedure CallSStringProc(s : Pointer;Address : Pointer;Const Value : ShortString; INdex,IVAlue : Longint);assembler;
+Procedure CallSStringProc(s : Pointer;Address : Pointer;Const Value : ShortString; INdex,IVAlue : Longint);assembler;
       asm
          movl S,%esi
          movl Address,%edi
          // Push value to set
          movl Value,%eax
          pushl %eax
-         // ? Indexed procedure
+     // ? Indexed Procedure
          movl Index,%eax
          testl %eax,%eax
          je .LSSPNoPush
@@ -362,35 +462,30 @@ unit typinfo;
          call %edi
       end;
 
-    function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
+{ ---------------------------------------------------------------------
+  Basic Type information functions.
+  ---------------------------------------------------------------------}
 
-      begin
-         GetTypeData:=PTypeData(pointer(TypeInfo)+2+PByte(pointer(TypeInfo)+1)^);
-      end;
+Function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
 
-    function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
-
-      var
+var
          hp : PTypeData;
          i : longint;
          p : string;
 
-      begin
+begin
          P:=UpCase(PropName);
          while Assigned(TypeInfo) do
            begin
               // skip the name
               hp:=GetTypeData(Typeinfo);
-
-              // the class info rtti the property rtti follows
-              // immediatly
+    // the class info rtti the property rtti follows immediatly
               Result:=PPropInfo(pointer(@hp^.UnitName)+Length(hp^.UnitName)+1+SizeOF(Word));
               for i:=1 to hp^.PropCount do
                 begin
                    // found a property of that name ?
                    if Upcase(Result^.Name)=P then
                      exit;
-
                    // skip to next property
                    Result:=PPropInfo(pointer(@Result^.Name)+byte(Result^.Name[0])+1);
                 end;
@@ -398,11 +493,11 @@ unit typinfo;
               Typeinfo:=hp^.ParentInfo;
            end;
          Result:=Nil;
-      end;
+end;
 
-    function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
+Function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
 
-      begin
+begin
          case (PropInfo^.PropProcs shr 4) and 3 of
             ptfield:
               IsStoredProp:=PBoolean(Pointer(Instance)+Longint(PropInfo^.StoredProc))^;
@@ -413,28 +508,28 @@ unit typinfo;
             ptconst:
               IsStoredProp:=LongBool(PropInfo^.StoredProc);
          end;
-      end;
+end;
 
-    procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
-      {
+Procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
+{
         Store Pointers to property information in the list pointed
         to by proplist. PRopList must contain enough space to hold ALL
         properties.
-      }
-      Type PWord = ^Word;
+}
+Type PWord = ^Word;
 
-      Var TD : PTypeData;
+Var TD : PTypeData;
           TP : PPropInfo;
           Count : Longint;
 
-      begin
-      TD:=GetTypeData(TypeInfo);
-      // Get this objects TOTAL published properties count
-      TP:=(@TD^.UnitName+Length(TD^.UnitName)+1);
-      Count:=PWord(TP)^;
-      // Now point TP to first propinfo record.
-      Inc(Longint(TP),SizeOF(Word));
-      While Count>0 do
+begin
+TD:=GetTypeData(TypeInfo);
+// Get this objects TOTAL published properties count
+TP:=(@TD^.UnitName+Length(TD^.UnitName)+1);
+Count:=PWord(TP)^;
+// Now point TP to first propinfo record.
+Inc(Longint(TP),SizeOF(Word));
+While Count>0 do
         begin
         PropList^[0]:=TP;
         Inc(Longint(PropList),SizeOf(Pointer));
@@ -443,24 +538,24 @@ unit typinfo;
         TP:=PPropInfo(pointer(@TP^.Name)+PByte(@TP^.Name)^+1);
         Dec(Count);
         end;
-      // recursive call for parent info.
-      If TD^.Parentinfo<>Nil then
+// recursive call for parent info.
+If TD^.Parentinfo<>Nil then
         GetPropInfos (TD^.ParentInfo,PropList);
-      end;
+end;
 
-    Procedure InsertProp (PL : PProplist;PI : PPropInfo; Count : longint);
+Procedure InsertProp (PL : PProplist;PI : PPropInfo; Count : longint);
 
-    VAr I : Longint;
+Var I : Longint;
 
-    begin
+begin
      I:=0;
      While (I<Count) and (PI^.Name>PL^[I]^.Name) do Inc(I);
      If I<Count then
        Move(PL^[I], PL^[I+1], (Count - I) * SizeOf(Pointer));
      PL^[I]:=PI;
-    end;
+end;
 
-    function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds;
+Function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds;
       PropList : PPropList) : Integer;
 
       {
@@ -468,11 +563,11 @@ unit typinfo;
         to by proplist. PRopList must contain enough space to hold ALL
         properties.
       }
-      Var TempList : PPropList;
+Var TempList : PPropList;
           PropInfo : PPropinfo;
           I,Count : longint;
 
-      begin
+begin
         Result:=0;
         Count:=GetTypeData(TypeInfo)^.Propcount;
         If Count>0 then
@@ -493,25 +588,33 @@ unit typinfo;
             FreeMem(TempList,Count*SizeOf(Pointer));
           end;
           end;
-      end;
+end;
 
-    Procedure SetIndexValues (P: PPRopInfo; Var Index,IValue : Longint);
+Procedure SetIndexValues (P: PPRopInfo; Var Index,IValue : Longint);
 
-    begin
+begin
     Index:=((P^.PropProcs shr 6) and 1);
     If Index<>0 then
       IValue:=P^.Index
     else
       IValue:=0;
-    end;
+end;
 
-    function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Longint;
+{ ---------------------------------------------------------------------
+  Property access functions
+  ---------------------------------------------------------------------}
 
-      var
+{ ---------------------------------------------------------------------
+  Ordinal properties
+  ---------------------------------------------------------------------}
+
+Function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Longint;
+
+var
          value,Index,Ivalue : longint;
          TypeInfo: PTypeInfo;
 
-      begin
+begin
          SetIndexValues(PropInfo,Index,Ivalue);
          case (PropInfo^.PropProcs) and 3 of
             ptfield:
@@ -537,31 +640,34 @@ unit typinfo;
              end;
          end;
          GetOrdProp:=Value;
-      end;
+end;
 
-    procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;
+Procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;
       Value : Longint);
 
-      var
+var
         Index,IValue : Longint;
         DataSize: Integer;
 
-      begin
+begin
          if PropInfo^.PropType^.Kind <> tkClass then
            { cut off unnecessary stuff }
            case GetTypeData(PropInfo^.PropType)^.OrdType of
-              otSWord,otUWord: begin
+      otSWord,otUWord:
+        begin
                   Value:=Value and $ffff;
                   DataSize := 2;
                 end;
-              otSByte,otUByte: begin
+      otSByte,otUByte:
+        begin
                   Value:=Value and $ff;
                   DataSize := 1;
               end;
-             else DataSize := 4;
+    else
+        DataSize := 4;
            end
-	 else
-	   DataSize := 4;
+         else
+           DataSize := 4;
          SetIndexValues(PropInfo,Index,Ivalue);
          case (PropInfo^.PropProcs shr 2) and 3 of
             ptfield:
@@ -575,74 +681,139 @@ unit typinfo;
             ptvirtual:
               CallIntegerProc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,Value,Index,IValue);
          end;
-      end;
+end;
 
-    function GetStrProp(Instance: TObject; PropInfo: PPropInfo): AnsiString;
-    var
+
+Function GetOrdProp(Instance: TObject; const PropName: string): Longint;
+
+begin
+end;
+
+Procedure SetOrdProp(Instance: TObject; const PropName: string;  Value: Longint);
+begin
+end;
+
+Function GetEnumProp(Instance: TObject; const PropName: string): string;
+
+begin
+end;
+
+Procedure SetEnumProp(Instance: TObject; const PropName: string;  const Value: string);
+begin
+end;
+
+{ ---------------------------------------------------------------------
+  Set properties
+  ---------------------------------------------------------------------}
+
+
+Function GetSetProp(Instance: TObject; const PropName: string): string;
+
+begin
+  Result:=GetSetProp(Instance,PropName,False);
+end;
+
+Function GetSetProp(Instance: TObject; const PropName: string; Brackets: Boolean): string;
+begin
+end;
+
+Procedure SetSetProp(Instance: TObject; const PropName: string; const Value: string);
+begin
+end;
+
+{ ---------------------------------------------------------------------
+  Object properties
+  ---------------------------------------------------------------------}
+
+Function GetObjectProp(Instance: TObject; const PropName: string): TObject;
+begin
+  Result:=GetObjectProp(Instance,PropName,Nil);
+end;
+
+Function GetObjectProp(Instance: TObject; const PropName: string; MinClass: TClass): TObject;
+begin
+end;
+
+Procedure SetObjectProp(Instance: TObject; const PropName: string;  Value: TObject);
+begin
+end;
+
+Function GetObjectPropClass(Instance: TObject; const PropName: string): TClass;
+begin
+end;
+
+
+{ ---------------------------------------------------------------------
+  String properties
+  ---------------------------------------------------------------------}
+
+Function GetStrProp(Instance: TObject; PropInfo: PPropInfo): AnsiString;
+var
       Index, IValue: LongInt;
       ShortResult: ShortString;
-    begin
+begin
       SetIndexValues(PropInfo, Index, IValue);
       case Propinfo^.PropType^.Kind of
         tkSString:
-	  case (PropInfo^.PropProcs) and 3 of
-	    ptField:
+          case (PropInfo^.PropProcs) and 3 of
+            ptField:
               Result := PShortString(Pointer(Instance) + LongWord(PropInfo^.GetProc))^;
-	    ptStatic:
-	      begin
-		CallSStringFunc(Instance, PropInfo^.GetProc, Index, IValue, ShortResult);
-		Result := ShortResult;
-	      end;
-	    ptVirtual:
-	      begin
-		CallSStringFunc(Instance, PPointer(Pointer(Instance.ClassType) +
-		  LongWord(PropInfo^.GetProc))^, Index, IValue, ShortResult);
-	      Result := ShortResult;
-	    end;
+            ptStatic:
+              begin
+                CallSStringFunc(Instance, PropInfo^.GetProc, Index, IValue, ShortResult);
+                Result := ShortResult;
+              end;
+            ptVirtual:
+              begin
+                CallSStringFunc(Instance, PPointer(Pointer(Instance.ClassType) +
+                  LongWord(PropInfo^.GetProc))^, Index, IValue, ShortResult);
+              Result := ShortResult;
+            end;
           end;
-	tkAString:
-	  case (PropInfo^.PropProcs) and 3 of
-	    ptField:
-	      Result := PAnsiString(Pointer(Instance) + LongWord(PropInfo^.GetProc))^;
-	    ptStatic:
-	      Pointer(Result) := Pointer(LongWord(CallIntegerFunc(Instance, PropInfo^.GetProc, Index, IValue)));
-	    ptVirtual:
-	      Pointer(Result) := Pointer(LongWord(CallIntegerFunc(Instance,
-	        PPointer(Pointer(Instance.ClassType) + LongWord(PropInfo^.GetProc))^, Index, IValue)));
-	  end;
+        tkAString:
+          case (PropInfo^.PropProcs) and 3 of
+            ptField:
+              Result := PAnsiString(Pointer(Instance) + LongWord(PropInfo^.GetProc))^;
+            ptStatic:
+              Pointer(Result) := Pointer(LongWord(CallIntegerFunc(Instance, PropInfo^.GetProc, Index, IValue)));
+            ptVirtual:
+              Pointer(Result) := Pointer(LongWord(CallIntegerFunc(Instance,
+                PPointer(Pointer(Instance.ClassType) + LongWord(PropInfo^.GetProc))^, Index, IValue)));
+          end;
         else
-	  // Property is neither of type AnsiString nor of type ShortString
+          // Property is neither of type AnsiString nor of type ShortString
           SetLength(Result, 0);
       end;
-    end;
+end;
 
-    procedure SetAStrProp(Instance : TObject;PropInfo : PPropInfo;
+Procedure SetAStrProp(Instance : TObject;PropInfo : PPropInfo;
       const Value : AnsiString);
 
-      {
-      Dirty trick based on fact that AnsiString is just a pointer,
-      hence can be treated like an integer type.
-      }
-      var
+{
+Dirty trick based on fact that AnsiString is just a pointer,
+hence can be treated like an integer type.
+}
+var
          Index,Ivalue : Longint;
-      begin
+
+begin
          SetIndexValues(PropInfo,Index,IValue);
          case (PropInfo^.PropProcs shr 2) and 3 of
             ptfield:
-	      PAnsiString(Pointer(Instance) + Longint(PropInfo^.SetProc))^ := Value;
+              PAnsiString(Pointer(Instance) + Longint(PropInfo^.SetProc))^ := Value;
             ptstatic:
               CallIntegerProc(Instance,PropInfo^.SetProc,Longint(Pointer(Value)),Index,IValue);
             ptvirtual:
               CallIntegerProc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,Longint(Pointer(Value)),Index,IValue);
          end;
-      end;
+end;
 
-    procedure SetSStrProp(Instance : TObject;PropInfo : PPropInfo;
+Procedure SetSStrProp(Instance : TObject;PropInfo : PPropInfo;
       const Value : ShortString);
 
-   Var Index,IValue: longint;
+Var Index,IValue: longint;
 
-    begin
+begin
       SetIndexValues(PRopInfo,Index,IValue);
          case (PropInfo^.PropProcs shr 2) and 3 of
             ptfield:
@@ -652,26 +823,38 @@ unit typinfo;
             ptvirtual:
               CallSStringProc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,Value,Index,IValue);
          end;
-    end;
+end;
 
-    procedure SetStrProp(Instance : TObject;PropInfo : PPropInfo;
+Procedure SetStrProp(Instance : TObject;PropInfo : PPropInfo;
       const Value : AnsiString);
 
-      begin
+begin
       Case Propinfo^.PropType^.Kind of
         tkSString : SetSStrProp(Instance,PropInfo,Value);
         tkAString : SetAStrProp(Instance,Propinfo,Value);
       end;
-      end;
+end;
 
-    function GetFloatProp(Instance : TObject;PropInfo : PPropInfo) : Extended;
 
-      var
+Function GetStrProp(Instance: TObject; const PropName: string): string;
+begin
+end;
+
+Procedure SetStrProp(Instance: TObject; const PropName: string;  const Value: string);
+begin
+end;
+
+{ ---------------------------------------------------------------------
+  Float properties
+  ---------------------------------------------------------------------}
+
+Function GetFloatProp(Instance : TObject;PropInfo : PPropInfo) : Extended;
+
+var
          Index,Ivalue : longint;
          Value : Extended;
 
-
-      begin
+begin
          SetIndexValues(PropInfo,Index,Ivalue);
          case (PropInfo^.PropProcs) and 3 of
             ptfield:
@@ -697,14 +880,14 @@ unit typinfo;
               Value:=CallExtendedFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,IValue);
          end;
          Result:=Value;
-      end;
+end;
 
-    procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo;
+Procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo;
       Value : Extended);
 
        Var IValue,Index : longint;
 
-       begin
+begin
          SetIndexValues(PropInfo,Index,Ivalue);
          case (PropInfo^.PropProcs shr 2) and 3 of
             ptfield:
@@ -729,29 +912,57 @@ unit typinfo;
             ptvirtual:
               CallExtendedProc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,Value,Index,IValue);
          end;
-      end;
+end;
 
-    function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
+Function GetFloatProp(Instance: TObject; const PropName: string): Extended;
+begin
+end;
 
-      begin
+Procedure SetFloatProp(Instance: TObject; const PropName: string;  Value: Extended);
+begin
+end;
+
+{ ---------------------------------------------------------------------
+  Variant properties
+  ---------------------------------------------------------------------}
+
+Function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
+
+begin
          {!!!!!!!!!!!}
          Result:=nil;
-      end;
+end;
 
-    procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo;
+Procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo;
       const Value: Variant);
 
-      begin
+begin
          {!!!!!!!!!!!}
-      end;
+end;
 
-    function GetMethodProp(Instance : TObject;PropInfo : PPropInfo) : TMethod;
+Function GetVariantProp(Instance: TObject; const PropName: string): Variant;
+begin
+   {!!!!!!!!!!!}
+end;
 
-      var
+Procedure SetVariantProp(Instance: TObject; const PropName: string;  const Value: Variant);
+begin
+   {!!!!!!!!!!!}
+end;
+
+
+{ ---------------------------------------------------------------------
+  Method properties
+  ---------------------------------------------------------------------}
+
+
+Function GetMethodProp(Instance : TObject;PropInfo : PPropInfo) : TMethod;
+
+var
          value: PMethod;
          Index,Ivalue : longint;
 
-      begin
+begin
          SetIndexValues(PropInfo,Index,Ivalue);
          case (PropInfo^.PropProcs) and 3 of
             ptfield:
@@ -762,15 +973,15 @@ unit typinfo;
               Value:=PMethod(LongInt(CallIntegerFunc(Instance,PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^,Index,IValue)));
          end;
          GetMethodProp:=Value^;
-      end;
+end;
 
-    procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo;
+Procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo;
       const Value : TMethod);
 
-      var
+var
         Index,IValue : Longint;
 
-      begin
+begin
          SetIndexValues(PropInfo,Index,Ivalue);
          case (PropInfo^.PropProcs shr 2) and 3 of
             ptfield:
@@ -782,22 +993,34 @@ unit typinfo;
                 PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^,
                 Integer(@Value), Index, IValue);
          end;
-      end;
+end;
 
-    function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;
-    var
+Function GetMethodProp(Instance: TObject; const PropName: string): TMethod;
+begin
+end;
+
+Procedure SetMethodProp(Instance: TObject; const PropName: string;  const Value: TMethod);
+begin
+end;
+
+{ ---------------------------------------------------------------------
+  Int64 properties
+  ---------------------------------------------------------------------}
+
+Function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;
+var
       Index, IValue: LongInt;
-    begin
+begin
       SetIndexValues(PropInfo,Index,Ivalue);
       case PropInfo^.PropProcs and 3 of
         ptfield:
-	  Result := PInt64(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+          Result := PInt64(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
         ptstatic:
           Result := CallIntegerFunc(Instance, PropInfo^.GetProc, Index, IValue);
         ptvirtual:
           Result := CallIntegerFunc(Instance,
-	    PPointer(Pointer(Instance.ClassType) + LongInt(PropInfo^.GetProc))^,
-	    Index, IValue);
+            PPointer(Pointer(Instance.ClassType) + LongInt(PropInfo^.GetProc))^,
+            Index, IValue);
       end;
     end;
 
@@ -807,50 +1030,89 @@ unit typinfo;
       // !!!: Implement me!
     end;
 
-    function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
+Function GetInt64Prop(Instance: TObject; const PropName: string): Int64;
+begin
+end;
 
-      Var PS : PShortString;
-          PT : PTypeData;
+Procedure SetInt64Prop(Instance: TObject; const PropName: string; const Value: Int64);
+begin
+end;
 
-      begin
-       PT:=GetTypeData(TypeInfo);
-       // ^.BaseType);
-       //      If PT^.MinValue<0 then Value:=Ord(Value<>0); {map to 0/1}
-       PS:=@PT^.NameList;
-       While Value>0 Do
-        begin
-          PS:=PShortString(pointer(PS)+PByte(PS)^+1);
-          Dec(Value);
-        end;
-       Result:=PS^;
-      end;
 
-    function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
+{ ---------------------------------------------------------------------
+  All properties through variant.
+  ---------------------------------------------------------------------}
 
-      Var PS : PShortString;
-          PT : PTypeData;
-          Count : longint;
+Function GetPropValue(Instance: TObject; const PropName: string): Variant;
+begin
+  Result:=GetPropValue(Instance,PropName,True);
+end;
 
-      begin
-        If Length(Name)=0 then exit(-1);
-        PT:=GetTypeData(TypeInfo);
-        Count:=0;
-        Result:=-1;
-        PS:=@PT^.NameList;
-        While (Result=-1) and (PByte(PS)^<>0) do
-          begin
-          If CompareText(PS^, Name) = 0 then
-            Result:=Count;
-          PS:=PShortString(pointer(PS)+PByte(PS)^+1);
-          Inc(Count);
-          end;
-      end;
+Function GetPropValue(Instance: TObject; const PropName: string; PreferStrings: Boolean): Variant;
+begin
+end;
+
+Procedure SetPropValue(Instance: TObject; const PropName: string;  const Value: Variant);
+begin
+end;
+
+{ ---------------------------------------------------------------------
+  Easy access methods that appeared in Delphi 5
+  ---------------------------------------------------------------------}
+
+Function IsPublishedProp(Instance: TObject; const PropName: string): Boolean;
+begin
+end;
+
+Function IsPublishedProp(AClass: TClass; const PropName: string): Boolean;
+begin
+end;
+
+Function GetPropInfo(Instance: TObject; const PropName: string): PPropInfo;
+begin
+  Result:=GetPropInfo(Instance,PropName,[]);
+end;
+
+Function GetPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds): PPropInfo;
+begin
+end;
+
+Function GetPropInfo(AClass: TClass; const PropName: string): PPropInfo;
+begin
+  Result:=GetPropInfo(AClass,PropName,[]);
+end;
+
+Function GetPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds): PPropInfo;
+begin
+end;
+
+Function PropIsType(Instance: TObject; const PropName: string; TypeKind: TTypeKind): Boolean;
+begin
+end;
+
+Function PropIsType(AClass: TClass; const PropName: string; TypeKind: TTypeKind): Boolean;
+begin
+end;
+
+Function PropType(Instance: TObject; const PropName: string): TTypeKind;
+begin
+end;
+
+Function PropType(AClass: TClass; const PropName: string): TTypeKind;
+begin
+end;
+
+Function IsStoredProp(Instance: TObject; const PropName: string): Boolean;
+begin
+end;
 
 end.
-
 {
   $Log$
-  Revision 1.7  2001-02-15 22:40:22  sg
+  Revision 1.8  2001-06-27 21:37:38  peter
+    * v10 merges
+
+  Revision 1.7  2001/02/15 22:40:22  sg
   * Fixed SetOrdProp for class instance properties (merged from fixbranch)
 
   Revision 1.6  2000/12/13 23:28:17  sg

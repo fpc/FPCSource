@@ -15,21 +15,22 @@
  **********************************************************************}
 
  TYPE
-   TNormalSet = array[0..31] of byte;
+   { TNormalSet = array[0..31] of byte;}
+    TNormalSet = array[0..7] of longint;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_SET_LOAD_SMALL}
-{$Error No pascal version of FPC_SET_LOAD_SMALL}
- { THIS DEPENDS ON THE ENDIAN OF THE ARCHITECTURE! }
+{ Error No pascal version of FPC_SET_LOAD_SMALL}
+ { THIS DEPENDS ON THE ENDIAN OF THE ARCHITECTURE!
+   Not anymore PM}
 
-{ procedure do_load_small(p : pointer;l:longint);[public,alias:'FPC_SET_LOAD_SMALL'];}
+procedure do_load_small(p : pointer;l:longint);[public,alias:'FPC_SET_LOAD_SMALL'];
  {
   load a normal set p from a smallset l
  }
-{ begin
-   for i:=0 to 3 do
-    TNormalSet(p^)[i] := l shr (8*i);
-   RunError(255);
- end;}
+ begin
+   Fillchar(p^,SizeOf(TNormalSet),#0);
+   TNormalSet(p^)[0] := l;
+ end;
 {$endif FPC_SYSTEM_HAS_FPC_SET_LOAD_SMALL}
 
 
@@ -39,8 +40,8 @@
   create a new set in p from an element b
  }
  begin
-   Fillchar(p^,32,#0);
-   TNormalSet(p^)[b div 8] := 1 shl (b mod 8);
+   Fillchar(p^,SizeOf(TNormalSet),#0);
+   TNormalSet(p^)[b div 32] := 1 shl (b mod 32);
  end;
 {$endif FPC_SYSTEM_HAS_FPC_SET_CREATE_ELEMENT}
 
@@ -50,11 +51,11 @@
   add the element b to the set pointed by p
  }
   var
-   c: byte;
+   c: longint;
   begin
-    c := TNormalSet(p^)[b div 8];
-    c := (1 shl (b mod 8)) or c;
-    TNormalSet(p^)[b div 8] := c;
+    c := TNormalSet(p^)[b div 32];
+    c := (1 shl (b mod 32)) or c;
+    TNormalSet(p^)[b div 32] := c;
   end;
 {$endif FPC_SYSTEM_HAS_FPC_SET_SET_BYTE}
 
@@ -66,11 +67,11 @@
    used for exclude(set,element)
  }
   var
-   c: byte;
+   c: longint;
   begin
-    c := TNormalSet(p^)[b div 8];
-    c := c and not (1 shl (b mod 8));
-    TNormalSet(p^)[b div 8] := c;
+    c := TNormalSet(p^)[b div 32];
+    c := c and not (1 shl (b mod 32));
+    TNormalSet(p^)[b div 32] := c;
   end;
 {$endif FPC_SYSTEM_HAS_FPC_SET_UNSET_BYTE}
 
@@ -82,13 +83,13 @@
  }
   var
    i: integer;
-   c: byte;
+   c: longint;
   begin
     for i:=l to h do
       begin
-        c := TNormalSet(p^)[i div 8];
-        c := (1 shl (i mod 8)) or c;
-        TNormalSet(p^)[i div 8] := c;
+        c := TNormalSet(p^)[i div 32];
+        c := (1 shl (i mod 32)) or c;
+        TNormalSet(p^)[i div 32] := c;
       end;
   end;
 {$endif}
@@ -104,10 +105,10 @@
    tests if the element b is in the set p the carryflag is set if it present
  }
   var
-    c: byte;
+    c: longint;
   begin
-    c := TNormalSet(p^)[b div 8];
-    if ((1 shl (b mod 8)) and c) <> 0 then
+    c := TNormalSet(p^)[b div 32];
+    if ((1 shl (b mod 32)) and c) <> 0 then
      do_in_byte := TRUE
     else
      do_in_byte := FALSE;
@@ -123,7 +124,7 @@
   var
     i: integer;
    begin
-     for i:=0 to 31 do
+     for i:=0 to 7 do
        TnormalSet(dest^)[i] := TNormalSet(set1^)[i] or TNormalSet(set2^)[i];
    end;
 {$endif}
@@ -137,7 +138,7 @@
    var
     i: integer;
    begin
-     for i:=0 to 31 do
+     for i:=0 to 7 do
        TnormalSet(dest^)[i] := TNormalSet(set1^)[i] and TNormalSet(set2^)[i];
    end;
 {$endif}
@@ -151,7 +152,7 @@
    var
     i: integer;
    begin
-     for i:=0 to 31 do
+     for i:=0 to 7 do
        TnormalSet(dest^)[i] := TNormalSet(set1^)[i] and not TNormalSet(set2^)[i];
    end;
 {$endif}
@@ -165,7 +166,7 @@
    var
     i: integer;
    begin
-     for i:=0 to 31 do
+     for i:=0 to 7 do
        TnormalSet(dest^)[i] := TNormalSet(set1^)[i] xor TNormalSet(set2^)[i];
    end;
 {$endif}
@@ -182,7 +183,7 @@
     i: integer;
    begin
      do_comp_sets := false;
-     for i:=0 to 31 do
+     for i:=0 to 7 do
        if TNormalSet(set1^)[i] <> TNormalSet(set2^)[i] then
          exit;
      do_comp_sets := true;
@@ -203,7 +204,7 @@
   i : integer;
  begin
    do_contains_sets := false;
-   for i:=0 to 31 do
+   for i:=0 to 7 do
      if (TNormalSet(set1^)[i] and TNormalSet(set2^)[i]) <> TNormalSet(set1^)[i] then
        exit;
    do_contains_sets := true;
@@ -212,7 +213,10 @@
 
 {
   $Log$
-  Revision 1.3  2001-05-18 22:59:59  peter
+  Revision 1.4  2001-06-27 21:37:38  peter
+    * v10 merges
+
+  Revision 1.3  2001/05/18 22:59:59  peter
     * merged fixes branch fixes
 
   Revision 1.2  2001/05/09 19:57:07  peter

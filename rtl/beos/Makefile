@@ -126,11 +126,7 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
 ifdef RELEASE
-ifneq ($(findstring 1.0.2,$(FPC_VERSION)),)
-ifneq ($(findstring 1.0.4,$(FPC_VERSION)),)
 override FPCOPT+=-Ur
-endif
-endif
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph

@@ -123,6 +123,7 @@
      HSZ = HANDLE;
      HWINSTA = HANDLE;
      HWND = HANDLE;
+     HTASK = HANDLE;
 
      LANGID = word;
      LCID   = DWORD;
@@ -941,7 +942,10 @@ type
 
 {
   $Log$
-  Revision 1.5  2000-12-18 17:28:58  jonas
+  Revision 1.6  2001-06-27 21:37:39  peter
+    * v10 merges
+
+  Revision 1.5  2000/12/18 17:28:58  jonas
     * fixed range check errors
 
   Revision 1.4  2000/10/11 16:05:56  peter

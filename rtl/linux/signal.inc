@@ -116,6 +116,13 @@ type
   end;
 {$ENDIF}
 
+{$Ifdef m68k}
+  PSigContextRec = ^SigContextRec;
+  SigContextRec = record
+    { dummy for now PM }
+  end;
+{$ENDIF}
+
 (*
   PSigInfoRec = ^SigInfoRec;
   SigInfoRec = record
@@ -185,7 +192,10 @@ type
 
 {
   $Log$
-  Revision 1.3  2001-04-04 22:50:59  peter
+  Revision 1.4  2001-06-27 21:37:38  peter
+    * v10 merges
+
+  Revision 1.3  2001/04/04 22:50:59  peter
     * use div instead of / in constant
 
   Revision 1.2  2000/09/11 14:05:31  marco
