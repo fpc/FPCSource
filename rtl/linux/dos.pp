@@ -205,9 +205,13 @@ Var
   Rel    : LongInt;
   info   : utsname;
 Begin
-  UName(info);
-  Move(info.release,buffer[0],40);
-  TmpStr:=StrPas(Buffer);
+  {$IFNDEF BSD}
+   UName(info);
+   Move(info.release,buffer[0],40);
+   TmpStr:=StrPas(Buffer);
+  {$ELSE}
+   TmpStr:='FreeBSD doesn''t support UName';  
+ {$ENDIF}
   SubRel:=0;
   TmpPos:=Pos('.',TmpStr);
   if TmpPos>0 then
@@ -222,8 +226,6 @@ Begin
   Val(Tmp2,SubRel);
   DosVersion:=Rel+(SubRel shl 8);
 End;
-
-
 
 function WeekDay (y,m,d:longint):longint;
 {
@@ -906,7 +908,10 @@ End.
 
 {
   $Log$
-  Revision 1.17  2000-02-09 16:59:31  peter
+  Revision 1.18  2000-03-16 15:23:02  marco
+   * Added one BSD conditional (uname not supported)
+
+  Revision 1.17  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.16  2000/02/02 15:07:05  peter
