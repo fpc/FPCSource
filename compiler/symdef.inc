@@ -29,8 +29,7 @@
          deftype:=abstractdef;
          owner := nil;
          next := nil;
-         sym := nil;
-         indexnb := 0;
+         number := 0;
          if registerdef then
            symtablestack^.registerdef(@self);
          has_rtti:=false;
@@ -49,19 +48,20 @@
            end;
          lastglobaldef := @self;
          nextglobal := nil;
+         sym := nil;
 {$endif GDB}
       end;
 
     constructor tdef.load;
       begin
+{$ifdef GDB}
          deftype:=abstractdef;
-         indexnb := 0;
+         is_def_stab_written := false;
+         number := 0;
          sym := nil;
          owner := nil;
          next := nil;
          has_rtti:=false;
-{$ifdef GDB}
-         is_def_stab_written := false;
          globalnb := 0;
          if assigned(lastglobaldef) then
            begin
@@ -580,7 +580,7 @@
 
     constructor torddef.init(t : tbasetype;v,b : longint);
       begin
-         inherited init;
+         tdef.init;
          deftype:=orddef;
          low:=v;
          high:=b;
@@ -590,7 +590,7 @@
 
     constructor torddef.load;
       begin
-         inherited load;
+         tdef.load;
          deftype:=orddef;
          typ:=tbasetype(readbyte);
          low:=readlong;
@@ -910,7 +910,7 @@
           _private : array[1..26] of byte;
           userdata : array[1..16] of byte;
           name : string[79 or 255 for linux]; }
-{$ifdef i386}
+{$ifdef i386}   
 
       if (target_info.target=target_GO32V1) or
          (target_info.target=target_GO32V2) then
@@ -1356,11 +1356,13 @@
       end;
 
     function tarraydef.needs_rtti : boolean;
+
       begin
          needs_rtti:=definition^.needs_rtti;
       end;
 
     procedure tarraydef.generate_rtti;
+
       begin
          { first, generate the rtti of the element type, else we get mixed }
          { up because the rtti would be mixed                              }
@@ -1795,16 +1797,14 @@
          localst^.next:=parast;
 {$ifdef UseBrowser}
          defref:=nil;
-         lastwritten:=nil;
-         refcount:=0;
-         if (cs_browser in aktswitches) and make_ref then
-          begin
-            defref:=new(pref,init(defref,@tokenpos));
-            inc(refcount);
-          end;
+         if make_ref then
+           add_new_ref(defref,@tokenpos);
          lastref:=defref;
+         lastwritten:=nil;
+         refcount:=1;
 {$endif UseBrowser}
-       { first, we assume, that all registers are used }
+
+         { first, we assume, that all registers are used }
 {$ifdef i386}
          usedregisters:=$ff;
 {$endif i386}
@@ -1821,8 +1821,10 @@
       end;
 
     constructor tprocdef.load;
+
       var
          s : string;
+
       begin
          { deftype:=procdef; this is at the wrong place !! }
          inherited load;
@@ -1852,77 +1854,46 @@
          localst:=nil;
          forwarddef:=false;
 {$ifdef UseBrowser}
-         lastref:=nil;
-         lastwritten:=nil;
-         defref:=nil;
-         refcount:=0;
-         if (current_module^.flags and uf_has_browser)<>0 then
-           load_references;
+         if (current_module^.flags and uf_uses_browser)<>0 then
+           load_references
+         else
+           begin
+              lastref:=nil;
+              lastwritten:=nil;
+              defref:=nil;
+              refcount:=0;
+           end;
 {$endif UseBrowser}
       end;
 
 {$ifdef UseBrowser}
-
-{$ifdef NEWPPU}
-
     procedure tprocdef.load_references;
-      var
-        pos : tfileposinfo;
-      begin
-        while (not ppufile^.endofentry) do
-         begin
-           readposinfo(pos);
-           inc(refcount);
-           lastref:=new(pref,init(lastref,@pos));
-           if refcount=1 then
-            defref:=lastref;
-         end;
-      end;
 
+      var fileindex : word;
+          b : byte;
+          l,c : longint;
 
-    procedure tprocdef.write_references;
-      var
-        ref : pref;
-      begin
-        if lastwritten=lastref then
-          exit;
-      { write address of this symbol }
-        writedefref(@self);
-      { write refs }
-        if assigned(lastwritten) then
-          ref:=lastwritten
-        else
-          ref:=defref;
-        while assigned(ref) do
-          begin
-             writeposinfo(ref^.posinfo);
-             ref:=ref^.nextref;
-          end;
-        ppufile^.writeentry(ibdefref);
-        lastwritten:=lastref;
-      end;
-
-{$else NEWPPU}
-
-    procedure tprocdef.load_references;
-      var
-        pos : tfileposinfo;
-        b   : byte;
       begin
          b:=readbyte;
+         refcount:=0;
+         lastref:=nil;
+         lastwritten:=nil;
+         defref:=nil;
          while b=ibref do
            begin
-              readposinfo(pos);
+              fileindex:=readword;
+              l:=readlong;
+              c:=readword;
               inc(refcount);
-              lastref:=new(pref,init(lastref,@pos));
-              if refcount=1 then
-                defref:=lastref;
+              lastref:=new(pref,load(lastref,fileindex,l,c));
+              if refcount=1 then defref:=lastref;
               b:=readbyte;
            end;
           if b <> ibend then
-           Comment(V_fatal,'error in load_reference');
+         { Message(unit_f_ppu_read);
+          message disappeared ?? }
+            Comment(V_fatal,'error in load_reference');
       end;
-
 
     procedure tprocdef.write_references;
 
@@ -1940,7 +1911,9 @@
          while assigned(ref) do
            begin
               writebyte(ibref);
-              writeposinfo(ref^.posinfo);
+              writeword(ref^.posinfo.fileindex);
+              writelong(ref^.posinfo.line);
+              writeword(ref^.posinfo.column);
               ref:=ref^.nextref;
            end;
          lastwritten:=lastref;
@@ -1964,34 +1937,44 @@
          while assigned(ref) do
            begin
               writebyte(ibref);
-              writeposinfo(ref^.posinfo);
+              writeword(ref^.posinfo.fileindex);
+              writelong(ref^.posinfo.line);
+              writeword(ref^.posinfo.column);
               ref:=ref^.nextref;
            end;
          lastwritten:=lastref;
          writebyte(ibend);
-         ppufile.do_crc:=false;
+         ppufile.do_crc:=true;
       end;
 
+    procedure tprocdef.write_ref_to_file(var f : text);
 
-{$endif NEWPPU}
+      var ref : pref;
+         i : longint;
 
-    procedure tprocdef.add_to_browserlog;
       begin
-         if assigned(defref) then
-          begin
-            Browse.AddLog('***'+mangledname);
-            Browse.AddLogRefs(defref);
-          end;
+         ref:=defref;
+         if assigned(ref) then
+           begin
+              for i:=1 to reffile_indent do
+                system.write(f,' ');
+              writeln(f,'***',mangledname);
+           end;
+         inc(reffile_indent,2);
+         while assigned(ref) do
+           begin
+              for i:=1 to reffile_indent do
+                system.write(f,' ');
+              writeln(f,ref^.get_file_line);
+              ref:=ref^.nextref;
+           end;
+         dec(reffile_indent,2);
       end;
-
 {$endif UseBrowser}
 
     destructor tprocdef.done;
+
       begin
-{$ifdef UseBrowser}
-         if assigned(defref) then
-           dispose(defref,done);
-{$endif UseBrowser}
          if assigned(parast) then
            dispose(parast,done);
          if assigned(localst) then
@@ -2000,12 +1983,13 @@
 {$ifdef tp}
          not(use_big) and
 {$endif}
-           assigned(_mangledname) then
+         assigned(_mangledname) then
            strdispose(_mangledname);
          inherited done;
       end;
 
     procedure tprocdef.write;
+
       begin
 {$ifndef NEWPPU}
          writebyte(ibprocdef);
@@ -2035,9 +2019,14 @@
                writeptree(ptree(code));
                }
            end;
+           
 {$ifdef NEWPPU}
          ppufile^.writeentry(ibprocdef);
 {$endif}
+{$ifdef UseBrowser}
+         if (current_module^.flags and uf_uses_browser)<>0 then
+           write_references;
+{$endif UseBrowser}
       end;
 
 {$ifdef GDB}
@@ -2631,10 +2620,10 @@
 
 {
   $Log$
-  Revision 1.10  1998-06-13 00:10:16  peter
-    * working browser and newppu
-    * some small fixes against crashes which occured in bp7 (but not in
-      fpc?!)
+  Revision 1.11  1998-06-15 13:31:20  daniel
+
+
+  * Fixes to make it compilable under BP again.
 
   Revision 1.9  1998/06/12 14:10:37  michael
   * Fixed wrong code for ansistring
@@ -2656,8 +2645,9 @@
       for win32
 
   Revision 1.4  1998/06/04 09:55:45  pierre
-    * demangled name of procsym reworked to become independant of the mangling
-      scheme
+    * demangled name of procsym reworked to become independant of the mangling scheme
+
+  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
 
   Revision 1.3  1998/06/03 22:49:03  peter
     + wordbool,longbool
@@ -2675,4 +2665,4 @@
     * symtable adapted for $ifdef NEWPPU
 
 }
-
+  
