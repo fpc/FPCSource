@@ -69,7 +69,7 @@ type
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
-    function StartTransaction(trans : TSQLHandle) : boolean; override;
+    function StartdbTransaction(trans : TSQLHandle) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
 
@@ -177,7 +177,7 @@ begin
   else result := true;
 end;
 
-function TIBConnection.StartTransaction(trans : TSQLHandle) : boolean;
+function TIBConnection.StartDBTransaction(trans : TSQLHandle) : boolean;
 var
   DBHandle : pointer;
   tr       : TIBTrans;

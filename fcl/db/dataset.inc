@@ -625,12 +625,6 @@ begin
   //!! To be implemented
 end;
 
-Procedure TDataset.Loaded;
-
-begin
-  //!! To be implemented
-end;
-
 Procedure TDataset.OpenCursor(InfoQuery: Boolean);
 
 begin
@@ -663,11 +657,25 @@ Procedure TDataset.SetActive (Value : Boolean);
 begin
   If Value<>Factive then
     If Value then
-      DoInternalOpen
+      if csLoading in ComponentState then
+        begin
+        FOpenAfterRead := true;
+        exit;
+        end
+      else
+        DoInternalOpen
     else
       DoInternalClose(True);
   FActive:=Value;
 end;
+
+procedure TDataset.Loaded;
+
+begin
+  inherited;
+  if FOpenAfterRead then SetActive(true);
+end;
+
 
 procedure TDataSet.RecalcBufListSize;
 
@@ -1725,7 +1733,10 @@ end;
 
 {
   $Log$
-  Revision 1.26  2004-10-16 09:27:23  michael
+  Revision 1.27  2004-10-27 07:23:13  michael
+  + Patch from Joost Van der Sluis to fix transactions
+
+  Revision 1.26  2004/10/16 09:27:23  michael
   + Fixed GotoBookMark (as suggested by Americo Luiz)
 
   Revision 1.25  2004/10/10 14:25:21  michael

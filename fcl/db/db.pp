@@ -67,6 +67,7 @@ type
   TDataBase = Class;
   TDatasource = Class;
   TDatalink = Class;
+  TDBTransaction = Class;
 
 { Exception classes }
 
@@ -773,6 +774,7 @@ type
   TDataSet = class(TComponent)
   Private
     FActive: Boolean;
+    FOpenAfterRead : boolean;
     FActiveRecord: Longint;
     FAfterCancel: TDataSetNotifyEvent;
     FAfterClose: TDataSetNotifyEvent;
@@ -849,6 +851,7 @@ type
     procedure CalculateFields(Buffer: PChar); virtual;
     procedure CheckActive; virtual;
     procedure CheckInactive; virtual;
+    procedure Loaded; override;
     procedure ClearBuffers; virtual;
     procedure ClearCalcFields(Buffer: PChar); virtual;
     procedure CloseBlob(Field: TField); virtual;
@@ -896,7 +899,6 @@ type
     procedure InternalCancel; virtual;
     procedure InternalEdit; virtual;
     procedure InternalRefresh; virtual;
-    procedure Loaded; override;
     procedure OpenCursor(InfoQuery: Boolean); virtual;
     procedure RefreshInternalCalcFields(Buffer: PChar); virtual;
     procedure RestoreState(const Value: TDataSetState);
@@ -1177,36 +1179,45 @@ type
     property OnUpdateData: TNotifyEvent read FOnUpdateData write FOnUpdateData;
   end;
 
-
  { TDBDataset }
 
   TDBDatasetClass = Class of TDBDataset;
   TDBDataset = Class(TDataset)
     Private
       FDatabase : TDatabase;
+      FTransaction : TDBTransaction;
     Protected
       Procedure SetDatabase (Value : TDatabase); virtual;
+      Procedure SetTransaction(Value : TDBTransaction); virtual;
       Procedure CheckDatabase;
     Public
       Destructor destroy; override;
       Property DataBase : TDatabase Read FDatabase Write SetDatabase;
+      Property Transaction : TDBTransaction Read FTransaction Write SetTransaction;
     end;
 
  { TDBTransaction }
 
   TDBTransactionClass = Class of TDBTransaction;
   TDBTransaction = Class(TComponent)
-    Private
-      FDatabase : TDatabase;
-      Procedure SetDatabase (Value : TDatabase);
-    Protected
-      Procedure CheckDatabase;
-    Public
-      procedure EndTransaction; virtual; abstract;
-      Destructor destroy; override;
-      Property DataBase : TDatabase Read FDatabase Write SetDatabase;
-    end;
-
+  Private
+    FDatabase : TDatabase;
+    FDataSets : TList;
+    Procedure SetDatabase (Value : TDatabase);
+    Function GetDataSetCount : Longint;
+    Function GetDataset(Index : longint) : TDBDataset;
+    procedure RegisterDataset (DS : TDBDataset);
+    procedure UnRegisterDataset (DS : TDBDataset);
+    procedure RemoveDataSets;
+  Protected
+    Procedure CheckDatabase;
+    procedure EndTransaction; virtual; abstract;
+  Public
+    constructor Create(AOwner: TComponent); override;
+    Destructor destroy; override;
+    procedure CloseDataSets;
+    Property DataBase : TDatabase Read FDatabase Write SetDatabase;
+  end;
 
   { TDatabase }
 
@@ -1572,7 +1583,10 @@ end.
 
 {
   $Log$
-  Revision 1.26  2004-10-10 14:45:51  michael
+  Revision 1.27  2004-10-27 07:23:13  michael
+  + Patch from Joost Van der Sluis to fix transactions
+
+  Revision 1.26  2004/10/10 14:45:51  michael
   + Use of dbconst for resource strings
 
   Revision 1.25  2004/10/10 14:25:21  michael

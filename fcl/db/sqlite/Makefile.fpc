@@ -6,7 +6,7 @@
 main=fcl
 
 [target]
-units=sqlitedataset
+units=sqliteds
 
 [require]
 packages=sqlite

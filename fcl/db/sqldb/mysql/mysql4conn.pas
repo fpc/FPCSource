@@ -56,7 +56,7 @@ Type
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
-    function StartTransaction(trans : TSQLHandle) : boolean; override;
+    function StartdbTransaction(trans : TSQLHandle) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
   Public
@@ -670,7 +670,7 @@ begin
   // Do nothing
 end;
 
-function TMySQLConnection.StartTransaction(trans: TSQLHandle): boolean;
+function TMySQLConnection.StartdbTransaction(trans: TSQLHandle): boolean;
 begin
   // Do nothing
 end;

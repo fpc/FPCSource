@@ -65,7 +65,7 @@ var i : integer;
 
 begin
   for i := 0 to FBRecordCount-1 do FreeRecord(FBBuffers[i]);
-  freemem(FBBuffers);
+  If FBRecordCount > 0 then freemem(FBBuffers);
   FBRecordcount := 0;
   FBBuffercount := 0;
   FBCurrentrecord := -1;

@@ -48,7 +48,7 @@ type
     function RollBack(trans : TSQLHandle) : boolean; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     procedure CommitRetaining(trans : TSQLHandle); override;
-    function StartTransaction(trans : TSQLHandle) : boolean; override;
+    function StartdbTransaction(trans : TSQLHandle) : boolean; override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
   published
     property DatabaseName;
@@ -133,8 +133,7 @@ begin
     end;
 end;
 
-
-function TPQConnection.StartTransaction(trans : TSQLHandle) : boolean;
+function TPQConnection.StartdbTransaction(trans : TSQLHandle) : boolean;
 var
   res : PPGresult;
   tr  : TPQTrans;
@@ -425,7 +424,6 @@ begin
   {$R-}
   with cursor as TPQCursor do for x := 0 to PQnfields(res)-1 do
     begin
-//    writeln('Getdata:' + pqgetvalue(res,0,x));
     i := PQfsize(res, x);
     buffer[0] := chr(pqgetisnull(res,0,x));
     inc(buffer);

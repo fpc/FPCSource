@@ -47,7 +47,7 @@ begin
     begin
     If Value then
       begin
-      if csLoading in ComponentState then
+      if csReading in ComponentState then
         begin
         FOpenAfterRead := true;
         exit;
@@ -255,6 +255,20 @@ begin
     end;
 end;
 
+Procedure TDBDataset.SetTransaction (Value : TDBTransaction);
+
+begin
+  CheckInactive;
+  If Value<>FTransaction then
+    begin
+    If Assigned(FTransaction) then
+      FTransaction.UnregisterDataset(Self);
+    If Value<>Nil Then
+      Value.RegisterDataset(Self);
+    FTransaction:=Value;
+    end;
+end;
+
 Procedure TDBDataset.CheckDatabase;
 
 begin
@@ -266,13 +280,13 @@ Destructor TDBDataset.Destroy;
 
 begin
   Database:=Nil;
+  Transaction:=Nil;
   Inherited;
 end;
 
 { ---------------------------------------------------------------------
     TDBTransaction
   ---------------------------------------------------------------------}
-
 Procedure TDBTransaction.SetDatabase (Value : TDatabase);
 
 begin
@@ -287,6 +301,13 @@ begin
     end;
 end;
 
+constructor TDBTransaction.create(AOwner : TComponent);
+
+begin
+  inherited create(AOwner);
+  FDatasets:=TList.Create;
+end;
+
 Procedure TDBTransaction.CheckDatabase;
 
 begin
@@ -294,17 +315,85 @@ begin
     DatabaseError(SErrNoDatabaseAvailable,Self)
 end;
 
+procedure TDBTransaction.CloseDataSets;
+
+Var I : longint;
+
+begin
+  If Assigned(FDatasets) then
+    begin
+    For I:=FDatasets.Count-1 downto 0 do
+      TDBDataset(FDatasets[i]).Close;
+    end;
+end;
+
 Destructor TDBTransaction.Destroy;
 
 begin
   Database:=Nil;
+  RemoveDatasets;
+  FDatasets.Free;
   Inherited;
 end;
 
+procedure TDBTransaction.RemoveDataSets;
+
+Var I : longint;
+
+begin
+  If Assigned(FDatasets) then
+    For I:=FDataSets.Count-1 downto 0 do
+      TDBDataset(FDataSets[i]).Transaction:=Nil;
+end;
+
+Function TDBTransaction.GetDataSetCount : Longint;
+
+begin
+  If Assigned(FDatasets) Then
+    Result:=FDatasets.Count
+  else
+    Result:=0;
+end;
+
+procedure TDBTransaction.UnRegisterDataset (DS : TDBDataset);
+
+Var I : longint;
+
+begin
+  I:=FDatasets.IndexOf(DS);
+  If I<>-1 then
+    FDatasets.Delete(I)
+  else
+    DatabaseErrorFmt(SNoDatasetRegistered,[DS.Name]);
+end;
+
+procedure TDBTransaction.RegisterDataset (DS : TDBDataset);
+
+Var I : longint;
+
+begin
+  I:=FDatasets.IndexOf(DS);
+  If I=-1 then
+    FDatasets.Add(DS)
+  else
+    DatabaseErrorFmt(SDatasetRegistered,[DS.Name]);
+end;
+
+Function TDBTransaction.GetDataset(Index : longint) : TDBDataset;
+
+begin
+  If Assigned(FDatasets) then
+    Result:=TDBDataset(FDatasets[Index])
+  else
+    DatabaseError(SNoDatasets);
+end;
 
 {
   $Log$
-  Revision 1.6  2004-09-26 16:55:24  michael
+  Revision 1.7  2004-10-27 07:23:13  michael
+  + Patch from Joost Van der Sluis to fix transactions
+
+  Revision 1.6  2004/09/26 16:55:24  michael
   * big patch from Joost van der Sluis
    bufdataset.inc:
     fix getrecord (prior)

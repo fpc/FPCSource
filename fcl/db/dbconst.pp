@@ -32,6 +32,7 @@ Const
   SErrNoDatabaseAvailable  = 'Invalid operation: Not attached to database';
   SErrNoSelectStatement    = 'Cannot open a non-select statement';
   SErrNoStatement          = 'SQL statement not set';
+  SErrTransAlreadyActive   = 'Transaction already active';
   SErrTransactionnSet      = 'Transaction not set';
   SFieldNotFound           = 'Field not found : "%s"';
   SInactiveDataset         = 'Operation cannot be performed on an inactive dataset';
@@ -65,7 +66,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-10-16 09:20:25  michael
+  Revision 1.3  2004-10-27 07:23:13  michael
+  + Patch from Joost Van der Sluis to fix transactions
+
+  Revision 1.2  2004/10/16 09:20:25  michael
   + Moved resourcestrings to dbconst
 
   Revision 1.1  2004/10/10 14:45:51  michael

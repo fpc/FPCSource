@@ -79,7 +79,7 @@ type
     function GetTransactionHandle(trans : TSQLHandle): pointer; virtual; abstract;
     function Commit(trans : TSQLHandle) : boolean; virtual; abstract;
     function RollBack(trans : TSQLHandle) : boolean; virtual; abstract;
-    function StartTransaction(trans : TSQLHandle) : boolean; virtual; abstract;
+    function StartdbTransaction(trans : TSQLHandle) : boolean; virtual; abstract;
     procedure CommitRetaining(trans : TSQLHandle); virtual; abstract;
     procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
   public
@@ -112,23 +112,25 @@ type
     FTrans               : TSQLHandle;
     FAction              : TCommitRollbackAction;
     FActive              : boolean;
+    FOpenAfterRead : boolean;
 
     procedure SetActive(Value : boolean);
   protected
     function GetHandle : Pointer; virtual;
+    procedure Loaded; override;
   public
-    procedure EndTransaction; override;
     procedure Commit; virtual;
     procedure CommitRetaining; virtual;
     procedure Rollback; virtual;
     procedure RollbackRetaining; virtual;
-    procedure StartTransaction;
+    procedure StartTransaction; virtual;
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
     property Handle: Pointer read GetHandle;
+    procedure EndTransaction; override;
   published
     property Action : TCommitRollbackAction read FAction write FAction;
-    property Active : boolean read FActive write SetActive;
+    property Active : boolean read FActive write setactive;
     property Database;
   end;
 
@@ -138,13 +140,11 @@ type
   private
     FCursor              : TSQLHandle;
     FOpen                : Boolean;
-    FTransaction         : TSQLTransaction;
     FSQL                 : TStrings;
     FIsEOF               : boolean;
     FLoadingFieldDefs    : boolean;
     FRecordSize          : Integer;
 
-    procedure SetTransaction(Value : TSQLTransaction);
     procedure FreeStatement;
     procedure PrepareStatement;
     procedure FreeFldBuffers;
@@ -209,7 +209,7 @@ type
     property AutoCalcFields;
     property Database;
 
-    property Transaction : TSQLTransaction read FTransaction write SetTransaction;
+    property Transaction;
     property SQL         : TStrings read FSQL write FSQL;
   end;
 
@@ -241,8 +241,9 @@ end;
 
 procedure TSQLConnection.DoInternalConnect;
 begin
-  if Connected then
-    Close;
+// Where is this for?!?!
+//  if Connected then
+//    Close;
 end;
 
 procedure TSQLConnection.DoInternalDisconnect;
@@ -251,11 +252,6 @@ end;
 
 destructor TSQLConnection.Destroy;
 begin
-  if FTransaction <> nil then
-  begin
-    FTransaction.Active := False;
-    FTransaction.Database := nil;
-  end;
   inherited Destroy;
 end;
 
@@ -283,9 +279,28 @@ end;
 procedure TSQLTransaction.SetActive(Value : boolean);
 begin
   if FActive and (not Value) then
-    Rollback
+    EndTransaction
   else if (not FActive) and Value then
-    StartTransaction;
+    if csLoading in ComponentState then
+      begin
+      FOpenAfterRead := true;
+      exit;
+      end
+    else
+      StartTransaction;
+end;
+
+procedure TSQLTransaction.Loaded;
+
+begin
+  inherited;
+  if FOpenAfterRead then SetActive(true);
+end;
+
+procedure TSQLTransaction.EndTransaction;
+
+begin
+  rollback;
 end;
 
 function TSQLTransaction.GetHandle: pointer;
@@ -296,8 +311,12 @@ end;
 procedure TSQLTransaction.Commit;
 begin
   if not FActive then Exit;
-  if (Database as tsqlconnection).commit(FTrans) then FActive := false;
-  FTrans.free;
+  closedatasets;
+  if (Database as tsqlconnection).commit(FTrans) then
+    begin
+    FActive := false;
+    FTrans.free;
+    end;
 end;
 
 procedure TSQLTransaction.CommitRetaining;
@@ -309,13 +328,12 @@ end;
 procedure TSQLTransaction.Rollback;
 begin
   if not FActive then Exit;
-  if (Database as tsqlconnection).RollBack(FTrans) then FActive := false;
-  FTrans.free;
-end;
-
-procedure TSQLTransaction.EndTransaction;
-begin
-  Rollback;
+  closedatasets;
+  if (Database as tsqlconnection).RollBack(FTrans) then
+    begin
+    FActive := false;
+    FTrans.free;
+    end;
 end;
 
 procedure TSQLTransaction.RollbackRetaining;
@@ -329,7 +347,8 @@ procedure TSQLTransaction.StartTransaction;
 var db : TSQLConnection;
 
 begin
-  if Active then Active := False;
+  if Active then
+    DatabaseError(SErrTransAlreadyActive);
 
   db := (Database as tsqlconnection);
 
@@ -340,7 +359,7 @@ begin
     Db.Open;
   if not assigned(FTrans) then FTrans := Db.AllocateTransactionHandle;
 
-  if Db.StartTransaction(FTrans) then FActive := true;
+  if Db.StartdbTransaction(FTrans) then FActive := true;
 end;
 
 constructor TSQLTransaction.Create(AOwner : TComponent);
@@ -350,23 +369,11 @@ end;
 
 destructor TSQLTransaction.Destroy;
 begin
-  // This will also do a Rollback, if the transaction is currently active
-  Active := False;
-
-//  Database.Transaction := nil;
-
+  Rollback;
   inherited Destroy;
 end;
 
 { TSQLQuery }
-
-procedure TSQLQuery.SetTransaction(Value : TSQLTransaction);
-begin
-  CheckInactive;
-  if (FTransaction <> Value) then
-    FTransaction := Value;
-end;
-
 procedure TSQLQuery.SetDatabase(Value : TDatabase);
 
 var db : tsqlconnection;
@@ -376,32 +383,37 @@ begin
     begin
     db := value as tsqlconnection;
     inherited setdatabase(value);
-    if (FTransaction = nil) and (Assigned(Db.Transaction)) then
-      SetTransaction(Db.Transaction);
+    if assigned(value) and (Transaction = nil) and (Assigned(db.Transaction)) then
+      transaction := Db.Transaction;
     end;
 end;
 
 procedure TSQLQuery.FreeStatement;
 begin
-  (Database as tsqlconnection).FreeStatement(FCursor);
+  if assigned(FCursor) then
+    begin
+    (Database as tsqlconnection).FreeStatement(FCursor);
+    FCursor.free;
+    end;
 end;
 
 procedure TSQLQuery.PrepareStatement;
 var
-  Buf : string;
-  x   : integer;
-  db  : tsqlconnection;
+  Buf   : string;
+  x     : integer;
+  db    : tsqlconnection;
+  sqltr : tsqltransaction;
 begin
   db := (Database as tsqlconnection);
   if Db = nil then
     DatabaseError(SErrDatabasenAssigned);
   if not Db.Connected then
     db.Open;
-  if FTransaction = nil then
+  if Transaction = nil then
     DatabaseError(SErrTransactionnSet);
-    
-  if not FTransaction.Active then
-    FTransaction.StartTransaction;
+
+  sqltr := (transaction as tsqltransaction);
+  if not sqltr.Active then sqltr.StartTransaction;
 
   if assigned(fcursor) then FCursor.free;
   FCursor := Db.AllocateCursorHandle;
@@ -414,15 +426,13 @@ begin
     DatabaseError(SErrNoStatement);
     exit;
     end;
-
   FCursor.StatementType := GetSQLStatementType(buf);
-
-  Db.PrepareStatement(Fcursor,FTransaction,buf);
+  Db.PrepareStatement(Fcursor,sqltr,buf);
 end;
 
 procedure TSQLQuery.FreeFldBuffers;
 begin
-  (Database as tsqlconnection).FreeFldBuffers(FCursor);
+  if assigned(FCursor) then (Database as tsqlconnection).FreeFldBuffers(FCursor);
 end;
 
 procedure TSQLQuery.Fetch;
@@ -452,7 +462,7 @@ end;
 
 procedure TSQLQuery.Execute;
 begin
-  (Database as tsqlconnection).execute(Fcursor,FTransaction);
+  (Database as tsqlconnection).execute(Fcursor,Transaction as tsqltransaction);
 end;
 
 function TSQLQuery.AllocRecord(ExtraSize : integer): PChar;
@@ -493,7 +503,6 @@ begin
   FIsEOF := False;
   FRecordSize := 0;
   FOpen:=False;
-  FCursor.free;
   inherited internalclose;
 end;
 
@@ -649,7 +658,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-10-10 14:45:52  michael
+  Revision 1.6  2004-10-27 07:23:13  michael
+  + Patch from Joost Van der Sluis to fix transactions
+
+  Revision 1.5  2004/10/10 14:45:52  michael
   + Use of dbconst for resource strings
 
   Revision 1.4  2004/10/10 14:24:22  michael
