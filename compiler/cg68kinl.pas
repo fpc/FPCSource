@@ -604,6 +604,8 @@ implementation
                         p^.location.loc:=LOC_REGISTER;
                         p^.location.register:=getregister32;
                         { load VMT pointer }
+                        inc(p^.left^.location.reference.offset,
+                          pobjectdef(p^.left^.resulttype)^.vmt_offset);
                         exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
                           newreference(p^.left^.location.reference),
                           p^.location.register)));
@@ -895,7 +897,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-10-14 16:53:04  pierre
+  Revision 1.11  1998-10-16 13:12:47  pierre
+    * added vmt_offsets in destructors code also !!!
+    * vmt_offset code for m68k
+
+  Revision 1.10  1998/10/14 16:53:04  pierre
    * bug in in_inc_x for constants out of range for A_ADDQ fixed
 
   Revision 1.9  1998/10/14 11:28:20  florian

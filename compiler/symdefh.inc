@@ -177,6 +177,8 @@
           function vmt_mangledname : string;
           function rtti_name : string;
           function isclass : boolean;
+          procedure insertvmt;
+          procedure set_parent(c : pobjectdef);
 {$ifdef GDB}
           function stabstring : pchar;virtual;
 {$endif GDB}
@@ -478,7 +480,11 @@
 
 {
   $Log$
-  Revision 1.4  1998-10-16 08:51:52  peter
+  Revision 1.5  1998-10-16 13:12:55  pierre
+    * added vmt_offsets in destructors code also !!!
+    * vmt_offset code for m68k
+
+  Revision 1.4  1998/10/16 08:51:52  peter
     + target_os.stackalignment
     + stack can be aligned at 2 or 4 byte boundaries
 

@@ -742,6 +742,7 @@ begin
          begin
            procinfo.aktexitcode^.insert(new(pai68k,op_csymbol(A_JSR,S_NO,
              newcsymbol('FPC_HELP_DESTRUCTOR',0))));
+           procinfo.aktexitcode^.insert(new(pai68k,op_const_reg(A_MOVE,S_L,procinfo._class^.vmt_offset,R_D0)));
            concat_external('FPC_HELP_DESTRUCTOR',EXT_NEAR);
          end;
      end;
@@ -1345,7 +1346,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  1998-10-15 12:37:42  pierre
+  Revision 1.25  1998-10-16 13:12:48  pierre
+    * added vmt_offsets in destructors code also !!!
+    * vmt_offset code for m68k
+
+  Revision 1.24  1998/10/15 12:37:42  pierre
     + passes vmt offset to HELP_CONSTRUCTOR for objects
 
   Revision 1.23  1998/10/14 11:28:22  florian

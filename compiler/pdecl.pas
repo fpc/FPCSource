@@ -1164,13 +1164,12 @@ unit pdecl;
                    }
                    if (childof^.options and oo_isforward)<>0 then
                      Message1(parser_e_forward_declaration_must_be_resolved,childof^.name^);
-                   fd^.childof:=childof;
                    aktclass:=fd;
-                   { ajust the size, because the child could be also
-                     forward defined
-                   }
-                   aktclass^.publicsyms^.datasize:=
-                     aktclass^.publicsyms^.datasize-4+childof^.publicsyms^.datasize;
+                   { we must inherit several options !!
+                     this was missing !!
+                     all is now done in set_parent
+                     including symtable datasize setting PM }
+                   fd^.set_parent(childof);
                 end
               else
                 aktclass:=new(pobjectdef,init(n,childof));
@@ -2065,7 +2064,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.71  1998-10-15 15:13:25  pierre
+  Revision 1.72  1998-10-16 13:12:51  pierre
+    * added vmt_offsets in destructors code also !!!
+    * vmt_offset code for m68k
+
+  Revision 1.71  1998/10/15 15:13:25  pierre
     + added oo_hasconstructor and oo_hasdestructor
       for objects options
 

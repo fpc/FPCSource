@@ -656,6 +656,7 @@ implementation
                                          new(r);
                                          reset_reference(r^);
                                          r^.base:=R_A5;
+                                         r^.offset:= p^.procdefinition^._class^.vmt_offset;
                                          exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,R_A5)));
                                       end;
 
@@ -697,6 +698,7 @@ implementation
                              new(r);
                              reset_reference(r^);
                              r^.base:=R_A5;
+                             r^.offset:= p^.procdefinition^._class^.vmt_offset;
                              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,R_A5)));
                           end
                         else
@@ -795,6 +797,7 @@ implementation
                             new(r);
                             reset_reference(r^);
                             r^.base:=R_a5;
+                            r^.offset:= p^.procdefinition^._class^.vmt_offset;
                             exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,r,R_a0)));
                             new(r);
                             reset_reference(r^);
@@ -1049,7 +1052,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-10-15 12:41:16  pierre
+  Revision 1.11  1998-10-16 13:12:46  pierre
+    * added vmt_offsets in destructors code also !!!
+    * vmt_offset code for m68k
+
+  Revision 1.10  1998/10/15 12:41:16  pierre
     * last memory leaks found when compiler
       a native atari compiler fixed
 

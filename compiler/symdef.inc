@@ -2528,35 +2528,50 @@
      begin
         tdef.init;
         deftype:=objectdef;
-        childof:=c;
         options:=0;
         vmt_offset:=0;
-        { some options are inherited !! }
-        if assigned(c) then
-          options:= c^.options and
-                    (oo_hasvirtual or oo_hasprivate or
-                     oo_hasprotected or
-                     oo_hasconstructor or oo_hasdestructor
-                     {or oo_can_have_published treated in pdecl }
-                     );
-        { privatesyms:=new(psymtable,init(objectsymtable));
-      protectedsyms:=new(psymtable,init(objectsymtable)); }
         publicsyms:=new(psymtable,init(objectsymtable));
+        publicsyms^.name := stringdup(n);
         { create space for vmt !! }
         publicsyms^.datasize:=Sizeof(pointer);
-        publicsyms^.name := stringdup(n);
-        { add the data of the anchestor class }
-        if assigned(childof) then
-          begin
-             publicsyms^.datasize:=
-               publicsyms^.datasize-SizeOf(pointer)+childof^.publicsyms^.datasize;
-          end;
-        name:=stringdup(n);
-        savesize := publicsyms^.datasize;
+        options:=oo_hasvmt;
         publicsyms^.defowner:=@self;
+        set_parent(c);
+        name:=stringdup(n);
      end;
 
 
+    procedure tobjectdef.set_parent( c : pobjectdef);
+      begin
+        { nothing to do if the parent was not forward !}
+        if assigned(childof) then
+          exit;
+        childof:=c;
+        { some options are inherited !! }
+        if assigned(c) then
+          begin
+             options:= options or (c^.options and
+                    (oo_hasvirtual or oo_hasprivate or
+                     oo_hasprotected or
+                     oo_hasconstructor or oo_hasdestructor
+                     ));
+             { add the data of the anchestor class }
+             publicsyms^.datasize:=publicsyms^.datasize
+               +childof^.publicsyms^.datasize;
+             if ((options and oo_hasvmt)<>0) and
+                ((c^.options and oo_hasvmt)<>0) then
+               publicsyms^.datasize:=publicsyms^.datasize-Sizeof(pointer);
+             { if parent has a vmt field then
+               the offset is the same for the child PM }
+             if ((c^.options and oo_hasvmt)<>0) then
+               begin
+                  vmt_offset:=c^.vmt_offset;
+                  options:=options or oo_hasvmt;
+               end;
+          end;
+        savesize := publicsyms^.datasize;
+      end;
+      
     constructor tobjectdef.load;
       var
          oldread_member : boolean;
@@ -2587,6 +2602,22 @@
        end;
 
 
+   procedure tobjectdef.insertvmt;
+     begin
+        if (options and oo_hasvmt)<>0 then
+          internalerror(12345)
+        else
+          begin
+             { first round up to multiple of 4 }
+             if (publicsyms^.datasize mod 4) <> 0 then
+               publicsyms^.datasize:=publicsyms^.datasize+4-(publicsyms^.datasize mod 4);
+             vmt_offset:=publicsyms^.datasize;
+             publicsyms^.datasize:=publicsyms^.datasize+sizeof(pointer);
+             options:=options and oo_hasvmt;
+          end;
+          
+     end;
+     
    procedure tobjectdef.check_forwards;
      begin
         publicsyms^.check_forwards;
@@ -3088,7 +3119,11 @@
 
 {
   $Log$
-  Revision 1.59  1998-10-16 08:51:51  peter
+  Revision 1.60  1998-10-16 13:12:53  pierre
+    * added vmt_offsets in destructors code also !!!
+    * vmt_offset code for m68k
+
+  Revision 1.59  1998/10/16 08:51:51  peter
     + target_os.stackalignment
     + stack can be aligned at 2 or 4 byte boundaries
 
