@@ -49,6 +49,8 @@ type
     Constructor Create (AHandle : Longint);virtual;
     destructor Destroy; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
+    Function Read (Var Buffer; Count : Longint) : longint; Override;
+    Function Write (Const Buffer; Count : Longint) :Longint; Override;
     Property SocketOptions : TSocketOptions Read FSocketOptions
                                             Write SetSocketOptions;
   end;
@@ -222,6 +224,26 @@ Function TSocketStream.Seek(Offset: Longint; Origin: Word): Longint;
 
 begin
   Result:=0;
+end;
+
+Function TSocketStream.Read (Var Buffer; Count : Longint) : longint;
+
+Var
+  Flags : longint;
+
+begin
+  Flags:=0;
+  Result:=recv(handle,Buffer,count,flags);
+end;
+
+Function TSocketStream.Write (Const Buffer; Count : Longint) :Longint;
+
+Var
+  Flags : longint;
+
+begin
+  Flags:=0;
+  Result:=send(handle,Buffer,count,flags);
 end;
 
 { ---------------------------------------------------------------------
@@ -520,7 +542,10 @@ end.
 
 {
   $Log$
-  Revision 1.15  2003-03-07 20:57:09  michael
+  Revision 1.16  2003-03-10 21:42:39  michael
+  + TSocketStream now uses recv/sendto instead of read/write
+
+  Revision 1.15  2003/03/07 20:57:09  michael
   + Use resolve unit instead of inet unit.
 
   Revision 1.14  2002/12/18 18:39:14  peter
