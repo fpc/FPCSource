@@ -27,10 +27,10 @@ Const
   LibName = 'msvcrt';
 {$endif}
 
-Function Malloc (Size : Longint) : Pointer; {$ifndef win32}stdcall{$else}cdecl{$endif}; external LibName name 'malloc';
-Procedure Free (P : pointer); {$ifndef win32}stdcall{$else}cdecl{$endif}; external LibName name 'free';
-function ReAlloc (P : Pointer; Size : longint) : pointer; {$ifndef win32}stdcall{$else}cdecl{$endif}; external LibName name 'realloc';
-Function CAlloc (unitSize,UnitCount : Longint) : pointer; {$ifndef win32}stdcall{$else}cdecl{$endif}; external LibName name 'calloc';
+Function Malloc (Size : Longint) : Pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'malloc';
+Procedure Free (P : pointer); {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'free';
+function ReAlloc (P : Pointer; Size : longint) : pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'realloc';
+Function CAlloc (unitSize,UnitCount : Longint) : pointer; {$ifdef win32}stdcall{$else}cdecl{$endif}; external LibName name 'calloc';
 
 implementation
 
@@ -118,7 +118,10 @@ end.
 
 {
  $Log$
- Revision 1.5  2002-09-07 15:42:54  peter
+ Revision 1.6  2002-09-08 15:43:47  michael
+ + Fixed calling conventions
+
+ Revision 1.5  2002/09/07 15:42:54  peter
    * old logs removed and tabs fixed
 
  Revision 1.4  2002/07/01 16:24:04  peter
