@@ -1,3 +1,5 @@
+{ %FAIL }
+
 { Source provided for Free Pascal Bug Report 1407 }
 { Submitted by "vigo von harrach" on  2001-02-13 }
 { e-mail: wingo@fh-konstanz.de }
