@@ -872,10 +872,33 @@ var
                      {TODO: ? PadTabs(s,#0) }
                    end;
               end;
+
+           ait_const_128bit:
+              begin
+                internalerror(200404291);
+              end;
+           ait_const_64bit:
+              begin
+                if assigned(tai_const(hp).sym) then
+                  internalerror(200404292);
+                AsmWrite(ait_const2str[ait_const_32bit]);
+                if target_info.endian = endian_little then
+                  begin
+                    AsmWrite(tostr(longint(lo(tai_const(hp).value))));
+                    AsmWrite(',');
+                    AsmWrite(tostr(longint(hi(tai_const(hp).value))));
+                  end
+                else
+                  begin
+                    AsmWrite(tostr(longint(hi(tai_const(hp).value))));
+                    AsmWrite(',');
+                    AsmWrite(tostr(longint(lo(tai_const(hp).value))));
+                  end;
+                AsmLn;
+              end;
+
            ait_const_uleb128bit,
            ait_const_sleb128bit,
-           ait_const_128bit,
-           ait_const_64bit,
            ait_const_32bit,
            ait_const_16bit,
            ait_const_8bit,
@@ -888,23 +911,68 @@ var
                repeat
                  if assigned(tai_const(hp).sym) then
                    begin
-                     if use_PR then
+  	  	  	  	  	 if assigned(tai_const(hp).endsym) then
+                       begin
+												 if (tai_const(hp).endsym.typ = AT_FUNCTION) and use_PR then
+													 AsmWrite('.');
+
+  	  	  	  	  	     s:=tai_const(hp).endsym.name;
+  	  	                 ReplaceForbiddenChars(s);
+  	                     AsmWrite(s);
+                         inc(l,length(s));
+
+												 if tai_const(hp).endsym.typ = AT_FUNCTION then
+													 begin
+														 if use_PR then
+															 AsmWrite('[PR]')
+														 else
+															 AsmWrite('[DS]');
+													 end
+												 else if not macos_direct_globals then
+													 AsmWrite(const_storage_class);
+
+                         AsmWrite('-');
+												 inc(l,5); {Approx 5 extra, no need to be exactly}
+  	  	  	  	  	   end;
+
+                     if (tai_const(hp).sym.typ = AT_FUNCTION) and use_PR then
                        AsmWrite('.');
-                     if assigned(tai_const(hp).endsym) then
-                       s:=tai_const(hp).endsym.name+'-'+tai_const(hp).sym.name
+
+                     s:= tai_const(hp).sym.name;
+  	  	  	  	  	 ReplaceForbiddenChars(s);
+  	  	  	  	  	 AsmWrite(s);
+                     inc(l,length(s));
+
+                     if tai_const(hp).sym.typ = AT_FUNCTION then
+                       begin
+                         if use_PR then
+                           AsmWrite('[PR]')
+                         else
+                           AsmWrite('[DS]');
+                       end
+                     else if not macos_direct_globals then
+                       AsmWrite(const_storage_class);
+                     inc(l,5); {Approx 5 extra, no need to be exactly}
+
+                     if tai_const(hp).value > 0 then
+                       s:= '+'+tostr(tai_const(hp).value)
+                     else if tai_const(hp).value < 0 then
+                       s:= '-'+tostr(tai_const(hp).value)
                      else
-                       s:=tai_const(hp).sym.name;
-                     ReplaceForbiddenChars(s);
-                     if tai_const(hp).value<>0 then
-                       InternalError(2002110101);
-                     if use_PR then
-                       AsmWriteLn('[PR]')
-                     else
-                       AsmWriteLn('[DS]');
+                       s:= '';
+                     if s<>'' then
+                       begin
+                         AsmWrite(s);
+                         inc(l,length(s));
+                       end;
                    end
                  else
-                   s:=tostr(tai_const(hp).value);
-                 AsmWrite(s);
+                   begin
+                     s:= tostr(tai_const(hp).value); 
+                     AsmWrite(s);
+                     inc(l,length(s));
+                   end;
+
                  if (l>line_length) or
                     (hp.next=nil) or
                     (tai(hp.next).typ<>consttyp) then
@@ -968,40 +1036,40 @@ var
                       end; { end for j:=0 ... }
 
                   { do last line of lines }
-									if counter < tai_string(hp).len then
-										AsmWrite(#9'dc.b'#9);
-									quoted:=false;
-									for i:=counter to tai_string(hp).len-1 do
-										begin
-											{ it is an ascii character. }
-											if (ord(tai_string(hp).str[i])>31) and
-												 (ord(tai_string(hp).str[i])<128) and
-												 (tai_string(hp).str[i]<>'''') and
-												 (tai_string(hp).str[i]<>'\') then
-												begin
-													if not(quoted) then
-														begin
-															if i>counter then
-																AsmWrite(',');
-															AsmWrite('''');
-														end;
-													AsmWrite(tai_string(hp).str[i]);
-													quoted:=true;
-												end { if > 31 and < 128 and " }
-											else
-												begin
-													if quoted then
-														AsmWrite('''');
-													if i>counter then
-														AsmWrite(',');
-													quoted:=false;
-													AsmWrite(tostr(ord(tai_string(hp).str[i])));
-												end;
-										end; { end for i:=0 to... }
-									if quoted then
-										AsmWrite('''');
+                	if counter < tai_string(hp).len then
+                  	AsmWrite(#9'dc.b'#9);
+                	quoted:=false;
+                	for i:=counter to tai_string(hp).len-1 do
+                  	begin
+                      { it is an ascii character. }
+                    	if (ord(tai_string(hp).str[i])>31) and
+                         (ord(tai_string(hp).str[i])<128) and
+                         (tai_string(hp).str[i]<>'''') and
+                         (tai_string(hp).str[i]<>'\') then
+                      	begin
+                        	if not(quoted) then
+                          	begin
+                            	if i>counter then
+                              	AsmWrite(',');
+                            	AsmWrite('''');
+                          	end;
+                        	AsmWrite(tai_string(hp).str[i]);
+                        	quoted:=true;
+                      	end { if > 31 and < 128 and " }
+                    	else
+                      	begin
+                        	if quoted then
+                          	AsmWrite('''');
+                        	if i>counter then
+                          	AsmWrite(',');
+                        	quoted:=false;
+                        	AsmWrite(tostr(ord(tai_string(hp).str[i])));
+                      	end;
+                  	end; { end for i:=0 to... }
+                	if quoted then
+                  	AsmWrite('''');
                 end;
-								AsmLn;
+              	AsmLn;
               end;
             ait_label:
               begin
@@ -1343,7 +1411,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.36  2004-06-20 08:55:31  florian
+  Revision 1.37  2004-07-26 22:26:39  olle
+    * made target macos really work again after the dwarf merge
+
+  Revision 1.36  2004/06/20 08:55:31  florian
     * logs truncated
 
   Revision 1.35  2004/06/17 16:55:46  peter
