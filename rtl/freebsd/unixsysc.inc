@@ -635,7 +635,7 @@ function signal(signum:longint;Handler:signalhandler):signalhandler;
 var sa,osa : sigactionrec;
 
 begin
-     sa.handler.sh:=handler;
+     sa.sa_handler:=handler;
      FillChar(sa.sa_mask,sizeof(sigset),#0);
      sa.sa_flags := 0;
 {     if (sigintr and signum) =0 then
@@ -646,7 +646,7 @@ begin
      if ErrNo<>0 then
       signal:=NIL
      else
-      signal:=osa.handler.sh;
+      signal:=osa.sa_handler;
      LinuxError:=Errno;
 
 end;
@@ -785,7 +785,12 @@ End;
 
 {
   $Log$
-  Revision 1.5  2002-09-07 16:01:18  peter
+  Revision 1.6  2002-10-18 12:19:59  marco
+   * Fixes to get the generic *BSD RTL compiling again + fixes for thread
+     support. Still problems left in fexpand. (inoutres?) Therefore fixed
+     sysposix not yet commited
+
+  Revision 1.5  2002/09/07 16:01:18  peter
     * old logs removed and tabs fixed
 
   Revision 1.4  2002/05/06 09:35:09  marco

@@ -77,7 +77,7 @@ const
  * those in mcontext_t.
  }
 
-type sigset_t = array[0..15] of char;
+type sigset_t = array[0..15] of byte;
 
     PSigContextRec = ^SigContextRec;
     SigContextRec = record
@@ -152,7 +152,12 @@ type sigset_t = array[0..15] of char;
 
 {
   $Log$
-  Revision 1.4  2002-10-16 18:50:22  marco
+  Revision 1.5  2002-10-18 12:19:59  marco
+   * Fixes to get the generic *BSD RTL compiling again + fixes for thread
+     support. Still problems left in fexpand. (inoutres?) Therefore fixed
+     sysposix not yet commited
+
+  Revision 1.4  2002/10/16 18:50:22  marco
    * sigset back at 16 bytes
 
   Revision 1.3  2002/09/07 16:01:17  peter

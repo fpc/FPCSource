@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) objpas strings \
       sysutils typinfo math varutils \
       cpu mmx charset ucomplex getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
-      video mouse keyboard console serial variants types
+      video mouse keyboard console serial variants types systhrds
 rsts=math varutils typinfo
 
 [require]

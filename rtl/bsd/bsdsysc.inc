@@ -467,6 +467,11 @@ begin
   Sys_mmap:=do_syscall(syscall_nr_mmap,Adr,Len,Prot,Flags,fdes,off,0);
 end;
 
+Function Sys_munmap(adr:longint;len:size_t):longint; [public, alias :'FPC_SYSC_MUNMAP'];
+begin
+  Sys_munmap:=do_syscall(syscall_nr_munmap,longint(Adr),Len);
+end;
+
 Function sbrk(size : longint) : Longint;
 begin
   sbrk:=Sys_mmap(0,Size,3,MAP_PRIVATE+MAP_ANONYMOUS,-1,0);
@@ -526,7 +531,12 @@ end;
 
 {
  $Log$
- Revision 1.4  2002-10-16 18:44:18  marco
+ Revision 1.5  2002-10-18 12:19:58  marco
+  * Fixes to get the generic *BSD RTL compiling again + fixes for thread
+    support. Still problems left in fexpand. (inoutres?) Therefore fixed
+    sysposix not yet commited
+
+ Revision 1.4  2002/10/16 18:44:18  marco
   * Lseek and ftruncate 64-bit fix
 
  Revision 1.3  2002/09/07 16:01:17  peter

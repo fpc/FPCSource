@@ -61,7 +61,13 @@ end;
 
 {$i typefile.inc}
 
-
+procedure SysInitStdIO;
+begin
+  OpenStdIO(Input,fmInput,StdInputHandle);
+  OpenStdIO(Output,fmOutput,StdOutputHandle);
+  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+end;
 
 Begin
   IsConsole := TRUE;
@@ -71,14 +77,11 @@ Begin
   InstallSignals;
 { Setup heap }
   InitHeap;
-  InitExceptions;
+  SysInitExceptions;
 { Arguments }
   SetupCmdLine;
 { Setup stdin, stdout and stderr }
-  OpenStdIO(Input,fmInput,StdInputHandle);
-  OpenStdIO(Output,fmOutput,StdOutputHandle);
-  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-  OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+  SysInitStdIO;
 { Reset IO Error }
   InOutRes:=0;
 {$ifdef HASVARIANT}
@@ -88,7 +91,12 @@ End.
 
 {
   $Log$
-  Revision 1.3  2002-10-13 09:25:39  florian
+  Revision 1.4  2002-10-18 12:19:58  marco
+   * Fixes to get the generic *BSD RTL compiling again + fixes for thread
+     support. Still problems left in fexpand. (inoutres?) Therefore fixed
+     sysposix not yet commited
+
+  Revision 1.3  2002/10/13 09:25:39  florian
     + call to initvariantmanager inserted
 
   Revision 1.2  2002/09/07 16:01:17  peter
