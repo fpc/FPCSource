@@ -44,7 +44,7 @@ unit cgobj;
        cclasses,
        cpubase,cpuinfo,cgbase,
        aasmbase,aasmtai,aasmcpu,
-       symconst,symbase,symtype,symdef,symtable
+       symconst,symbase,symtype,symdef,symtable,rgobj
        ;
 
     type
@@ -75,9 +75,9 @@ unit cgobj;
           {# Gets a register suitable to do integer operations on.}
           function getaddressregister(list:Taasmoutput):Tregister;virtual;abstract;
           function getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
-          function getmmxregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
           function getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
-          function getabtregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
+          function getflagregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
+          function getabtintregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;abstract;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
           procedure ungetregister(list:Taasmoutput;r:Tregister);virtual;abstract;
@@ -1692,7 +1692,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.128  2003-10-10 17:48:13  peter
+  Revision 1.129  2003-10-11 16:06:42  florian
+    * fixed some MMX<->SSE
+    * started to fix ppc, needs an overhaul
+    + stabs info improve for spilling, not sure if it works correctly/completly
+    - MMX_SUPPORT removed from Makefile.fpc
+
+  Revision 1.128  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

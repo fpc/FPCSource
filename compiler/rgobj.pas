@@ -204,6 +204,8 @@ unit rgobj;
         function  spill_registers(list:Taasmoutput;headertai:tai;const regs_to_spill:string):boolean;
         {# Adds an interference edge.}
         procedure add_edge(u,v:Tsuperregister);
+
+        unusedregs,usableregs:Tsuperregisterset;
       protected
         regtype:Tregistertype;
         { default subregister used }
@@ -215,7 +217,6 @@ unit rgobj;
         {# Highest register allocated until now.}
         maxreg:Tsuperregister;
         usable_registers:string[32];
-        unusedregs,usableregs:Tsuperregisterset;
         countusableregs:byte; {old regvars}
         cpu_registers:byte;
         igraph:Tinterferencegraph;
@@ -1538,7 +1539,13 @@ end.
 
 {
   $Log$
-  Revision 1.83  2003-10-10 17:48:14  peter
+  Revision 1.84  2003-10-11 16:06:42  florian
+    * fixed some MMX<->SSE
+    * started to fix ppc, needs an overhaul
+    + stabs info improve for spilling, not sure if it works correctly/completly
+    - MMX_SUPPORT removed from Makefile.fpc
+
+  Revision 1.83  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

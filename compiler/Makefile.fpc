@@ -144,12 +144,12 @@ override LOCALDEF+=-d$(PPC_TARGET) -dGDB -dBROWSERLOG
 
 # i386 specific
 ifeq ($(PPC_TARGET),i386)
-override LOCALDEF+=-dSUPPORT_MMX -Fux86
+override LOCALDEF+=-Fux86
 endif
 
 # x86_64 specific
 ifeq ($(PPC_TARGET),x86_64)
-override LOCALDEF+=-dSUPPORT_MMX -Fux86 -dNOOPT
+override LOCALDEF+=-Fux86 -dNOOPT
 endif
 
 # PowerPC specific

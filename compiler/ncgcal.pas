@@ -466,7 +466,7 @@ implementation
 {$ifdef x86}
                 tcgx86(cg).inc_fpu_stack;
 {$else x86}
-                hregister := cg.getfputregister(exprasmlist,location.size);
+                hregister := cg.getregister(exprasmlist,location.size);
                 cg.a_loadfpu_reg_reg(exprasmlist,location.size,location.register,hregister);
                 location.register := hregister;
 {$endif x86}
@@ -737,7 +737,7 @@ implementation
 
                    { release self }
                    cg.ungetregister(exprasmlist,vmtreg);
-                   pvreg:=cg.getabtregister(exprasmlist,OS_ADDR);
+                   pvreg:=cg.getabtintregister(exprasmlist,OS_ADDR);
                    reference_reset_base(href,vmtreg,
                       tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber));
                    cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,pvreg);
@@ -754,7 +754,7 @@ implementation
                    freeparas;
 
                    cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
-                   cg.allocexplicitregisters(exprasmlist,R_MMXREGISTER,paramanager.get_volatile_registers_mmx(procdefinition.proccalloption));
+                   cg.allocexplicitregisters(exprasmlist,R_SSEREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
 
                    { call method }
                    cg.a_call_reg(exprasmlist,pvreg);
@@ -770,7 +770,7 @@ implementation
                   freeparas;
 
                   cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
-                  cg.allocexplicitregisters(exprasmlist,R_MMXREGISTER,paramanager.get_volatile_registers_mmx(procdefinition.proccalloption));
+                  cg.allocexplicitregisters(exprasmlist,R_SSEREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
 
                   { Calling interrupt from the same code requires some
                     extra code }
@@ -785,7 +785,7 @@ implementation
               secondpass(right);
 
               location_release(exprasmlist,right.location);
-              pvreg:=cg.getabtregister(exprasmlist,OS_ADDR);
+              pvreg:=cg.getabtintregister(exprasmlist,OS_ADDR);
               { Only load OS_ADDR from the reference }
               if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,right.location.reference,pvreg)
@@ -805,7 +805,7 @@ implementation
               freeparas;
 
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
-              cg.allocexplicitregisters(exprasmlist,R_MMXREGISTER,paramanager.get_volatile_registers_mmx(procdefinition.proccalloption));
+              cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
 
               { Calling interrupt from the same code requires some
                 extra code }
@@ -857,7 +857,7 @@ implementation
                  end;
              end;
            end;
-         cg.deallocexplicitregisters(exprasmlist,R_MMXREGISTER,paramanager.get_volatile_registers_mmx(procdefinition.proccalloption));
+         cg.deallocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
          cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_free);
 
          { handle function results }
@@ -1104,7 +1104,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.129  2003-10-10 17:48:13  peter
+  Revision 1.130  2003-10-11 16:06:42  florian
+    * fixed some MMX<->SSE
+    * started to fix ppc, needs an overhaul
+    + stabs info improve for spilling, not sure if it works correctly/completly
+    - MMX_SUPPORT removed from Makefile.fpc
+
+  Revision 1.129  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

@@ -359,8 +359,27 @@ unit cgcpu;
            OP_MUL:
              begin
                { the arm doesn't allow that rd and rm are the same }
-               rg.add_edge(dst,src2);
-               list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1));
+               if dst=src2 then
+                 begin
+                   if dst<>src1 then
+                     begin
+                       rg.add_edge(dst,src1);
+                       list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src1,src2));
+                     end
+                   else
+                     begin
+                       tmpreg:=rg.getregisterint(list,size);
+                       a_load_reg_reg(list,size,size,src2,dst);
+                       rg.add_edge(dst,tmpreg);
+                       rg.ungetregister(list,tmpreg);
+                       list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,tmpreg,src1));
+                     end;
+                 end
+               else
+                 begin
+                   rg.add_edge(dst,src2);
+                   list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1));
+                 end;
              end;
            else
              list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1));
@@ -456,6 +475,7 @@ unit cgcpu;
            ) then
           begin
             { check consts distance }
+            { !!!! }
 
             { create consts entry }
             objectlibrary.getdatalabel(l);
@@ -477,7 +497,6 @@ unit cgcpu;
                 if ref.index<>NR_NO then
                   begin
                     list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
-                    rg.ungetregister(list,ref.base);
                     ref.base:=tmpreg;
                   end
                 else
@@ -492,6 +511,41 @@ unit cgcpu;
               ref.base:=tmpreg;
             ref.offset:=0;
             ref.symbol:=nil;
+          end;
+
+        { floating point operations have only limited references
+          we expect here, that a base is already set }
+        if (op in [A_LDF,A_STF]) and (ref.index<>NR_NO) then
+          begin
+            if ref.shiftmode<>SM_none then
+              internalerror(200309121);
+            if tmpreg<>NR_NO then
+              begin
+                if ref.base=tmpreg then
+                  begin
+                    if ref.signindex<0 then
+                      list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,tmpreg,ref.index))
+                    else
+                      list.concat(taicpu.op_reg_reg_reg(A_SUB,tmpreg,tmpreg,ref.index));
+                    ref.index:=NR_NO;
+                  end
+                else
+                  begin
+                    if ref.signindex<0 then
+                      list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,tmpreg,ref.base))
+                    else
+                      list.concat(taicpu.op_reg_reg_reg(A_SUB,tmpreg,tmpreg,ref.base));
+                    ref.index:=NR_NO;
+                    ref.index:=tmpreg;
+                  end;
+              end
+            else
+              begin
+                tmpreg:=rg.getregisterint(list,OS_INT);
+                list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,ref.index));
+                ref.base:=tmpreg;
+                ref.index:=NR_NO;
+              end;
           end;
         list.concat(setoppostfix(taicpu.op_reg_ref(op,reg,ref),oppostfix));
         if (tmpreg<>NR_NO) then
@@ -918,18 +972,14 @@ unit cgcpu;
           begin
             destreg:=rg.getregisterint(list,OS_ADDR);
             a_loadaddr_ref_reg(list,dest,destreg);
+            if delsource then
+              reference_release(list,srcref);
             srcreg:=rg.getregisterint(list,OS_ADDR);
             if loadref then
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,source,srcreg)
             else
-              begin
-                a_loadaddr_ref_reg(list,source,srcreg);
-                if delsource then
-                  begin
-                    srcref:=source;
-                    reference_release(list,srcref);
-                  end;
-              end;
+              a_loadaddr_ref_reg(list,source,srcreg);
+            srcref.
 
             countreg:=rg.getregisterint(list,OS_32);
 
@@ -1118,7 +1168,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2003-09-11 11:55:00  florian
+  Revision 1.20  2003-10-11 16:06:42  florian
+    * fixed some MMX<->SSE
+    * started to fix ppc, needs an overhaul
+    + stabs info improve for spilling, not sure if it works correctly/completly
+    - MMX_SUPPORT removed from Makefile.fpc
+
+  Revision 1.19  2003/09/11 11:55:00  florian
     * improved arm code generation
     * move some protected and private field around
     * the temp. register for register parameters/arguments are now released

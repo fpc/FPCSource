@@ -152,7 +152,7 @@ implementation
                        paramanager.allocparaloc(exprasmlist,paraloc1);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paraloc1);
                        paramanager.freeparaloc(exprasmlist,paraloc1);
-                       r:=cg.getabtregister(exprasmlist,OS_ADDR);
+                       r:=cg.getabtintregister(exprasmlist,OS_ADDR);
                        cg.ungetregister(exprasmlist,r);
                        cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,hregister,r);
                        cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -884,7 +884,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  2003-10-10 17:48:13  peter
+  Revision 1.94  2003-10-11 16:06:42  florian
+    * fixed some MMX<->SSE
+    * started to fix ppc, needs an overhaul
+    + stabs info improve for spilling, not sure if it works correctly/completly
+    - MMX_SUPPORT removed from Makefile.fpc
+
+  Revision 1.93  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

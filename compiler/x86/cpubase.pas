@@ -146,10 +146,15 @@ uses
       RS_MM15       = $0f;
 
       { Float Super register first and last }
-      first_mmx_supreg    = $00;
-      last_mmx_supreg     = $07;
-      first_mmx_imreg     = $08;
-      last_mmx_imreg      = $fe;
+      first_sse_supreg    = $00;
+{$ifdef x86_64}
+      last_sse_supreg     = $0f;
+      first_sse_imreg     = $10;
+{$else x86_64}
+      last_sse_supreg     = $07;
+      first_sse_imreg     = $08;
+{$endif x86_64}
+      last_sse_imreg      = $fe;
 
       { The subregister that specifies the entire register }
 {$ifdef x86_64}
@@ -563,7 +568,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2003-10-09 21:31:37  daniel
+  Revision 1.25  2003-10-11 16:06:42  florian
+    * fixed some MMX<->SSE
+    * started to fix ppc, needs an overhaul
+    + stabs info improve for spilling, not sure if it works correctly/completly
+    - MMX_SUPPORT removed from Makefile.fpc
+
+  Revision 1.24  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.23  2003/10/03 22:00:33  peter

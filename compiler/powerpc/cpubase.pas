@@ -130,10 +130,10 @@ uses
       last_fpu_imreg      = $fe;
 
       { MM Super register first and last }
-      first_mmx_supreg    = RS_INVALID;
-      last_mmx_supreg     = RS_INVALID;
-      first_mmx_imreg     = RS_INVALID;
-      last_mmx_imreg      = RS_INVALID;
+      first_mm_supreg    = RS_INVALID;
+      last_mm_supreg     = RS_INVALID;
+      first_mm_imreg     = RS_INVALID;
+      last_mm_imreg      = RS_INVALID;
 
 {$warning TODO Calculate bsstart}
       regnumber_count_bsstart = 64;
@@ -725,7 +725,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2003-10-08 14:11:36  mazen
+  Revision 1.71  2003-10-11 16:06:42  florian
+    * fixed some MMX<->SSE
+    * started to fix ppc, needs an overhaul
+    + stabs info improve for spilling, not sure if it works correctly/completly
+    - MMX_SUPPORT removed from Makefile.fpc
+
+  Revision 1.70  2003/10/08 14:11:36  mazen
   + Alignement field added to TParaLocation (=4 as 32 bits archs)
 
   Revision 1.69  2003/10/01 20:34:49  peter

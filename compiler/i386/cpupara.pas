@@ -47,7 +47,7 @@ unit cpupara;
           function get_para_align(calloption : tproccalloption):byte;override;
           function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
-          function get_volatile_registers_mmx(calloption : tproccalloption):tsuperregisterset;override;
+          function get_volatile_registers_mm(calloption : tproccalloption):tsuperregisterset;override;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tlinkedlist):longint;override;
@@ -192,9 +192,9 @@ unit cpupara;
       end;
 
 
-    function ti386paramanager.get_volatile_registers_mmx(calloption : tproccalloption):tsuperregisterset;
+    function ti386paramanager.get_volatile_registers_mm(calloption : tproccalloption):tsuperregisterset;
       begin
-        result:=[first_mmx_supreg..last_mmx_supreg];
+        result:=[first_sse_supreg..last_sse_supreg];
       end;
 
 
@@ -446,7 +446,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2003-10-10 17:48:14  peter
+  Revision 1.40  2003-10-11 16:06:42  florian
+    * fixed some MMX<->SSE
+    * started to fix ppc, needs an overhaul
+    + stabs info improve for spilling, not sure if it works correctly/completly
+    - MMX_SUPPORT removed from Makefile.fpc
+
+  Revision 1.39  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

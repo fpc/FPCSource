@@ -176,6 +176,9 @@ interface
 
 
     const
+       { alias for easier understanding }
+       R_SSEREGISTER = R_MMREGISTER;
+
        { Invalid register number }
        RS_INVALID    = $ff;
 
@@ -371,7 +374,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2003-10-09 21:31:37  daniel
+  Revision 1.69  2003-10-11 16:06:42  florian
+    * fixed some MMX<->SSE
+    * started to fix ppc, needs an overhaul
+    + stabs info improve for spilling, not sure if it works correctly/completly
+    - MMX_SUPPORT removed from Makefile.fpc
+
+  Revision 1.68  2003/10/09 21:31:37  daniel
     * Register allocator splitted, ans abstract now
 
   Revision 1.67  2003/10/01 20:34:48  peter

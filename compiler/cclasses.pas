@@ -81,7 +81,7 @@ interface
           { inserts an Item before Loc }
           procedure InsertBefore(Item,Loc : TLinkedListItem);
           { inserts an Item after Loc }
-          procedure InsertAfter(Item,Loc : TLinkedListItem);
+          procedure InsertAfter(Item,Loc : TLinkedListItem);virtual;
           { concats an Item }
           procedure Concat(Item:TLinkedListItem);
           { deletes an Item }
@@ -1884,7 +1884,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2003-09-29 20:52:50  peter
+  Revision 1.26  2003-10-11 16:06:42  florian
+    * fixed some MMX<->SSE
+    * started to fix ppc, needs an overhaul
+    + stabs info improve for spilling, not sure if it works correctly/completly
+    - MMX_SUPPORT removed from Makefile.fpc
+
+  Revision 1.25  2003/09/29 20:52:50  peter
     * insertbefore added
 
   Revision 1.24  2003/09/24 13:02:10  marco

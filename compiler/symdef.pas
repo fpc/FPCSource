@@ -3608,7 +3608,7 @@ implementation
            begin
              usedintregisters:=paramanager.get_volatile_registers_int(pocall_default);
              usedfpuregisters:=paramanager.get_volatile_registers_fpu(pocall_default);
-             usedmmxregisters:=paramanager.get_volatile_registers_mmx(pocall_default);
+             usedmmxregisters:=paramanager.get_volatile_registers_mm(pocall_default);
            end;
 
          ppufile.putnormalset(usedintregisters);
@@ -5924,7 +5924,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.176  2003-10-10 17:48:14  peter
+  Revision 1.177  2003-10-11 16:06:42  florian
+    * fixed some MMX<->SSE
+    * started to fix ppc, needs an overhaul
+    + stabs info improve for spilling, not sure if it works correctly/completly
+    - MMX_SUPPORT removed from Makefile.fpc
+
+  Revision 1.176  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

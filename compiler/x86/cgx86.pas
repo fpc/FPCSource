@@ -37,7 +37,7 @@ unit cgx86;
     type
       tcgx86 = class(tcg)
         rgint,
-        rgmmx   : trgcpu;
+        rgmm   : trgcpu;
         rgfpu   : Trgx86fpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
@@ -45,9 +45,9 @@ unit cgx86;
         function  getintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         function  getaddressregister(list:Taasmoutput):Tregister;override;
         function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
-        function  getmmxregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
+        function  getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
-        function  getabtregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
+        function  getabtintregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
         procedure ungetregister(list:Taasmoutput;r:Tregister);override;
         procedure ungetreference(list:Taasmoutput;const r:Treference);override;
         procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tsuperregisterset);override;
@@ -178,7 +178,7 @@ unit cgx86;
     procedure Tcgx86.init_register_allocators;
       begin
         rgint:=trgcpu.create(6,R_INTREGISTER,R_SUBWHOLE,#0#1#2#3#4#5,first_int_imreg,[RS_EBP]);
-        rgmmx:=trgcpu.create(8,R_MMXREGISTER,R_SUBNONE,#0#1#2#3#4#5#6#7,first_mmx_imreg,[]);
+        rgmm:=trgcpu.create(8,R_MMREGISTER,R_SUBNONE,#0#1#2#3#4#5#6#7,first_sse_imreg,[]);
         rgfpu:=Trgx86fpu.create;
       end;
 
@@ -186,7 +186,7 @@ unit cgx86;
     procedure Tcgx86.done_register_allocators;
       begin
         rgint.free;
-        rgmmx.free;
+        rgmm.free;
         rgfpu.free;
       end;
 
@@ -205,13 +205,13 @@ unit cgx86;
 
     function Tcgx86.getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;
       begin
-        result:=rgfpu.getregisterfpu(list);
+        result:=trgx86fpu(rgfpu).getregisterfpu(list);
       end;
 
 
-    function Tcgx86.getmmxregister(list:Taasmoutput;size:Tcgsize):Tregister;
+    function Tcgx86.getmmregister(list:Taasmoutput;size:Tcgsize):Tregister;
       begin
-        result:=rgmmx.getregister(list,R_SUBNONE);
+        result:=rgmm.getregister(list,R_SUBNONE);
       end;
 
 
@@ -220,15 +220,15 @@ unit cgx86;
         case getregtype(r) of
           R_INTREGISTER :
             rgint.getexplicitregister(list,r);
-          R_MMXREGISTER :
-            rgmmx.getexplicitregister(list,r);
+          R_SSEREGISTER :
+            rgmm.getexplicitregister(list,r);
           else
             internalerror(200310091);
         end;
       end;
 
 
-    function tcgx86.getabtregister(list:Taasmoutput;size:Tcgsize):Tregister;
+    function tcgx86.getabtintregister(list:Taasmoutput;size:Tcgsize):Tregister;
       begin
         result:=rgint.getabtregister(list,cgsize2subreg(size));
       end;
@@ -241,8 +241,8 @@ unit cgx86;
             rgint.ungetregister(list,r);
           R_FPUREGISTER :
             rgfpu.ungetregisterfpu(list,r);
-          R_MMXREGISTER :
-            rgmmx.ungetregister(list,r);
+          R_SSEREGISTER :
+            rgmm.ungetregister(list,r);
           else
             internalerror(200310091);
         end;
@@ -263,8 +263,8 @@ unit cgx86;
         case rt of
           R_INTREGISTER :
             rgint.allocexplicitregisters(list,r);
-          R_MMXREGISTER :
-            rgmmx.allocexplicitregisters(list,r);
+          R_SSEREGISTER :
+            rgmm.allocexplicitregisters(list,r);
           else
             internalerror(200310092);
         end;
@@ -276,8 +276,8 @@ unit cgx86;
         case rt of
           R_INTREGISTER :
             rgint.deallocexplicitregisters(list,r);
-          R_MMXREGISTER :
-            rgmmx.deallocexplicitregisters(list,r);
+          R_SSEREGISTER :
+            rgmm.deallocexplicitregisters(list,r);
           else
             internalerror(200310093);
         end;
@@ -308,9 +308,9 @@ unit cgx86;
       { Int }
       rgint.do_register_allocation(list,headertai);
       list.translate_registers(R_INTREGISTER,rgint.colour);
-      { MMX }
-      rgmmx.do_register_allocation(list,headertai);
-      list.translate_registers(R_MMXREGISTER,rgmmx.colour);
+      { SSE }
+      rgmm.do_register_allocation(list,headertai);
+      list.translate_registers(R_MMREGISTER,rgmm.colour);
     end;
 
 
@@ -1735,7 +1735,13 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.76  2003-10-10 17:48:14  peter
+  Revision 1.77  2003-10-11 16:06:42  florian
+    * fixed some MMX<->SSE
+    * started to fix ppc, needs an overhaul
+    + stabs info improve for spilling, not sure if it works correctly/completly
+    - MMX_SUPPORT removed from Makefile.fpc
+
+  Revision 1.76  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

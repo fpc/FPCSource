@@ -30,7 +30,7 @@ unit cgcpu;
        symtype,
        cgbase,cgobj,
        aasmbase,aasmcpu,aasmtai,
-       cpubase,cpuinfo,node,cg64f32;
+       cpubase,cpuinfo,node,cg64f32,rgcpu;
 
     type
       tcgppc = class(tcg)
@@ -94,8 +94,8 @@ unit cgcpu;
         { that's the case, we can use rlwinm to do an AND operation        }
         function get_rlwi_const(a: aword; var l1, l2: longint): boolean;
 
-        procedure g_save_standard_registers(list : taasmoutput; usedinproc : Tsuperregisterset);override;
-        procedure g_restore_standard_registers(list : taasmoutput; usedinproc : Tsuperregisterset);override;
+        procedure g_save_standard_registers(list:Taasmoutput);override;
+        procedure g_restore_standard_registers(list:Taasmoutput);override;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_restore_all_registers(list : taasmoutput;accused,acchiused:boolean);override;
 
@@ -156,22 +156,27 @@ const
     uses
        globtype,globals,verbose,systems,cutils,
        symconst,symdef,symsym,
-       rgobj,tgobj,cpupi,rgcpu,procinfo;
+       rgobj,tgobj,cpupi,procinfo;
 
 
     procedure tcgppc.init_register_allocators;
       begin
-        rg := trgcpu.create(29,chr(ord(RS_R3))+chr(ord(RS_R4))+chr(ord(RS_R5))+chr(ord(RS_R6))+chr(ord(RS_R7))+chr(ord(RS_R8))+
+        rgfpu:=trgcpu.create(29,R_INTREGISTER,R_SUBWHOLE,chr(ord(RS_R3))+chr(ord(RS_R4))+chr(ord(RS_R5))+chr(ord(RS_R6))+chr(ord(RS_R7))+chr(ord(RS_R8))+
            chr(ord(RS_R9))+chr(ord(RS_R10))+chr(ord(RS_R11))+chr(ord(RS_R12))+chr(ord(RS_R31))+chr(ord(RS_R30))+chr(ord(RS_R29))+
            chr(ord(RS_R28))+chr(ord(RS_R27))+chr(ord(RS_R26))+chr(ord(RS_R25))+chr(ord(RS_R24))+chr(ord(RS_R23))+chr(ord(RS_R22))+
            chr(ord(RS_R21))+chr(ord(RS_R20))+chr(ord(RS_R19))+chr(ord(RS_R18))+chr(ord(RS_R17))+chr(ord(RS_R16))+chr(ord(RS_R15))+
-           chr(ord(RS_R14))+chr(ord(RS_R13)));
+           chr(ord(RS_R14))+chr(ord(RS_R13)),first_int_imreg,[]);
+        {$warning FIX ME}
+        rgfpu:=trgcpu.create(6,R_INTREGISTER,R_SUBWHOLE,#0#1#2#3#4#5,first_fpu_imreg,[]);
+        rgmm:=trgcpu.create(0,R_MMXREGISTER,R_SUBNONE,'',first_mm_imreg,[]);
       end;
 
 
     procedure tcgppc.done_register_allocators;
       begin
-        rg.free;
+        rgint.free;
+        rgmm.free;
+        rgfpu.free;
       end;
 
 
@@ -192,8 +197,6 @@ const
           else
             internalerror(2002081101);
         end;
-        if locpara.sp_fixup<>0 then
-          internalerror(2002081102);
       end;
 
 
@@ -212,10 +215,10 @@ const
                reference_reset(ref);
                ref.base:=locpara.reference.index;
                ref.offset:=locpara.reference.offset;
-               tmpreg := rg.getregisterint(list,size);
+               tmpreg := rgint.getregister(list,R_SUBWHOLE);
                a_load_ref_reg(list,size,size,r,tmpreg);
                a_load_reg_ref(list,size,size,tmpreg,ref);
-               rg.ungetregisterint(list,tmpreg);
+               rgint.ungetregister(list,tmpreg);
             end;
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
             case size of
@@ -227,8 +230,6 @@ const
           else
             internalerror(2002081103);
         end;
-        if locpara.sp_fixup<>0 then
-          internalerror(2002081104);
       end;
 
 
@@ -246,10 +247,10 @@ const
                 reference_reset(ref);
                 ref.base := locpara.reference.index;
                 ref.offset := locpara.reference.offset;
-                tmpreg := rg.getregisterint(list,OS_ADDR);
+                tmpreg := rgint.getregister(list,R_SUBWHOLE);
                 a_loadaddr_ref_reg(list,r,tmpreg);
                 a_load_reg_ref(list,OS_ADDR,OS_ADDR,tmpreg,ref);
-                rg.ungetregisterint(list,tmpreg);
+                rgint.ungetregister(list,tmpreg);
               end;
             else
               internalerror(2002080701);
@@ -285,14 +286,14 @@ const
             {Generate instruction to load the procedure address from
             the transition vector.}
             //TODO: Support cross-TOC calls.
-            tmpreg := rg.getregisterint(list,OS_INT);
+            tmpreg := rgint.getregister(list,R_SUBWHOLE);
             reference_reset(tmpref);
             tmpref.offset := 0;
             //tmpref.symaddr := refs_full;
             tmpref.base:= reg;
             list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
             list.concat(taicpu.op_reg(A_MTCTR,tmpreg));
-            rg.ungetregisterint(list,tmpreg);
+            rgint.ungetregister(list,tmpreg);
           end
         else
           list.concat(taicpu.op_reg(A_MTCTR,reg));
@@ -353,7 +354,7 @@ const
          op := storeinstr[tcgsize2unsigned[tosize],ref2.index<>NR_NO,false];
          a_load_store(list,op,reg,ref2);
          if freereg then
-           rg.ungetregisterint(list,ref2.base);
+           rgint.ungetregister(list,ref2.base);
        End;
 
 
@@ -387,7 +388,7 @@ const
           op := loadinstr[fromsize,ref2.index<>NR_NO,false];
           a_load_store(list,op,reg,ref2);
           if freereg then
-            rg.ungetregisterint(list,ref2.base);
+            rgint.ungetregister(list,ref2.base);
           { sign extend shortint if necessary, since there is no }
           { load instruction that does that automatically (JM)   }
           if fromsize = OS_S8 then
@@ -422,7 +423,7 @@ const
                else internalerror(2002090901);
              end;
              list.concat(instr);
-             rg.add_move_instruction(instr);
+             rgint.add_move_instruction(instr);
            end;
        end;
 
@@ -462,7 +463,7 @@ const
          op := fpuloadinstr[size,ref2.index <> NR_NO,false];
          a_load_store(list,op,reg,ref2);
          if freereg then
-           rg.ungetregisterint(list,ref2.base);
+           rgint.ungetregister(list,ref2.base);
        end;
 
 
@@ -486,7 +487,7 @@ const
          op := fpustoreinstr[size,ref2.index <> NR_NO,false];
          a_load_store(list,op,reg,ref2);
          if freereg then
-           rg.ungetregisterint(list,ref2.base);
+           rgint.ungetregister(list,ref2.base);
        end;
 
 
@@ -642,11 +643,11 @@ const
             if gotrlwi and
                (src = dst) then
               begin
-                scratchreg := rg.getregisterint(list,OS_INT);
+                scratchreg := rgint.getregister(list,R_SUBWHOLE);
                 list.concat(taicpu.op_reg_const(A_LI,scratchreg,-1));
                 list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,dst,
                   scratchreg,0,l1,l2));
-                rg.ungetregisterint(list,scratchreg);
+                rgint.ungetregister(list,scratchreg);
               end
             else
               do_lo_hi;
@@ -676,10 +677,10 @@ const
         { perform the operation                                        }
         if useReg then
           begin
-            scratchreg := rg.getregisterint(list,OS_INT);
+            scratchreg := rgint.getregister(list,R_SUBWHOLE);
             a_load_const_reg(list,OS_32,a,scratchreg);
             a_op_reg_reg_reg(list,op,OS_32,scratchreg,src,dst);
-            rg.ungetregisterint(list,scratchreg);
+            rgint.ungetregister(list,scratchreg);
           end;
       end;
 
@@ -724,20 +725,20 @@ const
               list.concat(taicpu.op_reg_reg_const(A_CMPWI,NR_CR0,reg,longint(a)))
             else
               begin
-                scratch_register := rg.getregisterint(list,OS_INT);
+                scratch_register := rgint.getregister(list,R_SUBWHOLE);
                 a_load_const_reg(list,OS_32,a,scratch_register);
                 list.concat(taicpu.op_reg_reg_reg(A_CMPW,NR_CR0,reg,scratch_register));
-                rg.ungetregisterint(list,scratch_register);
+                rgint.ungetregister(list,scratch_register);
               end
           else
             if (a <= $ffff) then
               list.concat(taicpu.op_reg_reg_const(A_CMPLWI,NR_CR0,reg,a))
             else
               begin
-                scratch_register := rg.getregisterint(list,OS_INT);
+                scratch_register := rgint.getregister(list,R_SUBWHOLE);
                 a_load_const_reg(list,OS_32,a,scratch_register);
                 list.concat(taicpu.op_reg_reg_reg(A_CMPLW,NR_CR0,reg,scratch_register));
-                rg.ungetregisterint(list,scratch_register);
+                rgint.ungetregister(list,scratch_register);
               end;
           a_jmp(list,A_BC,TOpCmp2AsmCond[cmp_op],0,l);
         end;
@@ -760,12 +761,12 @@ const
         end;
 
 
-     procedure tcgppc.g_save_standard_registers(list : taasmoutput; usedinproc : Tsuperregisterset);
+     procedure tcgppc.g_save_standard_registers(list:Taasmoutput);
        begin
          {$warning FIX ME}
        end;
 
-     procedure tcgppc.g_restore_standard_registers(list : taasmoutput; usedinproc : Tsuperregisterset);
+     procedure tcgppc.g_restore_standard_registers(list:Taasmoutput);
        begin
          {$warning FIX ME}
        end;
@@ -933,7 +934,7 @@ const
           for regcounter:=RS_F14 to RS_F31 do
            begin
              regidx:=findreg_by_number(newreg(R_FPUREGISTER,regcounter,R_SUBWHOLE));
-            if regidx in rg.used_in_proc_other then
+            if regidx in rgfpu.used_in_proc then
               begin
                 usesfpr:= true;
                 firstregfpu:=regcounter;
@@ -945,7 +946,7 @@ const
         if not (po_assembler in current_procinfo.procdef.procoptions) then
           for regcounter2:=firstsaveintreg to RS_R31 do
             begin
-              if regcounter2 in rg.used_in_proc_int then
+              if regcounter2 in rgint.used_in_proc then
                 begin
                    usesgpr:=true;
                    firstreggpr:=regcounter2;
@@ -1029,7 +1030,7 @@ const
              for regcounter:=firstregfpu to RS_F31 do
               begin
                 regidx:=findreg_by_number(newreg(R_FPUREGISTER,regcounter,R_SUBWHOLE));
-                if regidx in rg.used_in_proc_other then
+                if regidx in rgfpu.used_in_proc then
                  begin
                     a_loadfpu_reg_ref(list,OS_F64,newreg(R_FPUREGISTER,regcounter,R_SUBNONE),href);
                     dec(href.offset,8);
@@ -1055,7 +1056,7 @@ const
             reference_reset_base(href,NR_R12,-4);
             for regcounter2:=firstsaveintreg to RS_R31 do
               begin
-                if regcounter2 in rg.used_in_proc_int then
+                if regcounter2 in rgint.used_in_proc then
                   begin
                      usesgpr:=true;
                      a_load_reg_ref(list,OS_INT,OS_INT,newreg(R_INTREGISTER,regcounter2,R_SUBNONE),href);
@@ -1150,7 +1151,7 @@ const
           for regcounter:=RS_F14 to RS_F31 do
            begin
              regidx:=findreg_by_number(newreg(R_FPUREGISTER,regcounter,R_SUBWHOLE));
-             if regidx in rg.used_in_proc_other then
+             if regidx in rgfpu.used_in_proc then
               begin
                  usesfpr:=true;
                  firstregfpu:=regcounter;
@@ -1162,7 +1163,7 @@ const
         if not (po_assembler in current_procinfo.procdef.procoptions) then
           for regcounter2:=firstsaveintreg to RS_R31 do
             begin
-              if regcounter2 in rg.used_in_proc_int then
+              if regcounter2 in rgint.used_in_proc then
                 begin
                   usesgpr:=true;
                   firstreggpr:=regcounter2;
@@ -1184,7 +1185,7 @@ const
                  for regcounter := firstregfpu to RS_F31 do
                   begin
                     regidx:=findreg_by_number(newreg(R_FPUREGISTER,regcounter,R_SUBWHOLE));
-                    if regidx in rg.used_in_proc_other then
+                    if regidx in rgfpu.used_in_proc then
                      begin
                        a_loadfpu_ref_reg(list,OS_F64,href,newreg(R_FPUREGISTER,regcounter,R_SUBNONE));
                        dec(href.offset,8);
@@ -1197,7 +1198,7 @@ const
 
             for regcounter2:=firstsaveintreg to RS_R31 do
               begin
-                if regcounter2 in rg.used_in_proc_int then
+                if regcounter2 in rgint.used_in_proc then
                   begin
                      usesgpr:=true;
                      a_load_ref_reg(list,OS_INT,OS_INT,href,newreg(R_INTREGISTER,regcounter2,R_SUBNONE));
@@ -1283,8 +1284,8 @@ const
       if not (po_assembler in current_procinfo.procdef.procoptions) then
         for regcounter:=RS_F14 to RS_F31 do
          begin
-             regidx:=findreg_by_number(newreg(R_FPUREGISTER,regcounter,R_SUBWHOLE));
-            if regidx in rg.used_in_proc_other then
+            regidx:=findreg_by_number(newreg(R_FPUREGISTER,regcounter,R_SUBWHOLE));
+            if regidx in tcgppc(cg).rgfpu.used_in_proc then
             begin
                usesfpr:=true;
                firstregfpu:=regcounter;
@@ -1295,7 +1296,7 @@ const
       if not (po_assembler in current_procinfo.procdef.procoptions) then
         for regcounter2:=firstsaveintreg to RS_R31 do
           begin
-            if regcounter2 in rg.used_in_proc_int then
+            if regcounter2 in tcgppc(cg).rgint.used_in_proc then
               begin
                  usesgpr:=true;
                  firstreggpr:=regcounter2;
@@ -1355,7 +1356,7 @@ const
         for regcounter:=RS_F14 to RS_F31 do
          begin
            regidx:=findreg_by_number(newreg(R_FPUREGISTER,regcounter,R_SUBWHOLE));
-            if regidx in rg.used_in_proc_other then
+            if regidx in tcgppc(cg).rgfpu.used_in_proc then
             begin
                usesfpr:=true;
                firstregfpu:=regcounter;
@@ -1367,7 +1368,7 @@ const
       if not (po_assembler in current_procinfo.procdef.procoptions) then
         for regcounter2:=RS_R13 to RS_R31 do
           begin
-            if regcounter2 in rg.used_in_proc_int then
+            if regcounter2 in tcgppc(cg).rgint.used_in_proc then
               begin
                  usesgpr:=true;
                  firstreggpr:=regcounter2;
@@ -1610,7 +1611,7 @@ const
                        ref2.base,tmpref));
                      if freereg then
                        begin
-                         rg.ungetregisterint(list,ref2.base);
+                         rgint.ungetregister(list,ref2.base);
                          freereg := false;
                        end;
                    end
@@ -1636,7 +1637,7 @@ const
                  (r <> ref2.base) then
            list.concat(taicpu.op_reg_reg(A_MR,r,ref2.base));
          if freereg then
-           rg.ungetregisterint(list,ref2.base);
+           rgint.ungetregister(list,ref2.base);
        end;
 
 { ************* concatcopy ************ }
@@ -1702,7 +1703,7 @@ const
         { load the address of source into src.base }
         if loadref then
           begin
-            src.base := rg.getregisterint(list,OS_ADDR);
+            src.base := rgint.getregister(list,R_SUBWHOLE);
             a_load_ref_reg(list,OS_32,OS_32,source,src.base);
             orgsrc := false;
           end
@@ -1711,7 +1712,7 @@ const
                 ((source.index <> NR_NO) and
                  ((source.offset + longint(len)) > high(smallint))) then
           begin
-            src.base := rg.getregisterint(list,OS_ADDR);
+            src.base := rgint.getregister(list,R_SUBWHOLE);
             a_loadaddr_ref_reg(list,source,src.base);
             orgsrc := false;
           end
@@ -1728,7 +1729,7 @@ const
            ((dest.index <> NR_NO) and
             ((dest.offset + longint(len)) > high(smallint))) then
           begin
-            dst.base := rg.getregisterint(list,OS_ADDR);
+            dst.base := rgint.getregister(list,R_SUBWHOLE);
             a_loadaddr_ref_reg(list,dest,dst.base);
             orgdst := false;
           end
@@ -1750,7 +1751,7 @@ const
             inc(src.offset,8);
             list.concat(taicpu.op_reg_reg_const(A_SUBI,src.base,src.base,8));
             list.concat(taicpu.op_reg_reg_const(A_SUBI,dst.base,dst.base,8));
-            countreg := rg.getregisterint(list,OS_INT);
+            countreg := rgint.getregister(list,R_SUBWHOLE);
             a_load_const_reg(list,OS_32,count,countreg);
             { explicitely allocate R_0 since it can be used safely here }
             { (for holding date that's being copied)                    }
@@ -1761,7 +1762,7 @@ const
             list.concat(taicpu.op_reg_ref(A_LFDU,NR_F0,src));
             list.concat(taicpu.op_reg_ref(A_STFDU,NR_F0,dst));
             a_jmp(list,A_BC,C_NE,0,lab);
-            rg.ungetregisterint(list,countreg);
+            rgint.ungetregister(list,countreg);
             a_reg_dealloc(list,NR_F0);
             len := len mod 8;
           end;
@@ -1803,7 +1804,7 @@ const
             inc(src.offset,4);
             list.concat(taicpu.op_reg_reg_const(A_SUBI,src.base,src.base,4));
             list.concat(taicpu.op_reg_reg_const(A_SUBI,dst.base,dst.base,4));
-            countreg := rg.getregisterint(list,OS_INT);
+            countreg := rgint.getregister(list,R_SUBWHOLE);
             a_load_const_reg(list,OS_32,count,countreg);
             { explicitely allocate R_0 since it can be used safely here }
             { (for holding date that's being copied)                    }
@@ -1814,7 +1815,7 @@ const
             list.concat(taicpu.op_reg_ref(A_LWZU,NR_R0,src));
             list.concat(taicpu.op_reg_ref(A_STWU,NR_R0,dst));
             a_jmp(list,A_BC,C_NE,0,lab);
-            rg.ungetregisterint(list,countreg);
+            rgint.ungetregister(list,countreg);
             a_reg_dealloc(list,NR_R0);
             len := len mod 4;
           end;
@@ -1858,9 +1859,9 @@ const
              reference_release(list,source);
          end
        else
-         rg.ungetregisterint(list,src.base);
+         rgint.ungetregister(list,src.base);
        if not orgdst then
-         rg.ungetregisterint(list,dst.base);
+         rgint.ungetregister(list,dst.base);
        if delsource then
          tg.ungetiftemp(list,source);
       end;
@@ -1912,7 +1913,7 @@ const
 
              a_label(list,ok);
              list.concat(Taicpu.op_reg_reg(A_SUB,S_L,r,rsp));
-             rg.ungetregisterint(list,r);
+             rgint.ungetregister(list,r);
              { now reload EDI }
              rg.getexplicitregisterint(list,NR_EDI);
              list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,r));
@@ -1977,7 +1978,7 @@ const
           S_W : list.concat(Taicpu.Op_none(A_MOVSW,S_NO));
           S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
         end;
-        rg.ungetregisterint(list,r);
+        rgint.ungetregister(list,r);
         r2.number:=NR_ESI;
         list.concat(Taicpu.op_reg(A_POP,S_L,r2));
         r2.number:=NR_ECX;
@@ -2053,13 +2054,13 @@ const
                  { otherwise it may be overwritten (and it's still used afterwards)    }
                  freeindex := false;
                  if (getsupreg(ref.index) >= first_int_supreg) and
-                    (getsupreg(ref.index) in rg.unusedregsint) then
+                    (getsupreg(ref.index) in rgint.unusedregs) then
                    begin
-                     rg.getexplicitregisterint(list,ref.index);
+                     rgint.getexplicitregister(list,ref.index);
                      orgindex := ref.index;
                      freeindex := true;
                    end;
-                 tmpreg := rg.getregisterint(list,OS_ADDR);
+                 tmpreg := rgint.getregister(list,R_SUBWHOLE);
                  if not assigned(ref.symbol) and
                     (cardinal(ref.offset-low(smallint)) <=
                       high(smallint)-low(smallint)) then
@@ -2076,7 +2077,7 @@ const
                    end;
                  ref.base := tmpreg;
                  if freeindex then
-                   rg.ungetregisterint(list,orgindex);
+                   rgint.ungetregister(list,orgindex);
                end
            end
          else
@@ -2170,7 +2171,7 @@ const
             largeOffset:= (cardinal(ref.offset-low(smallint)) >
                   high(smallint)-low(smallint));
 
-            tmpreg := rg.getregisterint(list,OS_ADDR);
+            tmpreg := rgint.getregister(list,R_SUBWHOLE);
             tmpregUsed:= false;
 
             if assigned(ref.symbol) then
@@ -2221,7 +2222,7 @@ const
                (cardinal(ref.offset-low(smallint)) >
                 high(smallint)-low(smallint)) then
               begin
-                tmpreg := rg.getregisterint(list,OS_ADDR);
+                tmpreg := rgint.getregister(list,R_SUBWHOLE);
                 reference_reset(tmpref);
                 tmpref.symbol := ref.symbol;
                 tmpref.offset := ref.offset;
@@ -2240,7 +2241,7 @@ const
           end;
 
         if (tmpreg <> NR_NO) then
-          rg.ungetregisterint(list,tmpreg);
+          rgint.ungetregister(list,tmpreg);
       end;
 
 
@@ -2334,22 +2335,22 @@ const
                     end
                   else if ((value shr 32) = 0) then
                     begin
-                      tmpreg := rg.getregisterint(list,OS_32);
+                      tmpreg := tcgppc(cg).rgint.getregister(list,R_SUBWHOLE);
                       cg.a_load_const_reg(list,OS_32,cardinal(value),tmpreg);
                       list.concat(taicpu.op_reg_reg_reg(ops[issub,2],
                         regdst.reglo,regsrc.reglo,tmpreg));
-                      rg.ungetregisterint(list,tmpreg);
+                      tcgppc(cg).rgint.ungetregister(list,tmpreg);
                       list.concat(taicpu.op_reg_reg(ops[issub,3],
                         regdst.reghi,regsrc.reghi));
                     end
                   else
                     begin
-                      tmpreg64.reglo := rg.getregisterint(list,OS_32);
-                      tmpreg64.reghi := rg.getregisterint(list,OS_32);
+                      tmpreg64.reglo := tcgppc(cg).rgint.getregister(list,R_SUBWHOLE);
+                      tmpreg64.reghi := tcgppc(cg).rgint.getregister(list,R_SUBWHOLE);
                       a_load64_const_reg(list,value,tmpreg64);
                       a_op64_reg_reg_reg(list,op,tmpreg64,regsrc,regdst);
-                      rg.ungetregisterint(list,tmpreg64.reglo);
-                      rg.ungetregisterint(list,tmpreg64.reghi);
+                      tcgppc(cg).rgint.ungetregister(list,tmpreg64.reglo);
+                      tcgppc(cg).rgint.ungetregister(list,tmpreg64.reghi);
                     end
                 end
               else
@@ -2371,7 +2372,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.127  2003-10-01 20:34:49  peter
+  Revision 1.128  2003-10-11 16:06:42  florian
+    * fixed some MMX<->SSE
+    * started to fix ppc, needs an overhaul
+    + stabs info improve for spilling, not sure if it works correctly/completly
+    - MMX_SUPPORT removed from Makefile.fpc
+
+  Revision 1.127  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
