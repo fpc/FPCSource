@@ -61,6 +61,11 @@ const
   PathSeparator = ';';
 { FileNameCaseSensitive is defined separately below!!! }
 
+type    Tos=(osDOS,osOS2,osDPMI);
+
+const   os_mode: Tos = osOS2;
+        first_meg: pointer = nil;
+
 {$IFDEF OS2EXCEPTIONS}
 {x}  System_exception_frame : PEXCEPTION_FRAME =nil;
 {$ENDIF OS2EXCEPTIONS}
@@ -674,7 +679,7 @@ const
   fmShareDenyRead  = $0030;
   fmShareDenyNone  = $0040;
 var
-  Action, Attrib, OpenFlags, FileMode: Cardinal;
+  Action, Attrib, OpenFlags, FM: Cardinal;
 begin
   // convert unix slashes to normal slashes
   allowslash(p);
@@ -698,35 +703,17 @@ begin
 
   Attrib:=0;
   OpenFlags:=0;
-  FileMode:=0;
 
   // convert filesharing
-  if ((filemode and fmshareExclusive) = fmshareExclusive) then
-    FileMode:=FileMode or 16 //Deny Read Write
-  else
-    if (filemode = fmShareCompat) or ((filemode and fmshareDenyWrite) = fmshareDenyWrite) then
-      FileMode:=FileMode or 32 // Deny Write
-  else
-    if ((filemode and fmshareDenyRead) = fmshareDenyRead) then
-      FileMode:=FileMode or 48 // Deny Read
-  else
-    if ((filemode and fmshareDenyNone) = fmshareDenyNone) then
-      FileMode:=FileMode or 64; // Deny None
-
+  FM := Flags and $FF and not (8);
+(* DenyNone if sharing not specified. *)
+  if FM and 112 = 0 then
+    FM := FM or 64;
   // convert filemode to filerec modes and access mode
-  case (flags and 3) of
-    0 : begin
-      FileMode:=FileMode or 0; // Read only
-      filerec(f).mode:=fminput;
-    end;
-    1 : begin
-      FileMode:=FileMode or 1; // Write only
-      filerec(f).mode:=fmoutput;
-    end;
-    2 : begin
-      FileMode:=FileMode or 2; // Read & Write
-      filerec(f).mode:=fminout;
-    end;
+  case (FM and 3) of
+    0: filerec(f).mode:=fminput;
+    1: filerec(f).mode:=fmoutput;
+    2: filerec(f).mode:=fminout;
   end;
 
   if (flags and $1000)<>0 then
@@ -754,20 +741,18 @@ begin
 
   Attrib:=32 {faArchive};
 
-  InOutRes:=DosOpen(p, FileRec(F).Handle, Action, 0, Attrib, OpenFlags, FileMode, nil);
+  InOutRes:=DosOpen(p, FileRec(F).Handle, Action, 0, Attrib, OpenFlags, FM, nil);
 
   // If too many open files try to set more file handles and open again
   if (InOutRes = 4) then
     if Increase_File_Handle_Count then
-      InOutRes:=DosOpen(p, FileRec(F).Handle, Action, 0, Attrib, OpenFlags, FileMode, nil);
+      InOutRes:=DosOpen(p, FileRec(F).Handle, Action, 0, Attrib, OpenFlags, FM, nil);
 
   If InOutRes<>0 then FileRec(F).Handle:=UnusedHandle;
 
   // If Handle created -> make some things
   if (FileRec(F).Handle <> UnusedHandle) then
   begin
-    // for systems that have more handles
-    if (FileRec(F).Handle>FileHandleCount) then FileHandleCount:=FileRec(F).Handle;
 
     // Move to end of file for Append command
     if ((Flags and $100) <> 0) then
@@ -1168,7 +1153,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-10-28 14:57:31  yuri
+  Revision 1.55  2003-11-02 00:51:17  hajny
+    * corrections for do_open and os_mode back
+
+  Revision 1.54  2003/10/28 14:57:31  yuri
   * do_* functions now native
 
   Revision 1.53  2003/10/27 04:33:58  yuri
