@@ -307,7 +307,7 @@ implementation
                   s:=sc.get(akttokenpos);
                   if not sc.empty then
                     Message(parser_e_initialized_only_one_var);
-                  tconstsym:=ttypedconstsym.createtype(s,tt,false);
+                  tconstsym:=ttypedconstsym.createtype(s,tt,true);
                   symtablestack.insert(tconstsym);
                   akttokenpos:=storetokenpos;
                   consume(_EQUAL);
@@ -575,7 +575,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2001-10-23 21:49:42  peter
+  Revision 1.22  2001-11-20 18:48:26  peter
+    * fixed initialized variables
+
+  Revision 1.21  2001/10/23 21:49:42  peter
     * $calling directive and -Cc commandline patch added
       from Pavel Ozerski
 
