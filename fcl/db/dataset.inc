@@ -34,6 +34,9 @@ end;
 
 destructor TDataSet.Destroy;
 
+var
+  i: Integer;
+
 begin
   Active:=False;
   FFieldDefs.Free;
@@ -44,6 +47,14 @@ begin
       TDatasource(Items[Count - 1]).DataSet:=Nil;
     Free;  
     end;  
+
+  if Assigned(FBuffers) then
+  begin
+    for i := 0 to FBufferCount do
+      FreeRecordBuffer(FBuffers[i]);
+    FreeMem(FBuffers);
+  end;
+
   Inherited Destroy;
 end;
 
@@ -150,7 +161,9 @@ begin
     With Fielddefs.Items[I] do
       If DataType<>ftUnknown then
         begin
+	{$ifdef DSDebug}
         Writeln('About to create field',FieldDefs.Items[i].Name);
+	{$endif}
         CreateField(self);
         end;
 end;
@@ -788,6 +801,7 @@ Procedure TDataset.SetName(const Value: TComponentName);
 
 begin
   //!! To be implemented
+  inherited SetName(Value);
 end;
 
 Procedure TDataset.SetOnFilterRecord(const Value: TFilterRecordEvent);
@@ -1593,7 +1607,10 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.5  2001-01-16 22:59:59  michael
+  Revision 1.1.2.6  2001-04-08 10:53:22  sg
+  *** empty log message ***
+
+  Revision 1.1.2.5  2001/01/16 22:59:59  michael
   + Fixes to get dbf to work
 
   Revision 1.1.2.4  2001/01/11 23:46:28  sg
