@@ -66,15 +66,21 @@ END;
 
 FUNCTION SetFileSize (Handle: THandle; FileSize: LongInt): Word;
 
+{$IFNDEF BSD}
 Var sr : syscallregs;
+{$ENDIF}
 {$IFDEF DOSSETFILE1}  
     Actual, Buf: LongInt;
 {$ENDIF}
    
 BEGIN
+ {$IFDEF BSD}
+  Do_Syscall(Syscall_Nr_ftruncate,handle,filesize,0); {0 -> offset =64 bit}
+ {$ELSE}
   sr.reg2:=Handle;
   sr.reg3:=FileSize;
   Syscall(syscall_nr_fTruncate,sr);
+ {$ENDIF}
   If Errno=0 then  
     SetFileSize:=0
   else
