@@ -115,7 +115,10 @@ override FPC:=$(subst $(SRCEXEEXT),,$(FPC))
 override FPC:=$(subst \,/,$(FPC))$(SRCEXEEXT)
 FOUNDFPC:=$(strip $(wildcard $(FPC)))
 ifeq ($(FOUNDFPC),)
+FOUNDFPC=$(strip $(wildcard $(addsuffix /$(FPC),$(SEARCHPATH))))
+ifeq ($(FOUNDFPC),)
 $(error Compiler $(FPC) not found)
+endif
 endif
 ifndef FPC_COMPILERINFO
 FPC_COMPILERINFO:=$(shell $(FPC) -iVSPTPSOTO)
@@ -252,7 +255,7 @@ nlmlib.imp nwpsrv3x.imp nwpsrv.imp nwsnut.imp \
 requestr.imp socklib.imp streams.imp threads.imp \
 tli.imp vollib.imp ws2_32.imp ws2nlm.imp unicode.imp
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings lineinfo winsock heaptrc matrix dos crt objects sysconst initc sysutils types typinfo systhrds classes cpu mmx getopts dateutils strutils convutils charset ucomplex variants rtlconst math varutils freebidi utf8bidi mouse video keyboard cmem sockets aio nwsnut nwserv nwnit nwprot netware ctypes
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas macpas strings lineinfo winsock heaptrc matrix dos crt objects sysconst initc sysutils types typinfo systhrds classes cpu mmx getopts dateutils strutils convutils charset ucomplex variants rtlconst math varutils freebidi utf8bidi mouse video keyboard cmem sockets aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 override TARGET_LOADERS+=nwpre prelude
@@ -1547,5 +1550,7 @@ ctypes$(PPUEXT) :  $(INC)/ctypes.pp $(SYSTEMUNIT)$(PPUEXT)
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 aio$(PPUEXT) : aio.pp $(SYSTEMUNIT)$(PPUEXT)
 nwsnut$(PPUEXT) : nwsnut.pp nwserv$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+nwserv$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
+nwcalls$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 override INSTALLPPUFILES+=$(IMPFILES)
 override CLEANPPUFILES+=$(addprefix $(COMPILER_UNITTARGETDIR)/,$(IMPFILES))

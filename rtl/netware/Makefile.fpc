@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       charset ucomplex variants \
       rtlconst math varutils freebidi utf8bidi \
       mouse video keyboard cmem sockets \
-      aio nwsnut nwserv nwnit nwprot netware ctypes
+      aio nwsnut nwserv nwnit nwprot netware nwcalls ctypes
 rsts=math varutils variants typinfo classes dateutils sysconst convutils rtlconst systhrds
 
 [require]
@@ -251,6 +251,10 @@ callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 aio$(PPUEXT) : aio.pp $(SYSTEMUNIT)$(PPUEXT)
 
 nwsnut$(PPUEXT) : nwsnut.pp nwserv$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
+nwserv$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
+
+nwcalls$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
 
 #
 # Netware-.imp files need to be installed in the unit-dir
