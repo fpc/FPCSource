@@ -838,8 +838,13 @@ unit types;
                                        datasegment^.concat(new(pai_const,init_symbol('ABSTRACTERROR')));
                                     end
                                   else
-                                    datasegment^.concat(new(pai_const,init_symbol(
-                                      strpnew(procdefcoll^.data^.mangledname))));
+                                    begin
+                                      datasegment^.concat(new(pai_const,init_symbol(
+                                        strpnew(procdefcoll^.data^.mangledname))));
+                                      if (procdefcoll^.data^.options and povirtualmethod)<>0 then
+                                        maybe_concat_external(procdefcoll^.data^.owner,
+                                          procdefcoll^.data^.mangledname);
+                                    end;
                                end;
                           end;
                         procdefcoll:=procdefcoll^.next;
@@ -868,7 +873,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.2  1998-03-28 23:09:57  florian
+  Revision 1.3  1998-04-08 11:34:22  peter
+    * nasm works (linux only tested)
+
+  Revision 1.2  1998/03/28 23:09:57  florian
     * secondin bugfix (m68k and i386)
     * overflow checking bugfix (m68k and i386) -- pretty useless in
       secondadd, since everything is done using 32-bit

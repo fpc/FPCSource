@@ -337,13 +337,13 @@ unit ag386int;
      ait_datablock : begin
                        if current_module^.output_format in [of_nasm,of_obj] then
                         begin
-                          if pai_symbol(hp)^.is_global then
+                          if pai_datablock(hp)^.is_global then
                            AsmWriteLn('GLOBAL '+StrPas(pai_datablock(hp)^.name));
                           AsmWriteLn(PadTabs(pai_datablock(hp)^.name,':')+'RESB'#9+tostr(pai_datablock(hp)^.size));
                         end
                        else
                         begin
-                          if pai_symbol(hp)^.is_global then
+                          if pai_datablock(hp)^.is_global then
                            AsmWriteLn(#9#9'PUBLIC'#9+StrPas(pai_datablock(hp)^.name));
                           AsmWriteLn(PadTabs(pai_datablock(hp)^.name,#0)+'DB'#9+tostr(pai_datablock(hp)^.size)+' DUP(?)');
                         end;
@@ -393,13 +393,13 @@ unit ag386int;
                      end;
           ait_comp : AsmWriteLn(#9#9'DQ'#9+comp2str(pai_extended(hp)^.value));
         ait_string : begin
-                  counter := 0;
-                  lines := pai_string(hp)^.len div line_length;
-                  { separate lines in different parts }
-                  if pai_string(hp)^.len > 0 then
-                      Begin
-                        for j := 0 to lines-1 do
-                          begin
+                       counter := 0;
+                       lines := pai_string(hp)^.len div line_length;
+                     { separate lines in different parts }
+                       if pai_string(hp)^.len > 0 then
+                        Begin
+                          for j := 0 to lines-1 do
+                           begin
                              AsmWrite(#9#9'DB'#9);
                              quoted:=false;
                              for i:=counter to counter+line_length do
@@ -503,15 +503,15 @@ ait_labeled_instruction :
                      end;
    ait_instruction : begin
                        suffix:='';
-                       { added prefix instructions      }
-                       { must be on same line as opcode }
+                       prefix:= '';
+                     { added prefix instructions, must be on same line as opcode }
                        if (pai386(hp)^.op1t = top_none) and
                           ((pai386(hp)^._operator = A_REP) or
                            (pai386(hp)^._operator = A_LOCK) or
                            (pai386(hp)^._operator =  A_REPE) or
                            (pai386(hp)^._operator = A_REPNE)) then
                         Begin
-                          prefix:=int_op2str[pai386(hp)^._operator]+' ';
+                          prefix:=int_op2str[pai386(hp)^._operator]+#9;
                           hp:=Pai(hp^.next);
                         { this is theorically impossible... }
                           if hp=nil then
@@ -520,9 +520,7 @@ ait_labeled_instruction :
                              AsmWriteLn(s);
                              break;
                            end;
-                        end
-                       else
-                        prefix:= '';
+                        end;
                        if pai386(hp)^.op1t<>top_none then
                         begin
                           if pai386(hp)^._operator in [A_CALL] then
@@ -570,12 +568,12 @@ ait_labeled_instruction :
                               S_L: suffix:='d';
                              else
                               Message(assem_f_invalid_suffix_intel);
+                             end;
                            end;
-                         end;
-                        s:='';
-                      end;
-                     AsmWriteLn(#9#9+int_op2str[pai386(hp)^._operator]+s);
-                   end;
+                          s:='';
+                        end;
+                       AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^._operator]+suffix+s);
+                     end;
 {$ifdef GDB}
              ait_stabn,
              ait_stabs,
@@ -584,13 +582,6 @@ ait_stab_function_name : ;
          else
           internalerror(10000);
          end;
-       { we only write a line if not a variable otherwise might }
-       { cause some problems.                                   }
-  {     if ((hp^.typ<>ait_label) and (hp^.typ<>ait_symbol)) or
-           (assigned(hp^.next) and not(pai(hp^.next)^.typ in
-          [ait_const_32bit,ait_const_16bit,ait_const_8bit,
-           ait_const_symbol,ait_real_64bit,ait_real_extended,ait_string,ait_comp])) then
-             AsmWrite(target_info.newline);}
          hp:=pai(hp^.next);
        end;
     end;
@@ -670,8 +661,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:16  root
-  Initial revision
+  Revision 1.2  1998-04-08 11:34:17  peter
+    * nasm works (linux only tested)
+
+  Revision 1.1.1.1  1998/03/25 11:18:16  root
+  * Restored version
 
   Revision 1.1  1998/03/10 01:26:09  peter
     + new uniform names

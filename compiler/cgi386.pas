@@ -4328,13 +4328,16 @@ implementation
                             {We won't do a second pass on p^.right, because
                              this will emit the constant set.}
                             {If register is used, use only lower 8 bits}
+                            if p^.left^.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
+                             begin
+                               if p^.left^.location.register in [R_AL..R_DH] then
+                                 exprasmlist^.concat(new(pai386,op_const_reg(
+                                   A_AND,S_B,255,p^.left^.location.register)))
+                               else
 
-                            case p^.left^.location.loc of
-                               LOC_REGISTER,
-                               LOC_CREGISTER :
-                                 exprasmlist^.concat(new(pai386,op_const_reg(A_AND,S_B,
-                                   255,p^.left^.location.register)));
-                            end;
+                                 exprasmlist^.concat(new(pai386,op_const_reg(
+                                   A_AND,S_L,255,p^.left^.location.register)));
+                             end;
                             {Get a label to jump to the end.}
                             p^.location.loc:=LOC_FLAGS;
                             {It's better to use the zero flag when there are
@@ -5706,7 +5709,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.5  1998-04-07 22:45:04  florian
+  Revision 1.6  1998-04-08 11:34:20  peter
+    * nasm works (linux only tested)
+
+  Revision 1.5  1998/04/07 22:45:04  florian
     * bug0092, bug0115 and bug0121 fixed
     + packed object/class/array
 

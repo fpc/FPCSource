@@ -1000,7 +1000,7 @@
                       begin
                          if not(R_EAX in unused) then
                            emit_reg_reg(A_MOV,S_L,R_EAX,R_EDI);
-                         exprasmlist^.concat(new(pai386,op_reg(A_FNSTS,S_W,R_AX)));
+                         exprasmlist^.concat(new(pai386,op_reg(A_FNSTSW,S_NO,R_AX)));
                          exprasmlist^.concat(new(pai386,op_none(A_SAHF,S_NO)));
                          if not(R_EAX in unused) then
                            emit_reg_reg(A_MOV,S_L,R_EDI,R_EAX);
@@ -1234,7 +1234,10 @@
 
 {
      $Log$
-     Revision 1.2  1998-03-28 23:09:55  florian
+     Revision 1.3  1998-04-08 11:34:22  peter
+       * nasm works (linux only tested)
+
+     Revision 1.2  1998/03/28 23:09:55  florian
        * secondin bugfix (m68k and i386)
        * overflow checking bugfix (m68k and i386) -- pretty useless in
          secondadd, since everything is done using 32-bit

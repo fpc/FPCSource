@@ -377,8 +377,13 @@ begin
                RemoveAsm;
             end;
   of_nasm : begin
+            {$ifdef linux}
+              if CallAssembler(FindAssembler(of_nasm),' -f elf -o '+objfile+' '+asmfile) then
+               RemoveAsm;
+            {$else}
               if CallAssembler(FindAssembler(of_nasm),' -f coff -o '+objfile+' '+asmfile) then
                RemoveAsm;
+            {$endif}
             end;
    of_obj : begin
               if CallAssembler(FindAssembler(of_nasm),' -f obj -o '+objfile+' '+asmfile) then
@@ -405,8 +410,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:16  root
-  Initial revision
+  Revision 1.2  1998-04-08 11:34:18  peter
+    * nasm works (linux only tested)
+
+  Revision 1.1.1.1  1998/03/25 11:18:16  root
+  * Restored version
 
   Revision 1.17  1998/03/10 13:23:00  florian
     * small win32 problems fixed
