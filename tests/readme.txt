@@ -4,7 +4,7 @@
   with compilation and execution tests.
 
   Standard way :
-  'make tests' will try to compile all the sources
+  'make all' will try to compile all the sources
    will printout a list of errors
   - programs that do not compile but should
   - programs that do compile when they should create an error !
