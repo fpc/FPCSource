@@ -40,7 +40,7 @@ asm
         movsb
 .LStrCopyNil:        
         movl    dest,%eax
-end;
+end ['EAX','ECX','ESI','EDI'];
 
 
 function strecopy(dest,source : pchar) : pchar;assembler;
@@ -65,7 +65,7 @@ asm
         movl    dest,%eax
         decl    %edi
         movl    %edi,%eax
-end ['EAX','ESI','EDI'];
+end ['EAX','ECX','ESI','EDI'];
 
 
 function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
@@ -243,7 +243,7 @@ end ['EAX','ECX','ESI','EDI'];
 
 function strscan(p : pchar;c : char) : pchar;assembler;
 asm
-	xorl    %eax,%eax
+	      xorl    %eax,%eax
         movl    p,%edi
         orl     %edi,%edi
         jz      .LSTRSCAN
@@ -261,7 +261,7 @@ asm
         movl    %edi,%eax
         decl    %eax
 .LSTRSCAN:
-end;
+end ['EAX','ECX','EDI'];
 
 
 function strrscan(p : pchar;c : char) : pchar;assembler;
@@ -289,7 +289,7 @@ asm
         movl    %edi,%eax
         incl    %eax
 .LSTRRSCAN:
-end;
+end ['EAX','ECX','EDI'];
 
 
 function strupper(p : pchar) : pchar;assembler;
@@ -311,7 +311,7 @@ asm
         jnz     .LSTRUPPER1
 .LStrUpperNil:
         movl    p,%eax
-end;
+end ['EAX','ESI','EDI'];
 
 
 function strlower(p : pchar) : pchar;assembler;
@@ -333,11 +333,15 @@ asm
         jnz     .LSTRLOWER1
 .LStrLowerNil:
         movl    p,%eax
-end;
+end ['EAX','ESI','EDI'];
 
 {
   $Log$
-  Revision 1.7  2000-02-09 16:59:29  peter
+  Revision 1.8  2000-03-28 11:14:33  jonas
+    * added missing register that is destroyed by strecopy
+    + some destroyed register lists for procedures that didn't have one yet
+
+  Revision 1.7  2000/02/09 16:59:29  peter
     * truncated log
 
   Revision 1.6  2000/01/07 16:41:33  daniel

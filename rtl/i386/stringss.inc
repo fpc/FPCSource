@@ -64,20 +64,23 @@ asm
         cld
         movl    d,%edi          // load destination address
         movl    s,%esi          // Load Source adress
-        movl    %edi,%ebx       // Set return value
         lodsb                   // load length in ECX
         movzbl  %al,%ecx
         rep
         movsb
         xorb    %al,%al         // Set #0
         stosb
-        movl    %ebx,%eax       // return value to EAX
+        movl    d,%eax       // return value to EAX
         popl    %esi
-end ['EDI','ESI','EBX','EAX','ECX'];
+end ['EDI','EAX','ECX'];
 
 {
   $Log$
-  Revision 1.9  2000-02-09 16:59:29  peter
+  Revision 1.10  2000-03-28 11:14:33  jonas
+    * added missing register that is destroyed by strecopy
+    + some destroyed register lists for procedures that didn't have one yet
+
+  Revision 1.9  2000/02/09 16:59:29  peter
     * truncated log
 
   Revision 1.8  2000/01/11 22:56:57  pierre
