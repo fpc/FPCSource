@@ -2222,7 +2222,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2001-04-16 10:57:05  peter
+  Revision 1.7  2001-06-06 17:20:22  jonas
+    * fixed wrong typed constant procvars in preparation of my fix which will
+      disallow them in FPC mode (plus some other unmerged changes since
+      LAST_MERGE)
+
+  Revision 1.6  2001/04/16 10:57:05  peter
     * stricter compiler fixes
 
   Revision 1.5  2000/12/19 11:59:12  michael
@@ -2240,4 +2245,10 @@ end.
   Revision 1.2  2000/07/13 11:33:57  michael
   + removed logs
 
+<<<<<<< graph.pp
 }
+=======
+  Revision 1.1  1999/11/03 20:23:02  florian
+    + first release of win32 gui support
+}
+>>>>>>> 1.1.2.1

@@ -2117,6 +2117,10 @@ const CrtAddress: word = 0;
      { check if VESA adapter supPorted...      }
 {$ifndef noSupPortVESA}
      hasVesa := getVesaInfo(VESAInfo);
+     { VBE Version v1.00 is unstable, therefore }
+     { only VBE v1.1 and later are supported.   }
+     if (hasVESA=TRUE) and (VESAInfo.Version <= $0100) then
+       hasVESA := False;
 {$else noSupPortVESA}
      hasVESA := false;
 {$endif noSupPortVESA}
@@ -2653,7 +2657,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2001-04-14 14:05:42  peter
+  Revision 1.7  2001-06-06 17:20:22  jonas
+    * fixed wrong typed constant procvars in preparation of my fix which will
+      disallow them in FPC mode (plus some other unmerged changes since
+      LAST_MERGE)
+
+  Revision 1.6  2001/04/14 14:05:42  peter
     * fixed for stricter checking
 
   Revision 1.5  2000/12/16 15:57:17  jonas

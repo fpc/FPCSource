@@ -207,11 +207,11 @@ var
        { this procedures are assigned to the procedure which are needed }
        { for the current mode to access DOS memory                      }
        { It's strongly recommended to use this procedures!              }
-       dosmemput      : procedure(seg : word;ofs : word;var data;count : longint)=dpmi_dosmemput;
-       dosmemget      : procedure(seg : word;ofs : word;var data;count : longint)=dpmi_dosmemget;
-       dosmemmove     : procedure(sseg,sofs,dseg,dofs : word;count : longint)=dpmi_dosmemmove;
-       dosmemfillchar : procedure(seg,ofs : word;count : longint;c : char)=dpmi_dosmemfillchar;
-       dosmemfillword : procedure(seg,ofs : word;count : longint;w : word)=dpmi_dosmemfillword;
+       dosmemput      : procedure(seg : word;ofs : word;var data;count : longint)=@dpmi_dosmemput;
+       dosmemget      : procedure(seg : word;ofs : word;var data;count : longint)=@dpmi_dosmemget;
+       dosmemmove     : procedure(sseg,sofs,dseg,dofs : word;count : longint)=@dpmi_dosmemmove;
+       dosmemfillchar : procedure(seg,ofs : word;count : longint;c : char)=@dpmi_dosmemfillchar;
+       dosmemfillword : procedure(seg,ofs : word;count : longint;w : word)=@dpmi_dosmemfillword;
 
   implementation
 
@@ -307,12 +307,16 @@ var
          regs.realsp:=0;
          regs.realss:=0;
          asm
+            { save all used registers to avoid crash under NTVDM }
+            { when spawning a 32-bit DPMI application            }
+            pushw %fs
             movw  intnr,%bx
             xorl  %ecx,%ecx
             movl  regs,%edi
             { es is always equal ds }
             movl  $0x300,%eax
             int   $0x31
+            popw  %fs
             setnc %al
             movb  %al,__RESULT
          end;
@@ -1171,7 +1175,12 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-12-30 22:42:30  peter
+  Revision 1.4  2001-06-06 17:20:21  jonas
+    * fixed wrong typed constant procvars in preparation of my fix which will
+      disallow them in FPC mode (plus some other unmerged changes since
+      LAST_MERGE)
+
+  Revision 1.3  2000/12/30 22:42:30  peter
     * fixed map_device_in_memory (from bug report)
 
   Revision 1.2  2000/07/13 11:33:40  michael

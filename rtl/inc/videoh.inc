@@ -148,11 +148,16 @@ const
   errOk              = 0;
   ErrorCode: Longint = ErrOK;
   ErrorInfo: Pointer = nil;
-  ErrorHandler: TErrorHandler = DefaultErrorHandler;
+  ErrorHandler: TErrorHandler = @DefaultErrorHandler;
 
 {
   $Log$
-  Revision 1.1  2001-01-13 11:13:12  peter
+  Revision 1.2  2001-06-06 17:20:22  jonas
+    * fixed wrong typed constant procvars in preparation of my fix which will
+      disallow them in FPC mode (plus some other unmerged changes since
+      LAST_MERGE)
+
+  Revision 1.1  2001/01/13 11:13:12  peter
     * API 2 RTL
 
 }

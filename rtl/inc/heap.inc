@@ -62,15 +62,15 @@ const
 { Memory manager }
 const
   MemoryManager: TMemoryManager = (
-    GetMem: SysGetMem;
-    FreeMem: SysFreeMem;
-    FreeMemSize: SysFreeMemSize;
-    AllocMem: SysAllocMem;
-    ReAllocMem: SysReAllocMem;
-    MemSize: SysMemSize;
-    MemAvail: SysMemAvail;
-    MaxAvail: SysMaxAvail;
-    HeapSize: SysHeapSize;
+    GetMem: @SysGetMem;
+    FreeMem: @SysFreeMem;
+    FreeMemSize: @SysFreeMemSize;
+    AllocMem: @SysAllocMem;
+    ReAllocMem: @SysReAllocMem;
+    MemSize: @SysMemSize;
+    MemAvail: @SysMemAvail;
+    MaxAvail: @SysMaxAvail;
+    HeapSize: @SysHeapSize;
   );
 
 type
@@ -1125,7 +1125,12 @@ end;
 
 {
   $Log$
-  Revision 1.5  2001-01-24 21:47:18  florian
+  Revision 1.6  2001-06-06 17:20:22  jonas
+    * fixed wrong typed constant procvars in preparation of my fix which will
+      disallow them in FPC mode (plus some other unmerged changes since
+      LAST_MERGE)
+
+  Revision 1.5  2001/01/24 21:47:18  florian
     + more MT stuff added
 
   Revision 1.4  2000/08/08 19:22:46  peter

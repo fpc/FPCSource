@@ -122,18 +122,18 @@ type
   tgetnamedfiletimefunc = function(const filename: string): longint;
 
 const
-  do_stop          : tstopprocedure   = def_stop;
-  do_halt          : thaltprocedure   = def_halt;
-  do_status        : tstatusfunction  = def_status;
-  do_comment       : tcommentfunction = def_comment;
-  do_internalerror : tinternalerrorfunction = def_internalerror;
+  do_stop          : tstopprocedure   = {$ifndef tp}@{$endif}def_stop;
+  do_halt          : thaltprocedure   = {$ifndef tp}@{$endif}def_halt;
+  do_status        : tstatusfunction  = {$ifndef tp}@{$endif}def_status;
+  do_comment       : tcommentfunction = {$ifndef tp}@{$endif}def_comment;
+  do_internalerror : tinternalerrorfunction = {$ifndef tp}@{$endif}def_internalerror;
 
-  do_initsymbolinfo : tinitsymbolinfoproc = def_initsymbolinfo;
-  do_donesymbolinfo : tdonesymbolinfoproc = def_donesymbolinfo;
-  do_extractsymbolinfo : textractsymbolinfoproc = def_extractsymbolinfo;
+  do_initsymbolinfo : tinitsymbolinfoproc = {$ifndef tp}@{$endif}def_initsymbolinfo;
+  do_donesymbolinfo : tdonesymbolinfoproc = {$ifndef tp}@{$endif}def_donesymbolinfo;
+  do_extractsymbolinfo : textractsymbolinfoproc = {$ifndef tp}@{$endif}def_extractsymbolinfo;
 
-  do_openinputfile : topeninputfilefunc = def_openinputfile;
-  do_getnamedfiletime : tgetnamedfiletimefunc = def_getnamedfiletime;
+  do_openinputfile : topeninputfilefunc = {$ifndef tp}@{$endif}def_openinputfile;
+  do_getnamedfiletime : tgetnamedfiletimefunc = {$ifndef tp}@{$endif}def_getnamedfiletime;
 
 implementation
 
@@ -351,7 +351,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2001-02-05 20:47:00  peter
+  Revision 1.14  2001-06-06 17:20:21  jonas
+    * fixed wrong typed constant procvars in preparation of my fix which will
+      disallow them in FPC mode (plus some other unmerged changes since
+      LAST_MERGE)
+
+  Revision 1.13  2001/02/05 20:47:00  peter
     * support linux unit for ver1_0 compilers
 
   Revision 1.12  2001/01/21 20:32:45  marco

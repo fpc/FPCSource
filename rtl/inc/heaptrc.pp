@@ -719,7 +719,7 @@ var
    data_end : cardinal;external name '__data_end__';
 {$endif}
 
-procedure CheckPointer(p : pointer);[saveregisters, public, alias : 'FPC_CHECKPOINTER'];
+procedure CheckPointer(p : pointer);[saveregisters,public, alias : 'FPC_CHECKPOINTER'];
 var
   i  : longint;
   pp : pheap_mem_info;
@@ -982,15 +982,15 @@ end;
 
 const
   TraceManager:TMemoryManager=(
-    Getmem  : TraceGetMem;
-    Freemem : TraceFreeMem;
-    FreememSize : TraceFreeMemSize;
-    AllocMem : TraceAllocMem;
-    ReAllocMem : TraceReAllocMem;
-    MemSize : TraceMemSize;
-    MemAvail : TraceMemAvail;
-    MaxAvail : TraceMaxAvail;
-    HeapSize : TraceHeapsize;
+    Getmem  : @TraceGetMem;
+    Freemem : @TraceFreeMem;
+    FreememSize : @TraceFreeMemSize;
+    AllocMem : @TraceAllocMem;
+    ReAllocMem : @TraceReAllocMem;
+    MemSize : @TraceMemSize;
+    MemAvail : @TraceMemAvail;
+    MaxAvail : @TraceMaxAvail;
+    HeapSize : @TraceHeapsize;
   );
 
 
@@ -1146,7 +1146,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.13  2001-04-23 18:25:44  peter
+  Revision 1.14  2001-06-06 17:20:22  jonas
+    * fixed wrong typed constant procvars in preparation of my fix which will
+      disallow them in FPC mode (plus some other unmerged changes since
+      LAST_MERGE)
+
+  Revision 1.13  2001/04/23 18:25:44  peter
     * m68k updates
 
   Revision 1.12  2001/04/21 12:18:09  peter
