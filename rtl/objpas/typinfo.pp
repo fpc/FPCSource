@@ -612,14 +612,54 @@ Function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Longint;
 type
   TGetIntegerProcIndex=function(index:longint):longint of object;
   TGetIntegerProc=function:longint of object;
+  TGetWordProcIndex=function(index:longint):word of object;
+  TGetWordProc=function:word of object;
+  TGetByteProcIndex=function(index:longint):Byte of object;
+  TGetByteProc=function:Byte of object;
 var
   TypeInfo: PTypeInfo;
   AMethod : TMethod;
+  DataSize: Integer;
+  OrdType: TTOrdType;
+  Signed: Boolean;
 begin
   Result:=0;
+
+  TypeInfo := PropInfo^.PropType;
+  Signed := false;
+  DataSize := 4;
+  case TypeInfo^.Kind of
+    tkChar, tkBool:
+      DataSize:=1;
+    tkWChar:
+      DataSize:=2;
+    tkEnumeration,
+    tkInteger:
+      begin
+        OrdType:=GetTypeData(TypeInfo)^.OrdType;
+        case OrdType of
+          otSByte,otUByte: DataSize := 1;
+          otSWord,otUWord: DataSize := 2;
+        end;
+        Signed := OrdType in [otSByte,otSWord,otSLong];
+      end;
+  end;
+
   case (PropInfo^.PropProcs) and 3 of
     ptfield:
-      Result:=PLongint(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+      if Signed then begin
+        case DataSize of
+          1: Result:=PShortInt(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+          2: Result:=PSmallInt(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+          4: Result:=PLongint(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+        end;
+      end else begin
+        case DataSize of
+          1: Result:=PByte(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+          2: Result:=PWord(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+          4: Result:=PLongint(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+        end;
+      end;
     ptstatic,
     ptvirtual :
       begin
@@ -628,30 +668,28 @@ begin
         else
           AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^;
         AMethod.Data:=Instance;
-        if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
-          Result:=TGetIntegerProcIndex(AMethod)(PropInfo^.Index)
-        else
-          Result:=TGetIntegerProc(AMethod)();
-      end;
-  end;
-  { cut off unnecessary stuff }
-  TypeInfo := PropInfo^.PropType;
-  case TypeInfo^.Kind of
-    tkChar, tkBool:
-      Result:=Result and $ff;
-    tkWChar:
-      Result:=Result and $ffff;
-    tkEnumeration,
-    tkInteger:
-      case GetTypeData(TypeInfo)^.OrdType of
-        otSWord,otUWord:
-          Result:=Result and $ffff;
-        otSByte,otUByte:
-          Result:=Result and $ff;
+        if ((PropInfo^.PropProcs shr 6) and 1)<>0 then begin
+          case DataSize of
+            1: Result:=TGetByteProcIndex(AMethod)(PropInfo^.Index);
+            2: Result:=TGetWordProcIndex(AMethod)(PropInfo^.Index);
+            4: Result:=TGetIntegerProcIndex(AMethod)(PropInfo^.Index);
+          end;
+        end else begin
+          case DataSize of
+            1: Result:=TGetByteProc(AMethod)();
+            2: Result:=TGetWordProc(AMethod)();
+            4: Result:=TGetIntegerProc(AMethod)();
+          end;
+        end;
+        if Signed then begin
+          case DataSize of
+            1: Result:=ShortInt(Result);
+            2: Result:=SmallInt(Result);
+          end;
+        end;
       end;
   end;
 end;
-
 
 Procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;Value : Longint);
 type
@@ -1437,7 +1475,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2004-06-24 23:43:14  michael
+  Revision 1.28  2004-08-16 16:12:28  peter
+    * patch from mattias to fix endianness and bufferoverflow with
+      1 and 2 byte ordinals
+
+  Revision 1.27  2004/06/24 23:43:14  michael
   + Fix GetPropList when Proplist is nil
 
   Revision 1.26  2004/06/02 14:33:18  michael
