@@ -23,7 +23,7 @@
  -->
 <package name="rtl">
 <module name="ipc">
-<short>The IPC unit.</short>
+<short>Unix Inter Process Communication functionality.</short>
 <!-- \FPCexampledir{ipcex} -->
 <descr>
 <p>

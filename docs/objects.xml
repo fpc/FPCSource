@@ -23,7 +23,7 @@
  -->
 <package name="rtl">
 <module name="objects">
-<short>The Objects unit.</short>
+<short>TP-Compatible basic Objects.</short>
 <!-- \FPCexampledir{objectex} -->
 <descr>
 <p>

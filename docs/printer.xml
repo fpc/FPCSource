@@ -23,7 +23,7 @@
  -->
 <package name="rtl">
 <module name="printer">
-<short>The PRINTER unit.</short>
+<short>Provide access to the printer.</short>
 <!-- \FPCexampledir{printex} -->
 <descr>
 This chapter describes the PRINTER unit for Free Pascal. It was written for

@@ -23,7 +23,7 @@
  -->
 <package name="rtl">
 <module name="ports">
-<short>The PORTS unit</short>
+<short>Access to hardware ports</short>
 <descr>
 <p>
 The ports unit implements the <var>port</var> constructs found in Turbo Pascal. 

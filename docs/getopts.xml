@@ -23,7 +23,7 @@
  -->
 <package name="rtl">
 <module name="getopts">
-<short>The GETOPTS unit.</short>
+<short>GNU compatible access to command-line options.</short>
 <!-- \FPCexampledir{optex} -->
 <descr>
 <p>

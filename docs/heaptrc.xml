@@ -23,7 +23,7 @@
  -->
 <package name="rtl">
 <module name="heaptrc">
-<short>The HEAPTRC unit.</short>
+<short>Heap debugging functionality.</short>
 <!-- \FPCexampledir{heapex} -->
 <descr>
 <p>

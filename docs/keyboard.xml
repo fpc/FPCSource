@@ -23,7 +23,7 @@
  -->
 <package name="rtl">
 <module name="keyboard">
-<short>The KEYBOARD unit</short>
+<short>Access to low-level keyboard functions</short>
 <!-- \FPCexampledir{kbdex} -->
 <descr>
 <p>

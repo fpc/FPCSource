@@ -23,7 +23,7 @@
  -->
 <package name="rtl">
 <module name="mmx">
-<short>The MMX unit</short>
+<short>Access to MMX processor functionality</short>
 <descr>
 This document describes the <file>MMX</file> unit. This unit allows you to use the
 <var>MMX</var> capabilities of the Free Pascal compiler. It was written by Florian

@@ -23,7 +23,7 @@
  -->
 <package name="rtl">
 <module name="typinfo">
-<short>The TYPINFO unit</short>
+<short>Access Run-Time Type Information (RTTI)</short>
 <!-- \FPCexampledir{typinfex} -->
 <descr>
 <p>
