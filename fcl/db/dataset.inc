@@ -930,7 +930,7 @@ begin
     // need to scroll up al buffers after current one,
     // but copy current bookmark to insert buffer.
     BookBeforeInsert:=Bookmark;
-    ShiftBuffers(FActiveRecord,1);
+    ShiftBuffers(1,FActiveRecord);
     // Active buffer is now edit buffer. Initialize.
     InitRecord(ActiveBuffer);
     // Put bookmark in edit buffer.
@@ -1267,11 +1267,23 @@ Procedure TDataset.Post;
 begin
   if State in [dsEdit,dsInsert] then
     begin
+{$ifdef dsdebug}    
+    writeln ('Post: checking required fields');
+{$endif}
     CheckRequired;
     DoBeforePost;
     If Not TryDoing(@InternalPost,OnPostError) then exit;
+{$ifdef dsdebug}    
+    writeln ('Post: Internalpost succeeded');
+{$endif}
     FreeFieldBuffers;
+{$ifdef dsdebug}    
+    writeln ('Post: Freeing field buffers');
+{$endif}
     SetState(dsBrowse);
+{$ifdef dsdebug}    
+    writeln ('Post: Browse mode set');
+{$endif}
     Resync([]);
     DoAfterPost;
     end;
@@ -1359,12 +1371,19 @@ Var Retry : TDataAction;
 begin
   {$ifdef dsdebug}
   Writeln ('Trying to do');
+  If P=Nil then writeln ('Procedure to call is nil !!!');
   {$endif dsdebug}
   Result:=True;
   Retry:=daRetry;
   while Retry=daRetry do
     Try 
+  {$ifdef dsdebug}
+  Writeln ('Trying : updatecursorpos');
+  {$endif dsdebug}
       UpdateCursorPos;
+  {$ifdef dsdebug}
+  Writeln ('Trying to do it');
+  {$endif dsdebug}
       P;
       exit;
     except
@@ -1456,7 +1475,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1999-11-12 22:53:32  michael
+  Revision 1.6  1999-12-01 22:11:02  michael
+  + tested edit and insert methods
+
+  Revision 1.5  1999/11/12 22:53:32  michael
   + Added append() insert() tested append. Datetime as string works now
 
   Revision 1.4  1999/11/11 17:31:09  michael

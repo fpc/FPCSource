@@ -75,6 +75,19 @@ begin
     end;
 end;
 
+procedure DumpFields (DS : TDataset);
+
+Var I : longint;
+
+begin
+  With DS do 
+    begin
+    Writeln('Dumping fields');
+    For I:=0 to FieldCount-1 do
+      DumpFieldData(Fields[i]);
+    end;
+end;
+
 Var 
   Data : TDDGdataset;
   I,Count : longint;
@@ -144,21 +157,21 @@ begin
     FieldByName('DateTimeField').AsDateTime:=Now;
     FieldByName('DateField').AsDateTime:=Date;
     FieldByName('TimeField').AsDateTime:=Time;
+    Writeln ('End of append, going to post');
     Post;
+    DumpFields(Data);
     Writeln ('Doing Last');
     Writeln ('----------');
     Last;
-    For I:=0 to FieldCount-1 do
-      DumpFieldData(Fields[i]);
+    DumpFields(Data);
     Writeln ('Doing Prior');
     Writeln ('----------');
     Prior;
-    For I:=0 to FieldCount-1 do
-      DumpFieldData(Fields[i]);
-    Writeln ('Doing Insert at position 5');
+    DumpFields(Data);
+    Writeln ('Doing Insert at position 8');
     writeln ('--------------------------');
     first;
-    for I:=1 to 4 do 
+    for I:=1 to 7 do 
       Next;
     Insert;
     FieldByName('Name').AsString:='Insertname';
@@ -173,30 +186,60 @@ begin
     Post;
     Writeln ('Doing field dump');
     writeln ('----------------');
-    For I:=0 to FieldCount-1 do
-      DumpFieldData(Fields[i]);
+    DumpFields(Data);
     Writeln ('Doing Prior');
     Writeln ('-----------');
     Prior;
-    For I:=0 to FieldCount-1 do
-      DumpFieldData(Fields[i]);
+    DumpFields(Data);
     Writeln ('Doing Next');
     Writeln ('----------');
     Next;
-    For I:=0 to FieldCount-1 do
-      DumpFieldData(Fields[i]);
+    DumpFields(Data);
     Writeln ('Doing Next');
     Writeln ('----------');
     Next;
-    For I:=0 to FieldCount-1 do
-      DumpFieldData(Fields[i]);
+    DumpFields(Data);
+    Writeln ('Doing Edit at position 5');
+    writeln ('-------------------------');
+    first;
+    for I:=1 to 4 do 
+      Next;
+    Edit;
+    FieldByName('Name').AsString:='Editname';
+    FieldByName('Height').AsFloat:=3.33E3;
+    FieldByName('LongField').AsLongInt:=333;
+    FieldByName('ShoeSize').AsLongInt:=333;
+    FieldByName('WordField').AsLongInt:=333;
+    FieldByName('BooleanField').AsBoolean:=False;
+    FieldByName('DateTimeField').AsDateTime:=Now;
+    FieldByName('DateField').AsDateTime:=Date;
+    FieldByName('TimeField').AsDateTime:=Time;
+    Post;
+    Writeln ('Doing field dump');
+    writeln ('----------------');
+    DumpFields(Data);
+    Writeln ('Doing Prior');
+    Writeln ('-----------');
+    Prior;
+    DumpFields(Data);
+    Writeln ('Doing Next');
+    Writeln ('----------');
+    Next;
+    DumpFields(Data);
+    Writeln ('Doing Next');
+    Writeln ('----------');
+    Next;
+    DumpFields(Data);
     Writeln ('Closing.');   
     Close;
     end;
 end.
 {
   $Log$
-  Revision 1.2  1999-12-01 10:11:58  michael
+  Revision 1.3  1999-12-01 22:11:02  michael
+  + tested edit and insert methods
+
+  Revision 1.2  1999/12/01 10:11:58  michael
   + test of insert works now
 
   Revision 1.1  1999/11/14 19:26:17  michael

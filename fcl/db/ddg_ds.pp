@@ -441,6 +441,9 @@ procedure TDDGDataSet.InternalPost;
 var
   RecPos, InsPos: Integer;
 begin
+ {$ifdef dsdebug}
+  Writeln ('Starting internal post.');
+ {$endif}
   if FRecordPos = -1 then
     RecPos := 0
   else begin
