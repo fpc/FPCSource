@@ -1,3 +1,4 @@
+{ %KNOWNRUNERROR=2,i386 long double array problem }
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {****************************************************************}
@@ -53,7 +54,7 @@ type
   u16 : word;
   w8 : byte;
  end;
- 
+
  _5byte_ = record
   u8 : byte;
   u32 : cardinal;
@@ -523,7 +524,7 @@ begin
     failed := true;
   if global_u8bit <> RESULT_U8BIT then
     failed := true;
-    
+
   clear_values;
   clear_globals;
 
@@ -773,7 +774,10 @@ begin
       writeln('extended size is incompatible with C');
       writeln('this will lead to failures if long doubles');
       writeln('are used as arrays of members of packed structures');
-      has_errors:=true;
+      { if no other error,
+        then notify that we konw about this problem }
+      if not has_errors then
+        halt(2);
     end;
   if has_errors then
     Halt(1);
@@ -781,7 +785,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2002-11-18 00:42:16  pierre
+  Revision 1.9  2002-11-18 16:48:00  pierre
+   + use KNOWNRUNERROR for i386 long double problem
+
+  Revision 1.8  2002/11/18 00:42:16  pierre
    + records with really 3 byte size tests added
 
   Revision 1.7  2002/11/17 21:46:17  peter
