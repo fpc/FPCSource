@@ -218,6 +218,7 @@ unit tree;
                       methodpointer : ptree;
                       no_check,unit_specific,
                       return_value_used,static_call : boolean);
+             addrn : (procvarload:boolean);
              ordconstn : (value : longint);
              realconstn : (value_real : bestreal;lab_real : pasmlabel);
              fixconstn : (value_fix: longint);
@@ -1765,7 +1766,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.96  1999-09-16 11:34:59  pierre
+  Revision 1.97  1999-09-17 17:14:13  peter
+    * @procvar fixes for tp mode
+    * @<id>:= gives now an error
+
+  Revision 1.96  1999/09/16 11:34:59  pierre
    * typo correction
 
   Revision 1.95  1999/09/10 18:48:11  florian

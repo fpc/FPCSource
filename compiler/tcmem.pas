@@ -173,78 +173,113 @@ implementation
          make_not_regable(p^.left);
          if not(assigned(p^.resulttype)) then
            begin
-              { proc/procvar 2 procvar ? }
+              { tp @procvar support (type of @procvar is a void pointer)
+                Note: we need to leave the addrn in the tree,
+                else we can't see the difference between @procvar and procvar.
+                we set the procvarload flag so a secondpass does nothing for
+                this node (PFV) }
+              if (m_tp_procvar in aktmodeswitches) then
+               begin
+                 hp:=p^.left;
+                 case hp^.treetype of
+                   calln :
+                     begin
+                       { is it a procvar? }
+                       hp:=hp^.right;
+                       if assigned(hp) then
+                         begin
+                           { remove calln node }
+                           putnode(p^.left);
+                           p^.left:=hp;
+                           firstpass(hp);
+                           p^.procvarload:=true;
+                         end;
+                     end;
+                   loadn,
+                   vecn,
+                   derefn :
+                     begin
+                       firstpass(hp);
+                       if codegenerror then
+                        exit;
+                       if hp^.resulttype^.deftype=procvardef then
+                        begin
+                          p^.procvarload:=true;
+                        end;
+                     end;
+                 end;
+               end;
+              if p^.procvarload then
+               begin
+                 p^.registers32:=p^.left^.registers32;
+                 p^.registersfpu:=p^.left^.registersfpu;
+{$ifdef SUPPORT_MMX}
+                 p^.registersmmx:=p^.left^.registersmmx;
+{$endif SUPPORT_MMX}
+                 if p^.registers32<1 then
+                   p^.registers32:=1;
+                 p^.location.loc:=p^.left^.location.loc;
+                 p^.resulttype:=voidpointerdef;
+                 exit;
+               end;
+
+              { proc 2 procvar ? }
               if p^.left^.treetype=calln then
                 begin
-                   { is it a procvar, this is needed for @procvar in tp mode ! }
-                   if assigned(p^.left^.right) then
-                     begin
-                       { just return the load of the procvar, remove the
-                         addrn and calln nodes }
-                       hp:=p^.left^.right;
-                       putnode(p^.left);
-                       putnode(p);
-                       firstpass(hp);
-                       p:=hp;
-                       exit;
-                     end
-                   else
-                      begin
-                        { generate a methodcallnode or proccallnode }
-                        { we shouldn't convert things like @tcollection.load }
-                        if (p^.left^.symtableprocentry^.owner^.symtabletype=objectsymtable) and
-                          not(assigned(p^.left^.methodpointer) and (p^.left^.methodpointer^.treetype=typen)) then
-                         begin
-                           hp:=genloadmethodcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc,
-                             getcopy(p^.left^.methodpointer));
-                           disposetree(p);
-                           firstpass(hp);
-                           p:=hp;
-                           exit;
-                         end
-                        else
-                         hp:=genloadcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc);
-                      end;
+                  { generate a methodcallnode or proccallnode }
+                  { we shouldn't convert things like @tcollection.load }
+                  if (p^.left^.symtableprocentry^.owner^.symtabletype=objectsymtable) and
+                    not(assigned(p^.left^.methodpointer) and (p^.left^.methodpointer^.treetype=typen)) then
+                   begin
+                     hp:=genloadmethodcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc,
+                       getcopy(p^.left^.methodpointer));
+                     disposetree(p);
+                     firstpass(hp);
+                     p:=hp;
+                     exit;
+                   end
+                  else
+                   hp:=genloadcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc);
 
-                   { result is a procedure variable }
-                   { No, to be TP compatible, you must return a pointer to
-                     the procedure that is stored in the procvar.}
-                   if not(m_tp_procvar in aktmodeswitches) then
-                     begin
-                        p^.resulttype:=new(pprocvardef,init);
+                  { result is a procedure variable }
+                  { No, to be TP compatible, you must return a pointer to
+                    the procedure that is stored in the procvar.}
+                  if not(m_tp_procvar in aktmodeswitches) then
+                    begin
+                       p^.resulttype:=new(pprocvardef,init);
 
-                     { it could also be a procvar, not only pprocsym ! }
-                        if p^.left^.symtableprocentry^.typ=varsym then
-                         hp3:=pabstractprocdef(pvarsym(p^.left^.symtableentry)^.definition)
-                        else
-                         hp3:=pabstractprocdef(pprocsym(p^.left^.symtableprocentry)^.definition);
+                    { it could also be a procvar, not only pprocsym ! }
+                       if p^.left^.symtableprocentry^.typ=varsym then
+                        hp3:=pabstractprocdef(pvarsym(p^.left^.symtableentry)^.definition)
+                       else
+                        hp3:=pabstractprocdef(pprocsym(p^.left^.symtableprocentry)^.definition);
 
-                        pprocvardef(p^.resulttype)^.proctypeoption:=hp3^.proctypeoption;
-                        pprocvardef(p^.resulttype)^.proccalloptions:=hp3^.proccalloptions;
-                        pprocvardef(p^.resulttype)^.procoptions:=hp3^.procoptions;
-                        pprocvardef(p^.resulttype)^.retdef:=hp3^.retdef;
-                        pprocvardef(p^.resulttype)^.symtablelevel:=hp3^.symtablelevel;
+                       pprocvardef(p^.resulttype)^.proctypeoption:=hp3^.proctypeoption;
+                       pprocvardef(p^.resulttype)^.proccalloptions:=hp3^.proccalloptions;
+                       pprocvardef(p^.resulttype)^.procoptions:=hp3^.procoptions;
+                       pprocvardef(p^.resulttype)^.retdef:=hp3^.retdef;
+                       pprocvardef(p^.resulttype)^.symtablelevel:=hp3^.symtablelevel;
 
-                      { method ? then set the methodpointer flag }
-                        if (hp3^.owner^.symtabletype=objectsymtable) and
-                           (pobjectdef(hp3^.owner^.defowner)^.is_class) then
+                     { method ? then set the methodpointer flag }
+                       if (hp3^.owner^.symtabletype=objectsymtable) and
+                          (pobjectdef(hp3^.owner^.defowner)^.is_class) then
 {$ifdef INCLUDEOK}
-                          include(pprocvardef(p^.resulttype)^.procoptions,po_methodpointer);
+                         include(pprocvardef(p^.resulttype)^.procoptions,po_methodpointer);
 {$else}
-                          pprocvardef(p^.resulttype)^.procoptions:=pprocvardef(p^.resulttype)^.procoptions+[po_methodpointer];
+                         pprocvardef(p^.resulttype)^.procoptions:=pprocvardef(p^.resulttype)^.procoptions+[po_methodpointer];
 {$endif}
-                        hp2:=hp3^.para1;
-                        while assigned(hp2) do
-                          begin
-                             pprocvardef(p^.resulttype)^.concatdef(hp2^.data,hp2^.paratyp);
-                             hp2:=hp2^.next;
-                          end;
-                     end
-                   else
-                     p^.resulttype:=voidpointerdef;
+                       hp2:=hp3^.para1;
+                       while assigned(hp2) do
+                         begin
+                            pprocvardef(p^.resulttype)^.concatdef(hp2^.data,hp2^.paratyp);
+                            hp2:=hp2^.next;
+                         end;
+                    end
+                  else
+                    p^.resulttype:=voidpointerdef;
 
-                   disposetree(p^.left);
-                   p^.left:=hp;
+                  disposetree(p^.left);
+                  p^.left:=hp;
                 end
               else
                 begin
@@ -595,7 +630,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1999-09-11 11:10:39  florian
+  Revision 1.28  1999-09-17 17:14:12  peter
+    * @procvar fixes for tp mode
+    * @<id>:= gives now an error
+
+  Revision 1.27  1999/09/11 11:10:39  florian
     * fix of my previous commit, make cycle was broken
 
   Revision 1.26  1999/09/11 09:08:34  florian

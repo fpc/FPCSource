@@ -222,6 +222,15 @@ implementation
     procedure secondaddr(var p : ptree);
       begin
          secondpass(p^.left);
+
+         { when loading procvar we do nothing with this node, so load the
+           location of left }
+         if p^.procvarload then
+          begin
+            set_location(p^.location,p^.left^.location);
+            exit;
+          end;
+
          p^.location.loc:=LOC_REGISTER;
          del_reference(p^.left^.location.reference);
          p^.location.register:=getregister32;
@@ -859,7 +868,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  1999-09-14 07:59:46  florian
+  Revision 1.58  1999-09-17 17:14:02  peter
+    * @procvar fixes for tp mode
+    * @<id>:= gives now an error
+
+  Revision 1.57  1999/09/14 07:59:46  florian
     * finally!? fixed
          with <function with result in temp> do
       My last and also Peter's fix before were wrong :(

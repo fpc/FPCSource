@@ -238,6 +238,11 @@ implementation
          if is_open_array(p^.left^.resulttype) then
            CGMessage(type_e_mismatch);
 
+         { assignments to addr aren't allowed, but support @procvar for tp }
+         if (p^.left^.treetype=addrn) and
+            not(p^.left^.procvarload) then
+          CGMessage(type_e_no_assign_to_addr);
+
          { test if we can avoid copying string to temp
            as in s:=s+...; (PM) }
 {$ifdef dummyi386}
@@ -504,7 +509,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  1999-09-11 19:47:26  florian
+  Revision 1.45  1999-09-17 17:14:12  peter
+    * @procvar fixes for tp mode
+    * @<id>:= gives now an error
+
+  Revision 1.44  1999/09/11 19:47:26  florian
     * bug fix for @tobject.method, fixes bug 557, 605 and 606
 
   Revision 1.43  1999/09/11 09:08:34  florian

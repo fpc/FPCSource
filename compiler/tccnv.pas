@@ -832,6 +832,22 @@ implementation
             CGMessage2(type_e_incompatible_types,p^.left^.resulttype^.typename,p^.resulttype^.typename);
          end;
 
+       { tp7 procvar support, when right is not a procvardef and we got a
+         loadn of a procvar then convert to a calln, the check for the
+         result is already done in is_convertible, also no conflict with
+         @procvar is here because that has an extra addrn }
+         if (m_tp_procvar in aktmodeswitches) and
+            (p^.resulttype^.deftype<>procvardef) and
+            (p^.left^.resulttype^.deftype=procvardef) and
+            (p^.left^.treetype=loadn) then
+          begin
+            hp:=gencallnode(nil,nil);
+            hp^.right:=p^.left;
+            firstpass(hp);
+            p^.left:=hp;
+          end;
+
+
         { ordinal contants can be directly converted }
         { but not int64/qword                        }
         if (p^.left^.treetype=ordconstn) and is_ordinal(p^.resulttype) and
@@ -928,7 +944,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  1999-09-11 09:08:34  florian
+  Revision 1.48  1999-09-17 17:14:12  peter
+    * @procvar fixes for tp mode
+    * @<id>:= gives now an error
+
+  Revision 1.47  1999/09/11 09:08:34  florian
     * fixed bug 596
     * fixed some problems with procedure variables and procedures of object,
       especially in TP mode. Procedure of object doesn't apply only to classes,

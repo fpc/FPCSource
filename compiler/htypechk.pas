@@ -107,9 +107,18 @@ implementation
             exit;
           end;
 
-         b:=0;
+       { tp7 procvar def support, in tp7 a procvar is always called, if the
+         procvar is passed explicit a addrn would be there }
+         if (m_tp_procvar in aktmodeswitches) and
+            (def_from^.deftype=procvardef) and
+            (fromtreetype=loadn) then
+          begin
+            def_from:=pprocvardef(def_from)^.retdef;
+          end;
+
        { we walk the wanted (def_to) types and check then the def_from
          types if there is a conversion possible }
+         b:=0;
          case def_to^.deftype of
            orddef :
              begin
@@ -696,7 +705,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1999-08-17 13:26:07  peter
+  Revision 1.39  1999-09-17 17:14:04  peter
+    * @procvar fixes for tp mode
+    * @<id>:= gives now an error
+
+  Revision 1.38  1999/08/17 13:26:07  peter
     * arrayconstructor -> arrayofconst fixed when arraycosntructor was not
       variant.
 

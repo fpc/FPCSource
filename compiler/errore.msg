@@ -914,6 +914,10 @@ type_e_cannot_local_proc_to_procvar=E_Can't assign local procedure/function to p
 % It's not allowed to assign a local procedure/function to a
 % procedure variable, because the calling of local procedure/function is
 % different. You can only assign local procedure/function to a void pointer.
+type_e_no_assign_to_addr=E_Can't assign values to an address
+% It's not allowed to assign a value to an address of a variable,constant,
+% procedure or function. You can try compiling with -So if the identifier
+% is a procedure variable.
 % \end{description}
 #
 # Symtable

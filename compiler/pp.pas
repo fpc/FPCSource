@@ -268,9 +268,6 @@ end;
 begin
   oldexit:=exitproc;
   exitproc:=@myexit;
-{$ifdef fpc}
-  heapblocks:=true;
-{$endif}
 {$ifdef UseOverlay}
   InitOverlay;
 {$endif}
@@ -280,7 +277,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  1999-09-16 23:05:54  florian
+  Revision 1.50  1999-09-17 17:14:10  peter
+    * @procvar fixes for tp mode
+    * @<id>:= gives now an error
+
+  Revision 1.49  1999/09/16 23:05:54  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.48  1999/09/10 18:48:08  florian
@@ -303,7 +304,7 @@ end.
 
   Revision 1.43  1999/06/02 22:25:44  pierre
   * catch is used for go32v2 also
-  
+
   Revision 1.42  1999/05/12 22:36:11  florian
     * override isn't allowed in objects!
 
