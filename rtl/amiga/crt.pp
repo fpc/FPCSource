@@ -215,7 +215,7 @@ Type
     pIntuiMessage = ^tIntuiMessage;
     tIntuiMessage = packed record
         ExecMessage     : tMessage;
-        Class_          : Longint;
+        IClass          : Longint;
         Code            : Word;
         Qualifier       : Word;
         IAddress        : Pointer;
@@ -280,27 +280,62 @@ Type
         MoreFlags       : Longint;
     end;
 
+    const
+
+    M_LNM               = 20;           { linefeed newline mode }
+    PMB_ASM     = M_LNM + 1;    { internal storage bit for AS flag }
+    PMB_AWM     = PMB_ASM + 1;  { internal storage bit for AW flag }
+    MAXTABS     = 80;
+    IECLASS_MAX = $15;
+
+type
+
+    pKeyMap = ^tKeyMap;
+    tKeyMap = packed record
+        km_LoKeyMapTypes        : Pointer;
+        km_LoKeyMap             : Pointer;
+        km_LoCapsable           : Pointer;
+        km_LoRepeatable         : Pointer;
+        km_HiKeyMapTypes        : Pointer;
+        km_HiKeyMap             : Pointer;
+        km_HiCapsable           : Pointer;
+        km_HiRepeatable         : Pointer;
+    end;
+
+
 
     pConUnit = ^tConUnit;
     tConUnit = packed record
         cu_MP   : tMsgPort;
+        { ---- read only variables }
         cu_Window       : Pointer;      { (WindowPtr) intuition window bound to this unit }
-        cu_XCP          : Integer;      { character position }
+        cu_XCP          : Integer;        { character position }
         cu_YCP          : Integer;
-        cu_XMax         : Integer;      { max character position }
+        cu_XMax         : Integer;        { max character position }
         cu_YMax         : Integer;
-        cu_XRSize       : Integer;      { character raster size }
+        cu_XRSize       : Integer;        { character raster size }
         cu_YRSize       : Integer;
-        cu_XROrigin     : Integer;      { raster origin }
+        cu_XROrigin     : Integer;        { raster origin }
         cu_YROrigin     : Integer;
-        cu_XRExtant     : Integer;      { raster maxima }
+        cu_XRExtant     : Integer;        { raster maxima }
         cu_YRExtant     : Integer;
-        cu_XMinShrink   : Integer;      { smallest area intact from resize process }
+        cu_XMinShrink   : Integer;        { smallest area intact from resize process }
         cu_YMinShrink   : Integer;
-        cu_XCCP         : Integer;      { cursor position }
+        cu_XCCP         : Integer;        { cursor position }
         cu_YCCP         : Integer;
-        cu_KeyMapStruct : Pointer;
-        cu_TabStops     : Array [0..80-1] of Word;
+
+   { ---- read/write variables (writes must must be protected) }
+   { ---- storage for AskKeyMap and SetKeyMap }
+
+        cu_KeyMapStruct : tKeyMap;
+
+   { ---- tab stops }
+
+        cu_TabStops     : Array [0..MAXTABS-1] of Word;
+                                { 0 at start, -1 at end of list }
+
+   { ---- console rastport attributes }
+
         cu_Mask         : Shortint;
         cu_FgPen        : Shortint;
         cu_BgPen        : Shortint;
@@ -316,8 +351,12 @@ Type
         cu_TxWidth      : Word;
         cu_TxBaseline   : Word;
         cu_TxSpacing    : Word;
-        cu_Modes        : Array [0..(22+7) div 8 - 1] of Byte;
-        cu_RawEvents    : Array [0..($15+7) div 8 - 1] of Byte;
+
+   { ---- console MODES and RAW EVENTS switches }
+
+        cu_Modes        : Array [0..(PMB_AWM+7) div 8 - 1] of Byte;
+                                { one bit per mode }
+        cu_RawEvents    : Array [0..(IECLASS_MAX+7) div 8 - 1] of Byte;
     end;
 
 const
@@ -627,10 +666,10 @@ begin
          msg   := WaitPort(win^.UserPort);
          imsg  := pIntuiMessage(GetMsg(win^.UserPort));
 
-         if (imsg^.Class_ = IDCMP_VANILLAKEY) then
+         if (imsg^.IClass = IDCMP_VANILLAKEY) then
               key := char(imsg^.Code)
          else
-         if (imsg^.Class_ = IDCMP_RAWKEY) then
+         if (imsg^.IClass = IDCMP_RAWKEY) then
               key := char(imsg^.Code);
 
          ReplyMsg(pMessage(imsg));
@@ -676,7 +715,7 @@ begin
       msg   := WaitPort(win^.UserPort);
       imsg  := pIntuiMessage(GetMsg(win^.UserPort));
 
-      if (imsg^.Class_ = IDCMP_VANILLAKEY) or (imsg^.Class_ = IDCMP_RAWKEY) then
+      if (imsg^.IClass = IDCMP_VANILLAKEY) or (imsg^.IClass = IDCMP_RAWKEY) then
       Begin
         ispressed := true;
         KeyPress := char(imsg^.Code)
