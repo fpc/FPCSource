@@ -281,7 +281,7 @@ procedure c_exit(status: C_int); cdecl;
   {cdecl is actually only needed for m68k}
 
 var
-  {Is set to nonzero for MPWTool, zero otherwise.}
+  {Is set to zero for MPWTool, nonzero otherwise.}
   StandAlone: C_int; external name 'StandAlone';
 
 CONST
@@ -1263,6 +1263,7 @@ begin
       dirStr:= ':x';
       err:= ResolveFolderAliases(0, 0, @dirStr, true, 
            workingDirectorySpec, isFolder, hadAlias, leafIsAlias);
+      workingDirectorySpec.name:='';
       if (err <> noErr) and (err <> fnfErr) then
         Halt(3);  //exit code 3 according to MPW
     end;
@@ -1272,12 +1273,12 @@ begin
     MaxApplZone;
   if Mac_FreeMem - intern_heapsize < 30000 then
     Halt(3);  //exit code 3 according to MPW
-  theHeap:= SysOSAlloc(intern_heapsize);
+  theHeap:= NewPtr(intern_heapsize);
   if theHeap = nil then
     Halt(3);  //exit code 3 according to MPW
 
   InitHeap;
-
+  SysInitExceptions;
   SysInitStdIO;
 
   { Setup environment and arguments }
@@ -1294,13 +1295,22 @@ begin
 {$endif HASVARIANT}
 
   if StandAlone = 0 then
-    InitCursorCtl(nil);
+    begin
+      InitGraf(@qd.thePort);
+      SetFScaleDisable(true);
+      InitCursorCtl(nil);
+    end;
 end.
 
 
 {
   $Log$
-  Revision 1.20  2004-09-03 19:26:08  olle
+  Revision 1.21  2004-09-12 19:51:02  olle
+    + InitGraf called for MPW tool, which make strange bug disappear.
+    * bugfix initial wd for MPW tool
+    + Added SysInitExceptions
+
+  Revision 1.20  2004/09/03 19:26:08  olle
     + added maxExitCode to all System.pp
     * constrained error code to be below maxExitCode in RunError et. al.
 
