@@ -159,6 +159,10 @@ implementation
            begin
               if count_ref then
                begin
+                 { not completly proper, but avoids some warnings }
+                 if (p^.left^.treetype=funcretn) and (defcoll^.paratyp=vs_var) then
+                   procinfo.funcret_is_valid:=true;
+
                  store_valid:=must_be_valid;
                  if (defcoll^.paratyp=vs_var) then
                    test_protected(p^.left);
@@ -1067,7 +1071,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1999-01-29 11:34:55  pierre
+  Revision 1.23  1999-02-09 17:15:52  florian
+    * some false warnings "function result doesn't seems to be set" are
+      avoided
+
+  Revision 1.22  1999/01/29 11:34:55  pierre
    + better info for impossible type conversion in calln
 
   Revision 1.21  1999/01/21 22:10:49  peter

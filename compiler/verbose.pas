@@ -350,7 +350,10 @@ begin
                   inc(status.errorcount);
                 end;
           'O' : v:=v or V_Normal;
-          'W' : v:=v or V_Warning;
+
+          'W':
+            v:=v or V_Warning;
+
           'N' : v:=v or V_Note;
           'H' : v:=v or V_Hint;
           'I' : v:=v or V_Info;
@@ -435,7 +438,11 @@ end.
 
 {
   $Log$
-  Revision 1.34  1999-01-15 16:08:21  peter
+  Revision 1.35  1999-02-09 17:15:53  florian
+    * some false warnings "function result doesn't seems to be set" are
+      avoided
+
+  Revision 1.34  1999/01/15 16:08:21  peter
     * doneverbose sets msg to nil
 
   Revision 1.33  1999/01/14 21:47:10  peter
