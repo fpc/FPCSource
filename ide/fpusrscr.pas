@@ -667,9 +667,9 @@ var
 begin
   GetConsoleScreenBufferInfo(DosScreenBufferHandle,
     @ConsoleScreenBufferInfo);
-  if (ConsoleScreenBufferInfo.srWindow.Top + i >= 0) then
+  if (ConsoleScreenBufferInfo.srWindow.Top + i < 0) then
     i:= -ConsoleScreenBufferInfo.srWindow.Top;
-  if (ConsoleScreenBufferInfo.srWindow.Bottom + i <= ConsoleScreenBufferInfo.dwSize.Y) then
+  if (ConsoleScreenBufferInfo.srWindow.Bottom + i > ConsoleScreenBufferInfo.dwSize.Y) then
     i:= ConsoleScreenBufferInfo.dwSize.Y - ConsoleScreenBufferInfo.srWindow.Bottom;
   if i<>0 then
     begin
@@ -839,11 +839,23 @@ begin
 end;
 
 procedure TWin32Screen.SwitchBackToIDEScreen;
+var
+  ConsoleScreenBufferInfo : Console_screen_buffer_info;
+  WindowPos : Small_rect;
 begin
+  GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
+    @ConsoleScreenBufferInfo);
   SetConsoleActiveScreenBuffer(IDEScreenBufferHandle);
   SetStdHandle(Std_Output_Handle,IDEScreenBufferHandle);
   IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT) and not ENABLE_PROCESSED_INPUT;
   SetConsoleMode(GetStdHandle(Std_Input_Handle), IdeMode);
+  WindowPos.left:=0;
+  WindowPos.right:=ConsoleScreenBufferInfo.srWindow.right
+                   -ConsoleScreenBufferInfo.srWindow.left;
+  WindowPos.top:=0;
+  WindowPos.bottom:=ConsoleScreenBufferInfo.srWindow.bottom
+                   -ConsoleScreenBufferInfo.srWindow.top;
+  SetConsoleWindowInfo(IDEScreenBufferHandle,true,WindowPos);
   IDEActive:=true;
 end;
 
@@ -886,7 +898,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2001-11-08 16:07:41  pierre
+  Revision 1.6  2001-11-08 16:38:25  pierre
+    * fix win32 scrolling
+    + always go back to 0,0 position in IDE mode
+
+  Revision 1.5  2001/11/08 16:07:41  pierre
    * overcome buffer win32 problem due to a bug in ReadConsoleOutput
 
   Revision 1.4  2001/10/24 14:17:27  pierre
