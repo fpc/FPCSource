@@ -12,6 +12,8 @@ packages=fcl
 [target]
 programs=fpdoc makeskel
 rst=dwriter fpdoc dglobals makeskel
+dirs_linux=fpde
+dirs_win32=fpde
 
 [compiler]
 options=-S2h

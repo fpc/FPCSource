@@ -214,6 +214,12 @@ endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fpdoc
 override PACKAGE_VERSION=1.0.8
+ifeq ($(OS_TARGET),linux)
+override TARGET_DIRS+=fpde
+endif
+ifeq ($(OS_TARGET),win32)
+override TARGET_DIRS+=fpde
+endif
 override TARGET_PROGRAMS+=fpdoc makeskel
 override CLEAN_UNITS+=dglobals dwriter dw_xml sh_pas dw_html dw_latex
 override CLEAN_FILES+=dwriter.rst fpdoc.rst dglobals.rst makeskel.rst
@@ -1510,23 +1516,72 @@ endif
 fpc_makefile_sub2: $(addsuffix _makefile_dirs,$(TARGET_DIRS) $(TARGET_EXAMPLEDIRS))
 fpc_makefile_dirs: fpc_makefile_sub1 fpc_makefile_sub2
 fpc_makefiles: fpc_makefile fpc_makefile_dirs
-all: fpc_all
+ifeq ($(OS_TARGET),linux)
+TARGET_DIRS_FPDE=1
+endif
+ifeq ($(OS_TARGET),win32)
+TARGET_DIRS_FPDE=1
+endif
+ifdef TARGET_DIRS_FPDE
+fpde_all:
+	$(MAKE) -C fpde all
+fpde_debug:
+	$(MAKE) -C fpde debug
+fpde_smart:
+	$(MAKE) -C fpde smart
+fpde_release:
+	$(MAKE) -C fpde release
+fpde_examples:
+	$(MAKE) -C fpde examples
+fpde_shared:
+	$(MAKE) -C fpde shared
+fpde_install:
+	$(MAKE) -C fpde install
+fpde_sourceinstall:
+	$(MAKE) -C fpde sourceinstall
+fpde_exampleinstall:
+	$(MAKE) -C fpde exampleinstall
+fpde_distinstall:
+	$(MAKE) -C fpde distinstall
+fpde_zipinstall:
+	$(MAKE) -C fpde zipinstall
+fpde_zipsourceinstall:
+	$(MAKE) -C fpde zipsourceinstall
+fpde_zipexampleinstall:
+	$(MAKE) -C fpde zipexampleinstall
+fpde_zipdistinstall:
+	$(MAKE) -C fpde zipdistinstall
+fpde_clean:
+	$(MAKE) -C fpde clean
+fpde_distclean:
+	$(MAKE) -C fpde distclean
+fpde_cleanall:
+	$(MAKE) -C fpde cleanall
+fpde_info:
+	$(MAKE) -C fpde info
+fpde_makefiles:
+	$(MAKE) -C fpde makefiles
+fpde:
+	$(MAKE) -C fpde all
+.PHONY: fpde_all fpde_debug fpde_smart fpde_release fpde_examples fpde_shared fpde_install fpde_sourceinstall fpde_exampleinstall fpde_distinstall fpde_zipinstall fpde_zipsourceinstall fpde_zipexampleinstall fpde_zipdistinstall fpde_clean fpde_distclean fpde_cleanall fpde_info fpde_makefiles fpde
+endif
+all: fpc_all $(addsuffix _all,$(TARGET_DIRS))
 debug: fpc_debug
 smart: fpc_smart
 release: fpc_release
-examples:
-shared:
-install: fpc_install
+examples: $(addsuffix _examples,$(TARGET_DIRS))
+shared: $(addsuffix _shared,$(TARGET_DIRS))
+install: fpc_install $(addsuffix _install,$(TARGET_DIRS))
 sourceinstall: fpc_sourceinstall
-exampleinstall: fpc_exampleinstall
+exampleinstall: fpc_exampleinstall $(addsuffix _exampleinstall,$(TARGET_DIRS))
 distinstall: fpc_distinstall
 zipinstall: fpc_zipinstall
 zipsourceinstall: fpc_zipsourceinstall
-zipexampleinstall: fpc_zipexampleinstall
-zipdistinstall: fpc_zipdistinstall
-clean: fpc_clean
-distclean: fpc_distclean
-cleanall: fpc_cleanall
+zipexampleinstall: fpc_zipexampleinstall $(addsuffix _zipexampleinstall,$(TARGET_DIRS))
+zipdistinstall: fpc_zipdistinstall $(addsuffix _zipdistinstall,$(TARGET_DIRS))
+clean: fpc_clean $(addsuffix _clean,$(TARGET_DIRS))
+distclean: fpc_distclean $(addsuffix _distclean,$(TARGET_DIRS))
+cleanall: fpc_cleanall $(addsuffix _cleanall,$(TARGET_DIRS))
 info: fpc_info
 makefiles: fpc_makefiles
 .PHONY: all debug smart release examples shared install sourceinstall exampleinstall distinstall zipinstall zipsourceinstall zipexampleinstall zipdistinstall clean distclean cleanall info makefiles
