@@ -8,6 +8,7 @@ program find_gdb_version;
 
 {$R-}
 
+{$Linklib c}
 {$Linklib gdb}
 
 uses
@@ -95,7 +96,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-02-09 19:14:48  marco
+  Revision 1.7  2004-02-11 20:50:48  peter
+    * linklib c added
+
+  Revision 1.6  2003/02/09 19:14:48  marco
    * ugly openbsd fix
 
   Revision 1.5  2002/12/12 14:17:59  pierre
