@@ -37,6 +37,7 @@ if exist %FPCDIR% goto DirOK
 if exist %FPCDIR%\. goto DirOK
 if exist %FPCDIR%\makefile goto DirOK
 if exist %FPCDIR%\SOURCE\makefile goto DirOK
+if exist %FPCDIR%\SOURCE\COMPILER\pp.pas goto DirOK
 goto ErrorDir
 
 :DirOK
@@ -142,6 +143,7 @@ goto Cmd1
 set PARAMS=%@LOWER[%PARAMS%]
 if .%@LOWER[%2] == .debug set STRIPDEBUG=
 :Cmd1
+if %PARAMS% == clean goto CleanRTL
 if %PARAMS% == both goto CleanRTL
 if %PARAMS% == snapshot goto CleanRTL
 if %PARAMS% == rtl goto CleanRTL
@@ -202,6 +204,7 @@ goto ContCleanSnap
 echo *Deleting the old snapshot ...
 del %FPCSRC%\snap-os2.zip >& nul
 :ContCleanSnap
+if %PARAMS% == clean goto End
 
 :Branches
 if %PARAMS% == both goto RTL1
@@ -254,6 +257,8 @@ echo *Compiling unit MouCalls ...
 %FPCTOOLS%%COMPILER% %OS2RTL%MOUCALLS.PAS
 echo *Compiling unit VioCalls ...
 %FPCTOOLS%%COMPILER% %OS2RTL%VIOCALLS.PAS
+echo *Compiling unit Ports ...
+%FPCTOOLS%%COMPILER% %OS2RTL%PORTS.PAS
 echo *Compiling PM units ...
 %FPCTOOLS%%COMPILER% %OS2RTL%PMWIN.PAS
 %FPCTOOLS%%COMPILER% %OS2RTL%PMBITMAP.PAS
@@ -345,8 +350,8 @@ goto End
 
 
   $Log$
-  Revision 1.4  1999-12-26 19:13:10  hajny
-    * little enhancements for 4os2/4dos
+  Revision 1.5  2000-01-02 16:38:51  hajny
+    + unit Ports added
 
   Revision 1.3  1999/10/01 09:00:21  hajny
     + PMGPI and DIVE added
