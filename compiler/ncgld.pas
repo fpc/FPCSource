@@ -131,7 +131,8 @@ implementation
                     begin
                        { we've to allocate the register before we save the used registers }
                        location.reference.base:=rg.getaddressregister(exprasmlist);
-                       rg.saveusedregisters(exprasmlist,pushed,[accumulator]);
+                       { don't save the allocated register else the result will be destroyed later }
+                       rg.saveusedregisters(exprasmlist,pushed,[accumulator]-[location.reference.base]);
                        reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname),0);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
                        { the called procedure isn't allowed to change }
@@ -959,7 +960,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-10-03 21:32:02  carl
+  Revision 1.34  2002-10-13 11:22:06  florian
+    * fixed threadvars
+
+  Revision 1.33  2002/10/03 21:32:02  carl
     * bugfix for 2110 (without -Or), wrong checking was done in returntype
 
   Revision 1.32  2002/09/30 07:00:46  florian
