@@ -1391,7 +1391,9 @@ implementation
                     if possible_error then
                      begin
                        do_resulttypepass(p1);
-                       if not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) and
+                       if (p1.nodetype=calln) and
+                          assigned(tcallnode(p1).procdefinition) and
+                          not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) and
                           not(po_classmethod in tcallnode(p1).procdefinition.procoptions) then
                          Message(parser_e_only_class_methods);
                      end;
@@ -2455,7 +2457,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.162  2004-07-05 23:25:34  olle
+  Revision 1.163  2004-08-25 15:58:36  peter
+    * fix crash with calling method pointer from class procedure
+
+  Revision 1.162  2004/07/05 23:25:34  olle
     + adding operators "|" and "&" for macpas
 
   Revision 1.161  2004/07/05 21:49:43  olle
