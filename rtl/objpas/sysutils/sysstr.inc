@@ -1128,6 +1128,12 @@ Var
 
 Begin
   S:=StrPas(Buffer);
+  P:=Pos(ThousandSeparator,S);
+  While (P<>0) do
+    begin
+    Delete(S,P,1);
+    P:=Pos(ThousandSeparator,S);
+    end;
   P:=Pos(DecimalSeparator,S);
   If (P<>0) Then
     S[P] := '.';
@@ -1316,17 +1322,38 @@ begin
   Result:=Value;
 end;
 
-Function FloatToCurr (Const Value : Extended) : Currency;
-begin
+function TryFloatToCurr(const Value: Extended; var AResult: Currency): Boolean;
 
+begin
+  Result:=(Value>=MinCurrency) and (Value<=MaxCurrency);
+  if Result then
+    AResult := Value;
 end;
+        
+function FloatToCurr(const Value: Extended): Currency;
+
+begin
+  if not TryFloatToCurr(Value, Result) then
+    Raise EConvertError.CreateFmt(SInvalidCurrency, [FloatToStr(Value)]);
+end;
+              
 
 Function CurrToStr(Value: Currency): string;
+
 begin
+  Result:=FloatToStrF(Value,ffNumber,15,2);
 end;
 
 function StrToCurr(const S: string): Currency;
 begin
+  if not TextToFloat(PChar(S), Result, fvCurrency) then
+    Raise EConvertError.createfmt(SInValidFLoat,[S]);
+end;
+
+function StrToCurrDef(const S: string; Default : Currency): Currency;
+begin
+  if not TextToFloat(PChar(S), Result, fvCurrency) then
+    Result:=Default;
 end;
 
 function StrToBool(const S: string): Boolean;
@@ -2144,7 +2171,10 @@ const
 
 {
   $Log$
-  Revision 1.10  2004-04-28 20:48:20  peter
+  Revision 1.11  2004-06-12 13:23:17  michael
+  + Fixed currency<->string conversion support
+
+  Revision 1.10  2004/04/28 20:48:20  peter
     * ordinal-pointer conversions fixed
 
   Revision 1.9  2004/02/26 08:46:21  michael

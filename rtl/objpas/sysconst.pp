@@ -55,6 +55,7 @@ resourcestring
   SInvalidArgIndex       = 'Invalid argument index in format "%s"';
   SInvalidBoolean        = '"%s" is not a valid boolean.';
   SInvalidCast           = 'Invalid type cast';
+  SinvalidCurrency       = 'Invalid currency: "%s"';
   SInvalidDateTime       = '%f is not a valid date/time value.';
   SInvalidDrive          = 'Invalid drive specified';
   SInvalidFileHandle     = 'Invalid file handle';
@@ -208,7 +209,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2004-02-08 11:44:05  michael
+  Revision 1.10  2004-06-12 13:23:17  michael
+  + Fixed currency<->string conversion support
+
+  Revision 1.9  2004/02/08 11:44:05  michael
   + OSERRor related constants
 
   Revision 1.8  2004/01/20 23:05:31  hajny

@@ -44,6 +44,10 @@ const
   MinDateTime: TDateTime = -657434.0;      { 01/01/0100 12:00:00.000 AM }
   MaxDateTime: TDateTime =  2958465.99999; { 12/31/9999 11:59:59.999 PM }
 
+  MinCurrency: Currency = -922337203685477.5807;  
+  MaxCurrency: Currency =  922337203685477.5807; 
+    
+
 Type
   TTextLineBreakStyle = (tlbsLF, tlbsCRLF);   // Must move to system unit, and add Mac tlbsCR too ?
 
@@ -131,8 +135,10 @@ Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue): Boolean;
 Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
 Function FloatToDateTime (Const Value : Extended) : TDateTime;
 Function FloattoCurr (Const Value : Extended) : Currency;
+function TryFloatToCurr(const Value: Extended; var AResult: Currency): Boolean;
 Function CurrToStr(Value: Currency): string;
 function StrToCurr(const S: string): Currency;
+function StrToCurrDef(const S: string; Default : Currency): Currency;
 function StrToBool(const S: string): Boolean;
 function BoolToStr(B: Boolean): string;
 function LastDelimiter(const Delimiters, S: string): Integer;
@@ -178,7 +184,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.4  2004-02-26 08:46:21  michael
+  Revision 1.5  2004-06-12 13:23:17  michael
+  + Fixed currency<->string conversion support
+
+  Revision 1.4  2004/02/26 08:46:21  michael
   + Added AnsiSameStr
 
   Revision 1.3  2003/11/26 22:17:42  michael
