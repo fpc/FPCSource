@@ -896,6 +896,7 @@ implementation
                      begin
                        vtype:=vtExtended;
                        vaddr:=true;
+                       freetemp:=false;
                      end;
                    procvardef,
                    pointerdef :
@@ -987,7 +988,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.105  2000-03-19 11:55:08  peter
+  Revision 1.106  2000-04-03 12:23:02  pierre
+   * fix for bug 909
+
+  Revision 1.105  2000/03/19 11:55:08  peter
     * fixed temp ansi handling within array constructor
 
   Revision 1.104  2000/03/19 08:14:17  peter
