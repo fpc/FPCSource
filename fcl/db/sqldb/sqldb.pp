@@ -35,6 +35,10 @@ type
     stDDL, stGetSegment, stPutSegment, stExecProcedure,
     stStartTrans, stCommit, stRollback, stSelectForUpd);
 
+  TSQLHandle = Class(TObject)
+//    Procedure FreeHandle ; Virtual; Abstract;
+  end;
+
 { TSQLConnection }
 
   TSQLConnection = class (TDatabase)
@@ -50,34 +54,34 @@ type
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
     function GetHandle : pointer; virtual; abstract;
-  public
-    procedure StartTransaction; override;
-    procedure EndTransaction; override;
-    destructor Destroy; override;
-    function GetCursor : pointer; virtual; abstract;
+
+    Function AllocateCursorHandle : TSQLHandle; virtual; abstract;
+    Function AllocateTransactionHandle : TSQLHandle; virtual; abstract;
+
+{    function GetCursor : pointer; virtual; abstract;
     procedure FreeCursor(cursor : pointer); virtual; abstract;
     function GetTrans : pointer; virtual; abstract;
-    procedure FreeTrans(trans : pointer); virtual; abstract;
-    procedure AllocStatement(cursor : pointer); virtual; abstract;
-    procedure FreeStatement(cursor : pointer); virtual; abstract;
-    procedure PrepareStatement(cursor: pointer;ATransaction : TSQLTransaction;buf : string); virtual; abstract;
-    procedure DescribeStatement(cursor : pointer); virtual; abstract;
-    procedure AllocFldBuffers(cursor : pointer); virtual; abstract;
-    procedure FreeFldBuffers(cursor : pointer); virtual; abstract;
-    procedure Execute(cursor: pointer;atransaction:tSQLtransaction); virtual; abstract;
-    procedure AddFieldDefs(cursor: pointer; FieldDefs : TfieldDefs); virtual; abstract;
-    function GetFieldSizes(cursor : pointer) : integer; virtual; abstract;
-    function Fetch(cursor : pointer) : boolean; virtual; abstract;
-    procedure LoadFieldsFromBuffer(cursor : pointer;buffer : pchar); virtual; abstract;
-    function GetFieldData(cursor : pointer; Field: TField; Buffer: Pointer;currbuff : pchar): Boolean; virtual; abstract;
-    function GetStatementType(cursor : pointer) : tStatementType; virtual; abstract;
-    function GetTransactionHandle(trans : pointer): pointer; virtual; abstract;
-    function Commit(trans : pointer) : boolean; virtual; abstract;
-    function RollBack(trans : pointer) : boolean; virtual; abstract;
-    function StartTransaction(trans : pointer) : boolean; virtual; abstract;
-    procedure CommitRetaining(trans : pointer); virtual; abstract;
-    procedure RollBackRetaining(trans : pointer); virtual; abstract;
-
+    procedure FreeTrans(trans : pointer); virtual; abstract;}
+    procedure FreeStatement(cursor : TSQLHandle); virtual; abstract;
+    procedure FreeSelect(cursor : TSQLHandle); virtual; abstract;
+    procedure PrepareStatement(cursor: TSQLHandle;ATransaction : TSQLTransaction;buf : string); virtual; abstract;
+    procedure PrepareSelect(cursor : TSQLHandle); virtual; abstract;
+    procedure FreeFldBuffers(cursor : TSQLHandle); virtual; abstract;
+    procedure Execute(cursor: TSQLHandle;atransaction:tSQLtransaction); virtual; abstract;
+    procedure AddFieldDefs(cursor: TSQLHandle; FieldDefs : TfieldDefs); virtual; abstract;
+    function GetFieldSizes(cursor : TSQLHandle) : integer; virtual; abstract;
+    function Fetch(cursor : TSQLHandle) : boolean; virtual; abstract;
+    procedure LoadFieldsFromBuffer(cursor : TSQLHandle;buffer : pchar); virtual; abstract;
+    function GetFieldData(cursor : TSQLHandle; Field: TField; Buffer: Pointer;currbuff : pchar): Boolean; virtual; abstract;
+    function GetStatementType(cursor : TSQLHandle) : tStatementType; virtual; abstract;
+    function GetTransactionHandle(trans : TSQLHandle): pointer; virtual; abstract;
+    function Commit(trans : TSQLHandle) : boolean; virtual; abstract;
+    function RollBack(trans : TSQLHandle) : boolean; virtual; abstract;
+    function StartTransaction(trans : TSQLHandle) : boolean; virtual; abstract;
+    procedure CommitRetaining(trans : TSQLHandle); virtual; abstract;
+    procedure RollBackRetaining(trans : TSQLHandle); virtual; abstract;
+  public
+    destructor Destroy; override;
     property Handle: Pointer read GetHandle;
   published
     property Password : string read FPassword write FPassword;
@@ -100,17 +104,18 @@ type
   TCommitRollbackAction = (caNone, caCommit, caCommitRetaining, caRollback,
     caRollbackRetaining);
 
-  TSQLTransaction = class (TComponent)
+  TSQLTransaction = class (TDBTransaction)
   private
-    FTrans               : pointer;
+    FTrans               : TSQLHandle;
     FAction              : TCommitRollbackAction;
     FActive              : boolean;
-    FDatabase            : TSQLConnection;
+//    FDatabase            : TSQLConnection;
 
     procedure SetActive(Value : boolean);
   protected
-    function GetHandle : pointer; virtual;
+    function GetHandle : Pointer; virtual;
   public
+    procedure EndTransaction; override;
     procedure Commit; virtual;
     procedure CommitRetaining; virtual;
     procedure Rollback; virtual;
@@ -122,30 +127,29 @@ type
   published
     property Action : TCommitRollbackAction read FAction write FAction;
     property Active : boolean read FActive write SetActive;
-    property Database : TSQLConnection read FDatabase write FDatabase;
+//    property Database : TSQLConnection read FDatabase write FDatabase;
+    property Database;
   end;
 
 { TSQLQuery }
 
   TSQLQuery = class (Tbufdataset)
   private
-    FCursor              : pointer;
+    FCursor              : TSQLHandle;
     FOpen                : Boolean;
     FTransaction         : TSQLTransaction;
-    FDatabase            : TSQLConnection;
+//    FDatabase            : TSQLConnection;
     FSQL                 : TStrings;
     FIsEOF               : boolean;
     FStatementType       : TStatementType;
     FLoadingFieldDefs    : boolean;
     FRecordSize          : Integer;
 
-    procedure SetDatabase(Value : TSQLConnection);
     procedure SetTransaction(Value : TSQLTransaction);
-    procedure AllocStatement;
     procedure FreeStatement;
+    procedure FreeSelect;
     procedure PrepareStatement;
-    procedure DescribeStatement;
-    procedure AllocFldBuffers;
+    procedure PrepareSelect;
     procedure FreeFldBuffers;
     procedure Fetch;
     function LoadBuffer(Buffer : PChar): TGetResult;
@@ -158,6 +162,7 @@ type
 
   protected
     // abstract & virual methods of TDataset
+    procedure SetDatabase(Value : TDatabase); override;
     function AllocRecord: PChar; override;
     procedure FreeRecord(var Buffer: PChar); override;
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
@@ -177,13 +182,15 @@ type
     procedure ExecSQL; virtual;
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
+
+
   published
-    property Transaction : TSQLTransaction read FTransaction write SetTransaction;
-    property Database    : TSQLConnection read FDatabase write SetDatabase;
-    property SQL         : TStrings read FSQL write FSQL;
-    // Publish TDataset properties.
+    // redeclared data set properties
     property Active;
-    property AutoCalcFields;
+//    property FieldDefs stored FieldDefsStored;
+    property Filter;
+    property Filtered;
+    property FilterOptions;
     property BeforeOpen;
     property AfterOpen;
     property BeforeClose;
@@ -206,9 +213,22 @@ type
     property OnFilterRecord;
     property OnNewRecord;
     property OnPostError;
+    property AutoCalcFields;
+    property Database;
+
+
+    property Transaction : TSQLTransaction read FTransaction write SetTransaction;
+//    property Database    : TSQLConnection read FDatabase write SetDatabase;
+    property SQL         : TStrings read FSQL write FSQL;
   end;
 
 implementation
+
+ResourceString
+  SErrAssTransaction = 'Cannot assign transaction while old transaction active!';
+  SErrDatabasenAssigned = 'Database not assigned!';
+  SErrTransactionnSet = 'Transaction not set';
+  SErrNoStatement = 'SQL statement not set';
 
 { TSQLConnection }
 
@@ -229,7 +249,7 @@ begin
       FTransaction.Database := Self;
     end
     else
-      raise ESQLdbError.Create('Cannot assign transaction while old transaction active!');
+      DatabaseError(SErrAssTransaction);
 end;
 
 procedure TSQLConnection.DoInternalConnect;
@@ -238,22 +258,13 @@ begin
     Close;
 end;
 
+procedure TSQLQuery.GetStatementType;
+begin
+  FStatementType := (Database as tsqlconnection).GetStatementType(Fcursor);
+end;
+
 procedure TSQLConnection.DoInternalDisconnect;
 begin
-end;
-
-procedure TSQLConnection.StartTransaction;
-begin
-  if FTransaction = nil then
-    raise EDatabaseError.Create('TSQLConnection.StartTransaction: Transaction not set');
-  FTransaction.Active := True;
-end;
-
-procedure TSQLConnection.EndTransaction;
-begin
-  if FTransaction = nil then
-    raise EDatabaseError.Create('TSQLConnection.EndTransaction: Transaction not set');
-  FTransaction.Active := False;
 end;
 
 destructor TSQLConnection.Destroy;
@@ -278,45 +289,58 @@ end;
 
 function TSQLTransaction.GetHandle: pointer;
 begin
-  Result := FDatabase.GetTransactionHandle(FTrans);
+  Result := (Database as tsqlconnection).GetTransactionHandle(FTrans);
 end;
 
 procedure TSQLTransaction.Commit;
 begin
   if not FActive then Exit;
-  if FDatabase.commit(FTrans) then FActive := false;
+  if (Database as tsqlconnection).commit(FTrans) then FActive := false;
+  FTrans.free;
 end;
 
 procedure TSQLTransaction.CommitRetaining;
 begin
   if not FActive then Exit;
-  FDatabase.commitRetaining(FTrans);
+  (Database as tsqlconnection).commitRetaining(FTrans);
 end;
 
 procedure TSQLTransaction.Rollback;
 begin
   if not FActive then Exit;
-  if FDatabase.RollBack(FTrans) then FActive := false;
+  if (Database as tsqlconnection).RollBack(FTrans) then FActive := false;
+  FTrans.free;
 end;
+
+procedure TSQLTransaction.EndTransaction;
+begin
+  Rollback;
+end;
+
 
 procedure TSQLTransaction.RollbackRetaining;
 begin
   if not FActive then Exit;
-  FDatabase.RollBackRetaining(FTrans);
+  (Database as tsqlconnection).RollBackRetaining(FTrans);
 end;
 
 procedure TSQLTransaction.StartTransaction;
+
+var db : TSQLConnection;
+
 begin
   if Active then Active := False;
 
-  if FDatabase = nil then
-    raise ESQLdbError.Create('TSQLTransaction.StartTransaction: Database not assigned!');
+  db := (Database as tsqlconnection);
 
-  if not Database.Connected then
-    Database.Open;
-  if not assigned(FTrans) then FTrans := FDatabase.GetTrans;
+  if Db = nil then
+    DatabaseError(SErrDatabasenAssigned);
 
-  if FDatabase.StartTransaction(FTrans) then FActive := true;
+  if not Db.Connected then
+    Db.Open;
+  if not assigned(FTrans) then FTrans := Db.AllocateTransactionHandle;
+
+  if Db.StartTransaction(FTrans) then FActive := true;
 end;
 
 constructor TSQLTransaction.Create(AOwner : TComponent);
@@ -328,26 +352,13 @@ destructor TSQLTransaction.Destroy;
 begin
   // This will also do a Rollback, if the transaction is currently active
   Active := False;
-  
-  Database.FreeTrans(FTrans);
 
-  if Database <> nil then
-    Database.Transaction := nil;
+//  Database.Transaction := nil;
+
   inherited Destroy;
 end;
 
 { TSQLQuery }
-
-procedure TSQLQuery.AllocStatement;
-
-begin
-  if FDatabase = nil then
-    raise ESQLdbError.Create('TSQLQuery.Allocstatement: Database not assigned!');
-
-  if not FDatabase.Connected then
-    Fdatabase.Open;
-  FDatabase.AllocStatement(Fcursor);
-end;
 
 procedure TSQLQuery.SetTransaction(Value : TSQLTransaction);
 begin
@@ -356,59 +367,71 @@ begin
     FTransaction := Value;
 end;
 
-procedure TSQLQuery.SetDatabase(Value : TSQLConnection);
+procedure TSQLQuery.SetDatabase(Value : TDatabase);
+
+var db : tsqlconnection;
+
 begin
-  CheckInactive;
-  if (FDatabase <> Value) then
-  begin
-    FDatabase := Value;
-    if (FTransaction = nil) and (Assigned(FDatabase.Transaction)) then
-      SetTransaction(FDatabase.Transaction);
-    if assigned(fcursor) then freemem(FCursor);
-    FCursor := FDatabase.getcursor;
-  end;
+  if (Database <> Value) then
+    begin
+    db := value as tsqlconnection;
+    inherited setdatabase(value);
+    if (FTransaction = nil) and (Assigned(Db.Transaction)) then
+      SetTransaction(Db.Transaction);
+{    if assigned(fcursor) then freemem(FCursor);
+    FCursor := Db.AllocateCursorHandle;}
+    end;
 end;
 
 procedure TSQLQuery.FreeStatement;
 begin
-  FDatabase.FreeStatement(FCursor);
+  (Database as tsqlconnection).FreeStatement(FCursor);
+end;
+
+procedure TSQLQuery.FreeSelect;
+begin
+  (Database as tsqlconnection).FreeSelect(FCursor);
 end;
 
 procedure TSQLQuery.PrepareStatement;
 var
   Buf : string;
   x   : integer;
+  db  : tsqlconnection;
 begin
+  db := (Database as tsqlconnection);
+  if Db = nil then
+    DatabaseError(SErrDatabasenAssigned);
+  if not Db.Connected then
+    db.Open;
   if FTransaction = nil then
-    raise EDatabaseError.Create('TSQLQuery.Execute: Transaction not set');
+    DatabaseError(SErrTransactionnSet);
+    
   if not FTransaction.Active then
     FTransaction.StartTransaction;
+
+  if assigned(fcursor) then FCursor.free;
+  FCursor := Db.AllocateCursorHandle;
 
   for x := 0 to FSQL.Count - 1 do
     Buf := Buf + FSQL[x] + ' ';
 
   if Buf='' then
     begin
-    DatabaseError('TSQLQuery: SQL statement not set');
+    DatabaseError(SErrNoStatement);
     exit;
     end;
-  FDatabase.PrepareStatement(Fcursor,FTransaction,buf);
+  Db.PrepareStatement(Fcursor,FTransaction,buf);
 end;
 
-procedure TSQLQuery.DescribeStatement;
+procedure TSQLQuery.PrepareSelect;
 begin
-  FDatabase.DescribeStatement(FCursor);
-end;
-
-procedure TSQLQuery.AllocFldBuffers;
-
-begin
-  FDatabase.AllocFldBuffers(FCursor);
+  (Database as tsqlconnection).PrepareSelect(FCursor);
 end;
 
 procedure TSQLQuery.FreeFldBuffers;
 begin
-  FDatabase.FreeFldBuffers(FCursor);
+  (Database as tsqlconnection).FreeFldBuffers(FCursor);
 end;
 
 procedure TSQLQuery.Fetch;
@@ -416,7 +439,7 @@ begin
   if not (FStatementType in [stSelect]) then
     Exit;
 
-  FIsEof := FDatabase.Fetch(Fcursor);
+  FIsEof := (Database as tsqlconnection).Fetch(Fcursor);
 end;
 
 function TSQLQuery.LoadBuffer(Buffer : PChar): TGetResult;
@@ -427,18 +450,13 @@ begin
     Result := grEOF;
     Exit;
   end;
-  FDatabase.LoadFieldsFromBuffer(FCursor,buffer);
+  (Database as tsqlconnection).LoadFieldsFromBuffer(FCursor,buffer);
   Result := grOK;
-end;
-
-procedure TSQLQuery.GetStatementType;
-begin
-  FStatementType := FDatabase.GetStatementType(Fcursor);
 end;
 
 procedure TSQLQuery.SetFieldSizes;
 begin
-  FRecordSize := FDatabase.GetfieldSizes(Fcursor);
+  FRecordSize := (Database as tsqlconnection).GetfieldSizes(Fcursor);
 end;
 
 procedure TSQLQuery.ExecuteImmediate;
@@ -453,15 +471,15 @@ end;
 procedure TSQLQuery.Execute;
 begin
   if FTransaction = nil then
-    raise EDatabaseError.Create('TSQLQuery.Execute: Transaction not set');
+    DatabaseError(SErrTransactionnSet);
   if not FTransaction.Active then
     FTransaction.StartTransaction;
-  FDatabase.execute(Fcursor,FTransaction);
+  (Database as tsqlconnection).execute(Fcursor,FTransaction);
 end;
 
 function TSQLQuery.AllocRecord: PChar;
 begin
-  writeln('AllocRecord, Recordsize:' + inttostr(FRecordSize));
+//  writeln('AllocRecord, Recordsize:' + inttostr(FRecordSize));
   Result := AllocMem(FRecordSize);
 end;
 
@@ -473,7 +491,7 @@ end;
 
 function TSQLQuery.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 begin
-  result := FDatabase.GetFieldData(Fcursor,Field,buffer,activebuffer);
+  result := (Database as tsqlconnection).GetFieldData(Fcursor,Field,buffer,activebuffer);
 end;
 
 function TSQLQuery.GetNextRecord(Buffer: PChar): TGetResult;
@@ -491,13 +509,18 @@ end;
 
 procedure TSQLQuery.InternalClose;
 begin
-  FreeFldBuffers;
+  if FStatementType in [stSelect] then
+    begin
+    FreeFldBuffers;
+    FreeSelect;
+    end;
   FreeStatement;
   if DefaultFields then
     DestroyFields;
   FIsEOF := False;
   FRecordSize := 0;
   FOpen:=False;
+  FCursor.free;
   inherited internalclose;
 end;
 
@@ -520,7 +543,7 @@ begin
   try
     FieldDefs.Clear;
     
-    FDatabase.AddFieldDefs(fcursor,FieldDefs);
+    (Database as tsqlconnection).AddFieldDefs(fcursor,FieldDefs);
   finally
     FLoadingFieldDefs := False;
   end;
@@ -534,13 +557,11 @@ end;
 procedure TSQLQuery.InternalOpen;
 begin
   try
-    AllocStatement;
     PrepareStatement;
     GetStatementType;
     if FStatementType in [stSelect] then
     begin
-      DescribeStatement;
-      AllocFldBuffers;
+      PrepareSelect;
       Execute;
       FOpen:=True;
       InternalInitFieldDefs;
@@ -575,7 +596,6 @@ end;
 
 procedure TSQLQuery.ExecSQL;
 begin
-  AllocStatement;
   try
     PrepareStatement;
     GetStatementType;
@@ -594,8 +614,7 @@ end;
 destructor TSQLQuery.Destroy;
 begin
   if Active then Close;
-// This gives the strangest results?
-//  if assigned(Fdatabase) then FDatabase.freecursor(FCursor);
+//  if assigned(FCursor) then FCursor.destroy;
   FSQL.Free;
   inherited Destroy;
 end;
@@ -610,7 +629,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-08-31 09:49:47  michael
+  Revision 1.2  2004-09-26 16:56:32  michael
+  + Further fixes from Joost van der sluis for Postgresql
+
+  Revision 1.1  2004/08/31 09:49:47  michael
   + initial implementation of TSQLQuery
 
 }

@@ -6,13 +6,14 @@
 main=fcl
 
 [target]
-dirs_linux=interbase
-dirs_freebsd=interbase
-dirs_darwin=interbase
-dirs_netbsd=interbase
-dirs_openbsd=interbase
-dirs_win32=interbase
+dirs_linux=interbase postgres
+dirs_freebsd=interbase postgres
+dirs_darwin=interbase postgres
+dirs_netbsd=interbase postgres
+dirs_openbsd=interbase postgres
+dirs_win32=interbase postgres
 units=sqldb
+rsts=sqldb
 
 [clean]
 units=ibas40 ibase60

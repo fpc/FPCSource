@@ -8,13 +8,6 @@ uses
   Classes, SysUtils, IBase60, sqldb, db;
   
 type
-  TIBCursor = record
-                Status    : array [0..19] of ISC_STATUS;
-                Statement : pointer;
-                SQLDA     : PXSQLDA;
-              end;
-  PIBCursor = ^TIBCursor;
-
   TAccessMode = (amReadWrite, amReadOnly);
   TIsolationLevel = (ilConcurrent, ilConsistent, ilReadCommittedRecV,
     ilReadCommitted);
@@ -22,16 +15,23 @@ type
   TTableReservation = (trNone, trSharedLockRead, trSharedLockWrite,
     trProtectedLockRead, trProtectedLockWrite);
 
-  TIBTrans  = record
-                TransactionHandle   : pointer;
-                TPB                 : string;                // Transaction parameter buffer
-                Status              : array [0..19] of ISC_STATUS;
-                AccessMode          : TAccessMode;
-                IsolationLevel      : TIsolationLevel;
-                LockResolution      : TLockResolution;
-                TableReservation    : TTableReservation;
-              end;
-  PIBTrans = ^TIBTrans;
+  TIBCursor = Class(TSQLHandle)
+    protected
+    Status    : array [0..19] of ISC_STATUS;
+    Statement : pointer;
+    SQLDA     : PXSQLDA;
+  end;
+
+  TIBTrans = Class(TSQLHandle)
+    protected
+    TransactionHandle   : pointer;
+    TPB                 : string;                // Transaction parameter buffer
+    Status              : array [0..19] of ISC_STATUS;
+    AccessMode          : TAccessMode;
+    IsolationLevel      : TIsolationLevel;
+    LockResolution      : TLockResolution;
+    TableReservation    : TTableReservation;
+  end;
 
   TIBConnection = class (TSQLConnection)
   private
@@ -41,42 +41,40 @@ type
     FFieldFlag           : array [0..1023] of shortint;
     FDialect             : integer;
     procedure SetDBDialect;
-    procedure AllocSQLDA(Cursor : pointer;Count : integer);
+    procedure AllocSQLDA(Cursor : TIBCursor;Count : integer);
     procedure TranslateFldType(SQLType, SQLLen : integer; var LensSet : boolean;
       var TrType : TFieldType; var TrLen : word);
-    procedure SetTPB(trans : pointer);
+    procedure SetTPB(trans : TIBtrans);
     // conversion methods
     procedure GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
     procedure GetFloat(CurrBuff, Buffer : pointer; Field : TField);
+    procedure CheckError(ProcName : string; Status : array of ISC_STATUS);
   protected
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
     function GetHandle : pointer; override;
 
-  public
-    function GetCursor : pointer; override;
-    procedure FreeCursor(cursor : pointer); override;
-    function GetTrans : pointer; override;
-    procedure FreeTrans(trans : pointer); override;
-    procedure AllocStatement(cursor : Pointer); override;
-    procedure FreeStatement(cursor : pointer); override;
-    procedure PrepareStatement(cursor: pointer;ATransaction : TSQLTransaction;buf : string); override;
-    procedure DescribeStatement(cursor : pointer); override;
-    procedure AllocFldBuffers(cursor : pointer); override;
-    procedure FreeFldBuffers(cursor : pointer); override;
-    procedure Execute(cursor: pointer;atransaction:tSQLtransaction); override;
-    procedure AddFieldDefs(cursor: pointer; FieldDefs : TfieldDefs); override;
-    function GetFieldSizes(cursor : pointer) : integer; override;
-    function Fetch(cursor : pointer) : boolean; override;
-    procedure LoadFieldsFromBuffer(cursor : pointer;buffer: pchar); override;
-    function GetFieldData(cursor : pointer; Field: TField; Buffer: Pointer;currbuff:pchar): Boolean; override;
-    function GetStatementType(cursor : pointer) : tStatementType; override;
-    function GetTransactionHandle(trans : pointer): pointer; override;
-    function Commit(trans : pointer) : boolean; override;
-    function RollBack(trans : pointer) : boolean; override;
-    function StartTransaction(trans : pointer) : boolean; override;
-    procedure CommitRetaining(trans : pointer); override;
-    procedure RollBackRetaining(trans : pointer); override;
+    Function AllocateCursorHandle : TSQLHandle; override;
+    Function AllocateTransactionHandle : TSQLHandle; override;
+
+    procedure FreeStatement(cursor : TSQLHandle); override;
+    procedure FreeSelect(cursor : TSQLHandle); override;
+    procedure PrepareStatement(cursor: TSQLHandle;ATransaction : TSQLTransaction;buf : string); override;
+    procedure PrepareSelect(cursor : TSQLHandle); override;
+    procedure FreeFldBuffers(cursor : TSQLHandle); override;
+    procedure Execute(cursor: TSQLHandle;atransaction:tSQLtransaction); override;
+    procedure AddFieldDefs(cursor: TSQLHandle; FieldDefs : TfieldDefs); override;
+    function GetFieldSizes(cursor : TSQLHandle) : integer; override;
+    function Fetch(cursor : TSQLHandle) : boolean; override;
+    procedure LoadFieldsFromBuffer(cursor : TSQLHandle;buffer: pchar); override;
+    function GetFieldData(cursor : TSQLHandle; Field: TField; Buffer: Pointer;currbuff:pchar): Boolean; override;
+    function GetStatementType(cursor : TSQLHandle) : tStatementType; override;
+    function GetTransactionHandle(trans : TSQLHandle): pointer; override;
+    function Commit(trans : TSQLHandle) : boolean; override;
+    function RollBack(trans : TSQLHandle) : boolean; override;
+    function StartTransaction(trans : TSQLHandle) : boolean; override;
+    procedure CommitRetaining(trans : TSQLHandle); override;
+    procedure RollBackRetaining(trans : TSQLHandle); override;
 
   published
     property Dialect  : integer read FDialect write FDialect;
@@ -88,6 +86,9 @@ type
   end;
 
 implementation
+
+resourcestring
+  SErrNoDatabaseName = 'Database connect string (DatabaseName) not filled in!';
 
 type
   TTm = packed record
@@ -104,7 +105,7 @@ type
     __tm_zone : Pchar;
   end;
 
-procedure CheckError(ProcName : string; Status : array of ISC_STATUS);
+procedure TIBConnection.CheckError(ProcName : string; Status : array of ISC_STATUS);
 var
   buf : array [0..1024] of char;
   p   : pointer;
@@ -115,22 +116,22 @@ begin
     p := @Status;
     while isc_interprete(Buf, @p) > 0 do
       Msg := Msg + #10' -' + StrPas(Buf);
-    raise ESQLdbError.Create(ProcName + ': ' + Msg);
+    DatabaseError(ProcName + ': ' + Msg,self);
   end;
 end;
 
-procedure TIBConnection.SetTPB(trans : pointer);
+procedure TIBConnection.SetTPB(trans : TIBtrans);
 begin
-  with PIBTrans(trans)^ do
+  with trans do
     begin
     TPB := chr(isc_tpb_version3);
 
-    case PIBTrans(trans)^.AccessMode of
+    case AccessMode of
       amReadWrite : TPB := TPB + chr(isc_tpb_write);
       amReadOnly  : TPB := TPB + chr(isc_tpb_read);
     end;
 
-    case PIBTrans(trans)^.IsolationLevel of
+    case IsolationLevel of
       ilConsistent        : TPB := TPB + chr(isc_tpb_consistency);
       ilConcurrent        : TPB := TPB + chr(isc_tpb_concurrency);
       ilReadCommittedRecV : TPB := TPB + chr(isc_tpb_read_committed) +
@@ -139,12 +140,12 @@ begin
         chr(isc_tpb_no_rec_version);
     end;
 
-    case PIBTrans(trans)^.LockResolution of
+    case LockResolution of
       lrWait   : TPB := TPB + chr(isc_tpb_wait);
       lrNoWait : TPB := TPB + chr(isc_tpb_nowait);
     end;
 
-    case PIBTrans(trans)^.TableReservation of
+    case TableReservation of
       trSharedLockRead     : TPB := TPB + chr(isc_tpb_shared) +
         chr(isc_tpb_lock_read);
       trSharedLockWrite    : TPB := TPB + chr(isc_tpb_shared) +
@@ -157,68 +158,62 @@ begin
     end;
 end;
 
-function TIBConnection.GetTransactionHandle(trans : pointer): pointer;
+function TIBConnection.GetTransactionHandle(trans : TSQLHandle): pointer;
 begin
-  Result := PIBTrans(trans)^.TransactionHandle;
+  Result := (trans as TIBtrans).TransactionHandle;
 end;
 
-function TIBConnection.Commit(trans : pointer) : boolean;
+function TIBConnection.Commit(trans : TSQLHandle) : boolean;
 begin
   result := false;
-  if isc_commit_transaction(@PIBTrans(trans)^.Status, @PIBTrans(trans)^.TransactionHandle) <> 0 then
-    CheckError('TSQLTransaction.Commit', PIBTrans(trans)^.Status)
+  with (trans as TIBTrans) do
+    if isc_commit_transaction(@Status, @TransactionHandle) <> 0 then
+      CheckError('Commit', Status)
+    else result := true;
+end;
+
+function TIBConnection.RollBack(trans : TSQLHandle) : boolean;
+begin
+  result := false;
+  if isc_rollback_transaction(@TIBTrans(trans).Status, @TIBTrans(trans).TransactionHandle) <> 0 then
+    CheckError('Rollback', TIBTrans(trans).Status)
   else result := true;
 end;
 
-function TIBConnection.RollBack(trans : pointer) : boolean;
-begin
-  result := false;
-  if isc_rollback_transaction(@PIBTrans(trans)^.Status, @PIBTrans(trans)^.TransactionHandle) <> 0 then
-    CheckError('TIBConnection.Rollback', PIBTrans(trans)^.Status)
-  else result := true;
-end;
-
-function TIBConnection.StartTransaction(trans : pointer) : boolean;
+function TIBConnection.StartTransaction(trans : TSQLHandle) : boolean;
 var
   DBHandle : pointer;
+  tr       : TIBTrans;
 begin
   result := false;
 
   DBHandle := GetHandle;
-  SetTPB(trans);
-  pibtrans(trans)^.TransactionHandle := nil;
+  tr := trans as TIBtrans;
+  SetTPB(tr);
+  with tr do
+    begin
+    TransactionHandle := nil;
 
-  if isc_start_transaction(@pibtrans(trans)^.Status, @pibtrans(trans)^.TransactionHandle, 1,
-     [@DBHandle, Length(pibtrans(trans)^.TPB), @pibtrans(trans)^.TPB[1]]) <> 0 then
-    CheckError('TIBConnection.StartTransaction',pibtrans(trans)^.Status)
-  else Result := True;
+    if isc_start_transaction(@Status, @TransactionHandle, 1,
+       [@DBHandle, Length(TPB), @TPB[1]]) <> 0 then
+      CheckError('StartTransaction',Status)
+    else Result := True;
+    end;
 end;
 
 
-procedure TIBConnection.CommitRetaining(trans : pointer);
+procedure TIBConnection.CommitRetaining(trans : TSQLHandle);
 begin
-  if isc_commit_retaining(@PIBTrans(trans)^.Status, @PIBTrans(trans)^.TransactionHandle) <> 0 then
-    CheckError('TIBConnection.CommitRetaining', PIBTrans(trans)^.Status);
+  with trans as TIBtrans do
+    if isc_commit_retaining(@Status, @TransactionHandle) <> 0 then
+      CheckError('CommitRetaining', Status);
 end;
 
-procedure TIBConnection.RollBackRetaining(trans : pointer);
+procedure TIBConnection.RollBackRetaining(trans : TSQLHandle);
 begin
-  if isc_rollback_retaining(@PIBTrans(trans)^.Status, @PIBTrans(trans)^.TransactionHandle) <> 0 then
-    CheckError('TIBConnection.RollBackRetaining', PIBTrans(trans)^.Status);
-end;
-
-function TIBConnection.GetTrans : pointer;
-
-begin
-  Result := AllocMem(sizeof(TIBTrans));
-  PIBTrans(result)^.IsolationLevel := ilReadCommitted;
-end;
-
-procedure TIBConnection.FreeTrans(trans : pointer);
-
-begin
-  if assigned(PIBTrans(trans)) then
-    freemem(PIBTrans(trans));
+  with trans as TIBtrans do
+    if isc_rollback_retaining(@Status, @TransactionHandle) <> 0 then
+      CheckError('RollBackRetaining', Status);
 end;
 
 
@@ -241,11 +236,11 @@ begin
     DPB := DPB + Chr(isc_dpb_lc_ctype) + Chr(Length(CharSet)) + CharSet;
 
   if (DatabaseName = '') then
-    raise ESQLdbError.Create('TIBConnection.DoInternalConnect: Database connect string (DatabaseName) not filled in!');
+    DatabaseError(SErrNoDatabaseName,self);
   FSQLDatabaseHandle := nil;
   if isc_attach_database(@FStatus, Length(DatabaseName), @DatabaseName[1], @FSQLDatabaseHandle,
          Length(DPB), @DPB[1]) <> 0 then
-    CheckError('TIBConnection.DoInternalConnect', FStatus);
+    CheckError('DoInternalConnect', FStatus);
   SetDBDialect;
 end;
 
@@ -258,7 +253,7 @@ begin
   end;
 
   isc_detach_database(@FStatus[0], @FSQLDatabaseHandle);
-  CheckError('TIBConnection.Close', FStatus);
+  CheckError('Close', FStatus);
 end;
 
 
@@ -272,7 +267,7 @@ begin
   Buffer := Chr(isc_info_db_sql_dialect) + Chr(isc_info_end);
   if isc_database_info(@FStatus, @FSQLDatabaseHandle, Length(Buffer),
     @Buffer[1], SizeOf(ResBuf), @ResBuf) <> 0 then
-      CheckError('TIBDatabse.SetDBDialect', FStatus);
+      CheckError('SetDBDialect', FStatus);
   x := 0;
   while x < 40 do
     case ResBuf[x] of
@@ -289,17 +284,21 @@ begin
 end;
 
 
-procedure TIBConnection.AllocSQLDA(Cursor : pointer;Count : integer);
+procedure TIBConnection.AllocSQLDA(Cursor : TIBcursor;Count : integer);
+
 begin
-  if FSQLDAAllocated > 0 then
-    FreeMem(PIBCursor(cursor)^.SQLDA);
-  GetMem(PIBCursor(cursor)^.SQLDA, XSQLDA_Length(Count));
-  { Zero out the memory block to avoid problems with exceptions within the
-    constructor of this class. }
-  FillChar(PIBCursor(cursor)^.SQLDA^, XSQLDA_Length(Count), 0);
-  FSQLDAAllocated := Count;
-  PIBCursor(cursor)^.SQLDA^.Version := sqlda_version1;
-  PIBCursor(cursor)^.SQLDA^.SQLN := Count;
+  with cursor as TIBCursor do
+    begin
+    if FSQLDAAllocated > 0 then
+      FreeMem(SQLDA);
+    GetMem(SQLDA, XSQLDA_Length(Count));
+    { Zero out the memory block to avoid problems with exceptions within the
+      constructor of this class. }
+    FillChar(SQLDA^, XSQLDA_Length(Count), 0);
+    FSQLDAAllocated := Count;
+    SQLDA^.Version := sqlda_version1;
+    SQLDA^.SQLN := Count;
+    end;
 end;
 
 procedure TIBConnection.TranslateFldType(SQLType, SQLLen : integer; var LensSet : boolean;
@@ -361,105 +360,106 @@ begin
   end;
 end;
 
-function TIBConnection.GetCursor : pointer;
+Function TIBConnection.AllocateCursorHandle : TSQLHandle;
+
+var curs : TIBCursor;
 
 begin
-  Result := AllocMem(sizeof(TIBCursor));
-  AllocSQLDA(result,10);
+  curs := TIBCursor.create;
+  AllocSQLDA(curs,10);
+  result := curs;
 end;
 
-procedure TIBConnection.FreeCursor(cursor : pointer);
+Function TIBConnection.AllocateTransactionHandle : TSQLHandle;
 
 begin
-  if assigned(PIBCursor(cursor)) then
-    freemem(PIBCursor(cursor));
+  result := TIBTrans.create;
 end;
 
-procedure TIBConnection.FreeStatement(cursor : pointer);
+procedure TIBConnection.FreeSelect(cursor : TSQLHandle);
+
 begin
-  if isc_dsql_free_statement(@PIBCursor(cursor)^.Status, @PIBCursor(cursor)^.Statement, DSQL_Drop) <> 0 then
-    CheckError('TIBConnection.FreeStatement', PIBCursor(cursor)^.Status);
-  PIBCursor(cursor)^.Statement := nil;
 end;
 
-procedure TIBConnection.AllocStatement(cursor : pointer);
+procedure TIBConnection.FreeStatement(cursor : TSQLHandle);
+begin
+  with cursor as TIBcursor do
+    begin
+    if isc_dsql_free_statement(@Status, @Statement, DSQL_Drop) <> 0 then
+      CheckError('FreeStatement', Status);
+    Statement := nil;
+    end;
+end;
+
+procedure TIBConnection.PrepareStatement(cursor: TSQLHandle;ATransaction : TSQLTransaction;buf : string);
 var
   dh    : pointer;
-begin
-  dh := GetHandle;
+  tr : pointer;
 
-  if isc_dsql_allocate_statement(@PIBCursor(cursor)^.Status, @dh, @PIBCursor(cursor)^.Statement) <> 0 then
-    CheckError('TIBConnection.AllocStatement', PIBCursor(cursor)^.Status);
+begin
+  with cursor as TIBcursor do
+    begin
+    dh := GetHandle;
+    if isc_dsql_allocate_statement(@Status, @dh, @Statement) <> 0 then
+      CheckError('PrepareStatement', Status);
+    tr := aTransaction.Handle;
+    if isc_dsql_prepare(@Status, @tr, @Statement, 0, @Buf[1], Dialect, nil) <> 0 then
+      CheckError('PrepareStatement', Status);
+    end;
 end;
 
-
-procedure TIBConnection.PrepareStatement(cursor: pointer;ATransaction : TSQLTransaction;buf : string);
-
-var tr : pointer;
-
+procedure TIBConnection.PrepareSelect(cursor : TSQLHandle);
+var
+  x  : shortint;
 begin
-  tr := aTransaction.Handle;
-
-  if isc_dsql_prepare(@PIBCursor(cursor)^.Status, @tr, @PIBCursor(cursor)^.Statement, 0, @Buf[1], Dialect, nil) <> 0 then
-    CheckError('TIBConnection.PrepareStatement', PIBCursor(cursor)^.Status);
-end;
-
-procedure TIBConnection.DescribeStatement(cursor : pointer);
-
-begin
-  with PIBCursor(cursor)^ do
+  with cursor as TIBCursor do
     begin
     if isc_dsql_describe(@Status, @Statement, 1, SQLDA) <> 0 then
-      CheckError('TSQLQuery.DescribeStatement', Status);
+      CheckError('PrepareSelect', Status);
     if SQLDA^.SQLD > SQLDA^.SQLN then
       begin
-      AllocSQLDA(PIBCursor(cursor),SQLDA^.SQLD);
+      AllocSQLDA((cursor as TIBCursor),SQLDA^.SQLD);
       if isc_dsql_describe(@Status, @Statement, 1, SQLDA) <> 0 then
-        CheckError('TSQLQuery.DescribeStatement', Status);
+        CheckError('PrepareSelect', Status);
       end;
+    {$R-}
+    for x := 0 to SQLDA^.SQLD - 1 do
+      begin
+      SQLDA^.SQLVar[x].SQLData := AllocMem(SQLDA^.SQLVar[x].SQLLen);
+      SQLDA^.SQLVar[x].SQLInd  := @FFieldFlag[x];
+      end;
+    {$R+}
     end;
 end;
 
-procedure TIBConnection.FreeFldBuffers(cursor : pointer);
+procedure TIBConnection.FreeFldBuffers(cursor : TSQLHandle);
 var
   x  : shortint;
 begin
   {$R-}
-  for x := 0 to PIBCursor(cursor)^.SQLDA^.SQLD - 1 do
-  begin
-    if PIBCursor(cursor)^.SQLDA^.SQLVar[x].SQLData <> nil then
-    begin
-      FreeMem(PIBCursor(cursor)^.SQLDA^.SQLVar[x].SQLData);
-      PIBCursor(cursor)^.SQLDA^.SQLVar[x].SQLData := nil;
-    end;
-  end;
+  with cursor as TIBCursor do
+    for x := 0 to SQLDA^.SQLD - 1 do
+      begin
+      if SQLDA^.SQLVar[x].SQLData <> nil then
+        begin
+        FreeMem(SQLDA^.SQLVar[x].SQLData);
+        SQLDA^.SQLVar[x].SQLData := nil;
+        end;
+      end;
   {$R+}
 end;
 
-
-procedure TIBConnection.AllocFldBuffers(cursor : pointer);
-var
-  x  : shortint;
-begin
-  {$R-}
-  for x := 0 to PIBCursor(cursor)^.SQLDA^.SQLD - 1 do
-  begin
-    PIBCursor(cursor)^.SQLDA^.SQLVar[x].SQLData := AllocMem(PIBCursor(cursor)^.SQLDA^.SQLVar[x].SQLLen);
-    PIBCursor(cursor)^.SQLDA^.SQLVar[x].SQLInd  := @FFieldFlag[x];
-  end;
-  {$R+}
-end;
-
-procedure TIBConnection.Execute(cursor: pointer;atransaction:tSQLtransaction);
+procedure TIBConnection.Execute(cursor: TSQLHandle;atransaction:tSQLtransaction);
 var tr : pointer;
 begin
   tr := aTransaction.Handle;
 
-  if isc_dsql_execute(@PIBCursor(cursor)^.Status, @tr, @PIBCursor(cursor)^.Statement, 1, nil) <> 0 then
-    CheckError('TSQLQuery.Execute', PIBCursor(cursor)^.Status);
+  with cursor as TIBCursor do
+    if isc_dsql_execute(@Status, @tr, @Statement, 1, nil) <> 0 then
+      CheckError('Execute', Status);
 end;
 
-procedure TIBConnection.AddFieldDefs(cursor: pointer; FieldDefs : TfieldDefs);
+procedure TIBConnection.AddFieldDefs(cursor: TSQLHandle; FieldDefs : TfieldDefs);
 var
   x         : integer;
   lenset    : boolean;
@@ -468,7 +468,7 @@ var
 
 begin
   {$R-}
-  with PIBCursor(cursor)^ do
+  with cursor as TIBCursor do
     begin
     for x := 0 to SQLDA^.SQLD - 1 do
       begin
@@ -481,13 +481,13 @@ begin
   {$R+}
 end;
 
-function TIBConnection.GetFieldSizes(cursor : pointer) : integer;
+function TIBConnection.GetFieldSizes(cursor : TSQLHandle) : integer;
 var
   x,recsize : integer;
 begin
   recsize := 0;
   {$R-}
-  with PIBCursor(cursor)^ do
+  with cursor as TIBCursor do
     for x := 0 to SQLDA^.SQLD - 1 do
       Inc(recsize, SQLDA^.SQLVar[x].SQLLen);
   {$R+}
@@ -499,24 +499,26 @@ begin
   Result := FSQLDatabaseHandle;
 end;
 
-function TIBConnection.Fetch(cursor : pointer) : boolean;
+function TIBConnection.Fetch(cursor : TSQLHandle) : boolean;
 var
   retcode : integer;
 begin
-  retcode := isc_dsql_fetch(@PIBCursor(cursor)^.Status, @PIBCursor(cursor)^.Statement, 1, PIBCursor(cursor)^.SQLDA);
-  if (retcode <> 0) and (retcode <> 100) then
-    CheckError('TSQLQuery.Fetch', PIBCursor(cursor)^.Status);
-
+  with cursor as TIBCursor do
+    begin
+    retcode := isc_dsql_fetch(@Status, @Statement, 1, SQLDA);
+    if (retcode <> 0) and (retcode <> 100) then
+      CheckError('Fetch', Status);
+    end;
   Result := (retcode = 100);
 end;
 
-procedure TIBConnection.LoadFieldsFromBuffer(cursor : pointer;buffer : pchar);
+procedure TIBConnection.LoadFieldsFromBuffer(cursor : TSQLHandle;buffer : pchar);
 var
   x          : integer;
   VarcharLen : word;
 begin
   {$R-}
-  with PIBCursor(cursor)^ do for x := 0 to SQLDA^.SQLD - 1 do
+  with cursor as TIBCursor do for x := 0 to SQLDA^.SQLD - 1 do
     begin
     with SQLDA^.SQLVar[x] do
       begin
@@ -533,19 +535,18 @@ begin
   {$R+}
 end;
 
-function TIBConnection.GetFieldData(Cursor : pointer;Field: TField; Buffer: Pointer;currbuff : pchar): Boolean;
+function TIBConnection.GetFieldData(Cursor : TSQLHandle;Field: TField; Buffer: Pointer;currbuff : pchar): Boolean;
 var
   x : longint;
   b : longint;
 begin
   Result := False;
 
-  with PIBCursor(cursor)^ do
-    for x := 0 to SQLDA^.SQLD - 1 do
-  begin
+  with cursor as TIBCursor do for x := 0 to SQLDA^.SQLD - 1 do
+    begin
     {$R-}
     if (Field.FieldName = SQLDA^.SQLVar[x].SQLName) then
-    begin
+      begin
       case Field.DataType of
         ftInteger :
           begin
@@ -567,10 +568,10 @@ begin
       Result := True;
 
       Break;
-    end
+      end
     else Inc(CurrBuff, SQLDA^.SQLVar[x].SQLLen);
     {$R+}
-  end;
+    end;
 end;
 
 procedure TIBConnection.GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
@@ -621,21 +622,24 @@ begin
   Move(Ext, Buffer^, 10);
 end;
 
-function TIBConnection.GetStatementType(cursor : pointer) : TStatementType;
+function TIBConnection.GetStatementType(cursor : TSQLhandle) : TStatementType;
 var
   x : integer;
   ResBuf : array [0..7] of char;
 begin
   Result := stNone;
-  x := isc_info_sql_stmt_type;
-  if isc_dsql_sql_info(@PIBCursor(cursor)^.Status, @PIBCursor(cursor)^.Statement, SizeOf(X),
-    @x, SizeOf(ResBuf), @ResBuf) <> 0 then
-    CheckError('TIBConnection.GetStatementType', PIBCursor(cursor)^.Status);
-  if Ord(ResBuf[0]) = isc_info_sql_stmt_type then
-  begin
-    x := isc_vax_integer(@ResBuf[1], 2);
-    Result := TStatementType(isc_vax_integer(@ResBuf[3], x));
-  end;
+  with cursor as TIBCursor do
+    begin
+    x := isc_info_sql_stmt_type;
+    if isc_dsql_sql_info(@Status, @Statement, SizeOf(X),
+      @x, SizeOf(ResBuf), @ResBuf) <> 0 then
+      CheckError('GetStatementType', Status);
+    if Ord(ResBuf[0]) = isc_info_sql_stmt_type then
+      begin
+      x := isc_vax_integer(@ResBuf[1], 2);
+      Result := TStatementType(isc_vax_integer(@ResBuf[3], x));
+      end;
+    end;
 end;
 
 end.
