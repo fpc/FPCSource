@@ -250,7 +250,7 @@ begin
         begin
           Topic^.NamedMarks^.InsertStr(Name);
           AddChar(hscNamedMark);
-        end else
+        end;
       if (HRef<>'') then
           begin
             InAnchor:=true;
