@@ -1353,6 +1353,9 @@ implementation
           begin
             currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
             paraloc:=currpara.paraloc[calleeside].location;
+            { skip e.g. empty records }
+            if (paraloc^.loc = LOC_VOID) then
+              continue;
             sizeleft:=currpara.paraloc[calleeside].intsize;
             if not assigned(paraloc) then
               internalerror(200408203);
@@ -2346,7 +2349,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.252  2005-01-10 21:50:05  jonas
+  Revision 1.253  2005-01-13 19:31:05  jonas
+    + support LOC_VOID in gen_load_para_value()
+
+  Revision 1.252  2005/01/10 21:50:05  jonas
     + support for passing records in registers under darwin
     * tcgpara now also has an intsize field, which contains the size in
       bytes of the whole parameter
