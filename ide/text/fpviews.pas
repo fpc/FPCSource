@@ -1771,11 +1771,15 @@ begin
   W:=TryToOpenFile(nil,P^.GetModuleName,Col,Row,true);
   if assigned(W) then
     begin
-      Message(Owner,evCommand,cmClose,nil);
+      { Message(Owner,evCommand,cmClose,nil);
+        This calls close on StackWindow
+        rendering P invalid
+        so postpone it PM }
       W^.GetExtent(R);
       if (P^.TClass<>0) then
         W^.Editor^.SetErrorMessage(P^.GetText(R.B.X-R.A.X));
       W^.Select;
+      Message(Owner,evCommand,cmClose,nil);
     end;
   Desktop^.UnLock;
 end;
@@ -3213,7 +3217,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.59  2000-02-07 10:36:43  michael
+  Revision 1.60  2000-02-07 23:40:38  pierre
+   * avoid closing the StackWindow too early
+
+  Revision 1.59  2000/02/07 10:36:43  michael
   + Something went wrong when unzipping
 
   Revision 1.58  2000/02/06 23:42:47  pierre
