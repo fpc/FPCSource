@@ -36,16 +36,19 @@ interface
 
     type
       TTarget=(
-        t_linux,t_go32v2,t_win32,t_os2,t_freebsd,t_beos
+        t_linux,t_go32v2,t_win32,t_os2,t_freebsd,t_beos,
+        t_amiga,t_atari
       );
 
     const
       TargetStr : array[TTarget] of string=(
-        'linux','go32v2','win32','os2','freebsd','beos'
+        'linux','go32v2','win32','os2','freebsd','beos',
+        'amiga','atari'
       );
 
       TargetSuffix : array[TTarget] of string=(
-        '_linux','_go32v2','_win32','_os2','_freebsd','_beos'
+        '_linux','_go32v2','_win32','_os2','_freebsd','_beos',
+        '_amiga','_atari'
       );
 
 
@@ -1216,7 +1219,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2001-07-13 21:01:59  peter
+  Revision 1.9  2001-07-24 09:06:40  pierre
+   + added amiga and atari targets
+
+  Revision 1.8  2001/07/13 21:01:59  peter
     * cygdrive support
     * fixed cygwin detection
     * fixed some duplicate and extraeous spaces
