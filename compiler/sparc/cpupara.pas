@@ -34,7 +34,8 @@ interface
         {Returns a structure giving the information on the storage of the parameter
         (which must be an integer parameter)
         @param(nr Parameter number of routine, starting from 1)}
-        function GetIntParaLoc(List:TAasmOutput;nr:longint):TParaLocation;override;
+        function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;override;
+        procedure freeintparaloc(list: taasmoutput; nr : longint); override;
         {Creates location information related to the parameter of the function}
         procedure create_param_loc_info(p:TAbstractProcDef);override;
         {Returns the location where the invisible parameter for structured function
@@ -48,7 +49,7 @@ implementation
     uses
       verbose,
       cpuinfo,cginfo,cgbase,
-      defutil;
+      defutil,rgobj;
 
     function TSparcParaManager.GetIntParaLoc(List:TAasmOutput;nr:longint):TParaLocation;
       begin
@@ -64,6 +65,7 @@ implementation
               loc:=LOC_REGISTER;
               register.enum:=R_INTREGISTER;
               register.number:=(RS_I0+nr) shl 8;
+              rg.getexplicitregisterint(list,register.number);
             end
            else
            { The other parameters are passed into the frame }
@@ -75,6 +77,24 @@ implementation
             end;
            size:=OS_INT;
          end;
+      end;
+
+
+    procedure tsparcparamanager.freeintparaloc(list: taasmoutput; nr : longint);
+
+      var
+        r: tregister;
+
+      begin
+        if nr<1 then
+          internalerror(2003060401);
+        Dec(nr);
+        if nr<6 then
+          begin
+            r.enum := R_INTREGISTER;
+            r.number:=(RS_I0+nr) shl 8;
+            rg.ungetregisterint(list,r);
+          end;
       end;
 
 
@@ -312,7 +332,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2003-06-09 21:44:14  mazen
+  Revision 1.21  2003-06-17 16:36:59  peter
+    * freeintparaloc
+
+  Revision 1.20  2003/06/09 21:44:14  mazen
   * fix compile problem related to modification
     of the declareation of GetIntParaLoc in the
     ancestor's declaration
