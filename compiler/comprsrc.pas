@@ -108,12 +108,12 @@ begin
   resobj:=ForceExtension(fname,target_info.resobjext);
   s:=target_res.rescmd;
   ObjUsed:=(pos('$OBJ',s)>0);
-  Replace(s,'$OBJ',resobj);
-  Replace(s,'$RES',fname);
-  Replace(s,'$INC',respath);
+  Replace(s,'$OBJ',maybequoted(resobj));
+  Replace(s,'$RES',maybequoted(fname));
+  Replace(s,'$INC',maybequoted(respath));
   if (target_info.system = system_i386_win32) and
      (srcfilepath<>'') then
-    s:=s+' --include '+srcfilepath;
+    s:=s+' --include '+maybequoted(srcfilepath);
 { Execute the command }
   if not (cs_link_extern in aktglobalswitches) then
    begin
@@ -183,7 +183,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2005-02-14 17:13:06  peter
+  Revision 1.25  2005-03-04 16:49:14  peter
+    * maybequoted for windres args
+
+  Revision 1.24  2005/02/14 17:13:06  peter
     * truncate log
 
   Revision 1.23  2005/01/24 18:10:20  olle
