@@ -15,8 +15,6 @@
 
  **********************************************************************}
 
-{currently nothing is implemented !}
-
 unit sysutils;
 interface
 
@@ -25,13 +23,47 @@ interface
 {$H+}
 
 uses DOS;
-//  Unix,errors;
 
 {$I nwsys.inc}
 {$I errno.inc}
 
+TYPE
+  TNetwareFindData =
+  RECORD
+    DirP  : PNWDirEnt;               { used for opendir }
+    EntryP: PNWDirEnt;               { and readdir }
+    Magic : WORD;                    { to avoid abends with uninitialized TSearchRec }
+  END;
+  
+
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
+
+{ additional NetWare file flags}
+CONST
+  faSHARE              = $00000080;  { Sharable file                   }
+
+  faNO_SUBALLOC        = $00000800;  { Don't sub alloc. this file      }
+  faTRANS              = $00001000;  { Transactional file (TTS usable) }
+  faREADAUD            = $00004000;  { Read audit                      }
+  faWRITAUD            = $00008000;  { Write audit                     }
+
+  faIMMPURG            = $00010000;  { Immediate purge                 }
+  faNORENAM            = $00020000;  { Rename inhibit                  }
+  faNODELET            = $00040000;  { Delete inhibit                  }
+  faNOCOPY             = $00080000;  { Copy inhibit                    }
+
+  faFILE_MIGRATED      = $00400000;  { File has been migrated          }
+  faDONT_MIGRATE       = $00800000;  { Don't migrate this file         }
+  faIMMEDIATE_COMPRESS = $02000000;  { Compress this file immediately  }
+  faFILE_COMPRESSED    = $04000000;  { File is compressed              }
+  faDONT_COMPRESS      = $08000000;  { Don't compress this file        }
+  faCANT_COMPRESS      = $20000000;  { Can't compress this file        }
+  faATTR_ARCHIVE       = $40000000;  { Entry has had an EA modified,   }
+                                     { an ownerID changed, or trustee  }
+                                     { info changed, etc.              }
+
 
 
 implementation
@@ -45,18 +77,16 @@ implementation
 ****************************************************************************}
 
 Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
-
-Var LinuxFlags : longint;
-
+VAR NWOpenFlags : longint;
 BEGIN
-  {LinuxFlags:=0;
+  NWOpenFlags:=0;
   Case (Mode and 3) of
-    0 : LinuxFlags:=LinuxFlags or Open_RdOnly;
-    1 : LinuxFlags:=LinuxFlags or Open_WrOnly;
-    2 : LinuxFlags:=LinuxFlags or Open_RdWr;
+    0 : NWOpenFlags:=NWOpenFlags or O_RDONLY;
+    1 : NWOpenFlags:=NWOpenFlags or O_WRONLY;
+    2 : NWOpenFlags:=NWOpenFlags or O_RDWR;
   end;
-  FileOpen:=fdOpen (FileName,LinuxFlags);
-  }
+  FileOpen := _open (pchar(FileName),NWOpenFlags,0);
+
   //!! We need to set locking based on Mode !!
 end;
 
@@ -64,211 +94,190 @@ end;
 Function FileCreate (Const FileName : String) : Longint;
 
 begin
-  //FileCreate:=fdOpen(FileName,Open_RdWr or Open_Creat or Open_Trunc);
+  FileCreate:=_open(Pchar(FileName),O_RdWr or O_Creat or O_Trunc,0);
 end;
 
 
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
 
 begin
-  //FileRead:=fdRead (Handle,Buffer,Count);
+  FileRead:=_read (Handle,@Buffer,Count);
 end;
 
 
 Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
 
 begin
-  //FileWrite:=fdWrite (Handle,Buffer,Count);
+  FileWrite:=_write (Handle,@Buffer,Count);
 end;
 
 
 Function FileSeek (Handle,FOffset,Origin : Longint) : Longint;
 
 begin
-  //FileSeek:=fdSeek (Handle,FOffset,Origin);
+  FileSeek:=_lseek (Handle,FOffset,Origin);
 end;
 
 
 Procedure FileClose (Handle : Longint);
 
 begin
-  //fdclose(Handle);
+  _close(Handle);
 end;
 
 Function FileTruncate (Handle,Size: Longint) : boolean;
 
 begin
-  //FileTruncate:=fdtruncate(Handle,Size);
+  FileTruncate:=(_chsize(Handle,Size) = 0);
 end;
 
 Function FileAge (Const FileName : String): Longint;
 
-//Var Info : Stat;
-//    Y,M,D,hh,mm,ss : word;
-
+VAR Info : NWStatBufT;
+    PTM  : PNWTM;
 begin
-{  If not fstat (FileName,Info) then
+  If _stat (pchar(FileName),Info) <> 0 then
     exit(-1)
   else
     begin
-    EpochToLocal(info.mtime,y,m,d,hh,mm,ss);
-    Result:=DateTimeToFileDate(EncodeDate(y,m,d)+EncodeTime(hh,mm,ss,0));
-    end;}
+      PTM := _localtime (Info.st_mtime);
+      IF PTM = NIL THEN
+        exit(-1)
+      else
+        WITH PTM^ DO
+          Result:=DateTimeToFileDate(EncodeDate(tm_year+1900,tm_mon+1,tm_mday)+EncodeTime(tm_hour,tm_min,tm_sec,0));
+    end;
 end;
 
 
 Function FileExists (Const FileName : String) : Boolean;
-
-//Var Info : Stat;
-
+VAR Info : NWStatBufT;
 begin
-  //FileExists:=fstat(filename,Info);
+  FileExists:=(_stat(pchar(filename),Info) = 0);
 end;
 
-{
-Function LinuxToWinAttr (FN : Pchar; Const Info : Stat) : Longint;
 
-begin
-  Result:=faArchive;
-  If (Info.Mode and STAT_IFDIR)=STAT_IFDIR then
-    Result:=Result or faDirectory;
-  If (FN[0]='.') and (not (FN[1] in [#0,'.']))  then
-    Result:=Result or faHidden;
-  If (Info.Mode and STAT_IWUSR)=0 Then
-     Result:=Result or faReadOnly;
-  If (Info.Mode and
-      (STAT_IFSOCK or STAT_IFBLK or STAT_IFCHR or STAT_IFIFO))<>0 then
-     Result:=Result or faSysFile;
-end;
-}
-{
- GlobToSearch takes a glob entry, stats the file.
- The glob entry is removed.
- If FileAttributes match, the entry is reused
-}
 
-{Type
-  TGlobSearchRec = Record
-    Path       : String;
-    GlobHandle : PGlob;
-  end;
-  PGlobSearchRec = ^TGlobSearchRec;}
-
-{Function GlobToTSearchRec (Var Info : TSearchRec) : Boolean;
-
-Var SInfo : Stat;
-    p     : Pglob;
-    GlobSearchRec : PGlobSearchrec;
-
-begin
-  GlobSearchRec:=PGlobSearchrec(Info.FindHandle);
-  P:=GlobSearchRec^.GlobHandle;
-  Result:=P<>Nil;
-  If Result then
-    begin
-    GlobSearchRec^.GlobHandle:=P^.Next;
-    Result:=Fstat(GlobSearchRec^.Path+StrPas(p^.name),SInfo);
-    If Result then
-      begin
-      Info.Attr:=LinuxToWinAttr(p^.name,SInfo);
-      Result:=(Info.ExcludeAttr and Info.Attr)=0;
-      If Result Then
-         With Info do
-           begin
-           Attr:=Info.Attr;
-           If P^.Name<>Nil then
-           Name:=strpas(p^.name);
-           Time:=Sinfo.mtime;
-           Size:=Sinfo.Size;
-           end;
-      end;
-    P^.Next:=Nil;
-    GlobFree(P);
-    end;
-end;}
-
-Function DoFind(Var Rslt : TSearchRec) : Longint;
-
-//Var GlobSearchRec : PGlobSearchRec;
-
-begin
-  Result:=-1;
-{  GlobSearchRec:=PGlobSearchRec(Rslt.FindHandle);
-  If (GlobSearchRec^.GlobHandle<>Nil) then
-    While (GlobSearchRec^.GlobHandle<>Nil) and not (Result=0) do
-      If GlobToTSearchRec(Rslt) Then Result:=0;}
-end;
+PROCEDURE find_setfields (VAR f : TsearchRec);
+VAR T : Dos.DateTime;
+BEGIN
+  WITH F DO
+  BEGIN
+    IF FindData.Magic = $AD01 THEN
+    BEGIN
+      {attr := FindData.EntryP^.d_attr AND $FF;}  // lowest 8 bit -> same as dos
+      attr := FindData.EntryP^.d_attr;   { return complete netware attributes }
+      UnpackTime(FindData.EntryP^.d_time + (LONGINT (FindData.EntryP^.d_date) SHL 16), T);
+      time := DateTimeToFileDate(EncodeDate(T.Year,T.Month,T.day)+EncodeTime(T.Hour,T.Min,T.Sec,0));
+      size := FindData.EntryP^.d_size;
+      name := strpas (FindData.EntryP^.d_nameDOS);
+    END ELSE
+    BEGIN
+      FillChar (f,SIZEOF(f),0);
+    END;
+  END;
+END;
 
 
 
 Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
-
-//Var  GlobSearchRec : PGlobSearchRec;
-
 begin
-  {New(GlobSearchRec);
-  GlobSearchRec^.Path:=ExpandFileName(ExtractFilePath(Path));
-  GlobSearchRec^.GlobHandle:=Glob(Path);
-  Rslt.ExcludeAttr:=Not Attr; //!! Not correct !!
-  Rslt.FindHandle:=Longint(GlobSearchRec);
-  Result:=DoFind (Rslt);}
+  IF path = '' then
+    exit (18);
+  Rslt.FindData.DirP := _opendir (pchar(Path));
+  IF Rslt.FindData.DirP = NIL THEN
+    exit (18);
+  IF attr <> faAnyFile THEN
+    _SetReaddirAttribute (Rslt.FindData.DirP, attr);
+  Rslt.FindData.Magic := $AD01;
+  Rslt.FindData.EntryP := _readdir (Rslt.FindData.DirP);
+  IF Rslt.FindData.EntryP = NIL THEN
+  BEGIN
+    _closedir (Rslt.FindData.DirP);
+    Rslt.FindData.DirP := NIL;
+    exit (18);
+  END ELSE
+  BEGIN
+    find_setfields (Rslt);
+    exit (0);
+  END;
 end;
 
 
 Function FindNext (Var Rslt : TSearchRec) : Longint;
 
 begin
-//  Result:=DoFind (Rslt);
+  IF Rslt.FindData.Magic <> $AD01 THEN
+    exit (18);
+  Rslt.FindData.EntryP := _readdir (Rslt.FindData.DirP);
+  IF Rslt.FindData.EntryP = NIL THEN
+    exit (18)
+  ELSE
+  BEGIN
+    find_setfields (Rslt);
+    exit (0);
+  END;
 end;
 
 
 Procedure FindClose (Var F : TSearchrec);
-
-//Var GlobSearchRec : PGlobSearchRec;
-
 begin
-  {GlobSearchRec:=PGlobSearchRec(F.FindHandle);
-  GlobFree (GlobSearchRec^.GlobHandle);
-  Dispose(GlobSearchRec);}
+  IF F.FindData.Magic = $AD01 THEN
+  BEGIN
+    IF F.FindData.DirP <> NIL THEN
+      _closedir (F.FindData.DirP);
+    F.FindData.Magic := 0;
+    F.FindData.DirP := NIL;
+    F.FindData.EntryP := NIL;
+  END;
 end;
 
 
 Function FileGetDate (Handle : Longint) : Longint;
-
-//Var Info : Stat;
-
+Var Info : NWStatBufT;
+    PTM  : PNWTM;
 begin
-  {If Not(FStat(Handle,Info)) then
+  If _fstat(Handle,Info) <> 0 then
     Result:=-1
   else
-    Result:=Info.Mtime;}
+    begin
+      PTM := _localtime (Info.st_mtime);
+      IF PTM = NIL THEN
+        exit(-1)
+      else
+        WITH PTM^ DO
+          Result:=DateTimeToFileDate(EncodeDate(tm_year+1900,tm_mon+1,tm_mday)+EncodeTime(tm_hour,tm_min,tm_sec,0));
+    end;
 end;
 
 
 Function FileSetDate (Handle,Age : Longint) : Longint;
-
 begin
-  // Impossible under Linux from FileHandle !!
+  { i think its impossible under netware from FileHandle. I dident found a way to get the
+    complete pathname of a filehandle, that would be needed for ChangeDirectoryEntry }
   FileSetDate:=-1;
+  ConsolePrintf ('warning: fpc sysutils.FileSetDate not implemented'#13#10,0);
 end;
 
 
 Function FileGetAttr (Const FileName : String) : Longint;
-
-//Var Info : Stat;
-
+Var Info : NWStatBufT;
 begin
-{  If Not FStat (FileName,Info) then
+  If _stat (pchar(FileName),Info) <> 0 then
     Result:=-1
   Else
-    Result:=LinuxToWinAttr(Pchar(FileName),Info);}
+    Result := Info.st_attr AND $FFFF;
 end;
 
 
 Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
-
+VAR MS : NWModifyStructure;
 begin
-  Result:=-1;
+  FillChar (MS, SIZEOF (MS), 0);
+  if _ChangeDirectoryEntry (PChar (Filename), MS, MFileAtrributesBit, 0) <> 0 then
+    exit (-1)
+  else
+    exit (0);
 end;
 
 
@@ -282,12 +291,11 @@ end;
 Function RenameFile (Const OldName, NewName : String) : Boolean;
 
 begin
-//  RenameFile:=Unix.FRename(OldNAme,NewName);
+  RenameFile:=(_rename(pchar(OldName),pchar(NewName)) = 0);
 end;
 
 
 Function FileSearch (Const Name, DirList : String) : String;
-
 begin
   FileSearch:=Dos.FSearch(Name,Dirlist);
 end;
@@ -340,6 +348,8 @@ Begin
    Diskfree:=int64(fs.bavail)*int64(fs.bsize)
   else
    Diskfree:=-1;}
+  DiskFree := -1;
+  ConsolePrintf ('warning: fpc sysutils.diskfree not implemented'#13#10,0);
 End;
 
 
@@ -352,6 +362,8 @@ Begin
    DiskSize:=int64(fs.blocks)*int64(fs.bsize)
   else
    DiskSize:=-1;}
+  DiskSize := -1;
+  ConsolePrintf ('warning: fpc sysutils.disksize not implemented'#13#10,0);
 End;
 
 
@@ -394,6 +406,7 @@ end;
 
 procedure Beep;
 begin
+  _RingTheBell;
 end;
 
 
@@ -450,7 +463,7 @@ end;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
 
 begin
-//  Result:=StrPas(Unix.Getenv(PChar(EnvVar)));
+  Result:=StrPas(_getenv(PChar(EnvVar)));
 end;
 
 
@@ -468,7 +481,10 @@ end.
 {
 
   $Log$
-  Revision 1.2  2001-04-11 14:17:00  florian
+  Revision 1.3  2001-04-16 18:39:50  florian
+    * updates from Armin commited
+
+  Revision 1.2  2001/04/11 14:17:00  florian
     * added logs, fixed email address of Armin, it is
       diehl@nordrhein.de
 

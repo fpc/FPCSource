@@ -15,9 +15,11 @@
  **********************************************************************}
 
 { 2000/09/03 armin: first version
-  2001/03/08 armin: implemented more functions
+  2001/04/08 armin: implemented more functions
                       OK: Implemented and tested
                       NI: not implemented
+  2001/04/15 armin: FindFirst bug corrected, FExpand and FSearch tested, GetCBreak, SetCBreak
+                    implemented
 }
 
 unit dos;
@@ -79,8 +81,8 @@ Type
   End;
 
   searchrec = packed record
-     DirP  : POINTER;               { used for opendir }
-     EntryP: POINTER;               { and readdir }
+     DirP  : POINTER;              { used for opendir }
+     EntryP: POINTER;              { and readdir }
      Magic : WORD;
      fill  : array[1..11] of byte;
      attr  : byte;
@@ -134,8 +136,8 @@ Procedure FindClose(Var f: SearchRec);                       {ok}
 {File}
 Procedure GetFAttr(var f; var attr: word);                   {ok}
 Procedure GetFTime(var f; var time: longint);                {ok}
-Function  FSearch(path: pathstr; dirlist: string): pathstr;  {untested}
-Function  FExpand(const path: pathstr): pathstr;             {untested}
+Function  FSearch(path: pathstr; dirlist: string): pathstr;  {ok}
+Function  FExpand(const path: pathstr): pathstr;             {ok}
 Procedure FSplit(path: pathstr; var dir: dirstr; var name:   {untested}
                  namestr; var ext: extstr);
 
@@ -263,12 +265,15 @@ end;
 
 procedure getcbreak(var breakvalue : boolean);
 begin
-  breakvalue := true;
+  breakvalue := _SetCtrlCharCheckMode (false);  { get current setting }
+  if breakvalue then
+    _SetCtrlCharCheckMode (breakvalue);         { and restore old setting }
 end;
 
 
 procedure setcbreak(breakvalue : boolean);
 begin
+  _SetCtrlCharCheckMode (breakvalue);
 end;
 
 
@@ -452,9 +457,11 @@ BEGIN
       time := PNWDirEnt(EntryP)^.d_time + (LONGINT (PNWDirEnt(EntryP)^.d_date) SHL 16);
       size := PNWDirEnt(EntryP)^.d_size;
       name := strpas (PNWDirEnt(EntryP)^.d_nameDOS);
+      doserror := 0;
     END ELSE
     BEGIN
       FillChar (f,SIZEOF(f),0);
+      doserror := 18;
     END;
   END;
 END;
@@ -480,8 +487,11 @@ begin
     F.Magic := $AD01;
     PNWDirEnt(f.EntryP) := _readdir (PNWDirEnt(f.DirP));
     IF F.EntryP = NIL THEN
-      doserror := 18
-    ELSE
+    BEGIN
+      _closedir (PNWDirEnt(f.DirP));
+      f.Magic := 0;
+      doserror := 18;
+    END ELSE
       find_setfields (f);
   END;
 end;
@@ -850,7 +860,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2001-04-11 14:17:00  florian
+  Revision 1.3  2001-04-16 18:39:50  florian
+    * updates from Armin commited
+
+  Revision 1.2  2001/04/11 14:17:00  florian
     * added logs, fixed email address of Armin, it is
       diehl@nordrhein.de
 

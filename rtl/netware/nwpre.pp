@@ -1,9 +1,32 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 2001 Armin Diehl
+		
+    This unit implements the startup code for a netware nlm. It must be the first object file
+    linked. Currently the 'old-style', similar to novell's prelude.obj is used. With the newer
+    way (novells nwpre.obj) i only got abends. Dont know what's different in novells nwpre.
+		    
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+			    
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+					
+**********************************************************************}
+
 unit nwpre;
 
 interface
 
-// AD 02.09.2000: Dont know why its not working with kNLMInfo...
-//                It always abends in TerminateNLM, so i am using the old style
+{ 2000/08/29 armin: first version, untested
+  2000/09/02 armin: Dont know why its not working with kNLMInfo...
+                    It always abends in TerminateNLM, so i am using the old style
+  2001/04/15 armin: Added comments, S-
+                    Removed dead code }
+		    
 {$DEFINE OldPrelude}
 
 FUNCTION _Prelude (NLMHandle               : LONGINT;
@@ -19,24 +42,27 @@ FUNCTION _Prelude (NLMHandle               : LONGINT;
 
 implementation
 
+{$S-}
 
-FUNCTION _TerminateNLM (NLMInformation : POINTER; threadID, status : LONGINT) : LONGINT; CDECL; EXTERNAL;
-FUNCTION _SetupArgV_411 (MainProc : POINTER) : LONGINT; CDECL; EXTERNAL;
-FUNCTION _StartNLM (NLMHandle               : LONGINT;
-                    initErrorScreenID       : LONGINT;
-                    cmdLineP                : PCHAR;
-                    loadDirectoryPath       : PCHAR;
-                    uninitializedDataLength : LONGINT;
-                    NLMFileHandle           : LONGINT;
-                    readRoutineP            : POINTER;
-                    customDataOffset        : LONGINT;
-                    customDataSize          : LONGINT;
-                    NLMInformation          : POINTER;
-                    userStartFunc           : POINTER) : LONGINT; CDECL; EXTERNAL;
-//PROCEDURE _exit (x : LONGINT); CDECL; EXTERNAL;		    
+FUNCTION _TerminateNLM  (NLMInformation          : POINTER; 
+                         threadID, status        : LONGINT) : LONGINT; CDECL; EXTERNAL;
+			 
+FUNCTION _SetupArgV_411 (MainProc                : POINTER) : LONGINT; CDECL; EXTERNAL;
+
+FUNCTION _StartNLM      (NLMHandle               : LONGINT;
+                         initErrorScreenID       : LONGINT;
+                         cmdLineP                : PCHAR;
+                         loadDirectoryPath       : PCHAR;
+                         uninitializedDataLength : LONGINT;
+                         NLMFileHandle           : LONGINT;
+                         readRoutineP            : POINTER;
+                         customDataOffset        : LONGINT;
+                         customDataSize          : LONGINT;
+                         NLMInformation          : POINTER;
+                         userStartFunc           : POINTER) : LONGINT; CDECL; EXTERNAL;
 
 
-(*****************************************************************************)
+{**************************************************************************************************}
 
 CONST TRADINIONAL_NLM_INFO_SIGNATURE = 0;
       TRADINIONAL_FLAVOR             = 0;
@@ -59,7 +85,7 @@ TYPE
     wchar_tSize    : LONGINT;
   END;
 
-CONST NLM_INFO_SIGNATURE             = 'NLMI';  // $494d3c3e;  // NLMI
+CONST NLM_INFO_SIGNATURE             = 'NLMI';  // $494d3c3e;
 
       kNLMInfo : kNLMInfoT =
        (Signature      : NLM_INFO_SIGNATURE;
@@ -69,8 +95,9 @@ CONST NLM_INFO_SIGNATURE             = 'NLMI';  // $494d3c3e;  // NLMI
         wchar_tSize    : 2);
 {$ENDIF}
 
-(*****************************************************************************)
+{**************************************************************************************************}
 
+{ _nlm_main is defined in system.pp. It sets command line parameters and calls PASCALMAIN }
 FUNCTION _nlm_main (Argc : LONGINT; ArgV : ARRAY OF PCHAR) : LONGINT; CDECL;
 EXTERNAL;
 
@@ -125,7 +152,10 @@ END;
 end.
 {
   $Log$
-  Revision 1.2  2001-04-11 14:17:00  florian
+  Revision 1.3  2001-04-16 18:39:50  florian
+    * updates from Armin commited
+
+  Revision 1.2  2001/04/11 14:17:00  florian
     * added logs, fixed email address of Armin, it is
       diehl@nordrhein.de
 

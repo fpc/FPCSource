@@ -17,6 +17,7 @@ unit system;
 
 { 2000/09/03 armin: first version
   2001/03/08 armin: changes for fpc 1.1
+  2001/04/16 armin: dummy envp for heaptrc-unit
 }
 
 interface
@@ -57,8 +58,17 @@ VAR
    ArgC   : INTEGER;
    ArgV   : ppchar;
 
+CONST   
+   envp   : ppchar = nil;   {dummy to make heaptrc happy}
+
 
 implementation
+
+{ ?? why does this not work ?? DEFINE FPC_SYSTEM_HAS_MOVE}
+{procedure move (const source; var dest; count : longint);
+begin
+  _memcpy (@dest, @source, count);
+end;}
 
 { include system independent routines }
 
@@ -76,7 +86,7 @@ end;
 
 
 
-procedure PascalMain;external name 'PASCALMAIN';
+procedure PASCALMAIN;external name 'PASCALMAIN';
 procedure fpc_do_exit;external name 'FPC_DO_EXIT';
 
 
@@ -545,10 +555,16 @@ Begin
   Setup_Arguments;
 { Reset IO Error }
   InOutRes:=0;
+  {Delphi Compatible}
+  IsLibrary := FALSE;
+  IsConsole := TRUE;
 End.
 {
   $Log$
-  Revision 1.2  2001-04-11 14:17:00  florian
+  Revision 1.3  2001-04-16 18:39:50  florian
+    * updates from Armin commited
+
+  Revision 1.2  2001/04/11 14:17:00  florian
     * added logs, fixed email address of Armin, it is
       diehl@nordrhein.de
 

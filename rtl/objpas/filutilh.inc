@@ -23,10 +23,13 @@ Type
     Name : TFileName;
     ExcludeAttr : Longint;
     FindHandle : THandle;
-    {$ifdef Win32}
-    FindData : TWin32FindData;        
-    {$endif}
-    end;
+{$ifdef Win32}
+    FindData : TWin32FindData;   
+{$endif}
+{$ifdef netware} 
+    FindData : TNetwareFindData; 
+{$endif}
+  end;
 
 Const 
   { File attributes }
@@ -77,7 +80,10 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.3  2001-01-18 22:09:09  michael
+  Revision 1.4  2001-04-16 18:34:46  florian
+    * updates from Armin commited
+
+  Revision 1.3  2001/01/18 22:09:09  michael
   + Merged fixes from fixbranch - file modes
 
   Revision 1.2  2000/07/13 11:33:51  michael

@@ -215,6 +215,15 @@ const
    MaxReadBytes = $fffe;
    invalidhandle = -1;
 {$ENDIF}
+{$IFDEF Netware} 
+type 
+   FNameStr = String; 
+   THandle = Longint; 
+const 
+   MaxReadBytes = $7fffffff; 
+   invalidhandle = -1; 
+{$ENDIF} 
+
 
 {---------------------------------------------------------------------------}
 {                            DOS ASCIIZ FILENAME                            }
@@ -2800,7 +2809,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.3  2000-11-13 13:40:04  marco
+  Revision 1.4  2001-04-16 18:36:41  florian
+    * updates from Armin commited
+
+  Revision 1.3  2000/11/13 13:40:04  marco
    * Renamefest
 
   Revision 1.2  2000/07/13 11:33:44  michael
