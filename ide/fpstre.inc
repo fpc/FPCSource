@@ -53,6 +53,7 @@ const
       menu_file_save         = '~S~ave';
       menu_file_saveas       = 'Save ~a~s...';
       menu_file_saveall      = 'Save a~l~l';
+      menu_file_reload       = '~R~eload';
       menu_file_changedir    = '~C~hange dir...';
       menu_file_dosshell     = 'Comman~d~ shell';
       menu_file_exit         = 'E~x~it';
@@ -1057,7 +1058,11 @@ const
 
 {
   $Log$
-  Revision 1.22  2004-11-20 10:10:32  florian
+  Revision 1.23  2004-11-20 14:21:19  florian
+    * implemented reload menu item
+    * increased file history to 9 files
+
+  Revision 1.22  2004/11/20 10:10:32  florian
     * renamed Delphi 2 extensions on to Object pascal support
 
   Revision 1.21  2004/11/14 21:45:28  florian

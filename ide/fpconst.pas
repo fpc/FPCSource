@@ -24,12 +24,12 @@ uses Views,App,
 const
      VersionStr           = '0.9.3';
 
-     MaxRecentFileCount   = 5;
+     MaxRecentFileCount   = 9;
      MaxToolCount         = 16;
 
      ReservedWordMaxLen   = 16;
 
-     CompilerStatusUpdateDelay = 0.8; { in secs }
+     CompilerStatusUpdateDelay = 0.1; { in secs }
 
 {$undef USE_SPECIAL_BASENAME}
 {$ifdef m68k}
@@ -186,6 +186,7 @@ const
      cmPasteWin          = 241;
      cmRegisters         = 242;
      cmFPURegisters      = 243;
+     cmDoReload          = 244;
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -247,7 +248,6 @@ const
 
      cmEditorOptions     = 2202;
      cmBrowserOptions    = 2203;
-     cmDoReload          = 2204;
 
      cmTrackReference    = 2300;
      cmGotoReference     = 2301;
@@ -471,7 +471,11 @@ implementation
 END.
 {
   $Log$
-  Revision 1.15  2004-11-08 20:28:26  peter
+  Revision 1.16  2004-11-20 14:21:19  florian
+    * implemented reload menu item
+    * increased file history to 9 files
+
+  Revision 1.15  2004/11/08 20:28:26  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new

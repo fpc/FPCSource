@@ -633,7 +633,7 @@ begin
     end;
 { only display line info every 100 lines, ofcourse all other messages
   will be displayed directly }
-  if (getrealtime-lasttime>=0.1) or (status.compiledlines=1) then
+  if (getrealtime-lasttime>=CompilerStatusUpdateDelay) or (status.compiledlines=1) then
    begin
      lasttime:=getrealtime;
      { update info messages }
@@ -1256,7 +1256,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  2004-11-20 10:18:41  florian
+  Revision 1.32  2004-11-20 14:21:19  florian
+    * implemented reload menu item
+    * increased file history to 9 files
+
+  Revision 1.31  2004/11/20 10:18:41  florian
     * reduced status updates by making them time dependend
 
   Revision 1.30  2004/11/14 21:45:28  florian

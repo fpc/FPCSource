@@ -474,7 +474,7 @@ procedure NoDebugger;
 
 const
       SourceCmds  : TCommandSet =
-        ([cmSave,cmSaveAs,cmCompile,cmHide]);
+        ([cmSave,cmSaveAs,cmCompile,cmHide,cmDoReload]);
       EditorCmds  : TCommandSet =
         ([cmFind,cmReplace,cmSearchAgain,cmJumpLine,cmHelpTopicSearch]);
       CompileCmds : TCommandSet =
@@ -4439,7 +4439,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.50  2004-11-14 21:45:29  florian
+  Revision 1.51  2004-11-20 14:21:19  florian
+    * implemented reload menu item
+    * increased file history to 9 files
+
+  Revision 1.50  2004/11/14 21:45:29  florian
     * fixed non working mouse after tools call
     * better handling of source/target info
     * more info in about dialog
