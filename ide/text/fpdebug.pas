@@ -279,7 +279,7 @@ uses
   Dos,Mouse,Video,
   App,Commands,Strings,
   FPVars,FPUtils,FPConst,
-  FPIntf,FPCompile,FPIde,
+  FPIntf,FPCompile,FPIde,FPHelp,
   Validate,WEditor,WUtils;
 
 const
@@ -674,15 +674,19 @@ end;
 
 procedure TDebugController.DoDebuggerScreen;
 begin
-  if NoSwitch then exit;
-  MyApp.ShowIDEScreen;
+  if NoSwitch then
+    PopStatus
+  else
+    MyApp.ShowIDEScreen;
 end;
 
 
 procedure TDebugController.DoUserScreen;
 begin
-  if NoSwitch then exit;
-  MyApp.ShowUserScreen;
+  if NoSwitch then
+    PushStatus('Executable running in another window..')
+  else
+    MyApp.ShowUserScreen;
 end;
 
 {****************************************************************************
@@ -2397,7 +2401,10 @@ end.
 
 {
   $Log$
-  Revision 1.34  1999-11-10 17:19:58  pierre
+  Revision 1.35  1999-11-24 14:03:16  pierre
+   + Executing... in status line if in another window
+
+  Revision 1.34  1999/11/10 17:19:58  pierre
    + Other window for Debuggee code
 
   Revision 1.33  1999/10/25 16:39:03  pierre
