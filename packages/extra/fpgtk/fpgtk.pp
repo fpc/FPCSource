@@ -1041,7 +1041,7 @@ TYPE
     function ConnectAfterExpand (proc:TFPgtkSignalFunction; data:pointer) : guint;
   end;
 
-  DialogResultCallback = procedure (Sender:TFPgtkWindow; DialogResult:pointer; 
+  DialogResultCallback = procedure (Sender:TFPgtkWindow; DialogResult:pointer;
                                     Action:integer; initiator:TFPgtkObject) of object;
   DialogInitCallback = procedure (Sender : TFPgtkWindow; InitData : pointer) of object;
   TFPgtkWindowClass = class of TFPgtkWindow;
@@ -2572,7 +2572,7 @@ TYPE
   end;
 
 { TFPgtkToolTips }
-var 
+var
   TheTooltips : TFPgtkTooltips;
 { TFPgtkButton }
 const
@@ -2779,7 +2779,7 @@ const
 
 type
   TIntegerPointer = record
-    case word of 
+    case word of
       0 : (i : integer);
       1 : (p : pointer);
   end;
@@ -3615,8 +3615,8 @@ begin
   else
     if assigned(gtkParent) then
       gtk_widget_unparent (TheGtkWidget);
-end;    
-      
+end;
+
 
 function TFPgtkWidget.GetParentWindow : PGdkWindow;
 begin
@@ -3677,7 +3677,7 @@ end;
 
 procedure TFPgtkWidget.SetRealized (TheValue:boolean);
 begin
-  if TheValue then 
+  if TheValue then
     Realize
   else
     Unrealize;
@@ -5112,7 +5112,7 @@ begin
 end;
 
 procedure TFPgtkPixmap.GetPixmap (var aPixmap:PGdkPixmap; var aMask:PGdkBitmap);
-var P:PGdkPixmap; 
+var P:PGdkPixmap;
    M:PGdkBitmap;
 begin
   gtk_pixmap_get (TheGtkObject, @p, @m);
@@ -5447,7 +5447,7 @@ if not assigned (FLabel) then
     AddContainer.Add (FLabel)
   else
     Add (FLabel);
-  LabelCreated;  
+  LabelCreated;
   end;
 end;
 
@@ -7316,7 +7316,7 @@ procedure TFPgtkBox.GetChildPacking (Widget:TFPgtkWidget; var Expand:boolean; va
 var PT : PGtkPackType;
 begin
   pt := @PackType;
-  gtk_box_query_child_packing (TheGtkObject, ConvertToGtkWidget(Widget), 
+  gtk_box_query_child_packing (TheGtkObject, ConvertToGtkWidget(Widget),
                                @expand, @fill, @padding, pt);
 end;
 
@@ -8592,8 +8592,11 @@ begin
 end;
 
 function TFPgtkCTree.InsertNode (aParent:PGtkCTreeNode; Sibling:PGtkCTreeNode; data:string; aSpacing:guint8; PixmapClosed:PGdkPixmap; MaskClosed:PGdkBitmap; PixmapOpened:PGdkPixmap; MaskOpened:PGdkBitmap; IsLeaf:boolean; Expanded:boolean) : PGtkCTreeNode; Overload;
+var
+  temppgc : pgchar;
 begin
-  result := gtk_ctree_insert_node (TheGtkObject, aParent, Sibling, ConvertToPgchar(data), aSpacing, PixmapClosed, MaskClosed, PixmapOpened, MaskOpened, IsLeaf, Expanded);
+  temppgc:=ConvertToPgchar(data);
+  result := gtk_ctree_insert_node (TheGtkObject, aParent, Sibling, @temppgc, aSpacing, PixmapClosed, MaskClosed, PixmapOpened, MaskOpened, IsLeaf, Expanded);
 end;
 
 function TFPgtkCTree.InsertNode (aParent:PGtkCTreeNode; Sibling:PGtkCTreeNode; data:string; aSpacing:guint8; IsLeaf:boolean; Expanded:boolean) : PGtkCTreeNode; Overload;
@@ -8614,25 +8617,25 @@ end;
 
 procedure TFPgtkCTree.PostRecursive (aNode:PGtkCTreeNode; func:TFPgtkCTreeFunction; data:pointer);
 begin
-  gtk_CTree_post_recursive (TheGtkObject, aNode, @FPgtkCTreeFunc, 
+  gtk_CTree_post_recursive (TheGtkObject, aNode, @FPgtkCTreeFunc,
         ConvertSignalData(TFPgtkSignalFunction(func), data, true));
 end;
 
 procedure TFPgtkCTree.PostRecursiveToDepth (aNode:PGtkCTreeNode; aDepth:integer; func:TFPgtkCTreeFunction; data:pointer);
 begin
-  gtk_CTree_post_recursive_to_depth (TheGtkObject, aNode, aDepth, @FPgtkCTreeFunc, 
+  gtk_CTree_post_recursive_to_depth (TheGtkObject, aNode, aDepth, @FPgtkCTreeFunc,
         ConvertSignalData(TFPgtkSignalFunction(func), data, true));
 end;
 
 procedure TFPgtkCTree.PreRecursive (aNode:PGtkCTreeNode; func:TFPgtkCTreeFunction; data:pointer);
 begin
-  gtk_CTree_pre_recursive (TheGtkObject, aNode, @FPgtkCTreeFunc, 
+  gtk_CTree_pre_recursive (TheGtkObject, aNode, @FPgtkCTreeFunc,
         ConvertSignalData(TFPgtkSignalFunction(func), data, true));
 end;
 
 procedure TFPgtkCTree.PreRecursiveToDepth (aNode:PGtkCTreeNode; aDepth:integer; func:TFPgtkCTreeFunction; data:pointer);
 begin
-  gtk_CTree_pre_recursive_to_depth (TheGtkObject, aNode, aDepth, @FPgtkCTreeFunc, 
+  gtk_CTree_pre_recursive_to_depth (TheGtkObject, aNode, aDepth, @FPgtkCTreeFunc,
         ConvertSignalData(TFPgtkSignalFunction(func), data, true));
 end;
 
@@ -8783,7 +8786,7 @@ var r : integer;
     s : PPgchar;
 begin
   s := nil;
-  r := gtk_ctree_get_node_info (TheGtkObject, aNode, s, 
+  r := gtk_ctree_get_node_info (TheGtkObject, aNode, s,
       @aspacing, @pixmapClosed, @maskClosed, @pixmapOpened, @maskOpened,
       @IsLeaf, @expanded);
   if r = 0 then
@@ -9150,7 +9153,7 @@ procedure TFPgtkNotebook.GetTabLabelPacking (Widget:TFPgtkWidget; var Expand:boo
 var PT : PGtkPackType;
 begin
   pt := @PackType;
-  gtk_notebook_query_tab_label_packing (TheGtkObject, ConvertTogtkWidget(widget), 
+  gtk_notebook_query_tab_label_packing (TheGtkObject, ConvertTogtkWidget(widget),
                                @expand, @fill, pt);
 end;
 
@@ -10255,12 +10258,12 @@ function TFPgtkToolbar.InsertElement (ButtonType:TGtkToolbarChildType; PrevRadio
 var w : PGtkWidget;
     t : TFPgtkObjectClass;
 begin
-  w := gtk_toolbar_insert_element (TheGtkObject, ButtonType, 
-           ConvertToGtkwidget(PrevRadioBut), ConvertTopgchar(Text), 
-           ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate), 
-           ConvertToGtkwidget(Icon), 
-           gtk_signal_func(@SignalProc), 
-           ConvertSignalData(TFPgtkSignalFunction(callback), data, true), 
+  w := gtk_toolbar_insert_element (TheGtkObject, ButtonType,
+           ConvertToGtkwidget(PrevRadioBut), ConvertTopgchar(Text),
+           ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate),
+           ConvertToGtkwidget(Icon),
+           gtk_signal_func(@SignalProc),
+           ConvertSignalData(TFPgtkSignalFunction(callback), data, true),
            position);
   if assigned (w) then
     begin
@@ -10287,9 +10290,9 @@ function TFPgtkToolbar.AppendElement (ButtonType:TGtkToolbarChildType; PrevRadio
 var w : PGtkWidget;
     t : TFPgtkObjectClass;
 begin
-  w := gtk_toolbar_append_element (TheGtkObject, ButtonType, ConvertToGtkwidget(PrevRadioBut), 
-          ConvertTopgchar(Text), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate), 
-          ConvertToGtkwidget(Icon), gtk_signal_func(@SignalProc), 
+  w := gtk_toolbar_append_element (TheGtkObject, ButtonType, ConvertToGtkwidget(PrevRadioBut),
+          ConvertTopgchar(Text), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate),
+          ConvertToGtkwidget(Icon), gtk_signal_func(@SignalProc),
           ConvertSignalData(TFPgtkSignalFunction(callback), data, true));
   if assigned (w) then
     begin
@@ -10316,9 +10319,9 @@ function TFPgtkToolbar.PrependElement (ButtonType:TGtkToolbarChildType; PrevRadi
 var w : PGtkWidget;
     t : TFPgtkObjectClass;
 begin
-  w := gtk_toolbar_prepend_element (TheGtkObject, ButtonType, ConvertToGtkwidget(PrevRadioBut), 
-          ConvertTopgchar(Text), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate), 
-          ConvertToGtkwidget(Icon), gtk_signal_func(@SignalProc), 
+  w := gtk_toolbar_prepend_element (TheGtkObject, ButtonType, ConvertToGtkwidget(PrevRadioBut),
+          ConvertTopgchar(Text), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate),
+          ConvertToGtkwidget(Icon), gtk_signal_func(@SignalProc),
           ConvertSignalData(TFPgtkSignalFunction(callback), data, true));
   if assigned (w) then
     begin
@@ -10344,7 +10347,7 @@ end;
 function TFPgtkToolbar.InsertItem (Text:string; TooltipText:string; TooltipPrivate:string; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer; position:integer) : TFPgtkWidget; Overload;
 begin
   result := GetPascalInstance (
-      gtk_toolbar_insert_item (TheGtkObject, ConvertTopgchar(Text), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate), ConvertToGtkWidget(Icon), 
+      gtk_toolbar_insert_item (TheGtkObject, ConvertTopgchar(Text), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate), ConvertToGtkWidget(Icon),
               gtk_signal_func(@SignalProc), ConvertSignalData(TFPgtkSignalFunction(callback), data, true), position),
       TFPgtkButton);
 end;
@@ -10352,7 +10355,7 @@ end;
 function TFPgtkToolbar.AppendItem (Text:string; TooltipText:string; TooltipPrivate:string; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
 begin
   result := GetPascalInstance (
-      gtk_toolbar_append_item (TheGtkObject, ConvertTopgchar(Text), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate), 
+      gtk_toolbar_append_item (TheGtkObject, ConvertTopgchar(Text), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate),
               ConvertToGtkWidget(Icon), gtk_signal_func(@SignalProc), ConvertSignalData(TFPgtkSignalFunction(callback), data, true)),
       TFPgtkButton);
 end;
@@ -10360,9 +10363,9 @@ end;
 function TFPgtkToolbar.PrependItem (Text:string; TooltipText:string; TooltipPrivate:string; Icon:TFPgtkWidget; CallBack:TFPgtkSignalFunction; data:pointer) : TFPgtkWidget; Overload;
 begin
   result := GetPascalInstance (
-      gtk_toolbar_prepend_item (TheGtkObject, Converttopgchar(Text), Converttopgchar(TooltipText), 
-              Converttopgchar(TooltipPrivate), ConvertToGtkWidget(Icon), gtk_signal_func(@SignalProc), 
-              ConvertSignalData(TFPgtkSignalFunction(callback), data, true)), 
+      gtk_toolbar_prepend_item (TheGtkObject, Converttopgchar(Text), Converttopgchar(TooltipText),
+              Converttopgchar(TooltipPrivate), ConvertToGtkWidget(Icon), gtk_signal_func(@SignalProc),
+              ConvertSignalData(TFPgtkSignalFunction(callback), data, true)),
       TFPgtkButton);
 end;
 
@@ -10377,7 +10380,7 @@ begin
   else
     pm := nil;
   result := GetPascalInstance (
-      gtk_toolbar_insert_item (TheGtkObject, ConvertTopgchar(Text), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate), ConvertToGtkWidget(pm), 
+      gtk_toolbar_insert_item (TheGtkObject, ConvertTopgchar(Text), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate), ConvertToGtkWidget(pm),
               gtk_signal_func(@SignalProc), ConvertSignalData(TFPgtkSignalFunction(callback), data, true), position),
       TFPgtkButton);
 end;
@@ -10393,7 +10396,7 @@ begin
   else
     pm := nil;
   result := GetPascalInstance (
-      gtk_toolbar_append_item (TheGtkObject, ConvertTopgchar(Text), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate), 
+      gtk_toolbar_append_item (TheGtkObject, ConvertTopgchar(Text), ConvertTopgchar(TooltipText), ConvertTopgchar(TooltipPrivate),
               ConvertToGtkWidget(pm), gtk_signal_func(@SignalProc), ConvertSignalData(TFPgtkSignalFunction(callback), data, true)),
       TFPgtkButton);
 end;
@@ -10409,9 +10412,9 @@ begin
   else
     pm := nil;
   result := GetPascalInstance (
-      gtk_toolbar_prepend_item (TheGtkObject, Converttopgchar(Text), Converttopgchar(TooltipText), 
-              Converttopgchar(TooltipPrivate), ConvertToGtkWidget(pm), gtk_signal_func(@SignalProc), 
-              ConvertSignalData(TFPgtkSignalFunction(callback), data, true)), 
+      gtk_toolbar_prepend_item (TheGtkObject, Converttopgchar(Text), Converttopgchar(TooltipText),
+              Converttopgchar(TooltipPrivate), ConvertToGtkWidget(pm), gtk_signal_func(@SignalProc),
+              ConvertSignalData(TFPgtkSignalFunction(callback), data, true)),
       TFPgtkButton);
 end;
 
@@ -10860,7 +10863,7 @@ begin
   InsertText (TheValue, b);
   Position := b + length(TheValue);
   SelectRegion (b, position);
-end;  
+end;
 
 function TFPgtkEditable.GetSelection : string;
 var c : pgchar;
