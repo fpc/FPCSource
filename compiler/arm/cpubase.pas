@@ -496,7 +496,7 @@ unit cpubase;
   implementation
 
     uses
-      rgHelper,verbose;
+      rgBase,verbose;
 
 
     const
@@ -551,13 +551,13 @@ unit cpubase;
 
     function findreg_by_number(r:Tregister):tregisterindex;
       begin
-        rgHelper.findreg_by_number(r,regnumber_index);
+        rgBase.findreg_by_number_table(r,regnumber_index);
       end;
 
 
     function std_regnum_search(const s:string):Tregister;
       begin
-        result:=regnumber_table[findreg_by_name(s,std_regname_table,std_regname_index)];
+        result:=regnumber_table[findreg_by_name_table(s,std_regname_table,std_regname_index)];
       end;
 
 
@@ -565,7 +565,7 @@ unit cpubase;
       var
         p : tregisterindex;
       begin
-        p:=findreg_by_number(r);
+        p:=findreg_by_number_table(r,regnumber_index);
         if p<>0 then
           result:=std_regname_table[p]
         else
@@ -587,8 +587,12 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.15  2003-10-30 15:02:04  mazen
-  * now uses standard routines in rgHelper unit to search registers by number and by name
+  Revision 1.16  2003-10-31 08:40:51  mazen
+  * rgHelper renamed to rgBase
+  * using findreg_by_<name|number>_table directly to decrease heap overheading
+
+  Revision 1.15  2003/10/30 15:02:04  mazen
+  * now uses standard routines in rgBase unit to search registers by number and by name
 
   Revision 1.14  2003/09/05 23:57:01  florian
     * arm is working again as before the new register naming scheme was implemented

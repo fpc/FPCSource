@@ -551,7 +551,7 @@ uses
 implementation
 
     uses
-      rgHelper,verbose;
+      rgBase,verbose;
 
     const
       std_regname_table : array[tregisterindex] of string[7] = (
@@ -646,13 +646,13 @@ implementation
 
     function findreg_by_number(r:Tregister):tregisterindex;
       begin
-        rgHelper.findreg_by_number(r,regnumber_index);
+        rgBase.findreg_by_number_table(r,regnumber_index);
       end;
 
 
     function std_regnum_search(const s:string):Tregister;
       begin
-        result:=regnumber_table[findreg_by_name(s,std_regname_table,std_regname_index)];
+        result:=regnumber_table[findreg_by_name_table(s,std_regname_table,std_regname_index)];
       end;
 
 
@@ -660,7 +660,7 @@ implementation
       var
         p : tregisterindex;
       begin
-        p:=findreg_by_number(r);
+        p:=findreg_by_number_table(r,regnumber_index);
         if p<>0 then
           result:=std_regname_table[p]
         else
@@ -672,7 +672,7 @@ implementation
       var
         p : tregisterindex;
       begin
-        p:=findreg_by_number(r);
+        p:=findreg_by_number_table(r,regnumber_index);
         if p<>0 then
           result:=gas_regname_table[p]
         else
@@ -682,8 +682,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2003-10-30 15:03:18  mazen
-  * now uses standard routines in rgHelper unit to search registers by number and by name
+  Revision 1.75  2003-10-31 08:42:28  mazen
+  * rgHelper renamed to rgBase
+  * using findreg_by_<name|number>_table directly to decrease heap overheading
+
+  Revision 1.74  2003/10/30 15:03:18  mazen
+  * now uses standard routines in rgBase unit to search registers by number and by name
 
   Revision 1.73  2003/10/19 01:34:31  florian
     * some ppc stuff fixed
