@@ -37,7 +37,7 @@ asm
         jz      .LStrCopyDone
         decl    %ecx
         jnz     .LStrCopyAlignLoop
-        .align  16
+        .balign  16
 .LStrCopyAligned:
         movl    (%esi),%eax
         addl    $4,%esi
@@ -98,7 +98,7 @@ asm
         movl    maxlen,%ecx
         movl    dest,%edi
         orl     %ecx,%ecx
-        jz      .LSTRLCOPY2 
+        jz      .LSTRLCOPY2
         cld
 .LSTRLCOPY1:
         lodsb
@@ -128,7 +128,7 @@ asm
         scasb
         movl    $0xfffffffe,%eax
         subl    %ecx,%eax
-.LNil:        
+.LNil:
 end ['EDI','ECX','EAX'];
 
 
@@ -292,7 +292,7 @@ asm
         decl    %esi
         jnz     .LSTRSCANALIGNLOOP
         jmp     .LSTRSCANLOOP
-        .align  16
+        .balign  16
 .LSTRSCANLOOP:
         movl    (%edi),%eax
         movl    %eax,%esi
@@ -343,7 +343,7 @@ end ['EAX','ECX','ESI','EDI','EDX'];
 
 function strrscan(p : pchar;c : char) : pchar;assembler;
 asm
-	xorl    %eax,%eax
+        xorl    %eax,%eax
         movl    p,%edi
         orl     %edi,%edi
         jz      .LSTRRSCAN
@@ -372,8 +372,8 @@ end ['EAX','ECX','EDI'];
 function strupper(p : pchar) : pchar;assembler;
 asm
         movl    p,%esi
-	orl     %esi,%esi
-	jz      .LStrUpperNil
+        orl     %esi,%esi
+        jz      .LStrUpperNil
         movl    %esi,%edi
 .LSTRUPPER1:
         lodsb
@@ -414,7 +414,10 @@ end ['EAX','ESI','EDI'];
 
 {
   $Log$
-  Revision 1.9  2000-06-11 14:25:23  jonas
+  Revision 1.10  2000-06-12 19:53:32  peter
+    * change .align to .balign
+
+  Revision 1.9  2000/06/11 14:25:23  jonas
     * much faster strcopy and strscan procedures
 
   Revision 1.8  2000/03/28 11:14:33  jonas

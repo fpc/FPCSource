@@ -17,15 +17,8 @@
 
 function strpas(p : pchar) : string;
 begin
-{$ifndef NEWATT}
-  strpas:='';
-{$endif}
 asm
-{$ifdef NEWATT}
         movl    __RESULT,%edi
-{$else}
-        movl    8(%ebp),%edi
-{$endif}
         movl    p,%esi
         // at the end, add 255 to cl to get the string length (byte(1+255) = 0)
         movb    $1,%cl
@@ -39,7 +32,7 @@ asm
         addl    $3,%esi
         // Store everything already, since the temp string = 255 chars anyway
         // The length byte will contain zero this way, but it will be
-        // overwritten at the end, so it doesn't matter       
+        // overwritten at the end, so it doesn't matter
         movl    %eax,(%edi)
         // test the second char (we shifted left 8 bits)
         testl   $0x0ff0000,%eax
@@ -51,7 +44,7 @@ asm
         testl   $0x0ff000000,%eax
         jz      .LStrPasDone
         incb    %cl
-        .align  16
+        .balign  16
 .LStrPasLoop:
         movl    (%esi),%eax
         addl    $4,%esi
@@ -80,11 +73,7 @@ asm
 .LStrPasByte:
         incb    %cl
 .LStrPasDone:
-{$ifdef NEWATT}
         movl    __RESULT,%edi
-{$else}
-        movl    8(%ebp),%edi
-{$endif}
         addb    $255,%cl
         movb    %cl,(%edi)
 end ['EAX','ECX','ESI','EDI'];
@@ -109,7 +98,10 @@ end ['EDI','EAX','ECX'];
 
 {
   $Log$
-  Revision 1.12  2000-06-12 13:17:56  jonas
+  Revision 1.13  2000-06-12 19:53:32  peter
+    * change .align to .balign
+
+  Revision 1.12  2000/06/12 13:17:56  jonas
     * fixed typo :(
 
   Revision 1.11  2000/06/12 08:33:26  jonas
