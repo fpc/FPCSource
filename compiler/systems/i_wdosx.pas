@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1998-2002 by Peter Vreman
 
-    This unit implements support information structures for MacOS
+    This unit implements support information structures for win32
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,55 +19,56 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************
 }
-{ This unit implements support information structures for MacOS. }
-unit i_macos;
+{ This unit implements support information structures for wdosx. }
+unit i_wdosx;
 
   interface
 
     uses
        systems;
-     const
-       system_powerpc_macos_info : tsysteminfo =
+
+    const
+       system_i386_wdosx_info : tsysteminfo =
           (
-            system       : system_powerpc_MACOS;
-            name         : 'MacOs (PowerPC)';
-            shortname    : 'MacOSPPC';
+            system       : system_i386_wdosx;
+            name         : 'WDOSX DOS extender';
+            shortname    : 'WDOSX';
             flags        : [];
-            cpu          : cpu_powerpc;
-            unit_env     : '';
-            extradefines : '';
+            cpu          : cpu_i386;
+            unit_env     : 'WDOSXUNITS';
+            extradefines : 'MSWINDOWS';
             sourceext    : '.pp';
-            pasext       : '.p';
-            exeext       : '';
-            defext       : '';
-            scriptext    : '';
-            smartext     : '.sl';
-            unitext      : '.ppt';
+            pasext       : '.pas';
+            exeext       : '.exe';
+            defext       : '.def';
+            scriptext    : '.bat';
+            smartext     : '.sld';
+            unitext      : '.ppd';
             unitlibext   : '.ppl';
-            asmext       : '.a';
-            objext       : '.o';
-            resext       : '.res';
-            resobjext    : '.or';
-            sharedlibext : 'Lib';
-            staticlibext : 'Lib';
-            staticlibprefix : '';
+            asmext       : '.sd';
+            objext       : '.od';
+            resext       : '.rc';
+            resobjext    : '.odr';
+            sharedlibext : '.dll';
+            staticlibext : '.ad';
+            staticlibprefix : 'libp';
             sharedlibprefix : '';
-            sharedClibext : 'Lib';
-            staticClibext : 'Lib';
-            staticClibprefix : '';
+            sharedClibext : '.dll';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
             sharedClibprefix : '';
-            Cprefix      : '';
-            newline      : #10;
-            dirsep       : ':';
-            files_case_relevent : true;
-            assem        : as_powerpc_mpw;
-            assemextern  : as_powerpc_mpw;
+            Cprefix      : '_';
+            newline      : #13#10;
+            dirsep       : '\';
+            files_case_relevent : false;
+            assem        : as_i386_pecoffwdosx;
+            assemextern  : as_i386_asw;
             link         : nil;
             linkextern   : nil;
-            ar           : ar_mpw_ar;
-            res          : res_mpw_res;
-            script       : script_unix;
-            endian       : endian_big;
+            ar           : ar_gnu_arw;
+            res          : res_gnu_windres;
+            script       : script_dos;
+            endian       : endian_little;
             alignment    :
               (
                 procalign       : 4;
@@ -77,16 +78,16 @@ unit i_macos;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 8;
-                localalignmax   : 8;
-                paraalign       : 8;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
                 maxCrecordalign : 16
               );
             first_parm_offset : 8;
             heapsize     : 256*1024;
-            stacksize    : 262144;
+            stacksize    : 32*1024*1024;
             DllScanSupported:true;
             use_function_relative_addresses : true
           );
@@ -94,20 +95,18 @@ unit i_macos;
   implementation
 
 initialization
-{$ifdef cpupowerpc}
-  {$ifdef macos}
-    set_source_info(system_powerpc_macos_info);
-  {$endif macos}
-{$endif cpupowerpc}
+{$ifdef CPU86}
+  {$ifdef WIN32}
+    {$ifdef WDOSX}
+      set_source_info(system_i386_wdosx_info);
+    {$endif WDOSX}
+  {$endif WIN32}
+{$endif CPU86}
 end.
 {
   $Log$
   Revision 1.1  2002-09-06 15:03:51  carl
     * moved files to systems directory
-
-  Revision 1.3  2002/08/20 21:40:44  florian
-    + target macos for ppc added
-    + frame work for mpw assembler output
 
   Revision 1.2  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)

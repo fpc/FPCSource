@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1998-2002 by Peter Vreman
 
-    This unit implements support information structures for MacOS
+    This unit implements support information structures for BeOS
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,55 +19,56 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************
 }
-{ This unit implements support information structures for MacOS. }
-unit i_macos;
+{ This unit implements support information structures for BeOS. }
+unit i_beos;
 
   interface
 
     uses
        systems;
-     const
-       system_powerpc_macos_info : tsysteminfo =
+
+    const
+       system_i386_beos_info : tsysteminfo =
           (
-            system       : system_powerpc_MACOS;
-            name         : 'MacOs (PowerPC)';
-            shortname    : 'MacOSPPC';
-            flags        : [];
-            cpu          : cpu_powerpc;
-            unit_env     : '';
+            system       : system_i386_BeOS;
+            name         : 'Beos for i386';
+            shortname    : 'Beos';
+            flags        : [tf_under_development];
+            cpu          : cpu_i386;
+            unit_env     : 'BEOSUNITS';
             extradefines : '';
             sourceext    : '.pp';
-            pasext       : '.p';
+            pasext       : '.pas';
             exeext       : '';
-            defext       : '';
-            scriptext    : '';
+            defext       : '.def';
+            scriptext    : '.sh';
             smartext     : '.sl';
-            unitext      : '.ppt';
+            unitext      : '.ppu';
             unitlibext   : '.ppl';
-            asmext       : '.a';
+            asmext       : '.s';
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
-            sharedlibext : 'Lib';
-            staticlibext : 'Lib';
-            staticlibprefix : '';
-            sharedlibprefix : '';
-            sharedClibext : 'Lib';
-            staticClibext : 'Lib';
-            staticClibprefix : '';
-            sharedClibprefix : '';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
             Cprefix      : '';
             newline      : #10;
-            dirsep       : ':';
+            dirsep       : '/';
             files_case_relevent : true;
-            assem        : as_powerpc_mpw;
-            assemextern  : as_powerpc_mpw;
+            assem        : as_gas;
+            assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
-            ar           : ar_mpw_ar;
-            res          : res_mpw_res;
+            ar           : ar_gnu_ar;
+            res          : res_none;
             script       : script_unix;
-            endian       : endian_big;
+            endian       : endian_little;
             alignment    :
               (
                 procalign       : 4;
@@ -77,37 +78,33 @@ unit i_macos;
                 constalignmax   : 4;
                 varalignmin     : 0;
                 varalignmax     : 4;
-                localalignmin   : 8;
-                localalignmax   : 8;
-                paraalign       : 8;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
-                maxCrecordalign : 16
+                maxCrecordalign : 4
               );
             first_parm_offset : 8;
             heapsize     : 256*1024;
-            stacksize    : 262144;
-            DllScanSupported:true;
+            stacksize    : 8192;
+            DllScanSupported:false;
             use_function_relative_addresses : true
           );
 
   implementation
 
 initialization
-{$ifdef cpupowerpc}
-  {$ifdef macos}
-    set_source_info(system_powerpc_macos_info);
-  {$endif macos}
-{$endif cpupowerpc}
+{$ifdef cpu86}
+  {$ifdef beos}
+    set_source_info(system_i386_beos_info);
+  {$endif beos}
+{$endif cpu86}
 end.
 {
   $Log$
   Revision 1.1  2002-09-06 15:03:51  carl
     * moved files to systems directory
-
-  Revision 1.3  2002/08/20 21:40:44  florian
-    + target macos for ppc added
-    + frame work for mpw assembler output
 
   Revision 1.2  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)

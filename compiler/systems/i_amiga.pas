@@ -2,7 +2,7 @@
     $Id$
     Copyright (c) 1998-2002 by Peter Vreman
 
-    This unit implements support information structures for MacOS
+    This unit implements support information structures for AmigaOS
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,95 +19,80 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************
 }
-{ This unit implements support information structures for MacOS. }
-unit i_macos;
+{ This unit implements support information structures for the AmigaOS. }
+unit i_amiga;
 
   interface
 
     uses
        systems;
-     const
-       system_powerpc_macos_info : tsysteminfo =
+
+    const
+       system_m68k_amiga_info : tsysteminfo =
           (
-            system       : system_powerpc_MACOS;
-            name         : 'MacOs (PowerPC)';
-            shortname    : 'MacOSPPC';
+            system       : target_m68k_Amiga;
+            name         : 'Commodore Amiga';
+            shortname    : 'amiga';
             flags        : [];
-            cpu          : cpu_powerpc;
+            cpu          : cpu_m68k;
+            short_name   : 'AMIGA';
             unit_env     : '';
             extradefines : '';
+            sharedlibext : '.library';
+            staticlibext : '.a';
             sourceext    : '.pp';
-            pasext       : '.p';
+            pasext       : '.pas';
             exeext       : '';
             defext       : '';
             scriptext    : '';
             smartext     : '.sl';
-            unitext      : '.ppt';
+            unitext      : '.ppa';
             unitlibext   : '.ppl';
-            asmext       : '.a';
+            asmext       : '.asm';
             objext       : '.o';
             resext       : '.res';
             resobjext    : '.or';
-            sharedlibext : 'Lib';
-            staticlibext : 'Lib';
             staticlibprefix : '';
             sharedlibprefix : '';
-            sharedClibext : 'Lib';
-            staticClibext : 'Lib';
-            staticClibprefix : '';
-            sharedClibprefix : '';
-            Cprefix      : '';
+            Cprefix      : '_';
             newline      : #10;
-            dirsep       : ':';
+            dirsep       : '/';
             files_case_relevent : true;
-            assem        : as_powerpc_mpw;
-            assemextern  : as_powerpc_mpw;
+            assem        : as_gas;
+            assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
-            ar           : ar_mpw_ar;
-            res          : res_mpw_res;
-            script       : script_unix;
+            ar           : ar_m68k_ar;
+            res          : res_none;
+            script       : script_amiga;
             endian       : endian_big;
-            alignment    :
-              (
-                procalign       : 4;
-                loopalign       : 4;
-                jumpalign       : 0;
-                constalignmin   : 0;
-                constalignmax   : 4;
-                varalignmin     : 0;
-                varalignmax     : 4;
-                localalignmin   : 8;
-                localalignmax   : 8;
-                paraalign       : 8;
-                recordalignmin  : 0;
-                recordalignmax  : 2;
-                maxCrecordalign : 16
-              );
-            first_parm_offset : 8;
-            heapsize     : 256*1024;
-            stacksize    : 262144;
-            DllScanSupported:true;
-            use_function_relative_addresses : true
+            stackalignment : 2;
+            maxCrecordalignment : 4;
+            heapsize     : 128*1024;
+            stacksize    : 8192;
+            DllScanSupported:false;
+            use_function_relative_addresses : false
           );
 
   implementation
 
 initialization
-{$ifdef cpupowerpc}
-  {$ifdef macos}
-    set_source_info(system_powerpc_macos_info);
-  {$endif macos}
-{$endif cpupowerpc}
+{$ifdef cpu68}
+  {$ifdef AMIGA}
+    set_source_info(system_m68k_Amiga);
+  {$endif amiga}
+{$endif cpu68}
 end.
 {
   $Log$
   Revision 1.1  2002-09-06 15:03:51  carl
     * moved files to systems directory
 
-  Revision 1.3  2002/08/20 21:40:44  florian
-    + target macos for ppc added
-    + frame work for mpw assembler output
+  Revision 1.3  2002/08/13 18:01:51  carl
+    * rename swatoperands to swapoperands
+    + m68k first compilable version (still needs a lot of testing):
+        assembler generator, system information , inline
+        assembler reader.
 
   Revision 1.2  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
