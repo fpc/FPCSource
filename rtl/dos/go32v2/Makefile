@@ -211,7 +211,7 @@ crt$(PPUEXT) : ../crt.pp $(INC)/textrec.inc go32$(PPUEXT) $(SYSTEMPPU)
 	$(COMPILER) crt $(REDIR)
 	$(DEL) crt.pp
 
-objects$(PPUEXT) : $(INC)/objects.pp $(INC)/platform.inc objinc.inc $(SYSTEMPPU)
+objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 	$(COPY) $(INC)/objects.pp .
 	$(COMPILER) objects.pp $(REDIR)
 	$(DEL) objects.pp
@@ -290,37 +290,40 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.11  1998-11-24 19:50:01  jonas
+# Revision 1.12  1998-11-24 23:06:40  peter
+#   * removed platform.inc
+#
+# Revision 1.11  1998/11/24 19:50:01  jonas
 #   + added warning about TABs
 #
 # Revision 1.10  1998/10/21 16:51:07  pierre
 #  * dxeload range check problem solved
 #
-# Revision 1.9  1998/10/14 07:56:02  pierre
+# Revision 1.9	1998/10/14 07:56:02  pierre
 #  * -Sv now necessary for dpmiexcp unit
 #
-# Revision 1.8  1998/10/12 08:36:31  pierre
+# Revision 1.8	1998/10/12 08:36:31  pierre
 #  * wrong 'objpas' target in all removed
 #
-# Revision 1.7  1998/10/11 13:45:05  michael
+# Revision 1.7	1998/10/11 13:45:05  michael
 # + Added disk.inc to sysutils dependencies
 #
-# Revision 1.6  1998/10/11 12:21:48  michael
+# Revision 1.6	1998/10/11 12:21:48  michael
 # + Further sysutils implementations.
 #
-# Revision 1.5  1998/10/06 22:10:30  peter
+# Revision 1.5	1998/10/06 22:10:30  peter
 #   + heaptrc
 #
-# Revision 1.4  1998/10/02 09:26:00  peter
+# Revision 1.4	1998/10/02 09:26:00  peter
 #   * fixed rtl path
 #
-# Revision 1.3  1998/09/16 16:47:27  peter
+# Revision 1.3	1998/09/16 16:47:27  peter
 #   * merged fixes
 #
 # Revision 1.1.2.2  1998/09/16 16:17:50  peter
 #   * updates to install with go32,win32
 #
-# Revision 1.2  1998/09/15 12:09:09  peter
+# Revision 1.2	1998/09/15 12:09:09  peter
 #   * merged updates
 #
 # Revision 1.1.2.1  1998/09/15 12:02:03  peter
