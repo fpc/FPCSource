@@ -123,6 +123,16 @@ implementation
            else
             if (hs='OFF') then
              aktpackrecords:=1
+           { Support switches used in Apples Universal Interfaces}
+           else
+            if (hs='MAC68K') and (m_mac in aktmodeswitches) then
+             aktpackrecords:=2
+           else
+            if (hs='POWER') and (m_mac in aktmodeswitches) then
+             aktpackrecords:=4
+           else
+            if (hs='RESET') and (m_mac in aktmodeswitches) then
+             aktpackrecords:=0
            else
             Message(scan_w_only_pack_records);
          end
@@ -994,7 +1004,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2004-04-04 18:46:09  olle
+  Revision 1.33  2004-05-11 18:30:50  olle
+    + mode macpas: support for Apples align directives
+
+  Revision 1.32  2004/04/04 18:46:09  olle
     + added $APPTYPE TOOL for MPW tools on MacOS
 
   Revision 1.31  2004/03/14 20:08:37  peter
