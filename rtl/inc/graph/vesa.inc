@@ -18,10 +18,10 @@ type
                                       {VESA modes are >=100h}
 
   palrec = packed record              { record used for set/get DAC palette }
-       red: byte;
-       green: byte;
-       blue : byte;
        align: byte;
+       blue : byte;
+       green: byte;
+       red: byte;
   end;
 
 const
@@ -81,17 +81,15 @@ TYPE
     winFunct       : procedure;        { Function to swtich bank    }
     BytesPerScanLine: word;            {bytes per scan line (1.0)   }
     { extended information }
-    extendedInfo   : packed record
-      xRes, yRes : word;    {pixels}
-      xCharSize,
-      yCharSize  : byte;
-      planes     : byte;
-      bitsPixel  : byte;
-      banks      : byte;
-      memModel   : byte;
-      bankSize   : byte;  {in K}
-      NumberOfPages: byte;
-    end;
+    xRes, yRes : word;    {pixels}
+    xCharSize,
+    yCharSize  : byte;
+    planes     : byte;
+    bitsPixel  : byte;
+    banks      : byte;
+    memModel   : byte;
+    bankSize   : byte;  {in K}
+    NumberOfPages: byte;
 
     pad : array [29..260] of byte; { always put some more space then required}
   end;
@@ -552,10 +550,6 @@ end;
  {*                     VESA Palette entries                             *)
  {************************************************************************}
 
- { BIG PROBLEM: The routines seems to be wrong, with Function 09h on my ATI }
- { technologies MACH64 - the palrec record seems to be at the END of the    }
- { record, contrary to the VBE 2 specification!!! To verify with other video}
- { cards.                                                                   }
 
 {$IFDEF DPMI}
    Procedure SetVESARGBPalette(ColorNum, RedValue, GreenValue,
@@ -1252,3 +1246,22 @@ end;
        end;
   end;
 {$ENDIF DPMI}
+
+ {************************************************************************}
+ {*                     VESA Page flipping routines                      *)
+ {************************************************************************}
+ { Note: These routines, according  to the VBE3 specification, will NOT   }
+ { work with the 24 bpp modes, because of the alignment.                  }
+ {************************************************************************}
+ procedure SetVisualVESA(page: word);
+  { two page support... }
+  begin
+    if page > HardwarePages then exit;
+  end;
+
+ procedure SetActiveVESA(page: word);
+  { two page support... }
+  begin
+  end;
+
+
