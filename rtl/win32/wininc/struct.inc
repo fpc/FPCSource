@@ -3718,7 +3718,7 @@
      TFXPT16DOT16 = FXPT16DOT16;
      PFXPT16DOT16 = ^FXPT16DOT16;
 
-     LUID = LARGE_INTEGER;
+     LUID = TlargeInteger;
      TLUID = LUID;
      PLUID = ^LUID;
 
@@ -7027,7 +7027,10 @@ type
 
 {
   $Log$
-  Revision 1.21  2003-12-04 12:34:09  marco
+  Revision 1.22  2004-02-06 23:10:20  marco
+   * a large_integer -> int64 change.
+
+  Revision 1.21  2003/12/04 12:34:09  marco
    * twin32fileattributedata
 
   Revision 1.20  2003/01/02 22:07:00  peter
