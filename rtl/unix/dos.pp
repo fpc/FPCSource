@@ -318,8 +318,8 @@ Function DiskFree(Drive: Byte): int64;
 var
   fs : tstatfs;
 Begin
-  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and (StatFS(StrPas(fixdrivestr[drive]),fs)<>-1)) or
-     ((not (drivestr[Drive]=nil)) and (StatFS(StrPas(drivestr[drive]),fs)<>-1)) then
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and (StatFS(fixdrivestr[drive],fs)<>-1)) or
+     ((not (drivestr[Drive]=nil)) and (StatFS(drivestr[drive],fs)<>-1)) then
    Diskfree:=int64(fs.bavail)*int64(fs.bsize)
   else
    Diskfree:=-1;
@@ -331,8 +331,8 @@ Function DiskSize(Drive: Byte): int64;
 var
   fs : tstatfs;
 Begin
-  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and (StatFS(StrPas(fixdrivestr[drive]),fs)<>-1)) or
-     ((not (drivestr[Drive]=nil)) and (StatFS(StrPas(drivestr[drive]),fs)<>-1)) then
+  if ((Drive<4) and (not (fixdrivestr[Drive]=nil)) and (StatFS(fixdrivestr[drive],fs)<>-1)) or
+     ((not (drivestr[Drive]=nil)) and (StatFS(drivestr[drive],fs)<>-1)) then
    DiskSize:=int64(fs.blocks)*int64(fs.bsize)
   else
    DiskSize:=-1;
@@ -612,7 +612,7 @@ Var
   LinAttr : longint;
 Begin
   DosError:=0;
-  if FPStat(strpas(@textrec(f).name),info)<0 then
+  if FPStat(@textrec(f).name,info)<0 then
    begin
      Attr:=0;
      DosError:=3;
@@ -624,7 +624,7 @@ Begin
    Attr:=$10
   else
    Attr:=$0;
-  if fpAccess(strpas(@textrec(f).name),W_OK)<0 then
+  if fpAccess(@textrec(f).name,W_OK)<0 then
    Attr:=Attr or $1;
   if filerec(f).name[0]='.' then
    Attr:=Attr or $2;
@@ -652,22 +652,20 @@ Procedure setftime(var f; time : longint);
 Var
   utim: utimbuf;
   DT: DateTime;
-  path: pathstr;
   index: Integer;
 
 Begin
   doserror:=0;
   with utim do
     begin
-    actime:=getepochtime;
-    UnPackTime(Time,DT);
-    modtime:=DTToUnixDate(DT);
+      actime:=getepochtime;
+      UnPackTime(Time,DT);
+      modtime:=DTToUnixDate(DT);
     end;
-  path := strpas(@filerec(f).name);
-  if fputime(path,@utim)<0 then
+  if fputime(@filerec(f).name,@utim)<0 then
     begin
-    Time:=0;
-    doserror:=3;
+      Time:=0;
+      doserror:=3;
     end;
 End;
 
@@ -836,7 +834,10 @@ End.
 
 {
   $Log$
-  Revision 1.34  2004-08-14 14:22:17  florian
+  Revision 1.35  2004-09-25 15:09:57  peter
+    * remove strpas() before syscalls so it chooses the pchar overload
+
+  Revision 1.34  2004/08/14 14:22:17  florian
     * alignment for sparc fixed
 
   Revision 1.33  2004/07/25 22:46:34  olle
