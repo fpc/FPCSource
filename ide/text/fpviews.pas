@@ -162,6 +162,7 @@ type
       procedure   UpdateTitle; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   SetState(AState: Word; Enable: Boolean); virtual;
+      procedure   SelectInDebugSession;
       procedure   Update; virtual;
       procedure   UpdateCommands; virtual;
       function    GetPalette: PPalette; virtual;
@@ -1283,6 +1284,29 @@ procedure TSourceWindow.Update;
 begin
   ReDraw;
 end;
+
+procedure   TSourceWindow.SelectInDebugSession;
+var
+  F,PrevCurrent : PView;
+begin
+  DeskTop^.Lock;
+  PrevCurrent:=Desktop^.Current;
+  F:=PrevCurrent;
+  While assigned(F) and
+    ((F^.HelpCtx = hcGDBWindow) or
+     (F^.HelpCtx = hcWatches) or {hcStack,}
+     (F^.HelpCtx = hcRegisters)) do
+    F:=F^.NextView;
+  if F<>@Self then
+    Select;
+  if PrevCurrent<>F then
+    Begin
+      Desktop^.InsertBefore(@self,F);
+      PrevCurrent^.Select;
+    End;
+  DeskTop^.Unlock;
+end;
+
 
 function TSourceWindow.GetPalette: PPalette;
 const P: string[length(CSourceWindow)] = CSourceWindow;
@@ -3079,7 +3103,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.56  2000-02-02 22:51:49  pierre
+  Revision 1.57  2000-02-04 00:03:30  pierre
+   + SelectInDebugSession lets CPU and watches in front
+
+  Revision 1.56  2000/02/02 22:51:49  pierre
    * use desktop^.current for GetNextEditorBounds
 
   Revision 1.55  2000/02/01 10:58:41  pierre
