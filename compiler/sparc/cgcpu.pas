@@ -274,7 +274,7 @@ procedure tcgSPARC.a_load_reg_reg(list:TAasmOutput;fromsize,tosize:tcgsize;reg1,
 procedure tcgSPARC.a_loadfpu_reg_reg(list:TAasmOutput;reg1, reg2:tregister);
 
        begin
-         if NOT (reg1 IN [R_F0..R_F31]) then
+{         if NOT (reg1 IN [R_F0..R_F31]) then
            begin
              list.concat(taicpu.op_reg(A_NONE,S_NO,
                trgcpu(rg).correct_fpuregister(reg1,trgcpu(rg).fpuvaroffset)));
@@ -285,7 +285,7 @@ procedure tcgSPARC.a_loadfpu_reg_reg(list:TAasmOutput;reg1, reg2:tregister);
              list.concat(taicpu.op_reg(A_JMPL,S_NO,
                  trgcpu(rg).correct_fpuregister(reg2,trgcpu(rg).fpuvaroffset)));
              dec(trgcpu(rg).fpuvaroffset);
-           end;
+           end;}
        end;
 
 
@@ -1225,7 +1225,7 @@ procedure tcgSPARC.floatload(list:TAasmOutput;t:tcgsize;CONST ref:TReference);
   BEGIN
     floatloadops(t,op,s);
     list.concat(Taicpu.Op_ref(op,s,ref));
-    inc(trgcpu(rg).fpuvaroffset);
+{    inc(trgcpu(rg).fpuvaroffset);}
   END;
 procedure tcgSPARC.floatstoreops(t:tcgsize;var op:tasmop;var s:topsize);
   BEGIN
@@ -1257,14 +1257,17 @@ procedure tcgSPARC.floatstore(list:TAasmOutput;t:tcgsize;CONST ref:TReference);
   BEGIN
     floatstoreops(t,op,s);
     list.concat(Taicpu.Op_ref(op,s,ref));
-    dec(trgcpu(rg).fpuvaroffset);
+{    dec(trgcpu(rg).fpuvaroffset);}
   END;
 BEGIN
   cg:=tcgSPARC.create;
 END.
 {
   $Log$
-  Revision 1.14  2002-10-10 19:57:51  mazen
+  Revision 1.15  2002-10-11 13:35:14  mazen
+  *** empty log message ***
+
+  Revision 1.14  2002/10/10 19:57:51  mazen
   * Just to update repsitory
 
   Revision 1.13  2002/10/10 15:10:39  mazen

@@ -402,7 +402,7 @@ CONST
   {           excludes registers which can be only used for parameter      }
   {           passing on ABI's that define this)                           }
   { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
-  IntRegs=[R_L0..R_O7];
+  IntRegs=[R_G0..R_I7];
   usableregsint=general_registers;
   c_countusableregsint = 4;
   fpuregs=[R_F0..R_F31];
@@ -571,7 +571,10 @@ FUNCTION flags_to_cond(CONST f:TResFlags):TAsmCond;
 END.
 {
   $Log$
-  Revision 1.11  2002-10-10 19:57:51  mazen
+  Revision 1.12  2002-10-11 13:35:14  mazen
+  *** empty log message ***
+
+  Revision 1.11  2002/10/10 19:57:51  mazen
   * Just to update repsitory
 
   Revision 1.10  2002/10/02 22:20:28  mazen
