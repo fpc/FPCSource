@@ -793,8 +793,8 @@ asm
 end; {Backwards_SSE}
 
 const
-   fastmoveproc_forward : pointer = @Forwards_SSE_3;
-   fastmoveproc_backward : pointer = @Backwards_SSE_3;
+   fastmoveproc_forward : pointer = @Forwards_IA32_3;
+   fastmoveproc_backward : pointer = @Backwards_IA32_3;
 
 procedure Move(const source;var dest;count:SizeInt);[public, alias: 'FPC_MOVE'];assembler;nostackframe;
 asm
@@ -836,7 +836,7 @@ procedure setup_fastmove;{$ifdef SYSTEMINLINE}inline;{$endif}
         fastmoveproc_forward:=@Forwards_SSE_3;
         fastmoveproc_backward:=@Backwards_SSE_3;
       end
-    else if has_mmx_support then
+   else if has_mmx_support then
       begin
         fastmoveproc_forward:=@Forwards_MMX_3;
         fastmoveproc_backward:=@Backwards_MMX_3;
