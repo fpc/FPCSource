@@ -440,7 +440,7 @@ begin
 { Post processor executable }
 {$ifdef i386}
   if target_info.target=target_i386_Win32 then
-    win_targ.postprocessexecutable;
+    win_targ.postprocessexecutable(current_module^.exefilename^);
 {$endif}
 
 {Remove ReponseFile}
@@ -514,7 +514,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  1998-10-19 18:06:23  peter
+  Revision 1.36  1998-10-22 15:18:44  florian
+    + switch -vx for win32 added
+
+  Revision 1.35  1998/10/19 18:06:23  peter
     * use no_double
 
   Revision 1.34  1998/10/16 13:37:18  florian

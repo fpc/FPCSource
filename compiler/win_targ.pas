@@ -37,12 +37,12 @@ unit win_targ;
     end;
 
     { sets some flags of the executable }
-    procedure postprocessexecutable;
+    procedure postprocessexecutable(n : string);
 
   implementation
 
     uses
-       aasm,files,strings,globals,cobjects,systems
+       aasm,files,strings,globals,cobjects,systems,verbose
 {$ifdef GDB}
        ,gdb
 {$endif}
@@ -50,6 +50,71 @@ unit win_targ;
        ,i386
 {$endif}
        ;
+
+    type
+       tdosheader = packed record
+          e_magic : word;
+          e_cblp : word;
+          e_cp : word;
+          e_crlc : word;
+          e_cparhdr : word;
+          e_minalloc : word;
+          e_maxalloc : word;
+          e_ss : word;
+          e_sp : word;
+          e_csum : word;
+          e_ip : word;
+          e_cs : word;
+          e_lfarlc : word;
+          e_ovno : word;
+          e_res : array[0..3] of word;
+          e_oemid : word;
+          e_oeminfo : word;
+          e_res2 : array[0..9] of word;
+          e_lfanew : longint;
+       end;
+
+       tpeheader = packed record
+          PEMagic : array[0..3] of char;
+          Machine : word;
+          NumberOfSections : word;
+          TimeDateStamp : longint;
+          PointerToSymbolTable : longint;
+          NumberOfSymbols : longint;
+          SizeOfOptionalHeader : word;
+          Characteristics : word;
+          Magic : word;
+          MajorLinkerVersion : byte;
+          MinorLinkerVersion : byte;
+          SizeOfCode : longint;
+          SizeOfInitializedData : longint;
+          SizeOfUninitializedData : longint;
+          AddressOfEntryPoint : longint;
+          BaseOfCode : longint;
+          BaseOfData : longint;
+          ImageBase : longint;
+          SectionAlignment : longint;
+          FileAlignment : longint;
+          MajorOperatingSystemVersion : word;
+          MinorOperatingSystemVersion : word;
+          MajorImageVersion : word;
+          MinorImageVersion : word;
+          MajorSubsystemVersion : word;
+          MinorSubsystemVersion : word;
+          Reserved1 : longint;
+          SizeOfImage : longint;
+          SizeOfHeaders : longint;
+          CheckSum : longint;
+          Subsystem : word;
+          DllCharacteristics : word;
+          SizeOfStackReserve : longint;
+          SizeOfStackCommit : longint;
+          SizeOfHeapReserve : longint;
+          SizeOfHeapCommit : longint;
+          LoaderFlags : longint;
+          NumberOfRvaAndSizes : longint;
+          { DataDirectory : array[0..(IMAGE_NUMBEROF_DIRECTORY_ENTRIES)-1] of IMAGE_DATA_DIRECTORY; }
+       end;
 
     procedure timportlibwin32.preparelib(const s : string);
 
@@ -285,16 +350,38 @@ unit win_targ;
       end;
 
 
-    procedure postprocessexecutable;
+    procedure postprocessexecutable(n : string);
+
+      var
+         f : file;
+         dosheader : tdosheader;
+         peheader : tpeheader;
+         peheaderpos : longint;
 
       begin
+         assign(f,n);
+         reset(f,1);
+         blockread(f,dosheader,sizeof(tdosheader));
+         peheaderpos:=dosheader.e_lfanew;
+         seek(f,peheaderpos);
+         blockread(f,peheader,sizeof(tpeheader));
 
+         { write info }
+         Message1(execinfo_x_codesize,tostr(peheader.SizeOfCode));
+         Message1(execinfo_x_initdatasize,tostr(peheader.SizeOfInitializedData));
+         Message1(execinfo_x_uninitdatasize,tostr(peheader.SizeOfUninitializedData));
+         Message1(execinfo_x_stackreserve,tostr(peheader.SizeOfStackReserve));
+         Message1(execinfo_x_stackcommit,tostr(peheader.SizeOfStackCommit));
+         close(f);
       end;
 
 end.
 {
   $Log$
-  Revision 1.9  1998-10-19 15:41:03  peter
+  Revision 1.10  1998-10-22 15:18:51  florian
+    + switch -vx for win32 added
+
+  Revision 1.9  1998/10/19 15:41:03  peter
     * better splitname to support glib-1.1.dll alike names
 
   Revision 1.8  1998/09/07 18:33:35  peter

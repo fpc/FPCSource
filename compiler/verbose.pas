@@ -54,6 +54,7 @@ Const
   V_Tried        = $80000;
   V_Debug        = $100000;
   V_Declarations = $200000;
+  V_Executable   = $400000;
   V_ShowFile     = $ffff;
   V_All          = $ffffffff;
   V_Default      = V_Fatal + V_Error + V_Normal;
@@ -211,6 +212,10 @@ begin
                    status.verbosity:=status.verbosity and (not V_Declarations)
                  else
                    status.verbosity:=status.verbosity or V_Declarations;
+           'X' : if inverse then
+                   status.verbosity:=status.verbosity and (not V_Executable)
+                 else
+                   status.verbosity:=status.verbosity or V_Executable;
            end;
        end;
      end;
@@ -351,6 +356,7 @@ begin
           'C' : v:=v or V_Conditional;
           'D' : v:=v or V_Debug;
           'B' : v:=v or V_Declarations;
+          'X' : v:=v or V_Executable;
           'S' : dostop:=true;
           '_' : ;
          end;
@@ -419,7 +425,10 @@ end.
 
 {
   $Log$
-  Revision 1.24  1998-10-08 17:17:39  pierre
+  Revision 1.25  1998-10-22 15:18:49  florian
+    + switch -vx for win32 added
+
+  Revision 1.24  1998/10/08 17:17:39  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)
