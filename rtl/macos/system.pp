@@ -65,7 +65,14 @@ var
 {To be called at regular intervals, for lenghty tasks.
  Yield might give time for other tasks to run under the cooperative
  multitasked macos. For an MPW Tool, it also spinns the cursor.}
+ 
 procedure Yield;
+
+{To set mac file type and creator codes, to be used for files created
+ by the FPC runtime library. They must be exactly 4 chars long.}
+
+procedure SetDefaultMacOSFiletype(ftype: ShortString);
+procedure SetDefaultMacOSCreator(creator: ShortString);
 
 {*********************************}
 {**  Available features on macos **}
@@ -440,6 +447,10 @@ end;
 {*****************************************************************************
                               MacOS specific functions
 *****************************************************************************}
+var
+  defaultCreator: OSType =  $4D505320; {'MPS '   MPW Shell}
+  //defaultCreator: OSType =  $74747874; {'ttxt'   Simple Text}
+  defaultFileType: OSType = $54455854; {'TEXT'}
 
 procedure Yield;
 
@@ -447,6 +458,21 @@ begin
   if StandAlone = 0 then
     SpinCursor(1);
 end;
+
+procedure SetDefaultMacOSFiletype(ftype: ShortString);
+
+begin
+  if Length(ftype) = 4 then
+    defaultFileType:= PLongWord(@ftype[1])^;
+end;
+
+procedure SetDefaultMacOSCreator(creator: ShortString);
+
+begin
+  if Length(creator) = 4 then
+    defaultCreator:= PLongWord(@creator[1])^;
+end;
+
 
 {*****************************************************************************
                               ParamStr/Randomize
@@ -710,16 +736,20 @@ procedure do_open(var f;p:pchar;flags:longint);
 }
 
 var
-  creator, fileType: OSType;
   scriptTag: ScriptCode;
   refNum: Integer;
-  res: OSErr;
+
+  err: OSErr;
+  res: Integer;
+  spec: FSSpec;
 
   fh: Longint;
 
   oflags : longint;
-  s: AnsiString;
+  fullPath: AnsiString;
 
+  finderInfo: FInfo;
+  
 begin
   // AllowSlash(p);
 
@@ -783,10 +813,28 @@ begin
    end
   else
     begin
-      InOutRes:= PathArgToFullPath(p, s);
+      InOutRes:= PathArgToFSSpec(p, spec);
+      if (InOutRes = 0) or (InOutRes = 2) then
+        begin
+          err:= FSpGetFullPath(spec, fullPath, false);
+          InOutRes:= MacOSErr2RTEerr(err);
+        end;
+
       if InOutRes <> 0 then
         exit;
-      p:= PChar(s);
+        
+      p:= PChar(fullPath);
+      
+      if FileRec(f).mode in [fmoutput, fminout, fmappend] then
+        begin
+         {Since opening of an existing file will not change filetype and creator, 
+          it is set here. Otherwise overwritten darwin files will not get filetype
+          TEXT. This is not done when only opening file for reading.}
+          FSpGetFInfo(spec, finderInfo);
+          finderInfo.fdType:= defaultFileType;
+          finderInfo.fdCreator:= defaultCreator;
+          FSpSetFInfo(spec, finderInfo);
+        end;
     end;
 
 
@@ -805,10 +853,6 @@ begin
   {$else}
 
   InOutRes:=1;
-  //creator:= $522A6368; {'MPS ' -- MPW}
-  //creator:= $74747874; {'ttxt'}
-  creator:= $522A6368; {'R*ch' -- BBEdit}
-  fileType:= $54455854; {'TEXT'}
 
   { reset file handle }
   filerec(f).handle:=UnusedHandle;
@@ -816,7 +860,7 @@ begin
   res:= FSpLocationFromFullPath(StrLen(p), p, spec);
   if (res = noErr) or (res = fnfErr) then
     begin
-      if FSpCreate(spec, creator, fileType, smSystemScript) = noErr then
+      if FSpCreate(spec, defaultCreator, defaultFileType, smSystemScript) = noErr then
         ;
 
       if FSpOpenDF(spec, fsCurPerm, refNum) = noErr then
@@ -941,21 +985,19 @@ end;
 procedure getDir (DriveNr: byte; var Dir: ShortString);
 
 var
-  pathHandle: Mac_Handle;
+  fullPath: AnsiString;
   pathHandleSize: Longint;
 
 begin
-  if FSpGetFullPath(workingDirectorySpec, pathHandle, false) <> noErr then
+  if FSpGetFullPath(workingDirectorySpec, fullPath, false) <> noErr then
     Halt(3);  {exit code 3 according to MPW}
 
-  pathHandleSize:= GetHandleSize(pathHandle);
-  SetString(dir, pathHandle^, pathHandleSize);
-  DisposeHandle(pathHandle);
-
-  if pathHandleSize <= 255 then {because dir is ShortString}
+  if Length(fullPath) <= 255 then {because dir is ShortString}
     InOutRes := 0
   else
     InOutRes := 1; //TODO Exchange to something better 
+    
+  dir:= fullPath;
 end;
 
 {*****************************************************************************
@@ -1305,7 +1347,12 @@ end.
 
 {
   $Log$
-  Revision 1.21  2004-09-12 19:51:02  olle
+  Revision 1.22  2004-09-30 19:58:42  olle
+    + Added SetDefaultMacOS[Filetype|Creator]
+    * Files written to by fpc rtl now always will get decent filetype/creator
+    * Adapted to use FSpGetFullPath
+
+  Revision 1.21  2004/09/12 19:51:02  olle
     + InitGraf called for MPW tool, which make strange bug disappear.
     * bugfix initial wd for MPW tool
     + Added SysInitExceptions
