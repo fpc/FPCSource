@@ -140,7 +140,7 @@ gprt21$(OEXT) : $(CPU_TARGET)/gprt0.as
 # $(SYSTEMUNIT) Units ($(SYSTEMUNIT), Objpas, Strings)
 #
 
-$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp sysconst.inc systypes.inc $(CPU_TARGET)/syscalls.inc $(SYSDEPS)
+$(SYSTEMUNIT)$(PPUEXT) : $(SYSTEMUNIT).pp sysconst.inc systypes.inc $(SYSDEPS)
         $(COMPILER) -Us -Sg $(SYSTEMUNIT).pp
 
 systhrds$(PPUEXT): systhrds.pp $(INC)/threadh.inc $(SYSTEMUNIT)$(PPUEXT)
@@ -157,7 +157,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 #
 
 unix$(PPUEXT) : unix.pp strings$(PPUEXT) baseunix$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
-                 $(CPU_TARGET)/syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
+                 sysc11.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMUNIT)$(PPUEXT) \
                  unixsysc.inc
 
 baseunix$(PPUEXT) : errno.inc bunxtype.inc ptypes.inc ctypes.inc \
