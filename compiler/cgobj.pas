@@ -229,11 +229,12 @@ unit cgobj;
           procedure a_loadmm_loc_reg(list: taasmoutput; size: tcgsize; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);
           procedure a_loadmm_reg_loc(list: taasmoutput; size: tcgsize; const reg: tregister; const loc: tlocation;shuffle : pmmshuffle);
           procedure a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const locpara : tparalocation;shuffle : pmmshuffle); virtual;
-          procedure a_parammm_ref(list: taasmoutput; size: tcgsize; ref: treference;const locpara : tparalocation;shuffle : pmmshuffle); virtual;
-          procedure a_parammm_loc(list: taasmoutput; loc: tlocation; const locpara : tparalocation;shuffle : pmmshuffle); virtual;
+          procedure a_parammm_ref(list: taasmoutput; size: tcgsize; const ref: treference;const locpara : tparalocation;shuffle : pmmshuffle); virtual;
+          procedure a_parammm_loc(list: taasmoutput; const loc: tlocation; const locpara : tparalocation;shuffle : pmmshuffle); virtual;
           procedure a_opmm_reg_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle); virtual;abstract;
           procedure a_opmm_ref_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual;
-          procedure a_opmm_reg_ref(list: taasmoutput; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual;
+          procedure a_opmm_loc_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;const loc: tlocation; reg: tregister;shuffle : pmmshuffle); virtual;
+          procedure a_opmm_reg_ref(list: taasmoutput; Op: TOpCG; size : tcgsize;reg: tregister;const ref: treference; shuffle : pmmshuffle); virtual;
 
           { basic arithmetic operations }
           { note: for operators which require only one argument (not, neg), use }
@@ -1366,7 +1367,7 @@ implementation
       end;
 
 
-    procedure tcg.a_parammm_ref(list: taasmoutput; size: tcgsize; ref: treference;const locpara : tparalocation;shuffle : pmmshuffle);
+    procedure tcg.a_parammm_ref(list: taasmoutput; size: tcgsize;const ref: treference;const locpara : tparalocation;shuffle : pmmshuffle);
       var
          hr : tregister;
          hs : tmmshuffle;
@@ -1385,7 +1386,7 @@ implementation
       end;
 
 
-    procedure tcg.a_parammm_loc(list: taasmoutput; loc: tlocation; const locpara : tparalocation;shuffle : pmmshuffle);
+    procedure tcg.a_parammm_loc(list: taasmoutput;const loc: tlocation; const locpara : tparalocation;shuffle : pmmshuffle);
       begin
         case loc.loc of
           LOC_MMREGISTER,LOC_CMMREGISTER:
@@ -1403,8 +1404,21 @@ implementation
       end;
 
 
-    procedure tcg.a_opmm_reg_ref(list: taasmoutput; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle);
+    procedure tcg.a_opmm_reg_ref(list: taasmoutput; Op: TOpCG; size : tcgsize;reg: tregister; const ref: treference; shuffle : pmmshuffle);
       begin
+      end;
+
+
+    procedure tcg.a_opmm_loc_reg(list: taasmoutput; Op: TOpCG; size : tcgsize;const loc: tlocation; reg: tregister;shuffle : pmmshuffle);
+      begin
+        case loc.loc of
+          LOC_CMMREGISTER,LOC_MMREGISTER:
+            a_opmm_reg_reg(list,op,size,loc.register,reg,shuffle);
+          LOC_CREFERENCE,LOC_REFERENCE:
+            a_opmm_ref_reg(list,op,size,loc.reference,reg,shuffle);
+          else
+            internalerror(200312232);
+        end;
       end;
 
 
@@ -1986,7 +2000,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.142  2003-12-22 19:00:17  florian
+  Revision 1.143  2003-12-23 14:38:07  florian
+    + second_floataddsse implemented
+
+  Revision 1.142  2003/12/22 19:00:17  florian
     * fixed some x86-64 issues
 
   Revision 1.141  2003/12/21 19:42:42  florian

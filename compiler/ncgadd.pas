@@ -716,10 +716,12 @@ interface
                should not be used.}
               if (tsetdef(left.resulttype.def).settype<>smallset) then
                 begin
+{$ifdef SUPPORT_MMX}
                 {$ifdef i386}
                   if cs_mmx in aktlocalswitches then
                     second_opmmxset
                   else
+{$endif SUPPORT_MMX}
                 {$endif}
                     internalerror(200109041);
                 end
@@ -747,7 +749,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2003-12-21 11:28:41  daniel
+  Revision 1.24  2003-12-23 14:38:07  florian
+    + second_floataddsse implemented
+
+  Revision 1.23  2003/12/21 11:28:41  daniel
     * Some work to allow mmx instructions to be used for 32 byte sets
 
   Revision 1.22  2003/10/17 01:22:08  florian

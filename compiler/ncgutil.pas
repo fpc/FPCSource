@@ -47,6 +47,7 @@ interface
     procedure location_force_reg(list:TAAsmoutput;var l:tlocation;dst_size:TCGSize;maybeconst:boolean);
     procedure location_force_fpureg(list:TAAsmoutput;var l: tlocation;maybeconst:boolean);
     procedure location_force_mem(list:TAAsmoutput;var l:tlocation);
+    procedure location_force_mmregscalar(list:TAAsmoutput;var l: tlocation;maybeconst:boolean);
 
     function  maybe_pushfpu(list:taasmoutput;needed : byte;var l:tlocation) : boolean;
 
@@ -613,6 +614,23 @@ implementation
             location_freetemp(list,l);
             location_release(list,l);
             location_reset(l,LOC_FPUREGISTER,l.size);
+            l.register:=reg;
+          end;
+      end;
+
+
+    procedure location_force_mmregscalar(list:TAAsmoutput;var l: tlocation;maybeconst:boolean);
+      var
+        reg : tregister;
+      begin
+        if (l.loc<>LOC_MMREGISTER)  and
+           ((l.loc<>LOC_CMMREGISTER) or (not maybeconst)) then
+          begin
+            reg:=cg.getmmregister(list,l.size);
+            cg.a_loadmm_loc_reg(list,l.size,l,reg,mms_movescalar);
+            location_freetemp(list,l);
+            location_release(list,l);
+            location_reset(l,LOC_MMREGISTER,l.size);
             l.register:=reg;
           end;
       end;
@@ -2001,7 +2019,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.175  2003-12-22 19:00:17  florian
+  Revision 1.176  2003-12-23 14:38:07  florian
+    + second_floataddsse implemented
+
+  Revision 1.175  2003/12/22 19:00:17  florian
     * fixed some x86-64 issues
 
   Revision 1.174  2003/12/07 16:28:30  jonas
