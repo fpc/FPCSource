@@ -219,14 +219,10 @@ end;
 function paramstr(l : longint) : string;
 
 begin
-
-  if (l>0) and (l+1<=argc) then
-   paramstr:=strpas(argv[l])
+  if (l>=0) and (l+1<=argc) then
+    paramstr:=strpas(argv[l])
   else
-    if l=0 then
-      paramstr:=strpas(GetCommandFile)
-    else
-      paramstr:='';
+    paramstr:='';
 end;
 
 
@@ -676,11 +672,19 @@ var
   argsbuf : array[0..127] of pchar;
 
 begin
-{ create commandline, it starts with the executed filename which is argv[0] }
-  cmdline:=GetCommandLine;
+  { create commandline, it starts with the executed filename which is argv[0] }
+  { Win32 passes the command NOT via the args, but via getmodulefilename}
   count:=0;
+  cmdline:=getcommandfile;
+  Arglen:=0;
+  while (cmdline[Arglen]<>#0) do 
+    Inc(ArgLen);
+  getmem(argsbuf[count],arglen);
+  move(cmdline^,argsbuf[count]^,arglen);
+  { Now skip the first one }
+  cmdline:=GetCommandLine;
   repeat
-  { skip leading spaces }
+    { skip leading spaces }
     while cmdline^ in [' ',#9,#13] do
      inc(longint(cmdline));
     case cmdline^ of
@@ -700,12 +704,16 @@ begin
     argstart:=cmdline;
     while (cmdline^<>#0) and not(cmdline^ in quote) do
      inc(longint(cmdline));
-  { reserve some memory }
-    arglen:=cmdline-argstart;
-    getmem(argsbuf[count],arglen+1);
-    move(argstart^,argsbuf[count]^,arglen);
-    argsbuf[count][arglen]:=#0;
-  { skip quote }
+   { Don't copy the first one, it is already there.}
+   If Count<>0 then
+     begin
+     { reserve some memory }
+     arglen:=cmdline-argstart;
+     getmem(argsbuf[count],arglen+1);
+     move(argstart^,argsbuf[count]^,arglen);
+     argsbuf[count][arglen]:=#0;
+     end;
+    { skip quote }
     if cmdline^ in quote then
      inc(longint(cmdline));
     if count=0 then
@@ -1001,7 +1009,10 @@ end.
 
 {
   $Log$
-  Revision 1.41  1999-07-05 20:04:30  peter
+  Revision 1.42  1999-07-07 09:43:16  michael
+  Better construction of commandline argv
+
+  Revision 1.41  1999/07/05 20:04:30  peter
     * removed temp defines
 
   Revision 1.40  1999/06/11 16:26:40  michael
