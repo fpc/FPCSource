@@ -67,6 +67,7 @@ unit typinfo;
    type
       TTypeKinds = set of TTypeKind;
 
+{$PACKRECORDS 1}
       TTypeInfo = record
          Kind : TTypeKind;
          Name : ShortString;
@@ -359,11 +360,8 @@ unit typinfo;
       begin
       TD:=GetTypeData(TypeInfo);
       // Get this objects TOTAL published properties count 
-      // Delphi uses propdata for this...
-      // Writeln ('Getting total of ',TD^.PropCount,' infos');
       TP:=(@TD^.UnitName+Length(TD^.UnitName)+1);
       Count:=PWord(TP)^;
-      // Writeln ('Getting ',Count,' LOCAL infos');
       // Now point TP to first propinfo record.
       Inc(Longint(TP),SizeOF(Word));
       While Count>0 do
@@ -652,8 +650,8 @@ end.
 
 {
   $Log$
-  Revision 1.14  1998-11-26 14:22:18  michael
-  + Fixed Gettypeinfos
+  Revision 1.15  1998-11-26 14:57:47  michael
+  + Added packrecords 1
 
   Revision 1.11  1998/09/24 23:45:28  peter
     * updated for auto objpas loading
