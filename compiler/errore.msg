@@ -156,9 +156,9 @@ scan_n_far_directive_ignored=02006_N_$F directive (FAR) ignored
 scan_n_stack_check_global_under_linux=02007_N_Stack check is global under Linux
 % Stack checking with the \var{-Cs} switch is ignored under \linux, since
 % \linux does this for you. Only displayed when \var{-vn} is used.
-scan_n_ignored_switch=02008_N_Ignored compiler switch $1
+scan_n_ignored_switch=02008_N_Ignored compiler switch "$1"
 % With \var{-vn} on, the compiler warns if it ignores a switch
-scan_w_illegal_switch=02009_W_Illegal compiler switch $1
+scan_w_illegal_switch=02009_W_Illegal compiler switch "$1"
 % You included a compiler switch (i.e. \var{\{\$... \}}) which the compiler
 % doesn't know.
 scan_w_switch_is_global=02010_W_This compiler switch has a global effect
@@ -246,17 +246,17 @@ scan_i_press_enter=02040_I_Press <return> to continue
 % When the \var{-vi} switch is used, the compiler stops compilation
 % and waits for the \var{Enter} key to be pressed when it encounters
 % a \var{\{\$STOP\}} directive.
-scan_w_unsupported_switch=02041_W_Unsupported switch $1
+scan_w_unsupported_switch=02041_W_Unsupported switch "$1"
 % When warings are turned on (\var{-vw}) the compiler warns you about
 % unsupported switches. This means that the switch is used in Delphi or
 % Turbo Pascal, but not in \fpc
-scan_w_illegal_directive=02042_W_Illegal compiler directive $1
+scan_w_illegal_directive=02042_W_Illegal compiler directive "$1"
 % When warings are turned on (\var{-vw}) the compiler warns you about
 % unrecognised switches. For a list of recognised switches, \progref
 scan_t_back_in=02043_T_Back in $1
 % When you use (\var{-vt}) the compiler tells you when it has finished
 % reading an include file.
-scan_w_unsupported_app_type=02044_W_Unsupported application type: $1
+scan_w_unsupported_app_type=02044_W_Unsupported application type: "$1"
 % You get this warning, ff you specify an unknown application type
 % with the directive \var{\{\$APPTYPE\}}
 scan_w_app_type_not_support=02045_W_APPTYPE isn't support by the target OS
@@ -267,13 +267,13 @@ scan_n_version_not_support=02047_N_VERSION is not supported by target OS.
 % The \var{\{\$VERSION\}} directive is only supported by win32 target.
 scan_n_only_exe_version=02048_N_VERSION only for exes or DLLs
 % The \var{\{\$VERSION\}} directive is only used for executable or DLL sources.
-scan_w_wrong_version_ignored=02049_W_Wrong format for VERSION directive $1
+scan_w_wrong_version_ignored=02049_W_Wrong format for VERSION directive "$1"
 % The \var{\{\$VERSION\}} directive format is majorversion.minorversion
 % where majorversion and minorversion are words.
-scan_w_unsupported_asmmode_specifier=02050_W_Unsupported assembler style specified $1
+scan_w_unsupported_asmmode_specifier=02050_W_Unsupported assembler style specified "$1"
 % When you specify an assembler mode with the \var{\{\$ASMMODE xxx\}}
 % the compiler didn't recognize the mode you specified.
-scan_w_no_asm_reader_switch_inside_asm=02051_W_ASM reader switch is not possible inside asm statement, $1 will be effective only for next
+scan_w_no_asm_reader_switch_inside_asm=02051_W_ASM reader switch is not possible inside asm statement, "$1" will be effective only for next
 % It is not possible to switch from one assembler reader to another
 % inside an assmebler block. The new reader will be used for next
 % assembler statement only.
@@ -318,15 +318,15 @@ parser_w_proc_interrupt_ignored=03003_W_Procedure type INTERRUPT ignored for not
 % and is ignored for other processors.
 parser_e_dont_nest_interrupt=03004_E_INTERRUPT procedure can't be nested
 % An \var{INTERRUPT} procedure must be global.
-parser_w_proc_directive_ignored=03005_W_Procedure type $1 ignored
+parser_w_proc_directive_ignored=03005_W_Procedure type "$1" ignored
 % This is a warning. \var{REGISTER},\var{REINTRODUCE} is ignored by FPC programs for now.
 % This is introduced first for Delphi compatibility.
-parser_e_no_overload_for_all_procs=03006_E_Not all declarations of $1 are declared with OVERLOAD
+parser_e_no_overload_for_all_procs=03006_E_Not all declarations of "$1" are declared with OVERLOAD
 % When you want to use overloading using the \var{OVERLOAD} directive, then
 % all declarations need to have \var{OVERLOAD} specified.
 parser_e_no_dll_file_specified=03007_E_No DLL File specified
 % No longer in use.
-parser_e_export_name_double=03008_E_Duplicate exported function name $1
+parser_e_export_name_double=03008_E_Duplicate exported function name "$1"
 % Exported function names inside a specific DLL must all be different
 parser_e_export_ordinal_double=03009_E_Duplicate exported function index $1
 % Exported function names inside a specific DLL must all be different
@@ -371,27 +371,27 @@ parser_f_no_anonym_objects=03022_F_Anonym class definitions are not allowed
 %          end;
 % \end{verbatim}
 % will trigger this error.
-parser_object_has_no_vmt=03023_E_The object $1 has no VMT
+parser_object_has_no_vmt=03023_E_The object "$1" has no VMT
 parser_e_illegal_parameter_list=03024_E_Illegal parameter list
 % You are calling a function with parameters that are of a different type than
 % the declared parameters of the function.
-parser_e_wrong_parameter_type=03025_E_Wrong parameter type specified for arg no. $1
+parser_e_wrong_parameter_type=03025_E_Wrong parameter type specified for arg no. "$1"
 % There is an error in the parameter list of the function or procedure.
 % The compiler cannot determine the error more accurate than this.
 parser_e_wrong_parameter_size=03026_E_Wrong amount of parameters specified
 % There is an error in the parameter list of the function or procedure,
 % the number of parameters is not correct.
-parser_e_overloaded_no_procedure=03027_E_overloaded identifier $1 isn't a function
+parser_e_overloaded_no_procedure=03027_E_overloaded identifier "$1" isn't a function
 % The compiler encountered a symbol with the same name as an overloaded
 % function, but it isn't a function it can overload.
 parser_e_overloaded_have_same_parameters=03028_E_overloaded functions have the same parameter list
 % You're declaring overloaded functions, but with the same parameter list.
 % Overloaded function must have at least 1 different parameter in their
 % declaration.
-parser_e_header_dont_match_forward=03029_E_function header doesn't match the forward declaration $1
+parser_e_header_dont_match_forward=03029_E_function header doesn't match the forward declaration "$1"
 % You declared a function with same parameters but
 % different result type or function modifiers.
-parser_e_header_different_var_names=03030_E_function header $1 doesn't match forward : var name changes $2 => $3
+parser_e_header_different_var_names=03030_E_function header "$1" doesn't match forward : var name changes $2 => $3
 % You declared the function in the \var{interface} part, or with the
 % \var{forward} directive, but define it with a different parameter list.
 parser_n_duplicate_enum=03031_N_Values in enumeration types have to be ascending
@@ -403,7 +403,7 @@ parser_n_duplicate_enum=03031_N_Values in enumeration types have to be ascending
 % \end{verbatim}
 % The second declaration would produce an error. \var{A\_UAS} needs to have a
 % value higher than \var{A\_E}, i.e. at least 7.
-parser_n_interface_name_diff_implementation_name=03032_N_Interface and implementation names are different $1 => $2
+parser_n_interface_name_diff_implementation_name=03032_N_Interface and implementation names are different "$1" => "$2"
 % This note warns you if the implementation and interface names of a
 % functions are different, but they have the same mangled name. This
 % is important when using overloaded functions (but should produce no error).
@@ -453,7 +453,7 @@ parser_e_methode_id_expected=03047_E_method identifier expected
 % This happens when the compiler scans a procedure declaration that contains
 % a dot, i.e., a object or class method, but the procedure name is not a
 % procedure of this type.
-parser_e_header_dont_match_any_member=03048_E_function header doesn't match any method of this class $1
+parser_e_header_dont_match_any_member=03048_E_function header doesn't match any method of this class "$1"
 % This identifier is not a method.
 % This happens when the compiler scans a procedure declaration that contains
 % a dot, i.e., a object or class method, but the procedure name is not a
@@ -498,12 +498,12 @@ parser_e_case_mismatch=03055_E_Constant and CASE types do not match
 parser_e_illegal_symbol_exported=03056_E_The symbol can't be exported from a library
 % You can only export procedures and functions when you write a library. You
 % cannot export variables or constants.
-parser_w_should_use_override=03057_W_An inherited method is hidden by $1
+parser_w_should_use_override=03057_W_An inherited method is hidden by "$1"
 % A method that is declared \var{virtual} in a parent class, should be
 % overridden in the descendent class with the \var{override} directive. If you
 % don't specify the \var{override} directive, you will hide the parent method;
 % you will not override it.
-parser_e_nothing_to_be_overridden=03058_E_There is no method in an ancestor class to be overridden: $1
+parser_e_nothing_to_be_overridden=03058_E_There is no method in an ancestor class to be overridden: "$1"
 % You try to \var{override} a virtual method of a parent class that doesn't
 % exist.
 parser_e_no_procedure_to_access_property=03059_E_No member is provided to access property
@@ -528,13 +528,13 @@ parser_e_cant_access_private_member=03063_E_Cannot access a private field of an 
 % Fields that are declared in a \var{private} section of an object or class
 % declaration cannot be accessed outside the module where the class is
 % defined.
-parser_w_overloaded_are_not_both_virtual=03064_W_overloaded method of virtual method should be virtual: $1
+parser_w_overloaded_are_not_both_virtual=03064_W_overloaded method of virtual method should be virtual: "$1"
 % If you declare overloaded methods in a class, then they should either all be
 % virtual, or none. You shouldn't mix them.
-parser_w_overloaded_are_not_both_non_virtual=03065_W_overloaded method of non-virtual method should be non-virtual: $1
+parser_w_overloaded_are_not_both_non_virtual=03065_W_overloaded method of non-virtual method should be non-virtual: "$1"
 % If you declare overloaded methods in a class, then they should either all be
 % virtual, or none. You shouldn't mix them.
-parser_e_overloaded_methodes_not_same_ret=03066_E_overloaded methods which are virtual must have the same return type: $1
+parser_e_overloaded_methodes_not_same_ret=03066_E_overloaded methods which are virtual must have the same return type: "$1"
 % If you declare virtual overloaded methods in a class definition, they must
 % have the same return type.
 parser_e_dont_nest_export=03067_E_EXPORT declared functions can't be nested
@@ -543,7 +543,7 @@ parser_e_dont_nest_export=03067_E_EXPORT declared functions can't be nested
 parser_e_methods_dont_be_export=03068_E_methods can't be EXPORTed
 % You cannot declare a procedure that is a method for an object as
 % \var{export}ed. That is, your methods cannot be called from a C program.
-parser_e_call_by_ref_without_typeconv=03069_E_call by var parameters have to match exactly: Got $1 expected $2
+parser_e_call_by_ref_without_typeconv=03069_E_call by var parameters have to match exactly: Got "$1" expected "$2"
 % When calling a function declared with \var{var} parameters, the variables in
 % the function call must be of exactly the same type. There is no automatic
 % type conversion.
@@ -627,7 +627,7 @@ parser_f_unsupported_feature=03092_F_Use of unsupported feature!
 parser_e_mix_of_classes_and_objects=03093_E_The mix of CLASSES and OBJECTS isn't allowed
 % You cannot derive \var{objects} and \var{classes} intertwined . That is,
 % a class cannot have an object as parent and vice versa.
-parser_w_unknown_proc_directive_ignored=03094_W_Unknown procedure directive had to be ignored: $1
+parser_w_unknown_proc_directive_ignored=03094_W_Unknown procedure directive had to be ignored: "$1"
 % The procedure direcive you secified is unknown. Recognised procedure
 % directives are \var{cdecl}, \var{stdcall}, \var{popstack}, \var{pascal}
 % \var{register}, \var{export}.
@@ -665,7 +665,7 @@ parser_e_abstract_no_definition=03098_E_Abstract methods shouldn't have any defi
 parser_e_overloaded_must_be_all_global=03099_E_This overloaded function can't be local (must be exported)
 % You are defining a overloaded function in the implementation part of a unit,
 % but there is no corresponding declaration in the interface part of the unit.
-parser_w_virtual_without_constructor=03100_W_Virtual methods are used without a constructor in $1
+parser_w_virtual_without_constructor=03100_W_Virtual methods are used without a constructor in "$1"
 % If you declare objects or classes that contain virtual methods, you need
 % to have a constructor and destructor to initialize them. The compiler
 % encountered an object or class with virtual methods that doesn't have
@@ -693,7 +693,7 @@ parser_e_no_paras_allowed=03108_E_Array properties aren't allowed here
 parser_e_no_property_found_to_override=03109_E_No property found to override
 % You want to overrride a property of a parent class, when there is, in fact,
 % no such property in the parent class.
-parser_e_only_one_default_property=03110_E_Only one default property is allowed, found inherited default property in class $1
+parser_e_only_one_default_property=03110_E_Only one default property is allowed, found inherited default property in class "$1"
 % You specified a property as \var{Default}, but a parent class already has a
 % default property, and a class can have only one default property.
 parser_e_property_need_paras=03111_E_The default property must be an array property
@@ -708,7 +708,7 @@ parser_e_cant_have_published=03114_E_The class can't have a published section, u
 % If you want a \var{published} section in a class definition, you must
 % use the \var{\{\$M+\}} switch, whch turns on generation of type
 % information.
-parser_e_forward_declaration_must_be_resolved=03115_E_Forward declaration of class $1 must be resolved here to use the class as ancestor
+parser_e_forward_declaration_must_be_resolved=03115_E_Forward declaration of class "$1" must be resolved here to use the class as ancestor
 % To be able to use an object as an ancestor object, it must be defined
 % first. This error occurs in the following situation:
 % \begin{verbatim}
@@ -721,16 +721,16 @@ parser_e_forward_declaration_must_be_resolved=03115_E_Forward declaration of cla
 parser_e_no_local_operator=03116_E_Local operators not supported
 % You cannot overload locally, i.e. inside procedures or function
 % definitions.
-parser_e_proc_dir_not_allowed_in_interface=03117_E_Procedure directive $1 not allowed in interface section
+parser_e_proc_dir_not_allowed_in_interface=03117_E_Procedure directive "$1" not allowed in interface section
 % This procedure directive is not allowed in the \var{interface} section of
 % a unit. You can only use it in the \var{implementation} section.
-parser_e_proc_dir_not_allowed_in_implementation=03118_E_Procedure directive $1 not allowed in implementation section
+parser_e_proc_dir_not_allowed_in_implementation=03118_E_Procedure directive "$1" not allowed in implementation section
 % This procedure directive is not defined in the \var{implementation} section of
 % a unit. You can only use it in the \var{interface} section.
-parser_e_proc_dir_not_allowed_in_procvar=03119_E_Procedure directive $1 not allowed in procvar declaration
+parser_e_proc_dir_not_allowed_in_procvar=03119_E_Procedure directive "$1" not allowed in procvar declaration
 % This procedure directive cannot be part of a procedural or function
 % type declaration.
-parser_e_function_already_declared_public_forward=03120_E_Function is already declared Public/Forward $1
+parser_e_function_already_declared_public_forward=03120_E_Function is already declared Public/Forward "$1"
 % You will get this error if a function is defined as \var{forward} twice.
 % Or it is once in the \var{interface} section, and once as a \var{forward}
 % declaration in the \var{implmentation} section.
@@ -738,7 +738,7 @@ parser_e_not_external_and_export=03121_E_Can't use both EXPORT and EXTERNAL
 % These two procedure directives are mutually exclusive
 parser_e_name_keyword_expected=03122_E_NAME keyword expected
 % The definition of an external variable needs a \var{name} clause.
-parser_w_not_supported_for_inline=03123_W_$1 not yet supported inside inline procedure/function
+parser_w_not_supported_for_inline=03123_W_"$1" not yet supported inside inline procedure/function
 % Inline procedures don't support this declaration.
 parser_w_inlining_disabled=03124_W_Inlining disabled
 % Inlining of procedures is disabled.
@@ -751,7 +751,7 @@ parser_f_assembler_reader_not_supported=03127_F_Selected assembler reader not su
 % The selected assembler reader (with \var{\{\$ASMMODE xxx\}} is not
 % supported. The compiler can be compiled with or without support for a
 % particular assembler reader.
-parser_e_proc_dir_conflict=03128_E_Procedure directive $1 has conflicts with other directives
+parser_e_proc_dir_conflict=03128_E_Procedure directive "$1" has conflicts with other directives
 % You specified a procedure directive that conflicts with other directives.
 % for instance \var{cdecl} and \var{pascal} are mutually exclusive.
 parser_e_call_convention_dont_match_forward=03129_E_Calling convention doesn't match forward
@@ -791,7 +791,7 @@ parser_e_invalid_float_operation=03139_E_Invalid floating point operation
 parser_e_array_lower_less_than_upper_bound=03140_E_Upper bound of range is less than lower bound
 % The upper bound of a \var{case} label is less than the lower bound and this
 % is not possible
-parser_w_string_too_long=03141_W_string "$1" is longer than $2
+parser_w_string_too_long=03141_W_string "$1" is longer than "$2"
 % The size of the constant string is larger than the size you specified in
 % string type definition
 parser_e_string_larger_array=03142_E_string length is larger than array of char length
@@ -803,7 +803,7 @@ parser_e_ill_msg_param=03144_E_Message handlers can take only one call by ref. p
 % A method declared with the \var{message}-directive as message handler
 % can take only one parameter which must be declared as call by reference
 % Parameters are declared as call by reference using the \var{var}-directive
-parser_e_duplicate_message_label=03145_E_Duplicate message label: $1
+parser_e_duplicate_message_label=03145_E_Duplicate message label: "$1"
 % A label for a message is used twice in one object/class
 parser_e_self_in_non_message_handler=03146_E_Self can be only an explicit parameter in message handlers
 % The self parameter can be passed only explicitly in a method which
@@ -905,7 +905,7 @@ type_e_incompatible_types=04001_E_Incompatible types: got "$1" expected "$2"
 %              is due the strict type checking of pascal }
 % End.
 % \end{verbatim}
-type_e_not_equal_types=04002_E_Type mismatch between $1 and $2
+type_e_not_equal_types=04002_E_Type mismatch between "$1" and "$2"
 % The types are not equal
 type_e_type_id_expected=04003_E_Type identifier expected
 % The identifier is not a type, or you forgot to supply a type identifier.
@@ -982,10 +982,10 @@ type_w_maybe_wrong_hi_lo=04022_W_lo/hi(dword/qword) returns the upper/lower word
 % to type cast the argument to \var{word/integer}
 type_e_integer_or_real_expr_expected=04023_E_Integer or real expression expected
 % The first argument to \var{str} must a real or integer type.
-type_e_wrong_type_in_array_constructor=04024_E_Wrong type $1 in array constructor
+type_e_wrong_type_in_array_constructor=04024_E_Wrong type "$1" in array constructor
 % You are trying to use a type in an array constructor which is not
 % allowed.
-type_e_wrong_parameter_type=04025_E_Incompatible type for arg no. $1: Got $2, expected $3
+type_e_wrong_parameter_type=04025_E_Incompatible type for arg no. $1: Got "$2", expected "$3"
 % You are trying to pass an invalid type for the specified parameter.
 type_e_no_method_and_procedure_not_compatible=04026_E_Method (variable) and Procedure (variable) are not compatible
 % You can't assign a method to a procedure variable or a procedure to a
@@ -1024,7 +1024,7 @@ type_e_array_required=04033_E_Array type required
 % This section lists all the messages that concern the handling of symbols.
 % This means all things that have to do with procedure and variable names.
 % \begin{description}
-sym_e_id_not_found=05000_E_Identifier not found $1
+sym_e_id_not_found=05000_E_Identifier not found "$1"
 % The compiler doesn't know this symbol. Usually happens when you misspel
 % the name of a variable or procedure, or when you forgot to declare a
 % variable.
@@ -1032,14 +1032,14 @@ sym_f_internal_error_in_symtablestack=05001_F_Internal Error in SymTableStack()
 % An internal error occurred in the compiler; If you encounter such an error,
 % please contact the developers and try to provide  an exact description of
 % the circumstances in which the error occurs.
-sym_e_duplicate_id=05002_E_Duplicate identifier $1
+sym_e_duplicate_id=05002_E_Duplicate identifier "$1"
 % The identifier was already declared in the current scope.
 sym_h_duplicate_id_where=05003_H_Identifier already defined in $1 at line $2
 % The identifier was already declared in a previous scope.
-sym_e_unknown_id=05004_E_Unknown identifier $1
+sym_e_unknown_id=05004_E_Unknown identifier "$1"
 % The identifier encountered hasn't been declared, or is used outside the
 % scope where it's defined.
-sym_e_forward_not_resolved=05005_E_Forward declaration not solved $1
+sym_e_forward_not_resolved=05005_E_Forward declaration not solved "$1"
 % This can happen in two cases:
 % \begin{itemize}
 % \item This happens when you declare a function (in the \var{interface} part, or
@@ -1055,7 +1055,7 @@ sym_e_error_in_type_def=05007_E_Error in type definition
 % For example, \var{Array [1..1.25]} will trigger this error.
 sym_e_type_id_not_defined=05008_E_Type identifier not defined
 % The type identifier has not been defined yet.
-sym_e_forward_type_not_resolved=05009_E_Forward type not resolved $1
+sym_e_forward_type_not_resolved=05009_E_Forward type not resolved "$1"
 % A symbol was forward defined, but no declaration was encountered.
 sym_e_only_static_in_static=05010_E_Only static variables can be used in static methods or outside methods
 % A static method of an object can only access static variables.
@@ -1068,9 +1068,9 @@ sym_f_type_must_be_rec_or_class=05012_F_record or class type expected
 sym_e_no_instance_of_abstract_object=05013_E_Instances of classes or objects with an abstract method are not allowed
 % You are trying to generate an instance of a class which has an abstract
 % method that wasn't overridden.
-sym_w_label_not_defined=05014_W_Label not defined $1
+sym_w_label_not_defined=05014_W_Label not defined "$1"
 % A label was declared, but not defined.
-sym_e_label_used_and_not_defined=05015_E_Label used but not defined $1
+sym_e_label_used_and_not_defined=05015_E_Label used but not defined "$1"
 % A label was declared and used, but not defined.
 sym_e_ill_label_decl=05016_E_Illegal label declaration
 % This error should never happen; it occurs if a label is defined outside a
@@ -1087,27 +1087,27 @@ sym_e_label_already_defined=05020_E_label already defined
 % You are defining a label twice. You can define a label only once.
 sym_e_ill_type_decl_set=05021_E_illegal type declaration of set elements
 % The declaration of a set contains an invalid type definition.
-sym_e_class_forward_not_resolved=05022_E_Forward class definition not resolved $1
+sym_e_class_forward_not_resolved=05022_E_Forward class definition not resolved "$1"
 % You declared a class, but you didn't implement it.
-sym_n_unit_not_used=05023_H_Unit $1 not used in $2
+sym_n_unit_not_used=05023_H_Unit "$1" not used in $2
 % The unit referenced in the \var{uses} clause is not used.
-sym_h_para_identifier_not_used=05024_H_Parameter $1 not used
+sym_h_para_identifier_not_used=05024_H_Parameter "$1" not used
 % This is a warning. The identifier was declared (locally or globally) but
 % wasn't used (locally or globally).
-sym_n_local_identifier_not_used=05025_N_Local variable $1 not used
+sym_n_local_identifier_not_used=05025_N_Local variable "$1" not used
 % You have declared, but not used a variable in a procedure or function
 % implementation.
-sym_h_para_identifier_only_set=05026_H_Value parameter $1 is assigned but never used
+sym_h_para_identifier_only_set=05026_H_Value parameter "$1" is assigned but never used
 % This is a warning. The identifier was declared (locally or globally)
 % set but not used (locally or globally).
-sym_n_local_identifier_only_set=05027_N_Local variable $1 is assigned but never used
+sym_n_local_identifier_only_set=05027_N_Local variable "$1" is assigned but never used
 % The variable in a procedure or function
 % implementation is declared, set but never used.
-sym_h_local_symbol_not_used=05028_H_Local $1 $2 is not used
+sym_h_local_symbol_not_used=05028_H_Local $1 "$2" is not used
 % A local symbol is never used.
-sym_n_private_identifier_not_used=05029_N_Private field $1.$2 is never used
-sym_n_private_identifier_only_set=05030_N_Private field $1.$2 is assigned but never used
-sym_n_private_method_not_used=05031_N_Private method $1.$2 never used
+sym_n_private_identifier_not_used=05029_N_Private field "$1.$2" is never used
+sym_n_private_identifier_only_set=05030_N_Private field "$1.$2" is assigned but never used
+sym_n_private_method_not_used=05031_N_Private method "$1.$2" never used
 sym_e_set_expected=05032_E_Set type expected
 % The variable or expression isn't of type \var{set}. This happens in an
 % \var{in} statement.
@@ -1115,18 +1115,18 @@ sym_w_function_result_not_set=05033_W_Function result does not seem to be set
 % You can get this warning if the compiler thinks that a function return
 % value is not set. This will not be displayed for assembler procedures,
 % or procedures that contain assembler blocks.
-sym_w_wrong_C_pack=05034_W_Type $1 is not aligned correctly in current record for C
+sym_w_wrong_C_pack=05034_W_Type "$1" is not aligned correctly in current record for C
 % Arrays with sizes not multiples of 4 will be wrongly aligned
 % for C structures.
-sym_e_illegal_field=05035_E_Unknown record field identifier $1
+sym_e_illegal_field=05035_E_Unknown record field identifier "$1"
 % The field doesn't exist in the record definition.
-sym_n_uninitialized_local_variable=05036_W_Local variable $1 does not seem to be initialized
-sym_n_uninitialized_variable=05037_W_Variable $1 does not seem to be initialized
+sym_n_uninitialized_local_variable=05036_W_Local variable "$1" does not seem to be initialized
+sym_n_uninitialized_variable=05037_W_Variable "$1" does not seem to be initialized
 % These messages are displayed if the compiler thinks that a variable will
 % be used (i.e. appears in the right-hand-side of an expression) when it
 % wasn't initialized first (i.e. appeared in the left-hand side of an
 % assigment)
-sym_e_id_no_member=05038_E_identifier idents no member $1
+sym_e_id_no_member=05038_E_identifier idents no member "$1"
 % When using the extended syntax of \var{new}, you must specify the constructor
 % method of the class you are trying to create. The procedure you specified
 % does not exist.
@@ -1258,7 +1258,7 @@ cg_e_unable_inline_procvar=06032_E_Procvar calls can't be inline.
 % A procedure with a procedural variable call cannot be inlined.
 cg_e_no_code_for_inline_stored=06033_E_No code for inline procedure stored
 % The compiler couldn't store code for the inline procedure.
-cg_e_no_call_to_interrupt=06034_E_Direct call of interrupt procedure $1 is not possible
+cg_e_no_call_to_interrupt=06034_E_Direct call of interrupt procedure "$1" is not possible
 % You can not call an interrupt procedure directly from FPC code
 cg_e_can_access_element_zero=06035_E_Element zero of an ansi/wide- or longstring can't be accessed, use (set)length instead
 % You should use \var{setlength} to set the length of an ansi/wide/longstring
