@@ -50,6 +50,7 @@ SYSTEMUNIT=system
 PRT0=prt0
 else
 SYSTEMUNIT=sysbsd
+override FPCOPT+=-dUNIX
 PRT0=prt0_10
 endif
 
