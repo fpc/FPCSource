@@ -848,7 +848,10 @@ implementation
                        end
                      else
                       { all pointers can be assigned from void-pointer }
-                      if is_void(tpointerdef(def_from).pointertype.def) then
+                      if is_void(tpointerdef(def_from).pointertype.def) or
+                      { all pointers can be assigned from void-pointer or formaldef pointer, check
+                        tw3777.pp if you change this }
+                        (tpointerdef(def_from).pointertype.def.deftype=formaldef) then
                        begin
                          doconv:=tc_equal;
                          { give pwidechar a penalty so it prefers
@@ -1398,7 +1401,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2005-03-11 21:55:43  florian
+  Revision 1.71  2005-03-13 11:42:48  florian
+    + made @(<formaldef>) assignment compatible with all pointer types
+
+  Revision 1.70  2005/03/11 21:55:43  florian
     + array -> dyn. array type cast
 
   Revision 1.69  2005/02/14 17:13:06  peter
