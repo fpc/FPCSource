@@ -433,40 +433,25 @@
 
       begin
          asm
-            move.l 12(a6), a0   { @s1 = a0             }
-            move.b (a0),d1      { Get length of string }
-            and.l  #$ff,d1      { extend to dword      }
-
-            lea    1(a0,d1),a0    { Get the address of the end of the second string }
-            neg.l  d1
-            add.l  #$ff,d1
-            move.l 8(a6),a1
-            move.b (a1)+,d0     { Length of second string in d0    }
-            cmp.b  d1,d0
-            ble    @LM5
-            move.b d1,d0        { If too long, then truncate to 255 }
-
-         @LM5:
-            move.b  d0,d1
-            move.l  a2,d6      { save a2    }
-            move.l  12(a6),a2
-            add.b   d1,(a2)
-            move.l  d6,a2      { restore a2 }
-            andi.l  #$ff,d1
-            move.l  d1,d0      { Save length of string }
-            lsr.l   #2,d1
-            bra     @LMOVE6
-         @LMOVE55:
-            move.l  (a1)+,(a0)+
-          @LMOVE6:
-            dbra    d1,@LMOVE55   { d1 is counter }
-            move.l  d0,d1         { now if bytes left to move, move them }
-            andi.l  #3,d1         { i.e  d1 := d1 mod 4                  }
-            bra     @LMOVE56
-          @LMOVE57:
-            move.b  (a1)+,(a0)+   { move those remaining bytes           }
-          @LMOVE56:
-            dbra    d1,@LMOVE57
+          move.b  #255,d0
+          move.l  s1,a0
+          move.l  s1,a1
+          sub.b   (a0),d0              {  copyl:= 255 -length(s1)    }
+          move.b  (a1),d6
+          cmp.b   d0,d6                { if copyl > length(s2) then  }
+          ble     @Lcontinue
+          move.b  (a1),d0              {  copyl:=length(s2)          }
+    @Lcontinue:
+          move.b  (a0),d6
+          and.l   #$ff,d6
+          lea     1(a0,d6),a0          { s1[length(s1)+1]            }
+          add.l   #1,a1                { s2[1]                       }
+          move.b  d0,d6
+    @Loop:
+          move.b  (a1)+,(a0)+          { s1[i] := s2[i];             }
+          dbra    d6,@Loop
+          move.l  s1,a0
+          add.b   d0,(a0)              { change to new string length }
          end ['d0','d1','a0','a1','d6'];
       end;
 
@@ -738,15 +723,8 @@ XDEF RE_BOUNDS_CHECK
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:44  root
-  Initial revision
-
-  Revision 1.19  1998/03/21 04:18:36  carl
-    * bugfix of FillChar (wrong value)
-    * bugfix of FillObject (wrong value)
-    * bugfix of strcopy (illegal address)
-    * strconcat tested ok
-    (still left to fix: STRCMP flag is LOST because of push and pop!)
+  Revision 1.2  1998-03-27 23:48:06  carl
+    * bugfix of STRCONCAT alignment problem
 
   Revision 1.18  1998/03/02 04:17:24  carl
     * problem with CHECK_OBJECT fixed, will probably only work with
