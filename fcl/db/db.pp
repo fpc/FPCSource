@@ -1703,6 +1703,7 @@ destructor TIndexDef.Destroy;
 
 begin
   //!! To be implemented
+  inherited Destroy;
 end;
 
 
@@ -1782,8 +1783,35 @@ end;
 function TIndexDefs.GetIndexForFields(const Fields: string;
   CaseInsensitive: Boolean): TIndexDef;
 
+var
+  i, FieldsLen: integer;
+  Last: TIndexDef;
+  Name: string;
+  Flds: string;
 begin
-  //!! To be implemented
+  Last := nil;
+  FieldsLen := Length(Fields);
+  for i := 0 to Count - 1 do
+  begin
+    Result := Items[I];
+    Name := Result.Name;
+    Flds := Result.Fields;
+    if (Result.Options * [ixDescending, ixExpression] = []) and
+       (not CaseInsensitive or (ixCaseInsensitive in Result.Options)) and
+       AnsiSameText(Fields, Result.Fields) then
+    begin
+      Exit;
+    end else
+    if AnsiSameText(Fields, Copy(Result.Fields, 1, FieldsLen)) and
+       ((Length(Result.Fields) = FieldsLen) or
+       (Result.Fields[FieldsLen + 1] = ';')) then
+    begin
+      if (Last = nil) or
+         ((Last <> nil) And (Length(Last.Fields) > Length(Result.Fields))) then
+           Last := Result;
+    end;
+  end;
+  Result := Last;
 end;
 
 
@@ -1793,7 +1821,8 @@ var i: LongInt;
 begin
   Result := -1;
   for i := 0 to Count - 1 do 
-    if Items[i].Name = Name then begin
+    if AnsiSameText(Items[i].Name, Name) then
+    begin
       Result := i;
       Break;
     end;
@@ -1866,7 +1895,10 @@ end.
 
 {
   $Log$
-  Revision 1.41  2005-03-18 11:54:56  michael
+  Revision 1.42  2005-03-25 11:38:01  michael
+  + Implementation of IndexForFields from   Alexandrov Alexandru
+
+  Revision 1.41  2005/03/18 11:54:56  michael
   + Fixed second typo in provided patch
 
   Revision 1.39  2005/03/18 10:17:34  michael
