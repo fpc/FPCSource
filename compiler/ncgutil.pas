@@ -1308,6 +1308,57 @@ implementation
           code, since temp. allocation might occur before - carl
         }
 
+        if assigned(current_procdef.parast) then
+          begin
+
+             if not (po_assembler in current_procdef.procoptions) then
+               begin
+                 { move register parameters which aren't regable into memory                               }
+                 { we do this before init_paras because that one calls routines which may overwrite these  }
+                 { registers and it also expects the values to be in memory                                }
+                 hp:=tparaitem(current_procdef.para.first);
+                 while assigned(hp) do
+                   begin
+                     if Tvarsym(hp.parasym).reg.enum>lastreg then
+                       internalerror(200301081);
+                     if (tvarsym(hp.parasym).reg.enum<>R_NO) then
+                       case hp.paraloc.loc of
+                         LOC_CREGISTER,
+                         LOC_REGISTER:
+//                         if not(hp.paraloc.size in [OS_S64,OS_64]) then
+                             cg.a_load_reg_reg(list,hp.paraloc.size,OS_32,hp.paraloc.register,tvarsym(hp.parasym).reg);
+//                         else
+//                           cg64.a_load64_reg_reg(list,hp.paraloc.register64,tvarsym(hp.parasym).reg);
+                         LOC_CFPUREGISTER,
+                         LOC_FPUREGISTER:
+                           cg.a_loadfpu_reg_reg(list,hp.paraloc.register,tvarsym(hp.parasym).reg);
+                       end
+                     else if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
+                      LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER]) and
+                      (tvarsym(hp.parasym).reg.enum=R_NO) then
+                       begin
+                         reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).address+
+                           tvarsym(hp.parasym).owner.address_fixup);
+                         case hp.paraloc.loc of
+                           LOC_CREGISTER,
+                           LOC_REGISTER:
+                            if not(hp.paraloc.size in [OS_S64,OS_64]) then
+                               cg.a_load_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href)
+                            else
+                               cg64.a_load64_reg_ref(list,hp.paraloc.register64,href);
+                           LOC_FPUREGISTER,
+                           LOC_CFPUREGISTER:
+                             cg.a_loadfpu_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href);
+                           else
+                             internalerror(2002081302);
+                         end;
+                       end;
+                     hp:=tparaitem(hp.next);
+                   end;
+               end;
+          end;
+
+
         { for the save all registers we can simply use a pusha,popa which
           push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
         if (po_saveregisters in current_procdef.procoptions) then
@@ -1416,55 +1467,10 @@ implementation
         { initialisizes temp. ansi/wide string data }
         inittempvariables(list);
 
+        { initialize ansi/widesstring para's }
         if assigned(current_procdef.parast) then
           begin
              current_procdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
-
-             if not (po_assembler in current_procdef.procoptions) then
-               begin
-                 { move register parameters which aren't regable into memory                               }
-                 { we do this before init_paras because that one calls routines which may overwrite these  }
-                 { registers and it also expects the values to be in memory                                }
-                 hp:=tparaitem(current_procdef.para.first);
-                 while assigned(hp) do
-                   begin
-                     if Tvarsym(hp.parasym).reg.enum>lastreg then
-                       internalerror(200301081);
-                     if (tvarsym(hp.parasym).reg.enum<>R_NO) then
-                       case hp.paraloc.loc of
-                         LOC_CREGISTER,
-                         LOC_REGISTER:
-//                         if not(hp.paraloc.size in [OS_S64,OS_64]) then
-                             cg.a_load_reg_reg(list,hp.paraloc.size,OS_32,hp.paraloc.register,tvarsym(hp.parasym).reg);
-//                         else
-//                           cg64.a_load64_reg_reg(list,hp.paraloc.register64,tvarsym(hp.parasym).reg);
-                         LOC_CFPUREGISTER,
-                         LOC_FPUREGISTER:
-                           cg.a_loadfpu_reg_reg(list,hp.paraloc.register,tvarsym(hp.parasym).reg);
-                       end
-                     else if (hp.paraloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER,
-                      LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER]) and
-                      (tvarsym(hp.parasym).reg.enum=R_NO) then
-                       begin
-                         reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).address+
-                           tvarsym(hp.parasym).owner.address_fixup);
-                         case hp.paraloc.loc of
-                           LOC_CREGISTER,
-                           LOC_REGISTER:
-                            if not(hp.paraloc.size in [OS_S64,OS_64]) then
-                               cg.a_load_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href)
-                            else
-                               cg64.a_load64_reg_ref(list,hp.paraloc.register64,href);
-                           LOC_FPUREGISTER,
-                           LOC_CFPUREGISTER:
-                             cg.a_loadfpu_reg_ref(list,hp.paraloc.size,hp.paraloc.register,href);
-                           else
-                             internalerror(2002081302);
-                         end;
-                       end;
-                     hp:=tparaitem(hp.next);
-                   end;
-               end;
           end;
 
         { generate copies of call by value parameters }
@@ -2007,7 +2013,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2003-05-09 17:47:02  peter
+  Revision 1.97  2003-05-10 13:20:23  jonas
+    * moved storing of register parameters to memory even earlier in the
+      entry code to fix problems with constructors
+
+  Revision 1.96  2003/05/09 17:47:02  peter
     * self moved to hidden parameter
     * removed hdisposen,hnewn,selfn
 
