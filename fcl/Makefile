@@ -14,10 +14,10 @@ PP=ppc386
 
 # What is your OS ?
 # Possible choices : linux win32 go32v2 go32v1 os2
-OS_SRC=linux
+#OS_SRC=linux
 #OS_SRC=win32
 #OS_SRC=go32v1
-#OS_SRC=go32v2
+OS_SRC=go32v2
 #OS_SRC=os2
 
 # Where do you want to install the units ?
@@ -93,18 +93,15 @@ OPT:=$(OPT) -d$(CPU)
 export OS_SRC DOS SEP PP OPT REDIR COPY DEL LIBINSTALLDIR INSTALL MKDIR \
        REFPATH CPU PPUMOVE UNITINSTALLDIR
 
-.PHONY: native all linux win32 os2 go32v2 go32v1 clean install
+.PHONY: native all linux win32 os2 go32v2 clean install
 
 native: $(OS_SRC)
 
-all: linux go32v2 win32 go32v1 os2
+all: linux go32v2 win32 os2
 
-
-go32v1:
-	$(MAKE) -C dos/go32v1
 
 go32v2:
-	$(MAKE) -C dos/go32v2
+	$(MAKE) -C go32v2
 
 linux:
 	$(MAKE) -C linux
@@ -118,7 +115,7 @@ win32:
 clean:
 	$(MAKE) -C inc clean
 	$(MAKE) -C i386 clean
-	$(MAKE) -C dos/go32v2 clean
+	$(MAKE) -C go32v2 clean
 	$(MAKE) -C linux clean
 	$(MAKE) -C os2 clean
 	$(MAKE) -C win32 clean

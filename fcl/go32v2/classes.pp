@@ -14,8 +14,7 @@
 
 {$MODE OBJFPC}
 
-{ exceptions aren't implemented yet in the compiler }
-{$define NoExceptions}
+{$define noexceptions}
 
 { determine the type of the resource/form file }
 {$define Win16Res}
@@ -38,19 +37,14 @@ implementation
 {$i classes.inc}
 
 end.
+
 {
   $Log$
-  Revision 1.7  1998-11-04 10:15:13  peter
+  Revision 1.1  1998-11-04 10:15:13  peter
     * fixes to compile
 
-  Revision 1.6  1998/10/02 09:17:57  michael
-  Removed objpas from uses clause
-
-  Revision 1.5  1998/09/23 07:46:57  michael
-  * patches by TSE
-
-  Revision 1.4  1998/06/10 21:53:09  michael
-  + Implemented Handle/FileStreams
+  Revision 1.4  1998/09/30 13:41:02  florian
+    * fixes to make it compilable
 
   Revision 1.3  1998/05/06 13:00:25  michael
   + Added strings to uses clause, for TStrings class.
@@ -60,5 +54,4 @@ end.
 
   Revision 1.1  1998/05/04 12:16:01  florian
     + Initial revisions after making a new directory structure
-
 }
