@@ -735,22 +735,24 @@ begin
 end;
 
 
-Function TOperand.SetupResult:boolean;
-Begin
+function TOperand.SetupResult:boolean;
+
+begin
   SetupResult:=false;
   { replace by correct offset. }
-  if (not is_void(current_procinfo.procdef.rettype.def)) then
-   begin
-     if (m_tp7 in aktmodeswitches) and
-        (not paramanager.ret_in_param(current_procinfo.procdef.rettype.def,current_procinfo.procdef.proccalloption)) then
-       begin
-         Message(asmr_e_cannot_use_RESULT_here);
-         exit;
-       end;
-     SetupResult:=setupvar('result',false)
-   end
-  else
-   Message(asmr_e_void_function);
+  with current_procinfo.procdef do
+    if (not is_void(rettype.def)) then
+      begin
+        if (m_tp7 in aktmodeswitches) and
+          (not paramanager.ret_in_param(rettype.def,proccalloption)) then
+          begin
+            message(asmr_e_cannot_use_RESULT_here);
+            exit;
+          end;
+        SetupResult:=setupvar('result',false)
+      end
+    else
+      message(asmr_e_void_function);
 end;
 
 
@@ -1111,25 +1113,26 @@ end;
       ai.Ops:=Ops;
       ai.Allocate_oper(Ops);
       for i:=1 to Ops do
-       begin
-         case operands[i].opr.typ of
-           OPR_CONSTANT :
-             ai.loadconst(i-1,aword(operands[i].opr.val));
-           OPR_REGISTER:
-             ai.loadreg(i-1,operands[i].opr.reg);
-           OPR_SYMBOL:
-             ai.loadsymbol(i-1,operands[i].opr.symbol,operands[i].opr.symofs);
-           OPR_LOCAL :
-             ai.loadlocal(i-1,operands[i].opr.localsym,operands[i].opr.localsymofs,operands[i].opr.localindexreg,
-                          operands[i].opr.localscale,operands[i].opr.localgetoffset);
-           OPR_REFERENCE:
-             ai.loadref(i-1,operands[i].opr.ref);
+        with operands[i].opr do
+          begin
+            case typ of
+              OPR_CONSTANT :
+                ai.loadconst(i-1,aword(val));
+              OPR_REGISTER:
+                ai.loadreg(i-1,reg);
+              OPR_SYMBOL:
+                ai.loadsymbol(i-1,symbol,symofs);
+              OPR_LOCAL :
+                ai.loadlocal(i-1,localsym,localsymofs,localindexreg,
+                             localscale,localgetoffset);
+              OPR_REFERENCE:
+                ai.loadref(i-1,ref);
 {$ifdef ARM}
-           OPR_REGSET:
-             ai.loadregset(i-1,operands[i].opr.regset);
+              OPR_REGSET:
+                ai.loadregset(i-1,regset);
 {$endif ARM}
-         end;
-       end;
+            end;
+          end;
      ai.SetCondition(condition);
      { Concat the opcode or give an error }
       if assigned(ai) then
@@ -1357,32 +1360,29 @@ Begin
      { we can start with a var,type,typedconst }
      case sym.typ of
        varsym :
-         begin
-           case tvarsym(sym).vartype.def.deftype of
+         with Tvarsym(sym).vartype do
+           case def.deftype of
              recorddef :
-               st:=trecorddef(tvarsym(sym).vartype.def).symtable;
+               st:=trecorddef(def).symtable;
              objectdef :
-               st:=tobjectdef(tvarsym(sym).vartype.def).symtable;
+               st:=tobjectdef(def).symtable;
            end;
-         end;
        typesym :
-         begin
-           case ttypesym(sym).restype.def.deftype of
+		 with Ttypesym(sym).restype do
+           case def.deftype of
              recorddef :
-               st:=trecorddef(ttypesym(sym).restype.def).symtable;
+               st:=trecorddef(def).symtable;
              objectdef :
-               st:=tobjectdef(ttypesym(sym).restype.def).symtable;
+               st:=tobjectdef(def).symtable;
            end;
-         end;
        typedconstsym :
-         begin
-           case ttypedconstsym(sym).typedconsttype.def.deftype of
+         with Ttypedconstsym(sym).typedconsttype do
+           case def.deftype of
              recorddef :
-               st:=trecorddef(ttypedconstsym(sym).typedconsttype.def).symtable;
+               st:=trecorddef(def).symtable;
              objectdef :
-               st:=tobjectdef(ttypedconstsym(sym).typedconsttype.def).symtable;
+               st:=tobjectdef(def).symtable;
            end;
-         end;
      end;
    end;
   { now walk all recordsymtables }
@@ -1406,26 +1406,28 @@ Begin
      st:=nil;
      case sym.typ of
        varsym :
-         begin
-           inc(Offset,tvarsym(sym).fieldoffset);
-           Size:=tvarsym(sym).getsize;
-           case tvarsym(sym).vartype.def.deftype of
-             arraydef :
-               begin
-                 { for arrays try to get the element size, take care of
-                   multiple indexes }
-                 harrdef:=tarraydef(tvarsym(sym).vartype.def);
-                 while assigned(harrdef.elementtype.def) and
-                       (harrdef.elementtype.def.deftype=arraydef) do
-                  harrdef:=tarraydef(harrdef.elementtype.def);
-                 size:=harrdef.elesize;
+         with Tvarsym(sym) do
+           begin
+             inc(Offset,fieldoffset);
+             size:=getsize;
+             with vartype do
+               case def.deftype of
+                 arraydef :
+                   begin
+                     { for arrays try to get the element size, take care of
+                       multiple indexes }
+                     harrdef:=tarraydef(def);
+                     while assigned(harrdef.elementtype.def) and
+                           (harrdef.elementtype.def.deftype=arraydef) do
+                      harrdef:=tarraydef(harrdef.elementtype.def);
+                     size:=harrdef.elesize;
+                   end;
+                 recorddef :
+                   st:=trecorddef(def).symtable;
+                 objectdef :
+                   st:=tobjectdef(def).symtable;
                end;
-             recorddef :
-               st:=trecorddef(tvarsym(sym).vartype.def).symtable;
-             objectdef :
-               st:=tobjectdef(tvarsym(sym).vartype.def).symtable;
            end;
-         end;
      end;
    end;
    GetRecordOffsetSize:=(s='');
@@ -1454,7 +1456,6 @@ Begin
         else
          tlabelsym(sym).used:=true;
         SearchLabel:=true;
-        exit;
       end;
   end;
 end;
@@ -1625,7 +1626,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.80  2003-11-30 10:15:42  jonas
+  Revision 1.81  2004-02-21 21:04:09  daniel
+    * Micro-optimizations
+
+  Revision 1.80  2003/11/30 10:15:42  jonas
     * fixed compilation for non-x86
 
   Revision 1.79  2003/11/21 16:29:26  florian
