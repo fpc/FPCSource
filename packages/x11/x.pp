@@ -10,18 +10,18 @@ unit x;
        X_PROTOCOL = 11;
 
        X_PROTOCOL_REVISION = 0;
-    
+
 
     type
     { Inserted the following by hand. It was under a ifndef _XSERVER64. All
       were unsigned longs originally
-      -- MVC. } 
-	TXID = cardinal ;
-	TMask = cardinal ;
-	TAtom = cardinal ;
-	TVisualID = cardinal ;
-	TTime = cardinal ;
-	{ End of insert }
+      -- MVC. }
+        TXID = cardinal ;
+        TMask = cardinal ;
+        TAtom = cardinal ;
+        TVisualID = cardinal ;
+        TTime = cardinal ;
+        { End of insert }
        TWindow = TXID;
        TDrawable = TXID;
        TFont = TXID;
@@ -33,13 +33,13 @@ unit x;
        TKeyCode = char;
        PKeyCode = ^TKeyCode;
        { Pointers to all these things. Needed for C calls. MVC }
-       PAtom = ^TAtom; 
+       PAtom = ^TAtom;
        PPAtom = ^PAtom;
        PWindow = ^TWindow;
        PColormap = ^TColormap;
        PKeySym = ^TKeysym;
        PPixmap = ^TPixmap;
-       
+
     {*****************************************************************
      * RESERVED RESOURCE AND CONSTANT DEFINITIONS
      *****************************************************************}
@@ -48,12 +48,12 @@ unit x;
     const
        None = 0;
     {* background pixmap in CreateWindow
-    				    and ChangeWindowAttributes *}
+                                    and ChangeWindowAttributes *}
        ParentRelative = 1;
     {* border pixmap in CreateWindow
-    				       and ChangeWindowAttributes
-    				   special VisualID and special window
-    				       class passed to CreateWindow *}
+                                       and ChangeWindowAttributes
+                                   special VisualID and special window
+                                       class passed to CreateWindow *}
        CopyFromParent = 0;
     {* destination window in SendEvent *}
        PointerWindow = 0;
@@ -72,8 +72,8 @@ unit x;
     {* special Time *}
        CurrentTime = 0;
     {* special KeySym *}
-    {***************************************************************** 
-     * EVENT DEFINITIONS 
+    {*****************************************************************
+     * EVENT DEFINITIONS
      *****************************************************************}
     {* Input Event Masks. Used as event-mask window attribute and as arguments
        to Grab requests.  Not to be confused with event names.  *}
@@ -233,7 +233,7 @@ unit x;
     {* Used in SetInputFocus, GetInputFocus *}
        SyncBoth = 7;
     {*****************************************************************
-     * ERROR CODES 
+     * ERROR CODES
      *****************************************************************}
        RevertToParent = 2;
     {* everything's okay *}
@@ -257,14 +257,14 @@ unit x;
     {* parameter not a Pixmap or Window *}
        BadDrawable = 9;
     {* depending on context:
-    				 - key/button already grabbed
-    				 - attempt to free an illegal 
-    				   cmap entry 
-    				- attempt to store into a read-only 
-    				   color map entry.
-     				- attempt to modify the access control
-    				   list from other than the local host.
-    				*}
+                                 - key/button already grabbed
+                                 - attempt to free an illegal
+                                   cmap entry
+                                - attempt to store into a read-only
+                                   color map entry.
+                                - attempt to modify the access control
+                                   list from other than the local host.
+                                *}
        BadAccess = 10;
     {* insufficient resources *}
        BadAlloc = 11;
@@ -282,7 +282,7 @@ unit x;
        BadImplementation = 17;
        FirstExtensionError = 128;
     {*****************************************************************
-     * WINDOW DEFINITIONS 
+     * WINDOW DEFINITIONS
      *****************************************************************}
     {* Window classes used by CreateWindow *}
     {* Note that CopyFromParent is already defined as 0 above *}
@@ -463,14 +463,14 @@ unit x;
        GCDashList = (1) shl (21);
        GCArcMode = (1) shl (22);
     {*****************************************************************
-     * FONTS 
+     * FONTS
      *****************************************************************}
     {* used in QueryFont -- draw direction *}
        GCLastBit = 22;
        FontLeftToRight = 0;
        FontRightToLeft = 1;
     {*****************************************************************
-     *  IMAGING 
+     *  IMAGING
      *****************************************************************}
     {* ImageFormat -- PutImage, GetImage *}
        FontChange = 255;
@@ -480,7 +480,7 @@ unit x;
        XYPixmap = 1;
     {* depth == drawable depth *}
     {*****************************************************************
-     *  COLOR MAP STUFF 
+     *  COLOR MAP STUFF
      *****************************************************************}
     {* For CreateColormap *}
        ZPixmap = 2;
@@ -501,7 +501,7 @@ unit x;
     {* size tiled fastest *}
        TileShape = 1;
     {* size stippled fastest *}
-    {***************************************************************** 
+    {*****************************************************************
      * KEYBOARD/POINTER STUFF
      *****************************************************************}
        StippleShape = 2;
@@ -525,7 +525,7 @@ unit x;
        MappingModifier = 0;
        MappingKeyboard = 1;
     {*****************************************************************
-     * SCREEN SAVER STUFF 
+     * SCREEN SAVER STUFF
      *****************************************************************}
        MappingPointer = 2;
        DontPreferBlanking = 0;
@@ -547,7 +547,7 @@ unit x;
     {* for ChangeAccessControl *}
        HostDelete = 1;
        EnableAccess = 1;
-    {* Display classes  used in opening the connection 
+    {* Display classes  used in opening the connection
      * Note that the statically allocated ones are even numbered and the
      * dynamically changeable ones are odd numbered *}
        DisableAccess = 0;

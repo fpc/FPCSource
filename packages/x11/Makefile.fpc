@@ -3,7 +3,7 @@
 #
 
 [targets]
-units=x xresource xlib xutil
+units=x xlib xutil xresource
 
 [dirs]
 fpcdir=../..
