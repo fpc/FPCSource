@@ -471,7 +471,7 @@ procedure TSHTextEdit.KeyPressed(KeyCode: LongWord; ShiftState: TShiftState);
 
   procedure RedrawArea(x1, y1, x2, y2: Integer);
   begin
-    WriteLn('Redraw: ', x1, '/', y1, ' - ', x2, '/', y2);
+    // WriteLn('Redraw: ', x1, '/', y1, ' - ', x2, '/', y2);
     if y1 = y2 then
      Renderer.InvalidateRect(x1,y1,x2,y2)
     else
@@ -535,11 +535,12 @@ begin
       end;
    end;
 
-  if not AssignmentMatched then
-   begin
-     if ShiftState * [ssCtrl, ssAlt] = [] then
-      ExecKey(Chr(KeyCode), False);
-   end;
+  if (not AssignmentMatched) and (ShiftState * [ssCtrl, ssAlt] = []) then
+    ExecKey(Chr(KeyCode), False);
+
+  // Check selection
+  if FSel.IsValid and (FSel.StartX = FSel.EndX) and (FSel.StartY = FSel.EndY) then
+    FSel.Clear;
 
   {Write('Sel = ', FSel.StartX, '/', FSel.StartY, ' - ', FSel.EndX, '/', FSel.EndY);
   if OldSelValid then WriteLn('  Old = ', OldSelStartX, '/', OldSelStartY, ' - ', OldSelEndX, '/', OldSelEndY)
@@ -591,7 +592,11 @@ end;
 
 {
   $Log$
-  Revision 1.5  1999-12-10 15:01:02  peter
+  Revision 1.6  1999-12-12 17:50:50  sg
+  * Fixed drawing of selection
+  * Several small corrections (removed superfluous local variables etc.)
+
+  Revision 1.5  1999/12/10 15:01:02  peter
     * first things for selection
     * Better Adjusting of range/cursor
 

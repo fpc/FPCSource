@@ -138,18 +138,19 @@ procedure TGtkSHEdit_Expose(GtkWidget: PGtkWidget; event: PGdkEventExpose; edit:
 var
   x1, y1, x2, y2: Integer;
 begin
-  x1:=event^.area.x;
-  if x1>0 then
-   dec(x1,edit.LeftIndent);
-  x2:=x1+event^.area.width - 1;
-  x1:=x1 div edit.CharW;
-  x2:=(x2+edit.CharW-1) div edit.CharW;
+  x1 := event^.area.x;
+  if x1 > 0 then
+    Dec(x1, edit.LeftIndent);
+  x2 := x1 + event^.area.width - 1;
+  x1 := x1 div edit.CharW;
+  x2 := (x2 + edit.CharW - 1) div edit.CharW;
   y1 := event^.area.y div edit.CharH;
   y2 := (event^.area.y + event^.area.height - 1) div edit.CharH;
 //  WriteLn(Format('Expose(%d/%d - %d/%d) for %s', [x1, y1, x2, y2, edit.ClassName]));
 
   edit.GdkWnd := edit.PaintBox^.window;
   edit.GC := gdk_gc_new(edit.GdkWnd);
+  edit.CurGCColor := 0;		// Reset color, because we have a new GC!
   gdk_gc_copy(edit.GC, PGtkStyle(edit.PaintBox^.thestyle)^.
     fg_gc[edit.PaintBox^.state]);
 
@@ -181,6 +182,7 @@ begin
     GDK_Shift_L..GDK_Hyper_R :
       begin
         // Don't let modifier keys trough as normal keys
+	// *** This doesn't work reliably! (sg)
         exit;
       end;
   else
@@ -366,10 +368,10 @@ procedure TGtkSHEdit.InvalidateRect(x1, y1, x2, y2: Integer);
 var
   r : TGdkRectangle;
 begin
-  r.x:=x1*CharW+LeftIndent;
-  r.y:=y1*CharH;
-  r.Width:=(x1 - x2 + 1) * CharW;
-  r.Height:=(y2 - y1 + 1) * CharH;
+  r.x := x1 * CharW + LeftIndent;
+  r.y := y1 * CharH;
+  r.Width := (x2 - x1 + 1) * CharW;
+  r.Height := (y2 - y1 + 1) * CharH;
   gtk_widget_draw(PGtkWidget(PaintBox), @r);
 end;
 
@@ -379,11 +381,11 @@ var
   r : TGdkRectangle;
   w,h : integer;
 begin
-  gdk_window_get_size(PGdkDrawable(GdkWnd),@w,@h);
-  r.x:=0;
-  r.y:=y1 * CharH;
-  r.Width:=w;
-  r.Height:=(y2 - y1 + 1) * CharH;
+  gdk_window_get_size(PGdkDrawable(GdkWnd), @w, @h);
+  r.x := 0;
+  r.y := y1 * CharH;
+  r.Width := w;
+  r.Height := (y2 - y1 + 1) * CharH;
   gtk_widget_draw(PGtkWidget(PaintBox), @r);
 end;
 
@@ -391,108 +393,92 @@ end;
 procedure TGtkSHEdit.DrawTextLine(x1, x2, y: Integer; s: PChar);
 var
   CurColor: LongWord;
-  rx1,rx2 : Integer;
+  CurX1, CurX2: Integer;
 
-  procedure doerase;
+  procedure DoErase;
   begin
-    if rx2>x1 then
-     begin
-       SetGCColor(CurColor);
-       gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1,
-                          rx1 * CharW + LeftIndent, y * CharH, (rx2 - rx1 + 1) * CharW, CharH);
-       rx1:=rx2;
-     end;
+    SetGCColor(CurColor);
+    if CurX1 < x1 then
+      CurX1 := x1;
+    if CurX2 > CurX1 then begin
+      gdk_draw_rectangle(PGdkDrawable(GdkWnd), GC, 1,
+        CurX1 * CharW + LeftIndent, y * CharH, (CurX2 - CurX1) * CharW, CharH);
+    end;
+    CurX1 := CurX2;
   end;
 
 var
-  RequestedColor: Char;
-  i, j, px: Integer;
+  RequestedColor: Integer;
   NewColor: LongWord;
-  hs : pchar;
+  hs : PChar;
 begin
-  // WriteLn(Format('DrawTextLine(%d) for %s ', [y, ClassName]));
+
   // Erase the (potentially multi-coloured) background
 
-  rx1 := x1;
-  rx2 := 0;
-  j := 0;
+  hs := s;
   CurColor := SHStyles^[shWhitespace].Background;
 
-  // Clear background
-  hs:=s;
-  rx2:=0;
-  repeat
+  CurX1 := 0;
+  CurX2 := 0;
+  while (hs[0] <> #0) and (CurX2 <= x2) do begin
     case hs[0] of
-      #0 :
-        break;
-      LF_Escape :
-        begin
+      LF_Escape: begin
           NewColor := SHStyles^[Ord(hs[1])].Background;
           if NewColor = colDefault then
-           NewColor := SHStyles^[shWhitespace].Background;
-          if (NewColor <> CurColor) then
-           begin
-             DoErase;
-             CurColor := NewColor;
-           end;
+            NewColor := SHStyles^[shWhitespace].Background;
+          if NewColor <> CurColor then begin
+            DoErase;
+            CurColor := NewColor;
+          end;
           Inc(hs, 2);
         end;
-      #9 :
-        begin
+      #9: begin
           repeat
-            Inc(rx2, CharW);
-            Inc(i);
-          until (i and 7) = 0;
+            Inc(CurX2);
+          until (CurX2 and 7) = 0;
           Inc(hs);
         end;
-      else
-        begin
-          Inc(hs);
-          Inc(i);
-          Inc(rx2);
-        end;
+      else begin
+        Inc(hs);
+        Inc(CurX2);
+      end;
     end;
-  until false;
-  rx2 := x2;
+  end;
+  CurX2 := x2;
   DoErase;
 
+
   // Draw text line
-  RequestedColor := #1;
-  CurGCColor := colInvalid;
-  i := 0;
-  px := 0;
-  repeat
+
+  RequestedColor := shWhitespace;
+  CurX1 := 0;
+  while s[0] <> #0 do
     case s[0] of
-      #0 :
-        break;
-      LF_Escape :
-        begin
-          RequestedColor := s[1];
+      LF_Escape: begin
+          RequestedColor := Ord(s[1]);
           Inc(s, 2);
         end;
-      #9 :
-        begin
+      #9: begin
           repeat
-            Inc(px, CharW);
-            Inc(i);
-          until (i and 7) = 0;
+            Inc(CurX1);
+          until (CurX1 and 7) = 0;
           Inc(s);
         end;
-      else
-        begin
-          if (px >= x1) and (px <= x2) then
-           begin
-             SetGCColor(SHStyles^[Ord(RequestedColor)].Color);
-             gdk_draw_text(PGdkDrawable(GdkWnd),
-                           Font[SHStyles^[Ord(RequestedColor)].FontStyle], GC,
-                           px * CharW + LeftIndent, (y + 1) * CharH - 3, s, 1);
-           end;
+      ' ': begin
           Inc(s);
-          Inc(i);
-          Inc(px);
+	  Inc(CurX1);
+	end;
+      else begin
+        if (CurX1 >= x1) and (CurX1 <= x2) then begin
+          SetGCColor(SHStyles^[RequestedColor].Color);
+          gdk_draw_text(PGdkDrawable(GdkWnd),
+            Font[SHStyles^[RequestedColor].FontStyle], GC,
+            CurX1 * CharW + LeftIndent, (y + 1) * CharH - 3, s, 1);
         end;
+        Inc(s);
+        Inc(CurX1);
+      end;
     end;
-  until false;
 end;
 
 
@@ -596,7 +582,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-12-10 15:01:02  peter
+  Revision 1.7  1999-12-12 17:50:50  sg
+  * Fixed drawing of selection
+  * Several small corrections (removed superfluous local variables etc.)
+
+  Revision 1.6  1999/12/10 15:01:02  peter
     * first things for selection
     * Better Adjusting of range/cursor
 

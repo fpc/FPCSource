@@ -95,15 +95,22 @@ procedure TSHTextEdit.DrawContent(x1, y1, x2, y2: Integer);
       ShowCursor;
   end;
 
-var
-  i, j, py, LineNumber, CheckLine: Integer;
-  OrigStr, sh, s, s2: PChar;
-  i, spos, x: Integer;
-  flags: Byte;
-  r: TRect;
-  InSel: Boolean;
+  // If Lenght(s) < x, add as many spaces to s so that x will be at
+  // the end of s.
+  procedure ProvideSpace(var s: String; x: Integer);
+  begin
+    while Length(s) < x do
+      s := s + ' ';
+  end;
 
-  RequestedColor, LastCol: Char;
+var
+  i, LineNumber, CheckLine: Integer;
+  OrigStr, sh, s, s2: PChar;
+  spos, x: Integer;
+  flags: Byte;
+  InSel: Boolean;
+  LastCol: Char;
+  LineWithSpace: String;	// used for virtual whitespace expanding
 
 begin
 
@@ -117,7 +124,6 @@ begin
   end;
 
   LineNumber := y1;
-  py := LineNumber;
 
   // Check if syntax highlighting flags are valid:
   if (FDoc.LineFlags[LineNumber] and LF_SH_Valid) <> 0 then
@@ -140,115 +146,106 @@ begin
   end;
 
 
-//  if FSel.IsValid then writeln('Selection: ',FSel.OStartX,',',FSel.OStartY,'-',FSel.OEndX,',',FSel.OEndY);
+  // if FSel.IsValid then writeln('Selection: ',FSel.OStartX,',',FSel.OStartY,'-',FSel.OEndX,',',FSel.OEndY);
 
-  while (LineNumber < FDoc.LineCount) and (py <= y2) do begin
+  while (LineNumber < FDoc.LineCount) and (LineNumber <= y2) do begin
     i := 0;
 
+    // Do virtual whitespace expanding
+    LineWithSpace := FDoc.LineText[LineNumber];
+    if LineNumber = FSel.OStartY then
+      ProvideSpace(LineWithSpace, FSel.OStartX);
+    if LineNumber = FSel.OEndY then
+      ProvideSpace(LineWithSpace, FSel.OEndX);
+    if LineNumber = FCursorY then
+      ProvideSpace(LineWithSpace, FCursorX);
+
     // Call syntax highlighter for this line
-    GetMem(sh, FDoc.LineLen[LineNumber] * 3 + 8);
+
+    GetMem(sh, Length(LineWithSpace) * 3 + 8);
     s := sh;
     FDoc.LineFlags[LineNumber] := flags or LF_SH_Valid;
-    OrigStr := PChar(FDoc.LineText[LineNumber]);
+    OrigStr := PChar(LineWithSpace);
     DoHighlighting(flags, OrigStr, s);
 
     // Handle current selection
     if FSel.IsValid then
-     begin
-       if (LineNumber > FSel.OStartY) and (LineNumber < FSel.OEndY) then
-        begin
+      if (LineNumber > FSel.OStartY) and (LineNumber < FSel.OEndY) then begin
+        s[0] := LF_Escape;
+        s[1] := Chr(shSelected);
+        StrCopy(@s[2], OrigStr);
+      end else if OrigStr[0] = #0 then begin
+        if LineNumber = FSel.OStartY then begin
           s[0] := LF_Escape;
           s[1] := Chr(shSelected);
-          StrCopy(@s[2], OrigStr);
-        end
-       else
-        if OrigStr[0] = #0 then
-         begin
-           if LineNumber = FSel.OStartY then
-            begin
-              s[0] := LF_Escape;
-              s[1] := Chr(shSelected);
-              s[2] := #0;
+          s[2] := #0;
+        end;
+      end else if (LineNumber = FSel.OStartY) or
+        (LineNumber = FSel.OEndY) then begin
+        s2 := StrNew(s);
+        spos := 0;
+        i := 0;
+        x := 0;
+        if LineNumber > FSel.OStartY then begin
+          s[0] := LF_Escape;
+          s[1] := Chr(shSelected);
+          InSel := True;
+          spos := 2;
+        end else
+          InSel := False;
+        LastCol := Chr(shDefault);
+        while True do begin
+          if s2[i] = LF_Escape then begin
+            LastCol := s2[i + 1];
+            if not InSel then begin
+              s[spos] := LF_Escape;
+              s[spos + 1] := LastCol;
+              Inc(spos, 2);
             end;
-         end
-        else
-         if (LineNumber = FSel.OStartY) or
-            (LineNumber = FSel.OEndY) then
-          begin
-            s2 := StrNew(s);
-            spos := 0;
-            i := 0;
-            x := 0;
-            if LineNumber > FSel.OStartY then
-             begin
-               s[0] := LF_Escape;
-               s[1] := Chr(shSelected);
-               InSel := True;
-               spos := 2;
-             end
-            else
-             InSel := False;
-            LastCol := Chr(shDefault);
-            while True do
-             begin
-               if s2[i] = LF_Escape then
-                begin
-                  LastCol := s2[i + 1];
-                  if not InSel then
-                   begin
-                     s[spos] := LF_Escape;
-                     s[spos + 1] := LastCol;
-                     Inc(spos, 2);
-                   end;
-                  Inc(i, 2);
-                end
-               else
-                begin
-                  if InSel then
-                   begin
-                     if (LineNumber = FSel.OEndY) and (x = FSel.OEndX) then
-                      begin
-                        s[spos] := LF_Escape;
-                        s[spos + 1] := LastCol;
-                        Inc(spos, 2);
-                        InSel := False;
-                      end;
-                   end
-                  else
-                   if (LineNumber = FSel.OStartY) and (x = FSel.OStartX) then
-                    begin
-                      s[spos] := LF_Escape;
-                      s[spos + 1] := Chr(shSelected);
-                      Inc(spos, 2);
-                      InSel := True;
-                    end;
-                  if s2[i] = #0 then
-                   break;    // only exit of 'while' loop!
-                  s[spos] := s2[i];
-                  Inc(spos);
-                  Inc(i);
-                  Inc(x);
-                end;
-             end;
-            s[spos] := #0;
-            StrDispose(s2);
+            Inc(i, 2);
+          end else begin
+            if InSel then begin
+              if (LineNumber = FSel.OEndY) and (x = FSel.OEndX) then begin
+                s[spos] := LF_Escape;
+                s[spos + 1] := LastCol;
+                Inc(spos, 2);
+                InSel := False;
+              end;
+            end else
+              if (LineNumber = FSel.OStartY) and (x = FSel.OStartX) then begin
+                s[spos] := LF_Escape;
+                s[spos + 1] := Chr(shSelected);
+                Inc(spos, 2);
+                InSel := True;
+              end;
+            if s2[i] = #0 then break;    // only exit of 'while' loop!
+            s[spos] := s2[i];
+            Inc(spos);
+            Inc(i);
+            Inc(x);
           end;
-     end;
+        end;
+        s[spos] := #0;
+        StrDispose(s2);
+      end;
 
-    Renderer.DrawTextLine(x1, x2, py, s);
+    Renderer.DrawTextLine(x1, x2, LineNumber, s);
 
-    FreeMem(sh, FDoc.LineLen[LineNumber] * 3 + 8);
+    FreeMem(sh);
     Inc(LineNumber);
-    Inc(py);
   end;
 
-  PostprocessOutput(py);
+  PostprocessOutput(LineNumber);
 end;
 
 
 {
   $Log$
-  Revision 1.3  1999-12-10 15:01:02  peter
+  Revision 1.4  1999-12-12 17:50:50  sg
+  * Fixed drawing of selection
+  * Several small corrections (removed superfluous local variables etc.)
+
+  Revision 1.3  1999/12/10 15:01:02  peter
     * first things for selection
     * Better Adjusting of range/cursor
 
