@@ -653,6 +653,7 @@ var temp        : PChar;
     value       : Array [0..255] of char;
     i           : Longint;
     dir,dir2    : dirstr;
+    lastchar    : char;
     name        : namestr;
     ext         : extstr;
 begin
@@ -665,8 +666,10 @@ begin
    if dirlist[i]='/' then
     dirlist[i]:='\';
   { allow slash as backslash }
-  repeat
+  StringToPchar(name);
+  StringToPchar(ext);
 
+  repeat
     i:=pos(';',dirlist);
     while i=1 do
       begin
@@ -683,9 +686,15 @@ begin
         dir2:=Copy(dirlist,1,i-1);
         dirlist:=Copy(dirlist,i+1,255);
       end;
-  dir2:=dir2+dir;
-  StringToPchar(name);
-  StringToPchar(ext);
+  { don't add anything if dir2 is empty string }
+  if dir2<>'' then
+    lastchar:=dir2[length(dir2)]
+  else
+    lastchar:='\';
+  if (lastchar<>'\') and (lastchar<>':') then
+    dir2:=dir2+'\'+dir
+  else
+    dir2:=dir2+dir;
   StringToPchar(dir2);
   if SearchPath(@dir2, @name, @ext, 255, @value, temp)>0 then
     begin
@@ -843,7 +852,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.29  2000-01-11 12:49:26  pierre
+  Revision 1.30  2000-01-11 13:45:19  pierre
+   * fsearch was still worng for multiple pathes
+
+  Revision 1.29  2000/01/11 12:49:26  pierre
    * fsearch bugs and fexpand memory leak fixed
 
   Revision 1.28  2000/01/07 16:41:52  daniel
