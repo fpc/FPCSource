@@ -32,15 +32,14 @@ interface
     type
        tcginlinenode = class(tinlinenode)
           procedure pass_2;override;
-          { Handle the assert routine }
+          procedure second_assigned;virtual; abstract;
           procedure second_assert;virtual;
           procedure second_sizeoftypeof;virtual;
           procedure second_length;virtual;
           procedure second_predsucc;virtual;
           procedure second_incdec;virtual;
           procedure second_typeinfo;virtual;
-          procedure second_assigned;virtual;
-          procedure second_includeexclude;virtual;
+          procedure second_includeexclude;virtual; abstract;
           procedure second_pi; virtual;
           procedure second_arctan_real; virtual;
           procedure second_abs_real; virtual;
@@ -414,12 +413,12 @@ implementation
 {*****************************************************************************
                          ASSIGNED GENERIC HANDLING
 *****************************************************************************}
+(*
       procedure tcginlinenode.second_Assigned;
         var
          hreg : tregister;
          ptrvalidlabel : tasmlabel;
         begin
-          WriteLN('Entering assigned node!');
           secondpass(tcallparanode(left).left);
           location_release(exprasmlist,tcallparanode(left).left.location);
           hreg := rg.getregisterint(exprasmlist);
@@ -437,94 +436,11 @@ implementation
               cg.a_load_const_reg(exprasmlist, OS_INT, 0, hreg);
               cg.a_label(exprasmlist,ptrvalidlabel);
             end;
-          location.register := hreg;  
-          location_reset(location,LOC_REGISTER,OS_INT);
-          WriteLn('Exiting assigned node!');
+          location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+          location.register := rg.makeregsize(hreg,def_cgsize(resulttype.def));
         end;
+*)        
         
-        
-{*****************************************************************************
-                     INCLUDE/EXCLUDE GENERIC HANDLING
-*****************************************************************************}
-      procedure tcginlinenode.second_IncludeExclude;
-        var
-         scratch_reg : boolean;
-         hregister : tregister;
-         asmop : tasmop;
-         L : longint;
-         pushedregs : TMaybesave;         
-         cgop : topcg;
-         {!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!}
-        begin
-          location_copy(location,left.location);
-          secondpass(tcallparanode(left).left);
-          if tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn then
-            begin
-              { calculate bit position }
-              l:=1 shl (tordconstnode(tcallparanode(tcallparanode(left).right).left).value mod 32);
-
-              { determine operator }
-              if inlinenumber=in_include_x_y then
-                cgop:=OP_OR
-              else
-                begin
-                  cgop:=OP_AND;
-                  l:=not(l);
-                end;
-              if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
-                begin
-                  inc(tcallparanode(left).left.location.reference.offset,
-                    (tordconstnode(tcallparanode(tcallparanode(left).right).left).value div 32)*4);
-                  cg.a_op_const_ref(exprasmlist,cgop,OS_INT,l,tcallparanode(left).left.location.reference);
-                  location_release(exprasmlist,tcallparanode(left).left.location);
-                end
-              else
-                { LOC_CREGISTER }
-                begin
-                  cg.a_op_const_reg(exprasmlist,cgop,l,tcallparanode(left).left.location.register);
-                end;
-            end
-          else
-            begin
-              { generate code for the element to set }
-              maybe_save(exprasmlist,tcallparanode(tcallparanode(left).right).left.registers32,
-                        tcallparanode(left).left.location,pushedregs);
-              secondpass(tcallparanode(tcallparanode(left).right).left);
-              maybe_restore(exprasmlist,tcallparanode(left).left.location,pushedregs);
-              { determine asm operator }
-              if inlinenumber=in_include_x_y then
-                 asmop:=A_BTS
-              else
-                 asmop:=A_BTR;
-
-              if tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
-                { we don't need a mod 32 because this is done automatically  }
-                { by the bts instruction. For proper checking we would       }
-
-                { note: bts doesn't do any mod'ing, that's why we can also use }
-                { it for normalsets! (JM)                                      }
-
-                { need a cmp and jmp, but this should be done by the         }
-                { type cast code which does range checking if necessary (FK) }
-                begin
-                  scratch_reg := FALSE;
-                  WriteLn('HELLO!');
-                  hregister := rg.makeregsize(tcallparanode(tcallparanode(left).right).left.location.register,OS_INT);
-                end
-              else
-                begin
-                  scratch_reg := TRUE;
-                  hregister:=cg.get_scratch_reg_int(exprasmlist);
-                end;
-              cg.a_load_loc_reg(exprasmlist,tcallparanode(tcallparanode(left).right).left.location,hregister);
-              if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
-                emit_reg_ref(asmop,S_L,hregister,tcallparanode(left).left.location.reference)
-              else
-                emit_reg_reg(asmop,S_L,hregister,tcallparanode(left).left.location.register);
-              if scratch_reg then
-                cg.free_scratch_reg(exprasmlist,hregister);
-            end;
-        end;           
         
 {*****************************************************************************
                             FLOAT GENERIC HANDLING
@@ -581,7 +497,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-07-24 04:07:49  carl
+  Revision 1.2  2002-07-25 17:55:41  carl
+    + First working revision
+
+  Revision 1.1  2002/07/24 04:07:49  carl
    + first revision (incomplete)
 
 }
