@@ -33,7 +33,8 @@ type
     constructor Create;
     destructor Destroy; override;
     function CreateElement(AClass: TPTreeElement; const AName: String;
-      AParent: TPasElement; AVisibility: TPasMemberVisibility): TPasElement;
+      AParent: TPasElement; AVisibility: TPasMemberVisibility;
+      const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
       override;
     function FindElement(const AName: String): TPasElement; override;
     function FindModule(const AName: String): TPasModule; override;
@@ -71,7 +72,8 @@ begin
 end;
 
 function TParserEngine.CreateElement(AClass: TPTreeElement; const AName: String;
-  AParent: TPasElement; AVisibility: TPasMemberVisibility): TPasElement;
+  AParent: TPasElement; AVisibility: TPasMemberVisibility;
+  const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
 begin
   Result := AClass.Create(AName, AParent);
   Result.Visibility := AVisibility;
@@ -230,6 +232,15 @@ type
         and (CompareStr(Result.Name, Name) = 0) then
 	exit;
     end;
+
+    Name := AArrayProp.Name + 'Count';
+    for i := 0 to TPasClassType(AArrayProp.Parent).Members.Count - 1 do
+    begin
+      Result := TPasProperty(TPasClassType(AArrayProp.Parent).Members[i]);
+      if (Result.ClassType = TPasProperty) and (Result.Visibility = visPublic)
+        and (CompareStr(Result.Name, Name) = 0) then
+	exit;
+    end;
     Result := nil;
   end;
 
@@ -268,7 +279,9 @@ type
         Result.ConverterName := 'AWriter.CreateStringValue'
       else if (s = 'FLOAT') or (s = 'SINGLE') or (s = 'DOUBLE') or
         (s = 'EXTENDED') then
-	Result.ConverterName := 'AWriter.CreateDoubleValue';
+	Result.ConverterName := 'AWriter.CreateDoubleValue'
+      else if s = 'TDATETIME' then
+        Result.ConverterName := 'AWriter.CreateDateTimeValue';
     end else if Element.ClassType = TPasClassType then
       Result.ConverterName := MakeStructConverter(TPasClassType(Element), Referrer).Name
     else if Element.ClassType = TPasEnumType then
@@ -321,7 +334,9 @@ type
         Result := 'String'
       else if (s = 'FLOAT') or (s = 'SINGLE') or (s = 'DOUBLE') or
         (s = 'EXTENDED') then
-	Result := 'Double';
+	Result := 'Double'
+      else if s = 'TDATETIME' then
+        Result := 'DateTime';
     end;
     if Length(Result) = 0 then
       raise Exception.Create('Argument type not supported: ' +
@@ -856,7 +871,14 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-06-25 08:56:26  sg
+  Revision 1.4  2003-11-22 12:08:32  sg
+  * Better error reporting with line numbers
+  * Array properties: The size property now can just match the name of the
+    array property as well; so it now also works without a plural "s" after
+    the base name
+  * Added support for TDateTime parameters and results
+
+  Revision 1.3  2003/06/25 08:56:26  sg
   * Added support for reading set properties
 
   Revision 1.2  2003/06/12 19:00:53  michael
