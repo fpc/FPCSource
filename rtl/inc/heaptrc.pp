@@ -88,6 +88,9 @@ const
   display_extra_info_proc : TDisplayExtraInfoProc = nil;
   error_in_heap : boolean = false;
   inside_trace_getmem : boolean = false;
+  { indicates where the output will be redirected }
+  { only set using environment variables          }
+  outputstr : shortstring = '';
 
 type
   pheap_extra_info = ^theap_extra_info;
@@ -182,7 +185,7 @@ var
    crc : longword;
    pl : plongint;
 begin
-   crc:=longword($ffffffff);
+   crc:=cardinal($ffffffff);
    crc:=UpdateCrc32(crc,p^.size,sizeof(longint));
    crc:=UpdateCrc32(crc,p^.calls,tracesize*sizeof(longint));
    if p^.extra_info_size>0 then
@@ -702,9 +705,9 @@ end;
 
 {$ifdef go32v2}
 var
-   __stklen : cardinal;external name '__stklen';
-   __stkbottom : cardinal;external name '__stkbottom';
-   edata : cardinal; external name 'edata';
+   __stklen : longword;external name '__stklen';
+   __stkbottom : longword;external name '__stkbottom';
+   edata : longword; external name 'edata';
    heap_at_init : pointer;
 {$endif go32v2}
 
@@ -714,16 +717,16 @@ var
    { I found no symbol for start of text section :(
      so we usee the _mainCRTStartup which should be
      in wprt0.ow or wdllprt0.ow PM }
-   text_begin : cardinal;external name '_mainCRTStartup';
-   data_end : cardinal;external name '__data_end__';
+   text_begin : longword;external name '_mainCRTStartup';
+   data_end : longword;external name '__data_end__';
 {$endif}
 
 procedure CheckPointer(p : pointer);[saveregisters,public, alias : 'FPC_CHECKPOINTER'];
 var
   i  : longint;
   pp : pheap_mem_info;
-  get_ebp,stack_top : cardinal;
-  data_end : cardinal;
+  get_ebp,stack_top : longword;
+  data_end : longword;
 label
   _exit;
 begin
@@ -999,6 +1002,8 @@ begin
   MakeCRC32Tbl;
   SetMemoryManager(TraceManager);
   ptext:=@stderr;
+  if outputstr <> '' then
+     SetHeapTraceOutput(outputstr);
 {$ifdef EXTRA}
   Assign(error_file,'heap.err');
   Rewrite(error_file);
@@ -1124,12 +1129,11 @@ begin
   i:=pos('log=',s);
   if i>0 then
    begin
-     hs:=copy(s,i+4,255);
-     j:=pos(' ',hs);
+     outputstr:=copy(s,i+4,255);
+     j:=pos(' ',outputstr);
      if j=0 then
-      j:=length(hs)+1;
-     delete(hs,j,255);
-     SetHeapTraceOutput(hs);
+      j:=length(outputstr)+1;
+     delete(outputstr,j,255);
    end;
 end;
 
@@ -1145,7 +1149,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.18  2002-09-09 15:45:49  jonas
+  Revision 1.19  2002-10-05 15:19:46  carl
+     * bugfix of assigning to external filename output
+
+  Revision 1.18  2002/09/09 15:45:49  jonas
     * made result type of calculate_release_sig() a longword instead of a
       longint
 
