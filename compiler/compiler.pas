@@ -223,6 +223,10 @@ end;
 
 function Compile(const cmd:string):longint;
 
+{$ifdef fpc}
+{$maxfpuregisters 0}
+{$endif fpc}
+
   procedure writepathlist(w:tmsgconst;l:TSearchPathList);
   var
     hp : pstringqueueitem;
@@ -335,7 +339,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.46  2000-02-09 13:22:50  peter
+  Revision 1.47  2000-03-18 15:05:33  jonas
+    + added $maxfpuregisters 0 for compile() procedure
+
+  Revision 1.46  2000/02/09 13:22:50  peter
     * log truncated
 
   Revision 1.45  2000/01/11 17:16:04  jonas
