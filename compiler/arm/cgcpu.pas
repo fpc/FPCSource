@@ -313,7 +313,7 @@ unit cgcpu;
                 end;
               OP_SUB:
                 begin
-                  op:=OP_SUB;
+                  op:=OP_ADD;
                   a:=dword(-a);
                 end
             end;
@@ -1286,7 +1286,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2004-11-01 17:41:28  florian
+  Revision 1.63  2004-11-06 15:18:57  florian
+    * fixed OP_SUB for negative constants fitting in the shifter
+
+  Revision 1.62  2004/11/01 17:41:28  florian
     * fixed arm compilation with cgutils
     * ...
 
