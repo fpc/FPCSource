@@ -307,6 +307,8 @@ const
                   current_scanner^.skipspace;
                   hs:=current_scanner^.readid;
                   mac:=pmacrosym(macros^.search(hs));
+                  if assigned(mac) then
+                    mac^.is_used:=true;
                   current_scanner^.addpreprocstack(pp_ifdef,assigned(mac) and mac^.defined,hs,scan_c_ifdef_found);
                 end;
    _DIR_IFOPT : begin
@@ -333,6 +335,8 @@ const
                   current_scanner^.skipspace;
                   hs:=current_scanner^.readid;
                   mac:=pmacrosym(macros^.search(hs));
+                  if assigned(mac) then
+                    mac^.is_used:=true;
                   current_scanner^.addpreprocstack(pp_ifndef,not(assigned(mac) and mac^.defined),hs,scan_c_ifndef_found);
                 end;
            end;
@@ -383,6 +387,7 @@ const
                mac^.buftext:=nil;
              end;
           end;
+        mac^.is_used:=true;
         if (cs_support_macro in aktmoduleswitches) then
           begin
           { key words are never substituted }
@@ -450,6 +455,7 @@ const
                   mac^.buftext:=nil;
                end;
           end;
+        mac^.is_used:=true;
       end;
 
 
@@ -1089,7 +1095,10 @@ const
 
 {
   $Log$
-  Revision 1.59  1999-08-05 16:53:10  peter
+  Revision 1.60  1999-08-31 15:55:45  pierre
+   + tmacrosym.is_used set
+
+  Revision 1.59  1999/08/05 16:53:10  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives
