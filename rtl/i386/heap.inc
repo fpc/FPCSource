@@ -218,8 +218,8 @@
               exit;
            end
          else
-		   begin
-			  hp:=freelist;
+	   begin
+	      hp:=freelist;
               while assigned(hp) do
                 begin
                    if (p>=hp) and (p<hp+hp^.size) then
@@ -257,7 +257,7 @@
 					 writeln('freerecordlist bad at end ')
 				end
 			  else
-						  if ((longint(hp^.next)<=(longint(hp)+hp^.size)) or
+			  if ((longint(hp^.next)<=(longint(hp)+hp^.size)) or
                              ((hp^.size and 7) <> 0)) then
                   writeln('error in freerecord list ');
 {$EndIf CHECKHEAP}
@@ -381,7 +381,7 @@
        split_heap;
        switch_to_temp_heap;
        allow_special:=true;
-	   getmem(p,size);
+       getmem(p,size);
        allow_special:=false;
     end;
 {$endif TEMPHEAP}
@@ -495,7 +495,7 @@
 	   end;
 {$endif CHECKHEAP}
 
-	procedure getmem(var p : pointer;size : longint);[public,alias: 'GETMEM'];
+    procedure getmem(var p : pointer;size : longint);[public,alias: 'GETMEM'];
 
 {$IfDef CHECKHEAP}
       var i,bp,orsize : longint;
@@ -517,7 +517,7 @@
       var
          last,hp : pfreerecord;
          nochmal : boolean;
-         s : longint;
+         s,hpsize : longint;
 
       begin
 {$ifdef CHECKHEAP}
@@ -539,25 +539,25 @@
 {$ifdef TEMPHEAP}
          if heap_split and not allow_special then
            begin
-		   if (@p < otherheap^.heapend) and
-			  (@p > otherheap^.heaporg) then
-			  { useful line for the debugger }
-             writeln('warning : p and @p are in different heaps !');
+               if (@p < otherheap^.heapend) and
+		  (@p > otherheap^.heaporg) then
+		  { useful line for the debugger }
+            	 writeln('warning : p and @p are in different heaps !');
            end;
 {$endif TEMPHEAP}
-		 { calc to multiply of 8 }
+         { calc to multiply of 8 }
          size:=(size+7) and not 7;
-		 _memavail:=_memavail-size;
+         _memavail:=_memavail-size;
          if heapblocks then
           begin
          { search cache }
          if size<=max_size then
            begin
               s:=size div 8;
-              if assigned(blocks^[s]) then
+              p:=blocks^[s];
+              if assigned(p) then
                 begin
-                   p:=blocks^[s];
-                   blocks^[s]:=pointer(blocks^[s]^);
+                   blocks^[s]:=pointer(p^);
                    dec(nblocks^[s]);
 {$ifdef CHECKHEAP}
                    goto check_new;
@@ -570,61 +570,62 @@
          repeat
            nochmal:=false;
            { search the freelist }
-		   if assigned(freelist) then
+	   if assigned(freelist) then
              begin
                 last:=nil;
                 hp:=freelist;
                 while assigned(hp) do
                   begin
+                     hpsize:=hp^.size;
                      { take the first fitting block }
-                     if hp^.size>=size then
+                     if hpsize>=size then
                        begin
                           p:=hp;
                           { need we the whole block ? }
-                          if (hp^.size>size) and heapblocks then
+                          if (hpsize>size) and heapblocks then
                             begin
-							   { we must check if we are still below the limit !! }
-							   if hp^.size-size<=max_size then
-								 begin
-									{ adjust the list }
-									if assigned(last) then
-									  last^.next:=hp^.next
-									else
-									  freelist:=hp^.next;
-									{ insert in chain }
-									s:=(hp^.size-size) div 8;
-									ppointer(hp+size)^:=blocks^[s];
-									blocks^[s]:=hp+size;
-									inc(nblocks^[s]);
-								 end
-							   else
-							   begin
-								  (hp+size)^.size:=hp^.size-size;
-								  (hp+size)^.next:=hp^.next;
-								  if assigned(last) then
-									last^.next:=hp+size
-								  else
-									freelist:=hp+size;
-							   end;
-							end
-						  else
-							begin
+				   { we must check if we are still below the limit !! }
+				   if hpsize-size<=max_size then
+					 begin
+						{ adjust the list }
+						if assigned(last) then
+						  last^.next:=hp^.next
+						else
+						  freelist:=hp^.next;
+						{ insert in chain }
+						s:=(hpsize-size) div 8;
+						ppointer(hp+size)^:=blocks^[s];
+						blocks^[s]:=hp+size;
+						inc(nblocks^[s]);
+					 end
+				   else
+				   	begin
+					  (hp+size)^.size:=hpsize-size;
+					  (hp+size)^.next:=hp^.next;
+					  if assigned(last) then
+						last^.next:=hp+size
+					  else
+						freelist:=hp+size;
+				        end;
+			    end
+			  else
+				begin
 {$IfDef CHECKHEAP}
-							   dec(freerecord_list_length);
+				   dec(freerecord_list_length);
 {$endif CHECKHEAP}
-							   if assigned(last) then
-								 last^.next:=hp^.next
-							   else
-								 {this was wrong !!}
-								 {freelist:=nil;}
-								 freelist:=hp^.next;
-							end;
+				   if assigned(last) then
+					 last^.next:=hp^.next
+				   else
+					 {this was wrong !!}
+					 {freelist:=nil;}
+				   freelist:=hp^.next;
+				end;
 {$ifdef CHECKHEAP}
                             goto check_new;
 {$else CHECKHEAP}
                             exit;
 {$endif CHECKHEAP}
-					   end;
+			   end;
                      last:=hp;
                      hp:=hp^.next;
                   end;
@@ -633,7 +634,7 @@
            { still memory available.                                   }
            if heapend-heapptr<size then
              begin
-				if assigned(heaperror) then
+		if assigned(heaperror) then
                   begin
                      case call_heaperror(heaperror,size) of
                         0 : runerror(203);
@@ -658,7 +659,7 @@ check_new:
        begin
            asm
               movl (%ebp),%eax
-			  movl %eax,bp
+	      movl %eax,bp
            end;
           pheap_mem_info(p)^.sig:=$DEADBEEF;
           pheap_mem_info(p)^.previous:=last_assigned;
@@ -672,7 +673,7 @@ check_new:
                pheap_mem_info(p)^.calls[i]:=get_addr(bp);
                bp:=get_next_frame(bp);
             end;
-          p:=p+sizeof(heap_mem_info);
+           p:=p+sizeof(heap_mem_info);
 	   end;
 {$endif CHECKHEAP}
       end;
@@ -1061,7 +1062,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1998-06-15 15:15:13  daniel
+  Revision 1.9  1998-06-16 14:55:49  daniel
+  * Optimizations
+
+  Revision 1.8  1998/06/15 15:15:13  daniel
 
 
   * Brought my policy into practive that the RTL should output only runtime
