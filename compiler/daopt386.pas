@@ -732,7 +732,10 @@ Begin
               End
             Else Regsequivalent := False
         Else
-          If Not(Reg32(NewReg) in NewRegsEncountered) Then
+          If Not(Reg32(NewReg) in NewRegsEncountered) and
+             ((OpAct = OpAct_Write) or
+              ((newReg = oldReg) and
+               not(newReg in usableregs + [R_EDI]))) Then
             Begin
               AddReg2RegInfo(OldReg, NewReg, RegInfo);
               RegsEquivalent := True
@@ -2338,7 +2341,12 @@ End.
 
 {
   $Log$
-  Revision 1.9  2000-09-20 15:00:58  jonas
+  Revision 1.10  2000-09-22 15:00:20  jonas
+    * fixed bug in regsEquivalent (in some rare cases, registers with
+      completely unrelated content were considered equivalent) (merged
+      from fixes branch)
+
+  Revision 1.9  2000/09/20 15:00:58  jonas
     + much improved CSE: the CSE now searches further back for sequences it
       can reuse. After I've also implemented register renaming, the effect
       should be even better (afaik web bug 1088 will then even be optimized
