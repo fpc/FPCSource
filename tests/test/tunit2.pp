@@ -1,20 +1,17 @@
+{ %RECOMPILE }
 unit tunit2;
 
   interface
 
-    var
-       testvar : longint;
+    uses
+       uunit2a;
+
+    const
+       l = tpl(10);
+
+    type
+       pr = ^tr;
 
   implementation
 
-    uses
-       erroru;
-
-initialization
-  testvar:=1234567;
-finalization
-  if testvar<>1234567 then
-    do_error(1001)
-  else
-    halt(0);
 end.

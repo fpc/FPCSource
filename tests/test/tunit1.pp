@@ -1,5 +1,5 @@
 uses
-   erroru,tunit2;
+   erroru,uunit1;
 
 begin
    if testvar<>1234567 then

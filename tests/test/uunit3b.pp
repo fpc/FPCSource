@@ -1,12 +1,12 @@
-unit tunit4;
+unit uunit3b;
 
   interface
 
     uses
-       tunit3;
+       uunit3c;
 
     type
-       tr = tunit3.tr;
+       tpl = uunit3c.tpl;
 
   implementation
 

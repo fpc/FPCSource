@@ -1,11 +1,6 @@
-unit tunit3;
+{ %RECOMPILE }
+uses
+  uunit3a;
 
-  interface
-
-    type
-       tr = record
-       end;
-
-  implementation
-
+begin
 end.
