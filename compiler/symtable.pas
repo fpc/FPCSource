@@ -1469,11 +1469,13 @@ implementation
       end;
 
 
+{$ifdef DONOTCHAINOPERATORS}
     procedure order_overloads(p : Pnamedindexobject);
       begin
          if psym(p)^.typ=procsym then
            pprocsym(p)^.order_overloaded;
       end;
+{$endif DONOTCHAINOPERATORS}
 
     procedure tsymtable.foreach(proc2call : tnamedindexcallback);
       begin
@@ -1751,8 +1753,11 @@ implementation
                aktlocalsymtable:=@self;
              end;
          end;
-      { order procsym overloads }
+{$ifdef DONOTCHAINOPERATORS}
+       { obsolete code DO NOT USE it anymore PM }
+       { order procsym overloads }
          foreach({$ifndef TP}@{$endif}Order_overloads);
+{$endif DONOTCHAINOPERATORS}
          { write definitions }
          writedefs;
          { write symbols }
@@ -2879,7 +2884,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2000-04-25 23:55:30  pierre
+  Revision 1.86  2000-04-26 08:54:19  pierre
+    * More changes for operator bug
+      Order_overloaded method removed because it conflicted with
+      new implementation where the defs are ordered
+      according to the unit loading order !
+
+  Revision 1.85  2000/04/25 23:55:30  pierre
     + Hint about unused unit
     * Testop bug fixed !!
       Now the operators are only applied if the unit is explicitly loaded

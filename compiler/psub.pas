@@ -264,15 +264,17 @@ begin
      aktprocsym:=new(pprocsym,init(sp));
      { for operator we have only one definition for each overloaded
        operation }
-{$ifdef DONOTCHAINOPERATORS}
      if (options=potype_operator) then
        begin
           { the only problem is that nextoverloaded might not be in a unit
             known for the unit itself }
+          { not anymore PM }
           if assigned(overloaded_operators[optoken]) then
             aktprocsym^.definition:=overloaded_operators[optoken]^.definition;
-       end;
+{$ifndef DONOTCHAINOPERATORS}
+          overloaded_operators[optoken]:=aktprocsym;
 {$endif DONOTCHAINOPERATORS}
+       end;
      symtablestack^.insert(aktprocsym);
    end;
 
@@ -2014,7 +2016,13 @@ end.
 
 {
   $Log$
-  Revision 1.58  2000-04-25 23:55:29  pierre
+  Revision 1.59  2000-04-26 08:54:19  pierre
+    * More changes for operator bug
+      Order_overloaded method removed because it conflicted with
+      new implementation where the defs are ordered
+      according to the unit loading order !
+
+  Revision 1.58  2000/04/25 23:55:29  pierre
     + Hint about unused unit
     * Testop bug fixed !!
       Now the operators are only applied if the unit is explicitly loaded

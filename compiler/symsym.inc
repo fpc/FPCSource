@@ -409,6 +409,9 @@
                    pd^.forwarddef:=false;
                 end;
               pd:=pd^.nextoverloaded;
+              { do not check defs of operators in other units }
+              if pd^.procsym<>@self then
+                pd:=nil;
            end;
       end;
 
@@ -419,6 +422,7 @@
         last,pd : pprocdef;
       begin
          resolvedef(pdef(definition));
+{$ifdef DONOTCHAINOPERATORS}
          if (definition^.proctypeoption=potype_operator) then
            begin
               last:=definition;
@@ -444,8 +448,10 @@
                    break;
                 end;
            end;
+{$endif DONOTCHAINOPERATORS}
       end;
 
+{$ifdef DONOTCHAINOPERATORS}
     procedure tprocsym.order_overloaded;
       var firstdef,currdef,lastdef : pprocdef;
       begin
@@ -485,6 +491,7 @@
              currdef:=currdef^.nextoverloaded;
            end;
       end;
+{$endif DONOTCHAINOPERATORS}
 
     procedure tprocsym.write;
       begin
@@ -2137,7 +2144,13 @@
 
 {
   $Log$
-  Revision 1.142  2000-04-19 08:24:41  pierre
+  Revision 1.143  2000-04-26 08:54:19  pierre
+    * More changes for operator bug
+      Order_overloaded method removed because it conflicted with
+      new implementation where the defs are ordered
+      according to the unit loading order !
+
+  Revision 1.142  2000/04/19 08:24:41  pierre
    * remove a memory leak with resourcestrings
 
   Revision 1.141  2000/04/03 14:50:05  pierre

@@ -785,9 +785,6 @@ unit pmodules;
                 end;
               hp:=pused_unit(hp^.next);
            end;
-{$ifndef DONOTCHAINOPERATORS}
-          symtablestack^.chainoperators;
-{$endif DONOTCHAINOPERATORS}
           aktprocsym:=oldprocsym;
       end;
 
@@ -1164,6 +1161,10 @@ unit pmodules;
          unitst^.next:=symtablestack;
          symtablestack:=unitst;
 
+{$ifndef DONOTCHAINOPERATORS}
+          symtablestack^.chainoperators;
+{$endif DONOTCHAINOPERATORS}
+
 {$ifdef DEBUG}
          test_symtablestack;
 {$endif DEBUG}
@@ -1490,6 +1491,10 @@ unit pmodules;
          if token=_USES then
            loadunits;
 
+{$ifndef DONOTCHAINOPERATORS}
+          symtablestack^.chainoperators;
+{$endif DONOTCHAINOPERATORS}
+
          { reset ranges/stabs in exported definitions }
          reset_global_defs;
 
@@ -1668,7 +1673,13 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.189  2000-04-25 23:55:30  pierre
+  Revision 1.190  2000-04-26 08:54:18  pierre
+    * More changes for operator bug
+      Order_overloaded method removed because it conflicted with
+      new implementation where the defs are ordered
+      according to the unit loading order !
+
+  Revision 1.189  2000/04/25 23:55:30  pierre
     + Hint about unused unit
     * Testop bug fixed !!
       Now the operators are only applied if the unit is explicitly loaded
