@@ -99,7 +99,7 @@ interface
         if (left.nodetype=ordconstn) then
           swapleftright;
 
-        isjump:=(left.location.loc=LOC_JUMP);
+        isjump:=(left.expectloc=LOC_JUMP);
         if isjump then
           begin
              otl:=truelabel;
@@ -114,14 +114,16 @@ interface
           begin
             truelabel:=otl;
             falselabel:=ofl;
-          end;
+          end
+        else
+          internalerror(2003122901);
 
         { are too few registers free? }
         if left.location.loc=LOC_FPUREGISTER then
           pushedfpu:=maybe_pushfpu(exprasmlist,right.registersfpu,left.location)
         else
           pushedfpu:=false;
-        isjump:=(right.location.loc=LOC_JUMP);
+        isjump:=(right.expectloc=LOC_JUMP);
         if isjump then
           begin
              otl:=truelabel;
@@ -136,7 +138,9 @@ interface
           begin
             truelabel:=otl;
             falselabel:=ofl;
-          end;
+          end
+        else
+          internalerror(2003122902);
         if pushedfpu then
           begin
             tmpreg := cg.getfpuregister(exprasmlist,left.location.size);
@@ -749,7 +753,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2003-12-23 14:38:07  florian
+  Revision 1.25  2003-12-29 11:37:52  jonas
+    * hopefully fixed bug tb0454 (merged from nppcadd)
+
+  Revision 1.24  2003/12/23 14:38:07  florian
     + second_floataddsse implemented
 
   Revision 1.23  2003/12/21 11:28:41  daniel
