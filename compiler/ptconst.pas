@@ -77,10 +77,12 @@ implementation
          tmpguid   : tguid;
          aktpos    : longint;
          obj       : tobjectdef;
+         recsym,
          srsym     : tsym;
          symt      : tsymtable;
          value     : bestreal;
          strval    : pchar;
+         error     : boolean;
 
       procedure check_range(def:torddef);
         begin
@@ -693,25 +695,63 @@ implementation
                 begin
                    consume(_LKLAMMER);
                    aktpos:=0;
+                   srsym := tsym(trecorddef(t.def).symtable.symindex.first);
                    while token<>_RKLAMMER do
                      begin
                         s:=pattern;
                         consume(_ID);
                         consume(_COLON);
-                        srsym:=tsym(trecorddef(t.def).symtable.search(s));
-                        if srsym=nil then
+                        error := false;
+                        recsym := tsym(trecorddef(t.def).symtable.search(s));
+                        if not assigned(recsym) then
                           begin
-                             Message1(sym_e_id_not_found,s);
-                             consume_all_until(_SEMICOLON);
-                          end
+                            Message1(sym_e_illegal_field,s);
+                            error := true;
+                          end;
+                        if not assigned(srsym) or
+                           (s <> srsym.name) then
+                          { possible variant record (JM) }
+                          begin
+                            { All parts of a variant start at the same offset      }
+                            { Also allow jumping from one variant part to another, }
+                            { as long as the offsets match                         }
+                            if (assigned(srsym) and
+                               (tvarsym(recsym).address = tvarsym(srsym).address)) or
+                               { srsym is not assigned after parsing w2 in the      }
+                               { typed const in the next example:                   }
+                               {   type tr = record case byte of                    }
+                               {          1: (l1,l2: dword);                        }
+                               {          2: (w1,w2: word);                         }
+                               {        end;                                        }
+                               {   const r: tr = (w1:1;w2:1;l2:5);                  }
+                               (tvarsym(recsym).address = aktpos) then
+                              srsym := recsym
+                            { going backwards isn't allowed in any mode }
+                            else if (tvarsym(recsym).address<aktpos) then
+                              begin
+                                Message(parser_e_invalid_record_const);
+                                error := true;
+                              end
+                            { Delphi allows you to skip fields }
+                            else if (m_delphi in aktmodeswitches) then
+                              begin
+                                Message1(parser_w_skipped_fields_before,s);
+                                srsym := recsym;
+                              end
+                            { FPC and TP don't }
+                            else
+                              begin
+                                Message1(parser_e_skipped_fields_before,s);
+                                error := true;
+                              end;
+                          end;
+                        if error then
+                          consume_all_until(_SEMICOLON)
                         else
                           begin
-                             { check position }
-                             if tvarsym(srsym).address<aktpos then
-                               Message(parser_e_invalid_record_const);
 
-                             { if needed fill }
-                             if tvarsym(srsym).address>aktpos then
+                            { if needed fill (alignment) }
+                            if tvarsym(srsym).address>aktpos then
                                for i:=1 to tvarsym(srsym).address-aktpos do
                                  curconstSegment.concat(Tai_const.Create_8bit(0));
 
@@ -721,13 +761,28 @@ implementation
                              { read the data }
                              readtypedconst(tvarsym(srsym).vartype,nil,no_change_allowed);
 
+                             { keep previous field for checking whether whole }
+                             { record was initialized (JM)                    }
+                             recsym := srsym;
+                             { goto next field }
+                             srsym := tsym(srsym.indexnext);
+
                              if token=_SEMICOLON then
                                consume(_SEMICOLON)
                              else break;
                           end;
                    end;
+
+                 { are there any fields left?                            }
+                 if assigned(srsym) and
+                    { don't complain if there only come other variant parts }
+                    { after the last initialized field                      }
+                    (tvarsym(srsym).address > tvarsym(recsym).address) then
+                   Message1(parser_w_skipped_fields_after,s);
+
                  for i:=1 to t.def.size-aktpos do
                    curconstSegment.concat(Tai_const.Create_8bit(0));
+
                  consume(_RKLAMMER);
               end;
            end;
@@ -847,7 +902,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2001-04-18 22:01:57  peter
+  Revision 1.23  2001-05-06 17:15:00  jonas
+    + detect incomplete typed constant records
+
+  Revision 1.22  2001/04/18 22:01:57  peter
     * registration of targets and assemblers
 
   Revision 1.21  2001/04/13 01:22:13  peter

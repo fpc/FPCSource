@@ -908,6 +908,16 @@ parser_e_no_vars_in_interfaces=03173_E_An interface can't contain fields
 parser_e_no_local_external=03174_E_Can't declare local procedure as EXTERNAL
 % Declaring local procedures as external is not possible. Local procedures
 % get hidden parameters that will make the chance on errors very high
+parser_w_skipped_fields_before=03175_W_Some fields coming before "$1" weren't initialized
+% In Delphi mode, not all fields of a typed constant record have to be
+% initialized, but the compiler warns you when it detects such situations.
+parser_e_skipped_fields_before=03176_E_Some fields coming before "$1" weren't initialized
+% In all syntax modes but Delphi mode, you can't leave some fields uninitialized
+% in the middle of a typed constant record
+parser_w_skipped_fields_after=03177_W_Some fields coming after "$1" weren't initialized
+% You can leave some fields at the end of a type constant record uninitialized
+% (the compiler will initialize them to zero automatically), but the the
+% compiler warns you when it detects such situations.
 % \end{description}
 #
 # Type Checking
