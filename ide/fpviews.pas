@@ -1740,7 +1740,8 @@ begin
   if Title<>nil then DisposeStr(Title);
   Title:=NewStr(ATitle);
 {$ifdef FVISION}
-  DrawBorder;
+  If assigned(Owner) then
+    DrawBorder;
 {$else}
   Frame^.DrawView;
 {$endif}
@@ -4207,7 +4208,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.17  2002-05-29 22:38:13  pierre
+  Revision 1.18  2002-05-30 15:02:39  pierre
+   * avoid ugly border draw on windows without owners in fvision
+
+  Revision 1.17  2002/05/29 22:38:13  pierre
    Asciitab now in fvision
 
   Revision 1.16  2002/05/24 21:15:31  pierre
