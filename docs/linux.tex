@@ -636,6 +636,18 @@ process. (you can get the parent's PID with \seef{GetPPid}).
 
 \input{linuxex/ex14.tex}
 
+\function{Shell}{(Command : String)}{Longint}
+{\var{Shell} invokes the bash shell (\file{/bin/sh}), and feeds it the
+command \var{Command} (using the \var{-c} option). The function then waits
+for the command to complete, and then returns the exit
+status of the command, or 127 if it could not complete the \seef{Fork} 
+or \seep{Execve} calls.
+}
+{Errors are reported in LinuxError.}
+{\seep{POpen}, \seef{Fork}, \seep{Execve}, \seem{system}{3}}
+
+\input{linuxex/ex56.tex}
+
 \procedure{Nice}{( N : Integer)}
 {Nice adds \var{-N} to the priority of the running process. The lower the
 priority numerically, the less the process is favored.
