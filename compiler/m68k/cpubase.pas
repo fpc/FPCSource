@@ -115,12 +115,13 @@ unit cpubase;
       {$i r68kcon.inc}
 
       { Integer Super registers first and last }
-      first_int_supreg = RS_SP;
-      first_int_imreg = RS_SP+1;
+      first_int_imreg = RS_D7+1;
 
       { Float Super register first and last }
-      first_fpu_supreg    = RS_FP7;
       first_fpu_imreg     = RS_FP7+1;
+
+      { Integer Super registers first and last }
+      first_addr_imreg = RS_SP+1;
 
       { MM Super register first and last }
       first_mm_supreg    = 0;
@@ -314,10 +315,10 @@ unit cpubase;
          This is not compatible with the m68k-sun
          implementation.
       }
-          stab_regindex : array[tregisterindex] of shortint =
-        (
-          {$i r68ksta.inc}
-        );
+      stab_regindex : array[tregisterindex] of shortint =
+      (
+        {$i r68ksta.inc}
+      );
 
 {*****************************************************************************
                           Generic Register names
@@ -512,7 +513,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2004-04-25 21:26:16  florian
+  Revision 1.27  2004-05-06 20:30:51  florian
+    * m68k compiler compilation fixed
+
+  Revision 1.26  2004/04/25 21:26:16  florian
     * some m68k stuff fixed
 
   Revision 1.25  2004/04/18 21:13:59  florian

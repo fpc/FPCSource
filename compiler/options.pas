@@ -1733,6 +1733,7 @@ begin
 {$endif}
 {$ifdef m68k}
   def_symbol('CPU68K');
+  def_symbol('CPUM68K');
   def_symbol('CPU32');
   def_symbol('FPC_CURRENCY_IS_INT64');
   def_symbol('FPC_COMP_IS_INT64');
@@ -2047,7 +2048,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.133  2004-04-04 18:46:09  olle
+  Revision 1.134  2004-05-06 20:30:51  florian
+    * m68k compiler compilation fixed
+
+  Revision 1.133  2004/04/04 18:46:09  olle
     + added $APPTYPE TOOL for MPW tools on MacOS
 
   Revision 1.132  2004/03/29 19:19:35  florian

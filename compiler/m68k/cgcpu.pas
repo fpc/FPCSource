@@ -35,6 +35,8 @@ unit cgcpu;
 
     type
       tcg68k = class(tcg)
+          procedure init_register_allocators;override;
+          procedure done_register_allocators;override;
           procedure a_call_name(list : taasmoutput;const s : string);override;
           procedure a_call_reg(list : taasmoutput;reg : tregister);override;
           procedure a_load_const_reg(list : taasmoutput;size : tcgsize;a : aword;register : tregister);override;
@@ -170,17 +172,41 @@ unit cgcpu;
 {****************************************************************************}
 {                               TCG68K                                       }
 {****************************************************************************}
+    procedure tcg68k.init_register_allocators;
+      begin
+        inherited init_register_allocators;
+        rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
+          [RS_D0,RS_D1,RS_D2,RS_D3,RS_D4,RS_D5,RS_D6,RS_D7],
+          first_int_imreg,[]);
+        rg[R_ADDRESSREGISTER]:=trgcpu.create(R_ADDRESSREGISTER,R_SUBWHOLE,
+          [RS_A0,RS_A1,RS_A2,RS_A3,RS_A4,RS_A5,RS_A6],
+          first_addr_imreg,[]);
+        rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
+          [RS_FP0,RS_FP1,RS_FP2,RS_FP3,RS_FP4,RS_FP5,RS_FP6,RS_FP7],
+          first_fpu_imreg,[]);
+      end;
+
+
+    procedure tcg68k.done_register_allocators;
+      begin
+        rg[R_INTREGISTER].free;
+        rg[R_FPUREGISTER].free;
+        rg[R_ADDRESSREGISTER].free;
+        inherited done_register_allocators;
+      end;
+
+
     function tcg68k.fixref(list: taasmoutput; var ref: treference): boolean;
 
        begin
-         result := false;
+         result:=false;
          { The Coldfire and MC68020+ have extended
            addressing capabilities with a 32-bit
            displacement.
          }
-         if (aktoptprocessor <> MC68000) then
+         if (aktoptprocessor<>MC68000) then
            exit;
-         if (ref.base<> NR_NO) then
+         if (ref.base<>NR_NO) then
            begin
              if (ref.index <> NR_NO) and assigned(ref.symbol) then
                 internalerror(20020814);
@@ -245,6 +271,7 @@ unit cgcpu;
          end;
       end;
 
+
     procedure tcg68k.a_load_reg_ref(list : taasmoutput;fromsize,tosize : tcgsize;register : tregister;const ref : treference);
       var
        href : treference;
@@ -255,6 +282,7 @@ unit cgcpu;
          list.concat(taicpu.op_reg_ref(A_MOVE,TCGSize2OpSize[fromsize],register,href));
       end;
 
+
     procedure tcg68k.a_load_reg_reg(list : taasmoutput;fromsize,tosize : tcgsize;reg1,reg2 : tregister);
       begin
          { move to destination register }
@@ -262,6 +290,7 @@ unit cgcpu;
          { zero/sign extend register to 32-bit }
          sign_extend(list, fromsize, reg2);
       end;
+
 
     procedure tcg68k.a_load_ref_reg(list : taasmoutput;fromsize,tosize : tcgsize;const ref : treference;register : tregister);
       var
@@ -287,6 +316,7 @@ unit cgcpu;
         fixref(list, href);
         list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,r));
       end;
+
 
     procedure tcg68k.a_loadfpu_reg_reg(list: taasmoutput; size: tcgsize; reg1, reg2: tregister);
       begin
@@ -331,20 +361,24 @@ unit cgcpu;
           list.concat(taicpu.op_reg_ref(A_FMOVE,opsize,reg, ref));
       end;
 
+
     procedure tcg68k.a_loadmm_reg_reg(list: taasmoutput;fromsize,tosize : tcgsize; reg1, reg2: tregister;shuffle : pmmshuffle);
       begin
         internalerror(20020729);
       end;
+
 
     procedure tcg68k.a_loadmm_ref_reg(list: taasmoutput;fromsize,tosize : tcgsize; const ref: treference; reg: tregister;shuffle : pmmshuffle);
       begin
         internalerror(20020729);
       end;
 
+
     procedure tcg68k.a_loadmm_reg_ref(list: taasmoutput;fromsize,tosize : tcgsize; reg: tregister; const ref: treference;shuffle : pmmshuffle);
       begin
         internalerror(20020729);
       end;
+
 
     procedure tcg68k.a_parammm_reg(list: taasmoutput; size: tcgsize; reg: tregister;const locpara : tparalocation;shuffle : pmmshuffle);
       begin
@@ -500,6 +534,7 @@ unit cgcpu;
             internalerror(20020729);
          end;
       end;
+
 
     procedure tcg68k.a_op_reg_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; reg1, reg2: TRegister);
       var
@@ -883,12 +918,11 @@ unit cgcpu;
                    a_load_ref_reg(list,OS_8,OS_8,srcref,hregister);
                    a_load_reg_ref(list,OS_8,OS_8,hregister,dstref);
                 end
-
            end
          else
            begin
-              iregister := getaddressregister(list);
-              jregister := getaddressregister(list);
+              iregister:=getaddressregister(list);
+              jregister:=getaddressregister(list);
               { reference for move (An)+,(An)+ }
               reference_reset(hp1);
               hp1.base := iregister;   { source register }
@@ -1028,7 +1062,7 @@ unit cgcpu;
             { return with immediate size possible here
               signed!
               RTD is not supported on the coldfire     }
-            if (aktoptprocessor = MC68020) and (parasize < $7FFF) then
+            if (aktoptprocessor=MC68020) and (parasize<$7FFF) then
                 list.concat(taicpu.op_const(A_RTD,S_NO,parasize))
             { manually restore the stack }
             else
@@ -1038,7 +1072,7 @@ unit cgcpu;
                 { point to nowhere!                                   }
 
                 { save the PC counter (pop it from the stack)         }
-                hregister := getaddressregister(list);
+                hregister:=getaddressregister(list);
                 reference_reset_base(ref,NR_STACK_POINTER_REG,0);
                 ref.direction:=dir_inc;
                 list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));
@@ -1066,7 +1100,6 @@ unit cgcpu;
         tosave : tcpuregisterset;
         ref : treference;
       begin
-
         tosave:=std_saved_registers;
         { only save the registers which are not used and must be saved }
         tosave:=tosave*(rg[R_INTREGISTER].used_in_proc+rg[R_ADDRESSREGISTER].used_in_proc);
@@ -1276,7 +1309,10 @@ end.
 
 {
   $Log$
-  Revision 1.24  2004-04-19 21:15:12  florian
+  Revision 1.25  2004-05-06 20:30:51  florian
+    * m68k compiler compilation fixed
+
+  Revision 1.24  2004/04/19 21:15:12  florian
     * fixed compilation
 
   Revision 1.23  2004/04/18 21:13:59  florian

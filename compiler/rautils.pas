@@ -77,7 +77,7 @@ type
       OPR_LOCAL     : (localsym:tvarsym;localsymofs:longint;localindexreg:tregister;localscale:byte;localgetoffset:boolean);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
-      OPR_REGLIST   : (reglist:Tsupregset);
+      OPR_REGLIST   : (regset : tcpuregisterset);
 {$endif m68k}
 {$ifdef powerpc}
       OPR_COND      : (cond : tasmcond);
@@ -1083,25 +1083,25 @@ Begin
 end;
 
 
-Procedure TInstruction.Swapoperands;
-Var
-  p : toperand;
-Begin
-  case Ops of
-   2 :
-    begin
-      p:=Operands[1];
-      Operands[1]:=Operands[2];
-      Operands[2]:=p;
+  Procedure TInstruction.Swapoperands;
+    Var
+      p : toperand;
+    Begin
+      case Ops of
+       2 :
+        begin
+          p:=Operands[1];
+          Operands[1]:=Operands[2];
+          Operands[2]:=p;
+        end;
+       3 :
+        begin
+          p:=Operands[1];
+          Operands[1]:=Operands[3];
+          Operands[3]:=p;
+        end;
+      end;
     end;
-   3 :
-    begin
-      p:=Operands[1];
-      Operands[1]:=Operands[3];
-      Operands[3]:=p;
-    end;
-  end;
-end;
 
 
   function TInstruction.ConcatInstruction(p:TAAsmoutput) : tai;
@@ -1632,7 +1632,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.85  2004-03-23 22:34:49  peter
+  Revision 1.86  2004-05-06 20:30:51  florian
+    * m68k compiler compilation fixed
+
+  Revision 1.85  2004/03/23 22:34:49  peter
     * constants ordinals now always have a type assigned
     * integer constants have the smallest type, unsigned prefered over
       signed

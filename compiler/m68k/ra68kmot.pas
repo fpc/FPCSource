@@ -1528,7 +1528,7 @@ type
                         end
                        else
                           Message1(sym_e_unknown_id,actasmpattern);
-                          
+
                      expr := actasmpattern;
                      Consume(AS_ID);
                        case actasmtoken of
@@ -1538,7 +1538,7 @@ type
                        else
                           Message(asmr_e_syntax_error);
                        end;
-                          
+
                    end;
                end;
              end;
@@ -1753,21 +1753,21 @@ type
                                 TM68kInstruction
 *****************************************************************************}
 
-type
-  TM68kInstruction=class(TInstruction)
-    procedure InitOperands;override;
-    procedure BuildOpcode;override;
-    procedure ConcatInstruction(p : taasmoutput);override;
-    Procedure ConcatLabeledInstr(p : taasmoutput);
-  end;
+    type
+      TM68kInstruction=class(TInstruction)
+        procedure InitOperands;override;
+        procedure BuildOpcode;override;
+        procedure ConcatInstruction(p : taasmoutput);override;
+        Procedure ConcatLabeledInstr(p : taasmoutput);
+      end;
 
     procedure TM68kInstruction.InitOperands;
-    var
-      i : longint;
-    begin
-      for i:=1 to max_operands do
-       Operands[i]:=TM68kOperand.Create;
-    end;
+      var
+        i : longint;
+      begin
+        for i:=1 to max_operands do
+         Operands[i]:=TM68kOperand.Create;
+      end;
 
 
   Procedure TM68kInstruction.BuildOpCode;
@@ -2269,7 +2269,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.14  2004-03-02 00:36:33  olle
+  Revision 1.3  2004-05-06 20:30:51  florian
+    * m68k compiler compilation fixed
+
+  Revision 1.14  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.13  2003/02/19 22:00:16  daniel
