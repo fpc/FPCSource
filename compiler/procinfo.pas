@@ -199,15 +199,8 @@ implementation
 
 
     function tprocinfo.calc_stackframe_size:longint;
-      var
-        _align : longint;
       begin
-        { align to 4 bytes at least
-          otherwise all those subl $2,%esp are meaningless PM }
-        _align:=target_info.alignment.localalignmin;
-        if _align<4 then
-          _align:=4;
-        result:=Align(tg.direction*tg.lasttemp,_align);
+        result:=Align(tg.direction*tg.lasttemp,aktalignment.localalignmin);
       end;
 
 
@@ -227,7 +220,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2003-10-01 20:34:49  peter
+  Revision 1.2  2003-10-03 22:00:33  peter
+    * parameter alignment fixes
+
+  Revision 1.1  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

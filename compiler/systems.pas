@@ -186,7 +186,6 @@ interface
          varalignmax,
          localalignmin,
          localalignmax,
-         paraalign,
          recordalignmin,
          recordalignmax,
          maxCrecordalign : longint;
@@ -489,8 +488,6 @@ begin
      if (localalignmax=0) or
         ((s.localalignmax>0) and (s.localalignmax<localalignmax)) then
       localalignmax:=s.localalignmax;
-     if s.paraalign>paraalign then
-      paraalign:=s.paraalign;
      if s.recordalignmin>recordalignmin then
       recordalignmin:=s.recordalignmin;
      if (recordalignmax=0) or
@@ -696,7 +693,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.69  2003-10-02 21:17:08  peter
+  Revision 1.70  2003-10-03 22:00:33  peter
+    * parameter alignment fixes
+
+  Revision 1.69  2003/10/02 21:17:08  peter
     * use as,ld,ar instead of asw,ldw,arw for win32
 
   Revision 1.68  2003/09/05 17:41:13  florian

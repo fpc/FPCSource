@@ -33,20 +33,36 @@ unit cpupi;
 
     type
        ti386procinfo = class(tcgprocinfo)
+         function calc_stackframe_size:longint;override;
        end;
 
 
   implementation
 
     uses
+      cutils,
+      globals,
+      tgobj,
       procinfo;
+
+    function ti386procinfo.calc_stackframe_size:longint;
+      begin
+        { align to 4 bytes at least
+          otherwise all those subl $2,%esp are meaningless PM }
+        result:=Align(tg.direction*tg.lasttemp,min(aktalignment.localalignmin,4));
+      end;
+
+
 
 begin
    cprocinfo:=ti386procinfo;
 end.
 {
   $Log$
-  Revision 1.14  2003-10-01 20:34:49  peter
+  Revision 1.15  2003-10-03 22:00:33  peter
+    * parameter alignment fixes
+
+  Revision 1.14  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

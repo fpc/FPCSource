@@ -160,7 +160,7 @@ interface
           procedure insert_typeconv(do_count : boolean);
           procedure det_registers;
           procedure firstcallparan(do_count : boolean);
-          procedure secondcallparan(calloption:tproccalloption;alignment:byte);virtual;abstract;
+          procedure secondcallparan;virtual;abstract;
           function docompare(p: tnode): boolean; override;
           procedure printnodetree(var t:text);override;
        end;
@@ -2544,7 +2544,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.187  2003-10-03 14:44:38  peter
+  Revision 1.188  2003-10-03 22:00:33  peter
+    * parameter alignment fixes
+
+  Revision 1.187  2003/10/03 14:44:38  peter
     * fix IE when callnode was firstpassed twice
 
   Revision 1.186  2003/10/02 21:13:46  peter

@@ -37,9 +37,9 @@ interface
           tempparaloc : tparalocation;
           procedure allocate_tempparaloc;
           procedure push_addr_para;
-          procedure push_value_para(calloption:tproccalloption;alignment:byte);
+          procedure push_value_para;
        public
-          procedure secondcallparan(calloption:tproccalloption;alignment:byte);override;
+          procedure secondcallparan;override;
        end;
 
        tcgcallnode = class(tcallnode)
@@ -120,10 +120,11 @@ implementation
         location_release(exprasmlist,left.location);
         allocate_tempparaloc;
         cg.a_paramaddr_ref(exprasmlist,left.location.reference,tempparaloc);
+        inc(pushedparasize,POINTER_SIZE);
       end;
 
 
-    procedure tcgcallparanode.push_value_para(calloption:tproccalloption;alignment:byte);
+    procedure tcgcallparanode.push_value_para;
       var
         href : treference;
 {$ifdef i386}
@@ -173,7 +174,7 @@ implementation
                    begin
                       if tempparaloc.loc<>LOC_REFERENCE then
                         internalerror(200309291);
-                      size:=align(tfloatdef(left.resulttype.def).size,alignment);
+                      size:=align(tfloatdef(left.resulttype.def).size,aktcallnode.procdefinition.paraalign);
                       inc(pushedparasize,size);
                       cg.g_stackpointer_alloc(exprasmlist,size);
                       reference_reset_base(href,NR_STACK_POINTER_REG,0);
@@ -182,12 +183,12 @@ implementation
                  LOC_REFERENCE,
                  LOC_CREFERENCE :
                    begin
-                     sizetopush:=align(left.resulttype.def.size,alignment);
+                     sizetopush:=align(left.resulttype.def.size,aktcallnode.procdefinition.paraalign);
                      tempreference:=left.location.reference;
                      inc(tempreference.offset,sizetopush);
                      while (sizetopush>0) do
                       begin
-                        if sizetopush>=4 then
+                        if (sizetopush>=4) or (aktcallnode.procdefinition.paraalign>=4) then
                          begin
                            cgsize:=OS_32;
                            inc(pushedparasize,4);
@@ -224,7 +225,8 @@ implementation
         else
          begin
            { copy the value on the stack or use normal parameter push? }
-           if paramanager.copy_value_on_stack(paraitem.paratyp,left.resulttype.def,calloption) then
+           if paramanager.copy_value_on_stack(paraitem.paratyp,left.resulttype.def,
+                  aktcallnode.procdefinition.proccalloption) then
             begin
               location_release(exprasmlist,left.location);
               allocate_tempparaloc;
@@ -234,7 +236,7 @@ implementation
               if not (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                 internalerror(200204241);
               { push on stack }
-              size:=align(left.resulttype.def.size,alignment);
+              size:=align(left.resulttype.def.size,aktcallnode.procdefinition.paraalign);
               inc(pushedparasize,size);
               cg.g_stackpointer_alloc(exprasmlist,size);
               reference_reset_base(href,NR_STACK_POINTER_REG,0);
@@ -278,7 +280,7 @@ implementation
                      begin
                        location_release(exprasmlist,left.location);
                        allocate_tempparaloc;
-                       inc(pushedparasize,alignment);
+                       inc(pushedparasize,aktcallnode.procdefinition.paraalign);
 (*
                        if calloption=pocall_inline then
                         begin
@@ -323,7 +325,7 @@ implementation
 
 
 
-    procedure tcgcallparanode.secondcallparan(calloption:tproccalloption;alignment:byte);
+    procedure tcgcallparanode.secondcallparan;
       var
          otlabel,
          oflabel : tasmlabel;
@@ -334,8 +336,8 @@ implementation
 
          { push from left to right if specified }
          if assigned(right) and
-            (calloption in pushleftright_pocalls) then
-           tcallparanode(right).secondcallparan(calloption,alignment);
+            (aktcallnode.procdefinition.proccalloption in pushleftright_pocalls) then
+           tcallparanode(right).secondcallparan;
 
          otlabel:=truelabel;
          oflabel:=falselabel;
@@ -346,10 +348,11 @@ implementation
          { handle varargs first, because defcoll is not valid }
          if (nf_varargs_para in flags) then
            begin
-             if paramanager.push_addr_param(vs_value,left.resulttype.def,calloption) then
+             if paramanager.push_addr_param(vs_value,left.resulttype.def,
+                    aktcallnode.procdefinition.proccalloption) then
                push_addr_para
              else
-               push_value_para(calloption,alignment);
+               push_value_para;
            end
          { hidden parameters }
          else if paraitem.is_hidden then
@@ -358,10 +361,11 @@ implementation
                by address for implicit hidden parameters }
              if (vo_is_funcret in tvarsym(paraitem.parasym).varoptions) or
                 (not(left.resulttype.def.deftype in [pointerdef,classrefdef]) and
-                 paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,calloption)) then
+                 paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,
+                     aktcallnode.procdefinition.proccalloption)) then
                push_addr_para
              else
-               push_value_para(calloption,alignment);
+               push_value_para;
            end
          { filter array of const c styled args }
          else if is_array_of_const(left.resulttype.def) and (nf_cargs in left.flags) then
@@ -398,7 +402,8 @@ implementation
                      paraitem.is_hidden and
                      (left.resulttype.def.deftype in [pointerdef,classrefdef])
                     ) and
-                 paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,calloption)) then
+                 paramanager.push_addr_param(paraitem.paratyp,paraitem.paratype.def,
+                     aktcallnode.procdefinition.proccalloption)) then
                begin
                   { Check for passing a constant to var,out parameter }
                   if (paraitem.paratyp in [vs_var,vs_out]) and
@@ -416,7 +421,7 @@ implementation
                   push_addr_para;
                end
              else
-               push_value_para(calloption,alignment);
+               push_value_para;
            end;
          truelabel:=otlabel;
          falselabel:=oflabel;
@@ -428,8 +433,8 @@ implementation
 
          { push from right to left }
          if assigned(right) and
-            not(calloption in pushleftright_pocalls) then
-           tcallparanode(right).secondcallparan(calloption,alignment);
+            not(aktcallnode.procdefinition.proccalloption in pushleftright_pocalls) then
+           tcallparanode(right).secondcallparan;
       end;
 
 
@@ -624,7 +629,6 @@ implementation
          iolabel : tasmlabel;
          { help reference pointer }
          href : treference;
-         para_alignment,
          pop_size : longint;
          pvreg,
          vmtreg,vmtreg2 : tregister;
@@ -712,12 +716,6 @@ implementation
                end;
            end;
 
-
-         if (procdefinition.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_stdcall]) then
-           para_alignment:=4
-         else
-           para_alignment:=aktalignment.paraalign;
-
         regs_to_alloc:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
         regs_to_push_other:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
 
@@ -753,7 +751,7 @@ implementation
          oldaktcallnode:=aktcallnode;
          aktcallnode:=self;
          if assigned(left) then
-           tcallparanode(left).secondcallparan(procdefinition.proccalloption,procdefinition.paraalign);
+           tcallparanode(left).secondcallparan;
          aktcallnode:=oldaktcallnode;
 
          { Align stack if required }
@@ -1161,7 +1159,7 @@ implementation
          oldaktcallnode:=aktcallnode;
          aktcallnode:=self;
          if assigned(left) then
-           tcallparanode(left).secondcallparan(procdefinition.proccalloption,0);
+           tcallparanode(left).secondcallparan;
          aktcallnode:=oldaktcallnode;
 
 //         rg.saveotherregvars(exprasmlist,regs_to_push_other);
@@ -1309,7 +1307,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.123  2003-10-01 20:34:48  peter
+  Revision 1.124  2003-10-03 22:00:33  peter
+    * parameter alignment fixes
+
+  Revision 1.123  2003/10/01 20:34:48  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

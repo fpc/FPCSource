@@ -44,6 +44,7 @@ unit cpupara;
        ti386paramanager = class(tparamanager)
           function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
+          function get_para_align(calloption : tproccalloption):byte;override;
           function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
@@ -138,6 +139,20 @@ unit cpupara;
             end;
           end;
         result:=inherited push_addr_param(varspez,def,calloption);
+      end;
+
+
+    function ti386paramanager.get_para_align(calloption : tproccalloption):byte;
+      begin
+        if calloption=pocall_oldfpccall then
+          begin
+            if target_info.system in [system_i386_go32v2,system_i386_watcom] then
+              result:=2
+            else
+              result:=4;
+          end
+        else
+          result:=std_param_align;
       end;
 
 
@@ -266,6 +281,7 @@ unit cpupara;
             else
               paraloc.size:=def_cgsize(hp.paratype.def);
             paraloc.loc:=LOC_REFERENCE;
+            paraloc.alignment:=p.paraalign;
             paraloc.reference.index:=NR_FRAME_POINTER_REG;
             l:=push_size(hp.paratyp,hp.paratype.def,p.proccalloption);
             varalign:=size_2_align(l);
@@ -304,6 +320,7 @@ unit cpupara;
               paraloc.size:=OS_ADDR
             else
               paraloc.size:=def_cgsize(hp.paratype.def);
+            paraloc.alignment:=p.paraalign;
             is_64bit:=(paraloc.size in [OS_64,OS_S64,OS_F64]);
             {
               EAX
@@ -326,6 +343,7 @@ unit cpupara;
                   subreg:=R_SUBWHOLE
                 else
                   subreg:=cgsize2subreg(paraloc.size);
+                paraloc.alignment:=p.paraalign;
                 paraloc.register:=newreg(R_INTREGISTER,parasupregs[parareg],subreg);
                 inc(parareg);
               end
@@ -381,7 +399,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2003-10-01 20:34:49  peter
+  Revision 1.36  2003-10-03 22:00:33  peter
+    * parameter alignment fixes
+
+  Revision 1.35  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

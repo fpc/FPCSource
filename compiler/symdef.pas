@@ -440,6 +440,7 @@ interface
           procedure  ppuwrite(ppufile:tcompilerppufile);override;
           procedure deref;override;
           procedure releasemem;
+          procedure set_calloption(calloption:tproccalloption);
           function  concatpara(afterpara:tparaitem;const tt:ttype;sym : tsym;defval:tsym;vhidden:boolean):tparaitem;
           function  insertpara(const tt:ttype;sym : tsym;defval:tsym;vhidden:boolean):tparaitem;
           procedure removepara(currpara:tparaitem);
@@ -3093,7 +3094,7 @@ implementation
          parast.defowner:=self;
          parast.next:=owner;
          para:=TLinkedList.Create;
-         paraalign:=aktalignment.paraalign;
+         paraalign:=std_param_align;
          minparacount:=0;
          maxparacount:=0;
          proctypeoption:=potype_none;
@@ -3130,6 +3131,14 @@ implementation
         para:=nil;
         parast.free;
         parast:=nil;
+      end;
+
+
+    procedure tabstractprocdef.set_calloption(calloption:tproccalloption);
+      begin
+        proccalloption:=calloption;
+        { Update parameter alignment }
+        paraalign:=paramanager.get_para_align(proccalloption);
       end;
 
 
@@ -5900,7 +5909,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.169  2003-10-02 21:19:42  peter
+  Revision 1.170  2003-10-03 22:00:33  peter
+    * parameter alignment fixes
+
+  Revision 1.169  2003/10/02 21:19:42  peter
     * protected visibility fixes
 
   Revision 1.168  2003/10/01 20:34:49  peter

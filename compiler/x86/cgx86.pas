@@ -347,7 +347,7 @@ unit cgx86;
                 OS_8,OS_S8,
                 OS_16,OS_S16:
                   begin
-                    if target_info.alignment.paraalign = 2 then
+                    if locpara.alignment = 2 then
                       list.concat(taicpu.op_reg(A_PUSH,S_W,rg.makeregsize(r,OS_16)))
                     else
                       list.concat(taicpu.op_reg(A_PUSH,S_L,rg.makeregsize(r,OS_32)));
@@ -379,7 +379,7 @@ unit cgx86;
               case size of
                 OS_8,OS_S8,OS_16,OS_S16:
                   begin
-                    if target_info.alignment.paraalign = 2 then
+                    if locpara.alignment = 2 then
                       list.concat(taicpu.op_const(A_PUSH,S_W,a))
                     else
                       list.concat(taicpu.op_const(A_PUSH,S_L,a));
@@ -412,7 +412,7 @@ unit cgx86;
                 OS_8,OS_S8,
                 OS_16,OS_S16:
                   begin
-                    if target_info.alignment.paraalign = 2 then
+                    if locpara.alignment = 2 then
                       pushsize:=OS_16
                     else
                       pushsize:=OS_32;
@@ -1601,7 +1601,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.71  2003-10-03 14:45:37  peter
+  Revision 1.72  2003-10-03 22:00:33  peter
+    * parameter alignment fixes
+
+  Revision 1.71  2003/10/03 14:45:37  peter
     * save ESP after pusha and restore before popa for save all registers
 
   Revision 1.70  2003/10/01 20:34:51  peter

@@ -967,7 +967,7 @@ begin
           begin
             Message1(parser_w_not_supported_for_inline,'array of const');
             Message(parser_w_inlining_disabled);
-            pd.proccalloption:=pocall_default;
+            pd.set_calloption(pocall_default);
           end;
       end;
      hp:=tparaitem(hp.next);
@@ -1583,7 +1583,7 @@ const
                 proccalloptionStr[pd.proccalloption],
                 proccalloptionStr[proc_direcdata[p].pocall]);
             end;
-           pd.proccalloption:=proc_direcdata[p].pocall;
+           pd.set_calloption(proc_direcdata[p].pocall);
            include(pd.procoptions,po_hascallingconvention);
          end;
 
@@ -1647,7 +1647,7 @@ const
       begin
         { set the default calling convention if none provided }
         if not(po_hascallingconvention in pd.procoptions) then
-          pd.proccalloption:=aktdefproccall
+          pd.set_calloption(aktdefproccall)
         else
           begin
             if pd.proccalloption=pocall_none then
@@ -1670,8 +1670,6 @@ const
                   end;
                  { check C cdecl para types }
                  pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_c_para,nil);
-                 { Adjust alignment to match cdecl or stdcall }
-                 pd.paraalign:=std_param_align;
                end;
             end;
           pocall_cppdecl :
@@ -1683,16 +1681,6 @@ const
                   tprocdef(pd).setmangledname(target_info.Cprefix+tprocdef(pd).cplusplusmangledname);
                  { check C cdecl para types }
                  pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_c_para,nil);
-                 { Adjust alignment to match cdecl or stdcall }
-                 pd.paraalign:=std_param_align;
-               end;
-            end;
-          pocall_stdcall :
-            begin
-              if (pd.deftype=procdef) then
-               begin
-                 { Adjust alignment to match cdecl or stdcall }
-                 pd.paraalign:=std_param_align;
                end;
             end;
           pocall_compilerproc :
@@ -1701,30 +1689,17 @@ const
                internalerror(200110232);
               tprocdef(pd).setmangledname(lower(tprocdef(pd).procsym.name));
             end;
-          pocall_register :
-            begin
-              { Adjust alignment to match cdecl or stdcall }
-              pd.paraalign:=std_param_align;
-            end;
           pocall_far16 :
             begin
               { Temporary stub, must be rewritten to support OS/2 far16 }
               Message1(parser_w_proc_directive_ignored,'FAR16');
-            end;
-          pocall_palmossyscall :
-            begin
-              if (pd.deftype=procdef) then
-               begin
-                 { Adjust positions of args for cdecl or stdcall }
-                 pd.paraalign:=std_param_align;
-               end;
             end;
           pocall_inline :
             begin
               if not(cs_support_inline in aktmoduleswitches) then
                begin
                  Message(parser_e_proc_inline_not_supported);
-                 pd.proccalloption:=pocall_default;
+                 pd.set_calloption(pocall_default);
                end;
             end;
         end;
@@ -2151,7 +2126,10 @@ const
 end.
 {
   $Log$
-  Revision 1.143  2003-10-02 21:13:09  peter
+  Revision 1.144  2003-10-03 22:00:33  peter
+    * parameter alignment fixes
+
+  Revision 1.143  2003/10/02 21:13:09  peter
     * procvar directive parsing fixes
 
   Revision 1.142  2003/10/01 19:05:33  peter

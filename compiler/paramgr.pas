@@ -70,6 +70,7 @@ unit paramgr;
             @param(list Current assembler list)
             @param(nr Parameter number of routine, starting from 1)
           }
+          function get_para_align(calloption : tproccalloption):byte;virtual;
           function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;virtual;
           function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;virtual;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;virtual;abstract;
@@ -248,6 +249,12 @@ implementation
       end;
 
 
+    function tparamanager.get_para_align(calloption : tproccalloption):byte;
+      begin
+        result:=std_param_align;
+      end;
+
+
     function tparamanager.get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;
       begin
         result:=[];
@@ -411,7 +418,10 @@ end.
 
 {
    $Log$
-   Revision 1.58  2003-10-01 20:34:49  peter
+   Revision 1.59  2003-10-03 22:00:33  peter
+     * parameter alignment fixes
+
+   Revision 1.58  2003/10/01 20:34:49  peter
      * procinfo unit contains tprocinfo
      * cginfo renamed to cgbase
      * moved cgmessage to verbose

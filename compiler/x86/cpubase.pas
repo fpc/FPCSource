@@ -263,6 +263,7 @@ uses
       tparalocation = packed record
          size : TCGSize;
          loc  : TCGLoc;
+         alignment : byte;
          case TCGLoc of
             LOC_REFERENCE : (reference : tparareference);
             { segment in reference at the same place as in loc_register }
@@ -558,7 +559,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2003-10-01 20:34:51  peter
+  Revision 1.23  2003-10-03 22:00:33  peter
+    * parameter alignment fixes
+
+  Revision 1.22  2003/10/01 20:34:51  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -138,7 +138,7 @@ interface
        { directory where the utils can be found (options -FD) }
        utilsdirectory : dirstr;
        { targetname specific prefix used by these utils (options -XP<path>) }
-       utilsprefix    : dirstr; 
+       utilsprefix    : dirstr;
 
        { some flags for global compiler switches }
        do_build,
@@ -1513,8 +1513,6 @@ implementation
            b.recordalignmin:=l
           else if tok='RECORDMAX' then
            b.recordalignmax:=l
-          else if tok='PARAALIGN' then
-           b.paraalign:=l
           else { Error }
            UpdateAlignmentStr:=false;
         until false;
@@ -1527,6 +1525,7 @@ implementation
         siz := size_2_align(siz);
         var_align := used_align(siz,aktalignment.varalignmin,aktalignment.varalignmax);
       end;
+
 
     function const_align(siz: longint): longint;
       begin
@@ -1611,7 +1610,7 @@ implementation
 
       { Utils directory }
         utilsdirectory:='';
-	utilsprefix:='';
+        utilsprefix:='';
 
       { Search Paths }
         librarysearchpath:=TSearchPathList.Create;
@@ -1707,7 +1706,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.106  2003-10-03 14:16:48  marco
+  Revision 1.107  2003-10-03 22:00:33  peter
+    * parameter alignment fixes
+
+  Revision 1.106  2003/10/03 14:16:48  marco
    * -XP<prefix> support
 
   Revision 1.105  2003/10/02 21:16:18  peter
