@@ -453,7 +453,7 @@ begin
       PByte(ResultAddress+Size)^:=0;
       end;
     end;
-  Copy:=AnsiString(ResultAddress);
+  Pointer(Copy):=ResultAddress;
 end;
 
 
@@ -714,7 +714,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-11-17 11:33:22  peter
+  Revision 1.3  1998-11-17 12:16:07  michael
+  + Fixed copy. Now reference count is correct
+
+  Revision 1.2  1998/11/17 11:33:22  peter
     + several checks for empty string
 
   Revision 1.1  1998/11/17 10:34:18  michael
