@@ -79,6 +79,10 @@ type
     invalid_breakpoint_line : boolean;
     constructor Init;
     destructor  Done;
+    procedure clear_frames;
+    { Highlevel }
+    user_screen_shown,
+    switch_to_user     : boolean;
     { functions }
     function  error:boolean;
     function  error_num:longint;
@@ -90,7 +94,6 @@ type
     procedure DoDebuggerScreen;virtual;
     procedure DoUserScreen;virtual;
     function  AllowQuit : boolean;virtual;
-
   end;
 
 function  GDBVersion : string;
@@ -129,6 +132,11 @@ function tgdbinterface.error_num:longint;
 begin
   error_num:=0;
 end;
+
+procedure TGDBInterface.Clear_Frames;
+begin
+end;
+
 
 procedure TGDBInterface.DoSelectSourceline(const fn:string;line:longint);
 begin
@@ -266,7 +274,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-08-17 13:25:17  peter
+  Revision 1.5  1999-09-10 08:44:20  peter
+    * updated
+
+  Revision 1.4  1999/08/17 13:25:17  peter
     * updates with the compiler browcol
 
   Revision 1.3  1999/07/13 11:25:57  peter
