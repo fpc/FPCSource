@@ -52,7 +52,7 @@ implementation
 
 {$DEFINE HAS_GETMSCOUNT}
 {$DEFINE HAS_GETCBREAK}
-{$DEFINE HAS_SETSBREAK}
+{$DEFINE HAS_SETCBREAK}
 
 {$DEFINE FPC_FEXPAND_VOLUMES} (* Full paths begin with drive specification *)
 {$DEFINE FPC_FEXPAND_DRIVESEP_IS_ROOT}
@@ -87,6 +87,9 @@ const
 {******************************************************************************
                            --- Internal routines ---
 ******************************************************************************}
+
+{ * PathConv is implemented in the system unit! * }
+function PathConv(path: string): string; external name 'PATHCONV';
 
 function dosLock(const name: String;
                  accessmode: Longint) : LongInt;
@@ -517,7 +520,7 @@ var
    devicenames : array[1..20] of string[20];
    numberofdevices : Byte;
 
-Function DiskFree(Drive: Byte): Longint;
+Function DiskFree(Drive: Byte): int64;
 Var
   MyLock      : LongInt;
   Inf         : pInfoData;
@@ -548,7 +551,7 @@ end;
 
 
 
-Function DiskSize(Drive: Byte): Longint;
+Function DiskSize(Drive: Byte): int64;
 Var
   MyLock      : LongInt;
   Inf         : pInfoData;
@@ -577,66 +580,22 @@ Begin
 end;
 
 
-
-
-Procedure FindFirst(Path: PathStr; Attr: Word; Var f: SearchRec);
+Procedure FindFirst(const Path: PathStr; Attr: Word; Var f: SearchRec);
 var
- buf: Array[0..255] of char;
- Anchor : pAnchorPath;
- Result : Longint;
+ tmpStr: Array[0..255] of char;
+ Anchor: pAnchorPath;
+ Result: Longint;
  index : Integer;
  s     : string;
  j     : integer;
 Begin
+ tmpStr:=PathConv(path)+#0;
  DosError:=0;
- New(Anchor);
- {----- allow backslash as slash         -----}
- for index:=1 to length(path) do
-   if path[index]='\' then path[index]:='/';
- { remove any dot characters and replace by their current }
- { directory equivalent.                                  }
- if pos('../',path) = 1 then
-   begin
-     getdir(0,s);
-     while pos('../',path) = 1 do
-     { look for parent directory }
-      Begin
-         delete(path,1,3);
-         j:=length(s);
-         while (s[j] <> '/') AND (s[j] <> ':') AND (j > 0 ) do
-           dec(j);
-         if j > 0 then
-           s:=copy(s,1,j-1);
-      end;
-     if (length(s) <> 0) and (s[length(s)] <> ':') then
-       s:=s + '/';
-     path:=s+path;
-  end
- else
- if pos('./',path) = 1 then
- { look for current directory }
-    Begin
-       delete(path,1,2);
-       getdir(0,s);
-       if (s[length(s)] <> '/') and (s[length(s)] <> ':') then
-          s:=s+'/';
-       path:=s+path;
-    end;
- {----- replace * by #? AmigaOs strings  -----}
- repeat
-  index:= pos('*',Path);
-  if index <> 0 then
-   Begin
-     delete(Path,index,1);
-     insert('#?',Path,index);
-   end;
- until index =0;
- {--------------------------------------------}
- FillChar(Anchor^,sizeof(TAnchorPath),#0);
- move(path[1],buf,length(path));
- buf[length(path)]:=#0;
 
- Result:=MatchFirst(@buf,Anchor);
+ New(Anchor);
+ FillChar(Anchor^,sizeof(TAnchorPath),#0);
+
+ Result:=MatchFirst(@tmpStr,Anchor);
  f.AnchorPtr:=Anchor;
  if Result = ERROR_NO_MORE_ENTRIES then
    DosError:=18
@@ -657,7 +616,7 @@ Begin
  { something else, if the it does not match the mask we are looking  }
  { for we should go to the next file or directory.                   }
  {-------------------------------------------------------------------}
-   Begin
+   begin
          with Anchor^.ap_Info do
           Begin
              f.Time := fib_Date.ds_Days * (24 * 60 * 60) +
@@ -986,7 +945,7 @@ end;
   End;
 
 
- Function EnvStr(Index: Integer): String;
+ Function EnvStr(Index: LongInt): String;
   Begin
     EnvStr:='';
   End;
@@ -1073,7 +1032,12 @@ End.
 
 {
   $Log$
-  Revision 1.11  2004-12-05 16:44:43  hajny
+  Revision 1.12  2004-12-06 20:01:20  karoly
+
+    * made it compile again after changes by Tomas
+    * cleaned up FindFirst mess (still more things to do, as usual)
+
+  Revision 1.11  2004/12/05 16:44:43  hajny
     * GetMsCount added, platform independent routines moved to single include file
 
   Revision 1.10  2004/11/23 02:57:58  karoly
