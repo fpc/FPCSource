@@ -20,4 +20,6 @@ begin
   Until (NumRead=0) or (NumWritten<>NumRead);
   Write ('Copied ',Total,' bytes from file ',paramstr(1));
   Writeln (' to file ',paramstr(2));
+  close(fin);
+  close(fout);
 end.
