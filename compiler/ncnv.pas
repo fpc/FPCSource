@@ -1371,9 +1371,19 @@ implementation
                         { check if the types are related }
                         if (not(tobjectdef(left.resulttype.def).is_related(tobjectdef(resulttype.def)))) and
                            (not(tobjectdef(resulttype.def).is_related(tobjectdef(left.resulttype.def)))) then
-                          CGMessage2(type_w_classes_not_related,
-                            FullTypeName(left.resulttype.def,resulttype.def),
-                            FullTypeName(resulttype.def,left.resulttype.def));
+                          begin
+                            { Give an error when typecasting class to interface, this is compatible
+                              with delphi }
+                            if is_interface(resulttype.def) and
+                               not is_interface(left.resulttype.def) then
+                              CGMessage2(type_e_classes_not_related,
+                                FullTypeName(left.resulttype.def,resulttype.def),
+                                FullTypeName(resulttype.def,left.resulttype.def))
+                            else
+                              CGMessage2(type_w_classes_not_related,
+                                FullTypeName(left.resulttype.def,resulttype.def),
+                                FullTypeName(resulttype.def,left.resulttype.def))
+                          end;
                       end;
                    end
 
@@ -2455,7 +2465,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.154  2004-10-11 15:48:15  peter
+  Revision 1.155  2004-10-12 14:33:41  peter
+    * give error when converting class to interface are not related
+
+  Revision 1.154  2004/10/11 15:48:15  peter
     * small regvar for para fixes
     * function tvarsym.is_regvar added
     * tvarsym.getvaluesize removed, use getsize instead
