@@ -28,7 +28,8 @@ Interface
 
 Uses
   cutils,cclasses,
-  globtype,aasm,cpubase,symconst,symdef;
+  globtype,aasm,cpubase,
+  symconst,symbase,symtype,symdef;
 
 Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
@@ -97,7 +98,7 @@ type
     Function  SetupResult:boolean;virtual;
     Function  SetupSelf:boolean;
     Function  SetupOldEBP:boolean;
-    Function  SetupVar(const hs:string;GetOffset : boolean): Boolean;
+    Function  SetupVar(const s:string;GetOffset : boolean): Boolean;
     Function  SetupDirectVar(const hs:string): Boolean;
     Procedure InitRef;
   end;
@@ -182,6 +183,7 @@ Function EscapeToPascal(const s:string): string;
                      Symbol helper routines
 ---------------------------------------------------------------------}
 
+procedure AsmSearchSym(const s:string;var srsym:tsym;var srsymtable:tsymtable);
 Function GetRecordOffsetSize(s:string;Var Offset: longint;var Size:longint):boolean;
 Function SearchType(const hs:string): Boolean;
 Function SearchRecordType(const s:string): boolean;
@@ -215,7 +217,7 @@ uses
   strings,
 {$endif}
   types,systems,verbose,globals,
-  symbase,symtype,symsym,symtable,cpuasm
+  symsym,symtable,cpuasm
 {$ifdef NEWCG}
   ,cgbase;
 {$else}
@@ -781,7 +783,7 @@ Begin
 end;
 
 
-Function TOperand.SetupVar(const hs:string;GetOffset : boolean): Boolean;
+Function TOperand.SetupVar(const s:string;GetOffset : boolean): Boolean;
 { search and sets up the correct fields in the Instr record }
 { for the NON-constant identifier passed to the routine.    }
 { if not found returns FALSE.                               }
@@ -791,9 +793,8 @@ var
   harrdef : tarraydef;
 Begin
   SetupVar:=false;
-{ are we in a routine ? }
-  searchsym(hs,sym,srsymtable);
-  if sym=nil then
+  asmsearchsym(s,sym,srsymtable);
+  if sym = nil then
    exit;
   case sym.typ of
     varsym :
@@ -851,7 +852,7 @@ Begin
                      (lexlevel>normal_function_level) then
                     opr.ref.base:=procinfo^.parent^.framepointer
                   else
-                    message1(asmr_e_local_para_unreachable,hs);
+                    message1(asmr_e_local_para_unreachable,s);
                 end;
               opr.ref.offset:=tvarsym(sym).address;
               if (lexlevel=tvarsym(sym).owner.symtablelevel) then
@@ -890,7 +891,7 @@ Begin
                          (lexlevel>normal_function_level) then
                         opr.ref.base:=procinfo^.parent^.framepointer
                       else
-                        message1(asmr_e_local_para_unreachable,hs);
+                        message1(asmr_e_local_para_unreachable,s);
                     end;
                   opr.ref.offset:=-(tvarsym(sym).address);
                   if (lexlevel=tvarsym(sym).owner.symtablelevel) then
@@ -1173,12 +1174,35 @@ end;
                       Symbol table helper routines
 ****************************************************************************}
 
+procedure AsmSearchSym(const s:string;var srsym:tsym;var srsymtable:tsymtable);
+var
+  i : integer;
+begin
+  i:=pos('.',s);
+  { allow unit.identifier }
+  if i>0 then
+   begin
+     searchsym(Copy(s,1,i-1),srsym,srsymtable);
+     if assigned(srsym) then
+      begin
+        if (srsym.typ=unitsym) and
+           (srsym.owner.unitid=0) then
+         srsym:=searchsymonlyin(tunitsym(srsym).unitsymtable,Copy(s,i+1,255))
+        else
+         srsym:=nil;
+      end;
+   end
+  else
+   searchsym(s,srsym,srsymtable);
+end;
+
+
 Function SearchType(const hs:string): Boolean;
 var
   srsym : tsym;
   srsymtable : tsymtable;
 begin
-  searchsym(hs,srsym,srsymtable);
+  asmsearchsym(hs,srsym,srsymtable);
   SearchType:=assigned(srsym) and
              (srsym.typ=typesym);
 end;
@@ -1192,7 +1216,7 @@ var
 Begin
   SearchRecordType:=false;
 { Check the constants in symtable }
-  searchsym(s,srsym,srsymtable);
+  asmsearchsym(s,srsym,srsymtable);
   if srsym <> nil then
    Begin
      case srsym.typ of
@@ -1237,7 +1261,7 @@ Begin
      exit;
    end;
 { Check the constants in symtable }
-  searchsym(s,srsym,srsymtable);
+  asmsearchsym(s,srsym,srsymtable);
   if srsym <> nil then
    Begin
      case srsym.typ of
@@ -1286,7 +1310,7 @@ Begin
    st:=procinfo^._class.symtable
   else
    begin
-     searchsym(base,sym,srsymtable);
+     asmsearchsym(base,sym,srsymtable);
      st:=nil;
      { we can start with a var,type,typedconst }
      case sym.typ of
@@ -1376,7 +1400,7 @@ Begin
   SearchLabel:=false;
 { Check for pascal labels, which are case insensetive }
   hs:=upper(s);
-  searchsym(hs,sym,srsymtable);
+  asmsearchsym(hs,sym,srsymtable);
   if sym=nil then
    exit;
   case sym.typ of
@@ -1559,7 +1583,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2001-04-13 01:22:13  peter
+  Revision 1.19  2001-04-13 20:06:05  peter
+    * allow unit.identifier in asm readers
+
+  Revision 1.18  2001/04/13 01:22:13  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

@@ -269,6 +269,8 @@ end;
 Procedure GetToken;
 var
   len : longint;
+  srsym : tsym;
+  srsymtable : tsymtable;
 begin
   { save old token and reset new token }
   prevasmtoken:=actasmtoken;
@@ -392,7 +394,7 @@ begin
            actasmpattern[0]:=chr(len);
            uppervar(actasmpattern);
            { Opcode, can only be when the previous was a prefix }
-           If is_prefix(actopcode) and is_asmopcode(upper(actasmpattern)) then
+           If is_prefix(actopcode) and is_asmopcode(actasmpattern) then
             Begin
               uppervar(actasmpattern);
               exit;
@@ -407,6 +409,24 @@ begin
             Begin
               actasmtoken:=AS_TYPE;
               exit;
+            end;
+           { if next is a '.' and this is a unitsym then we also need to
+             parse the identifier }
+           if (c='.') then
+            begin
+              searchsym(actasmpattern,srsym,srsymtable);
+              if assigned(srsym) and
+                 (srsym.typ=unitsym) and
+                 (srsym.owner.unitid=0) then
+               begin
+                 actasmpattern:=actasmpattern+c;
+                 c:=current_scanner.asmgetchar;
+                 while c in  ['A'..'Z','a'..'z','0'..'9','_','$'] do
+                  begin
+                    actasmpattern:=actasmpattern + upcase(c);
+                    c:=current_scanner.asmgetchar;
+                  end;
+               end;
             end;
            actasmtoken:=AS_ID;
            exit;
@@ -2119,7 +2139,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2001-04-13 18:20:21  peter
+  Revision 1.11  2001-04-13 20:06:05  peter
+    * allow unit.identifier in asm readers
+
+  Revision 1.10  2001/04/13 18:20:21  peter
     * scanner object to class
 
   Revision 1.9  2001/04/13 01:22:21  peter
