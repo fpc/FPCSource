@@ -35,8 +35,8 @@ unit cpupara;
 
     type
        tppcparamanager = class(tparamanager)
-          function get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;override;
-          function get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;override;
+          function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
+          function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
@@ -51,12 +51,12 @@ unit cpupara;
        defutil,symsym;
 
 
-    function tppcparamanager.get_volatile_registers_int(calloption : tproccalloption):tsuperregisterset;
+    function tppcparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
         result := [RS_R3..RS_R12];
       end;
 
-    function tppcparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tsuperregisterset;
+    function tppcparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         case target_info.abi of
           abi_powerpc_aix:
@@ -359,7 +359,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-10-08 21:15:27  olle
+  Revision 1.50  2003-10-17 14:52:07  peter
+    * fixed ppc build
+
+  Revision 1.49  2003/10/08 21:15:27  olle
     * changed to symbolic const for alignment
 
   Revision 1.47  2003/10/01 20:34:49  peter

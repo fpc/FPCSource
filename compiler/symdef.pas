@@ -3117,8 +3117,8 @@ implementation
              para.free;
 {$ifdef MEMDEBUG}
              memprocpara.stop;
-          end;
 {$endif MEMDEBUG}
+          end;
          if assigned(parast) then
           begin
 {$ifdef MEMDEBUG}
@@ -5868,7 +5868,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.179  2003-10-17 14:38:32  peter
+  Revision 1.180  2003-10-17 14:52:07  peter
+    * fixed ppc build
+
+  Revision 1.179  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

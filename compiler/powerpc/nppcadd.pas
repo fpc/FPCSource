@@ -711,7 +711,9 @@ interface
         var
           oldnodetype: tnodetype;
         begin
+{$ifdef OLDREGVARS}
            load_all_regvars(exprasmlist);
+{$endif OLDREGVARS}
            { the jump the sequence is a little bit hairy }
            case nodetype of
               ltn,gtn:
@@ -1428,7 +1430,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2003-10-17 01:22:08  florian
+  Revision 1.38  2003-10-17 14:52:07  peter
+    * fixed ppc build
+
+  Revision 1.37  2003/10/17 01:22:08  florian
     * compilation of the powerpc compiler fixed
 
   Revision 1.36  2003/10/01 20:34:49  peter

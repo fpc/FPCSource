@@ -145,6 +145,8 @@ unit cgcpu;
         procedure a_jmp(list: taasmoutput; op: tasmop;
                         c: tasmcondflag; crval: longint; l: tasmlabel);
 
+        function save_regs(list : taasmoutput):longint;
+        procedure restore_regs(list : taasmoutput);
      end;
 
      tcg64fppc = class(tcg64f32)
@@ -176,14 +178,17 @@ const
 
     procedure tcgppc.init_register_allocators;
       begin
-        rgfpu:=trgcpu.create(29,R_INTREGISTER,R_SUBWHOLE,chr(ord(RS_R3))+chr(ord(RS_R4))+chr(ord(RS_R5))+chr(ord(RS_R6))+chr(ord(RS_R7))+chr(ord(RS_R8))+
-           chr(ord(RS_R9))+chr(ord(RS_R10))+chr(ord(RS_R11))+chr(ord(RS_R12))+chr(ord(RS_R31))+chr(ord(RS_R30))+chr(ord(RS_R29))+
-           chr(ord(RS_R28))+chr(ord(RS_R27))+chr(ord(RS_R26))+chr(ord(RS_R25))+chr(ord(RS_R24))+chr(ord(RS_R23))+chr(ord(RS_R22))+
-           chr(ord(RS_R21))+chr(ord(RS_R20))+chr(ord(RS_R19))+chr(ord(RS_R18))+chr(ord(RS_R17))+chr(ord(RS_R16))+chr(ord(RS_R15))+
-           chr(ord(RS_R14))+chr(ord(RS_R13)),first_int_imreg,[]);
+        rgfpu:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,
+            [RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
+             RS_R9,RS_R10,RS_R11,RS_R12,RS_R31,RS_R30,RS_R29,
+             RS_R28,RS_R27,RS_R26,RS_R25,RS_R24,RS_R23,RS_R22,
+             RS_R21,RS_R20,RS_R19,RS_R18,RS_R17,RS_R16,RS_R15,
+             RS_R14,RS_R13],first_int_imreg,[]);
         {$warning FIX ME}
-        rgfpu:=trgcpu.create(6,R_INTREGISTER,R_SUBWHOLE,#0#1#2#3#4#5,first_fpu_imreg,[]);
-        rgmm:=trgcpu.create(0,R_MMXREGISTER,R_SUBNONE,'',first_mm_imreg,[]);
+        rgfpu:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
+            [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5],first_fpu_imreg,[]);
+        rgmm:=trgcpu.create(R_MMXREGISTER,R_SUBNONE,
+            [],first_mm_imreg,[]);
       end;
 
 
@@ -982,7 +987,6 @@ const
          offset : aword;
 //         r,r2,rsp:Tregister;
          regcounter2: Tsuperregister;
-         regidx : tregisterindex;
          hp: tparaitem;
 
       begin
@@ -1002,8 +1006,7 @@ const
           { FIXME: has to be R_F8 instad of R_F14 for SYSV abi }
           for regcounter:=RS_F14 to RS_F31 do
            begin
-             regidx:=findreg_by_number(newreg(R_FPUREGISTER,regcounter,R_SUBWHOLE));
-            if regidx in rgfpu.used_in_proc then
+             if supregset_in(rgfpu.used_in_proc,regcounter) then
               begin
                 usesfpr:= true;
                 firstregfpu:=regcounter;
@@ -1015,7 +1018,7 @@ const
         if not (po_assembler in current_procinfo.procdef.procoptions) then
           for regcounter2:=firstsaveintreg to RS_R31 do
             begin
-              if regcounter2 in rgint.used_in_proc then
+              if supregset_in(rgint.used_in_proc,regcounter2) then
                 begin
                    usesgpr:=true;
                    firstreggpr:=regcounter2;
@@ -1098,8 +1101,7 @@ const
              reference_reset_base(href,NR_R12,-8);
              for regcounter:=firstregfpu to RS_F31 do
               begin
-                regidx:=findreg_by_number(newreg(R_FPUREGISTER,regcounter,R_SUBWHOLE));
-                if regidx in rgfpu.used_in_proc then
+                if supregset_in(rgfpu.used_in_proc,regcounter) then
                  begin
                     a_loadfpu_reg_ref(list,OS_F64,newreg(R_FPUREGISTER,regcounter,R_SUBNONE),href);
                     dec(href.offset,8);
@@ -1125,7 +1127,7 @@ const
             reference_reset_base(href,NR_R12,-4);
             for regcounter2:=firstsaveintreg to RS_R31 do
               begin
-                if regcounter2 in rgint.used_in_proc then
+                if supregset_in(rgint.used_in_proc,regcounter2) then
                   begin
                      usesgpr:=true;
                      a_load_reg_ref(list,OS_INT,OS_INT,newreg(R_INTREGISTER,regcounter2,R_SUBNONE),href);
@@ -1211,7 +1213,6 @@ const
          usesfpr,usesgpr,genret : boolean;
          regcounter2:Tsuperregister;
          localsize: aword;
-         regidx : tregisterindex;
       begin
         { AltiVec context restore, not yet implemented !!! }
 
@@ -1219,8 +1220,7 @@ const
         if not (po_assembler in current_procinfo.procdef.procoptions) then
           for regcounter:=RS_F14 to RS_F31 do
            begin
-             regidx:=findreg_by_number(newreg(R_FPUREGISTER,regcounter,R_SUBWHOLE));
-             if regidx in rgfpu.used_in_proc then
+             if supregset_in(rgfpu.used_in_proc,regcounter) then
               begin
                  usesfpr:=true;
                  firstregfpu:=regcounter;
@@ -1232,7 +1232,7 @@ const
         if not (po_assembler in current_procinfo.procdef.procoptions) then
           for regcounter2:=firstsaveintreg to RS_R31 do
             begin
-              if regcounter2 in rgint.used_in_proc then
+              if supregset_in(rgint.used_in_proc,regcounter2) then
                 begin
                   usesgpr:=true;
                   firstreggpr:=regcounter2;
@@ -1253,8 +1253,7 @@ const
                  reference_reset_base(href,NR_R12,-8);
                  for regcounter := firstregfpu to RS_F31 do
                   begin
-                    regidx:=findreg_by_number(newreg(R_FPUREGISTER,regcounter,R_SUBWHOLE));
-                    if regidx in rgfpu.used_in_proc then
+                    if supregset_in(rgfpu.used_in_proc,regcounter) then
                      begin
                        a_loadfpu_ref_reg(list,OS_F64,href,newreg(R_FPUREGISTER,regcounter,R_SUBNONE));
                        dec(href.offset,8);
@@ -1267,7 +1266,7 @@ const
 
             for regcounter2:=firstsaveintreg to RS_R31 do
               begin
-                if regcounter2 in rgint.used_in_proc then
+                if supregset_in(rgint.used_in_proc,regcounter2) then
                   begin
                      usesgpr:=true;
                      a_load_ref_reg(list,OS_INT,OS_INT,href,newreg(R_INTREGISTER,regcounter2,R_SUBNONE));
@@ -1337,7 +1336,7 @@ const
           end;
       end;
 
-    function save_regs(list : taasmoutput):longint;
+    function tcgppc.save_regs(list : taasmoutput):longint;
     {Generates code which saves used non-volatile registers in
      the save area right below the address the stackpointer point to.
      Returns the actual used save area size.}
@@ -1347,14 +1346,12 @@ const
          href : treference;
          offset: integer;
          regcounter2: Tsuperregister;
-         regidx : tregisterindex;
     begin
       usesfpr:=false;
       if not (po_assembler in current_procinfo.procdef.procoptions) then
         for regcounter:=RS_F14 to RS_F31 do
          begin
-            regidx:=findreg_by_number(newreg(R_FPUREGISTER,regcounter,R_SUBWHOLE));
-            if regidx in tcgppc(cg).rgfpu.used_in_proc then
+           if supregset_in(rgfpu.used_in_proc,regcounter) then
             begin
                usesfpr:=true;
                firstregfpu:=regcounter;
@@ -1365,7 +1362,7 @@ const
       if not (po_assembler in current_procinfo.procdef.procoptions) then
         for regcounter2:=firstsaveintreg to RS_R31 do
           begin
-            if regcounter2 in tcgppc(cg).rgint.used_in_proc then
+            if supregset_in(rgint.used_in_proc,regcounter2) then
               begin
                  usesgpr:=true;
                  firstreggpr:=regcounter2;
@@ -1408,7 +1405,7 @@ const
       save_regs:= -offset;
     end;
 
-    procedure restore_regs(list : taasmoutput);
+    procedure tcgppc.restore_regs(list : taasmoutput);
     {Generates code which restores used non-volatile registers from
     the save area right below the address the stackpointer point to.}
 
@@ -1417,15 +1414,13 @@ const
          href : treference;
          offset: integer;
          regcounter2: Tsuperregister;
-         regidx : tregisterindex;
 
     begin
       usesfpr:=false;
       if not (po_assembler in current_procinfo.procdef.procoptions) then
         for regcounter:=RS_F14 to RS_F31 do
          begin
-           regidx:=findreg_by_number(newreg(R_FPUREGISTER,regcounter,R_SUBWHOLE));
-            if regidx in tcgppc(cg).rgfpu.used_in_proc then
+           if supregset_in(rgfpu.used_in_proc,regcounter) then
             begin
                usesfpr:=true;
                firstregfpu:=regcounter;
@@ -1437,7 +1432,7 @@ const
       if not (po_assembler in current_procinfo.procdef.procoptions) then
         for regcounter2:=RS_R13 to RS_R31 do
           begin
-            if regcounter2 in tcgppc(cg).rgint.used_in_proc then
+            if supregset_in(rgint.used_in_proc,regcounter2) then
               begin
                  usesgpr:=true;
                  firstreggpr:=regcounter2;
@@ -2123,7 +2118,7 @@ const
                  { otherwise it may be overwritten (and it's still used afterwards)    }
                  freeindex := false;
                  if (getsupreg(ref.index) >= first_int_supreg) and
-                    (getsupreg(ref.index) in rgint.unusedregs) then
+                    (supregset_in(rgint.unusedregs,getsupreg(ref.index))) then
                    begin
                      rgint.getexplicitregister(list,ref.index);
                      orgindex := ref.index;
@@ -2441,7 +2436,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.130  2003-10-17 01:22:08  florian
+  Revision 1.131  2003-10-17 14:52:07  peter
+    * fixed ppc build
+
+  Revision 1.130  2003/10/17 01:22:08  florian
     * compilation of the powerpc compiler fixed
 
   Revision 1.129  2003/10/13 01:58:04  florian
