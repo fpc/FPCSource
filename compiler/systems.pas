@@ -307,7 +307,9 @@ interface
        target_asm  : tasminfo;
        target_ar   : tarinfo;
        target_res  : tresinfo;
-       target_path : string[12]; { for rtl/<X>/,fcl/<X>/, etc. }
+       target_cpu_string,
+       target_os_string   : string[12]; { for rtl/<X>/,fcl/<X>/, etc. }
+       target_full_string : string[24];
 
     function set_target(t:tsystem):boolean;
     function set_target_asm(t:tasm):boolean;
@@ -397,8 +399,10 @@ begin
      set_target_asm(target_info.assem);
      set_target_ar(target_info.ar);
      set_target_res(target_info.res);
-     target_path:=lower(target_info.shortname);
      target_cpu:=target_info.cpu;
+     target_os_string:=lower(target_info.shortname);
+     target_cpu_string:=cpu2str[target_cpu];
+     target_full_string:=target_cpu_string+'-'+target_os_string;
      set_target:=true;
      exit;
    end;
@@ -702,7 +706,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.93  2004-10-25 15:38:41  peter
+  Revision 1.94  2004-10-31 19:09:54  peter
+    * default paths fixed
+
+  Revision 1.93  2004/10/25 15:38:41  peter
     * heap and heapsize removed
     * checkpointer fixes
 

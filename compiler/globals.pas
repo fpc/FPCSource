@@ -473,8 +473,8 @@ implementation
          Replace(s,'$FPCFULLVERSION',full_version_string);
          Replace(s,'$FPCDATE',date_string);
          Replace(s,'$FPCCPU',target_cpu_string);
-         Replace(s,'$FPCOS',target_path);
-         Replace(s,'$FPCTARGET',target_cpu_string+'-'+target_path);
+         Replace(s,'$FPCOS',target_os_string);
+         Replace(s,'$FPCTARGET',target_full_string);
        end;
 
 
@@ -2134,7 +2134,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.150  2004-10-31 18:54:24  peter
+  Revision 1.151  2004-10-31 19:09:54  peter
+    * default paths fixed
+
+  Revision 1.150  2004/10/31 18:54:24  peter
     * $fpctarget expands to <cpu>-<os>
     * allow * in middle of the path to support ../*/units/$fpctarget
 
