@@ -24,6 +24,9 @@ interface
 uses
   Unix,errors;
 
+type
+  THandle = type Longint;
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -491,7 +494,10 @@ end.
 {
 
   $Log$
-  Revision 1.17  2003-03-30 10:38:00  armin
+  Revision 1.18  2003-04-01 15:57:41  peter
+    * made THandle platform dependent and unique type
+
+  Revision 1.17  2003/03/30 10:38:00  armin
   * corrected typo in DirectoryExists
 
   Revision 1.16  2003/03/29 18:21:42  hajny

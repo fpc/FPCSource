@@ -30,6 +30,8 @@ uses
 {$i sysutilh.inc}
 
 type
+  THandle = Windows.Handle;
+
   TSystemTime = Windows.TSystemTime;
 
   EWin32Error = class(Exception)
@@ -191,7 +193,7 @@ var
   Handle: THandle;
   FindData: TWin32FindData;
 begin
-  Handle := FindFirstFile(Pchar(FileName), @FindData);
+  Handle := FindFirstFile(Pchar(Directory), @FindData);
   Result:=(Handle <> INVALID_HANDLE_VALUE) and
           ((FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY) = FILE_ATTRIBUTE_DIRECTORY);
   If Result then
@@ -683,7 +685,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.21  2003-03-29 18:21:42  hajny
+  Revision 1.22  2003-04-01 15:57:41  peter
+    * made THandle platform dependent and unique type
+
+  Revision 1.21  2003/03/29 18:21:42  hajny
     * DirectoryExists declaration changed to that one from fixes branch
 
   Revision 1.20  2003/03/28 19:06:59  peter

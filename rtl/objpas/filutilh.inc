@@ -15,9 +15,6 @@
  **********************************************************************}
 
 Type
-  THandle = Longint;
-
-Type
   TSearchRec = Record
     Time : Longint;
     Size : Int64;
@@ -85,7 +82,10 @@ Function FileSearch (Const Name, DirList : String) : String;
 
 {
   $Log$
-  Revision 1.9  2003-03-29 18:21:41  hajny
+  Revision 1.10  2003-04-01 15:57:41  peter
+    * made THandle platform dependent and unique type
+
+  Revision 1.9  2003/03/29 18:21:41  hajny
     * DirectoryExists declaration changed to that one from fixes branch
 
   Revision 1.8  2003/03/28 19:06:59  peter

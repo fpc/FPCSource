@@ -21,7 +21,8 @@ interface
 { force ansistrings }
 {$H+}
 
-
+type
+  THandle = type Longint;
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -547,7 +548,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.5  2003-03-29 15:36:58  hajny
+    Revision 1.6  2003-04-01 15:57:41  peter
+      * made THandle platform dependent and unique type
+
+    Revision 1.5  2003/03/29 15:36:58  hajny
       * DirectoryExists merged from the fixes branch
 
     Revision 1.4  2003/03/29 15:16:26  hajny

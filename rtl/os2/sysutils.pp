@@ -25,6 +25,9 @@ interface
 uses
  Dos;
 
+type
+  THandle = type Longint;
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -983,7 +986,10 @@ end.
 
 {
   $Log$
-  Revision 1.26  2003-03-31 02:18:39  yuri
+  Revision 1.27  2003-04-01 15:57:41  peter
+    * made THandle platform dependent and unique type
+
+  Revision 1.26  2003/03/31 02:18:39  yuri
   FileClose bug fixed (again ;))
 
   Revision 1.25  2003/03/29 19:14:16  yuri

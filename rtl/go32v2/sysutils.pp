@@ -24,6 +24,9 @@ interface
 uses
   go32,dos;
 
+type
+  THandle = type Longint;
+
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -751,7 +754,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.13  2003-03-29 18:21:42  hajny
+  Revision 1.14  2003-04-01 15:57:41  peter
+    * made THandle platform dependent and unique type
+
+  Revision 1.13  2003/03/29 18:21:42  hajny
     * DirectoryExists declaration changed to that one from fixes branch
 
   Revision 1.12  2003/03/28 19:06:59  peter
