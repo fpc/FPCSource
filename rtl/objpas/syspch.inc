@@ -59,7 +59,7 @@ end ;
 
 function StrPCopy(Dest: PChar; Source: string): PChar;
 begin
-result := StrMove(Dest, PChar(Source), length(Source));
+result := StrMove(Dest, PChar(Source), length(Source)+1);
 end ;
 
 {  StrPLCopy copies MaxLen or less characters from the pascal string
@@ -104,7 +104,13 @@ end ;
 
 {
   $Log$
-  Revision 1.4  1999-02-25 07:39:57  michael
+  Revision 1.5  1999-07-09 10:06:34  peter
+    * merged
+
+  Revision 1.4.2.1  1999/07/09 10:05:05  peter
+    * fixed strpcopy
+
+  Revision 1.4  1999/02/25 07:39:57  michael
   * Joined strings and sysutils
 
   Revision 1.3  1999/02/10 22:15:11  michael
