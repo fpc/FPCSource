@@ -216,7 +216,7 @@ override FPCOPT+=-Ur
 endif
 OBJPASDIR=$(RTL)/objpas
 GRAPHDIR=$(INC)/graph
-override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp dive dos crt objects printer sysutils math typinfo varutils charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types
+override TARGET_UNITS+=$(SYSTEMUNIT) objpas strings ports os2def doscalls moncalls kbdcalls moucalls viocalls pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev dive dos crt objects printer sysutils math typinfo varutils charset ucomplex cpu mmx getopts heaptrc lineinfo dynlibs video mouse keyboard variants types
 override TARGET_LOADERS+=prt0 prt1
 override TARGET_RSTS+=math varutils typinfo
 override INSTALL_FPCPACKAGE=y
@@ -1202,6 +1202,7 @@ pmbitmap$(PPUEXT) : pmbitmap.pas $(SYSTEMUNIT)$(PPUEXT)
 pmgpi$(PPUEXT) : pmgpi.pas pmbitmap$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 pmstddlg$(PPUEXT) : pmstddlg.pas os2def$(PPUEXT) doscalls$(PPUEXT) pmwin$(PPUEXT) pmgpi$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 pmhelp$(PPUEXT) : pmhelp.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+pmdev$(PPUEXT) : pmdev.pas os2def$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 dive$(PPUEXT) : dive.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 dos$(PPUEXT) : dos.pas $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
