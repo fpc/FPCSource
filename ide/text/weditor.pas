@@ -91,6 +91,7 @@ const
       edWriteBlock    = 14;
       edReadBlock     = 15;
       edFileOnDiskChanged = 16;
+      edChangedOnloading = 17;
 
       ffmOptions      = $0007; ffsOptions     = 0;
       ffmDirection    = $0008; ffsDirection   = 3;
@@ -340,6 +341,7 @@ type
       LastSyntaxedLine : sw_integer;
       SyntaxComplete : boolean;
 {$endif TEST_PARTIAL_SYNTAX}
+      ChangedLine : sw_integer;
       ErrorMessage: PString;
       Bookmarks   : array[0..9] of TEditorBookmark;
       LockFlag    : integer;
@@ -667,16 +669,19 @@ begin
   LTrim:=S;
 end;
 
-function RTrim(S: string): string;
+{ TAB are not same as spaces if UseTabs is set PM }
+function RTrim(S: string;cut_tabs : boolean): string;
 begin
-  while (length(S)>0) and (S[length(S)] in [#0,TAB,#32]) do
+  while (length(S)>0) and
+    ((S[length(S)] in [#0,#32]) or
+    ((S[Length(S)]=TAB) and cut_tabs)) do
     Delete(S,length(S),1);
   RTrim:=S;
 end;
 
 function Trim(S: string): string;
 begin
-  Trim:=RTrim(LTrim(S));
+  Trim:=RTrim(LTrim(S),true);
 end;
 
 function EatIO: integer;
@@ -798,7 +803,7 @@ begin
   while p<length(s) do
    begin
      inc(p);
-     if s[p]=#9 then
+     if s[p]=TAB then
       begin
         PAdd:=TabSize-((p-1) mod TabSize);
         s:=copy(S,1,P-1)+CharStr(' ',PAdd)+copy(S,P+1,255);
@@ -1881,7 +1886,7 @@ var S: string;
 begin
   S:=GetLineText(Line);
   CP:=1; RX:=0;
-  while (CP<=length(S)) and (CP<CharIdx) do
+  while (CP<=length(S)) and (CP<=CharIdx) do
    begin
      if S[CP]=TAB then
        Inc(RX,TabSize-(RX mod TabSize))
@@ -1889,7 +1894,7 @@ begin
        Inc(RX);
      Inc(CP);
    end;
-  CharIdxToLinePos:=RX;
+  CharIdxToLinePos:=RX-1;
 end;
 
 function TCodeEditor.LinePosToCharIdx(Line,X: sw_integer): sw_integer;
@@ -2008,9 +2013,12 @@ end;
 
 procedure TCodeEditor.SetDisplayText(I: sw_integer;const S: string);
 begin
+  { I disagree here
+    I don't want the editor to change the position of the tabs
+    in my makefiles !! PM
   if ((Flags and efUseTabCharacters)<>0) and (TabSize>0) then
    SetLineText(I,CompressUsingTabs(S,TabSize))
-  else
+  else                  }
    SetLineText(I,S);
 end;
 
@@ -2146,7 +2154,7 @@ var S, PreS: string;
 begin
   S:=GetLineText(CurPos.Y);
   if CurPos.Y>0 then
-    PreS:=RTrim(GetLineText(CurPos.Y-1))
+    PreS:=RTrim(GetLineText(CurPos.Y-1),(Flags and efUseTabCharacters)=0)
   else
     PreS:='';
   if CurPos.X>=length(PreS) then
@@ -2439,7 +2447,7 @@ begin
     begin
       S:=GetDisplayText(CurPos.Y);
       SelBack:=length(S)-SelEnd.X;
-      SetDisplayText(CurPos.Y,RTrim(S));
+      SetDisplayText(CurPos.Y,RTrim(S,(Flags and efUseTabCharacters)=0));
     end;
     SetDisplayText(CurPos.Y,copy(S,1,CurPos.X-1+1));
     CalcIndent(CurPos.Y);
@@ -3104,9 +3112,12 @@ begin
       SetLineText(CurPos.Y,S);
     end;
   CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
-  if (S[CI]=TAB) then
+  if (CI>0) and (S[CI]=TAB) then
     begin
-      TabStart:=CharIdxToLinePos(CurPos.Y,CI);
+      if CI=1 then
+        TabStart:=0
+      else
+        TabStart:=CharIdxToLinePos(CurPos.Y,CI-1)+1;
       if SC=Tab then TabS:=Tab else
         TabS:=CharStr(' ',CurPos.X-TabStart);
       SetLineText(CurPos.Y,copy(S,1,CI-1)+TabS+SC+copy(S,CI+1,255));
@@ -3118,7 +3129,7 @@ begin
         SetLineText(CurPos.Y,copy(S,1,CI-1)+SC+copy(S,CI+length(SC),255))
       else
         SetLineText(CurPos.Y,copy(S,1,CI-1)+SC+copy(S,CI,255));
-      SetCurPtr(CurPos.X+length(SC),CurPos.Y);
+      SetCurPtr(CharIdxToLinePos(CurPos.Y,CI+length(SC)),CurPos.Y);
     end;
 {$ifdef Undo}
  { must be before CloseBrackets !! }
@@ -3935,7 +3946,7 @@ begin
      ((Highlight.A.X<>HighLight.B.X) or (Highlight.A.Y<>HighLight.B.Y)) then
      HideHighlight;
   if (OldPos.Y<>CurPos.Y) and (0<=OldPos.Y) and (OldPos.Y<GetLineCount) then
-     SetLineText(OldPos.Y,RTrim(GetLineText(OldPos.Y)));
+     SetLineText(OldPos.Y,RTrim(GetLineText(OldPos.Y),(Flags and efUseTabCharacters)=0));
   if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) and (GetErrorMessage<>'') then
     SetErrorMessage('');
   if ((CurPos.X<>OldPos.X) or (CurPos.Y<>OldPos.Y)) and (HighlightRow<>-1) then
@@ -4751,8 +4762,8 @@ begin
 end;
 
 procedure TCodeEditor.Store(var S: TStream);
-var NS: TNulStream;
-    TSize: longint;
+var {NS: TNulStream;}
+    TSizePos,TSize,EndPos: longint;
 begin
   inherited Store(S);
 
@@ -4762,13 +4773,21 @@ begin
 
   if (Flags and efStoreContent)<>0 then
     begin
-      NS.Init;
+      { NS.Init;
       SaveToStream(@NS);
       TSize:=NS.GetSize;
       NS.Done;
-
+        This is waste of time PM
+        use Seek instead !! }
+      TSize:=0;
+      TSizePos:=S.GetPos;
       S.Write(TSize,SizeOf(TSize));
       SaveToStream(@S);
+      EndPos:=S.GetPos;
+      TSize:=EndPos-TSizePos-SizeOf(TSize);
+      S.Seek(TSizePos);
+      S.Write(TSize,SizeOf(TSize));
+      S.Seek(EndPos);
     end;
 
   S.Write(SelStart,SizeOf(SelStart));
@@ -4783,20 +4802,27 @@ end;
 
 function TCodeEditor.LoadFromStream(Stream: PStream): boolean;
 var S: string;
-    OK: boolean;
+    AllLinesComplete,LineComplete,OK: boolean;
 begin
   DeleteAllLines;
+  ChangedLine:=-1;
+  AllLinesComplete:=true;
   OK:=(Stream^.Status=stOK);
   if eofstream(Stream) then
    AddLine('')
   else
    while OK and (eofstream(Stream)=false) and (GetLineCount<MaxLineCount) do
    begin
-     readlnfromstream(Stream,S);
+     ReadlnFromStream(Stream,S,LineComplete);
+     AllLinesComplete:=AllLinesComplete and LineComplete;
      OK:=OK and (Stream^.Status=stOK);
      if OK then AddLine(S);
+     if not LineComplete and (ChangedLine=-1) then
+       ChangedLine:=GetLineCount;
    end;
   LimitsChanged;
+  if not AllLinesComplete then
+    SetModified(true);
   if (Flags and efSyntaxHighlight)<>0 then
     UpdateAttrsRange(0,Min(Delta.Y+Size.Y,GetLineCount-1),
       attrAll
@@ -4844,17 +4870,19 @@ begin
     if P^.Text=nil then S:='' else
       begin
         S:=P^.Text^;
-        if Line=EndP.Y then S:=copy(S,1,EndP.X+1);
-        if Line=StartP.Y then S:=copy(S,StartP.Y+1,255);
+        if Line=EndP.Y then S:=copy(S,1,LinePosToCharIdx(Line,EndP.X));
+        if Line=StartP.Y then S:=copy(S,LinePosToCharIdx(Line,StartP.X),255);
       end;
     { Remove all traling spaces PM }
     if (Flags and efKeepTrailingSpaces)=0 then
       While (Length(S)>0) and (S[Length(S)]=' ') do
        Dec(S[0]);
-    if (Flags and efUseTabCharacters)<>0 then
+    { if (Flags and efUseTabCharacters)<>0 then
       S:=CompressUsingTabs(S,TabSize);
+      }
     Stream^.Write(S[1],length(S));
-    Stream^.Write(EOL[1],length(EOL));
+    if Line<EndP.Y then
+      Stream^.Write(EOL[1],length(EOL));
     Inc(Line);
     OK:=OK and (Stream^.Status=stOK);
   end;
@@ -5066,6 +5094,7 @@ constructor TFileEditor.Load(var S: TStream);
 var P: PString;
     SSP,SEP,CP,DP: TPoint;
     HR: TRect;
+    PA : Array[1..2] of pointer;
     HoldUndo : boolean;
 begin
   inherited Load(S);
@@ -5085,6 +5114,13 @@ begin
 
   if FileName<>'' then
     LoadFile;
+
+  if Modified then
+    begin
+      PA[1]:=@FileName;
+      longint(PA[2]):=ChangedLine;
+      EditorDialog(edChangedOnloading,@PA);
+    end;
 
   SetHighlight(HR.A,HR.B);
   SetSelection(SSP,SEP);
@@ -5316,6 +5352,10 @@ begin
     edSaveUntitled:
       StdEditorDialog := MessageBox('Save untitled file?',
    nil, mfInsertInApp+ mfInformation + mfYesNoCancel);
+    edChangedOnloading:
+      StdEditorDialog := MessageBox(#3'File %s had too long lines'#13#3+
+      'first such line is %d',
+   Info, mfInsertInApp+ mfOKButton + mfInformation);
     edFileOnDiskChanged:
       StdEditorDialog := MessageBox(#3'File %s '#13#3+
         'was modified by another program.'#13#3'Overwrite new version?',
@@ -5440,7 +5480,16 @@ end;
 END.
 {
   $Log$
-  Revision 1.69  2000-01-05 00:37:34  pierre
+  Revision 1.70  2000-01-05 17:35:50  pierre
+    + Warning box if a line is cut at reading of file
+      this is done to avoid loosing completely long lines
+    * several TAB related changes
+      in particular do not remove or recombine TABs in makefiles
+    * fixes for ^KR and ^KW (the was an extra LF at end of
+      written block of disk and an error for starting X position
+      in SaveAreaToStream)
+
+  Revision 1.69  2000/01/05 00:37:34  pierre
     * ^KC fix
     *  better Tab handling
 
