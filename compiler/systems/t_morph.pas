@@ -102,7 +102,7 @@ begin
      s:=HPath.Str;
      if not (cs_link_on_target in aktglobalswitches) then
        s:=GetShortName(s);
-     if s<>'' then  
+     if s<>'' then
        LinkRes.Add('SEARCH_DIR('+s+')');
      HPath:=TStringListItem(HPath.Next);
    end;
@@ -187,7 +187,7 @@ begin
   StripStr:='';
   { FIXME!!! - Need to add proper stripping support with }
   { separate strip command, to avoid stripping __abox__ symbol, }
-  { which is required to be present in current MorphOS executables! } 
+  { which is required to be present in current MorphOS executables! }
 {  if (cs_link_strip in aktglobalswitches) then
    StripStr:='-s';}
 
@@ -224,7 +224,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2004-04-09 01:32:46  karoly
+  Revision 1.4  2004-04-28 15:19:03  florian
+    + syscall directive support for MorphOS added
+
+  Revision 1.3  2004/04/09 01:32:46  karoly
    * disable stripping in mos linking scripts.
 
   Revision 1.2  2004/04/08 17:11:02  karoly

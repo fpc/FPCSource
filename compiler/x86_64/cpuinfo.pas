@@ -84,7 +84,7 @@ Const
 
 
    { calling conventions supported by the code generator }
-   supported_calling_conventions = [
+   supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
      pocall_compilerproc,
      pocall_inline,
@@ -111,7 +111,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.11  2004-04-12 18:25:26  florian
+  Revision 1.12  2004-04-28 15:19:03  florian
+    + syscall directive support for MorphOS added
+
+  Revision 1.11  2004/04/12 18:25:26  florian
     + AInt added
 
   Revision 1.10  2003/12/25 01:07:09  florian

@@ -80,7 +80,7 @@ Const
    jmp_buf_size = 220; { according to sizeof(jmp_buf) on my Zaurus (FK) }
 
    { calling conventions supported by the code generator }
-   supported_calling_conventions = [
+   supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
      pocall_compilerproc,
      pocall_inline,
@@ -114,7 +114,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.6  2004-03-06 20:35:19  florian
+  Revision 1.7  2004-04-28 15:19:03  florian
+    + syscall directive support for MorphOS added
+
+  Revision 1.6  2004/03/06 20:35:19  florian
     * fixed arm compilation
     * cleaned up code generation for exported linux procedures
 

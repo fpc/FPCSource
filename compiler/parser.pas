@@ -118,6 +118,12 @@ implementation
          { codegen }
          if paraprintnodetree<>0 then
            printnode_reset;
+
+         { target specific stuff }
+         case target_info.system of
+           system_powerpc_morphos:
+             include(supported_calling_conventions,pocall_syscall);
+         end;
       end;
 
 
@@ -705,7 +711,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2004-03-16 16:20:49  peter
+  Revision 1.64  2004-04-28 15:19:03  florian
+    + syscall directive support for MorphOS added
+
+  Revision 1.63  2004/03/16 16:20:49  peter
     * reset current_module,current_procinfo so the destroy routines
       can't access their info anymore, because that can be already
       destroyed

@@ -202,12 +202,11 @@ unit cgx86;
       end;
 
     function Tcgx86.getmmxregister(list:Taasmoutput):Tregister;
-
-    begin
-      if not assigned(rg[R_MMXREGISTER]) then
-        internalerror(200312124);
-      result:=rg[R_MMXREGISTER].getregister(list,R_SUBNONE);
-    end;
+      begin
+        if not assigned(rg[R_MMXREGISTER]) then
+          internalerror(200312124);
+        result:=rg[R_MMXREGISTER].getregister(list,R_SUBNONE);
+      end;
 
     procedure Tcgx86.getexplicitregister(list:Taasmoutput;r:Tregister);
       begin
@@ -1791,7 +1790,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.120  2004-04-09 14:36:05  peter
+  Revision 1.121  2004-04-28 15:19:03  florian
+    + syscall directive support for MorphOS added
+
+  Revision 1.120  2004/04/09 14:36:05  peter
     * A_MOVSL renamed to A_MOVSD
 
   Revision 1.119  2004/03/11 19:35:05  peter

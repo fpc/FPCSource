@@ -87,7 +87,7 @@ Const
    jmp_buf_size = 24;
 
    { calling conventions supported by the code generator }
-   supported_calling_conventions = [
+   supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
      pocall_compilerproc,
      pocall_inline,
@@ -124,7 +124,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.23  2004-02-27 10:21:05  florian
+  Revision 1.24  2004-04-28 15:19:03  florian
+    + syscall directive support for MorphOS added
+
+  Revision 1.23  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

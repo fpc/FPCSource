@@ -66,7 +66,7 @@ const
   JMP_BUF_SIZE = 4; // 4 is used temporary to remove AllocTemp warning
 
   { calling conventions supported by the code generator }
-  supported_calling_conventions = [
+  supported_calling_conventions : tproccalloptions = [
     pocall_internproc,
     pocall_compilerproc,
     pocall_inline,
@@ -90,7 +90,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2004-03-12 08:18:11  mazen
+  Revision 1.16  2004-04-28 15:19:03  florian
+    + syscall directive support for MorphOS added
+
+  Revision 1.15  2004/03/12 08:18:11  mazen
   - revert '../' from include path
 
   Revision 1.14  2004/03/11 16:22:28  mazen

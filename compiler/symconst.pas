@@ -369,13 +369,13 @@ const
 
 const
    savestdregs_pocalls = [
-     pocall_cdecl,pocall_cppdecl,pocall_palmossyscall,
+     pocall_cdecl,pocall_cppdecl,pocall_syscall,
      pocall_stdcall,pocall_safecall,pocall_compilerproc,
      pocall_register,pocall_softfloat
    ];
 
    clearstack_pocalls = [
-     pocall_cdecl,pocall_cppdecl,pocall_palmossyscall
+     pocall_cdecl,pocall_cppdecl,pocall_syscall
    ];
 
    pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
@@ -407,7 +407,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.79  2004-04-18 15:22:24  florian
+  Revision 1.80  2004-04-28 15:19:03  florian
+    + syscall directive support for MorphOS added
+
+  Revision 1.79  2004/04/18 15:22:24  florian
     + location support for arguments, currently PowerPC/MorphOS only
 
   Revision 1.78  2004/03/23 22:34:49  peter

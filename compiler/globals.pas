@@ -1383,7 +1383,7 @@ implementation
                2: (a,b: cardinal);
             end;
         begin
-          { load currect control register contents }
+          { load current control register contents }
           asm
             mffs f0
             stfd f0,newmask.d
@@ -1524,7 +1524,7 @@ implementation
          'FPCCALL',
          'INLINE',
          '', { internproc }
-         '', { palmossyscall }
+         '', { syscall }
          'PASCAL',
          'REGISTER',
          'SAFECALL',
@@ -1897,7 +1897,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.126  2004-03-14 20:08:37  peter
+  Revision 1.127  2004-04-28 15:19:03  florian
+    + syscall directive support for MorphOS added
+
+  Revision 1.126  2004/03/14 20:08:37  peter
     * packrecords fixed for settings from $PACKRECORDS
     * default packrecords now uses value 0 and uses info from aligment
       structure only, initpackrecords removed

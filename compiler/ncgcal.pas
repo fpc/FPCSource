@@ -67,6 +67,7 @@ interface
           procedure pop_parasize(pop_size:longint);virtual;
           procedure extra_interrupt_code;virtual;
           procedure extra_call_code;virtual;
+          procedure do_syscall;virtual;abstract;
        public
           procedure pass_2;override;
        end;
@@ -915,12 +916,17 @@ implementation
                   if cg.uses_registers(R_MMREGISTER) then
                     cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
 
-                  { Calling interrupt from the same code requires some
-                    extra code }
-                  if (po_interrupt in procdefinition.procoptions) then
-                    extra_interrupt_code;
-                  extra_call_code;
-                  cg.a_call_name(exprasmlist,tprocdef(procdefinition).mangledname);
+                  if procdefinition.proccalloption=pocall_syscall then
+                    do_syscall
+                  else
+                    begin
+                      { Calling interrupt from the same code requires some
+                        extra code }
+                      if (po_interrupt in procdefinition.procoptions) then
+                        extra_interrupt_code;
+                      extra_call_code;
+                      cg.a_call_name(exprasmlist,tprocdef(procdefinition).mangledname);
+                    end;
                end;
            end
          else
@@ -1266,7 +1272,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.164  2004-03-14 20:10:56  peter
+  Revision 1.165  2004-04-28 15:19:03  florian
+    + syscall directive support for MorphOS added
+
+  Revision 1.164  2004/03/14 20:10:56  peter
     * disable some debuginfo info when valgrind support is used
 
   Revision 1.163  2004/03/13 21:23:21  florian

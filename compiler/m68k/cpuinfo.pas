@@ -75,7 +75,7 @@ Const
    target_cpu_string = 'm68k';
 
    { calling conventions supported by the code generator }
-   supported_calling_conventions = [
+   supported_calling_conventions : tproccalloptions = [
      pocall_internproc,
      pocall_compilerproc,
      pocall_inline,
@@ -105,7 +105,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.9  2004-04-18 21:13:59  florian
+  Revision 1.10  2004-04-28 15:19:03  florian
+    + syscall directive support for MorphOS added
+
+  Revision 1.9  2004/04/18 21:13:59  florian
     * more adaptions for m68k
 
   Revision 1.8  2004/01/30 12:17:18  florian

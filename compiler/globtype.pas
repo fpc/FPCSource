@@ -147,8 +147,8 @@ interface
          pocall_inline,
          { Procedure has compiler magic}
          pocall_internproc,
-         { procedure is a PalmOS system call }
-         pocall_palmossyscall,
+         { procedure is a system call, applies e.g. to MorphOS and PalmOS }
+         pocall_syscall,
          { pascal standard left to right }
          pocall_pascal,
          { procedure uses register (fastcall) calling }
@@ -177,7 +177,7 @@ interface
            'OldFPCCall',
            'Inline',
            'InternProc',
-           'PalmOSSysCall',
+           'SysCall',
            'Pascal',
            'Register',
            'SafeCall',
@@ -239,7 +239,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2004-04-04 18:46:09  olle
+  Revision 1.52  2004-04-28 15:19:03  florian
+    + syscall directive support for MorphOS added
+
+  Revision 1.51  2004/04/04 18:46:09  olle
     + added $APPTYPE TOOL for MPW tools on MacOS
 
   Revision 1.50  2004/03/10 22:52:57  peter

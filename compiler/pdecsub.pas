@@ -1314,7 +1314,7 @@ const
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_external;
       pocall   : pocall_none;
       pooption : [po_external];
-      mutexclpocall : [pocall_internproc,pocall_inline,pocall_palmossyscall];
+      mutexclpocall : [pocall_internproc,pocall_inline,pocall_syscall];
       mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_exports,po_interrupt,po_assembler]
     ),(
@@ -1520,9 +1520,9 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_SYSCALL;
-      pd_flags : [pd_interface,pd_implemen,pd_notobjintf];
+      pd_flags : [pd_interface,pd_implemen,pd_notobject,pd_notobjintf];
       handler  : {$ifdef FPCPROCVAR}@{$endif}pd_syscall;
-      pocall   : pocall_palmossyscall;
+      pocall   : pocall_syscall;
       pooption : [];
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor];
@@ -2193,7 +2193,10 @@ const
 end.
 {
   $Log$
-  Revision 1.167  2004-04-28 00:20:43  karoly
+  Revision 1.168  2004-04-28 15:19:03  florian
+    + syscall directive support for MorphOS added
+
+  Revision 1.167  2004/04/28 00:20:43  karoly
     * fixed locationstr having nonsense values in some cases
 
   Revision 1.166  2004/04/19 02:12:18  karoly
