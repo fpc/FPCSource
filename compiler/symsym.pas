@@ -592,6 +592,7 @@ implementation
         { private symbols are allowed when we are in the same
           module as they are defined }
         if (sp_private in symoptions) and
+           assigned(owner.defowner) and
            (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
            (owner.defowner.owner.unitid<>0) then
           exit;
@@ -2519,7 +2520,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2002-12-20 16:02:22  peter
+  Revision 1.85  2002-12-27 18:07:44  peter
+    * fix crashes when searching symbols
+
+  Revision 1.84  2002/12/20 16:02:22  peter
     * fix stupid copy&paste bug in binary operator search
 
   Revision 1.83  2002/12/16 22:08:31  peter

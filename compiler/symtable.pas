@@ -2057,7 +2057,8 @@ implementation
            need to use the scope of that class. This is a trick
            that can be used to access protected members in other
            units. At least kylix supports it this way (PFV) }
-         if (classh.owner.symtabletype in [globalsymtable,staticsymtable]) and
+         if assigned(classh) and
+            (classh.owner.symtabletype in [globalsymtable,staticsymtable]) and
             (classh.owner.unitid=0) then
            topclassh:=classh
          else
@@ -2359,7 +2360,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  2002-12-25 01:26:56  peter
+  Revision 1.88  2002-12-27 18:07:45  peter
+    * fix crashes when searching symbols
+
+  Revision 1.87  2002/12/25 01:26:56  peter
     * duplicate procsym-unitsym fix
 
   Revision 1.86  2002/12/21 13:07:34  peter
