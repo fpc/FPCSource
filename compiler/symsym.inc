@@ -514,8 +514,8 @@
         if (owner^.symtabletype=localsymtable) and assigned(owner^.name) then
          info := ','+name+','+owner^.name^;  }
         if (owner^.symtabletype=localsymtable) and assigned(owner^.defowner) and
-           assigned(owner^.defowner^.sym) then
-          info := ','+name+','+owner^.defowner^.sym^.name;
+           assigned(pprocdef(owner^.defowner)^.procsym) then
+          info := ','+name+','+pprocdef(owner^.defowner)^.procsym^.name;
       end;
      stabsstr:=definition^.mangledname;
      getmem(p,length(stabsstr)+255);
@@ -1181,6 +1181,7 @@
 {$endif GDB}
 
                    if (cs_smartlink in aktmoduleswitches) or
+                      DLLSource or
                       (vo_is_C_var in varoptions) then
                      bsssegment^.concat(new(pai_datablock,init_global(mangledname,l)))
                    else
@@ -1536,7 +1537,8 @@
         else
           if owner^.symtabletype<>unitsymtable then
             begin
-              if (cs_smartlink in aktmoduleswitches) then
+              if (cs_smartlink in aktmoduleswitches) or
+                 DLLSource then
                 curconstsegment^.concat(new(pai_symbol,initname_global(mangledname,getsize)))
               else
                 curconstsegment^.concat(new(pai_symbol,initname(mangledname,getsize)));
@@ -2097,7 +2099,11 @@
 
 {
   $Log$
-  Revision 1.110  1999-08-07 14:21:03  florian
+  Revision 1.111  1999-08-10 12:36:31  pierre
+   * use of procsym field for correct gdb info in local procedures
+   * exported DLL vars made global to be able to use DLLTOOL with themz
+
+  Revision 1.110  1999/08/07 14:21:03  florian
     * some small problems fixed
 
   Revision 1.109  1999/08/07 13:24:34  daniel
