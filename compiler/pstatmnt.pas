@@ -690,7 +690,9 @@ unit pstatmnt;
            end
          else
            p:=nil;
-         exit_statement:=gensinglenode(exitn,p);
+         p:=gensinglenode(exitn,p);
+         p^.resulttype:=procinfo.retdef;
+         exit_statement:=p;
       end;
 
 
@@ -1286,7 +1288,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.70  1999-03-04 13:55:45  pierre
+  Revision 1.71  1999-03-10 11:23:29  pierre
+   * typecheck for exit(value) : resulttype was not set
+
+  Revision 1.70  1999/03/04 13:55:45  pierre
     * some m68k fixes (still not compilable !)
     * new(tobj) does not give warning if tobj has no VMT !
 
