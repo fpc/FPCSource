@@ -17,7 +17,7 @@ unit HTTPSvlt;
 
 interface
 
-uses SysUtils, Classes, SSockets, fpAsync, HTTP, Servlets;
+uses SysUtils, Classes, fpAsync, fpSock, HTTP, Servlets;
 
 resourcestring
   SErrUnknownMethod = 'Unknown HTTP method "%s" used';
@@ -78,12 +78,12 @@ type
 
   THttpServletResponse = class(TServletResponse)
   private
-    ResponseHeader: THTTPAnswerHeader;
+    ResponseHeader: THTTPResponseHeader;
   protected
     procedure SetContentType(const Value: String); override;
     procedure SetContentLength(Value: Int64); override;
   public
-    constructor Create(AResponseHeader: THTTPAnswerHeader;
+    constructor Create(AResponseHeader: THTTPResponseHeader;
       AOutputStream: TStream);
     // procedure AddCookie(Cookie: TCookie);	// !!!: Implement this
     // procedure AddDateHeader(const AName: String; ADate: TDateTime);	// !!!: Implement this
@@ -158,27 +158,22 @@ type
       default;
   end;
 
-  THttpServer = class(TComponent)
+  THttpServer = class(TCustomTCPServer)
   private
-    FEventLoop: TEventLoop;
-    FInetServer: TInetServer;
-    FPort: Word;
-    DataAvailableNotifyHandle: Pointer;
-    Connections: TList;		// List of TXMLRPCServerConnection objects
+    Connections: TList;		// List of THttpServerConnection objects
     FServletMappings: TServletMappings;
-    procedure InetServerDataAvailable(Sender: TObject);                                                         
-    procedure InetServerConnect(Sender: TObject; Data: TSocketStream);
-    procedure ConnectionClose(Sender: TObject);
+  protected
+    procedure DoConnect(AStream: TSocketStream); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Start(AEventLoop: TEventLoop);
     procedure AddServlet(AServlet: THttpServlet; const AURLPattern: String);
     // procedure RemoveServlet(const APathName: String);
-    property EventLoop: TEventLoop read FEventLoop;
-    property InetServer: TInetServer read FInetServer;
   published
-    property Port: Word read FPort write FPort;
+    property Active;
+    property Port;
+    property OnQueryConnect;
+    property OnConnect;
     property ServletMappings: TServletMappings
       read FServletMappings write FServletMappings;
   end;
@@ -232,7 +227,7 @@ begin
 end;
 
 
-constructor THttpServletResponse.Create(AResponseHeader: THTTPAnswerHeader;
+constructor THttpServletResponse.Create(AResponseHeader: THTTPResponseHeader;
   AOutputStream: TStream);
 begin
   inherited Create(AOutputStream);
@@ -326,73 +321,115 @@ end;
 type
   THttpServerConnection = class
   private
-    FOnClose: TNotifyEvent;
     Server: THttpServer;
-    Stream: TInetSocket;
-    HTTPConnection: THTTPConnection;
-    RequestHeader: THTTPRequestHeader;
+    Stream: TSocketStream;
+    RequestHeader: THttpRequestHeader;
     RequestStream: TMemoryStream;
-    ResponseHeader: THTTPAnswerHeader;
+    ResponseHeader: THttpResponseHeader;
     ResponseStream: TMemoryStream;
-
+    BytesToRead, BytesToWrite: Integer;
+    DataAvailableNotifyHandle: Pointer;
+    CanSendNotifyHandle: Pointer;
+    SendBuffer: Pointer;
     procedure RequestHeaderReceived(Sender: TObject);
-    procedure RequestStreamReceived(Sender: TObject);
-    procedure ResponseStreamSent(Sender: TObject);
-    procedure ConnectionDestroyed(Sender: TObject);
+    procedure DataAvailable(Sender: TObject);
+    procedure RequestStreamReceived;
+    procedure ResponseHeaderSent(Sender: TObject);
+    procedure CanSend(Sender: TObject);
   public
-    constructor Create(AServer: THttpServer; AStream: TInetSocket);
+    constructor Create(AServer: THttpServer; AStream: TSocketStream);
     destructor Destroy; override;
-    property OnClose: TNotifyEvent read FOnClose write FOnClose;
   end;
 
 
-
 constructor THttpServerConnection.Create(AServer: THttpServer;
-  AStream: TInetSocket);
+  AStream: TSocketStream);
 begin
   inherited Create;
   Server := AServer;
   Stream := AStream;
-  RequestHeader := THTTPRequestHeader.Create;
-  RequestStream := TMemoryStream.Create;
-  HTTPConnection := THTTPConnection.Create(Server.EventLoop, Stream);
-  HTTPConnection.ReceivedHeader := RequestHeader;
-  HTTPConnection.ReceivedStream := RequestStream;
-  HTTPConnection.OnHeaderReceived := @RequestHeaderReceived;
-  HTTPConnection.OnStreamReceived := @RequestStreamReceived;
-  HTTPConnection.OnDestroy := @ConnectionDestroyed;
-  HTTPConnection.Receive;
+  RequestHeader := THttpRequestHeader.Create;
+  RequestHeader.OnCompleted := @RequestHeaderReceived;
+  RequestHeader.AsyncReceive(Server.EventLoop, Stream);
 end;
 
 destructor THttpServerConnection.Destroy;
 begin
+  if Assigned(DataAvailableNotifyHandle) then
+    Server.EventLoop.ClearDataAvailableNotify(DataAvailableNotifyHandle);
+  if Assigned(CanSendNotifyHandle) then
+    Server.EventLoop.ClearCanWriteNotify(CanSendNotifyHandle);
   RequestHeader.Free;
   RequestStream.Free;
   ResponseHeader.Free;
   ResponseStream.Free;
-  if Assigned(OnClose) then
-    OnClose(Self);
   Stream.Free;
-  if Assigned(HTTPConnection) then
-  begin
-    HTTPConnection.OnDestroy := nil;
-    HTTPConnection.Free;
-  end;
+  Server.Connections.Remove(Self);
   inherited Destroy;
 end;
 
 procedure THttpServerConnection.RequestHeaderReceived(Sender: TObject);
+var
+  BytesInBuffer: Integer;
+  NeedMoreData: Boolean;
 begin
-  // WriteLn('Header received: Method=', RequestHeader.Command, ', URI=', RequestHeader.URI);
-  if RequestHeader.Command = 'GET' then
-    RequestStreamReceived(nil);
+  // WriteLn('HTTP-Header empfangen');
+
+  BytesInBuffer:= RequestHeader.Reader.BytesInBuffer;
+  BytesToRead := RequestHeader.ContentLength;
+  // WriteLn('Content-Length: ', BytesToRead, ', noch im Puffer: ', BytesInBuffer);
+
+  RequestStream := TMemoryStream.Create;
+
+  NeedMoreData := RequestHeader.Command = 'POST';
+
+  if BytesInBuffer > 0 then
+  begin
+    RequestStream.Write(RequestHeader.Reader.Buffer^, BytesInBuffer);
+    if BytesToRead > 0 then
+      Dec(BytesToRead, BytesInBuffer);
+
+    if BytesInBuffer = RequestHeader.ContentLength then
+      NeedMoreData := False;
+  end;
+
+  if NeedMoreData then
+    DataAvailableNotifyHandle := Server.EventLoop.SetDataAvailableNotify(
+      Stream.Handle, @DataAvailable, nil)
+  else
+    RequestStreamReceived;
 end;
 
-procedure THttpServerConnection.RequestStreamReceived(Sender: TObject);
+procedure THttpServerConnection.DataAvailable(Sender: TObject);
+var
+  Buffer: array[0..4095] of Byte;
+  ReadNow, BytesRead: Integer;
+begin
+  ReadNow := SizeOf(Buffer);
+  if (BytesToRead > 0) and (ReadNow > BytesToRead) then
+    ReadNow := BytesToRead;
+
+  BytesRead := Stream.Read(Buffer, ReadNow);
+  // WriteLn('Sollte ', ReadNow, ' Bytes lesen, ', BytesRead, ' wurden gelesen');
+
+  RequestStream.Write(Buffer, BytesRead);
+  if BytesToRead > 0 then
+  begin
+    Dec(BytesToRead, BytesRead);
+    if BytesToRead = 0 then
+    begin
+      Server.EventLoop.ClearDataAvailableNotify(DataAvailableNotifyHandle);
+      DataAvailableNotifyHandle := nil;
+      RequestStreamReceived;
+    end;
+  end;
+end;
+
+procedure THttpServerConnection.RequestStreamReceived;
 var
   i: Integer;
-  Servlet: TGenericServlet;
   s, URI: String;
+  Servlet: TGenericServlet;
   Request: THttpServletRequest;
   Response: THttpServletResponse;
 begin
@@ -420,12 +457,10 @@ begin
     s := Copy(s, 1, Length(s) - 1);
   Request := THttpServletRequest.Create(RequestHeader, RequestStream, 'http',
     Copy(RequestHeader.URI, Length(s) + 1, Length(RequestHeader.URI)));
-
-  ResponseHeader := THTTPAnswerHeader.Create;
+  ResponseHeader := THTTPResponseHeader.Create;
+  ResponseHeader.Connection := 'Keep-Alive';
   ResponseStream := TMemoryStream.Create;
   Response := THttpServletResponse.Create(ResponseHeader, ResponseStream);
-  HTTPConnection.HeaderToSend := ResponseHeader;
-  HTTPConnection.OnStreamSent := @ResponseStreamSent;
 
   try
     try
@@ -449,35 +484,39 @@ begin
       end;
     end;
 
-    HTTPConnection.StreamToSend := ResponseStream;
-    ResponseHeader.ContentLength := ResponseStream.Size;
+    BytesToWrite := ResponseStream.Size;
+    SendBuffer := ResponseStream.Memory;
     ResponseStream.Position := 0;
-
-    HTTPConnection.Send;
-
+    ResponseHeader.ContentLength := BytesToWrite;
+    ResponseHeader.OnCompleted := @ResponseHeaderSent;
+    ResponseHeader.AsyncSend(Server.EventLoop, Stream);
   finally
     Response.Free;
     Request.Free;
-
-    FreeAndNil(RequestHeader);
-    HTTPConnection.OnHeaderReceived := nil;
-    FreeAndNil(RequestStream);
-    HTTPConnection.OnStreamReceived := nil;
   end;
+  // WriteLn('Antwort wurde generiert');
 end;
 
-procedure THttpServerConnection.ResponseStreamSent(Sender: TObject);
+procedure THttpServerConnection.ResponseHeaderSent(Sender: TObject);
 begin
-  // WriteLn('Response stream sent');
-  FreeAndNil(Stream);
-  HTTPConnection.DoDestroy := True;
+  // WriteLn('Antwortheader geschickt');
+  if BytesToWrite > 0 then
+    CanSendNotifyHandle := Server.EventLoop.SetCanWriteNotify(Stream.Handle,
+      @CanSend, nil);
 end;
 
-procedure THttpServerConnection.ConnectionDestroyed(Sender: TObject);
+procedure THttpServerConnection.CanSend(Sender: TObject);
+var
+  BytesWritten: Integer;
 begin
-  // WriteLn('Connection closed');
-  HTTPConnection := nil;
-  Free;
+  BytesWritten := Stream.Write(SendBuffer^, BytesToWrite);
+  Dec(BytesToWrite, BytesWritten);
+  Inc(SendBuffer, BytesWritten);
+  if BytesToWrite = 0 then
+  begin
+    // WriteLn('Antwortdaten geschickt');
+    Free;
+  end;
 end;
 
 
@@ -492,30 +531,13 @@ var
   i: Integer;
 begin
   ServletMappings.Free;
-  for i := 0 to Connections.Count - 1 do
-    THttpServerConnection(Connections[i]).Free;
-  Connections.Free;
-  if Assigned(DataAvailableNotifyHandle) and Assigned(EventLoop) then
-    EventLoop.ClearDataAvailableNotify(DataAvailableNotifyHandle);
-  InetServer.Free;
+  if Assigned(Connections) then
+  begin
+    for i := 0 to Connections.Count - 1 do
+      THttpServerConnection(Connections[i]).Free;
+    Connections.Free;
+  end;
   inherited Destroy;
-end;
-
-procedure THttpServer.Start(AEventLoop: TEventLoop);
-var
-  i: Integer;
-begin
-  WriteLn(ServletMappings.Count, ' servlet mappings:');
-  for i := 0 to ServletMappings.Count - 1 do
-    WriteLn(ServletMappings[i].URLPattern, ' -> ', ServletMappings[i].Servlet.Name);
-  FEventLoop := AEventLoop;
-  FInetServer := TInetServer.Create(Port);
-  Connections := TList.Create;
-  DataAvailableNotifyHandle := EventLoop.SetDataAvailableNotify(
-    InetServer.Socket, @InetServerDataAvailable, nil);
-  InetServer.OnConnect := @InetServerConnect;
-  InetServer.SetNonBlocking;
-  InetServer.Listen;
 end;
 
 procedure THttpServer.AddServlet(AServlet: THttpServlet;
@@ -541,25 +563,14 @@ begin
     end;
 end;}
 
-procedure THttpServer.InetServerDataAvailable(Sender: TObject);                                                         
+procedure THttpServer.DoConnect(AStream: TSocketStream);
 begin
-  InetServer.StartAccepting;
+  // WriteLn('Incoming HTTP connection');
+  if not Assigned(Connections) then
+    Connections := TList.Create;
+  Connections.Add(THttpServerConnection.Create(Self, AStream));
 end;
 
-procedure THttpServer.InetServerConnect(Sender: TObject; Data: TSocketStream);
-var
-  Connection: THttpServerConnection;
-begin
-  // WriteLn('Incoming connection');
-  Connection := THttpServerConnection.Create(Self, Data as TInetSocket);
-  Connection.OnClose := @ConnectionClose;
-  Connections.Add(Connection);
-end;
-
-procedure THttpServer.ConnectionClose(Sender: TObject);
-begin
-  Connections.Remove(Sender);
-end;
 
 
 
@@ -622,7 +633,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-06-25 08:53:51  sg
+  Revision 1.3  2003-11-22 12:01:18  sg
+  * Adaptions to new version of HTTP unit: All server functionality now is
+    in this unit, and not http.pp anymore
+
+  Revision 1.2  2003/06/25 08:53:51  sg
   * Inform the server socket object that it runs non-blocking
 
   Revision 1.1  2002/04/25 19:30:29  sg
