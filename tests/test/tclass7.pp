@@ -1,4 +1,5 @@
-{ %KNOWNRUNERROR=2 v1.0 does not support class DefaultHandler message }
+{ %version=1.1 }
+
 {$ifdef fpc}
  {$mode delphi}
 {$endif}

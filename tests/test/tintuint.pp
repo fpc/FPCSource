@@ -1,8 +1,6 @@
-{ %KNOWNRUNERROR=2 v1.0 computes binary nodes with longint and cardinals as cardinals }
+{ %version=1.1 }
+
 { Testing longint and cardinal addtions }
-{ The current 1.0 compiler does handle these operations
-  differently depending on range check state,
-  which is rather bad thing PM }
 const
   has_errors : boolean = false;
   has_severe_errors : boolean = false;
