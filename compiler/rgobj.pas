@@ -274,6 +274,7 @@ unit rgobj;
 
      {# Clear to zero a treference }
      procedure reference_reset(var ref : treference);
+     procedure reference_reset_old(var ref : treference);
      {# Clear to zero a treference, and set is base address
         to base register.
      }
@@ -1092,6 +1093,11 @@ unit rgobj;
       {$endif}
       end;
 
+    procedure reference_reset_old(var ref : treference);
+      begin
+        FillChar(ref,sizeof(treference),0);
+      end;
+
 
     procedure reference_reset_base(var ref : treference;base : tregister;offset : longint);
       begin
@@ -1202,7 +1208,10 @@ end.
 
 {
   $Log$
-  Revision 1.23  2003-02-19 22:00:14  daniel
+  Revision 1.24  2003-02-19 22:39:56  daniel
+    * Fixed a few issues
+
+  Revision 1.23  2003/02/19 22:00:14  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

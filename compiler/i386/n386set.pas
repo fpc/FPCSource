@@ -605,7 +605,8 @@ implementation
           end;
         objectlibrary.getlabel(table);
         { make it a 32bit register }
-        indexreg:=rg.makeregsize(hregister,OS_INT);
+        indexreg.enum:=R_INTREGISTER;
+        indexreg.number:=(hregister.number and not $ff) or R_SUBWHOLE;
         cg.a_load_reg_reg(exprasmlist,opsize,OS_INT,hregister,indexreg);
         { create reference }
         reference_reset_symbol(href,table,0);
@@ -718,7 +719,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-02-19 22:00:15  daniel
+  Revision 1.49  2003-02-19 22:39:56  daniel
+    * Fixed a few issues
+
+  Revision 1.48  2003/02/19 22:00:15  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 

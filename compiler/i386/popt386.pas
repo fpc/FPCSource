@@ -151,7 +151,7 @@ Begin
                             (Taicpu(hp1).condition in [C_O,C_NO]))))
                     Then
                       Begin
-                        reference_reset(tmpref);
+                        reference_reset_old(tmpref);
                         Case Taicpu(p).oper[0].val Of
                           3: Begin
                              {imul 3, reg1, reg2 to
@@ -209,7 +209,7 @@ Begin
                                             Taicpu(p).oper[1].reg,Taicpu(p).oper[1].reg);
                                         End;
                                     InsertLLItem(AsmL,p, p.next, hp1);
-                                    reference_reset(tmpref);
+                                    reference_reset_old(tmpref);
                                     TmpRef.Index := Taicpu(p).oper[1].reg;
                                     TmpRef.ScaleFactor := 2;
                                     If (Taicpu(p).oper[2].typ = Top_Reg)
@@ -298,7 +298,7 @@ Begin
                                          hp1 :=  Taicpu.op_ref_reg(A_LEA, S_L, TmpRef, Taicpu(p).oper[1].reg);
                                        End;
                                      InsertLLItem(AsmL,p, p.next, hp1);
-                                     reference_reset(tmpref);
+                                     reference_reset_old(tmpref);
                                      TmpRef.Index := Taicpu(p).oper[1].reg;
                                      If (Taicpu(p).oper[2].typ = Top_Reg) Then
                                        Begin
@@ -1375,7 +1375,7 @@ Begin
                              Taicpu(hp2).ops:=2;
                              Taicpu(hp2).opcode := A_MOV;
                              Taicpu(hp2).Loadoper(1,Taicpu(hp1).oper[0]);
-                             reference_reset(tmpref);
+                             reference_reset_old(tmpref);
                              tmpRef.base .enum:= STACK_POINTER_REG;
                              tmpRef.offset := l;
                              Taicpu(hp2).loadRef(0,tmpRef);
@@ -1412,7 +1412,7 @@ Begin
                           Taicpu(p).ops:=2;
                           Taicpu(p).opcode := A_MOV;
                           Taicpu(p).Loadoper(1,Taicpu(p).oper[0]);
-                          reference_reset(tmpref);
+                          reference_reset_old(tmpref);
                           TmpRef.base.enum := R_ESP;
                           Taicpu(p).LoadRef(0,TmpRef);
                           asml.Remove(hp1);
@@ -1448,7 +1448,7 @@ Begin
                         TmpBool1 := True; {should we check the next instruction?}
                         TmpBool2 := False; {have we found an add/sub which could be
                                             integrated in the lea?}
-                        reference_reset(tmpref);
+                        reference_reset_old(tmpref);
                         TmpRef.index := Taicpu(p).oper[1].reg;
                         TmpRef.scalefactor := 1 shl Taicpu(p).oper[0].val;
                         While TmpBool1 And
@@ -1540,7 +1540,7 @@ Begin
                     {changes "shl $2, %reg" to "lea (,%reg,4), %reg"
                              "shl $3, %reg" to "lea (,%reg,8), %reg}
                                  Begin
-                                   reference_reset(tmpref);
+                                   reference_reset_old(tmpref);
                                    TmpRef.index := Taicpu(p).oper[1].reg;
                                    TmpRef.scalefactor := 1 shl Taicpu(p).oper[0].val;
                                    hp1 := Taicpu.Op_ref_reg(A_LEA,S_L,TmpRef, Taicpu(p).oper[1].reg);
@@ -2054,7 +2054,10 @@ End.
 
 {
   $Log$
-  Revision 1.37  2003-02-19 22:00:16  daniel
+  Revision 1.38  2003-02-19 22:39:56  daniel
+    * Fixed a few issues
+
+  Revision 1.37  2003/02/19 22:00:16  daniel
     * Code generator converted to new register notation
     - Horribily outdated todo.txt removed
 
