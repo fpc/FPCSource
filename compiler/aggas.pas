@@ -756,7 +756,7 @@ var
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
-       Comment(v_info,'Start writing gas-styled assembler output for '+current_module.mainsource^);
+       Comment(V_Debug,'Start writing gas-styled assembler output for '+current_module.mainsource^);
 {$endif}
 
       LasTSec:=sec_none;
@@ -811,14 +811,18 @@ var
       AsmLn;
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
-       comment(v_info,'Done writing gas-styled assembler output for '+current_module.mainsource^);
+       Comment(V_Debug,'Done writing gas-styled assembler output for '+current_module.mainsource^);
 {$endif EXTDEBUG}
     end;
 
 end.
 {
   $Log$
-  Revision 1.19  2003-01-08 18:43:56  daniel
+  Revision 1.20  2003-01-09 21:52:37  peter
+    * merged some verbosity options.
+    * V_LineInfo is a verbosity flag to include line info
+
+  Revision 1.19  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.18  2002/12/07 14:03:25  carl

@@ -34,14 +34,11 @@
 #   n_   note
 #   h_   hint
 #   i_   info
-#   l_   linenumber
+#   l_   add linenumber
 #   u_   used
 #   t_   tried
-#   m_   macro
-#   p_   procedure
 #   c_   conditional
 #   d_   debug message
-#   b_   display overloaded procedures
 #   x_   executable informations
 #
 
@@ -143,7 +140,7 @@ scan_f_syn_expected=02003_F_Syntax error, "$1" expected but "$2" found
 % This indicates that the compiler expected a different token than
 % the one you typed. It can occur almost everywhere where you make a
 % mistake against the pascal language.
-scan_t_start_include_file=02004_T_Start reading includefile $1
+scan_t_start_include_file=02004_TL_Start reading includefile $1
 % When you provide the \var{-vt} switch, the compiler tells you
 % when it starts reading an included file.
 scan_w_comment_level=02005_W_Comment level $1 found
@@ -207,28 +204,28 @@ scan_w_macro_deep_ten=02030_W_Extension of macros exceeds a deep of 16.
 % recursion is used.
 scan_e_wrong_styled_switch=02031_E_compiler switches aren't allowed in // styled comments
 % Compiler switches should be in normal pascal style comments.
-scan_d_handling_switch=02032_D_Handling switch "$1"
+scan_d_handling_switch=02032_DL_Handling switch "$1"
 % When you set debugging info on (\var{-vd}) the compiler tells you when it
 % is evaluating conditional compile statements.
-scan_c_endif_found=02033_C_ENDIF $1 found
+scan_c_endif_found=02033_CL_ENDIF $1 found
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_ifdef_found=02034_C_IFDEF $1 found, $2
+scan_c_ifdef_found=02034_CL_IFDEF $1 found, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_ifopt_found=02035_C_IFOPT $1 found, $2
+scan_c_ifopt_found=02035_CL_IFOPT $1 found, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_if_found=02036_C_IF $1 found, $2
+scan_c_if_found=02036_CL_IF $1 found, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_ifndef_found=02037_C_IFNDEF $1 found, $2
+scan_c_ifndef_found=02037_CL_IFNDEF $1 found, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_else_found=02038_C_ELSE $1 found, $2
+scan_c_else_found=02038_CL_ELSE $1 found, $2
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements.
-scan_c_skipping_until=02039_C_Skipping until...
+scan_c_skipping_until=02039_CL_Skipping until...
 % When you turn on conditional messages(\var{-vc}), the compiler tells you
 % where it encounters conditional statements, and whether it is skipping or
 % compiling parts.
@@ -243,7 +240,7 @@ scan_w_unsupported_switch=02041_W_Unsupported switch "$1"
 scan_w_illegal_directive=02042_W_Illegal compiler directive "$1"
 % When warings are turned on (\var{-vw}) the compiler warns you about
 % unrecognised switches. For a list of recognised switches, \progref
-scan_t_back_in=02043_T_Back in $1
+scan_t_back_in=02043_TL_Back in $1
 % When you use (\var{-vt}) the compiler tells you when it has finished
 % reading an include file.
 scan_w_unsupported_app_type=02044_W_Unsupported application type: "$1"
@@ -433,8 +430,8 @@ parser_e_header_dont_match_any_member=03048_E_function header doesn't match any 
 % This happens when the compiler scans a procedure declaration that contains
 % a dot, i.e., a object or class method, but the procedure name is not a
 % procedure of this type.
-parser_p_procedure_start=03049_P_procedure/function $1
-% When using the \var{-vp} switch, the compiler tells you when it starts
+parser_d_procedure_start=03049_DL_procedure/function $1
+% When using the \var{-vd} switch, the compiler tells you when it starts
 % processing a procedure or function implementation.
 parser_e_error_in_real=03050_E_Illegal floating point constant
 % The compiler expects a floating point expression, and gets something else.
@@ -634,22 +631,22 @@ parser_w_virtual_without_constructor=03100_W_Virtual methods are used without a 
 % to have a constructor and destructor to initialize them. The compiler
 % encountered an object or class with virtual methods that doesn't have
 % a constructor/destructor pair.
-parser_m_macro_defined=03101_M_Macro defined: $1
-% When \var{-vm} is used, the compiler tells you when it defines macros.
-parser_m_macro_undefined=03102_M_Macro undefined: $1
-% When \var{-vm} is used, the compiler tells you when it undefines macros.
-parser_m_macro_set_to=03103_M_Macro $1 set to $2
-% When \var{-vm} is used, the compiler tells you what values macros get.
+parser_c_macro_defined=03101_CL_Macro defined: $1
+% When \var{-vc} is used, the compiler tells you when it defines macros.
+parser_c_macro_undefined=03102_CL_Macro undefined: $1
+% When \var{-vc} is used, the compiler tells you when it undefines macros.
+parser_c_macro_set_to=03103_CL_Macro $1 set to $2
+% When \var{-vc} is used, the compiler tells you what values macros get.
 parser_i_compiling=03104_I_Compiling $1
 % When you turn on information messages (\var{-vi}), the compiler tells you
 % what units it is recompiling.
-parser_u_parsing_interface=03105_U_Parsing interface of unit $1
+parser_u_parsing_interface=03105_UL_Parsing interface of unit $1
 % This tells you that the reading of the interface
 % of the current unit starts
-parser_u_parsing_implementation=03106_U_Parsing implementation of $1
+parser_u_parsing_implementation=03106_UL_Parsing implementation of $1
 % This tells you that the code reading of the implementation
 % of the current unit, library or program starts
-parser_d_compiling_second_time=03107_D_Compiling $1 for the second time
+parser_d_compiling_second_time=03107_DL_Compiling $1 for the second time
 % When you request debug messages (\var{-vd}) the compiler tells you what
 % units it recompiles for the second time.
 parser_e_no_property_found_to_override=03109_E_No property found to override
@@ -1219,8 +1216,8 @@ sym_n_uninitialized_variable=05037_W_Variable "$1" does not seem to be initializ
 sym_e_id_no_member=05038_E_identifier idents no member "$1"
 % This error is generated when an identifier of a record,
 % field, or method is accessed while it is not defined.
-sym_b_param_list=05039_B_Found declaration: $1
-% You get this when you use the \var{-vb} switch. In case an overloaded
+sym_h_param_list=05039_H_Found declaration: $1
+% You get this when you use the \var{-vh} switch. In case an overloaded
 % procedure is not found, then all candidate overloaded procedures are
 % listed, with their parameter lists.
 sym_e_segment_too_large=05040_E_Data element too large
@@ -1332,10 +1329,10 @@ cg_w_unreachable_code=06018_W_unreachable code
 cg_e_cant_call_abstract_method=06020_E_Abstract methods can't be called directly
 % You cannot call an abstract method directy, instead you must call a
 % overriding child method, because an abstract method isn't implemented.
-cg_d_register_weight=06027_D_Register $1 weight $2 $3
+cg_d_register_weight=06027_DL_Register $1 weight $2 $3
 % Debugging message. Shown when the compiler considers a variable for
 % keeping in the registers.
-cg_d_stackframe_omited=06029_D_Stack frame is omitted
+cg_d_stackframe_omited=06029_DL_Stack frame is omitted
 % Some procedure/functions do not need a complete stack-frame, so it is omitted.
 % This message will be displayed when the {-vd} switch is used.
 cg_e_unable_inline_object_methods=06031_E_Object or class methods can't be inline.
@@ -1404,9 +1401,9 @@ cg_e_localsize_too_big=06043_E_Local variables size exceeds supported limit
 #
 # 07097 is the last used one
 #
-asmr_d_start_reading=07000_D_Starting $1 styled assembler parsing
+asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
-asmr_d_finish_reading=07001_D_Finished $1 styled assembler parsing
+asmr_d_finish_reading=07001_DL_Finished $1 styled assembler parsing
 % This informs you that an assembler block has finished.
 asmr_e_none_label_contain_at=07002_E_Non-label pattern contains @
 % A identifier which isn't a label can't contain a @.

@@ -116,7 +116,7 @@ const
   parser_e_no_type_not_allowed_here=03046;
   parser_e_methode_id_expected=03047;
   parser_e_header_dont_match_any_member=03048;
-  parser_p_procedure_start=03049;
+  parser_d_procedure_start=03049;
   parser_e_error_in_real=03050;
   parser_e_fail_only_in_constructor=03051;
   parser_e_no_paras_for_destructor=03052;
@@ -165,9 +165,9 @@ const
   parser_e_abstract_no_definition=03098;
   parser_e_overloaded_must_be_all_global=03099;
   parser_w_virtual_without_constructor=03100;
-  parser_m_macro_defined=03101;
-  parser_m_macro_undefined=03102;
-  parser_m_macro_set_to=03103;
+  parser_c_macro_defined=03101;
+  parser_c_macro_undefined=03102;
+  parser_c_macro_set_to=03103;
   parser_i_compiling=03104;
   parser_u_parsing_interface=03105;
   parser_u_parsing_implementation=03106;
@@ -336,7 +336,7 @@ const
   sym_n_uninitialized_local_variable=05036;
   sym_n_uninitialized_variable=05037;
   sym_e_id_no_member=05038;
-  sym_b_param_list=05039;
+  sym_h_param_list=05039;
   sym_e_segment_too_large=05040;
   sym_e_no_matching_implementation_found=05042;
   sym_w_deprecated_symbol=05043;
@@ -607,7 +607,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 34252;
+  MsgTxtSize = 34273;
 
   MsgIdxMax : array[1..20] of longint=(
     17,62,194,50,57,44,98,19,35,43,

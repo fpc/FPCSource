@@ -285,8 +285,6 @@ type
 
   tvarspez = (vs_value,vs_const,vs_var,vs_out,vs_hidden);
 
-  targconvtyp = (act_convertable,act_equal,act_exact);
-
   absolutetyp = (tovar,toasm,toaddr);
 
   tconsttyp = (constnone,
@@ -298,6 +296,17 @@ type
   { RTTI information to store }
   trttitype = (
     fullrtti,initrtti
+  );
+
+  { The order is from low priority to high priority,
+    Note: the operators > and < are used on this list }
+  tequaltype = (
+    te_incompatible,
+    te_convert_operator,
+    te_convert_l2,     { compatible conversion with possible loss of data }
+    te_convert_l1,     { compatible conversion     }
+    te_equal,          { the definitions are equal }
+    te_exact
   );
 
 {$ifdef GDB}
@@ -332,18 +341,35 @@ const
   ];
 
 const
-     SymTypeName : array[tsymtyp] of string[12] =
-     ('abstractsym','variable','type','proc','unit',
-      'const','enum','typed const','errorsym','system sym',
-      'label','absolute','property','funcret',
-      'macrosym','rttisym');
+     SymTypeName : array[tsymtyp] of string[12] = (
+       'abstractsym','variable','type','proc','unit',
+       'const','enum','typed const','errorsym','system sym',
+       'label','absolute','property','funcret',
+       'macrosym','rttisym'
+     );
+
+     DefTypeName : array[tdeftype] of string[12] = (
+       'abstractdef','arraydef','recorddef','pointerdef','orddef',
+       'stringdef','enumdef','procdef','objectdef','errordef',
+       'filedef','formaldef','setdef','procvardef','floatdef',
+       'classrefdef','forwarddef','variantdef'
+     );
+
+     EqualTypeName : array[tequaltype] of string[16] = (
+       'incompatible','convert_operator','convert_l2','convert_l1',
+       'equal','exact'
+     );
 
 implementation
 
 end.
 {
   $Log$
-  Revision 1.44  2003-01-06 21:16:52  peter
+  Revision 1.45  2003-01-09 21:52:37  peter
+    * merged some verbosity options.
+    * V_LineInfo is a verbosity flag to include line info
+
+  Revision 1.44  2003/01/06 21:16:52  peter
     * po_addressonly added to retrieve the address of a methodpointer
       only, this is used for @tclass.method which has no self pointer
 

@@ -754,7 +754,9 @@ implementation
     function tfornode.pass_1 : tnode;
       var
          old_t_times : longint;
+      {$ifdef loopvar_dont_mind}
          hp : Tnode;
+      {$endif loopvar_dont_mind}
      begin
          result:=nil;
          { Calc register weight }
@@ -1450,7 +1452,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2003-01-04 08:08:47  daniel
+  Revision 1.64  2003-01-09 21:52:37  peter
+    * merged some verbosity options.
+    * V_LineInfo is a verbosity flag to include line info
+
+  Revision 1.63  2003/01/04 08:08:47  daniel
     * Readded missing variable
 
   Revision 1.62  2003/01/03 17:16:57  peter

@@ -100,11 +100,12 @@ interface
        tparaitem = class(TLinkedListItem)
           paratype     : ttype;
           parasym      : tsym;
+          defaultvalue : tsym; { tconstsym }
           paratyp      : tvarspez;
           paraloc      : tparalocation;
-          argconvtyp   : targconvtyp;
-          convertlevel : byte;
-          defaultvalue : tsym; { tconstsym }
+{$ifdef EXTDEBUG}
+          eqval        : tequaltype;
+{$endif EXTDEBUG}
        end;
 
        { this is only here to override the count method,
@@ -5598,7 +5599,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.123  2003-01-06 21:16:52  peter
+  Revision 1.124  2003-01-09 21:52:37  peter
+    * merged some verbosity options.
+    * V_LineInfo is a verbosity flag to include line info
+
+  Revision 1.123  2003/01/06 21:16:52  peter
     * po_addressonly added to retrieve the address of a methodpointer
       only, this is used for @tclass.method which has no self pointer
 

@@ -30,7 +30,7 @@ uses
   finput;
 
 Const
-{ <$10000 will show file and line }
+  { Levels }
   V_None         = $0;
   V_Fatal        = $1;
   V_Error        = $2;
@@ -38,20 +38,20 @@ Const
   V_Warning      = $8;
   V_Note         = $10;
   V_Hint         = $20;
-  V_Macro        = $100;
-  V_Procedure    = $200;
-  V_Conditional  = $400;
-  V_Assem        = $800;
-  V_Declarations = $1000;
-  V_Info         = $10000;
-  V_Status       = $20000;
-  V_Used         = $40000;
-  V_Tried        = $80000;
-  V_Debug        = $100000;
-  V_Executable   = $200000;
-  V_ShowFile     = $ffff;
-  V_All          = $ffffffff;
+  V_LineInfoMask = $fff;
+  { From here by default no line info }
+  V_Info         = $1000;
+  V_Status       = $2000;
+  V_Used         = $4000;
+  V_Tried        = $8000;
+  V_Conditional  = $10000;
+  V_Debug        = $20000;
+  V_Executable   = $40000;
+  V_LevelMask    = $fffffff;
+  V_All          = V_LevelMask;
   V_Default      = V_Fatal + V_Error + V_Normal;
+  { Flags }
+  V_LineInfo     = $10000000;
 
 const
   { RHIDE expect gcc like error output }
@@ -268,7 +268,10 @@ begin
       if (status.verbosity and Level)=V_Fatal then
         hs:=rh_errorstr;
     end;
-  if (Level<=V_ShowFile) and (status.currentsource<>'') and (status.currentline>0) then
+  { Generate line prefix }
+  if ((Level and V_LineInfo)=V_LineInfo) and
+     (status.currentsource<>'') and
+     (status.currentline>0) then
    begin
      { Adding the column should not confuse RHIDE,
      even if it does not yet use it PM
@@ -297,8 +300,9 @@ begin
      else
       hs:=s;
    end;
-  { only show when the level is required }
-  if ((status.verbosity and Level)=Level) then
+
+  { Display line }
+  if ((status.verbosity and (Level and V_LevelMask))=(Level and V_LevelMask)) then
    begin
 {$ifdef FPC}
      if status.use_stderr then
@@ -381,7 +385,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2002-12-29 14:57:50  peter
+  Revision 1.24  2003-01-09 21:52:37  peter
+    * merged some verbosity options.
+    * V_LineInfo is a verbosity flag to include line info
+
+  Revision 1.23  2002/12/29 14:57:50  peter
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed

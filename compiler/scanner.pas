@@ -546,12 +546,12 @@ implementation
           begin
             mac:=tmacro.create(hs);
             mac.defined:=true;
-            Message1(parser_m_macro_defined,mac.name);
+            Message1(parser_c_macro_defined,mac.name);
             current_scanner.macros.insert(mac);
           end
         else
           begin
-            Message1(parser_m_macro_defined,mac.name);
+            Message1(parser_c_macro_defined,mac.name);
             mac.defined:=true;
           { delete old definition }
             if assigned(mac.buftext) then
@@ -635,13 +635,13 @@ implementation
         if not assigned(mac) then
           begin
              mac:=tmacro.create(hs);
-             Message1(parser_m_macro_undefined,mac.name);
+             Message1(parser_c_macro_undefined,mac.name);
              mac.defined:=false;
              current_scanner.macros.insert(mac);
           end
         else
           begin
-             Message1(parser_m_macro_undefined,mac.name);
+             Message1(parser_c_macro_undefined,mac.name);
              mac.defined:=false;
              { delete old definition }
              if assigned(mac.buftext) then
@@ -962,7 +962,7 @@ implementation
          if mac=nil then
            begin
              mac:=tmacro.create(s);
-             Message1(parser_m_macro_defined,mac.name);
+             Message1(parser_c_macro_defined,mac.name);
              macros.insert(mac);
            end;
          mac.defined:=true;
@@ -985,7 +985,7 @@ implementation
               if assigned(mac.buftext) then
                 freemem(mac.buftext,mac.buflen);
            end;
-         Message2(parser_m_macro_set_to,mac.name,value);
+         Message2(parser_c_macro_set_to,mac.name,value);
          mac.buflen:=length(value);
          getmem(mac.buftext,mac.buflen);
          move(value[1],mac.buftext^,mac.buflen);
@@ -2801,7 +2801,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.56  2002-12-29 14:57:50  peter
+  Revision 1.57  2003-01-09 21:52:37  peter
+    * merged some verbosity options.
+    * V_LineInfo is a verbosity flag to include line info
+
+  Revision 1.56  2002/12/29 14:57:50  peter
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed

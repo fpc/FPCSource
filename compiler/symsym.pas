@@ -854,7 +854,7 @@ implementation
          while assigned(p) do
            begin
               if p^.def<>skipdef then
-                MessagePos1(p^.def.fileinfo,sym_b_param_list,p^.def.fullprocname);
+                MessagePos1(p^.def.fileinfo,sym_h_param_list,p^.def.fullprocname);
               p:=p^.next;
            end;
       end;
@@ -2563,7 +2563,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2003-01-08 18:43:57  daniel
+  Revision 1.92  2003-01-09 21:52:38  peter
+    * merged some verbosity options.
+    * V_LineInfo is a verbosity flag to include line info
+
+  Revision 1.91  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.90  2003/01/03 12:15:56  daniel

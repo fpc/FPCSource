@@ -715,7 +715,6 @@ implementation
     function tvecnode.det_resulttype:tnode;
       var
          htype : ttype;
-         ct : tconverttype;
       begin
          result:=nil;
          resulttypepass(left);
@@ -1055,7 +1054,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2003-01-06 21:16:52  peter
+  Revision 1.45  2003-01-09 21:52:37  peter
+    * merged some verbosity options.
+    * V_LineInfo is a verbosity flag to include line info
+
+  Revision 1.44  2003/01/06 21:16:52  peter
     * po_addressonly added to retrieve the address of a methodpointer
       only, this is used for @tclass.method which has no self pointer
 

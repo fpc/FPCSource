@@ -43,7 +43,7 @@ uses
 {$i msgidx.inc}
 
 Const
-{ <$10000 will show file and line }
+  { Levels }
   V_None         = $0;
   V_Fatal        = $1;
   V_Error        = $2;
@@ -51,20 +51,20 @@ Const
   V_Warning      = $8;
   V_Note         = $10;
   V_Hint         = $20;
-  V_Macro        = $100;
-  V_Procedure    = $200;
-  V_Conditional  = $400;
-  V_Assem        = $800;
-  V_Declarations = $1000;
-  V_Info         = $10000;
-  V_Status       = $20000;
-  V_Used         = $40000;
-  V_Tried        = $80000;
-  V_Debug        = $100000;
-  V_Executable   = $200000;
-  V_ShowFile     = $ffff;
-  V_All          = longint($ffffffff);
+  V_LineInfoMask = $fff;
+  { From here by default no line info }
+  V_Info         = $1000;
+  V_Status       = $2000;
+  V_Used         = $4000;
+  V_Tried        = $8000;
+  V_Conditional  = $10000;
+  V_Debug        = $20000;
+  V_Executable   = $40000;
+  V_LevelMask    = $fffffff;
+  V_All          = V_LevelMask;
   V_Default      = V_Fatal + V_Error + V_Normal;
+  { Flags }
+  V_LineInfo     = $10000000;
 
 var
   msg : pmessage;
@@ -76,6 +76,7 @@ procedure SetRedirectFile(const fn:string);
 function  SetVerbosity(const s:string):boolean;
 procedure PrepareReport;
 
+function  CheckVerbosity(v:longint):boolean;
 procedure SetCompileModule(p:tmodulebase);
 procedure Stop;
 procedure ShowStatus;
@@ -158,6 +159,13 @@ var
       end;
 
 
+    function CheckVerbosity(v:longint):boolean;
+      begin
+        CheckVerbosity:=status.use_bugreport or
+                        ((status.verbosity and (v and V_LevelMask))=(v and V_LevelMask));
+      end;
+
+
     function SetVerbosity(const s:string):boolean;
       var
         m : Longint;
@@ -235,14 +243,6 @@ var
                          status.verbosity:=status.verbosity and (not V_Tried)
                        else
                          status.verbosity:=status.verbosity or V_Tried;
-                 'M' : if inverse then
-                         status.verbosity:=status.verbosity and (not V_Macro)
-                       else
-                         status.verbosity:=status.verbosity or V_Macro;
-                 'P' : if inverse then
-                         status.verbosity:=status.verbosity and (not V_Procedure)
-                       else
-                         status.verbosity:=status.verbosity or V_Procedure;
                  'C' : if inverse then
                          status.verbosity:=status.verbosity and (not V_Conditional)
                        else
@@ -251,18 +251,10 @@ var
                          status.verbosity:=status.verbosity and (not V_Debug)
                        else
                          status.verbosity:=status.verbosity or V_Debug;
-                 'B' : if inverse then
-                         status.verbosity:=status.verbosity and (not V_Declarations)
-                       else
-                         status.verbosity:=status.verbosity or V_Declarations;
                  'X' : if inverse then
                          status.verbosity:=status.verbosity and (not V_Executable)
                        else
                          status.verbosity:=status.verbosity or V_Executable;
-                 'Z' : if inverse then
-                         status.verbosity:=status.verbosity and (not V_Assem)
-                       else
-                         status.verbosity:=status.verbosity or V_Assem;
                  end;
                 inc(i);
              end;
@@ -449,9 +441,10 @@ var
            (status.errorhint and ((l and V_Hint)<>0)) then
          inc(status.errorcount);
       { check verbosity level }
-        if ((status.verbosity and l)<>l) and
-           (not status.use_bugreport) then
+        if not CheckVerbosity(l) then
           exit;
+        if (l and V_LineInfoMask)<>0 then
+          l:=l or V_LineInfo;
       { Create status info }
         UpdateStatus;
       { Fix replacements }
@@ -520,25 +513,17 @@ var
                 'I' :
                   v:=v or V_Info;
                 'L' :
-                  v:=v or V_Status;
+                  v:=v or V_LineInfo;
                 'U' :
                   v:=v or V_Used;
                 'T' :
                   v:=v or V_Tried;
-                'M' :
-                  v:=v or V_Macro;
-                'P' :
-                  v:=v or V_Procedure;
                 'C' :
                   v:=v or V_Conditional;
                 'D' :
                   v:=v or V_Debug;
-                'B' :
-                  v:=v or V_Declarations;
                 'X' :
                   v:=v or V_Executable;
-                'Z' :
-                  v:=v or V_Assem;
                 'S' :
                   dostop:=true;
                 '_' : ;
@@ -547,9 +532,10 @@ var
           end;
         Delete(s,1,idx);
       { check verbosity level }
-        if ((status.verbosity and v)<>v) and
-           (not status.use_bugreport) then
-         exit;
+        if not CheckVerbosity(v) then
+          exit;
+        if (v and V_LineInfoMask)<>0 then
+          v:=v or V_LineInfo;
       { fix status }
         UpdateStatus;
       { Fix replacements }
@@ -711,7 +697,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.23  2002-12-29 14:57:50  peter
+  Revision 1.24  2003-01-09 21:52:38  peter
+    * merged some verbosity options.
+    * V_LineInfo is a verbosity flag to include line info
+
+  Revision 1.23  2002/12/29 14:57:50  peter
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed

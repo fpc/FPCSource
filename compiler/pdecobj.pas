@@ -231,7 +231,6 @@ implementation
            s : string;
            tt : ttype;
            arraytype : ttype;
-           declarepos : tfileposinfo;
            pp : Tprocdef;
            pd : tprocdef;
            pt : tnode;
@@ -1173,7 +1172,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2002-11-25 17:43:21  peter
+  Revision 1.58  2003-01-09 21:52:37  peter
+    * merged some verbosity options.
+    * V_LineInfo is a verbosity flag to include line info
+
+  Revision 1.57  2002/11/25 17:43:21  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

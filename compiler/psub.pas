@@ -684,8 +684,7 @@ implementation
          { compile procedure when a body is needed }
          if (pdflags and pd_body)<>0 then
            begin
-             Message1(parser_p_procedure_start,
-                      aktprocdef.fullprocname);
+             Message1(parser_d_procedure_start,aktprocdef.fullprocname);
 
              if assigned(aktprocsym.owner) then
                aktprocdef.aliasnames.insert(aktprocdef.mangledname);
@@ -847,7 +846,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2003-01-09 20:40:59  daniel
+  Revision 1.91  2003-01-09 21:52:37  peter
+    * merged some verbosity options.
+    * V_LineInfo is a verbosity flag to include line info
+
+  Revision 1.90  2003/01/09 20:40:59  daniel
     * Converted some code in cgx86.pas to new register numbering
 
   Revision 1.89  2003/01/09 15:49:56  daniel
