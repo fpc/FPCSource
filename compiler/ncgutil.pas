@@ -119,15 +119,9 @@ implementation
 {$ifdef GDB}
     gdb,
 {$endif GDB}
-    ncon,
+    pass_1,pass_2,
+    ncon,nld,nutils,
     tgobj,cgutils,cgobj;
-
-
-  const
-    { Please leave this here, this module should NOT use
-      exprasmlist, the lists are always passed as arguments.
-      Declaring it as string here results in an error when compiling (PFV) }
-    exprasmlist = 'error';
 
 
 {*****************************************************************************
@@ -764,10 +758,9 @@ implementation
     { generates the code for initialisation of local data }
     procedure initialize_data(p : tnamedindexitem;arg:pointer);
       var
-        href : treference;
-        list:TAAsmoutput;
+        oldexprasmlist : TAAsmoutput;
+        hp : tnode;
       begin
-        list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
            (tvarsym(p).refs>0) and
            assigned(tvarsym(p).vartype.def) and
@@ -776,18 +769,13 @@ implementation
          begin
            if (cs_implicit_exceptions in aktmoduleswitches) then
             include(current_procinfo.flags,pi_needs_implicit_finally);
-           if tvarsym(p).owner.symtabletype=localsymtable then
-             begin
-               case tvarsym(p).localloc.loc of
-                 LOC_REFERENCE :
-                   reference_reset_base(href,tvarsym(p).localloc.reference.index,tvarsym(p).localloc.reference.offset);
-                 else
-                   internalerror(2003091810);
-               end;
-             end
-           else
-             reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(p).mangledname,AB_EXTERNAL,AT_DATA),0);
-           cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
+           oldexprasmlist:=exprasmlist;
+           exprasmlist:=taasmoutput(arg);
+           hp:=initialize_data_node(cloadnode.create(tsym(p),tsym(p).owner));
+           firstpass(hp);
+           secondpass(hp);
+           hp.free;
+           exprasmlist:=oldexprasmlist;
          end;
       end;
 
@@ -795,10 +783,11 @@ implementation
     { generates the code for finalisation of local data }
     procedure finalize_data(p : tnamedindexitem;arg:pointer);
       var
-        href : treference;
-        list:TAAsmoutput;
+        oldexprasmlist : TAAsmoutput;
+        hp : tnode;
+        dofinalize : boolean;
       begin
-        list:=taasmoutput(arg);
+        dofinalize:=false;
         case tsym(p).typ of
           varsym :
             begin
@@ -807,31 +796,25 @@ implementation
                  assigned(tvarsym(p).vartype.def) and
                  not(is_class(tvarsym(p).vartype.def)) and
                  tvarsym(p).vartype.def.needs_inittable then
-               begin
-                 if tvarsym(p).owner.symtabletype=localsymtable then
-                   begin
-                     case tvarsym(p).localloc.loc of
-                       LOC_REFERENCE :
-                         reference_reset_base(href,tvarsym(p).localloc.reference.index,tvarsym(p).localloc.reference.offset);
-                       else
-                         internalerror(2003091811);
-                     end;
-                   end
-                 else
-                   reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(p).mangledname,AB_EXTERNAL,AT_DATA),0);
-                 cg.g_finalize(list,tvarsym(p).vartype.def,href,false);
-               end;
+                dofinalize:=true;
             end;
           typedconstsym :
             begin
               if ttypedconstsym(p).is_writable and
                  ttypedconstsym(p).typedconsttype.def.needs_inittable then
-               begin
-                 reference_reset_symbol(href,objectlibrary.newasmsymbol(ttypedconstsym(p).mangledname,AB_EXTERNAL,AT_DATA),0);
-                 cg.g_finalize(list,ttypedconstsym(p).typedconsttype.def,href,false);
-               end;
+                dofinalize:=true;
             end;
         end;
+        if dofinalize then
+          begin
+            oldexprasmlist:=exprasmlist;
+            exprasmlist:=taasmoutput(arg);
+            hp:=finalize_data_node(cloadnode.create(tsym(p),tsym(p).owner));
+            firstpass(hp);
+            secondpass(hp);
+            hp.free;
+            exprasmlist:=oldexprasmlist;
+          end;
       end;
 
 
@@ -2141,7 +2124,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.195  2004-03-02 00:36:33  olle
+  Revision 1.196  2004-03-03 22:02:52  peter
+    * use loadnode and finalize_data_node for init/final code to support
+      threadvars correctly
+
+  Revision 1.195  2004/03/02 00:36:33  olle
     * big transformation of Tai_[const_]Symbol.Create[data]name*
 
   Revision 1.194  2004/02/27 10:21:05  florian
