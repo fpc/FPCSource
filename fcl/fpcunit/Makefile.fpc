@@ -7,7 +7,7 @@ main=fcl
 
 [target]
 units=fpcunit  testregistry  testreport testutils
-exampledirs=exampletests tests
+exampledirs=exampletests
 
 [compiler]
 options=-S2h
