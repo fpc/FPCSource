@@ -1484,7 +1484,11 @@ implementation
         if live_registers.length>0 then
           begin
             for i:=0 to live_registers.length-1 do
-              Comment(V_Warning,'Register '+std_regname(newreg(R_INTREGISTER,live_registers.buf[i],defaultsub))+' not released');
+              begin
+                { Only report for imaginary registers }
+                if live_registers.buf[i]>=first_imaginary then
+                  Comment(V_Warning,'Register '+std_regname(newreg(R_INTREGISTER,live_registers.buf[i],defaultsub))+' not released');
+              end;
           end;
 {$endif}
       end;
@@ -1676,7 +1680,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.107  2003-12-22 22:13:46  peter
+  Revision 1.108  2003-12-22 23:09:34  peter
+    * only report unreleased imaginary registers
+
+  Revision 1.107  2003/12/22 22:13:46  peter
     * made decrease_degree working, but not really fixed
 
   Revision 1.106  2003/12/18 17:06:21  florian
