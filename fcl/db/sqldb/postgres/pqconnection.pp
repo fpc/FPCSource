@@ -5,7 +5,7 @@ unit pqconnection;
 interface
 
 uses
-  Classes, SysUtils, postgres, sqldb, db;
+  Classes, SysUtils, postgres3, sqldb, db;
   
 type
   TPQTrans = Class(TSQLHandle)
