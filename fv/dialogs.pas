@@ -2371,14 +2371,14 @@ END;
 {  FindSel -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 03Jun98 LdB           }
 {---------------------------------------------------------------------------}
 FUNCTION TCluster.FindSel (P: TPoint): Sw_Integer;
-VAR I, J, S, Vh: Sw_Integer; R: TRect;
+VAR I, S, Vh: Sw_Integer; R: TRect;
 BEGIN
    GetExtent(R);                                      { Get view extents }
    If R.Contains(P) Then Begin                        { Point in view }
      Vh := Size.Y;                            { View height }
      I := 0;                                          { Preset zero value }
      While (P.X >= Column(I+Vh)) Do Inc(I, Vh);       { Inc view size }
-     S := I + P.Y - J;                                { Line to select }
+     S := I + P.Y;                                { Line to select }
      If ((S >= 0) AND (S < Strings.Count))            { Valid selection }
        Then FindSel := S Else FindSel := -1;          { Return selected item }
    End Else FindSel := -1;                            { Point outside view }
@@ -4141,7 +4141,10 @@ END;
 END.
 {
  $Log$
- Revision 1.31  2004-12-21 18:53:41  peter
+ Revision 1.32  2004-12-22 15:50:38  peter
+   * fixed cluster.findsel
+
+ Revision 1.31  2004/12/21 18:53:41  peter
  cmCursorChange event
 
  Revision 1.30  2004/12/19 20:20:48  hajny
