@@ -595,6 +595,7 @@ begin
    begin
      if p<>nil then
       TraceFreeMem(p);
+     p:=nil;
      TraceReallocMem:=P;
      exit;
    end;
@@ -1148,7 +1149,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.21  2002-11-30 23:34:43  carl
+  Revision 1.22  2002-12-26 10:46:54  peter
+    * set p to nil when 0 is passed to reallocmem
+
+  Revision 1.21  2002/11/30 23:34:43  carl
     * nil should give an error!
 
   Revision 1.20  2002/10/30 20:39:13  peter
