@@ -19,7 +19,7 @@
 %   Boston, MA 02111-1307, USA. 
 %
 % Dummy
-\newenvironment{FPKList}{\begin{description}}{\end{description}}
+\newenvironment{FPCList}{\begin{description}}{\end{description}}
 \newcommand{\functionl}[7]{
 \subsection{#1}
 \label{fu:#2}
@@ -85,7 +85,7 @@
 \newcommand{\docversion}[1]{}
 \newcommand{\unitdescription}[1]{}
 \newcommand{\unitversion}[1]{}
-\newcommand{\fpk}{Free Pascal }
+\newcommand{\fpc}{Free Pascal }
 \newcommand{\gnu}{gnu }
 %
 % Useful references.
@@ -108,9 +108,9 @@
 % For Code examples (complete programs only)
 \newenvironment{CodEx}{}{}
 % For Tables.
-\newenvironment{FPKtable}[2]{\begin{table}\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+\newenvironment{FPCtable}[2]{\begin{table}\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
 % The same, but with label in third argument (tab:#3)
-\newenvironment{FPKltable}[3]{\begin{table}\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+\newenvironment{FPCltable}[3]{\begin{table}\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
 %
 % Commands to reference these things.
 %

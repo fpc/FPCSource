@@ -18,17 +18,17 @@
 %   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 %   Boston, MA 02111-1307, USA. 
 %
-\ProvidesPackage{fpk}[1996/12/09]
+\ProvidesPackage{fpc}[1996/12/09]
 \NeedsTeXFormat{LaTeX2e}
 \ExecuteOptions{titlepage}
 % First, all definitions for latex only.
-\newcommand{\docdescription}[1]{\def\@FPKDescription{#1}}
-\gdef\@FPKDescription{}%
-\newcommand{\docversion}[1]{\def\@FPKVersion{#1}}
-\gdef\@FPKVersion{}%
+\newcommand{\docdescription}[1]{\def\@FPCDescription{#1}}
+\gdef\@FPCDescription{}%
+\newcommand{\docversion}[1]{\def\@FPCVersion{#1}}
+\gdef\@FPCVersion{}%
 % For backwards compatibility
-\newcommand{\unitdescription}[1]{\def\@FPKDescription{#1}}
-\newcommand{\unitversion}[1]{\def\@FPKVersion{#1}}
+\newcommand{\unitdescription}[1]{\def\@FPCDescription{#1}}
+\newcommand{\unitversion}[1]{\def\@FPCVersion{#1}}
 \renewcommand\maketitle{\begin{titlepage}%
   \let\footnotesize\small
   \let\footnoterule\relax
@@ -38,8 +38,8 @@
   \noindent \rule{\linewidth}{1.5mm}\\%
   {\raggedleft\large%
       \begin{tabular}[t]{r}%
-        \@FPKDescription \\
-        \@FPKVersion \\
+        \@FPCDescription \\
+        \@FPCVersion \\
         \@date
       \end{tabular}\par}%
    \vskip 5cm%
@@ -64,12 +64,12 @@
 {1pt}%
 {\normalfont\large\sffamily\bfseries}}
 % Now, Let's define the \procedure and \function commands.
-\newcommand{\FPKlabel}[1]{%
+\newcommand{\FPClabel}[1]{%
 \raggedleft\makebox[0pt][r]{\textsf{#1:}}
 }
-\newenvironment{FPKList}
+\newenvironment{FPCList}
 {\begin{list}{}{%
-\renewcommand{\makelabel}[1]{\FPKlabel{##1}\hfil\relax}
+\renewcommand{\makelabel}[1]{\FPClabel{##1}\hfil\relax}
  \setlength{\labelwidth}{0pt}%
  \setlength{\leftmargin}{0pt}}%
  \setlength{\labelsep}{0pt}%
@@ -84,7 +84,7 @@
 \raisebox{1ex}{\rule{\linewidth}{0.5mm}}
 \label{fu:#2}
 \index{#1}
-\begin{FPKList}
+\begin{FPCList}
 \item[Declaration]
 \texttt {Function #1  #3  : #4;}
 \item[Description]
@@ -93,14 +93,14 @@
 #6
 \item[See also]
 #7
-\end{FPKList}
+\end{FPCList}
 }
 \newcommand{\procedurel}[6]{
 \subsection{#1}
 \raisebox{1ex}{\rule{\linewidth}{0.5mm}}
 \label{pro:#2}
 \index{#1}
-\begin{FPKList}
+\begin{FPCList}
 \item[Declaration]
 \texttt {Procedure #1  #3;}
 \item[Description]
@@ -109,7 +109,7 @@
 #5
 \item[See also]
 #6
-\end{FPKList}
+\end{FPCList}
 }
 % define a capital version, 
 % for function/command which has no options passed to it.
@@ -152,6 +152,7 @@
 \newcommand{\progref}{\htmladdnormallink{Programmers' guide}{../prog/prog.html}\ }
 \newcommand{\refref}{\htmladdnormallink{Reference guide}{../ref/ref.html}\ }
 \newcommand{\userref}{\htmladdnormallink{Users' guide}{../user/user.html}\ }
+\newcommand{\unitsref}{\htmladdnormallink{Unit reference}}{../units/units.html}
 \newcommand{\seecrt}{\htmladdnormallink{CRT}{../crt/crt.html}}
 \newcommand{\seelinux}{\htmladdnormallink{Linux}{../linux/linux.html}}
 \newcommand{\seestrings}{\htmladdnormallink{strings}{../strings/strings.html}}
@@ -167,9 +168,9 @@
 % For Code examples (complete programs only)
 \newenvironment{CodEx}{}{}
 % For Tables.
-\newenvironment{FPKtable}[2]{\begin{table}\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+\newenvironment{FPCtable}[2]{\begin{table}\caption{#2}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
 % The same, but with label in third argument (tab:#3)
-\newenvironment{FPKltable}[3]{\begin{table}\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
+\newenvironment{FPCltable}[3]{\begin{table}\caption{#2}\label{tab:#3}\begin{center}\begin{tabular}{#1}}{\end{tabular}\end{center}\end{table}}
 %
 % Commands to reference these things.
 %
@@ -183,6 +184,10 @@
 \newcommand{\ostwo}{\textsc{os/2}\ }
 \newcommand{\windows}{\textsc{Windows}\ }
 \newcommand{\windowsnt}{\textsc{WindowsNT}\ }
-\newcommand{\fpk}{Free Pascal\ }
+\newcommand{\fpc}{Free Pascal\ }
 \newcommand{\gnu}{\textsc{gnu}\ }
-% end of fpk.sty
+%
+% Some versions 
+%
+\newcommand{\fpcversion}{0.99.7}
+% end of fpc.sty

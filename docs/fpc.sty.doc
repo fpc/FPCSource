@@ -1,4 +1,4 @@
-fpk.sty defines the following:
+fpc.sty defines the following:
 
 \procedure{name}{args}{desc}{errs}{seealso}
 \Procedure{name}{desc}{errs}{seealso}
@@ -51,7 +51,7 @@ makes a cross reference (pageref) to procedure name..
 produces a reference to a UNIX man page. as in : 
 man (sec)
 
-For nice typesetting it defines also \fpk, which niicely formats the name of
+For nice typesetting it defines also \fpc, which nicely formats the name of
 the compiler.
 
 Then it defines also
@@ -60,6 +60,7 @@ Then it defines also
 \msdos
 \ostwo
 \windowsnt
+\windows
 commands, which just typeset in small caps the name of the OS's...
 
 I think that's about it.
