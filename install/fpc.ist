@@ -2,7 +2,7 @@
 ; We don't use the INNO Setup preprocessor. It is unfortunately quite buggy.
 ; So, this script must be preprocessed by our own tools.
 ; The preprocessor will replace anything enclosed in percent characters
-; by the value specified in it's config file. Standard there are only 
+; by the value specified in it's config file. Standard there are only
 ; the following things;
 ; FPCVERSION   Version of FPC.
 ; BUILDDIR     Build directory.
@@ -118,7 +118,7 @@ Source: bin\i386-win32\yylex.cod; DestDir: {app}\bin\i386-win32; Flags: ignoreve
 Source: bin\i386-win32\yyparse.cod; DestDir: {app}\bin\i386-win32; Flags: ignoreversion; Components: utils
 Source: units\i386-win32\lexyacc\*.*; DestDir: {app}\units\i386-win32\lexyacc; Flags: ignoreversion; Components: utils
 ; Documentation
-Source: doc\*.pdf; DestDir: {app}\doc; Flags: ignoreversion; Components: docs
+%DisableDocs%Source: doc\*.pdf; DestDir: {app}\doc; Flags: ignoreversion; Components: docs
 
 ; FCL
 Source: units\i386-win32\fcl\*.*; DestDir: {app}\units\i386-win32\fcl; Flags: ignoreversion; Components: fcl
@@ -136,6 +136,9 @@ Source: units\i386-win32\fpgtk\*.*; DestDir: {app}\units\i386-win32\fpgtk; Flags
 ; Gtk
 Source: units\i386-win32\gtk\*.*; DestDir: {app}\units\i386-win32\gtk; Flags: ignoreversion; Components: packages/gtk
 Source: examples\gtk\*.*; DestDir: {app}\examples\gtk; Flags: ignoreversion; Components: packages/gtk
+; Gtk 2
+Source: units\i386-win32\gtk2\*.*; DestDir: {app}\units\i386-win32\gtk2; Flags: ignoreversion; Components: packages/gtk2
+Source: examples\gtk2\*.*; DestDir: {app}\examples\gtk2; Flags: ignoreversion; Components: packages/gtk2
 ; GDBINT
 Source: units\i386-win32\gdbint\*.*; DestDir: {app}\units\i386-win32\gdbint; Flags: ignoreversion; Components: packages/gdbint
 Source: examples\gdbint\*.*; DestDir: {app}\examples\gdbint; Flags: ignoreversion; Components: packages/gdbint
@@ -186,7 +189,7 @@ Source: units\i386-win32\zlib\*.*; DestDir: {app}\units\i386-win32\zlib; Flags: 
 ; Source: examples\zlib\*.*; DestDir: {app}\examples\zlib; Flags: ignoreversion; Components: packages/unzip
 
 [INI]
-Filename: {app}\ppc386.url; Section: InternetShortcut; Key: URL; String: http://www.freepascal.org/
+Filename: {app}\Free Pascal.url; Section: InternetShortcut; Key: URL; String: http://www.freepascal.org/
 
 [Icons]
 Name: {userdesktop}\Free Pascal IDE; Filename: {app}\bin\i386-win32\fp.exe; components: ide; IconFileName: {app}\bin\i386-win32\fp32.ico;
@@ -201,7 +204,7 @@ Type: files; Name: {app}\bin\i386-win32\fpc.cfg; Tasks: createcfg;
 [Components]
 Name: base; Description: Basic system for  win32; Flags: fixed; Types: Custom Minimum Full
 Name: binutils; Description: GNU linker and assembler; Flags: fixed; Types: Custom Minimum Full
-Name: docs; Description: Documentation in PDF; Types: Custom Full
+%DisableDocs%Name: docs; Description: Documentation in PDF; Types: Custom Full
 Name: ide; Description: Integrated Development Environment; Types: Custom Full
 Name: utils; Description: Free Pascal Utilities; Types: Custom Full
 Name: make; Description: GNU make; Types: Custom Full
@@ -209,8 +212,9 @@ Name: gdb; Description: GNU debugger; Types: Full Custom
 Name: fcl; Description: FCL (Free Component Library) units; Types: Custom Full
 Name: fv; Description: Free Vision; Types: Custom Full
 Name: packages; Description: Various unit packages; Types: Custom Full
-Name: packages/gtk; Description: GTK units; Types: Custom Full
-Name: packages/gtk/fpgtk; Description: fpGTK units; Types: Custom Full
+Name: packages/gtk; Description: GTK 1.2 units; Types: Custom Full
+Name: packages/gtk/fpgtk; Description: fpGTK (for GTK 1.2) units; Types: Custom Full
+Name: packages/gtk2; Description: GTK 2 units; Types: Custom Full
 Name: packages/opengl; Description: OpenGL units; Types: Custom Full
 Name: packages/ibase; Description: Interbase/Firebird units; Types: Custom Full
 Name: packages/mysql; Description: MySQL units; Types: Custom Full
@@ -301,7 +305,7 @@ Root: HKCR; Subkey: "FPDPRFile"; ValueType: string; ValueName: ""; ValueData: "F
 Root: HKCR; Subkey: "FPDPRFile\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\bin\i386-Win32\fpc32.ico"; Tasks: associatedpr;
 Root: HKCR; Subkey: "FPDPRFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\bin\i386-win32\fp.exe"" ""%1""";Tasks: associatedpr;
 ; Extend path in NT,2000 or XP. Does not work in 95/98/Me
-Root: HKCU; Subkey: Environment; ValueType: String; ValueName: "PATH"; ValueData: "{reg:HKCU\environment,PATH|};{app}\bin\i386-Win32\";MinVersion: 5.0,4.0
+Root: HKCU; Subkey: Environment; ValueType: String; ValueName: "PATH"; ValueData: "{reg:HKCU\environment,PATH|};{app}\bin\i386-Win32";MinVersion: 5.0,4.0
 
 [Run]
 FileName: {app}\bin\i386-win32\fpcmkcfg.exe; Description: "Creating default configuration file for Free Pascal compiler"; Parameters: "-d ""basepath={app}"" -o ""{app}\bin\i386-Win32\fpc.cfg""";
