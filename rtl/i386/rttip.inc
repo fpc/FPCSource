@@ -118,7 +118,7 @@ asm
 # decide what type it is
         movl    12(%ebp),%ebx
         movb    (%ebx),%al
-        subb    $10,%al
+        subb    $9,%al
         jz      .DoAnsiStringFinal
         decb    %al
         jz      .DoAnsiStringFinal
@@ -210,7 +210,7 @@ asm
 # decide what type it is
         movl    12(%ebp),%ebx
         movb    (%ebx),%al
-        subb    $10,%al
+        subb    $9,%al
         jz      .DoAnsiStringAddRef
         decb    %al
         jz      .DoAnsiStringAddRef
@@ -295,7 +295,7 @@ asm
 # decide what type it is
         movl    12(%ebp),%ebx
         movb    (%ebx),%al
-        subb    $10,%al
+        subb    $9,%al
         jz      .DoAnsiStringDecRef
         decb    %al
         jz      .DoAnsiStringDecRef
@@ -374,7 +374,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  1998-12-15 22:42:59  peter
+  Revision 1.14  1998-12-19 00:22:09  florian
+    * Finalize fixed, constant for ansistrings is 9, not 10
+
+  Revision 1.13  1998/12/15 22:42:59  peter
     * removed temp symbols
 
   Revision 1.12  1998/11/30 10:07:34  michael
