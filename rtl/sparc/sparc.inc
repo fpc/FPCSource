@@ -20,7 +20,7 @@
 {****************************************************************************
                            SPARC specific stuff
 ****************************************************************************}
-function get_fsr : dword;assembler;nostackframe;
+function get_fsr : dword;assembler;nostackframe;[public, alias: 'FPC_GETFSR'];
   var
     fsr : dword;
   asm
@@ -29,20 +29,20 @@ function get_fsr : dword;assembler;nostackframe;
   end;
 
 
-function get_got : pointer;assembler;nostackframe;[public, alias: 'FPC_GETGOT'];
-  asm
-    retl
-    add %o7,%l7,%l7
-  end;
-
-
-procedure set_fsr(fsr : dword);assembler;
+procedure set_fsr(fsr : dword);assembler;[public, alias: 'FPC_SETFSR'];
   var
     _fsr : dword;
   asm
     // force memory location
     st fsr,_fsr
     ld _fsr,%fsr
+  end;
+
+
+function get_got : pointer;assembler;nostackframe;[public, alias: 'FPC_GETGOT'];
+  asm
+    retl
+    add %o7,%l7,%l7
   end;
 
 
@@ -362,7 +362,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  2005-02-07 22:17:48  peter
+  Revision 1.20  2005-02-13 18:58:27  florian
+    + FPU controll routines in math unit
+
+  Revision 1.19  2005/02/07 22:17:48  peter
     * add $ifdef for move
 
   Revision 1.18  2005/01/27 21:26:39  florian
