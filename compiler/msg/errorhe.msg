@@ -112,6 +112,7 @@ general_i_hint=01016_I_רמז:
 % Prefix for Hints
 general_e_path_does_not_exist=01017_E_הנתיב "$1" אינו קיים
 % The specified path does not exist.
+general_e_compilation_aborted=01018_E_ההידור בוטל
 % \end{description}
 #
 # Scanner
@@ -303,6 +304,9 @@ scan_e_error_macro_lacks_value=02065_E_מקרו "$1" לא מכיל ערכים
 % Thus the conditional compiling expression cannot be evaluated.
 scan_e_wrong_switch_toggle_default=02066_E_שימוש במתג שגוי, השתמש ב ON/OFF/DEFAULT או ב+/-/*
 % You need to use ON or OFF or DEFAULT or a + or - or * to toggle the switch
+scan_e_mode_switch_not_allowed=02067_E_מצב מתג "$1" לא מורשה
+% A mode switch has already been encountered, or, in case of option -Mmacpas,
+% a mode switch occur after UNIT.
 % \end{description}
 #
 # Parser
@@ -314,46 +318,46 @@ scan_e_wrong_switch_toggle_default=02066_E_שימוש במתג שגוי, השתמש ב ON/OFF/DEFAU
 % semantics of you language, i.e. it determines if your pascal constructs
 % are correct.
 % \begin{description}
-parser_e_syntax_error=03000_E_Parser - Syntax Error
+parser_e_syntax_error=03000_E_מפרש - שגיאה תחבירית
 % An error against the Turbo Pascal language was encountered. This happens
 % typically when an illegal character is found in the sources file.
-parser_e_dont_nest_interrupt=03004_E_INTERRUPT procedure can't be nested
+parser_e_dont_nest_interrupt=03004_E_פרוצדורת פסיקה אינה יכולה להיות מקוננת
 % An \var{INTERRUPT} procedure must be global.
-parser_w_proc_directive_ignored=03005_W_Procedure type "$1" ignored
+parser_w_proc_directive_ignored=03005_W_מתעלם מסוג פרוצדורה "$1"
 % The specified is ignored by FPC programs.
-parser_e_no_overload_for_all_procs=03006_E_Not all declarations of "$1" are declared with OVERLOAD
+parser_e_no_overload_for_all_procs=03006_E_לא כל ההכזרות של "$1" בעלות הכרזת OVERLOAD
 % When you want to use overloading using the \var{OVERLOAD} directive, then
 % all declarations need to have \var{OVERLOAD} specified.
-parser_e_export_name_double=03008_E_Duplicate exported function name "$1"
+parser_e_export_name_double=03008_E_כפילויות בייצוא שם הפונקציה "$1"
 % Exported function names inside a specific DLL must all be different
-parser_e_export_ordinal_double=03009_E_Duplicate exported function index $1
+parser_e_export_ordinal_double=03009_E_כפילויות בייצוא אינדקס הפונקציה "$1"
 % Exported function names inside a specific DLL must all be different
-parser_e_export_invalid_index=03010_E_Invalid index for exported function
+parser_e_export_invalid_index=03010_E_אינדקס לא תקין לייצוא הפונקציה
 % DLL function index must be in the range \var{1..\$FFFF}
-parser_w_parser_reloc_no_debug=03011_W_Relocatable DLL or executable $1 debug info does not work, disabled.
-parser_w_parser_win32_debug_needs_WN=03012_W_To allow debugging for win32 code you need to disable relocation with -WN option
+parser_w_parser_reloc_no_debug=03011_W_שינוי מיקום נתוני הניפוי לא עובדים לקבצי DLL או קבצי הרצה. התבטל.
+parser_w_parser_win32_debug_needs_WN=03012_W_לאפשר ניפוי שגיאות לwin32 יש לבטל את שינוי המיקום ע"י האפשרות -WN
 % Stabs info is wrong for relocatable DLL or EXES use -WN
 % if you want to debug win32 executables.
-parser_e_constructorname_must_be_init=03013_E_Constructor name must be INIT
+parser_e_constructorname_must_be_init=03013_E_שם יוצר חייב להיות INIT
 % You are declaring an object constructor with a name which is not \var{init}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
-parser_e_destructorname_must_be_done=03014_E_Destructor name must be DONE
+parser_e_destructorname_must_be_done=03014_E_שם הורס חייב להיות DONE
 % You are declaring an object destructor with a name which is not \var{done}, and the
 % \var{-Ss} switch is in effect. See the \var{-Ss} switch (\seeo{Ss}).
-parser_e_proc_inline_not_supported=03016_E_Procedure type INLINE not supported
+parser_e_proc_inline_not_supported=03016_E_פרוצדורת INLINE לא נתמכת
 % You tried to compile a program with C++ style inlining, and forgot to
 % specify the \var{-Si} option (\seeo{Si}). The compiler doesn't support C++
 % styled inlining by default.
-parser_w_constructor_should_be_public=03018_W_Constructor should be public
+parser_w_constructor_should_be_public=03018_W_יוצר צריך להיות ציבורי
 % Constructors must be in the 'public' part of an object (class) declaration.
-parser_w_destructor_should_be_public=03019_W_Destructor should be public
+parser_w_destructor_should_be_public=03019_W_הורס צריך להיות ציבורי
 % Destructors must be in the 'public' part of an object (class) declaration.
-parser_n_only_one_destructor=03020_N_Class should have one destructor only
+parser_n_only_one_destructor=03020_N_מחלקה צריכה הורס אחד בלבד
 % You can declare only one destructor for a class.
-parser_e_no_local_objects=03021_E_Local class definitions are not allowed
+parser_e_no_local_objects=03021_E_הגדרות מחלקה מקומיות אינם מורשות
 % Classes must be defined globally. They cannot be defined inside a
 % procedure or function
-parser_f_no_anonym_objects=03022_F_Anonym class definitions are not allowed
+parser_f_no_anonym_objects=03022_F_הגדרות מחלקה אנונימיות אינם מורשות
 % An invalid object (class) declaration was encountered, i.e. an
 % object or class without methods that isn't derived from another object or
 % class. For example:
@@ -363,29 +367,29 @@ parser_f_no_anonym_objects=03022_F_Anonym class definitions are not allowed
 %          end;
 % \end{verbatim}
 % will trigger this error.
-parser_n_object_has_no_vmt=03023_N_The object "$1" has no VMT
+parser_n_object_has_no_vmt=03023_N_האובייקט "$1" ללא VMT
 % This is a note indicating that the declared object has no
 % virtual method table.
-parser_e_illegal_parameter_list=03024_E_Illegal parameter list
+parser_e_illegal_parameter_list=03024_E_רשימת פרמטרים לא חוקית
 % You are calling a function with parameters that are of a different type than
 % the declared parameters of the function.
-parser_e_wrong_parameter_size=03026_E_Wrong number of parameters specified
+parser_e_wrong_parameter_size=03026_E_צויין מספר שגוי של פרמטרים
 % There is an error in the parameter list of the function or procedure,
 % the number of parameters is not correct.
-parser_e_overloaded_no_procedure=03027_E_overloaded identifier "$1" isn't a function
+parser_e_overloaded_no_procedure=03027_E_מזהה המרובה שימוש "$1" אינו פונקציה
 % The compiler encountered a symbol with the same name as an overloaded
 % function, but it is not a function it can overload.
-parser_e_overloaded_have_same_parameters=03028_E_overloaded functions have the same parameter list
+parser_e_overloaded_have_same_parameters=03028_E_פונקציות מרובות שימוש מכילות את אותם רשימת פרמטרים
 % You're declaring overloaded functions, but with the same parameter list.
 % Overloaded function must have at least 1 different parameter in their
 % declaration.
-parser_e_header_dont_match_forward=03029_E_function header doesn't match the forward declaration "$1"
+parser_e_header_dont_match_forward=03029_E_הגדרת הפונקציה אינה תואמת את ההגדרה המקדימה "$1"
 % You declared a function with same parameters but
 % different result type or function modifiers.
-parser_e_header_different_var_names=03030_E_function header "$1" doesn't match forward : var name changes $2 => $3
+parser_e_header_different_var_names=03030_E_הגדרת הפונקציה "$1" אינה תואמת את המימוש: שם משתנה השתנה $2 => $3
 % You declared the function in the \var{interface} part, or with the
 % \var{forward} directive, but define it with a different parameter list.
-parser_n_duplicate_enum=03031_N_Values in enumeration types have to be ascending
+parser_n_duplicate_enum=03031_N_ערכים בסוג מניה חייבים להיות בסדר עולה
 % \fpc allows enumeration constructions as in C. Given the following
 % declaration two declarations:
 % \begin{verbatim}
@@ -394,16 +398,16 @@ parser_n_duplicate_enum=03031_N_Values in enumeration types have to be ascending
 % \end{verbatim}
 % The second declaration would produce an error. \var{A\_UAS} needs to have a
 % value higher than \var{A\_E}, i.e. at least 7.
-parser_e_no_with_for_variable_in_other_segments=03033_E_With can not be used for variables in a different segment
+parser_e_no_with_for_variable_in_other_segments=03033_E_With אינו מסוגל להשתמש במשתנים ממקטע שונה
 % With stores a variable locally on the stack,
 % but this is not possible if the variable belongs to another segment.
-parser_e_too_much_lexlevel=03034_E_function nesting > 31
+parser_e_too_much_lexlevel=03034_E_פונקציה מקוננת > 31
 % You can nest function definitions only 31 times.
-parser_e_range_check_error=03035_E_range check error while evaluating constants
+parser_e_range_check_error=03035_E_שגיאה בבדיקת טווח בעת הערכת קבועים
 % The constants are out of their allowed range.
-parser_w_range_check_error=03036_W_range check error while evaluating constants
+parser_w_range_check_error=03036_W_שגיאה בבדיקת טווח בעת הערכת קבועים
 % The constants are out of their allowed range.
-parser_e_double_caselabel=03037_E_duplicate case label
+parser_e_double_caselabel=03037_E_הכזרת תווית כפולה בcase
 % You are specifying the same label 2 times in a \var{case} statement.
 parser_e_case_lower_less_than_upper_bound=03038_E_Upper bound of case range is less than lower bound
 % The upper bound of a \var{case} label is less than the lower bound and this
@@ -778,7 +782,7 @@ parser_e_threadvars_only_sg=03147_E_Threadvars can be only static or global
 parser_f_direct_assembler_not_allowed=03148_F_Direct assembler not supported for binary output format
 % You can't use direct assembler when using a binary writer, choose an
 % other outputformat or use an other assembler reader
-parser_w_no_objpas_use_mode=03149_W_Don't load OBJPAS unit manually, use {$mode objfpc} or {$mode delphi} instead
+parser_w_no_objpas_use_mode=03149_W_Don't load OBJPAS unit manually, use \{\$mode objfpc\} or \{\$mode delphi\} instead
 % You are trying to load the ObjPas unit manually from a uses clause. This is
 % not a good idea. Use the \var{\{\$mode objfpc\}} or
 % \var{\{\$mode delphi\}}
@@ -828,7 +832,7 @@ parser_e_dlltool_unit_var_problem2=03161_E_Compile without -WD option
 % You need to compile this file without the -WD switch on the
 % commandline
 parser_f_need_objfpc_or_delphi_mode=03162_F_You need ObjFpc (-S2) or Delphi (-Sd) mode to compile this module
-% You need to use {$mode objfpc} or {$mode delphi} to compile this file.
+% You need to use \{\$mode objfpc\} or \{\$mode delphi\} to compile this file.
 % Or use the equivalent commandline switches -S2 or -Sd.
 parser_e_no_export_with_index_for_target=03163_E_Can't export with index under $1
 % Exporting of functions or procedures with a specified index is not
@@ -993,6 +997,8 @@ parser_w_implicit_uses_of_variants_unit=03211_W_Implicit uses of Variants unit
 parser_e_no_static_method_in_interfaces=03212_E_Class and static methods can't be used in INTERFACES
 % The specifier \var{class} and directive \var{static} can't be used in interfaces
 % because all methods of an interfaces must be public.
+parser_e_arithmetic_operation_overflow=03213_E_גלישה בפעולה מתמטית
+% An operation on two integers values produced an overflow
 % \end{description}
 #
 # Type Checking
@@ -1460,7 +1466,6 @@ cg_e_control_flow_outside_finally=06040_E_Control flow statements aren't allowed
 % If the procedure \var{p} raises an exception the finally block is
 % executed. If the execution reaches the exit, it's unclear what to do:
 % exiting the procedure or searching for another exception handler
-% \end{description}
 cg_w_parasize_too_big=06041_W_Parameters size exceeds limit for certain cpu's
 % This indicates that you are declaring more than 64K of parameters, which
 % might not be supported on other processor targets.
@@ -1474,6 +1479,7 @@ cg_e_break_not_allowed=06044_E_BREAK not allowed
 % You're trying to use \var{break} outside a loop construction.
 cg_e_continue_not_allowed=06045_E_CONTINUE not allowed
 % You're trying to use \var{continue} outside a loop construction.
+% \end{description}
 # EndOfTeX
 
 #
@@ -1688,6 +1694,14 @@ asmr_w_unable_to_determine_reference_size_using_dword=07098_W_No size specified 
 % the compiler is unable to determine what size (byte,word,dword,etc.) it
 % should use for the reference. This warning is only used in Delphi mode where
 % it falls back to use DWORD as default.
+asmr_e_illegal_shifterop_syntax=07099_E_Syntax error while trying to parse a shifter operand
+% ARM only; ARM assembler supports a so called shifter operand. The used syntax isn't
+% a valid shifter operand. Example for an operation with shifter operand:
+% \begin{verbatim}
+% asm
+%   orr     r2,r2,r2,lsl #8
+% end;
+% \end{verbatim}
 #
 # Assembler/binary writers
 #
@@ -1898,16 +1912,17 @@ unit_u_second_load_unit=10036_U_Second load for unit $1
 unit_u_check_time=10037_U_PPU Check file $1 time $2
 % When you use the \var{-vu} flag, the compiler show the filename and
 % date and time of the file which a recompile depends on
-unit_h_cond_not_set_in_last_compile=10038_H_Conditional $1 was not set at startup in last compilation of $2
-% when recompilation of an unit is required the compiler will check that
-% the same conditionals are set for the recompiliation. The compiler has
-% found a conditional that currently is defined, but was not used the last
-% time the unit was compiled.
-unit_h_cond_set_in_last_compile=10039_H_Conditional $1 was set at startup in last compilation of $2
-% when recompilation of an unit is required the compiler will check that
-% the same conditionals are set for the recompiliation. The compiler has
-% found a conditional that was used the last time the unit was compiled, but
-% the conditional is currently not defined.
+### The following two error msgs is currently disabled.
+#unit_h_cond_not_set_in_last_compile=10038_H_Conditional $1 was not set at startup in last compilation of $2
+#% when recompilation of an unit is required the compiler will check that
+#% the same conditionals are set for the recompiliation. The compiler has
+#% found a conditional that currently is defined, but was not used the last
+#% time the unit was compiled.
+#unit_h_cond_set_in_last_compile=10039_H_Conditional $1 was set at startup in last compilation of $2
+#% when recompilation of an unit is required the compiler will check that
+#% the same conditionals are set for the recompiliation. The compiler has
+#% found a conditional that was used the last time the unit was compiled, but
+#% the conditional is currently not defined.
 unit_w_cant_compile_unit_with_changed_incfile=10040_W_Can't recompile unit $1, but found modifed include files
 % A unit was found to have modified include files, but
 % some source files were not found, so recompilation is impossible.
@@ -2068,8 +2083,6 @@ option_interpreting_firstpass_option=11036_D_interpreting firstpass option "$1"
 option_interpreting_file_option=11033_D_interpreting file option "$1"
 option_read_config_file=11034_D_Reading config file "$1"
 option_found_file=11035_D_found source file name "$1"
-option_defining_symbol=11037_D_Defining symbol $1
-option_undefining_symbol=11038_D_Undefining symbol $1
 % Additional infos about options, displayed
 % when you have debug option turned on.
 option_code_page_not_available=11039_E_Unknown code page
@@ -2081,7 +2094,7 @@ option_code_page_not_available=11039_E_Unknown code page
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2004 by Florian Klaempfl
+Copyright (c) 1993-2005 by Florian Klaempfl
 ]
 
 #
@@ -2179,6 +2192,7 @@ S*2Aas_assemble using GNU AS
 **1e<x>_set path to executable
 **1E_same as -Cn
 **1F<x>_set file names and paths:
+**2Fa<x>[,y]_for a program load first units <x> and [y] before uses is parsed
 **2Fc<x>_sets input codepage to <x>
 **2FD<x>_sets the directory where to search for compiler utilities
 **2Fe<x>_redirect error output to <x>
@@ -2245,13 +2259,17 @@ S*2Aas_assemble using GNU AS
 **2Sc_supports operators like C (*=,+=,/= and -=)
 **2Sa_include assertion code.
 **2Sd_same as -Mdelphi
-**2Se<x>_compiler stops after the <x> errors (default is 1)
+**2Se<x>_error options. <x> is a combination of the following:
+**3*_<n> : compiler stops after the <n> errors (default is 1)
+**3*_w : compiler stops also after warnings
+**3*_n : compiler stops also after notes
+**3*_h : compiler stops also after hints
 **2Sg_allow LABEL and GOTO
 **2Sh_Use ansistrings
 **2Si_support C++ styled INLINE
 **2SI<x>_set interface style to <x>
-**3SIcom COM compatible interface (default)
-**3SIcorba CORBA compatible interface
+**3SIcom_COM compatible interface (default)
+**3SIcorba_CORBA compatible interface
 **2Sm_support macros like C (global)
 **2So_same as -Mtp
 **2Sp_same as -Mgpc
@@ -2293,17 +2311,15 @@ S*2Tlinux_Linux
 **2Ur_generate release unit files
 **2Us_compile a system unit
 **1v<x>_Be verbose. <x> is a combination of the following letters:
-**2*_e : Show errors (default)       d : Show debug info
+**2*_e : Show errors (default)       0 : Show nothing (except errors)
 **2*_w : Show warnings               u : Show unit info
 **2*_n : Show notes                  t : Show tried/used files
-**2*_h : Show hints                  m : Show defined macros
-**2*_i : Show general info           p : Show compiled procedures
-**2*_l : Show linenumbers            c : Show conditionals
-**2*_a : Show everything             0 : Show nothing (except errors)
-**2*_b : Show all procedure          r : Rhide/GCC compatibility mode
-**2*_    declarations if an error    x : Executable info (Win32 only)
-**2*_    occurs
-**1V_write fpcdebug.txt file with lots of debugging info
+**2*_h : Show hints                  c : Show conditionals
+**2*_i : Show general info           d : Show debug info
+**2*_l : Show linenumbers            r : Rhide/GCC compatibility mode
+**2*_a : Show everything             x : Executable info (Win32 only)
+**2*_v : write fpcdebug.txt with     p : Write tree.log with parse tree
+**2*_    lots of debugging info
 3*1W<x>_Win32-like target options
 3*2WB<x>_Set Image base to Hexadecimal <x> value
 3*2WC_Specify console type application
