@@ -59,6 +59,7 @@ Type
   
   TCgiApplication = Class(TCustomApplication)
   Private
+    FResponse : TStream;
     FEmail : String;
     FAdministrator : String;
     FContentTypeEmitted : Boolean;
@@ -81,6 +82,10 @@ Type
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
+    Procedure AddResponse(Const S : String);
+    Procedure AddResponse(Const Fmt : String; Args : Array of const);
+    Procedure AddResponseLn(Const S : String);
+    Procedure AddResponseLn(Const Fmt : String; Args : Array of const);
     Procedure Initialize; override;
     Procedure GetCGIVarList(List : TStrings);
     Procedure GetRequestVarList(List : TStrings);
@@ -114,6 +119,7 @@ Type
     Property Administrator : String Read GetAdministrator Write FAdministrator;
     Property RequestVariables[VarName : String] : String Read GetRequestVariable;
     Property RequestVariableCount : Integer Read GetRequestVariableCount;
+    Property Response : TStream Read FResponse;
   end;
 
 ResourceString
@@ -128,6 +134,9 @@ ResourceString
   SErrInvalidRequestMethod = 'Invalid REQUEST_METHOD passed from server.';
   
 Implementation
+
+uses 
+  iostream;
 
 Constructor TCgiApplication.Create(AOwner : TComponent);
 
@@ -173,6 +182,7 @@ begin
   Inherited;
   InitCGIVars;
   InitRequestVars;
+  FResponse:=TIOStream.Create(iosOutput);
 end;
 
 Procedure TCgiApplication.GetCGIVarList(List : TStrings);
@@ -258,8 +268,8 @@ begin
     S:=ContentType;
     If (S='') then
       S:='text/html';
-    writeln('Content-Type: ',ContentType);
-    writeln;
+    AddResponseLn('Content-Type: '+ContentType);
+    AddResponseLn('');
     FContentTypeEmitted:=True;
     end;
 end;
@@ -277,16 +287,16 @@ begin
     end;
   If (ContentType='text/html') then
     begin
-    writeln('<html><head><title>',Title,SCGIError,'</title></head>');
-    writeln('<body>');
-    writeln('<center><hr><h1>',Title,': ERROR</h1><hr></center><br><br>');
-    writeln(SAppEncounteredError ,'<br>');
-    writeln('<ul>');
-    writeln('<li>',SError,' <b>',E.Message,'</b></ul><hr>');
+    AddResponseLN('<html><head><title>'+Title+': '+SCGIError+'</title></head>');
+    AddResponseLN('<body>');
+    AddResponseLN('<center><hr><h1>'+Title+': ERROR</h1><hr></center><br><br>');
+    AddResponseLN(SAppEncounteredError+'<br>');
+    AddResponseLN('<ul>');
+    AddResponseLN('<li>'+SError+' <b>'+E.Message+'</b></ul><hr>');
     TheEmail:=Email;
     If (TheEmail<>'') then
-      writeln('<h5><p><i>',SNotify,Administrator,': <a href="mailto:',TheEmail,'">',TheEmail,'</a></i></p></h5>');
-    writeln('</body></html>');
+      AddResponseLN('<h5><p><i>'+SNotify+Administrator+': <a href="mailto:'+TheEmail+'">'+TheEmail+'</a></i></p></h5>');
+    AddResponseLN('</body></html>');
     end;
 end;
 
@@ -510,6 +520,36 @@ begin
     Result:=FRequestVars.Count
   else
     Result:=0;
+end;
+
+Procedure TCGIApplication.AddResponse(Const S : String);
+
+Var
+  L : Integer;
+
+begin
+  L:=Length(S);
+  If L>0 then
+    FResponse.Write(S[1],L);
+end;
+
+Procedure TCGIApplication.AddResponse(Const Fmt : String; Args : Array of const);
+
+begin
+  AddResponse(Format(Fmt,Args));
+end;
+
+Procedure TCGIApplication.AddResponseLN(Const S : String);
+
+
+begin
+  AddResponse(S+LineEnding);
+end;
+
+Procedure TCGIApplication.AddResponseLN(Const Fmt : String; Args : Array of const);
+
+begin
+  AddResponseLN(Format(Fmt,Args));
 end;
 
 end.
