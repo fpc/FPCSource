@@ -3279,7 +3279,7 @@ begin
    begin
      temp:=p^.next;
      if p^.name<>nil then
-      freemem(p^.name,strlen(p^.name));
+      freemem(p^.name,strlen(p^.name)+1);
      dispose(p);
      p:=temp;
    end;
@@ -3742,7 +3742,10 @@ End.
 
 {
   $Log$
-  Revision 1.46  1999-09-08 16:14:41  peter
+  Revision 1.47  1999-10-06 17:43:58  peter
+    * freemem with wrong size (found with the new heapmanager)
+
+  Revision 1.46  1999/09/08 16:14:41  peter
     * pointer fixes
 
   Revision 1.45  1999/08/11 22:02:25  peter
