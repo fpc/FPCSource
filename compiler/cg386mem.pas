@@ -407,7 +407,7 @@ implementation
          tai : Paicpu;
          pushed : tpushed;
          hightree : ptree;
-
+         hl,otl,ofl : pasmlabel;
       begin
          secondpass(p^.left);
          rl:=p^.left^.resulttype;
@@ -602,6 +602,13 @@ implementation
               if (p^.location.loc<>LOC_REFERENCE) and
                  (p^.location.loc<>LOC_MEM) then
                 CGMessage(cg_e_illegal_expression);
+              if (p^.right^.location.loc=LOC_JUMP) then
+               begin
+                 otl:=truelabel;
+                 getlabel(truelabel);
+                 ofl:=falselabel;
+                 getlabel(falselabel);
+               end;
               is_pushed:=maybe_push(p^.right^.registers32,p,false);
               secondpass(p^.right);
               if is_pushed then
@@ -669,20 +676,35 @@ implementation
                       ind:=getregister32;
                       emit_flag2reg(p^.right^.location.resflags,reg32toreg8(ind));
                       emit_reg_reg(A_MOVZX,S_BL,reg32toreg8(ind),ind);
-                   end
+                   end;
+                 LOC_JUMP :
+                   begin
+                     ind:=getregister32;
+                     emitlab(truelabel);
+                     truelabel:=otl;
+                     emit_const_reg(A_MOV,S_L,1,ind);
+                     getlabel(hl);
+                     emitjmp(C_None,hl);
+                     emitlab(falselabel);
+                     falselabel:=ofl;
+                     emit_reg_reg(A_XOR,S_L,ind,ind);
+                     emitlab(hl);
+                   end;
+                 LOC_REFERENCE,LOC_MEM :
+                   begin
+                      del_reference(p^.right^.location.reference);
+                      ind:=getregister32;
+                      { Booleans are stored in an 8 bit memory location, so
+                        the use of MOVL is not correct }
+                      case p^.right^.resulttype^.size of
+                       1 : tai:=new(paicpu,op_ref_reg(A_MOVZX,S_BL,newreference(p^.right^.location.reference),ind));
+                       2 : tai:=new(Paicpu,op_ref_reg(A_MOVZX,S_WL,newreference(p^.right^.location.reference),ind));
+                       4 : tai:=new(Paicpu,op_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),ind));
+                      end;
+                      exprasmlist^.concat(tai);
+                   end;
                  else
-                    begin
-                       del_reference(p^.right^.location.reference);
-                       ind:=getregister32;
-                       { Booleans are stored in an 8 bit memory location, so
-                         the use of MOVL is not correct }
-                       case p^.right^.resulttype^.size of
-                        1 : tai:=new(paicpu,op_ref_reg(A_MOVZX,S_BL,newreference(p^.right^.location.reference),ind));
-                        2 : tai:=new(Paicpu,op_ref_reg(A_MOVZX,S_WL,newreference(p^.right^.location.reference),ind));
-                        4 : tai:=new(Paicpu,op_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),ind));
-                       end;
-                       exprasmlist^.concat(tai);
-                    end;
+                   internalerror(5913428);
                 end;
 
             { produce possible range check code: }
@@ -861,7 +883,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  1999-11-06 14:34:18  peter
+  Revision 1.61  1999-11-15 21:54:38  peter
+    * LOC_JUMP support for vecn
+
+  Revision 1.60  1999/11/06 14:34:18  peter
     * truncated log to 20 revs
 
   Revision 1.59  1999/10/30 17:35:26  peter
