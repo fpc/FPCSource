@@ -137,6 +137,9 @@ BEGIN
 
   ProcessParams(true);
 
+{$ifdef win32}
+  DosExecute(GetEnv('COMSPEC'),'/C echo Win32 mouse test');
+{$endif win32}
 {$ifdef VESA}
   InitVESAScreenModes;
 {$endif}
@@ -155,7 +158,6 @@ BEGIN
 
   ReadSwitches(SwitchesPath);
   MyApp.Init;
-
   { load all options after init because of open files }
   ReadINIFile;
   InitDesktopFile;
@@ -200,7 +202,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.32  1999-12-10 13:02:05  pierre
+  Revision 1.33  1999-12-20 09:36:49  pierre
+   * get the mouse visible on win32 fp
+
+  Revision 1.32  1999/12/10 13:02:05  pierre
   + VideoMode save/restore
 
   Revision 1.31  1999/09/13 11:43:59  peter
