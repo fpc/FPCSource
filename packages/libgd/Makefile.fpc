@@ -1,0 +1,10 @@
+#
+#   Makefile.fpc for ZLib (LibC version)
+#
+
+[targets]
+units=gd
+examples=gdtest
+
+[dirs]
+fpcdir=../..
