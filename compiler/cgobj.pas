@@ -366,15 +366,6 @@ unit cgobj;
           procedure g_initialize(list : taasmoutput;t : tdef;const ref : treference;loadref : boolean);
           procedure g_finalize(list : taasmoutput;t : tdef;const ref : treference;loadref : boolean);
 
-          {# Emits the call to the stack checking routine of
-             the runtime library. The default behavior
-             does not need to be modified, as it is generic
-             for all platforms.
-
-             @param(stackframesize Number of bytes which will be allocated on the stack)
-          }
-          procedure g_stackcheck(list : taasmoutput;stackframesize : longint);virtual;
-
           {# Generates range checking code. It is to note
              that this routine does not need to be overriden,
              as it takes care of everything.
@@ -1807,25 +1798,6 @@ implementation
       end;
 
 
-    procedure tcg.g_stackcheck(list : taasmoutput;stackframesize : longint);
-      var
-        paraloc1 : tparalocation;
-      begin
-         paraloc1:=paramanager.getintparaloc(pocall_default,1);
-         paramanager.allocparaloc(list,paraloc1);
-         a_param_const(list,OS_32,stackframesize,paraloc1);
-         paramanager.freeparaloc(list,paraloc1);
-         { No register saving needed, saveregisters is used }
-{$ifndef x86}
-         allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$endif x86}
-         a_call_name(list,'FPC_STACKCHECK');
-{$ifndef x86}
-         deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-{$endif x86}
-      end;
-
-
     procedure tcg.g_flags2ref(list: taasmoutput; size: TCgSize; const f: tresflags; const ref:TReference);
 
       var
@@ -2137,7 +2109,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.149  2004-01-20 12:59:36  florian
+  Revision 1.150  2004-01-21 21:01:34  peter
+    * fixed stackchecking for register calling
+
+  Revision 1.149  2004/01/20 12:59:36  florian
     * common addnode code for x86-64 and i386
 
   Revision 1.148  2004/01/12 22:11:38  peter

@@ -1502,7 +1502,19 @@ implementation
         hitemp,
         lotemp,
         stackframe : longint;
+        check      : boolean;
+        paraloc1   : tparalocation;
+        href       : treference;
       begin
+        check:=(cs_check_stack in aktlocalswitches) and (current_procinfo.procdef.proctypeoption<>potype_proginit);
+        if check then
+          begin
+            { Allocate tempspace to store register parameter than
+              is destroyed when calling stackchecking code }
+            paraloc1:=paramanager.getintparaloc(pocall_default,1);
+            if paraloc1.loc=LOC_REGISTER then
+              tg.GetTemp(list,POINTER_SIZE,tt_normal,href);
+          end;
         { Calculate size of stackframe }
         stackframe:=current_procinfo.calc_stackframe_size;
 
@@ -1540,10 +1552,30 @@ implementation
 
             cg.g_stackframe_entry(list,stackframe);
 
-            {Never call stack checking before the standard system unit
-             has been initialized.}
-             if (cs_check_stack in aktlocalswitches) and (current_procinfo.procdef.proctypeoption<>potype_proginit) then
-               cg.g_stackcheck(list,stackframe);
+            { Add stack checking code? }
+            if check then
+              begin
+                { The tempspace to store original register is already
+                  allocated above before the stackframe size is calculated. }
+                if paraloc1.loc=LOC_REGISTER then
+                  cg.a_load_reg_ref(list,OS_INT,OS_INT,paraloc1.register,href);
+                paramanager.allocparaloc(list,paraloc1);
+                cg.a_param_const(list,OS_32,stackframe,paraloc1);
+                paramanager.freeparaloc(list,paraloc1);
+                { No register saving needed, saveregisters is used }
+{$ifndef x86}
+                cg.allocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+{$endif x86}
+                cg.a_call_name(list,'FPC_STACKCHECK');
+{$ifndef x86}
+                cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
+{$endif x86}
+                if paraloc1.loc=LOC_REGISTER then
+                  begin
+                    cg.a_load_ref_reg(list,OS_INT,OS_INT,href,paraloc1.register);
+                    tg.UnGetTemp(list,href);
+                  end;
+              end;
           end;
       end;
 
@@ -2066,7 +2098,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.183  2004-01-17 15:55:10  jonas
+  Revision 1.184  2004-01-21 21:01:34  peter
+    * fixed stackchecking for register calling
+
+  Revision 1.183  2004/01/17 15:55:10  jonas
     * fixed allocation of parameters passed by reference for powerpc in
       callee
 
