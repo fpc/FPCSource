@@ -11,7 +11,7 @@ units=$(SYSTEMUNIT) baseunix strings systhrds objpas syscall unixutil \
       heaptrc lineinfo \
       $(LINUXUNIT1) unix $(LINUXUNIT2) initc $(CPU_UNITS) \
       dos crt objects printer ggigraph \
-      sysutils typinfo classes math varutils \
+      sysutils typinfo math varutils \
       charset ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
       video mouse keyboard variants types
@@ -52,7 +52,7 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 
 ifeq ($(CPU_TARGET),i386)
-CPU_UNITS=x86 ports cpu mmx graph
+CPU_UNITS=x86 ports cpu mmx graph classes
 else
 CPU_UNITS=
 endif
