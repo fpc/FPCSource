@@ -122,6 +122,8 @@ Begin
   If l^=0 then
     { Ref count dropped to zero }
     DisposeAnsiString (S);        { Remove...}
+  { this pointer is not valid anymore, so set it to zero }
+  S:=nil;
 end;
 
 
@@ -780,7 +782,10 @@ end;
 
 {
   $Log$
-  Revision 1.25  1999-05-17 22:41:24  florian
+  Revision 1.26  1999-05-31 20:37:39  peter
+    * fixed decr_ansistr which didn't set s to nil
+
+  Revision 1.25  1999/05/17 22:41:24  florian
     * small fixes for the new ansistring temp. management
 
   Revision 1.24  1999/05/17 21:52:35  florian
