@@ -671,6 +671,54 @@ begin
    FreeEnvironmentStrings(p);
 end;
 
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+var
+  SI: TStartupInfo;
+  PI: TProcessInformation;
+  Proc : TWin32Handle;
+  l    : DWord;
+  CommandLine : ansistring;
+  e : EOSError;
+
+begin
+  DosError := 0;
+  FillChar(SI, SizeOf(SI), 0);
+  SI.cb:=SizeOf(SI);
+  SI.wShowWindow:=1;
+  { always surroound the name of the application by quotes
+    so that long filenames will always be accepted. But don't
+    do it if there are already double quotes, since Win32 does not
+    like double quotes which are duplicated!
+  }
+  if pos('"',path)=0 then
+    CommandLine:='"'+path+'"'
+  else
+    CommandLine:=path;
+  CommandLine:=Commandline+' '+ComLine+#0;
+
+  if not CreateProcess(nil, pchar(CommandLine),
+    Nil, Nil, ExecInheritsHandles,$20, Nil, Nil, SI, PI) then
+    begin
+      e:=EOSError.CreateFmt('Failed to execute %s : %d',[CommandLine,GetLastError]);
+      e.ErrorCode:=GetLastError;
+      raise e;
+    end;
+  Proc:=PI.hProcess;
+  CloseHandle(PI.hThread);
+  if WaitForSingleObject(Proc, dword($ffffffff)) <> $ffffffff then
+    begin
+      GetExitCodeProcess(Proc,l);
+      CloseHandle(Proc);
+      result:=l;
+    end
+  else
+    begin
+      e:=EOSError.CreateFmt('Failed to execute %s : %d',[CommandLine,GetLastError]);
+      e.ErrorCode:=GetLastError;
+      CloseHandle(Proc);
+      raise e;
+    end;
+end;
 
 {****************************************************************************
                               Initialization code
@@ -733,7 +781,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.27  2003-11-26 20:00:19  florian
+  Revision 1.28  2004-01-05 22:56:08  florian
+    * changed sysutils.exec to ExecuteProcess
+
+  Revision 1.27  2003/11/26 20:00:19  florian
     * error handling for Variants improved
 
   Revision 1.26  2003/11/06 22:25:10  marco
