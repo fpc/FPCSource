@@ -751,8 +751,12 @@ implementation
                       { first param must be var }
                       valid_for_assign(tcallparanode(left).left,false);
                       { check type }
-                      if is_64bitint(left.resulttype) then
-                        { convert to simple add for 64bit (JM) }
+                      if is_64bitint(left.resulttype) or
+                         { range/overflow checking doesn't work properly }
+                         { with the inc/dec code that's generated (JM)   }
+                         (aktlocalswitches *
+                           [cs_check_overflow,cs_check_range] <> []) then
+                        { convert to simple add (JM) }
                         begin
                           { extra parameter? }
                           if assigned(tcallparanode(left).right) then
@@ -1491,7 +1495,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2000-11-09 17:46:54  florian
+  Revision 1.15  2000-11-11 15:59:07  jonas
+    * convert inc/dec to add/sub when range/overflow checking is on
+
+  Revision 1.14  2000/11/09 17:46:54  florian
     * System.TypeInfo fixed
     + System.Finalize implemented
     + some new keywords for interface support added
