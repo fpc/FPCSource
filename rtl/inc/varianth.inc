@@ -220,10 +220,18 @@ operator :=(const source : ansistring) dest : variant;
 operator :=(const source : widestring) dest : variant;
 
 { Floats }
+{$ifdef SUPPORT_SINGLE}
 operator :=(const source : single) dest : variant;
+{$endif SUPPORT_SINGLE}
+{$ifdef SUPPORT_DOUBLE}
 operator :=(const source : double) dest : variant;
+{$endif SUPPORT_DOUBLE}
+{$ifdef SUPPORT_EXTENDED}
 operator :=(const source : extended) dest : variant;
+{$endif SUPPORT_EXTENDED}
+{$ifdef SUPPORT_COMP}
 operator :=(const source : comp) dest : variant;
+{$endif SUPPORT_COMP}
 
 { Misc. }
 { Fixme!!!!
@@ -259,10 +267,18 @@ operator :=(const source : variant) dest : ansistring;
 operator :=(const source : variant) dest : widestring;
 
 { Floats }
+{$ifdef SUPPORT_SINGLE}
 operator :=(const source : variant) dest : single;
+{$endif SUPPORT_SINGLE}
+{$ifdef SUPPORT_DOUBLE}
 operator :=(const source : variant) dest : double;
+{$endif SUPPORT_DOUBLE}
+{$ifdef SUPPORT_EXTENDED}
 operator :=(const source : variant) dest : extended;
+{$endif SUPPORT_EXTENDED}
+{$ifdef SUPPORT_EXTENDED}
 operator :=(const source : variant) dest : comp;
+{$endif SUPPORT_COMP}
 
 { Misc. }
 operator :=(const source : variant) dest : currency;
@@ -295,7 +311,10 @@ operator <=(const op1,op2 : variant) dest : boolean;
 
 {
   $Log$
-  Revision 1.14  2003-11-05 15:26:37  florian
+  Revision 1.15  2003-12-10 01:36:39  florian
+    * real functions ifdef'ed depending on the supported types
+
+  Revision 1.14  2003/11/05 15:26:37  florian
     + currency type can be assigned to variants now
 
   Revision 1.13  2003/10/08 16:24:47  florian

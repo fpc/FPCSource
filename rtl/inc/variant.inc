@@ -218,35 +218,41 @@ end;
 
 { Floats }
 
+{$ifdef SUPPORT_SINGLE}
 operator :=(const source : single) dest : variant;
-
 begin
   Variant_Init(Dest);
   VariantManager.VarFromReal(Dest,Source);
 end;
+{$endif SUPPORT_SINGLE}
 
 
+{$ifdef SUPPORT_DOUBLE}
 operator :=(const source : double) dest : variant;
-
 begin
   Variant_Init(Dest);
   VariantManager.VarFromReal(Dest,Source);
 end;
+{$endif SUPPORT_DOUBLE}
 
 
+{$ifdef SUPPORT_EXTENDED}
 operator :=(const source : extended) dest : variant;
-
 begin
   Variant_Init(Dest);
   VariantManager.VarFromReal(Dest,Source);
 end;
+{$endif SUPPORT_EXTENDED}
 
+
+{$ifdef SUPPORT_COMP}
 Operator :=(const source : comp) dest : variant;
-
 begin
   Variant_Init(Dest);
   VariantManager.VarFromReal(Dest,Source);
 end;
+{$endif SUPPORT_COMP}
+
 
 { Misc. }
 { Fixme!!!
@@ -391,32 +397,36 @@ end;
 
 { Floats }
 
+{$ifdef SUPPORT_SINGLE}
 operator :=(const source : variant) dest : single;
-
 begin
   dest:=variantmanager.vartoreal(source);
 end;
+{$endif SUPPORT_SINGLE}
 
 
+{$ifdef SUPPORT_DOUBLE}
 operator :=(const source : variant) dest : double;
-
 begin
   dest:=variantmanager.vartoreal(source);
 end;
+{$endif SUPPORT_DOUBLE}
 
 
+{$ifdef SUPPORT_EXTENDED}
 operator :=(const source : variant) dest : extended;
-
 begin
   dest:=variantmanager.vartoreal(source);
 end;
+{$endif SUPPORT_EXTENDED}
 
 
+{$ifdef SUPPORT_COMP}
 operator :=(const source : variant) dest : comp;
-
 begin
   dest:=comp(variantmanager.vartoreal(source));
 end;
+{$endif SUPPORT_COMP}
 
 { Misc. }
 operator :=(const source : variant) dest : currency;
@@ -587,7 +597,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.15  2003-11-05 15:26:37  florian
+  Revision 1.16  2003-12-10 01:36:39  florian
+    * real functions ifdef'ed depending on the supported types
+
+  Revision 1.15  2003/11/05 15:26:37  florian
     + currency type can be assigned to variants now
 
   Revision 1.14  2003/10/04 23:40:42  florian
