@@ -1169,6 +1169,8 @@ implementation
                   is_subequal:=(torddef(def2).typ in [bool8bit,bool16bit,bool32bit]);
                 uchar :
                   is_subequal:=(torddef(def2).typ=uchar);
+                uwidechar :
+                  is_subequal:=(torddef(def2).typ=uwidechar);
               end;
             end
           else
@@ -1779,7 +1781,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.48  2001-10-16 17:15:44  jonas
+  Revision 1.49  2001-10-17 22:41:05  florian
+    * several widechar fixes, case works now
+
+  Revision 1.48  2001/10/16 17:15:44  jonas
     * auto-converting from int64 to real is again allowed for all modes
       (it's allowed in Delphi too)
 

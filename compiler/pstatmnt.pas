@@ -220,6 +220,18 @@ implementation
            { may be an instruction has more case labels }
            repeat
              p:=expr;
+             if is_widechar(casedef) then
+               begin
+                  if (p.nodetype=rangen) then
+                    begin
+                       trangenode(p).left:=ctypeconvnode.create(trangenode(p).left,cwidechartype);
+                       trangenode(p).right:=ctypeconvnode.create(trangenode(p).right,cwidechartype);
+                    end
+                  else
+                    p:=ctypeconvnode.create(p,cwidechartype);
+                  do_resulttypepass(p);
+               end;
+
              hl1:=0;
              hl2:=0;
              if (p.nodetype=rangen) then
@@ -1270,7 +1282,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2001-10-16 15:10:35  jonas
+  Revision 1.39  2001-10-17 22:41:04  florian
+    * several widechar fixes, case works now
+
+  Revision 1.38  2001/10/16 15:10:35  jonas
     * fixed goto/label/try bugs
 
   Revision 1.37  2001/09/22 11:11:43  peter

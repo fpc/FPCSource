@@ -2341,7 +2341,7 @@ implementation
                  { strings with length 1 become const chars }
                  if iswidestring then
                    begin
-                      if length(pattern)=1 then
+                      if patternw^.len=1 then
                        token:=_CWCHAR
                       else
                        token:=_CWSTRING;
@@ -2605,7 +2605,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.24  2001-10-12 16:02:34  peter
+  Revision 1.25  2001-10-17 22:41:05  florian
+    * several widechar fixes, case works now
+
+  Revision 1.24  2001/10/12 16:02:34  peter
     * fix bug 1634 (merged)
 
   Revision 1.23  2001/09/30 21:23:59  peter
