@@ -56,9 +56,9 @@ begin
   end;
 
   if UpCase(ExtractFileExt(ParamStr(1))) = '.DTD' then
-    xml := ReadDTDFile(ParamStr(1))
+    ReadDTDFile(xml,ParamStr(1))
   else
-    xml := ReadXMLFile(ParamStr(1));
+    ReadXMLFile(xml,ParamStr(1));
 
   WriteLn('Successfully parsed the document. Structure:');
   WriteLn;
@@ -68,7 +68,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-07-09 21:06:59  michael
+  Revision 1.2  1999-08-27 15:52:49  michael
+  * Adapted to new xmlread
+
+  Revision 1.1  1999/07/09 21:06:59  michael
   + Initial implementation by sebastian Guenther
 
 }
