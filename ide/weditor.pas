@@ -5689,6 +5689,11 @@ begin
       SetLineText(CurPos.Y,S);
     end;
   CI:=LinePosToCharIdx(CurPos.Y,CurPos.X);
+  if CI>High(S) then
+    begin
+      Unlock;
+      exit;
+    end;
   if (CI>0) and (S[CI]=TAB) and not IsFlagSet(efUseTabCharacters) then
     begin
       if CI=1 then
@@ -7186,7 +7191,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.37  2002-12-16 15:13:58  pierre
+  Revision 1.38  2002-12-17 13:48:28  pierre
+   * fix web bug 2012
+
+  Revision 1.37  2002/12/16 15:13:58  pierre
    + added some missing word separator chars
 
   Revision 1.36  2002/09/12 08:42:07  pierre
