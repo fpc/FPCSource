@@ -245,6 +245,9 @@ begin
         end;
         if DontClear=false then ClearEvent(Event);
       end;
+    evMouse :
+      if Event.double then
+        GotoItem(Focused);
   end;
   inherited HandleEvent(Event);
 end;
@@ -359,7 +362,7 @@ var S: string;
     P: PReference;
 begin
   P:=References^.At(Item);
-  S:=P^.GetFileName+'('+IntToStr(P^.Position.Y)+')';
+  S:=P^.GetFileName+'('+IntToStr(P^.Position.Y)+','+IntToStr(P^.Position.X)+')';
   GetText:=copy(S,1,MaxLen);
 end;
 
@@ -635,7 +638,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  1999-01-21 11:54:23  peter
+  Revision 1.4  1999-02-04 13:16:14  pierre
+   + column info added
+
+  Revision 1.3  1999/01/21 11:54:23  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command
