@@ -414,7 +414,9 @@ begin
   If NewCapacity>0 Then // round off to block size.
     NewCapacity := (NewCapacity + (TMSGrow-1)) and not (TMSGROW-1);
   // Only now check !
-  If NewCapacity<>FCapacity then
+  If NewCapacity=FCapacity then
+    Result:=FMemory
+  else
     If NewCapacity=0 then
       FreeMem (FMemory,Fcapacity)
     else
@@ -477,8 +479,9 @@ procedure TMemoryStream.SetSize(NewSize: Longint);
 
 begin
   SetCapacity (NewSize);
-  If FSize>NewSize then FSize:=NewSize;
-  IF FPosition>FSize then FPosition:=FSize;
+  FSize:=NewSize;
+  IF FPosition>FSize then 
+    FPosition:=FSize;
 end;
 
 
@@ -616,7 +619,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  1999-04-08 10:18:55  peter
+  Revision 1.14  1999-07-18 20:58:47  michael
+  * fixed bug in realloc and setcapacity of tmemorystream
+
+  Revision 1.13  1999/04/08 10:18:55  peter
     * makefile updates
 
 }
