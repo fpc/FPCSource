@@ -1684,7 +1684,7 @@ begin
      else
 {$else}
       if CfgFileExists('/etc/'+fn) then
-       foundfn:='/etc'+fn
+       foundfn:='/etc/'+fn
      else     
 {$endif}
       check_configfile:=false;
@@ -2095,7 +2095,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.155  2004-12-15 16:06:47  marco
+  Revision 1.156  2004-12-16 08:06:42  marco
+   * slash typo
+
+  Revision 1.155  2004/12/15 16:06:47  marco
    * introduction "cleanpath" (=fexpand), fixfilename(paramstr(0)) + search $PREFIX/etc/fpc.cfg
 
   Revision 1.154  2004/11/22 19:34:58  peter
