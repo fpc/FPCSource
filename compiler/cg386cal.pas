@@ -793,7 +793,7 @@ implementation
            { now procedure variable case }
            begin
               secondpass(p^.right);
-              { method pointer ? }
+              { procedure of object? }
               if (po_methodpointer in p^.procdefinition^.procoptions) then
                 begin
                    { method pointer can't be in a register }
@@ -811,8 +811,8 @@ implementation
                         hregister:=R_EDI;
                      end;
 
-
-                   if (po_containsself in p^.procdefinition^.procoptions) then
+                   { load self, but not if it's already explicitly pushed }
+                   if not(po_containsself in p^.procdefinition^.procoptions) then
                      begin
                        { load ESI }
                        inc(p^.right^.location.reference.offset,4);
@@ -1178,7 +1178,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.97  1999-08-04 13:45:18  florian
+  Revision 1.98  1999-08-09 10:37:55  peter
+    * fixed pushing of self with methodpointer
+
+  Revision 1.97  1999/08/04 13:45:18  florian
     + floating point register variables !!
     * pairegalloc is now generated for register variables
 
