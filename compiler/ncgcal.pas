@@ -788,21 +788,25 @@ implementation
 
                    { release self }
                    rg.ungetaddressregister(exprasmlist,vmtreg);
+(*
                    vmtreg2:=rg.getabtregisterint(exprasmlist,OS_ADDR);
-                   rg.ungetregisterint(exprasmlist,vmtreg2);
                    cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,vmtreg,vmtreg2);
 
                    { load virtual method (procvar) }
+                   rg.ungetregisterint(exprasmlist,vmtreg2);
+*)
                    pvreg:=rg.getabtregisterint(exprasmlist,OS_ADDR);
-                   reference_reset_base(href,vmtreg2,
+                   reference_reset_base(href,vmtreg,
                       tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber));
-                   rg.ungetregisterint(exprasmlist,pvreg);
                    cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,pvreg);
 
                    { Load parameters that are in temporary registers in the
                      correct parameter register }
                    if assigned(left) then
                      pushparas;
+
+                   { Release register containing procvar }
+                   rg.ungetregisterint(exprasmlist,pvreg);
 
                    { free the resources allocated for the parameters }
                    freeparas;
@@ -837,7 +841,6 @@ implementation
 
               location_release(exprasmlist,right.location);
               pvreg:=rg.getabtregisterint(exprasmlist,OS_ADDR);
-              rg.ungetregisterint(exprasmlist,pvreg);
               { Only load OS_ADDR from the reference }
               if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,right.location.reference,pvreg)
@@ -849,6 +852,9 @@ implementation
                 correct parameter register }
               if assigned(left) then
                 pushparas;
+
+              { Release register containing procvar }
+              rg.ungetregisterint(exprasmlist,pvreg);
 
               { free the resources allocated for the parameters }
               freeparas;
@@ -1304,7 +1310,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.120  2003-09-29 20:58:55  peter
+  Revision 1.121  2003-09-30 19:55:19  peter
+    * remove abt reg for vmtreg
+
+  Revision 1.120  2003/09/29 20:58:55  peter
     * optimized releasing of registers
 
   Revision 1.119  2003/09/28 17:55:03  peter
