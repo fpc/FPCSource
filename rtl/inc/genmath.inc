@@ -97,22 +97,22 @@ type
   float32 = longint;
   flag = byte;
 
-  Function extractFloat64Frac0(a: float64): longint;
+  Function extractFloat64Frac0(const a: float64): longint;
   Begin
     extractFloat64Frac0 := a.high and $000FFFFF;
   End;
 
-  Function extractFloat64Frac1(a: float64): longint;
+  Function extractFloat64Frac1(const a: float64): longint;
   Begin
     extractFloat64Frac1 := a.low;
   End;
 
- Function extractFloat64Exp(a: float64): smallint;
+ Function extractFloat64Exp(const a: float64): smallint;
  Begin
     extractFloat64Exp:= ( a.high shr 20 ) AND $7FF;
  End;
 
- Function extractFloat64Sign(a: float64) : flag;
+ Function extractFloat64Sign(const a: float64) : flag;
  Begin
     extractFloat64Sign := a.high shr 31;
  End;
@@ -342,7 +342,7 @@ Function float32_to_int32_round_to_zero( a: Float32 ): longint;
     end;
 
 {$endif}
-    
+
 {$ifdef hascompilerproc}
     function fpc_abs_real(d:Real):Real;compilerproc; external name 'FPC_ABS_REAL';
 {$endif hascompilerproc}
@@ -1184,7 +1184,10 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.18  2004-01-06 21:34:07  peter
+  Revision 1.19  2004-01-24 01:32:00  florian
+    * some const inserted
+
+  Revision 1.18  2004/01/06 21:34:07  peter
     * abs(double) added
     * abs() alias
 
