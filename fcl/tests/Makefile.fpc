@@ -7,8 +7,10 @@ programs=stringl dparser fstream mstream list threads testrtf \
          cfgtest xmldump htdump testcgi tidea \
          b64test b64test2 b64enc b64dec restest testz testz2 \
          istream doecho testol testcont
-programs_win32=showver testproc
-programs_linux=sockcli isockcli dsockcli socksvr isocksvr dsocksvr
+programs_win32=showver testproc testhres testnres testsres testrhre \
+               testrnre testrsre
+programs_linux=sockcli isockcli dsockcli socksvr isocksvr dsocksvr \
+               testhres testnres testsres testrhre testrnre testrsre
 rst=restest
 
 [require]

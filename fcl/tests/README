@@ -46,3 +46,9 @@ dsockcli.pp  Dual socket server application. Tests ssockets.
 sstream.pp   Tests TStringStream object.
 testol.pp    Tests TObjectList in contnrs. (MVC)
 testcont.pp  Tests TStack/TQueue in contnrs. (MVC)
+testhres.pp  Test hostresolver in resolve
+testnres.pp  Test netresolver in resolve
+testsres.pp  Test serviceresolver in resolve
+testrhre.pp  Test reverse hostresolver in resolve
+testrnre.pp  Test reverse netresolver in resolve
+testrsre.pp  Test reverse serviceresolver in resolve
