@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       cpu mmx charset ucomplex getopts \
       wincrt winmouse winevent sockets printer \
       video mouse keyboard \
-      comobj winsysut ole2 activex shellapi shlobj
+      winsysut
 
 rsts=math varutils typinfo variants classes dateutils sysconst
 
@@ -124,10 +124,6 @@ windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMUNIT)$(PPUEXT)
 messages$(PPUEXT): messages.pp $(WININC)/messages.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(WININC) messages.pp
 
-ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
-
-activex$(PPUEXT) : activex.pp $(WININC)/objbase.inc windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) types$(PPUEXT)
-
 opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 winsock$(PPUEXT) : winsock.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
@@ -192,9 +188,6 @@ varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
 
 types$(PPUEXT) : $(OBJPASDIR)/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
-
-comobj$(PPUEXT) : comobj.pp activex$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) $(OBJPASDIR)/comobjh.inc $(OBJPASDIR)/comobj.inc
-        $(COMPILER) -I$(OBJPASDIR) comobj.pp
 
 rtlconsts$(PPUEXT) : objpas$(PPUEXT) $(OBJPASDIR)/rtlconsts.pp
         $(COMPILER) $(OBJPASDIR)/rtlconsts.pp
