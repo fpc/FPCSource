@@ -3,6 +3,8 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993,97 by the Free Pascal development team
 
+    Heap manager interface section
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -12,14 +14,29 @@
 
  **********************************************************************}
 
+const
+  heapblocks : boolean=false;
+var
+  heaporg,heapptr,heapend,heaperror,freelist : pointer;
 
-Procedure release(var p : pointer);
+{ Basic (TP7) functions }
+Procedure getmem(Var p:pointer;Size:Longint);
+Procedure freemem(Var p:pointer;Size:Longint);
+Function  memavail:Longint;
+Function  maxavail:Longint;
 Procedure mark(var p : pointer);
+Procedure release(var p : pointer);
+
+{ Fpc Functions }
+Function  heapsize : longint;
 Procedure markheap(var oldfreelist,oldheapptr : pointer);
 Procedure releaseheap(oldfreelist,oldheapptr : pointer);
-Function  cal_memavail : longint;
-Function  heapsize : longint;
+
 {$ifdef TEMPHEAP}
+{ Temp Heap Functions }
+  const
+    allow_special : boolean =true;
+
   Procedure split_heap;
   Procedure switch_to_base_heap;
   Procedure switch_to_temp_heap;
@@ -28,15 +45,12 @@ Function  heapsize : longint;
   Procedure gettempmem(var p : pointer;size : longint);
 {$endif TEMPHEAP}
 
-const
-  allow_special : boolean =true;
-  heapblocks    : boolean=false;
-var
-  heaporg,heapptr,heapend,heaperror,freelist : pointer;
-
 {
   $Log$
-  Revision 1.5  1998-07-02 14:11:30  michael
+  Revision 1.6  1998-09-08 15:03:27  peter
+    * moved getmem/freemem/memavail/maxavail to heaph.inc
+
+  Revision 1.5  1998/07/02 14:11:30  michael
   Reinstated the heapsize function.
 
   Revision 1.3  1998/05/12 10:42:45  peter

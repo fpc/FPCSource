@@ -3,6 +3,8 @@
     This file is part of the Free Pascal Run time library.
     Copyright (c) 1993,97 by the Free Pascal development team
 
+    This File contains the OS independent declarations of the system unit
+
     See the File COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -12,15 +14,11 @@
 
  **********************************************************************}
 
-{*****************************************************************************
-   This File contains the OS independent declarations of the system unit
-
-   Possible defines:
-   -----------------
+{
+   Supported conditionnals:
+   ------------------------
    RTLLITE         Create a somewhat smaller RTL
-
-*****************************************************************************}
-
+}
 
 {****************************************************************************
                    Support for multiple compiler versions
@@ -48,6 +46,7 @@ Type
 
 { at least declare Turbo Pascal real types }
 {$ifdef i386}
+   StrLenInt = LongInt;
   {$ifndef VER0_99_5}
     {$ifndef VER0_99_6}
       {$define DEFAULT_EXTENDED}
@@ -73,9 +72,6 @@ Type
    {$endif}
 {$endif}
 
-{$ifdef i386}
-   StrLenInt = LongInt;
-{$endif}
 { some type aliases }
   dword    = cardinal;
   longword = cardinal;
@@ -90,7 +86,7 @@ Type
 const
 { max. values for longint and int}
   maxLongint = $7fffffff;
-  maxint = 32767;
+  maxint     = 32767;
 
 { Compatibility With  TP }
 {$ifdef i386}
@@ -105,7 +101,7 @@ const
 { max level in dumping on error }
   Max_Frame_Dump : Word = 8;
 { Exit Procedure handling consts and types  }
-  ExitProc : pointer=nil;
+  ExitProc : pointer = nil;
   Erroraddr: pointer = nil;
   Errorcode: Word    = 0;
 
@@ -117,7 +113,8 @@ const
   fmAppend = $D7B4;
   Filemode : byte = 2;
 
-Type TErrorProc = Procedure (ErrNo : Longint; Address : Pointer);
+Type
+  TErrorProc = Procedure (ErrNo : Longint; Address : Pointer);
 
 var
 { Standard In- and Output }
@@ -145,7 +142,7 @@ Procedure FillWord(Var x;count:Longint;Value:Word);
 {$endif RTLLITE}
 
 {****************************************************************************
-                                                           Math Routines
+                          Math Routines
 ****************************************************************************}
 
 {$ifndef RTLLITE}
@@ -161,7 +158,6 @@ Function  Swap (X:Word):Word;
 Function  Swap (X:Integer):Integer;
 Function  Swap (X:Cardinal):Cardinal;
 Function  Swap (X:Longint):Longint;
-
 {$ifdef VER0_99_5}
 Procedure Inc(Var i:cardinal);
 Procedure Inc(Var i:Longint);
@@ -196,8 +192,8 @@ Procedure Inc(Var c:Char;a:Longint);
 Procedure Dec(Var p:PChar;a:Longint);
 Procedure Inc(Var p:PChar;a:Longint);
 {$endif VER0_99_5}
-
 {$endif RTLLITE}
+
 Function Chr(b:byte):Char;
 Function Length(s:string):byte;
 
@@ -208,18 +204,13 @@ Procedure Randomize;
 Function abs(l:Longint):Longint;
 Function sqr(l:Longint):Longint;
 Function odd(l:Longint):Boolean;
-{ float mathe routines }
+
+{ float math routines }
 {$I mathh.inc}
 
-
 {****************************************************************************
-                                                         Memory management
+                         Addr/Pointer Handling
 ****************************************************************************}
-
-Procedure getmem(Var p:pointer;Size:Longint);
-Procedure freemem(Var p:pointer;Size:Longint);
-Function  memavail:Longint;
-Function  maxavail:Longint;
 
 {$ifndef RTLLITE}
 Function  ptr(sel,off:Longint):pointer;
@@ -230,12 +221,11 @@ Function  Sseg:Word;
 {$endif RTLLITE}
 
 {****************************************************************************
-                                                          PChar Handling
+                      PChar and String Handling
 ****************************************************************************}
 
 function strpas(p:pchar):string;
 function strlen(p:pchar):longint;
-
 
 Function  Copy(const s:string;index:StrLenInt;count:StrLenInt):string;
 Procedure Delete(Var s:string;index:StrLenInt;count:StrLenInt);
@@ -440,7 +430,10 @@ Procedure halt;
 
 {
   $Log$
-  Revision 1.26  1998-09-04 18:16:14  peter
+  Revision 1.27  1998-09-08 15:03:28  peter
+    * moved getmem/freemem/memavail/maxavail to heaph.inc
+
+  Revision 1.26  1998/09/04 18:16:14  peter
     * uniform filerec/textrec (with recsize:longint and name:0..255)
 
   Revision 1.25  1998/09/01 17:36:22  peter
