@@ -593,6 +593,22 @@ implementation
            (treetyp=starstarn) or
            (ld^.deftype=recorddef) or
            (rd^.deftype=recorddef) or
+           ((rd^.deftype=pointerdef) and
+            not(is_pchar(rd) and (treetyp=addn)) and
+            (not(ld^.deftype in [pointerdef,objectdef,classrefdef,procvardef]) or
+             not (treetyp in [equaln,unequaln,gtn,gten,ltn,lten,subn])
+            ) and
+            (not is_integer(ld) or not (treetyp in [addn,subn]))
+           ) or
+           ((ld^.deftype=pointerdef) and
+            not(is_pchar(ld) and (treetyp=addn)) and
+            (not(rd^.deftype in [pointerdef,objectdef,classrefdef,procvardef]) and
+             ((not is_integer(rd) and (rd^.deftype<>objectdef)
+               and (rd^.deftype<>classrefdef)) or
+              not (treetyp in [equaln,unequaln,gtn,gten,ltn,lten,addn,subn])
+             )
+            )
+           ) or
            { array def, but not mmx or chararray+[char,string,chararray] }
            ((ld^.deftype=arraydef) and
             not((cs_mmx in aktlocalswitches) and
@@ -656,7 +672,7 @@ implementation
              isunaryoperatoroverloadable:=not is_equal(rd,dd); PM }
           end
         { should we force that rd and dd are equal ?? }
-        else if (treetyp=unaryminusn) then
+        else if (treetyp=subn { unaryminusn }) then
           begin
             isunaryoperatoroverloadable:=
               not is_integer(rd) and not (rd^.deftype=floatdef)
@@ -1104,7 +1120,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2000-06-05 20:41:17  pierre
+  Revision 1.68  2000-06-06 20:25:43  pierre
+    * unary minus operator overloading was broken
+    + accept pointer args in binary operator
+
+  Revision 1.67  2000/06/05 20:41:17  pierre
     + support for NOT overloading
     + unsupported overloaded operators generate errors
 
