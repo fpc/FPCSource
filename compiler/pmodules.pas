@@ -1120,7 +1120,8 @@ implementation
          if is_assembler_generated then
            insertobjectfile
          else
-           current_module.flags:=current_module.flags or uf_no_link;
+           if not (current_module.uses_imports) then
+             current_module.flags:=current_module.flags or uf_no_link;
 
          if cs_local_browser in aktmoduleswitches then
            current_module.localsymtable:=refsymtable;
@@ -1455,7 +1456,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.87  2002-12-24 23:32:56  peter
+  Revision 1.88  2002-12-27 19:09:33  hajny
+    * another (hopefully final ;-) ) fix for not linked import libraries for units with no code
+
+  Revision 1.87  2002/12/24 23:32:56  peter
     * Use FixFilename for specified unit sourcefile in uses
 
   Revision 1.86  2002/12/06 16:56:58  peter
