@@ -1062,7 +1062,10 @@ implementation
          while (assigned(def1)) and (assigned(def2)) do
            begin
              eq:=te_incompatible;
-             if (df_unique in def1.paratype.def.defoptions) or (df_unique in def2.paratype.def.defoptions) then
+
+             { Unique types must match exact }
+             if ((df_unique in def1.paratype.def.defoptions) or (df_unique in def2.paratype.def.defoptions)) and
+                (def1.paratype.def<>def2.paratype.def) then
                exit;
 
              case acp of
@@ -1179,7 +1182,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2003-01-16 22:13:51  peter
+  Revision 1.20  2003-03-20 17:52:18  peter
+    * fix compare for unique types, they are allowed when they match
+      exact
+
+  Revision 1.19  2003/01/16 22:13:51  peter
     * convert_l3 convertlevel added. This level is used for conversions
       where information can be lost like converting widestring->ansistring
       or dword->byte
