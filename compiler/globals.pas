@@ -31,7 +31,11 @@ interface
       windows,
 {$endif}
 {$ifdef unix}
+  {$ifdef ver1_0}
+      linux,
+  {$else}
       unix,
+  {$endif}
 {$endif}
 {$ifdef os2}
       doscalls,
@@ -957,7 +961,7 @@ implementation
       {$endif}
       begin
       {$ifdef unix}
-        GetEnvPchar:=Unix.Getenv(envname);
+        GetEnvPchar:={$ifdef ver1_0}Linux{$else}Unix{$endif}.Getenv(envname);
         {$define GETENVOK}
       {$endif}
       {$ifdef win32}
@@ -1017,7 +1021,7 @@ implementation
         expansion under linux }
       {$ifdef unix}
       begin
-        Unix.Shell(command);
+        {$ifdef ver1_0}Linux{$else}Unix{$endif}.Shell(command);
       end;
       {$else}
       var
@@ -1299,7 +1303,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2001-01-21 20:32:45  marco
+  Revision 1.26  2001-02-05 20:47:00  peter
+    * support linux unit for ver1_0 compilers
+
+  Revision 1.25  2001/01/21 20:32:45  marco
    * Renamefest. Compiler part. Not that hard.
 
   Revision 1.24  2001/01/20 18:32:52  hajny

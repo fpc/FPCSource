@@ -91,7 +91,11 @@ Implementation
 uses
   cutils,script,fmodule,systems,verbose
 {$ifdef unix}
-  ,unix
+  {$ifdef ver1_0}
+    ,linux
+  {$else}
+    ,unix
+  {$endif}
 {$endif}
 {$ifdef i386}
   {$ifndef NoAg386Bin}
@@ -597,7 +601,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2001-01-21 20:32:45  marco
+  Revision 1.11  2001-02-05 20:46:59  peter
+    * support linux unit for ver1_0 compilers
+
+  Revision 1.10  2001/01/21 20:32:45  marco
    * Renamefest. Compiler part. Not that hard.
 
   Revision 1.9  2001/01/12 19:19:44  peter

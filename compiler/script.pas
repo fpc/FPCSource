@@ -68,7 +68,11 @@ implementation
 
 uses
 {$ifdef Unix}
-  Unix,
+  {$ifdef ver1_0}
+    Linux,
+  {$else}
+    Unix,
+  {$endif}
 {$endif}
   globals,systems;
 
@@ -237,7 +241,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2001-01-21 20:32:45  marco
+  Revision 1.7  2001-02-05 20:47:00  peter
+    * support linux unit for ver1_0 compilers
+
+  Revision 1.6  2001/01/21 20:32:45  marco
    * Renamefest. Compiler part. Not that hard.
 
   Revision 1.5  2000/12/25 00:07:29  peter

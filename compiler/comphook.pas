@@ -138,9 +138,6 @@ const
 implementation
 
   uses
-{$ifdef Unix}
-   Unix,
-{$endif}
 {$ifdef delphi}
    dmisc
 {$else}
@@ -337,17 +334,9 @@ end;
 Function def_GetNamedFileTime (Const F : String) : Longint;
 var
   L : Longint;
-{$ifndef Unix}
   info : SearchRec;
-{$else}
-  info : stat;
-{$endif}
 begin
   l:=-1;
-{$ifdef Unix}
-  if FStat (F,Info) then
-   L:=info.mtime;
-{$else}
   {$ifdef delphi}
     dmisc.FindFirst (F,archive+readonly+hidden,info);
   {$else delphi}
@@ -356,14 +345,16 @@ begin
   if DosError=0 then
    l:=info.time;
   FindClose(info);
-{$endif Unix}
   def_GetNamedFileTime:=l;
 end;
 
 end.
 {
   $Log$
-  Revision 1.12  2001-01-21 20:32:45  marco
+  Revision 1.13  2001-02-05 20:47:00  peter
+    * support linux unit for ver1_0 compilers
+
+  Revision 1.12  2001/01/21 20:32:45  marco
    * Renamefest. Compiler part. Not that hard.
 
   Revision 1.11  2000/12/26 15:58:29  peter
