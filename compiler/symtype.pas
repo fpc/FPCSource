@@ -298,6 +298,7 @@ implementation
          refs:=0;
          lastwritten:=nil;
          refcount:=0;
+         fileinfo:=akttokenpos;
          if (cs_browser in aktmoduleswitches) and make_ref then
           begin
             defref:=tref.create(defref,@akttokenpos);
@@ -1527,7 +1528,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.36  2004-01-31 18:40:15  daniel
+  Revision 1.37  2004-01-31 21:09:58  daniel
+    * Stabs lineinfo problem fixed
+
+  Revision 1.36  2004/01/31 18:40:15  daniel
     * Last steps before removal of aasmtai dependency in symsym can be
       accomplished.
 

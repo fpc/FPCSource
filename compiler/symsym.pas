@@ -376,7 +376,7 @@ implementation
 {$ifdef GDB}
          isstabwritten := false;
 {$endif GDB}
-         fileinfo:=akttokenpos;
+{         fileinfo:=akttokenpos;}
          lastref:=defref;
          _mangledname:=nil;
       end;
@@ -2466,7 +2466,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.149  2004-01-31 18:40:15  daniel
+  Revision 1.150  2004-01-31 21:09:58  daniel
+    * Stabs lineinfo problem fixed
+
+  Revision 1.149  2004/01/31 18:40:15  daniel
     * Last steps before removal of aasmtai dependency in symsym can be
       accomplished.
 
