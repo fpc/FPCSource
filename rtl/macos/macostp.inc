@@ -1074,6 +1074,14 @@ TYPE
 
   QDGlobalsHdl            = ^QDGlobalsPtr;
 
+PROCEDURE InitGraf(globalPtr: Mac_Ptr);
+external 'InterfaceLib';
+
+{************** from Fonts ***************}
+
+PROCEDURE SetFScaleDisable(fscaleDisable: BOOLEAN);
+external 'InterfaceLib';
+
 {************** from AEDataModel ***************}
 
 { Apple event descriptor types }
