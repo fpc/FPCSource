@@ -312,7 +312,9 @@ begin
     wm_mbuttonup,
     wm_lbuttondblclk,
     wm_rbuttondblclk,
-    wm_mbuttondblclk,
+    wm_mbuttondblclk:
+    {
+    This leads to problem, i.e. the menu etc doesn't work any longer 
     wm_nclbuttondown,
     wm_ncrbuttondown,
     wm_ncmbuttondown,
@@ -322,6 +324,7 @@ begin
     wm_nclbuttondblclk,
     wm_ncrbuttondblclk,
     wm_ncmbuttondblclk:
+    }
       if assigned(mousemessagehandler) then
         WindowProc:=mousemessagehandler(window,amessage,wparam,lparam);
     wm_keydown,
@@ -540,7 +543,10 @@ function queryadapterinfo : pmodeinfo;
 
 {
   $Log$
-  Revision 1.2  1999-11-29 22:03:39  florian
+  Revision 1.3  1999-11-30 22:36:53  florian
+    * the wm_nc... messages aren't handled anymore it leads to too mch problems ...
+
+  Revision 1.2  1999/11/29 22:03:39  florian
     * first implementation of winmouse unit
 
   Revision 1.1  1999/11/08 11:15:22  peter
