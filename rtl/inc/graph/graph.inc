@@ -14,6 +14,13 @@
 
  **********************************************************************}
 
+var
+  ExitSave: pointer;
+
+const
+  firstCallOfInitGraph: boolean = true;
+
+
 {$ifdef logging}
 var debuglog: text;
 
@@ -2295,8 +2302,12 @@ end;
         { _GraphResult is now already set to grOK by DetectGraph }
         IntCurrentDriver := GraphDriver;
         IntCurrentNewDriver := GraphDriver;
+        { Actually set the graph mode...}
+        if firstCallOfInitgraph then
+          begin
         SaveVideoState;
-{ Actually set the graph mode...}
+            firstCallOfInitgraph := false;
+          end;
         SetGraphMode(GraphMode);
       end
     else
@@ -2312,11 +2323,11 @@ end;
            _GraphResult := grOK;
            IntCurrentDriver := GraphDriver;
            IntCurrentNewDriver := GraphDriver;
+           if firstCallOfInitgraph then
+             begin
            SaveVideoState;
-{$ifdef logging}
-           If _GraphResult <> grOK then
-             LogLn('Mode setting failed after savevideostate');
-{$endif logging}
+               firstCallOfInitgraph := false;
+             end;
            SetGraphMode(GraphMode);
          end;
       end;
@@ -2344,9 +2355,6 @@ end;
    exitproc := exitsave;
    if IsGraphMode and ((errorcode<>0) or (erroraddr<>nil)) then
      CloseGraph;
-{$ifdef testsave}
-   restorevideostate;
-{$endif testsave}
    { release memory allocated for fonts }
    for c := 1 to installedfonts do
      with fonts[c] Do
@@ -2425,16 +2433,18 @@ begin
  { This installs an exit procedure which cleans up the mode list...}
  ExitSave := ExitProc;
  ExitProc := @GraphExitProc;
-{$ifdef testsave}
- savevideostate;
-{$endif testsave}
 {$ifdef win32}
  charmessagehandler:=nil;
 {$endif win32}
 end;
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:46  michael
+  Revision 1.3  2000-08-05 18:34:47  peter
+    * merged setvideostate patch
+
+  Revision 1.2  2000/07/13 11:33:46  michael
   + removed logs
- 
+
+  Revision 1.1  2000/07/13 06:30:51  michael
+  + Initial import
 }

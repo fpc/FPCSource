@@ -663,7 +663,6 @@ VAR
 
   SaveVideoState : SaveStateProc;
   RestoreVideoState: RestoreStateProc;
-  ExitSave: pointer;
 
 
 type
@@ -805,7 +804,10 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:47  michael
+  Revision 1.3  2000-08-05 18:34:47  peter
+    * merged setvideostate patch
+
+  Revision 1.2  2000/07/13 11:33:47  michael
   + removed logs
- 
+
 }
