@@ -1146,6 +1146,14 @@ unit rgobj;
       begin
         fillchar(reg_pushes_int,sizeof(reg_pushes_int),0);
         fillchar(reg_pushes_other,sizeof(reg_pushes_other),0);
+{ifndef i386}
+        { all used registers will have to be saved at the start and restored }
+        { at the end, but otoh regpara's do not have to be saved to memory   }
+        { at the start (there is a move from regpara to regvar most of the   }
+        { time though) -> set cost to 100+20                                 }
+        filldword(reg_pushes_int[firstsaveintreg],lastsaveintreg-firstsaveintreg+1,120);
+        filldword(reg_pushes_other[firstsavefpureg],ord(lastsavefpureg)-ord(firstsavefpureg)+1,120);
+{endif not i386}
         fillchar(is_reg_var_other,sizeof(is_reg_var_other),false);
         is_reg_var_int:=[];
         fillchar(regvar_loaded_other,sizeof(regvar_loaded_other),false);
@@ -2051,7 +2059,12 @@ end.
 
 {
   $Log$
-  Revision 1.46  2003-05-30 18:55:21  jonas
+  Revision 1.47  2003-05-31 20:31:11  jonas
+    * set inital costs of assigning a variable to a register to 120 for
+      non-i386, because the used register must be store to memory at the
+      start and loaded again at the end
+
+  Revision 1.46  2003/05/30 18:55:21  jonas
     * fixed several regvar related bugs for non-i386. make cycle with -Or now
       works for ppc
 
