@@ -950,7 +950,11 @@ begin
    { Allocate by 64K size }
    { first try 1Meg }
    if Size<$100000 then
-     NewPos:=Sbrk($100000)
+     begin
+        NewPos:=Sbrk($100000);
+        if NewPos > 0 then
+          Size:=$100000;
+     end
    else
      NewPos:=Sbrk(size);
    if NewPos=-1 then
@@ -1070,7 +1074,11 @@ end;
 
 {
   $Log$
-  Revision 1.6  1998-08-24 14:44:05  pierre
+  Revision 1.7  1998-08-25 14:15:53  pierre
+    * corrected a bug introduced by my last change
+      (allocating 1Mb but only using a small part !!)
+
+  Revision 1.6  1998/08/24 14:44:05  pierre
     * bug allocation of more than 1 MB failed corrected
 
   Revision 1.5  1998/08/17 12:27:17  carl
