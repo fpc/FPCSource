@@ -586,6 +586,46 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
+{$ifopt r+}
+{$define rangeon}
+{$r-}
+{$endif}
+
+{$ifndef FPC_SYSTEM_HAS_FPC_STR_TO_CHARARRAY}
+procedure str_to_chararray(strtyp, arraysize: longint; src,dest: pchar);[public,alias:'FPC_STR_TO_CHARARRAY'];
+type
+  plongint = ^longint;
+var
+  len: longint;
+begin
+  case strtyp of
+    { shortstring }
+    0:
+      begin
+        len := byte(src[0]);
+        inc(src);
+      end;
+    { ansistring}
+    1: len := length(ansistring(src));
+    { longstring }
+    2:;
+    { widestring }
+    3:;
+  end;
+  if len > arraysize then
+    len := arraysize;
+  { make sure we don't dereference src if it can be nil (JM) }
+  if len > 0 then
+    move(src^,dest^,len);
+  fillchar(dest[len],arraysize-len,0);
+end;
+{$endif FPC_SYSTEM_HAS_FPC_STR_TO_CHARARRAY}
+
+{$ifdef rangeon}
+{$r+}
+{undef rangeon}
+{$endif rangeon}
+
 {$ifndef FPC_SYSTEM_HAS_STRLEN}
 
 function strlen(p:pchar):longint;
@@ -726,7 +766,11 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-07-14 10:33:10  michael
+  Revision 1.4  2000-08-09 11:29:01  jonas
+    + FPC_STR_TO_CHARARRAY routine necessary for string -> chararray
+      conversions fix (merged fropm fixes branch)
+
+  Revision 1.3  2000/07/14 10:33:10  michael
   + Conditionals fixed
 
   Revision 1.2  2000/07/13 11:33:43  michael
