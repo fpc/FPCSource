@@ -3782,6 +3782,8 @@ unit pass_1;
                  if assigned(p^.left) then
                    begin
                       firstcallparan(p^.left,nil);
+                      if codegenerror then
+                       exit;
                       { first param must be var }
                       if not (p^.left^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
                         Message(cg_e_illegal_expression);
@@ -5177,7 +5179,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.52  1998-08-10 14:50:08  peter
+  Revision 1.53  1998-08-12 19:39:28  peter
+    * fixed some crashes
+
+  Revision 1.52  1998/08/10 14:50:08  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.51  1998/08/10 10:18:29  peter

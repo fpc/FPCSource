@@ -1077,7 +1077,8 @@ unit pstatmnt;
            end;
          end;
          ready:
-         set_tree_filepos(code,filepos);
+         if assigned(code) then
+          set_tree_filepos(code,filepos);
          statement:=code;
       end;
 
@@ -1240,7 +1241,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.32  1998-08-10 14:50:17  peter
+  Revision 1.33  1998-08-12 19:39:30  peter
+    * fixed some crashes
+
+  Revision 1.32  1998/08/10 14:50:17  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.31  1998/08/02 16:41:59  florian
