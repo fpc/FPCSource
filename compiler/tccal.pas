@@ -227,6 +227,7 @@ implementation
                        CGMessage(parser_e_call_by_ref_without_typeconv);
                    { process cargs arrayconstructor }
                    if is_array_constructor(p^.left^.resulttype) and
+                      assigned(aktcallprocsym) and
                       (aktcallprocsym^.definition^.options and pocdecl<>0) and
                       (aktcallprocsym^.definition^.options and poexternal<>0) then
                     begin
@@ -1118,7 +1119,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1999-03-19 17:31:54  pierre
+  Revision 1.28  1999-03-23 14:43:03  peter
+    * fixed crash with array of const in procvar
+
+  Revision 1.27  1999/03/19 17:31:54  pierre
    * lost reference because refcount not increased fixed
 
   Revision 1.26  1999/03/02 18:24:22  peter
