@@ -1601,8 +1601,10 @@ implementation
                     if assigned(previous) and
                        (Tai(previous).typ=ait_regalloc) and
                        (Tai_regalloc(previous).reg=reg) and
-                       { allocation,deallocation or deallocation,allocation }
-                       (Tai_regalloc(previous).allocation xor allocation) then
+                       { deallocation,allocation }
+                       { note: do not remove allocation,deallocation, those }
+                       {   do have a real meaning                           }
+                       (not(Tai_regalloc(previous).allocation) and allocation) then
                       begin
                         q:=Tai(next);
                         hp:=tai(previous);
@@ -2021,7 +2023,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.124  2004-03-14 22:50:04  peter
+  Revision 1.125  2004-04-26 19:57:50  jonas
+    * do not remove "allocation,deallocation" pairs, as those are important
+      for the optimizer
+
+  Revision 1.124  2004/03/14 22:50:04  peter
     * rewrote add_to_movelist, it now uses a field to store the number
       of allocated entries. Also made it using less hardcoded values
 
