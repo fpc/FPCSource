@@ -550,9 +550,9 @@ PPCCPULOCATION=  $(INSTALL_BINDIR)
 endif
 endif
 
-# This will only install the ppc386.exe, not the message files etc.
+# This will only install the ppcXXX executable, not the message files etc.
 quickinstall: $(addsuffix _install,$(TARGET_DIRS))
-# Install ppc386.exe
+# Install ppcXXX executable
 ifneq ($(PPEXEFILE),)
 ifdef UPXPROG
         -$(UPXPROG) $(EXENAME)
@@ -575,11 +575,12 @@ endif
         $(MKDIR) $(MSGINSTALLDIR)
         $(INSTALL) $(MSGFILES) $(MSGINSTALLDIR)
 
-# this also installs the link /usr/bin/ppc386. The .deb does that later
+# This also installs a link from bin to the actual executable.
+# The .deb does that later.
 installsymlink: install
 ifdef UNIXINSTALLDIR
         $(MKDIR) $(INSTALL_BINDIR)
-        ln -sf $(INSTALL_BASEDIR)/ppc386 $(INSTALL_BINDIR)/ppc386
+        ln -sf $(INSTALL_BASEDIR)/$(EXENAME) $(INSTALL_BINDIR)/$(EXENAME)
 endif
 
 
