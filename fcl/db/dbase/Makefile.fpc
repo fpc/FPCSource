@@ -1,0 +1,17 @@
+#
+# Makefile.fpc for interbase.pp units
+
+[targets]
+units=dbf
+examples=testdbf
+
+[require]
+options=-S2 -Sh
+
+[install]
+unitsubdir=fcl
+packagename=fcl
+
+[dirs]
+fpcdir=../../..
+targetdir=../../$(OS_TARGET)
