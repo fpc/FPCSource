@@ -374,6 +374,9 @@ BEGIN
   DoneWatches;
 {$endif}
 {$ifdef fpc}
+{$ifdef unix}
+  Video.ClearScreen;
+{$endif unix}
   Video.DoneVideo;
   Keyboard.DoneKeyboard;
 {$endif fpc}
@@ -384,7 +387,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.5  2002-03-20 14:56:41  pierre
+  Revision 1.6  2002-03-28 16:32:48  pierre
+   * clearscrenn at exit for unix
+
+  Revision 1.5  2002/03/20 14:56:41  pierre
    * correct last commit
 
   Revision 1.4  2002/03/20 14:53:37  pierre
