@@ -1,4 +1,4 @@
-{ Compile with -Rintel switch }
+{$asmmode intel}
 var
  l : longint;
 begin
@@ -6,6 +6,7 @@ begin
  { relative to stack, and the parser thinks all wrong  }
  { because of this.                                    }
  asm
-   mov eax, [eax*4+l]    
+        lea     eax,[eax*4+eax]
+        mov     eax,[eax*4+l]
  end;
-end. 
+end.

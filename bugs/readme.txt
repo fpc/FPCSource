@@ -267,3 +267,5 @@ bug0198.pp   calling specifications aren't allowed in class declarations,
 bug0200.pp   array of char overloading problem with strings
 bug0202.pp   flag results not supported with case
 bug0203.pp   problem with changed mangledname of procedures after use
+bug0204.pp   can typecast the result var in an assignment
+bug0205.pp   and parsing bug, generates wrong code (tp7 gives parser error)
