@@ -510,7 +510,6 @@ begin
   WriteLn ('Trying to grow heap by ', Size, ' to ', HeapSize + Size);
 {$ENDIF}
   // commit memory
-{$WARNING Not threadsafe at the moment!}
   RC := DosSetMem (Int_Heap_End, Size, $13);
 
   if RC <> 0 then
@@ -1502,7 +1501,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2004-03-24 19:15:59  hajny
+  Revision 1.69  2004-03-24 19:23:09  hajny
+    * misleading warning removed
+
+  Revision 1.68  2004/03/24 19:15:59  hajny
     * heap management modified to be able to grow heap as needed
 
   Revision 1.67  2004/02/22 15:01:49  hajny
