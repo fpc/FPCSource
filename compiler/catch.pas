@@ -77,6 +77,7 @@ end;
 
 
 begin
+{$ifndef nocatch}
 {$ifdef has_signal}
 {$ifndef TP}
   NewSignal:=SignalHandler(@CatchSignal);
@@ -87,11 +88,15 @@ begin
   OldSigInt:=Signal (SIGINT,NewSignal);
   OldSigFPE:=Signal (SIGFPE,NewSignal);
 {$endif}
+{$endif nocatch}
 end.
 
 {
   $Log$
-  Revision 1.6  1999-06-02 22:44:05  pierre
+  Revision 1.7  1999-07-05 12:13:22  florian
+    * property reading from PPU fixed (new PPU format), it uses now writesym...
+
+  Revision 1.6  1999/06/02 22:44:05  pierre
    * previous wrong log corrected
 
   Revision 1.5  1999/06/02 22:25:28  pierre
