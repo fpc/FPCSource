@@ -165,12 +165,13 @@ type    PThreadInfoBlock=^TThreadInfoBlock;
         ProcessInfoBlock=TProcessInfoBlock;
 
 {OS/2 keeps information about the current process and the current thread
- is the datastructures Tprocessinfoblock and Tthreadinfoblock. All data
+ is the datastructures TProcessInfoBlock and TThreadInfoBlock. All data
  can both be read and be changed. Use DosGetInfoBlocks to get their
- address. The service cannot fail, so it is defined as procedure.
- The second version of the call might be useful if you only want address
- of one of those datastructures, since you can supply nil for the other
- parameter then.}
+ address. The service cannot fail, so it is defined as procedure. The
+ second version of the call might be useful if you only want address of one
+ of those datastructures, since you can supply nil for the other parameter
+ then - beware, omitting one of these parameters (passing nil) is only
+ supported on newer OS/2 versions, and causes SIGSEGV on e.g. OS/2 v2.1!!!}
 
 procedure DosGetInfoBlocks(var ATIB:PThreadInfoBlock;
                            var APIB:PProcessInfoBlock); cdecl;
@@ -4534,7 +4535,10 @@ external 'DOSCALLS' index 582;
 end.
 {
   $Log$
-  Revision 1.19  2003-01-05 16:37:22  hajny
+  Revision 1.20  2003-02-20 17:09:49  hajny
+    * fixes for OS/2 v2.1 incompatibility
+
+  Revision 1.19  2003/01/05 16:37:22  hajny
     * DosCalls not using Objects any more
 
   Revision 1.18  2002/11/14 21:16:22  hajny

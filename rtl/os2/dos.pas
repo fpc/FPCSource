@@ -1161,7 +1161,8 @@ var
  ptr : pchar;
  base : pchar;
  i: integer;
- tib : pprocessinfoblock;
+ PIB: PProcessInfoBlock;
+ TIB: PThreadInfoBlock;
 begin
   { We need to setup the environment     }
   { only in the case of OS/2             }
@@ -1170,8 +1171,8 @@ begin
     exit;
   cnt := 0;
   { count number of environment pointers }
-  dosgetinfoblocks (nil, PPProcessInfoBlock (@tib));
-  ptr := pchar(tib^.env);
+  DosGetInfoBlocks (PPThreadInfoBlocks (@TIB), PPProcessInfoBlock (@PIB));
+  ptr := pchar(PIB^.env);
   { stringz,stringz...,#0 }
   i := 0;
   repeat
@@ -1188,7 +1189,7 @@ begin
   { got count of environment strings }
   GetMem(envp, cnt*sizeof(pchar)+16384);
   cnt := 0;
-  ptr := pchar(tib^.env);
+  ptr := pchar(PIB^.env);
   i:=0;
   repeat
     envp[cnt] := ptr;
@@ -1221,7 +1222,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2003-01-04 15:43:50  hajny
+  Revision 1.24  2003-02-20 17:09:49  hajny
+    * fixes for OS/2 v2.1 incompatibility
+
+  Revision 1.23  2003/01/04 15:43:50  hajny
     + GetEnvPChar added
 
   Revision 1.22  2002/12/07 19:46:56  hajny

@@ -111,9 +111,10 @@ end;
 function TThread.GetPriority: TThreadPriority;
 var
  PTIB: PThreadInfoBlock;
+ PPIB: PProcessInfoBlock;
  I: TThreadPriority;
 begin
- DosGetInfoBlocks (@PTIB, nil);
+ DosGetInfoBlocks (@PTIB, @PPIB);
  with PTIB^.TIB2^ do
   if Priority >= $300 then GetPriority := tpTimeCritical else
       if Priority < $200 then GetPriority := tpIdle else
@@ -129,8 +130,9 @@ end;
 procedure TThread.SetPriority(Value: TThreadPriority);
 var
  PTIB: PThreadInfoBlock;
+ PPIB: PProcessInfoBlock;
 begin
- DosGetInfoBlocks (@PTIB, nil);
+ DosGetInfoBlocks (@PTIB, @PPIB);
 (*
  PTIB^.TIB2^.Priority := Priorities [Value];
 *)
@@ -231,7 +233,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:15:27  peter
+  Revision 1.7  2003-02-20 17:12:39  hajny
+    * fixes for OS/2 v2.1 incompatibility
+
+  Revision 1.6  2002/09/07 15:15:27  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/02/10 13:38:14  hajny

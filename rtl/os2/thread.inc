@@ -176,10 +176,11 @@ end;
 procedure DoneThread;
 var
  PTIB: PThreadInfoBlock;
+ PPIB: PProcessInfoBlock;
  ThreadID: longint;
 begin
  ReleaseThreadVars;
- DosGetInfoBlocks (@PTIB, nil);
+ DosGetInfoBlocks (@PTIB, @PPIB);
  ThreadID := PTIB^.TIB2^.TID;
 {$IFDEF EMX}
 {$ASMMODE INTEL}
@@ -299,10 +300,11 @@ procedure EnterCriticalSection (var CS: TRTLCriticalSection);
 var
  P, T, Cnt: longint;
  PTIB: PThreadInfoBlock;
+ PPIB: PProcessInfoBlock;
 begin
  if os_mode = osOS2 then
  begin
-  DosGetInfoBlocks (@PTIB, nil);
+  DosGetInfoBlocks (@PTIB, @PPIB);
   DosEnterCritSec;
   with CS do if (LockCount = 0) and
     (DosQueryMutExSem (LockSemaphore2, P, T, Cnt) = 0) and (Cnt = 0) and
@@ -332,12 +334,13 @@ end;
 procedure LeaveCriticalSection (var CS: TRTLCriticalSection);
 var
  PTIB: PThreadInfoBlock;
+ PPIB: PProcessInfoBlock;
  Err: boolean;
 begin
  if os_mode = osOS2 then
  begin
   Err := false;
-  DosGetInfoBlocks (@PTIB, nil);
+  DosGetInfoBlocks (@PTIB, @PPIB);
   DosEnterCritSec;
   with CS do if OwningThread2 <> PTIB^.TIB2^.TID then
   begin
@@ -361,7 +364,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  2002-09-07 16:01:25  peter
+  Revision 1.10  2003-02-20 17:09:49  hajny
+    * fixes for OS/2 v2.1 incompatibility
+
+  Revision 1.9  2002/09/07 16:01:25  peter
     * old logs removed and tabs fixed
 
   Revision 1.8  2002/07/07 18:04:39  hajny
