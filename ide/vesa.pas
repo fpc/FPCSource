@@ -476,13 +476,18 @@ begin
            if Force or
               (w<>OldVideoBuf^[x+y*ScreenWidth]) then
              Begin
-               Color:=w shr 16;
+               Color:=w shr 8;
                Ch:=chr(w and $ff);
                SetColor(Color and $f);
-               SetBkColor((Color shr 8) and 7);
+               SetBkColor((Color shr 4) and 7);
                OutTextXY(x*8,y*8,Ch);
+               if not force then
+                 OldVideoBuf^[x+y*ScreenWidth]:=w;
              End;
          end;
+     if Force then
+       move(videobuf^,oldvideobuf^,
+         ScreenWidth*ScreenHeight*SizeOf(TVideoCell));
    end;
   DrawTextBackground:=StoreDrawTextBackground;
 {$endif TESTGRAPHIC}
@@ -545,7 +550,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.3  2001-10-11 23:45:27  pierre
+  Revision 1.4  2001-10-12 00:04:17  pierre
+   * fix color computation for graphic mode
+
+  Revision 1.3  2001/10/11 23:45:27  pierre
    + some preliminary code for graph use
 
   Revision 1.2  2001/10/11 11:35:34  pierre
