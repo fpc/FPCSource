@@ -408,7 +408,8 @@ implementation
            @second_nothing, { interface 2 guid   }
            @second_class_to_intf,
            @second_char_to_char,
-           @second_nothing  { normal_2_smallset }
+           @second_nothing,  { normal_2_smallset }
+           @second_nothing   { dynarray_2_openarray }
          );
       type
          tprocedureofobject = procedure of object;
@@ -491,7 +492,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2001-11-02 23:24:12  jonas
+  Revision 1.28  2001-12-11 08:14:17  jonas
+    * part of my fix for dynarray -> open array conversion, forgot to
+      commit yesterday :(
+
+  Revision 1.27  2001/11/02 23:24:12  jonas
     * fixed web bug 1665 (allow char to chararray type conversion) ("merged")
 
   Revision 1.26  2001/09/30 21:28:34  peter
