@@ -765,7 +765,16 @@ const
         s : string;
       begin
         current_scanner^.skipspace;
-        s:=AddExtension(FixFileName(current_scanner^.readcomment),target_info.resext);
+        s:=current_scanner^.readcomment;
+        { replace * with current module name.
+          This should always be defined. }
+        if s[1]='*' then
+          if Assigned(Current_Module) then
+            begin
+            delete(S,1,1);
+            insert(lower(current_module^.modulename^),S,1);
+            end;
+        s:=AddExtension(FixFileName(s),target_info.resext);
         if target_info.res<>res_none then
           current_module^.resourcefiles.insert(FixFileName(s))
         else
@@ -1299,7 +1308,10 @@ const
 
 {
   $Log$
-  Revision 1.76  2000-02-28 17:23:57  daniel
+  Revision 1.77  2000-04-08 20:18:53  michael
+  * Fixed bug in readcomment that was dropping * characters
+
+  Revision 1.76  2000/02/28 17:23:57  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new

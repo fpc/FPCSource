@@ -829,7 +829,28 @@ implementation
                    readchar;
                    dec_comment_level;
                    break;
-                 end;
+                 end
+                else
+                 { Add both characters !!}
+                 if (i<255) then
+                   begin
+                   inc(i);
+                   readcomment[i]:='*';
+                   if (i<255) then
+                     begin
+                     inc(i);
+                     readcomment[i]:='*';
+                     end;
+                   end;
+              end
+             else
+              { Not old TP comment, so add...}
+              begin
+              if (i<255) then
+               begin
+               inc(i);
+               readcomment[i]:='*';
+               end;
               end;
            #26 :
               end_of_file;
@@ -1790,7 +1811,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.109  2000-03-13 21:21:57  peter
+  Revision 1.110  2000-04-08 20:18:53  michael
+  * Fixed bug in readcomment that was dropping * characters
+
+  Revision 1.109  2000/03/13 21:21:57  peter
     * ^m support also after a string
 
   Revision 1.108  2000/03/12 17:53:16  florian
