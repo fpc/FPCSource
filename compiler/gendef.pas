@@ -28,14 +28,15 @@ type
   pdeffile=^tdeffile;
   tdeffile=object
     fname : string;
-    empty : boolean;
     constructor init(const fn:string);
     destructor  done;
     procedure addexport(const s:string);
     procedure addimport(const s:string);
     procedure writefile;
+    function empty : boolean;
   private
-    erasedeffile : boolean;
+    is_empty : boolean;
+    WrittenOnDisk : boolean;
     exportlist,
     importlist   : tstringcontainer;
   end;
@@ -55,8 +56,8 @@ uses
 constructor tdeffile.init(const fn:string);
 begin
   fname:=fn;
-  erasedeffile:=false;
-  empty:=true;
+  WrittenOnDisk:=false;
+  is_empty:=true;
   importlist.init;
   exportlist.init;
 end;
@@ -67,7 +68,7 @@ var
   f : file;
   i : word;
 begin
-  if erasedeffile and
+  if WrittenOnDisk and
      not(cs_link_extern in aktglobalswitches) then
    begin
      assign(f,fname);
@@ -85,21 +86,29 @@ end;
 procedure tdeffile.addexport(const s:string);
 begin
   exportlist.insert(s);
-  empty:=false;
+  is_empty:=false;
 end;
 
 
 procedure tdeffile.addimport(const s:string);
 begin
   importlist.insert(s);
-  empty:=false;
+  is_empty:=false;
 end;
+
+function tdeffile.empty : boolean;
+begin
+  empty:=is_empty and (description='');
+end;
+
 
 
 procedure tdeffile.writefile;
 var
   t : text;
 begin
+  If WrittenOnDisk then
+    Exit;
 { open file }
   assign(t,fname);
   {$I+}
@@ -121,6 +130,13 @@ begin
         writeln(t,'STACKSIZE'#9+tostr(stacksize));
         writeln(t,'HEAPSIZE'#9+tostr(heapsize));
       end;
+  target_i386_win32 :
+    begin
+      if description<>'' then
+        writeln(t,'DESCRIPTION '+''''+description+'''');
+      if dllversion<>'' then
+        writeln(t,'VERSION '+dllversion);
+    end;
   end;
 {$endif}
 
@@ -143,13 +159,16 @@ begin
    end;
 
   close(t);
-  erasedeffile:=true;
+  WrittenOnDisk:=true;
 end;
 
 end.
 {
   $Log$
-  Revision 1.3  1999-03-26 00:05:29  peter
+  Revision 1.4  1999-12-20 23:23:28  pierre
+   + $description $version
+
+  Revision 1.3  1999/03/26 00:05:29  peter
     * released valintern
     + deffile is now removed when compiling is finished
     * ^( compiles now correct

@@ -117,6 +117,7 @@ unit globals;
        usewindowapi  : boolean;
        description   : string;
        dllversion    : string;
+       dllmajor,dllminor : word;
 
        { current position }
        token,                        { current token being parsed }
@@ -1420,7 +1421,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  1999-12-20 21:42:34  pierre
+  Revision 1.41  1999-12-20 23:23:28  pierre
+   + $description $version
+
+  Revision 1.40  1999/12/20 21:42:34  pierre
     + dllversion global variable
     * FPC_USE_CPREFIX code removed, not necessary anymore
       as we use .edata direct writing by default now.

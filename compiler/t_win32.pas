@@ -628,11 +628,14 @@ begin
    begin
      ExeCmd[1]:='ldw $OPT $STRIP $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
      DllCmd[1]:='ldw $OPT $STRIP --dll $APPTYPE $IMAGEBASE $RELOC -o $EXE $RES';
-     if UseDeffileForExport then
+     if RelocSection then
        begin
-          ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
+          { ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
+            use short forms to avoid 128 char limitation problem }
+          ExeCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
           ExeCmd[3]:='ldw $OPT $STRIP $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
-          DllCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
+          { DllCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF'; }
+          DllCmd[2]:='dlltool -S $ASBIN -D $EXE -e exp.$$$ $RELOC $DEF';
           DllCmd[3]:='ldw $OPT $STRIP --dll $APPTYPE $IMAGEBASE -o $EXE $RES exp.$$$';
        end;
    end;
@@ -745,8 +748,10 @@ begin
   ImageBaseStr:='';
   StripStr:='';
   AsBinStr:=FindExe('asw',found);
-  if UseDeffileForExport then
-   RelocStr:='--base-file base.$$$';
+  if RelocSection then
+  { RelocStr:='--base-file base.$$$';
+    Using short form to avoid problems with 128 char limitation under Dos }
+   RelocStr:='-b base.$$$';
   if apptype=at_gui then
    AppTypeStr:='--subsystem windows';
   if assigned(DLLImageBase) then
@@ -772,8 +777,11 @@ begin
         Replace(cmdstr,'$RELOC',RelocStr);
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
         Replace(cmdstr,'$STRIP',StripStr);
-        if not DefFile.Empty then
-          Replace(cmdstr,'$DEF','-d '+deffile.fname)
+        if not DefFile.Empty {and UseDefFileForExport} then
+          begin
+            DefFile.WriteFile;
+            Replace(cmdstr,'$DEF','-d '+deffile.fname);
+          end
         else
           Replace(cmdstr,'$DEF','');
         success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false);
@@ -821,8 +829,10 @@ begin
   ImageBaseStr:='';
   StripStr:='';
   AsBinStr:=FindExe('asw',found);
-  if UseDeffileForExport then
-   RelocStr:='--base-file base.$$$';
+  if RelocSection then
+  { RelocStr:='--base-file base.$$$';
+    Using short form to avoid problems with 128 char limitation under Dos }
+   RelocStr:='-b base.$$$';
   if apptype=at_gui then
    AppTypeStr:='--subsystem windows';
   if assigned(DLLImageBase) then
@@ -848,8 +858,11 @@ begin
         Replace(cmdstr,'$RELOC',RelocStr);
         Replace(cmdstr,'$IMAGEBASE',ImageBaseStr);
         Replace(cmdstr,'$STRIP',StripStr);
-        if not DefFile.Empty then
-          Replace(cmdstr,'$DEF','-d '+deffile.fname)
+        if not DefFile.Empty {and UseDefFileForExport} then
+          begin
+            DefFile.WriteFile;
+            Replace(cmdstr,'$DEF','-d '+deffile.fname);
+          end
         else
           Replace(cmdstr,'$DEF','');
         success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false);
@@ -999,6 +1012,11 @@ begin
     peheader.Subsystem:=2
   else if apptype=at_cui then
     peheader.Subsystem:=3;
+  if dllversion<>'' then
+    begin
+     peheader.MajorImageVersion:=dllmajor;
+     peheader.MinorImageVersion:=dllminor;
+    end;
   seek(f,peheaderpos);
   blockwrite(f,peheader,sizeof(tpeheader));
   if ioresult<>0 then
@@ -1060,7 +1078,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1999-12-08 10:40:01  pierre
+  Revision 1.13  1999-12-20 23:23:30  pierre
+   + $description $version
+
+  Revision 1.12  1999/12/08 10:40:01  pierre
     + allow use of unit var in exports of DLL for win32
       by using direct export writing by default instead of use of DEFFILE
       that does not allow assembler labels that do not

@@ -46,7 +46,7 @@ type
      _DIR_SATURATION,_DIR_SMARTLINK,_DIR_STACKFRAMES,_DIR_STATIC,_DIR_STOP,
      _DIR_TYPEDADDRESS,_DIR_TYPEINFO,
      _DIR_UNDEF,_DIR_UNITPATH,
-     _DIR_VARSTRINGCHECKS,
+     _DIR_VARSTRINGCHECKS,_DIR_VERSION,
      _DIR_WAIT,_DIR_WARNING,_DIR_WARNINGS,
      _DIR_Z1,_DIR_Z2,_DIR_Z4
      );
@@ -123,6 +123,7 @@ const
      'UNDEF',
      'UNITPATH',
      'VARSTRINGCHECKS',
+     'VERSION',
      'WAIT',
      'WARNING',
      'WARNINGS',
@@ -678,6 +679,59 @@ const
 
     procedure dir_description(t:tdirectivetoken);
       begin
+        if not (target_info.target in [target_i386_os2,target_i386_win32]) then
+          Message(scan_w_decription_not_support);
+        { change description global var in all cases }
+        { it not used but in win32 and os2 }
+        current_scanner^.skipspace;
+        description:=current_scanner^.readcomment;
+      end;
+
+
+    procedure dir_version(t:tdirectivetoken);
+      var
+        major, minor : longint;
+        error : integer;
+      begin
+        if not (target_info.target in [target_i386_os2,target_i386_win32]) then
+          begin
+            Message(scan_n_version_not_support);
+            exit;
+          end;
+        if (compile_level<>1) then
+          Message(scan_n_only_exe_version)
+        else
+          begin
+            { change description global var in all cases }
+            { it not used but in win32 and os2 }
+            current_scanner^.skipspace;
+            { we should only accept Major.Minor format }
+            current_scanner^.readnumber;
+            major:=0;
+            minor:=0;
+            valint(pattern,major,error);
+            if error<>0 then
+              begin
+                Message1(scan_w_wrong_version_ignored,pattern);
+                exit;
+              end;
+            if c='.' then
+              begin
+                current_scanner^.readchar;
+                current_scanner^.readnumber;
+                valint(pattern,minor,error);
+                if error<>0 then
+                  begin
+                    Message(scan_w_wrong_version_ignored);
+                    exit;
+                  end;
+                dllmajor:=major;
+                dllminor:=minor;
+                dllversion:=tostr(major)+'.'+tostr(minor);
+              end
+            else
+              dllversion:=tostr(major);
+          end;
       end;
 
 
@@ -1079,6 +1133,7 @@ const
          {_DIR_UNDEF} dir_undef,
          {_DIR_UNITPATH} dir_unitpath,
          {_DIR_VARSTRINGCHECKS} dir_delphiswitch,
+         {_DIR_VERSION} dir_version,
          {_DIR_WAIT} dir_wait,
          {_DIR_WARNING} dir_message,
          {_DIR_WARNINGS} dir_setverbose,
@@ -1165,7 +1220,10 @@ const
 
 {
   $Log$
-  Revision 1.69  1999-12-02 17:34:34  peter
+  Revision 1.70  1999-12-20 23:23:30  pierre
+   + $description $version
+
+  Revision 1.69  1999/12/02 17:34:34  peter
     * preprocessor support. But it fails on the caret in type blocks
 
   Revision 1.68  1999/11/24 11:39:53  pierre

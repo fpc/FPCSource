@@ -115,7 +115,7 @@ unit pexports;
                              hp^.options:=hp^.options or eo_resident;
                              DefString:=ProcName+'='+InternalProcName;{Resident ignored!}
                           end;
-                        if DefString<>''then
+                        if (DefString<>'') and UseDeffileForExport then
                          DefFile.AddExport(DefString);
                         if srsym^.typ=procsym then
                           exportlib^.exportprocedure(hp)
@@ -141,7 +141,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  1999-12-08 10:40:01  pierre
+  Revision 1.17  1999-12-20 23:23:30  pierre
+   + $description $version
+
+  Revision 1.16  1999/12/08 10:40:01  pierre
     + allow use of unit var in exports of DLL for win32
       by using direct export writing by default instead of use of DEFFILE
       that does not allow assembler labels that do not

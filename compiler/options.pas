@@ -332,6 +332,8 @@ var
   code : integer;
   c    : char;
   more : string;
+  major,minor : longint;
+  error : integer;
   j,l  : longint;
   d    : DirStr;
   e    : ExtStr;
@@ -488,6 +490,28 @@ begin
                               end;
                         'v' : begin
                                 dllversion:=Copy(more,j+1,255);
+                                l:=pos('.',dllversion);
+                                dllminor:=0;
+                                error:=0;
+                                if l>0 then
+                                  begin
+                                    valint(copy(dllversion,l+1,255),minor,error);
+                                    if (error=0) and
+                                       (minor>=0) and (minor<=$ffff) then
+                                      dllminor:=minor
+                                    else if error=0 then
+                                      error:=1;
+                                  end;
+                                if l=0 then l:=256;
+                                dllmajor:=1;
+                                if error=0 then
+                                  valint(copy(dllversion,1,l-1),major,error);
+                                if (error=0) and (major>=0) and (major<=$ffff) then
+                                  dllmajor:=major
+                                else if error=0 then
+                                  error:=1;
+                                if error<>0 then
+                                  Message1(scan_w_wrong_version_ignored,dllversion);
                                 break;
                               end;
                         'w' : usewindowapi:=true;
@@ -1336,7 +1360,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.44  1999-12-20 21:42:36  pierre
+  Revision 1.45  1999-12-20 23:23:30  pierre
+   + $description $version
+
+  Revision 1.44  1999/12/20 21:42:36  pierre
     + dllversion global variable
     * FPC_USE_CPREFIX code removed, not necessary anymore
       as we use .edata direct writing by default now.

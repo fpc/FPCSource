@@ -246,6 +246,15 @@ scan_w_unsupported_app_type=W_Unsupported application type: $1
 % with the directive \var{\{\$APPTYPE\}}
 scan_w_app_type_not_support=W_APPTYPE isn't support by the target OS
 % The \var{\{\$APPTYPE\}} directive is supported by win32 applications only.
+scan_w_decription_not_support=W_DESCRIPTION is only supported for OS2 and Win32
+% The \var{\{\$DESCRIPTION\}} directive is only supported for OS2 and Win32 targets.
+scan_n_version_not_support=N_VERSION is not supported by target OS.
+% The \var{\{\$VERSION\}} directive is only supported by win32 target.
+scan_n_only_exe_version=N_VERSION only for exes or DLLs
+% The \var{\{\$VERSION\}} directive is only used for executable or DLL sources.
+scan_w_wrong_version_ignored=W_Wrong format for VERSION directive $1
+% The \var{\{\$VERSION\}} directive format is major_version.minor_version
+% where major_version and minor_version are words.
 scan_w_unsupported_asmmode_specifier=W_Unsupported assembler style specified $1
 % When you specify an assembler mode with the \var{\{\$ASMMODE xxx\}}
 % the compiler didn't recognize the mode you specified.
