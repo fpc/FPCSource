@@ -329,6 +329,10 @@ end;
     begin
       if not heap_split then
        begin
+         getmem(tempheap.block,sizeof(tblocks));
+         getmem(tempheap.nblock,sizeof(tnblocks));
+         fillchar(tempheap.block^,sizeof(tblocks),0);
+         fillchar(tempheap.nblock^,sizeof(tnblocks),0);
          baseheap.heaporg:=heaporg;
          baseheap.heapptr:=heapptr;
          baseheap.freelist:=freelist;
@@ -346,10 +350,6 @@ end;
          tempheap.heapend:=heapend;
          tempheap.memavail:=longint(tempheap.heapend) - longint(tempheap.heaporg);
          tempheap.heapsize:=tempheap.memavail;
-         getmem(tempheap.block,sizeof(tblocks));
-         getmem(tempheap.nblock,sizeof(tnblocks));
-         fillchar(tempheap.block^,sizeof(tblocks),0);
-         fillchar(tempheap.nblock^,sizeof(tnblocks),0);
          heapend:=baseheap.heapend;
          internal_memavail:=calc_memavail;
          baseheap.memavail:=internal_memavail;
@@ -1086,7 +1086,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1999-01-22 12:39:21  pierre
+  Revision 1.6  1999-02-08 09:31:39  florian
+    * fixed small things regarding TEMPHEAP
+
+  Revision 1.5  1999/01/22 12:39:21  pierre
    + added text arg for dump_stack
 
   Revision 1.4  1998/12/16 00:22:24  peter
