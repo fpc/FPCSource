@@ -248,7 +248,7 @@ implementation
      uses
         systems,
         cresstr,
-        rgobj,
+        tgobj,rgobj,
         defbase,
         fmodule
 {$ifdef fixLeaksOnError}
@@ -411,7 +411,7 @@ implementation
       begin
          { temporary space is set, while the BEGIN of the procedure }
          if (symtablestack.symtabletype=localsymtable) then
-           procinfo.firsttemp_offset := -symtablestack.datasize
+           procinfo.firsttemp_offset := tg.direction*symtablestack.datasize
          else
            procinfo.firsttemp_offset := 0;
          { space for the return value }
@@ -420,19 +420,18 @@ implementation
          { because we don't know yet where the address is }
          if not is_void(aktprocdef.rettype.def) then
            begin
-              if paramanager.ret_in_reg(aktprocdef) then
+              if paramanager.ret_in_reg(aktprocdef.rettype.def) then
                 begin
                    { the space has been set in the local symtable }
-                   procinfo.return_offset:=-tfuncretsym(aktprocdef.funcretsym).address;
+                   procinfo.return_offset:=tg.direction*tfuncretsym(aktprocdef.funcretsym).address;
                    if ((procinfo.flags and pi_operator)<>0) and
                       assigned(otsym) then
-                     otsym.address:=-procinfo.return_offset;
+                     otsym.address:=tfuncretsym(aktprocdef.funcretsym).address;
 
                    rg.usedinproc := rg.usedinproc +
                       getfuncretusedregisters(aktprocdef.rettype.def);
                 end;
            end;
-
       end;
 
     { updates usedinproc depending on the resulttype }
@@ -655,7 +654,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-09-07 15:25:01  peter
+  Revision 1.29  2002-09-07 19:35:45  florian
+    + tcg.direction is used now
+
+  Revision 1.28  2002/09/07 15:25:01  peter
     * old logs removed and tabs fixed
 
   Revision 1.27  2002/09/05 19:29:42  peter

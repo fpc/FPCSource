@@ -54,7 +54,7 @@ implementation
        scanner,
        pbase,pexpr,
        { codegen }
-       rgobj,cgbase
+       tgobj,rgobj,cgbase
        ,ncgutil
        ,radirect
 {$ifdef i386}
@@ -1078,7 +1078,7 @@ implementation
 
          { temporary space is set, while the BEGIN of the procedure }
          if symtablestack.symtabletype=localsymtable then
-           procinfo.firsttemp_offset := -symtablestack.datasize
+           procinfo.firsttemp_offset := tg.direction*symtablestack.datasize
          else
            procinfo.firsttemp_offset := 0;
 
@@ -1146,7 +1146,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2002-09-07 15:25:07  peter
+  Revision 1.78  2002-09-07 19:34:08  florian
+    + tcg.direction is used now
+
+  Revision 1.77  2002/09/07 15:25:07  peter
     * old logs removed and tabs fixed
 
   Revision 1.76  2002/09/07 12:16:03  carl
