@@ -78,12 +78,20 @@ type
     class procedure AssertEquals(Expected, Actual: TClass); overload;
     class procedure AssertSame(const AMessage: string; Expected, Actual: TObject); overload;
     class procedure AssertSame(Expected, Actual: TObject); overload;
+    class procedure AssertSame(const AMessage: string; Expected, Actual: Pointer); overload;
+    class procedure AssertSame(Expected, Actual: Pointer); overload;
     class procedure AssertNotSame(const AMessage: string; Expected, Actual: TObject); overload;
     class procedure AssertNotSame(Expected, Actual: TObject); overload;
+    class procedure AssertNotSame(const AMessage: string; Expected, Actual: Pointer); overload;
+    class procedure AssertNotSame(Expected, Actual: Pointer); overload;
     class procedure AssertNotNull(const AMessage: string; AObject: TObject); overload;
     class procedure AssertNotNull(AObject: TObject); overload;
+    class procedure AssertNotNull(const AMessage: string; APointer: Pointer); overload;
+    class procedure AssertNotNull(APointer: Pointer); overload;
     class procedure AssertNull(const AMessage: string; AObject: TObject); overload;
     class procedure AssertNull(AObject: TObject); overload;
+    class procedure AssertNull(const AMessage: string; APointer: Pointer); overload;
+    class procedure AssertNull(APointer: Pointer); overload;
     class procedure AssertNotNull(const AMessage, AString: string); overload;
     class procedure AssertNotNull(const AString: string); overload;
     class procedure AssertException(const AMessage: string; AExceptionClass: ExceptClass; AMethod: TRunMethod); overload;
@@ -448,12 +456,33 @@ begin
   AssertSame('', Expected, Actual);
 end;
 
+class procedure TAssert.AssertSame(const AMessage: string; Expected, Actual: Pointer);
+begin
+  AssertTrue(AMessage + ComparisonMsg(IntToStr(PtrInt(Expected)), IntToStr(PtrInt(Actual))), 
+    Expected = Actual);
+end;
+
+class procedure TAssert.AssertSame(Expected, Actual: Pointer);
+begin
+  AssertSame('', Expected, Actual);
+end;
+
 class procedure TAssert.AssertNotSame(const AMessage: string; Expected, Actual: TObject);
 begin
   AssertFalse(SExpectedNotSame, Expected = Actual);
 end;
 
 class procedure TAssert.AssertNotSame(Expected, Actual: TObject);
+begin
+  AssertNotSame('', Expected, Actual);
+end;
+
+class procedure TAssert.AssertNotSame(const AMessage: string; Expected, Actual: Pointer);
+begin
+  AssertFalse(SExpectedNotSame, Expected = Actual);
+end;
+
+class procedure TAssert.AssertNotSame(Expected, Actual: Pointer);
 begin
   AssertNotSame('', Expected, Actual);
 end;
@@ -468,6 +497,16 @@ begin
   AssertNotNull('', AObject);
 end;
 
+class procedure TAssert.AssertNotNull(const AMessage: string; APointer: Pointer);
+begin
+  AssertTrue(AMessage, (APointer <> nil));
+end;
+
+class procedure TAssert.AssertNotNull(APointer: Pointer);
+begin
+  AssertNotNull('', APointer);
+end;
+
 class procedure TAssert.AssertNull(const AMessage: string; AObject: TObject);
 begin
   AssertTrue(AMessage, (AObject = nil));
@@ -476,6 +515,16 @@ end;
 class procedure TAssert.AssertNull(AObject: TObject);
 begin
   AssertNull('', AObject);
+end;
+
+class procedure TAssert.AssertNull(const AMessage: string; APointer: Pointer);
+begin
+  AssertTrue(AMessage, (APointer = nil));
+end;
+
+class procedure TAssert.AssertNull(APointer: Pointer);
+begin
+  AssertNull('', APointer);
 end;
 
 class procedure TAssert.AssertException(const AMessage: string; AExceptionClass: ExceptClass;

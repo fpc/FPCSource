@@ -145,7 +145,7 @@ end;
 
 procedure TTestCaseTest.TestAsString;
 begin
-  AssertEquals( 'TTestCaseTest: wrong AsString output', 'TESTASSTRING(TTestCaseTest)', AsString);
+  AssertEquals( 'TTestCaseTest: wrong AsString output', 'TestAsString(TTestCaseTest)', AsString);
 end;
 
 procedure TTestSuiteTest.SetUp;
