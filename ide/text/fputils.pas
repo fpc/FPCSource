@@ -47,6 +47,7 @@ function FixFileName(const s:string):string;
 function MakeExeName(const fn:string):string;
 function LExpand(const S: string; MinLen: byte): string;
 function RExpand(const S: string; MinLen: byte): string;
+function Center(const S: string; Len: byte): string;
 function FitStr(const S: string; Len: byte): string;
 function LTrim(const S: string): string;
 function RTrim(const S: string): string;
@@ -67,6 +68,7 @@ function MatchesMask(What, Mask: string): boolean;
 function MatchesMaskList(What, MaskList: string): boolean;
 function MatchesFileList(What, FileList: string): boolean;
 function EatIO: integer;
+function RenameFile(const OldFileName,NewFileName: string): boolean;
 function ExistsFile(const FileName: string): boolean;
 function CompleteDir(const Path: string): string;
 function LocateFile(FileList: string): string;
@@ -204,6 +206,11 @@ begin
     RExpand:=S;
 end;
 
+
+function Center(const S: string; Len: byte): string;
+begin
+  Center:=LExpand(S+CharStr(' ',Max(0,(Len-length(S)) div 2)),Len);
+end;
 
 function FitStr(const S: string; Len: byte): string;
 begin
@@ -494,6 +501,14 @@ begin
   EatIO:=IOResult;
 end;
 
+function RenameFile(const OldFileName,NewFileName: string): boolean;
+var f: file;
+begin
+  Assign(f,OldFileName);
+  Rename(f,NewFileName);
+  RenameFile:=(EatIO=0);
+end;
+
 function ExistsFile(const FileName: string): boolean;
 var
   Dir : SearchRec;
@@ -647,7 +662,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.13  1999-04-15 08:58:07  peter
+  Revision 1.14  2000-01-03 11:38:34  michael
+  Changes from Gabor
+
+  Revision 1.13  1999/04/15 08:58:07  peter
     * syntax highlight fixes
     * browser updates
 

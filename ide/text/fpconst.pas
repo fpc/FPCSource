@@ -40,6 +40,7 @@ const
      FPErrFileName        = 'fp___.err';
      GDBOutFileName       = 'gdb___.out';
      GDBOutPutFileName    = 'gdb___.txt';
+     DesktopTempName      = 'fp___.dsk';
 
      HelpFileExts         = '*.tph;*.htm*';
 
@@ -127,6 +128,7 @@ const
      cmWatches           = 238;
      cmUntilReturn       = 239;
      { WARNING these two are also defined in weditor.pas PM }
+     { and why aren't these defines then removed? Gabor }
      cmCopyWin           = 240;
      cmPasteWin          = 241;
 
@@ -206,6 +208,7 @@ const
      hcMessagesWindow    = 8006;
      hcGDBWindow         = 8007;
      hcBreakpointListWindow = 8008;
+     hcASCIITableWindow  = 8009;
 
      hcShift             = 10000;
 
@@ -345,6 +348,8 @@ const
 
      CFPClockView = #0#227;
 
+     CFPToolTip     = #228;
+
      CIDEAppColor = CAppColor +
          { CIDEHelpDialog }
 {128-143}#$70#$7F#$7A#$13#$13#$70#$70#$7F#$7E#$20#$2B#$2F#$78#$2E#$70#$30 + { 1-16}
@@ -358,14 +363,19 @@ const
          { CBrowserWindow }
 {215-226}#$31#$3F#$3A#$31#$31#$31#$71#$1F#$31#$2F#$3E#$3F +
          { CFPClockView }
-{227-   }#$70;
+{227-227}#$70 +
+         { CToolTip }
+{228-228}#$20;
 
 implementation
 
 END.
 {
   $Log$
-  Revision 1.30  1999-11-03 09:39:23  peter
+  Revision 1.31  2000-01-03 11:38:33  michael
+  Changes from Gabor
+
+  Revision 1.30  1999/11/03 09:39:23  peter
     * fixed uppercase filenames
     * savetostream did twice a -1 on the linecount, so the lastline of a
       file wasn't saved correctly

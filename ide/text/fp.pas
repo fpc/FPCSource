@@ -33,7 +33,7 @@ uses
   FPIDE,FPCalc,FPCompile,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
   FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPCatch,FPRedir,FPDesk,
-  FPSymbol;
+  FPSymbol,FPCodTmp,FPCodCmp;
 
 
 procedure ProcessParams(BeforeINI: boolean);
@@ -155,6 +155,8 @@ BEGIN
   InitUserScreen;
   InitTools;
   InitTemplates;
+  InitCodeTemplates;
+  InitCodeComplete;
 
   ReadSwitches(SwitchesPath);
   IDEApp.Init;
@@ -184,6 +186,8 @@ BEGIN
   IDEApp.Done;
   WriteSwitches(SwitchesPath);
 
+  DoneCodeComplete;
+  DoneCodeTemplates;
   DoneTemplates;
   DoneTools;
   DoneUserScreen;
@@ -202,7 +206,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.34  1999-12-20 14:23:16  pierre
+  Revision 1.35  2000-01-03 11:38:33  michael
+  Changes from Gabor
+
+  Revision 1.34  1999/12/20 14:23:16  pierre
     * MyApp renamed IDEApp
     * TDebugController.ResetDebuggerRows added to
       get resetting of debugger rows

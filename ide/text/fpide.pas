@@ -387,6 +387,11 @@ begin
       NewStatusKey('~Alt+F10~ Local menu', kbAltF10, cmLocalMenu,
       StdStatusKeys(
       nil))))))),
+    NewStatusDef(hcASCIITableWindow, hcASCIITableWindow,
+      NewStatusKey('~F1~ Help', kbF1, cmHelp,
+      NewStatusKey('~Ctrl+Enter~ Transfer char', kbCtrlEnter, cmTransfer,
+      StdStatusKeys(
+      nil))),
     NewStatusDef(hcMessagesWindow, hcMessagesWindow,
       NewStatusKey('~F1~ Help', kbF1, cmHelp,
       NewStatusKey('~'+EnterSign+'~ Goto source', kbEnter, cmMsgGotoSource,
@@ -409,7 +414,7 @@ begin
       NewStatusKey('~Alt+F10~ Local menu', kbAltF10, cmLocalMenu,
       StdStatusKeys(
       nil)))))),
-    nil))))))));
+    nil)))))))));
 end;
 
 procedure TIDEApp.Idle;
@@ -623,7 +628,8 @@ begin
       CloseAllBrowsers;
       DOK:=SaveDesktop;
       if DOK=false then
-        ErrorBox('Error saving desktop file.',nil);
+        ErrorBox('Error saving desktop file.'#13+
+                 'Desktop layout could not be stored.',nil);
     end;
   AutoSave:=IOK and SOK and DOK;
 end;
@@ -861,7 +867,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.47  1999-12-20 14:23:17  pierre
+  Revision 1.48  2000-01-03 11:38:33  michael
+  Changes from Gabor
+
+  Revision 1.47  1999/12/20 14:23:17  pierre
     * MyApp renamed IDEApp
     * TDebugController.ResetDebuggerRows added to
       get resetting of debugger rows

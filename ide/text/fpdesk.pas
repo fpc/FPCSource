@@ -18,7 +18,8 @@ unit FPDesk;
 interface
 
 const
-     DesktopVersion     = $0004; { <- if you change any Load&Store methods,
+     DesktopVersion     = $0005; { <- if you change any Load&Store methods,
+                                      default object properties (Options,State)
                                       then you should also change this }
 
      ResDesktopFlags    = 'FLAGS';
@@ -112,9 +113,11 @@ begin
 end;*)
 
 function ReadWatches(F: PResourceFile): boolean;
+{$ifndef NODEBUG}
 var S: PMemoryStream;
     OK: boolean;
     OWC : PWatchesCollection;
+{$endif}
 begin
 {$ifndef NODEBUG}
   PushStatus('Reading watches...');
@@ -163,9 +166,11 @@ begin
 end;
 
 function ReadBreakpoints(F: PResourceFile): boolean;
+{$ifndef NODEBUG}
 var S: PMemoryStream;
     OK: boolean;
     OBC : PBreakpointCollection;
+{$endif}
 begin
 {$ifndef NODEBUG}
   PushStatus('Reading breakpoints...');
@@ -274,33 +279,42 @@ end;
 function WriteOpenWindows(F: PResourceFile): boolean;
 var S: PMemoryStream;
     W: word;
+    OK: boolean;
 begin
   PushStatus('Storing desktop contents...');
 
   New(S, Init(30*1024,4096));
-  W:=DesktopVersion;
-  S^.Write(W,SizeOf(W));
-  S^.Put(Desktop);
-  with Desktop^ do
+  OK:=Assigned(S);
+  if OK then
   begin
-    PutSubViewPtr(S^,CompilerMessageWindow);
-    PutSubViewPtr(S^,CompilerStatusDialog);
-    PutSubViewPtr(S^,ClipboardWindow);
-    PutSubViewPtr(S^,CalcWindow);
-    PutSubViewPtr(S^,ProgramInfoWindow);
-    PutSubViewPtr(S^,GDBWindow);
-    PutSubViewPtr(S^,BreakpointsWindow);
-    PutSubViewPtr(S^,WatchesWindow);
-    PutSubViewPtr(S^,UserScreenWindow);
-    PutSubViewPtr(S^,ASCIIChart);
-    PutSubViewPtr(S^,MessagesWindow);
+    W:=DesktopVersion;
+    S^.Write(W,SizeOf(W));
+    S^.Put(Desktop);
+    with Desktop^ do
+    begin
+      PutSubViewPtr(S^,CompilerMessageWindow);
+      PutSubViewPtr(S^,CompilerStatusDialog);
+      PutSubViewPtr(S^,ClipboardWindow);
+      PutSubViewPtr(S^,CalcWindow);
+      PutSubViewPtr(S^,ProgramInfoWindow);
+      PutSubViewPtr(S^,GDBWindow);
+      PutSubViewPtr(S^,BreakpointsWindow);
+      PutSubViewPtr(S^,WatchesWindow);
+      PutSubViewPtr(S^,UserScreenWindow);
+      PutSubViewPtr(S^,ASCIIChart);
+      PutSubViewPtr(S^,MessagesWindow);
+    end;
+    OK:=(S^.Status=stOK);
+    if OK then
+    begin
+      S^.Seek(0);
+      OK:=F^.CreateResource(resDesktop,rcBinary,0);
+      OK:=OK and F^.AddResourceEntryFromStream(resDesktop,langDefault,0,S^,S^.GetSize);
+    end;
+    Dispose(S, Done);
   end;
-  S^.Seek(0);
-  F^.CreateResource(resDesktop,rcBinary,0);
-  F^.AddResourceEntryFromStream(resDesktop,langDefault,0,S^,S^.GetSize);
-  Dispose(S, Done);
   PopStatus;
-  WriteOpenWindows:=true;
+  WriteOpenWindows:=OK;
 end;
 
 function WriteFlags(F: PResourceFile): boolean;
@@ -415,9 +429,12 @@ end;
 function SaveDesktop: boolean;
 var OK: boolean;
     F: PResourceFile;
+    TempPath: string;
+    ff: file;
 begin
+  TempPath:=DirOf(DesktopPath)+DesktopTempName;
   PushStatus('Writing desktop file...');
-  New(F, CreateFile(DesktopPath));
+  New(F, CreateFile(TempPath));
 
   if Assigned(Clipboard) then
     if (DesktopFileFlags and dfClipboardContent)<>0 then
@@ -442,6 +459,14 @@ begin
   if {OK and} ((DesktopFileFlags and dfSymbolInformation)<>0) then
     OK:=OK and (WriteSymbols(F) or not Assigned(Modules));
   Dispose(F, Done);
+  if OK then
+  begin
+    if ExistsFile(DesktopPath) then
+      OK:=EraseFile(DesktopPath);
+    OK:=OK and RenameFile(TempPath,DesktopPath);
+    if OK=false then
+      ErrorBox('Failed to replace desktop file.',nil);
+  end;
   PopStatus;
   SaveDesktop:=OK;
 end;
@@ -449,7 +474,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.17  1999-12-20 00:30:56  pierre
+  Revision 1.18  2000-01-03 11:38:33  michael
+  Changes from Gabor
+
+  Revision 1.17  1999/12/20 00:30:56  pierre
    * problem with VideoMode storing solved
 
   Revision 1.16  1999/12/10 13:02:05  pierre

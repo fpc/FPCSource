@@ -61,6 +61,12 @@ type
     S       : PStream;
   end;
 
+  PTextCollection = ^TTextCollection;
+  TTextCollection = object(TStringCollection)
+    function LookUp(const S: string; var Idx: sw_integer): string;
+    function Compare(Key1, Key2: Pointer): sw_Integer; virtual;
+  end;
+
 {$ifdef TPUNIXLF}
   procedure readln(var t:text;var s:string);
 {$endif}
@@ -450,6 +456,57 @@ begin
   S^.Write(Buf,Count);
 end;
 
+function TTextCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
+var K1: PString absolute Key1;
+    K2: PString absolute Key2;
+    R: Sw_integer;
+    S1,S2: string;
+begin
+  S1:=UpCaseStr(K1^);
+  S2:=UpCaseStr(K2^);
+  if S1<S2 then R:=-1 else
+  if S1>S2 then R:=1 else
+  R:=0;
+  Compare:=R;
+end;
+
+function TTextCollection.LookUp(const S: string; var Idx: sw_integer): string;
+var OLI,ORI,Left,Right,Mid: integer;
+    LeftP,RightP,MidP: PString;
+    RL: integer;
+    LeftS,MidS,RightS: string;
+    FoundS: string;
+    UpS : string;
+begin
+  Idx:=-1; FoundS:='';
+  Left:=0; Right:=Count-1;
+  UpS:=UpCaseStr(S);
+  if Left<Right then
+  begin
+    while (Left<Right) do
+    begin
+      OLI:=Left; ORI:=Right;
+      Mid:=Left+(Right-Left) div 2;
+      LeftP:=At(Left); RightP:=At(Right); MidP:=At(Mid);
+      LeftS:=UpCaseStr(LeftP^); MidS:=UpCaseStr(MidP^);
+      RightS:=UpCaseStr(RightP^);
+      if copy(MidS,1,length(UpS))=UpS then
+        begin
+          Idx:=Mid; FoundS:=GetStr(MidP);
+        end;
+{      else}
+        if UpS<MidS then
+          Right:=Mid
+        else
+          Left:=Mid;
+      if (OLI=Left) and (ORI=Right) then
+        Break;
+    end;
+  end;
+  LookUp:=FoundS;
+end;
+
+
 procedure GiveUpTimeSlice;
 {$ifdef GO32V2}{$define DOS}{$endif}
 {$ifdef TP}{$define DOS}{$endif}
@@ -474,7 +531,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  1999-12-01 16:19:46  pierre
+  Revision 1.10  2000-01-03 11:38:35  michael
+  Changes from Gabor
+
+  Revision 1.9  1999/12/01 16:19:46  pierre
    + GetFileTime moved here
 
   Revision 1.8  1999/10/25 16:39:03  pierre

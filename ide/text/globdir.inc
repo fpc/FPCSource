@@ -66,10 +66,14 @@
 {$ifdef GABOR}
   {.$define NOOBJREG}
   {$define NODEBUG}
+  {$define DEBUG}
 {$endif}
 
 { include Undo/Redo code from Visa Harvey }
 { let everybody try it out  PM }
+{ undo should be a bit improved - it does work only with "normal" keystorkes.
+  neither the block, nor any shortcut operations (like Ctrl-T - delete word)
+  do work... Gabor }
 {$define Undo}
 {$ifdef DEBUG}
   {$define DebugUndo}

@@ -106,14 +106,40 @@ type
       LastTT: longint;
     end;
 
+    TAlign = (alLeft,alCenter,alRight);
+
+    PFPToolTip = ^TFPToolTip;
+    TFPToolTip = object(TView)
+      constructor Init(var Bounds: TRect; const AText: string; AAlign: TAlign);
+      procedure   Draw; virtual;
+      function    GetText: string;
+      procedure   SetText(const AText: string);
+      function    GetAlign: TAlign;
+      procedure   SetAlign(AAlign: TAlign);
+      function    GetPalette: PPalette; virtual;
+      destructor  Done; virtual;
+    private
+      Text: PString;
+      Align: TAlign;
+    end;
+
     PSourceEditor = ^TSourceEditor;
     TSourceEditor = object(TFileEditor)
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
           PScrollBar; AIndicator: PIndicator;const AFileName: string);
 {$ifndef EDITORS}
+    public
+      CodeCompleteTip: PFPToolTip;
+      { Syntax highlight }
       function  IsReservedWord(const S: string): boolean; virtual;
       function  GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
       function  GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string; virtual;
+      { CodeTemplates }
+      function    TranslateCodeTemplate(const Shortcut: string; ALines: PUnsortedStringCollection): boolean; virtual;
+      { CodeComplete }
+      function    CompleteCodeWord(const WordS: string; var Text: string): boolean; virtual;
+      procedure   SetCodeCompleteWord(const S: string); virtual;
+      procedure   AlignCodeCompleteTip;
 {$endif}
       procedure   HandleEvent(var Event: TEvent); virtual;
 {$ifdef DebugUndo}
@@ -308,6 +334,8 @@ type
     PFPASCIIChart = ^TFPASCIIChart;
     TFPASCIIChart = object(TASCIIChart)
       constructor Init;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
       procedure   HandleEvent(var Event: TEvent); virtual;
       destructor  Done; virtual;
     end;
@@ -338,6 +366,8 @@ procedure DisposeTabDef(P: PTabDef);
 function  GetEditorCurWord(Editor: PEditor): string;
 procedure InitReservedWords;
 procedure DoneReservedWords;
+function GetReservedWordCount: integer;
+function GetReservedWord(Index: integer): string;
 
 procedure TranslateMouseClick(View: PView; var Event: TEvent);
 
@@ -380,6 +410,7 @@ procedure RegisterFPViews;
 implementation
 
 uses
+  {$ifdef GABOR}crt,{$endif}
   Video,Strings,Keyboard,Memory,MsgBox,Validate,
   Tokens,Version,
 {$ifndef NODEBUG}
@@ -387,7 +418,7 @@ uses
 {$endif NODEBUG}
   {$ifdef VESA}Vesa,{$endif}
   FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompile,FPHelp,
-  FPTools,FPIde;
+  FPTools,FPIDE,FPCodTmp,FPCodCmp;
 
 const
   RSourceEditor: TStreamRec = (
@@ -444,6 +475,12 @@ const
      VmtLink: Ofs(TypeOf(TGDBWindow)^);
      Load:    @TGDBWindow.Load;
      Store:   @TGDBWindow.Store
+  );
+  RFPASCIIChart: TStreamRec = (
+     ObjType: 1509;
+     VmtLink: Ofs(TypeOf(TFPASCIIChart)^);
+     Load:    @TFPASCIIChart.Load;
+     Store:   @TFPASCIIChart.Store
   );
 const
   NoNameCount    : integer = 0;
@@ -775,6 +812,61 @@ function TSourceEditor.IsReservedWord(const S: string): boolean;
 begin
   IsReservedWord:=IsFPReservedWord(S);
 end;
+
+function TSourceEditor.TranslateCodeTemplate(const Shortcut: string; ALines: PUnsortedStringCollection): boolean;
+begin
+  TranslateCodeTemplate:=FPTranslateCodeTemplate(ShortCut,ALines);
+end;
+
+function TSourceEditor.CompleteCodeWord(const WordS: string; var Text: string): boolean;
+begin
+  CompleteCodeWord:=FPCompleteCodeWord(WordS,Text);
+end;
+
+procedure TSourceEditor.SetCodeCompleteWord(const S: string);
+var R: TRect;
+begin
+  inherited SetCodeCompleteWord(S);
+  if S='' then
+    begin
+      if Assigned(CodeCompleteTip) then Dispose(CodeCompleteTip, Done);
+      CodeCompleteTip:=nil;
+    end
+  else
+    begin
+      R.Assign(0,0,20,1);
+      if Assigned(CodeCompleteTip)=false then
+        begin
+          New(CodeCompleteTip, Init(R, S, alCenter));
+          Application^.Insert(CodeCompleteTip);
+        end
+      else
+        CodeCompleteTip^.SetText(S);
+      AlignCodeCompleteTip;
+    end;
+end;
+
+procedure TSourceEditor.AlignCodeCompleteTip;
+var X,Y: integer;
+    S: string;
+    R: TRect;
+begin
+  if Assigned(CodeCompleteTip)=false then Exit;
+  S:=CodeCompleteTip^.GetText;
+  { determine the center of current word fragment }
+  X:=CurPos.X-(length(GetCodeCompleteFrag) div 2);
+  { calculate position for centering the complete word over/below the current }
+  X:=X-(length(S) div 2);
+  { ensure that the tooltip stays in screen }
+  X:=Min(Max(0,X),ScreenWidth-length(S)-2-1);
+  if CurPos.Y>round(ScreenHeight*3/4) then
+    Y:=CurPos.Y-1
+  else
+    Y:=CurPos.Y+1;
+  R.Assign(X,Y,X+1+length(S)+1,Y+1);
+  CodeCompleteTip^.Locate(R);
+end;
+
 {$endif EDITORS}
 
 procedure TSourceEditor.ModifiedChanged;
@@ -2697,7 +2789,7 @@ begin
 {$else NODEBUG}
   R2.Move(0,2);
 {$endif NODEBUG}
-  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-99 by')));
+  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2000 by')));
   R2.Move(0,2);
   Insert(New(PStaticText, Init(R2, ^C'B‚rczi G bor')));
   R2.Move(0,1);
@@ -2774,12 +2866,23 @@ end;
 constructor TFPASCIIChart.Init;
 begin
   inherited Init;
-  HelpCtx:=hcASCIITable;
+  HelpCtx:=hcASCIITableWindow;
   Number:=SearchFreeWindowNo;
   ASCIIChart:=@Self;
 end;
 
+procedure TFPASCIIChart.Store(var S: TStream);
+begin
+  inherited Store(S);
+end;
+
+constructor TFPASCIIChart.Load(var S: TStream);
+begin
+  inherited Load(S);
+end;
+
 procedure TFPASCIIChart.HandleEvent(var Event: TEvent);
+var W: PSourceWindow;
 begin
   case Event.What of
     evKeyDown :
@@ -2787,6 +2890,16 @@ begin
         kbEsc :
           begin
             Close;
+            ClearEvent(Event);
+          end;
+      end;
+    evCommand :
+      case Event.Command of
+        cmTransfer :
+          begin
+            W:=FirstEditorWindow;
+            if Assigned(W) and Assigned(Report) then
+              Message(W,evCommand,cmAddChar,pointer(ord(Report^.AsciiChar)));
             ClearEvent(Event);
           end;
       end;
@@ -2821,6 +2934,78 @@ end;
 procedure TFPDesktop.Store(var S: TStream);
 begin
   inherited Store(S);
+end;
+
+constructor TFPToolTip.Init(var Bounds: TRect; const AText: string; AAlign: TAlign);
+begin
+  inherited Init(Bounds);
+  SetAlign(AAlign);
+  SetText(AText);
+end;
+
+procedure TFPToolTip.Draw;
+var C: word;
+procedure DrawLine(Y: integer; S: string);
+var B: TDrawBuffer;
+begin
+  S:=copy(S,1,Size.X-2);
+  case Align of
+    alLeft   : S:=' '+S;
+    alRight  : S:=LExpand(' '+S,Size.X);
+    alCenter : S:=Center(S,Size.X);
+  end;
+  MoveChar(B,' ',C,Size.X);
+  MoveStr(B,S,C);
+  WriteLine(0,Y,Size.X,1,B);
+end;
+var S: string;
+    Y: integer;
+begin
+  C:=GetColor(1);
+  S:=GetText;
+  for Y:=0 to Size.Y-1 do
+    DrawLine(Y,S);
+end;
+
+function TFPToolTip.GetText: string;
+begin
+  GetText:=GetStr(Text);
+end;
+
+procedure TFPToolTip.SetText(const AText: string);
+begin
+  if AText<>GetText then
+  begin
+    if Assigned(Text) then DisposeStr(Text);
+    Text:=NewStr(AText);
+    DrawView;
+  end;
+end;
+
+function TFPToolTip.GetAlign: TAlign;
+begin
+  GetAlign:=Align;
+end;
+
+procedure TFPToolTip.SetAlign(AAlign: TAlign);
+begin
+  if AAlign<>Align then
+  begin
+    Align:=AAlign;
+    DrawView;
+  end;
+end;
+
+destructor TFPToolTip.Done;
+begin
+  if Assigned(Text) then DisposeStr(Text); Text:=nil;
+  inherited Done;
+end;
+
+function TFPToolTip.GetPalette: PPalette;
+const S: string[length(CFPToolTip)] = CFPToolTip;
+begin
+  GetPalette:=@S;
 end;
 
 {$ifdef VESA}
@@ -2863,13 +3048,17 @@ begin
   RegisterType(RFPDesktop);
   RegisterType(RGDBSourceEditor);
   RegisterType(RGDBWindow);
+  RegisterType(RFPASCIIChart);
 end;
 
 
 END.
 {
   $Log$
-  Revision 1.51  1999-12-20 14:23:17  pierre
+  Revision 1.52  2000-01-03 11:38:34  michael
+  Changes from Gabor
+
+  Revision 1.51  1999/12/20 14:23:17  pierre
     * MyApp renamed IDEApp
     * TDebugController.ResetDebuggerRows added to
       get resetting of debugger rows

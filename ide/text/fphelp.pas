@@ -93,6 +93,7 @@ begin
     hcClipboardWindow:S:='';
     hcBrowserWindow : S:='';
     hcMessagesWindow: S:='';
+    hcASCIITableWindow: S:='';
     hcGDBWindow     : S:='Raw GDB communication window';
     hcBreakpointListWindow : S:='All current breakpoints';
 
@@ -409,7 +410,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.23  1999-09-09 16:31:45  pierre
+  Revision 1.24  2000-01-03 11:38:33  michael
+  Changes from Gabor
+
+  Revision 1.23  1999/09/09 16:31:45  pierre
    * some breakpoint related fixes and Help contexts
 
   Revision 1.22  1999/09/09 14:15:27  pierre

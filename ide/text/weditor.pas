@@ -19,12 +19,13 @@ unit WEditor;
 interface
 
 uses
-  Dos,Objects,Drivers,Views,Menus,Commands;
+  Dos,Objects,Drivers,Views,Menus,Commands,
+  WUtils;
 
 
 { try to only do syntax on part of file until current position
   does not work correctly yet PM }
-{ $define TEST_PARTIAL_SYNTAX}
+{.$define TEST_PARTIAL_SYNTAX}
 
 const
       cmFileNameChanged      = 51234;
@@ -42,10 +43,14 @@ const
       cmReadBlock            = 51246;
       cmPrintBlock           = 51247;
       cmResetDebuggerRow     = 51248;
+      cmAddChar              = 51249;
+      cmExpandCodeTemplate   = 51250;
 
       EditorTextBufSize = {$ifdef FPC}32768{$else} 4096{$endif};
       MaxLineLength     = {$ifdef FPC}  255{$else}  255{$endif};
       MaxLineCount      = {$ifdef FPC}16380{$else}16380{$endif};
+
+      CodeCompleteMinLen = 4; { minimum length of text to try to complete }
 
       efBackupFiles         = $00000001;
       efInsertMode          = $00000002;
@@ -61,6 +66,7 @@ const
       efAutoBrackets        = $00000800;
       efExpandAllTabs       = $00001000;
       efKeepTrailingSpaces  = $00002000;
+      efCodeComplete        = $00004000;
       efStoreContent        = $80000000;
 
       attrAsm       = 1;
@@ -193,6 +199,15 @@ type
       Text      : PString;
       ActionCount : longint;
       Action    : byte;
+      TimeStamp : longint; { this is needed to keep track of line number &
+                             position changes (for ex. for symbol browser)
+                             the line&pos references (eg. symbol info) should
+                             also contain such a timestamp. this will enable
+                             to determine which changes have been made since
+                             storage of the information and thus calculate
+                             the (probably) changed line & position information,
+                             so, we can still jump to the right position in the
+                             editor even when it is heavily modified - Gabor }
       constructor init(act:byte; StartP,EndP:TPoint;Txt:String);
       constructor init_group(act:byte);
       function is_grouped_action : boolean;
@@ -212,6 +227,7 @@ type
       Text      : PString;
       ActionCount : longint;
       Action    : byte;
+      TimeStamp : longint; { see above! }
     end;
 
     PEditorActionCollection = ^TEditorActionCollection;
@@ -229,6 +245,8 @@ type
       Valid  : boolean;
       Pos    : TPoint;
     end;
+
+    TCompleteState = (csInactive,csOffering,csDenied);
 
     PCodeEditor = ^TCodeEditor;
     TCodeEditor = object(TScroller)
@@ -249,6 +267,9 @@ type
       DebuggerRow: sw_integer;
       UndoList    : PEditorActionCollection;
       RedoList    : PEditorActionCollection;
+      CompleteState: TCompleteState;
+      CodeCompleteFrag: PString;
+      CodeCompleteWord: PString;
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
           PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
       procedure   SetFlags(AFlags: longint); virtual;
@@ -276,6 +297,9 @@ type
       procedure   SetHighlight(A, B: TPoint); virtual;
       procedure   SetHighlightRow(Row: sw_integer); virtual;
       procedure   SetDebuggerRow(Row: sw_integer); virtual;
+      procedure   SetCompleteState(AState: TCompleteState); virtual;
+      function    GetCodeCompleteFrag: string;
+      procedure   SetCodeCompleteFrag(const S: string);
       procedure   SelectAll(Enable: boolean); virtual;
       function    InsertFrom(Editor: PCodeEditor): Boolean; virtual;
       function    InsertText(const S: string): Boolean; virtual;
@@ -326,6 +350,9 @@ type
       function    Overwrite: boolean;
       function    GetLine(I: sw_integer): PLine;
       procedure   CheckSels;
+      procedure   CodeCompleteCheck;
+      procedure   CodeCompleteApply;
+      procedure   CodeCompleteCancel;
       procedure   UpdateUndoRedo(cm : word; action : byte);
       function    UpdateAttrs(FromLine: sw_integer; Attrs: byte): sw_integer;
       function    UpdateAttrsRange(FromLine, ToLine: sw_integer; Attrs: byte): sw_integer;
@@ -341,6 +368,13 @@ type
       function    GetSpecSymbolCount(SpecClass: TSpecSymbolClass): integer; virtual;
       function    GetSpecSymbol(SpecClass: TSpecSymbolClass; Index: integer): string; virtual;
       function    IsReservedWord(const S: string): boolean; virtual;
+     { CodeTemplate support }
+      function    TranslateCodeTemplate(const Shortcut: string; ALines: PUnsortedStringCollection): boolean; virtual;
+     { CodeComplete support }
+      function    CompleteCodeWord(const WordS: string; var Text: string): boolean; virtual;
+      function    GetCodeCompleteWord: string;
+      procedure   SetCodeCompleteWord(const S: string); virtual;
+      procedure   ClearCodeCompleteWord; virtual;
     public
       SearchRunCount: integer;
       InASCIIMode: boolean;
@@ -384,6 +418,7 @@ type
       procedure WriteBlock; virtual;
       procedure ReadBlock; virtual;
       procedure PrintBlock; virtual;
+      procedure ExpandCodeTemplate; virtual;
       procedure AddChar(C: char); virtual;
 {$ifdef WinClipSupported}
       function  ClipCopyWin: Boolean; virtual;
@@ -430,7 +465,7 @@ const
      DefaultCodeEditorFlags : longint =
        efBackupFiles+efInsertMode+efAutoIndent+efPersistentBlocks+
        {efUseTabCharacters+}efBackSpaceUnindents+efSyntaxHighlight+
-       efExpandAllTabs;
+       efExpandAllTabs+efCodeComplete;
      DefaultTabSize     : integer = 8;
      EOL : String[2] = {$ifdef Linux}#10;{$else}#13#10;{$endif}
 
@@ -485,7 +520,7 @@ uses
 {$ifdef WinClipSupported}
   Strings,WinClip,
 {$endif WinClipSupported}
-  WUtils,WViews;
+  WViews;
 
 {$ifndef NOOBJREG}
 const
@@ -540,14 +575,15 @@ const
      kbShift = kbLeftShift+kbRightShift;
 
 const
-  FirstKeyCount = 39;
+  FirstKeyCount = 40;
   FirstKeys: array[0..FirstKeyCount * 2] of Word = (FirstKeyCount,
-    Ord(^A), cmWordLeft, Ord(^B), cmASCIIChar, Ord(^C), cmPageDown,
+    Ord(^A), cmWordLeft, Ord(^B), cmJumpLine, Ord(^C), cmPageDown,
     Ord(^D), cmCharRight, Ord(^E), cmLineUp,
     Ord(^F), cmWordRight, Ord(^G), cmDelChar,
-    Ord(^H), cmBackSpace, Ord(^J), cmJumpLine,
+    Ord(^H), cmBackSpace, Ord(^J), cmExpandCodeTemplate,
     Ord(^K), $FF02, Ord(^L), cmSearchAgain,
-    Ord(^M), cmNewLine, Ord(^N), cmBreakLine, Ord(^Q), $FF01,
+    Ord(^M), cmNewLine, Ord(^N), cmBreakLine,
+    Ord(^P), cmASCIIChar, Ord(^Q), $FF01,
     Ord(^R), cmPageUp, Ord(^S), cmCharLeft,
     Ord(^T), cmDelWord, Ord(^U), cmUndo,
     Ord(^V), cmInsMode, Ord(^X), cmLineDown,
@@ -1162,7 +1198,10 @@ begin
   Lines^.Insert(NewLine(''));
   { ^^^ why? setlinetext() inserts automatically if neccessary and
     getlinetext() checks whether you're in range...
-    because otherwise you search for line with index -1 (PM) }
+    because otherwise you search for line with index -1 (PM)
+    Then I think the algorithm should be changed to handle this special case,
+    instead of applying this "work-around" - Gabor
+  }
   SetState(sfCursorVis,true);
   SetFlags(DefaultCodeEditorFlags); TabSize:=DefaultTabSize;
   SetHighlightRow(-1);
@@ -1178,8 +1217,12 @@ end;
 
 procedure TCodeEditor.SetFlags(AFlags: longint);
 var I: sw_integer;
+    OldFlags: longint;
 begin
+  OldFlags:=Flags;
   Flags:=AFlags;
+  if ((OldFlags xor Flags) and efCodeComplete)<>0 then
+    ClearCodeCompleteWord;
   SetInsertMode((Flags and efInsertMode)<>0);
   if (Flags and efSyntaxHighlight)<>0 then
     UpdateAttrs(0,attrAll) else
@@ -1386,17 +1429,22 @@ var DontClear : boolean;
     MakeLocal(Event.Where,P);
     Inc(P.X,Delta.X); Inc(P.Y,Delta.Y);
   end;
-
+type TCCAction = (ccCheck,ccClear,ccDontCare);
 var
   StartP,P: TPoint;
   E: TEvent;
   OldEvent : PEvent;
+  CCAction: TCCAction;
 begin
+  CCAction:=ccClear;
   E:=Event;
   OldEvent:=CurEvent;
-  if (E.what and (evMouse or evKeyboard))<>0 then
+  if (E.What and (evMouse or evKeyboard))<>0 then
     CurEvent:=@E;
   if (InASCIIMode=false) or (Event.What<>evKeyDown) then
+   if (Event.What<>evKeyDown) or
+      ((Event.KeyCode<>kbEnter) and (Event.KeyCode<>kbEsc)) or
+      (CompleteState<>csOffering) then
     ConvertEvent(Event);
   case Event.What of
     evMouseDown :
@@ -1425,13 +1473,34 @@ begin
     evKeyDown :
       begin
         { Scancode is almost never zero PM }
+        { this is supposed to enable entering of ASCII chars below 32,
+          which are normally interpreted as control chars. So, when you enter
+          Alt+24 (on the numeric pad) then this will normally move the cursor
+          one line down, but if you do it in ASCII mode (also after Ctrl+B)
+          then this will insert the ASCII #24 char (upper arrow) in the
+          source code. - Gabor }
         if InASCIIMode {and (Event.CharCode<>0)} then
-          AddChar(Event.CharCode)
+          begin
+            AddChar(Event.CharCode);
+            if (CompleteState<>csDenied) or (Event.CharCode=#32) then
+              CCAction:=ccCheck
+            else
+              CCAction:=ccClear;
+          end
         else
           begin
            DontClear:=false;
            case Event.KeyCode of
-             kbAltF10 : Message(@Self,evCommand,cmLocalMenu,@Self);
+             kbAltF10 :
+               Message(@Self,evCommand,cmLocalMenu,@Self);
+             kbEnter  :
+               if CompleteState=csOffering then
+                 CodeCompleteApply
+               else
+                 Message(@Self,evCommand,cmNewLine,nil);
+             kbEsc :
+               if CompleteState=csOffering then
+                 CodeCompleteCancel;
            else
             case Event.CharCode of
              #9,#32..#255 :
@@ -1439,6 +1508,10 @@ begin
                  NoSelect:=true;
                  AddChar(Event.CharCode);
                  NoSelect:=false;
+                 if (CompleteState<>csDenied) or (Event.CharCode=#32) then
+                   CCAction:=ccCheck
+                 else
+                   CCAction:=ccClear;
                end;
             else
               DontClear:=true;
@@ -1454,6 +1527,7 @@ begin
         DontClear:=false;
         case Event.Command of
           cmASCIIChar   : InASCIIMode:=not InASCIIMode;
+          cmAddChar     : AddChar(chr(longint(Event.InfoPtr)));
           cmCharLeft    : CharLeft;
           cmCharRight   : CharRight;
           cmWordLeft    : WordLeft;
@@ -1510,34 +1584,48 @@ begin
           cmUndo        : Undo;
           cmRedo        : Redo;
           cmClear       : DelSelect;
+          cmExpandCodeTemplate: ExpandCodeTemplate;
           cmLocalMenu :
             begin
               P:=CurPos; Inc(P.X); Inc(P.Y);
               LocalMenu(P);
             end;
-        else DontClear:=true;
+        else
+          begin
+            DontClear:=true;
+            CCAction:=ccDontCare;
+          end;
         end;
-        if DontClear=false then ClearEvent(Event);
+        if DontClear=false then
+          ClearEvent(Event);
       end;
     evBroadcast :
-      case Event.Command of
-        cmUpdate :
-          Update;
-        cmClearLineHighlights :
-          SetHighlightRow(-1);
-        cmResetDebuggerRow :
-          SetDebuggerRow(-1);
-        cmScrollBarChanged:
-          if (Event.InfoPtr = HScrollBar) or
-             (Event.InfoPtr = VScrollBar) then
-            begin
-              CheckScrollBar(HScrollBar, Delta.X);
-              CheckScrollBar(VScrollBar, Delta.Y);
-            end;
+      begin
+        CCAction:=ccDontCare;
+        case Event.Command of
+          cmUpdate :
+            Update;
+          cmClearLineHighlights :
+            SetHighlightRow(-1);
+          cmResetDebuggerRow :
+            SetDebuggerRow(-1);
+          cmScrollBarChanged:
+            if (Event.InfoPtr = HScrollBar) or
+               (Event.InfoPtr = VScrollBar) then
+              begin
+                CheckScrollBar(HScrollBar, Delta.X);
+                CheckScrollBar(VScrollBar, Delta.Y);
+              end;
+        end;
       end;
+  else CCAction:=ccDontCare;
   end;
   inherited HandleEvent(Event);
   CurEvent:=OldEvent;
+  case CCAction of
+    ccCheck : CodeCompleteCheck;
+    ccClear : ClearCodeCompleteWord;
+  end;
 end;
 
 procedure TCodeEditor.UpdateUndoRedo(cm : word; action : byte);
@@ -2019,6 +2107,37 @@ end;
 function TCodeEditor.IsReservedWord(const S: string): boolean;
 begin
   IsReservedWord:=false;
+end;
+
+function TCodeEditor.TranslateCodeTemplate(const Shortcut: string; ALines: PUnsortedStringCollection): boolean;
+begin
+  TranslateCodeTemplate:=false;
+end;
+
+function TCodeEditor.CompleteCodeWord(const WordS: string; var Text: string): boolean;
+begin
+  CompleteCodeWord:=false;
+end;
+
+function TCodeEditor.GetCodeCompleteWord: string;
+begin
+  GetCodeCompleteWord:=GetStr(CodeCompleteWord);
+end;
+
+procedure TCodeEditor.SetCodeCompleteWord(const S: string);
+begin
+  if Assigned(CodeCompleteWord) then DisposeStr(CodeCompleteWord);
+  CodeCompleteWord:=NewStr(S);
+  if S<>'' then
+    SetCompleteState(csOffering)
+  else
+    SetCompleteState(csInactive);
+end;
+
+procedure TCodeEditor.ClearCodeCompleteWord;
+begin
+  SetCodeCompleteWord('');
+  SetCompleteState(csInactive);
 end;
 
 procedure TCodeEditor.Indent;
@@ -2868,6 +2987,64 @@ begin
   NotImplemented; Exit;
 end;
 
+procedure TCodeEditor.ExpandCodeTemplate;
+var OSS,OSE: TPoint;
+    Line,ShortCut: string;
+    X,Y,I,LineIndent: sw_integer;
+    CodeLines: PUnsortedStringCollection;
+begin
+  {
+    The usage of editing primitives in this routine make it pretty slow, but
+    its speed is still acceptable and they make the implementation of Undo
+    much easier... - Gabor
+  }
+  if IsReadOnly then Exit;
+
+  Lock;
+
+  Line:=GetDisplayText(CurPos.Y);
+  X:=CurPos.X; ShortCut:='';
+  if X<=length(Line) then
+  while (X>0) and (Line[X] in (NumberChars+AlphaChars)) do
+  begin
+    ShortCut:=Line[X]+ShortCut;
+    Dec(X);
+  end;
+
+  if ShortCut<>'' then
+  begin
+    New(CodeLines, Init(10,10));
+    if TranslateCodeTemplate(ShortCut,CodeLines) then
+    begin
+      LineIndent:=X;
+      SetCurPtr(X,CurPos.Y);
+      for I:=1 to length(ShortCut) do
+        DelChar;
+      for Y:=0 to CodeLines^.Count-1 do
+      begin
+        if Y>0 then
+          for X:=1 to LineIndent do  { indent template lines to align }
+            AddChar(' ');            { them to the first line         }
+        Line:=CodeLines^.At(Y)^;
+        for X:=1 to length(Line) do
+          AddChar(Line[X]);
+        if Y<CodeLines^.Count-1 then
+          begin
+            InsertLine;               { line break }
+            while CurPos.X>0 do       { unindent }
+            begin
+              SetCurPtr(CurPos.X-1,CurPos.Y);
+              DelChar;
+            end;
+          end;
+      end;
+    end;
+    Dispose(CodeLines, Done);
+  end;
+
+  UnLock;
+end;
+
 procedure TCodeEditor.AddChar(C: char);
 const OpenBrackets  : string[10] = '[({';
       CloseBrackets : string[10] = '])}';
@@ -3663,8 +3840,10 @@ end;
 
 procedure TCodeEditor.SetInsertMode(InsertMode: boolean);
 begin
-  if InsertMode then Flags:=Flags or efInsertMode
-      else Flags:=Flags and (not efInsertMode);
+  if InsertMode then
+    Flags:=(Flags or efInsertMode)
+  else
+    Flags:=(Flags and (not efInsertMode));
   DrawCursor;
 end;
 
@@ -3753,6 +3932,74 @@ begin
   if (SelStart.Y>SelEnd.Y) or
      ( (SelStart.Y=SelEnd.Y) and (SelStart.X>SelEnd.X) ) then
        SetSelection(SelEnd,SelStart);
+end;
+
+procedure TCodeEditor.CodeCompleteApply;
+var S: string;
+    I: integer;
+begin
+  Lock;
+
+  { here should be some kind or "mark" or "break" inserted in the Undo
+    information, so activating it "undoes" only the completition first and
+    doesn't delete the complete word at once... - Gabor }
+
+  S:=GetCodeCompleteFrag;
+  SetCurPtr(CurPos.X-length(S),CurPos.Y);
+  for I:=1 to length(S) do
+    DelChar;
+  S:=GetCodeCompleteWord;
+  for I:=1 to length(S) do
+    AddChar(S[I]);
+
+  UnLock;
+  SetCompleteState(csInactive);
+end;
+
+procedure TCodeEditor.CodeCompleteCancel;
+begin
+  SetCompleteState(csDenied);
+end;
+
+procedure TCodeEditor.CodeCompleteCheck;
+var Line: string;
+    X,Y,I: sw_integer;
+    CurWord,NewWord: string;
+begin
+  SetCodeCompleteFrag('');
+  if ((Flags and efCodeComplete)=0) or (IsReadOnly=true) then Exit;
+
+  Lock;
+
+  Line:=GetDisplayText(CurPos.Y);
+  X:=CurPos.X; CurWord:='';
+  if X<=length(Line) then
+  while (X>0) and (Line[X] in (NumberChars+AlphaChars)) do
+  begin
+    CurWord:=Line[X]+CurWord;
+    Dec(X);
+  end;
+
+  if (length(CurWord)>=CodeCompleteMinLen) and CompleteCodeWord(CurWord,NewWord) then
+    begin
+      SetCodeCompleteFrag(CurWord);
+      SetCodeCompleteWord(NewWord);
+    end
+  else
+    ClearCodeCompleteWord;
+
+  UnLock;
+end;
+
+function TCodeEditor.GetCodeCompleteFrag: string;
+begin
+  GetCodeCompleteFrag:=GetStr(CodeCompleteFrag);
+end;
+
+procedure TCodeEditor.SetCodeCompleteFrag(const S: string);
+begin
+  if Assigned(CodeCompleteFrag) then DisposeStr(CodeCompleteFrag);
+  CodeCompleteFrag:=NewStr(S);
 end;
 
 function TCodeEditor.UpdateAttrs(FromLine: sw_integer; Attrs: byte): sw_integer;
@@ -4357,6 +4604,16 @@ begin
   DrawView;
 end;
 
+procedure TCodeEditor.SetCompleteState(AState: TCompleteState);
+begin
+  if AState<>CompleteState then
+  begin
+    CompleteState:=AState;
+    if CompleteState<>csOffering then
+      ClearCodeCompleteWord;
+  end;
+end;
+
 procedure TCodeEditor.SelectAll(Enable: boolean);
 var A,B: TPoint;
 begin
@@ -4417,7 +4674,11 @@ procedure TCodeEditor.SetState(AState: Word; Enable: Boolean);
 begin
   inherited SetState(AState,Enable);
   if (AState and (sfActive+sfSelected+sfFocused))<>0 then
-     SelectionChanged;
+    begin
+      SelectionChanged;
+      if ((State and sfFocused)=0) and (CompleteState=csOffering) then
+        ClearCodeCompleteWord;
+    end;
 end;
 
 function TCodeEditor.GetPalette: PPalette;
@@ -4589,6 +4850,10 @@ begin
       Dispose(RedoList,done);
   If assigned(UndoList) then
       Dispose(UndoList,done);
+  if Assigned(CodeCompleteFrag) then
+    DisposeStr(CodeCompleteFrag);
+  if Assigned(CodeCompleteWord) then
+    DisposeStr(CodeCompleteWord);
 end;
 
 {$ifdef Undo}
@@ -4658,7 +4923,7 @@ end;
 
 function TFileEditor.IsChangedOnDisk : boolean;
 begin
-  IsChangedOnDisk:=(OnDiskLoadTime<>GetFileTime(FileName)) and (OnDiskLoadTime<>-1);
+  IsChangedOnDisk:=OnDiskLoadTime<>GetFileTime(FileName);
 end;
 
 function TFileEditor.SaveFile: boolean;
@@ -4715,8 +4980,6 @@ begin
   begin
     FileName := FExpand(FileName);
     Message(Owner, evBroadcast, cmUpdateTitle, @Self);
-    { if we rename the file the OnDiskLoadTime is wrong so we reset it }
-    OnDiskLoadTime:=-1;
     SaveAs := SaveFile;
     if IsClipboard then FileName := '';
     Message(Application,evBroadcast,cmFileNameChanged,@Self);
@@ -5051,6 +5314,7 @@ begin
 {$ifndef FPC}
             ChDir(Copy(FileDir,1,2));
             { this sets InOutRes in win32 PM }
+            { is this bad? What about an EatIO? Gabor }
 {$endif not FPC}
           end;
         if FileDir<>'' then
@@ -5154,8 +5418,8 @@ end;
 END.
 {
   $Log$
-  Revision 1.66  1999-12-23 23:32:49  pierre
-   * avoid wrong warning for renamed files
+  Revision 1.67  2000-01-03 11:38:35  michael
+  Changes from Gabor
 
   Revision 1.65  1999/12/08 16:02:46  pierre
    * fix for bugs 746,748 and 750

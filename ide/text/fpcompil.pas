@@ -455,7 +455,9 @@ begin
      if assigned(CompilerStatusDialog) then
       CompilerStatusDialog^.Update;
 {$ifdef DEBUG}
+ {$ifndef NODEBUG}
      def_gdb_stop(level);
+ {$endif}
 {$endif DEBUG}
 {$ifdef redircompiler}
       RedirEnableAll;
@@ -724,7 +726,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.46  1999-12-01 17:08:19  pierre
+  Revision 1.47  2000-01-03 11:38:33  michael
+  Changes from Gabor
+
+  Revision 1.46  1999/12/01 17:08:19  pierre
    * GetFileTime moved to wutils unit
 
   Revision 1.45  1999/11/22 15:58:40  pierre
