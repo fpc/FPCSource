@@ -50,55 +50,110 @@ end;
 procedure TFPReaderBMP.InternalRead(Stream:TStream; Img:TFPCustomImage);
   var
     BFI:TBitMapInfoHeader;
-  var
-    Row,Coulumn,nBpLine,ReadSize:Integer;
+    Row,Column,nBpLine,ReadSize:Integer;
     aColor:TFPcolor;
-{$IFDEF UseDynArray}
+    palette: ARRAY OF TFPcolor;
     aLine:ARRAY OF TColorRGB;
-{$ELSE UseDynArray}
-    aLine:^TColorRGB;
-{$ENDIF UseDynArray}
+    bLine:ARRAY OF TColorRGBA;
+    mLine: array of Byte;
+    function MakeFpColor(RGBA: TColorRGBA):TFPcolor;
+    begin
+      with Result, RGBA do begin
+        Red := (R shl 8) or R;
+        Green := (G shl 8) or G;
+        Blue := (B shl 8) or B;
+        alpha := AlphaOpaque;
+      end;
+    end;
+    procedure SetupRead(nPalette, nRowBits: Integer);
+    var
+      ColInfo: ARRAY OF TColorRGBA;
+      i: Integer;
+    begin
+      if nPalette > 0 then begin
+        SetLength(palette, nPalette);
+        SetLength(ColInfo, nPalette);
+        if BFI.ClrUsed > 0 then
+          Stream.Read(ColInfo[0], BFI.ClrUsed*SizeOf(TColorRGBA))
+        else if nPalette > 0 then
+          Stream.Read(ColInfo[0], nPalette*SizeOf(TColorRGBA));
+      end else
+        if BFI.ClrUsed > 0 then { Skip palette }
+          Stream.Position := Stream.Position + BFI.ClrUsed*SizeOf(TColorRGBA);
+      for i := 0 to High(ColInfo) do
+        palette[i] := MakeFpColor(ColInfo[i]);
+      ReadSize := ((nRowBits + 31) div 32) shl 2;
+    end;
   begin
     Stream.Read(BFI,SizeOf(BFI));
+    { This will move past any junk after the BFI header }
+    Stream.Position := Stream.Position - SizeOf(BFI) + BFI.Size;
     with BFI do
       begin
         Img.Width:=Width;
         Img.Height:=Height;
-        BytesPerPixel:=BitCount SHR 3;
       end;
-    if BytesPerPixel=1
-    then
-      begin
-//        stream.read(Palet, bfh.bfOffset - 54);
-      end
+    if BFI.BitCount = 1 then begin
+      { Monochrome }
+      SetupRead(2, Img.Width);
+      SetLength(mLine, ReadSize);
+      for Row:=Img.Height-1 downto 0 do begin
+        Stream.Read(mLine[0],ReadSize);
+        for Column:=0 to Img.Width-1 do
+          if ((mLine[Column div 8] shr (7-(Column and 7)) ) and 1) <> 0 then
+            img.colors[Column,Row] := Palette[1]
+          else
+            img.colors[Column,Row] := Palette[0];
+       end;
+    end else if BFI.BitCount = 4 then begin
+      SetupRead(16, Img.Width*4);
+      SetLength(mLine, ReadSize);
+      for Row:=img.Height-1 downto 0 do begin
+        Stream.Read(mLine[0],ReadSize);
+        for Column:=0 to img.Width-1 do
+          img.colors[Column,Row] := Palette[(mLine[Column div 2] shr (((Column+1) and 1)*4)) and $0f];
+       end;
+    end else if BFI.BitCount = 8 then begin
+      SetupRead(256, Img.Width*8);
+      SetLength(mLine, ReadSize);
+      for Row:=img.Height-1 downto 0 do begin
+        Stream.Read(mLine[0],ReadSize);
+        for Column:=0 to img.Width-1 do
+          img.colors[Column,Row] := Palette[mLine[Column]];
+       end;
+    end else if BFI.BitCount = 16 then begin
+      raise Exception.Create('16 bpp bitmaps not supported');
 {Treating the 24bit BMP files}
-    else
+    end else if BFI.BitCount=24 then
       begin
-        nBpLine:=Img.Width*SizeOf(TColorRGB);
-        ReadSize:=(nBpLine+3)AND $FFFFFFFC;//BMP needs evry line 4Bytes aligned
-{$IFDEF UseDynArray}
-        SetLength(aLine,Img.Width+1);//3 extra byte for BMP 4Bytes alignement.
-{$ELSE UseDynArray}
-        GetMem(aLine,(Img.Width+1)*SizeOf(TColorRGB));//3 extra byte for BMP 4Bytes alignement.
-{$ENDIF UseDynArray}
+        SetupRead(0, Img.Width*8*3);
+        SetLength(aLine,ReadSize);//3 extra byte for BMP 4Bytes alignement.
         for Row:=img.Height-1 downto 0 do
           begin
-            for Coulumn:=0 to img.Width-1 do
-              with aLine[Coulumn],aColor do
+            Stream.Read(aLine[0],ReadSize);
+            for Column:=0 to img.Width-1 do
+              with aLine[Column],aColor do
                 begin
 {Use only the high byte to convert the color}
                   Red := (R shl 8) + R;
                   Green := (G shl 8) + G;
                   Blue := (B shl 8) + B;
                   alpha := AlphaOpaque;
-                  img.colors[Coulumn,Row]:=aColor;
+                  img.colors[Column,Row]:=aColor;
                 end;
-            Stream.Read(aLine{$IFNDEF UseDynArray}^{$ENDIF UseDynArray},ReadSize);
+          end;
+      end
+    else if BFI.BitCount=32 then
+      begin
+        SetupRead(0, Img.Width*8*4);
+        SetLength(bLine,ReadSize);
+        for Row:=img.Height-1 downto 0 do
+          begin
+            Stream.Read(bLine[0],ReadSize);
+            for Column:=0 to img.Width-1 do
+              img.colors[Column,Row]:=MakeFpColor(bLine[Column])
           end;
       end;
-{$IFNDEF UseDynArray}
-        FreeMem(aLine,(Img.Width+1)*SizeOf(TColorRGB));
-{$ENDIF UseDynArray}
   end;
 
 function  TFPReaderBMP.InternalCheck (Stream:TStream) : boolean;
@@ -110,10 +165,7 @@ function  TFPReaderBMP.InternalCheck (Stream:TStream) : boolean;
       if bfType<>BMmagic
       then
         InternalCheck:=False
-      else if Stream.Size<>bfSize
-      then
-        InternalCheck:=False
-      else
+      else { Do not check size to allow multiple bitmaps per stream }
         InternalCheck:=True;
 end;
 
@@ -122,7 +174,10 @@ initialization
 end.
 {
 $Log$
-Revision 1.5  2003-09-30 14:17:05  luk
+Revision 1.6  2004-02-15 20:59:06  michael
++ Patch from Colin Western
+
+Revision 1.5  2003/09/30 14:17:05  luk
 * better color conversion (White didn't stay white)
 
 Revision 1.4  2003/09/30 06:17:38  mazen

@@ -109,13 +109,13 @@ type
       procedure SetPixel (x,y:integer; Value:integer);
       function GetPixel (x,y:integer) : integer;
       function GetUsePalette : boolean;
-      procedure SetUsePalette (Value:boolean);virtual;
     protected
       // Procedures to store the data. Implemented in descendants
       procedure SetInternalColor (x,y:integer; const Value:TFPColor); virtual;
       function GetInternalColor (x,y:integer) : TFPColor; virtual;
       procedure SetInternalPixel (x,y:integer; Value:integer); virtual; abstract;
       function GetInternalPixel (x,y:integer) : integer; virtual; abstract;
+      procedure SetUsePalette (Value:boolean);virtual;
       procedure Progress(Sender: TObject; Stage: TProgressStage;
                          PercentDone: Byte;  RedrawNow: Boolean; const R: TRect;
                          const Msg: AnsiString; var Continue: Boolean); Virtual;

@@ -66,18 +66,20 @@ var l : integer;
       raise exception.CreateFmt ('Wrong character (%s) in hexadecimal number', [c]);
   end;
   function convert (n : string) : word;
-  var t,r, shift : integer;
+  var t,r: integer;
   begin
-    shift := 0;
     result := 0;
     t := length(n);
     if t > 4 then
-      raise exception.CreateFmt ('To many bytes for color (%s)',[s]);
-    for r := length(n) downto 1 do
-      begin
-      result := result + (CharConv(n[r]) shl shift);
-      inc (shift,4);
-      end;
+      raise exception.CreateFmt ('Too many bytes for color (%s)',[s]);
+    for r := 1 to length(n) do
+      result := (result shl 4) or CharConv(n[r]);
+    // fill missing bits
+    case t of
+      1: result:=result or (result shl 4) or (result shl 8) or (result shl 12);
+      2: result:=result or (result shl 8);
+      3: result:=result or (result shl 12);
+    end;
   end;
 begin
   s := uppercase (s);

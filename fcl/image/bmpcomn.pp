@@ -24,7 +24,7 @@ const
   BMmagic=19778;
 type
 
-   TBitMapFileHeader = record
+   TBitMapFileHeader = packed record
 {00+02 :File type}
       bfType:word;
 {02+04 :File size in bytes}
@@ -35,7 +35,7 @@ type
       bfOffset:longint;
    end;
 
-   TBitMapInfoHeader = record
+   TBitMapInfoHeader = packed record
 {14+04 : Size of the bitmap info header : sould be 40=$28}
       Size:longint;
 {18+04 : Image width in pixels}
@@ -64,9 +64,8 @@ type
       B,G,R:Byte;
     end;
     TColorRGBA=packed record
-      A:Byte;
       case Boolean of
-        False:(B,G,R:Byte);
+        False:(B,G,R,A:Byte);
         True:(RGB:TColorRGB);
       end;
 {54+?? : Color map : Lenght of color map is 4 bytes + the rest until the beginning of image data fixed in BFH.bfOffset}
@@ -77,7 +76,10 @@ implementation
 end.
 {
 $Log$
-Revision 1.2  2003-09-09 11:22:30  mazen
+Revision 1.3  2004-02-15 20:59:06  michael
++ Patch from Colin Western
+
+Revision 1.2  2003/09/09 11:22:30  mazen
 + adding comment for type defintion in the fpdoc style
 * fixing copyright section in the file header
 
