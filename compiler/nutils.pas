@@ -72,7 +72,7 @@ implementation
     uses
       globtype,globals,verbose,
       symconst,symbase,symtype,symdef,symtable,
-      defutil,
+      defutil,defcmp,
       nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,
       cgbase,procinfo,
       pass_1;
@@ -483,7 +483,8 @@ implementation
               { may be more complex in some cases }
               typeconvn:
                 begin
-                  inc(result);
+                  if not(ttypeconvnode(p).convtype in [tc_equal,tc_int_2_int,tc_bool_2_bool,tc_real_2_real,tc_cord_2_pointer]) then
+                    inc(result);
                   if (result = NODE_COMPLEXITY_INF) then
                     exit;
                   p := tunarynode(p).left;
@@ -530,7 +531,11 @@ end.
 
 {
   $Log$
-  Revision 1.24  2004-12-05 12:28:11  peter
+  Revision 1.25  2004-12-10 13:16:31  jonas
+    * certain type conversions have no cost (also fixes problem of
+      inc(int64) with regvars turned on on non-64bit platforms)
+
+  Revision 1.24  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that
