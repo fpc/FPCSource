@@ -336,7 +336,7 @@ Procedure TComponent.ValidateRename(AComponent: TComponent;
 
 begin
 //!! This contradicts the Delphi manual.
-  If (AComponent<>Nil) and (CurName<>NewName) and
+  If (AComponent<>Nil) and (CurName<>NewName) and (AComponent.Owner = Self) and
      (FindComponent(NewName)<>Nil) then
       raise EComponentError.Createfmt(SDuplicateName,[newname]);
   If (csDesigning in FComponentState) and (FOwner<>Nil) then
@@ -533,7 +533,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2002-10-15 20:06:19  michael
+  Revision 1.9  2003-04-27 21:16:11  sg
+  * Fixed TComponent.ValidateRename
+
+  Revision 1.8  2002/10/15 20:06:19  michael
   + Fixed SetAncestor. Index was getting too big
 
   Revision 1.7  2002/09/07 15:15:24  peter
