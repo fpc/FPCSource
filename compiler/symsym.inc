@@ -840,6 +840,7 @@
          address:=0;
          localaddress:=-1;
          islocalcopy:=false;
+         localvarsym:=nil;
          refs:=0;
          is_valid := 1;
          var_options:=0;
@@ -895,6 +896,7 @@
            address:=0;
          localaddress:=-1;
          islocalcopy:=false;
+         localvarsym:=nil;
          definition:=readdefref;
          var_options:=readbyte;
          if (var_options and vo_is_C_var)<>0 then
@@ -1755,7 +1757,10 @@
 
 {
   $Log$
-  Revision 1.68  1999-01-12 14:25:36  peter
+  Revision 1.69  1999-01-20 10:20:20  peter
+    * don't make localvar copies for assembler procedures
+
+  Revision 1.68  1999/01/12 14:25:36  peter
     + BrowserLog for browser.log generation
     + BrowserCol for browser info in TCollections
     * released all other UseBrowser

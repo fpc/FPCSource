@@ -110,10 +110,12 @@ implementation
                                 begin
                                    p^.location.reference.base:=procinfo.framepointer;
                                    p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address;
-                                   if (symtabletype=localsymtable) or (symtabletype=inlinelocalsymtable) then
-                                     p^.location.reference.offset:=-p^.location.reference.offset;
-                                   if (symtabletype=parasymtable) or (symtabletype=inlineparasymtable) then
-                                     inc(p^.location.reference.offset,p^.symtable^.call_offset);
+                                   if (symtabletype in [localsymtable,inlinelocalsymtable]) or
+                                      pvarsym(p^.symtableentry)^.islocalcopy then
+                                     p^.location.reference.offset:=-p^.location.reference.offset
+                                   else
+                                     if (symtabletype in [parasymtable,inlineparasymtable]) then
+                                       inc(p^.location.reference.offset,p^.symtable^.call_offset);
                                    if (lexlevel>(p^.symtable^.symtablelevel)) then
                                      begin
                                         hregister:=getregister32;
@@ -728,7 +730,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  1998-12-30 13:41:07  peter
+  Revision 1.41  1999-01-20 10:20:18  peter
+    * don't make localvar copies for assembler procedures
+
+  Revision 1.40  1998/12/30 13:41:07  peter
     * released valuepara
 
   Revision 1.39  1998/12/19 00:23:45  florian

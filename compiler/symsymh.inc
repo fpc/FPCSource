@@ -176,6 +176,7 @@
        pvarsym = ^tvarsym;
        tvarsym = object(tsym)
           address      : longint;
+          localvarsym  : pvarsym;
           localaddress : longint;  { address of the local copy of a value para, -1 means not used }
           islocalcopy  : boolean;
           definition   : pdef;
@@ -327,7 +328,10 @@
 
 {
   $Log$
-  Revision 1.13  1999-01-14 21:49:59  peter
+  Revision 1.14  1999-01-20 10:20:22  peter
+    * don't make localvar copies for assembler procedures
+
+  Revision 1.13  1999/01/14 21:49:59  peter
     * fixed forwardpointer problem with multiple forwards for the same
       typesym. It now uses a linkedlist instead of a single pointer
 
