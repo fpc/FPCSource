@@ -183,6 +183,7 @@ interface
           constructor create(aowner:tdef;asymsearch:TDictionary);
           destructor  destroy;override;
           procedure clear;override;
+          function  speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;override;
         end;
 
        tstt_exceptsymtable = class(tsymtable)
@@ -1681,6 +1682,24 @@ implementation
       end;
 
 
+    function twithsymtable.speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;
+      var
+        hp : tsym;
+      begin
+        hp:=tsym(inherited speedsearch(s, speedvalue));
+
+        { skip private members that can't be seen }
+        if assigned(hp) and
+           (sp_private in hp.symoptions) and
+           (hp.owner.symtabletype=objectsymtable) and
+           (hp.owner.defowner.owner.symtabletype=globalsymtable) and
+           (hp.owner.defowner.owner.unitid<>0) then
+          hp:=nil;
+
+        speedsearch:=hp;
+      end;
+
+
 {****************************************************************************
                           TSTT_ExceptionSymtable
 ****************************************************************************}
@@ -2036,7 +2055,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2001-07-01 20:16:18  peter
+  Revision 1.39  2001-07-29 22:12:58  peter
+    * skip private symbols when found in withsymtable
+
+  Revision 1.38  2001/07/01 20:16:18  peter
     * alignmentinfo record added
     * -Oa argument supports more alignment settings that can be specified
       per type: PROC,LOOP,VARMIN,VARMAX,CONSTMIN,CONSTMAX,RECORDMIN
