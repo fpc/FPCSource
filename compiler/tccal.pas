@@ -237,7 +237,10 @@ implementation
                         (pfiledef(p^.left^.resulttype)^.filetype = ft_typed)
                          ) and
                      not(is_equal(p^.left^.resulttype,defcoll^.data))) then
-                       CGMessage(parser_e_call_by_ref_without_typeconv);
+                       begin
+                          aktfilepos:=p^.left^.fileinfo;
+                          CGMessage(parser_e_call_by_ref_without_typeconv);
+                       end;
                    { process cargs arrayconstructor }
                    if is_array_constructor(p^.left^.resulttype) and
                       assigned(aktcallprocsym) and
@@ -277,7 +280,10 @@ implementation
                  (defcoll^.paratyp=vs_var) and
                  not(is_open_string(defcoll^.data)) and
                  not(is_equal(p^.left^.resulttype,defcoll^.data)) then
-                 CGMessage(type_e_strict_var_string_violation);
+                 begin
+                    aktfilepos:=p^.left^.fileinfo;
+                    CGMessage(type_e_strict_var_string_violation);
+                 end;
 
               { Variablen for call by reference may not be copied }
               { into a register }
@@ -287,10 +293,16 @@ implementation
                 begin
                   if defcoll^.paratyp=vs_var then
                     if not valid_for_formal_var(p^.left) then
-                      CGMessage(parser_e_illegal_parameter_list);
+                      begin
+                         aktfilepos:=p^.left^.fileinfo;
+                         CGMessage(parser_e_illegal_parameter_list);
+                      end;
                   if defcoll^.paratyp=vs_const then
                     if not valid_for_formal_const(p^.left) then
-                      CGMessage(parser_e_illegal_parameter_list);
+                      begin
+                         aktfilepos:=p^.left^.fileinfo;
+                         CGMessage(parser_e_illegal_parameter_list);
+                      end;
                 end;
 
               if defcoll^.paratyp=vs_var then
@@ -472,7 +484,10 @@ implementation
                    pdc:=pdc^.next;
                 end;
               if assigned(pt) or assigned(pdc) then
-                CGMessage(parser_e_illegal_parameter_list);
+                begin
+                   aktfilepos:=pt^.fileinfo;
+                   CGMessage(parser_e_illegal_parameter_list);
+                end;
               { insert type conversions }
               if assigned(p^.left) then
                 begin
@@ -576,6 +591,8 @@ implementation
                       ((parsing_para_level=0) or assigned(p^.left)) and
                       (nextprocsym=nil) then
                     begin
+                       if assigned(p^.left) then
+                         aktfilepos:=p^.left^.fileinfo;
                        CGMessage(parser_e_wrong_parameter_size);
                        aktcallprocsym^.write_parameter_lists;
                        goto errorexit;
@@ -1167,7 +1184,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  1999-06-29 12:16:22  pierre
+  Revision 1.53  1999-06-29 14:02:33  peter
+    * merged file pos fixes
+
+  Revision 1.52  1999/06/29 12:16:22  pierre
    * mereg from fixes-0_99_12
 
   Revision 1.51.2.2  1999/06/29 12:12:13  pierre
