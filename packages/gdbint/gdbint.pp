@@ -1911,7 +1911,8 @@ end;
 
 procedure gdbint_ui_file_write(stream : pui_file; p : pchar; len : longint);cdecl;
 begin
-  with curr_gdb^ do
+  if assigned(curr_gdb) then
+   with curr_gdb^ do
     if stream = gdb_stderr then
        gdberrorbuf.lappend(p,len)
     else if stream = gdb_stdout then
@@ -1989,9 +1990,10 @@ begin
 {$ifdef GDB_V5}
 
 {$endif GDB_V5}
-
-  gdb__init;
+  { This must be placed before gdb__init is called
+    as gdb_init might issue output PM }
   curr_gdb:=@self;
+  gdb__init;
   command_level:=0;
 { set output mode for GDB }
 { only these values disable filtering
@@ -2478,7 +2480,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2001-09-19 15:25:56  pierre
+  Revision 1.10  2002-01-07 10:31:57  pierre
+   * avoid problem if gdb start generates output
+
+  Revision 1.9  2001/09/19 15:25:56  pierre
    + define inferior_pid as a function for 5.01
 
   Revision 1.8  2001/09/11 10:22:36  pierre
