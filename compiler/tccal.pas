@@ -209,7 +209,8 @@ implementation
                  if (defcoll^.paratyp=vs_var) then
                    test_protected(p^.left);
                  }
-                 set_varstate(p^.left,defcoll^.paratyp<>vs_var);
+                 { set_varstate(p^.left,defcoll^.paratyp<>vs_var);
+                   must only be done after typeconv PM }
                  { only process typeconvn and arrayconstructn, else it will
                    break other trees }
                  { But this is need to get correct varstate !! PM }
@@ -337,6 +338,9 @@ implementation
                    make_not_regable(p^.left);
                 end;
 
+              if do_count then
+                set_varstate(p^.left,defcoll^.paratyp<>vs_var);
+                { must only be done after typeconv PM }
               p^.resulttype:=defcoll^.paratype.def;
            end;
          if p^.left^.registers32>p^.registers32 then
@@ -1220,7 +1224,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2000-01-07 01:14:44  peter
+  Revision 1.78  2000-01-07 09:35:12  pierre
+   * set_varstate must be called after typeconv insertions
+
+  Revision 1.77  2000/01/07 01:14:44  peter
     * updated copyright to 2000
 
   Revision 1.76  1999/12/19 15:13:56  peter
