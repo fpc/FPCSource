@@ -665,7 +665,7 @@ end;
 
 Procedure TOperand.SetSize(_size:longint);
 begin
-  if (size = S_NO) and (_size<extended_size) then
+  if (size = S_NO) and (_size<=extended_size) then
    Begin
      case _size of
       1 : size:=S_B;
@@ -1513,7 +1513,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.39  2000-04-04 13:48:45  pierre
+  Revision 1.40  2000-04-06 07:56:04  pierre
+   * bug in TOperand.SetSize corrected
+
+  Revision 1.39  2000/04/04 13:48:45  pierre
     + TOperand.SetCorrectSize virtual method added
       to be able to change the suffix according to the instruction
       (FIADD word ptr w need a s as ATT suffix
