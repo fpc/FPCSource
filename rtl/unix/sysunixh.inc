@@ -63,7 +63,7 @@ const
 
   FileNameCaseSensitive : boolean = true;
 
-  sLineBreak : string[1] = LineEnding;
+  sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
 var
@@ -73,7 +73,10 @@ var
 
 {
   $Log$
-  Revision 1.13  2001-11-08 13:56:35  marco
+  Revision 1.14  2002-07-01 16:29:05  peter
+    * sLineBreak changed to normal constant like Kylix
+
+  Revision 1.13  2001/11/08 13:56:35  marco
    * Fixed a ifdef linux to ifdef unix (related to TRTL change)
 
   Revision 1.12  2001/10/23 21:51:03  peter

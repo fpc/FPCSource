@@ -139,7 +139,7 @@ const   UnusedHandle=$ffff;
         LFNSupport: boolean = true;
         FileNameCaseSensitive: boolean = false;
 
-        sLineBreak : string[2] = LineEnding;
+        sLineBreak = LineEnding;
         DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
 var
@@ -1021,7 +1021,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-04-21 15:54:20  carl
+  Revision 1.22  2002-07-01 16:29:05  peter
+    * sLineBreak changed to normal constant like Kylix
+
+  Revision 1.21  2002/04/21 15:54:20  carl
   + initialize some global variables
 
   Revision 1.20  2002/04/12 17:42:16  carl

@@ -60,7 +60,7 @@ CONST
 
    FileNameCaseSensitive : boolean = false;
 
-   sLineBreak : STRING = LineEnding;
+   sLineBreak = LineEnding;
    DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
    
 TYPE
@@ -771,7 +771,10 @@ Begin   StackBottom := SPtr - StackLength;
 End.
 {
   $Log$
-  Revision 1.12  2002-04-15 18:47:34  carl
+  Revision 1.13  2002-07-01 16:29:05  peter
+    * sLineBreak changed to normal constant like Kylix
+
+  Revision 1.12  2002/04/15 18:47:34  carl
   + reinstate novell stack checking
 
   Revision 1.11  2002/04/12 17:40:11  carl

@@ -57,7 +57,7 @@ const
 
   FileNameCaseSensitive : boolean = false;
 
-  sLineBreak : string[2] = LineEnding;
+  sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
 { Default memory segments (Tp7 compatibility) }
@@ -1529,7 +1529,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.18  2002-05-05 10:23:54  peter
+  Revision 1.19  2002-07-01 16:29:05  peter
+    * sLineBreak changed to normal constant like Kylix
+
+  Revision 1.18  2002/05/05 10:23:54  peter
     * fixed memw and meml array sizes
 
   Revision 1.17  2002/04/21 15:52:58  carl

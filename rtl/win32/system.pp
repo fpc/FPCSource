@@ -72,7 +72,7 @@ const
 
    FileNameCaseSensitive : boolean = true;
 
-   sLineBreak : string = LineEnding;
+   sLineBreak = LineEnding;
    DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
    { Thread count for DLL }
@@ -1564,7 +1564,10 @@ end.
 
 {
   $Log$
-  Revision 1.27  2002-06-04 09:25:14  pierre
+  Revision 1.28  2002-07-01 16:29:05  peter
+    * sLineBreak changed to normal constant like Kylix
+
+  Revision 1.27  2002/06/04 09:25:14  pierre
    * Rename HeapSize to WinAPIHeapSize to avoid conflict with general function
 
   Revision 1.26  2002/04/12 17:45:13  carl

@@ -53,6 +53,7 @@
       end;
 
 {$else HASINTF}
+
     { interface helpers }
     procedure fpc_intf_decr_ref(var i: pointer);saveregisters;[public,alias: 'FPC_INTF_DECR_REF']; {$ifdef hascompilerproc} compilerproc; {$endif}
       begin
@@ -98,6 +99,24 @@
              if IUnknown(S).QueryInterface(iid,tmpi)<>S_OK then
                handleerror(219);
              if assigned(D) then IUnknown(D)._Release;
+             D:=tmpi;
+          end
+        else
+          intf_decr_ref(D);
+      end;
+
+    procedure fpc_class_as_intf(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_CLASS_AS_INTF']; {$ifdef hascompilerproc} compilerproc; {$endif}
+      const
+        S_OK = 0;
+      var
+        tmpi: pointer; // _AddRef before _Release
+      begin
+        if assigned(S) then
+          begin
+             if TObject(S).GetInterface(iid,tmpi) then
+               handleerror(219);
+             if assigned(D) then
+               IUnknown(D)._Release;
              D:=tmpi;
           end
         else
@@ -696,7 +715,10 @@
 
 {
   $Log$
-  Revision 1.21  2002-04-26 15:19:05  peter
+  Revision 1.22  2002-07-01 16:29:05  peter
+    * sLineBreak changed to normal constant like Kylix
+
+  Revision 1.21  2002/04/26 15:19:05  peter
     * use saveregisters for incr routines, saves also problems with
       the optimizer
 

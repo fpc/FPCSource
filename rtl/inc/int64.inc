@@ -145,6 +145,66 @@
          fpc_mod_qword:=0;
          if n=0 then
            HandleErrorFrame(200,get_frame);
+{$ifdef i386}
+         { the following piece of code is taken from the     }
+         { AMD Athlon Processor x86 Code Optimization manual }
+         asm
+            movl n+4,%ecx
+            movl n,%ebx
+            movl z+4,%edx
+            movl z,%eax
+            testl %ecx,%ecx
+            jnz .Lqwordmodr_big_divisior
+            cmpl %ebx,%edx
+            jae .Lqwordmodr_two_divs
+            divl %ebx
+            movl %edx,%eax
+            movl %ecx,%edx
+            leave
+            ret $16
+
+         .Lqwordmodr_two_divs:
+            movl %eax,%ecx
+            movl %edx,%eax
+            xorl %edx,%edx
+            divl %ebx
+            movl %ecx,%eax
+            divl %ebx
+            movl %edx,%eax
+            xorl %edx,%edx
+            leave
+            ret $16
+
+         .Lqwordmodr_big_divisior:
+            movl %ecx,%edi
+            shrl $1,%edx
+            rcrl $1,%eax
+            rorl $1,%edi
+            rcrl $1,%ebx
+            bsrl %ecx,%ecx
+            shrdl %cl,%edi,%ebx
+            shrdl %cl,%edx,%eax
+            shrl %cl,%edx
+            rorl $1,%edi
+            divl %ebx
+            movl z,%ebx
+            movl %eax,%ecx
+            imull %eax,%edi
+            mull n
+            addl %edi,%edx
+            subl %eax,%ebx
+            movl z+4,%ecx
+            movl n,%eax
+            sbbl %edx,%ecx
+            sbbl %edx,%edx
+            andl %edx,%eax
+            andl n+4,%edx
+            addl %ebx,%eax
+            adcl %ecx,%edx
+            leave
+            ret $16
+         end;
+{$else i386}
          lzz:=count_leading_zeros(z);
          lzn:=count_leading_zeros(n);
          { if the denominator contains less zeros }
@@ -164,6 +224,7 @@
            n:=n shr 1;
          until shift<0;
          fpc_mod_qword:=z;
+{$endif i386}
       end;
 
     function fpc_div_int64(n,z : int64) : int64;[public,alias: 'FPC_DIV_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
@@ -566,7 +627,10 @@
 
 {
   $Log$
-  Revision 1.13  2001-11-15 00:07:42  florian
+  Revision 1.14  2002-07-01 16:29:05  peter
+    * sLineBreak changed to normal constant like Kylix
+
+  Revision 1.13  2001/11/15 00:07:42  florian
     * qword div qword for i386 improved
 
   Revision 1.12  2001/09/05 15:22:09  jonas

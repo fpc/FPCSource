@@ -321,7 +321,7 @@ Begin
      end;
     case TextRec(t).Bufptr^[TextRec(t).BufPos] of
 {$ifdef EOF_CTRLZ}
-         #26 : 
+         #26 :
            begin
              SeekEof := true;
              break;
@@ -494,26 +494,16 @@ end;
 
 
 Procedure fpc_Writeln_End(var f:Text);[Public,Alias:'FPC_WRITELN_END']; iocheck; {$ifdef hascompilerproc} compilerproc; {$endif}
-const
-{$IFDEF SHORT_LINEBREAK}
-  eollen=1;
-  eol : array[0..0] of char=(#10);
-{$ELSE SHORT_LINEBREAK}
-{$ifdef MAC_LINEBREAK}
-  eollen=1;
-  eol : array[0..0] of char=(#13);
-{$else MAC_LINEBREAK}
-  eollen=2;
-  eol : array[0..1] of char=(#13,#10);
-{$endif MAC_LINEBREAK}
-{$ENDIF SHORT_LINEBREAK}
+var
+  eol : array[0..3] of char;
 begin
   If InOutRes <> 0 then exit;
   case TextRec(f).mode of
     fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
       begin
+        eol:=sLineBreak;
         { Write EOL }
-        WriteBuffer(f,(@sLineBreak+1)^,length(sLineBreak));
+        WriteBuffer(f,eol,length(sLineBreak));
         { Flush }
         if TextRec(f).FlushFunc<>nil then
           FileFunc(TextRec(f).FlushFunc)(TextRec(f));
@@ -1238,7 +1228,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2001-11-21 14:51:33  jonas
+  Revision 1.17  2002-07-01 16:29:05  peter
+    * sLineBreak changed to normal constant like Kylix
+
+  Revision 1.16  2001/11/21 14:51:33  jonas
     * fixed writing of empty ansistring with specified width (merged)
 
   Revision 1.15  2001/09/25 16:34:59  jonas

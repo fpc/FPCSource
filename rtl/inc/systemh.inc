@@ -95,8 +95,9 @@ Type
 
   UCS4Char            = Cardinal;
   PUCS4Char           = ^UCS4Char;
-
+{$ifndef HASCURRENCY}
   Currency            = Int64;
+{$endif HASCURRENCY}
   HRESULT             = Longint;
   TDateTime           = Double;
   Error               = Longint;
@@ -555,7 +556,10 @@ const
 
 {
   $Log$
-  Revision 1.46  2002-06-02 10:49:30  marco
+  Revision 1.47  2002-07-01 16:29:05  peter
+    * sLineBreak changed to normal constant like Kylix
+
+  Revision 1.46  2002/06/02 10:49:30  marco
    * Renamefest supports_double for FreeBSD too
 
   Revision 1.45  2002/04/21 15:51:51  carl
