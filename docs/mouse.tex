@@ -1,0 +1,156 @@
+%
+%   $Id$
+%   This file is part of the FPC documentation.
+%   Copyright (C) 1998, by Michael Van Canneyt
+%
+%   The FPC documentation is free text; you can redistribute it and/or
+%   modify it under the terms of the GNU Library General Public License as
+%   published by the Free Software Foundation; either version 2 of the
+%   License, or (at your option) any later version.
+%
+%   The FPC Documentation is distributed in the hope that it will be useful,
+%   but WITHOUT ANY WARRANTY; without even the implied warranty of
+%   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+%   Library General Public License for more details.
+%
+%   You should have received a copy of the GNU Library General Public
+%   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+%   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+%   Boston, MA 02111-1307, USA. 
+%
+\chapter{The MOUSE unit}
+\label{ch:mouse}
+This chapter describes the \var{mouse} unit. It is implemented for \dos only.
+
+By default, the \var{Mouse} unit is compiled with the \var{MOUSECHECK} 
+symbol defined.
+This ensures that all functions check if the mouse is installed or not, and
+to exit gracefully if the mouse isn't installed.
+
+You may wish to undefine the symbol in the source code, and recompile the
+unit, to disable this behaviour.
+
+The first section lists constants, types and variables introduced in the mouse unit
+and the second section lists all functions and procedures in alphabetical
+order.
+
+\section{Constants, Types and variables}
+The \var{MouseFound} variable is set by the \seef{CheckMouse} function.
+\begin{verbatim}
+Var
+  MouseFound:Boolean;
+\end{verbatim}
+
+\section{Functionas and Procedures}
+
+\Functionl{Check\_Mouse}{CheckMouse}{Boolean}
+{\var{Check\_Mouse} checks if the mousedriver is present and sets the
+\var{MouseFound} variable to \var{True} if so.}
+{None.}{}
+
+
+\Procedurel{Hide\_Mouse}{HideMouse}
+{\var{Hide\_Mouse} hides the mouse pointer.}{None.}{\seep{ShowMouse}}
+
+
+\Function{IsRPressed}{Boolean}
+{ \var{IsRPressed} returns \var{True} if the right mouse button is pressed,
+\var{False} otherwise}{\seef{IsLPressed}}
+
+\Function{IsLPressed}{Boolean}
+{ \var{IsRPressed} returns \var{True} if the left mouse button is pressed,
+\var{False} otherwise}{\seef{IsRPressed}}
+
+\procedure{Micky}{(Horizontal,Vertical: Longint)}
+{\var{Micky} sets the mouse speed in horizontal and vertical
+directions}
+{None}
+{}
+
+\procedurel{Mouse\_Ascii}{MouseAscii}{(Ascii:LongInt)}
+{\var{Mouse\_Ascii} sets the mouse ascii in text
+mode.}
+{None.}
+{\seep{MouseShape}}
+
+\Function{MouseButtons}{longint}
+{ \var{MouseButtons} returns which mouse buttons are pressed. The pressed
+buttones are bit encoded in bits 0-2}{None.}{\seef{MouseX}, \seef{MouseY}}
+
+\procedurel{Mouse\_Cur}{MouseCur}{(X,Y:Longint)}
+{\var{Mouse\_Cur} sets mouse pointer on \var{X,Y} where \var{X} is the
+horizontal coordinate, \var{Y} is the vertical coordinate. You The
+coordinates are those you would set in text mode, multiplied by 8.}
+{None}{\seep{ReadMouse}}
+
+\functionl{Mouse\_Press}{MousePress}{(var x,y: Longint; button: Longint)}{Longint}
+{\var{Mouse\_Press} returns which buttons were pressed after the last call to
+this function. It returns the same data as the \seep{ReadMouse}
+procedure}
+{None.}
+{\seep{ReadMouse}, \seef{MouseRelease}}
+
+\functionl{Mouse\_Release}{MouseRelease}{(var Row,Col : Longint;Button : Longint)}{integer}
+{\var{Mouse\_Release} returns which button was released after last the call to
+this function. It returns the position in \var{Row,Col} (text coordinates) and
+the button number in \var{Button} }
+{None.}
+{\seef{MousePress}, \seep{ReadMouse}}
+
+\procedurel{Mouse\_Shape}{MouseShape}{(BackColor,ForColor,Ascii:LongInt)}
+{\var{Mouse\_Shape} changes the shape and color of the text mouse cursor.
+The colors are specified in \var{BackColor}, \var{ForColor}, and
+\var{Ascii} is (Guys ??)}
+{None.}
+{\seep{MouseAscii}}
+
+\Function{MouseX}{Longint}
+{\var{MouseX} returns the mouses X coordinate in textmode units.}{None.}
+{\seef{MouseY}, \seef{MouseButtons}}
+
+\procedurel{Mouse\_XRange}{MouseXRange}{(Min,Max: Longint)}
+{\var{Mouse\_XRange} sets the mouses x range, i.e. the minimal (in
+\var{Min}) and maximal (in \var{Max}) values that the x-coordinate of the
+mouse pointer can take.}
+{None.}
+{\seep{MouseYRange}, \seep{MWindow}}
+
+\Function{MouseY}{Longint}
+{\var{MouseY} returns the mouses X coordinate in textmode units.}{None.}
+{\seef{MouseY}, \seef{MouseButtons}}
+
+\procedurel{Mouse\_YRange}{MouseYRange}{(Min,Max: Longint)}
+{\var{Mouse\_YRange} sets the mouses y range, i.e. the minimal (in
+\var{Min}) and maximal (in \var{Max}) values that the y-coordinate of the
+mouse pointer can take.}
+{None.}
+{\seep{MouseXRange}, \seep{MWindow}}
+
+\procedure{MWindow}{(x1,y1,x2,y2: Longint)}
+{\var{MWindow} defines a rectangle (with corners at \var{(x1,y1)} and
+\var{(x2,y2)}) on the screen, outside which the mouse cannot be moved.}
+{None.}{\seep{MouseXRange}, \seep{MouseYRange}}
+
+
+\procedurel{Read\_Mouse}{ReadMouse}{(var X,Y:Longint;var Buttons:Longint)}
+{\var{Read\_Mouse} reads the mouse position in pixels and returns the
+horizontal position in \var{X} and the vertical position in \var{Y}. 
+(you should divide by 8 to get the text position), and reads the
+  button states. It is a bitwise combination of 
+\begin{description}
+\item [1] \  for the left button
+\item [2] \  for the right button
+\item [7] \  for the middle button
+\end{description}
+}{None.}{\seep{MouseCur}}
+
+\Procedurel{Show\_Mouse}{ShowMouse}
+{\var{Show\_Mouse} shows the mouse pointer both on text or graphics screens.}
+{None.}{\seep{HideMouse}}
+
+\procedurel{Unseen\_Mouse}{(x1,y1,x2,y2: Longint)}
+{ \var{Unseen\_Mouse} defines a rectangle (with corner points \var{(X1,Y1)}
+and \var{(X2,Y2)} on the screen in which the mouse will disappear if comes
+over it.}{None.}{}
+
+
