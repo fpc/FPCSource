@@ -123,7 +123,9 @@ interface
         R_SUBW,    { = 3; 16 bits, Like AX }
         R_SUBD,    { = 4; 32 bits, Like EAX }
         R_SUBQ,    { = 5; 64 bits, Like RAX }
-        R_SUBFD    { = 6; Float that allocates 2 FPU registers }
+        { For Sparc floats that use F0:F1 to store doubles }
+        R_SUBFS,   { = 6; Float that allocates 1 FPU register }
+        R_SUBFD    { = 7; Float that allocates 2 FPU registers }
       );
 
       TSuperRegister = type word;
@@ -463,47 +465,44 @@ implementation
 
     function generic_regname(r:tregister):string;
       var
-        t,sub : char;
-        nr    : string[12];
+        nr : string[12];
       begin
+        str(getsupreg(r),nr);
         case getregtype(r) of
           R_INTREGISTER:
-            t:='i';
+            result:='ireg'+nr;
           R_FPUREGISTER:
-            t:='f';
-          R_MMXREGISTER:
-            t:='x';
+            result:='freg'+nr;
           R_MMREGISTER:
-            t:='m';
+            result:='mreg'+nr;
+          R_MMXREGISTER:
+            result:='xreg'+nr;
           else
             begin
               result:='INVALID';
               exit;
             end;
         end;
-        str(getsupreg(r),nr);
         case getsubreg(r) of
           R_SUBNONE:
-            sub:=' ';
+            ;
           R_SUBL:
-            sub:='l';
+            result:=result+'l';
           R_SUBH:
-            sub:='h';
+            result:=result+'h';
           R_SUBW:
-            sub:='w';
+            result:=result+'w';
           R_SUBD:
-            sub:='d';
+            result:=result+'d';
           R_SUBQ:
-            sub:='q';
+            result:=result+'q';
+          R_SUBFS:
+            result:=result+'fs';
           R_SUBFD:
-            sub:='f';
+            result:=result+'fd';
           else
             internalerror(200308252);
         end;
-        if sub<>' ' then
-          result:=t+'reg'+nr+sub
-        else
-          result:=t+'reg'+nr;
       end;
 
 
@@ -584,7 +583,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.84  2004-01-09 22:02:29  daniel
+  Revision 1.85  2004-01-12 16:35:05  peter
+    * R_SUB_FS added to make a difference between double and single
+      floats, required for sparc only
+
+  Revision 1.84  2004/01/09 22:02:29  daniel
     * Degree=0 problem fixed
     * Degree to high problem fixed
 
