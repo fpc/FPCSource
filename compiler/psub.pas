@@ -211,7 +211,7 @@ implementation
              { there's always a call to FPC_DO_EXIT in the main program }
              include(current_procinfo.flags,pi_do_call);
            end;
-         if ([cs_check_range,cs_check_overflow] * aktlocalswitches <> []) then
+         if ([cs_check_range,cs_check_overflow,cs_check_stack] * aktlocalswitches <> []) then
            include(current_procinfo.flags,pi_do_call);
       end;
 
@@ -1345,7 +1345,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.188  2004-05-16 13:29:21  peter
+  Revision 1.189  2004-05-19 22:25:56  jonas
+    * fixed web bug 3104: if stack checking is on, procedures pi_do_call
+      must be set
+
+  Revision 1.188  2004/05/16 13:29:21  peter
     * fix checking for forwards in static symtable
 
   Revision 1.187  2004/04/11 12:37:30  peter
