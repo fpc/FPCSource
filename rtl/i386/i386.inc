@@ -437,7 +437,8 @@ asm
         jz      .LHC_5
       { init self for the constructor }
         movl    %esi,12(%ebp)
-        jmp     .LHC_6
+      { jmp not necessary anymore because next instruction is disabled (JM)
+        jmp     .LHC_6                          }
       { Why was the VMT reset to zero here ????
         I need it fail to know if I should
         zero the VMT field in static objects PM }
@@ -457,22 +458,20 @@ asm
         cld
         movl    (%eax),%ecx
         movl    %esi,%edi
+        movl    %ecx,%ebx
         xorl    %eax,%eax
-        shrl    $1,%ecx
-        jnc     .LHCFill1
-        stosb
-.LHCFill1:
-        shrl    $1,%ecx
-        jnc     .LHCFill2
-        stosw
-.LHCFill2:
+        shrl    $2,%ecx
+        andl    $3,%ebx
         rep
         stosl
+        movl    %ebx,%ecx
+        rep
+        stosb
         popal
       { set the VMT address for the new created object }
       { the offset is in %edi since the calling and has not been changed !! }
         movl    %eax,(%esi,%edi,1)
-        orl     %eax,%eax
+        testl   %eax,%eax
 .LHC_5:
 end;
 
@@ -483,7 +482,7 @@ procedure int_help_fail;assembler;[public,alias:'FPC_HELP_FAIL'];
   freed if VMT field is at -1
   %edi contains VMT offset in object again }
 asm
-        orl    %esi,%esi
+        testl  %esi,%esi
         je     .LHF_1
         cmpl   $-1,8(%ebp)
         je     .LHF_2
@@ -557,7 +556,7 @@ asm
         { if we test eax later without calling newinstance }
         { it must have a value <>0                         }
         movl    $1,%eax
-        orl     %edi,%edi
+        testl   %edi,%edi
         jz      .LNEW_CLASS1
         { save registers !! }
         pushl   %ebx
@@ -576,7 +575,7 @@ asm
         movl    %eax,%esi
 .LNEW_CLASS1:
         movl    %esi,8(%ebp)
-        orl     %eax,%eax
+        testl   %eax,%eax
         popl    %edi
 end;
 
@@ -588,7 +587,7 @@ asm
         pushl   %edi
         { destroy class ? }
         movl    12(%ebp),%edi
-        orl     %edi,%edi
+        testl   %edi,%edi
         jz      .LDISPOSE_CLASS1
         { no inherited call }
         movl    (%esi),%edi
@@ -614,7 +613,7 @@ procedure int_help_fail_class;assembler;[public,alias:'FPC_HELP_FAIL_CLASS'];
 { a non zero class must allways be disposed
   VMT is allways at pos 0 }
 asm
-        orl    %esi,%esi
+        testl  %esi,%esi
         je     .LHFC_1
         call   INT_DISPOSE_CLASS
         { set both object places to zero }
@@ -644,7 +643,7 @@ asm
         pushl   %eax
         { Here we must check if the VMT pointer is nil before  }
         { accessing it...                                      }
-        orl     %edi,%edi
+        testl   %edi,%edi
         jz      .Lco_re
         movl    (%edi),%eax
         addl    4(%edi),%eax
@@ -681,7 +680,7 @@ asm
         { Here we must check if the VMT pointer is nil before  }
         { accessing it...                                      }
 .Lcoext_obj:
-        orl     %edi,%edi
+        testl   %edi,%edi
         jz      .Lcoext_re
         movl    (%edi),%eax
         addl    4(%edi),%eax
@@ -1111,7 +1110,10 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.8  2001-03-05 17:10:04  jonas
+  Revision 1.9  2001-04-08 13:19:28  jonas
+    * optimized FPC_HELP_CONSTRUCTOR a bit
+
+  Revision 1.8  2001/03/05 17:10:04  jonas
     * moved implementations of strlen and strpas to separate include files
       (they were duplicated in i386.inc and strings.inc/stringss.inc)
     * strpas supports 'nil' pchars again (returns an empty string)
