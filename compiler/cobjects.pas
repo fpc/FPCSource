@@ -260,6 +260,17 @@ unit cobjects;
          procedure inserttree(currtree,currroot:Pnamedindexobject);
        end;
 
+       psinglelist=^tsinglelist;
+       tsinglelist=object
+         noclear : boolean;
+         first,
+         last    : Pnamedindexobject;
+         constructor init;
+         destructor  done;
+         procedure clear;
+         procedure insert(p:Pnamedindexobject);
+       end;
+
        pdynamicarray = ^tdynamicarray;
        tdynamicarray = object
          posn,
@@ -286,8 +297,9 @@ unit cobjects;
 
       pindexarray=^tindexarray;
       tindexarray=object
-        first : Pnamedindexobject;
-        count : longint;
+        noclear : boolean;
+        first   : Pnamedindexobject;
+        count   : longint;
         constructor init(Agrowsize:longint);
         destructor  done;
         procedure clear;
@@ -1763,6 +1775,51 @@ end;
 
 
 {****************************************************************************
+                               tsinglelist
+ ****************************************************************************}
+
+    constructor tsinglelist.init;
+      begin
+        first:=nil;
+        last:=nil;
+        noclear:=false;
+      end;
+
+
+    destructor tsinglelist.done;
+      begin
+        if not noclear then
+         clear;
+      end;
+
+
+    procedure tsinglelist.clear;
+      var
+        hp : pnamedindexobject;
+      begin
+        hp:=first;
+        while assigned(hp) do
+         begin
+           dispose(hp,done);
+           hp:=hp^.next;
+         end;
+        first:=nil;
+        last:=nil;
+      end;
+
+
+    procedure tsinglelist.insert(p:Pnamedindexobject);
+      begin
+        if not assigned(first) then
+         first:=p
+        else
+         last^.next:=p;
+        last:=p;
+        p^.next:=nil;
+      end;
+
+
+{****************************************************************************
                                 tdynamicarray
 ****************************************************************************}
 
@@ -1790,13 +1847,13 @@ end;
     procedure tdynamicarray.grow;
       var
         osize : longint;
-{$ifndef REALLOCMEM}
+{$ifndef USEREALLOCMEM}
         odata : pchar;
-{$endif REALLOCMEM}
+{$endif USEREALLOCMEM}
       begin
         osize:=size;
         inc(limit,growcount);
-{$ifndef REALLOCMEM}
+{$ifndef USEREALLOCMEM}
         odata:=data;
         getmem(data,size);
         if assigned(odata) then
@@ -1804,9 +1861,9 @@ end;
            move(odata^,data^,osize);
            freemem(odata,osize);
          end;
-{$else REALLOCMEM}
+{$else USEREALLOCMEM}
         reallocmem(data,size);
-{$endif REALLOCMEM}
+{$endif USEREALLOCMEM}
         fillchar(data[osize],growcount*elemlen,0);
       end;
 
@@ -1892,13 +1949,15 @@ end;
         count:=0;
         data:=nil;
         first:=nil;
+        noclear:=false;
       end;
 
     destructor tindexarray.done;
       begin
         if assigned(data) then
           begin
-             clear;
+             if not noclear then
+              clear;
              freemem(data,size*4);
              data:=nil;
           end;
@@ -1941,13 +2000,13 @@ end;
     procedure tindexarray.grow(gsize:longint);
       var
         osize : longint;
-{$ifndef REALLOCMEM}
+{$ifndef USEREALLOCMEM}
         odata : Pnamedindexobjectarray;
-{$endif fpc}
+{$endif USEREALLOCMEM}
       begin
         osize:=size;
         inc(size,gsize);
-{$ifndef REALLOCMEM}
+{$ifndef USEREALLOCMEM}
         odata:=data;
         getmem(data,size*4);
         if assigned(odata) then
@@ -1955,9 +2014,9 @@ end;
            move(odata^,data^,osize*4);
            freemem(odata,osize*4);
          end;
-{$else REALLOCMEM}
+{$else USEREALLOCMEM}
         reallocmem(data,size*4);
-{$endif REALLOCMEM}
+{$endif USEREALLOCMEM}
         fillchar(data^[osize+1],gsize*4,0);
       end;
 
@@ -2424,7 +2483,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-08-10 12:20:44  jonas
+  Revision 1.7  2000-08-12 15:34:22  peter
+    + usedasmsymbollist to check and reset only the used symbols (merged)
+
+  Revision 1.6  2000/08/10 12:20:44  jonas
     * reallocmem is now also used under Delphi (merged from fixes branch)
 
   Revision 1.5  2000/08/09 12:09:45  jonas

@@ -185,6 +185,7 @@ unit ag386bin;
                     sec:=ps^.section;
                     ofs:=ps^.address;
                     reloc:=true;
+                    UsedAsmSymbolListInsert(ps);
                   end;
                 if j<256 then
                   begin
@@ -207,6 +208,7 @@ unit ag386bin;
                           internalerror(33008);
                         ofs:=ofs-ps^.address;
                         reloc:=false;
+                        UsedAsmSymbolListInsert(ps);
                       end;
                   end;
               end;
@@ -214,7 +216,7 @@ unit ag386bin;
         { external bss need speical handling (PM) }
         if assigned(ps) and (ps^.section=sec_none) then
           begin
-            if currpass<>1 then
+            if currpass=2 then
               objectoutput^.writesymbol(ps);
             objectoutput^.WriteSymStabs(sec,ofs,hp,ps,nidx,nother,line,reloc)
           end
@@ -308,11 +310,11 @@ unit ag386bin;
            else
             curr_n:=n_includefile;
            { get symbol for this includefile }
-           hp:=newasmsymbol('Ltext'+ToStr(IncludeCount));
+           hp:=newasmsymboltype('Ltext'+ToStr(IncludeCount),AB_LOCAL,AT_FUNCTION);
            if currpass=1 then
              begin
-                hp^.setbind(AB_LOCAL);
                 hp^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
+                UsedAsmSymbolListInsert(hp);
              end
            else
              objectoutput^.writesymbol(hp);
@@ -355,11 +357,11 @@ unit ag386bin;
            exit;
         store_sec:=objectalloc^.currsec;
         objectalloc^.setsection(sec_code);
-        hp:=newasmsymbol('Letext');
+        hp:=newasmsymboltype('Letext',AB_LOCAL,AT_FUNCTION);
         if currpass=1 then
           begin
-            hp^.setbind(AB_LOCAL);
             hp^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
+            UsedAsmSymbolListInsert(hp);
           end
         else
           objectoutput^.writesymbol(hp);
@@ -473,7 +475,7 @@ unit ag386bin;
 
     function ti386binasmlist.TreePass1(hp:pai):pai;
       var
-        l : longint;
+        i,l : longint;
       begin
         while assigned(hp) do
          begin
@@ -508,8 +510,10 @@ unit ag386bin;
                   begin
                     if pai_datablock(hp)^.is_global then
                      begin
-                       pai_datablock(hp)^.sym^.setbind(AB_COMMON);
                        pai_datablock(hp)^.sym^.setaddress(sec_none,pai_datablock(hp)^.size,pai_datablock(hp)^.size);
+                       { force to be common/external, must be after setaddress as that would
+                         set it to AS_GLOBAL }
+                       pai_datablock(hp)^.sym^.bind:=AB_COMMON;
                      end
                     else
                      begin
@@ -518,7 +522,6 @@ unit ag386bin;
                          objectalloc^.sectionalign(4)
                        else if l>1 then
                          objectalloc^.sectionalign(2);
-                       pai_datablock(hp)^.sym^.setbind(AB_LOCAL);
                        pai_datablock(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,
                          pai_datablock(hp)^.size);
                        objectalloc^.sectionalloc(pai_datablock(hp)^.size);
@@ -527,10 +530,6 @@ unit ag386bin;
                   else
 {$endif}
                    begin
-                     if pai_datablock(hp)^.is_global then
-                      pai_datablock(hp)^.sym^.setbind(AB_GLOBAL)
-                     else
-                      pai_datablock(hp)^.sym^.setbind(AB_LOCAL);
                      l:=pai_datablock(hp)^.size;
                      if l>2 then
                        objectalloc^.sectionalign(4)
@@ -539,6 +538,7 @@ unit ag386bin;
                      pai_datablock(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,pai_datablock(hp)^.size);
                      objectalloc^.sectionalloc(pai_datablock(hp)^.size);
                    end;
+                 UsedAsmSymbolListInsert(pai_datablock(hp)^.sym);
                end;
              ait_const_32bit :
                objectalloc^.sectionalloc(4);
@@ -556,7 +556,10 @@ unit ag386bin;
                objectalloc^.sectionalloc(8);
              ait_const_rva,
              ait_const_symbol :
-               objectalloc^.sectionalloc(4);
+               begin
+                 objectalloc^.sectionalloc(4);
+                 UsedAsmSymbolListInsert(pai_const_symbol(hp)^.sym);
+               end;
              ait_section:
                begin
                  objectalloc^.setsection(pai_section(hp)^.sec);
@@ -577,38 +580,60 @@ unit ag386bin;
              ait_stabs :
                convertstabs(pai_stabs(hp)^.str);
              ait_stab_function_name :
-               if assigned(pai_stab_function_name(hp)^.str) then
-                 funcname:=getasmsymbol(strpas(pai_stab_function_name(hp)^.str))
-               else
-                 funcname:=nil;
+               begin
+                 if assigned(pai_stab_function_name(hp)^.str) then
+                  begin
+                    funcname:=getasmsymbol(strpas(pai_stab_function_name(hp)^.str));
+                    UsedAsmSymbolListInsert(funcname);
+                  end
+                 else
+                  funcname:=nil;
+               end;
              ait_force_line :
                stabslastfileinfo.line:=0;
 {$endif}
              ait_symbol :
                begin
-                 if pai_symbol(hp)^.is_global then
-                  pai_symbol(hp)^.sym^.setbind(AB_GLOBAL)
-                 else
-                  pai_symbol(hp)^.sym^.setbind(AB_LOCAL);
                  pai_symbol(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
+                 UsedAsmSymbolListInsert(pai_symbol(hp)^.sym);
                end;
              ait_symbol_end :
                begin
                  if target_info.target=target_i386_linux then
-                  pai_symbol(hp)^.sym^.size:=objectalloc^.sectionsize-pai_symbol(hp)^.sym^.address;
+                  begin
+                    pai_symbol(hp)^.sym^.size:=objectalloc^.sectionsize-pai_symbol(hp)^.sym^.address;
+                    UsedAsmSymbolListInsert(pai_symbol(hp)^.sym);
+                  end;
                 end;
              ait_label :
                begin
-                 if pai_label(hp)^.is_global then
-                  pai_label(hp)^.l^.setbind(AB_GLOBAL)
-                 else
-                  pai_label(hp)^.l^.setbind(AB_LOCAL);
                  pai_label(hp)^.l^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
+                 UsedAsmSymbolListInsert(pai_label(hp)^.l);
                end;
              ait_string :
                objectalloc^.sectionalloc(pai_string(hp)^.len);
              ait_instruction :
-               objectalloc^.sectionalloc(paicpu(hp)^.Pass1(objectalloc^.sectionsize));
+               begin
+                 objectalloc^.sectionalloc(paicpu(hp)^.Pass1(objectalloc^.sectionsize));
+                 { fixup the references }
+                 for i:=1 to paicpu(hp)^.ops do
+                  begin
+                    with paicpu(hp)^.oper[i-1] do
+                     begin
+                       case typ of
+                         top_ref :
+                           begin
+                             if assigned(ref^.symbol) then
+                              UsedAsmSymbolListInsert(ref^.symbol);
+                           end;
+                         top_symbol :
+                           begin
+                             UsedAsmSymbolListInsert(sym);
+                           end;
+                       end;
+                     end;
+                  end;
+               end;
              ait_direct :
                Message(asmw_f_direct_not_supported);
              ait_cut :
@@ -747,8 +772,7 @@ unit ag386bin;
         objectoutput^.initwriting(cut_normal);
         objectoutput^.defaultsection(sec_code);
       { reset the asmsymbol list }
-        ResetAsmsymbolList;
-        objectoutput^.defaultsection(sec_code);
+        InitUsedAsmsymbolList;
 
 {$ifdef MULTIPASS}
       { Pass 0 }
@@ -787,8 +811,9 @@ unit ag386bin;
 {$ifdef GDB}
         EndFileLineInfo;
 {$endif GDB}
-        { check for undefined labels }
-        CheckAsmSymbolListUndefined;
+        { check for undefined labels and reset }
+        UsedAsmSymbolListCheckUndefined;
+
         { set section sizes }
         objectoutput^.setsectionsizes(objectalloc^.secsize);
         { leave if errors have occured }
@@ -819,6 +844,11 @@ unit ag386bin;
 
         { write last objectfile }
         objectoutput^.donewriting;
+
+        { reset the used symbols back, must be after the .o has been
+          written }
+        UsedAsmsymbolListReset;
+        DoneUsedAsmsymbolList;
       end;
 
 
@@ -834,6 +864,7 @@ unit ag386bin;
         objectoutput^.initwriting(cut_normal);
         objectoutput^.defaultsection(sec_code);
         startsec:=sec_code;
+
         { start with list 1 }
         currlistidx:=1;
         currlist:=list[currlistidx];
@@ -841,7 +872,7 @@ unit ag386bin;
         while assigned(hp) do
          begin
          { reset the asmsymbol list }
-           ResetAsmsymbolList;
+           InitUsedAsmSymbolList;
 
 {$ifdef MULTIPASS}
          { Pass 0 }
@@ -866,7 +897,8 @@ unit ag386bin;
            EndFileLineInfo;
 {$endif GDB}
            { check for undefined labels }
-           CheckAsmSymbolListUndefined;
+           UsedAsmSymbolListCheckUndefined;
+
            { set section sizes }
            objectoutput^.setsectionsizes(objectalloc^.secsize);
            { leave if errors have occured }
@@ -889,6 +921,11 @@ unit ag386bin;
 
            { if not end then write the current objectfile }
            objectoutput^.donewriting;
+
+           { reset the used symbols back, must be after the .o has been
+             written }
+           UsedAsmsymbolListReset;
+           DoneUsedAsmsymbolList;
 
            { end of lists? }
            if not MaybeNextList(hp) then
@@ -1002,7 +1039,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.5  2000-08-08 19:28:57  peter
+  Revision 1.6  2000-08-12 15:34:22  peter
+    + usedasmsymbollist to check and reset only the used symbols (merged)
+
+  Revision 1.5  2000/08/08 19:28:57  peter
     * memdebug/memory patches (merged)
     * only once illegal directive (merged)
 

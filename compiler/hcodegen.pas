@@ -373,7 +373,7 @@ implementation
          exportssection:=nil;
          resourcesection:=nil;
          { assembler symbols }
-         asmsymbollist:=new(pasmsymbollist,init);
+         asmsymbollist:=new(pdictionary,init);
          asmsymbollist^.usehash;
          { resourcestrings }
          new(ResourceStrings,Init);
@@ -462,7 +462,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-08-03 13:17:26  jonas
+  Revision 1.4  2000-08-12 15:34:22  peter
+    + usedasmsymbollist to check and reset only the used symbols (merged)
+
+  Revision 1.3  2000/08/03 13:17:26  jonas
     + allow regvars to be used inside inlined procs, which required  the
       following changes:
         + load regvars in genentrycode/free them in genexitcode (cgai386)

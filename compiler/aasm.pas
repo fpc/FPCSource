@@ -101,10 +101,9 @@ unit aasm;
 
        pasmsymbol = ^tasmsymbol;
        tasmsymbol = object(tnamedindexobject)
-         orgbind,
+         defbind,
          bind      : TAsmsymbind;
          typ       : TAsmsymtype;
-         proclocal : boolean;
          { the next fields are filled in the binary writer }
          section : tsection;
          idx     : longint;
@@ -116,10 +115,13 @@ unit aasm;
          { alternate symbol which can be used for 'renaming' needed for
            inlining }
          altsymbol : pasmsymbol;
+         { is the symbol local for a procedure/function }
+         proclocal : boolean;
+         { is the symbol in the used list }
+         inusedlist : boolean;
          constructor init(const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
          procedure reset;
          function  is_used:boolean;
-         procedure setbind(t:tasmsymbind);
          procedure setaddress(sec:tsection;offset,len:longint);
          procedure GenerateAltSymbol;
        end;
@@ -144,10 +146,6 @@ unit aasm;
          function name:string;virtual;
        end;
 
-
-       pasmsymbollist = ^tasmsymbollist;
-       tasmsymbollist = object(tdictionary)
-       end;
 
        { the short name makes typing easier }
        pai = ^tai;
@@ -394,7 +392,8 @@ type
       resourcesection,rttilist,
       resourcestringlist         : paasmoutput;
     { asm symbol list }
-      asmsymbollist : pasmsymbollist;
+      asmsymbollist : pdictionary;
+      usedasmsymbollist : psinglelist;
 
     const
       nextaltnr   : longint = 1;
@@ -415,9 +414,13 @@ type
     function  getasmsymbol(const s : string) : pasmsymbol;
     function  renameasmsymbol(const sold, snew : string):pasmsymbol;
 
-    procedure ResetAsmsymbolList;
-    procedure ResetAsmSymbolListAltSymbol;
-    procedure CheckAsmSymbolListUndefined;
+    procedure InitUsedAsmSymbolList;
+    procedure DoneUsedAsmSymbolList;
+    procedure UsedAsmSymbolListInsert(p:pasmsymbol);
+    procedure UsedAsmSymbolListReset;
+    procedure UsedAsmSymbolListResetAltSym;
+    procedure UsedAsmSymbolListCheckUndefined;
+
 
 implementation
 
@@ -903,15 +906,13 @@ uses
 
     constructor tasmsymbol.init(const s:string;_bind:TAsmsymbind;_typ:Tasmsymtype);
       begin;
-      {$IFDEF NEWST}
-        inherited init(s);
-      {$ELSE}
         inherited initname(s);
-      {$ENDIF NEWST}
         reset;
-        orgbind:=_bind;
-        bind:=_bind;
+        defbind:=_bind;
         typ:=_typ;
+        inusedlist:=false;
+        { mainly used to remove unused labels from the codesegment }
+        refs:=0;
       end;
 
     procedure tasmsymbol.GenerateAltSymbol;
@@ -934,8 +935,6 @@ uses
         idx:=-1;
         bind:=AB_EXTERNAL;
         proclocal:=false;
-        { mainly used to remove unused labels from the codesegment }
-        refs:=0;
       end;
 
     function tasmsymbol.is_used:boolean;
@@ -943,21 +942,15 @@ uses
         is_used:=(refs>0);
       end;
 
-    procedure tasmsymbol.setbind(t:tasmsymbind);
-      begin
-        bind:=t;
-        orgbind:=t;
-      end;
-
     procedure tasmsymbol.setaddress(sec:tsection;offset,len:longint);
       begin
         section:=sec;
         address:=offset;
         size:=len;
-        { when the typ was reset to External, set it back to the original
-          type it got when defined }
-        if (bind=AB_EXTERNAL) and (orgbind<>AB_NONE) then
-         bind:=orgbind;
+        { when the bind was reset to External, set it back to the default
+          bind it got when defined }
+        if (bind=AB_EXTERNAL) and (defbind<>AB_NONE) then
+         bind:=defbind;
       end;
 
 
@@ -1012,25 +1005,23 @@ uses
         hp : pasmsymbol;
       begin
         hp:=pasmsymbol(asmsymbollist^.search(s));
-        if assigned(hp) then
+        if not assigned(hp) then
          begin
-           newasmsymbol:=hp;
-           exit;
+           { Not found, insert it as an External }
+           hp:=new(pasmsymbol,init(s,AB_EXTERNAL,AT_FUNCTION));
+           asmsymbollist^.insert(hp);
          end;
-        { Not found, insert it as an External }
-        hp:=new(pasmsymbol,init(s,AB_EXTERNAL,AT_FUNCTION));
-        asmsymbollist^.insert(hp);
         newasmsymbol:=hp;
       end;
 
 
-    function  newasmsymboltype(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : pasmsymbol;
+    function newasmsymboltype(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : pasmsymbol;
       var
         hp : pasmsymbol;
       begin
         hp:=pasmsymbol(asmsymbollist^.search(s));
         if assigned(hp) then
-         hp^.setbind(_bind)
+         hp^.defbind:=_bind
         else
          begin
            { Not found, insert it as an External }
@@ -1054,41 +1045,84 @@ uses
       end;
 
 
-    procedure ResetAsmSym(p:Pnamedindexobject);{$ifndef FPC}far;{$endif}
+{*****************************************************************************
+                              Used AsmSymbolList
+*****************************************************************************}
+
+    procedure InitUsedAsmSymbolList;
       begin
-        pasmsymbol(p)^.reset;
+        if assigned(usedasmsymbollist) then
+         internalerror(78455782);
+        new(usedasmsymbollist,init);
+        usedasmsymbollist^.noclear:=true;
       end;
 
 
-    procedure ResetAsmsymbolList;
+    procedure DoneUsedAsmSymbolList;
       begin
-        asmsymbollist^.foreach({$ifndef TP}@{$endif}resetasmsym);
+        dispose(usedasmsymbollist,done);
+        usedasmsymbollist:=nil;
       end;
 
 
-    procedure ResetAltSym(p:Pnamedindexobject);{$ifndef FPC}far;{$endif}
+    procedure UsedAsmSymbolListInsert(p:pasmsymbol);
       begin
-        pasmsymbol(p)^.altsymbol:=nil;
+        if not p^.inusedlist then
+         usedasmsymbollist^.insert(p);
+        p^.inusedlist:=true;
       end;
 
 
-    procedure ResetAsmSymbolListAltSymbol;
+    procedure UsedAsmSymbolListReset;
+      var
+        hp : pasmsymbol;
       begin
-        asmsymbollist^.foreach({$ifndef TP}@{$endif}resetaltsym);
+        hp:=pasmsymbol(usedasmsymbollist^.first);
+        while assigned(hp) do
+         begin
+           with hp^ do
+            begin
+              reset;
+              inusedlist:=false;
+            end;
+           hp:=pasmsymbol(hp^.next);
+         end;
       end;
 
 
-    procedure checkundefinedasmsym(p:Pnamedindexobject);{$ifndef FPC}far;{$endif}
+    procedure UsedAsmSymbolListResetAltSym;
+      var
+        hp : pasmsymbol;
       begin
-        if (pasmsymbol(p)^.refs>0) and
-           (pasmsymbol(p)^.section=Sec_none) and
-           (pasmsymbol(p)^.bind<>AB_EXTERNAL) then
-         Message1(asmw_e_undefined_label,pasmsymbol(p)^.name);
+        hp:=pasmsymbol(usedasmsymbollist^.first);
+        while assigned(hp) do
+         begin
+           with hp^ do
+            begin
+              altsymbol:=nil;
+              inusedlist:=false;
+            end;
+           hp:=pasmsymbol(hp^.next);
+         end;
       end;
 
-    procedure CheckAsmSymbolListUndefined;
+
+    procedure UsedAsmSymbolListCheckUndefined;
+      var
+        hp : pasmsymbol;
       begin
-        asmsymbollist^.foreach({$ifndef TP}@{$endif}checkundefinedasmsym);
+        hp:=pasmsymbol(usedasmsymbollist^.first);
+        while assigned(hp) do
+         begin
+           with hp^ do
+            begin
+              if (refs>0) and
+                 (section=Sec_none) and
+                 (bind<>AB_EXTERNAL) then
+               Message1(asmw_e_undefined_label,name);
+            end;
+           hp:=pasmsymbol(hp^.next);
+         end;
       end;
 
 
@@ -1146,7 +1180,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.6  2000-08-09 19:49:44  peter
+  Revision 1.7  2000-08-12 15:34:21  peter
+    + usedasmsymbollist to check and reset only the used symbols (merged)
+
+  Revision 1.6  2000/08/09 19:49:44  peter
     * packenumfixed things so it compiles with 1.0.0 again
 
   Revision 1.5  2000/08/05 13:25:06  peter

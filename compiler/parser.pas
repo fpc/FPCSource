@@ -260,7 +260,7 @@ unit parser;
          olddebuglist,
          oldwithdebuglist,
          oldconsts     : paasmoutput;
-         oldasmsymbollist : pasmsymbollist;
+         oldasmsymbollist : pdictionary;
        { resourcestrings }
          OldResourceStrings : PResourceStrings;
        { akt.. things }
@@ -607,7 +607,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:44  michael
+  Revision 1.3  2000-08-12 15:34:22  peter
+    + usedasmsymbollist to check and reset only the used symbols (merged)
+
+  Revision 1.2  2000/07/13 11:32:44  michael
   + removed logs
 
 }
