@@ -1503,7 +1503,7 @@ unit pexpr;
                              { use smallset if emudef with max < 32
                              but allow sets for enumdefs with more than
                              256 elements like tasmop !! }
-                             if (pd^.deftype=enumdef) and (penumdef(pd)^.max<=255) then
+                             if assigned(pd) and (pd^.deftype=enumdef) and (penumdef(pd)^.max<=255) then
                                p1^.resulttype:=new(psetdef,init(pd,penumdef(pd)^.max))
                              else
                                p1^.resulttype:=new(psetdef,init(pd,255));
@@ -1745,7 +1745,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.19  1998-05-25 17:11:43  pierre
+  Revision 1.20  1998-05-26 07:53:59  pierre
+    * bug fix for empty sets (nil pd was dereferenced )
+
+  Revision 1.19  1998/05/25 17:11:43  pierre
     * firstpasscount bug fixed
       now all is already set correctly the first time
       under EXTDEBUG try -gp to skip all other firstpasses
