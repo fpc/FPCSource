@@ -66,10 +66,10 @@ program install;
 {$IFDEF FV}
      commands,
 {$ENDIF}
-     unzip,ziptypes,
 {$IFDEF DLL}
      unzipdll,
 {$ENDIF}
+     unzip,ziptypes,
      app,dialogs,views,menus,msgbox,colortxt,tabs,inststr,scroll,
      HelpCtx,WHTMLScn;
 
@@ -1455,7 +1455,7 @@ program install;
                    inc(cfg.packs);
                    if cfg.packs>maxpacks then
                     begin
-                      writeln('Too much packs');
+                      writeln('Too many packs');
                       halt(1);
                     end;
                    cfg.pack[cfg.packs].name:=s;
@@ -1761,7 +1761,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-10-11 17:16:01  peter
+  Revision 1.12  2000-11-26 19:00:44  hajny
+    * English correction
+
+  Revision 1.11  2000/10/11 17:16:01  peter
     * fixed a typo and the setting of haside and hashtmlhelp (merged)
 
   Revision 1.10  2000/10/11 15:57:47  peter
