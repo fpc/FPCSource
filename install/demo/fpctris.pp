@@ -20,12 +20,13 @@
 PROGRAM FPCTris;
 { Trying to make a tetris from zero as a demo for FPC.
   Problems: - Colorsupport is a hack which handicaps creating a better
-               update mechanism.
+               update mechanism. (is done now)
             - Graph version input command has no cursor.
-            - Graph or text is decided runtime.
+            - Graph or text isn't decided runtime, but compilertime.
             - Linux status graph version unknown at this moment.
-            - CVS source gameunit was used. Dunno how big the changes to
-               gameunit to accomodate the new games.
+            - Graphic and textmode speed of the game is not the same.
+               The delay is fixed, and the time required to update is
+               not constant due to optimisations.
 
   Coordinate system:
 
@@ -811,7 +812,10 @@ END.
 
 {
   $Log$
-  Revision 1.3  1999-12-31 17:03:50  marco
+  Revision 1.4  2000-01-14 22:03:07  marco
+   * Changed some comments
+
+  Revision 1.3  1999/12/31 17:03:50  marco
 
 
   Graphical version +2fixes
