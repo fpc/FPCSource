@@ -190,7 +190,8 @@ implementation
        maketojumpbool(exprasmlist,tcallparanode(left).left,lr_load_regvars);
        cg.a_label(exprasmlist,falselabel);
        { erroraddr }
-       r.enum:=frame_pointer_reg;
+       r.enum:=R_INTREGISTER;
+       r.number:=NR_FRAME_POINTER_REG;
        cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(4));
        { lineno }
        cg.a_param_const(exprasmlist,OS_INT,aktfilepos.line,paramanager.getintparaloc(3));
@@ -282,7 +283,7 @@ implementation
            begin
              reference_reset_base(href,hregister,0);
              rg.ungetaddressregister(exprasmlist,hregister);
-             hregister:=rg.getregisterint(exprasmlist);
+             hregister:=rg.getregisterint(exprasmlist,OS_INT);
              cg.a_load_ref_reg(exprasmlist,OS_INT,href,hregister);
            end;
         location.register:=hregister;
@@ -513,8 +514,8 @@ implementation
               maybe_restore(exprasmlist,tcallparanode(left).left.location,pushedregs);
 
               { bitnumber - which must be loaded into register }
-              hregister := cg.get_scratch_reg_int(exprasmlist);
-              hregister2 := rg.getregisterint(exprasmlist);
+              hregister := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+              hregister2 := rg.getregisterint(exprasmlist,OS_INT);
 
               case tcallparanode(tcallparanode(left).right).left.location.loc of
                  LOC_CREGISTER,
@@ -649,7 +650,11 @@ end.
 
 {
   $Log$
-  Revision 1.20  2003-01-31 22:47:27  peter
+  Revision 1.21  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.20  2003/01/31 22:47:27  peter
     * fix previous typeof change
 
   Revision 1.19  2003/01/30 21:46:57  peter

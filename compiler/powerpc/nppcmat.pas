@@ -78,6 +78,7 @@ implementation
          divider,
          resultreg  : tregister;
          saved      : tmaybesave;
+         size       : Tcgsize;
 
       begin
          secondpass(left);
@@ -87,20 +88,21 @@ implementation
          location_copy(location,left.location);
 
          { put numerator in register }
+         size:=def_cgsize(left.resulttype.def);
          location_force_reg(exprasmlist,left.location,
-           def_cgsize(left.resulttype.def),true);
+           size,true);
          location_copy(location,left.location);
          numerator := location.register;
          resultreg := location.register;
          if (location.loc = LOC_CREGISTER) then
            begin
              location.loc := LOC_REGISTER;
-             location.register := rg.getregisterint(exprasmlist);
+             location.register := rg.getregisterint(exprasmlist,size);
              resultreg := location.register;
            end;
          if (nodetype = modn) then
            begin
-             resultreg := cg.get_scratch_reg_int(exprasmlist);
+             resultreg := cg.get_scratch_reg_int(exprasmlist,size);
            end;
 
          if (nodetype = divn) and
@@ -195,8 +197,8 @@ implementation
              if (location.loc = LOC_CREGISTER) then
                begin
                  location.loc := LOC_REGISTER;
-                 location.registerhigh := rg.getregisterint(exprasmlist);
-                 location.registerlow := rg.getregisterint(exprasmlist);
+                 location.registerhigh := rg.getregisterint(exprasmlist,OS_32);
+                 location.registerlow := rg.getregisterint(exprasmlist,OS_32);
                end;
              if (right.nodetype = ordconstn) then
                begin
@@ -265,7 +267,7 @@ implementation
                      location.registerlow := resultreg;
                    end;
 
-                 rg.getexplicitregisterint(exprasmlist,R_0);
+                 rg.getexplicitregisterint(exprasmlist,NR_R0);
                  r.enum:=R_0;
                  exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                    r,hregister1,32));
@@ -301,7 +303,7 @@ implementation
              if (location.loc = LOC_CREGISTER) then
                begin
                  location.loc := LOC_REGISTER;
-                 resultreg := rg.getregisterint(exprasmlist);
+                 resultreg := rg.getregisterint(exprasmlist,OS_32);
                  location.register := resultreg;
                end;
 
@@ -348,8 +350,8 @@ implementation
              location_copy(location,left.location);
              if (location.loc = LOC_CREGISTER) then
                begin
-                 location.registerlow := rg.getregisterint(exprasmlist);
-                 location.registerhigh := rg.getregisterint(exprasmlist);
+                 location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+                 location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
                  location.loc := LOC_CREGISTER;
                end;
              exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
@@ -375,7 +377,7 @@ implementation
                   begin
                      src1 := left.location.register;
                      if left.location.loc = LOC_CREGISTER then
-                       location.register := rg.getregisterint(exprasmlist)
+                       location.register := rg.getregisterint(exprasmlist,OS_INT)
                      else
                        location.register := rg.getregisterfpu(exprasmlist);
                   end;
@@ -391,7 +393,7 @@ implementation
                        end
                      else
                        begin
-                          src1 := rg.getregisterint(exprasmlist);
+                          src1 := rg.getregisterint(exprasmlist,OS_32);
                           location.register:= src1;
                           cg.a_load_ref_reg(exprasmlist,OS_32,
                             left.location.reference,src1);
@@ -491,7 +493,7 @@ implementation
              location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
              location_copy(location,left.location);
              if location.loc=LOC_CREGISTER then
-              location.register := rg.getregisterint(exprasmlist);
+              location.register := rg.getregisterint(exprasmlist,OS_INT);
              { perform the NOT operation }
              exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.register,
                left.location.register));
@@ -506,7 +508,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2003-01-09 20:41:10  florian
+  Revision 1.23  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.22  2003/01/09 20:41:10  florian
     * fixed broken PowerPC compiler
 
   Revision 1.21  2003/01/08 18:43:58  daniel

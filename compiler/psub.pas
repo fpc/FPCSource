@@ -358,7 +358,8 @@ implementation
                 genexitcode(procinfo.aktexitcode,parasize,nostackframe,false);
 
                 { now all the registers used are known }
-                aktprocdef.usedregisters:=rg.usedinproc;
+                aktprocdef.usedintregisters:=rg.usedintinproc;
+                aktprocdef.usedotherregisters:=rg.usedinproc;
                 procinfo.aktproccode.insertlist(procinfo.aktentrycode);
                 procinfo.aktproccode.concatlist(procinfo.aktexitcode);
 {$ifdef i386}
@@ -545,7 +546,8 @@ implementation
           { clear flags }
             flags:=0;
           { standard frame pointer }
-            framepointer.enum:=frame_pointer_reg;
+            framepointer.enum:=R_INTREGISTER;
+            framepointer.number:=NR_FRAME_POINTER_REG;
           { is this a nested function of a method ? }
             if assigned(oldprocinfo) then
               _class:=oldprocinfo._class;
@@ -846,7 +848,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2003-01-09 21:52:37  peter
+  Revision 1.92  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.91  2003/01/09 21:52:37  peter
     * merged some verbosity options.
     * V_LineInfo is a verbosity flag to include line info
 

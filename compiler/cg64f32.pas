@@ -164,13 +164,13 @@ unit cg64f32;
           end;
         got_scratch:=false;
         tmpref := ref;
-        if tmpref.base.enum>lastreg then
-          internalerror(200301081);
-        if reg.reglo.enum>lastreg then
-          internalerror(200301081);
-        if (tmpref.base.enum=reg.reglo.enum) then
+        if tmpref.base.enum<>R_INTREGISTER then
+          internalerror(200302035);
+        if reg.reglo.enum<>R_INTREGISTER then
+          internalerror(200302035);
+        if (tmpref.base.number=reg.reglo.number) then
          begin
-           tmpreg := cg.get_scratch_reg_int(list);
+           tmpreg := cg.get_scratch_reg_address(list);
            got_scratch:=true;
            cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.base,tmpreg);
            tmpref.base:=tmpreg;
@@ -179,9 +179,9 @@ unit cg64f32;
          { this works only for the i386, thus the i386 needs to override  }
          { this method and this method must be replaced by a more generic }
          { implementation FK                                              }
-         if (tmpref.index.enum=reg.reglo.enum) then
+         if (tmpref.index.number=reg.reglo.number) then
           begin
-            tmpreg:=cg.get_scratch_reg_int(list);
+            tmpreg:=cg.get_scratch_reg_address(list);
             got_scratch:=true;
             cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,tmpref.index,tmpreg);
             tmpref.index:=tmpreg;
@@ -399,8 +399,8 @@ unit cg64f32;
       var
         tempreg: tregister64;
       begin
-        tempreg.reghi := cg.get_scratch_reg_int(list);
-        tempreg.reglo := cg.get_scratch_reg_int(list);
+        tempreg.reghi := cg.get_scratch_reg_int(list,OS_INT);
+        tempreg.reglo := cg.get_scratch_reg_int(list,OS_INT);
         a_load64_ref_reg(list,ref,tempreg);
         a_op64_reg_reg(list,op,tempreg,reg);
         cg.free_scratch_reg(list,tempreg.reglo);
@@ -412,8 +412,8 @@ unit cg64f32;
       var
         tempreg: tregister64;
       begin
-        tempreg.reghi := cg.get_scratch_reg_int(list);
-        tempreg.reglo := cg.get_scratch_reg_int(list);
+        tempreg.reghi := cg.get_scratch_reg_int(list,OS_INT);
+        tempreg.reglo := cg.get_scratch_reg_int(list,OS_INT);
         a_load64_ref_reg(list,ref,tempreg);
         a_op64_const_reg(list,op,value,tempreg);
         a_load64_reg_ref(list,tempreg,ref);
@@ -525,7 +525,7 @@ unit cg64f32;
                end
              else
                begin
-                 hreg := cg.get_scratch_reg_int(list);
+                 hreg := cg.get_scratch_reg_int(list,OS_INT);
                  got_scratch := true;
                  a_load64high_ref_reg(list,p.location.reference,hreg);
                end;
@@ -573,7 +573,7 @@ unit cg64f32;
                    end
                  else
                    begin
-                     hreg := cg.get_scratch_reg_int(list);
+                     hreg := cg.get_scratch_reg_int(list,OS_INT);
                      got_scratch := true;
                      a_load64low_ref_reg(list,p.location.reference,hreg);
                    end;
@@ -627,7 +627,7 @@ unit cg64f32;
                  end
                else
                  begin
-                   hreg := cg.get_scratch_reg_int(list);
+                   hreg := cg.get_scratch_reg_int(list,OS_INT);
                    got_scratch := true;
 
                    opsize := def_cgsize(p.resulttype.def);
@@ -752,7 +752,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2003-01-08 18:43:56  daniel
+  Revision 1.35  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.34  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.33  2003/01/05 13:36:53  florian

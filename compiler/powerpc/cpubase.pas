@@ -115,13 +115,18 @@ uses
         R_INTREGISTER {Only for use by the register allocator.}
       );
 
+      Tnewregister=word;
+      Tsuperregister=byte;
+      Tsubregister=byte;
+
       Tregister=record
         enum:Toldregister;
-        number:word;
+        number:Tnewregister;
       end;
 
       {# Set type definition for registers }
       tregisterset = set of Toldregister;
+      Tsupregset=set of Tsuperregister;
 
       { A type to store register locations for 64 Bit values. }
       tregister64 = packed record
@@ -212,6 +217,26 @@ uses
       NR_R24 = $1900; NR_R25 = $1A00; NR_R26 = $1B00;
       NR_R27 = $1C00; NR_R28 = $1D00; NR_R29 = $1E00;
       NR_R30 = $1F00; NR_R31 = $2000;
+
+    {Super registers:}
+      RS_R0 = $01; RS_R1 = $02; RS_R2 = $03;
+      RS_R3 = $04; RS_R4 = $05; RS_R5 = $06;
+      RS_R6 = $07; RS_R7 = $08; RS_R8 = $09;
+      RS_R9 = $0A; RS_R10 = $0B; RS_R11 = $0C;
+      RS_R12 = $0D; RS_R13 = $0E; RS_R14 = $0F;
+      RS_R15 = $10; RS_R16 = $11; RS_R17 = $12;
+      RS_R18 = $13; RS_R19 = $14; RS_R20 = $15;
+      RS_R21 = $16; RS_R22 = $17; RS_R23 = $18;
+      RS_R24 = $19; RS_R25 = $1A; RS_R26 = $1B;
+      RS_R27 = $1C; RS_R28 = $1D; RS_R29 = $1E;
+      RS_R30 = $1F; RS_R31 = $20;
+
+      first_supreg = $00;
+      last_supreg = $20;
+
+    {Subregisters, situation unknown!!.}
+      R_SUBWHOLE=$00;
+      R_SUBL=$00;
 
 
 {*****************************************************************************
@@ -473,8 +498,10 @@ uses
       {# Constant defining possibly all registers which might require saving }
 {$warning FIX ME !!!!!!!!! }
       ALL_REGISTERS = [R_0..R_FPSCR];
+      ALL_INTREGISTERS = [1..255];
 
       general_registers = [R_0..R_31];
+      general_superregisters = [RS_R0..RS_R31];
 
       {# low and high of the available maximum width integer general purpose }
       { registers                                                            }
@@ -500,7 +527,7 @@ uses
 
       maxintregs = 18;
       intregs    = [R_0..R_31];
-      usableregsint = [R_13..R_27];
+      usableregsint = [RS_R13..RS_R27];
       c_countusableregsint = 18;
 
       maxfpuregs = 31-14+1;
@@ -519,8 +546,8 @@ uses
       c_countusableregsaddr = 0;
       
 
-      firstsaveintreg = R_13;
-      lastsaveintreg  = R_27;
+      firstsaveintreg = RS_R13;
+      lastsaveintreg  = RS_R27;
       firstsavefpureg = R_F14;
       lastsavefpureg  = R_F31;
       { no altivec support yet. Need to override tcgobj.a_loadmm_* first in tcgppc }
@@ -553,7 +580,7 @@ uses
          routine calls or in assembler blocks.
       }
       max_scratch_regs = 3;
-      scratch_regs: Array[1..max_scratch_regs] of Toldregister = (R_28,R_29,R_30);
+      scratch_regs: Array[1..max_scratch_regs] of Tsuperregister = (RS_R28,RS_R29,RS_R30);
 
 {*****************************************************************************
                           Default generic sizes
@@ -631,11 +658,17 @@ uses
 
       {# Stack pointer register }
       stack_pointer_reg = R_1;
+      NR_STACK_POINTER_REG = NR_R1;
+      RS_STACK_POINTER_REG = RS_R1;
       {# Frame pointer register }
       frame_pointer_reg = stack_pointer_reg;
+      NR_FRAME_POINTER_REG = NR_STACK_POINTER_REG;
+      RS_FRAME_POINTER_REG = RS_STACK_POINTER_REG;
       {# Self pointer register : contains the instance address of an
          object or class. }
       self_pointer_reg  = R_9;
+      NR_SELF_POINTER_REG = NR_R9;
+      RS_SELF_POINTER_REG = RS_R9;
       {# Register for addressing absolute data in a position independant way,
          such as in PIC code. The exact meaning is ABI specific. For
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
@@ -646,16 +679,22 @@ uses
       pic_offset_reg = R_30;
       {# Results are returned in this register (32-bit values) }
       accumulator   = R_3;
+      NR_ACCUMULATOR = NR_R3;
+      RS_ACCUMULATOR = RS_R3;
   {the return_result_reg, is used inside the called function to store its return
   value when that is a scalar value otherwise a pointer to the address of the
   result is placed inside it}
         return_result_reg               =       accumulator;
+      NR_RETURN_RESULT_REG = NR_ACCUMULATOR;
+      RS_RETURN_RESULT_REG = RS_ACCUMULATOR;
 
   {the function_result_reg contains the function result after a call to a scalar
   function othewise it contains a pointer to the returned result}
         function_result_reg     =       accumulator;
       {# Hi-Results are returned in this register (64-bit value high register) }
       accumulatorhigh = R_4;
+      NR_ACCUMULATORHIGH = NR_R4;
+      RS_ACCUMULATORHIGH = RS_R4;
       { WARNING: don't change to R_ST0!! See comments above implementation of }
       { a_loadfpu* methods in rgcpu (JM)                                      }
       fpu_result_reg = R_F1;
@@ -672,7 +711,7 @@ uses
          This value can be deduced from CALLED_USED_REGISTERS array in the
          GCC source.
       }
-      std_saved_registers = [R_13..R_29];
+      std_saved_registers = [RS_R13..RS_R29];
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined
          by GCC or the target ABI.
@@ -708,6 +747,7 @@ uses
     procedure create_cond_imm(BO,BI:byte;var r : TAsmCond);
     procedure create_cond_norm(cond: TAsmCondFlag; cr: byte;var r : TasmCond);
     procedure convert_register_to_enum(var r:Tregister);
+    function cgsize2subreg(s:Tcgsize):Tsubregister;
 
 implementation
 
@@ -825,10 +865,20 @@ implementation
         end;
     end;
 
+    function cgsize2subreg(s:Tcgsize):Tsubregister;
+
+    begin
+      cgsize2subreg:=R_SUBWHOLE;
+    end;
+
 end.
 {
   $Log$
-  Revision 1.43  2003-02-02 19:25:54  carl
+  Revision 1.44  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.43  2003/02/02 19:25:54  carl
     * Several bugfixes for m68k target (register alloc., opcode emission)
     + VIS target
     + Generic add more complete (still not verified)

@@ -68,11 +68,12 @@ implementation
       var
         intreg,
         r,hregister : tregister;
+        supreg:Tsuperregister;
         symtabletype : tsymtabletype;
         i : longint;
         href : treference;
         newsize : tcgsize;
-        pushed : tpushedsaved;
+        pushed : tpushedsavedint;
         dorelocatelab,
         norelocatelab : tasmlabel;
       begin
@@ -145,16 +146,19 @@ implementation
                        cg.a_loadaddr_ref_reg(exprasmlist,href,hregister);
                        cg.a_jmp_always(exprasmlist,norelocatelab);
                        cg.a_label(exprasmlist,dorelocatelab);
+                       if hregister.enum<>R_INTREGISTER then
+                         internalerror(200301171);
                        { don't save the allocated register else the result will be destroyed later }
-                       rg.saveusedregisters(exprasmlist,pushed,[accumulator]-[hregister.enum]);
+                       rg.saveusedintregisters(exprasmlist,pushed,[RS_ACCUMULATOR]-[hregister.number shr 8]);
                        reference_reset_symbol(href,objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname),0);
                        cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
                        { the called procedure isn't allowed to change }
                        { any register except EAX                    }
                        cg.a_call_reg(exprasmlist,hregister);
-                       r.enum:=accumulator;
+                       r.enum:=R_INTREGISTER;
+                       r.number:=NR_ACCUMULATOR;
                        cg.a_load_reg_reg(exprasmlist,OS_INT,OS_ADDR,r,hregister);
-                       rg.restoreusedregisters(exprasmlist,pushed);
+                       rg.restoreusedintregisters(exprasmlist,pushed);
                        cg.a_label(exprasmlist,norelocatelab);
                        location.reference.base:=hregister;
                     end
@@ -169,16 +173,18 @@ implementation
                                  location_reset(location,LOC_CFPUREGISTER,def_cgsize(resulttype.def));
                                  location.register:=tvarsym(symtableentry).reg;
                               end
-                            else
+                            else if Tvarsym(symtableentry).reg.enum=R_INTREGISTER then
                              begin
-                               intreg:=rg.makeregsize(tvarsym(symtableentry).reg,OS_INT);
-                               if (intreg.enum in general_registers) and
-                                  (not rg.regvar_loaded[intreg.enum]) then
+                               supreg:=Tvarsym(symtableentry).reg.number shr 8;
+                               if (supreg in general_superregisters) and
+                                  not (supreg in rg.regvar_loaded_int) then
                                  load_regvar(exprasmlist,tvarsym(symtableentry));
                                location_reset(location,LOC_CREGISTER,cg.reg_cgsize(tvarsym(symtableentry).reg));
                                location.register:=tvarsym(symtableentry).reg;
-                               exclude(rg.unusedregsint,intreg.enum);
-                             end;
+                               exclude(rg.unusedregsint,supreg);
+                             end
+                           else
+                             internalerror(200301172);
                          end
                        else
                          begin
@@ -246,8 +252,9 @@ implementation
                                      location.reference.symbol:=objectlibrary.newasmsymbol(tvarsym(symtableentry).mangledname)
                                    else
                                      begin
-                                        rg.getexplicitregisterint(exprasmlist,SELF_POINTER_REG);
-                                        location.reference.base.enum:=SELF_POINTER_REG;
+                                        rg.getexplicitregisterint(exprasmlist,NR_SELF_POINTER_REG);
+                                        location.reference.base.enum:=R_INTREGISTER;
+                                        location.reference.base.number:=NR_SELF_POINTER_REG;
                                         location.reference.offset:=tvarsym(symtableentry).address;
                                      end;
                                 end;
@@ -356,7 +363,7 @@ implementation
                       else
                         begin
                           { we don't use the hregister }
-                          rg.ungetregister(exprasmlist,hregister);
+                          rg.ungetregisterint(exprasmlist,hregister);
                           { load address of the function }
                           reference_reset_symbol(href,objectlibrary.newasmsymbol(tprocdef(resulttype.def).mangledname),0);
                           hregister:=cg.get_scratch_reg_address(exprasmlist);
@@ -392,6 +399,7 @@ implementation
          releaseright : boolean;
          pushedregs : tmaybesave;
          cgsize : tcgsize;
+         r:Tregister;
 
       begin
         otlabel:=truelabel;
@@ -522,7 +530,11 @@ implementation
                     case right.location.loc of
                       LOC_REGISTER,
                       LOC_CREGISTER :
-                        cg.a_load_reg_ref(exprasmlist,OS_8,rg.makeregsize(right.location.register,OS_8),href);
+                        begin
+                          r.enum:=R_INTREGISTER;
+                          r.number:=(right.location.register.number and not $ff) or R_SUBL;
+                          cg.a_load_reg_ref(exprasmlist,OS_8,r,href);
+                        end;
                       LOC_REFERENCE,
                       LOC_CREFERENCE :
                         cg.a_load_ref_ref(exprasmlist,OS_8,right.location.reference,href);
@@ -644,7 +656,7 @@ implementation
 {$ifdef cpuflags}
               LOC_FLAGS :
                 begin
-                  // this can be a wordbool or longbool too, no?
+                  {This can be a wordbool or longbool too, no?}
                   if left.location.loc=LOC_CREGISTER then
                     cg.g_flags2reg(exprasmlist,def_cgsize(left.resulttype.def),right.location.resflags,left.location.register)
                   else
@@ -902,7 +914,7 @@ implementation
                        location_force_mem(exprasmlist,hp.left.location);
                        tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                        cg.a_loadaddr_ref_reg(exprasmlist,hp.left.location.reference,tmpreg);
-                       cg.a_load_reg_ref(exprasmlist,cg.reg_cgsize(tmpreg),tmpreg,href);
+                       cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
                        cg.free_scratch_reg(exprasmlist,tmpreg);
                        location_release(exprasmlist,hp.left.location);
                        if freetemp then
@@ -960,7 +972,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2003-01-08 18:43:56  daniel
+  Revision 1.45  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.44  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.43  2003/01/05 22:44:14  peter

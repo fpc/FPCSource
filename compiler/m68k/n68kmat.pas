@@ -124,7 +124,7 @@ implementation
              location_force_reg(exprasmlist,left.location,def_cgsize(left.resulttype.def),false);
              location_copy(location,left.location);
              if location.loc=LOC_CREGISTER then
-              location.register := rg.getregisterint(exprasmlist);
+              location.register := rg.getregisterint(exprasmlist,opsize);
              { perform the NOT operation }
              cg.a_op_reg_reg(exprasmlist,OP_NOT,opsize,location.register,left.location.register);
           end;
@@ -159,8 +159,8 @@ implementation
      else
        begin
          { On MC68000/68010 mw must pass through RTL routines }
-         reg_d0:=rg.getexplicitregisterint(exprasmlist,R_D0);
-         reg_d1:=rg.getexplicitregisterint(exprasmlist,R_D1);
+         reg_d0:=rg.getexplicitregisterint(exprasmlist,NR_D0);
+         reg_d1:=rg.getexplicitregisterint(exprasmlist,NR_D1);
          { put numerator in d0 }
          cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,num,reg_d0);   
          { put denum in D1 }
@@ -192,7 +192,7 @@ implementation
          cg.a_call_name(exprasmlist,'FPC_HANDLEERROR');
          cg.a_label(exprasmlist, continuelabel);
 
-         tmpreg := cg.get_scratch_reg_int(exprasmlist);       
+         tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
 
          { we have to prepare the high register with the  }
          { correct sign. i.e we clear it, check if the low dword reg }
@@ -218,8 +218,8 @@ implementation
      else
        begin
          { On MC68000/68010 mw must pass through RTL routines }
-         Reg_d0:=rg.getexplicitregisterint(exprasmlist,R_D0);
-         Reg_d1:=rg.getexplicitregisterint(exprasmlist,R_D1);
+         Reg_d0:=rg.getexplicitregisterint(exprasmlist,NR_D0);
+         Reg_d1:=rg.getexplicitregisterint(exprasmlist,NR_D1);
          { put numerator in d0 }
          cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,num,Reg_D0);   
          { put denum in D1 }
@@ -242,7 +242,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-02-02 19:25:54  carl
+  Revision 1.6  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.5  2003/02/02 19:25:54  carl
     * Several bugfixes for m68k target (register alloc., opcode emission)
     + VIS target
     + Generic add more complete (still not verified)

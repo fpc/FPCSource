@@ -61,6 +61,57 @@ interface
         '%mm0','%mm1','%mm2','%mm3','%mm4','%mm5','%mm6','%mm7',
         '%xmm0','%xmm1','%xmm2','%xmm3','%xmm4','%xmm5','%xmm6','%xmm7'
        );
+       
+     regname_count=45;
+     regname_count_bsstart=32;
+     
+     gas_regname2regnum:array[0..regname_count-1] of regname2regnumrec=(
+        (name:'%ah';     number:NR_AH),
+        (name:'%al';     number:NR_AL),
+        (name:'%ax';     number:NR_AX),
+        (name:'%bh';     number:NR_BH),
+        (name:'%bl';     number:NR_BL),
+        (name:'%bp';     number:NR_BP),
+        (name:'%bx';     number:NR_BX),
+        (name:'%ch';     number:NR_CH),
+        (name:'%cl';     number:NR_CL),
+        (name:'%cs';     number:NR_CS),
+        (name:'%cr0';    number:NR_CR0),
+        (name:'%cr2';    number:NR_CR2),
+        (name:'%cr3';    number:NR_CR3),
+        (name:'%cr4';    number:NR_CR4),
+        (name:'%cx';     number:NR_CX),
+        (name:'%dh';     number:NR_DH),
+        (name:'%dl';     number:NR_DL),
+        (name:'%di';     number:NR_DI),
+        (name:'%dr0';    number:NR_DR0),
+        (name:'%dr1';    number:NR_DR1),
+        (name:'%dr2';    number:NR_DR2),
+        (name:'%dr3';    number:NR_DR3),
+        (name:'%dr6';    number:NR_DR6),
+        (name:'%dr7';    number:NR_DR7),
+        (name:'%ds';     number:NR_DS),
+        (name:'%dx';     number:NR_DX),
+        (name:'%eax';    number:NR_EAX),
+        (name:'%ebp';    number:NR_EBP),
+        (name:'%ebx';    number:NR_EBX),
+        (name:'%ecx';    number:NR_ECX),
+        (name:'%edi';    number:NR_EDI),
+        (name:'%edx';    number:NR_EDX),
+        (name:'%es';     number:NR_ES),
+        (name:'%esi';    number:NR_ESI),
+        (name:'%esp';    number:NR_ESP),
+        (name:'%fs';     number:NR_FS),
+        (name:'%gs';     number:NR_GS),
+        (name:'%si';     number:NR_SI),
+        (name:'%sp';     number:NR_SP),
+        (name:'%ss';     number:NR_SS),
+        (name:'%tr3';    number:NR_DR0),
+        (name:'%tr4';    number:NR_DR1),
+        (name:'%tr5';    number:NR_DR2),
+        (name:'%tr6';    number:NR_DR6),
+        (name:'%tr7';    number:NR_DR7)
+     );
 
      gas_opsize2str : array[topsize] of string[2] = ('',
        'b','w','l','bw','bl','wl',
@@ -68,6 +119,9 @@ interface
        's','l','t','d','q','v','',
        '','',''
      );
+
+     function gas_regnum_search(const s:string):Tnewregister;
+       
 
   implementation
 
@@ -251,6 +305,29 @@ interface
       end;
 
 
+     function gas_regnum_search(const s:string):Tnewregister;
+     
+     {Searches the register number that belongs to the register in s.
+      s must be in uppercase!.}
+     
+     var i,p:byte;
+     
+     begin
+        {Binary search.}
+        p:=0;
+        i:=regname_count_bsstart;
+        while i<>0 do
+          begin
+            if (p+i<regname_count) and (upper(gas_regname2regnum[p+i].name)<=s) then
+              p:=p+i;
+            i:=i shr 1;
+          end;
+        if upper(gas_regname2regnum[p].name)=s then
+          gas_regnum_search:=gas_regname2regnum[p].number
+        else
+          gas_regnum_search:=NR_NO;
+     end;
+
 {*****************************************************************************
                                   Initialize
 *****************************************************************************}
@@ -321,7 +398,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.29  2003-01-08 18:43:57  daniel
+  Revision 1.30  2003-02-19 22:00:15  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.29  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.28  2003/01/05 13:36:53  florian

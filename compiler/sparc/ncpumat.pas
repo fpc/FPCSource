@@ -95,12 +95,12 @@ implementation
          if (location.loc = LOC_CREGISTER) then
            begin
              location.loc := LOC_REGISTER;
-             location.register := rg.getregisterint(exprasmlist);
+             location.register := rg.getregisterint(exprasmlist,OS_INT);
              resultreg := location.register;
            end;
          if (nodetype = modn) then
            begin
-             resultreg := cg.get_scratch_reg_int(exprasmlist);
+             resultreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
            end;
 
          if (nodetype = divn) and
@@ -191,8 +191,8 @@ procedure tSparcshlshrnode.pass_2;
         then
           begin
             location.loc := LOC_REGISTER;
-            location.registerhigh := rg.getregisterint(exprasmlist);
-            location.registerlow := rg.getregisterint(exprasmlist);
+            location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
+            location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
           end;
         if (right.nodetype = ordconstn)
         then
@@ -254,7 +254,7 @@ procedure tSparcshlshrnode.pass_2;
                 location.registerlow := resultreg;
               end;
             r.enum:=R_G0;
-            rg.getexplicitregisterint(exprasmlist,R_G0);
+            rg.getexplicitregisterint(exprasmlist,NR_G0);
 {            exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,R_0,hregister1,32));
             exprasmlist.concat(taicpu.op_reg_reg_reg(asmop1,location.registerhigh,hregisterhigh,hregister1));
             exprasmlist.concat(taicpu.op_reg_reg_reg(asmop2,R_0,hregisterlow,R_0));
@@ -282,7 +282,7 @@ procedure tSparcshlshrnode.pass_2;
         then
           begin
             location.loc := LOC_REGISTER;
-            resultreg := rg.getregisterint(exprasmlist);
+            resultreg := rg.getregisterint(exprasmlist,OS_INT);
             location.register := resultreg;
           end;
         { determine operator }
@@ -323,8 +323,8 @@ procedure tSparcshlshrnode.pass_2;
              location_copy(location,left.location);
              if (location.loc = LOC_CREGISTER) then
                begin
-                 location.registerlow := rg.getregisterint(exprasmlist);
-                 location.registerhigh := rg.getregisterint(exprasmlist);
+                 location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+                 location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
                  location.loc := LOC_CREGISTER;
                end;
              exprasmlist.concat(taicpu.op_reg_const_reg(A_SUB,location.registerlow,0,left.location.registerlow));
@@ -347,7 +347,7 @@ procedure tSparcshlshrnode.pass_2;
                   begin
                      src1 := left.location.register;
                      if left.location.loc = LOC_CREGISTER then
-                       location.register := rg.getregisterint(exprasmlist)
+                       location.register := rg.getregisterint(exprasmlist,OS_INT)
                      else
                        location.register := rg.getregisterfpu(exprasmlist);
                   end;
@@ -363,7 +363,7 @@ procedure tSparcshlshrnode.pass_2;
                        end
                      else
                        begin
-                          src1 := rg.getregisterint(exprasmlist);
+                          src1 := rg.getregisterint(exprasmlist,OS_32);
                           location.register:= src1;
                           cg.a_load_ref_reg(exprasmlist,OS_32,
                             left.location.reference,src1);
@@ -464,7 +464,7 @@ begin
       location_copy(location,left.location);
       if location.loc=LOC_CREGISTER
       then
-        location.register := rg.getregisterint(exprasmlist);
+        location.register := rg.getregisterint(exprasmlist,OS_INT);
         { perform the NOT operation }
         exprasmlist.concat(taicpu.op_reg_reg(A_NOT,location.register,
         left.location.register));
@@ -478,7 +478,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2003-02-04 21:50:54  mazen
+  Revision 1.5  2003-02-19 22:00:17  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.4  2003/02/04 21:50:54  mazen
   * fixing internal errors related to notn when compiling RTL
 
   Revision 1.3  2003/01/08 18:43:58  daniel

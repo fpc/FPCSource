@@ -245,7 +245,7 @@ interface
             else
               begin
                 useconst := false;
-                tmpreg := cg.get_scratch_reg_int(exprasmlist);
+                tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
                 cg.a_load_const_reg(exprasmlist,OS_INT,
                   aword(right.location.value),tmpreg);
                end
@@ -563,7 +563,7 @@ interface
 
         if not(cmpop) and
            (location.register.enum = R_NO) then
-          location.register := rg.getregisterint(exprasmlist);
+          location.register := rg.getregisterint(exprasmlist,OS_INT);
 
         case nodetype of
           addn :
@@ -582,7 +582,7 @@ interface
                       left.location.register,location.register)
                   else
                     begin
-                      tmpreg := cg.get_scratch_reg_int(exprasmlist);
+                      tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
                       cg.a_load_const_reg(exprasmlist,OS_INT,1,tmpreg);
                       cg.a_op_reg_reg(exprasmlist,OP_SHL,OS_INT,
                         right.location.register,tmpreg);
@@ -622,7 +622,7 @@ interface
                 begin
                   if left.location.loc = LOC_CONSTANT then
                     begin
-                      tmpreg := cg.get_scratch_reg_int(exprasmlist);
+                      tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
                       cg.a_load_const_reg(exprasmlist,OS_INT,
                         aword(left.location.value),tmpreg);
                       exprasmlist.concat(taicpu.op_reg_reg_reg(A_ANDC,
@@ -649,7 +649,7 @@ interface
                   (nodetype = gten)) then
                 swapleftright;
               // now we have to check whether left >= right
-              tmpreg := cg.get_scratch_reg_int(exprasmlist);
+              tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
               if left.location.loc = LOC_CONSTANT then
                 begin
                   cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_INT,
@@ -897,11 +897,11 @@ interface
                       else
                         begin
                           if (aword(right.location.valueqword) <> 0) then
-                            tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist)
+                            tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist,OS_INT)
                           else
                             tempreg64.reglo := left.location.registerlow;
                           if ((right.location.valueqword shr 32) <> 0) then
-                            tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist)
+                            tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist,OS_INT)
                           else
                             tempreg64.reghi := left.location.registerhigh;
                         end;
@@ -932,8 +932,8 @@ interface
                     end
                   else
                     begin
-                       tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist);
-                       tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist);
+                       tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+                       tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist,OS_INT);
                        cg64.a_op64_reg_reg_reg(exprasmlist,OP_XOR,
                          left.location.register64,right.location.register64,
                          tempreg64);
@@ -956,8 +956,8 @@ interface
                 begin
                   if (location.registerlow.enum = R_NO) then
                     begin
-                      location.registerlow := rg.getregisterint(exprasmlist);
-                      location.registerhigh := rg.getregisterint(exprasmlist);
+                      location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+                      location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
                     end;
 
                   if (left.location.loc = LOC_CONSTANT) then
@@ -978,8 +978,8 @@ interface
                     begin
                       if (location.registerlow.enum = R_NO) then
                         begin
-                         location.registerlow := rg.getregisterint(exprasmlist);
-                         location.registerhigh := rg.getregisterint(exprasmlist);
+                         location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+                         location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
                       end;
                       if right.location.loc <> LOC_CONSTANT then
                         // reg64 - reg64
@@ -996,8 +996,8 @@ interface
                     begin
                       if (location.registerlow.enum = R_NO) then
                         begin
-                         location.registerlow := rg.getregisterint(exprasmlist);
-                         location.registerhigh := rg.getregisterint(exprasmlist);
+                         location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+                         location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
                       end;
                       if (int64(left.location.valueqword) >= low(smallint)) and
                          (int64(left.location.valueqword) <= high(smallint)) then
@@ -1024,8 +1024,8 @@ interface
                       // (const32 shl 32) - reg64
                       if (location.registerlow.enum = R_NO) then
                         begin
-                         location.registerlow := rg.getregisterint(exprasmlist);
-                         location.registerhigh := rg.getregisterint(exprasmlist);
+                         location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+                         location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
                       end;
                       exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBFIC,
                         location.registerlow,right.location.registerlow,0));
@@ -1044,8 +1044,8 @@ interface
                         location.register64 := left.location.register64
                       else if (location.registerlow.enum = R_NO) then
                         begin
-                         location.registerlow := rg.getregisterint(exprasmlist);
-                         location.registerhigh := rg.getregisterint(exprasmlist);
+                         location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+                         location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
                         end;
                       cg64.a_op64_reg_reg_reg(exprasmlist,OP_SUB,
                         right.location.register64,left.location.register64,
@@ -1370,7 +1370,7 @@ interface
 
          if (location.register.enum = R_NO) and
             not(cmpop) then
-           location.register := rg.getregisterint(exprasmlist);
+           location.register := rg.getregisterint(exprasmlist,OS_INT);
 
          if not(cs_check_overflow in aktlocalswitches) or
             (cmpop) or
@@ -1428,7 +1428,7 @@ interface
                        end
                      else
                        begin
-                         tmpreg := cg.get_scratch_reg_int(exprasmlist);
+                         tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
                          cg.a_load_const_reg(exprasmlist,OS_INT,
                            aword(left.location.value),tmpreg);
                          cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,OS_INT,
@@ -1468,7 +1468,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2003-01-08 18:43:58  daniel
+  Revision 1.22  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.21  2003/01/08 18:43:58  daniel
    * Tregister changed into a record
 
   Revision 1.20  2002/11/25 17:43:27  peter

@@ -1131,9 +1131,13 @@ Begin
                                           Taicpu(hp2).LoadRef(1,Taicpu(hp2).oper[0].ref^);
                                           Taicpu(hp2).LoadReg(0,Taicpu(p).oper[1].reg);
                                           allocRegBetween(asmL,Taicpu(p).oper[1].reg,p,hp2);
-                                          if (Taicpu(p).oper[0].ref^.base.enum in (rg.usableregsint+[R_EDI])) then
+{                                          if (Taicpu(p).oper[0].ref^.base.enum in (rg.usableregsint+[R_EDI])) then
                                             allocRegBetween(asmL,Taicpu(p).oper[0].ref^.base,p,hp2);
                                           if (Taicpu(p).oper[0].ref^.index.enum in (rg.usableregsint+[R_EDI])) then
+                                            allocRegBetween(asmL,Taicpu(p).oper[0].ref^.index,p,hp2);}
+                                          if (Taicpu(p).oper[0].ref^.base.enum in [R_ESI,R_EDI]) then
+                                            allocRegBetween(asmL,Taicpu(p).oper[0].ref^.base,p,hp2);
+                                          if (Taicpu(p).oper[0].ref^.index.enum in [R_ESI,R_EDI]) then
                                             allocRegBetween(asmL,Taicpu(p).oper[0].ref^.index,p,hp2);
                                         End
                                       Else
@@ -2050,7 +2054,11 @@ End.
 
 {
   $Log$
-  Revision 1.36  2003-01-08 18:43:57  daniel
+  Revision 1.37  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.36  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.35  2002/11/15 16:30:54  peter

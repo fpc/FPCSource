@@ -211,15 +211,16 @@ interface
         tmpreg : tregister;
         opdone,
         cmpop  : boolean;
+        size:Tcgsize;
       begin
 
 
         opdone := false;
-        
-        location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+        size:=def_cgsize(resulttype.def);
+        location_reset(location,LOC_REGISTER,size);
 
         if  (location.register.enum = R_NO) then
-          location.register := rg.getregisterint(exprasmlist);
+          location.register := rg.getregisterint(exprasmlist,size);
 
         case nodetype of
           addn :
@@ -238,7 +239,7 @@ interface
                       left.location.register,location.register)
                   else
                     begin
-                      tmpreg := cg.get_scratch_reg_int(exprasmlist);
+                      tmpreg := cg.get_scratch_reg_int(exprasmlist,size);
                       cg.a_load_const_reg(exprasmlist,OS_INT,1,tmpreg);
                       cg.a_op_reg_reg(exprasmlist,OP_SHL,OS_INT,
                         right.location.register,tmpreg);
@@ -278,7 +279,7 @@ interface
                 begin
                   if left.location.loc = LOC_CONSTANT then
                     begin
-                      tmpreg := cg.get_scratch_reg_int(exprasmlist);
+                      tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
                       cg.a_load_const_reg(exprasmlist,OS_INT,
                         aword(left.location.value),tmpreg);
                       cg.a_op_reg_reg(exprasmlist,OP_NOT,OS_INT,right.location.register,right.location.register);
@@ -544,8 +545,8 @@ interface
                 begin
                   if (location.registerlow.enum = R_NO) then
                     begin
-                      location.registerlow := rg.getregisterint(exprasmlist);
-                      location.registerhigh := rg.getregisterint(exprasmlist);
+                      location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+                      location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
                     end;
 
                   if (left.location.loc = LOC_CONSTANT) then
@@ -566,8 +567,8 @@ interface
                     begin
                       if (location.registerlow.enum = R_NO) then
                         begin
-                         location.registerlow := rg.getregisterint(exprasmlist);
-                         location.registerhigh := rg.getregisterint(exprasmlist);
+                         location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+                         location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
                       end;
                       if right.location.loc <> LOC_CONSTANT then
                         // reg64 - reg64
@@ -589,8 +590,8 @@ interface
                         location.register64 := left.location.register64
                       else if (location.registerlow.enum = R_NO) then
                         begin
-                         location.registerlow := rg.getregisterint(exprasmlist);
-                         location.registerhigh := rg.getregisterint(exprasmlist);
+                         location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+                         location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
                         end;
                       cg64.a_op64_reg_reg_reg(exprasmlist,OP_SUB,
                         right.location.register64,left.location.register64,
@@ -625,9 +626,11 @@ interface
       checkoverflow : boolean;
       cgop : topcg;
       tmpreg : tregister;
+      size:Tcgsize;
      begin
+       size:=def_cgsize(resulttype.def);
        { set result location }
-       location_reset(location,LOC_REGISTER,def_cgsize(resulttype.def));
+       location_reset(location,LOC_REGISTER,size);
 
        { determine if the comparison will be unsigned }
        unsigned:=not(is_signed(left.resulttype.def)) or
@@ -638,7 +641,7 @@ interface
           (nodetype in [addn,subn,muln]));
 
        if (location.register.enum = R_NO) then
-         location.register := rg.getregisterint(exprasmlist);
+         location.register := rg.getregisterint(exprasmlist,OS_INT);
 
        { assume no overflow checking is require }
        checkoverflow := false;
@@ -706,7 +709,7 @@ interface
            end
          else
            begin
-             tmpreg := cg.get_scratch_reg_int(exprasmlist);
+             tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
              cg.a_load_const_reg(exprasmlist,OS_INT,
                aword(left.location.value),tmpreg);
              cg.a_op_reg_reg_reg(exprasmlist,OP_SUB,OS_INT,
@@ -815,7 +818,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2003-02-02 19:25:54  carl
+  Revision 1.6  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.5  2003/02/02 19:25:54  carl
     * Several bugfixes for m68k target (register alloc., opcode emission)
     + VIS target
     + Generic add more complete (still not verified)

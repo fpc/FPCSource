@@ -79,16 +79,22 @@ uses
 
       {# Set type definition for registers }
       tregisterset = set of Toldregister;
+      Tnewregister=word;
       
       tregister=record
         enum:toldregister;
-        number:word;
+        number:Tnewregister;
       end;
 
       { A type to store register locations for 64 Bit values. }
       tregister64 = packed record
         reglo,reghi : tregister;
       end;
+
+      Tsuperregister=byte;
+      Tsubregister=byte;
+
+      Tsupregset=set of Tsuperregister;
 
       { alias for compact code }
       treg64 = tregister64;
@@ -108,11 +114,27 @@ uses
       NR_R3 = $0400; NR_R4 = $0500; NR_R5 = $0600;
       NR_R6 = $0700; NR_R7 = $0800; NR_R8 = $0900;
       NR_R9 = $0A00; NR_R10 = $0B00; NR_R11 = $0C00;
+      NR_SP = $0D00; NR_FP = $0E00;
+
+    {Super registers:}
+      RS_R0 = $01; RS_R1 = $02; RS_R2 = $03;
+      RS_R3 = $04; RS_R4 = $05; RS_R5 = $06;
+      RS_R6 = $07; RS_R7 = $08; RS_R8 = $09;
+      RS_R9 = $0A; RS_R10 = $0B; RS_R11 = $0C;
+      RS_SP = $0D; RS_FP = $0E;
+
+    {Subregisters:}
+      R_SUBL = $00;
+      R_SUBW = $01;
+      R_SUBD = $02;
 
       {# First register in the tregister enumeration }
       firstreg = low(toldregister);
       {# Last register in the tregister enumeration }
       lastreg  = high(toldregister);
+
+      first_supreg = $01;
+      last_supreg = $0c;
 
 
       std_reg2str : treg2strtable = ('',
@@ -415,7 +437,7 @@ uses
          routine calls or in assembler blocks.
       }
       max_scratch_regs = 2;
-      scratch_regs: Array[1..max_scratch_regs] of toldregister = (R_R0,R_R1);
+      scratch_regs: Array[1..max_scratch_regs] of Tsuperregister = (RS_R0,RS_R1);
 
 {*****************************************************************************
                           Default generic sizes
@@ -462,17 +484,25 @@ uses
 
       {# Stack pointer register }
       stack_pointer_reg = R_SP;
+      NR_STACK_POINTER_REG = NR_SP;
+      RS_STACK_POINTER_REG = RS_SP;
       {# Frame pointer register }
       frame_pointer_reg = R_FP;
+      NR_FRAME_POINTER_REG = NR_FP;
+      RS_FRAME_POINTER_REG = RS_FP;
       {# Self pointer register : contains the instance address of an
          object or class. }
       self_pointer_reg  = R_R11;
+      NR_SELF_POINTER_REG = NR_R11;
+      RS_SELF_POINTER_REG = RS_R11;
       {# Register for addressing absolute data in a position independant way,
          such as in PIC code. The exact meaning is ABI specific. 
       }
       pic_offset_reg = R_R10;
       {# Results are returned in this register (32-bit values) }
       accumulator   = R_R0;
+      NR_ACCUMULATOR = NR_R0;
+      RS_ACCUMULATOR = RS_R0;
   {the return_result_reg, is used inside the called function to store its return
   value when that is a scalar value otherwise a pointer to the address of the
   result is placed inside it}
@@ -483,6 +513,8 @@ uses
     function_result_reg =   accumulator;
       {# Hi-Results are returned in this register (64-bit value high register) }
       accumulatorhigh = R_R1;
+      NR_ACCUMULATORHIGH = NR_R1;
+      RS_ACCUMULATORHIGH = RS_R1;
       fpu_result_reg = R_FP0;
       mmresultreg = R_NO;
 
@@ -497,7 +529,7 @@ uses
          This value can be deduced from CALLED_USED_REGISTERS array in the
          GCC source.
       }
-      std_saved_registers = [R_R0,R_R1,R_R10,R_R11];
+      std_saved_registers = [RS_R0,RS_R1,RS_R10,RS_R11];
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined
          by GCC or the target ABI.
@@ -517,6 +549,7 @@ uses
     procedure inverse_flags(var r : TResFlags);
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
     procedure convert_register_to_enum(var r:Tregister);
+    function cgsize2subreg(s:Tcgsize):Tsubregister;
 
 
 implementation
@@ -592,11 +625,30 @@ implementation
         end;
     end;
 
+    function cgsize2subreg(s:Tcgsize):Tsubregister;
+
+    begin
+      case s of
+        OS_8,OS_S8:
+          cgsize2subreg:=R_SUBL;
+        OS_16,OS_S16:
+          cgsize2subreg:=R_SUBW;
+        OS_32,OS_S32:
+          cgsize2subreg:=R_SUBD;
+        else
+          internalerror(200301231);
+      end;
+    end;
+
 
 end.
 {
   $Log$
-  Revision 1.4  2003-02-02 19:25:54  carl
+  Revision 1.5  2003-02-19 22:00:17  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.4  2003/02/02 19:25:54  carl
     * Several bugfixes for m68k target (register alloc., opcode emission)
     + VIS target
     + Generic add more complete (still not verified)

@@ -47,7 +47,7 @@ Interface
 {$i fpcdefs.inc}
 
 Uses
-  node;
+  node,cpubase;
 
    function assemble: tnode;
 
@@ -62,7 +62,7 @@ Implementation
        globtype,globals,verbose,
        systems,
        { aasm }
-       cpubase,cpuinfo,aasmbase,aasmtai,aasmcpu,
+       cpuinfo,aasmbase,aasmtai,aasmcpu,
        { symtable }
        symconst,symbase,symtype,symsym,symtable,
        { pass 1 }
@@ -92,6 +92,28 @@ var
  { uppercased tables of registers }
  iasmregs: array[firstasmreg..lastasmreg] of string[6];
 
+const
+  regname_count=17;
+  regname_count_bsstart=16;
+
+  regname2regnum:array[0..regname_count-1] of regname2regnumrec=(
+    (name:'A0';     number:NR_A0),
+    (name:'A1';     number:NR_A1),
+    (name:'A2';     number:NR_A2),
+    (name:'A3';     number:NR_A3),
+    (name:'A4';     number:NR_A4),
+    (name:'A5';     number:NR_A5),
+    (name:'A6';     number:NR_A6),
+    (name:'A7';     number:NR_A7),
+    (name:'D0';     number:NR_D0),
+    (name:'D1';     number:NR_D1),
+    (name:'D2';     number:NR_D2),
+    (name:'D3';     number:NR_D3),
+    (name:'D4';     number:NR_D4),
+    (name:'D5';     number:NR_D5),
+    (name:'D6';     number:NR_D6),
+    (name:'D7';     number:NR_D7),
+    (name:'SP';     number:NR_A7));
 
 type
  tasmtoken = (
@@ -157,6 +179,28 @@ var
   {                     Routines for the tokenizing                     }
   {---------------------------------------------------------------------}
 
+    function regnum_search(const s:string):Tnewregister;
+
+    {Searches the register number that belongs to the register in s.
+     s must be in uppercase!.}
+
+    var i,p:byte;
+
+    begin
+      {Binary search.}
+      p:=0;
+      i:=regname_count_bsstart;
+      while i<>0 do
+        begin
+          if (p+i<regname_count) and (upper(regname2regnum[p+i].name)<=s) then
+            p:=p+i;
+          i:=i shr 1;
+        end;
+      if upper(regname2regnum[p].name)=s then
+        regnum_search:=regname2regnum[p].number
+      else
+        regnum_search:=NR_NO;
+   end;
 
    function is_asmopcode(s: string):Boolean;
   {*********************************************************************}
@@ -213,24 +257,29 @@ var
   {  Description: Determines if the s string is a valid register, if    }
   {  so return token equal to A_REGISTER, otherwise does not change token}
   {*********************************************************************}
-   Var
-    i: tregister;
-   Begin
-     for i.enum:=firstasmreg to lastasmreg do
-     begin
-      if s=iasmregs[i.enum] then
-      begin
-        token := AS_REGISTER;
-        exit;
-      end;
-     end;
-     { take care of other name for sp }
-     if s = 'A7' then
-     begin
-      token:=AS_REGISTER;
-      exit;
-     end;
-   end;
+    var
+     i: tregister;
+    begin
+      if regnum_search(s)=NR_NO then
+        begin
+          for i.enum:=firstasmreg to lastasmreg do
+            begin
+              if s=iasmregs[i.enum] then
+                begin
+                  token := AS_REGISTER;
+                  exit;
+                end;
+            end;
+          { take care of other name for sp }
+          if s = 'A7' then
+            begin
+              token:=AS_REGISTER;
+              exit;
+            end;
+        end
+      else
+        token:=AS_REGISTER;
+    end;
 
 
 
@@ -577,22 +626,29 @@ var
   {  Description: Determines if the s string is a valid register,       }
   {  if so returns correct tregister token, or R_NO if not found.       }
   {*********************************************************************}
-   var
-    i: tregister;
-   begin
-     findregister.enum := R_NO;
-     for i.enum:=firstasmreg to lastasmreg do
-       if s = iasmregs[i.enum] then
-       Begin
-         findregister := i;
-         exit;
-       end;
-    if s = 'A7' then
-    Begin
-      findregister.enum := R_SP;
-      exit;
+    var
+      i: tregister;
+    begin
+      i.enum:=R_INTREGISTER;
+      i.number:=regnum_search(s);
+      if i.number=NR_NO then
+        begin
+          findregister.enum := R_NO;
+          for i.enum:=firstasmreg to lastasmreg do
+            if s = iasmregs[i.enum] then
+              begin
+                findregister := i;
+                exit;
+              end;
+          if s = 'A7' then
+            begin
+              findregister.enum := R_SP;
+              exit;
+            end;
+        end
+      else
+        findregister:=i;
     end;
-   end;
 
 
    function findopcode(s: string; var opsize: topsize): tasmop;
@@ -1363,11 +1419,12 @@ type
     expr: string;
     lab: tasmlabel;
     l : longint;
-    i: tregister;
+    i: Tsuperregister;
+    r:Tregister;
     hl: tasmlabel;
     reg_one, reg_two: tregister;
-    reglist: Tregisterset;
-  Begin
+    reglist: Tsupregset;
+  begin
    reglist := [];
    tempstr := '';
    expr := '';
@@ -1529,7 +1586,10 @@ type
                    { // Individual register listing // }
                    if (actasmtoken = AS_SLASH) then
                    Begin
-                     reglist := [findregister(tempstr).enum];
+                     r:=findregister(tempstr);
+                     if r.enum<>R_INTREGISTER then
+                       internalerror(200302191);
+                     reglist := [r.number shr 8];
                      Consume(AS_SLASH);
                      if actasmtoken = AS_REGISTER then
                      Begin
@@ -1537,7 +1597,10 @@ type
                        Begin
                          case actasmtoken of
                           AS_REGISTER: Begin
-                                        reglist := reglist + [findregister(actasmpattern).enum];
+                                        r:=findregister(tempstr);
+                                        if r.enum<>R_INTREGISTER then
+                                          internalerror(200302191);
+                                        reglist := reglist + [r.number shr 8];
                                         Consume(AS_REGISTER);
                                        end;
                           AS_SLASH: Consume(AS_SLASH);
@@ -1576,16 +1639,14 @@ type
                      Begin
                       { determine the register range ... }
                       reg_two:=findregister(actasmpattern);
+                      if reg_two.enum<>R_INTREGISTER then
+                        internalerror(200302191);
                       if reg_one.enum > reg_two.enum then
-                      begin
-                       for i.enum:=reg_two.enum to reg_one.enum do
-                         reglist := reglist + [i.enum];
-                      end
+                       for i:=reg_two.number shr 8 to reg_one.number shr 8 do
+                         reglist:=reglist+[i]
                       else
-                      Begin
-                       for i.enum:=reg_one.enum to reg_two.enum do
-                         reglist := reglist + [i.enum];
-                      end;
+                       for i:=reg_one.number shr 8 to reg_two.number shr 8 do
+                         reglist:=reglist+[i];
                       Consume(AS_REGISTER);
                       if not (actasmtoken in [AS_SEPARATOR,AS_COMMA]) then
                       Begin
@@ -2208,7 +2269,11 @@ Begin
 end.
 {
   $Log$
-  Revision 1.12  2003-02-12 22:11:13  carl
+  Revision 1.13  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.12  2003/02/12 22:11:13  carl
     * some small m68k bugfixes
 
   Revision 1.11  2003/01/08 18:43:57  daniel

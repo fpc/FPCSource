@@ -291,21 +291,25 @@ implementation
           OT_BITS32,OT_BITS64,OT_BITS80,OT_BITS64,OT_BITS64,OT_BITS64,OT_NONE,
           OT_NEAR,OT_FAR,OT_SHORT
          )
-       );
+      );
 
-       { Convert reg to operand type }
-       reg2type : array[firstreg..lastreg] of longint = (OT_NONE,
-         OT_REG_EAX,OT_REG_ECX,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,
-         OT_REG_AX,OT_REG_CX,OT_REG_DX,OT_REG16,OT_REG16,OT_REG16,OT_REG16,OT_REG16,
-         OT_REG_AL,OT_REG_CL,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,
-         OT_REG_CS,OT_REG_DESS,OT_REG_DESS,OT_REG_DESS,OT_REG_FSGS,OT_REG_FSGS,
-         OT_FPU0,OT_FPU0,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,
-         OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,
-         OT_REG_CREG,OT_REG_CREG,OT_REG_CREG,OT_REG_CR4,
-         OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,
-         OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,
-         OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG
-       );
+      subreg2type:array[R_SUBL..R_SUBD] of longint = (
+        OT_REG8,OT_REG8,OT_REG16,OT_REG32
+      );
+
+      { Convert reg to operand type }
+      reg2type : array[firstreg..lastreg] of longint = (OT_NONE,
+        OT_REG_EAX,OT_REG_ECX,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,
+        OT_REG_AX,OT_REG_CX,OT_REG_DX,OT_REG16,OT_REG16,OT_REG16,OT_REG16,OT_REG16,
+        OT_REG_AL,OT_REG_CL,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,
+        OT_REG_CS,OT_REG_DESS,OT_REG_DESS,OT_REG_DESS,OT_REG_FSGS,OT_REG_FSGS,
+        OT_FPU0,OT_FPU0,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,
+        OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,
+        OT_REG_CREG,OT_REG_CREG,OT_REG_CREG,OT_REG_CR4,
+        OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,OT_REG_TREG,
+        OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,OT_MMXREG,
+        OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG,OT_XMMREG
+      );
 
 
 {****************************************************************************
@@ -393,7 +397,6 @@ implementation
     constructor taicpu.op_reg(op : tasmop;_size : topsize;_op1 : tregister);
       begin
          inherited create(op);
-         init(_size);
          ops:=1;
          loadreg(0,_op1);
       end;
@@ -831,6 +834,7 @@ implementation
       }
       var
         i,l,relsize : longint;
+        nb,ni:boolean;
       begin
         if ops=0 then
          exit;
@@ -841,25 +845,57 @@ implementation
             case typ of
               top_reg :
                 begin
-                  if reg.enum>lastreg then
-                    internalerror(200301081);
-                  ot:=reg2type[reg.enum];
+                  if reg.enum=R_INTREGISTER then
+                    case reg.number of
+                      NR_AL:
+                        ot:=OT_REG_AL;
+                      NR_AX:
+                        ot:=OT_REG_AX;
+                      NR_EAX:
+                        ot:=OT_REG_EAX;
+                      NR_CL:
+                        ot:=OT_REG_CL;
+                      NR_CX:
+                        ot:=OT_REG_CX;
+                      NR_ECX:
+                        ot:=OT_REG_ECX;
+                      NR_DX:
+                        ot:=OT_REG_DX;
+                      NR_CS:
+                        ot:=OT_REG_CS;
+                      NR_DS,NR_ES,NR_SS:
+                        ot:=OT_REG_DESS;
+                      NR_FS,NR_GS:
+                        ot:=OT_REG_FSGS;
+                      NR_DR0..NR_DR7:
+                        ot:=OT_REG_DREG;
+                      NR_CR0..NR_CR3:
+                        ot:=OT_REG_CREG;
+                      NR_CR4:
+                        ot:=OT_REG_CR4;
+                      NR_TR3..NR_TR7:
+                        ot:=OT_REG_TREG;
+                      else
+                        ot:=subreg2type[reg.number and $ff];
+                    end
+                  else
+                    ot:=reg2type[reg.enum];
                 end;
               top_ref :
                 begin
-                  if ref^.base.enum>lastreg then
-                    internalerror(200301081);
-                  if ref^.index.enum>lastreg then
-                    internalerror(200301081);
+                  nb:=(ref^.base.enum=R_NO) or
+                     ((ref^.base.enum=R_INTREGISTER) and (ref^.base.number=NR_NO));
+                  ni:=(ref^.index.enum=R_NO) or
+                     ((ref^.index.enum=R_INTREGISTER) and (ref^.index.number=NR_NO));
                 { create ot field }
                   if (ot and OT_SIZE_MASK)=0 then
                     ot:=OT_MEMORY or opsize_2_type[i,opsize]
                   else
                     ot:=OT_MEMORY or (ot and OT_SIZE_MASK);
-                  if (ref^.base.enum=R_NO) and (ref^.index.enum=R_NO) then
+                  if nb and ni then
                     ot:=ot or OT_MEM_OFFS;
                 { fix scalefactor }
-                  if (ref^.index.enum=R_NO) then
+                  if ni then
                    ref^.scalefactor:=0
                   else
                    if (ref^.scalefactor=0) then
@@ -1087,9 +1123,7 @@ implementation
            if m=100 then
             begin
               InsSize:=calcsize(insentry);
-              if segprefix.enum>lastreg then
-                internalerror(200301081);
-              if (segprefix.enum<>R_NO) then
+              if not((segprefix.enum=R_NO) or ((segprefix.enum=R_INTREGISTER) and (segprefix.number=NR_NO))) then
                inc(InsSize);
               { For opsize if size if forced }
               if (insentry^.flags and (IF_SB or IF_SW or IF_SD))<>0 then
@@ -1197,25 +1231,35 @@ implementation
       end;
 
 
-    function taicpu.NeedAddrPrefix(opidx:byte):boolean;
-      var
-        i,b : Toldregister;
-      begin
-        if (OT_MEMORY and (not oper[opidx].ot))=0 then
-         begin
-           i:=oper[opidx].ref^.index.enum;
-           b:=oper[opidx].ref^.base.enum;
-           if (i>lastreg) or (b>lastreg) then
-              internalerror(200201081);
-           if not(i in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) or
-              not(b in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]) then
+    function taicpu.needaddrprefix(opidx:byte):boolean;
+
+    var i,b:Tnewregister;
+        ia,ba:boolean;
+
+    begin
+      needaddrprefix:=false;
+      if (OT_MEMORY and (not oper[opidx].ot))=0 then
+        begin
+          if oper[opidx].ref^.index.enum=R_INTREGISTER then
             begin
-              NeedAddrPrefix:=true;
-              exit;
-            end;
-         end;
-        NeedAddrPrefix:=false;
-      end;
+              i:=oper[opidx].ref^.index.number;
+              ia:=(i<>NR_NO) and (i and $ff<>R_SUBD);
+            end
+          else
+            ia:=not(oper[opidx].ref^.index.enum in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]);
+          if oper[opidx].ref^.base.enum=R_INTREGISTER then
+            begin
+              b:=oper[opidx].ref^.base.number;
+              ba:=(b<>NR_NO) and (b and $ff<>R_SUBD);
+            end
+          else
+            ba:=not(oper[opidx].ref^.base.enum in [R_NO,R_EAX,R_EBX,R_ECX,R_EDX,R_EBP,R_ESP,R_ESI,R_EDI]);
+          b:=oper[opidx].ref^.base.number;
+          i:=oper[opidx].ref^.index.number;
+          if ia or ba then
+            needaddrprefix:=true;
+        end;
+    end;
 
 
     function regval(r:tregister):byte;
@@ -1265,15 +1309,19 @@ implementation
         md,s  : byte;
         base,index,scalefactor,
         o     : longint;
+        ireg  : Tregister;
+        ir,br : Tregister;
       begin
         process_ea:=false;
       { register ? }
         if (input.typ=top_reg) then
          begin
+           ireg:=input.reg;
+           convert_register_to_enum(ireg);
            j:=0;
            while (j<=high(regs)) do
             begin
-              if input.reg.enum=regs[j] then
+              if ireg.enum=regs[j] then
                break;
               inc(j);
             end;
@@ -1288,8 +1336,12 @@ implementation
            exit;
          end;
       { memory reference }
-        i:=input.ref^.index.enum;
-        b:=input.ref^.base.enum;
+        ir:=input.ref^.index;
+        br:=input.ref^.base;
+        convert_register_to_enum(ir);
+        convert_register_to_enum(br);
+        i:=ir.enum;
+        b:=br.enum;
         if (i>lastreg) or (b>lastreg) then
           internalerror(200301081);
         s:=input.ref^.scalefactor;
@@ -1896,7 +1948,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2003-01-09 20:40:59  daniel
+  Revision 1.12  2003-02-19 22:00:15  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.11  2003/01/09 20:40:59  daniel
     * Converted some code in cgx86.pas to new register numbering
 
   Revision 1.10  2003/01/08 18:43:57  daniel

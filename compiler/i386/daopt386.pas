@@ -434,7 +434,7 @@ begin
           end;
     end;
   for regCounter := R_EAX to R_EBX do
-    if not(regCounter in rg.usableregsint) then
+{    if not(regCounter in rg.usableregsint) then}
       include(regs,regCounter);
 end;
 
@@ -443,12 +443,16 @@ var hp1: Tai;
     funcResRegs: TRegset;
     funcResReg: boolean;
 begin
+
   if reg.enum>lastreg then
     internalerror(200301081);
-  if not(reg.enum in rg.usableregsint) then
+{ if not(reg.enum in rg.usableregsint) then
+    exit;}
+ if not(reg.enum in [R_ESI,R_EDI]) then
     exit;
   getNoDeallocRegs(funcResRegs);
-  funcResRegs := funcResRegs - rg.usableregsint;
+{  funcResRegs := funcResRegs - rg.usableregsint;}
+  funcResRegs := funcResRegs - [R_ESI,R_EDI];
   funcResReg := reg.enum in funcResRegs;
   hp1 := p;
   while not(funcResReg and
@@ -1197,7 +1201,9 @@ var
 Begin
   if reg.enum>lastreg then
     internalerror(200301081);
-  If not(reg.enum in rg.usableregsint+[R_EDI,R_ESI]) or
+{ If not(reg.enum in rg.usableregsint+[R_EDI,R_ESI]) or
+     not(assigned(p1)) then}
+ If not(reg.enum in [R_EDI,R_ESI]) or
      not(assigned(p1)) then
     { this happens with registers which are loaded implicitely, outside the }
     { current block (e.g. esi with self)                                    }
@@ -2664,7 +2670,11 @@ End.
 
 {
   $Log$
-  Revision 1.45  2003-01-08 18:43:57  daniel
+  Revision 1.46  2003-02-19 22:00:15  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.45  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.44  2002/11/17 16:31:59  carl

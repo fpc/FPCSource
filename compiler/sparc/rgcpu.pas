@@ -33,40 +33,51 @@ code generator to allocate and free registers which might be valid across
 nodes. It also contains utility routines related to registers. Some of the
 methods in this class overrides generic implementations in rgobj.pas.}
   trgcpu=class(trgobj)
-    function GetExplicitRegisterInt(list:taasmoutput;Reg:Toldregister):tregister;override;
+    function GetExplicitRegisterInt(list:taasmoutput;Reg:Tnewregister):tregister;override;
     procedure UngetregisterInt(list:taasmoutput;Reg:tregister);override;
   end;
 implementation
 uses
-  cgobj;
-function trgcpu.GetExplicitRegisterInt(list:taasmoutput;reg:Toldregister):tregister;
+  cgobj,verbose;
+
+function trgcpu.GetExplicitRegisterInt(list:taasmoutput;reg:Tnewregister):tregister;
 
 var r:Tregister;
 
   begin
-    if reg in [R_O7,R_I7]
+    if (reg=RS_O7) or (reg=NR_I7)
     then
       begin
-        r.enum:=reg;
+        r.enum:=R_INTREGISTER;
+        r.number:=reg;
         cg.a_reg_alloc(list,r);
         result := r;
       end
     else result := inherited GetExplicitRegisterInt(list,reg);
   end;
+
 procedure trgcpu.UngetregisterInt(list: taasmoutput; reg: tregister);
+
   begin
-    if reg.enum in [R_O7,R_I7]
+    if reg.enum<>R_INTREGISTER then
+      internalerror(200302191);
+    if (reg.number=RS_O7) or (reg.number=NR_I7)
     then
       cg.a_reg_dealloc(list,reg)
     else
       inherited ungetregisterint(list,reg);
   end;
-initialization
+
+begin
   rg := trgcpu.create;
 end.
 {
   $Log$
-  Revision 1.5  2003-01-08 18:43:58  daniel
+  Revision 1.6  2003-02-19 22:00:17  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.5  2003/01/08 18:43:58  daniel
    * Tregister changed into a record
 
   Revision 1.4  2002/10/13 21:46:07  mazen

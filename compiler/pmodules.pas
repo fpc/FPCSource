@@ -732,7 +732,8 @@ implementation
          begin
            _class:=nil;
            para_offset:=target_info.first_parm_offset;
-           framepointer.enum:=FRAME_POINTER_REG;
+           framepointer.enum:=R_INTREGISTER;
+           framepointer.number:=NR_FRAME_POINTER_REG;
            flags:=0;
            procdef:=aktprocdef;
          end;
@@ -1444,7 +1445,11 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.95  2003-02-06 22:36:55  mazen
+  Revision 1.96  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.95  2003/02/06 22:36:55  mazen
   * fixing bug related to errornous program main entry stack frame
 
   Revision 1.94  2003/01/30 21:46:20  peter

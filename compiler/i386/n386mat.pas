@@ -95,32 +95,33 @@ implementation
               { put numerator in register }
               location_force_reg(exprasmlist,left.location,OS_INT,false);
               hreg1:=left.location.register;
+              if hreg1.enum<>R_INTREGISTER then
+                internalerror(200302042);
 
-              if (nodetype=divn) and
-                 (right.nodetype=ordconstn) and
+              if (nodetype=divn) and (right.nodetype=ordconstn) and
                  ispowerof2(tordconstnode(right).value,power) then
-                Begin
+                begin
                   shrdiv := true;
                   { for signed numbers, the numerator must be adjusted before the
                     shift instruction, but not wih unsigned numbers! Otherwise,
                     "Cardinal($ffffffff) div 16" overflows! (JM) }
-                  If is_signed(left.resulttype.def) Then
-                    Begin
-                      If (aktOptProcessor <> class386) and
+                  if is_signed(left.resulttype.def) Then
+                    begin
+                      if (aktOptProcessor <> class386) and
                          not(CS_LittleSize in aktglobalswitches) then
                          { use a sequence without jumps, saw this in
                            comp.compilers (JM) }
                         begin
                           { no jumps, but more operations }
-                          if (hreg1.enum = R_EAX) and
-                             (R_EDX in rg.unusedregsint) then
+                          if (hreg1.number = NR_EAX) and
+                             (RS_EDX in rg.unusedregsint) then
                             begin
-                              hreg2 := rg.getexplicitregisterint(exprasmlist,R_EDX);
+                              hreg2 := rg.getexplicitregisterint(exprasmlist,NR_EDX);
                               emit_none(A_CDQ,S_NO);
                             end
                           else
                             begin
-                              rg.getexplicitregisterint(exprasmlist,R_EDI);
+                              rg.getexplicitregisterint(exprasmlist,NR_EDI);
                               hreg2.enum := R_INTREGISTER;
                               hreg2.number := NR_EDI;
                               emit_reg_reg(A_MOV,S_L,hreg1,hreg2);
@@ -134,8 +135,6 @@ implementation
                           emit_reg_reg(A_ADD,S_L,hreg2,hreg1);
                           { release EDX if we used it }
                           { also releas EDI }
-                          if (hreg2.enum=R_INTREGISTER) and (hreg2.number=NR_EDI) then
-                            hreg2.enum:=R_EDI;
                           rg.ungetregisterint(exprasmlist,hreg2);
                           { do the shift }
                           emit_const_reg(A_SAR,S_L,power,hreg1);
@@ -153,17 +152,17 @@ implementation
                           cg.a_label(exprasmlist,hl);
                           emit_const_reg(A_SAR,S_L,power,hreg1);
                         end
-                    End
-                  Else
+                    end
+                  else
                     emit_const_reg(A_SHR,S_L,power,hreg1);
-                End
+                end
               else
                 begin
                   { bring denominator to EDI }
                   { EDI is always free, it's }
                   { only used for temporary  }
                   { purposes              }
-                  rg.getexplicitregisterint(exprasmlist,R_EDI);
+                  rg.getexplicitregisterint(exprasmlist,NR_EDI);
                   if right.location.loc<>LOC_CREGISTER then
                    location_release(exprasmlist,right.location);
                   r.enum:=R_INTREGISTER;
@@ -174,35 +173,35 @@ implementation
                   r.number:=NR_EAX;
                   r2.enum:=R_INTREGISTER;
                   r2.number:=NR_EDX;
-                  if hreg1.enum=R_EDX then
+                  if hreg1.number=NR_EDX then
                     begin
-                      if not(R_EAX in rg.unusedregsint) then
+                      if not(RS_EAX in rg.unusedregsint) then
                          begin
                             emit_reg(A_PUSH,S_L,r);
                             popeax:=true;
                          end
                        else
-                         rg.getexplicitregisterint(exprasmlist,R_EAX);
+                         rg.getexplicitregisterint(exprasmlist,NR_EAX);
                       emit_reg_reg(A_MOV,S_L,r2,r);
                     end
                   else
                     begin
-                       if not(R_EDX in rg.unusedregsint) then
+                       if not(RS_EDX in rg.unusedregsint) then
                          begin
                             emit_reg(A_PUSH,S_L,r2);
                             popedx:=true;
                          end
                        else
-                         rg.getexplicitregisterint(exprasmlist,R_EDX);
-                       if hreg1.enum<>R_EAX then
+                         rg.getexplicitregisterint(exprasmlist,NR_EDX);
+                       if hreg1.number<>NR_EAX then
                          begin
-                            if not(R_EAX in rg.unusedregsint) then
+                            if not(RS_EAX in rg.unusedregsint) then
                               begin
                                  emit_reg(A_PUSH,S_L,r);
                                  popeax:=true;
                               end
                             else
-                              rg.getexplicitregisterint(exprasmlist,R_EAX);
+                              rg.getexplicitregisterint(exprasmlist,NR_EAX);
                             emit_reg_reg(A_MOV,S_L,hreg1,r);
                          end;
                     end;
@@ -219,39 +218,39 @@ implementation
                     emit_reg(A_DIV,S_L,r)
                   else
                     emit_reg(A_IDIV,S_L,r);
-                  r.enum:=R_EDI;
                   rg.ungetregisterint(exprasmlist,r);
                   r.enum:=R_INTREGISTER;
                   r.number:=NR_EAX;
                   if nodetype=divn then
                     begin
-                       if not popedx and (hreg1.enum <> R_EDX) then
+                       if not popedx and (hreg1.number <> NR_EDX) then
                         begin
-                           r2.enum:=R_EDX;
-                           rg.ungetregister(exprasmlist,r2);
+                           r2.enum:=R_INTREGISTER;
+                           r2.number:=NR_EDX;
+                           rg.ungetregisterint(exprasmlist,r2);
                         end;
                        { if result register is busy then copy }
                        if popeax then
                          begin
-                            if hreg1.enum=R_EAX then
+                            if hreg1.number=NR_EAX then
                               internalerror(112);
                             emit_reg_reg(A_MOV,S_L,r,hreg1)
                          end
                        else
-                         if hreg1.enum<>R_EAX then
-                           Begin
+                         if hreg1.number<>NR_EAX then
+                           begin
                              rg.ungetregisterint(exprasmlist,hreg1);
                              { no need to allocate eax, that's already done before }
                              { the div (JM)                                        }
-                             hreg1.enum := R_EAX;
+                             hreg1.number:=NR_EAX;
                            end;
                     end
                   else
                     begin
-                      if not popeax and (hreg1.enum <> R_EAX)then
+                      if not popeax and (hreg1.number <> NR_EAX)then
                         begin
-                          r.enum:=R_EAX;
-                          rg.ungetregister(exprasmlist,r);
+                          r.number:=NR_EAX;
+                          rg.ungetregisterint(exprasmlist,r);
                         end;
                       if popedx then
                        {the mod was done by an (i)div (so the result is now in
@@ -259,11 +258,11 @@ implementation
                         move the result into a safe place (JM)}
                         emit_reg_reg(A_MOV,S_L,r2,hreg1)
                       else
-                        Begin
-                          if hreg1.enum <> R_EDX then
+                        begin
+                          if hreg1.number <> NR_EDX then
                             rg.ungetregisterint(exprasmlist,hreg1);
-                          hreg1.enum := R_EDX
-                        End;
+                          hreg1.number:=NR_EDX
+                        end;
                     end;
                   if popeax then
                     emit_reg(A_POP,S_L,r);
@@ -274,10 +273,10 @@ implementation
                { shrdiv only use hreg1 (which is already in usedinproc,   }
                { since it was acquired with getregister), the others also }
                { use both EAX and EDX (JM)                                }
-                Begin
-                  include(rg.usedinproc,R_EAX);
-                  include(rg.usedinproc,R_EDX);
-                End;
+                begin
+                  include(rg.usedintinproc,RS_EAX);
+                  include(rg.usedintinproc,RS_EDX);
+                end;
               location_reset(location,LOC_REGISTER,OS_INT);
               location.register:=hreg1;
            end;
@@ -325,6 +324,10 @@ implementation
               location_force_reg(exprasmlist,left.location,OS_64,false);
               hregisterhigh:=left.location.registerhigh;
               hregisterlow:=left.location.registerlow;
+              if hregisterhigh.enum<>R_INTREGISTER then
+                internalerror(200302056);
+              if hregisterlow.enum<>R_INTREGISTER then
+                internalerror(200302056);
 
               { shifting by a constant directly coded: }
               if (right.nodetype=ordconstn) then
@@ -378,7 +381,7 @@ implementation
                      begin
                        if right.location.loc<>LOC_CREGISTER then
                         location_release(exprasmlist,right.location);
-                       hregister2:=rg.getexplicitregisterint(exprasmlist,R_ECX);
+                       hregister2:=rg.getexplicitregisterint(exprasmlist,NR_ECX);
                        cg.a_load_loc_reg(exprasmlist,right.location,hregister2);
                      end
                    else
@@ -387,9 +390,11 @@ implementation
                    { left operator is already in a register }
                    { hence are both in a register }
                    { is it in the case ECX ? }
-                   r.enum:=R_ECX;
-                   r2.enum:=R_CL;
-                   if (hregisterlow.enum=R_ECX) then
+                   r.enum:=R_INTREGISTER;
+                   r.number:=NR_ECX;
+                   r2.enum:=R_INTREGISTER;
+                   r2.number:=NR_CL;
+                   if (hregisterlow.number=NR_ECX) then
                      begin
                         { then only swap }
                         emit_reg_reg(A_XCHG,S_L,hregisterlow,hregister2);
@@ -397,7 +402,7 @@ implementation
                         hregisterlow:=hregister2;
                         hregister2:=hregister3;
                      end
-                   else if (hregisterhigh.enum=R_ECX) then
+                   else if (hregisterhigh.number=NR_ECX) then
                      begin
                         { then only swap }
                         emit_reg_reg(A_XCHG,S_L,hregisterhigh,hregister2);
@@ -407,20 +412,20 @@ implementation
                      end
 
                    { if second operator not in ECX ? }
-                   else if (hregister2.enum<>R_ECX) then
+                   else if (hregister2.number<>NR_ECX) then
                      begin
                         { ECX occupied then push it }
-                        if not (R_ECX in rg.unusedregsint) then
+                        if not (RS_ECX in rg.unusedregsint) then
                          begin
                            popecx:=true;
                            emit_reg(A_PUSH,S_L,r);
                          end
                         else
-                          rg.getexplicitregisterint(exprasmlist,R_ECX);
+                          rg.getexplicitregisterint(exprasmlist,NR_ECX);
                         emit_reg_reg(A_MOV,S_L,hregister2,r);
                      end;
 
-                   if hregister2.enum <> R_ECX then
+                   if hregister2.number <> NR_ECX then
                      rg.ungetregisterint(exprasmlist,hregister2);
 
                    { the damned shift instructions work only til a count of 32 }
@@ -495,8 +500,10 @@ implementation
               location_copy(location,left.location);
               location_force_reg(exprasmlist,location,OS_INT,false);
               
-              r.enum:=R_ECX;
-              r2.enum:=R_CL;
+              r.enum:=R_INTREGISTER;
+              r.number:=NR_ECX;
+              r2.enum:=R_INTREGISTER;
+              r2.number:=NR_CL;
 
               { shifting by a constant directly coded: }
               if (right.nodetype=ordconstn) then
@@ -519,7 +526,7 @@ implementation
                      begin
                        if right.location.loc<>LOC_CREGISTER then
                         location_release(exprasmlist,right.location);
-                       hregister2:=rg.getexplicitregisterint(exprasmlist,R_ECX);
+                       hregister2:=rg.getexplicitregisterint(exprasmlist,NR_ECX);
                        cg.a_load_loc_reg(exprasmlist,right.location,hregister2);
                      end
                    else
@@ -528,7 +535,7 @@ implementation
                    { left operator is already in a register }
                    { hence are both in a register }
                    { is it in the case ECX ? }
-                   if (location.register.enum=R_ECX) then
+                   if (location.register.number=NR_ECX) then
                      begin
                         { then only swap }
                         emit_reg_reg(A_XCHG,S_L,location.register,hregister2);
@@ -537,16 +544,16 @@ implementation
                         hregister2:=hregister3;
                      end
                    { if second operator not in ECX ? }
-                   else if (hregister2.enum<>R_ECX) then
+                   else if (hregister2.number<>NR_ECX) then
                      begin
                         { ECX occupied then push it }
-                        if not (R_ECX in rg.unusedregsint) then
+                        if not (RS_ECX in rg.unusedregsint) then
                          begin
                            popecx:=true;
                            emit_reg(A_PUSH,S_L,r);
                          end
                         else
-                          rg.getexplicitregisterint(exprasmlist,R_ECX);
+                          rg.getexplicitregisterint(exprasmlist,NR_ECX);
                         emit_reg_reg(A_MOV,S_L,hregister2,r);
                      end;
                    rg.ungetregisterint(exprasmlist,hregister2);
@@ -673,7 +680,7 @@ implementation
                    end;
                  LOC_CREGISTER:
                    begin
-                      location.register:=rg.getregisterint(exprasmlist);
+                      location.register:=rg.getregisterint(exprasmlist,OS_INT);
                       emit_reg_reg(A_MOV,S_L,left.location.register,
                         location.register);
                       emit_reg(A_NEG,S_L,location.register);
@@ -721,7 +728,7 @@ implementation
 {$endif SUPPORT_MMX}
                       else
                         begin
-                           location.register:=rg.getregisterint(exprasmlist);
+                           location.register:=rg.getregisterint(exprasmlist,OS_INT);
                            emit_ref_reg(A_MOV,S_L,left.location.reference,location.register);
                            emit_reg(A_NEG,S_L,location.register);
                         end;
@@ -817,7 +824,7 @@ implementation
              r.enum:=R_INTREGISTER;
              r.number:=NR_EDI;
              r2.enum:=R_MM7;
-             rg.getexplicitregisterint(exprasmlist,R_EDI);
+             rg.getexplicitregisterint(exprasmlist,NR_EDI);
              emit_const_reg(A_MOV,S_L,longint($ffffffff),r);
              { load operand }
              case left.location.loc of
@@ -838,7 +845,6 @@ implementation
              end;
              { load mask }
              emit_reg_reg(A_MOVD,S_NO,r,r2);
-             r.enum:=R_EDI;
              rg.ungetregisterint(exprasmlist,r);
              { lower 32 bit }
              emit_reg_reg(A_PXOR,S_D,r2,location.register);
@@ -877,7 +883,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2003-01-13 18:37:44  daniel
+  Revision 1.45  2003-02-19 22:00:15  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.44  2003/01/13 18:37:44  daniel
     * Work on register conversion
 
   Revision 1.43  2003/01/13 14:54:34  daniel

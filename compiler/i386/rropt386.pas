@@ -331,8 +331,10 @@ begin
                      (Taicpu(p).oper[0].typ = top_reg) and
                      (Taicpu(p).oper[1].typ = top_reg) and
                      (Taicpu(p).opsize = S_L) and
-                     (Taicpu(p).oper[0].reg.enum in (rg.usableregsint+[R_EDI])) and
-                     (Taicpu(p).oper[1].reg.enum in (rg.usableregsint+[R_EDI])) then
+{                     (Taicpu(p).oper[0].reg.enum in (rg.usableregsint+[R_EDI])) and
+                     (Taicpu(p).oper[1].reg.enum in (rg.usableregsint+[R_EDI])) then}
+                     (Taicpu(p).oper[0].reg.enum in ([R_ESI,R_EDI])) and
+                     (Taicpu(p).oper[1].reg.enum in ([R_ESI,R_EDI])) then
                     if switchRegs(asml,Taicpu(p).oper[0].reg,
                          Taicpu(p).oper[1].reg,p) then
                       begin
@@ -356,7 +358,11 @@ End.
 
 {
   $Log$
-  Revision 1.19  2003-01-08 18:43:57  daniel
+  Revision 1.20  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.19  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.18  2002/07/01 18:46:34  peter

@@ -110,7 +110,8 @@ begin
     end;
   secondpass(right);
   { special case for string := string + char (JM) }
-  hreg.enum := R_NO;
+  hreg.enum:=R_INTREGISTER;
+  hreg.number:=NR_NO;
 
   { we have to load the char before checking the length, because we }
   { may need registers from the reference                           }
@@ -123,7 +124,7 @@ begin
         { free the registers of right }
         reference_release(exprasmlist,right.location.reference);
         { get register for the char }
-        hreg := rg.makeregsize(rg.getregisterint(exprasmlist),OS_8);
+        hreg := rg.getregisterint(exprasmlist,OS_8);
         cg.a_load_ref_reg(exprasmlist,OS_8,right.location.reference,hreg);
         { I don't think a temp char exists, but it won't hurt (JM) }
         tg.ungetiftemp(exprasmlist,right.location.reference);
@@ -131,7 +132,7 @@ begin
     else hreg := right.location.register;
 
   { load the current string length }
-  lengthreg := rg.getregisterint(exprasmlist);
+  lengthreg := rg.getregisterint(exprasmlist,OS_INT);
   cg.a_load_ref_reg(exprasmlist,OS_8,left.location.reference,lengthreg);
 
   { do we have to check the length ? }
@@ -156,8 +157,8 @@ begin
   { we need a new reference to store the character }
   { at the end of the string. Check if the base or }
   { index register is still free                   }
-  if (href2.base.enum <> R_NO) and
-     (href2.index.enum <> R_NO) then
+  if (href2.base.number <> NR_NO) and
+     (href2.index.number <> NR_NO) then
     begin
       { they're not free, so add the base reg to       }
       { the string length (since the index can         }
@@ -167,7 +168,7 @@ begin
     end
   else
     { at least one is still free, so put EDI there }
-    if href2.base.enum = R_NO then
+    if href2.base.number = NR_NO then
       href2.base := lengthreg
     else
       begin
@@ -182,13 +183,14 @@ begin
       { no new_reference(href2) because it's only }
       { used once (JM)                            }
       cg.a_load_reg_ref(exprasmlist,OS_8,hreg,href2);
-      rg.ungetregister(exprasmlist,hreg);
+      rg.ungetregisterint(exprasmlist,hreg);
     end
   else
     cg.a_load_const_ref(exprasmlist,OS_8,tordconstnode(right).value,href2);
+  lengthreg.number:=(lengthreg.number and not $ff) or R_SUBL;
   { increase the string length }
-  cg.a_op_const_reg(exprasmlist,OP_ADD,1,rg.makeregsize(lengthreg,OS_8));
-  cg.a_load_reg_ref(exprasmlist,OS_8,rg.makeregsize(lengthreg,OS_8),left.location.reference);
+  cg.a_op_const_reg(exprasmlist,OP_ADD,1,lengthreg);
+  cg.a_load_reg_ref(exprasmlist,OS_8,lengthreg,left.location.reference);
   rg.ungetregisterint(exprasmlist,lengthreg);
   if checklength then
     cg.a_label(exprasmlist,l);
@@ -198,8 +200,8 @@ end;
 procedure ti386addsstringcsstringoptnode.pass_2;
 var
   href: treference;
-  pushedregs: tpushedsaved;
-  regstopush: tregisterset;
+  pushedregs: tpushedsavedint;
+  regstopush: tsupregset;
 begin
   { first, we have to more or less replicate some code from }
   { ti386addnode.pass_2                                     }
@@ -222,9 +224,9 @@ begin
   { push them (so the release is in the right place, }
   { because emitpushreferenceaddr doesn't need extra }
   { registers) (JM)                                  }
-  regstopush := all_registers;
+  regstopush := all_intregisters;
   remove_non_regvars_from_loc(right.location,regstopush);
-  rg.saveusedregisters(exprasmlist,pushedregs,regstopush);
+  rg.saveusedintregisters(exprasmlist,pushedregs,regstopush);
   { push the maximum possible length of the result }
   cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(2));
   { the optimizer can more easily put the          }
@@ -233,11 +235,11 @@ begin
   { the pushref needs a "lea (..),edi; push edi")  }
   reference_release(exprasmlist,right.location.reference);
   cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(1));
-  rg.saveregvars(exprasmlist,regstopush);
+  rg.saveintregvars(exprasmlist,regstopush);
   cg.a_call_name(exprasmlist,'FPC_SHORTSTR_CONCAT');
   tg.ungetiftemp(exprasmlist,right.location.reference);
   cg.g_maybe_loadself(exprasmlist);
-  rg.restoreusedregisters(exprasmlist,pushedregs);
+  rg.restoreusedintregisters(exprasmlist,pushedregs);
   location_copy(location,left.location);
 end;
 
@@ -248,7 +250,11 @@ end.
 
 {
   $Log$
-  Revision 1.27  2003-01-08 18:43:57  daniel
+  Revision 1.28  2003-02-19 22:00:15  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.27  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.26  2002/11/25 17:43:27  peter

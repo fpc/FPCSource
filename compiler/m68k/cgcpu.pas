@@ -65,13 +65,13 @@ unit cgcpu;
           procedure g_stackframe_entry(list : taasmoutput;localsize : longint);override;
           procedure g_restore_frame_pointer(list : taasmoutput);override;
           procedure g_return_from_proc(list : taasmoutput;parasize : aword);override;
-          procedure g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
-          procedure g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
+          procedure g_save_standard_registers(list:Taasmoutput;usedinproc:Tsupregset);override;
+          procedure g_restore_standard_registers(list:Taasmoutput;usedinproc:Tsupregset);override;
           procedure g_save_all_registers(list : taasmoutput);override;
           procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);override;
           { for address register allocation }
           function get_scratch_reg_address(list : taasmoutput) : tregister;override;
-          function get_scratch_reg_int(list : taasmoutput) : tregister; override;
+          function get_scratch_reg_int(list:Taasmoutput;size:Tcgsize):Tregister; override;
 
 
      protected
@@ -172,54 +172,51 @@ Implementation
            end;
       end;
 
-    function tcg68k.get_scratch_reg_int(list : taasmoutput) : tregister;
+    function tcg68k.get_scratch_reg_int(list:Taasmoutput;size:Tcgsize):Tregister;
 
-      var
-         r : tregister;
-         i : longint;
+    var r:Tregister;
+        rs:Tsuperregister;
+        i:longint;
 
       begin
          if unusedscratchregisters=[] then
            internalerror(68996);
 
-         if R_D0 in unusedscratchregisters then
-           begin
-              r.enum := R_D0;
-           end
-         else if R_D1 in unusedscratchregisters then
-           begin
-              r.enum := R_D1;
-           end
+         if RS_D0 in unusedscratchregisters then
+            rs:=RS_D0
+         else if RS_D1 in unusedscratchregisters then
+            rs:=RS_D1
          else
            internalerror(10);
+         r.enum:=R_INTREGISTER;
+         r.number:=rs shl 8 or cgsize2subreg(size);
 
-         exclude(unusedscratchregisters,r.enum);
+         exclude(unusedscratchregisters,rs);
          a_reg_alloc(list,r);
          get_scratch_reg_int:=r;
       end;
 
 
-     function tcg68k.get_scratch_reg_address(list : taasmoutput) : tregister;
-      var
-         r : tregister;
-         i : longint;
+    function tcg68k.get_scratch_reg_address(list:Taasmoutput):Tregister;
+
+    var r:Tregister;
+        rs:Tsuperregister;
+        i:longint;
 
       begin
          if unusedscratchregisters=[] then
            internalerror(68996);
         
-         if R_A0 in unusedscratchregisters then
-           begin
-              r.enum := R_A0;
-           end
-         else if R_A1 in unusedscratchregisters then
-           begin
-              r.enum := R_A1;
-           end
+         if RS_A0 in unusedscratchregisters then
+           rs:=RS_A0
+         else if RS_A1 in unusedscratchregisters then
+           rs:=RS_A1
          else
            internalerror(10);
+         r.enum:=R_INTREGISTER;
+         r.number:=rs shl 8 or R_SUBWHOLE;
 
-         exclude(unusedscratchregisters,r.enum);
+         exclude(unusedscratchregisters,rs);
          a_reg_alloc(list,r);
          get_scratch_reg_address:=r;
       end;
@@ -460,10 +457,12 @@ Implementation
               Begin
              if aktoptprocessor = MC68000 then
                    begin
-                     r.enum:=R_D0;
-                     r2.enum:=R_D1;
-                     rg.getexplicitregisterint(list,R_D0);
-                     rg.getexplicitregisterint(list,R_D1);
+                     r.enum:=R_INTREGISTER;
+                     r.number:=NR_D0;
+                     r2.enum:=R_INTREGISTER;
+                     r2.number:=NR_D1;
+                     rg.getexplicitregisterint(list,NR_D0);
+                     rg.getexplicitregisterint(list,NR_D1);
                      list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, r2));
                      cg.a_call_name(list,'FPC_MUL_LONGINT');
@@ -475,7 +474,7 @@ Implementation
                     begin
                       if (rg.isaddressregister(reg)) then
                        begin
-                         scratch_reg := cg.get_scratch_reg_int(list);
+                         scratch_reg := cg.get_scratch_reg_int(list,OS_INT);
                          list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg));
                          list.concat(taicpu.op_const_reg(A_MULS,S_L,a,scratch_reg));
                          list.concat(taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg,reg));
@@ -489,10 +488,12 @@ Implementation
               Begin
                  if aktoptprocessor = MC68000 then
                    begin
-                     r.enum:=R_D0;
-                     r2.enum:=R_D1;
-                     rg.getexplicitregisterint(list,R_D0);
-                     rg.getexplicitregisterint(list,R_D1);
+                     r.enum:=R_INTREGISTER;
+                     r.number:=NR_D0;
+                     r2.enum:=R_INTREGISTER;
+                     r2.number:=NR_D1;
+                     rg.getexplicitregisterint(list,NR_D0);
+                     rg.getexplicitregisterint(list,NR_D1);
                      list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, r2));
                      cg.a_call_name(list,'FPC_MUL_LONGWORD');
@@ -504,7 +505,7 @@ Implementation
                     begin
                       if (rg.isaddressregister(reg)) then
                        begin
-                         scratch_reg := cg.get_scratch_reg_int(list);
+                         scratch_reg := cg.get_scratch_reg_int(list,OS_INT);
                          list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg));
                          list.concat(taicpu.op_const_reg(A_MULU,S_L,a,scratch_reg));
                          list.concat(taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg,reg));
@@ -523,7 +524,7 @@ Implementation
                    { now allowed to shift an address register }
                    if (rg.isaddressregister(reg)) then
                      begin
-                       scratch_reg := cg.get_scratch_reg_int(list);
+                       scratch_reg := cg.get_scratch_reg_int(list,OS_INT);
                        list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg));
                        list.concat(taicpu.op_const_reg(opcode,S_L,a, scratch_reg));
                        list.concat(taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg,reg));
@@ -535,12 +536,12 @@ Implementation
                 else
                  begin
                    { we must load the data into a register ... :() }
-                   scratch_reg := cg.get_scratch_reg_int(list);
+                   scratch_reg := cg.get_scratch_reg_int(list,OS_INT);
                    list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, scratch_reg));
                    { again... since shifting with address register is not allowed }
                    if (rg.isaddressregister(reg)) then
                      begin
-                       scratch_reg2 := cg.get_scratch_reg_int(list);
+                       scratch_reg2 := cg.get_scratch_reg_int(list,OS_INT);
                        list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, scratch_reg2));
                        list.concat(taicpu.op_reg_reg(opcode,S_L,scratch_reg, scratch_reg2));
                        list.concat(taicpu.op_reg_reg(A_MOVE,S_L,scratch_reg2,reg));
@@ -596,7 +597,7 @@ Implementation
                  { load to data registers }
                  if (rg.isaddressregister(reg1)) then
                    begin
-                     hreg1 := cg.get_scratch_reg_int(list);
+                     hreg1 := cg.get_scratch_reg_int(list,OS_INT);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1,hreg1));
                    end
                  else
@@ -604,7 +605,7 @@ Implementation
 
                  if (rg.isaddressregister(reg2))  then
                    begin
-                      hreg2:= cg.get_scratch_reg_int(list);
+                      hreg2:= cg.get_scratch_reg_int(list,OS_INT);
                       list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2,hreg2));
                    end
                  else
@@ -652,10 +653,12 @@ Implementation
                  sign_extend(list, size,reg2);
                  if aktoptprocessor = MC68000 then
                    begin
-                     r.enum:=R_D0;
-                     r2.enum:=R_D1;
-                     rg.getexplicitregisterint(list,R_D0);
-                     rg.getexplicitregisterint(list,R_D1);
+                     r.enum:=R_INTREGISTER;
+                     r.number:=NR_D0;
+                     r2.enum:=R_INTREGISTER;
+                     r2.number:=NR_D1;
+                     rg.getexplicitregisterint(list,NR_D0);
+                     rg.getexplicitregisterint(list,NR_D1);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2, r2));
                      cg.a_call_name(list,'FPC_MUL_LONGINT');
@@ -666,17 +669,17 @@ Implementation
                   else
                     begin
                      if (rg.isaddressregister(reg1)) then
-                       hreg1 := cg.get_scratch_reg_int(list)
+                       hreg1 := cg.get_scratch_reg_int(list,OS_INT)
                      else
                        hreg1 := reg1;
                      if (rg.isaddressregister(reg2))  then
-                       hreg2:= cg.get_scratch_reg_int(list)
+                       hreg2:= cg.get_scratch_reg_int(list,OS_INT)
                      else
                        hreg2 := reg2;
 
-                     if reg1.enum <> hreg1.enum then
+                     if reg1.number <> hreg1.number then
                           list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1,hreg1));
-                     if reg2.enum <> hreg2.enum then
+                     if reg2.number <> hreg2.number then
                           list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2,hreg2));
 
                      list.concat(taicpu.op_reg_reg(A_MULS,S_L,reg1,reg2));
@@ -697,10 +700,12 @@ Implementation
                  sign_extend(list, size,reg2);
                  if aktoptprocessor = MC68000 then
                    begin
-                     r.enum:=R_D0;
-                     r2.enum:=R_D1;
-                     rg.getexplicitregisterint(list,R_D0);
-                     rg.getexplicitregisterint(list,R_D1);
+                     r.enum:=R_INTREGISTER;
+                     r.number:=NR_D0;
+                     r2.enum:=R_INTREGISTER;
+                     r2.number:=NR_D1;
+                     rg.getexplicitregisterint(list,NR_D0);
+                     rg.getexplicitregisterint(list,NR_D1);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2, r2));
                      cg.a_call_name(list,'FPC_MUL_LONGWORD');
@@ -712,7 +717,7 @@ Implementation
                     begin
                      if (rg.isaddressregister(reg1)) then
                       begin
-                       hreg1 := cg.get_scratch_reg_int(list);
+                       hreg1 := cg.get_scratch_reg_int(list,OS_INT);
                        list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1,hreg1));
                       end
                      else
@@ -720,7 +725,7 @@ Implementation
 
                      if (rg.isaddressregister(reg2))  then
                       begin
-                       hreg2:= cg.get_scratch_reg_int(list);
+                       hreg2:= cg.get_scratch_reg_int(list,OS_INT);
                        list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2,hreg2));
                       end
                      else
@@ -729,10 +734,10 @@ Implementation
 
                      list.concat(taicpu.op_reg_reg(A_MULU,S_L,reg1,reg2));
 
-                     if reg1.enum <> hreg1.enum then
+                     if reg1.number <> hreg1.number then
                        cg.free_scratch_reg(list,hreg1);
                      { move back result into destination register }
-                     if reg2.enum <> hreg2.enum then
+                     if reg2.number <> hreg2.number then
                        begin
                           list.concat(taicpu.op_reg_reg(A_MOVE,S_L,hreg2,reg2));
                           cg.free_scratch_reg(list,hreg2);
@@ -751,7 +756,7 @@ Implementation
 
                 if (rg.isaddressregister(reg2)) then
                   begin
-                     hreg2 := cg.get_scratch_reg_int(list);
+                     hreg2 := cg.get_scratch_reg_int(list,OS_INT);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2,hreg2));
                    end
                   else
@@ -799,7 +804,7 @@ Implementation
                  only longword comparison is supported,
                  and only on data registers.
                }
-               hregister := cg.get_scratch_reg_int(list);
+               hregister := cg.get_scratch_reg_int(list,OS_INT);
                { always move to a data register }
                list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg,hregister));
                { sign/zero extend the register }
@@ -850,7 +855,7 @@ Implementation
           { move to a Dx register? }
           if (rg.isaddressregister(reg)) then
             begin
-              hreg := get_scratch_reg_int(list);
+              hreg := get_scratch_reg_int(list,OS_INT);
               a_load_const_reg(list,size,0,hreg);
               ai:=Taicpu.Op_reg(A_Sxx,S_B,hreg);
               ai.SetCondition(flags_to_cond(f));
@@ -919,7 +924,7 @@ Implementation
          { this should never occur }
          if len > 65535 then
            internalerror(0);
-         hregister := get_scratch_reg_int(list);
+         hregister := get_scratch_reg_int(list,OS_INT);
          if delsource then
             reference_release(list,source);
 
@@ -1128,31 +1133,33 @@ Implementation
 
       end;
 
-    procedure tcg68k.g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);
-      var
-        tosave : tregisterlist;
-        r:Tregister;
-      begin
-         tosave:=std_saved_registers;
-         { only save the registers which are not used and must be saved }
-         tosave:=tosave*usedinproc;
-         r.enum:=R_SPPUSH;
-         if tosave<>[] then
-           list.concat(taicpu.op_reglist_reg(A_MOVEM,S_L,tosave,r));
-      end;
+    procedure Tcg68k.g_save_standard_registers(list:Taasmoutput;usedinproc:Tsupregset);
 
-    procedure tcg68k.g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);
-      var
-       torestore : tregisterset;
+    var tosave:Tsupregset;
         r:Tregister;
-      begin
-         torestore:=std_saved_registers;
-         { should be intersected with used regs, no ? }
-         torestore:=torestore*usedinproc;
-         r.enum:=R_SPPULL;
-         if torestore<>[] then
-           list.concat(taicpu.op_reg_reglist(A_MOVEM,S_L,r,torestore));
-      end;
+         
+    begin
+      tosave:=std_saved_registers;
+      { only save the registers which are not used and must be saved }
+      tosave:=tosave*usedinproc;
+      r.enum:=R_SPPUSH;
+      if tosave<>[] then
+        list.concat(taicpu.op_reglist_reg(A_MOVEM,S_L,tosave,r));
+    end;
+
+    procedure Tcg68k.g_restore_standard_registers(list:Taasmoutput;usedinproc:Tsupregset);
+
+    var torestore:Tsupregset;
+        r:Tregister;
+
+    begin
+      torestore:=std_saved_registers;
+      { should be intersected with used regs, no ? }
+      torestore:=torestore*usedinproc;
+      r.enum:=R_SPPULL;
+      if torestore<>[] then
+        list.concat(taicpu.op_reg_reglist(A_MOVEM,S_L,r,torestore));
+    end;
 
     procedure tcg68k.g_save_all_registers(list : taasmoutput);
       begin
@@ -1337,7 +1344,11 @@ end.
 
 {
   $Log$
-  Revision 1.17  2003-02-12 22:11:13  carl
+  Revision 1.18  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.17  2003/02/12 22:11:13  carl
     * some small m68k bugfixes
 
   Revision 1.16  2003/02/02 19:25:54  carl

@@ -347,18 +347,18 @@ implementation
 
     procedure tcgselfnode.pass_2;
       begin
-         rg.getexplicitregisterint(exprasmlist,SELF_POINTER_REG);
+         rg.getexplicitregisterint(exprasmlist,NR_SELF_POINTER_REG);
          if (resulttype.def.deftype=classrefdef) or
             (is_class(resulttype.def) or
              (po_staticmethod in aktprocdef.procoptions)) then
           begin
             location_reset(location,LOC_CREGISTER,OS_ADDR);
-            location.register.enum:=SELF_POINTER_REG;
+            location.register.number:=NR_SELF_POINTER_REG;
           end
          else
            begin
              location_reset(location,LOC_CREFERENCE,OS_ADDR);
-             location.reference.base.enum:=SELF_POINTER_REG;
+             location.reference.base.number:=NR_SELF_POINTER_REG;
            end;
       end;
 
@@ -387,7 +387,7 @@ implementation
                secondpass(left);
 {$ifdef i386}
                if (left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
-                  (left.location.reference.segment.enum<>R_NO) then
+                  (left.location.reference.segment.number<>NR_NO) then
                  message(parser_e_no_with_for_variable_in_other_segments);
 {$endif i386}
 
@@ -407,7 +407,7 @@ implementation
                   usetemp:=true;
                   if is_class_or_interface(left.resulttype.def) then
                     begin
-                      tmpreg := cg.get_scratch_reg_int(exprasmlist);
+                      tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
                       cg.a_load_loc_reg(exprasmlist,left.location,tmpreg)
                     end
                   else
@@ -560,7 +560,7 @@ implementation
          poslabel,
          neglabel : tasmlabel;
          hreg : tregister;
-         pushed : tpushedsaved;
+         pushed : tpushedsavedint;
        begin
          if is_open_array(left.resulttype.def) or
             is_array_of_const(left.resulttype.def) then
@@ -581,7 +581,7 @@ implementation
                  hreg:=right.location.register
                else
                  begin
-                   hreg := cg.get_scratch_reg_int(exprasmlist);
+                   hreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
                    freereg:=true;
                    cg.a_load_loc_reg(exprasmlist,right.location,hreg);
                  end;
@@ -602,12 +602,12 @@ implementation
          else
           if is_dynamic_array(left.resulttype.def) then
             begin
-               rg.saveusedregisters(exprasmlist,pushed,all_registers);
+               rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
                cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(2));
                cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(1));
-               rg.saveregvars(exprasmlist,all_registers);
+               rg.saveintregvars(exprasmlist,all_intregisters);
                cg.a_call_name(exprasmlist,'FPC_DYNARRAY_RANGECHECK');
-               rg.restoreusedregisters(exprasmlist,pushed);
+               rg.restoreusedintregisters(exprasmlist,pushed);
                cg.g_maybe_loadself(exprasmlist);
             end
          else
@@ -621,7 +621,7 @@ implementation
          extraoffset : longint;
          t : tnode;
          href : treference;
-         pushed : tpushedsaved;
+         pushed : tpushedsavedint;
          isjump  : boolean;
          otl,ofl : tasmlabel;
          newsize : tcgsize;
@@ -644,12 +644,12 @@ implementation
                         CGMessage(cg_e_illegal_expression);
                         exit;
                      end;
-                   rg.saveusedregisters(exprasmlist,pushed,all_registers);
+                   rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
                    cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(1));
-                   rg.saveregvars(exprasmlist,all_registers);
-                   cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_UNIQUE');
+                   rg.saveintregvars(exprasmlist,all_intregisters);
+                   cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_UNIQUE');
                    cg.g_maybe_loadself(exprasmlist);
-                   rg.restoreusedregisters(exprasmlist,pushed);
+                   rg.restoreusedintregisters(exprasmlist,pushed);
                 end;
 
               case left.location.loc of
@@ -660,7 +660,7 @@ implementation
                 LOC_REFERENCE :
                   begin
                     location_release(exprasmlist,left.location);
-                    location.reference.base:=rg.getregisterint(exprasmlist);
+                    location.reference.base:=rg.getregisterint(exprasmlist,OS_INT);
                     cg.a_load_ref_reg(exprasmlist,OS_ADDR,left.location.reference,location.reference.base);
                   end;
                 else
@@ -671,12 +671,12 @@ implementation
                 we can use the ansistring routine here }
               if (cs_check_range in aktlocalswitches) then
                 begin
-                   rg.saveusedregisters(exprasmlist,pushed,all_registers);
+                   rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
                    cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paramanager.getintparaloc(1));
-                   rg.saveregvars(exprasmlist,all_registers);
+                   rg.saveintregvars(exprasmlist,all_intregisters);
                    cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
                    cg.g_maybe_loadself(exprasmlist);
-                   rg.restoreusedregisters(exprasmlist,pushed);
+                   rg.restoreusedintregisters(exprasmlist,pushed);
                 end;
 
               { in ansistrings/widestrings S[1] is p<w>char(S)[0] !! }
@@ -748,14 +748,14 @@ implementation
                          st_widestring,
                          st_ansistring:
                            begin
-                              rg.saveusedregisters(exprasmlist,pushed,all_registers);
+                              rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
                               cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,paramanager.getintparaloc(2));
                               href:=location.reference;
                               dec(href.offset,7);
                               cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(1));
-                              rg.saveregvars(exprasmlist,all_registers);
-                              cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
-                              rg.restoreusedregisters(exprasmlist,pushed);
+                              rg.saveintregvars(exprasmlist,all_intregisters);
+                              cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
+                              rg.restoreusedintregisters(exprasmlist,pushed);
                               cg.g_maybe_loadself(exprasmlist);
                            end;
 
@@ -880,14 +880,14 @@ implementation
                          st_widestring,
                          st_ansistring:
                            begin
-                              rg.saveusedregisters(exprasmlist,pushed,all_registers);
+                              rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
                               cg.a_param_reg(exprasmlist,OS_INT,right.location.register,paramanager.getintparaloc(1));
                               href:=location.reference;
                               dec(href.offset,7);
                               cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(1));
-                              rg.saveregvars(exprasmlist,all_registers);
-                              cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
-                              rg.restoreusedregisters(exprasmlist,pushed);
+                              rg.saveintregvars(exprasmlist,all_intregisters);
+                              cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
+                              rg.restoreusedintregisters(exprasmlist,pushed);
                               cg.g_maybe_loadself(exprasmlist);
                            end;
                          st_shortstring:
@@ -925,7 +925,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2003-01-30 21:46:57  peter
+  Revision 1.42  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.41  2003/01/30 21:46:57  peter
     * self fixes for static methods (merged)
 
   Revision 1.40  2003/01/08 18:43:56  daniel

@@ -95,27 +95,42 @@ uses
        $0103      EAX
        $0104      RAX
        $0201      BL
-       $0203      EBX
+       $0203      EBX}
 
-       Register numbers:
+      {Super register numbers:}
+      const       RS_SPECIAL    = $00;      {Special register}
+                  RS_EAX        = $01;      {EAX}
+                  RS_EBX        = $02;      {EBX}
+                  RS_ECX        = $03;      {ECX}
+                  RS_EDX        = $04;      {EDX}
+                  RS_ESI        = $05;      {ESI}
+                  RS_EDI        = $06;      {EDI}
+                  RS_EBP        = $07;      {EBP}
+                  RS_ESP        = $08;      {ESP}
+                  RS_R8         = $09;      {R8}
+                  RS_R9         = $0a;      {R9}
+                  RS_R10        = $0b;      {R10}
+                  RS_R11        = $0c;      {R11}
+                  RS_R12        = $0d;      {R12}
+                  RS_R13        = $0e;      {R13}
+                  RS_R14        = $0f;      {R14}
+                  RS_R15        = $10;      {R15}
 
-       $00        Special register
-       $01        EAX
-       $02        EBX
-       $03        ECX
-       $04        EDX
-       $05        ESI
-       $06        EDI
-       $07        EBP
-       $08        ESP
-       $09        R08
-       $0a        R09
-       $0b        R10
-       $0c        R11
-       $0d        R12
-       $0e        R13
-       $0f        R14
-       $10        R15}
+
+                  {Number of first and last superregister.}
+                  first_supreg    = $01;
+                  last_supreg     = $10;
+                  
+     {Sub register numbers:}
+                  R_SUBL        = $00;      {Like AL}
+                  R_SUBH        = $01;      {Like AH}
+                  R_SUBW        = $02;      {Like AX}
+                  R_SUBD        = $03;      {Like EAX}
+                  R_SUBQ        = $04;      {Like RAX}
+                  
+     {The subregister that specifies the entire register.}
+                  R_SUBWHOLE    = R_SUBD;  {i386}
+                  {R_SUBWHOLE    = R_SUBQ;} {Hammer}
 
      {Special registers:}
      const        NR_NO    = $0000;      {Invalid register}
@@ -133,14 +148,15 @@ uses
                   NR_DR6   = $0016;      {DR6}
                   NR_DR7   = $0017;      {DR7}
                   NR_CR0   = $0020;      {CR0}
-                  NR_CR1   = $0021;      {CR1}
-                  NR_CR2   = $0022;      {CR2}
-                  NR_CR3   = $0023;      {CR3}
+                  NR_CR2   = $0021;      {CR1}
+                  NR_CR3   = $0022;      {CR2}
+                  NR_CR4   = $0023;      {CR3}
                   NR_TR3   = $0030;      {R_TR3}
                   NR_TR4   = $0031;      {R_TR4}
                   NR_TR5   = $0032;      {R_TR5}
                   NR_TR6   = $0033;      {R_TR6}
                   NR_TR7   = $0034;      {R_TR7}
+
       {Normal registers.}
       const       NR_AL    = $0100;      {AL}
                   NR_AH    = $0101;      {AH}
@@ -226,14 +242,6 @@ uses
         R_INTREGISTER,R_FLOATREGISTER,R_MMXREGISTER,R_KNIREGISTER
       );
       
-
-      {Constants for subregisters.}
-      const   RS_L8   = 0;    {Like AL}
-              RS_H8   = 1;    {Like AH}
-              RS_16   = 2;    {Like AX}
-              RS_32   = 3;    {Like EAX}
-              RS_64   = 4;    {Like RAX}
-
       type  Tnewregister=word;
 
             Tregister = packed record
@@ -241,6 +249,9 @@ uses
               number:Tnewregister;  {This is a word for now, change to cardinal
                                      when the old register coding is away.}
             end;
+            
+            Tsuperregister=byte;
+            Tsubregister=byte;
       {$packenum normal}
 
       { A type to store register locations for 64 Bit values. }
@@ -253,7 +264,7 @@ uses
 
       {# Set type definition for registers }
       tregisterset = set of Toldregister;
-      Tsupregset = set of byte;
+      Tsupregset = set of Tsuperregister;
 
 
     const
@@ -264,6 +275,9 @@ uses
 
       firstsreg = R_CS;
       lastsreg  = R_GS;
+
+      nfirstsreg = NR_CS;
+      nlastsreg  = NR_GS;
 
       regset8bit  : tregisterset = [R_AL..R_DH];
       regset16bit : tregisterset = [R_AX..R_DI,R_CS..R_SS];
@@ -285,6 +299,8 @@ uses
       
       {Converts subregister number to opsize}
       subreg2opsize:array[0..4] of Topsize = (S_B,S_B,S_W,S_L,S_D);
+      {Converts subregister number to cgsize}
+{      subreg2cgsize:array[0..4] of Tcgsize = (OS_8,OS_8,OS_16,OS_32);}
 
       {# Standard opcode string table (for each tasmop enumeration). The
          opcode strings should conform to the names as defined by the
@@ -295,6 +311,10 @@ uses
     type
       {# Type definition for the array of string of register names }
          reg2strtable = array[firstreg..lastreg] of string[6];
+         regname2regnumrec = record
+           name:string[6];
+           number:Tnewregister;
+         end;
 
     const
       {# Standard register table (for each tregister enumeration). The
@@ -313,7 +333,7 @@ uses
         'mm0','mm1','mm2','mm3','mm4','mm5','mm6','mm7',
         'xmm0','xmm1','xmm2','xmm3','xmm4','xmm5','xmm6','xmm7'
       );
-
+      
 {*****************************************************************************
                                 Conditions
 *****************************************************************************}
@@ -481,8 +501,10 @@ uses
 
       {# Constant defining possibly all registers which might require saving }
       ALL_REGISTERS = [firstreg..lastreg];
+      ALL_INTREGISTERS = [1..255];
 
       general_registers = [R_EAX,R_EBX,R_ECX,R_EDX];
+      general_superregisters = [RS_EAX,RS_EBX,RS_ECX,RS_EDX];
 
       {# low and high of the available maximum width integer general purpose }
       { registers                                                            }
@@ -508,7 +530,7 @@ uses
 
       maxintregs = 4;
       intregs = [R_EAX..R_BL];
-      usableregsint = [R_EAX,R_EBX,R_ECX,R_EDX];
+      usableregsint = [RS_EAX,RS_EBX,RS_ECX,RS_EDX];
       c_countusableregsint = 4;
 
       maxfpuregs = 8;
@@ -526,8 +548,8 @@ uses
       c_countusableregsaddr = 0;
       
 
-      firstsaveintreg = R_EAX;
-      lastsaveintreg  = R_EBX;
+      firstsaveintreg = RS_EAX;
+      lastsaveintreg  = RS_EDX;
       firstsavefpureg = R_NO;
       lastsavefpureg  = R_NO;
       firstsavemmreg  = R_MM0;
@@ -543,7 +565,7 @@ uses
          routine calls or in assembler blocks.
       }
       max_scratch_regs = 1;
-      scratch_regs : array[1..max_scratch_regs] of Toldregister = (R_EDI);
+      scratch_regs : array[1..max_scratch_regs] of Tsuperregister = (RS_EDI);
 
 
 {*****************************************************************************
@@ -590,11 +612,15 @@ uses
 
       {# Stack pointer register }
       stack_pointer_reg = R_ESP;
+      NR_STACK_POINTER_REG = NR_ESP;
       {# Frame pointer register }
       frame_pointer_reg = R_EBP;
+      NR_FRAME_POINTER_REG = NR_EBP;
       {# Self pointer register : contains the instance address of an
          object or class. }
       self_pointer_reg  = R_ESI;
+      RS_SELF_POINTER_REG  = RS_ESI;
+      NR_SELF_POINTER_REG  = NR_ESI;
       {# Register for addressing absolute data in a position independant way,
          such as in PIC code. The exact meaning is ABI specific. For
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
@@ -602,16 +628,22 @@ uses
       pic_offset_reg = R_EBX;
       {# Results are returned in this register (32-bit values) }
       accumulator   = R_EAX;
-  {the return_result_reg, is used inside the called function to store its return
-  value when that is a scalar value otherwise a pointer to the address of the
-  result is placed inside it}
-  return_result_reg   = accumulator;
+      RS_ACCUMULATOR   = RS_EAX;
+      NR_ACCUMULATOR   = NR_EAX;
+      {the return_result_reg, is used inside the called function to store its return
+      value when that is a scalar value otherwise a pointer to the address of the
+      result is placed inside it}
+    	return_result_reg		=	accumulator;
+      RS_RETURN_RESULT_REG = RS_ACCUMULATOR;
+      NR_RETURN_RESULT_REG = NR_ACCUMULATOR;
 
-  {the function_result_reg contains the function result after a call to a scalar
-  function othewise it contains a pointer to the returned result}
-  function_result_reg = accumulator;
+      {the function_result_reg contains the function result after a call to a scalar
+      function othewise it contains a pointer to the returned result}
+    	function_result_reg	=	accumulator;
       {# Hi-Results are returned in this register (64-bit value high register) }
       accumulatorhigh = R_EDX;
+      RS_ACCUMULATORHIGH  = RS_EDX;
+      NR_ACCUMULATORHIGH  = NR_EDX;
       { WARNING: don't change to R_ST0!! See comments above implementation of }
       { a_loadfpu* methods in rgcpu (JM)                                      }
       fpu_result_reg = R_ST;
@@ -648,9 +680,8 @@ uses
 *****************************************************************************}
 
     procedure convert_register_to_enum(var r:Tregister);
-
+    function cgsize2subreg(s:Tcgsize):Tsubregister;
     function is_calljmp(o:tasmop):boolean;
-
     function flags_to_cond(const f: TResFlags) : TAsmCond;
 
 
@@ -687,6 +718,42 @@ implementation
           internalerror(200301082);
         end;
     end;
+    
+    function cgsize2subreg(s:Tcgsize):Tsubregister;
+    
+    begin
+      case s of
+        OS_8,OS_S8:
+          cgsize2subreg:=R_SUBL;
+        OS_16,OS_S16:
+          cgsize2subreg:=R_SUBW;
+        OS_32,OS_S32:
+          cgsize2subreg:=R_SUBD;
+        OS_64,OS_S64:
+          cgsize2subreg:=R_SUBQ;
+        else
+          internalerror(200301231);
+      end;
+    end;
+    
+    function supreg_name(r:Tsuperregister):string;
+    
+    var s:string[4];
+    
+    const supreg_names:array[0..last_supreg] of string[4]=
+          ('INV',
+           'eax','ebx','ecx','edx','esi','edi','ebp','esp',
+           'r8' ,'r9', 'r10','r11','r12','r13','r14','r15');
+    
+    begin
+      if r in [0..last_supreg] then
+        supreg_name:=supreg_names[r]
+      else
+        begin
+          str(r,s);
+          supreg_name:='reg'+s;
+        end;
+    end;
 
     function is_calljmp(o:tasmop):boolean;
       begin
@@ -720,7 +787,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2003-02-02 19:25:54  carl
+  Revision 1.42  2003-02-19 22:00:15  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.41  2003/02/02 19:25:54  carl
     * Several bugfixes for m68k target (register alloc., opcode emission)
     + VIS target
     + Generic add more complete (still not verified)

@@ -178,17 +178,17 @@ interface
     function getopstr(const o:toper) : string;
     var
       hs : string;
-      i : tregister;
+      i:Tsuperregister;
     begin
       case o.typ of
             top_reg : getopstr:=gas_reg2str[o.reg.enum];
             top_ref : getopstr:=getreferencestring(o.ref^);
         top_reglist : begin
                       hs:='';
-                      for i.enum:=R_NO to R_FPSR do
+                      for i:=first_supreg to last_supreg do
                       begin
-                        if i.enum in o.registerlist then
-                         hs:=hs+gas_reg2str[i.enum]+'/';
+                        if i in o.registerlist then
+                         hs:=hs+supreg_name(i)+'/';
                       end;
                       delete(hs,length(hs),1);
                       getopstr := hs;
@@ -417,7 +417,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2003-02-15 22:19:40  carl
+  Revision 1.7  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.6  2003/02/15 22:19:40  carl
    * bugfix of emissions of jmp instructions
 
   Revision 1.5  2003/01/08 18:43:57  daniel

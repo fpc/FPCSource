@@ -125,7 +125,7 @@ implementation
                   (nodetype = gten)) then
                 swapleftright;
               // now we have to check whether left >= right
-              tmpreg := cg.get_scratch_reg_int(exprasmlist);
+              tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
               if left.location.loc = LOC_CONSTANT then
                 begin
                   cg.a_op_const_reg_reg(exprasmlist,OP_AND,OS_INT,
@@ -209,7 +209,7 @@ implementation
             else
               begin
                 useconst := false;
-                tmpreg := cg.get_scratch_reg_int(exprasmlist);
+                tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
                 cg.a_load_const_reg(exprasmlist,OS_INT,
                   aword(right.location.value),tmpreg);
                end
@@ -432,7 +432,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-02-02 19:25:54  carl
+  Revision 1.2  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.1  2003/02/02 19:25:54  carl
     * Several bugfixes for m68k target (register alloc., opcode emission)
     + VIS target
     + Generic add more complete (still not verified)

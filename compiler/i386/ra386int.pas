@@ -48,7 +48,7 @@ Implementation
        nbas,
        { parser }
        scanner,
-       rautils,ra386,
+       rautils,ra386,ag386int,
        { codegen }
        cgbase
        ;
@@ -221,21 +221,30 @@ Begin
   is_asmdirective:=false;
 end;
 
+function is_register(const s:string):boolean;
 
-Function is_register(const s: string):boolean;
-Var
-  i : tregister;
-Begin
-  actasmregister.enum:=R_NO;
-  for i.enum:=firstreg to lastreg do
-   if s=iasmregs^[i.enum] then
+var i:Toldregister;
+
+begin
+  actasmregister.enum:=R_INTREGISTER;
+  actasmregister.number:=intel_regnum_search(s);
+  if actasmregister.number=NR_NO then
     begin
-      actasmtoken:=AS_REGISTER;
-      actasmregister:=i;
+      for i:=firstreg to lastreg do
+       if s=iasmregs^[i] then
+        begin
+          actasmtoken:=AS_REGISTER;
+          actasmregister.enum:=i;
+          is_register:=true;
+          exit;
+        end;
+      is_register:=false;
+    end
+  else
+    begin
       is_register:=true;
-      exit;
+      actasmtoken:=AS_REGISTER;
     end;
-  is_register:=false;
 end;
 
 
@@ -1071,7 +1080,8 @@ Begin
              if negative then
                Message(asmr_e_only_add_relocatable_symbol);
              oldbase:=opr.ref.base;
-             opr.ref.base.enum:=R_NO;
+             opr.ref.base.enum:=R_INTREGISTER;
+             opr.ref.base.number:=NR_NO;
              tempstr:=actasmpattern;
              Consume(AS_ID);
              { typecasting? }
@@ -1097,11 +1107,12 @@ Begin
               end;
              if GotOffset then
               begin
-                if procinfo.framepointer.enum>lastreg then
-                  internalerror(200301081);
+                if procinfo.framepointer.enum<>R_INTREGISTER then
+                  internalerror(200302121);
                 if hasvar and (opr.ref.base.enum=procinfo.framepointer.enum) then
                  begin
-                   opr.ref.base.enum:=R_NO;
+                   opr.ref.base.enum:=R_INTREGISTER;
+                   opr.ref.base.number:=NR_NO;
                    hasvar:=hadvar;
                  end
                 else
@@ -1111,19 +1122,19 @@ Begin
                    { should we allow ?? }
                  end;
               end;
-             if opr.ref.base.enum>lastreg then
-               internalerror(200301081);
-             if opr.ref.index.enum>lastreg then
-               internalerror(200301081);
+             if opr.ref.base.enum<>R_INTREGISTER then
+               internalerror(200302121);
+             if opr.ref.index.enum<>R_INTREGISTER then
+               internalerror(200302121);
              { is the base register loaded by the var ? }
-             if (opr.ref.base.enum<>R_NO) then
+             if (opr.ref.base.number<>NR_NO) then
               begin
                 { check if we can move the old base to the index register }
-                if (opr.ref.index.enum<>R_NO) then
+                if (opr.ref.index.number<>NR_NO) then
                  Message(asmr_e_wrong_base_index)
                 else if assigned(procinfo._class) and
-                  (oldbase.enum=SELF_POINTER_REG) and
-                  (opr.ref.base.enum=SELF_POINTER_REG) then
+                  (oldbase.number=NR_SELF_POINTER_REG) and
+                  (opr.ref.base.number=NR_SELF_POINTER_REG) then
                   begin
                     Message(asmr_w_possible_object_field_bug);
                     { warn but accept... who knows what people
@@ -1214,11 +1225,15 @@ Begin
              1. just read a *
              2. next token is a *
              3. base register is already used }
+          if opr.ref.base.enum<>R_INTREGISTER then
+            internalerror(200302123);
+          if opr.ref.index.enum<>R_INTREGISTER then
+            internalerror(200302123);
           if (GotStar) or
              (actasmtoken=AS_STAR) or
-             (opr.ref.base.enum<>R_NO) then
+             (opr.ref.base.number<>NR_NO) then
            begin
-             if (opr.ref.index.enum<>R_NO) then
+             if (opr.ref.index.number<>NR_NO) then
               Message(asmr_e_multiple_index);
              opr.ref.index:=hreg;
              if scale<>0 then
@@ -1548,7 +1563,7 @@ Begin
       end;
 
     AS_REGISTER : { Register, a variable reference or a constant reference }
-      Begin
+      begin
         { save the type of register used. }
         tempreg:=actasmregister;
         Consume(AS_REGISTER);
@@ -1566,9 +1581,10 @@ Begin
             Message(asmr_e_invalid_operand_type);
            opr.typ:=OPR_REGISTER;
            opr.reg:=tempreg;
-           if opr.reg.enum>lastreg then
-             internalerror(200301081);
-           size:=reg2opsize[opr.reg.enum];
+           if opr.reg.enum=R_INTREGISTER then
+              size:=subreg2opsize[opr.reg.number and $ff]
+           else
+              size:=reg2opsize[opr.reg.enum];
          end;
       end;
 
@@ -1964,7 +1980,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.39  2003-01-08 18:43:57  daniel
+  Revision 1.40  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.39  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.38  2002/12/14 15:02:03  carl

@@ -78,7 +78,7 @@ type
       OPR_REFERENCE : (ref:treference);
       OPR_REGISTER  : (reg:tregister);
 {$ifdef m68k}
-      OPR_REGLIST   : (reglist:tregisterlist);
+      OPR_REGLIST   : (reglist:Tsupregset);
 {$else not m68k}
       OPR_REGLIST   : ();
 {$endif m68k}
@@ -825,7 +825,8 @@ Begin
                 that %esi is valid there }
               else
                 begin
-                  opr.ref.base.enum:=SELF_POINTER_REG;
+                  opr.ref.base.enum:=R_INTREGISTER;
+                  opr.ref.base.number:=NR_SELF_POINTER_REG;
                   opr.ref.offset:=tvarsym(sym).address;
                 end;
               hasvar:=true;
@@ -1037,6 +1038,11 @@ Begin
   end;
   opr.typ := OPR_REFERENCE;
   Fillchar(opr.ref,sizeof(treference),0);
+{$ifdef i386}
+  opr.ref.segment.enum:=R_INTREGISTER;
+{$endif}
+  opr.ref.index.enum:=R_INTREGISTER;
+  opr.ref.base.enum:=R_INTREGISTER;
 end;
 
 
@@ -1591,7 +1597,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.52  2003-01-08 18:43:56  daniel
+  Revision 1.53  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.52  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.51  2002/12/14 15:02:03  carl

@@ -35,6 +35,7 @@ interface
     procedure assign_regvars(p: tnode);
     procedure load_regvars(asml: TAAsmoutput; p: tnode);
     procedure cleanup_regvars(asml: TAAsmoutput);
+    procedure store_regvar_int(asml:Taasmoutput;reg:Tsuperregister);
     procedure store_regvar(asml: TAAsmoutput; reg: tregister);
     procedure load_regvar(asml: TAAsmoutput; vsym: tvarsym);
     procedure load_regvar_reg(asml: TAAsmoutput; reg: tregister);
@@ -174,7 +175,10 @@ implementation
                       { search the register which is the most }
                       { unused                                }
                       r.enum:=varregs[i];
-                      rg.makeregvar(r);
+                      if r.enum=R_INTREGISTER then
+                        rg.makeregvarint(r.number)
+                      else
+                        rg.makeregvarother(r);
 
                       { possibly no 32 bit register are needed }
                       { call by reference/const ? }
@@ -260,7 +264,7 @@ implementation
                        r.enum:=R_ST0;
                        regvarinfo^.fpuregvars[i].reg:=trgcpu(rg).correct_fpuregister(r,i);
 {$else i386}
-                       rg.makeregvar(regvarinfo^.fpuregvars[i].reg);
+                       rg.makeregvarother(regvarinfo^.fpuregvars[i].reg);
 {$endif i386}
                      end;
                   end;
@@ -268,6 +272,12 @@ implementation
         end;
      end;
 
+
+    procedure store_regvar_int(asml:Taasmoutput;reg:Tsuperregister);
+    
+    begin
+      internalerror(200301104);
+    end;
 
     procedure store_regvar(asml: TAAsmoutput; reg: tregister);
     var
@@ -487,7 +497,11 @@ end.
 
 {
   $Log$
-  Revision 1.44  2003-01-08 18:43:57  daniel
+  Revision 1.45  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.44  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.43  2002/11/25 17:43:24  peter

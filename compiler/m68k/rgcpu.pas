@@ -35,7 +35,7 @@ unit rgcpu;
 
      type
        trgcpu = class(trgobj)
-          unusedregsaddr,usableregsaddr : tregisterset;
+          unusedregsaddr,usableregsaddr:Tsupregset;
           countunusedregsaddr,
           countusableregsaddr : byte;
           procedure saveStateForInline(var state: pointer);override;
@@ -46,10 +46,11 @@ unit rgcpu;
           function getaddressregister(list: taasmoutput): tregister; override;
           procedure ungetaddressregister(list: taasmoutput; r: tregister); override;
           procedure resetusableregisters;override;
-          procedure restoreusedregisters(list : taasmoutput;
-             const saved : tpushedsaved);override;
-          procedure saveusedregisters(list: taasmoutput;
-        var saved : tpushedsaved; const s: tregisterset);override;
+          procedure restoreusedintregisters(list:Taasmoutput;
+                                            const saved:Tpushedsavedint);override;
+          procedure saveusedintregisters(list:Taasmoutput;
+                                         var saved:Tpushedsavedint;
+                                         const s:Tsupregset);override;
           procedure cleartempgen;override;
 
        end;
@@ -61,22 +62,30 @@ unit rgcpu;
 
      procedure trgcpu.ungetaddressregister(list: taasmoutput; r: tregister);
        begin
-         ungetregistergen(list,r,usableregsaddr,unusedregsaddr,
+         ungetregistergenint(list,r,usableregsaddr,unusedregsaddr,
            countunusedregsaddr);
        end;
 
 
-     function trgcpu.getaddressregister(list: taasmoutput): tregister;
-       begin
-         result := getregistergen(list,firstsaveaddrreg,lastsaveaddrreg,
-                   unusedregsaddr,countunusedregsaddr);
-       end;
+    function trgcpu.getaddressregister(list: taasmoutput): tregister;
 
-
-     function trgcpu.isaddressregister(reg: tregister): boolean;
-       begin
-         isaddressregister := reg.enum in addrregs;
-       end;
+    begin
+      result:=getregistergenint(list,
+                                R_SUBWHOLE,
+                                firstsaveaddrreg,
+                                lastsaveaddrreg,
+                                usedintbyproc,
+                                usedintinproc,
+                                unusedregsint,
+                                countunusedregsint);
+ 
+    end;
+     
+    function trgcpu.isaddressregister(reg: tregister): boolean;
+    
+    begin
+      isaddressregister := reg.enum in addrregs;
+    end;
 
 
     procedure trgcpu.resetusableregisters;
@@ -89,66 +98,72 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.restoreusedregisters(list : taasmoutput;
-        const saved : tpushedsaved);
-      var
-         r,r2 : tregister;
-         hr : treference;
-     begin
-        inherited restoreusedregisters(list, saved);
+    procedure Trgcpu.restoreusedintregisters(list:Taasmoutput;
+                                             const saved:Tpushedsavedint);
+    var r:Tsuperregister;
+        r2,r3:Tregister;
+        hr:Treference;
 
-        for r.enum:=lastsaveaddrreg downto firstsaveaddrreg do
-          begin
-            if saved[r.enum].ofs <> reg_not_saved then
-              begin
-                r2.enum:=frame_pointer_reg;
-                reference_reset_base(hr,r2,saved[r.enum].ofs);
-                cg.a_reg_alloc(list,r);
-                cg.a_load_ref_reg(list,OS_ADDR,hr,r);
-                if not (r.enum in unusedregsaddr) then
-                  { internalerror(10)
-                    in n386cal we always save/restore the reg *state*
-                    using save/restoreunusedstate -> the current state
-                    may not be real (JM) }
-                else
-                  begin
-                    dec(countunusedregsaddr);
-                    exclude(unusedregsaddr,r.enum);
-                  end;
-                tg.ungettemp(list,hr);
-              end;
-          end;
-     end;
+    begin
+      inherited restoreusedintregisters(list, saved);
+
+      for r:=lastsaveaddrreg downto firstsaveaddrreg do
+        begin
+          if saved[r].ofs<>reg_not_saved then
+            begin
+              r2.enum:=R_INTREGISTER;
+              r2.number:=NR_FRAME_POINTER_REG;
+              reference_reset_base(hr,r2,saved[r].ofs);
+              r3.enum:=R_INTREGISTER;
+              r3.number:=r shl 8 or R_SUBWHOLE;
+              cg.a_reg_alloc(list,r3);
+              cg.a_load_ref_reg(list,OS_ADDR,hr,r3);
+              if not (r in unusedregsaddr) then
+                { internalerror(10)
+                  in n386cal we always save/restore the reg *state*
+                  using save/restoreunusedstate -> the current state
+                  may not be real (JM) }
+              else
+                begin
+                  dec(countunusedregsaddr);
+                  exclude(unusedregsaddr,r);
+                end;
+              tg.ungettemp(list,hr);
+            end;
+        end;
+    end;
 
 
-     procedure trgcpu.saveusedregisters(list: taasmoutput;
-        var saved : tpushedsaved; const s: tregisterset);
-      var
-         r : tregister;
-         hr : treference;
-      begin
-        inherited saveusedregisters(list, saved, s);
-        for r.enum:=firstsaveaddrreg to lastsaveaddrreg do
-          begin
-            saved[r.enum].ofs:=reg_not_saved;
-            { if the register is used by the calling subroutine and if }
-            { it's not a regvar (those are handled separately)         }
-            if not is_reg_var[r.enum] and
-               (r.enum in s) and
+    procedure Trgcpu.saveusedintregisters(list:Taasmoutput;
+                                          var saved:Tpushedsavedint;
+                                          const s:Tsupregset);
+    var r:Tsuperregister;
+        r2:Tregister;
+        hr:Treference;
+
+    begin
+      inherited saveusedintregisters(list,saved,s);
+      for r:=firstsaveaddrreg to lastsaveaddrreg do
+        begin
+          saved[r].ofs:=reg_not_saved;
+          { if the register is used by the calling subroutine and if }
+          { it's not a regvar (those are handled separately)         }
+          if not(r in is_reg_var_int) and (r in s) and
                { and is present in use }
-               not(r.enum in unusedregsaddr) then
-              begin
-                { then save it }
-                tg.gettemp(list,pointer_size,tt_persistant,hr);
-                saved[r.enum].ofs:=hr.offset;
-                cg.a_load_reg_ref(list,OS_ADDR,r,hr);
-                cg.a_reg_dealloc(list,r);
-                include(unusedregsaddr,r.enum);
-                inc(countunusedregsaddr);
-              end;
-          end;
-
-      end;
+               not(r in unusedregsaddr) then
+            begin
+              { then save it }
+              tg.gettemp(list,pointer_size,tt_persistant,hr);
+              saved[r].ofs:=hr.offset;
+              r2.enum:=R_INTREGISTER;
+              r2.number:=r shl 8 or R_SUBWHOLE;
+              cg.a_load_reg_ref(list,OS_ADDR,r2,hr);
+              cg.a_reg_dealloc(list,r2);
+              include(unusedregsaddr,r);
+              inc(countunusedregsaddr);
+            end;
+        end;
+    end;
 
 
 
@@ -200,7 +215,11 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-02-02 19:25:54  carl
+  Revision 1.7  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.6  2003/02/02 19:25:54  carl
     * Several bugfixes for m68k target (register alloc., opcode emission)
     + VIS target
     + Generic add more complete (still not verified)

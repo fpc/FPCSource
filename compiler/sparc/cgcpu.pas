@@ -80,10 +80,10 @@ specific processor ABI. It is overriden for each CPU target.
     procedure g_stackframe_entry(list:TAasmOutput;localsize:LongInt);override;
     procedure g_restore_all_registers(list:TAasmOutput;selfused,accused,acchiused:boolean);override;
     procedure g_restore_frame_pointer(list:TAasmOutput);override;
-    procedure g_restore_standard_registers(list:taasmoutput;usedinproc:tregisterset);override;
+    procedure g_restore_standard_registers(list:taasmoutput;usedinproc:Tsupregset);override;
     procedure g_return_from_proc(list:TAasmOutput;parasize:aword);override;
     procedure g_save_all_registers(list : taasmoutput);override;
-    procedure g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
+    procedure g_save_standard_registers(list : taasmoutput; usedinproc : Tsupregset);override;
     procedure g_concatcopy(list:TAasmOutput;CONST source,dest:TReference;len:aword;delsource,loadref:boolean);override;
     class function reg_cgsize(CONST reg:tregister):tcgsize;override;
   PRIVATE
@@ -180,7 +180,7 @@ procedure TCgSparc.a_param_ref(list:TAasmOutput;sz:TCgSize;const r:TReference;co
             reference_reset(ref);
             ref.base:=locpara.reference.index;
             ref.offset:=locpara.reference.offset;
-            tmpreg := get_scratch_reg_int(list);
+            tmpreg := get_scratch_reg_int(list,sz);
             a_load_ref_reg(list,sz,r,tmpreg);
             a_load_reg_ref(list,sz,tmpreg,ref);
             free_scratch_reg(list,tmpreg);
@@ -860,7 +860,7 @@ procedure TCgSparc.a_cmp_ref_reg_label(list:TAasmOutput;size:tcgsize;cmp_op:topc
   var
     TempReg:TRegister;
    begin
-     TempReg:=cg.get_scratch_reg_int(List);
+     TempReg:=cg.get_scratch_reg_int(List,size);
      a_load_ref_reg(list,OS_32,Ref,TempReg);
      list.concat(taicpu.op_reg_reg(A_SUBcc,TempReg,Reg));
      a_jmp_cond(list,cmp_op,l);
@@ -953,7 +953,7 @@ procedure TCgSparc.g_restore_frame_pointer(list:TAasmOutput);
 {This function intontionally does nothing as frame pointer is restored in the
 delay slot of the return instrucion done in g_return_from_proc}
   end;
-procedure TCgSparc.g_restore_standard_registers(list:taasmoutput;usedinproc:tregisterset);
+procedure TCgSparc.g_restore_standard_registers(list:taasmoutput;usedinproc:Tsupregset);
   begin
     {$WARNING FIX ME TCgSparc.g_restore_standard_registers}
   end;
@@ -987,7 +987,7 @@ procedure TCgSparc.g_save_all_registers(list : taasmoutput);
   begin
     {$warning FIX ME TCgSparc.g_save_all_registers}
   end;
-procedure TCgSparc.g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);
+procedure TCgSparc.g_save_standard_registers(list : taasmoutput; usedinproc:Tsupregset);
   begin
     {$warning FIX ME tcgppc.g_save_standard_registers}
   end;
@@ -1198,7 +1198,7 @@ procedure TCgSparc.g_concatcopy(list:taasmoutput;const source,dest:treference;le
             inc(src.offset,8);
             list.concat(taicpu.op_reg_const_reg(A_SUB,src.base,8,src.base));
             list.concat(taicpu.op_reg_const_reg(A_SUB,dst.base,8,dst.base));
-            countreg := get_scratch_reg_int(list);
+            countreg := get_scratch_reg_int(list,OS_32);
             a_load_const_reg(list,OS_32,count,countreg);
             { explicitely allocate R_O0 since it can be used safely here }
             { (for holding date that's being copied)                    }
@@ -1403,7 +1403,11 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.38  2003-02-18 22:00:20  mazen
+  Revision 1.39  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.38  2003/02/18 22:00:20  mazen
   * asm condition generation modified by TAiCpu.SetCondition
 
   Revision 1.37  2003/02/05 21:48:34  mazen

@@ -372,6 +372,7 @@ implementation
       var
         cgsize : tcgsize;
         r,hregister : tregister;
+        nr:Tnewregister;
       begin
         { structured results are easy to handle.... }
         { needed also when result_no_used !! }
@@ -424,25 +425,42 @@ implementation
                   if cgsize<>OS_NO then
                    begin
                      location_reset(location,LOC_REGISTER,cgsize);
-                     r.enum:=accumulator;
-                     hregister.enum:=accumulatorhigh;
-                     cg.a_reg_alloc(exprasmlist,r);
 {$ifndef cpu64bit}
                      if cgsize in [OS_64,OS_S64] then
                       begin
+                        {Move the function result to free registers, preferably the
+                         accumulator/accumulatorhigh, so no move is necessary.}
+                        r.enum:=R_INTREGISTER;
+                        r.number:=NR_ACCUMULATOR;
+                        hregister.enum:=R_INTREGISTER;
+                        hregister.number:=NR_ACCUMULATORHIGH;
+                        cg.a_reg_alloc(exprasmlist,r);
                         cg.a_reg_alloc(exprasmlist,hregister);
-                        location.registerhigh:=rg.getexplicitregisterint(exprasmlist,hregister.enum);
-                        location.registerlow:=rg.getexplicitregisterint(exprasmlist,r.enum);
+                        if RS_ACCUMULATOR in rg.unusedregsint then
+                          location.registerlow:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATOR)
+                        else
+                          location.registerlow:=rg.getregisterint(exprasmlist,OS_INT);
+                        if RS_ACCUMULATORHIGH in rg.unusedregsint then
+                          location.registerhigh:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATORHIGH)
+                        else
+                          location.registerhigh:=rg.getregisterint(exprasmlist,OS_INT);
                         cg64.a_load64_reg_reg(exprasmlist,joinreg64(r,hregister),
                             location.register64);
                       end
                      else
 {$endif cpu64bit}
                       begin
-                        location.register:=rg.getexplicitregisterint(exprasmlist,r.enum);
-                        hregister:=rg.makeregsize(r,cgsize);
-                        location.register:=rg.makeregsize(location.register,cgsize);
-                        cg.a_load_reg_reg(exprasmlist,cgsize,cgsize,hregister,location.register);
+                        {Move the function result to a free register, preferably the
+                         accumulator, so no move is necessary.}
+                        nr:=RS_ACCUMULATOR shl 8 or cgsize2subreg(cgsize);
+                        r.enum:=R_INTREGISTER;
+                        r.number:=nr;
+                        cg.a_reg_alloc(exprasmlist,r);
+                        if RS_ACCUMULATOR in rg.unusedregsint then
+                          location.register:=rg.getexplicitregisterint(exprasmlist,nr)
+                        else
+                          location.register:=rg.getregisterint(exprasmlist,cgsize);
+                        cg.a_load_reg_reg(exprasmlist,cgsize,cgsize,r,location.register);
                       end;
                    end;
                 end;
@@ -480,8 +498,12 @@ implementation
               else
                 begin
                   location_reset(location,LOC_REGISTER,OS_INT);
-                  location.register:=rg.getexplicitregisterint(exprasmlist,accumulator);
-                  r.enum:=accumulator;
+                  if RS_ACCUMULATOR in rg.unusedregsint then
+                    location.register:=rg.getexplicitregisterint(exprasmlist,NR_ACCUMULATOR)
+                  else
+                    location.register:=rg.getregisterint(exprasmlist,OS_INT);
+                  r.enum:=R_INTREGISTER;
+                  r.number:=NR_ACCUMULATOR;
                   cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,r,location.register);
                 end;
             end;
@@ -491,9 +513,11 @@ implementation
 
     procedure tcgcallnode.pass_2;
       var
-         regs_to_push : tregisterset;
+         regs_to_push_int : Tsupregset;
+         regs_to_push_other : tregisterset;
          unusedstate: pointer;
          pushed : tpushedsaved;
+         pushedint : tpushedsavedint;
          tmpreg : tregister;
          hregister : tregister;
          hregister64 : tregister64;
@@ -624,25 +648,30 @@ implementation
 
               { save all used registers and possible registers
                 used for the return value }
-              regs_to_push := tprocdef(procdefinition).usedregisters;
+              regs_to_push_int := tprocdef(procdefinition).usedintregisters;
+              regs_to_push_other := tprocdef(procdefinition).usedotherregisters;
               if (not is_void(resulttype.def)) and
                  (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
                begin
-                 include(regs_to_push,accumulator);
+                 include(regs_to_push_int,RS_ACCUMULATOR);
 {$ifndef cpu64bit}
                  if resulttype.def.size>sizeof(aword) then
-                   include(regs_to_push,accumulatorhigh);
+                   include(regs_to_push_int,RS_ACCUMULATORHIGH);
 {$endif cpu64bit}
                end;
-              rg.saveusedregisters(exprasmlist,pushed,regs_to_push);
+              rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
+              rg.saveusedotherregisters(exprasmlist,pushed,regs_to_push_other);
 
               { give used registers through }
-              rg.usedinproc:=rg.usedinproc + tprocdef(procdefinition).usedregisters;
+              rg.usedintinproc:=rg.usedintinproc + tprocdef(procdefinition).usedintregisters;
+              rg.usedinproc:=rg.usedinproc + tprocdef(procdefinition).usedotherregisters;
            end
          else
            begin
-              regs_to_push := all_registers;
-              rg.saveusedregisters(exprasmlist,pushed,regs_to_push);
+              regs_to_push_int := all_intregisters;
+              regs_to_push_other := all_registers;
+              rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
+              rg.saveusedotherregisters(exprasmlist,pushed,regs_to_push_other);
               rg.usedinproc:=all_registers;
               { no IO check for methods and procedure variables }
               iolabel:=nil;
@@ -1129,8 +1158,10 @@ implementation
                 if (lexlevel>=normal_function_level) and assigned(tprocdef(procdefinition).parast) and
                   ((tprocdef(procdefinition).parast.symtablelevel)>normal_function_level) then
                   load_framepointer;
+
+              rg.saveintregvars(exprasmlist,regs_to_push_int);
+              rg.saveotherregvars(exprasmlist,regs_to_push_other);
 {$endif SPARC}
-              rg.saveregvars(exprasmlist,regs_to_push);
 
 {$ifdef dummy}
               if (po_virtualmethod in procdefinition.procoptions) and
@@ -1256,7 +1287,8 @@ implementation
                 end
               else
                 begin
-                   rg.saveregvars(exprasmlist,ALL_REGISTERS);
+                   rg.saveintregvars(exprasmlist,ALL_INTREGISTERS);
+                   rg.saveotherregvars(exprasmlist,ALL_REGISTERS);
                    cg.a_call_loc(exprasmlist,right.location);
                    location_release(exprasmlist,right.location);
                    location_freetemp(exprasmlist,right.location);
@@ -1374,7 +1406,8 @@ implementation
 {$endif i386}
 
          { restore registers }
-         rg.restoreusedregisters(exprasmlist,pushed);
+         rg.restoreusedotherregisters(exprasmlist,pushed);
+         rg.restoreusedintregisters(exprasmlist,pushedint);
 
          { at last, restore instance pointer (SELF) }
          if loadesi then
@@ -1485,7 +1518,9 @@ implementation
                     if assigned(regvars[i]) then
                       begin
                         tmpreg:=rg.makeregsize(regvars[i].reg,OS_INT);
-                        rg.makeregvar(tmpreg);
+                        {Fix me!!}
+{                        rg.makeregvar(tmpreg);}
+                        internalerror(200301232);
                       end;
             end;
           oldinlining_procedure:=inlining_procedure;
@@ -1627,7 +1662,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2003-02-15 22:17:38  carl
+  Revision 1.39  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.38  2003/02/15 22:17:38  carl
    * bugfix of FPU emulation code
 
   Revision 1.37  2003/02/12 22:10:07  carl

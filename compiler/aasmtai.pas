@@ -1744,7 +1744,11 @@ uses
               begin
                 for i:=0 to Taicpu_abstract(p).ops-1 do
                   if Taicpu_abstract(p).oper[i].typ=Top_reg then
-                    convert_register_to_enum(Taicpu_abstract(p).oper[i].reg)
+                    begin
+                      if Taicpu_abstract(p).oper[i].reg.enum=R_NO then
+                        internalerror(200302052);
+                      convert_register_to_enum(Taicpu_abstract(p).oper[i].reg)
+                    end
                   else if Taicpu_abstract(p).oper[i].typ=Top_ref then
                     begin
                       r:=Taicpu_abstract(p).oper[i].ref;
@@ -1766,7 +1770,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.20  2003-01-30 21:46:20  peter
+  Revision 1.21  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.20  2003/01/30 21:46:20  peter
     * tai_const_symbol.createdataname added
 
   Revision 1.19  2003/01/21 08:48:08  daniel

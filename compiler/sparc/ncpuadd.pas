@@ -612,11 +612,11 @@ procedure TSparcAddNode.second_add64bit;
                         begin
                           if (right.location.valueqword <> 0)
                           then
-                            tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist)
+                            tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist,OS_INT)
                           else
                             tempreg64.reglo := left.location.registerlow;
                           if ((right.location.valueqword shr 32) <> 0) then
-                            tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist)
+                            tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist,OS_INT)
                           else
                             tempreg64.reghi := left.location.registerhigh;
                         end;
@@ -647,8 +647,8 @@ procedure TSparcAddNode.second_add64bit;
                     end
                   else
                     begin
-                       tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist);
-                       tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist);
+                       tempreg64.reglo := cg.get_scratch_reg_int(exprasmlist,OS_INT);
+                       tempreg64.reghi := cg.get_scratch_reg_int(exprasmlist,OS_INT);
                        cg64.a_op64_reg_reg_reg(exprasmlist,OP_XOR,
                          left.location.register64,right.location.register64,
                          tempreg64);
@@ -671,8 +671,8 @@ procedure TSparcAddNode.second_add64bit;
                 begin
                   if (location.registerlow.enum = R_NO) then
                     begin
-                      location.registerlow := rg.getregisterint(exprasmlist);
-                      location.registerhigh := rg.getregisterint(exprasmlist);
+                      location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+                      location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
                     end;
 
                   if (left.location.loc = LOC_CONSTANT) then
@@ -693,8 +693,8 @@ procedure TSparcAddNode.second_add64bit;
                     begin
                       if (location.registerlow.enum = R_NO) then
                         begin
-                         location.registerlow := rg.getregisterint(exprasmlist);
-                         location.registerhigh := rg.getregisterint(exprasmlist);
+                         location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+                         location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
                       end;
                       if right.location.loc <> LOC_CONSTANT then
                         // reg64 - reg64
@@ -711,8 +711,8 @@ procedure TSparcAddNode.second_add64bit;
                     begin
                       if (location.registerlow.enum = R_NO) then
                         begin
-                         location.registerlow := rg.getregisterint(exprasmlist);
-                         location.registerhigh := rg.getregisterint(exprasmlist);
+                         location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+                         location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
                       end;
                       if (int64(left.location.valueqword) >= low(smallint)) and
                          (int64(left.location.valueqword) <= high(smallint))
@@ -738,8 +738,8 @@ procedure TSparcAddNode.second_add64bit;
                       // (const32 shl 32) - reg64
                       if (location.registerlow.enum = R_NO) then
                         begin
-                         location.registerlow := rg.getregisterint(exprasmlist);
-                         location.registerhigh := rg.getregisterint(exprasmlist);
+                         location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+                         location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
                       end;
                       exprasmlist.concat(taicpu.op_reg_Const_reg(A_SUBcc,location.registerlow,0,right.location.registerlow));
                       cg.a_load_const_reg(exprasmlist,OS_INT,
@@ -757,8 +757,8 @@ procedure TSparcAddNode.second_add64bit;
                         location.register64 := left.location.register64
                       else if (location.registerlow.enum = R_NO) then
                         begin
-                         location.registerlow := rg.getregisterint(exprasmlist);
-                         location.registerhigh := rg.getregisterint(exprasmlist);
+                         location.registerlow := rg.getregisterint(exprasmlist,OS_INT);
+                         location.registerhigh := rg.getregisterint(exprasmlist,OS_INT);
                         end;
                       cg64.a_op64_reg_reg_reg(exprasmlist,OP_SUB,
                         right.location.register64,left.location.register64,
@@ -1015,7 +1015,7 @@ procedures }
     load_left_right(cmpop,(cs_check_overflow in aktlocalswitches)and(nodetype in [addn,subn,muln]));
     if(location.register.enum = R_NO)and not(cmpop)
     then
-      location.register := rg.getregisterint(exprasmlist);
+      location.register := rg.getregisterint(exprasmlist,OS_INT);
     if not(cs_check_overflow in aktlocalswitches)or cmpop or (nodetype in [orn,andn,xorn])
     then
       begin
@@ -1111,7 +1111,11 @@ begin
 end.
 {
     $Log$
-    Revision 1.9  2003-02-13 21:15:18  mazen
+    Revision 1.10  2003-02-19 22:00:17  daniel
+      * Code generator converted to new register notation
+      - Horribily outdated todo.txt removed
+
+    Revision 1.9  2003/02/13 21:15:18  mazen
     + Load_left_right and clear_left_right implemented fixing test0001 register
     allocation bug.
 

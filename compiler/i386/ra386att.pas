@@ -233,20 +233,30 @@ Begin
 end;
 
 
-Function is_register(const s: string):boolean;
-Var
-  i : Toldregister;
-Begin
-  actasmregister.enum:=R_NO;
-  for i:=firstreg to lastreg do
-   if s=iasmregs^[i] then
+function is_register(const s:string):boolean;
+
+var i:Toldregister;
+
+begin
+  actasmregister.enum:=R_INTREGISTER;
+  actasmregister.number:=gas_regnum_search(s);
+  if actasmregister.number=NR_NO then
     begin
-      actasmtoken:=AS_REGISTER;
-      actasmregister.enum:=i;
+      for i:=firstreg to lastreg do
+       if s=iasmregs^[i] then
+        begin
+          actasmtoken:=AS_REGISTER;
+          actasmregister.enum:=i;
+          is_register:=true;
+          exit;
+        end;
+      is_register:=false;
+    end
+  else
+    begin
       is_register:=true;
-      exit;
+      actasmtoken:=AS_REGISTER;
     end;
-  is_register:=false;
 end;
 
 
@@ -1168,10 +1178,9 @@ Begin
       Begin
         { Check if there is already a base (mostly ebp,esp) than this is
           not allowed,becuase it will give crashing code }
-        if opr.ref.base.enum>lastreg then
-          internalerror(200301081);
-        if opr.ref.base.enum<>R_NO then
-         Message(asmr_e_cannot_index_relative_var);
+        if not((opr.ref.base.enum=R_NO) or 
+               ((opr.ref.base.enum=R_INTREGISTER) and (opr.ref.base.number=NR_NO))) then
+          message(asmr_e_cannot_index_relative_var);
         opr.ref.base:=actasmregister;
         Consume(AS_REGISTER);
         { can either be a register or a right parenthesis }
@@ -1431,9 +1440,9 @@ Begin
          begin
            opr.typ:=OPR_REGISTER;
            opr.reg:=actasmregister;
-           if opr.reg.enum>lastreg then
-             internalerror(200301081);
-           size:=reg2opsize[actasmregister.enum];
+           if opr.reg.enum<>R_INTREGISTER then
+             internalerror(200302023);
+           size:=subreg2opsize[actasmregister.number and $ff];
            Consume(AS_REGISTER);
          end
         else
@@ -2126,7 +2135,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.37  2003-02-03 22:47:14  daniel
+  Revision 1.38  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.37  2003/02/03 22:47:14  daniel
     - Removed reg_2_opsize array
 
   Revision 1.36  2003/01/08 18:43:57  daniel

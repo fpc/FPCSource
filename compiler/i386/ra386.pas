@@ -302,9 +302,6 @@ begin
    exit;
   if (OpOrder=op_intel) then
     SwapOperands;
-  if (operands[1].opr.typ=OPR_REGISTER) and
-      (operands[1].opr.reg.enum>lastreg) then
-    internalerror(200301081);
   case ops of
     0 : ;
     1 :
@@ -312,7 +309,10 @@ begin
       if ((opcode=A_PUSH) or
           (opcode=A_POP)) and
          (operands[1].opr.typ=OPR_REGISTER) and
-         (operands[1].opr.reg.enum in [firstsreg..lastsreg]) then
+         ((operands[1].opr.reg.enum in [firstsreg..lastsreg]) or
+          ((operands[1].opr.reg.enum=R_INTREGISTER) and
+           (operands[1].opr.reg.number>=nfirstsreg) and
+           (operands[1].opr.reg.number<=nlastsreg))) then
         opsize:=S_L
       else
         opsize:=operands[1].size;
@@ -368,15 +368,17 @@ begin
   end;
   { Handle the BW,BL,WL separatly }
   sizeerr:=false;
-  if (operands[1].opr.typ=OPR_REGISTER) and
-      (operands[1].opr.reg.enum>lastreg) then
-    internalerror(200301081);
   { special push/pop selector case }
   if ((opcode=A_PUSH) or
       (opcode=A_POP)) and
-     (operands[1].opr.typ=OPR_REGISTER) and
-     (operands[1].opr.reg.enum in [firstsreg..lastsreg]) then
+     (operands[1].opr.typ=OPR_REGISTER) then
+    begin
+      if (operands[1].opr.reg.enum in [firstsreg..lastsreg]) or
+         ((operands[1].opr.reg.enum=R_INTREGISTER) and
+          (operands[1].opr.reg.number>=nfirstsreg) and
+          (operands[1].opr.reg.number<=nlastsreg)) then
      exit;
+    end;
   if opsize in [S_BW,S_BL,S_WL] then
    begin
      if ops<>2 then
@@ -422,12 +424,6 @@ procedure T386Instruction.CheckNonCommutativeOpcodes;
 begin
   if (OpOrder=op_intel) then
     SwapOperands;
-  if (operands[1].opr.typ=OPR_REGISTER) and
-      (operands[1].opr.reg.enum>lastreg) then
-    internalerror(200301081);
-  if (operands[2].opr.typ=OPR_REGISTER) and
-      (operands[2].opr.reg.enum>lastreg) then
-    internalerror(200301081);
   if ((ops=2) and
      (operands[1].opr.typ=OPR_REGISTER) and
      (operands[2].opr.typ=OPR_REGISTER) and
@@ -684,7 +680,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  2003-02-03 22:47:14  daniel
+  Revision 1.29  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.28  2003/02/03 22:47:14  daniel
     - Removed reg_2_opsize array
 
   Revision 1.27  2003/01/08 18:43:57  daniel

@@ -189,7 +189,7 @@ implementation
               leftreg := left.location.register;
               if signed then
                 begin
-                  valuereg := cg.get_scratch_reg_int(exprasmlist);
+                  valuereg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
                   valuereg_is_scratch := true;
                 end
               else
@@ -197,7 +197,7 @@ implementation
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              leftreg := cg.get_scratch_reg_int(exprasmlist);
+              leftreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
               valuereg := leftreg;
               valuereg_is_scratch := true;
               cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),
@@ -206,7 +206,7 @@ implementation
           else
             internalerror(200110012);
          end;
-         tempreg := cg.get_scratch_reg_int(exprasmlist);
+         tempreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
          exprasmlist.concat(taicpu.op_reg_const(A_LIS,tempreg,$4330));
          cg.a_load_reg_ref(exprasmlist,OS_32,tempreg,ref);
          cg.free_scratch_reg(exprasmlist,tempreg);
@@ -287,13 +287,13 @@ implementation
                 if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                   begin
                     reference_release(exprasmlist,left.location.reference);
-                    hreg2:=rg.getregisterint(exprasmlist);
+                    hreg2:=rg.getregisterint(exprasmlist,OS_INT);
                     cg.a_load_ref_reg(exprasmlist,opsize,
                       left.location.reference,hreg2);
                   end
                 else
                   hreg2 := left.location.register;
-                hreg1 := rg.getregisterint(exprasmlist);
+                hreg1 := rg.getregisterint(exprasmlist,OS_INT);
                 exprasmlist.concat(taicpu.op_reg_reg_const(A_SUBIC,hreg1,
                   hreg2,1));
                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUBFE,hreg1,hreg1,
@@ -302,7 +302,7 @@ implementation
               end;
             LOC_FLAGS :
               begin
-                hreg1:=rg.getregisterint(exprasmlist);
+                hreg1:=rg.getregisterint(exprasmlist,OS_INT);
                 resflags:=left.location.resflags;
                 cg.g_flags2reg(exprasmlist,location.size,resflags,hreg1);
               end;
@@ -394,7 +394,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-12-05 14:28:13  florian
+  Revision 1.29  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.28  2002/12/05 14:28:13  florian
     * some variant <-> dyn. array stuff
 
   Revision 1.27  2002/11/25 17:43:28  peter

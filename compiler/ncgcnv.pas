@@ -162,7 +162,7 @@ interface
                 end
                else
                 begin
-                  location.register:=rg.getregisterint(exprasmlist);
+                  location.register:=rg.getregisterint(exprasmlist,OS_INT);
 {$ifdef fpc}
 {$warning Todo: convert widestrings to ascii when typecasting them to pchars}
 {$endif}
@@ -510,7 +510,11 @@ end.
 
 {
   $Log$
-  Revision 1.35  2003-01-02 22:20:51  peter
+  Revision 1.36  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.35  2003/01/02 22:20:51  peter
     * fix typecasts from void to int
 
   Revision 1.34  2002/11/25 17:43:17  peter

@@ -35,7 +35,7 @@ unit rgcpu;
 
      type
        trgcpu = class(trgobj)
-         function getexplicitregisterint(list: taasmoutput; reg: Toldregister): tregister; override;
+         function getexplicitregisterint(list: taasmoutput; reg: Tnewregister): tregister; override;
          procedure ungetregisterint(list: taasmoutput; reg: tregister); override;
        end;
 
@@ -44,14 +44,15 @@ unit rgcpu;
     uses
       cgobj;
 
-    function trgcpu.getexplicitregisterint(list: taasmoutput; reg: Toldregister): tregister;
+    function trgcpu.getexplicitregisterint(list: taasmoutput; reg: Tnewregister): tregister;
 
     var r:Tregister;
 
       begin
-        if reg = R_0 then
+        if reg = NR_R0 then
           begin
-            r.enum:=R_0;
+            r.enum:=R_INTREGISTER;
+            r.number:=NR_R0;
             cg.a_reg_alloc(list,r);
             result := r;
           end
@@ -74,7 +75,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-01-08 18:43:58  daniel
+  Revision 1.5  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.4  2003/01/08 18:43:58  daniel
    * Tregister changed into a record
 
   Revision 1.3  2002/07/07 09:44:32  florian

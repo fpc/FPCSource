@@ -309,12 +309,14 @@ implementation
                 { type cast code which does range checking if necessary (FK) }
                 begin
                   scratch_reg := FALSE;
-                  hregister := rg.makeregsize(tcallparanode(tcallparanode(left).right).left.location.register,OS_INT);
+                  hregister.enum:=R_INTREGISTER;
+                  hregister.number:=(Tcallparanode(Tcallparanode(left).right).left.location.register.number and not $ff)
+                    or R_SUBWHOLE;
                 end
               else
                 begin
                   scratch_reg := TRUE;
-                  hregister:=cg.get_scratch_reg_int(exprasmlist);
+                  hregister:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
                 end;
               cg.a_load_loc_reg(exprasmlist,tcallparanode(tcallparanode(left).right).left.location,hregister);
               if (tcallparanode(left).left.location.loc=LOC_REFERENCE) then
@@ -332,7 +334,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2003-01-08 18:43:57  daniel
+  Revision 1.56  2003-02-19 22:00:15  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.55  2003/01/08 18:43:57  daniel
    * Tregister changed into a record
 
   Revision 1.54  2002/11/25 17:43:26  peter

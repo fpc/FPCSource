@@ -1973,7 +1973,8 @@ type
               { procedure does a call }
               if not (block_type in [bt_const,bt_type]) then
                 procinfo.flags:=procinfo.flags or pi_do_call;
-              rg.incrementregisterpushed(all_registers);
+              rg.incrementintregisterpushed(all_intregisters);
+              rg.incrementotherregisterpushed(all_registers);
            end
          else
          { not a procedure variable }
@@ -2009,7 +2010,8 @@ type
                 end;
 
              { It doesn't hurt to calculate it already though :) (JM) }
-             rg.incrementregisterpushed(tprocdef(procdefinition).usedregisters);
+             rg.incrementintregisterpushed(tprocdef(procdefinition).usedintregisters);
+             rg.incrementotherregisterpushed(tprocdef(procdefinition).usedotherregisters);
 
            end;
 
@@ -2384,7 +2386,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.127  2003-01-16 22:13:52  peter
+  Revision 1.128  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.127  2003/01/16 22:13:52  peter
     * convert_l3 convertlevel added. This level is used for conversions
       where information can be lost like converting widestring->ansistring
       or dword->byte

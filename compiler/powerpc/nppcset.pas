@@ -78,7 +78,7 @@ implementation
                 hregister,value))
             else
               begin
-                tmpreg := cg.get_scratch_reg_int(exprasmlist);
+                tmpreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
                 cg.a_load_const_reg(exprasmlist,OS_INT,aword(value),tmpreg);
                 exprasmlist.concat(taicpu.op_reg_reg_reg(A_ADD_,hregister,
                   hregister,tmpreg));
@@ -159,7 +159,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-01-08 18:43:58  daniel
+  Revision 1.7  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.6  2003/01/08 18:43:58  daniel
    * Tregister changed into a record
 
   Revision 1.5  2002/11/25 17:43:28  peter

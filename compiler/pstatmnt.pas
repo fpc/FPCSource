@@ -1017,7 +1017,8 @@ implementation
         aktprocdef.localst.datasize:=0;
         procinfo.firsttemp_offset:=0;
         { replace framepointer with stackpointer }
-        procinfo.framepointer.enum:=STACK_POINTER_REG;
+        procinfo.framepointer.enum:=R_INTREGISTER;
+        procinfo.framepointer.number:=NR_STACK_POINTER_REG;
         { set the right value for parameters }
         dec(aktprocdef.parast.address_fixup,pointer_size);
         dec(procinfo.para_offset,pointer_size);
@@ -1041,7 +1042,8 @@ implementation
                        ref_parafixup :
                          begin
                            ref^.offsetfixup:=parafixup;
-                           ref^.base.enum:=STACK_POINTER_REG;
+                           ref^.base.enum:=R_INTREGISTER;
+                           ref^.base.number:=NR_STACK_POINTER_REG;
                          end;
                      end;
                    end;
@@ -1125,7 +1127,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2003-01-08 18:43:56  daniel
+  Revision 1.86  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.85  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.84  2003/01/01 21:05:24  peter

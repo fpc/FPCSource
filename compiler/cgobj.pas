@@ -61,7 +61,7 @@ unit cgobj;
        tcg = class
           scratch_register_array_pointer : aword;
           {# List of currently unused scratch registers }
-          unusedscratchregisters : tregisterset;
+          unusedscratchregisters:Tsupregset;
 
           alignment : talignment;
           {************************************************}
@@ -86,7 +86,7 @@ unit cgobj;
              should be freed by calling @link(free_scratch_reg) as
              soon as it is no longer required.
           }
-          function get_scratch_reg_int(list : taasmoutput) : tregister;virtual;
+          function get_scratch_reg_int(list : taasmoutput;size:Tcgsize) : tregister;virtual;
           {# @abstract(Returns an address register for use as scratch register)
              This routine returns a register which can be used by
              the code generator as a pointer scratch register.
@@ -160,7 +160,7 @@ unit cgobj;
 
           { Copies a whole memory block to the stack, the locpara must be a memory location }
           procedure a_param_copy_ref(list : taasmoutput;size : qword;const r : treference;const locpara : tparalocation);
-          (* Remarks:
+          { Remarks:
             * If a method specifies a size you have only to take care
               of that number of bits, i.e. load_const_reg with OP_8 must
               only load the lower 8 bit of the specified register
@@ -175,7 +175,7 @@ unit cgobj;
             * the procedures without fpu/mm are only for integer usage
             * normally the first location is the source and the
               second the destination
-          *)
+          }
 
           {# Emits instruction to call the method specified by symbol name.
              This routine must be overriden for each new target cpu.
@@ -416,14 +416,14 @@ unit cgobj;
 
              @param(usedinproc Registers which are used in the code of this routine)
           }
-          procedure g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);virtual;abstract;
+          procedure g_save_standard_registers(list:Taasmoutput;usedinproc:Tsupregset);virtual;abstract;
           {# This routine is called when generating the code for the exit point
              of a routine. It should restore all registers which were previously
              saved in @var(g_save_standard_registers).
 
              @param(usedinproc Registers which are used in the code of this routine)
           }
-          procedure g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);virtual;abstract;
+          procedure g_restore_standard_registers(list:Taasmoutput;usedinproc:Tsupregset);virtual;abstract;
           procedure g_save_all_registers(list : taasmoutput);virtual;abstract;
           procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);virtual;abstract;
        end;
@@ -539,7 +539,7 @@ unit cgobj;
          list.concat(tai_label.create(l));
       end;
 
-    function tcg.get_scratch_reg_int(list : taasmoutput) : tregister;
+    function tcg.get_scratch_reg_int(list:taasmoutput;size:Tcgsize):tregister;
 
       var
          r : tregister;
@@ -553,10 +553,11 @@ unit cgobj;
                 (scratch_register_array_pointer+max_scratch_regs-1) do
            if scratch_regs[(i mod max_scratch_regs)+1] in unusedscratchregisters then
              begin
-                r.enum:=scratch_regs[(i mod max_scratch_regs)+1];
+                r.enum:=R_INTREGISTER;
+                r.number:=scratch_regs[(i mod max_scratch_regs)+1] shl 8 or cgsize2subreg(size);
                 break;
              end;
-         exclude(unusedscratchregisters,r.enum);
+         exclude(unusedscratchregisters,r.number shr 8);
          inc(scratch_register_array_pointer);
          if scratch_register_array_pointer>max_scratch_regs then
            scratch_register_array_pointer:=1;
@@ -567,14 +568,16 @@ unit cgobj;
     { the default behavior simply returns a general purpose register }
     function tcg.get_scratch_reg_address(list : taasmoutput) : tregister;
      begin
-       get_scratch_reg_address := get_scratch_reg_int(list);
+       get_scratch_reg_address := get_scratch_reg_int(list,OS_ADDR);
      end;
 
 
     procedure tcg.free_scratch_reg(list : taasmoutput;r : tregister);
 
       begin
-         include(unusedscratchregisters,rg.makeregsize(r,OS_INT).enum);
+         if r.enum<>R_INTREGISTER then 
+           internalerror(200302058);
+         include(unusedscratchregisters,r.number shr 8);
          a_reg_dealloc(list,r);
       end;
 
@@ -615,7 +618,7 @@ unit cgobj;
          hr : tregister;
 
       begin
-         hr:=get_scratch_reg_int(list);
+         hr:=get_scratch_reg_int(list,size);
          a_load_const_reg(list,size,a,hr);
          a_param_reg(list,size,hr,locpara);
          free_scratch_reg(list,hr);
@@ -625,7 +628,7 @@ unit cgobj;
       var
          hr : tregister;
       begin
-         hr:=get_scratch_reg_int(list);
+         hr:=get_scratch_reg_int(list,size);
          a_load_ref_reg(list,size,r,hr);
          a_param_reg(list,size,hr,locpara);
          free_scratch_reg(list,hr);
@@ -696,39 +699,42 @@ unit cgobj;
         { the following is done with defines to avoid a speed penalty,  }
         { since all this is only necessary for the 80x86 (because EDI   }
         { doesn't have an 8bit component which is directly addressable) }
-        pushed_reg.enum := R_NO;
+        pushed_reg.enum:=R_INTREGISTER;
+        pushed_reg.number:=NR_NO;
         if size in [OS_8,OS_S8] then
           if (rg.countunusedregsint = 0) then
             begin
-              if dref.base.enum>lastreg then
-                internalerror(200301081);
-              if dref.index.enum>lastreg then
-                internalerror(200301081);
-              if (dref.base.enum <> R_EBX) and
-                 (dref.index.enum <> R_EBX) then
-                pushed_reg.enum := R_EBX
-              else if (dref.base.enum <> R_EAX) and
-                      (dref.index.enum <> R_EAX) then
-                pushed_reg.enum := R_EAX
-              else pushed_reg.enum := R_ECX;
-              tmpreg := rg.makeregsize(pushed_reg,OS_8);
+              if dref.base.enum<>R_INTREGISTER then
+                internalerror(200302037);
+              if dref.index.enum<>R_INTREGISTER then
+                internalerror(200302037);
+                
+              if (dref.base.number shr 8<>RS_EBX) and
+                 (dref.index.number shr 8<>RS_EBX) then
+                pushed_reg.number:=NR_EBX
+              else if (dref.base.number<>RS_EAX) and
+                      (dref.index.number<>RS_EAX) then
+                pushed_reg.number:=NR_EAX
+              else
+                pushed_reg.number:=NR_ECX;
+              tmpreg.enum:=R_INTREGISTER;
+              tmpreg.number:=(pushed_reg.number and not $ff) or R_SUBL;
               list.concat(taicpu.op_reg(A_PUSH,S_L,pushed_reg));
             end
           else
-            tmpreg := rg.getregisterint(list)
+            tmpreg := rg.getregisterint(list,size)
         else
 {$endif i386}
-        tmpreg := get_scratch_reg_int(list);
-        tmpreg:=rg.makeregsize(tmpreg,size);
+        tmpreg := get_scratch_reg_int(list,size);
         a_load_ref_reg(list,size,sref,tmpreg);
         a_load_reg_ref(list,size,tmpreg,dref);
 {$ifdef i386}
         if size in [OS_8,OS_S8] then
           begin
-            if (pushed_reg.enum <> R_NO) then
+            if (pushed_reg.number<>NR_NO) then
               list.concat(taicpu.op_reg(A_POP,S_L,pushed_reg))
             else
-              rg.ungetregister(list,tmpreg)
+              rg.ungetregisterint(list,tmpreg)
           end
         else
 {$endif i386}
@@ -742,7 +748,7 @@ unit cgobj;
         tmpreg: tregister;
 
       begin
-        tmpreg := get_scratch_reg_int(list);
+        tmpreg := get_scratch_reg_int(list,size);
         a_load_const_reg(list,size,a,tmpreg);
         a_load_reg_ref(list,size,tmpreg,ref);
         free_scratch_reg(list,tmpreg);
@@ -780,20 +786,11 @@ unit cgobj;
     var r:Tregister;
 
       begin
-      {$ifdef i386}
-        {For safety convert location register to enum for now...}
-        convert_register_to_enum(reg);
-      {$endif}
         case loc.loc of
           LOC_REFERENCE,LOC_CREFERENCE:
             a_load_ref_reg(list,loc.size,loc.reference,reg);
           LOC_REGISTER,LOC_CREGISTER:
-            begin
-              {For safety convert location register to enum for now...}
-              r:=loc.register;
-              convert_register_to_enum(r);
-              a_load_reg_reg(list,loc.size,loc.size,r,reg);
-            end;
+            a_load_reg_reg(list,loc.size,loc.size,loc.register,reg);
           LOC_CONSTANT:
             a_load_const_reg(list,loc.size,loc.value,reg);
           else
@@ -946,7 +943,7 @@ unit cgobj;
         tmpreg: tregister;
 
       begin
-        tmpreg := get_scratch_reg_int(list);
+        tmpreg := get_scratch_reg_int(list,size);
         a_load_ref_reg(list,size,ref,tmpreg);
         a_op_const_reg(list,op,a,tmpreg);
         a_load_reg_ref(list,size,tmpreg,ref);
@@ -974,7 +971,7 @@ unit cgobj;
         tmpreg: tregister;
 
       begin
-        tmpreg := get_scratch_reg_int(list);
+        tmpreg := get_scratch_reg_int(list,size);
         a_load_ref_reg(list,size,ref,tmpreg);
         a_op_reg_reg(list,op,size,reg,tmpreg);
         a_load_reg_ref(list,size,tmpreg,ref);
@@ -997,7 +994,7 @@ unit cgobj;
             end;
           else
             begin
-              tmpreg := get_scratch_reg_int(list);
+              tmpreg := get_scratch_reg_int(list,size);
               a_load_ref_reg(list,size,ref,tmpreg);
               a_op_reg_reg(list,op,size,tmpreg,reg);
               free_scratch_reg(list,tmpreg);
@@ -1031,8 +1028,7 @@ unit cgobj;
             a_op_ref_reg(list,op,loc.size,ref,loc.register);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              tmpreg := get_scratch_reg_int(list);
-              tmpreg:=rg.makeregsize(tmpreg,loc.size);
+              tmpreg := get_scratch_reg_int(list,loc.size);
               a_load_ref_reg(list,loc.size,ref,tmpreg);
               a_op_reg_ref(list,op,loc.size,tmpreg,loc.reference);
               free_scratch_reg(list,tmpreg);
@@ -1065,7 +1061,7 @@ unit cgobj;
         tmpreg: tregister;
 
       begin
-        tmpreg := get_scratch_reg_int(list);
+        tmpreg := get_scratch_reg_int(list,size);
         a_load_ref_reg(list,size,ref,tmpreg);
         a_cmp_const_reg_label(list,size,cmp_op,a,tmpreg,l);
         free_scratch_reg(list,tmpreg);
@@ -1091,7 +1087,7 @@ unit cgobj;
         tmpreg: tregister;
 
       begin
-        tmpreg := get_scratch_reg_int(list);
+        tmpreg := get_scratch_reg_int(list,size);
         a_load_ref_reg(list,size,ref,tmpreg);
         a_cmp_reg_reg_label(list,size,cmp_op,tmpreg,reg,l);
         free_scratch_reg(list,tmpreg);
@@ -1131,16 +1127,16 @@ unit cgobj;
               { since all this is only necessary for the 80x86 (because EDI   }
               { doesn't have an 8bit component which is directly addressable) }
               if size in [OS_8,OS_S8] then
-                tmpreg := rg.getregisterint(list)
+                tmpreg := rg.getregisterint(list,size)
               else
 {$endif i386}
-              tmpreg := get_scratch_reg_int(list);
-              tmpreg := rg.makeregsize(tmpreg,size);
+                tmpreg := get_scratch_reg_int(list,size);
+              {tmpreg := rg.makeregsize(tmpreg,size);}
               a_load_ref_reg(list,size,loc.reference,tmpreg);
               a_cmp_ref_reg_label(list,size,cmp_op,ref,tmpreg,l);
 {$ifdef i386}
               if size in [OS_8,OS_S8] then
-                rg.ungetregister(list,tmpreg)
+                rg.ungetregisterint(list,tmpreg)
               else
 {$endif i386}
               free_scratch_reg(list,tmpreg);
@@ -1392,7 +1388,7 @@ unit cgobj;
                 lto := 0;
             end;
 
-        hreg := get_scratch_reg_int(list);
+        hreg := get_scratch_reg_int(list,OS_INT);
         if (p.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
           a_op_const_reg_reg(list,OP_SUB,def_cgsize(p.resulttype.def),
            aword(lto),p.location.register,hreg)
@@ -1424,7 +1420,7 @@ unit cgobj;
       var
         tmpreg : tregister;
       begin
-        tmpreg := get_scratch_reg_int(list);
+        tmpreg := get_scratch_reg_int(list,size);
         g_flags2reg(list,size,f,tmpreg);
         a_load_reg_ref(list,size,tmpreg,ref);
         free_scratch_reg(list,tmpreg);
@@ -1438,7 +1434,8 @@ unit cgobj;
          i : longint;
          spr : Tregister;
       begin
-         spr.enum:=SELF_POINTER_REG;
+         spr.enum:=R_INTREGISTER;
+         spr.number:=NR_SELF_POINTER_REG;
          if assigned(procinfo._class) then
            begin
               list.concat(tai_regalloc.Alloc(spr));
@@ -1724,7 +1721,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.76  2003-01-31 22:47:48  peter
+  Revision 1.77  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.76  2003/01/31 22:47:48  peter
     * maybe_testself now really uses the passed register
 
   Revision 1.75  2003/01/30 21:46:35  peter

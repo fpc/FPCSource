@@ -195,6 +195,7 @@ interface
         power : longint;
         hl4   : tasmlabel;
         r:Tregister;
+        nr:Tnewregister;
       begin
         { at this point, left.location.loc should be LOC_REGISTER }
         if right.location.loc=LOC_REGISTER then
@@ -224,13 +225,12 @@ interface
             begin
               if extra_not then
                 emit_reg(A_NOT,opsize,left.location.register);
-              rg.getexplicitregisterint(exprasmlist,R_EDI);
               r.enum:=R_INTREGISTER;
               r.number:=NR_EDI;
+              rg.getexplicitregisterint(exprasmlist,NR_EDI);
               cg.a_load_loc_reg(exprasmlist,right.location,r);
               emit_reg_reg(op,opsize,left.location.register,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.register);
-              r.enum:=R_EDI;
               rg.ungetregisterint(exprasmlist,r);
             end
            else
@@ -271,13 +271,12 @@ interface
                  begin
                    if extra_not then
                      begin
-                        rg.getexplicitregisterint(exprasmlist,R_EDI);
+                        rg.getexplicitregisterint(exprasmlist,NR_EDI);
                         r.enum:=R_INTREGISTER;
                         r.number:=NR_EDI;
                         cg.a_load_loc_reg(exprasmlist,right.location,r);
                         emit_reg(A_NOT,S_L,r);
                         emit_reg_reg(A_AND,S_L,r,left.location.register);
-                        r.enum:=R_EDI;
                         rg.ungetregisterint(exprasmlist,r);
                      end
                    else
@@ -346,8 +345,8 @@ interface
       var
         href       : treference;
         cmpop      : boolean;
-        pushed     : tpushedsaved;
-        regstopush : tregisterset;
+        pushed     : Tpushedsavedint;
+        regstopush : Tsupregset;
       begin
         { string operations are not commutative }
         if nf_swaped in flags then
@@ -385,9 +384,9 @@ interface
                         { push them (so the release is in the right place, }
                         { because emitpushreferenceaddr doesn't need extra }
                         { registers) (JM)                                  }
-                        regstopush := all_registers;
+                        regstopush := all_intregisters;
                         remove_non_regvars_from_loc(right.location,regstopush);
-                        rg.saveusedregisters(exprasmlist,pushed,regstopush);
+                        rg.saveusedintregisters(exprasmlist,pushed,regstopush);
                         { push the maximum possible length of the result }
                         cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(2));
                         { the optimizer can more easily put the          }
@@ -396,27 +395,27 @@ interface
                         { the pushref needs a "lea (..),edi; push edi")  }
                         location_release(exprasmlist,right.location);
                         cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(1));
-                        rg.saveregvars(exprasmlist,regstopush);
+                        rg.saveintregvars(exprasmlist,regstopush);
                         cg.a_call_name(exprasmlist,'FPC_SHORTSTR_CONCAT');
                         tg.ungetiftemp(exprasmlist,right.location.reference);
                         cg.g_maybe_loadself(exprasmlist);
-                        rg.restoreusedregisters(exprasmlist,pushed);
+                        rg.restoreusedintregisters(exprasmlist,pushed);
                         location_copy(location,left.location);
                      end;
                    ltn,lten,gtn,gten,equaln,unequaln :
                      begin
                        cmpop := true;
-                       rg.saveusedregisters(exprasmlist,pushed,all_registers);
+                       rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
                        secondpass(left);
                        location_release(exprasmlist,left.location);
                        cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(2));
                        secondpass(right);
                        location_release(exprasmlist,right.location);
                        cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(1));
-                       rg.saveregvars(exprasmlist,all_registers);
+                       rg.saveintregvars(exprasmlist,all_intregisters);
                        cg.a_call_name(exprasmlist,'FPC_SHORTSTR_COMPARE');
                        cg.g_maybe_loadself(exprasmlist);
-                       rg.restoreusedregisters(exprasmlist,pushed);
+                       rg.restoreusedintregisters(exprasmlist,pushed);
                        location_freetemp(exprasmlist,left.location);
                        location_freetemp(exprasmlist,right.location);
                      end;
@@ -672,9 +671,9 @@ interface
         { on comparison load flags }
         if cmpop then
          begin
-           if not(R_EAX in rg.unusedregsint) then
+           if not(RS_EAX in rg.unusedregsint) then
              begin
-               rg.getexplicitregisterint(exprasmlist,R_EDI);
+               rg.getexplicitregisterint(exprasmlist,NR_EDI);
                r.enum:=R_EAX;
                r2.enum:=R_EDI;
                emit_reg_reg(A_MOV,S_L,r,r2);
@@ -682,7 +681,7 @@ interface
            r.enum:=R_AX;
            emit_reg(A_FNSTSW,S_NO,r);
            emit_none(A_SAHF,S_NO);
-           if not(R_EAX in rg.unusedregsint) then
+           if not(RS_EAX in rg.unusedregsint) then
              begin
                r.enum:=R_EAX;
                r2.enum:=R_EDI;
@@ -982,8 +981,8 @@ interface
                     location_freetemp(exprasmlist,left.location);
                     location_release(exprasmlist,left.location);
                   end;
-                 hregister:=rg.getregisterint(exprasmlist);
-                 hregister2:=rg.getregisterint(exprasmlist);
+                 hregister:=rg.getregisterint(exprasmlist,OS_INT);
+                 hregister2:=rg.getregisterint(exprasmlist,OS_INT);
                  cg64.a_load64_loc_reg(exprasmlist,left.location,joinreg64(hregister,hregister2));
                  location_reset(left.location,LOC_REGISTER,OS_64);
                  left.location.registerlow:=hregister;
@@ -1029,7 +1028,7 @@ interface
            { right.location<>LOC_REGISTER }
            if (nodetype=subn) and (nf_swaped in flags) then
             begin
-              rg.getexplicitregisterint(exprasmlist,R_EDI);
+              rg.getexplicitregisterint(exprasmlist,NR_EDI);
               r.enum:=R_INTREGISTER;
               r.number:=NR_EDI;
               cg64.a_load64low_loc_reg(exprasmlist,right.location,r);
@@ -1039,7 +1038,6 @@ interface
               { the carry flag is still ok }
               emit_reg_reg(op2,opsize,left.location.registerhigh,r);
               emit_reg_reg(A_MOV,opsize,r,left.location.registerhigh);
-              r.enum:=R_EDI;
               rg.ungetregisterint(exprasmlist,r);
               if right.location.loc<>LOC_CREGISTER then
                begin
@@ -1337,7 +1335,7 @@ interface
          { true, if for sets subtractions the extra not should generated }
          extra_not : boolean;
 
-         regstopush: tregisterset;
+         regstopush:Tsupregset;
          r:Tregister;
 
       begin
@@ -1467,7 +1465,7 @@ interface
                { the location.register will be filled in later (JM) }
                location_reset(location,LOC_REGISTER,OS_INT);
 
-               regstopush := all_registers;
+               regstopush := all_intregisters;
                remove_non_regvars_from_loc(right.location,regstopush);
                remove_non_regvars_from_loc(left.location,regstopush);
                { now, regstopush does NOT contain EAX and/or EDX if they are }
@@ -1475,53 +1473,52 @@ interface
                {they are regvars. It DOES contain them if they are used in   }
                { another location (JM)                                       }
                r.enum:=R_INTREGISTER;
-               if not(R_EAX in rg.unusedregsint) and
-                  (R_EAX in regstopush) then
+               if not(RS_EAX in rg.unusedregsint) and
+                  (RS_EAX in regstopush) then
                  begin
                    r.number:=NR_EAX;
                    emit_reg(A_PUSH,S_L,r);
                    popeax:=true;
                  end;
-               if not(R_EDX in rg.unusedregsint) and
-                   (R_EDX in regstopush) then
+               if not(RS_EDX in rg.unusedregsint) and
+                   (RS_EDX in regstopush) then
                  begin
                    r.number:=NR_EDX;
                    emit_reg(A_PUSH,S_L,r);
                    popedx:=true;
                  end;
                { left.location can be R_EAX !!! }
-               rg.getexplicitregisterint(exprasmlist,R_EDI);
+               rg.getexplicitregisterint(exprasmlist,NR_EDI);
                { load the left value }
                r.number:=NR_EDI;
                cg.a_load_loc_reg(exprasmlist,left.location,r);
                location_release(exprasmlist,left.location);
                { allocate EAX }
                r.number:=NR_EAX;
-               if R_EAX in rg.unusedregsint then
+               if RS_EAX in rg.unusedregsint then
                  exprasmList.concat(tai_regalloc.Alloc(r));
                { load he right value }
                cg.a_load_loc_reg(exprasmlist,right.location,r);
                location_release(exprasmlist,right.location);
                { allocate EAX if it isn't yet allocated (JM) }
-               if (R_EAX in rg.unusedregsint) then
-                 exprasmList.concat(tai_regalloc.Alloc(r));
+               if (RS_EAX in rg.unusedregsint) then
+                 exprasmlist.concat(tai_regalloc.Alloc(r));
                { also allocate EDX, since it is also modified by }
                { a mul (JM)                                      }
                r.number:=NR_EDX;
-               if R_EDX in rg.unusedregsint then
-                 exprasmList.concat(tai_regalloc.Alloc(r));
+               if RS_EDX in rg.unusedregsint then
+                 exprasmlist.concat(tai_regalloc.Alloc(r));
                r.number:=NR_EDI;
                emit_reg(A_MUL,S_L,r);
-               r.enum:=R_EDI;
                rg.ungetregisterint(exprasmlist,r);
                r.enum:=R_INTREGISTER;
                r.number:=NR_EDX;
-               if R_EDX in rg.unusedregsint then
-                 exprasmList.concat(tai_regalloc.DeAlloc(r));
+               if RS_EDX in rg.unusedregsint then
+                 exprasmlist.concat(tai_regalloc.DeAlloc(r));
                r.number:=NR_EAX;
-               if R_EAX in rg.unusedregsint then
-                 exprasmList.concat(tai_regalloc.DeAlloc(r));
-               location.register:=rg.getregisterint(exprasmlist);
+               if RS_EAX in rg.unusedregsint then
+                 exprasmlist.concat(tai_regalloc.DeAlloc(r));
+               location.register:=rg.getregisterint(exprasmlist,OS_INT);
                r.number:=NR_EAX;
                emit_reg_reg(A_MOV,S_L,r,location.register);
                r.number:=NR_EDX;
@@ -1589,7 +1586,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-01-13 18:37:44  daniel
+  Revision 1.55  2003-02-19 22:00:15  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.54  2003/01/13 18:37:44  daniel
     * Work on register conversion
 
   Revision 1.53  2003/01/08 18:43:57  daniel

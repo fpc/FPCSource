@@ -343,7 +343,7 @@ implementation
                 begin
                    cg.a_load_reg_ref(exprasmlist,opsize,
                      right.location.register,temp1);
-                   rg.ungetregister(exprasmlist,right.location.register);
+                   rg.ungetregisterint(exprasmlist,right.location.register);
                  end
               else
                 cg.g_concatcopy(exprasmlist,right.location.reference,temp1,
@@ -702,7 +702,8 @@ implementation
 {$ifdef cpuflags}
                     LOC_FLAGS :
                       begin
-                        r.enum:=accumulator;
+                        r.enum:=R_INTREGISTER;
+                        r.number:=NR_ACCUMULATOR;
                         cg.a_reg_alloc(exprasmlist,r);
                         allocated_acc := true;
                         cg.g_flags2reg(exprasmlist,OS_INT,left.location.resflags,r);
@@ -711,10 +712,10 @@ implementation
 {$endif cpuflags}
                     LOC_JUMP :
                       begin
-                        r.enum:=accumulator;
+                        r.enum:=R_INTREGISTER;
+                        r.number:=(RS_ACCUMULATOR shl 8) or R_SUBL;
                         cg.a_reg_alloc(exprasmlist,r);
                         { get an 8-bit register }
-                        hreg:=rg.makeregsize(r,OS_8);
                         allocated_acc := true;
                         cg.a_label(exprasmlist,truelabel);
                         cg.a_load_const_reg(exprasmlist,OS_8,1,hreg);
@@ -728,7 +729,8 @@ implementation
                     pointerdef,
                     procvardef :
                       begin
-                        r.enum:=accumulator;
+                        r.enum:=R_INTREGISTER;
+                        r.number:=NR_ACCUMULATOR;
                         cg.a_reg_alloc(exprasmlist,r);
                         allocated_acc := true;
                         cg.a_load_loc_reg(exprasmlist,left.location,r);
@@ -749,14 +751,16 @@ implementation
                     else
                       begin
                         cgsize:=def_cgsize(aktprocdef.rettype.def);
-                        r.enum:=accumulator;
-                        cg.a_reg_alloc(exprasmlist,r);
                         allocated_acc := true;
 {$ifndef cpu64bit}
 
                         if cgsize in [OS_64,OS_S64] then
                           begin
-                             hreg.enum:=accumulatorhigh;
+                             r.enum:=R_INTREGISTER;
+                             r.number:=NR_ACCUMULATOR;
+                             hreg.enum:=R_INTREGISTER;
+                             hreg.number:=NR_ACCUMULATORHIGH;
+                             cg.a_reg_alloc(exprasmlist,r);
                              cg.a_reg_alloc(exprasmlist,hreg);
                              allocated_acchigh := true;
                              cg64.a_load64_loc_reg(exprasmlist,left.location,
@@ -765,8 +769,10 @@ implementation
                          else
 {$endif cpu64bit}
                            begin
-                              hreg:=rg.makeregsize(r,cgsize);
-                              cg.a_load_loc_reg(exprasmlist,left.location,hreg);
+                             r.enum:=R_INTREGISTER;
+                             r.number:=(RS_ACCUMULATOR shl 8) or cgsize2subreg(cgsize);
+                             cg.a_reg_alloc(exprasmlist,r);
+                             cg.a_load_loc_reg(exprasmlist,left.location,r);
                            end;
                      end;
                   end;
@@ -775,8 +781,10 @@ implementation
                   truelabel:=otlabel;
                   falselabel:=oflabel;
                   cg.a_jmp_always(exprasmlist,aktexit2label);
-                  r.enum:=accumulator;
-                  hreg.enum:=accumulatorhigh;
+                  r.enum:=R_INTREGISTER;
+                  r.number:=NR_ACCUMULATOR;
+                  hreg.enum:=R_INTREGISTER;
+                  hreg.number:=NR_ACCUMULATORHIGH;
                   if allocated_acc then
                     cg.a_reg_dealloc(exprasmlist,r);
 {$ifndef cpu64bit}
@@ -904,7 +912,8 @@ implementation
                    cg.a_label(exprasmlist,a);
                    reference_reset_symbol(href2,a,0);
                    { push current frame }
-                   r.enum:=frame_pointer_reg;
+                   r.enum:=R_INTREGISTER;
+                   r.number:=NR_FRAME_POINTER_REG;
                    cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(2));
                    { push current address }
                    cg.a_paramaddr_ref(exprasmlist,href2,paramanager.getintparaloc(1));
@@ -961,7 +970,8 @@ implementation
 
       begin
          cg.a_call_name(exprasmlist,'FPC_POPOBJECTSTACK');
-         r.enum:=accumulator;
+         r.enum:=R_INTREGISTER;
+         r.number:=NR_ACCUMULATOR;
          cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(1));
          cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
          cg.g_maybe_loadself(exprasmlist);
@@ -1094,7 +1104,8 @@ implementation
 
               cg.a_call_name(exprasmlist,'FPC_POPSECONDOBJECTSTACK');
 
-              r.enum:=accumulator;
+              r.enum:=R_INTREGISTER;
+              r.number:=NR_ACCUMULATOR;
               cg.a_param_reg(exprasmlist, OS_ADDR, r, paramanager.getintparaloc(1));
               cg.a_call_name(exprasmlist,'FPC_DESTROYEXCEPTION');
               { we don't need to restore esi here because reraise never }
@@ -1210,7 +1221,8 @@ implementation
          r:Tregister;
 
       begin
-         r.enum:=accumulator;
+         r.enum:=R_INTREGISTER;
+         r.number:=NR_ACCUMULATOR;
          oldflowcontrol:=flowcontrol;
          flowcontrol:=[];
          objectlibrary.getlabel(nextonlabel);
@@ -1393,7 +1405,8 @@ implementation
 
          { the value should now be in the exception handler }
          cg.g_exception_reason_load(exprasmlist,href);
-         r.enum:=accumulator;
+         r.enum:=R_INTREGISTER;
+         r.number:=NR_ACCUMULATOR;
          cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,endfinallylabel);
          cg.a_op_const_reg(exprasmlist,OP_SUB,1,r);
          cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_EQ,0,r,reraiselabel);
@@ -1475,7 +1488,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-02-15 22:17:38  carl
+  Revision 1.51  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.50  2003/02/15 22:17:38  carl
    * bugfix of FPU emulation code
 
   Revision 1.49  2003/01/08 18:43:56  daniel

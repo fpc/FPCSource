@@ -203,7 +203,7 @@ procedure TSparctypeconvnode.second_int_to_real;
           if signed
           then
             begin
-              valuereg := cg.get_scratch_reg_int(exprasmlist);
+              valuereg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
               valuereg_is_scratch := true;
             end
           else
@@ -211,7 +211,7 @@ procedure TSparctypeconvnode.second_int_to_real;
         end;
       LOC_REFERENCE,LOC_CREFERENCE:
         begin
-          leftreg := cg.get_scratch_reg_int(exprasmlist);
+          leftreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
           valuereg := leftreg;
           valuereg_is_scratch := true;
           cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),
@@ -220,7 +220,7 @@ procedure TSparctypeconvnode.second_int_to_real;
       else
         internalerror(200110012);
     end;
-      tempreg := cg.get_scratch_reg_int(exprasmlist);
+      tempreg := cg.get_scratch_reg_int(exprasmlist,OS_32);
       {$WARNING FIXME what really should be done?}
       exprasmlist.concat(taicpu.op_reg_const_reg(A_OR,tempreg,$4330,tempreg));
       cg.a_load_reg_ref(exprasmlist,OS_32,tempreg,ref);
@@ -292,19 +292,19 @@ procedure TSparctypeconvnode.second_int_to_bool;
           then
             begin
               reference_release(exprasmlist,left.location.reference);
-              hreg2:=rg.getregisterint(exprasmlist);
+              hreg2:=rg.getregisterint(exprasmlist,opsize);
               cg.a_load_ref_reg(exprasmlist,opsize,left.location.reference,hreg2);
             end
           else
             hreg2 := left.location.register;
-            hreg1 := rg.getregisterint(exprasmlist);
+            hreg1 := rg.getregisterint(exprasmlist,opsize);
             exprasmlist.concat(taicpu.op_reg_const_reg(A_SUB,hreg1,1,hreg2));
             exprasmlist.concat(taicpu.op_reg_reg_reg(A_SUB,hreg1,hreg1,hreg2));
             rg.ungetregister(exprasmlist,hreg2);
         end;
       LOC_FLAGS :
         begin
-          hreg1:=rg.getregisterint(exprasmlist);
+          hreg1:=rg.getregisterint(exprasmlist,location.size);
           resflags:=left.location.resflags;
           cg.g_flags2reg(exprasmlist,location.size,resflags,hreg1);
         end;
@@ -388,7 +388,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-01-22 20:45:15  mazen
+  Revision 1.12  2003-02-19 22:00:17  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.11  2003/01/22 20:45:15  mazen
   * making math code in RTL compiling.
   *NB : This does NOT mean necessary that it will generate correct code!
 

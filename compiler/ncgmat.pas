@@ -131,7 +131,7 @@ implementation
         else
         if _size <> OS_F32 then
            internalerror(20020814);
-        hreg := rg.getregisterint(exprasmlist);
+        hreg := rg.getregisterint(exprasmlist,OS_32);
         { load value }
         cg.a_load_ref_reg(exprasmlist,OS_32,href,hreg);
         { bitwise complement copied value }
@@ -181,7 +181,7 @@ implementation
                    end;
                  LOC_CREGISTER:
                    begin
-                      location.register:=rg.getregisterint(exprasmlist);
+                      location.register:=rg.getregisterint(exprasmlist,OS_INT);
                       cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,left.location.register,
                         location.register);
                       cg.a_op_reg_reg(exprasmlist,OP_NEG,OS_INT,location.register,
@@ -202,7 +202,7 @@ implementation
                         end
                       else
                         begin
-                           location.register:=rg.getregisterint(exprasmlist);
+                           location.register:=rg.getregisterint(exprasmlist,OS_INT);
                            { why is the size is OS_INT, since in pass_1 we convert
                              everything to a signed natural value anyways
                            }
@@ -315,7 +315,7 @@ implementation
                   { hdenom is always free, it's }
                   { only used for temporary }
                   { purposes                }
-                  hdenom := rg.getregisterint(exprasmlist);
+                  hdenom := rg.getregisterint(exprasmlist,OS_INT);
                   if right.location.loc<>LOC_CREGISTER then
                    location_release(exprasmlist,right.location);
                   cg.a_load_loc_reg(exprasmlist,right.location,hdenom);
@@ -432,7 +432,7 @@ implementation
                      begin
                        if right.location.loc<>LOC_CREGISTER then
                         location_release(exprasmlist,right.location);
-                       hcountreg:=cg.get_scratch_reg_int(exprasmlist);
+                       hcountreg:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
                        freescratch := true;
                        cg.a_load_loc_reg(exprasmlist,right.location,hcountreg);
                      end
@@ -454,7 +454,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-11-25 17:43:18  peter
+  Revision 1.6  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.5  2002/11/25 17:43:18  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once

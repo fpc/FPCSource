@@ -97,12 +97,16 @@ implementation
        var
          l2 : integer;
        begin
+         if location.reference.base.enum<>R_INTREGISTER then
+          internalerror(200302055);
+         if location.reference.index.enum<>R_INTREGISTER then
+          internalerror(200302055);
          { Optimized for x86 to use the index register and scalefactor }
-         if location.reference.index.enum=R_NO then
+         if location.reference.index.number=NR_NO then
           begin
             { no preparations needed }
           end
-         else if location.reference.base.enum=R_NO then
+         else if location.reference.base.number=NR_NO then
           begin
             case location.reference.scalefactor of
              2 : cg.a_op_const_reg(exprasmlist,OP_SHL,1,location.reference.index);
@@ -152,7 +156,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-01-13 18:37:44  daniel
+  Revision 1.50  2003-02-19 22:00:15  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.49  2003/01/13 18:37:44  daniel
     * Work on register conversion
 
   Revision 1.48  2003/01/08 18:43:57  daniel

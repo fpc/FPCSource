@@ -86,7 +86,8 @@ implementation
 
     function def_getreg(p1:tdef):tregister;
       begin
-        def_getreg:=rg.makeregsize(rg.getregisterint(exprasmlist),int_cgsize(p1.size));
+{        def_getreg:=rg.makeregsize(rg.getregisterint(exprasmlist),int_cgsize(p1.size));}
+        def_getreg:=rg.getregisterint(exprasmlist,int_cgsize(p1.size));
       end;
 
 
@@ -176,7 +177,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2003-01-13 14:54:34  daniel
+  Revision 1.36  2003-02-19 22:00:15  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.35  2003/01/13 14:54:34  daniel
     * Further work to convert codegenerator register convention;
       internalerror bug fixed.
 

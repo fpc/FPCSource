@@ -60,11 +60,11 @@ type
      constructor op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister; _op3 : treference);
      constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : longint;_op2 : tregister;_op3 : treference);
 
-     constructor op_reg_reglist(op: tasmop; _size : topsize; _op1: tregister;_op2: tregisterlist);
-     constructor op_reglist_reg(op: tasmop; _size : topsize; _op1: tregisterlist; _op2: tregister);
+     constructor op_reg_reglist(op: tasmop; _size : topsize; _op1: tregister;_op2: Tsupregset);
+     constructor op_reglist_reg(op: tasmop; _size : topsize; _op1: Tsupregset; _op2: tregister);
 
-     constructor op_ref_reglist(op: tasmop; _size : topsize; _op1: treference;_op2: tregisterlist);
-     constructor op_reglist_ref(op: tasmop; _size : topsize; _op1: tregisterlist; _op2: treference);
+     constructor op_ref_reglist(op: tasmop; _size : topsize; _op1: treference;_op2: Tsupregset);
+     constructor op_reglist_ref(op: tasmop; _size : topsize; _op1: Tsupregset; _op2: treference);
 
      { this is for Jmp instructions }
      constructor op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : tasmsymbol);
@@ -78,7 +78,7 @@ type
      constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
 
   private
-     procedure loadreglist(opidx:longint;r:tregisterlist);
+     procedure loadreglist(opidx:longint;r:Tsupregset);
      procedure init(_size : topsize); { this need to be called by all constructor }
   end;
 
@@ -100,7 +100,7 @@ implementation
 
 
 
-   procedure taicpu.loadreglist(opidx:longint;r:tregisterlist);
+   procedure taicpu.loadreglist(opidx:longint;r:Tsupregset);
       begin
         if opidx>=ops then
          ops:=opidx+1;
@@ -288,7 +288,7 @@ implementation
       end;
 
 
-   constructor taicpu.op_ref_reglist(op: tasmop; _size : topsize; _op1: treference;_op2: tregisterlist);
+   constructor taicpu.op_ref_reglist(op: tasmop; _size : topsize; _op1: treference;_op2: Tsupregset);
      Begin
         inherited create(op);;
         init(_size);
@@ -297,7 +297,7 @@ implementation
         loadreglist(1,_op2);
      end;
 
-   constructor taicpu.op_reglist_ref(op: tasmop; _size : topsize; _op1: tregisterlist; _op2: treference);
+   constructor taicpu.op_reglist_ref(op: tasmop; _size : topsize; _op1: Tsupregset; _op2: treference);
      Begin
         inherited create(op);;
         init(_size);
@@ -308,7 +308,7 @@ implementation
 
 
 
-   constructor taicpu.op_reg_reglist(op: tasmop; _size : topsize; _op1: tregister;_op2: tregisterlist);
+   constructor taicpu.op_reg_reglist(op: tasmop; _size : topsize; _op1: tregister;_op2: Tsupregset);
      Begin
         inherited create(op);;
         init(_size);
@@ -318,7 +318,7 @@ implementation
      end;
 
 
-   constructor taicpu.op_reglist_reg(op: tasmop; _size : topsize; _op1: tregisterlist; _op2: tregister);
+   constructor taicpu.op_reglist_reg(op: tasmop; _size : topsize; _op1: Tsupregset; _op2: tregister);
      Begin
         inherited create(op);;
         init(_size);
@@ -409,7 +409,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2002-12-14 15:02:03  carl
+  Revision 1.8  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.7  2002/12/14 15:02:03  carl
     * maxoperands -> max_operands (for portability in rautils.pas)
     * fix some range-check errors with loadconst
     + add ncgadd unit to m68k

@@ -101,6 +101,7 @@ uses
                                   Registers
 *****************************************************************************}
 
+    {$packenum 1}
     type
        Toldregister = (
          R_NO,R_D0,R_D1,R_D2,R_D3,R_D4,R_D5,R_D6,R_D7,
@@ -112,13 +113,20 @@ uses
          R_FP7,R_FPCR,R_SR,R_SSP,R_DFC,R_SFC,R_VBR,R_FPSR,
          R_INTREGISTER,R_FLOATREGISTER);
 
-      {# Set type definition for registers }
-      tregisterset = set of Toldregister;
+      Tnewregister=word;
       
       Tregister=record
         enum:Toldregister;
         number:word;
       end;
+
+      Tsuperregister=byte;
+      Tsubregister=byte;
+
+      {# Set type definition for registers }
+      tregisterset = set of Toldregister;
+      Tsupregset = set of Tsuperregister;
+      {$packenum normal}
 
       { A type to store register locations for 64 Bit values. }
       tregister64 = packed record
@@ -145,6 +153,27 @@ uses
       NR_A4 = $0D00; NR_A5 = $0E00; NR_A6 = $0F00;
       NR_A7 = $1000; 
 
+    {Super registers.}
+      RS_D0 = $01; RS_D1 = $02; RS_D2 = $03; 
+      RS_D3 = $04; RS_D4 = $05; RS_D5 = $06; 
+      RS_D6 = $07; RS_D7 = $08; RS_A0 = $09; 
+      RS_A1 = $0A; RS_A2 = $0B; RS_A3 = $0C; 
+      RS_A4 = $0D; RS_A5 = $0E; RS_A6 = $0F; 
+      RS_A7 = $10;
+
+     {Sub register numbers:}
+                  R_SUBL        = $00;      {8 bits}
+                  R_SUBW        = $01;      {16 bits}
+                  R_SUBD        = $02;      {32 bits}
+
+     {The subregister that specifies the entire register.}
+                  R_SUBWHOLE    = R_SUBD;  {i386}
+                  {R_SUBWHOLE    = R_SUBQ;} {Hammer}
+
+      {Number of first and last superregister.}
+      first_supreg    = $01;
+      last_supreg     = $10;
+
       {# First register in the tregister enumeration }
       firstreg = low(Toldregister);
       {# Last register in the tregister enumeration }
@@ -153,6 +182,10 @@ uses
     type
       {# Type definition for the array of string of register nnames }
       reg2strtable = array[firstreg..lastreg] of string[7];
+      regname2regnumrec = record
+        name:string[6];
+        number:Tnewregister;
+      end;
 
     const
      std_reg2str : reg2strtable =
@@ -247,7 +280,7 @@ uses
          top_const  : (val:aword);
          top_symbol : (sym:tasmsymbol;symofs:longint);
          { used for pushing/popping multiple registers }
-         top_reglist : (registerlist : tregisterlist);
+         top_reglist : (registerlist:Tsupregset);
       end;
 
 {*****************************************************************************
@@ -352,8 +385,10 @@ uses
 
       {# Constant defining possibly all registers which might require saving }
       ALL_REGISTERS = [R_D1..R_FPCR];
+      ALL_INTREGISTERS = [1..255];
 
       general_registers = [R_D0..R_D7];
+      general_superregisters = [RS_D0..RS_D7];
 
       {# low and high of the available maximum width integer general purpose }
       { registers                                                            }
@@ -379,7 +414,7 @@ uses
 
       maxintregs = 8;
       intregs    = [R_D0..R_D7];
-      usableregsint = [R_D2..R_D7];
+      usableregsint = [RS_D2..RS_D7];
       c_countusableregsint = 6;
 
       maxfpuregs = 8;
@@ -393,14 +428,14 @@ uses
 
       maxaddrregs = 8;
       addrregs    = [R_A0..R_SP];
-      usableregsaddr = [R_A2..R_A4];
+      usableregsaddr = [RS_A2..RS_A4];
       c_countusableregsaddr = 3;
 
 
       { The first register in the usableregsint array }
-      firstsaveintreg = R_D2;
+      firstsaveintreg = RS_D2;
       { The last register in the usableregsint array }
-      lastsaveintreg  = R_D7;
+      lastsaveintreg  = RS_D7;
       { The first register in the usableregsfpu array }
       firstsavefpureg = R_FP2;
       { The last  register in the usableregsfpu array }
@@ -408,9 +443,9 @@ uses
 
       { these constants are m68k specific              }
       { The first register in the usableregsaddr array }
-      firstsaveaddrreg = R_A2;
+      firstsaveaddrreg = RS_A2;
       { The last  register in the usableregsaddr array }
-      lastsaveaddrreg  = R_A4;
+      lastsaveaddrreg  = RS_A4;
 
       firstsavemmreg  = R_NO;
       lastsavemmreg   = R_NO;
@@ -459,7 +494,7 @@ uses
          routine calls or in assembler blocks.
       }
       max_scratch_regs = 4;
-      scratch_regs: Array[1..max_scratch_regs] of Toldregister = (R_D0,R_D1,R_A0,R_A1);
+      scratch_regs: Array[1..max_scratch_regs] of Tsuperregister = (RS_D0,RS_D1,RS_A0,RS_A1);
 
 {*****************************************************************************
                           Default generic sizes
@@ -502,11 +537,17 @@ uses
 
       {# Stack pointer register }
       stack_pointer_reg = R_SP;
+      NR_STACK_POINTER_REG = NR_A7;
+      RS_STACK_POINTER_REG = RS_A7;
       {# Frame pointer register }
       frame_pointer_reg = R_A6;
+      NR_FRAME_POINTER_REG = NR_A6;
+      RS_FRAME_POINTER_REG = RS_A6;
       {# Self pointer register : contains the instance address of an
          object or class. }
       self_pointer_reg  = R_A5;
+      NR_SELF_POINTER_REG = NR_A5;
+      RS_SELF_POINTER_REG = RS_A5;
       {# Register for addressing absolute data in a position independant way,
          such as in PIC code. The exact meaning is ABI specific. For
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
@@ -514,16 +555,22 @@ uses
       pic_offset_reg = R_A5;
       {# Results are returned in this register (32-bit values) }
       accumulator   = R_D0;
+      NR_ACCUMULATOR = NR_D0;
+      RS_ACCUMULATOR = RS_D0;
   {the return_result_reg, is used inside the called function to store its return
   value when that is a scalar value otherwise a pointer to the address of the
   result is placed inside it}
   return_result_reg   = accumulator;
+  NR_RETURN_RESULT_REG = NR_ACCUMULATOR;
+  RS_RETURN_RESULT_REG = RS_ACCUMULATOR;
 
   {the function_result_reg contains the function result after a call to a scalar
   function othewise it contains a pointer to the returned result}
   function_result_reg = accumulator;
       {# Hi-Results are returned in this register (64-bit value high register) }
       accumulatorhigh = R_D1;
+      NR_ACCUMULATORHIGH = NR_D1;
+      RS_ACCUMULATORHIGH = RS_D1;
       {# Floating point results will be placed into this register }
       FPU_RESULT_REG = R_FP0;
       mmresultreg = R_NO;
@@ -539,7 +586,7 @@ uses
          This value can be deduced from CALLED_USED_REGISTERS array in the
          GCC source.
       }
-      std_saved_registers = [R_D2..R_D7,R_A2..R_A5];
+      std_saved_registers = [RS_D2..RS_D7,RS_A2..RS_A5];
       {# Required parameter alignment when calling a routine declared as
          stdcall and cdecl. The alignment value should be the one defined
          by GCC or the target ABI.
@@ -563,6 +610,8 @@ uses
     procedure inverse_flags(var r : TResFlags);
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
     procedure convert_register_to_enum(var r:Tregister);
+    function cgsize2subreg(s:Tcgsize):Tsubregister;
+    function supreg_name(r:Tsuperregister):string;
 
 implementation
 
@@ -640,10 +689,48 @@ implementation
         end;
     end;
 
+    function cgsize2subreg(s:Tcgsize):Tsubregister;
+
+    begin
+      case s of
+        OS_8,OS_S8:
+          cgsize2subreg:=R_SUBL;
+        OS_16,OS_S16:
+          cgsize2subreg:=R_SUBW;
+        OS_32,OS_S32:
+          cgsize2subreg:=R_SUBD;
+        else
+          internalerror(200301231);
+      end;
+    end;
+
+    function supreg_name(r:Tsuperregister):string;
+
+    var s:string[4];
+
+    const supreg_names:array[0..last_supreg] of string[4]=
+          ('INV',
+           'd0','d1','d2','d3','d4','d5','d6','d7',
+           'a0','a1','a2','a3','a4','a5','a6','sp');
+
+    begin
+      if r in [0..last_supreg] then
+        supreg_name:=supreg_names[r]
+      else
+        begin
+          str(r,s);
+          supreg_name:='reg'+s;
+        end;
+    end;
+
 end.
 {
   $Log$
-  Revision 1.17  2003-02-02 19:25:54  carl
+  Revision 1.18  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.17  2003/02/02 19:25:54  carl
     * Several bugfixes for m68k target (register alloc., opcode emission)
     + VIS target
     + Generic add more complete (still not verified)

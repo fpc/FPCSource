@@ -223,9 +223,10 @@ implementation
              begin
                { for ranges we always need a 32bit register, because then we }
                { use the register as base in a reference (JM)                }
+               pleftreg.enum:=R_INTREGISTER;
                if ranges then
                  begin
-                   pleftreg:=rg.makeregsize(left.location.register,OS_INT);
+                   pleftreg.number:=(left.location.register.number and not $ff) or R_SUBWHOLE;
                    cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,pleftreg);
                    if opsize <> S_L then
                      emit_const_reg(A_AND,S_L,255,pleftreg);
@@ -235,14 +236,14 @@ implementation
                  { otherwise simply use the lower 8 bits (no "and" }
                  { necessary this way) (JM)                        }
                  begin
-                   pleftreg:=rg.makeregsize(left.location.register,OS_8);
+                   pleftreg.number:=(left.location.register.number and not $ff) or R_SUBL;
                    opsize := S_B;
                  end;
              end
             else
              begin
                { load the value in a register }
-               pleftreg := rg.getexplicitregisterint(exprasmlist,R_EDI);
+               pleftreg := rg.getexplicitregisterint(exprasmlist,NR_EDI);
                opsize := S_L;
                emit_ref_reg(A_MOVZX,S_BL,left.location.reference,pleftreg);
              end;
@@ -282,7 +283,7 @@ implementation
                           r.enum:=R_INTREGISTER;
                           r.number:=NR_EDI;
                           rg.ungetregister(exprasmlist,pleftreg);
-                          rg.getexplicitregisterint(exprasmlist,R_EDI);
+                          rg.getexplicitregisterint(exprasmlist,NR_EDI);
                           reference_reset_base(href,pleftreg,-setparts[i].start);
                           emit_ref_reg(A_LEA,S_L,href,r);
                           { only now change pleftreg since previous value is }
@@ -346,12 +347,13 @@ implementation
              case left.location.loc of
                LOC_REGISTER,
                LOC_CREGISTER :
-                 rg.ungetregister(exprasmlist,pleftreg);
+                 rg.ungetregisterint(exprasmlist,pleftreg);
                else
                  begin
                    reference_release(exprasmlist,left.location.reference);
-                   r.enum:=R_EDI;
-                   rg.ungetregister(exprasmlist,r);
+                   r.enum:=R_INTREGISTER;
+                   r.number:=NR_EDI;
+                   rg.ungetregisterint(exprasmlist,r);
                  end;
              end;
           end
@@ -400,7 +402,7 @@ implementation
                       { but 8 bits are easier to load               }
                       r.enum:=R_INTREGISTER;
                       r.number:=NR_EDI;
-                      rg.getexplicitregisterint(exprasmlist,R_EDI);
+                      rg.getexplicitregisterint(exprasmlist,NR_EDI);
                       emit_ref_reg(A_MOVZX,S_BL,left.location.reference,r);
                       hr:=r;
                       location_release(exprasmlist,left.location);
@@ -419,7 +421,7 @@ implementation
                        begin
                        { We have to load the value into a register because
                          btl does not accept values only refs or regs (PFV) }
-                         hr2:=rg.getregisterint(exprasmlist);
+                         hr2:=rg.getregisterint(exprasmlist,OS_INT);
                          emit_const_reg(A_MOV,S_L,
                            right.location.value,hr2);
                          emit_reg_reg(A_BT,S_L,hr,hr2);
@@ -435,8 +437,6 @@ implementation
                        internalerror(2002032210);
                   end;
                   { simply to indicate EDI is deallocated here too (JM) }
-                  if (hr.enum=R_INTREGISTER) and (hr.number=NR_EDI) then
-                    hr.enum:=R_EDI;
                   rg.ungetregisterint(exprasmlist,hr);
                   location.loc:=LOC_FLAGS;
                   location.resflags:=F_C;
@@ -453,7 +453,7 @@ implementation
                   { Is this treated in firstpass ?? }
                   if left.nodetype=ordconstn then
                     begin
-                      hr:=rg.getregisterint(exprasmlist);
+                      hr:=rg.getregisterint(exprasmlist,OS_INT);
                       left.location.loc:=LOC_REGISTER;
                       left.location.register:=hr;
                       emit_const_reg(A_MOV,S_L,
@@ -473,7 +473,7 @@ implementation
                           cg.a_label(exprasmlist,l);
                         { We have to load the value into a register because
                           btl does not accept values only refs or regs (PFV) }
-                          hr2:=rg.getregisterint(exprasmlist);
+                          hr2:=rg.getregisterint(exprasmlist,OS_INT);
                           emit_const_reg(A_MOV,S_L,right.location.value,hr2);
                           emit_reg_reg(A_BT,S_L,hr,hr2);
                           rg.ungetregisterint(exprasmlist,hr2);
@@ -498,11 +498,11 @@ implementation
                        cg.a_jmp_always(exprasmlist,l2);
                        cg.a_label(exprasmlist,l);
                        location_release(exprasmlist,left.location);
-                       hr:=rg.getregisterint(exprasmlist);
+                       hr:=rg.getregisterint(exprasmlist,OS_INT);
                        emit_ref_reg(A_MOV,S_L,left.location.reference,hr);
                      { We have to load the value into a register because
                        btl does not accept values only refs or regs (PFV) }
-                       hr2:=rg.getregisterint(exprasmlist);
+                       hr2:=rg.getregisterint(exprasmlist,OS_INT);
                        emit_const_reg(A_MOV,S_L,
                          right.location.value,hr2);
                        emit_reg_reg(A_BT,S_L,hr,hr2);
@@ -523,21 +523,25 @@ implementation
                else
                 begin
                   if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-                    pleftreg:=rg.makeregsize(left.location.register,OS_INT)
+                    begin
+                      pleftreg.enum:=R_INTREGISTER;
+                      pleftreg.number:=(left.location.register.number and not $ff) or R_SUBWHOLE;
+                    end
                   else
-                    pleftreg:=rg.getexplicitregisterint(exprasmlist,R_EDI);
+                    pleftreg:=rg.getexplicitregisterint(exprasmlist,NR_EDI);
                   cg.a_load_loc_reg(exprasmlist,left.location,pleftreg);
                   location_freetemp(exprasmlist,left.location);
                   location_release(exprasmlist,left.location);
                   emit_reg_ref(A_BT,S_L,pleftreg,right.location.reference);
-                  rg.ungetregister(exprasmlist,pleftreg);
+                  rg.ungetregisterint(exprasmlist,pleftreg);
                   location_release(exprasmlist,right.location);
                   { tg.ungetiftemp(exprasmlist,right.location.reference) happens below }
                   location.resflags:=F_C;
                 end;
              end;
           end;
-          location_freetemp(exprasmlist,right.location);
+          if not genjumps then
+            location_freetemp(exprasmlist,right.location);
        end;
 
 
@@ -714,7 +718,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-01-13 14:54:34  daniel
+  Revision 1.48  2003-02-19 22:00:15  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.47  2003/01/13 14:54:34  daniel
     * Further work to convert codegenerator register convention;
       internalerror bug fixed.
 

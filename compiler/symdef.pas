@@ -518,7 +518,8 @@ interface
           { check the problems of manglednames }
           has_mangledname : boolean;
           { small set which contains the modified registers }
-          usedregisters : tregisterset;
+          usedintregisters:Tsupregset;
+          usedotherregisters:Tregisterset;
           constructor create;
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -3381,7 +3382,8 @@ implementation
           end;
          lastref:=defref;
        { first, we assume that all registers are used }
-         usedregisters:=ALL_REGISTERS;
+         usedintregisters:=ALL_INTREGISTERS;
+         usedotherregisters:=ALL_REGISTERS;
          forwarddef:=true;
          interfacedef:=false;
          hasforward:=false;
@@ -3400,7 +3402,8 @@ implementation
          inherited ppuload(ppufile);
          deftype:=procdef;
 
-         ppufile.getnormalset(usedregisters);
+         ppufile.getnormalset(usedintregisters);
+         ppufile.getnormalset(usedotherregisters);
          has_mangledname:=boolean(ppufile.getbyte);
          if has_mangledname then
           _mangledname:=stringdup(ppufile.getstring)
@@ -3522,10 +3525,12 @@ implementation
          { set all registers to used for simplified compilation PM }
          if simplify_ppu then
            begin
-             usedregisters:=ALL_REGISTERS;
+             usedintregisters:=ALL_INTREGISTERS;
+             usedotherregisters:=ALL_REGISTERS;
            end;
 
-         ppufile.putnormalset(usedregisters);
+         ppufile.putnormalset(usedintregisters);
+         ppufile.putnormalset(usedotherregisters);
          ppufile.do_interface_crc:=oldintfcrc;
          ppufile.putbyte(byte(has_mangledname));
          if has_mangledname then
@@ -5651,7 +5656,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.128  2003-02-02 19:25:54  carl
+  Revision 1.129  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.128  2003/02/02 19:25:54  carl
     * Several bugfixes for m68k target (register alloc., opcode emission)
     + VIS target
     + Generic add more complete (still not verified)

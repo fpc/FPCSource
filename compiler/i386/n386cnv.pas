@@ -117,7 +117,7 @@ implementation
                    hregister:=left.location.register;
                  else
                    begin
-                     hregister:=cg.get_scratch_reg_int(exprasmlist);
+                     hregister:=cg.get_scratch_reg_int(exprasmlist,OS_32);
                      freereg:=true;
                      cg.a_load_reg_reg(exprasmlist,left.location.size,OS_32,left.location.register,hregister);
                    end;
@@ -126,7 +126,7 @@ implementation
            LOC_REFERENCE,
            LOC_CREFERENCE :
              begin
-               hregister:=cg.get_scratch_reg_int(exprasmlist);
+               hregister:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
                freereg:=true;
                if left.location.size in [OS_64,OS_S64] then
                 begin
@@ -170,14 +170,16 @@ implementation
                 { we load bits 0..62 and then check bit 63:  }
                 { if it is 1 then we add $80000000 000000000 }
                 { as double                                  }
-                r.enum:=R_EDI;
+                r.enum:=R_INTREGISTER;
+                r.number:=NR_EDI;
                 inc(href.offset,4);
-                rg.getexplicitregisterint(exprasmlist,R_EDI);
+                rg.getexplicitregisterint(exprasmlist,NR_EDI);
                 emit_ref_reg(A_MOV,S_L,href,r);
                 r.enum:=R_ESP;
                 reference_reset_base(href,r,4);
                 emit_const_ref(A_AND,S_L,$7fffffff,href);
-                r.enum:=R_EDI;
+                r.enum:=R_INTREGISTER;
+                r.number:=NR_EDI;
                 emit_const_reg(A_TEST,S_L,longint($80000000),r);
                 rg.ungetregisterint(exprasmlist,r);
                 r.enum:=R_ESP;
@@ -198,11 +200,10 @@ implementation
            else
              begin
                 emit_ref(A_FILD,S_IL,href);
-                rg.getexplicitregisterint(exprasmlist,R_EDI);
+                rg.getexplicitregisterint(exprasmlist,NR_EDI);
                 r.enum:=R_INTREGISTER;
                 r.number:=NR_EDI;
                 emit_reg(A_POP,S_L,r);
-                r.enum:=R_EDI;
                 rg.ungetregisterint(exprasmlist,r);
              end;
          end;
@@ -246,7 +247,7 @@ implementation
               begin
                 if left.location.size in [OS_64,OS_S64] then
                  begin
-                   hregister:=rg.getregisterint(exprasmlist);
+                   hregister:=rg.getregisterint(exprasmlist,OS_INT);
                    emit_ref_reg(A_MOV,S_L,left.location.reference,hregister);
                    pref:=left.location.reference;
                    inc(pref.offset,4);
@@ -266,7 +267,7 @@ implementation
               begin
                 if left.location.size in [OS_64,OS_S64] then
                  begin
-                   hregister:=cg.get_scratch_reg_int(exprasmlist);
+                   hregister:=cg.get_scratch_reg_int(exprasmlist,OS_32);
                    cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,left.location.registerlow,hregister);
                    cg.a_op_reg_reg(exprasmlist,OP_OR,OS_32,left.location.registerhigh,hregister);
                    cg.free_scratch_reg(exprasmlist,hregister);
@@ -276,7 +277,7 @@ implementation
               end;
             LOC_JUMP :
               begin
-                hregister:=rg.getregisterint(exprasmlist);
+                hregister:=rg.getregisterint(exprasmlist,OS_INT);
                 objectlibrary.getlabel(hlabel);
                 cg.a_label(exprasmlist,truelabel);
                 cg.a_load_const_reg(exprasmlist,OS_INT,1,hregister);
@@ -430,7 +431,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2003-01-13 18:37:44  daniel
+  Revision 1.56  2003-02-19 22:00:15  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.55  2003/01/13 18:37:44  daniel
     * Work on register conversion
 
   Revision 1.54  2003/01/08 18:43:57  daniel

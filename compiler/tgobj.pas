@@ -438,22 +438,22 @@ unit tgobj;
          { ref.index = R_NO was missing
            led to problems with local arrays
            with lower bound > 0 (PM) }
-         if ref.base.enum>lastreg then
-           internalerror(200301081);
-         if ref.index.enum>lastreg then
-           internalerror(200301081);
-         if procinfo.framepointer.enum>lastreg then
-           internalerror(200301081);
+         if ref.base.enum<>R_INTREGISTER then
+           internalerror(200301225);
+         if ref.index.enum<>R_INTREGISTER then
+           internalerror(200301225);
+         if procinfo.framepointer.enum<>R_INTREGISTER then
+           internalerror(200301225);
          if direction = 1 then
            begin
-             istemp:=((ref.base.enum=procinfo.framepointer.enum) and
-                     (ref.index.enum=R_NO) and
+             istemp:=((ref.base.number=procinfo.framepointer.number) and
+                     (ref.index.number=NR_NO) and
                       (ref.offset>firsttemp));
            end
         else
            begin
-             istemp:=((ref.base.enum=procinfo.framepointer.enum) and
-                     (ref.index.enum=R_NO) and
+             istemp:=((ref.base.number=procinfo.framepointer.number) and
+                     (ref.index.number=NR_NO) and
                       (ref.offset<firsttemp));
            end;
       end;
@@ -542,7 +542,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.25  2003-02-03 23:10:39  daniel
+  Revision 1.26  2003-02-19 22:00:15  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.25  2003/02/03 23:10:39  daniel
     * Fixed last commit
 
   Revision 1.24  2003/02/03 23:07:39  daniel

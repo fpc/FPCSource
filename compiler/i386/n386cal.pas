@@ -288,9 +288,11 @@ implementation
 
     procedure ti386callnode.pass_2;
       var
-         regs_to_push : tregisterset;
+         regs_to_push_int : Tsupregset;
+         regs_to_push_other : tregisterset;
          unusedstate: pointer;
          pushed : tpushedsaved;
+         pushed_int : tpushedsavedint;
          tmpreg : tregister;
          hregister : tregister;
          oldpushedparasize : longint;
@@ -420,23 +422,29 @@ implementation
 
               { save all used registers and possible registers
                 used for the return value }
-              regs_to_push := tprocdef(procdefinition).usedregisters;
+              regs_to_push_int := tprocdef(procdefinition).usedintregisters;
+              regs_to_push_other := tprocdef(procdefinition).usedotherregisters;
               if (not is_void(resulttype.def)) and
                  (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
                begin
-                 include(regs_to_push,accumulator);
+                 include(regs_to_push_int,RS_ACCUMULATOR);
                  if resulttype.def.size>sizeof(aword) then
-                   include(regs_to_push,accumulatorhigh);
+                   include(regs_to_push_int,RS_ACCUMULATORHIGH);
                end;
-              rg.saveusedregisters(exprasmlist,pushed,regs_to_push);
+              rg.saveusedintregisters(exprasmlist,pushed_int,regs_to_push_int);
+              rg.saveusedotherregisters(exprasmlist,pushed,regs_to_push_other);
 
               { give used registers through }
-              rg.usedinproc:=rg.usedinproc + tprocdef(procdefinition).usedregisters;
+              rg.usedintinproc:=rg.usedintinproc + tprocdef(procdefinition).usedintregisters;
+              rg.usedinproc:=rg.usedinproc + tprocdef(procdefinition).usedotherregisters;
            end
          else
            begin
-              regs_to_push := all_registers;
-              rg.saveusedregisters(exprasmlist,pushed,regs_to_push);
+              regs_to_push_int := all_intregisters;
+              regs_to_push_other:=all_registers;
+              rg.saveusedintregisters(exprasmlist,pushed_int,regs_to_push_int);
+              rg.saveusedotherregisters(exprasmlist,pushed,regs_to_push_other);
+              rg.usedintinproc:=all_intregisters;
               rg.usedinproc:=all_registers;
               { no IO check for methods and procedure variables }
               iolabel:=nil;
@@ -595,8 +603,9 @@ implementation
                    { dirty trick to avoid the secondcall below }
                    methodpointer:=ccallparanode.create(nil,nil);
                    location_reset(methodpointer.location,LOC_REGISTER,OS_ADDR);
-                   rg.getexplicitregisterint(exprasmlist,R_ESI);
-                   methodpointer.location.register.enum:=R_ESI;
+                   rg.getexplicitregisterint(exprasmlist,NR_ESI);
+                   methodpointer.location.register.enum:=R_INTREGISTER;
+                   methodpointer.location.register.number:=NR_SELF_POINTER_REG;
                    { ARGHHH this is wrong !!!
                      if we can init from base class for a child
                      class that the wrong VMT will be
@@ -605,7 +614,8 @@ implementation
                      twithnode(twithsymtable(symtableproc).withnode).left.resulttype;
                    { make a reference }
                    href:=twithnode(twithsymtable(symtableproc).withnode).withreference;
-                   r.enum:=self_pointer_reg;
+                   r.enum:=R_INTREGISTER;
+                   r.number:=NR_SELF_POINTER_REG;
                    if ((not(nf_islocal in twithnode(twithsymtable(symtableproc).withnode).flags)) and
                        (not twithsymtable(symtableproc).direct_with)) or
                       is_class_or_interface(methodpointer.resulttype.def) then
@@ -650,8 +660,9 @@ implementation
                                          { way to accept virtual static functions (PM)     }
                                          loadesi:=true;
                                          { if no VMT just use $0 bug0214 PM }
-                                         rg.getexplicitregisterint(exprasmlist,R_ESI);
-                                         r.enum:=self_pointer_reg;
+                                         rg.getexplicitregisterint(exprasmlist,NR_ESI);
+                                         r.enum:=R_INTREGISTER;
+                                         r.number:=NR_SELF_POINTER_REG;
                                          if not(oo_has_vmt in tobjectdef(methodpointer.resulttype.def).objectoptions) then
                                            cg.a_load_const_reg(exprasmlist,OS_ADDR,0,r)
                                          else
@@ -667,7 +678,8 @@ implementation
                                       loadesi:=false;
 
                                     { a class destructor needs a flag }
-                                    r.enum:=self_pointer_reg;
+                                    r.enum:=R_INTREGISTER;
+                                    r.number:=NR_SELF_POINTER_REG;
                                     if is_class(tobjectdef(methodpointer.resulttype.def)) and
                                        (procdefinition.proctypeoption=potype_destructor) then
                                       begin
@@ -675,7 +687,8 @@ implementation
                                         cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(1));
                                       end;
 
-                                    r.enum:=self_pointer_reg;
+                                    r.enum:=R_INTREGISTER;
+                                    r.number:=NR_SELF_POINTER_REG;
                                     if not(is_con_or_destructor and
                                            is_class(methodpointer.resulttype.def) and
                                            (procdefinition.proctypeoption in [potype_constructor,potype_destructor])
@@ -711,8 +724,9 @@ implementation
                                  begin
                                     { extended syntax of new }
                                     { ESI must be zero }
-                                    r.enum:=self_pointer_reg;
-                                    rg.getexplicitregisterint(exprasmlist,r.enum);
+                                    r.enum:=R_INTREGISTER;
+                                    r.number:=NR_SELF_POINTER_REG;
+                                    rg.getexplicitregisterint(exprasmlist,NR_ESI);
                                     cg.a_load_const_reg(exprasmlist,OS_ADDR,0,r);
                                     cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(2));
                                     { insert the vmt }
@@ -726,8 +740,9 @@ implementation
 
                                     { destructor with extended syntax called from dispose }
                                     { hdisposen always deliver LOC_REFERENCE          }
-                                    r.enum:=R_ESI;
-                                    rg.getexplicitregisterint(exprasmlist,R_ESI);
+                                    r.enum:=R_INTREGISTER;
+                                    r.number:=NR_SELF_POINTER_REG;
+                                    rg.getexplicitregisterint(exprasmlist,NR_ESI);
                                     emit_ref_reg(A_LEA,S_L,methodpointer.location.reference,r);
                                     reference_release(exprasmlist,methodpointer.location.reference);
                                     cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(2));
@@ -739,9 +754,10 @@ implementation
                                     { call to an instance member }
                                     if (symtableproc.symtabletype<>withsymtable) then
                                       begin
-                                         r.enum:=R_ESI;
+                                         r.enum:=R_INTREGISTER;
+                                         r.number:=NR_SELF_POINTER_REG;
                                          secondpass(methodpointer);
-                                         rg.getexplicitregisterint(exprasmlist,R_ESI);
+                                         rg.getexplicitregisterint(exprasmlist,NR_ESI);
                                          case methodpointer.location.loc of
                                             LOC_CREGISTER,
                                             LOC_REGISTER:
@@ -768,8 +784,9 @@ implementation
                                            ((po_classmethod in procdefinition.procoptions) and
                                             not(methodpointer.resulttype.def.deftype=classrefdef)) then
                                           begin
-                                            r.enum:=self_pointer_reg;
-                                            rg.getexplicitregisterint(exprasmlist,r.enum);
+                                            r.enum:=R_INTREGISTER;
+                                            r.number:=NR_SELF_POINTER_REG;
+                                            rg.getexplicitregisterint(exprasmlist,NR_ESI);
                                             if not(oo_has_vmt in tprocdef(procdefinition)._class.objectoptions) then
                                               cg.a_load_const_reg(exprasmlist,OS_ADDR,0,r)
                                             else
@@ -841,8 +858,9 @@ implementation
                                  (po_staticmethod in aktprocdef.procoptions))
                            ) then
                           begin
-                            r.enum:=self_pointer_reg;
-                            rg.getexplicitregisterint(exprasmlist,r.enum);
+                            r.enum:=R_INTREGISTER;
+                            r.number:=NR_SELF_POINTER_REG;
+                            rg.getexplicitregisterint(exprasmlist,NR_ESI);
                             if not(oo_has_vmt in tprocdef(procdefinition)._class.objectoptions) then
                              cg.a_load_const_reg(exprasmlist,OS_ADDR,0,r)
                             else
@@ -862,7 +880,8 @@ implementation
                         { direct call to destructor: don't remove data! }
                         if is_class(procinfo._class) then
                           begin
-                             r.enum:=R_ESI;
+                             r.enum:=R_INTREGISTER;
+                             r.number:=NR_SELF_POINTER_REG;
                              if (procdefinition.proctypeoption=potype_destructor) then
                                begin
                                   cg.a_param_const(exprasmlist,OS_INT,0,paramanager.getintparaloc(2));
@@ -878,7 +897,8 @@ implementation
                           end
                         else if is_object(procinfo._class) then
                           begin
-                             r.enum:=R_ESI;
+                             r.enum:=R_INTREGISTER;
+                             r.number:=NR_SELF_POINTER_REG;
                              cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(1));
                              if is_con_or_destructor then
                                begin
@@ -911,7 +931,8 @@ implementation
                    (inlined or
                    (right=nil)) then
                   begin
-                     r.enum:=self_pointer_reg;
+                     r.enum:=R_INTREGISTER;
+                     r.number:=NR_SELF_POINTER_REG;
                      cg.a_param_reg(exprasmlist,OS_ADDR,r,paramanager.getintparaloc(1));
                      reference_reset_base(href,r,0);
                      tmpreg:=cg.get_scratch_reg_address(exprasmlist);
@@ -952,7 +973,7 @@ implementation
                        end
                      else if (lexlevel>(tprocdef(procdefinition).parast.symtablelevel)) then
                        begin
-                          hregister:=rg.getregisterint(exprasmlist);
+                          hregister:=rg.getregisterint(exprasmlist,OS_ADDR);
                           reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
                           cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
                           for i:=(tprocdef(procdefinition).parast.symtablelevel) to lexlevel-1 do
@@ -969,7 +990,7 @@ implementation
                        internalerror(25000);
                   end;
 
-              rg.saveregvars(exprasmlist,regs_to_push);
+              rg.saveintregvars(exprasmlist,regs_to_push_int);
 
               if (po_virtualmethod in procdefinition.procoptions) and
                  not(no_virtual_call) then
@@ -979,8 +1000,9 @@ implementation
                    { Here it is quite tricky because it also depends }
                    { on the methodpointer                        PM }
                    release_tmpreg:=false;
-                   rg.getexplicitregisterint(exprasmlist,R_ESI);
-                   r.enum:=R_ESI;
+                   rg.getexplicitregisterint(exprasmlist,NR_ESI);
+                   r.enum:=R_INTREGISTER;
+                   r.number:=NR_SELF_POINTER_REG;
                    if assigned(aktprocdef) then
                      begin
                        if (((sp_static in aktprocdef.procsym.symoptions) or
@@ -1032,7 +1054,8 @@ implementation
                   if (po_interrupt in procdefinition.procoptions) then
                     begin
                         emit_none(A_PUSHF,S_L);
-                        r.enum:=R_CS;
+                        r.enum:=R_INTREGISTER;
+                        r.number:=NR_CS;
                         emit_reg(A_PUSH,S_L,r);
                     end;
                   cg.a_call_name(exprasmlist,tprocdef(procdefinition).mangledname);
@@ -1054,20 +1077,22 @@ implementation
               if (po_interrupt in procdefinition.procoptions) then
                 begin
                     emit_none(A_PUSHF,S_L);
-                    r.enum:=R_CS;
+                    r.enum:=R_INTREGISTER;
+                    r.number:=NR_CS;
                     emit_reg(A_PUSH,S_L,r);
                 end;
               { procedure of object? }
               if (po_methodpointer in procdefinition.procoptions) then
                 begin
                    { method pointer can't be in a register }
-                   hregister.enum:=R_NO;
+                   hregister.enum:=R_INTREGISTER;
+                   hregister.number:=NR_NO;
 
                    { do some hacking if we call a method pointer }
                    { which is a class member                 }
                    { else ESI is overwritten !             }
-                   if (right.location.reference.base.enum=R_ESI) or
-                      (right.location.reference.index.enum=R_ESI) then
+                   if (right.location.reference.base.number=NR_ESI) or
+                      (right.location.reference.index.number=NR_ESI) then
                      begin
                         reference_release(exprasmlist,right.location.reference);
                         hregister:=cg.get_scratch_reg_address(exprasmlist);
@@ -1080,27 +1105,30 @@ implementation
                        { load ESI }
                        href:=right.location.reference;
                        inc(href.offset,4);
-                       r.enum:=self_pointer_reg;
-                       rg.getexplicitregisterint(exprasmlist,R_ESI);
+                       r.enum:=R_INTREGISTER;
+                       r.number:=NR_SELF_POINTER_REG;
+                       rg.getexplicitregisterint(exprasmlist,NR_ESI);
                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,r);
                        { push self pointer }
                        cg.a_param_reg(exprasmlist,OS_ADDR,r,paralocdummy);
                      end;
 
-                   rg.saveregvars(exprasmlist,ALL_REGISTERS);
-                   if hregister.enum<>R_NO then
+                   rg.saveintregvars(exprasmlist,ALL_INTREGISTERS);
+                   rg.saveotherregvars(exprasmlist,ALL_REGISTERS);
+                   if hregister.number<>NR_NO then
                      cg.a_call_reg(exprasmlist,hregister)
                    else
                      cg.a_call_ref(exprasmlist,right.location.reference);
 
-                   if hregister.enum<>R_NO then
+                   if hregister.number<>NR_NO then
                      cg.free_scratch_reg(exprasmlist,hregister);
                    reference_release(exprasmlist,right.location.reference);
                    tg.Ungetiftemp(exprasmlist,right.location.reference);
                 end
               else
                 begin
-                   rg.saveregvars(exprasmlist,ALL_REGISTERS);
+                   rg.saveintregvars(exprasmlist,ALL_INTREGISTERS);
+                   rg.saveotherregvars(exprasmlist,ALL_REGISTERS);
                    cg.a_call_loc(exprasmlist,right.location);
                    location_release(exprasmlist,right.location);
                    location_freetemp(exprasmlist,right.location);
@@ -1117,8 +1145,9 @@ implementation
                 { better than an add on all processors }
                 if pushedparasize=4 then
                   begin
-                    r.enum:=R_EDI;
-                    rg.getexplicitregisterint(exprasmlist,R_EDI);
+                    r.enum:=R_INTREGISTER;
+                    r.number:=NR_EDI;
+                    rg.getexplicitregisterint(exprasmlist,NR_EDI);
                     emit_reg(A_POP,S_L,r);
                     rg.ungetregisterint(exprasmlist,r);
                   end
@@ -1129,12 +1158,12 @@ implementation
                   (aktoptprocessor=ClassP5) and
                   (procinfo._class=nil) then
                     begin
-                       rg.getexplicitregisterint(exprasmlist,R_EDI);
+                       rg.getexplicitregisterint(exprasmlist,NR_EDI);
                        r.enum:=R_INTREGISTER;
                        r.number:=NR_EDI;
                        emit_reg(A_POP,S_L,r);
                        rg.ungetregisterint(exprasmlist,r);
-                       r.enum:=R_ESI;
+                       r.number:=NR_ESI;
                        exprasmList.concat(tai_regalloc.Alloc(r));
                        emit_reg(A_POP,S_L,r);
                        exprasmList.concat(tai_regalloc.DeAlloc(r));
@@ -1180,8 +1209,10 @@ implementation
            assigned(methodpointer) and
            (methodpointer.nodetype<>typen) then
            begin
-              r.enum:=accumulator;
-              r2.enum:=self_pointer_reg;
+              r.enum:=R_INTREGISTER;
+              r.number:=NR_ACCUMULATOR;
+              r2.enum:=R_INTREGISTER;
+              r2.number:=NR_SELF_POINTER_REG;
               objectlibrary.getlabel(constructorfailed);
               emitjmp(C_Z,constructorfailed);
               cg.a_param_reg(exprasmlist,OS_ADDR,r2,paramanager.getintparaloc(1));
@@ -1211,7 +1242,8 @@ implementation
            emit_const_reg(A_ADD,S_L,pop_size,rsp);
 
          { restore registers }
-         rg.restoreusedregisters(exprasmlist,pushed);
+         rg.restoreusedotherregisters(exprasmlist,pushed);
+         rg.restoreusedintregisters(exprasmlist,pushed_int);
 
          { at last, restore instance pointer (SELF) }
          if loadesi then
@@ -1282,7 +1314,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.81  2003-01-30 21:46:57  peter
+  Revision 1.82  2003-02-19 22:00:15  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.81  2003/01/30 21:46:57  peter
     * self fixes for static methods (merged)
 
   Revision 1.80  2003/01/13 18:37:44  daniel

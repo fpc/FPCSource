@@ -191,9 +191,12 @@ TYPE
   { enumeration for registers, don't change the order }
   { it's used by the register size conversions        }
   ToldRegister=({$INCLUDE registers.inc});
+  Tnewregister=word;
+  Tsuperregister=byte;
+  Tsubregister=byte;
   Tregister=record
     enum:Toldregister;
-    number:word;
+    number:Tnewregister;
   end;
   TRegister64=PACKED RECORD
   {A type to store register locations for 64 Bit values.}
@@ -201,10 +204,83 @@ TYPE
   END;
   treg64=tregister64;{alias for compact code}
   TRegisterSet=SET OF ToldRegister;
+  Tsupregset=set of Tsuperregister;
 CONST
   R_NO=R_NONE;
   firstreg = low(Toldregister);
   lastreg  = high(R_ASR31);
+
+{General registers.}
+
+const
+  NR_NO=$0000;
+  NR_G0=$0001;
+  NR_G1=$0002;
+  NR_G2=$0003;
+  NR_G3=$0004;
+  NR_G4=$0005;
+  NR_G5=$0006;
+  NR_G6=$0007;
+  NR_G7=$0008;
+  NR_O0=$0100;
+  NR_O1=$0200;
+  NR_O2=$0300;
+  NR_O3=$0400;
+  NR_O4=$0500;
+  NR_O5=$0600;
+  NR_O6=$0700;
+  NR_O7=$0800;
+  NR_L0=$0900;
+  NR_L1=$0A00;
+  NR_L2=$0B00;
+  NR_L3=$0C00;
+  NR_L4=$0D00;
+  NR_L5=$0E00;
+  NR_L6=$0F00;
+  NR_L7=$1000;
+  NR_I0=$1100;
+  NR_I1=$1200;
+  NR_I2=$1300;
+  NR_I3=$1400;
+  NR_I4=$1500;
+  NR_I5=$1600;
+  NR_I6=$1700;
+  NR_I7=$1800;
+
+{Superregisters.}
+
+const
+  RS_O0=$01;
+  RS_O1=$02;
+  RS_O2=$03;
+  RS_O3=$04;
+  RS_O4=$05;
+  RS_O5=$06;
+  RS_O6=$07;
+  RS_O7=$08;
+  RS_L0=$09;
+  RS_L1=$0A;
+  RS_L2=$0B;
+  RS_L3=$0C;
+  RS_L4=$0D;
+  RS_L5=$0E;
+  RS_L6=$0F;
+  RS_L7=$10;
+  RS_I0=$11;
+  RS_I1=$12;
+  RS_I2=$13;
+  RS_I3=$14;
+  RS_I4=$15;
+  RS_I5=$16;
+  RS_I6=$17;
+  RS_I7=$18;
+
+  first_supreg = $01;
+  last_supreg = $18;
+
+  {Subregisters; nothing known about.}
+  R_SUBWHOLE=$00;
+  R_SUBL=$00;
   
 type
   reg2strtable=ARRAY[firstreg..lastreg] OF STRING[7];
@@ -361,6 +437,7 @@ used, because contains a lot of unnessary fields.}
 
 const
   general_registers = [R_G0..R_I7];
+  general_superregisters = [RS_O0..RS_I7];
   { legend:                                                                }
   { xxxregs = set of all possibly used registers of that type in the code  }
   {           generator                                                    }
@@ -370,7 +447,7 @@ const
   {           passing on ABI's that define this)                           }
   { c_countusableregsxxx = amount of registers in the usableregsxxx set    }
   IntRegs=[R_G0..R_I7];
-  usableregsint=[R_O0..R_I7];
+  usableregsint=[RS_O0..RS_I7];
   c_countusableregsint = 24;
   fpuregs=[R_F0..R_F31];
   usableregsfpu=[R_F0..R_F31];
@@ -385,8 +462,8 @@ const
   c_countusableregsaddr = 0;
   
   
-  firstsaveintreg = R_O0;
-  lastsaveintreg = R_I7;
+  firstsaveintreg = RS_O0;
+  lastsaveintreg = RS_I7;
   firstsavefpureg = R_F0;
   lastsavefpureg = R_F31;
   firstsavemmreg = R_I0;
@@ -395,6 +472,7 @@ const
   highsavereg = R_I7;
 
   ALL_REGISTERS = [lowsavereg..highsavereg];
+  ALL_INTREGISTERS = [1..255];
 
   lvaluelocations = [LOC_REFERENCE,LOC_CFPUREGISTER,
     LOC_CREGISTER,LOC_MMXREGISTER,LOC_CMMXREGISTER];
@@ -407,22 +485,36 @@ const
   stab_regindex:ARRAY[firstreg..lastreg]OF ShortInt=({$INCLUDE stabregi.inc});
 {*************************** generic register names **************************}
   stack_pointer_reg   = R_O6;
+  NR_STACK_POINTER_REG = NR_O6;
+  RS_STACK_POINTER_REG = RS_O6;
   frame_pointer_reg   = R_I6;
+  NR_FRAME_POINTER_REG = NR_I6;
+  RS_FRAME_POINTER_REG = RS_I6;
   {the return_result_reg, is used inside the called function to store its return
   value when that is a scalar value otherwise a pointer to the address of the
   result is placed inside it}
   return_result_reg   = R_I0;
+  NR_RETURN_RESULT_REG = NR_I0;
+  RS_RETURN_RESULT_REG = RS_I0;
   {the function_result_reg contains the function result after a call to a scalar
   function othewise it contains a pointer to the returned result}
   function_result_reg = R_O0;
+  NR_FUNCTION_RESULT_REG = NR_O0;
+  RS_FUNCTION_RESULT_REG = RS_O0;
   self_pointer_reg  =R_G5;
+  NR_SELF_POINTER_REG = NR_G5;
+{  RS_SELF_POINTER_REG = RS_G5;}
   {There is no accumulator in the SPARC architecture. There are just families
   of registers. All registers belonging to the same family are identical except
   in the "global registers" family where GO is different from the others :
   G0 gives always 0 when it is red and thows away any value written to it.
   Nevertheless, scalar routine results are returned onto R_O0.}
   accumulator     = R_O0;
+  NR_ACCUMULATOR = NR_O0;
+  RS_ACCUMULATOR = RS_O1;
   accumulatorhigh = R_O1;
+  NR_ACCUMULATORHIGH = NR_O1;
+  RS_ACCUMULATORHIGH = RS_O1;
   fpu_result_reg  =R_F0;
   mmresultreg     =R_G0;
 {*****************************************************************************}
@@ -434,7 +526,7 @@ as defined in the target ABI and / or GCC.
 
 This value can be deduced from the CALLED_USED_REGISTERS array in the GCC
 source.}
-  std_saved_registers=[R_O6];
+  std_saved_registers=[RS_O6];
 {# Required parameter alignment when calling a routine declared as stdcall and
 cdecl. The alignment value should be the one defined by GCC or the target ABI.
 
@@ -444,7 +536,7 @@ PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.}
 {# Registers which are defined as scratch and no need to save across routine
 calls or in assembler blocks.}
   ScratchRegsCount=8;
-  scratch_regs:ARRAY[1..ScratchRegsCount]OF ToldRegister=(R_L0,R_L1,R_L2,R_L3,R_L4,R_L5,R_L6,R_L7);
+  scratch_regs:ARRAY[1..ScratchRegsCount] OF Tsuperregister=(RS_L0,RS_L1,RS_L2,RS_L3,RS_L4,RS_L5,RS_L6,RS_L7);
 { low and high of the available maximum width integer general purpose }
 { registers                                                           }
   LoGPReg = R_G0;
@@ -505,6 +597,7 @@ const
 FUNCTION is_calljmp(o:tasmop):boolean;
 FUNCTION flags_to_cond(CONST f:TResFlags):TAsmCond;
 procedure convert_register_to_enum(var r:Tregister);
+function cgsize2subreg(s:Tcgsize):Tsubregister;
 
 IMPLEMENTATION
 
@@ -529,40 +622,6 @@ function flags_to_cond(const f:TResFlags):TAsmCond;
   END;
 
 procedure convert_register_to_enum(var r:Tregister);
-const
-  NR_NO=$0000;
-  NR_G0=$0001;
-  NR_G1=$0002;
-  NR_G2=$0003;
-  NR_G3=$0004;
-  NR_G4=$0005;
-  NR_G5=$0006;
-  NR_G6=$0007;
-  NR_G7=$0008;
-  NR_O0=$0100;
-  NR_O1=$0200;
-  NR_O2=$0300;
-  NR_O3=$0400;
-  NR_O4=$0500;
-  NR_O5=$0600;
-  NR_O6=$0700;
-  NR_O7=$0800;
-  NR_L0=$0900;
-  NR_L1=$0A00;
-  NR_L2=$0B00;
-  NR_L3=$0C00;
-  NR_L4=$0D00;
-  NR_L5=$0E00;
-  NR_L6=$0F00;
-  NR_L7=$1000;
-  NR_I0=$1100;
-  NR_I1=$1200;
-  NR_I2=$1300;
-  NR_I3=$1400;
-  NR_I4=$1500;
-  NR_I5=$1600;
-  NR_I6=$1700;
-  NR_I7=$1800;
 begin
   if r.enum=R_INTREGISTER
   then
@@ -605,13 +664,23 @@ begin
     end;
 end;
 
+function cgsize2subreg(s:Tcgsize):Tsubregister;
+
+begin
+  cgsize2subreg:=R_SUBWHOLE;
+end;
+
 END.
 
 
 
 {
   $Log$
-  Revision 1.22  2003-02-02 19:25:54  carl
+  Revision 1.23  2003-02-19 22:00:17  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.22  2003/02/02 19:25:54  carl
     * Several bugfixes for m68k target (register alloc., opcode emission)
     + VIS target
     + Generic add more complete (still not verified)

@@ -278,7 +278,7 @@ implementation
          { location is always LOC_JUMP }
          location_reset(location,LOC_REGISTER,OS_INT);
          { allocate a register for the result }
-         location.register := rg.getregisterint(exprasmlist);
+         location.register := rg.getregisterint(exprasmlist,OS_INT);
 
          if genjumps then
           begin
@@ -312,7 +312,7 @@ implementation
             else
              begin
                { load the value in a register }
-               pleftreg := cg.get_scratch_reg_int(exprasmlist);
+               pleftreg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
                opsize := OS_INT;
                cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.reference,pleftreg);
              end;
@@ -340,7 +340,7 @@ implementation
                       if (left.location.loc = LOC_CREGISTER) and
                          (hr.enum <> pleftreg.enum) then
                         begin
-                          hr:=cg.get_scratch_reg_int(exprasmlist);
+                          hr:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
                           cg.a_op_const_reg_reg(exprasmlist,OP_SUB,opsize,setparts[i].start,pleftreg,hr);
                           pleftreg:=hr;
                           opsize := OS_INT;
@@ -412,7 +412,7 @@ implementation
                 begin
                   { clear the register value, indicating result is FALSE }
                   cg.a_load_const_reg(exprasmlist,OS_INT,0,location.register);
-                  hr:=cg.get_scratch_reg_int(exprasmlist);
+                  hr:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
                   case right.location.loc of
                     LOC_REGISTER,
                     LOC_CREGISTER:
@@ -446,12 +446,12 @@ implementation
                        begin
                           hr3:=rg.makeregsize(left.location.register,OS_INT);
                           cg.a_load_reg_reg(exprasmlist,left.location.size,OS_INT,left.location.register,hr3);
-                          hr:=cg.get_scratch_reg_int(exprasmlist);
+                          hr:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
                           cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,hr3,hr);
                        end;
                   else
                     begin
-                      hr:=cg.get_scratch_reg_int(exprasmlist);
+                      hr:=cg.get_scratch_reg_int(exprasmlist,OS_INT);
                       cg.a_load_ref_reg(exprasmlist,def_cgsize(left.resulttype.def),
                          left.location.reference,hr);
                       location_release(exprasmlist,left.location);
@@ -466,7 +466,7 @@ implementation
                           end;
                    LOC_CONSTANT :
                        begin
-                         hr2:=rg.getregisterint(exprasmlist);
+                         hr2:=rg.getregisterint(exprasmlist,OS_32);
                          cg.a_load_const_reg(exprasmlist,OS_32,
                             right.location.value,hr2);
                        end;
@@ -474,7 +474,7 @@ implementation
                    LOC_REFERENCE :
                        begin
                          location_release(exprasmlist,right.location);
-                         hr2:=rg.getregisterint(exprasmlist);
+                         hr2:=rg.getregisterint(exprasmlist,OS_32);
                          cg.a_load_ref_reg(exprasmlist, OS_32,
                            right.location.reference,hr2);
                        end;
@@ -522,7 +522,7 @@ implementation
                           cg.a_label(exprasmlist,l);
                         { We have to load the value into a register because
                           btl does not accept values only refs or regs (PFV) }
-                          hr2:=rg.getregisterint(exprasmlist);
+                          hr2:=rg.getregisterint(exprasmlist,OS_INT);
                           cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
                        end;
                      LOC_REFERENCE,LOC_CREFERENCE:
@@ -531,11 +531,11 @@ implementation
                           cg.a_jmp_always(exprasmlist,l2);
                           cg.a_label(exprasmlist,l);
                           location_release(exprasmlist,left.location);
-                          hr:=rg.getregisterint(exprasmlist);
+                          hr:=rg.getregisterint(exprasmlist,OS_32);
                           cg.a_load_ref_reg(exprasmlist,OS_32,left.location.reference,hr);
                         { We have to load the value into a register because
                           btl does not accept values only refs or regs (PFV) }
-                          hr2:=rg.getregisterint(exprasmlist);
+                          hr2:=rg.getregisterint(exprasmlist,OS_INT);
                           cg.a_load_const_reg(exprasmlist,OS_INT,
                             right.location.value,hr2);
                        end;
@@ -566,7 +566,7 @@ implementation
                   if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                     pleftreg:=rg.makeregsize(left.location.register,OS_INT)
                   else
-                    pleftreg:=rg.getregisterint(exprasmlist);
+                    pleftreg:=rg.getregisterint(exprasmlist,OS_INT);
                   cg.a_load_loc_reg(exprasmlist,left.location,pleftreg);
                   location_freetemp(exprasmlist,left.location);
                   location_release(exprasmlist,left.location);
@@ -683,7 +683,7 @@ implementation
            begin
               last:=0;
               first:=true;
-              scratch_reg := cg.get_scratch_reg_int(exprasmlist);
+              scratch_reg := cg.get_scratch_reg_int(exprasmlist,OS_INT);
               genitem(hp);
               cg.free_scratch_reg(exprasmlist,scratch_reg);
               cg.a_jmp_always(exprasmlist,elselabel);
@@ -875,8 +875,7 @@ implementation
          hp : tstatementnode;
       begin
          { Relabel for inlining? }
-         if inlining_procedure and
-            assigned(nodes) then
+         if inlining_procedure and assigned(nodes) then
           begin
             objectlibrary.CreateUsedAsmSymbolList;
             relabelcaserecord(nodes);
@@ -1013,7 +1012,7 @@ implementation
                 genlinearlist(nodes);
            end;
 
-         rg.ungetregister(exprasmlist,hregister);
+         rg.ungetregisterint(exprasmlist,hregister);
 
          { now generate the instructions }
          hp:=tstatementnode(right);
@@ -1064,7 +1063,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2003-01-08 18:43:56  daniel
+  Revision 1.26  2003-02-19 22:00:14  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.25  2003/01/08 18:43:56  daniel
    * Tregister changed into a record
 
   Revision 1.24  2002/11/27 02:37:13  peter

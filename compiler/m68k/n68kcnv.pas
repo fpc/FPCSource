@@ -184,7 +184,7 @@ implementation
                   end
                 else
                   begin
-                     hreg2:=rg.getregisterint(exprasmlist);
+                     hreg2:=rg.getregisterint(exprasmlist,opsize);
                      cg.a_load_ref_reg(exprasmlist,opsize,
                         left.location.reference,hreg2);
                      exprasmlist.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
@@ -192,19 +192,19 @@ implementation
                   end;
                 reference_release(exprasmlist,left.location.reference);
                 resflags:=F_NE;
-                hreg1 := rg.getregisterint(exprasmlist);
+                hreg1 := rg.getregisterint(exprasmlist,opsize);
               end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
                 hreg2 := left.location.register;
                 exprasmlist.concat(taicpu.op_reg(A_TST,TCGSize2OpSize[opsize],hreg2));
                 rg.ungetregister(exprasmlist,hreg2);
-                hreg1 := rg.getregisterint(exprasmlist);
+                hreg1 := rg.getregisterint(exprasmlist,opsize);
                 resflags:=F_NE;
               end;
             LOC_FLAGS :
               begin
-                hreg1:=rg.getregisterint(exprasmlist);
+                hreg1:=rg.getregisterint(exprasmlist,opsize);
                 resflags:=left.location.resflags;
               end;
             else
@@ -296,7 +296,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2002-12-05 14:27:53  florian
+  Revision 1.8  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.7  2002/12/05 14:27:53  florian
     * some variant <-> dyn. array stuff
 
   Revision 1.6  2002/11/25 17:43:27  peter

@@ -90,8 +90,8 @@ unit cgcpu;
         { that's the case, we can use rlwinm to do an AND operation        }
         function get_rlwi_const(a: aword; var l1, l2: longint): boolean;
 
-        procedure g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
-        procedure g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
+        procedure g_save_standard_registers(list : taasmoutput; usedinproc : Tsupregset);override;
+        procedure g_restore_standard_registers(list : taasmoutput; usedinproc : Tsupregset);override;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);override;
 
@@ -194,7 +194,7 @@ const
                reference_reset(ref);
                ref.base:=locpara.reference.index;
                ref.offset:=locpara.reference.offset;
-               tmpreg := get_scratch_reg_int(list);
+               tmpreg := get_scratch_reg_int(list,size);
                a_load_ref_reg(list,size,r,tmpreg);
                a_load_reg_ref(list,size,tmpreg,ref);
                free_scratch_reg(list,tmpreg);
@@ -269,7 +269,7 @@ const
             {Generate instruction to load the procedure address from
             the transition vector.}
             //TODO: Support cross-TOC calls.
-            tmpreg := get_scratch_reg_int(list);
+            tmpreg := get_scratch_reg_int(list,OS_INT);
             reference_reset(tmpref);
             tmpref.offset := 0;
             //tmpref.symaddr := refs_full;
@@ -297,7 +297,7 @@ const
         tmpref : treference;
 
       begin
-        tmpreg := get_scratch_reg_int(list);
+        tmpreg := get_scratch_reg_int(list,OS_ADDR);
         a_load_ref_reg(list,OS_ADDR,ref,tmpreg);
         if target_info.system=system_powerpc_macos then
           begin
@@ -655,7 +655,7 @@ const
             if gotrlwi and
                (src.enum = dst.enum) then
               begin
-                scratchreg := get_scratch_reg_int(list);
+                scratchreg := get_scratch_reg_int(list,OS_INT);
                 list.concat(taicpu.op_reg_const(A_LI,scratchreg,-1));
                 list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,dst,
                   scratchreg,0,l1,l2));
@@ -687,7 +687,7 @@ const
         { perform the operation                                        }
         if useReg then
           begin
-            scratchreg := get_scratch_reg_int(list);
+            scratchreg := get_scratch_reg_int(list,OS_INT);
             a_load_const_reg(list,OS_32,a,scratchreg);
             a_op_reg_reg_reg(list,op,OS_32,scratchreg,src,dst);
             free_scratch_reg(list,scratchreg);
@@ -737,7 +737,7 @@ const
               list.concat(taicpu.op_reg_reg_const(A_CMPWI,r,reg,longint(a)))
             else
               begin
-                scratch_register := get_scratch_reg_int(list);
+                scratch_register := get_scratch_reg_int(list,OS_INT);
                 a_load_const_reg(list,OS_32,a,scratch_register);
                 list.concat(taicpu.op_reg_reg_reg(A_CMPW,r,reg,scratch_register));
                 free_scratch_reg(list,scratch_register);
@@ -747,7 +747,7 @@ const
               list.concat(taicpu.op_reg_reg_const(A_CMPLWI,r,reg,a))
             else
               begin
-                scratch_register := get_scratch_reg_int(list);
+                scratch_register := get_scratch_reg_int(list,OS_32);
                 a_load_const_reg(list,OS_32,a,scratch_register);
                 list.concat(taicpu.op_reg_reg_reg(A_CMPLW,r,reg,scratch_register));
                 free_scratch_reg(list,scratch_register);
@@ -774,12 +774,12 @@ const
         end;
 
 
-     procedure tcgppc.g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);
+     procedure tcgppc.g_save_standard_registers(list : taasmoutput; usedinproc : Tsupregset);
        begin
          {$warning FIX ME}
        end;
 
-     procedure tcgppc.g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);
+     procedure tcgppc.g_restore_standard_registers(list : taasmoutput; usedinproc : Tsupregset);
        begin
          {$warning FIX ME}
        end;
@@ -1647,7 +1647,7 @@ const
             inc(src.offset,8);
             list.concat(taicpu.op_reg_reg_const(A_SUBI,src.base,src.base,8));
             list.concat(taicpu.op_reg_reg_const(A_SUBI,dst.base,dst.base,8));
-            countreg := get_scratch_reg_int(list);
+            countreg := get_scratch_reg_int(list,OS_INT);
             a_load_const_reg(list,OS_32,count,countreg);
             { explicitely allocate R_0 since it can be used safely here }
             { (for holding date that's being copied)                    }
@@ -1778,7 +1778,7 @@ const
                 ((ref.offset <> 0) or assigned(ref.symbol)) then
                begin
                  result := true;
-                 tmpreg := cg.get_scratch_reg_int(list);
+                 tmpreg := cg.get_scratch_reg_int(list,OS_INT);
                  if not assigned(ref.symbol) and
                     (cardinal(ref.offset-low(smallint)) <=
                       high(smallint)-low(smallint)) then
@@ -2070,7 +2070,7 @@ const
                     end
                   else if ((value shr 32) = 0) then
                     begin
-                      tmpreg := cg.get_scratch_reg_int(list);
+                      tmpreg := cg.get_scratch_reg_int(list,OS_32);
                       cg.a_load_const_reg(list,OS_32,cardinal(value),tmpreg);
                       list.concat(taicpu.op_reg_reg_reg(ops[issub,2],
                         regdst.reglo,regsrc.reglo,tmpreg));
@@ -2080,8 +2080,8 @@ const
                     end
                   else
                     begin
-                      tmpreg64.reglo := cg.get_scratch_reg_int(list);
-                      tmpreg64.reghi := cg.get_scratch_reg_int(list);
+                      tmpreg64.reglo := cg.get_scratch_reg_int(list,OS_INT);
+                      tmpreg64.reghi := cg.get_scratch_reg_int(list,OS_INT);
                       a_load64_const_reg(list,value,tmpreg64);
                       a_op64_reg_reg_reg(list,op,tmpreg64,regsrc,regdst);
                       cg.free_scratch_reg(list,tmpreg64.reghi);
@@ -2107,7 +2107,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2003-01-13 17:17:50  olle
+  Revision 1.71  2003-02-19 22:00:16  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.70  2003/01/13 17:17:50  olle
     * changed global var access, TOC now contain pointers to globals
     * fixed handling of function pointers
 

@@ -120,8 +120,8 @@ unit cgx86;
         procedure g_call_destructor_helper(list : taasmoutput);override;
         procedure g_call_fail_helper(list : taasmoutput);override;
 {$endif}
-        procedure g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
-        procedure g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);override;
+        procedure g_save_standard_registers(list:Taasmoutput;usedinproc:Tsupregset);override;
+        procedure g_restore_standard_registers(list:Taasmoutput;usedinproc:Tsupregset);override;
         procedure g_save_all_registers(list : taasmoutput);override;
         procedure g_restore_all_registers(list : taasmoutput;selfused,accused,acchiused:boolean);override;
 
@@ -322,12 +322,17 @@ unit cgx86;
           OS_16,OS_S16:
             begin
               if target_info.alignment.paraalign = 2 then
-                list.concat(taicpu.op_reg(A_PUSH,S_W,rg.makeregsize(r,OS_16)))
+                r.number:=(r.number and not $ff) or R_SUBW
               else
-                list.concat(taicpu.op_reg(A_PUSH,S_L,rg.makeregsize(r,OS_32)));
+                r.number:=(r.number and not $ff) or R_SUBD;
+              list.concat(taicpu.op_reg(A_PUSH,S_L,r));
             end;
           OS_32,OS_S32:
-            list.concat(taicpu.op_reg(A_PUSH,S_L,r));
+            begin
+              if r.number and $ff<>R_SUBD then
+                internalerror(7843);
+              list.concat(taicpu.op_reg(A_PUSH,S_L,r));
+            end
           else
             internalerror(2002032212);
         end;
@@ -363,12 +368,12 @@ unit cgx86;
           OS_8,OS_S8,
           OS_16,OS_S16:
             begin
-              tmpreg := get_scratch_reg_address(list);
-              a_load_ref_reg(list,size,r,tmpreg);
               if target_info.alignment.paraalign = 2 then
-                list.concat(taicpu.op_reg(A_PUSH,S_W,rg.makeregsize(tmpreg,OS_16)))
+                tmpreg:=get_scratch_reg_int(list,OS_16)
               else
-                list.concat(taicpu.op_reg(A_PUSH,S_L,tmpreg));
+                tmpreg:=get_scratch_reg_int(list,OS_32);
+              a_load_ref_reg(list,size,r,tmpreg);
+              list.concat(taicpu.op_reg(A_PUSH,S_L,tmpreg));
               free_scratch_reg(list,tmpreg);
             end;
           OS_32,OS_S32:
@@ -386,7 +391,7 @@ unit cgx86;
         baseno,indexno:boolean;
 
       begin
-        if r.segment.enum<>R_NO then
+        if not((r.segment.enum=R_NO) or ((r.segment.enum=R_INTREGISTER) and (r.segment.number=NR_NO))) then
           CGMessage(cg_e_cant_use_far_pointer_there);
         baseno:=(r.base.enum=R_NO) or ((r.base.enum=R_INTREGISTER) and (r.base.number=NR_NO));
         indexno:=(r.index.enum=R_NO) or ((r.index.enum=R_INTREGISTER) and (r.index.number=NR_NO));
@@ -455,7 +460,7 @@ unit cgx86;
       begin
         list.concat(taicpu.op_reg_ref(A_MOV,TCGSize2OpSize[size],reg,
           ref));
-      End;
+      end;
 
 
     procedure tcgx86.a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref: treference;reg : tregister);
@@ -465,10 +470,9 @@ unit cgx86;
         o,s: topsize;
 
       begin
-        if reg.enum=R_INTREGISTER then
-          o:=subreg2opsize[reg.number and $ff]
-        else
-          o:=reg2opsize[reg.enum];
+        if reg.enum<>R_INTREGISTER then
+          internalerror(200302058);
+        o:=subreg2opsize[reg.number and $ff];
         sizes2load(size,o,op,s);
         list.concat(taicpu.op_ref_reg(op,s,ref,reg));
       end;
@@ -524,9 +528,13 @@ unit cgx86;
     procedure tcgx86.a_loadaddr_ref_reg(list : taasmoutput;const ref : treference;r : tregister);
 
       begin
+        if ref.base.enum<>R_INTREGISTER then
+          internalerror(200302102);
+        if ref.index.enum<>R_INTREGISTER then
+          internalerror(200302102);
         if assigned(ref.symbol) and
-           (ref.base.enum=R_NO) and
-           (ref.index.enum=R_NO) then
+           (ref.base.number=NR_NO) and
+           (ref.index.number=NR_NO) then
          list.concat(taicpu.op_sym_ofs_reg(A_MOV,S_L,ref.symbol,ref.offset,r))
         else
          list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,r));
@@ -621,11 +629,11 @@ unit cgx86;
         power: longint;
 
       begin
-        if reg.enum>lastreg then
-          internalerror(200301081);
-        Case Op of
+        if reg.enum<>R_INTREGISTER then
+          internalerror(200302034);
+        case op of
           OP_DIV, OP_IDIV:
-            Begin
+            begin
               if ispowerof2(a,power) then
                 begin
                   case op of
@@ -634,25 +642,25 @@ unit cgx86;
                     OP_IDIV:
                       opcode := A_SAR;
                   end;
-                  list.concat(taicpu.op_const_reg(opcode,reg2opsize[reg.enum],power,
-                    reg));
+                  list.concat(taicpu.op_const_reg(opcode,subreg2opsize[reg.number and $ff],
+                    power,reg));
                   exit;
                 end;
               { the rest should be handled specifically in the code      }
               { generator because of the silly register usage restraints }
               internalerror(200109224);
-            End;
+            end;
           OP_MUL,OP_IMUL:
             begin
               if not(cs_check_overflow in aktlocalswitches) and
                  ispowerof2(a,power) then
                 begin
-                  list.concat(taicpu.op_const_reg(A_SHL,reg2opsize[reg.enum],power,
-                    reg));
+                  list.concat(taicpu.op_const_reg(A_SHL,subreg2opsize[reg.number and $ff],
+                    power,reg));
                   exit;
                 end;
               if op = OP_IMUL then
-                list.concat(taicpu.op_const_reg(A_IMUL,reg2opsize[reg.enum],
+                list.concat(taicpu.op_const_reg(A_IMUL,subreg2opsize[reg.number and $ff],
                   a,reg))
               else
                 { OP_MUL should be handled specifically in the code        }
@@ -664,14 +672,14 @@ unit cgx86;
                (a = 1) and
                (op in [OP_ADD,OP_SUB]) then
               if op = OP_ADD then
-                list.concat(taicpu.op_reg(A_INC,reg2opsize[reg.enum],reg))
+                list.concat(taicpu.op_reg(A_INC,subreg2opsize[reg.number and $ff],reg))
               else
-                list.concat(taicpu.op_reg(A_DEC,reg2opsize[reg.enum],reg))
+                list.concat(taicpu.op_reg(A_DEC,subreg2opsize[reg.number and $ff],reg))
             else if (a = 0) then
               if (op <> OP_AND) then
                 exit
               else
-                list.concat(taicpu.op_const_reg(A_MOV,reg2opsize[reg.enum],0,reg))
+                list.concat(taicpu.op_const_reg(A_MOV,subreg2opsize[reg.number and $ff],0,reg))
             else if (a = high(aword)) and
                     (op in [OP_AND,OP_OR,OP_XOR]) then
                    begin
@@ -679,19 +687,19 @@ unit cgx86;
                        OP_AND:
                          exit;
                        OP_OR:
-                         list.concat(taicpu.op_const_reg(A_MOV,reg2opsize[reg.enum],high(aword),reg));
+                         list.concat(taicpu.op_const_reg(A_MOV,subreg2opsize[reg.number and $ff],high(aword),reg));
                        OP_XOR:
-                         list.concat(taicpu.op_reg(A_NOT,reg2opsize[reg.enum],reg));
+                         list.concat(taicpu.op_reg(A_NOT,subreg2opsize[reg.number and $ff],reg));
                      end
                    end
             else
-              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],reg2opsize[reg.enum],
+              list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],subreg2opsize[reg.number and $ff],
                 a,reg));
           OP_SHL,OP_SHR,OP_SAR:
             begin
               if (a and 31) <> 0 Then
                 list.concat(taicpu.op_const_reg(
-                  TOpCG2AsmOp[op],reg2opsize[reg.enum],a and 31,reg));
+                  TOpCG2AsmOp[op],subreg2opsize[reg.number and $ff],a and 31,reg));
               if (a shr 5) <> 0 Then
                 internalerror(68991);
             end
@@ -773,7 +781,7 @@ unit cgx86;
                 TCgSize2OpSize[size],a,ref));
           OP_SHL,OP_SHR,OP_SAR:
             begin
-              if (a and 31) <> 0 Then
+              if (a and 31) <> 0 then
                 list.concat(taicpu.op_const_ref(
                   TOpCG2AsmOp[op],TCgSize2OpSize[size],a and 31,ref));
               if (a shr 5) <> 0 Then
@@ -794,17 +802,17 @@ unit cgx86;
           r:Tregister;
 
         begin
-          if src.enum>lastreg then
-            internalerror(200301081);
-          if dst.enum>lastreg then
-            internalerror(200301081);
+          if src.enum<>R_INTREGISTER then
+            internalerror(200302025);
+          if dst.enum<>R_INTREGISTER then
+            internalerror(200302025);
           r.enum:=R_INTREGISTER;
           dstsize := tcgsize2opsize[size];
-          dst := rg.makeregsize(dst,size);
+          dst.number:=(dst.number and not $ff) or cgsize2subreg(size);
           case op of
             OP_NEG,OP_NOT:
               begin
-                if src.enum <> R_NO then
+                if src.number <> NR_NO then
                   internalerror(200112291);
                 list.concat(taicpu.op_reg(TOpCG2AsmOp[op],dstsize,dst));
               end;
@@ -814,30 +822,36 @@ unit cgx86;
               internalerror(200109233);
             OP_SHR,OP_SHL,OP_SAR:
               begin
-                tmpreg.enum := R_NO;
+                tmpreg.enum:=R_INTREGISTER;
+                tmpreg.number:=NR_NO;
                 popecx := false;
                 { we need cl to hold the shift count, so if the destination }
                 { is ecx, save it to a temp for now                         }
-                if dst.enum in [R_ECX,R_CX,R_CL] then
+                if dst.number shr 8=RS_ECX then
                   begin
-                    case reg2opsize[dst.enum] of
-                      S_B: regloadsize := OS_8;
-                      S_W: regloadsize := OS_16;
-                      else regloadsize := OS_32;
+                    case dst.number and $ff of
+                      R_SUBL,R_SUBH:
+                        regloadsize:=OS_8;
+                      R_SUBW:
+                        regloadsize:=OS_16;
+                      else
+                        regloadsize:=OS_32;
                     end;
-                    tmpreg := get_scratch_reg_int(list);
+                    tmpreg := get_scratch_reg_int(list,OS_INT);
+                    tmpreg.enum:=R_INTREGISTER;
+                    tmpreg.number:=NR_EDI;
                     a_load_reg_reg(list,regloadsize,regloadsize,src,tmpreg);
                   end;
-                if not(src.enum in [R_ECX,R_CX,R_CL]) then
+                if src.number shr 8<>RS_ECX then
                   begin
                     { is ecx still free (it's also free if it was allocated }
                     { to dst, since we've moved dst somewhere else already) }
                     r.number:=NR_ECX;
-                    if not((dst.enum = R_ECX) or
-                           ((R_ECX in rg.unusedregsint) and
+                    if not((dst.number shr 8=RS_ECX) or
+                           ((RS_ECX in rg.unusedregsint) and
                             { this will always be true, it's just here to }
                             { allocate ecx                                }
-                            (rg.getexplicitregisterint(list,R_ECX).enum = R_ECX))) then
+                            (rg.getexplicitregisterint(list,NR_ECX).number = NR_ECX))) then
                       begin
                         list.concat(taicpu.op_reg(A_PUSH,S_L,r));
                         popecx := true;
@@ -845,10 +859,10 @@ unit cgx86;
                     a_load_reg_reg(list,OS_32,OS_32,rg.makeregsize(src,OS_32),r);
                   end
                 else
-                  src.enum := R_CL;
+                  src.number := NR_CL;
                 { do the shift }
                 r.number:=NR_CL;
-                if tmpreg.enum = R_NO then
+                if tmpreg.number = NR_NO then
                   list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],dstsize,
                     r,dst))
                 else
@@ -863,12 +877,12 @@ unit cgx86;
                 r.number:=NR_ECX;
                 if popecx then
                   list.concat(taicpu.op_reg(A_POP,S_L,r))
-                else if not (dst.enum in [R_ECX,R_CX,R_CL]) then
+                else if not (dst.number shr 8=RS_ECX) then
                   rg.ungetregisterint(list,r);
               end;
             else
               begin
-                if reg2opsize[src.enum] <> dstsize then
+                if subreg2opsize[src.number and $ff] <> dstsize then
                   internalerror(200109226);
                 list.concat(taicpu.op_reg_reg(TOpCG2AsmOp[op],dstsize,
                   src,dst));
@@ -903,12 +917,12 @@ unit cgx86;
          opsize: topsize;
 
        begin
-         if reg.enum>lastreg then
-          internalerror(200201081);
+         if reg.enum<>R_INTREGISTER then
+          internalerror(200302036);
          case op of
            OP_NEG,OP_NOT:
              begin
-               if reg.enum <> R_NO then
+               if reg.number<>NR_NO then
                  internalerror(200109237);
                list.concat(taicpu.op_ref(TOpCG2AsmOp[op],tcgsize2opsize[size],ref));
              end;
@@ -937,11 +951,11 @@ unit cgx86;
         power: longint;
         opsize: topsize;
       begin
-        if src.enum>lastreg then
-          internalerror(200201081);
-        if dst.enum>lastreg then
-          internalerror(200201081);
-        opsize := reg2opsize[src.enum];
+        if src.enum<>R_INTREGISTER then
+          internalerror(200302057);
+        if dst.enum<>R_INTREGISTER then
+          internalerror(200302057);
+        opsize := subreg2opsize[src.number and $ff];
         if (opsize <> S_L) or
            not (size in [OS_32,OS_S32]) then
           begin
@@ -949,7 +963,7 @@ unit cgx86;
             exit;
           end;
         { if we get here, we have to do a 32 bit calculation, guaranteed }
-        Case Op of
+        case op of
           OP_DIV, OP_IDIV, OP_MUL, OP_AND, OP_OR, OP_XOR, OP_SHL, OP_SHR,
           OP_SAR:
             { can't do anything special for these }
@@ -1027,12 +1041,20 @@ unit cgx86;
         l : tasmlabel);
 
         begin
-          if reg.enum>lastreg then
-            internalerror(200101081);
-          if (a = 0) then
-            list.concat(taicpu.op_reg_reg(A_TEST,reg2opsize[reg.enum],reg,reg))
+          if reg.enum=R_INTREGISTER then
+            begin
+              if (a = 0) then
+                list.concat(taicpu.op_reg_reg(A_TEST,subreg2opsize[reg.number and $ff],reg,reg))
+              else
+                list.concat(taicpu.op_const_reg(A_CMP,subreg2opsize[reg.number and $ff],a,reg));
+            end
           else
-            list.concat(taicpu.op_const_reg(A_CMP,reg2opsize[reg.enum],a,reg));
+            begin
+              if (a = 0) then
+                list.concat(taicpu.op_reg_reg(A_TEST,reg2opsize[reg.enum],reg,reg))
+              else
+                list.concat(taicpu.op_const_reg(A_CMP,reg2opsize[reg.enum],a,reg));
+            end;
           a_jmp_cond(list,cmp_op,l);
         end;
 
@@ -1062,7 +1084,9 @@ unit cgx86;
 
      procedure tcgx86.a_cmp_ref_reg_label(list : taasmoutput;size : tcgsize;cmp_op : topcmp;const ref: treference; reg : tregister;l : tasmlabel);
         begin
-          reg := rg.makeregsize(reg,size);
+          if reg.enum<>R_INTREGISTER then
+            internalerror(200302059);
+          reg.number:=(reg.number and not $ff) or cgsize2subreg(size);
           list.concat(taicpu.op_ref_reg(A_CMP,tcgsize2opsize[size],ref,reg));
           a_jmp_cond(list,cmp_op,l);
         end;
@@ -1103,11 +1127,12 @@ unit cgx86;
          ai : taicpu;
          hreg : tregister;
        begin
-          if reg.enum>lastreg then
-            internalerror(200201081);
-          hreg := rg.makeregsize(reg,OS_8);
-          ai:=Taicpu.Op_reg(A_Setcc,S_B,hreg);
-          ai.SetCondition(flags_to_cond(f));
+          if reg.enum<>R_INTREGISTER then
+            internalerror(200202031);
+          hreg.enum:=R_INTREGISTER;
+          hreg.number:=(reg.number and not $ff) or R_SUBL;
+          ai:=Taicpu.op_reg(A_SETcc,S_B,hreg);
+          ai.setcondition(flags_to_cond(f));
           list.concat(ai);
           if (reg.enum <> hreg.enum) then
             a_load_reg_reg(list,OS_8,size,hreg,reg);
@@ -1121,8 +1146,8 @@ unit cgx86;
        begin
           if not(size in [OS_8,OS_S8]) then
             a_load_const_ref(list,size,0,ref);
-          ai:=Taicpu.Op_ref(A_Setcc,S_B,ref);
-          ai.SetCondition(flags_to_cond(f));
+          ai:=Taicpu.op_ref(A_SETcc,S_B,ref);
+          ai.setcondition(flags_to_cond(f));
           list.concat(ai);
        end;
 
@@ -1146,12 +1171,12 @@ unit cgx86;
          begin
            r.enum:=R_INTREGISTER;
            r.number:=NR_ECX;
-           if not(R_ECX in rg.unusedregsint) then
+           if not(RS_ECX in rg.unusedregsint) then
              begin
                list.concat(Taicpu.Op_reg(A_PUSH,S_L,r));
                ecxpushed:=true;
              end
-           else rg.getexplicitregisterint(list,R_ECX);
+           else rg.getexplicitregisterint(list,NR_ECX);
          end;
 
       begin
@@ -1161,11 +1186,11 @@ unit cgx86;
            begin
               r.enum:=R_INTREGISTER;
               helpsize:=len shr 2;
-              rg.getexplicitregisterint(list,R_EDI);
               dstref:=dest;
               srcref:=source;
               for i:=1 to helpsize do
                 begin
+                   rg.getexplicitregisterint(list,NR_EDI);
                    r.number:=NR_EDI;
                    a_load_ref_reg(list,OS_32,srcref,r);
                    If (len = 4) and delsource then
@@ -1174,9 +1199,11 @@ unit cgx86;
                    inc(srcref.offset,4);
                    inc(dstref.offset,4);
                    dec(len,4);
+                   rg.ungetregisterint(list,r);
                 end;
               if len>1 then
                 begin
+                   rg.getexplicitregisterint(list,NR_DI);
                    r.number:=NR_DI;
                    a_load_ref_reg(list,OS_16,srcref,r);
                    If (len = 2) and delsource then
@@ -1185,9 +1212,8 @@ unit cgx86;
                    inc(srcref.offset,2);
                    inc(dstref.offset,2);
                    dec(len,2);
+                   rg.ungetregisterint(list,r);
                 end;
-              r.enum:=R_EDI;
-              rg.ungetregisterint(list,r);
               r.enum:=R_INTREGISTER;
               reg8.enum:=R_INTREGISTER;
               reg32.enum:=R_INTREGISTER;
@@ -1195,10 +1221,10 @@ unit cgx86;
                 begin
                    { and now look for an 8 bit register }
                    swap:=false;
-                   if R_EAX in rg.unusedregsint then reg8:=rg.makeregsize(rg.getexplicitregisterint(list,R_EAX),OS_8)
-                   else if R_EDX in rg.unusedregsint then reg8:=rg.makeregsize(rg.getexplicitregisterint(list,R_EDX),OS_8)
-                   else if R_EBX in rg.unusedregsint then reg8:=rg.makeregsize(rg.getexplicitregisterint(list,R_EBX),OS_8)
-                   else if R_ECX in rg.unusedregsint then reg8:=rg.makeregsize(rg.getexplicitregisterint(list,R_ECX),OS_8)
+                   if RS_EAX in rg.unusedregsint then reg8:=rg.getexplicitregisterint(list,NR_AL)
+                   else if RS_EDX in rg.unusedregsint then reg8:=rg.getexplicitregisterint(list,NR_DL)
+                   else if RS_EBX in rg.unusedregsint then reg8:=rg.getexplicitregisterint(list,NR_BL)
+                   else if RS_ECX in rg.unusedregsint then reg8:=rg.getexplicitregisterint(list,NR_CL)
                    else
                       begin
                          swap:=true;
@@ -1223,7 +1249,7 @@ unit cgx86;
                    if swap then
                      { was earlier XCHG, of course nonsense }
                      begin
-                       rg.getexplicitregisterint(list,R_EDI);
+                       rg.getexplicitregisterint(list,NR_EDI);
                        r.number:=NR_EDI;
                        a_load_reg_reg(list,OS_32,OS_32,reg32,r);
                      end;
@@ -1235,26 +1261,17 @@ unit cgx86;
                      begin
                        r.number:=NR_EDI;
                        a_load_reg_reg(list,OS_32,OS_32,r,reg32);
-                       r.enum:=R_EDI;
                        rg.ungetregisterint(list,r);
                      end
                    else
-                     begin
-                        if reg8.number=NR_AL then
-                          reg8.enum:=R_AL
-                        else if reg8.number=NR_BL then
-                          reg8.enum:=R_BL
-                        else if reg8.number=NR_CL then
-                          reg8.enum:=R_CL;
-                        rg.ungetregister(list,reg8);
-                     end;
+                     rg.ungetregisterint(list,reg8);
                 end;
            end
          else
            begin
               r.enum:=R_INTREGISTER;
               r.number:=NR_EDI;
-              rg.getexplicitregisterint(list,R_EDI);
+              rg.getexplicitregisterint(list,NR_EDI);
               a_loadaddr_ref_reg(list,dest,r);
               r.number:=NR_ESI;
               list.concat(tai_regalloc.alloc(r));
@@ -1297,9 +1314,9 @@ unit cgx86;
                    if len=1 then
                      list.concat(Taicpu.Op_none(A_MOVSB,S_NO));
                 end;
-              r.enum:=R_EDI;
-              rg.ungetregisterint(list,r);
               r.enum:=R_INTREGISTER;
+              r.number:=NR_EDI;
+              rg.ungetregisterint(list,r);
               r.number:=NR_ESI;
               list.concat(tai_regalloc.dealloc(r));
               if ecxpushed then
@@ -1309,7 +1326,7 @@ unit cgx86;
                 end
               else
                 begin
-                  r.enum:=R_ECX;
+                  r.number:=NR_ECX;
                   rg.ungetregisterint(list,r);
                 end;
 
@@ -1366,9 +1383,12 @@ unit cgx86;
         lenref:=ref;
         inc(lenref.offset,4);
         { get stack space }
-        r.enum:=R_EDI;
-        rsp.enum:=R_ESP;
-        rg.getexplicitregisterint(list,R_EDI);
+        r.enum:=R_INTREGISTER;
+        r.number:=NR_EDI;
+        rsp.enum:=R_INTREGISTER;
+        rsp.number:=NR_ESP;
+        r2.enum:=R_INTREGISTER;
+        rg.getexplicitregisterint(list,NR_EDI);
         list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,r));
         list.concat(Taicpu.op_reg(A_INC,S_L,r));
         if (elesize<>1) then
@@ -1389,7 +1409,7 @@ unit cgx86;
              list.concat(Taicpu.op_const_reg(A_CMP,S_L,winstackpagesize,r));
              a_jmp_cond(list,OC_B,ok);
              list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,rsp));
-             r2.enum:=R_EAX;
+             r2.number:=NR_EAX;
              list.concat(Taicpu.op_reg(A_PUSH,S_L,r));
              list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize,r));
              a_jmp_always(list,again);
@@ -1398,7 +1418,7 @@ unit cgx86;
              list.concat(Taicpu.op_reg_reg(A_SUB,S_L,r,rsp));
              rg.ungetregisterint(list,r);
              { now reload EDI }
-             rg.getexplicitregisterint(list,R_EDI);
+             rg.getexplicitregisterint(list,NR_EDI);
              list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,r));
              list.concat(Taicpu.op_reg(A_INC,S_L,r));
 
@@ -1419,21 +1439,21 @@ unit cgx86;
         list.concat(Taicpu.op_reg_reg(A_MOV,S_L,rsp,r));
 
         { don't destroy the registers! }
-        r2.enum:=R_ECX;
+        r2.number:=NR_ECX;
         list.concat(Taicpu.op_reg(A_PUSH,S_L,r2));
-        r2.enum:=R_ESI;
+        r2.number:=NR_ESI;
         list.concat(Taicpu.op_reg(A_PUSH,S_L,r2));
 
         { load count }
-        r2.enum:=R_ECX;
+        r2.number:=NR_ECX;
         list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,r2));
 
         { load source }
-        r2.enum:=R_ESI;
+        r2.number:=NR_ESI;
         list.concat(Taicpu.op_ref_reg(A_MOV,S_L,ref,r2));
 
         { scheduled .... }
-        r2.enum:=R_ECX;
+        r2.number:=NR_ECX;
         list.concat(Taicpu.op_reg(A_INC,S_L,r2));
 
         { calculate size }
@@ -1462,9 +1482,9 @@ unit cgx86;
           S_L : list.concat(Taicpu.Op_none(A_MOVSD,S_NO));
         end;
         rg.ungetregisterint(list,r);
-        r2.enum:=R_ESI;
+        r2.number:=NR_ESI;
         list.concat(Taicpu.op_reg(A_POP,S_L,r2));
-        r2.enum:=R_ECX;
+        r2.number:=NR_ECX;
         list.concat(Taicpu.op_reg(A_POP,S_L,r2));
 
         { patch the new address }
@@ -1481,9 +1501,11 @@ unit cgx86;
         lenref:=ref;
         inc(lenref.offset,4);
         { caluclate size and adjust stack space }
-        rg.getexplicitregisterint(list,R_EDI);
-        r.enum:=R_EDI;
-        rsp.enum:=R_ESP;
+        rg.getexplicitregisterint(list,NR_EDI);
+        r.enum:=R_INTREGISTER;
+        r.number:=NR_EDI;
+        rsp.enum:=R_INTREGISTER;
+        rsp.number:=NR_ESP;
         list.concat(Taicpu.op_ref_reg(A_MOV,S_L,lenref,r));
         list.concat(Taicpu.op_reg(A_INC,S_L,r));
         if (elesize<>1) then
@@ -1649,7 +1671,7 @@ unit cgx86;
                  begin
                     objectlibrary.getlabel(again);
                     r.number:=NR_EDI;
-                    rg.getexplicitregisterint(list,R_EDI);
+                    rg.getexplicitregisterint(list,NR_EDI);
                     list.concat(Taicpu.op_const_reg(A_MOV,S_L,localsize div winstackpagesize,r));
                     a_label(list,again);
                     list.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,rsp));
@@ -1733,7 +1755,7 @@ unit cgx86;
           end
         else if is_object(procinfo._class) then
           begin
-            rg.getexplicitregisterint(list,R_EDI);
+            rg.getexplicitregisterint(list,NR_EDI);
             a_load_const_reg(list,OS_ADDR,procinfo._class.vmt_offset,r);
             a_call_name(list,'FPC_HELP_CONSTRUCTOR');
             list.concat(Taicpu.Op_cond_sym(A_Jcc,C_Z,S_NO,faillabel));
@@ -1768,10 +1790,9 @@ unit cgx86;
               g_finalize(list,procinfo._class,href,false);
               a_label(list,nofinal);
             end;
-           rg.getexplicitregisterint(list,R_EDI);
+           rg.getexplicitregisterint(list,NR_EDI);
            r.number:=NR_EDI;
            a_load_const_reg(list,OS_ADDR,procinfo._class.vmt_offset,r);
-           r.enum:=R_EDI;
            rg.ungetregisterint(list,r);
            a_call_name(list,'FPC_HELP_DESTRUCTOR')
          end
@@ -1797,11 +1818,10 @@ unit cgx86;
             reference_reset_base(href,procinfo.framepointer,12);
             r.number:=NR_ESI;
             a_load_ref_reg(list,OS_ADDR,href,r);
-            rg.getexplicitregisterint(list,R_EDI);
+            rg.getexplicitregisterint(list,NR_EDI);
             r.number:=NR_EDI;
             a_load_const_reg(list,OS_ADDR,procinfo._class.vmt_offset,r);
             a_call_name(list,'FPC_HELP_FAIL');
-            r.enum:=R_EDI;
             rg.ungetregisterint(list,r);
           end
         else
@@ -1810,14 +1830,14 @@ unit cgx86;
 {$endif}
 
 
-    procedure tcgx86.g_save_standard_registers(list : taasmoutput; usedinproc : tregisterset);
+    procedure tcgx86.g_save_standard_registers(list:Taasmoutput;usedinproc:Tsupregset);
 
     var r:Tregister;
 
     begin
         r.enum:=R_INTREGISTER;
         r.number:=NR_EBX;
-        if (R_EBX in usedinproc) then
+        if (RS_EBX in usedinproc) then
           list.concat(Taicpu.Op_reg(A_PUSH,S_L,r));
         r.number:=NR_ESI;
         list.concat(Taicpu.Op_reg(A_PUSH,S_L,r));
@@ -1826,7 +1846,7 @@ unit cgx86;
     end;
 
 
-    procedure tcgx86.g_restore_standard_registers(list : taasmoutput; usedinproc : tregisterset);
+    procedure tcgx86.g_restore_standard_registers(list:Taasmoutput;usedinproc:Tsupregset);
 
     var r:Tregister;
 
@@ -1837,7 +1857,7 @@ unit cgx86;
         r.number:=NR_ESI;
         list.concat(Taicpu.Op_reg(A_POP,S_L,r));
         r.number:=NR_EBX;
-        if (R_EBX in usedinproc) then
+        if (RS_EBX in usedinproc) then
          list.concat(Taicpu.Op_reg(A_POP,S_L,r));
     end;
 
@@ -1910,7 +1930,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.31  2003-01-21 10:41:13  daniel
+  Revision 1.32  2003-02-19 22:00:17  daniel
+    * Code generator converted to new register notation
+    - Horribily outdated todo.txt removed
+
+  Revision 1.31  2003/01/21 10:41:13  daniel
     * Fixed another 200301081
 
   Revision 1.30  2003/01/13 23:00:18  daniel
