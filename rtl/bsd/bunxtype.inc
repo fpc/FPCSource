@@ -41,7 +41,7 @@ CONST                		// OS specific parameters for general<fd,sig>set behaviou
    FD_MAXFDSET	   = 1024;
    wordsinsigset   = 4;		// words in sigset_t
    ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 } 
-   ln2bitmask	   = 2 shl ln2bitsinword - 1;
+   ln2bitmask	   = 1 shl ln2bitsinword - 1;
 
 TYPE
    { system information services }
@@ -214,7 +214,10 @@ CONST
 
 {
   $Log$
-  Revision 1.5  2003-11-19 17:11:40  marco
+  Revision 1.6  2003-11-30 12:40:29  marco
+   * fix from sebastian
+
+  Revision 1.5  2003/11/19 17:11:40  marco
    * termio unit
 
   Revision 1.4  2003/09/14 20:15:01  marco
