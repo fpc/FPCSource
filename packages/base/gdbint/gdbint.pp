@@ -35,10 +35,13 @@ interface
   {$endif ndef GDB_V500}
 {$endif def GDB_V5}
 
+{$ifdef GDB_V503}
+  {$define GDB_V502}
+  {$define GDB_SYMTAB_HAS_MACROS}
+{$endif GDB_V503}
+
 {$ifdef GDB_V502}
   {$define GDB_V501}
-  {$define GDB_USES_PTID}
-  {$define GDB_V5}
 {$endif GDB_V502}
 
 {$ifdef GDB_V501}
@@ -601,6 +604,10 @@ type
           linetable : pointer; {^linetable;}
           block_line_section : longint;
           primary : longint;
+          {$ifdef GDB_SYMTAB_HAS_MACROS}
+            { new field added in the middle :( }
+          macro_table : pointer;
+          {$endif GDB_SYMTAB_HAS_MACROS}
           filename : pchar;
           dirname : pchar;
           free_code : tfreecode;
@@ -2618,7 +2625,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-09-27 17:49:09  pierre
+  Revision 1.11  2002-11-21 00:42:27  pierre
+   * prepare for gdb 5.3
+
+  Revision 1.10  2002/09/27 17:49:09  pierre
    * fix not i386 typo bug
 
   Revision 1.9  2002/09/17 20:20:05  pierre
