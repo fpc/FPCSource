@@ -542,7 +542,7 @@ const
 
     procedure dir_outputformat(t:tdirectivetoken);
       begin
-        if not current_module^.in_main then
+        if not current_module^.in_global then
          Message(scan_w_switch_is_global)
         else
           begin
@@ -720,7 +720,10 @@ const
 
 {
   $Log$
-  Revision 1.20  1998-08-18 15:11:52  peter
+  Revision 1.21  1998-08-19 00:30:22  peter
+    * in_main -> in_global
+
+  Revision 1.20  1998/08/18 15:11:52  peter
     * recompiles again
 
   Revision 1.19  1998/08/18 09:24:44  pierre
