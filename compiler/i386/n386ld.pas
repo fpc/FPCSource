@@ -780,29 +780,28 @@ implementation
                               end;
                            end;
             LOC_JUMP     : begin
+                              opsize:=def_opsize(left.resulttype.def);
                               getlabel(hlabel);
                               emitlab(truelabel);
                               if pushed then
                                 restore(left,false);
                               if loc=LOC_CREGISTER then
-                                emit_const_reg(A_MOV,S_B,
+                                emit_const_reg(A_MOV,opsize,
                                   1,left.location.register)
                               else
-                                emit_const_ref(A_MOV,S_B,
+                                emit_const_ref(A_MOV,opsize,
                                   1,newreference(left.location.reference));
-                              {emit_const_loc(A_MOV,S_B,
-                                  1,left.location);}
                               emitjmp(C_None,hlabel);
                               emitlab(falselabel);
                               if pushed then
                                 restore(left,false);
                               if loc=LOC_CREGISTER then
-                                emit_reg_reg(A_XOR,S_B,
+                                emit_reg_reg(A_XOR,opsize,
                                   left.location.register,
                                   left.location.register)
                               else
                                 begin
-                                  emit_const_ref(A_MOV,S_B,
+                                  emit_const_ref(A_MOV,opsize,
                                     0,newreference(left.location.reference));
 {$IfDef regallocfix}
                                   del_reference(left.location.reference);
@@ -1073,7 +1072,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-05-27 14:30:56  florian
+  Revision 1.15  2001-07-28 15:13:17  peter
+    * fixed opsize for assignment with LOC_JUMP
+
+  Revision 1.14  2001/05/27 14:30:56  florian
     + some widestring stuff added
 
   Revision 1.13  2001/04/13 01:22:19  peter
