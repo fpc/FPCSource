@@ -128,6 +128,8 @@ unit pexpr;
                { support if procvar then for tp7 and many other expression like this }
                do_firstpass(p);
                set_varstate(p,false);
+               { reset varstateset to maybe set used state later web bug769 PM }
+               p^.varstateset:=false;
                if not(getprocvar) and (p^.resulttype^.deftype=procvardef) then
                  begin
                     p1:=gencallnode(nil,nil);
@@ -2098,7 +2100,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.163  1999-12-01 12:42:32  peter
+  Revision 1.164  1999-12-20 21:24:29  pierre
+   * web bug769 fix
+
+  Revision 1.163  1999/12/01 12:42:32  peter
     * fixed bug 698
     * removed some notes about unused vars
 
