@@ -768,6 +768,7 @@ var
   i : Longint;
   prevbp : Pointer;
   is_dev : boolean;
+  caller_frame,
   caller_addr : Pointer;
 Begin
   prevbp:=bp-1;
@@ -776,13 +777,16 @@ Begin
   while bp > prevbp Do
    Begin
      caller_addr := get_caller_addr(bp);
-     if caller_addr <> nil then
-         Writeln(f,BackTraceStrFunc(caller_addr));
+     caller_frame := get_caller_frame(bp);
+     if (caller_addr=nil) or
+        (caller_frame=nil) then
+       break;
+     Writeln(f,BackTraceStrFunc(caller_addr));
      Inc(i);
      If ((i>max_frame_dump) and is_dev) or (i>256) Then
-      exit;
+       break;
      prevbp:=bp;
-     bp:=get_caller_frame(bp);
+     bp:=caller_frame;
    End;
 End;
 
@@ -882,7 +886,10 @@ end;
 
 {
   $Log$
-  Revision 1.58  2004-05-16 18:51:20  peter
+  Revision 1.59  2004-05-27 23:34:23  peter
+    * stop backtrace also when caller frame is nil
+
+  Revision 1.58  2004/05/16 18:51:20  peter
     * use thandle in do_*
 
   Revision 1.57  2004/05/01 15:26:33  jonas
