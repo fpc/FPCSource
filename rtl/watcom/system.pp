@@ -1117,6 +1117,17 @@ begin
     Increase_file_handle_count:=true;
 end;
 
+
+function dos_version : word;
+var
+  regs   : trealregs;
+begin
+  regs.realeax := $3000;
+  sysrealintr($21,regs);
+  dos_version := regs.realeax
+end;
+
+
 procedure do_open(var f;p:pchar;flags:longint);
 {
   filerec and textrec have both handle and mode as the first items so
@@ -1128,8 +1139,11 @@ procedure do_open(var f;p:pchar;flags:longint);
 var
   regs   : trealregs;
   action : longint;
+  Avoid6c00 : boolean;
 begin
   AllowSlash(p);
+{ check if Extended Open/Create API is safe to use }
+  Avoid6c00 := lo(dos_version) < 7;
 { close first if opened }
   if ((flags and $10000)=0) then
    begin
@@ -1173,32 +1187,63 @@ begin
    end;
 { real dos call }
   syscopytodos(longint(p),strlen(p)+1);
+{$ifndef RTLLITE}
   if LFNSupport then
-   regs.realeax:=$716c
+   regs.realeax := $716c                           { Use LFN Open/Create API }
   else
    regs.realeax:=$6c00;
-  regs.realedx:=action;
-  regs.realds:=tb_segment;
-  regs.realesi:=tb_offset;
-  regs.realebx:=$2000+(flags and $ff);
-  regs.realecx:=$20;
+{$endif RTLLITE}
+   if Avoid6c00 then
+     regs.realeax := $3d00 + (flags and $ff)      { For now, map to Open API }
+   else
+     regs.realeax := $6c00;                   { Use Extended Open/Create API }
+  if regs.realah = $3d then
+    begin  { Using the older Open or Create API's }
+      if (action and $00f0) <> 0 then
+        regs.realeax := $3c00;                   { Map to Create/Replace API }
+      regs.realds := tb_segment;
+      regs.realedx := tb_offset;
+    end
+  else
+    begin  { Using LFN or Extended Open/Create API }
+      regs.realedx := action;            { action if file does/doesn't exist }
+      regs.realds := tb_segment;
+      regs.realesi := tb_offset;
+      regs.realebx := $2000 + (flags and $ff);              { file open mode }
+    end;
+  regs.realecx := $20;                                     { file attributes }
   sysrealintr($21,regs);
+{$ifndef RTLLITE}
   if (regs.realflags and carryflag) <> 0 then
     if lo(regs.realeax)=4 then
       if Increase_file_handle_count then
         begin
           { Try again }
-            if LFNSupport then
-             regs.realeax:=$716c
+          if LFNSupport then
+            regs.realeax := $716c                    {Use LFN Open/Create API}
+          else
+            if Avoid6c00 then
+              regs.realeax := $3d00+(flags and $ff) {For now, map to Open API}
             else
-             regs.realeax:=$6c00;
-          regs.realedx:=action;
-          regs.realds:=tb_segment;
-          regs.realesi:=tb_offset;
-          regs.realebx:=$2000+(flags and $ff);
-          regs.realecx:=$20;
+              regs.realeax := $6c00;            {Use Extended Open/Create API}
+          if regs.realah = $3d then
+            begin  { Using the older Open or Create API's }
+              if (action and $00f0) <> 0 then
+                regs.realeax := $3c00;             {Map to Create/Replace API}
+              regs.realds := tb_segment;
+              regs.realedx := tb_offset;
+            end
+          else
+            begin  { Using LFN or Extended Open/Create API }
+              regs.realedx := action;      {action if file does/doesn't exist}
+              regs.realds := tb_segment;
+              regs.realesi := tb_offset;
+              regs.realebx := $2000+(flags and $ff);          {file open mode}
+            end;
+          regs.realecx := $20;                               {file attributes}
           sysrealintr($21,regs);
         end;
+{$endif RTLLITE}
   if (regs.realflags and carryflag) <> 0 then
     begin
       GetInOutRes(lo(regs.realeax));
@@ -1207,9 +1252,11 @@ begin
   else
     begin
       filerec(f).handle:=lo(regs.realeax);
+{$ifndef RTLLITE}
       { for systems that have more then 20 by default ! }
       if lo(regs.realeax)>FileHandleCount then
         FileHandleCount:=lo(regs.realeax);
+{$endif RTLLITE}
     end;
   if lo(regs.realeax)<max_files then
     begin
@@ -1491,7 +1538,10 @@ END.
 
 {
   $Log$
-  Revision 1.9  2003-12-15 15:57:48  peter
+  Revision 1.10  2004-01-11 22:54:44  hajny
+    * 'conservative' version of the do_open patch by Joe da Silva
+
+  Revision 1.9  2003/12/15 15:57:48  peter
     * patches from wiktor
 
   Revision 1.8  2003/11/17 19:55:13  hajny
