@@ -1229,6 +1229,21 @@ Begin
   sequenceDependsonReg := TmpResult
 End;
 
+procedure invalidateDepedingRegs(p1: ppaiProp; reg: tregister);
+var
+  counter: tregister;
+begin
+  for counter := R_EAX to R_EDI Do
+    if counter <> reg then
+      with p1^.regs[counter] Do
+        if (typ in [con_ref,con_noRemoveRef]) and
+           sequenceDependsOnReg(p1^.Regs[counter],counter,reg) then
+          if typ = con_ref then
+            typ := con_invalid
+          { con_invalid and con_noRemoveRef = con_unknown }
+          else typ := con_unknown;
+end;
+
 Procedure DestroyReg(p1: PPaiProp; Reg: TRegister; doIncState:Boolean);
 {Destroys the contents of the register Reg in the PPaiProp p1, as well as the
  contents of registers are loaded with a memory location based on Reg.
@@ -1245,29 +1260,20 @@ Begin
      (reg > high(NrOfInstrSinceLastMod)) then
     exit;
   NrOfInstrSinceLastMod[Reg] := 0;
-  If (Reg >= R_EAX) And (Reg <= R_EDI)
-    Then
-      Begin
-        With p1^.Regs[Reg] Do
-          Begin
-            if doIncState then
-              begin
-                IncState(WState);
-                TmpWState := WState;
-                TmpRState := RState;
-                FillChar(p1^.Regs[Reg], SizeOf(TContent), 0);
-                WState := TmpWState;
-                RState := TmpRState;
-              end
-            else
-              typ := con_invalid;
-          End;
-        For counter := R_EAX to R_EDI Do
-          With p1^.Regs[counter] Do
-            if (typ in [con_ref,con_noRemoveRef]) and
-               sequenceDependsOnReg(p1^.Regs[counter],counter,reg) Then
-              typ := con_invalid;
-       End;
+  if (reg >= R_EAX) and (reg <= R_EDI) then
+    begin
+      with p1^.regs[reg] do
+        begin
+          if doIncState then
+            begin
+              incState(WState);
+              typ := con_unknown;
+            end
+          else
+            typ := con_invalid;
+        end;
+      invalidateDepedingRegs(p1,reg);
+    end;
 End;
 
 {Procedure AddRegsToSet(p: Pai; Var RegSet: TRegSet);
@@ -1736,15 +1742,15 @@ BlockStart, BlockEnd: Pai);
  been processed}
 Var
     CurProp: PPaiProp;
-{$ifdef AnalyzeLoops}
-    TmpState: Byte;
-{$endif AnalyzeLoops}
     Cnt, InstrCnt : Longint;
     InstrProp: TInsProp;
     UsedRegs: TRegSet;
     p, hp : Pai;
     TmpRef: TReference;
-    TmpReg, regCounter: TRegister;
+    TmpReg: TRegister;
+{$ifdef AnalyzeLoops}
+    TmpState: Byte;
+{$endif AnalyzeLoops}
 Begin
   p := BlockStart;
   UsedRegs := [];
@@ -2032,12 +2038,7 @@ Begin
                                   { Destroy the contents of the registers  }
                                   { that depended on the previous value of }
                                   { this register                          }
-                                  for regCounter := R_EAX to R_EDI Do
-                                    if regCounter <> tmpReg then
-                                      With curProp^.Regs[regCounter] Do
-                                        if (typ in [con_ref,con_noRemoveRef]) and
-                                           sequenceDependsOnReg(curProp^.Regs[regCounter],regCounter,tmpReg) Then
-                                          typ := con_invalid;
+                                  invalidateDepedingRegs(curProp,tmpReg);
                                 End;
                             End
                           Else
@@ -2329,7 +2330,13 @@ End.
 
 {
   $Log$
-  Revision 1.5  2000-08-19 09:08:59  jonas
+  Revision 1.6  2000-08-19 17:53:29  jonas
+    * fixed a potential bug in destroyregs regarding the removal of
+      unused loads
+    * added destroyDependingRegs() procedure and use it for the fix in
+      the previous commit (safer/more complete than what was done before)
+
+  Revision 1.5  2000/08/19 09:08:59  jonas
     * fixed bug where the contents of a register would not be destroyed
       if another register on which these contents depend is modified
       (not really merged, but same idea as fix in fixes branch,
