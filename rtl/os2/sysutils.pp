@@ -817,11 +817,40 @@ begin
 end;
 
 
+{$ASMMODE INTEL}
+function DirectoryExists (const Directory: string): boolean;
+{$IFOPT H+}
+                                                             assembler;
+{$ELSE}
+var FN: string;
+begin
+    FN := Directory + #0;
+{$ENDIF}
+asm
+    mov ax, 4300h
+{$IFOPT H+}
+    mov edx, Directory
+{$ELSE}
+    lea edx, FN
+    inc edx
+{$ENDIF}
+    call syscall
+    mov eax, 0
+    jc @FExistsEnd
+    test cx, 10h
+    jz @FExistsEnd
+    inc eax
+@FExistsEnd:
+{$IFOPT H-}
+end;
+{$ENDIF}
+end;
+
+
 {****************************************************************************
                               Time Functions
 ****************************************************************************}
 
-{$asmmode intel}
 procedure GetLocalTime (var SystemTime: TSystemTime); assembler;
 asm
 (* Expects the default record alignment (word)!!! *)
@@ -954,7 +983,10 @@ end.
 
 {
   $Log$
-  Revision 1.22  2003-03-01 21:19:14  hajny
+  Revision 1.23  2003-03-29 15:01:20  hajny
+    + DirectoryExists added for main branch OS/2 too
+
+  Revision 1.22  2003/03/01 21:19:14  hajny
     * FileClose bug fixed
 
   Revision 1.21  2003/01/04 16:25:08  hajny
