@@ -164,26 +164,18 @@ asm
         jmp     .LExitFinalize
         // Interfaces
 .LDoInterfaceFinal:
+        pushl   Data
+        call    FPC_INTF_DECR_REF
         jmp     .LExitFinalize
         // Variants
 .LDoVariantFinal:
         jmp     .LExitFinalize
         // dynamic Array
 .LDoDynArrayFinal:
-// load count
-        movl    Data,%edx
-        orl     %edx,%edx
-        jz      .LExitFinalize
-        movl    -4(%edx),%edx
-        incl    %ebx
-        movzbl  (%ebx),%eax
-        incl    %eax
-        addl    %eax,%ebx
-// %ebx points to size. Put size in ecx
-        movl    (%ebx),%ecx
-// %ebx points to type. Put into ebx.
-        addl    $4, %ebx
-        jmp     .LMyArrayFinalLoop
+        pushl   TypeInfo
+        pushl   Data
+        call    DYNARRAY_DECR_REF
+        jmp     .LExitFinalize
 .LDoClassFinal:
 .LDoObjectFinal:
 .LDoRecordFinal:
@@ -286,6 +278,8 @@ asm
         jmp     .LExitAddRef
         // Interfaces
 .LDoInterfaceAddRef:
+        pushl   Data
+        call    FPC_INTF_INCR_REF
         jmp     .LExitAddRef
         // Variants
 .LDoVariantAddRef:
@@ -293,10 +287,10 @@ asm
         // Dynamic Arrays
 .LDoDynArrayAddRef:
         movl    Data,%eax
-        testl   %eax,%eax
-        je      .LExitAddRef
+        orl     %eax,%eax
+        jz      .LExitAddRef
         lock
-        incl    -4(%eax)
+        incl    -8(%eax)
         jmp     .LExitAddRef
 .LDoClassAddRef:
 .LDoObjectAddRef:
@@ -398,12 +392,17 @@ asm
         jmp     .LExitDecRef
         // Interfaces
 .LDoInterfaceDecRef:
+        pushl   Data
+        call    FPC_INTF_DECR_REF
         jmp     .LExitDecRef
         // Variants
 .LDoVariantDecRef:
         jmp     .LExitDecRef
         // Dynamic Arrays
 .LDoDynArrayDecRef:
+        pushl   TypeInfo
+        pushl   Data
+        call    DYNARRAY_DECR_REF
         jmp     .LExitDecRef
 .LDoClassDecRef:
 .LDoObjectDecRef:
@@ -473,7 +472,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2000-10-21 18:20:17  florian
+  Revision 1.4  2000-11-04 16:30:35  florian
+    + interfaces support
+
+  Revision 1.3  2000/10/21 18:20:17  florian
     * a lot of small changes:
        - setlength is internal
        - win32 graph unit extended

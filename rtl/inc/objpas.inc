@@ -32,6 +32,45 @@
            handleerror(219);
       end;
 
+{$ifndef ver1_0}
+    { interface helpers }
+    procedure int_do_intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF'];
+      begin
+        if assigned(i) then
+          IUnknown(i)._Release;
+        i:=nil;
+      end;
+
+    procedure int_do_intf_incr_ref(const i: pointer);[public,alias: 'FPC_INTF_INCR_REF'];
+      begin
+         if assigned(i) then
+           IUnknown(i)._AddRef;
+      end;
+
+    procedure int_do_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN'];
+      begin
+         if assigned(S) then IUnknown(S)._AddRef;
+         if assigned(D) then IUnknown(D)._Release;
+         D:=S;
+      end;
+
+    procedure int_do_intf_as(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_AS'];
+      const
+        S_OK = 0;
+      var
+        tmpi: pointer; // _AddRef before _Release
+      begin
+        if assigned(S) then
+          begin
+             if IUnknown(S).QueryInterface(iid,tmpi)<>S_OK then
+               handleerror(219);
+             if assigned(D) then IUnknown(D)._Release;
+             D:=tmpi;
+          end
+        else
+          int_do_intf_decr_ref(D);
+      end;
+{$endif ver1_0}
 
 {****************************************************************************
                                TOBJECT
@@ -151,7 +190,7 @@
                          end;
                   end;
                 c:=c.ClassParent;
-             end;                                                                                                                                                                                                                                              
+             end;
            MethodAddress:=nil;
         end;
 
@@ -342,7 +381,7 @@
                           tmessagehandlerrec(msghandler).obj:=self;
                           msghandler(message);
                           { we don't need any longer the assembler
-                            solution                              
+                            solution
                           asm
                              pushl message
                              pushl %esi
@@ -394,7 +433,7 @@
                           tmessagehandlerrec(msghandler).obj:=self;
                           msghandler(message);
                           { we don't need any longer the assembler
-                            solution                              
+                            solution
                           asm
                              pushl message
                              pushl %esi
@@ -445,6 +484,96 @@
         begin
         end;
 
+{$ifndef ver1_0}
+      function IsGUIDEqual(const guid1, guid2: tguid): boolean;
+        begin
+          IsGUIDEqual:=
+            (guid1.D1=guid2.D1) and
+            (PDWORD(@guid1.D2)^=PDWORD(@guid2.D2)^) and
+            (PDWORD(@guid1.D4[0])^=PDWORD(@guid2.D4[0])^) and
+            (PDWORD(@guid1.D4[4])^=PDWORD(@guid2.D4[4])^);
+        end;
+
+      function TObject.getinterface(const iid : tguid;out obj) : boolean;
+        var
+          IEntry: pinterfaceentry;
+        begin
+          IEntry:=getinterfaceentry(iid);
+          if Assigned(IEntry) then begin
+            PDWORD(@obj)^:=DWORD(PDWORD(Self))+IEntry^.IOffset;
+            int_do_intf_incr_ref(pointer(obj)); { it must be an com interface }
+            getinterface:=True;
+          end
+          else begin
+            PDWORD(@Obj)^:=0;
+            getinterface:=False;
+          end;
+        end;
+
+      function TObject.getinterfacebystr(const iidstr : string;out obj) : boolean;
+        var
+          IEntry: pinterfaceentry;
+        begin
+          IEntry:=getinterfaceentrybystr(iidstr);
+          if Assigned(IEntry) then begin
+            PDWORD(@obj)^:=DWORD(PDWORD(Self))+IEntry^.IOffset;
+            if Assigned(IEntry^.iid) then { for Com interfaces }
+              int_do_intf_incr_ref(pointer(obj));
+            getinterfacebystr:=True;
+          end
+          else begin
+            PDWORD(@Obj)^:=0;
+            getinterfacebystr:=False;
+          end;
+        end;
+
+      class function TObject.getinterfaceentry(const iid : tguid) : pinterfaceentry;
+        var
+          i: integer;
+          intftable: pinterfacetable;
+          Res: pinterfaceentry;
+        begin
+          getinterfaceentry:=nil;
+          intftable:=getinterfacetable;
+          if assigned(intftable) then begin
+            i:=intftable^.EntryCount;
+            Res:=@intftable^.Entries[0];
+            while (i>0) and
+               not (assigned(Res^.iid) and IsGUIDEqual(Res^.iid^,iid)) do begin
+              inc(Res);
+              dec(i);
+            end;
+            if (i>0) then
+              getinterfaceentry:=Res;
+          end;
+        end;
+
+      class function TObject.getinterfaceentrybystr(const iidstr : string) : pinterfaceentry;
+        var
+          i: integer;
+          intftable: pinterfacetable;
+          Res: pinterfaceentry;
+        begin
+          getinterfaceentrybystr:=nil;
+          intftable:=getinterfacetable;
+          if assigned(intftable) then begin
+            i:=intftable^.EntryCount;
+            Res:=@intftable^.Entries[0];
+            while (i>0) and (Res^.iidstr^<>iidstr) do begin
+              inc(Res);
+              dec(i);
+            end;
+            if (i>0) then
+              getinterfaceentrybystr:=Res;
+          end;
+        end;
+
+      class function TObject.getinterfacetable : pinterfacetable;
+        begin
+          getinterfacetable:=pinterfacetable((pointer(Self)+vmtIntfTable)^);
+        end;
+{$endif ver1_0}
+
 {****************************************************************************
                              Exception Support
 ****************************************************************************}
@@ -457,7 +586,10 @@
 
 {
   $Log$
-  Revision 1.3  2000-07-22 14:52:01  sg
+  Revision 1.4  2000-11-04 16:29:54  florian
+    + interfaces support
+
+  Revision 1.3  2000/07/22 14:52:01  sg
   * Resolved CVS conflicts for TObject.MethodAddress patch
 
   Revision 1.1.2.1  2000/07/22 14:46:57  sg

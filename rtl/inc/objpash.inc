@@ -76,6 +76,28 @@
 
        pstringmessagetable = ^tstringmessagetable;
 
+       pguid = ^tguid;
+       tguid = packed record
+         D1: LongWord;
+         D2: Word;
+         D3: Word;
+         D4: array[0..7] of Byte;
+       end;
+
+       pinterfaceentry = ^tinterfaceentry;
+       tinterfaceentry = packed record
+         IID: pguid; { if assigned(IID) then Com else Corba}
+         VTable: Pointer;
+         IOffset: LongInt;
+         IIDStr: pshortstring; { never nil. Com: upper(GuidToString(IID^)) }
+       end;
+
+       pinterfacetable = ^tinterfacetable;
+       tinterfacetable = packed record
+         EntryCount: Word;
+         Entries: array[0..0] of tinterfaceentry;
+       end;
+
        tobject = class
        public
           { please don't change the order of virtual methods, because      }
@@ -116,13 +138,37 @@
           { new for gtk, default handler for text based messages }
           procedure DefaultHandlerStr(var message);virtual;
 
-          { interface functions, I don't know if we need this }
-          {
-          function getinterface(const iid : tguid;out obj) : boolean;
+{$ifndef ver1_0}
+          { interface functions }
+          function getinterface(const iid : tguid; out obj) : boolean;
+          function getinterfacebystr(const iidstr : string; out obj) : boolean;
           class function getinterfaceentry(const iid : tguid) : pinterfaceentry;
+          class function getinterfaceentrybystr(const iidstr : string) : pinterfaceentry;
           class function getinterfacetable : pinterfacetable;
-          }
+{$endif ver1_0}
        end;
+
+{$ifndef ver1_0}
+       IUnknown = interface
+         ['{00000000-0000-0000-C000-000000000046}']
+         function QueryInterface(const iid: tguid; var {out} obj): LongInt; stdcall;
+         function _AddRef: LongInt; stdcall;
+         function _Release: LongInt; stdcall;
+       end;
+
+       { for native dispinterface support }
+       IDispatch = interface(IUnknown)
+         ['{00020400-0000-0000-C000-000000000046}']
+         function GetTypeInfoCount({out}var count: LongInt): LongInt; stdcall;
+         function GetTypeInfo(Index, LocaleID: LongInt;
+           var {out} TypeInfo): LongInt; stdcall;
+         function GetIDsOfNames(const iid: TGUID; names: Pointer;
+           NameCount, LocaleID: LongInt; DispIDs: Pointer): LongInt; stdcall;
+         function Invoke(DispID: LongInt; const iid: TGUID;
+           LocaleID: LongInt; Flags: Word; var params;
+           VarResult, ExcepInfo, ArgErr: Pointer): Integer; stdcall;
+       end;
+{$endif ver1_0}
 
        TExceptProc = Procedure (Obj : TObject; Addr,Frame: Pointer);
 
@@ -205,14 +251,17 @@
            vtAnsiString : (VAnsiString: Pointer);
 //           vtCurrency   : (VCurrency: PCurrency);
 //           vtVariant    : (VVariant: PVariant);
-//           vtInterface  : (VInterface: Pointer);
+           vtInterface  : (VInterface: Pointer);
            vtWideString : (VWideString: Pointer);
            vtInt64      : (VInt64: PInt64);
            vtQWord      : (VQWord: PQWord);
        end;
 {
   $Log$
-  Revision 1.4  2000-09-30 07:38:07  sg
+  Revision 1.5  2000-11-04 16:28:55  florian
+    + interfaces support
+
+  Revision 1.4  2000/09/30 07:38:07  sg
   * Added 'RaiseProc': A user-definable callback procedure which gets
     called whenever an exception is being raised
 
@@ -221,5 +270,5 @@
 
   Revision 1.2  2000/07/13 11:33:45  michael
   + removed logs
- 
+
 }
