@@ -731,9 +731,10 @@ implementation
         if not p^.cargs then
          begin
            reset_reference(p^.location.reference);
+           { Allocate always a temp, also if no elements are required, to
+             ensure that location is valid (PFV) }
             if parraydef(p^.resulttype)^.highrange=-1 then
-              begin
-              end
+              gettempofsizereference(8,p^.location.reference)
             else
               gettempofsizereference((parraydef(p^.resulttype)^.highrange+1)*8,p^.location.reference);
            href:=p^.location.reference;
@@ -741,80 +742,89 @@ implementation
         hp:=p;
         while assigned(hp) do
          begin
-           secondpass(hp^.left);
-           if codegenerror then
-            exit;
-           { find the correct vtype value }
-           vtype:=$ff;
-           vaddr:=false;
-           lt:=hp^.left^.resulttype;
-           case lt^.deftype of
-           enumdef,
-            orddef : begin
-                       if (lt^.deftype=enumdef) or
-                          is_integer(lt) then
-                        vtype:=vtInteger
-                       else
-                        if is_boolean(lt) then
-                         vtype:=vtBoolean
-                       else
+           if assigned(hp^.left) then
+            begin
+              secondpass(hp^.left);
+              if codegenerror then
+               exit;
+              { find the correct vtype value }
+              vtype:=$ff;
+              vaddr:=false;
+              lt:=hp^.left^.resulttype;
+              case lt^.deftype of
+                enumdef,
+                orddef :
+                  begin
+                    if (lt^.deftype=enumdef) or
+                       is_integer(lt) then
+                      vtype:=vtInteger
+                    else
+                      if is_boolean(lt) then
+                        vtype:=vtBoolean
+                      else
                         if (lt^.deftype=orddef) and (porddef(lt)^.typ=uchar) then
-                         vtype:=vtChar;
-                     end;
-          floatdef : begin
-                       vtype:=vtExtended;
+                          vtype:=vtChar;
+                  end;
+                floatdef :
+                  begin
+                    vtype:=vtExtended;
+                    vaddr:=true;
+                  end;
+                procvardef,
+                pointerdef :
+                  begin
+                    if is_pchar(lt) then
+                      vtype:=vtPChar
+                    else
+                      vtype:=vtPointer;
+                  end;
+                classrefdef :
+                  vtype:=vtClass;
+                objectdef :
+                  begin
+                    vtype:=vtObject;
+                  end;
+                stringdef :
+                  begin
+                    if is_shortstring(lt) then
+                     begin
+                       vtype:=vtString;
                        vaddr:=true;
-                     end;
-        procvardef,
-        pointerdef : begin
-                       if is_pchar(lt) then
-                        vtype:=vtPChar
-                       else
-                        vtype:=vtPointer;
-                     end;
-       classrefdef : vtype:=vtClass;
-         objectdef : begin
-                       vtype:=vtObject;
-                     end;
-         stringdef : begin
-                       if is_shortstring(lt) then
-                        begin
-                          vtype:=vtString;
-                          vaddr:=true;
-                        end
-                       else
-                        if is_ansistring(lt) then
-                         vtype:=vtAnsiString;
-                     end;
-           end;
-           if vtype=$ff then
-            internalerror(14357);
-           { write C style pushes or an pascal array }
-           if p^.cargs then
-            begin
-              if vaddr then
+                     end
+                    else
+                     if is_ansistring(lt) then
+                      vtype:=vtAnsiString;
+                  end;
+              end;
+              if vtype=$ff then
+                internalerror(14357);
+              { write C style pushes or an pascal array }
+              if p^.cargs then
                begin
-                 emit_to_reference(hp^.left);
-                 emit_push_lea_loc(hp^.left^.location);
+                 if vaddr then
+                  begin
+                    emit_to_reference(hp^.left);
+                    emit_push_lea_loc(hp^.left^.location);
+                  end
+                 else
+                  emit_push_loc(hp^.left^.location);
                end
               else
-               emit_push_loc(hp^.left^.location);
-            end
-           else
-            begin
-              { update href to the vtype field and write it }
-              exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,
-                vtype,newreference(href))));
-              inc(href.offset,4);
-              { write changing field update href to the next element }
-              if vaddr then
                begin
-                 emit_to_reference(hp^.left);
-                 emit_lea_loc_ref(hp^.left^.location,href);
-               end
-              else
-               emit_mov_loc_ref(hp^.left^.location,href);
-              inc(href.offset,4);
+                 { update href to the vtype field and write it }
+                 exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,
+                   vtype,newreference(href))));
+                 inc(href.offset,4);
+                 { write changing field update href to the next element }
+                 if vaddr then
+                  begin
+                    emit_to_reference(hp^.left);
+                    emit_lea_loc_ref(hp^.left^.location,href);
+                  end
+                 else
+                  emit_mov_loc_ref(hp^.left^.location,href);
+                 inc(href.offset,4);
+               end;
             end;
            { load next entry }
            hp:=hp^.right;
@@ -825,7 +835,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.59  1999-05-27 19:44:14  peter
+  Revision 1.60  1999-05-31 12:42:43  peter
+    * fixed crash with empty array constructor
+
+  Revision 1.59  1999/05/27 19:44:14  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
