@@ -313,7 +313,7 @@ Fixed bugs:
   bug0257.pp   problem with procvars in tp mode                     OK 0.99.11 (PM)
   bug0258.pp   bug in small const set extension to large sets       OK 0.99.12 (PM)
   bug0259.pp   problem with optimizer for real math (use -O1)       OK 0.99.12 (PM)
-  bug0260.pp   problem with VMT generation if non virtual 
+  bug0260.pp   problem with VMT generation if non virtual
                method has a virtual overload                        OK 0.99.12 (PM)
   bug0261.pp   problems for assignment overloading                  OK 0.99.12a (PM)
   bug0269.pp   wrong linenumber for repeat until when type mismatch OK 0.99.12b (PM)
@@ -361,4 +361,4 @@ bug0268.pp   crash with exceptions
 bug0270.pp   unexpected eof in tp mode with (* and directives
 bug0271.pp   abstract methods can't be assigned to methodpointers
 bug0272.pp   No error issued if wrong parameter in function inside a second function
-
+bug0273.pp   small array pushing to array of char procedure is wrong
