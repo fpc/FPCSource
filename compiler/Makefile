@@ -40,7 +40,6 @@ ifndef RTLOPTS
 RTLOPTS=
 endif
 
-
 #####################################################################
 # Defaults
 #####################################################################
@@ -72,6 +71,7 @@ include $(CFG)/makefile.cfg
 #####################################################################
 # Setup Targets
 #####################################################################
+
 
 MSGFILE=error$(LANGUAGE).msg
 
@@ -212,7 +212,7 @@ $(EXENAME) : $(PPEXENAME)
 	$(EXECPPAS)
 	$(MOVE) $(PPEXENAME) $(EXENAME)
 else
-$(EXENAME) : $(PASFILES) $(INCFILES) $(MSGFILES)
+$(EXENAME) : $(wildcard *.pas) $(wildcard *.inc)
 	$(COMPILER) $(LOCALOPT) pp.pas
 	$(EXECPPAS)
 	$(MOVE) $(PPEXENAME) $(EXENAME)
@@ -296,6 +296,17 @@ ansirtl:
 test:
 	@echo time is $(STARTTIME) date.exe is $(DATE)
 
+#####################################################################
+# local user configurable file
+# in makefile.loc you can add any desired target
+#####################################################################
+
+localmake:=$(strip $(wildcard makefile.loc))
+
+ifdef localmake
+include ./$(localmake)
+endif
+
 
 #####################################################################
 # Default targets
@@ -305,7 +316,13 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.4  1998-09-16 16:41:38  peter
+# Revision 1.5  1998-09-22 13:09:24  pierre
+#   + added possibility to read makefile.loc if it exists
+#     this allows simple addition of private rules
+#   * restored EXENAME dependencies
+#     PASFILES and INCFILES where not defined anymore !!
+#
+# Revision 1.4  1998/09/16 16:41:38  peter
 #   * merged fixes
 #
 # Revision 1.1.2.2  1998/09/16 16:12:43  peter
