@@ -2,7 +2,7 @@
     $Id$
 
     XML-RPC server and client library
-    Copyright (c) 2003 by
+    Copyright (c) 2003-2004 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
 
     See the file COPYING.FPC, included in this distribution,
@@ -136,10 +136,13 @@ type
     property OnEndRPC: TNotifyEvent read FOnEndRPC write FOnEndRPC;
   end;}
 
+  TCheckCallEvent = procedure(AParser: TXMLRPCParser; const APath: TStrings;
+    var ExecCall: Boolean) of object;
   TExceptionEvent = procedure(e: Exception) of object;
 
   TXMLRPCServlet = class(THttpServlet)
   private
+    FOnCheckCall: TCheckCallEvent;
     FOnException: TExceptionEvent;
   protected
     procedure DoPost(Req: THttpServletRequest; Resp: THttpServletResponse);
@@ -147,6 +150,7 @@ type
   public
     procedure Dispatch(AParser: TXMLRPCParser; AWriter: TXMLRPCWriter;
       APath: TStrings); virtual; abstract;
+    property OnCheckCall: TCheckCallEvent read FOnCheckCall write FOnCheckCall;
     property OnException: TExceptionEvent read FOnException write FOnException;
   end;
 
@@ -877,6 +881,7 @@ var
   LastDot, i: Integer;
   s, PathStr: String;
   AnswerStream: TStream;
+  ExecCall: Boolean;
 begin
   Parser := TXMLRPCParser.Create(Req.InputStream);
   try
@@ -899,7 +904,13 @@ begin
     	      Path.Add(UpperCase(Copy(PathStr, LastDot, i - LastDot)));
 	      LastDot := i + 1;
 	    end;
-          Dispatch(Parser, Writer, Path);
+	  ExecCall := True;
+	  if Assigned(OnCheckCall) then
+	    OnCheckCall(Parser, Path, ExecCall);
+	  if ExecCall then
+            Dispatch(Parser, Writer, Path)
+	  else
+	    Writer.WriteFaultResponse(2, 'May not execute request');
         finally
           Path.Free;
         end;
@@ -934,7 +945,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-02-02 17:12:01  sg
+  Revision 1.6  2004-08-14 20:33:45  sg
+  * Added callback for RPC filtering etc. for XML-RPC servlets
+
+  Revision 1.5  2004/02/02 17:12:01  sg
   * Some small fixes to get the code at least compiling again; the HTTP
     client class is not expected to work at the moment, and the XML-RPC
     client has been fully disabled for now.
