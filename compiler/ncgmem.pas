@@ -476,12 +476,14 @@ implementation
        begin
          if location.reference.base=NR_NO then
           begin
-            cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
+            if l<>1 then
+              cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
             location.reference.base:=reg;
           end
          else if location.reference.index=NR_NO then
           begin
-            cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
+            if l<>1 then
+              cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
             location.reference.index:=reg;
           end
          else
@@ -491,7 +493,8 @@ implementation
             cg.a_loadaddr_ref_reg(exprasmlist,location.reference,hreg);
             reference_reset_base(location.reference,hreg,0);
             { insert new index register }
-            cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
+            if l<>1 then
+              cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
             location.reference.index:=reg;
           end;
        end;
@@ -878,7 +881,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.83  2003-12-06 01:15:22  florian
+  Revision 1.84  2004-01-12 16:38:50  peter
+    * don't generate IMUL reg,1
+
+  Revision 1.83  2003/12/06 01:15:22  florian
     * reverted Peter's alloctemp patch; hopefully properly
 
   Revision 1.82  2003/12/03 23:13:20  peter
