@@ -316,6 +316,10 @@ implementation
          if is_boolean(p^.resulttype) then
            begin
              p^.registers32:=p^.left^.registers32;
+{$ifdef i386}
+             if p^.left^.location.loc<>LOC_JUMP then
+               p^.location.loc:=LOC_FLAGS;
+{$endif def i386}
              if (p^.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
               begin
                 p^.location.loc:=LOC_REGISTER;
@@ -369,7 +373,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-12-11 16:50:24  florian
+  Revision 1.11  1999-02-03 10:11:11  pierre
+   * fix for bug0211 for i386
+
+  Revision 1.10  1998/12/11 16:50:24  florian
     + typed const int64 and qword
     + unary minus-operator  q1:=-q2;
     + not-operator

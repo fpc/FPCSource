@@ -618,8 +618,12 @@ implementation
               LOC_REGISTER :
                 begin
                   secondpass(p^.left);
-                  p^.location.register:=p^.left^.location.register;
-                  exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));
+                  {p^.location.register:=p^.left^.location.register;
+                  exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));}
+                  p^.location.loc:=LOC_FLAGS;
+                  p^.location.resflags:=F_E;
+                  exprasmlist^.concat(new(pai386,op_reg_reg(A_TEST,opsize,p^.left^.location.register,p^.left^.location.register)));
+                  ungetregister(p^.left^.location.register);
                 end;
               LOC_CREGISTER :
                 begin
@@ -628,7 +632,10 @@ implementation
                   p^.location.loc:=LOC_REGISTER;
                   p^.location.register:=def_getreg(p^.resulttype);
                   emit_reg_reg(A_MOV,opsize,p^.left^.location.register,p^.location.register);
-                  exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));
+                  exprasmlist^.concat(new(pai386,op_reg_reg(A_TEST,opsize,p^.location.register,p^.location.register)));
+                  ungetregister(p^.location.register);
+                  p^.location.loc:=LOC_FLAGS;
+                  p^.location.resflags:=F_E;
                 end;
               LOC_REFERENCE,
               LOC_MEM :
@@ -639,12 +646,12 @@ implementation
                   del_reference(p^.left^.location.reference);
                   { this was placed before del_ref => internaalerror(10) }
                   p^.location.register:=def_getreg(p^.resulttype);
-                  if p^.left^.location.loc=LOC_CREGISTER then
-                    emit_reg_reg(A_MOV,opsize,p^.left^.location.register,p^.location.register)
-                  else
-                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
-                  newreference(p^.left^.location.reference),p^.location.register)));
-                  exprasmlist^.concat(new(pai386,op_const_reg(A_XOR,opsize,1,p^.location.register)));
+                  exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,opsize,
+                    newreference(p^.left^.location.reference),p^.location.register)));
+                  exprasmlist^.concat(new(pai386,op_reg_reg(A_TEST,opsize,p^.location.register,p^.location.register)));
+                  ungetregister(p^.location.register);
+                  p^.location.loc:=LOC_FLAGS;
+                  p^.location.resflags:=F_E;
                 end;
             end;
           end
@@ -755,7 +762,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1999-01-21 22:10:41  peter
+  Revision 1.18  1999-02-03 10:11:12  pierre
+   * fix for bug0211 for i386
+
+  Revision 1.17  1999/01/21 22:10:41  peter
     * fixed array of const
     * generic platform independent high() support
 
