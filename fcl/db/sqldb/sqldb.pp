@@ -62,6 +62,7 @@ type
   protected
     procedure DoInternalConnect; override;
     procedure DoInternalDisconnect; override;
+    function GetAsSQLText(Field : TField) : string; virtual;
     function GetHandle : pointer; virtual; abstract;
 
     Function AllocateCursorHandle : TSQLHandle; virtual; abstract;
@@ -130,6 +131,8 @@ type
   TSQLQuery = class (Tbufdataset)
   private
     FCursor              : TSQLHandle;
+    FUpdateable          : boolean;
+    FTableName           : string;
     FSQL                 : TStrings;
     FIsEOF               : boolean;
     FLoadingFieldDefs    : boolean;
@@ -137,6 +140,7 @@ type
     procedure FreeStatement;
     procedure PrepareStatement;
     procedure FreeFldBuffers;
+    procedure InitUpdates(SQL : string);
 
     procedure Execute;
 
@@ -152,9 +156,9 @@ type
     procedure InternalHandleException; override;
     procedure InternalInitFieldDefs; override;
     procedure InternalOpen; override;
-    procedure InternalPost; override;
     function  GetCanModify: Boolean; override;
     Function GetSQLStatementType(SQL : String) : TStatementType; virtual;
+    function ApplyRecUpdate : boolean; override;
   public
     procedure ExecSQL; virtual;
     constructor Create(AOwner : TComponent); override;
@@ -235,6 +239,18 @@ destructor TSQLConnection.Destroy;
 begin
   inherited Destroy;
 end;
+
+function TSQLConnection.GetAsSQLText(Field : TField) : string;
+
+begin
+  if not assigned(field) then Result := 'Null'
+  else case field.DataType of
+    ftString : Result := '''' + field.asstring + ''''
+  else
+    Result := field.asstring;
+  end; {case}
+end;
+
 
 { TSQLTransaction }
 procedure TSQLTransaction.EndTransaction;
@@ -337,7 +353,7 @@ begin
   if assigned(FCursor) then
     begin
     (Database as tsqlconnection).FreeStatement(FCursor);
-    FreeAndNil(FCursor);
+//    FreeAndNil(FCursor);
     end;
 end;
 
@@ -347,6 +363,7 @@ var
   x     : integer;
   db    : tsqlconnection;
   sqltr : tsqltransaction;
+
 begin
   db := (Database as tsqlconnection);
   if Db = nil then
@@ -372,6 +389,8 @@ begin
     exit;
     end;
   FCursor.StatementType := GetSQLStatementType(buf);
+  if FCursor.StatementType = stSelect then
+    InitUpdates(Buf);
   Db.PrepareStatement(Fcursor,sqltr,buf);
 end;
 
@@ -441,6 +460,101 @@ begin
   end;
 end;
 
+procedure TSQLQuery.InitUpdates(SQL : string);
+
+Var
+  L       : Integer;
+  P,PP    : PChar;
+  PS: PChar;
+  S       : string;
+
+  function GetStatement(var StartP : PChar) : PChar;
+  
+  var p        : pchar;
+      Cmt, Stm : boolean;
+  
+  begin
+    p := StartP;
+    Cmt := false;
+    Stm := False;
+    While ((P-PP)<L) do
+      begin
+      if Cmt then
+        begin
+        end
+      else if (p^ in [',',' ','(',')',#13,#10,#9]) then
+        begin
+        if stm then break;
+        end
+      else if not stm then
+        begin
+        StartP := p;
+        stm := true;
+        end;
+      inc(p);
+      end;
+    Result := P;
+  end;
+
+begin
+  FUpdateable := False;
+
+  L:=Length(SQL);
+
+  PP:=Pchar(SQL);
+  P := pp;
+  PS := pp;
+
+// select-keyword
+  P := GetStatement(PS);
+
+  Setlength(S,P-PS);
+  Move(PS^,S[1],(P-PS));
+  S:=Lowercase(S);
+
+  if (S) <> 'select' then exit;
+
+// select-part
+
+  While ((P-PP)<L) and  (S <> 'from') do
+    begin
+    repeat
+    PS := P;
+    P := GetStatement(PS);
+    until P^ <> ',';
+
+    Setlength(S,P-PS);
+    Move(PS^,S[1],(P-PS));
+    S:=Lowercase(S);
+
+    end;
+
+// from-part
+
+  PS := P;
+  P := GetStatement(PS);
+
+  Setlength(FTableName,P-PS);
+  Move(PS^,FTableName[1],(P-PS));
+
+  While ((P-PP)<L)  do
+    begin
+    PS := P;
+    P := GetStatement(PS);
+
+    if P^ = ',' then exit; // select-statements from more then one table are not updateable
+
+    Setlength(S,P-PS);
+    Move(PS^,S[1],(P-PS));
+    S:=Lowercase(S);
+    
+    if (s = 'where') or (s='order') then break;
+    end;
+
+  FUpdateable := True;
+
+end;
+
 procedure TSQLQuery.InternalOpen;
 begin
   try
@@ -459,11 +573,6 @@ begin
       raise;
   end;
   inherited InternalOpen;
-end;
-
-procedure TSQLQuery.InternalPost;
-begin
-  // not implemented - sql dataset
 end;
 
 // public part
@@ -541,17 +650,64 @@ begin
       Exit(t);
 end;
 
+function TSQLQuery.ApplyRecUpdate : boolean;
+
+var r,x,f     : integer;
+    fieldsstr,
+    v : string;
+    modify_query : tsqlquery;
+    sql_tables : string;
+    sql_set    : string;
+    sql_where  : string;
+    s : string;
+
+begin
+  Result := False;
+  sql_tables := FTableName;
+  s := fields[0].oldvalue;
+  sql_where := '('+fields[0].displayName+'='+s+')';
+  sql_set := '';
+  for x := 0 to Fields.Count -1 do
+    if ord(ActiveBuffer[(Fields[x].Fieldno-1) div 8]) and (1 shl ((Fields[x].Fieldno-1) mod 8)) > 0 then // check for null
+      sql_set := sql_set + fields[x].DisplayName + '=' + (Database as TSQLConnection).GetAsSQLText(nil) + ','
+    else
+      sql_set := sql_set + fields[x].DisplayName + '=' + (Database as TSQLConnection).GetAsSQLText(fields[x]) + ',';
+
+  setlength(sql_set,length(sql_set)-1);
+
+  with tsqlquery.Create(nil) do
+    begin
+    DataBase := self.Database;
+    transaction := self.transaction;
+    sql.clear;
+    s := 'update ' + sql_tables + ' set ' + sql_set + ' where ' + sql_where;
+    sql.add(s);
+    ExecSQL;
+    Result := true;
+    Free;
+    end;
+end;
+
+
 Function TSQLQuery.GetCanModify: Boolean;
 
 begin
-  Result:= False;
+  if FCursor.StatementType = stSelect then
+    Result:= Active and  FUpdateable
+  else
+    Result := False;
 end;
 
 end.
 
 {
   $Log$
-  Revision 1.9  2004-12-13 19:22:16  michael
+  Revision 1.10  2004-12-29 14:31:27  michael
+    + Patch from Joost van der Sluis:
+    - implemented support for modifying queries, with a simple parser
+    - implemented ApplyRecUpdate
+
+  Revision 1.9  2004/12/13 19:22:16  michael
     * Ptahc from Joost van der Sluis
     - moved IsCursorOpen from TSQLQuery to tbufdataset
     - moved SetFieldData from TSQLQuery to TBufDataset
