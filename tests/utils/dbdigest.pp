@@ -421,7 +421,7 @@ begin
     readln(logfile,line);
     If analyse(line,TS) then
       begin
-      Verbose(V_NORMAL,'Analysing result for test'+Line);
+      Verbose(V_NORMAL,'Analysing result for test '+Line);
       Inc(StatusCount[TS]);
       If Not ExpectRun[TS] then
         begin
@@ -475,7 +475,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2003-10-15 21:45:50  florian
+  Revision 1.11  2003-10-17 08:08:07  florian
+    * cosmetic fix in console output
+
+  Revision 1.10  2003/10/15 21:45:50  florian
     + added submitter, machine and comment field to sql version
 
   Revision 1.9  2003/10/15 19:39:42  florian
