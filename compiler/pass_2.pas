@@ -288,8 +288,13 @@ implementation
               { process register variable stuff (JM) }
               assign_regvars(p);
               load_regvars(procinfo^.aktentrycode,p);
-              cleanup_regvars(procinfo^.aktexitcode);
 
+              { for the i386 it must be done in genexitcode because it has  }
+              { to add 'fstp' instructions when using fpu regvars and those }
+              { must come after the "exitlabel" (JM)                        }
+{$ifndef i386}
+              cleanup_regvars(procinfo^.aktexitcode);
+{$endif i386}
               if assigned(aktprocsym) and
                  (aktprocdef.proccalloption=pocall_inline) then
                 make_const_global:=true;
@@ -306,7 +311,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2001-11-02 22:58:02  peter
+  Revision 1.21  2001-11-06 16:39:02  jonas
+    * moved call to "cleanup_regvars" to cga.pas for i386 because it has
+      to insert "fstp %st0" instructions after the exit label
+
+  Revision 1.20  2001/11/02 22:58:02  peter
     * procsym definition rewrite
 
   Revision 1.19  2001/10/25 21:22:35  peter

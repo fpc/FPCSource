@@ -2518,7 +2518,7 @@ implementation
   begin
       oldexprasmlist:=exprasmlist;
       exprasmlist:=alist;
-
+      
       if aktexit2label.is_used and
          ((procinfo^.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0) then
         begin
@@ -2529,6 +2529,8 @@ implementation
 
       if aktexitlabel.is_used then
         exprasmList.concat(Tai_label.Create(aktexitlabel));
+
+      cleanup_regvars(alist);
 
       { call the destructor help procedure }
       if (aktprocdef.proctypeoption=potype_destructor) and
@@ -2974,7 +2976,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2001-11-02 22:58:09  peter
+  Revision 1.10  2001-11-06 16:39:02  jonas
+    * moved call to "cleanup_regvars" to cga.pas for i386 because it has
+      to insert "fstp %st0" instructions after the exit label
+
+  Revision 1.9  2001/11/02 22:58:09  peter
     * procsym definition rewrite
 
   Revision 1.8  2001/10/25 21:22:41  peter
