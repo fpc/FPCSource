@@ -13,6 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$I globdir.inc}
 unit FPCalc;
 
 interface
@@ -67,6 +68,7 @@ type
     procedure   Close; virtual;
   end;
 
+{$ifndef NOOBJREG}
 const
   RCalcButton: TStreamRec = (
      ObjType: 10139;
@@ -86,6 +88,7 @@ const
      Load:    @TCalculator.Load;
      Store:   @TCalculator.Store
   );
+{$endif}
 
 procedure RegisterFPCalc;
 
@@ -423,15 +426,20 @@ end;
 
 procedure RegisterFPCalc;
 begin
+{$ifndef NOOBJREG}
   RegisterType(RCalcButton);
   RegisterType(RCalcDisplay);
   RegisterType(RCalculator);
+{$endif}
 end;
 
 end.
 {
   $Log$
-  Revision 1.4  1999-04-07 21:55:41  peter
+  Revision 1.5  1999-06-28 19:25:35  peter
+    * fixes from gabor
+
+  Revision 1.4  1999/04/07 21:55:41  peter
     + object support for browser
     * html help fixes
     * more desktop saving things

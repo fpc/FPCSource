@@ -21,6 +21,9 @@ uses
 {$ifdef IDEHeapTrc}
   HeapTrc,
 {$endif IDEHeapTrc}
+{$ifdef go32v2}
+  ,dpmiexcp
+{$endif go32v2}
   Dos,Objects,
   BrowCol,
   Views,App,Dialogs,ColorSel,Menus,StdDlg,Validate,
@@ -29,11 +32,7 @@ uses
   WViews,
   FPIDE,FPCalc,FPCompile,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
-  FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPCatch,FPRedir,FPDesk
-{$ifdef FPC}
-  ,dpmiexcp
-{$endif FPC}
-  ;
+  FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPCatch,FPRedir,FPDesk;
 
 
 procedure ProcessParams(BeforeINI: boolean);
@@ -57,7 +56,11 @@ begin
         case Upcase(Param[1]) of
           'C' : { custom config file (BP compatiblity) }
            if BeforeINI then
-            INIPath:=copy(Param,2,255);
+            begin
+              if (length(Param)>=1) and (Param[1] in['=',':']) then
+                Delete(Param,1,1); { eat separator }
+              INIPath:=copy(Param,2,255);
+            end;
           'R' : { enter the directory last exited from (BP comp.) }
             begin
               Param:=copy(Param,2,255);
@@ -172,7 +175,6 @@ BEGIN
   DoneDesktopFile;
 
   MyApp.Done;
-
   WriteSwitches(SwitchesPath);
 
   DoneTemplates;
@@ -192,7 +194,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.24  1999-06-28 12:40:56  pierre
+  Revision 1.25  1999-06-28 19:25:34  peter
+    * fixes from gabor
+
+  Revision 1.24  1999/06/28 12:40:56  pierre
    + clear tool messages at exit
 
   Revision 1.23  1999/06/25 00:48:05  pierre
