@@ -10,11 +10,13 @@ version=1.0.5
 packages=paszlib
 packages_linux=inet
 packages_freebsd=inet
+packages_netbsd=inet
 
 [target]
 dirs=xml db shedit
 units=classes inifiles registry ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls
 units_freebsd=process asyncio ssockets http
+units_netbsd=process asyncio ssockets http
 units_linux=process asyncio ssockets http
 units_win32=process fileinfo
 rsts=classes ssockets cachecls
