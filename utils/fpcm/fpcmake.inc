@@ -148,9 +148,9 @@ const fpcmakeini : array[0..185,1..240] of char=(
   'endif'#010+
   'endif'#010+
   #010+
-  '# Try to detect the ppcXXX file to use by using "fpc -QB" option'#010+
+  '# Try to detect the ppcXXX file to use by using "fpc -PB" option'#010+
   '# to query for the default ppcXXX the fpc executable tries. When'#010+
-  '# fpc is not found use ppc386 by default. Also wh','en fpc -QB gives'#010+
+  '# fpc is not found use ppc386 by default. Also wh','en fpc -PB gives'#010+
   '# an error ppc386 will be used.'#010+
   'ifndef FPC'#010+
   '# check if fpc exists'#010+
@@ -158,7 +158,7 @@ const fpcmakeini : array[0..185,1..240] of char=(
   ')))'#010+
   'ifneq ($(FPCPROG),)'#010+
   'FPCPROG:=$(firstword $(FPCPROG))'#010+
-  'FPC:=$(shell $(FPCPROG) -QB)'#010+
+  'FPC:=$(shell $(FPCPROG) -PB)'#010+
   '# ','Older fpc executables didn'#039't support it and return'#010+
   '# Error: Illegal processor... When found then fallback to ppc386'#010+
   'ifneq ($(findstring Error,$(FPC)),)'#010+
