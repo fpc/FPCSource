@@ -19,6 +19,7 @@
 unit Interbase;
 
 {$H+}
+{$M+}	// ### remove this!!!
 
 interface
 
@@ -33,7 +34,10 @@ type
   TIBTransaction = class;
   TIBQuery = class;
   TIBStoredProc = class;
-    
+
+  EInterBaseError = class(Exception);    
+
+
 { TIBDatabase }
   
   TIBDatabase = class (TDatabase)
@@ -43,6 +47,7 @@ type
     FStatus              : array [0..19] of ISC_STATUS;
     FTransaction         : TIBTransaction;
     FUserName            : string;
+    FCharSet		 : string;
     FDialect             : integer;
     
     procedure SetDBDialect;
@@ -64,8 +69,8 @@ type
   public
     procedure StartTransaction; override;
     procedure EndTransaction; override;
-    constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
+    property Handle: Pointer read GetHandle;
   published
     { On connect, TIBDatabase object retrieve SQL dialect of database file,
       and sets this property to responding value }
@@ -80,6 +85,8 @@ type
     { Before firing Open method you must set @link(Password),@link(DatabaseName),
       @link(UserName) properties in order of successfull connect to database }
     property UserName : string read FUserName write FUserName;
+    { The character set used in SQL statements }
+    property CharSet : string read FCharSet write FCharSet;
 
     { Identifies, if connection to Interbase server is established, or not.
       Instead of calling Open, Close methods you can connect or disconnect
@@ -151,6 +158,7 @@ type
     procedure StartTransaction;
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
+    property Handle: Pointer read GetHandle;
   published
     { Default action while closing transaction by setting 
      @link(Active) property. For details see @link(TCommitRollbackAction)}
@@ -306,7 +314,7 @@ begin
     p := @Status;
     while isc_interprete(Buf, @p) > 0 do
       Msg := Msg + #10' -' + StrPas(Buf);
-    raise Exception.Create(ProcName + ': ' + Msg);
+    raise EInterBaseError.Create(ProcName + ': ' + Msg);
   end;
 end;
 
@@ -343,8 +351,9 @@ begin
   if FTransaction = nil then
   begin
     FTransaction := Value;
-    FTransaction.Database := Self;
-    Exit;
+    if Assigned(FTransaction) then
+      FTransaction.Database := Self;
+    exit;
   end;
   
   if (Value <> FTransaction) and (Value <> nil) then
@@ -353,7 +362,8 @@ begin
       FTransaction := Value;
       FTransaction.Database := Self;
     end
-    else Exception.Create('Cannot assign transaction while old transaction active!'); 
+    else
+      raise EInterBaseError.Create('Cannot assign transaction while old transaction active!');
 end;
 
 function TIBDatabase.GetHandle: pointer;
@@ -374,8 +384,11 @@ begin
     if (FPassword <> '') then
       DPB := DPB + chr(isc_dpb_password) + chr(Length(FPassword)) + FPassword;
   end;
+  if Length(CharSet) > 0 then
+    DPB := DPB + Chr(isc_dpb_lc_ctype) + Chr(Length(CharSet)) + CharSet;
+
   if (DatabaseName = '') then
-    raise Exception.Create('TIBDatabase.Open: Database connect string not filled in!');
+    raise EInterBaseError.Create('TIBDatabase.Open: Database connect string not filled in!');
   FIBDatabaseHandle := nil;
   if isc_attach_database(@FStatus, Length(DatabaseName), @DatabaseName[1], @FIBDatabaseHandle, 
          Length(DPB), @DPB[1]) <> 0 then
@@ -408,16 +421,6 @@ begin
   FTransaction.Active := False;    
 end;
 
-constructor TIBDatabase.Create(AOwner : TComponent);
-begin
-  inherited Create(AOwner);
-  FIBDatabaseHandle    := nil;
-  FPassword            := '';
-  FTransaction         := nil;
-  FUserName            := '';
-  FillChar(FStatus, SizeOf(FStatus), #0);
-end;
-
 destructor TIBDatabase.Destroy;
 begin
   if FTransaction <> nil then
@@ -432,17 +435,9 @@ end;
 
 procedure TIBTransaction.SetActive(Value : boolean);
 begin
-  if FActive = Value then Exit;
-  if (FActive) and (not Value) then
-    case FAction of
-      caCommit            : Commit;
-      caCommitRetaining   : CommitRetaining;
-      caRollback          : Rollback;
-      caRollbackRetaining : RollbackRetaining;
-    else
-      Exception.Create('TIBTransaction.SetActive: Transaction is already active.');
-    end;
-  if (not FActive) and (Value) then
+  if FActive and (not Value) then
+    Rollback
+  else if (not FActive) and Value then
     StartTransaction;
 end;
 
@@ -523,7 +518,7 @@ begin
   if Active then Active := False;
   
   if FDatabase = nil then
-    Exception.Create('TIBTransaction.StartTransaction: Database not assigned!');
+    raise EInterBaseError.Create('TIBTransaction.StartTransaction: Database not assigned!');
   
   if not Database.Connected then
     Database.Open;
@@ -541,34 +536,16 @@ end;
 constructor TIBTransaction.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
-
-  FAction := caNone;
-  FActive := False;
-  FAccessMode := amReadWrite;
   FIsolationLevel := ilReadCommitted;
-  FLockResolution := lrWait;
-  FTableReservation := trNone;
-  FTransactionHandle := nil;
-  FDatabase := nil;
-  
-  FillChar(FStatus, SizeOf(FStatus), #0);
 end;
 
 destructor TIBTransaction.Destroy;
 begin
+  // This will also do a Rollback, if the transaction is currently active
+  Active := False;
+
   if Database <> nil then
     Database.Transaction := nil;
-
-{  // i really can't allow commit of transaction
-  // on destroy...
-}
-{  
-  try
-    if Active then 
-      Active := False;
-  except
-  end;
-}
   
   inherited Destroy;
 end;
@@ -596,8 +573,11 @@ end;
 procedure TIBQuery.AllocSQLDA(Count : integer);
 begin
   if FSQLDAAllocated > 0 then
-    FreeMem(FSQLDA, XSQLDA_Length * FSQLDAAllocated);
-  GetMem(FSQLDA, XSQLDA_Length * Count);
+    FreeMem(FSQLDA);
+  GetMem(FSQLDA, XSQLDA_Length(Count));
+  { Zero out the memory block to avoid problems with exceptions within the
+    constructor of this class. }
+  FillChar(FSQLDA^, XSQLDA_Length(Count), 0);
   FSQLDAAllocated := Count;
   FSQLDA^.Version := sqlda_version1;
   FSQLDA^.SQLN := Count; 
@@ -618,7 +598,7 @@ end;
 procedure TIBQuery.FreeStatement;
 begin
   if isc_dsql_free_statement(@FStatus, @FStatement, DSQL_Drop) <> 0 then
-    CheckError('TIBQuery.DeallocStatement', FStatus);
+    CheckError('TIBQuery.FreeStatement', FStatus);
   FStatement := nil;
 end;
 
@@ -633,7 +613,7 @@ begin
   for x := 0 to FSQL.Count - 1 do
     Buf := Buf + FSQL[x] + ' ';
     
-  if isc_dsql_prepare(@FStatus, @tr, @FStatement, 0, @Buf[1], 1, nil) <> 0 then
+  if isc_dsql_prepare(@FStatus, @tr, @FStatement, 0, @Buf[1], Database.Dialect, nil) <> 0 then
     CheckError('TIBQuery.PrepareStatement', FStatus);
 end;
 
@@ -678,14 +658,12 @@ end;
 
 procedure TIBQuery.AllocFldBuffers;
 var
-  Buf: pointer;
   x  : shortint;
 begin
   {$R-}
   for x := 0 to FSQLDA^.SQLD - 1 do
   begin
-    Buf := AllocMem(FSQLDA^.SQLVar[x].SQLLen);
-    FSQLDA^.SQLVar[x].SQLData := Buf;
+    FSQLDA^.SQLVar[x].SQLData := AllocMem(FSQLDA^.SQLVar[x].SQLLen);
     FSQLDA^.SQLVar[x].SQLInd  := @FFieldFlag[x];
   end;
   {$R+}
@@ -1161,24 +1139,20 @@ end;
 procedure TIBQuery.ExecSQL;
 begin
   AllocStatement;
-  PrepareStatement;
-  GetStatementType;
-  Execute;
-  FreeStatement;
+  try
+    PrepareStatement;
+    GetStatementType;
+    Execute;
+  finally
+    FreeStatement;
+  end;
 end;
 
 constructor TIBQuery.Create(AOwner : TComponent);
 begin
   inherited Create(AOwner);
-  FillChar(FFieldFlag, SizeOf(FFieldFlag), #0);
   FSQL := TStringList.Create;
-  FStatement := nil;
   FCurrentRecord := -1;
-  FDatabase := nil;
-  FTransaction := nil;
-  FSQLDAAllocated := 0;
-  FLoadingFieldDefs := False;
-  FPrepared := False;
   AllocSQLDA(10);
 end;
 
@@ -1187,7 +1161,7 @@ begin
   if Active then Close;
   FSQL.Free;
   inherited Destroy;
-  FreeMem(FSQLDA, XSQLDA_Length * FSQLDAAllocated);
+  FreeMem(FSQLDA);
 end;
 
 { TIBStoredProc }
