@@ -62,10 +62,17 @@ interface
        float = extended;
        PFloat = ^Float;
        PInteger = ^Integer;
-       
+
        tpaymenttime = (ptendofperiod,ptstartofperiod);
 
        einvalidargument = class(ematherror);
+
+       TValueRelationship = -1..1;
+
+    const
+       EqualsValue = 0;
+       LessThanValue = Low(TValueRelationship);
+       GreaterThanValue = High(TValueRelationship);
 
 { Min/max determination }
 function MinIntValue(const Data: array of Integer): Integer;
@@ -220,7 +227,7 @@ implementation
 ResourceString
   SMathError = 'Math Error : %s';
   SInvalidArgument = 'Invalid argument';
-  
+
 Procedure DoMathError(Const S : String);
 begin
   Raise EMathError.CreateFmt(SMathError,[S]);
@@ -461,7 +468,7 @@ function lnxp1(x : float) : float;
 function power(base,exponent : float) : float;
 
   begin
-    If Exponent=0.0 then 
+    If Exponent=0.0 then
       Result:=1.0
     else
       If base>0.0 then
@@ -553,11 +560,11 @@ function sum(const data : PFloat;Const N : longint) : float;
   end;
 
  function sumofsquares(const data : array of float) : float;
- 
+
  begin
    Result:=sumofsquares(@data[0],High(Data)+1);
  end;
- 
+
  function sumofsquares(const data : PFloat; Const N : Integer) : float;
 
   var
@@ -632,7 +639,7 @@ begin
   StdDev:=(StdDev-N*Sqr(Mean));
   If N>1 then
     StdDev:=Sqrt(Stddev/(N-1))
-  else  
+  else
     StdDev:=0;
 end;
 
@@ -645,7 +652,7 @@ function variance(const data : array of float) : float;
 function variance(const data : PFloat; Const N : Integer) : float;
 
   begin
-     If N=1 then 
+     If N=1 then
        Result:=0
      else
        Result:=TotalVariance(Data,N)/(N-1);
@@ -953,7 +960,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-07-30 10:01:04  sg
+  Revision 1.5  2001-06-04 18:45:58  peter
+    * added constant
+
+  Revision 1.4  2000/07/30 10:01:04  sg
   * Made some modifications suggested by Markus Kaemmerer:
     - MaxTanh is now the exact value Ln(MaxExtended)/2
     - The 'for' loops in MinValue and MaxValue can start with the second
@@ -968,5 +978,5 @@ end.
 
   Revision 1.2  2000/07/13 11:33:51  michael
   + removed logs
- 
+
 }
