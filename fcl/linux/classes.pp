@@ -36,24 +36,30 @@ uses
 
 var
 ClassList : TThreadlist;
-
+ClassAliasList : TStringList;
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
 
 
 initialization
-ClassList := TThreadList.Create;
+  ClassList := TThreadList.Create;
+  ClassAliasList := TStringList.Create;
 
 finalization
-ClassList.Free;
+  ClassList.Free;
+  ClassAliasList.Free;
 
-if ThreadsInited then
-   DoneThreads;
+  if ThreadsInited then
+     DoneThreads;
 
 end.
 {
   $Log$
-  Revision 1.16  2000-06-27 15:55:19  lazarus
+  Revision 1.17  2000-06-27 17:17:34  lazarus
+  Added code for registerclass, GetClass and RegisterClasses
+  Shane
+
+  Revision 1.16  2000/06/27 15:55:19  lazarus
   Added TThreadlist code.   Shane
 
   Revision 1.15  2000/01/07 01:24:34  peter

@@ -17,14 +17,36 @@
 { Class registration routines }
 
 procedure RegisterClass(AClass: TPersistentClass);
-
+var
+aClassname : String;
 begin
+  //Classlist is created during initialization.
+  with Classlist.Locklist do
+     try
+      while Indexof(AClass) = -1 do
+         begin
+           aClassname := AClass.ClassName;
+           if GetClass(aClassName) <> nil then  //class alread registered!
+                 Begin
+                 //raise an error
+                 exit;
+                 end;
+          Add(AClass);
+          if AClass = TPersistent then break;
+          AClass := TPersistentClass(AClass.ClassParent);
+         end;
+     finally
+       ClassList.UnlockList;
+     end;
 end;
 
 
 procedure RegisterClasses(AClasses: array of TPersistentClass);
-
+var
+I : Integer;
 begin
+for I := low(aClasses) to high(aClasses) do
+       RegisterClass(aClasses[I]);
 end;
 
 
@@ -60,12 +82,27 @@ end;
 
 
 function GetClass(const ClassName: string): TPersistentClass;
-
+var
+I : Integer;
 begin
-  GetClass:=nil;
+  with ClassList.LockList do
+   try
+    for I := 0 to Count-1 do
+       begin
+        Result := TPersistentClass(Items[I]);
+        if Result.ClassNameIs(ClassName) then Exit;
+       end;
+       I := ClassAliasList.Indexof(ClassName);
+       if I >= 0 then  //found
+          Begin
+          Result := TPersistentClass(ClassAliasList.Objects[i]);
+          exit;
+          end;
+       Result := nil;
+    finally
+      ClassList.Unlocklist;
+    end;
 end;
-
-
 
 { Component registration routines }
 
@@ -148,7 +185,11 @@ end;
 
 {
   $Log$
-  Revision 1.4  2000-01-07 01:24:33  peter
+  Revision 1.5  2000-06-27 17:17:34  lazarus
+  Added code for registerclass, GetClass and RegisterClasses
+  Shane
+
+  Revision 1.4  2000/01/07 01:24:33  peter
     * updated copyright to 2000
 
   Revision 1.3  2000/01/06 01:20:33  peter
