@@ -62,13 +62,13 @@ begin
   writeln('**************');
   write('Press Enter for an Exec of ''ls -la''');
   Readln;
-{$ifdef linux }
+{$ifdef unix }
   Exec('ls','-la');
-{$else not linux }
+{$else not unix }
   SwapVectors;
   Exec('ls','-la');
   SwapVectors;
-{$endif not linux }
+{$endif not unix }
   write('Press Enter');
   Readln;
 end;
@@ -157,11 +157,11 @@ begin
   test:='..\;\usr\;\usr\bin\;\usr\bin;\bin\;';
 {$endif not linux}
   test:=test+getenv('PATH');
-{$ifdef linux}
+{$ifdef unix}
   Writeln('FSearch ls: ',FSearch('ls',test));
-{$else not linux}
+{$else not unix}
   Writeln('FSearch ls: ',FSearch('ls.exe',test));
-{$endif not linux}
+{$endif not unix}
 
   write('Press Enter');
   Readln;
