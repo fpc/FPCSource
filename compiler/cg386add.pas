@@ -378,42 +378,33 @@ implementation
 {$EndIf NoSetInclusion}
                   : begin
                      cmpop:=true;
-{$IfNDef regallocfix}
                      del_location(p^.left^.location);
                      del_location(p^.right^.location);
                      pushusedregisters(pushedregs,$ff);
-{$EndIf regallocfix}
 {$IfNDef NoSetInclusion}
                      If (p^.treetype in [equaln, unequaln, lten]) Then
                        Begin
 {$EndIf NoSetInclusion}
                          emitpushreferenceaddr(p^.right^.location.reference);
-{$IfDef regallocfix}
-                         del_location(p^.right^.location);
-{$EndIf regallocfix}
                          emitpushreferenceaddr(p^.left^.location.reference);
-{$IfDef regallocfix}
-                         del_location(p^.left^.location);
-{$EndIf regallocfix}
 {$IfNDef NoSetInclusion}
                        End
                      Else  {gten = lten, if the arguments are reversed}
                        Begin
                          emitpushreferenceaddr(p^.left^.location.reference);
-{$IfDef regallocfix}
-                         del_location(p^.left^.location);
-{$EndIf regallocfix}
                          emitpushreferenceaddr(p^.right^.location.reference);
-{$IfDef regallocfix}
-                         del_location(p^.right^.location);
-{$EndIf regallocfix}
                        End;
                      Case p^.treetype of
                        equaln, unequaln:
 {$EndIf NoSetInclusion}
                          emitcall('FPC_SET_COMP_SETS');
 {$IfNDef NoSetInclusion}
-                       lten, gten: emitcall('FPC_SET_CONTAINS_SETS')
+                       lten, gten:
+                         Begin
+                           emitcall('FPC_SET_CONTAINS_SETS');
+                           { we need a jne afterwards, not a jnbe/jnae }
+                           p^.treetype := equaln;
+                        End;
                      End;
 {$EndIf NoSetInclusion}
                      maybe_loadesi;
@@ -954,7 +945,7 @@ implementation
                                  Case p^.treetype of
                                    lten,gten:
                                      Begin
-                                      If p^.treetype = gten then
+                                      If p^.treetype = lten then
                                         swaptree(p);
                                       if p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE] then
                                         begin
@@ -2122,7 +2113,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  1999-08-19 13:08:43  pierre
+  Revision 1.75  1999-08-23 10:35:13  jonas
+    * fixed <= and >= for sets
+
+  Revision 1.74  1999/08/19 13:08:43  pierre
    * emit_??? used
 
   Revision 1.73  1999/08/07 11:29:26  peter
