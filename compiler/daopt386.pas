@@ -1706,6 +1706,7 @@ Begin
                      (Paicpu(p)^.OpCode = A_DIV) Then
                     ReadReg(CurProp,R_EDX);
                   DestroyReg(CurProp, R_EAX, true)
+                  DestroyReg(CurProp, R_EDX, true)
                 End;
               A_IMUL:
                 Begin
@@ -1930,7 +1931,10 @@ End.
 
 {
  $Log$
- Revision 1.68  1999-11-07 14:57:09  jonas
+ Revision 1.69  1999-11-13 19:01:51  jonas
+   * div, idiv and mul destroy edx!!
+
+ Revision 1.68  1999/11/07 14:57:09  jonas
    * much more complete/waterproof RegModifiedByInstruction()
 
  Revision 1.67  1999/11/06 14:34:20  peter
