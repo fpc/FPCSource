@@ -644,6 +644,8 @@ asm
         xorl    %esi,%esi
         movl    %esi,8(%ebp)
 .LHFC_1:
+        pushl   $203
+        call    HandleError
 end;
 
 
@@ -1170,7 +1172,10 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.19  2001-12-03 21:39:19  peter
+  Revision 1.20  2002-03-30 14:52:04  carl
+  * cause runtime error 203 on failed class creation
+
+  Revision 1.19  2001/12/03 21:39:19  peter
     * freemem(var) -> freemem(value)
 
   Revision 1.18  2001/10/09 02:43:58  carl
