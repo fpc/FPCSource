@@ -266,6 +266,7 @@ Var
  Stream : TSocketStream;
 
 begin
+  FAccepting := True; 
   Listen;
   Repeat
     Repeat
@@ -515,7 +516,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2002-09-07 15:15:25  peter
+  Revision 1.13  2002-12-12 17:53:49  peter
+    * add FAccepting:=true to StartAccepting
+
+  Revision 1.12  2002/09/07 15:15:25  peter
     * old logs removed and tabs fixed
 
   Revision 1.11  2002/05/31 11:31:46  marco
