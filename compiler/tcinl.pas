@@ -602,6 +602,10 @@ implementation
                                   (p^.left^.right^.left^.registers32<=1) then
                                   inc(p^.registers32);
 
+                                { do we need an additional register to restore the first parameter? }
+                                if p^.left^.right^.left^.registers32>=p^.registers32 then
+                                  inc(p^.registers32);
+
                                 if assigned(p^.left^.right^.right) then
                                   CGMessage(cg_e_illegal_expression);
                              end;
@@ -1250,7 +1254,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  1999-09-27 23:45:01  peter
+  Revision 1.53  1999-09-28 20:48:27  florian
+    * fixed bug 610
+    + added $D- for TP in symtable.pas else it can't be compiled anymore
+      (too much symbols :()
+
+  Revision 1.52  1999/09/27 23:45:01  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 

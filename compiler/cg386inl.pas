@@ -1113,7 +1113,10 @@ implementation
               { second argument specified?, must be a s32bit in register }
                 if assigned(p^.left^.right) then
                  begin
+                   ispushed:=maybe_push(p^.left^.right^.left^.registers32,p^.left^.left,false);
                    secondpass(p^.left^.right^.left);
+                   if ispushed then
+                     restore(p^.left^.left,false);
                  { when constant, just multiply the addvalue }
                    if is_constintnode(p^.left^.right^.left) then
                     addvalue:=addvalue*get_ordinal_value(p^.left^.right^.left)
@@ -1406,7 +1409,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  1999-09-26 13:26:05  florian
+  Revision 1.73  1999-09-28 20:48:23  florian
+    * fixed bug 610
+    + added $D- for TP in symtable.pas else it can't be compiled anymore
+      (too much symbols :()
+
+  Revision 1.72  1999/09/26 13:26:05  florian
     * exception patch of Romio nevertheless the excpetion handling
       needs some corections regarding register saving
     * gettempansistring is again a procedure

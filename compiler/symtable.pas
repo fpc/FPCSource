@@ -20,7 +20,7 @@
  ****************************************************************************
 }
 {$ifdef TP}
-  {$N+,E+,F+}
+  {$N+,E+,F+,D-}
 {$endif}
 unit symtable;
 
@@ -924,8 +924,7 @@ implementation
       end;
 {$endif}
 
-    procedure write_refs(sym : pnamedindexobject);
-      begin
+    procedure write_refs(sym : pnamedindexobject);       begin
          psym(sym)^.write_references;
       end;
 
@@ -2410,7 +2409,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  1999-09-27 23:44:59  peter
+  Revision 1.50  1999-09-28 20:48:25  florian
+    * fixed bug 610
+    + added $D- for TP in symtable.pas else it can't be compiled anymore
+      (too much symbols :()
+
+  Revision 1.49  1999/09/27 23:44:59  peter
     * procinfo is now a pointer
     * support for result setting in sub procedure
 
