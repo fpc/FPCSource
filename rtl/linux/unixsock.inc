@@ -128,7 +128,7 @@ end;
 
 function  fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : tsocklen):cint;
 begin
-  fpSetSockOpt:=SocketCall(Socket_Sys_SetSockOpt,S,optname,TSysParam(optval),optlen,0,0);
+  fpSetSockOpt:=SocketCall(Socket_Sys_SetSockOpt,S,level,optname,TSysParam(optval),optlen,0);
 end;
 
 function  fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; 
@@ -144,7 +144,10 @@ end;
 
 {
  $Log$
- Revision 1.11  2004-03-20 15:19:29  marco
+ Revision 1.12  2004-03-22 06:49:28  marco
+  * more fixes from Lloyd
+
+ Revision 1.11  2004/03/20 15:19:29  marco
   * *BSD do_syscall was left behind. Replaced with socketcall
 
  Revision 1.10  2004/03/16 18:03:37  marco
