@@ -24,6 +24,12 @@ begin
   UserScreenWindow^.MakeFirst;
 end;
 
+procedure TIDEApp.DoCloseUserScreenWindow;
+begin
+  if Assigned(UserScreenWindow) then
+    Message(UserScreenWindow,evCommand,cmClose,nil);
+end;
+
 procedure TIDEApp.DoUserScreen;
 begin
   if UserScreen=nil then
@@ -119,7 +125,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1999-09-09 14:20:05  pierre
+  Revision 1.9  1999-09-22 16:18:19  pierre
+   + TIDEApp.DoCloseUserScreenWindow
+
+  Revision 1.8  1999/09/09 14:20:05  pierre
    + Stack Window
 
   Revision 1.7  1999/07/28 23:11:19  peter
