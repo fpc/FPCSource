@@ -1926,7 +1926,7 @@ code segment.
 \item Arithmetic operations on constant expression use the same
 operands as the intel version (e.g : \var{AND}, \var{XOR} ...)
 \item Segment directives are not supported
-\item Only 68000 opcodes are currently supported
+\item Only 68000 and a subset of 68020 opcodes are currently supported
 \end{itemize}
 
 The inline assembler supports the following macros:
@@ -4752,8 +4752,8 @@ only} when you know what you're doing.
 
 \subsection{Motorola 680x0 specific}
 
-Using the \var{-O2} switch does several optimizations in the
-code produced, the most notable being:
+Using the \var{-O2} (the default) switch does several optimizations 
+in the code produced, the most notable being:
 
 \begin{itemize}
 \item Sign extension from byte to long will use \var{EXTB}
@@ -6742,7 +6742,7 @@ FPC\_LINK\_DYNAMIC & Defined when the output will be linked dynamically.\\
 & This is defined when using the -XD compiler switch.\\
 FPC\_LINK\_STATIC & Defined when the output will be linked statically.\\
 & This is the default mode. \\
-FPC\_LINK\_SHARED & Defined when the output will be smartlinked.\\
+FPC\_LINK\_SMART & Defined when the output will be smartlinked.\\
 & This is defined when using the -XX compiler switch.\\
 FPC\_PROFILE & Defined when profiling code is added to program.\\
 & This is defined when using the -pg compiler switch.\\
