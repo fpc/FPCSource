@@ -622,9 +622,7 @@ begin
          end;
 
         else
-           Begin
-             Message(scan_f_illegal_char);
-           end;
+           current_scanner^.illegal_char(c);
      end;
    end;
 end;
@@ -1899,7 +1897,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2000-06-15 18:07:08  peter
+  Revision 1.75  2000-06-18 18:07:06  peter
+    * use new illegal_char method
+
+  Revision 1.74  2000/06/15 18:07:08  peter
     * fix constant parsing which gave an error when constants were used
 
   Revision 1.73  2000/06/14 19:02:41  peter
