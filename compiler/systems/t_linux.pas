@@ -545,11 +545,20 @@ initialization
   RegisterExport(system_SPARC_linux,texportliblinux);
   RegisterTarget(system_SPARC_linux_info);
 {$endif SPARC}
+{$ifdef ARM}
+  RegisterExternalLinker(system_arm_linux_info,TLinkerLinux);
+  RegisterImport(system_arm_linux,timportliblinux);
+  RegisterExport(system_arm_linux,texportliblinux);
+  RegisterTarget(system_arm_linux_info);
+{$endif ARM}
 end.
 
 {
   $Log$
-  Revision 1.8  2003-04-27 07:29:52  peter
+  Revision 1.9  2003-07-21 11:52:57  florian
+    * very basic stuff for the arm
+
+  Revision 1.8  2003/04/27 07:29:52  peter
     * aktprocdef cleanup, aktprocdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed

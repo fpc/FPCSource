@@ -111,8 +111,9 @@ interface
              system_x86_64_linux,       { 26 }
              system_powerpc_darwin,     { 27 }
              system_i386_EMX,           { 28 }
-	         system_powerpc_netbsd,	    { 29 }
-    	     system_powerpc_openbsd	    { 30 }
+	     system_powerpc_netbsd,     { 29 }
+    	     system_powerpc_openbsd,    { 30 }
+             system_arm_linux           { 31 }
        );
 
        tasm = (as_none
@@ -132,7 +133,6 @@ interface
              ,as_i386_pecoffwdosx
              ,as_m68k_mit
              ,as_powerpc_mpw
-             ,as_x86_64_as
        );
 
        tar = (ar_none
@@ -345,7 +345,6 @@ implementation
 
     uses
       cutils;
-
 
 
 {****************************************************************************
@@ -634,8 +633,8 @@ end;
 
 procedure InitSystems;
 begin
-{ Now default target, this is dependent on the i386 or m68k define,
-  when the define is the same as the current cpu then we use the source
+{ Now default target, this is dependent on the target cpu define,
+  when the define is the same as the source cpu then we use the source
   os, else we pick a default }
 {$ifdef i386}
   {$ifdef cpu86}
@@ -672,9 +671,20 @@ begin
     default_target(system_powerpc_linux);
   {$endif cpupowerpc}
 {$endif powerpc}
-{$IFDEF sparc}
-  default_target(system_sparc_linux);
-{$ENDIF sparc}
+{$ifdef sparc}
+  {$ifdef cpusparc}
+    default_target(source_info.system);
+  {$else cpusparc}
+    default_target(system_sparc_linux);
+  {$endif cpusparc}
+{$endif sparc}
+{$ifdef arm}
+  {$ifdef cpuarm}
+    default_target(source_info.system);
+  {$else cpuarm}
+    default_target(system_arm_linux);
+  {$endif cpuarm}
+{$endif arm}
 end;
 
 
@@ -685,7 +695,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.65  2003-05-31 16:17:27  marco
+  Revision 1.66  2003-07-21 11:52:57  florian
+    * very basic stuff for the arm
+
+  Revision 1.65  2003/05/31 16:17:27  marco
    * cpuppc -> cpupowerpc. Target compiler was always linux for ppc
 
   Revision 1.64  2003/05/28 23:18:31  florian

@@ -414,6 +414,70 @@ unit i_linux;
             use_function_relative_addresses : true
           );
 
+       system_arm_linux_info : tsysteminfo =
+          (
+            system       : system_arm_Linux;
+            name         : 'Linux for ARM';
+            shortname    : 'linux';
+            flags        : [];
+            cpu          : cpu_SPARC;
+            unit_env     : 'LINUXUNITS';
+            extradefines : 'UNIX;HASUNIX';
+            sourceext    : '.pp';
+            pasext       : '.pas';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            script       : script_unix;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 0;
+                localalignmax   : 4;
+                paraalign       : 4;
+                recordalignmin  : 4;
+                recordalignmax  : 4;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            heapsize     : 256*1024;
+            stacksize    : 262144;
+            DllScanSupported:false;
+            use_function_relative_addresses : true
+          );
+
   implementation
 
 initialization
@@ -450,11 +514,18 @@ initialization
     set_source_info(system_powerpc_linux_info);
   {$endif linux}
 {$endif CPUPOWERPC}
-
+{$ifdef CPUARM}
+  {$ifdef linux}
+    set_source_info(system_arm_linux_info);
+  {$endif linux}
+{$endif CPUARM}
 end.
 {
   $Log$
-  Revision 1.9  2003-07-06 17:58:22  peter
+  Revision 1.10  2003-07-21 11:52:57  florian
+    * very basic stuff for the arm
+
+  Revision 1.9  2003/07/06 17:58:22  peter
     * framepointer fixes for sparc
     * parent framepointer code more generic
 

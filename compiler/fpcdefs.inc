@@ -50,11 +50,13 @@
   {$define x86}
   {$define cpu64bit}
   {$define cpuextended}
+  {$define callparatemp}
 {$endif x86_64}
 
 {$ifdef alpha}
   {$define cpu64bit}
   {$undef cpuflags}
+  {$define callparatemp}
 {$endif alpha}
 
 {$ifdef sparc}
@@ -64,6 +66,10 @@
 {$ifdef powerpc}
   {$define callparatemp}
 {$endif powerpc}
+
+{$ifdef arm}
+  {$define callparatemp}
+{$endif arm}
 
 { FPU Emulator support }
 {$ifdef m68k}
@@ -77,7 +83,10 @@
 
 {
   $Log$
-  Revision 1.20  2003-05-24 21:12:57  florian
+  Revision 1.21  2003-07-21 11:52:57  florian
+    * very basic stuff for the arm
+
+  Revision 1.20  2003/05/24 21:12:57  florian
     * if something doesn't work with callparatemp, the define callparatemp
       should be used because other processors with reigster calling conventions
       depend on this as well
@@ -140,5 +149,4 @@
 
   Revision 1.3  2002/07/04 18:56:50  florian
     + log added
-
 }
