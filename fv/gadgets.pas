@@ -180,28 +180,23 @@ end;
 {  Update -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Nov99 LdB            }
 {---------------------------------------------------------------------------}
 PROCEDURE THeapView.Update;
-
-var
 {$ifdef HASGETHEAPSTATUS}
+var
   status : THeapStatus;
-  newmem : ptrint;
-{$else}
-  newmem : longint;
-{$endif}
+{$endif HASGETHEAPSTATUS}
 BEGIN
-  {$ifdef HASGETHEAPSTATUS}
-    getheapstatus(status);
-    If (OldMem <> status.CurrHeapFree) Then 
-    Begin                 { Memory differs }
-      OldMem := status.CurrHeapFree;                              { Hold memory avail }
-      DrawView;                                        { Now redraw }
-    End;
-  {$else}
+{$ifdef HASGETHEAPSTATUS}
+   GetHeapStatus(status);
+   If (OldMem <> status.CurrHeapUsed) Then Begin                 { Memory differs }
+     OldMem := status.CurrHeapUsed;                              { Hold memory avail }
+     DrawView;                                        { Now redraw }
+   End;
+{$else}
    If (OldMem <> MemAvail) Then Begin                 { Memory differs }
      OldMem := MemAvail;                              { Hold memory avail }
      DrawView;                                        { Now redraw }
    End;
-  {$endif}
+{$endif}
 END;
 
 {--THeapView----------------------------------------------------------------}
@@ -321,8 +316,8 @@ END;
 END.
 {
  $Log$
- Revision 1.8  2004-11-23 09:33:48  marco
-  * getheapstatus fix
+ Revision 1.9  2004-11-29 15:28:39  peter
+   * print usedheap when getheapstatus is available
 
  Revision 1.7  2004/11/06 17:08:48  peter
    * drawing of tview merged from old fv code
