@@ -54,6 +54,7 @@ const
      DesktopTempName      = 'fp___.dsk';
      GrepOutName          = 'grep$$.out';
      GrepErrName          = 'grep$$.err';
+     CodeCompleteUnitName = '__fp__';
 
      HTMLIndexExt         = WHTMLHlp.extHTMLIndex;
      HTMLExt              = WHTMLHlp.extHTML;
@@ -446,7 +447,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.9  2002-09-07 15:40:42  peter
+  Revision 1.10  2002-09-11 13:12:42  pierre
+   * fix CodeComplete loading and use a unit for standard units code complete
+
+  Revision 1.9  2002/09/07 15:40:42  peter
     * old logs removed and tabs fixed
 
   Revision 1.8  2002/09/03 13:57:05  pierre

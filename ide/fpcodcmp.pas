@@ -216,7 +216,8 @@ var
        begin Overflow:=true; Exit; end;
     st:=P^.GetName;
     if Length(st)>=CodeCompleteMinLen then
-      UnitsCodeCompleteWords^.Insert(NewStr(Lowcasestr(st)));
+      if not ((level=1) and OnlyStandard and (st=UpCaseStr(CodeCompleteUnitName))) then
+        UnitsCodeCompleteWords^.Insert(NewStr(Lowcasestr(st)));
     { this is wrong because it inserted args or locals of proc
       in the globals list !! PM}
     if (P^.Items<>nil) and (level=1) and
@@ -262,14 +263,16 @@ begin
   { compile a dummy file to get symbol info }
   with HiddenSource^.Editor^ do
     begin
-      FileName:='__fp__.pp';
+      FileName:=CodeCompleteUnitName+'.pp';
+      Addline('unit '+CodeCompleteUnitName+';');
+      Addline('interface');
       if StandardUnits<>'' then
         begin
           AddLine('uses');
           Addline(StandardUnits);
           Addline('  ;');
         end;
-      Addline('begin');
+      Addline('implementation');
       Addline('end.');
       SetModified(true);
       // SaveFile;
@@ -314,19 +317,19 @@ begin
       if S.Status=stOK then
         S.Read(NewUseStandardUnitsInCodeComplete,Sizeof(UseStandardUnitsInCodeComplete));
       if S.Status=stOK then
-        NewUseStandardUnitsInCodeComplete:=UseStandardUnitsInCodeComplete;
+        UseStandardUnitsInCodeComplete:=NewUseStandardUnitsInCodeComplete;
       if S.Status=stOK then
         S.Read(NewUseAllUnitsInCodeComplete,Sizeof(UseAllUnitsInCodeComplete));
       if S.Status=stOK then
-        NewUseAllUnitsInCodeComplete:=UseAllUnitsInCodeComplete;
+        UseAllUnitsInCodeComplete:=NewUseAllUnitsInCodeComplete;
       if S.Status=stOK then
         S.Read(NewShowOnlyUnique,Sizeof(ShowOnlyUnique));
       if S.Status=stOK then
-        NewShowOnlyUnique:=ShowOnlyUnique;
+        ShowOnlyUnique:=NewShowOnlyUnique;
       if S.Status=stOK then
         S.Read(NewCodeCompleteMinLen,Sizeof(CodeCompleteMinLen));
       if S.Status=stOK then
-        NewCodeCompleteMinLen:=CodeCompleteMinLen;
+        CodeCompleteMinLen:=NewCodeCompleteMinLen;
       if S.Status=stOK then
         StPtr:=S.ReadStr
       else
@@ -633,7 +636,10 @@ END.
 
 {
  $Log$
- Revision 1.9  2002-09-09 06:53:54  pierre
+ Revision 1.10  2002-09-11 13:12:42  pierre
+  * fix CodeComplete loading and use a unit for standard units code complete
+
+ Revision 1.9  2002/09/09 06:53:54  pierre
   * avoid to save file used by codecomplete
 
  Revision 1.8  2002/09/09 06:22:45  pierre
