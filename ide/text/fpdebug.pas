@@ -3029,7 +3029,8 @@ end;
 procedure DoneDebugger;
 begin
 {$ifdef DEBUG}
-  PushStatus('Closing debugger');
+  { PushStatus('Closing debugger');
+    No its called after App.Done !! }
 {$endif}
   if assigned(Debugger) then
    dispose(Debugger,Done);
@@ -3038,7 +3039,7 @@ begin
   If Use_gdb_file then
     Close(GDB_file);
   Use_gdb_file:=false;
-  PopStatus;
+  {PopStatus;}
 {$endif DEBUG}
   {DoneGDBWindow;}
 end;
@@ -3144,7 +3145,10 @@ end.
 
 {
   $Log$
-  Revision 1.48  2000-02-04 14:34:46  pierre
+  Revision 1.49  2000-02-04 23:18:05  pierre
+   * no pushstatus in DoneDebugger because its called after App.done
+
+  Revision 1.48  2000/02/04 14:34:46  pierre
   readme.txt
 
   Revision 1.47  2000/02/04 00:10:58  pierre
