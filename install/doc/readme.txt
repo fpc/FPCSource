@@ -11,7 +11,8 @@
 *** WARNING *** WARNING *** WARNING ***
 This a beta release and it still contains some known bugs. However, it would
 be very useful if you could test your projects with it and tell us when
-you find bugs.
+you find bugs. You can submit bug reports on the website or mail them to
+bugrep@freepascal.org.
 *** WARNING *** WARNING *** WARNING ***
 
 This package contains a freeware 32-bit pascal compiler for 386+. The language

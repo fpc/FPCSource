@@ -8,7 +8,7 @@
 ******************************************************************************
 
 Compiler:
-  + dyn. arrays
+  + dynamic arrays
   + interfaces
   + variants
   + full widestring support
@@ -23,6 +23,7 @@ Compiler:
   + PIC code generation
   + new language mode: "Mac Pascal"
   + full boolean evaluation is now also available
+  + threadvar support, enabled by using {$threading on}
   * support of int64 integer constants
   * improved delphi compatibility in -Sd mode
   * a lot of bug fixes
