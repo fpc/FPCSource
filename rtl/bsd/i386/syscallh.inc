@@ -30,11 +30,14 @@ function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint; external name '
 function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint; external name 'FPC_DOSYS4';
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;  external name 'FPC_DOSYS5';
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):longint;  external name 'FPC_DOSYS6';
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;   external name 'FPC_DOSYS7';
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):int64;   external name 'FPC_DOSYS7';
 
 {
   $Log$
-  Revision 1.2  2002-09-07 16:01:17  peter
+  Revision 1.3  2002-10-16 18:41:14  marco
+   * the 7 param syscall (for lseek and truncate) now returns a int64.
+
+  Revision 1.2  2002/09/07 16:01:17  peter
     * old logs removed and tabs fixed
 
   Revision 1.1  2002/08/20 08:28:14  marco

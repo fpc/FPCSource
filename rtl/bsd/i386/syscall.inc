@@ -130,7 +130,7 @@ asm
    addl  $24,%esp
 end;
 
-function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;  assembler; [public,alias:'FPC_DOSYS7'];
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):int64;  assembler; [public,alias:'FPC_DOSYS7'];
 
 asm
    movl  sysnr,%eax
