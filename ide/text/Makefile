@@ -172,7 +172,7 @@ override NEEDGCCLIB=1
 
 # Info
 
-FPCINFO=fpc_infocfg fpc_infoobjects fpc_infoinstall 
+FPCINFO=fpc_infocfg fpc_infoobjects fpc_infoinstall
 
 #####################################################################
 # Default Directories
@@ -969,10 +969,10 @@ gdb:
 	$(MAKE) all GDB=1
 
 full:
-        $(MAKE) all FULL=1 NEEDOPT=-Sg
+	$(MAKE) all FULL=1 "NEEDOPT+=-Sg -dGDB -dBROWSERCOL"
 
 fullgdb:
-        $(MAKE) all FULL=1 GDB=1 NEEDOPT=-Sg
+	$(MAKE) all FULL=1 GDB=1 "NEEDOPT+=-Sg -dGDB -dBROWSERCOL"
 
 # This is necessary because we don't have all units separate in the
 # units targets

@@ -905,10 +905,10 @@ gdb:
 	$(MAKE) -C text all GDB=1
 
 full:
-	$(MAKE) -C text all FULL=1 NEEDOPT+=-Sg
+	$(MAKE) -C text all FULL=1 "NEEDOPT+=-Sg -dGDB -dBROWSERCOL"
 
 fullgdb:
-	$(MAKE) -C text all FULL=1 GDB=1 NEEDOPT+=-Sg
+	$(MAKE) -C text all FULL=1 GDB=1 "NEEDOPT+=-Sg -dGDB -dBROWSERCOL"
 
 # This is necessary because we don't have all units separate in the
 # units targets
