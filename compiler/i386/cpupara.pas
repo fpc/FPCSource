@@ -63,6 +63,8 @@ unit cpupara;
        cpuinfo,
        cgbase;
 
+      const
+        parasupregs : array[0..2] of tsuperregister = (RS_EAX,RS_EDX,RS_ECX);
 
 {****************************************************************************
                                 TI386PARAMANAGER
@@ -176,25 +178,29 @@ unit cpupara;
 
     function ti386paramanager.getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;
       begin
+         fillchar(result,sizeof(tparalocation),0);
+         result.size:=OS_INT;
          if calloption=pocall_register then
            begin
-             if nr<=3 then
+             if (nr<=high(parasupregs)+1) then
                begin
-                 getintparaloc.loc:=LOC_REGISTER;
-                 getintparaloc.register:=nr-1;
+                 if nr=0 then
+                   internalerror(200309271);
+                 result.loc:=LOC_REGISTER;
+                 result.register:=newreg(R_INTREGISTER,parasupregs[nr-1],R_SUBWHOLE);
                end
              else
                begin
-                 getintparaloc.loc:=LOC_REFERENCE;
-                 getintparaloc.reference.index:=NR_EBP;
-                 getintparaloc.reference.offset:=4*nr;
+                 result.loc:=LOC_REFERENCE;
+                 result.reference.index:=NR_EBP;
+                 result.reference.offset:=4*nr;
                end;
            end
          else
            begin
-             getintparaloc.loc:=LOC_REFERENCE;
-             getintparaloc.reference.index:=NR_EBP;
-             getintparaloc.reference.offset:=4*nr;
+             result.loc:=LOC_REFERENCE;
+             result.reference.index:=NR_EBP;
+             result.reference.offset:=4*nr;
            end;
       end;
 
@@ -289,18 +295,17 @@ unit cpupara;
       var
         hp : tparaitem;
         paraloc : tparalocation;
-        sr : tsuperregister;
         subreg : tsubregister;
         is_64bit : boolean;
-        l,
+        l,parareg,
         varalign,
         parasize : longint;
       begin
-        sr:=RS_EAX;
+        parareg:=0;
         parasize:=0;
 {$warning HACK: framepointer reg shall be a normal parameter}
         if p.parast.symtablelevel>normal_function_level then
-          inc(parasize,POINTER_SIZE);
+          inc(parareg);
         hp:=tparaitem(p.para.first);
         while assigned(hp) do
           begin
@@ -316,27 +321,22 @@ unit cpupara;
               Stack
               Stack
 
-              64bit values are in EAX:EDX or on the stack.
+              64bit values,floats,arrays and records are always
+              on the stack.
             }
-            if (sr<=RS_ECX) and not(is_64bit) then
+            if (parareg<=high(parasupregs)) and
+               not(
+                   is_64bit or
+                   (hp.paratype.def.deftype in [floatdef,recorddef,arraydef])
+                  ) then
               begin
                 paraloc.loc:=LOC_REGISTER;
-                if is_64bit then
-                  begin
-                    paraloc.registerlow:=newreg(R_INTREGISTER,sr,R_SUBD);
-                    inc(sr);
-                    paraloc.registerhigh:=newreg(R_INTREGISTER,sr,R_SUBD);
-                    inc(sr);
-                  end
+                if (paraloc.size=OS_NO) or is_64bit then
+                  subreg:=R_SUBWHOLE
                 else
-                  begin
-                    if (paraloc.size=OS_NO) or is_64bit then
-                      subreg:=R_SUBWHOLE
-                    else
-                      subreg:=cgsize2subreg(paraloc.size);
-                    paraloc.register:=newreg(R_INTREGISTER,sr,subreg);
-                    inc(sr);
-                  end;
+                  subreg:=cgsize2subreg(paraloc.size);
+                paraloc.register:=newreg(R_INTREGISTER,parasupregs[parareg],subreg);
+                inc(parareg);
               end
             else
               begin
@@ -387,7 +387,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2003-09-25 21:30:11  peter
+  Revision 1.32  2003-09-28 13:35:24  peter
+    * register calling updates
+
+  Revision 1.31  2003/09/25 21:30:11  peter
     * parameter fixes
 
   Revision 1.30  2003/09/23 17:56:06  peter
