@@ -67,6 +67,7 @@ type
     _SEMICOLON,
     _KLAMMERAFFE,
     _POINTPOINT,
+    _POINTPOINTPOINT,
     _EOF,
     _ID,
     _NOID,
@@ -88,6 +89,7 @@ type
     _NOTASN,
     _XORASN,
     { Normal words }
+    _C,
     _AS,
     _AT,
     _DO,
@@ -129,6 +131,7 @@ type
     _TRUE,
     _TYPE,
     _UNIT,
+    _UNIV,
     _USES,
     _WITH,
     _ALIAS,
@@ -225,7 +228,7 @@ type
   );
 
 const
-  tokenlenmin = 2;
+  tokenlenmin = 1;
   tokenlenmax = 14;
 
   { last operator which can be overloaded, the first_overloaded should
@@ -291,6 +294,7 @@ const
       (str:';'             ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'@'             ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'..'            ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'...'           ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'end of file'   ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'identifier'    ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'non identifier';special:true ;keyword:m_none;op:NOTOKEN),
@@ -312,6 +316,7 @@ const
       (str:''              ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:''              ;special:true ;keyword:m_none;op:NOTOKEN),
     { Normal words }
+      (str:'C'             ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'AS'            ;special:false;keyword:m_class;op:_OP_AS),
       (str:'AT'            ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'DO'            ;special:false;keyword:m_all;op:NOTOKEN),
@@ -353,6 +358,7 @@ const
       (str:'TRUE'          ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'TYPE'          ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'UNIT'          ;special:false;keyword:m_all;op:NOTOKEN),
+      (str:'UNIV'          ;special:false;keyword:m_mac;op:NOTOKEN),
       (str:'USES'          ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'WITH'          ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'ALIAS'         ;special:false;keyword:m_none;op:NOTOKEN),
@@ -506,7 +512,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2004-04-18 15:22:24  florian
+  Revision 1.28  2004-05-03 10:06:38  olle
+    + added language constructs UNIV, C, ... for mode mac
+    * consolidated macro expression to conform to Pascal
+    * macro true is defined as <> 0
+
+  Revision 1.27  2004/04/18 15:22:24  florian
     + location support for arguments, currently PowerPC/MorphOS only
 
   Revision 1.26  2004/02/17 17:38:11  daniel

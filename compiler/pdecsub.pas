@@ -59,7 +59,7 @@ interface
     function  parse_proc_head(aclass:tobjectdef;potype:tproctypeoption;var pd:tprocdef):boolean;
     function  parse_proc_dec(aclass:tobjectdef):tprocdef;
 
-
+    procedure change_forward_to_external(pd:tabstractprocdef);
 
 implementation
 
@@ -391,6 +391,13 @@ implementation
                  varspez:=vs_out
               end
           else
+            if (token=_POINTPOINTPOINT) and (m_mac in aktmodeswitches) then
+              begin
+                consume(_POINTPOINTPOINT);
+                include(pd.procoptions,po_varargs);
+                break;
+              end
+          else
               varspez:=vs_value;
           defaultvalue:=nil;
           tt.reset;
@@ -453,6 +460,8 @@ implementation
                 else
                  begin
                    { everything else }
+                   if (m_mac in aktmodeswitches) then
+                     try_to_consume(_UNIV); {currently does nothing}
                    single_type(tt,hs1,false);
                  end;
 
@@ -465,11 +474,11 @@ implementation
                         consume(_CSTRING);
                       end
                     else
-		      begin
+                      begin
                         if explicit_paraloc then
                           Message(parser_e_paraloc_all_paras);
-      			locationstr:='';
-       		      end;
+                        locationstr:='';
+                      end;
                   end
                 else
                   locationstr:='';
@@ -1266,7 +1275,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=35;
+  num_proc_directives=36;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1305,6 +1314,15 @@ const
       mutexclpocall : [];
       mutexclpotype : [];
       mutexclpo     : [po_external]
+    ),(
+      idtok:_C; {same as cdecl for mode mac}
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
+      handler  : nil;
+      pocall   : pocall_cdecl;
+      pooption : [];
+      mutexclpocall : [];
+      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpo     : [po_assembler,po_external]
     ),(
       idtok:_CDECL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -2217,7 +2235,12 @@ const
 end.
 {
   $Log$
-  Revision 1.171  2004-05-01 22:38:13  florian
+  Revision 1.172  2004-05-03 10:06:38  olle
+    + added language constructs UNIV, C, ... for mode mac
+    * consolidated macro expression to conform to Pascal
+    * macro true is defined as <> 0
+
+  Revision 1.171  2004/05/01 22:38:13  florian
     * fixed MorphOS syscall without parameters
 
   Revision 1.170  2004/05/01 22:05:01  florian

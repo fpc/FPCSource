@@ -374,6 +374,9 @@ implementation
            mac: tmacro;
            srsym : tsym;
            srsymtable : tsymtable;
+           l : longint;
+           w : integer;
+
         begin
            if current_scanner.preproc_token=_ID then
              begin
@@ -461,11 +464,12 @@ implementation
                 if preproc_substitutedtoken='NOT' then
                   begin
                     preproc_consume(_ID);
-                    hs:=read_expr;
-                    if hs='0' then
-                      read_factor:='1'
+                    hs:=read_factor();
+                    valint(hs,l,w);
+                    if l<>0 then
+                      read_factor:='0'
                     else
-                      read_factor:='0';
+                      read_factor:='1';
                   end
                 else
                 if (m_mac in aktmodeswitches) and (preproc_substitutedtoken='TRUE') then
@@ -509,10 +513,10 @@ implementation
             if preproc_substitutedtoken<>'AND' then
               break;
             preproc_consume(_ID);
-            hs2:=read_expr;
+            hs2:=read_factor;
             valint(hs1,l1,w);
             valint(hs2,l2,w);
-            if (l1>0) and (l2>0) then
+            if (l1<>0) and (l2<>0) then
               hs1:='1'
             else
               hs1:='0';
@@ -534,10 +538,10 @@ implementation
             if preproc_substitutedtoken<>'OR' then
               break;
             preproc_consume(_ID);
-            hs2:=read_expr;
+            hs2:=read_term;
             valint(hs1,l1,w);
             valint(hs2,l2,w);
-            if (l1>0) or (l2>0) then
+            if (l1<>0) or (l2<>0) then
               hs1:='1'
             else
               hs1:='0';
@@ -2521,8 +2525,19 @@ implementation
                    '.' :
                      begin
                        readchar;
-                       token:=_POINTPOINT;
-                       goto exit_label;
+                       case c of
+                         '.' :
+                         begin
+                           readchar;
+                           token:=_POINTPOINTPOINT;
+                           goto exit_label;
+                         end;
+                       else
+                         begin
+                           token:=_POINTPOINT;
+                           goto exit_label;
+                         end;
+                       end;
                      end;
                    ')' :
                      begin
@@ -3028,7 +3043,12 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.75  2004-03-04 17:23:10  peter
+  Revision 1.76  2004-05-03 10:06:38  olle
+    + added language constructs UNIV, C, ... for mode mac
+    * consolidated macro expression to conform to Pascal
+    * macro true is defined as <> 0
+
+  Revision 1.75  2004/03/04 17:23:10  peter
     * $elseif support
     * conditiotnal in // returns warning isntead of error
 
