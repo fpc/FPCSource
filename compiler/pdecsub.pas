@@ -50,8 +50,6 @@ interface
 
     function  proc_add_definition(var pd:tprocdef):boolean;
 
-    procedure import_implict_external(pd:tabstractprocdef);
-
     procedure handle_calling_convention(pd:tabstractprocdef);
 
     procedure parse_parameter_dec(pd:tabstractprocdef);
@@ -1260,13 +1258,6 @@ begin
     end;
 end;
 
-procedure import_implict_external(pd:tabstractprocdef);
-
-begin
-  tprocdef(pd).forwarddef:=false;
-  tprocdef(pd).setmangledname(tprocdef(pd).procsym.realname);
-end;
-
 type
    pd_handler=procedure(pd:tabstractprocdef);
    proc_dir_rec=record
@@ -2247,7 +2238,10 @@ const
 end.
 {
   $Log$
-  Revision 1.176  2004-05-11 18:29:41  olle
+  Revision 1.177  2004-05-11 22:52:48  olle
+    * Moved import_implicit_external to symsym
+
+  Revision 1.176  2004/05/11 18:29:41  olle
     + mode macpas: support for implicit external
 
   Revision 1.175  2004/05/11 06:59:35  michael

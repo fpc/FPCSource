@@ -325,8 +325,7 @@ implementation
        fmodule,
        { codegen }
        paramgr,cresstr,
-       procinfo,
-       pdecsub
+       procinfo
        ;
 
 {****************************************************************************
@@ -620,6 +619,16 @@ implementation
                 MessagePos1(p^.def.fileinfo,sym_h_param_list,p^.def.fullprocname(false));
               p:=p^.next;
            end;
+      end;
+
+    {Makes implicit externals (procedures declared in the interface 
+     section which do not have a counterpart in the implementation) 
+     to be an imported procedure. For mode macpas.}
+    procedure import_implict_external(pd:tabstractprocdef);
+
+      begin
+        tprocdef(pd).forwarddef:=false;
+        tprocdef(pd).setmangledname(tprocdef(pd).procsym.realname);
       end;
 
 
@@ -2208,7 +2217,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.170  2004-05-11 18:29:41  olle
+  Revision 1.171  2004-05-11 22:52:48  olle
+    * Moved import_implicit_external to symsym
+
+  Revision 1.170  2004/05/11 18:29:41  olle
     + mode macpas: support for implicit external
 
   Revision 1.169  2004/03/29 19:19:35  florian
