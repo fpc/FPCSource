@@ -124,14 +124,14 @@ const
       eaDeleteText        = 5;
       eaSelectionChanged  = 6;
       eaCut               = 7;
-      eaCopy              = 8;
-      eaPaste             = 9;
+      eaPaste             = 8;
+      eaPasteWin          = 9;
       eaClear             = 10;
       LastAction          = eaClear;
 
       ActionString : array [0..LastAction] of string[8] =
         ('','Move','InsLine','InsText','DelLine','DelText',
-         'SelCh','Cut','Copy','Paste','Clear');
+         'SelCh','Cut','Paste','PasteWin','Clear');
 
       CIndicator    = #2#3#1;
       CEditor       = #33#34#35#36#37#38#39#40#41#42#43#44#45#46#47#48#49;
@@ -183,22 +183,27 @@ type
       StartPos  : TPoint;
       EndPos    : TPoint;
       Text      : PString;
+      ActionCount : longint;
       Action    : byte;
       constructor init(act:byte; StartP,EndP:TPoint;Txt:String);
+      constructor init_group(act:byte);
+      function is_grouped_action : boolean;
       destructor done; virtual;
     end;
 
     PEditorActionCollection = ^TEditorActionCollection;
     TEditorActionCollection = object(TCollection)
+      CurrentGroupedAction : PEditorAction;
       function At(Idx : sw_integer) : PEditorAction;
     end;
 {$else}
     PEditorAction = ^TEditorAction;
     TEditorAction = packed record
-      Action    : byte;
       StartPos  : TPoint;
       EndPos    : TPoint;
       Text      : PString;
+      ActionCount : longint;
+      Action    : byte;
     end;
 
     PEditorActionCollection = ^TEditorActionCollection;
@@ -313,6 +318,8 @@ type
       procedure   DrawLines(FirstLine: sw_integer);
       procedure   HideHighlight;
       procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string);
+      procedure   AddGroupedAction(AAction : byte);
+      procedure   CloseGroupedAction(AAction : byte);
       function    ShouldExtend: boolean;
       function    ValidBlock: boolean;
     public
@@ -2893,6 +2900,9 @@ function TCodeEditor.ClipCopy: Boolean;
 var OK: boolean;
 begin
   Lock;
+  {AddGroupedAction(eaCopy);
+   can we undo a copy ??
+   maybe as an Undo Paste in Clipboard !! }
   OK:=Clipboard<>nil;
   if OK then OK:=Clipboard^.InsertFrom(@Self);
   ClipCopy:=OK;
@@ -2903,6 +2913,7 @@ procedure TCodeEditor.ClipCut;
 begin
   if IsReadOnly then Exit;
   Lock;
+  AddGroupedAction(eaCut);
   DontConsiderShiftState:=true;
   if Clipboard<>nil then
    if Clipboard^.InsertFrom(@Self) then
@@ -2911,6 +2922,7 @@ begin
        DelSelect;
       SetModified(true);
     end;
+  CloseGroupedAction(eaCut);
   UnLock;
   DontConsiderShiftState:=false;
 end;
@@ -2920,11 +2932,13 @@ begin
   if IsReadOnly then Exit;
   DontConsiderShiftState:=true;
   Lock;
+  AddGroupedAction(eaPaste);
   if Clipboard<>nil then
    begin
      InsertFrom(Clipboard);
      SetModified(true);
    end;
+  CloseGroupedAction(eaPaste);
   UnLock;
   DontConsiderShiftState:=false;
 end;
@@ -2952,6 +2966,7 @@ begin
         OK:=GetTextWinClipBoardData(p,l);
       if OK then
         begin
+          AddGroupedAction(eaPasteWin);
           p2:=p;
           p13:=strpos(p,#13);
           p10:=strpos(p,#10);
@@ -2993,6 +3008,7 @@ begin
             end;
           SetCurPtr(StorePos.X,StorePos.Y);
           SetModified(true);
+          CloseGroupedAction(eaPasteWin);
           Update;
           { we must free the allocated memory }
           freemem(p,l);
@@ -3058,7 +3074,8 @@ end;
 procedure TCodeEditor.Undo;
 {$ifdef Undo}
 var
-  Temp,Idx : Longint;
+  Temp,Idx,Last,Count : Longint;
+  Is_grouped : boolean;
 {$endif Undo}
 begin
 {$ifdef Undo}
@@ -3066,66 +3083,89 @@ begin
   Lock;
   if UndoList^.count > 0 then
   begin
-    Idx:=UndoList^.count-1;
-    with UndoList^.At(Idx)^ do
-    begin
-      case action of
-        eaMoveCursor :
-          begin
-            { move cursor back to original position }
-            SetCurPtr(startpos.x,startpos.y);
-          end;
-        eaInsertText :
-          begin
-            SetCurPtr(StartPos.X,StartPos.Y);
-            for Temp := 1 to length(Text^) do
-              DelChar;
-          end;
-        eaDeleteText :
-          begin
-            { reinsert deleted text }
-            SetCurPtr(EndPos.X,EndPos.Y);
-            for Temp := 1 to length(Text^) do
-              AddChar(Text^[Temp]);
-            SetCurPtr(StartPos.X,StartPos.Y);
-          end;
-        eaInsertLine :
-          begin
-            SetCurPtr(EndPos.X,EndPos.Y);
-            SetDisplayText(EndPos.Y,Copy(GetDisplayText(EndPos.Y),EndPos.X+1,255));
-            BackSpace;
-            SetCurPtr(StartPos.X,StartPos.Y);
-          end;
-        eaDeleteLine :
-          begin
-            SetCurPtr(EndPos.X,EndPos.Y);
-            DelEnd;
-            InsertLine;
-            SetCurPtr(StartPos.X,StartPos.Y);
-            SetLineText(StartPos.Y,GetStr(Text));
-          end;
-        eaSelectionChanged :
-          begin
-            { move cursor to end of last set selection }
-          end;
-      else
-        { what the 'ell's an undefined action doing round 'ere mate! }
-      end; { once this lot is done paste into redo and modify to suit needs }
-      { move item to redo stack }
-      RedoList^.Insert(UndoList^.At(Idx));
-      UpdateUndoRedo(cmRedo,UndoList^.At(Idx)^.Action);
-      UndoList^.atDelete(Idx);
-      If Idx>0 then
-        UpdateUndoRedo(cmUndo,UndoList^.At(Idx-1)^.Action)
-      else
-        UpdateUndoRedo(cmUndo,0);
+    Last:=UndoList^.count-1;
+    if UndoList^.At(Last)^.Is_grouped_action then
+      begin
+        Count:=UndoList^.At(Last)^.ActionCount;
+        Dec(Last);
+        Is_grouped:=true;
+      end
+    else
+      begin
+        Count:=1;
+        Is_grouped:=false;
+      end;
+    for Idx:=Last downto Last-Count+1 do
+      with UndoList^.At(Idx)^ do
+        begin
+          case action of
+            eaMoveCursor :
+              begin
+                { move cursor back to original position }
+                SetCurPtr(startpos.x,startpos.y);
+              end;
+            eaInsertText :
+              begin
+                SetCurPtr(StartPos.X,StartPos.Y);
+                for Temp := 1 to length(Text^) do
+                  DelChar;
+              end;
+            eaDeleteText :
+              begin
+                { reinsert deleted text }
+                SetCurPtr(EndPos.X,EndPos.Y);
+                for Temp := 1 to length(Text^) do
+                  AddChar(Text^[Temp]);
+                SetCurPtr(StartPos.X,StartPos.Y);
+              end;
+            eaInsertLine :
+              begin
+                SetCurPtr(EndPos.X,EndPos.Y);
+                SetDisplayText(EndPos.Y,Copy(GetDisplayText(EndPos.Y),EndPos.X+1,255));
+                BackSpace;
+                SetCurPtr(StartPos.X,StartPos.Y);
+              end;
+            eaDeleteLine :
+              begin
+                SetCurPtr(EndPos.X,EndPos.Y);
+                DelEnd;
+                InsertLine;
+                SetCurPtr(StartPos.X,StartPos.Y);
+                SetLineText(StartPos.Y,GetStr(Text));
+              end;
+            eaSelectionChanged :
+              begin
+                { move cursor to end of last set selection }
+              end;
+          else
+            { what the 'ell's an undefined action doing round 'ere mate! }
+          end; { once this lot is done paste into redo and modify to suit needs }
+          { move item to redo stack }
+          RedoList^.Insert(UndoList^.At(Idx));
+          UpdateUndoRedo(cmRedo,UndoList^.At(Idx)^.Action);
+          UndoList^.atDelete(Idx);
+          If Idx>0 then
+            UpdateUndoRedo(cmUndo,UndoList^.At(Idx-1)^.Action)
+          else
+            UpdateUndoRedo(cmUndo,0);
+        end;{Idx loop for grouped actions }
+      if is_grouped then
+        begin
+          Idx:=UndoList^.Count-1;
+          RedoList^.Insert(UndoList^.At(Idx));
+          UpdateUndoRedo(cmRedo,UndoList^.At(Idx)^.Action);
+          UndoList^.atDelete(Idx);
+          If Idx>0 then
+            UpdateUndoRedo(cmUndo,UndoList^.At(Idx-1)^.Action)
+          else
+            UpdateUndoRedo(cmUndo,0);
+        end;
       if UndoList^.count=0 then
         SetCmdState(UndoCmd,false);
       SetCmdState(RedoCmd,true);
       Message(Application,evBroadcast,cmCommandSetChanged,nil);
       DrawView;
     end;
-  end;
   StoreUndo := True;
   Unlock;
 {$else}
@@ -3136,16 +3176,29 @@ end;
 procedure TCodeEditor.Redo;
 {$ifdef Undo}
 var
-  Idx,Temp : Longint;
+  Temp,Idx,Last,Count : Longint;
+  Is_grouped : boolean;
 {$endif Undo}
 begin
 {$ifdef Undo}
   StoreUndo := False;
   Lock;
   if RedoList^.count <> 0 then
-  begin
-    Idx:=RedoList^.count-1;
-    with PEditorAction(RedoList^.At(Idx))^ do
+   begin
+    Last:=RedoList^.count-1;
+    if RedoList^.At(Last)^.Is_grouped_action then
+      begin
+        Count:=RedoList^.At(Last)^.ActionCount;
+        Dec(Last);
+        Is_grouped:=true;
+      end
+    else
+      begin
+        Count:=1;
+        Is_grouped:=false;
+      end;
+    for Idx:=Last downto Last-Count+1 do
+    with RedoList^.At(Idx)^ do
     begin
       case action of
         eaMoveCursor :
@@ -3186,19 +3239,30 @@ begin
       end; { once this lot is done paste back into undo and modify to suit needs }
     { move item to undo stack }
       UndoList^.Insert(RedoList^.At(Idx));
-      UpdateUndoRedo(cmUndo,PEditorAction(RedoList^.At(Idx))^.Action);
+      UpdateUndoRedo(cmUndo,RedoList^.At(Idx)^.Action);
       If Idx>0 then
-        UpdateUndoRedo(cmRedo,PEditorAction(RedoList^.At(Idx-1))^.Action)
+        UpdateUndoRedo(cmRedo,RedoList^.At(Idx-1)^.Action)
       else
         UpdateUndoRedo(cmRedo,0);
       RedoList^.atDelete(Idx);
+      end;{ Idx loop for grouped action }
+      If is_grouped then
+        begin
+          Idx:=RedoList^.count-1;
+          UndoList^.Insert(RedoList^.At(Idx));
+          UpdateUndoRedo(cmUndo,RedoList^.At(Idx)^.Action);
+          If Idx>0 then
+            UpdateUndoRedo(cmRedo,RedoList^.At(Idx-1)^.Action)
+          else
+            UpdateUndoRedo(cmRedo,0);
+          RedoList^.atDelete(Idx);
+        end;
       if RedoList^.count=0 then
         SetCmdState(RedoCmd,false);
       SetCmdState(UndoCmd,true);
       DrawView;
       Message(Application,evBroadcast,cmCommandSetChanged,nil);
     end;
-  end;
   StoreUndo := True;
   Unlock;
 {$else}
@@ -4097,6 +4161,8 @@ begin
   if not ActionIntegrated then
     begin
       UndoList^.Insert(New(PEditorAction,Init(AAction,AStartPos,AEndPos,AText)));
+      if assigned(UndoList^.CurrentGroupedAction) then
+        Inc(UndoList^.CurrentGroupedAction^.actionCount);
       UpdateUndoRedo(cmUndo,AAction);
     end;
   if UndoList^.count>0 then
@@ -4109,6 +4175,23 @@ begin
   end;
 {$endif Undo}
 end;
+
+procedure TCodeEditor.AddGroupedAction(AAction : byte);
+begin
+{$ifdef Undo}
+  UndoList^.CurrentGroupedAction:=New(PEditorAction,Init_group(AAction));
+{$endif Undo}
+end;
+
+procedure TCodeEditor.CloseGroupedAction(AAction : byte);
+begin
+{$ifdef Undo}
+  UndoList^.Insert(UndoList^.CurrentGroupedAction);
+  UndoList^.CurrentGroupedAction:=nil;
+  UpdateUndoRedo(cmUndo,AAction);
+{$endif Undo}
+end;
+
 
 function TCodeEditor.ValidBlock: boolean;
 begin
@@ -4373,12 +4456,25 @@ begin
 end;
 
 {$ifdef Undo}
+
 constructor TEditorAction.init(act:byte; StartP,EndP:TPoint;Txt:String);
 begin
-  Action := act;
-  StartPos := StartP;
-  EndPos := EndP;
-  Text := NewStr(txt);
+  Action:=act;
+  StartPos:=StartP;
+  EndPos:=EndP;
+  Text:=NewStr(txt);
+  ActionCount:=0;
+end;
+
+constructor TEditorAction.init_group(act:byte);
+begin
+  Action:=act;
+  ActionCount:=0;
+end;
+
+function TEditorAction.Is_grouped_action : boolean;
+begin
+  Is_grouped_action:=Action in [eaCut,eaPaste,eaPasteWin,eaClear];
 end;
 
 destructor TEditorAction.done;
@@ -4931,7 +5027,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.60  1999-11-05 13:49:13  pierre
+  Revision 1.61  1999-11-10 00:45:30  pierre
+   + groupd action started, not yet working
+
+  Revision 1.60  1999/11/05 13:49:13  pierre
    * WinPaste depends on avalaible Clipboard data
 
   Revision 1.59  1999/11/03 09:39:23  peter
