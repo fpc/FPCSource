@@ -197,7 +197,7 @@ endif
 
 # Targets
 
-override LOADEROBJECTS+=prt0 
+override LOADEROBJECTS+=prt0 cprt0
 override UNITOBJECTS+=$(SYSTEMUNIT) objpas strings linux  initc dos crt objects printer sysutils typinfo math cpu mmx getopts heaptrc lineinfo errors sockets gpm 
 
 # Clean
