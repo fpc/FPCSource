@@ -693,15 +693,13 @@ end;
 function growheap(size :longint) : integer;
 var
   sizeleft,
-  NewPos,
-  wantedsize : longint;
-  pcurr      : pfreerecord;
+  NewPos    : longint;
+  pcurr     : pfreerecord;
 begin
 {$ifdef DUMPGROW}
   writeln('grow ',size);
   DumpBlocks;
 {$endif}
-  wantedsize:=size;
   { Allocate by 64K size }
   size:=(size+$ffff) and $ffff0000;
   { first try 256K (default) }
@@ -783,7 +781,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  1999-11-14 21:34:21  peter
+  Revision 1.25  1999-12-01 22:57:31  peter
+    * cmdline support
+
+  Revision 1.24  1999/11/14 21:34:21  peter
     * fixed reallocmem with a block at the end of an allocated memoryblock,
       had to introduce a flag for such blocks.
     * flags are now stored in the first 4 bits instead of the highest bit,

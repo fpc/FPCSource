@@ -678,58 +678,56 @@ procedure setup_arguments;
 var
   arglen,
   count   : longint;
-  argstart,scmdline : pchar;
+  argstart,
+  pc      : pchar;
   quote   : set of char;
   argsbuf : array[0..127] of pchar;
-
 begin
   { create commandline, it starts with the executed filename which is argv[0] }
   { Win32 passes the command NOT via the args, but via getmodulefilename}
   count:=0;
-  cmdline:=getcommandfile;
+  pc:=getcommandfile;
   Arglen:=0;
   repeat
     Inc(Arglen);
-  until (cmdline[Arglen]=#0);
+  until (pc[Arglen]=#0);
   getmem(argsbuf[count],arglen+1);
-  move(cmdline^,argsbuf[count]^,arglen);
+  move(pc^,argsbuf[count]^,arglen);
   { Now skip the first one }
-  cmdline:=GetCommandLine;
+  pc:=GetCommandLine;
   repeat
     { skip leading spaces }
-    while cmdline^ in [' ',#9,#13] do
-     inc(longint(cmdline));
-    case cmdline^ of
+    while pc^ in [' ',#9,#13] do
+     inc(pc);
+    case pc^ of
       #0 : break;
      '"' : begin
              quote:=['"'];
-             inc(longint(cmdline));
+             inc(pc);
            end;
     '''' : begin
              quote:=[''''];
-             inc(longint(cmdline));
+             inc(pc);
            end;
     else
      quote:=[' ',#9,#13];
     end;
   { scan until the end of the argument }
-    argstart:=cmdline;
-    while (cmdline^<>#0) and not(cmdline^ in quote) do
-     inc(longint(cmdline));
-   { Don't copy the first one, it is already there.}
-   If Count<>0 then
+    argstart:=pc;
+    while (pc^<>#0) and not(pc^ in quote) do
+     inc(pc);
+    { Don't copy the first one, it is already there.}
+    If Count<>0 then
      begin
-     { reserve some memory }
-     arglen:=cmdline-argstart;
-     getmem(argsbuf[count],arglen+1);
-     move(argstart^,argsbuf[count]^,arglen);
-     argsbuf[count][arglen]:=#0;
+       { reserve some memory }
+       arglen:=pc-argstart;
+       getmem(argsbuf[count],arglen+1);
+       move(argstart^,argsbuf[count]^,arglen);
+       argsbuf[count][arglen]:=#0;
      end;
     { skip quote }
-    if cmdline^ in quote then
-     inc(longint(cmdline));
-    if count=0 then
-      scmdline:=cmdline-1;
+    if pc^ in quote then
+     inc(pc);
     inc(count);
   until false;
 { create argc }
@@ -740,8 +738,8 @@ begin
 { create the argv }
   getmem(argv,count shl 2);
   move(argsbuf,argv^,count shl 2);
-  // finally setup the abused cmdline variable
-  cmdline:=scmdline;
+{ Setup cmdline variable }
+  cmdline:=GetCommandLine;
 end;
 
 
@@ -1009,12 +1007,10 @@ type pexception_record = ^exception_record;
          end;
     end;
 
-var
-   old_exception : LPTOP_LEVEL_EXCEPTION_FILTER;
 
   procedure install_exception_handlers;
     begin
-       old_exception:=SetUnhandledExceptionFilter(@syswin32_i386_exception_handler);
+      SetUnhandledExceptionFilter(@syswin32_i386_exception_handler);
     end;
 
 
@@ -1161,7 +1157,10 @@ end.
 
 {
   $Log$
-  Revision 1.50  1999-11-20 00:16:44  pierre
+  Revision 1.51  1999-12-01 22:57:31  peter
+    * cmdline support
+
+  Revision 1.50  1999/11/20 00:16:44  pierre
    + DLL Hooks for the four callings added
 
   Revision 1.49  1999/11/18 22:19:57  pierre

@@ -311,6 +311,7 @@ var psp : word;
     al,proxy_argc,proxy_seg,proxy_ofs,lin : longint;
     largs : array[0..127] of pchar;
     rm_argv : ^arrayword;
+    argv0len : longint;
 begin
 for i := 1 to 127  do
    largs[i] := nil;
@@ -322,10 +323,12 @@ sysseg_move(psp, 128, get_ds, longint(@doscmd), 128);
 Writeln(stderr,'Dos command line is #',doscmd,'# size = ',length(doscmd));
 {$EndIf }
 
-// setup cmdline variable
-cmdline := sysgetmem(length(doscmd)+1);
-move(doscmd[1],cmdline^,length(doscmd));
-cmdline[length(doscmd)]:=#0;
+{ setup cmdline variable }
+  argv0len:=strlen(dos_argv0);
+  cmdline:=sysgetmem(argv0len+length(doscmd)+1);
+  move(dos_argv0^,cmdline^,argv0len);
+  move(doscmd[1],cmdline[argv0len],length(doscmd));
+  cmdline[argv0len+length(doscmd)]:=#0;
 
 j := 1;
 quote := #0;
@@ -1289,7 +1292,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.23  1999-11-25 16:24:56  pierre
+  Revision 1.24  1999-12-01 22:57:30  peter
+    * cmdline support
+
+  Revision 1.23  1999/11/25 16:24:56  pierre
    * avoid a problem with ChDir('c:') on pure DOS
 
   Revision 1.22  1999/11/06 14:38:24  peter

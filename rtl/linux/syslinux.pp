@@ -663,12 +663,71 @@ begin
 end;
 
 
+procedure SetupCmdLine;
+var
+  bufsize,
+  len,j,
+  size,i : longint;
+  found  : boolean;
+  buf    : array[0..1026] of char;
+
+  procedure AddBuf;
+  begin
+    reallocmem(cmdline,size+bufsize);
+    move(buf,cmdline[size],bufsize);
+    inc(size,bufsize);
+    bufsize:=0;
+  end;
+
+begin
+  size:=0;
+  bufsize:=0;
+  i:=0;
+  while (i<argc) do
+   begin
+     len:=strlen(argv[i]);
+     if len>sizeof(buf)-2 then
+      len:=sizeof(buf)-2;
+     found:=false;
+     for j:=1 to len do
+      if argv[i][j]=' ' then
+       begin
+         found:=true;
+         break;
+       end;
+     if bufsize+len>=sizeof(buf)-2 then
+      AddBuf;
+     if found then
+      begin
+        buf[bufsize]:='"';
+        inc(bufsize);
+      end;
+     move(argv[i]^,buf[bufsize],len);
+     inc(bufsize,len);
+     if found then
+      begin
+        buf[bufsize]:='"';
+        inc(bufsize);
+      end;
+     if i<argc then
+      buf[bufsize]:=' '
+     else
+      buf[bufsize]:=#0;
+     inc(bufsize);
+     inc(i);
+   end;
+  AddBuf;
+end;
+
+
 Begin
 { Set up signals handlers }
   InstallSignals;
 { Setup heap }
   InitHeap;
   InitExceptions;
+{ Arguments }
+  SetupCmdLine;
 { Setup stdin, stdout and stderr }
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
@@ -680,7 +739,10 @@ End.
 
 {
   $Log$
-  Revision 1.29  1999-11-06 14:39:12  peter
+  Revision 1.30  1999-12-01 22:57:31  peter
+    * cmdline support
+
+  Revision 1.29  1999/11/06 14:39:12  peter
     * truncated log
 
   Revision 1.28  1999/10/28 09:50:06  peter
