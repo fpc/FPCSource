@@ -86,7 +86,7 @@ The cross-references come in two flavours:
 number will appear after this reference. It refers to the page where this
 function is explained. In the on-line help pages, this is a hyperlink, on
 which you can click to jump to the declaration.
-\item References to Unix manual pages. (For linux related things only) they
+\item References to Unix manual pages. (For linux and unix related things only) they
 are printed in \var{typewriter} font, and the number after it is the Unix
 manual section.
 \end{itemize}
@@ -601,9 +601,6 @@ be called, which may have strange side-effects.
 Here \var{Func} is a function which returns a \var{Boolean} type.
 \end{remark}
 
-\begin{remark} The \var{WordBool}, \var{LongBool} and \var{ByteBool} types
-were not supported by \fpc until version 0.99.6.
-\end{remark}
 \subsubsection{Enumeration types}
 Enumeration types are supported in \fpc. On top of the Turbo Pascal
 implementation, \fpc allows also a C-style extension of the
@@ -693,7 +690,7 @@ Type
   WeekEnd = Saturday .. Sunday;
 \end{verbatim}
 \subsection{Real types}
-\fpc uses the math coprocessor (or an emulation) for all its floating-point
+\fpc uses the math coprocessor (or emulation) for all its floating-point
 calculations. The Real native type is processor dependant,
 but it is either Single or Double. Only the IEEE floating point types are
 supported, and these depend on the target processor and emulation options.
@@ -701,16 +698,15 @@ The true Turbo Pascal compatible types are listed in
 \seet{Reals}.
  \begin{FPCltable}{lccr}{Supported Real types}{Reals}
 Type & Range & Significant digits & Size\footnote{In Turbo Pascal.} \\ \hline
+Real & platform dependant & ??? & 4 or 8 \\
 Single & 1.5E-45 .. 3.4E38 & 7-8 & 4 \\
-Real & 5.0E-324 .. 1.7E308 & 15-16 & 8 \\
 Double & 5.0E-324 .. 1.7E308 & 15-16 & 8 \\
 Extended & 1.9E-4951 .. 1.1E4932 & 19-20 & 10\\
 Comp & -2E64+1 .. 2E63-1 & 19-20 & 8  \\
 \end{FPCltable}
-Until version 0.9.1 of the compiler, all the \var{Real} types were mapped to
-type \var{Double}, meaning that they all have size 8. The \seef{SizeOf} function
-is your friend here. The \var{Real} type of turbo pascal is automatically
-mapped to Double. The \var{Comp} type is, in effect, a 64-bit integer.
+The \var{Comp} type is, in effect, a 64-bit integer and is not available
+on all target platforms. To get more information on the supported types
+for each platform, refer to the \progref.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Character types
@@ -1319,7 +1315,7 @@ typed pointer, the instructions
 Inc(P);
 Dec(P);
 \end{verbatim}
-Will increase, respectively descrease the address the pointer points to
+Will increase, respectively decrease the address the pointer points to
 with the size of the type \var{P} is a pointer to. For example
 \begin{verbatim}
 Var P : ^Longint;
@@ -1846,7 +1842,7 @@ an object. To get the size of the class instance data, use the
 % Methods
 \section{Methods}
 \subsection{invocation}
-Method invocaticn for classes is no different than for objects. The
+Method invocation for classes is no different than for objects. The
 following is a valid method invocation:
 \begin{verbatim}
 Var  AnObject : TAnObject;
@@ -2192,7 +2188,7 @@ When determining the precedence, the compiler uses the following rules:
 operater with the highest precedence. For example, in \var{5*3+7}, the
 multiplication is higher in precedence than the addition, so it is
 executed first. The result would be 22.
-\item If parentheses are used in an epression, their contents is evaluated
+\item If parentheses are used in an expression, their contents is evaluated
 first. Thus, \var {5*(3+7)} would result in 50.
 \end{enumerate}
 
@@ -2876,9 +2872,7 @@ after the end of the \var{While} statement.
 
 \subsection{The \var{With} statement}
 \label{se:With}
-The \var{with} statement serves to access the elements of a record\footnote{
-The \var{with} statement does not work correctly when used with
-objects or classes until version 0.99.6}
+The \var{with} statement serves to access the elements of a record
 or object or class, without having to specify the name of the each time.
 The syntax for a \var{with} statement is
 \input{syntax/with.syn}
@@ -2948,7 +2942,7 @@ Showing thus that the \var{X,Y} in the \var{WriteLn} statement match the
 \begin{remark}
 If you use a \var{With} statement with a pointer, or a class, it is not
 permitted to change the pointer or the class in the \var{With} block.
-With the definitions of the previous example, the following illiustrates
+With the definitions of the previous example, the following illustrates
 what it is about:
 \begin{verbatim}
 
@@ -2968,8 +2962,8 @@ the temporary address. The same is true for classes.
 \end{remark}
 
 \subsection{Exception Statements}
-As of version 0.99.7, \fpc supports exceptions. Exceptions provide a
-convenient way to program error and error-recovery mechanisms, and are
+\fpc supports exceptions. Exceptions provide a convenient way to 
+program error and error-recovery mechanisms, and are
 closely related to classes.
 Exception support is explained in \seec{Exceptions}
 
@@ -3248,7 +3242,7 @@ to this procedure:
 
 If the procedure is declared with the \var{cdecl} modifier, then the
 compiler will pass the array as a C compiler would pass it. This, in effect,
-emulates the C construct of a varable number of arguments, as the following
+emulates the C construct of a variable number of arguments, as the following
 example will show:
 \begin{verbatim}
 program testaocc;
@@ -3357,8 +3351,7 @@ an external object file. It allows you to use the function in
 your code, and at linking time, you must link the object file containing the
 implementation of the function or procedure.
 \input{syntax/external.syn}
-It replaces, in effect, the function or procedure code block. As such, it
-can be present only in an implementation block of a unit, or in a program.
+It replaces, in effect, the function or procedure code block.
 As an example:
 \begin{verbatim}
 program CmodDemo;
@@ -3383,10 +3376,10 @@ your program.
 
 You can also specify the name that the function has in the library:
 \begin{verbatim}
-external 'lname' name Fname;
+external 'lname' name 'Fname';
 \end{verbatim}
 This tells the compiler that the function resides in library 'lname',
-but with name 'Fname'. The compiler will then automatically link this
+but with name 'Fname'.The compiler will then automatically link this
 library to your program, and use the correct name for the function.
 Under \windows and \ostwo, you can also use the following form:
 \begin{verbatim}
@@ -3396,6 +3389,16 @@ This tells the compiler that the function resides in library 'lname',
 but with index \var{Ind}. The compiler will then automatically
 link this library to your program, and use the correct index for the
 function.
+
+Finally, you can use the external directive to specify the external name
+of the function :
+\begin{verbatim}
+{$L myfunc.o}
+external name 'Fname';
+\end{verbatim}
+This tells the compiler that the function has the name 'Fname'. You
+will need to link the correct library or object file (in this case myfunc.o)
+so that the function 'Fname' is included in the linking stage.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Assembler functions
@@ -3417,10 +3420,131 @@ various possibilities:
 \input{syntax/modifiers.syn}
 \fpc doesn't support all Turbo Pascal modifiers, but
 does support a number of additional modifiers. They are used mainly for assembler and
-reference to C object files. More on the use of modifiers can be found in
-the \progref.
+reference to C object files. 
 
-\subsection{Public}
+\subsection{alias}
+The \var{Alias} modifier allows you to specify a different name for a
+procedure or function. This is mostly useful for referring to this procedure
+from assembly language constructs. As an example, consider the following
+program:
+\begin{verbatim}
+Program Aliases;
+Procedure Printit; [Alias : 'DOIT'];
+begin
+  WriteLn ('In Printit (alias : "DOIT")');
+end;
+begin
+  asm
+  call DOIT
+  end;
+end.
+\end{verbatim}
+\begin{remark} the specified alias is inserted straight into the assembly
+code, thus it is case sensitive.
+\end{remark}
+The \var{Alias} modifier, combined with the \var{Public} modifier, make a
+powerful tool for making externally accessible object files.
+
+\subsection{cdecl}
+\label{se:cdecl}
+The \var{cdecl} modifier can be used to declare a function that uses a C
+type calling convention. This must be used if you wish to access functions in
+an object file generated by the GCC compiler. It allows you to use the function in
+your code, and at linking time, you must link the object file containing the
+\var{C} implementation of the function or procedure.
+As an example:
+\begin{verbatim}
+program CmodDemo;
+{$LINKLIB c}
+Const P : PChar = 'This is fun !';
+Function strlen (P : PChar) : Longint; cdecl; external name 'strlen';
+begin
+  WriteLn ('Length of (',p,') : ',strlen(p))
+end.
+\end{verbatim}
+When compiling this, and linking to the C-library, you will be able to call
+the \var{strlen} function throughout your program. The \var{external}
+directive tells the compiler that the function resides in an external
+object filebrary with the 'strlen' name (see \ref{se:external}).
+\begin{remark}
+The parameters in our declaration of the \var{C} function should
+match exactly the ones in the declaration in \var{C}.
+\end{remark}
+
+\subsection{export}
+Sometimes you must provide a callback function for a C library, or you want
+your routines to be callable from a C program. Since \fpc and C use
+different calling schemes for functions and procedures\footnote{More
+techically: In C the calling procedure must clear the stack. In \fpc, the
+subroutine clears the stack.}, the compiler must be told to generate code
+that can be called from a C routine. This is where the \var{Export} modifier
+comes in. Contrary to the other modifiers, it must be specified separately,
+as follows:
+\begin{verbatim}
+function DoSquare (X : Longint) : Longint; export;
+begin
+...
+end;
+\end{verbatim}
+The square brackets around the modifier are not allowed in this case.
+\begin{remark}
+as of version 0.9.8, \fpc supports the Delphi \var{cdecl} modifier.
+This modifier works in the same way as the \var{export} modifier.
+More information about these modifiers can be found in the \progref, in the
+section on the calling mechanism and the chapter on linking.
+\end{remark}
+
+
+\subsection{inline}
+\label{se:inline}
+Procedures that are declared inline are copied to the places where they
+are called. This has the effect that there is no actual procedure call,
+the code of the procedure is just copied to where the procedure is needed,
+this results in faster execution speed if the function or procedure is
+used a lot.
+
+By default, \var{inline} procedures are not allowed. You need to enable
+inline code using the command-line switch \var{-Si} or \var{\{\$inline on\}}
+directive.
+
+
+\begin{enumerate}
+\item Inline code is NOT exported from a unit. This means that if you
+call an inline procedure from another unit, a normal procedure call will be
+performed. Only inside units, \var{Inline} procedures are really inlined.
+\item You cannot make recursive inline functions. i.e. an inline function
+that calls itself is not allowed.
+\end{enumerate}
+
+\subsection{interrupt}
+\label{se:interrupt}
+The \var{interrupt} keyword is used to declare a routine which will
+be used as an interrupt handler. On entry to this routine, all the registers
+will be saved and on exit, all registers will be restored
+and an interrupt or trap return will be executed (instead of the normal return
+from subroutine instruction).
+
+On platforms where a return from interrupt does not exist, the normal exit
+code of routines will be done instead. For more information on the generated
+code, consult the \progref.
+
+\subsection{pascal}
+\label{se:pascal}
+The \var{pascal} modifier can be used to declare a function that uses the
+classic pascal type calling convention (passing parameters from left to right).
+For more information on the pascal calling convention, consult the \progref.
+
+\subsection{popstack}
+\label{se:popstack}
+Popstack does the same as \var{cdecl}, namely it tells the \fpc compiler
+that a function uses the C calling convention. In difference with the
+\var{cdecl} modifier, it still mangles the name of the function as it would
+for a normal pascal function.
+With \var{popstack} you could access functions by their pascal names in a
+library.
+
+
+\subsection{public}
 The \var{Public} keyword is used to declare a function globally in a unit.
 This is useful if you don't want a function to be accessible from the unit
 file, but you do want the function to be accessible from the object file.
@@ -3445,106 +3569,36 @@ function \var{Second}, since it isn't declared in the interface part.
 However, it will be possible to access the function \var{Second} at the
 assembly-language level, by using it's mangled name (see the \progref).
 
-\subsection{cdecl}
-\label{se:cdecl}
-The \var{cdecl} modifier can be used to declare a function that uses a C
-type calling convention. This must be used if you wish to acces functions in
-an object file generated by a C compiler. It allows you to use the function in
-your code, and at linking time, you must link the object file containing the
-\var{C} implementation of the function or procedure.
-As an example:
-\begin{verbatim}
-program CmodDemo;
-{$LINKLIB c}
-Const P : PChar = 'This is fun !';
-Function strlen (P : PChar) : Longint; cdecl; external;
-begin
-  WriteLn ('Length of (',p,') : ',strlen(p))
-end.
-\end{verbatim}
-When compiling this, and linking to the C-library, you will be able to call
-the \var{strlen} function throughout your program. The \var{external}
-directive tells the compiler that the function resides in an external
-object filebrary (see \ref{se:external}).
-\begin{remark}
-The parameters in our declaration of the \var{C} function should
-match exactly the ones in the declaration in \var{C}. Since \var{C} is case
-sensitive, this means also that the name of the
-function must be exactly the same. the \fpc compiler will use the name {\em
-exactly} as it is typed in the declaration.
-\end{remark}
-
-\subsection{popstack}
-\label{se:popstack}
-Popstack does the same as \var{cdecl}, namely it tells the \fpc compiler
-that a function uses the C calling convention. In difference with the
-\var{cdecl} modifier, it still mangles the name of the function as it would
-for a normal pascal function.
-With \var{popstack} you could access functions by their pascal names in a
-library.
-
-\subsection{Export}
-Sometimes you must provide a callback function for a C library, or you want
-your routines to be callable from a C program. Since \fpc and C use
-different calling schemes for functions and procedures\footnote{More
-techically: In C the calling procedure must clear the stack. In \fpc, the
-subroutine clears the stack.}, the compiler must be told to generate code
-that can be called from a C routine. This is where the \var{Export} modifier
-comes in. Contrary to the other modifiers, it must be specified separately,
-as follows:
-\begin{verbatim}
-function DoSquare (X : Longint) : Longint; export;
-begin
-...
-end;
-\end{verbatim}
-The square brackets around the modifier are not allowed in this case.
-\begin{remark}
-as of version 0.9.8, \fpc supports the Delphi \var{cdecl} modifier.
-This modifier works in the same way as the \var{export} modifier.
-More information about these modifiers can be found in the \progref, in the
-section on the calling mechanism and the chapter on linking.
-\end{remark}
-
-\subsection{StdCall}
-As of version 0.9.8, \fpc supports the Delphi \var{stdcall} modifier.
-This modifier does actually nothing, since the \fpc compiler by default
-pushes parameters from right to left on the stack, which is what the
-modifier does under Delphi (which pushes parameters on the stack from left to
-right).
-More information about this modifier can be found in the \progref, in the
-section on the calling mechanism and the chapter on linking.
+\subsection{register}
+\label{se:register}
+The \var{register} keyword is used for compatibility with Delphi. In
+version 1.0.x of the compiler, this directive has no effect on the
+generated code.
 
 \subsection{saveregisters}
-As of version 0.99.15, \fpc has the \var{saveregisters} modifier. If this
-modifier is specified after a procedure or function, then the \fpc compiler
-will save all registers on procedure entry, and restore them when the
-procedure exits (except for registers where return values are stored).
+If this modifier is specified after a procedure or function, then the
+\fpc compiler will save all registers on procedure entry, and restore
+them when the procedure exits (except for registers where return values
+are stored).
 
 You should not need this modifier, except maybe when calling assembler code.
 
-\subsection{Alias}
-The \var{Alias} modifier allows you to specify a different name for a
-procedure or function. This is mostly useful for referring to this procedure
-from assembly language constructs. As an example, consider the following
-program:
-\begin{verbatim}
-Program Aliases;
-Procedure Printit; [Alias : 'DOIT'];
-begin
-  WriteLn ('In Printit (alias : "DOIT")');
-end;
-begin
-  asm
-  call DOIT
-  end;
-end.
-\end{verbatim}
-\begin{remark} the specified alias is inserted straight into the assembly
-code, thus it is case sensitive.
-\end{remark}
-The \var{Alias} modifier, combined with the \var{Public} modifier, make a
-powerful tool for making externally accessible object files.
+\subsection{safecall}
+This modifier ressembles closely the \var{stdcall} modifier. It sends
+parameters from right to left on the stack.
+
+More information about this modifier can be found in the \progref, in the
+section on the calling mechanism and the chapter on linking.
+
+
+\subsection{stdcall}
+This modifier pushes the parameters from right to left on the stack,
+it also aligns all the parameters to a default alignment.
+
+More information about this modifier can be found in the \progref, in the
+section on the calling mechanism and the chapter on linking.
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Unsupported Turbo Pascal modifiers
@@ -3902,8 +3956,9 @@ first in the last unit in the uses clause, then the last but one, and so on.
 This is important in case two units declare different types with the same
 identifier.
 When the compiler looks for unit files, it adds the extension \file{.ppu}
-(\file{.ppw} for Win32 platforms) to the name of the unit. On \linux, unit names
-are converted to all lowercase when looking for a unit.
+(\file{.ppw} for Win32 platforms) to the name of the unit. On \linux and in 
+operating systems where filenames are case sensitive, unit names are 
+converted to all lowercase when looking for a unit.
 
 If a unit name is longer than 8 characters, the compiler will first look for
 a unit name with this length, and then it will truncate the name to 8
@@ -4122,9 +4177,8 @@ are exported with the exact names as specified in the exports clause.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Exceptions}
 \label{ch:Exceptions}
-As of version 0.99.7, \fpc supports exceptions. Exceptions provide a
-convenient way to program error and error-recovery mechanisms, and are
-closely related to classes.
+Exceptions provide a convenient way to program error and error-recovery 
+mechanisms, and are closely related to classes.
 Exception support is based on 3 constructs:
 \begin{description}
 \item [Raise\ ] statements. To raise an exeption. This is usually done to signal an
@@ -4361,8 +4415,7 @@ their names in the assembler parts of your code.
 % Assembler procedures and functions
 \section{Assembler procedures and functions}
 Assembler procedures and functions are declared using the
-\var{Assembler} directive. The \var{Assembler} keyword is supported
-as of version 0.9.7. This permits the code generator to make a number
+\var{Assembler} directive.  This permits the code generator to make a number
 of code generation optimizations.
 
 The code generator does not generate any stack frame (entry and exit
@@ -4370,17 +4423,6 @@ code for the routine) if it contains no local variables and no
 parameters. In the case of functions, ordinal values must be returned
 in the accumulator. In the case of floating point values, these depend
 on the target processor and emulation options.
-
-\begin{remark} From version 0.99.1 to 0.99.5 (\emph{excluding}
-FPC 0.99.5a), the \var{Assembler} directive did not have the
-same effect as in Turbo Pascal, so beware! The stack frame would be
-omitted if there were no local variables, in this case if the assembly
-routine had any parameters, they would be referenced directly via the stack
-pointer. This was \emph{ NOT} like Turbo Pascal where the stack frame is only
-omitted if there are no parameters \emph{ and } no local variables. As
-stated earlier, starting from version 0.99.5a, \fpc now has the same
-behaviour as Turbo Pascal.
-\end{remark}
 
 %
 % System unit reference guide.
@@ -4577,6 +4619,17 @@ Const
   fmappend = $D7B4;
   filemode : byte = 2;
 \end{verbatim}
+
+The \var{filemode} variable is used when a file is opened using \var{Reset}.
+It indicates how the file will be opened. \var{filemode} can have one of
+the following values:
+\begin{description}
+\item[0] The file is opened for reading.
+\item[1] The file is opened for writing.
+\item[2] The file is opened for reading and writing.
+\end{description}
+Other values are possible but are operating system specific.
+
 Further, the following non processor specific general-purpose constants
 are also defined:
 \begin{verbatim}
@@ -4677,8 +4730,7 @@ var
   output,input,stderr : text;
   exitproc : pointer;
   exitcode : word;
-  stackbottom : Longint;
-  loweststack : Longint;
+  stackbottom : Cardinal;
 \end{verbatim}
 The variables \var{ExitProc}, \var{exitcode} are used in the \fpc exit
 scheme. It works similarly to the one in Turbo Pascal:
@@ -4706,7 +4758,7 @@ program terminated normally.
 your process.
 
 \begin{remark}
-The maximum error code under \linux is 127.
+The maximum error code under \linux and \unix like operating systems is 127.
 \end{remark}
 
 Under \file{GO32}, the following constants are also defined :
@@ -5338,7 +5390,7 @@ None.
 \begin{procedure}{Dispose}
 \Declaration
 Procedure Dispose (P : pointer);\\
-Procedure Dispiose (P : Typed Pointer; Des : Procedure);
+Procedure Dispose (P : Typed Pointer; Des : Procedure);
 \Description
 The first form \var{Dispose} releases the memory allocated with a call to
 \seep{New}. The pointer \var{P} must be typed. The released memory is
@@ -5349,7 +5401,7 @@ to an object type, and as a second parameter the name of a destructor
 of this object. The destructor will be called, and the memory allocated
 for the object will be freed.
 \Errors
-An error will occur if the pointer doesn't point to a location in the
+An runtime error will occur if the pointer doesn't point to a location in the
 heap.
 \SeeAlso
 \seep{New}, \seep{Getmem}, \seep{Freemem}
@@ -5478,7 +5530,7 @@ None.
 Function Filesize (Var F : Any file type) : Longint;
 \Description
 \var{Filesize} returns the total number of records in file \var{F}.
-It cannot be invoked with a file of type \var{Text}. (under \linux, this
+It cannot be invoked with a file of type \var{Text}. (under \linux and \unix, this
 also means that it cannot be invoked on pipes.)
 If \var{F} is empty, 0 is returned.
 \Errors
@@ -5608,7 +5660,8 @@ Procedure Getdir (drivenr : byte;var dir : string);
 \var{Getdir} returns in \var{dir} the current directory on the drive
 \var{drivenr}, where {drivenr} is 1 for the first floppy drive, 3 for the
 first hard disk etc. A value of 0 returns the directory on the current disk.
-On \linux, \var{drivenr} is ignored, as there is only one directory tree.
+On \linux and \unix systems, \var{drivenr} is ignored, as there is only one 
+directory tree.
 \Errors
 An error is returned under \dos, if the drive requested isn't ready.
 \SeeAlso
@@ -6055,7 +6108,9 @@ Function Memavail  : Longint;
 \Description
 \var{Memavail} returns the size, in bytes, of the free heap memory.
 \begin{remark}
-The heap grows dynamically if more memory is needed than is available.
+The heap grows dynamically if more memory is needed than is available. The
+heap size is not equal to the size of the memory available to the
+operating system, it is internal to the programs created by \fpc.
 \end{remark}
 \Errors
 None.
@@ -6084,8 +6139,7 @@ Procedure Move (var Source,Dest;Count : Longint);
 \var{Move} moves \var{Count} bytes from \var{Source} to \var{Dest}.
 \Errors
 If either \var{Dest} or \var{Source} is outside the accessible memory for
-the process, then a run-time error will be generated. With older versions of
-the compiler, a segmentation-fault will occur.
+the process, then a run-time error will be generated. 
 \SeeAlso
 \seep{Fillword}, \seep{Fillchar}
 \end{procedure}
@@ -6192,7 +6246,8 @@ Function Paramstr (L : Longint) : String;
 \Description
 \var{Paramstr} returns the \var{L}-th command-line argument. \var{L} must
 be between \var{0} and \var{Paramcount}, these values included.
-The zeroth argument is the name with which the program was started.
+The zeroth argument is the path and file name with which the program was
+started.
 
 In all cases, the command-line will be truncated to a length of 255,
 even though the operating system may support bigger command-lines. If you
@@ -6401,9 +6456,12 @@ or doesn't exist.
 Procedure Reset (Var F : Any File Type[; L : Longint]);
 \Description
 \var{Reset} opens a file \var{F} for reading. \var{F} can be any file type.
-If \var{F} is an untyped or typed file, then it is opened for reading and
-writing. If \var{F} is an untyped file, the record size can be specified in
+If \var{F} is an untyped or typed file, then it is opened according to
+the mode specified in \var{filemode}.
+If \var{F} is an untyped file, the record size can be specified in
 the optional parameter \var{L}. Default a value of 128 is used.
+
+File sharing is not taken into account when calling \var{Reset}.
 \Errors
 If the file cannot be opened for reading, then a run-time error is
 generated. This behavior can be changed by the \var{\{\$i\} } compiler switch.
@@ -6933,7 +6991,7 @@ If the parameter \var{F} is omitted, standard output is assumed.
 If no variables are specified, a Carriage Return - LineFeed character pair
 is emitted, resulting in a new line in the file \var{F}.
 \begin{remark}
-Under \linux, the Carriage Return character is omitted, as
+Under \linux and \unix, the Carriage Return character is omitted, as
 customary in Unix environments.
 \end{remark}
 
@@ -7031,7 +7089,7 @@ Procedure FreeMem(Var p:pointer[;Size:Longint]);
 ignored, since the object pascal version of \var{GetMem} stores the amount
 of memory that was requested.
 
-be sure not to release memory that was not obtained with the \var{Getmem}
+Be sure not to release memory that was not obtained with the \var{Getmem}
 call in \file{Objpas}. Normally, this should not happen, since objpas
 changes the default memory manager to it's own memory manager.
 \Errors
