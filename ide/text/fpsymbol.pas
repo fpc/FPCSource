@@ -34,7 +34,11 @@ type
       constructor  Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
       procedure    HandleEvent(var Event: TEvent); virtual;
       procedure    GotoItem(Item: sw_integer); virtual;
+      procedure    TrackItem(Item: sw_integer); virtual;
       function     GetPalette: PPalette; virtual;
+    private
+      function     TrackReference(R: PReference): boolean; virtual;
+      function     GotoReference(R: PReference): boolean; virtual;
     end;
 
     PSymbolScopeView = ^TSymbolScopeView;
@@ -44,6 +48,8 @@ type
       procedure   HandleEvent(var Event: TEvent); virtual;
       procedure   Draw; virtual;
       procedure   LookUp(S: string); virtual;
+      procedure   GotoItem(Item: sw_integer); virtual;
+      procedure   TrackItem(Item: sw_integer); virtual;
     private
       Symbols: PSymbolCollection;
       LookupStr: string;
@@ -56,8 +62,7 @@ type
       function    GetText(Item,MaxLen: Sw_Integer): String; virtual;
       procedure   SelectItem(Item: Sw_Integer); virtual;
       procedure   GotoItem(Item: sw_integer); virtual;
-      procedure   GotoSource; virtual;
-      procedure   TrackSource; virtual;
+      procedure   TrackItem(Item: sw_integer); virtual;
     private
       References: PReferenceCollection;
     end;
@@ -307,6 +312,8 @@ begin
         case Event.KeyCode of
           kbEnter :
             GotoItem(Focused);
+          kbSpaceBar :
+            TrackItem(Focused);
           kbRight,kbLeft :
             if HScrollBar<>nil then
               HScrollBar^.HandleEvent(Event);
@@ -328,10 +335,62 @@ begin
   GetPalette:=@P;
 end;
 
-
 procedure TSymbolView.GotoItem(Item: sw_integer);
 begin
   SelectItem(Item);
+end;
+
+procedure TSymbolView.TrackItem(Item: sw_integer);
+begin
+  SelectItem(Item);
+end;
+
+function LastBrowserWindow: PBrowserWindow;
+var BW: PBrowserWindow;
+procedure IsBW(P: PView); {$ifndef FPC}far;{$endif}
+begin
+  if (P^.HelpCtx=hcBrowserWindow) then
+    BW:=pointer(P);
+end;
+begin
+  BW:=nil;
+  Desktop^.ForEach(@IsBW);
+  LastBrowserWindow:=BW;
+end;
+
+function TSymbolView.TrackReference(R: PReference): boolean;
+var W: PSourceWindow;
+    BW: PBrowserWindow;
+    P: TPoint;
+begin
+  Message(Desktop,evBroadcast,cmClearLineHighlights,nil);
+  Desktop^.Lock;
+  P.X:=R^.Position.X-1; P.Y:=R^.Position.Y-1;
+  W:=TryToOpenFile(nil,R^.GetFileName,P.X,P.Y);
+  if W<>nil then
+  begin
+    BW:=LastBrowserWindow;
+    if BW=nil then
+      W^.Select
+    else
+      begin
+        Desktop^.Delete(W);
+        Desktop^.InsertBefore(W,BW^.NextView);
+      end;
+    W^.Editor^.SetHighlightRow(P.Y);
+  end;
+  Desktop^.UnLock;
+  TrackReference:=W<>nil;
+end;
+
+function TSymbolView.GotoReference(R: PReference): boolean;
+var W: PSourceWindow;
+begin
+  Desktop^.Lock;
+  W:=TryToOpenFile(nil,R^.GetFileName,R^.Position.X-1,R^.Position.Y-1);
+  if W<>nil then W^.Select;
+  Desktop^.UnLock;
+  GotoReference:=W<>nil;
 end;
 
 {****************************************************************************
@@ -358,7 +417,7 @@ begin
             ClearEvent(Event);
           end;
       else
-        if Event.CharCode in[#32..#255] then
+        if Event.CharCode in[#33..#255] then
           begin
             LookUp(LookUpStr+Event.CharCode);
             ClearEvent(Event);
@@ -394,6 +453,20 @@ begin
   LookUpStr:=NS;
   SetState(sfCursorVis,LookUpStr<>'');
   DrawView;
+end;
+
+procedure TSymbolScopeView.GotoItem(Item: sw_integer);
+begin
+  SelectItem(Item);
+end;
+
+procedure TSymbolScopeView.TrackItem(Item: sw_integer);
+var S: PSymbol;
+begin
+  if Range=0 then Exit;
+  S:=List^.At(Focused);
+  if (S^.References<>nil) and (S^.References^.Count>0) then
+    TrackReference(S^.References^.At(0));
 end;
 
 function TSymbolScopeView.GetText(Item,MaxLen: Sw_Integer): String;
@@ -435,66 +508,21 @@ begin
   GetText:=copy(S,1,MaxLen);
 end;
 
-procedure TSymbolReferenceView.GotoSource;
-var R: PReference;
-    W: PSourceWindow;
-begin
-  if Range=0 then Exit;
-  R:=References^.At(Focused);
-  Desktop^.Lock;
-  W:=TryToOpenFile(nil,R^.GetFileName,R^.Position.X-1,R^.Position.Y-1);
-  if W<>nil then W^.Select;
-  Desktop^.UnLock;
-end;
-
-function LastBrowserWindow: PBrowserWindow;
-var BW: PBrowserWindow;
-procedure IsBW(P: PView); {$ifndef FPC}far;{$endif}
-begin
-  if (P^.HelpCtx=hcBrowserWindow) then
-    BW:=pointer(P);
-end;
-begin
-  BW:=nil;
-  Desktop^.ForEach(@IsBW);
-  LastBrowserWindow:=BW;
-end;
-
-procedure TSymbolReferenceView.TrackSource;
-var R: PReference;
-    W: PSourceWindow;
-    BW: PBrowserWindow;
-    P: TPoint;
-begin
-  Message(Desktop,evBroadcast,cmClearLineHighlights,nil);
-  if Range=0 then Exit;
-  R:=References^.At(Focused);
-  Desktop^.Lock;
-  P.X:=R^.Position.X-1; P.Y:=R^.Position.Y-1;
-  W:=TryToOpenFile(nil,R^.GetFileName,P.X,P.Y);
-  if W<>nil then
-  begin
-    BW:=LastBrowserWindow;
-    if BW=nil then
-      W^.Select
-    else
-      begin
-        Desktop^.Delete(W);
-        Desktop^.InsertBefore(W,BW^.NextView);
-      end;
-    W^.Editor^.SetHighlightRow(P.Y);
-  end;
-  Desktop^.UnLock;
-end;
-
 procedure TSymbolReferenceView.GotoItem(Item: sw_integer);
 begin
-  GotoSource;
+  if Range=0 then Exit;
+  GotoReference(List^.At(Item));
+end;
+
+procedure TSymbolReferenceView.TrackItem(Item: sw_integer);
+begin
+  if Range=0 then Exit;
+  TrackReference(List^.At(Item));
 end;
 
 procedure TSymbolReferenceView.SelectItem(Item: Sw_Integer);
 begin
-  TrackSource;
+  GotoItem(Item);
 end;
 
 
@@ -729,6 +757,26 @@ begin
                 S^.Items,S^.References);
             end;
       end;
+{    evCommand :
+      begin
+        DontClear:=false;
+        case Event.Command of
+        cmGotoSymbol :
+          if Event.InfoPtr=ScopeView then
+           if ReferenceView<>nil then
+            if ReferenceView^.Range>0 then
+              ReferenceView^.GotoItem(0);
+        cmTrackSymbol :
+          if Event.InfoPtr=ScopeView then
+            if (ScopeView<>nil) and (ScopeView^.Range>0) then
+              begin
+                S:=ScopeView^.At(ScopeView^.Focused);
+                if (S^.References<>nil) and (S^.References^.Count>0) then
+                  TrackItem(S^.References^.At(0));
+        else DontClear:=true;
+        end;
+        if DontClear=false then ClearEvent(Event);
+      end;}
     evKeyDown :
       begin
         DontClear:=false;
@@ -863,8 +911,8 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  1999-02-19 15:43:20  peter
-    * compatibility fixes for FV
+  Revision 1.11  1999-02-22 11:51:38  peter
+    * browser updates from gabor
 
   Revision 1.9  1999/02/18 13:44:34  peter
     * search fixed

@@ -159,6 +159,7 @@ begin
     hcLinker        : S:='Set linker options';
     hcDebugger      : S:='Set debug information options';
     hcDirectories   : S:='Set paths for units, include, object and generated files';
+    hcBrowser       : S:='Specify global browser settings';
     hcTools         : S:='Create or change tools';
 
     hcEnvironmentMenu:S:='Specify environment settins';
@@ -370,7 +371,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  1999-02-19 18:43:45  peter
+  Revision 1.10  1999-02-22 11:51:35  peter
+    * browser updates from gabor
+
+  Revision 1.9  1999/02/19 18:43:45  peter
     + open dialog supports mask list
 
   Revision 1.8  1999/02/11 19:07:21  pierre

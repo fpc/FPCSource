@@ -64,12 +64,15 @@ type
     TSymbol = object(TObject)
       Name       : PString;
       Typ        : tsymtyp;
-      ParamCount : Sw_integer;
-      Params     : PPointerArray;
+      Params     : PString;
       References : PReferenceCollection;
       Items      : PSymbolCollection;
-      constructor Init(const AName: string; ATyp: tsymtyp; AParamCount: Sw_integer; AParams: PPointerArray);
-      procedure   SetParams(AParamCount: Sw_integer; AParams: PPointerArray);
+      DType      : PString;
+      VType      : PString;
+      Ancestor   : PString;
+      IsRecord   : boolean;
+      IsClass    : boolean;
+      constructor Init(const AName: string; ATyp: tsymtyp; AParams: string);
       function    GetReferenceCount: Sw_integer;
       function    GetReference(Index: Sw_integer): PReference;
       function    GetItemCount: Sw_integer;
@@ -113,7 +116,7 @@ implementation
 
 uses
   Drivers,Views,App,
-  globtype,globals,files,comphook;
+  aasm,globtype,globals,files,comphook;
 
 {****************************************************************************
                                    Helpers
@@ -127,6 +130,35 @@ begin
     GetStr:=P^;
 end;
 
+function IntToStr(L: longint): string;
+var S: string;
+begin
+  Str(L,S);
+  IntToStr:=S;
+end;
+
+function UpcaseStr(S: string): string;
+var I: integer;
+begin
+  for I:=1 to length(S) do
+      S[I]:=Upcase(S[I]);
+  UpcaseStr:=S;
+end;
+
+function FloatToStr(E: extended): string;
+var S: string;
+begin
+  Str(E:0:24,S);
+  if Pos('.',S)>0 then
+    begin
+      while (length(S)>0) and (S[length(S)]='0') do
+        Delete(S,length(S),1);
+      if (length(S)>0) and (S[length(S)]='.') then
+        Delete(S,length(S),1);
+    end;
+  if S='' then S:='0';
+  FloatToStr:=S;
+end;
 
 {****************************************************************************
                                 TStoreCollection
@@ -136,6 +168,7 @@ function TStoreCollection.Add(const S: string): PString;
 var P: PString;
     Index: Sw_integer;
 begin
+  if S='' then P:=nil else
   if Search(@S,Index) then P:=At(Index) else
     begin
       P:=NewStr(S);
@@ -261,28 +294,15 @@ end;
                                    TSymbol
 ****************************************************************************}
 
-constructor TSymbol.Init(const AName: string; ATyp: tsymtyp; AParamCount: Sw_integer; AParams: PPointerArray);
+constructor TSymbol.Init(const AName: string; ATyp: tsymtyp; AParams: string);
 begin
   inherited Init;
   Name:=NewStr(AName); Typ:=ATyp;
-  SetParams(AParamCount,AParams);
   New(References, Init(20,50));
   if ATyp in RecordTypes then
     begin
       Items:=New(PSortedSymbolCollection, Init(50,100));
     end;
-end;
-
-procedure TSymbol.SetParams(AParamCount: Sw_integer; AParams: PPointerArray);
-begin
-  if AParams=nil then AParamCount:=0 else
-  if AParamCount=0 then AParams:=nil;
-  ParamCount:=AParamCount;
-  if (ParamCount>0) and (AParams<>nil) then
-  begin
-    GetMem(Params, ParamCount*4);
-    Move(AParams^,Params^,ParamCount*4);
-  end;
 end;
 
 function TSymbol.GetReferenceCount: Sw_integer;
@@ -329,15 +349,27 @@ begin
       S:=S+' ';
    end;
   S:=S+' '+GetName;
-  if ParamCount>0 then
+  if IsRecord then
+    S:=S+' = record'
+  else
+  if Ancestor<>nil then
     begin
-      S:=S+'(';
-      for I:=1 to ParamCount do
-        begin
-          S:=S+GetStr(Params^[I-1]);
-          if I<>ParamCount then S:=S+', ';
-        end;
-      S:=S+')';
+      S:=S+' = ';
+      if IsClass then
+        S:=S+'class'
+      else
+        S:=S+'object';
+      if Ancestor^<>'.' then
+        S:=S+'('+Ancestor^+')';
+    end
+  else
+    begin
+      if Assigned(DType) then
+        S:=S+' = '+DType^;
+      if Assigned(Params) then
+        S:=S+'('+Params^+')';
+      if Assigned(VType) then
+        S:=S+': '+VType^;
     end;
   GetText:=S;
 end;
@@ -349,7 +381,10 @@ begin
     abstractsym  : S:='abst';
     varsym       : S:='var';
     typesym      : S:='type';
-    procsym      : S:='proc';
+    procsym      : if VType=nil then
+                     S:='proc'
+                   else
+                     S:='func';
     unitsym      : S:='unit';
     programsym   : S:='prog';
     constsym     : S:='const';
@@ -376,8 +411,14 @@ begin
     Dispose(Items, Done);
   if assigned(Name) then
     DisposeStr(Name);
-  if assigned(Params) then
-    FreeMem(Params,ParamCount*4);
+{  if assigned(Params) then
+    DisposeStr(Params);
+  if assigned(VType) then
+    DisposeStr(VType);
+  if assigned(DType) then
+    DisposeStr(DType);
+  if assigned(Ancestor) then
+    DisposeStr(Ancestor);}
 end;
 
 
@@ -415,8 +456,8 @@ end;
 
 procedure CreateBrowserCol;
 
-  procedure ProcessSymTable(var Owner: PSymbolCollection; Table: PSymTable);
-  var I,J,defcount, symcount: longint;
+  procedure ProcessSymTable(OwnerSym: PSymbol; var Owner: PSymbolCollection; Table: PSymTable);
+  var I,J,defcount,symcount: longint;
       Ref: PRef;
       Sym,ParSym: PSym;
       Symbol: PSymbol;
@@ -424,6 +465,255 @@ procedure CreateBrowserCol;
       ParamCount: Sw_integer;
       Params: array[0..20] of PString;
       inputfile : pinputfile;
+      Idx: sw_integer;
+      S: string;
+  procedure SetVType(Symbol: PSymbol; VType: string);
+  begin
+    Symbol^.VType:=TypeNames^.Add(VType);
+  end;
+  procedure SetDType(Symbol: PSymbol; DType: string);
+  begin
+    Symbol^.DType:=TypeNames^.Add(DType);
+  end;
+  function GetDefinitionStr(def: pdef): string; forward;
+  function GetEnumDefStr(def: penumdef): string;
+  var Name: string;
+      esym: penumsym;
+      Count: integer;
+  begin
+    Name:='(';
+    esym:=def^.First; Count:=0;
+    while (esym<>nil) do
+      begin
+        if Count>0 then Name:=Name+', ';
+        Name:=Name+esym^.name;
+        esym:=esym^.next; Inc(Count);
+      end;
+    Name:=Name+')';
+    GetEnumDefStr:=Name;
+  end;
+  function GetArrayDefStr(def: parraydef): string;
+  var Name: string;
+  begin
+    Name:='array ['+IntToStr(def^.lowrange)+'..'+IntToStr(def^.highrange)+'] of ';
+    if assigned(def^.definition) then
+      Name:=Name+GetDefinitionStr(def^.definition);
+    GetArrayDefStr:=Name;
+  end;
+  function GetFileDefStr(def: pfiledef): string;
+  var Name: string;
+  begin
+    Name:='';
+    case def^.filetype of
+      ft_text    : Name:='text';
+      ft_untyped : Name:='file';
+      ft_typed   : Name:='file of '+GetDefinitionStr(def^.typed_as);
+    end;
+    GetFileDefStr:=Name;
+  end;
+  function GetStringDefStr(def: pstringdef): string;
+  var Name: string;
+  begin
+    Name:='';
+    case def^.string_typ of
+      st_shortstring :
+        if def^.len=255 then
+          Name:='shortstring'
+        else
+          Name:='string['+IntToStr(def^.len)+']';
+      st_longstring :
+        Name:='longstring';
+      st_ansistring :
+        Name:='ansistring';
+      st_widestring :
+        Name:='widestring';
+    else ;
+    end;
+    GetStringDefStr:=Name;
+  end;
+  function retdefassigned(def: pabstractprocdef): boolean;
+  var OK: boolean;
+  begin
+    OK:=false;
+    if assigned(def^.retdef) then
+      if UpcaseStr(GetDefinitionStr(def^.retdef))<>'VOID' then
+        OK:=true;
+    retdefassigned:=OK;
+  end;
+  function GetAbsProcParmDefStr(def: pabstractprocdef): string;
+  var Name: string;
+      dc: pdefcoll;
+      Count: integer;
+      CurName: string;
+  begin
+    Name:='';
+    dc:=def^.para1; Count:=0;
+    while dc<>nil do
+     begin
+       CurName:='';
+       case dc^.paratyp of
+         vs_Value : ;
+         vs_Const : CurName:=CurName+'const ';
+         vs_Var   : CurName:=CurName+'var ';
+       end;
+       if assigned(dc^.data) then
+         CurName:=CurName+GetDefinitionStr(dc^.data);
+       if dc^.next<>nil then
+         CurName:=', '+CurName;
+       Name:=CurName+Name;
+       dc:=dc^.next; Inc(Count);
+     end;
+    GetAbsProcParmDefStr:=Name;
+  end;
+  function GetAbsProcDefStr(def: pabstractprocdef): string;
+  var Name: string;
+  begin
+    Name:=GetAbsProcParmDefStr(def);
+    if Name<>'' then Name:='('+Name+')';
+    if retdefassigned(def) then
+      Name:='function'+Name+': '+GetDefinitionStr(def^.retdef)
+    else
+      Name:='procedure'+Name;
+    GetAbsProcDefStr:=Name;
+  end;
+  function GetProcDefStr(def: pprocdef): string;
+  var DName: string;
+      J: integer;
+  begin
+{    DName:='';
+    if assigned(def) then
+    begin
+      if assigned(def^.parast) then
+        begin
+          with def^.parast^ do
+          for J:=1 to number_symbols do
+            begin
+              if J<>1 then DName:=DName+', ';
+              ParSym:=GetsymNr(J);
+              if ParSym=nil then Break;
+              DName:=DName+ParSym^.Name;
+            end;
+        end
+    end;}
+    DName:=GetAbsProcDefStr(def);
+    GetProcDefStr:=DName;
+  end;
+  function GetProcVarDefStr(def: pprocvardef): string;
+  begin
+    GetProcVarDefStr:=GetAbsProcDefStr(def);
+  end;
+  function GetSetDefStr(def: psetdef): string;
+  var Name: string;
+  begin
+    Name:='';
+    case def^.settype of
+      normset  : Name:='set';
+      smallset : Name:='set';
+      varset   : Name:='varset';
+    end;
+    Name:=Name+' of ';
+    Name:=Name+GetDefinitionStr(def^.setof);
+    GetSetDefStr:=Name;
+  end;
+  function GetDefinitionStr(def: pdef): string;
+  var Name: string;
+      sym: psym;
+  begin
+    Name:='';
+    if def<>nil then
+    begin
+      if assigned(def^.sym) then
+        Name:=def^.sym^.name;
+      if Name='' then
+      case def^.deftype of
+        arraydef :
+          Name:=GetArrayDefStr(parraydef(def));
+        stringdef :
+          Name:=GetStringDefStr(pstringdef(def));
+        enumdef :
+          Name:=GetEnumDefStr(penumdef(def));
+        procdef :
+          Name:=GetProcDefStr(pprocdef(def));
+        procvardef :
+          Name:=GetProcVarDefStr(pprocvardef(def));
+        filedef :
+          Name:=GetFileDefStr(pfiledef(def));
+        setdef :
+          Name:=GetSetDefStr(psetdef(def));
+      end;
+    end;
+    GetDefinitionStr:=Name;
+  end;
+  function GetEnumItemName(Sym: penumsym): string;
+  var Name: string;
+      ES: penumsym;
+  begin
+    Name:='';
+    if assigned(sym) and assigned(sym^.definition) then
+      if assigned(sym^.definition^.sym) then
+      begin
+{        ES:=sym^.definition^.First;
+        while (ES<>nil) and (ES^.Value<>sym^.Value) do
+          ES:=ES^.next;
+        if assigned(es) and (es^.value=sym^.value) then
+          Name:=}
+        Name:=sym^.definition^.sym^.name;
+        if Name<>'' then
+          Name:=Name+'('+IntToStr(sym^.value)+')';
+      end;
+    GetEnumItemName:=Name;
+  end;
+  function GetConstValueName(sym: pconstsym): string;
+  var Name: string;
+  begin
+    Name:='';
+{    if assigned(sym^.definition) then
+     if assigned(sym^.definition^.sym) then
+       Name:=sym^.definition^.sym^.name;}
+    if Name='' then
+    case sym^.consttype of
+      constord :
+        Name:=sym^.definition^.sym^.name+'('+IntToStr(sym^.value)+')';
+      conststring :
+        Name:=''''+GetStr(PString(sym^.Value))+'''';
+      constreal:
+        Name:=FloatToStr(PBestReal(sym^.Value)^);
+      constbool:
+{        if boolean(sym^.Value)=true then
+          Name:='TRUE'
+        else
+          Name:='FALSE';}
+        Name:='Longbool('+IntToStr(sym^.Value)+')';
+      constint:
+        Name:=IntToStr(sym^.value);
+      constchar:
+        Name:=''''+chr(sym^.Value)+'''';
+      constset:
+{        Name:=SetToStr(pnormalset(sym^.Value))};
+      constnil: ;
+    end;
+    GetConstValueName:=Name;
+  end;
+  procedure ProcessDefIfStruct(definition: pdef);
+  begin
+    if assigned(definition) then
+    begin
+      case definition^.deftype of
+        recorddef :
+          if precdef(definition)^.symtable<>Table then
+            ProcessSymTable(Symbol,Symbol^.Items,precdef(definition)^.symtable);
+        objectdef :
+          if precdef(definition)^.symtable<>Table then
+            ProcessSymTable(Symbol,Symbol^.Items,pobjectdef(definition)^.publicsyms);
+        pointerdef :
+          with ppointerdef(definition)^ do
+            if assigned(definition) then
+              if assigned(definition^.sym) then
+                ProcessDefIfStruct(definition^.sym^.definition);
+      end;
+    end;
+  end;
+
   begin
     if not Assigned(Table) then
      Exit;
@@ -440,47 +730,98 @@ procedure CreateBrowserCol;
         Sym:=Table^.GetsymNr(I);
         if Sym=nil then Continue;
         ParamCount:=0;
-        New(Symbol, Init(Sym^.Name,Sym^.Typ,0,nil));
+        New(Symbol, Init(Sym^.Name,Sym^.Typ,''));
         case Sym^.Typ of
+          varsym :
+             with pvarsym(sym)^ do
+             begin
+               if assigned(definition) then
+                 if assigned(definition^.sym) then
+                   SetVType(Symbol,definition^.sym^.name)
+                 else
+                   SetVType(Symbol,GetDefinitionStr(definition));
+               ProcessDefIfStruct(definition);
+             end;
+          constsym :
+             SetDType(Symbol,GetConstValueName(pconstsym(sym)));
+          enumsym :
+            if assigned(penumsym(sym)^.definition) then
+             SetDType(Symbol,GetEnumItemName(penumsym(sym)));
           unitsym :
             begin
   {            ProcessSymTable(Symbol^.Items,punitsym(sym)^.unitsymtable);}
             end;
+          syssym :
+{            if assigned(Table^.Name) then
+            if Table^.Name^='SYSTEM' then}
+              begin
+                Symbol^.Params:=TypeNames^.Add('...');
+              end;
+          funcretsym :
+            if Assigned(OwnerSym) then
+            with pfuncretsym(sym)^ do
+              if assigned(funcretdef) then
+                if assigned(funcretdef^.sym) then
+                   SetVType(OwnerSym,funcretdef^.sym^.name);
           procsym :
-            with pprocsym(sym)^ do
-            if assigned(definition) then
             begin
-              if assigned(definition^.parast) then
-                begin
-                  with definition^.parast^ do
-                  for J:=1 to number_symbols do
-                    begin
-                      ParSym:=GetsymNr(J);
-                      if ParSym=nil then Break;
-                      Inc(ParamCount);
-                      Params[ParamCount-1]:=TypeNames^.Add(ParSym^.Name);
-                    end;
-                  Symbol^.SetParams(ParamCount,PPointerArray(@Params));
-                  ProcessSymTable(Symbol^.Items,definition^.parast);
-                end;
-              if assigned(definition^.localst) and
-                 (definition^.localst^.symtabletype<>staticsymtable) then
-                ProcessSymTable(Symbol^.Items,definition^.localst);
+              with pprocsym(sym)^ do
+              if assigned(definition) then
+              begin
+                ProcessSymTable(Symbol,Symbol^.Items,definition^.parast);
+                if assigned(definition^.parast) then
+                  begin
+                    Symbol^.Params:=TypeNames^.Add(GetAbsProcParmDefStr(definition));
+                  end
+                else { param-definition is NOT assigned }
+                  if assigned(Table^.Name) then
+                  if Table^.Name^='SYSTEM' then
+                  begin
+                    Symbol^.Params:=TypeNames^.Add('...');
+                  end;
+                if assigned(definition^.localst) and
+                   (definition^.localst^.symtabletype<>staticsymtable) then
+                  ProcessSymTable(Symbol,Symbol^.Items,definition^.localst);
+              end;
             end;
           typesym :
             begin
             with ptypesym(sym)^ do
               if assigned(definition) then
                 case definition^.deftype of
+                  arraydef :
+                    SetDType(Symbol,GetArrayDefStr(parraydef(definition)));
+                  enumdef :
+                    SetDType(Symbol,GetEnumDefStr(penumdef(definition)));
+                  procdef :
+                    SetDType(Symbol,GetProcDefStr(pprocdef(definition)));
+                  procvardef :
+                    SetDType(Symbol,GetProcVarDefStr(pprocvardef(definition)));
                   objectdef :
-                    ProcessSymTable(Symbol^.Items,pobjectdef(definition)^.publicsyms);
+                    with pobjectdef(definition)^ do
+                    begin
+                      if childof=nil then
+                        S:='.'
+                      else
+                        S:=childof^.name^;
+                      Symbol^.Ancestor:=TypeNames^.Add(S);
+                      Symbol^.IsClass:=(options and oo_is_class)<>0;
+                      ProcessSymTable(Symbol,Symbol^.Items,pobjectdef(definition)^.publicsyms);
+                    end;
                   recorddef :
-                    ProcessSymTable(Symbol^.Items,precdef(definition)^.symtable);
+                    begin
+                      Symbol^.IsRecord:=true;
+                      ProcessSymTable(Symbol,Symbol^.Items,precdef(definition)^.symtable);
+                    end;
+                  filedef :
+                    SetDType(Symbol,GetFileDefStr(pfiledef(definition)));
+                  setdef :
+                    SetDType(Symbol,GetSetDefStr(psetdef(definition)));
                 end;
             end;
         end;
         Ref:=Sym^.defref;
-        while assigned(Ref) do
+        while Assigned(Symbol) and assigned(Ref) do
           begin
             inputfile:=get_source_file(ref^.moduleindex,ref^.posinfo.fileindex);
             if Assigned(inputfile) and Assigned(inputfile^.name) then
@@ -491,6 +832,7 @@ procedure CreateBrowserCol;
               end;
             Ref:=Ref^.nextref;
           end;
+        if Assigned(Symbol) then
         Owner^.Insert(Symbol);
       end;
   end;
@@ -502,37 +844,25 @@ var
 begin
   DisposeBrowserCol;
   NewBrowserCol;
-{  T:=SymTableStack;
-  while assigned(T) do
-   begin
-     New(UnitS, Init(T^.Name^,unitsym, 0, nil));
-     Modules^.Insert(UnitS);
-     ProcessSymTable(UnitS^.Items,T);
-     T:=T^.Next;
-   end;}
   hp:=pmodule(loaded_units.first);
   while assigned(hp) do
     begin
        t:=psymtable(hp^.globalsymtable);
        if assigned(t) then
          begin
-           New(UnitS, Init(T^.Name^,unitsym, 0, nil));
+           New(UnitS, Init(T^.Name^,unitsym,''));
            Modules^.Insert(UnitS);
-           ProcessSymTable(UnitS^.Items,T);
+           ProcessSymTable(UnitS,UnitS^.Items,T);
            if cs_local_browser in aktmoduleswitches then
              begin
                 t:=psymtable(hp^.localsymtable);
                 if assigned(t) then
-                  begin
-                    {New(UnitS, Init(T^.Name^,unitsym, 0, nil));
-                    Modules^.Insert(UnitS);}
-                    ProcessSymTable(UnitS^.Items,T);
-                  end;
+                  ProcessSymTable(UnitS,UnitS^.Items,T);
              end;
          end;
        hp:=pmodule(hp^.next);
     end;
-   
+
 end;
 
 
@@ -569,7 +899,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1999-02-04 09:31:59  pierre
+  Revision 1.7  1999-02-22 11:51:32  peter
+    * browser updates from gabor
+
+  Revision 1.6  1999/02/04 09:31:59  pierre
    + added objects and records symbol tables
 
   Revision 1.5  1999/02/03 09:44:32  pierre

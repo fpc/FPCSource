@@ -537,6 +537,80 @@ begin
   Dispose(D, Done);
 end;
 
+procedure TIDEApp.BrowserOptions(Browser: PBrowserWindow);
+var D: PCenterDialog;
+    R,R2,R3 : TRect;
+    PreS: string[15];
+    CB1,CB2: PCheckBoxes;
+    RB1,RB2: PRadioButtons;
+begin
+  if Browser=nil then
+    begin
+      PreS:='';
+    end
+  else
+    begin
+      PreS:='Local ';
+    end;
+  R.Assign(0,0,56,15);
+  New(D, Init(R, PreS+'Browser Options'));
+  with D^ do
+  begin
+    GetExtent(R); R.Grow(-2,-2);
+    R.B.Y:=R.A.Y+1+3; R2.Copy(R); Inc(R2.A.Y);
+    New(CB1, Init(R2,
+      NewSItem(RExpand('~L~abels',21+2),
+      NewSItem('~C~onstants',
+      NewSItem('~T~ypes',
+      NewSItem('~V~ariables',
+      NewSItem('~P~rocedures',
+      NewSItem('~I~nherited',
+      nil)))))))
+    );
+    Insert(CB1);
+    R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
+    Insert(New(PLabel, Init(R2, 'Symbols', CB1)));
+
+    R.Move(0,R.B.Y-R.A.Y+1);
+    R.B.Y:=R.A.Y+1+2; R2.Copy(R);
+    R3.Copy(R2); R3.B.X:=R3.A.X+(R3.B.X-R3.A.X) div 2-1; Inc(R3.A.Y);
+    New(RB1, Init(R3,
+      NewSItem('~N~ew browser',
+      NewSItem('~R~eplace current',
+      nil)))
+    );
+    Insert(RB1);
+    R3.Move(0,-1); R3.B.Y:=R3.A.Y+1;
+    Insert(New(PLabel, Init(R3, 'Sub-browsing', RB1)));
+    R3.Copy(R2); R3.A.X:=R3.B.X-(R3.B.X-R3.A.X) div 2+1; Inc(R3.A.Y);
+    New(RB2, Init(R3,
+      NewSItem('~S~cope',
+      NewSItem('R~e~ference',
+      nil)))
+    );
+    Insert(RB2);
+    R3.Move(0,-1); R3.B.Y:=R3.A.Y+1;
+    Insert(New(PLabel, Init(R3, 'Preferred pane', RB2)));
+
+    R.Move(0,R.B.Y-R.A.Y+1);
+    R.B.Y:=R.A.Y+1+1; R2.Copy(R); Inc(R2.A.Y);
+    New(CB2, Init(R2,
+      NewSItem(RExpand('~Q~ualified symbols',21+2),
+      NewSItem('S~o~rt always',
+      nil)))
+    );
+    Insert(CB2);
+    R2.Move(0,-1); R2.B.Y:=R2.A.Y+1;
+    Insert(New(PLabel, Init(R2, 'Display', CB2)));
+  end;
+  InsertButtons(D);
+  CB1^.Select;
+  if Desktop^.ExecView(D)=cmOK then
+  begin
+  end;
+  Dispose(D, Done);
+end;
+
 procedure TIDEApp.Mouse;
 var R,R2: TRect;
     D: PCenterDialog;
@@ -722,7 +796,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  1999-02-18 13:44:32  peter
+  Revision 1.17  1999-02-22 11:51:37  peter
+    * browser updates from gabor
+
+  Revision 1.16  1999/02/18 13:44:32  peter
     * search fixed
     + backward search
     * help fixes

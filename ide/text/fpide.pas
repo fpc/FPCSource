@@ -20,7 +20,7 @@ uses
   Drivers,Views,App,Gadgets,
   {$ifdef EDITORS}Editors,{$else}WEditor,{$endif}
   Comphook,
-  FPViews;
+  FPViews,FPSymbol;
 
 type
     TIDEApp = object(TApplication)
@@ -74,6 +74,7 @@ type
       procedure Tools;
       procedure Grep;
       procedure EditorOptions(Editor: PEditor);
+      procedure BrowserOptions(Browser: PBrowserWindow);
       procedure Mouse;
       procedure Colors;
       procedure OpenINI;
@@ -119,7 +120,7 @@ uses
   Systems,BrowCol,Version,
   WHelp,WHlpView,WINI,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompile,FPHelp,
-  FPTemplt,FPCalc,FPUsrScr,FPSymbol,FPTools,FPDebug,FPRedir;
+  FPTemplt,FPCalc,FPUsrScr,FPTools,FPDebug,FPRedir;
 
 
 function IDEUseSyntaxHighlight(Editor: PFileEditor): boolean; {$ifndef FPC}far;{$endif}
@@ -243,6 +244,7 @@ begin
       NewItem('~L~inker...','', kbNoKey, cmLinker, hcLinker,
       NewItem('De~b~ugger...','', kbNoKey, cmDebugger, hcDebugger,
       NewItem('~D~irectories...','', kbNoKey, cmDirectories, hcDirectories,
+      NewItem('Bro~w~ser...','',kbNoKey, cmBrowser, hcBrowser,
       NewItem('~T~ools...','', kbNoKey, cmTools, hcTools,
       NewLine(
       NewSubMenu('~E~nvironment', hcEnvironmentMenu, NewMenu(
@@ -256,7 +258,7 @@ begin
       NewItem('~O~pen...','', kbNoKey, cmOpenINI, hcOpenINI,
       NewItem('~S~ave','', kbNoKey, cmSaveINI, hcSaveINI,
       NewItem('Save ~a~s...','', kbNoKey, cmSaveAsINI, hcSaveAsINI,
-      nil)))))))))))))),
+      nil))))))))))))))),
     NewSubMenu('~W~indow', hcWindowMenu, NewMenu(
       NewItem('~T~ile','', kbNoKey, cmTile, hcTile,
       NewItem('C~a~scade','', kbNoKey, cmCascade, hcCascade,
@@ -388,6 +390,8 @@ begin
              cmTools         : Tools;
              cmEditor        : EditorOptions(nil);
              cmEditorOptions : EditorOptions(Event.InfoPtr);
+             cmBrowser       : BrowserOptions(nil);
+             cmBrowserOptions : BrowserOptions(Event.InfoPtr);
              cmMouse         : Mouse;
              cmColors        : Colors;
              cmOpenINI       : OpenINI;
@@ -682,7 +686,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.18  1999-02-22 02:15:13  peter
+  Revision 1.19  1999-02-22 11:51:36  peter
+    * browser updates from gabor
+
+  Revision 1.18  1999/02/22 02:15:13  peter
     + default extension for save in the editor
     + Separate Text to Find for the grep dialog
     * fixed redir crash with tp7

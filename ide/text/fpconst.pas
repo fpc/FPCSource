@@ -120,6 +120,7 @@ const
      cmSaveINI           = 2012;
      cmSaveAsINI         = 2013;
      cmSwitchesMode      = 2014;
+     cmBrowser           = 2015;
 
      cmHelpContents      = 2100;
      cmHelpIndex         = 2101;
@@ -131,6 +132,10 @@ const
      cmOpenAtCursor      = 2200;
      cmBrowseAtCursor    = 2201;
      cmEditorOptions     = 2202;
+     cmBrowserOptions    = 2203;
+
+     cmTrackReference    = 2300;
+     cmGotoReference     = 2301;
 
      { Help constants }
      hcSourceWindow      = 8000;
@@ -175,6 +180,7 @@ const
      hcCalculator        = hcShift+cmCalculator;
      hcAsciiTable        = hcShift+cmAsciiTable;
      hcGrep              = hcShift+cmGrep;
+     hcBrowser           = hcShift+cmBrowser;
      hcSwitchesMode      = hcShift+cmSwitchesMode;
      hcAbout             = hcShift+cmAbout;
 
@@ -275,7 +281,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.11  1999-02-20 15:18:28  peter
+  Revision 1.12  1999-02-22 11:51:34  peter
+    * browser updates from gabor
+
+  Revision 1.11  1999/02/20 15:18:28  peter
     + ctrl-c capture with confirm dialog
     + ascii table in the tools menu
     + heapviewer

@@ -235,6 +235,7 @@ type
       LogLB : PMessageListBox;
       constructor Init;
       procedure   AddMessage(AClass: longint; Msg, Module: string; Line,Column: longint);
+      procedure   ClearMessages;
       procedure   SizeLimits(var Min, Max: TPoint); virtual;
       procedure   Close; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
@@ -2539,12 +2540,12 @@ begin
   if ClassS<>'' then
    ClassS:=RExpand(ClassS,0)+': ';
   S:=ClassS;
-  if (Module<>nil) and (ID<>0) then
-     S:=NameAndExtOf(Module^)+'('+IntToStr(ID)+') '+S;
-  if Text<>nil then S:=S+Text^;
+  if (Module<>nil) {and (ID<>0)} then
+     S:=S+Module^+' ('+IntToStr(ID)+'): ';
+  if Text<>nil then S:=ClassS+Text^;
   if length(S)>MaxLen then S:=copy(S,1,MaxLen-2)+'..';
   GetText:=S;
-end;
+ end;
 
 constructor TProgramInfoWindow.Init;
 var R,R2: TRect;
@@ -2581,6 +2582,12 @@ procedure TProgramInfoWindow.AddMessage(AClass: longint; Msg, Module: string; Li
 begin
   if AClass>=V_Info then Line:=0;
   LogLB^.AddItem(New(PCompilerMessage, Init(AClass, Msg, Module, Line,Column)));
+end;
+
+procedure TProgramInfoWindow.ClearMessages;
+begin
+  LogLB^.Clear;
+  ReDraw;
 end;
 
 procedure TProgramInfoWindow.SizeLimits(var Min, Max: TPoint);
@@ -3284,7 +3291,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.18  1999-02-22 11:29:38  pierre
+  Revision 1.19  1999-02-22 11:51:39  peter
+    * browser updates from gabor
+
+  Revision 1.18  1999/02/22 11:29:38  pierre
     + added col info in MessageItem
     + grep uses HighLightExts and should work for linux
 

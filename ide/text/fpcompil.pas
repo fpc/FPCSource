@@ -214,6 +214,8 @@ begin
   if WasVisible=false then
     ProgramInfoWindow^.Show;
   ProgramInfoWindow^.MakeFirst;}
+  if Assigned(ProgramInfoWindow) then
+    ProgramInfoWindow^.ClearMessages;
 
   CompilationPhase:=cpCompiling;
   New(SD, Init);
@@ -272,7 +274,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  1999-02-22 11:29:36  pierre
+  Revision 1.13  1999-02-22 11:51:33  peter
+    * browser updates from gabor
+
+  Revision 1.12  1999/02/22 11:29:36  pierre
     + added col info in MessageItem
     + grep uses HighLightExts and should work for linux
 
