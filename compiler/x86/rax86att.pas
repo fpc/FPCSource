@@ -388,9 +388,6 @@ Implementation
             end; { end case }
           end;
 
-
-      const
-        regsize_2_size: array[S_B..S_L] of longint = (1,2,4);
       var
         tempreg : tregister;
         hl      : tasmlabel;
@@ -430,7 +427,7 @@ Implementation
                begin
                  oper.opr.typ:=OPR_REGISTER;
                  oper.opr.reg:=actasmregister;
-                 oper.SetSize(regsize_2_size[reg2opsize(actasmregister)],true);
+                 oper.SetSize(tcgsize2size[cg.reg_cgsize(actasmregister)],true);
                  Consume(AS_REGISTER);
                end
               else
@@ -792,7 +789,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.1  2004-01-14 23:39:05  florian
+  Revision 1.2  2004-02-09 19:23:48  peter
+    * reg_2_opsize replaced with reg_cgsize
+
+  Revision 1.1  2004/01/14 23:39:05  florian
     * another bunch of x86-64 fixes mainly calling convention and
       assembler reader related
 
