@@ -2086,7 +2086,7 @@ Type TPoint = Class(TObject)
        Public
        Property X : Longint index 1 read GetCoord Write SetCoord;
        Property Y : Longint index 2 read GetCoord Write SetCoord;
-       Property Coords[Index : Integer] Read GetCoord;
+       Property Coords[Index : Integer]:Longint Read GetCoord;
        end;
 Procedure TPoint.SetCoord (Index : Integer; Value : Longint);
 begin
@@ -4481,8 +4481,8 @@ SmallInt = -32768..32767;
 Longint  = $80000000..$7fffffff;
 byte     = 0..255;
 word     = 0..65535;
-dword    = cardinal;
-longword = cardinal;
+dword    = longword;
+cardinal = longword;
 Integer  = smallint;
 \end{verbatim}
 The following types are used for the functions that need compiler magic
