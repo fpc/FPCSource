@@ -110,7 +110,12 @@ unit ncpuset;
         cg.a_loadaddr_ref_reg(exprasmlist,href,basereg);
 
         jmpreg:=cg.getaddressregister(exprasmlist);
-        cg.a_op_reg_reg_reg(exprasmlist,OP_ADD,OS_ADDR,indexreg,basereg,jmpreg);
+
+	reference_reset(href);
+        href.index:=indexreg;
+        href.base:=basereg;
+        cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,jmpreg);
+
         exprasmlist.concat(taicpu.op_reg(A_JMP,jmpreg));
         { Delay slot }
         exprasmlist.concat(taicpu.op_none(A_NOP));
@@ -129,7 +134,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2004-10-30 22:01:11  florian
+  Revision 1.3  2004-10-31 14:24:47  florian
+    * fixed jump table for sparc
+
+  Revision 1.2  2004/10/30 22:01:11  florian
     * jmp table code generation for case statement on sparc
 
   Revision 1.1  2004/10/30 17:50:53  florian
