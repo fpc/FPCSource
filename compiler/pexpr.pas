@@ -112,6 +112,8 @@ unit pexpr;
     procedure check_tp_procvar(var p : ptree);
       var
          p1 : ptree;
+         Store_valid : boolean;
+         
       begin
          if (m_tp_procvar in aktmodeswitches) and
 {            (not afterassignment) and }
@@ -119,7 +121,10 @@ unit pexpr;
             (p^.treetype in [loadn]) then
             begin
                { support if procvar then for tp7 and many other expression like this }
+               Store_valid:=Must_be_valid;
+               Must_be_valid:=false;
                firstpass(p);
+               Must_be_valid:=Store_valid;
                if p^.resulttype^.deftype=procvardef then
                  begin
                     p1:=gencallnode(nil,nil);
@@ -838,6 +843,9 @@ unit pexpr;
                   (not ((m_tp in aktmodeswitches) and
                   (afterassignment or in_args))) then
                  begin
+                    if ((pvarsym(sym)=opsym) and
+                       ((p^.flags and pi_operator)<>0)) then
+                       inc(opsym^.refs);
                     if ((pvarsym(sym)=opsym) and
                        ((p^.flags and pi_operator)<>0)) then
                        inc(opsym^.refs);
@@ -2027,7 +2035,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.112.2.3  1999-06-17 12:51:44  pierre
+  Revision 1.112.2.4  1999-06-26 00:22:30  pierre
+   * wrong warnings in -So mode suppressed
+
+  Revision 1.112.2.3  1999/06/17 12:51:44  pierre
    * changed is_assignment_overloaded into
       function assignment_overloaded : pprocdef
       to allow overloading of assignment with only different result type
