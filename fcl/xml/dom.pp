@@ -703,8 +703,10 @@ var
   child: TDOMNode;
 begin
   child := FirstChild;
-  while Assigned(child) do begin
-    if child.NodeName = ANodeName then begin
+  while Assigned(child) do
+  begin
+    if child.NodeName = ANodeName then
+    begin
       Result := child;
       exit;
     end;
@@ -729,7 +731,8 @@ var
   child, next: TDOMNode;
 begin
   child := FirstChild;
-  while Assigned(child) do begin
+  while Assigned(child) do
+  begin
     next := child.NextSibling;
     child.Free;
     child := next;
@@ -742,9 +745,12 @@ function TDOMNode_WithChildren.InsertBefore(NewChild, RefChild: TDOMNode):
 var
   i: Integer;
 begin
-  if not Assigned(RefChild) then begin
+  Result := NewChild;
+
+  if not Assigned(RefChild) then
+  begin
     AppendChild(NewChild);
-    exit(NewChild);
+    exit;
   end;
 
   if NewChild.FOwnerDocument <> FOwnerDocument then
@@ -763,8 +769,7 @@ begin
     RefChild.FPreviousSibling.FNextSibling := NewChild;
 
   RefChild.FPreviousSibling := NewChild;
-
-  Result := NewChild;
+  NewChild.FParentNode := Self;
 end;
 
 function TDOMNode_WithChildren.ReplaceChild(NewChild, OldChild: TDOMNode):
@@ -788,7 +793,7 @@ begin
     OldChild.FPreviousSibling.FNextSibling := OldChild.FNextSibling;
 
   if OldChild = FLastChild then
-    FLastChild := nil
+    FLastChild := FLastChild.FPreviousSibling
   else
     OldChild.FNextSibling.FPreviousSibling := OldChild.FPreviousSibling;
 
@@ -797,16 +802,17 @@ end;
 
 function TDOMNode_WithChildren.AppendChild(NewChild: TDOMNode): TDOMNode;
 var
-  parent: TDOMNode;
+  Parent: TDOMNode;
 begin
   if NewChild.FOwnerDocument <> FOwnerDocument then
     raise EDOMWrongDocument.Create('NodeWC.AppendChild');
 
-  parent := Self;
-  while Assigned(parent) do begin
-    if parent = NewChild then
+  Parent := Self;
+  while Assigned(Parent) do
+  begin
+    if Parent = NewChild then
       raise EDOMHierarchyRequest.Create('NodeWC.AppendChild (cycle in tree)');
-    parent := parent.ParentNode;
+    Parent := Parent.ParentNode;
   end;
 
   if NewChild.FParentNode = Self then
@@ -815,7 +821,8 @@ begin
   if NewChild.NodeType = DOCUMENT_FRAGMENT_NODE then
     raise EDOMNotSupported.Create('NodeWC.AppendChild for DocumentFragments')
   else begin
-    if Assigned(FFirstChild) then begin
+    if Assigned(FFirstChild) then
+    begin
       FLastChild.FNextSibling := NewChild;
       NewChild.FPreviousSibling := FLastChild;
     end else
@@ -836,7 +843,8 @@ var
   node: TDOMNode;
 begin
   node := FirstChild;
-  while Assigned(node) do begin
+  while Assigned(node) do
+  begin
     ACopy.AppendChild(node.CloneNode(True, ACloneOwner));
     node := node.NextSibling;
   end;
@@ -861,7 +869,8 @@ var
 begin
   Result := 0;
   child := node.FirstChild;
-  while Assigned(child) do begin
+  while Assigned(child) do
+  begin
     if (not UseFilter) or (child.NodeName = filter) then
       Inc(Result);
     child := child.NextSibling;
@@ -873,10 +882,13 @@ var
   child: TDOMNode;
 begin
   Result := nil;
-  if index < 0 then exit;
+  if index < 0 then
+    exit;
   child := node.FirstChild;
-  while Assigned(child) do begin
-    if index = 0 then begin
+  while Assigned(child) do
+  begin
+    if index = 0 then
+    begin
       Result := child;
       break;
     end;
@@ -929,14 +941,16 @@ begin
   if arg.FOwnerDocument <> OwnerDocument then
     raise EDOMWrongDocument.Create('NamedNodeMap.SetNamedItem');
 
-  if arg.NodeType = ATTRIBUTE_NODE then begin
+  if arg.NodeType = ATTRIBUTE_NODE then
+  begin
     if Assigned(TDOMAttr(arg).AttrOwner) then
       raise EDOMInUseAttribute.Create('NamedNodeMap.SetNamedItem');
     TDOMAttr(arg).AttrOwner := Self;
   end;
 
   for i := 0 to Count - 1 do
-    if Item[i].NodeName = arg.NodeName then begin
+    if Item[i].NodeName = arg.NodeName then
+    begin
       Result := Item[i];
       Item[i] := arg;
       exit;
@@ -950,7 +964,8 @@ var
   i: Integer;
 begin
   for i := 0 to Count - 1 do
-    if Item[i].NodeName = name then begin
+    if Item[i].NodeName = name then
+    begin
       Result := Item[i];
       Result.FParentNode := nil;
       exit;
@@ -1059,8 +1074,10 @@ var
   node: TDOMNode;
 begin
   node := FFirstChild;
-  while Assigned(node) do begin
-    if node.FNodeType = ELEMENT_NODE then begin
+  while Assigned(node) do
+  begin
+    if node.FNodeType = ELEMENT_NODE then
+    begin
       Result := TDOMElement(node);
       exit;
     end;
@@ -1175,9 +1192,11 @@ var
   child: TDOMNode;
 begin
   SetLength(Result, 0);
-  if Assigned(FFirstChild) then begin
+  if Assigned(FFirstChild) then
+  begin
     child := FFirstChild;
-    while Assigned(child) do begin
+    while Assigned(child) do
+    begin
       if child.NodeType = ENTITY_REFERENCE_NODE then
         Result := Result + '&' + child.NodeName + ';'
       else
@@ -1246,7 +1265,8 @@ var
   i: Integer;
 begin
   for i := 0 to FAttributes.Count - 1 do
-    if FAttributes.Item[i].NodeName = name then begin
+    if FAttributes.Item[i].NodeName = name then
+    begin
       Result := FAttributes.Item[i].NodeValue;
       exit;
     end;
@@ -1259,7 +1279,8 @@ var
   attr: TDOMAttr;
 begin
   for i := 0 to FAttributes.Count - 1 do
-    if FAttributes.Item[i].NodeName = name then begin
+    if FAttributes.Item[i].NodeName = name then
+    begin
       FAttributes.Item[i].NodeValue := value;
       exit;
     end;
@@ -1274,7 +1295,8 @@ var
   i: Integer;
 begin
   for i := 0 to FAttributes.Count - 1 do
-    if FAttributes.Item[i].NodeName = name then begin
+    if FAttributes.Item[i].NodeName = name then
+    begin
       FAttributes.Delete(i);
       FAttributes.Item[i].Free;
       exit;
@@ -1308,7 +1330,8 @@ var
   i: Integer;
   node: TDOMNode;
 begin
-  for i := 0 to FAttributes.Count - 1 do begin
+  for i := 0 to FAttributes.Count - 1 do
+  begin
     node := FAttributes.Item[i];
     if node = OldAttr then begin
       FAttributes.Delete(i);
@@ -1466,7 +1489,12 @@ end.
 
 {
   $Log$
-  Revision 1.13  2000-04-20 14:15:45  sg
+  Revision 1.14  2000-05-04 18:24:22  sg
+  * Bugfixes: In some cases the DOM node tree was invalid
+  * Simplifications
+  * Minor optical improvements
+
+  Revision 1.13  2000/04/20 14:15:45  sg
   * Minor bugfixes
   * Started support for DOM level 2
 

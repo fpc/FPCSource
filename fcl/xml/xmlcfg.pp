@@ -165,24 +165,28 @@ var
 begin
   node := doc.DocumentElement;
   path := APath;
-  while True do begin
+  while True do
+  begin
     i := Pos('/', path);
-    if i = 0 then break;
+    if i = 0 then
+      break;
     name := Copy(path, 1, i - 1);
     path := Copy(path, i + 1, Length(path));
     subnode := node.FindNode(name);
-    if not Assigned(subnode) then begin
+    if not Assigned(subnode) then
+    begin
       subnode := doc.CreateElement(name);
       node.AppendChild(subnode);
     end;
     node := subnode;
   end;
-  attr := node.Attributes.GetNamedItem(path);
+  TDOMElement(node).SetAttribute(path, AValue);
+{  attr := node.Attributes.GetNamedItem(path);
   if not Assigned(attr) then begin
     attr := doc.CreateAttribute(path);
     node.Attributes.SetNamedItem(attr);
   end;
-  attr.NodeValue := AValue;
+  attr.NodeValue := AValue;}
 end;
 
 procedure TXMLConfig.SetValue(const APath: String; AValue: Integer);
@@ -204,7 +208,12 @@ end.
 
 {
   $Log$
-  Revision 1.9  2000-02-13 10:03:31  sg
+  Revision 1.10  2000-05-04 18:24:22  sg
+  * Bugfixes: In some cases the DOM node tree was invalid
+  * Simplifications
+  * Minor optical improvements
+
+  Revision 1.9  2000/02/13 10:03:31  sg
   * Hopefully final fix for TDOMDocument.DocumentElement:
     - Reading this property always delivers the first element in the document
     - Removed SetDocumentElement. Use "AppendChild" or one of the other
