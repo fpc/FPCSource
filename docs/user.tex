@@ -18,8 +18,8 @@
 %   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 %   Boston, MA 02111-1307, USA.
 %
-\documentclass{book}
-%\documentclass{report}
+%\documentclass{book}
+\documentclass{report}
 %
 % Preamble
 %
@@ -30,12 +30,12 @@
 \ifx\pdfoutput\undefined
   \usepackage{html}
   \usepackage{htmllist}
-%  \latex{\usepackage{fpc}}
-  \latex{\usepackage{fpcbook}}
+  \latex{\usepackage{fpc}}
+%  \latex{\usepackage{fpcbook}}
   \html{\input{fpc-html.tex}}
 \else
-%  \usepackage{fpc}
-  \usepackage{fpcbook}
+  \usepackage{fpc}
+%  \usepackage{fpcbook}
 \fi
 \latex{%
   \usepackage{times}
@@ -171,7 +171,8 @@ Let's get on with something useful.
 The compiler needs at least the following hardware:
 \begin{enumerate}
 \item An I386 or higher processor. A coprocessor is not required, although it
-will slow down your program's performance if you do floating point calculations.
+will slow down your program's performance if you do floating point calculations
+without a coprocessor, since an emulation will be used.
 \item 4 Mb of free memory. Under \dos, if you use DPMI memory management,
 such as under Windows, you will need at least 16 Mb.
 \item At least 500 Kb. free disk space.
@@ -225,9 +226,9 @@ the compiler.
 
 \begin{htmlonly}
 The first screen of the installation program looks like this:
-\htmladdimg{../pics/install1.gif}
+\fpcaddimg{../pics/install1.png}
 And the second screen looks like
-\htmladdimg{../pics/install2.gif}
+\fpcaddimg{../pics/install2.png}
 \end{htmlonly}
 \begin{latexonly}
 The screen of the installation program looks like figure \ref{fig:install}.
@@ -235,14 +236,14 @@ The screen of the installation program looks like figure \ref{fig:install}.
 \caption{The \dos install program screen.}
 \label{fig:install}
 \ifpdf
-\epsfig{file=pics/install1.pdf,width=\textwidth}
-%\epsfig{file=pics/install.pdf,width=\textwidth}
+\epsfig{file=pics/install1.png,width=\textwidth}
+%\epsfig{file=pics/install.png,width=\textwidth}
 \end{figure}
 \begin{figure}
 \caption{The \dos install program screen.}
 \label{fig:installb}
-\epsfig{file=pics/install2.pdf,width=\textwidth}
-%\epsfig{file=pics/install2s.pdf}
+\epsfig{file=pics/install2.png,width=\textwidth}
+%\epsfig{file=pics/install2s.png}
 \else
 \epsfig{file=pics/install1.eps,width=\textwidth}
 \epsfig{file=pics/install2.eps,width=\textwidth}
@@ -290,7 +291,7 @@ The \linux distribution of \fpc comes in three forms:
 \begin{itemize}
 \item a \file{tar.gz} version, also available as seperate files.
 \item a \file{.rpm} (Red Hat Package Manager) version, and
-\item a \file{.deb} (debian) version.
+\item a \file{.deb} (Debian) version.
 \end{itemize}
 All of these packages contain a \var{ELF} version of the compiler binaries and
 units. the older \var{aout} binaries are no longer distributed, although you
@@ -302,7 +303,7 @@ rpm -i fpc-pascal-XXX.rpm
 \end{verbatim}
 (\var{XXX} is the version number of the \file{.rpm} file)
 
-If you use debian, installation is limited to
+If you use Debian, installation is limited to
 \begin{verbatim}
 dpkg -i fpc-XXX.deb
 \end{verbatim}
@@ -419,10 +420,11 @@ ppc386 -Fuc:\pp\units\go32v2\rtl hello
 \end{verbatim}
 under \dos, and under \linux you could type
 \begin{verbatim}
-ppc386 -Fu/usr/lib/fpc/0.99.14/units/linux/rtl hello
+ppc386 -Fu/usr/lib/fpc/NNN/units/linux/rtl hello
 \end{verbatim}
+(replace \var{NNN} with the version number of \fpc that you are using).
 This is, of course, assuming that you installed under \verb|C:\PP| or
-\file{/usr/lib/fpc/0.99.14}, respectively.
+\file{/usr/lib/fpc/NNN}, respectively.
 
 If you got no error messages, the compiler has generated an executable
 called \file{hello} (no extension) under \linux, and a file \file{hello.exe}
@@ -498,8 +500,8 @@ look for compiled versions of these units in the following way:
 (not under \linux)
 \item It will look in all the directories specified in the unit search path.
 \end{enumerate}
-You can add a directory to the unit search path with the \var{-Fu} option
-(\seeo{Fu}). Every occurrence of one of this options will {\em insert}
+You can add a directory to the unit search path with the (\seeo{Fu})
+option. Every occurrence of one of this options will {\em insert}
 a directory to the unit search path. i.e. last path on the command line
 will be searched first.
 
@@ -577,14 +579,13 @@ If you include files in your source with the \var{\{\$I filename\}}
 directive, the compiler will look for it in the following places:
 
 \begin{enumerate}
-\item It will look in the path specified in the incude file name.
+\item It will look in the path specified in the include file name.
 \item It will look in the directory where the current source file is.
 \item it will look in all directories specified in the include file search
 path.
 \end{enumerate}
-You can add files to the include file search
- path with the \var{-I} (\seeo{I})
-option.
+You can add files to the include file search path with the \seeo{I} or
+\seeo{Fi} options.
 
 As an example, consider the following include statement in a file
 \file{units/foo.pp}:
@@ -616,13 +617,12 @@ files:
 \item It will look in the directory where the current source file is.
 \item it will look in all directories specified in the object file search path.
 \end{enumerate}
-You can add files to the object file search path with the \var{-Fo} (\seeo{Fo})
-option.
+You can add files to the object file search path with the \seeo{Fo} option.
 
 % Configuration file
 \subsection{Configuration file}
 \label{searchconfig}
-Unless you specify the \var{-n} (\seeo{n}) option, the compiler will look
+Unless you specify the \seeo{n} option, the compiler will look
 for a configuration file \file{ppc386.cfg} in the following places:
 
 \begin{itemize}
@@ -865,14 +865,14 @@ full in the programmers guide.
 \begin{itemize}
 \item \textbf{IO-error -2 at ...} : Under \linux you can get this message at
 compiler startup. It means typically that the compiler doesn't find the
-error definitions file. You can correct this mistake with the \var{-Fr}
-option under \linux. (\seeo{Fr})
+error definitions file. You can correct this mistake with the \seeo{Fr}
+option under \linux. 
 \item \textbf {Error : File not found : xxx} or \textbf{Error: couldn't compile
 unit xxx}: This typically happens when
 your unit path isn't set correctly. Remember that the compiler looks for
 units only in the current directory, and in the directory where the compiler
 itself is. If you want it to look somewhere else too, you must explicitly
-tell it to do so using the \var{-Fu} option (\seeo{Fu}). Or you must set op
+tell it to do so using the \seeo{Fu} option. Or you must set op
 a configuration file.
 \end{itemize}
 
@@ -1015,8 +1015,8 @@ the file named \file{xxx}.
 \item [-FExxx] tells the compiler to write the executable and units in
 directory \file{xxx} instead of th current directory.
 \olabel{FE}
-\item [-FIxxx] Adds \var{xxx} to the include file search path.
-\olabel{FI}
+\item [-Fixxx] Adds \var{xxx} to the include file search path.
+\olabel{Fi}
 \item [-Flxxx] Adds \var{xxx} to the library searching path, and is passed
 to the linker.
 \olabel{Fl}
@@ -1047,6 +1047,7 @@ the compiler on \ostwo and \linux. Only with assemblers (such as \gnu
 
 % Options controlling the kind of output.
 \subsection{Options controlling the kind of output.}
+\label{se:codegen}
 for more information on these options, see also \progref
 \begin{description}
 \item [-a] \olabel{a} Tells the compiler not to delete the assembler files
@@ -1056,7 +1057,7 @@ This also counts for the (possibly) generated batch script.
 in the assembler file as comments.
 \item[-ar] \olabel{ar} tells the compiler to list register allocation and
 release info in the assembler file. This is primarily intended for debugging
-the code generated bythe compiler.
+the code generated by the compiler.
 \item[-at] \olabel{at} tells the compiler to list information about
 temporary allocations and deallocations in the assembler file.
 \item [-Axxx] \olabel{A} specifies what kind of assembler should be generated . Here
@@ -1144,23 +1145,22 @@ the following:
 \item \textbf{OS2} : OS/2 (2.x) using the \var{EMX} extender.
 \item \textbf{WIN32} : \windows 32 bit.
 \end{itemize}
-\item [-uxxx] \olabel{u} undefine the symbol \var{xxx}. This is the opposite
+\item [-uxxx] \olabel{u} Undefine the symbol \var{xxx}. This is the opposite
 of the \var{-d} option.
-\item [-uxxx] \olabel{U} Undefine symbol \var{xxx}.
-
 \item [-Xx] \olabel{X} executable options. This tells the compiler what
 kind of executable should be generated. the parameter \var{x}
 can be one of the following:
 \begin{itemize}
 % \item \textbf{e} : (\linux only) Create an \file{ELF} executable (default).
 \item \textbf{c} : (\linux only) Link with the C library. You should only use this when
-  you start to port \fpc to another operating system.
+  you start to port \fpc to another operating system. \olabel{Xe}
 \item \textbf{D} : Link with dynamic libraries (defines the
-\var{FPC\_LINK\_DYNAMIC} symbol)
-\item \textbf{s} : Strip the symbols from the executable.
+\var{FPC\_LINK\_DYNAMIC} symbol) \olabel{XD}
+\item \textbf{s} : Strip the symbols from the executable. \olabel{Xs}
 \item \textbf{S} : Link with static units (defines the \var{FPC\_LINK\_STATIC} symbol)
+\olabel{XS}
 \item \textbf{X} : Link with smartlinked units (defines the
-\var{FPC\_LINK\_SMART} symbol)
+\var{FPC\_LINK\_SMART} symbol) \olabel{XX}
 \end{itemize}
 \end{description}
 
@@ -1170,6 +1170,7 @@ can be one of the following:
 % Options concerning the sources (language options)
 
 \subsection{Options concerning the sources (language options)}
+\label{se:sourceoptions}
 for more information on these options, see also \progref
 \begin{description}
 \item [-Rxxx] \olabel{R} Specifies what kind of assembler you use in
@@ -1188,6 +1189,7 @@ from \var{-Sd} because some \fpc constructs are still available to you.
 -=}.
 \item [-Sd] Tells the compiler to be Delphi compatible. This is more strict
 than the \var{-S2} option, since some \var{fpc} extensions are switched off.
+\olabel{Sd}
 \item [-SeN] \olabel{Se} The compiler stops after the N-th error. Normally,
 the compiler tries to continue compiling after an error, until 50 errors are
 reached, or a fatal error is reached, and then it stops. With this switch,
@@ -1281,7 +1283,7 @@ Syntax:
 \begin{verbatim}
 #IFNDEF name
 \end{verbatim}
-Lines following \var{\#IFDEF} are skipped read if the keyword \var{name}
+Lines following \var{\#IFNDEF} are skipped read if the keyword \var{name}
 following it is defined.
 
 They are read until the keywords \var{\#ELSE} or \var{\#ENDIF} are
@@ -1304,7 +1306,7 @@ Syntax:
 \var{\#ELSE} can be specified after a \var{\#IFDEF} or \var{\#IFNDEF}
 directive as an alternative.
 Lines following \var{\#ELSE} are skipped read if the preceding \var{\#IFDEF}
-\var{\#IFNDEF} was accepted.
+or \var{\#IFNDEF} was accepted.
 
 They are skipped until the keyword \var{\#ENDIF} is
 encountered, after which normal processing is resumed.
@@ -1312,9 +1314,9 @@ encountered, after which normal processing is resumed.
 Example :
 \begin{verbatim}
 #IFDEF VER0_99_5
--Fu/usr/lib/fpc/0.99.6/linuxunits
-#ELSE
 -Fu/usr/lib/fpc/0.99.5/linuxunits
+#ELSE
+-Fu/usr/lib/fpc/0.99.6/linuxunits
 #ENDIF
 \end{verbatim}
 In the above example, \file{/usr/lib/fpc/0.99.5/linuxunits} will be added to
@@ -1435,6 +1437,12 @@ otherwise the shell will expand the variable for you, which may have
 undesired effects.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% IDE.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{ide.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Porting.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1467,7 +1475,7 @@ which are not supported by \fpc. Where possible, we indicate the reason.
 and will not be changed.
 \item Parameter lists of previously defined functions and procedures must
 match exactly. The reason for this is the function overloading mechanism of
-\fpc. (however, the \var{-So} switch solves this. \seeo{So})
+\fpc. (however, the \seeo{So} option solves this.)
 \item \var {(* ... *)} as comment delimiters are not allowed in versions
 older than 0.9.1. This can easily be remedied with a grown-up editor.
 \item The \var{MEM, MEMW, MEML} and \var{PORT} variables for memory and port
@@ -1505,6 +1513,16 @@ which were possible in Turbo Pascal are no longer possible in Free Pascal.
 \item A file is opened for output only (using \var{fmOutput}) when it is
 opened with \var{Rewrite}. In order to be able to read from it, it should
 be reset with \var{Reset}.
+\item Destructors cannot have parameters. This restriction can be solved by 
+using the \var{-So} switch.
+\item There can be only one destructor. This restriction can also be 
+solved by using the \var{-So} switch.
+\item The order in which expressions are evaluated is not necessarily the
+same. In the following expression:
+\begin{verbatim}
+a := g(2) + f(3);
+\end{verbatim}
+it is not guaranteed that \var{g(2)} will be evaluated before \var{f(3)}.
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1612,9 +1630,9 @@ attempt to mimic the Turbo Pascal compiler in the following ways:
 the differences between Turbo Pascal and \fpc is that the latter requires
 you to specify an address operator when assigning a value to a procedural
 variable. In Turbo Pascal compatibility mode, this is not required.
-\item Procedure overloading is disabled. This means that function header and
-implementation can be different (i.e. the function iplementation doesn't
-need to repeat the function header).
+\item Procedure overloading is disabled. If procedure overloading is
+disabled, the function header doesn't need to repeat the function header.
+
 \item Forward defined procedures don't need the full parameter list when
 they are defined. Due to the procedure overloading feature of \fpc, you must
 always specify the parameter list of a function when you define it, even
@@ -2253,6 +2271,7 @@ which you can debug it using \gnu \var{gdb}.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Using gdb
 \section{Using \var{gdb} to debug your program}
+\label{se:usinggdb}
 
 To use gdb to debug your program, you can start the debugger, and give it as
 an option the {\em full} name of your program:
@@ -3271,7 +3290,7 @@ partition.
 \dos only. An error occurred when reading from disk. Typically when you try
 to read past the end of a file.
 \item [101  Disk write error]
-\dos only. Reported when the disk is full, and you're trying to write to it.
+Reported when the disk is full, and you're trying to write to it.
 \item [102  File not assigned]
 This is reported by Reset, Rewrite, Append, Rename and Erase, if you call
 them with an unassigne function as a parameter.

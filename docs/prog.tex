@@ -128,7 +128,7 @@ influence the compiler's behaviour from the moment they're encountered
 until the moment another switch annihilates their behaviour, or the end
 of the current unit or program is reached.
 
-\subsection{\var{\$A} or \var{\$ALIGN}: Align Data}
+\subsection{\var{\$A} or \var{\$ALIGN} : Align Data}
 
 This switch is recognized for Turbo Pascal Compatibility, but is not
 yet implemented. The alignment of data will be different in any case, since
@@ -153,7 +153,7 @@ The command-line switch that corresponds to this switch is \var{-R}.
 
 The default assembler reader is the AT\&T reader.
 
-\subsection{\var{\$B} or \var{\$BOOLEVAL}: Complete boolean evaluation}
+\subsection{\var{\$B} or \var{\$BOOLEVAL} : Complete boolean evaluation}
 
 This switch is understood by the \fpc compiler, but is ignored. The compiler
 always uses shortcut evaluation, i.e. the evaluation of a boolean expression
@@ -188,9 +188,9 @@ Type
 Var
   AssertErrorProc = TAssertErrorProc;
 \end{verbatim}
-This can be used mainly for debugging purposes. The \file{SYSTEM} unit sets the
+This can be used mainly for debugging purposes. The \file{system} unit sets the
 \var{AssertErrorProc} to a handler that displays a message on \var{stderr}
-and simply exits. The \file{SYSUTILS} unit catches the run-time error 227
+and simply exits. The \file{sysutils} unit catches the run-time error 227
 and raises an \var{EAssertionFailed} exception.
 
 \subsection{\var{\$DEFINE} : Define a symbol}
@@ -210,7 +210,7 @@ so they are also not exported from a unit.
 
 \subsection{\var{\$ELSE} : Switch conditional compilation}
 
-The \var{\{\$ELSE \}} switches between compiling and ignoring the source
+The \var{\{\$ELSE\}} switches between compiling and ignoring the source
 text delimited by the preceding \var{\{\$IFxxx\}} and following
 \var{\{\$ENDIF\}}. Any text after the \var{ELSE} keyword but before the
 brace is ignored:
@@ -253,7 +253,7 @@ This directive is recognized for compatibility with Turbo Pascal. Under the
 hence the directive is ignored. A warning is printed to the screen, telling
 you so.
 
-As an example, the following piece of code :
+As an example, the following piece of code:
 \begin{verbatim}
 {$F+}
 
@@ -285,8 +285,8 @@ Calling linker...
 You can see that the verbosity level was set to display warnings.
 
 If you declare a function as \var{Far} (this has the same effect as setting it
-between \var{\{\$F+\}...\{\$F-\}} directives), the compiler also generates a
-warning :
+between \var{\{\$F+\} \dots \{\$F-\}} directives), the compiler also generates a
+warning:
 \begin{verbatim}
 testf.pp(3) Warning: FAR ignored
 \end{verbatim}
@@ -306,8 +306,8 @@ The following code
 will display an error message when the compiler encounters it,
 and the compiler will immediatly stop the compilation process.
 
-This is mainly useful inc conjunction wih \var{\{\$IFDEF \}} or
-\var{\{\$IFOPT \}} statements.
+This is mainly useful inc conjunction wih \var{\{\$IFDEF\}} or
+\var{\{\$IFOPT\}} statements.
 
 \subsection{\var{\$GOTO} : Support \var{Goto} and \var{Label}}
 
@@ -329,8 +329,7 @@ TheEnd:
 end.
 \end{verbatim}
 
-\begin{remark}
-If you compile assembler code not in direct mode (using the intel or
+\begin{remark}If you compile assembler code not in direct mode (using the intel or
 assembler readers) you must declare any labels you use in the assembler
 code and use \var{\{\$GOTO ON\}}. If you compile in Direct mode then this is
 not necessary.
@@ -340,12 +339,12 @@ not necessary.
 
 If \var{\{\$LONGSTRINGS ON\}} is specified, the keyword \var{String} (no
 length specifier) will be treated as \var{AnsiString}, and the compiler
-will treat the corresponding varible as an ansistring, and will
+will treat the corresponding variable as an ansistring, and will
 generate corresponding code.
 
 By default, the use of ansistrings is off, corresponding to \var{\{\$H-\}}.
-The system unit is compiled without ansistrings, all its functions accept
-shortstrng arguments. The same is true for all RTL units, except the
+The \file{system} unit is compiled without ansistrings, all its functions accept
+shortstring arguments. The same is true for all RTL units, except the
 \file{sysutils} unit, which is compiled with ansistrings.
 
 \subsection{\var{\$HINT} : Generate hint message}
@@ -411,16 +410,16 @@ As an example:
 \end{verbatim}
 Will compile the writeln statement if generation of type information is on.
 
-\begin{remark}
-The \var{\{\$IFOPT\}} directive accepts only short options,
+\begin{remark}The \var{\{\$IFOPT\}} directive accepts only short options,
 i.e. \var{\{\$IFOPT TYPEINFO\}} will not be accepted.
-\subsection{\var{\$INFO} : Generate info message}
 \end{remark}
+
+\subsection{\var{\$INFO} : Generate info message}
 
 If the generation of info is turned on, through the \var{-vi} command-line
 option, then
 \begin{verbatim}
-{$INFO This was coded on a rainy day by Bugs Bunny }
+{$INFO This was coded on a rainy day by Bugs Bunny}
 \end{verbatim}
 will display an info message when the compiler encounters it.
 
@@ -428,6 +427,7 @@ This is useful in conjunction with the \var{\{\$IFDEF\}} directive, to show
 information about which part of the code is being compiled.
 
 \subsection{\var{\$INLINE} : Allow inline code.}
+
 The \var{\{\$INLINE ON\}} directive tells the compiler that the \var{Inline}
 procedure modifier should be allowed. Procedures that are declared inline
 are copied to the places where they are called. This has the effect that
@@ -439,9 +439,8 @@ By default, \var{Inline} procedures are not allowed. You need to specify
 this directive if you want to use inlined code. This directive is
 equivalent to the command-line switch \var{-Si}.
 
-\begin{remark}
-\begin{enumerate}
-\item Inline code is NOT exported from a unit. This means that if you call an
+\begin{remark}\begin{enumerate}\item Inline
+code is NOT exported from a unit. This means that if you call an
 inline procedure from another unit, a normal procedure call will be
 performed. Only inside units, \var{Inline} procedures are really inline.
 \item You cannot make recursive inline functions. i.e. an inline function
@@ -450,6 +449,7 @@ that calls itself is not allowed.
 \end{remark}
 
 \subsection{\var{\$I} or \var{\$IOCHECKS} : Input/Output checking}
+
 The \var{\{\$I-\}} or \var{\{\$IOCHECKS OFF\}} directive tells the compiler
 not to generate input/output checking code in your program. By default, the
 compiler generates this code\footnote{This behaviour changed in the 0.99.13
@@ -469,23 +469,22 @@ directive is encountered which turns it off again.
 The most common use for this switch is to check if the opening of a file
 went without problems, as in the following piece of code:
 \begin{verbatim}
-...
 assign (f,'file.txt');
 {$I-}
 rewrite (f);
 {$I+}
 if IOResult<>0 then
   begin
-  Writeln ('Error opening file : "file.txt"');
+  Writeln ('Error opening file: "file.txt"');
   exit
   end;
-...
 \end{verbatim}
 See the \var{IOResult} function explanantion in the referece manual for a
 detailed description of the possible errors that can occur when using
 input/output checking.
 
 \subsection{\var{\$I} or \var{\$INCLUDE} : Include file }
+
 The \var{\{\$I filename\}} or \var{\{\$INCLUDE filename\}} directive
 tells the compiler to read further statements from the file \var{filename}.
 The statements read there will be inserted as if they occurred in the
@@ -536,18 +535,19 @@ begin
   Write ('This program was compiled at ',{$I %TIME%});
   Writeln (' on ',{$I %DATE%});
   Writeln ('By ',User);
-  Writeln ('Compiler version : ',{$I %FPCVERSION%});
-  Writeln ('Target CPU : ',{$I %FPCTARGET%});
+  Writeln ('Compiler version: ',{$I %FPCVERSION%});
+  Writeln ('Target CPU: ',{$I %FPCTARGET%});
 end.
 \end{verbatim}
-Creates the following output :
+Creates the following output:
 \begin{verbatim}
 This program was compiled at 17:40:18 on 1998/09/09
 By michael
-Compiler version : 0.99.7
-Target CPU : i386
+Compiler version: 0.99.7
+Target CPU: i386
 \end{verbatim}
 % Assembler type
+
 \subsection{\var{\$I386\_XXX} : Specify assembler format}
 
 This switch selects the assembler reader. \var{\{\$I386\_XXX\}}
@@ -557,6 +557,7 @@ This switch is deprecated, the \var{\{\$ASMMODE XXX\}} directive should
 be used instead.
 
 \subsection{\var{\$L} or \var{\$LINK} : Link object file}
+
 The \var{\{\$L filename\}} or \var{\{\$LINK filename\}} directive
 tells the compiler that the file \file{filename} should be linked to
 your program. This cannot be used for libraries, see section
@@ -575,9 +576,9 @@ option.
 On \linux systems, the name is case sensitive, and must be typed
 exactly as it appears on your system.
 
-\begin{remark} Take care that the object file you're linking is in a
+\begin{remark}Take care that the object file you're linking is in a
 format the linker understands. Which format this is, depends on the platform
-you're on. Typing \var{ld} on the command line gives a list of formats
+you're on. Typing \var{ld} or var{ld --help} on the command line gives a list of formats
 \var{ld} knows about.
 \end{remark}
 
@@ -624,7 +625,7 @@ ppc386 -k-lc foo.pp
 
 \subsection{\var{\$M} or \var{\$TYPEINFO} : Generate type info}
 
-For classes that are compiled in the \var{\{\$M+ \}} or \var{\{\$TYPEINFO ON\}}
+For classes that are compiled in the \var{\{\$M+\}} or \var{\{\$TYPEINFO ON\}}
 state, the compiler will generate Run-Time Type Information (RTTI). All
 descendent objects of an object that was compiled in the \var{\{\$M+\}} state
 will get RTTI information too, as well as any published classes.
@@ -637,8 +638,7 @@ knowing the actual class of the object.
 The run-time type information is accessible through the \var{TypInfo} unit,
 which is part of the \fpc Run-Time Library.
 
-\begin{remark}
-that the streaming system implemented by \fpc requires that you make
+\begin{remark}The streaming system implemented by \fpc requires that you make
 streamable components descendent from \var{TPersistent}.
 \end{remark}
 
@@ -678,8 +678,7 @@ Currently this can be in the range 0 to 7.
 \item[Default] restores the heuristic and standard behaviour.
 \end{description}
 
-\begin{remark}
-The directive is valid untill the end of the current procedure.
+\begin{remark}This directive is valid until the end of the current procedure.
 \end{remark}
 
 \subsection{\var{\$MESSAGE} : Generate info message}
@@ -694,8 +693,9 @@ the same as the \var{\{\$INFO\}} directive.
 
 
 \subsection{\var{\$MMX} : Intel MMX support}
+
 As of version 0.9.8, \fpc supports optimization for the \textbf{MMX} Intel
-processor (see also \ref{ch:MMXSupport}).
+processor (see also chapter \ref{ch:MMXSupport}).
 
 This optimizes certain code parts for the \textbf{MMX} Intel
 processor, thus greatly improving speed. The speed is noticed mostly when
@@ -704,14 +704,14 @@ moving large amounts of data. Things that change are
 \item Data with a size that is a multiple of 8 bytes is moved using the
 \var{movq} assembler instruction, which moves 8 bytes at a time
 \end{itemize}
-\begin{remark} MMX support is NOT emulated on non-MMX systems, i.e. if
+\begin{remark}MMX support is NOT emulated on non-MMX systems, i.e. if
 the processor doesn't have the MMX extensions, you cannot use the MMX
 optimizations.
 \end{remark}
 When \textbf{MMX} support is on, you aren't allowed to do floating point
 arithmetic. You are allowed to move floating point data, but no arithmetic
 can be done. If you wish to do floating point math anyway, you must first
-switch of \textbf{MMX} support and clear the FPU using the \var{emms}
+switch \textbf{MMX} support off and clear the FPU using the \var{emms}
 function of the \file{cpu} unit.
 
 The following example will make this more clear:
@@ -734,7 +734,7 @@ begin
 {$mmx-}
    emms;   { clear fpu }
    { now we can do floating point arithmetic }
-   ....
+   ...
 end.
 \end{verbatim}
 See, however, the chapter on MMX (\ref{ch:MMXSupport}) for more information
@@ -745,7 +745,7 @@ on this topic.
 If the generation of notes is turned on, through the \var{-vn} command-line
 option or the \var{\{\$NOTES ON\}} directive, then
 \begin{verbatim}
-{$NOTE Ask Santa Claus to look at this code }
+{$NOTE Ask Santa Claus to look at this code}
 \end{verbatim}
 will display a note message when the compiler encounters it.
 
@@ -757,11 +757,12 @@ will display a note message when the compiler encounters it.
 Contrary to the command-line option \var{-vn} this is a local switch,
 this is useful for checking parts of your code.
 
-By default, \var{\{\$NOTES \}} is off.
+By default, \var{\{\$NOTES\}} is off.
 
 \subsection{\var{\$OUTPUT\_FORMAT} : Specify the output format}
+
 \var{\{\$OUTPUT\_FORMAT format\}} has the same functionality as the \var{-A}
-command-line option : It tells the compiler what kind of object file must be
+command-line option: it tells the compiler what kind of object file must be
 generated. You can specify this switch only {\em before} the \var{Program}
 or \var{Unit} clause in your source file. The different kinds of formats are
 shown in \seet{Formats}.
@@ -828,9 +829,9 @@ Type
           saturday, sunday);
 \end{verbatim}
 
-\begin{remark}
-Sets are always put in 32 bits or 32 bytes, this cannot be changed (yet).
+\begin{remark}Sets are always put in 32 bits or 32 bytes, this cannot be changed (yet).
 \end{remark}
+
 \subsection{\var{\$PACKRECORDS} : Alignment of record elements}
 
 This directive controls the byte alignment of the elements in a record,
@@ -841,7 +842,7 @@ It is of the following form:
 {$PACKRECORDS n}
 \end{verbatim}
 
-Where \var{n} is one of 1,2,4,16,\var{C}, \var{NORMAL} or \var{DEFAULT}.
+Where \var{n} is one of 1, 2, 4, 16, \var{C}, \var{NORMAL} or \var{DEFAULT}.
 This means that the elements of a record that have size greater than \var{n}
 will be aligned on \var{n} byte boundaries. Elements with size less than or
 equal to \var{n} will be aligned to a natural boundary, i.e. to a power of
@@ -855,8 +856,7 @@ contrary to Turbo Pascal, where it is 1.
 More information on this and an example program can be found in the reference
 guide, in the section about record types.
 
-\begin{remark}
-Sets are always put in 32 bit or 32 bytes, this cannot be changed
+\begin{remark}Sets are always put in 32 bit or 32 bytes, this cannot be changed
 \end{remark}
 
 \subsection{\var{\$Q} \var{\$OVERFLOWCHECKS}: Overflow checking}
@@ -866,7 +866,7 @@ to check for overflow when doing computations with integers.
 When an overflow occurs, the run-time library will print a message
 \var{Overflow at xxx}, and exit the program with exit code 215.
 
-\begin{remark} Overflow checking behaviour is not the same as in
+\begin{remark}Overflow checking behaviour is not the same as in
 Turbo Pascal since all arithmetic operations are done via 32-bit
 values. Furthermore, the \var{Inc()} and \var{Dec} standard system
 procedures {\em are} checked for overflow in \fpc, while in Turbo
@@ -879,6 +879,7 @@ The generation of overflow checking code can also be controlled
 using the \var{-Co} command line compiler option (see \userref).
 
 \subsection{\var{\$R} or \var{\$RANGECHECKS} : Range checking}
+
 By default, the compiler doesn't generate code to check the ranges of array
 indices, enumeration types, subrange types, etc. Specifying the
 \var{\{\$R+\}} switch tells the computer to generate code to check these
@@ -892,12 +893,12 @@ The \var{\{\$RANGECHECKS OFF\}} switch tells the compiler not to generate range 
 code. This may result in faulty program behaviour, but no run-time errors
 will be generated.
 
-\begin{remark}
-The standard functions \var{val} and \var{Read} will also check ranges
+\begin{remark}The standard functions \var{val} and \var{Read} will also check ranges
 when the call is compiled in \var{\{\$R+\}} mode.
 \end{remark}
 
 \subsection{\var{\$SATURATION} : Saturation operations}
+
 This works only on the intel compiler, and MMX support must be on
 (\var{\{\$MMX +\}}) for this to have any effect. See the section on
 saturation support (\sees{SaturationSupport}) for more information
@@ -933,6 +934,7 @@ Interface
 This directive is equivalent to the \var{-Cx} command-line switch.
 
 \subsection{\var{\$STATIC} : Allow use of \var{Static} keyword.}
+
 If you specify the \var{\{\$STATIC ON\}} directive, then \var{Static}
 methods are allowed for objects. \var{Static} objects methods do not require
 a \var{Self} variable. They are equivalent to \var{Class} methods for
@@ -982,7 +984,7 @@ parameters of the procedure.
 
 If the compiler encounters a
 \begin{verbatim}
-{$WAIT }
+{$WAIT}
 \end{verbatim}
 directive, it will resume compiling only after the user has pressed the
 enter key. If the generation of info messages is turned on, then the compiler
@@ -990,15 +992,17 @@ will display the follwing message:
 \begin{verbatim}
 Press <return> to continue
 \end{verbatim}
-before waiting for a keypress. Careful ! This may interfere with automatic
+before waiting for a keypress.
+\begin{remark}This may interfere with automatic
 compilation processes. It should be used for debugging purposes only.
+\end{remark}
 
 \subsection{\var{\$WARNING} : Generate warning message}
 
 If the generation of warnings is turned on, through the \var{-vw}
 command-line option or the \var{\{\$WARNINGS ON\}} directive, then
 \begin{verbatim}
-{$WARNING This is dubious code }
+{$WARNING This is dubious code}
 \end{verbatim}
 will display a warning message when the compiler encounters it.
 
@@ -1012,12 +1016,13 @@ is a local switch, this is useful for checking parts of your code.
 By default, no warnings are emitted.
 
 \subsection{\var{\$X} or \var{\$EXTENDEDSYNTAX} : Extended syntax}
+
 Extended syntax allows you to drop the result of a function. This means that
 you can use a function call as if it were a procedure. Standard this feature
 is on. You can switch it off using the \var{\{\$X-\}} or
 \var{\{\$EXTENDEDSYNTAX OFF\}}directive.
 
-The following, for instance, will not compile :
+The following, for instance, will not compile:
 \begin{verbatim}
 function Func (var Arg : sometype) : longint;
 begin
@@ -1050,7 +1055,7 @@ given for each of the directives.
 \subsection{\var{\$APPTYPE} : Specify type of application (Win32 only)}
 
 The \var{\{\$APPTYPE XXX\}} accepts one argument that can have two possible
-values : \var{GUI} or \var{CONSOLE}. It is used to tell the windows
+values: \var{GUI} or \var{CONSOLE}. It is used to tell the \windows
 Operating system if an application is a console application or a graphical
 application. By default, a program compiled by \fpc is a console
 application. Running it will display a console window. Specifying the
@@ -1063,7 +1068,7 @@ Care should be taken when compiling \var{GUI} applications; the \var{Input}
 and \var{Output} files are not available in a GUI application, and
 attempting to read from or write to them will result in a run-time error.
 
-It is possible to determine the application type of a windows application
+It is possible to determine the application type of a \windows application
 at runtime. The \var{IsConsole} constant, declared in the Win32 system unit
 as
 \begin{verbatim}
@@ -1073,16 +1078,16 @@ Const
 contains \var{True} if the application is a console application, \var{False}
 if the application is a GUI application.
 
-\subsection{\var{\$D} or \var{\$DEBUGINFO}: Debugging symbols}
+\subsection{\var{\$D} or \var{\$DEBUGINFO} : Debugging symbols}
 
-When this switch is on (\var{\{\$DEBUGINFO ON\}}),
+When this switch is on,
 the compiler inserts GNU debugging information in
 the executable. The effect of this switch is the same as the command-line
 switch \var{-g}.
 
 By default, insertion of debugging information is off.
 
-\subsection{\var{\$DESCRIPTION}}
+\subsection{\var{\$DESCRIPTION} : Application description}
 
 This switch is recognised for compatibility only, but is ignored completely
 by the compiler. At a later stage, this switch may be activated.
@@ -1092,7 +1097,7 @@ by the compiler. At a later stage, this switch may be activated.
 This directive controls the emulation of the coprocessor. There is no
 command-line counterpart for this directive.
 
-\subsubsection{ Intel x86 version }
+\subsubsection{Intel x86 version}
 
 When this switch is enabled, all floating point instructions
 which are not supported by standard coprocessor emulators will give out
@@ -1110,14 +1115,14 @@ emulator.
 
 Under \linux, the kernel takes care of the coprocessor support.
 
-\subsubsection{ Motorola 680x0 version }
+\subsubsection{Motorola 680x0 version}
 
 When the switch is on, no floating point opcodes are emitted
 by the code generator. Instead, internal run-time library routines
 are called to do the necessary calculations. In this case all
 real types are mapped to the single IEEE floating point type.
 
-\begin{remark} By default, emulation is on. It is possible to
+\begin{remark}By default, emulation is on. It is possible to
 intermix emulation code with real floating point opcodes, as
 long as the only type used is single or real.
 \end{remark}
@@ -1134,14 +1139,14 @@ include files. \var{\{\$INCLUDEPATH XXX\}} will add \var{XXX} to the include
 path. \var{XXX} can contain one or more paths, separated by semi-colons or
 colons.
 
-for example
+For example:
 \begin{verbatim}
 {$INCLUDEPATH ../inc;../i386}
 
 {$I strings.inc}
 \end{verbatim}
 
-Will add the directories \file{../inc} and \file{../i386} to the include
+will add the directories \file{../inc} and \file{../i386} to the include
 path of the compiler. The compiler will look for the file \file{strings.inc}
 in both these directories, and will include the first found file. This directive is
 equivalent to the \var{-Fi} command-line switch.
@@ -1154,7 +1159,7 @@ paths, as in the example above. Only use this directive if you are certain
 of the places where the files reside. If you are not sure, it is better
 practice to use makefiles and makefile variables.
 
-\subsection{\var{\$L} or \var{\$LOCALSYMBOLS}: Local symbol information}
+\subsection{\var{\$L} or \var{\$LOCALSYMBOLS} : Local symbol information}
 
 This switch (not to be confused with the \var{\{\$L file\}} file linking
 directive) is recognised for Turbo Pascal compatibility, but is ignored.
@@ -1167,14 +1172,14 @@ static or dynamic libraries. \var{\{\$LIBRARYPATH XXX\}} will add \var{XXX}
 to the library path. \var{XXX} can contain one or more paths, separated
 by semi-colons or colons.
 
-for example
+For example:
 \begin{verbatim}
 {$LIBRARYPATH /usr/X11/lib;/usr/local/lib}
 
 {$LINKLIB X11}
 \end{verbatim}
 
-Will add the directories \file{/usr/X11/lib} and \file{/usr/local/lib} to
+will add the directories \file{/usr/X11/lib} and \file{/usr/local/lib} to
 the linker library path. The linker will look for the library \file{libX11.so}
 in both these directories, and use the first found file. This directive is
 equivalent to the \var{-Fl} command-line switch.
@@ -1185,7 +1190,7 @@ directory structure may be different. In general it would be fair to say
 that you should avoid using this directive. If you are not sure, it is better
 practice to use makefiles and makefile variables.
 
-\subsection{\var{\$M} or \var{\$MEMORY}: Memory sizes}
+\subsection{\var{\$M} or \var{\$MEMORY} : Memory sizes}
 
 This switch can be used to set the heap and stacksize. It's format is as
 follows:
@@ -1240,14 +1245,14 @@ object files. \var{\{\$OBJECTPATH XXX\}} will add \var{XXX} to the object
 path. \var{XXX} can contain one or more paths, separated by semi-colons or
 colons.
 
-for example
+For example:
 \begin{verbatim}
 {$OBJECTPATH ../inc;../i386}
 
 {$L strings.o}
 \end{verbatim}
 
-Will add the directories \file{../inc} and \file{../i386} to the
+will add the directories \file{../inc} and \file{../i386} to the
 object path of the compiler. The compiler will look for the file \file{strings.o}
 in both these directories, and will link the first found file in the
 program. This directive is equivalent to the \var{-Fo} command-line switch.
@@ -1261,6 +1266,7 @@ of the places where the files reside. If you are not sure, it is better
 practice to use makefiles and makefile variables.
 
 \subsection{\var{\$S} : Stack checking}
+
 The \var{\{\$S+\}} directive tells the compiler to generate stack checking
 code. This generates code to check if a stack overflow occurred, i.e. to see
 whether the stack has grown beyond its maximally allowed size. If the stack
@@ -1281,14 +1287,14 @@ unit files. \var{\{\$UNITPATH XXX\}} will add \var{XXX} to the unit
 path. \var{XXX} can contain one or more paths, separated by semi-colons or
 colons.
 
-for example
+For example:
 \begin{verbatim}
 {$UNITPATH ../units;../i386/units}
 
 Uses strings;
 \end{verbatim}
 
-Will add the directories \file{../units} and \file{../i386/units} to the unit
+will add the directories \file{../units} and \file{../i386/units} to the unit
 path of the compiler. The compiler will look for the file \file{strings.ppu}
 in both these directories, and will link the first found file in the
 program. This directive is equivalent to the \var{-Fu} command-line switch.
@@ -1304,7 +1310,7 @@ practice to use makefiles and makefile variables.
 \subsection{\var{\$W} or \var{\$STACKFRAMES} : Generate stackframes}
 
 The \var{\{\$W\}} switch directove controls the generation of stackframes.
-In the on state (\var{\{\$STACKFRAMES ON\}}), the compiler will generate a
+In the on state, the compiler will generate a
 stackframe for every procedure or function.
 
 In the off state, the compiler will omit the generation of a stackframe if
@@ -1313,7 +1319,7 @@ the following conditions are satisfied:
 \item The procedure has no parameters.
 \item The procedure has no local variables.
 \item If the procedure is not an \var{assembler} procedure, it must not have
-a \var{asm ... end;} block.
+a \var{asm \dots end;} block.
 \item it is not a constuctor or desctructor.
 \end{itemize}
 If these conditions are satisfied, the stack frame will be omitted.
@@ -1342,7 +1348,7 @@ displayed when compiling.
 The rules for using conditional symbols are the same as under Turbo Pascal.
 Defining a symbol goes as follows:
 \begin{verbatim}
-{$Define Symbol }
+{$define Symbol}
 \end{verbatim}
 From this point on in your code, the compiler knows the symbol \var{Symbol}.
 Symbols are, like the Pascal language, case insensitive.
@@ -1353,32 +1359,32 @@ command line as you want.
 
 Undefining an existing symbol is done in a similar way:
 \begin{verbatim}
-{$Undef Symbol }
+{$undef Symbol}
 \end{verbatim}
 If the symbol didn't exist yet, this doesn't do anything. If the symbol
 existed previously, the symbol will be erased, and will not be recognized
-any more in the code following the \verb|{$Undef ...}| statement.
+any more in the code following the \verb|{$undef \dots}| statement.
 
 You can also undefine symbols from the command line with the \var{-u}
-command-line switch..
+command-line switch.
 
 To compile code conditionally, depending on whether a symbol is defined or
-not, you can enclose the code in a \verb|{$ifdef Symbol}| .. \verb|{$endif}|
-pair. For instance the following code will never be compiled :
+not, you can enclose the code in a \verb|{$ifdef Symbol}| \dots \verb|{$endif}|
+pair. For instance the following code will never be compiled:
 \begin{verbatim}
-{$Undef MySymbol}
+{$undef MySymbol}
 {$ifdef Mysymbol}
   DoSomething;
   ...
 {$endif}
 \end{verbatim}
 
-Similarly, you can enclose your code in a \verb|{$Ifndef Symbol}| .. \verb|{$endif}|
+Similarly, you can enclose your code in a \verb|{$ifndef Symbol}| \dots \verb|{$endif}|
 pair. Then the code between the pair will only be compiled when the used
 symbol doesn't exist. For example, in the following example, the call to the
 \var{DoSomething} will always be compiled:
 \begin{verbatim}
-{$Undef MySymbol}
+{$undef MySymbol}
 {$ifndef Mysymbol}
   DoSomething;
   ...
@@ -1397,48 +1403,13 @@ In this example, if \var{MySymbol} exists, then the call to \var{DoSomething}
 will be compiled. If it doesn't exist, the call to \var{DoSomethingElse} is
 compiled.
 
-The \fpc compiler defines some symbols before starting to compile your
-program or unit. You can use these symbols to differentiate between
-different versions of the compiler, and between different compilers.
-In \seet{Symbols}, a list of pre-defined symbols is given\footnote{Remark:
-The \var{FPK} symbol is still defined for compatibility with older versions.}. In that table,
-you should change \var{v} with the version number of the compiler
-you're using, \var{r} with the release number and \var{p}
-with the patch-number of the compiler. 'OS' needs to be changed by the type
-of operating system. Currently this can be one of \var{DOS}, \var{GO32V2},
-\var{LINUX}, \var{OS2}, \var{WIN32}, \var{MACOS}, \var{AMIGA} or \var{ATARI}.
-
-The \var{OS} symbol is undefined if you specify a target that is different from the
-platform you're compiling on.
-The \var{-TSomeOS} option on the command line will define the \var{SomeOS} symbol,
-and will undefine the existing platform symbol\footnote{In versions prior to
-0.9.4, this didn't happen, thus making Cross-compiling impossible.}.
-
-\begin{FPCltable}{c}{Symbols defined by the compiler.}{Symbols} \hline
-FPC \\
-VER\var{v} \\
-VER\var{v}\_\var{r} \\
-VER\var{v}\_\var{r}\_\var{p} \\
-OS \\ \hline
-\end{FPCltable}
-
-As an example : Version 0.9.1 of the compiler, running on a Linux system,
-defines the following symbols before reading the command line arguments:
-\var{FPC}, \var{VER0}, \var{VER0\_9}, \var{VER0\_9\_1} and \var{LINUX}.
-Specifying \var{-TOS2} on the command-line will undefine the \var{LINUX}
-symbol, and will define the \var{OS2} symbol.
-
-\begin{remark} Symbols, even when they're defined in the interface part of
-a unit, are not available outside that unit.
-\end{remark}
-
 Except for the Turbo Pascal constructs, from version 0.9.8 and higher,
 the \fpc compiler also supports a stronger conditional compile mechanism:
-The \var{\{\$If \}} construct.
+The \var{\{\$if\}} construct.
 
-The prototype of this construct is as follows :
+The prototype of this construct is as follows:
 \begin{verbatim}
-{$If expr}
+{$if expr}
   CompileTheseLines;
 {$else}
   BetterCompileTheseLines;
@@ -1447,20 +1418,20 @@ The prototype of this construct is as follows :
 In this directive \var{expr} is a Pascal expression which is evaluated using
 strings, unless both parts of a comparision can be evaluated as numbers,
 in which case they are evaluated using numbers\footnote{Otherwise
-\var{\{\$If 8>54\}} would evaluate to \var{True}}.
+\var{\{\$if 8>54\}} would evaluate to \var{True}}.
 If the complete expression evaluates to \var{'0'}, then it is considered
 false and rejected. Otherwise it is considered true and accepted. This may
-have unexpected consequences :
+have unexpected consequences:
 \begin{verbatim}
-{$If 0}
+{$if 0}
 \end{verbatim}
-Will evaluate to \var{False} and be rejected, while
+will evaluate to \var{False} and be rejected, while
 \begin{verbatim}
-{$If 00}
+{$if 00}
 \end{verbatim}
-Will evaluate to \var{True}.
+will evaluate to \var{True}.
 
-You can use any Pascal operator to construct your expression : \var{=, <>,
+You can use any Pascal operator to construct your expression: \var{=, <>,
 >, <, >=, <=, AND, NOT, OR} and you can use round brackets to change the
 precedence of the operators.
 
@@ -1576,8 +1547,46 @@ end.
 \end{verbatim}
 As you can see from the example, this construct isn't useful when used
 with normal symbols, only if you use macros, which are explained in
-\sees{Macros}, they can be very useful. When trying this example, you must
+\sees{Macros}. They can be very useful. When trying this example, you must
 switch on macro support, with the \var{-Sm} command-line switch.
+
+\subsection{Predefined symbols}
+
+The \fpc compiler defines some symbols before starting to compile your
+program or unit. You can use these symbols to differentiate between
+different versions of the compiler, and between different compilers.
+In \seet{Symbols}, a list of pre-defined symbols is given\footnote{Remark:
+The \var{FPK} symbol is still defined for compatibility with older versions.}. In that table,
+you should change \var{v} with the version number of the compiler
+you're using, \var{r} with the release number and \var{p}
+with the patch-number of the compiler. 'OS' needs to be changed by the type
+of operating system. Currently this can be one of \var{DOS}, \var{GO32V2},
+\var{LINUX}, \var{OS2}, \var{WIN32}, \var{MACOS}, \var{AMIGA} or \var{ATARI}.
+
+The \var{OS} symbol is undefined if you specify a target that is different from the
+platform you're compiling on.
+The \var{-TSomeOS} option on the command line will define the \var{SomeOS} symbol,
+and will undefine the existing platform symbol\footnote{In versions prior to
+0.9.4, this didn't happen, thus making Cross-compiling impossible.}.
+
+\begin{FPCltable}{c}{Symbols defined by the compiler.}{Symbols} \hline
+FPC \\
+VER\var{v} \\
+VER\var{v}\_\var{r} \\
+VER\var{v}\_\var{r}\_\var{p} \\
+OS \\ \hline
+\end{FPCltable}
+
+An example: Version 0.9.1 of the compiler, running on a \linux system,
+defines the following symbols before reading the command line arguments:
+\var{FPC}, \var{VER0}, \var{VER0\_9}, \var{VER0\_9\_1} and \var{LINUX}.
+Specifying \var{-TOS2} on the command-line will undefine the \var{LINUX}
+symbol, and will define the \var{OS2} symbol.
+
+\begin{remark}Symbols, even when they're defined in the interface part of
+a unit, are not available outside that unit.
+\end{remark}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Macros
@@ -1588,11 +1597,10 @@ Messages can be used to display useful information, such as copyright
 notices, a list of symbols that your code reacts on etc.
 
 Warnings can be used if you think some part of your code is still buggy, or
-if you think that a certain combination of symbols isn't useful. In general
-anything which may cause problems when compiling.
+if you think that a certain combination of symbols isn't useful.
 
-Error messages can be useful if you need a certain symbol to be defined
-to warn that a certain variable isn't defined or so, or when the compiler
+Error messages can be useful if you need a certain symbol to be defined,
+to warn that a certain variable isn't defined, or when the compiler
 version isn't suitable for your code.
 
 The compiler treats these messages as if they were generated by the
@@ -1601,39 +1609,39 @@ warning will not be displayed. Errors are always displayed, and the
 compiler stops if 50 errors have occurred. After a fatal error, the compiler
 stops at once.
 
-For messages, the syntax is as follows  :
+For messages, the syntax is as follows:
 \begin{verbatim}
-{$Message Message text }
-\end{verbatim}
-Or
-\begin{verbatim}
-{$Info Message text }
-\end{verbatim}
-For notes:
-\begin{verbatim}
-{$Note Message text }
-\end{verbatim}
-For warnings:
-\begin{verbatim}
-{$Warning Warning Message text }
-\end{verbatim}
-For errors :
-\begin{verbatim}
-{$Error  Error Message text }
-\end{verbatim}
-Lastly, for fatal errors :
-\begin{verbatim}
-{$Fatal  Error Message text }
+{$Message Message text}
 \end{verbatim}
 or
 \begin{verbatim}
-{$Stop  Error Message text }
+{$Info Message text}
+\end{verbatim}
+For notes:
+\begin{verbatim}
+{$Note Message text}
+\end{verbatim}
+For warnings:
+\begin{verbatim}
+{$Warning Warning Message text}
+\end{verbatim}
+For errors:
+\begin{verbatim}
+{$Error  Error Message text}
+\end{verbatim}
+Lastly, for fatal errors:
+\begin{verbatim}
+{$Fatal  Error Message text}
+\end{verbatim}
+or
+\begin{verbatim}
+{$Stop  Error Message text}
 \end{verbatim}
 The difference between \var{\$Error} and \var{\$FatalError} or \var{\$Stop}
 messages is that when the compiler encounters an error, it still continues
 to compile. With a fatal error, the compiler stops.
 
-\begin{remark} You cannot use the '\var{\}}' character in your message, since
+\begin{remark}You cannot use the '\var{\}}' character in your message, since
 this will be treated as the closing brace of the message.
 \end{remark}
 As an example, the following piece of code will generate an error when
@@ -1656,9 +1664,9 @@ If you want macro support, you need to specify the \var{-Sm} command-line
 switch, otherwise your macro will be regarded as a symbol.
 
 Defining a macro in your program is done in the same way as defining a symbol;
-in a \var{\{\$define \}} preprocessor statement\footnote{In compiler
+in a \var{\{\$define\}} preprocessor statement\footnote{In compiler
 versions older than 0.9.8, the assignment operator for a macros wasn't
-\var{:=}, but \var{=}}:
+\var{:=} but \var{=}}:
 \begin{verbatim}
 {$define ident:=expr}
 \end{verbatim}
@@ -1680,7 +1688,7 @@ sum          { will be expanded to 'a:=a+b;'
 sum          { Will be expanded recursively to a:=a+100; }
 ...
 \end{verbatim}
-The previous example could go wrong :
+The previous example could go wrong:
 \begin{verbatim}
 {$define sum:=a:=a+b;}
 ...
@@ -1688,15 +1696,14 @@ sum          { will be expanded to 'a:=a+b;'
                remark the absence of the semicolon}
 ...
 {$define b=sum} { DON'T do this !!!}
-sum          { Will be infinitely recursively expanded... }
+sum          { Will be infinitely recursively expanded \dots }
 ...
 \end{verbatim}
 On my system, the last example results in a heap error, causing the compiler
 to exit with a run-time error 203.
 
-\begin{remark}
-Macros defined in the interface part of a unit are not
-available outside that unit ! They can just be used as a notational
+\begin{remark}Macros defined in the interface part of a unit are not
+available outside that unit! They can just be used as a notational
 convenience, or in conditional compiles.
 \end{remark}
 By default, from version 0.9.8 of the compiler on, the compiler predefines three
@@ -1710,8 +1717,7 @@ Symbol & Contains \\ \hline
 \hline
 \end{FPCltable}
 
-\begin{remark}
-Don't forget that macros support isn't on by default. You
+\begin{remark}Don't forget that macros support isn't on by default. You
 need to compile with the \var{-Sm} command-line switch.
 \end{remark}
 
@@ -1744,17 +1750,17 @@ syntax. In what follows we specify what constructs are not supported in
 \item  The \var{HIGH} operator is not supported.
 \item  The \var{LOW} operator is not supported.
 \item  The \var{OFFSET} and \var{SEG} operators are not supported.
-     use \var{LEA} and the various \var{Lxx} instructions instead.
+     Use \var{LEA} and the various \var{Lxx} instructions instead.
 \item  Expressions with constant strings are not allowed.
 \item  Access to record fields via parenthesis is not allowed
 \item  Typecasts with normal pascal types are not allowed, only
-    recognized assembler typecasts are allowed.\\ Example:
+    recognized assembler typecasts are allowed. Example:
 \begin{verbatim}
 mov al, byte ptr MyWord       -- allowed,
 mov al, byte(MyWord)          -- allowed,
 mov al, shortint(MyWord)      -- not allowed.
 \end{verbatim}
-\item  Pascal type typecasts on constants are not allowed. \\
+\item  Pascal type typecasts on constants are not allowed.
 Example:
 \begin{verbatim}
 const s= 10; const t = 32767;
@@ -1767,7 +1773,7 @@ mov al, byte(t)            -- syntax error!
 In this parser, either of those  cases will give out a syntax error.
 \item  Constant references expressions with constants only are not
    allowed (in all cases they do not work in protected mode,
-    under linux i386). \\ Examples:
+    under \linux i386). Examples:
 \begin{verbatim}
 mov al,byte ptr ['c']      -- not allowed.
 mov  al,byte ptr [100h]    -- not allowed.
@@ -1776,7 +1782,7 @@ mov  al,byte ptr [100h]    -- not allowed.
 \item  Brackets within brackets are not allowed
 \item  Expressions with segment overrides fully in brackets are
 presently not supported, but they can easily be implemented
-in BuildReference if requested. \\ Example:
+in BuildReference if requested. Example:
 \begin{verbatim}
 mov al,[ds:bx]     -- not allowed
 \end{verbatim}
@@ -1797,7 +1803,7 @@ Where \var{Sreg} is optional and specifies the segment override.
 \begin{enumerate}
 \item The order of terms is important contrary to Turbo Pascal.
 \item The Scaling value must be a value, and not an identifier
-to a symbol.\\  Examples:
+to a symbol. Examples:
 \begin{verbatim}
 const myscale = 1;
 ...
@@ -1818,22 +1824,22 @@ mov al, byte ptr [esi+ebx*1]
 \end{enumerate}
  Possible fields are as follow:
 \begin{enumerate}
-\item  \var{ID.subfield.subfield ...}
-\item  \var{[ref].ID.subfield.subfield ...}
-\item  \var{[ref].typename.subfield ...}
+\item  \var{ID.subfield.subfield \dots}
+\item  \var{[ref].ID.subfield.subfield \dots}
+\item  \var{[ref].typename.subfield \dots}
 \end{enumerate}
-\item  Local Labels: Contrary to Turbo Pascal, local labels, must
-at least contain one character after the local symbol indicator.\\
+\item  Local abels: Contrary to Turbo Pascal, local labels, must
+at least contain one character after the local symbol indicator.
 Example:
 \begin{verbatim}
-@:               -- not allowed
+@:                -- not allowed
 \end{verbatim}
   use instead, for example:
 \begin{verbatim}
-@1:             -- allowed
+@1:               -- allowed
 \end{verbatim}
 \item  Contrary to Turbo Pascal local references cannot be used as references,
-   only as displacements. \\   example:
+   only as displacements. Example:
 \begin{verbatim}
 lds si,@mylabel   -- not allowed
 \end{verbatim}
@@ -1842,8 +1848,7 @@ lds si,@mylabel   -- not allowed
    (This is a planned addition though).
 \item  Contrary to Turbo Pascal where memory sizes specifiers can
    be practically anywhere, the \fpc Intel inline assembler requires
-   memory size specifiers to be outside the brackets. \\
-      example:
+   memory size specifiers to be outside the brackets. Example:
 \begin{verbatim}
 mov al,[byte ptr myvar]    -- not allowed.
 \end{verbatim}
@@ -1859,7 +1864,7 @@ mov al,byte ptr [myvar]    -- allowed.
    (except those which involve only floating point registers).
 \end{itemize}
 
-The Intel inline assembler supports the following macros :
+The Intel inline assembler supports the following macros:
 \begin{description}
 \item [@Result] represents the function result return value.
 \item [Self] represents the object method pointer in methods.
@@ -1870,7 +1875,7 @@ The Intel inline assembler supports the following macros :
 \section{AT\&T Syntax}
 \label{se:AttSyntax}
 \fpc uses the \gnu \var{as} assembler to generate its object files for
-the Intel Ix86 processors . Since
+the Intel Ix86 processors. Since
 the \gnu assembler uses AT\&T assembly syntax, the code you write should
 use the same syntax. The differences between AT\&T and Intel syntax as used
 in Turbo Pascal are summarized in the following:
@@ -1901,7 +1906,7 @@ assembly. The Intel indirect memory reference
 \begin{quote}
 \var{Section:[Base + Index*Scale + Offs]}
 \end{quote}
-is written in AT\&T syntax as :
+is written in AT\&T syntax as:
 \begin{quote}
 \var{Section:Offs(Base,Index,Scale)}
 \end{quote}
@@ -1913,7 +1918,7 @@ register for the memory operand.
 
 More information about the AT\&T syntax can be found in the \var{as} manual,
 although the following differences with normal AT\&T assembly must be taken
-into account :
+into account:
 \begin{itemize}
 \item  Only the following directives are presently supported:
  \begin{description}
@@ -1938,8 +1943,8 @@ Eventually they will be supported.
 \item  CBTW,CWTL,CWTD and CLTD are not supported, use the normal intel
 equivalents instead.
 \item  Constant expressions which represent memory references are not
-allowed even though constant immediate value expressions are supported. \\
-examples:
+allowed even though constant immediate value expressions are supported.
+Examples:
 \begin{verbatim}
 const myid = 10;
 ...
@@ -1952,7 +1957,7 @@ movl myid(%esi),%eax  -- not allowed.
 \item  Only Single and Double FPU opcodes are supported.
 \end{itemize}
 
-The AT\&T inline assembler supports the following macros :
+The AT\&T inline assembler supports the following macros:
 \begin{description}
 \item [\_\_RESULT] represents the function result return value.
 \item [\_\_SELF]   represents the object method pointer in methods.
@@ -2030,7 +2035,7 @@ popstack & Right-to-left & Caller  & No \\ \hline
 More about this can be found in \seec{Linking} on linking.
 
 
-\subsection{ Ix86 calling conventions }
+\subsection{Intel x86 calling conventions}
 Standard entry code for procedures and functions is as follows on the
 x86 architecture:
 \begin{verbatim}
@@ -2040,8 +2045,8 @@ x86 architecture:
 
 The generated exit sequence for procedure and functions looks as follows:
 \begin{verbatim}
-  leave
-  ret  $xx
+   leave
+   ret  $xx
 \end{verbatim}
 
 Where \var{xx} is the total size of the pushed parameters.
@@ -2050,7 +2055,7 @@ To have more information on function return values take a look at
 \sees{RegConvs}.
 
 
-\subsection{ M680x0 calling conventions }
+\subsection{Motorola 680x0 calling conventions}
 
 Standard entry code for procedures and functions is as follows on the
 680x0 architecture:
@@ -2061,10 +2066,10 @@ Standard entry code for procedures and functions is as follows on the
 
 The generated exit sequence for procedure and functions looks as follows:
 \begin{verbatim}
-  unlk   a6
-  move.l (sp)+,a0     ; Get return address
-  add.l  #xx,sp       ; Remove allocated stack
-  move.l a0,-(sp)     ; Put back return address on top of the stack
+   unlk   a6
+   move.l (sp)+,a0     ; Get return address
+   add.l  #xx,sp       ; Remove allocated stack
+   move.l a0,-(sp)     ; Put back return address on top of the stack
 \end{verbatim}
 
 Where \var{xx} is the total size of the pushed parameters.
@@ -2089,12 +2094,12 @@ behind an assembly block, as follows:
 \begin{verbatim}
 asm
   ...
-end ['R1',...,'Rn'];
+end ['R1', ... ,'Rn'];
 \end{verbatim}
 Here \var{R1} to \var{Rn} are the names of the 32-bit registers you
 modify in your assembly code.
 
-As an example :
+As an example:
 \begin{verbatim}
    asm
    movl BP,%eax
@@ -2113,13 +2118,13 @@ This example tells the compiler that the \var{EAX} register was modified.
 The compiler has different register conventions, depending on the
 target processor used.
 
-\subsection{ Intel x86 version }
+\subsection{Intel x86 version}
 
 When optimizations are on, no register can be freely modified, without
 first being saved and then restored. Otherwise, EDI is usually used as
 a scratch register and can be freely used in assembler blocks.
 
-\subsection{ Motorola 680x0 version }
+\subsection{Motorola 680x0 version}
 
 Registers which can be freely modified without saving are registers
 D0, D1, D6, A0, A1, and floating point registers FP2 to FP7. All other
@@ -2169,15 +2174,15 @@ The external directive doesn't specify a calling convention; it just tells
 the compiler that the code for a procedure or function resides in an
 external code block.
 
-There exist four variants of the external directive :
+There exist four variants of the external directive:
 \begin{enumerate}
 \item A simple external declaration:
 \begin{verbatim}
 Procedure ProcName (Args : TPRocArgs); external;
 \end{verbatim}
 The \var{external} directive tells the compiler that the function resides in
-an external block of code. You can use this together with the \var{\{\$L \}}
-or \var{\{\$LinkLib \}} directives to link to a function or procedure in a
+an external block of code. You can use this together with the \var{\{\$L\}}
+or \var{\{\$LinkLib\}} directives to link to a function or procedure in a
 library or external object file. Object files are looked for in the object
 search path (set by \var{-Fo}) and libraries are searched for in the linker
 path (set by \var{-Fl}).
@@ -2224,13 +2229,12 @@ Procedure ProcName (Args : TPRocArgs); external 'Name' Index SomeIndex;
 This tells the compiler that the procedure \var{ProcName} resides in a
 dynamic link library, with index {SomeIndex}.
 
-\begin{remark}
-Note that this is ONLY available under \windows and \ostwo.
+\begin{remark}Note that this is ONLY available under \windows and \ostwo.
 \end{remark}
 \end{enumerate}
 
 In earlier versions of the \fpc compiler, the following construct was
-also possible :
+also possible:
 \begin{verbatim}
 Procedure ProcName (Args : TPRocArgs); [ C ];
 \end{verbatim}
@@ -2302,8 +2306,8 @@ Var { Case sensitive declaration !! }
     I : longint; external name 'extvar';
 begin
   { Extvar can be used case insensitive !! }
-  Writeln ('Variable ''extvar'' has value : ',ExtVar);
-  Writeln ('Variable ''I''      has value : ',i);
+  Writeln ('Variable ''extvar'' has value: ',ExtVar);
+  Writeln ('Variable ''I''      has value: ',i);
 end.
 \end{verbatim}
 Compiling the C file, and the pascal program:
@@ -2313,8 +2317,8 @@ ppc386 -Sv extdemo
 \end{verbatim}
 Will produce a program \file{extdemo} which will print
 \begin{verbatim}
-Variable 'extvar' has value : 12
-Variable 'I'      has value : 12
+Variable 'extvar' has value: 12
+Variable 'I'      has value: 12
 \end{verbatim}
 on your screen.
 
@@ -2337,7 +2341,7 @@ isn't found.
 You cannot specify libraries in this way, it is for object files only.
 
 Here we present an example. Consider that you have some assembly routine that
-calculates the nth Fibonacci number :
+calculates the nth Fibonacci number:
 \begin{verbatim}
 .text
         .align 4
@@ -2379,7 +2383,7 @@ begin
     writeln ('Fib(',i,') : ',Fibonacci (i));
 end.
 \end{verbatim}
-With just two commands, this can be made into a program :
+With just two commands, this can be made into a program:
 \begin{verbatim}
 as -o fib.o fib.s
 ppc386 fibo.pp
@@ -2404,7 +2408,7 @@ Procedure ProcName (Args : TPRocArgs); external 'Name';
 \end{verbatim}
 You don't need to take additional steps to link your file in, the compiler
 will do all that is needed for you. On \windowsnt it will link to
-\file{Name.dll}, on \linux your program will be linked to library
+\file{name.dll}, on \linux your program will be linked to library
 \file{libname}, which can be a static or dynamic library.
 
 In case you used
@@ -2431,7 +2435,7 @@ Is equivalent to the above method, and tells the linker to link to the
 \file{gpm} library.
 \end{enumerate}
 
-As an example; consider the following program :
+As an example; consider the following program:
 \begin{verbatim}
 program printlength;
 
@@ -2444,7 +2448,7 @@ begin
   Writeln (strlen('Programming is easy !'));
 end.
 \end{verbatim}
-This program can be compiled with :
+This program can be compiled with:
 \begin{verbatim}
 ppc386  prlen.pp
 \end{verbatim}
@@ -2528,8 +2532,7 @@ follows:
 Procedure ExportedProcedure; export;
 \end{verbatim}
 
-\begin{remark}
-You can only declare a function as exported in the
+\begin{remark}You can only declare a function as exported in the
 \var{Implementation} section of a unit. This function may {\em not} appear
 in the interface part of a unit. This is logical, since a Pascal routine
 cannot call an exported function, anyway.
@@ -2544,15 +2547,14 @@ without changing the calling convention. In such cases, you can use the
 The \var{Alias} modifier allows you to specify
 another name (a nickname) for your function or procedure.
 
-The prototype for an aliased function or procedure is as follows :
+The prototype for an aliased function or procedure is as follows:
 \begin{verbatim}
 Procedure AliasedProc; [ Alias : 'AliasName'];
 \end{verbatim}
 The procedure \var{AliasedProc} will also be known as \var{AliasName}. Take
 care, the name you specify is case sensitive (as C is).
 
-\begin{remark}
-If you use in your unit functions that are in other units, or
+\begin{remark}If you use in your unit functions that are in other units, or
 system functions, then the C program will need to link in the object files
 from the units too.
 \end{remark}
@@ -2599,7 +2601,7 @@ The \file{myunit.ppu} is the unit file needed by the \fpc compiler.
 
 The resulting files are then libraries. To make static libraries, you need
 the \file{ranlib} or \var{ar} program on your system. It is standard on any
-\linux system, and is provided with the \file{GCC} compiler under \dos.
+\linux system, and is provided with the \file{gcc} compiler under \dos.
 For the dos distribution, a copy of ar is included in the file
 \file{gnuutils.zip}.
 
@@ -2615,7 +2617,7 @@ follows:
 \begin{verbatim}
 ppumove -e ppl -o name unit1 unit2 unit3
 \end{verbatim}
-This will move 3 units in 1 library (called \file{libname.so} on linux,
+This will move 3 units in 1 library (called \file{libname.so} on \linux,
 \file{name.dll} on \windows) and it will create 3 files \file{unit1.ppl},
 \file{unit2.ppl} and \file{unit3.ppl}, which are unit files, but which tell
 the compiler to look in library \var{name} when linking your executable.
@@ -2668,7 +2670,7 @@ code. This will result in a smaller binary, which is loaded in memory
 faster, thus speeding up execution.
 
 To enable smartlinking, one can give the smartlink option on the command
-line : \var{-Cx}, or one can put the \var{\{\$SMARTLINK ON\}} directive in
+line: \var{-Cx}, or one can put the \var{\{\$SMARTLINK ON\}} directive in
 the unit file:
 \begin{verbatim}
 Unit Testunit
@@ -2730,13 +2732,12 @@ just before the destructor's exit sequence.
 % memory storage of Objects
 \section{Memory storage of objects}
 \label{se:ObjMemory}
-Objects are stored in memory just as ordinary records with an extra field :
+Objects are stored in memory just as ordinary records with an extra field:
 a pointer to the Virtual Method Table (VMT). This field is stored first, and
 all fields in the object are stored in the order they are declared.
 This field is initialized by the call to the object's \var{Constructor} method.
 
-\begin{remark}
-In earlier versions of \fpc, if the object you defined has no virtual methods, then a \var{nil} is stored
+\begin{remark}In earlier versions of \fpc, if the object you defined has no virtual methods, then a \var{nil} is stored
 in the VMT pointer. This ensured that the size of objects was equal, whether
 they have virtual methods or not. However, in the \var{0.99} versions of
 free pascal, this was changed for compatibility reasons. If an object
@@ -2748,7 +2749,7 @@ The memory allocated looks as in \seet{ObjMem}.
 Offset & What \\ \hline
 +0 & Pointer to VMT. \\
 +4 & Data. All fields in the order the've been declared. \\
-... & \\
+\dots & \\
 \hline
 \end{FPCltable}
 
@@ -2771,7 +2772,7 @@ Offset & What \\ \hline
 pointers. \\
 +8 & Pointer to ancestor VMT, \var{Nil} if no ancestor available.\\
 +12 & Pointers to the virtual methods. \\
-... & \\
+\dots & \\
 \hline
 \end{FPCltable}
 
@@ -2788,7 +2789,7 @@ what is generated when you compile a unit or a program.
 %  Units
 \section{Units}
 \label{se:Units}
-When you compile a unit, the \fpc compiler generates 2 files :
+When you compile a unit, the \fpc compiler generates 2 files:
 \begin{enumerate}
 \item A unit description file (with extension \file{.ppu}, or \file{.ppw on
 \windowsnt}).
@@ -2837,7 +2838,7 @@ doesn't make one for you.
 \section{Programs}
 \label{se:Programs}
 
-When you compile a program, the compiler produces again 2 files :
+When you compile a program, the compiler produces again 2 files:
 \begin{enumerate}
 \item An assembly language file containing the statements of your program,
 and memory allocations for all used variables.
@@ -2869,7 +2870,7 @@ set up the stack. Then it calls the main program.
 \chapter{Intel MMX support}
 \label{ch:MMXSupport}
 
-\section{What is it about ?}
+\section{What is it about?}
 \label{se:WhatisMMXabout}
 \fpc supports the new MMX (Multi-Media extensions)
 instructions of Intel processors. The idea of MMX is to
@@ -2985,12 +2986,12 @@ because the exit code of this unit clears the MMX unit. If it wouldn't do
 that, other program will crash. A consequence of this is that you can't use
 MMX operations in the exit code of your units or programs, since they would
 interfere  with the exit code of the \var{MMX} unit. The compiler can't
-check this, so you are responsible for this !
+check this, so you are responsible for this!
 
 \section{Supported MMX operations}
 \label{se:SupportedMMX}
 
-{\em Still to be written...}
+{\em Still to be written \dots}
 
 \section{Optimizing MMX support}
 \label{se:OptimizingMMX}
@@ -3037,22 +3038,22 @@ The fact that 32-bit code is used, means that some of the older Turbo Pascal
 constructs and functions are obsolete. The following is a list of functions
 which shouldn't be used anymore:
 \begin{description}
-\item [Seg()] : Returned the segment of a memory address. Since segments have
+\item [Seg()]: Returned the segment of a memory address. Since segments have
 no more meaning, zero is returned in the \fpc run-time library implementation of
 \var{Seg}.
-\item [Ofs()] : Returned the offset of a memory address. Since segments have
+\item [Ofs()]: Returned the offset of a memory address. Since segments have
 no more meaning, the complete address is returned in the \fpc implementation
 of this function. This has as a consequence that the return type is
 \var{Longint} instead of \var{Word}.
-\item [Cseg(), Dseg()] : Returned, respectively, the code and data segments
+\item [Cseg(), Dseg()]: Returned, respectively, the code and data segments
 of your program.  This returns zero in the \fpc implementation of the
 system unit, since both code and data are in the same memory space.
-\item [Ptr:] Accepted a segment and offset from an address, and would return
+\item [Ptr]: Accepted a segment and offset from an address, and would return
 a pointer to this address. This has been changed in the run-time library, it
-now simply returns the offset.
-\item [memw and mem] These arrays gave access to the \dos memory. \fpc
+now simply returns the offset. 
+\item [memw and mem]: These arrays gave access to the \dos memory. \fpc
 supports them on the go32v2 platform, they are mapped into \dos memory
-space. You need the \var{GO32} unit for this. On other platforms, they are
+space. You need the \file{go32} unit for this. On other platforms, they are
 {\em not} supported
 \end{description}
 
@@ -3071,7 +3072,7 @@ to store local variables, and, in some cases, to return function
 results.
 
 When a function or procedure is called, then the following is done by the
-compiler :
+compiler:
 \begin{enumerate}
 \item If there are any parameters to be passed to the procedure, they are
 pushed from right to left on the stack.
@@ -3090,7 +3091,7 @@ by the instruction which calls the subroutine).
 The resulting stack frame upon entering looks as in \seet{StackFrame}.
 \begin{FPCltable}{llc}{Stack frame when calling a procedure}{StackFrame}
 \hline
-Offset & What is stored & Optional ? \\ \hline
+Offset & What is stored & Optional? \\ \hline
 +x & parameters & Yes \\
 +12 & function result & Yes \\
 +8 & self & Yes \\
@@ -3098,42 +3099,42 @@ Offset & What is stored & Optional ? \\ \hline
 +0 & Frame pointer of parent procedure & Yes \\ \hline
 \end{FPCltable}
 
-\subsection{ Intel x86 version }
+\subsection{Intel x86 version}
 
 The stack is cleared with the \var{ret} I386 instruction, meaning that the
-size of all pushed parameters is limited to 64K.
+size of all pushed parameters is limited to 64 kB.
 
-\subsubsection{ DOS }
+\subsubsection{DOS}
 
-Under the DOS targets, the default stack is set to 256Kb. This value
+Under the DOS targets, the default stack is set to 256 kB. This value
 cannot be modified for the GO32V1 target. But this can be modified
 with the GO32V2 target using a special DJGPP utility \var{stubedit}.
 It is to note that the stack size may be changed with some compiler
 switches, this stack size, if \emph{greater} then the default stack
 size will be used instead, otherwise the default stack size is used.
 
-\subsubsection{ Linux }
+\subsubsection{Linux}
 
 Under \linux, stack size is only limited by the available memory of
 the system.
 
-\subsubsection{ Windows }
+\subsubsection{Windows}
 
 Under \windows, stack size is only limited by the available memory of
 the system.
 
-\subsubsection{ OS/2 }
+\subsubsection{OS/2}
 
 Under \ostwo, stack size is determined by one of the runtime
 environment variables set for EMX. Therefore, the stack size
 is user defined.
 
-\subsection{ Motorola 680x0 version }
+\subsection{Motorola 680x0 version}
 
 All depending on the processor target, the stack can be cleared in two
 manners, if the target processor is a MC68020 or higher, the stack will
 be cleared with a simple \var{rtd} instruction, meaning that the size
-of all pushed parameters is limited to 32K.
+of all pushed parameters is limited to 32 kB.
 
 Otherwise on MC68000/68010 processors, the stack clearing mechanism
 is sligthly more complicated, the exit code will look like this:
@@ -3147,14 +3148,14 @@ is sligthly more complicated, the exit code will look like this:
 }
 \end{verbatim}
 
-\subsubsection{ Amiga }
+\subsubsection{Amiga}
 
 Under AmigaOS, stack size is determined by the user, which sets this
-value using the stack program. Typical sizes range from 4K to 40K.
+value using the stack program. Typical sizes range from 4 kB to 40 kB.
 
-\subsubsection{ Atari }
+\subsubsection{Atari}
 
-Under Atari TOS, stack size is currently limited to 8K, and it cannot
+Under Atari TOS, stack size is currently limited to 8 kB, and it cannot
 be modified. This may change in a future release of the compiler.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3176,7 +3177,7 @@ is full. By default, \var{HeapError} points to the \var{GrowHeap} function,
 which tries to increase the heap.
 
 The growheap function issues a system call to try to increase the size of the
-memory available to your program. It first tries to increase memory in a 1 Mb.
+memory available to your program. It first tries to increase memory in a 1 MB
 chunk. If this fails, it tries to increase the heap by the amount you
 requested from the heap.
 
@@ -3214,8 +3215,7 @@ the performance of the heap manager.
 
 % The splitheap
 \subsection{Using the split heap}
-\begin{remark}
-The split heap is still somewhat buggy. Use at your own risk for the moment.
+\begin{remark}This code is still somewhat buggy. Use at your own risk for the moment.
 \end{remark}
 
 The split heap can be used to quickly release a lot of blocks you allocated
@@ -3254,7 +3254,7 @@ memory you allocated on the base heap will still be allocated.
 
 To use the split-heap, you must recompile the run-time library with the \var{TempHeap}
 symbol defined.
-This means that the following functions are available :
+This means that the following functions are available:
 \begin{verbatim}
   procedure Split_Heap;
   procedure Switch_To_Base_Heap;
@@ -3276,7 +3276,7 @@ A call to \var{GetTempMem} will allocate a memory block on the temporary
 heap, whatever the current heap is. The current heap after this call will be
 the temporary heap.
 
-Typically, what will appear in your code is the following sequence :
+Typically, what will appear in your code is the following sequence:
 \begin{verbatim}
 Split_Heap
 ...
@@ -3314,8 +3314,8 @@ More information on using the \var{heaptrc} mechanism can be found in the
 
 \fpc allows you to write and use your own memory manager. The standard
 functions \var{GetMem}, \var{FreeMem}, \var{ReallocMem} and \var{Maxavail}
-use a special record in the system unit to do the actual memory management.
-The system unit initializes this record with the system unit's own memory
+use a special record in the \file{system} unit to do the actual memory management.
+The \file{system} unit initializes this record with the \file{system} unit's own memory
 manager, but you can read and set this record using the
 \var{GetMemoryManager} and \var{SetMemoryManager} calls:
 \begin{verbatim}
@@ -3339,10 +3339,10 @@ the \var{TMemoryManager} record is defined as follows:
 \end{verbatim}
 
 As you can see, the elements of this record are procedural variables.
-The system unit does nothing but call these various variables when you
+The \file{system} unit does nothing but call these various variables when you
 allocate or deallocate memory.
 
-Each of these functions corresponds to the corresponding call in the system
+Each of these functions corresponds to the corresponding call in the \file{system}
 unit. We'll describe each one of them:
 \begin{description}
 \item[Getmem] This function allocates a new block on the heap. The block
@@ -3383,7 +3383,7 @@ program, i.e. before any call to \var{getmem} is processed.
 
 This means in practice that the unit implementing the memory manager should
 be the first in the \var{uses} clause of your program or library, since it
-will then be initialized before all other units (except of the system unit)
+will then be initialized before all other units (except of the \file{system} unit)
 
 This also means that it is not possible to use the \file{heaptrc} unit in
 combination with a custom memory manager, since the \file{heaptrc} unit uses
@@ -3502,8 +3502,8 @@ end.
 
 Because \fpc is a 32 bit compiler, and uses a \dos extender, accessing DOS
 memory isn't trivial. What follows is an attempt to an explanation of how to
-access and use \dos or real mode memory\footnote{Thanks to an explanation of
-Thomas schatzl (E-mail:\var{tom\_at\_work@geocities.com}).}.
+access and use \dos or real mode memory\footnote{Thanks for the explanation to
+Thomas Schatzl (E-mail: \var{tom\_at\_work@geocities.com})}.
 
 In {\em Proteced Mode}, memory is accessed through {\em Selectors} and
 {\em Offsets}. You can think of Selectors as the protected mode
@@ -3514,11 +3514,11 @@ the Data of your program.
 
 To access the (real mode) \dos memory, somehow you need a selector that
 points to the \dos memory.
-The \file{GO32} unit provides you with such a selector: The
+The \file{go32} unit provides you with such a selector: The
 \var{DosMemSelector} variable, as it is conveniently called.
 
 You can also allocate memory in \dos's memory space, using the
-\var{global\_dos\_alloc} function of the \file{GO32} unit.
+\var{global\_dos\_alloc} function of the \file{go32} unit.
 This function will allocate memory in a place where \dos sees it.
 
 As an example, here is a function that returns memory in real mode \dos and
@@ -3549,7 +3549,7 @@ After using the selector, you must free it again using the
 \var{free\_ldt\_selector} function.
 
 More information on all this can be found in the \unitsref, the chapter on
-the \file{GO32} unit.
+the \file{go32} unit.
 
 
 
@@ -3646,7 +3646,7 @@ The \file{rstconv} utility that comes with the \fpc compiler allows to
 manipulate these resource string files. At the moment, it can only be used
 to make a \file{.po} file that can be fed to the GNU \file{msgfmt} program.
 If someone wishes to have another format (Win32 resource files spring to
-mind) he/she can enhance the \file{rstconv} program so it can generate
+mind), one can enhance the \file{rstconv} program so it can generate
 other types of files as well. GNU gettext was chosen because it is available
 on all platforms, and is already widely used in the \var{Unix} and free
 software community. Since the \fpc team doesn't want to restrict the use
@@ -3810,21 +3810,21 @@ unchanged. This means that the assignment \var{A:=Help} must be executed
 again in order for the change to become visible. This is important,
 especially for GUI programs which have e.g. a menu. In order for the
 change in resource strings to become visible, the new values must be
-reloaded by program code into the menus...
+reloaded by program code into the menus \dots
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Optimizations done in the compiler
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Optimizations}
 
-\section{ Non processor specific }
+\section{Non processor specific}
 
 The following sections describe the general optimizations
 done by the compiler, they are not processor specific. Some
 of these require some compiler switch override while others are done
 automatically (those which require a switch will be noted as such).
 
-\subsection{ Constant folding }
+\subsection{Constant folding}
 
 In \fpc, if the operand(s) of an operator are constants, they
 will be evaluated at compile time.
@@ -3846,42 +3846,41 @@ or \var{Succ} functions with constant parameters generates no
 run-time library calls, instead, the values are evaluated at
 compile time.
 
-\subsection{ Constant merging }
+\subsection{Constant merging}
 
 Using the same constant string two or more times generates only
 one copy of the string constant.
 
-\subsection{ Short cut evaluation }
+\subsection{Short cut evaluation}
 
 Evaluation of boolean expression stops as soon as the result is
 known, which makes code execute faster then if all boolean operands
 were evaluated.
 
-\subsection{ Constant set inlining }
+\subsection{Constant set inlining}
 
 Using the \var{in} operator is always more efficient then using the
 equivalent \verb|<>|, \verb|=|, \verb|<=|, \verb|>=|, \verb|<| and \verb|>|
 operators. This is because range comparisons can be done more easily with
 \var{in} then with normal comparison operators.
 
-\subsection{ Small sets }
+\subsection{Small sets}
 
 Sets which contain less then 33 elements can be directly encoded
 using a 32-bit value, therefore no run-time library calls to
 evaluate operands on these sets are required; they are directly encoded
 by the code generator.
 
-\subsection{ Range checking }
+\subsection{Range checking}
 
 Assignments of constants to variables are range checked at compile
 time, which removes the need of the generation of runtime range checking
 code.
 
-\begin{remark}
-This feature was not implemented before version 0.99.5 of \fpc.
+\begin{remark}This feature was not implemented before version 0.99.5 of \fpc.
 \end{remark}
 
-\subsection{ Shifts instead of multiply or divide }
+\subsection{Shifts instead of multiply or divide}
 
 When one of the operands in a multiplication is a power of
 two, they are encoded using arithmetic shift instructions,
@@ -3894,7 +3893,7 @@ The same is true when accessing array indexes which are
 powers of two, the address is calculated using arithmetic
 shifts instead of the multiply instruction.
 
-\subsection{ Automatic alignment }
+\subsection{Automatic alignment}
 
 By default all variables larger then a byte are guaranteed to be aligned
 at least on a word boundary.
@@ -3905,8 +3904,7 @@ to return pointers aligned on a quadword boundary (64-bit alignment).
 
 Alignment of variables on the stack depends on the target processor.
 
-\begin{remark}
-Two facts about alignment:
+\begin{remark}Two facts about alignment:
 \begin{enumerate}
 \item Quadword alignment of pointers is not guaranteed
 on systems which don't use an internal heap, such as for the Win32
@@ -3928,34 +3926,33 @@ file, making the executable file much smaller.
 Smart linking is switched on with the \var{-Cx} command-line switch, or
 using the \var{\{\$SMARTLINK ON\}} global directive.
 
-\begin{remark}
-Smart linking was implemented starting with version 0.99.6 of \fpc.
+\begin{remark}Smart linking was implemented starting with version 0.99.6 of \fpc.
 \end{remark}
 
-\subsection{ Inline routines }
+\subsection{Inline routines}
 
 The following runtime library routines are coded directly into the
-final executable : \var{Lo}, \var{Hi}, \var{High}, \var{Sizeof},
+final executable: \var{Lo}, \var{Hi}, \var{High}, \var{Sizeof},
 \var{TypeOf}, \var{Length}, \var{Pred}, \var{Succ}, \var{Inc},
 \var{Dec} and \var{Assigned}.
 
-\begin{remark} Inline \var{Inc} and \var{Dec} were not completely
+\begin{remark}Inline \var{Inc} and \var{Dec} were not completely
 implemented until version 0.99.6 of \fpc.
 \end{remark}
 
-\subsection{ Case optimization }
+\subsection{Case optimization}
 
 When using the \var{-O1} (or higher) switch, case statements will be
 generated using a jump table if appropriate, to make them execute
 faster.
 
-\subsection{ Stack frame omission }
+\subsection{Stack frame omission}
 
 Under specific conditions, the stack frame (entry and exit code for
 the routine, see section \ref{se:Calling}) will be omitted, and the
 variable will directly be accessed via the stack pointer.
 
-Conditions for omission of the stack frame :
+Conditions for omission of the stack frame:
 
 \begin{itemize}
 \item The function has no parameters nor local variables.
@@ -3966,18 +3963,17 @@ a \var{assembler} routine may omit it's stack frame.
 \item Routine is not a constructor or destructor.
 \end{itemize}
 
-\subsection{ Register variables }
+\subsection{Register variables}
 
 When using the \var{-Or} switch, local variables or parameters
 which are used very often will be moved to registers for faster
 access.
 
-\begin{remark}
-Register variable allocation is currently an experimental feature,
+\begin{remark}Register variable allocation is currently an experimental feature,
 and should be used with caution.
 \end{remark}
 
-\subsection{ Intel x86 specific }
+\subsection{Intel x86 specific}
 
 Here follows a listing of the optimizing techniques used in the compiler:
 \begin{enumerate}
@@ -4005,10 +4001,8 @@ Although you can enable uncertain optimizations in most cases, for people who
 do not understand the following technical explanation, it might be the safest to
 leave them off.
 
-\begin{quote}
 % Jonas's own words..
-\em
-If uncertain optimizations are enabled, the CSE algortihm assumes
+\begin{remark}If uncertain optimizations are enabled, the CSE algortihm assumes
 that
 \begin{itemize}
 \item If something is written to a local/global register or a
@@ -4019,7 +4013,7 @@ this value doesn't overwrite the value of a local/global variable or a
 procedure/function parameter.
 \end{itemize}
 % end of quote
-\end{quote}
+\end{remark}
 The practical upshot of this is that you cannot use the uncertain
 optimizations if you both write and read local or global variables directly and
 through pointers (this includes \var{Var} parameters, as those are pointers too).
@@ -4087,7 +4081,7 @@ In conclusion, one could say that you can use uncertain optimizations {\em
 only} when you know what you're doing.
 \end{enumerate}
 
-\subsection{ Motorola 680x0 specific }
+\subsection{Motorola 680x0 specific}
 
 Using the \var{-O2} switch does several optimizations in the
 code produced, the most notable being:
@@ -4188,17 +4182,17 @@ at all by the optimizer at this time. Update: as of version 0.99.11,
 the Pascal code surrounding the assembler blocks is optimized.
 \end{itemize}
 
-\section{ Floating point }
+\section{Floating point}
 
 This is where can be found processor specific information on floating
 point code generated by the compiler.
 
-\subsection{ Intel x86 specific }
+\subsection{Intel x86 specific}
 
 All normal floating point types map to their real type, including
 \var{comp} and \var{extended}.
 
-\subsection{ Motorola 680x0 specific }
+\subsection{Motorola 680x0 specific}
 
 Early generations of the Motorola 680x0 processors did not have integrated
 floating point units, so to circumvent this fact, all floating point
@@ -4213,11 +4207,10 @@ floating point opcodes are emitted. The Real type still maps to
 types. Only basic FPU opcodes are used, which means that it can
 work on 68040 processors correctly.
 
-\begin{remark} \var{Double} and \var{Extended} types in true floating
+\begin{remark}\var{Double} and \var{Extended} types in true floating
 point mode have not been extensively tested as of version 0.99.5.
 \end{remark}
-\begin{remark}
-The \var{comp} data type is currently not supported.
+\begin{remark}The \var{comp} data type is currently not supported.
 \end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4282,7 +4275,7 @@ used by the function should be declared correctly as well. The compiler
 will then link the library as specified in the \var{external} statement
 to your program\footnote{If you omit the library name in the \var{external}
 modifier, then you can still tell the compiler to link to that library using
-the \var{\{\$Linklib \}} directive.}.
+the \var{\{\$Linklib\}} directive.}.
 
 For example, to use the library as defined above from a pascal program, you can use
 the following pascal program:
@@ -4298,7 +4291,7 @@ This program can be compiled without any additional command-switches,
 and should run just like that, provided the library is placed where
 the system can find it. On \linux, this is \file{/usr/lib} or any
 directory listed in the \file{/etc/ld.so.conf} file. On \windows, this
-can be the program directory, the Windows system directory, or any directoy
+can be the program directory, the \windows system directory, or any directoy
 mentioned in the \var{PATH}.
 
 Using the library in this way links the library to your program at compile
@@ -4327,8 +4320,7 @@ worse still, may cause your program to crash with an access violation.
 
 \section{Using a pascal library from a C program}
 
-\begin{remark}
-The examples in this section assume a \linux system; similar commands
+\begin{remark}The examples in this section assume a \linux system; similar commands
 as the ones below exist for \windows, though.
 \end{remark}
 
@@ -4363,7 +4355,7 @@ to load dynamical libraries.
 
 Under \windows, you can include resources in your executable or library
 using the \var{\{\$R filename\}} directive. These resources can then
-be accessed through the standard windows API calls.
+be accessed through the standard \windows API calls.
 
 When the compiler encounters a resource directive, it just creates an
 entry in the unit \file{.ppu} file; it doesn't link the resource. Only
@@ -4375,8 +4367,7 @@ filename has as the first character an asterix (\var{*}), the
 compiler will replace the asterix with the name of the current unit,
 library or program.
 
-\begin{remark}
-This means that the asterix may only be used after a \var{unit},
+\begin{remark}This means that the asterix may only be used after a \var{unit},
 \var{library} or \var{program} clause.
 \end{remark}
 
@@ -4385,7 +4376,7 @@ This means that the asterix may only be used after a \var{unit},
 The \fpc compiler itself doesn't create any resource files; it just
 compiles them into the executable. To create resource files, you
 can use some GUI tools as the Borland resource workshop; but it is
-also possible to use a windows resource compiler like \gnu
+also possible to use a \windows resource compiler like \gnu
 \file{windres}. \file{windres} comes with the \gnu binutils, but the
 \fpc distribution also contains a version which you can use.
 
@@ -4405,7 +4396,7 @@ document, but here are some things you can use it for:
 \item[stringtables] that contain lists of strings.
 \item[bitmaps] which are read from an external file.
 \item[icons] which are also read from an external file.
-\item[Version information] which can be viewed with the Windows
+\item[Version information] which can be viewed with the \windows
 explorer.
 \item[Menus] Can be designed as resources and used in your GUI
 applications.
@@ -4456,7 +4447,7 @@ end.
 The call to \var{FindResource} searches for the stringtable in the
 compiled-in resources. The \var{LoadString} function then reads the
 string with index \var{i} out of the table, and puts it in a buffer,
-which can then be used. Both calls are in the windows unit.
+which can then be used. Both calls are in the \file{windows} unit.
 
 \section{Inserting version information}
 
@@ -4951,7 +4942,7 @@ implementation of a function/procedure. In particular, you not omit the
 parameters when implementing the function or procedure.
 \item Overloading of functions is not allowed.
 \item Nested comments are not  allowed.
-\item The Objpas unit is loaded right after the system unit. One of the
+\item The Objpas unit is loaded right after the \file{system} unit. One of the
 consequences of this is that the type \var{Integer} is redefined as
 \var{Longint}.
 \end{enumerate}
@@ -4978,7 +4969,7 @@ implementation of a function/procedure. In particular, you can not omit the
 parameters when implementing the function or procedure.
 \item Overloading of functions is allowed.
 \item Nested comments are allowed.
-\item The Objpas unit is loaded right after the system unit. One of the
+\item The Objpas unit is loaded right after the \file{system} unit. One of the
 consequences of this is that the type \var{Integer} is redefined as
 \var{Longint}.
 \item You can use the cvar type.
@@ -5179,7 +5170,7 @@ A comma-separated list of packages that are needed to compile the targets.
 Valid for all platforms. In order to differentiate between platforms, you
 can prepend the keyword \var{packages} with the OS you are compiling for,
 e.g.  \var{linuxpackages} if you want the makefile to use the listed
-packages on linux only.
+packages on \linux only.
 \item[fcl] This is a boolean value (0 or 1) that indicates whether the FCL is used.
 \item[rtl]
 This is a boolean value (0 or 1) that indicates whether the RTL should be
@@ -5336,7 +5327,7 @@ to function correctly:
 \item[pwd] a program that prints the current working directory.
 \item[rm] a program to delete files.
 \end{description}
-These are standard programs on linux systems, with the possible exception of
+These are standard programs on \linux systems, with the possible exception of
 \file{make}. For \dos or \windowsnt, they can be found in the
 file \file{gnuutils.zip} on the \fpc FTP site.
 
@@ -5575,9 +5566,9 @@ The following variables are program names, used in makefile targets.
 \item[FPC] the Free Pascal compiler executable. Default set to
 \var{ppc386.exe}
 \item[INSTALL] a program to install files. Default set to \file{install -m
-644} on linux.
+644} on \linux.
 \item[INSTALLEXE] a program to install executable files. Default set to \file{install -m
-755} on linux.
+755} on \linux.
 \item[LD] The linker. Default set to \file{ld}.
 \item[LDCONFIG] (\linux only) the program used to update the loader cache.
 \item[MKDIR] a program to create directories if they don't exist yet. Default
@@ -5766,7 +5757,7 @@ Either the result will not link, or the binary will give errors.
 compiler needs to know about (a new default assembler mechanism, for
 example).
 \end{enumerate}
-How to know if one of these things has occurred ? There is no way to know,
+How to know if one of these things has occurred? There is no way to know,
 except by mailing the \fpc team. If you cannot recompile the compiler
 when you first compile the RTL, then try the other way.
 
@@ -5852,7 +5843,7 @@ units must be built, in the order specified:
 program. These files have the \file{.as} extension, because they are written
 in assembler. They must be assembled with the \gnu \file{as} assembler. These stubs
 are in the OS-dependent directory, except for \linux, where they are in a
-processor dependent subdirectory of the linux directory (\file{i386} or
+processor dependent subdirectory of the \linux directory (\file{i386} or
 \file{m68k}).
 \item[system] the \file{system} unit. This unit is named differently on different
 systems:
@@ -5946,7 +5937,7 @@ minimum. A list of recognised options can be found in \seet{FPCdefines}.
 \begin{FPCltable}{ll}{Possible defines when compiling FPC}{FPCdefines}
 Define & does what \\ \hline
 USE\_RHIDE & Generates errors and warnings in a format recognized\\
-& by \file{RHIDE}. \\
+& by \file{rhide}. \\
 TP & Needed to compile the compiler with Turbo or Borland Pascal. \\
 Delphi & Needed to compile the compiler with Delphi from Borland. \\
 GDB & Support of the GNU Debugger. \\

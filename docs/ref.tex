@@ -1392,7 +1392,7 @@ begin
   WriteLn (x);
 end;
 ...
-P := @printit;
+Proc := @printit;
 Func := @Pi;
 \end{verbatim}
 From this example, the difference with Turbo Pascal is clear: In Turbo
@@ -1411,7 +1411,7 @@ begin
   WriteLn (x);
 end;
 begin
-P := @printit;
+Proc := @printit;
 end.
 \end{verbatim}
 Because the \var{TOneArgCcall} type is a procedure that uses the cdecl
@@ -1758,7 +1758,7 @@ then a run-time error will occur. (run-time error 211, to be precise)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Visibility
 \section{Visibility}
-For objects, only 2 visibility specifiers exist : \var{private} and
+For objects, 3 visibility specifiers exist : \var{private}, \var{protected} and
 \var{public}. If you don't specify a visibility specifier, \var{public}
 is assumed.
 Both methods and fields can be hidden from a programmer by putting them
@@ -1769,6 +1769,9 @@ can  only be accessed in the module (i.e. unit or program) that contains
 the object definition.
 They can be accessed from inside the object's methods or from outside them
 e.g. from other objects' methods, or global functions.
+\item [Protected\ ] Is the same as \var{Private}, except that the members of
+a \var{Protected} section are also accessible to descendent types, even if
+they are implemented in other modules.
 \item [Public\ ] sections are always accessible, from everywhere.
 Fields and metods in a \var{public} section behave as though they were part
 of an ordinary \var{record} type.
@@ -2203,7 +2206,6 @@ Operator & Precedence & Category \\ \hline
 \end{FPCltable}
 When determining the precedence, the compiler uses the following rules:
 \begin{enumerate}
-\item Operators with equal precedence are executed from left to right.
 \item In operations with unequal precedences the operands belong to the
 operater with the highest precedence. For example, in \var{5*3+7}, the
 multiplication is higher in precedence than the addition, so it is
@@ -2212,6 +2214,25 @@ executed first. The result would be 22.
 first. Thus, \var {5*(3+7)} would result in 50.
 \end{enumerate}
 
+\begin{remark}
+The order in which expressions of the same precedence are evaluated is not
+guaranteed to be left-to-right. In general, no assumptions on which expression
+is evaluated first should be made in such a case.
+The compiler will decide which expression to evaluate first based on
+optimization rules. Thus, in the following expression:
+\begin{verbatim}
+  a := g(3) + f(2);
+\end{verbatim}
+\var{f(2)} may be executed before \var{g(3)}. This behaviour is distinctly
+different from \delphi or \tp.
+
+If one expression {\em must} be executed before the other, it is necessary
+to split up the statement using temporary results:
+\begin{verbatim}
+  e1 := g(3);
+  a  := e1 + f(2);
+\end{verbatim}
+\end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Expression syntax
@@ -3583,11 +3604,20 @@ The parameter list for a comparision operator or an arithmetic operator
 must always contain 2 parameters. The result type of the comparision
 operator must be \var{Boolean}.
 
+\begin{remark}
+When compiling in \var{Delphi} mode or \var{Objfpc} mode, the result
+identifier may be dropped. The result can then be accessed through
+the standard \var{Result} symbol.
+
+If the result identifier is dropped and the compiler is not in one
+of these modes, a syntax error will occur.
+\end{remark}
+
 The statement block contains the necessary statements to determine the
 result of the operation. It can contain arbitrary large pieces of code;
 it is executed whenever the operation is encountered in some expression.
 The result of the statement block must always be defined; error conditions
-are not checked bythe compiler, and the code must take care of all possible
+are not checked by the compiler, and the code must take care of all possible
 cases, throwing a run-time error if some error condition is encountered.
 
 In the following, the three types of operator definitions will be examined.
@@ -7269,7 +7299,6 @@ function are the values stored in the tables.
 \Errors
 None.
 \SeeAlso
-\seep{SetResourceStrings},
 \seef{GetResourceStringCurrentValue},
 \seef{GetResourceStringDefaultValue},
 \seef{GetResourceStringHash},
