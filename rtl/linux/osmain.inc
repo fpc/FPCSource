@@ -180,8 +180,10 @@ Begin
      InOutRes := 2;
      exit;
    end;
-  Fpunlink(p);
-  Errno2Inoutres;
+  if Fpunlink(p)<0 then
+   Errno2Inoutres
+  Else
+   InOutRes:=0;
 End;
 
 { truncate at a given position }
@@ -614,7 +616,10 @@ End.
 *)
 {
  $Log$
- Revision 1.3  2002-12-23 22:23:43  peter
+ Revision 1.4  2002-12-24 19:45:40  peter
+   * Fix do_erase which was wrong with inoutres setting
+
+ Revision 1.3  2002/12/23 22:23:43  peter
    * fixed Getdir to not set Inoutres
    * broken symlinks are now ignored in getdir instead of aborting
      the search
