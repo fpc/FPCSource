@@ -702,7 +702,7 @@ unit winsock;
     function socket(af:tOS_INT; t:tOS_INT; protocol:tOS_INT):TSocket;stdcall;
 
     { Database function prototypes  }
-    function gethostbyaddr(addr:pchar; len:tOS_INT; adrtype:tOS_INT): PHostEnt;stdcall;
+    function gethostbyaddr(addr:pchar; len:tOS_INT; t:tOS_INT): PHostEnt;stdcall;
     function gethostbyname(name:pchar):PHostEnt;stdcall;
     function gethostname(name:pchar; namelen:tOS_INT):tOS_INT;stdcall;
     function getservbyport(port:tOS_INT; proto:pchar):PServEnt;stdcall;
@@ -951,10 +951,13 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.3  2000-12-18 17:28:58  jonas
+  Revision 1.4  2001-04-10 21:26:00  peter
+    * fixed argument names
+
+  Revision 1.3  2000/12/18 17:28:58  jonas
     * fixed range check errors
 
   Revision 1.2  2000/07/13 11:33:58  michael
   + removed logs
- 
+
 }
