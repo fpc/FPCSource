@@ -122,31 +122,9 @@ const
 
     procedure randomize;
 
-      var
-         hl : longint;
-
       begin
-         asm
-            movb $0x2c,%ah
-            int $0x21
-            movw %cx,-4(%ebp)
-            movw %dx,-2(%ebp)
-         end;
-         randseed:=hl;
+         randseed:=GetTickCount;
       end;
-
-{ use standard heap management }
-{ sbrk function of go32v1 }
-  function Sbrk(size : longint) : longint;
-
-    begin
-       asm
-         movl size,%ebx
-         movl $0x4a01,%eax
-         int  $0x21
-         movl %eax,__RESULT
-       end;
-    end;
 
 {$i winheap.inc}
 { $I heap.inc}
@@ -155,15 +133,16 @@ const
                           Low Level File Routines
  ****************************************************************************}
 
-procedure AllowSlash(p:pchar);
-var
-  i : longint;
-begin
-{ allow slash as backslash }
-  for i:=0 to strlen(p) do
-   if p[i]='/' then p[i]:='\';
-end;
+    procedure AllowSlash(p:pchar);
 
+      var
+         i : longint;
+
+      begin
+         { allow slash as backslash }
+         for i:=0 to strlen(p) do
+           if p[i]='/' then p[i]:='\';
+      end;
 
     procedure do_close(h : longint);
 
@@ -285,87 +264,59 @@ end;
                            Directory Handling
 *****************************************************************************}
 
-procedure DosDir(func:byte;const s:string);
+type
+ TDirFnType=function(name:pointer):word;
+
+procedure dirfn(afunc : TDirFnType;const s:string);
 var
   buffer : array[0..255] of char;
 begin
   move(s[1],buffer,length(s));
   buffer[length(s)]:=#0;
   AllowSlash(pchar(@buffer));
-  {!!!!!!!!!!!!}
+  if aFunc(@buffer)=0 then
+   inoutres:=GetLastError;
 end;
 
+function CreateDirectoryTrunc(name:pointer):word;
+ begin
+  CreateDirectoryTrunc:=CreateDirectory(name,nil);
+ end;
 
-procedure mkdir(const s : string);
-begin
-  {!!!!!!!!!!!!}
-end;
+procedure mkdir(const s:string);[IOCHECK];
+ begin
+  dirfn(TDirFnType(@CreateDirectoryTrunc),s);
+ end;
 
+procedure rmdir(const s:string);[IOCHECK];
+ begin
+  dirfn(TDirFnType(@RemoveDirectory),s);
+ end;
 
-procedure rmdir(const s : string);
-begin
-  {!!!!!!!!!!!!}
-end;
+procedure chdir(const s:string);[IOCHECK];
+ begin
+  dirfn(TDirFnType(@SetCurrentDirectory),s);
+ end;
 
-
-procedure chdir(const s : string);
-begin
-  DosDir($3b,s);
-end;
-
-{ thanks to Michael Van Canneyt <michael@tfdec1.fys.kuleuven.ac.be>, }
-{ who writes this code                                               }
-{ her is a problem if the getdir is called with a pathstr var in dos.pp }
-procedure getdir(drivenr : byte;var dir : string);
-var
-  temp : array[0..255] of char;
-  sof  : pchar;
-  i    : byte;
-begin
-  sof:=pchar(@dir[4]);
-  { dir[1..3] will contain '[drivenr]:\', but is not }
-  { supplied by DOS, so we let dos string start at   }
-  { dir[4]                                           }
-  { Get dir from drivenr : 0=default, 1=A etc... }
-  asm
-    movb drivenr,%dl
-    movl sof,%esi
-    mov  $0x47,%ah
-    int  $0x21
-  end;
-{ Now Dir should be filled with directory in ASCIIZ, }
-{ starting from dir[4]                               }
-  dir[0]:=#3;
-  dir[2]:=':';
-  dir[3]:='\';
-  i:=4;
-{ conversation to Pascal string }
-  while (dir[i]<>#0) do
+procedure getdir(drivenr:byte;var dir:string);
+ const
+  Drive:array[0..3]of char=(#0,':',#0,#0);
+ var
+  defaultdrive:boolean;
+  DirBuf,SaveBuf:array[0..259] of Char;
+ begin
+  defaultdrive:=drivenr=0;
+  if not defaultdrive then
    begin
-   { convert path name to DOS }
-     if dir[i]='/' then
-      dir[i]:='\';
-     dir[0]:=chr(i);
-     inc(i);
+    byte(Drive[0]):=Drivenr+64;
+    GetCurrentDirectory(SizeOf(SaveBuf),SaveBuf);
+    SetCurrentDirectory(@Drive);
    end;
-{ upcase the string (FPKPascal function) }
-  dir:=upcase(dir);
-  if drivenr<>0 then   { Drive was supplied. We know it }
-   dir[1]:=chr(65+drivenr-1)
-  else
-   begin
-   { We need to get the current drive from DOS function 19H  }
-   { because the drive was the default, which can be unknown }
-     asm
-       movb $0x19,%ah
-       int $0x21
-       addb $65,%al
-       movb %al,i
-     end;
-     dir[1]:=chr(i);
-   end;
-end;
-
+  GetCurrentDirectory(SizeOf(DirBuf),DirBuf);
+  if not defaultdrive then
+   SetCurrentDirectory(@SaveBuf);
+  dir:=strpas(DirBuf);
+ end;
 
 {*****************************************************************************
                          SystemUnit Initialization
@@ -459,7 +410,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-03-27 00:50:22  peter
+  Revision 1.3  1998-04-26 21:49:57  florian
+    + more stuff added (??dir procedures etc.)
+
+  Revision 1.2  1998/03/27 00:50:22  peter
     * small fixes so it compiles
 
   Revision 1.1.1.1  1998/03/25 11:18:47  root

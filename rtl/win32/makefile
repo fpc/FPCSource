@@ -174,7 +174,8 @@ LIBEXT=.a
 SYSTEMPPU=syswin32$(PPUEXT)
 OBJECTS=strings objpas \
 	base \
-#	 dos crt objects printer \
+	dos \
+# crt objects printer \
 	cpu mmx getopts \
 
 # No loaders needed
@@ -225,7 +226,7 @@ clean :
 # Base Units (System, strings, os-dependent-base-unit)
 #
 
-$(SYSTEMPPU) : syswin32.pp $(DSYSTEMDEPS) $(DSYSPROCDEPS)
+$(SYSTEMPPU) : syswin32.pp $(DSYSTEMDEPS) $(DSYSPROCDEPS) win32.inc
 	$(COPY) $(DSYSTEMDEPS) .
 	$(COPY) $(DSYSPROCDEPS) .
 	$(PP) $(OPT) -Us -Sg syswin32.pp $(REDIR)
@@ -258,7 +259,7 @@ base$(PPUEXT) : base.pp $(SYSTEMPPU)
 #
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
-	       go32$(PPUEXT) strings$(PPUEXT) $(SYSTEMPPU)
+	strings$(PPUEXT) $(SYSTEMPPU) win32.inc
 	$(COPY) $(INC)/filerec.inc $(INC)/textrec.inc .
 	$(PP) $(OPT) dos $(REDIR)
 	$(DEL) filerec.inc textrec.inc

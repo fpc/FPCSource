@@ -49,14 +49,22 @@
          end;
        LPOVERLAPPED = ^OVERLAPPED;
 
+       SYSTEMTIME = record
+         wYear,wMonth,wDayOfWeek,wDay,
+	 wHour,wMinute,wSecond,WMilliseconds : word;
+       end;
+
    { command line/enviroment functions }
    function GetCommandLine : LPTSTR;external 'kernel32' name 'GetCommandLineA';
-   function GetEnvironmentStrings : LPVOID;[C];
+   function GetEnvironmentStrings : pchar;
+     external 'kernel32' name 'GetEnvironmentStringsA';
+   function FreeEnvironmentStrings(p : pchar) : boolean;
+     external 'kernel32' name 'FreeEnvironmentStringsA';
 
    { string functions }
-   function lstrlen(lpString:LPCTSTR):longint;[C];
-   function lstrcat(lpString1:LPTSTR; lpString2:LPCTSTR):LPTSTR;[C];
-   function lstrcpy(lpString1:LPTSTR; lpString2:LPCTSTR):LPTSTR;[C];
+   function lstrlen(lpString:LPCTSTR):longint;external;
+   function lstrcat(lpString1:LPTSTR; lpString2:LPCTSTR):LPTSTR;external;
+   function lstrcpy(lpString1:LPTSTR; lpString2:LPCTSTR):LPTSTR;external;
 
    { process functions }
    procedure ExitProcess(uExitCode : UINT);external 'kernel32' name 'ExitProcess';
@@ -72,11 +80,28 @@
    function MoveFile(old,_new : pchar) : longint;external 'kernel32' name 'MoveFileA';
    function SetFilePointer(l1,l2 : longint;l3 : pointer;l4 : longint) : longint;
      external 'kernel32' name 'SetFilePointer';
+   function GetFileSize(h:longint;p:pointer) : longint;
+     external 'kernel32' name 'GetFileSize';
+   function CreateFile(name:pointer;access,sharing:longint;security:pointer;
+     how,attr,template:longint) : longint;external 'kernel32' name 'CreateFileA';
+   function CreateDirectory(name : pointer;sec : pointer) : longint;
+     external 'kernel32' name 'CreateDirectoryA';
+   function RemoveDirectory(name:pointer):longint;
+     external 'kernel32' name 'RemoveDirectoryA';
+   function SetCurrentDirectory(name : pointer) : longint;
+     external 'kernel32' name 'SetCurrentDirectoryA';
+   function GetCurrentDirectory(bufsize : longint;name : pchar) : longint;
+     external 'kernel32' name 'GetCurrentDirectoryA';
+   function SetFileAttributes(lpFileName : pchar;dwFileAttributes : longint) : boolean;
+     external 'kernel32' name 'SetFileAttributesA';
+   function GetFileAttributes(lpFileName : pchar) : longint;
+     external 'kernel32' name 'GetFileAttributesA';
 
    { module functions }
    function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;external 'kernel32' name 'GetModuleFileNameA';
    procedure GetStartupInfo(p : pointer);external 'kernel32' name 'GetStartupInfoA';
-   function GetModuleHandle(p : pointer) : longint;external 'kernel32' name 'GetModuleHandleA';
+   function GetModuleHandle(p : pointer) : longint;
+     external 'kernel32' name 'GetModuleHandleA';
 
    { memory functions }
    function GlobalAlloc(mode,size:longint):longint;external 'kernel32' name 'GlobalAlloc';
@@ -88,13 +113,23 @@
    function LocalAlloc(uFlags : UINT;uBytes :UINT) : HLOCAL;external 'kernel32' name 'LocalAlloc';
    function LocalFree(hMem:HLOCAL):HLOCAL;external 'kernel32' name 'LocalFree';
 
+   { time and date functions }
+   procedure GetLocalTime(var t : SYSTEMTIME);
+     external 'kernel32' name 'GetLocalTime';
+   function SetLocalTime(const t : SYSTEMTIME) : boolean;
+     external 'kernel32' name 'SetLocalTime';
+
    { misc. functions }
    function GetLastError : DWORD;external 'kernel32' name 'GetLastError';
-   function messagebox(w1:longint;l1,l2:pointer;w2:longint):longint;external 'user32' name 'MessageBoxA';
-
+   function MessageBox(w1:longint;l1,l2:pointer;w2:longint):longint;external 'user32' name 'MessageBoxA';
+   function GetTickCount : longint;external 'kernel32' name 'GetTickCount';
+   function GetVersion : longint;external 'kernel32' name 'GetVersion';
 {
   $Log$
-  Revision 1.2  1998-03-27 00:50:22  peter
+  Revision 1.3  1998-04-26 21:49:58  florian
+    + more stuff added (??dir procedures etc.)
+
+  Revision 1.2  1998/03/27 00:50:22  peter
     * small fixes so it compiles
 
   Revision 1.1.1.1  1998/03/25 11:18:47  root
