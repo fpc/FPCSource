@@ -2685,6 +2685,8 @@ begin
       if pos1>0 then
         begin
           curaddress:=copy(line,1,pos1-1);
+          if copy(curaddress,1,2)='0x' then
+            curaddress:='$'+copy(curaddress,3,length(curaddress)-2);
           val(curaddress,CurAddr,err);
           if err>0 then
             val(copy(curaddress,1,err-1),CurAddr,err);
@@ -4493,7 +4495,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.56  2005-01-08 13:43:44  florian
+  Revision 1.57  2005-01-16 00:43:03  florian
+    * fixed disassembly window on sparc
+
+  Revision 1.56  2005/01/08 13:43:44  florian
     * updated version and copyright
 
   Revision 1.55  2005/01/08 11:43:18  florian
