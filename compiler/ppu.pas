@@ -120,6 +120,8 @@ const
   uf_static_linked = $80;  { the ppu can be linked static }
   uf_shared_linked = $100; { the ppu can be linked shared }
   uf_local_browser = $200;
+  uf_no_link       = $400; { unit has no .o generated, but can still have
+                             external linking! }
 
 type
 {$ifdef m68k}
@@ -869,7 +871,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  1999-07-03 00:29:57  peter
+  Revision 1.35  1999-07-05 16:21:30  peter
+    * fixed linking for units without linking necessary
+
+  Revision 1.34  1999/07/03 00:29:57  peter
     * new link writing to the ppu, one .ppu is needed for all link types,
       static (.o) is now always created also when smartlinking is used
 

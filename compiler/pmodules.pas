@@ -1097,7 +1097,9 @@ unit pmodules;
          { insert own objectfile, or say that it's in a library
            (no check for an .o when loading) }
          if is_assembler_generated then
-           insertobjectfile;
+           insertobjectfile
+         else
+           current_module^.flags:=current_module^.flags or uf_no_link;
 
          if cs_local_browser in aktmoduleswitches then
            current_module^.localsymtable:=refsymtable;
@@ -1324,7 +1326,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.126  1999-07-03 00:29:56  peter
+  Revision 1.127  1999-07-05 16:21:27  peter
+    * fixed linking for units without linking necessary
+
+  Revision 1.126  1999/07/03 00:29:56  peter
     * new link writing to the ppu, one .ppu is needed for all link types,
       static (.o) is now always created also when smartlinking is used
 

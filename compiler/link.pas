@@ -144,58 +144,63 @@ var
 begin
   with hp^ do
    begin
-     { create mask which unit files need linking }
+   { link unit files }
+     if (flags and uf_no_link)=0 then
+      begin
+        { create mask which unit files need linking }
+        mask:=link_allways;
+        { static linking ? }
+        if (cs_link_static in aktglobalswitches) then
+         begin
+           if (flags and uf_static_linked)=0 then
+             Comment(V_Error,'unit '+modulename^+' can''t be static linked')
+           else
+             mask:=mask or link_static;
+         end;
+        { smart linking ? }
+        if (cs_link_smart in aktglobalswitches) then
+         begin
+           if (flags and uf_smart_linked)=0 then
+            begin
+              { if smart not avail then try static linking }
+              if (flags and uf_static_linked)<>0 then
+               begin
+                 Comment(V_Error,'unit '+modulename^+' can''t be smart linked, switching to static linking');
+                 mask:=mask or link_static;
+               end
+              else
+               Comment(V_Error,'unit '+modulename^+' can''t be smart or static linked');
+            end
+           else
+            mask:=mask or link_smart;
+         end;
+        { shared linking }
+        if (cs_link_shared in aktglobalswitches) then
+         begin
+           if (flags and uf_shared_linked)=0 then
+            begin
+              { if shared not avail then try static linking }
+              if (flags and uf_static_linked)<>0 then
+               begin
+                 Comment(V_Error,'unit '+modulename^+' can''t be shared linked, switching to static linking');
+                 mask:=mask or link_static;
+               end
+              else
+               Comment(V_Error,'unit '+modulename^+' can''t be shared or static linked');
+            end
+           else
+            mask:=mask or link_shared;
+         end;
+        { unit files }
+        while not linkunitofiles.empty do
+         AddObject(linkunitofiles.getusemask(mask));
+        while not linkunitstaticlibs.empty do
+         AddStaticLibrary(linkunitstaticlibs.getusemask(mask));
+        while not linkunitsharedlibs.empty do
+         AddSharedLibrary(linkunitsharedlibs.getusemask(mask));
+      end;
+   { Other needed .o and libs, specified using $L,$LINKLIB,external }
      mask:=link_allways;
-     { static linking ? }
-     if (cs_link_static in aktglobalswitches) then
-      begin
-        if (flags and uf_static_linked)=0 then
-          Comment(V_Error,'unit '+modulename^+' can''t be static linked')
-        else
-          mask:=mask or link_static;
-      end;
-     { smart linking ? }
-     if (cs_link_smart in aktglobalswitches) then
-      begin
-        if (flags and uf_smart_linked)=0 then
-         begin
-           { if smart not avail then try static linking }
-           if (flags and uf_static_linked)<>0 then
-            begin
-              Comment(V_Error,'unit '+modulename^+' can''t be smart linked, switching to static linking');
-              mask:=mask or link_static;
-            end
-           else
-            Comment(V_Error,'unit '+modulename^+' can''t be smart or static linked');
-         end
-        else
-         mask:=mask or link_smart;
-      end;
-     { shared linking }
-     if (cs_link_shared in aktglobalswitches) then
-      begin
-        if (flags and uf_shared_linked)=0 then
-         begin
-           { if shared not avail then try static linking }
-           if (flags and uf_static_linked)<>0 then
-            begin
-              Comment(V_Error,'unit '+modulename^+' can''t be shared linked, switching to static linking');
-              mask:=mask or link_static;
-            end
-           else
-            Comment(V_Error,'unit '+modulename^+' can''t be shared or static linked');
-         end
-        else
-         mask:=mask or link_shared;
-      end;
-     { unit files }
-     while not linkunitofiles.empty do
-      AddObject(linkunitofiles.getusemask(mask));
-     while not linkunitstaticlibs.empty do
-      AddStaticLibrary(linkunitstaticlibs.getusemask(mask));
-     while not linkunitsharedlibs.empty do
-      AddSharedLibrary(linkunitsharedlibs.getusemask(mask));
-     { Other needed .o and libs, specified using $L,$LINKLIB,external }
      while not linkotherofiles.empty do
       AddObject(linkotherofiles.Getusemask(mask));
      while not linkotherstaticlibs.empty do
@@ -710,7 +715,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.58  1999-07-03 00:29:51  peter
+  Revision 1.59  1999-07-05 16:21:26  peter
+    * fixed linking for units without linking necessary
+
+  Revision 1.58  1999/07/03 00:29:51  peter
     * new link writing to the ppu, one .ppu is needed for all link types,
       static (.o) is now always created also when smartlinking is used
 
