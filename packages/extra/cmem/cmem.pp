@@ -22,7 +22,11 @@ interface
 
 Const
 {$ifndef win32}
+  {$ifdef netware}
+  LibName = 'clib';
+  {$else}
   LibName = 'c';
+  {$endif}
 {$else}
   LibName = 'msvcrt';
 {$endif}
@@ -121,7 +125,10 @@ end.
 
 {
  $Log$
- Revision 1.7  2002-11-01 17:56:39  peter
+ Revision 1.8  2003-03-17 15:40:05  armin
+ + LibName for netware
+
+ Revision 1.7  2002/11/01 17:56:39  peter
    * needlock field added for 1.1
 
  Revision 1.6  2002/09/08 15:43:47  michael
