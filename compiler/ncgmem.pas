@@ -30,7 +30,8 @@ unit ncgmem;
 interface
 
     uses
-      node,nmem,cpuinfo;
+      cpuinfo,cpubase,
+      node,nmem;
 
     type
        tcgloadvmtnode = class(tloadvmtnode)
@@ -70,9 +71,12 @@ interface
        end;
 
        tcgvecnode = class(tvecnode)
+       protected
          function get_mul_size : aword;
+         procedure update_reference_reg_mul(reg:tregister;l:aword);virtual;
          procedure second_wideansistring;virtual;
          procedure second_dynamicarray;virtual;
+       public
          procedure pass_2;override;
        end;
 
@@ -92,7 +96,6 @@ implementation
       aasmbase,aasmtai,aasmcpu,
       cginfo,cgbase,pass_2,
       pass_1,nld,ncon,nadd,
-      cpubase,
       cgobj,tgobj,rgobj,ncgutil,symbase
       ;
 
@@ -478,6 +481,31 @@ implementation
           end
        end;
 
+
+     procedure tcgvecnode.update_reference_reg_mul(reg:tregister;l:aword);
+       begin
+         if location.reference.base=R_NO then
+          begin
+            cg.a_op_const_reg(exprasmlist,OP_IMUL,l,reg);
+            location.reference.base:=reg;
+          end
+         else if location.reference.index=R_NO then
+          begin
+            cg.a_op_const_reg(exprasmlist,OP_IMUL,l,reg);
+            location.reference.index:=reg;
+          end
+         else
+          begin
+            cg.a_loadaddr_ref_reg(exprasmlist,location.reference,location.reference.index);
+            rg.ungetregisterint(exprasmlist,location.reference.base);
+            reference_reset_base(location.reference,location.reference.index,0);
+            { insert new index register }
+            cg.a_op_const_reg(exprasmlist,OP_IMUL,l,reg);
+            location.reference.index:=reg;
+          end;
+       end;
+
+
      procedure tcgvecnode.second_wideansistring;
        begin
        end;
@@ -561,10 +589,6 @@ implementation
                 dec(location.reference.offset)
               else
                 dec(location.reference.offset,2);
-
-              { we've also to keep left up-to-date, because it is used   }
-              { if a constant array index occurs, subject to change (FK) }
-              location_copy(left.location,location);
            end
          else if is_dynamic_array(left.resulttype.def) then
          { ... also a dynamic string }
@@ -597,88 +621,77 @@ implementation
                    cg.g_maybe_loadself(exprasmlist);
                    rg.restoreusedregisters(exprasmlist,pushed);
                 end;
-
-              { we've also to keep left up-to-date, because it is used   }
-              { if a constant array index occurs, subject to change (FK) }
-              location_copy(left.location,location);
            end
          else
            location_copy(location,left.location);
 
          { offset can only differ from 0 if arraydef }
          if (left.resulttype.def.deftype=arraydef) and
-           not(is_dynamic_array(left.resulttype.def)) then
-           dec(location.reference.offset,
-               get_mul_size*tarraydef(left.resulttype.def).lowrange);
+            not(is_dynamic_array(left.resulttype.def)) then
+           dec(location.reference.offset,get_mul_size*tarraydef(left.resulttype.def).lowrange);
+
          if right.nodetype=ordconstn then
            begin
               { offset can only differ from 0 if arraydef }
-              if (left.resulttype.def.deftype=arraydef) then
-                begin
-                   if not(is_open_array(left.resulttype.def)) and
-                      not(is_array_of_const(left.resulttype.def)) and
-                      not(is_dynamic_array(left.resulttype.def)) then
-                     begin
-                        if (tordconstnode(right).value>tarraydef(left.resulttype.def).highrange) or
-                           (tordconstnode(right).value<tarraydef(left.resulttype.def).lowrange) then
-                           begin
-                          { this should be caught in the resulttypepass! (JM) }
+              case left.resulttype.def.deftype of
+                arraydef :
+                  begin
+                     if not(is_open_array(left.resulttype.def)) and
+                        not(is_array_of_const(left.resulttype.def)) and
+                        not(is_dynamic_array(left.resulttype.def)) then
+                       begin
+                          if (tordconstnode(right).value>tarraydef(left.resulttype.def).highrange) or
+                             (tordconstnode(right).value<tarraydef(left.resulttype.def).lowrange) then
+                            begin
+                              { this should be caught in the resulttypepass! (JM) }
                               if (cs_check_range in aktlocalswitches) then
                                 CGMessage(parser_e_range_check_error)
                               else
                                 CGMessage(parser_w_range_check_error);
-                           end;
-                        dec(left.location.reference.offset,
-                            get_mul_size*tarraydef(left.resulttype.def).lowrange);
-                     end
-                   else
-                     begin
-                        { range checking for open and dynamic arrays !!!! }
+                            end;
+                       end
+                     else
+                       begin
+                          { range checking for open and dynamic arrays !!!! }
 {$warning FIXME}
-                        {!!!!!!!!!!!!!!!!!}
+                          {!!!!!!!!!!!!!!!!!}
+                       end;
+                  end;
+                stringdef :
+                  begin
+                    if (cs_check_range in aktlocalswitches) then
+                     begin
+                       case tstringdef(left.resulttype.def).string_typ of
+                         { it's the same for ansi- and wide strings }
+                         st_widestring,
+                         st_ansistring:
+                           begin
+                              rg.saveusedregisters(exprasmlist,pushed,all_registers);
+                              cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,paramanager.getintparaloc(2));
+                              href:=location.reference;
+                              dec(href.offset,7);
+                              cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(1));
+                              rg.saveregvars(exprasmlist,all_registers);
+                              cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
+                              rg.restoreusedregisters(exprasmlist,pushed);
+                              cg.g_maybe_loadself(exprasmlist);
+                           end;
+
+                         st_shortstring:
+                           begin
+                              {!!!!!!!!!!!!!!!!!}
+                           end;
+
+                         st_longstring:
+                           begin
+                              {!!!!!!!!!!!!!!!!!}
+                           end;
+                       end;
                      end;
-                end
-              else if (left.resulttype.def.deftype=stringdef) then
-                begin
-                   if (tordconstnode(right).value=0) and
-                      not(is_shortstring(left.resulttype.def)) then
-                    { this should be caught in the resulttypepass! (JM) }
-                     CGMessage(cg_e_can_access_element_zero);
-
-                   if (cs_check_range in aktlocalswitches) then
-                    begin
-                      case tstringdef(left.resulttype.def).string_typ of
-                        { it's the same for ansi- and wide strings }
-                        st_widestring,
-                        st_ansistring:
-                          begin
-                             rg.saveusedregisters(exprasmlist,pushed,all_registers);
-                             cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,paramanager.getintparaloc(2));
-                             href:=location.reference;
-                             dec(href.offset,7);
-                             cg.a_param_ref(exprasmlist,OS_INT,href,paramanager.getintparaloc(1));
-                             rg.saveregvars(exprasmlist,all_registers);
-                             cg.a_call_name(exprasmlist,'FPC_'+Upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
-                             rg.restoreusedregisters(exprasmlist,pushed);
-                             cg.g_maybe_loadself(exprasmlist);
-                          end;
-
-                        st_shortstring:
-                          begin
-                             {!!!!!!!!!!!!!!!!!}
-                          end;
-
-                        st_longstring:
-                          begin
-                             {!!!!!!!!!!!!!!!!!}
-                          end;
-                      end;
-                    end;
-                end;
-              inc(left.location.reference.offset,
+                   end;
+              end;
+              inc(location.reference.offset,
                   get_mul_size*tordconstnode(right).value);
-
-              location_copy(location,left.location);
            end
          else
          { not nodetype=ordconstn }
@@ -719,8 +732,6 @@ implementation
                      begin
                         if taddnode(right).right.nodetype=ordconstn then
                           begin
-{ this was "extraoffset:=right.right.value;" Looks a bit like
-  copy-paste bug :) (JM) }
                              extraoffset:=-tordconstnode(taddnode(right).right).value;
                              t:=taddnode(right).left;
                              t.registers32 :=  right.registers32;
@@ -830,33 +841,9 @@ implementation
                    end;
                end;
 
-              if location.reference.base=R_NO then
-               begin
-                 location.reference.base:=right.location.register;
-                 cg.a_op_const_reg(exprasmlist,OP_IMUL,get_mul_size,
-                   right.location.register);
-               end
-              else if location.reference.index=R_NO then
-               begin
-                 location.reference.index:=right.location.register;
-                 cg.a_op_const_reg(exprasmlist,OP_IMUL,get_mul_size,
-                   right.location.register);
-               end
-              else
-               begin
-                 cg.a_loadaddr_ref_reg(exprasmlist,location.reference,
-                   location.reference.base);
-                 rg.ungetregisterint(exprasmlist,location.reference.index);
-                 { the symbol offset is loaded,             }
-                 { so release the symbol name and set symbol  }
-                 { to nil                                 }
-                 location.reference.symbol:=nil;
-                 location.reference.offset:=0;
-                 cg.a_op_const_reg(exprasmlist,OP_IMUL,
-                   get_mul_size,right.location.register);
-                 location.reference.index:=right.location.register;
-               end;
-
+              { insert the register and the multiplication factor in the
+                reference }
+              update_reference_reg_mul(right.location.register,get_mul_size);
            end;
 
         location.size:=newsize;
@@ -877,7 +864,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-08-23 16:14:48  peter
+  Revision 1.26  2002-09-01 18:46:01  peter
+    * fixed generic tcgvecnode
+    * move code that updates a reference with index register and multiplier
+      to separate method so it can be overriden for scaled indexing
+    * i386 uses generic tcgvecnode
+
+  Revision 1.25  2002/08/23 16:14:48  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 
