@@ -1,10 +1,9 @@
 #
-#   Makefile.fpc for shedit
+#   Makefile.fpc for Free Pascal Compiler
 #
 
 [dirs]
 fpcdir=..
-unitdir=
 targetdir=.
 
 [defaults]
@@ -16,6 +15,20 @@ toolcmp=1
 
 
 [presettings]
+# Allow ALPHA, POWERPC, M68K, I386 defines for target cpu
+ifdef ALPHA
+CPU_TARGET=alpha
+endif
+ifdef POWERPC
+CPU_TARGET=powerpc
+endif
+ifdef M68K
+CPU_TARGET=m68k
+endif
+ifdef I386
+CPU_TARGET=i386
+endif
+
 # RTL
 RTL=../rtl
 UTILS=../utils
@@ -54,14 +67,14 @@ MSGFILE=error$(FPCLANG).msg
 # set correct defines (-d$(CPU_TARGET) is automaticly added in makefile.fpc)
 override LOCALDEF+=-dGDB -dBROWSERLOG
 
-# for i386 also insert MMX support
+# i386 specific
 ifeq ($(CPU_TARGET),i386)
+# also insert MMX support
 override LOCALDEF+=-dSUPPORT_MMX
-endif
-
 # We don't need the intel and binary writer on linux...
 ifdef inlinux
 override LOCALDEF+=-dNOAG386INT -dNOAG386BIN
+endif
 endif
 
 override LOCALOPT+=$(LOCALDEF)
@@ -262,8 +275,8 @@ ifdef inlinux
         $(INSTALLEXE) $(EXENAME) $(LIBINSTALLDIR)
 else
         $(MKDIR) $(BININSTALLDIR)
-ifdef UPX
-        -$(UPX) $(EXENAME)
+ifdef UPXPROG
+        -$(UPXPROG) $(EXENAME)
 endif
         $(INSTALLEXE) $(EXENAME) $(BININSTALLDIR)
 endif
