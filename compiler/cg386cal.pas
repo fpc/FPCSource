@@ -994,14 +994,12 @@ implementation
               else if is_ansistring(p^.resulttype) or
                 is_widestring(p^.resulttype) then
                 begin
-                   gettempansistringreference(hr);
-                   { cleanup the temp slot }
-                   exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
-                   decrstringref(p^.resulttype,hr);
-                   exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
-
-                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EAX,
+                   hregister:=getexplicitregister32(R_EAX);
+                   if gettempansistringreference(hr) then
+                     decrstringref(p^.resulttype,hr);
+                   exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,hregister,
                      newreference(hr))));
+                   ungetregister32(hregister);
                    p^.location.loc:=LOC_MEM;
                    p^.location.reference:=hr;
                 end
@@ -1167,7 +1165,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  1999-06-02 10:11:40  florian
+  Revision 1.91  1999-06-14 17:47:47  peter
+    * merged
+
+  Revision 1.90.2.1  1999/06/14 17:24:42  peter
+    * fixed saving of registers with decr_ansistr
+
+  Revision 1.90  1999/06/02 10:11:40  florian
     * make cycle fixed i.e. compilation with 0.99.10
     * some fixes for qword
     * start of register calling conventions

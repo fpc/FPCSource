@@ -2944,10 +2944,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       { for all i386 gcc implementations }
       if ((aktprocsym^.definition^.options and posavestdregs)<>0) then
         begin
-          exprasmlist^.insert(new(pai386,op_reg(A_POP,S_L,R_EDI)));
-          exprasmlist^.insert(new(pai386,op_reg(A_POP,S_L,R_ESI)));
           if (aktprocsym^.definition^.usedregisters and ($80 shr byte(R_EBX)))<>0 then
-           exprasmlist^.insert(new(pai386,op_reg(A_POP,S_L,R_EBX)));
+           exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EBX)));
+          exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_ESI)));
+          exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
           { here we could reset R_EBX
             but that is risky because it only works
             if genexitcode is called after genentrycode
@@ -3086,7 +3086,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.5  1999-06-03 16:21:15  pierre
+  Revision 1.6  1999-06-14 17:47:48  peter
+    * merged
+
+  Revision 1.5.2.1  1999/06/14 17:27:08  peter
+    * fixed posavestd regs which popped at the wrong place
+
+  Revision 1.5  1999/06/03 16:21:15  pierre
    * fixes a bug due to int64 code in maybe_savetotemp
 
   Revision 1.4  1999/06/02 22:44:06  pierre

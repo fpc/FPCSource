@@ -1801,6 +1801,7 @@ Begin
                l1:=l2;
             end;
           ConcatAlign(curlist,l1);
+          Comment(V_Note,'.align is target specific, use .balign or .p2align');
           if actasmtoken<>AS_SEPARATOR then
            Consume(AS_SEPARATOR);
         end;
@@ -1929,7 +1930,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  1999-06-11 22:54:12  pierre
+  Revision 1.52  1999-06-14 17:48:03  peter
+    * merged
+
+  Revision 1.50.2.1  1999/06/14 17:30:44  peter
+    * align fixes from pierre
+
+  Revision 1.51  1999/06/11 22:54:12  pierre
     * .align problem treated :
       .align is considered as .p2align on go32v1 and go32v2
       and as .balign on other targets
