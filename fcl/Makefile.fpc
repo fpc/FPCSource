@@ -20,7 +20,9 @@ units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszl
 
 [target]
 dirs=xml image db shedit passrc net 
-units=classes contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls xmlreg registry eventlog custapp cgiapp
+units=classes contnrs inifiles ezcgi pipes rtfpars idea base64 gettext \
+      iostream zstream cachecls xmlreg registry eventlog custapp cgiapp \
+      wformat whtml wtex
 units_freebsd=process ssockets resolve fpasync
 units_netbsd=process ssockets resolve fpasync
 units_openbsd=process ssockets resolve fpasync
