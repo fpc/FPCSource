@@ -29,6 +29,9 @@ Interface
 {$ifdef Go32v2}
 {$define implemented}
 {$endif}
+{$ifdef Win32}
+{$define implemented}
+{$endif}
 {$ifdef linux}
 {$define implemented}
 {$endif}
@@ -69,6 +72,9 @@ Uses
 {$ifdef go32v2}
   go32,
 {$endif go32v2}
+{$ifdef win32}
+  windows,
+{$endif win32}
 {$ifdef linux}
   linux,
 {$endif linux}
@@ -89,11 +95,13 @@ var
 
 {$ifdef TP}
 
+{$ifndef win32}
 const
   UnusedHandle    = -1;
   StdInputHandle  = 0;
   StdOutputHandle = 1;
   StdErrorHandle  = 2;
+{$endif win32}
 
 Type
   PtrRec = packed record
@@ -165,6 +173,14 @@ end;
 
 {$endif def go32v2}
 
+{$ifdef win32}
+Function FdClose (Handle : Longint) : boolean;
+begin
+  { Do we need this ?? }
+  FdClose:=true;
+end;
+{$endif}
+
 {$ifdef TP}
 Function FdClose (Handle : Longint) : boolean;
 begin
@@ -209,8 +225,12 @@ function ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
     ChangeRedirOut:=True;
     OutRedirDisabled:=False;
 {$else}
+{$ifdef win32}
+    if SetStdHandle(Std_Output_Handle,FileRec(FOUT^).Handle) then
+{$else not win32}
     if dup(StdOutputHandle,TempHOut) and
        dup2(FileRec(FOUT^).Handle,StdOutputHandle) then
+{$endif not win32}
       begin
          ChangeRedirOut:=True;
          OutRedirDisabled:=False;
@@ -236,8 +256,12 @@ function ChangeRedirIn(Const Redir : String) : Boolean;
     ChangeRedirIn:=True;
     InRedirDisabled:=False;
 {$else}
+{$ifdef win32}
+    if SetStdHandle(Std_Input_Handle,FileRec(FIN^).Handle) then
+{$else not win32}
     if dup(StdInputHandle,TempHIn) and
        dup2(FileRec(FIN^).Handle,StdInputHandle) then
+{$endif not win32}
       begin
          ChangeRedirIn:=True;
          InRedirDisabled:=False;
@@ -267,8 +291,12 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
     ChangeRedirError:=True;
     ErrorRedirDisabled:=False;
 {$else}
+{$ifdef win32}
+    if SetStdHandle(Std_Error_Handle,FileRec(FERR^).Handle) then
+{$else not win32}
     if dup(StdErrorHandle,TempHError) and
        dup2(FileRec(FERR^).Handle,StdErrorHandle) then
+{$endif not win32}
       begin
          ChangeRedirError:=True;
          ErrorRedirDisabled:=False;
@@ -320,8 +348,12 @@ end;
     Handles^[StdOutputHandle]:=OldHandleOut;
     OldHandleOut:=StdOutputHandle;
 {$else}
+{$ifdef win32}
+    SetStdHandle(Std_Output_Handle,StdOutputHandle);
+{$else not win32}
     dup2(TempHOut,StdOutputHandle);
-{$endif}
+{$endif not win32}
+{$endif FPC}
     Close (FOUT^);
     fdClose(TempHOut);
     RedirChangedOut:=false;
@@ -337,7 +369,11 @@ end;
     Handles^[StdInputHandle]:=OldHandleIn;
     OldHandleIn:=StdInputHandle;
 {$else}
+{$ifdef win32}
+    SetStdHandle(Std_Input_Handle,StdInputHandle);
+{$else not win32}
     dup2(TempHIn,StdInputHandle);
+{$endif not win32}
 {$endif}
     Close (FIn^);
     fdClose(TempHIn);
@@ -354,7 +390,11 @@ end;
 {$ifndef FPC}
     Handles^[StdInputHandle]:=OldHandleIn;
 {$else}
+{$ifdef win32}
+    SetStdHandle(Std_Input_Handle,StdInputHandle);
+{$else not win32}
     dup2(TempHIn,StdInputHandle);
+{$endif not win32}
 {$endif}
     InRedirDisabled:=True;
   end;
@@ -370,7 +410,11 @@ end;
     Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
     Handles^[StdInputHandle]:=Handles^[FileRec (FIn^).Handle];
 {$else}
+{$ifdef win32}
+    SetStdHandle(Std_Input_Handle,FileRec(FIn^).Handle);
+{$else not win32}
     dup2(FileRec(FIn^).Handle,StdInputHandle);
+{$endif not win32}
 {$endif}
     InRedirDisabled:=False;
   end;
@@ -385,7 +429,11 @@ end;
 {$ifndef FPC}
     Handles^[StdOutputHandle]:=OldHandleOut;
 {$else}
+{$ifdef win32}
+    SetStdHandle(Std_Output_Handle,StdOutputHandle);
+{$else not win32}
     dup2(TempHOut,StdOutputHandle);
+{$endif not win32}
 {$endif}
     OutRedirDisabled:=True;
   end;
@@ -401,7 +449,11 @@ end;
     Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
     Handles^[StdOutputHandle]:=Handles^[FileRec (FOut^).Handle];
 {$else}
+{$ifdef win32}
+    SetStdHandle(Std_Output_Handle,FileRec(FOut^).Handle);
+{$else not win32}
     dup2(FileRec(FOut^).Handle,StdOutputHandle);
+{$endif not win32}
 {$endif}
     OutRedirDisabled:=False;
   end;
@@ -416,7 +468,11 @@ end;
     Handles^[StdErrorHandle]:=OldHandleError;
     OldHandleError:=StdErrorHandle;
 {$else}
+{$ifdef win32}
+    SetStdHandle(Std_Error_Handle,StdErrorHandle);
+{$else not win32}
     dup2(TempHError,StdErrorHandle);
+{$endif not win32}
 {$endif}
     Close (FERR^);
     fdClose(TempHError);
@@ -433,7 +489,11 @@ end;
 {$ifndef FPC}
     Handles^[StdErrorHandle]:=OldHandleError;
 {$else}
+{$ifdef win32}
+    SetStdHandle(Std_Error_Handle,StdErrorHandle);
+{$else not win32}
     dup2(TempHError,StdErrorHandle);
+{$endif not win32}
 {$endif}
     ErrorRedirDisabled:=True;
   end;
@@ -449,7 +509,11 @@ end;
     Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
     Handles^[StdErrorHandle]:=Handles^[FileRec (FErr^).Handle];
 {$else}
+{$ifdef win32}
+    SetStdHandle(Std_Error_Handle,FileRec(FErr^).Handle);
+{$else not win32}
     dup2(FileRec(FERR^).Handle,StdErrorHandle);
+{$endif not win32}
 {$endif}
     ErrorRedirDisabled:=False;
   end;
@@ -457,6 +521,10 @@ end;
 {............................................................................}
 
   procedure DosExecute(ProgName, ComLine : String);
+{$ifdef win32}
+    var
+      StoreInherit : BOOL;
+{$endif win32}
 
   Begin
 {$IfDef MsDos}
@@ -467,7 +535,14 @@ end;
 {$ifdef linux}
     Shell(Progname+' '+Comline);
 {$else}
+{$ifdef win32}
+    StoreInherit:=ExecInheritsHandles;
+    ExecInheritsHandles:=true;
+{$endif win32}
     Dos.Exec (ProgName, ComLine);
+{$ifdef win32}
+    ExecInheritsHandles:=StoreInherit;
+{$endif win32}
 {$endif}
     IOStatus:=DosError;
     ExecuteResult:=DosExitCode;
@@ -533,8 +608,9 @@ end;
 
 {$else not  implemented}
 
+
 {*****************************************************************************
-                                 Linux
+                                 Fake
 *****************************************************************************}
 
 function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
@@ -640,7 +716,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.20  1999-08-05 16:54:36  peter
+  Revision 1.21  1999-09-21 11:28:22  pierre
+   + Redir for win32
+
+  Revision 1.20  1999/08/05 16:54:36  peter
     * win32 fixes
 
   Revision 1.19  1999/08/03 20:22:36  peter

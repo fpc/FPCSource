@@ -37,7 +37,7 @@
 
 {$ifdef Win32}
   {$undef SUPPORTVESA}
-  {$undef SUPPORTREDIR}
+  {$define SUPPORTREDIR}
 {$endif}
 
 { --- Exclude debugger support --- }
@@ -55,7 +55,7 @@
     {$define redircompiler}
   {$endif}
   {$ifdef GDB_V418}
-    {$define redircompiler} 
+    {define redircompiler}
   {$endif GDB_V418}
 {$endif}
 
