@@ -1766,16 +1766,12 @@ implementation
         aktcommentstyle:=comment_delphi;
         inc_comment_level;
         readchar;
-      { this is currently not supported }
+        { this is not supported }
         if c='$' then
           Message(scan_e_wrong_styled_switch);
-      { skip comment }
-        while c<>newline do
-         begin
-           if c=#26 then
-            end_of_file;
-           readchar;
-         end;
+        { skip comment }
+        while not (c in [newline,#26]) do
+         readchar;
         dec_comment_level;
         aktcommentstyle:=comment_none;
       end;
@@ -2602,7 +2598,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.22  2001-09-18 11:30:48  michael
+  Revision 1.23  2001-09-30 21:23:59  peter
+    * merged delphi comment fix
+
+  Revision 1.22  2001/09/18 11:30:48  michael
   * Fixes win32 linking problems with import libraries
   * LINKLIB Libraries are now looked for using C file extensions
   * get_exepath fix
