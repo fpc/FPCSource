@@ -39,6 +39,7 @@ interface
           function first_sqr_real: tnode; override;
           procedure second_abs_real; override;
           procedure second_sqr_real; override;
+          procedure second_prefetch;override;
        private
           procedure load_fpu_location;
        end;
@@ -46,7 +47,7 @@ interface
 implementation
 
     uses
-      cutils,globals,
+      cutils,globals,verbose,
       aasmtai,aasmcpu,
       symconst,symdef,
       defutil,
@@ -111,12 +112,48 @@ implementation
            location.register,left.location.register));
        end;
 
+
+     procedure tppcinlinenode.second_prefetch;
+       var
+         r: tregister;
+       begin
+         secondpass(left);
+         case left.location.loc of
+           LOC_CREFERENCE,
+           LOC_REFERENCE:
+             begin
+               r:=cg.getintregister(exprasmlist,OS_ADDR);
+               if (left.location.reference.offset = 0) and
+                  not assigned(left.location.reference.symbol) then
+                 begin
+                   if (left.location.reference.index = NR_NO) then
+                     exprasmlist.concat(taicpu.op_const_reg(A_DCBT,0,left.location.reference.base))
+                   else
+                     exprasmlist.concat(taicpu.op_reg_reg(A_DCBT,left.location.reference.base,left.location.reference.index));
+                   location_release(exprasmlist,left.location);
+                 end
+               else
+                 begin
+                   cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,r);
+                   location_release(exprasmlist,left.location);
+                   exprasmlist.concat(taicpu.op_const_reg(A_DCBT,0,r));
+                   cg.ungetregister(exprasmlist,r);
+                 end;
+             end;
+           else
+             internalerror(200402021);
+         end;
+       end;
+
 begin
    cinlinenode:=tppcinlinenode;
 end.
 {
   $Log$
-  Revision 1.11  2003-10-17 01:22:08  florian
+  Revision 1.12  2004-02-02 21:22:19  jonas
+    + implemented second_prefetch
+
+  Revision 1.11  2003/10/17 01:22:08  florian
     * compilation of the powerpc compiler fixed
 
   Revision 1.10  2003/10/01 20:34:49  peter
