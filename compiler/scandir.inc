@@ -235,35 +235,23 @@ const
               valint(hs1,l1,w);
               valint(hs2,l2,w);
               case t of
-                 EQUAL:
-                   b:=l1=l2;
-                 UNEQUAL:
-                   b:=l1<>l2;
-                 LT:
-                   b:=l1<l2;
-                 GT:
-                   b:=l1>l2;
-                 GTE:
-                   b:=l1>=l2;
-                 LTE:
-                   b:=l1<=l2;
+                 EQUAL : b:=l1=l2;
+               UNEQUAL : b:=l1<>l2;
+                    LT : b:=l1<l2;
+                    GT : b:=l1>l2;
+                   GTE : b:=l1>=l2;
+                   LTE : b:=l1<=l2;
               end;
            end
          else
            begin
               case t of
-                 EQUAL:
-                   b:=hs1=hs2;
-                 UNEQUAL:
-                   b:=hs1<>hs2;
-                 LT:
-                   b:=hs1<hs2;
-                 GT:
-                   b:=hs1>hs2;
-                 GTE:
-                   b:=hs1>=hs2;
-                 LTE:
-                   b:=hs1<=hs2;
+                 EQUAL : b:=hs1=hs2;
+               UNEQUAL : b:=hs1<>hs2;
+                    LT : b:=hs1<hs2;
+                    GT : b:=hs1>hs2;
+                   GTE : b:=hs1>=hs2;
+                   LTE : b:=hs1<=hs2;
               end;
            end;
          if b then
@@ -471,14 +459,18 @@ const
       var
         sw : tmoduleswitch;
       begin
+        sw:=cs_modulenone;
         case t of
            _DIR_SMARTLINK : sw:=cs_smartlink;
         end;
         current_scanner^.skipspace;
-        if c='-' then
-         aktmoduleswitches:=aktmoduleswitches-[sw]
-        else
-         aktmoduleswitches:=aktmoduleswitches+[sw];
+        if sw<>cs_modulenone then
+         begin
+           if c='-' then
+            aktmoduleswitches:=aktmoduleswitches-[sw]
+           else
+            aktmoduleswitches:=aktmoduleswitches+[sw];
+         end;
       end;
 
 
@@ -486,6 +478,7 @@ const
       var
         sw : tlocalswitch;
       begin
+        sw:=cs_localnone;
 {$ifdef SUPPORT_MMX}
         case t of
           _DIR_MMX : sw:=cs_mmx;
@@ -493,10 +486,13 @@ const
         end;
 {$endif}
         current_scanner^.skipspace;
-        if c='-' then
-         aktlocalswitches:=aktlocalswitches-[sw]
-        else
-         aktlocalswitches:=aktlocalswitches+[sw];
+        if sw<>cs_localnone then
+         begin
+           if c='-' then
+            aktlocalswitches:=aktlocalswitches-[sw]
+           else
+            aktlocalswitches:=aktlocalswitches+[sw];
+         end;
       end;
 
 
@@ -915,7 +911,10 @@ const
 
 {
   $Log$
-  Revision 1.26  1998-09-03 11:24:02  peter
+  Revision 1.27  1998-09-09 15:33:59  peter
+    * removed warnings
+
+  Revision 1.26  1998/09/03 11:24:02  peter
     * moved more inputfile things from tscannerfile to tinputfile
     * changed ifdef Sourceline to cs_asm_source
 

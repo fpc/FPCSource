@@ -75,7 +75,7 @@ Const
 {$ifdef regalloc}
   ,ait_regalloc, ait_regdealloc
 {$endif regalloc}
-                     ];
+  ];
 
 {the maximum number of things (registers, memory, ...) a single instruction
  changes}
@@ -1003,7 +1003,10 @@ Var
 {$endif AnalyzeLoops}
     Cnt, InstrCnt : Longint;
     InstrProp: TAsmInstrucProp;
-    p, hp: Pai;
+    p : Pai;
+{$Ifdef JumpAnal}
+    hp : pai;
+{$endif}
     TmpRef: TReference;
     TmpReg: TRegister;
 Begin
@@ -1453,7 +1456,10 @@ End.
 
 {
  $Log$
- Revision 1.9  1998-09-03 16:24:51  florian
+ Revision 1.10  1998-09-09 15:33:58  peter
+   * removed warnings
+
+ Revision 1.9  1998/09/03 16:24:51  florian
    * bug of type conversation from dword to real fixed
    * bug fix of Jonas applied
 

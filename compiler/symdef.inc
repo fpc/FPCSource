@@ -20,7 +20,7 @@
  ****************************************************************************
 }
 
-{*************************************************************************************************************************
+{****************************************************************************
                      TDEF (base class for definitions)
 ****************************************************************************}
 
@@ -63,8 +63,8 @@
        ftFixed16       = 5;
        ftFixed32       = 6;
 
-    constructor tdef.init;
 
+    constructor tdef.init;
       begin
          deftype:=abstractdef;
          owner := nil;
@@ -93,6 +93,7 @@
 {$endif GDB}
       end;
 
+
     constructor tdef.load;
       begin
          deftype:=abstractdef;
@@ -119,6 +120,7 @@
          nextglobal := nil;
 {$endif GDB}
       end;
+
 
     destructor tdef.done;
       begin
@@ -149,6 +151,7 @@
 {$endif GDB}
       end;
 
+
     procedure tdef.write;
       begin
 {$ifdef GDB}
@@ -165,10 +168,12 @@
 {$endif GDB}
       end;
 
+
     function tdef.size : longint;
       begin
          size:=savesize;
       end;
+
 
 {$ifdef GDB}
    procedure tdef.set_globalnb;
@@ -177,11 +182,12 @@
          inc(PglobalTypeCount^);
      end;
 
-    function tdef.stabstring : pchar;
 
+    function tdef.stabstring : pchar;
       begin
       stabstring := strpnew('t'+numberstring+';');
       end;
+
 
     function tdef.numberstring : string;
       var table : psymtable;
@@ -231,6 +237,7 @@
            numberstring := tostr(globalnb);
         end;
       end;
+
 
     function tdef.allstabstring : pchar;
     var stabchar : string[2];
@@ -294,14 +301,14 @@
     end;
 {$endif GDB}
 
-    procedure tdef.deref;
 
+    procedure tdef.deref;
       begin
       end;
 
+
     { rtti generation }
     procedure tdef.generate_rtti;
-
       begin
          has_rtti:=true;
          getlabel(rtti_label);
@@ -310,23 +317,23 @@
          write_rtti_data;
       end;
 
-    function tdef.get_rtti_label : plabel;
 
+    function tdef.get_rtti_label : plabel;
       begin
          if not(has_rtti) then
            generate_rtti;
          get_rtti_label:=rtti_label;
       end;
 
+
     { init table handling }
     function tdef.needs_inittable : boolean;
-
       begin
          needs_inittable:=false;
       end;
 
-    procedure tdef.generate_inittable;
 
+    procedure tdef.generate_inittable;
       begin
          has_inittable:=true;
          getlabel(inittable_label);
@@ -335,31 +342,30 @@
          write_init_data;
       end;
 
-    procedure tdef.write_init_data;
 
+    procedure tdef.write_init_data;
       begin
          write_rtti_data;
       end;
 
-    procedure tdef.write_child_init_data;
 
+    procedure tdef.write_child_init_data;
       begin
          write_child_rtti_data;
       end;
 
-    function tdef.get_inittable_label : plabel;
 
+    function tdef.get_inittable_label : plabel;
       begin
          if not(has_inittable) then
            generate_inittable;
          get_inittable_label:=inittable_label;
       end;
 
-    procedure tdef.writename;
 
+    procedure tdef.writename;
       var
          str : string;
-
       begin
          { name }
          if assigned(sym) then
@@ -371,29 +377,29 @@
            rttilist^.concat(new(pai_string,init(#0)))
       end;
 
+
     { returns true, if the definition can be published }
     function tdef.is_publishable : boolean;
-
       begin
          is_publishable:=false;
       end;
 
-    procedure tdef.write_rtti_data;
 
+    procedure tdef.write_rtti_data;
       begin
       end;
+
 
     procedure tdef.write_child_rtti_data;
-
       begin
       end;
 
-{*************************************************************************************************************************
+
+{****************************************************************************
                                TSTRINGDEF
 ****************************************************************************}
 
     constructor tstringdef.init(l : byte);
-
       begin
          tdef.init;
          string_typ:=st_shortstring;
@@ -402,8 +408,8 @@
          savesize:=len+1;
       end;
 
-    constructor tstringdef.load;
 
+    constructor tstringdef.load;
       begin
          tdef.load;
          string_typ:=st_shortstring;
@@ -412,8 +418,8 @@
          savesize:=len+1;
       end;
 
-    constructor tstringdef.longinit(l : longint);
 
+    constructor tstringdef.longinit(l : longint);
       begin
          tdef.init;
          string_typ:=st_longstring;
@@ -421,9 +427,9 @@
          len:=l;
          savesize:=Sizeof(pointer);
       end;
+
 
     constructor tstringdef.longload;
-
       begin
          tdef.load;
          deftype:=stringdef;
@@ -432,8 +438,8 @@
          savesize:=Sizeof(pointer);
       end;
 
-    constructor tstringdef.ansiinit(l : longint);
 
+    constructor tstringdef.ansiinit(l : longint);
       begin
          tdef.init;
          string_typ:=st_ansistring;
@@ -442,8 +448,8 @@
          savesize:=sizeof(pointer);
       end;
 
-    constructor tstringdef.ansiload;
 
+    constructor tstringdef.ansiload;
       begin
          tdef.load;
          deftype:=stringdef;
@@ -452,8 +458,8 @@
          savesize:=sizeof(pointer);
       end;
 
-    constructor tstringdef.wideinit(l : longint);
 
+    constructor tstringdef.wideinit(l : longint);
       begin
          tdef.init;
          string_typ:=st_widestring;
@@ -462,8 +468,8 @@
          savesize:=sizeof(pointer);
       end;
 
-    constructor tstringdef.wideload;
 
+    constructor tstringdef.wideload;
       begin
          tdef.load;
          deftype:=stringdef;
@@ -472,10 +478,12 @@
          savesize:=sizeof(pointer);
       end;
 
+
     function tstringdef.size : longint;
       begin
         size:=savesize;
       end;
+
 
     procedure tstringdef.write;
       begin
@@ -486,11 +494,12 @@
            writelong(len);
          case string_typ of
            st_shortstring : current_ppu^.writeentry(ibstringdef);
-           st_longstring : current_ppu^.writeentry(iblongstringdef);
-           st_ansistring : current_ppu^.writeentry(ibansistringdef);
-           st_widestring : current_ppu^.writeentry(ibwidestringdef);
+            st_longstring : current_ppu^.writeentry(iblongstringdef);
+            st_ansistring : current_ppu^.writeentry(ibansistringdef);
+            st_widestring : current_ppu^.writeentry(ibwidestringdef);
          end;
       end;
+
 
 {$ifdef GDB}
     function tstringdef.stabstring : pchar;
@@ -500,45 +509,46 @@
         case string_typ of
            st_shortstring:
              begin
-                    charst := typeglobalnumber('char');
-                    { this is what I found in stabs.texinfo but
-                    gdb 4.12 for go32 doesn't understand that !! }
-                    {$IfDef GDBknowsstrings}
-                    stabstring := strpnew('n'+charst+';'+tostr(len));
-                    {$else}
-                    bytest := typeglobalnumber('byte');
-                    stabstring := strpnew('s'+tostr(len+1)+'length:'+bytest
-                      +',0,8;st:ar'+bytest
-                      +';1;'+tostr(len)+';'+charst+',8,'+tostr(len*8)+';;');
-                    {$EndIf}
-                  end;
+               charst := typeglobalnumber('char');
+               { this is what I found in stabs.texinfo but
+                 gdb 4.12 for go32 doesn't understand that !! }
+             {$IfDef GDBknowsstrings}
+               stabstring := strpnew('n'+charst+';'+tostr(len));
+             {$else}
+               bytest := typeglobalnumber('byte');
+               stabstring := strpnew('s'+tostr(len+1)+'length:'+bytest
+                  +',0,8;st:ar'+bytest
+                  +';1;'+tostr(len)+';'+charst+',8,'+tostr(len*8)+';;');
+             {$EndIf}
+             end;
            st_longstring:
              begin
-                    charst := typeglobalnumber('char');
-                    { this is what I found in stabs.texinfo but
-                    gdb 4.12 for go32 doesn't understand that !! }
-                    {$IfDef GDBknowsstrings}
-                    stabstring := strpnew('n'+charst+';'+tostr(len));
-                    {$else}
-                    bytest := typeglobalnumber('byte');
-                    longst := typeglobalnumber('longint');
-                    stabstring := strpnew('s'+tostr(len+5)+'length:'+longst
-                                  +',0,32;dummy:'+bytest+',32,8;st:ar'+bytest
-                                  +';1;'+tostr(len)+';'+charst+',40,'+tostr(len*8)+';;');
-                    {$EndIf}
-                  end;
+               charst := typeglobalnumber('char');
+               { this is what I found in stabs.texinfo but
+                 gdb 4.12 for go32 doesn't understand that !! }
+             {$IfDef GDBknowsstrings}
+               stabstring := strpnew('n'+charst+';'+tostr(len));
+             {$else}
+               bytest := typeglobalnumber('byte');
+               longst := typeglobalnumber('longint');
+               stabstring := strpnew('s'+tostr(len+5)+'length:'+longst
+                  +',0,32;dummy:'+bytest+',32,8;st:ar'+bytest
+                  +';1;'+tostr(len)+';'+charst+',40,'+tostr(len*8)+';;');
+             {$EndIf}
+             end;
            st_ansistring:
              begin
-                    { an ansi string looks like a pchar easy !! }
-                    stabstring:=strpnew('*'+typeglobalnumber('char'));
-                  end;
+               { an ansi string looks like a pchar easy !! }
+               stabstring:=strpnew('*'+typeglobalnumber('char'));
+             end;
            st_widestring:
              begin
-                    { an ansi string looks like a pchar easy !! }
-                    stabstring:=strpnew('*'+typeglobalnumber('char'));
-                  end;
+               { an ansi string looks like a pchar easy !! }
+               stabstring:=strpnew('*'+typeglobalnumber('char'));
+             end;
       end;
     end;
+
 
     procedure tstringdef.concatstabto(asmlist : paasmoutput);
       begin
@@ -546,13 +556,14 @@
       end;
 {$endif GDB}
 
+
     function tstringdef.needs_inittable : boolean;
       begin
          needs_inittable:=string_typ in [st_ansistring,st_widestring];
       end;
 
-    procedure tstringdef.write_rtti_data;
 
+    procedure tstringdef.write_rtti_data;
       begin
          case string_typ of
             st_ansistring:
@@ -575,13 +586,14 @@
          end;
       end;
 
-    function tstringdef.is_publishable : boolean;
 
+    function tstringdef.is_publishable : boolean;
       begin
          is_publishable:=true;
       end;
 
-{*************************************************************************************************************************
+
+{****************************************************************************
                                  TENUMDEF
 ****************************************************************************}
 
@@ -684,6 +696,7 @@
          current_ppu^.writeentry(ibenumdef);
       end;
 
+
 {$ifdef GDB}
     function tenumdef.stabstring : pchar;
       var st,st2 : pchar;
@@ -718,15 +731,15 @@
       end;
 {$endif GDB}
 
-    procedure tenumdef.write_child_rtti_data;
 
+    procedure tenumdef.write_child_rtti_data;
       begin
          if assigned(basedef) then
            basedef^.get_rtti_label;
       end;
 
-    procedure tenumdef.write_rtti_data;
 
+    procedure tenumdef.write_rtti_data;
       begin
          rttilist^.concat(new(pai_const,init_8bit(tkEnumeration)));
          case savesize of
@@ -746,13 +759,14 @@
          {!!!!!!! Name list }
       end;
 
-    function tenumdef.is_publishable : boolean;
 
+    function tenumdef.is_publishable : boolean;
       begin
          is_publishable:=true;
       end;
 
-{*************************************************************************************************************************
+
+{****************************************************************************
                                  TORDDEF
 ****************************************************************************}
 
@@ -766,6 +780,7 @@
          setsize;
       end;
 
+
     constructor torddef.load;
       begin
          inherited load;
@@ -776,6 +791,7 @@
          rangenr:=0;
          setsize;
       end;
+
 
     procedure torddef.setsize;
       begin
@@ -830,6 +846,7 @@
          rangenr:=0;
       end;
 
+
     procedure torddef.genrangecheck;
       begin
          if rangenr=0 then
@@ -861,6 +878,7 @@
            end;
       end;
 
+
     procedure torddef.write;
       begin
          tdef.write;
@@ -869,6 +887,7 @@
          writelong(high);
          current_ppu^.writeentry(iborddef);
       end;
+
 
 {$ifdef GDB}
     function torddef.stabstring : pchar;
@@ -887,12 +906,11 @@
       end;
 {$endif GDB}
 
-    procedure torddef.write_rtti_data;
 
+    procedure torddef.write_rtti_data;
       const
         trans : array[uchar..bool8bit] of byte =
           (otUByte,otUByte,otUWord,otULong,otSByte,otSWord,otSLong,otUByte);
-
       begin
          case typ of
             bool8bit:
@@ -906,55 +924,57 @@
          rttilist^.concat(new(pai_const,init_32bit(high)));
       end;
 
-    function torddef.is_publishable : boolean;
 
+    function torddef.is_publishable : boolean;
       begin
          is_publishable:=typ in [uchar..bool8bit];
       end;
 
-{*************************************************************************************************************************
+
+{****************************************************************************
                                 TFLOATDEF
 ****************************************************************************}
 
     constructor tfloatdef.init(t : tfloattype);
       begin
-         tdef.init;
+         inherited init;
          deftype:=floatdef;
          typ:=t;
          setsize;
       end;
 
+
     constructor tfloatdef.load;
       begin
-         tdef.load;
+         inherited load;
          deftype:=floatdef;
          typ:=tfloattype(readbyte);
          setsize;
       end;
 
+
     procedure tfloatdef.setsize;
       begin
          case typ of
-            f16bit:
-              savesize:=2;
-            f32bit,s32real:
-              savesize:=4;
-            s64real:
-              savesize:=8;
-            s64bit:
-              savesize:=8;
-            s80real:
-              savesize:=extended_size;
-            else savesize:=0;
+            f16bit : savesize:=2;
+            f32bit,
+           s32real : savesize:=4;
+           s64real : savesize:=8;
+            s64bit : savesize:=8;
+           s80real : savesize:=extended_size;
+         else
+           savesize:=0;
          end;
       end;
 
+
     procedure tfloatdef.write;
       begin
-         tdef.write;
+         inherited write;
          writebyte(byte(typ));
          current_ppu^.writeentry(ibfloatdef);
       end;
+
 
 {$ifdef GDB}
     function tfloatdef.stabstring : pchar;
@@ -984,24 +1004,24 @@
       end;
 {$endif GDB}
 
-    procedure tfloatdef.write_rtti_data;
 
+    procedure tfloatdef.write_rtti_data;
       const
          translate : array[tfloattype] of byte =
            (ftFixed32,ftSingle,ftDouble,ftExtended,ftComp,ftFixed16);
-
       begin
          rttilist^.concat(new(pai_const,init_8bit(tkFloat)));
          rttilist^.concat(new(pai_const,init_8bit(translate[typ])));
       end;
 
-    function tfloatdef.is_publishable : boolean;
 
+    function tfloatdef.is_publishable : boolean;
       begin
          is_publishable:=true;
       end;
 
-{*************************************************************************************************************************
+
+{****************************************************************************
                                 TFILEDEF
 ****************************************************************************}
 
@@ -1014,9 +1034,10 @@
          setsize;
       end;
 
+
     constructor tfiledef.load;
       begin
-         tdef.load;
+         inherited load;
          deftype:=filedef;
          filetype:=tfiletype(readbyte);
          if filetype=ft_typed then
@@ -1026,11 +1047,13 @@
          setsize;
       end;
 
+
     procedure tfiledef.deref;
       begin
          if filetype=ft_typed then
            resolvedef(typed_as);
       end;
+
 
     procedure tfiledef.setsize;
       begin
@@ -1041,19 +1064,19 @@
         end;
       end;
 
+
     procedure tfiledef.write;
       begin
-         tdef.write;
+         inherited write;
          writebyte(byte(filetype));
          if filetype=ft_typed then
            writedefref(typed_as);
          current_ppu^.writeentry(ibfiledef);
       end;
 
+
 {$ifdef GDB}
     function tfiledef.stabstring : pchar;
-      var Handlebitsize,namesize : longint;
-          Handledef :string;
       begin
    {$IfDef GDBknowsfiles}
       case filetyp of
@@ -1061,7 +1084,7 @@
       ft_untyped : stabstring := strpnew('d'+voiddef^.numberstring{+';'});
          ft_text : stabstring := strpnew('d'+cchardef^.numberstring{+';'});
       end;
-   {$Else }
+   {$Else}
       {based on
         FileRec = Packed Record
           Handle,
@@ -1086,6 +1109,7 @@
    {$EndIf}
       end;
 
+
     procedure tfiledef.concatstabto(asmlist : paasmoutput);
       begin
       { most file defs are unnamed !!! }
@@ -1097,7 +1121,8 @@
       end;
 {$endif GDB}
 
-{*************************************************************************************************************************
+
+{****************************************************************************
                                TPOINTERDEF
 ****************************************************************************}
 
@@ -1109,32 +1134,37 @@
          savesize:=Sizeof(pointer);
       end;
 
+
     constructor tpointerdef.load;
       begin
-         tdef.load;
+         inherited load;
          deftype:=pointerdef;
          { the real address in memory is calculated later (deref) }
          definition:=readdefref;
          savesize:=Sizeof(pointer);
       end;
 
+
     procedure tpointerdef.deref;
       begin
          resolvedef(definition);
       end;
 
+
     procedure tpointerdef.write;
       begin
-         tdef.write;
+         inherited write;
          writedefref(definition);
          current_ppu^.writeentry(ibpointerdef);
       end;
+
 
 {$ifdef GDB}
     function tpointerdef.stabstring : pchar;
       begin
         stabstring := strpnew('*'+definition^.numberstring);
       end;
+
 
     procedure tpointerdef.concatstabto(asmlist : paasmoutput);
       var st,nb : string;
@@ -1179,7 +1209,8 @@
       end;
 {$endif GDB}
 
-{*************************************************************************************************************************
+
+{****************************************************************************
                               TCLASSREFDEF
 ****************************************************************************}
 
@@ -1191,18 +1222,21 @@
          savesize:=Sizeof(pointer);
       end;
 
+
     constructor tclassrefdef.load;
       begin
          inherited load;
          deftype:=classrefdef;
       end;
 
+
     procedure tclassrefdef.write;
       begin
-         tdef.write;
+         inherited write;
          writedefref(definition);
          current_ppu^.writeentry(ibclassrefdef);
       end;
+
 
 {$ifdef GDB}
     function tclassrefdef.stabstring : pchar;
@@ -1210,12 +1244,14 @@
          stabstring:=strpnew('');
       end;
 
+
     procedure tclassrefdef.concatstabto(asmlist : paasmoutput);
       begin
       end;
 {$endif GDB}
 
-{***********************************************************************************
+
+{***************************************************************************
                                    TSETDEF
 ***************************************************************************}
 
@@ -1247,9 +1283,10 @@
           Message(sym_e_ill_type_decl_set);
       end;
 
+
     constructor tsetdef.load;
       begin
-         tdef.load;
+         inherited load;
          deftype:=setdef;
          setof:=readdefref;
          settype:=tsettype(readbyte);
@@ -1260,9 +1297,10 @@
          end;
       end;
 
+
     procedure tsetdef.write;
       begin
-         tdef.write;
+         inherited write;
          writedefref(setof);
          writebyte(byte(settype));
          if settype=varset then
@@ -1270,14 +1308,15 @@
          current_ppu^.writeentry(ibsetdef);
       end;
 
+
 {$ifdef GDB}
     function tsetdef.stabstring : pchar;
       begin
          stabstring := strpnew('S'+setof^.numberstring);
       end;
 
-    procedure tsetdef.concatstabto(asmlist : paasmoutput);
 
+    procedure tsetdef.concatstabto(asmlist : paasmoutput);
       begin
       if ( not assigned(sym) or sym^.isusedinstab or use_dbx) and
           not is_def_stab_written then
@@ -1289,81 +1328,81 @@
       end;
 {$endif GDB}
 
+
     procedure tsetdef.deref;
       begin
          resolvedef(setof);
       end;
 
-    procedure tsetdef.write_rtti_data;
 
+    procedure tsetdef.write_rtti_data;
       begin
          rttilist^.concat(new(pai_const,init_8bit(tkSet)));
          rttilist^.concat(new(pai_const,init_8bit(otULong)));
          rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(setof^.get_rtti_label)))));
       end;
 
-    procedure tsetdef.write_child_rtti_data;
 
+    procedure tsetdef.write_child_rtti_data;
       begin
          setof^.get_rtti_label;
       end;
 
-    function tsetdef.is_publishable : boolean;
 
+    function tsetdef.is_publishable : boolean;
       begin
          is_publishable:=settype=smallset;
       end;
 
-{***********************************************************************************
+
+{***************************************************************************
                                  TFORMALDEF
 ***************************************************************************}
 
     constructor tformaldef.init;
-
       begin
          inherited init;
          deftype:=formaldef;
          savesize:=Sizeof(pointer);
       end;
 
-    constructor tformaldef.load;
 
+    constructor tformaldef.load;
       begin
-         tdef.load;
+         inherited load;
          deftype:=formaldef;
          savesize:=Sizeof(pointer);
       end;
 
-    procedure tformaldef.write;
 
+    procedure tformaldef.write;
       begin
-         tdef.write;
+         inherited write;
          current_ppu^.writeentry(ibformaldef);
       end;
 
+
 {$ifdef GDB}
     function tformaldef.stabstring : pchar;
-
       begin
       stabstring := strpnew('formal'+numberstring+';');
       end;
 
 
     procedure tformaldef.concatstabto(asmlist : paasmoutput);
-
       begin
       { formaldef can't be stab'ed !}
       end;
 {$endif GDB}
 
-{***********************************************************************************
-               TARRAYDEF
+
+{***************************************************************************
+                           TARRAYDEF
 ***************************************************************************}
 
     constructor tarraydef.init(l,h : longint;rd : pdef);
-
       begin
-         tdef.init;
+         inherited init;
          deftype:=arraydef;
          lowrange:=l;
          highrange:=h;
@@ -1372,10 +1411,10 @@
          definition:=nil;
       end;
 
-    constructor tarraydef.load;
 
+    constructor tarraydef.load;
       begin
-         tdef.load;
+         inherited load;
          deftype:=arraydef;
          { the addresses are calculated later }
          definition:=readdefref;
@@ -1385,8 +1424,8 @@
          rangenr:=0;
       end;
 
-    procedure tarraydef.genrangecheck;
 
+    procedure tarraydef.genrangecheck;
       begin
          if rangenr=0 then
            begin
@@ -1398,23 +1437,24 @@
            end;
       end;
 
-    procedure tarraydef.deref;
 
+    procedure tarraydef.deref;
       begin
          resolvedef(definition);
          resolvedef(rangedef);
       end;
 
-    procedure tarraydef.write;
 
+    procedure tarraydef.write;
       begin
-         tdef.write;
+         inherited write;
          writedefref(definition);
          writedefref(rangedef);
          writelong(lowrange);
          writelong(highrange);
          current_ppu^.writeentry(ibarraydef);
       end;
+
 
 {$ifdef GDB}
     function tarraydef.stabstring : pchar;
@@ -1423,8 +1463,8 @@
                     +tostr(lowrange)+';'+tostr(highrange)+';'+definition^.numberstring);
       end;
 
-    procedure tarraydef.concatstabto(asmlist : paasmoutput);
 
+    procedure tarraydef.concatstabto(asmlist : paasmoutput);
       begin
       if (not assigned(sym) or sym^.isusedinstab or use_dbx)
         and not is_def_stab_written then
@@ -1436,32 +1476,32 @@
       end;
 {$endif GDB}
 
-    function tarraydef.elesize : longint;
 
+    function tarraydef.elesize : longint;
       begin
          elesize:=definition^.size;
       end;
 
-    function tarraydef.size : longint;
 
+    function tarraydef.size : longint;
       begin
          size:=(highrange-lowrange+1)*elesize;
       end;
 
-    function tarraydef.needs_inittable : boolean;
 
+    function tarraydef.needs_inittable : boolean;
       begin
          needs_inittable:=definition^.needs_inittable;
       end;
 
-    procedure tarraydef.write_child_rtti_table;
 
+    procedure tarraydef.write_child_rtti_table;
       begin
          definition^.get_rtti_label;
       end;
 
-    procedure tarraydef.write_rtti_data;
 
+    procedure tarraydef.write_rtti_data;
       begin
          rttilist^.concat(new(pai_const,init_8bit(13)));
          writename;
@@ -1473,25 +1513,26 @@
          rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(definition^.get_rtti_label)))));
       end;
 
-{***********************************************************************************
+
+{***************************************************************************
                                   TRECDEF
 ***************************************************************************}
 
     constructor trecdef.init(p : psymtable);
-
       begin
-         tdef.init;
+         inherited init;
          deftype:=recorddef;
          symtable:=p;
          savesize:=symtable^.datasize;
          symtable^.defowner := @self;
       end;
 
+
     constructor trecdef.load;
       var
          oldread_member : boolean;
       begin
-         tdef.load;
+         inherited load;
          deftype:=recorddef;
          savesize:=readlong;
          oldread_member:=read_member;
@@ -1501,28 +1542,26 @@
          symtable^.defowner := @self;
       end;
 
-    destructor trecdef.done;
 
+    destructor trecdef.done;
       begin
          if assigned(symtable) then dispose(symtable,done);
          inherited done;
       end;
 
+
     var
        binittable : boolean;
-
     procedure check_rec_inittable(s : psym);
-
       begin
          if (s^.typ=varsym) and (pvarsym(s)^.definition^.needs_inittable) then
            binittable:=true;
       end;
 
-    function trecdef.needs_inittable : boolean;
 
+    function trecdef.needs_inittable : boolean;
       var
          oldb : boolean;
-
       begin
          { there are recursive calls to needs_rtti possible, }
          { so we have to change to old value how else should }
@@ -1534,6 +1573,7 @@
          needs_inittable:=binittable;
          binittable:=oldb;
       end;
+
 
     procedure trecdef.deref;
       var
@@ -1559,18 +1599,20 @@
          aktrecordsymtable:=oldrecsyms;
       end;
 
+
     procedure trecdef.write;
       var
          oldread_member : boolean;
       begin
          oldread_member:=read_member;
          read_member:=true;
-         tdef.write;
+         inherited write;
          writelong(savesize);
          current_ppu^.writeentry(ibrecorddef);
          self.symtable^.writeasstruct;
          read_member:=oldread_member;
       end;
+
 
 {$ifdef GDB}
     Const StabRecString : pchar = Nil;
@@ -1604,6 +1646,7 @@
        end;
     end;
 
+
     function trecdef.stabstring : pchar;
       Var oldrec : pchar;
           oldsize : longint;
@@ -1628,8 +1671,8 @@
         stabrecsize:=oldsize;
       end;
 
-    procedure trecdef.concatstabto(asmlist : paasmoutput);
 
+    procedure trecdef.concatstabto(asmlist : paasmoutput);
       begin
         if (not assigned(sym) or sym^.isusedinstab or use_dbx) and
            (not is_def_stab_written) then
@@ -1637,24 +1680,23 @@
       end;
 
 {$endif GDB}
+
     var
        count : longint;
-
     procedure count_inittable_fields(sym : psym);{$ifndef fpc}far;{$endif}
-
       begin
          if pvarsym(sym)^.definition^.needs_inittable then
            inc(count);
       end;
 
-    procedure count_fields(sym : psym);{$ifndef fpc}far;{$endif}
 
+    procedure count_fields(sym : psym);{$ifndef fpc}far;{$endif}
       begin
          inc(count);
       end;
 
-    procedure write_field_inittable(sym : psym);{$ifndef fpc}far;{$endif}
 
+    procedure write_field_inittable(sym : psym);{$ifndef fpc}far;{$endif}
       begin
          if pvarsym(sym)^.definition^.needs_inittable then
            begin
@@ -1663,41 +1705,41 @@
            end;
       end;
 
-    procedure write_field_rtti(sym : psym);{$ifndef fpc}far;{$endif}
 
+    procedure write_field_rtti(sym : psym);{$ifndef fpc}far;{$endif}
       begin
          rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(pvarsym(sym)^.definition^.get_rtti_label)))));
          rttilist^.concat(new(pai_const,init_32bit(pvarsym(sym)^.address)));
       end;
 
-    procedure generate_child_inittable(sym : psym);{$ifndef fpc}far;{$endif}
 
+    procedure generate_child_inittable(sym : psym);{$ifndef fpc}far;{$endif}
       begin
          if (sym^.typ=varsym) and pvarsym(sym)^.definition^.needs_inittable then
          { force inittable generation }
            pvarsym(sym)^.definition^.get_inittable_label;
       end;
 
-    procedure generate_child_rtti(sym : psym);{$ifndef fpc}far;{$endif}
 
+    procedure generate_child_rtti(sym : psym);{$ifndef fpc}far;{$endif}
       begin
          pvarsym(sym)^.definition^.get_rtti_label;
       end;
 
-    procedure trecdef.write_child_rtti_data;
 
+    procedure trecdef.write_child_rtti_data;
       begin
          symtable^.foreach(generate_child_rtti);
       end;
 
-    procedure trecdef.write_child_init_data;
 
+    procedure trecdef.write_child_init_data;
       begin
          symtable^.foreach(generate_child_inittable);
       end;
 
-    procedure trecdef.write_rtti_data;
 
+    procedure trecdef.write_rtti_data;
       begin
          rttilist^.concat(new(pai_const,init_8bit(14)));
          writename;
@@ -1708,8 +1750,8 @@
          symtable^.foreach(write_field_rtti);
       end;
 
-    procedure trecdef.write_init_data;
 
+    procedure trecdef.write_init_data;
       begin
          rttilist^.concat(new(pai_const,init_8bit(14)));
          writename;
@@ -1720,8 +1762,9 @@
          symtable^.foreach(write_field_inittable);
       end;
 
-{***********************************************************************************
-               TABSTRACTPROCDEF
+
+{***************************************************************************
+                       TABSTRACTPROCDEF
 ***************************************************************************}
 
     constructor tabstractprocdef.init;
@@ -1730,18 +1773,18 @@
          inherited init;
          para1:=nil;
 {$ifdef StoreFPULevel}
-        fpu_used:=255;
+         fpu_used:=255;
 {$endif StoreFPULevel}
          options:=0;
          retdef:=voiddef;
          savesize:=Sizeof(pointer);
       end;
 
-    destructor tabstractprocdef.done;
 
+
+    destructor tabstractprocdef.done;
       var
          hp : pdefcoll;
-
       begin
          hp:=para1;
          while assigned(hp) do
@@ -1753,11 +1796,10 @@
          inherited done;
       end;
 
-    procedure tabstractprocdef.concatdef(p : pdef;vsp : tvarspez);
 
+    procedure tabstractprocdef.concatdef(p : pdef;vsp : tvarspez);
       var
          hp : pdefcoll;
-
       begin
          new(hp);
          hp^.paratyp:=vsp;
@@ -1765,6 +1807,7 @@
          hp^.next:=para1;
          para1:=hp;
       end;
+
 
     procedure tabstractprocdef.deref;
       var
@@ -1780,12 +1823,13 @@
            end;
       end;
 
+
     constructor tabstractprocdef.load;
       var
          last,hp : pdefcoll;
          count,i : word;
       begin
-         tdef.load;
+         inherited load;
          retdef:=readdefref;
 {$ifdef StoreFPULevel}
          fpu_used:=readbyte;
@@ -1807,6 +1851,7 @@
               last:=hp;
            end;
       end;
+
 
     function tabstractprocdef.para_size : longint;
       var
@@ -1833,14 +1878,13 @@
          para_size:=l;
       end;
 
-    procedure tabstractprocdef.write;
 
+    procedure tabstractprocdef.write;
       var
          count : word;
          hp : pdefcoll;
-
       begin
-         tdef.write;
+         inherited write;
          writedefref(retdef);
 {$ifdef StoreFPULevel}
          writebyte(fpu_used);
@@ -1862,6 +1906,7 @@
               hp:=hp^.next;
            end;
       end;
+
 
     function tabstractprocdef.demangled_paras : string;
       var s : string;
@@ -1890,14 +1935,15 @@
         demangled_paras:=s;
       end;
 
+
 {$ifdef GDB}
     function tabstractprocdef.stabstring : pchar;
       begin
         stabstring := strpnew('abstractproc'+numberstring+';');
       end;
 
-    procedure tabstractprocdef.concatstabto(asmlist : paasmoutput);
 
+    procedure tabstractprocdef.concatstabto(asmlist : paasmoutput);
       begin
          if (not assigned(sym) or sym^.isusedinstab or use_dbx)
             and not is_def_stab_written then
@@ -1908,12 +1954,12 @@
       end;
 {$endif GDB}
 
-{***********************************************************************************
+
+{***************************************************************************
                                   TPROCDEF
 ***************************************************************************}
 
     constructor tprocdef.init;
-
       begin
          inherited init;
          deftype:=procdef;
@@ -1952,11 +1998,11 @@
          code:=nil;
       end;
 
+
     constructor tprocdef.load;
       var
          s : string;
       begin
-         { deftype:=procdef; this is at the wrong place !! }
          inherited load;
          deftype:=procdef;
 {$ifdef i386}
@@ -1972,6 +2018,8 @@
 
          s:=readstring;
          setstring(_mangledname,s);
+
+
 
          extnumber:=readlong;
          nextoverloaded:=pprocdef(readdefref);
@@ -1991,9 +2039,8 @@
 {$endif UseBrowser}
       end;
 
+
 {$ifdef UseBrowser}
-
-
     procedure tprocdef.load_references;
       var
         pos : tfileposinfo;
@@ -2044,8 +2091,8 @@
               localst^.writebrowserlog;
           end;
       end;
-
 {$endif UseBrowser}
+
 
     destructor tprocdef.done;
       begin
@@ -2065,6 +2112,7 @@
            strdispose(_mangledname);
          inherited done;
       end;
+
 
     procedure tprocdef.write;
       begin
@@ -2105,6 +2153,7 @@
          current_ppu^.writeentry(ibprocdef);
       end;
 
+
 {$ifdef GDB}
     procedure addparaname(p : psym);
       var vs : char;
@@ -2113,6 +2162,7 @@
         else vs := '0';
       strpcopy(strend(StabRecString),p^.name+':'+pvarsym(p)^.definition^.numberstring+','+vs+';');
       end;
+
 
     function tprocdef.stabstring : pchar;
       var param : pdefcoll;
@@ -2161,10 +2211,12 @@
       stabrecstring := oldrec;
       end;
 
+
     procedure tprocdef.concatstabto(asmlist : paasmoutput);
       begin
       end;
 {$endif GDB}
+
 
     procedure tprocdef.deref;
       begin
@@ -2172,6 +2224,7 @@
          resolvedef(pdef(nextoverloaded));
          resolvedef(pdef(_class));
       end;
+
 
     function tprocdef.mangledname : string;
 {$ifdef tp}
@@ -2194,6 +2247,7 @@
 {$endif}
           mangledname:=strpas(_mangledname);
       end;
+
 
 {$IfDef GDB}
     function tprocdef.cplusplusmangledname : string;
@@ -2238,7 +2292,8 @@
 {$endif UseBrowser}
       end;
 
-{***********************************************************************************
+
+{***************************************************************************
                                  TPROCVARDEF
 ***************************************************************************}
 
@@ -2248,11 +2303,13 @@
          deftype:=procvardef;
       end;
 
+
     constructor tprocvardef.load;
       begin
          inherited load;
          deftype:=procvardef;
       end;
+
 
     procedure tprocvardef.write;
       begin
@@ -2268,14 +2325,15 @@
          current_ppu^.writeentry(ibprocvardef);
       end;
 
-    function tprocvardef.size : longint;
 
+    function tprocvardef.size : longint;
       begin
          if (options and pomethodpointer)=0 then
            size:=sizeof(pointer)
          else
            size:=2*sizeof(pointer);
       end;
+
 
 {$ifdef GDB}
     function tprocvardef.stabstring : pchar;
@@ -2312,6 +2370,7 @@
         freemem(nss,1024);
       end;
 
+
     procedure tprocvardef.concatstabto(asmlist : paasmoutput);
       begin
          if ( not assigned(sym) or sym^.isusedinstab or use_dbx)
@@ -2321,23 +2380,24 @@
       end;
 {$endif GDB}
 
-    procedure tprocvardef.write_rtti_data;
 
+    procedure tprocvardef.write_rtti_data;
       begin
          {!!!!!!!}
       end;
 
-    procedure tprocvardef.write_child_rtti_data;
 
+    procedure tprocvardef.write_child_rtti_data;
       begin
          {!!!!!!!!}
       end;
 
-    function tprocvardef.is_publishable : boolean;
 
+    function tprocvardef.is_publishable : boolean;
       begin
          is_publishable:=(options and pomethodpointer)<>0;
       end;
+
 
 {***************************************************************************
                               TOBJECTDEF
@@ -2350,7 +2410,6 @@
 {$endif GDB}
 
    constructor tobjectdef.init(const n : string;c : pobjectdef);
-
      begin
         tdef.init;
         deftype:=objectdef;
@@ -2370,6 +2429,7 @@
         savesize := publicsyms^.datasize;
         publicsyms^.defowner:=@self;
      end;
+
 
     constructor tobjectdef.load;
       var
@@ -2399,8 +2459,8 @@
            class_tobject:=@self;
       end;
 
-   procedure tobjectdef.check_forwards;
 
+   procedure tobjectdef.check_forwards;
      begin
         publicsyms^.check_forwards;
         if (options and oo_isforward)<>0 then
@@ -2411,8 +2471,8 @@
           end;
      end;
 
-   destructor tobjectdef.done;
 
+   destructor tobjectdef.done;
      begin
 {!!!!
         if assigned(privatesyms) then
@@ -2427,12 +2487,11 @@
         tdef.done;
      end;
 
+
    { true, if self inherits from d (or if they are equal) }
    function tobjectdef.isrelated(d : pobjectdef) : boolean;
-
      var
         hp : pobjectdef;
-
      begin
         hp:=@self;
         while assigned(hp) do
@@ -2447,8 +2506,8 @@
         isrelated:=false;
      end;
 
-   function tobjectdef.size : longint;
 
+   function tobjectdef.size : longint;
      begin
         if (options and oois_class)<>0 then
           size:=sizeof(pointer)
@@ -2457,12 +2516,11 @@
           size:=publicsyms^.datasize;
      end;
 
-    procedure tobjectdef.deref;
 
+    procedure tobjectdef.deref;
       var
          hp : pdef;
          oldrecsyms : psymtable;
-
       begin
          resolvedef(pdef(childof));
          oldrecsyms:=aktrecordsymtable;
@@ -2486,14 +2544,13 @@
          aktrecordsymtable:=oldrecsyms;
       end;
 
-    function tobjectdef.vmt_mangledname : string;
 
+    function tobjectdef.vmt_mangledname : string;
     {DM: I get a nil pointer on the owner name. I don't know if this
      mayhappen, and I have therefore fixed the problem by doing nil pointer
      checks.}
-
-    var s1,s2:string;
-
+    var
+      s1,s2:string;
     begin
         if owner^.name=nil then
             s1:=''
@@ -2506,11 +2563,10 @@
         vmt_mangledname:='VMT_'+s1+'$_'+s2;
     end;
 
+
     function tobjectdef.rtti_name : string;
-
-      var
-         s1,s2:string;
-
+    var
+      s1,s2:string;
     begin
        if owner^.name=nil then
          s1:=''
@@ -2523,10 +2579,12 @@
        rtti_name:='RTTI_'+s1+'$_'+s2;
     end;
 
+
     function tobjectdef.isclass : boolean;
       begin
          isclass:=(options and oois_class)<>0;
       end;
+
 
     procedure tobjectdef.write;
       var
@@ -2547,6 +2605,7 @@
          read_member:=oldread_member;
       end;
 
+
 {$ifdef GDB}
     procedure addprocname(p :psym);
     var virtualind,argnames : string;
@@ -2558,7 +2617,7 @@
         sp : char;
 
     begin
-    If p^.typ = procsym then
+      If p^.typ = procsym then
        begin
                 pd := pprocsym(p)^.definition;
                 { this will be used for full implementation of object stabs
@@ -2627,6 +2686,7 @@
        end;
     end;
 
+
     function tobjectdef.stabstring : pchar;
       var anc : pobjectdef;
           oldrec : pchar;
@@ -2677,13 +2737,13 @@
       end;
 {$endif GDB}
 
-    procedure tobjectdef.write_child_init_data;
 
+    procedure tobjectdef.write_child_init_data;
       begin
       end;
 
-    procedure tobjectdef.write_init_data;
 
+    procedure tobjectdef.write_init_data;
       begin
          if isclass then
            rttilist^.concat(new(pai_const,init_8bit(tkclass)))
@@ -2701,11 +2761,10 @@
          publicsyms^.foreach(write_field_inittable);
       end;
 
-    function tobjectdef.needs_inittable : boolean;
 
+    function tobjectdef.needs_inittable : boolean;
       var
          oldb : boolean;
-
       begin
          { there are recursive calls to needs_inittable possible, }
          { so we have to change to old value how else should      }
@@ -2718,24 +2777,21 @@
          binittable:=oldb;
       end;
 
-    procedure count_published_properties(sym : psym);{$ifndef fpc}far;{$endif}
 
+    procedure count_published_properties(sym : psym);{$ifndef fpc}far;{$endif}
       begin
          if (sym^.typ=propertysym) and ((sym^.properties and sp_published)<>0) then
            inc(count);
       end;
 
-    procedure write_property_info(sym : psym);{$ifndef fpc}far;{$endif}
 
+    procedure write_property_info(sym : psym);{$ifndef fpc}far;{$endif}
       var
          proctypesinfo : byte;
 
-
       procedure writeproc(sym : psym;def : pdef;shiftvalue : byte);
-
         var
            typvalue : byte;
-
         begin
            if not(assigned(sym)) then
              begin
@@ -2790,21 +2846,21 @@
            end;
       end;
 
-    procedure generate_published_child_rtti(sym : psym);{$ifndef fpc}far;{$endif}
 
+    procedure generate_published_child_rtti(sym : psym);{$ifndef fpc}far;{$endif}
       begin
          if (sym^.typ=propertysym) and ((sym^.properties and sp_published)<>0) then
            ppropertysym(sym)^.proptype^.get_rtti_label;
       end;
 
-    procedure tobjectdef.write_child_rtti_data;
 
+    procedure tobjectdef.write_child_rtti_data;
       begin
          publicsyms^.foreach(generate_published_child_rtti);
       end;
 
-    procedure tobjectdef.generate_rtti;
 
+    procedure tobjectdef.generate_rtti;
       begin
          has_rtti:=true;
          getlabel(rtti_label);
@@ -2814,11 +2870,10 @@
          write_rtti_data;
       end;
 
-    function tobjectdef.next_free_name_index : longint;
 
+    function tobjectdef.next_free_name_index : longint;
       var
          i : longint;
-
       begin
          if assigned(childof) and ((childof^.options and oo_can_have_published)<>0) then
            i:=childof^.next_free_name_index
@@ -2829,8 +2884,8 @@
          next_free_name_index:=i+count;
       end;
 
-    procedure tobjectdef.write_rtti_data;
 
+    procedure tobjectdef.write_rtti_data;
       begin
          if isclass then
            rttilist^.concat(new(pai_const,init_8bit(tkclass)))
@@ -2874,11 +2929,12 @@
          publicsyms^.foreach(write_property_info);
       end;
 
-    function tobjectdef.is_publishable : boolean;
 
+    function tobjectdef.is_publishable : boolean;
       begin
          is_publishable:=isclass;
       end;
+
 
 {****************************************************************************
                                   TERRORDEF
@@ -2886,9 +2942,10 @@
 
    constructor terrordef.init;
      begin
-        tdef.init;
+        inherited init;
         deftype:=errordef;
      end;
+
 
 {$ifdef GDB}
     function terrordef.stabstring : pchar;
@@ -2899,7 +2956,10 @@
 
 {
   $Log$
-  Revision 1.39  1998-09-08 10:23:44  pierre
+  Revision 1.40  1998-09-09 15:34:00  peter
+    * removed warnings
+
+  Revision 1.39  1998/09/08 10:23:44  pierre
     * name field of filedef corrected
 
   Revision 1.38  1998/09/07 23:10:23  florian
