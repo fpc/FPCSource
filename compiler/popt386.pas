@@ -1219,7 +1219,7 @@ Begin
                         While Assigned(hp1) And
                               (Pai(hp1)^.typ In [ait_instruction]+SkipInstr) And
                                Not((Pai(hp1)^.typ = ait_instruction) And
-                                   ((Pai386(hp1)^._operator = A_PUSH) or
+                                   ((Pai386(hp1)^._operator in [A_CALL,A_PUSH]) or
                                     ((Pai386(hp1)^._operator = A_MOV) And
                                      (Pai386(hp1)^.op2t = top_ref) And
                                      (TReference(Pai386(hp1)^.op2^).base = R_ESP)))) do
@@ -1382,7 +1382,10 @@ End.
 
 {
  $Log$
- Revision 1.14  1998-09-20 17:11:51  jonas
+ Revision 1.15  1998-09-30 12:18:29  peter
+   * fixed subl $2,esp;psuhw bug
+
+ Revision 1.14  1998/09/20 17:11:51  jonas
    * released REGALLOC
 
  Revision 1.13  1998/09/16 18:00:00  jonas
