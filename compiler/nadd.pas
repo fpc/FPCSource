@@ -481,65 +481,69 @@ implementation
                { the / operator is handled later }
                (nodetype<>slashn) then
                begin
-                 { convert constants to u32bit }
-{$ifndef cardinalmulfix}
-                 if (porddef(ld)^.typ<>u32bit) then
-                  begin
-                    { s32bit will be used for when the other is also s32bit }
+                 if is_signed(ld) and
+                    { then rd = u32bit }
+                    { convert positive constants to u32bit }
+                    not(is_constintnode(left) and
+                        (tordconstnode(left).value >= 0)) and
+                    { range/overflow checking on mixed signed/cardinal expressions }
+                    { is only possible if you convert everything to 64bit (JM)     }
+                    ((aktlocalswitches * [cs_check_overflow,cs_check_range] <> []) and
+                     (nodetype in [addn,subn,muln])) then
+                   begin
+                     { perform the operation in 64bit }
+                     CGMessage(type_w_mixed_signed_unsigned);
+                     left := gentypeconvnode(left,cs64bitdef);
+                     firstpass(left);
+                     right := gentypeconvnode(right,cs64bitdef);
+                     firstpass(right);
+                   end
+                 else
+                   begin
+                     if is_signed(ld) and
+                        not(is_constintnode(left) and
+                            (tordconstnode(left).value >= 0)) and
+                        (cs_check_range in aktlocalswitches) then
+                       CGMessage(type_w_mixed_signed_unsigned2);
+                     left := gentypeconvnode(left,u32bitdef);
+                     firstpass(left);
 
-  { the following line doesn't make any sense: it's the same as        }
-  {  if ((porddef(rd)^.typ=u32bit) or (porddef(ld)^.typ=u32bit)) and   }
-  {      (porddef(ld)^.typ<>u32bit) and (porddef(rd)^.typ=s32bit) then }
-  { which can be simplified to                                         }
-  {  if ((porddef(rd)^.typ=u32bit) and (porddef(rd)^.typ=s32bit) then  }
-  { which can never be true (JM)                                       }
-                    if (porddef(rd)^.typ=s32bit) and (lt<>ordconstn) then
-                     left:=gentypeconvnode(left,s32bitdef)
-                    else
-                     left:=gentypeconvnode(left,u32bitdef);
-                    firstpass(left);
-                  end;
-                 if (porddef(rd)^.typ<>u32bit) then
-                  begin
-                    { s32bit will be used for when the other is also s32bit }
-                    if (porddef(ld)^.typ=s32bit) and (rt<>ordconstn) then
-                     right:=gentypeconvnode(right,s32bitdef)
-                    else
-                     right:=gentypeconvnode(right,u32bitdef);
-                    firstpass(right);
-                  end;
-{$else cardinalmulfix}
-                 { only do a conversion if the nodes have different signs }
-                 if (porddef(rd)^.typ=u32bit) xor (porddef(ld)^.typ=u32bit) then
-                   if (porddef(rd)^.typ=u32bit) then
-                     begin
-                     { can we make them both unsigned? }
-                       if (porddef(ld)^.typ in [u8bit,u16bit]) or
-                          (is_constintnode(left) and
-                           (nodetype <> subn) and
-                           (left.value > 0)) then
-                         left:=gentypeconvnode(left,u32bitdef)
-                       else
-                         left:=gentypeconvnode(left,s32bitdef);
-                       firstpass(left);
-                     end
-                   else {if (porddef(ld)^.typ=u32bit) then}
-                     begin
-                     { can we make them both unsigned? }
-                       if (porddef(rd)^.typ in [u8bit,u16bit]) or
-                          (is_constintnode(right) and
-                           (right.value > 0)) then
-                         right:=gentypeconvnode(right,u32bitdef)
-                       else
-                         right:=gentypeconvnode(right,s32bitdef);
-                       firstpass(right);
-                     end;
-{$endif cardinalmulfix}
-                 calcregisters(self,1,0,0);
+                     if is_signed(rd) and
+                        { then ld = u32bit }
+                        { convert positive constants to u32bit }
+                        not(is_constintnode(right) and
+                            (tordconstnode(right).value >= 0)) and
+                        ((aktlocalswitches * [cs_check_overflow,cs_check_range] <> []) and
+                         (nodetype in [addn,subn,muln])) then
+                       begin
+                         { perform the operation in 64bit }
+                         CGMessage(type_w_mixed_signed_unsigned);
+                         left := gentypeconvnode(left,cs64bitdef);
+                         firstpass(left);
+                         right := gentypeconvnode(right,cs64bitdef);
+                         firstpass(right);
+                       end
+                     else
+                       begin
+                         if is_signed(rd) and
+                            not(is_constintnode(right) and
+                                (tordconstnode(right).value >= 0)) and
+                            (cs_check_range in aktlocalswitches) then
+                           CGMessage(type_w_mixed_signed_unsigned2);
+                         right := gentypeconvnode(right,u32bitdef);
+                         firstpass(right);
+                       end;
+                   end;
+                 { did we convert things to 64bit? }
+                 if porddef(left.resulttype)^.typ = s64bit then
+                   calcregisters(self,2,0,0)
+                 else
+                   begin
+                     calcregisters(self,1,0,0);
                  { for unsigned mul we need an extra register }
-{                 registers32:=left.registers32+right.registers32; }
-                 if nodetype=muln then
-                  inc(registers32);
+                     if nodetype=muln then
+                       inc(registers32);
+                   end;
                  convdone:=true;
                end;
            end
@@ -1198,37 +1202,9 @@ implementation
                     resulttype:=left.resulttype;
                  end;
               end;
-{$ifdef cardinalmulfix}
-            muln:
-  { if we multiply an unsigned with a signed number, the result is signed  }
-  { in the other cases, the result remains signed or unsigned depending on }
-  { the multiplication factors (JM)                                        }
-              if (left.resulttype^.deftype = orddef) and
-                 (right.resulttype^.deftype = orddef) and
-                 is_signed(right.resulttype) then
-                resulttype := right.resulttype
-              else resulttype := left.resulttype;
-(*
-            subn:
- { if we substract a u32bit from a positive constant, the result becomes }
- { s32bit as well (JM)                                                   }
-              begin
-                if (right.resulttype^.deftype = orddef) and
-                   (left.resulttype^.deftype = orddef) and
-                   (porddef(right.resulttype)^.typ = u32bit) and
-                   is_constintnode(left) and
-{                   (porddef(left.resulttype)^.typ <> u32bit) and}
-                   (left.value > 0) then
-                  begin
-                    left := gentypeconvnode(left,u32bitdef);
-                    firstpass(left);
-                  end;
-                resulttype:=left.resulttype;
-              end;
-*)
-{$endif cardinalmulfix}
             else
-              resulttype:=left.resulttype;
+              if not assigned(resulttype) then
+                resulttype:=left.resulttype;
          end;
       end;
 
@@ -1237,7 +1213,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2000-11-29 00:30:31  florian
+  Revision 1.19  2000-12-16 15:55:32  jonas
+    + warning when there is a chance to get a range check error because of
+      automatic type conversion to u32bit
+    * arithmetic operations with a cardinal and a signed operand are carried
+      out in 64bit when range checking is on ("merged" from fixes branch)
+
+  Revision 1.18  2000/11/29 00:30:31  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
