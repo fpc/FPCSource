@@ -28,6 +28,13 @@ interface
   {$define GDB_SYMTAB_HAS_MACROS}
 {$endif def GDB_V602}
 
+{ 6.3.x }
+{$ifdef GDB_V603}
+  {$define GDB_V6}
+  {$define GDB_HAS_SYSROOT}
+  {$define GDB_SYMTAB_HAS_MACROS}
+{$endif def GDB_V603}
+
 { GDB has a simulator for powerpc CPU
   it is integrated into GDB by default }
 {$ifdef powerpc}
@@ -1016,7 +1023,7 @@ var
 { external variables }
   error_return : jmp_buf;cvar;
   quit_return  : jmp_buf;cvar;
-  {$ifdef GDB_V602}
+  {$ifdef GDB_V6}
   deprecated_create_breakpoint_hook : pointer;cvar;external;
   {$else}
   create_breakpoint_hook : pointer;cvar;external;
@@ -1983,7 +1990,7 @@ procedure tgdbinterface.gdb__init;
 begin
   gdboutputbuf.reset;
   gdberrorbuf.reset;
-  {$ifdef GDB_V602}
+  {$ifdef GDB_V6}
   deprecated_create_breakpoint_hook:=@CreateBreakPointHook;
   {$else}
   create_breakpoint_hook:=@CreateBreakPointHook;
@@ -2001,7 +2008,7 @@ begin
       current_target.to_kill;
       current_target.to_close(1);
     end;
-  {$ifdef GDB_V602}
+  {$ifdef GDB_V6}
   deprecated_create_breakpoint_hook:=nil;
   {$else}
   create_breakpoint_hook:=nil;
@@ -2456,7 +2463,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2004-12-04 23:06:38  peter
+  Revision 1.25  2004-12-19 18:35:56  florian
+    * fixed for gdb 6.3.x
+
+  Revision 1.24  2004/12/04 23:06:38  peter
     * fix buffer overflow
 
   Revision 1.23  2004/11/06 17:58:35  peter
