@@ -8,7 +8,7 @@
 
 function GetDynamicMethod(AClass: TClass; Index: Integer): Pointer; assembler;
 asm
-        CALL    System.@Halt
+        CALL    System.@Paramcount
 end;
 
 begin
