@@ -332,6 +332,8 @@ asm
 .Lco_ok:
         popl    %eax
         popl    %edi
+        { the adress is pushed : it needs to be removed from stack !! PM }
+        ret     $4
 end;
 
 
@@ -722,7 +724,10 @@ end;
 
 {
   $Log$
-  Revision 1.33  1998-11-28 14:09:49  peter
+  Revision 1.34  1998-11-30 15:27:28  pierre
+   * vmt address pushed for CHECK_OBJECT was not removed from stack
+
+  Revision 1.33  1998/11/28 14:09:49  peter
     * NOATTCDQ define
 
   Revision 1.32  1998/11/26 23:15:08  jonas
