@@ -284,3 +284,4 @@ bug0201.pp   problem with record var-parameters and assembler
 bug0202.pp   flag results not supported with case
 bug0206.pp   sets with variable ranges doesn't work
 bug0211.pp   a and not a is true !!! (if a:=boolean(5))
+bug0212.pp   problem with properties
