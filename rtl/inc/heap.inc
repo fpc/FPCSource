@@ -647,7 +647,8 @@ begin
             MemoryManager.FreeMem(p);
             p:=p2;
           end
-        else doMove := true;
+        else
+          doMove := true;
         internSysReAllocMem:=p;
         exit;
       end;
@@ -685,8 +686,10 @@ begin
 end;
 
 function SysReAllocMem(var p:pointer;size : longint):pointer;
-const doMove: boolean = true;
+var
+  doMove: boolean;
 begin
+  doMove:=true;
   SysReAllocMem := internSysReallocMem(p,size,doMove);
 end;
 
@@ -800,7 +803,11 @@ end;
 
 {
   $Log$
-  Revision 1.30  2000-01-20 12:35:35  jonas
+  Revision 1.31  2000-01-24 23:56:10  peter
+    * fixed reallocmem which didn't work anymore and thus broke a lot
+      of objfpc/delphi code
+
+  Revision 1.30  2000/01/20 12:35:35  jonas
     * fixed problem with reallocmem and heaptrc
 
   Revision 1.29  2000/01/07 16:41:34  daniel
