@@ -1175,7 +1175,7 @@ testcheck: units $(DOTEST)
 # Dotest options
 #
 
-ifneq ($(FPC),ppc386)
+ifneq ($(FPC),ppc386$(EXEEXT))
 override DOTESTOPT+=-c$(FPC)
 endif
 

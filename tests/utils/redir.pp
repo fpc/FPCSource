@@ -678,7 +678,7 @@ end;
 {$EndIf MsDos}
     SwapVectors;
     { Must use shell() for linux for the wildcard expansion (PFV) }
-{$ifdef linux}
+{$ifdef UNIX}
     IOStatus:=0;
     ExecuteResult:=Shell(Progname+' '+Comline);
     { Signal that causes the stop of the shell }
@@ -688,22 +688,22 @@ end;
       $80 bit is a CoreFlag apparently }
     ExecuteResult:=(ExecuteResult and $ff00) shr 8;
 {$else}
-{$ifdef win32}
+  {$ifdef win32}
     StoreInherit:=ExecInheritsHandles;
     ExecInheritsHandles:=true;
-{$endif win32}
+  {$endif win32}
     DosError:=0;
-    Dos.Exec (ProgName, ComLine);
-{$ifdef win32}
+    Dos.Exec (Getenv('COMSPEC'),'/C '+progname+' '+Comline);
+  {$ifdef win32}
     ExecInheritsHandles:=StoreInherit;
-{$endif win32}
+  {$endif win32}
     IOStatus:=DosError;
     ExecuteResult:=DosExitCode;
 {$endif}
     SwapVectors;
 {$ifdef CPU86}
     { reset the FPU }
-{$asmmode att}
+    {$asmmode att}
     asm
       fninit
     end;
@@ -711,7 +711,7 @@ end;
 {$IfDef MsDos}
   Fullheap;
 {$EndIf MsDos}
-  End;
+End;
 
 {*****************************************************************************
                                   Initialize
@@ -725,7 +725,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.3  2000-11-30 22:38:22  peter
+  Revision 1.4  2000-12-10 12:08:11  peter
+    * win32 and go32v2 updates
+
+  Revision 1.3  2000/11/30 22:38:22  peter
     * renamed test suite
 
   Revision 1.1  2000/11/29 23:14:20  peter

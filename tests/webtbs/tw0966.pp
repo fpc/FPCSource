@@ -1,3 +1,5 @@
+{ %INTERACTIVE }
+
 { Source provided for Free Pascal Bug Report 966 }
 {$i-}
 {$ifdef linux}
@@ -76,6 +78,7 @@ begin
   read_to_eof;
   shutdown(s,2); close(sin); close(sout);
 {$else : not has_sockets}
+begin
   Writeln('No sockets unit for this target');
 {$endif has_sockets}
 end.

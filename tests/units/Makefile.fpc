@@ -8,53 +8,17 @@ units=erroru
 
 
 [rules]
-.PHONY: go32v2_units linux_units os2_units win32_units clean
+.PHONY: rtl fcl clean
 
-erroru$(PPUEXT): erroru.pp $(OS_TARGET)_units
+rtl:
+        $(MAKE) -C ../../rtl/$(OS_TARGET) all
+        $(MAKE) -C ../../rtl/$(OS_TARGET) install UNITINSTALLDIR=$(BASEDIR)
 
-
-go32v2_units : 
-	$(MAKE) clean OS_TARGET=go32v2
-	$(MAKE) -C ../../rtl/go32v2 clean all OS_TARGET=go32v2
-	-$(COPY) ../../rtl/go32v2/*.o .
-	-$(COPY) ../../rtl/go32v2/*.a .
-	-$(COPY) ../../rtl/go32v2/*.ppu .
-	$(MAKE) -C ../../fcl/go32v2 clean all OS_TARGET=go32v2
-	-$(COPY) ../../fcl/go32v2/*.o .
-	-$(COPY) ../../fcl/go32v2/*.a .
-	-$(COPY) ../../fcl/go32v2/*.ppu .
-
-linux_units : 
-	$(MAKE) clean OS_TARGET=linux
-	$(MAKE) -C ../../rtl/linux clean all OS_TARGET=linux
-	-$(COPY) ../../rtl/linux/*.o .
-	-$(COPY) ../../rtl/linux/*.a .
-	-$(COPY) ../../rtl/linux/*.ppu .
-	$(MAKE) -C ../../fcl/linux clean all OS_TARGET=linux
-	-$(COPY) ../../fcl/linux/*.o .
-	-$(COPY) ../../fcl/linux/*.a .
-	-$(COPY) ../../fcl/linux/*.ppu .
-
-os2_units : 
-	$(MAKE) clean OS_TARGET=os2
-	$(MAKE) -C ../../rtl/os2 clean all OS_TARGET=os2
-	-$(COPY) ../../rtl/os2/*.oo2 .
-	-$(COPY) ../../rtl/os2/*.ao2 .
-	-$(COPY) ../../rtl/os2/*.ppo .
-	$(MAKE) -C ../../fcl/os2 clean all OS_TARGET=os2
-	-$(COPY) ../../fcl/os2/*.oo2 .
-	-$(COPY) ../../fcl/os2/*.ao2 .
-	-$(COPY) ../../fcl/os2/*.ppo .
-
-win32_units : 
-	$(MAKE) clean OS_TARGET=win32
-	$(MAKE) -C ../../rtl/win32 clean all OS_TARGET=win32
-	-$(COPY) ../../rtl/win32/*.ow .
-	-$(COPY) ../../rtl/win32/*.aw .
-	-$(COPY) ../../rtl/win32/*.ppw .
-	$(MAKE) -C ../../fcl/win32 clean all OS_TARGET=win32
-	-$(COPY) ../../fcl/win32/*.ow .
-	-$(COPY) ../../fcl/win32/*.aw .
-	-$(COPY) ../../fcl/win32/*.ppw .
+fcl:
+        $(MAKE) -C ../../fcl/$(OS_TARGET) all
+        $(MAKE) -C ../../fcl/$(OS_TARGET) install UNITINSTALLDIR=$(BASEDIR)
 
 clean : cleanall
+
+erroru$(PPUEXT): erroru.pp rtl fcl
+
