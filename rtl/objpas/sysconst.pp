@@ -198,7 +198,7 @@ begin
      232 : Result:=SNoThreadSupport;
 
      {Error in the range 900 - 999 is considered platform specific}
-     900 : Result:=SNoToolserver;    {Mac OS specific}
+//     900 : Result:=SNoToolserver;    {Mac OS specific}
   end;
   If length(Result)=0 then
 {$ifdef VER1_0}  
@@ -214,7 +214,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2004-08-20 10:18:58  olle
+  Revision 1.12  2004-08-25 15:29:58  peter
+    * disbaled error 900 that is out of range
+
+  Revision 1.11  2004/08/20 10:18:58  olle
     + added error 900, for macos
 
   Revision 1.10  2004/06/12 13:23:17  michael
