@@ -1180,10 +1180,14 @@ Begin
             Begin
               InitRef;
               SetupResult;
+              Consume(AS_ID);
             end
            else
             if (actasmpattern = '@CODE') or (actasmpattern = '@DATA') then
-              Message(asmr_w_CODE_and_DATA_not_supported)
+             begin
+               Message(asmr_w_CODE_and_DATA_not_supported);
+               Consume(AS_ID);
+             end
            else
             { Local Label }
             begin
@@ -1657,8 +1661,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  1999-06-28 16:02:32  peter
+  Revision 1.40  1999-07-12 15:03:04  peter
     * merged
+
+  Revision 1.39  1999/06/28 16:02:32  peter
+    * merged
+
+  Revision 1.37.2.4  1999/07/12 15:01:19  peter
+    * fixed @result parsing
 
   Revision 1.37.2.3  1999/06/28 15:52:36  peter
     * better recovery in main loop
