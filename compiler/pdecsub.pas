@@ -1821,22 +1821,30 @@ const
             { External Procedures }
             if (po_external in pd.procoptions) then
               begin
+	        { import by number? }
+                if pd.import_nr<>0 then
+		  begin
+		    { Nothing to do }
+		  end
+		else
                 { external name specified }
-                if assigned(pd.import_name) then
-                  begin
-                    { Win32 imports need to use the normal name since to functions
-                      can refer to the same DLL function. This is also needed for compatability
-                      with Delphi and TP7 }
-                    if not(
-                           assigned(pd.import_dll) and
-                           (target_info.system in [system_i386_win32,system_i386_wdosx,
-                                                   system_i386_emx,system_i386_os2])
-                          ) then
-                      if not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
-                       pd.setmangledname(pd.import_name^)
-                      else
-                       pd.setmangledname(target_info.Cprefix+pd.import_name^);
-                  end
+                  if assigned(pd.import_name) then
+                    begin
+                      { Win32 imports need to use the normal name since to functions
+                        can refer to the same DLL function. This is also needed for compatability
+                        with Delphi and TP7 }
+                      if not(
+                             assigned(pd.import_dll) and
+                             (target_info.system in [system_i386_win32,system_i386_wdosx,
+                                                     system_i386_emx,system_i386_os2])
+                            ) then
+			begin    
+                          if not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+                            pd.setmangledname(pd.import_name^)
+                          else
+                            pd.setmangledname(target_info.Cprefix+pd.import_name^);
+			end;    
+                    end
                 else
                   begin
                     { Default names when importing variables }
@@ -2349,7 +2357,10 @@ const
 end.
 {
   $Log$
-  Revision 1.213  2004-11-22 12:22:25  jonas
+  Revision 1.214  2004-11-29 17:48:34  peter
+    * when importing by index don't change mangledname
+
+  Revision 1.213  2004/11/22 12:22:25  jonas
     * fixed importing of cdecl routines for OS'es which have a cprefix
 
   Revision 1.212  2004/11/21 17:54:59  peter
