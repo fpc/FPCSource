@@ -28,6 +28,8 @@ procedure fpsetCerrno(err:libcint);
 property cerrno:libcint read fpgetCerrno write fpsetcerrno;
 {$endif HASGLOBALPROPERTY}
 
+const clib = 'c'; 
+
 implementation
 // hasn't been divided up in .inc's, because I first want to see hoe
 // this idea works out.
@@ -52,7 +54,6 @@ begin
 end;
 {$else}
 
-const clib = 'c'; 
 
 {$ifdef Linux}
 function geterrnolocation: Plibcint; cdecl;external clib name '__errno_location';
@@ -86,7 +87,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2004-01-21 21:25:49  marco
+  Revision 1.11  2004-09-08 08:32:33  marco
+   * "clib" constant moved to interface, since initc is prefered way of
+  initing libc/libroot/glibc
+
+  Revision 1.10  2004/01/21 21:25:49  marco
    * openbsd fixes stage one
 
   Revision 1.9  2004/01/04 20:36:53  jonas
