@@ -438,7 +438,7 @@ type tmsgconst=(
   unit_u_recompile_obj_older_than_asm,
   unit_u_start_parse_interface,
   unit_u_start_parse_implementation,
-  unit_u_second_compile,
+  unit_u_second_load_unit,
   option_usage,
   option_only_one_source_support,
   option_def_only_for_os2,

@@ -411,9 +411,6 @@ unit pmodules;
        { the unit is not in the symtable stack }
          if (not assigned(st)) then
           begin
-          { if the unit is loaded remove it first, but hold the same
-            memory position, so no new/dispose }
-          { this creates problem with the browser !! }
             if assigned(hp) then
              begin
                { remove the old unit }
@@ -421,10 +418,14 @@ unit pmodules;
                scanner:=hp^.scanner;
                hp^.reset;
                hp^.scanner:=scanner;
+               { try to reopen ppu }
+               hp^.search_unit(s);
+               { try to load the unit a second time first }
+               if not current_module^.in_implementation then
+                 hp^.do_compile:=true;
                current_module:=hp;
                current_module^.in_second_compile:=true;
-               current_module^.do_compile:=true;
-               Message1(unit_u_second_compile,current_module^.modulename^);
+               Message1(unit_u_second_load_unit,current_module^.modulename^);
              end
             else
           { generates a new unit info record }
@@ -1070,7 +1071,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.64  1998-10-09 08:56:28  pierre
+  Revision 1.65  1998-10-09 14:38:55  pierre
+   * add a second load for PPU file
+
+  Revision 1.64  1998/10/09 08:56:28  pierre
     * several memory leaks fixed
 
   Revision 1.63  1998/10/08 23:29:01  peter

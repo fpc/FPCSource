@@ -451,26 +451,26 @@ const msgtxt : array[0..00090,1..240] of char=(+
   'U_Recompiling unit, obj is older than asm'#000+
   'U_Parsing interface of $1'#000+
   'U_Parsing i','mplementation of $1'#000+
-  'U_Second compile for unit $1'#000+
+  'U_Second load for unit $1'#000+
   '$1 [options] <inputfile> [options]'#000+
   'W_Only one source file supported'#000+
   'W_DEF file can be created only for OS/2'#000+
   'E_nested response files are not supported'#000+
   'F_No source file name in command line'#000+
-  'E_I','llegal parameter: $1'#000+
+  'E_Ille','gal parameter: $1'#000+
   'H_-? writes help pages'#000+
   'F_Too many config files nested'#000+
   'F_Unable to open file $1'#000+
   'N_Reading further options from $1'#000+
   'W_Target is already set to: $1'#000+
   'W_Shared libs not supported on DOS platform, reverting to static'#000+
-  'F_too many',' IF(N)DEFs'#000+
+  'F_too many IF','(N)DEFs'#000+
   'F_too many ENDIFs'#000+
   'F_open conditional at the end of the file'#000+
   'W_Debug information generation is not supported by this executable'#000+
   'H_Try recompiling with -dGDB'#000+
   'Free Pascal Compiler version $FPCVER [$FPCDATE] for $FPCTARGET'#000+
-  'Copyright ','(c) 1993-98 by Florian Klaempfl'#000+
+  'Copyright (c)',' 1993-98 by Florian Klaempfl'#000+
   'Free Pascal Compiler version $FPCVER'#000+
   #000+
   'Compiler Date  : $FPCDATE'#000+
@@ -479,21 +479,21 @@ const msgtxt : array[0..00090,1..240] of char=(+
   'This program comes under the GNU General Public Licence'#000+
   'For more information read COPYING.FPC'#000+
   #000+
-  'Report bugs,suggesti','ons etc to:'#000+
+  'Report bugs,suggestions',' etc to:'#000+
   '                fpc-devel@mail.tolna.hungary.net'#000+
   '**0*_+ switch option on, - off'#000+
   '**1a_the compiler doesn'#039't delete the generated assembler file'#000+
   '**2al_list sourcecode lines in assembler file'#000+
   '*t1b_use EMS'#000+
   '**1B_build all modules'#000+
-  '**1C','_code generation options'#000+
+  '**1C_co','de generation options'#000+
   '3*2CD_create dynamic library'#000+
   '**2Ch<n>_<n> bytes heap (between 1023 and 67107840)'#000+
   '**2Ci_IO-checking'#000+
   '**2Cn_omit linking stage'#000+
   '**2Co_check overflow of integer operations'#000+
   '**2Cr_range checking'#000+
-  '**2Cs<n>_set stack size to ','<n>'#000+
+  '**2Cs<n>_set stack size to <n>',#000+
   '**2Ct_stack checking'#000+
   '3*2CS_create static library'#000+
   '3*2Cx_use smartlinking'#000+
@@ -503,14 +503,14 @@ const msgtxt : array[0..00090,1..240] of char=(+
   '*O2Dw_PM application'#000+
   '**1e<x>_set path to executable'#000+
   '**1E_same as -Cn'#000+
-  '**1F_se','t file names and paths'#000+
+  '**1F_set f','ile names and paths'#000+
   '**2Fe<x>_redirect error output to <x>'#000+
   '**2FE<x>_set exe/unit output path to <x>'#000+
   '*L2Fg<x>_same as -Fl'#000+
   '**2Fi<x>_adds <x> to include path'#000+
   '**2Fl<x>_adds <x> to library path'#000+
   '*L2FL<x>_uses <x> as dynamic linker'#000+
-  '**2Fo<x>_adds',' <x> to object path'#000+
+  '**2Fo<x>_adds <x','> to object path'#000+
   '**2Fr<x>_load error message file <x>'#000+
   '**2Fu<x>_adds <x> to unit path'#000+
   '**2FU<x>_set unit output path to <x>, overrides -FE'#000+
@@ -518,40 +518,40 @@ const msgtxt : array[0..00090,1..240] of char=(+
   '*g2gg_use gsym'#000+
   '*g2gd_use dbx'#000+
   '**1i_information'#000+
-  '**1I<x>_adds <x> to',' include path'#000+
+  '**1I<x>_adds <x> to in','clude path'#000+
   '**1k<x>_Pass <x> to the linker'#000+
   '**1l_write logo'#000+
   '**1n_don'#039't read the default config file'#000+
   '**1o<x>_change the name of the executable produced to <x>'#000+
   '**1pg_generate profile code for gprof'#000+
-  '*L1P_use pipes instead of creating temporar','y assembler files'#000+
+  '*L1P_use pipes instead of creating temporary a','ssembler files'#000+
   '**1S_syntax options'#000+
   '**2S2_switch some Delphi 2 extensions on'#000+
   '**2Sc_supports operators like C (*=,+=,/= and -=)'#000+
   '**2Sd_tries to be Delphi compatible'#000+
   '**2Se_compiler stops after the first error'#000+
   '**2Sg_allow LABEL and GOTO'#000+
-  '**2Si','_support C++ stlyed INLINE'#000+
+  '**2Si_su','pport C++ stlyed INLINE'#000+
   '**2Sm_support macros like C (global)'#000+
   '**2So_tries to be TP/BP 7.0 compatible'#000+
   '**2Sp_tries to be gpc compatible'#000+
   '**2Ss_constructor name must be init (destructor must be done)'#000+
   '**2St_allow static keyword in objects'#000+
-  '**2S','v_allow variable directives (cvar,external,public,export)'#000+
+  '**2Sv_a','llow variable directives (cvar,external,public,export)'#000+
   '**1s_don'#039't call assembler and linker (only with -a)'#000+
   '**1u<x>_undefines the symbol <x>'#000+
   '**1U_unit options'#000+
   '**2Un_don'#039't check the unit name'#000+
   '**2Up<x>_same as -Fu<x>'#000+
-  '**2Us_compile a system ','unit'#000+
+  '**2Us_compile a system uni','t'#000+
   '**1v<x>_Be verbose. <x> is a combination of the following letters :'#000+
   '**2*_e : Show errors (default)       d : Show debug info'#000+
   '**2*_w : Show warnings               u : Show unit info'#000+
-  '**2*_n : Show notes                  t : Show tried/us','ed files'#000+
+  '**2*_n : Show notes                  t : Show tried/used ','files'#000+
   '**2*_h : Show hints                  m : Show defined macros'#000+
   '**2*_i : Show general info           p : Show compiled procedures'#000+
   '**2*_l : Show linenumbers            c : Show conditionals'#000+
-  '**2*_a : Show everything             0 : Show',' nothing (except errors'+
+  '**2*_a : Show everything             0 : Show no','thing (except errors'+
   ')'#000+
   '**2*_b : Show all procedure'#000+
   '**2*_    declarations if an error'#000+
@@ -559,39 +559,39 @@ const msgtxt : array[0..00090,1..240] of char=(+
   '**1X_executable options'#000+
   '*L2Xc_link with the c library'#000+
   '**2XD_link with dynamic libraries (defines FPC_LINK_DYNAMIC)'#000+
-  '**2Xs_strip all symbol','s from executable'#000+
+  '**2Xs_strip all symbols f','rom executable'#000+
   '**2XS_link with static libraries (defines FPC_LINK_STATIC)'#000+
   '**0*_Processor specific options:'#000+
   '3*1A<x>_output format'#000+
   '3*2Ao_coff file using GNU AS'#000+
   '3*2Anasmcoff_coff file using Nasm'#000+
   '3*2Anasmelf_elf32 (linux) file using Nasm'#000+
-  '3*2','Anasmobj_obj file using Nasm'#000+
+  '3*2Ana','smobj_obj file using Nasm'#000+
   '3*2Amasm_obj using Masm (Mircosoft)'#000+
   '3*2Atasm_obj using Tasm (Borland)'#000+
   '3*1R<x>_assembler reading style'#000+
   '3*2Ratt_read AT&T style assembler'#000+
   '3*2Rintel_read Intel style assembler'#000+
-  '3*2Rdirect_copy assembler text directl','y to assembler file'#000+
+  '3*2Rdirect_copy assembler text directly t','o assembler file'#000+
   '3*1O<x>_optimizations'#000+
   '3*2Og_generate smaller code'#000+
   '3*2OG_generate faster code (default)'#000+
   '3*2Or_keep certain variables in registers (still BUGGY!!!)'#000+
   '3*2Ou_enable uncertain optimizations (see docs)'#000+
-  '3*2O1_level 1 optimization','s (quick optimizations)'#000+
+  '3*2O1_level 1 optimizations (','quick optimizations)'#000+
   '3*2O2_level 2 optimizations (-O1 + slower optimizations)'#000+
   '3*2O3_level 3 optimizations (same as -O2u)'#000+
   '3*2Op_target processor'#000+
   '3*3Op1_set target processor to 386/486'#000+
-  '3*3Op2_set target processor to Pentium/PentiumMMX (tm)',#000+
-  '3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#000+
+  '3*3Op2_set target processor to Pentium/PentiumMMX (tm)'#000+
+  '3*','3Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#000+
   '3*1T<x>_Target operating system'#000+
   '3*2TGO32V1_version 1 of DJ Delorie DOS extender'#000+
   '3*2TGO32V2_version 2 of DJ Delorie DOS extender'#000+
   '3*2TLINUX_Linux'#000+
   '3*2TOS2_OS/2 2.x'#000+
-  '3*2TWin32_Windows 32 Bit',#000+
-  '6*1A<x>_output format'#000+
+  '3*2TWin32_Windows 32 Bit'#000+
+  '6*','1A<x>_output format'#000+
   '6*2Ao_Unix o-file using GNU AS'#000+
   '6*2Agas_GNU Motorola assembler'#000+
   '6*2Amit_MIT Syntax (old GAS)'#000+
@@ -599,14 +599,14 @@ const msgtxt : array[0..00090,1..240] of char=(+
   '6*1O_optimizations'#000+
   '6*2Oa_turn on the optimizer'#000+
   '6*2Og_generate smaller code'#000+
-  '6*2OG_generate ','faster code (default)'#000+
+  '6*2OG_generate fas','ter code (default)'#000+
   '6*2Ox_optimize maximum (still BUGGY!!!)'#000+
   '6*2O2_set target processor to a MC68020+'#000+
   '6*1R<x>_assembler reading style'#000+
   '6*2RMOT_read motorola style assembler'#000+
   '6*1T<x>_Target operating system'#000+
   '6*2TAMIGA_Commodore Amiga'#000+
-  '6*2TATARI','_Atari ST/STe/TT'#000+
+  '6*2TATARI_At','ari ST/STe/TT'#000+
   '6*2TMACOS_Macintosh m68k'#000+
   '6*2TLINUX_Linux-68k'#000+
   '**1*_'#000+
