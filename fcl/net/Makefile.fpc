@@ -11,10 +11,10 @@ units_linux=http httpsvlt xmlrpc
 units_freebsd=http httpsvlt xmlrpc
 units_netbsd=http httpsvlt xmlrpc
 units_openbsd=http httpsvlt xmlrpc
-programs_linux=mkxmlrpc
-programs_freebsd=mkxmlrpc
-programs_netbsd=mkxmlrpc
-programs_openbsd=mkxmlrpc
+#programs_linux=mkxmlrpc
+#programs_freebsd=mkxmlrpc
+#programs_netbsd=mkxmlrpc
+#programs_openbsd=mkxmlrpc
 rsts_linux=httpsvlt mkxmlrpc
 rsts_freebsd=httpsvlt mkxmlrpc
 rsts_netbsd=httpsvlt mkxmlrpc
@@ -24,8 +24,15 @@ exampledirs_freebsd=tests
 exampledirs_netbsd=tests
 exampledirs_openbsd=tests
 
+[require]
+packages=netdb libasync
+
 [compiler]
 options=-S2h
+targetdir=../$(OS_TARGET)
 
 [install]
 fpcpackage=y
+
+[default]
+fpcdir=../..
