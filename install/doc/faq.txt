@@ -382,7 +382,11 @@
     3. Under Dos(Go32V2) and windows targets you can use UPX to pack the
        .EXEs (just like e.g. pklite). The architecture of linux doesn't
        allow binary packing.
-    4. Turning on optimalisations, both for supplied packages
+    4. You can use LXLITE for packing EMX binaries, but you won't be able
+       to run them under DOS any more then. It might even not be possible
+       to use them on lower OS/2 versions (like 2.x) depending on chosen
+       type of compression.
+    5. Turning on optimalisations, both for supplied packages
        (RTL,API,FV,FCL) as for your own code, will also decrease
        code-size.
        
