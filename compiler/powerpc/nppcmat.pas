@@ -31,6 +31,7 @@ interface
 
     type
       tppcmoddivnode = class(tmoddivnode)
+         function pass_1: tnode;override;
          procedure pass_2;override;
       end;
 
@@ -57,7 +58,7 @@ implementation
       aasmbase,aasmcpu,aasmtai,
       defutil,
       cgbase,cgobj,pass_1,pass_2,
-      ncon,
+      ncon,procinfo,
       cpubase,cpuinfo,
       ncgutil,cgcpu,cg64f32,rgobj;
 
@@ -65,11 +66,20 @@ implementation
                              TPPCMODDIVNODE
 *****************************************************************************}
 
+    function tppcmoddivnode.pass_1: tnode;
+      begin
+        result := inherited pass_1;
+        if not assigned(result) then
+          include(current_procinfo.flags,pi_do_call);
+      end;
+
+
     procedure tppcmoddivnode.pass_2;
       const
                     { signed   overflow }
         divops: array[boolean, boolean] of tasmop =
           ((A_DIVWU,A_DIVWUO_),(A_DIVW,A_DIVWO_));
+        zerocond: tasmcond = (dirhint: DH_Plus; simple: true; cond:C_NE; cr: RS_CR1);
       var
          power  : longint;
          op         : tasmop;
@@ -77,6 +87,7 @@ implementation
          divider,
          resultreg  : tregister;
          size       : Tcgsize;
+         hl : tasmlabel;
 
       begin
          secondpass(left);
@@ -124,6 +135,9 @@ implementation
              { load divider in a register if necessary }
              location_force_reg(exprasmlist,right.location,
                def_cgsize(right.resulttype.def),true);
+             if (right.nodetype <> ordconstn) then
+               exprasmlist.concat(taicpu.op_reg_reg_const(A_CMPWI,NR_CR1,
+                 right.location.register,0));
              divider := right.location.register;
 
              { needs overflow checking, (-maxlongint-1) div (-1) overflows! }
@@ -153,6 +167,13 @@ implementation
         { set result location }
         location.loc:=LOC_REGISTER;
         location.register:=resultreg;
+        if right.nodetype <> ordconstn then
+          begin
+            objectlibrary.getlabel(hl);
+            exprasmlist.concat(taicpu.op_cond_sym(A_BC,zerocond,hl));
+            cg.a_call_name(exprasmlist,'FPC_DIVBYZERO');
+            cg.a_label(exprasmlist,hl);
+          end;
         cg.g_overflowcheck(exprasmlist,location,resulttype.def);
       end;
 
@@ -513,7 +534,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2003-12-31 18:12:23  jonas
+  Revision 1.38  2004-01-01 17:58:16  jonas
+    + integer division-by-zero detection support for ppc
+    + compilerproc FPC_DIVBYZERO
+
+  Revision 1.37  2003/12/31 18:12:23  jonas
     * (64 bit int) shl/shr (value > 63) := 0
 
   Revision 1.36  2003/12/28 23:49:30  jonas

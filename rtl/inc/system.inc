@@ -512,6 +512,10 @@ begin
   HandleErrorFrame(201,get_frame);
 end;
 
+procedure fpc_divbyzero;[public,alias:'FPC_DIVBYZERO']; {$ifdef hascompilerproc} compilerproc; {$endif}
+begin
+  HandleErrorFrame(200,get_frame);
+end;
 
 procedure fpc_overflow;[public,alias:'FPC_OVERFLOW']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
@@ -853,7 +857,11 @@ end;
 
 {
   $Log$
-  Revision 1.47  2003-11-03 09:42:28  marco
+  Revision 1.48  2004-01-01 17:58:16  jonas
+    + integer division-by-zero detection support for ppc
+    + compilerproc FPC_DIVBYZERO
+
+  Revision 1.47  2003/11/03 09:42:28  marco
    * Peter's Cardinal<->Longint fixes patch
 
   Revision 1.46  2003/10/29 18:23:45  jonas

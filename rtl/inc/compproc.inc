@@ -277,6 +277,7 @@ procedure fpc_largeset_contains_sets(set1,set2 : pointer; size: longint); compil
 {$endif LARGESETS}
 
 procedure fpc_rangeerror; compilerproc;
+procedure fpc_divbyzero; compilerproc;
 procedure fpc_overflow; compilerproc;
 //procedure fpc_iocheck(addr : longint); compilerproc;
 procedure fpc_iocheck; compilerproc;
@@ -309,7 +310,11 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.50  2003-10-25 22:52:07  florian
+  Revision 1.51  2004-01-01 17:58:16  jonas
+    + integer division-by-zero detection support for ppc
+    + compilerproc FPC_DIVBYZERO
+
+  Revision 1.50  2003/10/25 22:52:07  florian
     * fixed copy(<dynarray>, ...)
 
   Revision 1.49  2003/10/04 23:40:42  florian
