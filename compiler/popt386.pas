@@ -1368,6 +1368,7 @@ Begin
                                      End;
                                      Pai386(hp1)^.Loadoper(1,Pai386(hp1)^.oper[0]);
                                      Pai386(hp1)^.LoadConst(0,1);
+                                     Pai386(hp1)^.ops:=2;
                                    End
                                  End;
                                hp1 := pai(p^.next);
@@ -1507,7 +1508,10 @@ End.
 
 {
  $Log$
- Revision 1.48  1999-05-01 13:24:34  peter
+ Revision 1.49  1999-05-02 14:26:31  peter
+   * fixed dec -> sub $1 opt which didn't set ops=2
+
+ Revision 1.48  1999/05/01 13:24:34  peter
    * merged nasm compiler
    * old asm moved to oldasm/
 
