@@ -331,6 +331,13 @@ end;
 function def_internalerror(i : longint) : boolean;
 begin
   do_comment(V_Fatal,'Internal error '+tostr(i));
+{$ifdef EXTDEBUG}
+  {$ifdef FPC}
+    { Internalerror() and def_internalerror() do not
+      have a stackframe }
+    dump_stack(stdout,get_caller_frame(get_frame));
+  {$endif FPC}
+{$endif EXTDEBUG}
   def_internalerror:=true;
 end;
 
@@ -372,7 +379,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2002-11-15 01:58:46  peter
+  Revision 1.22  2002-12-20 18:14:23  peter
+    * traceback added in EXTDEBUG mode for internalerror
+
+  Revision 1.21  2002/11/15 01:58:46  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
