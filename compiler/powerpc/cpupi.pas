@@ -50,9 +50,10 @@ unit cpupi;
 
     uses
        globtype,globals,
+       cpubase,
        aasmtai,
        tgobj,
-       symsym;
+       symsym,paramgr;
 
     constructor tppcprocinfo.create;
 
@@ -64,21 +65,45 @@ unit cpupi;
 
     procedure tppcprocinfo.after_header;
       begin
+         procdef.parast.address_fixup:=0;
+         if procdef.localst.symtablelevel>1 then
+           begin
+              procinfo.framepointer_offset:=procdef.parast.address_fixup;
+              inc(procdef.parast.address_fixup,4);
+           end;
+         if paramanager.ret_in_param(procdef.rettype.def) then
+           begin
+              procinfo.return_offset:=procdef.parast.address_fixup;
+              inc(procdef.parast.address_fixup,4);
+           end;
+         if assigned(_class) then
+           begin
+              procinfo.selfpointer_offset:=procdef.parast.address_fixup;
+              inc(procdef.parast.address_fixup,4);
+           end;
          { this value is necessary for nested procedures }
-         procdef.localst.address_fixup:=align(procdef.parast.datasize,16);
-         if assigned(aktprocdef.funcretsym) then
-           procinfo.return_offset:=tg.direction*tfuncretsym(aktprocdef.funcretsym).address;
+         procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
+         if assigned(aktprocdef.funcretsym) and
+           not(paramanager.ret_in_param(procdef.rettype.def)) then
+           procinfo.return_offset:=tg.direction*tfuncretsym(aktprocdef.funcretsym).address+procdef.localst.address_fixup;
      end;
 
     procedure tppcprocinfo.after_pass1;
+      var
+         ofs : aword;
       begin
-         procdef.parast.address_fixup:=align(maxpushedparasize,16);
+         ofs:=align(maxpushedparasize,16)+LinkageAreaSize;
+         inc(procdef.parast.address_fixup,ofs);
+         inc(procinfo.return_offset,ofs);
+         inc(procinfo.framepointer_offset,ofs);
+         inc(procinfo.selfpointer_offset,ofs);
          if cs_asm_source in aktglobalswitches then
            aktproccode.insert(Tai_comment.Create(strpnew('Parameter copies start at: r1+'+tostr(procdef.parast.address_fixup))));
 
          procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
 
-         if assigned(aktprocdef.funcretsym) then
+         if assigned(aktprocdef.funcretsym) and
+           not(paramanager.ret_in_param(procdef.rettype.def)) then
            procinfo.return_offset:=tg.direction*tfuncretsym(aktprocdef.funcretsym).address+procdef.localst.address_fixup;
 
          if cs_asm_source in aktglobalswitches then
@@ -98,7 +123,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 17:54:59  florian
+  Revision 1.4  2002-09-10 20:30:42  florian
+    * fixed offset calculation for symtables etc.
+
+  Revision 1.3  2002/09/07 17:54:59  florian
     * first part of PowerPC fixes
 
   Revision 1.2  2002/08/18 20:06:30  peter
@@ -110,5 +138,4 @@ end.
   Revision 1.1  2002/08/17 09:23:49  florian
     * first part of procinfo rewrite
 }
-
 
