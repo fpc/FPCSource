@@ -124,31 +124,31 @@ type    Tkbdkeyinfo=record
 {EMXWRAP.DLL has strange calling conventions: All parameters must have
  a 4 byte size.}
 
-function kbdcharin(var Akeyrec:Tkbdkeyinfo;wait,kbdhandle:longint):word;
+function kbdcharin(var Akeyrec:Tkbdkeyinfo;wait,kbdhandle:longint):word; cdecl;
                    external 'EMXWRAP' index 204;
-function kbdpeek(var Akeyrec:TkbdkeyInfo;kbdhandle:word):word;
+function kbdpeek(var Akeyrec:TkbdkeyInfo;kbdhandle:word):word; cdecl;
                  external 'EMXWRAP' index 222;
 
 function dossleep(time:longint):word; cdecl;
                   external 'DOSCALLS' index 229;
 function vioscrollup(top,left,bottom,right,lines:longint;
-                     var screl:word;viohandle:longint):word;
+                     var screl:word;viohandle:longint):word; cdecl;
                      external 'EMXWRAP' index 107;
 function vioscrolldn(top,left,bottom,right,lines:longint;
-                     var screl:word;viohandle:longint):word;
+                     var screl:word;viohandle:longint):word; cdecl;
                      external 'EMXWRAP' index 147;
-function viogetcurpos(var row,column:word;viohandle:longint):word;
+function viogetcurpos(var row,column:word;viohandle:longint):word; cdecl;
                       external 'EMXWRAP' index 109;
-function viosetcurpos(row,column,viohandle:longint):word;
+function viosetcurpos(row,column,viohandle:longint):word; cdecl;
                       external 'EMXWRAP' index 115;
-function viowrtTTY(s:Pchar;len,viohandle:longint):word;
+function viowrtTTY(s:Pchar;len,viohandle:longint):word; cdecl;
                       external 'EMXWRAP' index 119;
 function viowrtcharstratt(s:Pchar;len,row,col:longint;var attr:byte;
-                          viohandle:longint):word;
+                          viohandle:longint):word; cdecl;
                           external 'EMXWRAP' index 148;
-function viogetmode(var Amodeinfo:viomodeinfo;viohandle:longint):word;
+function viogetmode(var Amodeinfo:viomodeinfo;viohandle:longint):word; cdecl;
                     external 'EMXWRAP' index 121;
-function viosetmode(var Amodeinfo:viomodeinfo;viohandle:longint):word;
+function viosetmode(var Amodeinfo:viomodeinfo;viohandle:longint):word; cdecl;
                     external 'EMXWRAP' index 122;
 
 procedure setscreenmode(mode:word);
