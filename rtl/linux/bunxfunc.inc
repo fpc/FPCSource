@@ -170,7 +170,7 @@ begin
         time_to_sleep.tv_nsec := 0;
          fpsigemptyset(nset);
          fpsigaddset  (nset,SIGCHLD);
-         if fpsigprocmask(SIG_BLOCK,@nset,@oset)=0 Then
+         if fpsigprocmask(SIG_BLOCK,@nset,@oset)=-1 Then
           exit(cuint(-1));
         if fpsigismember(oset,SIGCHLD)<>0 Then
           Begin
@@ -433,7 +433,10 @@ end;
 
 {
  $Log$
- Revision 1.5  2003-09-27 13:45:58  peter
+ Revision 1.6  2003-11-19 14:04:34  marco
+  * fix for sleep from johill
+
+ Revision 1.5  2003/09/27 13:45:58  peter
    * fpnanosleep exported in baseunix
    * fpnanosleep has pointer arguments to be C compliant
 
