@@ -507,7 +507,7 @@ unit typinfo;
               Value:=Value and $ff;
          end;
          SetIndexValues(PropInfo,Index,Ivalue);
-         case (PropInfo^.PropProcs) and 3 of
+         case (PropInfo^.PropProcs shr 2) and 3 of
             ptfield:
               PLongint(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
             ptstatic:
@@ -591,7 +591,7 @@ unit typinfo;
 
       begin
          SetIndexValues(PropInfo,Index,IValue);
-         case (PropInfo^.PropProcs) and 3 of
+         case (PropInfo^.PropProcs shr 2) and 3 of
             ptfield:
               PLongint(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Longint(Pointer(Value)) ;
             ptstatic:
@@ -610,7 +610,7 @@ unit typinfo;
 
     begin
       SetIndexValues(PRopInfo,Index,IValue);
-         case (PropInfo^.PropProcs) and 3 of
+         case (PropInfo^.PropProcs shr 2) and 3 of
             ptfield:
               PShortString(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
             ptstatic:
@@ -676,7 +676,7 @@ unit typinfo;
 
        begin
          SetIndexValues(PropInfo,Index,Ivalue);
-         case (PropInfo^.PropProcs) and 3 of
+         case (PropInfo^.PropProcs shr 2) and 3 of
             ptfield:
               Case GetTypeData(PropInfo^.PropType)^.FloatType of
                ftSingle:
@@ -774,7 +774,10 @@ end.
 
 {
   $Log$
-  Revision 1.24  1999-08-06 13:21:40  michael
+  Revision 1.25  1999-08-29 22:21:27  michael
+  * Patch from Sebastian Guenther
+
+  Revision 1.24  1999/08/06 13:21:40  michael
   * Patch from Sebastian Guenther
 
   Revision 1.23  1999/06/04 12:48:37  michael
