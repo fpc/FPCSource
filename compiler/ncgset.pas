@@ -432,38 +432,13 @@ implementation
              {****************************  SMALL SET **********************}
                if left.nodetype=ordconstn then
                 begin
-                  { clear the register value, indicating result is FALSE }
-                  cg.a_load_const_reg(exprasmlist,location.size,0,location.register);
-                  case right.location.loc of
-                    LOC_REGISTER:
-                      hr:=right.location.register;
-                    LOC_CREGISTER:
-                      begin
-                         hr:=rg.getregisterint(exprasmlist,OS_INT);
-                         { load set value into register }
-                         cg.a_load_reg_reg(exprasmlist,right.location.size,OS_INT,
-                            right.location.register,hr);
-                         location_release(exprasmlist,right.location);
-                      end;
-                    LOC_REFERENCE,
-                    LOC_CREFERENCE :
-                      begin
-                         hr:=rg.getregisterint(exprasmlist,OS_INT);
-                         { load set value into register }
-                         cg.a_load_ref_reg(exprasmlist,OS_INT,opsize,
-                            right.location.reference,hr);
-                         location_release(exprasmlist,right.location);
-                      end;
-                    else
-                      internalerror(200203312);
-                  end;
-
+                  location_force_reg(exprasmlist,right.location,OS_32,true);
                  { then SHR the register }
-                 cg.a_op_const_reg(exprasmlist,OP_SHR,OS_INT,
-                   tordconstnode(left).value and 31,hr);
+                 cg.a_op_const_reg_reg(exprasmlist,OP_SHR,OS_INT,
+                   tordconstnode(left).value and 31,right.location.register,location.register);
+                 rg.ungetregisterint(exprasmlist,right.location.register);
                  { then extract the lowest bit }
-                 cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,1,hr);
-                 location.register:=hr;
+                 cg.a_op_const_reg(exprasmlist,OP_AND,OS_INT,1,location.register);
                 end
                else
                 begin
@@ -493,39 +468,11 @@ implementation
                     end;
                   end;
 
-                  case right.location.loc of
-                    LOC_REGISTER,
-                    LOC_CREGISTER :
-                      hr2:=right.location.register;
-                    LOC_CONSTANT :
-                      begin
-                        hr2:=rg.getregisterint(exprasmlist,OS_INT);
-                        cg.a_load_const_reg(exprasmlist,OS_INT,right.location.value,hr2);
-                      end;
-                    LOC_CREFERENCE,
-                    LOC_REFERENCE :
-                      begin
-                        location_release(exprasmlist,right.location);
-                        hr2:=rg.getregisterint(exprasmlist,OS_INT);
-                        cg.a_load_ref_reg(exprasmlist,OS_INT,OS_INT,right.location.reference,hr2);
-                      end;
-                    else
-                      internalerror(2002032210);
-                  end;
+                  location_force_reg(exprasmlist,right.location,OS_32,true);
                   { emit bit test operation }
-                  emit_bit_test_reg_reg(exprasmlist,hr,hr2,location.register);
+                  emit_bit_test_reg_reg(exprasmlist,hr,right.location.register,location.register);
                   { free the resources }
-                  case right.location.loc of
-                    LOC_REGISTER,
-                    LOC_CREGISTER :
-                      rg.ungetregisterint(exprasmlist,right.location.register);
-                    LOC_CONSTANT ,
-                    LOC_CREFERENCE,
-                    LOC_REFERENCE :
-                      rg.ungetregisterint(exprasmlist,hr2);
-                    else
-                      internalerror(2002032210);
-                  end;
+                  rg.ungetregisterint(exprasmlist,right.location.register);
                   { free bitnumber register }
                 {$ifdef newra}
                   rg.ungetregisterint(exprasmlist,hr);
@@ -1139,7 +1086,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2003-06-12 22:09:54  jonas
+  Revision 1.44  2003-07-06 14:28:04  jonas
+    * fixed register leak
+    * changed a couple of case-statements to location_force_reg()
+
+  Revision 1.43  2003/06/12 22:09:54  jonas
     * tcginnode.pass_2 doesn't call a helper anymore in any case
     * fixed ungetregisterfpu compilation problems
 
