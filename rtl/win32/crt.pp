@@ -436,8 +436,8 @@ begin
                    begin
                       keypressed:=true;
 
-                      if (ord(buf.Event.KeyEvent.AsciiChar) = 0) or
-                        (buf.Event.KeyEvent.dwControlKeyState=2) then
+                      if (ord(buf.Event.KeyEvent.AsciiChar) = 0) or                         (buf.Event.KeyEvent.dwControlKeyState and
+                         (LEFT_ALT_PRESSED or ENHANCED_KEY) > 0) then
                         begin
                            SpecialKey := TRUE;
                            ScanCode := Chr(RemapScanCode(Buf.Event.KeyEvent.wVirtualScanCode, Buf.Event.KeyEvent.dwControlKeyState,
@@ -851,7 +851,10 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.14  2001-08-05 12:23:57  peter
+  Revision 1.15  2001-09-17 21:31:44  peter
+    * enhanced key fix (merged)
+
+  Revision 1.14  2001/08/05 12:23:57  peter
     * fixed for new input_record
 
   Revision 1.13  2001/08/01 18:01:20  peter
