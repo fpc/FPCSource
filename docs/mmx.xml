@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="mmx">
+<short>The MMX unit</short>
+<descr>
+This document describes the <file>MMX</file> unit. This unit allows you to use the
+<var>MMX</var> capabilities of the Free Pascal compiler. It was written by Florian
+Klaempfl for the <var>I386</var> processor. It should work on all platforms that
+use the Intel processor.
+</descr>
+
+<element name="tmmxshortint">
+<short>Array of shortints, 64 bits in size</short>
+</element>
+
+<element name="tmmxbyte">
+<short>Array of bytes, 64 bits in size</short>
+</element>
+
+<element name="tmmxword">
+<short>Array of words, 64 bits in size</short>
+</element>
+
+<element name="tmmxinteger">
+<short>Array of integers, 64 bits in size</short>
+</element>
+
+<element name="tmmxfixed">
+<short>Array of Fixed16, 64 bits in size</short>
+</element>
+
+<element name="tmmxlongint">
+<short>Array of longint, 64 bits in size</short>
+</element>
+
+<element name="tmmxcardinal">
+<short>Array of cardinals, 64 bits in size</short>
+</element>
+
+<element name="tmmxsingle">
+<short>Array of singles, 64 bits in size</short>
+</element>
+
+<element name="pmmxshortint">
+<short>Pointer to <link id="tmmxshortint"/> array type</short>
+</element>
+
+<element name="pmmxbyte">
+<short>Pointer to <link id="tmmxbyte"/> array type</short>
+</element>
+
+<element name="pmmxword">
+<short>Pointer to <link id="tmmxword"/> array type</short>
+</element>
+
+<element name="pmmxinteger">
+<short>Pointer to <link id="tmmxinteger"/> array type</short>
+</element>
+
+<element name="pmmxfixed">
+<short>Pointer to <link id="tmmxfixed"/> array type</short>
+</element>
+
+<element name="pmmxlongint">
+<short>Pointer to <link id="tmmxlongint"/> array type</short>
+</element>
+
+<element name="pmmxcardinal">
+<short>Pointer to <link id="tmmxcardinal"/> array type</short>
+</element>
+<element name="pmmxsingle">
+<short>Pointer to <link id="tmmxsingle"/> array type</short>
+</element>
+
+<element name="is_mmx_cpu">
+<short>Is the current processor equipped with a MMX capable CPU</short>
+<descr>
+The <var>is_mmx_cpu</var> initialized constant allows you to determine 
+if the computer has <var>MMX</var> extensions. It is set correctly in 
+the unit's initialization code.
+</descr>
+</element>
+
+<element name="is_amd_3d_cpu">
+<short>Is the current processor equipped with a AMD 3D  CPU</short>
+<descr>
+The <var>is_amd_3d_cpu</var> initialized constant allows you to determine 
+if the computer has the AMD 3D extensions. It is set correctly in 
+the unit's initialization code.
+</descr>
+</element>
+
+<element name="is_amd_3d_mmx_cpu">
+<short>Is the current processor equipped with a AMD 3D MMX CPU</short>
+<descr>
+The <var>is_amd_3d_mmx_cpu</var> initialized constant allows you to determine 
+if the computer has the AMD 3D MMX extensions. It is set correctly in 
+the unit's initialization code.
+</descr>
+</element>
+
+<element name="is_amd_3d_dsp_cpu">
+<short>Is the current processor equipped with a AMD 3D DSP CPU</short>
+<descr>
+The <var>is_amd_3d_dsp_cpu</var> initialized constant allows you to determine 
+if the computer has the AMD 3D DSP extensions. It is set correctly in 
+the unit's initialization code.
+</descr>
+</element>
+
+<element name="is_sse_cpu">
+<short>Is the current processor equipped with a SSE CPU</short>
+<descr>
+The <var>is_sse_cpu</var> initialized constant allows you to determine 
+if the computer has the SSE extensions. It is set correctly in 
+the unit's initialization code.
+</descr>
+</element>
+
+
+
+<element name="is_sse2_cpu">
+<short>Is the current processor equipped with a SSE2 CPU</short>
+<descr>
+The <var>is_sse2_cpu</var> initialized constant allows you to determine 
+if the computer has the SSE2 extensions. It is set correctly in 
+the unit's initialization code.
+</descr>
+</element>
+
+<element name="Emms">
+<short>Reset floating point registers</short>
+<descr>
+<p>
+<var>Emms</var> sets all floating point registers to empty. This procedure must
+be called after you have used any <var>MMX</var> instructions, if you want to use
+floating point arithmetic. If you just want to move floating point data
+around, it isn't necessary to call this function, the compiler doesn't use
+the FPU registers when moving data. Only when doing calculations, you should
+use this function. The following code demonstrates this:
+</p>
+<code>
+Program MMXDemo;
+uses mmx;
+var
+   d1 : double;
+   a : array[0..10000] of double;
+   i : longint;
+begin
+   d1:=1.0;
+{$mmx+}
+   { floating point data is used, but we do _no_ arithmetic }
+   for i:=0 to 10000 do
+     a[i]:=d2;  { this is done with 64 bit moves }
+{$mmx-}
+   emms;   { clear fpu }
+   { now we can do floating point arithmetic again }
+end. 
+</code>
+</descr>
+<seealso>
+<link id="femms"/>
+</seealso>
+</element>
+
+<element name="femms">
+<short>Reset floating point registers - AMD version</short>
+<descr>
+<var>femms</var> executes the <var>femms</var> assembler instruction for AMD
+processors. it is not supported by all assemblers, hence it is coded as byte
+codes.
+</descr>
+<seealso>
+<link id="emms"/>
+</seealso>
+</element>
+
+</module>
+</package>
+</fpdoc-descriptions>
