@@ -129,7 +129,7 @@ function kbdcharin(var Akeyrec:Tkbdkeyinfo;wait,kbdhandle:longint):word;
 function kbdpeek(var Akeyrec:TkbdkeyInfo;kbdhandle:word):word;
                  external 'EMXWRAP' index 222;
 
-function dossleep(time:longint):word;
+function dossleep(time:longint):word; cdecl;
                   external 'DOSCALLS' index 229;
 function vioscrollup(top,left,bottom,right,lines:longint;
                      var screl:word;viohandle:longint):word;

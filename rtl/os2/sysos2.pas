@@ -112,7 +112,7 @@ implementation
 {$I SYSTEM.INC}
 
 procedure dosgetinfoblocks(var Atib:Pthreadinfoblock;
-                           var Apib:Pprocessinfoblock);
+                           var Apib:Pprocessinfoblock); cdecl;
                            external 'DOSCALLS' index 312;
 
 {This is the correct way to call external assembler procedures.}
@@ -750,7 +750,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  1999-09-10 15:40:35  peter
+  Revision 1.18  2000-01-02 17:45:25  hajny
+    * cdecl added for doscalls routines
+
+  Revision 1.17  1999/09/10 15:40:35  peter
     * fixed do_open flags to be > $100, becuase filemode can be upto 255
 
   Revision 1.16  1999/06/01 13:23:16  peter
