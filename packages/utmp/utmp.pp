@@ -261,7 +261,8 @@ var
 
     begin
       BlockRead(F, LL_Entry, SizeOf(tLL_Utmp));
-      Byte(Entry.Type_of_login) := LL_Entry.ut_type;
+      //Byte(Entry.Type_of_login) := LL_Entry.ut_type;
+      Entry.Type_of_login := tLogin_type(LL_Entry.ut_type);
       Entry.Pid := Longint(LL_Entry.ut_id);
       Entry.Device:=LL_entry.ut_line;
       Entry.TTy_Name:=LL_Entry.ut_id;
@@ -324,7 +325,10 @@ begin
   Set_search_parameters(Include,DefaultLoginType);
 end.
   $Log$
-  Revision 1.4  2001-04-08 12:27:55  peter
+  Revision 1.5  2001-08-31 22:17:27  pierre
+   * avoid typecast at left of assignment
+
+  Revision 1.4  2001/04/08 12:27:55  peter
     * made it compilable with both 1.0.x and 1.1
 
   Revision 1.3  2001/01/21 21:38:52  marco
