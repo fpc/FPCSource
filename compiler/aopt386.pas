@@ -880,12 +880,11 @@ End;
                         (Pai386(hp1)^._operator = A_MOV)
                        Then
                          Begin
-                           { Removes the second statement from
-                               mov %reg, mem
-                               mov mem, %reg }
                            If (Pai386(hp1)^.op1t = Pai386(p)^.op2t) and
                               (Pai386(hp1)^.op2t = Pai386(p)^.op1t)
                              Then
+                               {mov reg1, mem1     or     mov mem1, reg1
+                                mov mem2, reg2            mov reg2, mem2}
                                Begin
                                  If (Pai386(hp1)^.op2t = top_ref)
                                    Then
@@ -894,6 +893,8 @@ End;
                                      TmpBool1 := Pai386(hp1)^.op2 = Pai386(p)^.op1;
                                  If TmpBool1
                                    Then
+                               {mov reg1, mem1     or     mov mem1, reg1
+                                mov mem2, reg1            mov reg2, mem1}
                                      Begin
                                        If (Pai386(hp1)^.op1t = top_ref)
                                          Then
@@ -901,6 +902,9 @@ End;
                                                                  TReference(Pai386(p)^.op2^))
                                          Else TmpBool1 := (Pai386(hp1)^.op1 = Pai386(p)^.op2);
                                       If TmpBool1 Then
+                           { Removes the second statement from
+                               mov reg1, mem1
+                               mov mem1, reg1 }
                                          Begin
 {                                          hp1 := pai(p^.next);}
                                            AsmL^.remove(hp1);
@@ -939,17 +943,23 @@ End;
                                                  Dispose(hp2,Done);
                                                End
                                              Else
-                                    {   mov mem1, esi
-                                        mov esi, mem2
+                                    {   mov mem1, reg1
+                                        mov reg1, mem2
                                         mov mem2, reg2
                                      to:
-                                        mov mem1, esi
+                                        mov mem1, reg1
                                         mov mem1, reg2
-                                        mov esi, mem2}
+                                        mov reg1, mem2}
                                                Begin
                                                  Pai386(hp1)^.opxt := top_ref + top_reg shl 4;
-                                                 Pai386(hp1)^.op1 := Pai386(p)^.op1;
+                                                 Pai386(hp1)^.op1 := Pai386(hp1)^.op2; {move the treference}
                                                  TReference(Pai386(hp1)^.op1^) := TReference(Pai386(p)^.op1^);
+                                                 If Assigned(TReference(Pai386(p)^.op1^).Symbol) Then
+                                                   Begin
+                                                     New(TReference(Pai386(hp1)^.op1^).Symbol);
+                                                     TReference(Pai386(hp1)^.op1^).Symbol^ :=
+                                                         TReference(Pai386(p)^.op1^).Symbol^;
+                                                   End;
                                                  Pai386(hp1)^.op2 := Pai386(hp2)^.op2;
                                                  Pai386(hp2)^.opxt := top_reg + top_ref shl 4;
                                                  Pai386(hp2)^.op2 := Pai386(hp2)^.op1;
@@ -1621,7 +1631,10 @@ end;
 End.
 {
   $Log$
-  Revision 1.12  1998-05-24 15:20:59  jonas
+  Revision 1.13  1998-05-24 18:42:37  jonas
+    * final bugfilx for mov optimizes, remake3 with optimizations works again!
+
+  Revision 1.12  1998/05/24 15:20:59  jonas
     * 2 bugs fixed in mov peepholeoptimizes
 
   Revision 1.11  1998/05/23 01:21:00  peter
