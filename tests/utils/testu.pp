@@ -19,9 +19,13 @@ type
     NeedTarget,
     SkipTarget,
     NeedVersion,
-    KnownRunNote  : string;
+    KnownRunNote,
+    KnownCompileNote,
+    KnownCompile10Note    : string;
     ResultCode    : longint;
     KnownRunError : longint;
+    KnownCompileError,
+    KnownCompile10Error : longint;
     NeedRecompile : boolean;
     NeedLibrary   : boolean;
     IsInteractive : boolean;
@@ -162,8 +166,17 @@ begin
               if GetEntry('OPT') then
                r.NeedOptions:=res
               else
+               if GetEntry('TARGET') then
+                r.NeedTarget:=res
+              else
+               if GetEntry('SKIPTARGET') then
+                r.SkipTarget:=res
+              else
                if GetEntry('CPU') then
                 r.NeedCPU:=res
+              else
+               if GetEntry('SKIPCPU') then
+                r.SkipCPU:=res
               else
                if GetEntry('VERSION') then
                 r.NeedVersion:=res
@@ -201,6 +214,42 @@ begin
                         r.KnownRunError:=l;
                       if res<>'' then
                         r.KnownRunNote:=res;
+                    end;
+                end
+              else
+               if GetEntry('KNOWNCOMPILEERROR') then
+                begin
+                  if res<>'' then
+                    begin
+                      val(res,l,code);
+                      if code>1 then
+                        begin
+                          part:=code;
+                          val(copy(res,1,code-1),l,code);
+                          delete(res,1,part);
+                        end;
+                      if code=0 then
+                        r.KnownCompileError:=l;
+                      if res<>'' then
+                        r.KnownCompileNote:=res;
+                    end;
+                end
+              else
+               if GetEntry('KNOWNCOMPILE10ERROR') then
+                begin
+                  if res<>'' then
+                    begin
+                      val(res,l,code);
+                      if code>1 then
+                        begin
+                          part:=code;
+                          val(copy(res,1,code-1),l,code);
+                          delete(res,1,part);
+                        end;
+                      if code=0 then
+                        r.KnownCompile10Error:=l;
+                      if res<>'' then
+                        r.KnownCompile10Note:=res;
                     end;
                 end
               else
