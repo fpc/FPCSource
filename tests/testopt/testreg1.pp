@@ -1,5 +1,5 @@
+{$OPT=-Or}
 {$minenumsize 1}
-
 
 type
    tenum = (e1,e2,e3);
